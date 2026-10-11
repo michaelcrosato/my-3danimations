@@ -484,3 +484,29 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   nothing (PLAN.md WP-2.2, "Ground truth").
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.8.0
+
+## D35 · 2026-10-11 · Pose operations work on key numbers; synced blends take the legs from points
+
+- **Principle:** 2 (one language), 9, WP-2.3
+- **Call:**
+  - Pose operations work on a key's numbers (`KeyLike`), the format's own parameters, as the solver will (§5.5:
+    bake from the parameters).
+  - `blend` takes an angle to the other pose's value nearest it (whole turns apart), so it blends the short way round.
+    At 0 it gives its first input exactly; at 1 the second, angles up to whole turns, which decode identically and
+    stay continuous with the first.
+  - A field neither pose has stays out, because a `hand` present changes how the arm reads (§5.3).
+  - A synchronized blend maps each loop's cycle to a contact phase: the left plant is 0, the right plant 0.5.
+  - Given a rest body, it blends the legs in point space. Both poses are decoded, the points lerped, and the pelvis
+    and legs encoded back unrounded (`encodePose(..., { round: false })`, added to WP-1.3's encoder; its default and
+    the vectors are unchanged).
+    - Why: a foot's height isn't linear in a leg's direction and bend. Blending those numbers lifted feet that both
+      inputs plant by up to 35 mm in a walk–run blend; in point space they stay within 18.5 mm.
+    - Started half a stride out of step, the same blend by time lifts them over 100 mm.
+  - Masks are named groups (`upper`, `lower`, `armL`, `armR`, `legs`, `head`, `spine`), feathered along the body's
+    links.
+  - Retiming and slicing drop measured facts, to be measured again; loopify eases the last stretch toward the first
+    pose.
+- **Why:** these are the operations every layer and graph state (WP-2.6, 6.x) is built from; their properties are the
+  G2 property tests.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.9.0

@@ -4,6 +4,15 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.9.0 · 2026-10-11
+
+### Core
+- WP-2.3: pose operations (`ops/`): `blend` (angles the short way round; exact at 0 and 1 up to whole turns),
+  `delta` and `addDelta`, `mask` by body group with feathering, `mirrorPose`, `retime` (speed, duration or an ease
+  curve), `slice` (across a loop's seam; the root restarts), `loopify`, and `phaseMap` and `syncBlend` (contact-phase
+  sync; the legs blend in point space, so planted feet stay within 20 mm of the floor).
+- `encodePose` takes `round: false` for exact, unrounded numbers (the default is unchanged).
+
 ## 0.8.0 · 2026-10-11
 
 ### Core

@@ -10,7 +10,7 @@ import { PORTABLE as PM } from "../math/portable.ts";
 /** A key under construction or interpolated: named number arrays (and `t`, `yaw`). */
 export type KeyLike = Partial<Key> & Record<string, unknown>;
 
-const r0 = (v: number) => Math.round(v);
+const round = (v: number) => Math.round(v);
 const SIDES: Side[] = ["L", "R"];
 const arr = (k: KeyLike, f: string) => k[f] as number[] | undefined;
 
@@ -45,11 +45,14 @@ export function torso(R: Rest, k: KeyLike) {
 /** Options for encoding: `hands` also fits format 2's hand and finger fields from the hand's body points. */
 export interface EncodeOptions {
   hands?: boolean;
+  /** Whole numbers, as a file holds them (the default); false keeps the exact values, for blending in point space. */
+  round?: boolean;
 }
 
 /** One key pose from captured body points; `prev` (the key before) keeps angles continuous. */
 export function encodePose(R: Rest, X: ArrayLike<number>, prev: KeyLike | null, opts: EncodeOptions = {}): KeyLike {
   const D = derived(R);
+  const r0 = opts.round === false ? (v: number) => v : round;
   const p = (n: string) => pt(X, n);
   const k: KeyLike = {};
   const pr: KeyLike = prev || {};
@@ -104,7 +107,7 @@ export function encodePose(R: Rest, X: ArrayLike<number>, prev: KeyLike | null, 
     const down = PM.asin(Math.max(-1, Math.min(1, -fd[2]))) / DG;
     k["foot" + s] = [r0(down - R.abPitch), r0(unwrap(PM.atan2(fd[1] * SG[s], fd[0]) / DG, pf ? pf[1] : undefined)), r0(down - PM.asin(Math.max(-1, Math.min(1, -td[2]))) / DG - (R.abPitch - R.btPitch))];
   }
-  if (opts.hands) for (const s of SIDES) encodeHand(R, X, k, tq, s, arr(pr, "hand" + s));
+  if (opts.hands) for (const s of SIDES) encodeHand(R, X, k, tq, s, arr(pr, "hand" + s), r0);
   return k;
 }
 
@@ -211,7 +214,7 @@ export function decodePose(R: Rest, k: KeyLike, out: Float32Array | number[]): F
 }
 
 /** Fit format 2's hand and finger fields from the captured hand points, against the arm as it decodes. */
-function encodeHand(R: Rest, X: ArrayLike<number>, k: KeyLike, tq: ReturnType<typeof torso>, s: Side, prev: number[] | undefined): void {
+function encodeHand(R: Rest, X: ArrayLike<number>, k: KeyLike, tq: ReturnType<typeof torso>, s: Side, prev: number[] | undefined, r0: (v: number) => number = round): void {
   const p = (n: string) => pt(X, n);
   const { el, fist, pole } = arm(R, k, tq, s);
   const wr = add(el, mul(norm(sub(fist, el)), R.fore));
