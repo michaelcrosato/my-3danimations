@@ -2221,7 +2221,7 @@ version, commit, date and a note with the numbers. Gates are rows too.
 | 2.6 The Animator | done | 0.12.1 | 7d8cef6, ba5e792 | 2026-10-11 | 480-step script: state hash every step, 29 events and 5 exact poses identical in Node and Chromium, with poses skipped, every step or alternating LOD; save at every step → restore via JSON → next 40 identical; changed/missing clip refused by name; feet ≤10 mm; step 1.4 µs, pose 0.20 ms (4 layers, 4 cores); API 38 of 40, documented ; review: seams once a cycle at any speed, one-shot ends once, no −0, body and in-place edits refused (D38) |
 | **G2** | done | 0.12.1 | a5fb0a0 | 2026-10-11 | 8/8 in 42.1 s: T0 1.7 s, T1 14.8 s (305 tests), doctrine 8/8 (API 38/40), vectors, tiers 1a–3, Animator Node = Chromium (480 hashes, 41 events, 5 exact poses), V8 = JSC (math, chain, Animator), property tests; verifiers: WP-2.4 8 + G2 7 findings fixed (D36, D38), notes F2, F3 |
 | 3.1 The software raster | done | 0.13.0 | 7b81c29 | 2026-10-11 | 5 views + turntable: same PNG bytes in two runs and a second process; 1,000 × 1,000 in 9.5 ms (≤50); left blue / right amber by view, the jabbing fist blue, amber when mirrored; NaN pose blank and named (D39) |
-| 3.2 Sheets, films and diffs | todo | | | | |
+| 3.2 Sheets, films and diffs | done | 0.14.0 | (next commit) | 2026-10-11 | 2 s clips: 1,000 × 404, 539 tokens (budget 1,400); 41 frames shrink to ≤1,000 tokens; identical diff empty; a one-key arm edit marked in exactly the frames between its neighbours, box holding the edited elbow and fist (D40) |
 | 3.3 The metrics | todo | | | | |
 | 3.4 Describe | todo | | | | |
 | 3.6 Planted defects | todo | | | | |

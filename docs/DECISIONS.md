@@ -702,3 +702,27 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   pose the right fist reads amber. A NaN pose draws nothing, and the non-blank check names it.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.13.0
+
+## D40 · 2026-10-11 · Sheets are sized to a token budget and compared on one camera
+
+- **Principle:** 4, 5, WP-3.2
+- **Call:**
+  - A sheet's cost is stated as width × height / 750 tokens (1,334 for 1,000 × 1,000), and every sheet carries its
+    size and cost. Cells shrink from the widest the width allows until the image is within the budget (1,400 tokens by
+    default), so a dense sheet never costs more than it says.
+  - Every cell of a sheet is drawn at one scale and centre, fitted over all its frames and the feet's trails. A loop's
+    sheet draws its cycle without the repeated end, and a one-shot's runs from start to end.
+  - Overlays:
+    - planted feet as diamonds on the floor under the sole, in the side's dark colour, drawn over the body so the foot
+      can't hide them;
+    - each foot's trail on the floor;
+    - flagged times framed in red;
+    - a timeline with each foot's contacts on its own lane, the flags in red, and the frames as ticks.
+  - A diff is three rows (A, B, and A dimmed with every changed pixel magenta, the changed region boxed in red), or
+    the marked row alone. `compareClips` draws both sheets at the same times, under one title and on one camera
+    fitted over both, so only the motion can differ.
+- **Result:** the 2 s clips' sheets are 1,000 × 404 (539 tokens); 41 frames at a 1,000-token budget fit. A diff of
+  identical clips is empty. An edit to one key's right arm is marked in exactly the frames between its neighbouring
+  keys, and the box holds the edited elbow and fist.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.14.0

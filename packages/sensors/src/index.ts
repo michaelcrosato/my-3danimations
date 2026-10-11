@@ -16,3 +16,9 @@ export { turntable } from "./raster/index.ts";
 export type { Image } from "./raster/index.ts";
 /** The software raster: images, the bitmap font, views and cameras, the mannequin's capsules, PNG bytes. */
 export * as raster from "./raster/index.ts";
+/** A clip's contact sheet: its frames at their times, one scale, with contacts, trails, flags and a timeline. */
+export { sheet } from "./sheet/index.ts";
+/** Where two images differ: A, B, and A with every changed pixel marked. */
+export { diff } from "./sheet/index.ts";
+/** Sheets, filmstrips, diffs between clips or builds, and token costs. */
+export * as sheets from "./sheet/index.ts";

@@ -4,6 +4,15 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.14.0 · 2026-10-11
+
+### Sensors
+- WP-3.2: sheets, films and diffs (`sheet/`):
+  - `sheet` (a clip's frames at one scale, in rows of eight) and `filmstrip`;
+  - overlays for planted feet, foot trails, flagged times in red, and a timeline of contacts and flags;
+  - `diff` (A, B, and A with changes marked) and `compareClips` (two clips on one camera);
+  - each image's size and token cost, within a budget.
+
 ## 0.13.0 · 2026-10-11
 
 ### Sensors

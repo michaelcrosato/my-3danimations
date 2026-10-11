@@ -1,6 +1,6 @@
 {
   "name": "@m3a/library",
-  "version": "0.13.0",
+  "version": "0.14.0",
   "private": true,
   "description": "The library loader, search, facts, license tiers and dedup.",
   "license": "MIT",
@@ -9,6 +9,6 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "@m3a/core": "0.13.0"
+    "@m3a/core": "0.14.0"
   }
 }
