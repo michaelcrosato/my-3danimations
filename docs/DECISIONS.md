@@ -383,3 +383,16 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
 - **Why:** distinct content gets distinct names (D4), and provenance must be right before anything ships (R8).
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.6.0
+
+## D31 · 2026-10-11 · Spec 2.0-rc frozen at G1, held by a doctrine check
+
+- **Principle:** 12 (the contract), D3 (gate G1)
+- **Call:** `spec/MOTION.md`, `spec/SKELETON.md`, `spec/LEGEND.md` and `spec/schemas/*.json` are frozen as spec 2.0-rc.
+  `spec/frozen.json` records their SHA-256s and `npm run doctrine` fails when one changes without it. A frozen file
+  changes only in a commit that logs a decision and reruns `node tools/doctrine/freeze.ts <decision>`. Before the
+  freeze the spec gained `_baseline.json` (§9.4, with a schema) and the source record's `terms`, `audit`, `file` and
+  `rig` (§9.1), so every field in the vectors and the migrated sets is specified (the library test lints every clip
+  and manifest for unknown fields: none). The freeze check lands in `tools/doctrine/`, which WP-0.3 owns.
+- **Why:** every game and every port depends on the contract (principle 12); a freeze nobody checks drifts.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.6.0

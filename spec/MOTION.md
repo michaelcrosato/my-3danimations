@@ -1,6 +1,7 @@
 # The m3a motion format, 2.0-rc
 
-**Status:** release candidate, written in WP-1.1 (2026-10-11); frozen at gate G1. **Legend:** `spec/LEGEND.md` (what a
+**Status:** release candidate, written in WP-1.1 and frozen at gate G1 (2026-10-11): it changes only through a logged
+decision that also updates `spec/frozen.json`. **Legend:** `spec/LEGEND.md` (what a
 model reads first). **Skeleton:** `spec/SKELETON.md` (WP-1.4). **Schemas:** `spec/schemas/` (WP-1.2). **Conformance:**
 `spec/conformance/tiers.md` and `spec/vectors/`. Format 2 keeps format 1's design (my-3d2dge `src/mocap/readable.js`,
 `docs/MOCAP.md` at the pinned commit) and every format-1 key decodes the same; this document says so field by field.
@@ -281,7 +282,7 @@ events; at most 256 contact intervals per end. A clip that needs more is split.
 | `legend` | `{ "version": "2.0", "text": [lines] }`: the legend the clips follow (`LEGEND.md`), so a model never reads numbers without it |
 | `tier` | `cc0`, `cc-by`, `cmu` or `local` (D10) |
 | `content` | `{ "edition": "…", "importer": "…", "sha256": "…" }`: the source edition, the importer revision, and the SHA-256 of the set's clip files (§9.2) |
-| `sources` | `{ id: { label, origin, license, url, credit, rest } }`: where each library came from and its measured rest body (§3.2) |
+| `sources` | `{ id: { label, origin, license, terms, url, credit, audit, file, rig, rest } }`: where each library came from (`license` an SPDX id, `terms` the source's own words, `audit` an open license question, `file` and `rig` what the importer read) and its measured rest body (§3.2) |
 | `credit` | The set's attribution line |
 | `producer` | `{ tool, version }` that wrote the set |
 | `body` | Optional: the mannequin's look measured from the first library's mesh |
@@ -299,6 +300,12 @@ empty when it isn't measured or the clip doesn't travel), tags (space-separated)
 (`provenance.src`; the clip file names any `orig`). A description that would overrun the budget is cut for the row
 at a sentence or clause, or at a word with "…"; the clip keeps it whole. A model picks clips from catalog rows, never
 from motion data.
+
+### 9.4 The warnings baseline, `_baseline.json`
+
+`{ "about": "…", "clips": { "<Slug>": [{ "code": "M2-W002", "at": "key 18 (t 0.567) armL[4]", "reason": "…" }] } }`:
+the validator's warnings a set accepts, per clip, each with its reason and the work that will address it. A clip
+with a warning not listed here, or a listed warning that no longer occurs, fails the library's checks.
 
 ## 10. Versioning and compatibility
 

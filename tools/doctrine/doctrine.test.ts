@@ -11,6 +11,7 @@ import { makeCtx, type Ctx } from "./context.ts";
 import { checkDecisions, entryIds } from "./decisions.ts";
 import { checkLocal } from "./local.ts";
 import { checkPins, sha256File } from "./pins.ts";
+import { checkFrozen } from "./frozen.ts";
 
 /** A context over a fresh folder holding `files` (path -> text or bytes); `main` is the decisions log on main. */
 function fixture(files: Record<string, string | Uint8Array>, main: Record<string, string> = {}): Ctx {
@@ -140,5 +141,16 @@ describe("the local lane", () => {
     expect(checkLocal(fixture({ "library/local/README.md": "x", "library/sets/A/_set.json": '{"tier":"cc0"}' }))).toEqual([]);
     const msgs = checkLocal(fixture({ "library/local/X/Walk.json": "{}", "library/sets/A/_set.json": '{"tier":"local"}', "library/sets/B/catalog.tsv": "see library/local/X" })).map((f) => f.message);
     expect(msgs).toHaveLength(3);
+  });
+});
+
+describe("the frozen spec", () => {
+  it("passes an untouched frozen file and fails a changed or missing one", () => {
+    const probe = fixture({ "MOTION.md": "spec" });
+    const sha = sha256File(join(probe.root, "MOTION.md"));
+    const frozen = (files: Record<string, string>) => JSON.stringify({ about: "", version: "2.0-rc", decision: "D1", files });
+    expect(checkFrozen(fixture({ "spec/MOTION.md": "spec", "spec/frozen.json": frozen({ "spec/MOTION.md": sha }) })).findings).toEqual([]);
+    expect(checkFrozen(fixture({ "spec/MOTION.md": "spec, edited", "spec/frozen.json": frozen({ "spec/MOTION.md": sha }) })).findings[0]!.message).toMatch(/changed, but spec 2.0-rc is frozen/);
+    expect(checkFrozen(fixture({ "spec/frozen.json": frozen({ "spec/MOTION.md": sha }) })).findings[0]!.message).toMatch(/missing/);
   });
 });

@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/michaelcrosato/my-3danimations/spec/schemas/baseline.schema.json",
+  "title": "m3a warnings baseline (_baseline.json), format 2.0",
+  "description": "The validator's warnings a set accepts per clip, each with its reason (spec/MOTION.md \u00a79.4).",
+  "type": "object",
+  "required": [
+    "about",
+    "clips"
+  ],
+  "properties": {
+    "about": {
+      "type": "string"
+    },
+    "clips": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": [
+            "code",
+            "at",
+            "reason"
+          ],
+          "properties": {
+            "code": {
+              "type": "string",
+              "pattern": "^M2-W[0-9]{3}$"
+            },
+            "at": {
+              "type": "string"
+            },
+            "reason": {
+              "type": "string",
+              "minLength": 20
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

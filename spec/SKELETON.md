@@ -1,6 +1,7 @@
 # The m3a skeleton profile, 2.0-rc
 
-**Status:** release candidate, written in WP-1.4 (2026-10-11); frozen with `MOTION.md` at gate G1. **Code:**
+**Status:** release candidate, written in WP-1.4 and frozen with `MOTION.md` at gate G1 (2026-10-11): it changes
+only through a logged decision that also updates `spec/frozen.json`. **Code:**
 `@m3a/core` `skeleton/` (`recognize`, `patchMapping`, `restFrame`, `measure`, `restPoints`). The format's keys and body
 points are in `spec/MOTION.md`; this document says which bones of a real skeleton play them.
 

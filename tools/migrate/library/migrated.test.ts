@@ -5,8 +5,13 @@ import { createHash } from "node:crypto";
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { parseClip, pose, serialize, validate, validateCatalogRow, type Rest } from "@m3a/core";
+import { Ajv2020 } from "ajv/dist/2020.js";
 import { describe, expect, it } from "vitest";
 import { loadTier2 } from "../../../spec/conformance/runner/vectors.ts";
+
+const baselineSchema = new Ajv2020({ strict: false }).compile(JSON.parse(readFileSync(join(import.meta.dirname, "../../../spec/schemas/baseline.schema.json"), "utf8")) as object);
+/** The source record fields spec/MOTION.md §9.1 names. */
+const SOURCE_FIELDS = ["label", "origin", "license", "terms", "url", "credit", "audit", "file", "rig", "rest"];
 
 const LIB = join(import.meta.dirname, "../../../library/sets");
 const sha = (s: string) => createHash("sha256").update(s).digest("hex");
@@ -25,8 +30,11 @@ describe("the migrated library", () => {
       const files = readdirSync(dir).filter((f) => !f.startsWith("_") && f.endsWith(".json")).sort();
       const manifest = JSON.parse(readFileSync(join(dir, "_set.json"), "utf8"));
       const baseline = JSON.parse(readFileSync(join(dir, "_baseline.json"), "utf8")).clips as Record<string, { code: string; at: string; reason: string }[]>;
-      it("validates its manifest, and its content id matches its clip files", () => {
-        expect(validate(manifest, { kind: "set", mode: "read" }).errors).toEqual([]);
+      it("validates its manifest and baseline, with only specified fields, and its content id matches its clip files", () => {
+        const lint = validate(manifest, { kind: "set", mode: "lint" });
+        expect([...lint.errors, ...lint.warnings]).toEqual([]);
+        for (const src of Object.values(manifest.sources) as Record<string, unknown>[]) expect(Object.keys(src).filter((k) => !SOURCE_FIELDS.includes(k))).toEqual([]);
+        expect(baselineSchema(JSON.parse(readFileSync(join(dir, "_baseline.json"), "utf8"))), JSON.stringify(baselineSchema.errors)).toBe(true);
         const id = sha(files.map((f) => `${f}\n${sha(readFileSync(join(dir, f), "utf8"))}\n`).join(""));
         expect(manifest.content.sha256).toBe(id);
         expect(manifest.tier).toBe({ CMU_CURATED: "cmu", STYLE100: "cc-by" }[set as "CMU_CURATED" | "STYLE100"] ?? "cc0");
@@ -38,6 +46,7 @@ describe("the migrated library", () => {
           expect(serialize(clip), f).toBe(text);
           const r = validate(clip, { mode: "read" });
           expect(r.errors, f).toEqual([]);
+          expect(validate(clip, { mode: "lint" }).warnings.filter((w) => w.code === "M2-W001"), `${f}: every field is specified`).toEqual([]);
           const got = r.warnings.map((w) => `${w.code} ${w.key !== undefined ? `key ${w.key} (t ${w.t}) ` : ""}${w.field ?? ""}${w.index !== undefined ? `[${w.index}]` : ""}`);
           const want = (baseline[f.replace(/\.json$/, "")] ?? []).map((b) => `${b.code} ${b.at}`);
           expect(got, f).toEqual(want);
