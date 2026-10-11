@@ -31,8 +31,9 @@ const unit = (a: V): V => {
   return [a[0] / l, a[1] / l, a[2] / l];
 };
 
-/** One capsule: two ends (mm), their radii (mm) and a colour. */
+/** One capsule: its part's name (`thighL`, `chest`, ...), two ends (mm), their radii (mm) and a colour. */
 export interface Capsule {
+  name: string;
   a: V;
   b: V;
   ra: number;
@@ -49,35 +50,35 @@ export function capsules(X: ArrayLike<number>, root?: Root): Capsule[] {
   const thigh = (Math.hypot(...sub(P("hipL"), P("kneeL"))) + Math.hypot(...sub(P("hipR"), P("kneeR")))) / 2;
   const k = Number.isFinite(thigh) && thigh > 1 ? thigh / 430 : 1;
   const out: Capsule[] = [];
-  const part = (a: V, b: V, ra: number, rb: number, color: Rgb) => out.push({ a, b, ra: ra * k, rb: rb * k, color });
+  const part = (name: string, a: V, b: V, ra: number, rb: number, color: Rgb) => out.push({ name, a, b, ra: ra * k, rb: rb * k, color });
   const { body, left, nose } = COLORS;
   for (const s of ["L", "R"]) {
     const c = s === "L" ? left : body, hip = P("hip" + s), knee = P("knee" + s), ank = P("ankle" + s), ball = P("ball" + s), toe = P("toe" + s);
     const heel = add(lerp(ank, ball, -0.28), [0, 0, -1], 45 * k);
-    part(hip, knee, 80, 60, c);
-    part(knee, ank, 56, 40, c);
-    part(heel, ball, 44, 40, c);
-    part(ball, toe, 38, 28, c);
+    part("thigh" + s, hip, knee, 80, 60, c);
+    part("shin" + s, knee, ank, 56, 40, c);
+    part("foot" + s, heel, ball, 44, 40, c);
+    part("toes" + s, ball, toe, 38, 28, c);
   }
   const pelvis = P("pelvis"), sp1 = P("spine1"), sp2 = P("spine2"), chest = P("chest"), neck = P("neck"), head = P("head"), top = P("headTop");
   const fwdC = unit(sub(P("chestF"), chest)), fwdH = unit(sub(P("faceF"), head)), up = unit(sub(neck, sp2));
-  part(P("hipL"), P("hipR"), 92, 92, body);
-  part(pelvis, sp1, 118, 112, body);
-  part(sp1, sp2, 104, 112, body);
-  part(sp2, add(chest, up, 40 * k), 122, 132, body);
-  part(add(add(lerp(chest, P("shL"), 0.38), fwdC, 22 * k), up, -30 * k), add(add(lerp(chest, P("shR"), 0.38), fwdC, 22 * k), up, -30 * k), 112, 112, body);
-  part(add(neck, up, -20 * k), lerp(head, top, 0.25), 48, 46, body);
+  part("hips", P("hipL"), P("hipR"), 92, 92, body);
+  part("pelvis", pelvis, sp1, 118, 112, body);
+  part("belly", sp1, sp2, 104, 112, body);
+  part("chest", sp2, add(chest, up, 40 * k), 122, 132, body);
+  part("pecs", add(add(lerp(chest, P("shL"), 0.38), fwdC, 22 * k), up, -30 * k), add(add(lerp(chest, P("shR"), 0.38), fwdC, 22 * k), up, -30 * k), 112, 112, body);
+  part("neck", add(neck, up, -20 * k), lerp(head, top, 0.25), 48, 46, body);
   const jaw = add(lerp(head, top, 0.3), fwdH, 26 * k), crown = lerp(head, top, 0.64);
-  part(jaw, crown, 70, 96, body);
+  part("head", jaw, crown, 70, 96, body);
   // the nose: out from the face along the head's forward, so facing reads in every view
   const face = add(lerp(head, top, 0.42), fwdH, 70 * k);
-  part(face, add(face, fwdH, 55 * k), 22, 14, nose);
+  part("nose", face, add(face, fwdH, 55 * k), 22, 14, nose);
   for (const s of ["L", "R"]) {
     const c = s === "L" ? left : body, cl = P("clav" + s), sh = P("sh" + s), el = P("elbow" + s), wr = P("wrist" + s), kn = P("knuck" + s), fist = P("fist" + s);
-    part(lerp(cl, sh, 0.45), sh, 62, 68, c);
-    part(sh, el, 62, 46, c);
-    part(el, wr, 46, 34, c);
-    part(wr, lerp(kn, fist, 0.5), 36, 38, c);
+    part("shoulder" + s, lerp(cl, sh, 0.45), sh, 62, 68, c);
+    part("upperArm" + s, sh, el, 62, 46, c);
+    part("forearm" + s, el, wr, 46, 34, c);
+    part("hand" + s, wr, lerp(kn, fist, 0.5), 36, 38, c);
   }
   return root ? out.map((c) => ({ ...c, a: toWorld(c.a, root), b: toWorld(c.b, root) })) : out;
 }

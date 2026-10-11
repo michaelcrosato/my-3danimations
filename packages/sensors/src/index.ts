@@ -22,3 +22,11 @@ export { sheet } from "./sheet/index.ts";
 export { diff } from "./sheet/index.ts";
 /** Sheets, filmstrips, diffs between clips or builds, and token costs. */
 export * as sheets from "./sheet/index.ts";
+/** Every metric over a clip on its rest: the report (values, findings with their times) and its verdict. */
+export { metrics } from "./metrics/index.ts";
+/** A clip's metrics report. */
+export type { Report } from "./metrics/index.ts";
+/** The metrics one by one, the sampled motion they read, their thresholds and the tag profiles. */
+export * as checks from "./metrics/index.ts";
+/** Assertions about a clip's motion ("footL planted 0.33–0.60 s, slide < 10 mm"), checked, failing as repairs. */
+export * as predicates from "./predicates/index.ts";

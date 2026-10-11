@@ -726,3 +726,54 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   keys, and the box holds the edited elbow and fist.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.14.0
+
+## D41 · 2026-10-11 · The metrics read sampled points; thresholds come from capture; a flip's swing is the flip
+
+- **Principle:** 4, 5, 9, WP-3.3
+- **Call:**
+  - **One motion for every metric.** A clip is sampled at 60 Hz on its rest. Where the root stands in the world comes
+    from the clip's own travel, or, for an in-place loop, from a treadmill at its measured speed (its planted feet's
+    travel per cycle). An in-place one-shot stands still. Captured points (frames at a rate) are read the same way, so
+    a baked or imported motion is measured like a clip.
+  - **Thirteen metrics, each finding with its times and a repair:**
+    - foot slide (each contact's path of its contact point, and skate in cm/s);
+    - sole and body penetration;
+    - self-intersection: a forearm or hand in the torso, a lower leg in the other, as the mannequin's capsules;
+    - jitter: sustained shaking, the median over 0.15 s of consecutive opposite accelerations;
+    - pops: my-3d2dge's rule, a step four times the median of the steps around it;
+    - twist flips: a limb's twist, a hand's roll or a foot's heading jumping between keys under 0.1 s apart;
+    - knee and neck limits;
+    - bone stretch;
+    - loop seam, pose and velocity;
+    - the import's recorded fit;
+    - non-numbers;
+    - events;
+    - symmetry against a mirrored pair, leaving out format 1's placeholder index and pinky.
+  - **Thresholds come from capture.** CMU and STYLE100 (158 clips) are the real motion. Warn sits near capture's p95
+    and fail near its maximum, except where capture itself carries the data's flips (twist flips, by meaning). Each
+    threshold records its unit, sample rate, whether it scales with hip height (× H0 / 950), and its reason with
+    capture's numbers (`thresholds.ts`). Keyed sets exceed capture often: snaps up to 83 m/s, soles 663 mm under the
+    floor. That is what they are.
+  - **A flip's swing is the flip.** Where a foot points down, the data's heading jumps and the toes swing. Where a limb
+    is straight, its twist jumps (F2.4). The jitter and pops on the points a flip swings, within its keys, fold into
+    the twist-flip finding, so a report names the cause once.
+  - **Elbows aren't limit-checked.** A format-1 arm has no hand frame, and its twist's reference isn't anatomical with
+    the arm raised. Capture would read elbows "bending backwards" in reaches.
+  - **Tag profiles** turn off what doesn't apply:
+    - acrobatics (dodge, climb, getup, flips by name): body on the floor, curling;
+    - lying (death, lie, crawl): body on the floor, sliding, curling;
+    - swimming (swim, fly): the floor;
+    - sitting (sit, vehicle): body on the floor, curling.
+  - **The report** is `report.json` (values, findings) plus a verdict of at most 20 lines, failures first.
+  - **Predicates** have six forms: planted (with a slide bound), free, within frames of an event or the strike, a
+    point above or below a height, any metric compared, and "no" a metric. A failed predicate's repair names the times
+    and the change.
+  - **`npm run qa`** measures the library, and T2 runs it.
+- **Result:**
+  - The whole migrated library is measured in 9.1 s within T2: 261 pass, 101 warn, 163 fail. The fails are mostly
+    twist flips (79 clips) and keyed snaps (83 clips with a pop).
+  - Every metric and predicate has a unit fixture: a defect found at its times, and nothing on the clean motion.
+- **Outside WP-3.3's Owns** (one agent, D21): names on the raster's capsules; T2's runner; the boundary check's
+  import scanner, which read `import's` inside a string as an import.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.15.0

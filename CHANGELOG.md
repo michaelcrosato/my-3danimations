@@ -4,6 +4,21 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.15.0 · 2026-10-11
+
+### Sensors
+- WP-3.3: the metrics (`metrics/`), `metrics(clip, R)`: slide and skate, penetration, self-intersection, jitter, pops,
+  twist flips, knee and neck limits, stretch, loop seams, fit, non-numbers, events and symmetry. Each finding has its
+  times and a repair. Thresholds come from capture, each with its reason; tag profiles relax what doesn't apply. The
+  verdict is at most 20 lines.
+- Predicates (`predicates/`): planted, free, within, height, compare and "no". A failure reads as a repair.
+- The raster's capsules are named by part.
+
+### Tools
+- `npm run qa`: the sensors over the migrated library (`--sample`, `--set`, `--clip`, `--dist`, `--strict`). T2 runs
+  it.
+- The boundary check's import scanner no longer reads `import's` in a string as an import.
+
 ## 0.14.0 · 2026-10-11
 
 ### Sensors

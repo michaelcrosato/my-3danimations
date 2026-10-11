@@ -25,7 +25,7 @@ export const ALLOWED: Record<string, RegExp[]> = {
 /** Every module specifier a source file imports, re-exports or loads dynamically. */
 export function specifiers(text: string): string[] {
   const out: string[] = [];
-  const res = [/\bimport\s+(?:type\s+)?[^'"`;]*?\bfrom\s*["']([^"']+)["']/g, /\bexport\s+(?:type\s+)?[^'"`;]*?\bfrom\s*["']([^"']+)["']/g, /\bimport\s*["']([^"']+)["']/g, /\bimport\s*\(\s*["']([^"']+)["']\s*\)/g, /\brequire\s*\(\s*["']([^"']+)["']\s*\)/g];
+  const res = [/\bimport\s+(?:type\s+)?[^'"`;]*?\bfrom\s*["']([^"']+)["']/g, /\bexport\s+(?:type\s+)?[^'"`;]*?\bfrom\s*["']([^"']+)["']/g, /(?<=(?:^|[\n;])\s*)import\s*["']([^"']+)["']/g, /\bimport\s*\(\s*["']([^"']+)["']\s*\)/g, /\brequire\s*\(\s*["']([^"']+)["']\s*\)/g];
   const code = text.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:"'`])\/\/.*$/gm, "$1");
   for (const re of res) for (const m of code.matchAll(re)) out.push(m[1]!);
   return out;
