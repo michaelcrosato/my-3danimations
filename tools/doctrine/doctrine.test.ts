@@ -32,6 +32,11 @@ describe("binaries", () => {
   it("lets an approved binary through", () => {
     expect(checkBinaries(fixture({ "logo.png": "x" }), { "logo.png": "D99" })).toEqual([]);
   });
+  it("counts a .gltf as binary unless approved by its exact path", () => {
+    const gltf = '{"buffers":[{"uri":"data:application/octet-stream;base64,AAAA"}]}';
+    expect(checkBinaries(fixture({ "rigs/hero.gltf": gltf }))).toHaveLength(1);
+    expect(checkBinaries(fixture({ "spec/vectors/tier1b/rig.gltf": gltf }))).toEqual([]);
+  });
 });
 
 describe("budgets", () => {

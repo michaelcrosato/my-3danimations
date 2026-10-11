@@ -14,11 +14,12 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
   on Chromium 1194 with WebGL 2; `test:changed`, `gate`, header lint, `tools/version.ts` (D22).
 - WP-0.3 Doctrine checks: `npm run doctrine`, 7 checks in 0.2 s, run in T0; each has a failing fixture.
 - WP-0.4 Pins and vectors: 5 repos pinned; vectors regenerate byte for byte (7.1 of 10 MB): tier 1a/1b (tiny rig,
-  CMU 09_02; equal to shardfall's expected sets), tier 2 (325 clips), tier 3 (11 bodies); D23.
+  CMU 09_02; equal to shardfall's expected sets), tier 2 (325 clips), tier 3 (11 bodies); D23, D24.
+- WP-0.5 CI and session setup: CI green on the PR (T0+T1 on push, T2 on the PR); the hook installs in 2.6 s.
 
 ## Next
 
-- G0 (WP-0.5's CI checks on the PR first).
+- G0: the verifier's findings fixed (D24); then the gate report and the merge.
 
 ## Blocked on the owner
 

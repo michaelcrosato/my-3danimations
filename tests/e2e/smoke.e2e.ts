@@ -1,4 +1,4 @@
-// e2e smoke suite: headless Chromium opens a page and runs script in it; WebGL 2 is reported for the adapters.
+// e2e smoke suite: headless Chromium opens a page and runs script in it, with WebGL 2 (SwiftShader) for the adapters.
 import { expect, test } from "@playwright/test";
 
 test("headless Chromium opens a page", async ({ page }) => {
@@ -6,5 +6,5 @@ test("headless Chromium opens a page", async ({ page }) => {
   await expect(page).toHaveTitle("m3a smoke");
   expect(await page.locator("#v").textContent()).toBe("ok");
   const webgl2 = await page.evaluate(() => document.createElement("canvas").getContext("webgl2") !== null);
-  test.info().annotations.push({ type: "webgl2", description: String(webgl2) });
+  expect(webgl2, "WebGL 2 is how the adapters are checked (D8); launch with --use-angle=swiftshader").toBe(true);
 });

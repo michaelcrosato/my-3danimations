@@ -7,7 +7,7 @@ import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { copyFileSync, existsSync, mkdirSync, readFileSync, rmSync } from "node:fs";
 import { dirname, join } from "node:path";
-import { finish, fmtMs, parseArgs, ROOT, usage, type Report, type Step } from "../run/cli.ts";
+import { closest, finish, fmtMs, parseArgs, ROOT, usage, type Report, type Step } from "../run/cli.ts";
 import type { Pins } from "../doctrine/pins.ts";
 
 const CACHE = join(ROOT, ".cache/src");
@@ -60,7 +60,7 @@ if (import.meta.main) {
   try {
     parsed = parseArgs(process.argv.slice(2), specs);
     const v = parsed.positionals[0];
-    if (!v || !verbs.includes(v)) throw new Error(`expected one of ${verbs.join(", ")}${v ? `, got "${v}"` : ""}`);
+    if (!v || !verbs.includes(v)) throw new Error(`expected one of ${verbs.join(", ")}${v ? `, got "${v}"; did you mean ${closest(v, verbs)}?` : ""}`);
   } catch (err) {
     usage("pins", err, specs);
   }

@@ -4,6 +4,11 @@
 # Idempotent and non-interactive. Never runs `playwright install`: the container already has build 1194.
 set -euo pipefail
 
+# Cloud sessions only: a local checkout installs on its own terms. Set CLAUDE_CODE_REMOTE=true to run it anyway.
+if [ "${CLAUDE_CODE_REMOTE:-}" != "true" ]; then
+  exit 0
+fi
+
 cd "${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "$0")/../.." && pwd)}"
 
 npm ci --no-audit --no-fund --loglevel=error

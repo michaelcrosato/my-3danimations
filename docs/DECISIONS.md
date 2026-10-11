@@ -254,3 +254,19 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   10 MB budget, frozen fixtures included.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.1.0
+
+## D24 · 2026-10-11 · Phase 0's verifier findings: .gltf stays binary; Owns overlaps logged
+
+- **Principle:** 4, process (G0's verifier review)
+- **Call:**
+  - **Supersedes D23's line on .gltf.** A `.gltf` counts as binary again, because one can embed a whole rig as base64;
+    `spec/vectors/tier1b/rig.gltf`, generated in code by `tools/vectors/rig.ts`, is approved by its exact path in
+    `tools/doctrine/binaries.ts`, and a failing fixture covers any other `.gltf`. WP-0.4's Owns now lists that entry.
+  - WP-0.3 added the doctrine step to `tools/run/tiers.ts`, which WP-0.2 owns; in single-agent mode this is logged
+    rather than split out.
+  - Phase 0 lands as v0.1.0 throughout: nothing is released before G0, so its WPs share the first version.
+  - The SessionStart hook runs only in cloud sessions (`CLAUDE_CODE_REMOTE=true`), as WP-0.5 says; CI pins Node
+    24.21.0; the e2e smoke suite asserts WebGL 2.
+- **Why:** the verifier's failures and notes; each fix is small and in scope.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.1.0

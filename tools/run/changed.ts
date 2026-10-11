@@ -20,9 +20,9 @@ const TOOLCHAIN = /^(package\.json|package-lock\.json|\.npmrc|tsconfig[^/]*\.jso
 export function changedFiles(): string[] {
   const git = (...args: string[]) => execFileSync("git", args, { cwd: ROOT, encoding: "utf8" }).trim();
   let base = "";
-  for (const ref of ["main", "origin/main"]) {
+  for (const ref of ["origin/main", "main"]) {
     try {
-      base = git("merge-base", "HEAD", ref);
+      base = execFileSync("git", ["merge-base", "HEAD", ref], { cwd: ROOT, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
       break;
     } catch {
       // try the next ref
