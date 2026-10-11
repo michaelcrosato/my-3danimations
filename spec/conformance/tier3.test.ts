@@ -8,7 +8,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { rigSkeleton } from "./runner/skeleton.ts";
-import { loadTier2, tier2Sets } from "./runner/vectors.ts";
+import { loadTier2, tier2Sets, TOLERANCE } from "./runner/vectors.ts";
 
 const bodies = JSON.parse(readFileSync(join(import.meta.dirname, "../vectors/tier3/bodies.json"), "utf8")).bodies as Record<string, { proportions?: Record<string, number>; rest: Rest }>;
 const generated = Object.entries(bodies).filter(([, b]) => b.proportions);
@@ -74,9 +74,9 @@ describe("tier 3: other bodies", () => {
         }
       }
       expect(poses).toBeGreaterThan(1000);
-      expect(worst.limb).toBeLessThanOrEqual(9);
-      expect(worst.chest).toBeLessThanOrEqual(9);
-      expect(worst.curled).toBeLessThanOrEqual(14);
+      expect(worst.limb).toBeLessThanOrEqual(TOLERANCE.tier3deg);
+      expect(worst.chest).toBeLessThanOrEqual(TOLERANCE.tier3deg);
+      expect(worst.curled).toBeLessThanOrEqual(TOLERANCE.tier3curledDeg);
       expect(worst.length).toBeLessThan(1e-9);
       expect(worst.sole).toBeGreaterThanOrEqual(-1e-9);
     });

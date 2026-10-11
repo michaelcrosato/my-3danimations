@@ -1197,6 +1197,10 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
     curled spine), bone lengths are unchanged, soles never go below the floor, and there is no NaN;
   - on the reference body, the solved joints are within 1 mm of the decoder's.
 - **Verify:** `npm test -- solve conformance/tier3`
+- **Landed with (D36):** "the decoder's" is the decode on the target with the hips carrying the lowest spine segment
+  (`decodeOn`). No hips bone that also carries the legs can take a share of the chest's turn, so the joints sit up to
+  36.5 mm from the plain decoder's on the 124 tier-2 samples with a lower spine share. Bone roll is tested too: mirror,
+  bend sweeps, T = A = relaxed, and fingers.
 
 #### WP-2.5 Contacts and ground
 - **Owns:** `packages/core/src/contact/*`
@@ -2206,7 +2210,7 @@ version, commit, date and a note with the numbers. Gates are rows too.
 | 2.1 Math kernel and determinism | done | 0.7.0 | 01706fd | 2026-10-11 | 13 functions give V8's bits on 200k inputs each, random bit patterns and specials; pow ≤1 ulp of glibc; core.json bit for bit; V8 = JSC on 2.8M results and a 100k-step chain; cost 0.7–4× native (D33) |
 | 2.2 Sampler, events, contacts, facts | done | 0.8.0 | d774088 | 2026-10-11 | sample = tier 2 at 7,444 samples; loop events once; yaw 90/360/720° continuous, rootDelta carries seams; truth 20/20: speeds ≤11%, distances ≤0.2% or 0.2% of H0, strikes ≤0.06 s (D34) |
 | 2.3 Pose operations | done | 0.9.0 | c20b087 | 2026-10-11 | mirror twice = identity on all 525 clips (≤0.5 mm); blend 0/1 = inputs; retime keeps order and contact shares; synced walk–jog/sprint blends keep planted feet ≤18.5 mm (by time, out of step: >100 mm) (D35) |
-| 2.4 The solver | done | 0.10.0 | 498fab2 | 2026-10-11 | reference body: joints ≤0.002 mm of the decoder (7,444 samples); tier 3 on 7 bodies × 1,324 poses: limbs ≤9° (0° to rounding), chest exact, lengths kept, soles ≥ floor, no NaN; T/A/relaxed, missing and twist bones, host rest rotations (D36) |
+| 2.4 The solver | done | 0.11.1 | 498fab2, review fixes in the next commit | 2026-10-11 | reference body: joints ≤0.0018 mm of the solver's decode at all 7,572 tier-2 samples (≤36.5 mm of the plain decoder on the 124 with a lower spine share); roll: mirror ≤3.4e-6°, bend sweeps ≤2°/step, T = A = relaxed ≤1e-4°; tier 3 on 7 bodies × 1,324 poses: limbs ≤9° (0° to rounding), chest exact, lengths kept, soles ≥ floor, no NaN (D36) |
 | 2.5 Contacts and ground | done | 0.11.0 | 39c7ad5 | 2026-10-11 | 133 locomotion loops + synced blends: planted contact point slides 0.0 mm per contact (free: up to 92); 10° slopes and 0.2 m steps: planted soles within 1.7 mm, none under; pelvis drop ≤0.1 H0 (D37) |
 | 2.6 The Animator | todo | | | | |
 | **G2** | todo | | | | |

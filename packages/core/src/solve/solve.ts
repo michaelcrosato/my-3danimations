@@ -7,8 +7,8 @@
 // animators spread it). A pose whose sole would go below the floor is lifted whole until it stands on it.
 // Carried from my-3d2dge's Mocap.drive (src/mocap/mocap.js:165-262: directions at the rig's own lengths, two-bone IK,
 // the sole on the floor), E.ik3 and readable.js's pole helpers, through the decoder that ports them.
-import { hintFor, IDX, poleHint, SG, type Rest, type Side } from "../format/body.ts";
-import { loc, type Frame, type V3 } from "../format/math.ts";
+import { hintFor, IDX, SG, type Rest, type Side } from "../format/body.ts";
+import { loc, wld, type Frame, type V3 } from "../format/math.ts";
 import { decodePose, limbPoles, torso, type KeyLike } from "../format/pose.ts";
 import { PORTABLE } from "../math/portable.ts";
 import * as quat from "../math/quat.ts";
@@ -33,7 +33,8 @@ export interface Solved {
   world: Record<string, Quat>;
   /** Each bone's orientation relative to its parent's (a root's is its world one): what a host writes to its nodes. */
   local: Record<string, Quat>;
-  /** The decoded body points the bones reach (format frame, mm), feet lifted onto the floor. */
+  /** The body points the bones reach (format frame, mm): the key decoded on `solveRest` (or the points given), feet
+   *  lifted onto the floor. Forward kinematics of the solved bones gives these joints, to rounding. */
   points: Float64Array;
 }
 
@@ -76,6 +77,47 @@ function turn(v: readonly number[], k: readonly number[], deg: number): V3 {
   const a = (deg * Math.PI) / 180, c = PORTABLE.cos(a), s = PORTABLE.sin(a), kv = cross3(k, v), kd = dot3(k, v);
   return [v[0]! * c + kv[0] * s + k[0]! * kd * (1 - c), v[1]! * c + kv[1] * s + k[1]! * kd * (1 - c), v[2]! * c + kv[2] * s + k[2]! * kd * (1 - c)];
 }
+/** v carried by the shortest turn taking unit direction c onto unit direction d. */
+function carry(c: readonly number[], d: readonly number[], v: readonly number[]): V3 {
+  const ax = cross3(c, d), sn = Math.sqrt(dot3(ax, ax)), cs = dot3(c, d);
+  if (sn < 1e-9) return cs > 0 ? [v[0]!, v[1]!, v[2]!] : turn(v, triad(c, [0, 0, 1])[1], 180);
+  return turn(v, ax.map((x) => x / sn), (PORTABLE.atan2(sn, cs) * 180) / Math.PI);
+}
+/** v carried from triad A onto triad B (the rotation taking A's axes onto B's). */
+function carryBy(A: readonly V3[], B: readonly V3[], v: readonly number[]): V3 {
+  const a = [dot3(v, A[0]!), dot3(v, A[1]!), dot3(v, A[2]!)];
+  return [0, 1, 2].map((i) => a[0]! * B[0]![i]! + a[1]! * B[1]![i]! + a[2]! * B[2]![i]!) as V3;
+}
+/**
+ * The normal of a limb's plane at rest (its root-to-end direction × its pole): the pole the decoder gives a T arm (or
+ * a straight-down leg) at twist 0, carried onto the rest limb by the shortest turn. A T, A or relaxed rest is the T
+ * body with its arms turned in the body's plane, so each gets that same turn.
+ */
+function restNormal(limb: "arm" | "leg", s: Side, root: readonly number[], end: readonly number[], M: Frame): V3 {
+  const d0 = unit(sub3(end, root)), cl: V3 = limb === "arm" ? [0, SG[s], 0] : [0, 0, -1];
+  return cross3(d0, carry(wld(M, cl), d0, hintFor(limb, SG[s], M, cl)));
+}
+
+/**
+ * The rest the solver decodes on: the target's body, with the source library's spine shares when given, and its lowest
+ * spine segment (pelvis to spine1) carried by the hips. The hips bone also carries the legs, so it can't take a share of
+ * the chest's turn; the turn goes to the segments above, and every decoded point is one the bones can reach.
+ */
+export function solveRest(b: Bound, source?: Pick<Rest, "spineW" | "neckW">): Rest {
+  const w = source ? source.spineW : b.rest.spineW;
+  return { ...b.rest, spineW: [0, w[1]!, w[2]!, w[3]!], neckW: source ? source.neckW : b.rest.neckW };
+}
+/** Key k as the solver decodes it: a format-2 `spine` share on the lowest segment carried by the hips (`solveRest`). */
+export function reachable(k: KeyLike): KeyLike {
+  const sp = k.spine as number[] | undefined;
+  return sp && sp[0] !== 0 ? { ...k, spine: [0, sp[1]!, sp[2]!] } : k;
+}
+/** The target body points the solver turns bones toward for key k: decoded on `solveRest`, before any floor lift. */
+export function decodeOn(b: Bound, k: KeyLike, source?: Pick<Rest, "spineW" | "neckW">): Float64Array {
+  const X = new Float64Array(108);
+  decodePose(solveRest(b, source), reachable(k), X as unknown as number[]);
+  return X;
+}
 
 const SPINE_CHAIN = ["hips", "spine", "chest", "upperChest", "neck", "head"] as const;
 /** Each spine point's index in the decoder's chain (pelvis, spine1, spine2, chest, neck). */
@@ -86,8 +128,8 @@ const PHALANGES: Readonly<Record<string, readonly string[]>> = { Thumb: ["Metaca
 const CURL: Readonly<Record<string, readonly number[]>> = { Thumb: [20, 40, 40], Index: [80, 100, 70], Middle: [80, 100, 70], Ring: [80, 100, 70], Little: [80, 100, 70] };
 
 /** Solves key pose k onto bound skeleton b. */
-export function solve(k: KeyLike, b: Bound, opts: SolveOptions = {}): Solved {
-  const R: Rest = opts.source ? { ...b.rest, spineW: opts.source.spineW, neckW: opts.source.neckW } : b.rest;
+export function solve(key: KeyLike, b: Bound, opts: SolveOptions = {}): Solved {
+  const R = solveRest(b, opts.source), k = reachable(key);
   const X = new Float64Array(108);
   if (opts.points) X.set(opts.points);
   else decodePose(R, k, X as unknown as number[]);
@@ -136,38 +178,55 @@ export function solve(k: KeyLike, b: Bound, opts: SolveOptions = {}): Solved {
   frameDelta("head", R.Hr, tq.RH);
   for (const s of ["L", "R"] as Side[]) {
     const side = s === "L" ? "left" : "right";
-    // the poles at rest: the natural ones for each limb's rest direction, untwisted
-    const restPole = (limb: "arm" | "leg", root: string, end: string, M: Frame) => {
-      const d = unit(sub3(at(P0, end), at(P0, root)));
-      const l = loc(M, d);
-      return poleHint(d, hintFor(limb, SG[s], M, [l[0], l[1] * SG[s], l[2]]), 0);
+    // the limbs roll by the normal of the plane they bend in (the whole limb's direction × its pole), which is
+    // perpendicular to both bones at every bend; at rest, by the T's natural pole carried onto the rest limb, so a
+    // T, A or relaxed rest is the same body turned
+    const vfist = (Y: ArrayLike<number>) => {
+      const w = at(Y, "wrist" + s), f = unit(sub3(w, at(Y, "elbow" + s)));
+      return [w[0] + f[0] * R.fist, w[1] + f[1] * R.fist, w[2] + f[2] * R.fist];
     };
+    const arm = poles[`arm${s}`], leg = poles[`leg${s}`];
+    const arm0 = restNormal("arm", s, at(P0, "sh" + s), vfist(P0), R.Cr), arm1 = cross3(unit(sub3(vfist(X), at(X, "sh" + s))), arm);
+    const leg0 = restNormal("leg", s, at(P0, "hip" + s), at(P0, "ankle" + s), R.Pr), leg1 = cross3(unit(sub3(at(X, "ankle" + s), at(X, "hip" + s))), leg);
     aim(side + "Shoulder", "clav" + s, "sh" + s, R.Cr[0], tq.RC[0]);
-    const armRest = restPole("arm", "sh" + s, "elbow" + s, R.Cr), arm = poles[`arm${s}`];
-    aim(side + "UpperArm", "sh" + s, "elbow" + s, armRest, arm);
-    aim(side + "LowerArm", "elbow" + s, "wrist" + s, armRest, arm);
-    aim(side + "Hand", "wrist" + s, "knuck" + s, R.Cr[1], sub3(at(X, "index" + s), at(X, "pinky" + s)));
-    const legRest = restPole("leg", "hip" + s, "knee" + s, R.Pr), leg = poles[`leg${s}`];
-    aim(side + "UpperLeg", "hip" + s, "knee" + s, legRest, leg);
-    aim(side + "LowerLeg", "knee" + s, "ankle" + s, legRest, leg);
-    aim(side + "Foot", "ankle" + s, "ball" + s, R.Pr[2], tq.RP[2]);
-    aim(side + "Toes", "ball" + s, "toe" + s, R.Pr[2], tq.RP[2]);
-    // fingers: each chain curls toward the palm about the hand's across axis, by its share of the key's curl
-    const hand = H[side + "Hand"];
-    if (hand && FINGERS.some((f) => H[side + f + PHALANGES[f]![0]])) {
-      const curl = (k["fingers" + s] as number[] | undefined) ?? [100, 100, 100, 100, 100]; // format 1's hands are fists
-      const h0 = unit(sub3(at(P0, "knuck" + s), at(P0, "wrist" + s))), hp = unit(sub3(at(X, "knuck" + s), at(X, "wrist" + s)));
-      const r0 = R.Cr[1], r1 = sub3(at(X, "index" + s), at(X, "pinky" + s));
-      // the palm faces the inside of the elbow (spec/MOTION.md §5.3): its normal, and the axis a curl turns about
-      const el = at(X, "elbow" + s), wr = at(X, "wrist" + s), a = unit(sub3(wr, el)), pole = arm;
-      const m = unit(sub3(a.map((x) => x * dot3(pole, a)), pole));
-      const axis = unit(cross3(hp, m));
+    aim(side + "UpperArm", "sh" + s, "elbow" + s, arm0, arm1);
+    aim(side + "LowerArm", "elbow" + s, "wrist" + s, arm0, arm1);
+    aim(side + "UpperLeg", "hip" + s, "knee" + s, leg0, leg1);
+    aim(side + "LowerLeg", "knee" + s, "ankle" + s, leg0, leg1);
+    // the foot and toes roll by the axis they pitch about (level, across the foot's heading), never along them
+    const f0 = loc(R.Pr, unit(sub3(at(P0, "ball" + s), at(P0, "ankle" + s)))), fl = Math.sqrt(f0[0] * f0[0] + f0[1] * f0[1]);
+    const pitch0 = wld(R.Pr, fl > 1e-6 ? [-f0[1] / fl, f0[0] / fl, 0] : [0, 1, 0]);
+    const yw = (((k["foot" + s] as number[] | undefined)?.[1] ?? 0) * Math.PI) / 180;
+    const pitch1 = wld(tq.RP, [-SG[s] * PORTABLE.sin(yw), PORTABLE.cos(yw), 0]);
+    aim(side + "Foot", "ankle" + s, "ball" + s, pitch0, pitch1);
+    aim(side + "Toes", "ball" + s, "toe" + s, pitch0, pitch1);
+    // the hand rolls by its knuckle line (index side): at rest the skeleton's own; posed, the decoder's thumb side l'
+    // (spec/MOTION.md §5.3) when the key has a hand, the blade's line for a format-1 blade hand, else the rest line
+    // carried by the forearm (format 1's hands carry no roll: the hand stays as its forearm holds it)
+    const hand = k["hand" + s] as number[] | undefined, fingers = k["fingers" + s] as number[] | undefined;
+    const el = at(X, "elbow" + s), wr = at(X, "wrist" + s), fore = unit(sub3(wr, el));
+    const acr0 = sub3(at(P0, "index" + s), at(P0, "pinky" + s));
+    let acr1: V3;
+    if (hand || fingers) {
+      const m = unit(sub3(fore.map((x) => x * dot3(arm, fore)), arm)), l = cross3(m, fore).map((x) => x * SG[s]!);
+      const r = (((hand?.[2] ?? 0) * Math.PI) / 180), c = PORTABLE.cos(r), sn = PORTABLE.sin(r);
+      acr1 = [l[0]! * c + m[0] * sn, l[1]! * c + m[1] * sn, l[2]! * c + m[2] * sn];
+    } else if (s === "R" && k.blade) acr1 = sub3(at(X, "index" + s), at(X, "pinky" + s));
+    else acr1 = carryBy(triad(sub3(at(P0, "wrist" + s), at(P0, "elbow" + s)), arm0), triad(fore, arm1), acr0);
+    aim(side + "Hand", "wrist" + s, "knuck" + s, acr0, acr1);
+    // fingers: each chain curls toward the palm, about the knuckle line, by its share of the key's curl (format 1's
+    // hands are fists; a format-2 hand without fingers is open)
+    if (H[side + "Hand"] && FINGERS.some((f) => H[side + f + PHALANGES[f]![0]])) {
+      const curl = fingers ?? (hand ? [0, 0, 0, 0, 0] : [100, 100, 100, 100, 100]);
+      const h0 = unit(sub3(at(P0, "knuck" + s), at(P0, "wrist" + s))), hp = unit(sub3(at(X, "knuck" + s), wr));
+      // turning h about −SG·(knuckle line) turns it toward the palm normal n = −SG·(knuckle line × h)
+      const axis = unit(sub3(acr1, hp.map((x) => x * dot3(acr1, hp)))).map((x) => -x * SG[s]!);
       FINGERS.forEach((f, fi) => {
         let deg = 0;
         PHALANGES[f]!.forEach((ph, j) => {
           deg += ((curl[fi] ?? 0) / 100) * CURL[f]![j]!;
           const name = side + f + ph;
-          if (H[name]) D[name] = delta(b, triad(h0, r0), triad(turn(hp, axis, deg), turn(r1, axis, deg)));
+          if (H[name]) D[name] = delta(b, triad(h0, acr0), triad(turn(hp, axis, deg), acr1));
         });
       });
     }

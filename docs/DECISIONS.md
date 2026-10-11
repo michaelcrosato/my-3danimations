@@ -521,30 +521,55 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
     own lengths with the key's pole. Each bone then turns from its rest triad to its posed one. Rotations are built
     from mapped triads, so no quaternion is ever reflected.
   - Each bone's roll comes from the parameters:
-    - limbs: their poles, the natural pole at rest, the key's twisted pole posed, so a straight limb keeps its twist;
-    - hands: the knuckle line;
-    - feet: the pelvis's up;
+    - limbs: the normal of the plane they bend in (the whole limb's direction × its pole), perpendicular to both bones
+      at every bend, so a straight limb keeps its twist and no bend flips it. Posed, the pole is the key's, twisted.
+      At rest it is the pole the decoder gives a T arm (a straight-down leg) at twist 0, carried onto the rest limb by
+      the shortest turn, so an A or relaxed rest is the T body with its arms turned;
+    - hands: the knuckle line (index side). At rest it is the skeleton's own; posed, the decoder's thumb side (the
+      key's hand frame), a format-1 blade's line, or for a format-1 hand (no roll in the data) the rest line carried
+      by the forearm, so the wrist doesn't twist;
+    - feet and toes: the axis they pitch about (level, across the foot's heading);
     - spine bones: their share of the pelvis-to-chest turn (the key's `spine`, else the source library's when given,
       else the body's own);
-    - fingers: their curl (absent: format 1's fists).
+    - fingers: their curl, toward the palm about the knuckle line (absent: format 1's fists; a format-2 hand without
+      fingers is open).
+  - The hips carry the lowest spine segment (`solveRest`, `reachable`, `decodeOn`). The hips bone also carries the
+    legs, so it can't take a share of the chest's turn; a share there (a format-2 `spine`, CMU's up to 1) goes to the
+    segments above, and every point the solver decodes is one the bones reach.
   - Local rotations are relative to the parent's world orientation, with a host's rest orientations when given (a
     test rebuilds the joints from them).
   - A pose whose lowest sole would go below the floor is lifted whole, as my-3d2dge's `Mocap.drive` did. Solving each
     leg onto the floor bent legs up to 67° from the source on a rise from the ground.
   - Results:
-    - Reference body (the tiny rig): every joint within 0.002 mm of the decoder at all 7,444 tier-2 samples.
+    - Reference body (the tiny rig): every joint within 0.0018 mm of the solver's decode at all 7,572 tier-2
+      samples; against the plain decoder, the 124 samples with a lower spine share differ by up to 36.5 mm
+      (`Sword_Attack`'s `spine` [41, 40, 80]).
+    - Roll: a T key on a T rest gives the rest rotations (within 1°); a pose and its mirror give mirror rotations
+      (within 3.4e-6°); sweeps through elbow, knee and foot bends turn no bone more than 2° per 0.05° step; A and
+      relaxed rests give the T's rotations (within 1e-4°); fingers curl toward the palm at any hand roll.
     - Tier 3, seven bodies × 331 clips × 4 times:
       - whole limbs (shoulder to virtual fist, hip to ankle) within 9°, at worst 0° to rounding;
       - the chest faces exactly where the clip's does;
       - bone lengths unchanged, soles never below the floor, no NaN.
-- **Limit:** a format-2 `spine` share, or a library's (CMU's 0.55), on the lowest segment turns the decoder's
-  pelvis-to-spine segment with part of the chest's turn. No hips bone that also carries the legs can do that, so the
-  joints above the hips sit up to 37 mm off the decoder's on the rig (111 mm on CMU's strongest curl). Every bone still
-  takes its segment's turn, and the chest still faces exactly.
+- **Limit:** the format's twist at a straight limb, and a foot's heading when it points straight down, are whatever
+  the encoder measured there (spec/MOTION.md §6.3). The solver follows them, so a straight leg can turn about its own
+  axis where the data's twist jumps (`Sprint_Loop`'s left leg, straight at 0 s: 177°, then 354° one key later).
+  Joint positions don't change. F2.4.
+- **Review:** WP-2.4's verifier found 8 failures, all fixed in v0.11.1:
+  1. the left arm's rest pole was mirrored, a 62.7° roll on every pose;
+  2. the upper arm and shin flipped 180° at the bend where the pole lies along the bone;
+  3. the foot rolled by the pelvis's up and flipped at toe-off;
+  4. format-1 hands rolled onto a placeholder line, 180° off their mirror;
+  5. the hand's rest line was the chest's right axis, so T, A and relaxed rests differed by up to 90°;
+  6. fingers curled toward the unrolled palm;
+  7. `Solved.points` were not the points the bones reach;
+  8. the Done-when held only without a lower spine share.
+
+  Joint tests can't see roll, so tests now check rotations. Its notes not acted on are F2.
 - **Outside WP-2.4's Owns** (one agent, D21): `limbPoles`, exported from the decoder; the decoder's fix for a shoulder
   with no offset (a body without shoulder bones gave NaN); `quat.fromMat3`; the tier-3 test and its skeleton helper.
 - **Answered:** no: made without a response, to review.
-- **Landed in:** v0.10.0
+- **Landed in:** v0.10.0; the review's fixes in v0.11.1
 
 ## D37 · 2026-10-11 · Planting holds the contact point, statelessly, and in-place clips move by their feet
 

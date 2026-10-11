@@ -4,6 +4,22 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.11.1 · 2026-10-11
+
+### Core
+- The solver's bone roll, fixed from WP-2.4's review (D36):
+  - the left arm's rest pole is no longer mirrored (it rolled 62.7° on every pose);
+  - arms and legs roll by their bend plane's normal, with no flip at any bend;
+  - feet and toes roll about the axis they pitch about;
+  - hands roll by the knuckle line, the skeleton's own at rest, and a format-1 hand stays on its forearm;
+  - fingers curl toward the palm at any hand roll;
+  - T, A and relaxed rests give the same rotations.
+- The hips carry the lowest spine segment, so every point the solver decodes is one the bones reach (`solveRest`,
+  `reachable`, `decodeOn`).
+
+### Spec
+- Conformance tier 3 reads its tolerances from the runner's `TOLERANCE`.
+
 ## 0.11.0 · 2026-10-11
 
 ### Core
@@ -13,8 +29,6 @@ features, patch for fixes. One line per change, under the part it touched (**Spe
   weighted targets; `contactRoot` gives an in-place clip the root its planted feet imply. `solve` takes edited points.
 - Contact detection also asks a planted foot to be still in the world (slower than half the body's speed), and closes
   gaps up to 0.1 s; `syncBlend` gives the blend's contacts, the inputs' weighted.
-
-### Tests
 - On all 133 migrated locomotion loops and on synced walk–run blends a planted foot slides at most 10 mm per contact
   (0 mm measured); on 10° slopes and 0.2 m steps planted soles stay within 5 mm of the surface (1.7 mm measured).
 
