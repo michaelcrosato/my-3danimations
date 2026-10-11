@@ -2190,7 +2190,7 @@ version, commit, date and a note with the numbers. Gates are rows too.
 |---|---|---|---|---|---|
 | 0.1 Constitution | done | — | e8352fb | 2026-10-11 | DOCTRINE.md (12 principles + enforcement table), AGENTS.md, CLAUDE.md; D1–D21 logged (O1, O7, O8, O11, CMU/Mesh2Motion); PROGRESS 24 lines |
 | 0.2 Toolchain | done | 0.1.0 | 09b64d0 | 2026-10-11 | 6 workspaces; T0 3.0 s/15, T1 1.3 s/90 (7 files, 16 tests), T2 6.4 s/480 (Chromium 1194, WebGL 2 on SwiftShader); D22 |
-| 0.3 Doctrine checks | done | 0.1.0 | (next row's commit) | 2026-10-11 | 7 checks in 0.2 s, part of T0; 14 tests, each check with a failing fixture; gpt-tokenizer 4.0.0 pinned |
+| 0.3 Doctrine checks | done | 0.1.0 | 43d219e | 2026-10-11 | 7 checks in 0.2 s, part of T0; 14 tests, each check with a failing fixture; gpt-tokenizer 4.0.0 pinned |
 | 0.4 Pins and reference vectors | todo | | | | |
 | 0.5 CI and session setup | todo | | | | |
 | **G0** | todo | | | | |

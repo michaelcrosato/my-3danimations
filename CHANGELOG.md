@@ -14,3 +14,5 @@ features, patch for fixes. One line per change, under the part it touched (**Spe
   `test:changed`, `gate`, the header lint and `tools/version.ts`.
 - WP-0.3: `npm run doctrine` (also in T0): binaries, cl100k token budgets, import boundaries, banned APIs, exact
   pins and checksums, the append-only decisions log and the local lane.
+- WP-0.5: CI (T0 and T1 on every push, T2 on pull requests, gates by manual dispatch; actions pinned by SHA), the
+  SessionStart hook (`npm ci`, `CHROMIUM_PATH`) and the pull request template.
