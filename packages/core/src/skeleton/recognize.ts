@@ -4,6 +4,7 @@
 // (`patchMapping`) and hand to a binder.
 import { HUMANOID_BONES, HUMANOID_PARENT, REQUIRED_BONES } from "./bones.ts";
 import { normalizeName, TABLES } from "./tables.ts";
+import { PORTABLE as PM } from "../math/portable.ts";
 
 /** A source bone: its name, its parent's name, and its rest head (joint) position in the source's units and axes. */
 export interface BoneIn {
@@ -32,7 +33,7 @@ export interface Recognition {
 type V = [number, number, number];
 const sub = (a: V, b: V): V => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
 const dot = (a: V, b: V) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-const len = (a: V) => Math.hypot(a[0], a[1], a[2]);
+const len = (a: V) => PM.hypot(a[0], a[1], a[2]);
 const cross = (a: V, b: V): V => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
 const unit = (a: V): V => {
   const l = len(a) || 1;
@@ -225,7 +226,7 @@ export function restFrame(sk: SkeletonIn, rec: Recognition): { forward: V; right
     const b = at(s + "LowerArm");
     if (a && b) {
       const d = unit(sub(b, a));
-      drop += (Math.asin(Math.max(-1, Math.min(1, -dot(d, up)))) * 180) / Math.PI;
+      drop += (PM.asin(Math.max(-1, Math.min(1, -dot(d, up)))) * 180) / Math.PI;
       n++;
     }
   }

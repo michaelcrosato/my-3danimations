@@ -428,3 +428,29 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   (io, WP-4.3); a validate kind for `_baseline.json`.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.6.0
+
+## D33 · 2026-10-11 · The portable math is V8's bits, and all of core uses it
+
+- **Principle:** 5 (deterministic by construction), WP-2.1
+- **Call:**
+  - `@m3a/core`'s `math/portable.ts` gives native V8's bits for `sin`, `cos`, `tan`, `atan`, `atan2`, `asin`, `acos`,
+    `exp`, `log`, `log2`, `log10`, `hypot` and `cbrt` on every input tested: 200,000 per function in the origin's
+    ranges, 30,000 random bit patterns each over the whole double range, and the special values. That is more than
+    the origin, whose 6 exact functions stopped at 2^19·π/2 and whose others were a few units off. The extra exactness
+    comes from porting what V8 runs: fdlibm's `tan`, `asin`, `acos`, `log10`, `cbrt` and Payne–Hanek reduction,
+    FreeBSD's `log2` and `atan2` (±π/2 when |y/x| > 2^60), V8's `hypot` (scaled, Kahan-summed) and its `exp(1)` case.
+  - `pow` is fdlibm's, within one unit of the native: V8 calls the platform's C library for `pow` (glibc's here), so
+    native `pow` itself differs between platforms, and no portable `pow` can match every one.
+  - The kernel's functions that need trigonometry take a `MathLike`, portable by default; presentation may pass
+    `NATIVE`. The codec, the skeleton profile and the validator now call `PORTABLE` too (tiers 1a and 2 stay bit for
+    bit, because the bits are the same), and ESLint bars the host's transcendental `Math` functions from core outside
+    `math/portable.ts`. This went beyond WP-2.1's `Owns`; one agent holds every lane (D21).
+  - `npm run test:cross-engine` fails when no Bun is found, rather than passing unchecked: the G2 criterion needs a
+    second engine.
+- **Cost, measured** (`npm run test:cross-engine`, ns per call through a function value, Node 24.21 and Bun 1.4.2 in
+  the container): `sin`, `cos`, `atan`, `asin`, `acos`, `exp` and `hypot` 0.7 to 1.5× native; `tan`, the logs and
+  `cbrt` 1.5 to 3.5×; `pow` about 4× (about 150 ns). A pose of 36 points with its trig costs a few microseconds more.
+- **Why:** the hashed paths and the exact-mode pose (§5.5) must give the same bits in Node, Chromium and Safari; matching
+  V8 exactly also keeps every vector generated in Node valid.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.7.0

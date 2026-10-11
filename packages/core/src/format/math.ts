@@ -1,7 +1,8 @@
 // The codec's vector, frame and rotation math, ported operation for operation from my-3d2dge's
 // src/mocap/readable.js:40-87 so results match the reference bit for bit (spec/MOTION.md §12): the same f64 operations
-// in the same order, Math.hypot for lengths, and the same branch choices. Change nothing here without the tier-1a and
+// in the same order, PM.hypot for lengths, and the same branch choices. Change nothing here without the tier-1a and
 // tier-2 conformance tests.
+import { PORTABLE as PM } from "../math/portable.ts";
 
 /** A 3-vector, [f, r, z] in the rig frame. */
 export type V3 = [number, number, number];
@@ -18,13 +19,13 @@ export const add = (a: readonly number[], b: readonly number[]): V3 => [a[0]! + 
 export const mul = (a: readonly number[], k: number): V3 => [a[0]! * k, a[1]! * k, a[2]! * k];
 /** The dot product. */
 export const dot = (a: readonly number[], b: readonly number[]): number => a[0]! * b[0]! + a[1]! * b[1]! + a[2]! * b[2]!;
-/** The length (Math.hypot, as V8 computes it). */
-export const len = (a: readonly number[]): number => Math.hypot(a[0]!, a[1]!, a[2]!);
+/** The length (PM.hypot, as V8 computes it). */
+export const len = (a: readonly number[]): number => PM.hypot(a[0]!, a[1]!, a[2]!);
 /** The cross product. */
 export const cross = (a: readonly number[], b: readonly number[]): V3 => [a[1]! * b[2]! - a[2]! * b[1]!, a[2]! * b[0]! - a[0]! * b[2]!, a[0]! * b[1]! - a[1]! * b[0]!];
 /** a scaled to length 1 (a zero vector stays zero). */
 export const norm = (a: readonly number[]): V3 => {
-  const l = Math.hypot(a[0]!, a[1]!, a[2]!) || 1;
+  const l = PM.hypot(a[0]!, a[1]!, a[2]!) || 1;
   return [a[0]! / l, a[1]! / l, a[2]! / l];
 };
 
@@ -75,7 +76,7 @@ export const quatOf = (M: Frame): Quat => {
     const s = Math.sqrt(1 + m22 - m00 - m11) * 2;
     q = [(m02 + m20) / s, (m12 + m21) / s, s / 4, (m10 - m01) / s];
   }
-  const l = Math.hypot(q[0], q[1], q[2], q[3]);
+  const l = PM.hypot(q[0], q[1], q[2], q[3]);
   return [q[0] / l, q[1] / l, q[2] / l, q[3] / l];
 };
 /** Quaternion product a · b. */
@@ -102,12 +103,12 @@ export const qslerp = (a: Quat, b: Quat, t: number): Quat => {
   }
   if (d > 0.9995) {
     const o: Quat = [a[0] + (bb[0] - a[0]) * t, a[1] + (bb[1] - a[1]) * t, a[2] + (bb[2] - a[2]) * t, a[3] + (bb[3] - a[3]) * t];
-    const l = Math.hypot(o[0], o[1], o[2], o[3]);
+    const l = PM.hypot(o[0], o[1], o[2], o[3]);
     return [o[0] / l, o[1] / l, o[2] / l, o[3] / l];
   }
-  const th = Math.acos(d);
-  const k0 = Math.sin((1 - t) * th) / Math.sin(th);
-  const k1 = Math.sin(t * th) / Math.sin(th);
+  const th = PM.acos(d);
+  const k0 = PM.sin((1 - t) * th) / PM.sin(th);
+  const k1 = PM.sin(t * th) / PM.sin(th);
   return [a[0] * k0 + bb[0] * k1, a[1] * k0 + bb[1] * k1, a[2] * k0 + bb[2] * k1, a[3] * k0 + bb[3] * k1];
 };
 /** The rotation that takes rest frame A to frame B, as a quaternion. */
@@ -116,27 +117,27 @@ export const qFromTo = (A: Frame, B: Frame): Quat => qmul(quatOf(B), qconj(quatO
 /** Degrees [turn, lean, tilt] of a frame: yaw about up, then pitch about right (+ forward), then roll (+ right). */
 export function euler(M: Frame): V3 {
   const [F, , U] = M;
-  const yaw = Math.atan2(F[1], F[0]);
-  const pitch = Math.asin(Math.max(-1, Math.min(1, -F[2])));
-  const cy = Math.cos(yaw);
-  const sy = Math.sin(yaw);
+  const yaw = PM.atan2(F[1], F[0]);
+  const pitch = PM.asin(Math.max(-1, Math.min(1, -F[2])));
+  const cy = PM.cos(yaw);
+  const sy = PM.sin(yaw);
   const u1 = [U[0] * cy + U[1] * sy, -U[0] * sy + U[1] * cy, U[2]] as V3;
-  const cp = Math.cos(pitch);
-  const sp = Math.sin(pitch);
+  const cp = PM.cos(pitch);
+  const sp = PM.sin(pitch);
   const u2 = [u1[0] * cp - u1[2] * sp, u1[1], u1[0] * sp + u1[2] * cp] as V3;
-  return [yaw / DG, pitch / DG, -Math.atan2(-u2[1], u2[2]) / DG];
+  return [yaw / DG, pitch / DG, -PM.atan2(-u2[1], u2[2]) / DG];
 }
 /** The frame of degrees [turn, lean, tilt]. */
 export function fromEuler(a: readonly number[]): Frame {
   const y = a[0]! * DG;
   const p = a[1]! * DG;
   const r = -a[2]! * DG;
-  const cy = Math.cos(y);
-  const sy = Math.sin(y);
-  const cp = Math.cos(p);
-  const sp = Math.sin(p);
-  const cr = Math.cos(r);
-  const sr = Math.sin(r);
+  const cy = PM.cos(y);
+  const sy = PM.sin(y);
+  const cp = PM.cos(p);
+  const sp = PM.sin(p);
+  const cr = PM.cos(r);
+  const sr = PM.sin(r);
   const rot = (v: V3): V3 => {
     let [x, yy, z] = v;
     [yy, z] = [yy * cr - z * sr, yy * sr + z * cr];

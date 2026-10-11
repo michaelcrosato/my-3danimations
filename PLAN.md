@@ -1120,6 +1120,8 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
   - the helpers match `core.json`;
   - their cost is measured and stated.
 - **Verify:** `npm test -- math && npm run test:cross-engine` (Bun is installed in the container)
+- **Landed with (D33):** the codec, the skeleton profile and the validator call the portable math too, and lint bars the
+  host's transcendental `Math` in core; `pow` is within one unit of the native, which V8 takes from the C library.
 
 #### WP-2.2 Sampler, events, contacts and facts
 - **Owns:** `packages/core/src/clip/*`, `packages/core/fixtures/facts-truth.json`
@@ -2201,7 +2203,7 @@ version, commit, date and a note with the numbers. Gates are rows too.
 | 1.4 The skeleton profile | done | 0.5.0 | 76c6942 | 2026-10-11 | 8 tables × 3 name styles exact; topology maps renamed Mixamo and rig skeletons (conf 0.85); measure = tier 1a rests bit for bit; restPoints within 0.001 mm; 32 tests; D28 |
 | 1.5 Migrate the seed sets | done | 0.6.0 | 48de33a, 08087bf | 2026-10-11 | 5 sets, 525 clips, 0 errors, 171 warnings baselined; keys equal their sources; 3 sets decode within 1 µm of tier 2; catalogs ≤40 tokens (34 rows cut); 4.3 MB; D30 |
 | **G1** | done | 0.6.0 | 6bffb3e | 2026-10-11 | 7/7 in 11.0 s: T0 1.3 s, T1 3.0 s (178 tests), doctrine 8/8 (10 files frozen), tiers 1a and 2, migrate --check, migrated library; verifier: 7 findings fixed (D32), notes F1 |
-| 2.1 Math kernel and determinism | todo | | | | |
+| 2.1 Math kernel and determinism | done | 0.7.0 | (this row's commit) | 2026-10-11 | 13 functions give V8's bits on 200k inputs each, random bit patterns and specials; pow ≤1 ulp of glibc; core.json bit for bit; V8 = JSC on 2.8M results and a 100k-step chain; cost 0.7–4× native (D33) |
 | 2.2 Sampler, events, contacts, facts | todo | | | | |
 | 2.3 Pose operations | todo | | | | |
 | 2.4 The solver | todo | | | | |

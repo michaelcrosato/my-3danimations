@@ -2,6 +2,7 @@
 // (§3.2), and the two-bone limb helpers the encoder and decoder share, ported from my-3d2dge's readable.js:19-23 and
 // :88-125 operation for operation.
 import { add, cross, dot, DG, len, mul, norm, sub, wld, type Frame, type V3 } from "./math.ts";
+import { PORTABLE as PM } from "../math/portable.ts";
 
 /** The body points a key decodes to, in the rig frame (mm), in this order. */
 export const POINTS: readonly string[] = [
@@ -84,9 +85,9 @@ export function ik3(a: V3, b: V3, L1: number, L2: number, hint: V3): [V3, V3] {
   return [add(add(a, mul(n, x)), mul(h, y)), b];
 }
 /** The middle joint's bend (degrees, 0 straight) for a root-to-end distance. */
-export const bendOf = (dist: number, L1: number, L2: number): number => 180 - Math.acos(Math.max(-1, Math.min(1, (L1 * L1 + L2 * L2 - dist * dist) / (2 * L1 * L2)))) / DG;
+export const bendOf = (dist: number, L1: number, L2: number): number => 180 - PM.acos(Math.max(-1, Math.min(1, (L1 * L1 + L2 * L2 - dist * dist) / (2 * L1 * L2)))) / DG;
 /** The root-to-end distance for a bend (degrees). */
-export const reachOf = (bend: number, L1: number, L2: number): number => Math.sqrt(Math.max(0, L1 * L1 + L2 * L2 + 2 * L1 * L2 * Math.cos(bend * DG)));
+export const reachOf = (bend: number, L1: number, L2: number): number => Math.sqrt(Math.max(0, L1 * L1 + L2 * L2 + 2 * L1 * L2 * PM.cos(bend * DG)));
 /** v taken within 180 of prev (angles continue from the key before). */
 export const unwrap = (v: number, prev: number | undefined): number => (prev === undefined ? v : v + 360 * Math.round((prev - v) / 360));
 
@@ -106,9 +107,9 @@ export function hintFor(limb: "arm" | "leg", s: number, M: Frame, dLocal: V3): V
   let n = n0;
   if (sn > 1e-9) {
     const k = mul(ax, 1 / sn);
-    const a = Math.atan2(sn, cs);
-    const c = Math.cos(a);
-    const si = Math.sin(a);
+    const a = PM.atan2(sn, cs);
+    const c = PM.cos(a);
+    const si = PM.sin(a);
     n = add(add(mul(n0, c), mul(cross(k, n0), si)), mul(k, dot(k, n0) * (1 - c)));
   }
   return wld(M, across(n, d));
@@ -117,13 +118,13 @@ export function hintFor(limb: "arm" | "leg", s: number, M: Frame, dLocal: V3): V
 export const poleOf = (d: V3, h: V3, b: V3): number => {
   const hn = norm(sub(h, mul(d, dot(h, d))));
   const bn = norm(sub(b, mul(d, dot(b, d))));
-  return Math.atan2(dot(cross(hn, bn), d), dot(hn, bn)) / DG;
+  return PM.atan2(dot(cross(hn, bn), d), dot(hn, bn)) / DG;
 };
 /** The hint turned `deg` degrees round axis d. */
 export const poleHint = (d: V3, h: V3, deg: number): V3 => {
   const hn = norm(sub(h, mul(d, dot(h, d))));
   const a = deg * DG;
-  return add(mul(hn, Math.cos(a)), mul(cross(d, hn), Math.sin(a)));
+  return add(mul(hn, PM.cos(a)), mul(cross(d, hn), PM.sin(a)));
 };
 /** The end of a limb: from `root`, direction v (side-mirrored) in frame M, at length `len`. */
 export const limbEnd = (root: V3, M: Frame, v: readonly number[], s: Side, length: number): V3 => add(root, wld(M, [v[0]! * length, v[1]! * SG[s] * length, v[2]! * length]));

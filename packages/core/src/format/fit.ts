@@ -6,6 +6,7 @@ import { P, POINTS, pt, type Rest } from "./body.ts";
 import { compose, fromEuler, loc, norm, sub } from "./math.ts";
 import { encodePose, type EncodeOptions, type KeyLike } from "./pose.ts";
 import { capSample, pose, type Capture } from "./sample.ts";
+import { PORTABLE as PM } from "../math/portable.ts";
 
 /** The body-point offsets error measures: every point but the finger helpers (index, pinky), which only aim a blade. */
 const SHOWN = POINTS.map((p, i) => (/^(index|pinky)/.test(p) ? -1 : i * 3)).filter((i) => i >= 0);
@@ -19,7 +20,7 @@ export function error(A: ArrayLike<number>, B: ArrayLike<number>, shown: readonl
 /** The average distance between matching body points (mm). */
 export function meanError(A: ArrayLike<number>, B: ArrayLike<number>): number {
   let s = 0;
-  for (const i of SHOWN) s += Math.hypot(A[i]! - B[i]!, A[i + 1]! - B[i + 1]!, A[i + 2]! - B[i + 2]!);
+  for (const i of SHOWN) s += PM.hypot(A[i]! - B[i]!, A[i + 1]! - B[i + 1]!, A[i + 2]! - B[i + 2]!);
   return s / SHOWN.length;
 }
 
