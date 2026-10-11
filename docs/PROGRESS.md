@@ -3,7 +3,7 @@
 The current state on one screen (at most 40 lines; `npm run doctrine` checks it from WP-0.3). The ledger is
 `PLAN.md` §14; decisions are in `docs/DECISIONS.md`.
 
-**Phase:** 3 The sensors. **Next gate:** G3. **Version:** 0.19.1.
+**Phase:** 4 First flight. **Next gate:** G4 (M1). **Version:** 0.19.1.
 **Mode:** one agent (D21), branch `claude/relaxed-albattani-35xhjq`.
 
 ## Done
@@ -16,14 +16,13 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
   the clip runtime and measured facts (D34); pose operations (D35); the solver on any recognized skeleton, its roll
   tested (D36, F2); planted feet and the ground (D37); the Animator, the same hashes and exact poses in Node,
   Chromium and Bun, and core's public API of 38 documented names (D38, F3).
-- Phase 3 so far (michaelcrosato/my-3danimations#7): raster (D39); sheets, diffs (D40); 14 metrics, predicates, qa
-  (D41); describe 30 of 30 (D42); 100 of 100 planted defects at their times (D43); lint and fix, no library clip made
-  worse by verdict or findings (D44). G3's verifier: 16 findings, fixed in 0.19.0; its second review: 5 findings,
-  fixed in 0.19.1 (D40, D42, D44 revised).
+- Phase 3 (G3 passed, michaelcrosato/my-3danimations#7): raster (D39); sheets, diffs (D40); 14 metrics, predicates,
+  qa (D41); describe 30 of 30 (D42); 100 of 100 planted defects at their times (D43); lint and fix (D44). The G3
+  verifier's 16 findings and its second review's 5, all fixed (0.19.0, 0.19.1).
 
 ## Next
 
-- Phase 3 The sensors: gate G3.
+- Phase 4 First flight: WP-4.1 to 4.4 (done on a side branch while G3 was reviewed), then 4.5 to 4.7 and G4.
 
 ## Blocked on the owner
 
@@ -31,10 +30,9 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 
 ## Last gate
 
-- **G2 passed** 2026-10-11 at a5fb0a0 in 42.1 s, 8 of 8:
-  - check (T0) 1.7 s; test (T1) 14.8 s, 305 tests; doctrine 8 of 8 (core's API 38 of 40); vectors byte for byte;
-  - conformance tiers 1a, 2 and 3;
-  - the Animator's 480 step hashes, 41 events and 5 exact poses identical in Node and Chromium;
-  - V8 = JavaScriptCore on 2.8M portable results, a 100k-step chain and the Animator's script;
-  - property tests: mirror twice ≤0.5 mm, blend ends, retime, solver roll.
-- The verifiers' findings, all fixed: WP-2.4's 8 (D36) and G2's 7 (D38); notes in F2 and F3.
+- **G3 passed** 2026-10-11 at 504d0f6 in 122.8 s, 11 of 11:
+  - check (T0) 1.7 s; test (T1) 25.6 s, 407 tests; doctrine 8 of 8; vectors byte for byte;
+  - the sensors over all 525 clips in 5.2 s, as the baseline says: 267 pass, 104 warn, 154 fail;
+  - planted defects rebuilt byte for byte and 100 of 100 caught at their times; describe 30 of 30;
+  - fix: each operator removes its planted defect; over the library 252 linted, 144 better, 53 with fewer findings,
+    none worse or invalid; T2 8.7 s. 27 of 27 mutants of the reworked operators fail the tests.
