@@ -87,6 +87,8 @@ export function sheetTimes(clip: SheetClip, opts: Pick<SheetOptions, "frames" | 
 /**
  * A contact sheet: the clip's frames on rest R, one scale for all, each labelled with its time, in rows of `columns`;
  * planted feet marked, the feet's trails, flagged intervals in red, and a timeline. Sized to `width` and `budget`.
+ * Throws when a frame draws no body (each cell is checked, not only the whole image: the floor, labels and timeline
+ * always draw), naming the frames.
  */
 export function sheet(clip: SheetClip, R: Rest, opts: SheetOptions = {}): Sheet {
   const times = sheetTimes(clip, opts), n = times.length, cols = Math.max(1, Math.min(opts.columns ?? 8, n)), rows = Math.ceil(n / cols);
@@ -112,7 +114,7 @@ export function sheet(clip: SheetClip, R: Rest, opts: SheetOptions = {}): Sheet 
   const cellLabel = (GLYPH.height + 3) * labelScale(cw);
   const cam0 = fit(view, cw, ch, framed, { top: cellLabel, pad: 80 });
   const flags = opts.flags ?? [];
-  const cells: Sheet["cells"] = [];
+  const cells: Sheet["cells"] = [], empty: number[] = [];
   times.forEach((t, i) => {
     const x = (i % cols) * cw, y = top + Math.floor(i / cols) * ch, cell = image(cw, ch), cam = camera(view, cw, ch, cam0.scale, cam0.center);
     drawFloor(cell, cam, [0, 0]);
@@ -120,7 +122,12 @@ export function sheet(clip: SheetClip, R: Rest, opts: SheetOptions = {}): Sheet 
       const a = project(cam, path[j - 1]!), b = project(cam, path[j]!);
       line(cell, a[0], a[1], b[0], b[1], s === 0 ? [168, 196, 232] : [236, 206, 150]);
     }
+    const was = cell.data.slice();
     drawCapsules(cell, cam, parts[i]!);
+    // the body drawn: a cell where no pixel changed shows no pose (a non-number in the keys, a pose off camera)
+    let body = 0;
+    for (let j = 0; j < was.length; j += 4) if (was[j] !== cell.data[j] || was[j + 1] !== cell.data[j + 1] || was[j + 2] !== cell.data[j + 2]) body++;
+    if (!body) empty.push(t);
     // a planted foot's marker on the floor under its sole, drawn over the body so the foot can't hide it
     if (contacts) {
       const on = clipNs.contactsAt(playing, t);
@@ -133,6 +140,7 @@ export function sheet(clip: SheetClip, R: Rest, opts: SheetOptions = {}): Sheet 
     blit(img, cell, x, y);
     cells.push({ x, y, w: cw, h: ch, t });
   });
+  if (empty.length) throw new Error(`sheet ${clip.id ?? ""}: no body drawn in ${empty.length} of ${n} frames (at ${empty.slice(0, 6).map((t) => t.toFixed(2)).join(", ")}${empty.length > 6 ? ", ..." : ""} s): a pose there holds non-numbers or is off camera; check the keys (metrics' nan finds them)`);
   const title = opts.title ?? `${clip.id ?? "clip"}  ${clip.dur.toFixed(2)} S${clip.loop ? " LOOP" : ""}  ${n} FRAMES  ${typeof view === "string" ? view : `${view.yaw}°/${view.pitch}°`}`;
   text(img, 4, 3 * ls, fitText(title, W - 8, ls), INK, ls);
   timeline(img, top + rows * ch, ls, clip, contacts, flags, times);

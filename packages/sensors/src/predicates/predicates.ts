@@ -131,10 +131,14 @@ function samples(m: Motion, t0: number, t1: number): number[] {
 
 /**
  * Checks predicates (text or parsed) against a clip on rest R. Each outcome says what the motion shows and, when it
- * fails, how to repair it.
+ * fails, how to repair it. Throws a PredicateError for an interval that starts after the clip ends.
  */
 export function check(predicates: string | readonly Predicate[], clip: MetricClip, R: Rest, report?: Report): Outcome[] {
   const preds = typeof predicates === "string" ? parse(predicates) : predicates, m = motionOf(clip, R);
+  for (const p of preds) {
+    const t0 = (p as { t0?: number }).t0;
+    if (t0 !== undefined && t0 > m.dur + 1e-6) throw new PredicateError(p.text, `the interval starts at ${t0} s, after the clip ends at ${fmt(m.dur)} s${m.loop ? " (a loop's times are within its cycle)" : ""}`);
+  }
   const rep = report ?? measure(m);
   return preds.map((p) => one(p, m, clip, R, rep));
 }

@@ -27,6 +27,11 @@ describe("parsing", () => {
     expect(() => predicates.parse("slide < 3 furlongs")).toThrow(/"furlongs" isn't a unit slide is measured in \(mm, cm, m\)/);
     for (const back of ["footL planted 0.6–0.3 s", "footR free 0.6-0.3 s", "pelvis below 50% 0.6–0.3 s"]) expect(() => predicates.parse(back), back).toThrow(/runs backwards/);
   });
+  it("refuses an interval that starts after the clip ends, instead of judging the last sample", () => {
+    for (const late of ["footL planted 50–60 s, slide < 1 mm", "pelvis above 10% 50–60 s", "footR free 50–60 s", "headTop above 100 mm at 50 s"]) {
+      expect(() => predicates.check(late, walk, R), late).toThrow(new RegExp(`the interval starts at 50 s, after the clip ends at ${walk.dur.toFixed(2)} s \\(a loop's times are within its cycle\\)`));
+    }
+  });
   it("reads a value in its metric's unit, or one that converts to it", () => {
     const [a, b, c, d, e] = predicates.parse("speed < 500 mm/s; skate < 30 mm/s; pop < 3 m/s; slide < 2 cm; twistFlip < 90");
     expect([a, b, c, d, e].map((p) => p!.kind === "compare" && [p.value, p.unit])).toEqual([[0.5, "m/s"], [3, "cm/s"], [3000, "mm/s"], [20, "mm"], [90, "°"]]);

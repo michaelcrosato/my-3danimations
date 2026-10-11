@@ -55,6 +55,14 @@ describe("sheets", () => {
   });
 });
 
+describe("blank frames", () => {
+  it("throws for a sheet whose frames draw no body, naming them, though the floor and labels drew", () => {
+    const broken = { ...walk, id: "broken", keys: walk.keys.map((k) => ({ ...k, hips: [Number.NaN, Number.NaN, Number.NaN] })) as Key[] };
+    expect(() => sheets.sheet(broken, R)).toThrow(/^sheet broken: no body drawn in \d+ of \d+ frames \(at 0\.00, /);
+    expect(sheets.sheet(walk, R).cells.length).toBeGreaterThan(0);
+  });
+});
+
 describe("diffs", () => {
   it("finds nothing between identical inputs", () => {
     const copy = JSON.parse(JSON.stringify(walk)) as typeof walk;
@@ -82,6 +90,14 @@ describe("diffs", () => {
         expect(c.y + y).toBeGreaterThanOrEqual(d.box!.y - 4);
         expect(c.y + y).toBeLessThanOrEqual(d.box!.y + d.box!.h + 4);
       }
+    }
+  });
+  it("stays within its token budget, the three rows sharing it", () => {
+    const { clip: interact } = testClip("Interact");
+    for (const opts of [{}, { budget: 1000, frames: 24 }, { budget: 600, marked: true }]) {
+      const d = sheets.compareClips(interact, walk, R, opts);
+      expect(d.tokens, JSON.stringify(opts)).toBeLessThanOrEqual((opts as { budget?: number }).budget ?? 1400);
+      expect(d.image.width).toBeLessThanOrEqual(1000);
     }
   });
   it("refuses two images of different sizes, saying how to draw them alike", () => {

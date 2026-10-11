@@ -58,10 +58,19 @@ export function diff(a: Image, b: Image, opts: { marked?: boolean; tolerance?: n
   return { changed, box, image: out, tokens: tokens(out) };
 }
 
-/** Two clips' sheets at the same times, on one camera framing both and under one title, and their diff. */
+/**
+ * Two clips' sheets at the same times, on one camera framing both and under one title, and their diff, within the
+ * token budget (1,400 by default): the three rows stacked share it, each sheet a third (all of it for the marked row
+ * alone), smaller until the image fits.
+ */
 export function compareClips(a: SheetClip, b: SheetClip, R: Rest, opts: SheetOptions & { marked?: boolean } = {}): Diff & { a: Sheet; b: Sheet } {
   // one camera, one title and the same times for both, so only the motion can differ
-  const title = opts.title ?? `${a.id ?? "A"} / ${b.id ?? "B"}`;
-  const sa = sheet(a, R, { ...opts, title, with: [b] }), sb = sheet(b, R, { ...opts, title, with: [a] });
-  return { ...diff(sa.image, sb.image, { marked: opts.marked ?? false }), a: sa, b: sb };
+  const title = opts.title ?? `${a.id ?? "A"} / ${b.id ?? "B"}`, budget = opts.budget ?? 1400, marked = opts.marked ?? false;
+  let share = marked ? budget : budget / 3;
+  for (let tries = 0; ; tries++) {
+    const sa = sheet(a, R, { ...opts, budget: share, title, with: [b] }), sb = sheet(b, R, { ...opts, budget: share, title, with: [a] });
+    const d = diff(sa.image, sb.image, { marked });
+    if (d.tokens <= budget || tries >= 20) return { ...d, a: sa, b: sb };
+    share *= 0.9;
+  }
 }

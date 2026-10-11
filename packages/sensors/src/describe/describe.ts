@@ -223,7 +223,22 @@ export function describe(clip: MetricClip, R: Rest, opts: DescribeOptions = {}):
   return { clip: m.id, phases, moments, travel, text: textOf(m, phases, moments, travel, opts.detail === true) };
 }
 
-/** The timeline: phases and moments in time order, then the travel; capped at 150 tokens (about 600 characters). */
+/**
+ * A count of tokens no lower than a tokenizer's for describe's text (cl100k reads it in as many or fewer): a word every
+ * six letters, a number every three digits, a space before a number one, any other mark one.
+ */
+export function tokenCount(s: string): number {
+  let n = 0;
+  for (const x of s.match(/[A-Za-z]+|\d+|\s(?=\d)|[^\sA-Za-z\d]/g) ?? []) n += /^\d/.test(x) ? Math.ceil(x.length / 3) : /^[A-Za-z]/.test(x) ? Math.ceil(x.length / 6) : 1;
+  return n;
+}
+/** The text's budget by default, in tokens. */
+export const DESCRIBE_TOKENS = 150;
+
+/**
+ * The timeline: phases and moments in time order, then the travel; by default within 150 tokens (as `tokenCount`
+ * counts them), the later items dropped and counted when it would run over ("… 12 more to 59.67 s").
+ */
 function textOf(m: Motion, phases: Phase[], moments: Moment[], travel: [number, number], detail: boolean): string {
   const items: { t: number; s: string }[] = [
     ...phases.map((p) => ({ t: p.t0, s: `${fmt(p.t0)}–${fmt(p.t1)} s ${VERB[p.name]}${p.detail && (detail || p.name === "crouch" || p.name === "lie") ? ` (${p.detail})` : ""}` })),
@@ -233,7 +248,8 @@ function textOf(m: Motion, phases: Phase[], moments: Moment[], travel: [number, 
   const way = Math.abs(travel[0]) >= Math.abs(travel[1]) ? (travel[0] >= 0 ? "forward" : "back") : travel[1] >= 0 ? "to the right" : "to the left";
   const tail = far >= 0.1 ? [`travels ${far.toFixed(1)} hip heights ${way}${m.loop ? " a cycle" : ""}`] : [];
   const head = m.loop ? [`a ${fmt(m.dur)} s loop`] : [];
-  let parts = [...head, ...items.map((x) => x.s), ...tail];
-  if (!detail) while (parts.join("; ").length > 600 && parts.length > 2) parts = [...parts.slice(0, -2), parts[parts.length - 1]!];
-  return parts.join("; ");
+  const body = [...head, ...items.map((x) => x.s)], text = (k: number) => [...body.slice(0, k), ...(k < body.length ? [`… ${body.length - k} more to ${fmt(m.dur)} s`] : []), ...tail].join("; ");
+  let k = body.length;
+  if (!detail) while (k > 1 && tokenCount(text(k)) > DESCRIBE_TOKENS) k--;
+  return text(k);
 }
