@@ -231,3 +231,26 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
 - **Why:** these are the versions an agent writes correctly without docs; the rest keeps T0 at about 3 s.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.1.0
+
+## D23 · 2026-10-11 · How the conformance vectors are cut
+
+- **Principle:** 12 (the contract), 4 (WP-0.4)
+- **Call:**
+  - The oracles run unchanged from the pins cache. `readLibrary`, which tools/anim-import.mjs does not export, is
+    loaded from that file's own text up to its run section with an export appended; the function bodies are untouched.
+    Each oracle run is cross-checked against shardfall's `rig_expected.json` and `cmu_expected.json` (written by the
+    same importer), and the generator fails if they differ. They agree in every rest and every key.
+  - Tier 1b's rig is committed as a `.gltf` (glTF JSON with its buffer embedded as base64): text, and the standard text
+    form of glTF. Packed as .glb it hashes to the bytes the oracle read. The doctrine's binary list no longer counts
+    `.gltf` as binary.
+  - Tier 2 decodes every curated clip at its key times and at 0.37, 0.71 and 1.05 of its duration (a loop wraps, a
+    one-shot holds), in whole micrometres: 6.1 MB in all. Every clip at 30 fps would be about 20 MB, so
+    `npm run vectors -- --dense` writes that into `.cache/` instead.
+  - Tier 3's bodies are the tiny rig rescaled per segment (seven, measured by the origin's `measure`), plus the sets'
+    own bodies and CMU subject 09.
+  - CMU's take 09_02 and skeleton are committed as test fixtures under CMU's notice (recorded in the vectors' README);
+    they are never library clips.
+- **Why:** bit-for-bit tiers need the oracle's exact inputs; the sizes keep the committed vectors at 7.1 MB of the
+  10 MB budget, frozen fixtures included.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.1.0

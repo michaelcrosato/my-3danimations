@@ -13,10 +13,12 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 - WP-0.2 Toolchain: six `@m3a` workspaces; T0 `check` 3.0 s (budget 15), T1 `test` 1.3 s (90), T2 `e2e` 6.4 s (480)
   on Chromium 1194 with WebGL 2; `test:changed`, `gate`, header lint, `tools/version.ts` (D22).
 - WP-0.3 Doctrine checks: `npm run doctrine`, 7 checks in 0.2 s, run in T0; each has a failing fixture.
+- WP-0.4 Pins and vectors: 5 repos pinned; vectors regenerate byte for byte (7.1 of 10 MB): tier 1a/1b (tiny rig,
+  CMU 09_02; equal to shardfall's expected sets), tier 2 (325 clips), tier 3 (11 bodies); D23.
 
 ## Next
 
-- WP-0.4 Pins and reference vectors, 0.5 CI and session setup, then G0.
+- G0 (WP-0.5's CI checks on the PR first).
 
 ## Blocked on the owner
 

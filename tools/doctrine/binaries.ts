@@ -5,7 +5,7 @@ import { extname, join } from "node:path";
 import type { Ctx, Finding } from "./context.ts";
 
 /** Extensions that are binary whatever their bytes. */
-export const BINARY_EXT = new Set([".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp", ".ico", ".wav", ".mp3", ".ogg", ".flac", ".glb", ".gltf", ".vrm", ".vrma", ".fbx", ".blend", ".bin", ".wasm", ".zip", ".gz", ".tgz", ".7z", ".mp4", ".webm", ".pdf", ".woff", ".woff2", ".ttf", ".otf", ".npy", ".npz", ".pkl"]);
+export const BINARY_EXT = new Set([".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp", ".ico", ".wav", ".mp3", ".ogg", ".flac", ".glb", ".vrm", ".vrma", ".fbx", ".blend", ".bin", ".wasm", ".zip", ".gz", ".tgz", ".7z", ".mp4", ".webm", ".pdf", ".woff", ".woff2", ".ttf", ".otf", ".npy", ".npz", ".pkl"]);
 
 /** Approved binaries: exact paths, each with the decision that approved it. Empty at adoption (D9). */
 export const APPROVED: Record<string, string> = {};

@@ -23,8 +23,8 @@
     "test:changed": "node tools/run/changed.ts",
     "gate": "node tools/run/gate.ts",
     "doctrine": "node tools/doctrine/main.ts",
-    "vectors": "node tools/run/pending.ts vectors WP-0.4",
-    "pins": "node tools/run/pending.ts pins WP-0.4",
+    "vectors": "node tools/vectors/main.ts",
+    "pins": "node tools/pins/main.ts",
     "bench": "node tools/run/pending.ts bench WP-4.7"
   },
   "devDependencies": {

@@ -1,0 +1,74 @@
+{
+  "about": "The pinned sources (PLAN.md §4): five public repositories at full SHAs, the files the vectors and later WPs use, the frozen fixtures (never regenerated) and files fetched by SHA-256 into .cache/. npm run pins -- fetch | check | freeze. Moving a pin is a commit of its own.",
+  "repos": {
+    "my-3d2dge": {
+      "url": "https://github.com/michaelcrosato/my-3d2dge",
+      "sha": "14a561c031fd2b9649606d4f3ac7baae1c2dbbfe",
+      "license": "MIT",
+      "files": [
+        "src/mocap/readable.js",
+        "src/mocap/mocap.js",
+        "src/mocap/sets/quaternius.js",
+        "src/mocap/sets/mesh2motion.js",
+        "src/mocap/sets/cmu.js",
+        "src/mocap/catalogs/quaternius.json",
+        "src/mocap/catalogs/mesh2motion.json",
+        "src/mocap/catalogs/cmu.json",
+        "src/mocap/catalogs/cmu-takes.tsv",
+        "tools/anim-import.mjs",
+        "tools/asf-amc.mjs",
+        "tools/cmu.mjs",
+        "tools/mocap-lib.mjs"
+      ]
+    },
+    "my-3d2dge-2": {
+      "url": "https://github.com/michaelcrosato/my-3d2dge-2",
+      "sha": "c8295dc0300ffa1ccadcf4702668ff412b735c39",
+      "license": "MIT (O11, D17)",
+      "files": []
+    },
+    "shardfall": {
+      "url": "https://github.com/michaelcrosato/shardfall",
+      "sha": "a9ca003069db3da9245de1e1e21d5d288140f41e",
+      "license": "MIT (O11, D17)",
+      "files": [
+        "crates/pav_tools/tests/mocap.rs",
+        "crates/pav_tools/tests/fixtures/mocap/rig_catalog.json",
+        "crates/pav_tools/tests/fixtures/mocap/rig_expected.json",
+        "crates/pav_tools/tests/fixtures/mocap/cmu_catalog.json",
+        "crates/pav_tools/tests/fixtures/mocap/cmu_expected.json",
+        "crates/pav_tools/tests/fixtures/mocap/cmu/09.asf",
+        "crates/pav_tools/tests/fixtures/mocap/cmu/09_02.amc"
+      ]
+    },
+    "my-3dge": {
+      "url": "https://github.com/michaelcrosato/my-3dge",
+      "sha": "652ea6bc0affdce2943f5705ee2c5fa167ddbbaa",
+      "license": "MIT",
+      "files": [
+        "tests/baselines/port/core.json",
+        "tests/baselines/port/moves.json",
+        "tests/baselines/port/checksums.json"
+      ]
+    },
+    "riftlight": {
+      "url": "https://github.com/michaelcrosato/riftlight",
+      "sha": "f3693fca0039bdeda5918083bfa28b4a7b8a82af",
+      "license": "MIT (O11, D17)",
+      "files": []
+    }
+  },
+  "frozen": [
+    {
+      "path": "spec/vectors/frozen/core.json",
+      "sha256": "4a0f7439c61ae259922e10654a2f3a738d488667d3fa9b67ed2d75d6b4d11f3b",
+      "from": "my-3dge tests/baselines/port/core.json (generated there from my-3d2dge@e37e4eedcd23326f3734188b9574a4aa635fcbd3, not our pin): math helpers, RNG and easing"
+    },
+    {
+      "path": "spec/vectors/frozen/moves.json",
+      "sha256": "cb623bd598aa72ad5d6f37dc409dc47bab50cbcf5fb8ab88c95e3c38a89fe5d5",
+      "from": "my-3dge tests/baselines/port/moves.json (generated there from my-3d2dge@e37e4eedcd23326f3734188b9574a4aa635fcbd3, not our pin): the move model"
+    }
+  ],
+  "fetched": []
+}

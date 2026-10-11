@@ -16,3 +16,7 @@ features, patch for fixes. One line per change, under the part it touched (**Spe
   pins and checksums, the append-only decisions log and the local lane.
 - WP-0.5: CI (T0 and T1 on every push, T2 on pull requests, gates by manual dispatch; actions pinned by SHA), the
   SessionStart hook (`npm ci`, `CHROMIUM_PATH`) and the pull request template.
+
+### Spec
+- WP-0.4: the conformance vectors (`spec/vectors/`, tiers 1a, 1b, 2 and 3, plus two frozen fixtures from my-3dge),
+  `spec/conformance/tiers.md` and the TypeScript runner; `npm run pins` and `npm run vectors` with `--check`.
