@@ -3,7 +3,7 @@
 The current state on one screen (at most 40 lines; `npm run doctrine` checks it from WP-0.3). The ledger is
 `PLAN.md` §14; decisions are in `docs/DECISIONS.md`.
 
-**Phase:** 0 Foundation. **Next gate:** G0. **Version:** 0.1.0.
+**Phase:** 1 The language. **Next gate:** G1. **Version:** 0.1.0.
 **Mode:** one agent (D21), branch `claude/relaxed-albattani-35xhjq`.
 
 ## Done
@@ -19,7 +19,7 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 
 ## Next
 
-- G0: the verifier's findings fixed (D24); then the gate report and the merge.
+- Phase 1, the language: WP-1.1 the motion spec, on a fresh draft PR after Phase 0 merges.
 
 ## Blocked on the owner
 
@@ -27,4 +27,6 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 
 ## Last gate
 
-- None yet.
+- **G0 passed** 2026-10-11 at bae664e in 5.1 s: check (T0) 1.3 s of 15, test (T1) 1.3 s of 90 with 41 tests,
+  doctrine 7 of 7 checks, vectors 13 files byte for byte (7.1 of 10 MB). CI green on the PR. The verifier's 4 findings
+  (ledger rows, PR body, `.gltf` loosening the binaries check) are fixed (D24). PR michaelcrosato/my-3danimations#4.
