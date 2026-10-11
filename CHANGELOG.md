@@ -4,6 +4,14 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.2.0 · 2026-10-11
+
+### Spec
+- WP-1.1: `spec/MOTION.md`, the motion format 2.0-rc (frame and units, every field with its range, the new optional
+  hand, fingers, spine and yaw fields, contacts, events, facts, provenance with IPTC source types, quality, review,
+  sampling, limits, versioning, ids, sets and content ids, numerics), and `spec/LEGEND.md` (792 of 800 tokens with a
+  worked key).
+
 ## 0.1.0 · 2026-10-11
 
 ### Repo
