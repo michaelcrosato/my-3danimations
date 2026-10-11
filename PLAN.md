@@ -2187,7 +2187,7 @@ version, commit, date and a note with the numbers. Gates are rows too.
 
 | WP | Status | Version | Commit | Date | Note |
 |---|---|---|---|---|---|
-| 0.1 Constitution | todo | | | | |
+| 0.1 Constitution | done | — | (next row's commit) | 2026-10-11 | DOCTRINE.md (12 principles + enforcement table), AGENTS.md, CLAUDE.md; D1–D21 logged (O1, O7, O8, O11, CMU/Mesh2Motion); PROGRESS 24 lines |
 | 0.2 Toolchain | todo | | | | |
 | 0.3 Doctrine checks | todo | | | | |
 | 0.4 Pins and reference vectors | todo | | | | |

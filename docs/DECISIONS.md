@@ -1,0 +1,215 @@
+# Decisions
+
+The decisions log the doctrine asks for (`DOCTRINE.md`, "Deviations and escalation"): every deviation from a principle
+in the package tier, every call made without the owner's answer, every owner answer, and every exception granted. One
+entry per decision, newest last, numbered `D1`, `D2`, ...
+
+**The log is never cleaned up.** An entry that no longer holds is marked **Superseded by D<n>** and kept.
+`npm run doctrine` (WP-0.3) fails when an entry on `main` is gone.
+
+An entry:
+
+```
+  ## D<n> · YYYY-MM-DD · <the call, in a few words>
+  - **Principle:** which one (or "process")
+  - **Call:** what was decided
+  - **Why:** the reasoning, and what would change it
+  - **Answered:** yes (who asked or approved) | no: made without a response, to review
+  - **Landed in:** the version and, once merged, the pull request
+```
+
+D1 to D15 are the decisions that shape the plan (`PLAN.md` §1.3). The owner approved the plan through
+michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11, so each is answered by that approval.
+"Landed in: WP-0.1" means before the version scheme existed (WP-0.2 sets it up at v0.1.0).
+
+## D1 · 2026-10-11 · Adopt the doctrine
+
+- **Principle:** all
+- **Call:** `PLAN.md` §3 becomes `DOCTRINE.md`, verbatim, with its headings raised one level and an "In this
+  repository" table (principle, rule, check) appended. It keeps my-3d2dge's doctrine (its D1, 2026-10-10), recast for
+  an animation package.
+- **Why:** one statement of what we optimize, with a check per principle, read before every WP.
+- **Answered:** yes, the owner (plan approval and the kickoff prompt).
+- **Landed in:** WP-0.1
+
+## D2 · 2026-10-11 · The shared unit is the spec, the data and the conformance vectors
+
+- **Principle:** 7, 12
+- **Call:** TypeScript is the reference implementation. Other languages certify against the vectors (WP-10.2) instead
+  of porting the codec again.
+- **Why:** across five repositories the code was rewritten each time while the format, the data and the vectors
+  traveled intact (the codec exists in JavaScript and in about 7,500 lines of Rust, and a TypeScript port was planned).
+- **Answered:** yes, the owner (plan approval).
+- **Landed in:** WP-0.1
+
+## D3 · 2026-10-11 · Readable key poses stay the stored form, as format 2
+
+- **Principle:** 1, 4, 12
+- **Call:** format 2 keeps format 1's readable key poses. New degrees of freedom are named optional fields; `format` is
+  validated on read; a minor version only adds named fields, and fixed-length arrays never grow.
+- **Why:** key poses land 14 to 18 mm from the capture at about 14× smaller than GLB, and a model reads them as text.
+- **Answered:** yes, the owner (plan approval).
+- **Landed in:** WP-0.1
+
+## D4 · 2026-10-11 · One clip per file, plain JSON; every set has a content id
+
+- **Principle:** 4, 10
+- **Call:** `library/sets/<SET>/<Clip>.json`, plain JSON with stable key order; each set's `_set.json` carries a content
+  id (source edition, importer revision, SHA-256 of the clip files). No two sets share a name.
+- **Why:** `QUATERNIUS` already means two different sets in two repos; per-file clips diff and review cleanly.
+- **Answered:** yes, the owner (plan approval).
+- **Landed in:** WP-0.1
+
+## D5 · 2026-10-11 · The canonical skeleton is VRM 1.0's humanoid
+
+- **Principle:** 7
+- **Call:** 55 bones, 15 of them required. Mapping tables cover Mixamo, Unreal, Rigify, CMU, BVH and Unity. Khronos's
+  `KHR_character_skeleton_mapping` is tracked.
+- **Why:** the most widely adopted open humanoid naming; aligning with Khronos once it is ratified is cheap from there.
+- **Answered:** yes, the owner (plan approval).
+- **Landed in:** WP-0.1
+
+## D6 · 2026-10-11 · The core has no dependencies, never touches a renderer, and is deterministic
+
+- **Principle:** 5, 6
+- **Call:** `@m3a/core` imports nothing; it splits `step` (hashed, deterministic) from `pose` (presentation).
+- **Why:** it must run anywhere JavaScript runs and give the same bits in Node and the browser, so games can hash it.
+- **Answered:** yes, the owner (plan approval).
+- **Landed in:** WP-0.1
+
+## D7 · 2026-10-11 · three.js is the first adapter, pinned to what agents write correctly
+
+- **Principle:** 9
+- **Call:** the default pin is r182, the owner's prior pin; the latest release (r186) is also tested; stale APIs are
+  banned.
+- **Why:** agents write the version they know cold; the latest is tested so the upgrade path stays known.
+- **Answered:** yes, the owner (plan approval).
+- **Landed in:** WP-0.1
+
+## D8 · 2026-10-11 · The sensors render in software, in Node
+
+- **Principle:** 3
+- **Call:** sheets and films are drawn by a software rasterizer in Node. A browser checks adapters only, on WebGL 2.
+- **Why:** headless Linux Chrome cannot screenshot WebGPU, and pixels from a software raster are deterministic.
+- **Answered:** yes, the owner (plan approval).
+- **Landed in:** WP-0.1
+
+## D9 · 2026-10-11 · No committed binaries
+
+- **Principle:** 4
+- **Call:** test characters are generated in code; real CC0 rigs are fetched by SHA-256 into a git-ignored cache.
+- **Why:** text diffs, reviews and reproduces; binaries reproduce from text plus pinned sources.
+- **Answered:** yes, the owner (plan approval).
+- **Landed in:** WP-0.1
+
+## D10 · 2026-10-11 · License namespaces, with CC0 as the default pack
+
+- **Principle:** 10, 11
+- **Call:** the default pack is CC0. CC BY 4.0 (with credit) and CMU-licensed clips (no resale "even in converted
+  form") are opt-in, in sets of their own. Non-commercial and no-redistribution libraries stay in `library/local/`,
+  which never ships.
+- **Why:** a clip with tainted provenance shipped in a game cannot be recalled (R8); a game gets only CC0 unless it
+  opts in.
+- **Answered:** yes, the owner (plan approval, PR #3).
+- **Landed in:** WP-0.1
+
+## D11 · 2026-10-11 · One tool registry; the CLI and the skill first, MCP as a view
+
+- **Principle:** 2
+- **Call:** `defineTool` entries become the API, the `m3a` CLI, an MCP tool and a console handle.
+- **Why:** CLI plus skills cost a coding agent less context than MCP (Playwright's own guidance); one registry keeps the
+  surfaces from drifting.
+- **Answered:** yes, the owner (plan approval).
+- **Landed in:** WP-0.1
+
+## D12 · 2026-10-11 · Generative models plug in through a socket; none ships in v1
+
+- **Principle:** 10, scope
+- **Call:** the socket ships with library, recipe and procedural sources and a mock. NVIDIA Kimodo, the first
+  commercially usable candidate, would run as a remote backend (WP-D.9).
+- **Why:** most text-to-motion models are trained on non-commercial data (AMASS, HumanML3D) or carry restrictive terms.
+- **Answered:** yes, the owner (plan approval).
+- **Landed in:** WP-0.1
+
+## D13 · 2026-10-11 · The benchmark is the North Star
+
+- **Principle:** North Star
+- **Call:** fresh-agent dry runs (`bench/`) gate every surface an agent touches.
+- **Why:** the first outside model to build on my-3d2dge never found the library; only a fresh agent measures that.
+- **Answered:** yes, the owner (plan approval).
+- **Landed in:** WP-0.1
+
+## D14 · 2026-10-11 · This package is the upstream
+
+- **Principle:** process
+- **Call:** games pin it; nobody vendors a snapshot of a sibling repo.
+- **Why:** forks have already started under one name.
+- **Answered:** yes, the owner (plan approval).
+- **Landed in:** WP-0.1
+
+## D15 · 2026-10-11 · The library grows through one intake queue, and the repository stays the library
+
+- **Principle:** 11
+- **Call:** any agent submits to a hosted queue (O8); automated checks run on every submission; the owner adopts,
+  archives or rejects each one that passes (O7). Adopted clips land through pull requests. The queue sits behind an
+  interface with a local backend, so no WP waits on the hosted project.
+- **Why:** open AI catalogs were flooded (Fab) or poisoned (ClawHub); human review before adoption kept registries
+  clean.
+- **Answered:** yes, the owner (plan approval, PR #3).
+- **Landed in:** WP-0.1
+
+## D16 · 2026-10-11 · O1 answered: the code license is MIT
+
+- **Principle:** process (owner decision O1)
+- **Call:** the package's code is MIT. `LICENSE` was committed by the owner before execution began.
+- **Why:** matches my-3d2dge; permissive, so the package can become a standard. Clips keep their per-set licenses (D10).
+- **Answered:** yes, the owner, 2026-10-11.
+- **Landed in:** WP-0.1
+
+## D17 · 2026-10-11 · O11 answered: code and data carried from riftlight, shardfall and my-3d2dge-2 are MIT
+
+- **Principle:** 10 (owner decision O11)
+- **Call:** those three repositories have no license file; their author, the owner, granted MIT for the code and data
+  carried from them into this repository. Third-party clips in them keep their per-set licenses (D10).
+- **Why:** `PLAN.md` §4 carries their code; the grant makes the carry clean.
+- **Answered:** yes, the owner, 2026-10-11.
+- **Landed in:** WP-0.1
+
+## D18 · 2026-10-11 · WP-1.5 commits the CMU and Mesh2Motion sets before WP-5.3's Mesh2Motion audit
+
+- **Principle:** 10, 11 (D10, kill criterion K3)
+- **Call:** the owner confirmed the plan's order: WP-1.5 migrates and commits the CMU and Mesh2Motion sets (each in its
+  own tier, CMU opt-in) before WP-5.3 audits Mesh2Motion's licensing. If that audit removes the set, K3 applies: it
+  moves to `library/local/`, and an escalation follows only if the library drops under G5's floor.
+- **Why:** the sets are needed for G1 and M1; the audit is reversible by K3's move while nothing is published.
+- **Answered:** yes, the owner, 2026-10-11.
+- **Landed in:** WP-0.1
+
+## D19 · 2026-10-11 · O7 answered: the owner adopts every clip
+
+- **Principle:** 11 (owner decision O7)
+- **Call:** after the automated checks, the owner adopts, archives or rejects every submission; nothing is adopted
+  automatically. Changing that is an owner decision.
+- **Why:** human review before adoption is what kept registries clean.
+- **Answered:** yes, the owner, 2026-10-11.
+- **Landed in:** WP-0.1
+
+## D20 · 2026-10-11 · O8 answered: submissions and reviews are stored in a Supabase project, free tier
+
+- **Principle:** 11 (owner decision O8)
+- **Call:** the hosted intake queue is a Supabase project on the free tier. Until the owner links it, the local store
+  stands in and phone reviews travel as a JSON export.
+- **Why:** a hosted inbox lets any agent submit without access to the repository; the repository stays the library.
+- **Answered:** yes, the owner, 2026-10-11.
+- **Landed in:** WP-0.1
+
+## D21 · 2026-10-11 · Run the plan in single-agent mode
+
+- **Principle:** process (`PLAN.md` §11)
+- **Call:** the kickoff did not name ultracode, so the plan runs as one agent ("max"), working the ledger in order,
+  with subagents only for independent WPs whose Owns don't overlap, and a verifier subagent on every L WP and gate.
+  Phases stay on one development branch, `claude/relaxed-albattani-35xhjq`; after each gate's merge the branch restarts
+  from `main` and a fresh draft pull request opens for the next phase.
+- **Why:** §11's single-agent mode; the session's push rights cover that one branch.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** WP-0.1
