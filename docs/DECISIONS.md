@@ -213,3 +213,21 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
 - **Why:** §11's single-agent mode; the session's push rights cover that one branch.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** WP-0.1
+
+## D22 · 2026-10-11 · Toolchain: TypeScript run directly by Node 24, versions agents know cold
+
+- **Principle:** 9, 7 (WP-0.2)
+- **Call:**
+  - Node 24 runs the TypeScript sources directly (type stripping), so repo tools and tests need no build step. The
+    tsconfig allows only erasable syntax (no enums, namespaces or parameter properties) and `.ts` import extensions;
+    `tsc -b` checks every project and emits declarations only. A JavaScript build for packing arrives with WP-4.7/7.4.
+  - Pins: TypeScript 5.9.3 (not 7.0, the native port, which typescript-eslint does not support yet), Vitest 4.1.11,
+    Vite 7.3.7, ESLint 10.12.0 (9.x is now marked unsupported upstream), typescript-eslint 8.71.1, Playwright 1.56.1
+    (its Chromium is the container's build 1194, so `playwright install` is never needed here), `@types/node` 24.
+  - The workspaces are `private` until O2 is answered, so nothing can be published by accident.
+  - WP-0.2 also owns `.npmrc` (`save-exact`), `playwright.config.ts` and `tests/e2e/smoke.e2e.ts`; its entry says so.
+  - Core's lint bans `Math.random`, `Date.now`, `performance.now` and host globals, and its tsconfig has no DOM or Node
+    types, so principles 5 and 6 fail at T0 already.
+- **Why:** these are the versions an agent writes correctly without docs; the rest keeps T0 at about 3 s.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.1.0
