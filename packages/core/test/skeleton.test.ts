@@ -45,6 +45,7 @@ const DECORATIONS: [string, (n: string, i: number) => string][] = [
   ["as is", (n) => n],
   ["upper case", (n) => n.toUpperCase()],
   ["namespaced", (n, i) => (i % 2 ? `mixamorig:${n}` : `Armature|${n.toLowerCase()}`)],
+  ["as three.js's loader sanitizes them", (n, i) => (i % 2 ? `mixamorig${n}` : `mixamorig1${n}`)],
 ];
 
 describe("recognize: by name", () => {

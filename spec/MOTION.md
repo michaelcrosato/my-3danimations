@@ -25,8 +25,10 @@ Why this shape (format 1's reasons, measured over the origin's libraries):
 
 ## 2. Frame, units and numbers
 
-- **Frame:** the rig's own, right-handed: **forward** (f), **right** (r), **up** (z). At a clip's start the body faces
-  forward with its root on the ground at the origin. L and R are the figure's own sides; `SG(L) = −1`, `SG(R) = +1`.
+- **Frame:** the rig's own: **forward** (f), **right** (r), **up** (z), with f × r = z as numbers. That makes the triad
+  left-handed in physical space (facing north, north × east points down), so an adapter to a right-handed engine
+  mirrors once, in one place (`SKELETON.md` §2). At a clip's start the body faces forward with its root on the ground
+  at the origin. L and R are the figure's own sides; `SG(L) = −1`, `SG(R) = +1`.
 - **Lengths in keys** are whole percent of **standing hip height** `H0` (the pelvis's height in the rest pose). Decoded
   body points are millimetres.
 - **Angles** are whole degrees. **Directions** are three whole percentages; only their direction counts.
@@ -122,12 +124,12 @@ Each key is an object: `t` and named arrays of whole numbers. Key times strictly
 
 ### 5.2 Optional in format 1 already
 
-| Field | Numbers | Meaning | When absent |
-|---|---|---|---|
-| `shL`, `shR` | `[reach, shrug]` | Degrees the shoulder (collarbone) swings forward and up from rest | `[0, 0]` |
-| `footL`, `footR` | `[down, out, toes]` | Degrees the foot points down from standing, turns outward (an angle, unwrapped), the toes bend up | `[0, 0, 0]` |
-| `blade` | `[forward, right, up]` | A blade held in the right fist, in chest space (sets the knuckle line) | no blade |
-| `root` | `[forward, right]` | How far the root has travelled since the clip's start, % of `H0`, in the start frame (no bound) | in place |
+| Field | Numbers | Meaning | Range | When absent |
+|---|---|---|---|---|
+| `shL`, `shR` | `[reach, shrug]` | Degrees the shoulder (collarbone) swings forward and up from rest | ±180 each | `[0, 0]` |
+| `footL`, `footR` | `[down, out, toes]` | Degrees the foot points down from standing, turns outward, the toes bend up | down, toes ±180; out an angle (unwraps) | `[0, 0, 0]` |
+| `blade` | `[forward, right, up]` | A blade held in the right fist, in chest space (sets the knuckle line) | direction −100..100 each, not all 0 | no blade |
+| `root` | `[forward, right]` | How far the root has travelled since the clip's start, % of `H0`, in the start frame | ±10,000,000 each (100,000 body heights) | in place |
 
 An optional field is present in every key of a clip or in none (the validator warns otherwise: format 1 in-betweens a
 field only from keys that have it).
@@ -255,8 +257,10 @@ A clip's license is its set's tier's (D10): a clip derived from a CC BY or CMU c
 ### 7.5 Quality
 
 `quality` (required): `{ "fit": [mean, worst], "qa": "pass" | "baselined" | "fail" | "unchecked", "qaVersion": "…",
-"baseline": "reason" }`. `fit` is in whole millimetres against the capture (`[0, 0]` for keyed or procedural clips);
-`baseline` gives the reason when QA warnings are accepted for this clip.
+"baseline": "reason" }`. `fit` is in whole millimetres: the clip against the source frames it was fitted
+from (§6.4), whatever its method, so a captured clip against its capture and a keyed one against the source's sampled
+animation. It is `[0, 0]` only when there were no source frames (a clip keyed in this format directly, a procedural
+clip). `baseline` gives the reason when QA warnings are accepted for this clip.
 
 ### 7.6 Review
 

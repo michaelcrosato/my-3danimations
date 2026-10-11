@@ -43,7 +43,9 @@ export function validateSet(data: unknown, opts: ValidateOptions = {}): Result {
         continue;
       }
       for (const k of ["label", "origin", "license", "url"]) if (typeof src[k] !== "string") f.add("M2-E101", at(`sources.${id}.${k}`), `sources.${id}.${k} is ${src[k] === undefined ? "missing" : "not a string"}`);
+      for (const k of ["terms", "credit", "audit", "file", "rig"]) if (src[k] !== undefined && typeof src[k] !== "string") f.add("M2-E101", at(`sources.${id}.${k}`), `sources.${id}.${k} is not a string`);
       if (!isObj(src.rest) || typeof src.rest.H0 !== "number") f.add("M2-E101", at(`sources.${id}.rest`), "a source carries its measured rest body (H0, the frames, the lengths, the shares)", "spec/MOTION.md §3.2");
+      else if (!(src.rest.H0 > 0) || !Number.isFinite(src.rest.H0)) f.add("M2-E101", at(`sources.${id}.rest.H0`), `rest.H0 ${src.rest.H0} is not a positive height`, "H0 is the pelvis's standing height in millimetres (spec/MOTION.md §3.2)");
     }
   }
   need("credit", "string");

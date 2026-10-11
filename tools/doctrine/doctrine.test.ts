@@ -153,4 +153,14 @@ describe("the frozen spec", () => {
     expect(checkFrozen(fixture({ "spec/MOTION.md": "spec, edited", "spec/frozen.json": frozen({ "spec/MOTION.md": sha }) })).findings[0]!.message).toMatch(/changed, but spec 2.0-rc is frozen/);
     expect(checkFrozen(fixture({ "spec/frozen.json": frozen({ "spec/MOTION.md": sha }) })).findings[0]!.message).toMatch(/missing/);
   });
+  it("fails a frozen spec whose record is gone, a schema not recorded, and a decision not logged", () => {
+    const probe = fixture({ "MOTION.md": "spec" });
+    const sha = sha256File(join(probe.root, "MOTION.md"));
+    const frozen = (decision: string) => JSON.stringify({ about: "", version: "2.0-rc", decision, files: { "spec/MOTION.md": sha } });
+    const log = "# Decisions\n\n## D1 · 2026-10-11 · Frozen\n";
+    expect(checkFrozen(fixture({ "spec/MOTION.md": "spec" })).findings[0]!.message).toMatch(/spec\/frozen.json is missing/);
+    expect(checkFrozen(fixture({ "spec/MOTION.md": "spec", "spec/frozen.json": frozen("D1"), "docs/DECISIONS.md": log })).findings).toEqual([]);
+    expect(checkFrozen(fixture({ "spec/MOTION.md": "spec", "spec/schemas/new.schema.json": "{}", "spec/frozen.json": frozen("D1"), "docs/DECISIONS.md": log })).findings[0]!.message).toMatch(/new.schema.json is part of the frozen spec but not recorded/);
+    expect(checkFrozen(fixture({ "spec/MOTION.md": "spec", "spec/frozen.json": frozen("D9"), "docs/DECISIONS.md": log })).findings[0]!.message).toMatch(/D9, which docs\/DECISIONS.md doesn't log/);
+  });
 });

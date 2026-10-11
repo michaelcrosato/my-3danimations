@@ -185,7 +185,7 @@ function quality(f: Findings, at: (w?: Where) => Where, q: unknown): void {
   if (q === undefined) return void f.add("M2-E003", at({ field: "quality" }), "\"quality\" is missing", "every clip carries its fit and QA verdict");
   if (!isObj(q)) return void f.add("M2-E004", at({ field: "quality" }), "quality is an object");
   const fit = q.fit;
-  if (!Array.isArray(fit) || fit.length !== 2 || !fit.every((x) => Number.isInteger(x) && (x as number) >= 0)) f.add(fit === undefined ? "M2-E003" : "M2-E004", at({ field: "quality.fit" }), "quality.fit is [mean, worst], whole millimetres", "[0, 0] for keyed or procedural clips");
+  if (!Array.isArray(fit) || fit.length !== 2 || !fit.every((x) => Number.isInteger(x) && (x as number) >= 0)) f.add(fit === undefined ? "M2-E003" : "M2-E004", at({ field: "quality.fit" }), "quality.fit is [mean, worst], whole millimetres", "measure it against the source frames the clip was fitted from; [0, 0] only when there were none (spec/MOTION.md §7.5)");
   if (!(QA_VERDICTS as readonly unknown[]).includes(q.qa)) f.add(q.qa === undefined ? "M2-E003" : "M2-E016", at({ field: "quality.qa" }), `qa ${JSON.stringify(q.qa)} is not one of ${QA_VERDICTS.join(", ")}`);
   if (typeof q.qaVersion !== "string") f.add(q.qaVersion === undefined ? "M2-E003" : "M2-E004", at({ field: "quality.qaVersion" }), "quality.qaVersion is a string");
   if (q.qa === "baselined" && !(typeof q.baseline === "string" && q.baseline.trim())) f.add("M2-E003", at({ field: "quality.baseline" }), "a baselined clip gives its reason", "add quality.baseline: why the warnings are accepted");

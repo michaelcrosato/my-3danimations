@@ -89,6 +89,8 @@ describe("validate: sets and catalog rows", () => {
   });
   it("M2-E101 and M2-E102: a set missing its tier source rest, or with a bad tier", () => {
     expect(codes(validate(mut((s) => delete s.sources.UAL1.rest, baseSet()), { kind: "set" }).errors)).toEqual(["M2-E101"]);
+    expect(codes(validate(mut((s) => (s.sources.UAL1.rest.H0 = 0), baseSet()), { kind: "set" }).errors)).toEqual(["M2-E101"]);
+    expect(codes(validate(mut((s) => (s.sources.UAL1.credit = 5), baseSet()), { kind: "set" }).errors)).toEqual(["M2-E101"]);
     expect(codes(validate(mut((s) => (s.tier = "public"), baseSet()), { kind: "set" }).errors)).toEqual(["M2-E102"]);
   });
   it("M2-E110 and M2-E111: a short row, a row whose loop column is wrong", () => {

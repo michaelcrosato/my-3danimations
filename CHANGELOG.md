@@ -6,17 +6,29 @@ features, patch for fixes. One line per change, under the part it touched (**Spe
 
 ## 0.6.0 · 2026-10-11
 
+### Spec
+- G1: spec 2.0-rc frozen (D31): `spec/frozen.json` holds the SHA-256 of `MOTION.md`, `SKELETON.md`, `LEGEND.md`,
+  `conformance/tiers.md` and the schemas. Before the freeze: `_baseline.json` (§9.4, with
+  `schemas/baseline.schema.json`) and the source record's `terms`, `audit`, `file` and `rig` (§9.1).
+- G1's verifier fixes (D32): the frame is f × r = z as numbers, left-handed physically (§2); §5.2 gives every
+  optional field's range, and `root` is ±10,000,000 in spec, validator and schema; `quality.fit` is measured against
+  the source frames whatever the method (§7.5); skeleton names drop the `mixamorig` prefix three.js's loader leaves.
+
 ### Library
 - WP-1.5: the seed sets in format 2: QUATERNIUS_3D2DGE (88), QUATERNIUS_SHARDFALL (102), MESH2MOTION (177),
-  CMU_CURATED (60, tier cmu, CMU's full notice), STYLE100 (98, tier cc-by): 525 clips, each with `_set.json`,
-  `catalog.tsv` (rows within 40 tokens) and `_baseline.json`.
+  CMU_CURATED (60, tier cmu, CMU's notice word for word), STYLE100 (98, tier cc-by): 525 clips, each with
+  `_set.json`, `catalog.tsv` (rows within 40 tokens) and `_baseline.json` (reasons per warning, from the clip's keys).
 
 ### Tools
 - WP-1.5: `npm run migrate [-- --check]`.
+- G1: the doctrine's `frozen` check and `node tools/doctrine/freeze.ts <decision>`; it also fails a missing record, an
+  unrecorded schema and an unlogged decision. `npm run gate -- G1` runs the gate's command set.
 
 ### Core
 - WP-1.3's verifier fixes: hand roll unwraps; fingers curl toward the palm normal; `fromFormat1` takes the method;
   the normalized lens; format 2's fields get vectors (`tier2/FORMAT2.json`).
+- Sampling takes a format-2 clip directly (`Timed.keys` accepts `Key`).
+- The set validator rejects a non-positive `rest.H0` and non-string source fields, as the schema does.
 
 ## 0.5.0 · 2026-10-11
 

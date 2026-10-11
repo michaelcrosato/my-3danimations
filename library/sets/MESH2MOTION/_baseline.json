@@ -5,123 +5,123 @@
    {
     "code": "M2-W002",
     "at": "key 18 (t 0.667) armL[4]",
-    "reason": "format 1's twist pop: a limb turns while nearly fully bent; re-import from the source fixes it (WP-5.3)"
+    "reason": "format 1's twist pop: a limb turns while bent past 135 degrees, where its twist barely shows; re-import from the source fixes it (WP-5.3)"
    },
    {
     "code": "M2-W002",
     "at": "key 20 (t 0.767) armL[4]",
-    "reason": "format 1's twist pop: a limb turns while nearly fully bent; re-import from the source fixes it (WP-5.3)"
+    "reason": "format 1's twist pop: a limb turns while bent past 135 degrees, where its twist barely shows; re-import from the source fixes it (WP-5.3)"
    }
   ],
   "Roll_RM": [
    {
     "code": "M2-W002",
     "at": "key 18 (t 0.667) armL[4]",
-    "reason": "format 1's twist pop: a limb turns while nearly fully bent; re-import from the source fixes it (WP-5.3)"
+    "reason": "format 1's twist pop: a limb turns while bent past 135 degrees, where its twist barely shows; re-import from the source fixes it (WP-5.3)"
    },
    {
     "code": "M2-W002",
     "at": "key 20 (t 0.767) armL[4]",
-    "reason": "format 1's twist pop: a limb turns while nearly fully bent; re-import from the source fixes it (WP-5.3)"
+    "reason": "format 1's twist pop: a limb turns while bent past 135 degrees, where its twist barely shows; re-import from the source fixes it (WP-5.3)"
    }
   ],
   "Victory": [
    {
     "code": "M2-W002",
     "at": "key 20 (t 1.233) armR[4]",
-    "reason": "format 1's twist pop: a limb turns while nearly fully bent; re-import from the source fixes it (WP-5.3)"
+    "reason": "format 1's twist pop: a limb turns while bent past 135 degrees, where its twist barely shows; re-import from the source fixes it (WP-5.3)"
    },
    {
     "code": "M2-W002",
     "at": "key 21 (t 1.267) armR[4]",
-    "reason": "format 1's twist pop: a limb turns while nearly fully bent; re-import from the source fixes it (WP-5.3)"
+    "reason": "format 1's twist pop: a limb turns while bent past 135 degrees, where its twist barely shows; re-import from the source fixes it (WP-5.3)"
    }
   ],
   "Zombie_Rise": [
    {
     "code": "M2-W003",
     "at": "key 1 (t 0) hips[2]",
-    "reason": "the motion goes below standing ground on purpose (rising from the ground, swimming, crawling, rolling); tag profiles refine the rule (WP-3.3)"
+    "reason": "the hips go below standing ground on purpose (the clip swims or rises from the ground); tag profiles refine the rule (WP-3.3)"
    },
    {
     "code": "M2-W003",
     "at": "key 2 (t 0.067) hips[2]",
-    "reason": "the motion goes below standing ground on purpose (rising from the ground, swimming, crawling, rolling); tag profiles refine the rule (WP-3.3)"
+    "reason": "the hips go below standing ground on purpose (the clip swims or rises from the ground); tag profiles refine the rule (WP-3.3)"
    },
    {
     "code": "M2-W003",
     "at": "key 3 (t 0.167) hips[2]",
-    "reason": "the motion goes below standing ground on purpose (rising from the ground, swimming, crawling, rolling); tag profiles refine the rule (WP-3.3)"
+    "reason": "the hips go below standing ground on purpose (the clip swims or rises from the ground); tag profiles refine the rule (WP-3.3)"
    },
    {
     "code": "M2-W003",
     "at": "key 4 (t 0.3) hips[2]",
-    "reason": "the motion goes below standing ground on purpose (rising from the ground, swimming, crawling, rolling); tag profiles refine the rule (WP-3.3)"
+    "reason": "the hips go below standing ground on purpose (the clip swims or rises from the ground); tag profiles refine the rule (WP-3.3)"
    },
    {
     "code": "M2-W003",
     "at": "key 5 (t 0.4) hips[2]",
-    "reason": "the motion goes below standing ground on purpose (rising from the ground, swimming, crawling, rolling); tag profiles refine the rule (WP-3.3)"
+    "reason": "the hips go below standing ground on purpose (the clip swims or rises from the ground); tag profiles refine the rule (WP-3.3)"
    },
    {
     "code": "M2-W003",
     "at": "key 6 (t 0.467) hips[2]",
-    "reason": "the motion goes below standing ground on purpose (rising from the ground, swimming, crawling, rolling); tag profiles refine the rule (WP-3.3)"
+    "reason": "the hips go below standing ground on purpose (the clip swims or rises from the ground); tag profiles refine the rule (WP-3.3)"
    },
    {
     "code": "M2-W003",
     "at": "key 7 (t 0.767) hips[2]",
-    "reason": "the motion goes below standing ground on purpose (rising from the ground, swimming, crawling, rolling); tag profiles refine the rule (WP-3.3)"
+    "reason": "the hips go below standing ground on purpose (the clip swims or rises from the ground); tag profiles refine the rule (WP-3.3)"
    },
    {
     "code": "M2-W003",
     "at": "key 8 (t 0.933) hips[2]",
-    "reason": "the motion goes below standing ground on purpose (rising from the ground, swimming, crawling, rolling); tag profiles refine the rule (WP-3.3)"
+    "reason": "the hips go below standing ground on purpose (the clip swims or rises from the ground); tag profiles refine the rule (WP-3.3)"
    },
    {
     "code": "M2-W003",
     "at": "key 9 (t 1.033) hips[2]",
-    "reason": "the motion goes below standing ground on purpose (rising from the ground, swimming, crawling, rolling); tag profiles refine the rule (WP-3.3)"
+    "reason": "the hips go below standing ground on purpose (the clip swims or rises from the ground); tag profiles refine the rule (WP-3.3)"
    },
    {
     "code": "M2-W003",
     "at": "key 10 (t 1.067) hips[2]",
-    "reason": "the motion goes below standing ground on purpose (rising from the ground, swimming, crawling, rolling); tag profiles refine the rule (WP-3.3)"
+    "reason": "the hips go below standing ground on purpose (the clip swims or rises from the ground); tag profiles refine the rule (WP-3.3)"
    },
    {
     "code": "M2-W003",
     "at": "key 11 (t 1.2) hips[2]",
-    "reason": "the motion goes below standing ground on purpose (rising from the ground, swimming, crawling, rolling); tag profiles refine the rule (WP-3.3)"
+    "reason": "the hips go below standing ground on purpose (the clip swims or rises from the ground); tag profiles refine the rule (WP-3.3)"
    },
    {
     "code": "M2-W003",
     "at": "key 12 (t 1.333) hips[2]",
-    "reason": "the motion goes below standing ground on purpose (rising from the ground, swimming, crawling, rolling); tag profiles refine the rule (WP-3.3)"
+    "reason": "the hips go below standing ground on purpose (the clip swims or rises from the ground); tag profiles refine the rule (WP-3.3)"
    },
    {
     "code": "M2-W003",
     "at": "key 13 (t 1.433) hips[2]",
-    "reason": "the motion goes below standing ground on purpose (rising from the ground, swimming, crawling, rolling); tag profiles refine the rule (WP-3.3)"
+    "reason": "the hips go below standing ground on purpose (the clip swims or rises from the ground); tag profiles refine the rule (WP-3.3)"
    },
    {
     "code": "M2-W003",
     "at": "key 14 (t 1.5) hips[2]",
-    "reason": "the motion goes below standing ground on purpose (rising from the ground, swimming, crawling, rolling); tag profiles refine the rule (WP-3.3)"
+    "reason": "the hips go below standing ground on purpose (the clip swims or rises from the ground); tag profiles refine the rule (WP-3.3)"
    },
    {
     "code": "M2-W003",
     "at": "key 15 (t 1.633) hips[2]",
-    "reason": "the motion goes below standing ground on purpose (rising from the ground, swimming, crawling, rolling); tag profiles refine the rule (WP-3.3)"
+    "reason": "the hips go below standing ground on purpose (the clip swims or rises from the ground); tag profiles refine the rule (WP-3.3)"
    },
    {
     "code": "M2-W003",
     "at": "key 16 (t 1.667) hips[2]",
-    "reason": "the motion goes below standing ground on purpose (rising from the ground, swimming, crawling, rolling); tag profiles refine the rule (WP-3.3)"
+    "reason": "the hips go below standing ground on purpose (the clip swims or rises from the ground); tag profiles refine the rule (WP-3.3)"
    },
    {
     "code": "M2-W003",
     "at": "key 17 (t 1.733) hips[2]",
-    "reason": "the motion goes below standing ground on purpose (rising from the ground, swimming, crawling, rolling); tag profiles refine the rule (WP-3.3)"
+    "reason": "the hips go below standing ground on purpose (the clip swims or rises from the ground); tag profiles refine the rule (WP-3.3)"
    }
   ]
  }

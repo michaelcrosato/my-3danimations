@@ -8,6 +8,7 @@ import { parseClip, pose, serialize, validate, validateCatalogRow, type Rest } f
 import { Ajv2020 } from "ajv/dist/2020.js";
 import { describe, expect, it } from "vitest";
 import { loadTier2 } from "../../../spec/conformance/runner/vectors.ts";
+import { CMU_NOTICE } from "../sets.ts";
 
 const baselineSchema = new Ajv2020({ strict: false }).compile(JSON.parse(readFileSync(join(import.meta.dirname, "../../../spec/schemas/baseline.schema.json"), "utf8")) as object);
 /** The source record fields spec/MOTION.md §9.1 names. */
@@ -50,7 +51,14 @@ describe("the migrated library", () => {
           const got = r.warnings.map((w) => `${w.code} ${w.key !== undefined ? `key ${w.key} (t ${w.t}) ` : ""}${w.field ?? ""}${w.index !== undefined ? `[${w.index}]` : ""}`);
           const want = (baseline[f.replace(/\.json$/, "")] ?? []).map((b) => `${b.code} ${b.at}`);
           expect(got, f).toEqual(want);
-          for (const b of baseline[f.replace(/\.json$/, "")] ?? []) expect(b.reason.length, f).toBeGreaterThan(20);
+          for (const b of baseline[f.replace(/\.json$/, "")] ?? []) {
+            expect(b.reason.length, f).toBeGreaterThan(20);
+            // a reason's claim about the limb holds at the key it is written for
+            const m = /^key (\d+) .*?(arm|leg)([LR])\[4\]$/.exec(b.at);
+            const bend = m ? (clip.keys[Number(m[1]) - 1]![`${m[2]}${m[3]}` as "armL"] as number[])[3]! : undefined;
+            if (b.code === "M2-W002") expect(bend, `${f} ${b.at}`).toBeGreaterThan(135);
+            if (b.code === "M2-W005" && m) expect(bend, `${f} ${b.at}`).toBeLessThanOrEqual(25);
+          }
           expect(clip.id).toBe(`${set}/${f.replace(/\.json$/, "")}`);
           expect(manifest.sources[clip.restSrc], f).toBeDefined();
         }
@@ -82,10 +90,12 @@ describe("the migrated library", () => {
       }
     });
   }
-  it("carries CMU's full notice, and credits for the attribution tiers", () => {
+  it("carries CMU's notice word for word, and credits for the attribution tiers", () => {
+    const research = readFileSync(join(import.meta.dirname, "../../../research_notes/AI native game animation landscape/data_licensing_registries.md"), "utf8");
+    expect(research).toContain(`The full notice as reproduced by 4TU: "${CMU_NOTICE}"`);
     const cmu = JSON.parse(readFileSync(join(LIB, "CMU_CURATED/_set.json"), "utf8"));
     for (const s of Object.values(cmu.sources) as { terms: string; license: string }[]) {
-      expect(s.terms).toMatch(/may not resell this data directly, even in converted form/);
+      expect(s.terms).toBe(CMU_NOTICE);
       expect(s.license).toBe("LicenseRef-CMU-Mocap");
     }
     const style = parseClip(readFileSync(join(LIB, "STYLE100", readdirSync(join(LIB, "STYLE100")).find((f) => !f.startsWith("_") && f.endsWith(".json"))!), "utf8"));

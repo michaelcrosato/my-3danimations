@@ -2,9 +2,13 @@
 // each source's license and making read in format 2. Distinct content gets distinct names (D4): my-3d2dge's and
 // shardfall's Quaternius imports are two sets.
 
-/** The full CMU notice; the origin's source records carry only "free for all uses" and omit the no-resale clause. */
+/**
+ * CMU's notice word for word, as 4TU.ResearchData reproduces it (CMU's own site was down when it was read; research
+ * note data_licensing_registries.md, "CMU"). The origin's source records say only "free for all uses" and omit the
+ * no-resale clause.
+ */
 export const CMU_NOTICE =
-  "This data is free for use in research projects. You may include this data in commercially-sold products, but you may not resell this data directly, even in converted form. (CMU Graphics Lab Motion Capture Database, mocap.cs.cmu.edu; created with funding from NSF EIA-0196217.)";
+  "This data is free for use in research projects. You may include this data in commercially-sold products, but you may not resell this data directly, even in converted form. If you publish results obtained using this data, we would appreciate it if you would send the citation to your published paper to jkh+mocap@cs.cmu.edu, and also would add this text to your acknowledgments section: The data used in this project was obtained from mocap.cs.cmu.edu. The database was created with funding from NSF EIA-0196217.";
 
 /** How a source's clips were made and are licensed, keyed by the origin's source id (a prefix match for CMU_*). */
 export interface SourceRule {
@@ -83,11 +87,34 @@ export const SETS: readonly SetSpec[] = [
   },
 ];
 
-/** Why each kind of validator warning is accepted in a migrated clip until the WP that addresses it. */
-export const BASELINE_REASONS: Readonly<Record<string, string>> = {
-  "M2-W002": "format 1's twist pop: a limb turns while nearly fully bent; re-import from the source fixes it (WP-5.3)",
-  "M2-W003": "the motion goes below standing ground on purpose (rising from the ground, swimming, crawling, rolling); tag profiles refine the rule (WP-3.3)",
-  "M2-W004": "a limb swings round through its root between two keys; a refit or re-import adds the key between (WP-5.3)",
-  "M2-W005": "the clip spins or flips: its turn accumulates past ±540 degrees by design",
-  "M2-W006": "the origin's importer wrote this optional field in some keys only; re-import writes it in all (WP-5.3)",
-};
+/** A validator warning as the baseline sees it: its code, the key (1-based) and the field and index it names. */
+export interface Warned {
+  code: string;
+  key?: number;
+  field?: string;
+  index?: number;
+}
+
+/** The limb twist bend past which a twist is well defined; below it a straight limb's twist barely shows. */
+const STRAIGHT = 25;
+
+/**
+ * Why a validator warning is accepted in a migrated clip until the WP that addresses it, from the warning and the
+ * clip's own keys, so each reason is true of the clip it is written for. Throws on a warning no reason covers, so a
+ * new kind of warning gets a reason before it gets a baseline.
+ */
+export function baselineReason(w: Warned, warned: readonly Warned[], keys: readonly Record<string, unknown>[]): string {
+  const field = w.field ?? "";
+  if (w.code === "M2-W002") return "format 1's twist pop: a limb turns while bent past 135 degrees, where its twist barely shows; re-import from the source fixes it (WP-5.3)";
+  if (w.code === "M2-W003") return "the hips go below standing ground on purpose (the clip swims or rises from the ground); tag profiles refine the rule (WP-3.3)";
+  if (w.code === "M2-W004") return "a limb swings round through its root between two keys; a refit or re-import adds the key between (WP-5.3)";
+  if (w.code === "M2-W006") return "the origin's importer wrote this optional field in some keys only; re-import writes it in all (WP-5.3)";
+  if (w.code === "M2-W005" && ["body", "chest", "head"].includes(field)) return "the body really spins: its turn accumulates past ±540 degrees, and unwrapping keeps the spin continuous (MOTION.md §6.3)";
+  if (w.code === "M2-W005" && field.startsWith("foot") && w.index === 1) return "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)";
+  if (w.code === "M2-W005" && /^(arm|leg)[LR]$/.test(field) && w.index === 4) {
+    const bends = warned.filter((o) => o.code === w.code && o.field === field && o.index === 4).map((o) => (keys[o.key! - 1]![field] as number[])[3]!);
+    const most = Math.max(...bends);
+    if (most <= STRAIGHT) return `the twist of a nearly straight ${field.slice(0, 3)} (bend at most ${most} degrees at these keys) is barely defined, so capture noise winds it past ±540 degrees; a re-import that resets twist on straight limbs fixes it (WP-5.3)`;
+  }
+  throw new Error(`no baseline reason covers ${w.code} at ${field}[${w.index}]: write one in tools/migrate/sets.ts before baselining it`);
+}

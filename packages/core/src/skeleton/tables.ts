@@ -9,10 +9,11 @@ export interface Table {
   bones: Readonly<Record<string, readonly string[]>>;
 }
 
-/** A name as tables compare it: no namespace, lower case, letters and digits only. */
+/** A name as tables compare it: no namespace (nor the `mixamorig` three.js leaves), lower case, letters and digits. */
 export function normalizeName(name: string): string {
   const bare = name.replace(/^.*[:|]/, "");
-  return bare.toLowerCase().replace(/[^a-z0-9]/g, "");
+  // three.js's GLTFLoader sanitizes "mixamorig:Hips" to "mixamorigHips": drop the prefix it leaves
+  return bare.toLowerCase().replace(/[^a-z0-9]/g, "").replace(/^mixamorig\d*(?=[a-z])/, "");
 }
 
 type SideNames = (S: string, s: string, x: string) => Record<string, string | string[]>;

@@ -79,7 +79,8 @@ rest; "across" is 35 mm toward the thumb (forward, in a palms-down T-pose) at a 
 ## 5. Mapping tables
 
 `recognize` compares names after normalizing them: the namespace before the last `:` or `|` dropped
-(`mixamorig:Hips`, `Armature|hips`), lower case, letters and digits only. Each table names, for each humanoid bone,
+(`mixamorig:Hips`, `Armature|hips`), lower case, letters and digits only, and a leading `mixamorig` (with any digits)
+dropped too, because three.js's loader strips the colon (`mixamorigHips`). Each table names, for each humanoid bone,
 the source bone (or alternatives, first present wins):
 
 | Table | Rigs | Example: hips, spine, upper arm, toes |

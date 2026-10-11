@@ -396,3 +396,35 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
 - **Why:** every game and every port depends on the contract (principle 12); a freeze nobody checks drifts.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.6.0
+
+## D32 · 2026-10-11 · G1's verifier findings: the spec amended before the merge, the freeze check tightened
+
+- **Principle:** 12 (the contract), 4 (provenance), D31 (the freeze)
+- **Call:** the G1 verifier failed the gate on seven findings; all are fixed before PR merge, under this decision:
+  - `MOTION.md` §2 called the frame right-handed. It now says what the code and `SKELETON.md` §2 do: f × r = z as
+    numbers, a left-handed triad physically, mirrored once by an adapter.
+  - `MOTION.md` §5.2 gains a Range column (`shL`/`shR` ±180, the foot's down and toes ±180, `blade` a direction not
+    all 0). `root` was "no bound" in the spec, ±10^7 in the validator and unbounded in the schema; it is ±10,000,000 in
+    all three (100,000 body heights).
+  - `MOTION.md` §7.5 said `fit` is `[0, 0]` for keyed clips, but D29 made the Quaternius and Mesh2Motion sources keyed
+    and their clips carry a measured fit. `fit` is now measured against the source frames a clip was fitted from,
+    whatever its method, and `[0, 0]` only when there were none. The validator's hint says the same.
+  - CMU's `terms` now hold CMU's notice word for word (the acknowledgments request included), not its first two
+    sentences; the library test compares it with the research note's quote.
+  - Baseline reasons are written per warning from the clip's own keys, not one text per code: 52 of CMU's 107
+    `M2-W005` warnings are a nearly straight leg's twist winding up (bend at most 24°), not a spin, and now say so.
+    A warning no reason covers fails the migration, and the test checks each reason's claim about the limb's bend.
+  - `SKELETON.md` §5: name matching also drops a leading `mixamorig` with no colon, since three.js's loader turns
+    `mixamorig:Hips` into `mixamorigHips` (such rigs fell to the topology fallback).
+  - Set sources: the schema declares `terms`, `audit`, `file` and `rig`; the validator rejects a non-positive `H0` and a
+    non-string `credit`, as the schema does.
+  - The freeze check now also fails when `spec/frozen.json` is gone, when a file joins the frozen set (a new schema)
+    unrecorded, or when the decision it names isn't logged; `spec/conformance/tiers.md` (the tolerances) joins the
+    frozen set, and `freeze.ts` refuses a decision that isn't logged.
+- **Why:** a frozen spec that contradicts its code or its library misleads every port (a reader trusting "right-handed"
+  mirrors every character); notices and reasons are provenance (principle 4) and must be true word for word.
+- **Not acted on, logged in `docs/FEEDBACK-LOG.md`:** `facts.by` naming the migrator for a speed shardfall measured;
+  1 µm decoding proven by decoding for 3 of 5 sets (the other 2 by equal keys and copied rests); VRM `humanBones` reading
+  (io, WP-4.3); a validate kind for `_baseline.json`.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.6.0

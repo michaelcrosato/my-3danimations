@@ -7,7 +7,7 @@ import { join } from "node:path";
 import { fromFormat1, serialize, slugs, validate, type Clip, type Clip1 } from "@m3a/core";
 import { encode as tokens } from "gpt-tokenizer/encoding/cl100k_base";
 import { loadSet, type Set1 } from "../vectors/oracle.ts";
-import { BASELINE_REASONS, SETS, type SetSpec } from "./sets.ts";
+import { baselineReason, SETS, type SetSpec } from "./sets.ts";
 
 /** The migrator's own revision: it goes in every file it writes, so a change to its output is a change to this. */
 export const MIGRATOR = { tool: "m3a-migrate", version: "1" };
@@ -117,7 +117,7 @@ export function migrate(root: string): { files: Map<string, string>; report: Mig
       for (const e of r.errors) errors.push(`${name}: ${e.code} ${e.message}`);
       if (r.warnings.length) {
         warnings += r.warnings.length;
-        baseline[slugList[i]!] = r.warnings.map((w) => ({ code: w.code, at: `${w.key !== undefined ? `key ${w.key} (t ${w.t}) ` : ""}${w.field ?? ""}${w.index !== undefined ? `[${w.index}]` : ""}`, reason: BASELINE_REASONS[w.code] ?? "accepted at migration" }));
+        baseline[slugList[i]!] = r.warnings.map((w) => ({ code: w.code, at: `${w.key !== undefined ? `key ${w.key} (t ${w.t}) ` : ""}${w.field ?? ""}${w.index !== undefined ? `[${w.index}]` : ""}`, reason: baselineReason(w, r.warnings, clip.keys as unknown as Record<string, unknown>[]) }));
       }
       const text = serialize(clip);
       clipFiles.set(`${slugList[i]}.json`, text);

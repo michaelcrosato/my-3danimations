@@ -34,7 +34,11 @@
           "origin": {"type": "string"},
           "license": {"type": "string"},
           "url": {"type": "string"},
+          "terms": {"type": "string", "description": "the source's own terms, word for word"},
           "credit": {"type": "string"},
+          "audit": {"type": "string", "description": "an open license question"},
+          "file": {"type": "string", "description": "the file the importer read"},
+          "rig": {"type": "string", "description": "the rig the importer read"},
           "rest": {
             "type": "object",
             "required": ["H0"],

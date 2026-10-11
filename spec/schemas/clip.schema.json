@@ -163,7 +163,7 @@
           "type": "array",
           "minItems": 2,
           "maxItems": 2,
-          "items": {"type": "integer"}
+          "items": {"type": "integer", "minimum": -10000000, "maximum": 10000000}
         },
         "handL": {"$ref": "#/$defs/hand"},
         "handR": {"$ref": "#/$defs/hand"},
