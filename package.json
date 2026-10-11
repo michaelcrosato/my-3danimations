@@ -22,7 +22,7 @@
     "e2e": "node tools/run/e2e.ts",
     "test:changed": "node tools/run/changed.ts",
     "gate": "node tools/run/gate.ts",
-    "doctrine": "node tools/run/pending.ts doctrine WP-0.3",
+    "doctrine": "node tools/doctrine/main.ts",
     "vectors": "node tools/run/pending.ts vectors WP-0.4",
     "pins": "node tools/run/pending.ts pins WP-0.4",
     "bench": "node tools/run/pending.ts bench WP-4.7"

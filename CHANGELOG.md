@@ -12,3 +12,5 @@ features, patch for fixes. One line per change, under the part it touched (**Spe
 - WP-0.2: npm workspaces for the six `@m3a` packages, strict TypeScript with project references, ESLint, Vitest and
   Playwright on the preinstalled Chromium; the tiers `check` (T0), `test` (T1) and `e2e` (T2) with their budgets,
   `test:changed`, `gate`, the header lint and `tools/version.ts`.
+- WP-0.3: `npm run doctrine` (also in T0): binaries, cl100k token budgets, import boundaries, banned APIs, exact
+  pins and checksums, the append-only decisions log and the local lane.

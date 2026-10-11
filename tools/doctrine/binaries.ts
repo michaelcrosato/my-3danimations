@@ -1,0 +1,31 @@
+// Doctrine check, principle 4: no binary file is committed outside the approved list, which starts empty. A binary
+// is a picture, sound, model or archive by its extension, or any file with a zero byte in its first 8 KB.
+import { closeSync, openSync, readSync } from "node:fs";
+import { extname, join } from "node:path";
+import type { Ctx, Finding } from "./context.ts";
+
+/** Extensions that are binary whatever their bytes. */
+export const BINARY_EXT = new Set([".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp", ".ico", ".wav", ".mp3", ".ogg", ".flac", ".glb", ".gltf", ".vrm", ".vrma", ".fbx", ".blend", ".bin", ".wasm", ".zip", ".gz", ".tgz", ".7z", ".mp4", ".webm", ".pdf", ".woff", ".woff2", ".ttf", ".otf", ".npy", ".npz", ".pkl"]);
+
+/** Approved binaries: exact paths, each with the decision that approved it. Empty at adoption (D9). */
+export const APPROVED: Record<string, string> = {};
+
+/** True when the file is binary by extension or by a zero byte in its first 8 KB. */
+export function isBinary(root: string, path: string): boolean {
+  if (BINARY_EXT.has(extname(path).toLowerCase())) return true;
+  const fd = openSync(join(root, path), "r");
+  try {
+    const buf = Buffer.alloc(8192);
+    const n = readSync(fd, buf, 0, buf.length, 0);
+    return buf.subarray(0, n).includes(0);
+  } finally {
+    closeSync(fd);
+  }
+}
+
+/** Every unapproved binary among the context's files. */
+export function checkBinaries(ctx: Ctx, approved: Record<string, string> = APPROVED): Finding[] {
+  return ctx.files
+    .filter((f) => !(f in approved) && isBinary(ctx.root, f))
+    .map((f) => ({ check: "binaries", message: `${f} is binary: generate it from text, fetch it by SHA-256 into .cache/, or approve it in tools/doctrine/binaries.ts with a decision (D9)` }));
+}

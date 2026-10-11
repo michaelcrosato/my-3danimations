@@ -32,13 +32,14 @@ export function playwrightSummary(output: string): string | undefined {
   return m ? `${m[1]} passed` : undefined;
 }
 
-/** The T0 steps: typecheck, lint, source headers, versions. WP-0.3 adds the quick doctrine checks. */
+/** The T0 steps: typecheck, lint, source headers, versions and the doctrine's static checks. */
 export function t0Steps(): TierStep[] {
   return [
     { name: "typecheck", cmd: bin("tsc"), args: ["-b"] },
     { name: "lint", cmd: bin("eslint"), args: [".", "--cache", "--cache-location", ".cache/eslint/", "--max-warnings", "0"] },
     { name: "headers", cmd: process.execPath, args: ["tools/run/headers.ts"] },
     { name: "version", cmd: process.execPath, args: ["tools/version.ts", "--check"] },
+    { name: "doctrine", cmd: process.execPath, args: ["tools/doctrine/main.ts"] },
   ];
 }
 
