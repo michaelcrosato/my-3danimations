@@ -2,9 +2,11 @@
 // the times it must be found at. Keys are edited where the defect lives in keys (a dragged foot, a sunk body, an arm
 // through the torso, a pop, a twist flip, a loop seam, a non-number, events out of order, a pair that isn't mirrored);
 // a stretched bone lives only in baked points, so it is planted in the clip's sampled frames. Every plant is a pure
-// function of the clip and a seed, so the same fixtures plant the same defects every run.
+// function of the clip and a seed, so the same fixtures plant the same defects every run, and every key it adds or
+// edits is left as the format keeps it (whole numbers within their ranges: the sensors' `tidy`), so a planted clip is
+// a valid clip with one defect.
 import { clip as clipNs, format, math, type Clip, type Key, type Rest } from "@m3a/core";
-import { checks } from "@m3a/sensors";
+import { checks, fixes } from "@m3a/sensors";
 
 /** The defects, each with the metric that must find it. */
 export const DEFECTS = {
@@ -37,7 +39,7 @@ export interface Planted {
   where?: string;
 }
 
-/** Whether a defect can be planted in a clip (a seam needs a loop; a drag, a planted foot of 0.3 s). */
+/** Whether a defect can be planted in a clip (a seam needs a loop; a drag, a stance of 0.45 s within the clip). */
 export function fits(defect: Defect, clip: Clip, R: Rest): boolean {
   // a clip whose profile turns the defect's metric off can't show it (a slide in a death, an arm in a sitting clip)
   if (checks.profilesOf(clip.tags, clip.id).some((p) => checks.PROFILES[p]!.off.includes(DEFECTS[defect]))) return false;
@@ -46,7 +48,7 @@ export function fits(defect: Defect, clip: Clip, R: Rest): boolean {
   // with it in part: its slide is planted where the ground is the clip's own (a one-shot, a loop that travels or stands)
   if (defect === "slide") {
     const end = checks.motionOf(clip, R).root.at(-1)!, treadmill = clip.loop && (clip.keys[0] as { root?: unknown }).root === undefined && (end.forward !== 0 || end.right !== 0);
-    return !treadmill && longestContact(clip, R) !== null;
+    return !treadmill && midContact(clip, R) !== null;
   }
   if (defect === "sink") return clip.dur >= 0.5 && soleOnFloor(clip, R, 0) !== 0 || (clip.dur >= 0.5 && lowestSole(clip, R, 0) < 30);
   // a pair that isn't mirrored shows only where the motion isn't symmetric: at least 50 mm somewhere
@@ -85,11 +87,27 @@ function keyAt(c: Clip, at: number): Key {
   c.keys.sort((a, b) => a.t - b.t);
   return k;
 }
-/** The longest stance of a foot of at least 0.3 s, as the sensors measure it, within the clip (a loop's first cycle). */
-function longestContact(clip: Clip, R: Rest): { end: "footL" | "footR"; a: number; b: number } | null {
-  const contacts = checks.motionOf(clip, R).contacts;
+/**
+ * The longest stance of a foot of at least 0.45 s (long enough for the drag to reach the slide's warn level), as the
+ * sensors measure it, that starts and ends within the clip, with the foot still: it steps onto the floor at least 0.1 s
+ * after the start and lifts at least 0.25 s before the end (a stepping clip; a standing one's stance is the whole clip,
+ * where a finding at any time would read as found at the right time), and its ankle stays within 40 mm of where it
+ * landed (a foot pivoting through a turn already moves: dragged too, it moves faster than a stance).
+ */
+function midContact(clip: Clip, R: Rest): { end: "footL" | "footR"; a: number; b: number } | null {
+  const m = checks.motionOf(clip, R);
   let best: { end: "footL" | "footR"; a: number; b: number } | null = null;
-  for (const end of ["footL", "footR"] as const) for (const [a, b] of contacts[end] ?? []) if (Math.min(b, clip.dur) - a >= 0.3 && (!best || Math.min(b, clip.dur) - a > best.b - best.a)) best = { end, a, b: Math.min(b, clip.dur) };
+  for (const end of ["footL", "footR"] as const) {
+    for (const [a, b] of m.contacts[end] ?? []) {
+      if (!(a >= 0.1 && b <= clip.dur - 0.25 && b - a >= 0.45 && (!best || b - a > best.b - best.a))) continue;
+      const i0 = Math.round(a / m.dt), i1 = Math.round(b / m.dt), j = format.IDX[`ankle${end.slice(-1)}`]! * 3;
+      const at = (i: number) => [m.frames[i]![j]! + m.root[i]!.forward, m.frames[i]![j + 1]! + m.root[i]!.right];
+      const p0 = at(i0);
+      let moved = 0;
+      for (let i = i0; i <= i1; i++) moved = Math.max(moved, Math.hypot(at(i)[0]! - p0[0]!, at(i)[1]! - p0[1]!));
+      if (moved <= 40) best = { end, a, b };
+    }
+  }
   return best;
 }
 /** The keys after `dur` (a capture's last frame, up to 50 ms past it: spec/MOTION.md §6.1), which an edit to the end carries. */
@@ -98,12 +116,17 @@ const pastEnd = (c: Clip) => c.keys.filter((k) => k.t > c.dur + 1e-9);
 /** The smoothstep of u in [0, 1]. */
 const ease = (u: number) => (u <= 0 ? 0 : u >= 1 ? 1 : u * u * (3 - 2 * u));
 /**
- * Keys every 1/30 s or less over [a − ramp, b + ramp] (a clip's key within 5 ms taken as it is), each edited by `edit(key, w)`: w eases from 0 to 1 over the ramp in,
- * holds 1 over [a, b], and eases back to 0 over the ramp out, so the defect comes and goes without a jump.
+ * Keys every 0.1 s or less over [a − ramp, b + ramp] (and at a and b; a clip's key within 5 ms taken as it is), each
+ * edited by `edit(key, w)`: w eases from 0 to 1 over the ramp in, holds 1 over [a, b], and eases back to 0 over the
+ * ramp out, so the defect comes and goes without a jump. Keyed denser, the whole numbers an added key is rounded to
+ * read as a shake.
  */
 function eased(c: Clip, a: number, b: number, ramp: number, edit: (k: Key, w: number) => void): void {
-  const from = Math.max(0, a - ramp), to = Math.min(c.dur, b + ramp), n = Math.max(1, Math.ceil((to - from) * 30));
-  for (let i = 0; i <= n; i++) keyAt(c, from + ((to - from) * i) / n);
+  const from = Math.max(0, a - ramp), to = Math.min(c.dur, b + ramp), n = Math.max(1, Math.ceil((to - from) * 10));
+  // where the clip has a key within 0.05 s, that key is edited instead (two keys close together make a small
+  // difference a fast move)
+  const own = c.keys.map((k) => k.t);
+  for (const t of [...Array.from({ length: n + 1 }, (_, i) => from + ((to - from) * i) / n), Math.max(from, a), Math.min(to, b)]) if (!own.some((x) => Math.abs(x - t) < 0.05 - 1e-9)) keyAt(c, t);
   const weight = (t: number) => (t < a ? ease((t - (a - ramp)) / ramp) : t > b ? ease((b + ramp - t) / ramp) : 1);
   for (const k of c.keys) {
     if (k.t < from - 1e-9 || k.t > to + 1e-9) continue;
@@ -126,30 +149,49 @@ function soleOnFloor(c: Clip, R: Rest, t: number): number {
   return [...times.filter((x) => x >= t), ...times.filter((x) => x < t)].find((x) => lowestSole(c, R, x) < 30) ?? t;
 }
 
-/** Plants `defect` into `clip` (on rest R), at a time the seed picks. */
+/** Plants `defect` into `clip` (on rest R), at a time the seed picks; every key it adds or edits is tidied. */
 export function plant(defect: Defect, clip: Clip, R: Rest, seed = 1): Planted {
+  const p = planted(defect, clip, R, seed);
+  if (defect !== "nan") {
+    const was = new Set(clip.keys.map((k) => JSON.stringify(k)));
+    for (const k of p.clip.keys) if (!was.has(JSON.stringify(k))) fixes.tidy(k as never);
+  }
+  return p;
+}
+function planted(defect: Defect, clip: Clip, R: Rest, seed: number): Planted {
   const c = copy(clip), metric = DEFECTS[defect], dur = c.dur;
   const t = timeIn(c.id, defect, seed, Math.min(0.25, dur * 0.25), Math.max(Math.min(0.25, dur * 0.25), dur - 0.25));
   switch (defect) {
     case "slide": {
-      // the foot dragged outward over its longest stance, at a steady 0.4 hip heights a second and at most 250 mm (its
-      // leg swung out by the angle that moves its ankle so far, at the span it has: a bent leg reaches less than its
-      // length), so it stays on the floor (it rises at most 38 mm) and slower than a swing: a foot sliding as it
-      // stands. After the stance the leg eases back over 0.25 s, in the air, so letting go isn't a pop
-      const k = longestContact(c, R)!, legKey = k.end === "footL" ? "legL" : "legR", far = Math.min(250, 0.4 * R.H0 * (k.b - k.a));
+      // the foot dragged along the floor over its longest stance within the clip, at a steady 0.4 hip heights a second
+      // and at most 250 mm: its ankle, ball and toes moved with their heights kept, and its leg
+      // re-aimed at them (its direction and bend; its twist and foot stay the clip's), so it stays on the floor and
+      // slower than a swing: a foot sliding as it stands. After the stance the shift eases back over 0.25 s, in the
+      // air, so letting go isn't a pop
+      const k = midContact(c, R)!, s = k.end === "footL" ? "L" : "R", far = Math.min(250, 0.4 * R.H0 * (k.b - k.a));
       const out = Math.min(dur, k.b + 0.25);
-      // keys on the 1/30 s grid (the library's key rate) over the stance and the release
-      for (let j = Math.ceil(k.a * 30 - 1e-6); j / 30 <= out + 1e-6; j++) keyAt(c, j / 30);
+      // keys every 0.1 s at least over the stance and the release (the clip's own between them are edited too): an
+      // in-between key is rounded to whole numbers, and keyed denser its rounding reads as a shake
+      const own = c.keys.map((x) => x.t);
+      for (let j = Math.ceil(k.a * 10 - 1e-6); j / 10 <= out + 1e-6; j++) if (!own.some((x) => Math.abs(x - j / 10) < 0.05 - 1e-9)) keyAt(c, j / 10);
       keyAt(c, k.a);
       keyAt(c, k.b);
+      keyAt(c, out);
       const drag = (t: number) => (t <= k.b ? Math.max(0, (t - k.a) / (k.b - k.a)) : out > k.b ? 1 - ease((t - k.b) / (out - k.b)) : 1);
-      for (const key of c.keys) {
-        // the keys past the end carry the drag the end has
-        if (key.t < k.a - 1e-9 || (key.t > out + 1e-9 && !(out >= dur - 1e-9 && key.t > dur))) continue;
-        const leg = key[legKey], u = drag(Math.min(key.t, dur)), L = Math.hypot(leg[0]!, leg[1]!, leg[2]!), dir = [leg[0]! / L, leg[1]! / L, leg[2]! / L];
-        const span = Math.sqrt(Math.max(1, R.thigh ** 2 + R.shin ** 2 + 2 * R.thigh * R.shin * Math.cos(((leg[3] ?? 0) * Math.PI) / 180))), th = (far * u) / span;
-        const e = [0 - dir[0]! * dir[1]!, 1 - dir[1]! * dir[1]!, 0 - dir[2]! * dir[1]!], el = Math.hypot(e[0]!, e[1]!, e[2]!) || 1;
-        for (let j = 0; j < 3; j++) leg[j] = L * (dir[j]! * Math.cos(th) + (e[j]! / el) * Math.sin(th));
+      // the way it slides: outward, forward, back or inward, the first that keeps the ankle within the leg's reach (a
+      // straight leg can't follow its foot outward without lifting it)
+      const edited = c.keys.filter((key) => key.t >= k.a - 1e-9 && key.t <= out + 1e-9 && drag(key.t) > 0);
+      const ways: [number, number][] = [[0, format.SG[s]], [1, 0], [-1, 0], [0, -format.SG[s]]];
+      const way = ways.find(([dx, dy]) => edited.every((key) => {
+        const X = format.decodePose(R, key as never, new Float32Array(format.P * 3)), h = format.IDX["hip" + s]! * 3, a = format.IDX["ankle" + s]! * 3, u = far * drag(key.t);
+        return Math.hypot(X[a]! + dx * u - X[h]!, X[a + 1]! + dy * u - X[h + 1]!, X[a + 2]! - X[h + 2]!) <= R.thigh + R.shin - 5;
+      })) ?? ways[0]!;
+      for (const key of edited) {
+        const u = drag(key.t);
+        const X = format.decodePose(R, key as never, new Float32Array(format.P * 3));
+        for (const n of ["ankle", "ball", "toe"]) for (const [j, d] of [[0, way[0]], [1, way[1]]] as const) X[format.IDX[n + s]! * 3 + j] = X[format.IDX[n + s]! * 3 + j]! + d * far * u;
+        const e = format.encodePose(R, X, key as never, { round: false }) as Key, leg = key[`leg${s}`]!;
+        key[`leg${s}`] = [...e[`leg${s}`]!.slice(0, 4), leg[4] ?? 0];
       }
       return { defect, clip: c, metric, t0: k.a, t1: k.b, where: k.end };
     }
@@ -174,7 +216,7 @@ export function plant(defect: Defect, clip: Clip, R: Rest, seed = 1): Planted {
       return { defect, clip: c, metric, t0: t, t1, where: "upperArmR" };
     }
     case "pop": {
-      // one key the left fist jumps 250 mm out to, between keys a sample either side that hold the clean pose
+      // one key at which the left arm turns about 45°, between keys a sample either side that hold the clean pose
       const [before, key, after] = [t - 1 / 60, t, t + 1 / 60].map((x) => keyAt(c, x)) as [Key, Key, Key];
       // the arm turned about 45° toward the axis it points along least, so the fist moves wherever the arm points
       const arm = key.armL, L = Math.hypot(arm[0]!, arm[1]!, arm[2]!);

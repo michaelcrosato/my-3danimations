@@ -343,7 +343,7 @@ export function fit(m: Motion): Measured {
   const f = (m.quality as { fit?: number[] } | undefined)?.fit;
   if (!f) return { value: 0, findings: [] };
   const worstOk = (f[1] ?? 0) <= 300;
-  return { value: f[0]!, findings: keep([finding(m, "fit", worstOk ? f[0]! : Math.max(f[0]!, THRESHOLDS.fit.fail), 0, m.dur, undefined, `strays ${fmt(f[0]!)} mm on average, ${fmt(f[1] ?? 0)} at worst, from its source`, "import it again or fit more keys (fix: re-fit keys to a budget)")]) };
+  return { value: f[0]!, findings: keep([finding(m, "fit", worstOk ? f[0]! : Math.max(f[0]!, THRESHOLDS.fit.fail), 0, m.dur, undefined, `strays ${fmt(f[0]!)} mm on average, ${fmt(f[1] ?? 0)} at worst, from its source`, "import it again from its source, fitting more keys (re-fit only drops keys)")]) };
 }
 
 /** Non-numbers in the keys or the decoded points. */

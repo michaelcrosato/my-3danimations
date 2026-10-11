@@ -1,6 +1,7 @@
-// `npm run plant [-- --check]` (PLAN.md WP-3.6): picks 100 clean library clips (those the sensors pass, every
-// other one of the sorted library first) and gives each a defect to plant, the ten in turn (a clip that can't take
-// one gets the next it can; one that can take none is passed over), and writes the runs with the times each defect must be found at to
+// `npm run plant [-- --check]` (PLAN.md WP-3.6): plants the ten defects in turn into 100 clean library clips (those
+// the sensors pass, every other one of the sorted library first): each defect takes the first clean clip left that
+// can show it (a slide needs a stance that starts and ends within the clip), so each is planted about ten times, and
+// writes the runs with the times each defect must be found at to
 // packages/sensors/fixtures/planted/runs.json. --check rebuilds them and fails on any difference. `npm test -- planted`
 // plants them and runs the sensors.
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -28,17 +29,17 @@ export function runs(): Run[] {
   const lib = libraryClips(), clean = lib.filter((c) => metrics(c.clip, c.rest).verdict === "pass");
   // every other clean clip first, then the ones between, until 100 have taken a defect
   const order = [...clean.filter((_, i) => i % 2 === 0), ...clean.filter((_, i) => i % 2 === 1)];
-  const kinds = Object.keys(DEFECTS) as Defect[], out: Run[] = [];
-  for (const c of order) {
-    if (out.length >= 100) break;
-    const i = out.length;
-    for (let k = 0; k < kinds.length; k++) {
-      const defect = kinds[(i + k) % kinds.length]!;
-      if (!fits(defect, c.clip, c.rest)) continue;
-      const p = plant(defect, c.clip, c.rest, i + 1);
-      out.push({ clip: c.clip.id, defect, seed: i + 1, metric: p.metric, t0: round(p.t0), t1: round(p.t1), ...(p.where ? { where: p.where } : {}) });
-      break;
+  const kinds = Object.keys(DEFECTS) as Defect[], out: Run[] = [], pool = [...order];
+  // the defects in turn, each taking the first clip left it fits; stop when 100 are planted or none fits any clip left
+  for (let i = 0, idle = 0; out.length < 100 && idle < kinds.length; i++) {
+    const defect = kinds[i % kinds.length]!, j = pool.findIndex((c) => fits(defect, c.clip, c.rest));
+    if (j < 0) {
+      idle++;
+      continue;
     }
+    idle = 0;
+    const c = pool.splice(j, 1)[0]!, seed = out.length + 1, p = plant(defect, c.clip, c.rest, seed);
+    out.push({ clip: c.clip.id, defect, seed, metric: p.metric, t0: round(p.t0), t1: round(p.t1), ...(p.where ? { where: p.where } : {}) });
   }
   return out;
 }

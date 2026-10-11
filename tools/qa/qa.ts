@@ -1,9 +1,10 @@
 // The QA run's work (PLAN.md WP-3.3): the migrated library's clips, each measured by the sensors on its own rest, and
-// the distributions of their values per metric, overall and per set, that the thresholds are read from.
+// the distributions of their values per metric, overall and per set, that the thresholds are read from; and lint and
+// fix over the whole library (WP-3.5), each fixed clip checked to be no worse and valid.
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { parseClip, type Clip, type Rest } from "@m3a/core";
-import { checks, metrics } from "@m3a/sensors";
+import { parseClip, validate, type Clip, type Rest } from "@m3a/core";
+import { checks, fix, lint, metrics } from "@m3a/sensors";
 import { ROOT } from "../run/cli.ts";
 
 /** A library clip with its set and rest. */
@@ -55,6 +56,38 @@ export function qa(clips: readonly LibraryClip[]): QaRow[] {
     return { clip: r.clip, set, verdict: r.verdict, text: r.text, values: r.values, off: r.off, findings: r.findings, counts };
   });
 }
+
+/** One clip's lint and fix: the operators lint named, the verdict and finding count before and after, the steps not
+ * applied (and why), and the validator's errors in the fixed clip. */
+export interface FixRow {
+  clip: string;
+  ops: string[];
+  before: { verdict: string; findings: number };
+  after: { verdict: string; findings: number };
+  rejected: string[];
+  errors: string[];
+}
+const RANK = { pass: 0, warn: 1, fail: 2 } as const;
+/** Lints and fixes every clip lint flags (WP-3.5): what changed, and whether any came out worse or invalid. */
+export function fixAll(clips: readonly LibraryClip[]): FixRow[] {
+  const rows: FixRow[] = [];
+  for (const { clip, rest } of clips) {
+    const before = metrics(clip, rest), l = lint(clip, rest, before);
+    if (!l.items.length) continue;
+    const out = fix(clip, rest), v = validate(JSON.parse(JSON.stringify(out.clip)) as never);
+    rows.push({
+      clip: clip.id,
+      ops: l.items.map((i) => i.op),
+      before: { verdict: before.verdict, findings: before.findings.length },
+      after: { verdict: out.after.verdict, findings: out.after.findings.length },
+      rejected: out.steps.filter((s) => s.rejected).map((s) => `${s.op}: ${s.rejected!.join("; ")}`),
+      errors: v.errors.map((e) => `${e.code} ${e.message}`),
+    });
+  }
+  return rows;
+}
+/** Whether a fixed clip came out worse than it went in. */
+export const worse = (r: FixRow) => RANK[r.after.verdict as keyof typeof RANK] > RANK[r.before.verdict as keyof typeof RANK];
 
 /** The sets of real capture, which the thresholds are checked against. */
 export const CAPTURE = ["CMU_CURATED", "STYLE100"];

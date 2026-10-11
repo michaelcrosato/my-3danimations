@@ -40,6 +40,7 @@ export const GATES: Record<string, [string, string, ...string[]][]> = {
     ["planted defects: 100% caught at their times", "test", "planted"],
     ["describe: the reviewed ground truth", "test", "describe"],
     ["lint and fix: each operator removes its planted defect", "test", "fix"],
+    ["lint and fix over the library: no clip worse, every one valid", "qa", "--fix"],
     ["T2: browser checks and library QA", "e2e"],
   ],
 };

@@ -1,16 +1,17 @@
-// `npm run qa [-- --sample N] [--set S] [--clip ID] [--dist] [--strict]` (PLAN.md WP-3.3): the sensors over the
-// migrated library, each clip on its own rest. It prints the verdicts' counts and the metrics that fail most; --dist
+// `npm run qa [-- --sample N] [--set S] [--clip ID] [--dist] [--strict] [--fix]` (PLAN.md WP-3.3): the sensors over
+// the migrated library, each clip on its own rest. It prints the verdicts' counts and the metrics that fail most; --dist
 // also prints each metric's distribution in real capture and in all (p50 / p90 / p95 / p99 / max of each clip's worst
 // value), which the thresholds are read from, and writes every set's. Writes check-output/qa/clips.json: every clip's
 // verdict and its text, values, and findings with their times and repairs (--json writes the run's own report.json
 // beside it). --baseline writes the committed baseline (packages/sensors/fixtures/baseline.json: every clip's verdict,
 // values and finding counts, numbers only); --check fails on any clip that differs from it, naming each difference
-// (a baseline changes only in a commit that says why). Exit 0 when every clip was measured within the T2 budget;
-// --strict exits 1 when any clip fails.
+// (a baseline changes only in a commit that says why). --fix runs lint and fix (WP-3.5) on every clip lint flags and
+// fails on any that comes out worse or invalid, writing each clip's result to check-output/qa/fix.json. Exit 0 when
+// every clip was measured within the T2 budget; --strict exits 1 when any clip fails.
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { finish, fmtMs, parseArgs, ROOT, usage, type Report, type Step } from "../run/cli.ts";
-import { BASELINE, baselineOf, compare, distributions, libraryClips, qa, sample, type BaselineRow } from "./qa.ts";
+import { BASELINE, baselineOf, compare, distributions, fixAll, libraryClips, qa, sample, worse, type BaselineRow } from "./qa.ts";
 
 if (import.meta.main) {
   const specs = [
@@ -21,6 +22,7 @@ if (import.meta.main) {
     { name: "strict", help: "exit 1 when any clip fails" },
     { name: "baseline", help: "write the committed baseline from this run (the whole library)" },
     { name: "check", help: "fail on any clip that differs from the committed baseline" },
+    { name: "fix", help: "lint and fix every clip lint flags; fail on any that comes out worse or invalid" },
   ];
   let parsed;
   try {
@@ -39,7 +41,7 @@ if (import.meta.main) {
   for (const r of rows) for (const k of Object.keys(r.counts)) if (k.endsWith(":fail")) byMetric[k.split(":")[0]!] = (byMetric[k.split(":")[0]!] ?? 0) + 1;
   const steps: Step[] = [
     { name: "measured", ok: rows.length > 0 && ms <= budget, ms, summary: `${rows.length} clips in ${fmtMs(ms)} (${fmtMs(ms / Math.max(1, rows.length))} each; T2 budget ${fmtMs(budget)})` },
-    { name: "verdicts", ok: !f.strict || count("fail") === 0, ms: 0, summary: `${count("pass")} pass, ${count("warn")} warn, ${count("fail")} fail`, detail: Object.entries(byMetric).sort((a, b) => b[1] - a[1]).map(([m, n]) => `${m}: fails ${n} clips`) },
+    { name: "verdicts", ok: !f.strict || count("fail") === 0, ms: 0, summary: `${count("pass")} pass, ${count("warn")} warn, ${count("fail")} fail${count("fail") ? `; failing most: ${Object.entries(byMetric).sort((a, b) => b[1] - a[1]).slice(0, 4).map(([m, n]) => `${m} ${n}`).join(", ")}` : ""}`, detail: Object.entries(byMetric).sort((a, b) => b[1] - a[1]).map(([m, n]) => `${m}: fails ${n} clips`) },
   ];
   const whole = clips.length === libraryClips().length, path = join(ROOT, BASELINE);
   if (f.baseline) {
@@ -56,6 +58,12 @@ if (import.meta.main) {
   }
   const out = join(ROOT, "check-output/qa"), dist = f.dist ? distributions(rows) : null;
   mkdirSync(out, { recursive: true });
+  if (f.fix) {
+    const s0 = performance.now(), fixed = fixAll(clips), bad = fixed.filter((r) => worse(r) || r.errors.length);
+    const better = fixed.filter((r) => r.after.verdict !== r.before.verdict && !worse(r)).length, held = fixed.reduce((a, r) => a + r.rejected.length, 0);
+    writeFileSync(join(out, "fix.json"), JSON.stringify({ rows: fixed }, null, 1));
+    steps.push({ name: "fix", ok: bad.length === 0, ms: performance.now() - s0, summary: `${fixed.length} clips lint flags: ${better} better, ${fixed.length - better - bad.length} as they were or fewer findings, ${bad.length} worse or invalid; ${held} steps not applied (they would push a metric past a level)`, detail: bad.map((r) => `${r.clip}: ${r.before.verdict} → ${r.after.verdict}${r.errors.length ? `, ${r.errors.length} errors: ${r.errors[0]}` : ""}`) });
+  }
   writeFileSync(join(out, "clips.json"), JSON.stringify({ rows, ...(dist ? { distributions: dist } : {}) }, null, 1));
   if (dist) {
     const line = (p: { p50: number; p90: number; p95: number; p99: number; max: number; n: number }) => `${[p.p50, p.p90, p.p95, p.p99, p.max].map((x) => +x.toFixed(2)).join(" / ")} (n ${p.n})`;

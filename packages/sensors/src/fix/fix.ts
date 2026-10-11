@@ -1,11 +1,14 @@
 // Lint and fix (PLAN.md WP-3.5): `lint(clip, R)` lists what `fix` would change and why (the metrics' findings each
 // operator answers); `fix(clip, R)` applies the operators in order, each with the metrics before and after it and a
-// line for every change. No clip changes silently: after every operator its `dur`, events and contacts are compared
-// with what they were, and any that moved is reported with the operator's own changes; when anything changed, a
-// clip's stored facts are measured again at the end, and what they say differently is reported too.
+// line for every change. Nothing gets worse: a step that would push any metric past a level (warn or fail) it was under
+// is not applied, and the step says which. No clip changes silently: after every operator its `dur`, events and
+// contacts are compared with what they were, and any that moved is reported with the operator's own changes; when
+// anything changed, a clip's stored facts are measured again at the end, and what they say differently is reported too.
 import { measureFacts, type Clip, type Rest } from "@m3a/core";
-import type { Finding } from "../metrics/checks.ts";
+import { levels, type Finding } from "../metrics/checks.ts";
+import { motionOf, type Motion } from "../metrics/motion.ts";
 import { metrics, type Report } from "../metrics/report.ts";
+import { METRICS } from "../metrics/thresholds.ts";
 import { FIXES, OPERATORS, type FixName, type FixOptions, type Operator } from "./ops.ts";
 
 /** One thing lint found to fix: the operator, and the findings (or the reason) it answers. */
@@ -23,6 +26,8 @@ export interface Lint {
 export interface FixStep {
   op: string;
   changes: string[];
+  /** When the step was not applied: the metrics it would have pushed past a level they were under. */
+  rejected?: string[];
   before: Report["values"];
   after: Report["values"];
   /** The findings before and after, by metric. */
@@ -39,7 +44,7 @@ export interface FixReport {
 
 /** Which metrics' findings each operator answers. */
 const ANSWERS: Readonly<Record<FixName, readonly string[]>> = {
-  twistFlips: ["twistFlip"], jitter: ["jitter", "pop"], penetration: ["penetration"], footLocks: ["slide", "skate"], seam: ["seam"], refit: [],
+  twistFlips: ["twistFlip"], jitter: ["jitter", "pop"], penetration: ["penetration"], footLocks: ["slide", "skate"], seam: ["seam", "seamVelocity"], refit: [],
 };
 /** Keys a second past which re-fitting is suggested: the library's 30 fps grid. */
 const DENSE = 30;
@@ -68,19 +73,51 @@ function moved(a: Clip, b: Clip): string[] {
   return out;
 }
 
+/** Edit distance, for "did you mean". */
+function distance(a: string, b: string): number {
+  const row = Array.from({ length: b.length + 1 }, (_, j) => j);
+  for (let i = 1; i <= a.length; i++) {
+    let prev = row[0]!;
+    row[0] = i;
+    for (let j = 1; j <= b.length; j++) [prev, row[j]] = [row[j]!, Math.min(row[j]! + 1, row[j - 1]! + 1, prev + (a[i - 1] === b[j - 1] ? 0 : 1))];
+  }
+  return row[b.length]!;
+}
+/** A metric's level at value v: 0 under its warn level, 1 at warn, 2 at fail. */
+const level = (m: Motion, k: (typeof METRICS)[number], v: number) => (v >= levels(m, k).fail ? 2 : v >= levels(m, k).warn ? 1 : 0);
+const num = (v: number) => (Math.abs(v) >= 100 ? String(Math.round(v)) : v.toFixed(1));
+/** The metrics a step pushes past a level they were under, each as "name before → after, past its fail level". */
+function worse(m: Motion, before: Report, after: Report): string[] {
+  return METRICS.filter((k) => !before.off.includes(k)).flatMap((k) => {
+    const a = level(m, k, before.values[k]), b = level(m, k, after.values[k]);
+    return b > a ? [`${k} ${num(before.values[k])} → ${num(after.values[k])}, past its ${b === 2 ? "fail" : "warn"} level`] : [];
+  });
+}
+
 /**
  * Fixes clip `clip` on rest R: the operators lint names (or `ops`: names, in `FIXES`'s order, then operators of your
- * own, in theirs), each run on the clip the one before left and measured before and after.
+ * own, in theirs), each run on the clip the one before left and measured before and after. A step that would push any
+ * metric past a level it was under is not applied (`rejected` says which). Throws for a name that isn't an operator.
  */
 export function fix(clip: Clip, R: Rest, opts: FixOptions & { ops?: readonly (FixName | Operator)[] } = {}): FixReport {
-  const first = metrics(clip, R);
+  for (const x of opts.ops ?? []) {
+    if (typeof x === "string" && !(FIXES as readonly string[]).includes(x)) {
+      const near = [...FIXES].sort((a, b) => distance(x.toLowerCase(), a.toLowerCase()) - distance(x.toLowerCase(), b.toLowerCase()))[0]!;
+      throw new Error(`fix: no operator "${x}"; did you mean "${near}"? The operators are ${FIXES.join(", ")}`);
+    }
+  }
+  const first = metrics(clip, R), m = motionOf(clip, R);
   const named = opts.ops ?? lint(clip, R, first).items.map((i) => i.op);
   const ops = [...FIXES.filter((n) => named.includes(n)), ...named.filter((x): x is Operator => typeof x !== "string")];
   let c = clip, report = first;
   const steps: FixStep[] = [];
   for (const op of ops) {
     const run = typeof op === "string" ? OPERATORS[op] : op, name = typeof op === "string" ? op : op.name || "custom";
-    const out = run(c, R, report, opts), next = metrics(out.clip, R);
+    const out = run(c, R, report, opts), next = metrics(out.clip, R), pushed = worse(m, report, next);
+    if (pushed.length) {
+      steps.push({ op: name, changes: [], rejected: pushed, before: report.values, after: report.values, findings: { before: count(report.findings), after: count(report.findings) } });
+      continue;
+    }
     steps.push({ op: name, changes: [...out.changes, ...moved(c, out.clip)], before: report.values, after: next.values, findings: { before: count(report.findings), after: count(next.findings) } });
     [c, report] = [out.clip, next];
   }
@@ -92,6 +129,6 @@ export function fix(clip: Clip, R: Rest, opts: FixOptions & { ops?: readonly (Fi
       steps.push({ op: "facts", changes: diff.map((k) => `facts.${k} ${JSON.stringify(old[k])} → ${JSON.stringify(fresh[k])}`), before: report.values, after: report.values, findings: { before: count(report.findings), after: count(report.findings) } });
     }
   }
-  const text = [`${clip.id}: ${first.verdict.toUpperCase()} → ${report.verdict.toUpperCase()} (${first.findings.length} → ${report.findings.length} findings)`, ...steps.flatMap((s) => [`${s.op}:`, ...s.changes.slice(0, 4).map((x) => `  ${x}`), ...(s.changes.length > 4 ? [`  ... ${s.changes.length - 4} more`] : [])])].slice(0, 20).join("\n");
+  const text = [`${clip.id}: ${first.verdict.toUpperCase()} → ${report.verdict.toUpperCase()} (${first.findings.length} → ${report.findings.length} findings)`, ...steps.flatMap((s) => (s.rejected ? [`${s.op}: not applied, it would push ${s.rejected.join("; ")}`] : [`${s.op}:`, ...s.changes.slice(0, 4).map((x) => `  ${x}`), ...(s.changes.length > 4 ? [`  ... ${s.changes.length - 4} more`] : [])]))].slice(0, 20).join("\n");
   return { clip: c, steps, before: first, after: report, text };
 }
