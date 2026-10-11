@@ -3,7 +3,7 @@
 The current state on one screen (at most 40 lines; `npm run doctrine` checks it from WP-0.3). The ledger is
 `PLAN.md` §14; decisions are in `docs/DECISIONS.md`.
 
-**Phase:** 2 The airframe. **Next gate:** G2. **Version:** 0.7.0.
+**Phase:** 2 The airframe. **Next gate:** G2. **Version:** 0.8.0.
 **Mode:** one agent (D21), branch `claude/relaxed-albattani-35xhjq`.
 
 ## Done
@@ -15,10 +15,12 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
   the seed sets in format 2 (5 sets, 525 clips, 0 errors). D25 to D32.
 - WP-2.1 The math kernel: portable math with V8's bits (pow within 1 ulp), the same in V8 and JavaScriptCore; all of
   core uses it (D33).
+- WP-2.2 The clip runtime: sampling, root motion over loop cycles, events, contacts, measured facts within tolerance
+  of 20 independently measured clips (D34).
 
 ## Next
 
-- WP-2.2 Sampler, events, contacts and facts.
+- WP-2.3 Pose operations.
 
 ## Blocked on the owner
 

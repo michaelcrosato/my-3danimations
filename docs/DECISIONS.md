@@ -454,3 +454,33 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   V8 exactly also keeps every vector generated in Node valid.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.7.0
+
+## D34 · 2026-10-11 · Facts are measured, and their ground truth is the origins' own measurements
+
+- **Principle:** 9 (QA first), 5, WP-2.2
+- **Call:**
+  - `facts-truth.json` takes its expectations from three sources the code under test never saw:
+    - my-3d2dge-2's asset manifest, which measured each GLB clip's root speed (m/s) and loop flag;
+    - its designers' strike times for the hero's skills;
+    - shardfall's importer's recorded 100STYLE speeds.
+
+    Clips were chosen by rule, not by result: every forward-stepping UAL loop the manifest gives a speed, 100STYLE's
+    fastest and slowest recorded walks, all six `_RM` clips, and the hero's sword strikes. The origin's `hitAt` belongs
+    to procedural moves, and shardfall's `strike` is computed by its Rust runtime at run time (no stored numbers), so
+    neither could serve. Monster skills' timings are left out: they also drive procedural creatures, and one
+    (`Zombie_Scratch`) sits 0.24 s after the swipe.
+  - An in-place loop's speed is read from its planted feet: at each sample, the planted foot nearest under the pelvis,
+    its lowest point, the median velocity. Every stepping loop lands within 11% of its source speed.
+    - Swims and slides plant no foot on the floor, so they read as not travelling.
+    - A shuffle reads low (100STYLE's `Penguin_Walk`, −18%, outside the truth set's rule).
+  - Contacts are detected about the format's floor (z = 0) with hysteresis. A toe dipping through the floor mid-swing
+    must not move the ground, and an end far under the floor isn't planted.
+  - The strike is when the fastest end moves fastest relative to the pelvis: the fists, a blade's tip (one H0 along the
+    knuckle line) when the clip holds one, and the toes for a kick. It lands within 0.06 s of the designers' times.
+  - Events fire in half-open windows `[t0, t1)`, so a loop's `t = 0` and `t = dur` are one moment, firing once a
+    cycle. A one-shot's end event fires once the playhead passes `dur`.
+  - Lint now also bars `**` in core other than squaring, which is exact in every engine.
+- **Why:** facts drive QA, search and gameplay timing; a fact checked only against the code that computed it proves
+  nothing (PLAN.md WP-2.2, "Ground truth").
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.8.0

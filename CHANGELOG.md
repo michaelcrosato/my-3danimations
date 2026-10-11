@@ -4,6 +4,19 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.8.0 · 2026-10-11
+
+### Core
+- WP-2.2: the clip runtime (`clip/`): `sample` (body points at t), `rootAt` and `rootDelta` (root travel and heading,
+  composed over loop cycles), `events` (each occurrence once, in order, loop-aware, either direction), `contactsAt`
+  and `detectContacts` (hysteresis about the floor), and `measureFacts` (seam, travel, speed from the planted feet,
+  height, strike, contacts).
+- WP-2.2: `fixtures/facts-truth.json`: 20 clips whose speeds, distances, strikes and loop flags come from my-3d2dge-2's
+  asset manifest and skill timings and shardfall's importer; measureFacts is within tolerance on all 20.
+
+### Repo
+- Lint bars `**` other than squaring in core (the host's pow; D34).
+
 ## 0.7.0 · 2026-10-11
 
 ### Core

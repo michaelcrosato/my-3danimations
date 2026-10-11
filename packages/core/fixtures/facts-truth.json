@@ -1,0 +1,174 @@
+{
+ "about": "Ground truth for measureFacts (PLAN.md WP-2.2): 20 migrated clips whose expected facts come from sources independent of the code under test, at the pinned origins. Speeds: my-3d2dge-2's asset manifest, which measured each GLB clip's root speed in m/s (converted with the UAL rest's H0, 916.7 mm), for every Universal Animation Library loop that steps forward (Walk, Walk_Formal, Walk_Carry, Jog, Sprint, Crouch_Fwd, Zombie_Walk, Push), and shardfall's importer for 100STYLE's fastest and slowest recorded walks; the clips are in place, so measureFacts reads the speed from the planted feet. Distances: the same manifest for the six _RM clips and the three root-motion sword strikes (the root's horizontal distance). Strikes: the hero skills' strike times, which my-3d2dge-2's designers tuned against these clips (monster skills are left out: they also drive procedural creatures). Loop flags: the manifest's and shardfall's; a loop's seam must be small (a one-shot may also end where it began, so nothing is required of it).",
+ "tolerance": {
+  "speed": "15% of the expected",
+  "distance": "2% of the expected",
+  "strike": "0.08 s",
+  "loop": "a loop's seam at most 40 mm"
+ },
+ "clips": [
+  {
+   "id": "QUATERNIUS_SHARDFALL/Walk_Loop",
+   "expect": {
+    "speed": 106.4,
+    "loop": true
+   },
+   "source": "my-3d2dge-2@c8295dc public/assets/manifest.json: Walk_Loop rootSpeed 0.975 m/s, loop true; ÷ H0 0.9167 m"
+  },
+  {
+   "id": "QUATERNIUS_SHARDFALL/Walk_Formal_Loop",
+   "expect": {
+    "speed": 106.4,
+    "loop": true
+   },
+   "source": "my-3d2dge-2@c8295dc public/assets/manifest.json: Walk_Formal_Loop rootSpeed 0.975 m/s, loop true; ÷ H0 0.9167 m"
+  },
+  {
+   "id": "QUATERNIUS_SHARDFALL/Walk_Carry_Loop",
+   "expect": {
+    "speed": 70.9,
+    "loop": true
+   },
+   "source": "my-3d2dge-2@c8295dc public/assets/manifest.json: Walk_Carry_Loop rootSpeed 0.65 m/s, loop true; ÷ H0 0.9167 m"
+  },
+  {
+   "id": "QUATERNIUS_SHARDFALL/Jog_Fwd_Loop",
+   "expect": {
+    "speed": 584.4,
+    "loop": true
+   },
+   "source": "my-3d2dge-2@c8295dc public/assets/manifest.json: Jog_Fwd_Loop rootSpeed 5.357 m/s, loop true; ÷ H0 0.9167 m"
+  },
+  {
+   "id": "QUATERNIUS_SHARDFALL/Sprint_Loop",
+   "expect": {
+    "speed": 900.0,
+    "loop": true
+   },
+   "source": "my-3d2dge-2@c8295dc public/assets/manifest.json: Sprint_Loop rootSpeed 8.25 m/s, loop true; ÷ H0 0.9167 m"
+  },
+  {
+   "id": "QUATERNIUS_SHARDFALL/Crouch_Fwd_Loop",
+   "expect": {
+    "speed": 81.8,
+    "loop": true
+   },
+   "source": "my-3d2dge-2@c8295dc public/assets/manifest.json: Crouch_Fwd_Loop rootSpeed 0.75 m/s, loop true; ÷ H0 0.9167 m"
+  },
+  {
+   "id": "QUATERNIUS_SHARDFALL/Zombie_Walk_Fwd_Loop",
+   "expect": {
+    "speed": 114.5,
+    "loop": true
+   },
+   "source": "my-3d2dge-2@c8295dc public/assets/manifest.json: Zombie_Walk_Fwd_Loop rootSpeed 1.05 m/s, loop true; ÷ H0 0.9167 m"
+  },
+  {
+   "id": "QUATERNIUS_SHARDFALL/Push_Loop",
+   "expect": {
+    "speed": 32.7,
+    "loop": true
+   },
+   "source": "my-3d2dge-2@c8295dc public/assets/manifest.json: Push_Loop rootSpeed 0.3 m/s, loop true; ÷ H0 0.9167 m"
+  },
+  {
+   "id": "STYLE100/Akimbo_Walk",
+   "expect": {
+    "speed": 95,
+    "loop": true
+   },
+   "source": "shardfall@a9ca003 anim/style100.json: Akimbo_Walk speed 95 (% H0/s, measured by shardfall's importer from 100STYLE's root before the clip was made in place), loop true"
+  },
+  {
+   "id": "STYLE100/Old_Walk",
+   "expect": {
+    "speed": 19,
+    "loop": true
+   },
+   "source": "shardfall@a9ca003 anim/style100.json: Old_Walk speed 19 (% H0/s, measured by shardfall's importer from 100STYLE's root before the clip was made in place), loop true"
+  },
+  {
+   "id": "QUATERNIUS_3D2DGE/Roll_RM",
+   "expect": {
+    "distance": 544.5,
+    "loop": false
+   },
+   "source": "my-3d2dge-2@c8295dc public/assets/manifest.json: Roll rootSpeed 3.403 m/s over 1.4667 s, loop false; ÷ H0 0.9167 m"
+  },
+  {
+   "id": "QUATERNIUS_3D2DGE/Hit_Knockback_RM",
+   "expect": {
+    "distance": 327.2,
+    "loop": false
+   },
+   "source": "my-3d2dge-2@c8295dc public/assets/manifest.json: Hit_Knockback rootSpeed 3.6 m/s over 0.8333 s, loop false; ÷ H0 0.9167 m"
+  },
+  {
+   "id": "QUATERNIUS_3D2DGE/Sword_Attack_RM",
+   "expect": {
+    "distance": 163.8,
+    "loop": false
+   },
+   "source": "my-3d2dge-2@c8295dc public/assets/manifest.json: Sword_Attack rootSpeed 0.979 m/s over 1.5333 s, loop false; ÷ H0 0.9167 m"
+  },
+  {
+   "id": "QUATERNIUS_3D2DGE/Sword_Dash_RM",
+   "expect": {
+    "distance": 402.8,
+    "loop": false
+   },
+   "source": "my-3d2dge-2@c8295dc public/assets/manifest.json: Sword_Dash rootSpeed 2.357 m/s over 1.5667 s, loop false; ÷ H0 0.9167 m"
+  },
+  {
+   "id": "QUATERNIUS_3D2DGE/Shield_Dash_RM",
+   "expect": {
+    "distance": 109.1,
+    "loop": false
+   },
+   "source": "my-3d2dge-2@c8295dc public/assets/manifest.json: Shield_Dash rootSpeed 0.909 m/s over 1.1 s, loop false; ÷ H0 0.9167 m"
+  },
+  {
+   "id": "QUATERNIUS_3D2DGE/ClimbUp_1m_RM",
+   "expect": {
+    "distance": 182.9,
+    "loop": false
+   },
+   "source": "my-3d2dge-2@c8295dc public/assets/manifest.json: ClimbUp_1m rootSpeed 2.515 m/s over 0.6667 s, loop false; ÷ H0 0.9167 m"
+  },
+  {
+   "id": "QUATERNIUS_3D2DGE/Sword_Regular_A",
+   "expect": {
+    "strike": 0.238,
+    "distance": 89.9,
+    "loop": false
+   },
+   "source": "my-3d2dge-2@c8295dc src/content/skills.ts: hero skill slash1: whole clip, strike at 0.55 of the skill; my-3d2dge-2@c8295dc public/assets/manifest.json: rootSpeed 1.903 m/s over 0.4333 s"
+  },
+  {
+   "id": "QUATERNIUS_3D2DGE/Sword_Regular_B",
+   "expect": {
+    "strike": 0.256,
+    "distance": 5.8,
+    "loop": false
+   },
+   "source": "my-3d2dge-2@c8295dc src/content/skills.ts: hero skill slash2: whole clip, strike at 0.48; my-3d2dge-2@c8295dc public/assets/manifest.json: rootSpeed 0.099 m/s over 0.5333 s"
+  },
+  {
+   "id": "QUATERNIUS_3D2DGE/Sword_Regular_C",
+   "expect": {
+    "strike": 0.672,
+    "distance": 169.7,
+    "loop": false
+   },
+   "source": "my-3d2dge-2@c8295dc src/content/skills.ts: hero skill slash3: clip 0 to 1.05 s, strike at 0.64; my-3d2dge-2@c8295dc public/assets/manifest.json: rootSpeed 0.778 m/s over 2 s"
+  },
+  {
+   "id": "QUATERNIUS_3D2DGE/Sword_Attack",
+   "expect": {
+    "strike": 0.475,
+    "loop": false
+   },
+   "source": "my-3d2dge-2@c8295dc src/content/skills.ts: hero skills cleave (clip 0.12 to 1.0 s, strike at 0.42: 0.490 s) and groundslam (clip 0 to 1.15 s, strike at 0.4: 0.460 s), averaged"
+  }
+ ]
+}

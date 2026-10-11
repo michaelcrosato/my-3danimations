@@ -31,6 +31,11 @@ export default defineConfig(
         ...TRANSCENDENTAL.map((property) => ({ object: "Math", property, message: `Hashed paths use the portable math: PORTABLE.${property} (or a MathLike passed in), never the host's Math.${property}.` })),
       ],
       "no-restricted-globals": ["error", "window", "document", "process", "Buffer", "require", "globalThis"],
+      "no-restricted-syntax": [
+        "error",
+        { selector: "BinaryExpression[operator='**']:not([right.value=2])", message: "`**` is the host's pow: use PORTABLE.pow (x ** 2 is exact everywhere)." },
+        { selector: "AssignmentExpression[operator='**=']", message: "`**=` is the host's pow: use PORTABLE.pow." },
+      ],
     },
   },
   {
