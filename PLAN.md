@@ -2196,8 +2196,8 @@ version, commit, date and a note with the numbers. Gates are rows too.
 | 0.5 CI and session setup | done | 0.1.0 | d594f61, 9218ce1 | 2026-10-11 | CI green on #4 at 9218ce1 (T0+T1 on push 16 s, T2 on the PR 33 s); fresh clone: hook 2.6 s, then check 4.2 s of 15 |
 | **G0** | done | 0.1.0 | bae664e | 2026-10-11 | 4/4 in 5.1 s: check 1.3 s, test 1.3 s (41 tests), doctrine 7/7, vectors 13 files byte for byte; verifier: 4 findings fixed (D24) |
 | 1.1 The motion spec | done | 0.2.0 | 7d1bd44 | 2026-10-11 | MOTION.md 2.0-rc (15 sections, every vector and seed-set field mapped); LEGEND.md 792/800 tokens; ranges from the 7 seed sets (spins reach 1086°); quiz deferred to WP-4.7 |
-| 1.2 Schemas and the validator | done | 0.3.0 | (next row's commit) | 2026-10-11 | 30 rules, each with a passing and a failing fixture (46 tests); Ajv agrees on 11 structural rules; 762 seed clips: 0 errors, 301 warnings as predicted; D25 |
-| 1.3 The codec | todo | | | | |
+| 1.2 Schemas and the validator | done | 0.3.0 | bcd90e6 | 2026-10-11 | 30 rules, each with a passing and a failing fixture (46 tests); Ajv agrees on 11 structural rules; 762 seed clips: 0 errors, 301 warnings as predicted; D25 |
+| 1.3 The codec | done | 0.4.0 | (next row's commit) | 2026-10-11 | tier 1a bit for bit (5 clips); tier 2: 7,444 samples of 325 clips equal to the micrometre; text, mirror and mirror-twice exact; 1,396 lines with tests; D26, D27 |
 | 1.4 The skeleton profile | todo | | | | |
 | 1.5 Migrate the seed sets | todo | | | | |
 | **G1** | todo | | | | |

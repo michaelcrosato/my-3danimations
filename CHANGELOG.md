@@ -4,6 +4,16 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.4.0 · 2026-10-11
+
+### Core
+- WP-1.3: the codec (`format/`): decode onto a rest body, encode from body points, sampling, RDP and fit (one budget
+  or one per region), format 1's text and parse, the format-2 key lens, mirror, the canonical clip file, slugs, the
+  motion hash's input, and reading format 1. Format 2's hand, fingers and spine decode; hands and fingers encode.
+
+### Spec
+- WP-1.3: conformance tiers 1a (bit for bit) and 2 (to the micrometre) pass; tier 2's vectors carry their input clips.
+
 ## 0.3.0 · 2026-10-11
 
 ### Spec

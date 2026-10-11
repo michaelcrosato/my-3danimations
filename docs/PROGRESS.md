@@ -3,7 +3,7 @@
 The current state on one screen (at most 40 lines; `npm run doctrine` checks it from WP-0.3). The ledger is
 `PLAN.md` §14; decisions are in `docs/DECISIONS.md`.
 
-**Phase:** 1 The language. **Next gate:** G1. **Version:** 0.3.0.
+**Phase:** 1 The language. **Next gate:** G1. **Version:** 0.4.0.
 **Mode:** one agent (D21), branch `claude/relaxed-albattani-35xhjq`.
 
 ## Done
@@ -13,10 +13,12 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 - WP-1.1 The motion spec: `spec/MOTION.md` 2.0-rc and `spec/LEGEND.md` (792 of 800 tokens, a real worked key).
 - WP-1.2 Schemas and the validator: 30 coded rules with fixtures; the schemas agree (Ajv); all 762 seed clips pass
   with 0 errors (D25).
+- WP-1.3 The codec: tier 1a bit for bit, tier 2 equal to the micrometre at all 7,444 samples; format 2's hand,
+  fingers and spine (D26, D27).
 
 ## Next
 
-- WP-1.3 the codec, then 1.4 the skeleton profile, 1.5 the migration, then G1.
+- WP-1.4 the skeleton profile, 1.5 the migration, then G1.
 
 ## Blocked on the owner
 

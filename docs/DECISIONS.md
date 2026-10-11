@@ -300,3 +300,22 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
 - **Why:** a conformance kit must hold its inputs (WP-10.2); a test that needs the network is a test CI skips.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.4.0
+
+## D27 · 2026-10-11 · The codec: format 1 exactly, format 2 on separate paths
+
+- **Principle:** 12, 1 (WP-1.3)
+- **Call:**
+  - `@m3a/core/src/format/` ports readable.js operation for operation; tier 1a matches the oracle bit for bit (the
+    rig's and the CMU take's reduce, fit, max, mean, keys and text) and tier 2 rounds to the oracle's micrometre at
+    every one of 7,444 samples (key times and in-betweens) of the 325 curated clips.
+  - Format 2's hand, fingers and spine take branches a key without them never enters. Encoding them: `hands: true`
+    fits the hand from the wrist, knuckle and knuckle line (roll solved exactly from the plane of the knuckle line and
+    the hand) and estimates all five finger curls from the middle finger, the only one with a body point. Encoding
+    `spine` shares and `yaw` waits for WP-5.3's re-import, which has the source's spine bones and root rotation.
+  - `fit` takes one budget, or one per region (torso, arms, legs): a frame's excess is its largest error over its
+    floor beyond that region's budget. The single-budget path is the origin's, unchanged.
+  - The canonical file writes the header one field per line, nested objects in a fixed order, and each key as the
+    lens's three short lines, so a clip file is itself the readable form and diffs per key.
+- **Why:** bit-for-bit parity is the contract other languages certify against; new fields must not move old numbers.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.4.0
