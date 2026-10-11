@@ -11,6 +11,7 @@ import { clip as clipNs, format, validate, type Clip, type Key } from "@m3a/core
 import { checks, fix, fixes, lint, metrics } from "../src/index.ts";
 import { libraryClips } from "../../../tools/qa/qa.ts";
 import { plant, type Defect } from "../../../tools/plant/plant.ts";
+import { worse } from "../src/fix/fix.ts";
 import { testClip } from "./raster-pose.ts";
 
 const runs = (JSON.parse(readFileSync(join(import.meta.dirname, "../fixtures/planted/runs.json"), "utf8")) as { runs: { clip: string; defect: Defect; seed: number; metric: string; t0: number; t1: number; where?: string }[] }).runs;
@@ -83,7 +84,43 @@ describe("nothing changes silently", () => {
     const out = fix(idle, r, { ops: [poke] });
     expect(out.steps[0]!.rejected).toEqual([expect.stringMatching(/^pop [\d.]+ → [\d.]+, past its (warn|fail) level$/), ...Array(out.steps[0]!.rejected!.length - 1).fill(expect.any(String))]);
     expect([out.steps[0]!.changes, out.clip.keys, out.after.verdict]).toEqual([[], idle.keys, out.before.verdict]);
-    expect(out.text).toMatch(/\npoke: not applied, it would push pop /);
+    expect(out.text).toMatch(/\npoke: not applied, it would make worse: pop /);
+  });
+  it("doesn't apply a step that takes a metric from under its warn level to warn", () => {
+    const { clip: sparse, R: r } = testClip("Idle_Loop");
+    const idle = { ...sparse, keys: Array.from({ length: Math.round(sparse.dur * 30) + 1 }, (_, i) => fixes.tidy({ ...(format.keyAt(sparse, i / 30) as Key), t: i / 30 } as never) as Key) } as Clip;
+    // the smallest poke that reads as a pop at warn, not fail
+    const poke = (d: number): fixes.Operator => (clip) => {
+      const c = structuredClone(clip), k = c.keys[Math.floor(c.keys.length / 2)]!;
+      k.armL = [k.armL[0]!, k.armL[1]! + d, k.armL[2]!, k.armL[3]!, k.armL[4] ?? 0];
+      return { clip: c, changes: ["poked"] };
+    };
+    const m = checks.motionOf(idle, r), level = (c: Clip) => metrics(c, r).values.pop;
+    const d = [4, 6, 8, 10, 12, 14, 16, 20, 24].find((x) => {
+      const v = level(poke(x)(idle, r, metrics(idle, r), {}).clip);
+      return v >= checks.levels(m, "pop").warn && v < checks.levels(m, "pop").fail;
+    })!;
+    expect(d).toBeDefined();
+    const out = fix(idle, r, { ops: [poke(d)] });
+    expect(out.steps[0]!.rejected!.some((x) => /^pop [\d.]+ → \d+, past its warn level$/.test(x)), JSON.stringify(out.steps[0]!.rejected)).toBe(true);
+  });
+  it("counts as worse a metric at warn raised over 5%, more findings, or none of the metrics an operator answers lowered", () => {
+    const { clip: c, R: r } = testClip("Idle_Loop");
+    const before = metrics(c, r), m = checks.motionOf(c, r), { warn, fail } = checks.levels(m, "pop");
+    const at = (pop: number, findings = before.findings) => ({ ...before, values: { ...before.values, pop }, findings });
+    expect([before.values.pop < warn, warn * 1.06 < fail]).toEqual([true, true]);
+    // at warn already: up 4% is allowed, up 6% isn't
+    expect(worse(m, at(warn), at(warn * 1.04))).toEqual([]);
+    expect(worse(m, at(warn), at(warn * 1.06))).toEqual([expect.stringMatching(/^pop [\d.]+ → [\d.]+, past its warn level already and up more than 5%$/)]);
+    // one finding more, every value as it was
+    const extra = { metric: "slide", where: "footL", t0: 0.1, t1: 0.2, value: 1, unit: "mm", level: "warn", message: "" } as checks.Finding;
+    expect(worse(m, before, at(before.values.pop, [...before.findings, extra]))).toEqual([`findings ${before.findings.length} → ${before.findings.length + 1}`]);
+    // an operator answering pop, found: pop not lowered is worse, lowered isn't; one answering a metric not found has
+    // nothing to lower
+    const found = at(warn, [...before.findings, { ...extra, metric: "pop", where: "fistL" }]);
+    expect(worse(m, found, found, ["pop", "jitter"])).toEqual(["pop not lowered"]);
+    expect(worse(m, found, at(warn * 0.9, found.findings), ["pop", "jitter"])).toEqual([]);
+    expect(worse(m, before, before, ["jitter"])).toEqual([]);
   });
   it("throws for an operator name it doesn't know, naming the closest", () => {
     expect(() => fix(marked, R, { ops: ["twistFlip" as fixes.FixName] })).toThrow(/no operator "twistFlip"; did you mean "twistFlips"\?/);
@@ -162,6 +199,100 @@ describe("the operators' own cases", () => {
     expect(Math.max(...lowR)).toBeLessThan(25);
     expect(out.after.findings.filter((f) => f.metric === "penetration")).toEqual([]);
   });
+  it("tidy: a key as the format keeps it, whole numbers within their ranges, a direction scaled back or kept alive", () => {
+    const k = { t: 0.1234, hips: [1.4, -2.6, 1200.2], armL: [180, 60, 30, 190, 3.6], legL: [0.2, 0.1, 0.15, 20, 0], yaw: 12.6 } as unknown as Key;
+    expect(fixes.tidy(k as never)).toEqual({ t: 0.123, hips: [1, -3, 1000], armL: [100, 33, 17, 180, 4], legL: [1, 0, 0, 20, 0], yaw: 13 });
+  });
+  it("twist flips: in a loop a flip that jumps back later is undone until it does", () => {
+    const flipped = { ...idle, loop: true, dur: 1, keys: keys(30, (k, t) => (k.legL = [k.legL[0]!, k.legL[1]!, k.legL[2]!, 45, (k.legL[4] ?? 0) + (t > 0.2 && t <= 0.6 ? 170 : 0)])) } as Clip;
+    const out = fixes.twistFlips(flipped, R, metrics(flipped, R), {});
+    expect(out.changes).toEqual([expect.stringMatching(/^legL: twist's 170° jump at 0\.20–0\.23 s undone until it jumps back at 0\.60 s$/)]);
+    expect(new Set(out.clip.keys.map((k) => k.legL[4]))).toEqual(new Set([idle.keys[0]!.legL[4] ?? 0]));
+  });
+  it("twist flips: a heading winding nearly round where the foot points down is spread the short way", () => {
+    // a straight leg (its twist undefined) whose twist winds -15 → -325 over four keys, two of them 130° jumps: 50° the
+    // short way
+    const at: Record<string, number> = { "0.433": -40, "0.467": -170, "0.5": -300 };
+    const wind = { ...idle, loop: false, dur: 1, keys: keys(30, (k, t) => (k.legL = [k.legL[0]!, k.legL[1]!, k.legL[2]!, 5, t <= 0.4 ? -15 : (at[String(t)] ?? -325)])) } as Clip;
+    const report = metrics(wind, R), flip = report.findings.find((f) => f.metric === "twistFlip");
+    expect(flip).toBeDefined();
+    const out = fixes.twistFlips(wind, R, report, {}), tw = out.clip.keys.map((k) => k.legL[4]!);
+    expect(Math.max(...tw.slice(1).map((v, i) => Math.abs(v - tw[i]!)))).toBeLessThan(30);
+    expect(Math.abs(tw.at(-1)! - tw[0]!)).toBeLessThanOrEqual(180);
+  });
+  it("seam: a speed change at the seam no larger than at the clip's own keys is left, even when the metrics find one", () => {
+    // the head turning back and forth key by key (a corner at every key): the seam's corner is one more
+    const zig = { ...idle, loop: true, dur: 1, keys: keys(30, (k, t) => (k.head = [k.head[0]! + (Math.round(t * 30) % 2 ? 6 : 0), k.head[1]!, k.head[2]!])) } as Clip;
+    const r = metrics(zig, R), found = { ...r, findings: [...r.findings, { metric: "seamVelocity", where: "head", t0: 1, t1: 1, value: 9999, unit: "°/s²", level: "warn", message: "" } as checks.Finding] };
+    expect(fixes.seam(zig, R, found, {}).changes).toEqual([]);
+  });
+  it("seam: a key at the seam within 5 ms of the clip's own is that key", () => {
+    // the last key 3 ms before the end and one 3 ms past it (a capture's last frame): the seam's key is the 0.997 one
+    const ks = keys(30, (k, t) => (k.armR = [Math.round(k.armR[0]! + 60 * t * t), k.armR[1]!, k.armR[2]!, k.armR[3]!, k.armR[4] ?? 0]));
+    ks[ks.length - 1]!.t = 0.997;
+    const near = { ...idle, loop: true, dur: 1, keys: [...ks, { ...structuredClone(ks.at(-1)!), t: 1.003 }] } as Clip;
+    const out = fixes.seam(near, R, metrics(near, R), {}), ts = out.clip.keys.map((k) => k.t);
+    expect(out.changes.length).toBeGreaterThan(0);
+    expect(Math.min(...ts.slice(1).map((t, i) => t - ts[i]!))).toBeGreaterThanOrEqual(0.005);
+  });
+  it("jitter: a shake, every key out of place by turns, moves halfway rather than flipping", () => {
+    const shake = { ...idle, loop: false, dur: 1, keys: keys(30, (k, t) => (k.head = [k.head[0]! + (t > 0.3 && t < 0.7 ? (Math.round(t * 30) % 2 ? 8 : -8) : 0), k.head[1]!, k.head[2]!])) } as Clip;
+    const before = metrics(shake, R), out = fixes.jitter(shake, R, before, {}), turn = out.clip.keys.filter((k) => k.t > 0.35 && k.t < 0.65).map((k) => k.head[0]! - idle.keys[0]!.head[0]!);
+    expect(before.findings.some((f) => f.metric === "jitter")).toBe(true);
+    expect(Math.max(...turn.map(Math.abs))).toBeLessThanOrEqual(2);
+  });
+  it("jitter: a shake its point's own fields don't make is smoothed in the torso that does", () => {
+    // the chest rolling 5° back and forth key by key: the top of the head shakes, its own field (head) is still
+    const shake = { ...idle, loop: false, dur: 1, keys: keys(30, (k, t) => (k.chest = [k.chest![0]!, k.chest![1]! + (t > 0.3 && t < 0.7 ? (Math.round(t * 30) % 2 ? 5 : -5) : 0), k.chest![2]!])) } as Clip;
+    const before = metrics(shake, R), out = fixes.jitter(shake, R, before, {});
+    expect(before.findings.filter((f) => f.metric === "jitter").map((f) => f.where)).toEqual(["headTop"]);
+    expect(out.changes).toEqual([expect.stringMatching(/^jitter on headTop at [\d.–]+ s: head, hips, body, chest smoothed over /)]);
+    expect(metrics(out.clip, R).findings.filter((f) => f.metric === "jitter")).toEqual([]);
+  });
+  it("re-fit counts the root's sideways travel and its turn", () => {
+    const run = (root: (t: number) => [number, number], yaw: (t: number) => number) => {
+      const c = { ...idle, loop: false, dur: 2, keys: Array.from({ length: 61 }, (_, i) => ({ ...structuredClone(idle.keys[0]!), t: Math.round((i / 30) * 1000) / 1000, root: root(i / 30), yaw: Math.round(yaw(i / 30)) })) } as Clip;
+      const out = fixes.refit(c, R, metrics(c, R), {});
+      let far = 0, turn = 0;
+      for (let t = 0; t <= 2; t += 1 / 60) {
+        const a = clipNs.rootAt(c as never, t), b = clipNs.rootAt(out.clip as never, t);
+        far = Math.max(far, (Math.hypot(a.forward - b.forward, a.right - b.right) * R.H0) / 100);
+        turn = Math.max(turn, Math.abs(a.yaw - b.yaw));
+      }
+      return { far, turn };
+    };
+    expect(run((t) => [0, Math.round(50 * t * t)], () => 0).far).toBeLessThanOrEqual(5 + R.H0 / 200);
+    expect(run(() => [0, 0], (t) => 20 * t * t).turn).toBeLessThanOrEqual(1);
+  });
+  it("foot locks: every contact with allContacts, only the sliding ones without", () => {
+    const stand = { ...idle, loop: false, dur: 1.5, keys: keys(45, () => {}) } as Clip;
+    expect(fixes.footLocks(stand, R, metrics(stand, R), {}).changes).toEqual([]);
+    expect(fixes.footLocks(stand, R, metrics(stand, R), { allContacts: true }).changes).toEqual([expect.stringMatching(/^footL held still where it landed/), expect.stringMatching(/^footR held still where it landed/)]);
+  });
+  it("foot locks: an in-place loop that steps is left as it is, and says why", () => {
+    const { clip: walk } = testClip("Walk_Loop"), out = fixes.footLocks(walk, R, metrics(walk, R), { allContacts: true });
+    expect([out.changes, out.clip.keys, out.skipped]).toEqual([[], walk.keys, expect.stringMatching(/^an in-place loop that steps: its feet set its treadmill/)]);
+    expect(fix(walk, R, { ops: ["footLocks"], allContacts: true }).text).toMatch(/\nfootLocks: not run, an in-place loop that steps/);
+  });
+  it("penetration: a one-key drop is lifted along a slope, starting before it", () => {
+    // standing, keys every 0.1 s; at 1.009 s alone (between two 60 Hz frames) the body drops 150 mm through the floor
+    const drop = { ...idle, loop: false, dur: 2, keys: Array.from({ length: 21 }, (_, i) => ({ ...structuredClone(idle.keys[0]!), t: i === 10 ? 1.009 : i / 10 })) } as Clip;
+    const k = drop.keys[10]!;
+    k.hips = [k.hips[0]!, k.hips[1]!, k.hips[2]! - Math.round((150 * 100) / R.H0)];
+    const out = fixes.penetration(drop, R, metrics(drop, R), {}), up = (t: number) => ((out.clip.keys.find((x) => Math.abs(x.t - t) < 1e-6)!.hips[2]! - idle.keys[0]!.hips[2]!) * R.H0) / 100;
+    // at most 0.75 H0 a second: the lift starts a key or two either side of the drop, most of the way up a key away
+    const ramp = 150 - 0.75 * R.H0 * 0.1 - 10;
+    expect([up(0.9) >= ramp, up(1.1) >= ramp, up(0.8) > 0, up(1.2) > 0]).toEqual([true, true, true, true]);
+    // each key lifted by its own pose's depth (read at the nearest 60 Hz frame, 1.009 s reads less): no sole under
+    const sole = (key: Key) => {
+      const X = format.decodePose(R, key as never, new Float32Array(format.P * 3)), z = (n: string) => X[format.IDX[n]! * 3 + 2]!;
+      return Math.min(z("ankleL") - R.ankleZ, z("ballL"), z("toeL"), z("ankleR") - R.ankleZ, z("ballR"), z("toeR"));
+    };
+    expect(Math.min(...out.clip.keys.map(sole))).toBeGreaterThan(-2);
+    // its corners rounded: from one key to the next the slope changes by under a third of the drop
+    const lift = [0.6, 0.7, 0.8, 0.9].map(up), bends = lift.slice(2).map((v, i) => Math.abs(v - 2 * lift[i + 1]! + lift[i]!));
+    expect(Math.max(...bends)).toBeLessThan(50);
+  });
   it("seam: a loop whose poses meet but whose speeds don't has its speeds matched, when the metrics find it", () => {
     // the pelvis swaying forward and back once a cycle, leaving at 3.5 m/s and arriving at 3.5 m/s the other way
     const sway = { ...idle, loop: true, dur: 1, keys: keys(30, (k, t) => (k.hips = [k.hips[0]! + Math.round(400 * t * (1 - t)), k.hips[1]!, k.hips[2]!])) } as Clip;
@@ -174,14 +305,18 @@ describe("the operators' own cases", () => {
     expect(out.after.values.seam).toBeLessThan(checks.levels(m, "seam").warn);
   });
   it("seam: a loop that ends somewhere else, still moving, meets its start at the same speed", () => {
-    // the pelvis drifting forward faster and faster: 1.8 m from the start by the end, arriving at 3.7 m/s
-    const drift = { ...idle, loop: true, dur: 1, keys: keys(30, (k, t) => (k.hips = [k.hips[0]! + 200 * t * t, k.hips[1]!, k.hips[2]!])) } as Clip;
+    // the right arm swinging up and forward faster and faster, ending far from where it started and still moving
+    const drift = { ...idle, loop: true, dur: 1, keys: keys(30, (k, t) => (k.armR = [Math.round(k.armR[0]! + 90 * t ** 4), k.armR[1]!, Math.round(k.armR[2]! + 90 * t ** 4), k.armR[3]!, k.armR[4] ?? 0])) } as Clip;
     const before = metrics(drift, R), out = fix(drift, R, { ops: ["seam"] }), m = checks.motionOf(drift, R);
-    expect([before.values.seam > checks.levels(m, "seam").fail, before.values.seamVelocity > checks.levels(m, "seamVelocity").warn]).toEqual([true, true]);
+    expect(before.values.seam).toBeGreaterThan(checks.levels(m, "seam").fail);
     expect(out.after.values.seam).toBeLessThan(checks.levels(m, "seam").warn);
     expect(out.after.values.seamVelocity).toBeLessThan(checks.levels(m, "seamVelocity").warn);
-    // the speeds matched, not only the poses: what's left is a quarter of the jump at most
-    expect(out.after.values.seamVelocity).toBeLessThan(before.values.seamVelocity / 4);
+    // the speeds matched too, to the keys' resolution (a large correction curves sharply between keys 1/30 s apart):
+    // what's left is under half the change
+    expect(out.after.values.seamVelocity).toBeLessThan(before.values.seamVelocity / 2);
+    // over a quarter of the cycle at either end: the keys between are as they were
+    const mid = (x: Clip) => x.keys.filter((k) => k.t > 0.3 && k.t < 0.7);
+    expect(mid(out.clip)).toEqual(mid(drift));
   });
 });
 

@@ -5,6 +5,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { encode } from "gpt-tokenizer";
+import { encode as cl100k } from "gpt-tokenizer/encoding/cl100k_base";
 import { describe as suite, expect, it } from "vitest";
 import type { Clip } from "@m3a/core";
 import { describe } from "../src/index.ts";
@@ -46,14 +47,14 @@ suite("the text", () => {
     for (const n of [6, 10]) {
       const keys = Array.from({ length: n }, (_, r) => clip.keys.filter((k) => k.t < clip.dur).map((k) => ({ ...k, t: Math.round((k.t + r * clip.dur) * 1000) / 1000 }))).flat();
       const long = { ...clip, dur: Math.round(clip.dur * n * 1000) / 1000, keys, events: [] } as Clip, d = describe(long, rest);
-      expect(encode(d.text).length, d.text).toBeLessThanOrEqual(150);
+      expect(Math.max(encode(d.text).length, cl100k(d.text).length), d.text).toBeLessThanOrEqual(150);
       expect(d.text).toMatch(new RegExp(`… \\d+ more to ${long.dur.toFixed(2)} s`));
     }
   });
-  it("counts tokens no lower than a tokenizer does, on every clip's text", () => {
+  it("counts tokens no lower than o200k or cl100k does, on every clip's text", () => {
     for (const c of lib.values()) {
       const text = describe(c.clip, c.rest, { detail: true }).text;
-      expect(tokenCount(text), text).toBeGreaterThanOrEqual(encode(text).length);
+      expect(tokenCount(text), text).toBeGreaterThanOrEqual(Math.max(encode(text).length, cl100k(text).length));
     }
   }, 60_000);
   it("reads a landing where it happens, a strike by its limb, and travel in hip heights", () => {

@@ -28,6 +28,8 @@ describe("parsing", () => {
     for (const back of ["footL planted 0.6–0.3 s", "footR free 0.6-0.3 s", "pelvis below 50% 0.6–0.3 s"]) expect(() => predicates.parse(back), back).toThrow(/runs backwards/);
   });
   it("refuses an interval that starts after the clip ends, instead of judging the last sample", () => {
+    const just = (walk.dur + 0.05).toFixed(2);
+    expect(() => predicates.check(`footR free ${just}–${just} s`, walk, R)).toThrow(new RegExp(`the interval starts at ${just} s, after the clip ends`));
     for (const late of ["footL planted 50–60 s, slide < 1 mm", "pelvis above 10% 50–60 s", "footR free 50–60 s", "headTop above 100 mm at 50 s"]) {
       expect(() => predicates.check(late, walk, R), late).toThrow(new RegExp(`the interval starts at 50 s, after the clip ends at ${walk.dur.toFixed(2)} s \\(a loop's times are within its cycle\\)`));
     }

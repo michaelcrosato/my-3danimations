@@ -26,10 +26,11 @@ export interface FixOptions {
   /** Foot locks: hold every contact still, not only those the metrics find sliding. */
   allContacts?: boolean;
 }
-/** What an operator returns: the clip and its changes, one line each. */
+/** What an operator returns: the clip and its changes, one line each, or why it didn't run. */
 export interface OpResult {
   clip: Clip;
   changes: string[];
+  skipped?: string;
 }
 /** An operator: a clip, its rest, its report, the options, to the clip repaired. */
 export type Operator = (clip: Clip, R: Rest, report: Report, opts: FixOptions) => OpResult;
@@ -148,10 +149,13 @@ export const twistFlips: Operator = tidied((clip, R, report) => {
     }
     const a = Math.max(0, s0 - 1), b = Math.min(K.length - 1, s1 + 1);
     if (free && b - a >= 3) {
-      // spread: the keys between the defined ones either side take the change in step with time
+      // spread: the keys between the defined ones either side take the change in step with time, the short way: whole
+      // turns across the stretch come out first (from its far end on), so a heading winding nearly round isn't spun
+      const wind = Math.round((v(b) - v(a)) / 360);
+      if (wind) for (let i = b; i < K.length; i++) set(i, v(i) - 360 * wind);
       const va = v(a), vb = v(b), ta = K[a]!.t, tb = K[b]!.t;
       for (let i = a + 1; i < b; i++) set(i, va + ((vb - va) * (K[i]!.t - ta)) / (tb - ta));
-      changes.push(`${field}: ${what} ${fmt(f.t0)}–${fmt(f.t1)} s spread over ${fmt(ta)}–${fmt(tb)} s, where ${field.startsWith("foot") ? "the foot points down" : "the limb is straight"}`);
+      changes.push(`${field}: ${what} ${fmt(f.t0)}–${fmt(f.t1)} s spread over ${fmt(ta)}–${fmt(tb)} s, where ${field.startsWith("foot") ? "the foot points down" : "the limb is straight"}${wind ? `, ${Math.abs(wind) * 360}° of whole turns taken out` : ""}`);
     } else if (!c.loop) {
       for (let i = k + 1; i < K.length; i++) set(i, v(i) - left);
       changes.push(`${field}: ${what}'s ${Math.round(Math.abs(left))}° jump at ${fmt(f.t0)}–${fmt(f.t1)} s undone from ${fmt(K[k + 1]!.t)} s on`);
@@ -190,8 +194,8 @@ const TORSO = ["hips", "body", "chest", "spine"];
 const POSE_FIELDS = ["hips", "body", "chest", "head", "shL", "shR", "armL", "armR", "legL", "legR", "footL", "footR", "handL", "handR", "fingersL", "fingersR", "spine", "blade"];
 /**
  * One smoothing pass over the keys [i0, i1] of `fields`, by time (keys needn't be evenly spaced): a value far outside
- * its neighbours (a key out of place: further from their in-between than twice their own difference) takes that
- * in-between at its time; for a shake, every value then moves halfway to
+ * its neighbours (a key out of place, alone: further from their in-between than twice their own difference, its
+ * neighbours not) takes that in-between at its time; for a shake, every value then moves halfway to
  * its neighbours' in-between (1-2-1 where keys are evenly spaced). Returns how many keys changed.
  */
 function smooth(K: K[], i0: number, i1: number, fields: readonly string[], shake: boolean): number {
@@ -202,15 +206,18 @@ function smooth(K: K[], i0: number, i1: number, fields: readonly string[], shake
     const vals = K.map((k) => k[f] as number[] | undefined);
     if (vals.slice(lo - 1, hi + 2).some((x) => !x)) continue;
     const between = (i: number, j: number) => vals[i - 1]![j]! + ((vals[i + 1]![j]! - vals[i - 1]![j]!) * (K[i]!.t - K[i - 1]!.t)) / (K[i + 1]!.t - K[i - 1]!.t);
+    // out of place: beyond both neighbours, and further from their in-between than they are from each other (a
+    // neighbour of a key out of place is beyond it too, but by less than that key leaps)
+    const leaps = (i: number, j: number) => {
+      if (i < 1 || i + 1 >= K.length || !vals[i - 1] || !vals[i + 1]) return false;
+      const v = vals[i]![j]!, a = vals[i - 1]![j]!, b = vals[i + 1]![j]!;
+      return (v > Math.max(a, b) + 0.5 || v < Math.min(a, b) - 0.5) && Math.abs(v - between(i, j)) > 2 * Math.abs(b - a) + 0.5;
+    };
     const out = new Map<number, number[]>();
     for (let i = lo; i <= hi; i++) {
-      out.set(i, vals[i]!.map((v, j) => {
-        const a = vals[i - 1]![j]!, b = vals[i + 1]![j]!, m = between(i, j);
-        // out of place: beyond both neighbours, and further from their in-between than they are from each other (a
-        // neighbour of a key out of place is beyond it too, but by less than that key leaps)
-        const outlier = (v > Math.max(a, b) + 0.5 || v < Math.min(a, b) - 0.5) && Math.abs(v - m) > 2 * Math.abs(b - a) + 0.5;
-        return outlier ? m : shake ? (v + m) / 2 : v;
-      }));
+      // a key out of place alone takes its neighbours' in-between; where its neighbours leap too, it's a shake (every
+      // key out of place by turns), and a shake moves halfway
+      out.set(i, vals[i]!.map((v, j) => (leaps(i, j) && !leaps(i - 1, j) && !leaps(i + 1, j) ? between(i, j) : shake ? (v + between(i, j)) / 2 : v)));
     }
     for (const [i, next] of out) {
       const r = round(next);
@@ -269,21 +276,8 @@ function plantable(c: Clip, R: Rest, m: Motion, contacts: Clip["contacts"]): con
     },
   };
 }
-/** Key k's legs and feet (and the pelvis's height, where planting lowered it) from planted body points X. */
-function legsFrom(k: K, X: ArrayLike<number>, R: Rest, before: ArrayLike<number>): void {
-  const e = format.encodePose(R, X, k as never, { round: false }) as K;
-  // a leg aimed and bent at its planted ankle keeps its own twist (re-read from the knee, a near-straight leg's twist
-  // jumps); a foot field is written only where the clip has one (an optional field is in every key or none)
-  for (const s of ["L", "R"]) k["leg" + s] = aimed(k["leg" + s] as number[], e["leg" + s] as number[]);
-  for (const f of ["footL", "footR"]) if (k[f] !== undefined) k[f] = round(e[f] as number[]);
-  const dz = at(X, "pelvis")[2] - at(before, "pelvis")[2];
-  if (Math.abs(dz) > 0.5) k.hips = [k.hips[0]!, k.hips[1]!, Math.round(k.hips[2]! + (dz * 100) / R.H0)];
-}
-
 /** A limb's new direction and bend (whole numbers), its own twist kept. */
 const aimed = (own: number[], to: number[]) => [...round(to.slice(0, 4)), own[4] ?? 0];
-/** Body points a and b mixed, w of the way to b. */
-const mix = (a: ArrayLike<number>, b: ArrayLike<number>, w: number) => Float64Array.from(a, (x, i) => x + (b[i]! - x) * w);
 
 /** A foot's lowest sole point's height (mm) and world speed (H0 a second, up and down too) at sample i. */
 function footAt(m: Motion, i: number, s: "L" | "R"): { z: number; v: number } {
@@ -378,9 +372,10 @@ export const penetration: Operator = tidied((clip, R, report) => {
  * Bake foot locks into keys: each contact the metrics find sliding (or every contact, with `allContacts`) is held
  * still where it landed, its sole on the floor, by core's planting (the leg solved again, the pelvis lowered where a
  * leg can't reach), and written into keys every 0.1 s (and the clip's own keys) over the contact and the 0.3 s
- * it takes to let go: the foot stays planted through that release and eases back to the clip's own pose, so letting
- * go isn't a snap. Times are read on the contact's own clock, so a loop's contact runs through its seam and the keys
- * past the end hold as the cycle's end.
+ * it takes to let go: the foot stays planted through that release and eases back to the clip's own pose (the locked
+ * leg aimed anew, its twist kept; the other leg untouched), so letting go isn't a snap.
+ * Times are read on the contact's own clock, so a loop's contact runs through its seam and the keys past the end hold
+ * as the cycle's end. Not run on an in-place loop that steps: its feet set its treadmill.
  */
 export const footLocks: Operator = tidied((clip, R, report, opts) => {
   const c = copy(clip), m = motionOf(c, R), changes: string[] = [], hits = of(report, "slide", "skate"), BLEND = 0.3;
@@ -389,6 +384,9 @@ export const footLocks: Operator = tidied((clip, R, report, opts) => {
     for (const [a, b] of m.contacts[end] ?? []) if (opts.allContacts || hits.some((f) => f.where === end && f.t0 <= b + 1e-6 && f.t1 >= a - 1e-6)) locks.push({ end, a, b });
   }
   if (!locks.length) return { clip: c, changes };
+  // an in-place loop that steps is read on a treadmill its feet set (D41): locked, its feet would set another
+  const end = m.root.at(-1)!;
+  if (c.loop && (c.keys[0] as K).root === undefined && (end.forward !== 0 || end.right !== 0)) return { clip: c, changes, skipped: "an in-place loop that steps: its feet set its treadmill, and locking them would change it" };
   // planted through the release: the contacts run on 0.3 s, and the release is eased here
   const held: NonNullable<Clip["contacts"]> = { by: "detected" };
   for (const l of locks) (held[l.end] ??= []).push([l.a, l.b + BLEND]);
@@ -407,20 +405,26 @@ export const footLocks: Operator = tidied((clip, R, report, opts) => {
   // of a clip's key is that key)
   const keys = [...new Set([...times].sort((x, y) => x - y).map((t) => keyAt(c, t)))];
   const original = (t: number) => format.pose(R, clip, c.loop && t >= c.dur - 1e-9 && t <= c.dur + 1e-9 ? c.dur * (1 - 1e-12) : t);
-  const out = keys.map((k) => {
+  for (const k of keys) {
+    // each locked side's leg and foot aimed at the body points mixed from the clip's own toward the locked pose by the
+    // lock's weight, its twist kept (re-read from the knee, a near-straight leg's twist jumps); the other leg isn't
+    // touched; the pelvis lowers where a locked leg can't reach
     const X0 = original(k.t);
-    let X: Float64Array = Float64Array.from(X0);
+    let dz = 0, wz = 0;
     for (const l of locks) {
       const tau = clock(l, k.t);
       if (tau === null) continue;
-      const w = tau <= l.b ? 1 : 1 - ease((tau - l.b) / BLEND);
+      const w = tau <= l.b ? 1 : 1 - ease((tau - l.b) / BLEND), s = l.end.slice(-1);
       // the end of a loop's cycle is read just before it (at the end, core starts the next cycle's contact)
-      const at = c.loop && Math.abs(tau - c.dur) < 1e-9 ? c.dur - 1e-6 : tau;
-      X = mix(X, contact.plant(pm, at, { blend: 0 }), w);
+      const P = contact.plant(pm, c.loop && Math.abs(tau - c.dur) < 1e-9 ? c.dur - 1e-6 : tau, { blend: 0 });
+      const X = Float64Array.from(X0, (x, i) => x + (P[i]! - x) * w), e = format.encodePose(R, X, k as never, { round: false }) as K;
+      k["leg" + s] = aimed(k["leg" + s] as number[], e["leg" + s] as number[]);
+      if (k["foot" + s] !== undefined) k["foot" + s] = round(e["foot" + s] as number[]);
+      const d = at(X, "pelvis")[2] - at(X0, "pelvis")[2];
+      if (w > wz) [dz, wz] = [d, w];
     }
-    return [X0, X] as const;
-  });
-  keys.forEach((k, n) => legsFrom(k, out[n]![1], R, out[n]![0]));
+    if (Math.abs(wz * dz) > 0.5) k.hips = [k.hips[0]!, k.hips[1]!, k.hips[2]! + (wz * dz * 100) / R.H0];
+  }
   return { clip: c, changes };
 });
 

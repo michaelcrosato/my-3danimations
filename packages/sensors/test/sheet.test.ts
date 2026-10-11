@@ -60,6 +60,9 @@ describe("blank frames", () => {
     const broken = { ...walk, id: "broken", keys: walk.keys.map((k) => ({ ...k, hips: [Number.NaN, Number.NaN, Number.NaN] })) as Key[] };
     expect(() => sheets.sheet(broken, R)).toThrow(/^sheet broken: no body drawn in \d+ of \d+ frames \(at 0\.00, /);
     expect(sheets.sheet(walk, R).cells.length).toBeGreaterThan(0);
+    // one key's pose a non-number blanks the frames around it only: those are named
+    const one = { ...walk, id: "one", keys: walk.keys.map((k, i) => (i === 4 ? { ...k, hips: [Number.NaN, 0, 0] } : k)) as Key[] };
+    expect(() => sheets.sheet(one, R)).toThrow(/^sheet one: no body drawn in [1-9] of \d+ frames \(at /);
   });
 });
 
@@ -94,7 +97,9 @@ describe("diffs", () => {
   });
   it("stays within its token budget, the three rows sharing it", () => {
     const { clip: interact } = testClip("Interact");
-    for (const opts of [{}, { budget: 1000, frames: 24 }, { budget: 600, marked: true }]) {
+    // too small to fit: refused, not returned over budget
+    expect(() => sheets.compareClips(walk, walk, R, { budget: 5 })).toThrow(/^compareClips: the three rows can't fit 5 tokens/);
+    for (const opts of [{}, { budget: 1000, frames: 24 }, { budget: 600, marked: true }, { budget: 250 }]) {
       const d = sheets.compareClips(interact, walk, R, opts);
       expect(d.tokens, JSON.stringify(opts)).toBeLessThanOrEqual((opts as { budget?: number }).budget ?? 1400);
       expect(d.image.width).toBeLessThanOrEqual(1000);

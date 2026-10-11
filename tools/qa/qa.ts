@@ -68,13 +68,13 @@ export interface FixRow {
   errors: string[];
 }
 const RANK = { pass: 0, warn: 1, fail: 2 } as const;
-/** Lints and fixes every clip lint flags (WP-3.5): what changed, and whether any came out worse or invalid. */
-export function fixAll(clips: readonly LibraryClip[]): FixRow[] {
+/** Lints and fixes every clip lint flags (WP-3.5; `run` is `fix`): what changed, and whether any came out worse or invalid. */
+export function fixAll(clips: readonly LibraryClip[], run: typeof fix = fix): FixRow[] {
   const rows: FixRow[] = [];
   for (const { clip, rest } of clips) {
     const before = metrics(clip, rest), l = lint(clip, rest, before);
     if (!l.items.length) continue;
-    const out = fix(clip, rest), v = validate(JSON.parse(JSON.stringify(out.clip)) as never);
+    const out = run(clip, rest), v = validate(JSON.parse(JSON.stringify(out.clip)) as never);
     rows.push({
       clip: clip.id,
       ops: l.items.map((i) => i.op),
@@ -86,8 +86,8 @@ export function fixAll(clips: readonly LibraryClip[]): FixRow[] {
   }
   return rows;
 }
-/** Whether a fixed clip came out worse than it went in. */
-export const worse = (r: FixRow) => RANK[r.after.verdict as keyof typeof RANK] > RANK[r.before.verdict as keyof typeof RANK];
+/** Whether a fixed clip came out worse than it went in: a worse verdict, or more findings. */
+export const worse = (r: FixRow) => RANK[r.after.verdict as keyof typeof RANK] > RANK[r.before.verdict as keyof typeof RANK] || r.after.findings > r.before.findings;
 
 /** The sets of real capture, which the thresholds are checked against. */
 export const CAPTURE = ["CMU_CURATED", "STYLE100"];

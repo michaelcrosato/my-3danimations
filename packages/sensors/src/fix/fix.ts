@@ -1,9 +1,11 @@
 // Lint and fix (PLAN.md WP-3.5): `lint(clip, R)` lists what `fix` would change and why (the metrics' findings each
 // operator answers); `fix(clip, R)` applies the operators in order, each with the metrics before and after it and a
-// line for every change. Nothing gets worse: a step that would push any metric past a level (warn or fail) it was under
-// is not applied, and the step says which. No clip changes silently: after every operator its `dur`, events and
-// contacts are compared with what they were, and any that moved is reported with the operator's own changes; when
-// anything changed, a clip's stored facts are measured again at the end, and what they say differently is reported too.
+// line for every change. A step the metrics read as worse is not applied, and says why: one that would push a metric
+// past a level (warn or fail) it was under, raise one already at warn or past it by more than 5%, add findings, or
+// (an operator that answers metrics) lower none of the metrics it answers that were found. No clip changes silently:
+// after every operator its `dur`, events and contacts are compared with what they were, and any that moved is reported
+// with the operator's own changes; when anything changed, a clip's stored facts are measured again at the end, and
+// what they say differently is reported too.
 import { measureFacts, type Clip, type Rest } from "@m3a/core";
 import { levels, type Finding } from "../metrics/checks.ts";
 import { motionOf, type Motion } from "../metrics/motion.ts";
@@ -26,7 +28,9 @@ export interface Lint {
 export interface FixStep {
   op: string;
   changes: string[];
-  /** When the step was not applied: the metrics it would have pushed past a level they were under. */
+  /** When the operator didn't run: why. */
+  skipped?: string;
+  /** When the step was not applied: what it would have made worse. */
   rejected?: string[];
   before: Report["values"];
   after: Report["values"];
@@ -86,18 +90,29 @@ function distance(a: string, b: string): number {
 /** A metric's level at value v: 0 under its warn level, 1 at warn, 2 at fail. */
 const level = (m: Motion, k: (typeof METRICS)[number], v: number) => (v >= levels(m, k).fail ? 2 : v >= levels(m, k).warn ? 1 : 0);
 const num = (v: number) => (Math.abs(v) >= 100 ? String(Math.round(v)) : v.toFixed(1));
-/** The metrics a step pushes past a level they were under, each as "name before → after, past its fail level". */
-function worse(m: Motion, before: Report, after: Report): string[] {
-  return METRICS.filter((k) => !before.off.includes(k)).flatMap((k) => {
+/** How much a metric already at its warn level or past it may rise in a step: 5%. */
+const RISE = 1.05;
+/**
+ * What a step makes worse, one line each: a metric pushed past a level it was under, a metric already at warn or past
+ * it raised more than 5%, more findings than before, or (for an operator that answers metrics) none of those it answers
+ * lowered.
+ */
+export function worse(m: Motion, before: Report, after: Report, answers: readonly string[] = []): string[] {
+  const out = METRICS.filter((k) => !before.off.includes(k)).flatMap((k) => {
     const a = level(m, k, before.values[k]), b = level(m, k, after.values[k]);
-    return b > a ? [`${k} ${num(before.values[k])} → ${num(after.values[k])}, past its ${b === 2 ? "fail" : "warn"} level`] : [];
+    if (b > a) return [`${k} ${num(before.values[k])} → ${num(after.values[k])}, past its ${b === 2 ? "fail" : "warn"} level`];
+    return a >= 1 && after.values[k] > before.values[k] * RISE ? [`${k} ${num(before.values[k])} → ${num(after.values[k])}, past its warn level already and up more than 5%`] : [];
   });
+  if (after.findings.length > before.findings.length) out.push(`findings ${before.findings.length} → ${after.findings.length}`);
+  const asked = answers.filter((k) => before.findings.some((f) => f.metric === k));
+  if (asked.length && !asked.some((k) => after.values[k as keyof Report["values"]] < before.values[k as keyof Report["values"]])) out.push(`${asked.join(" and ")} not lowered`);
+  return out;
 }
 
 /**
  * Fixes clip `clip` on rest R: the operators lint names (or `ops`: names, in `FIXES`'s order, then operators of your
- * own, in theirs), each run on the clip the one before left and measured before and after. A step that would push any
- * metric past a level it was under is not applied (`rejected` says which). Throws for a name that isn't an operator.
+ * own, in theirs), each run on the clip the one before left and measured before and after. A step that would make the
+ * clip worse is not applied (`rejected` says how: see `worse`). Throws for a name that isn't an operator.
  */
 export function fix(clip: Clip, R: Rest, opts: FixOptions & { ops?: readonly (FixName | Operator)[] } = {}): FixReport {
   for (const x of opts.ops ?? []) {
@@ -113,7 +128,11 @@ export function fix(clip: Clip, R: Rest, opts: FixOptions & { ops?: readonly (Fi
   const steps: FixStep[] = [];
   for (const op of ops) {
     const run = typeof op === "string" ? OPERATORS[op] : op, name = typeof op === "string" ? op : op.name || "custom";
-    const out = run(c, R, report, opts), next = metrics(out.clip, R), pushed = worse(m, report, next);
+    const out = run(c, R, report, opts), next = metrics(out.clip, R), pushed = out.changes.length || moved(c, out.clip).length ? worse(m, report, next, typeof op === "string" ? ANSWERS[op] : []) : [];
+    if (out.skipped) {
+      steps.push({ op: name, changes: [], skipped: out.skipped, before: report.values, after: report.values, findings: { before: count(report.findings), after: count(report.findings) } });
+      continue;
+    }
     if (pushed.length) {
       steps.push({ op: name, changes: [], rejected: pushed, before: report.values, after: report.values, findings: { before: count(report.findings), after: count(report.findings) } });
       continue;
@@ -129,6 +148,6 @@ export function fix(clip: Clip, R: Rest, opts: FixOptions & { ops?: readonly (Fi
       steps.push({ op: "facts", changes: diff.map((k) => `facts.${k} ${JSON.stringify(old[k])} → ${JSON.stringify(fresh[k])}`), before: report.values, after: report.values, findings: { before: count(report.findings), after: count(report.findings) } });
     }
   }
-  const text = [`${clip.id}: ${first.verdict.toUpperCase()} → ${report.verdict.toUpperCase()} (${first.findings.length} → ${report.findings.length} findings)`, ...steps.flatMap((s) => (s.rejected ? [`${s.op}: not applied, it would push ${s.rejected.join("; ")}`] : [`${s.op}:`, ...s.changes.slice(0, 4).map((x) => `  ${x}`), ...(s.changes.length > 4 ? [`  ... ${s.changes.length - 4} more`] : [])]))].slice(0, 20).join("\n");
+  const text = [`${clip.id}: ${first.verdict.toUpperCase()} → ${report.verdict.toUpperCase()} (${first.findings.length} → ${report.findings.length} findings)`, ...steps.flatMap((s) => (s.skipped ? [`${s.op}: not run, ${s.skipped}`] : s.rejected ? [`${s.op}: not applied, it would make worse: ${s.rejected.join("; ")}`] : [`${s.op}:`, ...s.changes.slice(0, 4).map((x) => `  ${x}`), ...(s.changes.length > 4 ? [`  ... ${s.changes.length - 4} more`] : [])]))].slice(0, 20).join("\n");
   return { clip: c, steps, before: first, after: report, text };
 }

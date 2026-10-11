@@ -58,11 +58,14 @@ if (import.meta.main) {
   }
   const out = join(ROOT, "check-output/qa"), dist = f.dist ? distributions(rows) : null;
   mkdirSync(out, { recursive: true });
+  let fixSummary = "";
   if (f.fix) {
     const s0 = performance.now(), fixed = fixAll(clips), bad = fixed.filter((r) => worse(r) || r.errors.length);
     const better = fixed.filter((r) => r.after.verdict !== r.before.verdict && !worse(r)).length, held = fixed.reduce((a, r) => a + r.rejected.length, 0);
     writeFileSync(join(out, "fix.json"), JSON.stringify({ rows: fixed }, null, 1));
-    steps.push({ name: "fix", ok: bad.length === 0, ms: performance.now() - s0, summary: `${fixed.length} clips lint flags: ${better} better, ${fixed.length - better - bad.length} as they were or fewer findings, ${bad.length} worse or invalid; ${held} steps not applied (they would push a metric past a level)`, detail: bad.map((r) => `${r.clip}: ${r.before.verdict} → ${r.after.verdict}${r.errors.length ? `, ${r.errors.length} errors: ${r.errors[0]}` : ""}`) });
+    const fewer = fixed.filter((r) => !bad.includes(r) && r.after.verdict === r.before.verdict && r.after.findings < r.before.findings).length;
+    fixSummary = `${fixed.length} clips linted: ${better} with a better verdict, ${fewer} with fewer findings, ${fixed.length - better - fewer - bad.length} as they were, ${bad.length} worse (a verdict or more findings) or invalid; ${held} steps not applied (they would make a clip worse)`;
+    steps.push({ name: "fix", ok: bad.length === 0, ms: performance.now() - s0, summary: fixSummary, detail: bad.map((r) => `${r.clip}: ${r.before.verdict} → ${r.after.verdict}, ${r.before.findings} → ${r.after.findings} findings${r.errors.length ? `, ${r.errors.length} errors: ${r.errors[0]}` : ""}`) });
   }
   writeFileSync(join(out, "clips.json"), JSON.stringify({ rows, ...(dist ? { distributions: dist } : {}) }, null, 1));
   if (dist) {
@@ -71,6 +74,6 @@ if (import.meta.main) {
     process.stdout.write(["distributions, p50 / p90 / p95 / p99 / max of each clip's worst value (every set's in clips.json):", ...table].join("\n") + "\n");
   }
   const ok = steps.every((s) => s.ok);
-  const report: Report = { tool: "qa", ok, verdict: `qa: ${ok ? "PASS" : "FAIL"}, ${rows.length} clips measured: ${count("pass")} pass, ${count("warn")} warn, ${count("fail")} fail`, steps, warnings: [], ms, next: ok ? "read check-output/qa/clips.json for each clip's findings" : "see the failing clips in check-output/qa/clips.json" };
+  const report: Report = { tool: "qa", ok, verdict: `qa: ${ok ? "PASS" : "FAIL"}, ${rows.length} clips measured: ${count("pass")} pass, ${count("warn")} warn, ${count("fail")} fail${fixSummary ? `; fix: ${fixSummary}` : ""}`, steps, warnings: [], ms, next: ok ? "read check-output/qa/clips.json for each clip's findings" : "see the failing clips in check-output/qa/clips.json" };
   finish(report, parsed);
 }

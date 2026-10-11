@@ -728,8 +728,10 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   (the default diff 1,627 tokens against 1,400): each sheet now takes a third of the budget (the marked row alone all
   of it), smaller until the stacked image fits. Every cell is checked for a drawn body, not only the whole image (the
   floor, labels and timeline always draw): a sheet whose frames draw none throws, naming them.
+- **Revised at G3's second review (v0.19.1):** after 20 tries `compareClips` returned a diff over its budget, unsaid;
+  it throws now, with the smallest it came to. A sheet with some frames blank (one key not a number) is tested too.
 - **Answered:** no: made without a response, to review.
-- **Landed in:** v0.14.0; revised at G3 in v0.19.0
+- **Landed in:** v0.14.0; revised at G3 in v0.19.0 and v0.19.1
 
 ## D41 · 2026-10-11 · The metrics read sampled points and the key grid; thresholds come from capture; a flip's swing is the flip
 
@@ -869,8 +871,11 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   dropped later phases unmarked: the text is now held to 150 tokens as `tokenCount` counts them (a word every six
   letters, a number every three digits, a space before a number and any other mark one each: never under the cl100k
   count on any library clip), and the items it drops are counted ("… 12 more to 35.80 s").
+- **Revised at G3's second review (v0.19.1):** the 91 tokens above, and the test's count, were o200k's (the tokenizer
+  package's default), not cl100k's: cl100k counts 94. The tests now hold `tokenCount` at or above both counts on every
+  library clip's text, and a long clip's text to 150 tokens by either.
 - **Answered:** no: made without a response, to review.
-- **Landed in:** v0.16.0; revised at G3 in v0.19.0
+- **Landed in:** v0.16.0; revised at G3 in v0.19.0 and v0.19.1
 
 ## D43 · 2026-10-11 · Planted defects: ten kinds in 100 clean clips, each found where it was planted
 
@@ -981,8 +986,8 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   opened its seam; foot locks made pops of 8 to 25 m/s), the seam operator added keys to every loop it was run on
   while reporting nothing, a loop meeting in pose but not in speed was neither linted nor repaired, and re-fit's
   tolerance left out the root's travel and turn. Seven mutants survived the tests. Now:
-  - **nothing gets worse:** a step that would push any metric past a level (warn or fail) it was under is not applied,
-    and the step says which (`rejected`);
+  - **nothing pushed past a level:** a step that would push any metric past a level (warn or fail) it was under is not
+    applied, and the step says which (`rejected`; widened in v0.19.1, below);
   - **valid keys:** every key an operator adds or edits is tidied: its time to the millisecond, its numbers whole and
     within their ranges, a direction an edit took past ±100 scaled back (keys it left alone stay exactly as they were);
   - **sparser edits:** edits are keyed every 0.1 s (a time within 0.05 s of the clip's own key edits that key): an
@@ -1005,6 +1010,38 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   compared, no spread at a straight limb, feet not set after a lift, no whole turns, lint blind to skate, to the seam
   or to flips, the guard off, a loop's flip undone to its end, speeds never matched, re-fit blind to the root, the seam
   adding keys silently, no tidying, an unknown name ignored.
+- **Revised at G3's second review (v0.19.1):** a second verifier ran the reworked operators over the library and
+  mutated them again. Five findings, all fixed:
+  - **twist flips spread a heading winding nearly a whole turn the long way** (99 spreads over the library; a walk's
+    foot turned 310° where 50° would do, and the guard let it through within its level): the spread now takes the
+    whole turns across its stretch out first, from the stretch's far end on;
+  - **"nothing gets worse" held only for levels:** applied steps raised metrics within their level (19 clips more than
+    5%, some on the very metric the step answered) and added findings (3 clips). A step is now not applied when it
+    pushes a metric past a level it was under, raises one already at warn or past it by more than 5%, adds findings,
+    or (an operator answering metrics) lowers none of those it answers that were found; `worse` says which. `qa --fix`
+    counts a clip with more findings as worse, and its summary is in the gate's line;
+  - **foot locks still made pops** (with every contact locked over the library, 231 steps refused, 214 for pops) and
+    changed an in-place loop's treadmill. Both legs were encoded again from the planted points mixed over every lock,
+    so a leg no lock held moved too. Now each lock aims only its own side's leg and foot at the points mixed by its
+    weight, the leg's own twist kept, and the pelvis lowers by the deepest lock's share; an in-place loop that
+    steps is not locked (the step says why: its feet set its treadmill, D41). With every contact locked over the
+    library: 267 clips locked, 73 refused (37 naming pops, 57 more findings), 150 in-place loops left, 35 with
+    nothing to lock;
+  - **21 of the verifier's mutants survived the tests** (11 of them the gate's `qa --fix` too). With 6 more for this
+    revision's own changes, each now fails a targeted case: the guard's levels, its 5% rise, its findings and the answered metrics; the seam's 3 times the
+    median and its quarter cycle; penetration's depth per key, its slope and its rounded corners; a loop's flip that
+    jumps back; whole turns in a spread; the 5 ms key; tidy's yaw, zero direction, scaling and clamping; jitter's
+    escalation to the torso and its halving of a shake (a key out of place alone takes its neighbours' in-between,
+    one among neighbours that leap too is a shake); re-fit's turn and sideways travel; foot locks' `allContacts` and
+    treadmill; `fixAll`'s validation and `worse`; a sheet with some frames blank; a predicate starting just after the
+    clip; a diff over its budget (D40). 27 of 27 fail the tests;
+  - **the rejected steps were described wrongly** ("mostly edits that move a foot under the floor"); restated below.
+
+  Over the library (`npm run qa -- --fix`): 252 clips linted, 144 with a better verdict, 53 with fewer findings, 55
+  as they were, none worse or invalid. Of 456 steps, 12 didn't run (foot locks on in-place loops) and 114 were not
+  applied: by operator jitter 45, twist flips 40, penetration 14, the seam 8, foot locks 7; naming jitter in 40, pops
+  in 33, penetration in 28, more findings in 21, and skate, the seam's speeds, joint limits, the seam, intersection,
+  slide or a twist flip in 4 or fewer each.
 - **Answered:** no: made without a response, to review.
-- **Landed in:** v0.18.0; reworked at G3 in v0.19.0
+- **Landed in:** v0.18.0; reworked at G3 in v0.19.0, revised in v0.19.1
 

@@ -8,6 +8,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { ROOT } from "../run/cli.ts";
+import { fix } from "@m3a/sensors";
 import { BASELINE, baselineOf, CAPTURE, compare, distributions, fixAll, libraryClips, qa, worse } from "./qa.ts";
 
 const pick = (ids: string[]) => libraryClips().filter((c) => ids.includes(c.clip.id));
@@ -50,6 +51,25 @@ describe("lint and fix over clips", () => {
     expect(rows.some((r) => r.after.findings < r.before.findings)).toBe(true);
     for (const r of rows) for (const x of r.rejected) expect(x).toMatch(/^\w+: \w+ [\d.]+ → [\d.]+, past its (warn|fail) level/);
   }, 60_000);
+});
+
+describe("lint and fix over clips, caught out", () => {
+  it("flags a fixed clip that comes out invalid, or with a worse verdict or more findings", () => {
+    const clips = pick(["MESH2MOTION/Swim_Fwd"]);
+    const nan: typeof fix = (clip, R) => ({ ...fix(clip, R), clip: { ...clip, keys: clip.keys.map((k, i) => (i === 1 ? { ...k, head: [Number.NaN, 0, 0] } : k)) } });
+    const [bad] = fixAll(clips, nan);
+    expect(bad!.errors.length).toBeGreaterThan(0);
+    const more: typeof fix = (clip, R) => {
+      const out = fix(clip, R);
+      return { ...out, after: { ...out.after, findings: [...out.before.findings, ...out.before.findings] } };
+    };
+    expect(worse(fixAll(clips, more)[0]!)).toBe(true);
+    const fails: typeof fix = (clip, R) => {
+      const out = fix(clip, R);
+      return { ...out, after: { ...out.after, verdict: "fail", findings: [] } };
+    };
+    expect(worse({ ...fixAll(clips, fails)[0]!, before: { verdict: "warn", findings: 3 } })).toBe(true);
+  });
 });
 
 describe("npm run qa", () => {

@@ -224,8 +224,8 @@ export function describe(clip: MetricClip, R: Rest, opts: DescribeOptions = {}):
 }
 
 /**
- * A count of tokens no lower than a tokenizer's for describe's text (cl100k reads it in as many or fewer): a word every
- * six letters, a number every three digits, a space before a number one, any other mark one.
+ * A count of tokens no lower than a tokenizer's for describe's text (cl100k and o200k read it in as many or fewer): a
+ * word every six letters, a number every three digits, a space before a number one, any other mark one.
  */
 export function tokenCount(s: string): number {
   let n = 0;

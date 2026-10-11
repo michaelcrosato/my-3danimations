@@ -4,6 +4,20 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.19.1 · 2026-10-11
+
+### Sensors
+- G3's second review of WP-3.5 (D44): `fix` doesn't apply a step that raises a metric already at warn by more than
+  5%, adds findings, or lowers none of the metrics its operator answers (as well as one pushing a metric past a level);
+  twist flips take whole turns out of a stretch before spreading it; foot locks aim only the locked side's leg and
+  leave an in-place loop that steps as it is (the step says why); jitter treats a key out of place alone apart from a
+  shake.
+- `compareClips` throws when its three rows can't fit the budget, instead of returning over it (D40).
+- The describe tests count tokens by cl100k as well as o200k (D42).
+
+### Tools
+- `npm run qa -- --fix` counts a clip with more findings as worse, and its summary is in the verdict line.
+
 ## 0.19.0 · 2026-10-11
 
 ### Sensors
