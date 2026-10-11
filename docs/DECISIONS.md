@@ -1139,8 +1139,13 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   patch it; the patch, written to a file and read back, binds.
 - **Outside WP-4.3's Owns** (one agent, D21): the topology fixes in core's `recognize` (WP-1.4's) with their
   fixtures; `@m3a/three`'s index exports `bind` and its types.
+- **Revised in WP-4.5 (v0.23.1):** capturing the Knight showed it bound to its IK controls: its skin lists every bone,
+  the controls too (`control-toe-roll`, `kneeIK`, `handIK`), and topology took three chains of them for the legs and
+  arms (hips at the root, the arms on the legs: its reported 0.85 hid it). Bind now recognizes only the bones some vertex
+  is weighted to, and those above them; the Knight maps each limb to its own bones (T pose, forearm 260 mm), and the
+  real rigs' tests check the mapping bone by bone, not only that nothing is missing.
 - **Answered:** no: made without a response, to review.
-- **Landed in:** v0.22.0
+- **Landed in:** v0.22.0; revised in v0.23.1
 
 ## D48 · 2026-10-11 · Playing and baking on three.js: the solver's rotations as three's, baked densely enough
 

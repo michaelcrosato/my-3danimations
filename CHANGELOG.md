@@ -4,6 +4,12 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.23.1 · 2026-10-11
+
+### Three
+- `bind` recognizes only the bones that deform the mesh (and those above them): a rig's IK and roll controls were taken
+  for limbs (KayKit's Knight bound its arms to its legs' controls) (D47).
+
 ## 0.23.0 · 2026-10-11
 
 ### Three

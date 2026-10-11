@@ -1,8 +1,9 @@
 // Binding (WP-4.3): every test character binds with no hand mapping (the 20 generated, a held-out seed, and the real
 // rigs once fetched), its bone lengths measured as generated; a deliberately renamed rig binds through topology with
 // its confidence stated; a character placed anywhere binds the same; a missing bone fails with a report that says how
-// to patch it, and the patch binds it; the report reads in 20 lines or fewer.
-import { Group, type Bone } from "three";
+// to patch it, and the patch binds it; control bones that deform nothing are left out; the real rigs map each limb to
+// its own bones; the report reads in 20 lines or fewer.
+import { Bone, Group, Matrix4 } from "three";
 import { describe, expect, it } from "vitest";
 import { rigBytes } from "../../../tools/fixtures/fixtures.ts";
 import { bind } from "../src/index.ts";
@@ -65,13 +66,42 @@ describe("binding the test characters", () => {
   });
 });
 
+describe("control bones", () => {
+  it("leaves out bones that deform nothing (a rig's IK and roll controls), which topology would take for limbs", async () => {
+    const { bones, loaded } = await load(1), mesh = loaded.skinned[0]!, top = mesh.skeleton.bones[0]!;
+    // three chains of IK controls hung off the top bone, weighted to nothing
+    for (const side of ["l", "r", "c"]) {
+      let parent: Bone = top;
+      for (let i = 0; i < 4; i++) {
+        const c = new Bone();
+        c.name = `ctrl_${side}${i}`;
+        c.position.set(side === "l" ? 0.2 : side === "r" ? -0.2 : 0, -0.1, 0.3);
+        parent.add(c);
+        mesh.skeleton.bones.push(c);
+        mesh.skeleton.boneInverses.push(new Matrix4());
+        parent = c;
+      }
+    }
+    loaded.skinned[0]!.skeleton.bones.forEach((x: Bone, i: number) => (x.name = x.name.startsWith("ctrl_") ? x.name : `node${i}`));
+    const b = bind(loaded.scene);
+    expect(b.bones.some((x) => x.name.startsWith("ctrl_"))).toBe(false);
+    expect([b.report.method, b.report.missing, b.report.lengths.leftLowerArm]).toEqual(["topology", [], length(bones, "leftLowerArm", "leftHand")]);
+  });
+});
+
 describe("binding the real CC0 rigs", () => {
-  for (const id of ["quaternius-mannequin-m", "kaykit-knight"]) {
-    it(`binds ${id} with no hand mapping`, async (ctx) => {
+  const WANT: Record<string, Record<string, string>> = {
+    "quaternius-mannequin-m": { hips: "pelvis", spine: "spine_01", head: "Head", leftShoulder: "clavicle_l", leftUpperArm: "upperarm_l", leftLowerArm: "lowerarm_l", leftHand: "hand_l", rightUpperLeg: "thigh_r", rightLowerLeg: "calf_r", rightFoot: "foot_r", rightToes: "ball_r" },
+    "kaykit-knight": { hips: "hips", spine: "spine", chest: "chest", head: "head", leftUpperArm: "upperarml", leftLowerArm: "lowerarml", leftHand: "wristl", rightUpperLeg: "upperlegr", rightLowerLeg: "lowerlegr", rightFoot: "footr", rightToes: "toesr" },
+  };
+  for (const [id, want] of Object.entries(WANT)) {
+    it(`binds ${id} with no hand mapping, each limb to its own bones`, async (ctx) => {
       const bytes = rigBytes(id);
       if (!bytes) return ctx.skip(`${id} isn't fetched: npm run fixtures -- fetch`);
       const b = bind((await loadGlb(bytes, { textures: false })).scene);
       expect(b.report.missing).toEqual([]);
+      expect(b.core.recognition.bones).toMatchObject(want);
+      expect(b.report.rest.kind).toBe("T");
       expect(b.report.text.split("\n").length).toBeLessThanOrEqual(20);
       console.log(`${id}:\n${b.report.text}`);
     });

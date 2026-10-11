@@ -1,7 +1,8 @@
-// Binding a three.js character (PLAN.md WP-4.3): find its skinned skeleton (or a VRM's humanoid), recognize it
-// (WP-1.4, by name or by topology), read its rest (heads and orientations in the character's own space, metres), bind
-// it for the solver (core's bind: the rest frame, the body measured from the bones), measure each humanoid bone's
-// length, and say how sure it is in a report of at most 20 lines with a patch an agent can edit and pass back.
+// Binding a three.js character (PLAN.md WP-4.3): find its skinned skeleton (or a VRM's humanoid), keep the bones that
+// deform the mesh (a rig's IK and roll controls move nothing), recognize them (WP-1.4, by name or by topology), read
+// its rest (heads and orientations in the character's own space, metres), bind it for the solver (core's bind: the
+// rest frame, the body measured from the bones), measure each humanoid bone's length, and say how sure it is in a
+// report of at most 20 lines with a patch an agent can edit and pass back.
 import type { Bone, Object3D, SkinnedMesh } from "three";
 import { Matrix4, Quaternion, Vector3 } from "three";
 import { bind as bindSkeleton, recognize, skeleton, type Bound, type SkeletonIn } from "@m3a/core";
@@ -55,6 +56,21 @@ const SEGMENTS: Readonly<Record<string, readonly [string, readonly string[]]>> =
     [`${s}Foot`, [`${s}Foot`, [`${s}Toes`]]],
   ])),
 };
+/**
+ * The bones that deform a mesh (some vertex weighted to them, in any skinned mesh under `root`), and every bone above
+ * one. A rig's control bones (IK targets, pole and roll controls) move nothing and are left out of recognition.
+ */
+function deforming(root: Object3D, bones: Bone[]): Set<Bone> {
+  const used = new Set<Bone>();
+  root.traverse((o) => {
+    const m = o as SkinnedMesh, idx = m.isSkinnedMesh ? m.geometry.getAttribute("skinIndex") : undefined, w = m.isSkinnedMesh ? m.geometry.getAttribute("skinWeight") : undefined;
+    if (!idx || !w) return;
+    for (let i = 0; i < idx.count; i++) for (let k = 0; k < idx.itemSize; k++) if (w.getComponent(i, k) > 0) used.add(m.skeleton.bones[idx.getComponent(i, k)]!);
+  });
+  const keep = new Set<Bone>();
+  for (const b of bones) if (used.has(b)) for (let p: Object3D | null = b; p && (p as Bone).isBone; p = p.parent) keep.add(p as Bone);
+  return keep;
+}
 /** The skinned mesh whose skeleton has the most bones under `root`, or null. */
 function skinnedOf(root: Object3D): SkinnedMesh | null {
   let best: SkinnedMesh | null = null;
@@ -80,7 +96,9 @@ function vrmHumanoid(root: Object3D): Record<string, Object3D> | null {
 export function bind(root: Object3D, opts: BindOptions = {}): ThreeBound {
   root.updateMatrixWorld(true);
   const mesh = skinnedOf(root), vrm = vrmHumanoid(root);
-  const bones: Bone[] = mesh ? [...mesh.skeleton.bones] : [];
+  // the skeleton's bones that deform the mesh (and those above them): control bones left out
+  const all: Bone[] = mesh ? [...mesh.skeleton.bones] : [], moving = mesh && !vrm ? deforming(root, all) : null;
+  const bones: Bone[] = moving && moving.size ? all.filter((b) => moving.has(b)) : all;
   if (!bones.length && vrm) for (const n of Object.values(vrm)) if ((n as Bone).isBone || n) bones.push(n as Bone);
   if (!bones.length) throw new Error("bind: no skinned mesh (or VRM humanoid) under this object: load the character's glTF and pass its scene");
   const inv = new Matrix4().copy(root.matrixWorld).invert(), m = new Matrix4(), p = new Vector3(), q = new Quaternion(), s = new Vector3();
