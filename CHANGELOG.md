@@ -4,6 +4,16 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.5.0 · 2026-10-11
+
+### Spec
+- WP-1.4: `spec/SKELETON.md`: VRM 1.0's humanoid (55 bones, 15 required), frames, rest measurement, body points on
+  bones, the mapping tables, recognize's output, the Khronos watch.
+
+### Core
+- WP-1.4: `skeleton/`: `recognize` (8 tables and a topology fallback), `patchMapping`, `restFrame` (T, A or relaxed),
+  `measure` (the origin's, bit for bit) and `restPoints`.
+
 ## 0.4.0 · 2026-10-11
 
 ### Core

@@ -2197,8 +2197,8 @@ version, commit, date and a note with the numbers. Gates are rows too.
 | **G0** | done | 0.1.0 | bae664e | 2026-10-11 | 4/4 in 5.1 s: check 1.3 s, test 1.3 s (41 tests), doctrine 7/7, vectors 13 files byte for byte; verifier: 4 findings fixed (D24) |
 | 1.1 The motion spec | done | 0.2.0 | 7d1bd44 | 2026-10-11 | MOTION.md 2.0-rc (15 sections, every vector and seed-set field mapped); LEGEND.md 792/800 tokens; ranges from the 7 seed sets (spins reach 1086°); quiz deferred to WP-4.7 |
 | 1.2 Schemas and the validator | done | 0.3.0 | bcd90e6 | 2026-10-11 | 30 rules, each with a passing and a failing fixture (46 tests); Ajv agrees on 11 structural rules; 762 seed clips: 0 errors, 301 warnings as predicted; D25 |
-| 1.3 The codec | done | 0.4.0 | (next row's commit) | 2026-10-11 | tier 1a bit for bit (5 clips); tier 2: 7,444 samples of 325 clips equal to the micrometre; text, mirror and mirror-twice exact; 1,396 lines with tests; D26, D27 |
-| 1.4 The skeleton profile | todo | | | | |
+| 1.3 The codec | done | 0.4.0 | 02efc99 | 2026-10-11 | tier 1a bit for bit (5 clips); tier 2: 7,444 samples of 325 clips equal to the micrometre; text, mirror and mirror-twice exact; 1,396 lines with tests; D26, D27 |
+| 1.4 The skeleton profile | done | 0.5.0 | (next row's commit) | 2026-10-11 | 8 tables × 3 name styles exact; topology maps renamed Mixamo and rig skeletons (conf 0.85); measure = tier 1a rests bit for bit; restPoints within 0.001 mm; 32 tests; D28 |
 | 1.5 Migrate the seed sets | todo | | | | |
 | **G1** | todo | | | | |
 | 2.1 Math kernel and determinism | todo | | | | |

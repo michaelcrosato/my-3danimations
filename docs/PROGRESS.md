@@ -3,7 +3,7 @@
 The current state on one screen (at most 40 lines; `npm run doctrine` checks it from WP-0.3). The ledger is
 `PLAN.md` §14; decisions are in `docs/DECISIONS.md`.
 
-**Phase:** 1 The language. **Next gate:** G1. **Version:** 0.4.0.
+**Phase:** 1 The language. **Next gate:** G1. **Version:** 0.5.0.
 **Mode:** one agent (D21), branch `claude/relaxed-albattani-35xhjq`.
 
 ## Done
@@ -15,10 +15,12 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
   with 0 errors (D25).
 - WP-1.3 The codec: tier 1a bit for bit, tier 2 equal to the micrometre at all 7,444 samples; format 2's hand,
   fingers and spine (D26, D27).
+- WP-1.4 The skeleton profile: `SKELETON.md`; recognize exact on 8 tables, topology fallback; measure bit for bit
+  (D28).
 
 ## Next
 
-- WP-1.4 the skeleton profile, 1.5 the migration, then G1.
+- WP-1.5 the migration of the seed sets, then G1.
 
 ## Blocked on the owner
 

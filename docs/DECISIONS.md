@@ -319,3 +319,20 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
 - **Why:** bit-for-bit parity is the contract other languages certify against; new fields must not move old numbers.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.4.0
+
+## D28 · 2026-10-11 · The skeleton profile: tables first, topology as a reported fallback
+
+- **Principle:** 7, 8 (WP-1.4)
+- **Call:**
+  - Eight mapping tables (VRM/Godot, Unity, Mixamo, UE5, UE4/Quaternius UAL2/Mesh2Motion, Rigify, CMU ASF, 100STYLE
+    BVH) match names after dropping namespaces, case and separators; the table with the most required bones wins.
+  - When names leave required bones unmapped, a topology and geometry fallback maps the skeleton and says so, starting
+    at confidence 0.85; a named `table` turns the fallback off. `patchMapping` is how an agent corrects a mapping.
+  - The format's (forward, right, up) coordinates are a left-handed triad physically; glTF is right-handed. The
+    conversion is one reflection, `(f, r, z) → (−r, z, f)`, done once by adapters (SKELETON.md §2).
+  - `measure` is the origin's, operation for operation (it reproduces tier 1a's rests bit for bit), and `restPoints`
+    places body points on any recognized skeleton (within 0.001 mm of the importer on the tiny rig), so the solver can
+    measure a target body the same way as a library's.
+- **Why:** exact names are cheap and certain; a renamed rig still binds, with the doubt visible in its confidence.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.5.0
