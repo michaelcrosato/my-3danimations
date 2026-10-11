@@ -23,9 +23,9 @@ and supply chain an agent needs. Plug models that generate motion into a socket 
 - **The core is proven.** my-3d2dge's readable key poses land 14 to 18 mm from the capture, are 14× smaller than the
   same clips as GLB, and are chosen from catalog lines of about 35 tokens. shardfall ported the format to Rust bit for
   bit.
-- **You are already paying for not having it.** The codec has been written three times (JavaScript, Rust, and now
-  planned in TypeScript). One set name already means two different sets in two repos. The first outside model to build
-  on my-3d2dge never found the library.
+- **You are already paying for not having it.** The codec has been written twice (JavaScript, then Rust) and is
+  planned a third time in TypeScript. One set name already means two different sets in two repos. The first outside
+  model to build on my-3d2dge never found the library.
 - **The niche is empty.**
   - There is no open text format for 3D character motion.
   - No engine's MCP server exposes animation.
@@ -36,6 +36,12 @@ and supply chain an agent needs. Plug models that generate motion into a socket 
   non-commercial data. The first commercially usable model, NVIDIA Kimodo, plugs into the socket later.
 - **It improves as models improve.** The airframe gets better pilots every few months. The curated, licensed, verified
   motion and the evals that grade agents only gain value.
+- **The analogy is half right.** three.js and Rapier ship code, not content. Here the scarce assets are clean motion data
+  and trustworthy checks, so the package is closer to glTF plus Poly Haven plus a test suite, with a three.js-like
+  runtime as its reference implementation.
+- **Two parts carry the risk.** Retargeting onto arbitrary skinned skeletons is the heavy lift, and that is what the
+  first milestone tests. A library grown by AIs is the weakest leg, so it grows only through license namespaces,
+  provenance, gates and human review before merge.
 
 ## What's here
 

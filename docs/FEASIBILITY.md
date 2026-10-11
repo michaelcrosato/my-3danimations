@@ -24,13 +24,28 @@
 interfaces, ground station and supply chain an agent needs to put character motion in a game. It does not mean a model
 that invents motion; generation plugs in through a socket.
 
+**The analogy is only half right, and the half that's wrong matters.** three.js and Rapier ship code and no content:
+their users bring the assets and the judgment. Here, across five repositories, the code was rewritten every time while
+the format, the data and the golden vectors traveled intact. The scarce, defensible assets in 2026 are clean motion data
+and checks you can trust, not playback code. So the package is closer to **glTF plus Poly Haven plus a test suite**,
+with a three.js-like runtime as its reference implementation. Its first deliverable is governance: the spec, its
+versioning, provenance, the gates and conformance. `PLAN.md` puts these first.
+
 **Confidence:**
 - **High** that the package can be built and pays off in the owner's own games. Its core already exists in pieces
   across five repositories.
-- **Medium** on how far "high quality" reaches. The runtime can be first-rate. The source motion is capped by what open
-  licenses allow until generative backends with clean terms are wired in.
+  - The format, the verifier and the interfaces are ready to standardize now.
+  - **The runtime is the heavy lift.** Retargeting onto arbitrary skinned skeletons while keeping contacts is unsolved
+    in every predecessor and missing from three.js. Unreal took several releases to get it right. It will absorb most of
+    the engineering, which is why it is the M1 test.
+- **Medium** on how far "high quality" reaches. The runtime can be first-rate, but **the library is the weakest leg**.
+  - Clean motion data is scarce: the CC0 core is about 200 clips, and the rest comes from CMU and 100STYLE.
+  - The one clean open generator, NVIDIA's Kimodo, sits under a license NVIDIA may change at any time.
+  - The library grows at the pace of clean generators and human-backed gates, not the pace agents can produce clips.
 - **Unknowable today** whether it becomes *the* standard. Being early and open helps, and so does a conformance kit, but
-  adoption beyond the owner's repositories is a milestone to earn (M4), not an assumption.
+  adoption beyond the owner's repositories is a milestone to earn (M4), not an assumption. The window is real but not
+  permanent: Khronos's character extensions are heading for release, and Epic and NVIDIA each hold most of the pieces
+  of an open motion stack.
 
 **Why go:**
 1. **The core is proven, not speculative.**
@@ -61,12 +76,18 @@ that invents motion; generation plugs in through a socket.
    - World models such as Genie 3 and Muse generate pixels without persistent state, so games will keep needing
      explicit, deterministic animation for years.
 
-**What could sink it.** Each risk below has a plan defence (§7):
-- retargeting onto real rigs looks wrong;
-- agents don't reach for the package;
-- the open data is too thin for games;
-- scope creep;
-- contributions turn into a flood.
+**What could sink it,** ranked by how hard each is to undo. Each has a plan defence (§7):
+1. **Library contamination.** A clip with tainted provenance ships in games and can't be recalled. The origin's own CMU
+   record already omits CMU's no-resale clause.
+2. **Retargeting onto real rigs looks wrong.**
+3. **Agents don't reach for it.** They ignore what isn't in their context, and no model has seen this format in
+   pretraining.
+4. **Execution slips.** Every size in the owner's last plan overran.
+5. **Metrics that miss defects or get gamed.**
+
+**How to present it.** In the GDC 2026 survey, 52% of game developers called generative AI bad for the industry, 64%
+among visual and technical artists. So present this as correctness, verification and provenance tooling, not as a
+replacement for animators.
 
 **What to build.** `PLAN.md`: 11 phases, 56 work packages, 10 gates, 4 milestones. The first milestone, **M1 "first
 flight"**, tests the thesis. Any library clip plays on any humanoid skeleton in three.js, the sensors are green, sheets
@@ -211,8 +232,15 @@ Full synthesis: `reports/AI native game animation landscape.md`. What matters fo
   - It takes full-body keyframes and sparse joint, root and path constraints, landing about 2.7 cm from the keyframes.
   - It needs a GPU (about 17 GB of VRAM, or under 3 GB with the text encoder on the CPU), so it would run as a remote
     backend.
-  - Its constraint inputs map well onto readable key poses: an agent writes a few keys, and the model fills the frames
-    between.
+  - Its constraint inputs map well onto readable key poses: an agent writes three to ten keys, the model fills the
+    frames between, and the verifier checks the result against the keys.
+  - It comes with caveats:
+    - NVIDIA "may update" the license "at any time".
+    - The model card calls its training data "proprietary".
+    - It is realistic-only and capped at 10 s per clip.
+    - It skates: its own paper measures 3.87 cm/s of foot skate against 2.21 cm/s for real capture.
+
+    So every output goes through the same gates as any import, with the license version recorded per clip.
 - **Motion matching** needs a dense locomotion set. Daniel Holden's demo code is MIT and already builds to WASM, but its
   LaFAN1 data is non-commercial.
 - **Physics controllers** need GPU clusters to train but little to run. NVIDIA's SONIC web demo runs a policy in the
@@ -348,11 +376,12 @@ in software.
 | Dimension | Verdict | Why | Main risk | Retired at |
 |---|---|---|---|---|
 | **Format, runtime, sensors** | High | Proven in my-3d2dge and shardfall; the techniques are known | Scope | G1–G3 |
-| **Retargeting onto arbitrary skinned skeletons** | Medium-high | The IK-space format is built for it; VRM gives the bone vocabulary; Babylon.js shows it works; three.js's own fails, which is the gap | Odd rigs, rest poses, twist bones | G4 (M1) |
+| **Retargeting onto arbitrary skinned skeletons** | Medium (the heavy lift) | The IK-space format is built for it, VRM gives the bone vocabulary, and contact constraints are where the industry converged. But no predecessor has done it onto arbitrary skinned skeletons; Unreal needed 5.4, 5.7 and 5.8 to get there; Babylon.js 9's new retargeter still fails on rotated meshes | Odd rigs, rest poses (T vs A), twist bones, rotated meshes | G4 (M1) |
 | **Runtime quality** (contacts, synced blending, root motion) | High | Engineering with known methods; foot locking and phase sync are specified | None beyond effort | G2, G4 |
 | **Source-motion quality** | Medium | The open data is decent and broad but not AAA; CMU is raw capture; Quaternius is stylized | Thin coverage of game-specific moves (combat variety, traversal polish) | G5; recipes and actions (Phase 6); generative backends (D.9) |
 | **Motion made by agents** | Medium, rising | Composition, edits and procedural sources, all checked by sensors; models improve; the socket is ready | Agents can't judge feel by eye | G6 and the benchmark |
-| **Data and legal** | Medium-high | A clean seed exists; license namespaces; purely AI-generated output is public domain in the US | The Mesh2Motion audit; CMU's terms; contributions laundering restricted motion | G5, G9 |
+| **The seed library (data and legal)** | Medium | A clean seed exists across three namespaces, but it is small: the CC0 core is about 200 clips, and CMU and 100STYLE supply the rest. Purely AI-generated output is public domain in the US | The Mesh2Motion audit; CMU's grey zone; repairs the origin owes (the CMU record, the UAL2 v2.2 update) | G5 |
+| **Library growth by AI contribution** | Low-medium (the weakest leg) | Only one clean open generator, under terms its owner can change; open AI-fed catalogs elsewhere were flooded (Fab) or poisoned (ClawHub) | Contamination that can't be recalled once a game ships | G9, with human review before merge |
 | **Agent usability** | High, if packaged right | The owner's own tool patterns are proven; a registry serves the CLI, skill and MCP | Discoverability (the Vesper failure) | G4, G7 (benchmark) |
 | **Becoming the standard** | Low to medium (unknowable) | An empty niche, an open license, a spec, conformance vectors, exports to everything | Khronos, engines or vendors define the standard first; models aren't trained on a new library | G10 (M4) |
 | **Durability as models improve** | High | The airframe scales with the pilot; data and evals appreciate | World models replace explicit animation (not for years: they keep no persistent state) | Continuous |
@@ -428,19 +457,41 @@ The rest is earned in public:
 
 Being first in an empty niche helps. Claiming the title doesn't.
 
+Three choices follow from the evidence:
+
+- **TypeScript first, with Rust certified later.** The Rapier analogy taken literally would mean one Rust core shipped
+  as both a crate and an npm package through WASM. That ends rewrites at the cost of a WASM boundary. The plan starts
+  with TypeScript, because:
+  - agents iterate fastest there;
+  - the first consumers (my-3dge, the gallery, three.js games) are TypeScript;
+  - the conformance kit lets a Rust implementation certify later (PLAN WP-10.2, D.6), and shardfall's codec already
+    nearly does.
+
+  If Rust hosts must become first-class, revisit this with a decision entry.
+- **Substitute for pretraining.** No model has seen this format in pretraining. Agents do well with Manim and Remotion
+  partly because those are mainstream code seen at scale. Here the legend, the token-budgeted manual and the skill do
+  that job, and they version with the schema.
+- **Build on Khronos, not against it.** Emit the `KHR_character_*` vocabularies once they are ratified, and publish the
+  spec before an incumbent defines one (decision O2 governs the timing).
+
 ---
 
 ## 7. Risks, and how the plan retires them
 
+Ranked by how hard each is to undo, which is the order that matters:
+
 | Risk | How the plan answers it | Where |
 |---|---|---|
+| **Library contamination:** a clip with tainted provenance ships in games and can't be recalled | License namespaces; provenance on every clip; the seed audits (the CMU notice, Mesh2Motion, UAL2 v2.2); allowlists; dedup; disclosure; human review before merge | WPs 1.5, 5.3, 5.7, 9.1, 9.3 |
+| **Supply-chain risk in what the package ships.** Clips are inert data, but skills, the MCP server and importers are code | Importers treat every input as untrusted; signed releases with provenance from the first published version | WPs 5.2, 7.4 |
 | **Retargeting onto real rigs looks wrong** | An IK-space format; skeleton recognition with confidence reports and patchable mappings; rest normalization; foot locking; tested on generated variants and real CC0 rigs | WPs 1.4, 2.4, 2.5, 4.3; G4 |
 | **Agents don't use it** (the Vesper failure) | The manual is the front door, with defaults and examples; a skill; the benchmark measures whether agents read past the manual | WPs 4.7, 7.3; G4, G7 |
 | **The library is too thin for games** | Re-import with the new degrees of freedom; recipes, actions and procedural sources; purchases (O4) and generative backends (D.9) as levers | WPs 5.3, 6.1–6.3 |
 | **The format's limits show** (wrists, spine, fingers) | Named optional fields; re-import from the sources; a dense sidecar track as the fallback | WPs 1.1, 5.3, D.2 |
 | **Sensors miss defects or cry wolf** | A planted-defect suite with 100% recall required; calibration against the library; human sampling feeding new checks | WPs 3.6, 8.2 |
 | **Scope creep** | The scope rule (no gate or brief, no work) and on-demand triggers | PLAN §2, §10 |
-| **Contributions turn into a flood** | Allowlists, provenance, dedup, disclosure, rate limits, human review before merge | WPs 9.1, 9.3 |
+| **Contributions turn into a flood** | A curated core plus a federated, namespace-verified index for community packs, never an open upload portal; allowlists, provenance, dedup, disclosure, rate limits, an accountable human behind every agent, no per-clip rewards, human review before merge | WPs 9.1, 9.3, 9.4 |
+| **Metrics miss defects or get gamed** (the origin's slide check ran only on idle; a generator over-optimized against a learned critic broke down) | Planted defects; calibration against real capture; human sampling; an adversarial review of what each gate fails to see | WPs 3.3, 3.6, 8.2 |
 | **The ground moves** (Khronos, three.js, a generative leap) | A spec watch, deliberate pin upgrades, the socket | WPs 1.4, 4.1, 9.2 |
 
 **Kill criteria** (PLAN §12). Each stops the work and escalates:
