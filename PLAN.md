@@ -857,8 +857,9 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
 - **Verify:** `test -f DOCTRINE.md -a -f AGENTS.md -a -f CLAUDE.md -a -f docs/PROGRESS.md && [ "$(grep -c '^## D' docs/DECISIONS.md)" -ge 15 ] && grep -qw 'O1' docs/DECISIONS.md && grep -qw 'O7' docs/DECISIONS.md && grep -qw 'O8' docs/DECISIONS.md && grep -qw 'O11' docs/DECISIONS.md && grep -q 'Mesh2Motion' docs/DECISIONS.md`
 
 #### WP-0.2 Toolchain
-- **Owns:** `package.json`, `package-lock.json`, `tsconfig*.json`, `eslint.config.js`, `vitest.config.ts`,
-  `packages/*/package.json` and entry stubs, `tools/run/*`, `tools/version.ts`, `CHANGELOG.md`
+- **Owns:** `package.json`, `package-lock.json`, `.npmrc`, `tsconfig*.json`, `eslint.config.js`, `vitest.config.ts`,
+  `playwright.config.ts`, `tests/e2e/smoke.e2e.ts`, `packages/*/package.json` and entry stubs, `tools/run/*`,
+  `tools/version.ts`, `CHANGELOG.md` (D22)
 - **Needs:** 0.1
 - **Size:** M
 - **Build:**
@@ -898,7 +899,7 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
 
 #### WP-0.4 Pins and reference vectors
 - **Owns:** `tools/pins.json`, `tools/pins/*`, `tools/vectors/*`, `spec/vectors/**`, `spec/conformance/tiers.md`,
-  `spec/conformance/runner/*`
+  `spec/conformance/runner/*`; the approved-binaries entry in `tools/doctrine/binaries.ts` (D24)
 - **Needs:** 0.2
 - **Size:** M
 - **Carry:**
@@ -2187,12 +2188,12 @@ version, commit, date and a note with the numbers. Gates are rows too.
 
 | WP | Status | Version | Commit | Date | Note |
 |---|---|---|---|---|---|
-| 0.1 Constitution | todo | | | | |
-| 0.2 Toolchain | todo | | | | |
-| 0.3 Doctrine checks | todo | | | | |
-| 0.4 Pins and reference vectors | todo | | | | |
-| 0.5 CI and session setup | todo | | | | |
-| **G0** | todo | | | | |
+| 0.1 Constitution | done | — | e8352fb | 2026-10-11 | DOCTRINE.md (12 principles + enforcement table), AGENTS.md, CLAUDE.md; D1–D21 logged (O1, O7, O8, O11, CMU/Mesh2Motion); PROGRESS 24 lines |
+| 0.2 Toolchain | done | 0.1.0 | 09b64d0 | 2026-10-11 | 6 workspaces; T0 3.0 s/15, T1 1.3 s/90 (7 files, 16 tests), T2 6.4 s/480 (Chromium 1194, WebGL 2 on SwiftShader); D22 |
+| 0.3 Doctrine checks | done | 0.1.0 | 43d219e | 2026-10-11 | 7 checks in 0.2 s, part of T0; 14 tests, each check with a failing fixture; gpt-tokenizer 4.0.0 pinned |
+| 0.4 Pins and reference vectors | done | 0.1.0 | 20ad7a7 | 2026-10-11 | 5 repos pinned; 13 vector files, 6.14 MB + 1.0 MB frozen = 7.14 of 10 MB; tiers 1a (rig, CMU 09_02), 1b, 2 (325 clips, 6,469 keys), 3 (11 bodies); oracle = shardfall's expected sets; D23 |
+| 0.5 CI and session setup | done | 0.1.0 | d594f61, 9218ce1 | 2026-10-11 | CI green on #4 at 9218ce1 (T0+T1 on push 16 s, T2 on the PR 33 s); fresh clone: hook 2.6 s, then check 4.2 s of 15 |
+| **G0** | done | 0.1.0 | bae664e | 2026-10-11 | 4/4 in 5.1 s: check 1.3 s, test 1.3 s (41 tests), doctrine 7/7, vectors 13 files byte for byte; verifier: 4 findings fixed (D24) |
 | 1.1 The motion spec | todo | | | | |
 | 1.2 Schemas and the validator | todo | | | | |
 | 1.3 The codec | todo | | | | |

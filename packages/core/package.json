@@ -1,0 +1,12 @@
+{
+  "name": "@m3a/core",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Format codec, profiles, sampler, pose ops, solver, contacts, recipes, graphs and sources. Imports nothing.",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {}
+}

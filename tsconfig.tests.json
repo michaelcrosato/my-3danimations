@@ -1,0 +1,20 @@
+{
+  "//": "Tests, repo tools and configs: Node types allowed. The packages' own sources are checked by their projects.",
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": ".cache/tsc/tests",
+    "rootDir": ".",
+    "lib": ["es2023", "dom"],
+    "types": ["node"]
+  },
+  "include": ["packages/*/test/**/*.ts", "tools/**/*.ts", "tests/**/*.ts", "spec/**/*.ts", "*.config.ts"],
+  "exclude": ["node_modules", ".cache", "**/dist"],
+  "references": [
+    { "path": "packages/core" },
+    { "path": "packages/sensors" },
+    { "path": "packages/io" },
+    { "path": "packages/library" },
+    { "path": "packages/three" },
+    { "path": "packages/tools" }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "//": "The build root: `tsc -b` checks every project through its references.",
+  "files": [],
+  "references": [
+    { "path": "packages/core" },
+    { "path": "packages/sensors" },
+    { "path": "packages/io" },
+    { "path": "packages/library" },
+    { "path": "packages/three" },
+    { "path": "packages/tools" },
+    { "path": "tsconfig.tests.json" }
+  ]
+}

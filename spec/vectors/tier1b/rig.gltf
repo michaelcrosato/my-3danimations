@@ -1,0 +1,274 @@
+{
+ "asset": {"version":"2.0"},
+ "scene": 0,
+ "scenes": [
+  {
+   "nodes": [0]
+  }
+ ],
+ "nodes": [
+  {
+   "name": "root",
+   "translation": [0,0,0],
+   "children": [1]
+  },
+  {
+   "name": "pelvis",
+   "translation": [0,0.95,0],
+   "children": [2,16,29]
+  },
+  {
+   "name": "spine_01",
+   "translation": [0,0.1,0],
+   "children": [3]
+  },
+  {
+   "name": "spine_02",
+   "translation": [0,0.12,0],
+   "children": [4]
+  },
+  {
+   "name": "spine_03",
+   "translation": [0,0.12,0],
+   "children": [5,8,21]
+  },
+  {
+   "name": "neck_01",
+   "translation": [0,0.16,0],
+   "children": [6]
+  },
+  {
+   "name": "Head",
+   "translation": [0,0.1,0],
+   "children": [7]
+  },
+  {
+   "name": "head_leaf",
+   "translation": [0,0.18,0]
+  },
+  {
+   "name": "clavicle_l",
+   "translation": [0.03,0.12,0],
+   "children": [9]
+  },
+  {
+   "name": "upperarm_l",
+   "translation": [0.15,0,0],
+   "children": [10]
+  },
+  {
+   "name": "lowerarm_l",
+   "translation": [0.28,0,0],
+   "children": [11]
+  },
+  {
+   "name": "hand_l",
+   "translation": [0.25,0,0],
+   "children": [12,13,15]
+  },
+  {
+   "name": "index_01_l",
+   "translation": [0.09,0,0.03]
+  },
+  {
+   "name": "middle_01_l",
+   "translation": [0.09,0,0],
+   "children": [14]
+  },
+  {
+   "name": "middle_02_l",
+   "translation": [0.045,0,0]
+  },
+  {
+   "name": "pinky_01_l",
+   "translation": [0.08,0,-0.03]
+  },
+  {
+   "name": "thigh_l",
+   "translation": [0.1,-0.02,0],
+   "children": [17]
+  },
+  {
+   "name": "calf_l",
+   "translation": [0,-0.44,0],
+   "children": [18]
+  },
+  {
+   "name": "foot_l",
+   "translation": [0,-0.43,0],
+   "children": [19]
+  },
+  {
+   "name": "ball_l",
+   "translation": [0,-0.06,0.13],
+   "children": [20]
+  },
+  {
+   "name": "ball_leaf_l",
+   "translation": [0,0,0.06]
+  },
+  {
+   "name": "clavicle_r",
+   "translation": [-0.03,0.12,0],
+   "children": [22]
+  },
+  {
+   "name": "upperarm_r",
+   "translation": [-0.15,0,0],
+   "children": [23]
+  },
+  {
+   "name": "lowerarm_r",
+   "translation": [-0.28,0,0],
+   "children": [24]
+  },
+  {
+   "name": "hand_r",
+   "translation": [-0.25,0,0],
+   "children": [25,26,28]
+  },
+  {
+   "name": "index_01_r",
+   "translation": [-0.09,0,0.03]
+  },
+  {
+   "name": "middle_01_r",
+   "translation": [-0.09,0,0],
+   "children": [27]
+  },
+  {
+   "name": "middle_02_r",
+   "translation": [-0.045,0,0]
+  },
+  {
+   "name": "pinky_01_r",
+   "translation": [-0.08,0,-0.03]
+  },
+  {
+   "name": "thigh_r",
+   "translation": [-0.1,-0.02,0],
+   "children": [30]
+  },
+  {
+   "name": "calf_r",
+   "translation": [0,-0.44,0],
+   "children": [31]
+  },
+  {
+   "name": "foot_r",
+   "translation": [0,-0.43,0],
+   "children": [32]
+  },
+  {
+   "name": "ball_r",
+   "translation": [0,-0.06,0.13],
+   "children": [33]
+  },
+  {
+   "name": "ball_leaf_r",
+   "translation": [0,0,0.06]
+  }
+ ],
+ "animations": [
+  {
+   "name": "A_TPose",
+   "channels": [
+    {
+     "sampler": 0,
+     "target": {"node":1,"path":"rotation"}
+    }
+   ],
+   "samplers": [
+    {"input":0,"output":1,"interpolation":"LINEAR"}
+   ]
+  },
+  {
+   "name": "Wave_Loop",
+   "channels": [
+    {
+     "sampler": 0,
+     "target": {"node":22,"path":"rotation"}
+    },
+    {
+     "sampler": 1,
+     "target": {"node":23,"path":"rotation"}
+    },
+    {
+     "sampler": 2,
+     "target": {"node":3,"path":"rotation"}
+    },
+    {
+     "sampler": 3,
+     "target": {"node":1,"path":"translation"}
+    },
+    {
+     "sampler": 4,
+     "target": {"node":16,"path":"rotation"}
+    },
+    {
+     "sampler": 5,
+     "target": {"node":17,"path":"rotation"}
+    }
+   ],
+   "samplers": [
+    {"input":2,"output":3,"interpolation":"LINEAR"},
+    {"input":4,"output":5,"interpolation":"LINEAR"},
+    {"input":6,"output":7,"interpolation":"LINEAR"},
+    {"input":8,"output":9,"interpolation":"LINEAR"},
+    {"input":10,"output":11,"interpolation":"LINEAR"},
+    {"input":12,"output":13,"interpolation":"LINEAR"}
+   ]
+  },
+  {
+   "name": "Step_RM",
+   "channels": [
+    {
+     "sampler": 0,
+     "target": {"node":0,"path":"translation"}
+    }
+   ],
+   "samplers": [
+    {"input":14,"output":15,"interpolation":"LINEAR"}
+   ]
+  }
+ ],
+ "accessors": [
+  {"bufferView":0,"componentType":5126,"count":1,"type":"SCALAR"},
+  {"bufferView":1,"componentType":5126,"count":1,"type":"VEC4"},
+  {"bufferView":2,"componentType":5126,"count":5,"type":"SCALAR"},
+  {"bufferView":3,"componentType":5126,"count":5,"type":"VEC4"},
+  {"bufferView":4,"componentType":5126,"count":5,"type":"SCALAR"},
+  {"bufferView":5,"componentType":5126,"count":5,"type":"VEC4"},
+  {"bufferView":6,"componentType":5126,"count":5,"type":"SCALAR"},
+  {"bufferView":7,"componentType":5126,"count":5,"type":"VEC4"},
+  {"bufferView":8,"componentType":5126,"count":5,"type":"SCALAR"},
+  {"bufferView":9,"componentType":5126,"count":5,"type":"VEC3"},
+  {"bufferView":10,"componentType":5126,"count":5,"type":"SCALAR"},
+  {"bufferView":11,"componentType":5126,"count":5,"type":"VEC4"},
+  {"bufferView":12,"componentType":5126,"count":5,"type":"SCALAR"},
+  {"bufferView":13,"componentType":5126,"count":5,"type":"VEC4"},
+  {"bufferView":14,"componentType":5126,"count":2,"type":"SCALAR"},
+  {"bufferView":15,"componentType":5126,"count":2,"type":"VEC3"}
+ ],
+ "bufferViews": [
+  {"buffer":0,"byteOffset":0,"byteLength":4},
+  {"buffer":0,"byteOffset":4,"byteLength":16},
+  {"buffer":0,"byteOffset":20,"byteLength":20},
+  {"buffer":0,"byteOffset":40,"byteLength":80},
+  {"buffer":0,"byteOffset":120,"byteLength":20},
+  {"buffer":0,"byteOffset":140,"byteLength":80},
+  {"buffer":0,"byteOffset":220,"byteLength":20},
+  {"buffer":0,"byteOffset":240,"byteLength":80},
+  {"buffer":0,"byteOffset":320,"byteLength":20},
+  {"buffer":0,"byteOffset":340,"byteLength":60},
+  {"buffer":0,"byteOffset":400,"byteLength":20},
+  {"buffer":0,"byteOffset":420,"byteLength":80},
+  {"buffer":0,"byteOffset":500,"byteLength":20},
+  {"buffer":0,"byteOffset":520,"byteLength":80},
+  {"buffer":0,"byteOffset":600,"byteLength":8},
+  {"buffer":0,"byteOffset":608,"byteLength":24}
+ ],
+ "buffers": [
+  {"byteLength":632,"uri":"data:application/octet-stream;base64,AAAAAAAAAAAAAAAAAAAAAAAAgD8AAAAAAACAPgAAAD8AAEA/AACAPwAAAAAAAAAAAAAAAAAAgD8AAACAAAAAgAAAAL/Xs10/AAAAgAAAAIB9G0S/u40kPwAAAIAAAACAAAAAv9ezXT8AAAAAAAAAAAAAAAAAAIA/AAAAAAAAgD4AAAA/AABAPwAAgD8AAAAAAAAAAAAAAAAAAIA/AAAAAEQdrz4AAAAAso9wPwAAAAC7jSQ/AAAAAH0bRD8AAAAARB2vPgAAAACyj3A/AAAAAAAAAAAAAAAAAACAPwAAAAAAAIA+AAAAPwAAQD8AAIA/AAAAAAAAAAAAAAAAAACAPwAAAAC2frI9AAAAAJ4Gfz8AAAAA1NAxPgAAAABcHHw/AAAAALZ+sj0AAAAAngZ/PwAAAAAAAAAAAAAAAAAAgD8AAAAAAACAPgAAAD8AAEA/AACAPwAAAAAzM3M/AAAAAAAAAAAfhWs/AAAAAAAAAAAzM3M/AAAAAAAAAAAfhWs/AAAAAAAAAAAzM3M/AAAAAAAAAAAAAIA+AAAAPwAAQD8AAIA/AAAAAAAAAAAAAAAAAACAP9TQMb4AAACAAAAAgFwcfD8c9pm+AAAAgAAAAIDLJnQ/1NAxvgAAAIAAAACAXBx8PwAAAAAAAAAAAAAAAAAAgD8AAAAAAACAPgAAAD8AAEA/AACAPwAAAAAAAAAAAAAAAAAAgD/ug4Q+AAAAAAAAAADqRnc/AAAAPwAAAAAAAAAA17NdP+6DhD4AAAAAAAAAAOpGdz8AAAAAAAAAAAAAAAAAAIA/AAAAAAAAgD8AAAAAAAAAAAAAAAAAAAAAAAAAAJqZGT8="}
+ ]
+}

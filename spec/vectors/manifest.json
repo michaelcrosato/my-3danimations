@@ -1,0 +1,16 @@
+{
+ "about": "Every generated vector file: bytes and SHA-256. Written by npm run vectors.",
+ "files": {
+  "tier1a/cmu-09_02.json": {"bytes":124245,"sha256":"1208cc631dc57eda627708b674f343993245216c85aa4301698394030f7dd22d"},
+  "tier1a/rig.json": {"bytes":63794,"sha256":"2c466e3d589b82780492f02dd5fbe5dc451cc72fd9734c1f9dd4bd6773f05824"},
+  "tier1b/cmu/09.asf": {"bytes":7260,"sha256":"be10dbce393fd60a2d322410032d618757afcc5bb2f7a508d887c5b0213f1897"},
+  "tier1b/cmu/09_02.amc": {"bytes":104237,"sha256":"9e618b1c3897776e98485ad01509708b1e5190c76fc630ad6db9ccb12529b927"},
+  "tier1b/cmu/catalog.json": {"bytes":558,"sha256":"790d9b022a70563c189636dd9945860416541beda6dec2e5c8936466eb58c4b4"},
+  "tier1b/rig-catalog.json": {"bytes":326,"sha256":"a44e4b00ec5580595b551156c4308ecc864f1929ad812914f047252e3fe15270"},
+  "tier1b/rig.gltf": {"bytes":6868,"sha256":"70d99ed5d675649c267e39af800e2a4bb9d5b387bb3fe87ee44f4f87b945ebfe"},
+  "tier2/CMU.json": {"bytes":2083908,"sha256":"5f36ad421b44dd4c083c7a91b1027b436d81dfba638f31eacae5e442774a7ca2"},
+  "tier2/MESH2MOTION.json": {"bytes":2747122,"sha256":"c86f1c6220693ce85918c5beac2160b78762df9307ab5b7d0f8ac635ecf8e1e4"},
+  "tier2/QUATERNIUS.json": {"bytes":1289499,"sha256":"afe58aeaff2f680fa9ba8bc3ddbdc231cbe9d7b7cfd11173a586b2e71b9f1074"},
+  "tier3/bodies.json": {"bytes":11019,"sha256":"5f35cc1c2bf3df9ed9cc7ba01a1cc69c338fb83dc4b15ddd992415bfbd8496bc"}
+ }
+}

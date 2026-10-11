@@ -1,0 +1,7 @@
+node_modules/
+.cache/
+library/local/*
+!library/local/README.md
+check-output/
+dist/
+*.tsbuildinfo

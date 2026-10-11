@@ -1,5 +1,7 @@
 # my-3danimations
 
+**Status:** `PLAN.md` is being executed, phase by phase; [`docs/PROGRESS.md`](docs/PROGRESS.md) shows where it stands.
+
 **Should we build the animation package for AI agents, and how?** This repository answers that question.
 
 The package would do for character animation what three.js does for rendering and Rapier does for physics: one
