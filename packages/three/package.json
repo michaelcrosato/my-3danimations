@@ -10,5 +10,11 @@
   },
   "dependencies": {
     "@m3a/core": "0.19.1"
+  },
+  "peerDependencies": {
+    "three": "0.182.0"
+  },
+  "devDependencies": {
+    "three": "0.182.0"
   }
 }
