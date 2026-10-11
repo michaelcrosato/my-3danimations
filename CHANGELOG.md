@@ -4,6 +4,15 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.13.0 · 2026-10-11
+
+### Sensors
+- WP-3.1: the software raster (`raster/`):
+  - the capsule mannequin on a pose's body points, lit and z-buffered, its left side blue, with a nose for facing;
+  - front, side, back, top and three-quarter views, any azimuth, and a turntable;
+  - a 5 × 7 bitmap font for labels and a non-blank check;
+  - PNG bytes (`encodePng`; `png` and `writePng` in the new `@m3a/sensors/node` entry, through node:zlib).
+
 ## 0.12.1 · 2026-10-11
 
 ### Core

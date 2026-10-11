@@ -676,3 +676,29 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   Animator run.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.12.0; the review's fixes in v0.12.1
+
+## D39 · 2026-10-11 · The raster draws body points as lit capsules, z-buffered, the left side blue
+
+- **Principle:** 5, 6, 9, WP-3.1
+- **Call:**
+  - The mannequin is drawn on the 36 body points, as a solve on the reference body places its joints (within 0.002
+    mm, D36), so any clip draws without a skeleton. Its parts and radii are my-3d2dge's `Mocap.Mannequin`, scaled by
+    the thigh's length.
+  - Each capsule is a lit tube with a dark rim, written per pixel through a depth buffer over the parts' box. The
+    origin sorted whole parts by depth; per-pixel depth shows an arm through the torso as one (WP-3.3's
+    self-intersection, WP-3.6's planted defect).
+  - The body's left side is blue and its right and middle amber, and a red nose sticks out of the face along the
+    head's forward, so sides and facing read in any view, mirrored as each view sees them. The front view shows the
+    body's right on the image's left.
+  - Views are orthographic at an azimuth and elevation (front, side from the right, back, top with forward up,
+    three-quarter at 45° and 20°), using core's portable trigonometry. `fit` frames many poses at one scale for
+    sheets.
+  - Whole pixels, no smoothing: the same input gives the same bytes in any run and engine. PNG encoding takes its
+    compressor as an argument, so the raster runs in a browser; `@m3a/sensors/node` passes node:zlib's (level 9).
+  - The font is 5 × 7, written as pictures in the source. Lower case is drawn in capitals, and an unknown character
+    as a box.
+- **Result:** the five views and a six-azimuth turntable give the same PNG bytes in two runs and in a second process. A
+  1,000 × 1,000 three-quarter view renders in 9.5 ms (the budget is 50). The left fist reads blue, and in the mirrored
+  pose the right fist reads amber. A NaN pose draws nothing, and the non-blank check names it.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.13.0
