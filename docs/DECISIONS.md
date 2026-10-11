@@ -724,8 +724,12 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
 - **Result:** the 2 s clips' sheets are 1,000 × 404 (539 tokens); 41 frames at a 1,000-token budget fit. A diff of
   identical clips is empty. An edit to one key's right arm is marked in exactly the frames between its neighbouring
   keys, and the box holds the edited elbow and fist.
+- **Revised at G3 (v0.19.0):** a diff stacks three sheets, so the budget was each sheet's and the image ran over it
+  (the default diff 1,627 tokens against 1,400): each sheet now takes a third of the budget (the marked row alone all
+  of it), smaller until the stacked image fits. Every cell is checked for a drawn body, not only the whole image (the
+  floor, labels and timeline always draw): a sheet whose frames draw none throws, naming them.
 - **Answered:** no: made without a response, to review.
-- **Landed in:** v0.14.0
+- **Landed in:** v0.14.0; revised at G3 in v0.19.0
 
 ## D41 · 2026-10-11 · The metrics read sampled points and the key grid; thresholds come from capture; a flip's swing is the flip
 
@@ -816,8 +820,13 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   the pelvis rule; a foot dragged at a different speed from the body and faster than that reads as a swing.
 - **Outside WP-3.3's Owns** (one agent, D21): names on the raster's capsules; T2's runner; the boundary check's
   import scanner, which read `import's` inside a string as an import.
+- **Revised at G3 (v0.19.0):** a predicate whose interval starts after the clip ends was judged at its last sample (a
+  foot "planted 50–60 s" in a 2.5 s clip passed): it is refused with a PredicateError naming the clip's end. `npm run
+  qa` names the metrics that fail most on its verdicts line (they were only in `--json`), and `--fix` runs lint and fix
+  over the library (D44). The fit finding's repair no longer names re-fit, which only drops keys: it says to import
+  again.
 - **Answered:** no: made without a response, to review.
-- **Landed in:** v0.15.0; revised after review in v0.15.1
+- **Landed in:** v0.15.0; revised after review in v0.15.1 and at G3 in v0.19.0
 
 ## D42 · 2026-10-11 · Describe reads phases by rule from postures, steps and holds; the ground truth reviewed first
 
@@ -856,8 +865,12 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   undecidable ones read as walk (Run_Jump_Over's run-up) and sit (Death_A's kneel).
 - **Outside WP-3.4's Owns** (one agent, D21): the metrics' `stance` reads by height alone on request; the sensors
   index exports `describe`.
+- **Revised at G3 (v0.19.0):** "150 tokens" was a 600-character cap, about twice that in tokens on a long clip, and it
+  dropped later phases unmarked: the text is now held to 150 tokens as `tokenCount` counts them (a word every six
+  letters, a number every three digits, a space before a number and any other mark one each: never under the cl100k
+  count on any library clip), and the items it drops are counted ("… 12 more to 35.80 s").
 - **Answered:** no: made without a response, to review.
-- **Landed in:** v0.16.0
+- **Landed in:** v0.16.0; revised at G3 in v0.19.0
 
 ## D43 · 2026-10-11 · Planted defects: ten kinds in 100 clean clips, each found where it was planted
 
@@ -900,8 +913,24 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   read as a snap to the fix operators), and the slide plant keys its drag on the 1/30 s grid.
 - **Outside WP-3.6's Owns** (one agent, D21): the jitter and folding fixes in `metrics/` (WP-3.3's), with their
   fixtures and threshold.
+- **Revised at G3 (v0.19.0):** the slide runs all lay on stances from the clip's start (10 of 11 standing clips whose
+  stance is the whole clip), so a slide found at any time passed as found at its time. Now:
+  - a slide is planted on the longest stance of at least 0.45 s that starts and ends within the clip with the foot
+    still (its ankle within 40 mm: a foot pivoting through a turn, dragged too, moves faster than a stance), its
+    ankle, ball and toes moved along the floor and its leg re-aimed at them (its twist kept), the way that keeps the
+    ankle within the leg's reach; only 9 clean clips have one, and each takes a slide;
+  - the runs take the defects in turn, each the first clean clip left that can show it (about 10 each);
+  - a finding counts only within its planted stretch: a slide within 0.1 s of its stance, the others within the
+    0.35 s the plants ease over;
+  - every key a plant adds or edits is tidied (whole numbers within their ranges), so a planted clip validates (the
+    Bear slide carried 2,754 non-whole numbers), and plants key their edits every 0.1 s, skipping a time within
+    0.05 s of the clip's own key (rounded keys every 1/30 s read as a shake; two keys 9 ms apart, as a pop).
+
+  100 of 100 found within their stretches; 11 runs show a consequence the defect implies; false positives in 3 runs
+  (3%): a flipped knee read as shaking (twistFlip → jitter, twice in one run), a pinky beside a slide and one beside a
+  pop just over jitter's warn.
 - **Answered:** no: made without a response, to review.
-- **Landed in:** v0.17.0
+- **Landed in:** v0.17.0; revised at G3 in v0.19.0
 
 ## D44 · 2026-10-11 · Lint and fix: six operators on keys, each measured before and after, nothing changed silently
 
@@ -947,6 +976,35 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   5 mm and holds a budget of 3 keys. Mutating the operators 16 ways fails the tests every time.
 - **Outside WP-3.5's Owns** (one agent, D21): the metrics' key grid (D41); the plant tool's keys (D43); the sensors
   index exports `fix`, `lint` and `fixes`.
+- **Revised at G3 (v0.19.0):** the verifier ran fix over the library: 72 of 248 fixed clips failed validation
+  (in-between keys left fractional, a direction pushed to 101), 8 came out worse (twist flips undone to a loop's end
+  opened its seam; foot locks made pops of 8 to 25 m/s), the seam operator added keys to every loop it was run on
+  while reporting nothing, a loop meeting in pose but not in speed was neither linted nor repaired, and re-fit's
+  tolerance left out the root's travel and turn. Seven mutants survived the tests. Now:
+  - **nothing gets worse:** a step that would push any metric past a level (warn or fail) it was under is not applied,
+    and the step says which (`rejected`);
+  - **valid keys:** every key an operator adds or edits is tidied: its time to the millisecond, its numbers whole and
+    within their ranges, a direction an edit took past ±100 scaled back (keys it left alone stay exactly as they were);
+  - **sparser edits:** edits are keyed every 0.1 s (a time within 0.05 s of the clip's own key edits that key): an
+    added key is rounded, and keyed every 1/30 s its rounding steps read as a shake;
+  - **twist flips** in a loop undo a jump only until it jumps back, or ease the undoing out over the rest of the cycle
+    (or in over its start), so the cycle still closes; a re-aimed limb keeps its own twist;
+  - **penetration** reads each key's depth from its own pose, rounds the lift curve's corners, and sets on the floor
+    only a foot standing still (under 0.2 H0 a second: a landing foot isn't);
+  - **the seam** reads the ends before adding any key (a closed seam gets none), matches a speed change only where it
+    stands out from the clip's own (over 3 times the median change at its keys), and where the metrics find the
+    seam's speeds changing, matches the speeds of fields whose poses meet; lint names it for `seamVelocity` too;
+  - **re-fit** measures the root's travel and turn with the pose;
+  - **fix** throws for a name that isn't an operator, naming the closest.
+
+  Every operator removes its planted defect on all of WP-3.6's revised runs of its kind (footLocks 9 slides,
+  penetration 11 sinks, jitter 10 pops, twist flips 10 flips, seam 10 seams) and each fixed clip validates. Over the
+  library (`npm run qa -- --fix`, in G3's command set): 252 clips linted, 147 better, 105 as they were or with fewer
+  findings, none worse or invalid; 75 of 399 steps were not applied, mostly edits that move a foot under the floor
+  (undoing a leg's flip or smoothing a leg). 14 mutants, the verifier's 7 among them, each fail the tests: contacts not
+  compared, no spread at a straight limb, feet not set after a lift, no whole turns, lint blind to skate, to the seam
+  or to flips, the guard off, a loop's flip undone to its end, speeds never matched, re-fit blind to the root, the seam
+  adding keys silently, no tidying, an unknown name ignored.
 - **Answered:** no: made without a response, to review.
-- **Landed in:** v0.18.0
+- **Landed in:** v0.18.0; reworked at G3 in v0.19.0
 

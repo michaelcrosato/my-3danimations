@@ -4,6 +4,24 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.19.0 · 2026-10-11
+
+### Sensors
+- G3 review of WP-3.5 (D44): `fix` doesn't apply a step that would push any metric past a level it was under (the
+  step says which), every key an operator adds or edits is tidied to the format's whole numbers and ranges (`fixes.tidy`),
+  edits are keyed every 0.1 s, twist flips keep a loop closed, the seam operator adds no key when the seam closes and
+  matches speeds where they stand out (lint names it for `seamVelocity`), penetration sets on the floor only a foot
+  standing still, re-fit counts the root's travel and turn, and an unknown operator name throws.
+- Describe's text holds to 150 tokens as counted, not 600 characters, and says how many items it left out (D42).
+- A predicate whose interval starts after the clip ends is refused (D41).
+- A sheet whose frames draw no body throws, naming them; a diff's three rows share its token budget (D40).
+
+### Tools
+- `npm run qa -- --fix`: lint and fix over the library, failing on any clip that comes out worse or invalid; in G3's
+  command set. The verdicts line names the metrics that fail most.
+- The planted defects (D43): every planted clip validates; slides lie on stances within their clips and are found
+  within 0.1 s of them; the defects take clips in turn, about 10 each; edits keyed every 0.1 s.
+
 ## 0.18.1 · 2026-10-11
 
 ### Tools

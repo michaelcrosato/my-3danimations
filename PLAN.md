@@ -1355,7 +1355,8 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
     - re-fit keys to a budget.
   - `lint(clip)` lists what `fix` would change.
 - **Done when:** each operator removes its planted defect (WP-3.6) without pushing any other metric past its threshold,
-  and a test shows no operator changes `dur`, an event or a contact without reporting it.
+  and a test shows no operator changes `dur`, an event or a contact without reporting it. Over the whole library, no
+  fixed clip comes out worse or invalid (`npm run qa -- --fix`, in G3's command set; D44).
 - **Verify:** `npm test -- fix`
 
 #### WP-3.6 Planted defects
@@ -1363,8 +1364,8 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
 - **Needs:** 3.3
 - **Size:** S
 - **Build:** a generator that plants known defects into clean clips, with the expected times:
-  - a sliding foot;
-  - a sinking foot;
+  - a sliding foot (on a stance that starts and ends within the clip, so its time shows: D43);
+  - a sunk body (both soles under the floor);
   - an arm through the torso;
   - a pop;
   - a twist flip;
@@ -2223,10 +2224,10 @@ version, commit, date and a note with the numbers. Gates are rows too.
 | **G2** | done | 0.12.1 | a5fb0a0 | 2026-10-11 | 8/8 in 42.1 s: T0 1.7 s, T1 14.8 s (305 tests), doctrine 8/8 (API 38/40), vectors, tiers 1a–3, Animator Node = Chromium (480 hashes, 41 events, 5 exact poses), V8 = JSC (math, chain, Animator), property tests; verifiers: WP-2.4 8 + G2 7 findings fixed (D36, D38), notes F2, F3 |
 | 3.1 The software raster | done | 0.13.0 | 7b81c29 | 2026-10-11 | 5 views + turntable: same PNG bytes in two runs and a second process; 1,000 × 1,000 in 9.5 ms (≤50); left blue / right amber by view, the jabbing fist blue, amber when mirrored; NaN pose blank and named (D39) |
 | 3.2 Sheets, films and diffs | done | 0.14.0 | 159ea49 | 2026-10-11 | 2 s clips: 1,000 × 404, 539 tokens (budget 1,400); 41 frames shrink to ≤1,000 tokens; identical diff empty; a one-key arm edit marked in exactly the frames between its neighbours, box holding the edited elbow and fist (D40) |
-| 3.3 The metrics | done | 0.15.1 | f526e7d, c10d0f1 | 2026-10-11 | 14 metrics + 6 predicate forms, unit fixtures that fail on 48 of 48 mutants (36 tests); library in 5.6 s within T2: 268 pass, 111 warn, 146 fail (twist flips 92, jitter 34, pops 27); thresholds from capture (158 clips) with unit, rate, scaling and reason; the verifier's 12 findings fixed in 0.15.1 (D41) |
+| 3.3 The metrics | done | 0.15.1 | f526e7d, c10d0f1 | 2026-10-11 | 14 metrics + 6 predicate forms, unit fixtures that fail on 48 of 48 mutants (36 tests); library in 5.6 s within T2: 268 pass, 111 warn, 146 fail (twist flips 92, jitter 34, pops 27; after D43, 267 / 104 / 154: twist flips 92, jitter 45, pops 25); thresholds from capture (158 clips) with unit, rate, scaling and reason; the verifier's 12 findings fixed in 0.15.1 (D41) |
 | 3.4 Describe | done | 0.16.0 | f186cd3 | 2026-10-11 | 30 of 30 reviewed truth clips right (bar 27): the verifier agreed with 23, corrected 2, dropped 7, labelled 7; deterministic, at most 91 tokens over all 525 clips (5.7 s) (D42) |
-| 3.6 Planted defects | done | 0.17.0 | 7eee99f | 2026-10-11 | 100 of 100 planted defects (10 kinds, 100 clean clips) flagged by their metric at their times; consequences implied in 14 runs; false positives in 3 runs (3%), each named; jitter and folding fixed on the way (D43) |
-| 3.5 Lint and fix | done | 0.18.0 | 821c668 | 2026-10-11 | six operators, each removing its planted defect on every WP-3.6 run of its kind (50 runs) without pushing another metric past warn; no operator moves dur, an event or a contact unreported; re-fit within 5 mm or a key budget; 16 of 16 mutants fail the tests (D44) |
+| 3.6 Planted defects | done | 0.17.0 | 7eee99f | 2026-10-11 | 100 of 100 planted defects (10 kinds, 100 clean clips) flagged by their metric at their times; consequences implied in 14 runs; false positives in 3 runs (3%), each named; jitter and folding fixed on the way (D43); at G3 (0.19.0): valid planted clips, slides on 9 stances within their clips found within 0.1 s of them, 100 of 100 within their stretches, false positives in 3 runs |
+| 3.5 Lint and fix | done | 0.18.0 | 821c668 | 2026-10-11 | six operators, each removing its planted defect on every WP-3.6 run of its kind (50 runs) without pushing another metric past warn; no operator moves dur, an event or a contact unreported; re-fit within 5 mm or a key budget; 16 of 16 mutants fail the tests (D44); reworked at G3 (0.19.0): valid keys, a step that would make any metric worse not applied, loops kept closed; over the library 252 clips linted, 147 better, none worse or invalid; 14 of 14 mutants (the verifier's 7 included) fail the tests |
 | **G3** | todo | | | | |
 | 4.1 Pin three.js | todo | | | | |
 | 4.2 Test characters | todo | | | | |
