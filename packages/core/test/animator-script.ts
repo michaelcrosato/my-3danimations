@@ -1,6 +1,7 @@
 // A scripted run of the Animator (WP-2.6), the same in Node and in a browser: a walk crossfaded into a jog, a masked
-// punch over it, an additive flinch, speed changes and backward play, stepped by irregular dt on a slope. It touches
-// core only through the module it is handed (the public API), so the e2e parity test can load it into a page.
+// punch over it (played back and forth across its ends), an additive flinch, speed changes and backward play through
+// the loops' seams, stepped by irregular dt on a slope. It touches core only through the module it is handed (the
+// public API), so the e2e parity test can load it into a page.
 import type * as Core from "../src/index.ts";
 
 /** What the script plays: the skeleton and the clips (walk, jog, punch, flinch), with contacts and events. */
@@ -55,6 +56,8 @@ export function runScript(core: typeof Core, data: ScriptData, opts: ScriptOptio
     if (i === 260) a.layer("flinch", { clip: flinch, additive: true, weight: 0.5, mask: ["upper", "head"] });
     if (i === 320) a.layer("run", { speed: -1 });
     if (i === 350) a.layer("run", { speed: 1.3 });
+    if (i === 370) a.layer("upper", { speed: -1.5 });
+    if (i === 395) a.layer("upper", { speed: 2 });
     if (i === 400) a.remove("upper");
     if (i === 430) a.layer("base", { time: 0.25 });
     const r = a.step(dtAt(i));

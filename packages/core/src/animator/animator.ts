@@ -4,7 +4,6 @@
 // them onto the skeleton, with planted feet, the ground and hand targets. It is presentation only: it may be skipped or
 // run at lower detail, and it never feeds back into `step`. Every path runs on the portable math (D33). So the same
 // script of steps gives the same hashes, and an exact pose gives the same joints bit for bit, in Node and in a browser.
-import { events as eventsIn } from "../clip/events.ts";
 import type { RootPose } from "../clip/sample.ts";
 import { plant, type Ground, type HandTarget, type Motion } from "../contact/plant.ts";
 import { contactRoot, type ContactRoot } from "../contact/root.ts";
@@ -35,7 +34,8 @@ export interface AnimatorOptions {
 export interface LayerOptions {
   /** The clip to play; a new clip starts at `time` (0). `null` empties the layer. */
   clip?: AnimClip | null;
-  /** How much of this layer goes over the layers below, 0 to 1 (1). The lowest playing layer is always taken whole. */
+  /** How much of this layer goes over the layers below, 0 to 1 (1; clamped). The lowest playing layer is always taken
+   *  whole, and fires its events whatever its weight. */
   weight?: number;
   /** Which fields it touches: a body group or groups (`"upper"`, `["armL", "head"]`), or weights by field; null: all. */
   mask?: Mask | string | readonly string[] | null;
@@ -60,6 +60,8 @@ export interface LayerState {
   time: number;
   /** Loop cycles completed since the clip started (back past its start: negative). */
   cycle: number;
+  /** A one-shot's end the playhead rests on whose events have fired on arriving ("start" or "end"), else null. */
+  held: "start" | "end" | null;
 }
 
 /** Everything an Animator's later steps depend on, as JSON-safe data: what `save()` returns and `hash()` hashes. */
@@ -73,6 +75,8 @@ export interface AnimatorSave {
   carry: number;
   /** Where the root stands: forward and right in mm, heading in degrees. */
   root: RootPose;
+  /** The bound body's fingerprint (the hash of its measured rest): root motion scales with it. */
+  body: string;
   layers: LayerState[];
 }
 
@@ -121,7 +125,7 @@ export interface AnimatorPose extends Solved {
 export type ClipSource = Readonly<Record<string, AnimClip>> | readonly AnimClip[] | ((id: string) => AnimClip | undefined);
 
 /** Why the Animator refused: a bad step or layer option, data that isn't a save, or a clip missing or changed. */
-export type AnimatorErrorCode = "E_STEP" | "E_LAYER" | "E_SAVE" | "E_STEP_SIZE" | "E_CLIP_MISSING" | "E_CLIP_CHANGED";
+export type AnimatorErrorCode = "E_STEP" | "E_LAYER" | "E_SAVE" | "E_STEP_SIZE" | "E_BODY_CHANGED" | "E_CLIP_MISSING" | "E_CLIP_CHANGED";
 
 /** An Animator's refusal: `code` says why, `clip` names the clip when one is to blame, the message says what to do. */
 export class AnimatorError extends Error {
@@ -144,9 +148,13 @@ const DEG = Math.PI / 180;
 const NONE: Contacts = { by: "detected" };
 const STILL: ContactRoot = { root: () => ({ forward: 0, right: 0, yaw: 0 }), speed: 0 };
 const HASHES = new WeakMap<AnimClip, string>();
-/** A clip's content hash: what playing it reads (timing, keys, events, contacts), as its JSON text would give it. */
-export function clipHash(c: AnimClip): string {
-  let h = HASHES.get(c);
+/**
+ * A clip's content hash: what playing it reads (timing, keys, events, contacts), as its JSON text would give it.
+ * Cached by object for `layer()`, which reads clips as immutable (edit a copy and set that); `fresh` hashes again, as
+ * `restore()` does, so a clip edited in place is still refused.
+ */
+export function clipHash(c: AnimClip, fresh = false): string {
+  let h = fresh ? undefined : HASHES.get(c);
   if (!h) {
     h = hashValue(JSON.parse(JSON.stringify({ dur: c.dur, loop: c.loop, keys: c.keys, events: c.events ?? [], contacts: c.contacts ?? null })));
     HASHES.set(c, h);
@@ -164,8 +172,87 @@ function between(a: RootPose, b: RootPose): RootPose {
   return { forward: f * c + r * s, right: -f * s + r * c, yaw: b.yaw - a.yaw };
 }
 const finite = (x: unknown): x is number => typeof x === "number" && Number.isFinite(x);
-/** A playhead kept in the clip: a loop wraps, a one-shot holds its ends. */
-const wrapTime = (c: AnimClip, t: number): number => (c.loop && c.dur > 0 ? t - Math.floor(t / c.dur) * c.dur : Math.min(Math.max(t, 0), c.dur));
+/** x with −0 made +0: JSON writes −0 as 0, so state keeps no −0 and a restored Animator hashes the same. */
+const z = (x: number): number => x + 0;
+/** The shortest loop that wraps (shorter ones play as still: their playhead stays at 0 and fires nothing). */
+const MIN_DUR = 1e-6;
+/** A playhead set by `time`: a loop's wrapped into its cycle (the cycles it crossed counted), a one-shot's held in it. */
+function place(c: AnimClip, t: number): { time: number; cycles: number } {
+  if (!c.loop) return { time: z(Math.min(Math.max(t, 0), c.dur)), cycles: 0 };
+  if (!(c.dur >= MIN_DUR)) return { time: 0, cycles: 0 };
+  const k = Math.floor(t / c.dur), u = t - k * c.dur;
+  return u >= c.dur ? { time: 0, cycles: k + 1 } : { time: z(Math.max(0, u)), cycles: k };
+}
+
+/** An event a playhead passed: the event, the clip time it marks, its cycle, and how far into the move (0 to 1). */
+interface Passed {
+  e: ClipEvent;
+  t: number;
+  cycle: number;
+  f: number;
+}
+/**
+ * Moves a playhead `d` seconds of clip time and lists the events it passes, in order. A window takes the point it
+ * leaves and not the point it reaches, so consecutive windows share their boundary exactly and nothing fires twice.
+ * A loop goes cycle by cycle on exact boundaries (an event at its end is the moment of its start), so a step that
+ * covers several cycles fires each once a cycle; its playhead may rest at `dur`, the moment before the seam, after
+ * passing the seam backward. A one-shot stops at its ends: an end's events fire on arriving there, once (`held`
+ * remembers it, so turning round at an end doesn't fire it again).
+ */
+function advance(c: AnimClip, time: number, cycle: number, held: LayerState["held"], d: number): { passed: Passed[]; time: number; cycle: number; held: LayerState["held"] } {
+  const dur = c.dur, list = c.events ?? [], passed: Passed[] = [], span = Math.abs(d);
+  if (d === 0) return { passed, time, cycle, held };
+  if (c.loop) {
+    if (!(dur >= MIN_DUR)) return { passed, time: 0, cycle, held: null };
+    // an event's moment in the cycle: one at the loop's end (or past it) is the moment of its start
+    const fold = (e: ClipEvent) => (e.t >= dur ? e.t - Math.floor(e.t / dur) * dur : e.t);
+    let u = time, k = cycle, rem = span, done = 0;
+    // a step crosses at most this many cycles' events (a loop far shorter than a step); the rest only count
+    for (let piece = 0; rem > 0; piece++) {
+      if (piece > 2000) {
+        const n = Math.floor(rem / dur);
+        k += d > 0 ? n : -n;
+        rem -= n * dur;
+      }
+      if (d > 0) {
+        const end = u + rem;
+        if (end < dur) {
+          if (piece <= 2000) for (const e of list) if (fold(e) >= u && fold(e) < end) passed.push({ e, t: fold(e), cycle: k, f: (done + fold(e) - u) / span });
+          u = end;
+          break;
+        }
+        if (piece <= 2000) for (const e of list) if (fold(e) >= u) passed.push({ e, t: fold(e), cycle: k, f: (done + fold(e) - u) / span });
+        rem -= dur - u;
+        done += dur - u;
+        [u, k] = [0, k + 1];
+      } else {
+        const start = u - rem;
+        if (start >= 0) {
+          if (piece <= 2000) for (const e of [...list].reverse()) if (fold(e) > start && fold(e) <= u) passed.push({ e, t: fold(e), cycle: k, f: (done + u - fold(e)) / span });
+          u = start;
+          break;
+        }
+        if (piece <= 2000) for (const e of [...list].reverse()) if (fold(e) <= u) passed.push({ e, t: fold(e), cycle: k, f: (done + u - fold(e)) / span });
+        rem -= u;
+        done += u;
+        [u, k] = [dur, k - 1];
+      }
+    }
+    passed.sort((a, b) => a.f - b.f);
+    return { passed, time: z(u), cycle: k, held: null };
+  }
+  // a one-shot: forward the window is [time, end), backward (end, time]; arriving at an end takes the end
+  if (d > 0) {
+    if (time >= dur) return { passed, time: dur, cycle: 0, held };
+    const end = time + d, arrive = end >= dur, skip0 = held === "start" && time === 0;
+    for (const e of list) if (e.t >= time && (arrive || e.t < end) && !(skip0 && e.t === 0)) passed.push({ e, t: e.t, cycle: 0, f: Math.min(1, (e.t - time) / span) });
+    return { passed, time: arrive ? dur : z(end), cycle: 0, held: arrive ? "end" : null };
+  }
+  if (time <= 0) return { passed, time: 0, cycle: 0, held };
+  const start = time + d, arrive = start <= 0, skipEnd = held === "end" && time === dur;
+  for (const e of [...list].reverse()) if (e.t <= time && (arrive || e.t > start) && !(skipEnd && e.t >= dur)) passed.push({ e, t: e.t, cycle: 0, f: Math.min(1, (time - e.t) / span) });
+  return { passed, time: arrive ? 0 : z(start), cycle: 0, held: arrive ? "start" : null };
+}
 
 /**
  * Plays clips on a bound skeleton: layers (clip, weight, mask, additive, speed), a fixed-step `step(dt)` with events and
@@ -181,6 +268,7 @@ export class Animator {
   #steps = 0;
   #carry = 0;
   #root: RootPose = { forward: 0, right: 0, yaw: 0 };
+  readonly #body: string;
   readonly #paths = new WeakMap<AnimClip, ContactRoot>();
   readonly #points = new WeakMap<AnimClip, Map<number, Float64Array>>();
   readonly #refs = new WeakMap<AnimClip, KeyLike>();
@@ -190,8 +278,9 @@ export class Animator {
     const h = options.step ?? 1 / 60;
     if (!finite(h) || h <= 0) throw new AnimatorError("E_STEP", `step must be a positive number of seconds, not ${String(options.step)}: try { step: 1 / 60 }`);
     const max = options.maxSteps ?? Infinity;
-    if (!(max >= 1)) throw new AnimatorError("E_STEP", `maxSteps must be at least 1, not ${String(options.maxSteps)}`);
+    if (!(max >= 1)) throw new AnimatorError("E_STEP", `maxSteps must be at least 1, not ${String(options.maxSteps)}: try { maxSteps: 8 }, or leave it out for no limit`);
     this.bound = bound;
+    this.#body = hashValue(bound.rest);
     this.#h = h;
     this.#max = max;
     this.#ground = options.ground;
@@ -233,14 +322,19 @@ export class Animator {
       }
     }
     const c = opts.clip;
-    if (c && (!Array.isArray(c.keys) || c.keys.length === 0 || !(c.dur >= 0))) throw new AnimatorError("E_LAYER", `layer "${name}": clip "${String(c.id)}" has no keys or no duration; parse it with parseClip first`, c.id);
+    if (c && (typeof c.id !== "string" || c.id === "")) throw bad("its clip has no id; give it one (a format-2 clip's \"SET/Name\")");
+    if (c && (!Array.isArray(c.keys) || c.keys.length === 0 || !(c.dur >= 0))) throw new AnimatorError("E_LAYER", `layer "${name}": clip "${c.id}" has no keys or no duration; parse it with parseClip first`, c.id);
+    if (mask) for (const [f, w] of Object.entries(mask)) {
+      if (!finite(w)) throw bad(`mask weight for "${f}" must be a number from 0 to 1, not ${String(w)}`);
+      (mask as Record<string, number>)[f] = z(w);
+    }
     let L = this.#layers.find((x) => x.name === name);
     if (!L) {
-      L = { name, clip: null, hash: null, src: null, weight: 1, mask: null, additive: false, speed: 1, time: 0, cycle: 0 };
+      L = { name, clip: null, hash: null, src: null, weight: 1, mask: null, additive: false, speed: 1, time: 0, cycle: 0, held: null };
       this.#layers.push(L);
     }
-    if (opts.weight !== undefined) L.weight = Math.min(1, Math.max(0, opts.weight));
-    if (opts.speed !== undefined) L.speed = opts.speed;
+    if (opts.weight !== undefined) L.weight = z(Math.min(1, Math.max(0, opts.weight)));
+    if (opts.speed !== undefined) L.speed = z(opts.speed);
     if (opts.additive !== undefined) L.additive = opts.additive === true;
     if (mask !== undefined) L.mask = mask;
     if (c !== undefined) {
@@ -251,11 +345,14 @@ export class Animator {
         L.hash = c ? clipHash(c) : null;
         L.time = 0;
         L.cycle = 0;
+        L.held = null;
       }
       L.src = c;
     }
-    if (opts.time !== undefined) L.time = opts.time;
-    if (L.src) L.time = wrapTime(L.src, L.time);
+    if (opts.time !== undefined) {
+      const p = L.src ? place(L.src, opts.time) : { time: z(opts.time), cycles: 0 };
+      [L.time, L.cycle, L.held] = [p.time, L.cycle + p.cycles, null];
+    }
     return this;
   }
 
@@ -268,63 +365,57 @@ export class Animator {
   /** Advances by dt seconds: as many fixed steps as fit (the rest carries over), each firing its events in order. */
   step(dt: number): StepResult {
     if (!finite(dt) || dt < 0) throw new AnimatorError("E_STEP", `step(dt) takes the seconds since the last step (0 or more), not ${String(dt)}`);
-    const h = this.#h, start = this.#root, fired: AnimatorEvent[] = [];
+    const h = this.#h, fired: AnimatorEvent[] = [];
+    let moved: RootPose = { forward: 0, right: 0, yaw: 0 };
     this.#carry += dt;
     let n = 0;
     // a step is due once the carried time reaches it (to a billionth of a step, so 1/120 twice makes one 1/60 step)
     while (this.#carry + h * 1e-9 >= h) {
       if (n >= this.#max) {
-        this.#carry -= Math.floor(this.#carry / h) * h;
+        this.#carry = z(this.#carry - Math.floor(this.#carry / h) * h);
         break;
       }
-      this.#carry -= h;
-      this.#tick(fired);
+      this.#carry = z(this.#carry - h);
+      // each step's move composed in turn, so a heading crossing ±180 never jumps a whole turn
+      moved = compose(moved, this.#tick(fired));
       n++;
     }
-    return { steps: n, events: fired, root: between(start, this.#root) };
+    return { steps: n, events: fired, root: moved };
   }
 
   /** One fixed step: every playhead moves, the events it passes fire, and the root moves as the layers mix it. */
-  #tick(fired: AnimatorEvent[]): void {
+  #tick(fired: AnimatorEvent[]): RootPose {
     const h = this.#h, here: (AnimatorEvent & { f: number; i: number })[] = [];
     let moved: RootPose | null = null;
+    const base = this.#layers.findIndex((x) => x.src && !x.additive);
     this.#layers.forEach((L, i) => {
       const c = L.src;
       if (!c) return;
-      const t0 = L.time, t1 = t0 + L.speed * h;
-      if (L.weight > 0) {
-        // a one-shot's end fires once, as the playhead reaches it
-        let to = t1;
-        if (!c.loop && L.speed > 0) to = t0 >= c.dur ? t0 : t1 >= c.dur ? Infinity : t1;
-        if (!c.loop && L.speed < 0) to = t0 <= 0 ? t0 : t1 <= 0 ? -Infinity : t1;
-        for (const e of eventsIn(c, t0, to)) {
-          const f = Math.min(1, Math.max(0, (e.t - t0) / (t1 - t0)));
-          here.push({ name: e.event.name, layer: L.name, clip: c.id, t: e.t - e.cycle * c.dur, cycle: L.cycle + e.cycle, at: (this.#steps + f) * h, event: e.event, f, i });
-        }
-      }
+      const d = L.speed * h, t0 = L.time, a = advance(c, L.time, L.cycle, L.held, d);
+      // the lowest playing layer is taken whole, so it fires its events whatever its weight
+      if (L.weight > 0 || i === base) for (const p of a.passed) here.push({ name: p.e.name, layer: L.name, clip: c.id, t: p.t, cycle: p.cycle, at: (this.#steps + p.f) * h, event: p.e, f: p.f, i });
       if (!L.additive) {
-        const p = this.#path(c), d = between(p.root(c.loop ? t0 : wrapTime(c, t0)), p.root(c.loop ? t1 : wrapTime(c, t1)));
-        if (moved === null) moved = d;
+        // the root's move along the clip's path, on the unwrapped timeline from the playhead (a one-shot's held)
+        const p = this.#path(c), t1 = c.loop ? t0 + d : Math.min(Math.max(t0 + d, 0), c.dur), dm = between(p.root(t0), p.root(t1));
+        if (moved === null) moved = dm;
         else {
           const w = L.weight * (L.mask ? (L.mask.root ?? 0) : 1), wy = L.weight * (L.mask ? (L.mask.yaw ?? 0) : 1);
           const m: RootPose = moved;
-          moved = { forward: m.forward + (d.forward - m.forward) * w, right: m.right + (d.right - m.right) * w, yaw: m.yaw + (d.yaw - m.yaw) * wy };
+          moved = { forward: m.forward + (dm.forward - m.forward) * w, right: m.right + (dm.right - m.right) * w, yaw: m.yaw + (dm.yaw - m.yaw) * wy };
         }
       }
-      if (c.loop && c.dur > 0) {
-        const k = Math.floor(t1 / c.dur);
-        L.cycle += k;
-        L.time = t1 - k * c.dur;
-      } else L.time = wrapTime(c, t1);
+      [L.time, L.cycle, L.held] = [a.time, a.cycle, a.held];
     });
     // in the order the playheads passed them; a tie in the order of the layers
     here.sort((a, b) => a.f - b.f || a.i - b.i);
     for (const { f: _f, i: _i, ...e } of here) fired.push(e);
+    const m: RootPose = moved ?? { forward: 0, right: 0, yaw: 0 };
     if (moved) {
-      const r = compose(this.#root, moved);
-      this.#root = { forward: r.forward, right: r.right, yaw: wrap180(r.yaw) };
+      const r = compose(this.#root, m);
+      this.#root = { forward: z(r.forward), right: z(r.right), yaw: z(wrap180(r.yaw)) };
     }
     this.#steps++;
+    return m;
   }
 
   /** The layers mixed at their playheads: the lowest playing layer whole, then each blended or added over it. */
@@ -375,7 +466,7 @@ export class Animator {
 
   /** Everything later steps depend on, as plain JSON-safe data; each clip named by its id and its content's hash. */
   save(): AnimatorSave {
-    return { format: FORMAT, step: this.#h, steps: this.#steps, carry: this.#carry, root: { ...this.#root }, layers: this.#layers.map(stateOf) };
+    return { format: FORMAT, step: this.#h, steps: this.#steps, carry: this.#carry, root: { ...this.#root }, body: this.#body, layers: this.#layers.map(stateOf) };
   }
 
   /**
@@ -383,24 +474,28 @@ export class Animator {
    * id; each must have the content it had when saved (E_CLIP_MISSING, E_CLIP_CHANGED name the clip).
    */
   restore(data: AnimatorSave, clips: ClipSource): this {
-    const d = data as Partial<AnimatorSave> | null;
-    if (!d || d.format !== FORMAT || !Array.isArray(d.layers) || !finite(d.steps) || !finite(d.carry) || !d.root) throw new AnimatorError("E_SAVE", `not an Animator save (format "${FORMAT}"): pass what animator.save() returned, after JSON if need be`);
+    const d = data as Partial<AnimatorSave> | null, notSave = (why: string) => new AnimatorError("E_SAVE", `not an Animator save (format "${FORMAT}"): ${why}; pass what animator.save() returned, after JSON if need be`);
+    if (!d || d.format !== FORMAT || !Array.isArray(d.layers) || !finite(d.steps) || !finite(d.carry) || !d.root || ![d.root.forward, d.root.right, d.root.yaw].every(finite)) throw notSave("its format, steps, carry or root is missing");
     if (d.step !== this.#h) throw new AnimatorError("E_STEP_SIZE", `the save ran at step ${String(d.step)} s but this Animator steps ${this.#h} s: construct it with { step: ${String(d.step)} }`);
-    const find = typeof clips === "function" ? clips : Array.isArray(clips) ? (id: string) => (clips as readonly AnimClip[]).find((c) => c.id === id) : (id: string) => (clips as Readonly<Record<string, AnimClip>>)[id];
-    const layers: Layer[] = d.layers.map((x) => {
+    if (d.body !== this.#body) throw new AnimatorError("E_BODY_CHANGED", `the save was made on another body (rest ${String(d.body)}, this one ${this.#body}): root motion scales with the body, so restore into an Animator bound to the same skeleton`);
+    const find = typeof clips === "function" ? clips : Array.isArray(clips) ? (id: string) => (clips as readonly AnimClip[]).find((c) => c.id === id) : (id: string) => (Object.hasOwn(clips, id) ? (clips as Readonly<Record<string, AnimClip>>)[id] : undefined);
+    const layers: Layer[] = d.layers.map((x, i) => {
+      const ok = x && typeof x.name === "string" && (x.clip === null || typeof x.clip === "string") && (x.hash === null || typeof x.hash === "string") && [x.weight, x.speed, x.time, x.cycle].every(finite) && typeof x.additive === "boolean" && (x.held === null || x.held === "start" || x.held === "end") && (x.mask === null || (typeof x.mask === "object" && Object.values(x.mask).every(finite)));
+      if (!ok) throw notSave(`layer ${i} is malformed`);
       let src: AnimClip | null = null;
       if (x.clip !== null) {
         src = find(x.clip) ?? null;
         if (!src) throw new AnimatorError("E_CLIP_MISSING", `layer "${x.name}" plays clip "${x.clip}", which restore wasn't given: pass it in clips`, x.clip);
-        const now = clipHash(src);
+        // hashed afresh: a clip edited in place since it was first played is refused too
+        const now = clipHash(src, true);
         if (now !== x.hash) throw new AnimatorError("E_CLIP_CHANGED", `clip "${x.clip}" changed since the save (content hash ${String(x.hash)}, now ${now}): restore with the clip as it was saved, or start the layer again`, x.clip);
       }
-      return { name: x.name, clip: x.clip, hash: x.hash, src, weight: x.weight, mask: x.mask ? { ...x.mask } : null, additive: x.additive, speed: x.speed, time: x.time, cycle: x.cycle };
+      return { name: x.name, clip: x.clip, hash: x.hash, src, weight: z(x.weight), mask: x.mask ? Object.fromEntries(Object.entries(x.mask).map(([k, v]) => [k, z(v)])) : null, additive: x.additive, speed: z(x.speed), time: z(x.time), cycle: z(x.cycle), held: x.held };
     });
     this.#layers = layers;
     this.#steps = d.steps;
-    this.#carry = d.carry;
-    this.#root = { forward: d.root.forward, right: d.root.right, yaw: d.root.yaw };
+    this.#carry = z(d.carry);
+    this.#root = { forward: z(d.root.forward), right: z(d.root.right), yaw: z(d.root.yaw) };
     return this;
   }
 
@@ -448,5 +543,5 @@ export class Animator {
 
 /** A layer's plain data. */
 function stateOf(L: LayerState): LayerState {
-  return { name: L.name, clip: L.clip, hash: L.hash, weight: L.weight, mask: L.mask ? { ...L.mask } : null, additive: L.additive, speed: L.speed, time: L.time, cycle: L.cycle };
+  return { name: L.name, clip: L.clip, hash: L.hash, weight: L.weight, mask: L.mask ? { ...L.mask } : null, additive: L.additive, speed: L.speed, time: L.time, cycle: L.cycle, held: L.held };
 }

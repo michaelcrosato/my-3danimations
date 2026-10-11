@@ -48,6 +48,51 @@ describe("step", () => {
     const quiet = new Animator(rig).layer("l", { clip: loop }).layer("o", { clip: once, weight: 0 });
     expect(quiet.step(0.9).events.map((e) => e.layer)).toEqual(["l", "l", "l"]);
   });
+  it("fires a loop's events once a cycle at any speed, backward too, however many cycles one step covers", () => {
+    for (const [dur, speed] of [[1.4, -1], [0.7, -2.2], [0.3, -40], [1 / 3, 25], [1.4, 1], [0.25, 7], [1.4, -1.3]] as const) {
+      const loop = synthetic(`loop-${dur}`, dur, true, [{ t: 0, name: "seam" }, { t: 0.123 * dur, name: "mid" }, { t: dur, name: "end-is-start" }]);
+      const a = new Animator(rig).layer("l", { clip: loop, speed }), fired = [];
+      for (let i = 0; i < 1200; i++) fired.push(...a.step(1 / 60).events);
+      const covered = Math.abs(speed) * 20, label = `dur ${dur} speed ${speed}`;
+      for (const name of ["seam", "mid", "end-is-start"]) {
+        const cycles = fired.filter((e) => e.name === name).map((e) => e.cycle);
+        // each crossing once: the cycles run one by one, none twice, none skipped
+        cycles.forEach((c, j) => j > 0 && expect(c - cycles[j - 1]!, `${label}: ${name}`).toBe(Math.sign(speed)));
+        expect(Math.abs(cycles.length - covered / dur), `${label}: ${name}`).toBeLessThanOrEqual(1.01);
+      }
+      expect(fired.map((e) => e.at)).toEqual([...fired.map((e) => e.at)].sort((x, y) => x - y));
+      expect(a.layers[0]!.time).toBeGreaterThanOrEqual(0);
+      expect(a.layers[0]!.time).toBeLessThanOrEqual(dur);
+    }
+    // a loop of no length plays still and fires nothing
+    const zero = new Animator(rig).layer("z", { clip: synthetic("zero", 0, true, [{ t: 0, name: "z" }]) });
+    expect(zero.step(1).events).toEqual([]);
+  });
+  it("fires a one-shot's ends once when the playhead turns round at them", () => {
+    const once = synthetic("once", 0.5, false, [{ t: 0, name: "start" }, { t: 0.25, name: "mid" }, { t: 0.5, name: "end" }]);
+    const a = new Animator(rig).layer("o", { clip: once }), names = (n: number) => Array.from({ length: n }, () => a.step(1 / 60).events.map((e) => e.name)).flat();
+    expect(names(45)).toEqual(["start", "mid", "end"]);
+    a.layer("o", { speed: -1 });
+    expect(names(45)).toEqual(["mid", "start"]);
+    a.layer("o", { speed: 1 });
+    expect(names(45)).toEqual(["mid", "end"]);
+    // and the remembered end survives a save and restore
+    a.layer("o", { speed: -1 });
+    const b = new Animator(rig).restore(JSON.parse(JSON.stringify(a.save())), [once]);
+    expect(Array.from({ length: 45 }, () => b.step(1 / 60).events.map((e) => e.name)).flat()).toEqual(["mid", "start"]);
+  });
+  it("reports each call's turn without a whole-turn jump where the heading crosses ±180°", () => {
+    const turning: AnimClip = { ...walk, id: "turning", contacts: undefined, keys: walk.keys.map((k) => ({ ...k, root: [0, 0], yaw: 90 * k.t })) as Key[] };
+    const a = new Animator(rig).layer("base", { clip: turning });
+    let heading = 0;
+    for (let i = 0; i < 300; i++) {
+      const r = a.step(1 / 60).root;
+      expect(Math.abs(r.yaw)).toBeLessThan(5);
+      heading += r.yaw;
+    }
+    expect(heading).toBeCloseTo(450, 0);
+    expect(Math.abs(a.root.yaw)).toBeLessThanOrEqual(180);
+  });
   it("moves the root by the clips: an in-place walk by its feet, a clip with its own travel by that", () => {
     const a = new Animator(rig).layer("base", { clip: walk });
     for (let i = 0; i < 120; i++) a.step(1 / 60);
@@ -122,11 +167,17 @@ describe("pose", () => {
 describe("save and restore", () => {
   it("continues exactly from a save at any step, through JSON: the same later hashes, events and exact poses", () => {
     const saves: string[] = [];
-    runScript(core, data, { each: (_, a) => saves.push(JSON.stringify(a.save())) });
+    runScript(core, data, {
+      each: (_, a) => {
+        // the save survives JSON exactly (no −0, no undefined, nothing JSON can't write)
+        const save = a.save(), text = JSON.stringify(save);
+        expect(JSON.parse(text)).toEqual(save);
+        saves.push(text);
+      },
+    });
     const K = 40;
     for (let i = 0; i < LENGTH - 1; i++) {
       const saved = JSON.parse(saves[i]!) as AnimatorSave;
-      expect(saved).toEqual(JSON.parse(JSON.stringify(saved)));
       const b = start(core, data).restore(saved, data.clips);
       expect(b.hash()).toBe(straight.hashes[i]);
       const to = Math.min(LENGTH, i + 1 + K), run = runScript(core, data, { animator: b, from: i + 1, to });
@@ -157,8 +208,31 @@ describe("save and restore", () => {
     expect(err(() => new Animator(rig).restore({ format: "x" } as never, [])).code).toBe("E_SAVE");
     expect(err(() => a.step(Number.NaN)).code).toBe("E_STEP");
     expect(err(() => a.layer("x", { mask: "tail" })).code).toBe("E_LAYER");
+    // a clip edited in place since it was played is refused too
+    const own = JSON.parse(JSON.stringify(punch)) as AnimClip, b = new Animator(rig).layer("p", { clip: own });
+    b.step(0.2);
+    const kept = JSON.parse(JSON.stringify(b.save())) as AnimatorSave;
+    (own.keys[3]!.head as number[])[0]! += 30;
+    expect(err(() => new Animator(rig).restore(kept, [own])).code).toBe("E_CLIP_CHANGED");
+    // a save made on another body is refused: root motion scales with the body
+    const tall = bind({ ...data.skeleton, bones: data.skeleton.bones.map((x) => ({ ...x, head: x.head!.map((v) => v * 1.2) as [number, number, number] })) });
+    expect(err(() => new Animator(tall).restore(saved, [walk, punch])).code).toBe("E_BODY_CHANGED");
+    // a layer that doesn't read as a save's is refused before anything changes
+    expect(err(() => new Animator(rig).restore({ ...saved, layers: [{ ...saved.layers[0]!, speed: "fast" as never }] }, [walk, punch])).code).toBe("E_SAVE");
     // the same clip's content under a new object restores fine, and an edit that changes nothing it plays is no change
     expect(new Animator(rig).restore(saved, (id) => JSON.parse(JSON.stringify(id === walk.id ? walk : punch))).hash()).toBe(a.hash());
+  });
+});
+
+describe("−0", () => {
+  it("keeps no −0 in its state, so a save through JSON restores to the same hash", () => {
+    const a = new Animator(rig).layer("base", { clip: walk, speed: -1 * 0, time: -0 }).layer("up", { clip: punch, mask: { chest: -0, head: 1 }, weight: -0 });
+    a.step(0.1);
+    const b = new Animator(rig).restore(JSON.parse(JSON.stringify(a.save())), [walk, punch]);
+    expect(b.hash()).toBe(a.hash());
+    a.step(0.5);
+    b.step(0.5);
+    expect(b.hash()).toBe(a.hash());
   });
 });
 

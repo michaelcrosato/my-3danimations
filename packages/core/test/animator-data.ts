@@ -21,7 +21,8 @@ export function libraryClip(name: string, contacts = false): Clip {
 /** The rig and the script's clips: a walk and a jog (with contacts and footstep events), a punch and a flinch. */
 export function scriptData(): ScriptData {
   const walk = libraryClip("Walk_Loop", true), jog = libraryClip("Jog_Fwd_Loop", true), punch = libraryClip("Punch_Jab"), flinch = libraryClip("Hit_Head");
-  for (const c of [walk, jog]) c.events = [{ t: 0.1, name: "step", foot: "L" }, { t: c.dur / 2 + 0.1, name: "step", foot: "R" }];
+  // footsteps, and the seam (a loop's event at its start), which a backward playhead passes too
+  for (const c of [walk, jog]) c.events = [{ t: 0, name: "cycle" }, { t: 0.1, name: "step", foot: "L" }, { t: c.dur / 2 + 0.1, name: "step", foot: "R" }];
   punch.events = [{ t: 0, name: "windup" }, { t: 0.2, name: "hit" }, { t: punch.dur, name: "end" }];
   return { skeleton: rigSkeleton(), clips: [walk, jog, punch, flinch] };
 }

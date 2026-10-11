@@ -604,20 +604,31 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
 
 - **Principle:** 3, 5, 8, WP-2.6 (PLAN.md §5.5, the runtime contract)
 - **Call:**
-  - **State is plain data.** An Animator's state is its layers (clip id and content hash, weight, mask, additive,
-    speed, playhead, loop cycles), the steps taken, the time carried to the next step, and the root. `save()` returns
-    exactly that, `hash()` hashes it, and `restore()` takes it back. Everything else is cached as a pure function of a
-    clip and the body (the root path, decoded points, an additive clip's first key), so a restored Animator rebuilds
-    it identically.
+  - **State is plain data.** An Animator's state is:
+    - its layers: clip id and content hash, weight, mask, additive, speed, playhead, loop cycles, and the one-shot end
+      it rests on;
+    - the steps taken, the time carried to the next step, and the root;
+    - the bound body's fingerprint, because root motion scales with the body.
+
+    `save()` returns exactly that, `hash()` hashes it, and `restore()` takes it back. A save made on another body is
+    refused (E_BODY_CHANGED). No −0 is kept, since JSON writes it as 0. Everything else is cached as a pure function
+    of a clip and the body (the root path, decoded points, an additive clip's first key), so a restored Animator
+    rebuilds it identically. `maxSteps` and the ground are the host's settings, like the dt it passes.
   - **A clip's content hash** covers what playing reads: duration, loop, keys, events and contacts, as the clip's JSON
     text gives them. A clip loaded from its file and the same clip built in memory hash alike, and an edit to its name
     or description doesn't refuse a restore. Restoring a changed clip throws E_CLIP_CHANGED; a missing one throws
-    E_CLIP_MISSING. Both name the clip.
+    E_CLIP_MISSING. Both name the clip. `layer()` reads clips as immutable (edit a copy and set it), and `restore()`
+    hashes each clip afresh, so a clip edited in place is refused too.
   - **The step.** A fixed-step accumulator: a step is due once the carried time reaches it (to a billionth of a step,
     so 1/120 twice is one 1/60 step). `maxSteps` caps one call. In each step every layer's playhead moves, and the
-    events it passes fire in the order they are passed, ties in layer order. A loop fires each event once a cycle, and
-    an event at its end is the same moment as its start. A one-shot's end fires once as the playhead reaches it,
-    played forward or backward. A layer at weight 0 fires nothing.
+    events it passes fire in the order they are passed, ties in layer order.
+    - A window takes the point it leaves and not the one it reaches, so consecutive windows share an exact boundary.
+    - A loop walks cycle by cycle in clip time, so a step covering several cycles fires each event once a cycle,
+      backward too. An event at a loop's end is the same moment as its start.
+    - A one-shot's end fires once as the playhead reaches it, forward or backward, and is remembered, so turning round
+      there doesn't fire it again.
+    - A layer at weight 0 fires nothing, except the lowest playing layer, which is taken whole.
+    - Each call reports the root's move composed step by step, so a heading crossing ±180° never jumps a turn.
   - **Mixing.** The lowest playing layer is taken whole, as engines treat a base layer. Each layer above blends over it
     by weight and mask (`ops.blend`), or adds its change from its first key (`ops.addDelta`). Root motion mixes the same
     way: each clip's root path on this body, which is its own travel or, for an in-place clip, the path its planted feet
@@ -648,7 +659,20 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
 - **Cost** (the 4-core cloud container, Node 24, one character, four layers: walk, jog at 0.5, masked punch, additive
   flinch): `step()` 1.4 µs; `pose()` 0.20 ms at full detail (0.22 ms exact, 0.17 ms at `lod` 1), most of it the
   solve. Sixty characters posed every frame at 60 Hz take about 0.7 of one core.
+- **Review:** the G2 verifier found 7 failures, all fixed in v0.12.1:
+  1. loop seam events fired twice backward and were lost across several cycles in one step;
+  2. a one-shot's end fired again when the playhead turned round there;
+  3. a −0 in the state broke the hash after JSON;
+  4. a clip edited in place escaped E_CLIP_CHANGED;
+  5. the body wasn't in the save;
+  6. each call's turn jumped 360° across ±180°;
+  7. WP-2.6's entry lacked its "Landed with" line.
+
+  Each has a test that fails on v0.12.0. The Animator's script now also passes the loops' seams backward and turns
+  the punch round at its end. `npm run test:cross-engine` runs the script in JavaScriptCore (Bun) as well: the same
+  hash as V8. Its notes not acted on are F3.
 - **Outside WP-2.6's Owns** (one agent, D21): the boundary check's API rule and its tests; the tools, conformance
-  tests and other packages' entries moved onto the namespaced API; core's test barrel.
+  tests and other packages' entries moved onto the namespaced API; core's test barrel; the cross-engine check's
+  Animator run.
 - **Answered:** no: made without a response, to review.
-- **Landed in:** v0.12.0
+- **Landed in:** v0.12.0; the review's fixes in v0.12.1

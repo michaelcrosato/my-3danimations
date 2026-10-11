@@ -4,6 +4,22 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.12.1 · 2026-10-11
+
+### Core
+- The Animator, fixed from the G2 review (D38):
+  - a loop's events fire once a cycle at any speed, backward too, however many cycles one step covers;
+  - a one-shot's end fires once when the playhead turns round at it;
+  - no −0 in the state;
+  - `restore()` hashes clips afresh (one edited in place is refused) and refuses a save made on another body
+    (E_BODY_CHANGED);
+  - each call's turn is composed step by step (no 360° jump);
+  - a clip with no id, a zero-length loop and a malformed save are refused or played still;
+  - the lowest layer fires its events whatever its weight.
+
+### Tools
+- `npm run test:cross-engine` runs the Animator's script in JavaScriptCore (Bun) too: the same hash as V8.
+
 ## 0.12.0 · 2026-10-11
 
 ### Core

@@ -3,7 +3,7 @@
 The current state on one screen (at most 40 lines; `npm run doctrine` checks it from WP-0.3). The ledger is
 `PLAN.md` §14; decisions are in `docs/DECISIONS.md`.
 
-**Phase:** 2 The airframe. **Next gate:** G2. **Version:** 0.12.0.
+**Phase:** 2 The airframe. **Next gate:** G2. **Version:** 0.12.1.
 **Mode:** one agent (D21), branch `claude/relaxed-albattani-35xhjq`.
 
 ## Done

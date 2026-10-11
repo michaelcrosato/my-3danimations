@@ -1243,6 +1243,12 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
   - the cost of one character's `step()` and `pose()` is measured on the 4-core cloud container and stated;
   - the public API is at most 40 exports, each with a doc comment.
 - **Verify:** `npm test -- animator && npm run e2e -- animator-parity`
+- **Landed with (D38):**
+  - "Exports" counts the names `src/index.ts` lists: 38. Each module's whole surface sits behind one of them as a
+    namespace (145 runtime names through 9 namespaces).
+  - The boundary check enforces it: one export per statement, each with a doc comment, no bare `export *`.
+  - Outside the Owns: the boundary check, the tools and conformance tests moved onto the namespaces, core's test
+    barrel, and the Animator's run in `test:cross-engine`.
 
 **Gate G2.**
 
@@ -2212,7 +2218,7 @@ version, commit, date and a note with the numbers. Gates are rows too.
 | 2.3 Pose operations | done | 0.9.0 | c20b087 | 2026-10-11 | mirror twice = identity on all 525 clips (≤0.5 mm); blend 0/1 = inputs; retime keeps order and contact shares; synced walk–jog/sprint blends keep planted feet ≤18.5 mm (by time, out of step: >100 mm) (D35) |
 | 2.4 The solver | done | 0.11.1 | 498fab2, d854578 | 2026-10-11 | reference body: joints ≤0.0018 mm of the solver's decode at all 7,572 tier-2 samples (≤36.5 mm of the plain decoder on the 124 with a lower spine share); roll: mirror ≤3.4e-6°, bend sweeps ≤2°/step, T = A = relaxed ≤1e-4°; tier 3 on 7 bodies × 1,324 poses: limbs ≤9° (0° to rounding), chest exact, lengths kept, soles ≥ floor, no NaN (D36) |
 | 2.5 Contacts and ground | done | 0.11.0 | 39c7ad5 | 2026-10-11 | 133 locomotion loops + synced blends: planted contact point slides 0.0 mm per contact (free: up to 92); 10° slopes and 0.2 m steps: planted soles within 1.7 mm, none under; pelvis drop ≤0.1 H0 (D37) |
-| 2.6 The Animator | done | 0.12.0 | 7d8cef6 | 2026-10-11 | 480-step script: state hash every step, 29 events and 5 exact poses identical in Node and Chromium, with poses skipped, every step or alternating LOD; save at every step → restore via JSON → next 40 identical; changed/missing clip refused by name; feet ≤10 mm; step 1.4 µs, pose 0.20 ms (4 layers, 4 cores); API 38 of 40, documented (D38) |
+| 2.6 The Animator | done | 0.12.1 | 7d8cef6, review fixes in the next commit | 2026-10-11 | 480-step script: state hash every step, 29 events and 5 exact poses identical in Node and Chromium, with poses skipped, every step or alternating LOD; save at every step → restore via JSON → next 40 identical; changed/missing clip refused by name; feet ≤10 mm; step 1.4 µs, pose 0.20 ms (4 layers, 4 cores); API 38 of 40, documented ; review: seams once a cycle at any speed, one-shot ends once, no −0, body and in-place edits refused (D38) |
 | **G2** | todo | | | | |
 | 3.1 The software raster | todo | | | | |
 | 3.2 Sheets, films and diffs | todo | | | | |

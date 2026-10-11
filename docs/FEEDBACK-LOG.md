@@ -61,3 +61,20 @@ Its eight failures were fixed in v0.11.1 (D36). Of its notes, these were not act
   straight limbs when re-importing (WP-5.3).
 - **F2.5** (what the tier-3 bodies cover, deferred) The seven tier-3 bodies share one topology, a T rest and identity
   rest frames, and the sets' own bodies are never targets. WP-4.2's test characters add real rigs.
+
+### F3 · 2026-10-11 · The G2 verifier's notes (a fresh agent, the same model family)
+
+Its seven failures were fixed in v0.12.1 (D38). So were most of its notes:
+- a clip with no id, a zero-length loop, a malformed saved layer, and a clip map's prototype names;
+- a base layer at weight 0 now fires its events;
+- event times are exact;
+- the clamped weight is documented;
+- the Animator's script runs in Bun too.
+
+These were not acted on:
+
+- **F3.1** (no) D36 was rewritten in place, with lines removed, before its phase merged. Decisions are append-only
+  once on `main`, which the doctrine check guards; within the open phase a WP's own entry is kept current with what
+  landed.
+- **F3.2** (no) `maxSteps` and the ground are not in the save. They are the host's settings, like the dt it passes,
+  and D38 says so.

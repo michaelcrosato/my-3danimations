@@ -1,12 +1,16 @@
 // The cross-engine workload (PLAN.md WP-2.1): the same computations, run once in V8 (Node) and once in JavaScriptCore
 // (Bun), hashed bit for bit, plus each portable function's cost against the engine's own. `main.ts` compares the two
-// runs; run alone (`bun tools/cross-engine/work.ts`) it prints its JSON. Only core's public API is used.
-import { math } from "../../packages/core/src/index.ts";
+// runs; run alone (`bun tools/cross-engine/work.ts`) it prints its JSON. Core is used through its public API; the
+// Animator's script and its data are core's own test helpers.
+import * as core from "../../packages/core/src/index.ts";
+import { scriptData } from "../../packages/core/test/animator-data.ts";
+import { runScript } from "../../packages/core/test/animator-script.ts";
 
+const { math } = core;
 const { easesWith, Fnv64, NATIVE, noise2, PORTABLE, quat, RngStreams, smoothDamp, angDiff, vec3 } = math;
-type MathLike = math.MathLike;
-type Quat = math.Quat;
-type Vec3 = math.Vec3;
+type MathLike = core.math.MathLike;
+type Quat = core.math.Quat;
+type Vec3 = core.math.Vec3;
 
 /** The functions compared and timed, with how many arguments each takes. */
 export const FUNCTIONS = ["sin", "cos", "tan", "atan", "atan2", "asin", "acos", "exp", "log", "log2", "log10", "pow", "hypot", "cbrt"] as const;
@@ -96,6 +100,8 @@ export interface EngineRun {
   chainNative: string;
   chainPortable: string;
   helpers: string;
+  /** The Animator's scripted run (WP-2.6): every step's state hash, its events and its exact poses, hashed together. */
+  animator: string;
   costs: Record<string, { portable: number; native: number }>;
 }
 
@@ -106,7 +112,12 @@ export function engineName(): string {
 }
 
 export function run(): EngineRun {
-  return { engine: engineName(), nativeMath: mathHash(NATIVE), portableMath: mathHash(PORTABLE), chainNative: chainHash(NATIVE), chainPortable: chainHash(PORTABLE), helpers: helperHash(), costs: costs() };
+  return { engine: engineName(), nativeMath: mathHash(NATIVE), portableMath: mathHash(PORTABLE), chainNative: chainHash(NATIVE), chainPortable: chainHash(PORTABLE), helpers: helperHash(), animator: animatorHash(), costs: costs() };
+}
+
+/** The Animator's 480-step script with presentation poses at alternating detail: its run hashed (core's own test data). */
+export function animatorHash(): string {
+  return math.hashValue(runScript(core, scriptData(), { poses: "lod" }) as never);
 }
 
 if (import.meta.main) process.stdout.write(JSON.stringify(run()) + "\n");

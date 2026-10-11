@@ -49,6 +49,7 @@ if (import.meta.main) {
   compare("portableMath", "portable math, 2.8 million results", true);
   compare("chainPortable", "a 100,000-step quaternion chain on the portable math", true);
   compare("helpers", "eases, noise, springs and named streams, 140,000 results", true);
+  compare("animator", "the Animator's 480-step script: state hashes, events, exact poses", true);
   compare("nativeMath", "native math, the same 2.8 million results", false);
   compare("chainNative", "the same chain on native math", false);
   const line = (r: EngineRun, f: string) => `${r.costs[f]!.portable.toFixed(1)} ns vs ${r.costs[f]!.native.toFixed(1)} (${(r.costs[f]!.portable / r.costs[f]!.native).toFixed(1)}×)`;
