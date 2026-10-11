@@ -3,7 +3,7 @@
 The current state on one screen (at most 40 lines; `npm run doctrine` checks it from WP-0.3). The ledger is
 `PLAN.md` §14; decisions are in `docs/DECISIONS.md`.
 
-**Phase:** 2 The airframe. **Next gate:** G2. **Version:** 0.12.1.
+**Phase:** 3 The sensors. **Next gate:** G3. **Version:** 0.12.1.
 **Mode:** one agent (D21), branch `claude/relaxed-albattani-35xhjq`.
 
 ## Done
@@ -13,20 +13,15 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 - Phase 1 (G1 passed, merged as michaelcrosato/my-3danimations#5): spec 2.0-rc frozen (`MOTION.md`, `LEGEND.md`,
   `SKELETON.md`); the validator (30 rules); the codec (tier 1a bit for bit, tier 2 to the µm); the skeleton profile;
   the seed sets in format 2 (5 sets, 525 clips, 0 errors). D25 to D32.
-- WP-2.1 The math kernel: portable math with V8's bits (pow within 1 ulp), the same in V8 and JavaScriptCore; all of
-  core uses it (D33).
-- WP-2.2 The clip runtime: sampling, root motion over loop cycles, events, contacts, measured facts within tolerance
-  of 20 independently measured clips (D34).
-- WP-2.3 Pose operations: blend, deltas, masks, mirror, retime, slice, loop, contact-phase sync (D35).
-- WP-2.4 The solver: any recognized skeleton from the key's numbers; tier 3 passes on 7 bodies; its review's 8 roll
-  findings fixed and tested (mirror, bend sweeps, T = A = relaxed) (D36, F2).
-- WP-2.5 Contacts and ground: planted feet held still (0 mm slide), soles on slopes and steps (D37).
-- WP-2.6 The Animator: layers, a fixed step, events, root motion, save and restore, poses; the same hashes and exact
-  poses in Node and Chromium; core's public API is 38 documented names (D38).
+- Phase 2 (G2 passed, michaelcrosato/my-3danimations#6): portable math, the same bits in V8 and JavaScriptCore (D33);
+  the clip runtime and measured facts (D34); pose operations (D35); the solver on any recognized skeleton, its roll
+  tested (D36, F2); planted feet and the ground (D37); the Animator, the same hashes and exact poses in Node,
+  Chromium and Bun, and core's public API of 38 documented names (D38, F3).
 
 ## Next
 
-- Gate G2: tiers 1a, 2 and 3, determinism in Node and Chromium, V8 = JavaScriptCore, the property tests.
+- Phase 3 The sensors: WP-3.1 the raster, 3.2 sheets, 3.3 metrics, 3.4 describe, 3.6 planted defects, 3.5 lint and
+  fix; gate G3.
 
 ## Blocked on the owner
 
@@ -34,7 +29,11 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 
 ## Last gate
 
-- **G1 passed** 2026-10-11 at 6bffb3e in 11.0 s, 7 of 7: check (T0) 1.3 s of 15; test (T1) 3.0 s of 90, 178 tests;
-  doctrine 8 of 8 (legend 792/800, worst catalog row 40/40, 10 files frozen); vectors byte for byte; tiers 1a and 2;
-  migrate --check (525 clips); the migrated clips validate and decode like their sources. The verifier's 7 findings
-  (frame wording, ranges, fit, CMU notice, W005 reasons, ledger, changelog) are fixed (D32); notes in F1.
+- **G2 passed** 2026-10-11 at a5fb0a0 in 42.1 s, 8 of 8:
+  - check (T0) 1.7 s; test (T1) 14.8 s, 305 tests; doctrine 8 of 8 (core's API 38 of 40); vectors byte for byte;
+  - conformance tiers 1a, 2 and 3;
+  - the Animator's 480 step hashes, 41 events and 5 exact poses identical in Node and Chromium;
+  - V8 = JavaScriptCore on 2.8M portable results, a 100k-step chain and the Animator's script;
+  - property tests: mirror twice ≤0.5 mm, blend ends, retime, solver roll.
+- The verifiers' findings, all fixed: WP-2.4's 8 (bone roll, D36) and G2's 7 (events at seams and ends, −0, the
+  body and in-place edits, the turn, the WP entry; D38). Their notes are in F2 and F3.
