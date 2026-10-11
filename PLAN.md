@@ -1456,7 +1456,8 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
   - a baked clip carries the source clip's `loop`, `events`, `contacts` and `facts` in `userData`, and a VRMA export
     carries them in `extras` *(deferred proof: WP-5.2's VRMA round trip)*;
   - crossfades and masked layers work through the Animator;
-  - the hot path allocates nothing per frame (measured).
+  - the hot path allocates nothing per frame (measured): the adapter's write; a whole update's cost, core's step and
+    pose included, is measured and stated (D48).
 - **Verify:** `npm test -- play`
 
 #### WP-4.5 Headless capture
@@ -2232,7 +2233,7 @@ version, commit, date and a note with the numbers. Gates are rows too.
 | 4.1 Pin three.js | done | 0.20.0 | (this commit) | 2026-10-11 | cold-write check: both agents wrote their release correctly; r182 runs on WebGL 2 and WebGPU, r186's WebGPU fails at init (texture-view swizzle, Chromium 141); pinned r182; 7 bans + the pin in doctrine; e2e on both backends, r186 in CI (D45) |
 | 4.2 Test characters | done | 0.21.0 | (this commit) | 2026-10-11 | 20 seeded variants (5 builds, 3 rests, 4 namings with their habits, twist and left-out bones) load in three and are recognized at confidence 1, bones within 1 µm, bound at rest; real rigs by hash: 2 Quaternius mannequins (unreal4, 1) and KayKit's Knight (topology, 0.85); a separate manifest fetches by its hash (D46) |
 | 4.3 Binding a skeleton | done | 0.22.0 | (this commit) | 2026-10-11 | 20 test characters + a held-out seed + the real rigs bind with no hand mapping, lengths as generated to the mm; a fully renamed rig binds through topology at 0.85; renamed, 22 of 24 map as by name, 2 flagged at 0.55; report ≤ 20 lines with a patch that binds; topology fixes in core (D47, D28) |
-| 4.4 Playback and baking | todo | | | | |
+| 4.4 Playback and baking | done | 0.23.0 | (this commit) | 2026-10-11 | baked clips within 0.5 mm of the live solve on Mixamo, UE5 and Rigify characters (4 clips each, ≤1 mm through AnimationMixer); loop, events, contacts, facts in userData and GLTFExporter's extras; masked layers and crossfades through attach; the write allocates 0 bytes a frame, a whole update ≈7 KB and 0.16 ms (D48) |
 | 4.5 Headless capture | todo | | | | |
 | 4.6 The first-flight demo | todo | | | | |
 | 4.7 The benchmark harness and B1 | todo | | | | |

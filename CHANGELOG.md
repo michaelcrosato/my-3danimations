@@ -4,6 +4,13 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.23.0 · 2026-10-11
+
+### Three
+- WP-4.4: `attach(animator, bound)` writes an Animator's poses to a character's bones each update (the write allocates
+  nothing) and hands the root's motion to the game; `bake(clip, bound)` makes a THREE.AnimationClip within 0.5 mm of the
+  live solve, carrying the clip's loop, events, contacts and facts in `userData` (D48).
+
 ## 0.22.0 · 2026-10-11
 
 ### Three

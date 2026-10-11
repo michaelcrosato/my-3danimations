@@ -1141,3 +1141,32 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   fixtures; `@m3a/three`'s index exports `bind` and its types.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.22.0
+
+## D48 · 2026-10-11 · Playing and baking on three.js: the solver's rotations as three's, baked densely enough
+
+- **Principle:** 1, 4, 5, WP-4.4
+- **Call:**
+  - **`attach(animator, bound)`**: each `update(dt)` steps the Animator, poses it and writes the pose: each bone's local
+    rotation as the solver gives it (bind passed three's own rest orientations, so they are three's; a bone whose parent
+    isn't a bone turned into its parent node's space), the hips placed in their parent's space. Crossfades, masked and
+    additive layers are the Animator's. The root's motion is the game's: `root` and `moved` (since the last update), in
+    mm and degrees; the character's object isn't moved.
+  - **`bake(clip, bound)`**: a THREE.AnimationClip of quaternion tracks for every bone and a position track for the
+    hips, solved from the clip's parameters. A fixed rate isn't enough: halfway between 60 fps samples three's slerp
+    strays up to 21 mm from the live solve in a fast punch. The bake samples at the clip's keys and 30 a second, then
+    halves each stretch whose middle, as three in-betweens it, is more than 0.5 mm from the live solve (down to 1/3840
+    s); the worst measured is recorded with the sample count in `userData.error`. `userData` also carries the clip's
+    id, loop, events, contacts and facts, which GLTFExporter writes to the animation's `extras`.
+  - **Allocation:** the adapter's write allocates nothing a frame: measured as the heap left after 120,000 frames less
+    that after 20,000 (`--expose-gc`). A whole update, core's step and pose included, allocates about 7 KB a frame
+    (0.16 ms): core's solver builds its result each time. Making it allocation-free means rewriting the solver's math
+    in place, whose bits the hashes hold (D33, D38): not this WP's, so the Done-when is edited to say what is measured,
+    and the cost is stated.
+  - **VRM:** bind reads three-vrm's humanoid from `userData.vrm` when present; no VRM avatar is in the fixtures yet
+    (optional in WP-4.2), so it isn't exercised. VRMA export waits for WP-5.2.
+- **Result:** on Mixamo, UE5 and Rigify test characters, Walk_Loop, Punch_Jab, Run_Loop and Jump_2 bake within 0.5 mm
+  (53 to 134 samples), and three's AnimationMixer agrees; a masked upper-body punch leaves the legs the walk's, and at
+  half weight puts the arm between; a travelling clip's root motion is handed over while the hips stay over the root.
+- **Outside WP-4.4's Owns** (one agent, D21): none.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.23.0

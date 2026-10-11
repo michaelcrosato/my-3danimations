@@ -17,3 +17,16 @@ export type { MappingReport } from "./bind/index.ts";
 export type { MappingPatch } from "./bind/index.ts";
 /** How to bind. */
 export type { BindOptions } from "./bind/index.ts";
+
+/** Attaches an Animator to a bound character: each update steps, poses and writes its bones; the root's motion is the game's. */
+export { attach } from "./play/index.ts";
+/** An Animator attached to a character. */
+export type { Attached } from "./play/index.ts";
+/** Bakes a clip into a THREE.AnimationClip, its loop, events, contacts and facts in `userData`, its error measured. */
+export { bake } from "./play/index.ts";
+/** A baked clip's worst distance from the live solve. */
+export { bakeError } from "./play/index.ts";
+/** What a baked clip carries in `userData`. */
+export type { BakedData } from "./play/index.ts";
+/** How to bake. */
+export type { BakeOptions } from "./play/index.ts";
