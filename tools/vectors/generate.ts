@@ -6,7 +6,7 @@
 import { createHash } from "node:crypto";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { stringify } from "./json.ts";
+import { stringify } from "../../spec/conformance/runner/json.ts";
 import { loadCmuReader, loadCodec, loadGlbReader, loadSet, quietly, type Capture, type Clip1, type MR } from "./oracle.ts";
 import { glb, rigGltf, type Proportions } from "./rig.ts";
 
@@ -132,6 +132,7 @@ export async function generate(root: string, work: string): Promise<Map<string, 
       const text = MR.text(clip);
       const mirrored = MR.mirror(clip);
       clips[clipName] = {
+        clip,
         restSrc,
         dur: clip.dur,
         loop: Boolean(clip.loop),
@@ -144,7 +145,7 @@ export async function generate(root: string, work: string): Promise<Map<string, 
       };
     }
     const file = `tier2/${set.set}.json`;
-    put(file, { about: `Tier 2, ${set.set}: each clip decoded on its reference body (the set's first source's rest with the clip's src spine and neck shares, as mocap.js builds it) at every key time and at ${BETWEEN.join(", ")} of dur; body points in POINTS order as whole micrometres (f r z). Compare within 0.001 mm. textSha256 hashes the format-1 text lens; mirrorSha256 the mirrored keys (this file's number format, -0 kept).`, points: MR.POINTS, bodies, clips });
+    put(file, { about: `Tier 2, ${set.set}: each clip decoded on its reference body (the set's first source's rest with the clip's src spine and neck shares, as mocap.js builds it) at every key time and at ${BETWEEN.join(", ")} of dur; clip holds the input (the origin's clip object, keys included); body points in POINTS order as whole micrometres (f r z). Compare within 0.001 mm. textSha256 hashes the format-1 text lens; mirrorSha256 the mirrored keys (this file's number format, -0 kept).`, points: MR.POINTS, bodies, clips });
     tier2Sizes[set.set] = files.get(file)!.length;
   }
 

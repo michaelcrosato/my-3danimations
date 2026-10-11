@@ -44,6 +44,7 @@ export interface Tier1a {
 
 /** One clip of a tier-2 vector: decodes in whole micrometres at key and in-between times, plus mirror and text checks. */
 export interface Tier2Clip {
+  clip: VClip;
   restSrc: string;
   dur: number;
   loop: boolean;

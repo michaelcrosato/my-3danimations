@@ -288,3 +288,15 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
 - **Why:** the doctrine keeps core dependency-free; the schemas keep the format readable by any language's tools.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.3.0
+
+## D26 · 2026-10-11 · Tier 2's vectors carry their input clips
+
+- **Principle:** 12 (the contract), D2 (WP-1.3)
+- **Call:** each tier-2 clip now holds `clip`, the origin's clip object with its keys, beside its decodes, so tier 2
+  runs from the committed vectors alone (in CI, and for another language's port) instead of needing the pins cache.
+  The vectors' JSON writer moves to `spec/conformance/runner/json.ts`, where the conformance tests hash mirrored keys
+  with it. The committed vectors grow to 9.54 of 10 MB with the frozen fixtures; nothing else is planned for tier 2,
+  and format-2 fields will get small vectors of their own.
+- **Why:** a conformance kit must hold its inputs (WP-10.2); a test that needs the network is a test CI skips.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.4.0

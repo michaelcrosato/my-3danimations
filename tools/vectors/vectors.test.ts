@@ -2,7 +2,7 @@
 // .glb packing agrees with the conformance runner's.
 import { describe, expect, it } from "vitest";
 import { packGlb, sha256 } from "../../spec/conformance/runner/vectors.ts";
-import { num, stringify } from "./json.ts";
+import { num, stringify } from "../../spec/conformance/runner/json.ts";
 import { glb, rigGltf } from "./rig.ts";
 
 describe("the vectors' JSON", () => {

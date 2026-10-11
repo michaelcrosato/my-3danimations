@@ -8,7 +8,7 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, wri
 import { dirname, join, relative } from "node:path";
 import { finish, fmtMs, parseArgs, ROOT, usage, type Report, type Step } from "../run/cli.ts";
 import { generate, SETS } from "./generate.ts";
-import { stringify } from "./json.ts";
+import { stringify } from "../../spec/conformance/runner/json.ts";
 import { loadCodec, loadSet, originDir } from "./oracle.ts";
 import type { Pins } from "../doctrine/pins.ts";
 
