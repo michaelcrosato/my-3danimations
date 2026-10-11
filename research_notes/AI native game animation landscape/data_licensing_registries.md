@@ -101,7 +101,7 @@ The verdict column answers one question: may the clips be converted into an edit
   - If the predecessor repo applied one blanket license to its CMU import, that misstates CMU's terms.
 - **"Even in converted form" covers key-pose text conversions.** Converting to readable key poses does not escape CMU's resale clause or any no-redistribution clause (Truebones, Mixamo, RPM, MPI).
 - **Re-check the existing imports.** Quaternius UAL2 was updated recently (v2.2, 28/9/2026), so the predecessor's import may be stale. The Mesh2Motion asset licenses should also be re-audited given the July 2026 CGWorld report.
-- **Paid routes do not obviously solve redistribution.** Rokoko says licensees may not redistribute the data in its original form, and MPI/Meshcapade commercial licenses were not reviewed. Even a purchased license would need an explicit right to redistribute derived key-pose data publicly.
+- **Paid routes do not obviously solve redistribution.** Rokoko's page says the data may not be redistributed in its original form, though the wording is ambiguous about who that binds, and MPI/Meshcapade commercial licenses were not reviewed. Even a purchased license would need an explicit right to redistribute derived key-pose data publicly.
 
 ### Gaps
 - The current official Mixamo FAQ wording (helpx returned 403) and current Truebones terms (Gumroad body not fetchable) were not verified directly.
@@ -178,7 +178,7 @@ For Creative Commons non-commercial datasets (LAFAN1, Bandai Namco, MotionMillio
   - (c) ND content should not be used as training data at all, per CC.
 
   A library whose value is "legally clean, redistributable data" should not rely on the fair-use argument.
-- **Recommended contribution rule.** A generated clip should be accepted only if the generator's training data is documented and every training source permits commercial use and redistribution of outputs. In practice that means CC0, CC BY, licensed data, or the library's own CC0 clips. The rule should be backed by a declared training-data manifest and a similarity check against known non-commercial clips where lawful. HumanML3D-trained models such as MDM and T2M-GPT variants, and MotionMillion- or OpenT2M-trained models, would be excluded under this rule.
+- **Recommended contribution rule.** A generated clip should be accepted only if the generator's training data is documented and every training source permits commercial use and redistribution of outputs. In practice that means CC0, CC BY, licensed data, or the library's own CC0 clips. The rule should be backed by a declared training-data manifest and a similarity check against known non-commercial clips where lawful. Any model trained on HumanML3D, KIT-ML, BABEL, Motion-X, MotionMillion or OpenT2M data would be excluded under this rule, whatever license its weights or code carry.
 
 ### Gaps
 - No case law was found on whether research-only dataset terms bind people who receive a model's outputs.
@@ -298,7 +298,7 @@ Package registries offer the most transferable mechanics:
 #### Comparison table
 | Registry | Contributions | Quality and spam/malware controls | License and attribution metadata | Deprecation and removal | Integrity and content addressing |
 |---|---|---|---|---|---|
-| **Poly Haven** | Submission form. If approved, the contributor signs a legal agreement and provides proof of authorship. Unpaid; donors are considered first when hiring ([contribute](https://polyhaven.com/contribute)) | "Quality over quantity", with detailed technical standards per asset type. Work must be "100% your own original work". Generative AI is "strictly" not allowed at any stage. No logos or trademarks ([contribute](https://polyhaven.com/contribute)) | CC0 only and irrevocable: "Our assets are all licensed as CC0." Credit is "appreciated" ([license](https://polyhaven.com/license)). The API asks for attribution such as "Powered by Poly Haven" for live-API use only, and requires a unique Referer or User-Agent ([API ToS](https://raw.githubusercontent.com/Poly-Haven/Public-API/master/ToS.md)) | CC0 cannot be revoked ([contribute](https://polyhaven.com/contribute)) | API metadata includes `authors` (for example `{"Sergej Majboroda":"All"}`), `date_published`, `files_hash`, and a per-file `md5` ([info example](https://api.polyhaven.com/info/abandoned_bakery); [files example](https://api.polyhaven.com/files/abandoned_bakery); [swagger](https://api.polyhaven.com/api-docs/swagger.json)) |
+| **Poly Haven** | Submission form. If approved, the contributor signs a legal agreement and provides proof of authorship. Unpaid; donors are considered first when hiring ([contribute](https://polyhaven.com/contribute)) | Strict review that puts quality before quantity, with detailed technical standards per asset type. Work must be "100% your own original work". Generative AI is "strictly" not allowed at any stage. No logos or trademarks ([contribute](https://polyhaven.com/contribute)) | CC0 only and irrevocable: "Our assets are all licensed as CC0." Credit is "appreciated" ([license](https://polyhaven.com/license)). The API asks for attribution such as "Powered by Poly Haven" for live-API use only, and requires a unique Referer or User-Agent ([API ToS](https://raw.githubusercontent.com/Poly-Haven/Public-API/master/ToS.md)) | CC0 cannot be revoked ([contribute](https://polyhaven.com/contribute)) | API metadata includes `authors` (for example `{"Sergej Majboroda":"All"}`), `date_published`, `files_hash`, and a per-file `md5` ([info example](https://api.polyhaven.com/info/abandoned_bakery); [files example](https://api.polyhaven.com/files/abandoned_bakery); [swagger](https://api.polyhaven.com/api-docs/swagger.json)) |
 | **ambientCG** | Single creator; the license page is written in the first person ([license](https://docs.ambientcg.com/license/)) | Authorship is the quality control | "CC0 1.0 Universal"; "You don't need to give credit". Users may "include the raw files in your project, for example a video game" ([license](https://docs.ambientcg.com/license/)) | Not stated | Not stated |
 | **Kenney** | Single studio | Authorship is the quality control | CC0; "Attribution is not required"; the logo is reserved ([support](https://kenney.nl/support)) | Not stated | Not stated |
 | **Quaternius** | Single creator. Free Standard edition plus paid Pro and Source editions via itch.io and Patreon ([UAL1](https://quaternius.com/packs/universalanimationlibrary.html); [UAL2 itch](https://quaternius.itch.io/universal-animation-library-2)) | Authorship is the quality control | CC0 | Versioned changelog on itch.io (v2.0 → v2.2) ([UAL2 itch](https://quaternius.itch.io/universal-animation-library-2)) | Not stated |
@@ -388,7 +388,7 @@ There is no motion- or 3D-specific provenance standard in practical use. C2PA's 
 - Hugging Face dataset card fields: `license`; `license_name` and `license_link` (when `license: other`); `source_datasets` (for example `laion/laion-2b`); `annotations_creators` (`crowdsourced`, `found`, `expert-generated`, `machine-generated`); gating fields. — [datasetcard.md](https://raw.githubusercontent.com/huggingface/hub-docs/main/datasetcard.md)
 
 **Signed provenance and personal data**
-- npm provenance links a package "to its source code and build instructions". It is signed "by Sigstore public good servers and logged in a public transparency ledger". It requires a cloud-hosted GitHub Actions or GitLab CI/CD runner. — [npm provenance](https://docs.npmjs.com/generating-provenance-statements)
+- An npm provenance attestation links a package to its source code and build instructions. A package published with provenance "is signed by Sigstore public good servers and logged in a public transparency ledger". It requires a cloud-hosted GitHub Actions or GitLab CI/CD runner. — [npm provenance](https://docs.npmjs.com/generating-provenance-statements)
 - Rokoko says its motion data is handled under GDPR and that identifying elements, including "unique measurements", are removed. This signals that motion capture can be personal or biometric data. — [Rokoko motion dataset](https://www.rokoko.com/mocap/motion-dataset)
 
 ### Inferences
@@ -429,7 +429,7 @@ No precedent was found for a curated motion or animation library grown by AI age
   - paste-site redirects that change payloads without editing the published skill;
   - cron-based persistence;
   - crypto-key theft;
-  - "registry saturation" by a single publisher.
+  - one publisher injecting identical payloads into most of its catalog.
   - Source: [Unit 42, 2026-06-23](https://unit42.paloaltonetworks.com/openclaw-ai-supply-chain/)
 - Countermeasures: VirusTotal screening, ClawScan code analysis and an NVIDIA screening partnership (1 June 2026). They still missed skills that padded READMEs with about 22 MB to exceed scanner limits. After Unit 42's report, OpenClaw banned the accounts involved and deleted the skills. — [Unit 42](https://unit42.paloaltonetworks.com/openclaw-ai-supply-chain/)
 - Unit 42's lessons: do not rely on a single scanner; verify publisher provenance; audit source line by line; compare outbound traffic to documented endpoints; watch for financial abuse, which scanners miss. — [Unit 42](https://unit42.paloaltonetworks.com/openclaw-ai-supply-chain/)
@@ -458,7 +458,7 @@ No precedent was found for a curated motion or animation library grown by AI age
 
 ### Inferences
 - **What went wrong.** Three recurring failure modes:
-  - Volume without identity or limits (Fab, ClawHub's "registry saturation").
+  - Volume without identity or limits (Fab's single-seller flood, a ClawHub publisher seeding most of its catalog with one payload).
   - Incentives that reward submission rather than quality (curl's bounty).
   - Executable or instruction-bearing content (ClawHub skills, npm post-install scripts).
 
