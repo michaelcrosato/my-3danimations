@@ -1120,6 +1120,8 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
   - the helpers match `core.json`;
   - their cost is measured and stated.
 - **Verify:** `npm test -- math && npm run test:cross-engine` (Bun is installed in the container)
+- **Landed with (D33):** the codec, the skeleton profile and the validator call the portable math too, and lint bars the
+  host's transcendental `Math` in core; `pow` is within one unit of the native, which V8 takes from the C library.
 
 #### WP-2.2 Sampler, events, contacts and facts
 - **Owns:** `packages/core/src/clip/*`, `packages/core/fixtures/facts-truth.json`
@@ -1195,6 +1197,10 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
     curled spine), bone lengths are unchanged, soles never go below the floor, and there is no NaN;
   - on the reference body, the solved joints are within 1 mm of the decoder's.
 - **Verify:** `npm test -- solve conformance/tier3`
+- **Landed with (D36):** "the decoder's" is the decode on the target with the hips carrying the lowest spine segment
+  (`decodeOn`). No hips bone that also carries the legs can take a share of the chest's turn, so the joints sit up to
+  36.5 mm from the plain decoder's on the 124 tier-2 samples with a lower spine share. Bone roll is tested too: mirror,
+  bend sweeps, T = A = relaxed, and fingers.
 
 #### WP-2.5 Contacts and ground
 - **Owns:** `packages/core/src/contact/*`
@@ -1237,6 +1243,12 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
   - the cost of one character's `step()` and `pose()` is measured on the 4-core cloud container and stated;
   - the public API is at most 40 exports, each with a doc comment.
 - **Verify:** `npm test -- animator && npm run e2e -- animator-parity`
+- **Landed with (D38):**
+  - "Exports" counts the names `src/index.ts` lists: 38. Each module's whole surface sits behind one of them as a
+    namespace (145 runtime names through 9 namespaces).
+  - The boundary check enforces it: one export per statement, each with a doc comment, no bare `export *`.
+  - Outside the Owns: the boundary check, the tools and conformance tests moved onto the namespaces, core's test
+    barrel, and the Animator's run in `test:cross-engine`.
 
 **Gate G2.**
 
@@ -2201,13 +2213,13 @@ version, commit, date and a note with the numbers. Gates are rows too.
 | 1.4 The skeleton profile | done | 0.5.0 | 76c6942 | 2026-10-11 | 8 tables × 3 name styles exact; topology maps renamed Mixamo and rig skeletons (conf 0.85); measure = tier 1a rests bit for bit; restPoints within 0.001 mm; 32 tests; D28 |
 | 1.5 Migrate the seed sets | done | 0.6.0 | 48de33a, 08087bf | 2026-10-11 | 5 sets, 525 clips, 0 errors, 171 warnings baselined; keys equal their sources; 3 sets decode within 1 µm of tier 2; catalogs ≤40 tokens (34 rows cut); 4.3 MB; D30 |
 | **G1** | done | 0.6.0 | 6bffb3e | 2026-10-11 | 7/7 in 11.0 s: T0 1.3 s, T1 3.0 s (178 tests), doctrine 8/8 (10 files frozen), tiers 1a and 2, migrate --check, migrated library; verifier: 7 findings fixed (D32), notes F1 |
-| 2.1 Math kernel and determinism | todo | | | | |
-| 2.2 Sampler, events, contacts, facts | todo | | | | |
-| 2.3 Pose operations | todo | | | | |
-| 2.4 The solver | todo | | | | |
-| 2.5 Contacts and ground | todo | | | | |
-| 2.6 The Animator | todo | | | | |
-| **G2** | todo | | | | |
+| 2.1 Math kernel and determinism | done | 0.7.0 | 01706fd | 2026-10-11 | 13 functions give V8's bits on 200k inputs each, random bit patterns and specials; pow ≤1 ulp of glibc; core.json bit for bit; V8 = JSC on 2.8M results and a 100k-step chain; cost 0.7–4× native (D33) |
+| 2.2 Sampler, events, contacts, facts | done | 0.8.0 | d774088 | 2026-10-11 | sample = tier 2 at 7,444 samples; loop events once; yaw 90/360/720° continuous, rootDelta carries seams; truth 20/20: speeds ≤11%, distances ≤0.2% or 0.2% of H0, strikes ≤0.06 s (D34) |
+| 2.3 Pose operations | done | 0.9.0 | c20b087 | 2026-10-11 | mirror twice = identity on all 525 clips (≤0.5 mm); blend 0/1 = inputs; retime keeps order and contact shares; synced walk–jog/sprint blends keep planted feet ≤18.5 mm (by time, out of step: >100 mm) (D35) |
+| 2.4 The solver | done | 0.11.1 | 498fab2, d854578 | 2026-10-11 | reference body: joints ≤0.0018 mm of the solver's decode at all 7,572 tier-2 samples (≤36.5 mm of the plain decoder on the 124 with a lower spine share); roll: mirror ≤3.4e-6°, bend sweeps ≤2°/step, T = A = relaxed ≤1e-4°; tier 3 on 7 bodies × 1,324 poses: limbs ≤9° (0° to rounding), chest exact, lengths kept, soles ≥ floor, no NaN (D36) |
+| 2.5 Contacts and ground | done | 0.11.0 | 39c7ad5 | 2026-10-11 | 133 locomotion loops + synced blends: planted contact point slides 0.0 mm per contact (free: up to 92); 10° slopes and 0.2 m steps: planted soles within 1.7 mm, none under; pelvis drop ≤0.1 H0 (D37) |
+| 2.6 The Animator | done | 0.12.1 | 7d8cef6, ba5e792 | 2026-10-11 | 480-step script: state hash every step, 29 events and 5 exact poses identical in Node and Chromium, with poses skipped, every step or alternating LOD; save at every step → restore via JSON → next 40 identical; changed/missing clip refused by name; feet ≤10 mm; step 1.4 µs, pose 0.20 ms (4 layers, 4 cores); API 38 of 40, documented ; review: seams once a cycle at any speed, one-shot ends once, no −0, body and in-place edits refused (D38) |
+| **G2** | done | 0.12.1 | a5fb0a0 | 2026-10-11 | 8/8 in 42.1 s: T0 1.7 s, T1 14.8 s (305 tests), doctrine 8/8 (API 38/40), vectors, tiers 1a–3, Animator Node = Chromium (480 hashes, 41 events, 5 exact poses), V8 = JSC (math, chain, Animator), property tests; verifiers: WP-2.4 8 + G2 7 findings fixed (D36, D38), notes F2, F3 |
 | 3.1 The software raster | todo | | | | |
 | 3.2 Sheets, films and diffs | todo | | | | |
 | 3.3 The metrics | todo | | | | |

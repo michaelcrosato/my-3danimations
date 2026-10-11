@@ -5,7 +5,7 @@ import { dirname, join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { checkBanned } from "./banned.ts";
 import { checkBinaries } from "./binaries.ts";
-import { checkBoundaries, specifiers } from "./boundaries.ts";
+import { checkBoundaries, publicApi, specifiers } from "./boundaries.ts";
 import { checkBudgets } from "./budgets.ts";
 import { makeCtx, type Ctx } from "./context.ts";
 import { checkDecisions, entryIds } from "./decisions.ts";
@@ -60,7 +60,7 @@ describe("boundaries", () => {
   });
   it("passes the allowed graph", () => {
     const ctx = fixture({
-      "packages/core/src/index.ts": 'export * from "./a.ts";',
+      "packages/core/src/index.ts": '/** The a module. */\nexport * as a from "./a.ts";',
       "packages/sensors/src/index.ts": 'import { VERSION } from "@m3a/core";',
       "packages/sensors/src/node.ts": 'import { readFileSync } from "node:fs";',
       "packages/tools/src/intake/store.ts": 'import { createClient } from "@supabase/supabase-js";',
@@ -86,6 +86,21 @@ describe("boundaries", () => {
     expect(msgs.some((m) => m.includes("IntakeStore"))).toBe(true);
     expect(msgs.some((m) => m.includes("public entries"))).toBe(true);
     expect(msgs.some((m) => m.includes("nothing imports from apps/"))).toBe(true);
+  });
+});
+
+describe("the public API", () => {
+  it("counts each export, and finds a bare export * and an export with no doc comment", () => {
+    const text = '/** v */\nexport { VERSION } from "./v.ts";\n/**\n * many\n */\nexport type {\n  A,\n  B as C,\n} from "./a.ts";\n// not a doc\nexport const X = 1;\nexport * from "./z.ts";\n/** ns */\nexport * as ns from "./n.ts";\n/** f */\nexport function f() {}';
+    expect(publicApi(text)).toEqual({ names: ["VERSION", "A", "C", "X", "ns", "f"], undocumented: ["X"], bare: ['export * from "./z.ts";'] });
+  });
+  it("fails a package entry over its limit, with a bare export * or an undocumented export", () => {
+    const many = Array.from({ length: 41 }, (_, i) => `/** n${i} */\nexport const n${i} = ${i};`).join("\n");
+    const msgs = checkBoundaries(fixture({ "packages/core/src/index.ts": many, "packages/io/src/index.ts": 'export * from "./a.ts";\nexport const Y = 1;' })).findings.map((f) => f.message);
+    expect(msgs).toHaveLength(3);
+    expect(msgs.some((m) => m.includes("41 names, more than 40"))).toBe(true);
+    expect(msgs.some((m) => m.includes("as a namespace"))).toBe(true);
+    expect(msgs.some((m) => m.includes("no doc comment above the export of Y"))).toBe(true);
   });
 });
 

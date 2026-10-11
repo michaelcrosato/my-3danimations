@@ -4,6 +4,8 @@
 //   ALLOWED, never another package's internals; @supabase/supabase-js only in @m3a/tools' src/intake/.
 // - Apps and the benchmark reach packages only through `@m3a/<name>` or `@m3a/<name>/node`; labs (apps/lab/) may
 //   reach past, and are listed instead of failed. Nothing imports from apps/.
+// - Each package's public API is its src/index.ts, all of it listed there (PLAN.md WP-2.6): one export per statement,
+//   each with a doc comment, no bare `export *` (a module's surface goes in as a namespace), and core's at most 40.
 import { builtinModules } from "node:module";
 import { dirname, join, normalize } from "node:path";
 import type { Ctx, Finding } from "./context.ts";
@@ -29,14 +31,56 @@ export function specifiers(text: string): string[] {
   return out;
 }
 
+/** The most names a package's public entry may export. */
+export const API_MAX: Record<string, number> = { core: 40 };
+
+/** A public entry's exports: each statement's names, and whether a doc comment sits right above it. */
+export function publicApi(text: string): { names: string[]; undocumented: string[]; bare: string[] } {
+  const names: string[] = [], undocumented: string[] = [], bare: string[] = [];
+  const lines = text.split("\n");
+  for (let i = 0; i < lines.length; i++) {
+    if (!/^export\b/.test(lines[i]!)) continue;
+    let stmt = lines[i]!;
+    for (let j = i + 1; !/[;}]\s*$/.test(stmt) && j < lines.length && /^export\s*(type\s*)?\{/.test(stmt); j++) stmt += " " + lines[j]!;
+    let these: string[];
+    const list = /^export\s+(?:type\s+)?\{([^}]*)\}/.exec(stmt), ns = /^export\s+\*\s+as\s+(\w+)/.exec(stmt), decl = /^export\s+(?:declare\s+)?(?:abstract\s+)?(?:const|let|var|function\*?|async\s+function|class|interface|type|enum)\s+(\w+)/.exec(stmt);
+    if (list) these = list[1]!.split(",").map((x) => x.trim().replace(/^type\s+/, "").split(/\s+as\s+/).pop()!).filter(Boolean);
+    else if (ns) these = [ns[1]!];
+    else if (/^export\s+\*/.test(stmt)) {
+      bare.push(stmt.trim());
+      continue;
+    } else these = decl ? [decl[1]!] : [stmt.trim()];
+    names.push(...these);
+    let k = i - 1;
+    while (k >= 0 && lines[k]!.trim() === "") k--;
+    const above = lines[k]?.trim() ?? "";
+    let doc = false;
+    if (above.endsWith("*/")) {
+      while (k >= 0 && !lines[k]!.includes("/*")) k--;
+      doc = k >= 0 && lines[k]!.includes("/**");
+    }
+    if (!doc) undocumented.push(...these);
+  }
+  return { names, undocumented, bare };
+}
+
 const isNode = (s: string) => s.startsWith("node:") || BUILTINS.has(s.split("/")[0]!);
 const isRelative = (s: string) => s.startsWith("./") || s.startsWith("../");
 
 /** Check every source file's imports; returns findings and the labs' reach-pasts (listed, never failed). */
-export function checkBoundaries(ctx: Ctx): { findings: Finding[]; reachPasts: string[] } {
+export function checkBoundaries(ctx: Ctx): { findings: Finding[]; reachPasts: string[]; api: Record<string, number> } {
   const findings: Finding[] = [];
   const reachPasts: string[] = [];
+  const api: Record<string, number> = {};
   const fail = (f: string, s: string, why: string) => findings.push({ check: "boundaries", message: `${f} imports "${s}": ${why}` });
+  for (const f of ctx.files.filter((p) => /^packages\/[^/]+\/src\/index\.ts$/.test(p))) {
+    const pkg = f.split("/")[1]!, r = publicApi(ctx.read(f)), max = API_MAX[pkg];
+    api[pkg] = r.names.length;
+    const say = (message: string) => findings.push({ check: "boundaries", message: `${f}: ${message}` });
+    for (const b of r.bare) say(`"${b}" exports a module's names unlisted; list each one, or export the module as a namespace (export * as name)`);
+    if (r.undocumented.length) say(`no doc comment above the export of ${r.undocumented.join(", ")}; put a /** ... */ line right above each`);
+    if (max !== undefined && r.names.length > max) say(`exports ${r.names.length} names, more than ${max}; move the rarer ones into a namespace`);
+  }
   for (const f of ctx.files.filter((p) => /\.(ts|js|mjs|cjs|tsx)$/.test(p) && !p.endsWith(".d.ts"))) {
     const specs = specifiers(ctx.read(f));
     const pkg = /^packages\/([^/]+)\/src\//.exec(f)?.[1];
@@ -68,5 +112,5 @@ export function checkBoundaries(ctx: Ctx): { findings: Finding[]; reachPasts: st
       }
     }
   }
-  return { findings, reachPasts };
+  return { findings, reachPasts, api };
 }

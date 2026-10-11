@@ -4,7 +4,9 @@
 import { createHash } from "node:crypto";
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { parseClip, pose, serialize, validate, validateCatalogRow, type Rest } from "@m3a/core";
+import { format, parseClip, serialize, validate, validation, type Rest } from "@m3a/core";
+
+const { pose } = format, { validateCatalogRow } = validation;
 import { Ajv2020 } from "ajv/dist/2020.js";
 import { describe, expect, it } from "vitest";
 import { loadTier2 } from "../../../spec/conformance/runner/vectors.ts";

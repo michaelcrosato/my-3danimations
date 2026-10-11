@@ -4,6 +4,120 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.12.1 · 2026-10-11
+
+### Core
+- The Animator, fixed from the G2 review (D38):
+  - a loop's events fire once a cycle at any speed, backward too, however many cycles one step covers;
+  - a one-shot's end fires once when the playhead turns round at it;
+  - no −0 in the state;
+  - `restore()` hashes clips afresh (one edited in place is refused) and refuses a save made on another body
+    (E_BODY_CHANGED);
+  - each call's turn is composed step by step (no 360° jump);
+  - a clip with no id, a zero-length loop and a malformed save are refused or played still;
+  - the lowest layer fires its events whatever its weight.
+
+### Tools
+- `npm run test:cross-engine` runs the Animator's script in JavaScriptCore (Bun) too: the same hash as V8.
+
+## 0.12.0 · 2026-10-11
+
+### Core
+- WP-2.6: the Animator (`animator/`):
+  - layers (clip, weight, mask, additive, speed);
+  - `step(dt)` on a fixed step: events in the order the playheads pass them, root motion mixed like the pose;
+  - `hash()`; `save()` and `restore()` as plain JSON, naming each clip by id and content hash, refusing a changed or
+    missing clip by name;
+  - `pose()` with planted feet, the ground and hand targets, at full detail, `lod` 1 or `{ exact: true }`.
+- The public API is `src/index.ts`, all of it: 38 documented names, each module as a namespace (`format`, `ops`,
+  `math`, `solver`, ...).
+
+### Tools
+- The doctrine's boundary check counts each package's public exports (core at most 40), and fails a bare `export *`
+  or an export with no doc comment.
+
+### Repo
+- e2e `animator-parity`: the Animator's hashes, events and exact poses are the same in Node and headless Chromium.
+
+## 0.11.1 · 2026-10-11
+
+### Core
+- The solver's bone roll, fixed from WP-2.4's review (D36):
+  - the left arm's rest pole is no longer mirrored (it rolled 62.7° on every pose);
+  - arms and legs roll by their bend plane's normal, with no flip at any bend;
+  - feet and toes roll about the axis they pitch about;
+  - hands roll by the knuckle line, the skeleton's own at rest, and a format-1 hand stays on its forearm;
+  - fingers curl toward the palm at any hand roll;
+  - T, A and relaxed rests give the same rotations.
+- The hips carry the lowest spine segment, so every point the solver decodes is one the bones reach (`solveRest`,
+  `reachable`, `decodeOn`).
+
+### Spec
+- Conformance tier 3 reads its tolerances from the runner's `TOLERANCE`.
+
+## 0.11.0 · 2026-10-11
+
+### Core
+- WP-2.5: contacts and ground (`contact/`): `plant` holds each planted foot's contact point still in the world
+  (stateless: the motion's own drift since landing, undone), sets the sole on the ground (pitched to slopes and steps
+  through a ground probe), lowers the pelvis where a leg can't reach, solves the legs again, and draws hands to
+  weighted targets; `contactRoot` gives an in-place clip the root its planted feet imply. `solve` takes edited points.
+- Contact detection also asks a planted foot to be still in the world (slower than half the body's speed), and closes
+  gaps up to 0.1 s; `syncBlend` gives the blend's contacts, the inputs' weighted.
+- On all 133 migrated locomotion loops and on synced walk–run blends a planted foot slides at most 10 mm per contact
+  (0 mm measured); on 10° slopes and 0.2 m steps planted soles stay within 5 mm of the surface (1.7 mm measured).
+
+## 0.10.0 · 2026-10-11
+
+### Core
+- WP-2.4: the solver (`solve/`): `bind` (recognize, measure the body from the bones, map the format's frame to the
+  skeleton's) and `solve` (each bone's world and local rotation and the hips' place, from the key's numbers decoded on
+  the target body: limbs rolled by their poles, the spine by its shares, fingers by their curls, soles on the floor);
+  `forward` for the joints. Handles T, A and relaxed rests, missing optional bones, twist bones and a host's rest
+  rotations.
+- `quat.fromMat3`; the decoder's `limbPoles`; the decoder places a shoulder with no offset at its clavicle point.
+
+### Spec
+- Conformance tier 3 runs (`spec/conformance/tier3.test.ts`): every generated body of `tier3/bodies.json`, every tier-2
+  clip at four times.
+
+## 0.9.0 · 2026-10-11
+
+### Core
+- WP-2.3: pose operations (`ops/`): `blend` (angles the short way round; exact at 0 and 1 up to whole turns),
+  `delta` and `addDelta`, `mask` by body group with feathering, `mirrorPose`, `retime` (speed, duration or an ease
+  curve), `slice` (across a loop's seam; the root restarts), `loopify`, and `phaseMap` and `syncBlend` (contact-phase
+  sync; the legs blend in point space, so planted feet stay within 20 mm of the floor).
+- `encodePose` takes `round: false` for exact, unrounded numbers (the default is unchanged).
+
+## 0.8.0 · 2026-10-11
+
+### Core
+- WP-2.2: the clip runtime (`clip/`): `sample` (body points at t), `rootAt` and `rootDelta` (root travel and heading,
+  composed over loop cycles), `events` (each occurrence once, in order, loop-aware, either direction), `contactsAt`
+  and `detectContacts` (hysteresis about the floor), and `measureFacts` (seam, travel, speed from the planted feet,
+  height, strike, contacts).
+- WP-2.2: `fixtures/facts-truth.json`: 20 clips whose speeds, distances, strikes and loop flags come from my-3d2dge-2's
+  asset manifest and skill timings and shardfall's importer; measureFacts is within tolerance on all 20.
+
+### Repo
+- Lint bars `**` other than squaring in core (the host's pow; D34).
+
+## 0.7.0 · 2026-10-11
+
+### Core
+- WP-2.1: the math kernel (`math/`): portable `sin`, `cos`, `tan`, `atan`, `atan2`, `asin`, `acos`, `exp`, `log`,
+  `log2`, `log10`, `hypot` and `cbrt` with native V8's bits on every input tested (fdlibm, FreeBSD and V8's own
+  algorithms, Payne–Hanek past 2^19·π/2), and `pow` within one unit of glibc's; `PORTABLE`, `NATIVE` and `mathFor`.
+- WP-2.1: my-3d2dge's helpers bit for bit with core.json (`clamp`, `lerp`, `approach`, the angle helpers,
+  `smoothDamp`, `ease`, `hash2`, `noise2`); `Rng`, `rng`, `derive` and `RngStreams`; `Fnv64`, `hashNumbers` and
+  `hashValue`; `vec3`, `quat` (slerp, swing-twist, from unit vectors) and `mat4`.
+- WP-2.1: the codec, the skeleton profile and the validator call the portable math (tiers 1a and 2 unchanged, bit
+  for bit); lint bars the host's transcendental `Math` functions from core (D33).
+
+### Tools
+- WP-2.1: `npm run test:cross-engine`: V8 against JavaScriptCore (Bun), bit for bit, with each function's cost.
+
 ## 0.6.0 · 2026-10-11
 
 ### Spec

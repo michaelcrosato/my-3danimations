@@ -4,7 +4,7 @@
 import { finish, fmtMs, parseArgs, ROOT, usage, type Report, type Step } from "../run/cli.ts";
 import { checkBanned } from "./banned.ts";
 import { checkBinaries } from "./binaries.ts";
-import { checkBoundaries } from "./boundaries.ts";
+import { API_MAX, checkBoundaries } from "./boundaries.ts";
 import { checkBudgets } from "./budgets.ts";
 import { makeCtx, type Finding } from "./context.ts";
 import { checkDecisions } from "./decisions.ts";
@@ -25,7 +25,8 @@ export function runChecks(root: string = ROOT): Step[] {
   step("budgets", () => checkBudgets(ctx));
   step("boundaries", () => {
     const r = checkBoundaries(ctx);
-    return { findings: r.findings, lines: [`imports hold${r.reachPasts.length ? `; labs reach past the API ${r.reachPasts.length}x: ${r.reachPasts.slice(0, 3).join(", ")}` : ""}`] };
+    const api = `core's public API ${r.api.core ?? 0} of ${API_MAX.core} exports, each documented`;
+    return { findings: r.findings, lines: [`imports hold; ${api}${r.reachPasts.length ? `; labs reach past the API ${r.reachPasts.length}x: ${r.reachPasts.slice(0, 3).join(", ")}` : ""}`] };
   });
   step("banned", () => ({ findings: checkBanned(ctx), lines: ["no banned API used"] }));
   step("pins", () => checkPins(ctx));

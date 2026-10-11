@@ -9,7 +9,10 @@ import { join } from "node:path";
 import { stringify } from "../../spec/conformance/runner/json.ts";
 import { loadCmuReader, loadCodec, loadGlbReader, loadSet, quietly, type Capture, type Clip1, type MR } from "./oracle.ts";
 import { glb, rigGltf, type Proportions } from "./rig.ts";
-import { keyLens, mirror as mirror2, pose as pose2, type KeyLike, type Rest } from "@m3a/core";
+import { format, type Rest } from "@m3a/core";
+
+const { keyLens, mirror: mirror2, pose: pose2 } = format;
+type KeyLike = format.KeyLike;
 
 /** The curated sets of my-3d2dge carried into tier 2 (hero.js is game-specific and stays behind). */
 export const SETS = ["quaternius", "mesh2motion", "cmu"] as const;

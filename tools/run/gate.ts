@@ -20,6 +20,16 @@ export const GATES: Record<string, [string, string, ...string[]][]> = {
     ["migrate --check", "migrate", "--check"],
     ["migrated clips validate and decode like their sources", "test", "library/migrated"],
   ],
+  G2: [
+    ["check", "check"],
+    ["test", "test"],
+    ["doctrine", "doctrine"],
+    ["vectors --check", "vectors", "--check"],
+    ["conformance tiers 1a, 2 and 3", "test", "conformance/tier1a", "conformance/tier2", "conformance/tier3"],
+    ["determinism: the Animator's hashes and exact poses, Node = Chromium", "e2e", "animator-parity"],
+    ["portable math: V8 = JavaScriptCore (Bun)", "test:cross-engine"],
+    ["property tests: mirror twice, blend ends, retime, solver roll", "test", "ops", "solve"],
+  ],
 };
 
 if (import.meta.main) {

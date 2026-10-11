@@ -1,8 +1,11 @@
 // Conformance tier 1a (spec/conformance/tiers.md): from the oracle's captured body points, @m3a/core's codec reduces,
 // fits and writes text bit for bit like my-3d2dge's readable.js, for the tiny rig and the CMU take.
-import { fit, reduce, text1, type Capture, type Rest } from "@m3a/core";
+import { format, type Rest } from "@m3a/core";
 import { describe, expect, it } from "vitest";
 import { firstDiff, loadTier1a, type Tier1aClip } from "./runner/vectors.ts";
+
+const { fit, reduce, text1 } = format;
+type Capture = format.Capture;
 
 /** A tier-1a capture as the codec takes it (float32 frames, as the origin stores them). */
 function capture(c: Tier1aClip["capture"]): Capture {

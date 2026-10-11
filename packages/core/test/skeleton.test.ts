@@ -2,7 +2,7 @@
 // case stripped); the topology fallback maps renamed skeletons and reports its confidence; measure reproduces tier
 // 1a's rests bit for bit; restPoints places the tiny rig's body points where the importer did.
 import { describe, expect, it } from "vitest";
-import { HUMANOID_BONES, HUMANOID_PARENT, measure, patchMapping, recognize, REQUIRED_BONES, restFrame, restPoints, TABLES, type Capture, type SkeletonIn } from "../src/index.ts";
+import { HUMANOID_BONES, HUMANOID_PARENT, measure, patchMapping, recognize, REQUIRED_BONES, restFrame, restPoints, TABLES, type Capture, type SkeletonIn } from "./all.ts";
 import { firstDiff, loadTier1a, VECTORS } from "../../../spec/conformance/runner/vectors.ts";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";

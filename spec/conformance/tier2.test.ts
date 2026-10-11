@@ -1,9 +1,13 @@
 // Conformance tier 2 (spec/conformance/tiers.md): every curated clip decodes on its reference body within 0.001 mm of
 // the oracle at each key and at three in-betweens; mirroring and the format-1 text lens match it exactly.
-import { keyLens, mirror, parse1, pose, text1, type KeyLike, type Lensed, type Rest } from "@m3a/core";
+import { format, type Rest } from "@m3a/core";
 import { describe, expect, it } from "vitest";
 import { stringify } from "./runner/json.ts";
 import { loadTier2, sha256, TOLERANCE, tier2Sets } from "./runner/vectors.ts";
+
+const { keyLens, mirror, parse1, pose, text1 } = format;
+type KeyLike = format.KeyLike;
+type Lensed = format.Lensed;
 
 const sorted = (o: Record<string, unknown>) => Object.fromEntries(Object.keys(o).sort().map((k) => [k, o[k]]));
 const noZeroSign = (keys: KeyLike[]) => JSON.stringify(keys.map(sorted), (_k, v) => (v === 0 ? 0 : v));

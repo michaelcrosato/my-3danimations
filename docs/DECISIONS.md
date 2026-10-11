@@ -428,3 +428,251 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   (io, WP-4.3); a validate kind for `_baseline.json`.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.6.0
+
+## D33 · 2026-10-11 · The portable math is V8's bits, and all of core uses it
+
+- **Principle:** 5 (deterministic by construction), WP-2.1
+- **Call:**
+  - `@m3a/core`'s `math/portable.ts` gives native V8's bits for `sin`, `cos`, `tan`, `atan`, `atan2`, `asin`, `acos`,
+    `exp`, `log`, `log2`, `log10`, `hypot` and `cbrt` on every input tested: 200,000 per function in the origin's
+    ranges, 30,000 random bit patterns each over the whole double range, and the special values. That is more than
+    the origin, whose 6 exact functions stopped at 2^19·π/2 and whose others were a few units off. The extra exactness
+    comes from porting what V8 runs: fdlibm's `tan`, `asin`, `acos`, `log10`, `cbrt` and Payne–Hanek reduction,
+    FreeBSD's `log2` and `atan2` (±π/2 when |y/x| > 2^60), V8's `hypot` (scaled, Kahan-summed) and its `exp(1)` case.
+  - `pow` is fdlibm's, within one unit of the native: V8 calls the platform's C library for `pow` (glibc's here), so
+    native `pow` itself differs between platforms, and no portable `pow` can match every one.
+  - The kernel's functions that need trigonometry take a `MathLike`, portable by default; presentation may pass
+    `NATIVE`. The codec, the skeleton profile and the validator now call `PORTABLE` too (tiers 1a and 2 stay bit for
+    bit, because the bits are the same), and ESLint bars the host's transcendental `Math` functions from core outside
+    `math/portable.ts`. This went beyond WP-2.1's `Owns`; one agent holds every lane (D21).
+  - `npm run test:cross-engine` fails when no Bun is found, rather than passing unchecked: the G2 criterion needs a
+    second engine.
+- **Cost, measured** (`npm run test:cross-engine`, ns per call through a function value, Node 24.21 and Bun 1.4.2 in
+  the container): `sin`, `cos`, `atan`, `asin`, `acos`, `exp` and `hypot` 0.7 to 1.5× native; `tan`, the logs and
+  `cbrt` 1.5 to 3.5×; `pow` about 4× (about 150 ns). A pose of 36 points with its trig costs a few microseconds more.
+- **Why:** the hashed paths and the exact-mode pose (§5.5) must give the same bits in Node, Chromium and Safari; matching
+  V8 exactly also keeps every vector generated in Node valid.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.7.0
+
+## D34 · 2026-10-11 · Facts are measured, and their ground truth is the origins' own measurements
+
+- **Principle:** 9 (QA first), 5, WP-2.2
+- **Call:**
+  - `facts-truth.json` takes its expectations from three sources the code under test never saw:
+    - my-3d2dge-2's asset manifest, which measured each GLB clip's root speed (m/s) and loop flag;
+    - its designers' strike times for the hero's skills;
+    - shardfall's importer's recorded 100STYLE speeds.
+
+    Clips were chosen by rule, not by result: every forward-stepping UAL loop the manifest gives a speed, 100STYLE's
+    fastest and slowest recorded walks, all six `_RM` clips, and the hero's sword strikes. The origin's `hitAt` belongs
+    to procedural moves, and shardfall's `strike` is computed by its Rust runtime at run time (no stored numbers), so
+    neither could serve. Monster skills' timings are left out: they also drive procedural creatures, and one
+    (`Zombie_Scratch`) sits 0.24 s after the swipe.
+  - An in-place loop's speed is read from its planted feet: at each sample, the planted foot nearest under the pelvis,
+    its lowest point, the median velocity. Every stepping loop lands within 11% of its source speed.
+    - Swims and slides plant no foot on the floor, so they read as not travelling.
+    - A shuffle reads low (100STYLE's `Penguin_Walk`, −18%, outside the truth set's rule).
+  - Contacts are detected about the format's floor (z = 0) with hysteresis. A toe dipping through the floor mid-swing
+    must not move the ground, and an end far under the floor isn't planted.
+  - The strike is when the fastest end moves fastest relative to the pelvis: the fists, a blade's tip (one H0 along the
+    knuckle line) when the clip holds one, and the toes for a kick. It lands within 0.06 s of the designers' times.
+  - Events fire in half-open windows `[t0, t1)`, so a loop's `t = 0` and `t = dur` are one moment, firing once a
+    cycle. A one-shot's end event fires once the playhead passes `dur`.
+  - Lint now also bars `**` in core other than squaring, which is exact in every engine.
+- **Why:** facts drive QA, search and gameplay timing; a fact checked only against the code that computed it proves
+  nothing (PLAN.md WP-2.2, "Ground truth").
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.8.0
+
+## D35 · 2026-10-11 · Pose operations work on key numbers; synced blends take the legs from points
+
+- **Principle:** 2 (one language), 9, WP-2.3
+- **Call:**
+  - Pose operations work on a key's numbers (`KeyLike`), the format's own parameters, as the solver will (§5.5:
+    bake from the parameters).
+  - `blend` takes an angle to the other pose's value nearest it (whole turns apart), so it blends the short way round.
+    At 0 it gives its first input exactly; at 1 the second, angles up to whole turns, which decode identically and
+    stay continuous with the first.
+  - A field neither pose has stays out, because a `hand` present changes how the arm reads (§5.3).
+  - A synchronized blend maps each loop's cycle to a contact phase: the left plant is 0, the right plant 0.5.
+  - Given a rest body, it blends the legs in point space. Both poses are decoded, the points lerped, and the pelvis
+    and legs encoded back unrounded (`encodePose(..., { round: false })`, added to WP-1.3's encoder; its default and
+    the vectors are unchanged).
+    - Why: a foot's height isn't linear in a leg's direction and bend. Blending those numbers lifted feet that both
+      inputs plant by up to 35 mm in a walk–run blend; in point space they stay within 18.5 mm.
+    - Started half a stride out of step, the same blend by time lifts them over 100 mm.
+  - Masks are named groups (`upper`, `lower`, `armL`, `armR`, `legs`, `head`, `spine`), feathered along the body's
+    links.
+  - Retiming and slicing drop measured facts, to be measured again; loopify eases the last stretch toward the first
+    pose.
+- **Why:** these are the operations every layer and graph state (WP-2.6, 6.x) is built from; their properties are the
+  G2 property tests.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.9.0
+
+## D36 · 2026-10-11 · The solver decodes on the target's own body and rolls each bone from the parameters
+
+- **Principle:** 2, 12, WP-2.4 (PLAN.md §5.5: bake from the parameters)
+- **Call:**
+  - `bind` measures the target's body from its bones: `restPoints` plus `measure`, so its proportions, offsets and
+    rest frames are its own. It maps the format's frame to the skeleton's linearly; that map is a reflection for glTF.
+  - `solve` decodes the key on that body, which places the hips by the hip-height ratio and puts every limb at its
+    own lengths with the key's pole. Each bone then turns from its rest triad to its posed one. Rotations are built
+    from mapped triads, so no quaternion is ever reflected.
+  - Each bone's roll comes from the parameters:
+    - limbs: the normal of the plane they bend in (the whole limb's direction × its pole), perpendicular to both bones
+      at every bend, so a straight limb keeps its twist and no bend flips it. Posed, the pole is the key's, twisted.
+      At rest it is the pole the decoder gives a T arm (a straight-down leg) at twist 0, carried onto the rest limb by
+      the shortest turn, so an A or relaxed rest is the T body with its arms turned;
+    - hands: the knuckle line (index side). At rest it is the skeleton's own; posed, the decoder's thumb side (the
+      key's hand frame), a format-1 blade's line, or for a format-1 hand (no roll in the data) the rest line carried
+      by the forearm, so the wrist doesn't twist;
+    - feet and toes: the axis they pitch about (level, across the foot's heading);
+    - spine bones: their share of the pelvis-to-chest turn (the key's `spine`, else the source library's when given,
+      else the body's own);
+    - fingers: their curl, toward the palm about the knuckle line (absent: format 1's fists; a format-2 hand without
+      fingers is open).
+  - The hips carry the lowest spine segment (`solveRest`, `reachable`, `decodeOn`). The hips bone also carries the
+    legs, so it can't take a share of the chest's turn; a share there (a format-2 `spine`, CMU's up to 1) goes to the
+    segments above, and every point the solver decodes is one the bones reach.
+  - Local rotations are relative to the parent's world orientation, with a host's rest orientations when given (a
+    test rebuilds the joints from them).
+  - A pose whose lowest sole would go below the floor is lifted whole, as my-3d2dge's `Mocap.drive` did. Solving each
+    leg onto the floor bent legs up to 67° from the source on a rise from the ground.
+  - Results:
+    - Reference body (the tiny rig): every joint within 0.0018 mm of the solver's decode at all 7,572 tier-2
+      samples; against the plain decoder, the 124 samples with a lower spine share differ by up to 36.5 mm
+      (`Sword_Attack`'s `spine` [41, 40, 80]).
+    - Roll: a T key on a T rest gives the rest rotations (within 1°); a pose and its mirror give mirror rotations
+      (within 3.4e-6°); sweeps through elbow, knee and foot bends turn no bone more than 2° per 0.05° step; A and
+      relaxed rests give the T's rotations (within 1e-4°); fingers curl toward the palm at any hand roll.
+    - Tier 3, seven bodies × 331 clips × 4 times:
+      - whole limbs (shoulder to virtual fist, hip to ankle) within 9°, at worst 0° to rounding;
+      - the chest faces exactly where the clip's does;
+      - bone lengths unchanged, soles never below the floor, no NaN.
+- **Limit:** the format's twist at a straight limb, and a foot's heading when it points straight down, are whatever
+  the encoder measured there (spec/MOTION.md §6.3). The solver follows them, so a straight leg can turn about its own
+  axis where the data's twist jumps (`Sprint_Loop`'s left leg, straight at 0 s: 177°, then 354° one key later).
+  Joint positions don't change. F2.4.
+- **Review:** WP-2.4's verifier found 8 failures, all fixed in v0.11.1:
+  1. the left arm's rest pole was mirrored, a 62.7° roll on every pose;
+  2. the upper arm and shin flipped 180° at the bend where the pole lies along the bone;
+  3. the foot rolled by the pelvis's up and flipped at toe-off;
+  4. format-1 hands rolled onto a placeholder line, 180° off their mirror;
+  5. the hand's rest line was the chest's right axis, so T, A and relaxed rests differed by up to 90°;
+  6. fingers curled toward the unrolled palm;
+  7. `Solved.points` were not the points the bones reach;
+  8. the Done-when held only without a lower spine share.
+
+  Joint tests can't see roll, so tests now check rotations. Its notes not acted on are F2.
+- **Outside WP-2.4's Owns** (one agent, D21): `limbPoles`, exported from the decoder; the decoder's fix for a shoulder
+  with no offset (a body without shoulder bones gave NaN); `quat.fromMat3`; the tier-3 test and its skeleton helper.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.10.0; the review's fixes in v0.11.1
+
+## D37 · 2026-10-11 · Planting holds the contact point, statelessly, and in-place clips move by their feet
+
+- **Principle:** 5, 9, WP-2.5 (riftlight's zero-slide gait and foot lock)
+- **Call:**
+  - `plant` holds a planted foot's contact point still in the world, not its ankle. The contact point is the lowest
+    sole point at each step: the heel at strike, the ball and toes at push-off.
+    - It does so by undoing that point's drift in the motion since the foot landed, summed on a fixed 60 Hz grid.
+    - The result depends on time alone, so the Animator can skip or thin presentation poses without changing any pose
+      it takes.
+    - The hold engages at once, because there is no drift yet at landing, and eases out over 0.05 s.
+    - Pinning the ankle instead fought the heel rising at push-off and dragged the foot up to 71 mm.
+  - Planted soles touch the surface. Off flat ground the foot is pitched about its heel to the surface's slope (±45°).
+    The body rests on the lower foot's ground, and the pelvis drops where a planted leg can't reach, by at most a tenth
+    of H0 (median worst 7.8 mm over the locomotion loops, 57 mm on CMU's zombie walk). Free feet only come up out of
+    the surface.
+  - An in-place clip's root is the one its planted feet imply (`contactRoot`): the weight-bearing foot's contact point,
+    reversed, with flight in-betweened. A constant speed left feet dragging up to 42 mm where the body's speed varies
+    within the stride (a skip).
+  - Contact detection gained a second test: a planted foot is still in the world, slower than half the body's speed.
+    Without it, shuffles and low swings counted as planted for whole cycles (up to 1.8 m of slide). Gaps up to 0.1 s
+    close, so a foot rolling off its heel onto its toes is one contact. The speed fact still reads the first pass (D34);
+    facts-truth.json passes unchanged.
+  - A synchronized blend's contacts are its inputs' contacts, weighted, rather than detected on the blend.
+- **Result:** on all 133 migrated locomotion loops (walk and run, travelling) and synced walk–jog and walk–sprint
+  blends at 0.25, 0.5 and 0.75, a planted foot's contact point slides 0.0 mm per contact (unplanted: up to 92 mm). On
+  10° slopes and 0.2 m steps, up and down, planted soles are within 1.7 mm of the surface and no sole goes under it.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.11.0
+
+## D38 · 2026-10-11 · The Animator: plain state on a fixed step, poses that never feed back, a public API of namespaces
+
+- **Principle:** 3, 5, 8, WP-2.6 (PLAN.md §5.5, the runtime contract)
+- **Call:**
+  - **State is plain data.** An Animator's state is:
+    - its layers: clip id and content hash, weight, mask, additive, speed, playhead, loop cycles, and the one-shot end
+      it rests on;
+    - the steps taken, the time carried to the next step, and the root;
+    - the bound body's fingerprint, because root motion scales with the body.
+
+    `save()` returns exactly that, `hash()` hashes it, and `restore()` takes it back. A save made on another body is
+    refused (E_BODY_CHANGED). No −0 is kept, since JSON writes it as 0. Everything else is cached as a pure function
+    of a clip and the body (the root path, decoded points, an additive clip's first key), so a restored Animator
+    rebuilds it identically. `maxSteps` and the ground are the host's settings, like the dt it passes.
+  - **A clip's content hash** covers what playing reads: duration, loop, keys, events and contacts, as the clip's JSON
+    text gives them. A clip loaded from its file and the same clip built in memory hash alike, and an edit to its name
+    or description doesn't refuse a restore. Restoring a changed clip throws E_CLIP_CHANGED; a missing one throws
+    E_CLIP_MISSING. Both name the clip. `layer()` reads clips as immutable (edit a copy and set it), and `restore()`
+    hashes each clip afresh, so a clip edited in place is refused too.
+  - **The step.** A fixed-step accumulator: a step is due once the carried time reaches it (to a billionth of a step,
+    so 1/120 twice is one 1/60 step). `maxSteps` caps one call. In each step every layer's playhead moves, and the
+    events it passes fire in the order they are passed, ties in layer order.
+    - A window takes the point it leaves and not the one it reaches, so consecutive windows share an exact boundary.
+    - A loop walks cycle by cycle in clip time, so a step covering several cycles fires each event once a cycle,
+      backward too. An event at a loop's end is the same moment as its start.
+    - A one-shot's end fires once as the playhead reaches it, forward or backward, and is remembered, so turning round
+      there doesn't fire it again.
+    - A layer at weight 0 fires nothing, except the lowest playing layer, which is taken whole.
+    - Each call reports the root's move composed step by step, so a heading crossing ±180° never jumps a turn.
+  - **Mixing.** The lowest playing layer is taken whole, as engines treat a base layer. Each layer above blends over it
+    by weight and mask (`ops.blend`), or adds its change from its first key (`ops.addDelta`). Root motion mixes the same
+    way: each clip's root path on this body, which is its own travel or, for an in-place clip, the path its planted feet
+    imply (`contactRoot`, D37). The root's heading is kept within ±180°.
+  - **The pose** is presentation only and never feeds back. Full detail (`lod` 0) plants the feet:
+    - The layer whose clip most decides the legs (its share after the layers above) lends its contacts and root path,
+      anchored where the Animator's root stands.
+    - At its playhead the mixed pose stands in for its clip's.
+    - Then the ground, hand targets, and the solve.
+    `lod` 1 solves the mixed key alone, lifted onto the floor. `{ exact: true }` is full detail whatever `lod` says.
+    Every path runs on the portable math, so presentation at full detail and an exact pose agree.
+  - **The public API** is `packages/core/src/index.ts`, all of it, one export per statement with a doc comment: 38
+    names. The everyday ones are top-level: the Animator and its types, `bind`, `solve`, `forward`, `recognize`,
+    `parseClip`, `serialize`, `validate`, `measureFacts`, and the core types. Each module's whole surface is one
+    namespace (`math`, `format`, `clip`, `ops`, `skeleton`, `solver`, `contact`, `validation`, `animator`). The
+    doctrine's boundary check counts the names (at most 40 for core) and fails a bare `export *` or an export with no
+    doc comment. Tools and the conformance tests use the namespaces. Core's own tests reach the modules through a
+    test-only barrel (`packages/core/test/all.ts`).
+- **Result:**
+  - A 480-iteration script: a walk crossfaded into a jog, a masked punch, an additive flinch, speed changes and
+    backward play, irregular dt on a slope.
+  - It gives the same state hash after every step, the same 29 events and the same exact-mode joints at 5 points, bit
+    for bit, in Node and headless Chromium (`npm run e2e -- animator-parity`). That holds with presentation poses
+    skipped, taken every step, or alternating between full detail and `lod` 1.
+  - Saving after any of the 480 iterations and restoring into a new Animator through JSON gives the next 40
+    iterations' hashes, events and exact poses unchanged.
+  - Planted feet hold within 10 mm per contact while the Animator walks.
+- **Cost** (the 4-core cloud container, Node 24, one character, four layers: walk, jog at 0.5, masked punch, additive
+  flinch): `step()` 1.4 µs; `pose()` 0.20 ms at full detail (0.22 ms exact, 0.17 ms at `lod` 1), most of it the
+  solve. Sixty characters posed every frame at 60 Hz take about 0.7 of one core.
+- **Review:** the G2 verifier found 7 failures, all fixed in v0.12.1:
+  1. loop seam events fired twice backward and were lost across several cycles in one step;
+  2. a one-shot's end fired again when the playhead turned round there;
+  3. a −0 in the state broke the hash after JSON;
+  4. a clip edited in place escaped E_CLIP_CHANGED;
+  5. the body wasn't in the save;
+  6. each call's turn jumped 360° across ±180°;
+  7. WP-2.6's entry lacked its "Landed with" line.
+
+  Each has a test that fails on v0.12.0. The Animator's script now also passes the loops' seams backward and turns
+  the punch round at its end. `npm run test:cross-engine` runs the script in JavaScriptCore (Bun) as well: the same
+  hash as V8. Its notes not acted on are F3.
+- **Outside WP-2.6's Owns** (one agent, D21): the boundary check's API rule and its tests; the tools, conformance
+  tests and other packages' entries moved onto the namespaced API; core's test barrel; the cross-engine check's
+  Animator run.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.12.0; the review's fixes in v0.12.1

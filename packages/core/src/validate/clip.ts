@@ -3,6 +3,7 @@
 // fields, as every reader must; `lint` mode flags them with the nearest known name.
 import { ANGLE_MAX, ANGLE_WARN, CLIP_FIELDS, CONTACT_ENDS, FORMAT, IPTC, KEY_FIELDS, LIMITS, METHODS, QA_VERDICTS, REVIEW_STATES } from "../format/types.ts";
 import { Findings, nearest, type Result, type Where } from "./issues.ts";
+import { PORTABLE as PM } from "../math/portable.ts";
 
 /** Validation options: `read` accepts unknown fields; `lint` flags them. */
 export interface ValidateOptions {
@@ -162,8 +163,8 @@ export function validateClip(data: unknown, opts: ValidateOptions = {}): Result 
       const where = at({ key: i + 1, t: good[i]!.t as number, field: limb });
       if (Math.abs((b[4] as number) - (a[4] as number)) > 120 && Math.max(a[3] as number, b[3] as number) > 140) f.add("M2-W002", { ...where, index: 4 }, `twist jumps ${(a[4] as number)} to ${(b[4] as number)} while the bend is over 140 (format 1's pop)`, "re-import from the source (WP-5.3), or baseline it");
       const dot = (a[0] as number) * (b[0] as number) + (a[1] as number) * (b[1] as number) + (a[2] as number) * (b[2] as number);
-      const la = Math.hypot(a[0] as number, a[1] as number, a[2] as number);
-      const lb = Math.hypot(b[0] as number, b[1] as number, b[2] as number);
+      const la = PM.hypot(a[0] as number, a[1] as number, a[2] as number);
+      const lb = PM.hypot(b[0] as number, b[1] as number, b[2] as number);
       if (la > 0 && lb > 0 && dot / (la * lb) < -0.9) f.add("M2-W004", where, "the limb points nearly opposite the key before, so the in-between passes through its root", "add a key between them where the limb swings round");
     }
   }

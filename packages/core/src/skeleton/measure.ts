@@ -7,6 +7,7 @@ import { DG, frameFR, frameUF, len, loc, qFromTo, qrot, qslerp, sub, type Frame 
 import { capSample, type Capture } from "../format/sample.ts";
 import { BODY_POINTS, type Place } from "./bones.ts";
 import type { Recognition, SkeletonIn } from "./recognize.ts";
+import { PORTABLE as PM } from "../math/portable.ts";
 
 const rnd = (v: number, k = 10): number => Math.round(v * k) / k;
 const rndV = (v: readonly number[], k = 10) => v.map((x) => rnd(x, k)) as [number, number, number];
@@ -75,8 +76,8 @@ export function measure(clips: Record<string, Capture>, tposeName = "A_TPose"): 
     shin: rnd(d("kneeL", "ankleL"), 100),
     ab: rnd(d("ankleL", "ballL"), 100),
     bt: rnd(d("ballL", "toeL"), 100),
-    abPitch: rnd(Math.asin((q("ankleL")[2] - q("ballL")[2]) / d("ankleL", "ballL")) / DG, 100),
-    btPitch: rnd(Math.asin((q("ballL")[2] - q("toeL")[2]) / d("ballL", "toeL")) / DG, 100),
+    abPitch: rnd(PM.asin((q("ankleL")[2] - q("ballL")[2]) / d("ankleL", "ballL")) / DG, 100),
+    btPitch: rnd(PM.asin((q("ballL")[2] - q("toeL")[2]) / d("ballL", "toeL")) / DG, 100),
     spineW,
     neckW,
   };
