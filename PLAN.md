@@ -135,7 +135,7 @@ WP-0.1 records these in `docs/DECISIONS.md` as D1 to D14:
 |---|---|---|
 | 0 to 3 | Foundation, language, airframe and sensors, mostly in sequence (the contract comes first) | none |
 | 4 | First flight on three.js | **M1** |
-| 5 to 7 | Payload, composition and datalink (M2 needs search and the license check; G5's full library gates M3) | **M2** |
+| 5 to 7 | Payload, composition and datalink (M2 needs search and the license check; library QA and G5's floors gate M3) | **M2** |
 | 8 and 9 | Ground station and supply chain | **M3** |
 | 10 | Consumers | **M4** |
 
@@ -307,9 +307,9 @@ anonymously, in a cloud session and in CI. Everything the tests need from them i
 The full inventories, with `path:line` references, are in `research_notes/AI native game animation landscape/`
 (`predecessor_origin_repos.md`, `predecessor_adopter_repos.md`).
 
-my-3d2dge and my-3dge are MIT. riftlight, shardfall and my-3d2dge-2 have no license file; their author, the owner,
-licensed the code and data carried from them under MIT on 2026-10-11 (O11). Each carry keeps its source's license
-for content: clips keep their per-set licenses (D10).
+my-3d2dge and my-3dge are MIT. riftlight, shardfall and my-3d2dge-2 have no repository license file; their author, the
+owner, licensed the code and data carried from them under MIT on 2026-10-11 (O11). The grant covers the owner's own
+work: third-party motion data in a carry keeps its upstream license, and clips keep their per-set licenses (D10).
 
 | From | What | Action | WP |
 |---|---|---|---|
@@ -570,10 +570,13 @@ character), a grader, and a pass rule graded headless.
     installed as dependencies and a brief (`bench/briefs/B1-discovery.md`) that never names them. Once WP-7.3 has made
     the skill, the runner copies it into the workspace too. Each trial records whether the agent found and used the
     package. They are reported at G4 and G7, but they do not gate and do not count toward B1's pass mark.
-- **Held-out variants:** at each gate, a verifier subagent that has not read the manual's examples writes one variant
-  of every brief the gate grades. It keeps the job and the pass rule, and changes the starter character (a generated
-  variant or a real rig) and the wording. Variants are written into `bench/results/heldout/<gate>/` only when the gate
-  runs, and stay there as a record, so each later gate writes fresh ones.
+- **Held-out variants:** at each gate, a fresh subagent that has not read the manual's examples writes one variant of
+  every brief the gate grades. It keeps the job, the pass rule and the grader, and changes the wording and the starter
+  character: a generator seed outside WP-4.2's test set, or a real CC0 rig from a source not in WP-4.2's list, recorded
+  by URL, license and SHA-256 and fetched as G4's held-out rig is (never committed, D9). The gate fixes the commit
+  under test before the variants are written. Before the trials, the brief's known-good solution must pass on each
+  variant; if it fails, the gate reports a package or grader failure instead of running trials. Every run of a gate,
+  reruns included, writes fresh variants into `bench/results/heldout/<gate>/run-<n>/`, where they stay as a record.
 - **Briefs are built in three places:** B1 in WP-4.7, B2 to B7 in WP-6.6, B8 in WP-9.1.
 - **Results** go in `bench/results/<date>-<model>.json` and are summarized in `docs/PROGRESS.md`. By default the
   benchmark runs on the Claude models the session can reach. Other vendors' models need their keys (decision O10).
@@ -673,16 +676,17 @@ G0 → 1.1 → {1.2, 1.4} ; {1.2, 0.4} → 1.3 ; {1.3, 1.4} → 1.5 → G1
 G1 → 2.1 → 2.2 → 2.3 ; {2.2, 1.4} → 2.4 ; {2.3, 2.4} → 2.5 ; {2.3, 2.5} → 2.6 → G2
 2.4 → 3.1 → 3.2 ; 2.5 → 3.3 → {3.4, 3.6} ; 3.6 → 3.5 ; {3.2, 3.4, 3.5} → G3
 G2 → 4.1 → 4.2 → 4.3 → 4.4 → {4.5, 4.6} ; {4.6, G3} → 4.7 ; {4.5, 4.7} → G4 (M1)
-1.5 → 5.1 → {5.2, 5.7} ; 5.2 → 5.6 → 5.3 ; {5.3, 3.3} → 5.4 → {5.5, 5.8} ; {5.5, 5.7, 5.8, G3} → G5
+1.5 → 5.1 → {5.2, 5.7} ; 5.2 → 5.6 → 5.3 ; {5.3, 3.3} → 5.4 → 5.5 ; {5.4, G3} → 5.8 ; {5.5, 5.7, 5.8} → G5
 {G2, 3.3} → 6.1 → {6.2, 6.3, 6.4} ; 6.4 → 6.5 ; {4.7, 6.5} → 6.6 ; {6.2, 6.3, 6.6} → G6
 G4 → 7.1 ; {7.1, 5.5, 5.7, G6} → 7.2 → 7.3 → 7.4 → G7 (M2)
-{4.6, 7.2} → 8.1 → 8.2 → 8.3 → G8
+{4.6, 7.2} → 8.1 → 8.3 ; {8.1, 5.8} → 8.2 ; {8.2, 8.3} → G8
 {G5, G7} → 9.1 → {9.2, 9.3} → 9.4 → G9 (M3)
-G7 → {10.1, 10.2} → G10 (M4)
+G7 → {10.1, 10.2} ; {G5, 10.1, 10.2} → G10 (M4)
 ```
 
-After G1 the library lane (5.1, 5.2, 5.7) can start. After G2, lanes Q, R, L and A run in parallel (§11). The tools need
-search and the license check, not the library's size, so G5 gates M3 (through WP-9.1), not M2.
+After G1 the library lane (5.1, 5.2, 5.7) can start. After G2, lanes Q, R, L and A run in parallel (§11). Through search
+(5.5 → 5.4 → 5.3), M2 still needs the re-import and the facts; only library QA (5.8) and G5's floors leave its path.
+G5 gates M3 (through WP-9.1) and M4 (G10), and WP-8.2 waits for 5.8 because clips change in sequence (§8.4).
 
 ### 9.3 Gates
 
@@ -709,9 +713,11 @@ search and the license check, not the library's size, so G5 gates M3 (through WP
   - **a headless sweep** plays every migrated clip on those six skeletons, and at least 95% pass the sensors, with every
     failure listed and its reason given. The gate report links the clip-by-skeleton results, and M1 claims only what
     they show;
-  - **a held-out rig:** a real CC0 rig from a third source, which a verifier subagent chooses and fetches by SHA-256
-    only when G4 runs. The idle, walk, run, jump and attack set plays on it with the sensors green, and its sweep
-    results are reported separately;
+  - **a held-out rig:** a real CC0 rig from a source not in WP-4.2's list. On each run of G4, reruns included, a fresh
+    subagent chooses one, reads its license, records its URL, license and SHA-256 in
+    `bench/results/heldout/G4/run-<n>/rig.json`, and fetches it with `npm run fixtures -- fetch --manifest <file>`. It
+    binds with no hand mapping, the idle, walk, run, jump and attack set plays on it with the sensors green, and its
+    sweep results are reported separately;
   - sheets are produced headless;
   - B1 and its held-out variant each pass at least 4 of 5 trials with fresh agents;
   - the demo runs in CI's e2e with its sheets attached as artifacts, and has a public link once O3 is linked.
@@ -777,14 +783,16 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
     `docs/FEEDBACK-LOG.md` with its rules and no entries. `docs/PROGRESS.md`, at most 40 lines.
   - O1 is answered: MIT (the owner, 2026-10-11). `LICENSE` is already committed; log the answer in
     `docs/DECISIONS.md` as a decision of its own. Log O11 the same way: the code and data carried from riftlight,
-    shardfall and my-3d2dge-2 are MIT, granted by their author (the owner, 2026-10-11). Log too that the owner
-    confirmed, the same day, that WP-1.5 commits the CMU and Mesh2Motion sets as planned (D10, K3).
+    shardfall and my-3d2dge-2 are MIT, granted by their author (the owner, 2026-10-11); third-party clips in them keep
+    their per-set licenses (D10). Log too that the owner confirmed, the same day, that WP-1.5 commits the CMU and
+    Mesh2Motion sets before WP-5.3's Mesh2Motion audit, as planned (D10, K3).
   - `.gitignore`: `node_modules/`, `.cache/`, `library/local/*` (but not `library/local/README.md`), `check-output/`,
     `dist/`.
   - `README.md`: add a status line saying the plan is being executed, linking `docs/PROGRESS.md`. Keep the kickoff
     prompt as it is.
-- **Done when:** the files exist, D1 to D14 are logged, and the answers to O1 and O11 (both MIT) are logged.
-- **Verify:** `test -f DOCTRINE.md -a -f AGENTS.md -a -f CLAUDE.md -a -f docs/PROGRESS.md && [ "$(grep -c '^## D' docs/DECISIONS.md)" -ge 14 ] && grep -qw 'O1' docs/DECISIONS.md && grep -qw 'O11' docs/DECISIONS.md`
+- **Done when:** the files exist, D1 to D14 are logged, the answers to O1 and O11 (both MIT) are logged, and so is the
+  owner's confirmation about the CMU and Mesh2Motion sets.
+- **Verify:** `test -f DOCTRINE.md -a -f AGENTS.md -a -f CLAUDE.md -a -f docs/PROGRESS.md && [ "$(grep -c '^## D' docs/DECISIONS.md)" -ge 14 ] && grep -qw 'O1' docs/DECISIONS.md && grep -qw 'O11' docs/DECISIONS.md && grep -q 'Mesh2Motion' docs/DECISIONS.md`
 
 #### WP-0.2 Toolchain
 - **Owns:** `package.json`, `package-lock.json`, `tsconfig*.json`, `eslint.config.js`, `vitest.config.ts`,
@@ -1332,10 +1340,12 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
     - A second: a CC0 character pack from Kenney or KayKit.
     - Optionally, a VRM avatar whose license allows it.
 
-    Read each license file at fetch time, and record the source, license and hash.
-- **Done when:** 20 generated variants load in three.js and are recognized (WP-1.4) with a confidence reported, and the
-  real rigs fetch, verify and load.
-- **Verify:** `npm test -- test-characters && npm run fixtures -- fetch --check`
+    Read each license file at fetch time, and record the source, license and hash. `npm run fixtures -- fetch
+    --manifest <file>` fetches rigs recorded outside this list the same way, for G4's held-out rig and §7's held-out
+    variants.
+- **Done when:** 20 generated variants load in three.js and are recognized (WP-1.4) with a confidence reported, the
+  real rigs fetch, verify and load, and a rig listed in a separate manifest fetches and verifies by its hash.
+- **Verify:** `npm test -- test-characters fixtures && npm run fixtures -- fetch --check`
 
 #### WP-4.3 Binding a skeleton
 - **Owns:** `packages/three/src/bind/*`
@@ -1419,9 +1429,10 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
 - **Done when:**
   - B1 runs 5 trials and writes a results file;
   - B1's discovery trials run and record whether the package was used;
-  - the grader fails a planted bad solution and passes a known good one;
+  - the grader fails a planted bad solution and passes a known good one, on the default character and on a generator
+    seed outside WP-4.2's test set, and the runner runs a variant brief given by path;
   - the legend quiz scores at least 9 of 10.
-- **Verify:** `npm run bench -- B1 --trials 5 && npm test -- bench/graders`
+- **Verify:** `npm run bench -- B1 --trials 5 && npm test -- bench/graders bench/runner`
 
 **Gate G4 = Milestone M1, First flight.**
 
@@ -1673,11 +1684,12 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
 - **Needs:** 4.7, 6.5
 - **Size:** M
 - **Build:**
-  - The briefs B2 to B7 of §7, each with a starter and a grader made of predicates and sensor thresholds.
+  - The briefs B2 to B7 of §7, each with a starter and a grader made of predicates and sensor thresholds. Graders take
+    the starter character as a parameter (§7) and derive expected traces and thresholds from it, in hip heights.
   - The manual's sections for wiring (events, graphs, root motion) and making (recipes, edits, actions), so G6's fresh
     agents can work from the manual alone.
-- **Done when:** every grader passes a known-good solution and fails a planted bad one, and the manual draft stays
-  within budget.
+- **Done when:** every grader passes a known-good solution and fails a planted bad one, on the default character and
+  on a generator seed outside WP-4.2's test set, and the manual draft stays within budget.
 - **Verify:** `npm test -- bench/graders && npm run doctrine`
 
 **Gate G6.**
@@ -1722,7 +1734,7 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
   - **Retarget:** `retarget.inspect`, `retarget.apply`.
   - **Compose and wire:** `recipe.compile`, `graph.validate`, `graph.sim`.
   - **Exchange:** `import`; `export` (glTF, VRMA, BVH).
-  - **Ship and grow:** `license.check`, `library.add`.
+  - **Ship:** `license.check`. `library.add` comes with the contribution protocol (WP-9.1, after G5).
 - **Done when:** each tool has a runnable example and a failing-input test, the whole list costs at most 3,000 tokens
   to describe to a model, and a retried `edit` with the same `request_id` applies once.
 - **Verify:** `npm test -- tools`
@@ -1764,9 +1776,9 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
     from the first published version. Clips are inert data, but the skills, the MCP server and the importers are code,
     and agent-skill registries have already shipped malware (ClawHub carried 341 malicious skills).
 - **Done when:** a scratch project installs the packed tarballs and runs the manual's example, the single file runs
-  the same example and carries the credits and license texts of its tiers, and `npm run license -- check` passes on
-  the bundle's manifest.
-- **Verify:** `npm run pack -- --check && npm run license -- check tools/bundle/manifest.json`
+  the same example and carries the credits and license texts of its tiers, `npm run license -- check` passes on the
+  bundle's manifest, and every clip in it has a QA verdict, pass or baselined (WP-5.8 may not have run yet).
+- **Verify:** `npm run pack -- --check && npm run license -- check tools/bundle/manifest.json && npm run qa -- tools/bundle/manifest.json --check`
 
 **Gate G7 = Milestone M2, Agents fly it.**
 
@@ -1790,7 +1802,7 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
 
 #### WP-8.2 The review loop
 - **Owns:** `apps/gallery/src/review/*`, `packages/tools/src/tools/review.ts`
-- **Needs:** 8.1
+- **Needs:** 8.1, 5.8
 - **Size:** M
 - **Build:**
   - Approve or flag a clip or a batch, with a note.
@@ -1839,13 +1851,14 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
       agent that wrote it, are not generators here);
     - disclosure of who or what made the clip.
   - A rate limit per contributor, no per-clip rewards, and human review before merge (O7).
-  - Brief B8 and its grader.
+  - Brief B8 and its grader, which takes the starter character as a parameter (§7).
 
   The registries that survived AI floods share these defenses: disclosure, identity, automated checks, no reward for
   volume, and review before merge (research: `data_licensing_registries.md` §6). The open portals that lacked them
   were flooded (Fab) or poisoned (ClawHub).
-- **Done when:** a clean contribution passes every gate, and each planted bad one fails with a clear message: a bad
-  license, a duplicate, a defect, missing provenance, a generator with no manifest.
+- **Done when:** a clean contribution passes every gate, B8's grader passes a known-good solution on the default
+  character and on a second one, and each planted bad one fails with a clear message: a bad license, a duplicate, a
+  defect, missing provenance, a generator with no manifest.
 - **Verify:** `npm test -- contribute && npm run gate -- library-pr --fixture all`
 
 #### WP-9.2 The motion-source socket
@@ -1956,7 +1969,8 @@ wasn't needed.
 ### One agent (effort: max)
 
 Work the ledger in order. Use subagents for independent WPs within a phase only when their **Owns** don't overlap.
-Give every L WP and every gate a verifier subagent.
+Give every L WP and every gate a verifier subagent. At the gates that grade briefs (G4, G6, G7, G9), a separate fresh
+subagent that has not read the manual's examples writes the held-out variants and chooses G4's held-out rig (§7, §9.3).
 
 ### Ultracode (multi-agent)
 
@@ -1964,7 +1978,7 @@ Give every L WP and every gate a verifier subagent.
   `docs/DECISIONS.md`, the root `package.json`, the `tsconfig` roots and the generated docs.
 - **The spine runs single-threaded through G1**, because the contract must come from one mind.
 - **From G1 on,** up to 5 implementers work in git worktrees, each editing only its WP's **Owns**. A verifier reviews
-  every L WP and every gate and returns JSON.
+  every L WP and every gate and returns JSON. A separate fresh subagent writes each gate's held-out variants (§7).
 - **Lanes after G2:**
   - Q: Phase 3, which can start after WP-2.4;
   - R: Phase 4;
@@ -2036,7 +2050,7 @@ them.
 | **O8** | Where gallery reviews are stored | A static export: JSON the owner shares back | A hosted store costs money | WP-8.2 |
 | **O9** | Acting in other repositories (switching my-3dge's animator WPs 3.4–3.7 and its Phase 8 to this package; certification PRs in shardfall) | Propose, don't act | Reaches outside the repo | WP-10.1, 10.2 |
 | **O10** | Keys for other vendors' models in the benchmark (GPT, Gemini and others) | Claude models only, through the session's own access | Keys are spending and credentials | WP-4.7, G7 |
-| **O11** | Rights to the code and data carried from riftlight, shardfall and my-3d2dge-2, which have no license file | **Answered: MIT, granted by their author** (the owner, 2026-10-11) | §4 carries their code into this MIT repository | WP-0.1 logs it |
+| **O11** | Rights to the code and data carried from riftlight, shardfall and my-3d2dge-2, which have no repository license file | **Answered: MIT, granted by their author** (the owner, 2026-10-11); third-party clips keep their per-set licenses (D10) | §4 carries their code into this MIT repository | WP-0.1 logs it |
 
 ---
 

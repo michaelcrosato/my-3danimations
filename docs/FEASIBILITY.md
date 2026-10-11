@@ -93,8 +93,9 @@ replacement for animators.
 
 **What to build.** `PLAN.md`: 11 phases, 56 work packages, 11 gates (G0 to G10), 4 milestones. The first milestone, **M1 "first
 flight"**, tests the thesis. Library clips play on humanoid skeletons in three.js with the sensors green (at least 95%
-of the migrated clips on at least six test skeletons, every failure listed), sheets render headless, and fresh agents
-succeed at the first brief in at least 4 of 5 tries.
+of the migrated clips on at least six test skeletons, every failure listed; the core moves also play on a held-out
+real rig chosen at the gate), sheets render headless, and fresh agents succeed at the first brief and at a held-out
+variant of it in at least 4 of 5 tries each.
 
 **How to start:** the prompt and effort level are in §9. In short, run `PLAN.md` from WP-0.1 with **ultracode**, or with
 **max** for a single agent.
@@ -524,7 +525,7 @@ The plan proceeds on these defaults and escalates the hard-to-undo ones when it 
 | O8 | Where gallery reviews are stored | A static JSON export (no hosting costs) |
 | O9 | Acting in other repositories (switching my-3dge's animator WPs 3.4–3.7 and its Phase 8 to this package; certification in shardfall) | Propose, don't act |
 | O10 | Keys for other vendors' models in the benchmark (GPT, Gemini and others) | Claude models only |
-| O11 | Rights to the code and data carried from riftlight, shardfall and my-3d2dge-2, which have no license file | **Answered: MIT, granted by their author** (the owner, 2026-10-11) |
+| O11 | Rights to the code and data carried from riftlight, shardfall and my-3d2dge-2, which have no repository license file | **Answered: MIT, granted by their author** (the owner, 2026-10-11); third-party clips keep their per-set licenses (D10) |
 
 **One question to the owner, for context only:** my-3d2dge's decisions log mentions "the four front-runners" without
 naming them. If they are other agent-first engines, they are natural early adopters for M4.
