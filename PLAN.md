@@ -2200,7 +2200,7 @@ version, commit, date and a note with the numbers. Gates are rows too.
 | 1.3 The codec | done | 0.4.0 | 02efc99 | 2026-10-11 | tier 1a bit for bit (5 clips); tier 2: 7,444 samples of 325 clips equal to the micrometre; text, mirror and mirror-twice exact; 1,214 lines with tests; verifier: 3 findings fixed (D29); D26, D27 |
 | 1.4 The skeleton profile | done | 0.5.0 | 76c6942 | 2026-10-11 | 8 tables × 3 name styles exact; topology maps renamed Mixamo and rig skeletons (conf 0.85); measure = tier 1a rests bit for bit; restPoints within 0.001 mm; 32 tests; D28 |
 | 1.5 Migrate the seed sets | done | 0.6.0 | 48de33a, 08087bf | 2026-10-11 | 5 sets, 525 clips, 0 errors, 171 warnings baselined; keys equal their sources; 3 sets decode within 1 µm of tier 2; catalogs ≤40 tokens (34 rows cut); 4.3 MB; D30 |
-| **G1** | todo | | | | |
+| **G1** | done | 0.6.0 | 6bffb3e | 2026-10-11 | 7/7 in 11.0 s: T0 1.3 s, T1 3.0 s (178 tests), doctrine 8/8 (10 files frozen), tiers 1a and 2, migrate --check, migrated library; verifier: 7 findings fixed (D32), notes F1 |
 | 2.1 Math kernel and determinism | todo | | | | |
 | 2.2 Sampler, events, contacts, facts | todo | | | | |
 | 2.3 Pose operations | todo | | | | |

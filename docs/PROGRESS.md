@@ -3,7 +3,7 @@
 The current state on one screen (at most 40 lines; `npm run doctrine` checks it from WP-0.3). The ledger is
 `PLAN.md` §14; decisions are in `docs/DECISIONS.md`.
 
-**Phase:** 1 The language. **Next gate:** G1. **Version:** 0.6.0.
+**Phase:** 2 The airframe. **Next gate:** G2. **Version:** 0.6.0.
 **Mode:** one agent (D21), branch `claude/relaxed-albattani-35xhjq`.
 
 ## Done
@@ -17,11 +17,12 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
   fingers and spine (D26, D27).
 - WP-1.4 The skeleton profile: `SKELETON.md`; recognize exact on 8 tables, topology fallback; measure bit for bit
   (D28).
-- WP-1.5 The seed sets migrated: 5 sets, 525 clips, 0 errors, warnings baselined; CMU's full notice (D30).
+- WP-1.5 The seed sets migrated: 5 sets, 525 clips, 0 errors, warnings baselined per clip with reasons (D30).
+- G1: spec 2.0-rc frozen and held by the doctrine (D31); the verifier's 7 findings fixed (D32).
 
 ## Next
 
-- G1: freeze spec 2.0-rc; run the gate; merge; then Phase 2.
+- WP-2.1 The math kernel: portable math (V8's bits), helpers, seeded streams, `hashNumbers`, V8 against JSC.
 
 ## Blocked on the owner
 
@@ -29,6 +30,7 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 
 ## Last gate
 
-- **G0 passed** 2026-10-11 at bae664e in 5.1 s: check (T0) 1.3 s of 15, test (T1) 1.3 s of 90 with 41 tests,
-  doctrine 7 of 7 checks, vectors 13 files byte for byte (7.1 of 10 MB). CI green on the PR. The verifier's 4 findings
-  (ledger rows, PR body, `.gltf` loosening the binaries check) are fixed (D24). PR michaelcrosato/my-3danimations#4.
+- **G1 passed** 2026-10-11 at 6bffb3e in 11.0 s, 7 of 7: check (T0) 1.3 s of 15; test (T1) 3.0 s of 90, 178 tests;
+  doctrine 8 of 8 (legend 792/800, worst catalog row 40/40, 10 files frozen); vectors byte for byte; tiers 1a and 2;
+  migrate --check (525 clips); the migrated clips validate and decode like their sources. The verifier's 7 findings
+  (frame wording, ranges, fit, CMU notice, W005 reasons, ledger, changelog) are fixed (D32); notes in F1.
