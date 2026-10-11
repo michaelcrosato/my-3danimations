@@ -40,9 +40,11 @@ jobs:
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: .cache
-          key: m3a-cache-${{ runner.os }}-${{ hashFiles('tools/pins.json', 'package-lock.json') }}
+          key: m3a-cache-${{ runner.os }}-${{ hashFiles('tools/pins.json', 'tools/fixtures/rigs.json', 'package-lock.json') }}
           restore-keys: m3a-cache-${{ runner.os }}-
       - run: npm ci
+      # the real CC0 rigs by hash (WP-4.2), so their tests run; cached with .cache
+      - run: npm run fixtures -- fetch
       - run: npm run check -- --json
       - run: npm test -- --json
       - if: always()
@@ -68,7 +70,7 @@ jobs:
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: .cache
-          key: m3a-cache-${{ runner.os }}-${{ hashFiles('tools/pins.json', 'package-lock.json') }}
+          key: m3a-cache-${{ runner.os }}-${{ hashFiles('tools/pins.json', 'tools/fixtures/rigs.json', 'package-lock.json') }}
           restore-keys: m3a-cache-${{ runner.os }}-
       - run: npm ci
       # The cloud container has Chromium preinstalled; CI runners fetch the build the pinned Playwright expects.
@@ -117,11 +119,12 @@ jobs:
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: .cache
-          key: m3a-cache-${{ runner.os }}-${{ hashFiles('tools/pins.json', 'package-lock.json') }}
+          key: m3a-cache-${{ runner.os }}-${{ hashFiles('tools/pins.json', 'tools/fixtures/rigs.json', 'package-lock.json') }}
           restore-keys: m3a-cache-${{ runner.os }}-
       - run: npm ci
       - run: npx playwright install --with-deps chromium
       - run: npm run pins -- fetch
+      - run: npm run fixtures -- fetch
       - run: npm run gate -- "$GATE" --json
         env:
           GATE: ${{ inputs.gate }}

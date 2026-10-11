@@ -1,0 +1,35 @@
+{
+ "about": "The real CC0 rigs WP-4.2's tests load: fetched by SHA-256 into .cache/fixtures/ and never committed (npm run fixtures -- fetch [--manifest <file>] [--check]). Each rig's license file is read at fetch time and must say what its license field says. Two authors, two rig conventions.",
+ "rigs": [
+  {
+   "id": "quaternius-mannequin-m",
+   "author": "Quaternius",
+   "source": "my-3d2dge-2 at c8295dc, public/assets/models/mannequin_m.glb",
+   "rig": "Unreal-style names (root, pelvis, spine_01 to 03, clavicle_l), 65 bones, meshopt-compressed, no clips",
+   "url": "https://raw.githubusercontent.com/michaelcrosato/my-3d2dge-2/c8295dc0300ffa1ccadcf4702668ff412b735c39/public/assets/models/mannequin_m.glb",
+   "sha256": "935c4a7c6b8a3f8c6899517de2b9d041f12d8cb508f2fe401429994031e0b840",
+   "license": "CC0 1.0",
+   "licenseUrl": "https://raw.githubusercontent.com/michaelcrosato/my-3d2dge-2/c8295dc0300ffa1ccadcf4702668ff412b735c39/public/assets/LICENSE-quaternius.txt"
+  },
+  {
+   "id": "quaternius-mannequin-f",
+   "author": "Quaternius",
+   "source": "my-3d2dge-2 at c8295dc, public/assets/models/mannequin_f.glb",
+   "rig": "as mannequin_m, the female body",
+   "url": "https://raw.githubusercontent.com/michaelcrosato/my-3d2dge-2/c8295dc0300ffa1ccadcf4702668ff412b735c39/public/assets/models/mannequin_f.glb",
+   "sha256": "dd2b2298155614e6e2e9de0ee03d699e3a6a0f136c5a8e0fa4a85fbf560fbbba",
+   "license": "CC0 1.0",
+   "licenseUrl": "https://raw.githubusercontent.com/michaelcrosato/my-3d2dge-2/c8295dc0300ffa1ccadcf4702668ff412b735c39/public/assets/LICENSE-quaternius.txt"
+  },
+  {
+   "id": "kaykit-knight",
+   "author": "Kay Lousberg (KayKit)",
+   "source": "KayKit Character Pack: Adventurers 1.0 at 672074b, the Knight",
+   "rig": "KayKit's own names (hips, chest, upperarm.l, wrist.l), 41 bones, 76 clips, textured",
+   "url": "https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Character-Pack-Adventures-1.0/672074b73ba276876a19e8816ecdc5241817ab47/addons/kaykit_character_pack_adventures/Characters/gltf/Knight.glb",
+   "sha256": "60428e3abc09ba83e595d256e3af8c5c976b46cdae599f0802fc82b4a3445168",
+   "license": "CC0 1.0",
+   "licenseUrl": "https://raw.githubusercontent.com/KayKit-Game-Assets/KayKit-Character-Pack-Adventures-1.0/672074b73ba276876a19e8816ecdc5241817ab47/LICENSE.txt"
+  }
+ ]
+}

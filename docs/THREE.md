@@ -1,7 +1,7 @@
 # THREE: the pinned three.js
 
 `@m3a/three` pins **three.js r182** (`three@0.182.0`), a peer dependency the game brings, in
-`packages/three/package.json` (installed here as a dev dependency; types, `@types/three@0.182.0`, come with WP-4.3).
+`packages/three/package.json` (installed here as a dev dependency, with its types, `@types/three@0.182.0`).
 `tools/doctrine/banned-three.json` records the pin and the banned APIs, and `npm run doctrine` enforces both (D45).
 Moving the pin is a commit of its own that reruns the cold-write check below and rewrites this page.
 
@@ -28,8 +28,7 @@ arm written to glTF by `GLTFExporter`, read back by `GLTFLoader`, a clip playing
 forced WebGL 2 backend the frame must be drawn, not blank, move between frames, and print no warning; on the WebGPU
 backend (where the browser has an adapter) the pinned release must start and draw too. CI's `three-next` job runs the
 same test on r186 (`M3A_THREE_DIR`): its WebGL 2 result is checked and its WebGPU result reported, so the day a
-browser or a release fixes it shows up there. Types (`@types/three`) are pinned with the first TypeScript module that
-imports three (WP-4.3).
+browser or a release fixes it shows up there.
 
 ## How to use it
 

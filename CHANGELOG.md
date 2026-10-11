@@ -4,6 +4,18 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.21.0 · 2026-10-11
+
+### Three
+- WP-4.2: test characters (`packages/three/test-characters/`): skinned humanoids generated from a seed as GLB in
+  memory, varying in build, rest pose, bone names (VRM, Mixamo, UE5, Rigify, with each family's habits), twist bones
+  and left-out bones; the 20 of the test set load in three.js and are recognized; `loadGlb` and `skeletonIn` read any
+  character in three (D46).
+
+### Tools
+- `npm run fixtures -- fetch | check [--manifest <file>]`: real CC0 rigs fetched by SHA-256 into `.cache/fixtures/`,
+  their license files read and checked; Quaternius' mannequins and KayKit's Knight. CI fetches them before T1.
+
 ## 0.20.0 · 2026-10-11
 
 ### Three

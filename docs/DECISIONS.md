@@ -1066,7 +1066,7 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
     `WebGLRenderer`, raw GLSL, `renderAsync()` (deprecated in r181) and `RenderPipeline` (r183's name for
     `PostProcessing`). `npm run doctrine` fails on a use and on the package or lockfile leaving the pin.
   - **Types later:** `@types/three@0.182.0` brings 7 packages (Rapier's among them) and nothing imports three from
-    TypeScript yet; it is pinned with the first module that does (WP-4.3).
+    TypeScript yet; it is pinned with the first module that does (WP-4.2's tests).
   - **Found on the way:** r182's `three.webgpu.js` reads `GPUShaderStage` as it loads, and WebGPU's interfaces exist
     only in a secure context, so on a plain `http:` host other than localhost the module fails to load at all,
     WebGL 2 included. Pages are served from `localhost` or `https:` (docs/THREE.md).
@@ -1075,3 +1075,38 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   fixture and a pin moved in the package or the lockfile.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.20.0
+
+## D46 · 2026-10-11 · Test characters generated in code, and real CC0 rigs fetched by hash
+
+- **Principle:** 1, 4, 9, WP-4.2
+- **Call:**
+  - **Generated characters** (`packages/three/test-characters/`): a skinned humanoid written as GLB in memory by its
+    own small writer (three's `GLTFExporter` needs a browser's `FileReader` for binary output), its body a tube per
+    bone skinned to it and blended half into the next at the joint. A seed fixes it: `variant(seed)` picks the build
+    (chibi, heroic, bulky, child, tall and thin), the rest pose (T, A at 40°, relaxed at 70°), the naming (VRM, Mixamo,
+    UE5, Rigify), twist bones and the optional bones left out (upper chest, chest, neck, shoulders, toes), and its
+    lengths vary ±4% by seed. Each naming brings its family's habits, where real rigs differ: Mixamo's centimetres
+    under the armature's 0.01 scale, UE5's root bone and five spine bones, Rigify's twist bones in the chain
+    (`DEF-upper_arm.L.001` between the upper arm and the forearm) and `DEF-spine.005`; bone frames along the bone
+    (Blender's, Mixamo's, UE5's) or the world's (VRM 1.0's normalized humanoid). Seeds 0 to 19 are the test set,
+    chosen so every build, rest pose and naming shows and each naming with and without twist bones; any other seed is
+    a held-out character.
+  - **Real rigs** (`tools/fixtures/rigs.json`), never committed: Quaternius' mannequins (male and female, from
+    my-3d2dge-2 at `c8295dc`: Unreal-style names, meshopt-compressed) and KayKit's Knight (Kay Lousberg's Adventurers
+    pack at `672074b`: its own names, 76 clips). KayKit over Kenney: its pack is fetchable file by file at a commit;
+    Kenney's come as zips from its site. `npm run fixtures -- fetch` downloads with curl (it honours the proxy, and
+    reads `file://` for the tests), keeps a file only if its SHA-256 matches and its license file says CC0, and records
+    both in `.cache/fixtures/fetched.json`; `check` reads the cache alone; `--manifest` fetches any other list the same
+    way (G4's held-out rig). CI fetches them before T1 and a gate, cached with `.cache`.
+  - **Loading in Node:** three's `GLTFLoader` with the meshopt decoder; a GLB's images are dropped first
+    (`textures: false`: Node has no image decoder).
+- **Result:** the 20 variants load in three.js with their bones where they were generated (under 1 µm) and bound at
+  rest (bone times inverse bind within 1e-5 of the identity), each recognized by its naming's table with confidence 1
+  and its rest pose read as written; a seed gives the same bytes every run, and seed 1000 is another character
+  recognized the same way. The mannequins are recognized by the unreal4 table (confidence 1), the Knight by topology
+  (0.85). A rig in a manifest of its own fetches and verifies by its hash; a wrong hash or a license that doesn't say
+  CC0 keeps nothing.
+- **Outside WP-4.2's Owns** (one agent, D21): `tsconfig.tests.json` checks the test characters; `npm run fixtures`;
+  CI's fetch step; `@types/three` in `packages/three/package.json` (its own commit).
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.21.0
