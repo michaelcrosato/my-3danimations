@@ -41,8 +41,8 @@ and supply chain an agent needs. Plug models that generate motion into a socket 
   and trustworthy checks, so the package is closer to glTF plus Poly Haven plus a test suite, with a three.js-like
   runtime as its reference implementation.
 - **Two parts carry the risk.** Retargeting onto arbitrary skinned skeletons is the heavy lift, and that is what the
-  first milestone tests. A library grown by AIs is the weakest leg, so it grows only through license namespaces,
-  provenance, gates and human review before merge.
+  first milestone tests. A library grown by AIs is the weakest leg, so it grows only through one intake queue: license
+  namespaces, provenance, automated checks, and your review before anything is adopted.
 
 ## What's here
 
@@ -61,11 +61,12 @@ Start a Claude Code session on this repository with this prompt:
 Execute PLAN.md in michaelcrosato/my-3danimations. Read docs/FEASIBILITY.md §0, then PLAN.md §0–§3 and §8, and adopt
 the doctrine in §3 as DOCTRINE.md (WP-0.1). Work the ledger (§14) in order: for each WP read only its entry and what it
 cites, meet every Done-when and prove it with Verify, apply the definition of done (§8.3), update the ledger and
-docs/PROGRESS.md, commit per WP, and keep one draft PR current. Make reversible calls yourself and log them; escalate
-only hard-to-undo calls (§3), using the 15-minute timer and the defaults in §13. Run each gate's command set and post
-its report on the PR. Reach G4 (M1, first flight) first, then continue phase by phase. When something needs the owner,
-mark it blocked-owner, say exactly what is needed on the PR, and carry on with the rest. Stop only for a kill criterion
-(§12) or a finished ledger.
+docs/PROGRESS.md, and commit per WP. Keep one draft PR per phase: run each gate's command set, post its report on the
+PR, and merge the PR into main when the gate passes (§8.5). Make reversible calls yourself and log them; escalate only
+hard-to-undo calls (§3), using the 15-minute timer and the defaults in §13. Reach G4 (M1, first flight) first, then
+continue phase by phase. When something needs the owner, mark it blocked-owner, say exactly what is needed on the PR,
+and carry on with the rest. Stop only for a kill criterion (§12), a finished ledger, or when all that is left is
+blocked-owner.
 ```
 
 **Effort: ultracode** (recommended). The plan is built for parallel lanes: every work package owns its paths, and there
@@ -78,7 +79,8 @@ The milestones:
   migrated clips pass the sensors on at least six test skeletons, every failure is listed, and the core moves play on a
   held-out real rig chosen at the gate. Fresh agents pass the first brief and a held-out variant of it, 4 of 5 each.
 - **M2 "agents fly it":** the CLI, the skill, MCP and the manual, benchmarked.
-- **M3 "the library grows":** gated contributions from other AIs.
+- **M3 "the library grows":** any agent submits animations to an intake queue; automated checks filter them, and you
+  adopt, archive or reject each one from your phone.
 - **M4 "the standard in use":** another repository consumes it.
 
 ## Lineage
@@ -94,5 +96,5 @@ The milestones:
 
 ## License
 
-MIT. See [`LICENSE`](LICENSE). Library content carries its own per-set licenses (CC0, CC BY 4.0, CMU's terms), recorded
-in every clip's provenance.
+MIT. See [`LICENSE`](LICENSE). The library's default pack is CC0. CC BY 4.0 and CMU-licensed sets are opt-in, and every
+clip records its license in its provenance.
