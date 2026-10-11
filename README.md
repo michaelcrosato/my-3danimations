@@ -30,7 +30,7 @@ and supply chain an agent needs. Plug models that generate motion into a socket 
   - There is no open, agent-oriented text format for 3D character motion. BVH is text, but flat per-frame channels with
     no naming standard.
   - No engine's official MCP server exposes animation operations; only community servers and extensions do.
-  - Vendor pipelines end in binary files.
+  - Vendor pipelines end in binary files or flat BVH.
   - three.js has no state machine or root motion, and its retargeting has documented failures.
 - **The hard parts are engineering, not research.** Retargeting, foot locking, blending, graphs and motion metrics are
   known techniques. Text-to-motion generation is mostly off-limits under its licenses anyway: most models are trained on

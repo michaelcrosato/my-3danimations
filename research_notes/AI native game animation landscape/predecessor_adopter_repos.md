@@ -807,8 +807,9 @@ Phase 0 bootstraps these as tools appear (items 1-3, 7 and 8 apply once their to
   (`PLAN.md:781-829`). Split the API into `step` (cheap, hashable gameplay state: timelines, events, root motion) and
   `pose` (presentation, LOD-able) (`PLAN.md:941-945`).
 - **Bake to each host's standard type at the edge:** three.js `AnimationClip`/`QuaternionKeyframeTrack` in TS, a plain
-  track struct in Rust. Bake from the format's **parameters**, not decoded points (0.26–0.46 mm mean, against 0.73 m
-  worst for key-for-key, `PLAN.md:298`).
+  track struct in Rust. Bake from the format's **parameters**, not decoded points. my-3dge's PLAN gives 0.26–0.46 mm
+  mean for this (`PLAN.md:298`), but its study measured a dense bake from point-derived frames, with 0.3–1.2% of
+  midpoints over 50 mm (`docs/research/D-mocap-library.md:490-514`); key-for-key reached 0.73 m worst.
 - **Stable string ids as the content API:** `SET/Clip` and move names, referenced from game data (`idle_clip`,
   `attack_clips` per swing, `attack_moves`, `dodge_clip`) and validated on load with suggestions.
 - **Expose measured facts per clip,** so games need not reinvent them: duration, loop, `speed`, travels, strike/hit time,

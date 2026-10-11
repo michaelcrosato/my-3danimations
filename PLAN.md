@@ -396,12 +396,13 @@ game:  graph (L3) ─▶ Animator.step(dt) ─▶ events, root motion, hashed st
     seam);
   - `provenance`: `src`, `orig`, `take`, `method`, `producer` (tool, version, model), `license` (SPDX), `credit`, and
     `ai` (an IPTC digital source type). `src` names only where the motion came from. The clip's `restSrc` names the
-    `sources` entry whose rest body and spine shares the keys decode on, so a clip keyed or generated on a library's
-    body is never credited to that library. Migrated clips get `restSrc` equal to `src`;
+    `sources` entry whose spine and neck shares the keys decode on (format 1 rebuilds every clip on the rest body of
+    the set's first source and takes only those shares from the clip's `src`), so a clip keyed or generated on a
+    library's body is never credited to that library. Migrated clips get `restSrc` equal to `src`;
   - `quality`: `fit` as [mean, worst] mm, the QA verdict and the QA version;
   - `review`: state, who, date, and a hash of the motion reviewed (`dur`, `loop`, `fps`, `skeleton`, `restSrc`,
-    `keys`, the optional degrees of freedom, `contacts` and `events`). An approval whose hash no longer matches the
-    clip reads as stale.
+    `keys`, the optional degrees of freedom, `contacts`, `events` and any field listed in `requires`). An approval
+    whose hash no longer matches the clip reads as stale.
 - **New degrees of freedom** are named optional fields: wrist bend and forearm roll per hand, finger curls, a spine
   curl beyond the per-library shares, and root yaw and trajectory for every clip that travels. Readers ignore unknown
   fields; the linter flags them.
@@ -415,8 +416,8 @@ game:  graph (L3) ─▶ Animator.step(dt) ─▶ events, root motion, hashed st
   - `_set.json` carries the legend text.
   - Tools that show a clip (`m3a show`) print the legend with it, so a model never reads numbers without their key.
 - **Versioning:** `format` is `"2.0"` and validated on read. A minor version only adds named optional fields, and
-  fixed-length arrays never grow. Anything else is a major version that comes with a migrator. A clip that uses an
-  optional field added after 2.0 which changes how it plays (tangents, say) names it in its optional `requires` list,
+  fixed-length arrays never grow. Anything else is a major version that comes with a migrator. A clip that uses a field
+  added after 2.0 that changes how the clip plays (tangents, say) names that field in its optional `requires` list,
   which every reader checks from 2.0 on. A reader that doesn't know a field listed there refuses the clip with a coded
   error instead of playing it differently.
 - **Each set (`_set.json`)** has:
@@ -562,8 +563,8 @@ character), a grader, and a pass rule graded headless.
   - Each trial records its isolation level, pass or fail, wall time, tokens, iterations, and every file read outside
     the manual and the starter.
   - **Discovery trials:** B1 also runs in a second starter, an ordinary three.js game project with the packages
-    installed as dependencies (their skill and `llms.txt` too, once WP-7.3 lands) and a brief
-    (`bench/briefs/B1-discovery.md`) that never names them. Each trial records whether the agent found and used the
+    installed as dependencies and a brief (`bench/briefs/B1-discovery.md`) that never names them. Once WP-7.3 has made
+    the skill, the runner copies it into the workspace too. Each trial records whether the agent found and used the
     package. They are reported at G4 and G7, but they do not gate and do not count toward B1's pass mark.
 - **Briefs are built in three places:** B1 in WP-4.7, B2 to B7 in WP-6.6, B8 in WP-9.1.
 - **Results** go in `bench/results/<date>-<model>.json` and are summarized in `docs/PROGRESS.md`. By default the
@@ -875,14 +876,14 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
   - In-betweening, quantization and continuity. Limits: at most 4,096 keys, at most 600 s, keys at least 1 ms apart.
   - Keys past `dur`: 52 of the 177 MESH2MOTION clips end with a key 8 to 17 ms after `dur`. Format 1 samples time only
     up to `dur` (it holds there, or wraps for a loop; my-3d2dge `src/mocap/readable.js:265-271`), so that key only
-    shapes the last in-between. The spec says whether such a key is allowed and how sampling treats it, and tools that
-    copy or edit a clip keep it rather than cut it off.
+    shapes the last in-between. The spec allows such a key and says how sampling treats it, and tools that copy or edit
+    a clip keep it rather than cut it off.
   - Versioning and compatibility rules; ids and slugging; the set manifest and content ids.
   - The conformance tiers with their tolerances, and the known limits. Tiers 1a and 1b are bit for bit, so the spec
     pins the numerics another language must reproduce, as shardfall's Rust port did: f64 operations in the reference's
     order, f32 storage where the reference uses `Float32Array`, fdlibm's trigonometry, V8's `Math.hypot`, JavaScript's
-    `Math.round`, and number formatting (`toFixed`, shortest round trip, `-0` kept); see `predecessor_adopter_repos.md`
-    §2.2, §6.4 and §7.4.
+    `Math.round` and `toFixed`. It also pins number formatting (shortest round trip, `-0` kept); see
+    `predecessor_adopter_repos.md` §2.2, §6.4 and §7.4.
   - The legend (what a model reads first): at most 800 tokens, worked key included. Format 1's legend alone is 440
     tokens and a key about 137, which leaves about 220 for the new fields. It versions with the schema (§5.3).
 - **Done when:**
@@ -1351,7 +1352,7 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
 - **Done when:**
   - baked and live playback agree within 1 mm;
   - a baked clip carries the source clip's `loop`, `events`, `contacts` and `facts` in `userData`, and a VRMA export
-    carries them in `extras` *(deferred proof: once WP-5.2 lands)*;
+    carries them in `extras` *(deferred proof: WP-5.2's VRMA round trip)*;
   - crossfades and masked layers work through the Animator;
   - the hot path allocates nothing per frame (measured).
 - **Verify:** `npm test -- play`
@@ -1443,12 +1444,12 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
     `tools/to-glb.py`), never as a runtime dependency.
 - **Done when:**
   - **tier 1b**, reader parity: the tiny rig and the CMU take import bit for bit like the oracle;
-  - a VRMA file written and read back is identical;
+  - a VRMA file written and read back is identical, with a clip's `loop`, `events`, `contacts` and `facts` in `extras`;
   - every reader has malformed-input tests with clear errors.
 - **Verify:** `npm test -- io conformance/tier1b`
 
 #### WP-5.3 Re-import from the sources
-- **Owns:** `library/sets/**` (the re-imported sets), `library/catalogs/*`
+- **Owns:** `library/sets/**` (the re-imported sets), `library/catalogs/*`, `tools/migrate/*` (narrowing its check)
 - **Needs:** 5.2, 5.6
 - **Size:** L
 - **Build:** re-import from the original sources with the new degrees of freedom (wrists, forearm roll, spine curl, root
@@ -1461,9 +1462,9 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
   - **100STYLE** (CC BY 4.0, about 18.5 hours): import the styles the catalogs pick.
 
   Compare fit and metrics with the migrated versions, and keep whichever is better per clip, with the reason recorded.
-  The comparison gives the change in fit against the source and the change in each quality metric separately, since a
-  clip can improve one and worsen the other. Clips that replace migrated ones are listed, and the WP-1.5 source-decode
-  check covers only the clips still migrated.
+  The comparison gives the change in fit against the source and the change in each other metric separately, since a
+  clip can improve one and worsen another. Clips that replace migrated ones are listed, and WP-1.5's check that a clip
+  decodes like its source covers only the clips still migrated.
 - **Done when:**
   - every re-imported set is within the fit limits: set mean at most 20 mm; clip mean at most 40 mm and worst at most
     300 mm;
@@ -1498,8 +1499,8 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
   - Reading comes in tiers: a core list of about 40 clips a game usually needs, then the per-set catalogs, then the CMU
     ledger.
 - **Done when:** for a fixed set of 40 queries written from game moments ("lands on one knee", "sneaks", "drinks a
-  potion"), a fitting clip is in the top 5 for at least 32; and for 10 held-out queries, written after the synonym
-  table is frozen by a verifier subagent that has not seen the table or the 40, for at least 8.
+  potion"), a fitting clip is in the top 5 for at least 32; and for 10 held-out queries, written by a verifier subagent
+  that has not seen the synonym table or the 40, after the table is frozen, for at least 8.
 - **Verify:** `npm test -- search`
 
 #### WP-5.6 Large corpora on demand
@@ -1748,7 +1749,8 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
     from the first published version. Clips are inert data, but the skills, the MCP server and the importers are code,
     and agent-skill registries have already shipped malware (ClawHub carried 341 malicious skills).
 - **Done when:** a scratch project installs the packed tarballs and runs the manual's example, the single file runs
-  the same example, and `npm run license -- check` passes on the bundle's manifest.
+  the same example and carries the credits and license texts of its tiers, and `npm run license -- check` passes on
+  the bundle's manifest.
 - **Verify:** `npm run pack -- --check && npm run license -- check tools/bundle/manifest.json`
 
 **Gate G7 = Milestone M2, Agents fly it.**
@@ -1777,7 +1779,8 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
 - **Size:** M
 - **Build:**
   - Approve or flag a clip or a batch, with a note.
-  - Export the review as JSON: through the share sheet on a phone, or as a file on a desk.
+  - Export the review as JSON, with each clip's motion hash (§5.3): through the share sheet on a phone, or as a file
+    on a desk.
   - `m3a review ingest <file>` writes:
     - review states into the clips;
     - notes into `docs/FEEDBACK-LOG.md`, by theme;

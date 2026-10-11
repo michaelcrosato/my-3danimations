@@ -65,7 +65,7 @@ versioning, provenance, the gates and conformance. `PLAN.md` puts these first.
      per-frame channel dumps, and VRMA, the best interchange format, is binary.
    - No official engine MCP server (Unity, Unreal, Roblox), nor the main Blender server, exposes animation operations in
      its core toolset; a few community servers for Unity, Godot and Unreal add animation tools.
-   - Every vendor pipeline ends in binary files, with no headless quality checks.
+   - Every vendor pipeline ends in binary files or flat BVH, with no headless quality checks.
    - three.js has no state machine and no root motion, and its retargeting has documented failures.
    - JavaScript IK and foot locking are thin.
 4. **The hard parts are engineering, not research.** Retargeting onto arbitrary skeletons, foot locking, synced
@@ -275,9 +275,9 @@ approves one (PLAN WP-9.2, D.9).
   - Maya 2027.2 trains MotionMaker models locally.
   - Tripo and Meshy sell rigging and preset-animation APIs.
 - **Agents can fetch motion but not work with it.** Uthana's GraphQL API takes a prompt and returns FBX, GLB or BVH, and
-  Meshy and Tripo have REST endpoints. But every pipeline ends in binary or engine-native files. No vendor offers a
-  text-native format or headless quality checks, so an agent can fetch motion but can't meaningfully read, edit or
-  verify it.
+  Meshy and Tripo have REST endpoints. But every pipeline ends in binary or engine-native files, or in flat BVH. No
+  vendor offers an agent-oriented text format or headless quality checks, so an agent can fetch motion but can't
+  meaningfully read, edit or verify it.
 - **Output terms rule out a redistributable library built on vendors:**
   - Adobe forbids "any type of free distribution of character or animation raw files" from Mixamo, and ML training on
     them.
