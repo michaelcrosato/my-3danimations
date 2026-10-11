@@ -3,12 +3,13 @@
 // :262-275 operation for operation.
 import { P, type Rest } from "./body.ts";
 import { decodePose, type KeyLike } from "./pose.ts";
+import type { Key } from "./types.ts";
 
-/** A clip as sampling needs it: duration, whether it loops, and keys with times. */
+/** A clip as sampling needs it: duration, whether it loops, and keys with times (a format-2 Clip is one). */
 export interface Timed {
   dur: number;
   loop?: boolean;
-  keys: KeyLike[];
+  keys: readonly (Key | KeyLike)[];
 }
 
 /** A captured clip: n frames of the 36 body points (f, r, z mm, float32) at fps, and root travel per frame or null. */
@@ -28,7 +29,7 @@ export const FIELDS = ["hips", "body", "chest", "head", "shL", "shR", "armL", "a
 
 /** The key pose at time t: every number in-betweened linearly from the keys either side. */
 export function keyAt(clip: Timed, t: number): KeyLike {
-  const K = clip.keys;
+  const K = clip.keys as readonly KeyLike[];
   const dur = clip.dur || (K[K.length - 1]!.t as number);
   const tt = clip.loop && dur > 0 ? ((t % dur) + dur) % dur : Math.min(Math.max(0, t), dur);
   let i = 0;
@@ -57,7 +58,7 @@ export function pose(R: Rest, clip: Timed, t: number, out: Float32Array = new Fl
 
 /** How far a travelling clip has carried the body at time t, [forward, right] mm, or null when it doesn't travel. */
 export function moveAt(R: Rest, clip: Timed, t: number): [number, number] | null {
-  if (!clip.keys[0]!.root) return null;
+  if (!(clip.keys[0] as KeyLike).root) return null;
   const k = keyAt(clip, t);
   const root = k.root as number[];
   return [(root[0]! * R.H0) / 100, (root[1]! * R.H0) / 100];
