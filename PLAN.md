@@ -2204,7 +2204,7 @@ version, commit, date and a note with the numbers. Gates are rows too.
 | 1.5 Migrate the seed sets | done | 0.6.0 | 48de33a, 08087bf | 2026-10-11 | 5 sets, 525 clips, 0 errors, 171 warnings baselined; keys equal their sources; 3 sets decode within 1 µm of tier 2; catalogs ≤40 tokens (34 rows cut); 4.3 MB; D30 |
 | **G1** | done | 0.6.0 | 6bffb3e | 2026-10-11 | 7/7 in 11.0 s: T0 1.3 s, T1 3.0 s (178 tests), doctrine 8/8 (10 files frozen), tiers 1a and 2, migrate --check, migrated library; verifier: 7 findings fixed (D32), notes F1 |
 | 2.1 Math kernel and determinism | done | 0.7.0 | 01706fd | 2026-10-11 | 13 functions give V8's bits on 200k inputs each, random bit patterns and specials; pow ≤1 ulp of glibc; core.json bit for bit; V8 = JSC on 2.8M results and a 100k-step chain; cost 0.7–4× native (D33) |
-| 2.2 Sampler, events, contacts, facts | done | 0.8.0 | (this row's commit) | 2026-10-11 | sample = tier 2 at 7,444 samples; loop events once; yaw 90/360/720° continuous, rootDelta carries seams; truth 20/20: speeds ≤11%, distances ≤0.2% or 0.2% of H0, strikes ≤0.06 s (D34) |
+| 2.2 Sampler, events, contacts, facts | done | 0.8.0 | d774088 | 2026-10-11 | sample = tier 2 at 7,444 samples; loop events once; yaw 90/360/720° continuous, rootDelta carries seams; truth 20/20: speeds ≤11%, distances ≤0.2% or 0.2% of H0, strikes ≤0.06 s (D34) |
 | 2.3 Pose operations | todo | | | | |
 | 2.4 The solver | todo | | | | |
 | 2.5 Contacts and ground | todo | | | | |
