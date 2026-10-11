@@ -4,7 +4,10 @@
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { fromFormat1, serialize, slugs, validate, type Clip, type Clip1 } from "@m3a/core";
+import { format, serialize, validate, type Clip } from "@m3a/core";
+
+const { fromFormat1, slugs } = format;
+type Clip1 = format.Clip1;
 import { encode as tokens } from "gpt-tokenizer/encoding/cl100k_base";
 import { loadSet, type Set1 } from "../vectors/oracle.ts";
 import { baselineReason, SETS, type SetSpec } from "./sets.ts";

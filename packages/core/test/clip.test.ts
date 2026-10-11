@@ -4,7 +4,7 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { contactsAt, events, keyAt, measureFacts, parseClip, rootAt, rootDelta, sample, type Clip, type ClipEvent, type Key, type Rest } from "../src/index.ts";
+import { contactsAt, events, keyAt, measureFacts, parseClip, rootAt, rootDelta, sample, type Clip, type ClipEvent, type Key, type Rest } from "./all.ts";
 import { loadTier2, tier2Sets } from "../../../spec/conformance/runner/vectors.ts";
 
 const LIB = join(import.meta.dirname, "../../../library/sets");

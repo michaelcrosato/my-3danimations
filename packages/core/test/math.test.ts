@@ -8,7 +8,7 @@ import { describe, expect, it } from "vitest";
 import {
   angDiff, approach, approachAng, derive, easesWith, Fnv64, hash2, hashNumbers, hashValue, lerpAng, mat4, NATIVE, noise2, PORTABLE, quat, rng, Rng, RngStreams, smoothDamp, vec3,
   type MathLike, type Quat, type Vec3,
-} from "../src/index.ts";
+} from "./all.ts";
 import { TWO_OVER_PI_HEX } from "../src/math/portable.ts";
 
 const CORE = JSON.parse(readFileSync(join(import.meta.dirname, "../../../spec/vectors/frozen/core.json"), "utf8"));

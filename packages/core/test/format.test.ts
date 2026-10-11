@@ -2,7 +2,7 @@
 // new optional fields (hand, fingers, spine, yaw) in decode, encode, sampling and mirroring. Format 1's behaviour is
 // proved against the oracle by spec/conformance/tier1a and tier2.
 import { describe, expect, it } from "vitest";
-import { decodePose, encodePose, fit, fromFormat1, IDX, keyAt, keyLens, mirror, normalized, parseClip, serialize, slug, slugs, validate, type Capture, type Clip, type KeyLike, type Rest } from "../src/index.ts";
+import { decodePose, encodePose, fit, fromFormat1, IDX, keyAt, keyLens, mirror, normalized, parseClip, serialize, slug, slugs, validate, type Capture, type Clip, type KeyLike, type Rest } from "./all.ts";
 import { loadTier1a, loadTier2 } from "../../../spec/conformance/runner/vectors.ts";
 import { baseClip } from "./fixtures.ts";
 

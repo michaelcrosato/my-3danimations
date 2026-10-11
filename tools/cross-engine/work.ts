@@ -1,7 +1,12 @@
 // The cross-engine workload (PLAN.md WP-2.1): the same computations, run once in V8 (Node) and once in JavaScriptCore
 // (Bun), hashed bit for bit, plus each portable function's cost against the engine's own. `main.ts` compares the two
 // runs; run alone (`bun tools/cross-engine/work.ts`) it prints its JSON. Only core's public API is used.
-import { easesWith, Fnv64, NATIVE, noise2, PORTABLE, quat, RngStreams, smoothDamp, angDiff, vec3, type MathLike, type Quat, type Vec3 } from "../../packages/core/src/index.ts";
+import { math } from "../../packages/core/src/index.ts";
+
+const { easesWith, Fnv64, NATIVE, noise2, PORTABLE, quat, RngStreams, smoothDamp, angDiff, vec3 } = math;
+type MathLike = math.MathLike;
+type Quat = math.Quat;
+type Vec3 = math.Vec3;
 
 /** The functions compared and timed, with how many arguments each takes. */
 export const FUNCTIONS = ["sin", "cos", "tan", "atan", "atan2", "asin", "acos", "exp", "log", "log2", "log10", "pow", "hypot", "cbrt"] as const;

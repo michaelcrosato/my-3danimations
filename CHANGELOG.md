@@ -4,6 +4,25 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.12.0 · 2026-10-11
+
+### Core
+- WP-2.6: the Animator (`animator/`):
+  - layers (clip, weight, mask, additive, speed);
+  - `step(dt)` on a fixed step: events in the order the playheads pass them, root motion mixed like the pose;
+  - `hash()`; `save()` and `restore()` as plain JSON, naming each clip by id and content hash, refusing a changed or
+    missing clip by name;
+  - `pose()` with planted feet, the ground and hand targets, at full detail, `lod` 1 or `{ exact: true }`.
+- The public API is `src/index.ts`, all of it: 38 documented names, each module as a namespace (`format`, `ops`,
+  `math`, `solver`, ...).
+
+### Tools
+- The doctrine's boundary check counts each package's public exports (core at most 40), and fails a bare `export *`
+  or an export with no doc comment.
+
+### Repo
+- e2e `animator-parity`: the Animator's hashes, events and exact poses are the same in Node and headless Chromium.
+
 ## 0.11.1 · 2026-10-11
 
 ### Core

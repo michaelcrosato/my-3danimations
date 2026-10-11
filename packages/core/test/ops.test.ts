@@ -7,7 +7,7 @@ import { describe, expect, it } from "vitest";
 import {
   addDelta, blend, decodePose, delta, ease, endLow, keyAt, loopify, mask, measureFacts, mirror, mirrorPose, parseClip, phaseMap, retime, slice, syncBlend,
   type Clip, type KeyLike, type Lensed, type Pose, type Rest,
-} from "../src/index.ts";
+} from "./all.ts";
 
 const LIB = join(import.meta.dirname, "../../../library/sets");
 function libClip(id: string): { clip: Clip; R: Rest } {

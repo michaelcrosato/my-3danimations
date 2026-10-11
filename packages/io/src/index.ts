@@ -1,6 +1,7 @@
 // @m3a/io: readers and writers for glTF/GLB, VRMA, BVH and ASF/AMC.
 // The main entry stays runnable in a browser; Node built-ins go behind a `/node` entry (PLAN.md §5.1).
 
+/** The version every `@m3a` package and the spec share. */
 export { VERSION } from "@m3a/core";
 
 /** This package's name. */

@@ -3,12 +3,14 @@
 // every limb points within 9 degrees of the source (shoulder to virtual fist, hip to ankle), the chest faces where the
 // source's does (within 9, 14 on a curled spine), bone lengths are unchanged, no sole goes below the floor, and no
 // number is NaN.
-import { bind, decodePose, dirToSkeleton, forward, IDX, keyAt, quat, solve, toFormat, torso, type Rest } from "@m3a/core";
+import { bind, forward, format, math, solve, solver, type Rest } from "@m3a/core";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { rigSkeleton } from "./runner/skeleton.ts";
 import { loadTier2, tier2Sets, TOLERANCE } from "./runner/vectors.ts";
+
+const { decodePose, IDX, keyAt, torso } = format, { quat } = math, { dirToSkeleton, toFormat } = solver;
 
 const bodies = JSON.parse(readFileSync(join(import.meta.dirname, "../vectors/tier3/bodies.json"), "utf8")).bodies as Record<string, { proportions?: Record<string, number>; rest: Rest }>;
 const generated = Object.entries(bodies).filter(([, b]) => b.proportions);

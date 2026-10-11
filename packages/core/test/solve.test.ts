@@ -4,7 +4,7 @@
 // same joints; and a skeleton's naming doesn't matter. Other bodies are conformance tier 3
 // (spec/conformance/tier3.test.ts).
 import { describe, expect, it } from "vitest";
-import { bind, decodeOn, decodePose, forward, IDX, keyAt, mirrorPose, quat, solve, toFormat, TABLES, type Bound, type KeyLike, type Quat, type Rest, type SkeletonIn, type Solved } from "../src/index.ts";
+import { bind, decodeOn, decodePose, forward, IDX, keyAt, mirrorPose, quat, solve, toFormat, TABLES, type Bound, type KeyLike, type Quat, type Rest, type SkeletonIn, type Solved } from "./all.ts";
 import { rigSkeleton } from "../../../spec/conformance/runner/skeleton.ts";
 import { loadTier2, tier2Sets } from "../../../spec/conformance/runner/vectors.ts";
 

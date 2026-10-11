@@ -3,7 +3,7 @@
 The current state on one screen (at most 40 lines; `npm run doctrine` checks it from WP-0.3). The ledger is
 `PLAN.md` §14; decisions are in `docs/DECISIONS.md`.
 
-**Phase:** 2 The airframe. **Next gate:** G2. **Version:** 0.11.1.
+**Phase:** 2 The airframe. **Next gate:** G2. **Version:** 0.12.0.
 **Mode:** one agent (D21), branch `claude/relaxed-albattani-35xhjq`.
 
 ## Done
@@ -21,10 +21,12 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 - WP-2.4 The solver: any recognized skeleton from the key's numbers; tier 3 passes on 7 bodies; its review's 8 roll
   findings fixed and tested (mirror, bend sweeps, T = A = relaxed) (D36, F2).
 - WP-2.5 Contacts and ground: planted feet held still (0 mm slide), soles on slopes and steps (D37).
+- WP-2.6 The Animator: layers, a fixed step, events, root motion, save and restore, poses; the same hashes and exact
+  poses in Node and Chromium; core's public API is 38 documented names (D38).
 
 ## Next
 
-- WP-2.6 The Animator.
+- Gate G2: tiers 1a, 2 and 3, determinism in Node and Chromium, V8 = JavaScriptCore, the property tests.
 
 ## Blocked on the owner
 

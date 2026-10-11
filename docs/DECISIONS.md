@@ -599,3 +599,56 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   10° slopes and 0.2 m steps, up and down, planted soles are within 1.7 mm of the surface and no sole goes under it.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.11.0
+
+## D38 · 2026-10-11 · The Animator: plain state on a fixed step, poses that never feed back, a public API of namespaces
+
+- **Principle:** 3, 5, 8, WP-2.6 (PLAN.md §5.5, the runtime contract)
+- **Call:**
+  - **State is plain data.** An Animator's state is its layers (clip id and content hash, weight, mask, additive,
+    speed, playhead, loop cycles), the steps taken, the time carried to the next step, and the root. `save()` returns
+    exactly that, `hash()` hashes it, and `restore()` takes it back. Everything else is cached as a pure function of a
+    clip and the body (the root path, decoded points, an additive clip's first key), so a restored Animator rebuilds
+    it identically.
+  - **A clip's content hash** covers what playing reads: duration, loop, keys, events and contacts, as the clip's JSON
+    text gives them. A clip loaded from its file and the same clip built in memory hash alike, and an edit to its name
+    or description doesn't refuse a restore. Restoring a changed clip throws E_CLIP_CHANGED; a missing one throws
+    E_CLIP_MISSING. Both name the clip.
+  - **The step.** A fixed-step accumulator: a step is due once the carried time reaches it (to a billionth of a step,
+    so 1/120 twice is one 1/60 step). `maxSteps` caps one call. In each step every layer's playhead moves, and the
+    events it passes fire in the order they are passed, ties in layer order. A loop fires each event once a cycle, and
+    an event at its end is the same moment as its start. A one-shot's end fires once as the playhead reaches it,
+    played forward or backward. A layer at weight 0 fires nothing.
+  - **Mixing.** The lowest playing layer is taken whole, as engines treat a base layer. Each layer above blends over it
+    by weight and mask (`ops.blend`), or adds its change from its first key (`ops.addDelta`). Root motion mixes the same
+    way: each clip's root path on this body, which is its own travel or, for an in-place clip, the path its planted feet
+    imply (`contactRoot`, D37). The root's heading is kept within ±180°.
+  - **The pose** is presentation only and never feeds back. Full detail (`lod` 0) plants the feet:
+    - The layer whose clip most decides the legs (its share after the layers above) lends its contacts and root path,
+      anchored where the Animator's root stands.
+    - At its playhead the mixed pose stands in for its clip's.
+    - Then the ground, hand targets, and the solve.
+    `lod` 1 solves the mixed key alone, lifted onto the floor. `{ exact: true }` is full detail whatever `lod` says.
+    Every path runs on the portable math, so presentation at full detail and an exact pose agree.
+  - **The public API** is `packages/core/src/index.ts`, all of it, one export per statement with a doc comment: 38
+    names. The everyday ones are top-level: the Animator and its types, `bind`, `solve`, `forward`, `recognize`,
+    `parseClip`, `serialize`, `validate`, `measureFacts`, and the core types. Each module's whole surface is one
+    namespace (`math`, `format`, `clip`, `ops`, `skeleton`, `solver`, `contact`, `validation`, `animator`). The
+    doctrine's boundary check counts the names (at most 40 for core) and fails a bare `export *` or an export with no
+    doc comment. Tools and the conformance tests use the namespaces. Core's own tests reach the modules through a
+    test-only barrel (`packages/core/test/all.ts`).
+- **Result:**
+  - A 480-iteration script: a walk crossfaded into a jog, a masked punch, an additive flinch, speed changes and
+    backward play, irregular dt on a slope.
+  - It gives the same state hash after every step, the same 29 events and the same exact-mode joints at 5 points, bit
+    for bit, in Node and headless Chromium (`npm run e2e -- animator-parity`). That holds with presentation poses
+    skipped, taken every step, or alternating between full detail and `lod` 1.
+  - Saving after any of the 480 iterations and restoring into a new Animator through JSON gives the next 40
+    iterations' hashes, events and exact poses unchanged.
+  - Planted feet hold within 10 mm per contact while the Animator walks.
+- **Cost** (the 4-core cloud container, Node 24, one character, four layers: walk, jog at 0.5, masked punch, additive
+  flinch): `step()` 1.4 µs; `pose()` 0.20 ms at full detail (0.22 ms exact, 0.17 ms at `lod` 1), most of it the
+  solve. Sixty characters posed every frame at 60 Hz take about 0.7 of one core.
+- **Outside WP-2.6's Owns** (one agent, D21): the boundary check's API rule and its tests; the tools, conformance
+  tests and other packages' entries moved onto the namespaced API; core's test barrel.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.12.0

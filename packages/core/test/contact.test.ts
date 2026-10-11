@@ -7,7 +7,7 @@ import { describe, expect, it } from "vitest";
 import {
   contactRoot, contactsAt, decodePose, derived, IDX, keyAt, measureFacts, parseClip, phaseMap, plant, syncBlend, toWorld,
   type Clip, type Contacts, type Ground, type Key, type Motion, type Playable, type Rest,
-} from "../src/index.ts";
+} from "./all.ts";
 
 const LIB = join(import.meta.dirname, "../../../library/sets");
 const P = (X: ArrayLike<number>, n: string): [number, number, number] => [X[IDX[n]! * 3]!, X[IDX[n]! * 3 + 1]!, X[IDX[n]! * 3 + 2]!];
