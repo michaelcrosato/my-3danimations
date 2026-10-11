@@ -4,6 +4,20 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.11.0 · 2026-10-11
+
+### Core
+- WP-2.5: contacts and ground (`contact/`): `plant` holds each planted foot's contact point still in the world
+  (stateless: the motion's own drift since landing, undone), sets the sole on the ground (pitched to slopes and steps
+  through a ground probe), lowers the pelvis where a leg can't reach, solves the legs again, and draws hands to
+  weighted targets; `contactRoot` gives an in-place clip the root its planted feet imply. `solve` takes edited points.
+- Contact detection also asks a planted foot to be still in the world (slower than half the body's speed), and closes
+  gaps up to 0.1 s; `syncBlend` gives the blend's contacts, the inputs' weighted.
+
+### Tests
+- On all 133 migrated locomotion loops and on synced walk–run blends a planted foot slides at most 10 mm per contact
+  (0 mm measured); on 10° slopes and 0.2 m steps planted soles stay within 5 mm of the surface (1.7 mm measured).
+
 ## 0.10.0 · 2026-10-11
 
 ### Core

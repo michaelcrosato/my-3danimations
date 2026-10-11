@@ -545,3 +545,32 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   with no offset (a body without shoulder bones gave NaN); `quat.fromMat3`; the tier-3 test and its skeleton helper.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.10.0
+
+## D37 · 2026-10-11 · Planting holds the contact point, statelessly, and in-place clips move by their feet
+
+- **Principle:** 5, 9, WP-2.5 (riftlight's zero-slide gait and foot lock)
+- **Call:**
+  - `plant` holds a planted foot's contact point still in the world, not its ankle. The contact point is the lowest
+    sole point at each step: the heel at strike, the ball and toes at push-off.
+    - It does so by undoing that point's drift in the motion since the foot landed, summed on a fixed 60 Hz grid.
+    - The result depends on time alone, so the Animator can skip or thin presentation poses without changing any pose
+      it takes.
+    - The hold engages at once, because there is no drift yet at landing, and eases out over 0.05 s.
+    - Pinning the ankle instead fought the heel rising at push-off and dragged the foot up to 71 mm.
+  - Planted soles touch the surface. Off flat ground the foot is pitched about its heel to the surface's slope (±45°).
+    The body rests on the lower foot's ground, and the pelvis drops where a planted leg can't reach, by at most a tenth
+    of H0 (median worst 7.8 mm over the locomotion loops, 57 mm on CMU's zombie walk). Free feet only come up out of
+    the surface.
+  - An in-place clip's root is the one its planted feet imply (`contactRoot`): the weight-bearing foot's contact point,
+    reversed, with flight in-betweened. A constant speed left feet dragging up to 42 mm where the body's speed varies
+    within the stride (a skip).
+  - Contact detection gained a second test: a planted foot is still in the world, slower than half the body's speed.
+    Without it, shuffles and low swings counted as planted for whole cycles (up to 1.8 m of slide). Gaps up to 0.1 s
+    close, so a foot rolling off its heel onto its toes is one contact. The speed fact still reads the first pass (D34);
+    facts-truth.json passes unchanged.
+  - A synchronized blend's contacts are its inputs' contacts, weighted, rather than detected on the blend.
+- **Result:** on all 133 migrated locomotion loops (walk and run, travelling) and synced walk–jog and walk–sprint
+  blends at 0.25, 0.5 and 0.75, a planted foot's contact point slides 0.0 mm per contact (unplanted: up to 92 mm). On
+  10° slopes and 0.2 m steps, up and down, planted soles are within 1.7 mm of the surface and no sole goes under it.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.11.0

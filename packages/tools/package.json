@@ -1,6 +1,6 @@
 {
   "name": "@m3a/tools",
-  "version": "0.10.0",
+  "version": "0.11.0",
   "private": true,
   "description": "The tool registry, the m3a CLI and the MCP server.",
   "license": "MIT",
@@ -9,10 +9,10 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "@m3a/core": "0.10.0",
-    "@m3a/io": "0.10.0",
-    "@m3a/library": "0.10.0",
-    "@m3a/sensors": "0.10.0",
-    "@m3a/three": "0.10.0"
+    "@m3a/core": "0.11.0",
+    "@m3a/io": "0.11.0",
+    "@m3a/library": "0.11.0",
+    "@m3a/sensors": "0.11.0",
+    "@m3a/three": "0.11.0"
   }
 }

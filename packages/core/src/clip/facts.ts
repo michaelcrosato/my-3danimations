@@ -46,6 +46,22 @@ export function measureFacts(clip: Measurable, R: Rest, opts: DetectOptions = {}
   const { frames, dt } = sampled;
   const n = frames.length - 1;
   const facts: Facts = { by: `m3a-core@${VERSION}`, dur: clip.dur, height: [0, 0], contacts: clip.contacts ?? detectContacts(clip, R, opts, sampled) };
+  // detected contacts, refined: a planted foot is still in the world. The root's velocity is the clip's own (root
+  // travel) or, in place, the body's as its planted feet show it; detect again with it, and read the speed again.
+  const hasRoot = (clip.keys[0] as { root?: unknown }).root !== undefined;
+  const firstPass = facts.contacts;
+  if (!clip.contacts) {
+    const v = hasRoot ? null : plantedVelocity(clip, sampled, facts.contacts);
+    const rootV = hasRoot
+      ? (i: number): [number, number] => {
+          const a = rootAt(clip, Math.max(0, i - 1) * dt), b = rootAt(clip, Math.min(frames.length - 1, i + 1) * dt), k = (R.H0 / 100) / ((Math.min(frames.length - 1, i + 1) - Math.max(0, i - 1)) * dt);
+          return [(b.forward - a.forward) * k, (b.right - a.right) * k];
+        }
+      : v
+        ? (): [number, number] => [-v[0], -v[1]]
+        : undefined;
+    if (rootV) facts.contacts = detectContacts(clip, R, opts, sampled, rootV);
+  }
   // the hips' height range
   const ups = clip.keys.map((k) => k.hips[2]!);
   facts.height = [Math.min(...ups), Math.max(...ups)];
@@ -57,19 +73,18 @@ export function measureFacts(clip: Measurable, R: Rest, opts: DetectOptions = {}
     facts.seam = round(worst, 1);
   }
   // travel and speed
-  const hasRoot = (clip.keys[0] as { root?: unknown }).root !== undefined;
   if (hasRoot) {
     const r = rootAt(clip, clip.dur);
     facts.travel = [round(r.forward, 1), round(r.right, 1)];
   } else if (clip.loop) {
-    const v = plantedVelocity(clip, sampled, facts.contacts);
+    // the speed from the first pass's contacts: height alone, the planted foot nearest under the pelvis (D34)
+    const v = plantedVelocity(clip, sampled, firstPass);
     if (v) facts.travel = [round((-v[0] * clip.dur * 100) / R.H0, 1), round((-v[1] * clip.dur * 100) / R.H0, 1)];
   }
   if (clip.loop && facts.travel && clip.dur > 0) facts.speed = round(PORTABLE.hypot(facts.travel[0], facts.travel[1]) / clip.dur, 1);
   // strike
   const tags = clip.tags ?? [];
   if (tags.includes("attack") || tags.includes("kick")) facts.strike = [round(strikeTime(clip, R, sampled, tags.includes("kick")), 3)];
-  void dt;
   return facts;
 }
 

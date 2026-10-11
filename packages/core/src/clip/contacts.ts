@@ -1,8 +1,9 @@
 // Contacts (PLAN.md WP-2.2; spec/MOTION.md §7.1): which ends are planted at time t, from a clip's labelled or detected
 // intervals, and detection with hysteresis from the decoded motion. An end is planted while its lowest point stays near
 // the floor (z = 0): it plants when it comes within `enter` of it and lifts when it moves past `exit` (fractions of
-// H0; above or below), so a foot that skims the ground doesn't flicker. Contacts shorter than `minFrames` are dropped and gaps shorter
-// than `mergeFrames` closed; a loop's contact that runs through the seam becomes one interval past dur (§7.1).
+// H0; above or below), so a foot that skims the ground doesn't flicker. Contacts shorter than `minTime` are dropped and
+// gaps up to `mergeTime` closed; a loop's contact that runs through the seam becomes one interval past dur (§7.1).
+import { PORTABLE } from "../math/portable.ts";
 import { IDX, P, type Rest } from "../format/body.ts";
 import { CONTACT_ENDS, type Contacts } from "../format/types.ts";
 import { sample, type Playable } from "./sample.ts";
@@ -37,10 +38,13 @@ export interface DetectOptions {
   enter?: number;
   /** And lifts past this one (0.07). */
   exit?: number;
-  /** The shortest contact kept, in samples (3). */
-  minFrames?: number;
-  /** The longest gap closed, in samples (2). */
-  mergeFrames?: number;
+  /** The shortest contact kept, in seconds (0.05). */
+  minTime?: number;
+  /** The longest gap closed, in seconds (0.1: a foot rolling off its heel onto its toes is one contact). */
+  mergeTime?: number;
+  /** A planted end moves slower than this in the world, as a fraction of H0 per second (0.3, and at most half the body's
+   *  speed); it lifts past twice it. */
+  still?: number;
 }
 
 /** The poses a measurement reads: n + 1 samples over [0, dur], time step dt. */
@@ -66,10 +70,38 @@ export function endLow(pose: Float32Array, end: End): number {
   return z;
 }
 
-/** Contact intervals detected from the motion, with hysteresis. Feet are searched always, hands when they reach the ground. */
-export function detectContacts(clip: Playable, R: Rest, opts: DetectOptions = {}, sampled: Sampled = sampleAll(clip, R, opts.fps ?? 60)): Contacts {
+/** The lowest point of an end in a pose: its name and height. */
+function lowest(pose: Float32Array, end: End): string {
+  let best = END_POINTS[end][0]!, z = Infinity;
+  for (const p of END_POINTS[end]) if (pose[IDX[p]! * 3 + 2]! < z) [best, z] = [p, pose[IDX[p]! * 3 + 2]!];
+  return best;
+}
+
+/**
+ * Contact intervals detected from the motion, with hysteresis. An end is planted while its lowest point stays near the
+ * floor; given the root's velocity (mm/s in the pose's frame, per sample), also only while that point is still in the
+ * world: an in-place walk's planted foot slides back at the body's speed, a swinging one skims forward. Feet are
+ * searched always, hands when they reach the ground.
+ */
+export function detectContacts(clip: Playable, R: Rest, opts: DetectOptions = {}, sampled: Sampled = sampleAll(clip, R, opts.fps ?? 60), rootVelocity?: (i: number) => [number, number]): Contacts {
   const { frames, dt } = sampled;
-  const enter = (opts.enter ?? 0.04) * R.H0, exit = (opts.exit ?? 0.07) * R.H0, minF = opts.minFrames ?? 3, mergeF = opts.mergeFrames ?? 2;
+  const enter = (opts.enter ?? 0.04) * R.H0, exit = (opts.exit ?? 0.07) * R.H0;
+  const minF = Math.max(1, Math.round((opts.minTime ?? 0.05) / dt)), mergeF = Math.round((opts.mergeTime ?? 0.1) / dt);
+  // still: slower than the given fraction of H0 per second, and than half the body's own speed (a shuffle's sliding
+  // foot moves with the body), but never asked to be slower than 0.05 H0/s (an idle's noise)
+  let still = (opts.still ?? 0.3) * R.H0;
+  if (rootVelocity) {
+    let sum = 0;
+    for (let i = 0; i < frames.length; i++) sum += PORTABLE.hypot(...rootVelocity(i));
+    still = Math.max(0.05 * R.H0, Math.min(still, 0.5 * (sum / frames.length)));
+  }
+  /** The world speed of an end's lowest point at sample i (mm/s), or 0 without a root velocity. */
+  const speed = (end: End, i: number) => {
+    if (!rootVelocity) return 0;
+    const n = frames.length - 1, p = lowest(frames[i]!, end), i0 = Math.max(0, i - 1), i1 = Math.min(n, i + 1);
+    const a = frames[i0]!, b = frames[i1]!, j = IDX[p]! * 3, v = rootVelocity(i);
+    return PORTABLE.hypot((b[j]! - a[j]!) / ((i1 - i0) * dt) + v[0], (b[j + 1]! - a[j + 1]!) / ((i1 - i0) * dt) + v[1]);
+  };
   const n = frames.length - 1;
   // the format's floor is z = 0 (spec/MOTION.md §2); a toe that dips through it mid-swing must not move it
   const ground = 0;
@@ -81,7 +113,7 @@ export function detectContacts(clip: Playable, R: Rest, opts: DetectOptions = {}
     for (let i = 0; i <= n; i++) {
       // within the band about the floor: an end far under it (a swim, a dive) isn't standing on it
       const h = Math.abs(endLow(frames[i]!, end) - ground);
-      planted = planted ? h <= exit : h <= enter;
+      planted = planted ? h <= exit && speed(end, i) <= 2 * still : h <= enter && speed(end, i) <= still;
       on.push(planted);
     }
     // runs of planted samples, gaps closed, short runs dropped

@@ -18,6 +18,9 @@ import { dirToSkeleton, toSkeleton, type Bound } from "./bind.ts";
 /** How to solve: the source body's spine shares (spread the turn as the clip's library does), and the floor. */
 export interface SolveOptions {
   source?: Pick<Rest, "spineW" | "neckW">;
+  /** The target body points to reach, already decoded and edited (planted feet, WP-2.5): the solver turns bones to them
+   *  as they are (no floor lift: planting has set the soles on the ground). */
+  points?: Float64Array;
   /** Keep the soles on or above the floor (true). */
   floor?: boolean;
 }
@@ -86,12 +89,13 @@ const CURL: Readonly<Record<string, readonly number[]>> = { Thumb: [20, 40, 40],
 export function solve(k: KeyLike, b: Bound, opts: SolveOptions = {}): Solved {
   const R: Rest = opts.source ? { ...b.rest, spineW: opts.source.spineW, neckW: opts.source.neckW } : b.rest;
   const X = new Float64Array(108);
-  decodePose(R, k, X as unknown as number[]);
+  if (opts.points) X.set(opts.points);
+  else decodePose(R, k, X as unknown as number[]);
   const poles = limbPoles(R, k);
   // the soles on the floor: a pose whose lowest sole would go below it is lifted whole until it stands on it, as
   // my-3d2dge's Mocap.drive did, so every direction stays the source's (a deep crouch on longer legs, a rise from the
   // ground). Contacts and ground (WP-2.5) plant the feet on uneven ground.
-  if (opts.floor !== false) {
+  if (opts.floor !== false && !opts.points) {
     let low = 0;
     for (const s of ["L", "R"]) low = Math.min(low, X[IDX["ball" + s]! * 3 + 2]!, X[IDX["toe" + s]! * 3 + 2]!, X[IDX["ankle" + s]! * 3 + 2]! - R.ankleZ);
     if (low < 0) for (let i = 2; i < X.length; i += 3) X[i] = X[i]! - low;
