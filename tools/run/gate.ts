@@ -30,6 +30,18 @@ export const GATES: Record<string, [string, string, ...string[]][]> = {
     ["portable math: V8 = JavaScriptCore (Bun)", "test:cross-engine"],
     ["property tests: mirror twice, blend ends, retime, solver roll", "test", "ops", "solve"],
   ],
+  G3: [
+    ["check", "check"],
+    ["test", "test"],
+    ["doctrine", "doctrine"],
+    ["vectors --check", "vectors", "--check"],
+    ["the sensors over every migrated clip within T2, as the committed baseline says", "qa", "--check"],
+    ["planted defects: the fixtures rebuild byte for byte", "plant", "--check"],
+    ["planted defects: 100% caught at their times", "test", "planted"],
+    ["describe: the reviewed ground truth", "test", "describe"],
+    ["lint and fix: each operator removes its planted defect", "test", "fix"],
+    ["T2: browser checks and library QA", "e2e"],
+  ],
 };
 
 if (import.meta.main) {

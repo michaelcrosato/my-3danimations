@@ -3,7 +3,7 @@
 The current state on one screen (at most 40 lines; `npm run doctrine` checks it from WP-0.3). The ledger is
 `PLAN.md` §14; decisions are in `docs/DECISIONS.md`.
 
-**Phase:** 3 The sensors. **Next gate:** G3. **Version:** 0.18.0.
+**Phase:** 3 The sensors. **Next gate:** G3. **Version:** 0.18.1.
 **Mode:** one agent (D21), branch `claude/relaxed-albattani-35xhjq`.
 
 ## Done

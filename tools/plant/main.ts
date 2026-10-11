@@ -1,4 +1,4 @@
-// `node tools/plant/main.ts [--check]` (PLAN.md WP-3.6): picks 100 clean library clips (those the sensors pass, every
+// `npm run plant [-- --check]` (PLAN.md WP-3.6): picks 100 clean library clips (those the sensors pass, every
 // other one of the sorted library first) and gives each a defect to plant, the ten in turn (a clip that can't take
 // one gets the next it can; one that can take none is passed over), and writes the runs with the times each defect must be found at to
 // packages/sensors/fixtures/planted/runs.json. --check rebuilds them and fails on any difference. `npm test -- planted`

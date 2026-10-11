@@ -1,12 +1,13 @@
 // The QA run (WP-3.3): each clip's row carries its verdict's text and its findings with their times and repairs; the
-// distributions have a capture group; `npm run qa -- --dist` prints them, and --json writes the run's report beside
-// the clips' rows instead of over them.
+// distributions have a capture group; the committed baseline holds every clip's readings and a run names what it
+// changed; `npm run qa -- --dist` prints the distributions, and --json writes the run's report beside the clips' rows
+// instead of over them.
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { ROOT } from "../run/cli.ts";
-import { CAPTURE, distributions, libraryClips, qa } from "./qa.ts";
+import { BASELINE, baselineOf, CAPTURE, compare, distributions, libraryClips, qa } from "./qa.ts";
 
 const pick = (ids: string[]) => libraryClips().filter((c) => ids.includes(c.clip.id));
 
@@ -23,6 +24,20 @@ describe("the QA rows and distributions", () => {
     const d = distributions(rows);
     expect(CAPTURE).toEqual(["CMU_CURATED", "STYLE100"]);
     expect([d.all!.slide.n, d.capture!.slide.n, d.STYLE100!.slide.n]).toEqual([3, 2, 1]);
+  });
+});
+
+describe("the committed baseline", () => {
+  it("holds every clip's verdict, values and finding counts, and names what a run changed", () => {
+    const rows = qa(pick(["QUATERNIUS_3D2DGE/Walk_Loop", "STYLE100/Neutral_Walk"])), base = baselineOf(rows);
+    expect(compare(base, rows, true)).toEqual([]);
+    const moved = structuredClone(base);
+    moved["QUATERNIUS_3D2DGE/Walk_Loop"]!.values.slide = 999;
+    moved["QUATERNIUS_3D2DGE/Walk_Loop"]!.verdict = "pass";
+    delete moved["STYLE100/Neutral_Walk"];
+    expect(compare(moved, rows, true)).toEqual([expect.stringMatching(/^QUATERNIUS_3D2DGE\/Walk_Loop: pass → (warn|fail)$/), expect.stringMatching(/^QUATERNIUS_3D2DGE\/Walk_Loop: slide 999 → [\d.]+$/), "STYLE100/Neutral_Walk: not in the baseline"]);
+    const committed = JSON.parse(readFileSync(join(ROOT, BASELINE), "utf8")) as { clips: Record<string, unknown> };
+    expect(Object.keys(committed.clips)).toHaveLength(libraryClips().length);
   });
 });
 

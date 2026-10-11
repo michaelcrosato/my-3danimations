@@ -4,6 +4,15 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.18.1 · 2026-10-11
+
+### Tools
+- The sensors' baseline (`packages/sensors/fixtures/baseline.json`, numbers only): every migrated clip's verdict,
+  values and finding counts. `npm run qa -- --check` fails on any difference and T2 runs it; `--baseline` rewrites it,
+  in a commit that says why.
+- `npm run plant [-- --check]` for the planted defects.
+- `npm run gate -- G3`: its command set.
+
 ## 0.18.0 · 2026-10-11
 
 ### Sensors

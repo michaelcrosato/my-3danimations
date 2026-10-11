@@ -3,11 +3,14 @@
 // also prints each metric's distribution in real capture and in all (p50 / p90 / p95 / p99 / max of each clip's worst
 // value), which the thresholds are read from, and writes every set's. Writes check-output/qa/clips.json: every clip's
 // verdict and its text, values, and findings with their times and repairs (--json writes the run's own report.json
-// beside it). Exit 0 when every clip was measured within the T2 budget; --strict exits 1 when any clip fails.
-import { mkdirSync, writeFileSync } from "node:fs";
+// beside it). --baseline writes the committed baseline (packages/sensors/fixtures/baseline.json: every clip's verdict,
+// values and finding counts, numbers only); --check fails on any clip that differs from it, naming each difference
+// (a baseline changes only in a commit that says why). Exit 0 when every clip was measured within the T2 budget;
+// --strict exits 1 when any clip fails.
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { finish, fmtMs, parseArgs, ROOT, usage, type Report, type Step } from "../run/cli.ts";
-import { distributions, libraryClips, qa, sample } from "./qa.ts";
+import { BASELINE, baselineOf, compare, distributions, libraryClips, qa, sample, type BaselineRow } from "./qa.ts";
 
 if (import.meta.main) {
   const specs = [
@@ -16,6 +19,8 @@ if (import.meta.main) {
     { name: "clip", takesValue: true, help: "only this clip (SET/Name)" },
     { name: "dist", help: "print each metric's distribution" },
     { name: "strict", help: "exit 1 when any clip fails" },
+    { name: "baseline", help: "write the committed baseline from this run (the whole library)" },
+    { name: "check", help: "fail on any clip that differs from the committed baseline" },
   ];
   let parsed;
   try {
@@ -36,6 +41,19 @@ if (import.meta.main) {
     { name: "measured", ok: rows.length > 0 && ms <= budget, ms, summary: `${rows.length} clips in ${fmtMs(ms)} (${fmtMs(ms / Math.max(1, rows.length))} each; T2 budget ${fmtMs(budget)})` },
     { name: "verdicts", ok: !f.strict || count("fail") === 0, ms: 0, summary: `${count("pass")} pass, ${count("warn")} warn, ${count("fail")} fail`, detail: Object.entries(byMetric).sort((a, b) => b[1] - a[1]).map(([m, n]) => `${m}: fails ${n} clips`) },
   ];
+  const whole = clips.length === libraryClips().length, path = join(ROOT, BASELINE);
+  if (f.baseline) {
+    if (!whole) usage("qa", new Error("--baseline measures the whole library: drop --sample, --set and --clip"), specs);
+    // one line a clip, so a change reads as the clips it moved
+    const about = "The sensors' readings of every migrated clip (npm run qa -- --baseline): verdict, each metric's worst value to three significant digits, and finding counts by metric and level. npm run qa -- --check fails on any difference; a change lands in a commit that says why (PLAN.md §6).";
+    const lines = Object.entries(baselineOf(rows)).map(([id, b]) => `  ${JSON.stringify(id)}: ${JSON.stringify(b)}`);
+    writeFileSync(path, `{\n "about": ${JSON.stringify(about)},\n "clips": {\n${lines.join(",\n")}\n }\n}\n`);
+    steps.push({ name: "baseline", ok: true, ms: 0, summary: `wrote ${BASELINE} (${rows.length} clips)` });
+  }
+  if (f.check) {
+    const base = existsSync(path) ? (JSON.parse(readFileSync(path, "utf8")) as { clips: Record<string, BaselineRow> }).clips : {}, diff = compare(base, rows, whole);
+    steps.push({ name: "baseline", ok: diff.length === 0, ms: 0, summary: diff.length ? `${diff.length} differences from ${BASELINE}` : `${rows.length} clips as ${BASELINE} says`, detail: diff });
+  }
   const out = join(ROOT, "check-output/qa"), dist = f.dist ? distributions(rows) : null;
   mkdirSync(out, { recursive: true });
   writeFileSync(join(out, "clips.json"), JSON.stringify({ rows, ...(dist ? { distributions: dist } : {}) }, null, 1));

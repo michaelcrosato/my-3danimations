@@ -77,3 +77,35 @@ export function distributions(rows: readonly QaRow[]): Record<string, Record<che
   }
   return out as never;
 }
+
+/** The committed baseline's path: every clip's verdict, values and finding counts, numbers only (PLAN.md §6). */
+export const BASELINE = "packages/sensors/fixtures/baseline.json";
+/** A clip's line in the baseline. */
+export interface BaselineRow {
+  verdict: QaRow["verdict"];
+  values: Record<string, number>;
+  counts: Record<string, number>;
+}
+/** Three significant digits: what a reading is compared at. */
+const sig = (x: number) => (x === 0 ? 0 : Number(x.toPrecision(3)));
+/** The baseline of QA rows, by clip id. */
+export function baselineOf(rows: readonly QaRow[]): Record<string, BaselineRow> {
+  return Object.fromEntries(rows.map((r) => [r.clip, { verdict: r.verdict, values: Object.fromEntries(Object.entries(r.values).map(([k, v]) => [k, sig(v)])), counts: r.counts }]));
+}
+/** How measured rows differ from a baseline, one line each (a clip missing from either side too). */
+export function compare(base: Record<string, BaselineRow>, rows: readonly QaRow[], whole: boolean): string[] {
+  const now = baselineOf(rows), out: string[] = [];
+  for (const [id, b] of Object.entries(now)) {
+    const was = base[id];
+    if (!was) {
+      out.push(`${id}: not in the baseline`);
+      continue;
+    }
+    if (was.verdict !== b.verdict) out.push(`${id}: ${was.verdict} → ${b.verdict}`);
+    for (const k of new Set([...Object.keys(was.values), ...Object.keys(b.values)])) if (was.values[k] !== b.values[k]) out.push(`${id}: ${k} ${was.values[k]} → ${b.values[k]}`);
+    for (const k of new Set([...Object.keys(was.counts), ...Object.keys(b.counts)])) if ((was.counts[k] ?? 0) !== (b.counts[k] ?? 0)) out.push(`${id}: ${k} findings ${was.counts[k] ?? 0} → ${b.counts[k] ?? 0}`);
+  }
+  if (whole) for (const id of Object.keys(base)) if (!now[id]) out.push(`${id}: in the baseline, not measured`);
+  return out;
+}
+
