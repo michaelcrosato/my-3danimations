@@ -160,8 +160,9 @@ const STEP = 1 / 30;
  * points' samples): in-betweens are straight lines, so on 60 Hz samples of 30 fps keys two consecutive samples never
  * both bend and a shake at the key rate would read 0. Per point and key, the bend is the second difference (at the
  * key's spacing, or as if 1/30 s apart where keys lie further apart, so a slow curve between sparse keys reads small);
- * the back-and-forth is the geometric mean of two consecutive bends of opposite sign (0 for a kink or a hard stop);
- * jitter is its median over 5 keys, so a single reversal, a pop or a snap reads 0 and only sustained shaking counts.
+ * the back-and-forth is the smaller of two consecutive bends of opposite sign (0 for a kink or a hard stop; the smaller,
+ * so a key out of place, one big bend beside small ones, doesn't lift its neighbours); jitter is its median over 5
+ * keys, so a single reversal, a pop or a snap reads 0 and only sustained shaking counts.
  */
 export function jitter(m: Motion): Measured {
   const { frames: F, times: T } = m.grid, n = F.length, P = format.P, per = new Array<number>(n).fill(0), point = new Array<string>(n).fill("");
@@ -177,8 +178,8 @@ export function jitter(m: Motion): Measured {
       }
     }
     for (let i = 1; i + 2 < n; i++) {
-      const prod = bend[i * 3]! * bend[i * 3 + 3]! + bend[i * 3 + 1]! * bend[i * 3 + 4]! + bend[i * 3 + 2]! * bend[i * 3 + 5]!;
-      osc[i] = prod < 0 ? Math.sqrt(-prod) : 0;
+      const a = [bend[i * 3]!, bend[i * 3 + 1]!, bend[i * 3 + 2]!], b = [bend[i * 3 + 3]!, bend[i * 3 + 4]!, bend[i * 3 + 5]!];
+      osc[i] = a[0]! * b[0]! + a[1]! * b[1]! + a[2]! * b[2]! < 0 ? Math.min(PORTABLE.hypot(a[0]!, a[1]!, a[2]!), PORTABLE.hypot(b[0]!, b[1]!, b[2]!)) : 0;
     }
     for (let i = 2; i + 2 < n; i++) {
       const w = Array.from(osc.subarray(i - 2, i + 3)).sort((a, b) => a - b), med = w[2]!;

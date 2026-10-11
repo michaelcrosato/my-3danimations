@@ -118,6 +118,9 @@ describe("each metric finds its defect, at its times, and nothing on the clean m
     expect(shake.findings[0]!.t0).toBeGreaterThanOrEqual(0.3);
     expect(shake.findings[0]!.t1).toBeLessThanOrEqual(0.7);
     expect(checks.jitter(motion(frames((X, i) => i === 30 && move(X, ["head"], [80, 0, 0])))).findings).toEqual([]);
+    // a key out of place among a capture's ±1.5 mm noise: one big bend beside small ones of the other sign isn't a
+    // shake (their geometric mean would read 35 mm on the keys either side)
+    expect(checks.jitter(motion(frames((X, i) => move(X, ["head"], [(i % 2 ? 1.5 : -1.5) + (i === 31 ? 200 : 0), 0, 0])))).findings).toEqual([]);
     // keys 1/30 s apart, the right arm swinging ±5° from key to key: sampled at 60 Hz, two samples never both bend
     const keys = Array.from({ length: 31 }, (_, i) => key(i / 30, (k) => (k.armR = [k.armR[0]! + (i % 2 ? 9 : -9), k.armR[1]!, k.armR[2]!, k.armR[3]!, k.armR[4]!])));
     const j = checks.jitter(checks.motionOf(clip(keys), R));
@@ -254,6 +257,13 @@ describe("profiles, the report and the thresholds", () => {
       expect(flip.message).toMatch(/it swings .*toeL's pop \(fail\).*, so it fails$/);
       expect(r.findings.filter((f) => f.metric === "pop").map((f) => [f.where, f.t0])).toEqual([[expect.stringMatching(/^(head|headTop|faceF)$/), 0.4], ["toeL", 0.8]]);
       expect(r.folded.map((f) => [f.metric, f.where])).toContainEqual(["pop", "toeL"]);
+    });
+    it("a knee read as straight (bent 15°) still swings: its pop folds into its flip", () => {
+      const knee = clip([0, 0.4, 0.433, 1].map((t) => key(t, (k) => (k.legL = [k.legL[0]!, k.legL[1]!, k.legL[2]!, 15, (k.legL[4] ?? 0) + (t > 0.42 ? 170 : 0)]))));
+      const r = metrics(knee, R);
+      expect(r.findings.filter((f) => f.metric === "twistFlip").map((f) => [f.where, f.message.includes("where the limb is straight")])).toEqual([["legL", true]]);
+      expect(r.findings.some((f) => f.metric === "pop")).toBe(false);
+      expect(r.folded.map((f) => [f.metric, f.where])).toContainEqual(["pop", "kneeL"]);
     });
     it("'no pop' reads the folded findings too", () => {
       expect(predicates.check("no pop", flipped(false), R)[0]!.ok).toBe(false);

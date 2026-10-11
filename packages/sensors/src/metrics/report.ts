@@ -77,10 +77,11 @@ const SWUNG: Readonly<Record<string, readonly string[]>> = {
 /**
  * Jitter and pops that a twist flip causes fold into the flip's finding, so the report names the cause once ("repair
  * the flip", not "smooth the toes"): those on the points it swings, within its key interval (one sample's slack). A
- * straight limb's twist swings nothing it can show, so nothing folds into it. The flip takes the worst level it folds.
+ * limb read as straight (bent under 20°) still swings its knee or elbow a little. The flip takes the worst level it
+ * folds.
  */
 function consequences(m: Motion, all: check.Finding[]): { findings: check.Finding[]; folded: check.Finding[] } {
-  const flips = all.filter((f) => f.metric === "twistFlip" && !/where the limb is straight/.test(f.message)), slack = m.dt + 1e-9;
+  const flips = all.filter((f) => f.metric === "twistFlip"), slack = m.dt + 1e-9;
   const folded: check.Finding[] = [], by = new Map<check.Finding, check.Finding>();
   for (const f of all) {
     if (f.metric !== "jitter" && f.metric !== "pop") continue;

@@ -4,6 +4,19 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.17.0 · 2026-10-11
+
+### Sensors
+- WP-3.6: 100 planted defects (`fixtures/planted/runs.json`), ten kinds, every one flagged by its metric at its times;
+  false positives in 3 runs of 100, each stated (D43).
+- Jitter takes the smaller of two opposite bends, so a key out of place doesn't read as a shake beside it (warn 26,
+  fail 90 from capture); a flip at a limb read as straight folds its swing too.
+
+### Tools
+- `node tools/plant/main.ts [--check]`: plants ten defects into clean library clips with the times they must be found
+  at (a slide, a sink, an arm through the torso, a pop, a twist flip, a loop seam, a stretched bone, a NaN, events out
+  of order, a wrong mirror).
+
 ## 0.16.0 · 2026-10-11
 
 ### Sensors

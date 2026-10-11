@@ -1,6 +1,6 @@
 {
   "name": "@m3a/three",
-  "version": "0.16.0",
+  "version": "0.17.0",
   "private": true,
   "description": "The three.js adapter: binding, playback, baking and capture.",
   "license": "MIT",
@@ -9,6 +9,6 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "@m3a/core": "0.16.0"
+    "@m3a/core": "0.17.0"
   }
 }

@@ -752,9 +752,9 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
       ankle; the finding names the foot) and body penetration;
     - self-intersection: a forearm or hand in the torso, an upper arm in the torso below the shoulders, a lower leg in
       the other, as the mannequin's capsules;
-    - jitter, on the key grid: the median over 5 keys of consecutive opposite second differences. In-betweens are
-      straight lines, so on 60 Hz samples of 30 fps keys two consecutive samples never both bend, and a shake at the
-      key rate read 0;
+    - jitter, on the key grid: the median over 5 keys of the smaller of consecutive opposite second differences (the
+      smaller, so a key out of place doesn't lift its neighbours: WP-3.6, D43). In-betweens are straight lines, so on
+      60 Hz samples of 30 fps keys two consecutive samples never both bend, and a shake at the key rate read 0;
     - pops, on the key grid: my-3d2dge's rule, a step over 2.5 times the larger of its neighbours, or a pair out and
       back against the steps either side of it; one finding per body part and stretch of keys;
     - twist flips: a limb's twist, a hand's roll or a foot's heading jumping between keys. Where the reference is
@@ -771,13 +771,13 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
     (jitter's at p90) and fail at its maximum (jitter's at p99), except where capture itself carries the encoding's
     flips (twist flips, by meaning). Each threshold records its unit, sample rate (0 for the key grid), whether it
     scales with hip height (× H0 / 950), and its reason with capture's numbers (`thresholds.ts`): slide 52 mm at the
-    median, 145 at p95, 229 at most; skate 5.7, 18, 38 cm/s; jitter 6, 24 (p90), 103 (p99) mm; pops 0.63, 2.1, 3.6
+    median, 145 at p95, 229 at most; skate 5.7, 18, 38 cm/s; jitter 5.5, 26 (p90), 90 (p99) mm; pops 0.63, 2.1, 3.6
     m/s. Keyed sets exceed capture often: pops up to 37 m/s, soles 660 mm under the floor. That is what they are.
   - **A flip's swing is the flip.** Where a foot points down, the data's heading jumps and the toes swing. The jitter
     and pops on the points a flip swings (a heading the ball and toes; a twist its middle joint and what hangs off it,
     not the end it aims at), within its key interval, fold into the twist-flip finding, which takes their worst level
-    and names them. A straight limb's twist swings nothing it can show, so nothing folds into it. The report keeps the
-    folded findings (`folded`), and the predicate "no pop" reads them.
+    and names them; a limb read as straight (under 20°) still swings a little, so its flips fold too (D43). The report
+    keeps the folded findings (`folded`), and the predicate "no pop" reads them.
   - **Elbows aren't limit-checked.** A format-1 arm has no hand frame, and its twist's reference isn't anatomical with
     the arm raised. Capture would read elbows "bending backwards" in reaches.
   - **Tag profiles** turn off what doesn't apply:
@@ -806,10 +806,10 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   `--json` overwrote the clips' rows; PROGRESS and the WP entry lagged. Not changed: capture's knee-limit hits just
   past the 20° bend gate (Chop_Wood: bend 21, twist 185) stay findings; a knee bent 21° pointing backwards is one.
 - **Result:**
-  - The whole migrated library is measured in 5.6 s within T2: 268 pass, 111 warn, 146 fail. The fails are mostly
-    twist flips (92 clips; the encoding's, F2.4), jitter (34) and pops (27, keyed snaps).
+  - The whole migrated library is measured in 5.6 s within T2: 267 pass, 104 warn, 154 fail (after D43). The fails
+    are mostly twist flips (92 clips; the encoding's, F2.4), jitter (45) and pops (25, keyed snaps).
   - Every metric and predicate has a unit fixture: a defect found at its times, and nothing on the clean motion.
-    Mutating the metrics 48 ways (each rule removed or inverted) fails the fixtures every time.
+    Mutating the metrics 50 ways (each rule removed or inverted) fails the fixtures every time.
 - **Known limit:** a body gliding faster than half an H0 a second with its feet still on it is measured only through
   the pelvis rule; a foot dragged at a different speed from the body and faster than that reads as a swing.
 - **Outside WP-3.3's Owns** (one agent, D21): names on the raster's capsules; T2's runner; the boundary check's
@@ -856,4 +856,44 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   index exports `describe`.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.16.0
+
+## D43 · 2026-10-11 · Planted defects: ten kinds in 100 clean clips, each found where it was planted
+
+- **Principle:** 4, 5, 9, WP-3.6
+- **Call:**
+  - **`tools/plant`** plants ten defects, each a pure function of a clean clip and a seed, with the metric that must
+    find it and its times (`fits` says where a defect can show: a seam needs a loop, a sink a sole on the floor, a pair
+    an asymmetric motion, and no clip whose profile turns the metric off). Keys are edited where the defect lives in
+    keys, at millisecond times as the format keeps them; a stretched bone lives only in baked points.
+    - **slide:** the foot dragged outward over its longest stance (as the sensors measure it), at 0.4 hip heights a
+      second and at most 250 mm, so it stays on the floor and slower than a swing, then eased back in the air. Found by
+      its slide (mm) or its skate (cm/s), whichever it reaches. Not planted in an in-place loop that steps: its
+      treadmill is set by its feet (D41), so a dragged foot moves the ground in part (Walk_Backwards_Loop: 220 mm
+      dragged read 127).
+    - **sink:** the body lowered 150 mm under the floor where a sole is on it, eased in and out over 0.25 s.
+    - **arm through the torso:** the right arm aimed through the belly, eased in and out over 0.3 s.
+    - **pop:** one key out of place (the left arm turned 45°), keys 1/60 s either side holding the clean pose.
+    - **twist flip:** the left knee's twist jumps 170° in one 1/30 s interval and stays.
+    - **seam:** the right arm drifting up and out over a loop's last 0.3 s.
+    - **stretch:** baked points, the right shin 6% longer for 0.25 s.
+    - **nan, events out of order, a pair mirrored on the wrong side** (the clip given as its own mirror).
+  - **`npm test -- planted`** plants each of the 100 runs in `fixtures/planted/runs.json` again (the times must match
+    the fixture's), measures it and the clean clip the same way, and counts a finding the clean clip lacks, of another
+    metric, as a consequence the defect implies (a flipped bent knee bends backwards; a sunk body takes its knees and
+    hands under the floor; a defect that lasts to a loop's end breaks its seam) or a false positive.
+  - **What planting found in the metrics** (fixed, with fixtures that fail on the old rule):
+    - jitter's back-and-forth took the geometric mean of two opposite bends, so one key out of place beside a fast
+      motion's ordinary bends read as a shake on its neighbours: it takes the smaller now (capture: 5.5, 26 at p90,
+      90 at p99; warn 26, fail 90);
+    - a flip at a limb read as straight (bent under 20°) folded nothing, but a knee bent 19° swings: every flip folds;
+    - the plants themselves: a key added beside a millisecond-rounded one (0.3 ms apart) made a bend of its own; the
+      seam and slide plants snapped back (a pop); edits that reach `dur` left the key past it untouched.
+- **Result:** 100 of 100 planted defects flagged by their metric at their times. 14 runs show a consequence the defect
+  implies. False positives in 3 runs of 100 (3%): two knees left pointing backwards by a flip that then read as
+  shaking (twistFlip → jitter), a fast throw's ordinary bends beside the planted pop (pop → jitter), and a stretched
+  shin that lowers a foot below the floor band so a small step merges two stances into a slide (stretch → slide).
+- **Outside WP-3.6's Owns** (one agent, D21): the jitter and folding fixes in `metrics/` (WP-3.3's), with their
+  fixtures and threshold.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.17.0
 
