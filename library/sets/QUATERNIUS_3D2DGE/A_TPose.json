@@ -1,0 +1,24 @@
+{
+"format": "2.0",
+"id": "QUATERNIUS_3D2DGE/A_TPose",
+"name": "A_TPose",
+"legend": "2.0",
+"dur": 0.167,
+"loop": false,
+"fps": 30,
+"tags": ["reference"],
+"desc": "T-pose, arms straight out: the rest pose every clip is measured from",
+"skeleton": "humanoid",
+"restSrc": "UAL1",
+"provenance": {"src":"UAL1","method":"keyed","producer":{"tool":"m3a-migrate","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
+"quality": {"fit":[3,6],"qa":"unchecked","qaVersion":"none"},
+"keys": [
+  {"t":0,
+   "hips":[-5,0,100], "body":[0,0,0], "chest":[0,-2,0], "head":[0,4,0],
+   "shL":[0,0], "shR":[0,0], "armL":[0,100,0,2,-7], "armR":[0,100,0,2,7],
+   "legL":[-5,0,-100,3,-6], "legR":[-5,0,-100,3,6], "footL":[0,0,0], "footR":[0,0,0]},
+  {"t":0.167,
+   "hips":[-5,0,100], "body":[0,0,0], "chest":[0,-2,0], "head":[0,4,0],
+   "shL":[0,0], "shR":[0,0], "armL":[0,100,0,2,-7], "armR":[0,100,0,2,7],
+   "legL":[-5,0,-100,3,-6], "legR":[-5,0,-100,3,6], "footL":[0,0,0], "footR":[0,0,0]}
+]}

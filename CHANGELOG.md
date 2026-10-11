@@ -4,6 +4,20 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.6.0 · 2026-10-11
+
+### Library
+- WP-1.5: the seed sets in format 2: QUATERNIUS_3D2DGE (88), QUATERNIUS_SHARDFALL (102), MESH2MOTION (177),
+  CMU_CURATED (60, tier cmu, CMU's full notice), STYLE100 (98, tier cc-by): 525 clips, each with `_set.json`,
+  `catalog.tsv` (rows within 40 tokens) and `_baseline.json`.
+
+### Tools
+- WP-1.5: `npm run migrate [-- --check]`.
+
+### Core
+- WP-1.3's verifier fixes: hand roll unwraps; fingers curl toward the palm normal; `fromFormat1` takes the method;
+  the normalized lens; format 2's fields get vectors (`tier2/FORMAT2.json`).
+
 ## 0.5.0 · 2026-10-11
 
 ### Spec

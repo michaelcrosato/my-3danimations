@@ -1,0 +1,24 @@
+{
+"format": "2.0",
+"id": "QUATERNIUS_3D2DGE/Pistol_Aim_Down",
+"name": "Pistol_Aim_Down",
+"legend": "2.0",
+"dur": 0.167,
+"loop": false,
+"fps": 30,
+"tags": ["gun","aim","pose"],
+"desc": "two-handed pistol aim, pointing down",
+"skeleton": "humanoid",
+"restSrc": "UAL1",
+"provenance": {"src":"UAL1","method":"keyed","producer":{"tool":"m3a-migrate","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
+"quality": {"fit":[13,50],"qa":"unchecked","qaVersion":"none"},
+"keys": [
+  {"t":0,
+   "hips":[-9,0,96], "body":[13,-6,0], "chest":[61,52,-67], "head":[-37,5,8],
+   "shL":[-23,1], "shR":[27,-3], "armL":[97,12,-23,42,28], "armR":[72,-68,-15,41,27],
+   "legL":[3,18,-98,19,7], "legR":[-33,13,-93,9,-39], "footL":[6,8,0], "footR":[5,33,0]},
+  {"t":0.167,
+   "hips":[-9,0,96], "body":[13,-6,0], "chest":[61,52,-67], "head":[-37,5,8],
+   "shL":[-23,1], "shR":[27,-3], "armL":[97,12,-23,42,28], "armR":[72,-68,-15,41,27],
+   "legL":[3,18,-98,19,7], "legR":[-33,13,-93,9,-39], "footL":[6,8,0], "footR":[5,33,0]}
+]}

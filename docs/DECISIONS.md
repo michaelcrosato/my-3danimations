@@ -356,3 +356,30 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
 - **Why:** the verifier's three failures and its notes, each reproduced by a test before the fix.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.5.0 (the codec's fixes ride WP-1.5's version)
+
+## D30 · 2026-10-11 · The seed sets migrated: five sets, provenance corrected, catalogs fitted
+
+- **Principle:** 10, 4, 1 (WP-1.5)
+- **Call:**
+  - Five sets, 525 clips, one file each through core's `serialize`: QUATERNIUS_3D2DGE (88), QUATERNIUS_SHARDFALL (102),
+    MESH2MOTION (177), CMU_CURATED (60) and STYLE100 (98). Every migrated key equals its source's, number for number;
+    the three sets tier 2 covers decode within the micrometre of the oracle on the manifests' own rest bodies.
+  - **Provenance corrected where the origin was wrong or thin:** CMU's source records carry CMU's full notice (the
+    origin's said "free for all uses" and omitted "you may not resell this data directly, even in converted form") with
+    `LicenseRef-CMU-Mocap`; licenses become SPDX ids with the free text kept as `terms`; Quaternius' clips and
+    Mesh2Motion's hand-animated ones are `keyed` (`digitalCreation`), the captures `captured`.
+  - **MESH2MOTION stays `cc0`, flagged.** Its README licenses the animations CC0; a July 2026 report of CC BY and
+    CC BY-SA assets names models, not animations, so no clip goes to `local` now. Each source record carries an `audit`
+    note pending WP-5.3's per-asset audit (D18; K3 applies if the audit removes it).
+  - **MESH2MOTION's `orig`** (`QUATERNIUS/<clip>`) points at the Quaternius import that has the clip, the v2 one first
+    (it has the `_RM` twins): all 84 resolve. CMU comes from my-3d2dge, whose copy differs from shardfall's in one clip.
+  - **Catalogs:** the source column is the clip's `src` (the file names any `orig`), and a description that would
+    overrun 40 tokens is cut for the row at a sentence, a clause, or a word with "…" (34 of 525 rows); the clip keeps
+    it whole. `MOTION.md` §9.3 says so.
+  - **Warnings** (171 in all, none an error) are baselined per clip in each set's `_baseline.json`, each with its
+    reason and the WP that addresses it; a new or vanished warning fails `library/migrated`.
+  - The migrator stamps its own revision (`m3a-migrate 1`), not the package version, so version bumps don't move the
+    library: content ids are the same on every run.
+- **Why:** distinct content gets distinct names (D4), and provenance must be right before anything ships (R8).
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.6.0

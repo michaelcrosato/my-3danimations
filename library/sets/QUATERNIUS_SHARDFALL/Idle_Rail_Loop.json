@@ -1,0 +1,28 @@
+{
+"format": "2.0",
+"id": "QUATERNIUS_SHARDFALL/Idle_Rail_Loop",
+"name": "Idle_Rail_Loop",
+"legend": "2.0",
+"dur": 2.5,
+"loop": true,
+"fps": 30,
+"tags": ["idle","lean"],
+"desc": "leaning forward on the forearms, as over a railing",
+"skeleton": "humanoid",
+"restSrc": "UAL2",
+"provenance": {"src":"UAL2","method":"keyed","producer":{"tool":"m3a-migrate","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
+"quality": {"fit":[13,56],"qa":"unchecked","qaVersion":"none"},
+"keys": [
+  {"t":0,
+   "hips":[-51,-1,101], "body":[6,34,-2], "chest":[0,19,1], "head":[-15,-23,-1],
+   "shL":[6,-3], "shR":[-6,-2], "armL":[77,-62,-12,116,-26], "armR":[96,-20,22,92,-19],
+   "legL":[67,17,-72,16,3], "legR":[50,7,-86,22,-39], "footL":[-34,0,0], "footR":[-28,29,-2]},
+  {"t":1.433,
+   "hips":[-51,-1,100], "body":[6,33,-1], "chest":[0,17,0], "head":[-15,-25,-1],
+   "shL":[6,-3], "shR":[-6,-2], "armL":[79,-59,-13,115,-26], "armR":[96,-20,18,88,-18],
+   "legL":[66,15,-74,22,7], "legR":[48,9,-87,28,-43], "footL":[-33,0,0], "footR":[-28,29,-2]},
+  {"t":2.5,
+   "hips":[-51,-1,101], "body":[6,34,-2], "chest":[0,19,1], "head":[-15,-23,-1],
+   "shL":[6,-3], "shR":[-6,-2], "armL":[77,-62,-12,116,-26], "armR":[96,-20,22,92,-19],
+   "legL":[67,17,-72,16,3], "legR":[50,7,-86,22,-39], "footL":[-34,0,0], "footR":[-28,29,-2]}
+]}

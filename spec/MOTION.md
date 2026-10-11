@@ -295,8 +295,10 @@ another.
 ### 9.3 The catalog, `catalog.tsv`
 
 One row per clip, tab-separated, at most 40 cl100k tokens: `id`, seconds, `loop` or `once`, speed (% of `H0` per second,
-empty when it doesn't travel), tags (space-separated), what the body does, source (`= SET/Clip` when `orig` names
-one). A model picks clips from catalog rows, never from motion data.
+empty when it isn't measured or the clip doesn't travel), tags (space-separated), what the body does, and the source
+(`provenance.src`; the clip file names any `orig`). A description that would overrun the budget is cut for the row
+at a sentence or clause, or at a word with "…"; the clip keeps it whole. A model picks clips from catalog rows, never
+from motion data.
 
 ## 10. Versioning and compatibility
 

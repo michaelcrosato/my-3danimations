@@ -1,0 +1,24 @@
+{
+"format": "2.0",
+"id": "MESH2MOTION/Idle_Rail",
+"name": "Idle_Rail",
+"legend": "2.0",
+"dur": 2.5,
+"loop": true,
+"fps": 30,
+"tags": ["idle","lean"],
+"desc": "leaning forward on the forearms, as over a railing",
+"skeleton": "humanoid",
+"restSrc": "M2M_QUATERNIUS",
+"provenance": {"src":"M2M_QUATERNIUS","orig":"QUATERNIUS_SHARDFALL/Idle_Rail_Loop","method":"keyed","producer":{"tool":"m3a-migrate","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
+"quality": {"fit":[13,53],"qa":"unchecked","qaVersion":"none"},
+"keys": [
+  {"t":0,
+   "hips":[-53,-1,105], "body":[6,34,-2], "chest":[0,9,1], "head":[-14,-13,1],
+   "shL":[0,0], "shR":[0,0], "armL":[72,-65,-24,116,-26], "armR":[98,-20,7,91,-18],
+   "legL":[67,17,-73,21,4], "legR":[49,7,-87,25,-38], "footL":[-34,0,0], "footR":[-28,29,-2]},
+  {"t":2.5,
+   "hips":[-53,-1,105], "body":[6,34,-2], "chest":[0,9,1], "head":[-14,-13,1],
+   "shL":[0,0], "shR":[0,0], "armL":[72,-65,-24,116,-26], "armR":[98,-20,7,91,-18],
+   "legL":[67,17,-73,21,4], "legR":[49,7,-87,25,-38], "footL":[-34,0,0], "footR":[-28,29,-2]}
+]}

@@ -1,0 +1,41 @@
+{
+"set": "QUATERNIUS_SHARDFALL",
+"title": "Quaternius UAL 1 and 2, v2 (shardfall's import)",
+"format": "2.0",
+"tier": "cc0",
+"content": {"edition":"Universal Animation Library 1 and 2 Standard, version 2 (June 2026), Unreal-rig exports with their _RM root-motion twins, as shardfall@a9ca003 imported them","importer":"m3a-migrate 1, from format 1 (shardfall anim/quaternius.json)","sha256":"3460fb7400429aeb8f36cdfa901cb8e8ec94b7516000aa06996c3bdaed75c084"},
+"credit": "Universal Animation Library 1 and 2 by Quaternius (quaternius.com), CC0 1.0.",
+"producer": {"tool":"m3a-migrate","version":"1"},
+"sources": {
+  "UAL1": {"label":"Quaternius Universal Animation Library 1","origin":"Universal Animation Library by Quaternius: the free Standard edition, version 2 (June 2026), as Quaternius exports it for Unreal and Godot: UAL1_Standard.glb, its clips in place, and UAL1_Standard_RM.glb, the same clips with root motion (clips that travel are kept from it as <clip>_RM; loops take their speed from it)","license":"CC0-1.0","terms":"CC0 1.0 (public domain)","url":"https://quaternius.com/packs/universalanimationlibrary.html","file":"UAL1_Standard.glb","rig":"unreal","rest":{"Cr":[[0.99948,0,0.03239],[0,1,0],[-0.03239,0,0.99948]],"H0":916.7,"Hr":[[0.99947,0,-0.03252],[0,1,0],[0.03252,0,0.99947]],"Pr":[[1,0,0],[0,1,0],[0,0,1]],"ab":173.3,"abPitch":30.71,"ankleZ":103.7,"bt":78.9,"btPitch":0,"clav":{"L":[80.9,-18.8,-32.3],"R":[80.9,18.8,-32.3]},"cv":{"L":[-137.3,-173.1,-12.7],"R":[-137.3,173.1,-12.7]},"faceH":[119.9,0,3.9],"fist":163.93,"fore":272.64,"hip":{"L":[51.5,-89,15.4],"R":[51.5,89,15.4]},"hipZ":932.1,"knuck":121.71,"neckSeg":[15.6,0,81.1],"neckW":0.45,"shin":429.48,"spine":[[34.5,0,133.8],[15.2,0,123.1],[-4.5,0,141.2],[-5.6,0,172.8]],"spineW":[0,0,0.5,1],"thigh":400.31,"topH":[0,0,256],"up":274.44}},
+  "UAL2": {"label":"Quaternius Universal Animation Library 2","origin":"Universal Animation Library 2 by Quaternius: the free Standard edition, version 2 (June 2026), as Quaternius exports it for Unreal and Godot: UAL2_Standard.glb, its clips in place, and UAL2_Standard_RM.glb, the same clips with root motion (clips that travel are kept from it as <clip>_RM; loops take their speed from it)","license":"CC0-1.0","terms":"CC0 1.0 (public domain)","url":"https://quaternius.com/packs/universalanimationlibrary2.html","file":"UAL2_Standard.glb","rig":"unreal","rest":{"Cr":[[0.99948,0,0.03239],[0,1,0],[-0.03239,0,0.99948]],"H0":916.7,"Hr":[[0.99947,0,-0.03252],[0,1,0],[0.03252,0,0.99947]],"Pr":[[1,0,0],[0,1,0],[0,0,1]],"ab":173.3,"abPitch":30.71,"ankleZ":103.7,"bt":78.9,"btPitch":0,"clav":{"L":[80.9,-18.8,-32.3],"R":[80.9,18.8,-32.3]},"cv":{"L":[-137.3,-173.1,-12.7],"R":[-137.3,173.1,-12.7]},"faceH":[119.9,0,3.9],"fist":163.93,"fore":272.64,"hip":{"L":[51.5,-89,15.4],"R":[51.5,89,15.4]},"hipZ":932.1,"knuck":121.71,"neckSeg":[15.6,0,81.1],"neckW":0.6,"shin":429.48,"spine":[[34.5,0,133.8],[15.2,0,123.1],[-4.5,0,141.2],[-5.6,0,172.8]],"spineW":[0,0,0.55,1],"thigh":400.31,"topH":[0,0,256],"up":274.44}}
+},
+"legend": {"version": "2.0", "text": [
+  "m3a motion format 2.0: readable key poses. Times in seconds; every key number is a whole number. Rig frame: forward,",
+  "right, up. L and R are the figure's own sides. Directions are percentages and need not add up: [100, 0, 0] and",
+  "[50, 0, 0] agree. Between keys every number moves in a straight line; loops wrap, one-shots hold.",
+  "hips   [forward, right, up]   the pelvis, in percent of standing hip height (100 = standing, 55 = sitting on a chair)",
+  "body   [turn, lean, tilt]     the pelvis, degrees: turn + = toward the right, lean + = forward, tilt + = toward the right",
+  "chest  [turn, lean, tilt]     the chest, relative to the pelvis; head [turn, lean, tilt] relative to the chest",
+  "shL shR    [reach, shrug]     degrees the shoulder swings forward (into a punch or an aim) and up, from rest",
+  "armL armR  [forward, out, up, bend, twist]  where the fist is from the shoulder, in chest space (out + = away from the",
+  "           body on that side; [0, 0, -100] hangs down, [100, 0, 0] punches ahead); bend = elbow, degrees (0 = straight);",
+  "           twist = degrees the elbow swings round the arm from its natural direction (back and down)",
+  "legL legR  [forward, out, up, bend, twist]  hip to ankle in pelvis space; bend: the knee; twist: from pointing forward",
+  "footL footR [down, out, toes]   degrees the foot points down from standing, turns outward, and the toes bend up",
+  "Optional, only where a clip needs them:",
+  "handL handR [flex, side, roll]  the wrist, degrees: the palm bends toward the inside of the elbow +, toward the thumb +;",
+  "           roll + turns the palm away from the elbow's inside. With a hand, arm aims where a straight hand's fist would be",
+  "fingersL fingersR [thumb, index, middle, ring, pinky]  curl, percent (0 = straight, 100 = a fist)",
+  "spine  [lower, middle, upper]  percent of the chest's turn each spine bone takes (instead of the set's shares)",
+  "blade  [forward, right, up]   a blade held in the right fist, in chest space",
+  "root   [forward, right]       how far the body has travelled, percent of standing hip height; yaw: its heading, degrees",
+  "A worked key, QUATERNIUS_3D2DGE/Walk_Loop at 0 s: the left heel strikes as the right foot pushes off.",
+  "{\"t\":0,",
+  " \"hips\":[-5,2,95], \"body\":[-2,0,-2], \"chest\":[-4,15,-1], \"head\":[3,0,4],",
+  " \"shL\":[-5,0], \"shR\":[0,0], \"armL\":[26,13,-96,52,7], \"armR\":[73,14,-67,62,-8],",
+  " \"legL\":[32,4,-95,14,-6], \"legR\":[-50,-6,-87,17,5], \"footL\":[-26,-2,0], \"footR\":[36,-8,36]}",
+  "The chest leans 15 degrees forward, the right arm swings ahead with its elbow bent 62, the left leg reaches forward",
+  "almost straight with its toes up 26, and the right foot points 36 down with its toes bent up 36."
+]}
+}

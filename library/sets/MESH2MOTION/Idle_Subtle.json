@@ -1,0 +1,24 @@
+{
+"format": "2.0",
+"id": "MESH2MOTION/Idle_Subtle",
+"name": "Idle_Subtle",
+"legend": "2.0",
+"dur": 2.583,
+"loop": true,
+"fps": 30,
+"tags": ["idle"],
+"desc": "standing still, breathing gently",
+"skeleton": "humanoid",
+"restSrc": "M2M_ANIMATED",
+"provenance": {"src":"M2M_ANIMATED","method":"keyed","producer":{"tool":"m3a-migrate","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
+"quality": {"fit":[15,61],"qa":"unchecked","qaVersion":"none"},
+"keys": [
+  {"t":0,
+   "hips":[-5,-1,96], "body":[24,-2,-6], "chest":[-4,-10,7], "head":[-9,19,2],
+   "shL":[0,1], "shR":[0,0], "armL":[-1,15,-99,33,-18], "armR":[-25,22,-94,39,30],
+   "legL":[-8,21,-97,37,20], "legR":[-7,-9,-99,30,-11], "footL":[-1,27,0], "footR":[5,18,0]},
+  {"t":2.567,
+   "hips":[-5,-1,96], "body":[24,-2,-6], "chest":[-4,-10,7], "head":[-9,19,2],
+   "shL":[0,1], "shR":[0,0], "armL":[-1,15,-99,33,-18], "armR":[-25,22,-94,39,30],
+   "legL":[-8,21,-97,37,20], "legR":[-7,-9,-99,30,-11], "footL":[-1,27,0], "footR":[5,18,0]}
+]}

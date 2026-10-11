@@ -1,0 +1,24 @@
+{
+"format": "2.0",
+"id": "MESH2MOTION/Pistol_Aim_Down",
+"name": "Pistol_Aim_Down",
+"legend": "2.0",
+"dur": 0.208,
+"loop": false,
+"fps": 30,
+"tags": ["gun","aim","pose"],
+"desc": "two-handed pistol aim, pointing down",
+"skeleton": "humanoid",
+"restSrc": "M2M_QUATERNIUS",
+"provenance": {"src":"M2M_QUATERNIUS","orig":"QUATERNIUS_SHARDFALL/Pistol_Aim_Down","method":"keyed","producer":{"tool":"m3a-migrate","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
+"quality": {"fit":[10,54],"qa":"unchecked","qaVersion":"none"},
+"keys": [
+  {"t":0,
+   "hips":[-10,0,100], "body":[13,-6,0], "chest":[49,46,-54], "head":[-5,-11,16],
+   "shL":[-29,7], "shR":[32,-6], "armL":[90,13,-41,25,34], "armR":[70,-68,-23,23,23],
+   "legL":[4,18,-98,20,8], "legR":[-33,13,-94,14,-36], "footL":[6,8,0], "footR":[5,33,0]},
+  {"t":0.2,
+   "hips":[-10,0,100], "body":[13,-6,0], "chest":[49,46,-54], "head":[-5,-11,16],
+   "shL":[-29,7], "shR":[32,-6], "armL":[90,13,-41,25,34], "armR":[70,-68,-23,23,23],
+   "legL":[4,18,-98,20,8], "legR":[-33,13,-94,14,-36], "footL":[6,8,0], "footR":[5,33,0]}
+]}

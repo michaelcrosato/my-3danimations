@@ -1,0 +1,88 @@
+QUATERNIUS_3D2DGE/A_TPose	0.167	once		reference	T-pose, arms straight out	UAL1
+QUATERNIUS_3D2DGE/Crouch_Fwd_Loop	2	loop		crouch walk stealth	crouched sneaking walk, in place	UAL1
+QUATERNIUS_3D2DGE/Crouch_Idle_Loop	2.933	loop		crouch idle stealth	crouched low and still, looking about	UAL1
+QUATERNIUS_3D2DGE/Dance_Loop	1	loop		emote dance	a one-second groove: hips sway, arms swing out	UAL1
+QUATERNIUS_3D2DGE/Death01	2.4	once		death	staggers and falls flat on the back	UAL1
+QUATERNIUS_3D2DGE/Driving_Loop	1.667	loop		sit vehicle	seated, hands on a steering wheel, small turns	UAL1
+QUATERNIUS_3D2DGE/Fixing_Kneeling	5.2	once		work interact	kneels on one knee and works with…	UAL1
+QUATERNIUS_3D2DGE/Hit_Chest	0.333	once		hurt	takes a blow to the chest: torso snaps back	UAL1
+QUATERNIUS_3D2DGE/Hit_Head	0.433	once		hurt	takes a blow to the head: head snaps aside	UAL1
+QUATERNIUS_3D2DGE/Idle_Loop	2.5	loop		idle	standing at rest, breathing and shifting weight	UAL1
+QUATERNIUS_3D2DGE/Idle_Talking_Loop	2.933	loop		idle talk	standing and talking with hand gestures	UAL1
+QUATERNIUS_3D2DGE/Idle_Torch_Loop	1.267	loop		idle prop	standing with one arm raised	UAL1
+QUATERNIUS_3D2DGE/Interact	2	once		interact	reaches forward at chest height and works something with the hands (a lever	UAL1
+QUATERNIUS_3D2DGE/Jog_Fwd_Loop	0.933	loop		run	jog, in place	UAL1
+QUATERNIUS_3D2DGE/Jump_Land	1.267	once		jump	lands from a fall, knees soak it up, stands	UAL1
+QUATERNIUS_3D2DGE/Jump_Loop	2.5	loop		jump air	airborne pose held while rising or falling	UAL1
+QUATERNIUS_3D2DGE/Jump_Start	1.333	once		jump	dips	UAL1
+QUATERNIUS_3D2DGE/PickUp_Table	0.833	once		interact item	reaches out and picks something up from table height	UAL1
+QUATERNIUS_3D2DGE/Pistol_Aim_Down	0.167	once		gun aim pose	two-handed pistol aim, pointing down	UAL1
+QUATERNIUS_3D2DGE/Pistol_Aim_Neutral	0.167	once		gun aim pose	two-handed pistol aim	UAL1
+QUATERNIUS_3D2DGE/Pistol_Aim_Up	0.167	once		gun aim pose	two-handed pistol aim, pointing up	UAL1
+QUATERNIUS_3D2DGE/Pistol_Idle_Loop	1.667	loop		gun idle	standing ready, pistol held low in both hands	UAL1
+QUATERNIUS_3D2DGE/Pistol_Reload	1.667	once		gun	reloads the pistol	UAL1
+QUATERNIUS_3D2DGE/Pistol_Shoot	0.633	once		gun attack	one pistol shot with recoil	UAL1
+QUATERNIUS_3D2DGE/Punch_Cross	1	once		unarmed attack	rear-hand straight punch with a hip turn	UAL1
+QUATERNIUS_3D2DGE/Punch_Enter	0.867	once		unarmed stance	brings the fists up into a fighting stance	UAL1
+QUATERNIUS_3D2DGE/Punch_Jab	0.867	once		unarmed attack	quick lead-hand jab from the stance	UAL1
+QUATERNIUS_3D2DGE/Push_Loop	2.667	loop		interact push	leans in and shoves something heavy, stepping	UAL1
+QUATERNIUS_3D2DGE/Roll	1.467	once		dodge	forward roll over the shoulder and back to standing, in place	UAL1
+QUATERNIUS_3D2DGE/Roll_RM	1.467	once		dodge root-motion	forward roll that travels (root motion)	UAL1
+QUATERNIUS_3D2DGE/Sitting_Enter	1.3	once		sit	sits down onto a seat (no chair is drawn)	UAL1
+QUATERNIUS_3D2DGE/Sitting_Exit	1.033	once		sit	stands up from a seat	UAL1
+QUATERNIUS_3D2DGE/Sitting_Idle_Loop	1.667	loop		sit idle	seated at rest	UAL1
+QUATERNIUS_3D2DGE/Sitting_Talking_Loop	2.933	loop		sit talk	seated, talking with hand gestures	UAL1
+QUATERNIUS_3D2DGE/Spell_Simple_Enter	0.533	once		magic stance	raises a hand to ready a spell	UAL1
+QUATERNIUS_3D2DGE/Spell_Simple_Exit	0.433	once		magic stance	lowers the casting hand	UAL1
+QUATERNIUS_3D2DGE/Spell_Simple_Idle_Loop	2.1	loop		magic idle	holds a spell ready	UAL1
+QUATERNIUS_3D2DGE/Spell_Simple_Shoot	0.5	once		magic attack	casts: drives the hand forward	UAL1
+QUATERNIUS_3D2DGE/Sprint_Loop	0.667	loop		run	full sprint with big arm swings, in place	UAL1
+QUATERNIUS_3D2DGE/Swim_Fwd_Loop	1.333	loop		swim	swimming forward, body flat	UAL1
+QUATERNIUS_3D2DGE/Swim_Idle_Loop	3.333	loop		swim idle	treading water, upright	UAL1
+QUATERNIUS_3D2DGE/Sword_Attack	1.533	once		sword attack	stepping one-handed slash, in place	UAL1
+QUATERNIUS_3D2DGE/Sword_Attack_RM	1.533	once		sword attack root-motion	stepping one-handed slash that travels	UAL1
+QUATERNIUS_3D2DGE/Sword_Idle	1.667	loop		sword idle	standing ready with a sword in the right hand	UAL1
+QUATERNIUS_3D2DGE/Walk_Formal_Loop	1.333	loop		walk	upright, measured walk, in place	UAL1
+QUATERNIUS_3D2DGE/Walk_Loop	1.333	loop		walk	relaxed walk, in place	UAL1
+QUATERNIUS_3D2DGE/Chest_Open	1.367	once		interact chest	bends forward and lifts a chest's lid with both hands	UAL2
+QUATERNIUS_3D2DGE/ClimbUp_1m_RM	0.667	once		climb root-motion	grabs a ledge about…	UAL2
+QUATERNIUS_3D2DGE/Consume	1.333	once		item eat	eats or drinks: lifts the left hand to the mouth	UAL2
+QUATERNIUS_3D2DGE/Farm_Harvest	2.5	once		farm work	bends down and pulls a crop up out…	UAL2
+QUATERNIUS_3D2DGE/Farm_PlantSeed	2.767	once		farm work	kneels, presses a seed into the soil	UAL2
+QUATERNIUS_3D2DGE/Farm_Watering	3.8	once		farm work	tips a watering can held in the right hand	UAL2
+QUATERNIUS_3D2DGE/Hit_Knockback	0.833	once		hurt death	hit hard	UAL2
+QUATERNIUS_3D2DGE/Hit_Knockback_RM	0.833	once		hurt death root-motion	hit hard and thrown back onto…	UAL2
+QUATERNIUS_3D2DGE/Idle_FoldArms_Loop	2.5	loop		idle talk	standing with the arms folded across the chest	UAL2
+QUATERNIUS_3D2DGE/Idle_Lantern_Loop	2.5	loop		idle prop	standing	UAL2
+QUATERNIUS_3D2DGE/Idle_No_Loop	2.5	loop		idle emote gesture	standing, shakes the head no	UAL2
+QUATERNIUS_3D2DGE/Idle_Rail_Call	2.5	once		idle lean gesture	leaning on a railing	UAL2
+QUATERNIUS_3D2DGE/Idle_Rail_Loop	2.5	loop		idle lean	leaning forward on the forearms	UAL2
+QUATERNIUS_3D2DGE/Idle_Shield_Break	1.067	once		shield hurt	the guard breaks	UAL2
+QUATERNIUS_3D2DGE/Idle_Shield_Loop	2.5	loop		shield idle stance	guarding	UAL2
+QUATERNIUS_3D2DGE/Idle_TalkingPhone_Loop	2.933	loop		idle talk prop	on the phone	UAL2
+QUATERNIUS_3D2DGE/LayToIdle	1.533	once		getup	gets up from lying on the back to standing	UAL2
+QUATERNIUS_3D2DGE/Melee_Hook	0.467	once		unarmed attack	a big lunging hook swing that carries low…	UAL2
+QUATERNIUS_3D2DGE/Melee_Hook_Rec	0.6	once		unarmed stance	recovers from the hook back to standing	UAL2
+QUATERNIUS_3D2DGE/NinjaJump_Idle_Loop	2	loop		jump air	airborne ninja pose held: body forward	UAL2
+QUATERNIUS_3D2DGE/NinjaJump_Land	1.267	once		jump	lands from the ninja leap in a crouch	UAL2
+QUATERNIUS_3D2DGE/NinjaJump_Start	0.967	once		jump	crouches and leaps into a running ninja's air pose	UAL2
+QUATERNIUS_3D2DGE/OverhandThrow	1.333	once		throw attack	winds up and throws overhand with the right arm	UAL2
+QUATERNIUS_3D2DGE/Shield_Dash_RM	1.1	once		shield attack root-motion	charges forward behind a shield…	UAL2
+QUATERNIUS_3D2DGE/Shield_OneShot	0.833	once		shield block	a quick block	UAL2
+QUATERNIUS_3D2DGE/Slide_Exit	0.5	once		slide	springs up out of the slide into a run	UAL2
+QUATERNIUS_3D2DGE/Slide_Loop	2	loop		slide	sliding feet first, leaning back on one hand	UAL2
+QUATERNIUS_3D2DGE/Slide_Start	0.833	once		slide dodge	drops from a run into a feet-first slide on the back	UAL2
+QUATERNIUS_3D2DGE/Sword_Block	1.233	once		sword block	braces and raises the sword to block, then recovers	UAL2
+QUATERNIUS_3D2DGE/Sword_Dash_RM	1.567	once		sword attack dodge root-motion	dashes forward low and slashes…	UAL2
+QUATERNIUS_3D2DGE/Sword_Regular_A	0.433	once		sword attack root-motion	the combo's first strike	UAL2
+QUATERNIUS_3D2DGE/Sword_Regular_A_Rec	0.967	once		sword stance root-motion	recovers from the first…	UAL2
+QUATERNIUS_3D2DGE/Sword_Regular_B	0.533	once		sword attack root-motion	the combo's second strike: a low	UAL2
+QUATERNIUS_3D2DGE/Sword_Regular_B_Rec	1.033	once		sword stance root-motion	recovers from the second…	UAL2
+QUATERNIUS_3D2DGE/Sword_Regular_C	2	once		sword attack root-motion	the combo's finisher	UAL2
+QUATERNIUS_3D2DGE/Sword_Regular_Combo	3	once		sword attack root-motion	the three strikes chained: thrust, sweep	UAL2
+QUATERNIUS_3D2DGE/TreeChopping_Loop	0.967	loop		work	chops with an axe	UAL2
+QUATERNIUS_3D2DGE/Walk_Carry_Loop	2	loop		walk carry	walking with a box held in both arms in front	UAL2
+QUATERNIUS_3D2DGE/Yes	2.5	once		emote gesture	agrees	UAL2
+QUATERNIUS_3D2DGE/Zombie_Idle_Loop	1.333	loop		zombie idle	hunched and swaying, arms hanging	UAL2
+QUATERNIUS_3D2DGE/Zombie_Scratch	1.8	once		zombie attack	lunges and claws down with both hands	UAL2
+QUATERNIUS_3D2DGE/Zombie_Walk_Fwd_Loop	1.333	loop		zombie walk	shambling, dragging zombie walk	UAL2

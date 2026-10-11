@@ -1063,7 +1063,7 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
 - **Verify:** `npm test -- skeleton`
 
 #### WP-1.5 Migrate the seed sets to format 2
-- **Owns:** `library/sets/**`, `tools/migrate/*`
+- **Owns:** `library/sets/**`, `tools/migrate/**`
 - **Needs:** 1.3, 1.4
 - **Size:** M
 - **Carry:**
@@ -2199,7 +2199,7 @@ version, commit, date and a note with the numbers. Gates are rows too.
 | 1.2 Schemas and the validator | done | 0.3.0 | bcd90e6 | 2026-10-11 | 30 rules, each with a passing and a failing fixture (46 tests); Ajv agrees on 11 structural rules; 762 seed clips: 0 errors, 301 warnings as predicted; D25 |
 | 1.3 The codec | done | 0.4.0 | 02efc99 | 2026-10-11 | tier 1a bit for bit (5 clips); tier 2: 7,444 samples of 325 clips equal to the micrometre; text, mirror and mirror-twice exact; 1,214 lines with tests; verifier: 3 findings fixed (D29); D26, D27 |
 | 1.4 The skeleton profile | done | 0.5.0 | 76c6942 | 2026-10-11 | 8 tables × 3 name styles exact; topology maps renamed Mixamo and rig skeletons (conf 0.85); measure = tier 1a rests bit for bit; restPoints within 0.001 mm; 32 tests; D28 |
-| 1.5 Migrate the seed sets | todo | | | | |
+| 1.5 Migrate the seed sets | done | 0.6.0 | (next row's commit) | 2026-10-11 | 5 sets, 525 clips, 0 errors, 171 warnings baselined; keys equal their sources; 3 sets decode within 1 µm of tier 2; catalogs ≤40 tokens (34 rows cut); 4.3 MB; D30 |
 | **G1** | todo | | | | |
 | 2.1 Math kernel and determinism | todo | | | | |
 | 2.2 Sampler, events, contacts, facts | todo | | | | |

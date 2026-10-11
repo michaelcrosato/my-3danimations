@@ -1,0 +1,24 @@
+{
+"format": "2.0",
+"id": "MESH2MOTION/Bow_Pull_Hold",
+"name": "Bow Pull Hold",
+"legend": "2.0",
+"dur": 0.25,
+"loop": true,
+"fps": 30,
+"tags": ["bow","aim","pose"],
+"desc": "holds a bow at full draw, aiming",
+"skeleton": "humanoid",
+"restSrc": "M2M_ANIMATED",
+"provenance": {"src":"M2M_ANIMATED","method":"keyed","producer":{"tool":"m3a-migrate","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
+"quality": {"fit":[28,137],"qa":"unchecked","qaVersion":"none"},
+"keys": [
+  {"t":0,
+   "hips":[-5,0,98], "body":[0,0,0], "chest":[67,-6,4], "head":[-64,11,12],
+   "shL":[15,-3], "shR":[23,-4], "armL":[66,70,-28,72,-9], "armR":[87,37,-32,147,25],
+   "legL":[-7,0,-100,26,-3], "legR":[-7,0,-100,26,3], "footL":[0,0,0], "footR":[0,0,0]},
+  {"t":0.267,
+   "hips":[-5,0,98], "body":[0,0,0], "chest":[67,-6,4], "head":[-64,11,12],
+   "shL":[15,-3], "shR":[23,-4], "armL":[66,70,-28,72,-9], "armR":[87,37,-32,147,25],
+   "legL":[-7,0,-100,26,-3], "legR":[-7,0,-100,26,3], "footL":[0,0,0], "footR":[0,0,0]}
+]}

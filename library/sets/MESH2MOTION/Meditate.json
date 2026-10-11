@@ -1,0 +1,24 @@
+{
+"format": "2.0",
+"id": "MESH2MOTION/Meditate",
+"name": "Meditate",
+"legend": "2.0",
+"dur": 1.5,
+"loop": true,
+"fps": 30,
+"tags": ["sit","rest","idle"],
+"desc": "sits cross-legged, hands on the knees, breathing slowly",
+"skeleton": "humanoid",
+"restSrc": "M2M_ANIMATED",
+"provenance": {"src":"M2M_ANIMATED","method":"keyed","producer":{"tool":"m3a-migrate","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
+"quality": {"fit":[15,54],"qa":"unchecked","qaVersion":"none"},
+"keys": [
+  {"t":0,
+   "hips":[-44,0,5], "body":[0,-16,0], "chest":[0,15,0], "head":[0,-1,0],
+   "shL":[0,0], "shR":[0,0], "armL":[82,14,-55,67,23], "armR":[80,23,-55,83,-29],
+   "legL":[72,-66,-22,141,41], "legR":[89,-40,-24,127,-49], "footL":[-22,-61,-21], "footR":[-16,-77,-19]},
+  {"t":1.5,
+   "hips":[-44,0,5], "body":[0,-16,0], "chest":[0,15,0], "head":[0,-1,0],
+   "shL":[0,0], "shR":[0,0], "armL":[82,14,-55,67,23], "armR":[80,23,-55,83,-29],
+   "legL":[72,-66,-22,141,41], "legR":[89,-40,-24,127,-49], "footL":[-22,-61,-21], "footR":[-16,-77,-19]}
+]}
