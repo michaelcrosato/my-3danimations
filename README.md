@@ -75,7 +75,8 @@ before paying for parallel lanes. `docs/FEASIBILITY.md` §9 gives the reasoning.
 
 The milestones:
 - **M1 "first flight":** library clips on humanoid skeletons in three.js, verified headless: at least 95% of the
-  migrated clips pass the sensors on at least six test skeletons, and every failure is listed.
+  migrated clips pass the sensors on at least six test skeletons, every failure is listed, and the core moves play on a
+  held-out real rig chosen at the gate. Fresh agents pass the first brief and a held-out variant of it, 4 of 5 each.
 - **M2 "agents fly it":** the CLI, the skill, MCP and the manual, benchmarked.
 - **M3 "the library grows":** gated contributions from other AIs.
 - **M4 "the standard in use":** another repository consumes it.

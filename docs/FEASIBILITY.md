@@ -91,11 +91,11 @@ versioning, provenance, the gates and conformance. `PLAN.md` puts these first.
 among visual and technical artists. So present this as correctness, verification and provenance tooling, not as a
 replacement for animators.
 
-**What to build.** `PLAN.md`: 11 phases, 56 work packages, 11 gates (G0 to G10), 4 milestones. The first milestone, **M1 "first
-flight"**, tests the thesis. Library clips play on humanoid skeletons in three.js with the sensors green (at least 95%
-of the migrated clips on at least six test skeletons, every failure listed; the core moves also play on a held-out
-real rig chosen at the gate), sheets render headless, and fresh agents succeed at the first brief and at a held-out
-variant of it in at least 4 of 5 tries each.
+**What to build.** `PLAN.md`: 11 phases, 56 work packages, 11 gates (G0 to G10), 4 milestones. The first milestone,
+**M1 "first flight"**, tests the thesis. Library clips play on humanoid skeletons in three.js with the sensors green
+(at least 95% of the migrated clips on at least six test skeletons, every failure listed; the core moves also play on
+a held-out real rig chosen at the gate), sheets render headless, and fresh agents succeed at the first brief and at a
+held-out variant of it in at least 4 of 5 tries each.
 
 **How to start:** the prompt and effort level are in §9. In short, run `PLAN.md` from WP-0.1 with **ultracode**, or with
 **max** for a single agent.

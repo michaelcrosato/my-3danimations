@@ -43,9 +43,10 @@
   exists, use the better one and log it.
 - **Owner decisions** (§13) each have a default. Proceed on the default; escalate only the calls that are hard to undo
   (§3, "Deviations and escalation").
-- **When the owner is needed** (G8's phone review, G10's confirmation, an O-decision whose default is "don't"), mark the
-  ledger row `blocked-owner`. Post exactly what is needed on the PR, and carry on with every WP that doesn't depend on
-  it. The ledger's statuses are `todo`, `doing`, `done`, `blocked-owner` and `deferred` (with the reason).
+- **When the owner is needed** (G8's phone review, G9's sampled approval, G10's confirmation, an O-decision whose
+  default is "don't"), mark the ledger row `blocked-owner`. Post exactly what is needed on the PR, and carry on with
+  every WP that doesn't depend on it. The ledger's statuses are `todo`, `doing`, `done`, `blocked-owner` and `deferred`
+  (with the reason).
 - **Where the truth lives:** `docs/PROGRESS.md` (one screen, the current state), the ledger (§14: one row per WP),
   `docs/DECISIONS.md` (never cleaned up), `docs/FEEDBACK-LOG.md` (points not acted on, counted by theme).
 
@@ -572,11 +573,12 @@ character), a grader, and a pass rule graded headless.
     package. They are reported at G4 and G7, but they do not gate and do not count toward B1's pass mark.
 - **Held-out variants:** at each gate, a fresh subagent that has not read the manual's examples writes one variant of
   every brief the gate grades. It keeps the job, the pass rule and the grader, and changes the wording and the starter
-  character: a generator seed outside WP-4.2's test set, or a real CC0 rig from a source not in WP-4.2's list, recorded
-  by URL, license and SHA-256 and fetched as G4's held-out rig is (never committed, D9). The gate fixes the commit
-  under test before the variants are written. Before the trials, the brief's known-good solution must pass on each
-  variant; if it fails, the gate reports a package or grader failure instead of running trials. Every run of a gate,
-  reruns included, writes fresh variants into `bench/results/heldout/<gate>/run-<n>/`, where they stay as a record.
+  character, using one that no grader test and no earlier gate run used: a generator seed outside WP-4.2's test set, or
+  a real CC0 rig from a source not in WP-4.2's list, recorded by URL, license and SHA-256 and fetched as G4's held-out
+  rig is (never committed, D9). The gate fixes the commit under test before the variants are written. Before the trials,
+  the brief's known-good solution must pass on each variant; if it fails, the gate reports a package or grader failure
+  instead of running trials. Every run of a gate, reruns included, writes fresh variants into
+  `bench/results/heldout/<gate>/run-<n>/`, where they stay as a record.
 - **Briefs are built in three places:** B1 in WP-4.7, B2 to B7 in WP-6.6, B8 in WP-9.1.
 - **Results** go in `bench/results/<date>-<model>.json` and are summarized in `docs/PROGRESS.md`. By default the
   benchmark runs on the Claude models the session can reach. Other vendors' models need their keys (decision O10).
@@ -675,18 +677,18 @@ fails twice is checked against the kill criteria (§12).
 G0 → 1.1 → {1.2, 1.4} ; {1.2, 0.4} → 1.3 ; {1.3, 1.4} → 1.5 → G1
 G1 → 2.1 → 2.2 → 2.3 ; {2.2, 1.4} → 2.4 ; {2.3, 2.4} → 2.5 ; {2.3, 2.5} → 2.6 → G2
 2.4 → 3.1 → 3.2 ; 2.5 → 3.3 → {3.4, 3.6} ; 3.6 → 3.5 ; {3.2, 3.4, 3.5} → G3
-G2 → 4.1 → 4.2 → 4.3 → 4.4 → {4.5, 4.6} ; {4.6, G3} → 4.7 ; {4.5, 4.7} → G4 (M1)
+G2 → 4.1 → 4.2 → 4.3 → 4.4 → {4.5, 4.6} ; 3.3 → 4.5 ; {4.6, G3} → 4.7 ; {4.5, 4.7} → G4 (M1)
 1.5 → 5.1 → {5.2, 5.7} ; 5.2 → 5.6 → 5.3 ; {5.3, 3.3} → 5.4 → 5.5 ; {5.4, G3} → 5.8 ; {5.5, 5.7, 5.8} → G5
 {G2, 3.3} → 6.1 → {6.2, 6.3, 6.4} ; 6.4 → 6.5 ; {4.7, 6.5} → 6.6 ; {6.2, 6.3, 6.6} → G6
 G4 → 7.1 ; {7.1, 5.5, 5.7, G6} → 7.2 → 7.3 → 7.4 → G7 (M2)
 {4.6, 7.2} → 8.1 → 8.3 ; {8.1, 5.8} → 8.2 ; {8.2, 8.3} → G8
-{G5, G7} → 9.1 → {9.2, 9.3} → 9.4 → G9 (M3)
+{G5, G7, 8.2} → 9.1 → {9.2, 9.3} → 9.4 → G9 (M3)
 G7 → {10.1, 10.2} ; {G5, 10.1, 10.2} → G10 (M4)
 ```
 
 After G1 the library lane (5.1, 5.2, 5.7) can start. After G2, lanes Q, R, L and A run in parallel (§11). Through search
-(5.5 → 5.4 → 5.3), M2 still needs the re-import and the facts; only library QA (5.8) and G5's floors leave its path.
-G5 gates M3 (through WP-9.1) and M4 (G10), and WP-8.2 waits for 5.8 because clips change in sequence (§8.4).
+(5.3 → 5.4 → 5.5), M2 still needs the re-import and the facts; only library QA (5.8) and G5's floors leave its path.
+G5 gates M3 (through WP-9.1) and M4 (G10). Clips change in sequence (§8.4), so WP-8.2 waits for 5.8 and WP-9.1 for 8.2.
 
 ### 9.3 Gates
 
@@ -710,14 +712,14 @@ G5 gates M3 (through WP-9.1) and M4 (G10), and WP-8.2 waits for 5.8 because clip
 - **G4 First flight (M1):**
   - on at least 6 skeletons (4 or more generated variants, 2 or more real CC0 rigs from different sources), the idle,
     walk, run, jump and attack set plays with the sensors green;
-  - **a headless sweep** plays every migrated clip on those six skeletons, and at least 95% pass the sensors, with every
-    failure listed and its reason given. The gate report links the clip-by-skeleton results, and M1 claims only what
-    they show;
-  - **a held-out rig:** a real CC0 rig from a source not in WP-4.2's list. On each run of G4, reruns included, a fresh
-    subagent chooses one, reads its license, records its URL, license and SHA-256 in
-    `bench/results/heldout/G4/run-<n>/rig.json`, and fetches it with `npm run fixtures -- fetch --manifest <file>`. It
-    binds with no hand mapping, the idle, walk, run, jump and attack set plays on it with the sensors green, and its
-    sweep results are reported separately;
+  - **a headless sweep** (`npm run sweep`, WP-4.5) plays every migrated clip on those six skeletons, and at least 95%
+    pass the sensors, with every failure listed and its reason given. The gate report links the clip-by-skeleton
+    results, and M1 claims only what they show;
+  - **a held-out rig:** a real CC0 rig from a source that neither WP-4.2's list nor an earlier run under
+    `bench/results/heldout/` used. On each run of G4, reruns included, a fresh subagent chooses one, reads its license,
+    records its URL, license and SHA-256 in `bench/results/heldout/G4/run-<n>/rig.json`, and fetches it with
+    `npm run fixtures -- fetch --manifest` on that file. It binds with no hand mapping, the idle, walk, run, jump and
+    attack set plays on it with the sensors green, and its sweep results are reported separately;
   - sheets are produced headless;
   - B1 and its held-out variant each pass at least 4 of 5 trials with fresh agents;
   - the demo runs in CI's e2e with its sheets attached as artifacts, and has a public link once O3 is linked.
@@ -1382,17 +1384,23 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
 - **Verify:** `npm test -- play`
 
 #### WP-4.5 Headless capture
-- **Owns:** `packages/three/src/capture/*`, `tests/e2e/capture.spec.ts`
-- **Needs:** 4.4
+- **Owns:** `packages/three/src/capture/*`, `tests/e2e/capture.spec.ts`, `tools/sweep/*`
+- **Needs:** 4.4, 3.3
 - **Size:** M
 - **Build:** a Playwright harness that renders a bound character in headless Chromium on the WebGL 2 backend. It reads
   the frame back with `preserveDrawingBuffer`, checks it is not blank, and writes a sheet. The proof hash of the bone
   transforms must equal the Node solve's.
+
+  Also `npm run sweep -- <rig ids | --manifest <file>>`: it plays every migrated clip on each given skeleton (bound by
+  WP-4.3, solved in Node), runs the sensors (WP-3.3), and writes the clip-by-skeleton results with every failure and
+  its reason. G4 runs it on its six skeletons and, separately, on the held-out rig (§9.3).
 - **Done when:**
   - sheets of the generated and real rigs render in CI;
   - the hashes match;
-  - a blank frame, or one that fell back to another renderer, fails loudly with the reason.
-- **Verify:** `npm run e2e -- capture`
+  - a blank frame, or one that fell back to another renderer, fails loudly with the reason;
+  - a sweep over two test characters writes the clip-by-skeleton results and lists a deliberately broken clip as a
+    failure with its reason.
+- **Verify:** `npm run e2e -- capture && npm test -- sweep`
 
 #### WP-4.6 The first-flight demo
 - **Owns:** `apps/lab/hello/*`, `vercel.json`
@@ -1430,7 +1438,8 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
   - B1 runs 5 trials and writes a results file;
   - B1's discovery trials run and record whether the package was used;
   - the grader fails a planted bad solution and passes a known good one, on the default character and on a generator
-    seed outside WP-4.2's test set, and the runner runs a variant brief given by path;
+    seed outside WP-4.2's test set, and the runner runs a variant given by path (its brief and starter character),
+    first running the brief's known-good solution on it and stopping with a package or grader failure if that fails;
   - the legend quiz scores at least 9 of 10.
 - **Verify:** `npm run bench -- B1 --trials 5 && npm test -- bench/graders bench/runner`
 
@@ -1748,7 +1757,7 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
   - **The manual** (at most 8,000 tokens):
     - the mental model;
     - one complete example: a character that walks, attacks with a hit event, and reacts;
-    - the API by job: find, fit, wire, make, check, ship, grow;
+    - the API by job: find, fit, wire, make, check, ship (WP-9.1 adds grow);
     - the rules and the common mistakes.
 
     Every code block runs in tests. The manual is where an agent starts, so the animation library is on its critical
@@ -1768,8 +1777,10 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
 - **Build:**
   - ESM builds with types for every package.
   - A single-file bundle (`m3a.js` plus a core subset of the library) for agents that can't install packages. The
-    subset is listed in `tools/bundle/manifest.json`, which passes `npm run license -- check`, and the bundle carries
-    the credits block and the license texts (CMU's notice in full) of every tier it includes.
+    subset is listed in `tools/bundle/manifest.json`, which passes `npm run license -- check`. `npm run pack -- --check`
+    also runs the sensors (WP-3.3) on every clip in it and fails on one that neither passes nor carries a WP-5.8
+    baseline. The bundle carries the credits block and the license texts (CMU's notice in full) of every tier it
+    includes.
   - The version and changelog rule.
   - A dry-run pack (`npm pack --dry-run`) per package.
   - Publishing waits for O2. When it comes, every release is signed with provenance (npm provenance through Sigstore)
@@ -1778,7 +1789,7 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
 - **Done when:** a scratch project installs the packed tarballs and runs the manual's example, the single file runs
   the same example and carries the credits and license texts of its tiers, `npm run license -- check` passes on the
   bundle's manifest, and every clip in it has a QA verdict, pass or baselined (WP-5.8 may not have run yet).
-- **Verify:** `npm run pack -- --check && npm run license -- check tools/bundle/manifest.json && npm run qa -- tools/bundle/manifest.json --check`
+- **Verify:** `npm run pack -- --check && npm run license -- check tools/bundle/manifest.json`
 
 **Gate G7 = Milestone M2, Agents fly it.**
 
@@ -1831,8 +1842,8 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
 
 #### WP-9.1 The contribution protocol
 - **Owns:** `CONTRIBUTING.md`, `packages/tools/src/tools/library-add.ts`, `.github/workflows/library-gates.yml`,
-  `bench/briefs/B8.md`, `bench/graders/B8/**`
-- **Needs:** G5, G7
+  `bench/briefs/B8.md`, `bench/graders/B8/**`, the grow section of `packages/tools/MANUAL.md`
+- **Needs:** G5, G7, 8.2
 - **Size:** M
 - **Build:** a protocol written for agents.
   - `m3a library add <clip | recipe>` validates and measures the clip, then writes it with its catalog row and
@@ -1852,14 +1863,17 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
     - disclosure of who or what made the clip.
   - A rate limit per contributor, no per-clip rewards, and human review before merge (O7).
   - Brief B8 and its grader, which takes the starter character as a parameter (§7).
+  - The manual's grow section: `m3a library add` and the protocol's rules, with a runnable example, so B8's fresh
+    agents work from the manual alone (the bench workspace holds the manual, not `CONTRIBUTING.md`).
 
   The registries that survived AI floods share these defenses: disclosure, identity, automated checks, no reward for
   volume, and review before merge (research: `data_licensing_registries.md` §6). The open portals that lacked them
   were flooded (Fab) or poisoned (ClawHub).
 - **Done when:** a clean contribution passes every gate, B8's grader passes a known-good solution on the default
-  character and on a second one, and each planted bad one fails with a clear message: a bad license, a duplicate, a
-  defect, missing provenance, a generator with no manifest.
-- **Verify:** `npm test -- contribute && npm run gate -- library-pr --fixture all`
+  character and on a generator seed outside WP-4.2's test set, the manual's grow example runs within the manual's
+  budget, and each planted bad one fails with a clear message: a bad license, a duplicate, a defect, missing
+  provenance, a generator with no manifest.
+- **Verify:** `npm test -- contribute bench/graders/B8 manual && npm run doctrine && npm run gate -- library-pr --fixture all`
 
 #### WP-9.2 The motion-source socket
 - **Owns:** `packages/core/src/sources/*`, `packages/tools/src/sources/*`
