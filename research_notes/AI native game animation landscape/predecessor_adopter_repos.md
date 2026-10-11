@@ -852,7 +852,7 @@ Phase 0 bootstraps these as tools appear (items 1-3, 7 and 8 apply once their to
   order dependence, no comments, one clip per file for agent reading and git diffs.
 
 ### 7.4 Cross-language conformance tests
-Three tiers, all already proven:
+Three tiers; tiers 1 and 3 are already shown in shardfall, and tier 2 is planned (my-3dge WP 8.2, todo at 652ea6b):
 1. **Encoder parity, bit for bit.** A tiny rig built in test code (no binary fixture; `crates/pav_tools/tests/mocap.rs:46-140`)
    and one small text capture (CMU `09.asf` and `09_02.amc`), with the expected sets written by the reference implementation.
 2. **Decoder parity in millimetres on the reference body.** The source decoder runs as an oracle (`vm`) and each clip

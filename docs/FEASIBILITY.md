@@ -61,8 +61,10 @@ versioning, provenance, the gates and conformance. `PLAN.md` puts these first.
    - The first outside model to build a game on my-3d2dge used none of the library, although the clips it needed were
      there: discoverability and packaging failed, not content.
 3. **The niche is empty.**
-   - No open, text-based format for 3D character motion exists, and VRMA, the best interchange format, is binary.
-   - No engine's MCP server (Unity, Unreal, Roblox, Godot, Blender) exposes animation operations.
+   - No open, text-based, agent-oriented format for 3D character motion exists: BVH and ASF/AMC are text but flat
+     per-frame channel dumps, and VRMA, the best interchange format, is binary.
+   - No official engine MCP server (Unity, Unreal, Roblox), nor the main Blender server, exposes animation operations in
+     its core toolset; a few community servers for Unity, Godot and Unreal add animation tools.
    - Every vendor pipeline ends in binary files, with no headless quality checks.
    - three.js has no state machine and no root motion, and its retargeting has documented failures.
    - JavaScript IK and foot locking are thin.
@@ -90,8 +92,9 @@ among visual and technical artists. So present this as correctness, verification
 replacement for animators.
 
 **What to build.** `PLAN.md`: 11 phases, 56 work packages, 11 gates (G0 to G10), 4 milestones. The first milestone, **M1 "first
-flight"**, tests the thesis. Any library clip plays on any humanoid skeleton in three.js, the sensors are green, sheets
-render headless, and fresh agents succeed at the first brief in at least 4 of 5 tries.
+flight"**, tests the thesis. Library clips play on humanoid skeletons in three.js with the sensors green (at least 95%
+of the migrated clips on at least six test skeletons, every failure listed), sheets render headless, and fresh agents
+succeed at the first brief in at least 4 of 5 tries.
 
 **How to start:** the prompt and effort level are in §9. In short, run `PLAN.md` from WP-0.1 with **ultracode**, or with
 **max** for a single agent.
@@ -193,7 +196,7 @@ The owner's repositories already hold most of this package, scattered and re-imp
 | **my-3d2dge-2** (Depthward; TypeScript, three.js, Rapier) | One typed tool registry served to the console, a CLI, an MCP server and WebMCP, with every example run as a test; skinned GLB playback through three.js; a skill timeline that places hits and motion windows in data | 46 tools; 143 tests |
 | **shardfall** (Rust, wgpu) | The format crosses languages unchanged: its importer and codec were ported to Rust bit for bit. It also re-encoded the move library as TOML with an `about` line per move, imported 100STYLE, and built an animation studio where an LLM edits clips with revisions and undo | 119,432 Mesh2Motion numbers and 104,101 CMU numbers identical to the JavaScript; about 7,500 Rust lines; 437 embedded clips |
 | **my-3dge** (TypeScript, three.js; built from a large plan) | The need again: its plan schedules a third port of the codec and importers (four WPs) and already commits 3.55 MB of reference vectors from the origin's rigs and moves | 97 WPs, 23 done in about two days; every reported size over by one class |
-| **riftlight** (TypeScript, its own animation stack) | Independent convergence: software-drawn contact sheets, films, clip metrics and a lab handle, built without the origin's code | an animation stack of its own; a banned-API lint the origin cited |
+| **riftlight** (TypeScript, its own animation stack) | Independent convergence: software-drawn contact sheets, filmstrips of the real game stepped frame by frame, clip metrics and a lab handle, built without the origin's code | an animation stack of its own; a banned-API lint the origin cited |
 
 **What the same evidence says is missing.**
 - **Discoverability.** The GPT-6 "Vesper" build, handed the origin engine, used **zero** library clips. It wrote 4k
@@ -347,7 +350,9 @@ always recorded.
 
 ### 4.5 Agent tooling: verifiers close the loop
 
-- **MCP servers now exist for every major engine, and none exposes animation operations.**
+- **MCP servers now exist for every major engine, and none of the official ones exposes animation operations in its
+  core toolset.** Community servers and extensions (CoplayDev's and IvanMurzak's for Unity, a Godot bridge, an Unreal
+  animation server) add animation tools.
   - Unity's official server is in beta; Unreal 5.8's is experimental, local-only and unauthenticated; Roblox builds one
     into Studio.
   - The community Blender server has 30k stars.
@@ -517,7 +522,7 @@ The plan proceeds on these defaults and escalates the hard-to-undo ones when it 
 | O6 | CC BY content (100STYLE) | Accept it, in its own namespace with a credits tool |
 | O7 | Who merges library contributions | You, with CI gates required |
 | O8 | Where gallery reviews are stored | A static JSON export (no hosting costs) |
-| O9 | Acting in other repositories (switching my-3dge's Phase 8 to this package; certification in shardfall) | Propose, don't act |
+| O9 | Acting in other repositories (switching my-3dge's animator WPs 3.4–3.7 and its Phase 8 to this package; certification in shardfall) | Propose, don't act |
 
 **One question to the owner, for context only:** my-3d2dge's decisions log mentions "the four front-runners" without
 naming them. If they are other agent-first engines, they are natural early adopters for M4.
@@ -526,9 +531,10 @@ naming them. If they are other agent-first engines, they are natural early adopt
 
 ## 9. Recommendation, the kickoff prompt and the effort level
 
-**Recommendation: proceed.** Execute `PLAN.md`. M1 ("first flight") is the real test of this analysis. If any library
-clip plays cleanly on any humanoid skeleton in three.js, measured by the sensors and achieved by fresh agents from the
-manual alone, the thesis holds. If not, the kill criteria stop the work early and cheaply.
+**Recommendation: proceed.** Execute `PLAN.md`. M1 ("first flight") is the real test of this analysis. If library clips
+play cleanly on humanoid skeletons of different builds and rig conventions in three.js, measured by the sensors and
+achieved by fresh agents from the manual alone, the thesis holds. If not, the kill criteria stop the work early and
+cheaply.
 
 **The kickoff prompt:**
 
