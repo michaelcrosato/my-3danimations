@@ -152,11 +152,13 @@ Their geometry (the decoder's, `@m3a/core`, WP-1.3):
   `l = SG · (m × a)`. Roll ρ turns both about `a`: `m′ = m cos ρ − l sin ρ`, `l′ = l cos ρ + m sin ρ` (+ pronates). The
   hand's direction is `h = norm((a cos φ + m′ sin φ) cos σ + l′ sin σ)` for flex φ and side σ. Then
   `knuck = wrist + h·knuck`, `fist = wrist + h·fist` (rest lengths), and `index`, `pinky` = `fist ± 20 mm` along `l′`
-  made perpendicular to `h` (along `blade` when the key has one, as in format 1). Ranges: flex −90..90, side −45..45,
-  roll −180..180. Mirroring swaps `handL` and `handR` unchanged.
-- **`fingers`.** The middle curl c bends the `fist` point about the knuckle toward `m′`, by `0.9 · c` degrees; the
-  other curls move no body point and drive finger bones where a skeleton has them (`SKELETON.md`). Range 0..100.
-  Mirroring swaps the sides unchanged.
+  made perpendicular to `h` (along `blade` when the key has one, as in format 1). Ranges: flex −90..90, side −45..45;
+  roll is an angle and unwraps like a twist (§6.3), so a forearm turning through full pronation stays continuous.
+  Mirroring swaps `handL` and `handR` unchanged.
+- **`fingers`.** The middle curl c bends the `fist` point about the knuckle toward the palm normal
+  `n = m′ cos φ − a sin φ` (perpendicular to `h` for any flex and side), by `0.9 · c` degrees; the other curls move
+  no body point and drive finger bones where a skeleton has them (`SKELETON.md`). Range 0..100. Mirroring swaps the
+  sides unchanged.
 - **`spine`.** Replaces the reference body's `spineW[0..2]` for this key with `[lower, middle, upper] / 100`
   (`spineW[3]` stays 1). Range −100..200. Mirroring keeps it.
 - **`yaw`.** The root's heading (turn + toward the right) relative to the clip's start, at this key. Decoding in clip
@@ -358,10 +360,10 @@ byte for byte.
 
 ## 14. Text lenses
 
-- **The key lens** (`text`): a clip's header on one line, then each key as three short lines: torso (`hips body chest
-  head root yaw spine`), arms (`shL shR armL armR handL handR fingersL fingersR blade`), legs (`legL legR footL
-  footR`). It is how tools show a clip to a model, always with the legend.
-- **The normalized lens** folds angles into ±180° for reading, without changing the stored numbers.
+- **The key lens** (`keyLens`): a clip's header on one line, then each key as three short lines: torso (`hips body
+  chest head root yaw spine`), arms (`shL shR armL armR handL handR fingersL fingersR blade`), legs (`legL legR footL
+  footR`). It is how tools show a clip to a model, always with the legend. Format 1's own lens is `text1`.
+- **The normalized lens** (`normalized`) folds angles into ±180° for reading, without changing the stored numbers.
 
 ## 15. Known limits
 

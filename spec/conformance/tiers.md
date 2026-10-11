@@ -25,8 +25,9 @@ double, with `-0` kept. `spec/MOTION.md` (WP-1.1) states these as the format's n
 
 ## Known limits
 
-- The vectors come from format 1. Format 2 (WP-1.1) keeps format 1's numbers, so a format-2 codec reading format 1 must
-  pass tiers 1a and 2 unchanged; format-2-only fields get vectors of their own when they land.
+- The vectors come from format 1, except `tier2/FORMAT2.json`: format 2's hand, fingers, spine and yaw on six clips,
+  decoded by `@m3a/core`, the reference implementation for those fields (D2). Format 2 keeps format 1's numbers, so a
+  format-2 codec reading format 1 passes tiers 1a and 2 unchanged.
 - Tier 2 samples each clip at its keys and three in-betweens. `npm run vectors -- --dense` writes every clip at 30 fps
   into `.cache/vectors/tier2-dense/` for sampler tests (too large to commit).
 - Tier 1b's CMU files and tier 1a's CMU vector are CMU motion capture data under CMU's notice (no resale, even in

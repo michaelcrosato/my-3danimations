@@ -1,6 +1,6 @@
 // Conformance tier 2 (spec/conformance/tiers.md): every curated clip decodes on its reference body within 0.001 mm of
 // the oracle at each key and at three in-betweens; mirroring and the format-1 text lens match it exactly.
-import { mirror, parse1, pose, text1, type KeyLike, type Lensed, type Rest } from "@m3a/core";
+import { keyLens, mirror, parse1, pose, text1, type KeyLike, type Lensed, type Rest } from "@m3a/core";
 import { describe, expect, it } from "vitest";
 import { stringify } from "./runner/json.ts";
 import { loadTier2, sha256, TOLERANCE, tier2Sets } from "./runner/vectors.ts";
@@ -43,9 +43,11 @@ for (const set of tier2Sets()) {
     it("mirrors and writes text exactly like the oracle", () => {
       for (const [name, c] of Object.entries(v.clips)) {
         const clip = c.clip as unknown as Lensed;
-        const text = text1(clip);
+        const format2 = (v as { format?: string }).format === "2.0";
+        const text = format2 ? keyLens(clip) : text1(clip);
         expect(sha256(text), `${name} text`).toBe(c.textSha256);
-        expect(noZeroSign(parse1(text).keys), `${name} text round trip`).toBe(noZeroSign(clip.keys));
+        const back = format2 ? (JSON.parse(text) as Lensed).keys : parse1(text).keys;
+        expect(noZeroSign(back), `${name} text round trip`).toBe(noZeroSign(clip.keys));
         const m = mirror(clip);
         expect(sha256(stringify(m.keys)), `${name} mirror`).toBe(c.mirrorSha256);
         expect(noZeroSign(mirror(m).keys), `${name} mirror twice`).toBe(noZeroSign(filled(clip.keys)));

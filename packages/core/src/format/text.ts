@@ -50,8 +50,8 @@ export function parse1(txt: string | Lensed): Lensed & { dur: number } {
 
 /** The format-2 key lens: a short header line, then three lines per key. Tools show it with the legend. */
 export function keyLens(o: Lensed): string {
-  const head = ["id", "name", "dur", "loop", "tags", "desc", "restSrc", "contacts", "events"].filter((f) => o[f] !== undefined).map((f) => `${JSON.stringify(f)}: ${JSON.stringify(o[f])}`).join(", ");
-  return `{${head}, "keys": [\n` + o.keys.map((k) => keyLines(k, GROUPS_2)).join(",\n") + "\n]}";
+  const head = ["id", "name", "dur", "loop", "tags", "desc", "restSrc", "contacts", "events"].filter((f) => o[f] !== undefined).map((f) => `${JSON.stringify(f)}: ${JSON.stringify(o[f])}, `).join("");
+  return `{${head}"keys": [\n` + o.keys.map((k) => keyLines(k, GROUPS_2)).join(",\n") + "\n]}";
 }
 
 /** The same clip on the other side: L and R swap, turns, tilts, twists and yaw change sign (key order as the origin's). */
@@ -79,9 +79,29 @@ export function mirror<T extends Lensed>(o: T): T {
   if (typeof o.id === "string") out.id = o.id + "_Mirror";
   const c = o.contacts as Record<string, unknown> | undefined;
   if (c) out.contacts = Object.fromEntries(Object.entries(c).map(([e, v]) => [e.endsWith("L") ? e.slice(0, -1) + "R" : e.endsWith("R") ? e.slice(0, -1) + "L" : e, v]));
+  const facts = o.facts as Record<string, unknown> | undefined;
+  if (facts && Array.isArray(facts.travel)) out.facts = { ...facts, travel: [facts.travel[0], -(facts.travel[1] as number)] };
   const ev = o.events as Record<string, unknown>[] | undefined;
   if (ev) out.events = ev.map((e) => (e.side === "L" || e.side === "R" ? { ...e, side: e.side === "L" ? "R" : "L" } : { ...e }));
   return out as T;
+}
+
+/** The normalized lens: a copy with every angle folded into ±180 degrees for reading; never stored. */
+export function normalized<T extends Lensed>(o: T): T {
+  const fold = (v: number) => {
+    const f = ((((v + 180) % 360) + 360) % 360) - 180;
+    return f === -180 && v > 0 ? 180 : f;
+  };
+  const keys = o.keys.map((k) => {
+    const m: KeyLike = { ...k };
+    for (const [f, spec] of Object.entries(KEY_FIELDS)) {
+      const v = k[f] as number[] | undefined;
+      if (v && spec.angles.length) m[f] = v.map((x, i) => (spec.angles.includes(i) ? fold(x) : x));
+    }
+    if (typeof k.yaw === "number") m.yaw = fold(k.yaw);
+    return m;
+  });
+  return { ...o, keys };
 }
 
 /** Every known key field's name, for lenses and readers. */

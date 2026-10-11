@@ -2,7 +2,7 @@
 // new optional fields (hand, fingers, spine, yaw) in decode, encode, sampling and mirroring. Format 1's behaviour is
 // proved against the oracle by spec/conformance/tier1a and tier2.
 import { describe, expect, it } from "vitest";
-import { decodePose, encodePose, fit, fromFormat1, IDX, keyAt, keyLens, mirror, parseClip, serialize, slug, slugs, validate, type Capture, type Clip, type KeyLike, type Rest } from "../src/index.ts";
+import { decodePose, encodePose, fit, fromFormat1, IDX, keyAt, keyLens, mirror, normalized, parseClip, serialize, slug, slugs, validate, type Capture, type Clip, type KeyLike, type Rest } from "../src/index.ts";
 import { loadTier1a, loadTier2 } from "../../../spec/conformance/runner/vectors.ts";
 import { baseClip } from "./fixtures.ts";
 
@@ -100,6 +100,49 @@ describe("format 2's optional fields", () => {
     expect(m.contacts).toEqual({ by: "detected", footR: [[0, 0.5]] });
     expect(m.events).toEqual([{ t: 0.2, name: "step", side: "R" }]);
     expect(m.name).toBe("Turn_Mirror");
+  });
+});
+
+describe("format 2's fields: continuity, degenerate wrists, provenance", () => {
+  it("keeps a hand's roll continuous through full pronation (±180)", () => {
+    const k1 = { ...key0, handR: [20, 0, 178] };
+    const k2 = { ...key0, handR: [20, 0, 182] };
+    const e1 = encodePose(R, new Float32Array(decode(k1)), null, { hands: true });
+    const e2 = encodePose(R, new Float32Array(decode(k2)), e1, { hands: true });
+    expect(Math.abs((e1.handR as number[])[2]! - 178)).toBeLessThanOrEqual(1);
+    expect(Math.abs((e2.handR as number[])[2]! - 182)).toBeLessThanOrEqual(1);
+    expect(validate({ ...(baseClip() as Clip), keys: (baseClip() as Clip).keys.map((k) => ({ ...k, handR: [20, 0, 182], handL: [0, 0, -700] })) }).ok).toBe(true);
+  });
+  it("curls the fingers toward the palm at full flex and with the hand bent sideways", () => {
+    const L = R.fist - R.knuck;
+    for (const [flex, side] of [[90, 0], [-90, 0], [80, 20], [89, 20], [0, -40]] as const) {
+      const open = decode({ ...key0, handR: [flex, side, 30], fingersR: [0, 0, 0, 0, 0] });
+      const fist = decode({ ...key0, handR: [flex, side, 30], fingersR: [100, 100, 100, 100, 100] });
+      const moved = dist(point(open, "fistR"), point(fist, "fistR"));
+      expect(moved, `flex ${flex} side ${side}`).toBeCloseTo(2 * L * Math.sin((0.9 * 100 * Math.PI) / 180 / 2), 3);
+      const e = encodePose(R, new Float32Array(decode({ ...key0, handR: [flex, side, 30], fingersR: [60, 60, 60, 60, 60] })), null, { hands: true });
+      expect(Math.abs((e.fingersR as number[])[2]! - 60), `curl at flex ${flex} side ${side}`).toBeLessThanOrEqual(1);
+    }
+  });
+  it("records a keyed source as keyed, with its IPTC type", () => {
+    const c = fromFormat1({ dur: 1, loop: false, keys: [key0] }, { set: "S", slug: "A", name: "A", fps: 30, restSrc: "UAL1", method: "keyed", license: "CC0-1.0", producer: { tool: "t", version: "1" }, qaVersion: "0" });
+    expect(c.provenance).toMatchObject({ method: "keyed", ai: "digitalCreation" });
+    (c.keys[0]!.armL as number[])[0] = 999;
+    expect((key0.armL as number[])[0]).not.toBe(999);
+  });
+  it("mirrors format 2's fields twice back to themselves, and negates a fact's sideways travel", () => {
+    const keys = walk.keys.slice(0, 3).map((k, i) => ({ ...k, handL: [10 * i, -5, 100 + i], handR: [0, 3, -20], fingersL: [1, 2, 3, 4, 5], fingersR: [5, 4, 3, 2, 1], spine: [10, 40, 90], yaw: 30 * i })) as KeyLike[];
+    const clip = { dur: 1, loop: true, name: "T", keys, facts: { by: "t", travel: [120, -30] } };
+    const twice = mirror(mirror(clip));
+    const z = (v: unknown) => JSON.stringify(v, (_k, x) => (x === 0 ? 0 : x));
+    expect(z(twice.keys.map((k) => Object.fromEntries(Object.entries(k).sort())))).toBe(z(keys.map((k) => Object.fromEntries(Object.entries({ ...k, armL: [...(k.armL as number[])], armR: [...(k.armR as number[])] }).sort()))));
+    expect(mirror(clip).facts).toEqual({ by: "t", travel: [120, 30] });
+  });
+  it("writes valid JSON through the key lens with no header, and folds angles in the normalized lens", () => {
+    expect(JSON.parse(keyLens({ keys: [key0] })).keys).toHaveLength(1);
+    const n = normalized({ keys: [{ ...key0, body: [582, 0, -190], yaw: -540 }] });
+    expect(n.keys[0]!.body).toEqual([-138, 0, 170]);
+    expect(n.keys[0]!.yaw).toBe(-180);
   });
 });
 

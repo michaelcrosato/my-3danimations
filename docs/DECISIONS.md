@@ -336,3 +336,23 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
 - **Why:** exact names are cheap and certain; a renamed rig still binds, with the doubt visible in its confidence.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.5.0
+
+## D29 · 2026-10-11 · WP-1.3's verifier findings: roll unwraps, fingers curl to the palm normal, keyed sources
+
+- **Principle:** 12, 10 (WP-1.3's verifier review)
+- **Call:**
+  - **Hand roll is an angle that unwraps** (`MOTION.md` §5.3, §6.3), like a twist: full pronation sits at ±180 and a
+    forearm turning through it must not spin through supination in an in-between. Valid within ±3600, warned past
+    ±540; the encoder unwraps it against the key before.
+  - **Fingers curl toward the palm normal** `n = m′ cos φ − a sin φ`, perpendicular to the hand for any flex and side;
+    the first rule (toward `m′` made perpendicular to the hand) degenerated at full flex and tilted with side.
+  - **`fromFormat1` takes the source's method**, and `ai` follows it: Quaternius' and Mesh2Motion's hand-animated
+    clips are `keyed` (`digitalCreation`), the captures `captured` (`digitalCapture`).
+  - Also: `serialize` orders nested objects recursively; `mirror` negates `facts.travel`'s sideways part; `fromFormat1`
+    copies key arrays; the key lens writes valid JSON with no header; the normalized lens exists (`normalized`).
+  - **Format 2's fields get vectors now:** `tier2/FORMAT2.json`, six clips with hand, fingers, spine and yaw decoded by
+    `@m3a/core`, the reference implementation for them (D2), so any change to their geometry fails `vectors --check`.
+    The committed vectors are at 9.70 of 10 MB.
+- **Why:** the verifier's three failures and its notes, each reproduced by a test before the fix.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.5.0 (the codec's fixes ride WP-1.5's version)

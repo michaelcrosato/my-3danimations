@@ -56,8 +56,9 @@ export interface Tier2Clip {
   between: { t: number; at: number[] }[];
 }
 
-/** A tier-2 vector file (one set). */
+/** A tier-2 vector file (one set). `format` is "2.0" for the file of format 2's own fields. */
 export interface Tier2 {
+  format?: string;
   points: string[];
   bodies: Record<string, Record<string, unknown>>;
   clips: Record<string, Tier2Clip>;

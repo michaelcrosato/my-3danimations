@@ -9,6 +9,7 @@ import { join } from "node:path";
 import { stringify } from "../../spec/conformance/runner/json.ts";
 import { loadCmuReader, loadCodec, loadGlbReader, loadSet, quietly, type Capture, type Clip1, type MR } from "./oracle.ts";
 import { glb, rigGltf, type Proportions } from "./rig.ts";
+import { keyLens, mirror as mirror2, pose as pose2, type KeyLike, type Rest } from "@m3a/core";
 
 /** The curated sets of my-3d2dge carried into tier 2 (hero.js is game-specific and stays behind). */
 export const SETS = ["quaternius", "mesh2motion", "cmu"] as const;
@@ -147,6 +148,52 @@ export async function generate(root: string, work: string): Promise<Map<string, 
     const file = `tier2/${set.set}.json`;
     put(file, { about: `Tier 2, ${set.set}: each clip decoded on its reference body (the set's first source's rest with the clip's src spine and neck shares, as mocap.js builds it) at every key time and at ${BETWEEN.join(", ")} of dur; clip holds the input (the origin's clip object, keys included); body points in POINTS order as whole micrometres (f r z). Compare within 0.001 mm. textSha256 hashes the format-1 text lens; mirrorSha256 the mirrored keys (this file's number format, -0 kept).`, points: MR.POINTS, bodies, clips });
     tier2Sizes[set.set] = files.get(file)!.length;
+  }
+
+  // ---- tier 2, format 2's fields: decoded by @m3a/core, the reference implementation for them (D2)
+  {
+    const set = loadSet(root, "quaternius");
+    const ids = Object.keys(set.sources);
+    const base = set.sources[ids[0]!]!.rest;
+    const bodies: Record<string, unknown> = {};
+    for (const id of ids) bodies[id] = { ...base, spineW: set.sources[id]!.rest.spineW, neckW: set.sources[id]!.rest.neckW };
+    const pick = ["Walk_Loop", "Idle_Loop", "Roll", "Dance_Loop", "Sword_Attack", "Punch_Jab"].filter((n) => set.clips[n]);
+    const clips: Record<string, unknown> = {};
+    const out = new Float32Array(MR.P * 3);
+    for (const name of pick) {
+      const c = set.clips[name]!;
+      const keys = c.keys.map((k, i) => ({
+        ...k,
+        handL: [Math.round(40 * Math.sin(i)), Math.round(15 * Math.cos(i)), 150 + 20 * i],
+        handR: [Math.round(-30 * Math.cos(i)), Math.round(-10 * Math.sin(i)), -60 + 7 * i],
+        fingersL: [10, 20 + i, 40, 60, 80],
+        fingersR: [100, 90, 70 - i, 50, 30],
+        spine: [10 + i, 40, 80],
+        yaw: 12 * i,
+      })) as KeyLike[];
+      const clip = { clip: c.clip ?? name, src: c.src, dur: c.dur, loop: Boolean(c.loop), keys };
+      const restSrc = bodies[c.src ?? ""] ? c.src! : ids[0]!;
+      const R = bodies[restSrc] as unknown as Rest;
+      const µ = (t: number) => Array.from(pose2(R, clip, t, out), (v) => Math.round(v * 1000));
+      const lens = keyLens(clip);
+      const mirrored = mirror2(clip);
+      clips[name] = {
+        clip,
+        restSrc,
+        dur: clip.dur,
+        loop: clip.loop,
+        textSha256: sha256(lens),
+        parseTextSame: same(JSON.parse(lens).keys, clip.keys),
+        mirrorSha256: sha256(stringify(mirrored.keys)),
+        mirrorTwiceSame: same(mirror2(mirrored).keys.map(stripZeroSign), clip.keys.map((k) => stripZeroSign(fill(k as Record<string, unknown>)))),
+        keys: clip.keys.map((k) => ({ t: k.t as number, at: µ(k.t as number) })),
+        between: BETWEEN.map((u) => {
+          const t = Math.round(clip.dur * u * 1000) / 1000;
+          return { t, at: µ(t) };
+        }),
+      };
+    }
+    put("tier2/FORMAT2.json", { about: "Tier 2, format 2's optional fields (hand, fingers, spine, yaw) on six QUATERNIUS clips, decoded by @m3a/core: the reference implementation for these fields (D2). textSha256 hashes keyLens; otherwise as the other tier-2 files.", format: "2.0", points: MR.POINTS, bodies, clips });
   }
 
   // ---- tier 3: bodies of other proportions (generated rigs, measured by the origin) plus the sets' own bodies

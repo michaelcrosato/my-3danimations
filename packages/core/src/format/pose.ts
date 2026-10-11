@@ -103,7 +103,7 @@ export function encodePose(R: Rest, X: ArrayLike<number>, prev: KeyLike | null, 
     const down = Math.asin(Math.max(-1, Math.min(1, -fd[2]))) / DG;
     k["foot" + s] = [r0(down - R.abPitch), r0(unwrap(Math.atan2(fd[1] * SG[s], fd[0]) / DG, pf ? pf[1] : undefined)), r0(down - Math.asin(Math.max(-1, Math.min(1, -td[2]))) / DG - (R.abPitch - R.btPitch))];
   }
-  if (opts.hands) for (const s of SIDES) encodeHand(R, X, k, tq, s);
+  if (opts.hands) for (const s of SIDES) encodeHand(R, X, k, tq, s, arr(pr, "hand" + s));
   return k;
 }
 
@@ -177,9 +177,10 @@ export function decodePose(R: Rest, k: KeyLike, out: Float32Array | number[]): F
       const knuck = add(wr, mul(h, R.knuck));
       let fistPt = add(wr, mul(h, R.fist));
       if (fingers) {
-        const m2 = norm(sub(f.m, mul(h, dot(f.m, h))));
+        // the palm normal: perpendicular to h for any flex and side
+        const n = sub(mul(f.m, Math.cos(ph)), mul(f.a, Math.sin(ph)));
         const th = 0.9 * fingers[2]! * DG;
-        fistPt = add(knuck, mul(add(mul(h, Math.cos(th)), mul(m2, Math.sin(th))), R.fist - R.knuck));
+        fistPt = add(knuck, mul(add(mul(h, Math.cos(th)), mul(n, Math.sin(th))), R.fist - R.knuck));
       }
       set("knuck" + s, knuck);
       set("fist" + s, fistPt);
@@ -209,7 +210,7 @@ export function decodePose(R: Rest, k: KeyLike, out: Float32Array | number[]): F
 }
 
 /** Fit format 2's hand and finger fields from the captured hand points, against the arm as it decodes. */
-function encodeHand(R: Rest, X: ArrayLike<number>, k: KeyLike, tq: ReturnType<typeof torso>, s: Side): void {
+function encodeHand(R: Rest, X: ArrayLike<number>, k: KeyLike, tq: ReturnType<typeof torso>, s: Side, prev: number[] | undefined): void {
   const p = (n: string) => pt(X, n);
   const { el, fist, pole } = arm(R, k, tq, s);
   const wr = add(el, mul(norm(sub(fist, el)), R.fore));
@@ -220,14 +221,16 @@ function encodeHand(R: Rest, X: ArrayLike<number>, k: KeyLike, tq: ReturnType<ty
   const kc = sub(p("index" + s), p("pinky" + s));
   const ha = dot(h, base.a);
   const lp = Math.abs(ha) > 1e-6 ? sub(kc, mul(h, dot(kc, base.a) / ha)) : sub(kc, mul(base.a, dot(kc, base.a)));
-  const roll = Math.atan2(dot(lp, base.m), dot(lp, base.l)) / DG;
+  // roll unwraps against the key before, like a twist (spec/MOTION.md §6.3)
+  const roll = unwrap(Math.atan2(dot(lp, base.m), dot(lp, base.l)) / DG, prev ? prev[2] : undefined);
   const f = handFrame(el, wr, pole, s, roll);
   const side = Math.asin(Math.max(-1, Math.min(1, dot(h, f.l)))) / DG;
   const flex = Math.atan2(dot(h, f.m), dot(h, f.a)) / DG;
   k["hand" + s] = [r0(flex), r0(side), r0(roll)];
   const hd = norm(sub(p("fist" + s), p("knuck" + s)));
-  const m2 = norm(sub(f.m, mul(h, dot(f.m, h))));
-  const curl = Math.atan2(dot(hd, m2), dot(hd, h)) / DG / 0.9;
+  const ph = flex * DG;
+  const n = sub(mul(f.m, Math.cos(ph)), mul(f.a, Math.sin(ph)));
+  const curl = Math.atan2(dot(hd, n), dot(hd, h)) / DG / 0.9;
   // the body points hold the middle finger only: the others are taken to close with it
   const c = Math.max(0, Math.min(100, r0(curl)));
   k["fingers" + s] = [c, c, c, c, c];

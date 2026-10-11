@@ -9,6 +9,7 @@
   "tier1b/rig-catalog.json": {"bytes":326,"sha256":"a44e4b00ec5580595b551156c4308ecc864f1929ad812914f047252e3fe15270"},
   "tier1b/rig.gltf": {"bytes":6868,"sha256":"70d99ed5d675649c267e39af800e2a4bb9d5b387bb3fe87ee44f4f87b945ebfe"},
   "tier2/CMU.json": {"bytes":3010231,"sha256":"2d4a37d01edd37feca6f3303f7af7de9f4cbb39b300cf7337eae9698e01a3c9a"},
+  "tier2/FORMAT2.json": {"bytes":168513,"sha256":"66c3ee1d3b1b71ea7f93a33a747d3d461992a3eca6dc45778217eacf50127580"},
   "tier2/MESH2MOTION.json": {"bytes":3824592,"sha256":"a9053d2828c34014118f7a5677900a2182ca944f61b91d8951cd0c4913fe5e18"},
   "tier2/QUATERNIUS.json": {"bytes":1794209,"sha256":"a9fb886c170b684d902e1c8e3ed263fc2ffe503c0056d5ecc2e0ec98d2172fad"},
   "tier3/bodies.json": {"bytes":11019,"sha256":"5f35cc1c2bf3df9ed9cc7ba01a1cc69c338fb83dc4b15ddd992415bfbd8496bc"}
