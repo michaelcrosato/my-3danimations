@@ -32,3 +32,9 @@ export * as checks from "./metrics/index.ts";
 export * as predicates from "./predicates/index.ts";
 /** A clip as a short text timeline: its phases (stand, walk, run, crouch, sit, lie, air), landings, strikes, travel. */
 export { describe } from "./describe/index.ts";
+/** Repairs a clip's keys (twist flips, jitter and pops, penetration, foot locks, a loop's seam, a re-fit), reporting each change. */
+export { fix } from "./fix/index.ts";
+/** What `fix` would change in a clip, and why. */
+export { lint } from "./fix/index.ts";
+/** The fix operators one by one, their options and reports. */
+export * as fixes from "./fix/index.ts";

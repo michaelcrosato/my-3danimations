@@ -4,6 +4,18 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.18.0 · 2026-10-11
+
+### Sensors
+- WP-3.5: `fix(clip, R)` and `lint(clip, R)`, and the operators one by one (`fixes`): repair twist flips, filter
+  jitter and pops, lift penetration, bake foot locks, close a loop seam (pose and speed), re-fit keys to a budget.
+  Each is measured before and after, and no clip changes silently: `dur`, events and contacts are checked after every
+  operator, and stored facts measured again (D44).
+- The metrics' key grid is the keys as played: a key past the end counts only through the pose at the end.
+
+### Tools
+- The plant tool's new keys snap to a clip's own within 5 ms; the slide plant keys its drag on the 1/30 s grid.
+
 ## 0.17.0 · 2026-10-11
 
 ### Sensors

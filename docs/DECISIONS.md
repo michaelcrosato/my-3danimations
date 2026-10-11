@@ -752,6 +752,8 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
       ankle; the finding names the foot) and body penetration;
     - self-intersection: a forearm or hand in the torso, an upper arm in the torso below the shoulders, a lower leg in
       the other, as the mannequin's capsules;
+    - the key grid is the keys as played: those up to the end, and the pose at the end where the last of them falls
+      short of it (a key past the end shapes only that stretch; read as a key, a 9 ms gap read as a 2.9 m/s pop: D44);
     - jitter, on the key grid: the median over 5 keys of the smaller of consecutive opposite second differences (the
       smaller, so a key out of place doesn't lift its neighbours: WP-3.6, D43). In-betweens are straight lines, so on
       60 Hz samples of 30 fps keys two consecutive samples never both bend, and a shake at the key rate read 0;
@@ -889,11 +891,62 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
     - the plants themselves: a key added beside a millisecond-rounded one (0.3 ms apart) made a bend of its own; the
       seam and slide plants snapped back (a pop); edits that reach `dur` left the key past it untouched.
 - **Result:** 100 of 100 planted defects flagged by their metric at their times. 14 runs show a consequence the defect
-  implies. False positives in 3 runs of 100 (3%): two knees left pointing backwards by a flip that then read as
-  shaking (twistFlip → jitter), a fast throw's ordinary bends beside the planted pop (pop → jitter), and a stretched
-  shin that lowers a foot below the floor band so a small step merges two stances into a slide (stretch → slide).
+  implies. False positives in 4 runs of 100 (4%; 3 before WP-3.5 put the slide plant's keys on the 1/30 s grid): a
+  knee left pointing backwards by a flip that then reads as shaking (twistFlip → jitter, twice in one run), a fast
+  throw's ordinary bends beside the planted pop (pop → jitter), a stretched shin that lowers a foot below the floor band
+  so a small step merges two stances into a slide (stretch → slide), and in-between keys the slide plant adds letting
+  a format-1 pinky point read 28 mm of shake, just over its warn (slide → jitter).
+- **Revised in WP-3.5 (D44):** a plant's new key within 5 ms of a clip's own is that key (two keys a millisecond apart
+  read as a snap to the fix operators), and the slide plant keys its drag on the 1/30 s grid.
 - **Outside WP-3.6's Owns** (one agent, D21): the jitter and folding fixes in `metrics/` (WP-3.3's), with their
   fixtures and threshold.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.17.0
+
+## D44 · 2026-10-11 · Lint and fix: six operators on keys, each measured before and after, nothing changed silently
+
+- **Principle:** 4, 5, 9, WP-3.5
+- **Call:**
+  - **`fix(clip, R)`** runs the operators lint names (or those asked for, or operators of one's own) in a fixed order:
+    twist flips (a flip's swing first), jitter and pops, penetration, foot locks, the seam, re-fit. Each runs on the
+    clip the one before left, with the metrics before and after it and a line for every change. They edit keys only,
+    at millisecond times and in whole numbers, as the format keeps them; a new key within 5 ms of the clip's own is
+    that key.
+  - **Nothing changes silently.** After each operator, `dur`, the events and the contacts are compared with what they
+    were and any that moved is reported with its changes (an operator of one's own that moves them is reported too);
+    when anything changed, stored facts are measured again and what they say differently is reported.
+  - **The operators:**
+    - **twist flips:** whole turns out first (they move nothing); where the reference is undefined around the jump (a
+      straight limb, a foot pointing down) the change is spread over that stretch's keys, where nothing shows it;
+      elsewhere the jump is undone from that key on (a knee flipped mid-bend points back the way it pointed);
+    - **jitter and pops:** the keys of the part the finding is on (then the torso's, then every pose field, if those
+      don't carry it) are smoothed by time, two keys either side: a key far outside its neighbours takes their
+      in-between; for a shake every key moves halfway to it;
+    - **penetration:** the body is raised by the deepest sole's depth along the lowest curve over it that changes by at
+      most 0.75 H0 a second (a body rising from a crouch moves about that fast), so it follows a sink as it came and a
+      foot stepping up out of a sunk floor rises with the body; a standing foot left off the floor, or still under it,
+      is moved straight onto it by its leg, eased over 0.1 s;
+    - **foot locks:** each sliding contact (or every one) is held still where it landed with its sole on the floor by
+      core's planting, written into keys on the 1/30 s grid and the clip's own; the foot stays planted through a 0.3 s
+      release and eases back to the clip's pose; a loop's contact runs through its seam;
+    - **the seam:** what the last pose differs from the first, and that field's speed difference, is spread over the
+      cycle's ends along Hermite curves (half each side, a quarter of the cycle, at most 0.5 s), so the poses meet at
+      the same speed. The plan said over the cycle (my-3d2dge's way, for captured frames): spread over the whole cycle,
+      a drift at the end tilts every key (an arm raised at the end swung into the chest mid-cycle), so the WP entry is
+      edited;
+    - **re-fit:** Ramer–Douglas–Peucker over the decoded key poses, in-betweened as the format does, within 5 mm (or
+      the tolerance that fits `maxKeys`); the first and last keys stay.
+  - **`lint(clip, R)`** lists the operators the metrics' findings call for (slide or skate: foot locks; penetration;
+    seam; jitter or pop; twist flips; keys denser than 30 a second: re-fit), with the findings, in at most 20 lines.
+  - **What fixing found in the sensors:** the key grid read a key past the end as played (D41: now the keys as played);
+    the plant tool's keys could fall a millisecond from a clip's own (D43).
+- **Result:** every operator removes its planted defect on all of WP-3.6's runs of that kind (footLocks 11 slides,
+  penetration 11 sinks, jitter 11 pops, twist flips 9 flips, seam 8 seams), each pushing no other metric past its
+  warn level that was under it in the clip as planted and as it was clean. No operator moves `dur`, an event or a
+  contact; one of one's own that does is reported. Re-fit keeps an idle's keys every 1/60 s to under a quarter within
+  5 mm and holds a budget of 3 keys. Mutating the operators 16 ways fails the tests every time.
+- **Outside WP-3.5's Owns** (one agent, D21): the metrics' key grid (D41); the plant tool's keys (D43); the sensors
+  index exports `fix`, `lint` and `fixes`.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.18.0
 

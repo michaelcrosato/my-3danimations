@@ -137,6 +137,13 @@ describe("each metric finds its defect, at its times, and nothing on the clean m
     const stepping = (k: number) => motion(frames((X, i) => move(X, ["fistR"], [i * 50 + (i > 30 ? (k - 1) * 50 : 0), 0, 0])));
     expect(checks.pops(stepping(3)).findings.map((f) => [f.where, +f.t0.toFixed(3)])).toEqual([["fistR", 0.5]]);
     expect(checks.pops(stepping(2)).findings).toEqual([]);
+    // a key 9 ms past the end, the arm thrown up: never played when the last key is at the end, so nothing jumps
+    const past = { ...idle, id: "fixture", loop: false, dur: 1, keys: [0, 0.5, 1, 1.009].map((t) => ({ ...structuredClone(idle.keys[0]!), t, ...(t > 1 ? { armR: [0, 0, 100, 0, 0] } : {}) })) };
+    expect(checks.pops(checks.motionOf(past, R)).findings).toEqual([]);
+    expect(checks.motionOf(past, R).grid.times).toEqual([0, 0.5, 1]);
+    // with the last key short of the end, the key past it shapes the end: the grid ends on the pose at the end
+    const short = { ...past, keys: past.keys.filter((k) => k.t !== 1) };
+    expect(checks.motionOf(short, R).grid.times).toEqual([0, 0.5, 1]);
     // a minimum-jerk jab, 600 mm in 0.12 s at 30 fps (peak 7 m/s): its steps grow and shrink
     const mj = (u: number) => (u <= 0 ? 0 : u >= 1 ? 1 : u * u * u * (10 - 15 * u + 6 * u * u));
     expect(checks.pops(motion(frames((X, i) => move(X, ["fistR", "wristR"], [600 * mj((i / 30 - 0.4) / 0.12), 0, 0]), 31), false, [], 30)).findings).toEqual([]);

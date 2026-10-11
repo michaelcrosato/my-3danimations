@@ -3,7 +3,7 @@
 The current state on one screen (at most 40 lines; `npm run doctrine` checks it from WP-0.3). The ledger is
 `PLAN.md` §14; decisions are in `docs/DECISIONS.md`.
 
-**Phase:** 3 The sensors. **Next gate:** G3. **Version:** 0.17.0.
+**Phase:** 3 The sensors. **Next gate:** G3. **Version:** 0.18.0.
 **Mode:** one agent (D21), branch `claude/relaxed-albattani-35xhjq`.
 
 ## Done
@@ -17,13 +17,13 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
   the clip runtime and measured facts (D34); pose operations (D35); the solver on any recognized skeleton, its roll
   tested (D36, F2); planted feet and the ground (D37); the Animator, the same hashes and exact poses in Node,
   Chromium and Bun, and core's public API of 38 documented names (D38, F3).
-- Phase 3 so far (michaelcrosato/my-3danimations#7): the raster (D39); sheets, films and diffs (D40); 14 metrics with
-  thresholds from capture, predicates and `npm run qa`, the verifier's 12 findings fixed (D41); describe, 30 of 30 on
-  its reviewed truth (D42); 100 of 100 planted defects found, 3% false positives (D43).
+- Phase 3 so far (michaelcrosato/my-3danimations#7): the raster (D39); sheets and diffs (D40); 14 metrics from capture,
+  predicates, `npm run qa` (D41); describe, 30 of 30 (D42); 100 of 100 planted defects found, 4% false positives (D43);
+  lint and fix, each operator removing its planted defect (D44).
 
 ## Next
 
-- Phase 3 The sensors: WP-3.5 lint and fix; gate G3.
+- Phase 3 The sensors: gate G3.
 
 ## Blocked on the owner
 

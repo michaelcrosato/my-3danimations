@@ -74,13 +74,12 @@ function timeIn(id: string, defect: string, seed: number, a: number, b: number):
   return Math.round((a + (b - a) * next()) * 60) / 60;
 }
 /**
- * A key at time t (the clip's in-betweened), added in time order unless one is already there. Times are kept to the
- * millisecond, as the format keeps them (spec/MOTION.md §6.2), so a new key never lands a fraction of a millisecond
- * beside an existing one.
+ * A key at time t (the clip's in-betweened), added in time order unless one is within 5 ms (the nearest; two keys that
+ * close read as a snap). Times are kept to the millisecond, as the format keeps them (spec/MOTION.md §6.2).
  */
 function keyAt(c: Clip, at: number): Key {
-  const t = Math.round(at * 1000) / 1000, found = c.keys.find((k) => Math.abs(k.t - t) < 1e-9);
-  if (found) return found;
+  const t = Math.round(at * 1000) / 1000, near = c.keys.filter((k) => Math.abs(k.t - t) < 0.005 + 1e-9).sort((a, b) => Math.abs(a.t - t) - Math.abs(b.t - t));
+  if (near.length) return near[0]!;
   const k = { ...(format.keyAt(c, t) as Key), t };
   c.keys.push(k);
   c.keys.sort((a, b) => a.t - b.t);
@@ -99,7 +98,7 @@ const pastEnd = (c: Clip) => c.keys.filter((k) => k.t > c.dur + 1e-9);
 /** The smoothstep of u in [0, 1]. */
 const ease = (u: number) => (u <= 0 ? 0 : u >= 1 ? 1 : u * u * (3 - 2 * u));
 /**
- * Keys every 1/30 s over [a − ramp, b + ramp], each edited by `edit(key, w)`: w eases from 0 to 1 over the ramp in,
+ * Keys every 1/30 s or less over [a − ramp, b + ramp] (a clip's key within 5 ms taken as it is), each edited by `edit(key, w)`: w eases from 0 to 1 over the ramp in,
  * holds 1 over [a, b], and eases back to 0 over the ramp out, so the defect comes and goes without a jump.
  */
 function eased(c: Clip, a: number, b: number, ramp: number, edit: (k: Key, w: number) => void): void {
@@ -138,9 +137,11 @@ export function plant(defect: Defect, clip: Clip, R: Rest, seed = 1): Planted {
       // length), so it stays on the floor (it rises at most 38 mm) and slower than a swing: a foot sliding as it
       // stands. After the stance the leg eases back over 0.25 s, in the air, so letting go isn't a pop
       const k = longestContact(c, R)!, legKey = k.end === "footL" ? "legL" : "legR", far = Math.min(250, 0.4 * R.H0 * (k.b - k.a));
-      const out = Math.min(dur, k.b + 0.25), n = Math.max(4, Math.ceil((k.b - k.a) * 30)), m = Math.ceil((out - k.b) * 30);
-      for (let i = 0; i <= n; i++) keyAt(c, k.a + ((k.b - k.a) * i) / n);
-      for (let i = 1; i <= m; i++) keyAt(c, k.b + ((out - k.b) * i) / m);
+      const out = Math.min(dur, k.b + 0.25);
+      // keys on the 1/30 s grid (the library's key rate) over the stance and the release
+      for (let j = Math.ceil(k.a * 30 - 1e-6); j / 30 <= out + 1e-6; j++) keyAt(c, j / 30);
+      keyAt(c, k.a);
+      keyAt(c, k.b);
       const drag = (t: number) => (t <= k.b ? Math.max(0, (t - k.a) / (k.b - k.a)) : out > k.b ? 1 - ease((t - k.b) / (out - k.b)) : 1);
       for (const key of c.keys) {
         // the keys past the end carry the drag the end has

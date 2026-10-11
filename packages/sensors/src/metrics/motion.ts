@@ -64,8 +64,12 @@ export function motionOf(clip: MetricClip, R: Rest, rate = 60): Motion {
     const r = clipNs.rootAt(clip as Clip, clip.loop && t >= clip.dur ? clip.dur * (1 - 1e-12) : t);
     return { forward: r.forward * k, right: r.right * k, yaw: r.yaw };
   });
-  // the key grid: each key decoded as it is (the in-betweens are straight lines between them)
-  const keys = [...clip.keys].sort((a, b) => a.t - b.t).filter((key, i, K) => i === 0 || key.t > K[i - 1]!.t + 1e-9);
+  // the key grid as played: each key up to the end decoded as it is (the in-betweens are straight lines between them),
+  // and where the last of them falls short of the end, the pose at the end (a key past it shapes only that stretch,
+  // and is never played)
+  const all = [...clip.keys].sort((a, b) => a.t - b.t).filter((key, i, K) => i === 0 || key.t > K[i - 1]!.t + 1e-9);
+  const keys = all.filter((key) => key.t <= clip.dur + 1e-9);
+  if (keys.length < all.length && keys.at(-1)!.t < clip.dur - 1e-9) keys.push({ ...(format.keyAt(clip as Clip, clip.loop ? clip.dur * (1 - 1e-12) : clip.dur) as Record<string, unknown>), t: clip.dur } as never);
   const grid = { times: keys.map((key) => key.t), frames: keys.map((key) => format.decodePose(R, key as never, new Float32Array(format.P * 3)) as Float32Array), keys: keys as unknown as Record<string, unknown>[] };
   const m: Motion = { id: clip.id ?? clip.name ?? "clip", dur: clip.dur, loop: clip.loop, rate, dt, frames: sampled.frames, times, root, grid, rest: R, contacts: { by: "detected" }, events: clip.events ?? [], keys: clip.keys, tags: clip.tags ?? [], quality: clip.quality };
   m.contacts = stance(m);

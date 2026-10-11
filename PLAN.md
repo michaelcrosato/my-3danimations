@@ -1349,7 +1349,7 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
     intervals or reports each one it changes, and changes no clip silently:
     - bake foot locks into keys;
     - lift penetration;
-    - close a loop seam, spreading the remainder over the cycle;
+    - close a loop seam, spreading the remainder (pose and speed) over the cycle's ends (D44);
     - filter jitter;
     - repair twist flips;
     - re-fit keys to a budget.
@@ -2226,7 +2226,7 @@ version, commit, date and a note with the numbers. Gates are rows too.
 | 3.3 The metrics | done | 0.15.1 | f526e7d, c10d0f1 | 2026-10-11 | 14 metrics + 6 predicate forms, unit fixtures that fail on 48 of 48 mutants (36 tests); library in 5.6 s within T2: 268 pass, 111 warn, 146 fail (twist flips 92, jitter 34, pops 27); thresholds from capture (158 clips) with unit, rate, scaling and reason; the verifier's 12 findings fixed in 0.15.1 (D41) |
 | 3.4 Describe | done | 0.16.0 | f186cd3 | 2026-10-11 | 30 of 30 reviewed truth clips right (bar 27): the verifier agreed with 23, corrected 2, dropped 7, labelled 7; deterministic, at most 91 tokens over all 525 clips (5.7 s) (D42) |
 | 3.6 Planted defects | done | 0.17.0 | 7eee99f | 2026-10-11 | 100 of 100 planted defects (10 kinds, 100 clean clips) flagged by their metric at their times; consequences implied in 14 runs; false positives in 3 runs (3%), each named; jitter and folding fixed on the way (D43) |
-| 3.5 Lint and fix | todo | | | | |
+| 3.5 Lint and fix | done | 0.18.0 | PENDING | 2026-10-11 | six operators, each removing its planted defect on every WP-3.6 run of its kind (50 runs) without pushing another metric past warn; no operator moves dur, an event or a contact unreported; re-fit within 5 mm or a key budget; 16 of 16 mutants fail the tests (D44) |
 | **G3** | todo | | | | |
 | 4.1 Pin three.js | todo | | | | |
 | 4.2 Test characters | todo | | | | |
