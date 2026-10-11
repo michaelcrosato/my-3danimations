@@ -11,6 +11,15 @@ export const GATES: Record<string, [string, string, ...string[]][]> = {
     ["doctrine", "doctrine"],
     ["vectors --check", "vectors", "--check"],
   ],
+  G1: [
+    ["check", "check"],
+    ["test", "test"],
+    ["doctrine: legend, catalogs, frozen spec", "doctrine"],
+    ["vectors --check", "vectors", "--check"],
+    ["conformance tiers 1a and 2", "test", "conformance/tier1a", "conformance/tier2"],
+    ["migrate --check", "migrate", "--check"],
+    ["migrated clips validate and decode like their sources", "test", "library/migrated"],
+  ],
 };
 
 if (import.meta.main) {

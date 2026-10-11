@@ -1,5 +1,6 @@
 // `npm run doctrine`: the doctrine's static checks (DOCTRINE.md, "Checks"): binaries, token budgets, import
-// boundaries, banned APIs, pins and checksums, the decisions log, the local lane. Verdict first; exit 1 on findings.
+// boundaries, banned APIs, pins and checksums, the decisions log, the local lane, the frozen spec. Verdict first; exit 1
+// on findings.
 import { finish, fmtMs, parseArgs, ROOT, usage, type Report, type Step } from "../run/cli.ts";
 import { checkBanned } from "./banned.ts";
 import { checkBinaries } from "./binaries.ts";
@@ -9,6 +10,7 @@ import { makeCtx, type Finding } from "./context.ts";
 import { checkDecisions } from "./decisions.ts";
 import { checkLocal } from "./local.ts";
 import { checkPins } from "./pins.ts";
+import { checkFrozen } from "./frozen.ts";
 
 /** Run every check over `root`; each step carries its findings as detail lines. */
 export function runChecks(root: string = ROOT): Step[] {
@@ -29,6 +31,7 @@ export function runChecks(root: string = ROOT): Step[] {
   step("pins", () => checkPins(ctx));
   step("decisions", () => checkDecisions(ctx));
   step("local", () => ({ findings: checkLocal(ctx), lines: ["library/local/ holds only its README"] }));
+  step("frozen", () => checkFrozen(ctx));
   return steps;
 }
 

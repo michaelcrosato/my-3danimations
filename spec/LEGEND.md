@@ -1,0 +1,28 @@
+# Legend 2.0
+
+m3a motion format 2.0: readable key poses. Times in seconds; every key number is a whole number. Rig frame: forward,
+right, up. L and R are the figure's own sides. Directions are percentages and need not add up: [100, 0, 0] and
+[50, 0, 0] agree. Between keys every number moves in a straight line; loops wrap, one-shots hold.
+hips   [forward, right, up]   the pelvis, in percent of standing hip height (100 = standing, 55 = sitting on a chair)
+body   [turn, lean, tilt]     the pelvis, degrees: turn + = toward the right, lean + = forward, tilt + = toward the right
+chest  [turn, lean, tilt]     the chest, relative to the pelvis; head [turn, lean, tilt] relative to the chest
+shL shR    [reach, shrug]     degrees the shoulder swings forward (into a punch or an aim) and up, from rest
+armL armR  [forward, out, up, bend, twist]  where the fist is from the shoulder, in chest space (out + = away from the
+           body on that side; [0, 0, -100] hangs down, [100, 0, 0] punches ahead); bend = elbow, degrees (0 = straight);
+           twist = degrees the elbow swings round the arm from its natural direction (back and down)
+legL legR  [forward, out, up, bend, twist]  hip to ankle in pelvis space; bend: the knee; twist: from pointing forward
+footL footR [down, out, toes]   degrees the foot points down from standing, turns outward, and the toes bend up
+Optional, only where a clip needs them:
+handL handR [flex, side, roll]  the wrist, degrees: the palm bends toward the inside of the elbow +, toward the thumb +;
+           roll + turns the palm away from the elbow's inside. With a hand, arm aims where a straight hand's fist would be
+fingersL fingersR [thumb, index, middle, ring, pinky]  curl, percent (0 = straight, 100 = a fist)
+spine  [lower, middle, upper]  percent of the chest's turn each spine bone takes (instead of the set's shares)
+blade  [forward, right, up]   a blade held in the right fist, in chest space
+root   [forward, right]       how far the body has travelled, percent of standing hip height; yaw: its heading, degrees
+A worked key, QUATERNIUS_3D2DGE/Walk_Loop at 0 s: the left heel strikes as the right foot pushes off.
+{"t":0,
+ "hips":[-5,2,95], "body":[-2,0,-2], "chest":[-4,15,-1], "head":[3,0,4],
+ "shL":[-5,0], "shR":[0,0], "armL":[26,13,-96,52,7], "armR":[73,14,-67,62,-8],
+ "legL":[32,4,-95,14,-6], "legR":[-50,-6,-87,17,5], "footL":[-26,-2,0], "footR":[36,-8,36]}
+The chest leans 15 degrees forward, the right arm swings ahead with its elbow bent 62, the left leg reaches forward
+almost straight with its toes up 26, and the right foot points 36 down with its toes bent up 36.

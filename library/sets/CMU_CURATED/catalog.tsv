@@ -1,0 +1,60 @@
+CMU_CURATED/Walk_Loop	1.1	loop		walk	An everyday walk at a steady pace, arms swinging loosely. One stride cycle, in place	CMU_02
+CMU_CURATED/Sword_Lunge	2	once		attack sword	Swordplay: from a guard, a lunge forward with the sword arm thrust straight out	CMU_02
+CMU_CURATED/Zombie_Walk_Loop	1.4	loop		walk zombie	A zombie's shamble: head and shoulders slumped forward, a dragging step	CMU_120
+CMU_CURATED/Gorilla_Walk_Loop	0.9	loop		walk monster	A gorilla: hunched, knuckles low, a rolling heavy walk	CMU_120
+CMU_CURATED/Robot	6	once		monster	A robot, acted by a person: stiff, jerky steps and arm moves in straight lines	CMU_120
+CMU_CURATED/Jumping_Jacks_Loop	1.133	loop		exercise	Jumping jacks: hop the feet apart while the arms swing up overhead	CMU_13
+CMU_CURATED/Boxing_Guard_Loop	1.033	loop		stance unarmed	A boxer's guard: fists up by the face	CMU_13
+CMU_CURATED/Boxing_Jab	1.1	once		attack unarmed	From the guard, a straight jab with the lead fist, snapped back to the guard	CMU_13
+CMU_CURATED/Climb_Ladder	7	once		climb	Climbing a ladder hand over hand	CMU_13
+CMU_CURATED/Sweep_Loop	1.833	loop		work	Sweeping the floor with a broom, steady strokes (no broom is drawn)	CMU_13
+CMU_CURATED/Wash_Window_Loop	1.3	loop		work	Washing a window: one hand wiping in circles at head height (no window is drawn)	CMU_13
+CMU_CURATED/Jump_Kick	2.4	once		attack kick jump	A spinning jump kick (a tornado kick): a run-up	CMU_90
+CMU_CURATED/Fall_On_Face	2.2	once		death hurt	Toppling forward flat onto the face	CMU_90
+CMU_CURATED/Cartwheel	2.6	once		jump dodge	A cartwheel to the side: hands to the floor one after the other	CMU_49
+CMU_CURATED/Run_Loop	0.733	loop		run	A steady run, arms pumping. One stride cycle, in place	CMU_09
+CMU_CURATED/Sneak_Loop	1.433	loop		walk crouch	Sneaking: crouched low, stepping carefully, arms held in close	CMU_139
+CMU_CURATED/Wounded_Walk_Loop	1.067	loop		walk hurt	Limping on a wounded leg: a short careful step on the bad leg	CMU_139
+CMU_CURATED/Looking_Around	6	once		idle	Standing a little hunched, looking warily about	CMU_139
+CMU_CURATED/Search_Ground	6	once		interact crouch	Crouching to search the ground, peering about and poking at it	CMU_139
+CMU_CURATED/Hurt_Stomach_Walk_Loop	1.267	loop		walk hurt	Walking hunched over, a hand clutching the stomach	CMU_91
+CMU_CURATED/Walk_Backwards_Loop	1.633	loop		walk	Walking backwards at an easy pace. One cycle, in place	CMU_136
+CMU_CURATED/Crouch_Walk_Loop	1.2	loop		walk crouch	Walking crouched low on deeply bent knees. One cycle, in place	CMU_136
+CMU_CURATED/Hop_One_Foot_Loop	1	loop		jump	Hopping on the left foot, the right held up, arms out for balance	CMU_132
+CMU_CURATED/Run_Quick_Stop	1.6	once		run	A run that skids to a sudden stop, leaning back to brake	CMU_127
+CMU_CURATED/Run_Jump_Over	1.9	once		run jump	Running, a leap over an obstacle, and running on	CMU_127
+CMU_CURATED/Duck_Under	1.7	once		dodge run crouch	Running, ducking low under something, and running on	CMU_127
+CMU_CURATED/Dive_Roll	3.567	once		dodge run	Running, a dive forward over something into a shoulder roll, back up and running	CMU_128
+CMU_CURATED/Jump_Twist	1.8	once		jump	A jump straight up with a full spin in the air, landing facing forward again	CMU_85
+CMU_CURATED/Breakdance_Helicopter	7.067	once		dance	Breakdance: on the floor	CMU_85
+CMU_CURATED/Punch_Combo	6	once		attack unarmed	A fighter's punch combination from a guard: jabs, crosses and hooks	CMU_144
+CMU_CURATED/Block_Combo	6	once		block unarmed	Blocks from a fighting stance: forearm blocks high, middle and low	CMU_144
+CMU_CURATED/Front_Kick	6	once		attack kick	A karate front kick (mae-geri): knee up, foot snapped straight ahead	CMU_135
+CMU_CURATED/Roundhouse_Kick	6	once		attack kick	A karate roundhouse kick (mawashi-geri)	CMU_135
+CMU_CURATED/Side_Kick	6	once		attack kick	A karate side kick (yoko-geri): the body turned side on	CMU_135
+CMU_CURATED/Stepping_Punch	6	once		attack unarmed walk	Karate stepping punches (oi-zuki)	CMU_135
+CMU_CURATED/Get_Up_Face_Down	6.1	once		getup	Getting up from lying face down: push up on the arms	CMU_140
+CMU_CURATED/Get_Up_From_Back	7.067	once		getup	Getting up from lying on the back: sit up, roll to a knee, stand	CMU_140
+CMU_CURATED/Get_Up_From_Side	8.5	once		getup	Getting up from lying on the side	CMU_140
+CMU_CURATED/Duck_Thrown_Object	5.5	once		dodge crouch	Ducking from something thrown	CMU_77
+CMU_CURATED/Chop_Wood	6	once		work	Chopping wood: an axe raised overhead in both hands and brought down hard	CMU_79
+CMU_CURATED/Dig	6	once		work farm	Digging with a spade: foot on the blade, lever back	CMU_79
+CMU_CURATED/Fishing	8	once		fish	Fishing: a cast with a rod, waiting, then reeling in (no rod is drawn)	CMU_79
+CMU_CURATED/Drink_Water	7	once		eat	Drinking a glass of water	CMU_79
+CMU_CURATED/Carry_Heavy_Box	8.3	once		carry	Moving a heavy box: squat, lift with effort, carry a few steps	CMU_79
+CMU_CURATED/Rake_Leaves	6	once		work farm	Raking leaves with long pulls toward the feet (no rake is drawn)	CMU_80
+CMU_CURATED/Shake_Hands	5	once		talk	Shaking hands with someone in front	CMU_80
+CMU_CURATED/Pick_Up_Box	4.6	once		carry item	Walking up to a box, bending to lift it	CMU_143
+CMU_CURATED/Sit_Down_Get_Up	5.967	once		sit	Sitting down on a chair and getting up again (no chair is drawn)	CMU_143
+CMU_CURATED/Wave_Hello	2.3	once		gesture	Waving hello with a raised hand	CMU_141
+CMU_CURATED/Shrug	1.4	once		gesture	A shrug: shoulders up, palms turned out, who knows	CMU_141
+CMU_CURATED/Stretch_Yawn	3.067	once		idle rest	A big stretch with a yawn, arms reaching up overhead	CMU_141
+CMU_CURATED/Curtsey	3.3	once		emote	A curtsey: one foot behind, knees dipping, a small bow of the head	CMU_141
+CMU_CURATED/Waiting_Loop	0.933	loop		idle	Waiting impatiently: shifting weight from foot to foot, looking about	CMU_141
+CMU_CURATED/Frankenstein_Walk_Loop	2.5	loop		walk monster zombie	Frankenstein's monster: stiff legs, arms held straight out ahead	CMU_104
+CMU_CURATED/Monkey	6	once		monster	A monkey, acted by a person: hunched, scratching, hopping about	CMU_54
+CMU_CURATED/Bear	6	once		monster	A bear, acted by a person: heavy, lumbering, rearing up with paws raised	CMU_54
+CMU_CURATED/Dragon	6	once		monster	A dragon, acted by a person: arms as wings, a prowl and a roar	CMU_54
+CMU_CURATED/Ghost	6	once		monster	A ghost, acted by a person: gliding, arms floating up, a spooky drift	CMU_54
+CMU_CURATED/Chicken	6	once		monster	A chicken, acted by a person: elbows as flapping wings, pecking, strutting	CMU_29
+CMU_CURATED/Backflip	2.4	once		jump dodge	A standing backflip: a deep swing of the arms, a jump up and over backwards	CMU_87

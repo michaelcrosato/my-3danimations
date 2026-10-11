@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/michaelcrosato/my-3danimations/spec/schemas/set.schema.json",
+  "title": "m3a set manifest (_set.json), format 2.0",
+  "type": "object",
+  "required": ["set", "title", "format", "legend", "tier", "content", "sources", "credit", "producer"],
+  "properties": {
+    "set": {"type": "string", "pattern": "^[A-Z0-9_]+$"},
+    "title": {"type": "string"},
+    "format": {"const": "2.0"},
+    "legend": {
+      "type": "object",
+      "required": ["version", "text"],
+      "properties": {"version": {"type": "string"}, "text": {"type": "array", "items": {"type": "string"}}}
+    },
+    "tier": {"enum": ["cc0", "cc-by", "cmu", "local"]},
+    "content": {
+      "type": "object",
+      "required": ["edition", "importer", "sha256"],
+      "properties": {
+        "edition": {"type": "string"},
+        "importer": {"type": "string"},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    },
+    "sources": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "object",
+        "required": ["label", "origin", "license", "url", "rest"],
+        "properties": {
+          "label": {"type": "string"},
+          "origin": {"type": "string"},
+          "license": {"type": "string"},
+          "url": {"type": "string"},
+          "terms": {"type": "string", "description": "the source's own terms, word for word"},
+          "credit": {"type": "string"},
+          "audit": {"type": "string", "description": "an open license question"},
+          "file": {"type": "string", "description": "the file the importer read"},
+          "rig": {"type": "string", "description": "the rig the importer read"},
+          "rest": {
+            "type": "object",
+            "required": ["H0"],
+            "properties": {"H0": {"type": "number", "exclusiveMinimum": 0}},
+            "description": "the measured rest body (spec/MOTION.md §3.2)"
+          }
+        }
+      }
+    },
+    "credit": {"type": "string"},
+    "producer": {
+      "type": "object",
+      "required": ["tool", "version"],
+      "properties": {"tool": {"type": "string"}, "version": {"type": "string"}}
+    },
+    "body": {"description": "optional: the mannequin's look, measured from the first library's mesh"}
+  }
+}

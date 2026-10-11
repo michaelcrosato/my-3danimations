@@ -1,0 +1,28 @@
+{
+"format": "2.0",
+"id": "MESH2MOTION/Levitate_Idle",
+"name": "Levitate Idle",
+"legend": "2.0",
+"dur": 2,
+"loop": true,
+"fps": 30,
+"tags": ["magic","air","idle"],
+"desc": "floats in the air, knees drawn up, bobbing gently",
+"skeleton": "humanoid",
+"restSrc": "M2M_ANIMATED",
+"provenance": {"src":"M2M_ANIMATED","method":"keyed","producer":{"tool":"m3a-migrate","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
+"quality": {"fit":[19,60],"qa":"unchecked","qaVersion":"none"},
+"keys": [
+  {"t":0,
+   "hips":[-5,0,134], "body":[10,0,0], "chest":[-2,-2,-1], "head":[0,17,0],
+   "shL":[0,0], "shR":[0,0], "armL":[3,15,-99,56,-20], "armR":[8,3,-100,51,33],
+   "legL":[-8,-2,-100,72,9], "legR":[-5,-2,-100,48,13], "footL":[59,-39,-1], "footR":[59,-59,-1]},
+  {"t":1,
+   "hips":[-5,0,126], "body":[10,0,0], "chest":[-2,-2,-1], "head":[0,17,0],
+   "shL":[0,0], "shR":[0,0], "armL":[-5,13,-99,50,-7], "armR":[2,4,-100,51,18],
+   "legL":[-8,-2,-100,57,2], "legR":[-8,-1,-100,32,23], "footL":[51,-155,-22], "footR":[58,-153,-8]},
+  {"t":2,
+   "hips":[-5,0,134], "body":[10,0,0], "chest":[-2,-2,-1], "head":[0,17,0],
+   "shL":[0,0], "shR":[0,0], "armL":[3,15,-99,56,-20], "armR":[8,3,-100,51,33],
+   "legL":[-8,-2,-100,72,9], "legR":[-5,-2,-100,48,13], "footL":[59,-39,-1], "footR":[59,-59,-1]}
+]}

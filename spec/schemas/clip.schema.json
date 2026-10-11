@@ -1,0 +1,272 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/michaelcrosato/my-3danimations/spec/schemas/clip.schema.json",
+  "title": "m3a clip, format 2.0",
+  "description": "One clip per file (spec/MOTION.md §4). Readers accept unknown fields; the validator's lint mode flags them. Semantic rules (key times increasing, contacts inside the duration, limits) are the validator's (packages/core/src/validate).",
+  "type": "object",
+  "required": [
+    "format",
+    "id",
+    "name",
+    "legend",
+    "dur",
+    "loop",
+    "fps",
+    "tags",
+    "desc",
+    "skeleton",
+    "restSrc",
+    "provenance",
+    "quality",
+    "keys"
+  ],
+  "properties": {
+    "format": {"type": "string", "pattern": "^2\\.[0-9]+$"},
+    "id": {"type": "string", "pattern": "^[A-Z0-9_]+/[A-Za-z0-9_-]+$"},
+    "name": {"type": "string", "minLength": 1},
+    "legend": {"type": "string"},
+    "dur": {"type": "number", "exclusiveMinimum": 0, "maximum": 600},
+    "loop": {"type": "boolean"},
+    "fps": {"type": "number", "exclusiveMinimum": 0},
+    "tags": {"type": "array", "items": {"type": "string"}},
+    "desc": {"type": "string"},
+    "skeleton": {"const": "humanoid"},
+    "restSrc": {"type": "string", "minLength": 1},
+    "requires": {"type": "array", "items": {"type": "string"}},
+    "contacts": {
+      "type": "object",
+      "required": ["by"],
+      "properties": {
+        "by": {"enum": ["detected", "labelled"]},
+        "footL": {"$ref": "#/$defs/intervals"},
+        "footR": {"$ref": "#/$defs/intervals"},
+        "handL": {"$ref": "#/$defs/intervals"},
+        "handR": {"$ref": "#/$defs/intervals"}
+      },
+      "additionalProperties": false
+    },
+    "events": {
+      "type": "array",
+      "maxItems": 64,
+      "items": {
+        "type": "object",
+        "required": ["t", "name"],
+        "properties": {"t": {"type": "number", "minimum": 0}, "name": {"type": "string", "pattern": "^[a-z][a-z0-9_-]*$"}}
+      }
+    },
+    "facts": {"type": "object", "required": ["by"], "properties": {"by": {"type": "string"}}},
+    "provenance": {
+      "type": "object",
+      "required": ["src", "method", "producer", "license", "ai"],
+      "properties": {
+        "src": {"type": "string", "minLength": 1},
+        "orig": {"type": "string"},
+        "take": {"type": "string"},
+        "method": {"enum": ["captured", "keyed", "procedural", "composed", "edited", "generated"]},
+        "producer": {
+          "type": "object",
+          "required": ["tool", "version"],
+          "properties": {"tool": {"type": "string"}, "version": {"type": "string"}, "model": {"type": "string"}}
+        },
+        "license": {"type": "string", "minLength": 1},
+        "credit": {"type": "string"},
+        "ai": {
+          "enum": [
+            "digitalCapture",
+            "digitalCreation",
+            "algorithmicMedia",
+            "composite",
+            "humanEdits",
+            "trainedAlgorithmicMedia"
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"license": {"pattern": "^(CC-BY-|LicenseRef-CMU)"}}},
+          "then": {"required": ["credit"], "properties": {"credit": {"minLength": 1}}}
+        }
+      ]
+    },
+    "quality": {
+      "type": "object",
+      "required": ["fit", "qa", "qaVersion"],
+      "properties": {
+        "fit": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "integer", "minimum": 0}},
+        "qa": {"enum": ["pass", "baselined", "fail", "unchecked"]},
+        "qaVersion": {"type": "string"},
+        "baseline": {"type": "string"}
+      },
+      "allOf": [{"if": {"properties": {"qa": {"const": "baselined"}}}, "then": {"required": ["baseline"]}}]
+    },
+    "review": {
+      "type": "object",
+      "required": ["state", "by", "date", "motion"],
+      "properties": {
+        "state": {"enum": ["approved", "flagged", "unreviewed"]},
+        "by": {"type": "string"},
+        "date": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"},
+        "motion": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "note": {"type": "string"}
+      }
+    },
+    "keys": {"type": "array", "minItems": 1, "maxItems": 4096, "items": {"$ref": "#/$defs/key"}}
+  },
+  "$defs": {
+    "key": {
+      "type": "object",
+      "required": ["t", "hips", "body", "chest", "head", "armL", "armR", "legL", "legR"],
+      "properties": {
+        "t": {"type": "number", "minimum": 0, "maximum": 600, "description": "seconds, to the millisecond"},
+        "hips": {
+          "description": "[forward, right, up], percent of standing hip height",
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "prefixItems": [
+            {"type": "integer", "minimum": -1000, "maximum": 1000},
+            {"type": "integer", "minimum": -1000, "maximum": 1000},
+            {"type": "integer", "minimum": -100, "maximum": 1000}
+          ],
+          "items": false
+        },
+        "body": {"description": "[turn, lean, tilt], degrees", "$ref": "#/$defs/angles3"},
+        "chest": {"description": "[turn, lean, tilt], degrees", "$ref": "#/$defs/angles3"},
+        "head": {"description": "[turn, lean, tilt], degrees", "$ref": "#/$defs/angles3"},
+        "shL": {"$ref": "#/$defs/shoulder"},
+        "shR": {"$ref": "#/$defs/shoulder"},
+        "armL": {"$ref": "#/$defs/limb"},
+        "armR": {"$ref": "#/$defs/limb"},
+        "legL": {"$ref": "#/$defs/limb"},
+        "legR": {"$ref": "#/$defs/limb"},
+        "footL": {"$ref": "#/$defs/foot"},
+        "footR": {"$ref": "#/$defs/foot"},
+        "blade": {
+          "description": "[forward, right, up], percent, in chest space",
+          "allOf": [
+            {
+              "type": "array",
+              "minItems": 3,
+              "maxItems": 3,
+              "prefixItems": [
+                {"type": "integer", "minimum": -100, "maximum": 100},
+                {"type": "integer", "minimum": -100, "maximum": 100},
+                {"type": "integer", "minimum": -100, "maximum": 100}
+              ],
+              "items": false
+            },
+            {"not": {"prefixItems": [{"const": 0}, {"const": 0}, {"const": 0}]}}
+          ]
+        },
+        "root": {
+          "description": "[forward, right], percent of standing hip height travelled",
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {"type": "integer", "minimum": -10000000, "maximum": 10000000}
+        },
+        "handL": {"$ref": "#/$defs/hand"},
+        "handR": {"$ref": "#/$defs/hand"},
+        "fingersL": {"$ref": "#/$defs/fingers"},
+        "fingersR": {"$ref": "#/$defs/fingers"},
+        "spine": {
+          "description": "[lower, middle, upper], percent of the pelvis-to-chest turn each spine bone takes",
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "prefixItems": [
+            {"type": "integer", "minimum": -100, "maximum": 200},
+            {"type": "integer", "minimum": -100, "maximum": 200},
+            {"type": "integer", "minimum": -100, "maximum": 200}
+          ],
+          "items": false
+        },
+        "yaw": {"type": "integer", "minimum": -3600, "maximum": 3600, "description": "the root's heading, degrees"}
+      }
+    },
+    "angles3": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "prefixItems": [
+        {"type": "integer", "minimum": -3600, "maximum": 3600},
+        {"type": "integer", "minimum": -3600, "maximum": 3600},
+        {"type": "integer", "minimum": -3600, "maximum": 3600}
+      ],
+      "items": false
+    },
+    "limb": {
+      "description": "[forward, out, up, bend, twist]: direction (percent) from the root of the limb to its end, the middle joint's bend (degrees, 0 straight) and its twist (degrees)",
+      "allOf": [
+        {
+          "type": "array",
+          "minItems": 5,
+          "maxItems": 5,
+          "prefixItems": [
+            {"type": "integer", "minimum": -100, "maximum": 100},
+            {"type": "integer", "minimum": -100, "maximum": 100},
+            {"type": "integer", "minimum": -100, "maximum": 100},
+            {"type": "integer", "minimum": 0, "maximum": 180},
+            {"type": "integer", "minimum": -3600, "maximum": 3600}
+          ],
+          "items": false
+        },
+        {"not": {"prefixItems": [{"const": 0}, {"const": 0}, {"const": 0}]}}
+      ]
+    },
+    "shoulder": {
+      "description": "[reach, shrug], degrees",
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "prefixItems": [
+        {"type": "integer", "minimum": -180, "maximum": 180},
+        {"type": "integer", "minimum": -180, "maximum": 180}
+      ],
+      "items": false
+    },
+    "foot": {
+      "description": "[down, out, toes], degrees",
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "prefixItems": [
+        {"type": "integer", "minimum": -180, "maximum": 180},
+        {"type": "integer", "minimum": -3600, "maximum": 3600},
+        {"type": "integer", "minimum": -180, "maximum": 180}
+      ],
+      "items": false
+    },
+    "hand": {
+      "description": "[flex, side, roll], degrees",
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "prefixItems": [
+        {"type": "integer", "minimum": -90, "maximum": 90},
+        {"type": "integer", "minimum": -45, "maximum": 45},
+        {"type": "integer", "minimum": -3600, "maximum": 3600}
+      ],
+      "items": false
+    },
+    "fingers": {
+      "description": "[thumb, index, middle, ring, pinky], curl percent",
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "prefixItems": [
+        {"type": "integer", "minimum": 0, "maximum": 100},
+        {"type": "integer", "minimum": 0, "maximum": 100},
+        {"type": "integer", "minimum": 0, "maximum": 100},
+        {"type": "integer", "minimum": 0, "maximum": 100},
+        {"type": "integer", "minimum": 0, "maximum": 100}
+      ],
+      "items": false
+    },
+    "intervals": {
+      "type": "array",
+      "maxItems": 256,
+      "items": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "number", "minimum": 0}}
+    }
+  }
+}

@@ -27,9 +27,9 @@ describe("the conformance vectors", () => {
   });
   it("tier 2 covers the 325 curated clips at every key", () => {
     const sets = tier2Sets();
-    expect(sets).toEqual(["CMU", "MESH2MOTION", "QUATERNIUS"]);
+    expect(sets).toEqual(["CMU", "FORMAT2", "MESH2MOTION", "QUATERNIUS"]);
     let clips = 0;
-    for (const s of sets) {
+    for (const s of sets.filter((x) => x !== "FORMAT2")) {
       const v = loadTier2(s);
       for (const c of Object.values(v.clips)) {
         clips++;

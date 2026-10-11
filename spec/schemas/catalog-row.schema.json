@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/michaelcrosato/my-3danimations/spec/schemas/catalog-row.schema.json",
+  "title": "m3a catalog row (catalog.tsv), format 2.0",
+  "description": "One line of catalog.tsv split on tabs: id, seconds, loop|once, speed (or empty), tags, what the body does, source. At most 40 cl100k tokens (npm run doctrine).",
+  "type": "array",
+  "minItems": 7,
+  "maxItems": 7,
+  "prefixItems": [
+    {"type": "string", "pattern": "^[A-Z0-9_]+/[A-Za-z0-9_-]+$"},
+    {"type": "string", "pattern": "^[0-9]+(\\.[0-9]+)?$"},
+    {"enum": ["loop", "once"]},
+    {"type": "string", "pattern": "^(-?[0-9]+(\\.[0-9]+)?)?$"},
+    {"type": "string"},
+    {"type": "string", "minLength": 1, "pattern": "\\S"},
+    {"type": "string"}
+  ],
+  "items": false
+}

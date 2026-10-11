@@ -270,3 +270,161 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
 - **Why:** the verifier's failures and notes; each fix is small and in scope.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.1.0
+
+## D25 · 2026-10-11 · The validator is hand-written; Ajv checks the schemas agree
+
+- **Principle:** 6, 7 (WP-1.2)
+- **Call:**
+  - `@m3a/core` imports nothing, so `validate` implements the rules in code; the JSON Schemas in `spec/schemas/`
+    are the portable statement of the structure, and a test runs Ajv 8.20.0 (a dev dependency) over the same fixtures
+    so the two can't drift: every structural failure the validator raises is a schema failure too.
+  - Angles unwrap, so they are valid within ±3600 and warn past ±540 (the seed sets reach 582 and −1086); hips are
+    bounded at ±1000% forward and right and −100..1000% up; root travel is unbounded in practice (±10⁷).
+  - The shared format types (`packages/core/src/format/types.ts`) land in WP-1.2 although WP-1.3 owns `format/`,
+    because the validator needs them first; WP-1.3 extends the file.
+  - A scratch run over all 762 clips of the seven seed sets (my-3d2dge's three, shardfall's four) gives zero errors and
+    the predicted warnings: 16 twist pops (the Roll clips), 71 keys with hips below the floor (Zombie_Rise at −40%, the
+    swims), 214 angles past ±540 (spins).
+- **Why:** the doctrine keeps core dependency-free; the schemas keep the format readable by any language's tools.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.3.0
+
+## D26 · 2026-10-11 · Tier 2's vectors carry their input clips
+
+- **Principle:** 12 (the contract), D2 (WP-1.3)
+- **Call:** each tier-2 clip now holds `clip`, the origin's clip object with its keys, beside its decodes, so tier 2
+  runs from the committed vectors alone (in CI, and for another language's port) instead of needing the pins cache.
+  The vectors' JSON writer moves to `spec/conformance/runner/json.ts`, where the conformance tests hash mirrored keys
+  with it. The committed vectors grow to 9.54 of 10 MB with the frozen fixtures; nothing else is planned for tier 2,
+  and format-2 fields will get small vectors of their own.
+- **Why:** a conformance kit must hold its inputs (WP-10.2); a test that needs the network is a test CI skips.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.4.0
+
+## D27 · 2026-10-11 · The codec: format 1 exactly, format 2 on separate paths
+
+- **Principle:** 12, 1 (WP-1.3)
+- **Call:**
+  - `@m3a/core/src/format/` ports readable.js operation for operation; tier 1a matches the oracle bit for bit (the
+    rig's and the CMU take's reduce, fit, max, mean, keys and text) and tier 2 rounds to the oracle's micrometre at
+    every one of 7,444 samples (key times and in-betweens) of the 325 curated clips.
+  - Format 2's hand, fingers and spine take branches a key without them never enters. Encoding them: `hands: true`
+    fits the hand from the wrist, knuckle and knuckle line (roll solved exactly from the plane of the knuckle line and
+    the hand) and estimates all five finger curls from the middle finger, the only one with a body point. Encoding
+    `spine` shares and `yaw` waits for WP-5.3's re-import, which has the source's spine bones and root rotation.
+  - `fit` takes one budget, or one per region (torso, arms, legs): a frame's excess is its largest error over its
+    floor beyond that region's budget. The single-budget path is the origin's, unchanged.
+  - The canonical file writes the header one field per line, nested objects in a fixed order, and each key as the
+    lens's three short lines, so a clip file is itself the readable form and diffs per key.
+- **Why:** bit-for-bit parity is the contract other languages certify against; new fields must not move old numbers.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.4.0
+
+## D28 · 2026-10-11 · The skeleton profile: tables first, topology as a reported fallback
+
+- **Principle:** 7, 8 (WP-1.4)
+- **Call:**
+  - Eight mapping tables (VRM/Godot, Unity, Mixamo, UE5, UE4/Quaternius UAL2/Mesh2Motion, Rigify, CMU ASF, 100STYLE
+    BVH) match names after dropping namespaces, case and separators; the table with the most required bones wins.
+  - When names leave required bones unmapped, a topology and geometry fallback maps the skeleton and says so, starting
+    at confidence 0.85; a named `table` turns the fallback off. `patchMapping` is how an agent corrects a mapping.
+  - The format's (forward, right, up) coordinates are a left-handed triad physically; glTF is right-handed. The
+    conversion is one reflection, `(f, r, z) → (−r, z, f)`, done once by adapters (SKELETON.md §2).
+  - `measure` is the origin's, operation for operation (it reproduces tier 1a's rests bit for bit), and `restPoints`
+    places body points on any recognized skeleton (within 0.001 mm of the importer on the tiny rig), so the solver can
+    measure a target body the same way as a library's.
+- **Why:** exact names are cheap and certain; a renamed rig still binds, with the doubt visible in its confidence.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.5.0
+
+## D29 · 2026-10-11 · WP-1.3's verifier findings: roll unwraps, fingers curl to the palm normal, keyed sources
+
+- **Principle:** 12, 10 (WP-1.3's verifier review)
+- **Call:**
+  - **Hand roll is an angle that unwraps** (`MOTION.md` §5.3, §6.3), like a twist: full pronation sits at ±180 and a
+    forearm turning through it must not spin through supination in an in-between. Valid within ±3600, warned past
+    ±540; the encoder unwraps it against the key before.
+  - **Fingers curl toward the palm normal** `n = m′ cos φ − a sin φ`, perpendicular to the hand for any flex and side;
+    the first rule (toward `m′` made perpendicular to the hand) degenerated at full flex and tilted with side.
+  - **`fromFormat1` takes the source's method**, and `ai` follows it: Quaternius' and Mesh2Motion's hand-animated
+    clips are `keyed` (`digitalCreation`), the captures `captured` (`digitalCapture`).
+  - Also: `serialize` orders nested objects recursively; `mirror` negates `facts.travel`'s sideways part; `fromFormat1`
+    copies key arrays; the key lens writes valid JSON with no header; the normalized lens exists (`normalized`).
+  - **Format 2's fields get vectors now:** `tier2/FORMAT2.json`, six clips with hand, fingers, spine and yaw decoded by
+    `@m3a/core`, the reference implementation for them (D2), so any change to their geometry fails `vectors --check`.
+    The committed vectors are at 9.70 of 10 MB.
+- **Why:** the verifier's three failures and its notes, each reproduced by a test before the fix.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.5.0 (the codec's fixes ride WP-1.5's version)
+
+## D30 · 2026-10-11 · The seed sets migrated: five sets, provenance corrected, catalogs fitted
+
+- **Principle:** 10, 4, 1 (WP-1.5)
+- **Call:**
+  - Five sets, 525 clips, one file each through core's `serialize`: QUATERNIUS_3D2DGE (88), QUATERNIUS_SHARDFALL (102),
+    MESH2MOTION (177), CMU_CURATED (60) and STYLE100 (98). Every migrated key equals its source's, number for number;
+    the three sets tier 2 covers decode within the micrometre of the oracle on the manifests' own rest bodies.
+  - **Provenance corrected where the origin was wrong or thin:** CMU's source records carry CMU's full notice (the
+    origin's said "free for all uses" and omitted "you may not resell this data directly, even in converted form") with
+    `LicenseRef-CMU-Mocap`; licenses become SPDX ids with the free text kept as `terms`; Quaternius' clips and
+    Mesh2Motion's hand-animated ones are `keyed` (`digitalCreation`), the captures `captured`.
+  - **MESH2MOTION stays `cc0`, flagged.** Its README licenses the animations CC0; a July 2026 report of CC BY and
+    CC BY-SA assets names models, not animations, so no clip goes to `local` now. Each source record carries an `audit`
+    note pending WP-5.3's per-asset audit (D18; K3 applies if the audit removes it).
+  - **MESH2MOTION's `orig`** (`QUATERNIUS/<clip>`) points at the Quaternius import that has the clip, the v2 one first
+    (it has the `_RM` twins): all 84 resolve. CMU comes from my-3d2dge, whose copy differs from shardfall's in one clip.
+  - **Catalogs:** the source column is the clip's `src` (the file names any `orig`), and a description that would
+    overrun 40 tokens is cut for the row at a sentence, a clause, or a word with "…" (34 of 525 rows); the clip keeps
+    it whole. `MOTION.md` §9.3 says so.
+  - **Warnings** (171 in all, none an error) are baselined per clip in each set's `_baseline.json`, each with its
+    reason and the WP that addresses it; a new or vanished warning fails `library/migrated`.
+  - The migrator stamps its own revision (`m3a-migrate 1`), not the package version, so version bumps don't move the
+    library: content ids are the same on every run.
+- **Why:** distinct content gets distinct names (D4), and provenance must be right before anything ships (R8).
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.6.0
+
+## D31 · 2026-10-11 · Spec 2.0-rc frozen at G1, held by a doctrine check
+
+- **Principle:** 12 (the contract), D3 (gate G1)
+- **Call:** `spec/MOTION.md`, `spec/SKELETON.md`, `spec/LEGEND.md` and `spec/schemas/*.json` are frozen as spec 2.0-rc.
+  `spec/frozen.json` records their SHA-256s and `npm run doctrine` fails when one changes without it. A frozen file
+  changes only in a commit that logs a decision and reruns `node tools/doctrine/freeze.ts <decision>`. Before the
+  freeze the spec gained `_baseline.json` (§9.4, with a schema) and the source record's `terms`, `audit`, `file` and
+  `rig` (§9.1), so every field in the vectors and the migrated sets is specified (the library test lints every clip
+  and manifest for unknown fields: none). The freeze check lands in `tools/doctrine/`, which WP-0.3 owns.
+- **Why:** every game and every port depends on the contract (principle 12); a freeze nobody checks drifts.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.6.0
+
+## D32 · 2026-10-11 · G1's verifier findings: the spec amended before the merge, the freeze check tightened
+
+- **Principle:** 12 (the contract), 4 (provenance), D31 (the freeze)
+- **Call:** the G1 verifier failed the gate on seven findings; all are fixed before PR merge, under this decision:
+  - `MOTION.md` §2 called the frame right-handed. It now says what the code and `SKELETON.md` §2 do: f × r = z as
+    numbers, a left-handed triad physically, mirrored once by an adapter.
+  - `MOTION.md` §5.2 gains a Range column (`shL`/`shR` ±180, the foot's down and toes ±180, `blade` a direction not
+    all 0). `root` was "no bound" in the spec, ±10^7 in the validator and unbounded in the schema; it is ±10,000,000 in
+    all three (100,000 body heights).
+  - `MOTION.md` §7.5 said `fit` is `[0, 0]` for keyed clips, but D29 made the Quaternius and Mesh2Motion sources keyed
+    and their clips carry a measured fit. `fit` is now measured against the source frames a clip was fitted from,
+    whatever its method, and `[0, 0]` only when there were none. The validator's hint says the same.
+  - CMU's `terms` now hold CMU's notice word for word (the acknowledgments request included), not its first two
+    sentences; the library test compares it with the research note's quote.
+  - Baseline reasons are written per warning from the clip's own keys, not one text per code: 52 of CMU's 107
+    `M2-W005` warnings are a nearly straight leg's twist winding up (bend at most 24°), not a spin, and now say so.
+    A warning no reason covers fails the migration, and the test checks each reason's claim about the limb's bend.
+  - `SKELETON.md` §5: name matching also drops a leading `mixamorig` with no colon, since three.js's loader turns
+    `mixamorig:Hips` into `mixamorigHips` (such rigs fell to the topology fallback).
+  - Set sources: the schema declares `terms`, `audit`, `file` and `rig`; the validator rejects a non-positive `H0` and a
+    non-string `credit`, as the schema does.
+  - The freeze check now also fails when `spec/frozen.json` is gone, when a file joins the frozen set (a new schema)
+    unrecorded, or when the decision it names isn't logged; `spec/conformance/tiers.md` (the tolerances) joins the
+    frozen set, and `freeze.ts` refuses a decision that isn't logged.
+- **Why:** a frozen spec that contradicts its code or its library misleads every port (a reader trusting "right-handed"
+  mirrors every character); notices and reasons are provenance (principle 4) and must be true word for word.
+- **Not acted on, logged in `docs/FEEDBACK-LOG.md`:** `facts.by` naming the migrator for a speed shardfall measured;
+  1 µm decoding proven by decoding for 3 of 5 sets (the other 2 by equal keys and copied rests); VRM `humanBones` reading
+  (io, WP-4.3); a validate kind for `_baseline.json`.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.6.0

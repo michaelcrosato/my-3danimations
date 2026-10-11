@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/michaelcrosato/my-3danimations/spec/schemas/graph.schema.json",
+  "title": "m3a graph (L3), a stub",
+  "description": "States, transitions and blend spaces (spec/GRAPH.md, WP-6.4). Stub until Phase 6: an object naming its format, states and transitions.",
+  "type": "object",
+  "required": ["format", "states", "transitions"],
+  "properties": {
+    "format": {"type": "string", "pattern": "^2\\.[0-9]+$"},
+    "states": {"type": "object"},
+    "transitions": {"type": "array"}
+  }
+}

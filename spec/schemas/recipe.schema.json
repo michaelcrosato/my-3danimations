@@ -1,0 +1,9 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/michaelcrosato/my-3danimations/spec/schemas/recipe.schema.json",
+  "title": "m3a recipe (L2), a stub",
+  "description": "A clip made from clips by operators (spec/RECIPE.md, WP-6.1). Stub until Phase 6: an object naming its format and its steps.",
+  "type": "object",
+  "required": ["format", "steps"],
+  "properties": {"format": {"type": "string", "pattern": "^2\\.[0-9]+$"}, "steps": {"type": "array"}}
+}

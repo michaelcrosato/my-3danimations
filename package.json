@@ -1,6 +1,6 @@
 {
   "name": "my-3danimations",
-  "version": "0.1.0",
+  "version": "0.6.0",
   "private": true,
   "description": "An open animation package for AI coding agents: spec, runtime, sensors, library and tools.",
   "license": "MIT",
@@ -25,12 +25,14 @@
     "doctrine": "node tools/doctrine/main.ts",
     "vectors": "node tools/vectors/main.ts",
     "pins": "node tools/pins/main.ts",
-    "bench": "node tools/run/pending.ts bench WP-4.7"
+    "bench": "node tools/run/pending.ts bench WP-4.7",
+    "migrate": "node tools/migrate/main.ts"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
     "@playwright/test": "1.56.1",
     "@types/node": "24.19.2",
+    "ajv": "8.20.0",
     "eslint": "10.12.0",
     "globals": "17.13.0",
     "gpt-tokenizer": "4.0.0",

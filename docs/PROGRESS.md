@@ -3,23 +3,26 @@
 The current state on one screen (at most 40 lines; `npm run doctrine` checks it from WP-0.3). The ledger is
 `PLAN.md` §14; decisions are in `docs/DECISIONS.md`.
 
-**Phase:** 1 The language. **Next gate:** G1. **Version:** 0.1.0.
+**Phase:** 2 The airframe. **Next gate:** G2. **Version:** 0.6.0.
 **Mode:** one agent (D21), branch `claude/relaxed-albattani-35xhjq`.
 
 ## Done
 
-- WP-0.1 Constitution: `DOCTRINE.md`, `AGENTS.md`, `CLAUDE.md`, decisions D1 to D21 (O1, O7, O8, O11 and the CMU and
-  Mesh2Motion confirmation logged), the feedback log, this file.
-- WP-0.2 Toolchain: six `@m3a` workspaces; T0 `check` 3.0 s (budget 15), T1 `test` 1.3 s (90), T2 `e2e` 6.4 s (480)
-  on Chromium 1194 with WebGL 2; `test:changed`, `gate`, header lint, `tools/version.ts` (D22).
-- WP-0.3 Doctrine checks: `npm run doctrine`, 7 checks in 0.2 s, run in T0; each has a failing fixture.
-- WP-0.4 Pins and vectors: 5 repos pinned; vectors regenerate byte for byte (7.1 of 10 MB): tier 1a/1b (tiny rig,
-  CMU 09_02; equal to shardfall's expected sets), tier 2 (325 clips), tier 3 (11 bodies); D23, D24.
-- WP-0.5 CI and session setup: CI green on the PR (T0+T1 on push, T2 on the PR); the hook installs in 2.6 s.
+- Phase 0 (G0 passed, merged as michaelcrosato/my-3danimations#4): doctrine, toolchain, doctrine checks, pins and
+  vectors (7.1 MB, tiers 1a to 3), CI and the session hook.
+- WP-1.1 The motion spec: `spec/MOTION.md` 2.0-rc and `spec/LEGEND.md` (792 of 800 tokens, a real worked key).
+- WP-1.2 Schemas and the validator: 30 coded rules with fixtures; the schemas agree (Ajv); all 762 seed clips pass
+  with 0 errors (D25).
+- WP-1.3 The codec: tier 1a bit for bit, tier 2 equal to the micrometre at all 7,444 samples; format 2's hand,
+  fingers and spine (D26, D27).
+- WP-1.4 The skeleton profile: `SKELETON.md`; recognize exact on 8 tables, topology fallback; measure bit for bit
+  (D28).
+- WP-1.5 The seed sets migrated: 5 sets, 525 clips, 0 errors, warnings baselined per clip with reasons (D30).
+- G1: spec 2.0-rc frozen and held by the doctrine (D31); the verifier's 7 findings fixed (D32).
 
 ## Next
 
-- Phase 1, the language: WP-1.1 the motion spec, on a fresh draft PR after Phase 0 merges.
+- WP-2.1 The math kernel: portable math (V8's bits), helpers, seeded streams, `hashNumbers`, V8 against JSC.
 
 ## Blocked on the owner
 
@@ -27,6 +30,7 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 
 ## Last gate
 
-- **G0 passed** 2026-10-11 at bae664e in 5.1 s: check (T0) 1.3 s of 15, test (T1) 1.3 s of 90 with 41 tests,
-  doctrine 7 of 7 checks, vectors 13 files byte for byte (7.1 of 10 MB). CI green on the PR. The verifier's 4 findings
-  (ledger rows, PR body, `.gltf` loosening the binaries check) are fixed (D24). PR michaelcrosato/my-3danimations#4.
+- **G1 passed** 2026-10-11 at 6bffb3e in 11.0 s, 7 of 7: check (T0) 1.3 s of 15; test (T1) 3.0 s of 90, 178 tests;
+  doctrine 8 of 8 (legend 792/800, worst catalog row 40/40, 10 files frozen); vectors byte for byte; tiers 1a and 2;
+  migrate --check (525 clips); the migrated clips validate and decode like their sources. The verifier's 7 findings
+  (frame wording, ranges, fit, CMU notice, W005 reasons, ledger, changelog) are fixed (D32); notes in F1.

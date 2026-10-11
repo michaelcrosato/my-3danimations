@@ -1,4 +1,4 @@
-// Deterministic JSON for the vectors: keys in insertion order, numbers as the shortest decimal that parses back to the
+// Deterministic JSON for the vectors (used by tools/vectors to write them and by the conformance tests to hash): keys in insertion order, numbers as the shortest decimal that parses back to the
 // same double with `-0` kept (JSON.stringify writes -0 as 0), arrays of primitives on one line, everything else one
 // entry per line. The same value always gives the same bytes, so `npm run vectors -- --check` compares bytes.
 

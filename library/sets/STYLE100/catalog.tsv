@@ -1,0 +1,98 @@
+STYLE100/Aeroplane_Walk	1.2	loop	69	walk style	Both arms raised as wings – tilting from side to side	100STYLE
+STYLE100/Akimbo_Walk	1.367	loop	95	walk style	Hands on hips	100STYLE
+STYLE100/Angry_Walk	0.833	loop	175	walk style	Swing lower arms aggressively - fists closed	100STYLE
+STYLE100/ArmsAboveHead_Walk	1.333	loop	102	walk style	Arms raised straight above head	100STYLE
+STYLE100/ArmsBehindBack_Walk	1.5	loop	86	walk style	Hands clasped behind back	100STYLE
+STYLE100/ArmsBySide_Walk	1.233	loop	103	walk style	Keep arms fixed by side and do not move them	100STYLE
+STYLE100/ArmsFolded_Walk	1.367	loop	88	walk style	Right arm folded over left	100STYLE
+STYLE100/Balance_Walk	2.2	loop	36	walk style	Arms out to side for balance - tilting side to side	100STYLE
+STYLE100/BeatChest_Walk	1.367	loop	70	walk style	Beat chest while moving normally	100STYLE
+STYLE100/BentForward_Walk	1.067	loop	87	walk style	Tilt torso forwards	100STYLE
+STYLE100/BentKnees_Walk	1.5	loop	72	walk style	Bend knees as much as possible	100STYLE
+STYLE100/BigSteps_Walk	1.5	loop	147	walk style	As large steps as possible	100STYLE
+STYLE100/BouncyLeft_Walk	1.133	loop	123	walk style	Step normally with right foot but spring off left foot	100STYLE
+STYLE100/BouncyRight_Walk	1.167	loop	135	walk style	Step normally with left foot but spring off right foot	100STYLE
+STYLE100/Cat_Walk	1.733	loop	87	walk style	Use hands as paws - step opposite hand and foot	100STYLE
+STYLE100/Chicken_Walk	1.1	loop	63	walk style	Bob head - arms as wings	100STYLE
+STYLE100/CrossOver_Walk	1.8	loop	59	walk style	Step each foot in front of other leg	100STYLE
+STYLE100/Crouched_Walk	1.2	loop	70	walk style	Squat slightly and bend back	100STYLE
+STYLE100/CrowdAvoidance_Walk	1.267	loop	65	walk style varies	Occasionally turning shoulders or turn sideways to avoid others	100STYLE
+STYLE100/Depressed_Walk	1.4	loop	68	walk style	Head bowed arms swinging	100STYLE
+STYLE100/Dinosaur_Walk	1.867	loop	74	walk style	Like a t-rex arms close to body dinosaur posture	100STYLE
+STYLE100/DragLeftLeg_Walk	1.2	loop	55	walk style	Drag left foot along the floor	100STYLE
+STYLE100/DragRightLeg_Walk	1.333	loop	58	walk style	Drag right foot along the floor	100STYLE
+STYLE100/Drunk_Walk	1.3	loop	81	walk style varies	Stumbling around at random. Various foot step sizes and arm motions	100STYLE
+STYLE100/DuckFoot_Walk	1.467	loop	62	walk style	Toes pointing inwards	100STYLE
+STYLE100/Elated_Walk	1.167	loop	145	walk style	Swing arms with spring	100STYLE
+STYLE100/FairySteps_Walk	2.333	loop	26	walk style	One foot in front of the other so the heel touches the toe	100STYLE
+STYLE100/Flapping_Walk	1.933	loop	88	walk style	Flap arms as wings on tiptoes	100STYLE
+STYLE100/FlickLegs_Walk	1.633	loop	39	walk style	Knees together and flick legs to sides as moving	100STYLE
+STYLE100/Followed_Walk	1	loop	97	walk style varies	Check behind occasionally	100STYLE
+STYLE100/GracefulArms_Walk	1.267	loop	102	walk style	One arm across chest the other extended walk tall	100STYLE
+STYLE100/HandsBetweenLegs_Walk	1.933	loop	44	walk style	Bent back – legs wide - hands swing between legs	100STYLE
+STYLE100/HandsInPockets_Walk	1.333	loop	102	walk style	Place hands in pockets and walk and run	100STYLE
+STYLE100/Heavyset_Walk	1.267	loop	95	walk style	Walking as a muscle man tensed biceps	100STYLE
+STYLE100/HighKnees_Walk	1.467	loop	62	walk style	Lift knees high but only knees – not marching	100STYLE
+STYLE100/InTheDark_Walk	0.867	loop	19	walk style varies	Feeling around as if in darkness	100STYLE
+STYLE100/KarateChop_Walk	2.033	loop	76	walk style	Open hands swing hand with each step to do a karate chop	100STYLE
+STYLE100/Kick_Walk	2.167	loop	62	walk style	Kick with every step	100STYLE
+STYLE100/LawnMower_Walk	1.033	loop	78	walk style	Roll hands over one another like disco move and tilt torso forwards and then back	100STYLE
+STYLE100/LeanBack_Walk	1.267	loop	73	walk style	Bent backwards	100STYLE
+STYLE100/LeanLeft_Walk	1.133	loop	80	walk style	Normal motion upperbody tilted right	100STYLE
+STYLE100/LeanRight_Walk	1.133	loop	72	walk style	Normal motion upperbody tilted left	100STYLE
+STYLE100/LeftHop_Walk	0.933	loop	82	walk style	Hop on left foot	100STYLE
+STYLE100/LegsApart_Walk	0.8	loop	12	walk style	Legs relatively straight wide apart	100STYLE
+STYLE100/LimpLeft_Walk	1.167	loop	64	walk style	Keep left leg straight and limp	100STYLE
+STYLE100/LimpRight_Walk	1.1	loop	75	walk style	Keep right leg straight and limp	100STYLE
+STYLE100/LookUp_Walk	1.233	loop	57	walk style	Tilt head to look at ceiling	100STYLE
+STYLE100/Lunge_Walk	2.5	loop	70	walk style	Wide step bend knee every step in lunge position	100STYLE
+STYLE100/March_Walk	1.067	loop	82	walk style	High knees swing arms at elbows	100STYLE
+STYLE100/Monk_Walk	1.567	loop	66	walk style	Interlock hands in front of pelvis head slightly bowed	100STYLE
+STYLE100/Morris_Walk	1.267	loop	88	walk style	Swing hands side to side as if waving hankies. Bouncy/skipping footsteps	100STYLE
+STYLE100/Neutral_Walk	1.333	loop	91	walk style	Normal walking	100STYLE
+STYLE100/Old_Walk	1.833	loop	19	walk style	Hunchbacked move very slowly	100STYLE
+STYLE100/OnHeels_Walk	1.2	loop	44	walk style	Walk on heels with toes raised	100STYLE
+STYLE100/OnPhoneLeft_Walk	1.467	loop	91	walk style	Holding phone in left	100STYLE
+STYLE100/OnPhoneRight_Walk	1.3	loop	95	walk style	Holding phone in right	100STYLE
+STYLE100/OnToesBentForward_Walk	1.1	loop	75	walk style	As bent forward style but on tip toes	100STYLE
+STYLE100/OnToesCrouched_Walk	1.267	loop	60	walk style	As crouched style but on tip toes	100STYLE
+STYLE100/PendulumHands_Walk	0.933	loop	55	walk style	Squat slightly make right angle with elbows and swing hands freely	100STYLE
+STYLE100/Penguin_Walk	1.067	loop	26	walk style	Waddle with feet close together	100STYLE
+STYLE100/PigeonToed_Walk	1.333	loop	43	walk style	Toes turned inwards	100STYLE
+STYLE100/Proud_Walk	1.233	loop	121	walk style	Straight back arms move as if marching to a lesser degree	100STYLE
+STYLE100/Punch_Walk	1.733	loop	84	walk style	Punch with every step	100STYLE
+STYLE100/Quail_Walk	0.833	loop	67	walk style	Arms straight by sides slightly back very small quick steps	100STYLE
+STYLE100/RaisedLeftArm_Walk	1.233	loop	101	walk style	Raise left arm perpendicular to body	100STYLE
+STYLE100/RaisedRightArm_Walk	1.3	loop	100	walk style	Raise right arm perpendicular to body	100STYLE
+STYLE100/RightHop_Walk	1.367	loop	72	walk style	Hop on right foot	100STYLE
+STYLE100/Roadrunner_Walk	1.133	loop	108	walk style	Arms behind as wings pick up knees - bent a little	100STYLE
+STYLE100/Robot_Walk	1.133	loop	28	walk style	Stiff movements arms bending at elbows	100STYLE
+STYLE100/Rocket_Walk	1.133	loop	92	walk style	Bent to flat back with hands behind as thrusters	100STYLE
+STYLE100/Rushed_Walk	2.433	loop	143	walk style	Rushing about swinging arms for extra momentum	100STYLE
+STYLE100/ShieldedLeft_Walk	1.167	loop	95	walk style	Squat down with left arm raised in block as if holding a shield above head	100STYLE
+STYLE100/ShieldedRight_Walk	1.2	loop	99	walk style	Squat down with right arm raised in block as if holding a shield above head	100STYLE
+STYLE100/Skip_Walk	1.3	loop	104	walk style	Skipping like a child	100STYLE
+STYLE100/SlideFeet_Walk	1.633	loop	48	walk style	Barely lift feet off the floor/kick into floor	100STYLE
+STYLE100/Star_Walk	1.133	loop	76	walk style	Wide arms and legs. Arms slightly below horizontal	100STYLE
+STYLE100/StartStop_Walk	2.5	loop	28	walk style	Pause briefly after step	100STYLE
+STYLE100/Stiff_Walk	1.133	loop	77	walk style	Stiff limbs arms straight	100STYLE
+STYLE100/Strutting_Walk	1.367	loop	77	walk style	With swagger leant slightly back arms swinging freely	100STYLE
+STYLE100/Superman_Walk	1.033	loop	111	walk style	Right arm raised like superman flying	100STYLE
+STYLE100/Swat_Walk	1.133	loop	68	walk style	As if holding a rifle and raiding a building	100STYLE
+STYLE100/Sweep_Walk	1.333	loop	69	walk style	Sweeping with a broom while moving	100STYLE
+STYLE100/Swimming_Walk	1.6	loop	80	walk style	Breaststroke walking	100STYLE
+STYLE100/SwingArmsRound_Walk	2.5	loop	37	walk style	Swing arms round body (right in front left at back then switch)	100STYLE
+STYLE100/SwingShoulders_Walk	1.533	loop	76	walk style	Rotate torso and shoulders left to right and back	100STYLE
+STYLE100/Teapot_Walk	1.3	loop	96	walk style	One arm on hip other arm raised	100STYLE
+STYLE100/Tiptoe_Walk	1.2	loop	83	walk style	Walk on toes with heels raised	100STYLE
+STYLE100/TogetherStep_Walk	1.367	loop	64	walk style	Step left foot - then together – then right foot	100STYLE
+STYLE100/TwoFootJump_Walk	0.633	loop	61	walk style	Feet together and jump	100STYLE
+STYLE100/WalkingStickLeft_Walk	1.4	loop	88	walk style	Walk with a stick – used broom handle	100STYLE
+STYLE100/WalkingStickRight_Walk	1.5	loop	81	walk style	Walk with a stick – used broom handle	100STYLE
+STYLE100/Waving_Walk	1.467	loop	81	walk style varies	Waving at somebody else at random	100STYLE
+STYLE100/WhirlArms_Walk	1.8	loop	73	walk style	Windmill arms	100STYLE
+STYLE100/WideLegs_Walk	1.3	loop	27	walk style	Legs apart motions	100STYLE
+STYLE100/WiggleHips_Walk	2.033	loop		walk style	Hands raised in front of body wiggle hips side to side	100STYLE
+STYLE100/WildArms_Walk	1.467	loop	101	walk style	Swing arms much more than normal almost punching into the air	100STYLE
+STYLE100/WildLegs_Walk	1.867	loop	47	walk style	Kick legs into the air with each step	100STYLE
+STYLE100/Zombie_Walk	1.633	loop	51	walk style	Arms in front like zombie	100STYLE

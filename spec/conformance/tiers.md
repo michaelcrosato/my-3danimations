@@ -10,7 +10,7 @@ protocol for other languages.
 |---|---|---|---|---|
 | **1a** encode and fit | The codec, with no reader involved | `tier1a/*.json`: each clip's captured body points (`capture.data`, float32 values) and the measured `rest` | `reduce` (key frames), `fit` (the clip's keys, `max`, `mean`) and `text` | Bit for bit: every number equal as a double, every string byte for byte |
 | **1b** readers | glTF and ASF/AMC readers | `tier1b/rig.gltf` (packed as .glb; its SHA-256 is `tier1a/rig.json` `glbSha256`) and `tier1b/cmu/` | The captured body points and `rest` of tier 1a | Bit for bit |
-| **2** decode | Decoding readable key poses onto a reference body | `tier2/<SET>.json`: `bodies` and, per clip, the clip in the origin's set file | Body points at every key time and at the three in-between times (`between`) | Within 0.001 mm per coordinate (vectors hold whole micrometres, so 0.0005 mm of that is rounding) |
+| **2** decode | Decoding readable key poses onto a reference body | `tier2/<SET>.json`: `bodies` and, per clip, its input `clip` (the origin's clip object, keys included) | Body points at every key time and at the three in-between times (`between`) | Within 0.001 mm per coordinate (vectors hold whole micrometres, so 0.0005 mm of that is rounding) |
 | **2** mirror and text | Mirroring and the text lens | The same clips | `mirrorSha256` of the mirrored keys; mirroring twice equals the clip; `parse(text(clip))` equals the clip | Exact; zero's sign ignored after two mirrors |
 | **3** other bodies | Retargeting onto bodies of other proportions | `tier3/bodies.json`: seven generated rigs and the sets' own bodies | Every limb's direction on the target against the source clip | Within 9° per limb; 14° on a curled spine (WP-2.4) |
 | frozen | The math helpers, RNG, easing and the move model | `frozen/core.json`, `frozen/moves.json` (from my-3dge, never regenerated) | As each file's README section says (`core.json` bit for bit, angle helpers within 1e-12) | Per file |
@@ -25,8 +25,9 @@ double, with `-0` kept. `spec/MOTION.md` (WP-1.1) states these as the format's n
 
 ## Known limits
 
-- The vectors come from format 1. Format 2 (WP-1.1) keeps format 1's numbers, so a format-2 codec reading format 1 must
-  pass tiers 1a and 2 unchanged; format-2-only fields get vectors of their own when they land.
+- The vectors come from format 1, except `tier2/FORMAT2.json`: format 2's hand, fingers, spine and yaw on six clips,
+  decoded by `@m3a/core`, the reference implementation for those fields (D2). Format 2 keeps format 1's numbers, so a
+  format-2 codec reading format 1 passes tiers 1a and 2 unchanged.
 - Tier 2 samples each clip at its keys and three in-betweens. `npm run vectors -- --dense` writes every clip at 30 fps
   into `.cache/vectors/tier2-dense/` for sampler tests (too large to commit).
 - Tier 1b's CMU files and tier 1a's CMU vector are CMU motion capture data under CMU's notice (no resale, even in

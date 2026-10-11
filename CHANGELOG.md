@@ -4,6 +4,71 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.6.0 · 2026-10-11
+
+### Spec
+- G1: spec 2.0-rc frozen (D31): `spec/frozen.json` holds the SHA-256 of `MOTION.md`, `SKELETON.md`, `LEGEND.md`,
+  `conformance/tiers.md` and the schemas. Before the freeze: `_baseline.json` (§9.4, with
+  `schemas/baseline.schema.json`) and the source record's `terms`, `audit`, `file` and `rig` (§9.1).
+- G1's verifier fixes (D32): the frame is f × r = z as numbers, left-handed physically (§2); §5.2 gives every
+  optional field's range, and `root` is ±10,000,000 in spec, validator and schema; `quality.fit` is measured against
+  the source frames whatever the method (§7.5); skeleton names drop the `mixamorig` prefix three.js's loader leaves.
+
+### Library
+- WP-1.5: the seed sets in format 2: QUATERNIUS_3D2DGE (88), QUATERNIUS_SHARDFALL (102), MESH2MOTION (177),
+  CMU_CURATED (60, tier cmu, CMU's notice word for word), STYLE100 (98, tier cc-by): 525 clips, each with
+  `_set.json`, `catalog.tsv` (rows within 40 tokens) and `_baseline.json` (reasons per warning, from the clip's keys).
+
+### Tools
+- WP-1.5: `npm run migrate [-- --check]`.
+- G1: the doctrine's `frozen` check and `node tools/doctrine/freeze.ts <decision>`; it also fails a missing record, an
+  unrecorded schema and an unlogged decision. `npm run gate -- G1` runs the gate's command set.
+
+### Core
+- WP-1.3's verifier fixes: hand roll unwraps; fingers curl toward the palm normal; `fromFormat1` takes the method;
+  the normalized lens; format 2's fields get vectors (`tier2/FORMAT2.json`).
+- Sampling takes a format-2 clip directly (`Timed.keys` accepts `Key`).
+- The set validator rejects a non-positive `rest.H0` and non-string source fields, as the schema does.
+
+## 0.5.0 · 2026-10-11
+
+### Spec
+- WP-1.4: `spec/SKELETON.md`: VRM 1.0's humanoid (55 bones, 15 required), frames, rest measurement, body points on
+  bones, the mapping tables, recognize's output, the Khronos watch.
+
+### Core
+- WP-1.4: `skeleton/`: `recognize` (8 tables and a topology fallback), `patchMapping`, `restFrame` (T, A or relaxed),
+  `measure` (the origin's, bit for bit) and `restPoints`.
+
+## 0.4.0 · 2026-10-11
+
+### Core
+- WP-1.3: the codec (`format/`): decode onto a rest body, encode from body points, sampling, RDP and fit (one budget
+  or one per region), format 1's text and parse, the format-2 key lens, mirror, the canonical clip file, slugs, the
+  motion hash's input, and reading format 1. Format 2's hand, fingers and spine decode; hands and fingers encode.
+
+### Spec
+- WP-1.3: conformance tiers 1a (bit for bit) and 2 (to the micrometre) pass; tier 2's vectors carry their input clips.
+
+## 0.3.0 · 2026-10-11
+
+### Spec
+- WP-1.2: JSON Schemas for a clip, a set manifest and a catalog row (`spec/schemas/`), with stubs for recipes and
+  graphs.
+
+### Core
+- WP-1.2: `validate(data, { mode, kind })`: 30 coded rules (20 clip errors, 6 warnings, 4 set and catalog errors),
+  messages of at most two lines naming the clip, key, time and field; `read` accepts unknown fields, `lint` flags
+  them with the nearest name. The format-2 types and key-field table.
+
+## 0.2.0 · 2026-10-11
+
+### Spec
+- WP-1.1: `spec/MOTION.md`, the motion format 2.0-rc (frame and units, every field with its range, the new optional
+  hand, fingers, spine and yaw fields, contacts, events, facts, provenance with IPTC source types, quality, review,
+  sampling, limits, versioning, ids, sets and content ids, numerics), and `spec/LEGEND.md` (792 of 800 tokens with a
+  worked key).
+
 ## 0.1.0 · 2026-10-11
 
 ### Repo

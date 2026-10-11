@@ -1,0 +1,42 @@
+{
+"set": "MESH2MOTION",
+"title": "Mesh2Motion",
+"format": "2.0",
+"tier": "cc0",
+"content": {"edition":"mesh2motion-app's human animations (base, add-on and mocap GLBs), as my-3d2dge@14a561c imported them","importer":"m3a-migrate 1, from format 1 (my-3d2dge src/mocap/sets/mesh2motion.js)","sha256":"6b27018c4d98ffd8dc0ea14a64c0c26a17c96da5f55c3abe3c158845b23a4fb0"},
+"credit": "Mesh2Motion's human animations (mesh2motion.org), CC0 1.0; some are Quaternius' Universal Animation Library clips as Mesh2Motion re-exported them.",
+"producer": {"tool":"m3a-migrate","version":"1"},
+"sources": {
+  "M2M_QUATERNIUS": {"label":"Quaternius, via Mesh2Motion","origin":"Quaternius' Universal Animation Library 1 and 2 as Mesh2Motion re-exported them on its human rig (human-base-animations.glb). Library 1's clips run 25% longer than in Quaternius' own files, and a few are trimmed or end back on their feet. Each clip's orig names the Quaternius clip it was made from","license":"CC0-1.0","terms":"CC0 1.0, per the mesh2motion-app README","url":"https://github.com/Mesh2Motion/mesh2motion-app","audit":"pending WP-5.3: a July 2026 report says some Mesh2Motion assets are CC BY or CC BY-SA; no animation is named, so the set stays cc0 until the per-asset audit","file":"human-base-animations.glb","rig":"unreal","rest":{"H0":877.17,"hipZ":897.3,"ankleZ":103.14,"Pr":[[0.96886,0.22946,0.09309],[-0.23046,0.97308,0],[-0.09058,-0.02145,0.99566]],"Cr":[[0.97145,0.22912,-0.06163],[-0.22961,0.97328,-0.001],[0.05975,0.01512,0.9981]],"Hr":[[0.96186,0.03059,-0.27182],[-0.04535,0.99781,-0.04819],[0.26975,0.05868,0.96114]],"hip":{"L":[51.5,-89,15.4],"R":[51.5,89,15.4]},"spine":[[21.3,5,136.4],[3.6,0.8,124],[8.3,2,141],[9.9,2.5,165.1]],"neckSeg":[52.3,12.4,87.7],"clav":{"L":[105.2,-18.8,-42],"R":[105.2,18.8,-42]},"cv":{"L":[-119.4,-186.3,-0.9],"R":[-154.8,158,6.8]},"topH":[0,0,67.3],"faceH":[119.9,0,3.9],"up":274.44,"fore":272.64,"knuck":119.81,"fist":137.28,"thigh":400.31,"shin":429.48,"ab":173.3,"bt":78.9,"abPitch":30.71,"btPitch":0,"spineW":[0,0,0.55,1],"neckW":0.3}},
+  "M2M_ANIMATED": {"label":"Mesh2Motion, hand-animated","origin":"Animated in Blender by Mesh2Motion's contributors on its human rig (human-addon-animations.glb; the Blender sources are in Mesh2Motion/mesh2motion-assets, rigs/human)","license":"CC0-1.0","terms":"CC0 1.0, per the mesh2motion-app README","url":"https://github.com/Mesh2Motion/mesh2motion-app","audit":"pending WP-5.3: a July 2026 report says some Mesh2Motion assets are CC BY or CC BY-SA; no animation is named, so the set stays cc0 until the per-asset audit","file":"human-addon-animations.glb","rig":"unreal","rest":{"H0":916.7,"hipZ":932.1,"ankleZ":97.96,"Pr":[[1,0,0],[0,1,0],[0,0,1]],"Cr":[[0.97616,0,0.21704],[0,1,0],[-0.21704,0,0.97616]],"Hr":[[0.99625,0,-0.08657],[0,1,0],[0.08657,0,0.99625]],"hip":{"L":[51.5,-89,15.4],"R":[51.5,89,15.4]},"spine":[[26,0,100.7],[15.2,0,123.1],[-4.5,0,141.2],[-37.9,0,170.6]],"neckSeg":[62.8,0,116.2],"clav":{"L":[105.5,-18.8,-51.7],"R":[105.5,18.8,-51.7]},"cv":{"L":[-120.5,-154.9,48.2],"R":[-120.5,154.9,48.2]},"topH":[0,0,57.9],"faceH":[119.5,0,10.4],"up":296.59,"fore":279.79,"knuck":109.09,"fist":151.65,"thigh":406.63,"shin":433.19,"ab":181.41,"bt":86.29,"abPitch":27.14,"btPitch":2.38,"spineW":[0,0.3,0.65,1],"neckW":0.55}},
+  "M2M_MOCOPI": {"label":"Mesh2Motion, motion capture","origin":"Captured by Mesh2Motion with a Sony mocopi suit and retargeted onto its human rig with its own Blender add-on (human-mocap-animations.glb; the raw BVH captures are in Mesh2Motion/mesh2motion-assets, motion-capture)","license":"CC0-1.0","terms":"CC0 1.0, per the mesh2motion-app README","url":"https://github.com/Mesh2Motion/mesh2motion-assets","audit":"pending WP-5.3: a July 2026 report says some Mesh2Motion assets are CC BY or CC BY-SA; no animation is named, so the set stays cc0 until the per-asset audit","file":"human-mocap-animations.glb","rig":"unreal","rest":{"H0":884.63,"hipZ":910.74,"ankleZ":104.33,"Pr":[[0.97237,0.08056,0.21912],[-0.04669,0.98672,-0.15561],[-0.22875,0.14108,0.96321]],"Cr":[[0.90486,-0.09275,0.41548],[0.09241,0.9955,0.02099],[-0.41556,0.0194,0.90936]],"Hr":[[0.97619,-0.16743,0.13789],[0.14269,0.97451,0.17309],[-0.16336,-0.1493,0.9752]],"hip":{"L":[51.5,-89,15.4],"R":[51.5,89,15.4]},"spine":[[2.2,16.3,102.7],[-11,11.8,123],[-35,6.6,136.7],[-72.6,3.4,159]],"neckSeg":[50.7,-12.4,121.3],"clav":{"L":[105.5,-18.8,-51.7],"R":[105.5,18.8,-51.7]},"cv":{"L":[-124.8,-155.2,34.3],"R":[-116.6,153.4,60.9]},"topH":[0,0,57.9],"faceH":[119.5,0,10.4],"up":296.59,"fore":279.79,"knuck":109.09,"fist":131.97,"thigh":406.63,"shin":433.19,"ab":181.41,"bt":86.29,"abPitch":29.1,"btPitch":4.35,"spineW":[0,0.4,0.75,1],"neckW":0.45}}
+},
+"legend": {"version": "2.0", "text": [
+  "m3a motion format 2.0: readable key poses. Times in seconds; every key number is a whole number. Rig frame: forward,",
+  "right, up. L and R are the figure's own sides. Directions are percentages and need not add up: [100, 0, 0] and",
+  "[50, 0, 0] agree. Between keys every number moves in a straight line; loops wrap, one-shots hold.",
+  "hips   [forward, right, up]   the pelvis, in percent of standing hip height (100 = standing, 55 = sitting on a chair)",
+  "body   [turn, lean, tilt]     the pelvis, degrees: turn + = toward the right, lean + = forward, tilt + = toward the right",
+  "chest  [turn, lean, tilt]     the chest, relative to the pelvis; head [turn, lean, tilt] relative to the chest",
+  "shL shR    [reach, shrug]     degrees the shoulder swings forward (into a punch or an aim) and up, from rest",
+  "armL armR  [forward, out, up, bend, twist]  where the fist is from the shoulder, in chest space (out + = away from the",
+  "           body on that side; [0, 0, -100] hangs down, [100, 0, 0] punches ahead); bend = elbow, degrees (0 = straight);",
+  "           twist = degrees the elbow swings round the arm from its natural direction (back and down)",
+  "legL legR  [forward, out, up, bend, twist]  hip to ankle in pelvis space; bend: the knee; twist: from pointing forward",
+  "footL footR [down, out, toes]   degrees the foot points down from standing, turns outward, and the toes bend up",
+  "Optional, only where a clip needs them:",
+  "handL handR [flex, side, roll]  the wrist, degrees: the palm bends toward the inside of the elbow +, toward the thumb +;",
+  "           roll + turns the palm away from the elbow's inside. With a hand, arm aims where a straight hand's fist would be",
+  "fingersL fingersR [thumb, index, middle, ring, pinky]  curl, percent (0 = straight, 100 = a fist)",
+  "spine  [lower, middle, upper]  percent of the chest's turn each spine bone takes (instead of the set's shares)",
+  "blade  [forward, right, up]   a blade held in the right fist, in chest space",
+  "root   [forward, right]       how far the body has travelled, percent of standing hip height; yaw: its heading, degrees",
+  "A worked key, QUATERNIUS_3D2DGE/Walk_Loop at 0 s: the left heel strikes as the right foot pushes off.",
+  "{\"t\":0,",
+  " \"hips\":[-5,2,95], \"body\":[-2,0,-2], \"chest\":[-4,15,-1], \"head\":[3,0,4],",
+  " \"shL\":[-5,0], \"shR\":[0,0], \"armL\":[26,13,-96,52,7], \"armR\":[73,14,-67,62,-8],",
+  " \"legL\":[32,4,-95,14,-6], \"legR\":[-50,-6,-87,17,5], \"footL\":[-26,-2,0], \"footR\":[36,-8,36]}",
+  "The chest leans 15 degrees forward, the right arm swings ahead with its elbow bent 62, the left leg reaches forward",
+  "almost straight with its toes up 26, and the right foot points 36 down with its toes bent up 36."
+]}
+}

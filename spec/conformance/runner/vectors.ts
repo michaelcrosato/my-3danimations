@@ -44,6 +44,7 @@ export interface Tier1a {
 
 /** One clip of a tier-2 vector: decodes in whole micrometres at key and in-between times, plus mirror and text checks. */
 export interface Tier2Clip {
+  clip: VClip;
   restSrc: string;
   dur: number;
   loop: boolean;
@@ -55,8 +56,9 @@ export interface Tier2Clip {
   between: { t: number; at: number[] }[];
 }
 
-/** A tier-2 vector file (one set). */
+/** A tier-2 vector file (one set). `format` is "2.0" for the file of format 2's own fields. */
 export interface Tier2 {
+  format?: string;
   points: string[];
   bodies: Record<string, Record<string, unknown>>;
   clips: Record<string, Tier2Clip>;
