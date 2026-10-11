@@ -148,7 +148,7 @@ Today's animation pipeline is a cockpit. Almost every tool in it exists because 
 | The retargeting dialog (map bones by hand, fix the rest pose) | A human recognizes bones by name and shape | Automatic skeleton recognition with a confidence report; motion stored in an IK space independent of body size; a mapping file the agent can read and patch |
 | Marketplaces browsed by thumbnail and video; licenses read by people, or not at all | Humans choose by watching | A catalog of one line per clip (~35 tokens), searchable by words, tags and numbers (speed, height, travel); a machine-readable license and provenance on every clip; compatibility checked by a tool |
 | An animator for every new motion | Only skilled people could make motion | **Motion sources** the agent drives: the library, composition and edits, procedural generators, importers and, as plug-ins, generative models. Every source goes through the same QA gates |
-| A person reviews every asset | Trust needed a human | Automated gates on every clip; humans sample on a review page and turn their notes into thresholds and rules |
+| A person reviews every asset | Trust needed a human | Automated gates on every clip; the owner adopts each new clip from a review queue and samples the rest, turning the notes into thresholds and rules |
 | Every game rebuilds blending, foot IK and hit events | Engines ship GUIs, not runtimes an agent can read and reuse | One runtime, adapters per renderer, one conformance suite |
 | Manuals and tutorials for people | People learn by reading and watching | A token-budgeted manual, an agent skill, errors in the API's own language, examples that run |
 
@@ -387,7 +387,7 @@ in software.
 | **Source-motion quality** | Medium | The open data is decent and broad but not AAA; CMU is raw capture; Quaternius is stylized | Thin coverage of game-specific moves (combat variety, traversal polish) | G5; recipes and actions (Phase 6); generative backends (D.9) |
 | **Motion made by agents** | Medium, rising | Composition, edits and procedural sources, all checked by sensors; models improve; the socket is ready | Agents can't judge feel by eye | G6 and the benchmark |
 | **The seed library (data and legal)** | Medium | A clean seed exists across three namespaces, but it is small: the CC0 core is about 200 clips, and CMU and 100STYLE supply the rest. Purely AI-generated output is public domain in the US | The Mesh2Motion audit; CMU's grey zone; repairs the origin owes (the CMU record, the UAL2 v2.2 update) | G5 |
-| **Library growth by AI contribution** | Low-medium (the weakest leg) | Only one clean open generator, under terms its owner can change; open AI-fed catalogs elsewhere were flooded (Fab) or poisoned (ClawHub) | Contamination that can't be recalled once a game ships | G9, with human review before merge |
+| **Library growth by AI contribution** | Low-medium (the weakest leg) | Only one clean open generator, under terms its owner can change; open AI-fed catalogs elsewhere were flooded (Fab) or poisoned (ClawHub) | Contamination that can't be recalled once a game ships | G9, with the owner's review before adoption |
 | **Agent usability** | High, if packaged right | The owner's own tool patterns are proven; a registry serves the CLI, skill and MCP | Discoverability (the Vesper failure) | G4, G7 (benchmark) |
 | **Becoming the standard** | Low to medium (unknowable) | An empty niche, an open license, a spec, conformance vectors, exports to everything | Khronos, engines or vendors define the standard first; models aren't trained on a new library | G10 (M4) |
 | **Durability as models improve** | High | The airframe scales with the pilot; data and evals appreciate | World models replace explicit animation (not for years: they keep no persistent state) | Continuous |
@@ -488,7 +488,7 @@ Ranked by how hard each is to undo, which is the order that matters:
 
 | Risk | How the plan answers it | Where |
 |---|---|---|
-| **Library contamination:** a clip with tainted provenance ships in games and can't be recalled | License namespaces; provenance on every clip; the seed audits (the CMU notice, Mesh2Motion, UAL2 v2.2); allowlists; dedup; disclosure; human review before merge | WPs 1.5, 5.3, 5.7, 9.1, 9.3 |
+| **Library contamination:** a clip with tainted provenance ships in games and can't be recalled | License namespaces; provenance on every clip; the seed audits (the CMU notice, Mesh2Motion, UAL2 v2.2); allowlists; dedup; disclosure; a signed-in identity for every submitter; the owner's review before adoption | WPs 1.5, 5.3, 5.7, 8.2, 9.1, 9.3 |
 | **Supply-chain risk in what the package ships.** Clips are inert data, but skills, the MCP server and importers are code | Importers treat every input as untrusted; signed releases with provenance from the first published version | WPs 5.2, 7.4 |
 | **Retargeting onto real rigs looks wrong** | An IK-space format; skeleton recognition with confidence reports and patchable mappings; rest normalization; foot locking; tested on generated variants and real CC0 rigs | WPs 1.4, 2.4, 2.5, 4.3; G4 |
 | **Agents don't use it** (the Vesper failure) | The manual is the front door, with defaults and examples; a skill; the benchmark measures whether agents read past the manual | WPs 4.7, 7.3; G4, G7 |
@@ -545,11 +545,12 @@ cheaply.
 Execute PLAN.md in michaelcrosato/my-3danimations. Read docs/FEASIBILITY.md §0, then PLAN.md §0–§3 and §8, and adopt
 the doctrine in §3 as DOCTRINE.md (WP-0.1). Work the ledger (§14) in order: for each WP read only its entry and what it
 cites, meet every Done-when and prove it with Verify, apply the definition of done (§8.3), update the ledger and
-docs/PROGRESS.md, commit per WP, and keep one draft PR current. Make reversible calls yourself and log them; escalate
-only hard-to-undo calls (§3), using the 15-minute timer and the defaults in §13. Run each gate's command set and post
-its report on the PR. Reach G4 (M1, first flight) first, then continue phase by phase. When something needs the owner,
-mark it blocked-owner, say exactly what is needed on the PR, and carry on with the rest. Stop only for a kill criterion
-(§12) or a finished ledger.
+docs/PROGRESS.md, and commit per WP. Keep one draft PR per phase: run each gate's command set, post its report on the
+PR, and merge the PR into main when the gate passes (§8.5). Make reversible calls yourself and log them; escalate only
+hard-to-undo calls (§3), using the 15-minute timer and the defaults in §13. Reach G4 (M1, first flight) first, then
+continue phase by phase. When something needs the owner, mark it blocked-owner, say exactly what is needed on the PR,
+and carry on with the rest. Stop only for a kill criterion (§12), a finished ledger, or when all that is left is
+blocked-owner.
 ```
 
 **Effort level: ultracode** (recommended), with **max** as the fallback.

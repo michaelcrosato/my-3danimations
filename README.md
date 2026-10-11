@@ -61,11 +61,12 @@ Start a Claude Code session on this repository with this prompt:
 Execute PLAN.md in michaelcrosato/my-3danimations. Read docs/FEASIBILITY.md §0, then PLAN.md §0–§3 and §8, and adopt
 the doctrine in §3 as DOCTRINE.md (WP-0.1). Work the ledger (§14) in order: for each WP read only its entry and what it
 cites, meet every Done-when and prove it with Verify, apply the definition of done (§8.3), update the ledger and
-docs/PROGRESS.md, commit per WP, and keep one draft PR current. Make reversible calls yourself and log them; escalate
-only hard-to-undo calls (§3), using the 15-minute timer and the defaults in §13. Run each gate's command set and post
-its report on the PR. Reach G4 (M1, first flight) first, then continue phase by phase. When something needs the owner,
-mark it blocked-owner, say exactly what is needed on the PR, and carry on with the rest. Stop only for a kill criterion
-(§12) or a finished ledger.
+docs/PROGRESS.md, and commit per WP. Keep one draft PR per phase: run each gate's command set, post its report on the
+PR, and merge the PR into main when the gate passes (§8.5). Make reversible calls yourself and log them; escalate only
+hard-to-undo calls (§3), using the 15-minute timer and the defaults in §13. Reach G4 (M1, first flight) first, then
+continue phase by phase. When something needs the owner, mark it blocked-owner, say exactly what is needed on the PR,
+and carry on with the rest. Stop only for a kill criterion (§12), a finished ledger, or when all that is left is
+blocked-owner.
 ```
 
 **Effort: ultracode** (recommended). The plan is built for parallel lanes: every work package owns its paths, and there

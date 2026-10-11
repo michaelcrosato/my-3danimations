@@ -44,9 +44,9 @@
 - **Owner decisions** (§13) each have a default. Proceed on the default; escalate only the calls that are hard to undo
   (§3, "Deviations and escalation").
 - **When the owner is needed** (G8's phone review, G9's sampled approval, G10's confirmation, linking O8's Supabase
-  project, an O-decision whose default is "don't"), mark the ledger row `blocked-owner`. Post exactly what is needed on
-  the PR, and carry on with every WP that doesn't depend on it. The ledger's statuses are `todo`, `doing`, `done`,
-  `blocked-owner` and `deferred` (with the reason).
+  project and the repository settings it needs, an O-decision whose default is "don't"), mark the ledger row
+  `blocked-owner`. Post exactly what is needed on the PR, and carry on with every WP that doesn't depend on it. The
+  ledger's statuses are `todo`, `doing`, `done`, `blocked-owner` and `deferred` (with the reason).
 - **Where the truth lives:** `docs/PROGRESS.md` (one screen, the current state), the ledger (§14: one row per WP),
   `docs/DECISIONS.md` (never cleaned up), `docs/FEEDBACK-LOG.md` (points not acted on, counted by theme).
 
@@ -119,8 +119,8 @@ WP-0.1 records these in `docs/DECISIONS.md` as D1 to D15:
    git-ignored cache.
 10. **D10 License namespaces, with CC0 as the default.**
     - The default pack is CC0: a game that installs the library gets only CC0 clips unless it opts in to more.
-    - CC BY 4.0 (with credit) and CMU-licensed clips are opt-in, each in sets of their own, because CMU's terms forbid
-      reselling the data "even in converted form".
+    - CC BY 4.0 (with credit) and CMU-licensed clips (CMU's terms forbid reselling the data "even in converted form")
+      are opt-in, each in sets of their own.
     - Non-commercial and no-redistribution libraries stay in a local-only lane that never ships.
 11. **D11 One tool registry, with the CLI and the skill first and MCP as a view.** CLI plus skills cost a coding agent
     less context than MCP; Playwright's own guidance says so.
@@ -533,20 +533,26 @@ game:  graph (L3) ─▶ Animator.step(dt) ─▶ events, root motion, hashed st
   to its set through a pull request, so the library stays open, versioned and forkable, and losing the queue loses no
   library data.
 - **States:** `submitted`, then `checking`, then either `bounced` (a check failed; the reason goes back to the
-  contributor) or `awaiting review`, then `adopted`, `archived` or `rejected`, with the owner's note. Archived and
-  rejected submissions keep their content hash, so a resubmitted motion is recognized.
+  contributor) or `awaiting review`, then `adopted`, `archived` or `rejected`, with the owner's note. The checker
+  records each submission's content hash, text included; a decision applies only while it matches, and the adopt bot
+  rechecks it. Archived and rejected submissions keep their motion hash (§5.3), so a resubmitted motion is recognized.
 - **The owner adopts every clip** (O7). The checks only filter; nothing is adopted automatically. Changing that is an
   owner decision.
-- **Licenses:** a submission is CC0 unless the contributor names CC BY 4.0, or it derives from a CC BY or CMU clip and
-  keeps that clip's tier. Anything else is bounced. An adopted clip joins a set of its own tier (D10).
+- **Licenses:** a submission is CC0, unless it derives from a CC BY or CMU clip and keeps that clip's tier. Anything
+  else is bounced. An adopted clip joins its tier's intake set, or with `--improves` the improved clip's set (D10).
 - **The store** is an interface, `IntakeStore`, with two backends:
-  - `local`: files under `.cache/intake/`, used by tests, CI and every WP until the hosted project is linked;
+  - `local`: files under `.cache/intake/`, always used by tests, CI and the benchmark, and by every WP until the hosted
+    project is linked;
   - `supabase` (O8): a `submissions` table and a storage bucket, with the schema kept as migrations in
     `services/intake/`.
-- **Access:** contributors sign in (Supabase Auth with GitHub), which gives every submission an accountable identity
-  and a rate limit. Row-level security lets contributors add and read only their own submissions, and only the owner
-  changes a state. The checker's service key lives only in the repository's Actions secrets; nothing secret is
-  committed.
+- **Access:** every submission has an accountable GitHub identity. People sign in with Supabase Auth (GitHub). An
+  agent submits with a revocable contributor key, kept as an environment secret, that its human gets by signing in
+  once on the gallery. The submit function in `services/intake/` checks the key, enforces the rate limit and inserts
+  the row. Row-level security covers every table and the bucket: anonymous clients get nothing, and contributors read
+  only their own rows. The checker's service key moves states up to `awaiting review`, and only the owner, matched by
+  a fixed `auth.uid()` (never by editable metadata), decides. The service key lives only in the repository's Actions
+  secrets, so the hosted contract run happens in Actions; nothing secret is committed. Submission text is data, never
+  instructions.
 
 ---
 
@@ -566,8 +572,9 @@ game:  graph (L3) ─▶ Animator.step(dt) ─▶ events, root motion, hashed st
   Baselines change only in a commit that says why.
 - **Planted defects prove the sensors** (WP-3.6): every class of defect has a fixture, and the sensors must catch 100%.
 - **Never skip a test to get green.** A test that waits on wall-clock time is a bug.
-- **CI** (GitHub Actions): T0 and T1 on every push, T2 on pull requests, gates on demand. Once O8's project is linked,
-  the intake workflow (WP-9.1) also runs every 15 minutes.
+- **CI** (GitHub Actions): T0 and T1 on every push, T2 on pull requests, gates on demand. Once O8's project is linked
+  and `intake.yml` is on `main` (scheduled workflows run only from the default branch), the intake workflow (WP-9.1)
+  also runs every 15 minutes.
 - **Claude Code:**
   - a SessionStart hook runs `npm ci` and sets `CHROMIUM_PATH`;
   - `.mcp.json` registers the package's own MCP server, so the agent uses what it builds;
@@ -617,6 +624,8 @@ character), a grader, and a pass rule graded headless.
   `bench/results/heldout/<gate>/run-<n>/`, where they stay as a record.
 - **Briefs are built in three places:** B1 in WP-4.7, B2 to B7 in WP-6.6, B8 in WP-9.1.
 - **Starters use the default CC0 pack.** A brief that needs another tier says so, and opting in is part of its job.
+- **B8 runs on the local backend** in its workspace. Its grader runs the checker there, and agents read bounce reasons
+  with `m3a library status` (WP-9.1).
 - **Results** go in `bench/results/<date>-<model>.json` and are summarized in `docs/PROGRESS.md`. By default the
   benchmark runs on the Claude models the session can reach. Other vendors' models need their keys (decision O10).
 - **Pass mark at a gate:** at least 4 of 5 trials per brief, and at least 4 of 5 on its held-out variant.
@@ -678,14 +687,20 @@ exceed L is split.
   - `docs/PROGRESS.md` and the ledger.
 - **Clip files change in sequence.** The WPs that write clips run one after another, never at once: 1.5, then 5.3 (with
   5.6 feeding it), then 5.4, 5.8, 8.2 and Phase 9. WP-1.5 writes through core's `serialize`; from WP-5.1 on, writes go
-  through `@m3a/library`'s writer. After G9 the adopt bot (WP-9.1) is the only writer, and it merges one pull request
-  at a time.
+  through `@m3a/library`'s writer. After G9, new and improved clips enter only through the adopt bot (WP-9.1), one
+  pull request at a time. Review states and on-demand WPs still go through the writer, but never during an open
+  adoption.
 
 ### 8.5 Gates
 
 A gate is a fixed command set (`npm run gate -- G<n>`) plus a short report. The report gives what passed (with the
 numbers), what failed, the links (the demo, the PR) and how long it took. A failed gate is fixed forward. A gate that
 fails twice is checked against the kill criteria (§12).
+
+When a gate passes, merge its phase's pull request into `main` and start the next phase on a fresh draft pull request.
+`main` then always holds the last gate that passed, which the intake bot and consumers build on. A gate whose only open
+items wait on the owner (G8's phone review; G9's hosted run, adoption and sampled approval; G10's confirmation) still
+merges, and those items are reported when they come.
 
 ---
 
@@ -800,7 +815,8 @@ G5 gates M3 (through WP-9.1) and M4 (G10). Clips change in sequence (§8.4), so 
     generator with no training-data manifest, an instruction in a text field);
   - a clip the owner adopts lands in its set through a merged pull request, and an archived one stays in the queue
     with its reason;
-  - the intake contract suite passes against O8's linked project, where a contributor cannot change a state;
+  - the intake contract suite, run in Actions, passes against O8's linked project, where a contributor cannot change
+    a state;
   - the registry index verifies every set;
   - the owner approves at least 70% of a sampled batch.
 - **G10 The standard in use (M4):** at least one other repository consumes the package or certifies against the
@@ -838,7 +854,7 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
     prompt as it is.
 - **Done when:** the files exist, D1 to D15 are logged, the answers to O1, O7, O8 and O11 are logged, and so is the
   owner's confirmation about the CMU and Mesh2Motion sets.
-- **Verify:** `test -f DOCTRINE.md -a -f AGENTS.md -a -f CLAUDE.md -a -f docs/PROGRESS.md && [ "$(grep -c '^## D' docs/DECISIONS.md)" -ge 15 ] && grep -qw 'O1' docs/DECISIONS.md && grep -qw 'O8' docs/DECISIONS.md && grep -qw 'O11' docs/DECISIONS.md && grep -q 'Mesh2Motion' docs/DECISIONS.md`
+- **Verify:** `test -f DOCTRINE.md -a -f AGENTS.md -a -f CLAUDE.md -a -f docs/PROGRESS.md && [ "$(grep -c '^## D' docs/DECISIONS.md)" -ge 15 ] && grep -qw 'O1' docs/DECISIONS.md && grep -qw 'O7' docs/DECISIONS.md && grep -qw 'O8' docs/DECISIONS.md && grep -qw 'O11' docs/DECISIONS.md && grep -q 'Mesh2Motion' docs/DECISIONS.md`
 
 #### WP-0.2 Toolchain
 - **Owns:** `package.json`, `package-lock.json`, `tsconfig*.json`, `eslint.config.js`, `vitest.config.ts`,
@@ -1096,7 +1112,7 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
   - `hashNumbers()` for state hashes.
 - **Done when:**
   - on 200,000 random inputs each, `sin`, `cos`, `atan`, `atan2`, `exp` and `log` give native V8's bits exactly. The
-    others stay within the stated number of units in the last place. That is what D15 proved;
+    others stay within the stated number of units in the last place. That is what my-3d2dge's D15 proved;
   - the portable math gives identical bits in V8 and in JavaScriptCore. Node and Chromium are both V8, so a parity test
     between them can't catch a failure; Bun runs JavaScriptCore;
   - the helpers match `core.json`;
@@ -1584,7 +1600,9 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
     in a tier the game hasn't opted into.
 - **Done when:** for a fixed set of 40 queries written from game moments ("lands on one knee", "sneaks", "drinks a
   potion"), a fitting clip is in the top 5 for at least 32; and for 10 held-out queries, written by a verifier subagent
-  that has not seen the synonym table or the 40, after the table is frozen, for at least 8.
+  that has not seen the synonym table or the 40, after the table is frozen, for at least 8. Both run with every tier
+  opted in, and the CC0-only scores are reported. A query that hasn't opted in returns only CC0 rows, and its `next`
+  names a closer match in an opt-in tier.
 - **Verify:** `npm test -- search`
 
 #### WP-5.6 Large corpora on demand
@@ -1610,6 +1628,7 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
 - **Size:** S
 - **Build:** `npm run license -- check <set | game manifest>` (exposed as `m3a license check` once WP-7.1 lands):
   - lists the credits required (CC BY, CMU);
+  - credits only the tiers a game manifest opts into (CC0 by default);
   - fails on `local` content in a shipped manifest;
   - flags missing SPDX ids;
   - prints a credits block a game can show.
@@ -1825,11 +1844,11 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
 - **Carry:** from riftlight: `scripts/bundle.mjs`, which builds one self-contained ES module, `pixel-engine.js`.
 - **Build:**
   - ESM builds with types for every package.
+  - The library's default package holds only `cc0` sets; `cc-by` and `cmu` sets ship as separate opt-in packs (D10).
   - A single-file bundle (`m3a.js` plus a CC0 subset of the library) for agents that can't install packages. The
     subset is listed in `tools/bundle/manifest.json`, which passes `npm run license -- check`. `npm run pack -- --check`
     also runs the sensors (WP-3.3) on every clip in it and fails on one that neither passes nor carries a WP-5.8
-    baseline. The bundle carries the credits block and the license texts (CMU's notice in full) of every tier it
-    includes.
+    baseline. The bundle carries the credits block and the license texts of every tier it includes.
   - The version and changelog rule.
   - A dry-run pack (`npm pack --dry-run`) per package.
   - Publishing waits for O2. When it comes, every release is signed with provenance (npm provenance through Sigstore)
@@ -1837,7 +1856,8 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
     and agent-skill registries have already shipped malware (ClawHub carried 341 malicious skills).
 - **Done when:** a scratch project installs the packed tarballs and runs the manual's example, the single file runs
   the same example and carries the credits and license texts of its tiers, `npm run license -- check` passes on the
-  bundle's manifest, and every clip in it has a QA verdict, pass or baselined (WP-5.8 may not have run yet).
+  bundle's manifest, every clip in it has a QA verdict, pass or baselined (WP-5.8 may not have run yet), and the
+  packed default library holds no `cc-by` or `cmu` clip.
 - **Verify:** `npm run pack -- --check && npm run license -- check tools/bundle/manifest.json`
 
 **Gate G7 = Milestone M2, Agents fly it.**
@@ -1861,27 +1881,32 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
 - **Verify:** `npm run e2e -- gallery`
 
 #### WP-8.2 The review queue
-- **Owns:** `apps/gallery/src/review/*`, `packages/tools/src/tools/review.ts`, `packages/tools/src/intake/*`,
-  `services/intake/**`
+- **Owns:** `apps/gallery/src/review/*`, `apps/gallery/src/contributors/*`, `packages/tools/src/tools/review.ts`,
+  `packages/tools/src/intake/*`, `services/intake/**`
 - **Needs:** 8.1, 5.8
 - **Size:** L
 - **Build:**
-  - The intake store of §5.9: `IntakeStore` with its `local` and `supabase` backends, the migrations and row-level
-    security policies, and one contract test suite that both backends must pass, including "only the owner changes a
-    state".
+  - The intake store of §5.9: `IntakeStore` with its `local` and `supabase` backends, the migrations, row-level
+    security on every table and the bucket, and one contract test suite that both backends must pass. Its cases
+    include: anonymous clients get nothing; a contributor reads only their own rows; editing one's own `user_metadata`
+    gains nothing; only the checker moves states up to `awaiting review`; only the owner decides.
+  - The submit function in `services/intake/`: it checks a contributor key, enforces the rate limit and the size
+    limit, and inserts the submission. Contributors' humans sign in on the gallery's contributor page to get and
+    revoke keys.
   - The review queue, in the gallery and as `m3a review`, so nothing is done only in the gallery:
     - submissions awaiting review, each with its preview sheet, its numbers, its check report and a diff against the
       clip it improves: adopt, archive or reject, with a note (WP-9.1's adopt bot commits what is adopted);
     - sampled library clips: approve or flag, with a note, written into the clip's review state;
     - batch actions for both.
-  - Each decision records the motion hash it was made on (§5.3). A decision on a clip that changed since it was queued
-    is stale and is not applied.
+  - Each decision records the hash it was made on: a submission's content hash, or a library clip's motion hash (§5.3).
+    A decision on a clip that changed since it was queued is stale and is not applied.
   - Notes go into `docs/FEEDBACK-LOG.md` by theme, and threshold and task proposals into a list for the next WP.
   - Until O8's project is linked, the gallery exports a review as JSON (through the share sheet on a phone, or as a
     file on a desk), and `m3a review ingest <file>` applies it to the local store and the clips.
-  - Linking the project means creating it and adding its keys to the repository's Actions secrets. That reaches
-    outside the repo, so ask the owner once, here, and build on the local store meanwhile. Check the free tier's
-    limits, including whether idle projects pause, and log them in `docs/DECISIONS.md`.
+  - Linking the project means creating it, adding its keys to the repository's Actions secrets, and turning on the
+    repository setting that lets Actions create pull requests (the adopt bot needs it). That reaches outside the repo,
+    so ask the owner once, here, and build on the local store meanwhile. Check the free tier's limits, including
+    whether idle projects pause, and log them in `docs/DECISIONS.md`.
 - **Done when:**
   - the contract suite passes on the `local` backend *(on `supabase`: deferred proof, G9, once O8's project is
     linked)*;
@@ -1912,7 +1937,8 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
   - `m3a library submit <clip | recipe> [--improves <SET/Clip>]` validates and measures the clip locally, then sends
     it, its provenance and its local report to the queue under the contributor's identity. `--improves` records the
     original's id and content hash, so the review shows a diff and adoption makes a new version: this is how a game
-    sends back a clip it fixed. The provenance records:
+    sends back a clip it fixed. `m3a library status [<id>]` lists a contributor's submissions with their states and any
+    bounce reason. The provenance records:
     - the method;
     - the producing tool, and the model and version if one was used;
     - a hash of the prompt;
@@ -1921,12 +1947,16 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
   - **The checker** (`tools/intake/check.ts`, run by `intake.yml` every 15 minutes and on demand) takes new
     submissions and runs the gates: schema, lint, sensors, license allowlist, dedup, budgets, provenance, text fields
     free of instructions aimed at agents (models read catalog lines), and a retarget onto the reference rigs with the
-    sensors green. It renders a preview sheet in software (WP-3.1). A failure is bounced with its reason; a pass waits
+    sensors green. It renders a preview sheet in software (WP-3.2). A failure is bounced with its reason; a pass waits
     for the owner.
-  - **The adopt bot** (`tools/intake/adopt.ts`): when the owner adopts a submission, it writes the clip through
-    `@m3a/library`'s writer into a set of its tier, with its catalog row and provenance (review: approved by the owner,
-    with the motion hash). It opens a pull request labelled `adopted` and merges it when `library-gates.yml` passes;
-    the owner's adoption is the approval.
+  - **`library-gates.yml`** runs the same gates on every pull request that touches `library/sets/`.
+  - **The adopt bot** (`tools/intake/adopt.ts`): `intake.yml` runs it after each check, and the session runs it by
+    hand until `intake.yml` is on `main`. It acts only on adoptions recorded by the owner's identity in the hosted
+    store. For each, one at a time, it rechecks the submission's content hash, writes the clip through
+    `@m3a/library`'s writer into its set with its catalog row and provenance (review: approved by the owner, with the
+    hash), opens a pull request against `main`, runs the library gates itself (a pull request opened with the
+    workflow's own token starts no other workflow), and merges it if they pass. If they fail, it closes the pull
+    request and returns the submission to `awaiting review` with the reason. The owner's adoption is the approval.
   - What every contributor gives:
     - a CC0 dedication (the default), or the tier of the clip it derives from;
     - an accountable human behind every agent, through the sign-in;
@@ -1935,7 +1965,7 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
     - disclosure of who or what made the clip.
   - A rate limit per contributor, no per-clip rewards, and the owner's review before adoption (O7).
   - Brief B8 and its grader, which takes the starter character as a parameter (§7).
-  - The manual's grow section: `m3a library submit` and the protocol's rules, with a runnable example, so B8's fresh
+  - The manual's grow section: `m3a library submit` and the intake rules, with a runnable example, so B8's fresh
     agents work from the manual alone (the bench workspace holds the manual, not `CONTRIBUTING.md`).
 
   The registries that survived AI floods share these defenses: disclosure, identity, automated checks, no reward for
@@ -1945,12 +1975,15 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
   - on the local store, a clean submission passes every check and waits for review, and adopting it in a dry run
     against a scratch checkout writes the clip into its set with its catalog row and provenance and prints the pull
     request it would open *(the real pull request: deferred proof, G9)*;
-  - each planted bad submission is bounced with a clear message: a bad license, a duplicate, a defect, missing
-    provenance, a generator with no manifest, an instruction hidden in a text field;
+  - the adopt bot refuses an adoption not recorded by the owner's identity, and when the gates fail it closes the
+    pull request and returns the submission to `awaiting review`;
+  - each planted bad submission is bounced with a clear message, which `m3a library status` shows: a bad license, a
+    duplicate, a defect, missing provenance, a generator with no manifest, an instruction hidden in a text field;
+  - a pull request with a planted bad clip fails `library-gates.yml`;
   - an improvement shows its diff and is adopted as a new version, and a resubmitted archived motion is recognized;
   - B8's grader passes a known-good solution on the default character and on a generator seed outside WP-4.2's test
     set, and the manual's grow example runs within the manual's budget.
-- **Verify:** `npm test -- intake contribute bench/graders/B8 manual && npm run doctrine && npm run intake -- check --fixture all`
+- **Verify:** `npm test -- intake bench/graders/B8 manual && npm run doctrine && npm run intake -- check --fixture all && npm run gate -- library-pr --fixture all`
 
 #### WP-9.2 The motion-source socket
 - **Owns:** `packages/core/src/sources/*`, `packages/tools/src/sources/*`
@@ -1962,11 +1995,12 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
   - Built-in sources: the library, recipes, procedural.
   - An HTTP adapter template for external generators, disabled by default. It can pass key poses as constraints, which
     is the input shape of NVIDIA Kimodo's constraint-based generation.
-  - A source whose license isn't on the allowlist writes only to `library/local/` (O5).
+  - No source writes into a distributable set: its clips go to the intake queue through `library.submit`, and a source
+    whose license isn't on the allowlist writes only to `library/local/` (O5).
   - Every source's output passes the same gates, and records the source's license version per clip, since vendors
     change terms: NVIDIA "may update" its model license "at any time".
-- **Done when:** the built-in sources and a mock external source run through one interface, and a source that isn't
-  allowlisted can't write into a distributable set.
+- **Done when:** the built-in sources and a mock external source run through one interface, an allowlisted source's
+  clip lands in the intake queue, and a source that isn't allowlisted can't write into a distributable set.
 - **Verify:** `npm test -- sources`
 
 #### WP-9.3 Dedup and lineage
@@ -2244,7 +2278,7 @@ version, commit, date and a note with the numbers. Gates are rows too.
 
 - **Key pose:** one moment of a clip, as readable numbers.
 - **Clip:** key poses over time, plus contacts, events, facts, provenance and quality.
-- **Set:** clips from one source, under one license tier, with one content id.
+- **Set:** clips from one source or the intake queue, under one license tier, with one content id.
 - **Default pack:** the CC0 sets a game gets without opting in to other tiers.
 - **Intake queue:** the inbox where submitted clips wait for the checks and the owner's decision; the repository is the
   library.
