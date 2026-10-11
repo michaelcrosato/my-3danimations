@@ -816,3 +816,44 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   import scanner, which read `import's` inside a string as an import.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.15.0; revised after review in v0.15.1
+
+## D42 · 2026-10-11 · Describe reads phases by rule from postures, steps and holds; the ground truth reviewed first
+
+- **Principle:** 4, 5, 9, WP-3.4
+- **Call:**
+  - **Phases by rule, from a fixed vocabulary** (stand, walk, run, crouch, sit, lie, air; `describe-truth.json`), so
+    the same clip always reads the same. Each sample's posture comes from the body's numbers:
+    - air: no part of the mannequin's surface within 6% of hip height of the floor;
+    - lie: the trunk more than 60° from upright and low (the pelvis under 60% of its rest height, the neck under 45%
+      of hip height: a three-point landing leans as far with its neck well up);
+    - sit: the trunk upright, on the floor or seated back with the thighs level;
+    - crouch: the pelvis under 80% of its rest height; stand otherwise.
+  - **The pelvis, not the centre of mass.** The plan names the centre of mass; balance waits for WP-D.4, and the
+    pelvis's height against its rest is what the phases need (the WP entry is edited).
+  - **Gaits from steps:** three or more landings, the feet in turn, each within 1.5 s of the last, the body upright.
+    A foot lands where it comes down and stays 0.08 s, read two ways: where it stands as the metrics measure it (a
+    sneaking step skims the floor) and where it is down by height alone (an in-place loop without a treadmill slides
+    its planted foot back faster than a stance). A foot down from the clip's start, or for a whole loop, hasn't
+    landed. Within a gait, a flight under 0.4 s is a running stride (a jog in place floats 0.27 s); longer is a leap.
+  - **Phases hold.** A phase lasts 0.15 s. A stand, crouch or sit is one only where the pelvis holds for 0.2 s, or a
+    crouch where it bottoms out (down into it and up out of it: a landing's crouch, not a pass on the way into a seat).
+    A pose at the clip's start or end counts from 0.1 s (air from 0.05 s: a clip that opens falling). Anything else is
+    a transition and joins the phase it leads into.
+  - **Moments:** landings (on a foot, the back, the front, or seated), strikes by limb, the clip's events; travel in
+    hip heights. The text is at most 150 tokens; `detail` adds every moment and each phase's particulars.
+- **The ground truth, reviewed before use:** a verifier checked the 30 labels against side sheets and the body's
+  numbers. It agreed with 23 and corrected 2: Death_C is thrown through the air before it lands; Jump_Land starts at its
+  impact and is never airborne. 4 were dropped as undecidable under the vocabulary: two in-place jump poses with a leg
+  through the floor, an upright two-knee kneel, a run-up whose flights are within capture's noise. 3 more were dropped
+  as near-duplicates of clips kept. It labelled 7 replacements, each a different motion, by eye and by numbers. Its
+  rules are in the vocabulary: stepping beats height; one repositioning step is not walk; moving into or out of a
+  seat is not crouch, but a crouch held about 0.25 s is; an opening pose counts only if held; kneeling is undefined.
+- **Result:** 30 of 30 clips name the right phases in the right order (the bar is 27). Every clip's text is the same
+  every run, at most 91 tokens over the whole library (525 clips described in 5.7 s). Outside the 30, the rules read
+  sensibly: the other rig's Jump_Land is crouch then stand; Backflip is stand, crouch, air, crouch, stand; the
+  undecidable ones read as walk (Run_Jump_Over's run-up) and sit (Death_A's kneel).
+- **Outside WP-3.4's Owns** (one agent, D21): the metrics' `stance` reads by height alone on request; the sensors
+  index exports `describe`.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.16.0
+

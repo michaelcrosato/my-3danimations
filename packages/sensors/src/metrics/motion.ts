@@ -152,8 +152,12 @@ export const STANCE = {
   minTime: 0.05,
   mergeTime: 0.1,
 };
-/** Where each end stands on the floor, measured from the motion in the world (a loop's contact through its seam wraps). */
-export function stance(m: Motion): NonNullable<Clip["contacts"]> {
+/**
+ * Where each end stands on the floor, measured from the motion in the world (a loop's contact through its seam wraps).
+ * With `heights`, by height alone: where an end is down, however it moves (describe counts steps so, since a foot
+ * that slides back on an in-place loop without a treadmill still lands and lifts).
+ */
+export function stance(m: Motion, heights = false): NonNullable<Clip["contacts"]> {
   const H = m.rest.H0, n = m.frames.length - 1, out: NonNullable<Clip["contacts"]> = { by: "detected" };
   const minF = Math.max(1, Math.round(STANCE.minTime / m.dt)), mergeF = Math.round(STANCE.mergeTime / m.dt), ms = (x: number) => Math.round(x * 1000) / 1000;
   for (const end of ["footL", "footR", "handL", "handR"] as const) {
@@ -167,7 +171,7 @@ export function stance(m: Motion): NonNullable<Clip["contacts"]> {
       // and its speed against the pelvis: a foot carried along with the body (a glide, a dragged foot) stands however fast
       const p0 = world(m, i0, at(m.frames[i0]!, "pelvis")), p1 = world(m, i1, at(m.frames[i1]!, "pelvis"));
       const rel = i1 > i0 ? PORTABLE.hypot(w1[0] - w0[0] - (p1[0] - p0[0]), w1[1] - w0[1] - (p1[1] - p0[1])) / ((i1 - i0) * m.dt) : 0;
-      down = (down ? h <= STANCE.exit * H : h <= STANCE.enter * H) && (v <= STANCE.speed * H || rel <= STANCE.body * H);
+      down = (down ? h <= STANCE.exit * H : h <= STANCE.enter * H) && (heights || v <= STANCE.speed * H || rel <= STANCE.body * H);
       on.push(down);
     }
     let runs: [number, number][] = [];

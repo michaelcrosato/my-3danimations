@@ -4,6 +4,14 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.16.0 · 2026-10-11
+
+### Sensors
+- WP-3.4: `describe(clip, R)`: a clip as a short text timeline: its phases by rule (stand, walk, run, crouch, sit, lie,
+  air), landings, strikes, events and travel; at most 150 tokens, more with `detail`. 30 of 30 on the reviewed ground
+  truth (`fixtures/describe-truth.json`).
+- The metrics' stance can read by height alone.
+
 ## 0.15.1 · 2026-10-11
 
 ### Sensors

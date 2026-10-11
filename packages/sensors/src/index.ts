@@ -30,3 +30,5 @@ export type { Report } from "./metrics/index.ts";
 export * as checks from "./metrics/index.ts";
 /** Assertions about a clip's motion ("footL planted 0.33–0.60 s, slide < 10 mm"), checked, failing as repairs. */
 export * as predicates from "./predicates/index.ts";
+/** A clip as a short text timeline: its phases (stand, walk, run, crouch, sit, lie, air), landings, strikes, travel. */
+export { describe } from "./describe/index.ts";

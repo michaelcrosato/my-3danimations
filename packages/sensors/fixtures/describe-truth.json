@@ -1,0 +1,286 @@
+{
+ "about": "WP-3.4's ground truth: 30 clips whose phases were labelled from their side-view filmstrips (10 frames, sensors.sheets.filmstrip) and their catalog lines, before describe was written. Phases: stand, walk, run, crouch, sit, lie, air; a clip's phases in order, repeats merged. A verifier reviewed the 30 labels against side sheets and the body's numbers (docs/DECISIONS.md D42): it agreed with 23 and corrected 2 (Death_C is thrown through the air before it lands; Jump_Land starts at its impact, never airborne); 4 were dropped as undecidable under the vocabulary (two in-place jump poses with a leg through the floor, an upright two-knee kneel, a run-up whose flights are within capture's noise) and 3 as near-duplicates of clips kept (the same source motion on the other rig); it labelled 7 replacements, each a different motion, by eye and by numbers.",
+ "vocabulary": {
+  "stand": "upright on the feet, not stepping",
+  "walk": "stepping, a foot always on the floor",
+  "run": "stepping with both feet off the floor between steps",
+  "crouch": "low on bent legs, the feet under the body",
+  "sit": "seated: on a chair (the pelvis behind the feet, thighs level) or on the floor, the trunk upright",
+  "lie": "the trunk along the floor: lying, crawling",
+  "air": "off the floor: no foot or hand on it",
+  "rules": {
+   "a": "stepping beats height: a crouched or sneaking walk is walk, not crouch",
+   "b": "one repositioning step is not walk (Sitting_Enter's foot moving 400 mm forward, lifted at most 54 mm)",
+   "c": "moving into or out of a seat is not crouch (no chair is drawn, so it looks like a squat); a crouch held about 0.25 s counts",
+   "d": "an opening pose counts only if it is held: Death_C's still start is stand; Jump_Land's first frame, mid-impact, adds nothing",
+   "e": "kneeling is undefined: a kneel with the feet under the body reads as crouch (Land_Three_Point); an upright kneel isn't used"
+  }
+ },
+ "clips": [
+  {
+   "clip": "QUATERNIUS_3D2DGE/Idle_Loop",
+   "phases": [
+    "stand"
+   ],
+   "seen": "stands, shifting a little, the whole loop",
+   "catalog": "standing at rest, breathing and shifting weight"
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/Walk_Loop",
+   "phases": [
+    "walk"
+   ],
+   "seen": "a walking cycle in place, a foot always on the floor",
+   "catalog": "relaxed walk, in place"
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/Jog_Fwd_Loop",
+   "phases": [
+    "run"
+   ],
+   "seen": "a running cycle in place, both feet off the floor between steps",
+   "catalog": "jog, in place"
+  },
+  {
+   "clip": "MESH2MOTION/Sitting_Enter",
+   "phases": [
+    "stand",
+    "sit"
+   ],
+   "seen": "stands to about 0.4 s, lowers, seated from about 0.9 s",
+   "catalog": "sits down onto a seat (no chair is drawn)"
+  },
+  {
+   "clip": "MESH2MOTION/Sitting_Exit",
+   "phases": [
+    "sit",
+    "stand"
+   ],
+   "seen": "seated to about 0.3 s, rises, standing from about 0.9 s",
+   "catalog": "stands up from a seat"
+  },
+  {
+   "clip": "MESH2MOTION/Death_C",
+   "phases": [
+    "stand",
+    "air",
+    "lie"
+   ],
+   "seen": "stands still at 0 (one held key), thrown clear of the floor from about 0.07 s (the lowest point 360 to 650 mm up at 0.25 to 0.5 s), on the floor from about 0.7 s, rolling and lying to the end",
+   "catalog": "falls straight back, rolls over and lies spread out",
+   "review": "corrected: the body is in the air about 0.55 s before it lands; the still start is held, so it counts (rule d)"
+  },
+  {
+   "clip": "CMU_CURATED/Sneak_Loop",
+   "phases": [
+    "walk"
+   ],
+   "seen": "a slow sneaking walk in place, knees bent, a foot always down",
+   "catalog": "Sneaking: crouched low, stepping carefully, arms held in close"
+  },
+  {
+   "clip": "MESH2MOTION/Sitting_Idle",
+   "phases": [
+    "sit"
+   ],
+   "seen": "seated on a chair (not drawn) the whole loop",
+   "catalog": "seated at rest"
+  },
+  {
+   "clip": "MESH2MOTION/Sleeping",
+   "phases": [
+    "lie"
+   ],
+   "seen": "lies flat on the back the whole loop",
+   "catalog": "lies on the back asleep, the chest rising and falling"
+  },
+  {
+   "clip": "MESH2MOTION/Crawl",
+   "phases": [
+    "lie"
+   ],
+   "seen": "crawls on the belly, flat on the floor, the whole loop",
+   "catalog": "crawls on the belly, reaching ahead with alternate arms, in place"
+  },
+  {
+   "clip": "MESH2MOTION/Meditate",
+   "phases": [
+    "sit"
+   ],
+   "seen": "sits cross-legged on the floor the whole loop",
+   "catalog": "sits cross-legged, hands on the knees, breathing slowly"
+  },
+  {
+   "clip": "MESH2MOTION/NinjaJump_Idle",
+   "phases": [
+    "air"
+   ],
+   "seen": "held in the air in a tucked leap pose the whole loop",
+   "catalog": "airborne ninja pose held: body forward, arms swept back"
+  },
+  {
+   "clip": "MESH2MOTION/Crouch_Idle",
+   "phases": [
+    "crouch"
+   ],
+   "seen": "crouched low on both feet the whole loop",
+   "catalog": "crouched low and still, looking about"
+  },
+  {
+   "clip": "MESH2MOTION/Land_Three_Point",
+   "phases": [
+    "air",
+    "crouch"
+   ],
+   "seen": "falls from above to about 0.6 s, crouched on the floor from about 0.75 s",
+   "catalog": "drops from above into a crouched three-point landing"
+  },
+  {
+   "clip": "MESH2MOTION/NinjaJump_Land",
+   "phases": [
+    "air",
+    "crouch",
+    "stand"
+   ],
+   "seen": "in the air at 0, crouched from about 0.14 s, rises, standing from about 0.85 s",
+   "catalog": "lands from the ninja leap in a crouch"
+  },
+  {
+   "clip": "CMU_CURATED/Walk_Loop",
+   "phases": [
+    "walk"
+   ],
+   "seen": "a walking cycle in place",
+   "catalog": "An everyday walk at a steady pace, arms swinging loosely. One stride cycle, in place"
+  },
+  {
+   "clip": "STYLE100/Neutral_Walk",
+   "phases": [
+    "walk"
+   ],
+   "seen": "a walking cycle in place",
+   "catalog": "Normal walking"
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/Sprint_Loop",
+   "phases": [
+    "run"
+   ],
+   "seen": "a sprinting cycle in place, both feet off the floor between steps",
+   "catalog": "full sprint with big arm swings, in place"
+  },
+  {
+   "clip": "MESH2MOTION/Jump_Land",
+   "phases": [
+    "crouch",
+    "stand"
+   ],
+   "seen": "touches down at 0 (feet 12 to 15 mm up, the pelvis already falling: not a held pose), crouched about 0.15 to 0.4 s (pelvis 436 to 512 mm), rises, standing from about 1.0 s",
+   "catalog": "lands from a fall, knees soak it up, stands",
+   "review": "corrected: never airborne; frame 0 is the impact, not a held pose (rule d)"
+  },
+  {
+   "clip": "MESH2MOTION/Death_B",
+   "phases": [
+    "stand",
+    "air",
+    "lie"
+   ],
+   "seen": "stands to about 0.25 s, thrown back through the air to about 1.05 s, lies from about 1.25 s",
+   "catalog": "thrown back off the feet into the air and lands flat on the ground"
+  },
+  {
+   "clip": "CMU_CURATED/Sit_Down_Get_Up",
+   "phases": [
+    "stand",
+    "sit",
+    "stand",
+    "sit",
+    "stand"
+   ],
+   "seen": "stands, sits about 1.3 to 2.0 s, stands about 2.65 s, sits again about 3.9 to 4.7 s, stands from about 5.3 s",
+   "catalog": "Sitting down on a chair and getting up again (no chair is drawn)"
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/Punch_Jab",
+   "phases": [
+    "stand"
+   ],
+   "seen": "stands in a stance and jabs, feet planted throughout",
+   "catalog": "quick lead-hand jab from the stance"
+  },
+  {
+   "clip": "CMU_CURATED/Crouch_Walk_Loop",
+   "phases": [
+    "walk"
+   ],
+   "seen": "a crouched walking cycle in place, a foot always down",
+   "catalog": "Walking crouched low on deeply bent knees. One cycle, in place"
+  },
+  {
+   "clip": "MESH2MOTION/Levitate_Idle",
+   "phases": [
+    "air"
+   ],
+   "seen": "floats upright with the knees drawn up, the lowest point 105 to 220 mm up, the whole loop",
+   "catalog": "floats in the air, knees drawn up, bobbing gently",
+   "review": "added by the reviewer, labelled by eye (side, front and three-quarter sheets) and by numbers"
+  },
+  {
+   "clip": "MESH2MOTION/Glide",
+   "phases": [
+    "air"
+   ],
+   "seen": "glides leaning forward, arms raised in a V, the lowest point at least 199 mm up, the whole loop",
+   "catalog": "gliding: the body leaning forward, both arms raised overhead in a V",
+   "review": "added by the reviewer, labelled by eye (side, front and three-quarter sheets) and by numbers"
+  },
+  {
+   "clip": "MESH2MOTION/Victory",
+   "phases": [
+    "stand",
+    "air",
+    "stand"
+   ],
+   "seen": "stands to about 0.5 s, the feet 170 to 940 mm up from 0.6 to 1.1 s, stands from about 1.35 s; the pelvis never below 871 mm on landing, so no crouch",
+   "catalog": "jumps up with a fist raised in triumph and lands",
+   "review": "added by the reviewer, labelled by eye (side, front and three-quarter sheets) and by numbers"
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Walk_Formal_Loop",
+   "phases": [
+    "walk"
+   ],
+   "seen": "an upright, measured walking cycle in place, a foot always on the floor",
+   "catalog": "upright, measured walk, in place",
+   "review": "added by the reviewer, labelled by eye (side, front and three-quarter sheets) and by numbers"
+  },
+  {
+   "clip": "MESH2MOTION/Run_Female",
+   "phases": [
+    "run"
+   ],
+   "seen": "a light running cycle in place: the right foot down 0.07 to 0.23 s, the left 0.46 to 0.63 s, both at least 60 mm up for about 0.15 s between (core's contact detection finds none: the stance foot slides back in place)",
+   "catalog": "a light run with swinging arms, in place",
+   "review": "added by the reviewer, labelled by eye (side, front and three-quarter sheets) and by numbers"
+  },
+  {
+   "clip": "MESH2MOTION/Flying_Forward",
+   "phases": [
+    "air"
+   ],
+   "seen": "flies forward, the body level about a metre up (the lowest point chestF at 1,104 mm), arms at the sides, legs trailing, the whole loop: a level trunk off the floor is air, not lie",
+   "catalog": "flying forward, body level, arms at the sides, legs trailing",
+   "review": "added by the reviewer, labelled by eye (side, front and three-quarter sheets) and by numbers"
+  },
+  {
+   "clip": "MESH2MOTION/Power_Up",
+   "phases": [
+    "crouch"
+   ],
+   "seen": "a wide, low crouch, fists clenched, shaking with effort, the whole loop: pelvis 596 to 605 mm (68% of standing), knees bent 94°, thighs below level, both feet planted under it",
+   "catalog": "crouched, fists clenched, gathering power and shaking with effort",
+   "review": "added by the reviewer, labelled by eye (side, front and three-quarter sheets) and by numbers"
+  }
+ ]
+}
