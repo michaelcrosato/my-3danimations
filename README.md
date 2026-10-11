@@ -27,9 +27,10 @@ and supply chain an agent needs. Plug models that generate motion into a socket 
   planned a third time in TypeScript. One set name already means two different sets in two repos. The first outside
   model to build on my-3d2dge never found the library.
 - **The niche is empty.**
-  - There is no open text format for 3D character motion.
-  - No engine's MCP server exposes animation.
-  - Vendor pipelines end in binary files.
+  - There is no open, agent-oriented text format for 3D character motion. BVH is text, but flat per-frame channels with
+    no naming standard.
+  - No engine's official MCP server exposes animation operations; only community servers and extensions do.
+  - Vendor pipelines end in binary files or flat BVH.
   - three.js has no state machine or root motion, and its retargeting has documented failures.
 - **The hard parts are engineering, not research.** Retargeting, foot locking, blending, graphs and motion metrics are
   known techniques. Text-to-motion generation is mostly off-limits under its licenses anyway: most models are trained on
@@ -73,7 +74,9 @@ are verifier and integrator roles (`PLAN.md` §11). The contract runs single-thr
 before paying for parallel lanes. `docs/FEASIBILITY.md` §9 gives the reasoning.
 
 The milestones:
-- **M1 "first flight":** any library clip on any humanoid skeleton in three.js, verified headless.
+- **M1 "first flight":** library clips on humanoid skeletons in three.js, verified headless: at least 95% of the
+  migrated clips pass the sensors on at least six test skeletons, every failure is listed, and the core moves play on a
+  held-out real rig chosen at the gate. Fresh agents pass the first brief and a held-out variant of it, 4 of 5 each.
 - **M2 "agents fly it":** the CLI, the skill, MCP and the manual, benchmarked.
 - **M3 "the library grows":** gated contributions from other AIs.
 - **M4 "the standard in use":** another repository consumes it.
@@ -83,9 +86,11 @@ The milestones:
 - [my-3d2dge](https://github.com/michaelcrosato/my-3d2dge) started it all. It brought the agent-first doctrine (the
   fighter jet with no cockpit), readable key poses, catalogs and provenance, importers, and verification without a
   display.
-- [my-3d2dge-2](https://github.com/michaelcrosato/my-3d2dge-2), [riftlight](https://github.com/michaelcrosato/riftlight),
-  [shardfall](https://github.com/michaelcrosato/shardfall) and [my-3dge](https://github.com/michaelcrosato/my-3dge)
-  adopted or re-implemented parts of it. Their duplication is the case for one package that they all pin.
+- [my-3d2dge-2](https://github.com/michaelcrosato/my-3d2dge-2), [shardfall](https://github.com/michaelcrosato/shardfall)
+  and [my-3dge](https://github.com/michaelcrosato/my-3dge) adopted or re-implemented parts of it.
+- [riftlight](https://github.com/michaelcrosato/riftlight) shares the doctrine but built its own animation stack,
+  reaching software-drawn contact sheets, clip metrics and agent tools independently.
+- Their duplication is the case for one package that they all pin.
 
 ## License
 

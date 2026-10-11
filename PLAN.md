@@ -43,9 +43,10 @@
   exists, use the better one and log it.
 - **Owner decisions** (§13) each have a default. Proceed on the default; escalate only the calls that are hard to undo
   (§3, "Deviations and escalation").
-- **When the owner is needed** (G8's phone review, G10's confirmation, an O-decision whose default is "don't"), mark the
-  ledger row `blocked-owner`. Post exactly what is needed on the PR, and carry on with every WP that doesn't depend on
-  it. The ledger's statuses are `todo`, `doing`, `done`, `blocked-owner` and `deferred` (with the reason).
+- **When the owner is needed** (G8's phone review, G9's sampled approval, G10's confirmation, an O-decision whose
+  default is "don't"), mark the ledger row `blocked-owner`. Post exactly what is needed on the PR, and carry on with
+  every WP that doesn't depend on it. The ledger's statuses are `todo`, `doing`, `done`, `blocked-owner` and `deferred`
+  (with the reason).
 - **Where the truth lives:** `docs/PROGRESS.md` (one screen, the current state), the ledger (§14: one row per WP),
   `docs/DECISIONS.md` (never cleaned up), `docs/FEEDBACK-LOG.md` (points not acted on, counted by theme).
 
@@ -86,8 +87,9 @@ In short (the full case is `docs/FEASIBILITY.md`):
   - The first outside model to build a game on my-3d2dge never found the library: discoverability, not content, was
     the failure.
 - **Outside, the niche is empty.**
-  - No open text format for 3D character motion exists.
-  - No engine's MCP server exposes animation operations.
+  - No open, agent-oriented text format for 3D character motion exists. BVH and ASF/AMC are text, but flat per-frame
+    channels with no naming standard.
+  - No engine's official MCP server exposes animation operations; only community servers and extensions do.
   - Vision models judge motion poorly (49% on telling which of two frames came first; MotionBench mostly under 60%),
     so the sensors must measure, not look.
 
@@ -134,7 +136,7 @@ WP-0.1 records these in `docs/DECISIONS.md` as D1 to D14:
 |---|---|---|
 | 0 to 3 | Foundation, language, airframe and sensors, mostly in sequence (the contract comes first) | none |
 | 4 | First flight on three.js | **M1** |
-| 5 to 7 | Payload, composition and datalink | **M2** |
+| 5 to 7 | Payload, composition and datalink (M2 needs search and the license check; library QA and G5's floors gate M3) | **M2** |
 | 8 and 9 | Ground station and supply chain | **M3** |
 | 10 | Consumers | **M4** |
 
@@ -306,6 +308,10 @@ anonymously, in a cloud session and in CI. Everything the tests need from them i
 The full inventories, with `path:line` references, are in `research_notes/AI native game animation landscape/`
 (`predecessor_origin_repos.md`, `predecessor_adopter_repos.md`).
 
+my-3d2dge and my-3dge are MIT. riftlight, shardfall and my-3d2dge-2 have no repository license file; their author, the
+owner, licensed the code and data carried from them under MIT on 2026-10-11 (O11). The grant covers the owner's own
+work: third-party motion data in a carry keeps its upstream license, and clips keep their per-set licenses (D10).
+
 | From | What | Action | WP |
 |---|---|---|---|
 | my-3d2dge `src/mocap/readable.js` (338 lines) | The format codec: parse, text, mirror, continuity encoding, decode, fit | Port to TS, proved against vectors from the JS original | 0.4, 1.3 |
@@ -318,7 +324,7 @@ The full inventories, with `path:line` references, are in `research_notes/AI nat
 | my-3dge `tests/baselines/port/core.json` and `moves.json`; `docs/research/C-*.md`, `D-*.md`; PLAN §4.2, §4.3, §8.5, §8.6 | Vectors for the math helpers, RNG and easing, and for the move model, generated from my-3d2dge at `e37e4eed…` (not our pin); studies; the clip-layer and QA designs | Keep `core.json` and `moves.json` as **frozen** fixtures, verified by their SHA-256 and never regenerated. Drop the `humanoid-*`, `blob` and `color` vectors: they test the chibi rig, which we don't carry. Harvest the designs | 0.4, 2.1, 6.2 |
 | my-3d2dge-2 `src/agent/registry.ts`, `tools/mcp-server.mjs`, `tools/agent-cli.mjs` | One typed registry exposed to the console, a CLI and an MCP server with no dependencies | Port the pattern | 7.1 |
 | my-3d2dge-2 `src/content/skills.ts`, `src/sim/actions.ts` | The skill timeline: normalized events, motion windows, cancel windows | Harvest for events and graphs | 2.2, 6.4 |
-| riftlight `scripts/{png,film,gif,inspect}.ts`, `src/engine/animation/metrics.ts` | A PNG writer with no dependencies, software-drawn films, clip metrics (`analyzeClip`, which flags sliding against clip speed) | Harvest | 3.1–3.3 |
+| riftlight `scripts/{png,film,gif,inspect}.ts`, `src/engine/animation/metrics.ts` | A PNG writer with no dependencies, filmstrips of the real game (`film.ts` steps the engine 1/60 s at a time in headless Chromium and captures the game's own renderer; only the strip layout is drawn in software), clip metrics (`analyzeClip`, which flags sliding against clip speed) | Harvest | 3.1–3.3 |
 | riftlight `docs/ANIMATION.md` (gait `:234-244`, metrics `:69-79`), `src/riftlight/monsters/anim/poser.ts` | A gait generator with "zero foot slide by construction", foot placement with a lock mode, and a semantic `Poser` that animates any generated body from one template | Harvest | 2.5, 6.2, D.1 |
 | riftlight `docs/ENGINE.md:1493-1518` | A six-step template for agent tools: pure core, a CLI with a header manual and `--json`, PNG, JSON, a lab handle, a smoke test | Harvest | 7.1 |
 | shardfall `crates/pav_core/src/clips.rs:496-550`, `crates/pav_tools/src/anim_tools.rs:749-820`, `docs/ANIMATION_STUDIO.md:185-189` | A clip tool that returns legend, text, fit, strike time and license; edits that carry `revision` and `if_revision` | Harvest | 7.2 |
@@ -387,15 +393,21 @@ game:  graph (L3) ─▶ Animator.step(dt) ─▶ events, root motion, hashed st
 - **The container** is one clip per file, `library/sets/<SET>/<Clip>.json`, in plain JSON with no comments and no JS
   wrapper. Keys are in a stable order and numbers are formatted per the spec. Ids are `SET/Clip`, with names slugged
   and the display name kept.
-- **Each clip** has `format`, `id`, `name`, `dur`, `loop`, `fps`, `tags`, `desc`, `skeleton` and `keys`, plus:
+- **Each clip** has `format`, `id`, `name`, `dur`, `loop`, `fps`, `tags`, `desc`, `skeleton`, `restSrc` and `keys`,
+  plus:
   - `contacts`: intervals per end effector (`footL`, `footR`, `handL`, `handR`), labelled or detected;
   - `events`: `[{ "t", "name", ... }]`, such as `hit`, `step`, `release`, `land`, or custom ones;
   - `facts`: measured values written by tools and marked as measured (speed, travel, strike time, height range, loop
     seam);
   - `provenance`: `src`, `orig`, `take`, `method`, `producer` (tool, version, model), `license` (SPDX), `credit`, and
-    `ai` (an IPTC digital source type);
+    `ai` (an IPTC digital source type). `src` names only where the motion came from. The clip's `restSrc` names the
+    `sources` entry whose spine and neck shares the keys decode on (format 1 rebuilds every clip on the rest body of
+    the set's first source and takes only those shares from the clip's `src`), so a clip keyed or generated on a
+    library's body is never credited to that library. Migrated clips get `restSrc` equal to `src`;
   - `quality`: `fit` as [mean, worst] mm, the QA verdict and the QA version;
-  - `review`: state, who, date.
+  - `review`: state, who, date, and a hash of the motion reviewed (`dur`, `loop`, `fps`, `skeleton`, `restSrc`,
+    `keys`, the optional degrees of freedom, `contacts`, `events` and any field listed in `requires`). An approval
+    whose hash no longer matches the clip reads as stale.
 - **New degrees of freedom** are named optional fields: wrist bend and forearm roll per hand, finger curls, a spine
   curl beyond the per-library shares, and root yaw and trajectory for every clip that travels. Readers ignore unknown
   fields; the linter flags them.
@@ -409,7 +421,10 @@ game:  graph (L3) ─▶ Animator.step(dt) ─▶ events, root motion, hashed st
   - `_set.json` carries the legend text.
   - Tools that show a clip (`m3a show`) print the legend with it, so a model never reads numbers without their key.
 - **Versioning:** `format` is `"2.0"` and validated on read. A minor version only adds named optional fields, and
-  fixed-length arrays never grow. Anything else is a major version that comes with a migrator.
+  fixed-length arrays never grow. Anything else is a major version that comes with a migrator. A clip that uses a field
+  added after 2.0 that changes how the clip plays (tangents, say) names that field in its optional `requires` list,
+  which every reader checks from 2.0 on. A reader that doesn't know a field listed there refuses the clip with a coded
+  error instead of playing it differently.
 - **Each set (`_set.json`)** has:
   - `set`;
   - `content`: the source edition, the importer revision and a SHA-256 of the clip files;
@@ -444,12 +459,21 @@ game:  graph (L3) ─▶ Animator.step(dt) ─▶ events, root motion, hashed st
 ### 5.5 The runtime contract
 
 - **`Animator.step(dt)`** runs a fixed-step accumulator, advances graph and layer state, emits events in order and
-  returns root motion. Everything it touches is hashable (`Animator.hash()`).
+  returns root motion. Everything it touches is hashable (`Animator.hash()`). The step size is an option, so a host
+  with its own fixed loop (my-3dge's 60 Hz tick) advances it one tick at a time.
+- **Save and restore.** `Animator.save()` returns plain JSON data (no class instances or typed arrays). It names each
+  clip it plays by its id and a hash of its content, because an id alone survives an edit. `restore(data)` continues
+  exactly: the same hashes, and no event fired twice.
 - **`Animator.pose(out)`** evaluates the layers and solves onto the bound skeleton. It is presentation only: it may be
   skipped or run at lower detail (LOD), and it never feeds back into `step`.
+- **Gameplay poses.** A host that hit-tests against limbs (my-3dge's `preciseHits`, `PLAN.md:944` at its pin) can ask
+  for an exact-mode pose of a given animator. It runs at full detail with the portable math, whatever the presentation
+  skips or LODs, never feeds back into `step`, and gives the same joints, bit for bit, in Node and Chromium.
 - **Bake from the parameters, not from points.** The solver computes the target's local rotations from the format's
-  numbers each frame. On the reference body that measures 0.26 to 0.46 mm mean error, against up to 0.73 m worst for
-  key-for-key baking (my-3dge `PLAN.md:298`).
+  numbers each frame. my-3dge's study baked densely from frames derived from decoded points: 0.26 to 0.46 mm mean on
+  the reference body, but 0.3 to 1.2% of midpoints were more than 50 mm off, mostly at singular poses. Key-for-key
+  baking reached 0.73 m worst. Baking from the parameters should remove the singular-pose outliers; WP-2.4 and WP-4.4
+  measure it (my-3dge `docs/research/D-mocap-library.md:490-514`).
 - **Exact mode:** hashed paths use portable math (fdlibm's algorithms, JavaScript's rounding), so Node and Chromium
   agree bit for bit.
 
@@ -465,7 +489,9 @@ game:  graph (L3) ─▶ Animator.step(dt) ─▶ events, root motion, hashed st
   - Every reply carries a `next` hint.
 - **Images** go to `check-output/` and are returned as paths (CLI) or as image content (MCP). Each states its size and
   approximate token cost.
-- **Edits** take `revision` and `if_revision`, report conflicts, and can be undone.
+- **Edits** take `revision` and `if_revision`, report conflicts, and can be undone. They also take an optional
+  `request_id`: a retry with the same id and arguments returns the first result instead of applying the edit twice,
+  and the same id with different arguments is an error.
 
 ### 5.7 Rendering for the sensors
 
@@ -541,10 +567,22 @@ character), a grader, and a pass rule graded headless.
     workspace.
   - Each trial records its isolation level, pass or fail, wall time, tokens, iterations, and every file read outside
     the manual and the starter.
+  - **Discovery trials:** B1 also runs in a second starter, an ordinary three.js game project with the packages
+    installed as dependencies and a brief (`bench/briefs/B1-discovery.md`) that never names them. Once WP-7.3 has made
+    the skill, the runner copies it into the workspace too. Each trial records whether the agent found and used the
+    package. They are reported at G4 and G7, but they do not gate and do not count toward B1's pass mark.
+- **Held-out variants:** at each gate, a fresh subagent that has not read the manual's examples writes one variant of
+  every brief the gate grades. It keeps the job, the pass rule and the grader, and changes the wording and the starter
+  character, using one that no grader test and no earlier gate run used: a generator seed outside WP-4.2's test set, or
+  a real CC0 rig from a source not in WP-4.2's list, recorded by URL, license and SHA-256 and fetched as G4's held-out
+  rig is (never committed, D9). The gate fixes the commit under test before the variants are written. Before the trials,
+  the brief's known-good solution must pass on each variant; if it fails, the gate reports a package or grader failure
+  instead of running trials. Every run of a gate, reruns included, writes fresh variants into
+  `bench/results/heldout/<gate>/run-<n>/`, where they stay as a record.
 - **Briefs are built in three places:** B1 in WP-4.7, B2 to B7 in WP-6.6, B8 in WP-9.1.
 - **Results** go in `bench/results/<date>-<model>.json` and are summarized in `docs/PROGRESS.md`. By default the
   benchmark runs on the Claude models the session can reach. Other vendors' models need their keys (decision O10).
-- **Pass mark at a gate:** at least 4 of 5 trials per brief.
+- **Pass mark at a gate:** at least 4 of 5 trials per brief, and at least 4 of 5 on its held-out variant.
 
 No rigorous benchmark of frontier LLMs authoring full-body skeletal motion existed as of October 2026. This one is worth
 publishing once it is stable (decision O2).
@@ -639,16 +677,18 @@ fails twice is checked against the kill criteria (§12).
 G0 → 1.1 → {1.2, 1.4} ; {1.2, 0.4} → 1.3 ; {1.3, 1.4} → 1.5 → G1
 G1 → 2.1 → 2.2 → 2.3 ; {2.2, 1.4} → 2.4 ; {2.3, 2.4} → 2.5 ; {2.3, 2.5} → 2.6 → G2
 2.4 → 3.1 → 3.2 ; 2.5 → 3.3 → {3.4, 3.6} ; 3.6 → 3.5 ; {3.2, 3.4, 3.5} → G3
-G2 → 4.1 → 4.2 → 4.3 → 4.4 → {4.5, 4.6} ; {4.6, G3} → 4.7 ; {4.5, 4.7} → G4 (M1)
-1.5 → 5.1 → {5.2, 5.7} ; 5.2 → 5.6 → 5.3 ; {5.3, 3.3} → 5.4 → {5.5, 5.8} ; {5.5, 5.7, 5.8, G3} → G5
+G2 → 4.1 → 4.2 → 4.3 → 4.4 → {4.5, 4.6} ; 3.3 → 4.5 ; {4.6, G3} → 4.7 ; {4.5, 4.7} → G4 (M1)
+1.5 → 5.1 → {5.2, 5.7} ; 5.2 → 5.6 → 5.3 ; {5.3, 3.3} → 5.4 → 5.5 ; {5.4, G3} → 5.8 ; {5.5, 5.7, 5.8} → G5
 {G2, 3.3} → 6.1 → {6.2, 6.3, 6.4} ; 6.4 → 6.5 ; {4.7, 6.5} → 6.6 ; {6.2, 6.3, 6.6} → G6
-G4 → 7.1 ; {7.1, G5, G6} → 7.2 → 7.3 → 7.4 → G7 (M2)
-{4.6, 7.2} → 8.1 → 8.2 → 8.3 → G8
-G7 → 9.1 → {9.2, 9.3} → 9.4 → G9 (M3)
-G7 → {10.1, 10.2} → G10 (M4)
+G4 → 7.1 ; {7.1, 5.5, 5.7, G6} → 7.2 → 7.3 → 7.4 → G7 (M2)
+{4.6, 7.2} → 8.1 → 8.3 ; {8.1, 5.8} → 8.2 ; {8.2, 8.3} → G8
+{G5, G7, 8.2} → 9.1 → {9.2, 9.3} → 9.4 → G9 (M3)
+G7 → {10.1, 10.2} ; {G5, 10.1, 10.2} → G10 (M4)
 ```
 
-After G1 the library lane (5.1, 5.2, 5.7) can start. After G2, lanes Q, R, L and A run in parallel (§11).
+After G1 the library lane (5.1, 5.2, 5.7) can start. After G2, lanes Q, R, L and A run in parallel (§11). Through search
+(5.3 → 5.4 → 5.5), M2 still needs the re-import and the facts; only library QA (5.8) and G5's floors leave its path.
+G5 gates M3 (through WP-9.1) and M4 (G10). Clips change in sequence (§8.4), so WP-8.2 waits for 5.8 and WP-9.1 for 8.2.
 
 ### 9.3 Gates
 
@@ -672,10 +712,16 @@ After G1 the library lane (5.1, 5.2, 5.7) can start. After G2, lanes Q, R, L and
 - **G4 First flight (M1):**
   - on at least 6 skeletons (4 or more generated variants, 2 or more real CC0 rigs from different sources), the idle,
     walk, run, jump and attack set plays with the sensors green;
-  - **a headless sweep** plays every migrated clip on those six skeletons, and at least 95% pass the sensors, with every
-    failure listed and its reason given. This is what backs the claim "any library clip on any humanoid skeleton";
+  - **a headless sweep** (`npm run sweep`, WP-4.5) plays every migrated clip on those six skeletons, and at least 95%
+    pass the sensors, with every failure listed and its reason given. The gate report links the clip-by-skeleton
+    results, and M1 claims only what they show;
+  - **a held-out rig:** a real CC0 rig from a source that neither WP-4.2's list nor an earlier run under
+    `bench/results/heldout/` used. On each run of G4, reruns included, a fresh subagent chooses one, reads its license,
+    records its URL, license and SHA-256 in `bench/results/heldout/G4/run-<n>/rig.json`, and fetches it with
+    `npm run fixtures -- fetch --manifest` on that file. It binds with no hand mapping, the idle, walk, run, jump and
+    attack set plays on it with the sensors green, and its sweep results are reported separately;
   - sheets are produced headless;
-  - B1 passes at least 4 of 5 trials with fresh agents;
+  - B1 and its held-out variant each pass at least 4 of 5 trials with fresh agents;
   - the demo runs in CI's e2e with its sheets attached as artifacts, and has a public link once O3 is linked.
 - **G5 The payload:**
   - **at least 1,000 unique motions,** counted after a minimal dedup in WP-5.8 (re-exports and near-duplicates count
@@ -694,12 +740,12 @@ After G1 the library lane (5.1, 5.2, 5.7) can start. After G2, lanes Q, R, L and
   - the search query set passes;
   - `npm run license -- check` passes on every shipped set (the `m3a` CLI arrives in WP-7.1).
 - **G6 Composition:**
-  - B2, B3, B5, B6 and B7 (built in WP-6.6) pass at least 4 of 5 trials;
+  - B2, B3, B5, B6 and B7 (built in WP-6.6) and their held-out variants each pass at least 4 of 5 trials;
   - composed clips pass QA;
   - graph simulations are deterministic.
 - **G7 Agents fly it (M2):**
-  - B1 to B7 rerun through the packaged CLI, skill and MCP, recorded per available model (Claude by default; others per
-    O10);
+  - B1 to B7 and fresh held-out variants rerun through the packaged CLI, skill and MCP, recorded per available model
+    (Claude by default; others per O10);
   - the manual is within budget;
   - every tool example passes;
   - the CLI and MCP give the same results.
@@ -709,7 +755,7 @@ After G1 the library lane (5.1, 5.2, 5.7) can start. After G2, lanes Q, R, L and
   - The review needs O3's link, or a build the owner opens; until then this gate is `blocked-owner` and the work goes
     on.
 - **G9 The library grows (M3):**
-  - B8 passes;
+  - B8 and its held-out variant pass;
   - a fresh agent contributes 10 clips through the protocol;
   - every planted bad contribution is rejected (license, duplicate, defect, missing provenance, a generator with no
     training-data manifest);
@@ -738,13 +784,17 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
   - `docs/DECISIONS.md` with D1 to D14 (§1.3), in my-3d2dge's entry format (principle, call, why, answered, landed in).
     `docs/FEEDBACK-LOG.md` with its rules and no entries. `docs/PROGRESS.md`, at most 40 lines.
   - O1 is answered: MIT (the owner, 2026-10-11). `LICENSE` is already committed; log the answer in
-    `docs/DECISIONS.md` as a decision of its own.
+    `docs/DECISIONS.md` as a decision of its own. Log O11 the same way: the code and data carried from riftlight,
+    shardfall and my-3d2dge-2 are MIT, granted by their author (the owner, 2026-10-11); third-party clips in them keep
+    their per-set licenses (D10). Log too that the owner confirmed, the same day, that WP-1.5 commits the CMU and
+    Mesh2Motion sets before WP-5.3's Mesh2Motion audit, as planned (D10, K3).
   - `.gitignore`: `node_modules/`, `.cache/`, `library/local/*` (but not `library/local/README.md`), `check-output/`,
     `dist/`.
   - `README.md`: add a status line saying the plan is being executed, linking `docs/PROGRESS.md`. Keep the kickoff
     prompt as it is.
-- **Done when:** the files exist, D1 to D14 are logged, and O1's answer (MIT) is logged.
-- **Verify:** `test -f DOCTRINE.md -a -f AGENTS.md -a -f CLAUDE.md -a -f docs/PROGRESS.md && [ "$(grep -c '^## D' docs/DECISIONS.md)" -ge 14 ] && grep -q 'O1' docs/DECISIONS.md`
+- **Done when:** the files exist, D1 to D14 are logged, the answers to O1 and O11 (both MIT) are logged, and so is the
+  owner's confirmation about the CMU and Mesh2Motion sets.
+- **Verify:** `test -f DOCTRINE.md -a -f AGENTS.md -a -f CLAUDE.md -a -f docs/PROGRESS.md && [ "$(grep -c '^## D' docs/DECISIONS.md)" -ge 14 ] && grep -qw 'O1' docs/DECISIONS.md && grep -qw 'O11' docs/DECISIONS.md && grep -q 'Mesh2Motion' docs/DECISIONS.md`
 
 #### WP-0.2 Toolchain
 - **Owns:** `package.json`, `package-lock.json`, `tsconfig*.json`, `eslint.config.js`, `vitest.config.ts`,
@@ -848,8 +898,16 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
     the curled spine, the missing root yaw, fingers.
   - Contacts, events, facts, provenance (with IPTC digital source types), quality and review.
   - In-betweening, quantization and continuity. Limits: at most 4,096 keys, at most 600 s, keys at least 1 ms apart.
+  - Keys past `dur`: 52 of the 177 MESH2MOTION clips end with a key 8 to 17 ms after `dur`. Format 1 samples time only
+    up to `dur` (it holds there, or wraps for a loop; my-3d2dge `src/mocap/readable.js:265-271`), so that key only
+    shapes the last in-between. The spec allows such a key and says how sampling treats it, and tools that copy or edit
+    a clip keep it rather than cut it off.
   - Versioning and compatibility rules; ids and slugging; the set manifest and content ids.
-  - The conformance tiers with their tolerances, and the known limits.
+  - The conformance tiers with their tolerances, and the known limits. Tiers 1a and 1b are bit for bit, so the spec
+    pins the numerics another language must reproduce, as shardfall's Rust port did: f64 operations in the reference's
+    order, f32 storage where the reference uses `Float32Array`, fdlibm's trigonometry, V8's `Math.hypot`, JavaScript's
+    `Math.round` and `toFixed`. It also pins number formatting (shortest round trip, `-0` kept); see
+    `predecessor_adopter_repos.md` §2.2, §6.4 and §7.4.
   - The legend (what a model reads first): at most 800 tokens, worked key included. Format 1's legend alone is 440
     tokens and a key about 137, which leaves about 220 for the new fields. It versions with the schema (§5.3).
 - **Done when:**
@@ -878,6 +936,7 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
     - key times that don't increase;
     - contacts outside the duration;
     - events out of order;
+    - a field listed in `requires` that the reader doesn't know;
     - an unknown major format.
   - **Warnings** (semantic; baselined per clip with a reason):
     - format 1's pop (twist jumping more than 120° while bend is over 140°);
@@ -1027,6 +1086,8 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
 - **Done when:**
   - samples match the vectors' decoded poses exactly at key times, and within 0.001 mm between keys;
   - an event on a loop boundary fires once;
+  - a root yaw that turns through 90°, 360° and 720° samples with no jump at ±180°, and `rootDelta` across a loop seam
+    carries the turn;
   - facts on the 20 clips in `facts-truth.json` are within the stated tolerances.
 - **Verify:** `npm test -- clip`
 
@@ -1097,12 +1158,21 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
 - **Size:** M
 - **Build:**
   - `new Animator(bound, options)`, with layers (clip, weight, mask, additive, speed).
-  - `step(dt)`: a fixed-step accumulator; events in order; root motion; hashable state (`hash()`).
+  - `step(dt)`: a fixed-step accumulator with the step size as an option; events in order; root motion; hashable
+    state (`hash()`).
+  - `save()` and `restore(data)` (§5.5).
   - `pose(out)`: evaluate and solve. It may be skipped or run at lower detail, and never feeds back into `step`.
+  - `pose(out, { exact: true })` for gameplay hit tests (§5.5): full detail, portable math.
   - A small public API, with every export listed in one file and checked by the boundary check.
 - **Done when:**
   - the same script of steps gives the same hash in Node and headless Chromium;
   - skipping `pose()` doesn't change the hashes;
+  - an exact-mode pose gives the same joint positions, bit for bit, in Node and headless Chromium, whether or not
+    presentation poses were skipped or LOD'd before it;
+  - saving at any step and restoring into a new Animator gives the same later hashes and events as running straight
+    through. The saved data survives a JSON round trip, and restoring with a clip whose content differs fails with a
+    coded error that names the clip;
+  - the cost of one character's `step()` and `pose()` is measured on the 4-core cloud container and stated;
   - the public API is at most 40 exports, each with a doc comment.
 - **Verify:** `npm test -- animator && npm run e2e -- animator-parity`
 
@@ -1177,7 +1247,8 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
   - every metric and predicate has unit fixtures;
   - the whole migrated library is measured within T2;
   - the first thresholds come from the library's distributions, checked against real capture, each written down with
-    its reason. Kimodo's paper measures 2.21 cm/s of foot skate for capture against 3.87 cm/s for generated motion.
+    its reason, its unit and sample rate, and whether it scales with the skeleton's hip height. Kimodo's paper
+    measures 2.21 cm/s of foot skate for capture against 3.87 cm/s for generated motion.
 - **Verify:** `npm test -- metrics predicates && npm run qa -- --sample 50`
 
 #### WP-3.4 Describe
@@ -1199,7 +1270,8 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
 - **Size:** M
 - **Carry:** from my-3d2dge: the loop-cycle search and seam spreading in `tools/asf-amc.mjs`.
 - **Build:**
-  - `fix(clip, ops)`, where every operator returns before-and-after metrics and none changes a clip silently:
+  - `fix(clip, ops)`, where every operator returns before-and-after metrics, keeps `dur`, event times and contact
+    intervals or reports each one it changes, and changes no clip silently:
     - bake foot locks into keys;
     - lift penetration;
     - close a loop seam, spreading the remainder over the cycle;
@@ -1207,7 +1279,8 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
     - repair twist flips;
     - re-fit keys to a budget.
   - `lint(clip)` lists what `fix` would change.
-- **Done when:** each operator removes its planted defect (WP-3.6) without pushing any other metric past its threshold.
+- **Done when:** each operator removes its planted defect (WP-3.6) without pushing any other metric past its threshold,
+  and a test shows no operator changes `dur`, an event or a contact without reporting it.
 - **Verify:** `npm test -- fix`
 
 #### WP-3.6 Planted defects
@@ -1269,10 +1342,12 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
     - A second: a CC0 character pack from Kenney or KayKit.
     - Optionally, a VRM avatar whose license allows it.
 
-    Read each license file at fetch time, and record the source, license and hash.
-- **Done when:** 20 generated variants load in three.js and are recognized (WP-1.4) with a confidence reported, and the
-  real rigs fetch, verify and load.
-- **Verify:** `npm test -- test-characters && npm run fixtures -- fetch --check`
+    Read each license file at fetch time, and record the source, license and hash. `npm run fixtures -- fetch
+    --manifest <file>` fetches rigs recorded outside this list the same way, for G4's held-out rig and §7's held-out
+    variants.
+- **Done when:** 20 generated variants load in three.js and are recognized (WP-1.4) with a confidence reported, the
+  real rigs fetch, verify and load, and a rig listed in a separate manifest fetches and verifies by its hash.
+- **Verify:** `npm test -- test-characters fixtures && npm run fixtures -- fetch --check`
 
 #### WP-4.3 Binding a skeleton
 - **Owns:** `packages/three/src/bind/*`
@@ -1296,27 +1371,36 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
 - **Build:**
   - `attach(animator, bound)`: each frame, write `pose()` to the bones as quaternions, and hand root motion to the game.
   - `bake(clip, bound)`: build a `THREE.AnimationClip` of quaternion tracks from the parameters, recording its error
-    against the live solve.
+    against the live solve. The clip's `loop`, `events`, `contacts` and `facts` travel with it in `userData`, which
+    three's GLTFExporter writes to the animation's `extras`; a VRMA export carries them in `extras` too.
   - VRM through three-vrm's normalized humanoid.
   - VRMA export once `@m3a/io` has it (WP-5.2).
 - **Done when:**
   - baked and live playback agree within 1 mm;
+  - a baked clip carries the source clip's `loop`, `events`, `contacts` and `facts` in `userData`, and a VRMA export
+    carries them in `extras` *(deferred proof: WP-5.2's VRMA round trip)*;
   - crossfades and masked layers work through the Animator;
   - the hot path allocates nothing per frame (measured).
 - **Verify:** `npm test -- play`
 
 #### WP-4.5 Headless capture
-- **Owns:** `packages/three/src/capture/*`, `tests/e2e/capture.spec.ts`
-- **Needs:** 4.4
+- **Owns:** `packages/three/src/capture/*`, `tests/e2e/capture.spec.ts`, `tools/sweep/*`
+- **Needs:** 4.4, 3.3
 - **Size:** M
 - **Build:** a Playwright harness that renders a bound character in headless Chromium on the WebGL 2 backend. It reads
   the frame back with `preserveDrawingBuffer`, checks it is not blank, and writes a sheet. The proof hash of the bone
   transforms must equal the Node solve's.
+
+  Also `npm run sweep -- <rig ids | --manifest <file>>`: it plays every migrated clip on each given skeleton (bound by
+  WP-4.3, solved in Node), runs the sensors (WP-3.3), and writes the clip-by-skeleton results with every failure and
+  its reason. G4 runs it on its six skeletons and, separately, on the held-out rig (§9.3).
 - **Done when:**
   - sheets of the generated and real rigs render in CI;
   - the hashes match;
-  - a blank frame, or one that fell back to another renderer, fails loudly with the reason.
-- **Verify:** `npm run e2e -- capture`
+  - a blank frame, or one that fell back to another renderer, fails loudly with the reason;
+  - a sweep over two test characters writes the clip-by-skeleton results and lists a deliberately broken clip as a
+    failure with its reason.
+- **Verify:** `npm run e2e -- capture && npm test -- sweep`
 
 #### WP-4.6 The first-flight demo
 - **Owns:** `apps/lab/hello/*`, `vercel.json`
@@ -1337,22 +1421,27 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
 - **Verify:** `npm run e2e -- hello`
 
 #### WP-4.7 The benchmark harness and B1
-- **Owns:** `bench/runner/**`, `bench/starters/**`, `bench/briefs/B1.md`, `bench/graders/B1/**`, `bench/results/`,
-  `packages/tools/MANUAL.md` (the first draft)
+- **Owns:** `bench/runner/**`, `bench/starters/**`, `bench/briefs/B1.md`, `bench/briefs/B1-discovery.md`,
+  `bench/graders/B1/**`, `bench/results/`, `packages/tools/MANUAL.md` (the first draft)
 - **Needs:** 4.6, G3
 - **Size:** M
 - **Build:**
   - The runner of §7. It packs the packages, builds the scratch workspace outside the repo, and starts a fresh agent at
     the best isolation level available: `claude -p` first, then a fresh remote session, then an audited subagent. It
     records the isolation level, pass or fail, time, tokens, iterations, and the files read past the manual.
-  - B1 and its grader: scripted input, a state trace, the sensors.
+  - B1 and its grader: scripted input, a state trace, the sensors. Graders take the starter character as a parameter,
+    and the runner takes a held-out variant written at a gate (§7).
+  - The B1 discovery starter and brief (§7).
   - The legend quiz deferred from WP-1.1.
   - A first manual draft, good enough for B1 (WP-7.3 finishes it).
 - **Done when:**
   - B1 runs 5 trials and writes a results file;
-  - the grader fails a planted bad solution and passes a known good one;
+  - B1's discovery trials run and record whether the package was used;
+  - the grader fails a planted bad solution and passes a known good one, on the default character and on a generator
+    seed outside WP-4.2's test set, and the runner runs a variant given by path (its brief and starter character),
+    first running the brief's known-good solution on it and stopping with a package or grader failure if that fails;
   - the legend quiz scores at least 9 of 10.
-- **Verify:** `npm run bench -- B1 --trials 5 && npm test -- bench/graders`
+- **Verify:** `npm run bench -- B1 --trials 5 && npm test -- bench/graders bench/runner`
 
 **Gate G4 = Milestone M1, First flight.**
 
@@ -1390,12 +1479,12 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
     `tools/to-glb.py`), never as a runtime dependency.
 - **Done when:**
   - **tier 1b**, reader parity: the tiny rig and the CMU take import bit for bit like the oracle;
-  - a VRMA file written and read back is identical;
+  - a VRMA file written and read back is identical, with a clip's `loop`, `events`, `contacts` and `facts` in `extras`;
   - every reader has malformed-input tests with clear errors.
 - **Verify:** `npm test -- io conformance/tier1b`
 
 #### WP-5.3 Re-import from the sources
-- **Owns:** `library/sets/**` (the re-imported sets), `library/catalogs/*`
+- **Owns:** `library/sets/**` (the re-imported sets), `library/catalogs/*`, `tools/migrate/*` (narrowing its check)
 - **Needs:** 5.2, 5.6
 - **Size:** L
 - **Build:** re-import from the original sources with the new degrees of freedom (wrists, forearm roll, spine curl, root
@@ -1408,6 +1497,9 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
   - **100STYLE** (CC BY 4.0, about 18.5 hours): import the styles the catalogs pick.
 
   Compare fit and metrics with the migrated versions, and keep whichever is better per clip, with the reason recorded.
+  The comparison gives the change in fit against the source and the change in each other metric separately, since a
+  clip can improve one and worsen another. Clips that replace migrated ones are listed, and WP-1.5's check that a clip
+  decodes like its source covers only the clips still migrated.
 - **Done when:**
   - every re-imported set is within the fit limits: set mean at most 20 mm; clip mean at most 40 mm and worst at most
     300 mm;
@@ -1437,11 +1529,13 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
     - tags;
     - numeric filters (`speed>1.5`, `loop`, `dur<2`);
     - set and tier.
-  - It returns at most 40 short rows, with a `next` hint.
+  - It returns at most 40 short rows, with a `next` hint. A query with no match is not an error: it returns zero rows
+    (exit 0 under §5.6) and a `next` hint naming the nearest tags.
   - Reading comes in tiers: a core list of about 40 clips a game usually needs, then the per-set catalogs, then the CMU
     ledger.
 - **Done when:** for a fixed set of 40 queries written from game moments ("lands on one knee", "sneaks", "drinks a
-  potion"), a fitting clip is in the top 5 for at least 32.
+  potion"), a fitting clip is in the top 5 for at least 32; and for 10 held-out queries, written by a verifier subagent
+  that has not seen the synonym table or the 40, after the table is frozen, for at least 8.
 - **Verify:** `npm test -- search`
 
 #### WP-5.6 Large corpora on demand
@@ -1527,14 +1621,17 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
   - from shardfall: `anim/moves.toml` (31 moves with `about` lines) and `moves.rs`;
   - from my-3dge: `tests/baselines/port/moves.json`, frozen (§4);
   - from riftlight: the gait generator with "zero foot slide by construction" (`docs/ANIMATION.md:234-244`).
-- **Build:** each source below produces format-2 clips with `method: procedural`.
+- **Build:** each source below produces format-2 clips with `method: procedural`; no procedural source runs inside
+  `Animator.step` in v1.
   - **One move model, as data:** wind, active and recover phases; arcs; lunge, hop, crouch, lean and twist; chaining
-    from the current pose. The three unit systems are reconciled into one, with an `about` line per move.
+    from a start pose given as an input (the rest pose by default; graph transitions blend any remainder). The three
+    unit systems are reconciled into one, with an `about` line per move.
   - **A gait synthesizer:** speed, stride, bounce and limp, with real contacts.
   - **A procedural idle:** breathing and weight shifts.
 - **Done when:**
   - the move model's differential tests against `moves.json` pass within 1 cm mean and 3 cm worst, with every
     exception listed and explained;
+  - a move generated from two different start poses begins at each of them;
   - the synthesized gaits slide at most 10 mm per contact. The origin's gait slid 12 to 28% of body speed; it is not a
     target to match.
 - **Verify:** `npm test -- procedural`
@@ -1570,7 +1667,7 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
   - Transitions: conditions on parameters, a duration, sync, and interrupt rules.
   - 1D and 2D blend spaces with phase sync.
   - Layers, and events delivered to callbacks.
-  - Deterministic evaluation inside `Animator.step`.
+  - Deterministic evaluation inside `Animator.step`, with the graph's state in `hash()` and `save()` (§5.5).
   - A validator with coded messages.
 - **Done when:** a locomotion graph (idle, walk, run, jump, land) and an action graph (an attack combo with cancel
   windows) validate and run identically in Node and Chromium.
@@ -1596,11 +1693,12 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
 - **Needs:** 4.7, 6.5
 - **Size:** M
 - **Build:**
-  - The briefs B2 to B7 of §7, each with a starter and a grader made of predicates and sensor thresholds.
+  - The briefs B2 to B7 of §7, each with a starter and a grader made of predicates and sensor thresholds. Graders take
+    the starter character as a parameter (§7) and derive expected traces and thresholds from it, in hip heights.
   - The manual's sections for wiring (events, graphs, root motion) and making (recipes, edits, actions), so G6's fresh
     agents can work from the manual alone.
-- **Done when:** every grader passes a known-good solution and fails a planted bad one, and the manual draft stays
-  within budget.
+- **Done when:** every grader passes a known-good solution and fails a planted bad one, on the default character and
+  on a generator seed outside WP-4.2's test set, and the manual draft stays within budget.
 - **Verify:** `npm test -- bench/graders && npm run doctrine`
 
 **Gate G6.**
@@ -1633,7 +1731,7 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
 
 #### WP-7.2 The tools
 - **Owns:** `packages/tools/src/tools/*`
-- **Needs:** 7.1, G5, G6
+- **Needs:** 7.1, 5.5, 5.7, G6
 - **Size:** L
 - **Carry:** from shardfall: the clip tool (`crates/pav_core/src/clips.rs:496-550`), which returns legend, text, fit,
   strike time and license, and revisioned edits (`crates/pav_tools/src/anim_tools.rs:749-820`,
@@ -1641,13 +1739,13 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
 - **Build:** each tool returns short JSON rows, with limits and `next` hints.
   - **Find and read:** `search`; `show` (the legend, the clip as text, its provenance); `describe`.
   - **Check:** `metrics`, `sheet`, `film`, `diff`, `lint`.
-  - **Change:** `fix`; `edit` (with revision checks and undo).
+  - **Change:** `fix`; `edit` (with revision checks, retry ids and undo).
   - **Retarget:** `retarget.inspect`, `retarget.apply`.
   - **Compose and wire:** `recipe.compile`, `graph.validate`, `graph.sim`.
   - **Exchange:** `import`; `export` (glTF, VRMA, BVH).
-  - **Ship and grow:** `license.check`, `library.add`.
-- **Done when:** each tool has a runnable example and a failing-input test, and the whole list costs at most 3,000
-  tokens to describe to a model.
+  - **Ship:** `license.check`. `library.add` comes with the contribution protocol (WP-9.1, after G5).
+- **Done when:** each tool has a runnable example and a failing-input test, the whole list costs at most 3,000 tokens
+  to describe to a model, and a retried `edit` with the same `request_id` applies once.
 - **Verify:** `npm test -- tools`
 
 #### WP-7.3 The manual and the skill
@@ -1659,7 +1757,7 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
   - **The manual** (at most 8,000 tokens):
     - the mental model;
     - one complete example: a character that walks, attacks with a hit event, and reacts;
-    - the API by job: find, fit, wire, make, check, ship, grow;
+    - the API by job: find, fit, wire, make, check, ship (WP-9.1 adds grow);
     - the rules and the common mistakes.
 
     Every code block runs in tests. The manual is where an agent starts, so the animation library is on its critical
@@ -1675,18 +1773,23 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
 - **Owns:** packaging fields in `packages/*/package.json`, `tools/bundle/*`
 - **Needs:** 7.3
 - **Size:** M
-- **Carry:** from riftlight: `scripts/build-single.mjs` (a single self-contained module).
+- **Carry:** from riftlight: `scripts/bundle.mjs`, which builds one self-contained ES module, `pixel-engine.js`.
 - **Build:**
   - ESM builds with types for every package.
-  - A single-file bundle (`m3a.js` plus a core subset of the library) for agents that can't install packages.
+  - A single-file bundle (`m3a.js` plus a core subset of the library) for agents that can't install packages. The
+    subset is listed in `tools/bundle/manifest.json`, which passes `npm run license -- check`. `npm run pack -- --check`
+    also runs the sensors (WP-3.3) on every clip in it and fails on one that neither passes nor carries a WP-5.8
+    baseline. The bundle carries the credits block and the license texts (CMU's notice in full) of every tier it
+    includes.
   - The version and changelog rule.
   - A dry-run pack (`npm pack --dry-run`) per package.
   - Publishing waits for O2. When it comes, every release is signed with provenance (npm provenance through Sigstore)
     from the first published version. Clips are inert data, but the skills, the MCP server and the importers are code,
     and agent-skill registries have already shipped malware (ClawHub carried 341 malicious skills).
-- **Done when:** a scratch project installs the packed tarballs and runs the manual's example, and the single file runs
-  the same example.
-- **Verify:** `npm run pack -- --check`
+- **Done when:** a scratch project installs the packed tarballs and runs the manual's example, the single file runs
+  the same example and carries the credits and license texts of its tiers, `npm run license -- check` passes on the
+  bundle's manifest, and every clip in it has a QA verdict, pass or baselined (WP-5.8 may not have run yet).
+- **Verify:** `npm run pack -- --check && npm run license -- check tools/bundle/manifest.json`
 
 **Gate G7 = Milestone M2, Agents fly it.**
 
@@ -1710,17 +1813,18 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
 
 #### WP-8.2 The review loop
 - **Owns:** `apps/gallery/src/review/*`, `packages/tools/src/tools/review.ts`
-- **Needs:** 8.1
+- **Needs:** 8.1, 5.8
 - **Size:** M
 - **Build:**
   - Approve or flag a clip or a batch, with a note.
-  - Export the review as JSON: through the share sheet on a phone, or as a file on a desk.
+  - Export the review as JSON, with each clip's motion hash (§5.3): through the share sheet on a phone, or as a file
+    on a desk.
   - `m3a review ingest <file>` writes:
     - review states into the clips;
     - notes into `docs/FEEDBACK-LOG.md`, by theme;
     - threshold and task proposals into a list for the next WP.
-- **Done when:** a review exported at a phone viewport ingests and changes the right files, and ingesting it twice is
-  idempotent.
+- **Done when:** a review exported at a phone viewport ingests and changes the right files, ingesting it twice is
+  idempotent, and a review of a clip changed since export is ingested as stale, not approved.
 - **Verify:** `npm run e2e -- review && npm test -- review`
 
 #### WP-8.3 Previews
@@ -1738,8 +1842,8 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
 
 #### WP-9.1 The contribution protocol
 - **Owns:** `CONTRIBUTING.md`, `packages/tools/src/tools/library-add.ts`, `.github/workflows/library-gates.yml`,
-  `bench/briefs/B8.md`, `bench/graders/B8/**`
-- **Needs:** G7
+  `bench/briefs/B8.md`, `bench/graders/B8/**`, the grow section of `packages/tools/MANUAL.md`
+- **Needs:** G5, G7, 8.2
 - **Size:** M
 - **Build:** a protocol written for agents.
   - `m3a library add <clip | recipe>` validates and measures the clip, then writes it with its catalog row and
@@ -1754,17 +1858,22 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
   - What every contributor gives:
     - a CC0 dedication, or the target set's license;
     - an accountable human behind every agent;
-    - a training-data manifest for any generator used;
+    - a training-data manifest for any generator used, meaning a learned motion model (procedural code, and the coding
+      agent that wrote it, are not generators here);
     - disclosure of who or what made the clip.
   - A rate limit per contributor, no per-clip rewards, and human review before merge (O7).
-  - Brief B8 and its grader.
+  - Brief B8 and its grader, which takes the starter character as a parameter (§7).
+  - The manual's grow section: `m3a library add` and the protocol's rules, with a runnable example, so B8's fresh
+    agents work from the manual alone (the bench workspace holds the manual, not `CONTRIBUTING.md`).
 
   The registries that survived AI floods share these defenses: disclosure, identity, automated checks, no reward for
   volume, and review before merge (research: `data_licensing_registries.md` §6). The open portals that lacked them
   were flooded (Fab) or poisoned (ClawHub).
-- **Done when:** a clean contribution passes every gate, and each planted bad one fails with a clear message: a bad
-  license, a duplicate, a defect, missing provenance, a generator with no manifest.
-- **Verify:** `npm test -- contribute && npm run gate -- library-pr --fixture all`
+- **Done when:** a clean contribution passes every gate, B8's grader passes a known-good solution on the default
+  character and on a generator seed outside WP-4.2's test set, the manual's grow example runs within the manual's
+  budget, and each planted bad one fails with a clear message: a bad license, a duplicate, a defect, missing
+  provenance, a generator with no manifest.
+- **Verify:** `npm test -- contribute bench/graders/B8 manual && npm run doctrine && npm run gate -- library-pr --fixture all`
 
 #### WP-9.2 The motion-source socket
 - **Owns:** `packages/core/src/sources/*`, `packages/tools/src/sources/*`
@@ -1825,9 +1934,11 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
 - **Build:**
   - A lab shaped like my-3dge's needs: three.js r182, a deterministic step, and a graph-driven humanoid with hit events
     and root motion.
-  - A migration guide that maps my-3dge's planned Phase 8 WPs (8.1–8.10) onto this package. Proposing the switch in
+  - A migration guide that maps my-3dge's planned animator WPs (3.4–3.7, recorded in ADR-0009) and Phase 8 WPs
+    (8.1–8.10, with ADR-0010) onto this package, marking each as replaced, wrapped or kept. Proposing the switch in
     my-3dge is O9, because it means acting in another repository.
-- **Done when:** the lab passes its e2e, and the guide names every my-3dge WP it replaces.
+- **Done when:** the lab passes its e2e, and the guide covers every my-3dge WP in 3.4–3.7 and 8.1–8.10, saying whether
+  it is replaced, wrapped or kept, and names any other my-3dge WP it replaces.
 - **Verify:** `npm run e2e -- consumer-ts`
 
 #### WP-10.2 The conformance kit
@@ -1872,7 +1983,8 @@ wasn't needed.
 ### One agent (effort: max)
 
 Work the ledger in order. Use subagents for independent WPs within a phase only when their **Owns** don't overlap.
-Give every L WP and every gate a verifier subagent.
+Give every L WP and every gate a verifier subagent. At the gates that grade briefs (G4, G6, G7, G9), a separate fresh
+subagent that has not read the manual's examples writes the held-out variants and chooses G4's held-out rig (§7, §9.3).
 
 ### Ultracode (multi-agent)
 
@@ -1880,7 +1992,7 @@ Give every L WP and every gate a verifier subagent.
   `docs/DECISIONS.md`, the root `package.json`, the `tsconfig` roots and the generated docs.
 - **The spine runs single-threaded through G1**, because the contract must come from one mind.
 - **From G1 on,** up to 5 implementers work in git worktrees, each editing only its WP's **Owns**. A verifier reviews
-  every L WP and every gate and returns JSON.
+  every L WP and every gate and returns JSON. A separate fresh subagent writes each gate's held-out variants (§7).
 - **Lanes after G2:**
   - Q: Phase 3, which can start after WP-2.4;
   - R: Phase 4;
@@ -1950,8 +2062,9 @@ them.
 | **O6** | CC BY content (100STYLE) | Accept it, in its own namespace, with a credits tool | 18.5 h of locomotion styles; attribution is cheap to automate | WP-1.5, 5.3 |
 | **O7** | Who merges contributions | The owner, with CI gates required | Human review before merge is what kept registries clean | WP-9.1 |
 | **O8** | Where gallery reviews are stored | A static export: JSON the owner shares back | A hosted store costs money | WP-8.2 |
-| **O9** | Acting in other repositories (switching my-3dge's Phase 8 to this package; certification PRs in shardfall) | Propose, don't act | Reaches outside the repo | WP-10.1, 10.2 |
+| **O9** | Acting in other repositories (switching my-3dge's animator WPs 3.4–3.7 and its Phase 8 to this package; certification PRs in shardfall) | Propose, don't act | Reaches outside the repo | WP-10.1, 10.2 |
 | **O10** | Keys for other vendors' models in the benchmark (GPT, Gemini and others) | Claude models only, through the session's own access | Keys are spending and credentials | WP-4.7, G7 |
+| **O11** | Rights to the code and data carried from riftlight, shardfall and my-3d2dge-2, which have no repository license file | **Answered: MIT, granted by their author** (the owner, 2026-10-11); third-party clips keep their per-set licenses (D10) | §4 carries their code into this MIT repository | WP-0.1 logs it |
 
 ---
 
@@ -2042,7 +2155,7 @@ version, commit, date and a note with the numbers. Gates are rows too.
 | The curated library | 325 clips, 6,469 keys, 693 s, about 970k tokens; ledger of 2,548 CMU takes | `predecessor_origin_repos.md` C4 |
 | shardfall's embedded sets | Quaternius v2 102, Mesh2Motion 177, CMU 60, STYLE100 98 = 437 clips | `predecessor_adopter_repos.md` appendix |
 | The codec, re-implemented | JS 338 lines (origin); Rust about 7,500 lines incl. importers (shardfall); a TS port planned (my-3dge) | `predecessor_adopter_repos.md` §6.2 |
-| Baking accuracy | 0.26–0.46 mm mean from parameters; key-for-key baking up to 0.73 m worst | my-3dge `PLAN.md:298` |
+| Baking accuracy | Dense bake from point-derived frames: 0.26–0.46 mm mean, with 0.3–1.2% of midpoints over 50 mm; key-for-key baking up to 0.73 m worst; the bake from parameters is not yet measured | my-3dge `docs/research/D-mocap-library.md:490-514` |
 | Decoding onto a different body | Under 9° per limb (up to about 14° on a curled spine) | shardfall `tests/motion.rs` |
 | The origin's procedural gait | Planted feet slide at 12% of body speed at walking pace, 28% when slow | `predecessor_origin_repos.md` C4 |
 | VLMs judging motion | PhysBench best 49.5%; MotionBench mostly under 60%; telling which of two frames came first 49.1% (GPT-4o) | `agent_tooling_analogues.md` |
