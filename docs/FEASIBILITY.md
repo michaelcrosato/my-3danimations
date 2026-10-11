@@ -89,7 +89,7 @@ versioning, provenance, the gates and conformance. `PLAN.md` puts these first.
 among visual and technical artists. So present this as correctness, verification and provenance tooling, not as a
 replacement for animators.
 
-**What to build.** `PLAN.md`: 11 phases, 56 work packages, 10 gates, 4 milestones. The first milestone, **M1 "first
+**What to build.** `PLAN.md`: 11 phases, 56 work packages, 11 gates (G0 to G10), 4 milestones. The first milestone, **M1 "first
 flight"**, tests the thesis. Any library clip plays on any humanoid skeleton in three.js, the sensors are green, sheets
 render headless, and fresh agents succeed at the first brief in at least 4 of 5 tries.
 
@@ -538,7 +538,8 @@ the doctrine in §3 as DOCTRINE.md (WP-0.1). Work the ledger (§14) in order: fo
 cites, meet every Done-when and prove it with Verify, apply the definition of done (§8.3), update the ledger and
 docs/PROGRESS.md, commit per WP, and keep one draft PR current. Make reversible calls yourself and log them; escalate
 only hard-to-undo calls (§3), using the 15-minute timer and the defaults in §13. Run each gate's command set and post
-its report on the PR. Reach G4 (M1, first flight) first, then continue phase by phase; stop only for a kill criterion
+its report on the PR. Reach G4 (M1, first flight) first, then continue phase by phase. When something needs the owner,
+mark it blocked-owner, say exactly what is needed on the PR, and carry on with the rest. Stop only for a kill criterion
 (§12) or a finished ledger.
 ```
 

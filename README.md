@@ -48,7 +48,7 @@ and supply chain an agent needs. Plug models that generate motion into a socket 
 | Path | What it is |
 |---|---|
 | [`docs/FEASIBILITY.md`](docs/FEASIBILITY.md) | The analysis: the question, the cockpit-free design, the evidence, the landscape, feasibility by dimension, risks, owner decisions, the verdict |
-| [`PLAN.md`](PLAN.md) | The execution plan for an autonomous coding agent: the doctrine, the architecture and contracts, 11 phases, 56 work packages, 10 gates, 4 milestones, the benchmark, the ledger |
+| [`PLAN.md`](PLAN.md) | The execution plan for an autonomous coding agent: the doctrine, the architecture and contracts, 11 phases, 56 work packages, 11 gates (G0 to G10), 4 milestones, the benchmark, the ledger |
 | [`reports/AI native game animation landscape.md`](reports/AI%20native%20game%20animation%20landscape.md) | The research synthesis, October 2026 |
 | [`research_notes/AI native game animation landscape/`](research_notes/AI%20native%20game%20animation%20landscape/) | Seven cited studies: AI motion technology, commercial tools, formats and runtimes, data and licensing, agent tooling, the origin repos, the adopter repos |
 
@@ -62,7 +62,8 @@ the doctrine in §3 as DOCTRINE.md (WP-0.1). Work the ledger (§14) in order: fo
 cites, meet every Done-when and prove it with Verify, apply the definition of done (§8.3), update the ledger and
 docs/PROGRESS.md, commit per WP, and keep one draft PR current. Make reversible calls yourself and log them; escalate
 only hard-to-undo calls (§3), using the 15-minute timer and the defaults in §13. Run each gate's command set and post
-its report on the PR. Reach G4 (M1, first flight) first, then continue phase by phase; stop only for a kill criterion
+its report on the PR. Reach G4 (M1, first flight) first, then continue phase by phase. When something needs the owner,
+mark it blocked-owner, say exactly what is needed on the PR, and carry on with the rest. Stop only for a kill criterion
 (§12) or a finished ledger.
 ```
 
