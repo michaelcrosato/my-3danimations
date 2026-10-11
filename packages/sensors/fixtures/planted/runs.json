@@ -1,0 +1,844 @@
+{
+ "about": "WP-3.6's planted defects: 100 clean library clips (the sensors pass them), each given one defect in turn, with the metric and the times it must be found at. Written by node tools/plant/main.ts.",
+ "runs": [
+  {
+   "clip": "CMU_CURATED/Bear",
+   "defect": "slide",
+   "seed": 1,
+   "metric": "slide",
+   "t0": 3.917,
+   "t1": 4.583,
+   "where": "footR"
+  },
+  {
+   "clip": "CMU_CURATED/Climb_Ladder",
+   "defect": "sink",
+   "seed": 2,
+   "metric": "penetration",
+   "t0": 0,
+   "t1": 0.3
+  },
+  {
+   "clip": "CMU_CURATED/Dragon",
+   "defect": "armThroughTorso",
+   "seed": 3,
+   "metric": "intersection",
+   "t0": 1.316667,
+   "t1": 1.616667,
+   "where": "upperArmR"
+  },
+  {
+   "clip": "CMU_CURATED/Get_Up_From_Back",
+   "defect": "pop",
+   "seed": 4,
+   "metric": "pop",
+   "t0": 2.267,
+   "t1": 2.3
+  },
+  {
+   "clip": "CMU_CURATED/Hop_One_Foot_Loop",
+   "defect": "twistFlip",
+   "seed": 5,
+   "metric": "twistFlip",
+   "t0": 0.383333,
+   "t1": 0.417,
+   "where": "legL"
+  },
+  {
+   "clip": "CMU_CURATED/Jumping_Jacks_Loop",
+   "defect": "seam",
+   "seed": 6,
+   "metric": "seam",
+   "t0": 1.133,
+   "t1": 1.133
+  },
+  {
+   "clip": "CMU_CURATED/Monkey",
+   "defect": "stretch",
+   "seed": 7,
+   "metric": "stretch",
+   "t0": 4.383333,
+   "t1": 4.633333,
+   "where": "kneeR–ankleR"
+  },
+  {
+   "clip": "CMU_CURATED/Search_Ground",
+   "defect": "nan",
+   "seed": 8,
+   "metric": "nan",
+   "t0": 3,
+   "t1": 3
+  },
+  {
+   "clip": "CMU_CURATED/Sit_Down_Get_Up",
+   "defect": "eventsOrder",
+   "seed": 9,
+   "metric": "events",
+   "t0": 1.433333,
+   "t1": 1.433333
+  },
+  {
+   "clip": "CMU_CURATED/Sweep_Loop",
+   "defect": "wrongMirror",
+   "seed": 10,
+   "metric": "symmetry",
+   "t0": 0,
+   "t1": 1.833
+  },
+  {
+   "clip": "MESH2MOTION/Shield_Dash_RM",
+   "defect": "slide",
+   "seed": 11,
+   "metric": "slide",
+   "t0": 0.267,
+   "t1": 0.75,
+   "where": "footR"
+  },
+  {
+   "clip": "CMU_CURATED/Walk_Backwards_Loop",
+   "defect": "sink",
+   "seed": 12,
+   "metric": "penetration",
+   "t0": 0.666667,
+   "t1": 0.966667
+  },
+  {
+   "clip": "MESH2MOTION/Angry",
+   "defect": "armThroughTorso",
+   "seed": 13,
+   "metric": "intersection",
+   "t0": 0.583333,
+   "t1": 0.833,
+   "where": "upperArmR"
+  },
+  {
+   "clip": "MESH2MOTION/Bow_Pull_Back",
+   "defect": "pop",
+   "seed": 14,
+   "metric": "pop",
+   "t0": 0.783,
+   "t1": 0.817
+  },
+  {
+   "clip": "MESH2MOTION/Bow_Release",
+   "defect": "twistFlip",
+   "seed": 15,
+   "metric": "twistFlip",
+   "t0": 0.183333,
+   "t1": 0.217,
+   "where": "legL"
+  },
+  {
+   "clip": "MESH2MOTION/Climb_Wall",
+   "defect": "seam",
+   "seed": 16,
+   "metric": "seam",
+   "t0": 2.083,
+   "t1": 2.083
+  },
+  {
+   "clip": "MESH2MOTION/Chest_Open",
+   "defect": "stretch",
+   "seed": 17,
+   "metric": "stretch",
+   "t0": 0.583333,
+   "t1": 0.833333,
+   "where": "kneeR–ankleR"
+  },
+  {
+   "clip": "MESH2MOTION/Consume",
+   "defect": "nan",
+   "seed": 18,
+   "metric": "nan",
+   "t0": 0.816667,
+   "t1": 0.816667
+  },
+  {
+   "clip": "MESH2MOTION/Crawl",
+   "defect": "eventsOrder",
+   "seed": 19,
+   "metric": "events",
+   "t0": 0.466667,
+   "t1": 0.466667
+  },
+  {
+   "clip": "MESH2MOTION/Crouch_Idle",
+   "defect": "wrongMirror",
+   "seed": 20,
+   "metric": "symmetry",
+   "t0": 0,
+   "t1": 3.667
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/Fixing_Kneeling",
+   "defect": "slide",
+   "seed": 21,
+   "metric": "slide",
+   "t0": 0.45,
+   "t1": 4.483,
+   "where": "footR"
+  },
+  {
+   "clip": "MESH2MOTION/Dance_Simple",
+   "defect": "sink",
+   "seed": 22,
+   "metric": "penetration",
+   "t0": 0.45,
+   "t1": 0.75
+  },
+  {
+   "clip": "MESH2MOTION/Defend",
+   "defect": "armThroughTorso",
+   "seed": 23,
+   "metric": "intersection",
+   "t0": 0.583333,
+   "t1": 0.883333,
+   "where": "upperArmR"
+  },
+  {
+   "clip": "MESH2MOTION/Dodge_back",
+   "defect": "pop",
+   "seed": 24,
+   "metric": "pop",
+   "t0": 0.25,
+   "t1": 0.283
+  },
+  {
+   "clip": "MESH2MOTION/Driving",
+   "defect": "twistFlip",
+   "seed": 25,
+   "metric": "twistFlip",
+   "t0": 0.816667,
+   "t1": 0.85,
+   "where": "legL"
+  },
+  {
+   "clip": "MESH2MOTION/Fishing_Reel",
+   "defect": "seam",
+   "seed": 26,
+   "metric": "seam",
+   "t0": 1.45,
+   "t1": 1.45
+  },
+  {
+   "clip": "MESH2MOTION/Farm_Watering",
+   "defect": "stretch",
+   "seed": 27,
+   "metric": "stretch",
+   "t0": 3.05,
+   "t1": 3.3,
+   "where": "kneeR–ankleR"
+  },
+  {
+   "clip": "MESH2MOTION/Fighting_Right_Jab",
+   "defect": "nan",
+   "seed": 28,
+   "metric": "nan",
+   "t0": 0.65,
+   "t1": 0.65
+  },
+  {
+   "clip": "MESH2MOTION/Flying_Forward",
+   "defect": "eventsOrder",
+   "seed": 29,
+   "metric": "events",
+   "t0": 0.166667,
+   "t1": 0.166667
+  },
+  {
+   "clip": "MESH2MOTION/Glide",
+   "defect": "wrongMirror",
+   "seed": 30,
+   "metric": "symmetry",
+   "t0": 0,
+   "t1": 0.792
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Fixing_Kneeling",
+   "defect": "slide",
+   "seed": 31,
+   "metric": "slide",
+   "t0": 0.433,
+   "t1": 4.483,
+   "where": "footR"
+  },
+  {
+   "clip": "MESH2MOTION/Head_Nod",
+   "defect": "sink",
+   "seed": 32,
+   "metric": "penetration",
+   "t0": 0.466667,
+   "t1": 0.766667
+  },
+  {
+   "clip": "MESH2MOTION/Hit_Head",
+   "defect": "armThroughTorso",
+   "seed": 33,
+   "metric": "intersection",
+   "t0": 0.25,
+   "t1": 0.542,
+   "where": "upperArmR"
+  },
+  {
+   "clip": "MESH2MOTION/Idle_FoldArms",
+   "defect": "pop",
+   "seed": 34,
+   "metric": "pop",
+   "t0": 2.05,
+   "t1": 2.083
+  },
+  {
+   "clip": "MESH2MOTION/Idle_Lantern",
+   "defect": "twistFlip",
+   "seed": 35,
+   "metric": "twistFlip",
+   "t0": 1.3,
+   "t1": 1.333,
+   "where": "legL"
+  },
+  {
+   "clip": "MESH2MOTION/Idle_ShakeOff",
+   "defect": "seam",
+   "seed": 36,
+   "metric": "seam",
+   "t0": 2.5,
+   "t1": 2.5
+  },
+  {
+   "clip": "MESH2MOTION/Idle_Rail",
+   "defect": "stretch",
+   "seed": 37,
+   "metric": "stretch",
+   "t0": 0.366667,
+   "t1": 0.616667,
+   "where": "kneeR–ankleR"
+  },
+  {
+   "clip": "MESH2MOTION/Idle_Shield_Break",
+   "defect": "nan",
+   "seed": 38,
+   "metric": "nan",
+   "t0": 0.7,
+   "t1": 0.7
+  },
+  {
+   "clip": "MESH2MOTION/Idle_Sword",
+   "defect": "eventsOrder",
+   "seed": 39,
+   "metric": "events",
+   "t0": 0.866667,
+   "t1": 0.866667
+  },
+  {
+   "clip": "MESH2MOTION/Idle_TalkingPhone",
+   "defect": "wrongMirror",
+   "seed": 40,
+   "metric": "symmetry",
+   "t0": 0,
+   "t1": 2.917
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Shield_Dash",
+   "defect": "slide",
+   "seed": 41,
+   "metric": "slide",
+   "t0": 0.267,
+   "t1": 0.733,
+   "where": "footR"
+  },
+  {
+   "clip": "MESH2MOTION/Insult",
+   "defect": "sink",
+   "seed": 42,
+   "metric": "penetration",
+   "t0": 0.333333,
+   "t1": 0.633333
+  },
+  {
+   "clip": "MESH2MOTION/Jump_Land",
+   "defect": "armThroughTorso",
+   "seed": 43,
+   "metric": "intersection",
+   "t0": 0.7,
+   "t1": 1,
+   "where": "upperArmR"
+  },
+  {
+   "clip": "MESH2MOTION/Levitate_Entrance",
+   "defect": "pop",
+   "seed": 44,
+   "metric": "pop",
+   "t0": 0.267,
+   "t1": 0.3
+  },
+  {
+   "clip": "MESH2MOTION/Meditate",
+   "defect": "twistFlip",
+   "seed": 45,
+   "metric": "twistFlip",
+   "t0": 0.3,
+   "t1": 0.333,
+   "where": "legL"
+  },
+  {
+   "clip": "MESH2MOTION/NinjaJump_Idle",
+   "defect": "seam",
+   "seed": 46,
+   "metric": "seam",
+   "t0": 2,
+   "t1": 2
+  },
+  {
+   "clip": "MESH2MOTION/PickUp_Table",
+   "defect": "stretch",
+   "seed": 47,
+   "metric": "stretch",
+   "t0": 0.783333,
+   "t1": 1.033333,
+   "where": "kneeR–ankleR"
+  },
+  {
+   "clip": "MESH2MOTION/Pistol_Idle",
+   "defect": "nan",
+   "seed": 48,
+   "metric": "nan",
+   "t0": 0.4,
+   "t1": 0.4
+  },
+  {
+   "clip": "MESH2MOTION/Pistol_Shoot",
+   "defect": "eventsOrder",
+   "seed": 49,
+   "metric": "events",
+   "t0": 0.45,
+   "t1": 0.45
+  },
+  {
+   "clip": "MESH2MOTION/Push",
+   "defect": "wrongMirror",
+   "seed": 50,
+   "metric": "symmetry",
+   "t0": 0,
+   "t1": 3.333
+  },
+  {
+   "clip": "MESH2MOTION/Fixing_Kneeling",
+   "defect": "slide",
+   "seed": 51,
+   "metric": "slide",
+   "t0": 0.517,
+   "t1": 5.633,
+   "where": "footR"
+  },
+  {
+   "clip": "MESH2MOTION/Reject",
+   "defect": "sink",
+   "seed": 52,
+   "metric": "penetration",
+   "t0": 2.683333,
+   "t1": 2.983333
+  },
+  {
+   "clip": "MESH2MOTION/Slide",
+   "defect": "armThroughTorso",
+   "seed": 53,
+   "metric": "intersection",
+   "t0": 0.3,
+   "t1": 0.6,
+   "where": "upperArmR"
+  },
+  {
+   "clip": "MESH2MOTION/Sitting_Exit",
+   "defect": "pop",
+   "seed": 54,
+   "metric": "pop",
+   "t0": 0.75,
+   "t1": 0.783
+  },
+  {
+   "clip": "MESH2MOTION/Sitting_Talking",
+   "defect": "twistFlip",
+   "seed": 55,
+   "metric": "twistFlip",
+   "t0": 2.433333,
+   "t1": 2.467,
+   "where": "legL"
+  },
+  {
+   "clip": "MESH2MOTION/Spell_Simple_Idle",
+   "defect": "seam",
+   "seed": 56,
+   "metric": "seam",
+   "t0": 2.667,
+   "t1": 2.667
+  },
+  {
+   "clip": "MESH2MOTION/Strafe_right",
+   "defect": "stretch",
+   "seed": 57,
+   "metric": "stretch",
+   "t0": 0.533333,
+   "t1": 0.783333,
+   "where": "kneeR–ankleR"
+  },
+  {
+   "clip": "MESH2MOTION/Throw_Object",
+   "defect": "nan",
+   "seed": 58,
+   "metric": "nan",
+   "t0": 1.2,
+   "t1": 1.2
+  },
+  {
+   "clip": "MESH2MOTION/Turn_Right_180",
+   "defect": "eventsOrder",
+   "seed": 59,
+   "metric": "events",
+   "t0": 0.516667,
+   "t1": 0.516667
+  },
+  {
+   "clip": "MESH2MOTION/Victory_Fist_Pump",
+   "defect": "wrongMirror",
+   "seed": 60,
+   "metric": "symmetry",
+   "t0": 0,
+   "t1": 2.25
+  },
+  {
+   "clip": "MESH2MOTION/Zombie_Scratch",
+   "defect": "slide",
+   "seed": 61,
+   "metric": "slide",
+   "t0": 0.183,
+   "t1": 1.46,
+   "where": "footL"
+  },
+  {
+   "clip": "MESH2MOTION/Walk_Female",
+   "defect": "sink",
+   "seed": 62,
+   "metric": "penetration",
+   "t0": 0.833333,
+   "t1": 1.133333
+  },
+  {
+   "clip": "MESH2MOTION/Walk_Stealth",
+   "defect": "armThroughTorso",
+   "seed": 63,
+   "metric": "intersection",
+   "t0": 0.633333,
+   "t1": 0.933333,
+   "where": "upperArmR"
+  },
+  {
+   "clip": "MESH2MOTION/Zombie_Idle_Crouch",
+   "defect": "pop",
+   "seed": 64,
+   "metric": "pop",
+   "t0": 2.333,
+   "t1": 2.367
+  },
+  {
+   "clip": "MESH2MOTION/Zombie_Walk_2",
+   "defect": "twistFlip",
+   "seed": 65,
+   "metric": "twistFlip",
+   "t0": 0.366667,
+   "t1": 0.4,
+   "where": "legL"
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/Crouch_Idle_Loop",
+   "defect": "seam",
+   "seed": 66,
+   "metric": "seam",
+   "t0": 2.933,
+   "t1": 2.933
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/Consume",
+   "defect": "stretch",
+   "seed": 67,
+   "metric": "stretch",
+   "t0": 0.533333,
+   "t1": 0.783333,
+   "where": "kneeR–ankleR"
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/Farm_Harvest",
+   "defect": "nan",
+   "seed": 68,
+   "metric": "nan",
+   "t0": 1.783333,
+   "t1": 1.783333
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/Idle_Lantern_Loop",
+   "defect": "eventsOrder",
+   "seed": 69,
+   "metric": "events",
+   "t0": 2.15,
+   "t1": 2.15
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/Idle_No_Loop",
+   "defect": "wrongMirror",
+   "seed": 70,
+   "metric": "symmetry",
+   "t0": 0,
+   "t1": 2.5
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/Shield_Dash_RM",
+   "defect": "slide",
+   "seed": 71,
+   "metric": "slide",
+   "t0": 0.267,
+   "t1": 0.783,
+   "where": "footR"
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/Idle_Rail_Loop",
+   "defect": "sink",
+   "seed": 72,
+   "metric": "penetration",
+   "t0": 0.65,
+   "t1": 0.95
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/Idle_Shield_Loop",
+   "defect": "armThroughTorso",
+   "seed": 73,
+   "metric": "intersection",
+   "t0": 1.233333,
+   "t1": 1.533333,
+   "where": "upperArmR"
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/Idle_Talking_Loop",
+   "defect": "pop",
+   "seed": 74,
+   "metric": "pop",
+   "t0": 0.933,
+   "t1": 0.967
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/Interact",
+   "defect": "twistFlip",
+   "seed": 75,
+   "metric": "twistFlip",
+   "t0": 0.616667,
+   "t1": 0.65,
+   "where": "legL"
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/Pistol_Idle_Loop",
+   "defect": "seam",
+   "seed": 76,
+   "metric": "seam",
+   "t0": 1.667,
+   "t1": 1.667
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/Melee_Hook_Rec",
+   "defect": "stretch",
+   "seed": 77,
+   "metric": "stretch",
+   "t0": 0.333333,
+   "t1": 0.583333,
+   "where": "kneeR–ankleR"
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/PickUp_Table",
+   "defect": "nan",
+   "seed": 78,
+   "metric": "nan",
+   "t0": 0.25,
+   "t1": 0.25
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/Pistol_Shoot",
+   "defect": "eventsOrder",
+   "seed": 79,
+   "metric": "events",
+   "t0": 0.233333,
+   "t1": 0.233333
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/Push_Loop",
+   "defect": "wrongMirror",
+   "seed": 80,
+   "metric": "symmetry",
+   "t0": 0,
+   "t1": 2.667
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Shield_Dash_RM",
+   "defect": "slide",
+   "seed": 81,
+   "metric": "slide",
+   "t0": 0.267,
+   "t1": 0.733,
+   "where": "footR"
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/Sitting_Enter",
+   "defect": "sink",
+   "seed": 82,
+   "metric": "penetration",
+   "t0": 0.533333,
+   "t1": 0.833333
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/Slide_Loop",
+   "defect": "armThroughTorso",
+   "seed": 83,
+   "metric": "intersection",
+   "t0": 0.866667,
+   "t1": 1.166667,
+   "where": "upperArmR"
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/Sitting_Idle_Loop",
+   "defect": "pop",
+   "seed": 84,
+   "metric": "pop",
+   "t0": 1.083,
+   "t1": 1.117
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/Spell_Simple_Shoot",
+   "defect": "twistFlip",
+   "seed": 85,
+   "metric": "twistFlip",
+   "t0": 0.216667,
+   "t1": 0.25,
+   "where": "legL"
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/Zombie_Walk_Fwd_Loop",
+   "defect": "seam",
+   "seed": 86,
+   "metric": "seam",
+   "t0": 1.333,
+   "t1": 1.333
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/Sword_Regular_A_Rec",
+   "defect": "stretch",
+   "seed": 87,
+   "metric": "stretch",
+   "t0": 0.4,
+   "t1": 0.65,
+   "where": "kneeR–ankleR"
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/Yes",
+   "defect": "nan",
+   "seed": 88,
+   "metric": "nan",
+   "t0": 1.783333,
+   "t1": 1.783333
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Chest_Open",
+   "defect": "eventsOrder",
+   "seed": 89,
+   "metric": "events",
+   "t0": 0.616667,
+   "t1": 0.616667
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Crouch_Fwd_Loop",
+   "defect": "wrongMirror",
+   "seed": 90,
+   "metric": "symmetry",
+   "t0": 0,
+   "t1": 2
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Driving_Loop",
+   "defect": "sink",
+   "seed": 91,
+   "metric": "penetration",
+   "t0": 1.116667,
+   "t1": 1.416667
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Farm_PlantSeed",
+   "defect": "armThroughTorso",
+   "seed": 92,
+   "metric": "intersection",
+   "t0": 0.433333,
+   "t1": 0.733333,
+   "where": "upperArmR"
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Idle_Lantern_Loop",
+   "defect": "pop",
+   "seed": 93,
+   "metric": "pop",
+   "t0": 2.233,
+   "t1": 2.267
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Idle_No_Loop",
+   "defect": "twistFlip",
+   "seed": 94,
+   "metric": "twistFlip",
+   "t0": 1.45,
+   "t1": 1.483,
+   "where": "legL"
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Idle_Rail_Loop",
+   "defect": "seam",
+   "seed": 95,
+   "metric": "seam",
+   "t0": 2.5,
+   "t1": 2.5
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Idle_Shield_Loop",
+   "defect": "stretch",
+   "seed": 96,
+   "metric": "stretch",
+   "t0": 1,
+   "t1": 1.25,
+   "where": "kneeR–ankleR"
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Idle_Talking_Loop",
+   "defect": "nan",
+   "seed": 97,
+   "metric": "nan",
+   "t0": 2.083333,
+   "t1": 2.083333
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Interact",
+   "defect": "eventsOrder",
+   "seed": 98,
+   "metric": "events",
+   "t0": 1.6,
+   "t1": 1.6
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Melee_Hook_Rec",
+   "defect": "wrongMirror",
+   "seed": 99,
+   "metric": "symmetry",
+   "t0": 0,
+   "t1": 0.6
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/PickUp_Table",
+   "defect": "sink",
+   "seed": 100,
+   "metric": "penetration",
+   "t0": 0.25,
+   "t1": 0.55
+  }
+ ]
+}

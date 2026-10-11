@@ -30,7 +30,9 @@ why. This file is how.
 | `npm test` | T1 | unit, conformance, sensors on a sample | 90 s |
 | `npm run e2e` | T2 | browser adapter checks, full library QA | 8 min |
 | `npm run test:changed` | | the suites covering files changed against `main`, saying why each ran | |
-| `npm run test:cross-engine` | | the portable math, a quaternion chain and the helpers in V8 and JavaScriptCore (Bun), bit for bit, with each function's cost | |
+| `npm run test:cross-engine` | | the portable math, a quaternion chain, the helpers and the Animator's script in V8 and JavaScriptCore (Bun), bit for bit, with each function's cost | |
+| `npm run qa [-- --sample N] [--dist] [--check] [--fix]` | | the sensors over the migrated library: verdicts, the metrics that fail most, the distributions the thresholds come from; `--check` against the committed baseline (`--baseline` rewrites it, in a commit that says why); `--fix` lints and fixes every clip, failing on any that comes out worse or invalid | |
+| `npm run plant [-- --check]` | | plant ten kinds of defect into 100 clean library clips, with the times the sensors must find them (`--check`: the fixtures rebuild byte for byte) | |
 | `npm run gate -- G<n>` | Gate | the gate's fixed command set (`PLAN.md` §9.3), with its time | none |
 | `npm run doctrine` | | binaries, token budgets, import boundaries, banned APIs, pins, decisions log, local lane | |
 | `npm run vectors [-- --check]` | | regenerate the conformance vectors from the pinned originals, or check them byte for byte | |

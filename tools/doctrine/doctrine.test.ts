@@ -57,6 +57,8 @@ describe("budgets", () => {
 describe("boundaries", () => {
   it("reads every kind of import", () => {
     expect(specifiers(`import a from "x";\nimport type { B } from 'y';\nexport * from "./z.ts";\nimport "w";\nawait import("v");\n// import "comment";`)).toEqual(["x", "y", "./z.ts", "w", "v"]);
+    // a word in a string isn't an import: "the import's fit ... my-3d2dge's"
+    expect(specifiers(`const why = "the import's recorded fit, my-3d2dge's limits";\nimport "w";`)).toEqual(["w"]);
   });
   it("passes the allowed graph", () => {
     const ctx = fixture({

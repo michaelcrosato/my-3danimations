@@ -1,14 +1,15 @@
 {
   "name": "@m3a/sensors",
-  "version": "0.12.1",
+  "version": "0.19.1",
   "private": true,
   "description": "Motion metrics, describe, lint and fix, a software raster, sheets, films and diffs.",
   "license": "MIT",
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./node": "./src/node.ts"
   },
   "dependencies": {
-    "@m3a/core": "0.12.1"
+    "@m3a/core": "0.19.1"
   }
 }

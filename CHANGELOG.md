@@ -4,6 +4,128 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.19.1 · 2026-10-11
+
+### Sensors
+- G3's second review of WP-3.5 (D44): `fix` doesn't apply a step that raises a metric already at warn by more than
+  5%, adds findings, or lowers none of the metrics its operator answers (as well as one pushing a metric past a level);
+  twist flips take whole turns out of a stretch before spreading it; foot locks aim only the locked side's leg and
+  leave an in-place loop that steps as it is (the step says why); jitter treats a key out of place alone apart from a
+  shake.
+- `compareClips` throws when its three rows can't fit the budget, instead of returning over it (D40).
+- The describe tests count tokens by cl100k as well as o200k (D42).
+
+### Tools
+- `npm run qa -- --fix` counts a clip with more findings as worse, and its summary is in the verdict line.
+
+## 0.19.0 · 2026-10-11
+
+### Sensors
+- G3 review of WP-3.5 (D44): `fix` doesn't apply a step that would push any metric past a level it was under (the
+  step says which), every key an operator adds or edits is tidied to the format's whole numbers and ranges (`fixes.tidy`),
+  edits are keyed every 0.1 s, twist flips keep a loop closed, the seam operator adds no key when the seam closes and
+  matches speeds where they stand out (lint names it for `seamVelocity`), penetration sets on the floor only a foot
+  standing still, re-fit counts the root's travel and turn, and an unknown operator name throws.
+- Describe's text holds to 150 tokens as counted, not 600 characters, and says how many items it left out (D42).
+- A predicate whose interval starts after the clip ends is refused (D41).
+- A sheet whose frames draw no body throws, naming them; a diff's three rows share its token budget (D40).
+
+### Tools
+- `npm run qa -- --fix`: lint and fix over the library, failing on any clip that comes out worse or invalid; in G3's
+  command set. The verdicts line names the metrics that fail most.
+- The planted defects (D43): every planted clip validates; slides lie on stances within their clips and are found
+  within 0.1 s of them; the defects take clips in turn, about 10 each; edits keyed every 0.1 s.
+
+## 0.18.1 · 2026-10-11
+
+### Tools
+- The sensors' baseline (`packages/sensors/fixtures/baseline.json`, numbers only): every migrated clip's verdict,
+  values and finding counts. `npm run qa -- --check` fails on any difference and T2 runs it; `--baseline` rewrites it,
+  in a commit that says why.
+- `npm run plant [-- --check]` for the planted defects.
+- `npm run gate -- G3`: its command set.
+
+## 0.18.0 · 2026-10-11
+
+### Sensors
+- WP-3.5: `fix(clip, R)` and `lint(clip, R)`, and the operators one by one (`fixes`): repair twist flips, filter
+  jitter and pops, lift penetration, bake foot locks, close a loop seam (pose and speed), re-fit keys to a budget.
+  Each is measured before and after, and no clip changes silently: `dur`, events and contacts are checked after every
+  operator, and stored facts measured again (D44).
+- The metrics' key grid is the keys as played: a key past the end counts only through the pose at the end.
+
+### Tools
+- The plant tool's new keys snap to a clip's own within 5 ms; the slide plant keys its drag on the 1/30 s grid.
+
+## 0.17.0 · 2026-10-11
+
+### Sensors
+- WP-3.6: 100 planted defects (`fixtures/planted/runs.json`), ten kinds, every one flagged by its metric at its times;
+  false positives in 3 runs of 100, each stated (D43).
+- Jitter takes the smaller of two opposite bends, so a key out of place doesn't read as a shake beside it (warn 26,
+  fail 90 from capture); a flip at a limb read as straight folds its swing too.
+
+### Tools
+- `node tools/plant/main.ts [--check]`: plants ten defects into clean library clips with the times they must be found
+  at (a slide, a sink, an arm through the torso, a pop, a twist flip, a loop seam, a stretched bone, a NaN, events out
+  of order, a wrong mirror).
+
+## 0.16.0 · 2026-10-11
+
+### Sensors
+- WP-3.4: `describe(clip, R)`: a clip as a short text timeline: its phases by rule (stand, walk, run, crouch, sit, lie,
+  air), landings, strikes, events and travel; at most 150 tokens, more with `detail`. 30 of 30 on the reviewed ground
+  truth (`fixtures/describe-truth.json`).
+- The metrics' stance can read by height alone.
+
+## 0.15.1 · 2026-10-11
+
+### Sensors
+- WP-3.3 review: where a foot stands is measured (on the floor, slower than a swing or carried with the pelvis), so a
+  sliding or gliding foot is measured; slide is a contact's drift from where it landed; skate is a metric of its own.
+- The root adds its place, not a second turn by its yaw; the heel's sole point turns with the foot.
+- Jitter and pops read the key grid; pops follow my-3d2dge's 2.5× rule, per body part; thresholds re-derived from capture.
+- Twist flips are judged at any spacing where the reference is undefined, by rate elsewhere; the head limit reads
+  either encoding of the head.
+- A flip folds only what it swings within its keys, takes their worst level, and keeps them as `folded`.
+- Predicates convert or reject units, read the measured stance, and refuse backward intervals; a sliding profile.
+
+### Tools
+- `npm run qa`: `--dist` prints the distributions (capture and all); every clip's findings go to `clips.json`.
+
+## 0.15.0 · 2026-10-11
+
+### Sensors
+- WP-3.3: the metrics (`metrics/`), `metrics(clip, R)`: slide and skate, penetration, self-intersection, jitter, pops,
+  twist flips, knee and neck limits, stretch, loop seams, fit, non-numbers, events and symmetry. Each finding has its
+  times and a repair. Thresholds come from capture, each with its reason; tag profiles relax what doesn't apply. The
+  verdict is at most 20 lines.
+- Predicates (`predicates/`): planted, free, within, height, compare and "no". A failure reads as a repair.
+- The raster's capsules are named by part.
+
+### Tools
+- `npm run qa`: the sensors over the migrated library (`--sample`, `--set`, `--clip`, `--dist`, `--strict`). T2 runs
+  it.
+- The boundary check's import scanner no longer reads `import's` in a string as an import.
+
+## 0.14.0 · 2026-10-11
+
+### Sensors
+- WP-3.2: sheets, films and diffs (`sheet/`):
+  - `sheet` (a clip's frames at one scale, in rows of eight) and `filmstrip`;
+  - overlays for planted feet, foot trails, flagged times in red, and a timeline of contacts and flags;
+  - `diff` (A, B, and A with changes marked) and `compareClips` (two clips on one camera);
+  - each image's size and token cost, within a budget.
+
+## 0.13.0 · 2026-10-11
+
+### Sensors
+- WP-3.1: the software raster (`raster/`):
+  - the capsule mannequin on a pose's body points, lit and z-buffered, its left side blue, with a nose for facing;
+  - front, side, back, top and three-quarter views, any azimuth, and a turntable;
+  - a 5 × 7 bitmap font for labels and a non-blank check;
+  - PNG bytes (`encodePng`; `png` and `writePng` in the new `@m3a/sensors/node` entry, through node:zlib).
+
 ## 0.12.1 · 2026-10-11
 
 ### Core

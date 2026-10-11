@@ -1299,11 +1299,12 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
     (a spike against the steps around it, not raw speed; CHANGELOG 0.8.0);
   - from riftlight: `src/engine/animation/metrics.ts` (`analyzeClip`, which flags sliding against clip speed).
 - **Build:** per clip, each finding with its times:
-  - **foot sliding** during contacts (mm per contact, and peak speed);
+  - **foot sliding** during contacts (mm per contact, and skate in cm/s; contacts measured where the foot stands, D41);
   - **ground penetration;**
   - **self-intersection** of limb capsules (an arm through the torso);
-  - **jitter** (the jerk spectrum) and pops;
-  - **joint-limit violations:** knees or elbows bending backwards, neck over-twist;
+  - **jitter** (sustained back-and-forth on the key grid, D41) and pops;
+  - **joint-limit violations:** knees bending backwards, neck over-twist (elbows wait: a format-1 arm's twist has no
+    anatomical reference, D41);
   - **bone stretch** after solving;
   - **loop seam:** pose and velocity;
   - **fit** against the source;
@@ -1331,8 +1332,8 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
 - **Size:** M
 - **Ground truth:** `describe-truth.json` holds 30 clips whose phases were labelled from their contact sheets and
   catalog lines. A verifier subagent reviews the labels before they are used.
-- **Build:** a text timeline built from contacts, the centre of mass, extremes, events and travel, in the format's own
-  words. For example: "0.00–0.40 s crouches (hips 88%); 0.40–0.55 s airborne; lands on the left foot at 0.58 s; travels
+- **Build:** a text timeline built from contacts, the pelvis's height (the centre of mass waits for WP-D.4; D42),
+  extremes, events and travel, in the format's own words. For example: "0.00–0.40 s crouches (hips 88%); 0.40–0.55 s airborne; lands on the left foot at 0.58 s; travels
   1.2 hip heights forward". At most 150 tokens by default; `--detail` gives more.
 - **Done when:** on the 30 clips in `describe-truth.json` the timeline names the right phases in the right order for at
   least 27, and the output is deterministic.
@@ -1348,13 +1349,14 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
     intervals or reports each one it changes, and changes no clip silently:
     - bake foot locks into keys;
     - lift penetration;
-    - close a loop seam, spreading the remainder over the cycle;
+    - close a loop seam, spreading the remainder (pose and speed) over the cycle's ends (D44);
     - filter jitter;
     - repair twist flips;
     - re-fit keys to a budget.
   - `lint(clip)` lists what `fix` would change.
 - **Done when:** each operator removes its planted defect (WP-3.6) without pushing any other metric past its threshold,
-  and a test shows no operator changes `dur`, an event or a contact without reporting it.
+  and a test shows no operator changes `dur`, an event or a contact without reporting it. Over the whole library, no
+  fixed clip comes out worse or invalid (`npm run qa -- --fix`, in G3's command set; D44).
 - **Verify:** `npm test -- fix`
 
 #### WP-3.6 Planted defects
@@ -1362,8 +1364,8 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
 - **Needs:** 3.3
 - **Size:** S
 - **Build:** a generator that plants known defects into clean clips, with the expected times:
-  - a sliding foot;
-  - a sinking foot;
+  - a sliding foot (on a stance that starts and ends within the clip, so its time shows: D43);
+  - a sunk body (both soles under the floor);
   - an arm through the torso;
   - a pop;
   - a twist flip;
@@ -2220,13 +2222,13 @@ version, commit, date and a note with the numbers. Gates are rows too.
 | 2.5 Contacts and ground | done | 0.11.0 | 39c7ad5 | 2026-10-11 | 133 locomotion loops + synced blends: planted contact point slides 0.0 mm per contact (free: up to 92); 10° slopes and 0.2 m steps: planted soles within 1.7 mm, none under; pelvis drop ≤0.1 H0 (D37) |
 | 2.6 The Animator | done | 0.12.1 | 7d8cef6, ba5e792 | 2026-10-11 | 480-step script: state hash every step, 29 events and 5 exact poses identical in Node and Chromium, with poses skipped, every step or alternating LOD; save at every step → restore via JSON → next 40 identical; changed/missing clip refused by name; feet ≤10 mm; step 1.4 µs, pose 0.20 ms (4 layers, 4 cores); API 38 of 40, documented ; review: seams once a cycle at any speed, one-shot ends once, no −0, body and in-place edits refused (D38) |
 | **G2** | done | 0.12.1 | a5fb0a0 | 2026-10-11 | 8/8 in 42.1 s: T0 1.7 s, T1 14.8 s (305 tests), doctrine 8/8 (API 38/40), vectors, tiers 1a–3, Animator Node = Chromium (480 hashes, 41 events, 5 exact poses), V8 = JSC (math, chain, Animator), property tests; verifiers: WP-2.4 8 + G2 7 findings fixed (D36, D38), notes F2, F3 |
-| 3.1 The software raster | todo | | | | |
-| 3.2 Sheets, films and diffs | todo | | | | |
-| 3.3 The metrics | todo | | | | |
-| 3.4 Describe | todo | | | | |
-| 3.6 Planted defects | todo | | | | |
-| 3.5 Lint and fix | todo | | | | |
-| **G3** | todo | | | | |
+| 3.1 The software raster | done | 0.13.0 | 7b81c29 | 2026-10-11 | 5 views + turntable: same PNG bytes in two runs and a second process; 1,000 × 1,000 in 9.5 ms (≤50); left blue / right amber by view, the jabbing fist blue, amber when mirrored; NaN pose blank and named (D39) |
+| 3.2 Sheets, films and diffs | done | 0.14.0 | 159ea49 | 2026-10-11 | 2 s clips: 1,000 × 404, 539 tokens (budget 1,400); 41 frames shrink to ≤1,000 tokens; identical diff empty; a one-key arm edit marked in exactly the frames between its neighbours, box holding the edited elbow and fist (D40) |
+| 3.3 The metrics | done | 0.15.1 | f526e7d, c10d0f1 | 2026-10-11 | 14 metrics + 6 predicate forms, unit fixtures that fail on 48 of 48 mutants (36 tests); library in 5.6 s within T2: 268 pass, 111 warn, 146 fail (twist flips 92, jitter 34, pops 27; after D43, 267 / 104 / 154: twist flips 92, jitter 45, pops 25); thresholds from capture (158 clips) with unit, rate, scaling and reason; the verifier's 12 findings fixed in 0.15.1 (D41) |
+| 3.4 Describe | done | 0.16.0 | f186cd3 | 2026-10-11 | 30 of 30 reviewed truth clips right (bar 27): the verifier agreed with 23, corrected 2, dropped 7, labelled 7; deterministic, at most 91 tokens over all 525 clips (5.7 s) (D42) |
+| 3.6 Planted defects | done | 0.17.0 | 7eee99f | 2026-10-11 | 100 of 100 planted defects (10 kinds, 100 clean clips) flagged by their metric at their times; consequences implied in 14 runs; false positives in 3 runs (3%), each named; jitter and folding fixed on the way (D43); at G3 (0.19.0): valid planted clips, slides on 9 stances within their clips found within 0.1 s of them, 100 of 100 within their stretches, false positives in 3 runs |
+| 3.5 Lint and fix | done | 0.18.0 | 821c668 | 2026-10-11 | six operators, each removing its planted defect on every WP-3.6 run of its kind (50 runs) without pushing another metric past warn; no operator moves dur, an event or a contact unreported; re-fit within 5 mm or a key budget; 16 of 16 mutants fail the tests (D44); reworked at G3 (0.19.0): valid keys, a step that would push a metric past a level not applied, loops kept closed; G3's second review (0.19.1): a step that raises a metric at warn over 5%, adds findings or lowers none it answers not applied either, twist flips spread the short way, foot locks only on the locked leg and not on in-place stepping loops; over the library 252 clips linted, 144 better, 53 with fewer findings, none worse or invalid, 114 of 456 steps not applied; 27 of 27 mutants (the verifier's 21 included) fail the tests |
+| **G3** | done | 0.19.1 | 504d0f6 | 2026-10-11 | 11/11 in 122.8 s: T0 1.7 s, T1 25.6 s (407 tests), doctrine 8/8, vectors, the sensors over 525 clips in 5.2 s as baselined (267 pass, 104 warn, 154 fail), planted rebuilt byte for byte and 100/100 at their times, describe 30/30, each fix operator on its planted runs, fix over the library (252 linted, 144 better, 53 fewer findings, 0 worse or invalid), T2 8.7 s; verifiers: 16 + 5 findings fixed (D40 to D44), 27/27 mutants killed |
 | 4.1 Pin three.js | todo | | | | |
 | 4.2 Test characters | todo | | | | |
 | 4.3 Binding a skeleton | todo | | | | |
