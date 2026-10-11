@@ -4,6 +4,17 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.22.0 · 2026-10-11
+
+### Three
+- WP-4.3: `bind(root, { mapping? })`: a three.js character's skeleton (or VRM humanoid) recognized, its rest read in
+  its own space, bound for the solver, with a report of at most 20 lines and a mapping patch to edit and pass back (D47).
+
+### Core
+- Recognition by topology: a long clavicle is the shoulder, a rig with no neck keeps its arms, a twist leaf isn't the
+  hand, a chain of neck bones ends at the head, a twist bone in the thigh is passed over, and an arm with twist bones in
+  it is reported with lower confidence (D28 revised).
+
 ## 0.21.0 · 2026-10-11
 
 ### Three

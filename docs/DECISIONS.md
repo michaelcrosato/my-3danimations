@@ -334,6 +334,11 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
     places body points on any recognized skeleton (within 0.001 mm of the importer on the tiny rig), so the solver can
     measure a target body the same way as a library's.
 - **Why:** exact names are cheap and certain; a renamed rig still binds, with the doubt visible in its confidence.
+- **Revised in WP-4.3 (D47):** binding renamed test characters showed the topology fallback taking a long clavicle for
+  the upper arm (every arm bone one off), climbing past the spine's branch into an arm when the head had no neck and
+  nothing above it, taking a twist leaf for the hand, taking the last neck bone for the head, and a twist bone in the
+  thigh for the shin. Fixed, each with a fixture that fails on the old rule; an arm whose mapped upper arm and forearm
+  cover under 65% of its chain (twist bones in it) is reported, with the confidence lowered.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.5.0
 
@@ -1110,3 +1115,29 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   CI's fetch step; `@types/three` in `packages/three/package.json` (its own commit).
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.21.0
+
+## D47 · 2026-10-11 · Binding a three.js character: its own space, its own rotations, a report to patch
+
+- **Principle:** 2, 4, 8, WP-4.3
+- **Call:**
+  - **`bind(root, { mapping? })`** (`@m3a/three`) takes the skinned mesh with the most bones under `root` (or a VRM's
+    humanoid, from three-vrm's `userData.vrm`), reads each bone's rest head and orientation in the root's own space
+    (its world transform left out, so a character placed anywhere binds the same; metres, any armature scale applied),
+    recognizes the skeleton (WP-1.4: by name, else by topology), and binds it with core's `bind` (the rest frame, the
+    body measured from the bones), the bones' own rest orientations kept so the solver's rotations are three's.
+  - **The report** (at most 20 lines): how the skeleton was read and how sure (confidence), the rest pose read (T, A or
+    relaxed, the arms' drop), what is mapped and unmapped, what is missing, the issues, the limb lengths (mm, left and
+    right), and a patch: the mapping as `{ bones: { humanoidBone: sourceBone | null } }`, missing bones as null, to edit
+    and pass back as `mapping`. A missing required bone throws with the report's text.
+  - **Topology, fixed on the way** (core, WP-1.4's, D28 revised): binding every generated character with its bones
+    renamed showed the fallback mapping arms one bone off, losing the arms when the head had no neck, and more.
+- **Result:** the 20 test characters and a held-out seed bind with no hand mapping, each limb length as generated to the
+  millimetre and the rest pose as written; the mannequin and the Knight bind too. A test character with every bone
+  renamed binds through topology at confidence 0.85, its lengths right. Renamed, 22 of 24 generated characters map as
+  they do by name; the other 2 (Rigify's twist bones in the arm chain) are reported with confidence 0.55. A character
+  moved and turned in a scene binds to the same rest points. A missing hand throws with a report naming it and how to
+  patch it; the patch, written to a file and read back, binds.
+- **Outside WP-4.3's Owns** (one agent, D21): the topology fixes in core's `recognize` (WP-1.4's) with their
+  fixtures; `@m3a/three`'s index exports `bind` and its types.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.22.0

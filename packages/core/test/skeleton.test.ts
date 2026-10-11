@@ -1,5 +1,6 @@
 // Tests for the skeleton profile (WP-1.4): recognition is exact on a fixture for every mapping table (namespaces and
-// case stripped); the topology fallback maps renamed skeletons and reports its confidence; measure reproduces tier
+// case stripped); the topology fallback maps renamed skeletons (long clavicles, no neck, twist bones, no head-top leaf)
+// and reports its confidence; measure reproduces tier
 // 1a's rests bit for bit; restPoints places the tiny rig's body points where the importer did.
 import { describe, expect, it } from "vitest";
 import { HUMANOID_BONES, HUMANOID_PARENT, measure, patchMapping, recognize, REQUIRED_BONES, restFrame, restPoints, TABLES, type Capture, type SkeletonIn } from "./all.ts";
@@ -106,6 +107,57 @@ describe("recognize: by topology", () => {
     const original = (n: string) => gltf.nodes[Number(n.slice(1))]!.name;
     const got = Object.fromEntries(Object.entries(rec.bones).map(([b, n]) => [b, original(n)]));
     expect(got).toMatchObject({ hips: "pelvis", spine: "spine_01", chest: "spine_02", upperChest: "spine_03", neck: "neck_01", head: "Head", leftUpperArm: "upperarm_l", rightHand: "hand_r", leftUpperLeg: "thigh_l", rightFoot: "foot_r", leftToes: "ball_l", leftShoulder: "clavicle_l" });
+  });
+  // rigs without fingers or a head-top leaf, renamed (WP-4.3's binding found these): the body's bones only, then edited
+  const BODY = ["hips", "spine", "chest", "upperChest", "neck", "head", ...["left", "right"].flatMap((s) => ["Shoulder", "UpperArm", "LowerArm", "Hand", "UpperLeg", "LowerLeg", "Foot", "Toes"].map((p) => s + p))];
+  /** A rig of those bones (edited by `edit`), every bone renamed, recognized, and read back in humanoid names. */
+  const renamedRig = (edit: (bones: { name: string; parent: string | null; head: V }[]) => void = () => {}) => {
+    const sk = skeleton(Object.fromEntries(BODY.map((b) => [b, b])), false), bones = sk.bones as { name: string; parent: string | null; head: V }[];
+    edit(bones);
+    const to = new Map(bones.map((b, i) => [b.name, `n${(i * 7) % 97}`])), back = new Map([...to].map(([a, b]) => [b, a]));
+    const rec = recognize({ bones: bones.map((b) => ({ name: to.get(b.name)!, parent: b.parent ? to.get(b.parent)! : null, head: b.head })) });
+    return { rec, got: Object.fromEntries(Object.entries(rec.bones).map(([h, n]) => [h, back.get(n)!])) };
+  };
+  const at = (bones: { name: string; head: V }[], name: string, head: V) => (bones.find((b) => b.name === name)!.head = head);
+  it("takes a long clavicle reaching out to the arm for the shoulder, not the upper arm", () => {
+    // the upper arm starts 0.25 m out, so the clavicle (0.22 m) is longer than the upper arm (0.21 m)
+    const { got } = renamedRig((b) => {
+      at(b, "leftUpperArm", [0.25, 1.41, 0]);
+      at(b, "rightUpperArm", [-0.25, 1.41, 0]);
+    });
+    expect([got.leftShoulder, got.leftUpperArm, got.leftLowerArm, got.leftHand]).toEqual(["leftShoulder", "leftUpperArm", "leftLowerArm", "leftHand"]);
+  });
+  it("finds the spine's branch when the head has no neck and nothing above it", () => {
+    const { got } = renamedRig((b) => {
+      b.splice(b.findIndex((x) => x.name === "neck"), 1);
+      b.find((x) => x.name === "head")!.parent = "upperChest";
+    });
+    expect([got.upperChest, got.head, got.leftHand, got.rightHand]).toEqual(["upperChest", "head", "leftHand", "rightHand"]);
+  });
+  it("takes the hand, not a twist leaf halfway along the forearm", () => {
+    const { got } = renamedRig((b) => b.splice(b.findIndex((x) => x.name === "leftHand"), 0, { name: "leftForeArmTwist", parent: "leftLowerArm", head: [0.585, 1.41, 0] }));
+    expect(got.leftHand).toBe("leftHand");
+  });
+  it("ends the head at the last neck bone when nothing sits on the head", () => {
+    const { got } = renamedRig((b) => {
+      b.splice(b.findIndex((x) => x.name === "head"), 0, { name: "neck2", parent: "neck", head: [0, 1.5, 0] });
+      b.find((x) => x.name === "head")!.parent = "neck2";
+    });
+    expect([got.neck, got.head]).toEqual(["neck", "head"]);
+  });
+  it("passes over a twist bone in the thigh, and doubts an arm with twist bones in it", () => {
+    const leg = renamedRig((b) => {
+      b.splice(b.findIndex((x) => x.name === "leftLowerLeg"), 0, { name: "leftThighTwist", parent: "leftUpperLeg", head: [0.1, 0.71, 0] });
+      b.find((x) => x.name === "leftLowerLeg")!.parent = "leftThighTwist";
+    });
+    expect([leg.got.leftUpperLeg, leg.got.leftLowerLeg, leg.got.leftFoot]).toEqual(["leftUpperLeg", "leftLowerLeg", "leftFoot"]);
+    expect(leg.rec.issues).toContain("the left leg has 1 bone(s) between the thigh and the shin, passed over as twist bones");
+    const arm = renamedRig((b) => {
+      b.splice(b.findIndex((x) => x.name === "leftLowerArm"), 0, { name: "leftArmTwist", parent: "leftUpperArm", head: [0.32, 1.41, 0] });
+      b.find((x) => x.name === "leftLowerArm")!.parent = "leftArmTwist";
+    });
+    expect(arm.rec.issues.some((x) => /^the left arm's upper arm and forearm are short for its chain of 4 bones: twist bones in it\?/.test(x))).toBe(true);
+    expect(arm.rec.confidence).toBeLessThan(0.85);
   });
   it("reports none when there are neither names nor positions to go on", () => {
     const rec = recognize({ bones: [{ name: "a" }, { name: "b", parent: "a" }] });
