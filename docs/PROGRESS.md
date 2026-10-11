@@ -3,7 +3,7 @@
 The current state on one screen (at most 40 lines; `npm run doctrine` checks it from WP-0.3). The ledger is
 `PLAN.md` §14; decisions are in `docs/DECISIONS.md`.
 
-**Phase:** 3 The sensors. **Next gate:** G3. **Version:** 0.15.0.
+**Phase:** 3 The sensors. **Next gate:** G3. **Version:** 0.15.1.
 **Mode:** one agent (D21), branch `claude/relaxed-albattani-35xhjq`.
 
 ## Done
@@ -18,10 +18,12 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
   tested (D36, F2); planted feet and the ground (D37); the Animator, the same hashes and exact poses in Node,
   Chromium and Bun, and core's public API of 38 documented names (D38, F3).
 
+- Phase 3 so far (michaelcrosato/my-3danimations#7): the raster (D39); sheets, films and diffs (D40); 14 metrics with
+  thresholds from capture, predicates and `npm run qa`, the verifier's 12 findings fixed (D41).
+
 ## Next
 
-- Phase 3 The sensors: WP-3.1 the raster, 3.2 sheets, 3.3 metrics, 3.4 describe, 3.6 planted defects, 3.5 lint and
-  fix; gate G3.
+- Phase 3 The sensors: WP-3.4 describe, 3.6 planted defects, 3.5 lint and fix; gate G3.
 
 ## Blocked on the owner
 
@@ -35,5 +37,4 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
   - the Animator's 480 step hashes, 41 events and 5 exact poses identical in Node and Chromium;
   - V8 = JavaScriptCore on 2.8M portable results, a 100k-step chain and the Animator's script;
   - property tests: mirror twice ≤0.5 mm, blend ends, retime, solver roll.
-- The verifiers' findings, all fixed: WP-2.4's 8 (bone roll, D36) and G2's 7 (events at seams and ends, −0, the
-  body and in-place edits, the turn, the WP entry; D38). Their notes are in F2 and F3.
+- The verifiers' findings, all fixed: WP-2.4's 8 (D36) and G2's 7 (D38); notes in F2 and F3.

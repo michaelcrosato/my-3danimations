@@ -3,7 +3,7 @@
 // finding's level comes from the thresholds; its message says what is wrong and how to repair it.
 import { format, math, ops } from "@m3a/core";
 import { capsules } from "../raster/mannequin.ts";
-import { at, sole, world, type Motion } from "./motion.ts";
+import { at, lowest, sole, world, type Motion } from "./motion.ts";
 import { REFERENCE_H0, THRESHOLDS, type MetricName } from "./thresholds.ts";
 
 const { PORTABLE } = math;
@@ -55,43 +55,60 @@ function runs(values: readonly number[], times: readonly number[], min: number):
 }
 const keep = (xs: (Finding | null)[]): Finding[] => xs.filter((x): x is Finding => x !== null);
 
-/** Foot sliding: each contact's path of the contact point (its lowest sole point at each step) in the world. */
-export function slide(m: Motion): Measured & { skate: number } {
-  const findings: (Finding | null)[] = [];
-  let worst = 0, total = 0, time = 0;
+/**
+ * Foot sliding: each contact (where the foot stands on the floor, measured) with its drift in the world: at each step,
+ * the move of its contact point (its lowest sole point then: the heel at strike, the ball and toes at push-off),
+ * summed as a vector, so a foot rolling from heel to toes drifts nothing and a capture's marker noise cancels. Slide is
+ * the farthest the drift takes the foot from where it landed (what a foot lock undoes), in mm; skate is that over the
+ * contact's time, in cm/s, for contacts of at least SKATE_MIN s (a slow glide over a long contact stays under the
+ * slide's mm). Skate's value over the clip is its worst contact; `skateMean` is every contact's drift over their time.
+ */
+export function slide(m: Motion): Measured & { skate: Measured; skateMean: number } {
+  const findings: (Finding | null)[] = [], skates: (Finding | null)[] = [];
+  let worst = 0, worstSkate = 0, total = 0, time = 0;
   for (const s of ["L", "R"] as const) {
     for (const [a, b] of m.contacts[`foot${s}`] ?? []) {
       // a loop's contact past its end continues from its start
       const parts: [number, number][] = m.loop && b > m.dur ? [[a, m.dur], [0, b - m.dur]] : [[a, Math.min(b, m.dur)]];
-      let path = 0, peak = 0;
+      let df = 0, dr = 0, far = 0, dur = 0;
       for (const [p, q] of parts) {
         const i0 = Math.ceil(p / m.dt - 1e-9), i1 = Math.floor(q / m.dt + 1e-9);
         for (let i = i0; i < i1 && i + 1 < m.frames.length; i++) {
-          const pts = sole(m, m.frames[i]!, s), low = pts.reduce((x, y) => (y.p[2] < x.p[2] ? y : x));
-          const next = sole(m, m.frames[i + 1]!, s).find((x) => x.name === low.name)!;
-          const w0 = world(m, i, low.p), w1 = world(m, i + 1, next.p), d = PORTABLE.hypot(w1[0] - w0[0], w1[1] - w0[1]);
-          path += d;
-          peak = Math.max(peak, d / m.dt);
-          time += m.dt;
+          const low = lowest(m, i, `foot${s}`), next = sole(m, m.frames[i + 1]!, s).find((x) => x.name === low.name)!;
+          const w0 = world(m, i, low.p), w1 = world(m, i + 1, next.p);
+          df += w1[0] - w0[0];
+          dr += w1[1] - w0[1];
+          far = Math.max(far, PORTABLE.hypot(df, dr));
+          dur += m.dt;
         }
       }
-      total += path;
-      worst = Math.max(worst, path);
-      findings.push(finding(m, "slide", path, a, Math.min(b, a + m.dur), "foot" + s, `the planted foot slides ${fmt(path)} mm (peak ${fmt(peak / 10)} cm/s)`, "hold it still while planted (fix: bake foot locks), or end the contact where it lifts"));
+      total += far;
+      time += dur;
+      worst = Math.max(worst, far);
+      const t1 = Math.min(b, a + m.dur);
+      findings.push(finding(m, "slide", far, a, t1, "foot" + s, `the planted foot slides ${fmt(far)} mm from where it landed`, "hold it still while planted (fix: bake foot locks), or end the contact where it lifts"));
+      if (dur >= SKATE_MIN - 1e-9) {
+        const v = far / dur / 10;
+        worstSkate = Math.max(worstSkate, v);
+        skates.push(finding(m, "skate", v, a, t1, "foot" + s, `the planted foot glides at ${fmt(v, 1)} cm/s (${fmt(far)} mm in ${fmt(dur, 2)} s)`, "hold it still while planted (fix: bake foot locks), or match the root's speed to the stride"));
+      }
     }
   }
-  return { value: worst, skate: time > 0 ? total / time / 10 : 0, findings: keep(findings) };
+  return { value: worst, findings: keep(findings), skate: { value: worstSkate, findings: keep(skates) }, skateMean: time > 0 ? total / time / 10 : 0 };
 }
+/** The shortest contact skate judges, in seconds: a shorter one's mean speed is a heel strike's settle. */
+export const SKATE_MIN = 0.25;
 
 /** A sole under the floor, and other body parts under it. */
 export function penetration(m: Motion): { soles: Measured; body: Measured } {
   const soleDepth = m.frames.map((X) => Math.max(0, ...(["L", "R"] as const).flatMap((s) => sole(m, X, s).map((p) => -p.p[2]))));
+  const deeper = (X: Float32Array) => (["L", "R"] as const).reduce((a, s) => (Math.min(...sole(m, X, s).map((p) => p.p[2])) < Math.min(...sole(m, X, a).map((p) => p.p[2])) ? s : a));
   const BODY = ["kneeL", "kneeR", "elbowL", "elbowR", "fistL", "fistR", "pelvis", "head", "headTop", "chest"];
   const bodyDepth = m.frames.map((X) => Math.max(0, ...BODY.map((n) => -at(X, n)[2])));
   const lowest = (X: Float32Array) => BODY.reduce((a, n) => (at(X, n)[2] < at(X, a)[2] ? n : a));
   const s = levels(m, "penetration"), b = levels(m, "bodyPenetration");
   return {
-    soles: { value: Math.max(0, ...soleDepth), findings: keep(runs(soleDepth, m.times, s.warn).map((r) => finding(m, "penetration", r.worst, r.t0, r.t1, undefined, `a sole goes ${fmt(r.worst)} mm under the floor`, "lift the pose so the sole touches it (fix: lift penetration)"))) },
+    soles: { value: Math.max(0, ...soleDepth), findings: keep(runs(soleDepth, m.times, s.warn).map((r) => finding(m, "penetration", r.worst, r.t0, r.t1, "foot" + deeper(m.frames[Math.round(r.at / m.dt)]!), `its sole goes ${fmt(r.worst)} mm under the floor`, "lift the pose so the sole touches it (fix: lift penetration)"))) },
     body: { value: Math.max(0, ...bodyDepth), findings: keep(runs(bodyDepth, m.times, b.warn).map((r) => finding(m, "bodyPenetration", r.worst, r.t0, r.t1, lowest(m.frames[Math.round(r.at / m.dt)]!), `goes ${fmt(r.worst)} mm under the floor`, "raise the body, or tag the clip lying, sitting or acrobatic if it rests there"))) },
   };
 }
@@ -108,9 +125,14 @@ function segments(a: readonly number[], b: readonly number[], c: readonly number
   const p = [a[0]! + u[0]! * s - c[0]! - v[0]! * t, a[1]! + u[1]! * s - c[1]! - v[1]! * t, a[2]! + u[2]! * s - c[2]! - v[2]! * t];
   return { dist: Math.sqrt(dot(p, p)), s, t };
 }
-/** The pairs of parts that shouldn't pass through each other: a forearm or hand and the torso; one lower leg and the other. */
+/**
+ * The pairs of parts that shouldn't pass through each other: a forearm or hand and the torso; an upper arm and the
+ * torso below the shoulders (it hangs against the chest's side, so not against the pecs or the hips: capture reads it
+ * 0.49 deep at p99); one lower leg and the other.
+ */
 const PAIRS: readonly [string, string][] = [
   ...["L", "R"].flatMap((s) => ["forearm" + s, "hand" + s].flatMap((a) => ["hips", "pelvis", "belly", "chest", "pecs"].map((b) => [a, b] as [string, string]))),
+  ...["L", "R"].flatMap((s) => ["pelvis", "belly", "chest"].map((b) => ["upperArm" + s, b] as [string, string])),
   ["shinL", "shinR"], ["footL", "footR"], ["shinL", "footR"], ["footL", "shinR"],
 ];
 /** Self-intersection: how deep a part sits in another, as a share of the thinner one's width. */
@@ -131,68 +153,124 @@ export function intersection(m: Motion): Measured {
   return { value: Math.max(0, ...depth), findings: keep(runs(depth, m.times, L.warn).map((r) => finding(m, "intersection", r.worst, r.t0, r.t1, where[Math.round(r.at / m.dt)], `sits ${fmt(r.worst * 100)}% of its width inside`, "move the limb out of the body (an arm through the torso, a leg through the other)"))) };
 }
 
+/** One grid step's spacing: what the second difference is measured at (1/30 s, the library's key rate). */
+const STEP = 1 / 30;
 /**
- * Jitter: noise, a point shaking back and forth sample after sample. Per point and sample, the back-and-forth is the
- * geometric mean of two consecutive accelerations of opposite sign (0 for a kink or a hard stop); jitter is its median
- * over 9 samples (0.15 s), so a single reversal, a pop or a snap reads 0 and only sustained shaking counts.
+ * Jitter: noise, a point shaking back and forth from key to key. It reads the key grid (a clip's keys, captured
+ * points' samples): in-betweens are straight lines, so on 60 Hz samples of 30 fps keys two consecutive samples never
+ * both bend and a shake at the key rate would read 0. Per point and key, the bend is the second difference (at the
+ * key's spacing, or as if 1/30 s apart where keys lie further apart, so a slow curve between sparse keys reads small);
+ * the back-and-forth is the geometric mean of two consecutive bends of opposite sign (0 for a kink or a hard stop);
+ * jitter is its median over 5 keys, so a single reversal, a pop or a snap reads 0 and only sustained shaking counts.
  */
 export function jitter(m: Motion): Measured {
-  const F = m.frames, n = F.length, P = format.P, per = new Array<number>(n).fill(0), point = new Array<string>(n).fill("");
-  const osc = new Float64Array(n);
+  const { frames: F, times: T } = m.grid, n = F.length, P = format.P, per = new Array<number>(n).fill(0), point = new Array<string>(n).fill("");
+  const bend = new Float64Array(n * 3), osc = new Float64Array(n);
   for (let j = 0; j < P; j++) {
+    bend.fill(0);
     osc.fill(0);
-    for (let i = 1; i + 2 < n; i++) {
-      let prod = 0;
+    for (let i = 1; i + 1 < n; i++) {
+      const h1 = T[i]! - T[i - 1]!, h2 = T[i + 1]! - T[i]!, h = (h1 + h2) / 2, k = h * h * Math.min(1, (STEP / h) ** 2);
       for (let c = 0; c < 3; c++) {
-        const k = j * 3 + c, a0 = F[i + 1]![k]! - 2 * F[i]![k]! + F[i - 1]![k]!, a1 = F[i + 2]![k]! - 2 * F[i + 1]![k]! + F[i]![k]!;
-        prod += a0 * a1;
+        const x = j * 3 + c;
+        bend[i * 3 + c] = (k * 2 * ((F[i + 1]![x]! - F[i]![x]!) / h2 - (F[i]![x]! - F[i - 1]![x]!) / h1)) / (h1 + h2);
       }
+    }
+    for (let i = 1; i + 2 < n; i++) {
+      const prod = bend[i * 3]! * bend[i * 3 + 3]! + bend[i * 3 + 1]! * bend[i * 3 + 4]! + bend[i * 3 + 2]! * bend[i * 3 + 5]!;
       osc[i] = prod < 0 ? Math.sqrt(-prod) : 0;
     }
-    for (let i = 4; i + 4 < n; i++) {
-      const w = Array.from(osc.subarray(i - 4, i + 5)).sort((a, b) => a - b), med = w[4]!;
+    for (let i = 2; i + 2 < n; i++) {
+      const w = Array.from(osc.subarray(i - 2, i + 3)).sort((a, b) => a - b), med = w[2]!;
       if (med > per[i]!) [per[i], point[i]] = [med, format.POINTS[j]!];
     }
   }
   const L = levels(m, "jitter");
-  return { value: Math.max(0, ...per), findings: keep(runs(per, m.times, L.warn).map((r) => finding(m, "jitter", r.worst, r.t0, r.t1, point[Math.round(r.at / m.dt)], `shakes ${fmt(r.worst, 1)} mm back and forth, sample after sample`, "smooth it (fix: filter jitter)"))) };
+  return { value: Math.max(0, ...per), findings: keep(runs(per, T, L.warn).map((r) => finding(m, "jitter", r.worst, r.t0, r.t1, point[T.indexOf(r.at)], `shakes ${fmt(r.worst, 1)} mm back and forth, key after key`, "smooth it (fix: filter jitter)"))) };
 }
 
-/** Pops: a point's step far faster than the steps around it (my-3d2dge's rule), as its speed above theirs. */
+/** The body part a point belongs to: an arm or a leg (with its side), the head, or the torso. */
+function part(point: string): string {
+  const s = point.slice(-1);
+  if (/^(clav|sh|elbow|wrist|index|knuck|pinky|fist)[LR]$/.test(point)) return "arm" + s;
+  if (/^(hip|knee|ankle|ball|toe)[LR]$/.test(point)) return "leg" + s;
+  return /^(neck|head|headTop|faceF)$/.test(point) ? "head" : "torso";
+}
+/**
+ * Pops: a point's step between keys far faster than the steps beside it (my-3d2dge's rule, ed-sheet.mjs:125: a step
+ * over 2.5 times the larger of its neighbours), as its speed above theirs. A key out of place makes two fast steps,
+ * out and back: a pair that reverses is read against the steps either side of the pair. It reads the key grid, so a
+ * smooth fast motion (a punch's steps grow and shrink from key to key) is not a pop, however fast.
+ */
 export function pops(m: Motion): Measured {
-  const F = m.frames, n = F.length, P = format.P, excess = new Array<number>(n).fill(0), point = new Array<string>(n).fill("");
+  const { frames: F, times: T } = m.grid, n = F.length, P = format.P, found: { t0: number; t1: number; excess: number; where: string }[] = [];
+  const RATIO = 2.5;
   for (let j = 0; j < P; j++) {
-    const speed = [0];
-    for (let i = 1; i < n; i++) speed.push(PORTABLE.hypot(F[i]![j * 3]! - F[i - 1]![j * 3]!, F[i]![j * 3 + 1]! - F[i - 1]![j * 3 + 1]!, F[i]![j * 3 + 2]! - F[i - 1]![j * 3 + 2]!) / m.dt);
-    for (let i = 1; i < n; i++) {
-      // the median speed of the steps around it, leaving out the three either side (a pop's own way in and out)
-      const around: number[] = [];
-      for (let k = i - 10; k <= i + 10; k++) if (k >= 1 && k < n && Math.abs(k - i) > 3) around.push(speed[k]!);
-      if (around.length < 4) continue;
-      around.sort((a, b) => a - b);
-      const base = around[around.length >> 1]!;
-      if (speed[i]! > 4 * base && speed[i]! - base > excess[i]!) [excess[i], point[i]] = [speed[i]! - base, format.POINTS[j]!];
+    const d: number[][] = [], v: number[] = [];
+    for (let i = 0; i + 1 < n; i++) {
+      const dd = [0, 1, 2].map((c) => F[i + 1]![j * 3 + c]! - F[i]![j * 3 + c]!);
+      d.push(dd);
+      v.push(PORTABLE.hypot(dd[0]!, dd[1]!, dd[2]!) / (T[i + 1]! - T[i]!));
+    }
+    const near = (...ks: number[]) => Math.max(0, ...ks.filter((k) => k >= 0 && k < v.length).map((k) => v[k]!));
+    for (let i = 0; i < v.length; i++) {
+      if (v.length > 1) {
+        const around = near(i - 1, i + 1);
+        if (v[i]! > RATIO * around) found.push({ t0: T[i]!, t1: T[i + 1]!, excess: v[i]! - around, where: format.POINTS[j]! });
+      }
+      if (i + 1 < v.length && v.length > 2 && d[i]![0]! * d[i + 1]![0]! + d[i]![1]! * d[i + 1]![1]! + d[i]![2]! * d[i + 1]![2]! < 0) {
+        const pair = Math.min(v[i]!, v[i + 1]!), around = near(i - 1, i + 2);
+        if (pair > RATIO * around) found.push({ t0: T[i]!, t1: T[i + 2]!, excess: pair - around, where: format.POINTS[j]! });
+      }
     }
   }
-  const L = levels(m, "pop");
-  return { value: Math.max(0, ...excess), findings: keep(runs(excess, m.times, L.warn).map((r) => finding(m, "pop", r.worst, r.t0, r.t1, point[Math.round(r.at / m.dt)], `jumps at ${fmt(r.worst / 1000, 1)} m/s above the steps around it`, "ease into the pose, or remove the key that jumps"))) };
+  // one finding per part and stretch of overlapping steps, at its worst point: a snapping fist moves its wrist and
+  // knuckles too, but a head snapping at the same time is a defect of its own
+  const L = levels(m, "pop"), groups: (typeof found)[] = [];
+  for (const h of found.filter((f) => f.excess >= L.warn).sort((a, b) => a.t0 - b.t0)) {
+    const g = groups.findLast((x) => part(x[0]!.where) === part(h.where));
+    if (g && h.t0 < Math.max(...g.map((x) => x.t1)) - 1e-9) g.push(h);
+    else groups.push([h]);
+  }
+  groups.sort((a, b) => a[0]!.t0 - b[0]!.t0);
+  const out = keep(groups.map((g) => {
+    const w = g.reduce((a, b) => (b.excess > a.excess ? b : a));
+    return finding(m, "pop", w.excess, g[0]!.t0, Math.max(...g.map((x) => x.t1)), w.where, `jumps at ${fmt(w.excess / 1000, 1)} m/s above the steps beside it`, "ease into the pose, or remove the key that jumps");
+  }));
+  return { value: Math.max(0, ...found.map((f) => f.excess)), findings: out };
 }
 
-/** Twist flips: a limb's twist, a hand's roll or a foot's heading jumping most of a half turn between close keys. */
+/** Bends under this many degrees leave a limb's twist (and a hand's roll) without a reference: the limb is straight. */
+const STRAIGHT = 20;
+/**
+ * Twist flips: a limb's twist, a hand's roll or a foot's heading jumping most of a half turn between keys. Where the
+ * reference is undefined (a straight limb for its twist and its hand's roll, a foot pointing straight down for its
+ * heading: the encoder's flips, F2.4), the jump is judged whatever the keys' spacing: the limb shows nothing, but a
+ * skinned bone turns about its axis over the in-between. Elsewhere it is judged by its rate, as the turn it would make
+ * in 0.1 s, so a slow turn over far-apart keys isn't a flip.
+ */
 export function twistFlips(m: Motion): Measured {
   const findings: (Finding | null)[] = [];
   let worst = 0;
-  const K = (m.keys ?? []) as unknown as Record<string, unknown>[];
+  const K = m.grid.keys ?? [], F = m.grid.frames;
   const fields: [string, number, string][] = [["armL", 4, "twist"], ["armR", 4, "twist"], ["legL", 4, "twist"], ["legR", 4, "twist"], ["handL", 2, "roll"], ["handR", 2, "roll"], ["footL", 1, "heading"], ["footR", 1, "heading"]];
+  /** Whether field f's reference is undefined in key k (pose X). */
+  const singular = (f: string, k: Record<string, unknown>, X: Float32Array) => {
+    const s = f.slice(-1), limb = f.startsWith("foot") ? null : ((k[f.startsWith("hand") ? "arm" + s : f] as number[] | undefined) ?? []);
+    if (limb) return (limb[3] ?? 0) < STRAIGHT;
+    const a = at(X, "ankle" + s), b = at(X, "ball" + s), d = PORTABLE.hypot(b[0] - a[0], b[1] - a[1], b[2] - a[2]);
+    return d > 1e-6 && Math.abs(b[2] - a[2]) / d > PORTABLE.cos((STRAIGHT * Math.PI) / 180);
+  };
   for (let k = 0; k + 1 < K.length; k++) {
     const a = K[k]!, b = K[k + 1]!, dt = (b.t as number) - (a.t as number);
-    if (!(dt > 0 && dt <= 0.1 + 1e-9)) continue;
+    if (!(dt > 0)) continue;
     for (const [f, i, what] of fields) {
       const va = (a[f] as number[] | undefined)?.[i], vb = (b[f] as number[] | undefined)?.[i];
       if (va === undefined || vb === undefined) continue;
-      const jump = Math.abs(vb - va);
-      worst = Math.max(worst, jump);
-      findings.push(finding(m, "twistFlip", jump, a.t as number, b.t as number, f, `its ${what} jumps ${fmt(jump)}° in ${fmt(dt * 1000)} ms`, "unwrap it against the keys either side (fix: repair twist flips)"));
+      const jump = Math.abs(vb - va), free = singular(f, a, F[k]!) || singular(f, b, F[k + 1]!), value = free || dt <= 0.1 + 1e-9 ? jump : (jump * 0.1) / dt;
+      worst = Math.max(worst, value);
+      const how = free ? `where ${f.startsWith("foot") ? "the foot points straight down" : "the limb is straight"}` : dt <= 0.1 + 1e-9 ? "" : `(${fmt(value)}° per 0.1 s)`;
+      findings.push(finding(m, "twistFlip", value, a.t as number, b.t as number, f, `its ${what} jumps ${fmt(jump)}° in ${fmt(dt * 1000)} ms${how ? " " + how : ""}`, "unwrap it against the keys either side (fix: repair twist flips)"));
     }
   }
   return { value: worst, findings: keep(findings) };
@@ -213,7 +291,9 @@ export function jointLimits(m: Motion): Measured {
       const tw = Math.abs(ops.wrap180(v[4] ?? 0));
       if (tw > worst) [worst, w] = [tw, `${f} (the knee bends back)`];
     }
-    const head = key.head as number[] | undefined, turn = head ? Math.abs(ops.wrap180(head[0]!)) : 0;
+    // the head's turn in its reading with the lean within ±90° (spec/MOTION.md §6.3: [turn + 180, 180 − lean, tilt +
+    // 180] is the same pose, and the encoder may keep either)
+    const head = key.head as number[] | undefined, turn = head ? Math.abs(ops.wrap180(head[0]! + (Math.abs(ops.wrap180(head[1]!)) > 90 ? 180 : 0))) : 0;
     if (turn > worst) [worst, w] = [turn, "head (turned from the chest)"];
     values.push(worst);
     where.push(w);

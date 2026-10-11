@@ -1,12 +1,13 @@
 // Predicates (WP-3.3): each form parses and holds where the motion does what it says; each fails where it doesn't,
 // with a repair that names the times and the change; text that doesn't parse names the forms that would.
 import { describe, expect, it } from "vitest";
-import { measureFacts } from "@m3a/core";
-import { predicates } from "../src/index.ts";
+import { measureFacts, type Key } from "@m3a/core";
+import { checks, predicates } from "../src/index.ts";
 import { testClip } from "./raster-pose.ts";
 
 const { clip: walk, R } = testClip("Walk_Loop");
-const contacts = measureFacts(walk, R).contacts, L = contacts.footL![0]!;
+// where the walk's feet stand, as the metrics measure it
+const contacts = checks.motionOf(walk, R).contacts, L = contacts.footL![0]!;
 const one = (text: string, clip: Parameters<typeof predicates.check>[1] = walk) => predicates.check(text, clip, R)[0]!;
 
 describe("parsing", () => {
@@ -23,15 +24,30 @@ describe("parsing", () => {
     expect(() => predicates.parse("nose below 50%")).toThrow(/isn't a body point/);
     expect(() => predicates.parse("wobble < 3")).toThrow(/isn't a metric/);
     expect(() => predicates.parse("the feet look fine")).toThrow(/Write one of: "footL planted/);
+    expect(() => predicates.parse("slide < 3 furlongs")).toThrow(/"furlongs" isn't a unit slide is measured in \(mm, cm, m\)/);
+    for (const back of ["footL planted 0.6–0.3 s", "footR free 0.6-0.3 s", "pelvis below 50% 0.6–0.3 s"]) expect(() => predicates.parse(back), back).toThrow(/runs backwards/);
+  });
+  it("reads a value in its metric's unit, or one that converts to it", () => {
+    const [a, b, c, d, e] = predicates.parse("speed < 500 mm/s; skate < 30 mm/s; pop < 3 m/s; slide < 2 cm; twistFlip < 90");
+    expect([a, b, c, d, e].map((p) => p!.kind === "compare" && [p.value, p.unit])).toEqual([[0.5, "m/s"], [3, "cm/s"], [3000, "mm/s"], [20, "mm"], [90, "°"]]);
   });
 });
 
 describe("checking, and repairs that say what to change", () => {
+  it("planted: where the foot stands on the floor, not where the clip's labels say", () => {
+    // labelled planted the whole second, lifted 300 mm at 0.3–0.6 s
+    const { clip: idle } = testClip("Idle_Loop"), key = (t: number, up: number): Key => ({ ...structuredClone(idle.keys[0]!), t, hips: [idle.keys[0]!.hips[0]!, idle.keys[0]!.hips[1]!, idle.keys[0]!.hips[2]! + up] });
+    const lifted = { ...idle, id: "lifted", loop: false, dur: 1, contacts: { by: "labelled" as const, footL: [[0, 1]] as [number, number][] }, keys: [key(0, 0), key(0.25, 0), key(0.3, 35), key(0.6, 35), key(0.65, 0), key(1, 0)] };
+    const o = one("footL planted 0.3–0.6 s, slide < 10 mm", lifted);
+    expect([o.ok, o.repair]).toEqual([false, expect.stringMatching(/^footL is not planted at 0\.30–0\.60 s \(it is 3\d\d mm up\): lower it to the floor there/)]);
+  });
   it("planted and free: hold inside a contact, fail outside it naming the contact's times", () => {
     expect(one(`footL planted ${(L[0] + 0.05).toFixed(2)}–${(L[1] - 0.05).toFixed(2)} s`).ok).toBe(true);
-    const out = one(`footL planted 0.00–${(L[1] - 0.05).toFixed(2)} s`);
+    const out = one(`footL planted ${(L[0] + 0.05).toFixed(2)}–${(L[1] + 0.1).toFixed(2)} s`);
     expect(out.ok).toBe(false);
-    expect(out.repair).toMatch(/footL is not planted at 0\.00–\d\.\d\d s \(it is \d+ mm up\): lower it to the floor there, or expect it planted/);
+    // just after it lifts, the foot is still low, but swinging forward
+    expect(out.repair).toBe("footL is not planted at 0.82–0.92 s (it is on the floor but moves as fast as a swing): hold it still there, or expect it planted 0.00–0.82 s");
+    expect(one(`footL planted ${(L[0] + 0.05).toFixed(2)}–${(L[1] + 0.3).toFixed(2)} s`).repair).toMatch(/^footL is not planted at 0\.82–1\.12 s \(it is \d+ mm up\): lower it to the floor there/);
     expect(one(`footR free ${(L[0] + 0.05).toFixed(2)}–${(L[0] + 0.15).toFixed(2)} s`).ok).toBe(contacts.footR!.every(([a, b]) => b < L[0] + 0.05 || a > L[0] + 0.15));
     const both = one(`footL free ${(L[0] + 0.05).toFixed(2)}–${(L[0] + 0.15).toFixed(2)} s`);
     expect([both.ok, both.repair]).toEqual([false, expect.stringMatching(/footL is planted at .* s: lift it off the floor there/)]);
@@ -60,7 +76,12 @@ describe("checking, and repairs that say what to change", () => {
     expect(one("speed > 0.5 m/s").ok).toBe(true);
     expect(one("travel > 0.5").ok).toBe(true);
     const flip = one("twistFlip < 90");
-    expect(flip.repair).toMatch(/^twistFlip is \d+\.\d\d ° \(want < 90\): unwrap the twists \(fix: repair twist flips\)$/);
+    expect(flip.repair).toMatch(/^twistFlip is \d+\.\d\d ° \(want < 90 °\): unwrap the twists \(fix: repair twist flips\)$/);
+    // the walk goes about 1.08 m/s: under 5 km/h and 2 m/s, not under 500 mm/s
+    expect(["speed < 2 m/s", "speed < 5 km/h", "speed < 500 mm/s"].map((t) => one(t).ok)).toEqual([true, true, false]);
+    expect(one("speed < 500 mm/s").repair).toMatch(/^speed is 1\.\d\d m\/s \(want < 0\.5 m\/s\)/);
+    // the walk's seam is 0: not under 0, but at most 0
+    expect([one("seam < 0 mm").ok, one("seam <= 0 mm").ok]).toEqual([false, true]);
     expect(one("no nan").ok).toBe(true);
     const ev = one("no events", { ...walk, events: [{ t: 0.9, name: "b" }, { t: 0.3, name: "a" }] });
     expect([ev.ok, ev.repair]).toEqual([false, expect.stringContaining("comes before the event listed above it")]);

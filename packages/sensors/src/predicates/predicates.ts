@@ -5,12 +5,17 @@
 //   footR free 0.20–0.40 s                       an end not planted anywhere in the interval
 //   hit within 1 frame of strike                 an event within frames (1/30 s) or seconds of another, or of a strike
 //   pelvis below 50% 0.40–0.55 s                 a body point's height in mm or % of hip height, at a time or over one
-//   jitter < 5 mm                                any metric's worst value, or `speed` (m/s) and `travel` (hip heights)
-//   no pop                                       a metric with no finding
-import { measureFacts, type Clip, type Rest } from "@m3a/core";
+//   jitter < 5 mm                                any metric's worst value, or `speed` (m/s) and `travel` (hip heights),
+//                                                in its unit or one that converts (mm, cm, m; mm/s, cm/s, m/s, km/h)
+//   no pop                                       a metric with no finding (those folded into a twist flip included)
+// An end is planted where the metrics measure it standing: its lowest point on the floor (not where the clip's contact
+// labels say). Intervals run forward: `0.6–0.3 s` doesn't parse.
+import { math, measureFacts, type Clip, type Rest } from "@m3a/core";
 import { measure, type Report } from "../metrics/report.ts";
-import { at, motionOf, planted, sole, world, type MetricClip, type Motion } from "../metrics/motion.ts";
+import { at, endPoints, lowest, motionOf, planted, STANCE, world, type End, type MetricClip, type Motion } from "../metrics/motion.ts";
 import { METRICS, type MetricName } from "../metrics/thresholds.ts";
+
+const { PORTABLE } = math;
 
 /** A parsed predicate: its kind, its text, and its arguments. */
 export type Predicate =
@@ -20,7 +25,6 @@ export type Predicate =
   | { kind: "height"; text: string; point: string; above: boolean; value: number; unit: "mm" | "%"; t0: number; t1: number }
   | { kind: "compare"; text: string; metric: string; op: Op; value: number; unit: string }
   | { kind: "none"; text: string; metric: MetricName };
-type End = "footL" | "footR" | "handL" | "handR";
 type Op = "<" | "<=" | ">" | ">=" | "=";
 
 /** A predicate that doesn't parse: what was written, and the forms that would. */
@@ -45,6 +49,24 @@ function times(s: string): [number, number] | null {
   return one ? [Number(one[1]), Number(one[1])] : null;
 }
 
+/** An interval that runs forward, or a PredicateError. */
+function forward(text: string, t0: number, t1: number): [number, number] {
+  if (!(t1 >= t0)) throw new PredicateError(text, `the interval ${t0}–${t1} s runs backwards: write the earlier time first`);
+  return [t0, t1];
+}
+/** Each metric's unit (what its value is in) and the units a predicate may write it in, as factors to that unit. */
+const LENGTH = { mm: 1, cm: 10, m: 1000 }, SPEED_MM = { "mm/s": 1, "cm/s": 10, "m/s": 1000 };
+const UNITS: Readonly<Record<string, { unit: string; accept: Readonly<Record<string, number>> }>> = {
+  slide: { unit: "mm", accept: LENGTH }, penetration: { unit: "mm", accept: LENGTH }, bodyPenetration: { unit: "mm", accept: LENGTH },
+  jitter: { unit: "mm", accept: LENGTH }, seam: { unit: "mm", accept: LENGTH }, fit: { unit: "mm", accept: LENGTH }, symmetry: { unit: "mm", accept: LENGTH },
+  pop: { unit: "mm/s", accept: SPEED_MM }, seamVelocity: { unit: "mm/s", accept: SPEED_MM },
+  skate: { unit: "cm/s", accept: { "cm/s": 1, "mm/s": 0.1, "m/s": 100 } },
+  speed: { unit: "m/s", accept: { "m/s": 1, "cm/s": 0.01, "mm/s": 0.001, "km/h": 1 / 3.6 } },
+  twistFlip: { unit: "°", accept: { "°": 1, deg: 1, degrees: 1 } }, jointLimit: { unit: "°", accept: { "°": 1, deg: 1, degrees: 1 } },
+  stretch: { unit: "%", accept: { "%": 1 } }, intersection: { unit: "of a width", accept: { "%": 0.01 } },
+  travel: { unit: "hip heights", accept: {} }, nan: { unit: "values", accept: { values: 1 } }, events: { unit: "events", accept: { events: 1 } },
+};
+
 /** Parses predicates, one per line or `;`. Throws a PredicateError naming the one it can't read. */
 export function parse(source: string): Predicate[] {
   return source.split(/[\n;]/).map((x) => x.trim()).filter((x) => x && !x.startsWith("#")).map(parseOne);
@@ -53,12 +75,14 @@ function parseOne(text: string): Predicate {
   let m = new RegExp(`^(\\w+)\\s+planted\\s+${SPAN}(?:\\s*,\\s*slide\\s*<\\s*${NUM}\\s*mm)?$`, "i").exec(text);
   if (m) {
     if (!ENDS.includes(m[1]!)) throw new PredicateError(text, `"${m[1]}" isn't an end (footL, footR, handL, handR)`);
-    return { kind: "planted", text, end: m[1] as End, t0: Number(m[2]), t1: Number(m[3]), ...(m[4] ? { slide: Number(m[4]) } : {}) };
+    const [t0, t1] = forward(text, Number(m[2]), Number(m[3]));
+    return { kind: "planted", text, end: m[1] as End, t0, t1, ...(m[4] ? { slide: Number(m[4]) } : {}) };
   }
   m = new RegExp(`^(\\w+)\\s+free\\s+${SPAN}$`, "i").exec(text);
   if (m) {
     if (!ENDS.includes(m[1]!)) throw new PredicateError(text, `"${m[1]}" isn't an end (footL, footR, handL, handR)`);
-    return { kind: "free", text, end: m[1] as End, t0: Number(m[2]), t1: Number(m[3]) };
+    const [t0, t1] = forward(text, Number(m[2]), Number(m[3]));
+    return { kind: "free", text, end: m[1] as End, t0, t1 };
   }
   m = new RegExp(`^([\\w-]+)\\s+within\\s+${NUM}\\s*(frames?|s)\\s+of\\s+([\\w-]+)$`, "i").exec(text);
   if (m) return { kind: "within", text, event: m[1]!, tol: Number(m[2]), unit: m[3]!.startsWith("f") ? "frame" : "s", of: m[4]! };
@@ -67,12 +91,16 @@ function parseOne(text: string): Predicate {
     if (!POINT_NAMES.includes(m[1]!)) throw new PredicateError(text, `"${m[1]}" isn't a body point (pelvis, head, fistR, toeL, ...)`);
     const span = m[5]!.trim() ? times(m[5]!) : null;
     if (m[5]!.trim() && !span) throw new PredicateError(text, `"${m[5]}" isn't a time ("at 0.5 s") or an interval ("0.4–0.55 s")`);
+    if (span) forward(text, span[0], span[1]);
     return { kind: "height", text, point: m[1]!, above: m[2]!.toLowerCase() === "above", value: Number(m[3]), unit: m[4] as "mm" | "%", t0: span?.[0] ?? 0, t1: span?.[1] ?? Infinity };
   }
-  m = new RegExp(`^(\\w+)\\s*(<=|>=|<|>|=)\\s*${NUM}\\s*([\\w/%]*)$`, "i").exec(text);
+  m = new RegExp(`^(\\w+)\\s*(<=|>=|<|>|=)\\s*${NUM}\\s*([\\w/%°]*)$`, "i").exec(text);
   if (m) {
-    if (![...METRICS, "skate", "speed", "travel"].includes(m[1]!)) throw new PredicateError(text, `"${m[1]}" isn't a metric (${METRICS.join(", ")}, skate, speed, travel)`);
-    return { kind: "compare", text, metric: m[1]!, op: m[2] as Op, value: Number(m[3]), unit: m[4] ?? "" };
+    if (![...METRICS, "speed", "travel"].includes(m[1]!)) throw new PredicateError(text, `"${m[1]}" isn't a metric (${METRICS.join(", ")}, speed, travel)`);
+    // the value in the metric's own unit: written in it, without one, or in one that converts
+    const u = UNITS[m[1]!]!, w = m[4] ?? "", factor = !w || w === u.unit ? 1 : u.accept[w];
+    if (factor === undefined) throw new PredicateError(text, `"${w}" isn't a unit ${m[1]} is measured in (${[u.unit, ...Object.keys(u.accept).filter((x) => x !== u.unit)].join(", ")})`);
+    return { kind: "compare", text, metric: m[1]!, op: m[2] as Op, value: Number(m[3]) * factor, unit: u.unit };
   }
   m = /^no\s+(\w+)$/i.exec(text);
   if (m) {
@@ -116,15 +144,16 @@ function one(p: Predicate, m: Motion, clip: MetricClip, R: Rest, rep: Report): O
   switch (p.kind) {
     case "planted": {
       const idx = samples(m, p.t0, p.t1), off = idx.filter((i) => !planted(m, p.end, m.times[i]!));
-      const s = p.end.slice(-1) as "L" | "R", lift = Math.max(0, ...off.map((i) => (p.end.startsWith("foot") ? Math.min(...sole(m, m.frames[i]!, s).map((x) => x.p[2])) : at(m.frames[i]!, "fist" + s)[2])));
+      const up = Math.max(0, ...off.map((i) => lowest(m, i, p.end).p[2]));
       const ivs = (m.contacts[p.end] ?? []).map(([a, b]) => `${fmt(a)}–${fmt(b)} s`).join(", ") || "never";
-      if (off.length) return res(false, `${p.end} is planted ${ivs}`, `${p.end} is not planted at ${fmt(m.times[off[0]!]!)}–${fmt(m.times[off[off.length - 1]!]!)} s (it is ${fmt(lift, 0)} mm up): lower it to the floor there${ivs !== "never" ? `, or expect it planted ${ivs}` : ""}`);
+      const why = up > STANCE.exit * m.rest.H0 ? `it is ${fmt(up, 0)} mm up): lower it to the floor there` : "it is on the floor but moves as fast as a swing): hold it still there";
+      if (off.length) return res(false, `${p.end} is planted ${ivs}`, `${p.end} is not planted at ${fmt(m.times[off[0]!]!)}–${fmt(m.times[off[off.length - 1]!]!)} s (${why}${ivs !== "never" ? `, or expect it planted ${ivs}` : ""}`);
       if (p.slide !== undefined) {
         let path = 0;
         for (let k = 0; k + 1 < idx.length; k++) {
-          const i = idx[k]!, low = sole(m, m.frames[i]!, s).reduce((a, b) => (b.p[2] < a.p[2] ? b : a)), nxt = sole(m, m.frames[i + 1]!, s).find((x) => x.name === low.name)!;
+          const i = idx[k]!, low = lowest(m, i, p.end), nxt = endPoints(m, m.frames[i + 1]!, p.end).find((x) => x.name === low.name)!;
           const w0 = world(m, i, low.p), w1 = world(m, i + 1, nxt.p);
-          path += Math.hypot(w1[0] - w0[0], w1[1] - w0[1]);
+          path += PORTABLE.hypot(w1[0] - w0[0], w1[1] - w0[1]);
         }
         if (!(path < p.slide)) return res(false, `${p.end} slides ${fmt(path, 0)} mm`, `${p.end} slides ${fmt(path, 0)} mm over ${fmt(p.t0)}–${fmt(p.t1)} s (want under ${p.slide}): hold it still while planted (fix: bake foot locks)`);
         return res(true, `${p.end} planted ${fmt(p.t0)}–${fmt(p.t1)} s, slides ${fmt(path, 0)} mm`, "");
@@ -152,25 +181,24 @@ function one(p: Predicate, m: Motion, clip: MetricClip, R: Rest, rep: Report): O
       return bad.length ? res(false, `${p.point} at ${fmt(worst, 0)}${u}`, `${p.point} is ${p.above ? "down" : "up"} at ${fmt(worst, 0)}${u} at ${fmt(m.times[bad[0]!]!)}–${fmt(m.times[bad[bad.length - 1]!]!)} s (want ${p.above ? "above" : "below"} ${p.value}${p.unit}): ${p.above ? "raise" : "lower"} it there`) : res(true, `${p.point} ${p.above ? "above" : "below"} ${p.value}${p.unit}`, "");
     }
     case "compare": {
-      let got: number, unit: string;
+      let got: number;
+      const unit = UNITS[p.metric]!.unit;
       if (p.metric === "speed" || p.metric === "travel") {
         const f = measureFacts(clip as Clip, R), tr = f.travel ?? [0, 0];
-        if (p.metric === "speed") [got, unit] = [((f.speed ?? 0) * R.H0) / 100 / 1000, "m/s"];
-        else [got, unit] = [Math.hypot(tr[0], tr[1]) / 100, "hip heights"];
-      } else [got, unit] = [rep.values[p.metric as MetricName | "skate"], p.metric === "skate" ? "cm/s" : unitOf(p.metric as MetricName)];
+        got = p.metric === "speed" ? ((f.speed ?? 0) * R.H0) / 100 / 1000 : PORTABLE.hypot(tr[0], tr[1]) / 100;
+      } else got = rep.values[p.metric as MetricName];
       const ok = p.op === "<" ? got < p.value : p.op === "<=" ? got <= p.value : p.op === ">" ? got > p.value : p.op === ">=" ? got >= p.value : Math.abs(got - p.value) < 1e-6;
-      return res(ok, `${p.metric} is ${fmt(got, 2)} ${unit}`, `${p.metric} is ${fmt(got, 2)} ${unit} (want ${p.op} ${p.value}${p.unit ? " " + p.unit : ""})${HINT[p.metric] ? ": " + HINT[p.metric] : ""}`);
+      return res(ok, `${p.metric} is ${fmt(got, 2)} ${unit}`, `${p.metric} is ${fmt(got, 2)} ${unit} (want ${p.op} ${+p.value.toPrecision(6)} ${unit})${HINT[p.metric] ? ": " + HINT[p.metric] : ""}`);
     }
     case "none": {
-      const fs = rep.findings.filter((f) => f.metric === p.metric);
+      const fs = [...rep.findings, ...rep.folded].filter((f) => f.metric === p.metric);
       return fs.length ? res(false, `${fs.length} ${p.metric} finding(s)`, fs.slice(0, 3).map((f) => f.message).join("; ")) : res(true, `no ${p.metric}`, "");
     }
   }
 }
-const unitOf = (m: MetricName): string => ({ slide: "mm", penetration: "mm", bodyPenetration: "mm", intersection: "of a width", jitter: "mm", pop: "mm/s", twistFlip: "°", jointLimit: "°", stretch: "%", seam: "mm", seamVelocity: "mm/s", fit: "mm", nan: "values", events: "events", symmetry: "mm" })[m];
 /** How to repair what a metric measures. */
 const HINT: Readonly<Record<string, string>> = {
-  slide: "hold planted feet still (fix: bake foot locks)", penetration: "lift the soles onto the floor (fix: lift penetration)", jitter: "smooth it (fix: filter jitter)",
+  slide: "hold planted feet still (fix: bake foot locks)", skate: "hold planted feet still (fix: bake foot locks), or match the root's speed to the stride", penetration: "lift the soles onto the floor (fix: lift penetration)", jitter: "smooth it (fix: filter jitter)",
   pop: "ease into the poses that jump", seam: "close the loop's seam (fix: close a loop seam)", seamVelocity: "match the loop's end velocities (fix: close a loop seam)",
   twistFlip: "unwrap the twists (fix: repair twist flips)", speed: "retime the clip (ops.retime) or change its stride", travel: "change how far the root goes",
 };

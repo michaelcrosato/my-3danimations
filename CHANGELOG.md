@@ -4,6 +4,21 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.15.1 · 2026-10-11
+
+### Sensors
+- WP-3.3 review: where a foot stands is measured (on the floor, slower than a swing or carried with the pelvis), so a
+  sliding or gliding foot is measured; slide is a contact's drift from where it landed; skate is a metric of its own.
+- The root adds its place, not a second turn by its yaw; the heel's sole point turns with the foot.
+- Jitter and pops read the key grid; pops follow my-3d2dge's 2.5× rule, per body part; thresholds re-derived from capture.
+- Twist flips are judged at any spacing where the reference is undefined, by rate elsewhere; the head limit reads
+  either encoding of the head.
+- A flip folds only what it swings within its keys, takes their worst level, and keeps them as `folded`.
+- Predicates convert or reject units, read the measured stance, and refuse backward intervals; a sliding profile.
+
+### Tools
+- `npm run qa`: `--dist` prints the distributions (capture and all); every clip's findings go to `clips.json`.
+
 ## 0.15.0 · 2026-10-11
 
 ### Sensors

@@ -727,53 +727,92 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.14.0
 
-## D41 · 2026-10-11 · The metrics read sampled points; thresholds come from capture; a flip's swing is the flip
+## D41 · 2026-10-11 · The metrics read sampled points and the key grid; thresholds come from capture; a flip's swing is the flip
 
 - **Principle:** 4, 5, 9, WP-3.3
 - **Call:**
-  - **One motion for every metric.** A clip is sampled at 60 Hz on its rest. Where the root stands in the world comes
-    from the clip's own travel, or, for an in-place loop, from a treadmill at its measured speed (its planted feet's
-    travel per cycle). An in-place one-shot stands still. Captured points (frames at a rate) are read the same way, so
-    a baked or imported motion is measured like a clip.
-  - **Thirteen metrics, each finding with its times and a repair:**
-    - foot slide (each contact's path of its contact point, and skate in cm/s);
-    - sole and body penetration;
-    - self-intersection: a forearm or hand in the torso, a lower leg in the other, as the mannequin's capsules;
-    - jitter: sustained shaking, the median over 0.15 s of consecutive opposite accelerations;
-    - pops: my-3d2dge's rule, a step four times the median of the steps around it;
-    - twist flips: a limb's twist, a hand's roll or a foot's heading jumping between keys under 0.1 s apart;
-    - knee and neck limits;
+  - **One motion for every metric.** A clip is sampled at 60 Hz on its rest, and its keys are decoded as they are (the
+    key grid). Where the root stands in the world comes from the clip's own travel (added as a place: the clip-space
+    pose already carries its heading, spec/MOTION.md §5.3), or, for an in-place loop that steps (a foot lifts and
+    lands in the cycle), from a treadmill at its measured speed. An in-place one-shot, or a loop whose feet never
+    lift, stands still. Captured points (frames at a rate) are read the same way, their samples their grid, so a baked
+    or imported motion is measured like a clip.
+  - **Where an end stands is measured, not taken from the clip or core.** Core's contacts ask a planted foot to be
+    still (core plants feet, so it needs where they stay), which leaves a sliding foot unplanted and its slide
+    unmeasured. Here an end stands while its lowest point is within 4% of H0 of the floor (it lifts past 7%) and it
+    is slower than half an H0 a second in the world, or carried along with the pelvis within a tenth of one (a glide
+    or a dragged foot, however fast). A walk's swinging foot skims the floor at two to four times the walking speed,
+    and in big strides lower than the band, so height alone reads swings as stances; the pelvis rule keeps a foot
+    that slides with the body. The predicates' "planted" and "free" read the same stance.
+  - **Fourteen metrics, each finding with its times and a repair:**
+    - foot slide: each contact's drift from where it landed, summed step by step at its lowest sole point, so a
+      heel-to-toe roll drifts nothing and marker noise cancels (a path length added it up: 6 s of standing read
+      400 mm); skate, a contact's slide over its time in cm/s, for contacts of at least 0.25 s;
+    - sole penetration (the heel's sole point turned with the foot, so a foot lying toes up has its heel behind the
+      ankle; the finding names the foot) and body penetration;
+    - self-intersection: a forearm or hand in the torso, an upper arm in the torso below the shoulders, a lower leg in
+      the other, as the mannequin's capsules;
+    - jitter, on the key grid: the median over 5 keys of consecutive opposite second differences. In-betweens are
+      straight lines, so on 60 Hz samples of 30 fps keys two consecutive samples never both bend, and a shake at the
+      key rate read 0;
+    - pops, on the key grid: my-3d2dge's rule, a step over 2.5 times the larger of its neighbours, or a pair out and
+      back against the steps either side of it; one finding per body part and stretch of keys;
+    - twist flips: a limb's twist, a hand's roll or a foot's heading jumping between keys. Where the reference is
+      undefined (a straight limb, a foot pointing straight down) the jump counts at any spacing; elsewhere its rate,
+      as the turn in 0.1 s;
+    - knee and neck limits, the head read with its lean within ±90° (§6.3's second reading is the same pose);
     - bone stretch;
     - loop seam, pose and velocity;
     - the import's recorded fit;
     - non-numbers;
     - events;
     - symmetry against a mirrored pair, leaving out format 1's placeholder index and pinky.
-  - **Thresholds come from capture.** CMU and STYLE100 (158 clips) are the real motion. Warn sits near capture's p95
-    and fail near its maximum, except where capture itself carries the data's flips (twist flips, by meaning). Each
-    threshold records its unit, sample rate, whether it scales with hip height (× H0 / 950), and its reason with
-    capture's numbers (`thresholds.ts`). Keyed sets exceed capture often: snaps up to 83 m/s, soles 663 mm under the
-    floor. That is what they are.
-  - **A flip's swing is the flip.** Where a foot points down, the data's heading jumps and the toes swing. Where a limb
-    is straight, its twist jumps (F2.4). The jitter and pops on the points a flip swings, within its keys, fold into
-    the twist-flip finding, so a report names the cause once.
+  - **Thresholds come from capture.** CMU and STYLE100 (158 clips) are the real motion. Warn sits at capture's p95
+    (jitter's at p90) and fail at its maximum (jitter's at p99), except where capture itself carries the encoding's
+    flips (twist flips, by meaning). Each threshold records its unit, sample rate (0 for the key grid), whether it
+    scales with hip height (× H0 / 950), and its reason with capture's numbers (`thresholds.ts`): slide 52 mm at the
+    median, 145 at p95, 229 at most; skate 5.7, 18, 38 cm/s; jitter 6, 24 (p90), 103 (p99) mm; pops 0.63, 2.1, 3.6
+    m/s. Keyed sets exceed capture often: pops up to 37 m/s, soles 660 mm under the floor. That is what they are.
+  - **A flip's swing is the flip.** Where a foot points down, the data's heading jumps and the toes swing. The jitter
+    and pops on the points a flip swings (a heading the ball and toes; a twist its middle joint and what hangs off it,
+    not the end it aims at), within its key interval, fold into the twist-flip finding, which takes their worst level
+    and names them. A straight limb's twist swings nothing it can show, so nothing folds into it. The report keeps the
+    folded findings (`folded`), and the predicate "no pop" reads them.
   - **Elbows aren't limit-checked.** A format-1 arm has no hand frame, and its twist's reference isn't anatomical with
     the arm raised. Capture would read elbows "bending backwards" in reaches.
   - **Tag profiles** turn off what doesn't apply:
-    - acrobatics (dodge, climb, getup, flips by name): body on the floor, curling;
+    - acrobatics (dodge, climb, getup; flips, cartwheels, tumbles, handstands and rolls by name, not a dance's body
+      roll): body on the floor, curling;
     - lying (death, lie, crawl): body on the floor, sliding, curling;
+    - sliding (slide: a feet-first slide): sliding, body on the floor;
     - swimming (swim, fly): the floor;
     - sitting (sit, vehicle): body on the floor, curling.
-  - **The report** is `report.json` (values, findings) plus a verdict of at most 20 lines, failures first.
+  - **The report** is the values, the findings and the folded findings, plus a verdict of at most 20 lines, failures
+    first.
   - **Predicates** have six forms: planted (with a slide bound), free, within frames of an event or the strike, a
-    point above or below a height, any metric compared, and "no" a metric. A failed predicate's repair names the times
-    and the change.
-  - **`npm run qa`** measures the library, and T2 runs it.
+    point above or below a height, any metric compared (in its unit or one that converts: mm, cm, m; mm/s, cm/s, m/s,
+    km/h; another unit doesn't parse), and "no" a metric. Intervals run forward. A failed predicate's repair names the
+    times and the change.
+  - **`npm run qa`** measures the library, writes every clip's verdict, values and findings to
+    `check-output/qa/clips.json`, and with `--dist` prints each metric's distribution in capture and in all; T2 runs
+    it.
+- **Review** (the verifier, 12 findings, all fixed in v0.15.1, each by a fixture that fails on the old code): slide
+  missed root-motion skating (its contacts were core's, gated on world speed); `world()` turned clip-space points by
+  the yaw a second time; jitter couldn't see a shake at the key rate; the pop rule flagged smooth fast motion (a
+  0.2 s jab); folding hid independent defects (a head's shake behind a foot's flip) and lowered the verdict; flips over
+  keys more than 0.1 s apart were never judged; the neck limit misread the head's second reading; the heel straight
+  under the ankle put lying feet under the floor; predicates ignored their units, trusted contact labels and accepted
+  backward intervals; 19 of 31 mutants survived the fixtures (all 48 now fail them); `--dist` printed nothing and
+  `--json` overwrote the clips' rows; PROGRESS and the WP entry lagged. Not changed: capture's knee-limit hits just
+  past the 20° bend gate (Chop_Wood: bend 21, twist 185) stay findings; a knee bent 21° pointing backwards is one.
 - **Result:**
-  - The whole migrated library is measured in 9.1 s within T2: 261 pass, 101 warn, 163 fail. The fails are mostly
-    twist flips (79 clips) and keyed snaps (83 clips with a pop).
+  - The whole migrated library is measured in 5.6 s within T2: 268 pass, 111 warn, 146 fail. The fails are mostly
+    twist flips (92 clips; the encoding's, F2.4), jitter (34) and pops (27, keyed snaps).
   - Every metric and predicate has a unit fixture: a defect found at its times, and nothing on the clean motion.
+    Mutating the metrics 48 ways (each rule removed or inverted) fails the fixtures every time.
+- **Known limit:** a body gliding faster than half an H0 a second with its feet still on it is measured only through
+  the pelvis rule; a foot dragged at a different speed from the body and faster than that reads as a swing.
 - **Outside WP-3.3's Owns** (one agent, D21): names on the raster's capsules; T2's runner; the boundary check's
   import scanner, which read `import's` inside a string as an import.
 - **Answered:** no: made without a response, to review.
-- **Landed in:** v0.15.0
+- **Landed in:** v0.15.0; revised after review in v0.15.1

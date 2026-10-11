@@ -1299,11 +1299,12 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
     (a spike against the steps around it, not raw speed; CHANGELOG 0.8.0);
   - from riftlight: `src/engine/animation/metrics.ts` (`analyzeClip`, which flags sliding against clip speed).
 - **Build:** per clip, each finding with its times:
-  - **foot sliding** during contacts (mm per contact, and peak speed);
+  - **foot sliding** during contacts (mm per contact, and skate in cm/s; contacts measured where the foot stands, D41);
   - **ground penetration;**
   - **self-intersection** of limb capsules (an arm through the torso);
-  - **jitter** (the jerk spectrum) and pops;
-  - **joint-limit violations:** knees or elbows bending backwards, neck over-twist;
+  - **jitter** (sustained back-and-forth on the key grid, D41) and pops;
+  - **joint-limit violations:** knees bending backwards, neck over-twist (elbows wait: a format-1 arm's twist has no
+    anatomical reference, D41);
   - **bone stretch** after solving;
   - **loop seam:** pose and velocity;
   - **fit** against the source;
@@ -2222,7 +2223,7 @@ version, commit, date and a note with the numbers. Gates are rows too.
 | **G2** | done | 0.12.1 | a5fb0a0 | 2026-10-11 | 8/8 in 42.1 s: T0 1.7 s, T1 14.8 s (305 tests), doctrine 8/8 (API 38/40), vectors, tiers 1a–3, Animator Node = Chromium (480 hashes, 41 events, 5 exact poses), V8 = JSC (math, chain, Animator), property tests; verifiers: WP-2.4 8 + G2 7 findings fixed (D36, D38), notes F2, F3 |
 | 3.1 The software raster | done | 0.13.0 | 7b81c29 | 2026-10-11 | 5 views + turntable: same PNG bytes in two runs and a second process; 1,000 × 1,000 in 9.5 ms (≤50); left blue / right amber by view, the jabbing fist blue, amber when mirrored; NaN pose blank and named (D39) |
 | 3.2 Sheets, films and diffs | done | 0.14.0 | 159ea49 | 2026-10-11 | 2 s clips: 1,000 × 404, 539 tokens (budget 1,400); 41 frames shrink to ≤1,000 tokens; identical diff empty; a one-key arm edit marked in exactly the frames between its neighbours, box holding the edited elbow and fist (D40) |
-| 3.3 The metrics | done | 0.15.0 | f526e7d | 2026-10-11 | 13 metrics + 6 predicate forms, each with a unit fixture (25 tests); library in 9.1 s within T2: 261 pass, 101 warn, 163 fail (twist flips 79, keyed snaps 83); thresholds from capture (158 clips), each with unit, rate, scaling and reason (D41) |
+| 3.3 The metrics | done | 0.15.1 | f526e7d, PENDING | 2026-10-11 | 14 metrics + 6 predicate forms, unit fixtures that fail on 48 of 48 mutants (36 tests); library in 5.6 s within T2: 268 pass, 111 warn, 146 fail (twist flips 92, jitter 34, pops 27); thresholds from capture (158 clips) with unit, rate, scaling and reason; the verifier's 12 findings fixed in 0.15.1 (D41) |
 | 3.4 Describe | todo | | | | |
 | 3.6 Planted defects | todo | | | | |
 | 3.5 Lint and fix | todo | | | | |
