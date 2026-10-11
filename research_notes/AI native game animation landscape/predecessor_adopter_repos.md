@@ -97,12 +97,12 @@ the origin project my-3d2dge, consulted only for comparison. Line numbers are `f
     jaw" writes whichever joints this body has (`src/riftlight/monsters/anim/poser.ts:5-11`).
   - **Baking.** `bake()` samples a template, solves every foot with N-leg IK, applies a floor clamp from convex hull
     points, and emits a plain `ClipDef` with one key per frame (`docs/GAME.md:517-527`).
-  - **Timing on the clip.** Clips carry a `hit` frame and a `windup` range (`docs/GAME.md:540-545`).
+  - **Timing on the clip.** Clips carry a `hit` frame and a `windup` range (`docs/GAME.md:534-538`).
   - **QA.** Monster clips pass the hero's `analyzeClip` checks (`npm run monster -- check`).
   - **Agent handle.** `window.__MONSTER_LAB__` offers generate, mutate, crossover, evolve, `lineup` and `capture`
-    (`docs/GAME.md:675-685`; `src/labs/monster-lab/main.ts:44-53`).
+    (`docs/GAME.md:677-685`; `src/labs/monster-lab/main.ts:44-53`).
   - **Performance.** About 4-6 ms for a monster's first build and 0.7 ms for a pack mate; about 20 draw calls and 2.5k
-    triangles each (`docs/GAME.md:555-560`).
+    triangles each (`docs/GAME.md:549-553`).
 - **Banned-API and determinism lint** (`scripts/forbidden-apis.mjs:10-33`):
   - bans `EffectComposer`, `ShaderPass`, `(Raw)ShaderMaterial`, `onBeforeCompile`, `WebGLRenderer`, raw GLSL, `from 'three'`,
     React and other engines;
@@ -129,7 +129,7 @@ the origin project my-3d2dge, consulted only for comparison. Line numbers are `f
 - **Replay gaps.** Riftlight's mouse aim reads DOM events, so the game does not replay yet. State snapshots are not done
   (`docs/DOCTRINE.md:105-114`).
 - **Timing kept apart from the clips.** Hit and cancel frames live in a table separate from the clips (`COMBAT_TIMING`,
-  `src/game/hero/clips/combat.ts:60-73`): "move a hit in a clip and move it there too" (`docs/GAME.md:170`). The monster
+  `src/game/hero/clips/combat.ts:60-73`): "move a hit in a clip and move it there too" (`docs/GAME.md:169-170`). The monster
   clips put `hit` on the def instead.
 - **Procedural motion is outside `npm run anim`.** Spring chains, `LegStepper` and `twoBoneIK` are checked only by unit
   tests and e2e rooms (`docs/ANIMATION.md:344-350`).
@@ -201,7 +201,7 @@ the origin project my-3d2dge, consulted only for comparison. Line numbers are `f
   lean = 0.4
   ```
   - **Units changed from `E.MOVES`:** radians become degrees (3d2dge `slash a0: 1.7` becomes `from = 97`); pixel units
-    become arm lengths, hip heights and metres on a 1.8 m figure (`docs/HISTORY.md:490-494`). Compare
+    become arm lengths, hip heights and metres on a 1.8 m figure (`docs/HISTORY.md:488-495`). Compare
     3d2dge `engine/my-3d2dge.js:2549-2577`.
   - **New `about` field:** "a model picks moves by `about`". It is the catalog idea applied to moves.
   - **Origins.** The nine original actions keep their names and order. 3d2dge's `spin` became `spinslash`, because "ours
@@ -293,10 +293,10 @@ the origin project my-3d2dge, consulted only for comparison. Line numbers are `f
   - Animation Studio: 70 selected tests, 10/10 smoke checks.
   - Object Studio, 20 edits: median apply and save 2.04 ms, RPC 292 ms, frame submission 580 ms, confirmed 898 ms.
   - Creature Studio: 117 Rust and 6 Node tests, 15 workflows. Median 133 ms to a queued job, 355 ms build and save, 544 ms
-    to frame submission, 690 ms confirmed (software Vulkan) (`docs/HISTORY.md:69-80,138-143`).
+    to frame submission, 690 ms confirmed (software Vulkan) (`docs/HISTORY.md:76-80,137-143`).
 - **Lessons from its journal** (my-3dge adopted them, `PLAN.md:493-503`):
-  - **The replay hash covered only positions,** so replays "matched" while gold and the RNG diverged (`docs/HISTORY.md:271-277`).
-  - **Startup reading was 150 KB**, cut to 40 KB with a one-page `PROGRESS.md` (`:266-270`).
+  - **The replay hash covered only positions,** so replays "matched" while gold and the RNG diverged (`docs/HISTORY.md:270-277`).
+  - **Startup reading was 150 KB**, cut to 40 KB with a one-page `PROGRESS.md` (`:266-269`).
   - **A fresh-agent dry run of Pavilion Lite** listed 13 friction points (unknown tool arguments silently ignored, among
     others); a smaller model's bot could not finish its own level (`docs/HISTORY.md:794-809`).
   - **A tool cut off tall creatures.** `turntable` cut the head off a 5.26 m boss until it framed every pose's bounds
@@ -309,7 +309,7 @@ the origin project my-3d2dge, consulted only for comparison. Line numbers are `f
 ### 3.1 What it is
 - **What it is.** "A fully 3D web game engine written and maintained only by AI coding agents", on three.js r182 (WebGPU
   only, no WebGL fallback), Rapier 0.21 SIMD, TypeScript 5.9, Vite 7.3, Vitest 3.2, Playwright 1.64 and Node 24
-  (`README.md:1-8`; `PLAN.md:3871-3875` ADR-0003, ADR-0007).
+  (`README.md:1-8`; `PLAN.md:3873`, `:3877` (ADR-0003, ADR-0007)).
 - **Driven by `PLAN.md`:** 469,374 bytes, 4,455 lines, 72,162 words, 97 WPs. Its integration target, the **Stress Box**,
   rebuilds 3d2dge's *Stress test: 3D world* in six stages (`PLAN.md:46-67`, `:1493-1523`).
 - **Status** (`docs/PROGRESS.md:6-22`; `README.md:10-13`):
@@ -341,7 +341,7 @@ the origin project my-3d2dge, consulted only for comparison. Line numbers are `f
 - **Effector-space authoring, then IK, then rotations,** through an explicit layer stack: weights, base, override, solve,
   clips, additive, post IK, physics blend, secondary (WP 3.7). ADR-0009.
 - **Two update paths:** `anim.step` in the sim (hashed) and `anim.pose` in the presentation (LOD, not hashed). A
-  `preciseHits` flag puts pose evaluation in the sim (`PLAN.md:938-943`).
+  `preciseHits` flag puts pose evaluation in the sim (`PLAN.md:941-945`).
 - **Moves as timelines,** with events (`wind`, `active`, `hitOpen`, `hitClose`, `recover`, `end`), root-motion curves,
   weapon sweeps and a measured `hitShape` (WP 6.1, `PLAN.md:2722-2745`).
 - **Format 2, a strict superset of format 1** (`PLAN.md:3573-3597`):
@@ -350,14 +350,14 @@ the origin project my-3d2dge, consulted only for comparison. Line numbers are `f
   - per set: `title`, `legend`.
   - New fields are named keys, "not extra array entries, because shardfall's reader takes fixed-length arrays and skips
     unknown names" (`PLAN.md:3576`). Research had proposed extending the arrays
-    (`docs/research/D-mocap-library.md:536-541`).
+    (`docs/research/D-mocap-library.md:541-542`).
 - **One JSON file per clip,** with `_set.json` and a generated `catalog.tsv` (about 30 tokens a row). Agents search,
   "never read it whole" (`PLAN.md:3598-3616`).
 - **Bake from the format's parameters** to Float32 quaternion tracks, exposed as three.js `AnimationClip`s. Sampling stays
   on the CPU (`PLAN.md:3618-3635`; WP 8.4).
 - **The ACTIONS layer:** multi-beat sequences of timelines, clips and effector overrides, with held contact frames
   (WP 8.7).
-- **License corrections:** CMU's no-resale clause and NSF acknowledgment verbatim (`PLAN.md:301`, `:3543-3546`). Any page
+- **License corrections:** CMU's no-resale clause and NSF acknowledgment verbatim (`PLAN.md:301`, `:3546-3549`). Any page
   that ships a `style100*` clip shows 100STYLE's CC BY credit (WPs 8.9, 8.10).
 
 ### 3.4 Problems and limits recorded so far
@@ -377,7 +377,7 @@ the origin project my-3d2dge, consulted only for comparison. Line numbers are `f
 - **Shardfall knowledge is already stale.** The plan has no mention of shardfall's Animation Studio, revisions, Object
   Studio or Creature Studio (grep), which all landed 2026-10-10, after the pinned fa2dab6.
 - **Animation risk R1:** "the animation's tuned feel is lost in the port", mitigated by reference vectors, differential
-  tests and `x film --compare` (`PLAN.md:3836`).
+  tests and `x film --compare` (`PLAN.md:3838`).
 
 ---
 
@@ -548,7 +548,7 @@ its foot IK, which only drops the pelvis.
 ### 5.1 Size and shape
 | Measure | Value |
 |---|---|
-| PLAN.md | 469,374 bytes, 4,455 lines, 72,162 words, 15 sections plus 5 appendices (a draft AGENTS.md and a glossary among them) |
+| PLAN.md | 469,374 bytes, 4,455 lines, 72,162 words, 14 numbered sections plus Appendices A–F (source-to-target map, banned APIs, conventions, measured numbers, a draft AGENTS.md, a glossary) |
 | Supporting research | 8 studies with `path:line` evidence, about 436 KB (`docs/research/A`–`H`) |
 | WPs | **97**: S 25, M 61, L 11; 22 of them **on demand**; plus 10 gates (G0–G9) and 8 upgrade WPs (U-1…U-8) |
 | WP entry length | median **186 words**, min 87, max 1,374 (WP 3.12, touch controls); all WP entries total 22,903 words, about 32% of the plan |
@@ -708,10 +708,10 @@ Phase 0 bootstraps these as tools appear (items 1-3, 7 and 8 apply once their to
 
 ### 6.1 Reused again and again (the signal for a package core)
 1. **The readable key-pose format and its legend.** shardfall kept it unchanged so clips move between engines
-   (`clips.rs:4-11`, `:106-119`). my-3dge makes it the stored format (ADR-0010, `PLAN.md:3553-3597`).
+   (`clips.rs:4-11`, `:108-121`). my-3dge makes it the stored format (ADR-0010, `PLAN.md:3553-3597`).
 2. **Sets with provenance:**
    - per set: `sources` (label, license, origin, url, the measured `rest` body), `credit`, `legend`, `fps`;
-   - per clip: `src`, `orig`, `take`, `fit` [avg, worst] mm (`anim/quaternius.json` header; `PLAN.md:3600-3602`).
+   - per clip: `src`, `orig`, `take`, `fit` [avg, worst] mm (`anim/quaternius.json` header; `PLAN.md:3605`).
 3. **Catalogs as a model's selection interface:** one line per clip, `[tags, desc]`, plus `$pick` for reproducible cuts
    (shardfall `anim/catalogs/*.json`; my-3dge WPs 8.1 and 8.10, `catalog.tsv` at about 30 tokens a row).
 4. **The CMU ledger:** 2,548 takes with category, fit, flags and picks (shardfall `anim/cmu/takes.tsv`; my-3dge splits it
@@ -754,7 +754,7 @@ Phase 0 bootstraps these as tools appear (items 1-3, 7 and 8 apply once their to
   my-3dge rejects unknown keys in data files (`PLAN.md:1222`) but relies on shardfall ignoring them for interop
   (`PLAN.md:3576`).
 - **Container:** 3d2dge uses JS scripts with a comment header (`src/mocap/sets/*.js`). shardfall uses one JSON file per
-  set (comment lines `//` tolerated, `clips.rs:174-175`). my-3dge plans one JSON file per clip, plus `_set.json` and
+  set (comment lines `//` tolerated, `clips.rs:178`). my-3dge plans one JSON file per clip, plus `_set.json` and
   `catalog.tsv`.
 - **Same name, different content:**
   - `QUATERNIUS` in 3d2dge is 88 clips from `AnimationLibrary_Godot_Standard.glb` (Rigify).
@@ -784,7 +784,7 @@ Phase 0 bootstraps these as tools appear (items 1-3, 7 and 8 apply once their to
 - **Proportion and spine mismatch** limits decode parity to direction tolerances (<9°, up to 14° for curled spines).
 - **Missing degrees of freedom** (hands, forearm twist, foot roll, spine, root yaw) are not recoverable from stored
   clips; fixing them needs re-import from the sources (my-3dge WP 8.8, which needs the owner to supply the Quaternius v2
-  GLBs, `PLAN.md:3121`, §11.5).
+  GLBs, `PLAN.md:3125`, §11.5).
 - **The format had to bend around a sibling reader:** fixed-length arrays forced named fields.
 - **Licensing gaps:** CMU's record lacked the no-resale clause; non-commercial libraries need a local-only lane; CC BY
   needs an on-screen credit.
@@ -805,7 +805,7 @@ Phase 0 bootstraps these as tools appear (items 1-3, 7 and 8 apply once their to
     as a JSON-lines sidecar, with an adapter that owns the conversion to a native format the host validates.
 - **Keep the core pure, deterministic and renderer-free.** my-3dge's `anim/` imports only core math and is sim-side
   (`PLAN.md:781-829`). Split the API into `step` (cheap, hashable gameplay state: timelines, events, root motion) and
-  `pose` (presentation, LOD-able) (`PLAN.md:938-943`).
+  `pose` (presentation, LOD-able) (`PLAN.md:941-945`).
 - **Bake to each host's standard type at the edge:** three.js `AnimationClip`/`QuaternionKeyframeTrack` in TS, a plain
   track struct in Rust. Bake from the format's **parameters**, not decoded points (0.26–0.46 mm mean, against 0.73 m
   worst for key-for-key, `PLAN.md:298`).
@@ -876,11 +876,11 @@ per tier.
 - **Ship a validator** with coded messages naming the key, time and field:
   - twist jumps >120° while bend >140° (the v1 pop);
   - angles past ±540°, hips below the floor, direction collapse;
-  - plus a "normalized lens" for reading (`PLAN.md:3587-3597`).
+  - plus a "normalized lens" for reading (`PLAN.md:3589-3597`).
 - **List the known missing degrees of freedom,** and the named optional fields that add them.
 - **Keep the agent-facing stored form** (readable, size-independent, IK-shaped, whole numbers). Derive runtime forms from
   it, never the reverse. Rotation-native text was measured and rejected for readability and size independence
-  (`docs/research/D-mocap-library.md:556-576`).
+  (`docs/research/D-mocap-library.md:568-578`).
 
 ### 7.6 Sharing catalogs and provenance
 - **Catalogs are the model's index:**
