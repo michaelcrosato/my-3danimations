@@ -1,0 +1,44 @@
+{
+  "name": "my-3danimations",
+  "version": "0.1.0",
+  "private": true,
+  "description": "An open animation package for AI coding agents: spec, runtime, sensors, library and tools.",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "workspaces": [
+    "packages/core",
+    "packages/sensors",
+    "packages/io",
+    "packages/library",
+    "packages/three",
+    "packages/tools"
+  ],
+  "scripts": {
+    "check": "node tools/run/check.ts",
+    "test": "node tools/run/test.ts",
+    "e2e": "node tools/run/e2e.ts",
+    "test:changed": "node tools/run/changed.ts",
+    "gate": "node tools/run/gate.ts",
+    "doctrine": "node tools/run/pending.ts doctrine WP-0.3",
+    "vectors": "node tools/run/pending.ts vectors WP-0.4",
+    "pins": "node tools/run/pending.ts pins WP-0.4",
+    "bench": "node tools/run/pending.ts bench WP-4.7"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@playwright/test": "1.56.1",
+    "@types/node": "24.19.2",
+    "eslint": "10.12.0",
+    "globals": "17.13.0",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.71.1",
+    "vite": "7.3.7",
+    "vitest": "4.1.11"
+  },
+  "allowScripts": {
+    "esbuild": false
+  }
+}
