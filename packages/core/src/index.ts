@@ -2,6 +2,9 @@
 // Imports nothing outside itself: no DOM, no `node:` modules, no renderer (DOCTRINE.md, principle 6).
 
 export { VERSION } from "./version.ts";
+export * from "./format/types.ts";
+export { validate, validateClip, validateSet, validateCatalogRow, formatIssue, RULES, rule, KNOWN_REQUIRES } from "./validate/index.ts";
+export type { Issue, Result, Where, Rule, Severity, ValidateOptions, ValidateKind } from "./validate/index.ts";
 
 /** This package's name. */
 export const PACKAGE = "@m3a/core";

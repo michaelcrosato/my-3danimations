@@ -3,7 +3,7 @@
 The current state on one screen (at most 40 lines; `npm run doctrine` checks it from WP-0.3). The ledger is
 `PLAN.md` §14; decisions are in `docs/DECISIONS.md`.
 
-**Phase:** 1 The language. **Next gate:** G1. **Version:** 0.2.0.
+**Phase:** 1 The language. **Next gate:** G1. **Version:** 0.3.0.
 **Mode:** one agent (D21), branch `claude/relaxed-albattani-35xhjq`.
 
 ## Done
@@ -11,10 +11,12 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 - Phase 0 (G0 passed, merged as michaelcrosato/my-3danimations#4): doctrine, toolchain, doctrine checks, pins and
   vectors (7.1 MB, tiers 1a to 3), CI and the session hook.
 - WP-1.1 The motion spec: `spec/MOTION.md` 2.0-rc and `spec/LEGEND.md` (792 of 800 tokens, a real worked key).
+- WP-1.2 Schemas and the validator: 30 coded rules with fixtures; the schemas agree (Ajv); all 762 seed clips pass
+  with 0 errors (D25).
 
 ## Next
 
-- WP-1.2 Schemas and the validator, then 1.3 the codec, 1.4 the skeleton profile, 1.5 the migration, then G1.
+- WP-1.3 the codec, then 1.4 the skeleton profile, 1.5 the migration, then G1.
 
 ## Blocked on the owner
 

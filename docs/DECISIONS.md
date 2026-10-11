@@ -270,3 +270,21 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
 - **Why:** the verifier's failures and notes; each fix is small and in scope.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.1.0
+
+## D25 · 2026-10-11 · The validator is hand-written; Ajv checks the schemas agree
+
+- **Principle:** 6, 7 (WP-1.2)
+- **Call:**
+  - `@m3a/core` imports nothing, so `validate` implements the rules in code; the JSON Schemas in `spec/schemas/`
+    are the portable statement of the structure, and a test runs Ajv 8.20.0 (a dev dependency) over the same fixtures
+    so the two can't drift: every structural failure the validator raises is a schema failure too.
+  - Angles unwrap, so they are valid within ±3600 and warn past ±540 (the seed sets reach 582 and −1086); hips are
+    bounded at ±1000% forward and right and −100..1000% up; root travel is unbounded in practice (±10⁷).
+  - The shared format types (`packages/core/src/format/types.ts`) land in WP-1.2 although WP-1.3 owns `format/`,
+    because the validator needs them first; WP-1.3 extends the file.
+  - A scratch run over all 762 clips of the seven seed sets (my-3d2dge's three, shardfall's four) gives zero errors and
+    the predicted warnings: 16 twist pops (the Roll clips), 71 keys with hips below the floor (Zombie_Rise at −40%, the
+    swims), 214 angles past ±540 (spins).
+- **Why:** the doctrine keeps core dependency-free; the schemas keep the format readable by any language's tools.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.3.0

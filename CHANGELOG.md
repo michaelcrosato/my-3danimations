@@ -4,6 +4,17 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.3.0 · 2026-10-11
+
+### Spec
+- WP-1.2: JSON Schemas for a clip, a set manifest and a catalog row (`spec/schemas/`), with stubs for recipes and
+  graphs.
+
+### Core
+- WP-1.2: `validate(data, { mode, kind })`: 30 coded rules (20 clip errors, 6 warnings, 4 set and catalog errors),
+  messages of at most two lines naming the clip, key, time and field; `read` accepts unknown fields, `lint` flags
+  them with the nearest name. The format-2 types and key-field table.
+
 ## 0.2.0 · 2026-10-11
 
 ### Spec

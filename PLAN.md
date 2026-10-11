@@ -980,7 +980,8 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
 - **Verify:** `npm run doctrine`
 
 #### WP-1.2 Schemas and the validator
-- **Owns:** `spec/schemas/*.json`, `packages/core/src/validate/*`
+- **Owns:** `spec/schemas/*.json`, `packages/core/src/validate/*`; it starts `packages/core/src/format/types.ts`,
+  which WP-1.3 extends (D25)
 - **Needs:** 1.1
 - **Size:** M
 - **Build:**
@@ -2194,8 +2195,8 @@ version, commit, date and a note with the numbers. Gates are rows too.
 | 0.4 Pins and reference vectors | done | 0.1.0 | 20ad7a7 | 2026-10-11 | 5 repos pinned; 13 vector files, 6.14 MB + 1.0 MB frozen = 7.14 of 10 MB; tiers 1a (rig, CMU 09_02), 1b, 2 (325 clips, 6,469 keys), 3 (11 bodies); oracle = shardfall's expected sets; D23 |
 | 0.5 CI and session setup | done | 0.1.0 | d594f61, 9218ce1 | 2026-10-11 | CI green on #4 at 9218ce1 (T0+T1 on push 16 s, T2 on the PR 33 s); fresh clone: hook 2.6 s, then check 4.2 s of 15 |
 | **G0** | done | 0.1.0 | bae664e | 2026-10-11 | 4/4 in 5.1 s: check 1.3 s, test 1.3 s (41 tests), doctrine 7/7, vectors 13 files byte for byte; verifier: 4 findings fixed (D24) |
-| 1.1 The motion spec | done | 0.2.0 | (next row's commit) | 2026-10-11 | MOTION.md 2.0-rc (15 sections, every vector and seed-set field mapped); LEGEND.md 792/800 tokens; ranges from the 7 seed sets (spins reach 1086°); quiz deferred to WP-4.7 |
-| 1.2 Schemas and the validator | todo | | | | |
+| 1.1 The motion spec | done | 0.2.0 | 7d1bd44 | 2026-10-11 | MOTION.md 2.0-rc (15 sections, every vector and seed-set field mapped); LEGEND.md 792/800 tokens; ranges from the 7 seed sets (spins reach 1086°); quiz deferred to WP-4.7 |
+| 1.2 Schemas and the validator | done | 0.3.0 | (next row's commit) | 2026-10-11 | 30 rules, each with a passing and a failing fixture (46 tests); Ajv agrees on 11 structural rules; 762 seed clips: 0 errors, 301 warnings as predicted; D25 |
 | 1.3 The codec | todo | | | | |
 | 1.4 The skeleton profile | todo | | | | |
 | 1.5 Migrate the seed sets | todo | | | | |
