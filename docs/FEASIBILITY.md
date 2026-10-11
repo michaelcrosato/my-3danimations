@@ -523,6 +523,8 @@ The plan proceeds on these defaults and escalates the hard-to-undo ones when it 
 | O7 | Who merges library contributions | You, with CI gates required |
 | O8 | Where gallery reviews are stored | A static JSON export (no hosting costs) |
 | O9 | Acting in other repositories (switching my-3dge's animator WPs 3.4–3.7 and its Phase 8 to this package; certification in shardfall) | Propose, don't act |
+| O10 | Keys for other vendors' models in the benchmark (GPT, Gemini and others) | Claude models only |
+| O11 | Rights to the code and data carried from riftlight, shardfall and my-3d2dge-2, which have no license file | **Answered: MIT, granted by their author** (the owner, 2026-10-11) |
 
 **One question to the owner, for context only:** my-3d2dge's decisions log mentions "the four front-runners" without
 naming them. If they are other agent-first engines, they are natural early adopters for M4.

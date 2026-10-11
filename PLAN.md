@@ -135,7 +135,7 @@ WP-0.1 records these in `docs/DECISIONS.md` as D1 to D14:
 |---|---|---|
 | 0 to 3 | Foundation, language, airframe and sensors, mostly in sequence (the contract comes first) | none |
 | 4 | First flight on three.js | **M1** |
-| 5 to 7 | Payload, composition and datalink | **M2** |
+| 5 to 7 | Payload, composition and datalink (M2 needs search and the license check; G5's full library gates M3) | **M2** |
 | 8 and 9 | Ground station and supply chain | **M3** |
 | 10 | Consumers | **M4** |
 
@@ -306,6 +306,10 @@ anonymously, in a cloud session and in CI. Everything the tests need from them i
 
 The full inventories, with `path:line` references, are in `research_notes/AI native game animation landscape/`
 (`predecessor_origin_repos.md`, `predecessor_adopter_repos.md`).
+
+my-3d2dge and my-3dge are MIT. riftlight, shardfall and my-3d2dge-2 have no license file; their author, the owner,
+licensed the code and data carried from them under MIT on 2026-10-11 (O11). Each carry keeps its source's license
+for content: clips keep their per-set licenses (D10).
 
 | From | What | Action | WP |
 |---|---|---|---|
@@ -566,10 +570,14 @@ character), a grader, and a pass rule graded headless.
     installed as dependencies and a brief (`bench/briefs/B1-discovery.md`) that never names them. Once WP-7.3 has made
     the skill, the runner copies it into the workspace too. Each trial records whether the agent found and used the
     package. They are reported at G4 and G7, but they do not gate and do not count toward B1's pass mark.
+- **Held-out variants:** at each gate, a verifier subagent that has not read the manual's examples writes one variant
+  of every brief the gate grades. It keeps the job and the pass rule, and changes the starter character (a generated
+  variant or a real rig) and the wording. Variants are written into `bench/results/heldout/<gate>/` only when the gate
+  runs, and stay there as a record, so each later gate writes fresh ones.
 - **Briefs are built in three places:** B1 in WP-4.7, B2 to B7 in WP-6.6, B8 in WP-9.1.
 - **Results** go in `bench/results/<date>-<model>.json` and are summarized in `docs/PROGRESS.md`. By default the
   benchmark runs on the Claude models the session can reach. Other vendors' models need their keys (decision O10).
-- **Pass mark at a gate:** at least 4 of 5 trials per brief.
+- **Pass mark at a gate:** at least 4 of 5 trials per brief, and at least 4 of 5 on its held-out variant.
 
 No rigorous benchmark of frontier LLMs authoring full-body skeletal motion existed as of October 2026. This one is worth
 publishing once it is stable (decision O2).
@@ -667,13 +675,14 @@ G1 → 2.1 → 2.2 → 2.3 ; {2.2, 1.4} → 2.4 ; {2.3, 2.4} → 2.5 ; {2.3, 2.5
 G2 → 4.1 → 4.2 → 4.3 → 4.4 → {4.5, 4.6} ; {4.6, G3} → 4.7 ; {4.5, 4.7} → G4 (M1)
 1.5 → 5.1 → {5.2, 5.7} ; 5.2 → 5.6 → 5.3 ; {5.3, 3.3} → 5.4 → {5.5, 5.8} ; {5.5, 5.7, 5.8, G3} → G5
 {G2, 3.3} → 6.1 → {6.2, 6.3, 6.4} ; 6.4 → 6.5 ; {4.7, 6.5} → 6.6 ; {6.2, 6.3, 6.6} → G6
-G4 → 7.1 ; {7.1, G5, G6} → 7.2 → 7.3 → 7.4 → G7 (M2)
+G4 → 7.1 ; {7.1, 5.5, 5.7, G6} → 7.2 → 7.3 → 7.4 → G7 (M2)
 {4.6, 7.2} → 8.1 → 8.2 → 8.3 → G8
-G7 → 9.1 → {9.2, 9.3} → 9.4 → G9 (M3)
+{G5, G7} → 9.1 → {9.2, 9.3} → 9.4 → G9 (M3)
 G7 → {10.1, 10.2} → G10 (M4)
 ```
 
-After G1 the library lane (5.1, 5.2, 5.7) can start. After G2, lanes Q, R, L and A run in parallel (§11).
+After G1 the library lane (5.1, 5.2, 5.7) can start. After G2, lanes Q, R, L and A run in parallel (§11). The tools need
+search and the license check, not the library's size, so G5 gates M3 (through WP-9.1), not M2.
 
 ### 9.3 Gates
 
@@ -700,8 +709,11 @@ After G1 the library lane (5.1, 5.2, 5.7) can start. After G2, lanes Q, R, L and
   - **a headless sweep** plays every migrated clip on those six skeletons, and at least 95% pass the sensors, with every
     failure listed and its reason given. The gate report links the clip-by-skeleton results, and M1 claims only what
     they show;
+  - **a held-out rig:** a real CC0 rig from a third source, which a verifier subagent chooses and fetches by SHA-256
+    only when G4 runs. The idle, walk, run, jump and attack set plays on it with the sensors green, and its sweep
+    results are reported separately;
   - sheets are produced headless;
-  - B1 passes at least 4 of 5 trials with fresh agents;
+  - B1 and its held-out variant each pass at least 4 of 5 trials with fresh agents;
   - the demo runs in CI's e2e with its sheets attached as artifacts, and has a public link once O3 is linked.
 - **G5 The payload:**
   - **at least 1,000 unique motions,** counted after a minimal dedup in WP-5.8 (re-exports and near-duplicates count
@@ -720,12 +732,12 @@ After G1 the library lane (5.1, 5.2, 5.7) can start. After G2, lanes Q, R, L and
   - the search query set passes;
   - `npm run license -- check` passes on every shipped set (the `m3a` CLI arrives in WP-7.1).
 - **G6 Composition:**
-  - B2, B3, B5, B6 and B7 (built in WP-6.6) pass at least 4 of 5 trials;
+  - B2, B3, B5, B6 and B7 (built in WP-6.6) and their held-out variants each pass at least 4 of 5 trials;
   - composed clips pass QA;
   - graph simulations are deterministic.
 - **G7 Agents fly it (M2):**
-  - B1 to B7 rerun through the packaged CLI, skill and MCP, recorded per available model (Claude by default; others per
-    O10);
+  - B1 to B7 and fresh held-out variants rerun through the packaged CLI, skill and MCP, recorded per available model
+    (Claude by default; others per O10);
   - the manual is within budget;
   - every tool example passes;
   - the CLI and MCP give the same results.
@@ -735,7 +747,7 @@ After G1 the library lane (5.1, 5.2, 5.7) can start. After G2, lanes Q, R, L and
   - The review needs O3's link, or a build the owner opens; until then this gate is `blocked-owner` and the work goes
     on.
 - **G9 The library grows (M3):**
-  - B8 passes;
+  - B8 and its held-out variant pass;
   - a fresh agent contributes 10 clips through the protocol;
   - every planted bad contribution is rejected (license, duplicate, defect, missing provenance, a generator with no
     training-data manifest);
@@ -764,13 +776,15 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
   - `docs/DECISIONS.md` with D1 to D14 (§1.3), in my-3d2dge's entry format (principle, call, why, answered, landed in).
     `docs/FEEDBACK-LOG.md` with its rules and no entries. `docs/PROGRESS.md`, at most 40 lines.
   - O1 is answered: MIT (the owner, 2026-10-11). `LICENSE` is already committed; log the answer in
-    `docs/DECISIONS.md` as a decision of its own.
+    `docs/DECISIONS.md` as a decision of its own. Log O11 the same way: the code and data carried from riftlight,
+    shardfall and my-3d2dge-2 are MIT, granted by their author (the owner, 2026-10-11). Log too that the owner
+    confirmed, the same day, that WP-1.5 commits the CMU and Mesh2Motion sets as planned (D10, K3).
   - `.gitignore`: `node_modules/`, `.cache/`, `library/local/*` (but not `library/local/README.md`), `check-output/`,
     `dist/`.
   - `README.md`: add a status line saying the plan is being executed, linking `docs/PROGRESS.md`. Keep the kickoff
     prompt as it is.
-- **Done when:** the files exist, D1 to D14 are logged, and O1's answer (MIT) is logged.
-- **Verify:** `test -f DOCTRINE.md -a -f AGENTS.md -a -f CLAUDE.md -a -f docs/PROGRESS.md && [ "$(grep -c '^## D' docs/DECISIONS.md)" -ge 14 ] && grep -q 'O1' docs/DECISIONS.md`
+- **Done when:** the files exist, D1 to D14 are logged, and the answers to O1 and O11 (both MIT) are logged.
+- **Verify:** `test -f DOCTRINE.md -a -f AGENTS.md -a -f CLAUDE.md -a -f docs/PROGRESS.md && [ "$(grep -c '^## D' docs/DECISIONS.md)" -ge 14 ] && grep -qw 'O1' docs/DECISIONS.md && grep -qw 'O11' docs/DECISIONS.md`
 
 #### WP-0.2 Toolchain
 - **Owns:** `package.json`, `package-lock.json`, `tsconfig*.json`, `eslint.config.js`, `vitest.config.ts`,
@@ -1397,7 +1411,8 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
   - The runner of §7. It packs the packages, builds the scratch workspace outside the repo, and starts a fresh agent at
     the best isolation level available: `claude -p` first, then a fresh remote session, then an audited subagent. It
     records the isolation level, pass or fail, time, tokens, iterations, and the files read past the manual.
-  - B1 and its grader: scripted input, a state trace, the sensors.
+  - B1 and its grader: scripted input, a state trace, the sensors. Graders take the starter character as a parameter,
+    and the runner takes a held-out variant written at a gate (§7).
   - The B1 discovery starter and brief (§7).
   - The legend quiz deferred from WP-1.1.
   - A first manual draft, good enough for B1 (WP-7.3 finishes it).
@@ -1695,7 +1710,7 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
 
 #### WP-7.2 The tools
 - **Owns:** `packages/tools/src/tools/*`
-- **Needs:** 7.1, G5, G6
+- **Needs:** 7.1, 5.5, 5.7, G6
 - **Size:** L
 - **Carry:** from shardfall: the clip tool (`crates/pav_core/src/clips.rs:496-550`), which returns legend, text, fit,
   strike time and license, and revisioned edits (`crates/pav_tools/src/anim_tools.rs:749-820`,
@@ -1805,7 +1820,7 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
 #### WP-9.1 The contribution protocol
 - **Owns:** `CONTRIBUTING.md`, `packages/tools/src/tools/library-add.ts`, `.github/workflows/library-gates.yml`,
   `bench/briefs/B8.md`, `bench/graders/B8/**`
-- **Needs:** G7
+- **Needs:** G5, G7
 - **Size:** M
 - **Build:** a protocol written for agents.
   - `m3a library add <clip | recipe>` validates and measures the clip, then writes it with its catalog row and
@@ -2021,6 +2036,7 @@ them.
 | **O8** | Where gallery reviews are stored | A static export: JSON the owner shares back | A hosted store costs money | WP-8.2 |
 | **O9** | Acting in other repositories (switching my-3dge's animator WPs 3.4–3.7 and its Phase 8 to this package; certification PRs in shardfall) | Propose, don't act | Reaches outside the repo | WP-10.1, 10.2 |
 | **O10** | Keys for other vendors' models in the benchmark (GPT, Gemini and others) | Claude models only, through the session's own access | Keys are spending and credentials | WP-4.7, G7 |
+| **O11** | Rights to the code and data carried from riftlight, shardfall and my-3d2dge-2, which have no license file | **Answered: MIT, granted by their author** (the owner, 2026-10-11) | §4 carries their code into this MIT repository | WP-0.1 logs it |
 
 ---
 
