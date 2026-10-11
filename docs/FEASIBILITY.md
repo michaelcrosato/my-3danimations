@@ -509,7 +509,7 @@ The plan proceeds on these defaults and escalates the hard-to-undo ones when it 
 
 | Id | Decision | Default |
 |---|---|---|
-| O1 | The code license | MIT, matching my-3d2dge |
+| O1 | The code license | **Answered: MIT** (the owner, 2026-10-11), matching my-3d2dge |
 | O2 | Package names and publishing (npm, crates, release assets, a public benchmark) | Build everything, publish nothing; working names `@m3a/*` and `m3a` |
 | O3 | A Vercel project for previews | `vercel.json` prepared; you link the repo |
 | O4 | Buying Quaternius UAL1 Pro ($9.99) and UAL2 Source ($14.99), both CC0 | Free editions only |

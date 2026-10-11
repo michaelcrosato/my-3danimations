@@ -89,4 +89,5 @@ The milestones:
 
 ## License
 
-Not chosen yet. `PLAN.md` WP-0.1 asks the owner (decision O1, default MIT).
+MIT. See [`LICENSE`](LICENSE). Library content carries its own per-set licenses (CC0, CC BY 4.0, CMU's terms), recorded
+in every clip's provenance.

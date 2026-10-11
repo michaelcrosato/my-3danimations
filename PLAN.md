@@ -737,13 +737,13 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
   - `AGENTS.md`: the reading instruction (§0), the two tiers, the commands, the WP rules (§8). `CLAUDE.md` points to it.
   - `docs/DECISIONS.md` with D1 to D14 (§1.3), in my-3d2dge's entry format (principle, call, why, answered, landed in).
     `docs/FEEDBACK-LOG.md` with its rules and no entries. `docs/PROGRESS.md`, at most 40 lines.
-  - Escalate O1 (the license). `LICENSE` lands with the answer or, when the wake-up fires unanswered, with the default
-    (MIT).
+  - O1 is answered: MIT (the owner, 2026-10-11). `LICENSE` is already committed; log the answer in
+    `docs/DECISIONS.md` as a decision of its own.
   - `.gitignore`: `node_modules/`, `.cache/`, `library/local/*` (but not `library/local/README.md`), `check-output/`,
     `dist/`.
   - `README.md`: add a status line saying the plan is being executed, linking `docs/PROGRESS.md`. Keep the kickoff
     prompt as it is.
-- **Done when:** the files exist, D1 to D14 are logged, and O1 is answered or escalated (`LICENSE` follows the answer).
+- **Done when:** the files exist, D1 to D14 are logged, and O1's answer (MIT) is logged.
 - **Verify:** `test -f DOCTRINE.md -a -f AGENTS.md -a -f CLAUDE.md -a -f docs/PROGRESS.md && [ "$(grep -c '^## D' docs/DECISIONS.md)" -ge 14 ] && grep -q 'O1' docs/DECISIONS.md`
 
 #### WP-0.2 Toolchain
@@ -1942,7 +1942,7 @@ them.
 
 | Id | Decision | Default | Why | When |
 |---|---|---|---|---|
-| **O1** | The code license | MIT | Matches my-3d2dge; permissive, so the package can become a standard | WP-0.1 |
+| **O1** | The code license | **Answered: MIT** (the owner, 2026-10-11; `LICENSE` committed) | Matches my-3d2dge; permissive, so the package can become a standard | WP-0.1 logs it |
 | **O2** | Package names and publishing (npm, crates, release assets, a public benchmark) | Build everything, publish nothing, use the working names `@m3a/*` and `m3a` | Publishing can't be taken back | WP-7.4, 9.4 |
 | **O3** | A Vercel project for previews | Prepare `vercel.json`; the owner links the repo in Vercel; until then demos run locally and in CI | Linking reaches outside the repo | WP-4.6, 8.3 |
 | **O4** | Purchases (Quaternius UAL1 Pro, $9.99; UAL2 Source, $14.99) | Free editions only | Spending | WP-5.3 |
