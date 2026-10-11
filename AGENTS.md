@@ -13,6 +13,7 @@ why. This file is how.
   files it cites. The plan is a map, not a corpus: don't reread it end to end.
 - **Where the truth lives:** `docs/PROGRESS.md` (one screen, the current state), the ledger (`PLAN.md` §14, one row per
   WP), `docs/DECISIONS.md` (never cleaned up), `docs/FEEDBACK-LOG.md` (points not acted on, counted by theme).
+- **Writing three.js:** read `docs/THREE.md` first: the pinned release (r182), how to write against it, what is banned.
 
 ## Two tiers
 

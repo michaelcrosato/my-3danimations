@@ -1045,3 +1045,33 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.18.0; reworked at G3 in v0.19.0, revised in v0.19.1
 
+## D45 · 2026-10-11 · three.js pinned at r182: the release fresh agents write that runs on both backends here
+
+- **Principle:** 1, 9, WP-4.1
+- **Call:**
+  - **The cold-write check:** two fresh agents, given no docs and writing from memory, each wrote a skinned-character scene
+    (load the Khronos Fox glTF, play a clip, crossfade) for one candidate, r182 (the owner's prior pin) or r186 (the
+    latest, 0.186.1). Run unedited in headless Chromium 141: both draw and crossfade on the forced WebGL 2 backend;
+    on WebGPU r182 runs and r186 fails at `renderer.init()`, its texture views carrying a `swizzle` this Chromium
+    rejects (my-3dge met the same). Both agents wrote their release's idioms correctly, so the choice turns on what
+    runs: **r182**, `three@0.182.0` exactly, a peer dependency of `@m3a/three` (the game brings its three, as the
+    package's header says), installed here as a dev dependency.
+  - **The other candidate in CI:** `tests/e2e/three.e2e.ts` repeats the check on a character built in code (a skinned
+    arm through `GLTFExporter` and `GLTFLoader`, a clip, a crossfade) and is part of `npm run e2e`; CI's `three-next`
+    job runs it on r186 through `M3A_THREE_DIR`, asserting WebGL 2 and reporting WebGPU. WebGPU is asserted where the
+    browser has an adapter (here, SwiftShader's Vulkan); without one, `WebGPURenderer` falls back to WebGL 2, which the
+    other test checks.
+  - **The banned APIs** in `tools/doctrine/banned-three.json`, with the pin: `ShaderMaterial` and
+    `RawShaderMaterial`, `onBeforeCompile`, `EffectComposer` with `ShaderPass` and the `postprocessing/` addons,
+    `WebGLRenderer`, raw GLSL, `renderAsync()` (deprecated in r181) and `RenderPipeline` (r183's name for
+    `PostProcessing`). `npm run doctrine` fails on a use and on the package or lockfile leaving the pin.
+  - **Types later:** `@types/three@0.182.0` brings 7 packages (Rapier's among them) and nothing imports three from
+    TypeScript yet; it is pinned with the first module that does (WP-4.3).
+  - **Found on the way:** r182's `three.webgpu.js` reads `GPUShaderStage` as it loads, and WebGPU's interfaces exist
+    only in a secure context, so on a plain `http:` host other than localhost the module fails to load at all,
+    WebGL 2 included. Pages are served from `localhost` or `https:` (docs/THREE.md).
+- **Result:** the test passes on r182 on both backends (the frame drawn, moving, the crossfade ending on its clip, no
+  warning) and on r186 on WebGL 2, its WebGPU start failing as in the check. Doctrine finds each banned API in a
+  fixture and a pin moved in the package or the lockfile.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.20.0

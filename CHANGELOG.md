@@ -4,6 +4,21 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.20.0 · 2026-10-11
+
+### Three
+- WP-4.1: `@m3a/three` pins three.js r182 (`three@0.182.0`), the release fresh agents write correctly that runs on
+  both of `WebGPURenderer`'s backends in the platform's Chromium (r186's WebGPU fails to start there) (D45).
+
+### Tools
+- `npm run doctrine` bans the WebGL-era three.js APIs that break under `WebGPURenderer` and holds `packages/three` to
+  the pin (`tools/doctrine/banned-three.json`).
+- e2e `three`: the pinned release loads a skinned glTF, plays and crossfades on both backends; CI's `three-next` job
+  runs it on r186.
+
+### Docs
+- `docs/THREE.md`: the pin, why, how to write against it, and the banned APIs.
+
 ## 0.19.1 · 2026-10-11
 
 ### Sensors
