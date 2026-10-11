@@ -3,7 +3,7 @@
 The current state on one screen (at most 40 lines; `npm run doctrine` checks it from WP-0.3). The ledger is
 `PLAN.md` §14; decisions are in `docs/DECISIONS.md`.
 
-**Phase:** 2 The airframe. **Next gate:** G2. **Version:** 0.9.0.
+**Phase:** 2 The airframe. **Next gate:** G2. **Version:** 0.10.0.
 **Mode:** one agent (D21), branch `claude/relaxed-albattani-35xhjq`.
 
 ## Done
@@ -18,10 +18,11 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 - WP-2.2 The clip runtime: sampling, root motion over loop cycles, events, contacts, measured facts within tolerance
   of 20 independently measured clips (D34).
 - WP-2.3 Pose operations: blend, deltas, masks, mirror, retime, slice, loop, contact-phase sync (D35).
+- WP-2.4 The solver: any recognized skeleton from the key's numbers; tier 3 passes on 7 bodies (D36).
 
 ## Next
 
-- WP-2.4 The solver.
+- WP-2.5 Contacts and ground (WP-2.4's verifier review running).
 
 ## Blocked on the owner
 

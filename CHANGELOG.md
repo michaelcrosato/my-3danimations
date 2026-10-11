@@ -4,6 +4,20 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.10.0 · 2026-10-11
+
+### Core
+- WP-2.4: the solver (`solve/`): `bind` (recognize, measure the body from the bones, map the format's frame to the
+  skeleton's) and `solve` (each bone's world and local rotation and the hips' place, from the key's numbers decoded on
+  the target body: limbs rolled by their poles, the spine by its shares, fingers by their curls, soles on the floor);
+  `forward` for the joints. Handles T, A and relaxed rests, missing optional bones, twist bones and a host's rest
+  rotations.
+- `quat.fromMat3`; the decoder's `limbPoles`; the decoder places a shoulder with no offset at its clavicle point.
+
+### Spec
+- Conformance tier 3 runs (`spec/conformance/tier3.test.ts`): every generated body of `tier3/bodies.json`, every tier-2
+  clip at four times.
+
 ## 0.9.0 · 2026-10-11
 
 ### Core

@@ -2206,7 +2206,7 @@ version, commit, date and a note with the numbers. Gates are rows too.
 | 2.1 Math kernel and determinism | done | 0.7.0 | 01706fd | 2026-10-11 | 13 functions give V8's bits on 200k inputs each, random bit patterns and specials; pow ≤1 ulp of glibc; core.json bit for bit; V8 = JSC on 2.8M results and a 100k-step chain; cost 0.7–4× native (D33) |
 | 2.2 Sampler, events, contacts, facts | done | 0.8.0 | d774088 | 2026-10-11 | sample = tier 2 at 7,444 samples; loop events once; yaw 90/360/720° continuous, rootDelta carries seams; truth 20/20: speeds ≤11%, distances ≤0.2% or 0.2% of H0, strikes ≤0.06 s (D34) |
 | 2.3 Pose operations | done | 0.9.0 | c20b087 | 2026-10-11 | mirror twice = identity on all 525 clips (≤0.5 mm); blend 0/1 = inputs; retime keeps order and contact shares; synced walk–jog/sprint blends keep planted feet ≤18.5 mm (by time, out of step: >100 mm) (D35) |
-| 2.4 The solver | todo | | | | |
+| 2.4 The solver | done | 0.10.0 | (this row's commit) | 2026-10-11 | reference body: joints ≤0.002 mm of the decoder (7,444 samples); tier 3 on 7 bodies × 1,324 poses: limbs ≤9° (0° to rounding), chest exact, lengths kept, soles ≥ floor, no NaN; T/A/relaxed, missing and twist bones, host rest rotations (D36) |
 | 2.5 Contacts and ground | todo | | | | |
 | 2.6 The Animator | todo | | | | |
 | **G2** | todo | | | | |

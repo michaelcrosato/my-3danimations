@@ -35,6 +35,8 @@ export function torso(R: Rest, k: KeyLike) {
     const sv = arr(k, "sh" + s) || [0, 0];
     const v0 = R.cv[s];
     const L = len(v0);
+    // a body measured without shoulder bones has its upper arm at the clavicle point: nothing to swing
+    if (L === 0) return add(neck, wld(RC, R.clav[s]));
     const az = PM.atan2(v0[0], v0[1] * SG[s]) + sv[0]! * DG;
     const el = PM.asin(v0[2] / L) + sv[1]! * DG;
     return add(add(neck, wld(RC, R.clav[s])), wld(RC, [L * PM.cos(el) * PM.sin(az), SG[s] * L * PM.cos(el) * PM.cos(az), L * PM.sin(el)]));
@@ -123,6 +125,21 @@ function arm(R: Rest, k: KeyLike, tq: ReturnType<typeof torso>, s: Side) {
   const pole = poleHint(ad, hintFor("arm", SG[s], RC, [aN[0], aN[1] * SG[s], aN[2]]), a[4] || 0);
   const [el, fist] = ik3(sh, fT, R.up, D.lower, pole);
   return { sh, el, fist, pole };
+}
+
+/** The poles the limbs bend toward in key k on rest R (the decoder's own, for a solver's roll): arms and legs by side. */
+export function limbPoles(R: Rest, k: KeyLike): Record<"armL" | "armR" | "legL" | "legR", V3> {
+  const tq = torso(R, k);
+  const out = {} as Record<"armL" | "armR" | "legL" | "legR", V3>;
+  for (const s of SIDES) {
+    out[`arm${s}`] = arm(R, k, tq, s).pole;
+    const hip = tq.hip(s);
+    const l = arr(k, "leg" + s)!;
+    const ln = norm(l);
+    const ld = norm(sub(limbEnd(hip, tq.RP, ln, s, reachOf(l[3] || 0, R.thigh, R.shin)), hip));
+    out[`leg${s}`] = poleHint(ld, hintFor("leg", SG[s], tq.RP, [ln[0], ln[1] * SG[s], ln[2]]), l[4] || 0);
+  }
+  return out;
 }
 
 /** The hand frame at the wrist (spec/MOTION.md §5.3): forearm a, palm side m′, thumb side l′, after roll ρ. */

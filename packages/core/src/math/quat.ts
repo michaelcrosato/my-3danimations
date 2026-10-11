@@ -108,3 +108,23 @@ export function swingTwist(q: Readonly<Quat>, axis: Readonly<Vec3>, swing: Quat,
   const a = 2 * M.atan2(twist[0] * axis[0] + twist[1] * axis[1] + twist[2] * axis[2], twist[3]);
   return a > Math.PI ? a - 2 * Math.PI : a <= -Math.PI ? a + 2 * Math.PI : a;
 }
+
+/** The unit quaternion of a 3×3 rotation matrix given row by row (m[r·3 + c]), by Shepperd's method. */
+export function fromMat3(out: Quat, m: readonly number[]): Quat {
+  const [m00, m01, m02, m10, m11, m12, m20, m21, m22] = m as [number, number, number, number, number, number, number, number, number];
+  const tr = m00 + m11 + m22;
+  if (tr > 0) {
+    const s = Math.sqrt(tr + 1) * 2;
+    return normalize(out, [(m21 - m12) / s, (m02 - m20) / s, (m10 - m01) / s, 0.25 * s]);
+  }
+  if (m00 > m11 && m00 > m22) {
+    const s = Math.sqrt(1 + m00 - m11 - m22) * 2;
+    return normalize(out, [0.25 * s, (m01 + m10) / s, (m02 + m20) / s, (m21 - m12) / s]);
+  }
+  if (m11 > m22) {
+    const s = Math.sqrt(1 + m11 - m00 - m22) * 2;
+    return normalize(out, [(m01 + m10) / s, 0.25 * s, (m12 + m21) / s, (m02 - m20) / s]);
+  }
+  const s = Math.sqrt(1 + m22 - m00 - m11) * 2;
+  return normalize(out, [(m02 + m20) / s, (m12 + m21) / s, 0.25 * s, (m10 - m01) / s]);
+}

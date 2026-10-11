@@ -6,6 +6,7 @@ export * from "./math/index.ts";
 export * from "./format/index.ts";
 export * from "./clip/index.ts";
 export * from "./ops/index.ts";
+export * from "./solve/index.ts";
 export * from "./skeleton/index.ts";
 export { validate, validateClip, validateSet, validateCatalogRow, formatIssue, RULES, rule, KNOWN_REQUIRES } from "./validate/index.ts";
 export type { Issue, Result, Where, Rule, Severity, ValidateOptions, ValidateKind } from "./validate/index.ts";

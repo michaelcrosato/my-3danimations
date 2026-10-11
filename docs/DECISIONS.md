@@ -510,3 +510,38 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   G2 property tests.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.9.0
+
+## D36 · 2026-10-11 · The solver decodes on the target's own body and rolls each bone from the parameters
+
+- **Principle:** 2, 12, WP-2.4 (PLAN.md §5.5: bake from the parameters)
+- **Call:**
+  - `bind` measures the target's body from its bones: `restPoints` plus `measure`, so its proportions, offsets and
+    rest frames are its own. It maps the format's frame to the skeleton's linearly; that map is a reflection for glTF.
+  - `solve` decodes the key on that body, which places the hips by the hip-height ratio and puts every limb at its
+    own lengths with the key's pole. Each bone then turns from its rest triad to its posed one. Rotations are built
+    from mapped triads, so no quaternion is ever reflected.
+  - Each bone's roll comes from the parameters:
+    - limbs: their poles, the natural pole at rest, the key's twisted pole posed, so a straight limb keeps its twist;
+    - hands: the knuckle line;
+    - feet: the pelvis's up;
+    - spine bones: their share of the pelvis-to-chest turn (the key's `spine`, else the source library's when given,
+      else the body's own);
+    - fingers: their curl (absent: format 1's fists).
+  - Local rotations are relative to the parent's world orientation, with a host's rest orientations when given (a
+    test rebuilds the joints from them).
+  - A pose whose lowest sole would go below the floor is lifted whole, as my-3d2dge's `Mocap.drive` did. Solving each
+    leg onto the floor bent legs up to 67° from the source on a rise from the ground.
+  - Results:
+    - Reference body (the tiny rig): every joint within 0.002 mm of the decoder at all 7,444 tier-2 samples.
+    - Tier 3, seven bodies × 331 clips × 4 times:
+      - whole limbs (shoulder to virtual fist, hip to ankle) within 9°, at worst 0° to rounding;
+      - the chest faces exactly where the clip's does;
+      - bone lengths unchanged, soles never below the floor, no NaN.
+- **Limit:** a format-2 `spine` share, or a library's (CMU's 0.55), on the lowest segment turns the decoder's
+  pelvis-to-spine segment with part of the chest's turn. No hips bone that also carries the legs can do that, so the
+  joints above the hips sit up to 37 mm off the decoder's on the rig (111 mm on CMU's strongest curl). Every bone still
+  takes its segment's turn, and the chest still faces exactly.
+- **Outside WP-2.4's Owns** (one agent, D21): `limbPoles`, exported from the decoder; the decoder's fix for a shoulder
+  with no offset (a body without shoulder bones gave NaN); `quat.fromMat3`; the tier-3 test and its skeleton helper.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.10.0
