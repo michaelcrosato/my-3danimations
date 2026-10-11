@@ -156,7 +156,7 @@ Today's animation pipeline is a cockpit. Almost every tool in it exists because 
 - **Sets direction:** "grounded and heavy", "snappy, like an anime fighter".
 - **Sets the bar:** the thresholds the sensors enforce.
 - **Reviews on a phone:** a gallery plays any clip on any test character, shows its metrics, and takes an approve or a
-  flag in one tap.
+  flag in one tap. New submissions wait there in an intake queue, to be adopted, archived or rejected.
 - **Makes the calls that are hard to undo:** licenses, spending, publishing.
 
 The human never keys a pose.
@@ -346,8 +346,8 @@ layer. The package fills three.js's gaps: retargeting, graphs, root motion, cont
     types, content hashes for lineage, and signed attestations.
 
 **So:** a seed of 1,000+ distributable clips with real breadth (locomotion, combat basics, interactions, emotes,
-acrobatics) across three license namespaces. Contributions are gated and reviewed before merge, and AI provenance is
-always recorded.
+acrobatics) across three license namespaces, with CC0 as the default pack. Contributions come in through one intake
+queue, are checked automatically and adopted only after review, and AI provenance is always recorded.
 
 ### 4.5 Agent tooling: verifiers close the loop
 
@@ -425,9 +425,9 @@ Agents work at the highest level that does the job, and drop a level when they m
 | Airframe and flight controls | `@m3a/core` | Format codec, skeleton profiles, sampler, pose operations, solver, contacts, recipes, graphs; with no dependencies, deterministic, never touching a renderer |
 | Sensors | `@m3a/sensors` | Metrics with times, `describe`, lint and fix, contact sheets and films rendered in software, diffs |
 | Datalink | `@m3a/tools` | One registry behind the API, the `m3a` CLI, a skill and MCP; the manual within its token budget |
-| Payload | `library/` | Sets in three license namespaces, catalogs, facts, provenance, QA verdicts |
-| Ground station | `apps/gallery` | Review on a phone: play, measure, approve or flag; notes return as rules and thresholds |
-| Supply chain | the protocol and the socket | Gated contributions, motion sources (including generative ones), dedup, lineage, a registry index |
+| Payload | `library/` | Sets in three license namespaces (CC0 by default), catalogs, facts, provenance, QA verdicts |
+| Ground station | `apps/gallery` | Review on a phone: play, measure, approve or flag; adopt, archive or reject submissions; notes return as rules and thresholds |
+| Supply chain | the intake queue and the socket | Submissions checked automatically and adopted by the owner, motion sources (including generative ones), dedup, lineage, a registry index |
 | Hardpoints | `@m3a/three`, `@m3a/io` | three.js binding and playback; glTF, VRMA, BVH and CMU in and out |
 | Flight tests | `bench/` | Fresh-agent briefs, graded headless, per model |
 | **The pilot** | **not built here** | Coding agents and generative models. They get better every few months, and the airframe lets them fly better |
@@ -496,7 +496,7 @@ Ranked by how hard each is to undo, which is the order that matters:
 | **The format's limits show** (wrists, spine, fingers) | Named optional fields; re-import from the sources; a dense sidecar track as the fallback | WPs 1.1, 5.3, D.2 |
 | **Sensors miss defects or cry wolf** | A planted-defect suite with 100% recall required; calibration against the library; human sampling feeding new checks | WPs 3.6, 8.2 |
 | **Scope creep** | The scope rule (no gate or brief, no work) and on-demand triggers | PLAN §2, §10 |
-| **Contributions turn into a flood** | A curated core plus a federated, namespace-verified index for community packs, never an open upload portal; allowlists, provenance, dedup, disclosure, rate limits, an accountable human behind every agent, no per-clip rewards, human review before merge | WPs 9.1, 9.3, 9.4 |
+| **Contributions turn into a flood** | A curated core plus a federated, namespace-verified index for community packs, and an intake queue that needs a signed-in contributor and bounces anything that fails a check, never an open upload portal; allowlists, provenance, dedup, disclosure, rate limits, an accountable human behind every agent, no per-clip rewards, the owner's review before adoption | WPs 8.2, 9.1, 9.3, 9.4 |
 | **Metrics miss defects or get gamed** (the origin's slide check ran only on idle; a generator over-optimized against a learned critic broke down) | Planted defects; calibration against real capture; human sampling; an adversarial review of what each gate fails to see | WPs 3.3, 3.6, 8.2 |
 | **The ground moves** (Khronos, three.js, a generative leap) | A spec watch, deliberate pin upgrades, the socket | WPs 1.4, 4.1, 9.2 |
 
@@ -520,9 +520,9 @@ The plan proceeds on these defaults and escalates the hard-to-undo ones when it 
 | O3 | A Vercel project for previews | `vercel.json` prepared; you link the repo |
 | O4 | Buying Quaternius UAL1 Pro ($9.99) and UAL2 Source ($14.99), both CC0 | Free editions only |
 | O5 | External generative services (cost, keys, output terms) | None; the socket ships with a mock. NVIDIA Kimodo is the first candidate worth approving |
-| O6 | CC BY content (100STYLE) | Accept it, in its own namespace with a credits tool |
-| O7 | Who merges library contributions | You, with CI gates required |
-| O8 | Where gallery reviews are stored | A static JSON export (no hosting costs) |
+| O6 | CC BY content (100STYLE) | Accept it, in its own opt-in set with a credits tool; CC0 is the default pack |
+| O7 | Who adopts library contributions | **Answered: you adopt every clip**, after the automated checks (2026-10-11) |
+| O8 | Where submissions and reviews are stored | **Answered: a Supabase project, free tier** (2026-10-11); a local store stands in until it's linked |
 | O9 | Acting in other repositories (switching my-3dge's animator WPs 3.4–3.7 and its Phase 8 to this package; certification in shardfall) | Propose, don't act |
 | O10 | Keys for other vendors' models in the benchmark (GPT, Gemini and others) | Claude models only |
 | O11 | Rights to the code and data carried from riftlight, shardfall and my-3d2dge-2, which have no repository license file | **Answered: MIT, granted by their author** (the owner, 2026-10-11); third-party clips keep their per-set licenses (D10) |

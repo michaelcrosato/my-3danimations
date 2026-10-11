@@ -41,8 +41,8 @@ and supply chain an agent needs. Plug models that generate motion into a socket 
   and trustworthy checks, so the package is closer to glTF plus Poly Haven plus a test suite, with a three.js-like
   runtime as its reference implementation.
 - **Two parts carry the risk.** Retargeting onto arbitrary skinned skeletons is the heavy lift, and that is what the
-  first milestone tests. A library grown by AIs is the weakest leg, so it grows only through license namespaces,
-  provenance, gates and human review before merge.
+  first milestone tests. A library grown by AIs is the weakest leg, so it grows only through one intake queue: license
+  namespaces, provenance, automated checks, and your review before anything is adopted.
 
 ## What's here
 
@@ -78,7 +78,8 @@ The milestones:
   migrated clips pass the sensors on at least six test skeletons, every failure is listed, and the core moves play on a
   held-out real rig chosen at the gate. Fresh agents pass the first brief and a held-out variant of it, 4 of 5 each.
 - **M2 "agents fly it":** the CLI, the skill, MCP and the manual, benchmarked.
-- **M3 "the library grows":** gated contributions from other AIs.
+- **M3 "the library grows":** any agent submits animations to an intake queue; automated checks filter them, and you
+  adopt, archive or reject each one from your phone.
 - **M4 "the standard in use":** another repository consumes it.
 
 ## Lineage
@@ -94,5 +95,5 @@ The milestones:
 
 ## License
 
-MIT. See [`LICENSE`](LICENSE). Library content carries its own per-set licenses (CC0, CC BY 4.0, CMU's terms), recorded
-in every clip's provenance.
+MIT. See [`LICENSE`](LICENSE). The library's default pack is CC0. CC BY 4.0 and CMU-licensed sets are opt-in, and every
+clip records its license in its provenance.
