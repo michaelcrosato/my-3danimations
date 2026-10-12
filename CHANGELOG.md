@@ -4,6 +4,24 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.37.0 · 2026-10-12
+
+### Core
+- `procedural` (D71): `moveClip` makes a move from `library/moves.json` into a clip on any rest from any start pose
+  (it begins and ends there, a `hit` event where it connects); `gaitClip` a travelling walk, run or limp that slides
+  at most 9 mm per contact; `idleClip` a breathing, weight-shifting loop on planted feet; `GAITS` and `IDLES` ready
+  made; `moveState` and `placeMove`, the move model, match my-3d2dge's to 0.012 cm; `validateMoves` (MV-E001–MV-E007).
+
+### Spec
+- `spec/schemas/moves.schema.json`, the moves file's shape (frozen under D71).
+
+### Library
+- `library/moves.json`: 31 moves from my-3d2dge and shardfall in one unit system, each with an `about` line.
+
+### Tools
+- `node tools/procedural/carry.ts [--check]` writes `library/moves.json` from the pinned sources; doctrine's API cap
+  for core is 44 (D71).
+
 ## 0.36.2 · 2026-10-12
 
 ### Core

@@ -1248,6 +1248,7 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
   - "Exports" counts the names `src/index.ts` lists: 38. Each module's whole surface sits behind one of them as a
     namespace (145 runtime names through 9 namespaces).
   - The boundary check enforces it: one export per statement, each with a doc comment, no bare `export *`.
+  - D71 raised the cap to 44 for Phase 6's namespaces (procedural sources, actions, graphs), one name each.
   - Outside the Owns: the boundary check, the tools and conformance tests moved onto the namespaces, core's test
     barrel, and the Animator's run in `test:cross-engine`.
 
@@ -1709,7 +1710,7 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
 - **Needs:** 6.1
 - **Size:** L
 - **Carry:**
-  - from my-3d2dge: `E.MOVES` (25 moves, 1.8k tokens; engine sections 10–12);
+  - from my-3d2dge: `E.MOVES` (24 moves, 1.8k tokens; engine sections 10–12);
   - from shardfall: `anim/moves.toml` (31 moves with `about` lines) and `moves.rs`;
   - from my-3dge: `tests/baselines/port/moves.json`, frozen (§4);
   - from riftlight: the gait generator with "zero foot slide by construction" (`docs/ANIMATION.md:234-244`).
@@ -2255,7 +2256,7 @@ version, commit, date and a note with the numbers. Gates are rows too.
 | 5.8 Library QA | done | 0.35.1 | f874b01, (this commit) | 2026-10-12 | `npm run qa -- library --check`: all 1,393 clips carry the sensors' verdict (1,008 pass; 230 warn and 155 fail baselined, each with its reason, `baselines/qa.json` by set and by clip, the metrics a profile turns off named); 110 re-imports repaired within 2 mm on average and 30 mm at worst; 1,194 unique motions (84 copies by `orig`, 112 re-exports, 3 near-duplicates by pose), the CC0 pack 170; every G5 floor met, 9 CMU get-ups added and reactions revised 40 → 33 (35); distributions recorded; `docs/LIBRARY.md` generated (D66; G5's verifier's findings, D67). After G5 (0.35.2, D69): a float check, three floats answered; 5 CMU picks, combat 64 and gestures 63, 1,199 unique of 1,398 |
 | **G5** | passed | 0.35.1 | 754adfe | 2026-10-12 | 12/12 in 9.7 min (`bench/results/gates/G5/`, D68): 1,194 unique motions of 1,393 clips, the CC0 pack 170 of 366; every floor met (reactions 35/33, combat 61, gestures 61, work 65, traversal 50, locomotion 812, idles 108); every clip valid with its verdict (1,008 pass, 230 warn and 155 fail baselined); search 40/40, held out 8/10; licenses pass. Run 1 at add333b passed its commands but its verifier blocked it (reactions short, D67) |
 | 6.1 Recipes | done | 0.36.2 | 85dc149, e568fba, (this commit) | 2026-10-12 | `npm test -- recipe` (23 tests): each of 66 one-line mutants fails them; the 20 example recipes validate (schema and `validateRecipe`), compile into valid clips the sensors pass, and are explained in at most 100 tokens by o200k and cl100k, as are a ten-step recipe, a 45-word id and a pose of many parts; `spec/RECIPE.md` and the full `recipe.schema.json`, refrozen (D70); the verifier's rounds 1 and 2 fixed in 0.36.1 and 0.36.2 |
-| 6.2 Procedural sources | todo | | | | |
+| 6.2 Procedural sources | done | 0.37.0 | (this commit) | 2026-10-12 | `npm test -- procedural` (13 tests): the move model against my-3d2dge's frozen `moves.json`, 0.0018 cm mean and 0.012 cm worst, no exceptions; every move begins and ends at each of three start poses on two rests; the four gaits slide at most 9 mm per contact on three rests, none failing; the idles pass, 1–3 mm; `library/moves.json` (31 moves, one unit system) is the frozen schema's shape and checks clean (D71) |
 | 6.3 Actions | todo | | | | |
 | 6.4 Graphs | todo | | | | |
 | 6.5 Simulation and gameplay sync | todo | | | | |

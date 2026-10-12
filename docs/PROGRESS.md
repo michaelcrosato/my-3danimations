@@ -3,7 +3,7 @@
 The current state on one screen (at most 40 lines; `npm run doctrine` checks it from WP-0.3). The ledger is
 `PLAN.md` §14; decisions are in `docs/DECISIONS.md`.
 
-**Phase:** 6 Composition (5 done, G5 passed; 4 waits on G4). **Next gates:** G6; G4 (M1), run 2. **Version:** 0.36.2.
+**Phase:** 6 Composition (5 done, G5 passed; 4 waits on G4). **Next gates:** G6; G4 (M1), run 2. **Version:** 0.37.0.
 **Mode:** one agent (D21), branch `claude/relaxed-albattani-939ofg` (D50: it takes over michaelcrosato/my-3danimations#9).
 
 ## Done
@@ -19,13 +19,13 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
   and the sweep (D49, D51); the first-flight demo `apps/lab/hello`, driven headless, hashes = Node's (D52).
 - Phase 5 (G5 passed, on michaelcrosato/my-3danimations#10 with Phase 4): layout (D53); licenses (D59); `@m3a/io` (D61);
   corpora (D62); the re-import (D63); facts (D64); search (D65); library QA, 1,199 unique motions (D66–D69).
-- Phase 6 so far: recipes, 15 operations compiled into format-2 clips; 20 examples pass the sensors; two verifier rounds fixed (D70).
+- Phase 6 so far: recipes, 15 operations, 20 examples (D70); procedural moves, gaits and idles on any rest (D71).
 
 ## Next
 
 - Fix forward from G4 run 1. A second failure is K1 (PLAN.md §12): run 2 waits for a sweep at ≥95% at a clean
   commit, over the whole library now (1,393 clips, 8,358 pairs; D63). Phase 5 lanes that don't need G4 go on.
-- Phase 6: WP-6.1 recipes done (D70); next 6.2 procedural sources, then 6.3–6.6 and G6. G5's items closed (D69).
+- Phase 6: WP-6.1 recipes (D70) and 6.2 procedural sources (D71) done; next 6.3–6.6 and G6.
 
 ## Blocked on the owner
 

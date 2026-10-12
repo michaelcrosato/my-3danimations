@@ -1,4 +1,4 @@
-// @m3a/core: the format codec, profiles, sampler, pose ops, solver, contacts, recipes, graphs and sources.
+// @m3a/core: the format codec, profiles, sampler, pose ops, solver, contacts, recipes, procedural sources and graphs.
 // Imports nothing outside itself: no DOM, no `node:` modules, no renderer (DOCTRINE.md, principle 6).
 // The public API, all of it (PLAN.md WP-2.6): every export is listed here, one per statement, each with a doc comment,
 // at most 40 (`npm run doctrine` counts them). The everyday names are top-level; each module's whole surface is one
@@ -88,3 +88,5 @@ export * as validation from "./validate/index.ts";
 export * as animator from "./animator/index.ts";
 /** Recipes, clips made from clips (spec/RECIPE.md): check one, compile it into a clip, describe it in a line. */
 export * as recipe from "./recipe/index.ts";
+/** Procedural sources (PLAN.md WP-6.2): moves (library/moves.json), gaits and idles made into clips on any rest. */
+export * as procedural from "./procedural/index.ts";

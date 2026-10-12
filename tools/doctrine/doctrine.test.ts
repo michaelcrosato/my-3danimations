@@ -6,7 +6,7 @@ import { dirname, join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { BANNED, checkBanned, checkPin } from "./banned.ts";
 import { checkBinaries } from "./binaries.ts";
-import { checkBoundaries, publicApi, specifiers } from "./boundaries.ts";
+import { API_MAX, checkBoundaries, publicApi, specifiers } from "./boundaries.ts";
 import { checkBudgets } from "./budgets.ts";
 import { makeCtx, type Ctx } from "./context.ts";
 import { checkDecisions, entryIds } from "./decisions.ts";
@@ -104,10 +104,10 @@ describe("the public API", () => {
     expect(publicApi(text)).toEqual({ names: ["VERSION", "A", "C", "X", "ns", "f"], undocumented: ["X"], bare: ['export * from "./z.ts";'] });
   });
   it("fails a package entry over its limit, with a bare export * or an undocumented export", () => {
-    const many = Array.from({ length: 41 }, (_, i) => `/** n${i} */\nexport const n${i} = ${i};`).join("\n");
+    const many = Array.from({ length: API_MAX.core! + 1 }, (_, i) => `/** n${i} */\nexport const n${i} = ${i};`).join("\n");
     const msgs = checkBoundaries(fixture({ "packages/core/src/index.ts": many, "packages/io/src/index.ts": 'export * from "./a.ts";\nexport const Y = 1;' })).findings.map((f) => f.message);
     expect(msgs).toHaveLength(3);
-    expect(msgs.some((m) => m.includes("41 names, more than 40"))).toBe(true);
+    expect(msgs.some((m) => m.includes(`${API_MAX.core! + 1} names, more than ${API_MAX.core}`))).toBe(true);
     expect(msgs.some((m) => m.includes("as a namespace"))).toBe(true);
     expect(msgs.some((m) => m.includes("no doc comment above the export of Y"))).toBe(true);
   });

@@ -25,7 +25,7 @@ describe("the JSON Schemas", () => {
     expect(clipSchema(baseClip()), JSON.stringify(clipSchema.errors)).toBe(true);
     expect(setSchema(baseSet()), JSON.stringify(setSchema.errors)).toBe(true);
     expect(rowSchema("TEST/Walk_Loop\t1.333\tloop\t\twalk\trelaxed walk\tUAL1".split("\t"))).toBe(true);
-    for (const s of ["recipe", "graph"]) expect(ajv.validateSchema(schema(s))).toBe(true);
+    for (const s of ["recipe", "graph", "moves"]) expect(ajv.validateSchema(schema(s))).toBe(true);
   });
   const structural: [string, () => J][] = [
     ["M2-E002", () => mut((c) => (c.format = "3.0"))],

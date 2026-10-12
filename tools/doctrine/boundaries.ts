@@ -40,8 +40,9 @@ export function specifiers(text: string): string[] {
   return out;
 }
 
-/** The most names a package's public entry may export. */
-export const API_MAX: Record<string, number> = { core: 40 };
+/** The most names a package's public entry may export (core's 40 of WP-2.6, raised by D71 to 44 for Phase 6's
+ *  namespaces: procedural sources, actions, graphs). */
+export const API_MAX: Record<string, number> = { core: 44 };
 
 /** A public entry's exports: each statement's names, and whether a doc comment sits right above it. */
 export function publicApi(text: string): { names: string[]; undocumented: string[]; bare: string[] } {

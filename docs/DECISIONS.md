@@ -2058,3 +2058,84 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   - **Tests:** the 15 surviving mutants and 26 more of the new code, 66 in all, each fail `npm test -- recipe`.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.36.0, v0.36.1, v0.36.2
+
+## D71 · 2026-10-12 · Procedural sources: one move model, gaits and idles (WP-6.2)
+
+- **Principle:** 3, 4, 5, 8, 10, 12, D10, D32
+- **Call:** `@m3a/core`'s `procedural` namespace makes format-2 clips (`method: procedural`, CC0, `ai:
+  algorithmicMedia`) from three sources, each on any rest from any start pose. None runs inside `Animator.step`.
+  - **One move model, as data:** `library/moves.json` holds 31 moves: my-3d2dge's `E.MOVES` (24; WP-6.2's entry said
+    25 and now says 24) and shardfall's seven others, each with shardfall's `about` line. `node
+    tools/procedural/carry.ts` writes it from the pinned sources. The three unit systems become one:
+    - angles in degrees;
+    - reach in arm lengths (my-3d2dge's units over its 9.2-unit arm);
+    - heights, lunges and hops in % of the hip height (my-3d2dge's units over its 11.6; shardfall's metres at 0.0529 m
+      a unit), a kick's height as % too;
+    - times in seconds.
+
+    Two names change: my-3d2dge's `spin` is shardfall's `spinslash`, and shardfall's own `spin` becomes `whirlwind`.
+    `spec/schemas/moves.schema.json` gives the shape; it joins the frozen set under this decision, and the freeze is
+    rerun. `validateMoves` checks MV-E001–MV-E007: a name used once, an alternate that names a move in the file, a
+    height on the ground plane only.
+  - **The differential:** `moveState` and `placeMove` reproduce my-3d2dge's hands, blade tip and kicking foot on its
+    three builds against `spec/vectors/frozen/moves.json` (216 records × 21 samples × 4 points): mean 0.0018 cm,
+    worst 0.012 cm, against a bar of 1 cm and 3 cm. There are no exceptions.
+  - **Settle and raw:** the frozen numbers are the source's raw targets, which its rig eases each frame. A clip uses
+    `settle`, every phase eased in and out, so nothing changes speed where two phases meet. The wind, strike and
+    recovery last at least `MIN_PHASE` (0.25, 0.2 and 0.45 s): the source's are shaped for a game that stretches them
+    round the hit (shardfall's stir winds up in 0.05 s).
+  - **From any start pose:** `moveClip` places the model's numbers on the rest's body and applies them to the start
+    pose's points (the standing pose by default).
+    - The first key is the start pose: 0.00 mm off on both start poses tested.
+    - As the recovery lets go, the arms (and a kick's leg) come home, so the last key is within 1 mm of the start pose.
+      Before that, the IK left elbows up to 23 cm from where they started.
+    - The limbs are solved by the recipes' two-bone IK on the body as the format holds it (encoded, then decoded). A
+      torso twisted and leaning that far is held by the chest's and shoulders' parts within their ranges, and the
+      shoulders it holds were up to 13 cm from the points': an arm solved on the points came out straight.
+    - A punch's free hand guards the chin (`guard`). The lead foot steps lifted, on its own clock. A `hit` event falls
+      where the strike connects.
+  - **Gaits**, after riftlight's "zero foot slide by construction":
+    - A foot stands still in the world through its stance: in the root's frame it slides back at the ground speed.
+    - In swing it rises straight up 4.5% of H0, above the 4% within which the sensors read a foot as standing, and
+      later sets straight down, both still in the world. Between, it travels on a Hermite curve. Without the rise, a
+      slow swing's foot read as planted while it still moved: up to 39 mm of slide.
+    - The root and pelvis are put on the format's grid before the feet are aimed. Each leg's numbers are whichever of
+      16 roundings lands the ankle nearest, and the keys are fitted within 2 mm.
+    - Its parameters are speed, cadence, stance, lift, bounce, dip, sway, lean, arm swing and limp. A limp shortens
+      the weak leg's stance by up to 30%; that leg lands later and the other stands longer, keeping the plain gait's
+      double support. Without that, neither foot stood just before the strong foot landed.
+    - `GAITS` gives four ready made: walk, brisk, run and limp. On three rests (Mesh2Motion, 100STYLE, CMU) they slide
+      at most 9 mm per contact and none fails. The origin's gait slid 12–28% of body speed; capture's median is 52 mm.
+      The run warns (a knee pop and jitter as it pushes off), and so does the walk's knee seam velocity on two rests.
+  - **Idles:** the body breathes (the torso lengthening, the shoulders rising) and shifts its weight (the pelvis
+    swaying over the standing foot, the chest leaning against it) on planted feet. The loop holds whole breaths and
+    one shift. `IDLES` gives two, breathe and fidget; both pass on three rests, sliding 1–3 mm. The format keeps the
+    pelvis's place in whole % of H0, so the default sway is 2%.
+  - **The API:** core's cap of 40 names (WP-2.6) rises to 44 for Phase 6's namespaces, one name each: procedural now,
+    actions and graphs to come. WP-2.6's entry says so.
+- **Limits, on record:** the moves, per rest:
+
+  | Rest | Pass | Warn | Fail |
+  |---|---|---|---|
+  | Mesh2Motion | 7 | 16 | 8 |
+  | 100STYLE | 12 | 15 | 4 |
+  | CMU | 9 | 15 | 7 |
+
+  - **A forearm 2 mm into the pelvis, chest or hips:** slash, backslash, plunge, bash, stir and stir_back. Their arcs,
+    drawn for a stick figure, cross the body.
+  - **Pops:** in twohand the off hand's elbow pops as the grip swings over; in haymaker the lead knee pops as it steps
+    in.
+
+  `packages/sensors/test/procedural.test.ts` holds them as a floor: no other move fails, and at least 23 of 31 pass
+  or warn on each rest.
+- **Why:** the library holds what was captured, but a game asks for a slash on its own character, from where the
+  character stands. The move model is the one three repos already shared. It is now one unit system with a line per
+  move, so an agent picks a move by its line and gets a clip the sensors have read. Gaits and idles fill the loops a
+  graph needs, on any body, without foot slide.
+- **Done when** (`npm test -- procedural`):
+  - the differential is within 1 cm mean and 3 cm worst (0.012 cm worst), with no exceptions;
+  - every move begins and ends at each of two start poses on Mesh2Motion's rest and one on 100STYLE's;
+  - the gaits slide at most 10 mm per contact on three rests;
+  - `moves.json` has the schema's shape and checks clean.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.37.0
