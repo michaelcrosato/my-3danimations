@@ -9,9 +9,8 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 ## Done
 
 - Phase 0 (G0 passed, michaelcrosato/my-3danimations#4): doctrine, toolchain, checks, pins, vectors, CI, hook.
-- Phase 1 (G1 passed, merged as michaelcrosato/my-3danimations#5): spec 2.0-rc frozen (`MOTION.md`, `LEGEND.md`,
-  `SKELETON.md`); the validator (30 rules); the codec (tier 1a bit for bit, tier 2 to the µm); the skeleton profile;
-  the seed sets in format 2 (5 sets, 525 clips, 0 errors). D25 to D32.
+- Phase 1 (G1 passed, michaelcrosato/my-3danimations#5): spec 2.0-rc frozen; validator; codec; skeleton profile;
+  seed sets in format 2 (525 clips, 0 errors). D25 to D32.
 - Phase 2 (G2 passed, michaelcrosato/my-3danimations#6): portable math, the same bits in V8 and JavaScriptCore (D33);
   the clip runtime and measured facts (D34); pose operations (D35); the solver on any recognized skeleton, its roll
   tested (D36, F2); planted feet and the ground (D37); the Animator, the same hashes and exact poses in Node,
@@ -24,12 +23,8 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 
 ## Next
 
-- WP-4.5 in progress (WIP commit, 2 tests red): the sweep plays each clip through the Animator with contacts
-  detected on its own body, judged against the clip on its own body. It found player bugs, fixed in
-  `core/contact/plant.ts` (the knee pole at a straight leg; ground setting eased; contacts through a loop's seam;
-  continuous lift and settle) and a NaN rest for toeless rigs (`measure.ts`, three's bind adds mesh end bones).
-  To do: the fix test "footLocks on every planted slide" (planting changed); the sweep test's 95% bar; rerun the
-  sweep on 8 rigs (77–89% before the last fixes); D49; capture e2e; version; ledger. Then 4.6, 4.7, G4.
+- WP-4.5 WIP at e1fa89a, 2 tests red (fix.test footLocks planted slides; sweep.test 95% bar): sweep plays clips via
+  the Animator (contacts detected on own body); planting and toeless-rig fixes in core/three. Then D49, 4.6, 4.7, G4.
 
 ## Blocked on the owner
 
