@@ -1,14 +1,17 @@
 // Contacts and ground (WP-2.5): on every migrated locomotion loop and on synced walk–run blends a planted foot slides at
 // most 10 mm per contact; on a 10° slope and a 0.2 m step the planted soles stay within 5 mm of the surface and no sole
 // goes under it; without settling the body keeps its height but where a leg can't reach; hands reach their targets;
-// and planting depends on the time alone, so skipped poses change nothing.
+// and planting depends on the time alone, so skipped poses change nothing. On another body (D51): the body settles as a
+// weight shift, re-solved knees don't snap, a free leg is the clip's, and a cross-fade hands a planted foot over.
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
-  contactRoot, contactsAt, decodePose, derived, IDX, keyAt, measureFacts, parseClip, phaseMap, plant, syncBlend, toWorld,
-  type Clip, type Contacts, type Ground, type Key, type Motion, type Playable, type Rest,
+  Animator, bind, contactRoot, contactsAt, decodePose, derived, IDX, keyAt, measureFacts, parseClip, phaseMap, plant, syncBlend, toWorld,
+  type AnimClip, type Clip, type Contacts, type Ground, type Key, type Motion, type Playable, type Rest,
 } from "./all.ts";
+import { ik3 } from "../src/format/body.ts";
+import { scriptData } from "./animator-data.ts";
 
 const LIB = join(import.meta.dirname, "../../../library/sets");
 const P = (X: ArrayLike<number>, n: string): [number, number, number] => [X[IDX[n]! * 3]!, X[IDX[n]! * 3 + 1]!, X[IDX[n]! * 3 + 2]!];
@@ -169,5 +172,90 @@ describe("hands and statelessness", () => {
     const a = motionOf(walk, Rw, measureFacts(walk, Rw).contacts), b = motionOf(walk, Rw, measureFacts(walk, Rw).contacts);
     for (let t = 0; t < 2 * walk.dur; t += 1 / 60) plant(a, t);
     for (const t of [0.4, 1.1, 2.2]) expect(plant(a, t)).toEqual(plant(b, t));
+  });
+});
+
+describe("on another body, and under a cross-fade (D51)", () => {
+  const data = scriptData(), rig = bind(data.skeleton), [walk, jog] = data.clips as [AnimClip, AnimClip];
+  /** The worst move in one 1/60 s step of `points` (by name), playing clip `id` on the test rig, planted and not. */
+  const speeds = (id: string, points: string[]) => {
+    const { clip, R } = byId(id), a = new Animator(rig).layer("b", { clip: { ...clip, contacts: measureFacts(clip, R).contacts } });
+    let prev: [Float64Array, Float64Array] | null = null;
+    const worst = { planted: 0, free: 0 };
+    for (let i = 0; i <= clip.dur * 60; i++) {
+      const now: [Float64Array, Float64Array] = [Float64Array.from(a.pose().points), Float64Array.from(a.pose(undefined, { lod: 1 }).points)];
+      if (prev) for (const n of points) for (const k of [0, 1] as const) {
+        const d = Math.hypot(...P(now[k], n).map((x, j) => x - P(prev![k], n)[j]!));
+        if (k === 0) worst.planted = Math.max(worst.planted, d);
+        else worst.free = Math.max(worst.free, d);
+      }
+      prev = now;
+      a.step(1 / 60);
+    }
+    return worst;
+  };
+  const CLIPS = ["CMU_CURATED/Block_Combo", "CMU_CURATED/Robot", "MESH2MOTION/Walk_Female", "STYLE100/Morris_Walk", "CMU_CURATED/Run_Loop"];
+  it("lets the body settle onto its feet as a weight shift: the planted pelvis rises or falls at most 14 mm a step more than the unplanted one", () => {
+    // a 0.05 s settle that followed the higher foot's float in a frame moved it up to 32 mm more (Robot)
+    for (const id of CLIPS) {
+      const { clip, R } = byId(id), a = new Animator(rig).layer("b", { clip: { ...clip, contacts: measureFacts(clip, R).contacts } });
+      let prev: [number, number] | null = null, worst = 0;
+      for (let i = 0; i <= clip.dur * 60; i++) {
+        const z: [number, number] = [a.pose().points[2]!, a.pose(undefined, { lod: 1 }).points[2]!];
+        if (prev) worst = Math.max(worst, Math.abs(z[0] - prev[0]) - Math.abs(z[1] - prev[1]));
+        prev = z;
+        a.step(1 / 60);
+      }
+      expect(worst, id).toBeLessThan(14);
+    }
+  });
+  it("keeps a re-solved knee from snapping: a planted knee moves at most 16 mm a step more than the unplanted one", () => {
+    // a knee held straight and let go, or turned round by a nearly straight leg's twist, moved up to 37 mm more
+    for (const id of CLIPS) {
+      const w = speeds(id, ["kneeL", "kneeR"]);
+      expect(w.planted - w.free, id).toBeLessThan(16);
+    }
+  });
+  it("keeps the clip's knee where it doesn't move the foot: a leg with nothing planted is the clip's leg", () => {
+    let kept = 0;
+    for (const id of ["QUATERNIUS_3D2DGE/Idle_Loop", "CMU_CURATED/Wave_Hello", "MESH2MOTION/Idle_Talking"]) {
+      const { clip, R } = byId(id), m = motionOf(clip, R, { by: "detected" });
+      for (let t = 0; t < clip.dur; t += 0.1) for (const s of ["L", "R"]) {
+        const X = plant(m, t), free = m.points(t), d = (n: string) => Math.hypot(...P(X, n + s).map((x, j) => x - P(free, n + s)[j]!));
+        // a foot under the floor is brought up (and its knee with it); elsewhere the leg is the clip's
+        if (d("ankle") - Math.abs(P(X, "pelvis")[2] - P(free, "pelvis")[2]) > 1e-9) continue;
+        expect(d("knee") - Math.abs(P(X, "pelvis")[2] - P(free, "pelvis")[2]), `${id} ${t.toFixed(1)} ${s}`).toBeLessThan(1e-6);
+        kept++;
+      }
+    }
+    expect(kept).toBeGreaterThan(50);
+  });
+  it("hands a planted foot from the layer fading out to the one fading in: no ankle jumps further in a step than the clips' own fastest", () => {
+    // the layer that most decided the legs planted alone; at half way it changed, and an ankle jumped up to 462 mm
+    for (const start of [0.2, 0.5, 0.8, 1.1]) {
+      const a = new Animator(rig).layer("base", { clip: walk, time: start }).layer("fade", { clip: jog, weight: 0 });
+      let prev: number[][] | null = null, during = 0, outside = 0;
+      for (let i = 0; i < 40; i++) {
+        const u = Math.min(1, Math.max(0, (i - 10) / 15));
+        a.layer("fade", { weight: u * u * (3 - 2 * u) });
+        const p = a.pose(), world = ["ankleL", "ankleR"].map((n) => toWorld(p.root, P(p.points, n)));
+        if (prev) {
+          const d = Math.max(...world.map((q, k) => Math.hypot(q[0]! - prev![k]![0]!, q[1]! - prev![k]![1]!, q[2]! - prev![k]![2]!)));
+          if (i > 10 && i < 26) during = Math.max(during, d);
+          else outside = Math.max(outside, d);
+        }
+        prev = world;
+        a.step(1 / 60);
+      }
+      expect(during, `from ${start} s`).toBeLessThanOrEqual(outside);
+    }
+  });
+  it("solves a limb whose end is inside its fold: the lengths kept, the limb folded toward it", () => {
+    const [knee, ankle] = ik3([0, 0, 0], [0, 0, -40], 400, 300, [1, 0, 0]);
+    expect(Math.hypot(...knee)).toBeCloseTo(400, 6);
+    expect(Math.hypot(...ankle.map((x, j) => x - knee[j]!))).toBeCloseTo(300, 6);
+    expect(ankle[2]).toBeCloseTo(-100, 6);
+    // a fully folded limb, as a decoded bend of 180° places it, stays as it is
+    expect(ik3([0, 0, 0], [0, 0, -100], 400, 300, [1, 0, 0])[1]).toEqual([0, 0, -100]);
   });
 });

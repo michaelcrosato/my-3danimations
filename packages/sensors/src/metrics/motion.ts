@@ -9,6 +9,7 @@
 // slide unmeasured. Here an end stands while its lowest point is on the floor and slower than a swing, or carried
 // along with the body.
 import { clip as clipNs, format, math, measureFacts, type Clip, type Rest } from "@m3a/core";
+import { partScale } from "./checks.ts";
 
 const { PORTABLE } = math;
 
@@ -46,6 +47,12 @@ export interface Motion {
   keys: MetricClip["keys"] | null;
   tags: string[];
   quality: MetricClip["quality"] | undefined;
+  /**
+   * Read each point against the size of the part it is on (`partScale`), not the hip height alone: for a body whose
+   * proportions are far from a person's (a chibi's long arms and big torso over short legs). Off by default: the
+   * library's thresholds and baselines read every point by H0.
+   */
+  parts?: boolean;
 }
 
 /** A clip sampled for the metrics on rest R, at `rate` samples a second. */
@@ -76,11 +83,16 @@ export function motionOf(clip: MetricClip, R: Rest, rate = 60): Motion {
   return m;
 }
 
-/** Captured body points (frames at `rate`, on rest R) as a motion: no keys, the samples its grid, standing still. */
-export function motionOfFrames(frames: readonly ArrayLike<number>[], R: Rest, opts: { rate?: number; loop?: boolean; id?: string; tags?: string[] } = {}): Motion {
+/**
+ * Captured body points (frames at `rate`, on rest R) as a motion: no keys, the samples its grid. The points are on the
+ * root, which stands still unless `root` gives where it stands at each frame (a played clip's root motion), so a loop's
+ * seam is read on the body and its feet's slide in the world.
+ */
+export function motionOfFrames(frames: readonly ArrayLike<number>[], R: Rest, opts: { rate?: number; loop?: boolean; id?: string; tags?: string[]; root?: readonly { forward: number; right: number; yaw: number }[]; parts?: boolean } = {}): Motion {
   const rate = opts.rate ?? 60, dt = 1 / rate, dur = (frames.length - 1) * dt, F = frames.map((f) => Float32Array.from(f));
-  const times = F.map((_, i) => i * dt), root = times.map(() => ({ forward: 0, right: 0, yaw: 0 }));
-  const m: Motion = { id: opts.id ?? "frames", dur, loop: opts.loop ?? false, rate, dt, frames: F, times, root, grid: { times, frames: F, keys: null }, rest: R, contacts: { by: "detected" }, events: [], keys: null, tags: opts.tags ?? [], quality: undefined };
+  if (opts.root && opts.root.length !== F.length) throw new Error(`motionOfFrames: ${opts.root.length} root places for ${F.length} frames; give one per frame`);
+  const times = F.map((_, i) => i * dt), root = times.map((_, i) => ({ ...(opts.root?.[i] ?? { forward: 0, right: 0, yaw: 0 }) }));
+  const m: Motion = { id: opts.id ?? "frames", dur, loop: opts.loop ?? false, rate, dt, frames: F, times, root, grid: { times, frames: F, keys: null }, rest: R, contacts: { by: "detected" }, events: [], keys: null, tags: opts.tags ?? [], quality: undefined, ...(opts.parts ? { parts: true } : {}) };
   m.contacts = stance(m);
   return m;
 }
@@ -162,7 +174,8 @@ export const STANCE = {
  * that slides back on an in-place loop without a treadmill still lands and lifts).
  */
 export function stance(m: Motion, heights = false): NonNullable<Clip["contacts"]> {
-  const H = m.rest.H0, n = m.frames.length - 1, out: NonNullable<Clip["contacts"]> = { by: "detected" };
+  // read by parts, the bands are the feet's (the hip height of a typical person with this body's chain to the ball)
+  const H = m.parts ? m.rest.H0 * partScale(m, "ballL") : m.rest.H0, n = m.frames.length - 1, out: NonNullable<Clip["contacts"]> = { by: "detected" };
   const minF = Math.max(1, Math.round(STANCE.minTime / m.dt)), mergeF = Math.round(STANCE.mergeTime / m.dt), ms = (x: number) => Math.round(x * 1000) / 1000;
   for (const end of ["footL", "footR", "handL", "handR"] as const) {
     const on: boolean[] = [];

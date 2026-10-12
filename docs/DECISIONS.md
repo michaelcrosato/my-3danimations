@@ -1251,3 +1251,58 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   same commits, leaves one place for the G4 report. Reopening #9 undoes the call.
 - **Answered:** no: made without a response, to review (the owner asked this session to review #9 and decide).
 - **Landed in:** v0.24.0 (no package change)
+
+## D51 · 2026-10-12 · The sweep, round two: seams on the body, every point by its part, the player fixed where it adds
+
+- **Principle:** 3, 5, 8, G4 (WP-4.5's follow-up)
+- **Call:** the six G4 skeletons (gen-0 to gen-3, the Quaternius mannequin, KayKit's Knight) passed 82.0% of their 3,150
+  clip-skeleton pairs (D49's sweep, run again here). Each kind of failure was traced to its cause, and fixed where it
+  was the reading's or the player's:
+  - **The reading** (`tools/sweep`, the sensors):
+    - The sweep handed the sensors points in the world, so a walking loop's seam read its whole stride (1.4 m), on its
+      own body too. `checks.motionOfFrames` now takes the root's path, the points stay on the root, and seams are read
+      on the body.
+    - The levels scale by H0, the pelvis's height, which is a poor ruler for a chibi. The Knight's pelvis is 113 mm
+      under its hips, and its arms are 2.1 times, and its feet nearly 3 times, a person's of its H0, so its arms'
+      speeds read twice as bad as they were. Reading by parts (`Motion.parts`, off by default, so the library reads
+      as baselined) reads each point against its chain from the pelvis, compared with a typical person's (the median
+      over the library's 33 rests). The sweep reads both bodies that way.
+    - A foot the clip drags along the floor too fast to read as standing doesn't count as a slide on its own body, but
+      where the played body's settle brings it down it does. The clip's own slide is now read over the stretches the
+      played body stands on, where its own foot is down too.
+  - **The player** (core's planting):
+    - The body settled onto the higher foot's float in 0.05 s. It now eases over 0.2 s (`settleBlend`), from the
+      float a foot had as it lifted or toward the one it will land with, so it shifts its weight rather than dropping
+      in a frame.
+    - The body was lifted after any sole under the floor. Only a standing foot lifts it now: a swinging foot that dips
+      under comes up on its own leg, where lifting the body after it bounced it.
+    - A re-solved knee took the clip's own knee direction from a 12° bend. Where the planted leg bent further, a nearly
+      straight leg's twist turned it round in a frame. It now keeps the clip's knee wherever the new ankle bends the
+      leg no further, and eases into the knee's natural way by the clip's offset against the new one.
+    - A hold let go of its drift in 0.05 s. It now lets go over 0.2 s (`release`), done before the foot lands again.
+    - Under a cross-fade the layer that most decided the legs planted alone, and at half way its anchor changed, so a
+      planted ankle jumped up to 462 mm in a step. `contact.plantMix` plants each layer on its own clip and blends
+      their corrections by their shares of the legs, and the Animator uses it whenever two layers share them.
+    - `ik3` stretched a limb whose end was inside its fold (the Knight's thigh is 227 mm, its shin 149 mm). It now
+      folds the limb, its lengths kept. A decoded bend of 180° is unchanged, so the conformance vectors are byte for
+      byte.
+- **Tried and not kept:**
+  - Contacts read by the sensors' stance, or core's stretched to it, gave fewer slides but more pops, and the same
+    total (87.7%).
+  - A soft lift for a free foot under the floor cost five pops and fixed no slide.
+  - A margin on a level's crossing: the median failing metric is 0.79 of a level worse than on the clip's own body,
+    and a margin of a quarter of a level moves 87.7% to 89.2%. The failures aren't the reading's edges, so no margin.
+- **Result:** 87.7% (2,763 of 3,150). By skeleton: gen-0 (chibi) 84.2%, gen-1 91.4%, gen-2 89.7%, gen-3 87.8%,
+  mannequin 88.0%, Knight 85.1% (61.9% before). 362 clips pass on all six. The reasons over the six: skate 106,
+  pops 96, slide 79, intersection 58, jitter 57, the seam's speed 44. What remains is mostly another body's
+  proportions under the same keys: arms through a torso of another width, knees that turn with a clip's noisy twist
+  on longer limbs, getting up and strafing on other feet. G4 asks 95%.
+- **Also found:** no run loop in the library passes the sensors on its own body, even after `fix` (their twist flips
+  are repaired; the jog's change of speed across its seam stays, as closing it raises pops). WP-5.8 takes it up.
+- **Tests:** each fix has a test that the code before it fails (the settle, the knee, a free leg, a cross-fade, the
+  fold; root paths and parts in the sensors; seams and like-for-like slides in the sweep).
+- **Outside WP-4.5's Owns** (one agent, D21): core's planting, `ik3` and the Animator's pose; the sensors' motion and
+  levels.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.25.0
+

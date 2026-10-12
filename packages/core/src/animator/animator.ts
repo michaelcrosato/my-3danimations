@@ -5,7 +5,7 @@
 // run at lower detail, and it never feeds back into `step`. Every path runs on the portable math (D33). So the same
 // script of steps gives the same hashes, and an exact pose gives the same joints bit for bit, in Node and in a browser.
 import type { RootPose } from "../clip/sample.ts";
-import { plant, type Ground, type HandTarget, type Motion } from "../contact/plant.ts";
+import { plant, plantMix, type Ground, type HandTarget, type Motion, type PlantPart } from "../contact/plant.ts";
 import { contactRoot, type ContactRoot } from "../contact/root.ts";
 import type { V3 } from "../format/math.ts";
 import type { KeyLike } from "../format/pose.ts";
@@ -441,9 +441,17 @@ export class Animator {
     const b = this.bound, k = this.key();
     if (!k) throw new AnimatorError("E_LAYER", "nothing to pose: no layer plays a clip; add one with animator.layer(name, { clip })");
     let s: Solved;
-    const P = opts.exact || (opts.lod ?? 0) === 0 ? this.#planter() : null;
+    const full = opts.exact || (opts.lod ?? 0) === 0, shares = full ? this.#shares() : [], P = full ? this.#planter() : null;
+    const plantOpts = { ...(this.#ground ? { ground: this.#ground } : {}), ...(opts.hands ? { hands: opts.hands } : {}) };
     if (!P) s = solve(k, b);
-    else {
+    else if (shares.length > 1) {
+      // a cross-fade or blend: each layer plants its own clip, and their corrections blend by their shares of the legs
+      const at = this.#root, parts: PlantPart[] = shares.map(({ L, w }) => {
+        const c = L.src!, path = this.#path(c), now = path.root(L.time);
+        return { w, t: L.time, m: { rest: b.rest, dur: c.dur, loop: c.loop, contacts: c.contacts ?? NONE, key: (t) => keyAt(c, t), points: (t) => this.#decoded(c, t), root: (t) => compose(at, between(now, path.root(t))) } };
+      });
+      s = solve(k, b, { points: plantMix(parts, decodeOn(b, k), k, at, plantOpts) });
+    } else {
       // feet planted by the layer that most decides the legs: its clip's contacts and path, anchored where the root
       // stands now; at its playhead the mixed pose stands in for the clip's
       const c = P.src!, tL = P.time, path = this.#path(c), now = path.root(tL), at = this.#root, X = decodeOn(b, k);
@@ -453,7 +461,7 @@ export class Animator {
         points: (t) => (t === tL ? X : this.#decoded(c, t)),
         root: (t) => compose(at, between(now, path.root(t))),
       };
-      s = solve(k, b, { points: plant(m, tL, { ...(this.#ground ? { ground: this.#ground } : {}), ...(opts.hands ? { hands: opts.hands } : {}) }) });
+      s = solve(k, b, { points: plant(m, tL, plantOpts) });
     }
     const res: AnimatorPose = { ...s, root: { ...this.#root }, key: k, joints: forward(b, s) };
     return out ? Object.assign(out, res) : res;
@@ -525,6 +533,20 @@ export class Animator {
     let r = this.#refs.get(c);
     if (!r) this.#refs.set(c, (r = keyAt(c, 0)));
     return r;
+  }
+  /** Each non-additive layer's share of the legs (after the layers above it), those with any, top first. */
+  #shares(): { L: Layer; w: number }[] {
+    const out: { L: Layer; w: number }[] = [];
+    let above = 1;
+    for (let i = this.#layers.length - 1; i >= 0; i--) {
+      const L = this.#layers[i]!;
+      if (!L.src || L.additive) continue;
+      const lowest = !this.#layers.slice(0, i).some((x) => x.src && !x.additive);
+      const legs = L.mask ? ((L.mask.legL ?? 0) + (L.mask.legR ?? 0)) / 2 : 1, w = (lowest ? 1 : L.weight) * legs;
+      if (w * above > 1e-9) out.push({ L, w: w * above });
+      above *= 1 - w;
+    }
+    return out;
   }
   /** The non-additive layer whose clip most decides the legs (its share after the layers above), if it plays one. */
   #planter(): Layer | null {

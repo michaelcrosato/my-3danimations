@@ -40,8 +40,13 @@ export interface Motion {
 /** How to plant: the ground (flat at 0 without one), the blend in and out, and hand targets. */
 export interface PlantOptions {
   ground?: Ground;
-  /** Seconds a hold takes to ease out after its contact ends (0.05: three frames at 60 Hz); it needs none to engage. */
+  /** Seconds a sole takes to set onto the surface before a contact and to leave it after (0.05: three frames at 60 Hz). */
   blend?: number;
+  /**
+   * Seconds a hold takes to let go of the drift it undid after its contact ends (0.2; it needs none to engage), done
+   * before the foot lands again: a long contact can hold a foot far from where the motion has it.
+   */
+  release?: number;
   hands?: Partial<Record<"L" | "R", HandTarget>>;
   /**
    * Whether the body settles onto the feet (true by default): lifted where a sole is under the surface and lowered by a
@@ -50,6 +55,12 @@ export interface PlantOptions {
    * keys needs: there the settle would carry a capture's sole noise into the hips.
    */
   settle?: boolean;
+  /**
+   * Seconds the body's settle takes to ease in before a contact and out after it (0.2). Slower than a foot's own ease:
+   * the body follows a foot's float onto the ground and back as a weight shift, not a drop in a frame, which a straight
+   * planted leg would turn into a snap of its knee.
+   */
+  settleBlend?: number;
 }
 
 const DEG = Math.PI / 180;
@@ -114,30 +125,27 @@ function startAhead(m: Motion, end: keyof Contacts & string, t: number, within: 
  */
 export function plant(m: Motion, t: number, opts: PlantOptions = {}): Float64Array {
   const R = m.rest, blend = opts.blend ?? 0.05, ground = opts.ground, surface = ground ?? FLAT, settle = opts.settle ?? true;
+  const settleBlend = Math.max(blend, opts.settleBlend ?? 0.2), release = Math.max(blend, opts.release ?? 0.2);
   const X = Float64Array.from(m.points(t));
   const k = m.key(t), poles = limbPoles(R, k), root = m.root(t);
-  const legPoles = { L: legPole(X, R, k, "L"), R: legPole(X, R, k, "R") };
+  const clipLegs = { L: legOf(X, "L"), R: legOf(X, "R") };
   const shift = (dz: number) => {
     for (let i = 2; i < X.length; i += 3) X[i] = X[i]! + dz;
   };
   // the body on the ground: lowered (or raised) onto the lower foot's ground, so both legs can reach theirs
-  if (ground) {
-    const g = ["L", "R"].map((s) => {
-      const w = toWorld(root, get(X, "ankle" + s));
-      return ground(w[0], w[1]);
-    });
-    shift(Math.min(g[0]!, g[1]!));
-  }
+  shift(groundShift(X, root, ground));
   // each foot: held at its contact point while planted, and how fully its sole is set on the surface (`on`)
   const feet = {} as Record<"L" | "R", { foot: V3[]; planted: boolean; on: number }>;
   for (const s of ["L", "R"] as const) {
     let foot = FOOT.map((p) => get(X, p + s));
-    const c = contactAt(m, `foot${s}`, t, blend);
+    const end = `foot${s}` as const, c = contactAt(m, end, t, release);
     if (c) {
       const [a, b] = c;
       // the hold starts from no correction (no drift yet at a), so it engages at once without a pop; letting go at b
-      // drops the whole drift, so it eases out over `blend`
-      const w = t <= b ? 1 : smooth(1 - (t - b) / blend);
+      // drops the whole drift, so it eases out over `release`, as the foot swings, and is gone before the foot lands
+      // again
+      const again = startAhead(m, end, b, release), out = again === null ? release : Math.min(release, again - b);
+      const w = t <= b ? 1 : out > 0 ? smooth(1 - (t - b) / out) : 0;
       if (w > 0) {
         // hold the contact point still in the world: undo the world drift of the foot's lowest sole point since the
         // foot landed (whichever point is lowest at each step: the heel at strike, the ball and toes at push-off)
@@ -146,22 +154,36 @@ export function plant(m: Motion, t: number, opts: PlantOptions = {}): Float64Arr
       }
     }
     const planted = c !== null && t <= c[1];
-    // the sole set on the surface eases in over `blend` before the contact starts and out over `blend` after it ends, as
-    // the drift does: a foot the motion holds a little above the floor (another body's proportions) isn't snapped down
-    // to it and back
-    const next = c === null && blend > 0 ? startAhead(m, `foot${s}`, t, blend) : null;
-    const on = c !== null ? (planted ? 1 : blend > 0 ? smooth(1 - (t - c[1]) / blend) : 0) : next !== null ? smooth(1 - (next - t) / blend) : 0;
+    // the sole set on the surface eases in over `blend` before the contact starts and out over `blend` after it ends: a
+    // foot the motion holds a little above the floor (another body's proportions) isn't snapped down to it and back
+    const after = c !== null && !planted ? t - c[1] : Infinity, next = !planted && blend > 0 ? startAhead(m, end, t, blend) : null;
+    const on = planted ? 1 : Math.max(blend > 0 && after <= blend ? smooth(1 - after / blend) : 0, next !== null ? smooth(1 - (next - t) / blend) : 0);
     feet[s] = { foot, planted, on };
   }
   // the body lifted where a sole is under the surface (as the solver lifts a pose it decodes alone: another body's
   // proportions can take a foot under it), then lowered by a planted foot's float above it, by how fully it is planted
   // (both planted: the higher one's, so the other leg bends to its ground rather than stretching past its reach);
   // without `settle` the body stays and each leg reaches its foot's place on the surface
+  // the settle follows a foot's float with its own, slower ease (`settleBlend`): from a contact's end the body keeps the
+  // float the foot had as it lifted, fading out; before a contact starts it takes the float the foot will land with,
+  // fading in; so the body shifts its weight onto the next foot instead of dropping in a frame
+  // The lift is a standing foot's: one in a contact, or easing into or out of one, whose sole is under the surface (a
+  // swinging foot that dips under it comes up on its own leg; lifting the body after it would bounce the body)
   let dz = 0;
   if (settle) {
     const gap = { L: gapOf(feet.L.foot, R, root, surface), R: gapOf(feet.R.foot, R, root, surface) };
-    const up = Math.max(0, -Math.min(gap.L, gap.R));
-    dz = up - Math.max(feet.L.on * (gap.L + up), feet.R.on * (gap.R + up));
+    const hold = { L: [] as [number, number][], R: [] as [number, number][] };
+    for (const s of ["L", "R"] as const) {
+      const end = `foot${s}` as const, c = contactAt(m, end, t, settleBlend);
+      if (c && t <= c[1]) hold[s].push([1, gap[s]]);
+      else {
+        if (c) hold[s].push([smooth(1 - (t - c[1]) / settleBlend), floatAt(m, s, c[1], c[0], ground)]);
+        const next = startAhead(m, end, t, settleBlend);
+        if (next !== null) hold[s].push([smooth(1 - (next - t) / settleBlend), floatAt(m, s, next, next, ground)]);
+      }
+    }
+    const all = [...hold.L, ...hold.R], up = Math.max(0, ...all.map(([w, g]) => -w * g));
+    dz = up - Math.max(0, ...all.map(([w, g]) => w * (g + up)));
     shift(dz);
   }
   // each foot's target: moved with the body and brought up out of the surface (a planted one is on it now: the body
@@ -197,19 +219,53 @@ export function plant(m: Motion, t: number, opts: PlantOptions = {}): Float64Arr
       targets[s].foot = onGround(lowered, R, root, surface, false);
     }
   }
+  for (const s of ["L", "R"] as const) FOOT.forEach((p, i) => put(X, p + s, targets[s].foot[i]!));
+  solveLegs(X, R, k, clipLegs);
+  reachAll(X, R, root, opts.hands, poles);
+  return X;
+}
+
+/** Each leg solved again from its hip to its ankle's target, the knee pointing the clip's way (legPole); the foot keeps
+ *  its shape on the ankle the leg reaches. */
+function solveLegs(X: Float64Array, R: Rest, k: KeyLike, clipLegs: Record<"L" | "R", { d: V3; o: V3 }>): void {
   for (const s of ["L", "R"] as const) {
-    // the leg solved again to the foot's ankle; the foot keeps its shape on the ankle the leg reaches
-    const foot = targets[s].foot;
-    const [kn, an] = ik3(get(X, "hip" + s), foot[0]!, R.thigh, R.shin, legPoles[s]);
+    const foot = FOOT.map((p) => get(X, p + s)), hip = get(X, "hip" + s);
+    const [kn, an] = ik3(hip, foot[0]!, R.thigh, R.shin, legPole(clipLegs[s], R, k, s, hip, foot[0]!));
     const d = [an[0] - foot[0]![0], an[1] - foot[0]![1], an[2] - foot[0]![2]];
     put(X, "knee" + s, kn);
     FOOT.forEach((p, i) => put(X, p + s, foot[i]!.map((x, j) => x + d[j]!)));
   }
+}
+/** The hands drawn to their targets, if any. */
+function reachAll(X: Float64Array, R: Rest, root: RootPose, hands: PlantOptions["hands"], poles: ReturnType<typeof limbPoles>): void {
   for (const s of ["L", "R"] as const) {
-    const h = opts.hands?.[s];
+    const h = hands?.[s];
     if (h && h.weight > 0) reach(X, R, s, toPose(root, h.at), Math.min(1, h.weight), poles[`arm${s}`]);
   }
-  return X;
+}
+
+/** One layer of a mix as planting reads it: its own motion, its time, and its share of the legs (0 to 1). */
+export interface PlantPart {
+  m: Motion;
+  t: number;
+  w: number;
+}
+/**
+ * Planting under a cross-fade or a blend: each layer planted on its own clip (its contacts, its feet held where its own
+ * motion landed them), and the corrections each made to its own pose blended by the layers' shares onto the mixed
+ * pose X (key k, the root at `root`), whose legs are then solved once and whose hands reach their targets. So a foot
+ * held by the layer fading out hands over to the layer fading in without a jump, wherever their anchors are.
+ */
+export function plantMix(parts: readonly PlantPart[], X: ArrayLike<number>, k: KeyLike, root: RootPose, opts: PlantOptions = {}): Float64Array {
+  const R = parts[0]!.m.rest, out = Float64Array.from(X), clipLegs = { L: legOf(X, "L"), R: legOf(X, "R") };
+  const total = parts.reduce((a, p) => a + p.w, 0) || 1, { hands: _hands, ...rest } = opts;
+  for (const p of parts) {
+    const own = p.m.points(p.t), planted = plant(p.m, p.t, rest), w = p.w / total;
+    for (let i = 0; i < out.length; i++) out[i] = out[i]! + (planted[i]! - own[i]!) * w;
+  }
+  solveLegs(out, R, k, clipLegs);
+  reachAll(out, R, root, opts.hands, limbPoles(R, k));
+  return out;
 }
 
 /** How far a foot's ankle is above where setting its sole on the surface would put it (negative: under it), mm. */
@@ -217,22 +273,53 @@ function gapOf(foot: V3[], R: Rest, root: RootPose, surface: Ground): number {
   return foot[0]![2] - onGround(foot, R, root, surface, true)[0]![2];
 }
 
+/** How far the body is moved onto the ground: onto the lower foot's ground under a probe, so both legs reach theirs. */
+function groundShift(X: ArrayLike<number>, root: RootPose, ground: Ground | undefined): number {
+  if (!ground) return 0;
+  const g = ["L", "R"].map((s) => {
+    const w = toWorld(root, get(X, "ankle" + s));
+    return ground(w[0], w[1]);
+  });
+  return Math.min(g[0]!, g[1]!);
+}
+
 /**
- * The way leg s's knee points, to solve the leg again: the clip's own knee where the leg bends enough to place it (its
- * offset from the hip-to-ankle line), easing into the knee's natural way (the key's leg with no twist) as the leg
- * straightens, where the twist places the knee nowhere in particular (a straight leg's twist can wind round in a few
- * frames, and a foot set on the ground bends the leg along it).
+ * Foot s's float above the surface at time `at` of a contact that started at a (its gap, as `plant` reads it then): the
+ * pose at that time on the ground, the foot held where it landed. What the body's settle eases from or toward.
  */
-function legPole(X: ArrayLike<number>, R: Rest, k: KeyLike, s: "L" | "R"): V3 {
+function floatAt(m: Motion, s: "L" | "R", at: number, a: number, ground: Ground | undefined): number {
+  const X = m.points(at), root = m.root(at), dz = groundShift(X, root, ground), drift = at > a ? slide(m, s, a, at, ground) : [0, 0];
+  const foot = FOOT.map((p) => {
+    const v = get(X, p + s);
+    return [v[0] - drift[0]!, v[1] - drift[1]!, v[2] + dz] as V3;
+  });
+  return gapOf(foot, m.rest, root, ground ?? FLAT);
+}
+
+/** Leg s as the clip has it, before planting: the hip-to-ankle vector and the knee's offset from that line. */
+function legOf(X: ArrayLike<number>, s: "L" | "R"): { d: V3; o: V3 } {
   const hip = get(X, "hip" + s), d = sub(get(X, "ankle" + s), hip), kn = sub(get(X, "knee" + s), hip);
-  const dl = Math.sqrt(dot(d, d)), along = dl > 1e-9 ? dot(kn, d) / (dl * dl) : 0;
-  const o: V3 = [kn[0] - d[0] * along, kn[1] - d[1] * along, kn[2] - d[2] * along], ol = Math.sqrt(dot(o, o));
+  const dd = dot(d, d), along = dd > 1e-18 ? dot(kn, d) / dd : 0;
+  return { d, o: [kn[0] - d[0] * along, kn[1] - d[1] * along, kn[2] - d[2] * along] };
+}
+
+/**
+ * The way leg s's knee points, to solve it again from hip to ankle: the clip's own knee (its offset from the hip-to-ankle
+ * line) wherever the leg bends no further than the clip bends it, so a leg that keeps its shape keeps its knee; where
+ * the new ankle bends it further, easing into the knee's natural way (the key's leg with no twist) by how small the
+ * clip's offset is against the new one. A nearly straight leg's twist places its knee nowhere in particular (it can wind
+ * round in a few frames), and a foot set on the ground bends the leg along it.
+ */
+function legPole(clip: { d: V3; o: V3 }, R: Rest, k: KeyLike, s: "L" | "R", hip: V3, ankle: V3): V3 {
+  const ol = Math.sqrt(dot(clip.o, clip.o)), dist = Math.sqrt(dot(sub(ankle, hip), sub(ankle, hip)));
+  // the knee's offset the solve gives at this reach (ik3's), clamped to the leg's
+  const r = Math.min(R.thigh + R.shin, Math.max(Math.abs(R.thigh - R.shin), dist)), x = r > 1e-9 ? (R.thigh * R.thigh - R.shin * R.shin + r * r) / (2 * r) : 0;
+  const off = Math.sqrt(Math.max(0, R.thigh * R.thigh - x * x));
+  const w = off <= ol ? 1 : smooth(ol / off);
   const leg = k[`leg${s}`] as number[] | undefined;
   const natural = limbPoles(R, { ...k, [`leg${s}`]: leg ? [leg[0]!, leg[1]!, leg[2]!, leg[3] ?? 0, 0] : leg } as KeyLike)[`leg${s}`];
-  // fully the clip's own knee from an offset of a tenth of the thigh (a bend of about 12°)
-  const w = smooth(ol / (0.1 * R.thigh));
-  if (w <= 0) return natural;
-  return [(o[0] / ol) * w + natural[0] * (1 - w), (o[1] / ol) * w + natural[1] * (1 - w), (o[2] / ol) * w + natural[2] * (1 - w)];
+  if (w <= 0 || ol < 1e-9) return natural;
+  return [(clip.o[0] / ol) * w + natural[0] * (1 - w), (clip.o[1] / ol) * w + natural[1] * (1 - w), (clip.o[2] / ol) * w + natural[2] * (1 - w)];
 }
 const sub = (a: readonly number[], b: readonly number[]): V3 => [a[0]! - b[0]!, a[1]! - b[1]!, a[2]! - b[2]!];
 const dot = (a: readonly number[], b: readonly number[]) => a[0]! * b[0]! + a[1]! * b[1]! + a[2]! * b[2]!;
