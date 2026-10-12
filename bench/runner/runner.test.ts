@@ -6,7 +6,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { audit, pathsOf } from "./agent.ts";
-import { pool, runB1, variantOf } from "./main.ts";
+import { latestVariant, pool, runB1, variantOf } from "./main.ts";
 import { pack } from "./pack.ts";
 import { answersIn, QUIZ, quizPrompt, score } from "./quiz.ts";
 
@@ -42,6 +42,18 @@ describe("the legend quiz", () => {
     expect(score({ ...right, "5": 25 })).toEqual({ right: 9, of: 10, wrong: ['5: 25 (expected 24)'] });
     expect(answersIn('Here: {"1": "no", "2": 1} done')).toEqual({ "1": "no", "2": 1 });
     expect(answersIn("no json")).toEqual({});
+  });
+});
+
+describe("held-out variants", () => {
+  it("takes a brief's variant from a gate's latest run, and says so when there is none", () => {
+    const base = mkdtempSync(join(tmpdir(), "m3a-heldout-"));
+    expect(() => latestVariant("G4", "B1", base)).toThrow(/no held-out B1 variant for G4 yet/);
+    for (const run of ["run-1", "run-2"]) {
+      mkdirSync(join(base, "G4", run, "B1"), { recursive: true });
+      writeFileSync(join(base, "G4", run, "B1", "character.json"), JSON.stringify({ seed: 41 }));
+    }
+    expect(latestVariant("G4", "B1", base)).toBe(join(base, "G4", "run-2", "B1"));
   });
 });
 

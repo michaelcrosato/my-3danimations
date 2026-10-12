@@ -4,7 +4,8 @@
 // wrong: its data is sound (no non-number, events in order), the sensors find no metric past a level it was under on
 // the clip's own body, read the same way (the clip's own defects are the clip's, not the skeleton's: 29% of the library
 // fails on its own body), and the bones reach every mapped joint's point within 5 mm.
-import { readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import { Animator, format, measureFacts, solver, type AnimatorPose, type AnimClip, type Clip, type Rest } from "@m3a/core";
 import { checks, metrics } from "@m3a/sensors";
 import { bind, type ThreeBound } from "../../packages/three/src/index.ts";
@@ -143,4 +144,13 @@ export function sweepOne(clip: Clip, R: Rest, b: ThreeBound, rig: string): Sweep
     why.push(`threw: ${String((err as Error).message).split("\n")[0]}`);
   }
   return { clip: clip.id, rig, ok: why.length === 0, why, own: ownVerdict, played: playedVerdict, reach: Math.round(reach * 1000) / 1000, worse };
+}
+
+/** A gate's latest held-out run: its directory's name, its rig manifest and the rigs that manifest lists. */
+export function heldout(gate: string, base = join(import.meta.dirname, "../../bench/results/heldout")): { run: string; manifest: string; rigs: string[] } {
+  const dir = join(base, gate), runs = existsSync(dir) ? readdirSync(dir).filter((d) => /^run-\d+$/.test(d) && existsSync(join(dir, d, "rig.json"))) : [];
+  const run = runs.sort((a, b) => Number(a.slice(4)) - Number(b.slice(4))).pop();
+  if (!run) throw new Error(`sweep: no held-out run for ${gate} yet (bench/results/heldout/${gate}/run-<n>/rig.json; PLAN.md §9.3)`);
+  const manifest = join(dir, run, "rig.json"), m = JSON.parse(readFileSync(manifest, "utf8")) as { rigs: { id: string }[] };
+  return { run, manifest, rigs: m.rigs.map((r) => r.id) };
 }

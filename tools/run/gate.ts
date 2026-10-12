@@ -43,6 +43,16 @@ export const GATES: Record<string, [string, string, ...string[]][]> = {
     ["lint and fix over the library: no clip worse, every one valid", "qa", "--fix"],
     ["T2: browser checks and library QA", "e2e"],
   ],
+  G4: [
+    ["check", "check"],
+    ["test", "test"],
+    ["doctrine", "doctrine"],
+    ["vectors --check", "vectors", "--check"],
+    ["the sweep: every migrated clip on the six skeletons, 95% together; the held-out rig apart", "sweep", "gen-0", "gen-1", "gen-2", "gen-3", "quaternius-mannequin-m", "kaykit-knight", "--min-total", "95", "--heldout", "G4"],
+    ["T2: the demo headless, its set on the six skeletons and the held-out rig, sheets", "e2e"],
+    ["B1: at least 4 of 5 fresh agents", "bench", "B1", "--trials", "5"],
+    ["B1's held-out variant: at least 4 of 5 fresh agents", "bench", "B1", "--trials", "5", "--heldout", "G4"],
+  ],
 };
 
 if (import.meta.main) {

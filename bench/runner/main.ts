@@ -5,7 +5,8 @@
 //   works there, and B1's grader grades it. --discovery N adds trials in an ordinary game project whose brief never
 //   names the packages, recording whether the agent found and used them (they don't count toward the pass mark).
 //   --variant <dir> takes a held-out variant's brief.md and character.json ({"seed": n} or {"manifest", "rig"}) and
-//   runs the brief's known-good solution on it first, stopping with a package or grader failure if that fails.
+//   runs the brief's known-good solution on it first, stopping with a package or grader failure if that fails;
+//   --heldout G4 takes the gate's latest held-out run's (bench/results/heldout/G4/run-<n>/B1/).
 //   --parallel N runs N agents at once (each in its own workspace, home and TMPDIR; agents still write scratch files
 //   to /tmp by name, the same names, so a run that counts at a gate runs them one at a time).
 // - quiz: the legend quiz (bench/runner/quiz.ts), at least 9 of 10.
@@ -45,6 +46,13 @@ export function variantOf(dir: string): { brief: string; character: CharacterSpe
   if (!brief || !existsSync(join(dir, "character.json"))) throw new Error(`bench: a variant needs brief.md and character.json in ${dir}`);
   const c = JSON.parse(readFileSync(join(dir, "character.json"), "utf8")) as CharacterSpec;
   return { brief, character: "manifest" in c ? { ...c, manifest: resolve(dir, c.manifest) } : c };
+}
+/** The directory of brief `brief`'s variant in a gate's latest held-out run. */
+export function latestVariant(gate: string, brief: string, base = join(BENCH, "results/heldout")): string {
+  const dir = join(base, gate), runs = existsSync(dir) ? readdirSync(dir).filter((d) => /^run-\d+$/.test(d) && existsSync(join(dir, d, brief, "character.json"))) : [];
+  const run = runs.sort((a, b) => Number(a.slice(4)) - Number(b.slice(4))).pop();
+  if (!run) throw new Error(`no held-out ${brief} variant for ${gate} yet (bench/results/heldout/${gate}/run-<n>/${brief}/; PLAN.md §7)`);
+  return join(dir, run, brief);
 }
 /** Whether a solution imports an @m3a package. */
 function usesPackage(ws: string): boolean {
@@ -114,6 +122,7 @@ if (import.meta.main) {
     { name: "discovery", takesValue: true, help: "B1's discovery trials (0)" },
     { name: "parallel", takesValue: true, help: "agents at once (1)" },
     { name: "variant", takesValue: true, help: "a held-out variant's directory (brief.md, character.json)" },
+    { name: "heldout", takesValue: true, help: "the variant of a gate's latest held-out run (G4)" },
     { name: "model", takesValue: true, help: "the model the agents run (the CLI's default)" },
     { name: "fake", help: "play the known-good solution instead of an agent (checks the pipeline)" },
   ];
@@ -123,6 +132,7 @@ if (import.meta.main) {
     const names = (parsed.positionals[0] ?? "").split(",").filter(Boolean);
     if (!names.length) throw new Error(`name a brief: ${BRIEFS.join(", ")}`);
     for (const n of names) if (!BRIEFS.includes(n)) throw new Error(`no brief "${n}"; did you mean ${closest(n, BRIEFS)}? (B2 to B8 arrive with WP-6.6 and WP-9.1)`);
+    if (typeof parsed.flags.heldout === "string") parsed.flags.variant = latestVariant(parsed.flags.heldout, "B1");
   } catch (err) {
     usage("bench", err, specs);
   }

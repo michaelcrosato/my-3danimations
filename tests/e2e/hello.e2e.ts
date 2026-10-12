@@ -2,7 +2,8 @@
 // a scripted session (idle, walk, run, stop, jump, attack): the page's hashes equal Node's for the same script (the same
 // game.ts on the same character), the attack's hit fires and shows, the sensors run on every frame it played, and its
 // screenshots and a contact sheet of what it played go to check-output/hello/ (CI's T2 artifact: the G4 demo link until
-// O3 is linked). Deep links pick the character, a clip, a moment and a view.
+// O3 is linked). Deep links pick the character, a clip, a moment and a view. The same session in Node on G4's six
+// skeletons (and its held-out rig, once recorded) plays with no fail finding (check-output/hello/set.json).
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { extname, join, normalize } from "node:path";
 import { expect, test } from "@playwright/test";
@@ -13,6 +14,7 @@ import { bind } from "../../packages/three/src/index.ts";
 import { character, loadGlb, variant } from "../../packages/three/test-characters/index.ts";
 import { DEFAULT_CLIPS, Hello, MOVES, prepare, type Input, type Move, type MoveName } from "../../apps/lab/hello/src/game.ts";
 import { libraryClips } from "../../tools/qa/qa.ts";
+import { heldout, rigOf } from "../../tools/sweep/sweep.ts";
 
 const ROOT = join(import.meta.dirname, "../.."), SITE = join(ROOT, ".cache/hello-site"), OUT = join(ROOT, "check-output/hello"), ORIGIN = "http://localhost:4175";
 const SEED = 1;
@@ -114,6 +116,45 @@ test("hello: the console handle drives a session headless; its hashes are Node's
   const sheetImg = raster.join(rows, { down: true });
   raster.assertNotBlank(sheetImg, "the session's contact sheet");
   writePng(join(OUT, "sheet.png"), sheetImg);
+});
+
+/** G4's skeletons (PLAN.md §9.3): four generated, two real CC0 rigs from different sources, and the held-out rig of the
+ *  gate's latest run once one is recorded. */
+const G4_RIGS = ["gen-0", "gen-1", "gen-2", "gen-3", "quaternius-mannequin-m", "kaykit-knight"];
+
+test("hello: the idle, walk, run, jump and attack set plays on G4's skeletons with the sensors green (no fail finding)", async () => {
+  // the same scripted session in Node on each skeleton: what it played read by the sensors, and the hit fired
+  test.setTimeout(600_000);
+  const rigs: [string, string | undefined][] = G4_RIGS.map((r) => [r, undefined]);
+  try {
+    const h = heldout("G4");
+    rigs.push(...h.rigs.map((r): [string, string] => [r, h.manifest]));
+  } catch {
+    // no held-out run yet: the six alone
+  }
+  const lib = libraryClips(), out: { rig: string; verdict: string; hits: number; fails: string[]; warns: string[] }[] = [];
+  for (const [rig, manifest] of rigs) {
+    const bound = await rigOf(rig, manifest), moves = {} as Record<MoveName, Move>;
+    for (const m of MOVES) {
+      const c = lib.find((x) => x.clip.id === DEFAULT_CLIPS[m])!;
+      moves[m] = prepare(c.clip, c.rest, bound.core.rest, m === "attack");
+    }
+    const game = new Hello(bound.core, moves), frames: number[][] = [], roots: { forward: number; right: number; yaw: number }[] = [];
+    let hits = 0;
+    for (const s of SCRIPT) for (let i = 0; i < s.n; i++) {
+      hits += game.step(1 / 60, s.input).filter((e) => e.name === "hit").length;
+      const p = game.placed(game.animator.pose().points);
+      frames.push(p.points);
+      roots.push(p.root);
+    }
+    const report = checks.measure(checks.motionOfFrames(frames, bound.core.rest, { root: roots, parts: true, id: `hello set on ${rig}` }));
+    out.push({ rig, verdict: report.verdict, hits, fails: report.findings.filter((f) => f.level === "fail").map((f) => f.message), warns: report.findings.filter((f) => f.level === "warn").map((f) => f.message) });
+  }
+  writeFileSync(join(OUT, "set.json"), JSON.stringify({ about: "the demo's scripted session on G4's skeletons, read by the sensors (PLAN.md §9.3)", rigs: out }, null, 1));
+  for (const o of out) {
+    expect(o.hits, o.rig).toBeGreaterThanOrEqual(1);
+    expect(o.fails, o.rig).toEqual([]);
+  }
 });
 
 test("hello: deep links pick the character, the clip, the moment and the view", async ({ page }) => {

@@ -7,13 +7,14 @@
 // with their library's shares, and four that failed before D55 pass. How many clips
 // pass is not checked here: that is gate G4's bar (95% over its six skeletons and the whole library, PLAN.md §9.3).
 import { execFileSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import type { Clip, Key } from "@m3a/core";
 import { ROOT } from "../run/cli.ts";
 import { libraryClips, sample } from "../qa/qa.ts";
-import { likeFor, rigOf, sweepOne, type SweepRow } from "./sweep.ts";
+import { heldout, likeFor, rigOf, sweepOne, type SweepRow } from "./sweep.ts";
 
 const RIGS = ["gen-0", "gen-7"];
 
@@ -65,6 +66,15 @@ describe("the sweep", () => {
       expect(r.why, `${id} on ${rig}`).toEqual([]);
     }
   }, 120_000);
+  it("finds a gate's latest held-out run, and says so when there is none", () => {
+    const base = mkdtempSync(join(tmpdir(), "m3a-heldout-"));
+    expect(() => heldout("G4", base)).toThrow(/no held-out run for G4 yet/);
+    for (const [run, id] of [["run-1", "old-rig"], ["run-2", "new-rig"]]) {
+      mkdirSync(join(base, "G4", run), { recursive: true });
+      writeFileSync(join(base, "G4", run, "rig.json"), JSON.stringify({ rigs: [{ id }] }));
+    }
+    expect(heldout("G4", base)).toMatchObject({ run: "run-2", rigs: ["new-rig"] });
+  });
   it("names a skeleton it can't find, and how to fetch it", async () => {
     await expect(rigOf("no-such-rig")).rejects.toThrow(/^sweep: no rig "no-such-rig" in the cache: npm run fixtures -- fetch/);
   });
