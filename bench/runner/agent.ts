@@ -4,7 +4,7 @@
 // The transcript (stream-json) is kept; the run records its time, tokens, cost and turns, and the audit lists every
 // path it touched outside the workspace and every file it read past the manual (the packages' code in node_modules).
 import { spawn } from "node:child_process";
-import { mkdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { isAbsolute, join, normalize, resolve } from "node:path";
 
 /** What one agent run did. */
@@ -37,9 +37,14 @@ export interface AgentOptions {
 /** The variables a trial keeps from this process: the network's proxy and certificates, a PATH; nothing else. */
 const KEEP = ["PATH", "ANTHROPIC_BASE_URL", "HTTPS_PROXY", "https_proxy", "HTTP_PROXY", "http_proxy", "NO_PROXY", "no_proxy", "NODE_EXTRA_CA_CERTS", "SSL_CERT_FILE", "LANG"];
 
-/** The paths a tool call names: a file tool's path, and the absolute paths in a shell command. */
+/**
+ * The paths a tool call names: a file tool's path, and the absolute paths in a shell command (a word of path characters
+ * standing alone, whose first directory exists here: not a glob, nor a regex like `/foot/i.test(`).
+ */
 export function pathsOf(tool: string, input: Record<string, unknown>): string[] {
-  if (tool === "Bash") return [...String(input.command ?? "").matchAll(/(?:^|[\s'"=:(])(\/[^\s'"`;|&)<>]+)/g)].map((m) => m[1]!);
+  if (tool === "Bash") {
+    return [...String(input.command ?? "").matchAll(/(?:^|[\s'"=:(])(\/[\w.@+~-]+(?:\/[\w.@+~-]*)*)(?=$|[\s'"`;|&)<>])/g)].map((m) => m[1]!).filter((p) => existsSync(`/${p.split("/")[1]}`));
+  }
   return ["file_path", "path", "notebook_path"].map((k) => input[k]).filter((p): p is string => typeof p === "string");
 }
 /**
@@ -74,8 +79,9 @@ export function audit(lines: readonly string[], workspace: string): { outside: s
 /** Runs a fresh agent in `workspace` on `prompt`; the transcript goes to `transcript`. */
 export function runAgent(workspace: string, prompt: string, transcript: string, opts: AgentOptions = {}): Promise<AgentRun> {
   const home = join(workspace, "..", `${workspace.split("/").pop()}-home`), t0 = performance.now();
-  mkdirSync(home, { recursive: true });
-  const env: Record<string, string> = { HOME: home };
+  mkdirSync(join(home, "tmp"), { recursive: true });
+  // its own temporary directory, for the tools that ask for one (an agent may still name /tmp itself: the audit lists it)
+  const env: Record<string, string> = { HOME: home, TMPDIR: join(home, "tmp") };
   for (const k of KEEP) if (process.env[k]) env[k] = process.env[k]!;
   const tools = opts.tools ?? "Bash,Read,Write,Edit,Glob,Grep";
   const args = ["-p", prompt, "--output-format", "stream-json", "--verbose", "--max-turns", String(opts.maxTurns ?? 80), "--tools", tools, "--allowedTools", tools, "--strict-mcp-config", ...(opts.model ? ["--model", opts.model] : [])];

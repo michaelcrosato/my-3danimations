@@ -6,7 +6,8 @@
 //   names the packages, recording whether the agent found and used them (they don't count toward the pass mark).
 //   --variant <dir> takes a held-out variant's brief.md and character.json ({"seed": n} or {"manifest", "rig"}) and
 //   runs the brief's known-good solution on it first, stopping with a package or grader failure if that fails.
-//   --parallel N runs N agents at once (each in its own workspace and home).
+//   --parallel N runs N agents at once (each in its own workspace, home and TMPDIR; agents still write scratch files
+//   to /tmp by name, the same names, so a run that counts at a gate runs them one at a time).
 // - quiz: the legend quiz (bench/runner/quiz.ts), at least 9 of 10.
 // --fake plays the known-good solution (or the quiz's answers) instead of an agent, to check the pipeline for free.
 // Results go to bench/results/<date>-<model>-<brief>.json; the pass mark is 4 of 5 (PLAN.md §7).

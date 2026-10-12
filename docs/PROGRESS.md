@@ -24,7 +24,7 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 ## Next
 
 - The sweep (D51): 87.7% of 3,150 pairs (84–91% a skeleton; the Knight 62 → 85%); G4 asks 95%.
-- WP-5.1 done early (D53). WP-4.7 (D54): harness, B1, quiz 10/10 ×3 in; B1's agent trials next, then G4.
+- WP-5.1 done early (D53). WP-4.7 done (D54): B1 4/5 with fresh agents, discovery 2/2, quiz 10/10 ×3. Next: G4.
 
 ## Blocked on the owner
 

@@ -25,6 +25,8 @@ describe("the agent's audit", () => {
     ];
     expect(audit(lines, ws)).toEqual({ outside: [`${ROOT}/PLAN.md`, "/root/.claude"].sort(), pastManual: ["node_modules/@m3a/core/dist/animator/animator.js"] });
     expect(pathsOf("Bash", { command: "ls -la && cat '/etc/hosts' x=/home/me" })).toEqual(["/etc/hosts", "/home/me"]);
+    // a glob, a bare root, a regex in a script and a word whose first directory isn't here are not paths
+    expect(pathsOf("Bash", { command: "find / -name '/**' ; node -e 'x.filter((o) => /foot/i.test(o.name))' ; grep /export a.ts > /tmp/s/out" })).toEqual(["/tmp/s/out"]);
   });
 });
 

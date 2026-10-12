@@ -1376,7 +1376,9 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
     the tools limited to files and a shell, no MCP servers. `--dangerously-skip-permissions` is refused as root, so
     the tools are pre-approved with `--allowedTools` instead. The stream-json transcript is kept; each trial records
     its time, turns, tokens and cost, the paths it touched outside its workspace and the files it read past the
-    manual. A one-turn probe checks the credentials first. `--parallel N` runs N agents at once.
+    manual. A one-turn probe checks the credentials first. `--parallel N` runs N agents at once, each with its own
+    TMPDIR; agents still write scratch files to `/tmp` by name (all 7 of the first run wrote `/tmp/cat.mjs`), so runs
+    that count at a gate run one at a time.
   - B1's grader drives the workspace's player headless with scripted speeds (0, 1.2, 3.5, 1.2, 0 m/s) on the
     starter's character and judges the bones, not the player's word: the motion reported; the speed travelled
     (within 25%; under 0.15 m/s idle); the feet stepping when walking (their speed against the pelvis over twice
@@ -1396,6 +1398,11 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
     body's proportions (1.61 on generator seed 41 against a 1.65 bar, with the known-good playing a jog), while every
     run has moments with both feet off the ground (62% and 65% of the known-good's running frames) and a walk none.
   - The quiz runs with no tools and one turn: it tests the legend, not a search.
+- **Measured** (the CLI's default model, isolation level 1): the quiz 10 of 10 in 3 trials; B1 4 of 5 (the fifth's
+  feet skate at 54.5 cm/s while it runs: an agent's mistake the grader names), 0.6 to 1.7 minutes and 7 to 18 turns a
+  trial, $0.11 to $0.24; discovery 2 of 2 found the package with no word of it in their brief, and passed. Three of
+  the 7 listed a `dist/` directory past the manual; none read the packages' code. The only paths outside the
+  workspaces were scratch files in `/tmp`.
 - **Outside WP-4.7's Owns** (one agent, D21): `package.json` (`npm run bench`); `vitest.config.ts` and
   `tsconfig.tests.json` (bench/ in the tests, its starters and known-good out); `@m3a/three`'s exports; sensors'
   `STANCE` export (the grader's stillness bar); the boundaries check; `bench/quiz/legend.json`.
