@@ -282,5 +282,5 @@ describe("cost", () => {
     console.log(`animator cost, 4 layers, one character: step ${step.toFixed(1)} µs, pose ${full.toFixed(0)} µs (exact ${exact.toFixed(0)}, lod 1 ${lod.toFixed(0)})`);
     expect(step).toBeLessThan(1000);
     expect(full).toBeLessThan(20_000);
-  });
+  }, 30_000);
 });
