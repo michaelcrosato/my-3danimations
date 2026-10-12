@@ -8,6 +8,7 @@ import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { ROOT } from "../run/cli.ts";
+import { TEST_SEEDS } from "../../packages/three/test-characters/variants.ts";
 
 /** One rig: where it comes from, its hash, its license and the file that says so. */
 export interface Rig {
@@ -124,27 +125,51 @@ export function rigBytes(id: string, m: Manifest = JSON.parse(readFileSync(MANIF
   return r && cached(r, dir) === null ? new Uint8Array(readFileSync(join(dir, `${r.id}.glb`))) : null;
 }
 
+/** The gates whose sweep runs on the held-out run's rigs (its rig.json): the others' variants may use seeds alone. */
+const RIG_GATES = new Set(["G4"]);
+/**
+ * The generator seeds a held-out variant may not use (PLAN.md §7): WP-4.2's test set, any a grader or runner test
+ * grades on (`{ seed: n }` in bench/graders and bench/runner), and any another held-out run's variant used.
+ */
+export function usedSeeds(base = join(ROOT, "bench/results"), but?: string, tests = [join(ROOT, "bench/graders"), join(ROOT, "bench/runner")]): Set<number> {
+  const out = new Set<number>(TEST_SEEDS), files = (d: string): string[] => (existsSync(d) ? readdirSync(d, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? (e.name === "known-good" ? [] : files(join(d, e.name))) : e.name.endsWith(".test.ts") ? [join(d, e.name)] : [])) : []);
+  for (const f of tests.flatMap(files)) for (const m of readFileSync(f, "utf8").matchAll(/\bseed: (\d+)/g)) out.add(Number(m[1]));
+  const held = join(base, "heldout");
+  for (const gate of existsSync(held) ? readdirSync(held) : [])
+    for (const run of readdirSync(join(held, gate)).filter((r) => /^run-\d+$/.test(r) && join(held, gate, r) !== but))
+      for (const b of readdirSync(join(held, gate, run)).filter((d) => /^B\d+$/.test(d))) {
+        const f = join(held, gate, run, b, "character.json"), c = existsSync(f) ? (JSON.parse(readFileSync(f, "utf8")) as { seed?: number }) : {};
+        if (typeof c.seed === "number") out.add(c.seed);
+      }
+  return out;
+}
+
 /**
  * Whether a gate's latest held-out run (bench/results/heldout/<gate>/run-<n>/) is fit for a gate run (PLAN.md §7,
- * §9.3, D57): no recorded gate run used it (bench/results/gates/<gate>-run-<n>/), its rig manifest lints and pins each
- * license file's SHA-256, each rig is in the cache and verified, and each brief's variant has its brief and character.
+ * §9.3, D57): no recorded gate run used it (bench/results/gates/<gate>-run-<n>/); its rig manifest (G4's sweep reads
+ * one; another gate's run may have one) lints and pins each license file's SHA-256, each rig in the cache and
+ * verified; each brief's variant has its brief and character, and a seed no test grades on and no other run used.
  * Returns the run and its problems, one line each.
  */
-export function freshHeldout(gate: string, base = join(ROOT, "bench/results"), dir = CACHE): { run: string | null; problems: string[] } {
+export function freshHeldout(gate: string, base = join(ROOT, "bench/results"), dir = CACHE, tests?: string[]): { run: string | null; problems: string[] } {
   const runs = join(base, "heldout", gate), all = existsSync(runs) ? readdirSync(runs).filter((d) => /^run-\d+$/.test(d)) : [];
   const run = all.sort((a, b) => Number(a.slice(4)) - Number(b.slice(4))).pop() ?? null;
   if (!run) return { run, problems: [`no held-out run for ${gate}: a fresh subagent writes bench/results/heldout/${gate}/run-<n>/ first (PLAN.md §7)`] };
   const problems: string[] = [], at = join(runs, run);
   if (existsSync(join(base, "gates", `${gate}-${run}`))) problems.push(`${run} was used by a gate run already (bench/results/gates/${gate}-${run}/): a rerun writes fresh variants into run-${Number(run.slice(4)) + 1}`);
-  if (!existsSync(join(at, "rig.json"))) problems.push(`${run} has no rig.json`);
-  else {
+  if (!existsSync(join(at, "rig.json"))) {
+    if (RIG_GATES.has(gate)) problems.push(`${run} has no rig.json`);
+  } else {
     const m = JSON.parse(readFileSync(join(at, "rig.json"), "utf8")) as Manifest;
     problems.push(...lintManifest(m));
     for (const r of m.rigs) if (r.licenseSha256 === undefined) problems.push(`${r.id}: its license file's SHA-256 isn't pinned (licenseSha256)`);
     for (const st of checkRigs(m, dir)) if (!st.ok) problems.push(`${st.id}: ${st.why}`);
   }
+  const used = usedSeeds(base, at, tests);
   for (const brief of readdirSync(at).filter((d) => /^B\d+$/.test(d))) {
     for (const f of ["brief.md", "character.json"]) if (!existsSync(join(at, brief, f))) problems.push(`${run}/${brief} has no ${f}`);
+    const f = join(at, brief, "character.json"), c = existsSync(f) ? (JSON.parse(readFileSync(f, "utf8")) as { seed?: number }) : {};
+    if (typeof c.seed === "number" && used.has(c.seed)) problems.push(`${run}/${brief}: seed ${c.seed} is WP-4.2's, a test's or another run's: a variant takes a character none used (PLAN.md §7)`);
   }
   return { run, problems };
 }

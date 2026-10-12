@@ -8,7 +8,7 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { checkRigs, fetchRigs, freshHeldout, lintManifest, MANIFEST, type Manifest, type Rig } from "./fixtures.ts";
+import { checkRigs, fetchRigs, freshHeldout, lintManifest, MANIFEST, usedSeeds, type Manifest, type Rig } from "./fixtures.ts";
 
 const dir = mkdtempSync(join(tmpdir(), "m3a-fixtures-")), src = join(dir, "src");
 const file = (name: string, text: string) => {
@@ -62,6 +62,21 @@ describe("fixtures by hash", () => {
     expect(freshHeldout("G4", base, cache)).toEqual({ run: "run-1", problems: [] });
     mkdirSync(join(base, "gates", "G4-run-1"), { recursive: true });
     expect(freshHeldout("G4", base, cache).problems).toEqual([expect.stringMatching(/^run-1 was used by a gate run already .* run-2$/)]);
+    // another gate's variants may use seeds alone, none WP-4.2's, a test's or another run's
+    const g6 = join(base, "heldout", "G6", "run-1"), tests = join(dir, "tests");
+    mkdirSync(tests, { recursive: true });
+    writeFileSync(join(tests, "grade.test.ts"), "for (const c of [{ seed: 1 }, { seed: 37 }]) grade(c);");
+    for (const [b, seed] of [["B2", 7], ["B3", 37], ["B5", 401], ["B6", 512]] as const) {
+      mkdirSync(join(g6, b), { recursive: true });
+      writeFileSync(join(g6, b, "brief.md"), "# a variant");
+      writeFileSync(join(g6, b, "character.json"), JSON.stringify({ seed }));
+    }
+    expect(freshHeldout("G6", base, cache, [tests]).problems).toEqual([
+      "run-1/B2: seed 7 is WP-4.2's, a test's or another run's: a variant takes a character none used (PLAN.md §7)",
+      "run-1/B3: seed 37 is WP-4.2's, a test's or another run's: a variant takes a character none used (PLAN.md §7)",
+      "run-1/B5: seed 401 is WP-4.2's, a test's or another run's: a variant takes a character none used (PLAN.md §7)",
+    ]);
+    expect([...usedSeeds(base, undefined, [tests])].filter((x) => x > 19).sort((a, b) => a - b)).toEqual([37, 401, 512]);
   });
   it("lists real CC0 rigs from at least two authors, each with an https source, a hash and a license file", () => {
     const m = JSON.parse(readFileSync(MANIFEST, "utf8")) as Manifest;

@@ -4,6 +4,14 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.42.2 · 2026-10-12
+
+### Repo
+- G6's command set: composed clips passing QA, graph simulations deterministic, the held-out run fresh, and B2, B3,
+  B5, B6 and B7 with their held-out variants, 5 fresh agents each (D78).
+- `npm run fixtures -- heldout <gate>` asks a rig manifest only of G4, and refuses a variant's seed a test grades on,
+  WP-4.2's set has, or another held-out run used (D78).
+
 ## 0.42.1 · 2026-10-12
 
 ### Core

@@ -75,7 +75,14 @@ export const GATES: Record<string, [string, string, ...string[]][]> = {
     ["the pinned sources, for the moves", "pins", "fetch"],
     ["vectors --check", "vectors", "--check"],
     ["library/moves.json as the pinned sources give it", "moves", "--check"],
-    ["T2: browser checks, library QA and the sweeps T1 samples, in full", "e2e"],
+    ["composed clips pass QA: the example recipes, the procedural sources, the actions and their cuts", "test", "recipe", "procedural", "actions"],
+    ["graph simulations are deterministic: the expected traces exactly, a run the same twice, save and restore", "test", "graph", "sim"],
+    ["T2: browser checks (graphs Node = Chromium), library QA and the sweeps T1 samples, in full", "e2e"],
+    ["the held-out run is fresh: no gate run used it, each variant's character one no test or run used", "fixtures", "heldout", "G6"],
+    ...(["B2", "B3", "B5", "B6", "B7"] as const).flatMap((b): [string, string, ...string[]][] => [
+      [`${b}: at least 4 of 5 fresh agents (§7)`, "bench", b, "--trials", "5", "--parallel", "5"],
+      [`${b}'s held-out variant: at least 4 of 5 fresh agents`, "bench", b, "--trials", "5", "--parallel", "5", "--heldout", "G6"],
+    ]),
   ],
 };
 

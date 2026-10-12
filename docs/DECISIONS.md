@@ -2537,3 +2537,23 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
     at an interrupt point, paired actions and a gait of one's own: 5,564 of 8,000 tokens, each snippet run as written.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.42.0, v0.42.1
+
+## D78 · 2026-10-12 · G6's command set; a held-out run's variants on generator seeds alone
+
+- **Principle:** 9, §7, §8.5
+- **Call:**
+  - **The set** (`npm run gate -- G6`), PLAN.md's G6 line by line: T0, T1, the doctrine, the moves against their
+    pinned sources; composed clips passing QA (`npm test -- recipe procedural actions`: the 20 example recipes, the
+    gaits, idles and moves on three rests, the actions and every interrupt cut on the six test characters); graph
+    simulations deterministic (`npm test -- graph sim`: the expected traces exactly, on three bodies, a run the same
+    twice, save and restore), and T2 (the graphs in Node and Chromium, the sweeps in full); the held-out run fresh; and
+    B2, B3, B5, B6 and B7, each 5 fresh agents and 5 on its held-out variant, at least 4 of 5 each, 5 at a time.
+  - **A held-out run without a rig:** G4's sweep reads its held-out run's `rig.json`; G6 grades briefs only, so its
+    variants may be generator seeds alone and `npm run fixtures -- heldout G6` asks for a rig manifest only when there
+    is one. Each variant's seed must be one no grader or runner test grades on (`{ seed: n }` in their tests), outside
+    WP-4.2's test set (0 to 19) and unused by any other held-out run, as PLAN.md §7 says; the check now enforces it.
+- **Why:** the gate's line names the briefs, the held-out variants, composed clips and determinism; each gets its
+  command so a gate run reports which one failed.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.42.2
+
