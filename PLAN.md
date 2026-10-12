@@ -1461,7 +1461,7 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
 - **Verify:** `npm test -- play`
 
 #### WP-4.5 Headless capture
-- **Owns:** `packages/three/src/capture/*`, `tests/e2e/capture.spec.ts`, `tools/sweep/*`
+- **Owns:** `packages/three/src/capture/*`, `tests/e2e/capture.e2e.ts` (the repo runs `*.e2e.ts`, D49), `tools/sweep/*`
 - **Needs:** 4.4, 3.3
 - **Size:** M
 - **Build:** a Playwright harness that renders a bound character in headless Chromium on the WebGL 2 backend. It reads
@@ -2234,7 +2234,7 @@ version, commit, date and a note with the numbers. Gates are rows too.
 | 4.2 Test characters | done | 0.21.0 | 5830e84, dac7541 | 2026-10-11 | 20 seeded variants (5 builds, 3 rests, 4 namings with their habits, twist and left-out bones) load in three and are recognized at confidence 1, bones within 1 µm, bound at rest; real rigs by hash: 2 Quaternius mannequins (unreal4, 1) and KayKit's Knight (topology, 0.85); a separate manifest fetches by its hash (D46) |
 | 4.3 Binding a skeleton | done | 0.22.0 | 4197608, 56855f6 | 2026-10-11 | 20 test characters + a held-out seed + the real rigs bind with no hand mapping, lengths as generated to the mm; a fully renamed rig binds through topology at 0.85; renamed, 22 of 24 map as by name, 2 flagged at 0.55; report ≤ 20 lines with a patch that binds; topology fixes in core (D47, D28); 0.23.1: control bones left out, the Knight mapped bone by bone |
 | 4.4 Playback and baking | done | 0.23.0 | 570b92d | 2026-10-11 | baked clips within 0.5 mm of the live solve on Mixamo, UE5 and Rigify characters (4 clips each, ≤1 mm through AnimationMixer); loop, events, contacts, facts in userData and GLTFExporter's extras; masked layers and crossfades through attach; the write allocates 0 bytes a frame, a whole update ≈7 KB and 0.16 ms (D48) |
-| 4.5 Headless capture | todo | | | | |
+| 4.5 Headless capture | done | 0.24.0 | e7d7456, (this commit) | 2026-10-12 | capture: 2 generated + 2 real rigs drawn headless on WebGL 2 in CI, every frame drawn, pose hashes = Node's; blank and wrong-renderer frames fail by code; sweep over 2 test characters lists the broken clip with its reason; library sweep 80–91% on 5 generated, 86–88% on the Quaternius mannequins, 62% on the Knight (G4 asks 95%); planting and toeless-rig fixes (D49) |
 | 4.6 The first-flight demo | todo | | | | |
 | 4.7 The benchmark harness and B1 | todo | | | | |
 | **G4 = M1** | todo | | | | |

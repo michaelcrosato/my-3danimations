@@ -602,6 +602,9 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
 - **Result:** on all 133 migrated locomotion loops (walk and run, travelling) and synced walk–jog and walk–sprint
   blends at 0.25, 0.5 and 0.75, a planted foot's contact point slides 0.0 mm per contact (unplanted: up to 92 mm). On
   10° slopes and 0.2 m steps, up and down, planted soles are within 1.7 mm of the surface and no sole goes under it.
+- **Revised in WP-4.5 (D49):** a re-solved knee takes the clip's own knee as its pole (the twist's pole winds round at
+  a straight leg); the sole's setting eases in before a contact and out after it; the body is lifted and lowered
+  continuously (`PlantOptions.settle`); a contact through a loop's seam is one contact.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.11.0
 
@@ -1047,6 +1050,8 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   applied: by operator jitter 45, twist flips 40, penetration 14, the seam 8, foot locks 7; naming jitter in 40, pops
   in 33, penetration in 28, more findings in 21, and skate, the seam's speeds, joint limits, the seam, intersection,
   slide or a twist flip in 4 or fewer each.
+- **Revised in WP-4.5 (D49):** foot locks bake core's planting with `settle: false`, the body keeping its height as
+  before planting lifted and lowered it.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.18.0; reworked at G3 in v0.19.0, revised in v0.19.1
 
@@ -1144,6 +1149,8 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   arms (hips at the root, the arms on the legs: its reported 0.85 hid it). Bind now recognizes only the bones some vertex
   is weighted to, and those above them; the Knight maps each limb to its own bones (T pose, forearm 260 mm), and the
   real rigs' tests check the mapping bone by bone, not only that nothing is missing.
+- **Revised in WP-4.5 (D49):** a foot that ends with no child gets an end bone where its mesh ends, on the sole; a
+  toe segment of no length has no pitch (a toeless rig measured a NaN rest).
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.22.0; revised in v0.23.1
 
@@ -1175,3 +1182,57 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
 - **Outside WP-4.4's Owns** (one agent, D21): none.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.23.0
+
+## D49 · 2026-10-12 · Headless capture, and a sweep that plays every clip as a game would on every skeleton
+
+- **Principle:** 1, 4, 5, 9, WP-4.5
+- **Call:**
+  - **Capture** (`@m3a/three/capture`): a bound character played by an Animator and drawn in headless Chromium through
+    WebGPURenderer on its WebGL 2 backend (forced: a capture mustn't depend on a GPU), each frame read back from a
+    render target (a headless canvas reads blank), with the proof hash of its bone transforms (FNV-1a 64 over each
+    bone's position, rotation and scale as float64 bits). A frame is blank when no pixel differs from its top-left
+    corner by more than the threshold (the colour pipeline makes an absolute background value unreliable); a blank frame
+    or a backend other than the one asked for throws a `CaptureError` (`E_BLANK`, `E_RENDERER`) saying why. The test is
+    `tests/e2e/capture.e2e.ts`, not the plan's `capture.spec.ts`: the repo's Playwright runs `*.e2e.ts` (WP-0.2), so
+    the WP entry is edited.
+  - **The sweep** (`npm run sweep -- <rig ids> [--manifest f] [--sample N] [--clip id] [--min P]`): every migrated clip
+    played by core's Animator on each skeleton (bound as WP-4.3 binds, solved in Node), every 1/60 s or so in whole
+    fixed steps (a loop's last sample its cycle's end), its feet planted; the sensors (WP-3.3) run on the played body
+    points in the world and on the clip on its own body, read the same way. A clip passes on a skeleton when the
+    skeleton adds nothing wrong: its data is sound (no non-number, events in order), no metric goes past a level (warn
+    or fail) it was under on the clip's own body (each against its own body's levels), and every mapped bone's joint
+    is within 5 mm of its body point. The clip's own defects stay the clip's: 29% (154 of 525) of the library fails on its
+    own body. Results go to `check-output/sweep/results.json`, a row per clip per skeleton with every reason.
+  - **Contacts:** no library clip carries contacts yet (WP-5.4 writes them), so the Animator planted nothing. The
+    sweep plays each clip with the contacts `measureFacts` detects on its own body, as WP-5.4 will store them.
+- **What the sweep found in the player** (fixed in core and three, outside WP-4.5's Owns, one agent, D21):
+  - **planting (revises D37):** a re-solved knee took its pole from the key's twist, which winds round in a few frames
+    where a leg is straight, so a foot set on the floor swung the knee 220 mm in a frame: the pole is now the clip's own
+    knee, easing into the knee's natural way as the leg straightens. A planted foot's sole was snapped onto the floor
+    when its contact began and let go in a frame when it ended; another body's proportions hold a foot 30 to 55 mm off
+    the floor, so that was a pop: the setting eases in before a contact and out after it, the body is lifted where a
+    sole is under the floor (as the solver lifts a pose it decodes alone) and lowered to a planted foot's float, each
+    continuously, so no correction jumps and no leg stretches as a contact eases in. A contact running to a loop's end
+    and one starting at its start are one contact through the seam. `PlantOptions.settle` (default true) turns the
+    body's lift and settle off: WP-3.5's foot locks bake planting into keys and keep the body's height (D44);
+  - **toeless rigs (revises D47):** with no toe bones, SKELETON.md puts the ball and toe at the foot's tip, and a leaf
+    bone's tip is read on in its parent's direction: down the shin. The rest then measured a NaN toe pitch, and every
+    solve was NaN. A segment of no length now has no pitch, and three's bind gives the bone a foot ends with (its toes,
+    or the foot), where it has no child, an end bone at the farthest point of the mesh skinned to it, on the sole (as
+    rigs with a LeftToe_End have); the ground is read under that end too. A generated toed character's toe tip, read
+    on down the foot's slope, sat 32 mm under the floor; it is now on it.
+- **Result:** sheets of two generated characters (one without toe bones) and the two real rigs render headless on
+  WebGL 2 in CI (the rigs fetched first), every frame drawn, each frame's pose hash equal to Node's for the same play;
+  a blank frame and a WebGPU frame asked of a WebGL 2 capture fail with their codes. The sweep test plays 8 clips on two
+  test characters and lists a walk with a non-number pelvis as a failure on both, its reason first. Over the whole
+  library (525 clips, about 40 s a skeleton) the sweep passes 80.0% on a chibi, 90.7% heroic, 87.0% bulky without
+  toes, 86.1% child, 85.3% tall, 86.3% and 88.2% on the two Quaternius mannequins and 61.9% on KayKit's Knight; the
+  reasons by metric: pops 204, skate 166, slide 123, jitter 116, intersection 100, the seam's speed 81, the seam 49,
+  body penetration 10. G4 asks 95% on its six skeletons: that is the gate's work. What remains is mostly another body's
+  proportions under the same keys (a large foot shakes more; a folded arm's direction is ill-defined, so its elbow
+  lands elsewhere on other arm lengths; a kneel's knee goes through a floor its legs can't reach) and slides on
+  stances the clip's own contacts don't cover.
+- **Outside WP-4.5's Owns** (one agent, D21): core's planting and rest measurement, three's bind, the sensors' foot
+  locks (`settle: false`).
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.24.0

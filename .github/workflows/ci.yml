@@ -75,6 +75,8 @@ jobs:
       - run: npm ci
       # The cloud container has Chromium preinstalled; CI runners fetch the build the pinned Playwright expects.
       - run: npx playwright install --with-deps chromium
+      # the real CC0 rigs, so captures draw them too (WP-4.5)
+      - run: npm run fixtures -- fetch
       - run: npm run e2e -- --json
       # a failure's whole browser log in the job's own log (the summary shows only its last lines)
       - if: failure()

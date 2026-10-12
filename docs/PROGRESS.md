@@ -3,7 +3,7 @@
 The current state on one screen (at most 40 lines; `npm run doctrine` checks it from WP-0.3). The ledger is
 `PLAN.md` §14; decisions are in `docs/DECISIONS.md`.
 
-**Phase:** 4 First flight. **Next gate:** G4 (M1). **Version:** 0.23.1.
+**Phase:** 4 First flight. **Next gate:** G4 (M1). **Version:** 0.24.0.
 **Mode:** one agent (D21), branch `claude/relaxed-albattani-35xhjq`.
 
 ## Done
@@ -23,8 +23,8 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 
 ## Next
 
-- WP-4.5 partial (merged before G4 at the owner's request): sweep, planting and toeless-rig fixes. To do: sweep on
-  6 rigs, D49, ledger row; CI WebGPU e2e loses its GPU process on GitHub runners. Then WP-4.6, 4.7, G4.
+- WP-4.5 done (D49): headless capture; the sweep (80–91% generated, 86–88% Quaternius, 62% Knight; G4 asks 95%).
+  Next: WP-4.6 the demo, WP-4.7 B1, then G4.
 
 ## Blocked on the owner
 

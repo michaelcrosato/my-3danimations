@@ -4,6 +4,27 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.24.0 · 2026-10-12
+
+### Core
+- Planting (D49, revising D37): the re-solved knee keeps the clip's own knee as its pole, a sole's setting eases in
+  before a contact and out after it, the body is lifted and lowered continuously (`PlantOptions.settle`, default on),
+  and a contact through a loop's seam is one contact.
+- A foot segment of no length measures no pitch (a toeless rig measured a NaN rest).
+
+### Three
+- `@m3a/three/capture`: a bound character drawn headless on WebGL 2, every frame read back, checked not blank, with
+  the proof hash of its bones; `CaptureError` for a blank frame or another renderer (D49).
+- Bind gives a foot that ends with no child an end bone where its mesh ends, on the sole (D49, revising D47).
+
+### Sensors
+- Foot locks bake planting with `settle: false` (D44).
+
+### Tools
+- `npm run sweep`: every migrated clip played by the Animator on each skeleton, judged against the clip on its own
+  body, with every failure's reason (D49).
+- CI's T2 fetches the real rigs and prints the browser log when it fails.
+
 ## 0.23.1 · 2026-10-11
 
 ### Three
