@@ -1338,3 +1338,27 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   demo's sensors (D51).
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.25.0
+
+## D53 · 2026-10-12 · The library loader: content ids, a lock that names a changed clip, CC0 unless a game opts in
+
+- **Principle:** 4, 10, 11, WP-5.1
+- **Call:**
+  - `@m3a/library`'s `Library` reads sets and clips by id from any source of files, and `@m3a/library/node` reads a
+    directory: the package's own `sets/` when packed, else the repository's.
+  - The first time a set is read, its content id (the spec's, §9.2) is recomputed from its clip files and checked
+    against its manifest. The id says that a set changed, not which file, so `library/sets.lock.json` records each
+    clip file's SHA-256, and a changed file is named (`E_TAMPERED`).
+  - `npm run library -- lock` rewrites the lock after the writer changes clips. A test fails if the committed lock
+    isn't what the files give.
+  - Tiers as D10 has them: CC0 by default. A clip in another tier is refused, with the option that opts in and the
+    set's terms. A deprecated id resolves through the lock's `aliases`, with a warning naming its successor; none are
+    deprecated yet.
+  - `library/LICENSES/` holds CC0 1.0 and CC BY 4.0 verbatim (SPDX's license-list-data v3.25.0 texts) and CMU's
+    notice in full, as its front page gives it (checked against mocap.cs.cmu.edu today).
+- **Why:** WP-4.7's fresh agents need to find and load clips from the packed package, not from paths into the
+  repository. WP-5.1 is small and needs only WP-1.5, so it runs here, ahead of the ledger's order (G4's other items
+  don't depend on it).
+- **Outside WP-5.1's Owns** (one agent, D21): `packages/library/src/node.ts` and the package's exports (the `/node`
+  entry), `tools/library/main.ts` (`npm run library`), `library/sets.lock.json`.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.26.0

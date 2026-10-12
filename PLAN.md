@@ -2238,7 +2238,7 @@ version, commit, date and a note with the numbers. Gates are rows too.
 | 4.6 The first-flight demo | done | 0.25.0 | (this commit) | 2026-10-12 | lab `apps/lab/hello`: idle, walk, run by speed, jump, attack with its hit; deep links, `__m3a`, phone layout, stamp; `vercel.json`; e2e: a 13 s session headless on WebGL 2, hashes = Node's after every part, the sensors on what it played WARN with no fail, screenshots and a sheet as T2's artifact (D52); cross-fade planting fixed on the way (D51) |
 | 4.7 The benchmark harness and B1 | todo | | | | |
 | **G4 = M1** | todo | | | | |
-| 5.1 Library layout and loader | todo | | | | |
+| 5.1 Library layout and loader | done | 0.26.0 | (this commit) | 2026-10-12 | ahead of the ledger for WP-4.7 (D53): 5 sets, 525 clips load with their content ids and every file as locked; a tampered file fails with its clip named; a game that hasn't opted in sees the 3 CC0 sets (367 clips); CC0, CC BY and CMU texts in library/LICENSES/ |
 | 5.2 Importers | todo | | | | |
 | 5.7 License compliance | todo | | | | |
 | 5.6 Large corpora on demand | todo | | | | |

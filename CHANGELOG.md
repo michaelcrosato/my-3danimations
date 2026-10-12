@@ -4,6 +4,17 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.26.0 · 2026-10-12
+
+### Library
+- The loader (WP-5.1, D53): `Library` (sets, catalogs and clips by id) and `@m3a/library/node`'s `openLibrary`; each
+  set's content id checked against its files and each clip against `library/sets.lock.json`, so a changed file is
+  named; CC0 alone unless a game opts in to a tier; deprecated ids resolve with a warning.
+- `library/LICENSES/`: CC0 1.0 and CC BY 4.0 verbatim, CMU's notice in full; `library/README.md`.
+
+### Tools
+- `npm run library -- lock | check | list [--tiers ...]`.
+
 ## 0.25.0 · 2026-10-12
 
 ### Core

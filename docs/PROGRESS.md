@@ -3,7 +3,7 @@
 The current state on one screen (at most 40 lines; `npm run doctrine` checks it from WP-0.3). The ledger is
 `PLAN.md` §14; decisions are in `docs/DECISIONS.md`.
 
-**Phase:** 4 First flight. **Next gate:** G4 (M1). **Version:** 0.25.0.
+**Phase:** 4 First flight. **Next gate:** G4 (M1). **Version:** 0.26.0.
 **Mode:** one agent (D21), branch `claude/relaxed-albattani-939ofg` (D50: it takes over michaelcrosato/my-3danimations#9).
 
 ## Done
@@ -24,7 +24,7 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 ## Next
 
 - The sweep (D51): 87.7% of 3,150 pairs (84–91% a skeleton; the Knight 62 → 85%); G4 asks 95%.
-- Next: WP-4.7 (the benchmark harness and B1), the sweep's remaining causes, then G4.
+- WP-5.1 done ahead of order (D53): the library loader. Next: WP-4.7 (B1), the sweep's remaining causes, G4.
 
 ## Blocked on the owner
 
