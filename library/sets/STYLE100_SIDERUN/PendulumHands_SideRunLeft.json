@@ -13,7 +13,7 @@
 "contacts": {"by":"detected","footL":[[0,0.345],[0.657,0.871]],"footR":[[0.411,0.707],[0.986,1.348]]},
 "facts": {"by":"m3a-facts@1","captured":["speed"],"height":[88,103],"seam":0,"speed":122,"travel":[30.7,-149.3]},
 "provenance": {"src":"100STYLE","take":"PendulumHands_SR 39.42-40.58","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
-"quality": {"fit":[14,124],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[14,124],"qa":"pass","qaVersion":"m3a-sensors@1"},
 "keys": [
   {"t":0,
    "hips":[0,0,90], "body":[-3,6,-3], "chest":[1,39,5], "head":[1,-8,-2],

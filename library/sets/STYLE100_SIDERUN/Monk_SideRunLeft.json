@@ -13,7 +13,7 @@
 "contacts": {"by":"detected","footL":[[0.283,0.6]],"footR":[[0.033,0.333]]},
 "facts": {"by":"m3a-facts@1","captured":["speed"],"height":[97,105],"seam":0,"speed":106,"travel":[18.2,-66.7]},
 "provenance": {"src":"100STYLE","take":"Monk_SR 21.85-22.50","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
-"quality": {"fit":[7,44],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[7,44],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"warn on seamVelocity, skate: short of every fail level (thresholds.ts): unusual, not broken"},
 "keys": [
   {"t":0,
    "hips":[0,0,105], "body":[-1,-4,0], "chest":[-6,20,-1], "head":[0,49,-6],

@@ -1,0 +1,12 @@
+{
+ "about": "Why the library keeps the clips the sensors flag (PLAN.md WP-5.8; tools/qa/verdict.ts). The writers (npm run import, npm run migrate) record each clip's verdict in its quality: pass, or baselined with a reason that names the level and the metrics past it, then a reason given here for that clip and metric, else its set's, else the warn level's, else how the clip stands to its source (as captured or as keyed, its fit, what its repair did). npm run qa -- library --check reads every clip's again and names a reason here whose finding is gone.",
+ "warn": "short of every fail level (thresholds.ts): unusual, not broken",
+ "sets": {
+  "QUATERNIUS_3D2DGE": "as migrated from Quaternius's Universal Animation Library, with no source frames to measure a repair against: its keys stay the source's (WP-1.5) until the re-import can fetch its files (D63)",
+  "QUATERNIUS_SHARDFALL": "as migrated from Quaternius's Universal Animation Library, with no source frames to measure a repair against: its keys stay the source's (WP-1.5) until the re-import can fetch its files (D63)"
+ },
+ "clips": {
+  "MESH2MOTION/Ledge_Hang": { "penetration": "it hangs by the hands, legs dangling and toes pointed, with its hips at standing height: the toes reach below the floor, which a ledge replaces where it plays" },
+  "MESH2MOTION/Zombie_Rise": { "penetration": "it rises out of the ground: the hips start 40% of their height under the floor, on purpose" }
+ }
+}

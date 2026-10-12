@@ -13,7 +13,7 @@
 "contacts": {"by":"detected","footL":[[2.743,3.375]]},
 "facts": {"by":"m3a-facts@1","height":[-40,89]},
 "provenance": {"src":"M2M_ANIMATED","method":"keyed","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
-"quality": {"fit":[9,90],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[9,90],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"fail on penetration, twistFlip: penetration: it rises out of the ground: the hips start 40% of their height under the floor, on purpose; twistFlip: as keyed in its source, fitted within 9 mm of it on average; the sensors' fix: twistFlips, penetration would take it 339 mm further from its source on average, 741 mm at worst"},
 "keys": [
   {"t":0,
    "hips":[13,0,-40], "body":[180,-88,180], "chest":[1,-12,0], "head":[0,17,0], "spine":[-5,-14,72],

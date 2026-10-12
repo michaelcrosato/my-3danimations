@@ -41,14 +41,18 @@
    "fit": {
     "import": [
      7,
-     71
+     55
     ]
    },
    "qa": {
     "import": "warn"
    },
    "hands": [
-    9.2
+    9.4
+   ],
+   "repaired": [
+    "twistFlips",
+    "jitter"
    ]
   },
   "ArmsAboveHead_WalkBack": {
@@ -184,15 +188,18 @@
    "why": "new in the re-import",
    "fit": {
     "import": [
-     11,
+     12,
      78
     ]
    },
    "qa": {
-    "import": "fail"
+    "import": "pass"
    },
    "hands": [
     12.1
+   ],
+   "repaired": [
+    "twistFlips"
    ]
   },
   "BouncyLeft_WalkBack": {
@@ -225,7 +232,8 @@
    },
    "hands": [
     9.2
-   ]
+   ],
+   "unrepaired": "no step makes it better"
   },
   "Cat_WalkBack": {
    "kept": "new",
@@ -417,7 +425,8 @@
    },
    "hands": [
     12.8
-   ]
+   ],
+   "unrepaired": "twistFlips, jitter, seam would take it 3 mm further from its source on average"
   },
   "FairySteps_WalkBack": {
    "kept": "new",
@@ -513,7 +522,8 @@
    },
    "hands": [
     7
-   ]
+   ],
+   "unrepaired": "no step makes it better"
   },
   "HandsInPockets_WalkBack": {
    "kept": "new",
@@ -1001,14 +1011,17 @@
    "fit": {
     "import": [
      9,
-     98
+     95
     ]
    },
    "qa": {
-    "import": "warn"
+    "import": "pass"
    },
    "hands": [
-    9.3
+    9.1
+   ],
+   "repaired": [
+    "twistFlips"
    ]
   },
   "Quail_WalkBack": {
@@ -1137,7 +1150,8 @@
    },
    "hands": [
     13.5
-   ]
+   ],
+   "unrepaired": "twistFlips would take it 9 mm further from its source on average, 460 mm at worst"
   },
   "ShieldedLeft_WalkBack": {
    "kept": "new",
@@ -1185,7 +1199,8 @@
    },
    "hands": [
     10.4
-   ]
+   ],
+   "unrepaired": "no step makes it better"
   },
   "SlideFeet_WalkBack": {
    "kept": "new",
@@ -1233,7 +1248,8 @@
    },
    "hands": [
     6.6
-   ]
+   ],
+   "unrepaired": "no step makes it better"
   },
   "Stiff_WalkBack": {
    "kept": "new",
@@ -1345,7 +1361,8 @@
    },
    "hands": [
     12.1
-   ]
+   ],
+   "unrepaired": "seam would take it 7 mm further from its source on average"
   },
   "SwingShoulders_WalkBack": {
    "kept": "new",
@@ -1425,7 +1442,8 @@
    },
    "hands": [
     6.9
-   ]
+   ],
+   "unrepaired": "no step makes it better"
   },
   "WalkingStickLeft_WalkBack": {
    "kept": "new",
@@ -1533,10 +1551,13 @@
     ]
    },
    "qa": {
-    "import": "warn"
+    "import": "pass"
    },
    "hands": [
     12.1
+   ],
+   "repaired": [
+    "twistFlips"
    ]
   },
   "WildLegs_WalkBack": {

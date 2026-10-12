@@ -13,7 +13,7 @@
 "contacts": {"by":"detected","footL":[[0.94,1.945]],"footR":[[0.033,0.115],[0.478,0.824],[1.253,1.467]]},
 "facts": {"by":"m3a-facts@1","captured":["speed"],"height":[92,100],"seam":0,"speed":88,"travel":[133.7,-23.2]},
 "provenance": {"src":"100STYLE","take":"KarateChop_FR 51.32-52.78","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
-"quality": {"fit":[11,82],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[11,82],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"fail on twistFlip: as captured, fitted within 11 mm of it on average; the sensors' fix: penetration would take it 12 mm further from its source on average"},
 "keys": [
   {"t":0,
    "hips":[0,0,99], "body":[27,3,-1], "chest":[-3,14,4], "head":[-9,9,-13],

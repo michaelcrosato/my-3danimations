@@ -191,9 +191,11 @@ describe("on another body, and under a cross-fade (D51)", () => {
     expect(deepest).toBeGreaterThan(-15);
   });
   it("holds a foot through a gap of under 0.1 s between its contacts: no step was taken (D58)", () => {
-    // Zombie_Walk_Loop's left foot stands 0.45–1.4 s, lifts for 33 ms across the seam and stands again: letting its hold
-    // go and taking it again there moved the ankle 31 mm in a frame
-    const { clip, R } = byId("CMU_CURATED/Zombie_Walk_Loop"), a = new Animator(rig).layer("b", { clip: { ...clip, contacts: measureFacts(clip, R).contacts }, time: 1.3 });
+    // Zombie_Walk_Loop's left foot stood 0.45–1.4 s, lifted for 33 ms across the seam and stood again (as detected on the
+    // migrated clip, given here as labelled so a re-import's detection can't move them): letting its hold go and taking
+    // it again there moved the ankle 31 mm in a frame
+    const { clip } = byId("CMU_CURATED/Zombie_Walk_Loop"), contacts = { by: "labelled" as const, footL: [[0.033, 0.117], [0.45, 1.4]] as [number, number][], footR: [[1.033, 2.15]] as [number, number][] };
+    const a = new Animator(rig).layer("b", { clip: { ...clip, contacts }, time: 1.3 });
     let prev: number[] | null = null, worst = 0;
     for (let i = 0; i <= 14; i++) {
       const p = a.pose(), w = toWorld(p.root, P(p.points, "ankleL"));

@@ -3,7 +3,7 @@
 The current state on one screen (at most 40 lines; `npm run doctrine` checks it from WP-0.3). The ledger is
 `PLAN.md` §14; decisions are in `docs/DECISIONS.md`.
 
-**Phase:** 4 First flight. **Next gate:** G4 (M1), run 2. **Version:** 0.34.0.
+**Phase:** 4 First flight, 5 The payload. **Next gates:** G5; G4 (M1), run 2. **Version:** 0.35.0.
 **Mode:** one agent (D21), branch `claude/relaxed-albattani-939ofg` (D50: it takes over michaelcrosato/my-3danimations#9).
 
 ## Done
@@ -21,9 +21,9 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 ## Next
 
 - Fix forward from G4 run 1. A second failure is K1 (PLAN.md §12): run 2 waits for a sweep at ≥95% at a clean
-  commit, over the whole library now (1,385 clips, 8,310 pairs; D63). Phase 5 lanes that don't need G4 go on.
-- Phase 5 so far: WP-5.1 (D53); 5.7 licenses (D59); 5.2 the importers, `@m3a/io` (D61); 5.6 the corpora (D62);
-  5.3 the re-import, 1,385 clips (D63); 5.4 facts in every clip (D64); 5.5 search, held out 8/10 (D65). Next: 5.8.
+  commit, over the whole library now (1,390 clips, 8,340 pairs; D63). Phase 5 lanes that don't need G4 go on.
+- Phase 5's WPs are done: 5.1 (D53); 5.7 (D59); 5.2 `@m3a/io` (D61); 5.6 (D62); 5.3 the re-import (D63); 5.4 facts
+  (D64); 5.5 search (D65); 5.8 library QA, 1,193 unique motions in 1,390 clips (D66). Next: gate G5, with a verifier.
 
 ## Blocked on the owner
 

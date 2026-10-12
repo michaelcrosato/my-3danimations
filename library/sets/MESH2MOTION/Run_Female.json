@@ -13,7 +13,7 @@
 "contacts": {"by":"detected"},
 "facts": {"by":"m3a-facts@1","height":[89,100],"seam":0,"speed":395.3,"travel":[329.3,0.3]},
 "provenance": {"src":"M2M_ANIMATED","method":"keyed","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
-"quality": {"fit":[7,63],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[7,63],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"fail on jitter, seamVelocity, twistFlip: as keyed in its source, fitted within 7 mm of it on average; the sensors' fix: jitter would take it 3 mm further from its source on average"},
 "keys": [
   {"t":0,
    "hips":[-4,2,98], "body":[-16,-1,4], "chest":[55,8,-10], "head":[-22,13,-4], "spine":[2,50,70],

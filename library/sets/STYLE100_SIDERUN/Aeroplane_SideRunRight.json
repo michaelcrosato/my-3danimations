@@ -13,7 +13,7 @@
 "contacts": {"by":"detected","footL":[[0.55,0.783]],"footR":[[0.233,0.4]]},
 "facts": {"by":"m3a-facts@1","captured":["speed"],"height":[95,108],"seam":0,"speed":146,"travel":[6.5,93.3]},
 "provenance": {"src":"100STYLE","take":"Aeroplane_SR 9.42-10.00","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
-"quality": {"fit":[10,42],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[10,42],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"warn on pop: short of every fail level (thresholds.ts): unusual, not broken"},
 "keys": [
   {"t":0,
    "hips":[0,0,103], "body":[0,-1,1], "chest":[-10,18,18], "head":[20,36,32],

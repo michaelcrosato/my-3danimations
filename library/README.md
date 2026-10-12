@@ -7,7 +7,11 @@ A set re-imported from its sources (WP-5.3, `npm run import`) also has `_import.
 re-import and its migrated version, and why. What each set picks from its sources is in `catalogs/<SET>.json`.
 Every clip carries its facts and contacts as measured (WP-5.4: `facts.by` names the revision, `captured` the facts its
 source gave); `npm run facts -- --check` measures them again and reads its tags against them (a `loop` closes, a `run`
-travels or is tagged `inplace`), each exception given a reason in `baselines/tags.json`.
+travels or is tagged `inplace`), each exception given a reason in `baselines/tags.json`. Every clip carries its QA
+verdict too (WP-5.8: `quality.qa` pass, or baselined with its reason in `quality.baseline`, read with the sensors'
+revision `quality.qaVersion`); the reasons by set and by clip are in `baselines/qa.json`, the distributions that may only
+improve in `baselines/distributions.json`. `npm run qa -- library --check` reads it all again, with the census
+(unique motions and G5's category floors), and `docs/LIBRARY.md` is its summary.
 
 ## Tiers and the default pack (D10)
 

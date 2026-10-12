@@ -13,7 +13,7 @@
 "contacts": {"by":"detected","footL":[[0.25,0.5]]},
 "facts": {"by":"m3a-facts@1","captured":["speed"],"height":[97,99],"seam":0,"speed":23,"travel":[14.6,6.7]},
 "provenance": {"src":"100STYLE","take":"SwingArmsRound_FR 69.88-70.38","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
-"quality": {"fit":[8,78],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[8,78],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"fail on seamVelocity: as captured, fitted within 8 mm of it on average; the sensors' fix: no step makes it better"},
 "keys": [
   {"t":0,
    "hips":[0,0,97], "body":[10,-9,-3], "chest":[0,24,5], "head":[3,21,-2],

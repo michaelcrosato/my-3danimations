@@ -13,7 +13,7 @@
 "contacts": {"by":"detected","footL":[[0.083,0.366]],"footR":[[0.083,0.117]]},
 "facts": {"by":"m3a-facts@1","captured":["speed"],"height":[92,99],"seam":0,"speed":104,"travel":[17.8,33]},
 "provenance": {"src":"100STYLE","take":"Drunk_SR 21.67-22.20","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
-"quality": {"fit":[8,54],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[8,54],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"warn on pop, skate: short of every fail level (thresholds.ts): unusual, not broken"},
 "keys": [
   {"t":0,
    "hips":[0,0,98], "body":[-3,11,-2], "chest":[0,34,-11], "head":[3,54,9],

@@ -13,7 +13,7 @@
 "contacts": {"by":"detected","footL":[[0.666,1.416]],"footR":[[0.117,0.916]]},
 "facts": {"by":"m3a-facts@1","captured":["speed"],"height":[100,104],"seam":0,"speed":50,"travel":[17.2,-52]},
 "provenance": {"src":"100STYLE","take":"Tiptoe_SW 21.13-22.25","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
-"quality": {"fit":[8,49],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[8,49],"qa":"pass","qaVersion":"m3a-sensors@1"},
 "keys": [
   {"t":0,
    "hips":[0,0,104], "body":[2,0,-2], "chest":[-3,8,0], "head":[-9,30,-6],

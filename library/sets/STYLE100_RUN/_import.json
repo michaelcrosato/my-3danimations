@@ -1,6 +1,6 @@
 {
  "about": "The re-import (WP-5.3) by m3a-import 1: each clip's choice between its re-import and its migrated version, with why; both fits (mean, worst mm against the source); both QA verdicts; the sensor metrics that moved ([migrated, re-import]); the hands' mean error against the capture ([migrated, re-import] mm; props: over the clips that hold something); what the catalog skips; the clips the migrated set had that are gone.",
- "mean": 9.4,
+ "mean": 9.5,
  "props": null,
  "clips": {
   "Aeroplane_Run": {
@@ -40,15 +40,19 @@
    "why": "new in the re-import",
    "fit": {
     "import": [
-     14,
+     15,
      63
     ]
    },
    "qa": {
-    "import": "fail"
+    "import": "warn"
    },
    "hands": [
-    11.8
+    15.6
+   ],
+   "repaired": [
+    "twistFlips",
+    "seam"
    ]
   },
   "ArmsAboveHead_Run": {
@@ -97,7 +101,8 @@
    },
    "hands": [
     7.2
-   ]
+   ],
+   "unrepaired": "twistFlips would take it 10 mm further from its source on average, 374 mm at worst"
   },
   "ArmsFolded_Run": {
    "kept": "new",
@@ -105,14 +110,17 @@
    "fit": {
     "import": [
      8,
-     48
+     130
     ]
    },
    "qa": {
-    "import": "warn"
+    "import": "pass"
    },
    "hands": [
     4.9
+   ],
+   "repaired": [
+    "twistFlips"
    ]
   },
   "Balance_Run": {
@@ -129,7 +137,8 @@
    },
    "hands": [
     8.3
-   ]
+   ],
+   "unrepaired": "no step makes it better"
   },
   "BeatChest_Run": {
    "kept": "new",
@@ -145,7 +154,8 @@
    },
    "hands": [
     6.9
-   ]
+   ],
+   "unrepaired": "no step makes it better"
   },
   "BentForward_Run": {
    "kept": "new",
@@ -161,7 +171,8 @@
    },
    "hands": [
     5.9
-   ]
+   ],
+   "unrepaired": "no step makes it better"
   },
   "BentKnees_Run": {
    "kept": "new",
@@ -169,14 +180,17 @@
    "fit": {
     "import": [
      9,
-     54
+     71
     ]
    },
    "qa": {
-    "import": "warn"
+    "import": "pass"
    },
    "hands": [
     9.5
+   ],
+   "repaired": [
+    "twistFlips"
    ]
   },
   "BigSteps_Run": {
@@ -193,7 +207,8 @@
    },
    "hands": [
     25.5
-   ]
+   ],
+   "unrepaired": "no step makes it better"
   },
   "BouncyLeft_Run": {
    "kept": "new",
@@ -221,10 +236,13 @@
     ]
    },
    "qa": {
-    "import": "warn"
+    "import": "pass"
    },
    "hands": [
     7.8
+   ],
+   "repaired": [
+    "twistFlips"
    ]
   },
   "Cat_Run": {
@@ -241,7 +259,8 @@
    },
    "hands": [
     7.5
-   ]
+   ],
+   "unrepaired": "no step makes it better"
   },
   "Chicken_Run": {
    "kept": "new",
@@ -273,7 +292,8 @@
    },
    "hands": [
     9.3
-   ]
+   ],
+   "unrepaired": "no step makes it better"
   },
   "Crouched_Run": {
    "kept": "new",
@@ -289,7 +309,8 @@
    },
    "hands": [
     4.1
-   ]
+   ],
+   "unrepaired": "no step makes it better"
   },
   "CrowdAvoidance_Run": {
    "kept": "new",
@@ -305,7 +326,8 @@
    },
    "hands": [
     6.1
-   ]
+   ],
+   "unrepaired": "no step makes it better"
   },
   "Depressed_Run": {
    "kept": "new",
@@ -313,14 +335,17 @@
    "fit": {
     "import": [
      8,
-     62
+     98
     ]
    },
    "qa": {
-    "import": "fail"
+    "import": "pass"
    },
    "hands": [
     11.1
+   ],
+   "repaired": [
+    "twistFlips"
    ]
   },
   "Dinosaur_Run": {
@@ -329,14 +354,17 @@
    "fit": {
     "import": [
      9,
-     63
+     84
     ]
    },
    "qa": {
-    "import": "warn"
+    "import": "pass"
    },
    "hands": [
     6.1
+   ],
+   "repaired": [
+    "twistFlips"
    ]
   },
   "DragLeftLeg_Run": {
@@ -385,7 +413,8 @@
    },
    "hands": [
     19.2
-   ]
+   ],
+   "unrepaired": "seam would take it 5 mm further from its source on average"
   },
   "DuckFoot_Run": {
    "kept": "new",
@@ -424,15 +453,18 @@
    "why": "new in the re-import",
    "fit": {
     "import": [
-     8,
-     98
+     7,
+     48
     ]
    },
    "qa": {
-    "import": "warn"
+    "import": "pass"
    },
    "hands": [
-    10
+    9
+   ],
+   "repaired": [
+    "twistFlips"
    ]
   },
   "Flapping_Run": {
@@ -445,10 +477,13 @@
     ]
    },
    "qa": {
-    "import": "fail"
+    "import": "warn"
    },
    "hands": [
     27.8
+   ],
+   "repaired": [
+    "twistFlips"
    ]
   },
   "FlickLegs_Run": {
@@ -465,7 +500,8 @@
    },
    "hands": [
     7.6
-   ]
+   ],
+   "unrepaired": "no step makes it better"
   },
   "Followed_Run": {
    "kept": "new",
@@ -481,7 +517,8 @@
    },
    "hands": [
     7.9
-   ]
+   ],
+   "unrepaired": "no step makes it better"
   },
   "GracefulArms_Run": {
    "kept": "new",
@@ -497,7 +534,8 @@
    },
    "hands": [
     6.1
-   ]
+   ],
+   "unrepaired": "no step makes it better"
   },
   "HandsBetweenLegs_Run": {
    "kept": "new",
@@ -520,15 +558,19 @@
    "why": "new in the re-import",
    "fit": {
     "import": [
-     9,
+     11,
      81
     ]
    },
    "qa": {
-    "import": "warn"
+    "import": "pass"
    },
    "hands": [
-    4.8
+    5.1
+   ],
+   "repaired": [
+    "twistFlips",
+    "seam"
    ]
   },
   "Heavyset_Run": {
@@ -536,15 +578,18 @@
    "why": "new in the re-import",
    "fit": {
     "import": [
-     9,
+     10,
      86
     ]
    },
    "qa": {
-    "import": "fail"
+    "import": "pass"
    },
    "hands": [
     4.8
+   ],
+   "repaired": [
+    "twistFlips"
    ]
   },
   "HighKnees_Run": {
@@ -561,6 +606,9 @@
    },
    "hands": [
     10.2
+   ],
+   "repaired": [
+    "twistFlips"
    ]
   },
   "InTheDark_Run": {
@@ -593,7 +641,8 @@
    },
    "hands": [
     5.5
-   ]
+   ],
+   "unrepaired": "penetration would take it 12 mm further from its source on average"
   },
   "Kick_Run": {
    "kept": "new",
@@ -605,10 +654,13 @@
     ]
    },
    "qa": {
-    "import": "warn"
+    "import": "pass"
    },
    "hands": [
-    10.7
+    10.9
+   ],
+   "repaired": [
+    "jitter"
    ]
   },
   "LawnMower_Run": {
@@ -632,15 +684,18 @@
    "why": "new in the re-import",
    "fit": {
     "import": [
-     12,
-     107
+     13,
+     114
     ]
    },
    "qa": {
     "import": "fail"
    },
    "hands": [
-    14.4
+    14.7
+   ],
+   "repaired": [
+    "seam"
    ]
   },
   "LeanLeft_Run": {
@@ -673,7 +728,8 @@
    },
    "hands": [
     6
-   ]
+   ],
+   "unrepaired": "no step makes it better"
   },
   "LeftHop_Run": {
    "kept": "new",
@@ -689,7 +745,8 @@
    },
    "hands": [
     29.3
-   ]
+   ],
+   "unrepaired": "no step makes it better"
   },
   "LegsApart_Run": {
    "kept": "new",
@@ -776,15 +833,18 @@
    "why": "new in the re-import",
    "fit": {
     "import": [
-     8,
-     55
+     10,
+     184
     ]
    },
    "qa": {
-    "import": "warn"
+    "import": "pass"
    },
    "hands": [
     9.5
+   ],
+   "repaired": [
+    "twistFlips"
    ]
   },
   "Monk_Run": {
@@ -793,14 +853,17 @@
    "fit": {
     "import": [
      6,
-     63
+     59
     ]
    },
    "qa": {
-    "import": "warn"
+    "import": "pass"
    },
    "hands": [
     3.6
+   ],
+   "repaired": [
+    "twistFlips"
    ]
   },
   "Morris_Run": {
@@ -817,7 +880,8 @@
    },
    "hands": [
     8.2
-   ]
+   ],
+   "unrepaired": "no step makes it better"
   },
   "Neutral_Run": {
    "kept": "new",
@@ -881,7 +945,8 @@
    },
    "hands": [
     6
-   ]
+   ],
+   "unrepaired": "no step makes it better"
   },
   "OnPhoneRight_Run": {
    "kept": "new",
@@ -913,7 +978,8 @@
    },
    "hands": [
     5.9
-   ]
+   ],
+   "unrepaired": "no step makes it better"
   },
   "OnToesCrouched_Run": {
    "kept": "new",
@@ -929,7 +995,8 @@
    },
    "hands": [
     6.1
-   ]
+   ],
+   "unrepaired": "no step makes it better"
   },
   "PendulumHands_Run": {
    "kept": "new",
@@ -945,7 +1012,8 @@
    },
    "hands": [
     7.1
-   ]
+   ],
+   "unrepaired": "no step makes it better"
   },
   "Penguin_Run": {
    "kept": "new",
@@ -993,7 +1061,8 @@
    },
    "hands": [
     8.6
-   ]
+   ],
+   "unrepaired": "no step makes it better"
   },
   "Punch_Run": {
    "kept": "new",
@@ -1009,7 +1078,8 @@
    },
    "hands": [
     8.2
-   ]
+   ],
+   "unrepaired": "no step makes it better"
   },
   "Quail_Run": {
    "kept": "new",
@@ -1041,7 +1111,8 @@
    },
    "hands": [
     10.4
-   ]
+   ],
+   "unrepaired": "no step makes it better"
   },
   "RaisedRightArm_Run": {
    "kept": "new",
@@ -1057,7 +1128,8 @@
    },
    "hands": [
     9.4
-   ]
+   ],
+   "unrepaired": "no step makes it better"
   },
   "RightHop_Run": {
    "kept": "new",
@@ -1081,14 +1153,17 @@
    "fit": {
     "import": [
      11,
-     81
+     190
     ]
    },
    "qa": {
-    "import": "fail"
+    "import": "pass"
    },
    "hands": [
     7.1
+   ],
+   "repaired": [
+    "twistFlips"
    ]
   },
   "Robot_Run": {
@@ -1105,7 +1180,8 @@
    },
    "hands": [
     8.7
-   ]
+   ],
+   "unrepaired": "no step makes it better"
   },
   "Rocket_Run": {
    "kept": "new",
@@ -1137,22 +1213,26 @@
    },
    "hands": [
     11.8
-   ]
+   ],
+   "unrepaired": "seam would take it 4 mm further from its source on average"
   },
   "ShieldedLeft_Run": {
    "kept": "new",
    "why": "new in the re-import",
    "fit": {
     "import": [
-     6,
-     78
+     7,
+     148
     ]
    },
    "qa": {
-    "import": "fail"
+    "import": "pass"
    },
    "hands": [
     3.5
+   ],
+   "repaired": [
+    "twistFlips"
    ]
   },
   "ShieldedRight_Run": {
@@ -1184,7 +1264,10 @@
     "import": "warn"
    },
    "hands": [
-    27.7
+    27.8
+   ],
+   "repaired": [
+    "jitter"
    ]
   },
   "SlideFeet_Run": {
@@ -1192,15 +1275,18 @@
    "why": "new in the re-import",
    "fit": {
     "import": [
-     10,
-     96
+     11,
+     86
     ]
    },
    "qa": {
-    "import": "fail"
+    "import": "warn"
    },
    "hands": [
-    12.3
+    15.1
+   ],
+   "repaired": [
+    "twistFlips"
    ]
   },
   "Star_Run": {
@@ -1233,7 +1319,8 @@
    },
    "hands": [
     6.6
-   ]
+   ],
+   "unrepaired": "no step makes it better"
   },
   "Stiff_Run": {
    "kept": "new",
@@ -1249,7 +1336,8 @@
    },
    "hands": [
     9.8
-   ]
+   ],
+   "unrepaired": "no step makes it better"
   },
   "Strutting_Run": {
    "kept": "new",
@@ -1265,7 +1353,8 @@
    },
    "hands": [
     13.1
-   ]
+   ],
+   "unrepaired": "no step makes it better"
   },
   "Superman_Run": {
    "kept": "new",
@@ -1304,15 +1393,18 @@
    "why": "new in the re-import",
    "fit": {
     "import": [
-     9,
-     39
+     10,
+     50
     ]
    },
    "qa": {
     "import": "warn"
    },
    "hands": [
-    6.2
+    6.5
+   ],
+   "repaired": [
+    "seam"
    ]
   },
   "Swimming_Run": {
@@ -1329,7 +1421,8 @@
    },
    "hands": [
     8.7
-   ]
+   ],
+   "unrepaired": "twistFlips would take it 8 mm further from its source on average, 435 mm at worst"
   },
   "SwingArmsRound_Run": {
    "kept": "new",
@@ -1345,22 +1438,26 @@
    },
    "hands": [
     15.7
-   ]
+   ],
+   "unrepaired": "no step makes it better"
   },
   "SwingShoulders_Run": {
    "kept": "new",
    "why": "new in the re-import",
    "fit": {
     "import": [
-     12,
+     13,
      146
     ]
    },
    "qa": {
-    "import": "fail"
+    "import": "pass"
    },
    "hands": [
     12.3
+   ],
+   "repaired": [
+    "twistFlips"
    ]
   },
   "Teapot_Run": {
@@ -1377,7 +1474,8 @@
    },
    "hands": [
     5.9
-   ]
+   ],
+   "unrepaired": "no step makes it better"
   },
   "Tiptoe_Run": {
    "kept": "new",
@@ -1409,7 +1507,8 @@
    },
    "hands": [
     9.2
-   ]
+   ],
+   "unrepaired": "no step makes it better"
   },
   "TwoFootJump_Run": {
    "kept": "new",
@@ -1453,10 +1552,13 @@
     ]
    },
    "qa": {
-    "import": "fail"
+    "import": "pass"
    },
    "hands": [
     7.3
+   ],
+   "repaired": [
+    "twistFlips"
    ]
   },
   "Waving_Run": {
@@ -1473,7 +1575,8 @@
    },
    "hands": [
     7.3
-   ]
+   ],
+   "unrepaired": "twistFlips would take it 3 mm further from its source on average"
   },
   "WhirlArms_Run": {
    "kept": "new",
@@ -1489,7 +1592,8 @@
    },
    "hands": [
     55.5
-   ]
+   ],
+   "unrepaired": "seam would take it 7 mm further from its source on average"
   },
   "WideLegs_Run": {
    "kept": "new",
@@ -1537,7 +1641,8 @@
    },
    "hands": [
     15.1
-   ]
+   ],
+   "unrepaired": "penetration would take it 8 mm further from its source on average"
   },
   "WildLegs_Run": {
    "kept": "new",

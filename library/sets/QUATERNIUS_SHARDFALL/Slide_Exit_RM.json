@@ -13,7 +13,7 @@
 "contacts": {"by":"detected"},
 "facts": {"by":"m3a-facts@1","height":[5,90],"travel":[218,0]},
 "provenance": {"src":"UAL2","method":"keyed","producer":{"tool":"m3a-migrate","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
-"quality": {"fit":[17,86],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[17,86],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"warn on pop, twistFlip: short of every fail level (thresholds.ts): unusual, not broken"},
 "keys": [
   {"t":0,
    "hips":[1,-2,5], "body":[0,-74,6], "chest":[-60,59,25], "head":[20,29,3], "root":[0,0],

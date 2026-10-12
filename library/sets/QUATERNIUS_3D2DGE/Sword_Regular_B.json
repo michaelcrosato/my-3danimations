@@ -13,7 +13,7 @@
 "contacts": {"by":"detected","footL":[[0.033,0.183],[0.366,0.533]],"footR":[[0,0.183],[0.316,0.533]]},
 "facts": {"by":"m3a-facts@1","height":[52,62],"strike":[0.25],"travel":[-6,0]},
 "provenance": {"src":"UAL2","method":"keyed","producer":{"tool":"m3a-migrate","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
-"quality": {"fit":[16,115],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[16,115],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"fail on jitter: as migrated from Quaternius's Universal Animation Library, with no source frames to measure a repair against: its keys stay the source's (WP-1.5) until the re-import can fetch its files (D63)"},
 "keys": [
   {"t":0,
    "hips":[-4,6,62], "body":[-117,-17,12], "chest":[-32,25,6], "head":[67,8,4], "root":[82,0],

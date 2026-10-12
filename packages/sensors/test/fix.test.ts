@@ -1,9 +1,9 @@
 // Lint and fix (WP-3.5): each operator removes its planted defect (WP-3.6's runs) without pushing any other metric
 // past its threshold, and leaves a valid clip; a step that would make any metric worse is not applied; no operator
 // changes `dur`, an event, a contact or a key without reporting it, and stored facts are measured again when the
-// motion changed; each operator's own cases (a flip at a straight limb, whole turns, a loop's flip, a hovering foot, a
-// seam whose speeds alone differ); re-fit keeps a budget within its tolerance, the root's travel included; lint lists
-// what fix would change, naming the operator for each kind of finding.
+// motion changed (the ones its source gave kept); each operator's own cases (a flip at a straight limb, whole turns, a
+// loop's flip, a hovering foot, a seam whose speeds alone differ); re-fit keeps a budget within its tolerance, the root's
+// travel included; lint lists what fix would change, naming the operator for each kind of finding.
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -132,6 +132,9 @@ describe("nothing changes silently", () => {
     expect(out.steps.at(-1)!.op).toBe("facts");
     expect(out.steps.at(-1)!.changes.every((x) => /^facts\.\w+ .+ → .+$/.test(x))).toBe(true);
     expect(out.clip.facts).not.toEqual(p.facts);
+    // a fact the source gave (`captured`) is kept, not measured again
+    const given = fix({ ...p, facts: { ...p.facts!, speed: 123, captured: ["speed"] } }, walk.rest, { ops: ["jitter"] });
+    expect([given.clip.facts!.speed, given.steps.at(-1)!.changes.some((x) => x.startsWith("facts.speed"))]).toEqual([123, false]);
     // nothing changed: the stored facts stay as they were
     expect(fix(walk.clip, walk.rest, { ops: ["refit"] }).steps.map((s) => s.op)).toEqual(["refit"]);
   });

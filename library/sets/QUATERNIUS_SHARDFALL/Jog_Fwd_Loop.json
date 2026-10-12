@@ -13,7 +13,7 @@
 "contacts": {"by":"detected","footL":[[0.05,0.15]],"footR":[[0.516,0.616]]},
 "facts": {"by":"m3a-facts@1","captured":["speed"],"height":[76,103],"seam":0,"speed":585,"travel":[604.4,14]},
 "provenance": {"src":"UAL1","method":"keyed","producer":{"tool":"m3a-migrate","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
-"quality": {"fit":[17,134],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[17,134],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"fail on seamVelocity, twistFlip: as migrated from Quaternius's Universal Animation Library, with no source frames to measure a repair against: its keys stay the source's (WP-1.5) until the re-import can fetch its files (D63)"},
 "keys": [
   {"t":0,
    "hips":[-6,-2,90], "body":[0,6,6], "chest":[-48,37,16], "head":[45,-20,10],

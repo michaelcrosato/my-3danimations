@@ -13,7 +13,7 @@
 "contacts": {"by":"detected","footL":[[0,0.283]]},
 "facts": {"by":"m3a-facts@1","captured":["speed"],"height":[90,102],"seam":0,"speed":127,"travel":[34.4,-66.5]},
 "provenance": {"src":"100STYLE","take":"LawnMower_SR 18.90-19.40","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
-"quality": {"fit":[9,68],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[9,68],"qa":"pass","qaVersion":"m3a-sensors@1"},
 "keys": [
   {"t":0,
    "hips":[0,0,90], "body":[-2,6,-5], "chest":[-9,43,2], "head":[0,15,1],

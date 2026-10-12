@@ -13,7 +13,7 @@
 "contacts": {"by":"detected","footR":[[0,0.05]],"handL":[[0.4,0.433]]},
 "facts": {"by":"m3a-facts@1","height":[5,95]},
 "provenance": {"src":"M2M_QUATERNIUS","orig":"QUATERNIUS_SHARDFALL/Hit_Knockback","method":"keyed","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
-"quality": {"fit":[9,44],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[9,295],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"fail on penetration, pop: as keyed in its source, fitted within 9 mm of it on average; repaired (twistFlips), and still past it"},
 "keys": [
   {"t":0,
    "hips":[-21,-1,70], "body":[14,22,-7], "chest":[-34,82,23], "head":[5,4,-2], "spine":[2,0,61],
@@ -113,6 +113,6 @@
    "legL":[18,29,-94,19,24], "legR":[10,11,-99,75,-32], "footL":[14,26,-1], "footR":[-4,18,-1]},
   {"t":0.833,
    "hips":[-21,-1,70], "body":[14,22,-7], "chest":[-34,82,23], "head":[5,4,-2], "spine":[2,0,61],
-   "shL":[0,0], "shR":[0,0], "armL":[33,44,83,59,94], "armR":[73,40,55,74,-69], "handL":[3,22,104], "handR":[5,23,82], "fingersL":[87,87,87,87,87], "fingersR":[87,87,87,87,87],
+   "shL":[0,0], "shR":[0,0], "armL":[33,44,83,59,-42], "armR":[73,40,55,74,-69], "handL":[3,22,104], "handR":[5,23,82], "fingersL":[87,87,87,87,87], "fingersR":[87,87,87,87,87],
    "legL":[84,37,-39,67,21], "legR":[19,7,-98,100,-37], "footL":[-23,8,0], "footR":[-17,24,-1]}
 ]}

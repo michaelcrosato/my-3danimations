@@ -13,7 +13,7 @@
 "contacts": {"by":"detected","footL":[[0,3.125]],"footR":[[0,3.125]]},
 "facts": {"by":"m3a-facts@1","height":[99,100],"seam":0.5,"speed":0.2,"travel":[-0.6,0.3]},
 "provenance": {"src":"M2M_QUATERNIUS","orig":"QUATERNIUS_SHARDFALL/Idle_Loop","method":"keyed","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
-"quality": {"fit":[7,33],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[7,33],"qa":"pass","qaVersion":"m3a-sensors@1"},
 "keys": [
   {"t":0,
    "hips":[-10,-1,100], "body":[13,-5,0], "chest":[0,9,0], "head":[0,3,0],

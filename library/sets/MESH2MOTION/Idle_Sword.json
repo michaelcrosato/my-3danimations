@@ -13,7 +13,7 @@
 "contacts": {"by":"detected","footL":[[0,2.083]],"footR":[[0,2.083]]},
 "facts": {"by":"m3a-facts@1","height":[83,86],"seam":0,"speed":0.1,"travel":[0.2,-0.2]},
 "provenance": {"src":"M2M_QUATERNIUS","orig":"QUATERNIUS_SHARDFALL/Sword_Idle","method":"keyed","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
-"quality": {"fit":[8,34],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[8,34],"qa":"pass","qaVersion":"m3a-sensors@1"},
 "keys": [
   {"t":0,
    "hips":[-13,-6,83], "body":[24,-17,1], "chest":[23,37,-12], "head":[-7,-5,5], "spine":[3,1,86],

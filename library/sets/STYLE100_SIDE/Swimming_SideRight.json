@@ -13,7 +13,7 @@
 "contacts": {"by":"detected","footL":[[1.533,2.75]],"footR":[[0.933,2.05]]},
 "facts": {"by":"m3a-facts@1","captured":["speed"],"height":[93,102],"seam":0,"speed":48,"travel":[1.6,79.4]},
 "provenance": {"src":"100STYLE","take":"Swimming_SW 69.10-70.78","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
-"quality": {"fit":[9,71],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[9,71],"qa":"pass","qaVersion":"m3a-sensors@1"},
 "keys": [
   {"t":0,
    "hips":[0,0,100], "body":[0,-6,-2], "chest":[-3,17,2], "head":[11,10,-2],

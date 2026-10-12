@@ -13,7 +13,7 @@
 "contacts": {"by":"detected","footL":[[0,0.483],[0.95,1.167]],"footR":[[0.417,0.817],[2.2,2.433]]},
 "facts": {"by":"m3a-facts@1","captured":["speed"],"height":[91,101],"seam":0,"speed":143,"travel":[321.9,8.2]},
 "provenance": {"src":"100STYLE","take":"Rushed_FW 46.42-48.85","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
-"quality": {"fit":[30,171],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[30,171],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"fail on intersection, twistFlip: as captured, fitted within 30 mm of it on average; the sensors' fix: twistFlips, jitter would take it 2 mm further from its source on average, 360 mm at worst"},
 "keys": [
   {"t":0,
    "hips":[0,0,100], "body":[-99,0,0], "chest":[4,6,-1], "head":[12,23,11], "yaw":0, "spine":[6,45,73],

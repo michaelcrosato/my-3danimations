@@ -146,7 +146,12 @@
     "Guard_Pose": ["76_04"],
     "Draw_Gun": ["139_05"],
     "Baseball_Pitch": ["124_01"],
-    "Baseball_Swing": ["124_07", 0.0, 6.0]
+    "Baseball_Swing": ["124_07", 0.0, 6.0],
+    "Get_Up_Careful": ["77_16", 1.8, 8.0],
+    "Get_Up_Careful_From_Back": ["77_18", 1.8, 9.8],
+    "Get_Up_Heavy": ["111_07", 7.0, 15.0],
+    "Get_Up_From_Floor": ["113_08", 10.0, 14.3],
+    "Get_Up_Via_Kneel": ["114_11", 11.0, 20.8]
   },
   "Walk_Loop": ["walk loop", "An everyday walk at a steady pace, arms swinging loosely. One stride cycle, in place"],
   "Zombie_Walk_Loop": ["walk zombie loop", "A zombie's shamble: head and shoulders slumped forward, a dragging step, arms hanging. One cycle, in place"],
@@ -291,5 +296,10 @@
   "Guard_Pose": ["stance unarmed once", "Takes up a defensive guard"],
   "Draw_Gun": ["gun aim once", "Pulls a gun"],
   "Baseball_Pitch": ["throw sport once", "A baseball pitch"],
-  "Baseball_Swing": ["sport once", "Swinging a baseball bat"]
+  "Baseball_Swing": ["sport once", "Swinging a baseball bat"],
+  "Get_Up_Careful": ["getup once", "Getting up from lying on the floor into a careful, ready pose"],
+  "Get_Up_Careful_From_Back": ["getup once", "Getting up from lying on the back into a careful, ready pose"],
+  "Get_Up_Heavy": ["getup once", "A slow, heavy get-up from lying on the floor: up to sitting, a pause, then to standing"],
+  "Get_Up_From_Floor": ["getup once", "Getting up from lying on the floor, by way of sitting"],
+  "Get_Up_Via_Kneel": ["getup once", "Getting up from lying flat, kneeling a while before standing"]
 }

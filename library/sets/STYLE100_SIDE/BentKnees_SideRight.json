@@ -13,7 +13,7 @@
 "contacts": {"by":"detected","footL":[[0,0.806]],"footR":[[0.527,1.448]]},
 "facts": {"by":"m3a-facts@1","captured":["speed"],"height":[91,96],"seam":0,"speed":44,"travel":[-2.3,57.1]},
 "provenance": {"src":"100STYLE","take":"BentKnees_SW 83.42-84.68","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
-"quality": {"fit":[12,37],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[12,37],"qa":"pass","qaVersion":"m3a-sensors@1"},
 "keys": [
   {"t":0,
    "hips":[0,0,95], "body":[-1,-4,-2], "chest":[4,30,-2], "head":[0,-7,-1],

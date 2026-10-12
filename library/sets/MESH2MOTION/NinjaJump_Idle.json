@@ -13,7 +13,7 @@
 "contacts": {"by":"detected"},
 "facts": {"by":"m3a-facts@1","height":[100,100],"seam":0},
 "provenance": {"src":"M2M_QUATERNIUS","orig":"QUATERNIUS_SHARDFALL/NinjaJump_Idle_Loop","method":"keyed","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
-"quality": {"fit":[12,36],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[12,36],"qa":"pass","qaVersion":"m3a-sensors@1"},
 "keys": [
   {"t":0,
    "hips":[-5,5,100], "body":[20,-32,-3], "chest":[27,80,-34], "head":[-14,-18,-4], "spine":[2,0,65],

@@ -13,7 +13,7 @@
 "contacts": {"by":"detected","footL":[[0,0.4],[0.75,1.333]],"footR":[[0.65,0.683],[1.083,1.516]]},
 "facts": {"by":"m3a-facts@1","captured":["speed"],"height":[93,99],"seam":0,"speed":95,"travel":[-114.9,-30.9]},
 "provenance": {"src":"100STYLE","take":"Angry_BR 40.33-41.78","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
-"quality": {"fit":[16,110],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[16,110],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"warn on skate: short of every fail level (thresholds.ts): unusual, not broken"},
 "keys": [
   {"t":0,
    "hips":[0,0,98], "body":[-36,-8,-4], "chest":[2,16,2], "head":[8,24,6],

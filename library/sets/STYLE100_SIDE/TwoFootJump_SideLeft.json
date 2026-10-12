@@ -13,7 +13,7 @@
 "contacts": {"by":"detected","footL":[[0.283,0.583],[0.8,1.15]],"footR":[[0.217,0.517],[0.683,1.033]]},
 "facts": {"by":"m3a-facts@1","captured":["speed"],"height":[91,110],"seam":0,"speed":51,"travel":[15.4,-53.2]},
 "provenance": {"src":"100STYLE","take":"TwoFootJump_SW 23.73-24.77","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
-"quality": {"fit":[10,38],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[10,38],"qa":"pass","qaVersion":"m3a-sensors@1"},
 "keys": [
   {"t":0,
    "hips":[0,0,101], "body":[0,-7,-1], "chest":[2,15,7], "head":[-30,1,-15],

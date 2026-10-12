@@ -13,7 +13,7 @@
 "contacts": {"by":"detected","footL":[[0,2.767]],"footR":[[0,2.767]]},
 "facts": {"by":"m3a-facts@1","height":[100,100],"seam":0,"speed":0.2,"travel":[-0.5,0.4]},
 "provenance": {"src":"100STYLE","take":"InTheDark_ID 22.75-25.52","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
-"quality": {"fit":[8,52],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[8,52],"qa":"pass","qaVersion":"m3a-sensors@1"},
 "keys": [
   {"t":0,
    "hips":[0,0,100], "body":[0,-16,-1], "chest":[3,24,1], "head":[4,5,1],

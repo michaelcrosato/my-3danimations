@@ -3,7 +3,7 @@
 "title": "100STYLE sideways runs",
 "format": "2.0",
 "tier": "cc-by",
-"content": {"edition":"100STYLE (zenodo.org/records/8127870, the archive tools/corpora/100style.lock.json pins): 193 sideways runs, each way (one left out, its reason in `_import.json`), each cut at its best cycle inside the frames the dataset marks as the style, as shardfall's catalog picks them","importer":"m3a-import 1, from the sources (WP-5.3)","sha256":"445234f341cf65fec58f4aeea01916ce48f9e1c6d10153ab0e5ba52149d46ae0"},
+"content": {"edition":"100STYLE (zenodo.org/records/8127870, the archive tools/corpora/100style.lock.json pins): 193 sideways runs, each way (one left out, its reason in `_import.json`), each cut at its best cycle inside the frames the dataset marks as the style, as shardfall's catalog picks them","importer":"m3a-import 1, from the sources (WP-5.3)","sha256":"929eb4e6ce06b23a33835c62088642fd4cd8c140b0d451cf6c59e3304ff77e0a"},
 "credit": "100STYLE by Ian Mason, Sebastian Starke and Taku Komura, CC BY 4.0.",
 "producer": {"tool":"m3a-import","version":"1"},
 "sources": {

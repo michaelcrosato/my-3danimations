@@ -13,7 +13,7 @@
 "contacts": {"by":"detected","footL":[[0.488,0.667]],"footR":[[0.163,0.456]]},
 "facts": {"by":"m3a-facts@1","captured":["speed"],"height":[94,110],"seam":0,"speed":155,"travel":[34.4,-104.3]},
 "provenance": {"src":"100STYLE","take":"LookUp_SR 38.23-38.90","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
-"quality": {"fit":[9,77],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[9,77],"qa":"pass","qaVersion":"m3a-sensors@1"},
 "keys": [
   {"t":0,
    "hips":[0,0,107], "body":[7,5,-4], "chest":[-4,2,1], "head":[-25,-14,-12],

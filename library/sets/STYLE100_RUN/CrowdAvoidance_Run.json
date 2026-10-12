@@ -13,7 +13,7 @@
 "contacts": {"by":"detected","footL":[[0.416,0.65]],"footR":[[0,0.25]]},
 "facts": {"by":"m3a-facts@1","captured":["speed"],"height":[95,104],"seam":0,"speed":166,"travel":[135.8,23.9]},
 "provenance": {"src":"100STYLE","take":"CrowdAvoidance_FR 34.65-35.38","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
-"quality": {"fit":[10,108],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[10,108],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"fail on twistFlip: as captured, fitted within 10 mm of it on average; the sensors' fix: no step makes it better"},
 "keys": [
   {"t":0,
    "hips":[0,0,101], "body":[-7,-4,1], "chest":[-6,18,2], "head":[1,21,2],

@@ -13,7 +13,7 @@
 "contacts": {"by":"detected","footL":[[0,0.083],[2.683,2.9],[3.367,3.433],[3.7,5.333]],"footR":[[0.017,0.217],[0.8,1.1],[2.983,3.267]]},
 "facts": {"by":"m3a-facts@1","height":[73,98]},
 "provenance": {"src":"M2M_ANIMATED","method":"keyed","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
-"quality": {"fit":[11,115],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[11,115],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"fail on slide: as keyed in its source, fitted within 11 mm of it on average; the sensors' fix: twistFlips, jitter, footLocks would take it 35 mm further from its source on average, 382 mm at worst"},
 "keys": [
   {"t":0,
    "hips":[-10,12,73], "body":[-35,0,0], "chest":[2,-18,8], "head":[58,23,-9], "spine":[-15,-3,-2],

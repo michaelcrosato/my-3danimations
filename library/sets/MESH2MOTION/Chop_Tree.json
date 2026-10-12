@@ -13,7 +13,7 @@
 "contacts": {"by":"detected","footL":[[0.165,0.958]],"footR":[[0.182,0.958]]},
 "facts": {"by":"m3a-facts@1","height":[87,90],"seam":9.3,"speed":1.2,"travel":[0.2,-1.1]},
 "provenance": {"src":"M2M_QUATERNIUS","orig":"QUATERNIUS_SHARDFALL/TreeChopping_Loop","method":"keyed","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
-"quality": {"fit":[7,45],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[7,45],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"warn on seamVelocity: short of every fail level (thresholds.ts): unusual, not broken"},
 "keys": [
   {"t":0,
    "hips":[-11,-6,90], "body":[45,-8,0], "chest":[13,-4,4], "head":[-42,25,10],

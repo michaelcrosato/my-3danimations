@@ -13,7 +13,7 @@
 "contacts": {"by":"detected","footL":[[0,0.05]],"footR":[[0.517,0.55]]},
 "facts": {"by":"m3a-facts@1","height":[94,97],"seam":0,"speed":22.5,"travel":[13,18.4]},
 "provenance": {"src":"M2M_ANIMATED","method":"keyed","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
-"quality": {"fit":[6,52],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[6,52],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"warn on skate: short of every fail level (thresholds.ts): unusual, not broken"},
 "keys": [
   {"t":0,
    "hips":[-11,0,94], "body":[13,0,0], "chest":[16,-5,-2], "head":[1,13,1],

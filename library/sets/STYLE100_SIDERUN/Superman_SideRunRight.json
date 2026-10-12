@@ -13,7 +13,7 @@
 "contacts": {"by":"detected","footL":[[0.517,0.783]],"footR":[[0.117,0.35]]},
 "facts": {"by":"m3a-facts@1","captured":["speed"],"height":[93,108],"seam":0,"speed":171,"travel":[16,102.9]},
 "provenance": {"src":"100STYLE","take":"Superman_SR 35.17-35.77","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
-"quality": {"fit":[7,43],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[7,43],"qa":"pass","qaVersion":"m3a-sensors@1"},
 "keys": [
   {"t":0,
    "hips":[0,0,97], "body":[-2,4,-3], "chest":[-6,34,3], "head":[-4,44,20],

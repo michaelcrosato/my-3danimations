@@ -81,7 +81,8 @@
    },
    "hands": [
     10.9
-   ]
+   ],
+   "unrepaired": "no step makes it better"
   },
   "Angry_SideRight": {
    "kept": "new",
@@ -97,7 +98,8 @@
    },
    "hands": [
     9.9
-   ]
+   ],
+   "unrepaired": "no step makes it better"
   },
   "ArmsAboveHead_SideLeft": {
    "kept": "new",
@@ -776,15 +778,18 @@
    "why": "new in the re-import",
    "fit": {
     "import": [
-     8,
-     92
+     9,
+     69
     ]
    },
    "qa": {
-    "import": "fail"
+    "import": "pass"
    },
    "hands": [
-    12.1
+    15.4
+   ],
+   "repaired": [
+    "twistFlips"
    ]
   },
   "Elated_SideRight": {
@@ -793,14 +798,18 @@
    "fit": {
     "import": [
      9,
-     120
+     77
     ]
    },
    "qa": {
-    "import": "warn"
+    "import": "pass"
    },
    "hands": [
-    12.3
+    13.1
+   ],
+   "repaired": [
+    "twistFlips",
+    "jitter"
    ]
   },
   "FairySteps_SideLeft": {
@@ -1529,14 +1538,17 @@
    "fit": {
     "import": [
      7,
-     53
+     60
     ]
    },
    "qa": {
-    "import": "warn"
+    "import": "pass"
    },
    "hands": [
-    10.1
+    10.2
+   ],
+   "repaired": [
+    "twistFlips"
    ]
   },
   "Monk_SideLeft": {
@@ -1681,7 +1693,8 @@
    },
    "hands": [
     10
-   ]
+   ],
+   "unrepaired": "footLocks would take it 44 mm further from its source on average"
   },
   "OnHeels_SideRight": {
    "kept": "new",
@@ -1757,10 +1770,13 @@
     ]
    },
    "qa": {
-    "import": "warn"
+    "import": "pass"
    },
    "hands": [
-    5.8
+    5.9
+   ],
+   "repaired": [
+    "twistFlips"
    ]
   },
   "OnToesBentForward_SideLeft": {
@@ -2097,7 +2113,8 @@
    },
    "hands": [
     5.8
-   ]
+   ],
+   "unrepaired": "no step makes it better"
   },
   "RightHop_SideRight": {
    "kept": "new",
@@ -2312,15 +2329,18 @@
    "why": "new in the re-import",
    "fit": {
     "import": [
-     9,
+     10,
      58
     ]
    },
    "qa": {
-    "import": "warn"
+    "import": "pass"
    },
    "hands": [
-    9.7
+    11.6
+   ],
+   "repaired": [
+    "jitter"
    ]
   },
   "Skip_SideRight": {
@@ -2489,14 +2509,17 @@
    "fit": {
     "import": [
      10,
-     116
+     51
     ]
    },
    "qa": {
-    "import": "fail"
+    "import": "pass"
    },
    "hands": [
     11.5
+   ],
+   "repaired": [
+    "twistFlips"
    ]
   },
   "Superman_SideLeft": {
@@ -2633,14 +2656,17 @@
    "fit": {
     "import": [
      9,
-     150
+     159
     ]
    },
    "qa": {
-    "import": "warn"
+    "import": "pass"
    },
    "hands": [
-    12.6
+    13.8
+   ],
+   "repaired": [
+    "twistFlips"
    ]
   },
   "SwingArmsRound_SideRight": {
@@ -2657,7 +2683,8 @@
    },
    "hands": [
     12.7
-   ]
+   ],
+   "unrepaired": "twistFlips would take it 3 mm further from its source on average, 328 mm at worst"
   },
   "SwingShoulders_SideLeft": {
    "kept": "new",
@@ -2705,7 +2732,8 @@
    },
    "hands": [
     5.2
-   ]
+   ],
+   "unrepaired": "no step makes it better"
   },
   "Teapot_SideRight": {
    "kept": "new",
@@ -2897,7 +2925,8 @@
    },
    "hands": [
     7.7
-   ]
+   ],
+   "unrepaired": "no step makes it better"
   },
   "Waving_SideRight": {
    "kept": "new",
@@ -2925,10 +2954,13 @@
     ]
    },
    "qa": {
-    "import": "warn"
+    "import": "pass"
    },
    "hands": [
     22.4
+   ],
+   "repaired": [
+    "jitter"
    ]
   },
   "WhirlArms_SideRight": {
@@ -3017,14 +3049,17 @@
    "fit": {
     "import": [
      8,
-     84
+     67
     ]
    },
    "qa": {
-    "import": "warn"
+    "import": "pass"
    },
    "hands": [
-    11.2
+    10.6
+   ],
+   "repaired": [
+    "twistFlips"
    ]
   },
   "WildArms_SideRight": {
@@ -3041,7 +3076,8 @@
    },
    "hands": [
     13.2
-   ]
+   ],
+   "unrepaired": "twistFlips would take it 3 mm further from its source on average"
   },
   "WildLegs_SideLeft": {
    "kept": "new",

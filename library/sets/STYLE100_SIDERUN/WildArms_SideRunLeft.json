@@ -13,7 +13,7 @@
 "contacts": {"by":"detected","footL":[[0.283,0.483],[0.883,1.067]],"footR":[[0.117,0.35],[0.733,0.95]]},
 "facts": {"by":"m3a-facts@1","captured":["speed"],"height":[94,115],"seam":0,"speed":158,"travel":[2.3,-216.2]},
 "provenance": {"src":"100STYLE","take":"WildArms_SR 37.70-39.00","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
-"quality": {"fit":[16,136],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[16,136],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"fail on seamVelocity: as captured, fitted within 16 mm of it on average; the sensors' fix: twistFlips, jitter, seam would take it 5 mm further from its source on average"},
 "keys": [
   {"t":0,
    "hips":[0,0,112], "body":[-11,-1,0], "chest":[-1,25,8], "head":[-3,-5,-14], "spine":[-2,45,75],

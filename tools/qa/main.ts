@@ -7,10 +7,16 @@
 // values and finding counts, numbers only); --check fails on any clip that differs from it, naming each difference
 // (a baseline changes only in a commit that says why). --fix runs lint and fix (WP-3.5) on every clip lint flags and
 // fails on any that comes out worse or invalid, writing each clip's result to check-output/qa/fix.json. Exit 0 when
-// every clip was measured within the T2 budget; --strict exits 1 when any clip fails.
+// every clip was measured within the T2 budget; --strict exits 1 when any clip fails. `npm run qa -- library` (WP-5.8)
+// measures the whole library and checks it as a whole (library.ts): every clip's recorded verdict, the reasons whose
+// finding is gone, G5's unique motions and category floors, and the distributions against
+// library/baselines/distributions.json (--baseline records them); it writes docs/LIBRARY.md, which --check compares
+// instead, along with the committed baseline.
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { finish, fmtMs, parseArgs, ROOT, usage, type Report, type Step } from "../run/cli.ts";
+import { census } from "./census.ts";
+import { againstRecord, checkVerdicts, DISTRIBUTIONS, floorsMissed, LIBRARY_DOC, libraryDoc, readRecord, recordOf, recordText, setInfo } from "./library.ts";
 import { BASELINE, baselineOf, compare, distributions, fixAll, libraryClips, qa, sample, worse, type BaselineRow } from "./qa.ts";
 
 if (import.meta.main) {
@@ -27,10 +33,13 @@ if (import.meta.main) {
   let parsed;
   try {
     parsed = parseArgs(process.argv.slice(2), specs);
+    const mode = parsed.positionals[0];
+    if (mode !== undefined && mode !== "library") throw new Error(`no mode "${mode}": the one mode is library (or none, for the clips one by one)`);
+    if (mode === "library" && ["sample", "set", "clip"].some((k) => parsed!.flags[k] !== undefined)) throw new Error("library measures the whole library: drop --sample, --set and --clip");
   } catch (err) {
     usage("qa", err, specs);
   }
-  const t0 = performance.now(), f = parsed.flags;
+  const t0 = performance.now(), f = parsed.flags, asLibrary = parsed.positionals[0] === "library";
   let clips = libraryClips();
   if (typeof f.set === "string") clips = clips.filter((c) => c.set === f.set);
   if (typeof f.clip === "string") clips = clips.filter((c) => c.clip.id === f.clip);
@@ -55,6 +64,23 @@ if (import.meta.main) {
   if (f.check) {
     const base = existsSync(path) ? (JSON.parse(readFileSync(path, "utf8")) as { clips: Record<string, BaselineRow> }).clips : {}, diff = compare(base, rows, whole);
     steps.push({ name: "baseline", ok: diff.length === 0, ms: 0, summary: diff.length ? `${diff.length} differences from ${BASELINE}` : `${rows.length} clips as ${BASELINE} says`, detail: diff });
+  }
+  if (asLibrary) {
+    // the library as a whole: verdicts, reasons, census and floors, distributions, the summary
+    const lib = clips, v = checkVerdicts(lib, rows), sets = setInfo(), cc0 = new Set(Object.entries(sets).filter(([, x]) => x.tier === "cc0").map(([k]) => k));
+    const c = census(lib, cc0), short = floorsMissed(c), now = recordOf(rows), was = readRecord(), vs = was ? againstRecord(was, now) : { worse: ["nothing recorded yet: npm run qa -- library --baseline"], better: [] };
+    steps.push({ name: "verdicts", ok: v.problems.length === 0 && v.gone.length === 0, ms: 0, summary: v.problems.length || v.gone.length ? `${v.problems.length} clips' recorded verdicts aren't the sensors' (npm run import, npm run migrate); ${v.gone.length} reasons whose finding is gone` : `${lib.length} clips carry the sensors' verdict, each flagged one baselined with its reason`, detail: [...v.problems, ...v.gone.map((g) => `library/baselines/qa.json: ${g} is no longer past its level`)] });
+    steps.push({ name: "census", ok: short.length === 0, ms: 0, summary: `${c.unique} unique motions of ${c.clips} clips (CC0 pack ${c.cc0}); ${short.length ? `short: ${short.join("; ")}` : "every G5 floor met"}`, detail: Object.entries(c.categories).map(([k, x]) => `${k}: ${x.unique} unique of ${x.clips} clips (floor ${x.floor}), ${x.cc0} with a CC0 clip`) });
+    if (f.baseline) {
+      writeFileSync(DISTRIBUTIONS, recordText(now));
+      steps.push({ name: "distributions", ok: true, ms: 0, summary: `recorded in library/baselines/distributions.json` });
+    } else steps.push({ name: "distributions", ok: vs.worse.length === 0, ms: 0, summary: vs.worse.length ? `${vs.worse.length} worse than recorded` : `none worse than recorded${vs.better.length ? `; ${vs.better.length} better: record them with --baseline` : ""}`, detail: [...vs.worse, ...vs.better.map((b) => `better: ${b}`)] });
+    const doc = libraryDoc(lib, rows, c, sets);
+    if (f.check) steps.push({ name: "docs/LIBRARY.md", ok: existsSync(LIBRARY_DOC) && readFileSync(LIBRARY_DOC, "utf8") === doc, ms: 0, summary: existsSync(LIBRARY_DOC) && readFileSync(LIBRARY_DOC, "utf8") === doc ? "as generated" : "differs from what npm run qa -- library writes" });
+    else {
+      writeFileSync(LIBRARY_DOC, doc);
+      steps.push({ name: "docs/LIBRARY.md", ok: true, ms: 0, summary: "written" });
+    }
   }
   const out = join(ROOT, "check-output/qa"), dist = f.dist ? distributions(rows) : null;
   mkdirSync(out, { recursive: true });

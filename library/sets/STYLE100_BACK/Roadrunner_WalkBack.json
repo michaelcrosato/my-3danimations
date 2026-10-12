@@ -13,7 +13,7 @@
 "contacts": {"by":"detected","footL":[[0.233,0.716]],"footR":[[0.7,1.166]]},
 "facts": {"by":"m3a-facts@1","captured":["speed"],"height":[91,98],"seam":0,"speed":94,"travel":[-82.6,-10.5]},
 "provenance": {"src":"100STYLE","take":"Roadrunner_BW 15.25-16.20","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
-"quality": {"fit":[8,43],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[8,43],"qa":"pass","qaVersion":"m3a-sensors@1"},
 "keys": [
   {"t":0,
    "hips":[0,0,91], "body":[3,11,1], "chest":[-2,32,2], "head":[-2,-16,-4],

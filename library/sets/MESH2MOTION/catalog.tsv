@@ -28,7 +28,7 @@ MESH2MOTION/Idle_Talking	3.667	loop	0	idle talk	standing and talking with hand g
 MESH2MOTION/Idle_TalkingPhone	2.917	loop	0	idle talk prop	on the phone: right hand at the ear	M2M_QUATERNIUS
 MESH2MOTION/Idle_Torch	1.583	loop	0.2	idle prop	standing with one arm raised	M2M_QUATERNIUS
 MESH2MOTION/Interact	2.5	once		interact	reaches forward at chest height and works something with the hands…	M2M_QUATERNIUS
-MESH2MOTION/Jog	1.167	loop	540.3	run	jog, in place	M2M_QUATERNIUS
+MESH2MOTION/Jog	1.167	loop	540.4	run	jog, in place	M2M_QUATERNIUS
 MESH2MOTION/Jump_air	3.125	loop		jump air	airborne pose held while rising or falling	M2M_QUATERNIUS
 MESH2MOTION/Jump_Land	1.583	once		jump	lands from a fall, knees soak it up, stands	M2M_QUATERNIUS
 MESH2MOTION/Jump_Start	1.667	once		jump	dips, then springs up with the arms thrown out (in place	M2M_QUATERNIUS
@@ -77,9 +77,9 @@ MESH2MOTION/Sword_Regular_B_Rec	1	once		sword stance root-motion	recovers from t
 MESH2MOTION/Sword_Regular_C	1.667	once		sword attack root-motion	the combo's finisher	M2M_QUATERNIUS
 MESH2MOTION/Sword_Regular_C_RM	1.667	once		sword attack root-motion	the combo's finisher	M2M_QUATERNIUS
 MESH2MOTION/Sword_Regular_Combo	2.958	once		sword attack root-motion	the three strikes chained: thrust, sweep	M2M_QUATERNIUS
-MESH2MOTION/Walk	1.667	loop	88.7	walk	relaxed walk, in place	M2M_QUATERNIUS
+MESH2MOTION/Walk	1.667	loop	88.5	walk	relaxed walk, in place	M2M_QUATERNIUS
 MESH2MOTION/Walk_Carry	2	loop	73.9	walk carry	walking with a box held in both arms in front	M2M_QUATERNIUS
-MESH2MOTION/Walk_Formal	1.667	loop	89.1	walk	upright, measured walk, in place	M2M_QUATERNIUS
+MESH2MOTION/Walk_Formal	1.667	loop	88.4	walk	upright, measured walk, in place	M2M_QUATERNIUS
 MESH2MOTION/Yes	2.5	once		emote gesture	agrees	M2M_QUATERNIUS
 MESH2MOTION/Zombie_Idle	1.333	loop	0.2	zombie idle	hunched and swaying, arms hanging	M2M_QUATERNIUS
 MESH2MOTION/Zombie_Scratch	1.792	once		zombie attack	lunges and claws down with both hands, then settles back	M2M_QUATERNIUS

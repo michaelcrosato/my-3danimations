@@ -7,17 +7,20 @@
 // out as the migrator writes them (core's `serialize`, `_set.json`, `catalog.tsv`, `_baseline.json`), deterministic,
 // each clip's facts and contacts measured (@m3a/library's `withFacts`, WP-5.4), the importer's revision in every clip's
 // provenance and the sources' edition in the manifest. Fit limits: a set's mean at most 20 mm, a clip's mean at most 40
-// mm and its worst at most 300 mm.
+// mm and its worst at most 300 mm. WP-5.8: a re-import the sensors flag is repaired by their fix where that makes it
+// better within CLOSE mm of its source, a re-import the sensors judge better is kept over its migrated version within
+// CLOSE mm too, and every clip records its QA verdict (tools/qa/verdict.ts).
 import { format, math, serialize, validate, type Clip, type Rest } from "@m3a/core";
 
 const { fromFormat1 } = format, { PORTABLE } = math;
 import { importSet, type Catalog } from "@m3a/io";
 import { withFacts } from "@m3a/library";
-import { metrics } from "@m3a/sensors";
+import { fix, metrics } from "@m3a/sensors";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { catalogRow, contentId, legendLines, migrate, setText } from "../migrate/migrate.ts";
 import { baselineReason } from "../migrate/sets.ts";
+import { readReasons, withQuality, type QaReasons } from "../qa/verdict.ts";
 import { ROOT } from "../run/cli.ts";
 import { CATALOGS, IMPORTS, type ImportSpec } from "./sets.ts";
 
@@ -28,6 +31,9 @@ export const IMPORTER = { tool: "m3a-import", version: "1" };
 export const ENCODE = { hands: true, spine: true, yaw: true, steadyTwist: true, closeLoop: true } as const;
 /** The fit limits (mm): a set's mean, a clip's mean, a clip's worst. */
 export const LIMITS = { setMean: 20, clipMean: 40, clipWorst: 300 } as const;
+/** How much further from its source (mm on average) a clip may go for a better QA verdict: a repair, or a re-import kept
+ *  over its migrated version (WP-5.8). */
+export const CLOSE = 2;
 
 /** What happened to one clip: which version it keeps and why, the two fits, the two QA verdicts, the metrics that moved. */
 export interface ClipChoice {
@@ -39,6 +45,11 @@ export interface ClipChoice {
   moved?: Record<string, [number, number]>;
   /** The hands' points (wrist, knuckle, fist) against the capture, mean mm: [migrated, import], or [import]. */
   hands: number[];
+  /** The sensors' fix steps the re-import was repaired with (WP-5.8). */
+  repaired?: string[];
+  /** Why a re-import the sensors flag wasn't repaired: no step of the fix makes it better, or the repair would take it
+   *  this many mm further from its source on average (or past the fit limits). */
+  unrepaired?: string;
 }
 /** One set's re-import: its files, every clip's choice, what its catalog skips, and what fails. */
 export interface SetImport {
@@ -88,6 +99,35 @@ const sig = (x: number) => (x === 0 ? 0 : Number(x.toPrecision(3)));
 /** A value as JSON with every object's fields in order (a rest's fields come in either order). */
 const canon = (v: unknown): string => JSON.stringify(v, (_, x: unknown) => (x && typeof x === "object" && !Array.isArray(x) ? Object.fromEntries(Object.entries(x).sort(([a], [b]) => (a < b ? -1 : 1))) : x));
 
+/** A clip's fit against its capture as the fitter reports it: the mean of each frame's mean point error, and the worst
+ *  point error of any frame (whole mm). */
+export function fitOf(clip: Clip, rest: Rest, cap: format.Capture): [number, number] {
+  const X = new Float32Array(format.P * 3), Y = new Float32Array(format.P * 3);
+  let max = 0, sum = 0;
+  for (let f = 0; f < cap.n; f++) {
+    format.capSample(cap, f / cap.fps, X);
+    format.pose(rest, clip, f / cap.fps, Y);
+    max = Math.max(max, format.error(X, Y));
+    sum += format.meanError(X, Y);
+  }
+  return [Math.round(sum / cap.n), Math.round(max)];
+}
+/**
+ * A clip repaired by the sensors' fix (WP-3.5) where it comes out better (a better verdict, or as good with fewer
+ * findings), still valid, and no further from its capture than CLOSE mm on average and the fit limits; its facts measured
+ * again and its fit against the capture with them. Otherwise the clip as it was.
+ */
+function repaired(clip: Clip, rest: Rest, cap: format.Capture): { clip: Clip; fit: [number, number]; repairs: string[]; unrepaired?: string } {
+  const was = clip.quality.fit as [number, number], out = fix(clip, rest), b = out.before, a = out.after;
+  if (b.verdict === "pass") return { clip, fit: was, repairs: [] };
+  const better = RANK[a.verdict]! < RANK[b.verdict]! || (a.verdict === b.verdict && a.findings.length < b.findings.length);
+  const repairs = out.steps.filter((s) => !s.rejected && !s.skipped && s.changes.length && s.op !== "facts").map((s) => s.op);
+  if (!better || !repairs.length || validate(out.clip, { mode: "read" }).errors.length) return { clip, fit: was, repairs: [], unrepaired: "no step makes it better" };
+  const next = withFacts(out.clip, rest), fit = fitOf(next, rest, cap);
+  if (fit[0] > was[0] + CLOSE || fit[0] > LIMITS.clipMean || fit[1] > LIMITS.clipWorst) return { clip, fit: was, repairs: [], unrepaired: `${repairs.join(", ")} would take it ${fit[0] - was[0]} mm further from its source on average${fit[1] > LIMITS.clipWorst ? `, ${fit[1]} mm at worst` : ""}` };
+  return { clip: { ...next, quality: { ...next.quality, fit } }, fit, repairs };
+}
+
 /** A clip's QA verdict and metric values on its rest. */
 function measured(clip: Clip, rest: Rest): { verdict: string; values: Record<string, number> } {
   const r = metrics(clip, rest);
@@ -96,12 +136,12 @@ function measured(clip: Clip, rest: Rest): { verdict: string; values: Record<str
 
 /** Re-imports the sets (all of IMPORTS by default). The migrated library is rebuilt once to compare against. */
 export function importLibrary(specs: readonly ImportSpec[] = IMPORTS, root = ROOT): SetImport[] {
-  const mig = migrate(root), legend = legendLines(root);
-  return specs.map((spec) => importOne(spec, mig, legend));
+  const mig = migrate(root), legend = legendLines(root), reasons = readReasons();
+  return specs.map((spec) => importOne(spec, mig, legend, reasons));
 }
 
 /** One set's re-import against its migrated version (`mig`, the migrator's output; empty for a new set). */
-function importOne(spec: ImportSpec, mig: ReturnType<typeof migrate>, legend: string[]): SetImport {
+function importOne(spec: ImportSpec, mig: ReturnType<typeof migrate>, legend: string[], reasons: QaReasons): SetImport {
   const cat = JSON.parse(readFileSync(join(CATALOGS, spec.catalog), "utf8")) as Catalog, libs = spec.read(cat);
   const out = importSet(libs, cat, { name: spec.set, title: spec.title, credit: spec.credit, encode: ENCODE });
   const capOf = (name: string) => libs.find((l) => l.clips[name])?.clips[name];
@@ -140,13 +180,15 @@ function importOne(spec: ImportSpec, mig: ReturnType<typeof migrate>, legend: st
   const clipFiles = new Map<string, string>(), rows: string[] = [], baseline: Record<string, { code: string; at: string; reason: string }[]> = {};
   let sum = 0;
   for (const name of names) {
-    const c1 = out.set.clips[name]!, slug = slugOf.get(name)!, src = c1.src, rule = spec.sources(src), fit = out.set.fit[name]!;
+    const c1 = out.set.clips[name]!, slug = slugOf.get(name)!, src = c1.src, rule = spec.sources(src), rest = out.set.sources[src]!.rest, cap = capOf(name)!;
     const before = migClips.get(name), orig = before?.provenance.orig ?? c1.orig;
-    // its facts and contacts measured on its rest (WP-5.4), the capture's speed kept
-    const clip = withFacts(fromFormat1({ ...(c1 as unknown as format.Clip1), src, ...(orig ? { orig } : {}) }, { set: spec.set, slug, name, fps: out.set.fps, restSrc: src, method: rule.method, license: rule.license, ...(rule.credit ? { credit: rule.credit } : {}), fit, producer: IMPORTER, qaVersion: "none" }), out.set.sources[src]!.rest);
-    const now = measured(clip, out.set.sources[src]!.rest), cap = capOf(name)!, hands = handError(clip, out.set.sources[src]!.rest, cap);
+    // its facts and contacts measured on its rest (WP-5.4), the capture's speed kept; then repaired where the sensors'
+    // fix makes it better without taking it from its source (WP-5.8)
+    const made = withFacts(fromFormat1({ ...(c1 as unknown as format.Clip1), src, ...(orig ? { orig } : {}) }, { set: spec.set, slug, name, fps: out.set.fps, restSrc: src, method: rule.method, license: rule.license, ...(rule.credit ? { credit: rule.credit } : {}), fit: out.set.fit[name]!, producer: IMPORTER, qaVersion: "none" }), rest);
+    const { clip, fit, repairs, unrepaired } = repaired(made, rest, cap);
+    const now = measured(clip, rest), hands = handError(clip, rest, cap);
     let kept: ClipChoice["kept"] = before ? "import" : "new", why = before ? "" : "new in the re-import";
-    const choice: ClipChoice = { kept, why, fit: { import: fit }, qa: { import: now.verdict }, hands: [hands] };
+    const choice: ClipChoice = { kept, why, fit: { import: fit }, qa: { import: now.verdict }, hands: [hands], ...(repairs.length ? { repaired: repairs } : {}), ...(unrepaired ? { unrepaired } : {}) };
     if (before) {
       const migRest = migManifest!.sources[before.restSrc]!.rest, was = measured(before, migRest), fitWas = before.quality.fit as [number, number];
       choice.fit.migrated = fitWas;
@@ -155,9 +197,11 @@ function importOne(spec: ImportSpec, mig: ReturnType<typeof migrate>, legend: st
       const moved: Record<string, [number, number]> = {};
       for (const k of new Set([...Object.keys(was.values), ...Object.keys(now.values)])) if (sig(was.values[k] ?? 0) !== sig(now.values[k] ?? 0)) moved[k] = [sig(was.values[k] ?? 0), sig(now.values[k] ?? 0)];
       if (Object.keys(moved).length) choice.moved = moved;
-      if (fit[0] > fitWas[0]) [kept, why] = ["migrated", `the re-import fits its source worse (${fit[0]} mm on average against ${fitWas[0]})`];
+      // a re-import the sensors judge better may fit up to CLOSE mm worse on average
+      const better = RANK[now.verdict]! < RANK[was.verdict]!;
+      if (fit[0] > fitWas[0] + (better ? CLOSE : 0)) [kept, why] = ["migrated", `the re-import fits its source worse (${fit[0]} mm on average against ${fitWas[0]}${better ? `, more than ${CLOSE} mm worse though the sensors judge it better` : ""})`];
       else if (RANK[now.verdict]! > RANK[was.verdict]!) [kept, why] = ["migrated", `the sensors judge the re-import worse (${was.verdict} → ${now.verdict})`];
-      else why = `fits its source ${fit[0] < fitWas[0] ? `closer (${fitWas[0]} → ${fit[0]} mm on average)` : `as closely (${fit[0]} mm on average)`}${fit[1] > fitWas[1] ? `, though further at its worst (${fitWas[1]} → ${fit[1]} mm)` : ""}, and the sensors judge it ${now.verdict === was.verdict ? "the same" : "better"} (${now.verdict})`;
+      else why = `fits its source ${fit[0] < fitWas[0] ? `closer (${fitWas[0]} → ${fit[0]} mm on average)` : fit[0] === fitWas[0] ? `as closely (${fit[0]} mm on average)` : `within ${CLOSE} mm (${fitWas[0]} → ${fit[0]} mm on average)`}${fit[1] > fitWas[1] ? `, though further at its worst (${fitWas[1]} → ${fit[1]} mm)` : ""}, and the sensors judge it ${now.verdict === was.verdict ? "the same" : "better"} (${now.verdict})`;
       choice.kept = kept;
       choice.why = why;
     }
@@ -179,6 +223,9 @@ function importOne(spec: ImportSpec, mig: ReturnType<typeof migrate>, legend: st
     const f = kept === "migrated" ? before!.quality.fit : fit;
     sum += f[0]!;
     if (f[0]! > LIMITS.clipMean || f[1]! > LIMITS.clipWorst) errors.push(`${slug}: fits its source within ${f[0]} mm on average, ${f[1]} mm at worst (limits ${LIMITS.clipMean} and ${LIMITS.clipWorst}): leave it out with a reason ($skip), or fix it`);
+    // its QA verdict, with why the clip is kept so when the sensors flag it (WP-5.8)
+    const decodes = kept === "migrated" ? (srcRecords[chosen.restSrc]?.rest as Rest | undefined) ?? migManifest!.sources[chosen.restSrc]!.rest : rest;
+    chosen = withQuality(chosen, decodes, reasons, kept === "migrated" ? { migrated: choice.why.split(";")[0]! } : { repaired: repairs, ...(unrepaired ? { unrepaired } : {}) });
     const r = validate(chosen, { mode: "read" });
     for (const e of r.errors) errors.push(`${slug}: ${e.code} ${e.message}`);
     if (kept === "migrated") {
@@ -190,7 +237,7 @@ function importOne(spec: ImportSpec, mig: ReturnType<typeof migrate>, legend: st
         errors.push(`${slug}: ${(err as Error).message}`);
       }
     }
-    clipFiles.set(`${slug}.json`, chosen === before ? migFiles.get(`${slug}.json`)! : serialize(chosen));
+    clipFiles.set(`${slug}.json`, serialize(chosen));
     rows.push(catalogRow(chosen));
   }
   const mean = names.length ? sum / names.length : 0;

@@ -1,7 +1,7 @@
 // Describe (WP-3.4): on the 30 clips of describe-truth.json (labelled from their filmstrips and catalog lines, the
 // labels reviewed by a verifier first) the timeline names the right phases in the right order for at least 27; the
 // text is the same every run and within 150 tokens (a long clip's later items dropped and counted); landings, strikes
-// and travel are read where they happen.
+// and travel are read where they happen. The token count on every clip's text is describe-tokens.test.ts.
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { encode } from "gpt-tokenizer";
@@ -9,7 +9,6 @@ import { encode as cl100k } from "gpt-tokenizer/encoding/cl100k_base";
 import { describe as suite, expect, it } from "vitest";
 import type { Clip } from "@m3a/core";
 import { describe } from "../src/index.ts";
-import { tokenCount } from "../src/describe/describe.ts";
 import { libraryClips } from "../../../tools/qa/qa.ts";
 
 const truth = JSON.parse(readFileSync(join(import.meta.dirname, "../fixtures/describe-truth.json"), "utf8")) as { clips: { clip: string; phases: string[] }[] };
@@ -51,12 +50,6 @@ suite("the text", () => {
       expect(d.text).toMatch(new RegExp(`… \\d+ more to ${long.dur.toFixed(2)} s`));
     }
   });
-  it("counts tokens no lower than o200k or cl100k does, on every clip's text", () => {
-    for (const c of lib.values()) {
-      const text = describe(c.clip, c.rest, { detail: true }).text;
-      expect(tokenCount(text), text).toBeGreaterThanOrEqual(Math.max(encode(text).length, cl100k(text).length));
-    }
-  }, 60_000);
   it("reads a landing where it happens, a strike by its limb, and travel in hip heights", () => {
     const land = of("MESH2MOTION/Jump_2");
     expect(land.moments.find((x) => x.name === "land")?.text).toMatch(/^lands on the (left|right) foot at 0\.\d\d s$/);

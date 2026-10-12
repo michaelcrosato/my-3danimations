@@ -13,7 +13,7 @@
 "contacts": {"by":"detected","footR":[[0.181,0.986]]},
 "facts": {"by":"m3a-facts@1","captured":["speed"],"height":[92,99],"seam":0,"speed":67,"travel":[-30,-7.3]},
 "provenance": {"src":"100STYLE","take":"HandsBetweenLegs_BW 102.22-103.38","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
-"quality": {"fit":[10,63],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[10,63],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"warn on skate: short of every fail level (thresholds.ts): unusual, not broken"},
 "keys": [
   {"t":0,
    "hips":[0,0,99], "body":[2,37,-9], "chest":[-15,57,3], "head":[4,11,6],

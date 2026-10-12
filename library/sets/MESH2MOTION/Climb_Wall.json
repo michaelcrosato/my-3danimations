@@ -13,7 +13,7 @@
 "contacts": {"by":"detected"},
 "facts": {"by":"m3a-facts@1","height":[99,104],"seam":0},
 "provenance": {"src":"M2M_ANIMATED","method":"keyed","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
-"quality": {"fit":[11,63],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[11,63],"qa":"pass","qaVersion":"m3a-sensors@1"},
 "keys": [
   {"t":0,
    "hips":[-6,0,99], "body":[3,-49,17], "chest":[16,38,-36], "head":[4,2,2], "spine":[3,29,57],

@@ -13,7 +13,7 @@
 "contacts": {"by":"detected","footL":[[0,2.5]],"footR":[[0,2.5]]},
 "facts": {"by":"m3a-facts@1","height":[101,101],"seam":0,"speed":0,"travel":[0,0]},
 "provenance": {"src":"100STYLE","take":"DuckFoot_ID 24.95-27.45","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
-"quality": {"fit":[4,13],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[4,13],"qa":"pass","qaVersion":"m3a-sensors@1"},
 "keys": [
   {"t":0,
    "hips":[0,0,101], "body":[0,-12,0], "chest":[2,16,1], "head":[-2,18,-2],

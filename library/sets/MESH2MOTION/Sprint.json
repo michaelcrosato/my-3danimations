@@ -13,7 +13,7 @@
 "contacts": {"by":"detected","footR":[[0.533,0.6]]},
 "facts": {"by":"m3a-facts@1","height":[91,106],"seam":0,"speed":776.2,"travel":[646.6,3.8]},
 "provenance": {"src":"M2M_QUATERNIUS","orig":"QUATERNIUS_SHARDFALL/Sprint_Loop","method":"keyed","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
-"quality": {"fit":[10,62],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[10,62],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"fail on seamVelocity: as keyed in its source, fitted within 10 mm of it on average; the sensors' fix: seam would take it 2 mm further from its source on average, 308 mm at worst"},
 "keys": [
   {"t":0,
    "hips":[-8,-2,99], "body":[0,23,6], "chest":[-33,19,4], "head":[14,-2,-8],

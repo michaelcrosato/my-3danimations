@@ -4,6 +4,32 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.35.0 · 2026-10-12
+
+### Sensors
+- `checks.QA_VERSION` (`m3a-sensors@1`): the metrics' and levels' revision a clip's `quality.qaVersion` names (WP-5.8).
+- `fix` keeps the facts a source gave (`captured`) when it measures a clip's facts again after a repair: a repaired
+  100STYLE run had its captured speed replaced by its planted feet's.
+
+### Library
+- Library QA (WP-5.8, D66): every clip carries the sensors' verdict in its `quality`: pass, or baselined with a reason
+  naming the level and the metrics past it, then why it is kept (`baselines/qa.json` by set and by clip, the warn
+  level's, or how it stands to its source). 1,045 pass, 206 warn, 139 fail of 1,390.
+- The re-import repairs what the sensors flag with their `fix` where it comes out better within 2 mm of its source
+  (148 clips), and keeps a re-import the sensors judge better over its migrated version within 2 mm (8 STYLE100 walks).
+- Five CMU get-ups for G5's reactions (Get_Up_Careful, Get_Up_Careful_From_Back, Get_Up_Heavy, Get_Up_From_Floor,
+  Get_Up_Via_Kneel): CMU_CURATED has 149 clips.
+- `docs/LIBRARY.md`, generated: sets, counts raw and unique (1,193 unique motions; the CC0 pack 173), categories
+  against G5's floors, licenses, fit and the QA distributions; `baselines/distributions.json` records them.
+
+### Tools
+- `npm run qa -- library [--check] [--baseline]`: every clip's recorded verdict against the sensors', reasons whose
+  finding is gone, the census (`tools/qa/census.ts`: a category per clip, copies by `orig`, re-exports and pose
+  near-duplicates counted once) against G5's floors, the distributions (they may only improve), `docs/LIBRARY.md`. T2
+  runs it.
+- T1 runs a test file on every core (Vitest left one idle), and describe's token count over the library is a file of
+  its own: 72 s, from 93 s after the library grew.
+
 ## 0.34.0 · 2026-10-12
 
 ### Library

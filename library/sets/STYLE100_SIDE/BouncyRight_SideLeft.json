@@ -13,7 +13,7 @@
 "contacts": {"by":"detected","footL":[[0.854,1.576]],"footR":[[0.279,1.067]]},
 "facts": {"by":"m3a-facts@1","captured":["speed"],"height":[97,110],"seam":0,"speed":51,"travel":[5.3,-59.8]},
 "provenance": {"src":"100STYLE","take":"BouncyRight_SW 79.30-80.37","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
-"quality": {"fit":[8,33],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[8,33],"qa":"pass","qaVersion":"m3a-sensors@1"},
 "keys": [
   {"t":0,
    "hips":[0,0,98], "body":[-1,0,0], "chest":[-3,15,-1], "head":[5,1,2], "spine":[-2,41,72],

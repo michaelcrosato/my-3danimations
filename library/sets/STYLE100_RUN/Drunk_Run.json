@@ -13,7 +13,7 @@
 "contacts": {"by":"detected","footL":[[0,0.217],[0.783,0.933]],"footR":[[0.133,0.717]]},
 "facts": {"by":"m3a-facts@1","captured":["speed"],"height":[92,99],"seam":0,"speed":108,"travel":[119.5,-25.8]},
 "provenance": {"src":"100STYLE","take":"Drunk_FR 53.62-54.72","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
-"quality": {"fit":[16,103],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[16,103],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"fail on seamVelocity: as captured, fitted within 16 mm of it on average; the sensors' fix: seam would take it 5 mm further from its source on average"},
 "keys": [
   {"t":0,
    "hips":[0,0,99], "body":[-16,-6,-3], "chest":[0,19,7], "head":[18,25,11],

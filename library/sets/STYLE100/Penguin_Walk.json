@@ -13,7 +13,7 @@
 "contacts": {"by":"detected","footL":[[0,0.689]],"footR":[[0.492,1.248]]},
 "facts": {"by":"m3a-facts@1","captured":["speed"],"height":[100,101],"seam":0,"speed":26,"travel":[22.7,1.3]},
 "provenance": {"src":"100STYLE","take":"Penguin_FW 24.12-25.20","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
-"quality": {"fit":[8,40],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[8,40],"qa":"pass","qaVersion":"m3a-sensors@1"},
 "keys": [
   {"t":0,
    "hips":[0,0,100], "body":[-5,-4,0], "chest":[1,11,-2], "head":[2,12,-1],

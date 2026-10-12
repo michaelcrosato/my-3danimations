@@ -13,7 +13,7 @@
 "contacts": {"by":"detected","footL":[[0.215,0.926],[1.39,2.068]],"footR":[[0.761,1.538],[1.919,2.514]]},
 "facts": {"by":"m3a-facts@1","captured":["speed"],"height":[99,102],"seam":0,"speed":59,"travel":[-117.7,-4.2]},
 "provenance": {"src":"100STYLE","take":"WhirlArms_BW 22.15-24.32","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
-"quality": {"fit":[11,113],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[11,113],"qa":"pass","qaVersion":"m3a-sensors@1"},
 "keys": [
   {"t":0,
    "hips":[0,0,100], "body":[12,-4,-3], "chest":[1,7,-5], "head":[-50,16,5], "spine":[3,45,72],

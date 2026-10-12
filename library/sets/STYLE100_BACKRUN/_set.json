@@ -3,7 +3,7 @@
 "title": "100STYLE backward runs",
 "format": "2.0",
 "tier": "cc-by",
-"content": {"edition":"100STYLE (zenodo.org/records/8127870, the archive tools/corpora/100style.lock.json pins): 98 backward runs, each cut at its best cycle inside the frames the dataset marks as the style, as shardfall's catalog picks them","importer":"m3a-import 1, from the sources (WP-5.3)","sha256":"023761201f03d01d2917f906db61f1d97311f4ade78ae4ee9371b9b4f4b93207"},
+"content": {"edition":"100STYLE (zenodo.org/records/8127870, the archive tools/corpora/100style.lock.json pins): 98 backward runs, each cut at its best cycle inside the frames the dataset marks as the style, as shardfall's catalog picks them","importer":"m3a-import 1, from the sources (WP-5.3)","sha256":"9bce44fb8c3ff3173cc7f13a305b0fc805e1d8d80fb6a97669c3b03933af54d0"},
 "credit": "100STYLE by Ian Mason, Sebastian Starke and Taku Komura, CC BY 4.0.",
 "producer": {"tool":"m3a-import","version":"1"},
 "sources": {

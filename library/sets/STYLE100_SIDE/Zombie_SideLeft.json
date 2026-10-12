@@ -13,7 +13,7 @@
 "contacts": {"by":"detected","footL":[[0.967,1.85]],"footR":[[0.2,1.183]]},
 "facts": {"by":"m3a-facts@1","captured":["speed"],"height":[99,102],"seam":0,"speed":37,"travel":[32.4,-40.8]},
 "provenance": {"src":"100STYLE","take":"Zombie_SW 40.35-41.85","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
-"quality": {"fit":[9,35],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[9,35],"qa":"pass","qaVersion":"m3a-sensors@1"},
 "keys": [
   {"t":0,
    "hips":[0,0,102], "body":[9,-6,-6], "chest":[1,25,-2], "head":[-4,-5,-13],

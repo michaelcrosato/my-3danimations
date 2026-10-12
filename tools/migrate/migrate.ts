@@ -1,7 +1,8 @@
 // Builds the migrated library in memory (WP-1.5): every seed set's clips as format-2 files written by core's
-// `serialize`, each with its facts and contacts measured (@m3a/library's `withFacts`, WP-5.4), with `_set.json`
-// (sources, rests, tier, content id), `catalog.tsv` and `_baseline.json` (the validator's warnings, accepted per clip
-// with a reason). Deterministic: the same pins give the same bytes and content ids.
+// `serialize`, each with its facts and contacts measured (@m3a/library's `withFacts`, WP-5.4) and its QA verdict
+// (tools/qa/verdict.ts, WP-5.8), with `_set.json` (sources, rests, tier, content id), `catalog.tsv` and
+// `_baseline.json` (the validator's warnings, accepted per clip with a reason). Deterministic: the same pins give the
+// same bytes and content ids.
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -12,6 +13,7 @@ const { fromFormat1, slugs } = format;
 type Clip1 = format.Clip1;
 import { encode as tokens } from "gpt-tokenizer/encoding/cl100k_base";
 import { loadSet, type Set1 } from "../vectors/oracle.ts";
+import { readReasons, withQuality } from "../qa/verdict.ts";
 import { baselineReason, SETS, type SetSpec } from "./sets.ts";
 
 /** The migrator's own revision: it goes in every file it writes, so a change to its output is a change to this. */
@@ -87,7 +89,7 @@ export function migrate(root: string): { files: Map<string, string>; report: Mig
   const files = new Map<string, string>();
   const report: MigrationReport = { sets: [] };
   const all = new Map<string, { source: Clip1; clip: Clip }>();
-  const legend = legendLines(root);
+  const legend = legendLines(root), reasons = readReasons();
   const sources = SETS.map((s) => ({ spec: s, data: readSource(root, s) }));
   // a Mesh2Motion clip's orig names the Quaternius clip it was made from: point it at the import that has it
   const quaternius = sources.filter((s) => s.spec.set.startsWith("QUATERNIUS")).map((s) => ({ set: s.spec.set, slugs: new Map(Object.keys(s.data.clips).map((n, i) => [n, slugs(Object.keys(s.data.clips))[i]!])) }));
@@ -117,8 +119,9 @@ export function migrate(root: string): { files: Map<string, string>; report: Mig
         if (r) orig = r;
         else unresolved.push(`${name}: ${orig}`);
       }
-      // its facts and contacts measured on its rest (WP-5.4), the origin's speed kept as captured
-      const clip = withFacts(fromFormat1({ ...c1, src, ...(orig ? { orig } : {}) }, { set: spec.set, slug: slugList[i]!, name, fps: (data.fps as number) ?? 30, restSrc: src, method: rule.method, license: rule.license, ...(rule.credit ? { credit: rule.credit } : {}), ...(fit ? { fit } : {}), producer: MIGRATOR, qaVersion: "none" }), (data.sources[src] as unknown as { rest: Rest }).rest);
+      // its facts and contacts measured on its rest (WP-5.4), the origin's speed kept as captured; its QA verdict (WP-5.8)
+      const rest = (data.sources[src] as unknown as { rest: Rest }).rest;
+      const clip = withQuality(withFacts(fromFormat1({ ...c1, src, ...(orig ? { orig } : {}) }, { set: spec.set, slug: slugList[i]!, name, fps: (data.fps as number) ?? 30, restSrc: src, method: rule.method, license: rule.license, ...(rule.credit ? { credit: rule.credit } : {}), ...(fit ? { fit } : {}), producer: MIGRATOR, qaVersion: "none" }), rest), rest, reasons);
       const r = validate(clip, { mode: "read" });
       for (const e of r.errors) errors.push(`${name}: ${e.code} ${e.message}`);
       if (r.warnings.length) {

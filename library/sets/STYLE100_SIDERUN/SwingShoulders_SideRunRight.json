@@ -13,7 +13,7 @@
 "contacts": {"by":"detected","footL":[[0,1.086]],"footR":[[1.102,1.925]]},
 "facts": {"by":"m3a-facts@1","captured":["speed"],"height":[89,101],"seam":0,"speed":55,"travel":[-2.1,47.8]},
 "provenance": {"src":"100STYLE","take":"SwingShoulders_SR 43.47-44.75","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
-"quality": {"fit":[13,152],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[13,152],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"warn on seamVelocity: short of every fail level (thresholds.ts): unusual, not broken"},
 "keys": [
   {"t":0,
    "hips":[0,0,101], "body":[11,-12,-1], "chest":[19,21,-3], "head":[-34,19,-4], "yaw":0, "spine":[-2,44,74],

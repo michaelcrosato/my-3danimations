@@ -13,7 +13,7 @@
 "contacts": {"by":"detected","footL":[[0,3.333],[3.467,6]],"footR":[[0,2.8],[3.683,6]]},
 "facts": {"by":"m3a-facts@1","height":[102,104],"travel":[0,1]},
 "provenance": {"src":"CMU_80","take":"80_41 0.00-6.00","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
-"quality": {"fit":[15,52],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[15,52],"qa":"pass","qaVersion":"m3a-sensors@1"},
 "keys": [
   {"t":0,
    "hips":[0,0,102], "body":[5,9,-9], "chest":[-8,-8,6], "head":[42,3,15], "root":[0,0], "spine":[19,64,102],

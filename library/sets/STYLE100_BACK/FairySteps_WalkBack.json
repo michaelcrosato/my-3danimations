@@ -13,7 +13,7 @@
 "contacts": {"by":"detected","footL":[[0.65,2.2]],"footR":[[1.85,3.367]]},
 "facts": {"by":"m3a-facts@1","captured":["speed"],"height":[99,101],"seam":0,"speed":24,"travel":[-51.6,-15.2]},
 "provenance": {"src":"100STYLE","take":"FairySteps_BW 46.78-48.97","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
-"quality": {"fit":[9,40],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[9,40],"qa":"pass","qaVersion":"m3a-sensors@1"},
 "keys": [
   {"t":0,
    "hips":[0,0,99], "body":[8,7,-1], "chest":[-7,13,-8], "head":[-69,58,9],

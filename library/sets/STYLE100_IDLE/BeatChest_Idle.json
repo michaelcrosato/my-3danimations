@@ -13,7 +13,7 @@
 "contacts": {"by":"detected","footL":[[0,2.7]],"footR":[[0,2.7]]},
 "facts": {"by":"m3a-facts@1","height":[100,100],"seam":0,"speed":0,"travel":[0,0]},
 "provenance": {"src":"100STYLE","take":"BeatChest_ID 17.75-20.45","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
-"quality": {"fit":[6,30],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[6,30],"qa":"pass","qaVersion":"m3a-sensors@1"},
 "keys": [
   {"t":0,
    "hips":[0,0,100], "body":[0,-5,0], "chest":[-2,12,-2], "head":[6,6,1],

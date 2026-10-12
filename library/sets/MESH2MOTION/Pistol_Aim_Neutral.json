@@ -13,7 +13,7 @@
 "contacts": {"by":"detected","footL":[[0,0.208]],"footR":[[0,0.208]]},
 "facts": {"by":"m3a-facts@1","height":[100,100]},
 "provenance": {"src":"M2M_QUATERNIUS","orig":"QUATERNIUS_SHARDFALL/Pistol_Aim_Neutral","method":"keyed","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
-"quality": {"fit":[8,26],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[8,26],"qa":"pass","qaVersion":"m3a-sensors@1"},
 "keys": [
   {"t":0,
    "hips":[-10,0,100], "body":[13,-6,0], "chest":[25,6,-5], "head":[-13,16,7],

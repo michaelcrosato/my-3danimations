@@ -13,7 +13,7 @@
 "contacts": {"by":"detected","footL":[[0,0.348]],"footR":[[0,0.265]],"handL":[[1.261,1.875]],"handR":[[1.178,1.875]]},
 "facts": {"by":"m3a-facts@1","height":[25,113]},
 "provenance": {"src":"M2M_ANIMATED","method":"keyed","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
-"quality": {"fit":[13,106],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[13,106],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"warn on twistFlip: short of every fail level (thresholds.ts): unusual, not broken"},
 "keys": [
   {"t":0,
    "hips":[-9,0,93], "body":[2,9,-1], "chest":[1,-13,1], "head":[-1,18,0], "yaw":0, "spine":[-100,-40,88],

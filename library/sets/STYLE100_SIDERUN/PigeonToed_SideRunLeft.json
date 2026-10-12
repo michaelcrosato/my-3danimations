@@ -13,7 +13,7 @@
 "contacts": {"by":"detected","footL":[[0.309,0.651]],"footR":[[0.033,0.439]]},
 "facts": {"by":"m3a-facts@1","captured":["speed"],"height":[96,106],"seam":0,"speed":104,"travel":[0.8,-79.8]},
 "provenance": {"src":"100STYLE","take":"PigeonToed_SR 44.30-44.95","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
-"quality": {"fit":[7,35],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[7,35],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"warn on seamVelocity: short of every fail level (thresholds.ts): unusual, not broken"},
 "keys": [
   {"t":0,
    "hips":[0,0,106], "body":[-4,3,2], "chest":[12,2,6], "head":[-9,31,2],

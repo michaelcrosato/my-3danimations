@@ -13,7 +13,7 @@
 "contacts": {"by":"detected","footL":[[0.214,1.053]],"footR":[[0.79,1.695]]},
 "facts": {"by":"m3a-facts@1","captured":["speed"],"height":[97,101],"seam":0,"speed":46,"travel":[5,-57.6]},
 "provenance": {"src":"100STYLE","take":"Akimbo_SW 97.82-99.08","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
-"quality": {"fit":[7,108],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[7,108],"qa":"pass","qaVersion":"m3a-sensors@1"},
 "keys": [
   {"t":0,
    "hips":[0,0,101], "body":[1,5,5], "chest":[2,13,0], "head":[-10,3,-19],

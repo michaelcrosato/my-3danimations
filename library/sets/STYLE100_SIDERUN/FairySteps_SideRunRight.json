@@ -13,7 +13,7 @@
 "contacts": {"by":"detected","footR":[[0.083,0.15],[0.516,0.733]]},
 "facts": {"by":"m3a-facts@1","captured":["speed"],"height":[96,104],"seam":0,"speed":129,"travel":[13.5,66.8]},
 "provenance": {"src":"100STYLE","take":"FairySteps_SR 9.68-10.40","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
-"quality": {"fit":[7,30],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[7,30],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"fail on skate: as captured, fitted within 7 mm of it on average; the sensors' fix: no step makes it better"},
 "keys": [
   {"t":0,
    "hips":[0,0,96], "body":[-4,4,-2], "chest":[4,18,-2], "head":[7,41,5],

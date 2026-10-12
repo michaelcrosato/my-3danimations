@@ -13,7 +13,7 @@
 "contacts": {"by":"detected"},
 "facts": {"by":"m3a-facts@1","height":[95,95],"seam":0},
 "provenance": {"src":"UAL1","method":"keyed","producer":{"tool":"m3a-migrate","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
-"quality": {"fit":[13,55],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[13,55],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"fail on penetration: as migrated from Quaternius's Universal Animation Library, with no source frames to measure a repair against: its keys stay the source's (WP-1.5) until the re-import can fetch its files (D63)"},
 "keys": [
   {"t":0,
    "hips":[-10,3,95], "body":[11,-15,-5], "chest":[6,42,0], "head":[-13,11,-5],

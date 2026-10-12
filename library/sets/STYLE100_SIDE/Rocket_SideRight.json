@@ -13,7 +13,7 @@
 "contacts": {"by":"detected","footL":[[0.966,1.85]],"footR":[[0.383,1.116]]},
 "facts": {"by":"m3a-facts@1","captured":["speed"],"height":[94,100],"seam":0,"speed":54,"travel":[16,59.1]},
 "provenance": {"src":"100STYLE","take":"Rocket_SW 40.78-42.02","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
-"quality": {"fit":[7,29],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[7,29],"qa":"pass","qaVersion":"m3a-sensors@1"},
 "keys": [
   {"t":0,
    "hips":[0,0,100], "body":[7,23,-5], "chest":[-3,49,1], "head":[10,20,21],

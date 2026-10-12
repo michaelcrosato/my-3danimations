@@ -3,7 +3,7 @@
 "title": "100STYLE backward walks",
 "format": "2.0",
 "tier": "cc-by",
-"content": {"edition":"100STYLE (zenodo.org/records/8127870, the archive tools/corpora/100style.lock.json pins): 98 backward walks, each cut at its best cycle inside the frames the dataset marks as the style, as shardfall's catalog picks them","importer":"m3a-import 1, from the sources (WP-5.3)","sha256":"51a4f65260387c96acc2dce55fe9fb86366c47d8dcc0c01711ad9b4f59f7cc0a"},
+"content": {"edition":"100STYLE (zenodo.org/records/8127870, the archive tools/corpora/100style.lock.json pins): 98 backward walks, each cut at its best cycle inside the frames the dataset marks as the style, as shardfall's catalog picks them","importer":"m3a-import 1, from the sources (WP-5.3)","sha256":"b31badd75b2d606606d105d67894d476f9b72e642470ae2466d08a0b26ddfde6"},
 "credit": "100STYLE by Ian Mason, Sebastian Starke and Taku Komura, CC BY 4.0.",
 "producer": {"tool":"m3a-import","version":"1"},
 "sources": {

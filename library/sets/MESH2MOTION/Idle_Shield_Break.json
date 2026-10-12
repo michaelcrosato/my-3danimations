@@ -13,7 +13,7 @@
 "contacts": {"by":"detected","footL":[[0.15,0.2],[0.367,1.083]],"footR":[[0.483,1.083]]},
 "facts": {"by":"m3a-facts@1","height":[94,100]},
 "provenance": {"src":"M2M_QUATERNIUS","orig":"QUATERNIUS_SHARDFALL/Idle_Shield_Break","method":"keyed","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
-"quality": {"fit":[7,37],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[7,37],"qa":"pass","qaVersion":"m3a-sensors@1"},
 "keys": [
   {"t":0,
    "hips":[-10,-1,100], "body":[13,-5,0], "chest":[19,9,3], "head":[-30,12,2], "spine":[17,1,42],

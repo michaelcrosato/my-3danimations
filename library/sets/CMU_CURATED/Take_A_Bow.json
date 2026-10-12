@@ -10,10 +10,10 @@
 "desc": "Takes a bow",
 "skeleton": "humanoid",
 "restSrc": "CMU_111",
-"contacts": {"by":"detected","footR":[[0,0.717],[0.967,2.217],[2.483,3.2]]},
-"facts": {"by":"m3a-facts@1","height":[107,109],"travel":[2,0]},
+"contacts": {"by":"detected","footL":[[2.983,3.2]],"footR":[[0,0.717],[0.967,2.217],[2.483,3.2]]},
+"facts": {"by":"m3a-facts@1","height":[102,109],"travel":[2,0]},
 "provenance": {"src":"CMU_111","take":"111_02 0.30-3.50","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
-"quality": {"fit":[14,97],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[16,97],"qa":"pass","qaVersion":"m3a-sensors@1"},
 "keys": [
   {"t":0,
    "hips":[0,0,108], "body":[5,17,-3], "chest":[-7,-23,1], "head":[-12,9,3], "root":[0,0], "spine":[93,121,99],
@@ -104,11 +104,15 @@
    "shL":[0,0], "shR":[0,0], "armL":[11,9,-99,41,9], "armR":[-2,19,-98,34,-22], "handL":[-5,-1,79], "handR":[-3,-12,109], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
    "legL":[0,34,-94,0,64], "legR":[26,-10,-96,0,24], "footL":[0,7,0], "footR":[-19,-4,-7]},
   {"t":2.967,
-   "hips":[0,0,108], "body":[1,20,-3], "chest":[-7,-27,1], "head":[-8,9,-1], "root":[3,0], "spine":[90,118,101],
+   "hips":[0,0,104], "body":[1,20,-3], "chest":[-7,-27,1], "head":[-8,9,-1], "root":[3,0], "spine":[90,118,101],
    "shL":[0,0], "shR":[0,0], "armL":[10,9,-99,34,8], "armR":[-8,14,-99,34,-30], "handL":[-5,1,80], "handR":[-3,-11,110], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
-   "legL":[1,33,-94,0,64], "legR":[23,-11,-97,0,24], "footL":[0,8,0], "footR":[-17,-6,-6]},
+   "legL":[0,33,-94,4,64], "legR":[23,-11,-97,0,24], "footL":[0,8,0], "footR":[-17,-6,-6]},
+  {"t":3.1,
+   "hips":[0,0,102], "body":[3,18,-4], "chest":[-6,-27,2], "head":[-9,10,0], "root":[2,0], "spine":[88,116,101],
+   "shL":[0,0], "shR":[0,0], "armL":[7,10,-99,32,2], "armR":[-4,12,-100,37,-31], "handL":[-5,-1,81], "handR":[-2,-11,113], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[-5,35,-93,4,64], "legR":[21,-13,-97,0,25], "footL":[0,8,0], "footR":[-16,-8,-6]},
   {"t":3.2,
-   "hips":[0,0,107], "body":[5,17,-5], "chest":[-6,-27,3], "head":[-10,10,0], "root":[2,0], "spine":[87,115,101],
+   "hips":[0,0,102], "body":[5,17,-5], "chest":[-6,-27,3], "head":[-10,10,0], "root":[2,0], "spine":[87,115,101],
    "shL":[0,0], "shR":[0,0], "armL":[4,10,-99,31,-3], "armR":[-1,10,-100,39,-31], "handL":[-5,-2,81], "handR":[-1,-11,116], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
-   "legL":[0,35,-94,11,64], "legR":[20,-14,-97,0,25], "footL":[0,8,0], "footR":[-16,-10,-6]}
+   "legL":[-9,37,-93,4,64], "legR":[20,-14,-97,0,25], "footL":[0,8,0], "footR":[-16,-10,-6]}
 ]}

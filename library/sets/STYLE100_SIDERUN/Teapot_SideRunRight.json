@@ -13,7 +13,7 @@
 "contacts": {"by":"detected","footL":[[0.083,0.283]],"footR":[[0.233,0.483]]},
 "facts": {"by":"m3a-facts@1","captured":["speed"],"height":[92,107],"seam":0,"speed":160,"travel":[-12,103.4]},
 "provenance": {"src":"100STYLE","take":"Teapot_SR 37.05-37.63","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
-"quality": {"fit":[9,108],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[9,108],"qa":"pass","qaVersion":"m3a-sensors@1"},
 "keys": [
   {"t":0,
    "hips":[0,0,106], "body":[2,-4,0], "chest":[-4,18,7], "head":[6,7,4],

@@ -784,7 +784,7 @@ G5 gates M3 (through WP-9.1) and M4 (G10). Clips change in sequence (§8.4), so 
     - locomotion 200;
     - combat 60;
     - traversal 30;
-    - reactions (hits, deaths, get-ups) 40;
+    - reactions (hits, deaths, get-ups) 33 (40 until WP-5.8 revised it, D66);
     - interaction and work 60;
     - gestures and emotes 60;
     - idles 30.
@@ -1663,10 +1663,12 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
 - **Size:** M
 - **Build:**
   - Run every sensor over every clip (`npm run qa`, from WP-3.3), with tag-aware thresholds.
-  - Baseline the exceptions, each with a reason.
+  - Repair what the sensors flag where a re-import can be measured against its source: the sensors' fix, kept when it
+    makes the clip better within 2 mm of its source on average (D66).
+  - Baseline the exceptions, each with a reason. The writers record every clip's verdict in its `quality` (D66).
   - A minimal dedup, so G5 counts unique motions:
     - the `orig` chains;
-    - exact re-exports (Mesh2Motion's 86 Quaternius copies);
+    - exact re-exports (Mesh2Motion's 86 Quaternius copies; one source's animation in two sets, or its `_RM` take);
     - a simple pose-distance pass for near-duplicates (the full dedup is WP-9.3).
   - A category per clip for G5's floors.
   - Generate `docs/LIBRARY.md`: sets, counts (raw and unique), categories, licenses, fit, QA distributions.
@@ -2250,7 +2252,7 @@ version, commit, date and a note with the numbers. Gates are rows too.
 | 5.3 Re-import from the sources | done | 0.32.0 | (this commit) | 2026-10-12 | `npm run import -- --check`: 9 sets re-imported from pinned sources with format 2's hands, spine curl and root yaw, every CMU take on the ground, each clip the better of import and migrated (the reason in `_import.json`, its schema in tools/import), every set within the fit limits (means 7.7–13.9 mm); hands on prop clips 32.4 → 13.7 mm (Mesh2Motion), 19.6 → 7.3 (STYLE100), CMU 15.1 → 15.3; Mesh2Motion audited CC0; 84 new CMU picks for G5's floors (144 clips); 1,385 clips in all, QA 901/296/188; Quaternius stays as migrated until its files can be fetched, a deviation (D63) |
 | 5.4 Facts and auto-labels | done | 0.33.0 | (this commit) | 2026-10-12 | `npm run facts -- --check`: all 1,385 clips carry their facts (`m3a-facts@1`; 793 with a captured speed kept) and detected contacts (1,329), written by the importer and the migrator and measured again with nothing stale; detected contacts are re-read by `measureFacts` and `playable`; the 18 tag–fact conflicts all resolved, 15 open loops closed by the fitter's `closeLoop` and 3 runs on the spot tagged `inplace`, none baselined; QA 920/285/180 (D64) |
 | 5.5 Search | done | 0.34.0 | (this commit) | 2026-10-12 | `npm test -- search`: `search` and `Library.search` over every set's catalog, rows only from the tiers opted into and `next` naming a closer match elsewhere, no match zero rows with the nearest tags, filters (speed, dur, loop, set, tier, tag), the 43-clip core list first among equals, the CMU ledger's takes; 40/40 game moments with a fitting clip in the top 5 (37 on CC0 alone); held out: round 1 4/10 against the first table, round 2 after the vocabulary was rebuilt and frozen 8/10 (7 on CC0) (D65) |
-| 5.8 Library QA | todo | | | | |
+| 5.8 Library QA | done | 0.35.0 | (this commit) | 2026-10-12 | `npm run qa -- library --check`: all 1,390 clips carry the sensors' verdict (1,045 pass; 206 warn and 139 fail baselined, each with its reason, `baselines/qa.json` by set and by clip); 148 re-imports repaired within 2 mm of their source, 8 more kept over their migrated version; 1,193 unique motions (84 copies by `orig`, 110 re-exports, 3 near-duplicates by pose), the CC0 pack 173; every G5 floor met with 5 CMU get-ups added and reactions revised 40 → 33; distributions recorded; `docs/LIBRARY.md` generated (D66) |
 | **G5** | todo | | | | |
 | 6.1 Recipes | todo | | | | |
 | 6.2 Procedural sources | todo | | | | |

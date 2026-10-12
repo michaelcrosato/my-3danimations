@@ -1827,3 +1827,54 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   says the search understands them, and the first one said it didn't.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.34.0
+
+## D66 · 2026-10-12 · Library QA: repair what can be measured, baseline the rest with a reason, count what is unique
+
+- **Principle:** 3, 8, 10, WP-5.8, G5, D63, D64
+- **Call:**
+  - **Repairs:** a re-import the sensors flag goes through their `fix` (WP-3.5); the fixed clip is kept when it comes
+    out better (a better verdict, or as good with fewer findings), valid, and within `CLOSE` (2 mm) of its source on
+    average and inside the fit limits, its facts and fit measured again. 148 clips were repaired; for 148 no step
+    makes them better, and for 74 the repair would take them further from their source than that (the reason is in
+    `_import.json`'s `unrepaired`). The two Quaternius sets stay as migrated: with no source frames there is nothing
+    to measure a repair against. The sensors' `fix` now keeps facts a source gave (`captured`) when it measures them
+    again: a repaired 100STYLE run had lost its captured speed and read as a run that doesn't travel.
+  - **D63's choice revised:** a re-import the sensors judge better is kept over its migrated version within `CLOSE` mm
+    of it on average (it had to fit as closely): 8 STYLE100 walks, 2 fails and 6 warns, now pass.
+  - **Verdicts in every clip:** the writers record the sensors' verdict in `quality`: `pass`, or `baselined` with a
+    reason, read with `m3a-sensors@1` (`checks.QA_VERSION`, changed when a change moves a verdict). A reason starts
+    "fail on twistFlip, jitter:" and then says why the clip is kept, the first that applies: a reason given by hand
+    for that clip and metric (`library/baselines/qa.json`: a ledge hang whose toes reach below the floor, a zombie
+    rising out of the ground); its set's (the Quaternius sets: no source frames, their keys the source's until the
+    re-import can fetch them); for a warn, that it is short of every fail level; for a fail, how the clip stands to its
+    source (as captured or as keyed, its fit, what the fix did). Of 1,390 clips: 1,045 pass, 206 warn, 139 fail (60 in
+    the Quaternius sets, 48 captured, 29 keyed, 2 by hand).
+  - **Why fails are baselined, not dropped:** a fail level is the most the capture the thresholds were read from
+    reaches (157 clips, D41), and the library now holds a thousand captured clips; most fails are a twist flip (60
+    clips), which thresholds.ts already calls common in encoded capture. Dropping them would drop real motions the
+    floors count on. A game reads the verdict and the reason in the clip, and `distributions.json` keeps the counts
+    from growing.
+  - **Tag-aware thresholds:** the profiles from WP-3.3 (acrobatics, lying, swimming, sliding, sitting). No new one: the
+    one clip a profile would serve (the ledge hang) has its reason by hand.
+  - **The census** (`tools/qa/census.ts`): a category per clip from its tags, the first of seven that takes it (a hurt
+    walk is locomotion, a pitch is sport); one motion counted once when it is a copy by `orig` (84), a re-export (one
+    source's animation of one name in two sets, or its `_RM` take: 110), or within 20 mm of another on average over its
+    whole length, 24 poses on the pelvis scaled to a 950 mm hip, loops at every phase (3: three 100STYLE idles a style
+    barely shows in). No pose distance alone separates the two Quaternius migrations of one animation (8 to 35 mm
+    apart) from distinct 100STYLE idles (16 mm and up), hence the re-export rule. 1,193 unique motions of 1,390; the
+    CC0 pack 173 of 367.
+  - **Floors:** every one met but reactions, 28 unique. CMU has get-ups and falls but no hits or deaths, and the keyed
+    sets' hits and deaths are re-exports of one another. Six CMU picks were tried; five get-ups stay, and a stunt fall
+    went (its knee bends backward): 47 reaction clips, 33 motions. The reactions floor goes from 40 to 33.
+    The rest of the way is hits composed from these (WP-6.1's layers and pose deltas) or a source with captured hits
+    (the intake, WP-9.1).
+  - **Recorded:** `library/baselines/distributions.json` (the verdicts' counts, each metric's p50, p95 and most); `npm
+    run qa -- library --check` fails on any that gets worse, a verdict a clip records that the sensors no longer give,
+    a reason whose finding is gone, a floor short, or a `docs/LIBRARY.md` that isn't as generated. T2 runs it.
+  - **T1:** the library's growth took T1 to 93 s. Vitest left a core idle; it now runs a file on each, and describe's
+    token count over every clip is a file of its own: 72 s.
+- **Why:** G5 asks for a verdict on every clip and floors counted on unique motions. A fail can be repaired, explained
+  or dropped. Repairs are kept only where a source says they didn't change the motion, and a drop only where the
+  motion is broken (the stunt fall). Everything else is explained in the clip itself, where a game will look.
+- **Answered:** no: made without a response, to review (the reactions floor above all).
+- **Landed in:** v0.35.0

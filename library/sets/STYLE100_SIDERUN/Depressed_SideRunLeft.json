@@ -13,7 +13,7 @@
 "contacts": {"by":"detected","footL":[[0.1,0.3]],"footR":[[0.45,0.8]]},
 "facts": {"by":"m3a-facts@1","captured":["speed"],"height":[95,105],"seam":0,"speed":120,"travel":[58,-67.7]},
 "provenance": {"src":"100STYLE","take":"Depressed_SR 19.33-20.03","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
-"quality": {"fit":[11,82],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[11,82],"qa":"pass","qaVersion":"m3a-sensors@1"},
 "keys": [
   {"t":0,
    "hips":[0,0,95], "body":[-2,-7,-4], "chest":[-2,40,0], "head":[11,40,-33],

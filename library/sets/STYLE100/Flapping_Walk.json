@@ -13,7 +13,7 @@
 "contacts": {"by":"detected","footL":[[0.85,1.416],[1.716,2.25]],"footR":[[0.317,0.817],[1.366,1.866]]},
 "facts": {"by":"m3a-facts@1","captured":["speed"],"height":[100,104],"seam":0,"speed":88,"travel":[185.9,3.7]},
 "provenance": {"src":"100STYLE","take":"Flapping_FW 81.90-83.83","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
-"quality": {"fit":[11,75],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[11,75],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"warn on seamVelocity, twistFlip: short of every fail level (thresholds.ts): unusual, not broken"},
 "keys": [
   {"t":0,
    "hips":[0,0,103], "body":[-1,-5,-2], "chest":[-3,7,-3], "head":[-2,17,5],

@@ -4,7 +4,7 @@
  "props": {
   "clips": 40,
   "migrated": 32.4,
-  "import": 13.7
+  "import": 13.9
  },
  "clips": {
   "Chest_Open": {
@@ -60,6 +60,7 @@
     27.1,
     14.1
    ],
+   "unrepaired": "no step makes it better",
    "moved": {
     "twistFlip": [
      35,
@@ -100,6 +101,7 @@
     32.5,
     11.5
    ],
+   "unrepaired": "no step makes it better",
    "moved": {
     "fit": [
      20,
@@ -204,6 +206,7 @@
     23.5,
     11.4
    ],
+   "unrepaired": "no step makes it better",
    "moved": {
     "jitter": [
      2.16,
@@ -249,11 +252,11 @@
   },
   "Death_D": {
    "kept": "import",
-   "why": "fits its source closer (13 → 9 mm on average), and the sensors judge it the same (warn)",
+   "why": "fits its source closer (13 → 9 mm on average), though further at its worst (77 → 88 mm), and the sensors judge it better (pass)",
    "fit": {
     "import": [
      9,
-     59
+     88
     ],
     "migrated": [
      13,
@@ -261,33 +264,48 @@
     ]
    },
    "qa": {
-    "import": "warn",
+    "import": "pass",
     "migrated": "warn"
    },
    "hands": [
     25.3,
     13
    ],
+   "repaired": [
+    "jitter"
+   ],
    "moved": {
+    "slide": [
+     40.5,
+     23.1
+    ],
+    "penetration": [
+     18,
+     17.3
+    ],
     "bodyPenetration": [
      2.86,
      2.06
     ],
     "jitter": [
      35.8,
-     32.9
+     19.6
     ],
     "pop": [
      1970,
-     1860
+     1690
     ],
     "twistFlip": [
      112,
-     38
+     35
     ],
     "fit": [
      13,
      9
+    ],
+    "skateMean": [
+     3.69,
+     3
     ]
    }
   },
@@ -361,11 +379,11 @@
   },
   "Farm_PlantSeed": {
    "kept": "import",
-   "why": "fits its source closer (13 → 10 mm on average), and the sensors judge it the same (warn)",
+   "why": "fits its source closer (13 → 12 mm on average), though further at its worst (62 → 70 mm), and the sensors judge it better (pass)",
    "fit": {
     "import": [
-     10,
-     57
+     12,
+     70
     ],
     "migrated": [
      13,
@@ -373,17 +391,24 @@
     ]
    },
    "qa": {
-    "import": "warn",
+    "import": "pass",
     "migrated": "warn"
    },
    "hands": [
     27.5,
     13.8
    ],
+   "repaired": [
+    "penetration"
+   ],
    "moved": {
+    "penetration": [
+     47.1,
+     44.4
+    ],
     "jitter": [
      5.38,
-     5.15
+     6.44
     ],
     "pop": [
      725,
@@ -391,7 +416,11 @@
     ],
     "fit": [
      13,
-     10
+     12
+    ],
+    "skateMean": [
+     2.3,
+     2.44
     ]
    }
   },
@@ -488,6 +517,7 @@
     30.4,
     12.6
    ],
+   "unrepaired": "no step makes it better",
    "moved": {
     "twistFlip": [
      6.01,
@@ -529,11 +559,11 @@
   },
   "Hit_Knockback": {
    "kept": "import",
-   "why": "fits its source closer (14 → 9 mm on average), and the sensors judge it the same (fail)",
+   "why": "fits its source closer (14 → 9 mm on average), though further at its worst (79 → 295 mm), and the sensors judge it the same (fail)",
    "fit": {
     "import": [
      9,
-     44
+     295
     ],
     "migrated": [
      14,
@@ -546,7 +576,10 @@
    },
    "hands": [
     26.9,
-    12.1
+    13.5
+   ],
+   "repaired": [
+    "twistFlips"
    ],
    "moved": {
     "bodyPenetration": [
@@ -555,7 +588,7 @@
     ],
     "twistFlip": [
      141,
-     136
+     76
     ],
     "fit": [
      14,
@@ -584,6 +617,7 @@
     26,
     12.3
    ],
+   "unrepaired": "no step makes it better",
    "moved": {
     "pop": [
      2260,
@@ -1065,11 +1099,11 @@
   },
   "Jog": {
    "kept": "import",
-   "why": "fits its source closer (16 → 9 mm on average), and the sensors judge it the same (fail)",
+   "why": "fits its source closer (16 → 10 mm on average), and the sensors judge it the same (fail)",
    "fit": {
     "import": [
-     9,
-     139
+     10,
+     96
     ],
     "migrated": [
      16,
@@ -1084,7 +1118,14 @@
     35.4,
     11.8
    ],
+   "repaired": [
+    "twistFlips"
+   ],
    "moved": {
+    "slide": [
+     9.41,
+     7.69
+    ],
     "jitter": [
      12.9,
      12.1
@@ -1093,13 +1134,21 @@
      531,
      685
     ],
+    "twistFlip": [
+     164,
+     88
+    ],
     "seamVelocity": [
      5920,
      5840
     ],
     "fit": [
      16,
-     9
+     10
+    ],
+    "skateMean": [
+     6.8,
+     7.72
     ]
    }
   },
@@ -1124,6 +1173,7 @@
     28.5,
     14.4
    ],
+   "unrepaired": "penetration would take it 106 mm further from its source on average",
    "moved": {
     "seamVelocity": [
      148,
@@ -1184,6 +1234,7 @@
     27.2,
     14.3
    ],
+   "unrepaired": "twistFlips, jitter, penetration would take it 60 mm further from its source on average",
    "moved": {
     "fit": [
      17,
@@ -1212,6 +1263,7 @@
     28.6,
     13.3
    ],
+   "unrepaired": "penetration would take it 12 mm further from its source on average",
    "moved": {
     "bodyPenetration": [
      53.7,
@@ -1252,6 +1304,7 @@
     38.5,
     14.2
    ],
+   "unrepaired": "no step makes it better",
    "moved": {
     "intersection": [
      0.04,
@@ -1341,11 +1394,11 @@
   },
   "NinjaJump_Land": {
    "kept": "import",
-   "why": "fits its source closer (13 → 9 mm on average), and the sensors judge it the same (fail)",
+   "why": "fits its source closer (13 → 10 mm on average), though further at its worst (52 → 152 mm), and the sensors judge it better (pass)",
    "fit": {
     "import": [
-     9,
-     46
+     10,
+     152
     ],
     "migrated": [
      13,
@@ -1353,17 +1406,28 @@
     ]
    },
    "qa": {
-    "import": "fail",
+    "import": "pass",
     "migrated": "fail"
    },
    "hands": [
     27.8,
     14.9
    ],
+   "repaired": [
+    "twistFlips"
+   ],
    "moved": {
+    "jitter": [
+     0.178,
+     3.05
+    ],
+    "twistFlip": [
+     160,
+     60
+    ],
     "fit": [
      13,
-     9
+     10
     ]
    }
   },
@@ -1388,6 +1452,7 @@
     26.1,
     13.8
    ],
+   "unrepaired": "no step makes it better",
    "moved": {
     "jitter": [
      0.215,
@@ -1669,11 +1734,11 @@
   },
   "Punch_Cross": {
    "kept": "import",
-   "why": "fits its source closer (19 → 10 mm on average), and the sensors judge it the same (warn)",
+   "why": "fits its source closer (19 → 11 mm on average), though further at its worst (89 → 91 mm), and the sensors judge it better (pass)",
    "fit": {
     "import": [
-     10,
-     89
+     11,
+     91
     ],
     "migrated": [
      19,
@@ -1681,17 +1746,20 @@
     ]
    },
    "qa": {
-    "import": "warn",
+    "import": "pass",
     "migrated": "warn"
    },
    "hands": [
     33.6,
-    13.1
+    17.6
+   ],
+   "repaired": [
+    "jitter"
    ],
    "moved": {
     "jitter": [
      68.5,
-     77.6
+     7.52
     ],
     "twistFlip": [
      122,
@@ -1699,7 +1767,7 @@
     ],
     "fit": [
      19,
-     10
+     11
     ]
    }
   },
@@ -1804,6 +1872,7 @@
     33.8,
     14.2
    ],
+   "unrepaired": "twistFlips, jitter would take it 8 mm further from its source on average, 323 mm at worst",
    "moved": {
     "bodyPenetration": [
      32.2,
@@ -1840,6 +1909,7 @@
     33.8,
     14.2
    ],
+   "unrepaired": "twistFlips, jitter would take it 8 mm further from its source on average, 323 mm at worst",
    "moved": {
     "bodyPenetration": [
      32.2,
@@ -1976,6 +2046,7 @@
     37,
     16.1
    ],
+   "unrepaired": "twistFlips would take it 3 mm further from its source on average",
    "moved": {
     "jitter": [
      1.99,
@@ -2132,6 +2203,7 @@
     32.3,
     12.2
    ],
+   "unrepaired": "no step makes it better",
    "moved": {
     "bodyPenetration": [
      6.46,
@@ -2164,6 +2236,7 @@
     31.8,
     11.4
    ],
+   "unrepaired": "jitter would take it 3 mm further from its source on average",
    "moved": {
     "bodyPenetration": [
      51,
@@ -2236,6 +2309,7 @@
     28,
     11.6
    ],
+   "unrepaired": "no step makes it better",
    "moved": {
     "pop": [
      25700,
@@ -2340,6 +2414,7 @@
     35.4,
     11.8
    ],
+   "unrepaired": "seam would take it 2 mm further from its source on average, 308 mm at worst",
    "moved": {
     "twistFlip": [
      172,
@@ -2372,6 +2447,7 @@
     27.2,
     15.2
    ],
+   "unrepaired": "twistFlips, seam would take it 8 mm further from its source on average",
    "moved": {
     "intersection": [
      0.066,
@@ -2429,11 +2505,11 @@
   },
   "Sword_Attack": {
    "kept": "import",
-   "why": "fits its source closer (18 → 12 mm on average), though further at its worst (88 → 116 mm), and the sensors judge it the same (warn)",
+   "why": "fits its source closer (18 → 13 mm on average), though further at its worst (88 → 202 mm), and the sensors judge it the same (warn)",
    "fit": {
     "import": [
-     12,
-     116
+     13,
+     202
     ],
     "migrated": [
      18,
@@ -2446,12 +2522,23 @@
    },
    "hands": [
     27.7,
-    16
+    21.4
+   ],
+   "repaired": [
+    "jitter"
    ],
    "moved": {
+    "slide": [
+     16.6,
+     17.8
+    ],
     "jitter": [
      79.9,
-     78.6
+     26.3
+    ],
+    "pop": [
+     141,
+     0
     ],
     "twistFlip": [
      126,
@@ -2459,7 +2546,11 @@
     ],
     "fit": [
      18,
-     12
+     13
+    ],
+    "skateMean": [
+     1.91,
+     2.24
     ]
    }
   },
@@ -2484,6 +2575,7 @@
     27.7,
     16
    ],
+   "unrepaired": "jitter, footLocks would take it 23 mm further from its source on average, 938 mm at worst",
    "moved": {
     "jitter": [
      79.9,
@@ -2552,6 +2644,7 @@
     30.4,
     16.6
    ],
+   "unrepaired": "no step makes it better",
    "moved": {
     "jitter": [
      141,
@@ -2592,6 +2685,7 @@
     35.6,
     23
    ],
+   "unrepaired": "jitter would take it 3 mm further from its source on average",
    "moved": {
     "jitter": [
      444,
@@ -2632,6 +2726,7 @@
     28.3,
     16.5
    ],
+   "unrepaired": "no step makes it better",
    "moved": {
     "jitter": [
      637,
@@ -2672,6 +2767,7 @@
     30.6,
     12.3
    ],
+   "unrepaired": "penetration would take it 32 mm further from its source on average",
    "moved": {
     "jitter": [
      5.92,
@@ -2708,6 +2804,7 @@
     27.4,
     13.8
    ],
+   "unrepaired": "penetration, footLocks would take it 9 mm further from its source on average",
    "moved": {
     "jitter": [
      55.8,
@@ -2740,6 +2837,7 @@
     27.2,
     14
    ],
+   "unrepaired": "twistFlips, jitter, penetration would take it 17 mm further from its source on average",
    "moved": {
     "jitter": [
      60.3,
@@ -2772,6 +2870,7 @@
     28.3,
     15.3
    ],
+   "unrepaired": "twistFlips, jitter, penetration would take it 22 mm further from its source on average, 587 mm at worst",
    "moved": {
     "jitter": [
      560,
@@ -2785,11 +2884,11 @@
   },
   "Walk": {
    "kept": "import",
-   "why": "fits its source closer (13 → 7 mm on average), and the sensors judge it the same (fail)",
+   "why": "fits its source closer (13 → 8 mm on average), though further at its worst (78 → 140 mm), and the sensors judge it better (pass)",
    "fit": {
     "import": [
-     7,
-     78
+     8,
+     140
     ],
     "migrated": [
      13,
@@ -2797,21 +2896,48 @@
     ]
    },
    "qa": {
-    "import": "fail",
+    "import": "pass",
     "migrated": "fail"
    },
    "hands": [
     30.1,
     11.4
    ],
+   "repaired": [
+    "twistFlips"
+   ],
    "moved": {
+    "slide": [
+     53,
+     74.6
+    ],
+    "skate": [
+     5.26,
+     6.95
+    ],
+    "penetration": [
+     12.3,
+     12.6
+    ],
     "jitter": [
      3.32,
-     3.4
+     12.1
+    ],
+    "pop": [
+     2100,
+     210
+    ],
+    "twistFlip": [
+     169,
+     61
     ],
     "fit": [
      13,
-     7
+     8
+    ],
+    "skateMean": [
+     4.93,
+     5.82
     ]
    }
   },
@@ -2836,6 +2962,7 @@
     24.5,
     12
    ],
+   "unrepaired": "twistFlips, penetration would take it 4 mm further from its source on average",
    "moved": {
     "fit": [
      12,
@@ -2845,11 +2972,11 @@
   },
   "Walk_Formal": {
    "kept": "import",
-   "why": "fits its source closer (13 → 8 mm on average), and the sensors judge it the same (fail)",
+   "why": "fits its source closer (13 → 10 mm on average), though further at its worst (76 → 141 mm), and the sensors judge it better (pass)",
    "fit": {
     "import": [
-     8,
-     76
+     10,
+     141
     ],
     "migrated": [
      13,
@@ -2857,33 +2984,48 @@
     ]
    },
    "qa": {
-    "import": "fail",
+    "import": "pass",
     "migrated": "fail"
    },
    "hands": [
     28.7,
     11.4
    ],
+   "repaired": [
+    "twistFlips"
+   ],
    "moved": {
     "slide": [
      56,
-     54.4
+     79
     ],
     "skate": [
      5.56,
-     5.41
+     7.37
+    ],
+    "penetration": [
+     12.2,
+     12.7
     ],
     "jitter": [
      2.81,
-     8.22
+     17
+    ],
+    "pop": [
+     1930,
+     335
+    ],
+    "twistFlip": [
+     171,
+     67
     ],
     "fit": [
      13,
-     8
+     10
     ],
     "skateMean": [
      5.08,
-     4.98
+     6.12
     ]
    }
   },
@@ -3024,6 +3166,7 @@
     24.5,
     12.7
    ],
+   "unrepaired": "no step makes it better",
    "moved": {
     "twistFlip": [
      11,
@@ -3072,8 +3215,8 @@
    }
   },
   "Attack_Ground_Pound": {
-   "kept": "migrated",
-   "why": "the sensors judge the re-import worse (pass → warn)",
+   "kept": "import",
+   "why": "fits its source closer (18 → 8 mm on average), and the sensors judge it the same (pass)",
    "fit": {
     "import": [
      8,
@@ -3085,21 +3228,24 @@
     ]
    },
    "qa": {
-    "import": "warn",
+    "import": "pass",
     "migrated": "pass"
    },
    "hands": [
     34.5,
-    9.4
+    9.6
+   ],
+   "repaired": [
+    "jitter"
    ],
    "moved": {
     "jitter": [
      19.9,
-     31.7
+     19.1
     ],
     "twistFlip": [
      61,
-     66
+     65
     ],
     "fit": [
      18,
@@ -3109,11 +3255,11 @@
   },
   "Backflip": {
    "kept": "import",
-   "why": "fits its source closer (19 → 8 mm on average), and the sensors judge it the same (fail)",
+   "why": "fits its source closer (19 → 8 mm on average), though further at its worst (235 → 242 mm), and the sensors judge it the same (fail)",
    "fit": {
     "import": [
      8,
-     150
+     242
     ],
     "migrated": [
      19,
@@ -3126,24 +3272,27 @@
    },
    "hands": [
     32.3,
-    10.2
+    12.7
+   ],
+   "repaired": [
+    "jitter"
    ],
    "moved": {
     "intersection": [
      1.61,
-     0.002
+     0
     ],
     "jitter": [
      88,
-     81.6
+     31.8
     ],
     "pop": [
      0,
-     6060
+     4190
     ],
     "twistFlip": [
      151,
-     178
+     136
     ],
     "fit": [
      19,
@@ -3552,6 +3701,7 @@
     33.5,
     12.6
    ],
+   "unrepaired": "twistFlips, jitter, footLocks would take it 35 mm further from its source on average, 382 mm at worst",
    "moved": {
     "intersection": [
      1.04,
@@ -3596,6 +3746,7 @@
     44.8,
     14.6
    ],
+   "unrepaired": "no step makes it better",
    "moved": {
     "slide": [
      56.1,
@@ -3732,6 +3883,7 @@
     31.7,
     10.5
    ],
+   "unrepaired": "twistFlips would take it 9 mm further from its source on average, 374 mm at worst",
    "moved": {
     "jitter": [
      6.37,
@@ -3972,6 +4124,7 @@
     48.3,
     28.1
    ],
+   "unrepaired": "twistFlips would take it 5 mm further from its source on average, 301 mm at worst",
    "moved": {
     "penetration": [
      19,
@@ -4020,6 +4173,7 @@
     48.3,
     28.1
    ],
+   "unrepaired": "twistFlips would take it 5 mm further from its source on average, 301 mm at worst",
    "moved": {
     "penetration": [
      19,
@@ -4068,6 +4222,7 @@
     48.3,
     28.1
    ],
+   "unrepaired": "twistFlips would take it 5 mm further from its source on average, 301 mm at worst",
    "moved": {
     "penetration": [
      19,
@@ -4116,6 +4271,7 @@
     48.3,
     28.1
    ],
+   "unrepaired": "twistFlips would take it 5 mm further from its source on average, 301 mm at worst",
    "moved": {
     "penetration": [
      19,
@@ -4544,6 +4700,7 @@
     36.2,
     14.7
    ],
+   "unrepaired": "no step makes it better",
    "moved": {
     "jitter": [
      14.8,
@@ -4584,6 +4741,7 @@
     35.9,
     13.5
    ],
+   "unrepaired": "no step makes it better",
    "moved": {
     "jitter": [
      4.38,
@@ -4620,6 +4778,7 @@
     16.8,
     9.6
    ],
+   "unrepaired": "seam would take it 3 mm further from its source on average",
    "moved": {
     "jitter": [
      30,
@@ -4700,6 +4859,7 @@
     21.2,
     9.6
    ],
+   "unrepaired": "penetration would take it 58 mm further from its source on average",
    "moved": {
     "twistFlip": [
      7,
@@ -4736,6 +4896,7 @@
     34,
     11.3
    ],
+   "unrepaired": "twistFlips, penetration would take it 5 mm further from its source on average",
    "moved": {
     "jitter": [
      4.31,
@@ -4776,6 +4937,7 @@
     19.9,
     9.3
    ],
+   "unrepaired": "penetration would take it 139 mm further from its source on average",
    "moved": {
     "twistFlip": [
      2,
@@ -4896,6 +5058,7 @@
     40.6,
     12.6
    ],
+   "unrepaired": "no step makes it better",
    "moved": {
     "jitter": [
      3.06,
@@ -5096,6 +5259,7 @@
     26.8,
     4.7
    ],
+   "unrepaired": "penetration would take it 23 mm further from its source on average",
    "moved": {
     "fit": [
      15,
@@ -5124,6 +5288,7 @@
     46.3,
     8.2
    ],
+   "unrepaired": "twistFlips, jitter, seam would take it 17 mm further from its source on average, 468 mm at worst",
    "moved": {
     "fit": [
      21,
@@ -5152,6 +5317,7 @@
     36.4,
     7.8
    ],
+   "unrepaired": "jitter would take it 3 mm further from its source on average",
    "moved": {
     "fit": [
      18,
@@ -5180,6 +5346,7 @@
     34.9,
     10.6
    ],
+   "unrepaired": "no step makes it better",
    "moved": {
     "pop": [
      360,
@@ -5272,6 +5439,7 @@
     28.8,
     7.4
    ],
+   "unrepaired": "no step makes it better",
    "moved": {
     "pop": [
      0,
@@ -5336,6 +5504,7 @@
     58.4,
     6.6
    ],
+   "unrepaired": "twistFlips, jitter would take it 21 mm further from its source on average, 511 mm at worst",
    "moved": {
     "jitter": [
      70.3,
@@ -5476,6 +5645,7 @@
     36.2,
     10.1
    ],
+   "unrepaired": "no step makes it better",
    "moved": {
     "intersection": [
      1.54,
@@ -5768,6 +5938,7 @@
     23.9,
     12.1
    ],
+   "unrepaired": "twistFlips, penetration would take it 339 mm further from its source on average, 741 mm at worst",
    "moved": {
     "bodyPenetration": [
      464,
@@ -6037,11 +6208,11 @@
   },
   "Golf_Drive": {
    "kept": "import",
-   "why": "fits its source closer (13 → 9 mm on average), and the sensors judge it better (warn)",
+   "why": "fits its source closer (13 → 10 mm on average), and the sensors judge it better (warn)",
    "fit": {
     "import": [
-     9,
-     55
+     10,
+     92
     ],
     "migrated": [
      13,
@@ -6054,20 +6225,31 @@
    },
    "hands": [
     26.5,
-    12
+    15.5
+   ],
+   "repaired": [
+    "jitter"
    ],
    "moved": {
+    "slide": [
+     70.2,
+     71.4
+    ],
+    "skate": [
+     4.63,
+     4.71
+    ],
     "intersection": [
      0.006,
      0.235
     ],
     "jitter": [
      106,
-     80.5
+     50.6
     ],
     "pop": [
      4070,
-     2530
+     2660
     ],
     "twistFlip": [
      173,
@@ -6075,7 +6257,11 @@
     ],
     "fit": [
      13,
-     9
+     10
+    ],
+    "skateMean": [
+     3.06,
+     3.08
     ]
    }
   },
@@ -6237,7 +6423,7 @@
   },
   "Kick_Breach": {
    "kept": "import",
-   "why": "fits its source closer (14 → 11 mm on average), and the sensors judge it the same (fail)",
+   "why": "fits its source closer (14 → 11 mm on average), and the sensors judge it better (warn)",
    "fit": {
     "import": [
      11,
@@ -6249,12 +6435,15 @@
     ]
    },
    "qa": {
-    "import": "fail",
+    "import": "warn",
     "migrated": "fail"
    },
    "hands": [
     25.9,
     14.1
+   ],
+   "repaired": [
+    "twistFlips"
    ],
    "moved": {
     "slide": [
@@ -6271,7 +6460,7 @@
     ],
     "twistFlip": [
      176,
-     178
+     67
     ],
     "fit": [
      14,
@@ -6285,7 +6474,7 @@
   },
   "Salute": {
    "kept": "import",
-   "why": "fits its source closer (14 → 9 mm on average), and the sensors judge it the same (fail)",
+   "why": "fits its source closer (14 → 9 mm on average), and the sensors judge it better (pass)",
    "fit": {
     "import": [
      9,
@@ -6297,17 +6486,20 @@
     ]
    },
    "qa": {
-    "import": "fail",
+    "import": "pass",
     "migrated": "fail"
    },
    "hands": [
     27.5,
     13.5
    ],
+   "repaired": [
+    "twistFlips"
+   ],
    "moved": {
     "jitter": [
      12.9,
-     7.96
+     14.7
     ],
     "pop": [
      225,
@@ -6315,7 +6507,7 @@
     ],
     "twistFlip": [
      166,
-     177
+     89
     ],
     "fit": [
      14,
@@ -6396,6 +6588,7 @@
     17.5,
     11.3
    ],
+   "unrepaired": "no step makes it better",
    "moved": {
     "skate": [
      21.8,

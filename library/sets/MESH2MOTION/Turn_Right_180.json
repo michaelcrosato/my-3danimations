@@ -13,7 +13,7 @@
 "contacts": {"by":"detected","footL":[[0,0.467]]},
 "facts": {"by":"m3a-facts@1","height":[99,104]},
 "provenance": {"src":"M2M_MOCOPI","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCapture"},
-"quality": {"fit":[9,38],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[9,38],"qa":"pass","qaVersion":"m3a-sensors@1"},
 "keys": [
   {"t":0,
    "hips":[-11,-9,99], "body":[1,-6,8], "chest":[2,-3,-8], "head":[5,12,2], "yaw":0, "spine":[6,52,90],

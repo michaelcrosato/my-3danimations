@@ -1345,7 +1345,8 @@
    },
    "hands": [
     11.2
-   ]
+   ],
+   "unrepaired": "no step makes it better"
   },
   "SwingShoulders_Idle": {
    "kept": "new",
@@ -1537,7 +1538,8 @@
    },
    "hands": [
     11.8
-   ]
+   ],
+   "unrepaired": "twistFlips would take it 5 mm further from its source on average"
   },
   "WildLegs_Idle": {
    "kept": "new",

@@ -13,7 +13,7 @@
 "contacts": {"by":"detected","footL":[[0.179,0.488]],"footR":[[0.163,0.211]]},
 "facts": {"by":"m3a-facts@1","captured":["speed"],"height":[99,105],"seam":0,"speed":114,"travel":[-38.3,-21.2]},
 "provenance": {"src":"100STYLE","take":"Neutral_BR 60.00-60.68","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
-"quality": {"fit":[9,36],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[9,36],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"fail on skate: as captured, fitted within 9 mm of it on average; the sensors' fix: no step makes it better"},
 "keys": [
   {"t":0,
    "hips":[0,0,99], "body":[-1,6,-1], "chest":[-10,14,-3], "head":[-53,29,-21],
