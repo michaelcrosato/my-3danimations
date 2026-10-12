@@ -9,11 +9,11 @@
  "clips": {
   "Walk_Loop": {
    "kept": "import",
-   "why": "fits its source closer (10 → 9 mm on average), and the sensors judge it better (pass)",
+   "why": "fits its source as closely (10 mm on average), and the sensors judge it better (pass)",
    "fit": {
     "import": [
-     9,
-     55
+     10,
+     53
     ],
     "migrated": [
      10,
@@ -26,13 +26,13 @@
    },
    "hands": [
     11.5,
-    9.7
+    10.2
    ],
    "repaired": [
     "twistFlips"
    ],
    "unrepairedFit": [
-    9,
+    10,
     98
    ],
    "moved": {
@@ -50,15 +50,15 @@
     ],
     "intersection": [
      0.079,
-     0.094
+     0.104
     ],
     "jitter": [
      10.4,
-     8.45
+     8.47
     ],
     "pop": [
      570,
-     533
+     395
     ],
     "twistFlip": [
      137,
@@ -67,10 +67,6 @@
     "seamVelocity": [
      1060,
      1030
-    ],
-    "fit": [
-     10,
-     9
     ],
     "skateMean": [
      3.36,
@@ -84,7 +80,7 @@
    "fit": {
     "import": [
      11,
-     44
+     40
     ],
     "migrated": [
      15,
@@ -137,6 +133,22 @@
      1.4
     ]
    }
+  },
+  "Swordplay": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     8,
+     60
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    9.1
+   ]
   },
   "Zombie_Walk_Loop": {
    "kept": "import",
@@ -3304,6 +3316,22 @@
     16.5
    ]
   },
+  "Boxing_Flurry": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     17,
+     100
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    15.1
+   ]
+  },
   "Rake_Leaves": {
    "kept": "import",
    "why": "fits its source as closely (24 mm on average), and the sensors judge it better (pass)",
@@ -4684,6 +4712,22 @@
     11.4
    ]
   },
+  "Angry_Quarrel": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     15,
+     65
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    12
+   ]
+  },
   "Referee_Signals": {
    "kept": "new",
    "why": "new in the re-import",
@@ -5106,6 +5150,22 @@
     11.3
    ]
   },
+  "Backpedal_Punch": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     13,
+     73
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    10.2
+   ]
+  },
   "Baseball_Pitch": {
    "kept": "new",
    "why": "new in the re-import",
@@ -5160,6 +5220,22 @@
    },
    "hands": [
     15.5
+   ]
+  },
+  "Explain_With_Hands": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     11,
+     56
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    12.9
    ]
   }
  },

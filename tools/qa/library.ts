@@ -5,6 +5,7 @@
 // library/baselines/distributions.json, which may only improve; and docs/LIBRARY.md, generated from all of it.
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+import { clip as C, format, type Clip, type Rest } from "@m3a/core";
 import { checks } from "@m3a/sensors";
 import { ROOT } from "../run/cli.ts";
 import { CATEGORIES, OTHER, type Census } from "./census.ts";
@@ -75,6 +76,47 @@ export function checkVerdicts(lib: readonly LibraryClip[], rows: readonly QaRow[
     ...Object.keys(reasons.sets).filter((set) => !failing.has(set)).map((set) => `${set} (no clip in it fails)`),
   ];
   return { problems, gone };
+}
+
+/**
+ * The float check (D69): a stretch of at least `for` seconds where the body stands upright (its hips at least `upright`
+ * of their standing height H0) with both soles more than `above` of H0 off the floor (40 mm on a 950 mm H0), in a clip
+ * whose tags don't put it in the air, read every 1/30 s. A floor rule that lifts a take off its floor shows as one.
+ */
+export const FLOAT = { upright: 0.7, above: 0.042, for: 1, exempt: ["air", "fly", "swim", "climb", "jump"] } as const;
+/** Where a clip floats longest: from when, for how long, and its lower sole's mean height there in mm. */
+export interface Float {
+  at: number;
+  for: number;
+  mm: number;
+}
+/** A clip's longest floating stretch, none under FLOAT's length or for a clip its tags put in the air. */
+export function floatOf(clip: Clip, rest: Rest): Float | null {
+  if (clip.tags.some((t) => (FLOAT.exempt as readonly string[]).includes(t))) return null;
+  const X = new Float32Array(format.P * 3), dt = 1 / 30, n = Math.floor(clip.dur / dt + 1e-6);
+  let run = 0, sum = 0, best: Float | null = null;
+  for (let i = 0; i <= n; i++) {
+    format.pose(rest, clip, i * dt, X);
+    const lo = Math.min(...(["L", "R"] as const).flatMap((s) => C.sole(rest, X, s).map((p) => p.p[2])));
+    if (X[2]! >= FLOAT.upright * rest.H0 && lo > FLOAT.above * rest.H0) {
+      run++;
+      sum += lo;
+      if ((run - 1) * dt >= FLOAT.for && (run - 1) * dt > (best?.for ?? 0) + 1e-9) best = { at: Math.round((i - run + 1) * dt * 10) / 10, for: Math.round((run - 1) * dt * 10) / 10, mm: Math.round(sum / run) };
+    } else [run, sum] = [0, 0];
+  }
+  return best;
+}
+/** The float check over the library: a clip that floats with no answer in the reasons' `floats`, and an answer whose
+ *  clip no longer floats. */
+export function checkFloats(lib: readonly LibraryClip[], reasons: QaReasons = readReasons()): VerdictCheck {
+  const problems: string[] = [], floating = new Set<string>(), answers = reasons.floats ?? {};
+  for (const { clip, rest } of lib) {
+    const f = floatOf(clip, rest);
+    if (!f) continue;
+    floating.add(clip.id);
+    if (!answers[clip.id]) problems.push(`${clip.id}: stands upright with both soles ${f.mm} mm up for ${f.for} s from ${f.at} s, with no answer in library/baselines/qa.json floats`);
+  }
+  return { problems, gone: Object.keys(answers).filter((id) => !floating.has(id)).map((id) => `${id} (floats no longer)`) };
 }
 
 /** One metric's recorded spread: p50, p95 and the most of each clip's worst value. */

@@ -1,9 +1,12 @@
 // The re-import's choices (WP-5.3, WP-5.8, D66): a repair is held back when it takes the clip more than CLOSE mm
 // further from its source on average, past the fit limits, or moves a point more than WORST mm further at worst; a
 // clip keeps its re-import unless it fits worse or the sensors judge it worse, and a re-import they judge better may fit
-// up to CLOSE mm worse on average, and then WORST mm at worst.
+// up to CLOSE mm worse on average, and then WORST mm at worst. A catalog that names a clip twice is refused.
+import { readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { choose, CLOSE, LIMITS, repairGuard, WORST } from "./import.ts";
+import { ROOT } from "../run/cli.ts";
+import { choose, CLOSE, duplicateKeys, LIMITS, repairGuard, WORST } from "./import.ts";
 
 describe("a repair", () => {
   it("is kept within CLOSE mm on average and WORST mm at worst, and the fit limits", () => {
@@ -27,5 +30,12 @@ describe("the version a clip keeps", () => {
   });
   it("is the migrated one when the sensors judge the re-import worse", () => {
     expect(choose("fail", "warn", [8, 70], [10, 80])).toEqual(["migrated", "the sensors judge the re-import worse (warn → fail)"]);
+  });
+});
+
+describe("a catalog", () => {
+  it("names each clip once: a key given twice in one object is found, with its path", () => {
+    expect(duplicateKeys('{"$pick": {"A": [1], "B": [2], "A": [3]}, "A": ["x \\" y"], "B": {}}')).toEqual(["$pick.A"]);
+    for (const f of readdirSync(join(ROOT, "library/catalogs"))) expect([f, duplicateKeys(readFileSync(join(ROOT, "library/catalogs", f), "utf8"))]).toEqual([f, []]);
   });
 });

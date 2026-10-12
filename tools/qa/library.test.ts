@@ -4,7 +4,9 @@
 // its writer give and names one whose finding (or whose set's fail) is gone; the reasons and the record are checked
 // against their schemas; the census reads a category from the tags and counts copies by `orig`, re-exports (by name,
 // or by pose at the re-export's rate) and near-duplicates by pose (still poses whatever their length) once; its floors
-// are PLAN.md's; the record of the distributions may only improve, and a floor short is named; the summary lists them.
+// are PLAN.md's; the record of the distributions may only improve, and a floor short is named; the summary lists them;
+// the float check finds an upright body off the floor for a second or more, unless its tags put it in the air or the
+// reasons answer it.
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { Ajv2020 } from "ajv/dist/2020.js";
@@ -13,11 +15,11 @@ import { metrics, checks, type Report } from "@m3a/sensors";
 import type { Clip } from "@m3a/core";
 import { ROOT } from "../run/cli.ts";
 import { CATEGORIES, categoryOf, census, type Census } from "./census.ts";
-import { againstRecord, checkVerdicts, contextsOf, DISTRIBUTIONS, floorsMissed, libraryDoc, recordOf, recordProblems, UNIQUE_FLOOR, type Recorded } from "./library.ts";
+import { againstRecord, checkFloats, checkVerdicts, contextsOf, DISTRIBUTIONS, FLOAT, floatOf, floorsMissed, libraryDoc, recordOf, recordProblems, UNIQUE_FLOOR, type Recorded } from "./library.ts";
 import { libraryClips, qa, sample, type LibraryClip } from "./qa.ts";
 import { QA_REASONS, qualityOf, readReasons, reasonOf, reasonsProblems, type QaReasons } from "./verdict.ts";
 
-const lib = sample(libraryClips(), 24);
+const all = libraryClips(), lib = sample(all, 24);
 const reasons: QaReasons = { warn: "short of every fail level", sets: { SOME_SET: "the set's reason" }, clips: { "A_SET/Hang": { penetration: "it hangs" } } };
 const finding = (metric: string, level: "warn" | "fail") => ({ metric, level }) as unknown as checks.Finding;
 const report = (verdict: Report["verdict"], f: checks.Finding[], off: string[] = []) => ({ verdict, findings: f, off }) as unknown as Report;
@@ -61,6 +63,7 @@ describe("a clip's recorded verdict", () => {
     // a reasons file without its warn reason, a set's reason that isn't text, a clip that isn't an id
     expect(reasonsProblems({ sets: { S: 3 }, clips: { nope: { pop: "x" } } })).toEqual(["warn is the reason a warn is kept, a text", "sets maps a set to its reason, a text", '"nope" is not a clip id']);
     expect(qaSchema({ sets: {}, clips: {} })).toBe(false);
+    expect(reasonsProblems({ warn: "w", sets: {}, clips: {}, floats: { "A/B": "" } })).toEqual(["floats maps a clip id to why it stands off the floor, a text"]);
     expect(recordProblems({ verdicts: { pass: 1, warn: -1, fail: 0 }, metrics: { slide: { p50: 1 } } })).toEqual(["verdicts counts pass, warn and fail", "metrics gives each metric's p50, p95 and max"]);
   });
 });
@@ -118,5 +121,25 @@ describe("the recorded distributions", () => {
     expect(againstRecord(now, now)).toEqual({ worse: [], better: [] });
     expect(againstRecord(now, worse).worse).toEqual([`${now.verdicts.fail + 1} clips fail, ${now.verdicts.fail} recorded`, `${now.verdicts.warn + now.verdicts.fail + 1} clips flagged, ${now.verdicts.warn + now.verdicts.fail} recorded`]);
     expect(againstRecord(worse, now).worse).toEqual([`slide max ${now.metrics.slide!.max / 2} → ${now.metrics.slide!.max}`]);
+  });
+});
+
+describe("the float check", () => {
+  // Chop_Wood stands upright and flat-footed throughout; lifted by its hips' `up` (% of H0) it floats
+  const chop = all.find((c) => c.clip.id === "CMU_CURATED/Chop_Wood")!;
+  const lifted = (by: number, tags = chop.clip.tags): LibraryClip => ({ ...chop, clip: { ...chop.clip, tags, keys: chop.clip.keys.map((k) => ({ ...k, hips: [k.hips[0]!, k.hips[1]!, k.hips[2]! + by] })) } });
+  it("finds an upright body with both soles off the floor for a second or more, unless its tags put it in the air", () => {
+    expect(floatOf(chop.clip, chop.rest)).toBeNull();
+    expect(floatOf(lifted(2).clip, chop.rest)).toBeNull();
+    const f = floatOf(lifted(12).clip, chop.rest)!;
+    expect([f.at, f.for]).toEqual([0, chop.clip.dur]);
+    expect(f.mm).toBeGreaterThan(FLOAT.above * chop.rest.H0);
+    expect(floatOf(lifted(12, ["work", "jump"]).clip, chop.rest)).toBeNull();
+  });
+  it("names a clip that floats with no answer, and an answer whose clip floats no longer", () => {
+    const none: QaReasons = { ...reasons, floats: {} }, answered: QaReasons = { ...reasons, floats: { [chop.clip.id]: "on a step" } };
+    expect(checkFloats([lifted(12)], none).problems[0]).toMatch(/^CMU_CURATED\/Chop_Wood: stands upright with both soles \d+ mm up for 6 s from 0 s, with no answer/);
+    expect(checkFloats([lifted(12)], answered)).toEqual({ problems: [], gone: [] });
+    expect(checkFloats([chop], answered)).toEqual({ problems: [], gone: ["CMU_CURATED/Chop_Wood (floats no longer)"] });
   });
 });

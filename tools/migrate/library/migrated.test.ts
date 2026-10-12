@@ -27,7 +27,7 @@ const TIER2: Record<string, string> = { QUATERNIUS_3D2DGE: "QUATERNIUS", MESH2MO
 describe("the migrated library", () => {
   it("holds the five seed sets and 100STYLE's extras, with the clip counts WP-1.5, WP-5.3 and WP-5.8 leave them", () => {
     const count = (s: string) => readdirSync(join(LIB, s)).filter((f) => !f.startsWith("_") && f.endsWith(".json")).length;
-    expect(Object.fromEntries(sets.map((s) => [s, count(s)]))).toEqual({ CMU_CURATED: 153, MESH2MOTION: 176, QUATERNIUS_3D2DGE: 88, QUATERNIUS_SHARDFALL: 102, STYLE100: 95, STYLE100_BACK: 98, STYLE100_BACKRUN: 98, STYLE100_IDLE: 98, STYLE100_RUN: 98, STYLE100_SIDE: 194, STYLE100_SIDERUN: 193 });
+    expect(Object.fromEntries(sets.map((s) => [s, count(s)]))).toEqual({ CMU_CURATED: 158, MESH2MOTION: 176, QUATERNIUS_3D2DGE: 88, QUATERNIUS_SHARDFALL: 102, STYLE100: 95, STYLE100_BACK: 98, STYLE100_BACKRUN: 98, STYLE100_IDLE: 98, STYLE100_RUN: 98, STYLE100_SIDE: 194, STYLE100_SIDERUN: 193 });
   });
   for (const set of sets) {
     describe(set, () => {

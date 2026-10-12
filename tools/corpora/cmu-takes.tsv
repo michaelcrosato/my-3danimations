@@ -30,7 +30,7 @@ id	subject	fps	sec	category	active	fit	travel	hips	flags	used	note	desc	about
 02_05	2	120	15.4	combat	0.0-15.1	11/84	1.7	86-104				punch/strike	various expressions and human behaviors
 02_06	2	120	18.6	everyday	0.0-18.0	17/96	2.9	60-105				bend over, scoop up, rise, lift arm	various expressions and human behaviors
 02_07	2	120	18.8	combat	0.0-18.0	13/112	2.4	91-103		Sword_Lunge		swordplay	various expressions and human behaviors
-02_08	2	120	12.5	combat	0.0-11.8	10/66	2.5	83-105				swordplay	various expressions and human behaviors
+02_08	2	120	12.5	combat	0.0-11.8	10/66	2.5	83-105		Swordplay		swordplay	various expressions and human behaviors
 02_09	2	120	8.6	combat	0.0-8.6	12/53	1.6	77-105				swordplay	various expressions and human behaviors
 02_10	2	120	22.0	everyday	0.0-21.6	16/130	1.9	81-105	inverted			wash self	various expressions and human behaviors
 03_01	3	120	3.6	locomotion	0.0-3.6	13/89	2.3	95-126				walk on uneven terrain	walk on uneven terrain
@@ -289,7 +289,7 @@ id	subject	fps	sec	category	active	fit	travel	hips	flags	used	note	desc	about
 18_08	18	120	17.4	gesture and talk	0.0-17.4	13/72	0.9	106-108		Explain		conversation - explain with hand gestures (2 subjects - subject A)	human interaction and communication (2 subjects - subject A
 18_09	18	120	1.9	gesture and talk	0.0-1.9	12/81	1.7	104-108				conversation - explain with hand gestures, walk (2 subjects - subject A)	human interaction and communication (2 subjects - subject A
 18_10	18	120	15.0	gesture and talk	0.0-15.0	17/77	5.7	98-106		Quarrel		quarrel - angry hand gestures (2 subjects - subject A)	human interaction and communication (2 subjects - subject A
-18_11	18	120	15.9	gesture and talk	0.6-15.9	19/137	6.3	97-107				quarrel - angry hand gestures (2 subjects - subject A)	human interaction and communication (2 subjects - subject A
+18_11	18	120	15.9	gesture and talk	0.6-15.9	19/137	6.3	97-107		Angry_Quarrel		quarrel - angry hand gestures (2 subjects - subject A)	human interaction and communication (2 subjects - subject A
 18_12	18	120	10.4	climb	0.1-10.4	15/115	0.5	58-61				friends meet, hang out; A sits, B joins A (2 subjects - subject A)	human interaction and communication (2 subjects - subject A
 18_13	18	120	3.9	locomotion	0.0-3.6	20/118	3.1	49-104				run, scramble for last seat (2 subjects - subject A)	human interaction and communication (2 subjects - subject A
 18_14	18	120	2.8	locomotion	0.0-2.5	22/165	0.9	58-100				run, scramble for last seat (2 subjects - subject A)	human interaction and communication (2 subjects - subject A
@@ -301,7 +301,7 @@ id	subject	fps	sec	category	active	fit	travel	hips	flags	used	note	desc	about
 19_05	19	120	3.6	everyday	0.9-3.6	13/49	2.4	99-109				A pulls B by the elbow; B resists (2 subjects - subject B)	human interaction and communication (2 subjects - subject B
 19_06	19	120	3.4	everyday	0.9-3.4	12/65	1.9	93-105				A pulls B by the elbow; B resists (2 subjects - subject B)	human interaction and communication (2 subjects - subject B
 19_07	19	120	2.4	locomotion	0.0-2.4	11/50	2.6	98-104				navigate busy sidewalk; A leads the way, takes B by the arm (2 subjects - subject B)	human interaction and communication (2 subjects - subject B
-19_08	19	120	17.4	gesture and talk	0.0-17.4	12/75	1.4	104-107				conversation - explain with hand gestures (2 subjects - subject B)	human interaction and communication (2 subjects - subject B
+19_08	19	120	17.4	gesture and talk	0.0-17.4	12/75	1.4	104-107		Explain_With_Hands		conversation - explain with hand gestures (2 subjects - subject B)	human interaction and communication (2 subjects - subject B
 19_09	19	120	1.9	gesture and talk	0.0-1.9	14/55	1.7	106-109				conversation - explain with hand gestures, walk (2 subjects - subject B)	human interaction and communication (2 subjects - subject B
 19_10	19	120	15.0	gesture and talk	0.0-15.0	11/118	6.2	100-109				quarrel - angry hand gestures (2 subjects - subject B)	human interaction and communication (2 subjects - subject B
 19_11	19	120	15.9	gesture and talk	0.0-15.9	11/60	7.4	93-107				quarrel - angry hand gestures (2 subjects - subject B)	human interaction and communication (2 subjects - subject B
@@ -982,7 +982,7 @@ id	subject	fps	sec	category	active	fit	travel	hips	flags	used	note	desc	about
 75_18	75	60	5.0	sit and lie	0.0-4.4	15/63	0.9	52-105				high sit	jumps; hopscotch; sits
 75_19	75	60	12.8	sit and lie	0.9-11.8	14/64	1.7	39-106				medium sit	jumps; hopscotch; sits
 75_20	75	60	8.3	sit and lie	1.6-7.7	14/53	1.1	23-105				low sit	jumps; hopscotch; sits
-76_01	76	120	7.7	combat	0.0-7.7	15/69	2.0	97-107				walk backwards then attack with a punch	avoidance
+76_01	76	120	7.7	combat	0.0-7.7	15/69	2.0	97-107		Backpedal_Punch		walk backwards then attack with a punch	avoidance
 76_02	76	120	9.7	combat	1.5-9.7	14/72	2.3	97-107				walk backwards, feign a few attacks, then attack	avoidance
 76_03	76	120	9.0	combat	0.4-9.0	20/273	3.5	65-105				avoid attacker	avoidance
 76_04	76	120	3.5	dance	0.1-3.5	15/78	0.6	72-107		Guard_Pose		defensive guard pose	avoidance
@@ -1069,7 +1069,7 @@ id	subject	fps	sec	category	active	fit	travel	hips	flags	used	note	desc	about
 79_05	79	60	16.3	everyday	1.8-16.3	14/61	0.2	105-105		Sew		sewing	actor everyday activities
 79_06	79	60	9.8	gesture and talk	2.2-8.9	16/60	0.2	104-105				hand shake	actor everyday activities
 79_07	79	60	5.5	calibration	0.0-5.5	18/72	0.4	101-105				lost marker	actor everyday activities
-79_08	79	60	7.4	combat	1.8-6.8	17/62	0.5	99-105				boxing	actor everyday activities
+79_08	79	60	7.4	combat	1.8-6.8	17/62	0.5	99-105		Boxing_Flurry		boxing	actor everyday activities
 79_09	79	60	14.0	everyday	1.3-12.4	11/57	0.2	105-105		Slice_Bread		slicing bread	actor everyday activities
 79_10	79	60	11.7	everyday	0.7-11.7	11/53	0.3	104-105		Chop_Onions		chopping onions	actor everyday activities
 79_11	79	60	2.2	calibration	2.0-2.2	14/37	0.0	95-95				Subject calibration	actor everyday activities

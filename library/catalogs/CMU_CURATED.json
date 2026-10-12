@@ -155,7 +155,12 @@
     "Get_Up_From_Front": ["140_02", 1.5, 6.0],
     "Get_Up_Side_Roll": ["140_04", 1.6, 7.6],
     "Get_Up_Back_Quick": ["140_09", 0.4, 5.4],
-    "Get_Up_From_Ground": ["139_17", 0.7, 5.8]
+    "Get_Up_From_Ground": ["139_17", 0.7, 5.8],
+    "Swordplay": ["02_08", 1.0, 9.0],
+    "Boxing_Flurry": ["79_08", 1.8, 6.8],
+    "Backpedal_Punch": ["76_01"],
+    "Explain_With_Hands": ["19_08", 2.0, 10.0],
+    "Angry_Quarrel": ["18_11", 1.0, 7.0]
   },
   "Walk_Loop": ["walk loop", "An everyday walk at a steady pace, arms swinging loosely. One stride cycle, in place"],
   "Zombie_Walk_Loop": ["walk zombie loop", "A zombie's shamble: head and shoulders slumped forward, a dragging step, arms hanging. One cycle, in place"],
@@ -309,5 +314,10 @@
   "Get_Up_From_Front": ["getup once", "Getting up from lying face down"],
   "Get_Up_Side_Roll": ["getup once", "Getting up from lying on the side, by way of sitting and a kneel"],
   "Get_Up_Back_Quick": ["getup once", "A quick get-up from lying on the back"],
-  "Get_Up_From_Ground": ["getup once", "Getting up from lying on the ground"]
+  "Get_Up_From_Ground": ["getup once", "Getting up from lying on the ground"],
+  "Swordplay": ["attack sword once", "Swordplay with a sword in the right hand, cutting and thrusting, a step or two back and forth (no sword is drawn)"],
+  "Boxing_Flurry": ["attack unarmed once", "Boxing: a flurry of punches thrown from a guard"],
+  "Backpedal_Punch": ["attack unarmed once", "Walks backwards, then attacks with a punch"],
+  "Explain_With_Hands": ["talk once", "Explaining something in conversation, with hand gestures"],
+  "Angry_Quarrel": ["talk emote once", "Quarreling: angry hand gestures and steps toward someone in front"]
 }

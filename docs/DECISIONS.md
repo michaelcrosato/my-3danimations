@@ -1948,3 +1948,28 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
 - **Why:** the gate's bar is met and checked twice; what is left makes the library better, not the gate true.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.35.1 (the record), the fixes after
+
+## D69 · 2026-10-12 · G5's open items: a float check, picks for combat and gestures
+
+- **Principle:** 3, 8, G5, D67, D68
+- **Call:** D68's open items, fixed forward:
+  - **A float check** in `npm run qa -- library` (`tools/qa/library.ts` `FLOAT`): a stretch of 1 s or more where the
+    body stands upright (hips at least 70% of H0) with both soles more than 4.2% of H0 off the floor (40 mm on a
+    950 mm H0), read every 1/30 s, in a clip whose tags don't put it in the air (air, fly, swim, climb, jump), fails
+    unless `library/baselines/qa.json` `floats` answers it; an answer whose clip floats no longer is named. Three clips
+    float by it, each answered: `Ballet_Pirouette` and `Stretch_Yawn` rise onto their toes (the hips rise with the
+    heels), and `Shoot_Bow`'s take 79_86 holds the left heel 60–70 mm up throughout while the right toes touch down at
+    3.5 s, so no one floor stands both feet. The other four D68 counted float 17–31 mm, under the check's level.
+  - **Each pick on its own stretch:** not built. `Shoot_Bow`'s pick holds the stretch where its right toes touch down,
+    so its own floor is the one it has; build it when a float the check finds needs it.
+  - **Picks for combat and gestures** from takes no pick shares and no take repeats byte for byte: `Swordplay` (02_08),
+    `Boxing_Flurry` (79_08), `Backpedal_Punch` (76_01), `Explain_With_Hands` (19_08), `Angry_Quarrel` (18_11). Combat
+    64 and gestures 63 unique, so neither floor rests on the levitations. A sixth, the traffic director's wave of
+    13_27, was dropped: it ties `Wave_Hello` for "flag down a rescue helicopter" and puts the held-out answer sixth.
+    Picks from subjects 2, 18 and 76 refit those subjects' rests (`Walk_Loop`, `Sword_Lunge` move 1–4 mm in fit).
+  - **A catalog that names a key twice** is refused (`duplicateKeys`): a sixth pick first reused `Direct_Traffic` and
+    JSON.parse kept the last without a word.
+- **Why:** the floor rule that fixed D67's falls could lift a take where nothing measured it; a check and three
+  answers keep that seen. The floors stand on clips the verifier reads as what their tags say.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.35.2

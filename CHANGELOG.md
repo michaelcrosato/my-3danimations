@@ -4,6 +4,20 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.35.2 · 2026-10-12
+
+### Library
+- Five CMU picks from takes no pick shares (D69): `Swordplay`, `Boxing_Flurry`, `Backpedal_Punch` (combat 64) and
+  `Explain_With_Hands`, `Angry_Quarrel` (gestures 63); CMU_CURATED 158 clips, 1,199 unique motions of 1,398.
+- `library/baselines/qa.json` answers the three clips that stand off the floor (`floats`): two rise onto their toes,
+  and `Shoot_Bow`'s source take holds no one floor for both feet.
+
+### Tools
+- `npm run qa -- library` checks floating (D69): an upright body with both soles more than 4.2% of H0 off the floor
+  for 1 s or more, in a clip its tags don't put in the air, fails unless `qa.json` answers it; an answer whose clip
+  floats no longer is named.
+- The importer refuses a catalog that names a key twice in one object (`duplicateKeys`): JSON keeps the last unsaid.
+
 ## 0.35.1 · 2026-10-12
 
 ### IO

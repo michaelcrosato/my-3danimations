@@ -23,6 +23,8 @@ export interface QaReasons {
   sets: Record<string, string>;
   /** Per clip, per metric, why that metric's finding is kept (ahead of the others). */
   clips: Record<string, Record<string, string>>;
+  /** Per clip, why it stands off the floor where the float check (library.ts) finds it. */
+  floats?: Record<string, string>;
 }
 /** What the writer knows of how the clip stands to its source. */
 export interface QaContext {
@@ -40,11 +42,13 @@ export type Quality = Clip["quality"];
 export function reasonsProblems(r: unknown): string[] {
   const out: string[] = [], text = (v: unknown) => typeof v === "string" && v.trim().length > 0, obj = (v: unknown): v is Record<string, unknown> => Boolean(v) && typeof v === "object" && !Array.isArray(v);
   if (!obj(r)) return ["the reasons are a JSON object"];
-  for (const k of Object.keys(r)) if (!["about", "warn", "sets", "clips"].includes(k)) out.push(`"${k}" is not a field of the reasons (about, warn, sets, clips)`);
+  for (const k of Object.keys(r)) if (!["about", "warn", "sets", "clips", "floats"].includes(k)) out.push(`"${k}" is not a field of the reasons (about, warn, sets, clips, floats)`);
   if (!text(r.warn)) out.push("warn is the reason a warn is kept, a text");
   if (!obj(r.sets) || !Object.values(r.sets).every(text)) out.push("sets maps a set to its reason, a text");
   if (!obj(r.clips) || !Object.values(r.clips).every((m) => obj(m) && Object.values(m).every(text))) out.push("clips maps a clip id to { metric: reason }");
   else for (const id of Object.keys(r.clips)) if (!/^[A-Z0-9_]+\/[A-Za-z0-9_]+$/.test(id)) out.push(`"${id}" is not a clip id`);
+  if (r.floats !== undefined && (!obj(r.floats) || !Object.values(r.floats).every(text))) out.push("floats maps a clip id to why it stands off the floor, a text");
+  else for (const id of Object.keys(r.floats ?? {})) if (!/^[A-Z0-9_]+\/[A-Za-z0-9_]+$/.test(id)) out.push(`"${id}" is not a clip id`);
   return out;
 }
 /** The reasons (checked: a bad file throws, naming what is wrong), or none when there is no file yet. */

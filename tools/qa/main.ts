@@ -16,7 +16,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { finish, fmtMs, parseArgs, ROOT, usage, type Report, type Step } from "../run/cli.ts";
 import { census } from "./census.ts";
-import { againstRecord, checkVerdicts, DISTRIBUTIONS, floorsMissed, LIBRARY_DOC, libraryDoc, readRecord, recordOf, recordText, setInfo } from "./library.ts";
+import { againstRecord, checkFloats, checkVerdicts, DISTRIBUTIONS, floorsMissed, LIBRARY_DOC, libraryDoc, readRecord, recordOf, recordText, setInfo } from "./library.ts";
 import { BASELINE, baselineOf, compare, distributions, fixAll, libraryClips, qa, sample, worse, type BaselineRow } from "./qa.ts";
 
 if (import.meta.main) {
@@ -70,6 +70,8 @@ if (import.meta.main) {
     const lib = clips, v = checkVerdicts(lib, rows), sets = setInfo(), cc0 = new Set(Object.entries(sets).filter(([, x]) => x.tier === "cc0").map(([k]) => k));
     const c = census(lib, cc0), short = floorsMissed(c), now = recordOf(rows), was = readRecord(), vs = was ? againstRecord(was, now) : { worse: ["nothing recorded yet: npm run qa -- library --baseline"], better: [] };
     steps.push({ name: "verdicts", ok: v.problems.length === 0 && v.gone.length === 0, ms: 0, summary: v.problems.length || v.gone.length ? `${v.problems.length} clips' recorded verdicts aren't the sensors' (npm run import, npm run migrate); ${v.gone.length} reasons whose finding is gone` : `${lib.length} clips carry the sensors' verdict, each flagged one baselined with its reason`, detail: [...v.problems, ...v.gone.map((g) => `library/baselines/qa.json: ${g}${g.endsWith(")") ? "" : " is no longer past its level"}`)] });
+    const fl = checkFloats(lib);
+    steps.push({ name: "floats", ok: fl.problems.length === 0 && fl.gone.length === 0, ms: 0, summary: fl.problems.length || fl.gone.length ? `${fl.problems.length} clips stand off the floor with no answer; ${fl.gone.length} answers whose clip floats no longer` : "no clip stands off the floor but the ones library/baselines/qa.json answers", detail: [...fl.problems, ...fl.gone.map((g) => `library/baselines/qa.json floats: ${g}`)] });
     steps.push({ name: "census", ok: short.length === 0, ms: 0, summary: `${c.unique} unique motions of ${c.clips} clips (CC0 pack ${c.cc0}); ${short.length ? `short: ${short.join("; ")}` : "every G5 floor met"}`, detail: Object.entries(c.categories).map(([k, x]) => `${k}: ${x.unique} unique of ${x.clips} clips (floor ${x.floor}), ${x.cc0} with a CC0 clip`) });
     if (f.baseline) {
       writeFileSync(DISTRIBUTIONS, recordText(now));

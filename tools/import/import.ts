@@ -164,9 +164,35 @@ export function importLibrary(specs: readonly ImportSpec[] = IMPORTS, root = ROO
   return specs.map((spec) => importOne(spec, mig, legend, reasons));
 }
 
+/** The keys a JSON text gives twice in one object (JSON.parse keeps the last and says nothing), each as its path. */
+export function duplicateKeys(text: string): string[] {
+  const out: string[] = [], stack: { keys: Set<string>; path: string; key?: string }[] = [];
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i]!;
+    if (ch === '"') {
+      let j = i + 1;
+      while (text[j] !== '"') j += text[j] === "\\" ? 2 : 1;
+      const name = JSON.parse(text.slice(i, j + 1)) as string;
+      i = j;
+      let k = j + 1;
+      while (/\s/.test(text[k] ?? "")) k++;
+      const top = stack[stack.length - 1];
+      if (text[k] === ":" && top) {
+        if (top.keys.has(name)) out.push(`${top.path}${name}`);
+        top.keys.add(name);
+        top.key = name;
+      }
+    } else if (ch === "{") stack.push({ keys: new Set(), path: stack.length ? `${stack[stack.length - 1]!.path}${stack[stack.length - 1]!.key ?? ""}.` : "" });
+    else if (ch === "}") stack.pop();
+  }
+  return out;
+}
+
 /** One set's re-import against its migrated version (`mig`, the migrator's output; empty for a new set). */
 function importOne(spec: ImportSpec, mig: ReturnType<typeof migrate>, legend: string[], reasons: QaReasons): SetImport {
-  const cat = JSON.parse(readFileSync(join(CATALOGS, spec.catalog), "utf8")) as Catalog, libs = spec.read(cat);
+  const text = readFileSync(join(CATALOGS, spec.catalog), "utf8"), twice = duplicateKeys(text);
+  if (twice.length) throw new Error(`library/catalogs/${spec.catalog} names ${twice.join(", ")} twice: JSON keeps only the last`);
+  const cat = JSON.parse(text) as Catalog, libs = spec.read(cat);
   const out = importSet(libs, cat, { name: spec.set, title: spec.title, credit: spec.credit, encode: ENCODE });
   const capOf = (name: string) => libs.find((l) => l.clips[name])?.clips[name];
   // a catalog of picks may skip what it never picks (a style no loop plays in place): on record, not a missing clip

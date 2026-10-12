@@ -1,5 +1,6 @@
 CMU_CURATED/Walk_Loop	1.1	loop	130	walk	An everyday walk at a steady pace, arms swinging loosely. One stride cycle, in place	CMU_02
 CMU_CURATED/Sword_Lunge	2	once		attack sword	Swordplay: from a guard, a lunge forward with the sword arm thrust straight out	CMU_02
+CMU_CURATED/Swordplay	8	once		attack sword	Swordplay with a sword in the right hand, cutting and thrusting	CMU_02
 CMU_CURATED/Zombie_Walk_Loop	1.4	loop	68	walk zombie	A zombie's shamble: head and shoulders slumped forward	CMU_120
 CMU_CURATED/Gorilla_Walk_Loop	0.9	loop	171.6	walk monster	A gorilla: hunched, knuckles low	CMU_120
 CMU_CURATED/Robot	6	once		monster	A robot, acted by a person: stiff, jerky steps and arm moves in straight lines	CMU_120
@@ -84,6 +85,7 @@ CMU_CURATED/Put_On_Jacket	6	once		interact	Putting on a jacket	CMU_79
 CMU_CURATED/Hang_Picture	6	once		work	Hanging a picture on the wall	CMU_79
 CMU_CURATED/Shoot_Bow	6	once		bow attack	Shooting a bow and arrow	CMU_79
 CMU_CURATED/Shoot_Pistol	6	once		gun attack	Shooting a gun	CMU_79
+CMU_CURATED/Boxing_Flurry	5	once		attack unarmed	Boxing: a flurry of punches thrown from a guard	CMU_79
 CMU_CURATED/Rake_Leaves	6	once		work farm	Raking leaves with long pulls toward the feet (no rake is drawn)	CMU_80
 CMU_CURATED/Shake_Hands	5	once		talk	Shaking hands with someone in front	CMU_80
 CMU_CURATED/Freezing	6	once		emote	Freezing cold	CMU_80
@@ -123,6 +125,7 @@ CMU_CURATED/Bumped	2.5	once		hurt	Bumped by someone stumbling into them	CMU_23
 CMU_CURATED/Comfort	4.3	once		gesture	Puts a comforting hand on someone's shoulder	CMU_23
 CMU_CURATED/Quarrel	6	once		talk	Quarrelling with someone, with angry hand gestures	CMU_18
 CMU_CURATED/Explain	6	once		talk	In conversation, explaining with hand gestures	CMU_18
+CMU_CURATED/Angry_Quarrel	6	once		talk emote	Quarreling: angry hand gestures and steps toward someone in front	CMU_18
 CMU_CURATED/Referee_Signals	6	once		gesture	A basketball referee's hand signals	CMU_31
 CMU_CURATED/Charleston	3.567	once		dance	A Charleston step	CMU_93
 CMU_CURATED/Lindy_Hop	3.3	once		dance	A Lindy Hop step	CMU_93
@@ -148,6 +151,8 @@ CMU_CURATED/Hop_Turn_360	2	once		jump	A hop that turns all the way round in the 
 CMU_CURATED/Hopscotch	5	once		jump	Hopscotch	CMU_75
 CMU_CURATED/High_Jump	2	once		jump	A high jump	CMU_16
 CMU_CURATED/Guard_Pose	3.367	once		stance unarmed	Takes up a defensive guard	CMU_76
+CMU_CURATED/Backpedal_Punch	7.7	once		attack unarmed	Walks backwards, then attacks with a punch	CMU_76
 CMU_CURATED/Baseball_Pitch	4.267	once		throw sport	A baseball pitch	CMU_124
 CMU_CURATED/Baseball_Swing	6	once		sport	Swinging a baseball bat	CMU_124
 CMU_CURATED/Get_Up_From_Floor	4.3	once		getup	Getting up from lying on the floor, by way of sitting	CMU_113
+CMU_CURATED/Explain_With_Hands	8	once		talk	Explaining something in conversation, with hand gestures	CMU_19

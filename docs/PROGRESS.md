@@ -3,7 +3,7 @@
 The current state on one screen (at most 40 lines; `npm run doctrine` checks it from WP-0.3). The ledger is
 `PLAN.md` §14; decisions are in `docs/DECISIONS.md`.
 
-**Phase:** 6 Composition (5 done, G5 passed; 4 waits on G4). **Next gates:** G6; G4 (M1), run 2. **Version:** 0.35.1.
+**Phase:** 6 Composition (5 done, G5 passed; 4 waits on G4). **Next gates:** G6; G4 (M1), run 2. **Version:** 0.35.2.
 **Mode:** one agent (D21), branch `claude/relaxed-albattani-939ofg` (D50: it takes over michaelcrosato/my-3danimations#9).
 
 ## Done
@@ -18,13 +18,13 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 - Phase 4 so far: three.js r182 (D45); test characters and real CC0 rigs (D46); binding (D47); baking (D48); capture
   and the sweep (D49, D51); the first-flight demo `apps/lab/hello`, driven headless, hashes = Node's (D52).
 - Phase 5 (G5 passed, on michaelcrosato/my-3danimations#10 with Phase 4): layout (D53); licenses (D59); `@m3a/io` (D61);
-  corpora (D62); the re-import (D63); facts (D64); search (D65); library QA, 1,194 unique motions (D66–D68).
+  corpora (D62); the re-import (D63); facts (D64); search (D65); library QA, 1,199 unique motions (D66–D69).
 
 ## Next
 
 - Fix forward from G4 run 1. A second failure is K1 (PLAN.md §12): run 2 waits for a sweep at ≥95% at a clean
   commit, over the whole library now (1,393 clips, 8,358 pairs; D63). Phase 5 lanes that don't need G4 go on.
-- G5's open items (D68): a float check, picks for combat and gestures. Then Phase 6: WP-6.1 recipes (in progress).
+- Phase 6: WP-6.1 recipes (in progress), then 6.2–6.6 and G6. G5's open items are closed (D69).
 
 ## Blocked on the owner
 
@@ -35,5 +35,5 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 
 - **G5 passed** 2026-10-12 at 754adfe in 9.7 min, 12 of 12 (`bench/results/gates/G5/`, D68): 1,194 unique motions of
   1,393 clips (CC0 pack 170); every floor met; every clip valid with its verdict; search 40/40, held out 8/10. Its
-  first verifier blocked run 1 (reactions short, D67). Open, fixed forward: a float check; picks for combat, gestures.
+  first verifier blocked run 1 (reactions short, D67). Its open items, fixed forward: a float check; picks (D69).
 - **G4 run 1 failed** 2026-10-12 at 6798b45, 5 of 8 (D57): the sweep 89.1% (bar 95%), B1's variant a grader failure.
