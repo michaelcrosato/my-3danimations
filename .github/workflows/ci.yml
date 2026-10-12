@@ -76,6 +76,9 @@ jobs:
       # The cloud container has Chromium preinstalled; CI runners fetch the build the pinned Playwright expects.
       - run: npx playwright install --with-deps chromium
       - run: npm run e2e -- --json
+      # a failure's whole browser log in the job's own log (the summary shows only its last lines)
+      - if: failure()
+        run: tail -n 120 check-output/e2e/playwright.log
       - if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
