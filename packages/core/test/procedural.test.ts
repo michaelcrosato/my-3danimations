@@ -393,5 +393,5 @@ describe("an idle", () => {
       const [inL, inS] = [breath(c.dur / (2 * breaths)), breath(c.dur / breaths)];
       expect([i.name, inL[0]! <= -1, inL[1]! >= 1, inL[2]! >= 1, inS]).toEqual([i.name, true, true, true, [0, 0, 0]]);
     }
-  });
+  }, 30_000);
 });

@@ -2274,3 +2274,40 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
     each problem; the pair's roles meet on their event.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.38.0
+
+## D73 · 2026-10-12 · Graphs: states, transitions, blend spaces and layers, run inside `Animator.step` (WP-6.4)
+
+- **Principle:** 2, 3, 4, 5, 8, D33, D38
+- **Call:** a graph is JSON (`spec/GRAPH.md`; `spec/schemas/graph.schema.json`, Phase 1's stub filled and refrozen
+  under this decision): parameters (number, bool, trigger), a base layer of states and transitions, and layers over it
+  (mask, weight, additive). A state plays a clip (anything the host's clips hold: library clips, compiled recipes and
+  actions, procedural parts), a recipe's clip, a blend space on one or two parameters, or nothing (`pass`, over the
+  base). A transition has conditions, an exit share, a cancel window, a fade, sync and whether it may be interrupted.
+  - **One mixer:** the graph doesn't mix poses itself. Each fixed step, before the playheads move, it takes the
+    transitions that hold and sets the Animator's own layers (`@layer/entry/point`): a crossfade's two states and a
+    blend space's points at weights that give each its share over what is below, a blend's clips at the speeds that
+    keep them in phase. Root motion, planted feet, events, `pose()` and masks are the Animator's as ever (D38), and the
+    graph adds nothing an engine could round differently.
+  - **State in the hash:** `save()` and `hash()` carry the graph's id and content hash, parameters, triggers set, and
+    each layer's state, entry and fade; `restore(save, clips, graph)` carries on exactly and refuses another graph.
+    An Animator without a graph saves as before, so its hashes are unchanged.
+  - **Events to callbacks:** `on(name, fn)`; entering a state fires `enter` with the state and the one it left.
+  - **Semantics a host may lean on:** the first transition in list order that holds is taken; `"*"` never re-enters the
+    state it is in; triggers stay set until a transition reads them, so a press during a fade waits (input buffering);
+    a fade plays out unless the transition that started it is `interruptible`.
+  - **The examples** (`spec/graphs/`): `Locomotion` (idle; walk, jog and sprint blended by speed in step; a jump and
+    its landing; a jab over it from the waist up, a layer passing between jabs) and `Sword_Combo` (three strikes, each
+    pressed on in its cancel window, else recovered to guard), on Quaternius' clips. `G-E001`–`G-E010` (`GRAPH_RULES`).
+  - **The API:** core's 43rd name, `graph` (D71's cap of 44 left one); the Animator gains `play`, `stop`, `set`,
+    `trigger`, `on` and `graph`.
+- **Limits, on record:** a masked layer's fractional weights (a feathered mask) blend as the layer stack does, so a
+  part's share there is near, not exact; a loop's `exit` is a share of each cycle, so 1 never comes (use a share under
+  it); interrupting a fade drops the state that was fading out at once (its share was what was left of the fade).
+- **Why:** a game asks for states and transitions, not layer weights: agents know PlayCanvas's and Godot's shapes, and a
+  combo needs cancel windows (my-3d2dge-2's skill timeline) and chaining (Emberdeep's clip moves: fade, mask, a start
+  time, the next move). Running it inside `step` on the Animator's layers keeps the same-bits promise (D33) for games.
+- **Done when** (`npm test -- graph`, `npm run e2e`): the two example graphs validate (schema and checks), their
+  scripted runs take the expected transitions and carry on exactly after a save and restore, and they run the same in
+  Node and Chromium: states, hashes after every step, events and exact poses.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.39.0

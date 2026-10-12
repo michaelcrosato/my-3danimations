@@ -4,6 +4,20 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.39.0 · 2026-10-12
+
+### Core
+- `graph` (D73): graphs of states (a clip, a recipe, a blend space on one or two parameters, or pass), transitions
+  (conditions, exit, cancel windows, fade, sync, interrupts) and layers, checked (`validateGraph`, G-E001–G-E010); the
+  Animator plays one inside `step` on its own layers (`play`, `stop`, `set`, `trigger`, `on`, `graph`), its state in
+  `save()`, `hash()` and `restore()`. An Animator without a graph hashes as before.
+
+### Spec
+- `spec/GRAPH.md`; `spec/schemas/graph.schema.json` filled (refrozen under D73); two example graphs in `spec/graphs/`.
+
+### Tools
+- e2e `animator-parity`: the example graphs run the same in Node and Chromium.
+
 ## 0.38.0 · 2026-10-12
 
 ### Core

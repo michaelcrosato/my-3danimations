@@ -18,6 +18,9 @@ import { PORTABLE } from "../math/portable.ts";
 import { addDelta, blend, delta, mask as maskOf, wrap180, type Mask } from "../ops/pose.ts";
 import type { Bound } from "../solve/bind.ts";
 import { decodeOn, forward, solve, type Solved } from "../solve/solve.ts";
+import { GraphRun, type GraphSave, type PlanLayer } from "../graph/run.ts";
+import type { Graph } from "../graph/types.ts";
+import { validateGraph } from "../graph/validate.ts";
 
 /**
  * A clip the Animator plays: a format-2 clip, or anything with its id, timing and keys (events and contacts optional).
@@ -95,6 +98,8 @@ export interface AnimatorSave {
   /** The bound body's fingerprint (the hash of its measured rest): root motion scales with it. */
   body: string;
   layers: LayerState[];
+  /** The graph playing, when one is (`play()`): its parameters and each layer's state and fade. */
+  graph?: GraphSave;
 }
 
 /** One event a layer's playhead passed: the clip's event, where and when it was passed. */
@@ -141,8 +146,9 @@ export interface AnimatorPose extends Solved {
 /** What `restore` reads clips from: a map or a list of clips by id, or a lookup. */
 export type ClipSource = Readonly<Record<string, AnimClip>> | readonly AnimClip[] | ((id: string) => AnimClip | undefined);
 
-/** Why the Animator refused: a bad step or layer option, data that isn't a save, or a clip missing or changed. */
-export type AnimatorErrorCode = "E_STEP" | "E_LAYER" | "E_SAVE" | "E_STEP_SIZE" | "E_BODY_CHANGED" | "E_CLIP_MISSING" | "E_CLIP_CHANGED";
+/** Why the Animator refused: a bad step or layer option, data that isn't a save, a clip missing or changed, a graph
+ *  that doesn't check, a parameter it doesn't have, or a save's graph not given or changed. */
+export type AnimatorErrorCode = "E_STEP" | "E_LAYER" | "E_SAVE" | "E_STEP_SIZE" | "E_BODY_CHANGED" | "E_CLIP_MISSING" | "E_CLIP_CHANGED" | "E_GRAPH" | "E_PARAM" | "E_GRAPH_MISSING" | "E_GRAPH_CHANGED";
 
 /** An Animator's refusal: `code` says why, `clip` names the clip when one is to blame, the message says what to do. */
 export class AnimatorError extends Error {
@@ -290,6 +296,8 @@ export class Animator {
   readonly #paths = new WeakMap<AnimClip, ContactRoot>();
   readonly #points = new WeakMap<AnimClip, Map<number, Float64Array>>();
   readonly #refs = new WeakMap<AnimClip, KeyLike>();
+  #graph: GraphRun<AnimClip> | null = null;
+  readonly #listeners = new Map<string, Set<(e: AnimatorEvent) => void>>();
 
   /** An Animator for skeleton `bound` (from `bind`), with no layers yet. */
   constructor(bound: Bound, options: AnimatorOptions = {}) {
@@ -328,6 +336,7 @@ export class Animator {
   layer(name: string, opts: LayerOptions = {}): this {
     // every option checked before anything changes, so a refused call leaves the Animator as it was
     const bad = (what: string) => new AnimatorError("E_LAYER", `layer "${name}": ${what}`);
+    if (name.startsWith("@")) throw bad("names that start with @ are a playing graph's: name it otherwise");
     if (opts.weight !== undefined && !finite(opts.weight)) throw bad(`weight must be a number from 0 to 1, not ${String(opts.weight)}`);
     if (opts.speed !== undefined && !finite(opts.speed)) throw bad(`speed must be a finite number, not ${String(opts.speed)}`);
     if (opts.time !== undefined && !finite(opts.time)) throw bad(`time must be a finite number of seconds, not ${String(opts.time)}`);
@@ -374,8 +383,9 @@ export class Animator {
     return this;
   }
 
-  /** Removes layer `name` (nothing if there is none). */
+  /** Removes layer `name` (nothing if there is none; a graph's layers go with `stop()`). */
   remove(name: string): this {
+    if (name.startsWith("@")) return this;
     this.#layers = this.#layers.filter((x) => x.name !== name);
     return this;
   }
@@ -395,7 +405,10 @@ export class Animator {
       }
       this.#carry = z(this.#carry - h);
       // each step's move composed in turn, so a heading crossing ±180 never jumps a whole turn
+      const before = fired.length;
       moved = compose(moved, this.#tick(fired));
+      // the step's events to the callbacks, in order: what they set or trigger plays from the next step
+      for (let i = before; i < fired.length; i++) for (const key of [fired[i]!.name, "*"]) for (const fn of this.#listeners.get(key) ?? []) fn(fired[i]!);
       n++;
     }
     return { steps: n, events: fired, root: moved };
@@ -403,6 +416,7 @@ export class Animator {
 
   /** One fixed step: every playhead moves, the events it passes fire, and the root moves as the layers mix it. */
   #tick(fired: AnimatorEvent[]): RootPose {
+    if (this.#graph) this.#drive(fired);
     const h = this.#h, here: (AnimatorEvent & { f: number; i: number })[] = [];
     let moved: RootPose | null = null;
     const base = this.#layers.findIndex((x) => x.src && !x.additive);
@@ -485,6 +499,52 @@ export class Animator {
     return out ? Object.assign(out, res) : res;
   }
 
+  /**
+   * Plays a graph (spec/GRAPH.md): its states' clips from `clips` by id, each layer entered at its start state. From
+   * here each fixed step takes the transitions that hold and plays the states as layers named `@layer/entry/point`
+   * at the bottom (layers added with `layer()` go over them). Throws E_GRAPH naming each issue when it doesn't check.
+   */
+  play(graph: Graph, clips: ClipSource): this {
+    const run = this.#graphRun(graph, finder(clips));
+    this.#layers = this.#layers.filter((L) => !L.name.startsWith("@"));
+    this.#graph = run;
+    this.#apply(run.plan());
+    return this;
+  }
+  /** Stops the graph: its layers go, its parameters with it. */
+  stop(): this {
+    this.#graph = null;
+    this.#layers = this.#layers.filter((L) => !L.name.startsWith("@"));
+    return this;
+  }
+  /** Sets a number or bool parameter of the playing graph; it is read from the next step. */
+  set(name: string, value: number | boolean): this {
+    const g = this.#need(), type = g.typeOf(name);
+    if (type === "number" ? !finite(value) : type === "bool" ? typeof value !== "boolean" : true)
+      throw new AnimatorError("E_PARAM", type === undefined ? `graph "${g.graph.id}" has no parameter "${name}": ${Object.keys(g.graph.parameters ?? {}).join(", ") || "it has none"}` : type === "trigger" ? `"${name}" is a trigger: trigger("${name}")` : `"${name}" is a ${type}, not ${JSON.stringify(value)}`);
+    g.set(name, type === "number" ? z(value as number) : value);
+    return this;
+  }
+  /** Sets a trigger of the playing graph: it stays set until a transition reading it is taken. */
+  trigger(name: string): this {
+    const g = this.#need();
+    if (g.typeOf(name) !== "trigger") throw new AnimatorError("E_PARAM", `graph "${g.graph.id}" has no trigger "${name}"`);
+    g.trigger(name);
+    return this;
+  }
+  /** Calls `fn` with each event named `name` (or every one, "*") as a step passes it, in order; returns the undo. */
+  on(name: string, fn: (e: AnimatorEvent) => void): () => void {
+    let set = this.#listeners.get(name);
+    if (!set) this.#listeners.set(name, (set = new Set()));
+    set.add(fn);
+    return () => void set.delete(fn);
+  }
+  /** The playing graph's id, each layer's state (and the one fading out) and its parameters; null without one. */
+  get graph(): { id: string; states: { layer: string; state: string; from: string | null; fade: number }[]; params: Record<string, number | boolean> } | null {
+    const g = this.#graph;
+    return g ? { id: g.graph.id, states: g.states, params: g.params } : null;
+  }
+
   /** The hash of everything later steps depend on (`save()`'s data), 16 hex digits. */
   hash(): string {
     return hashValue(this.save());
@@ -492,19 +552,19 @@ export class Animator {
 
   /** Everything later steps depend on, as plain JSON-safe data; each clip named by its id and its content's hash. */
   save(): AnimatorSave {
-    return { format: FORMAT, step: this.#h, steps: this.#steps, carry: this.#carry, root: { ...this.#root }, body: this.#body, layers: this.#layers.map(stateOf) };
+    return { format: FORMAT, step: this.#h, steps: this.#steps, carry: this.#carry, root: { ...this.#root }, body: this.#body, layers: this.#layers.map(stateOf), ...(this.#graph ? { graph: this.#graph.save() } : {}) };
   }
 
   /**
    * Continues from saved data exactly: the same later hashes and events, none fired twice. Clips come from `clips` by
    * id; each must have the content it had when saved (E_CLIP_MISSING, E_CLIP_CHANGED name the clip).
    */
-  restore(data: AnimatorSave, clips: ClipSource): this {
+  restore(data: AnimatorSave, clips: ClipSource, graph?: Graph): this {
     const d = data as Partial<AnimatorSave> | null, notSave = (why: string) => new AnimatorError("E_SAVE", `not an Animator save (format "${FORMAT}"): ${why}; pass what animator.save() returned, after JSON if need be`);
     if (!d || d.format !== FORMAT || !Array.isArray(d.layers) || !finite(d.steps) || !finite(d.carry) || !d.root || ![d.root.forward, d.root.right, d.root.yaw].every(finite)) throw notSave("its format, steps, carry or root is missing");
     if (d.step !== this.#h) throw new AnimatorError("E_STEP_SIZE", `the save ran at step ${String(d.step)} s but this Animator steps ${this.#h} s: construct it with { step: ${String(d.step)} }`);
     if (d.body !== this.#body) throw new AnimatorError("E_BODY_CHANGED", `the save was made on another body (rest ${String(d.body)}, this one ${this.#body}): root motion scales with the body, so restore into an Animator bound to the same skeleton`);
-    const find = typeof clips === "function" ? clips : Array.isArray(clips) ? (id: string) => (clips as readonly AnimClip[]).find((c) => c.id === id) : (id: string) => (Object.hasOwn(clips, id) ? (clips as Readonly<Record<string, AnimClip>>)[id] : undefined);
+    const find = finder(clips);
     const layers: Layer[] = d.layers.map((x, i) => {
       const ok = x && typeof x.name === "string" && (x.clip === null || typeof x.clip === "string") && (x.hash === null || typeof x.hash === "string") && [x.weight, x.speed, x.time, x.cycle].every(finite) && typeof x.additive === "boolean" && (x.held === null || x.held === "start" || x.held === "end") && (x.mask === null || (typeof x.mask === "object" && Object.values(x.mask).every(finite)));
       if (!ok) throw notSave(`layer ${i} is malformed`);
@@ -518,6 +578,18 @@ export class Animator {
       }
       return { name: x.name, clip: x.clip, hash: x.hash, src, weight: z(x.weight), mask: x.mask ? Object.fromEntries(Object.entries(x.mask).map(([k, v]) => [k, z(v)])) : null, additive: x.additive, speed: z(x.speed), time: z(x.time), cycle: z(x.cycle), held: x.held };
     });
+    // the graph that was playing: given again, the same, its state checked against it
+    let run: GraphRun<AnimClip> | null = null;
+    if (d.graph !== undefined) {
+      if (!graph) throw new AnimatorError("E_GRAPH_MISSING", `the save was playing graph "${String(d.graph?.id)}": pass it to restore(data, clips, graph)`);
+      run = this.#graphRun(graph, find);
+      const g = d.graph as Partial<GraphSave>;
+      if (run.hash !== g.hash) throw new AnimatorError("E_GRAPH_CHANGED", `graph "${graph.id}" changed since the save (content hash ${String(g.hash)}, now ${run.hash}): restore with the graph as it was saved, or play it again`);
+      const shaped = Array.isArray(g.layers) && g.layers.length === run.states.length && g.layers.every((x, i) => x && x.name === run!.states[i]!.layer && typeof x.state === "string" && [x.entry, x.fade, x.elapsed, x.count].every(finite));
+      if (!shaped || !g.params || !Array.isArray(g.triggers)) throw notSave("its graph state is malformed");
+      run.restore(g as GraphSave);
+    }
+    this.#graph = run;
     this.#layers = layers;
     this.#steps = d.steps;
     this.#carry = z(d.carry);
@@ -525,6 +597,50 @@ export class Animator {
     return this;
   }
 
+  /** A graph checked and made ready on clips (E_GRAPH naming its issues; a clip without keys refused as layer() does). */
+  #graphRun(graph: Graph, find: (id: string) => AnimClip | undefined): GraphRun<AnimClip> {
+    const issues = validateGraph(graph, { clips: find });
+    if (issues.length) throw new AnimatorError("E_GRAPH", `graph ${JSON.stringify((graph as { id?: unknown } | null)?.id ?? null)} doesn't check: ${issues.slice(0, 4).map((i) => `${i.code} ${i.field ?? ""} ${i.message}${i.fix ? ` (${i.fix})` : ""}`).join("; ")}${issues.length > 4 ? `; and ${issues.length - 4} more (graph.validateGraph lists them)` : ""}`);
+    return new GraphRun<AnimClip>(graph, (id) => {
+      const c = find(id)!;
+      if (!Array.isArray(c.keys) || c.keys.length === 0 || !(c.dur >= 0)) throw new AnimatorError("E_GRAPH", `clip "${id}" has no keys or no duration; parse it with parseClip first`, id);
+      return c;
+    });
+  }
+  /** The playing graph, or E_GRAPH. */
+  #need(): GraphRun<AnimClip> {
+    if (!this.#graph) throw new AnimatorError("E_GRAPH", "no graph plays: play one first with animator.play(graph, clips)");
+    return this.#graph;
+  }
+  /** One step of the graph: its transitions, its layers set as its plan says, the states entered as events. */
+  #drive(fired: AnimatorEvent[]): void {
+    const read = (name: string) => {
+      const L = this.#layers.find((x) => x.name === name);
+      return L ? { time: L.time, held: L.held } : undefined;
+    };
+    const { plan, entered } = this.#graph!.step(this.#h, read);
+    this.#apply(plan);
+    for (const e of entered) fired.push({ name: "enter", layer: e.layer, clip: e.clip, t: z(e.t), cycle: 0, at: this.#steps * this.#h, event: e.event });
+  }
+  /** The graph's layers as the plan says, at the bottom: those it had kept with their playheads, new ones placed. */
+  #apply(plan: PlanLayer<AnimClip>[]): void {
+    const old = new Map(this.#layers.map((L) => [L.name, L])), made: string[] = [];
+    const mine = plan.map((p) => {
+      let L = old.get(p.name);
+      if (!L) {
+        const at = place(p.clip, p.start);
+        L = { name: p.name, clip: p.clip.id, hash: clipHash(p.clip), src: p.clip, weight: 1, mask: null, additive: false, speed: 1, time: at.time, cycle: at.cycles, held: null };
+        made.push(p.name);
+      }
+      L.weight = z(Math.min(1, Math.max(0, p.weight)));
+      L.mask = p.mask ? { ...p.mask } : null;
+      L.additive = p.additive;
+      L.speed = z(p.speed);
+      return L;
+    });
+    this.#graph!.made(made);
+    this.#layers = [...mine, ...this.#layers.filter((L) => !L.name.startsWith("@"))];
+  }
   /** The root path a clip implies on this body (its own travel, or its planted feet's), mm and degrees; cached. */
   #path(c: AnimClip): ContactRoot {
     let p = this.#paths.get(c);
@@ -606,6 +722,10 @@ export class Animator {
   }
 }
 
+/** A lookup of clips by id from a map, a list or a lookup. */
+function finder(clips: ClipSource): (id: string) => AnimClip | undefined {
+  return typeof clips === "function" ? clips : Array.isArray(clips) ? (id: string) => (clips as readonly AnimClip[]).find((c) => c.id === id) : (id: string) => (Object.hasOwn(clips, id) ? (clips as Readonly<Record<string, AnimClip>>)[id] : undefined);
+}
 /** A layer's plain data. */
 function stateOf(L: LayerState): LayerState {
   return { name: L.name, clip: L.clip, hash: L.hash, weight: L.weight, mask: L.mask ? { ...L.mask } : null, additive: L.additive, speed: L.speed, time: L.time, cycle: L.cycle, held: L.held };

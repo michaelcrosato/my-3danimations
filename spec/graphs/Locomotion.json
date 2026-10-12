@@ -1,0 +1,184 @@
+{
+ "format": "2.0",
+ "id": "GRAPHS/Locomotion",
+ "name": "Locomotion",
+ "desc": "Stands, walks, jogs and sprints by speed (a blend kept in step), jumps and lands; a jab thrown over it from the waist up",
+ "tags": [
+  "locomotion"
+ ],
+ "parameters": {
+  "speed": {
+   "type": "number",
+   "value": 0
+  },
+  "grounded": {
+   "type": "bool",
+   "value": true
+  },
+  "jump": {
+   "type": "trigger"
+  },
+  "punch": {
+   "type": "trigger"
+  }
+ },
+ "start": "idle",
+ "states": {
+  "idle": {
+   "clip": "QUATERNIUS_3D2DGE/Idle_Loop"
+  },
+  "move": {
+   "blend": {
+    "param": "speed",
+    "points": [
+     {
+      "at": 1.4,
+      "clip": "QUATERNIUS_3D2DGE/Walk_Loop"
+     },
+     {
+      "at": 3.2,
+      "clip": "QUATERNIUS_3D2DGE/Jog_Fwd_Loop"
+     },
+     {
+      "at": 6,
+      "clip": "QUATERNIUS_3D2DGE/Sprint_Loop"
+     }
+    ]
+   }
+  },
+  "jump": {
+   "clip": "QUATERNIUS_3D2DGE/Jump_Start"
+  },
+  "air": {
+   "clip": "QUATERNIUS_3D2DGE/Jump_Loop"
+  },
+  "land": {
+   "clip": "QUATERNIUS_3D2DGE/Jump_Land"
+  }
+ },
+ "transitions": [
+  {
+   "from": [
+    "idle",
+    "move"
+   ],
+   "to": "jump",
+   "when": [
+    {
+     "param": "jump"
+    }
+   ],
+   "fade": 0.1
+  },
+  {
+   "from": "idle",
+   "to": "move",
+   "when": [
+    {
+     "param": "speed",
+     "op": ">",
+     "value": 0.2
+    }
+   ],
+   "fade": 0.25
+  },
+  {
+   "from": "move",
+   "to": "idle",
+   "when": [
+    {
+     "param": "speed",
+     "op": "<=",
+     "value": 0.2
+    }
+   ],
+   "fade": 0.3
+  },
+  {
+   "from": "jump",
+   "to": "land",
+   "when": [
+    {
+     "param": "grounded",
+     "op": "==",
+     "value": true
+    }
+   ],
+   "exit": 0.75,
+   "fade": 0.15
+  },
+  {
+   "from": "jump",
+   "to": "air",
+   "exit": 1,
+   "fade": 0.15
+  },
+  {
+   "from": "air",
+   "to": "land",
+   "when": [
+    {
+     "param": "grounded",
+     "op": "==",
+     "value": true
+    }
+   ],
+   "fade": 0.1
+  },
+  {
+   "from": "land",
+   "to": "move",
+   "when": [
+    {
+     "param": "speed",
+     "op": ">",
+     "value": 0.2
+    }
+   ],
+   "exit": 0.4,
+   "fade": 0.25,
+   "interruptible": true
+  },
+  {
+   "from": "land",
+   "to": "idle",
+   "exit": 0.9,
+   "fade": 0.3
+  }
+ ],
+ "layers": [
+  {
+   "name": "upper",
+   "mask": "upper",
+   "weight": 1,
+   "start": "none",
+   "states": {
+    "none": {
+     "pass": true
+    },
+    "jab": {
+     "clip": "QUATERNIUS_3D2DGE/Punch_Jab",
+     "speed": 1.2
+    }
+   },
+   "transitions": [
+    {
+     "from": "none",
+     "to": "jab",
+     "when": [
+      {
+       "param": "punch"
+      }
+     ],
+     "fade": 0.1
+    },
+    {
+     "from": "jab",
+     "to": "none",
+     "exit": 1,
+     "fade": 0.2
+    }
+   ]
+  }
+ ]
+}

@@ -1748,7 +1748,8 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
 - **Verify:** `npm test -- actions`
 
 #### WP-6.4 Graphs
-- **Owns:** `spec/GRAPH.md`, `spec/schemas/graph.json`, `packages/core/src/graph/*`
+- **Owns:** `spec/GRAPH.md`, `spec/schemas/graph.schema.json` (Phase 1's stub, filled; D73), `spec/graphs/*`,
+  `packages/core/src/graph/*`
 - **Needs:** 6.1
 - **Size:** L
 - **Carry:**
@@ -2258,7 +2259,7 @@ version, commit, date and a note with the numbers. Gates are rows too.
 | 6.1 Recipes | done | 0.37.1 | 85dc149, e568fba, 8076745, (this commit) | 2026-10-12 | `npm test -- recipe` (28 tests): 66 one-line mutants and 36 of the verifier's 41 fail them (five pass for reasons D70 gives); the 20 example recipes validate (schema and `validateRecipe`), compile into valid clips the sensors pass, and are explained in at most 100 tokens by o200k and cl100k, as are a ten-step recipe, a 45-word id and a pose of many parts; `spec/RECIPE.md` and the full `recipe.schema.json`, refrozen (D70); the verifier's rounds 1 to 3 fixed in 0.36.1, 0.36.2 and 0.37.1 |
 | 6.2 Procedural sources | done | 0.37.2 | 2bfe276, (this commit) | 2026-10-12 | `npm test -- procedural` (22 tests): the move model against my-3d2dge's frozen `moves.json`, 0.0018 cm mean and 0.012 cm worst, no exceptions; every move begins (1 mm) and ends (2 mm) at three start poses on two rests, ten at five more; the four gaits slide at most 7.8 mm per contact on three rests, none failing on any of 64, their contacts where the feet stand; the idles pass, 1.1–3.7 mm; `library/moves.json` (31 moves, one unit system) is the frozen schema's shape and checks clean, and its seven shardfall-only moves are their source's numbers; the moves floor by reason (D71); the verifier's round 1 fixed in 0.37.2 |
 | 6.3 Actions | done | 0.38.0 | (this commit) | 2026-10-12 | `npm test -- actions` (11 tests): the six actions and the paired one are the frozen schema's shape and check clean; each action and each role plays on the six test characters, no row worse than on its own body and none failing; each of the 14 interrupt cuts is a valid clip the sensors don't fail, from a moment a foot stands (both where its reason says); the climb's ground rises and the hop's falls; the A- checks; the pair's roles meet on their event (D72) |
-| 6.4 Graphs | todo | | | | |
+| 6.4 Graphs | done | 0.39.0 | (this commit) | 2026-10-12 | `npm test -- graph` (13 tests): the checks and their codes, the schema agreeing; blend weights; the locomotion and combo graphs' scripted runs take the expected transitions and carry on exactly after a save and restore; triggers, exit, windows, sync, interrupts, layers, blend phase, callbacks, refusals; `npm run e2e` `animator-parity`: both graphs give the same states, hashes, events and exact poses in Node and Chromium (D73) |
 | 6.5 Simulation and gameplay sync | todo | | | | |
 | 6.6 Briefs B2 to B7 and manual sections | todo | | | | |
 | **G6** | todo | | | | |

@@ -94,3 +94,5 @@ export * as recipe from "./recipe/index.ts";
 export * as procedural from "./procedural/index.ts";
 /** Actions (spec/ACTION.md): multi-beat motions with their ground, beats and interrupt points, and paired ones. */
 export * as actions from "./actions/index.ts";
+/** Graphs (spec/GRAPH.md): states, transitions, blend spaces and layers, checked, and the run `Animator.play` steps. */
+export * as graph from "./graph/index.ts";
