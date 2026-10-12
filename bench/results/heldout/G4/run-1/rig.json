@@ -1,0 +1,15 @@
+{
+ "about": "G4's held-out rig, run 1 (PLAN.md §9.3): chosen on 2026-10-12 by a fresh subagent for the commit under test, 6798b45, from a source outside WP-4.2's list (not Quaternius, not KayKit). Fetched by SHA-256 into .cache/fixtures/ and never committed (npm run fixtures -- fetch --manifest bench/results/heldout/G4/run-1/rig.json). Its license file is read at fetch time and must say CC0.",
+ "rigs": [
+  {
+   "id": "orangejuice-male-base",
+   "author": "orange juice games (orange-juice-games.itch.io/male-base-mesh, CC0); re-uploaded unchanged to GitHub by BoQsc",
+   "source": "BoQsc/Godot-3D-Male-Base-Mesh at e780732, Original/male_base_mesh.glb (the itch.io file, uploaded 2025-02-05, unchanged since)",
+   "rig": "Blender Rigify metarig names without DEF- (spine to spine.005, shoulder.L, upper_arm.L, forearm.L, thigh.L, shin.L, foot.L, toe.L, heel.02.L), 56 bones, untextured, no clips",
+   "url": "https://raw.githubusercontent.com/BoQsc/Godot-3D-Male-Base-Mesh/e7807327a8ebcc637831995a231dae701b6d4f56/Original/male_base_mesh.glb",
+   "sha256": "206cb651484baf9aaa29a030a38feecbe29575c3e1cbd820a58fa343c2ae14c4",
+   "license": "CC0 1.0",
+   "licenseUrl": "https://raw.githubusercontent.com/BoQsc/Godot-3D-Male-Base-Mesh/e7807327a8ebcc637831995a231dae701b6d4f56/LICENSE"
+  }
+ ]
+}

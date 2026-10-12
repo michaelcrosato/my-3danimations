@@ -1,0 +1,24 @@
+{
+ "about": "npm run bench: fresh agents on the briefs (PLAN.md §7); isolation 1 is the claude CLI in a clean workspace",
+ "date": "2026-10-12T04-55-12",
+ "commit": "6798b4566891ba845721b8a52c62c52db2465bcd",
+ "model": "the CLI's default",
+ "fake": true,
+ "B1": {
+  "trials": [],
+  "discovery": [],
+  "check": {
+   "trial": "known-good",
+   "pass": false,
+   "failed": [
+    "travels at 1.2 m/s: 0.84 m/s",
+    "travels at 1.2 m/s: 0.85 m/s",
+    "a foot stands still at 3.5 m/s: the lower foot's slowest tenth moves 0.43 m/s or less (at most 0.22)"
+   ],
+   "agent": {
+    "fake": true
+   }
+  }
+ },
+ "ms": 5783
+}

@@ -1,11 +1,14 @@
-// A benchmark workspace (PLAN.md §7, WP-4.7): a starter copied into a directory with its brief and its character, and
+// A benchmark workspace (PLAN.md §7, WP-4.7): a starter copied into a directory with its brief, its character and the
+// speeds the grader asks of it (speeds.json), and
 // either the packed packages installed (a trial, outside the repository) or nothing installed (a grader test inside
 // the repository, where the packages resolve to their sources). The character is a parameter: a generator seed, or a
 // real rig from a fixtures manifest, fetched by its SHA-256.
 import { execFileSync } from "node:child_process";
 import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join, relative } from "node:path";
-import { character, variant } from "@m3a/three/test-characters";
+import { bind } from "@m3a/three";
+import { character, loadGlb, variant } from "@m3a/three/test-characters";
+import { scriptFor } from "../graders/B1/grade.ts";
 import { rigBytes, type Manifest } from "../../tools/fixtures/fixtures.ts";
 
 const ROOT = join(import.meta.dirname, "../..");
@@ -36,13 +39,16 @@ export interface WorkspaceSpec {
   packs?: Record<string, string>;
 }
 
-/** Builds a workspace in `dir` (emptied first); returns dir. */
-export function prepareWorkspace(dir: string, spec: WorkspaceSpec): string {
+/** Builds a workspace in `dir` (emptied first); returns dir. Its speeds.json lists the speeds the grader asks of its
+ *  character, in proportion to the character's hip height (its bound body's H0). */
+export async function prepareWorkspace(dir: string, spec: WorkspaceSpec): Promise<string> {
   rmSync(dir, { recursive: true, force: true });
   mkdirSync(dir, { recursive: true });
   cpSync(spec.starter, dir, { recursive: true });
   if (spec.brief) cpSync(spec.brief, join(dir, "BRIEF.md"));
-  writeFileSync(join(dir, "character.glb"), characterBytes(spec.character));
+  const bytes = characterBytes(spec.character), H0 = bind((await loadGlb(bytes, { textures: false })).scene).core.rest.H0;
+  writeFileSync(join(dir, "character.glb"), bytes);
+  writeFileSync(join(dir, "speeds.json"), `${JSON.stringify({ about: "the speeds the game asks of this character (m/s) and for how long (s): for hips 1 m high, 0, 1.2, 3.5, 1.2 and 0, in proportion to its own", hips: Math.round(H0) / 1000, speeds: scriptFor(H0).map((p) => [p.speed, p.secs]) }, null, 1)}\n`);
   for (const [to, text] of Object.entries(spec.files ?? {})) {
     mkdirSync(join(dir, to, ".."), { recursive: true });
     writeFileSync(join(dir, to), text);

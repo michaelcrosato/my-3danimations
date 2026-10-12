@@ -85,15 +85,17 @@ export async function runB1(opts: { trials: number; discovery: number; parallel?
   const out: { check?: Trial; trials: Trial[]; discovery: Trial[] } = { trials: [], discovery: [] };
   if (opts.variant) {
     // the brief's known-good solution on the variant first: if it fails, the package or the grader is at fault
-    const ws = prepareWorkspace(join(opts.base, "known-good"), { starter: join(BENCH, "starters/B1"), brief, character, packs: opts.packs, files: knownGood() });
+    const ws = await prepareWorkspace(join(opts.base, "known-good"), { starter: join(BENCH, "starters/B1"), brief, character, packs: opts.packs, files: knownGood() });
     const g = await gradeB1(ws);
     out.check = { trial: "known-good", pass: g.pass, failed: failedOf(g), agent: { fake: true } };
     if (!g.pass) return out;
   }
-  const jobs = [
+  const specs = [
     ...Array.from({ length: opts.trials }, (_, i) => ({ name: `B1-${i + 1}`, starter: "B1", brief, discovery: false })),
     ...Array.from({ length: opts.discovery }, (_, i) => ({ name: `B1-discovery-${i + 1}`, starter: "B1-discovery", brief: join(BENCH, "briefs/B1-discovery.md"), discovery: true })),
-  ].map((j) => ({ ...j, ws: prepareWorkspace(join(opts.base, j.name), { starter: join(BENCH, "starters", j.starter), brief: j.brief, character, packs: opts.packs, ...(opts.fake && !j.discovery ? { files: knownGood() } : {}) }) }));
+  ];
+  const jobs: ((typeof specs)[number] & { ws: string })[] = [];
+  for (const j of specs) jobs.push({ ...j, ws: await prepareWorkspace(join(opts.base, j.name), { starter: join(BENCH, "starters", j.starter), brief: j.brief, character, packs: opts.packs, ...(opts.fake && !j.discovery ? { files: knownGood() } : {}) }) });
   const done = await pool(jobs, opts.parallel ?? 1, async (j): Promise<Trial> => {
     const agent = opts.fake ? ({ fake: true } as const) : summary(await runAgent(j.ws, PROMPT, join(opts.base, `${j.name}.jsonl`), { ...(opts.model ? { model: opts.model } : {}) }));
     const g = await gradeB1(j.ws);

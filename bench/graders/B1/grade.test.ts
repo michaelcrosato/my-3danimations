@@ -16,11 +16,11 @@ const planted = (from: string, to: string, file: "player" | "sheet" = "player") 
   return { ...good, [file]: good[file].replace(from, to) };
 };
 const BAD: Record<string, { files: typeof good; fails: string }> = {
-  "never runs": { files: planted("RUN_FROM = 2.2", "RUN_FROM = 99"), fails: "plays run at 3.5 m/s" },
+  "never runs": { files: planted("RUN_FROM = 2.2", "RUN_FROM = 99"), fails: "plays run at" },
   // walk and run at their own rate, the character moved at the speed asked: the feet slide by the difference
   skates: {
     files: { ...good, player: good.player.replace("character.position.z += player.moved.forward / 1000;", "character.position.z += speed * dt;").replace("Math.min(2, Math.max(0.5, (speed * 1000) / moves[m].speed))", "1") },
-    fails: "a foot stands still at 3.5 m/s",
+    fails: "a foot stands still at",
   },
   "a bone gone NaN": { files: planted("player.update(dt);", "player.update(dt);\n      if (animator.time > 5) bound.bones[0]!.position.x = Number.NaN;"), fails: "finite" },
   "no sheet": { files: planted('writePng("sheet.png", raster.join(sheets, { down: true }));', "void writePng;", "sheet"), fails: "a sheet is produced" },
@@ -28,12 +28,19 @@ const BAD: Record<string, { files: typeof good; fails: string }> = {
 /** Grades a solution in a workspace inside the repository (the packages resolve to their sources). */
 async function grade(name: string, files: typeof good, character: CharacterSpec): Promise<Grade> {
   const dir = join(ROOT, ".cache/bench/test-ws", `${name.replace(/\W+/g, "-")}-${"seed" in character ? character.seed : character.rig}`);
-  prepareWorkspace(dir, { starter: join(ROOT, "bench/starters/B1"), character, files: { "src/player.ts": files.player, "src/sheet.ts": files.sheet } });
+  await prepareWorkspace(dir, { starter: join(ROOT, "bench/starters/B1"), character, files: { "src/player.ts": files.player, "src/sheet.ts": files.sheet } });
   return gradeB1(dir);
 }
 const text = (g: Grade) => g.checks.map((c) => `${c.ok ? "ok  " : "FAIL"} ${c.name}: ${c.detail}`).join("\n");
 
 describe("B1's grader", () => {
+  it("asks a character speeds in proportion to its hip height: the known-good passes on a chibi (D56)", async () => {
+    // generator seed 935, hips 0.44 m up: asked 1.2 and 3.5 m/s, the walk travelled 0.84 m/s at twice its own rate
+    // and the running foot never stood still (G4's first held-out draw)
+    const g = await grade("good", good, { seed: 935 });
+    expect(g.pass, text(g)).toBe(true);
+    expect(g.checks.find((c) => c.name.startsWith("plays walk at"))!.name).toBe("plays walk at 0.53 m/s");
+  }, 120_000);
   for (const character of [{ seed: 1 }, { seed: 37 }] as CharacterSpec[]) {
     const who = "seed" in character ? `gen-${character.seed}` : character.rig;
     it(`passes the known-good solution on ${who}`, async () => {
@@ -44,7 +51,7 @@ describe("B1's grader", () => {
       for (const [name, bad] of Object.entries(BAD)) {
         const g = await grade(name, bad.files, character);
         expect(g.pass, `${name}\n${text(g)}`).toBe(false);
-        expect(g.checks.filter((c) => !c.ok).map((c) => c.name), `${name}\n${text(g)}`).toContain(bad.fails);
+        expect(g.checks.filter((c) => !c.ok).some((c) => c.name.startsWith(bad.fails)), `${name}\n${text(g)}`).toBe(true);
       }
     }, 600_000);
   }

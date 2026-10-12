@@ -8,8 +8,9 @@ helps.
 
 1. Implement `createPlayer` in `src/player.ts` (its types are there). Each frame the game calls
    `player.update(dt, { speed })` with the ground speed it wants, in m/s, and reads `player.motion`:
-   - `"idle"` when standing (speed 0), `"walk"` at walking speeds (about 1 to 2 m/s), `"run"` at running speeds
-     (about 2.5 m/s and up);
+   - `"idle"` when standing (speed 0), `"walk"` at walking speeds, `"run"` at running speeds. Speeds go with the
+     character's size: for hips 1 m above the floor, walking is about 1 to 2 m/s and running about 2.5 m/s and up,
+     and a character with lower hips is asked proportionally less (`speeds.json` lists what the game asks of this one);
    - the character travels at the asked speed (move `character.position` along its facing);
    - its feet don't slide on the ground while they stand;
    - switching motions blends smoothly; nothing ever becomes NaN.

@@ -1454,3 +1454,24 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   the sensors' sole; the demo's attack and flight.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.28.0
+
+## D56 · 2026-10-12 · B1 asks speeds in proportion to the character's hips; G4's first held-out run
+
+- **Principle:** 1, 7, WP-4.7, G4
+- **Call:**
+  - G4's first held-out run (`bench/results/heldout/G4/run-1/`, for commit 6798b45): a fresh subagent chose the rig,
+    `orangejuice-male-base` (orange juice games' male base mesh, CC0 1.0, a Blender human metarig, bound by
+    topology at 0.85). Doubt: the pinned license file is the re-uploader's repository license (BoQsc's, CC0 1.0); the
+    author's own CC0 statement is on its itch.io page, which can't be pinned. Another wrote B1's variant: its first
+    draw, generator seed 935, failed the brief's known-good solution (the walk travelled 0.84 m/s for 1.2, the
+    running foot never stood still), which §7 reports as a package or grader failure; it drew again (seed 401, which
+    passes). Both draws are kept in the run's directory.
+  - The failure was the grader's: seed 935 is a chibi with hips 0.44 m up, and B1 asked every character 1.2 and
+    3.5 m/s, more than two and eight of its hip heights a second, past any walk's rate, while the stillness bar is a
+    share of its H0. B1 now asks speeds in proportion to the character's hip height (1.2 and 3.5 m/s for hips 1 m
+    up; `scriptFor`), each workspace lists them in `speeds.json`, the starters' `npm run check` reads them, and the
+    briefs say speeds go with size. The known-good solution scales its thresholds the same way, and passes on 935.
+- **Why:** a brief a correct player can't pass on some of its own characters measures the brief. The speeds a game
+  asks of a small character are smaller (a walk's speed goes with leg length).
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.28.0 (bench only; no package changed)

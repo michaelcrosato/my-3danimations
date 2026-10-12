@@ -1,9 +1,12 @@
-// `npm run check`: drives the player as the grader will (the same speeds) and prints what it plays each half second,
+// `npm run check`: drives the player as the grader will (the same speeds, speeds.json's) and prints what it plays each half second,
 // where the character is and whether any bone went non-finite. It doesn't grade the feet or the sheet.
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { loadCharacter } from "./src/character.ts";
 import { createPlayer } from "./src/player.ts";
 
-const SCRIPT: [number, number][] = [[0, 2], [1.2, 3], [3.5, 3], [1.2, 2], [0, 2]];
+// the speeds (m/s) and for how long (s), as speeds.json gives them for this character
+const SCRIPT = (JSON.parse(readFileSync(join(import.meta.dirname, "speeds.json"), "utf8")) as { speeds: [number, number][] }).speeds;
 const character = await loadCharacter(), player = await createPlayer(character);
 let t = 0, bad = 0;
 for (const [speed, secs] of SCRIPT) {

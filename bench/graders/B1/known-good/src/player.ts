@@ -28,6 +28,8 @@ export async function createPlayer(character: Object3D): Promise<Player> {
     moves[m] = { clip: ready, speed: contact.contactRoot(ready, bound.core.rest, ready.contacts).speed };
   }
   const animator = new Animator(bound.core).layer("base", { clip: moves.idle.clip }), player = attach(animator, bound);
+  // speeds go with the character's size: the thresholds are for hips 1 m high
+  const size = bound.core.rest.H0 / 1000;
   let motion: Motion = "idle", fading: { to: Motion; t: number } | null = null;
   const rate = (m: Motion, speed: number) => (m === "idle" ? 1 : Math.min(2, Math.max(0.5, (speed * 1000) / moves[m].speed)));
   return {
@@ -35,7 +37,7 @@ export async function createPlayer(character: Object3D): Promise<Player> {
       return fading?.to ?? motion;
     },
     update(dt, { speed }) {
-      const want: Motion = speed < 0.3 ? "idle" : speed < RUN_FROM ? "walk" : "run";
+      const want: Motion = speed < 0.3 * size ? "idle" : speed < RUN_FROM * size ? "walk" : "run";
       if (want !== (fading?.to ?? motion)) {
         if (fading) [motion, fading] = [fading.to, null];
         const base = animator.layers[0]!, from = moves[motion].clip, to = moves[want].clip;
