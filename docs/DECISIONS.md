@@ -2289,8 +2289,8 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   lift and the presets' cycles only. Fixed or answered in v0.42.3, every finding:
   - **A high lift on a short swing popped a knee** (blocking): lifting 20 or more in 0.2 to 0.22 s of swing, 199 gaits
     failed (R1: speed 120, cycle 0.5, stance 0.6, lift 25; R5: a stance of 0.75 at 0.8 s lifting 35). A lift over 12
-    now needs a swing of 0.25 s: lifts of 16 to 35 at swings of 0.25 to 0.3 s, walks and limps, 660 on the three rests
-    and 1,024 on all 64 (0.25 s, lifting 25 and 35), none fail (worst slide 12.2 mm).
+    now needs a swing of 0.25 s: lifts of 16 to 35 at swings of 0.25 to 0.3 s, walks and limps, 660 on the three rests,
+    and walks, 1,024 on all 64 (0.25 s, lifting 25 and 35), none fail (worst slide 12.2 mm).
   - **Short-cycle runs failed at the seam** (blocking): a run of 0.4 s lifting 25 failed on all 64 rests (R3), and
     under 0.5 s the verifier's grid failed 4 to 100%; the seam fell where the swinging foot accelerates hardest. A run
     (a stance under half) now needs a cycle of 0.6 s (200 steps a minute), and 0.65 s lifting over 25 (a run lifting
@@ -2318,8 +2318,31 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
     427 passed" is where they played: the 0.65 at 230 and 0.75 s was refused for reach on 25 of 64 rests. The code's
     and test's "13 of 64 rests" is 13 of 128 clips on 12 rests. "The run warns" was stale. The cap's message named a
     foot by rounding: it names the right one for a limp, both otherwise. Two docs said a gait's frames were 1/fps apart.
+- **Verifier, round 5** (at 8a53245): not done, two blocking findings, each a gait `checkGait` took that failed on many
+  bodies; every round-4 number it re-measured held. Fixed or answered in v0.42.4:
+  - **A stance of 0.5 near the cap** (blocking): speed 400, cycle 0.45 s (a swing of 0.225 s) failed on 60 of 62 rests
+    with 28 frames, a knee popping; at 2eb0a1f, 27 frames, on none. Round 4's run rule refused a stance of 0.49 and took
+    0.5; the even count decided pass or fail in this marginal region, as it did the other way for a run of 0.683 s.
+  - **Bounce 6 on a short swing** (blocking, older than round 4): a stance of 0.75 at 0.84 s (a swing of 0.21 s) failed
+    on 30 of 64 rests, the knees popping at lift-off.
+  - **Both answered by one bound:** a swing of 0.25 s or more for every gait, not only those lifting over 12 (which
+    rule goes). Every grid either verifier ran at 0.25 s or more passed; at it now, on all 64 rests: a stance of 0.5 at
+    350 to 400 and cycles of 0.5 to 0.55 s, 497 played, 2 failing (a knee at 380 and 0.505 or 0.51 s on one CMU rest
+    each, where 17 to 20 of the 64 refuse it for reach: the reach bound's edge, recorded, not refused); bounce 6 at a
+    stance of 0.75 and swings of 0.25 to 0.275 s, 640, none. The run rule stays (a run of 0.4 s swings 0.28 s and
+    fails on every rest); it refuses some runs that would pass, recorded.
+  - **Rates over 120:** at 240 a walk failed on every rest (its keys, fitted to 2 mm, pop between frames); at 144 a run
+    on 1 of 64. A gait is made at 50 to 120 frames a second; the presets at 120 on all 64, 256, none fail.
+  - **Tests:** the refusals at 0.24 s and taken at 0.25 s (lifting 13), the round's repros refused, 240 frames a second
+    refused; the sensors' two shortest swings now 0.25 s (10.6 and 6.4 mm on 100STYLE, bars 12 and 8), the sensors'
+    test names no longer "at any cycle" or "every rest". Mutant N4 (the lift rule's bound) goes with the rule; N7, N8,
+    N11, N13, N14 and N16 move an equality or a bound the grids found passing either side.
+  - **Records:** "both feet at the same phases" is a plain gait's (a limp's left lands at its own phase); round 4's
+    1,024 on all 64 rests were walks; the worst slide off the presets is 14.4 mm (a limp at 2.5 s, 100STYLE), not
+    14.2; the `Gait` type now says what `checkGait` refuses. Round 4's "none of the grids at those bounds fails" was
+    true of its grids, not of the bounds: this round's grids are at the bounds themselves.
 - **Answered:** no: made without a response, to review.
-- **Landed in:** v0.37.0, v0.37.2, v0.39.1, v0.42.1, v0.42.3
+- **Landed in:** v0.37.0, v0.37.2, v0.39.1, v0.42.1, v0.42.3, v0.42.4
 
 ## D72 · 2026-10-12 · Actions: multi-beat motions with their ground, beats and interrupt points (WP-6.3)
 
@@ -2643,8 +2666,56 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
     a second of lying from two, as clips' falls and rises differ; and its two runs import the top module anew, so
     state a solution keeps in a helper module of its own carries over (nothing a fresh agent's reactor needs).
   - **Measured:** the known-good solutions on gen-20 to 59: B2, B3, B4, B5, B6 and B7 each 40 of 40.
+- **Verifier, round 2** (both halves, at 8a53245): not done, two blocking findings. Fixed or answered in v0.42.4:
+  - **B2's strike took a fade-in for the strike** (blocking): with `MESH2MOTION/Fighting_Right_Jab`, the fists lifting
+    into the stance at the press moved the hand forward faster (2.9 m/s) than the jab itself (1.2 to 1.3), so no peak
+    reached half the fastest and the strike fell back to the press frame: a right fighter failed on 22 of 68 seeds,
+    and damage on the press passed. The strike is now the last peak of the hand's forward speed faster than one hip
+    height a second before it is farthest out, and damage passes from two frames before it (a cross-fade moves the
+    played peak a frame or two from the clip's measured strike: `Punch_Cross` faded in over 0.25 s) to the hand's
+    farthest reach. One function, the starter's `strike.ts`, finds it for the grader and the check alike (the check's
+    search differed). The verifier's 88 punches (11 clips through a layer, a base cross-fade or a graph, fades of 0.1 to
+    0.25 s) pass on six seeds each, 528; damage on the press with the fighting jab fails; a punch looped on fails the
+    new "back to idling" check (its hand comes at least half way back within 1.5 s: N2).
+  - **B3's knockdown flung the body 7 hip heights** (blocking): core's root motion held `Hit_Knockback`'s take-off
+    speed (its right foot read planted 4 frames while swept away, about 9 hip heights a second) to the clip's end. A
+    one-shot that ends off its feet now spends its speed over the time a body falls its hip height: the three sets'
+    knockbacks travel 2.6 to 2.8 hip heights (the root-motion clip's own, 3.3; core's test holds it and fails the old
+    code). B3 checks it: from the hit until it stands, the hips go no more than 3.5 hip heights (the 17 alternatives
+    0.2 to 2.6); a flung knockdown is a planted bad one.
+  - **B3's other bars (S1 to S3):** the light hit's in hip heights (2% and 5%); a foot may go twice the floor's limit
+    in the half second after the heavy hit (a cross-fade from a step dipped one 6 cm on bulky bodies); the walk is
+    checked in the last second too, with a standing foot staying (the lower foot at 15% of the travel or less 40% of
+    the time: moved by its feet 0%, stride-warped as the manual shows 7 to 13%, slid at half rate 48%); the idle slid
+    along after getting up and the half-rate skate are planted bad ones. A walk played at its own pace while the body
+    goes at the asked one skates 13 to 23%: it fails on 4 of 5 seeds, and on gen-1 (13%) passes, as stride warping's
+    own slide does.
+  - **B4's standing foot (S4):** judged as B3's, the lower foot at a quarter of the travel or less 40% of the time, not
+    by the sensors' contacts (on bulky bodies they read only a few frames of each of `Walk_Stealth`'s stances):
+    `Walk_Stealth` reads 89 to 151% and fails on every body (planted); the crouch walks moved by their feet read 0%.
+  - **B7's windows (S5):** the run after landing is judged from 8.1 to 8.6 s, so a landing played to its end first
+    passes, and the brief gives every window. N3: a jump state playing the jog left the ground only through the graph's
+    `air` state, which the check reads with it; the known-good's landing waits on its 0.1 s jump fade, as the brief
+    warns a graph must (a fade of 0.08 lands on the `grounded` still true from before, and fails, as it should).
+  - **The manual (S6, N3, N4):** the throw's wind-up turns +20 (−20 moved the hand forward); a bool may be compared
+    (`"op": "==", "value": false`); the paired action has its `desc`. 5,653 of 8,000 tokens.
+  - **The starters' loader (S7):** B2, B3, B4 and B7 load their character as the graders do (meshopt read, textures
+    left out), so the four real rigs on hand load (three didn't). B1's starters are G4's and stay (its discovery
+    starter names no package); its known-good fails on the meshopt rigs, for G4's run 2 to take up.
+  - **A model off the floor (S8):** the graders read heights from a model's lowest sole at rest when that is more than
+    10% of the hip height off y = 0 (G4's held-out rig stands 1 m down); B3 there no longer reads the body under the
+    floor. But the player's planting takes the floor at y = 0, so on that rig the feet slide (B1, B3, B4), and on the
+    KayKit knight (a real chibi) B3's body lies with its hips over 15% of its hip height: both are G7's, which reruns
+    the briefs on real rigs; G6's variants are generator seeds (D78).
+  - **Nits:** the ledger's planted counts (now 7, 8 and 6 for B2, B3 and B7; 7, 5 and 4 for B4, B5 and B6); "crouch
+    walks played at their pace pass on gen-44 too" (round 1) held for the clips' own pace, and the manual's in-place
+    method fails B4 (the brief asks for root motion); B4's naming check is a seed's (a rig's naming isn't checked:
+    recorded); T1's time ran under the other verifier's load.
+  - **Measured:** the known-goods on new seeds, B2, B3 and B7 40 of 40 (gen-60 to 99), B4 35 of 35 (VRM seeds 60 to
+    196); on three real rigs, B2 and B7 pass on all, B3 and B4 on the mannequin. T1 grades every other planted solution
+    of B2, B3 and B4 on gen-1, T2 all of them on three characters (as D74 samples the sweeps), keeping T1 in budget.
 - **Answered:** no: made without a response, to review.
-- **Landed in:** v0.42.0, v0.42.1, v0.42.3
+- **Landed in:** v0.42.0, v0.42.1, v0.42.3, v0.42.4
 
 ## D78 · 2026-10-12 · G6's command set; a held-out run's variants on generator seeds alone
 

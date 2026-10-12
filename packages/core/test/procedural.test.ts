@@ -392,19 +392,25 @@ describe("a gait", () => {
     // a long cycle's limp swings long enough in time, but for 9% of the cycle
     expect(play({ speed: 30, cycle: 2.5, stance: 0.7, limp: 1 })).toThrow(/leaves the right foot 9% of the cycle to swing/);
     expect(play({ limp: 1.01 })).toThrow(/limp 1.01 is not 0 to 1/);
-    // a swing under 0.2 s: the foot is up for under the 0.1 s the sensors read a step by (the verifier's limps and
-    // fast walks, which slid 500 to 1,300 mm)
-    expect(play({ speed: 70, cycle: 1, stance: 0.68, limp: 0.6 })).toThrow(/its right foot swings for 0.198 s, under 0.2 s: .* or a lighter limp/);
-    expect(play({ cycle: 0.45 })).toThrow(/its feet swing for 0.180 s, under 0.2 s: .*; use a longer cycle, a shorter stance$/);
-    // a lift over 12 needs a swing of 0.25 s: the verifier's knees popped lifting 20 or more in 0.2 to 0.22 s (R1, R5)
-    expect(play({ speed: 120, cycle: 0.5, stance: 0.6, lift: 25 })).toThrow(/its feet swing for 0.200 s, lifting 25% of the hip height: a lift over 12 needs a swing of 0.25 s or more/);
-    expect(play({ speed: 131, cycle: 0.8, stance: 0.75, lift: 35, sway: 4 })).toThrow(/its feet swing for 0.200 s, lifting 35%.*; use a lower lift, a longer cycle or a shorter stance$/);
+    // a swing under 0.25 s: under 0.2 the foot is up for under the 0.1 s the sensors read a step by (the verifier's limps
+    // and fast walks, which slid 500 to 1,300 mm); under 0.25 a knee pops lifting more than 12 (R1, R5), bouncing 6, or
+    // at a stance of 0.5 near the cap (the verifier's rounds 4 and 5), on many bodies
+    expect(play({ speed: 70, cycle: 1, stance: 0.68, limp: 0.6 })).toThrow(/its right foot swings for 0.198 s, under 0.25 s: .* or a lighter limp$/);
+    expect(play({ cycle: 0.45 })).toThrow(/its feet swing for 0.180 s, under 0.25 s: .*; use a longer cycle, a shorter stance$/);
+    expect(play({ speed: 120, cycle: 0.5, stance: 0.6, lift: 25 })).toThrow(/its feet swing for 0.200 s, under 0.25 s/);
+    expect(play({ speed: 131, cycle: 0.8, stance: 0.75, lift: 35, sway: 4 })).toThrow(/its feet swing for 0.200 s, under 0.25 s/);
+    expect(play({ speed: 60, cycle: 0.84, stance: 0.75, bounce: 6 })).toThrow(/its feet swing for 0.210 s, under 0.25 s/);
+    expect(play({ speed: 400, cycle: 0.45, stance: 0.5 })).toThrow(/its feet swing for 0.225 s, under 0.25 s/);
+    expect(play({ speed: 100, cycle: 0.6, stance: 0.6, lift: 13 })).toThrow(/its feet swing for 0.240 s, under 0.25 s/);
+    expect(play({ speed: 100, cycle: 0.625, stance: 0.6, lift: 13 })).not.toThrow();
     // a run's cycle under 0.6 s: its seam moved too sharply (R3: 64 of 64 rests)
     expect(play({ speed: 350, cycle: 0.4, stance: 0.3, lift: 25, bounce: 3, lean: 8, swing: 45 })).toThrow(/a run's cycle of 0.4 s is under 0.6 s \(over 200 steps a minute\): .*; use a longer cycle$/);
     // lifting over 25, 0.65 s: a run lifting 35% and swaying 4% failed its seam at 0.6 and 0.625 s
     expect(play({ ...PR.GAITS[2], cycle: 0.6, lift: 35, sway: 4 })).toThrow(/a run's cycle of 0.6 s, lifting 35% of the hip height, is under 0.65 s .*; use a longer cycle or a lift of 25 or less$/);
-    // under 50 frames a second a fast gait's seam steps too far between frames (the verifier's at 24, on 53 of 64 rests)
-    expect(() => PR.gaitClip(walk, src.rest, { restSrc: src.clip.restSrc, fps: 30 })).toThrow(/made at 30 frames a second, under 50: .*use 50 or more/);
+    // 50 to 120 frames a second: under, a fast gait's seam steps too far between frames (the verifier's at 24, on 53 of
+    // 64 rests); over, its keys pop between them (a walk at 240, on every rest)
+    expect(() => PR.gaitClip(walk, src.rest, { restSrc: src.clip.restSrc, fps: 30 })).toThrow(/made at 30 frames a second, not 50 to 120: .*use 50 to 120/);
+    expect(() => PR.gaitClip(walk, src.rest, { restSrc: src.clip.restSrc, fps: 240 })).toThrow(/made at 240 frames a second, not 50 to 120/);
     expect(play({ lift: 5 })).toThrow(/lift 5 is not 9 to 35/);
     // the numbers past which a preset's knees pop (D71): a lift of 40, a sway of 5
     expect(play({ lift: 40 })).toThrow(/lift 40 is not 9 to 35 .*knees pop/);
@@ -416,8 +422,8 @@ describe("a gait", () => {
     expect(play({ speed: 380, cycle: 1.2, stance: 0.5 })).toThrow(/reach \d+% of a leg .* past 75%: slow it/);
     // a foot swinging forward past the hips faster than 4 hip heights a second: a long stance's knee popped mid-swing
     // (the verifier's 140 % a second at stance 0.75: 13 of 128 clips, on 12 rests)
-    expect(play({ speed: 140, cycle: 0.8, stance: 0.75 })).toThrow(/its feet come forward past the hips at 420% of the hip height a second, over 400: .*; use a lower speed or a shorter stance$/);
-    expect(play({ speed: 110, cycle: 1.05, stance: 0.62, limp: 1 })).toThrow(/its right foot comes forward past the hips at 457% .* or a lighter limp$/);
+    expect(play({ speed: 140, cycle: 1, stance: 0.75 })).toThrow(/its feet come forward past the hips at 420% of the hip height a second, over 400: .*; use a lower speed or a shorter stance$/);
+    expect(play({ speed: 110, cycle: 1.3, stance: 0.62, limp: 1 })).toThrow(/its right foot comes forward past the hips at 457% .* or a lighter limp$/);
   });
   it("offers the presets D71 measured", () => {
     expect(PR.GAITS.map((g) => [g.name, g.speed, g.cycle, g.stance, g.lift ?? 12, g.limp ?? 0])).toEqual([["walk", 130, 1.1, 0.6, 12, 0], ["brisk", 170, 1, 0.58, 12, 0], ["run", 350, 0.7, 0.35, 25, 0], ["limp", 90, 1.3, 0.62, 12, 0.8]]);

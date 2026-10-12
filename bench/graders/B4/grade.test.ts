@@ -1,8 +1,8 @@
 // B4's grader (WP-6.6's Done-when): it passes the known-good sneaker and fails each planted bad one, naming the check it
 // broke, on the default avatar (gen-40, a VRM-named chibi outside WP-4.2's set) and, in T2, on gen-44 (a tall one with
 // twist bones and no toes). The planted sneakers are the known-good one edited: an upright walk, a crouch that doesn't
-// travel, a sneak moved three times its root motion, a crouched idle slid along, one moved twice its root motion, a
-// bone gone NaN.
+// travel, a sneak moved three times its root motion, a crouched idle slid along, one moved twice its root motion, the
+// library's stealth walk (its standing feet slide), a bone gone NaN.
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -25,6 +25,9 @@ const BAD: Record<string, { sneak: string; fails: string }> = {
   "glides": { sneak: planted("character.position.z += player.moved.forward / 1000;", "character.position.z += (0.3 * bound.core.rest.H0 * dt) / 1000;").replace('"MESH2MOTION/Crouch_Walk"', '"MESH2MOTION/Crouch_Idle"'), fails: "it steps" },
   // root motion doubled: the feet go back half as fast as the avatar comes on
   "skates twice": { sneak: planted("character.position.z += player.moved.forward / 1000;", "character.position.z += (2 * player.moved.forward) / 1000;"), fails: "a standing foot stays" },
+  // the library's stealth walk, whose standing feet slide along the floor (the verifier's: it passed on bulky bodies,
+  // where the sensors read only a few frames of each stance standing)
+  "slides its stances": { sneak: planted('"MESH2MOTION/Crouch_Walk"', '"MESH2MOTION/Walk_Stealth"'), fails: "a standing foot stays" },
   "a bone gone NaN": { sneak: planted("player.update(dt);", "player.update(dt);\n      if (player.animator.time > 3) bound.bones[0]!.position.x = Number.NaN;"), fails: "finite" },
 };
 /** Grades a sneaker in a workspace inside the repository (the packages resolve to their sources). */
@@ -42,7 +45,8 @@ describe("B4's grader", () => {
     it(`passes the known-good sneaker on ${who}, and fails each planted bad one, naming the check it broke`, async () => {
       const g = await grade("good", good, character);
       expect(g.pass, text(g)).toBe(true);
-      for (const [name, bad] of Object.entries(BAD)) {
+      // T1 grades every other planted one; T2 (M3A_FULL=1) all of them (D74)
+      for (const [name, bad] of Object.entries(BAD).filter((_, i) => process.env.M3A_FULL === "1" || i % 2 === 0)) {
         const b = await grade(name, bad.sneak, character);
         expect(b.pass, `${name}\n${text(b)}`).toBe(false);
         expect(b.checks.filter((c) => !c.ok).some((c) => c.name.startsWith(bad.fails)), `${name}\n${text(b)}`).toBe(true);

@@ -31,7 +31,7 @@ const KNOWN_FAILS: Record<string, [RegExp, string]> = {
 };
 
 describe("procedural clips under the sensors", () => {
-  it("gaits slide at most 10 mm per contact, and none fails, on every rest", () => {
+  it("gaits slide at most 10 mm per contact, and none fails, on the three rests", () => {
     for (const [id, { rest, restSrc }] of RESTS) {
       for (const g of PR.GAITS) {
         const c = PR.gaitClip(g, rest, { restSrc }), r = metrics(c, rest);
@@ -51,16 +51,16 @@ describe("procedural clips under the sensors", () => {
       ["STYLE100/Neutral_Walk", { speed: 100, cycle: 0.9, stance: 0.55 }, 7],
       ["MESH2MOTION/Idle_A", { speed: 140, cycle: 0.9, stance: 0.65 }, 5],
       ["STYLE100/Neutral_Walk", { speed: 60, cycle: 1.3, stance: 0.7, limp: 0.4 }, 9],
-      // swings of 0.2 s, the shortest taken: their feet lift off quicker to clear the height a lifted foot is read at
-      // (lifting off as a longer swing does, they slid 500 to 690 mm: the verifier's round 3)
-      ["STYLE100/Neutral_Walk", { speed: 140, cycle: 0.5, stance: 0.6 }, 9],
-      ["STYLE100/Neutral_Walk", { speed: 50, cycle: 1.15, stance: 0.7, limp: 0.6 }, 14],
+      // swings of 0.25 s, the shortest taken: their feet lift off quicker to clear the height a lifted foot is read at
+      // (lifting off as a longer swing does, swings of 0.2 s slid 500 to 690 mm: the verifier's round 3)
+      ["STYLE100/Neutral_Walk", { speed: 140, cycle: 0.625, stance: 0.6 }, 12],
+      ["STYLE100/Neutral_Walk", { speed: 50, cycle: 1.44, stance: 0.7, limp: 0.6 }, 8],
     ] as const) {
       const { rest, restSrc } = RESTS.find(([x]) => x === id)![1], r = metrics(PR.gaitClip({ name: "g", about: "a gait", ...g }, rest, { restSrc }), rest);
       expect([id, g, r.values.slide <= bar, r.verdict === "fail"]).toEqual([id, g, true, false]);
     }
   }, 60_000);
-  it("gaits close their loops at any cycle, and with the knees swung widest, on every rest", () => {
+  it("gaits close their loops off the frame grid, and with the knees swung widest, on the three rests", () => {
     // a run of 0.705 s and a walk of 1.102 s, off the 60 fps grid, and a run lifting 35% and swaying 4%: their knees'
     // turn stepped at the seam, in a gap of a few ms off the grid, and popped (the verifier's round 3)
     const [walk, , run] = PR.GAITS;
@@ -70,7 +70,7 @@ describe("procedural clips under the sensors", () => {
         expect([id, g, r.verdict, r.values.slide <= 10]).toEqual([id, g, "pass", true]);
       }
   }, 60_000);
-  it("idles pass on every rest, their feet still", () => {
+  it("idles pass on the three rests, their feet still", () => {
     for (const [id, { rest, restSrc }] of RESTS) {
       for (const i of PR.IDLES) {
         const r = metrics(PR.idleClip(i, rest, { restSrc }), rest);
@@ -78,7 +78,7 @@ describe("procedural clips under the sensors", () => {
       }
     }
   }, 30_000);
-  it("moves are valid, and fail no more than D71 lists, for its reasons: at least 23 of 31 pass or warn on every rest", () => {
+  it("moves are valid, and fail no more than D71 lists, for its reasons: at least 23 of 31 pass or warn on each of the three rests", () => {
     for (const [id, { rest, restSrc }] of RESTS) {
       let fails = 0;
       for (const m of MOVES) {

@@ -52,7 +52,7 @@ export interface Grade {
 export async function gradeB1(workspace: string): Promise<Grade> {
   const t0 = performance.now(), checks_: Check[] = [], add = (name: string, ok: boolean, detail: string) => checks_.push({ name, ok, detail });
   // the grader's own copy, for the mapping from points to bones and the body's rest
-  const { core, bones } = await bodyOf(workspace);
+  const { core, bones, floor } = await bodyOf(workspace);
   const script = scriptFor(core.rest.H0), scale = core.rest.H0 / 1000;
   const { loadCharacter } = (await import(pathToFileURL(join(workspace, "src/character.ts")).href)) as { loadCharacter(): Promise<never> };
   const { createPlayer } = (await import(pathToFileURL(join(workspace, "src/player.ts")).href)) as { createPlayer(c: unknown): Promise<{ motion: string; update(dt: number, i: { speed: number }): void }> };
@@ -81,7 +81,7 @@ export async function gradeB1(workspace: string): Promise<Grade> {
       character.traverse((o) => {
         if (!o.matrixWorld.elements.every(Number.isFinite)) nonFinite++;
       });
-      frames.push(pointsOf(jointsOf(character, bones), core.rest));
+      frames.push(pointsOf(jointsOf(character, bones, floor), core.rest));
       motions.push(player.motion);
       judged.push(i * dt >= SETTLE ? k : -1);
     }

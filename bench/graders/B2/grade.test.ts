@@ -1,7 +1,8 @@
 // B2's grader (WP-6.6's Done-when): it passes the known-good fighter and fails each planted bad one, naming the check it
 // broke, on the default character (gen-1, of WP-4.2's set) and on a generator seed outside it (gen-37). The planted
 // fighters are the known-good one edited: damage when the button is pressed, when the punch ends, twice per punch, an
-// idle held still, and a fighter that never punches (damage on a timer).
+// idle held still, a fighter that never punches (damage on a timer), damage on the press with a fighting jab (its fade
+// into the stance faster than its punch), and the jab looped on.
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -23,6 +24,11 @@ const BAD: Record<string, { fighter: string; fails: string }> = {
   // the idle held still: a stance, not an idle (the verifier's)
   "a held pose for an idle": { fighter: planted('layer("base", { clip: playable(idle.clip, idle.rest) })', 'layer("base", { clip: playable(idle.clip, idle.rest), speed: 0 })'), fails: "it idles" },
   "never punches": { fighter: planted("animator.layer(\"punch\", { weight: Math.min(1, L.weight + dt / 0.1) });", "void L;"), fails: "punches after the press" },
+  // the fighting jab, whose fade into its stance carries the hand forward faster than the jab: damage on the press
+  // passed when the strike fell back to the fastest frame (the verifier's round 2)
+  "damage on the press, a fighting jab": { fighter: planted('"QUATERNIUS_3D2DGE/Punch_Jab"', '"MESH2MOTION/Fighting_Right_Jab"').replace("        punching = true;", "        punching = true;\n        game.damage(10);").replace(HIT, "player.update(dt);"), fails: "damage when the punch" },
+  // the jab looped on after a press, damage once a press: it never goes back to idling (the verifier's)
+  "punches on": { fighter: planted("events: [{ t: strike, name: \"hit\" }] }", "loop: true, events: [{ t: strike, name: \"hit\" }] }"), fails: "back to idling" },
 };
 /** Grades a fighter in a workspace inside the repository (the packages resolve to their sources). */
 async function grade(name: string, fighter: string, character: CharacterSpec): Promise<Grade> {
@@ -39,7 +45,8 @@ describe("B2's grader", () => {
     it(`passes the known-good fighter on ${who}, and fails each planted bad one, naming the check it broke`, async () => {
       const g = await grade("good", good, character);
       expect(g.pass, text(g)).toBe(true);
-      for (const [name, bad] of Object.entries(BAD)) {
+      // T1 grades every other planted one; T2 (M3A_FULL=1) all of them (D74)
+      for (const [name, bad] of Object.entries(BAD).filter((_, i) => process.env.M3A_FULL === "1" || i % 2 === 0)) {
         const b = await grade(name, bad.fighter, character);
         expect(b.pass, `${name}\n${text(b)}`).toBe(false);
         expect(b.checks.filter((c) => !c.ok).some((c) => c.name.startsWith(bad.fails)), `${name}\n${text(b)}`).toBe(true);

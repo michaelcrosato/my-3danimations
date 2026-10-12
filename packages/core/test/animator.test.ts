@@ -110,6 +110,16 @@ describe("step", () => {
     expect(end.forward).toBeGreaterThan(10);
     expect(b.root.forward).toBeCloseTo((end.forward * rig.rest.H0) / 100, 6);
     expect(b.root.right).toBeCloseTo((end.right * rig.rest.H0) / 100, 6);
+    // a one-shot that leaves its feet and never lands (a knockback): its take-off speed is spent over the time a body
+    // falls its hip height, not held to its end (held, a knockback's flung the body 7 to 9 hip heights)
+    // (the walk's left foot as its only contact, taken off 0.4 s into its stance, while it carries the body at a walk)
+    const fall = Math.sqrt((2 * rig.rest.H0) / 9810), on = walk.contacts!.footL![0]![0], off = on + 0.4;
+    const thrown: AnimClip = { ...walk, id: "thrown", loop: false, contacts: { by: "detected", footL: [[on, off]] } };
+    const r = contact.contactRoot(thrown, rig.rest, thrown.contacts!);
+    const v = (r.root(off).forward - r.root(off - 1 / 60).forward) * 60, at = (t: number) => r.root(t).forward;
+    expect(Math.abs(v)).toBeGreaterThan(100);
+    expect([thrown.dur > off + fall + 0.1, at(thrown.dur)]).toEqual([true, at(off + fall + 1 / 30)]);
+    expect((at(off + fall) - at(off)) / (v * fall)).toBeCloseTo(0.5, 1);
   });
   it("gives the same hashes and events on every run of the same script", () => {
     expect(straight.hashes).toHaveLength(LENGTH);

@@ -22,8 +22,13 @@ function inFrame(e: readonly number[], p: readonly number[]): V3 {
   return [((f * j - g * i) * x - (b * j - c * i) * y + (b * g - c * f) * z) / det, (-(d * j - g * h) * x + (a * j - c * h) * y - (a * g - c * d) * z) / det, ((d * i - f * h) * x - (a * i - b * h) * y + (a * f - b * d) * z) / det];
 }
 
-/** The grader's own bound copy of a workspace's character: its body (rest, H0) and the bones its body points ride. */
-export async function bodyOf(workspace: string): Promise<{ core: Bound; bones: BonePoint[] }> {
+/**
+ * The grader's own bound copy of a workspace's character: its body (rest, H0), the bones its body points ride, and its
+ * floor (mm up from y = 0): the lowest sole point at rest, when that is more than 10% of the hip height off y = 0 (a
+ * model authored off the floor: G4's held-out rig stands 1 m below its origin), else 0 (a toe's tip a few cm under it
+ * at rest is the model's own).
+ */
+export async function bodyOf(workspace: string): Promise<{ core: Bound; bones: BonePoint[]; floor: number }> {
   const scene = (await loadGlb(new Uint8Array(readFileSync(join(workspace, "character.glb"))), { textures: false })).scene, core = bind(scene).core, R = core.recognition.bones;
   const bones: BonePoint[] = Object.entries(core.jointPoint).map(([h, point]) => [point, R[h]!] as BonePoint).filter(([, bone]) => bone);
   const on = new Set(bones.map(([p]) => p));
@@ -35,18 +40,19 @@ export async function bodyOf(workspace: string): Promise<{ core: Bound; bones: B
     const e = scene.getObjectByName(R[place.bone]!)?.matrixWorld.elements;
     if (e) bones.push([point, R[place.bone]!, inFrame(e, solver.toSkeleton(core, core.restPts, format.IDX[point]! * 3))]);
   }
-  return { core, bones };
+  const rest = jointsOf(scene as never, bones), low = Math.min(...["ankle", "ball", "toe"].flatMap((p) => ["L", "R"].map((s) => rest[p + s]?.[2] ?? Infinity)));
+  return { core, bones, floor: Math.abs(low) > 0.1 * core.rest.H0 ? low : 0 };
 }
 /** The body points of a character's scene as it stands (call updateMatrixWorld first), mm, forward (+Z), right (−X),
- *  up. */
-export function jointsOf(scene: Node, bones: readonly BonePoint[]): Record<string, V3> {
+ *  up from `floor` (bodyOf's). */
+export function jointsOf(scene: Node, bones: readonly BonePoint[], floor = 0): Record<string, V3> {
   const out: Record<string, V3> = {};
   for (const [point, bone, l] of bones) {
     const e = scene.getObjectByName(bone)?.matrixWorld.elements;
     if (!e) out[point] = [Number.NaN, Number.NaN, Number.NaN];
     else {
       const [x, y, z] = l ?? [0, 0, 0], at = [0, 1, 2].map((r) => e[r]! * x + e[4 + r]! * y + e[8 + r]! * z + e[12 + r]!);
-      out[point] = [at[2]! * 1000, -at[0]! * 1000, at[1]! * 1000];
+      out[point] = [at[2]! * 1000, -at[0]! * 1000, at[1]! * 1000 - floor];
     }
   }
   return out;

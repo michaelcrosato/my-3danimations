@@ -130,7 +130,8 @@ Animator runs it inside its fixed step, the same in Node and in a browser.
   `[x, y]`; its clips kept in step) or `pass` (on a layer only: what is below shows). It may have `speed`, `rate` (a
   number parameter multiplying the speed) and `at` (the clip time it starts at).
 - **A transition** goes `from` a state (a list, or `"*"`) `to` another when all of `when` hold: a number compared
-  (`== != < <= > >=`), a bool alone (true) or a trigger alone (pressed; used up when taken). `exit`: only once the
+  (`== != < <= > >=`), a bool alone (true) or compared (`{ "param": "grounded", "op": "==", "value": false }`), or a
+  trigger alone (pressed; used up when taken). `exit`: only once the
   state has played that share (1: a one-shot's end). `window`: `[from, to]` s of the state's time (a cancel window).
   `fade`: seconds (0.2; 0 cuts). `sync`: start at the phase of the state left. `interruptible`: may be left mid-fade.
   The first that holds is taken.
@@ -250,8 +251,8 @@ writeFileSync("torch_walk.json", serialize(clip));                   // the clip
 - **Faster or slower:** `retime` with `speed` (1.5 is half again as fast) or `dur`; events and facts move with it.
 - **The other side:** `mirror` (left and right swapped: the other hand or foot leads).
 - **More anticipation:** before the key moment, move the body the other way with a `pose` from 0 to just before it,
-  faded in and out (an overhand throw: `{ "chest": { "turn": -20, "lean": -8 } }` winds the throwing side back), and
-  check that the moving part draws back before it goes out.
+  faded in and out (a right-handed overhand throw: `{ "chest": { "turn": 20, "lean": -8 } }` winds the throwing side
+  back), and check that the moving part draws back before it goes out.
 - **Bigger or softer:** `exaggerate` (1.25: a quarter more), `stiffen`, `smooth`.
 - **What changed:** `measureFacts(clip, rest)` gives `strike` (when the fastest fist or foot moves fastest), `speed`,
   `travel` and `height`; compare an edit's with its source's.
@@ -283,7 +284,7 @@ const cut = actions.interruptAt(c, t);     // the next cut from t: { t, to, why 
 actions.interruptInto(c, cut!, "PROCEDURAL/Walk").clip;  // the action to the cut, faded into the walk on the ledge
 ```
 
-Two characters timed together (a jab and the flinch it lands on): a paired action, `{ "sync": "hit", "roles": {
+Two characters timed together (a jab and the flinch it lands on): a paired action, `{ "sync": "hit", "desc": "…", "roles": {
 "attacker": { "steps": […] }, "victim": { "steps": […], "place": [105, 0, 180] } } }`, each role's steps carrying the
 `sync` event (an `events` step adds it); `actions.compilePaired(p, resolve)`, and `actions.pairAt(c, t)` gives each
 role's clip time and root.

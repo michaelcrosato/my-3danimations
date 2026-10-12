@@ -4,6 +4,30 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.42.4 · 2026-10-12
+
+### Core
+- A one-shot that ends off its feet spends its root motion's speed over the time a body falls its hip height: a
+  knockback's take-off speed was held to its end, flinging the body 7 to 9 hip heights (D77).
+- Gaits (D71, the verifier's round 5): every gait swings 0.25 s or more (a stance of 0.5 near the cap, and bounce 6, on
+  shorter swings popped knees on half the rests or more), and is made at 50 to 120 frames a second.
+
+### Tools
+- The manual: a right-handed throw's wind-up turns +20; a bool may be compared; a paired action has its `desc` (D77).
+
+### Repo
+- B2's strike is found by the starter's `strike.ts`, for the grader and the check alike: the punch's last peak, not a
+  fade into a stance; damage passes from two frames before it to the hand's farthest reach; each punch goes back to
+  idling (D77).
+- B3: a knockdown carries the body no more than 3.5 hip heights; the walk is checked again at the end, a standing foot
+  staying; the light hit's bars in hip heights; a foot's dip in the cross-fade into the fall allowed (D77).
+- B4 judges a standing foot by the lower foot's speed, not the sensors' contacts (`Walk_Stealth` fails); B7 judges the
+  run after landing from 8.1 s, and its brief gives every window (D77).
+- B2, B3, B4 and B7's starters load their character as the graders do (meshopt read, textures left out); the graders
+  read a model far off y = 0 from its own floor (D77).
+- Tests: the verifiers' wrong solutions planted (a fighting jab's press, a punch looped on, a flung knockdown, an idle
+  after getting up, a skating walk, the stealth walk); the gaits' refusals at 0.25 s and 120 frames a second.
+
 ## 0.42.3 · 2026-10-12
 
 ### Spec

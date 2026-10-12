@@ -24,8 +24,10 @@ export const NAMES = ["idle", "walk", "run", "jump", "land"], EXPECTED = ["idle"
 const ORDERS = [EXPECTED, [...EXPECTED, "land", "idle"]];
 /** The motion asked before each change of speed (s), and at the end. */
 const BEFORE: [number, string][] = [[1.3, "idle"], [3.3, "walk"], [5.3, "run"], [8.3, "run"], [9.8, "walk"], [13.8, "idle"]];
-/** Each motion's travel (hip heights a second) where the speed asked holds: [motion, from s, to s, least, most]. */
-const PACES: [string, number, number, number, number][] = [["idle", 0.5, 1.3, 0, 0.3], ["walk", 2.5, 3.3, 0.6, 2], ["run", 4.5, 5.3, 2, Infinity], ["run", 7.5, 8.3, 2, Infinity], ["walk", 9, 9.8, 0.6, 2], ["idle", 13, 13.8, 0, 0.3]];
+/** Each motion's travel (hip heights a second) where the speed asked holds: [motion, from s, to s, least, most]. The run
+ *  after landing is judged from 8.1 s, as a landing may play to its end first (the speed eases off from 8.5 s, but the
+ *  run plays on till it is under 2.2, and travels as the run does). */
+export const PACES: [string, number, number, number, number][] = [["idle", 0.5, 1.3, 0, 0.3], ["walk", 2.5, 3.3, 0.6, 2], ["run", 4.5, 5.3, 2, Infinity], ["run", 8.1, 8.6, 2, Infinity], ["walk", 9, 9.8, 0.6, 2], ["idle", 13, 13.8, 0, 0.3]];
 
 /** The library's clips by id, each playable on its own rest. */
 export function libraryClips(): (id: string) => AnimClip | undefined {
