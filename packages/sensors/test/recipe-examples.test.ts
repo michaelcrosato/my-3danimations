@@ -57,9 +57,19 @@ describe("the example recipes", () => {
     for (const r of [...examples.map((e) => e.recipe), long, ...wordy]) {
       const text = R.describeRecipe(r), real = Math.max(encode(text).length, cl100k(text).length);
       expect(real, text).toBeLessThanOrEqual(100);
-      // the count describe keeps to is never under what the tokenizers count
+      // the count describe keeps to is never under what the tokenizers count, nor far over (1.2 to 1.7 times on these)
       expect(R.tokenCount(text), text).toBeGreaterThanOrEqual(real);
+      expect(R.tokenCount(text), text).toBeLessThanOrEqual(real * 1.8 + 2);
     }
     expect(R.describeRecipe(wordy[0]!)).toMatch(/ …; … 1 more step$/);
+    // and on every library id, three to a line as describe writes them with a number or two
+    const ids = resolve.ids!();
+    for (let i = 0; i < ids.length; i += 3) {
+      const text = `RECIPES/Ids_${i}: ${ids.slice(i, i + 3).join("; ")}; a 25% toward b; chest lean +12 0.5–1.25 s`;
+      expect(R.tokenCount(text), text).toBeGreaterThanOrEqual(Math.max(encode(text).length, cl100k(text).length));
+    }
+    // a recipe not yet checked is described too, a step it can't read named by its op
+    const unchecked = { format: "2.0", id: "RECIPES/Draft", steps: [{ op: "sequence" }, { op: "pin", in: "s1" }, null, { op: "contacts", in: "s1", add: null }] } as unknown as R.Recipe;
+    expect(R.describeRecipe(unchecked)).toBe("RECIPES/Draft: sequence (incomplete); pin (incomplete); (not a step); contacts (incomplete)");
   });
 });

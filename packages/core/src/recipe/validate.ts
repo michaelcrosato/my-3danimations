@@ -109,7 +109,7 @@ function poseParts(s: Step, at: number, out: RecipeIssue[]): void {
       continue;
     }
     if (f === "yaw") {
-      if (!isNum(v)) out.push({ code: "R-E004", step: at, field: f, message: "yaw is a number of degrees", fix: '"yaw": 30 (degrees, + to the left)' });
+      if (!isNum(v)) out.push({ code: "R-E004", step: at, field: f, message: "yaw is a number of degrees", fix: '"yaw": 30 (degrees, + toward the right)' });
       continue;
     }
     if (!v || typeof v !== "object" || Array.isArray(v)) {

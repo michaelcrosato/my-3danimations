@@ -1,6 +1,7 @@
 // A recipe in a line (PLAN.md WP-6.1): what it makes and each step in a few words, within 100 tokens as tokenCount
 // counts them (no fewer than cl100k or o200k); past that, the steps left out are counted. It reads the recipe alone,
-// so it explains one before it compiles.
+// so it explains one before it compiles, even one that doesn't check yet (a step missing a field it needs is named by
+// its op).
 import type { Recipe, Step } from "./types.ts";
 
 /** Most tokens the text may have. */
@@ -59,9 +60,19 @@ function stepText(s: Step): string {
   return s.op;
 }
 
+/** A step in a few words, or, where a field it needs is missing (a recipe not yet checked), its op and that. */
+function readable(s: unknown): string {
+  if (!s || typeof s !== "object") return "(not a step)";
+  try {
+    return stepText(s as Step);
+  } catch {
+    return `${String((s as Step).op)} (incomplete)`;
+  }
+}
+
 /** The recipe in at most 100 tokens: its id, then its steps; the later ones counted when they don't fit. */
 export function describeRecipe(r: Recipe): string {
-  const head = `${r.id}: `, parts = r.steps.map(stepText), more = (n: number) => (n ? `; … ${n} more step${n === 1 ? "" : "s"}` : "");
+  const head = `${r.id}: `, parts = (Array.isArray(r.steps) ? r.steps : []).map(readable), more = (n: number) => (n ? `; … ${n} more step${n === 1 ? "" : "s"}` : "");
   let k = parts.length, body = head + parts.join("; ");
   while (tokenCount(body + more(parts.length - k)) > BUDGET && k > 1) body = head + parts.slice(0, --k).join("; ");
   // a first step too long for the line (a long id) is cut at a word (a long word a few letters at a time), still counted

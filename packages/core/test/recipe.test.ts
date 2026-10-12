@@ -6,15 +6,16 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { Ajv2020 } from "ajv/dist/2020.js";
 import { describe, expect, it } from "vitest";
-import { parseClip, recipe as R, serialize, validate, type Clip, type Rest } from "../src/index.ts";
+import { parseClip, procedural as PR, recipe as R, serialize, validate, type Clip, type Rest } from "../src/index.ts";
 import { P, POINTS } from "../src/format/body.ts";
 import { decodePose } from "../src/format/pose.ts";
 import { mirrorPose, type Pose } from "../src/ops/pose.ts";
-import { look, pin, reachTo, REACH } from "../src/recipe/ik.ts";
+import { look, pin, reachTo } from "../src/recipe/ik.ts";
 import { addContacts, addEvents, blendTracks, build, layer, mirror, poseDeltas, retime, sequence, steady, turnPose } from "../src/recipe/steps.ts";
 import { exaggerate, overshoot, smooth, stiffen } from "../src/recipe/style.ts";
 import { ease } from "../src/math/helpers.ts";
-import { compose, invert, poseAt, rootAt, trackOfClip } from "../src/recipe/track.ts";
+import { compose, invert, playable, poseAt, rootAt, trackOfClip } from "../src/recipe/track.ts";
+import { phaseMap } from "../src/ops/sync.ts";
 import type { Root, Track } from "../src/recipe/types.ts";
 
 const LIB = join(import.meta.dirname, "../../../library/sets"), ROOT = join(import.meta.dirname, "../../..");
@@ -114,6 +115,11 @@ describe("a recipe's check", () => {
     expect(() => R.compile(recipe([jab, { op: "contacts", in: "j", add: { handR: [[0.9, 1.2]] } }]), resolve)).toThrow(/R-E009 step 2 add/);
     expect(R.compile(recipe([walk, { op: "contacts", in: "w", add: { handR: [[1.2, 1.5]] } }]), resolve).clip.contacts!.handR).toEqual([[1.2, 1.5]]);
     expect(() => R.compile(recipe([walk, { op: "contacts", in: "w", add: { handR: [[1.2, 2.6]] } }]), resolve)).toThrow(/R-E009 step 2 add/);
+    expect(() => R.compile(recipe([walk, { op: "contacts", in: "w", add: { handR: [[2.0, 2.1]] } }]), resolve)).toThrow(/R-E009 step 2 add/);
+    // a slice keeps at least a millisecond
+    const jd = load("MESH2MOTION/Punch_Jab").clip.dur;
+    expect(() => R.compile(recipe([{ op: "clip", id: "MESH2MOTION/Punch_Jab", from: jd - 0.0005 }]), resolve)).toThrow(/R-E009 step 1 from/);
+    expect(R.compile(recipe([{ op: "clip", id: "MESH2MOTION/Punch_Jab", from: jd - 0.1 }]), resolve).clip.dur).toBeCloseTo(0.1, 3);
   });
   it("agrees with spec/schemas/recipe.schema.json on the operations and their fields", () => {
     const schema = JSON.parse(readFileSync(join(ROOT, "spec/schemas/recipe.schema.json"), "utf8")) as { properties: { steps: { items: { oneOf: { properties: Record<string, { const?: string }> }[] } } } };
@@ -295,11 +301,22 @@ describe("the operations", () => {
       expect([time, got.forward, got.right, got.yaw]).toEqual([time, expect.closeTo(want.forward, 6), expect.closeTo(want.right, 6), expect.closeTo(want.yaw, 6)]);
     }
     expect(rootAt(tw, cw.dur * 2).right).toBeGreaterThan(rootAt(cw, cw.dur * 2).forward * 0.95);
+    // a clip that travels sideways and forward turns its whole path; two yaws stacked turn as their sum does
+    const crab: Track = { ...cw, roots: cw.roots.map((r) => ({ forward: r.forward * 0.4, right: r.forward, yaw: 0 })), cycle: { forward: cw.cycle!.forward * 0.4, right: cw.cycle!.forward, yaw: 0 } };
+    const crabbed = poseDeltas(crab, { yaw: 30 }, 0, crab.dur, 0), stacked = poseDeltas(poseDeltas(cw, { yaw: 30 }, 0, cw.dur, 0), { yaw: 60 }, 0, cw.dur, 0);
+    for (const time of [0.7, cw.dur - 0.004, cw.dur * 2.5]) {
+      const want = compose({ forward: 0, right: 0, yaw: 30 }, rootAt(crab, time)), got = rootAt(crabbed, time), s90 = rootAt(stacked, time), t90 = rootAt(tw, time);
+      expect([got.forward, got.right]).toEqual([expect.closeTo(want.forward, 6), expect.closeTo(want.right, 6)]);
+      expect([s90.forward, s90.right, s90.yaw]).toEqual([expect.closeTo(t90.forward, 6), expect.closeTo(t90.right, 6), expect.closeTo(t90.yaw, 6)]);
+    }
     expect(rootJump(tw)).toBeLessThan(rootJump(cw) + 1e-6);
     // turned for part of its length, it travels the way it faces then, and its root never jumps
     const part2 = poseDeltas(cw, { yaw: 90 }, 0.5, 1.2, 0.2), mid = sub2(rootAt(part2, 1.0), rootAt(part2, 0.9));
     expect(Math.abs(mid.right)).toBeGreaterThan(Math.abs(mid.forward) * 3);
     expect(rootJump(part2)).toBeLessThan(rootJump(cw) * 1.2);
+    // each frame's step is taken at the turn halfway through it: at 30 fps the path is a 240 fps one's to a millimetre
+    const fine = poseDeltas(trackOfClip(load("MESH2MOTION/Crawl_RM").clip, load("MESH2MOTION/Crawl_RM").rest, 240), { yaw: 90 }, 0.5, 1.2, 0.2);
+    for (const time of [0.8, 1.3]) expect([time, Math.hypot(sub2(rootAt(part2, time), rootAt(fine, time)).forward, sub2(rootAt(part2, time), rootAt(fine, time)).right) < 0.5]).toEqual([time, true]);
     // and its next cycle starts where the turned travel got to: no jump at the seam, a cycle on or a cycle back
     const gap = (at: number) => { const d = sub2(rootAt(part2, at + 0.005), rootAt(part2, at - 0.005)); return Math.hypot(d.forward, d.right); };
     for (const seam of [cw.dur, cw.dur * 2, 0]) expect([seam, gap(seam) < 2]).toEqual([seam, true]);
@@ -344,6 +361,49 @@ describe("the operations", () => {
     expect(layer(a, jab, { armR: 1 }, 1, false).contacts!.footL).toEqual(parts);
     expect(blendTracks(a, b, 0.5, false).contacts!.footL).toEqual(parts);
     expect(blendTracks(a, b, [[0, 0], [a.dur, 1]], true).contacts!.footR!.length).toBe(2);
+    // a curve over two loops in step reads each moment's weight: all b at the middle of a hill, all a at its ends
+    const hill = blendTracks(a, b, [[0, 0], [a.dur / 2, 1], [a.dur, 0]], true), ma = phaseMap(playable(a), a.contacts), mb = phaseMap(playable(b), b.contacts);
+    for (const i of [0, Math.round(hill.times.length / 4), Math.round(hill.times.length / 2)]) {
+      const p = hill.times[i]! / hill.dur, k = 1 - Math.abs(2 * p - 1), ha = part(poseAt(a, ma.time(p)), "head", 1), hb = part(poseAt(b, mb.time(p)), "head", 1);
+      expect([i, part(hill.poses[i]!, "head", 1)]).toEqual([i, expect.closeTo(ha + (hb - ha) * k, 1)]);
+    }
+  });
+  it("blend of travelling loops: the root carries on through each one's seam and the blend's own, however they face", () => {
+    // a crawl turned 90° blended with the plain one goes at 45°, and its next cycle starts where its last frame leads
+    const cw = track("MESH2MOTION/Crawl_RM"), mixed = blendTracks(poseDeltas(cw, { yaw: 90 }, 0, cw.dur, 0), cw, 0.5, true);
+    const last = mixed.roots.at(-1)!, next = rootAt(mixed, mixed.dur), step = Math.hypot(next.forward - last.forward, next.right - last.right);
+    expect([next.yaw, step < rootJump(cw) * 1.5]).toEqual([45, true]);
+    const two = rootAt(mixed, mixed.dur * 2);
+    expect(two.right).toBeCloseTo(two.forward, 6);
+    // two gaits (loops that travel and step) blended in step: no frame's root jumps back a cycle as one of them wraps
+    const idle = load("MESH2MOTION/Idle_A"), gait = (g: PR.Gait) => trackOfClip(PR.gaitClip(g, idle.rest, { restSrc: idle.clip.restSrc }), idle.rest, 30);
+    const walk = gait(PR.GAITS[0]!), brisk = gait(PR.GAITS[1]!), both = blendTracks(walk, brisk, 0.5, true), dt = 1 / 120;
+    let worst = 0;
+    for (let time = 0; time < both.dur * 2; time += dt) worst = Math.max(worst, rootAt(both, time + dt).forward - rootAt(both, time).forward, rootAt(both, time).forward - rootAt(both, time + dt).forward);
+    expect(worst).toBeLessThan((PR.GAITS[1]!.speed * dt) * 1.2);
+    expect(both.cycle!.forward).toBeCloseTo(((PR.GAITS[0]!.speed * PR.GAITS[0]!.cycle + PR.GAITS[1]!.speed * PR.GAITS[1]!.cycle) / 2), 0);
+  });
+  it("older paths: look's weight, smooth and overshoot round a loop's seam, stiffen's mask, a sequence's fade, layer's weight", () => {
+    const idle = track("MESH2MOTION/Idle_A"), walk = track("STYLE100/Neutral_Walk"), jab = track("MESH2MOTION/Punch_Jab");
+    const turnOf = (t: Track) => part(poseAt(t, 1), "head", 0) - part(poseAt(idle, 1), "head", 0);
+    expect(turnOf(look(idle, [1000, -1000, 1500], 0.5, 1.5, 0.2, 0.5))).toBeCloseTo(turnOf(look(idle, [1000, -1000, 1500], 0.5, 1.5, 0.2, 1)) / 2, 0);
+    // a loop smoothed or rung has no seam: started 10 frames later, it is the same, 10 frames on
+    const n = walk.times.length, later = build(walk, walk.dur, true, (time) => ({ pose: poseAt(walk, (time + 10 / 30) % walk.dur), root: rootAt(walk, 0) }));
+    for (const [name, f] of [["smooth", (t: Track) => smooth(t, 0.4)], ["overshoot", (t: Track) => overshoot(t, 0.8)]] as const) {
+      const a = f(walk), b = f(later), gap = Math.max(...b.poses.map((p, i) => Math.abs(part(p, "armR", 0) - part(a.poses[(i + 10) % n]!, "armR", 0))));
+      expect([name, gap < 0.5]).toEqual([name, true]);
+    }
+    // stiffen moves the upper body only, unless told otherwise; a sequence fades over 0.2 s unless told, and never over
+    // more than half of an item
+    const stiff = R.compile(recipe([{ as: "w", op: "clip", id: "STYLE100/Neutral_Walk" }, { op: "stiffen", in: "w", amount: 1 }]), resolve).track;
+    expect(stiff.poses.every((p, i) => near({ legL: p.legL!, legR: p.legR! }, { legL: walk.poses[i]!.legL!, legR: walk.poses[i]!.legR! }))).toBe(true);
+    const seq = (extra: object) => R.compile(recipe([{ as: "a", op: "clip", id: "MESH2MOTION/Punch_Jab" }, { as: "b", op: "clip", id: "MESH2MOTION/Punch_Cross" }, { op: "sequence", items: ["a", "b"], ...extra }]), resolve).clip.dur;
+    expect(seq({})).toBeCloseTo(jab.dur + track("MESH2MOTION/Punch_Cross").dur - 0.2, 2);
+    expect(sequence([jab, track("MESH2MOTION/Punch_Cross", { to: 0.4 })], 3, false).dur).toBeCloseTo(jab.dur + 0.4 - 0.2, 2);
+    // times are never negative; a plain layer's weight goes no further than the over
+    expect(codes(recipe([{ op: "clip", id: "MESH2MOTION/Idle_A", from: -1 }]))).toEqual(["R-E004"]);
+    expect(codes(recipe([{ as: "i", op: "clip", id: "MESH2MOTION/Idle_A" }, { as: "j", op: "clip", id: "MESH2MOTION/Punch_Jab" }, { op: "layer", base: "i", over: "j", additive: true, weight: 2 }]))).toEqual([]);
+    expect(layer(idle, jab, { armR: 1 }, 2, false).poses.every((p, i) => near({ armR: p.armR! }, { armR: layer(idle, jab, { armR: 1 }, 1, false).poses[i]!.armR! }))).toBe(true);
   });
   it("pin: a straight limb bends the way it bends, and its joint's side turns with a big swing", () => {
     const idle = track("MESH2MOTION/Idle_A");
@@ -369,8 +429,21 @@ describe("the operations", () => {
     // a hand pinned out of reach stops short of a straight arm (whose elbow and twist have nothing to go by)
     const far = pin(idle, "handR", [[0.5, 900, 300, 1400], [1.5, 900, 300, 1400]], 0.2), d = (p: number[], q: number[]) => Math.hypot(p[0]! - q[0]!, p[1]! - q[1]!, p[2]! - q[2]!);
     const S = point(far, 1, "shR"), E = point(far, 1, "elbowR"), F = point(far, 1, "fistR");
-    expect(d(S, F) / (d(S, E) + d(E, F))).toBeLessThan(REACH + 0.002);
-    expect(d(S, F) / (d(S, E) + d(E, F))).toBeGreaterThan(REACH - 0.02);
+    expect(d(S, F) / (d(S, E) + d(E, F))).toBeLessThan(0.987);
+    expect(d(S, F) / (d(S, E) + d(E, F))).toBeGreaterThan(0.965);
+    // a leg too, a little closer to straight (a standing leg nearly is), its knee forward
+    const deep = pin(idle, "footL", [[0.5, 0, -100, -300], [1.5, 0, -100, -300]], 0.2), H = point(deep, 1, "hipL"), K = point(deep, 1, "kneeL"), A = point(deep, 1, "ankleL");
+    expect(d(H, A) / (d(H, K) + d(K, A))).toBeLessThan(0.9985);
+    expect(d(H, A) / (d(H, K) + d(K, A))).toBeGreaterThan(0.995);
+    // a knee bent its own way (out to the side, 5 cm off the line) keeps that way when the foot is held where it is:
+    // the knee's natural bend steers only a limb near straight
+    decodePose(idle.rest, poseAt(idle, 1), X);
+    const out = h.map((v, i) => v + (line[i]! / ll) * thigh + (i === 1 ? 50 : 0));
+    X.set(out, at("kneeL"));
+    const foot = get("ankleL");
+    reachTo(X, "footL", foot);
+    const k2 = get("kneeL"), off = k2.map((v, i) => v - out[i]!);
+    expect(Math.hypot(...off)).toBeLessThan(1);
   });
 });
 

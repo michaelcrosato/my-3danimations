@@ -4,6 +4,17 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.37.1 · 2026-10-12
+
+### Core
+- Recipes, after WP-6.1's third verifier (D70): a blend of two travelling loops takes its cycle from its own roots
+  (two facing apart jumped at the seam), and in step reads each loop on past its seam; `describeRecipe` reads a recipe
+  not yet checked; the yaw's fix hint says + toward the right. 36 of the verifier's 41 mutants fail the tests; five
+  pass for reasons D70 gives.
+
+### Spec
+- `spec/RECIPE.md`: the yaw's sign, and that a yaw held from a clip's start shows only in clip space.
+
 ## 0.37.0 · 2026-10-12
 
 ### Core

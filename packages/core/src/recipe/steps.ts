@@ -179,6 +179,14 @@ export function sequence(items: readonly Track[], fade: number, sync: boolean): 
   return build(items[0]!, dur, false, at, { events, contacts, sources: sourcesOf(...items) });
 }
 
+/** A loop's time t read on from `from`: a time before it is one a cycle on. */
+const unwrapAfter = (t: number, from: number, dur: number) => (t < from - 1e-9 ? t + dur : t);
+/** A blend's cycle: where its roots go over one, from the blended start to the blended start of the next. Lerping the
+ *  two loops' cycles instead reads each in its own frame, which jumps at the seam when the two start facing apart. */
+function blendedCycle(a: Track, b: Track, a0: number, b0: number, a1: number, b1: number, k: number): Root {
+  return compose(invert(lerpRoot(rootAt(a, a0), rootAt(b, b0), k)), lerpRoot(rootAt(a, a1), rootAt(b, b1), k));
+}
+
 /** A weight that is a number or a curve [[t, w], …] read at a time (linear between its points, held past its ends). */
 export function weightAt(w: number | [number, number][], time: number): number {
   if (typeof w === "number") return w;
@@ -200,20 +208,23 @@ export function blendTracks(a: Track, b: Track, w: number | [number, number][], 
   const closes = Math.abs(weightAt(w, 0) - weightAt(w, a.dur)) < 1e-6;
   if (warp && a.loop && b.loop) {
     const ma = phaseMap(playable(a), a.contacts), mb = phaseMap(playable(b), b.contacts), s = syncBlend(playable(a), ma, playable(b), mb, mean, { rest: a.rest });
-    const cycle = lerpRoot(cycleOf(a), cycleOf(b), mean), loop = closes;
+    // each loop's own time from where the blend's cycle starts in it, carried on past its seam (not wrapped), so a
+    // travelling loop's root goes on rather than jumping back a cycle mid-blend
+    const ua = (p: number) => unwrapAfter(ma.time(p), ma.time(0), a.dur), ub = (p: number) => unwrapAfter(mb.time(p), mb.time(0), b.dur);
+    const rootOf = (p: number) => lerpRoot(rootAt(a, ua(p) + (p >= 1 ? a.dur : 0)), rootAt(b, ub(p) + (p >= 1 ? b.dur : 0)), mean), loop = closes;
     return build(a, s.dur, loop, (time) => {
       // the pelvis, legs and feet blended as points (a foot both plant stays down, and a foot's heading, which a foot
       // pointing down leaves loose, comes out as its points show it), the rest as numbers held steady
       const p = time / s.dur, pa = poseAt(a, ma.time(p)), pb = poseAt(b, mb.time(p)), k = kAt(time, s.dur);
-      return { pose: pointLegs(pa, pb, k, a.rest, mix(pa, pb, k), LEGS_AND_FEET), root: lerpRoot(rootAt(a, ma.time(p)), rootAt(b, mb.time(p)), mean) };
-    }, { ...(loop ? { cycle } : {}), contacts: loop ? s.contacts : shiftContacts(s.contacts, (x) => x, ms(s.dur), false, ms(s.dur), true), events: a.events.map((e) => ({ ...e, t: ms((ma.phase(e.t) * s.dur)) })), sources });
+      return { pose: pointLegs(pa, pb, k, a.rest, mix(pa, pb, k), LEGS_AND_FEET), root: rootOf(p) };
+    }, { ...(loop ? { cycle: compose(invert(rootOf(0)), rootOf(1)) } : {}), contacts: loop ? s.contacts : shiftContacts(s.contacts, (x) => x, ms(s.dur), false, ms(s.dur), true), events: a.events.map((e) => ({ ...e, t: ms((ma.phase(e.t) * s.dur)) })), sources });
   }
   const dur = warp ? a.dur + (b.dur - a.dur) * mean : a.dur, loop = a.loop && b.loop && closes && (warp || Math.abs(a.dur - b.dur) < 1e-3);
   const ta = (time: number) => (warp ? (time / dur) * a.dur : time), tb = (time: number) => (warp ? (time / dur) * b.dur : time);
   return build(a, dur, loop, (time) => {
     const k = kAt(time, dur);
     return { pose: mix(poseAt(a, ta(time)), poseAt(b, tb(time)), k), root: lerpRoot(rootAt(a, ta(time)), rootAt(b, tb(time)), k) };
-  }, { events: a.events.map((e) => ({ ...e, t: ms(warp ? (e.t / a.dur) * dur : e.t) })).filter((e) => e.t <= dur), ...(a.contacts ? { contacts: shiftContacts(a.contacts, (x) => (warp ? (x / a.dur) * dur : x), dur, loop, a.dur, a.loop)! } : {}), ...(loop ? { cycle: lerpRoot(cycleOf(a), cycleOf(b), mean) } : {}), sources });
+  }, { events: a.events.map((e) => ({ ...e, t: ms(warp ? (e.t / a.dur) * dur : e.t) })).filter((e) => e.t <= dur), ...(a.contacts ? { contacts: shiftContacts(a.contacts, (x) => (warp ? (x / a.dur) * dur : x), dur, loop, a.dur, a.loop)! } : {}), ...(loop ? { cycle: blendedCycle(a, b, ta(0), tb(0), ta(dur), tb(dur), kAt(0, dur)) } : {}), sources });
 }
 
 /**

@@ -2056,8 +2056,29 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
     hit moves to 1.3 s, where the cross lands (at 1.0 the fist was at guard); two descriptions say the upper body,
     which the `upper` mask moves, not "arms and chest".
   - **Tests:** the 15 surviving mutants and 26 more of the new code, 66 in all, each fail `npm test -- recipe`.
+- **Verifier, round 3** (at 8076745): done, nothing blocking. Its round-2 repros, a fuzz of 1,500 recipes and 3,000
+  descriptions over library ids all hold. Three should-fix findings and four notes, fixed or answered in v0.37.1:
+  - **Two travelling loops facing apart blended with a seam jump:** the cycle was lerped in each loop's own frame
+    while the frames' roots were lerped as they are, so a crawl turned 90° blended with the plain one ended its frames
+    at (71, 71) and started its next cycle at (100, 100). The cycle is now the blend's own, from its first root to where
+    the next cycle starts. In step, each loop's time is read on past its seam from where the blend starts in it, so a
+    loop that travels and steps (a procedural gait, D71) never jumps back a cycle mid-blend.
+  - **Tests:** of the verifier's 41 new mutants, 21 passed; 36 now fail, among them REACH, LEG_REACH, the bend hint's
+    reach, the turn taken halfway through a frame, stacked yaws and sideways travel. Five pass for a reason:
+    - The 1 ms slice check is equivalent to `<= 0`, since the length is rounded to the millisecond first.
+    - The four `tokenCount` mutants each loosen one coefficient. The count's job is an upper bound for ids not yet
+      written, so its coefficients carry a margin: a test holds it at or over o200k and cl100k on every library id, the
+      examples and made-up words, and at most 1.8 times over on the examples.
+  - **The yaw's fix hint said "+ to the left";** the format's yaw is + toward the right (`MOTION.md` §5.3). The hint
+    and `RECIPE.md`'s `pose` row now say so.
+  - **Notes:**
+    - A yaw held from a clip's start shows only in clip space, since a host reads root motion from the first key;
+      `RECIPE.md` now says so, and says to turn part of a clip or an item of a sequence instead.
+    - `describeRecipe` threw on a recipe not yet checked; it now names a step it can't read by its op.
+    - An id of random letters can still count more tokens than `tokenCount` says; its doc comment says so.
+    - The ledger counts both test files: 28 tests.
 - **Answered:** no: made without a response, to review.
-- **Landed in:** v0.36.0, v0.36.1, v0.36.2
+- **Landed in:** v0.36.0, v0.36.1, v0.36.2, v0.37.1
 
 ## D71 · 2026-10-12 · Procedural sources: one move model, gaits and idles (WP-6.2)
 
