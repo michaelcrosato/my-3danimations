@@ -1,0 +1,24 @@
+{
+"format": "2.0",
+"id": "STYLE100_IDLE/LegsApart_Idle",
+"name": "LegsApart_Idle",
+"legend": "2.0",
+"dur": 2.5,
+"loop": true,
+"fps": 30,
+"tags": ["idle","style"],
+"desc": "Standing, legs apart style: legs relatively straight wide apart",
+"skeleton": "humanoid",
+"restSrc": "100STYLE",
+"provenance": {"src":"100STYLE","take":"LegsApart_ID 19.78-22.28","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
+"quality": {"fit":[10,36],"qa":"unchecked","qaVersion":"none"},
+"keys": [
+  {"t":0,
+   "hips":[0,0,96], "body":[0,-11,0], "chest":[1,15,0], "head":[-6,18,-1],
+   "shL":[3,-7], "shR":[2,-6], "armL":[13,8,-99,0,79], "armR":[16,10,-98,0,-42], "handL":[-4,-12,143], "handR":[-8,-12,133], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[-23,33,-91,0,-19], "legR":[-21,33,-92,0,156], "footL":[10,2,0], "footR":[10,11,0]},
+  {"t":2.5,
+   "hips":[0,0,96], "body":[0,-11,0], "chest":[1,15,0], "head":[-6,18,-1],
+   "shL":[3,-7], "shR":[2,-6], "armL":[13,8,-99,0,79], "armR":[16,10,-98,0,-42], "handL":[-4,-12,143], "handR":[-8,-12,133], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[-23,33,-91,0,-19], "legR":[-21,33,-92,0,156], "footL":[10,2,0], "footR":[10,11,0]}
+]}

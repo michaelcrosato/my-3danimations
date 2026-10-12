@@ -4,6 +4,50 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.32.0 · 2026-10-12
+
+### Core
+- Format 2's new degrees of freedom in the fitter (WP-5.3, D63): `encode`/`fit` take `spine` (the spine's curl, a
+  sequential share fit, kept for a clip only if in some key it brings a spine point 5 mm closer; `spineGain`), `yaw`
+  (root yaw from the hip line, held where the torso is far from upright, the line near vertical or the heading jumps;
+  `turning`; kept only if the clip ends facing 20° or more from where it began) and `steadyTwist` (a nearly straight
+  limb's twist held where it would swing 45° or more); a hand's flex is clamped to ±90° and its side to ±45°.
+
+### Sensors
+- The seam fix makes the two segments that meet at a loop's seam equally long, so the curves it spreads the gap along
+  end at the same speed both sides (a sparsely keyed clip with a short last segment read as a hitch).
+
+### IO
+- `importSet` takes the encode options (`hands`, `spine`, `yaw`, `steadyTwist`) and writes a looping clip's `speed`
+  from its stride (the cutter's `Capture.stride`).
+- `readCmu`'s `floorEach` (the cutter's): every take and the rest stood on the ground, each take on its own floor where
+  its feet mostly stand on one level, else on the floor of the subject's takes that do (a subject's takes can stand
+  12 cm apart); off, the origin's one floor a subject, so tier 1b and the ledger don't move.
+
+### Library
+- Nine sets re-imported from their sources (WP-5.3, D63): MESH2MOTION, CMU_CURATED, STYLE100 and its six extras
+  (runs, backward walks and runs, sidesteps and sideways runs each way, idles; 779 clips), each clip the better of
+  its re-import and its migrated version, the reason in the set's `_import.json`; the Mesh2Motion audit closed (CC0).
+  CMU_CURATED gains 84 picks for G5's floors (reactions, gestures and emotes, work, traversal, combat): 144 clips.
+  The library is 1,385 clips. The Quaternius sets stay as migrated until their current editions can be fetched.
+- Removed: STYLE100/HandsBetweenLegs_Walk, SwingArmsRound_Walk and WildLegs_Walk (format 2 can't hold the pose; their
+  migrated fits were past the limits), with their reasons in the catalog's `$skip`. No successor, so no alias.
+- The catalogs of every re-imported set live in `library/catalogs/` (the 100STYLE extras moved there from
+  `tools/corpora/100style/`).
+
+### Tools
+- `npm run import [-- --set NAME] [--check]` (`tools/import/`): fetches each source into `.cache/` held to its pin
+  (`tools/import/sources.json` and the corpora's locks), re-imports, compares each clip with the migrator's output
+  (fit and every metric, separately; the hands from the pelvis) and writes the sets and the library's lock, or
+  rebuilds them in memory and compares byte for byte; a migrated clip kept keeps its rest. `_import.json`'s schema is
+  `tools/import/import.schema.json`. `npm run migrate` leaves the re-imported sets alone.
+- `npm run plant -- --check` checks G3's runs against the library (every run's clip there, clean and able to show its
+  defect) instead of rebuilding them, which a grown library changes.
+- The demo (`apps/lab/hello`) plays its moves' hands only if every move has them (`handsAlike`): its migrated
+  Quaternius moves have none and its re-imported jumps close the fist, which would clench and open within each fade.
+- QA's baseline rewritten for the re-imported library (1,385 clips); the contact test runs the locomotion loops,
+  sidesteps included, in four files (one cycle each for 100STYLE's).
+
 ## 0.31.0 · 2026-10-12
 
 ### Tools

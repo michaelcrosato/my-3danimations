@@ -41,7 +41,7 @@ export interface LibraryIn {
   /** A CMU subject's line ("run"), named in its record when the catalog's `$sources.CMU` stands for every subject. */
   about?: string;
 }
-/** A clip as the importer writes it (format 1, its source and take, the fit's keys). */
+/** A clip as the importer writes it (format 1, its source and take, the fit's keys; a loop that travels, its speed). */
 export interface ImportedClip {
   clip: string;
   src: string;
@@ -49,6 +49,8 @@ export interface ImportedClip {
   orig?: string;
   dur: number;
   loop: boolean;
+  /** How fast a loop cut from a take travelled: percent of standing hip height a second (10 or more; shardfall's). */
+  speed?: number;
   tags?: string[];
   desc?: string;
   keys: unknown[];
@@ -94,9 +96,10 @@ function sourceOf(cat: Catalog, L: LibraryIn): SourceInfo | undefined {
 
 /**
  * Fits libraries into one set as the catalog says. A clip name is taken once (a later library's clip of a taken name is
- * left out); `_`-named clips are a reader's rest pose, not clips. `tol` is the fit's limit in mm (30).
+ * left out); `_`-named clips are a reader's rest pose, not clips. `tol` is the fit's limit in mm (30); `encode` asks
+ * for format 2's hands, spine curl and root yaw (core's `fit`).
  */
-export function importSet(libs: readonly LibraryIn[], cat: Catalog, opts: { name: string; title?: string; credit: string; fps?: number; tol?: number; only?: readonly string[]; blade?: RegExp }): Imported {
+export function importSet(libs: readonly LibraryIn[], cat: Catalog, opts: { name: string; title?: string; credit: string; fps?: number; tol?: number; only?: readonly string[]; blade?: RegExp; encode?: { hands?: boolean; spine?: boolean; yaw?: boolean; steadyTwist?: boolean } }): Imported {
   const fps = opts.fps ?? 30, tol = opts.tol ?? 30, blade = opts.blade ?? /Sword/, warnings: string[] = [], skipped: Imported["report"]["skipped"] = [], fits: Imported["report"]["clips"] = [];
   const named = Object.keys(cat).filter((k) => !k.startsWith("$")).length > 0, only = opts.only ? new Set(opts.only) : null;
   const set: Imported["set"] = { set: opts.name, ...(opts.title ? { title: opts.title } : {}), format: 1, credit: opts.credit, fps, sources: {}, body: null, fit: {}, clips: {} };
@@ -114,7 +117,7 @@ export function importSet(libs: readonly LibraryIn[], cat: Catalog, opts: { name
         skipped.push({ name, why: cat.$skip[name]! });
         continue;
       }
-      const cap = { ...cap0 }, c = entry(cat, name), extra: format.Extra = { blade: blade.test(name) };
+      const cap = { ...cap0 }, c = entry(cat, name), extra: format.Extra = { blade: blade.test(name), ...(opts.encode ?? {}) };
       if (c) {
         const tags = c[0].split(" ").filter(Boolean);
         if (tags.includes("loop")) cap.loop = true;
@@ -123,7 +126,10 @@ export function importSet(libs: readonly LibraryIn[], cat: Catalog, opts: { name
         extra.desc = c[1];
       } else if (named) warnings.push(`no catalog entry for ${name}`);
       const { clip, max, mean } = format.fit(rest, cap, tol, extra);
-      const out: ImportedClip = { clip: clip.clip, src: L.id, ...(cap.take ? { take: cap.take } : {}), ...(c?.[2] ? { orig: c[2] } : {}), dur: clip.dur, loop: clip.loop, ...(clip.tags ? { tags: clip.tags } : {}), ...(clip.desc ? { desc: clip.desc } : {}), keys: clip.keys };
+      // a loop that walks or runs in place keeps how fast it travelled, so a player can match it to the ground; one
+      // that hardly moves has none
+      const speed = cap.loop && cap.stride !== undefined && cap.dur > 0 ? Math.round(((cap.stride / rest.H0) * 100) / cap.dur) : 0;
+      const out: ImportedClip = { clip: clip.clip, src: L.id, ...(cap.take ? { take: cap.take } : {}), ...(c?.[2] ? { orig: c[2] } : {}), dur: clip.dur, loop: clip.loop, ...(speed >= 10 ? { speed } : {}), ...(clip.tags ? { tags: clip.tags } : {}), ...(clip.desc ? { desc: clip.desc } : {}), keys: clip.keys };
       set.clips[name] = out;
       set.fit[name] = [Math.round(mean), Math.round(max)];
       fits.push({ name, src: L.id, mean, max, keys: clip.keys.length });

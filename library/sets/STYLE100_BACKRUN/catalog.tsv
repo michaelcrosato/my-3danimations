@@ -1,0 +1,98 @@
+STYLE100_BACKRUN/Aeroplane_RunBack	0.567	loop	104	run back style	Running backward, aeroplane style	100STYLE
+STYLE100_BACKRUN/Akimbo_RunBack	0.667	loop	129	run back style	Running backward, akimbo style: hands on hips	100STYLE
+STYLE100_BACKRUN/Angry_RunBack	1.433	loop	95	run back style	Running backward, angry style: swing lower arms aggressively - fists closed	100STYLE
+STYLE100_BACKRUN/ArmsAboveHead_RunBack	0.633	loop	129	run back style	Running backward, arms above head style: arms raised straight above head	100STYLE
+STYLE100_BACKRUN/ArmsBehindBack_RunBack	0.733	loop	124	run back style	Running backward, arms behind back style: hands clasped behind back	100STYLE
+STYLE100_BACKRUN/ArmsBySide_RunBack	0.6	loop	155	run back style	Running backward, arms by side style	100STYLE
+STYLE100_BACKRUN/ArmsFolded_RunBack	0.733	loop	144	run back style	Running backward, arms folded style: right arm folded over left	100STYLE
+STYLE100_BACKRUN/Balance_RunBack	0.767	loop	102	run back style	Running backward, balance style: arms out to side for balance - tilting side to side	100STYLE
+STYLE100_BACKRUN/BeatChest_RunBack	0.667	loop	131	run back style	Running backward, beat chest style: beat chest while moving normally	100STYLE
+STYLE100_BACKRUN/BentForward_RunBack	0.567	loop	115	run back style	Running backward, bent forward style: tilt torso forwards	100STYLE
+STYLE100_BACKRUN/BentKnees_RunBack	0.833	loop	116	run back style	Running backward, bent knees style: bend knees as much as possible	100STYLE
+STYLE100_BACKRUN/BigSteps_RunBack	1.733	loop	113	run back style	Running backward, big steps style: as large steps as possible	100STYLE
+STYLE100_BACKRUN/BouncyLeft_RunBack	0.667	loop	130	run back style	Running backward, bouncy left style	100STYLE
+STYLE100_BACKRUN/BouncyRight_RunBack	0.767	loop	131	run back style	Running backward, bouncy right style	100STYLE
+STYLE100_BACKRUN/Cat_RunBack	1	loop	114	run back style	Running backward, cat style: use hands as paws - step opposite hand and foot	100STYLE
+STYLE100_BACKRUN/Chicken_RunBack	0.733	loop	123	run back style	Running backward, chicken style: bob head - arms as wings	100STYLE
+STYLE100_BACKRUN/CrossOver_RunBack	1.067	loop	97	run back style	Running backward, cross over style: step each foot in front of other leg	100STYLE
+STYLE100_BACKRUN/Crouched_RunBack	0.733	loop	103	run back style	Running backward, crouched style: squat slightly and bend back	100STYLE
+STYLE100_BACKRUN/CrowdAvoidance_RunBack	0.633	loop	104	run back style varies	Running backward, crowd avoidance style	100STYLE
+STYLE100_BACKRUN/Depressed_RunBack	0.867	loop	100	run back style	Running backward, depressed style: head bowed arms swinging	100STYLE
+STYLE100_BACKRUN/Dinosaur_RunBack	1	loop	98	run back style	Running backward, dinosaur style: like a t-rex arms close to body dinosaur posture	100STYLE
+STYLE100_BACKRUN/DragLeftLeg_RunBack	0.633	loop	101	run back style	Running backward, drag left leg style: drag left foot along the floor	100STYLE
+STYLE100_BACKRUN/DragRightLeg_RunBack	0.633	loop	104	run back style	Running backward, drag right leg style: drag right foot along the floor	100STYLE
+STYLE100_BACKRUN/Drunk_RunBack	0.5	loop	54	run back style varies	Running backward, drunk style: stumbling around at random	100STYLE
+STYLE100_BACKRUN/DuckFoot_RunBack	0.733	loop	71	run back style	Running backward, duck foot style: toes pointing inwards	100STYLE
+STYLE100_BACKRUN/Elated_RunBack	0.933	loop	189	run back style	Running backward, elated style: swing arms with spring	100STYLE
+STYLE100_BACKRUN/FairySteps_RunBack	0.933	loop	81	run back style	Running backward, fairy steps style	100STYLE
+STYLE100_BACKRUN/Flapping_RunBack	0.5	loop		run back style	Running backward, flapping style: flap arms as wings on tiptoes	100STYLE
+STYLE100_BACKRUN/FlickLegs_RunBack	0.867	loop	83	run back style	Running backward, flick legs style: knees together and flick legs to sides as moving	100STYLE
+STYLE100_BACKRUN/Followed_RunBack	0.633	loop	137	run back style varies	Running backward, followed style: check behind occasionally	100STYLE
+STYLE100_BACKRUN/GracefulArms_RunBack	0.767	loop	118	run back style	Running backward, graceful arms style	100STYLE
+STYLE100_BACKRUN/HandsBetweenLegs_RunBack	0.967	loop	13	run back style	Running backward, hands between legs style	100STYLE
+STYLE100_BACKRUN/HandsInPockets_RunBack	0.7	loop	130	run back style	Running backward, hands in pockets style	100STYLE
+STYLE100_BACKRUN/Heavyset_RunBack	0.967	loop	107	run back style	Running backward, heavyset style: walking as a muscle man tensed biceps	100STYLE
+STYLE100_BACKRUN/HighKnees_RunBack	0.767	loop	68	run back style	Running backward, high knees style: lift knees high but only knees – not marching	100STYLE
+STYLE100_BACKRUN/InTheDark_RunBack	0.667	loop	112	run back style varies	Running backward, in the dark style: feeling around as if in darkness	100STYLE
+STYLE100_BACKRUN/KarateChop_RunBack	1.8	loop	87	run back style	Running backward, karate chop style	100STYLE
+STYLE100_BACKRUN/Kick_RunBack	1	loop	56	run back style	Running backward, kick style: kick with every step	100STYLE
+STYLE100_BACKRUN/LawnMower_RunBack	1.967	loop	83	run back style	Running backward, lawn mower style	100STYLE
+STYLE100_BACKRUN/LeanBack_RunBack	0.7	loop	90	run back style	Running backward, lean back style: bent backwards	100STYLE
+STYLE100_BACKRUN/LeanLeft_RunBack	0.667	loop	124	run back style	Running backward, lean left style: normal motion upperbody tilted right	100STYLE
+STYLE100_BACKRUN/LeanRight_RunBack	0.6	loop	97	run back style	Running backward, lean right style: normal motion upperbody tilted left	100STYLE
+STYLE100_BACKRUN/LeftHop_RunBack	1	loop	110	run back style	Running backward, left hop style: hop on left foot	100STYLE
+STYLE100_BACKRUN/LegsApart_RunBack	0.733	loop	93	run back style	Running backward, legs apart style: legs relatively straight wide apart	100STYLE
+STYLE100_BACKRUN/LimpLeft_RunBack	0.8	loop	96	run back style	Running backward, limp left style: keep left leg straight and limp	100STYLE
+STYLE100_BACKRUN/LimpRight_RunBack	0.9	loop	73	run back style	Running backward, limp right style: keep right leg straight and limp	100STYLE
+STYLE100_BACKRUN/LookUp_RunBack	0.7	loop	119	run back style	Running backward, look up style: tilt head to look at ceiling	100STYLE
+STYLE100_BACKRUN/Lunge_RunBack	1.133	loop	161	run back style	Running backward, lunge style: wide step bend knee every step in lunge position	100STYLE
+STYLE100_BACKRUN/March_RunBack	0.667	loop	106	run back style	Running backward, march style: high knees swing arms at elbows	100STYLE
+STYLE100_BACKRUN/Monk_RunBack	0.8	loop	89	run back style	Running backward, monk style: interlock hands in front of pelvis head slightly bowed	100STYLE
+STYLE100_BACKRUN/Morris_RunBack	1.267	loop	132	run back style	Running backward, morris style: swing hands side to side as if waving hankies	100STYLE
+STYLE100_BACKRUN/Neutral_RunBack	0.667	loop	114	run back style	Running backward, neutral style: normal walking	100STYLE
+STYLE100_BACKRUN/Old_RunBack	0.767	loop	30	run back style	Running backward, old style: hunchbacked move very slowly	100STYLE
+STYLE100_BACKRUN/OnHeels_RunBack	0.633	loop	81	run back style	Running backward, on heels style: walk on heels with toes raised	100STYLE
+STYLE100_BACKRUN/OnPhoneLeft_RunBack	0.633	loop	191	run back style	Running backward, on phone left style: holding phone in left	100STYLE
+STYLE100_BACKRUN/OnPhoneRight_RunBack	0.7	loop	110	run back style	Running backward, on phone right style: holding phone in right	100STYLE
+STYLE100_BACKRUN/OnToesBentForward_RunBack	0.633	loop	109	run back style	Running backward, on toes bent forward style	100STYLE
+STYLE100_BACKRUN/OnToesCrouched_RunBack	0.733	loop	107	run back style	Running backward, on toes crouched style	100STYLE
+STYLE100_BACKRUN/PendulumHands_RunBack	0.767	loop	131	run back style	Running backward, pendulum hands style	100STYLE
+STYLE100_BACKRUN/Penguin_RunBack	0.567	loop	90	run back style	Running backward, penguin style: waddle with feet close together	100STYLE
+STYLE100_BACKRUN/PigeonToed_RunBack	0.633	loop	88	run back style	Running backward, pigeon toed style: toes turned inwards	100STYLE
+STYLE100_BACKRUN/Proud_RunBack	0.767	loop	153	run back style	Running backward, proud style: straight back arms move as if marching to a lesser degree	100STYLE
+STYLE100_BACKRUN/Punch_RunBack	0.733	loop	141	run back style	Running backward, punch style: punch with every step	100STYLE
+STYLE100_BACKRUN/Quail_RunBack	0.633	loop	78	run back style	Running backward, quail style: arms straight by sides slightly back very small quick steps	100STYLE
+STYLE100_BACKRUN/RaisedLeftArm_RunBack	0.633	loop	124	run back style	Running backward, raised left arm style: raise left arm perpendicular to body	100STYLE
+STYLE100_BACKRUN/RaisedRightArm_RunBack	0.667	loop	98	run back style	Running backward, raised right arm style: raise right arm perpendicular to body	100STYLE
+STYLE100_BACKRUN/RightHop_RunBack	0.533	loop	84	run back style	Running backward, right hop style: hop on right foot	100STYLE
+STYLE100_BACKRUN/Roadrunner_RunBack	0.8	loop	159	run back style	Running backward, roadrunner style	100STYLE
+STYLE100_BACKRUN/Robot_RunBack	0.533	loop	101	run back style	Running backward, robot style: stiff movements arms bending at elbows	100STYLE
+STYLE100_BACKRUN/Rocket_RunBack	0.6	loop	151	run back style	Running backward, rocket style: bent to flat back with hands behind as thrusters	100STYLE
+STYLE100_BACKRUN/Rushed_RunBack	1.567	loop	129	run back style	Running backward, rushed style: rushing about swinging arms for extra momentum	100STYLE
+STYLE100_BACKRUN/ShieldedLeft_RunBack	0.767	loop	100	run back style	Running backward, shielded left style	100STYLE
+STYLE100_BACKRUN/ShieldedRight_RunBack	0.767	loop	118	run back style	Running backward, shielded right style	100STYLE
+STYLE100_BACKRUN/Skip_RunBack	1.333	loop	124	run back style	Running backward, skip style: skipping like a child	100STYLE
+STYLE100_BACKRUN/SlideFeet_RunBack	0.8	loop	97	run back style	Running backward, slide feet style	100STYLE
+STYLE100_BACKRUN/Star_RunBack	0.633	loop	116	run back style	Running backward, star style: wide arms and legs. Arms slightly below horizontal	100STYLE
+STYLE100_BACKRUN/StartStop_RunBack	1.833	loop	57	run back style	Running backward, start stop style: pause briefly after step	100STYLE
+STYLE100_BACKRUN/Stiff_RunBack	0.6	loop	100	run back style	Running backward, stiff style: stiff limbs arms straight	100STYLE
+STYLE100_BACKRUN/Strutting_RunBack	0.767	loop	135	run back style	Running backward, strutting style: with swagger leant slightly back arms swinging freely	100STYLE
+STYLE100_BACKRUN/Superman_RunBack	0.667	loop	106	run back style	Running backward, superman style: right arm raised like superman flying	100STYLE
+STYLE100_BACKRUN/Swat_RunBack	0.7	loop	135	run back style	Running backward, swat style: as if holding a rifle and raiding a building	100STYLE
+STYLE100_BACKRUN/Sweep_RunBack	0.8	loop	83	run back style	Running backward, sweep style: sweeping with a broom while moving	100STYLE
+STYLE100_BACKRUN/Swimming_RunBack	0.533	loop	30	run back style	Running backward, swimming style: breaststroke walking	100STYLE
+STYLE100_BACKRUN/SwingArmsRound_RunBack	0.7	loop	110	run back style	Running backward, swing arms round style	100STYLE
+STYLE100_BACKRUN/SwingShoulders_RunBack	1.4	loop	113	run back style	Running backward, swing shoulders style: rotate torso and shoulders left to right and back	100STYLE
+STYLE100_BACKRUN/Teapot_RunBack	0.6	loop	143	run back style	Running backward, teapot style: one arm on hip other arm raised	100STYLE
+STYLE100_BACKRUN/Tiptoe_RunBack	0.7	loop	115	run back style	Running backward, tiptoe style: walk on toes with heels raised	100STYLE
+STYLE100_BACKRUN/TogetherStep_RunBack	1	loop	46	run back style	Running backward, together step style: step left foot - then together – then right foot	100STYLE
+STYLE100_BACKRUN/TwoFootJump_RunBack	0.5	loop	100	run back style	Running backward, two foot jump style: feet together and jump	100STYLE
+STYLE100_BACKRUN/WalkingStickLeft_RunBack	0.5	loop	37	run back style	Running backward, walking stick left style	100STYLE
+STYLE100_BACKRUN/WalkingStickRight_RunBack	0.933	loop	91	run back style	Running backward, walking stick right style	100STYLE
+STYLE100_BACKRUN/Waving_RunBack	0.767	loop	123	run back style varies	Running backward, waving style: waving at somebody else at random	100STYLE
+STYLE100_BACKRUN/WhirlArms_RunBack	0.5	loop	38	run back style	Running backward, whirl arms style: windmill arms	100STYLE
+STYLE100_BACKRUN/WideLegs_RunBack	0.7	loop	98	run back style	Running backward, wide legs style: legs apart motions	100STYLE
+STYLE100_BACKRUN/WiggleHips_RunBack	0.9	loop	90	run back style	Running backward, wiggle hips style	100STYLE
+STYLE100_BACKRUN/WildArms_RunBack	1.667	loop	106	run back style	Running backward, wild arms style	100STYLE
+STYLE100_BACKRUN/WildLegs_RunBack	0.833	loop	84	run back style	Running backward, wild legs style: kick legs into the air with each step	100STYLE
+STYLE100_BACKRUN/Zombie_RunBack	0.767	loop	106	run back style	Running backward, zombie style: arms in front like zombie	100STYLE

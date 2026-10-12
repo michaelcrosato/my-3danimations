@@ -47,6 +47,20 @@ export function prepare(source: Clip, R: Rest, body: Rest, hit = false): Move {
   return { clip: ready, speed: clip.loop ? contact.contactRoot(ready, body, ready.contacts).speed : 0 };
 }
 
+/** A key's hand fields (format 2): the wrists and the fingers. */
+const HANDS = ["handL", "handR", "fingersL", "fingersR"] as const;
+/**
+ * The moves with their hands played only if every move has them: a set that mixes clips with hands and clips without
+ * (the migrated Quaternius sets have none; Mesh2Motion's re-imported jumps close the fist) would clench and open the
+ * hands within every cross-fade, fast enough to read as a pop. Without them all, the hands keep the rest's.
+ */
+export function handsAlike(moves: Record<MoveName, Move>): Record<MoveName, Move> {
+  const has = MOVES.map((m) => moves[m].clip.keys.some((k) => HANDS.some((h) => (k as unknown as Record<string, unknown>)[h] !== undefined)));
+  if (has.every((x) => x) || !has.some((x) => x)) return moves;
+  const bare = (move: Move): Move => ({ ...move, clip: { ...move.clip, keys: move.clip.keys.map((k) => Object.fromEntries(Object.entries(k).filter(([f]) => !(HANDS as readonly string[]).includes(f))) as typeof k) } });
+  return Object.fromEntries(MOVES.map((m) => [m, bare(moves[m])])) as Record<MoveName, Move>;
+}
+
 /** The stick and the buttons: x to the right and y forward, each −1 to 1; run held; jump and attack pressed. */
 export interface Input {
   x: number;
@@ -95,8 +109,8 @@ export class Hello {
 
   constructor(bound: Bound, moves: Record<MoveName, Move>) {
     this.animator = new Animator(bound, { step: STEP });
-    this.moves = moves;
-    this.animator.layer("base", { clip: moves.idle.clip });
+    this.moves = handsAlike(moves);
+    this.animator.layer("base", { clip: this.moves.idle.clip });
   }
 
   /** Plays a move from now (a console's `play`): locomotion moves stay until the stick moves; the others run once. */

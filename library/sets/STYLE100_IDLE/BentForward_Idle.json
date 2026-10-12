@@ -1,0 +1,24 @@
+{
+"format": "2.0",
+"id": "STYLE100_IDLE/BentForward_Idle",
+"name": "BentForward_Idle",
+"legend": "2.0",
+"dur": 2.5,
+"loop": true,
+"fps": 30,
+"tags": ["idle","style"],
+"desc": "Standing, bent forward style: tilt torso forwards",
+"skeleton": "humanoid",
+"restSrc": "100STYLE",
+"provenance": {"src":"100STYLE","take":"BentForward_ID 14.27-16.77","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
+"quality": {"fit":[4,13],"qa":"unchecked","qaVersion":"none"},
+"keys": [
+  {"t":0,
+   "hips":[0,0,101], "body":[0,51,2], "chest":[0,39,0], "head":[1,22,3],
+   "shL":[6,-4], "shR":[12,-6], "armL":[66,10,-74,17,6], "armR":[65,2,-76,9,-6], "handL":[-6,5,91], "handR":[-21,10,92], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[82,-1,-57,0,94], "legR":[81,2,-58,0,-47], "footL":[-50,1,0], "footR":[-50,16,0]},
+  {"t":2.5,
+   "hips":[0,0,101], "body":[0,51,2], "chest":[0,39,0], "head":[1,22,3],
+   "shL":[6,-4], "shR":[12,-6], "armL":[66,10,-74,17,6], "armR":[65,2,-76,9,-6], "handL":[-6,5,91], "handR":[-21,10,92], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[82,-1,-57,0,94], "legR":[81,2,-58,0,-47], "footL":[-50,1,0], "footR":[-50,16,0]}
+]}

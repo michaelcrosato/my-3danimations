@@ -38,7 +38,7 @@ id	subject	fps	sec	category	active	fit	travel	hips	flags	used	note	desc	about
 03_03	3	120	38.0	locomotion	0.0-38.0	17/203	24.7	86-121				walk on uneven terrain	walk on uneven terrain
 03_04	3	120	39.3	locomotion	0.0-39.3	17/195	26.3	86-117				walk on uneven terrain	walk on uneven terrain
 05_01	5	120	5.0	locomotion	0.0-5.0	11/78	4.4	99-106				walk	modern dance
-05_02	5	120	9.4	dance	2.6-9.4	19/104	1.9	92-111				dance - expressive arms, pirouette	modern dance
+05_02	5	120	9.4	dance	2.6-9.4	19/104	1.9	92-111		Ballet_Pirouette		dance - expressive arms, pirouette	modern dance
 05_03	5	120	3.6	dance	0.0-3.6	16/76	1.5	87-105				dance - sideways arabesque, turn step, folding arms	modern dance
 05_04	5	120	10.0	dance	0.0-10.0	16/86	2.4	87-103				dance - sideways arabesque, folding arms, bending back	modern dance
 05_05	5	120	7.6	dance	0.4-7.6	21/121	3.4	85-123				dance - quasi-cou-de-pied, raised leg above hip-height, jete en tourant	modern dance
@@ -53,7 +53,7 @@ id	subject	fps	sec	category	active	fit	travel	hips	flags	used	note	desc	about
 05_14	5	120	5.3	dance	0.5-5.3	14/142	4.3	83-116				dance - retire derriere, attitude/arabesque	modern dance
 05_15	5	120	4.5	dance	0.0-4.4	14/107	3.5	91-116				dance - retire derriere, attitude/arabesque	modern dance
 05_16	5	120	4.4	dance	0.0-4.4	22/195	4.1	87-135				dance - coupe dessous, jete en tourant	modern dance
-05_17	5	120	8.7	dance	1.8-8.3	16/120	4.3	87-134				dance - coupe dessous, grand jete en tourant	modern dance
+05_17	5	120	8.7	dance	1.8-8.3	16/120	4.3	87-134		Ballet_Grand_Jete		dance - coupe dessous, grand jete en tourant	modern dance
 05_18	5	120	15.2	dance	0.0-15.2	17/113	4.1	92-144				dance - attitude/arabesque, jete en tourant, bending back	modern dance
 05_19	5	120	7.2	dance	0.7-7.2	17/102	3.7	92-141				dance - attitude/arabesque, jete en tourant, bending back	modern dance
 05_20	5	120	9.1	dance	0.6-9.1	18/122	3.9	91-141				dance - attitude/arabesque, jete en tourant, bending back	modern dance
@@ -124,7 +124,7 @@ id	subject	fps	sec	category	active	fit	travel	hips	flags	used	note	desc	about
 13_04	13	120	39.7	sit and lie	0.0-39.7	13/102	6.9	53-105				sit on stepstool, chin in hand	various everyday behaviors
 13_05	13	120	36.7	sit and lie	0.0-36.7	14/114	6.3	53-105				sit on stepstool, hands against chin, fidget, stand up	various everyday behaviors
 13_06	13	120	36.8	sit and lie	0.0-36.8	15/109	5.5	53-106				sit on stepstool, hands against chin, elbow out, stand up	various everyday behaviors
-13_07	13	120	12.1	everyday	0.0-12.1	11/79	0.2	104-104				unscrew bottlecap, drink soda	various everyday behaviors
+13_07	13	120	12.1	everyday	0.0-12.1	11/79	0.2	104-104		Drink_Soda		unscrew bottlecap, drink soda	various everyday behaviors
 13_08	13	120	13.4	everyday	0.0-13.4	13/91	0.3	103-104				unscrew bottlecap, drink soda, screw on bottlecap	various everyday behaviors
 13_09	13	120	9.2	everyday	0.0-9.2	18/138	0.2	103-104				drink soda	various everyday behaviors
 13_10	13	120	20.0	jump	0.0-20.0	24/139	5.4	96-117				jump up to grab, reach for, tiptoe	various everyday behaviors
@@ -143,7 +143,7 @@ id	subject	fps	sec	category	active	fit	travel	hips	flags	used	note	desc	about
 13_23	13	120	33.5	everyday	0.0-33.5	14/104	7.8	100-106		Sweep_Loop		sweep floor	various everyday behaviors
 13_24	13	120	33.6	everyday	0.0-33.6	15/98	9.8	99-105				sweep floor	various everyday behaviors
 13_25	13	120	33.4	everyday	0.0-33.4	15/96	12.1	98-104				sweep floor	various everyday behaviors
-13_26	13	120	25.2	gesture and talk	0.0-25.2	12/122	6.7	94-103			pick: Direct_Traffic (a guard at a gate)	direct traffic, wave	various everyday behaviors
+13_26	13	120	25.2	gesture and talk	0.0-25.2	12/122	6.7	94-103		Direct_Traffic	pick: Direct_Traffic (a guard at a gate)	direct traffic, wave	various everyday behaviors
 13_27	13	120	34.7	gesture and talk	0.0-34.7	13/107	9.2	89-104				direct traffic, wave, point	various everyday behaviors
 13_28	13	120	34.3	gesture and talk	0.0-34.3	12/114	8.9	95-105				direct traffic, wave, point	various everyday behaviors
 13_29	13	120	38.3	jump	0.0-37.8	17/103	5.3	40-114		Jumping_Jacks_Loop		jumping jacks, side twists, bend over, squats	various everyday behaviors
@@ -152,7 +152,7 @@ id	subject	fps	sec	category	active	fit	travel	hips	flags	used	note	desc	about
 13_32	13	120	2.8	jump	0.5-2.5	17/95	1.5	83-131				forward jump	various everyday behaviors
 13_33	13	120	12.5	climb	0.0-12.5	18/165	2.2	99-191	floats	Climb_Ladder		climb ladder	various everyday behaviors
 13_34	13	120	11.8	climb	0.0-11.8	20/185	2.4	101-189	floats			climb ladder	various everyday behaviors
-13_35	13	120	10.0	climb	0.0-10.0	13/108	3.0	97-164	floats			climb 3 steps	various everyday behaviors
+13_35	13	120	10.0	climb	0.0-10.0	13/108	3.0	97-164	floats	Climb_Steps		climb 3 steps	various everyday behaviors
 13_36	13	120	11.5	climb	0.0-11.5	14/108	3.2	101-165	floats			climb 3 steps	various everyday behaviors
 13_37	13	120	12.3	climb	0.0-12.3	14/105	3.5	95-165	floats			climb 3 steps	various everyday behaviors
 13_38	13	120	10.4	climb	0.0-10.4	14/107	3.3	100-165	floats			climb 3 steps	various everyday behaviors
@@ -213,7 +213,7 @@ id	subject	fps	sec	category	active	fit	travel	hips	flags	used	note	desc	about
 15_14	15	120	75.0	locomotion	0.0-75.0	21/103	52.0	97-103				walk/wander	various everyday behaviors, dance moves
 16_01	16	120	2.7	jump	0.2-2.0	19/93	0.2	87-134				jump	run, jump, walk
 16_02	16	120	3.9	jump	1.1-2.9	17/58	0.3	85-139				jump	run, jump, walk
-16_03	16	120	3.4	jump	0.7-2.7	20/85	0.6	81-160				high jump	run, jump, walk
+16_03	16	120	3.4	jump	0.7-2.7	20/85	0.6	81-160		High_Jump		high jump	run, jump, walk
 16_04	16	120	3.2	jump	0.5-2.8	21/83	0.5	84-160				high jump	run, jump, walk
 16_05	16	120	2.5	jump	0.4-2.1	18/61	1.2	92-136				forward jump	run, jump, walk
 16_06	16	120	3.4	jump	1.2-3.0	19/72	1.4	92-131				forward jump	run, jump, walk
@@ -286,9 +286,9 @@ id	subject	fps	sec	category	active	fit	travel	hips	flags	used	note	desc	about
 18_05	18	120	3.6	everyday	0.0-3.6	18/98	2.8	97-106				A pulls B by the elbow; B resists (2 subjects - subject A)	human interaction and communication (2 subjects - subject A
 18_06	18	120	3.4	everyday	0.0-3.4	21/147	1.8	95-109				A pulls B by the elbow; B resists (2 subjects - subject A)	human interaction and communication (2 subjects - subject A
 18_07	18	120	2.4	locomotion	0.0-2.4	19/81	2.2	95-102				navigate busy sidewalk; A leads the way, takes B by the arm (2 subjects - subject A)	human interaction and communication (2 subjects - subject A
-18_08	18	120	17.4	gesture and talk	0.0-17.4	13/72	0.9	106-108				conversation - explain with hand gestures (2 subjects - subject A)	human interaction and communication (2 subjects - subject A
+18_08	18	120	17.4	gesture and talk	0.0-17.4	13/72	0.9	106-108		Explain		conversation - explain with hand gestures (2 subjects - subject A)	human interaction and communication (2 subjects - subject A
 18_09	18	120	1.9	gesture and talk	0.0-1.9	12/81	1.7	104-108				conversation - explain with hand gestures, walk (2 subjects - subject A)	human interaction and communication (2 subjects - subject A
-18_10	18	120	15.0	gesture and talk	0.0-15.0	17/77	5.7	98-106				quarrel - angry hand gestures (2 subjects - subject A)	human interaction and communication (2 subjects - subject A
+18_10	18	120	15.0	gesture and talk	0.0-15.0	17/77	5.7	98-106		Quarrel		quarrel - angry hand gestures (2 subjects - subject A)	human interaction and communication (2 subjects - subject A
 18_11	18	120	15.9	gesture and talk	0.6-15.9	19/137	6.3	97-107				quarrel - angry hand gestures (2 subjects - subject A)	human interaction and communication (2 subjects - subject A
 18_12	18	120	10.4	climb	0.1-10.4	15/115	0.5	58-61				friends meet, hang out; A sits, B joins A (2 subjects - subject A)	human interaction and communication (2 subjects - subject A
 18_13	18	120	3.9	locomotion	0.0-3.6	20/118	3.1	49-104				run, scramble for last seat (2 subjects - subject A)	human interaction and communication (2 subjects - subject A
@@ -346,7 +346,7 @@ id	subject	fps	sec	category	active	fit	travel	hips	flags	used	note	desc	about
 22_09	22	120	4.5	sit and lie	0.0-4.5	16/71	0.6	105-106				A gives B a shoulder rub; B sits, A stands (2 subjects - subject A)	human interaction (2 subjects - subject A
 22_10	22	120	4.3	other	0.0-4.3	20/87	1.9	94-103				A shelters B, a younger child, from harm (2 subjects - subject A)	human interaction (2 subjects - subject A
 22_11	22	120	4.5	other	0.0-4.5	21/90	2.1	85-102				B shelters A, a younger child, from harm (2 subjects - subject A)	human interaction (2 subjects - subject A
-22_12	22	120	2.5	acrobatics	0.0-2.5	19/72	2.2	70-105				A stumbles into B (2 subjects - subject A)	human interaction (2 subjects - subject A
+22_12	22	120	2.5	acrobatics	0.0-2.5	19/72	2.2	70-105		Stumble_Into		A stumbles into B (2 subjects - subject A)	human interaction (2 subjects - subject A
 22_13	22	120	7.7	everyday	0.0-7.7	16/90	0.2	101-102				A passes soda to B; both drink (2 subjects - subject A)	human interaction (2 subjects - subject A
 22_14	22	120	5.9	sit and lie	0.6-5.7	19/90	0.6	37-104				alternating squats (2 subjects - subject A)	human interaction (2 subjects - subject A
 22_15	22	120	4.1	jump	0.3-2.4	18/62	0.3	81-116				alternating jumping jacks (2 subjects - subject A)	human interaction (2 subjects - subject A
@@ -363,7 +363,7 @@ id	subject	fps	sec	category	active	fit	travel	hips	flags	used	note	desc	about
 23_01	23	120	6.5	sit and lie	0.0-6.5	16/92	1.7	72-105				B sits; A pulls up B (subjects - subject B)	human interaction (2 subjects - subject B
 23_02	23	120	3.9	sit and lie	0.0-3.9	11/40	2.3	101-106				A sits; B pulls up A (subjects - subject B)	human interaction (2 subjects - subject B
 23_03	23	120	6.8	sit and lie	0.0-6.8	12/57	1.6	60-106				A sits, holds face in hands; B kneels, comforts A (2 subjects - subject B)	human interaction (2 subjects - subject B
-23_04	23	120	4.3	everyday	0.0-4.3	14/58	1.6	102-105				B comforts A, puts one hand on A's shoulder (2 subjects - subject B)	human interaction (2 subjects - subject B
+23_04	23	120	4.3	everyday	0.0-4.3	14/58	1.6	102-105		Comfort		B comforts A, puts one hand on A's shoulder (2 subjects - subject B)	human interaction (2 subjects - subject B
 23_05	23	120	4.4	everyday	0.0-4.4	14/62	1.2	99-101				A comforts B, puts both hands on B's shoulders (2 subjects - subject B)	human interaction (2 subjects - subject B
 23_06	23	120	4.2	everyday	0.0-4.2	13/57	1.0	102-105				B comforts A, puts both hands on A's shoulders (2 subjects - subject B)	human interaction (2 subjects - subject B
 23_07	23	120	2.5	everyday	0.0-2.5	13/50	0.3	103-104				A comforts B, puts one hand on B's shoulder (2 subjects - subject B)	human interaction (2 subjects - subject B
@@ -371,7 +371,7 @@ id	subject	fps	sec	category	active	fit	travel	hips	flags	used	note	desc	about
 23_09	23	120	4.5	sit and lie	0.0-4.5	14/62	0.2	75-77				A gives B a shoulder rub; B sits, A stands (subjects - subject B)	human interaction (2 subjects - subject B
 23_10	23	120	4.3	other	0.0-4.3	11/47	2.1	93-106				A shelters B, a younger child, from harm (2 subjects - subject B)	human interaction (2 subjects - subject B
 23_11	23	120	4.5	other	0.0-4.5	15/66	1.7	85-104				B shelters A, a younger child, from harm (2 subjects - subject B)	human interaction (2 subjects - subject B
-23_12	23	120	2.5	acrobatics	0.0-2.5	10/56	2.5	96-107				A stumbles into B (2 subjects - subject B)	human interaction (2 subjects - subject B
+23_12	23	120	2.5	acrobatics	0.0-2.5	10/56	2.5	96-107		Bumped		A stumbles into B (2 subjects - subject B)	human interaction (2 subjects - subject B
 23_13	23	120	7.7	everyday	0.0-7.7	13/68	0.4	106-107				A passes soda to B; both drink (2 subjects - subject B)	human interaction (2 subjects - subject B
 23_14	23	120	5.9	sit and lie	0.0-5.9	16/62	0.5	39-106				alternating squats (2 subjects - subject B)	human interaction (2 subjects - subject B
 23_15	23	120	4.1	jump	0.0-4.1	12/72	0.7	84-122				alternating jumping jacks (2 subjects - subject B)	human interaction (2 subjects - subject B
@@ -396,7 +396,7 @@ id	subject	fps	sec	category	active	fit	travel	hips	flags	used	note	desc	about
 26_07	26	120	64.6	gesture and talk	0.0-64.6	14/91	2.7	103-105				nursery rhyme - Cock Robin	nursery rhymes, basketball, bending
 26_08	26	120	63.9	gesture and talk	0.1-63.9	14/90	2.5	104-105				nursery rhyme - Cock Robin	nursery rhymes, basketball, bending
 26_09	26	120	6.2	everyday	0.2-6.2	13/67	0.4	53-105				bend, pick up	nursery rhymes, basketball, bending
-26_10	26	120	5.8	everyday	0.3-5.1	16/122	0.5	64-105				bend, lift	nursery rhymes, basketball, bending
+26_10	26	120	5.8	everyday	0.3-5.1	16/122	0.5	64-105		Bend_Lift		bend, lift	nursery rhymes, basketball, bending
 26_11	26	120	4.6	everyday	0.2-4.6	13/90	0.5	94-105	inverted			bend, lift	nursery rhymes, basketball, bending
 27_01	27	120	8.6	locomotion	0.0-8.6	13/79	3.9	101-104				walk	recreation, nursery rhymes
 27_02	27	120	29.7	sports	0.6-29.7	12/77	0.5	104-104				basketball signals	recreation, nursery rhymes
@@ -480,7 +480,7 @@ id	subject	fps	sec	category	active	fit	travel	hips	flags	used	note	desc	about
 31_02	31	120	18.9	animal and character	0.0-18.5	15/58	1.0	86-106				nursery rhyme - "I'm a little teapot..."	recreation, nursery rhymes, animal behaviors (pantomime - human subject
 31_03	31	120	30.8	animal and character	0.7-29.1	18/132	3.0	84-106				Alaskan vacation	recreation, nursery rhymes, animal behaviors (pantomime - human subject
 31_04	31	120	59.9	gesture and talk	0.0-59.9	29/217	6.1	69-106	inverted			nursery rhyme - Cock Robin	recreation, nursery rhymes, animal behaviors (pantomime - human subject
-31_05	31	120	26.5	sports	0.0-26.5	8/45	0.7	106-106				basketball signals	recreation, nursery rhymes, animal behaviors (pantomime - human subject
+31_05	31	120	26.5	sports	0.0-26.5	8/45	0.7	106-106		Referee_Signals		basketball signals	recreation, nursery rhymes, animal behaviors (pantomime - human subject
 31_06	31	120	17.6	animal and character	0.0-17.6	12/54	0.8	89-106				nursery rhyme - "I'm a little teapot..."	recreation, nursery rhymes, animal behaviors (pantomime - human subject
 31_07	31	120	30.8	animal and character	0.0-30.8	17/101	2.0	90-106				Alaskan vacation	recreation, nursery rhymes, animal behaviors (pantomime - human subject
 31_08	31	120	65.5	gesture and talk	0.0-65.5	13/140	4.5	82-106				nursery rhyme - Cock Robin	recreation, nursery rhymes, animal behaviors (pantomime - human subject
@@ -726,7 +726,7 @@ id	subject	fps	sec	category	active	fit	travel	hips	flags	used	note	desc	about
 56_06	56	120	56.5	combat	2.6-56.5	17/126	30.9	83-144				vignettes - throw punches, grab, skip, yawn, stretch, leap, lift open window, walk, jump/bound	vignettes - locomotion, upper-body motions (focus: motion transitions
 56_07	56	120	78.5	jump	0.0-78.5	14/79	60.5	85-139				vignettes - yawn, stretch, walk, run/jog, angrily grab, jump, skip, halt	vignettes - locomotion, upper-body motions (focus: motion transitions
 56_08	56	120	34.8	jump	2.4-34.8	15/75	24.2	88-126				vignettes - lift open window, smash against wall, hop, walk, run/jog, yawn, stretch	vignettes - locomotion, upper-body motions (focus: motion transitions
-60_01	60	60	37.4	dance	0.0-37.4	17/112	14.4	45-106			pick: Salsa_Loop (a town festival)	salsa dance	salsa
+60_01	60	60	37.4	dance	0.0-37.4	17/112	14.4	45-106		Salsa	pick: Salsa_Loop (a town festival)	salsa dance	salsa
 60_02	60	60	35.0	dance	0.0-35.0	14/90	14.6	52-106				salsa dance	salsa
 60_03	60	60	30.5	dance	0.0-29.9	14/68	11.5	96-106				salsa dance	salsa
 60_04	60	60	31.2	dance	0.0-31.2	13/66	13.1	96-106				salsa dance	salsa
@@ -757,24 +757,24 @@ id	subject	fps	sec	category	active	fit	travel	hips	flags	used	note	desc	about
 61_14	61	60	32.5	dance	1.4-32.5	19/156	19.8	74-107	inverted			salsa dance	salsa
 61_15	61	60	35.7	dance	3.5-35.7	19/131	19.4	94-105				salsa dance	salsa
 62_01	62	60	18.0	everyday	0.0-18.0	13/68	1.6	104-106				bolt loosening, wrench	construction work, random motions
-62_02	62	60	17.3	everyday	0.0-17.3	13/71	1.5	103-106				bolt tightening, wrench	construction work, random motions
-62_03	62	60	22.9	everyday	0.2-22.9	14/84	2.6	103-106				sawing, hand saw	construction work, random motions
-62_04	62	60	22.5	everyday	0.0-22.5	16/65	1.9	103-107				screwing	construction work, random motions
+62_02	62	60	17.3	everyday	0.0-17.3	13/71	1.5	103-106		Wrench_Bolt		bolt tightening, wrench	construction work, random motions
+62_03	62	60	22.9	everyday	0.2-22.9	14/84	2.6	103-106		Saw_Wood		sawing, hand saw	construction work, random motions
+62_04	62	60	22.5	everyday	0.0-22.5	16/65	1.9	103-107		Screwdriver		screwing	construction work, random motions
 62_05	62	60	19.3	everyday	0.0-19.3	16/63	2.7	102-106				screwing	construction work, random motions
 62_06	62	60	44.2	everyday	0.0-44.2	16/68	2.1	103-106				unscrewing	construction work, random motions
-62_07	62	60	18.6	everyday	0.0-18.6	13/62	1.9	103-106				hammering a nail	construction work, random motions
+62_07	62	60	18.6	everyday	0.0-18.6	13/62	1.9	103-106		Hammer_Nail		hammering a nail	construction work, random motions
 62_08	62	60	14.9	everyday	0.0-14.9	15/70	2.2	103-107				hammering a nail	construction work, random motions
-62_09	62	60	19.0	everyday	1.5-19.0	14/72	2.1	102-106				pulling a nail	construction work, random motions
+62_09	62	60	19.0	everyday	1.5-19.0	14/72	2.1	102-106		Pull_Nail		pulling a nail	construction work, random motions
 62_10	62	60	33.7	everyday	0.0-33.7	18/76	2.2	102-107				hammering sequence	construction work, random motions
 62_11	62	60	61.8	everyday	0.0-61.8	17/117	12.1	92-110				cleaning up	construction work, random motions
 62_12	62	60	16.4	everyday	0.0-16.4	13/65	2.0	103-108				hard days drink	construction work, random motions
 62_13	62	60	21.1	sit and lie	0.0-21.1	16/88	7.2	96-108	inverted			moving a stool	construction work, random motions
-62_14	62	60	11.2	everyday	0.0-8.9	15/73	0.6	105-107				opening umbrella	construction work, random motions
+62_14	62	60	11.2	everyday	0.0-8.9	15/73	0.6	105-107		Open_Umbrella		opening umbrella	construction work, random motions
 62_15	62	60	11.3	everyday	0.0-11.3	14/74	0.9	104-106				opening umbrella	construction work, random motions
 62_16	62	60	10.5	everyday	0.0-10.5	14/70	0.3	104-106				closing umbrella	construction work, random motions
 62_17	62	60	12.0	everyday	0.0-12.0	16/67	0.4	105-107				opening and closing umbrella	construction work, random motions
 62_18	62	60	9.4	everyday	0.0-9.4	15/75	1.4	104-107				closing a box	construction work, random motions
-62_19	62	60	11.0	everyday	0.0-11.0	14/74	1.8	103-107				opening a box	construction work, random motions
+62_19	62	60	11.0	everyday	0.0-11.0	14/74	1.8	103-107		Open_Box		opening a box	construction work, random motions
 62_20	62	60	16.1	everyday	0.0-16.1	15/82	3.0	103-108				closing, moving and opening a box	construction work, random motions
 62_21	62	60	57.5	everyday	0.0-57.5	12/66	2.6	104-107				coiling a rope	construction work, random motions
 62_22	62	60	17.6	calibration	1.2-16.9	16/89	1.1	72-108				dynamic calibration	construction work, random motions
@@ -918,7 +918,7 @@ id	subject	fps	sec	category	active	fit	travel	hips	flags	used	note	desc	about
 69_75	69	120	9.2	sit and lie	0.0-9.2	16/81	3.6	37-106				walk up to object, squat, pick up object, set down in another place	walking
 70_01	70	120	6.0	everyday	0.4-6.0	16/78	3.2	103-108				carry 5.5lb suitcase	suitcase
 70_02	70	120	6.3	everyday	1.2-6.3	16/85	3.7	102-107				carry 5.5lb suitcase	suitcase
-70_03	70	120	15.4	everyday	0.0-15.4	14/91	1.2	106-108				carry 19.5lb suitcase	suitcase
+70_03	70	120	15.4	everyday	0.0-15.4	14/91	1.2	106-108		Carry_Suitcase		carry 19.5lb suitcase	suitcase
 70_04	70	120	13.9	everyday	0.0-13.9	20/103	1.2	106-109				carry 19.5lb suitcase	suitcase
 70_05	70	120	7.5	everyday	0.0-7.5	18/90	3.7	103-108				carry 19.5lb suitcase	suitcase
 70_06	70	120	7.0	everyday	0.0-7.0	17/87	3.3	103-108				carry 19.5lb suitcase	suitcase
@@ -974,7 +974,7 @@ id	subject	fps	sec	category	active	fit	travel	hips	flags	used	note	desc	about
 75_10	75	60	4.6	jump	1.8-4.0	17/62	3.3	86-135				2 jump	jumps; hopscotch; sits
 75_11	75	60	2.9	jump	0.8-2.9	16/59	3.2	84-135				2 jump	jumps; hopscotch; sits
 75_12	75	60	7.7	jump	0.0-7.7	19/80	5.6	81-133	inverted			box jump	jumps; hopscotch; sits
-75_13	75	60	6.2	jump	0.2-5.2	17/71	2.5	90-122				hopscotch	jumps; hopscotch; sits
+75_13	75	60	6.2	jump	0.2-5.2	17/71	2.5	90-122		Hopscotch		hopscotch	jumps; hopscotch; sits
 75_14	75	60	7.4	jump	0.9-6.7	18/92	3.1	91-126				hopscotch	jumps; hopscotch; sits
 75_15	75	60	29.1	jump	1.4-29.1	16/110	14.7	70-128				long jumps	jumps; hopscotch; sits
 75_16	75	60	5.7	combat	0.0-4.9	18/78	2.7	87-142				jump kick	jumps; hopscotch; sits
@@ -985,7 +985,7 @@ id	subject	fps	sec	category	active	fit	travel	hips	flags	used	note	desc	about
 76_01	76	120	7.7	combat	0.0-7.7	15/69	2.0	97-107				walk backwards then attack with a punch	avoidance
 76_02	76	120	9.7	combat	1.5-9.7	14/72	2.3	97-107				walk backwards, feign a few attacks, then attack	avoidance
 76_03	76	120	9.0	combat	0.4-9.0	20/273	3.5	65-105				avoid attacker	avoidance
-76_04	76	120	3.5	dance	0.1-3.5	15/78	0.6	72-107				defensive guard pose	avoidance
+76_04	76	120	3.5	dance	0.1-3.5	15/78	0.6	72-107		Guard_Pose		defensive guard pose	avoidance
 76_05	76	120	7.2	combat	0.0-7.2	16/78	2.7	94-106				swatting at pesky bug	avoidance
 76_06	76	120	5.6	locomotion	0.0-5.6	13/64	1.9	101-107				avoid stepping on something	avoidance
 76_07	76	120	0.2	undescribed	0.0-0.2	10/32	0.0	99-99	short				avoidance
@@ -1025,7 +1025,7 @@ id	subject	fps	sec	category	active	fit	travel	hips	flags	used	note	desc	about
 77_30	77	60	21.0	locomotion	0.0-21.0	16/87	9.6	100-105				creeping walk	careful actions
 77_31	77	60	35.1	locomotion	1.8-35.1	15/95	14.5	86-103				silent walk	careful actions
 77_32	77	60	31.6	locomotion	0.2-31.6	20/81	12.4	87-105				creeping walk	careful actions
-77_33	77	60	49.9	reaction	1.4-49.9	16/78	16.2	91-104				creeping with limp	careful actions
+77_33	77	60	49.9	reaction	1.4-49.9	16/78	16.2	91-104		Creep_Limp_Loop		creeping with limp	careful actions
 77_34	77	60	18.7	locomotion	0.0-18.7	14/86	3.9	93-104				creep and pause, repeat	careful actions
 78_01	78	120	1.4	everyday	0.0-1.4	21/120	3.0	82-102				LeftTightTurn CleanedGRS	walking
 78_02	78	120	2.3	everyday	0.3-2.3	20/96	4.8	88-104				RightWideTurn CleanedGRS	walking
@@ -1066,45 +1066,45 @@ id	subject	fps	sec	category	active	fit	travel	hips	flags	used	note	desc	about
 79_02	79	60	12.9	sports	1.6-12.3	22/105	0.6	104-106				swimming	actor everyday activities
 79_03	79	60	14.0	sports	2.3-13.6	23/129	0.8	102-107				swimming	actor everyday activities
 79_04	79	60	15.1	everyday	1.3-14.8	22/106	1.5	104-106		Dig		digging	actor everyday activities
-79_05	79	60	16.3	everyday	1.8-16.3	14/61	0.2	105-105				sewing	actor everyday activities
+79_05	79	60	16.3	everyday	1.8-16.3	14/61	0.2	105-105		Sew		sewing	actor everyday activities
 79_06	79	60	9.8	gesture and talk	2.2-8.9	16/60	0.2	104-105				hand shake	actor everyday activities
 79_07	79	60	5.5	calibration	0.0-5.5	18/72	0.4	101-105				lost marker	actor everyday activities
 79_08	79	60	7.4	combat	1.8-6.8	17/62	0.5	99-105				boxing	actor everyday activities
-79_09	79	60	14.0	everyday	1.3-12.4	11/57	0.2	105-105				slicing bread	actor everyday activities
-79_10	79	60	11.7	everyday	0.7-11.7	11/53	0.3	104-105				chopping onions	actor everyday activities
+79_09	79	60	14.0	everyday	1.3-12.4	11/57	0.2	105-105		Slice_Bread		slicing bread	actor everyday activities
+79_10	79	60	11.7	everyday	0.7-11.7	11/53	0.3	104-105		Chop_Onions		chopping onions	actor everyday activities
 79_11	79	60	2.2	calibration	2.0-2.2	14/37	0.0	95-95				Subject calibration	actor everyday activities
-79_12	79	60	17.1	everyday	1.2-16.1	12/57	0.2	105-105			pick: Eat_Dinner (the tavern)	eating dinner	actor everyday activities
-79_13	79	60	11.1	everyday	0.9-10.9	12/50	0.3	104-105				mixing batter	actor everyday activities
+79_12	79	60	17.1	everyday	1.2-16.1	12/57	0.2	105-105		Eat_Dinner	pick: Eat_Dinner (the tavern)	eating dinner	actor everyday activities
+79_13	79	60	11.1	everyday	0.9-10.9	12/50	0.3	104-105		Mix_Batter		mixing batter	actor everyday activities
 79_14	79	60	12.2	everyday	0.0-12.0	13/59	0.5	105-106				making dough	actor everyday activities
-79_15	79	60	14.6	everyday	1.0-14.6	12/60	0.1	105-105				eating a sandwich	actor everyday activities
+79_15	79	60	14.6	everyday	1.0-14.6	12/60	0.1	105-105		Eat_Sandwich		eating a sandwich	actor everyday activities
 79_16	79	60	12.0	everyday	0.1-12.0	11/62	0.3	105-105				buying something	actor everyday activities
 79_17	79	60	13.4	sit and lie	1.2-13.4	14/53	0.2	104-105			pick: Play_Violin (a bard)	playing violin	actor everyday activities
 79_18	79	60	13.4	sit and lie	1.2-13.2	12/80	0.4	104-105			pick: Play_Drums (a bard)	playing drums	actor everyday activities
 79_19	79	60	11.5	sit and lie	1.4-11.5	11/46	0.2	104-105				playing piano	actor everyday activities
-79_20	79	60	12.4	climb	1.7-12.2	15/57	0.2	105-105			pick: Hammer_Picture (a carpenter)	hanging a picture	actor everyday activities
+79_20	79	60	12.4	climb	1.7-12.2	15/57	0.2	105-105		Hang_Picture	pick: Hammer_Picture (a carpenter)	hanging a picture	actor everyday activities
 79_21	79	60	13.6	everyday	0.0-13.2	19/102	0.4	104-105				putting on a pull over	actor everyday activities
 79_22	79	60	14.6	calibration	1.3-14.6	19/142	2.2	53-107	inverted			range of motion	actor everyday activities
-79_23	79	60	12.2	everyday	0.0-11.8	18/77	0.4	104-105				putting on a jacket	actor everyday activities
+79_23	79	60	12.2	everyday	0.0-11.8	18/77	0.4	104-105		Put_On_Jacket		putting on a jacket	actor everyday activities
 79_24	79	60	12.4	everyday	1.8-12.3	17/62	0.4	104-105				putting on button up sweater	actor everyday activities
 79_25	79	60	10.0	everyday	1.6-9.9	19/64	0.6	101-105		Carry_Heavy_Box		moving heavy box	actor everyday activities
-79_26	79	60	17.2	everyday	1.6-17.0	17/61	0.7	104-106			pick: Plant_Tree (a farmer)	planting a tree	actor everyday activities
+79_26	79	60	17.2	everyday	1.6-17.0	17/61	0.7	104-106		Plant_Tree	pick: Plant_Tree (a farmer)	planting a tree	actor everyday activities
 79_27	79	60	14.7	everyday	1.4-14.7	12/60	0.3	104-105				planting a plant	actor everyday activities
 79_28	79	60	6.8	sports	1.5-6.0	15/72	0.1	104-105				putting on a ball cap	actor everyday activities
 79_29	79	60	11.3	everyday	0.3-11.3	13/67	0.4	104-105				putting on a dress	actor everyday activities
 79_30	79	60	13.3	everyday	1.8-13.1	17/72	1.4	97-106				pushing a swing	actor everyday activities
-79_31	79	60	9.6	everyday	0.5-9.0	16/68	0.2	104-105			pick: Write_Chalkboard (a teacher)	writing on a chalkboard	actor everyday activities
+79_31	79	60	9.6	everyday	0.5-9.0	16/68	0.2	104-105		Write_Chalkboard	pick: Write_Chalkboard (a teacher)	writing on a chalkboard	actor everyday activities
 79_32	79	60	16.1	everyday	1.0-15.6	17/69	0.3	104-105				writing on a chalkboard	actor everyday activities
 79_33	79	60	9.7	other	1.3-9.7	15/51	0.3	105-106			pick: Chug_Beer (the tavern)	chug a beer	actor everyday activities
 79_34	79	60	12.5	everyday	1.3-12.5	15/71	0.4	101-106		Fishing		fishing	actor everyday activities
 79_35	79	60	19.9	everyday	2.4-19.9	17/74	0.8	98-106				fishing	actor everyday activities
-79_36	79	60	8.6	everyday	1.8-8.6	13/49	0.3	104-106				answering the phone	actor everyday activities
+79_36	79	60	8.6	everyday	1.8-8.6	13/49	0.3	104-106		Answer_Phone		answering the phone	actor everyday activities
 79_37	79	60	10.0	everyday	1.5-10.0	15/98	0.3	104-105				dialing phone	actor everyday activities
 79_38	79	60	9.0	everyday	0.0-9.0	16/58	0.4	104-105		Drink_Water		drinking water	actor everyday activities
 79_39	79	60	13.5	everyday	0.6-13.4	18/57	0.5	103-105				sipping martinee	actor everyday activities
 79_40	79	60	14.4	everyday	0.0-14.4	15/54	0.5	104-105				drinking a soda	actor everyday activities
 79_41	79	60	18.5	everyday	0.0-18.5	12/49	0.3	104-105				sipping coffee	actor everyday activities
 79_42	79	60	13.2	everyday	0.0-13.2	11/54	0.2	104-105				eating soup	actor everyday activities
-79_43	79	60	16.4	everyday	1.7-16.4	14/58	0.3	104-105				painting	actor everyday activities
+79_43	79	60	16.4	everyday	1.7-16.4	14/58	0.3	104-105		Paint		painting	actor everyday activities
 79_44	79	60	14.2	everyday	2.1-13.7	15/48	0.3	105-106				washing a window	actor everyday activities
 79_45	79	60	14.4	animal and character	4.3-14.4	17/79	0.8	102-105				bear	actor everyday activities
 79_46	79	60	21.6	animal and character	1.4-21.5	17/65	1.2	103-106				bear	actor everyday activities
@@ -1130,12 +1130,12 @@ id	subject	fps	sec	category	active	fit	travel	hips	flags	used	note	desc	about
 79_66	79	60	12.0	everyday	2.2-12.0	17/78	1.0	98-102				movie and trial dont match	actor everyday activities
 79_67	79	60	21.0	everyday	0.0-21.0	14/76	2.2	104-106				no movie	actor everyday activities
 79_68	79	60	19.7	other	0.0-19.6	14/114	2.2	104-106				cold	actor everyday activities
-79_69	79	60	13.6	gesture and talk	1.5-12.4	14/71	1.0	95-105				very happy	actor everyday activities
-79_70	79	60	12.7	gesture and talk	1.2-12.2	14/91	1.1	98-105				laughing	actor everyday activities
-79_71	79	60	18.0	gesture and talk	1.1-17.0	15/75	0.9	102-105				sad	actor everyday activities
-79_72	79	60	15.9	gesture and talk	0.0-15.9	17/68	0.7	102-105				crying	actor everyday activities
-79_73	79	60	14.8	gesture and talk	0.7-14.2	15/81	0.9	102-105				scared	actor everyday activities
-79_74	79	60	15.4	gesture and talk	2.4-15.2	15/150	1.2	99-105				upset	actor everyday activities
+79_69	79	60	13.6	gesture and talk	1.5-12.4	14/71	1.0	95-105		Overjoyed		very happy	actor everyday activities
+79_70	79	60	12.7	gesture and talk	1.2-12.2	14/91	1.1	98-105		Laugh		laughing	actor everyday activities
+79_71	79	60	18.0	gesture and talk	1.1-17.0	15/75	0.9	102-105		Sad		sad	actor everyday activities
+79_72	79	60	15.9	gesture and talk	0.0-15.9	17/68	0.7	102-105		Crying		crying	actor everyday activities
+79_73	79	60	14.8	gesture and talk	0.7-14.2	15/81	0.9	102-105		Scared		scared	actor everyday activities
+79_74	79	60	15.4	gesture and talk	2.4-15.2	15/150	1.2	99-105		Upset		upset	actor everyday activities
 79_75	79	60	21.5	other	0.0-21.0	11/63	0.5	104-105				channel surfing	actor everyday activities
 79_76	79	60	20.9	other	1.2-20.9	13/64	0.9	102-105				driving	actor everyday activities
 79_77	79	60	19.1	everyday	1.1-19.0	17/86	2.1	0-105				vacuuming	actor everyday activities
@@ -1146,8 +1146,8 @@ id	subject	fps	sec	category	active	fit	travel	hips	flags	used	note	desc	about
 79_82	79	60	12.8	everyday	1.2-12.5	13/55	0.4	101-103				putting on deoderant	actor everyday activities
 79_83	79	60	20.0	everyday	0.0-20.0	16/79	0.4	101-103				shaving	actor everyday activities
 79_84	79	60	14.6	other	1.1-13.6	17/80	0.3	100-102				combing hair	actor everyday activities
-79_85	79	60	17.5	everyday	0.9-16.2	11/58	0.3	101-102				typing on a laptop	actor everyday activities
-79_86	79	60	11.3	sports	1.6-10.5	16/69	0.5	100-102				shooting bow and arrow	actor everyday activities
+79_85	79	60	17.5	everyday	0.9-16.2	11/58	0.3	101-102		Type_Laptop		typing on a laptop	actor everyday activities
+79_86	79	60	11.3	sports	1.6-10.5	16/69	0.5	100-102		Shoot_Bow		shooting bow and arrow	actor everyday activities
 79_87	79	60	13.2	everyday	1.8-13.2	16/70	0.7	104-106				raking	actor everyday activities
 79_88	79	60	15.1	combat	1.1-13.1	14/102	0.5	100-104				swatting at a fly	actor everyday activities
 79_89	79	60	14.7	animal and character	0.9-14.7	15/78	0.7	99-104				holding a baby	actor everyday activities
@@ -1157,13 +1157,13 @@ id	subject	fps	sec	category	active	fit	travel	hips	flags	used	note	desc	about
 79_93	79	60	19.0	everyday	0.0-19.0	24/118	0.8	95-102				weight lifting	actor everyday activities
 79_94	79	60	15.6	other	0.3-14.4	16/68	1.0	96-102				flexing	actor everyday activities
 79_95	79	60	15.7	sports	1.0-15.0	15/100	1.3	98-102				rowing	actor everyday activities
-79_96	79	60	9.3	sports	1.5-8.7	16/67	0.2	101-102				shooting a gun	actor everyday activities
+79_96	79	60	9.3	sports	1.5-8.7	16/67	0.2	101-102		Shoot_Pistol		shooting a gun	actor everyday activities
 80_01	80	60	14.1	gesture and talk	0.0-14.1	18/138	0.3	102-103		Shake_Hands		shaking hands	assorted motions
 80_02	80	60	11.7	everyday	1.7-11.7	18/74	0.2	103-103				chopping onions	assorted motions
 80_03	80	60	11.0	sports	1.4-10.5	20/96	0.7	102-105			pick: Shoot_Gun (a gunner)	shooting a gun	assorted motions
 80_04	80	60	18.4	everyday	0.8-18.4	18/90	0.2	103-103				sewing	assorted motions
 80_05	80	60	19.3	everyday	1.6-19.2	26/139	1.5	103-104				digging a hole	assorted motions
-80_06	80	60	16.0	everyday	0.0-16.0	19/93	0.3	103-103				paying for something	assorted motions
+80_06	80	60	16.0	everyday	0.0-16.0	19/93	0.3	103-103		Pay		paying for something	assorted motions
 80_07	80	60	26.0	climb	2.2-25.0	21/162	1.4	99-105				hanging picture	assorted motions
 80_08	80	60	14.6	everyday	0.0-14.6	25/146	0.5	103-105				picking up something	assorted motions
 80_09	80	60	25.3	everyday	2.2-24.6	50/212	2.1	96-104	inverted loose			planting a flower	assorted motions
@@ -1198,7 +1198,7 @@ id	subject	fps	sec	category	active	fit	travel	hips	flags	used	note	desc	about
 80_38	80	60	41.1	other	1.6-40.3	18/95	1.9	101-103				driving	assorted motions
 80_39	80	60	30.4	undescribed	1.0-30.4	23/121	0.9	102-104					assorted motions
 80_40	80	60	15.2	everyday	1.8-15.2	21/111	0.2	103-104				drinking from bottle	assorted motions
-80_41	80	60	17.7	gesture and talk	0.0-17.7	20/119	0.5	102-104				freezing	assorted motions
+80_41	80	60	17.7	gesture and talk	0.0-17.7	20/119	0.5	102-104		Freezing		freezing	assorted motions
 80_42	80	60	20.6	gesture and talk	0.0-20.6	23/104	0.6	103-105				freezing	assorted motions
 80_43	80	60	16.3	gesture and talk	0.0-15.6	21/214	0.9	98-108				happy	assorted motions
 80_44	80	60	15.5	gesture and talk	1.1-14.8	19/144	1.4	101-105				laughing	assorted motions
@@ -1236,13 +1236,13 @@ id	subject	fps	sec	category	active	fit	travel	hips	flags	used	note	desc	about
 81_03	81	120	9.0	locomotion	0.4-7.4	13/63	4.4	102-106				walk	pushing a box; jumping off a ledge; walks
 81_04	81	120	8.0	locomotion	0.1-8.0	12/69	4.4	101-105				walk at a brisk pace	pushing a box; jumping off a ledge; walks
 81_05	81	120	11.4	everyday	0.3-11.4	16/71	3.7	78-106				push heavy object	pushing a box; jumping off a ledge; walks
-81_06	81	120	10.6	everyday	0.0-10.6	15/80	3.7	78-104				push heavy box	pushing a box; jumping off a ledge; walks
-81_07	81	120	10.1	everyday	0.0-10.1	15/58	2.7	53-104				pull heavy object	pushing a box; jumping off a ledge; walks
-81_08	81	120	11.5	everyday	0.0-11.5	16/84	3.4	54-105				drag heavy object	pushing a box; jumping off a ledge; walks
+81_06	81	120	10.6	everyday	0.0-10.6	15/80	3.7	78-104		Push_Heavy_Box		push heavy box	pushing a box; jumping off a ledge; walks
+81_07	81	120	10.1	everyday	0.0-10.1	15/58	2.7	53-104		Pull_Heavy_Object		pull heavy object	pushing a box; jumping off a ledge; walks
+81_08	81	120	11.5	everyday	0.0-11.5	16/84	3.4	54-105		Drag_Heavy_Object		drag heavy object	pushing a box; jumping off a ledge; walks
 81_09	81	120	11.6	everyday	0.4-11.6	21/119	3.6	70-105				drag heavy object	pushing a box; jumping off a ledge; walks
 81_10	81	120	14.8	everyday	0.0-14.8	11/65	2.7	102-107				push object that is high in air	pushing a box; jumping off a ledge; walks
 81_11	81	120	14.1	everyday	0.0-14.1	12/57	3.0	102-107				push object that is high in air	pushing a box; jumping off a ledge; walks
-81_12	81	120	4.2	climb	0.4-4.2	15/82	1.8	82-178				jump backwards off ledge	pushing a box; jumping off a ledge; walks
+81_12	81	120	4.2	climb	0.4-4.2	15/82	1.8	82-178		Jump_Off_Ledge_Back		jump backwards off ledge	pushing a box; jumping off a ledge; walks
 81_13	81	120	5.4	climb	0.2-5.2	13/80	1.7	81-174				jump backwards off ledge	pushing a box; jumping off a ledge; walks
 81_14	81	120	17.4	climb	0.0-17.4	13/69	3.2	82-177	floats			climb backwards off ledge	pushing a box; jumping off a ledge; walks
 81_15	81	120	16.9	climb	0.0-16.9	14/84	3.0	92-175	floats			climb backwards off ledge	pushing a box; jumping off a ledge; walks
@@ -1269,7 +1269,7 @@ id	subject	fps	sec	category	active	fit	travel	hips	flags	used	note	desc	about
 82_18	82	120	0.1	jump	0.0-0.1	11/43	0.0	99-99	short			static pose	jumping; pushing; emotional walks
 83_01	83	120	5.3	locomotion	2.1-4.6	25/71	1.2	94-116				large sidestep to right	steps
 83_02	83	120	3.0	climb	0.0-2.9	27/77	0.5	104-121				sidestep to the right and up a ledge	steps
-83_03	83	120	5.6	climb	0.0-5.1	27/77	0.9	97-121				large step to a short ledge	steps
+83_03	83	120	5.6	climb	0.0-5.1	27/77	0.9	97-121		Step_Up_Ledge		large step to a short ledge	steps
 83_04	83	120	3.9	locomotion	0.2-3.6	27/80	0.9	96-121				large sidestep to right	steps
 83_05	83	120	4.0	locomotion	0.5-4.0	24/88	1.2	87-122				very large sidestep to right	steps
 83_06	83	120	3.3	locomotion	0.0-3.3	24/69	1.1	97-126				very large sidestep to right and down	steps
@@ -1308,7 +1308,7 @@ id	subject	fps	sec	category	active	fit	travel	hips	flags	used	note	desc	about
 83_39	83	120	8.1	locomotion	1.0-8.1	28/74	4.4	97-104				walk forward turn 90 degrees right walk forward	steps
 83_40	83	120	4.4	jump	0.0-4.0	27/81	0.6	94-121				hop forward	steps
 83_41	83	120	3.9	jump	1.4-3.7	23/62	0.6	92-125				hop forward	steps
-83_42	83	120	4.5	jump	0.0-3.8	23/68	1.1	85-128				long jump forward	steps
+83_42	83	120	4.5	jump	0.0-3.8	23/68	1.1	85-128		Long_Jump		long jump forward	steps
 83_43	83	120	5.0	jump	1.8-4.2	22/72	1.8	74-132				long jump forward	steps
 83_44	83	120	5.5	locomotion	0.0-5.5	28/76	0.9	107-116				medium step forward	steps
 83_45	83	120	4.1	jump	0.0-3.7	23/76	0.6	83-152				hop forward	steps
@@ -1327,7 +1327,7 @@ id	subject	fps	sec	category	active	fit	travel	hips	flags	used	note	desc	about
 83_58	83	120	3.0	jump	0.6-2.2	20/60	0.4	85-136				hop turn left 270 degrees in air	steps
 83_59	83	120	5.0	jump	2.3-4.8	22/64	0.6	81-154				hop turn left 270 degrees in air	steps
 83_60	83	120	3.4	jump	0.3-3.4	19/82	0.6	78-162				hop turn left 270 degrees in air	steps
-83_61	83	120	4.2	jump	1.2-3.2	18/55	0.8	85-149				hop turn 360 degrees left in air	steps
+83_61	83	120	4.2	jump	1.2-3.2	18/55	0.8	85-149		Hop_Turn_360		hop turn 360 degrees left in air	steps
 83_62	83	120	3.9	jump	1.0-3.5	20/65	0.8	77-162				hop turn left 360 degrees in air	steps
 83_63	83	120	5.7	locomotion	2.4-5.0	26/74	1.2	95-116				large sidestep to right and forward	steps
 83_64	83	120	4.8	jump	2.0-4.2	20/95	0.8	76-155				hop and turn right 360 degrees in air	steps
@@ -1423,8 +1423,8 @@ id	subject	fps	sec	category	active	fit	travel	hips	flags	used	note	desc	about
 90_14	90	120	7.0	acrobatics	2.1-6.3	16/96	2.9	91-136	inverted floats			front hand flip	cartwheels; acrobatics; dances
 90_15	90	120	9.9	acrobatics	3.0-9.9	14/100	2.8	89-126	inverted floats			front hand flip	cartwheels; acrobatics; dances
 90_16	90	120	6.0	reaction	1.9-4.1	15/92	1.1	24-183	floats	Fall_On_Face		fall on face	cartwheels; acrobatics; dances
-90_17	90	120	5.0	acrobatics	1.8-4.6	15/69	2.3	34-118	inverted floats			BannanaPeelSlip	cartwheels; acrobatics; dances
-90_18	90	120	3.3	everyday	0.3-1.9	24/91	0.3	18-122	floats		pick: Rug_Pull_Fall (a slapstick fall)	RugPullFall	cartwheels; acrobatics; dances
+90_17	90	120	5.0	acrobatics	1.8-4.6	15/69	2.3	34-118	inverted floats	Slip_Fall		BannanaPeelSlip	cartwheels; acrobatics; dances
+90_18	90	120	3.3	everyday	0.3-1.9	24/91	0.3	18-122	floats	Rug_Pull_Fall	pick: Rug_Pull_Fall (a slapstick fall)	RugPullFall	cartwheels; acrobatics; dances
 90_19	90	120	8.7	acrobatics	0.1-7.2	21/198	4.6	33-115	inverted			monkey backflip	cartwheels; acrobatics; dances
 90_20	90	120	14.8	animal and character	1.4-13.9	18/140	6.8	8-106	inverted			monkey sequence	cartwheels; acrobatics; dances
 90_21	90	120	11.3	animal and character	0.7-10.5	20/140	6.2	11-140	inverted			monkey sequence	cartwheels; acrobatics; dances
@@ -1436,9 +1436,9 @@ id	subject	fps	sec	category	active	fit	travel	hips	flags	used	note	desc	about
 90_27	90	120	10.2	sports	0.0-10.2	12/80	4.1	156-165	floats			bwk ball walk	cartwheels; acrobatics; dances
 90_28	90	120	6.4	acrobatics	1.6-6.4	17/113	3.1	11-98	inverted			breakdance	cartwheels; acrobatics; dances
 90_29	90	120	12.3	acrobatics	0.6-12.3	18/133	9.5	46-145	inverted			sequesnce	cartwheels; acrobatics; dances
-90_30	90	120	11.9	dance	2.5-11.9	15/100	3.5	36-108				russian dance	cartwheels; acrobatics; dances
+90_30	90	120	11.9	dance	2.5-11.9	15/100	3.5	36-108		Russian_Dance		russian dance	cartwheels; acrobatics; dances
 90_31	90	120	8.2	dance	1.6-8.2	16/94	2.7	36-107				russian dance	cartwheels; acrobatics; dances
-90_32	90	120	6.0	dance	0.0-6.0	18/69	4.2	102-107				moonwalk	cartwheels; acrobatics; dances
+90_32	90	120	6.0	dance	0.0-6.0	18/69	4.2	102-107		Moonwalk		moonwalk	cartwheels; acrobatics; dances
 90_33	90	120	7.5	acrobatics	0.0-7.5	16/96	3.1	8-99	inverted			arm up wide leg roll	cartwheels; acrobatics; dances
 90_34	90	120	7.0	acrobatics	1.9-4.7	14/96	2.6	9-109	inverted			wide leg roll	cartwheels; acrobatics; dances
 90_35	90	120	5.8	acrobatics	1.5-5.2	15/96	2.8	9-101	inverted			wide leg roll	cartwheels; acrobatics; dances
@@ -1458,7 +1458,7 @@ id	subject	fps	sec	category	active	fit	travel	hips	flags	used	note	desc	about
 91_13	91	120	24.7	locomotion	1.7-24.2	17/71	9.4	96-104				SadWalk	walks and turns
 91_14	91	120	23.1	locomotion	2.3-22.4	18/83	9.4	98-104				DepressedWalk	walks and turns
 91_15	91	120	25.7	locomotion	0.0-25.7	21/137	10.2	81-105				ClumsyWalk	walks and turns
-91_16	91	120	15.8	reaction	2.4-15.8	18/86	9.6	92-102				Limp	walks and turns
+91_16	91	120	15.8	reaction	2.4-15.8	18/86	9.6	92-102		Limp_Loop		Limp	walks and turns
 91_17	91	120	12.7	locomotion	2.0-12.4	18/92	9.5	97-104				QuickWalk	walks and turns
 91_18	91	120	28.0	locomotion	0.0-28.0	16/92	9.7	99-104				CarefulWalk LookingAround	walks and turns
 91_19	91	120	15.7	locomotion	1.8-15.7	18/91	9.4	99-107				March	walks and turns
@@ -1501,16 +1501,16 @@ id	subject	fps	sec	category	active	fit	travel	hips	flags	used	note	desc	about
 91_56	91	120	4.2	locomotion	1.8-4.2	18/79	0.5	90-131				90	walks and turns
 91_57	91	120	9.8	locomotion	1.8-9.8	17/90	4.9	100-104				WalkForward	walks and turns
 91_58	91	120	4.1	locomotion	1.2-3.7	20/100	0.5	89-135				270	walks and turns
-91_59	91	120	2.6	acrobatics	0.2-1.9	20/85	0.7	92-130				360 smallStumble	walks and turns
+91_59	91	120	2.6	acrobatics	0.2-1.9	20/85	0.7	92-130		Stumble_Turn		360 smallStumble	walks and turns
 91_60	91	120	3.1	locomotion	0.5-2.6	20/81	0.6	90-129				360	walks and turns
 91_61	91	120	3.0	locomotion	0.2-2.2	20/79	0.5	89-133				360	walks and turns
 91_62	91	120	15.4	locomotion	0.5-14.7	17/93	12.2	100-105				walkFigure8	walks and turns
 93_01	93	120	0.2	calibration	0.0-0.2	15/38	0.0	93-93	short			Motorcycle Pose	Charleston Dance
 93_02	93	120	12.4	dance	0.0-12.4	19/96	3.5	45-105				rangeOfMotion	Charleston Dance
-93_03	93	120	3.7	dance	0.1-3.7	13/54	1.2	97-106			pick: Charleston (a town festival)	charleston_01	Charleston Dance
+93_03	93	120	3.7	dance	0.1-3.7	13/54	1.2	97-106		Charleston	pick: Charleston (a town festival)	charleston_01	Charleston Dance
 93_04	93	120	4.2	dance	0.0-4.2	15/65	1.5	96-106				charleston_side_by_side_female	Charleston Dance
 93_05	93	120	4.5	dance	0.0-4.5	12/70	1.5	96-103				charleston_side_by_side_male	Charleston Dance
-93_06	93	120	3.3	dance	0.0-3.3	18/80	2.9	92-103				lindyHop2	Charleston Dance
+93_06	93	120	3.3	dance	0.0-3.3	18/80	2.9	92-103		Lindy_Hop		lindyHop2	Charleston Dance
 93_07	93	120	2.0	locomotion	0.0-2.0	12/62	4.6	97-101				Casual Walk	Charleston Dance
 93_08	93	120	4.6	dance	0.0-4.6	15/67	2.6	97-105				xtra fancY charleston	Charleston Dance
 94_01	94	120	30.0	undescribed	0.8-30.0	16/109	19.5	81-113					indian dance
@@ -1582,7 +1582,7 @@ id	subject	fps	sec	category	active	fit	travel	hips	flags	used	note	desc	about
 104_10	104	120	2.8	locomotion	0.0-2.4	19/75	4.7	94-111				JogStop	motion
 104_11	104	120	4.5	gesture and talk	0.0-4.5	18/86	5.6	91-117				HappyGoLuckWalk	motion
 104_12	104	120	3.5	locomotion	0.0-3.5	19/96	5.3	87-118				ExcitedWalk	motion
-104_13	104	120	4.6	acrobatics	0.0-4.6	19/122	5.3	88-114				StumbleWalk	motion
+104_13	104	120	4.6	acrobatics	0.0-4.6	19/122	5.3	88-114		Stumble_Walk		StumbleWalk	motion
 104_14	104	120	5.9	gesture and talk	2.1-5.9	16/78	4.8	91-119				HappyStartWalk	motion
 104_15	104	120	1.7	undescribed	1.5-1.7	12/57	0.0	94-94					motion
 104_16	104	120	2.7	locomotion	0.0-2.7	21/77	5.1	84-107				SpasticWalk	motion
@@ -1766,24 +1766,24 @@ id	subject	fps	sec	category	active	fit	travel	hips	flags	used	note	desc	about
 108_27	108	120	3.5	undescribed	0.0-3.5	16/98	3.4	97-114					Walking with obstacles 2
 108_28	108	120	3.0	undescribed	0.0-3.0	17/106	3.2	92-112					Walking with obstacles 2
 111_01	111	120	8.3	locomotion	0.0-8.3	14/102	3.8	105-111				Walk backwards	Pregnant Woman
-111_02	111	120	3.5	gesture and talk	0.3-3.5	17/97	0.3	104-107	inverted			Bow	Pregnant Woman
+111_02	111	120	3.5	gesture and talk	0.3-3.5	17/97	0.3	104-107	inverted	Take_A_Bow		Bow	Pregnant Woman
 111_03	111	120	12.7	locomotion	0.0-12.7	29/148	2.3	34-101				Crawling	Pregnant Woman
 111_04	111	120	6.1	gesture and talk	0.0-6.1	15/99	1.0	93-105				Curtsey	Pregnant Woman
-111_05	111	120	7.7	dance	0.0-7.7	16/101	2.6	96-106				Dance	Pregnant Woman
+111_05	111	120	7.7	dance	0.0-7.7	16/101	2.6	96-106		Free_Dance		Dance	Pregnant Woman
 111_06	111	120	12.7	reaction	0.0-11.6	30/185	2.0	10-105	inverted			Get up from floor	Pregnant Woman
 111_07	111	120	16.4	reaction	0.0-16.4	19/117	1.4	6-105				Get up from floor	Pregnant Woman
 111_08	111	120	12.8	reaction	0.0-12.1	26/147	1.8	5-105				Get up from floor	Pregnant Woman
 111_09	111	120	6.5	reaction	0.0-6.5	24/152	0.9	60-106				Get up from chair	Pregnant Woman
 111_10	111	120	3.7	reaction	0.0-3.7	21/128	1.1	61-107				get up from chair	Pregnant Woman
 111_11	111	120	4.8	reaction	0.0-4.8	19/118	0.7	67-108				get up from chair	Pregnant Woman
-111_12	111	120	13.5	other	0.0-11.3	28/157	1.4	5-106				Lay down	Pregnant Woman
+111_12	111	120	13.5	other	0.0-11.3	28/157	1.4	5-106		Lie_Down		Lay down	Pregnant Woman
 111_13	111	120	10.7	locomotion	0.3-10.7	13/104	8.5	96-107				March	Pregnant Woman
-111_14	111	120	10.7	everyday	0.0-10.7	19/101	6.9	100-109				Mope	Pregnant Woman
+111_14	111	120	10.7	everyday	0.0-10.7	19/101	6.9	100-109		Mope		Mope	Pregnant Woman
 111_15	111	120	2.2	calibration	0.0-2.2	22/55	0.0	94-95				Motorcycle	Pregnant Woman
 111_16	111	120	3.6	gesture and talk	0.0-3.6	26/94	0.1	105-106				Peekaboo	Pregnant Woman
 111_17	111	120	4.7	everyday	0.0-4.7	19/125	0.7	94-105				Pick up	Pregnant Woman
 111_18	111	120	4.5	everyday	0.0-4.5	16/97	0.6	32-107				Pick up	Pregnant Woman
-111_19	111	120	8.5	combat	0.0-8.5	16/101	2.1	98-104				Punch Kick	Pregnant Woman
+111_19	111	120	8.5	combat	0.0-8.5	16/101	2.1	98-104		Punch_Kick		Punch Kick	Pregnant Woman
 111_20	111	120	8.8	other	0.0-8.8	19/187	1.9	101-108	inverted			Ring around the rosie	Pregnant Woman
 111_21	111	120	19.0	acrobatics	0.0-18.6	26/213	1.5	8-22				Roll over	Pregnant Woman
 111_22	111	120	49.3	calibration	1.7-48.1	16/163	1.8	103-115				Range of motion	Pregnant Woman
@@ -1836,7 +1836,7 @@ id	subject	fps	sec	category	active	fit	travel	hips	flags	used	note	desc	about
 113_28	113	120	42.9	exercise	0.6-42.9	49/245	4.5	37-102	inverted loose			Yoga	Post pregnant woman
 113_29	113	120	36.0	exercise	0.5-36.0	28/127	2.7	89-110	inverted			Yoga	Post pregnant woman
 114_01	114	120	2.7	calibration	2.5-2.7	9/22	0.0	95-97				Motorcycle	Pregnant Woman
-114_02	114	120	14.5	reaction	3.9-14.5	16/85	1.4	14-106				Getting up from laying down	Pregnant Woman
+114_02	114	120	14.5	reaction	3.9-14.5	16/85	1.4	14-106		Get_Up_Slow		Getting up from laying down	Pregnant Woman
 114_03	114	120	31.8	calibration	4.2-30.0	12/77	2.0	80-110				Range of motion	Pregnant Woman
 114_04	114	120	7.5	reaction	0.1-7.5	14/90	1.9	58-107				Getting up from chair	Pregnant Woman
 114_05	114	120	22.7	sit and lie	0.0-22.7	27/132	2.2	65-105				Sitting in chair	Pregnant Woman
@@ -2047,13 +2047,13 @@ id	subject	fps	sec	category	active	fit	travel	hips	flags	used	note	desc	about
 123_11	123	120	5.2	everyday	1.2-5.2	16/85	3.0	104-107				15.5 lbs	Carry Suitcase with Varying Weights
 123_12	123	120	6.6	everyday	1.3-6.6	17/84	3.8	102-108				15.5 lbs	Carry Suitcase with Varying Weights
 123_13	123	120	5.6	everyday	0.0-5.6	18/80	2.6	104-107				15.5 lbs	Carry Suitcase with Varying Weights
-124_01	124	120	5.4	sports	1.1-5.4	17/135	2.4	80-100				Baseball Pitch	Sports Related Motions
+124_01	124	120	5.4	sports	1.1-5.4	17/135	2.4	80-100		Baseball_Pitch		Baseball Pitch	Sports Related Motions
 124_02	124	120	11.0	sports	1.0-11.0	17/116	4.5	85-105				Baseball Pitch	Sports Related Motions
 124_03	124	120	8.0	sports	0.0-8.0	17/105	2.1	86-110				Basketball Shoot	Sports Related Motions
 124_04	124	120	6.0	sports	0.1-6.0	19/85	0.7	90-112				Basketball Free Throw	Sports Related Motions
 124_05	124	120	6.6	jump	0.4-6.6	16/99	2.5	88-140				Basketball Jump Shot	Sports Related Motions
 124_06	124	120	5.8	sports	0.6-5.8	20/99	5.0	82-163				Basketball Lay Up	Sports Related Motions
-124_07	124	120	10.8	sports	0.0-10.8	17/118	2.4	94-101				Baseball Swing	Sports Related Motions
+124_07	124	120	10.8	sports	0.0-10.8	17/118	2.4	94-101		Baseball_Swing		Baseball Swing	Sports Related Motions
 124_08	124	120	6.5	sports	0.0-6.5	17/113	1.3	89-103				Baseball Bunt	Sports Related Motions
 124_09	124	120	20.5	sports	0.0-20.5	17/123	2.4	89-105				Frisbee	Sports Related Motions
 124_10	124	120	2.1	calibration	1.9-2.1	14/49	0.0	90-90				Motorcycle	Sports Related Motions
@@ -2101,7 +2101,7 @@ id	subject	fps	sec	category	active	fit	travel	hips	flags	used	note	desc	about
 127_18	127	120	3.3	locomotion	0.0-3.3	19/91	5.2	87-104				Run Stop Run	Action Adventure Obstacles, running, jumping, ducking, rolling
 127_19	127	120	3.7	locomotion	0.0-3.7	18/82	5.4	81-104				Run Quick Stop Run	Action Adventure Obstacles, running, jumping, ducking, rolling
 127_20	127	120	3.0	locomotion	0.0-3.0	17/57	5.3	83-104				Run Quick Stop Run	Action Adventure Obstacles, running, jumping, ducking, rolling
-127_21	127	120	3.0	jump	0.0-3.0	18/82	5.5	84-130				Run Jump Stop Run	Action Adventure Obstacles, running, jumping, ducking, rolling
+127_21	127	120	3.0	jump	0.0-3.0	18/82	5.5	84-130		Run_Jump_Stop		Run Jump Stop Run	Action Adventure Obstacles, running, jumping, ducking, rolling
 127_22	127	120	3.0	jump	0.0-3.0	19/84	5.8	80-135				Run Jump Stop Run	Action Adventure Obstacles, running, jumping, ducking, rolling
 127_23	127	120	2.9	acrobatics	0.0-2.9	21/108	5.3	11-104	inverted			Run Dive Over Roll Run	Action Adventure Obstacles, running, jumping, ducking, rolling
 127_24	127	120	2.8	acrobatics	0.0-2.8	21/95	5.5	12-106	inverted			Run Dive Over Roll Run	Action Adventure Obstacles, running, jumping, ducking, rolling
@@ -2113,7 +2113,7 @@ id	subject	fps	sec	category	active	fit	travel	hips	flags	used	note	desc	about
 127_30	127	120	2.0	combat	0.0-2.0	18/57	5.8	76-103				Run Duck Underneath	Action Adventure Obstacles, running, jumping, ducking, rolling
 127_31	127	120	4.3	combat	0.0-4.3	20/93	5.6	46-96				Run Duck Underneath	Action Adventure Obstacles, running, jumping, ducking, rolling
 127_32	127	120	2.7	combat	0.0-2.7	28/199	4.9	63-94				Run Duck Underneath	Action Adventure Obstacles, running, jumping, ducking, rolling
-127_33	127	120	1.7	locomotion	0.0-1.7	18/49	5.1	92-126				Run Over	Action Adventure Obstacles, running, jumping, ducking, rolling
+127_33	127	120	1.7	locomotion	0.0-1.7	18/49	5.1	92-126		Run_Over		Run Over	Action Adventure Obstacles, running, jumping, ducking, rolling
 127_34	127	120	1.7	locomotion	0.0-1.7	18/61	5.2	91-129				Run Over	Action Adventure Obstacles, running, jumping, ducking, rolling
 127_35	127	120	2.0	locomotion	0.0-2.0	16/71	5.5	89-129				Run Over	Action Adventure Obstacles, running, jumping, ducking, rolling
 127_36	127	120	1.8	locomotion	0.0-1.8	20/87	5.4	86-123				Run Over	Action Adventure Obstacles, running, jumping, ducking, rolling
@@ -2127,7 +2127,7 @@ id	subject	fps	sec	category	active	fit	travel	hips	flags	used	note	desc	about
 128_06	128	120	1.6	locomotion	0.0-1.6	18/58	2.9	86-105				Run Stop Run	Action Adventure Motions running, ducking, rolling, stopping
 128_07	128	120	2.9	locomotion	0.0-2.9	19/64	3.0	84-105				Run Stop Run	Action Adventure Motions running, ducking, rolling, stopping
 128_08	128	120	2.7	locomotion	0.0-2.7	18/55	2.1	89-106				Run Stop Run	Action Adventure Motions running, ducking, rolling, stopping
-128_09	128	120	1.4	acrobatics	0.0-1.4	19/81	4.4	10-101	inverted			Run Roll Underneath	Action Adventure Motions running, ducking, rolling, stopping
+128_09	128	120	1.4	acrobatics	0.0-1.4	19/81	4.4	10-101	inverted	Roll_Under		Run Roll Underneath	Action Adventure Motions running, ducking, rolling, stopping
 128_10	128	120	3.6	acrobatics	0.0-3.6	19/96	5.6	10-103	inverted	Dive_Roll		Run Dive Over Roll Run	Action Adventure Motions running, ducking, rolling, stopping
 128_11	128	120	3.1	acrobatics	0.0-3.1	23/98	5.2	12-103	inverted			Run Dive Over Roll Run	Action Adventure Motions running, ducking, rolling, stopping
 131_01	131	120	8.3	locomotion	0.0-7.0	16/94	4.5	54-106				Start Walk Stop	Michael Jackson Styled Motions
@@ -2386,7 +2386,7 @@ id	subject	fps	sec	category	active	fit	travel	hips	flags	used	note	desc	about
 139_02	139	120	7.8	idle	0.0-7.8	17/73	1.2	104-106				Shifting Weight	Action Walks, sneaking, wounded, looking around
 139_03	139	120	8.2	reaction	0.0-8.2	16/60	2.1	96-104		Looking_Around		Looking Around	Action Walks, sneaking, wounded, looking around
 139_04	139	120	7.4	reaction	0.0-7.4	20/103	1.9	87-104				Looking Around	Action Walks, sneaking, wounded, looking around
-139_05	139	120	4.3	everyday	0.0-4.3	13/71	0.4	95-97				Pulling a Gun	Action Walks, sneaking, wounded, looking around
+139_05	139	120	4.3	everyday	0.0-4.3	13/71	0.4	95-97		Draw_Gun		Pulling a Gun	Action Walks, sneaking, wounded, looking around
 139_06	139	120	11.3	everyday	0.0-11.3	22/122	3.4	68-106				Poking Around On The Ground	Action Walks, sneaking, wounded, looking around
 139_07	139	120	4.2	everyday	0.0-4.2	18/83	0.7	79-105				Poking Around On The Ground	Action Walks, sneaking, wounded, looking around
 139_08	139	120	8.4	everyday	0.5-8.4	19/114	2.5	55-105				Poking Around On The Ground	Action Walks, sneaking, wounded, looking around
@@ -2397,16 +2397,16 @@ id	subject	fps	sec	category	active	fit	travel	hips	flags	used	note	desc	about
 139_13	139	120	11.6	locomotion	0.8-11.6	14/94	29.9	89-104				Run in Circles	Action Walks, sneaking, wounded, looking around
 139_14	139	120	8.2	locomotion	0.0-8.2	19/81	8.6	88-97			pick: Sneak_Sideways (along a wall)	Sneak Sideways	Action Walks, sneaking, wounded, looking around
 139_15	139	120	9.0	locomotion	0.0-9.0	19/78	8.4	86-95				Sneak Sideways	Action Walks, sneaking, wounded, looking around
-139_16	139	120	5.4	reaction	0.8-5.4	19/111	2.0	10-97				Get Up From Ground	Action Walks, sneaking, wounded, looking around
+139_16	139	120	5.4	reaction	0.8-5.4	19/111	2.0	10-97		Get_Up_Ready		Get Up From Ground	Action Walks, sneaking, wounded, looking around
 139_17	139	120	6.0	reaction	0.7-6.0	23/103	2.3	9-100				Get Up From Ground	Action Walks, sneaking, wounded, looking around
-139_18	139	120	7.1	reaction	0.0-7.1	22/117	2.5	12-104	inverted			Get Up From Ground Laying on Back	Action Walks, sneaking, wounded, looking around
+139_18	139	120	7.1	reaction	0.0-7.1	22/117	2.5	12-104	inverted	Get_Up_From_Back_Ready		Get Up From Ground Laying on Back	Action Walks, sneaking, wounded, looking around
 139_19	139	120	8.3	reaction	0.0-8.3	18/105	5.9	79-103		Wounded_Walk_Loop		Walk Wounded Leg	Action Walks, sneaking, wounded, looking around
 139_20	139	120	13.1	reaction	0.0-13.1	19/95	11.0	77-104				Walk Wounded Leg	Action Walks, sneaking, wounded, looking around
 139_21	139	120	10.9	calibration	0.0-10.2	19/114	1.2	40-110				Range Of Motion	Action Walks, sneaking, wounded, looking around
 139_22	139	120	11.9	reaction	0.0-11.9	18/101	10.5	86-106				Walk Wounded Leg	Action Walks, sneaking, wounded, looking around
 139_23	139	120	13.3	reaction	0.0-13.3	17/119	10.0	88-103				Walk Wounded Leg	Action Walks, sneaking, wounded, looking around
 139_24	139	120	6.0	reaction	0.0-6.0	18/72	2.9	89-104				Walk Wounded Leg	Action Walks, sneaking, wounded, looking around
-139_25	139	120	5.5	reaction	0.0-5.5	19/88	1.8	84-104				Giving Directions	Action Walks, sneaking, wounded, looking around
+139_25	139	120	5.5	reaction	0.0-5.5	19/88	1.8	84-104		Give_Directions		Giving Directions	Action Walks, sneaking, wounded, looking around
 139_26	139	120	5.4	reaction	0.0-5.4	20/110	2.9	81-104				Looking Around	Action Walks, sneaking, wounded, looking around
 139_27	139	120	6.1	reaction	0.1-6.1	20/117	3.0	82-104				Looking Around	Action Walks, sneaking, wounded, looking around
 139_28	139	120	24.7	locomotion	2.3-24.7	15/79	17.5	101-105				Walking	Action Walks, sneaking, wounded, looking around
@@ -2493,7 +2493,7 @@ id	subject	fps	sec	category	active	fit	travel	hips	flags	used	note	desc	about
 143_10	143	120	4.8	everyday	0.0-4.3	10/66	4.2	83-101	inverted			Walk And Pick up Tool Box	General Subject Capture
 143_11	143	120	5.5	everyday	0.5-5.1	10/56	4.5	87-101		Pick_Up_Box		Walk And Pick up Box	General Subject Capture
 143_12	143	120	4.9	everyday	0.0-4.4	10/52	3.9	85-101				Walk And Pick up Toolbox	General Subject Capture
-143_13	143	120	4.8	everyday	0.0-4.3	11/101	4.2	74-101				Walk and Pick up Laundry Basket	General Subject Capture
+143_13	143	120	4.8	everyday	0.0-4.3	11/101	4.2	74-101		Pick_Up_Basket		Walk and Pick up Laundry Basket	General Subject Capture
 143_14	143	120	6.0	locomotion	0.0-5.8	10/55	7.3	96-103				Walk And Step Over	General Subject Capture
 143_15	143	120	5.9	locomotion	0.2-5.9	10/54	7.4	92-107				Walk And Step Over	General Subject Capture
 143_16	143	120	5.1	locomotion	0.0-5.1	10/57	6.7	93-111				Walk And Step Over	General Subject Capture
@@ -2513,11 +2513,11 @@ id	subject	fps	sec	category	active	fit	travel	hips	flags	used	note	desc	about
 143_30	143	120	3.1	gesture and talk	0.0-3.1	12/62	0.4	99-102				Stretch And Yawn	General Subject Capture
 143_31	143	120	3.5	jump	0.4-3.3	11/52	2.9	91-110				Hopscotch	General Subject Capture
 143_32	143	120	6.5	locomotion	0.0-6.5	10/57	8.9	97-102				Walk	General Subject Capture
-143_33	143	120	3.0	gesture and talk	0.3-3.0	10/41	0.1	99-102				Peek A Boo	General Subject Capture
-143_34	143	120	6.5	dance	0.0-6.5	14/83	1.0	73-103			pick: Chicken_Dance (a town festival)	Chicken Dance	General Subject Capture
-143_35	143	120	10.7	dance	0.5-10.7	10/73	1.0	92-117				Macarena Dance	General Subject Capture
+143_33	143	120	3.0	gesture and talk	0.3-3.0	10/41	0.1	99-102		Peekaboo		Peek A Boo	General Subject Capture
+143_34	143	120	6.5	dance	0.0-6.5	14/83	1.0	73-103		Chicken_Dance	pick: Chicken_Dance (a town festival)	Chicken Dance	General Subject Capture
+143_35	143	120	10.7	dance	0.5-10.7	10/73	1.0	92-117		Macarena		Macarena Dance	General Subject Capture
 143_36	143	120	6.3	other	0.2-5.7	12/66	13.6	93-103				Airplane	General Subject Capture
-143_37	143	120	4.6	climb	0.1-4.6	15/92	1.7	100-170				Climb Up And Down Ladder	General Subject Capture
+143_37	143	120	4.6	climb	0.1-4.6	15/92	1.7	100-170		Ladder_Up_Down		Climb Up And Down Ladder	General Subject Capture
 143_38	143	120	11.0	everyday	0.4-11.0	13/308	16.9	98-102				Walk Digital 8	General Subject Capture
 143_39	143	120	9.0	locomotion	0.5-9.0	10/50	8.9	98-103				Walk Backwards	General Subject Capture
 143_40	143	120	8.0	locomotion	0.5-8.0	10/45	8.6	97-102				Walk Sideways	General Subject Capture

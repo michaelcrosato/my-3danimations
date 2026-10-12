@@ -470,6 +470,12 @@ export const seam: Operator = tidied((clip, _R, report) => {
   const d = copy(c);
   dense(d, first0.t, first0.t + W);
   dense(d, T - W, T);
+  // the two segments that meet at the seam made as long as each other, so the curves' slopes across them (each end's
+  // speed, as the keys play it, straight from key to key) are alike: a short last segment against a long first one reads
+  // as a change of speed at the seam where the curves have none
+  const at0 = keyAt(d, T), K0 = sorted(d) as K[], h = Math.min(K0[1]!.t - first0.t, T - K0[K0.indexOf(at0) - 1]!.t);
+  keyAt(d, first0.t + h);
+  keyAt(d, T - h);
   const end = keyAt(d, T), K = sorted(d) as K[], e = K.indexOf(end), before = K[e - 1]!, after = K[1]!, first = K[0]!;
   const h00 = (u: number) => 2 * u ** 3 - 3 * u ** 2 + 1, h10 = (u: number) => u ** 3 - 2 * u ** 2 + u, h01 = (u: number) => -2 * u ** 3 + 3 * u ** 2, h11 = (u: number) => u ** 3 - u ** 2;
   // the most a speed difference moves a value (half of it, at the Hermite tangent's peak of 4/27 of W)

@@ -1,0 +1,24 @@
+{
+"format": "2.0",
+"id": "STYLE100_IDLE/TwoFootJump_Idle",
+"name": "TwoFootJump_Idle",
+"legend": "2.0",
+"dur": 2.5,
+"loop": true,
+"fps": 30,
+"tags": ["idle","style"],
+"desc": "Standing, two foot jump style: feet together and jump",
+"skeleton": "humanoid",
+"restSrc": "100STYLE",
+"provenance": {"src":"100STYLE","take":"TwoFootJump_ID 12.27-14.77","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
+"quality": {"fit":[8,23],"qa":"unchecked","qaVersion":"none"},
+"keys": [
+  {"t":0,
+   "hips":[0,0,100], "body":[0,-11,1], "chest":[2,15,-1], "head":[7,19,2],
+   "shL":[6,-8], "shR":[3,-8], "armL":[14,5,-99,13,38], "armR":[18,8,-98,10,-3], "handL":[1,-1,134], "handR":[-11,-6,120], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[-33,-4,-94,13,1], "legR":[-34,-4,-94,13,0], "footL":[14,1,0], "footR":[14,3,0]},
+  {"t":2.5,
+   "hips":[0,0,100], "body":[0,-11,1], "chest":[2,15,-1], "head":[7,19,2],
+   "shL":[6,-8], "shR":[3,-8], "armL":[14,5,-99,13,38], "armR":[18,8,-98,10,-3], "handL":[1,-1,134], "handR":[-11,-6,120], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[-33,-4,-94,13,1], "legR":[-34,-4,-94,13,0], "footL":[14,1,0], "footR":[14,3,0]}
+]}

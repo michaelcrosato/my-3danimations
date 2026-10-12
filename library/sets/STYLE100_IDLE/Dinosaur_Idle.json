@@ -1,0 +1,24 @@
+{
+"format": "2.0",
+"id": "STYLE100_IDLE/Dinosaur_Idle",
+"name": "Dinosaur_Idle",
+"legend": "2.0",
+"dur": 2.533,
+"loop": true,
+"fps": 30,
+"tags": ["idle","style"],
+"desc": "Standing, dinosaur style: like a t-rex arms close to body dinosaur posture",
+"skeleton": "humanoid",
+"restSrc": "100STYLE",
+"provenance": {"src":"100STYLE","take":"Dinosaur_ID 11.52-14.05","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
+"quality": {"fit":[6,41],"qa":"unchecked","qaVersion":"none"},
+"keys": [
+  {"t":0,
+   "hips":[0,0,88], "body":[0,14,-1], "chest":[4,23,0], "head":[3,-10,5],
+   "shL":[3,-5], "shR":[6,-8], "armL":[99,-1,11,116,40], "armR":[96,-17,21,117,-35], "handL":[-2,-19,168], "handR":[-2,-33,169], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[32,0,-95,66,4], "legR":[29,-3,-96,64,-3], "footL":[-9,8,0], "footR":[-11,9,0]},
+  {"t":2.533,
+   "hips":[0,0,88], "body":[0,14,-1], "chest":[4,23,0], "head":[3,-10,5],
+   "shL":[3,-5], "shR":[6,-8], "armL":[99,-1,11,116,40], "armR":[96,-17,21,117,-35], "handL":[-2,-19,168], "handR":[-2,-33,169], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[32,0,-95,66,4], "legR":[29,-3,-96,64,-3], "footL":[-9,8,0], "footR":[-11,9,0]}
+]}

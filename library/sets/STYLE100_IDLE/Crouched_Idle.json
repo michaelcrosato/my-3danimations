@@ -1,0 +1,24 @@
+{
+"format": "2.0",
+"id": "STYLE100_IDLE/Crouched_Idle",
+"name": "Crouched_Idle",
+"legend": "2.0",
+"dur": 2.5,
+"loop": true,
+"fps": 30,
+"tags": ["idle","style"],
+"desc": "Standing, crouched style: squat slightly and bend back",
+"skeleton": "humanoid",
+"restSrc": "100STYLE",
+"provenance": {"src":"100STYLE","take":"Crouched_ID 13.50-16.00","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
+"quality": {"fit":[10,40],"qa":"unchecked","qaVersion":"none"},
+"keys": [
+  {"t":0,
+   "hips":[0,0,89], "body":[0,11,0], "chest":[2,18,1], "head":[-7,0,-1],
+   "shL":[6,-9], "shR":[6,-8], "armL":[44,6,-90,0,32], "armR":[47,11,-87,0,-129], "handL":[-6,-4,141], "handR":[-7,-3,-115], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[32,-3,-95,57,2], "legR":[32,-8,-94,59,-2], "footL":[-11,-1,0], "footR":[-8,15,0]},
+  {"t":2.5,
+   "hips":[0,0,89], "body":[0,11,0], "chest":[2,18,1], "head":[-7,0,-1],
+   "shL":[6,-9], "shR":[6,-8], "armL":[44,6,-90,0,32], "armR":[47,11,-87,0,-129], "handL":[-6,-4,141], "handR":[-7,-3,-115], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[32,-3,-95,57,2], "legR":[32,-8,-94,59,-2], "footL":[-11,-1,0], "footR":[-8,15,0]}
+]}

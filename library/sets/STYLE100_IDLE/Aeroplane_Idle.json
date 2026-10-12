@@ -1,0 +1,24 @@
+{
+"format": "2.0",
+"id": "STYLE100_IDLE/Aeroplane_Idle",
+"name": "Aeroplane_Idle",
+"legend": "2.0",
+"dur": 2.5,
+"loop": true,
+"fps": 30,
+"tags": ["idle","style"],
+"desc": "Standing, aeroplane style: both arms raised as wings – tilting from side to side",
+"skeleton": "humanoid",
+"restSrc": "100STYLE",
+"provenance": {"src":"100STYLE","take":"Aeroplane_ID 14.23-16.73","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
+"quality": {"fit":[8,33],"qa":"unchecked","qaVersion":"none"},
+"keys": [
+  {"t":0,
+   "hips":[0,0,100], "body":[0,-3,0], "chest":[6,13,2], "head":[26,14,13],
+   "shL":[27,12], "shR":[9,7], "armL":[-12,98,-14,17,-175], "armR":[23,97,7,15,-159], "handL":[4,2,-96], "handR":[6,8,-108], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[-11,1,-99,12,17], "legR":[-12,-1,-99,11,-19], "footL":[3,10,0], "footR":[3,12,0]},
+  {"t":2.5,
+   "hips":[0,0,100], "body":[0,-3,0], "chest":[6,13,2], "head":[26,14,13],
+   "shL":[27,12], "shR":[9,7], "armL":[-12,98,-14,17,-175], "armR":[23,97,7,15,-159], "handL":[4,2,-96], "handR":[6,8,-108], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[-11,1,-99,12,17], "legR":[-12,-1,-99,11,-19], "footL":[3,10,0], "footR":[3,12,0]}
+]}

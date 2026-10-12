@@ -175,9 +175,11 @@ const NEED = ["lowerback", "upperback", "thorax", "upperneck", "head", ...["l", 
  * One subject's picked stretches as clips, plus `_rest`. `amc(take)` gives a take's text. Each clip starts at the origin,
  * facing forward; a loop is cut at its best cycle (poses and speeds matching at its ends, half a second to 2.5 s long),
  * faces the way it travels, its root following the straight line through the cycle, and what its last frame still
- * differs from its first is spread over the cycle so it closes exactly.
+ * differs from its first is spread over the cycle so it closes exactly. `floorEach`: each take stood on its own floor,
+ * and the rest, on the ground (a subject's takes can stand centimetres apart, or on a mat); off, the origin's one floor
+ * a subject, where its takes stand together (not always the ground).
  */
-export function readCmu(asfText: string, amc: (take: string) => string, picks: readonly CmuPick[], FPS = 30, file?: string): CmuLibrary {
+export function readCmu(asfText: string, amc: (take: string) => string, picks: readonly CmuPick[], FPS = 30, file?: string, opts: { floorEach?: boolean } = {}): CmuLibrary {
   const sk = readAsf(asfText, file), B = sk.bones, rest = pose(sk, null), POINTS = format.POINTS;
   const missing = NEED.filter((n) => !B[n]);
   if (missing.length) throw new IoError("E_RIG", `it lacks bones: ${missing.join(", ")}`, { file });
@@ -217,7 +219,7 @@ export function readCmu(asfText: string, amc: (take: string) => string, picks: r
     cache.set(take, frames);
     return { frames: frames.length, points: (k: number) => pts(pose(sk, frames[k]!)) };
   };
-  const { clips, lows, log } = cutPicks(takeOf, facing, picks, FPS, file);
-  clips._rest = restCapture(pts(rest), lows, facing, FPS);
+  const { clips, lows, log } = cutPicks(takeOf, facing, picks, FPS, file, { floorEach: !!opts.floorEach });
+  clips._rest = restCapture(pts(rest), opts.floorEach ? [] : lows, facing, FPS);
   return { rig: "cmu", clips, body: null, log };
 }

@@ -9,7 +9,7 @@
 "tags": ["getup"],
 "desc": "Getting up from lying on the side",
 "skeleton": "humanoid",
-"restSrc": "CMU_140",
+"restSrc": "CMU_140_MIGRATED",
 "provenance": {"src":"CMU_140","take":"140_03 0.00-8.50","method":"captured","producer":{"tool":"m3a-migrate","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[17,91],"qa":"unchecked","qaVersion":"none"},
 "keys": [

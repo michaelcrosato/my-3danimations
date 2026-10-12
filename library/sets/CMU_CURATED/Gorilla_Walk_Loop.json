@@ -9,7 +9,7 @@
 "tags": ["walk","monster"],
 "desc": "A gorilla: hunched, knuckles low, a rolling heavy walk. One cycle, in place",
 "skeleton": "humanoid",
-"restSrc": "CMU_120",
+"restSrc": "CMU_120_MIGRATED",
 "provenance": {"src":"CMU_120","take":"120_02 2.47-3.35","method":"captured","producer":{"tool":"m3a-migrate","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[30,141],"qa":"unchecked","qaVersion":"none"},
 "keys": [

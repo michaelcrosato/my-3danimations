@@ -2,8 +2,9 @@
 // the sensors pass, every other one of the sorted library first): each defect takes the first clean clip left that
 // can show it (a slide needs a stance that starts and ends within the clip), so each is planted about ten times, and
 // writes the runs with the times each defect must be found at to
-// packages/sensors/fixtures/planted/runs.json. --check rebuilds them and fails on any difference. `npm test -- planted`
-// plants them and runs the sensors.
+// packages/sensors/fixtures/planted/runs.json. The runs are G3's, chosen from the library as it was then; the library
+// has grown since (WP-5.3, D63), so --check doesn't rebuild them: it fails on a run whose clip is gone, no longer
+// clean or no longer able to show its defect. `npm test -- planted` plants them and runs the sensors.
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { metrics } from "@m3a/sensors";
@@ -45,29 +46,39 @@ export function runs(): Run[] {
 }
 const round = (x: number) => Math.round(x * 1e6) / 1e6;
 
+/** What would make a committed run say nothing: its clip gone from the library, no longer clean (the sensors no longer
+ *  pass it, so a finding could be the clip's own), or no longer able to show its defect. */
+export function checkRuns(file = RUNS): string[] {
+  const committed = (JSON.parse(readFileSync(file, "utf8")) as { runs: Run[] }).runs, lib = new Map(libraryClips().map((c) => [c.clip.id, c]));
+  const problems: string[] = [];
+  for (const r of committed) {
+    const c = lib.get(r.clip);
+    if (!c) problems.push(`${r.clip} is gone`);
+    else if (metrics(c.clip, c.rest).verdict !== "pass") problems.push(`${r.clip} is no longer clean`);
+    else if (!fits(r.defect, c.clip, c.rest)) problems.push(`${r.clip} can no longer show a ${r.defect}`);
+  }
+  return problems;
+}
+
 if (import.meta.main) {
   let parsed;
   try {
-    parsed = parseArgs(process.argv.slice(2), [{ name: "check", help: "rebuild the runs and fail on any difference" }]);
+    parsed = parseArgs(process.argv.slice(2), [{ name: "check", help: "fail on a run whose clip is gone, no longer clean or no longer able to show its defect" }]);
   } catch (err) {
     usage("plant", err, []);
   }
-  const t0 = performance.now(), text = JSON.stringify({ about: "WP-3.6's planted defects: 100 clean library clips (the sensors pass them), each given one defect in turn, with the metric and the times it must be found at. Written by node tools/plant/main.ts.", runs: runs() }, null, 1) + "\n";
+  const t0 = performance.now();
   let ok = true, verdict: string;
   if (parsed.flags.check) {
-    let old = "";
-    try {
-      old = readFileSync(RUNS, "utf8");
-    } catch {
-      /* missing */
-    }
-    ok = old === text;
-    verdict = `plant --check: ${ok ? "PASS" : "FAIL"}, the runs ${ok ? "rebuild byte for byte" : "differ from the file"}`;
+    const problems = checkRuns();
+    ok = problems.length === 0;
+    verdict = `plant --check: ${ok ? "PASS" : "FAIL"}, ${ok ? "every run's clip is in the library, clean and able to show its defect" : problems.join("; ")}`;
   } else {
+    const text = JSON.stringify({ about: "WP-3.6's planted defects: 100 clean library clips (the sensors pass them), each given one defect in turn, with the metric and the times it must be found at. Written by node tools/plant/main.ts.", runs: runs() }, null, 1) + "\n";
     mkdirSync(dirname(RUNS), { recursive: true });
     writeFileSync(RUNS, text);
     verdict = `plant: wrote ${JSON.parse(text).runs.length} runs to packages/sensors/fixtures/planted/runs.json`;
   }
-  const report: Report = { tool: "plant", ok, verdict, steps: [], warnings: [], ms: performance.now() - t0, next: ok ? "npm test -- planted" : "node tools/plant/main.ts, then review the change" };
+  const report: Report = { tool: "plant", ok, verdict, steps: [], warnings: [], ms: performance.now() - t0, next: ok ? "npm test -- planted" : "a clip the library changed under a run: plant again (node tools/plant/main.ts) and review every run, or restore the clip" };
   finish(report, parsed);
 }

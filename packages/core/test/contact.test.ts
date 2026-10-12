@@ -1,79 +1,26 @@
-// Contacts and ground (WP-2.5): on every migrated locomotion loop and on synced walk–run blends a planted foot slides at
-// most 10 mm per contact; on a 10° slope and a 0.2 m step the planted soles stay within 5 mm of the surface and no sole
-// goes under it; without settling the body keeps its height but where a leg can't reach; hands reach their targets;
-// and planting depends on the time alone, so skipped poses change nothing. On another body (D51): the body settles as a
-// weight shift, re-solved knees don't snap, a free leg is the clip's, and a cross-fade hands a planted foot over.
-import { readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
+// Contacts and ground (WP-2.5): on every locomotion loop in the library (100STYLE's other gaits are in contact-gaits,
+// contact-sidesteps and contact-siderun.test.ts, so they run side by side) and on synced walk–run blends a planted foot
+// slides at most 10 mm per contact; on a 10° slope and a 0.2 m step the planted soles stay within 5 mm of the surface
+// and no sole goes under it; without settling the body keeps its height but where a leg can't reach; hands reach their
+// targets; and planting depends on the time alone, so skipped poses change nothing. On another body (D51): the body
+// settles as a weight shift, re-solved knees don't snap, a free leg is the clip's, and a cross-fade hands a planted
+// foot over.
 import { describe, expect, it } from "vitest";
 import {
-  Animator, bind, contactRoot, contactsAt, decodePose, derived, IDX, keyAt, measureFacts, parseClip, phaseMap, plant, syncBlend, toWorld,
-  type AnimClip, type Clip, type Contacts, type Ground, type Key, type Motion, type Playable, type Rest,
+  Animator, bind, contactsAt, derived, IDX, measureFacts, phaseMap, plant, syncBlend, toWorld,
+  type AnimClip, type Ground, type Key,
 } from "./all.ts";
 import { ik3 } from "../src/format/body.ts";
 import { scriptData } from "./animator-data.ts";
+import { library, locomotionSlides, lowest, motionOf, P, worstSlide } from "./contact-data.ts";
 
-const LIB = join(import.meta.dirname, "../../../library/sets");
-const P = (X: ArrayLike<number>, n: string): [number, number, number] => [X[IDX[n]! * 3]!, X[IDX[n]! * 3 + 1]!, X[IDX[n]! * 3 + 2]!];
-/** A clip as planting reads it: decoded on its rest (cached by time), its root the one its planted feet imply. */
-function motionOf(clip: Playable, R: Rest, contacts: Contacts): Motion & { speed: number } {
-  const cr = contactRoot(clip, R, contacts), memo = new Map<number, Float64Array>();
-  return {
-    rest: R, dur: clip.dur, loop: clip.loop, contacts, key: (t) => keyAt(clip, t), root: cr.root, speed: cr.speed,
-    points: (t) => {
-      let X = memo.get(t);
-      if (!X) memo.set(t, (X = Float64Array.from(decodePose(R, keyAt(clip, t), new Array(108)))));
-      return X;
-    },
-  };
-}
-/** The lowest sole point of foot s: heel (below the ankle), ball or toe. */
-const lowest = (X: ArrayLike<number>, s: string, R: Rest) => ["ankle", "ball", "toe"].map((p) => ({ p, z: P(X, p + s)[2] - (p === "ankle" ? R.ankleZ : 0) })).reduce((a, b) => (b.z < a.z ? b : a));
-/** The worst slide per contact: the path the contact point (each step's lowest sole point) takes in the world. */
-function worstSlide(m: Motion, X: (t: number) => ArrayLike<number>, cycles = 2): number {
-  let worst = 0;
-  for (const s of ["L", "R"]) {
-    for (const [a0, b0] of m.contacts[`foot${s}` as "footL"] ?? []) {
-      for (let k = 0; k < cycles; k++) {
-        const a = a0 + k * m.dur, b = b0 + k * m.dur;
-        let len = 0;
-        for (let t = a; t < b - 1e-9; t += 1 / 60) {
-          const t1 = Math.min(b, t + 1 / 60), X0 = X(t), X1 = X(t1), low = lowest(X0, s, m.rest).p;
-          const w0 = toWorld(m.root(t), P(X0, low + s)), w1 = toWorld(m.root(t1), P(X1, low + s));
-          len += Math.hypot(w1[0] - w0[0], w1[1] - w0[1]);
-        }
-        worst = Math.max(worst, len);
-      }
-    }
-  }
-  return worst;
-}
-function library(): { id: string; clip: Clip; R: Rest }[] {
-  const out: { id: string; clip: Clip; R: Rest }[] = [];
-  for (const set of readdirSync(LIB).sort()) {
-    const manifest = JSON.parse(readFileSync(join(LIB, set, "_set.json"), "utf8"));
-    for (const f of readdirSync(join(LIB, set)).filter((x) => !x.startsWith("_") && x.endsWith(".json")).sort()) {
-      const clip = parseClip(readFileSync(join(LIB, set, f), "utf8"));
-      out.push({ id: `${set}/${f.replace(/\.json$/, "")}`, clip, R: manifest.sources[clip.restSrc].rest as Rest });
-    }
-  }
-  return out;
-}
-const lib = library();
+// the sets the library held before WP-5.3 (100STYLE's other gaits have their own files)
+const lib = library((set) => !set.startsWith("STYLE100_"));
 const byId = (id: string) => lib.find((x) => x.id === id)!;
 
 describe("planted feet don't slide", () => {
-  it("on every migrated locomotion loop: at most 10 mm per contact (unplanted, they slide up to tens of mm)", () => {
-    let clips = 0, worst = 0, worstFree = 0, at = "";
-    for (const { id, clip, R } of lib) {
-      if (!clip.loop || !clip.tags.some((t) => t === "walk" || t === "run")) continue;
-      const m = motionOf(clip, R, measureFacts(clip, R).contacts);
-      if (m.speed < 0.05 * R.H0) continue; // walking on the spot: nothing to slide against
-      const w = worstSlide(m, (t) => plant(m, t));
-      worstFree = Math.max(worstFree, worstSlide(m, m.points));
-      if (w > worst) [worst, at] = [w, id];
-      clips++;
-    }
+  it("on every locomotion loop of the sets from before 100STYLE's other gaits: at most 10 mm per contact (unplanted, they slide up to tens of mm)", () => {
+    const { clips, worst, at, worstFree } = locomotionSlides(lib);
     expect(clips).toBeGreaterThan(120);
     expect(worst, at).toBeLessThanOrEqual(10);
     expect(worstFree).toBeGreaterThan(30);

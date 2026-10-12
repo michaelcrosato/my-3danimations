@@ -153,6 +153,6 @@ describe("measureFacts against facts-truth.json", () => {
     const f = measureFacts(clip, R);
     expect(f.height[1]).toBeLessThan(90);
     expect(f.by).toMatch(/^m3a-core@\d+\.\d+\.\d+$/);
-    expect(readdirSync(LIB).length).toBe(5);
+    expect(readdirSync(LIB).length).toBe(Object.keys(JSON.parse(readFileSync(join(LIB, "../sets.lock.json"), "utf8")).sets).length);
   });
 });

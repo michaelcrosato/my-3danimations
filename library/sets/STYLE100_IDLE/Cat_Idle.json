@@ -1,0 +1,24 @@
+{
+"format": "2.0",
+"id": "STYLE100_IDLE/Cat_Idle",
+"name": "Cat_Idle",
+"legend": "2.0",
+"dur": 2.5,
+"loop": true,
+"fps": 30,
+"tags": ["idle","style"],
+"desc": "Standing, cat style: use hands as paws - step opposite hand and foot",
+"skeleton": "humanoid",
+"restSrc": "100STYLE",
+"provenance": {"src":"100STYLE","take":"Cat_ID 18.48-20.98","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
+"quality": {"fit":[6,27],"qa":"unchecked","qaVersion":"none"},
+"keys": [
+  {"t":0,
+   "hips":[0,0,100], "body":[0,-10,0], "chest":[-1,13,0], "head":[7,13,1],
+   "shL":[2,-9], "shR":[4,-8], "armL":[67,2,-75,54,23], "armR":[70,-5,-72,60,-19], "handL":[-16,-12,158], "handR":[-16,-14,150], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[-23,2,-97,11,-10], "legR":[-25,-4,-97,11,10], "footL":[10,-14,0], "footR":[10,9,0]},
+  {"t":2.5,
+   "hips":[0,0,100], "body":[0,-10,0], "chest":[-1,13,0], "head":[7,13,1],
+   "shL":[2,-9], "shR":[4,-8], "armL":[67,2,-75,54,23], "armR":[70,-5,-72,60,-19], "handL":[-16,-12,158], "handR":[-16,-14,150], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[-23,2,-97,11,-10], "legR":[-25,-4,-97,11,10], "footL":[10,-14,0], "footR":[10,9,0]}
+]}

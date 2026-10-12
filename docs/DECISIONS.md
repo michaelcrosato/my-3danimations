@@ -1673,3 +1673,84 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   reproducible: a pinned checksum on every input, and a ledger that regenerates exactly, make it so.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.31.0
+
+## D63 · 2026-10-12 · The re-import: nine sets from their sources, Quaternius as migrated until its files come
+
+- **Principle:** 4, 8, 10, 11, WP-5.3, O4
+- **Call:**
+  - **Nine sets re-imported from their sources** by `npm run import` (`tools/import/`), each source fetched into
+    `.cache/` and held to a pinned SHA-256: MESH2MOTION (mesh2motion-app@653a969's three GLBs,
+    `tools/import/sources.json`), CMU_CURATED (the takes `tools/corpora/cmu.lock.json` pins), STYLE100 and its six
+    extras (the archive `tools/corpora/100style.lock.json` pins; the extras' catalogs moved to `library/catalogs/`).
+    Every clip is fitted with format 2's new degrees of freedom: the hands (flex clamped to ±90°, side to ±45°), the
+    spine's curl (kept for a clip only if, in some key, it brings a spine point 5 mm closer), and root yaw (the heading
+    from the hip line, held where the torso is far from upright, the line stands near vertical or the heading jumps;
+    kept only if the clip ends facing 20° or more from where it began, its first and last half second averaged, so a
+    swing of the hips that comes back is the body's), with a nearly straight limb's twist held where it would swing 45°
+    or more between keys (`steadyTwist`). A looping clip records its speed (`speed`, from its stride).
+  - **Every CMU take on the ground.** The origin's reader stands a subject's picks and rest on one floor, the most
+    common among its takes, at the height the capture has it, not on the ground: the CMU rests' ankles stood from 22 to
+    136 mm up, and with more picks a floor moved (subject 79's by 3 cm, floating its clips and folding a planted knee).
+    Its takes stand on floors up to 12 cm apart (79's from −2 to 10 cm). So `readCmu`'s `floorEach` (the cutter's)
+    stands each take on the ground: on its own floor where it shows one (its feet mostly on one level: 90% of the lower
+    half of its lowest foot points within a centimetre), else on the floor of the subject's takes that do (a fall, a
+    flip, a take on a platform: their lowest foot points sit wherever the feet are); the rest stands on the ground too.
+    The re-import turns it on. Off, the reader is the origin's: tier 1b and the CMU ledger (which reads a subject's
+    takes together) don't move. Clips that sank or floated come back to the floor (Chop_Wood's sole 25 mm under it → 0,
+    Jump_Kick's 63 → 0).
+  - **Each clip keeps the better version**, compared with the migrator's own output: the re-import, unless its mean fit
+    against the source is worse or the sensors judge it worse. The set's `_import.json` (its schema
+    `tools/import/import.schema.json`) records the choice and why (naming a worst error that grew: 15 clips keep a
+    re-import whose worst is 20 mm or more further, the furthest 130 mm), both fits, both verdicts, every metric that
+    moved and the hands' error. MESH2MOTION keeps 166 re-imported and 11 migrated (9.6 mm on average), CMU_CURATED 55
+    and 5 (13.9 mm), STYLE100 83 and 12 (8.7 mm); the extras are new (7.7–9.4 mm). A migrated clip kept decodes on the
+    rest it was made on: where the re-import measures its source's rest anew (more picks from a performer move the
+    spine's shares and the floor), that rest stays as its own source record (`CMU_13_MIGRATED` and three more) and the
+    clip names it. Every set is within the fit limits (set mean ≤ 20 mm, clip mean ≤ 40, worst ≤ 300). Provenance names
+    `m3a-import 1` and the manifest the sources' edition. `npm run import -- --check` rebuilds every file byte for byte.
+  - **The hands** (mean error against the capture, from the pelvis, so where a take stands doesn't count): on the clips
+    that hold something (picked by the words of their names and descriptions and by their tags, mimed props included)
+    Mesh2Motion 32.4 → 13.7 mm (40 clips), STYLE100 19.6 → 7.3 (8); CMU 15.1 → 15.3 (8). Over every clip: Mesh2Motion
+    31.7 → 13.9, STYLE100 15.6 → 8.8, CMU 13.9 → 13.4. CMU captures a hand as a stub (no finger joints), so format 2's
+    hands have little to recover there, and on its prop clips nothing.
+  - **Clips gone:** STYLE100's HandsBetweenLegs_Walk, SwingArmsRound_Walk and WildLegs_Walk are left out, each with its
+    reason in the catalog's `$skip`: format 2 can't hold the pose, and their migrated fits (73/292, 40/395 and 71/546
+    mm) were past the limits. Their ids are gone with no successor, so no alias. One sideways run (Elated_SideRunRight)
+    is left out the same way.
+  - **The Mesh2Motion audit is closed: CC0.** At the pinned commits the app's README says its art assets (models, rigs,
+    animations) are all CC0, mesh2motion-assets' LICENSE is CC0 1.0 Universal, and the three GLBs carry no license or
+    copyright mark of their own. Nothing in them is CC BY or BY-SA, so the set stays tier `cc0` and nothing goes to
+    `local`. Each source's `terms` cite both files.
+  - **CMU's new picks for G5's floors:** 84 takes from the ledger (43 subjects in all), chosen for the categories the
+    library was short of: reactions (get-ups, falls, stumbles, limps: CMU has no hit or death takes), gestures and
+    emotes (emotions, dances, social gestures), interaction and work (tools, kitchen, carrying, pushing), traversal
+    (steps, ledges, ladders, jumps) and a few for combat, each described in the ledger's own words. They are cut as the
+    existing picks are (a 6 s window of a long take, or the stretch the ledger says it moves). CMU_CURATED now has 144
+    clips; the ledger's `used` follows (`npm run corpora -- cmu --survey --check` passes).
+  - **Quaternius stays as migrated** (QUATERNIUS_3D2DGE, QUATERNIUS_SHARDFALL), a deviation from WP-5.3: the current
+    editions come only through itch.io's download flow, which this session's permission layer refused. The owner was
+    asked (michaelcrosato/my-3danimations#10: allow the download, or put the zips in Drive); with no answer the default
+    (option 3) stands. When the files come, `tools/import/sets.ts` takes the two sets like the others.
+  - **What moved with the library:**
+    - The seam fix (`@m3a/sensors`) makes the two segments that meet at the seam equally long, so the curves it spreads
+      the gap along end at the same speed both sides (on a sparsely keyed clip, a short last segment against a long
+      first one read as a hitch). Over the 478 clips lint flags, `npm run qa -- --fix` makes none worse (244 better).
+    - The contact test runs the library's locomotion loops (sidesteps now too) in four files side by side, 100STYLE's
+      over one cycle each (planting depends on the time alone: a loop's second cycle is its first moved on), so T1 keeps
+      its 90 s.
+    - QA's baseline is rewritten: 1,385 clips, 901 pass, 296 warn, 188 fail. On the same clips the re-imported sets fail
+      fewer than migrated: CMU 21 → 7 of 60, Mesh2Motion 48 → 37 of 177, STYLE100 22 → 14 of 95. The exceptions are
+      WP-5.8's.
+    - The planted runs stay G3's: chosen from the library as it was, every run's clip is still in it, clean and able to
+      show its defect, which `npm run plant -- --check` now checks (it used to rebuild the runs, which a grown library
+      changes). Chosen again from today's library, 4 of 39 planted and fix tests fail (a slide planted 9 times, not 10;
+      a finding the run doesn't state on CMU's Lindy_Hop; a slide foot locking leaves on CMU's Comfort; a sink the
+      penetration fix leaves on Mesh2Motion's Angry): WP-5.8's.
+    - The demo (`apps/lab/hello`, G4's T2 set) plays its moves' hands only if every move has them: its migrated
+      Quaternius moves have none and Mesh2Motion's re-imported jumps close the fist, which on gen-0 clenched and opened
+      within each fade fast enough to fail as a pop. With Quaternius re-imported, the set has hands throughout.
+    - G4 run 2's sweep reads the whole library: 1,385 clips on six skeletons, 8,310 pairs (run 1: 525 and 3,150).
+- **Why:** a re-import is only worth its churn where it is better, clip by clip, and the record says so; a source that
+  can't be fetched waits rather than coming from a copy that isn't the original.
+- **Answered:** no: made without a response, to review. Quaternius' option 3 is the default the owner was told of.
+- **Landed in:** v0.32.0

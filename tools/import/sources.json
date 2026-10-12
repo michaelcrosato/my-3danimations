@@ -1,0 +1,13 @@
+{
+  "about": "The sources WP-5.3 re-imports from that the corpora don't fetch (tools/import/sets.ts), each file's URL at a pinned commit and its SHA-256: a fetch keeps a file only if it matches. CMU and 100STYLE are held to tools/corpora's locks.",
+  "sources": {
+    "mesh2motion": {
+      "edition": "mesh2motion-app@653a9698f5f315523072f1c3ff3496100401317b (static/animations); its art assets CC0 per its README, and mesh2motion-assets@c5b0b6c821dbf2fa1dfe49590a6f431fd9f707ce is CC0 1.0 Universal (LICENSE)",
+      "files": {
+        "human-base-animations.glb": { "url": "https://raw.githubusercontent.com/Mesh2Motion/mesh2motion-app/653a9698f5f315523072f1c3ff3496100401317b/static/animations/human-base-animations.glb", "sha256": "406eb0a8dc4ab366e623b79b6e3005a4951392e1bda78ae39c1099d31147733c" },
+        "human-addon-animations.glb": { "url": "https://raw.githubusercontent.com/Mesh2Motion/mesh2motion-app/653a9698f5f315523072f1c3ff3496100401317b/static/animations/human-addon-animations.glb", "sha256": "a0d64d555e0d492026b72d58bf8e16c5e86779295f9093e376dcc001915c2c95" },
+        "human-mocap-animations.glb": { "url": "https://raw.githubusercontent.com/Mesh2Motion/mesh2motion-app/653a9698f5f315523072f1c3ff3496100401317b/static/animations/human-mocap-animations.glb", "sha256": "814593d62522f5be8d6bd32df2a8fa3c7feb90a8e1a1ba43f4aaf0048555280d" }
+      }
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+"format": "2.0",
+"id": "STYLE100_IDLE/Rushed_Idle",
+"name": "Rushed_Idle",
+"legend": "2.0",
+"dur": 2.967,
+"loop": true,
+"fps": 30,
+"tags": ["idle","style"],
+"desc": "Standing, rushed style: rushing about swinging arms for extra momentum",
+"skeleton": "humanoid",
+"restSrc": "100STYLE",
+"provenance": {"src":"100STYLE","take":"Rushed_ID 20.12-23.08","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
+"quality": {"fit":[7,31],"qa":"unchecked","qaVersion":"none"},
+"keys": [
+  {"t":0,
+   "hips":[0,0,100], "body":[0,-5,0], "chest":[2,19,-2], "head":[3,12,1],
+   "shL":[2,-7], "shR":[3,-8], "armL":[21,14,-97,14,23], "armR":[20,13,-97,15,-1], "handL":[3,-2,105], "handR":[-4,6,108], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[-22,4,-97,9,-10], "legR":[-22,-1,-98,11,0], "footL":[6,-6,0], "footR":[7,2,0]},
+  {"t":2.967,
+   "hips":[0,0,100], "body":[0,-5,0], "chest":[2,19,-2], "head":[3,12,1],
+   "shL":[2,-7], "shR":[3,-8], "armL":[21,14,-97,14,23], "armR":[20,13,-97,15,-1], "handL":[3,-2,105], "handR":[-4,6,108], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[-22,4,-97,9,-10], "legR":[-22,-1,-98,11,0], "footL":[6,-6,0], "footR":[7,2,0]}
+]}

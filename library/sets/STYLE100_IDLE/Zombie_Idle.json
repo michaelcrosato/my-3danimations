@@ -1,0 +1,24 @@
+{
+"format": "2.0",
+"id": "STYLE100_IDLE/Zombie_Idle",
+"name": "Zombie_Idle",
+"legend": "2.0",
+"dur": 2.5,
+"loop": true,
+"fps": 30,
+"tags": ["idle","style"],
+"desc": "Standing, zombie style: arms in front like zombie",
+"skeleton": "humanoid",
+"restSrc": "100STYLE",
+"provenance": {"src":"100STYLE","take":"Zombie_ID 23.20-25.70","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
+"quality": {"fit":[12,37],"qa":"unchecked","qaVersion":"none"},
+"keys": [
+  {"t":0,
+   "hips":[0,0,100], "body":[0,-18,1], "chest":[5,21,3], "head":[4,3,1],
+   "shL":[2,-3], "shR":[3,7], "armL":[99,17,-1,0,95], "armR":[99,7,9,5,-89], "handL":[16,0,-121], "handR":[22,-4,-123], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[-36,10,-93,11,-5], "legR":[-45,-4,-89,0,4], "footL":[20,-7,0], "footR":[16,27,0]},
+  {"t":2.5,
+   "hips":[0,0,100], "body":[0,-18,1], "chest":[5,21,3], "head":[4,3,1],
+   "shL":[2,-3], "shR":[3,7], "armL":[99,17,-1,0,95], "armR":[99,7,9,5,-89], "handL":[16,0,-121], "handR":[22,-4,-123], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[-36,10,-93,11,-5], "legR":[-45,-4,-89,0,4], "footL":[20,-7,0], "footR":[16,27,0]}
+]}

@@ -47,7 +47,7 @@ if (import.meta.main) {
   if (f.baseline) {
     if (!whole) usage("qa", new Error("--baseline measures the whole library: drop --sample, --set and --clip"), specs);
     // one line a clip, so a change reads as the clips it moved
-    const about = "The sensors' readings of every migrated clip (npm run qa -- --baseline): verdict, each metric's worst value to three significant digits, and finding counts by metric and level. npm run qa -- --check fails on any difference; a change lands in a commit that says why (PLAN.md §6).";
+    const about = "The sensors' readings of every library clip (npm run qa -- --baseline): verdict, each metric's worst value to three significant digits, and finding counts by metric and level. npm run qa -- --check fails on any difference; a change lands in a commit that says why (PLAN.md §6).";
     const lines = Object.entries(baselineOf(rows)).map(([id, b]) => `  ${JSON.stringify(id)}: ${JSON.stringify(b)}`);
     writeFileSync(path, `{\n "about": ${JSON.stringify(about)},\n "clips": {\n${lines.join(",\n")}\n }\n}\n`);
     steps.push({ name: "baseline", ok: true, ms: 0, summary: `wrote ${BASELINE} (${rows.length} clips)` });

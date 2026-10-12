@@ -5,8 +5,8 @@
 // the archive, never unpacked. The dataset's own lists give each style's instruction (Dataset_List.csv) and the frames
 // each take performs its style between (Frame_Cuts.csv: a performer walks in and out at an ordinary pace). The extras
 // are the gaits beyond the forward walks the library's STYLE100 holds: runs, backward walks and runs, sidesteps and
-// sideways runs each way, and idles: six catalogs (tools/corpora/100style/), imported as sets into
-// .cache/corpora/100style.
+// sideways runs each way, and idles: six catalogs (library/catalogs/STYLE100_*.json, which WP-5.3 imports into the
+// library), imported here as sets into .cache/corpora/100style.
 import { importSet, IoError, readBvh, type Catalog, type Find, type Imported, type Pick } from "@m3a/io";
 import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -14,10 +14,10 @@ import { ROOT } from "../run/cli.ts";
 import { download, fileSha256 } from "./fetch.ts";
 import { zipEntries, zipFile, zipRead, type ZipEntry } from "./zip.ts";
 
-/** Where the archive goes (git-ignored), the pinned checksums, the extras' catalogs and the sets imported. */
+/** Where the archive goes (git-ignored), the pinned checksums, the catalogs and the sets imported here. */
 export const STYLE100_CACHE = join(ROOT, ".cache/100style");
 export const STYLE100_LOCK = join(ROOT, "tools/corpora/100style.lock.json");
-export const STYLE100_CATALOGS = join(ROOT, "tools/corpora/100style");
+export const STYLE100_CATALOGS = join(ROOT, "library/catalogs");
 export const STYLE100_OUT = join(ROOT, ".cache/corpora/100style");
 
 /** The archive a fetch is held to. */
@@ -146,7 +146,7 @@ const CREDIT = "100STYLE by Ian Mason, Sebastian Starke and Taku Komura, CC BY 4
  * its reason in the log), fitted within `tol` mm, every clip on the rest of the takes' skeleton.
  */
 export function import100(kind: string, archive: Archive, styles: Styles, opts: { tol?: number; catalog?: Catalog } = {}): Imported & { log: string[] } {
-  const cat = opts.catalog ?? (JSON.parse(readFileSync(join(STYLE100_CATALOGS, `${kind}.json`), "utf8")) as Catalog), picks = picks100(cat, styles);
+  const cat = opts.catalog ?? (JSON.parse(readFileSync(join(STYLE100_CATALOGS, `STYLE100_${kind.toUpperCase()}.json`), "utf8")) as Catalog), picks = picks100(cat, styles);
   const lib = readBvh(
     (take) => {
       const text = archive.text(takePath(take));

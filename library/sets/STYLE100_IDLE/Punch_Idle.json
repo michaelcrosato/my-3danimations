@@ -1,0 +1,24 @@
+{
+"format": "2.0",
+"id": "STYLE100_IDLE/Punch_Idle",
+"name": "Punch_Idle",
+"legend": "2.0",
+"dur": 2.5,
+"loop": true,
+"fps": 30,
+"tags": ["idle","style"],
+"desc": "Standing, punch style: punch with every step",
+"skeleton": "humanoid",
+"restSrc": "100STYLE",
+"provenance": {"src":"100STYLE","take":"Punch_ID 17.45-19.95","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
+"quality": {"fit":[7,24],"qa":"unchecked","qaVersion":"none"},
+"keys": [
+  {"t":0,
+   "hips":[0,0,101], "body":[0,-11,-1], "chest":[0,18,1], "head":[0,8,0],
+   "shL":[2,-4], "shR":[1,4], "armL":[82,-57,-3,125,5], "armR":[91,-42,1,121,-8], "handL":[-5,7,115], "handR":[-22,12,122], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[-27,3,-96,0,2], "legR":[-28,-4,-96,0,-4], "footL":[11,1,0], "footR":[12,5,0]},
+  {"t":2.5,
+   "hips":[0,0,101], "body":[0,-11,-1], "chest":[0,18,1], "head":[0,8,0],
+   "shL":[2,-4], "shR":[1,4], "armL":[82,-57,-3,125,5], "armR":[91,-42,1,121,-8], "handL":[-5,7,115], "handR":[-22,12,122], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[-27,3,-96,0,2], "legR":[-28,-4,-96,0,-4], "footL":[11,1,0], "footR":[12,5,0]}
+]}

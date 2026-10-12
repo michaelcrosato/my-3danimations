@@ -1572,9 +1572,11 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
 - **Size:** L
 - **Build:** re-import from the original sources with the new degrees of freedom (wrists, forearm roll, spine curl, root
   yaw). Sources are fetched into `.cache/`, never committed.
-  - **Quaternius UAL1 and UAL2,** in their current editions. UAL2 was updated to v2.2 on 2026-09-28.
+  - **Quaternius UAL1 and UAL2,** in their current editions. UAL2 was updated to v2.2 on 2026-09-28. *Deviation
+    (D63): they come only through itch.io's download flow, which this session can't use; until the owner allows it or
+    supplies the zips, `QUATERNIUS_3D2DGE` and `QUATERNIUS_SHARDFALL` stay as migrated.*
   - **Mesh2Motion.** Audit each asset's license: the README says CC0, but a July 2026 report says some assets are CC BY
-    or CC BY-SA. Unaudited or share-alike assets go to `local`.
+    or CC BY-SA. Unaudited or share-alike assets go to `local`. *Audited CC0 (D63).*
   - **CMU:** the curated picks, plus new picks from the surveyed corpus (WP-5.6) chosen for the G5 category floors
     (combat, traversal, reactions, work).
   - **100STYLE** (CC BY 4.0, about 18.5 hours): import the styles the catalogs pick.
@@ -2245,7 +2247,7 @@ version, commit, date and a note with the numbers. Gates are rows too.
 | 5.2 Importers | done | 0.30.0 | (this commit) | 2026-10-12 | `@m3a/io`: readGltf and readCmu bit for bit (tier 1b: the tiny rig, a Rigify rig with a skinned mesh and its look, take 09_02); BVH and glTF on any rig through six bone maps; VRMA written, read and written again byte for byte, its humanoid bones within 0.01 mm of the Animator, root motion in the hips; importSet and subset; per-file budgets and only IoError out, 600 random corruptions included (D61); 37 io and tier 1b tests |
 | 5.7 License compliance | done | 0.29.0 | (this commit) | 2026-10-12 | `npm run license -- check`: the 5 seed sets pass (Mesh2Motion's 3 open audits listed; CMU and 100STYLE credited); a game manifest's clips by its tiers, no local content shipped, its credits block (D59); a fixture for each failure fails |
 | 5.6 Large corpora on demand | done | 0.31.0 | (this commit) | 2026-10-12 | `npm run corpora -- cmu --survey --check`: all 2,548 takes regenerate the ledger byte for byte (every row as my-3d2dge's survey wrote it), each fetched file held to its lock; 100STYLE's archive pinned and its extras' six catalogs cut into sets, all 780 clips at the same stretch with the same keys as shardfall's (`--check`); library/local/ lane, the doctrine check reads no local content (D62) |
-| 5.3 Re-import from the sources | todo | | | | |
+| 5.3 Re-import from the sources | done | 0.32.0 | (this commit) | 2026-10-12 | `npm run import -- --check`: 9 sets re-imported from pinned sources with format 2's hands, spine curl and root yaw, every CMU take on the ground, each clip the better of import and migrated (the reason in `_import.json`, its schema in tools/import), every set within the fit limits (means 7.7–13.9 mm); hands on prop clips 32.4 → 13.7 mm (Mesh2Motion), 19.6 → 7.3 (STYLE100), CMU 15.1 → 15.3; Mesh2Motion audited CC0; 84 new CMU picks for G5's floors (144 clips); 1,385 clips in all, QA 901/296/188; Quaternius stays as migrated until its files can be fetched, a deviation (D63) |
 | 5.4 Facts and auto-labels | todo | | | | |
 | 5.5 Search | todo | | | | |
 | 5.8 Library QA | todo | | | | |

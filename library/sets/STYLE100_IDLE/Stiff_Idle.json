@@ -1,0 +1,24 @@
+{
+"format": "2.0",
+"id": "STYLE100_IDLE/Stiff_Idle",
+"name": "Stiff_Idle",
+"legend": "2.0",
+"dur": 2.5,
+"loop": true,
+"fps": 30,
+"tags": ["idle","style"],
+"desc": "Standing, stiff style: stiff limbs arms straight",
+"skeleton": "humanoid",
+"restSrc": "100STYLE",
+"provenance": {"src":"100STYLE","take":"Stiff_ID 19.48-21.98","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
+"quality": {"fit":[6,18],"qa":"unchecked","qaVersion":"none"},
+"keys": [
+  {"t":0,
+   "hips":[0,0,101], "body":[0,-5,1], "chest":[0,-1,0], "head":[2,25,-2],
+   "shL":[0,-11], "shR":[1,-8], "armL":[-11,3,-99,0,-142], "armR":[-12,2,-99,0,174], "handL":[6,-5,-75], "handR":[10,1,-99], "fingersL":[1,1,1,1,1], "fingersR":[0,0,0,0,0],
+   "legL":[-13,-2,-99,0,-12], "legR":[-14,-2,-99,0,4], "footL":[5,-9,0], "footR":[4,3,0]},
+  {"t":2.5,
+   "hips":[0,0,101], "body":[0,-5,1], "chest":[0,-1,0], "head":[2,25,-2],
+   "shL":[0,-11], "shR":[1,-8], "armL":[-11,3,-99,0,-142], "armR":[-12,2,-99,0,174], "handL":[6,-5,-75], "handR":[10,1,-99], "fingersL":[1,1,1,1,1], "fingersR":[0,0,0,0,0],
+   "legL":[-13,-2,-99,0,-12], "legR":[-14,-2,-99,0,4], "footL":[5,-9,0], "footR":[4,3,0]}
+]}

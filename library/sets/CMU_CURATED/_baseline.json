@@ -1,5 +1,5 @@
 {
- "about": "Validator warnings accepted per clip at migration, each with its reason (WP-1.5). A new warning, or one gone, fails library/migrated's test.",
+ "about": "Validator warnings accepted per clip, each with its reason (WP-1.5, WP-5.3). A new warning, or one gone, fails library/migrated's test.",
  "clips": {
   "Jump_Kick": [
    {
@@ -38,274 +38,553 @@
     "reason": "the body really spins: its turn accumulates past ±540 degrees, and unwrapping keeps the spin continuous (MOTION.md §6.3)"
    }
   ],
-  "Punch_Combo": [
+  "Russian_Dance": [
    {
     "code": "M2-W005",
-    "at": "key 57 (t 4.867) legR[4]",
-    "reason": "the twist of a nearly straight leg (bend at most 14 degrees at these keys) is barely defined, so capture noise winds it past ±540 degrees; a re-import that resets twist on straight limbs fixes it (WP-5.3)"
+    "at": "key 29 (t 2.333) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
    },
    {
     "code": "M2-W005",
-    "at": "key 58 (t 5) legR[4]",
-    "reason": "the twist of a nearly straight leg (bend at most 14 degrees at these keys) is barely defined, so capture noise winds it past ±540 degrees; a re-import that resets twist on straight limbs fixes it (WP-5.3)"
+    "at": "key 42 (t 3) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
    },
    {
     "code": "M2-W005",
-    "at": "key 59 (t 5.1) legR[4]",
-    "reason": "the twist of a nearly straight leg (bend at most 14 degrees at these keys) is barely defined, so capture noise winds it past ±540 degrees; a re-import that resets twist on straight limbs fixes it (WP-5.3)"
+    "at": "key 43 (t 3.033) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
    },
    {
     "code": "M2-W005",
-    "at": "key 60 (t 5.2) legR[4]",
-    "reason": "the twist of a nearly straight leg (bend at most 14 degrees at these keys) is barely defined, so capture noise winds it past ±540 degrees; a re-import that resets twist on straight limbs fixes it (WP-5.3)"
+    "at": "key 44 (t 3.067) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
    },
    {
     "code": "M2-W005",
-    "at": "key 61 (t 5.3) legR[4]",
-    "reason": "the twist of a nearly straight leg (bend at most 14 degrees at these keys) is barely defined, so capture noise winds it past ±540 degrees; a re-import that resets twist on straight limbs fixes it (WP-5.3)"
+    "at": "key 45 (t 3.1) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
    },
    {
     "code": "M2-W005",
-    "at": "key 62 (t 5.367) legR[4]",
-    "reason": "the twist of a nearly straight leg (bend at most 14 degrees at these keys) is barely defined, so capture noise winds it past ±540 degrees; a re-import that resets twist on straight limbs fixes it (WP-5.3)"
+    "at": "key 46 (t 3.133) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
    },
    {
     "code": "M2-W005",
-    "at": "key 63 (t 5.433) legR[4]",
-    "reason": "the twist of a nearly straight leg (bend at most 14 degrees at these keys) is barely defined, so capture noise winds it past ±540 degrees; a re-import that resets twist on straight limbs fixes it (WP-5.3)"
+    "at": "key 47 (t 3.167) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
    },
    {
     "code": "M2-W005",
-    "at": "key 64 (t 5.567) legR[4]",
-    "reason": "the twist of a nearly straight leg (bend at most 14 degrees at these keys) is barely defined, so capture noise winds it past ±540 degrees; a re-import that resets twist on straight limbs fixes it (WP-5.3)"
+    "at": "key 48 (t 3.233) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
    },
    {
     "code": "M2-W005",
-    "at": "key 65 (t 5.667) legR[4]",
-    "reason": "the twist of a nearly straight leg (bend at most 14 degrees at these keys) is barely defined, so capture noise winds it past ±540 degrees; a re-import that resets twist on straight limbs fixes it (WP-5.3)"
+    "at": "key 49 (t 3.3) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
    },
    {
     "code": "M2-W005",
-    "at": "key 66 (t 5.733) legR[4]",
-    "reason": "the twist of a nearly straight leg (bend at most 14 degrees at these keys) is barely defined, so capture noise winds it past ±540 degrees; a re-import that resets twist on straight limbs fixes it (WP-5.3)"
+    "at": "key 50 (t 3.367) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
    },
    {
     "code": "M2-W005",
-    "at": "key 67 (t 5.8) legR[4]",
-    "reason": "the twist of a nearly straight leg (bend at most 14 degrees at these keys) is barely defined, so capture noise winds it past ±540 degrees; a re-import that resets twist on straight limbs fixes it (WP-5.3)"
+    "at": "key 51 (t 3.4) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
    },
    {
     "code": "M2-W005",
-    "at": "key 68 (t 5.9) legR[4]",
-    "reason": "the twist of a nearly straight leg (bend at most 14 degrees at these keys) is barely defined, so capture noise winds it past ±540 degrees; a re-import that resets twist on straight limbs fixes it (WP-5.3)"
+    "at": "key 52 (t 3.433) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
    },
    {
     "code": "M2-W005",
-    "at": "key 69 (t 5.933) legR[4]",
-    "reason": "the twist of a nearly straight leg (bend at most 14 degrees at these keys) is barely defined, so capture noise winds it past ±540 degrees; a re-import that resets twist on straight limbs fixes it (WP-5.3)"
+    "at": "key 53 (t 3.5) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
    },
    {
     "code": "M2-W005",
-    "at": "key 70 (t 6) legR[4]",
-    "reason": "the twist of a nearly straight leg (bend at most 14 degrees at these keys) is barely defined, so capture noise winds it past ±540 degrees; a re-import that resets twist on straight limbs fixes it (WP-5.3)"
+    "at": "key 54 (t 3.533) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 55 (t 3.567) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 56 (t 3.6) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 57 (t 3.633) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 58 (t 3.667) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 68 (t 4.1) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 78 (t 4.533) footL[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 78 (t 4.533) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 79 (t 4.6) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 80 (t 4.667) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 81 (t 4.7) footL[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 82 (t 4.733) footL[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 83 (t 4.767) footL[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 84 (t 4.8) footL[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 85 (t 4.833) footL[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 86 (t 4.867) footL[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 87 (t 4.9) footL[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 88 (t 4.967) footL[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 89 (t 5.067) footL[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 90 (t 5.1) footL[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 91 (t 5.133) footL[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 92 (t 5.167) footL[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 93 (t 5.2) footL[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 94 (t 5.233) footL[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 94 (t 5.233) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 95 (t 5.267) footL[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 95 (t 5.267) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 96 (t 5.3) footL[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 96 (t 5.3) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 97 (t 5.333) footL[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 97 (t 5.333) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 98 (t 5.367) footL[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 98 (t 5.367) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 99 (t 5.4) footL[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 99 (t 5.4) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 100 (t 5.433) footL[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 100 (t 5.433) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 101 (t 5.467) footL[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 101 (t 5.467) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 102 (t 5.533) footL[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 102 (t 5.533) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 103 (t 5.567) footL[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 103 (t 5.567) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 104 (t 5.6) footL[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 104 (t 5.6) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 105 (t 5.633) footL[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 105 (t 5.633) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 106 (t 5.667) footL[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 106 (t 5.667) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 107 (t 5.733) footL[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 107 (t 5.733) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 108 (t 5.8) footL[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 108 (t 5.8) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 109 (t 5.833) footL[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 109 (t 5.833) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 110 (t 5.867) footL[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 110 (t 5.867) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 111 (t 5.9) footL[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 111 (t 5.9) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 112 (t 5.933) footL[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 112 (t 5.933) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 113 (t 5.967) footL[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 113 (t 5.967) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 114 (t 6) footL[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 114 (t 6) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
    }
   ],
-  "Dig": [
+  "Stumble_Walk": [
    {
     "code": "M2-W005",
-    "at": "key 20 (t 2.9) legR[4]",
-    "reason": "the twist of a nearly straight leg (bend at most 0 degrees at these keys) is barely defined, so capture noise winds it past ±540 degrees; a re-import that resets twist on straight limbs fixes it (WP-5.3)"
+    "at": "key 70 (t 3.533) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
    },
    {
     "code": "M2-W005",
-    "at": "key 21 (t 3) legR[4]",
-    "reason": "the twist of a nearly straight leg (bend at most 0 degrees at these keys) is barely defined, so capture noise winds it past ±540 degrees; a re-import that resets twist on straight limbs fixes it (WP-5.3)"
+    "at": "key 71 (t 3.567) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
    },
    {
     "code": "M2-W005",
-    "at": "key 22 (t 3.067) legR[4]",
-    "reason": "the twist of a nearly straight leg (bend at most 0 degrees at these keys) is barely defined, so capture noise winds it past ±540 degrees; a re-import that resets twist on straight limbs fixes it (WP-5.3)"
-   }
-  ],
-  "Fishing": [
-   {
-    "code": "M2-W005",
-    "at": "key 16 (t 2.6) legR[4]",
-    "reason": "the twist of a nearly straight leg (bend at most 0 degrees at these keys) is barely defined, so capture noise winds it past ±540 degrees; a re-import that resets twist on straight limbs fixes it (WP-5.3)"
+    "at": "key 72 (t 3.6) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
    },
    {
     "code": "M2-W005",
-    "at": "key 17 (t 2.633) legR[4]",
-    "reason": "the twist of a nearly straight leg (bend at most 0 degrees at these keys) is barely defined, so capture noise winds it past ±540 degrees; a re-import that resets twist on straight limbs fixes it (WP-5.3)"
+    "at": "key 73 (t 3.633) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
    },
    {
     "code": "M2-W005",
-    "at": "key 18 (t 2.733) legR[4]",
-    "reason": "the twist of a nearly straight leg (bend at most 0 degrees at these keys) is barely defined, so capture noise winds it past ±540 degrees; a re-import that resets twist on straight limbs fixes it (WP-5.3)"
+    "at": "key 74 (t 3.667) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
    },
    {
     "code": "M2-W005",
-    "at": "key 19 (t 2.933) legR[4]",
-    "reason": "the twist of a nearly straight leg (bend at most 0 degrees at these keys) is barely defined, so capture noise winds it past ±540 degrees; a re-import that resets twist on straight limbs fixes it (WP-5.3)"
+    "at": "key 75 (t 3.7) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
    },
    {
     "code": "M2-W005",
-    "at": "key 20 (t 4.4) legR[4]",
-    "reason": "the twist of a nearly straight leg (bend at most 0 degrees at these keys) is barely defined, so capture noise winds it past ±540 degrees; a re-import that resets twist on straight limbs fixes it (WP-5.3)"
+    "at": "key 76 (t 3.733) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
    },
    {
     "code": "M2-W005",
-    "at": "key 24 (t 5.3) legR[4]",
-    "reason": "the twist of a nearly straight leg (bend at most 0 degrees at these keys) is barely defined, so capture noise winds it past ±540 degrees; a re-import that resets twist on straight limbs fixes it (WP-5.3)"
+    "at": "key 77 (t 3.8) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
    },
    {
     "code": "M2-W005",
-    "at": "key 25 (t 5.5) legR[4]",
-    "reason": "the twist of a nearly straight leg (bend at most 0 degrees at these keys) is barely defined, so capture noise winds it past ±540 degrees; a re-import that resets twist on straight limbs fixes it (WP-5.3)"
+    "at": "key 78 (t 3.833) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
    },
    {
     "code": "M2-W005",
-    "at": "key 26 (t 5.667) legR[4]",
-    "reason": "the twist of a nearly straight leg (bend at most 0 degrees at these keys) is barely defined, so capture noise winds it past ±540 degrees; a re-import that resets twist on straight limbs fixes it (WP-5.3)"
+    "at": "key 79 (t 3.867) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
    },
    {
     "code": "M2-W005",
-    "at": "key 27 (t 5.867) legR[4]",
-    "reason": "the twist of a nearly straight leg (bend at most 0 degrees at these keys) is barely defined, so capture noise winds it past ±540 degrees; a re-import that resets twist on straight limbs fixes it (WP-5.3)"
+    "at": "key 80 (t 3.9) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
    },
    {
     "code": "M2-W005",
-    "at": "key 28 (t 6.033) legR[4]",
-    "reason": "the twist of a nearly straight leg (bend at most 0 degrees at these keys) is barely defined, so capture noise winds it past ±540 degrees; a re-import that resets twist on straight limbs fixes it (WP-5.3)"
+    "at": "key 81 (t 3.933) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
    },
    {
     "code": "M2-W005",
-    "at": "key 29 (t 6.167) legR[4]",
-    "reason": "the twist of a nearly straight leg (bend at most 0 degrees at these keys) is barely defined, so capture noise winds it past ±540 degrees; a re-import that resets twist on straight limbs fixes it (WP-5.3)"
+    "at": "key 82 (t 3.967) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
    },
    {
     "code": "M2-W005",
-    "at": "key 30 (t 6.3) legR[4]",
-    "reason": "the twist of a nearly straight leg (bend at most 0 degrees at these keys) is barely defined, so capture noise winds it past ±540 degrees; a re-import that resets twist on straight limbs fixes it (WP-5.3)"
+    "at": "key 83 (t 4) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
    },
    {
     "code": "M2-W005",
-    "at": "key 31 (t 6.433) legR[4]",
-    "reason": "the twist of a nearly straight leg (bend at most 0 degrees at these keys) is barely defined, so capture noise winds it past ±540 degrees; a re-import that resets twist on straight limbs fixes it (WP-5.3)"
+    "at": "key 84 (t 4.033) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
    },
    {
     "code": "M2-W005",
-    "at": "key 32 (t 6.633) legR[4]",
-    "reason": "the twist of a nearly straight leg (bend at most 0 degrees at these keys) is barely defined, so capture noise winds it past ±540 degrees; a re-import that resets twist on straight limbs fixes it (WP-5.3)"
+    "at": "key 85 (t 4.067) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
    },
    {
     "code": "M2-W005",
-    "at": "key 33 (t 6.867) legR[4]",
-    "reason": "the twist of a nearly straight leg (bend at most 0 degrees at these keys) is barely defined, so capture noise winds it past ±540 degrees; a re-import that resets twist on straight limbs fixes it (WP-5.3)"
+    "at": "key 86 (t 4.1) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
    },
    {
     "code": "M2-W005",
-    "at": "key 34 (t 7.267) legR[4]",
-    "reason": "the twist of a nearly straight leg (bend at most 0 degrees at these keys) is barely defined, so capture noise winds it past ±540 degrees; a re-import that resets twist on straight limbs fixes it (WP-5.3)"
+    "at": "key 87 (t 4.133) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
    },
    {
     "code": "M2-W005",
-    "at": "key 35 (t 7.633) legR[4]",
-    "reason": "the twist of a nearly straight leg (bend at most 0 degrees at these keys) is barely defined, so capture noise winds it past ±540 degrees; a re-import that resets twist on straight limbs fixes it (WP-5.3)"
+    "at": "key 88 (t 4.167) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
    },
    {
     "code": "M2-W005",
-    "at": "key 36 (t 7.8) legR[4]",
-    "reason": "the twist of a nearly straight leg (bend at most 0 degrees at these keys) is barely defined, so capture noise winds it past ±540 degrees; a re-import that resets twist on straight limbs fixes it (WP-5.3)"
+    "at": "key 89 (t 4.2) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
    },
    {
     "code": "M2-W005",
-    "at": "key 37 (t 8) legR[4]",
-    "reason": "the twist of a nearly straight leg (bend at most 0 degrees at these keys) is barely defined, so capture noise winds it past ±540 degrees; a re-import that resets twist on straight limbs fixes it (WP-5.3)"
-   }
-  ],
-  "Rake_Leaves": [
-   {
-    "code": "M2-W005",
-    "at": "key 20 (t 3.167) legL[4]",
-    "reason": "the twist of a nearly straight leg (bend at most 13 degrees at these keys) is barely defined, so capture noise winds it past ±540 degrees; a re-import that resets twist on straight limbs fixes it (WP-5.3)"
+    "at": "key 90 (t 4.233) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
    },
    {
     "code": "M2-W005",
-    "at": "key 21 (t 3.367) legL[4]",
-    "reason": "the twist of a nearly straight leg (bend at most 13 degrees at these keys) is barely defined, so capture noise winds it past ±540 degrees; a re-import that resets twist on straight limbs fixes it (WP-5.3)"
+    "at": "key 91 (t 4.267) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
    },
    {
     "code": "M2-W005",
-    "at": "key 22 (t 3.567) legL[4]",
-    "reason": "the twist of a nearly straight leg (bend at most 13 degrees at these keys) is barely defined, so capture noise winds it past ±540 degrees; a re-import that resets twist on straight limbs fixes it (WP-5.3)"
+    "at": "key 92 (t 4.3) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
    },
    {
     "code": "M2-W005",
-    "at": "key 23 (t 3.633) legL[4]",
-    "reason": "the twist of a nearly straight leg (bend at most 13 degrees at these keys) is barely defined, so capture noise winds it past ±540 degrees; a re-import that resets twist on straight limbs fixes it (WP-5.3)"
+    "at": "key 93 (t 4.333) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
    },
    {
     "code": "M2-W005",
-    "at": "key 24 (t 3.9) legL[4]",
-    "reason": "the twist of a nearly straight leg (bend at most 13 degrees at these keys) is barely defined, so capture noise winds it past ±540 degrees; a re-import that resets twist on straight limbs fixes it (WP-5.3)"
+    "at": "key 94 (t 4.367) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
    },
    {
     "code": "M2-W005",
-    "at": "key 25 (t 4.033) legL[4]",
-    "reason": "the twist of a nearly straight leg (bend at most 13 degrees at these keys) is barely defined, so capture noise winds it past ±540 degrees; a re-import that resets twist on straight limbs fixes it (WP-5.3)"
+    "at": "key 95 (t 4.4) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
    },
    {
     "code": "M2-W005",
-    "at": "key 26 (t 4.167) legL[4]",
-    "reason": "the twist of a nearly straight leg (bend at most 13 degrees at these keys) is barely defined, so capture noise winds it past ±540 degrees; a re-import that resets twist on straight limbs fixes it (WP-5.3)"
+    "at": "key 96 (t 4.433) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
    },
    {
     "code": "M2-W005",
-    "at": "key 27 (t 4.4) legL[4]",
-    "reason": "the twist of a nearly straight leg (bend at most 13 degrees at these keys) is barely defined, so capture noise winds it past ±540 degrees; a re-import that resets twist on straight limbs fixes it (WP-5.3)"
+    "at": "key 97 (t 4.467) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
    },
    {
     "code": "M2-W005",
-    "at": "key 28 (t 4.6) legL[4]",
-    "reason": "the twist of a nearly straight leg (bend at most 13 degrees at these keys) is barely defined, so capture noise winds it past ±540 degrees; a re-import that resets twist on straight limbs fixes it (WP-5.3)"
+    "at": "key 98 (t 4.5) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
    },
    {
     "code": "M2-W005",
-    "at": "key 33 (t 5.367) legR[4]",
-    "reason": "the twist of a nearly straight leg (bend at most 0 degrees at these keys) is barely defined, so capture noise winds it past ±540 degrees; a re-import that resets twist on straight limbs fixes it (WP-5.3)"
-   }
-  ],
-  "Curtsey": [
-   {
-    "code": "M2-W005",
-    "at": "key 50 (t 2.567) legR[4]",
-    "reason": "the twist of a nearly straight leg (bend at most 24 degrees at these keys) is barely defined, so capture noise winds it past ±540 degrees; a re-import that resets twist on straight limbs fixes it (WP-5.3)"
+    "at": "key 99 (t 4.533) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
    },
    {
     "code": "M2-W005",
-    "at": "key 51 (t 2.6) legR[4]",
-    "reason": "the twist of a nearly straight leg (bend at most 24 degrees at these keys) is barely defined, so capture noise winds it past ±540 degrees; a re-import that resets twist on straight limbs fixes it (WP-5.3)"
-   },
-   {
-    "code": "M2-W005",
-    "at": "key 52 (t 2.633) legR[4]",
-    "reason": "the twist of a nearly straight leg (bend at most 24 degrees at these keys) is barely defined, so capture noise winds it past ±540 degrees; a re-import that resets twist on straight limbs fixes it (WP-5.3)"
-   },
-   {
-    "code": "M2-W005",
-    "at": "key 53 (t 2.667) legR[4]",
-    "reason": "the twist of a nearly straight leg (bend at most 24 degrees at these keys) is barely defined, so capture noise winds it past ±540 degrees; a re-import that resets twist on straight limbs fixes it (WP-5.3)"
-   },
-   {
-    "code": "M2-W005",
-    "at": "key 65 (t 3.233) legR[4]",
-    "reason": "the twist of a nearly straight leg (bend at most 24 degrees at these keys) is barely defined, so capture noise winds it past ±540 degrees; a re-import that resets twist on straight limbs fixes it (WP-5.3)"
-   },
-   {
-    "code": "M2-W005",
-    "at": "key 66 (t 3.3) legR[4]",
-    "reason": "the twist of a nearly straight leg (bend at most 24 degrees at these keys) is barely defined, so capture noise winds it past ±540 degrees; a re-import that resets twist on straight limbs fixes it (WP-5.3)"
+    "at": "key 100 (t 4.567) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
    }
   ],
   "Backflip": [
@@ -547,6 +826,35 @@
    {
     "code": "M2-W005",
     "at": "key 62 (t 2.4) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
+   }
+  ],
+  "Lie_Down": [
+   {
+    "code": "M2-W002",
+    "at": "key 19 (t 2.467) legL[4]",
+    "reason": "format 1's twist pop: a limb turns while bent past 135 degrees, where its twist barely shows; re-import from the source fixes it (WP-5.3)"
+   }
+  ],
+  "Ballet_Grand_Jete": [
+   {
+    "code": "M2-W005",
+    "at": "key 57 (t 2.867) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 58 (t 2.9) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 59 (t 2.933) footR[1]",
+    "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 60 (t 2.967) footR[1]",
     "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
    }
   ]

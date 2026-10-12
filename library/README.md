@@ -3,13 +3,15 @@
 The motions every game can use: one clip per file in plain JSON (`spec/MOTION.md`), grouped in sets. Each set has a
 manifest (`_set.json`: its sources, their licenses and rest bodies, its tier and its content id), a catalog
 (`catalog.tsv`, one line a clip, at most 40 tokens, how a model picks clips) and a warnings baseline (`_baseline.json`).
+A set re-imported from its sources (WP-5.3, `npm run import`) also has `_import.json`: each clip's choice between its
+re-import and its migrated version, and why. What each set picks from its sources is in `catalogs/<SET>.json`.
 
 ## Tiers and the default pack (D10)
 
 | Tier | Sets | Terms | Who sees it |
 |---|---|---|---|
 | `cc0` | MESH2MOTION, QUATERNIUS_3D2DGE, QUATERNIUS_SHARDFALL | CC0 1.0 (`LICENSES/CC0-1.0.txt`) | every game: the default pack |
-| `cc-by` | STYLE100 | CC BY 4.0 (`LICENSES/CC-BY-4.0.txt`): credit each use | a game that opts in |
+| `cc-by` | STYLE100 and its six extras (STYLE100_RUN, _BACK, _BACKRUN, _SIDE, _SIDERUN, _IDLE) | CC BY 4.0 (`LICENSES/CC-BY-4.0.txt`): credit each use | a game that opts in |
 | `cmu` | CMU_CURATED | CMU's notice (`LICENSES/LicenseRef-CMU-Mocap.txt`): no reselling the data, even converted | a game that opts in |
 | `local` | none committed (`local/`) | whatever its source allows; never ships | the machine it's on |
 
@@ -59,8 +61,8 @@ The libraries too large to commit are fetched on demand into `.cache/` (git-igno
   it, your note); `--survey --check` regenerates it byte for byte. `--ledger combat --status none` and `--find kick`
   search it; `--import` writes every take as a set a subject into `.cache/corpora/cmu`.
 - **100STYLE** (CC BY 4.0): `npm run corpora -- 100style --fetch` takes the 1.47 GB archive from Zenodo; `--import`
-  cuts the extras (runs, backward walks and runs, sidesteps and sideways runs each way, idles: six catalogs in
-  `tools/corpora/100style/`) from it, inside the frames the dataset marks as each style, into sets in
+  cuts the extras (runs, backward walks and runs, sidesteps and sideways runs each way, idles: six catalogs,
+  `library/catalogs/STYLE100_*.json`) from it, inside the frames the dataset marks as each style, into sets in
   `.cache/corpora/100style`; `--check` compares each clip with shardfall's.
 
 Libraries that may not be redistributed go in `library/local/` instead (its README).

@@ -164,9 +164,11 @@ export function localTo(f: Facing, p: V3, o: V3): V3 {
 /**
  * Each pick cut from its take as a clip, and the takes' lowest foot points (where the floor is). `lenient`: a pick that
  * can't be cut (no stretch going its way, no cycle) is left out with the reason logged, rather than failing them all
- * (a catalog of a hundred styles).
+ * (a catalog of a hundred styles). `floorEach`: each take stood on the ground (0), on its own floor where it shows one
+ * (a capture's floor can sit centimetres apart take to take), else on the floor of the takes that do (`STEADY_FLOOR`),
+ * and the lowest foot points returned as they stand then.
  */
-export function cutPicks(takeOf: (take: string) => Take, facing: Facing, picks: readonly Pick[], FPS: number, file?: string, opts: { lenient?: boolean } = {}): { clips: Record<string, Capture>; lows: number[]; log: string[] } {
+export function cutPicks(takeOf: (take: string) => Take, facing: Facing, picks: readonly Pick[], FPS: number, file?: string, opts: { lenient?: boolean; floorEach?: boolean } = {}): { clips: Record<string, Capture>; lows: number[]; log: string[] } {
   const POINTS = format.POINTS, P = format.P, { fwd: fwd0, right: RIGHT } = facing, log: string[] = [];
   const I = POINTS.indexOf("pelvis"), J = POINTS.indexOf("pelvisF");
   const local = (p: V3, o: V3) => localTo(facing, p, o);
@@ -217,6 +219,31 @@ export function cutPicks(takeOf: (take: string) => Take, facing: Facing, picks: 
   };
   const takes: Record<string, Take> = {}, clips: Record<string, Capture> = {}, lows: number[] = [];
   const low = (W: V3[]) => Math.min(...["toeL", "toeR", "ballL", "ballR"].map((k) => W[POINTS.indexOf(k)]![1]!));
+  if (opts.floorEach) {
+    // every take read first, each one's floor found and its points moved onto the ground
+    const lowsOf = new Map<string, number[]>();
+    for (const pk of picks) {
+      if (takes[pk.take]) continue;
+      let T: Take;
+      try {
+        T = takes[pk.take] = takeOf(pk.take);
+      } catch (err) {
+        if (!opts.lenient || !(err instanceof IoError)) throw err;
+        continue; // cutOne logs it
+      }
+      const own: number[] = [];
+      for (let k = 0; k < T.frames; k += Math.max(1, Math.round((pk.fps || 120) / 30))) own.push(low(T.points(k)));
+      lowsOf.set(pk.take, own);
+    }
+    // a take whose feet mostly stand on one level shows its floor; one that mostly falls, jumps or lies doesn't (its
+    // lowest foot points sit wherever the feet are), and stands on the floor of the takes that do
+    const steady = [...lowsOf.values()].filter(floorShown), all = steady.length ? steady.flat() : [...lowsOf.values()].flat(), F = floorOf(all);
+    for (const [take, own] of lowsOf) {
+      const lift = -(floorShown(own) ? floorOf([...own]) : F), T = takes[take]!;
+      lows.push(...own.map((v) => v + lift));
+      if (lift !== 0) takes[take] = { frames: T.frames, points: (k) => T.points(k).map((p) => [p[0]!, p[1]! + lift, p[2]!]) };
+    }
+  }
   for (const pk of picks) {
     try {
       cutOne(pk);
@@ -304,9 +331,31 @@ export function cutPicks(takeOf: (take: string) => Take, facing: Facing, picks: 
       const L = (n - 1) * P * 3;
       for (let f = 1; f < n; f++) for (let k = 0; k < P * 3; k++) data[f * P * 3 + k] -= ((data[L + k]! - data[k]!) * f) / (n - 1);
     }
-    clips[pk.name] = { name: pk.name, n, dur: (n - 1) / FPS, loop: !!pk.loop, fps: FPS, data, move: moved ? move : null, take: `${pk.take} ${from.toFixed(2)}-${to.toFixed(2)}` };
+    clips[pk.name] = { name: pk.name, n, dur: (n - 1) / FPS, loop: !!pk.loop, fps: FPS, data, move: moved ? move : null, take: `${pk.take} ${from.toFixed(2)}-${to.toFixed(2)}`, ...(pk.loop ? { stride: PORTABLE.hypot(Wn[I]![0]!, Wn[I]![2]!) * MM } : {}) };
     if (pk.loop && how !== "whole") log.push(`${pk.name}: a ${(to - from).toFixed(2)} s cycle at ${from.toFixed(2)}-${to.toFixed(2)} s of ${pk.take} (its seam is off by ${Math.round(seam * MM)} mm)`);
   }
+}
+
+/** How many of a take's lowest foot points (its lower half) must sit within a centimetre of its floor for the take to
+ *  show where its floor is: feet that mostly stand on one level. */
+export const STEADY_FLOOR = 0.9;
+/** Whether a take's lowest foot points show its floor (`STEADY_FLOOR`). */
+export function floorShown(lows: readonly number[]): boolean {
+  if (!lows.length) return false;
+  const half = [...lows].sort((a, b) => a - b).slice(0, Math.ceil(lows.length / 2)), f = Math.round(floorOf([...lows]) * 100);
+  return half.filter((v) => Math.abs(Math.round(v * 100) - f) <= 1).length >= STEADY_FLOOR * half.length;
+}
+
+/** Where the floor is among lowest foot points (metres; 0 with none): the most common centimetre among their lower
+ *  half (sorts `lows` in place). */
+export function floorOf(lows: number[]): number {
+  if (!lows.length) return 0;
+  const half = lows.sort((a, b) => a - b).slice(0, Math.ceil(lows.length / 2)), bins = new Map<number, number>();
+  for (const v of half) {
+    const b = Math.round(v * 100);
+    bins.set(b, (bins.get(b) || 0) + 1);
+  }
+  return [...bins].sort((a, b) => b[1] - a[1] || a[0] - b[0])[0]![0] / 100;
 }
 
 /**
@@ -316,16 +365,7 @@ export function cutPicks(takeOf: (take: string) => Take, facing: Facing, picks: 
 export function restCapture(R: V3[], lows: number[], facing: Facing, FPS: number): Capture {
   const POINTS = format.POINTS, P = format.P;
   const low = (W: V3[]) => Math.min(...["toeL", "toeR", "ballL", "ballR"].map((k) => W[POINTS.indexOf(k)]![1]!));
-  const lowR = low(R);
-  let floor = 0;
-  if (lows.length) {
-    const half = lows.sort((a, b) => a - b).slice(0, Math.ceil(lows.length / 2)), bins = new Map<number, number>();
-    for (const v of half) {
-      const b = Math.round(v * 100);
-      bins.set(b, (bins.get(b) || 0) + 1);
-    }
-    floor = [...bins].sort((a, b) => b[1] - a[1] || a[0] - b[0])[0]![0] / 100;
-  }
+  const lowR = low(R), floor = floorOf(lows);
   const rd = new Float32Array(P * 3), lift = floor - lowR, pel = R[POINTS.indexOf("pelvis")]!;
   R.forEach((p, i) => {
     const q = localTo(facing, [p[0]!, p[1]! + lift, p[2]!], [pel[0]!, 0, pel[2]!]);

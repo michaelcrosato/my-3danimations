@@ -1,0 +1,193 @@
+STYLE100_SIDERUN/Aeroplane_SideRunLeft	0.667	loop	151	run sidestep left style	Running sideways to the left, aeroplane style	100STYLE
+STYLE100_SIDERUN/Aeroplane_SideRunRight	0.6	loop	146	run sidestep right style	Running sideways to the right, aeroplane style	100STYLE
+STYLE100_SIDERUN/Akimbo_SideRunLeft	0.7	loop	126	run sidestep left style	Running sideways to the left, akimbo style	100STYLE
+STYLE100_SIDERUN/Akimbo_SideRunRight	0.667	loop	152	run sidestep right style	Running sideways to the right, akimbo style	100STYLE
+STYLE100_SIDERUN/Angry_SideRunLeft	1	loop	161	run sidestep left style	Running sideways to the left, angry style	100STYLE
+STYLE100_SIDERUN/Angry_SideRunRight	1.033	loop	153	run sidestep right style	Running sideways to the right, angry style	100STYLE
+STYLE100_SIDERUN/ArmsAboveHead_SideRunLeft	0.6	loop	153	run sidestep left style	Running sideways to the left	100STYLE
+STYLE100_SIDERUN/ArmsAboveHead_SideRunRight	0.633	loop	168	run sidestep right style	Running sideways to the right	100STYLE
+STYLE100_SIDERUN/ArmsBehindBack_SideRunLeft	0.667	loop	159	run sidestep left style	Running sideways to the left	100STYLE
+STYLE100_SIDERUN/ArmsBehindBack_SideRunRight	0.7	loop	149	run sidestep right style	Running sideways to the right	100STYLE
+STYLE100_SIDERUN/ArmsBySide_SideRunLeft	0.667	loop	174	run sidestep left style	Running sideways to the left	100STYLE
+STYLE100_SIDERUN/ArmsBySide_SideRunRight	0.667	loop	179	run sidestep right style	Running sideways to the right	100STYLE
+STYLE100_SIDERUN/ArmsFolded_SideRunLeft	0.667	loop	151	run sidestep left style	Running sideways to the left, arms folded style	100STYLE
+STYLE100_SIDERUN/ArmsFolded_SideRunRight	0.633	loop	157	run sidestep right style	Running sideways to the right, arms folded style	100STYLE
+STYLE100_SIDERUN/Balance_SideRunLeft	1.267	loop	131	run sidestep left style	Running sideways to the left, balance style	100STYLE
+STYLE100_SIDERUN/Balance_SideRunRight	1.233	loop	152	run sidestep right style	Running sideways to the right, balance style	100STYLE
+STYLE100_SIDERUN/BeatChest_SideRunLeft	0.633	loop	165	run sidestep left style	Running sideways to the left, beat chest style	100STYLE
+STYLE100_SIDERUN/BeatChest_SideRunRight	0.6	loop	163	run sidestep right style	Running sideways to the right, beat chest style	100STYLE
+STYLE100_SIDERUN/BentForward_SideRunLeft	0.7	loop	149	run sidestep left style	Running sideways to the left, bent forward style	100STYLE
+STYLE100_SIDERUN/BentForward_SideRunRight	0.7	loop	131	run sidestep right style	Running sideways to the right, bent forward style	100STYLE
+STYLE100_SIDERUN/BentKnees_SideRunLeft	0.6	loop	136	run sidestep left style	Running sideways to the left, bent knees style	100STYLE
+STYLE100_SIDERUN/BentKnees_SideRunRight	0.567	loop	146	run sidestep right style	Running sideways to the right, bent knees style	100STYLE
+STYLE100_SIDERUN/BigSteps_SideRunLeft	0.767	loop	164	run sidestep left style	Running sideways to the left, big steps style	100STYLE
+STYLE100_SIDERUN/BigSteps_SideRunRight	0.767	loop	197	run sidestep right style	Running sideways to the right, big steps style	100STYLE
+STYLE100_SIDERUN/BouncyLeft_SideRunLeft	0.667	loop	129	run sidestep left style	Running sideways to the left, bouncy left style	100STYLE
+STYLE100_SIDERUN/BouncyLeft_SideRunRight	0.633	loop	90	run sidestep right style	Running sideways to the right, bouncy left style	100STYLE
+STYLE100_SIDERUN/BouncyRight_SideRunLeft	0.633	loop	74	run sidestep left style	Running sideways to the left, bouncy right style	100STYLE
+STYLE100_SIDERUN/BouncyRight_SideRunRight	0.767	loop	122	run sidestep right style	Running sideways to the right, bouncy right style	100STYLE
+STYLE100_SIDERUN/Cat_SideRunLeft	1.233	loop	140	run sidestep left style	Running sideways to the left, cat style	100STYLE
+STYLE100_SIDERUN/Cat_SideRunRight	1.233	loop	151	run sidestep right style	Running sideways to the right, cat style	100STYLE
+STYLE100_SIDERUN/Chicken_SideRunLeft	0.733	loop	78	run sidestep left style	Running sideways to the left, chicken style	100STYLE
+STYLE100_SIDERUN/Chicken_SideRunRight	1.467	loop	96	run sidestep right style	Running sideways to the right, chicken style	100STYLE
+STYLE100_SIDERUN/CrossOver_SideRunLeft	0.933	loop	163	run sidestep left style	Running sideways to the left, cross over style	100STYLE
+STYLE100_SIDERUN/CrossOver_SideRunRight	0.867	loop	155	run sidestep right style	Running sideways to the right, cross over style	100STYLE
+STYLE100_SIDERUN/Crouched_SideRunLeft	0.7	loop	127	run sidestep left style	Running sideways to the left, crouched style	100STYLE
+STYLE100_SIDERUN/Crouched_SideRunRight	0.633	loop	147	run sidestep right style	Running sideways to the right, crouched style	100STYLE
+STYLE100_SIDERUN/CrowdAvoidance_SideRunLeft	1.667	loop	62	run sidestep left style varies	Running sideways to the left	100STYLE
+STYLE100_SIDERUN/CrowdAvoidance_SideRunRight	0.5	loop	54	run sidestep right style varies	Running sideways to the right	100STYLE
+STYLE100_SIDERUN/Depressed_SideRunLeft	0.7	loop	120	run sidestep left style	Running sideways to the left, depressed style	100STYLE
+STYLE100_SIDERUN/Depressed_SideRunRight	1.3	loop	112	run sidestep right style	Running sideways to the right, depressed style	100STYLE
+STYLE100_SIDERUN/Dinosaur_SideRunLeft	0.967	loop	82	run sidestep left style	Running sideways to the left, dinosaur style	100STYLE
+STYLE100_SIDERUN/Dinosaur_SideRunRight	0.967	loop	78	run sidestep right style	Running sideways to the right, dinosaur style	100STYLE
+STYLE100_SIDERUN/DragLeftLeg_SideRunRight	0.6	loop	136	run sidestep right style	Running sideways to the right, drag left leg style	100STYLE
+STYLE100_SIDERUN/DragRightLeg_SideRunLeft	0.633	loop	138	run sidestep left style	Running sideways to the left, drag right leg style	100STYLE
+STYLE100_SIDERUN/Drunk_SideRunLeft	0.833	loop	113	run sidestep left style varies	Running sideways to the left, drunk style	100STYLE
+STYLE100_SIDERUN/Drunk_SideRunRight	0.533	loop	104	run sidestep right style varies	Running sideways to the right, drunk style	100STYLE
+STYLE100_SIDERUN/DuckFoot_SideRunLeft	0.6	loop	130	run sidestep left style	Running sideways to the left, duck foot style	100STYLE
+STYLE100_SIDERUN/DuckFoot_SideRunRight	0.633	loop	107	run sidestep right style	Running sideways to the right, duck foot style	100STYLE
+STYLE100_SIDERUN/Elated_SideRunLeft	1.233	loop	156	run sidestep left style	Running sideways to the left, elated style	100STYLE
+STYLE100_SIDERUN/FairySteps_SideRunLeft	0.767	loop	119	run sidestep left style	Running sideways to the left, fairy steps style	100STYLE
+STYLE100_SIDERUN/FairySteps_SideRunRight	0.733	loop	129	run sidestep right style	Running sideways to the right, fairy steps style	100STYLE
+STYLE100_SIDERUN/Flapping_SideRunLeft	1.267	loop	114	run sidestep left style	Running sideways to the left, flapping style	100STYLE
+STYLE100_SIDERUN/Flapping_SideRunRight	1.5	loop	117	run sidestep right style	Running sideways to the right, flapping style	100STYLE
+STYLE100_SIDERUN/FlickLegs_SideRunLeft	0.833	loop	87	run sidestep left style	Running sideways to the left, flick legs style	100STYLE
+STYLE100_SIDERUN/FlickLegs_SideRunRight	0.8	loop	100	run sidestep right style	Running sideways to the right, flick legs style	100STYLE
+STYLE100_SIDERUN/Followed_SideRunLeft	0.633	loop	166	run sidestep left style varies	Running sideways to the left, followed style	100STYLE
+STYLE100_SIDERUN/Followed_SideRunRight	0.6	loop	167	run sidestep right style varies	Running sideways to the right, followed style	100STYLE
+STYLE100_SIDERUN/GracefulArms_SideRunLeft	0.567	loop	124	run sidestep left style	Running sideways to the left, graceful arms style	100STYLE
+STYLE100_SIDERUN/GracefulArms_SideRunRight	0.6	loop	166	run sidestep right style	Running sideways to the right, graceful arms style	100STYLE
+STYLE100_SIDERUN/HandsBetweenLegs_SideRunLeft	0.667	loop	149	run sidestep left style	Running sideways to the left	100STYLE
+STYLE100_SIDERUN/HandsBetweenLegs_SideRunRight	0.667	loop	140	run sidestep right style	Running sideways to the right	100STYLE
+STYLE100_SIDERUN/HandsInPockets_SideRunLeft	0.6	loop	137	run sidestep left style	Running sideways to the left	100STYLE
+STYLE100_SIDERUN/HandsInPockets_SideRunRight	0.6	loop	178	run sidestep right style	Running sideways to the right	100STYLE
+STYLE100_SIDERUN/Heavyset_SideRunLeft	0.633	loop	158	run sidestep left style	Running sideways to the left, heavyset style	100STYLE
+STYLE100_SIDERUN/Heavyset_SideRunRight	0.633	loop	168	run sidestep right style	Running sideways to the right, heavyset style	100STYLE
+STYLE100_SIDERUN/HighKnees_SideRunLeft	1.567	loop	127	run sidestep left style	Running sideways to the left, high knees style	100STYLE
+STYLE100_SIDERUN/HighKnees_SideRunRight	0.8	loop	109	run sidestep right style	Running sideways to the right, high knees style	100STYLE
+STYLE100_SIDERUN/InTheDark_SideRunLeft	0.633	loop	131	run sidestep left style varies	Running sideways to the left, in the dark style	100STYLE
+STYLE100_SIDERUN/InTheDark_SideRunRight	1.167	loop	138	run sidestep right style varies	Running sideways to the right, in the dark style	100STYLE
+STYLE100_SIDERUN/KarateChop_SideRunLeft	2.233	loop	100	run sidestep left style	Running sideways to the left	100STYLE
+STYLE100_SIDERUN/KarateChop_SideRunRight	1.167	loop	165	run sidestep right style	Running sideways to the right	100STYLE
+STYLE100_SIDERUN/Kick_SideRunLeft	0.9	loop	72	run sidestep left style	Running sideways to the left, kick style	100STYLE
+STYLE100_SIDERUN/Kick_SideRunRight	0.833	loop	81	run sidestep right style	Running sideways to the right, kick style	100STYLE
+STYLE100_SIDERUN/LawnMower_SideRunLeft	0.5	loop	127	run sidestep left style	Running sideways to the left, lawn mower style	100STYLE
+STYLE100_SIDERUN/LawnMower_SideRunRight	0.867	loop	109	run sidestep right style	Running sideways to the right, lawn mower style	100STYLE
+STYLE100_SIDERUN/LeanBack_SideRunLeft	0.633	loop	156	run sidestep left style	Running sideways to the left, lean back style	100STYLE
+STYLE100_SIDERUN/LeanBack_SideRunRight	0.567	loop	152	run sidestep right style	Running sideways to the right, lean back style	100STYLE
+STYLE100_SIDERUN/LeanLeft_SideRunLeft	1.333	loop	132	run sidestep left style	Running sideways to the left, lean left style	100STYLE
+STYLE100_SIDERUN/LeanLeft_SideRunRight	0.667	loop	135	run sidestep right style	Running sideways to the right, lean left style	100STYLE
+STYLE100_SIDERUN/LeanRight_SideRunLeft	1.267	loop	152	run sidestep left style	Running sideways to the left, lean right style	100STYLE
+STYLE100_SIDERUN/LeanRight_SideRunRight	0.567	loop	126	run sidestep right style	Running sideways to the right, lean right style	100STYLE
+STYLE100_SIDERUN/LeftHop_SideRunLeft	0.567	loop	145	run sidestep left style	Running sideways to the left, left hop style	100STYLE
+STYLE100_SIDERUN/LeftHop_SideRunRight	0.533	loop	160	run sidestep right style	Running sideways to the right, left hop style	100STYLE
+STYLE100_SIDERUN/LegsApart_SideRunLeft	0.733	loop	168	run sidestep left style	Running sideways to the left, legs apart style	100STYLE
+STYLE100_SIDERUN/LegsApart_SideRunRight	0.833	loop	172	run sidestep right style	Running sideways to the right, legs apart style	100STYLE
+STYLE100_SIDERUN/LimpLeft_SideRunLeft	1.2	loop	57	run sidestep left style	Running sideways to the left, limp left style	100STYLE
+STYLE100_SIDERUN/LimpLeft_SideRunRight	0.767	loop	113	run sidestep right style	Running sideways to the right, limp left style	100STYLE
+STYLE100_SIDERUN/LimpRight_SideRunLeft	0.633	loop	119	run sidestep left style	Running sideways to the left, limp right style	100STYLE
+STYLE100_SIDERUN/LimpRight_SideRunRight	0.767	loop	86	run sidestep right style	Running sideways to the right, limp right style	100STYLE
+STYLE100_SIDERUN/LookUp_SideRunLeft	0.667	loop	155	run sidestep left style	Running sideways to the left, look up style	100STYLE
+STYLE100_SIDERUN/LookUp_SideRunRight	0.567	loop	167	run sidestep right style	Running sideways to the right, look up style	100STYLE
+STYLE100_SIDERUN/Lunge_SideRunLeft	1.033	loop	135	run sidestep left style	Running sideways to the left, lunge style	100STYLE
+STYLE100_SIDERUN/Lunge_SideRunRight	0.933	loop	143	run sidestep right style	Running sideways to the right, lunge style	100STYLE
+STYLE100_SIDERUN/March_SideRunLeft	1.433	loop	93	run sidestep left style	Running sideways to the left, march style	100STYLE
+STYLE100_SIDERUN/March_SideRunRight	0.7	loop	79	run sidestep right style	Running sideways to the right, march style	100STYLE
+STYLE100_SIDERUN/Monk_SideRunLeft	0.633	loop	106	run sidestep left style	Running sideways to the left, monk style	100STYLE
+STYLE100_SIDERUN/Monk_SideRunRight	0.667	loop	119	run sidestep right style	Running sideways to the right, monk style	100STYLE
+STYLE100_SIDERUN/Morris_SideRunLeft	1.267	loop	97	run sidestep left style	Running sideways to the left, morris style	100STYLE
+STYLE100_SIDERUN/Morris_SideRunRight	1.233	loop	88	run sidestep right style	Running sideways to the right, morris style	100STYLE
+STYLE100_SIDERUN/Neutral_SideRunLeft	0.7	loop	149	run sidestep left style	Running sideways to the left, neutral style: normal walking	100STYLE
+STYLE100_SIDERUN/Neutral_SideRunRight	0.667	loop	139	run sidestep right style	Running sideways to the right, neutral style: normal walking	100STYLE
+STYLE100_SIDERUN/Old_SideRunLeft	0.767	loop	47	run sidestep left style	Running sideways to the left, old style	100STYLE
+STYLE100_SIDERUN/Old_SideRunRight	0.967	loop	38	run sidestep right style	Running sideways to the right, old style	100STYLE
+STYLE100_SIDERUN/OnHeels_SideRunLeft	1.167	loop	134	run sidestep left style	Running sideways to the left, on heels style	100STYLE
+STYLE100_SIDERUN/OnHeels_SideRunRight	0.633	loop	126	run sidestep right style	Running sideways to the right, on heels style	100STYLE
+STYLE100_SIDERUN/OnPhoneLeft_SideRunLeft	0.633	loop	163	run sidestep left style	Running sideways to the left, on phone left style	100STYLE
+STYLE100_SIDERUN/OnPhoneLeft_SideRunRight	0.633	loop	169	run sidestep right style	Running sideways to the right, on phone left style	100STYLE
+STYLE100_SIDERUN/OnPhoneRight_SideRunLeft	1.567	loop	105	run sidestep left style	Running sideways to the left, on phone right style	100STYLE
+STYLE100_SIDERUN/OnPhoneRight_SideRunRight	1.8	loop	98	run sidestep right style	Running sideways to the right, on phone right style	100STYLE
+STYLE100_SIDERUN/OnToesBentForward_SideRunLeft	0.667	loop	141	run sidestep left style	Running sideways to the left	100STYLE
+STYLE100_SIDERUN/OnToesBentForward_SideRunRight	0.6	loop	155	run sidestep right style	Running sideways to the right	100STYLE
+STYLE100_SIDERUN/OnToesCrouched_SideRunLeft	0.7	loop	128	run sidestep left style	Running sideways to the left	100STYLE
+STYLE100_SIDERUN/OnToesCrouched_SideRunRight	0.6	loop	154	run sidestep right style	Running sideways to the right	100STYLE
+STYLE100_SIDERUN/PendulumHands_SideRunLeft	1.167	loop	122	run sidestep left style	Running sideways to the left, pendulum hands style	100STYLE
+STYLE100_SIDERUN/PendulumHands_SideRunRight	1.1	loop	138	run sidestep right style	Running sideways to the right, pendulum hands style	100STYLE
+STYLE100_SIDERUN/Penguin_SideRunLeft	0.5	loop	42	run sidestep left style	Running sideways to the left, penguin style	100STYLE
+STYLE100_SIDERUN/Penguin_SideRunRight	0.5	loop	95	run sidestep right style	Running sideways to the right, penguin style	100STYLE
+STYLE100_SIDERUN/PigeonToed_SideRunLeft	0.667	loop	104	run sidestep left style	Running sideways to the left	100STYLE
+STYLE100_SIDERUN/PigeonToed_SideRunRight	0.533	loop	128	run sidestep right style	Running sideways to the right	100STYLE
+STYLE100_SIDERUN/Proud_SideRunLeft	1.2	loop	150	run sidestep left style	Running sideways to the left, proud style	100STYLE
+STYLE100_SIDERUN/Proud_SideRunRight	1.133	loop	145	run sidestep right style	Running sideways to the right, proud style	100STYLE
+STYLE100_SIDERUN/Punch_SideRunLeft	1.133	loop	131	run sidestep left style	Running sideways to the left, punch style	100STYLE
+STYLE100_SIDERUN/Punch_SideRunRight	1.067	loop	156	run sidestep right style	Running sideways to the right, punch style	100STYLE
+STYLE100_SIDERUN/Quail_SideRunLeft	0.567	loop	76	run sidestep left style	Running sideways to the left, quail style	100STYLE
+STYLE100_SIDERUN/Quail_SideRunRight	0.567	loop	87	run sidestep right style	Running sideways to the right, quail style	100STYLE
+STYLE100_SIDERUN/RaisedLeftArm_SideRunLeft	0.633	loop	159	run sidestep left style	Running sideways to the left, raised left arm style	100STYLE
+STYLE100_SIDERUN/RaisedLeftArm_SideRunRight	0.633	loop	165	run sidestep right style	Running sideways to the right, raised left arm style	100STYLE
+STYLE100_SIDERUN/RaisedRightArm_SideRunLeft	0.7	loop	141	run sidestep left style	Running sideways to the left, raised right arm style	100STYLE
+STYLE100_SIDERUN/RaisedRightArm_SideRunRight	0.7	loop	156	run sidestep right style	Running sideways to the right, raised right arm style	100STYLE
+STYLE100_SIDERUN/RightHop_SideRunLeft	0.567	loop	97	run sidestep left style	Running sideways to the left, right hop style	100STYLE
+STYLE100_SIDERUN/RightHop_SideRunRight	0.5	loop	86	run sidestep right style	Running sideways to the right, right hop style	100STYLE
+STYLE100_SIDERUN/Roadrunner_SideRunLeft	0.833	loop	143	run sidestep left style	Running sideways to the left, roadrunner style	100STYLE
+STYLE100_SIDERUN/Roadrunner_SideRunRight	0.767	loop	137	run sidestep right style	Running sideways to the right, roadrunner style	100STYLE
+STYLE100_SIDERUN/Robot_SideRunLeft	0.567	loop	77	run sidestep left style	Running sideways to the left, robot style	100STYLE
+STYLE100_SIDERUN/Robot_SideRunRight	0.633	loop	72	run sidestep right style	Running sideways to the right, robot style	100STYLE
+STYLE100_SIDERUN/Rocket_SideRunLeft	0.633	loop	168	run sidestep left style	Running sideways to the left, rocket style	100STYLE
+STYLE100_SIDERUN/Rocket_SideRunRight	0.633	loop	157	run sidestep right style	Running sideways to the right, rocket style	100STYLE
+STYLE100_SIDERUN/Rushed_SideRunLeft	0.6	loop	165	run sidestep left style	Running sideways to the left, rushed style	100STYLE
+STYLE100_SIDERUN/Rushed_SideRunRight	0.633	loop	194	run sidestep right style	Running sideways to the right, rushed style	100STYLE
+STYLE100_SIDERUN/ShieldedLeft_SideRunLeft	0.667	loop	138	run sidestep left style	Running sideways to the left, shielded left style	100STYLE
+STYLE100_SIDERUN/ShieldedLeft_SideRunRight	0.667	loop	117	run sidestep right style	Running sideways to the right, shielded left style	100STYLE
+STYLE100_SIDERUN/ShieldedRight_SideRunLeft	0.633	loop	146	run sidestep left style	Running sideways to the left, shielded right style	100STYLE
+STYLE100_SIDERUN/ShieldedRight_SideRunRight	0.633	loop	145	run sidestep right style	Running sideways to the right, shielded right style	100STYLE
+STYLE100_SIDERUN/Skip_SideRunLeft	1.233	loop	121	run sidestep left style	Running sideways to the left, skip style	100STYLE
+STYLE100_SIDERUN/Skip_SideRunRight	1.133	loop	120	run sidestep right style	Running sideways to the right, skip style	100STYLE
+STYLE100_SIDERUN/SlideFeet_SideRunLeft	0.667	loop	139	run sidestep left style	Running sideways to the left, slide feet style	100STYLE
+STYLE100_SIDERUN/SlideFeet_SideRunRight	0.7	loop	129	run sidestep right style	Running sideways to the right, slide feet style	100STYLE
+STYLE100_SIDERUN/Star_SideRunLeft	0.6	loop	148	run sidestep left style	Running sideways to the left, star style	100STYLE
+STYLE100_SIDERUN/Star_SideRunRight	0.6	loop	157	run sidestep right style	Running sideways to the right, star style	100STYLE
+STYLE100_SIDERUN/StartStop_SideRunLeft	1.8	loop	34	run sidestep left style	Running sideways to the left, start stop style	100STYLE
+STYLE100_SIDERUN/StartStop_SideRunRight	1.833	loop	31	run sidestep right style	Running sideways to the right, start stop style	100STYLE
+STYLE100_SIDERUN/Stiff_SideRunLeft	1.267	loop	110	run sidestep left style	Running sideways to the left, stiff style	100STYLE
+STYLE100_SIDERUN/Stiff_SideRunRight	0.6	loop	119	run sidestep right style	Running sideways to the right, stiff style	100STYLE
+STYLE100_SIDERUN/Strutting_SideRunLeft	1.367	loop	111	run sidestep left style	Running sideways to the left, strutting style	100STYLE
+STYLE100_SIDERUN/Strutting_SideRunRight	1.2	loop	141	run sidestep right style	Running sideways to the right, strutting style	100STYLE
+STYLE100_SIDERUN/Superman_SideRunLeft	0.6	loop	136	run sidestep left style	Running sideways to the left, superman style	100STYLE
+STYLE100_SIDERUN/Superman_SideRunRight	0.6	loop	171	run sidestep right style	Running sideways to the right, superman style	100STYLE
+STYLE100_SIDERUN/Swat_SideRunLeft	0.767	loop	99	run sidestep left style	Running sideways to the left, swat style	100STYLE
+STYLE100_SIDERUN/Swat_SideRunRight	0.867	loop	130	run sidestep right style	Running sideways to the right, swat style	100STYLE
+STYLE100_SIDERUN/Sweep_SideRunLeft	0.667	loop	126	run sidestep left style	Running sideways to the left, sweep style	100STYLE
+STYLE100_SIDERUN/Sweep_SideRunRight	0.667	loop	130	run sidestep right style	Running sideways to the right, sweep style	100STYLE
+STYLE100_SIDERUN/Swimming_SideRunLeft	1.267	loop	140	run sidestep left style	Running sideways to the left, swimming style	100STYLE
+STYLE100_SIDERUN/Swimming_SideRunRight	1.4	loop	146	run sidestep right style	Running sideways to the right, swimming style	100STYLE
+STYLE100_SIDERUN/SwingArmsRound_SideRunLeft	0.567	loop	125	run sidestep left style	Running sideways to the left	100STYLE
+STYLE100_SIDERUN/SwingArmsRound_SideRunRight	0.5	loop	12	run sidestep right style	Running sideways to the right	100STYLE
+STYLE100_SIDERUN/SwingShoulders_SideRunLeft	2.467	loop	113	run sidestep left style	Running sideways to the left, swing shoulders style	100STYLE
+STYLE100_SIDERUN/SwingShoulders_SideRunRight	1.267	loop	55	run sidestep right style	Running sideways to the right, swing shoulders style	100STYLE
+STYLE100_SIDERUN/Teapot_SideRunLeft	0.733	loop	133	run sidestep left style	Running sideways to the left, teapot style	100STYLE
+STYLE100_SIDERUN/Teapot_SideRunRight	0.6	loop	160	run sidestep right style	Running sideways to the right, teapot style	100STYLE
+STYLE100_SIDERUN/Tiptoe_SideRunLeft	0.633	loop	129	run sidestep left style	Running sideways to the left, tiptoe style	100STYLE
+STYLE100_SIDERUN/Tiptoe_SideRunRight	0.6	loop	138	run sidestep right style	Running sideways to the right, tiptoe style	100STYLE
+STYLE100_SIDERUN/TogetherStep_SideRunLeft	2	loop	77	run sidestep left style	Running sideways to the left, together step style	100STYLE
+STYLE100_SIDERUN/TogetherStep_SideRunRight	1.6	loop	86	run sidestep right style	Running sideways to the right, together step style	100STYLE
+STYLE100_SIDERUN/TwoFootJump_SideRunLeft	0.533	loop	129	run sidestep left style	Running sideways to the left, two foot jump style	100STYLE
+STYLE100_SIDERUN/TwoFootJump_SideRunRight	0.533	loop	178	run sidestep right style	Running sideways to the right, two foot jump style	100STYLE
+STYLE100_SIDERUN/WalkingStickLeft_SideRunLeft	1.4	loop	137	run sidestep left style	Running sideways to the left, walking stick left style	100STYLE
+STYLE100_SIDERUN/WalkingStickLeft_SideRunRight	0.633	loop	157	run sidestep right style	Running sideways to the right, walking stick left style	100STYLE
+STYLE100_SIDERUN/WalkingStickRight_SideRunLeft	0.633	loop	155	run sidestep left style	Running sideways to the left, walking stick right style	100STYLE
+STYLE100_SIDERUN/WalkingStickRight_SideRunRight	0.633	loop	152	run sidestep right style	Running sideways to the right, walking stick right style	100STYLE
+STYLE100_SIDERUN/Waving_SideRunLeft	0.6	loop	152	run sidestep left style varies	Running sideways to the left, waving style	100STYLE
+STYLE100_SIDERUN/Waving_SideRunRight	0.6	loop	160	run sidestep right style varies	Running sideways to the right, waving style	100STYLE
+STYLE100_SIDERUN/WhirlArms_SideRunLeft	1.1	loop	136	run sidestep left style	Running sideways to the left, whirl arms style	100STYLE
+STYLE100_SIDERUN/WhirlArms_SideRunRight	1.133	loop	149	run sidestep right style	Running sideways to the right, whirl arms style	100STYLE
+STYLE100_SIDERUN/WideLegs_SideRunLeft	0.633	loop	135	run sidestep left style	Running sideways to the left, wide legs style	100STYLE
+STYLE100_SIDERUN/WideLegs_SideRunRight	0.567	loop	148	run sidestep right style	Running sideways to the right, wide legs style	100STYLE
+STYLE100_SIDERUN/WiggleHips_SideRunLeft	0.733	loop	104	run sidestep left style	Running sideways to the left	100STYLE
+STYLE100_SIDERUN/WiggleHips_SideRunRight	0.733	loop	122	run sidestep right style	Running sideways to the right	100STYLE
+STYLE100_SIDERUN/WildArms_SideRunLeft	1.3	loop	158	run sidestep left style	Running sideways to the left, wild arms style	100STYLE
+STYLE100_SIDERUN/WildArms_SideRunRight	1.267	loop	163	run sidestep right style	Running sideways to the right, wild arms style	100STYLE
+STYLE100_SIDERUN/WildLegs_SideRunLeft	0.833	loop	82	run sidestep left style	Running sideways to the left, wild legs style	100STYLE
+STYLE100_SIDERUN/WildLegs_SideRunRight	0.8	loop	91	run sidestep right style	Running sideways to the right, wild legs style	100STYLE
+STYLE100_SIDERUN/Zombie_SideRunLeft	0.733	loop	120	run sidestep left style	Running sideways to the left, zombie style	100STYLE
+STYLE100_SIDERUN/Zombie_SideRunRight	0.667	loop	119	run sidestep right style	Running sideways to the right, zombie style	100STYLE

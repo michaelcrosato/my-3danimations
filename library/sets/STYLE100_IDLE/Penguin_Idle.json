@@ -1,0 +1,24 @@
+{
+"format": "2.0",
+"id": "STYLE100_IDLE/Penguin_Idle",
+"name": "Penguin_Idle",
+"legend": "2.0",
+"dur": 2.5,
+"loop": true,
+"fps": 30,
+"tags": ["idle","style"],
+"desc": "Standing, penguin style: waddle with feet close together",
+"skeleton": "humanoid",
+"restSrc": "100STYLE",
+"provenance": {"src":"100STYLE","take":"Penguin_ID 16.75-19.25","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
+"quality": {"fit":[10,36],"qa":"unchecked","qaVersion":"none"},
+"keys": [
+  {"t":0,
+   "hips":[0,0,100], "body":[0,-6,-1], "chest":[0,4,2], "head":[4,12,-2],
+   "shL":[3,-11], "shR":[3,-8], "armL":[-1,2,-100,12,-125], "armR":[-2,6,-100,16,179], "handL":[-43,1,-73], "handR":[-39,6,-118], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[-14,-1,-99,15,9], "legR":[-14,-5,-99,12,-12], "footL":[5,24,0], "footR":[6,35,0]},
+  {"t":2.5,
+   "hips":[0,0,100], "body":[0,-6,-1], "chest":[0,4,2], "head":[4,12,-2],
+   "shL":[3,-11], "shR":[3,-8], "armL":[-1,2,-100,12,-125], "armR":[-2,6,-100,16,179], "handL":[-43,1,-73], "handR":[-39,6,-118], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[-14,-1,-99,15,9], "legR":[-14,-5,-99,12,-12], "footL":[5,24,0], "footR":[6,35,0]}
+]}

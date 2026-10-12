@@ -1,0 +1,24 @@
+{
+"format": "2.0",
+"id": "STYLE100_IDLE/KarateChop_Idle",
+"name": "KarateChop_Idle",
+"legend": "2.0",
+"dur": 2.5,
+"loop": true,
+"fps": 30,
+"tags": ["idle","style"],
+"desc": "Standing, karate chop style: open hands swing hand with each step to do a karate chop",
+"skeleton": "humanoid",
+"restSrc": "100STYLE",
+"provenance": {"src":"100STYLE","take":"KarateChop_ID 17.67-20.17","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
+"quality": {"fit":[6,38],"qa":"unchecked","qaVersion":"none"},
+"keys": [
+  {"t":0,
+   "hips":[0,0,100], "body":[0,-12,0], "chest":[0,16,0], "head":[2,13,1],
+   "shL":[4,-8], "shR":[5,-9], "armL":[95,-25,-20,99,2], "armR":[93,-35,-10,101,-9], "handL":[-4,12,91], "handR":[-12,17,86], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[-28,3,-96,13,-19], "legR":[-30,-2,-95,11,11], "footL":[12,-10,0], "footR":[12,15,0]},
+  {"t":2.5,
+   "hips":[0,0,100], "body":[0,-12,0], "chest":[0,16,0], "head":[2,13,1],
+   "shL":[4,-8], "shR":[5,-9], "armL":[95,-25,-20,99,2], "armR":[93,-35,-10,101,-9], "handL":[-4,12,91], "handR":[-12,17,86], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[-28,3,-96,13,-19], "legR":[-30,-2,-95,11,11], "footL":[12,-10,0], "footR":[12,15,0]}
+]}

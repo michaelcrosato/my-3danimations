@@ -1,0 +1,24 @@
+{
+"format": "2.0",
+"id": "STYLE100_IDLE/Skip_Idle",
+"name": "Skip_Idle",
+"legend": "2.0",
+"dur": 2.5,
+"loop": true,
+"fps": 30,
+"tags": ["idle","style"],
+"desc": "Standing, skip style: skipping like a child",
+"skeleton": "humanoid",
+"restSrc": "100STYLE",
+"provenance": {"src":"100STYLE","take":"Skip_ID 11.23-13.73","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
+"quality": {"fit":[8,18],"qa":"unchecked","qaVersion":"none"},
+"keys": [
+  {"t":0,
+   "hips":[0,0,101], "body":[0,-10,0], "chest":[2,12,1], "head":[4,25,2],
+   "shL":[3,-9], "shR":[2,-8], "armL":[12,7,-99,0,9], "armR":[13,11,-99,0,-5], "handL":[0,1,89], "handR":[-10,5,105], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[-28,1,-96,0,3], "legR":[-27,-3,-96,0,0], "footL":[12,1,0], "footR":[11,11,0]},
+  {"t":2.5,
+   "hips":[0,0,101], "body":[0,-10,0], "chest":[2,12,1], "head":[4,25,2],
+   "shL":[3,-9], "shR":[2,-8], "armL":[12,7,-99,0,9], "armR":[13,11,-99,0,-5], "handL":[0,1,89], "handR":[-10,5,105], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[-28,1,-96,0,3], "legR":[-27,-3,-96,0,0], "footL":[12,1,0], "footR":[11,11,0]}
+]}

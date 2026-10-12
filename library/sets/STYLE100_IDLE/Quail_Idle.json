@@ -1,0 +1,24 @@
+{
+"format": "2.0",
+"id": "STYLE100_IDLE/Quail_Idle",
+"name": "Quail_Idle",
+"legend": "2.0",
+"dur": 2.5,
+"loop": true,
+"fps": 30,
+"tags": ["idle","style"],
+"desc": "Standing, quail style: arms straight by sides slightly back very small quick steps",
+"skeleton": "humanoid",
+"restSrc": "100STYLE",
+"provenance": {"src":"100STYLE","take":"Quail_ID 18.33-20.83","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
+"quality": {"fit":[8,24],"qa":"unchecked","qaVersion":"none"},
+"keys": [
+  {"t":0,
+   "hips":[0,0,97], "body":[0,15,-1], "chest":[0,18,0], "head":[1,2,2],
+   "shL":[1,-6], "shR":[-1,-7], "armL":[11,10,-99,17,-14], "armR":[18,9,-98,18,20], "handL":[-1,8,71], "handR":[5,12,49], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[27,-3,-96,33,-2], "legR":[29,-9,-95,34,0], "footL":[-15,0,0], "footR":[-13,6,0]},
+  {"t":2.5,
+   "hips":[0,0,97], "body":[0,15,-1], "chest":[0,18,0], "head":[1,2,2],
+   "shL":[1,-6], "shR":[-1,-7], "armL":[11,10,-99,17,-14], "armR":[18,9,-98,18,20], "handL":[-1,8,71], "handR":[5,12,49], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[27,-3,-96,33,-2], "legR":[29,-9,-95,34,0], "footL":[-15,0,0], "footR":[-13,6,0]}
+]}

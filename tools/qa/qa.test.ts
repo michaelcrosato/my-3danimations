@@ -83,6 +83,6 @@ describe("npm run qa", () => {
     expect(clips.distributions.capture.slide.n).toBe(1);
     expect(JSON.parse(readFileSync(join(ROOT, "check-output/qa/report.json"), "utf8")).tool).toBe("qa");
     // the verdicts line names the metrics that fail most
-    expect(run("--clip", "CMU_CURATED/Block_Combo")).toMatch(/verdicts .*: 0 pass, 0 warn, 1 fail; failing most: \w+ 1/);
+    expect(run("--clip", "CMU_CURATED/Backflip")).toMatch(/verdicts .*: 0 pass, 0 warn, 1 fail; failing most: \w+ 1/);
   });
 });

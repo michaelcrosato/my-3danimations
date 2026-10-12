@@ -89,6 +89,31 @@ describe("format 2's optional fields", () => {
     expect(dist(point(a, "spine2"), point(curled, "spine2"))).toBeGreaterThan(5);
     expect(dist(point(a, "pelvis"), point(curled, "pelvis"))).toBe(0);
   });
+  it("spine shares encode back from the points they decode to, and the arms still land", () => {
+    const X = new Float32Array(decode({ ...key0, spine: [33, 66, 100] }));
+    const e = encodePose(R, X, null, { spine: true });
+    (e.spine as number[]).forEach((v, i) => expect(Math.abs(v - [33, 66, 100][i]!), `spine[${i}]`).toBeLessThanOrEqual(2));
+    for (const n of ["elbowL", "wristR", "head"]) expect(dist(point(decode(e), n), point(X, n)), n).toBeLessThan(3);
+  });
+  /** A capture of `n` frames at 30 fps, frame f decoded from key(f). */
+  const capOf = (n: number, key: (f: number) => KeyLike): Capture => {
+    const data = new Float32Array(n * 108);
+    for (let f = 0; f < n; f++) data.set(decode(key(f)), f * 108);
+    return { name: "C", n, dur: (n - 1) / 30, loop: false, fps: 30, data, move: null };
+  };
+  it("keeps a clip's spine curl in every key when it helps, and in none when it doesn't", () => {
+    const curl = fit(R, capOf(31, (f) => ({ ...key0, spine: [Math.round(20 + 2 * f), 66, 100] })), 10, { spine: true }).clip;
+    expect(curl.keys.every((k) => Array.isArray(k.spine))).toBe(true);
+    const plain = fit(R, capOf(31, () => key0), 10, { spine: true }).clip;
+    expect(plain.keys.some((k) => "spine" in k)).toBe(false);
+  });
+  it("gives a turning clip its root heading as yaw, and a straight one none", () => {
+    const body = key0.body as number[], turn = capOf(61, (f) => ({ ...key0, body: [body[0]! + (90 * f) / 60, body[1]!, body[2]!] }));
+    const c = fit(R, turn, 10, { yaw: true }).clip, last = c.keys[c.keys.length - 1]!;
+    expect(c.keys[0]!.yaw).toBe(0);
+    expect(last.yaw as number).toBeGreaterThan(70);
+    expect(fit(R, capOf(61, () => key0), 10, { yaw: true }).clip.keys.some((k) => "yaw" in k)).toBe(false);
+  });
   it("in-betweens yaw and mirrors it with the hands, fingers and contacts", () => {
     const clip = { dur: 1, loop: false, keys: [{ ...key0, t: 0, yaw: 0, handL: [10, 0, 0] }, { ...key0, t: 1, yaw: 90, handL: [30, 0, 0] }] as KeyLike[] };
     expect(keyAt(clip, 0.5).yaw).toBe(45);

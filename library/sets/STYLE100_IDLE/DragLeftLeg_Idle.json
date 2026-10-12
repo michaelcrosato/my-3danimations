@@ -1,0 +1,24 @@
+{
+"format": "2.0",
+"id": "STYLE100_IDLE/DragLeftLeg_Idle",
+"name": "DragLeftLeg_Idle",
+"legend": "2.0",
+"dur": 2.5,
+"loop": true,
+"fps": 30,
+"tags": ["idle","style"],
+"desc": "Standing, drag left leg style: drag left foot along the floor",
+"skeleton": "humanoid",
+"restSrc": "100STYLE",
+"provenance": {"src":"100STYLE","take":"DragLeftLeg_ID 19.75-22.25","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
+"quality": {"fit":[7,25],"qa":"unchecked","qaVersion":"none"},
+"keys": [
+  {"t":0,
+   "hips":[0,0,100], "body":[0,-11,-1], "chest":[4,12,0], "head":[9,23,6],
+   "shL":[3,-10], "shR":[0,-10], "armL":[10,5,-99,9,114], "armR":[13,4,-99,8,-97], "handL":[1,-8,-157], "handR":[-4,0,-156], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[-33,-2,-94,10,-2], "legR":[-14,-6,-99,10,5], "footL":[10,37,0], "footR":[11,6,0]},
+  {"t":2.5,
+   "hips":[0,0,100], "body":[0,-11,-1], "chest":[4,12,0], "head":[9,23,6],
+   "shL":[3,-10], "shR":[0,-10], "armL":[10,5,-99,9,114], "armR":[13,4,-99,8,-97], "handL":[1,-8,-157], "handR":[-4,0,-156], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[-33,-2,-94,10,-2], "legR":[-14,-6,-99,10,5], "footL":[10,37,0], "footR":[11,6,0]}
+]}

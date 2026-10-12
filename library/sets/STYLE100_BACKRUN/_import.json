@@ -1,0 +1,1586 @@
+{
+ "about": "The re-import (WP-5.3) by m3a-import 1: each clip's choice between its re-import and its migrated version, with why; both fits (mean, worst mm against the source); both QA verdicts; the sensor metrics that moved ([migrated, re-import]); the hands' mean error against the capture ([migrated, re-import] mm; props: over the clips that hold something); what the catalog skips; the clips the migrated set had that are gone.",
+ "mean": 8.6,
+ "props": null,
+ "clips": {
+  "Aeroplane_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     7,
+     30
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    6.9
+   ]
+  },
+  "Akimbo_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     8,
+     49
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    4.1
+   ]
+  },
+  "Angry_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     16,
+     110
+    ]
+   },
+   "qa": {
+    "import": "warn"
+   },
+   "hands": [
+    11.9
+   ]
+  },
+  "ArmsAboveHead_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     6,
+     31
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    5.3
+   ]
+  },
+  "ArmsBehindBack_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     8,
+     48
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    4.9
+   ]
+  },
+  "ArmsBySide_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     8,
+     42
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    7
+   ]
+  },
+  "ArmsFolded_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     9,
+     91
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    5.1
+   ]
+  },
+  "Balance_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     9,
+     39
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    7.3
+   ]
+  },
+  "BeatChest_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     7,
+     65
+    ]
+   },
+   "qa": {
+    "import": "warn"
+   },
+   "hands": [
+    6.8
+   ]
+  },
+  "BentForward_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     7,
+     29
+    ]
+   },
+   "qa": {
+    "import": "warn"
+   },
+   "hands": [
+    4.2
+   ]
+  },
+  "BentKnees_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     10,
+     42
+    ]
+   },
+   "qa": {
+    "import": "warn"
+   },
+   "hands": [
+    8.4
+   ]
+  },
+  "BigSteps_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     19,
+     168
+    ]
+   },
+   "qa": {
+    "import": "warn"
+   },
+   "hands": [
+    36.1
+   ]
+  },
+  "BouncyLeft_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     9,
+     42
+    ]
+   },
+   "qa": {
+    "import": "warn"
+   },
+   "hands": [
+    8.4
+   ]
+  },
+  "BouncyRight_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     9,
+     42
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    6.8
+   ]
+  },
+  "Cat_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     7,
+     27
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    7.9
+   ]
+  },
+  "Chicken_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     9,
+     55
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    6.8
+   ]
+  },
+  "CrossOver_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     8,
+     42
+    ]
+   },
+   "qa": {
+    "import": "warn"
+   },
+   "hands": [
+    12.9
+   ]
+  },
+  "Crouched_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     8,
+     33
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    5.2
+   ]
+  },
+  "CrowdAvoidance_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     7,
+     67
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    5.3
+   ]
+  },
+  "Depressed_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     7,
+     105
+    ]
+   },
+   "qa": {
+    "import": "warn"
+   },
+   "hands": [
+    9.6
+   ]
+  },
+  "Dinosaur_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     8,
+     45
+    ]
+   },
+   "qa": {
+    "import": "fail"
+   },
+   "hands": [
+    5.1
+   ]
+  },
+  "DragLeftLeg_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     6,
+     29
+    ]
+   },
+   "qa": {
+    "import": "warn"
+   },
+   "hands": [
+    5.8
+   ]
+  },
+  "DragRightLeg_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     7,
+     35
+    ]
+   },
+   "qa": {
+    "import": "warn"
+   },
+   "hands": [
+    7.3
+   ]
+  },
+  "Drunk_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     7,
+     55
+    ]
+   },
+   "qa": {
+    "import": "warn"
+   },
+   "hands": [
+    6.2
+   ]
+  },
+  "DuckFoot_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     7,
+     37
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    6.5
+   ]
+  },
+  "Elated_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     12,
+     149
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    15.9
+   ]
+  },
+  "FairySteps_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     7,
+     37
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    5.1
+   ]
+  },
+  "Flapping_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     6,
+     29
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    6.9
+   ]
+  },
+  "FlickLegs_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     8,
+     46
+    ]
+   },
+   "qa": {
+    "import": "warn"
+   },
+   "hands": [
+    5.9
+   ]
+  },
+  "Followed_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     7,
+     58
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    6.1
+   ]
+  },
+  "GracefulArms_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     8,
+     80
+    ]
+   },
+   "qa": {
+    "import": "warn"
+   },
+   "hands": [
+    5.6
+   ]
+  },
+  "HandsBetweenLegs_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     9,
+     46
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    8.4
+   ]
+  },
+  "HandsInPockets_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     7,
+     47
+    ]
+   },
+   "qa": {
+    "import": "warn"
+   },
+   "hands": [
+    4.9
+   ]
+  },
+  "Heavyset_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     7,
+     36
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    5.9
+   ]
+  },
+  "HighKnees_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     12,
+     73
+    ]
+   },
+   "qa": {
+    "import": "warn"
+   },
+   "hands": [
+    8.8
+   ]
+  },
+  "InTheDark_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     9,
+     56
+    ]
+   },
+   "qa": {
+    "import": "warn"
+   },
+   "hands": [
+    8.1
+   ]
+  },
+  "KarateChop_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     12,
+     98
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    8.9
+   ]
+  },
+  "Kick_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     10,
+     67
+    ]
+   },
+   "qa": {
+    "import": "warn"
+   },
+   "hands": [
+    9.1
+   ]
+  },
+  "LawnMower_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     11,
+     54
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    10.4
+   ]
+  },
+  "LeanBack_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     10,
+     106
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    12
+   ]
+  },
+  "LeanLeft_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     9,
+     38
+    ]
+   },
+   "qa": {
+    "import": "warn"
+   },
+   "hands": [
+    5.7
+   ]
+  },
+  "LeanRight_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     7,
+     88
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    4.7
+   ]
+  },
+  "LeftHop_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     7,
+     38
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    8
+   ]
+  },
+  "LegsApart_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     8,
+     56
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    6.1
+   ]
+  },
+  "LimpLeft_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     8,
+     54
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    8.4
+   ]
+  },
+  "LimpRight_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     7,
+     28
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    5.5
+   ]
+  },
+  "LookUp_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     10,
+     41
+    ]
+   },
+   "qa": {
+    "import": "warn"
+   },
+   "hands": [
+    8.1
+   ]
+  },
+  "Lunge_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     13,
+     88
+    ]
+   },
+   "qa": {
+    "import": "warn"
+   },
+   "hands": [
+    17.8
+   ]
+  },
+  "March_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     8,
+     88
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    8.3
+   ]
+  },
+  "Monk_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     7,
+     37
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    4.5
+   ]
+  },
+  "Morris_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     7,
+     52
+    ]
+   },
+   "qa": {
+    "import": "fail"
+   },
+   "hands": [
+    7.3
+   ]
+  },
+  "Neutral_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     9,
+     36
+    ]
+   },
+   "qa": {
+    "import": "fail"
+   },
+   "hands": [
+    5.7
+   ]
+  },
+  "Old_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     6,
+     26
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    5.3
+   ]
+  },
+  "OnHeels_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     7,
+     34
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    8.4
+   ]
+  },
+  "OnPhoneLeft_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     10,
+     73
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    9.3
+   ]
+  },
+  "OnPhoneRight_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     6,
+     27
+    ]
+   },
+   "qa": {
+    "import": "warn"
+   },
+   "hands": [
+    5.8
+   ]
+  },
+  "OnToesBentForward_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     7,
+     36
+    ]
+   },
+   "qa": {
+    "import": "warn"
+   },
+   "hands": [
+    4.7
+   ]
+  },
+  "OnToesCrouched_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     7,
+     33
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    4.5
+   ]
+  },
+  "PendulumHands_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     9,
+     68
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    7.9
+   ]
+  },
+  "Penguin_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     8,
+     29
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    6.8
+   ]
+  },
+  "PigeonToed_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     8,
+     57
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    7.8
+   ]
+  },
+  "Proud_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     7,
+     43
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    6.5
+   ]
+  },
+  "Punch_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     8,
+     56
+    ]
+   },
+   "qa": {
+    "import": "warn"
+   },
+   "hands": [
+    8.8
+   ]
+  },
+  "Quail_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     8,
+     34
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    6.7
+   ]
+  },
+  "RaisedLeftArm_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     9,
+     95
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    7.6
+   ]
+  },
+  "RaisedRightArm_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     10,
+     67
+    ]
+   },
+   "qa": {
+    "import": "warn"
+   },
+   "hands": [
+    10
+   ]
+  },
+  "RightHop_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     8,
+     53
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    9.7
+   ]
+  },
+  "Roadrunner_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     12,
+     115
+    ]
+   },
+   "qa": {
+    "import": "warn"
+   },
+   "hands": [
+    5.7
+   ]
+  },
+  "Robot_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     7,
+     20
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    8.1
+   ]
+  },
+  "Rocket_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     9,
+     38
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    6.5
+   ]
+  },
+  "Rushed_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     10,
+     113
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    10.7
+   ]
+  },
+  "ShieldedLeft_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     6,
+     24
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    4.3
+   ]
+  },
+  "ShieldedRight_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     7,
+     30
+    ]
+   },
+   "qa": {
+    "import": "warn"
+   },
+   "hands": [
+    4.7
+   ]
+  },
+  "Skip_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     10,
+     58
+    ]
+   },
+   "qa": {
+    "import": "fail"
+   },
+   "hands": [
+    9.4
+   ]
+  },
+  "SlideFeet_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     7,
+     63
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    7.1
+   ]
+  },
+  "Star_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     9,
+     37
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    9.7
+   ]
+  },
+  "StartStop_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     9,
+     33
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    7.9
+   ]
+  },
+  "Stiff_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     9,
+     63
+    ]
+   },
+   "qa": {
+    "import": "warn"
+   },
+   "hands": [
+    10
+   ]
+  },
+  "Strutting_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     11,
+     67
+    ]
+   },
+   "qa": {
+    "import": "warn"
+   },
+   "hands": [
+    11.2
+   ]
+  },
+  "Superman_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     8,
+     52
+    ]
+   },
+   "qa": {
+    "import": "warn"
+   },
+   "hands": [
+    7
+   ]
+  },
+  "Swat_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     7,
+     66
+    ]
+   },
+   "qa": {
+    "import": "warn"
+   },
+   "hands": [
+    5.3
+   ]
+  },
+  "Sweep_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     7,
+     38
+    ]
+   },
+   "qa": {
+    "import": "warn"
+   },
+   "hands": [
+    7.4
+   ]
+  },
+  "Swimming_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     7,
+     34
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    7.8
+   ]
+  },
+  "SwingArmsRound_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     12,
+     129
+    ]
+   },
+   "qa": {
+    "import": "fail"
+   },
+   "hands": [
+    18.5
+   ]
+  },
+  "SwingShoulders_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     10,
+     83
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    9.4
+   ]
+  },
+  "Teapot_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     9,
+     82
+    ]
+   },
+   "qa": {
+    "import": "warn"
+   },
+   "hands": [
+    6.9
+   ]
+  },
+  "Tiptoe_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     7,
+     59
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    4.6
+   ]
+  },
+  "TogetherStep_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     7,
+     29
+    ]
+   },
+   "qa": {
+    "import": "fail"
+   },
+   "hands": [
+    8.1
+   ]
+  },
+  "TwoFootJump_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     9,
+     43
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    7.1
+   ]
+  },
+  "WalkingStickLeft_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     7,
+     29
+    ]
+   },
+   "qa": {
+    "import": "warn"
+   },
+   "hands": [
+    4.8
+   ]
+  },
+  "WalkingStickRight_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     9,
+     48
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    8.5
+   ]
+  },
+  "Waving_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     9,
+     40
+    ]
+   },
+   "qa": {
+    "import": "warn"
+   },
+   "hands": [
+    7.5
+   ]
+  },
+  "WhirlArms_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     12,
+     80
+    ]
+   },
+   "qa": {
+    "import": "warn"
+   },
+   "hands": [
+    27.4
+   ]
+  },
+  "WideLegs_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     10,
+     56
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    8.9
+   ]
+  },
+  "WiggleHips_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     8,
+     33
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    5.8
+   ]
+  },
+  "WildArms_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     18,
+     169
+    ]
+   },
+   "qa": {
+    "import": "fail"
+   },
+   "hands": [
+    33.6
+   ]
+  },
+  "WildLegs_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     9,
+     46
+    ]
+   },
+   "qa": {
+    "import": "warn"
+   },
+   "hands": [
+    7.3
+   ]
+  },
+  "Zombie_RunBack": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     9,
+     39
+    ]
+   },
+   "qa": {
+    "import": "warn"
+   },
+   "hands": [
+    9.7
+   ]
+  }
+ },
+ "skipped": [
+  {
+   "name": "SpinAntiClock_RunBack",
+   "why": "turns round as it goes: no loop plays it in place"
+  },
+  {
+   "name": "SpinClock_RunBack",
+   "why": "turns round as it goes: no loop plays it in place"
+  }
+ ],
+ "dropped": []
+}

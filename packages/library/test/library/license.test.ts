@@ -1,14 +1,15 @@
-// License compliance (WP-5.7): every seed set passes, with its open questions listed; a fixture for each failure fails
+// License compliance (WP-5.7): every set passes, with its open questions listed; a fixture for each failure fails
 // with its reason (a source without an SPDX id, a license that doesn't fit its tier, a text not kept, a credited set
 // without its credit, a clip from a tier the game didn't opt into, an unknown clip, local content in a shipped game);
 // a game is credited only for the credited sets it uses, and the block says so.
+import { readdirSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { checkGame, checkSets, creditsBlock, type LibrarySource } from "../../src/index.ts";
 import { directory, licenseText } from "../../src/node.ts";
 
-const DIR = join(import.meta.dirname, "../../../../library/sets"), real = directory(DIR), text = licenseText(DIR);
-const SETS = ["CMU_CURATED", "MESH2MOTION", "QUATERNIUS_3D2DGE", "QUATERNIUS_SHARDFALL", "STYLE100"];
+const DIR = join(import.meta.dirname, "../../../../library/sets"), LIB = DIR, real = directory(DIR), text = licenseText(DIR);
+const SETS = readdirSync(DIR).sort();
 
 /** A small library in memory: each set's manifest fields and its clip names. */
 function fake(sets: Record<string, { tier: string; credit?: string; sources: Record<string, { license?: string; audit?: string }>; clips: string[] }>): LibrarySource {
@@ -25,16 +26,15 @@ function fake(sets: Record<string, { tier: string; credit?: string; sources: Rec
 const kept = (id: string) => (["CC0-1.0", "CC-BY-4.0", "LicenseRef-CMU-Mocap"].includes(id) ? "the text" : null);
 
 describe("license compliance", () => {
-  it("passes every seed set, lists the open questions, and credits the CC BY and CMU sets", () => {
+  it("passes every set, lists the open questions, and credits the CC BY and CMU sets", () => {
     const r = checkSets(real, SETS, text);
     expect(r.findings.filter((f) => f.level === "fail")).toEqual([]);
     expect(r.ok).toBe(true);
-    // Mesh2Motion's per-asset audit is open until WP-5.3
-    expect(r.findings.map((f) => f.where)).toEqual(["MESH2MOTION sources.M2M_QUATERNIUS", "MESH2MOTION sources.M2M_ANIMATED", "MESH2MOTION sources.M2M_MOCOPI"]);
-    expect(r.credits.map((c) => [c.set, c.licenses, c.clips])).toEqual([
-      ["CMU_CURATED", ["LicenseRef-CMU-Mocap"], 60],
-      ["STYLE100", ["CC-BY-4.0"], 98],
-    ]);
+    // Mesh2Motion's per-asset audit closed in WP-5.3 (D63): no question is open
+    expect(r.findings).toEqual([]);
+    // every CMU and 100STYLE set is credited, with its license and every clip it holds
+    const count = (s: string) => readdirSync(join(LIB, s)).filter((f) => f.endsWith(".json") && !f.startsWith("_")).length;
+    expect(r.credits.map((c) => [c.set, c.licenses, c.clips])).toEqual(SETS.filter((s) => s === "CMU_CURATED" || s.startsWith("STYLE100")).map((s) => [s, [s === "CMU_CURATED" ? "LicenseRef-CMU-Mocap" : "CC-BY-4.0"], count(s)]));
     expect(r.block).toMatch(/^Motion credits:\n- CMU motion capture, curated \(LicenseRef-CMU-Mocap\): CMU Graphics Lab/);
   });
   it("fails each set fixture with its reason", () => {

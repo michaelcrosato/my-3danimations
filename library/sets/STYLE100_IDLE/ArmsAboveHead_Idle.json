@@ -1,0 +1,24 @@
+{
+"format": "2.0",
+"id": "STYLE100_IDLE/ArmsAboveHead_Idle",
+"name": "ArmsAboveHead_Idle",
+"legend": "2.0",
+"dur": 2.5,
+"loop": true,
+"fps": 30,
+"tags": ["idle","style"],
+"desc": "Standing, arms above head style: arms raised straight above head",
+"skeleton": "humanoid",
+"restSrc": "100STYLE",
+"provenance": {"src":"100STYLE","take":"ArmsAboveHead_ID 19.80-22.30","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
+"quality": {"fit":[8,33],"qa":"unchecked","qaVersion":"none"},
+"keys": [
+  {"t":0,
+   "hips":[0,0,101], "body":[0,-7,-1], "chest":[1,9,-2], "head":[-7,30,7],
+   "shL":[-3,19], "shR":[-4,15], "armL":[61,-25,76,4,28], "armR":[64,7,77,29,-30], "handL":[-9,12,94], "handR":[0,12,60], "fingersL":[0,0,0,0,0], "fingersR":[1,1,1,1,1],
+   "legL":[-20,7,-98,10,-23], "legR":[-21,-3,-98,6,-169], "footL":[9,7,0], "footR":[10,13,0]},
+  {"t":2.5,
+   "hips":[0,0,101], "body":[0,-7,-1], "chest":[1,9,-2], "head":[-7,30,7],
+   "shL":[-3,19], "shR":[-4,15], "armL":[61,-25,76,4,28], "armR":[64,7,77,29,-30], "handL":[-9,12,94], "handR":[0,12,60], "fingersL":[0,0,0,0,0], "fingersR":[1,1,1,1,1],
+   "legL":[-20,7,-98,10,-23], "legR":[-21,-3,-98,6,-169], "footL":[9,7,0], "footR":[10,13,0]}
+]}

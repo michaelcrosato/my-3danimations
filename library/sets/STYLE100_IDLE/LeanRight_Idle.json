@@ -1,0 +1,24 @@
+{
+"format": "2.0",
+"id": "STYLE100_IDLE/LeanRight_Idle",
+"name": "LeanRight_Idle",
+"legend": "2.0",
+"dur": 2.5,
+"loop": true,
+"fps": 30,
+"tags": ["idle","style"],
+"desc": "Standing, lean right style: normal motion upperbody tilted left",
+"skeleton": "humanoid",
+"restSrc": "100STYLE",
+"provenance": {"src":"100STYLE","take":"LeanRight_ID 17.87-20.37","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
+"quality": {"fit":[9,35],"qa":"unchecked","qaVersion":"none"},
+"keys": [
+  {"t":0,
+   "hips":[0,0,101], "body":[0,-10,9], "chest":[6,18,34], "head":[-21,35,24],
+   "shL":[-3,-12], "shR":[-1,-8], "armL":[12,-15,-98,20,-1], "armR":[17,49,-85,0,-113], "handL":[2,4,109], "handR":[-16,-6,-157], "fingersL":[0,0,0,0,0], "fingersR":[1,1,1,1,1],
+   "legL":[-22,-7,-97,5,-1], "legR":[-18,18,-97,0,7], "footL":[18,0,7], "footR":[4,12,0]},
+  {"t":2.5,
+   "hips":[0,0,101], "body":[0,-10,9], "chest":[6,18,34], "head":[-21,35,24],
+   "shL":[-3,-12], "shR":[-1,-8], "armL":[12,-15,-98,20,-1], "armR":[17,49,-85,0,-113], "handL":[2,4,109], "handR":[-16,-6,-157], "fingersL":[0,0,0,0,0], "fingersR":[1,1,1,1,1],
+   "legL":[-22,-7,-97,5,-1], "legR":[-18,18,-97,0,7], "footL":[18,0,7], "footR":[4,12,0]}
+]}

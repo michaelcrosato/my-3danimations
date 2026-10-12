@@ -1,4 +1,4 @@
-CMU_CURATED/Walk_Loop	1.1	loop		walk	An everyday walk at a steady pace, arms swinging loosely. One stride cycle, in place	CMU_02
+CMU_CURATED/Walk_Loop	1.1	loop	130	walk	An everyday walk at a steady pace, arms swinging loosely. One stride cycle, in place	CMU_02
 CMU_CURATED/Sword_Lunge	2	once		attack sword	Swordplay: from a guard, a lunge forward with the sword arm thrust straight out	CMU_02
 CMU_CURATED/Zombie_Walk_Loop	1.4	loop		walk zombie	A zombie's shamble: head and shoulders slumped forward, a dragging step	CMU_120
 CMU_CURATED/Gorilla_Walk_Loop	0.9	loop		walk monster	A gorilla: hunched, knuckles low, a rolling heavy walk	CMU_120
@@ -9,22 +9,38 @@ CMU_CURATED/Boxing_Jab	1.1	once		attack unarmed	From the guard, a straight jab w
 CMU_CURATED/Climb_Ladder	7	once		climb	Climbing a ladder hand over hand	CMU_13
 CMU_CURATED/Sweep_Loop	1.833	loop		work	Sweeping the floor with a broom, steady strokes (no broom is drawn)	CMU_13
 CMU_CURATED/Wash_Window_Loop	1.3	loop		work	Washing a window: one hand wiping in circles at head height (no window is drawn)	CMU_13
+CMU_CURATED/Direct_Traffic	6	once		gesture	Directing traffic, waving it on	CMU_13
+CMU_CURATED/Drink_Soda	12.1	once		eat	Unscrews a bottle cap and drinks the soda	CMU_13
+CMU_CURATED/Climb_Steps	10	once		climb	Climbs three steps	CMU_13
 CMU_CURATED/Jump_Kick	2.4	once		attack kick jump	A spinning jump kick (a tornado kick): a run-up	CMU_90
 CMU_CURATED/Fall_On_Face	2.2	once		death hurt	Toppling forward flat onto the face	CMU_90
+CMU_CURATED/Slip_Fall	2.8	once		hurt	Slips as on a banana peel and falls	CMU_90
+CMU_CURATED/Rug_Pull_Fall	1.6	once		hurt	Falls as if a rug were pulled from under the feet	CMU_90
+CMU_CURATED/Moonwalk	6	once		dance	A moonwalk, gliding backwards	CMU_90
+CMU_CURATED/Russian_Dance	6	once		dance	A Russian dance	CMU_90
 CMU_CURATED/Cartwheel	2.6	once		jump dodge	A cartwheel to the side: hands to the floor one after the other	CMU_49
-CMU_CURATED/Run_Loop	0.733	loop		run	A steady run, arms pumping. One stride cycle, in place	CMU_09
-CMU_CURATED/Sneak_Loop	1.433	loop		walk crouch	Sneaking: crouched low, stepping carefully, arms held in close	CMU_139
-CMU_CURATED/Wounded_Walk_Loop	1.067	loop		walk hurt	Limping on a wounded leg: a short careful step on the bad leg	CMU_139
+CMU_CURATED/Run_Loop	0.733	loop	387	run	A steady run, arms pumping. One stride cycle, in place	CMU_09
+CMU_CURATED/Sneak_Loop	1.433	loop	65	walk crouch	Sneaking: crouched low, stepping carefully	CMU_139
+CMU_CURATED/Wounded_Walk_Loop	1.067	loop	75	walk hurt	Limping on a wounded leg	CMU_139
 CMU_CURATED/Looking_Around	6	once		idle	Standing a little hunched, looking warily about	CMU_139
 CMU_CURATED/Search_Ground	6	once		interact crouch	Crouching to search the ground, peering about and poking at it	CMU_139
-CMU_CURATED/Hurt_Stomach_Walk_Loop	1.267	loop		walk hurt	Walking hunched over, a hand clutching the stomach	CMU_91
-CMU_CURATED/Walk_Backwards_Loop	1.633	loop		walk	Walking backwards at an easy pace. One cycle, in place	CMU_136
-CMU_CURATED/Crouch_Walk_Loop	1.2	loop		walk crouch	Walking crouched low on deeply bent knees. One cycle, in place	CMU_136
-CMU_CURATED/Hop_One_Foot_Loop	1	loop		jump	Hopping on the left foot, the right held up, arms out for balance	CMU_132
+CMU_CURATED/Get_Up_Ready	4.6	once		getup	Gets up from lying on the ground	CMU_139
+CMU_CURATED/Get_Up_From_Back_Ready	7.1	once		getup	Gets up from lying on the back	CMU_139
+CMU_CURATED/Give_Directions	5.5	once		talk gesture	Giving someone directions	CMU_139
+CMU_CURATED/Draw_Gun	4.267	once		gun aim	Pulls a gun	CMU_139
+CMU_CURATED/Hurt_Stomach_Walk_Loop	1.267	loop	113	walk hurt	Walking hunched over, a hand clutching the stomach	CMU_91
+CMU_CURATED/Stumble_Turn	1.7	once		hurt	A small stumble, turning all the way round	CMU_91
+CMU_CURATED/Limp_Loop	1.033	loop	135	walk hurt	A limping walk, favouring one leg. One stride cycle, in place	CMU_91
+CMU_CURATED/Walk_Backwards_Loop	1.633	loop	58	walk	Walking backwards at an easy pace. One cycle, in place	CMU_136
+CMU_CURATED/Crouch_Walk_Loop	1.2	loop	95	walk crouch	Walking crouched low on deeply bent knees	CMU_136
+CMU_CURATED/Hop_One_Foot_Loop	1	loop	121	jump	Hopping on the left foot, the right held up, arms out for balance	CMU_132
 CMU_CURATED/Run_Quick_Stop	1.6	once		run	A run that skids to a sudden stop, leaning back to brake	CMU_127
 CMU_CURATED/Run_Jump_Over	1.9	once		run jump	Running, a leap over an obstacle, and running on	CMU_127
 CMU_CURATED/Duck_Under	1.7	once		dodge run crouch	Running, ducking low under something, and running on	CMU_127
+CMU_CURATED/Run_Jump_Stop	2.967	once		run jump	Running, jumps, stops, then runs on	CMU_127
+CMU_CURATED/Run_Over	1.7	once		run jump	Runs up and over an obstacle	CMU_127
 CMU_CURATED/Dive_Roll	3.567	once		dodge run	Running, a dive forward over something into a shoulder roll, back up and running	CMU_128
+CMU_CURATED/Roll_Under	1.4	once		dodge run	Running, rolls underneath something	CMU_128
 CMU_CURATED/Jump_Twist	1.8	once		jump	A jump straight up with a full spin in the air, landing facing forward again	CMU_85
 CMU_CURATED/Breakdance_Helicopter	7.067	once		dance	Breakdance: on the floor	CMU_85
 CMU_CURATED/Punch_Combo	6	once		attack unarmed	A fighter's punch combination from a guard: jabs, crosses and hooks	CMU_144
@@ -37,24 +53,92 @@ CMU_CURATED/Get_Up_Face_Down	6.1	once		getup	Getting up from lying face down: pu
 CMU_CURATED/Get_Up_From_Back	7.067	once		getup	Getting up from lying on the back: sit up, roll to a knee, stand	CMU_140
 CMU_CURATED/Get_Up_From_Side	8.5	once		getup	Getting up from lying on the side	CMU_140
 CMU_CURATED/Duck_Thrown_Object	5.5	once		dodge crouch	Ducking from something thrown	CMU_77
+CMU_CURATED/Creep_Limp_Loop	1.5	loop	20	walk crouch hurt	Creeping along low and careful, with a limp	CMU_77
 CMU_CURATED/Chop_Wood	6	once		work	Chopping wood: an axe raised overhead in both hands and brought down hard	CMU_79
 CMU_CURATED/Dig	6	once		work farm	Digging with a spade: foot on the blade, lever back	CMU_79
 CMU_CURATED/Fishing	8	once		fish	Fishing: a cast with a rod, waiting, then reeling in (no rod is drawn)	CMU_79
 CMU_CURATED/Drink_Water	7	once		eat	Drinking a glass of water	CMU_79
 CMU_CURATED/Carry_Heavy_Box	8.3	once		carry	Moving a heavy box: squat, lift with effort, carry a few steps	CMU_79
+CMU_CURATED/Laugh	6	once		emote	Laughing	CMU_79
+CMU_CURATED/Overjoyed	6	once		emote cheer	Very happy	CMU_79
+CMU_CURATED/Sad	6	once		emote	Sad	CMU_79
+CMU_CURATED/Crying	6	once		emote	Crying	CMU_79
+CMU_CURATED/Scared	6	once		emote	Scared	CMU_79
+CMU_CURATED/Upset	6	once		emote	Upset	CMU_79
+CMU_CURATED/Paint	6	once		work	Painting	CMU_79
+CMU_CURATED/Sew	6	once		work	Sewing by hand	CMU_79
+CMU_CURATED/Slice_Bread	6	once		work	Slicing bread	CMU_79
+CMU_CURATED/Chop_Onions	6	once		work	Chopping onions	CMU_79
+CMU_CURATED/Mix_Batter	6	once		work	Mixing batter in a bowl	CMU_79
+CMU_CURATED/Eat_Dinner	6	once		eat	Eating dinner	CMU_79
+CMU_CURATED/Eat_Sandwich	6	once		eat	Eating a sandwich	CMU_79
+CMU_CURATED/Answer_Phone	6	once		talk interact	Answering the phone	CMU_79
+CMU_CURATED/Type_Laptop	6	once		work	Typing on a laptop	CMU_79
+CMU_CURATED/Write_Chalkboard	6	once		work	Writing on a chalkboard	CMU_79
+CMU_CURATED/Plant_Tree	6	once		work farm	Planting a tree	CMU_79
+CMU_CURATED/Put_On_Jacket	6	once		interact	Putting on a jacket	CMU_79
+CMU_CURATED/Hang_Picture	6	once		work	Hanging a picture on the wall	CMU_79
+CMU_CURATED/Shoot_Bow	6	once		bow attack	Shooting a bow and arrow	CMU_79
+CMU_CURATED/Shoot_Pistol	6	once		gun attack	Shooting a gun	CMU_79
 CMU_CURATED/Rake_Leaves	6	once		work farm	Raking leaves with long pulls toward the feet (no rake is drawn)	CMU_80
 CMU_CURATED/Shake_Hands	5	once		talk	Shaking hands with someone in front	CMU_80
+CMU_CURATED/Freezing	6	once		emote	Freezing cold	CMU_80
+CMU_CURATED/Pay	6	once		interact	Paying for something	CMU_80
 CMU_CURATED/Pick_Up_Box	4.6	once		carry item	Walking up to a box, bending to lift it	CMU_143
 CMU_CURATED/Sit_Down_Get_Up	5.967	once		sit	Sitting down on a chair and getting up again (no chair is drawn)	CMU_143
+CMU_CURATED/Peekaboo	2.7	once		emote	Peekaboo: the face hidden behind the hands, then shown	CMU_143
+CMU_CURATED/Chicken_Dance	6.5	once		dance	The chicken dance: flapping elbows and a wiggle down	CMU_143
+CMU_CURATED/Macarena	10.167	once		dance	The Macarena, move by move	CMU_143
+CMU_CURATED/Pick_Up_Basket	4.3	once		carry item	Walks up to a laundry basket and picks it up	CMU_143
+CMU_CURATED/Ladder_Up_Down	4.5	once		climb	Climbs up a ladder and back down	CMU_143
 CMU_CURATED/Wave_Hello	2.3	once		gesture	Waving hello with a raised hand	CMU_141
 CMU_CURATED/Shrug	1.4	once		gesture	A shrug: shoulders up, palms turned out, who knows	CMU_141
 CMU_CURATED/Stretch_Yawn	3.067	once		idle rest	A big stretch with a yawn, arms reaching up overhead	CMU_141
 CMU_CURATED/Curtsey	3.3	once		emote	A curtsey: one foot behind, knees dipping, a small bow of the head	CMU_141
-CMU_CURATED/Waiting_Loop	0.933	loop		idle	Waiting impatiently: shifting weight from foot to foot, looking about	CMU_141
-CMU_CURATED/Frankenstein_Walk_Loop	2.5	loop		walk monster zombie	Frankenstein's monster: stiff legs, arms held straight out ahead	CMU_104
+CMU_CURATED/Waiting_Loop	0.933	loop	98	idle	Waiting impatiently: shifting weight from foot to foot, looking about	CMU_141
+CMU_CURATED/Frankenstein_Walk_Loop	2.5	loop	47	walk monster zombie	Frankenstein's monster: stiff legs, arms held straight out ahead	CMU_104
+CMU_CURATED/Stumble_Walk	4.567	once		walk hurt	Walking, stumbles	CMU_104
 CMU_CURATED/Monkey	6	once		monster	A monkey, acted by a person: hunched, scratching, hopping about	CMU_54
 CMU_CURATED/Bear	6	once		monster	A bear, acted by a person: heavy, lumbering, rearing up with paws raised	CMU_54
 CMU_CURATED/Dragon	6	once		monster	A dragon, acted by a person: arms as wings, a prowl and a roar	CMU_54
 CMU_CURATED/Ghost	6	once		monster	A ghost, acted by a person: gliding, arms floating up, a spooky drift	CMU_54
 CMU_CURATED/Chicken	6	once		monster	A chicken, acted by a person: elbows as flapping wings, pecking, strutting	CMU_29
 CMU_CURATED/Backflip	2.4	once		jump dodge	A standing backflip: a deep swing of the arms, a jump up and over backwards	CMU_87
+CMU_CURATED/Get_Up_Slow	10.6	once		getup	A slow, unhurried get-up from lying on the floor to standing	CMU_114
+CMU_CURATED/Lie_Down	11.3	once		lie rest	Lowers to the floor from standing and lies down	CMU_111
+CMU_CURATED/Mope	6	once		emote	Moping about	CMU_111
+CMU_CURATED/Take_A_Bow	3.2	once		emote	Takes a bow	CMU_111
+CMU_CURATED/Free_Dance	7.7	once		dance	A loose, freestyle dance	CMU_111
+CMU_CURATED/Punch_Kick	6	once		attack unarmed kick	Punches and kicks	CMU_111
+CMU_CURATED/Stumble_Into	2.5	once		hurt	Stumbles into someone	CMU_22
+CMU_CURATED/Bumped	2.5	once		hurt	Bumped by someone stumbling into them	CMU_23
+CMU_CURATED/Comfort	4.3	once		gesture	Puts a comforting hand on someone's shoulder	CMU_23
+CMU_CURATED/Quarrel	6	once		talk	Quarrelling with someone, with angry hand gestures	CMU_18
+CMU_CURATED/Explain	6	once		talk	In conversation, explaining with hand gestures	CMU_18
+CMU_CURATED/Referee_Signals	6	once		gesture	A basketball referee's hand signals	CMU_31
+CMU_CURATED/Charleston	3.567	once		dance	A Charleston step	CMU_93
+CMU_CURATED/Lindy_Hop	3.3	once		dance	A Lindy Hop step	CMU_93
+CMU_CURATED/Salsa	6	once		dance	Salsa steps	CMU_60
+CMU_CURATED/Ballet_Pirouette	6.767	once		dance	Ballet: expressive arms and a pirouette	CMU_05
+CMU_CURATED/Ballet_Grand_Jete	6.5	once		dance jump	Ballet: a turning grand jeté	CMU_05
+CMU_CURATED/Hammer_Nail	6	once		work	Hammering a nail	CMU_62
+CMU_CURATED/Saw_Wood	6	once		work	Sawing with a hand saw	CMU_62
+CMU_CURATED/Wrench_Bolt	6	once		work	Tightening a bolt with a wrench	CMU_62
+CMU_CURATED/Screwdriver	6	once		work	Driving in a screw	CMU_62
+CMU_CURATED/Pull_Nail	6	once		work	Pulling out a nail	CMU_62
+CMU_CURATED/Open_Box	6	once		interact	Opening a box	CMU_62
+CMU_CURATED/Open_Umbrella	6	once		item	Opening an umbrella	CMU_62
+CMU_CURATED/Push_Heavy_Box	6	once		push work	Pushing a heavy box along	CMU_81
+CMU_CURATED/Pull_Heavy_Object	6	once		work	Pulling a heavy object	CMU_81
+CMU_CURATED/Drag_Heavy_Object	6	once		work	Dragging a heavy object	CMU_81
+CMU_CURATED/Jump_Off_Ledge_Back	3.767	once		jump	Jumps backwards off a ledge	CMU_81
+CMU_CURATED/Carry_Suitcase	6	once		carry walk	Carrying a heavy suitcase	CMU_70
+CMU_CURATED/Bend_Lift	4.8	once		carry	Bends down and lifts something	CMU_26
+CMU_CURATED/Step_Up_Ledge	5.1	once		climb	A large step up onto a short ledge	CMU_83
+CMU_CURATED/Long_Jump	3.8	once		jump	A long jump forward	CMU_83
+CMU_CURATED/Hop_Turn_360	2	once		jump	A hop that turns all the way round in the air	CMU_83
+CMU_CURATED/Hopscotch	5	once		jump	Hopscotch	CMU_75
+CMU_CURATED/High_Jump	2	once		jump	A high jump	CMU_16
+CMU_CURATED/Guard_Pose	3.367	once		stance unarmed	Takes up a defensive guard	CMU_76
+CMU_CURATED/Baseball_Pitch	4.267	once		throw sport	A baseball pitch	CMU_124
+CMU_CURATED/Baseball_Swing	6	once		sport	Swinging a baseball bat	CMU_124

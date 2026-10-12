@@ -17,8 +17,9 @@ const MM = 1000;
 type V3 = number[];
 type M4 = number[];
 
-/** A clip captured as body points: frames of the 36 points (f, r, z mm) and the root's travel (f, r mm) when it moves. */
-export type Capture = format.Capture;
+/** A clip captured as body points: frames of the 36 points (f, r, z mm) and the root's travel (f, r mm) when it moves;
+ *  a loop cut from a take also says how far its hips travelled over the cycle (`stride`, mm). */
+export type Capture = format.Capture & { stride?: number };
 /** Where a point sits on its bone: its origin, its far end, or 12 cm in front of it. */
 type Where = "tip" | "fwd" | undefined;
 /** A rig the readers recognize: the bone that names it, its root, and the bone behind each body point. */

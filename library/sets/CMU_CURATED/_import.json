@@ -1,0 +1,4781 @@
+{
+ "about": "The re-import (WP-5.3) by m3a-import 1: each clip's choice between its re-import and its migrated version, with why; both fits (mean, worst mm against the source); both QA verdicts; the sensor metrics that moved ([migrated, re-import]); the hands' mean error against the capture ([migrated, re-import] mm; props: over the clips that hold something); what the catalog skips; the clips the migrated set had that are gone.",
+ "mean": 13.9,
+ "props": {
+  "clips": 8,
+  "migrated": 15.1,
+  "import": 15.3
+ },
+ "clips": {
+  "Walk_Loop": {
+   "kept": "import",
+   "why": "fits its source closer (10 → 9 mm on average), and the sensors judge it the same (warn)",
+   "fit": {
+    "import": [
+     9,
+     100
+    ],
+    "migrated": [
+     10,
+     100
+    ]
+   },
+   "qa": {
+    "import": "warn",
+    "migrated": "warn"
+   },
+   "hands": [
+    11.5,
+    10.2
+   ],
+   "moved": {
+    "slide": [
+     22.9,
+     44.8
+    ],
+    "skate": [
+     3.37,
+     6.55
+    ],
+    "penetration": [
+     0.185,
+     20.8
+    ],
+    "intersection": [
+     0.079,
+     0.102
+    ],
+    "jitter": [
+     10.4,
+     10.5
+    ],
+    "pop": [
+     570,
+     558
+    ],
+    "seamVelocity": [
+     1060,
+     1070
+    ],
+    "fit": [
+     10,
+     9
+    ],
+    "skateMean": [
+     3.36,
+     5.31
+    ]
+   }
+  },
+  "Sword_Lunge": {
+   "kept": "import",
+   "why": "fits its source closer (15 → 11 mm on average), and the sensors judge it the same (pass)",
+   "fit": {
+    "import": [
+     11,
+     44
+    ],
+    "migrated": [
+     15,
+     109
+    ]
+   },
+   "qa": {
+    "import": "pass",
+    "migrated": "pass"
+   },
+   "hands": [
+    14.6,
+    11.3
+   ],
+   "moved": {
+    "slide": [
+     27.7,
+     32.8
+    ],
+    "skate": [
+     1.39,
+     1.64
+    ],
+    "penetration": [
+     0,
+     6.45
+    ],
+    "intersection": [
+     0.587,
+     0.411
+    ],
+    "jitter": [
+     2.48,
+     2.86
+    ],
+    "pop": [
+     146,
+     423
+    ],
+    "twistFlip": [
+     46,
+     42
+    ],
+    "fit": [
+     15,
+     11
+    ],
+    "skateMean": [
+     1.1,
+     1.4
+    ]
+   }
+  },
+  "Zombie_Walk_Loop": {
+   "kept": "migrated",
+   "why": "the sensors judge the re-import worse (warn → fail); on the rest it was made on (CMU_120_MIGRATED: the re-import measures CMU_120's anew)",
+   "fit": {
+    "import": [
+     16,
+     115
+    ],
+    "migrated": [
+     19,
+     84
+    ]
+   },
+   "qa": {
+    "import": "fail",
+    "migrated": "warn"
+   },
+   "hands": [
+    9.7,
+    14.1
+   ],
+   "moved": {
+    "slide": [
+     92.6,
+     80.5
+    ],
+    "skate": [
+     9.57,
+     8.48
+    ],
+    "penetration": [
+     6.76,
+     7.71
+    ],
+    "jitter": [
+     5.74,
+     7.85
+    ],
+    "pop": [
+     841,
+     2590
+    ],
+    "twistFlip": [
+     159,
+     160
+    ],
+    "seam": [
+     0,
+     21.8
+    ],
+    "seamVelocity": [
+     767,
+     957
+    ],
+    "fit": [
+     19,
+     16
+    ],
+    "skateMean": [
+     5.96,
+     5.99
+    ]
+   }
+  },
+  "Gorilla_Walk_Loop": {
+   "kept": "migrated",
+   "why": "the re-import fits its source worse (32 mm on average against 30); on the rest it was made on (CMU_120_MIGRATED: the re-import measures CMU_120's anew)",
+   "fit": {
+    "import": [
+     32,
+     147
+    ],
+    "migrated": [
+     30,
+     141
+    ]
+   },
+   "qa": {
+    "import": "warn",
+    "migrated": "warn"
+   },
+   "hands": [
+    17.7,
+    28.7
+   ],
+   "moved": {
+    "slide": [
+     33,
+     0
+    ],
+    "skate": [
+     11.9,
+     0
+    ],
+    "penetration": [
+     9.28,
+     0
+    ],
+    "jitter": [
+     15.9,
+     14
+    ],
+    "pop": [
+     1190,
+     0
+    ],
+    "twistFlip": [
+     61,
+     76
+    ],
+    "seamVelocity": [
+     2750,
+     3030
+    ],
+    "fit": [
+     30,
+     32
+    ],
+    "skateMean": [
+     10.1,
+     0
+    ]
+   }
+  },
+  "Robot": {
+   "kept": "import",
+   "why": "fits its source closer (13 → 12 mm on average), though further at its worst (61 → 65 mm), and the sensors judge it better (pass)",
+   "fit": {
+    "import": [
+     12,
+     65
+    ],
+    "migrated": [
+     13,
+     61
+    ]
+   },
+   "qa": {
+    "import": "pass",
+    "migrated": "warn"
+   },
+   "hands": [
+    9.2,
+    9
+   ],
+   "moved": {
+    "slide": [
+     45.4,
+     44.3
+    ],
+    "skate": [
+     3.89,
+     3.8
+    ],
+    "jitter": [
+     2.75,
+     4.88
+    ],
+    "twistFlip": [
+     127,
+     16
+    ],
+    "fit": [
+     13,
+     12
+    ],
+    "skateMean": [
+     1.19,
+     1.39
+    ]
+   }
+  },
+  "Jumping_Jacks_Loop": {
+   "kept": "import",
+   "why": "fits its source closer (16 → 15 mm on average), though further at its worst (92 → 126 mm), and the sensors judge it the same (pass)",
+   "fit": {
+    "import": [
+     15,
+     126
+    ],
+    "migrated": [
+     16,
+     92
+    ]
+   },
+   "qa": {
+    "import": "pass",
+    "migrated": "pass"
+   },
+   "hands": [
+    17.5,
+    25
+   ],
+   "moved": {
+    "slide": [
+     33.7,
+     26.2
+    ],
+    "skate": [
+     0,
+     7.91
+    ],
+    "penetration": [
+     0,
+     16.7
+    ],
+    "jitter": [
+     11.9,
+     10.9
+    ],
+    "seamVelocity": [
+     2690,
+     2800
+    ],
+    "fit": [
+     16,
+     15
+    ],
+    "skateMean": [
+     11.1,
+     8.53
+    ]
+   }
+  },
+  "Boxing_Guard_Loop": {
+   "kept": "migrated",
+   "why": "the re-import fits its source worse (17 mm on average against 16); on the rest it was made on (CMU_13_MIGRATED: the re-import measures CMU_13's anew)",
+   "fit": {
+    "import": [
+     17,
+     98
+    ],
+    "migrated": [
+     16,
+     96
+    ]
+   },
+   "qa": {
+    "import": "warn",
+    "migrated": "warn"
+   },
+   "hands": [
+    12.9,
+    16.1
+   ],
+   "moved": {
+    "slide": [
+     44.7,
+     66.4
+    ],
+    "skate": [
+     0,
+     19.3
+    ],
+    "penetration": [
+     0,
+     21.6
+    ],
+    "intersection": [
+     0.184,
+     0.179
+    ],
+    "jitter": [
+     14,
+     10.3
+    ],
+    "pop": [
+     1350,
+     1480
+    ],
+    "seamVelocity": [
+     3240,
+     3230
+    ],
+    "fit": [
+     16,
+     17
+    ],
+    "skateMean": [
+     16.9,
+     15
+    ]
+   }
+  },
+  "Boxing_Jab": {
+   "kept": "import",
+   "why": "fits its source as closely (15 mm on average), and the sensors judge it the same (warn)",
+   "fit": {
+    "import": [
+     15,
+     128
+    ],
+    "migrated": [
+     15,
+     135
+    ]
+   },
+   "qa": {
+    "import": "warn",
+    "migrated": "warn"
+   },
+   "hands": [
+    14.6,
+    18.4
+   ],
+   "moved": {
+    "slide": [
+     38.1,
+     116
+    ],
+    "skate": [
+     14.3,
+     34.9
+    ],
+    "penetration": [
+     0,
+     21.3
+    ],
+    "intersection": [
+     0.035,
+     0.04
+    ],
+    "jitter": [
+     28.1,
+     20.3
+    ],
+    "pop": [
+     1150,
+     1160
+    ],
+    "skateMean": [
+     16.5,
+     23.6
+    ]
+   }
+  },
+  "Climb_Ladder": {
+   "kept": "import",
+   "why": "fits its source closer (21 → 17 mm on average), though further at its worst (167 → 170 mm), and the sensors judge it the same (pass)",
+   "fit": {
+    "import": [
+     17,
+     170
+    ],
+    "migrated": [
+     21,
+     167
+    ]
+   },
+   "qa": {
+    "import": "pass",
+    "migrated": "pass"
+   },
+   "hands": [
+    14.5,
+    15.9
+   ],
+   "moved": {
+    "slide": [
+     40.4,
+     45.5
+    ],
+    "penetration": [
+     0,
+     21.9
+    ],
+    "intersection": [
+     0.209,
+     0.218
+    ],
+    "pop": [
+     204,
+     214
+    ],
+    "fit": [
+     21,
+     17
+    ],
+    "skateMean": [
+     24.2,
+     27.3
+    ]
+   }
+  },
+  "Sweep_Loop": {
+   "kept": "import",
+   "why": "fits its source closer (13 → 11 mm on average), and the sensors judge it the same (pass)",
+   "fit": {
+    "import": [
+     11,
+     79
+    ],
+    "migrated": [
+     13,
+     89
+    ]
+   },
+   "qa": {
+    "import": "pass",
+    "migrated": "pass"
+   },
+   "hands": [
+    18.2,
+    20.1
+   ],
+   "moved": {
+    "slide": [
+     9.59,
+     15.2
+    ],
+    "skate": [
+     0.523,
+     0.828
+    ],
+    "intersection": [
+     0.189,
+     0.227
+    ],
+    "jitter": [
+     1.43,
+     3.5
+    ],
+    "pop": [
+     653,
+     731
+    ],
+    "twistFlip": [
+     18,
+     30
+    ],
+    "seamVelocity": [
+     955,
+     905
+    ],
+    "fit": [
+     13,
+     11
+    ],
+    "skateMean": [
+     0.523,
+     0.806
+    ]
+   }
+  },
+  "Wash_Window_Loop": {
+   "kept": "import",
+   "why": "fits its source as closely (16 mm on average), though further at its worst (62 → 66 mm), and the sensors judge it the same (pass)",
+   "fit": {
+    "import": [
+     16,
+     66
+    ],
+    "migrated": [
+     16,
+     62
+    ]
+   },
+   "qa": {
+    "import": "pass",
+    "migrated": "pass"
+   },
+   "hands": [
+    16,
+    20.8
+   ],
+   "moved": {
+    "slide": [
+     42.4,
+     46.7
+    ],
+    "skate": [
+     3.26,
+     3.59
+    ],
+    "penetration": [
+     0,
+     9.54
+    ],
+    "intersection": [
+     0.034,
+     0.026
+    ],
+    "jitter": [
+     1.46,
+     1.9
+    ],
+    "pop": [
+     300,
+     332
+    ],
+    "twistFlip": [
+     85,
+     25
+    ],
+    "jointLimit": [
+     41,
+     40
+    ],
+    "seamVelocity": [
+     777,
+     887
+    ],
+    "skateMean": [
+     3.21,
+     2.51
+    ]
+   }
+  },
+  "Direct_Traffic": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     12,
+     115
+    ]
+   },
+   "qa": {
+    "import": "warn"
+   },
+   "hands": [
+    19.1
+   ]
+  },
+  "Drink_Soda": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     10,
+     72
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    15.8
+   ]
+  },
+  "Climb_Steps": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     13,
+     120
+    ]
+   },
+   "qa": {
+    "import": "warn"
+   },
+   "hands": [
+    21.3
+   ]
+  },
+  "Jump_Kick": {
+   "kept": "import",
+   "why": "fits its source closer (18 → 17 mm on average), though further at its worst (94 → 97 mm), and the sensors judge it the same (warn)",
+   "fit": {
+    "import": [
+     17,
+     97
+    ],
+    "migrated": [
+     18,
+     94
+    ]
+   },
+   "qa": {
+    "import": "warn",
+    "migrated": "warn"
+   },
+   "hands": [
+    15.1,
+    22.6
+   ],
+   "moved": {
+    "slide": [
+     55.1,
+     70.2
+    ],
+    "skate": [
+     13.2,
+     16.2
+    ],
+    "penetration": [
+     62.7,
+     43.2
+    ],
+    "intersection": [
+     0.016,
+     0
+    ],
+    "jitter": [
+     31.2,
+     27.9
+    ],
+    "pop": [
+     0,
+     45.8
+    ],
+    "twistFlip": [
+     98,
+     63
+    ],
+    "jointLimit": [
+     153,
+     69
+    ],
+    "fit": [
+     18,
+     17
+    ],
+    "skateMean": [
+     13,
+     13.7
+    ]
+   }
+  },
+  "Fall_On_Face": {
+   "kept": "import",
+   "why": "fits its source closer (17 → 13 mm on average), and the sensors judge it the same (warn)",
+   "fit": {
+    "import": [
+     13,
+     84
+    ],
+    "migrated": [
+     17,
+     99
+    ]
+   },
+   "qa": {
+    "import": "warn",
+    "migrated": "warn"
+   },
+   "hands": [
+    16.8,
+    17.5
+   ],
+   "moved": {
+    "intersection": [
+     0.294,
+     0
+    ],
+    "jitter": [
+     62.4,
+     66.3
+    ],
+    "pop": [
+     644,
+     695
+    ],
+    "fit": [
+     17,
+     13
+    ]
+   }
+  },
+  "Slip_Fall": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     13,
+     86
+    ]
+   },
+   "qa": {
+    "import": "warn"
+   },
+   "hands": [
+    20.6
+   ]
+  },
+  "Rug_Pull_Fall": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     17,
+     93
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    18.5
+   ]
+  },
+  "Moonwalk": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     14,
+     91
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    17.2
+   ]
+  },
+  "Russian_Dance": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     16,
+     116
+    ]
+   },
+   "qa": {
+    "import": "fail"
+   },
+   "hands": [
+    21.8
+   ]
+  },
+  "Cartwheel": {
+   "kept": "import",
+   "why": "fits its source closer (24 → 21 mm on average), though further at its worst (143 → 157 mm), and the sensors judge it better (warn)",
+   "fit": {
+    "import": [
+     21,
+     157
+    ],
+    "migrated": [
+     24,
+     143
+    ]
+   },
+   "qa": {
+    "import": "warn",
+    "migrated": "fail"
+   },
+   "hands": [
+    18.8,
+    21.6
+   ],
+   "moved": {
+    "bodyPenetration": [
+     31.4,
+     49
+    ],
+    "jitter": [
+     24.7,
+     21.6
+    ],
+    "twistFlip": [
+     176,
+     147
+    ],
+    "fit": [
+     24,
+     21
+    ]
+   }
+  },
+  "Run_Loop": {
+   "kept": "import",
+   "why": "fits its source closer (16 → 9 mm on average), and the sensors judge it the same (fail)",
+   "fit": {
+    "import": [
+     9,
+     55
+    ],
+    "migrated": [
+     16,
+     57
+    ]
+   },
+   "qa": {
+    "import": "fail",
+    "migrated": "fail"
+   },
+   "hands": [
+    13.2,
+    8.4
+   ],
+   "moved": {
+    "slide": [
+     13.6,
+     18.1
+    ],
+    "penetration": [
+     0,
+     15
+    ],
+    "intersection": [
+     0.175,
+     0.157
+    ],
+    "jitter": [
+     23.3,
+     15.8
+    ],
+    "pop": [
+     2340,
+     2420
+    ],
+    "seamVelocity": [
+     3960,
+     3910
+    ],
+    "fit": [
+     16,
+     9
+    ],
+    "skateMean": [
+     10.3,
+     8.46
+    ]
+   }
+  },
+  "Sneak_Loop": {
+   "kept": "import",
+   "why": "fits its source closer (14 → 12 mm on average), though further at its worst (67 → 72 mm), and the sensors judge it the same (pass)",
+   "fit": {
+    "import": [
+     12,
+     72
+    ],
+    "migrated": [
+     14,
+     67
+    ]
+   },
+   "qa": {
+    "import": "pass",
+    "migrated": "pass"
+   },
+   "hands": [
+    10.4,
+    7.3
+   ],
+   "moved": {
+    "slide": [
+     39.8,
+     50.9
+    ],
+    "skate": [
+     3.67,
+     4.36
+    ],
+    "penetration": [
+     0,
+     21.5
+    ],
+    "jitter": [
+     2.93,
+     3.69
+    ],
+    "seamVelocity": [
+     1550,
+     1450
+    ],
+    "fit": [
+     14,
+     12
+    ],
+    "skateMean": [
+     3.08,
+     4.14
+    ]
+   }
+  },
+  "Wounded_Walk_Loop": {
+   "kept": "import",
+   "why": "fits its source closer (19 → 18 mm on average), though further at its worst (83 → 90 mm), and the sensors judge it the same (warn)",
+   "fit": {
+    "import": [
+     18,
+     90
+    ],
+    "migrated": [
+     19,
+     83
+    ]
+   },
+   "qa": {
+    "import": "warn",
+    "migrated": "warn"
+   },
+   "hands": [
+    12.7,
+    8.7
+   ],
+   "moved": {
+    "slide": [
+     57.2,
+     54.1
+    ],
+    "skate": [
+     18.3,
+     17.4
+    ],
+    "penetration": [
+     0,
+     1.04
+    ],
+    "jitter": [
+     7.77,
+     6.18
+    ],
+    "pop": [
+     1960,
+     1900
+    ],
+    "seamVelocity": [
+     863,
+     763
+    ],
+    "fit": [
+     19,
+     18
+    ],
+    "skateMean": [
+     11.2,
+     10.4
+    ]
+   }
+  },
+  "Looking_Around": {
+   "kept": "import",
+   "why": "fits its source closer (16 → 12 mm on average), though further at its worst (62 → 83 mm), and the sensors judge it the same (pass)",
+   "fit": {
+    "import": [
+     12,
+     83
+    ],
+    "migrated": [
+     16,
+     62
+    ]
+   },
+   "qa": {
+    "import": "pass",
+    "migrated": "pass"
+   },
+   "hands": [
+    12.3,
+    9.2
+   ],
+   "moved": {
+    "slide": [
+     131,
+     57.1
+    ],
+    "skate": [
+     2.18,
+     1.67
+    ],
+    "penetration": [
+     0,
+     15.5
+    ],
+    "jitter": [
+     1.14,
+     1.12
+    ],
+    "pop": [
+     352,
+     370
+    ],
+    "fit": [
+     16,
+     12
+    ],
+    "skateMean": [
+     1.69,
+     1.06
+    ]
+   }
+  },
+  "Search_Ground": {
+   "kept": "import",
+   "why": "fits its source closer (21 → 18 mm on average), though further at its worst (101 → 111 mm), and the sensors judge it the same (pass)",
+   "fit": {
+    "import": [
+     18,
+     111
+    ],
+    "migrated": [
+     21,
+     101
+    ]
+   },
+   "qa": {
+    "import": "pass",
+    "migrated": "pass"
+   },
+   "hands": [
+    11.7,
+    9.3
+   ],
+   "moved": {
+    "slide": [
+     45.3,
+     47.6
+    ],
+    "skate": [
+     2.49,
+     0.794
+    ],
+    "penetration": [
+     0,
+     12.9
+    ],
+    "jitter": [
+     3.18,
+     4.54
+    ],
+    "pop": [
+     407,
+     342
+    ],
+    "fit": [
+     21,
+     18
+    ],
+    "skateMean": [
+     1.09,
+     0.633
+    ]
+   }
+  },
+  "Get_Up_Ready": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     16,
+     118
+    ]
+   },
+   "qa": {
+    "import": "warn"
+   },
+   "hands": [
+    13.2
+   ]
+  },
+  "Get_Up_From_Back_Ready": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     17,
+     120
+    ]
+   },
+   "qa": {
+    "import": "fail"
+   },
+   "hands": [
+    12.4
+   ]
+  },
+  "Give_Directions": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     16,
+     77
+    ]
+   },
+   "qa": {
+    "import": "fail"
+   },
+   "hands": [
+    10.3
+   ]
+  },
+  "Draw_Gun": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     12,
+     74
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    7.6
+   ]
+  },
+  "Hurt_Stomach_Walk_Loop": {
+   "kept": "import",
+   "why": "fits its source closer (19 → 17 mm on average), and the sensors judge it the same (fail)",
+   "fit": {
+    "import": [
+     17,
+     67
+    ],
+    "migrated": [
+     19,
+     69
+    ]
+   },
+   "qa": {
+    "import": "fail",
+    "migrated": "fail"
+   },
+   "hands": [
+    16.1,
+    12.6
+   ],
+   "moved": {
+    "slide": [
+     12.4,
+     39.4
+    ],
+    "skate": [
+     0,
+     5.57
+    ],
+    "intersection": [
+     0.468,
+     0.295
+    ],
+    "jitter": [
+     2.83,
+     3.81
+    ],
+    "pop": [
+     180,
+     231
+    ],
+    "fit": [
+     19,
+     17
+    ],
+    "skateMean": [
+     37.6,
+     5.48
+    ]
+   }
+  },
+  "Stumble_Turn": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     18,
+     82
+    ]
+   },
+   "qa": {
+    "import": "warn"
+   },
+   "hands": [
+    17.7
+   ]
+  },
+  "Limp_Loop": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     18,
+     96
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    27.9
+   ]
+  },
+  "Walk_Backwards_Loop": {
+   "kept": "import",
+   "why": "fits its source closer (13 → 11 mm on average), though further at its worst (91 → 112 mm), and the sensors judge it the same (pass)",
+   "fit": {
+    "import": [
+     11,
+     112
+    ],
+    "migrated": [
+     13,
+     91
+    ]
+   },
+   "qa": {
+    "import": "pass",
+    "migrated": "pass"
+   },
+   "hands": [
+    6.8,
+    5.2
+   ],
+   "moved": {
+    "skate": [
+     3.41,
+     3.4
+    ],
+    "penetration": [
+     4.64,
+     15
+    ],
+    "jitter": [
+     1.75,
+     1.83
+    ],
+    "pop": [
+     210,
+     1860
+    ],
+    "twistFlip": [
+     64,
+     24
+    ],
+    "fit": [
+     13,
+     11
+    ],
+    "skateMean": [
+     2.87,
+     2.81
+    ]
+   }
+  },
+  "Crouch_Walk_Loop": {
+   "kept": "import",
+   "why": "fits its source closer (15 → 6 mm on average), and the sensors judge it the same (pass)",
+   "fit": {
+    "import": [
+     6,
+     34
+    ],
+    "migrated": [
+     15,
+     36
+    ]
+   },
+   "qa": {
+    "import": "pass",
+    "migrated": "pass"
+   },
+   "hands": [
+    6.6,
+    4.7
+   ],
+   "moved": {
+    "slide": [
+     76.7,
+     70.1
+    ],
+    "skate": [
+     9.39,
+     8.41
+    ],
+    "penetration": [
+     23.4,
+     25.1
+    ],
+    "jitter": [
+     2.46,
+     2.22
+    ],
+    "pop": [
+     317,
+     0
+    ],
+    "seamVelocity": [
+     394,
+     393
+    ],
+    "fit": [
+     15,
+     6
+    ],
+    "skateMean": [
+     7.66,
+     6.78
+    ]
+   }
+  },
+  "Hop_One_Foot_Loop": {
+   "kept": "import",
+   "why": "fits its source closer (19 → 17 mm on average), and the sensors judge it the same (pass)",
+   "fit": {
+    "import": [
+     17,
+     98
+    ],
+    "migrated": [
+     19,
+     100
+    ]
+   },
+   "qa": {
+    "import": "pass",
+    "migrated": "pass"
+   },
+   "hands": [
+    9.7,
+    7.7
+   ],
+   "moved": {
+    "slide": [
+     16.1,
+     19.6
+    ],
+    "skate": [
+     2.6,
+     3.18
+    ],
+    "penetration": [
+     0,
+     8.05
+    ],
+    "jitter": [
+     3.5,
+     3.35
+    ],
+    "pop": [
+     1800,
+     1810
+    ],
+    "jointLimit": [
+     25,
+     23
+    ],
+    "seamVelocity": [
+     1810,
+     1820
+    ],
+    "fit": [
+     19,
+     17
+    ],
+    "skateMean": [
+     2.6,
+     3.18
+    ]
+   }
+  },
+  "Run_Quick_Stop": {
+   "kept": "import",
+   "why": "fits its source as closely (19 mm on average), though further at its worst (96 → 102 mm), and the sensors judge it the same (pass)",
+   "fit": {
+    "import": [
+     19,
+     102
+    ],
+    "migrated": [
+     19,
+     96
+    ]
+   },
+   "qa": {
+    "import": "pass",
+    "migrated": "pass"
+   },
+   "hands": [
+    10.9,
+    8.9
+   ],
+   "moved": {
+    "slide": [
+     38.2,
+     38.7
+    ],
+    "skate": [
+     6.75,
+     6.84
+    ],
+    "penetration": [
+     15.6,
+     5.11
+    ],
+    "intersection": [
+     0.11,
+     0.097
+    ],
+    "jitter": [
+     12.4,
+     13.3
+    ],
+    "pop": [
+     369,
+     501
+    ],
+    "skateMean": [
+     6.52,
+     5.32
+    ]
+   }
+  },
+  "Run_Jump_Over": {
+   "kept": "migrated",
+   "why": "the sensors judge the re-import worse (warn → fail); on the rest it was made on (CMU_127_MIGRATED: the re-import measures CMU_127's anew)",
+   "fit": {
+    "import": [
+     16,
+     101
+    ],
+    "migrated": [
+     19,
+     100
+    ]
+   },
+   "qa": {
+    "import": "fail",
+    "migrated": "warn"
+   },
+   "hands": [
+    9.1,
+    7.5
+   ],
+   "moved": {
+    "slide": [
+     131,
+     126
+    ],
+    "skate": [
+     0,
+     44.3
+    ],
+    "penetration": [
+     90.2,
+     80.5
+    ],
+    "intersection": [
+     0.08,
+     0.096
+    ],
+    "pop": [
+     370,
+     318
+    ],
+    "fit": [
+     19,
+     16
+    ],
+    "skateMean": [
+     26.7,
+     24.9
+    ]
+   }
+  },
+  "Duck_Under": {
+   "kept": "import",
+   "why": "fits its source closer (19 → 17 mm on average), and the sensors judge it the same (warn)",
+   "fit": {
+    "import": [
+     17,
+     93
+    ],
+    "migrated": [
+     19,
+     138
+    ]
+   },
+   "qa": {
+    "import": "warn",
+    "migrated": "warn"
+   },
+   "hands": [
+    11.5,
+    11.2
+   ],
+   "moved": {
+    "slide": [
+     52.5,
+     59.8
+    ],
+    "skate": [
+     15.7,
+     18.9
+    ],
+    "penetration": [
+     15.4,
+     6.15
+    ],
+    "intersection": [
+     0.09,
+     0.087
+    ],
+    "jitter": [
+     33,
+     35.9
+    ],
+    "pop": [
+     458,
+     924
+    ],
+    "fit": [
+     19,
+     17
+    ],
+    "skateMean": [
+     15.4,
+     14.5
+    ]
+   }
+  },
+  "Run_Jump_Stop": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     15,
+     72
+    ]
+   },
+   "qa": {
+    "import": "fail"
+   },
+   "hands": [
+    7.6
+   ]
+  },
+  "Run_Over": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     16,
+     55
+    ]
+   },
+   "qa": {
+    "import": "warn"
+   },
+   "hands": [
+    7
+   ]
+  },
+  "Dive_Roll": {
+   "kept": "import",
+   "why": "fits its source closer (20 → 17 mm on average), and the sensors judge it the same (fail)",
+   "fit": {
+    "import": [
+     17,
+     94
+    ],
+    "migrated": [
+     20,
+     104
+    ]
+   },
+   "qa": {
+    "import": "fail",
+    "migrated": "fail"
+   },
+   "hands": [
+    12.9,
+    13.1
+   ],
+   "moved": {
+    "slide": [
+     43.7,
+     48
+    ],
+    "skate": [
+     12.5,
+     13.8
+    ],
+    "penetration": [
+     0,
+     23.6
+    ],
+    "bodyPenetration": [
+     35.4,
+     92.6
+    ],
+    "intersection": [
+     0.068,
+     0.042
+    ],
+    "jitter": [
+     23.2,
+     31.6
+    ],
+    "pop": [
+     844,
+     1300
+    ],
+    "fit": [
+     20,
+     17
+    ],
+    "skateMean": [
+     5.17,
+     4.72
+    ]
+   }
+  },
+  "Roll_Under": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     17,
+     69
+    ]
+   },
+   "qa": {
+    "import": "warn"
+   },
+   "hands": [
+    12.5
+   ]
+  },
+  "Jump_Twist": {
+   "kept": "import",
+   "why": "fits its source closer (15 → 11 mm on average), though further at its worst (54 → 60 mm), and the sensors judge it the same (pass)",
+   "fit": {
+    "import": [
+     11,
+     60
+    ],
+    "migrated": [
+     15,
+     54
+    ]
+   },
+   "qa": {
+    "import": "pass",
+    "migrated": "pass"
+   },
+   "hands": [
+    14.7,
+    13.8
+   ],
+   "moved": {
+    "slide": [
+     25.1,
+     36.8
+    ],
+    "skate": [
+     6.86,
+     5.98
+    ],
+    "penetration": [
+     6.79,
+     13.8
+    ],
+    "jitter": [
+     17.9,
+     16.5
+    ],
+    "pop": [
+     603,
+     442
+    ],
+    "fit": [
+     15,
+     11
+    ],
+    "skateMean": [
+     10.2,
+     11
+    ]
+   }
+  },
+  "Breakdance_Helicopter": {
+   "kept": "import",
+   "why": "fits its source closer (18 → 13 mm on average), and the sensors judge it the same (fail)",
+   "fit": {
+    "import": [
+     13,
+     94
+    ],
+    "migrated": [
+     18,
+     107
+    ]
+   },
+   "qa": {
+    "import": "fail",
+    "migrated": "fail"
+   },
+   "hands": [
+    18.2,
+    17.6
+   ],
+   "moved": {
+    "slide": [
+     89.8,
+     59.8
+    ],
+    "skate": [
+     12.6,
+     14.1
+    ],
+    "penetration": [
+     97.5,
+     138
+    ],
+    "bodyPenetration": [
+     116,
+     158
+    ],
+    "intersection": [
+     0.073,
+     0
+    ],
+    "jitter": [
+     31.4,
+     45.4
+    ],
+    "pop": [
+     2420,
+     2520
+    ],
+    "fit": [
+     18,
+     13
+    ],
+    "skateMean": [
+     9.44,
+     8.53
+    ]
+   }
+  },
+  "Punch_Combo": {
+   "kept": "import",
+   "why": "fits its source closer (13 → 12 mm on average), though further at its worst (73 → 83 mm), and the sensors judge it better (pass)",
+   "fit": {
+    "import": [
+     12,
+     83
+    ],
+    "migrated": [
+     13,
+     73
+    ]
+   },
+   "qa": {
+    "import": "pass",
+    "migrated": "fail"
+   },
+   "hands": [
+    11.7,
+    12.7
+   ],
+   "moved": {
+    "slide": [
+     55.8,
+     87
+    ],
+    "skate": [
+     2.69,
+     1.45
+    ],
+    "penetration": [
+     5.06,
+     11
+    ],
+    "intersection": [
+     0.267,
+     0.291
+    ],
+    "jitter": [
+     13.1,
+     15.4
+    ],
+    "pop": [
+     692,
+     794
+    ],
+    "twistFlip": [
+     174,
+     45
+    ],
+    "fit": [
+     13,
+     12
+    ],
+    "skateMean": [
+     1.39,
+     1.59
+    ]
+   }
+  },
+  "Block_Combo": {
+   "kept": "import",
+   "why": "fits its source as closely (9 mm on average), though further at its worst (52 → 57 mm), and the sensors judge it better (pass)",
+   "fit": {
+    "import": [
+     9,
+     57
+    ],
+    "migrated": [
+     9,
+     52
+    ]
+   },
+   "qa": {
+    "import": "pass",
+    "migrated": "fail"
+   },
+   "hands": [
+    9.2,
+    8.7
+   ],
+   "moved": {
+    "slide": [
+     44.4,
+     28.8
+    ],
+    "skate": [
+     5.67,
+     3.64
+    ],
+    "penetration": [
+     3.85,
+     4.58
+    ],
+    "intersection": [
+     0.238,
+     0.234
+    ],
+    "jitter": [
+     9.58,
+     10.2
+    ],
+    "pop": [
+     723,
+     600
+    ],
+    "twistFlip": [
+     172,
+     41.4
+    ],
+    "jointLimit": [
+     39,
+     72
+    ],
+    "skateMean": [
+     2.07,
+     1.74
+    ]
+   }
+  },
+  "Front_Kick": {
+   "kept": "import",
+   "why": "fits its source closer (19 → 15 mm on average), and the sensors judge it the same (warn)",
+   "fit": {
+    "import": [
+     15,
+     71
+    ],
+    "migrated": [
+     19,
+     75
+    ]
+   },
+   "qa": {
+    "import": "warn",
+    "migrated": "warn"
+   },
+   "hands": [
+    12.3,
+    8.8
+   ],
+   "moved": {
+    "slide": [
+     141,
+     79.4
+    ],
+    "skate": [
+     8,
+     3.3
+    ],
+    "penetration": [
+     3.21,
+     2.59
+    ],
+    "jitter": [
+     66.9,
+     65.9
+    ],
+    "pop": [
+     273,
+     267
+    ],
+    "fit": [
+     19,
+     15
+    ],
+    "skateMean": [
+     4.34,
+     2.4
+    ]
+   }
+  },
+  "Roundhouse_Kick": {
+   "kept": "import",
+   "why": "fits its source closer (25 → 22 mm on average), though further at its worst (101 → 123 mm), and the sensors judge it better (pass)",
+   "fit": {
+    "import": [
+     22,
+     123
+    ],
+    "migrated": [
+     25,
+     101
+    ]
+   },
+   "qa": {
+    "import": "pass",
+    "migrated": "fail"
+   },
+   "hands": [
+    13.2,
+    13
+   ],
+   "moved": {
+    "slide": [
+     229,
+     122
+    ],
+    "skate": [
+     6.03,
+     6.3
+    ],
+    "penetration": [
+     0,
+     11.5
+    ],
+    "jitter": [
+     23.5,
+     16.4
+    ],
+    "pop": [
+     951,
+     975
+    ],
+    "twistFlip": [
+     173,
+     53
+    ],
+    "fit": [
+     25,
+     22
+    ],
+    "skateMean": [
+     5.01,
+     3.41
+    ]
+   }
+  },
+  "Side_Kick": {
+   "kept": "import",
+   "why": "fits its source closer (34 → 33 mm on average), and the sensors judge it better (warn)",
+   "fit": {
+    "import": [
+     33,
+     104
+    ],
+    "migrated": [
+     34,
+     109
+    ]
+   },
+   "qa": {
+    "import": "warn",
+    "migrated": "fail"
+   },
+   "hands": [
+    14.4,
+    15.6
+   ],
+   "moved": {
+    "slide": [
+     53.4,
+     115
+    ],
+    "skate": [
+     3.52,
+     5.86
+    ],
+    "penetration": [
+     2.31,
+     3.13
+    ],
+    "jitter": [
+     17.9,
+     72.7
+    ],
+    "pop": [
+     1140,
+     2020
+    ],
+    "twistFlip": [
+     178,
+     41
+    ],
+    "fit": [
+     34,
+     33
+    ],
+    "skateMean": [
+     2.8,
+     3.57
+    ]
+   }
+  },
+  "Stepping_Punch": {
+   "kept": "import",
+   "why": "fits its source closer (29 → 24 mm on average), and the sensors judge it the same (warn)",
+   "fit": {
+    "import": [
+     24,
+     91
+    ],
+    "migrated": [
+     29,
+     116
+    ]
+   },
+   "qa": {
+    "import": "warn",
+    "migrated": "warn"
+   },
+   "hands": [
+    20.8,
+    20.8
+   ],
+   "moved": {
+    "slide": [
+     125,
+     80.7
+    ],
+    "skate": [
+     13.8,
+     13.1
+    ],
+    "penetration": [
+     5.98,
+     16.8
+    ],
+    "intersection": [
+     0.162,
+     0.17
+    ],
+    "jitter": [
+     46.5,
+     41
+    ],
+    "pop": [
+     467,
+     910
+    ],
+    "twistFlip": [
+     65,
+     76
+    ],
+    "fit": [
+     29,
+     24
+    ],
+    "skateMean": [
+     3.42,
+     3.04
+    ]
+   }
+  },
+  "Get_Up_Face_Down": {
+   "kept": "import",
+   "why": "fits its source closer (24 → 15 mm on average), and the sensors judge it the same (warn)",
+   "fit": {
+    "import": [
+     15,
+     73
+    ],
+    "migrated": [
+     24,
+     129
+    ]
+   },
+   "qa": {
+    "import": "warn",
+    "migrated": "warn"
+   },
+   "hands": [
+    24.7,
+    15.4
+   ],
+   "moved": {
+    "slide": [
+     165,
+     141
+    ],
+    "skate": [
+     5.06,
+     3.65
+    ],
+    "penetration": [
+     47.5,
+     49.2
+    ],
+    "bodyPenetration": [
+     28.6,
+     77.8
+    ],
+    "intersection": [
+     0.088,
+     0.145
+    ],
+    "jitter": [
+     2.06,
+     2.55
+    ],
+    "twistFlip": [
+     108,
+     46
+    ],
+    "fit": [
+     24,
+     15
+    ],
+    "skateMean": [
+     3.24,
+     2.68
+    ]
+   }
+  },
+  "Get_Up_From_Back": {
+   "kept": "import",
+   "why": "fits its source closer (16 → 13 mm on average), though further at its worst (73 → 100 mm), and the sensors judge it the same (pass)",
+   "fit": {
+    "import": [
+     13,
+     100
+    ],
+    "migrated": [
+     16,
+     73
+    ]
+   },
+   "qa": {
+    "import": "pass",
+    "migrated": "pass"
+   },
+   "hands": [
+    14.1,
+    13.8
+   ],
+   "moved": {
+    "slide": [
+     68,
+     81.6
+    ],
+    "skate": [
+     10.2,
+     15.8
+    ],
+    "penetration": [
+     35.6,
+     39.5
+    ],
+    "bodyPenetration": [
+     15.2,
+     74.4
+    ],
+    "jitter": [
+     2.92,
+     7.44
+    ],
+    "pop": [
+     753,
+     193
+    ],
+    "twistFlip": [
+     61,
+     94
+    ],
+    "jointLimit": [
+     97,
+     98
+    ],
+    "fit": [
+     16,
+     13
+    ],
+    "skateMean": [
+     2.87,
+     2.27
+    ]
+   }
+  },
+  "Get_Up_From_Side": {
+   "kept": "migrated",
+   "why": "the sensors judge the re-import worse (warn → fail); on the rest it was made on (CMU_140_MIGRATED: the re-import measures CMU_140's anew)",
+   "fit": {
+    "import": [
+     14,
+     86
+    ],
+    "migrated": [
+     17,
+     91
+    ]
+   },
+   "qa": {
+    "import": "fail",
+    "migrated": "warn"
+   },
+   "hands": [
+    17.2,
+    14.9
+   ],
+   "moved": {
+    "slide": [
+     132,
+     101
+    ],
+    "skate": [
+     9.9,
+     6.68
+    ],
+    "penetration": [
+     40.7,
+     46
+    ],
+    "bodyPenetration": [
+     0,
+     67.7
+    ],
+    "intersection": [
+     0.183,
+     0.249
+    ],
+    "jitter": [
+     8.64,
+     8.78
+    ],
+    "pop": [
+     3210,
+     3330
+    ],
+    "fit": [
+     17,
+     14
+    ],
+    "skateMean": [
+     3.48,
+     3.55
+    ]
+   }
+  },
+  "Duck_Thrown_Object": {
+   "kept": "import",
+   "why": "fits its source closer (19 → 14 mm on average), though further at its worst (90 → 104 mm), and the sensors judge it the same (pass)",
+   "fit": {
+    "import": [
+     14,
+     104
+    ],
+    "migrated": [
+     19,
+     90
+    ]
+   },
+   "qa": {
+    "import": "pass",
+    "migrated": "pass"
+   },
+   "hands": [
+    13.7,
+    10.3
+   ],
+   "moved": {
+    "slide": [
+     99.9,
+     52.8
+    ],
+    "skate": [
+     1.82,
+     0.96
+    ],
+    "penetration": [
+     0,
+     9.19
+    ],
+    "jitter": [
+     1.85,
+     1.55
+    ],
+    "pop": [
+     523,
+     528
+    ],
+    "fit": [
+     19,
+     14
+    ],
+    "skateMean": [
+     1.35,
+     0.913
+    ]
+   }
+  },
+  "Creep_Limp_Loop": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     16,
+     75
+    ]
+   },
+   "qa": {
+    "import": "warn"
+   },
+   "hands": [
+    8
+   ]
+  },
+  "Chop_Wood": {
+   "kept": "import",
+   "why": "fits its source closer (19 → 15 mm on average), though further at its worst (78 → 94 mm), and the sensors judge it the same (fail)",
+   "fit": {
+    "import": [
+     15,
+     94
+    ],
+    "migrated": [
+     19,
+     78
+    ]
+   },
+   "qa": {
+    "import": "fail",
+    "migrated": "fail"
+   },
+   "hands": [
+    16.2,
+    14.7
+   ],
+   "moved": {
+    "slide": [
+     18.3,
+     18.1
+    ],
+    "skate": [
+     0.305,
+     0.301
+    ],
+    "penetration": [
+     25.5,
+     16.8
+    ],
+    "intersection": [
+     0.008,
+     0
+    ],
+    "jitter": [
+     26.2,
+     14.7
+    ],
+    "pop": [
+     1490,
+     1270
+    ],
+    "twistFlip": [
+     21,
+     20
+    ],
+    "jointLimit": [
+     175,
+     176
+    ],
+    "fit": [
+     19,
+     15
+    ],
+    "skateMean": [
+     0.267,
+     0.274
+    ]
+   }
+  },
+  "Dig": {
+   "kept": "import",
+   "why": "fits its source closer (20 → 18 mm on average), though further at its worst (66 → 78 mm), and the sensors judge it better (warn)",
+   "fit": {
+    "import": [
+     18,
+     78
+    ],
+    "migrated": [
+     20,
+     66
+    ]
+   },
+   "qa": {
+    "import": "warn",
+    "migrated": "fail"
+   },
+   "hands": [
+    17.2,
+    17.2
+   ],
+   "moved": {
+    "slide": [
+     57.3,
+     119
+    ],
+    "skate": [
+     18.6,
+     25.7
+    ],
+    "penetration": [
+     0,
+     9.73
+    ],
+    "intersection": [
+     0.1,
+     0.043
+    ],
+    "pop": [
+     488,
+     516
+    ],
+    "twistFlip": [
+     162,
+     43
+    ],
+    "fit": [
+     20,
+     18
+    ],
+    "skateMean": [
+     2.11,
+     4.6
+    ]
+   }
+  },
+  "Fishing": {
+   "kept": "import",
+   "why": "fits its source closer (17 → 15 mm on average), though further at its worst (74 → 76 mm), and the sensors judge it better (pass)",
+   "fit": {
+    "import": [
+     15,
+     76
+    ],
+    "migrated": [
+     17,
+     74
+    ]
+   },
+   "qa": {
+    "import": "pass",
+    "migrated": "fail"
+   },
+   "hands": [
+    14.7,
+    14.4
+   ],
+   "moved": {
+    "slide": [
+     21.3,
+     20.1
+    ],
+    "skate": [
+     0.266,
+     0.252
+    ],
+    "penetration": [
+     0.972,
+     30.4
+    ],
+    "intersection": [
+     0.274,
+     0.225
+    ],
+    "jitter": [
+     3.86,
+     4.07
+    ],
+    "pop": [
+     372,
+     411
+    ],
+    "twistFlip": [
+     166,
+     53
+    ],
+    "jointLimit": [
+     16,
+     18
+    ],
+    "fit": [
+     17,
+     15
+    ],
+    "skateMean": [
+     0.252,
+     0.238
+    ]
+   }
+  },
+  "Drink_Water": {
+   "kept": "import",
+   "why": "fits its source closer (16 → 13 mm on average), though further at its worst (60 → 93 mm), and the sensors judge it better (pass)",
+   "fit": {
+    "import": [
+     13,
+     93
+    ],
+    "migrated": [
+     16,
+     60
+    ]
+   },
+   "qa": {
+    "import": "pass",
+    "migrated": "fail"
+   },
+   "hands": [
+    12.5,
+    16.8
+   ],
+   "moved": {
+    "slide": [
+     12.9,
+     14.2
+    ],
+    "skate": [
+     0.184,
+     0.203
+    ],
+    "penetration": [
+     0,
+     10.1
+    ],
+    "intersection": [
+     0.144,
+     0.126
+    ],
+    "jitter": [
+     0.762,
+     0.682
+    ],
+    "pop": [
+     272,
+     163
+    ],
+    "twistFlip": [
+     160,
+     9
+    ],
+    "fit": [
+     16,
+     13
+    ],
+    "skateMean": [
+     0.184,
+     0.203
+    ]
+   }
+  },
+  "Carry_Heavy_Box": {
+   "kept": "import",
+   "why": "fits its source closer (20 → 16 mm on average), though further at its worst (62 → 102 mm), and the sensors judge it better (pass)",
+   "fit": {
+    "import": [
+     16,
+     102
+    ],
+    "migrated": [
+     20,
+     62
+    ]
+   },
+   "qa": {
+    "import": "pass",
+    "migrated": "fail"
+   },
+   "hands": [
+    16.5,
+    14.1
+   ],
+   "moved": {
+    "slide": [
+     26.1,
+     19.7
+    ],
+    "skate": [
+     0.314,
+     0.238
+    ],
+    "penetration": [
+     10.9,
+     41.1
+    ],
+    "intersection": [
+     0.229,
+     0.265
+    ],
+    "jitter": [
+     0.54,
+     0.989
+    ],
+    "pop": [
+     201,
+     640
+    ],
+    "twistFlip": [
+     174,
+     76
+    ],
+    "fit": [
+     20,
+     16
+    ],
+    "skateMean": [
+     0.265,
+     0.234
+    ]
+   }
+  },
+  "Laugh": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     14,
+     185
+    ]
+   },
+   "qa": {
+    "import": "warn"
+   },
+   "hands": [
+    12.2
+   ]
+  },
+  "Overjoyed": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     13,
+     196
+    ]
+   },
+   "qa": {
+    "import": "fail"
+   },
+   "hands": [
+    13.7
+   ]
+  },
+  "Sad": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     14,
+     75
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    14.1
+   ]
+  },
+  "Crying": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     12,
+     64
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    19
+   ]
+  },
+  "Scared": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     14,
+     122
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    11.7
+   ]
+  },
+  "Upset": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     15,
+     100
+    ]
+   },
+   "qa": {
+    "import": "warn"
+   },
+   "hands": [
+    13.4
+   ]
+  },
+  "Paint": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     12,
+     52
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    12.9
+   ]
+  },
+  "Sew": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     9,
+     42
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    13.9
+   ]
+  },
+  "Slice_Bread": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     9,
+     55
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    15.1
+   ]
+  },
+  "Chop_Onions": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     9,
+     51
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    14.6
+   ]
+  },
+  "Mix_Batter": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     10,
+     46
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    10.7
+   ]
+  },
+  "Eat_Dinner": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     10,
+     55
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    14.4
+   ]
+  },
+  "Eat_Sandwich": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     10,
+     47
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    15
+   ]
+  },
+  "Answer_Phone": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     12,
+     51
+    ]
+   },
+   "qa": {
+    "import": "warn"
+   },
+   "hands": [
+    11.7
+   ]
+  },
+  "Type_Laptop": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     10,
+     50
+    ]
+   },
+   "qa": {
+    "import": "fail"
+   },
+   "hands": [
+    13
+   ]
+  },
+  "Write_Chalkboard": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     13,
+     49
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    11.5
+   ]
+  },
+  "Plant_Tree": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     15,
+     68
+    ]
+   },
+   "qa": {
+    "import": "warn"
+   },
+   "hands": [
+    16.1
+   ]
+  },
+  "Put_On_Jacket": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     12,
+     49
+    ]
+   },
+   "qa": {
+    "import": "warn"
+   },
+   "hands": [
+    13.9
+   ]
+  },
+  "Hang_Picture": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     12,
+     52
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    16.3
+   ]
+  },
+  "Shoot_Bow": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     17,
+     73
+    ]
+   },
+   "qa": {
+    "import": "fail"
+   },
+   "hands": [
+    15.5
+   ]
+  },
+  "Shoot_Pistol": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     13,
+     71
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    16.5
+   ]
+  },
+  "Rake_Leaves": {
+   "kept": "import",
+   "why": "fits its source as closely (24 mm on average), and the sensors judge it better (pass)",
+   "fit": {
+    "import": [
+     24,
+     101
+    ],
+    "migrated": [
+     24,
+     102
+    ]
+   },
+   "qa": {
+    "import": "pass",
+    "migrated": "fail"
+   },
+   "hands": [
+    18.9,
+    23.7
+   ],
+   "moved": {
+    "slide": [
+     56.1,
+     70.7
+    ],
+    "skate": [
+     0.935,
+     1.18
+    ],
+    "penetration": [
+     29.9,
+     30
+    ],
+    "intersection": [
+     0.384,
+     0.272
+    ],
+    "jitter": [
+     3.46,
+     4.67
+    ],
+    "pop": [
+     839,
+     913
+    ],
+    "twistFlip": [
+     175,
+     56
+    ],
+    "skateMean": [
+     0.662,
+     0.777
+    ]
+   }
+  },
+  "Shake_Hands": {
+   "kept": "import",
+   "why": "fits its source closer (17 → 16 mm on average), and the sensors judge it the same (pass)",
+   "fit": {
+    "import": [
+     16,
+     58
+    ],
+    "migrated": [
+     17,
+     68
+    ]
+   },
+   "qa": {
+    "import": "pass",
+    "migrated": "pass"
+   },
+   "hands": [
+    14.3,
+    14.2
+   ],
+   "moved": {
+    "slide": [
+     17.2,
+     20.5
+    ],
+    "skate": [
+     0.343,
+     0.411
+    ],
+    "penetration": [
+     12.7,
+     23.2
+    ],
+    "intersection": [
+     0.498,
+     0.45
+    ],
+    "jitter": [
+     17.5,
+     19.8
+    ],
+    "pop": [
+     1540,
+     1830
+    ],
+    "twistFlip": [
+     33,
+     48
+    ],
+    "fit": [
+     17,
+     16
+    ],
+    "skateMean": [
+     0.27,
+     0.315
+    ]
+   }
+  },
+  "Freezing": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     15,
+     52
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    12
+   ]
+  },
+  "Pay": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     16,
+     61
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    14.1
+   ]
+  },
+  "Pick_Up_Box": {
+   "kept": "import",
+   "why": "fits its source closer (11 → 9 mm on average), and the sensors judge it better (warn)",
+   "fit": {
+    "import": [
+     9,
+     58
+    ],
+    "migrated": [
+     11,
+     58
+    ]
+   },
+   "qa": {
+    "import": "warn",
+    "migrated": "fail"
+   },
+   "hands": [
+    9.1,
+    7.6
+   ],
+   "moved": {
+    "slide": [
+     76.3,
+     125
+    ],
+    "skate": [
+     8.6,
+     13.3
+    ],
+    "penetration": [
+     20.1,
+     11.1
+    ],
+    "intersection": [
+     1.1,
+     1.2
+    ],
+    "jitter": [
+     89.7,
+     36.3
+    ],
+    "twistFlip": [
+     175,
+     40
+    ],
+    "fit": [
+     11,
+     9
+    ],
+    "skateMean": [
+     5.75,
+     5.82
+    ]
+   }
+  },
+  "Sit_Down_Get_Up": {
+   "kept": "import",
+   "why": "fits its source closer (11 → 9 mm on average), and the sensors judge it the same (pass)",
+   "fit": {
+    "import": [
+     9,
+     49
+    ],
+    "migrated": [
+     11,
+     70
+    ]
+   },
+   "qa": {
+    "import": "pass",
+    "migrated": "pass"
+   },
+   "hands": [
+    9.5,
+    8.6
+   ],
+   "moved": {
+    "slide": [
+     79.5,
+     77.8
+    ],
+    "skate": [
+     2.26,
+     3.43
+    ],
+    "penetration": [
+     12,
+     12.7
+    ],
+    "intersection": [
+     0.998,
+     1.11
+    ],
+    "jitter": [
+     4.65,
+     4.18
+    ],
+    "pop": [
+     549,
+     623
+    ],
+    "twistFlip": [
+     39,
+     45
+    ],
+    "fit": [
+     11,
+     9
+    ],
+    "skateMean": [
+     0.95,
+     1.03
+    ]
+   }
+  },
+  "Peekaboo": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     9,
+     46
+    ]
+   },
+   "qa": {
+    "import": "warn"
+   },
+   "hands": [
+    9.7
+   ]
+  },
+  "Chicken_Dance": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     10,
+     51
+    ]
+   },
+   "qa": {
+    "import": "warn"
+   },
+   "hands": [
+    10.8
+   ]
+  },
+  "Macarena": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     9,
+     55
+    ]
+   },
+   "qa": {
+    "import": "warn"
+   },
+   "hands": [
+    9.4
+   ]
+  },
+  "Pick_Up_Basket": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     10,
+     88
+    ]
+   },
+   "qa": {
+    "import": "warn"
+   },
+   "hands": [
+    6.2
+   ]
+  },
+  "Ladder_Up_Down": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     11,
+     60
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    8.8
+   ]
+  },
+  "Wave_Hello": {
+   "kept": "import",
+   "why": "fits its source closer (13 → 12 mm on average), though further at its worst (55 → 58 mm), and the sensors judge it better (warn)",
+   "fit": {
+    "import": [
+     12,
+     58
+    ],
+    "migrated": [
+     13,
+     55
+    ]
+   },
+   "qa": {
+    "import": "warn",
+    "migrated": "fail"
+   },
+   "hands": [
+    12.6,
+    9.9
+   ],
+   "moved": {
+    "slide": [
+     89.9,
+     78.7
+    ],
+    "skate": [
+     4.61,
+     4.36
+    ],
+    "penetration": [
+     31.9,
+     23.2
+    ],
+    "jitter": [
+     46.5,
+     41.6
+    ],
+    "pop": [
+     2140,
+     2170
+    ],
+    "twistFlip": [
+     165,
+     71
+    ],
+    "jointLimit": [
+     129,
+     138
+    ],
+    "fit": [
+     13,
+     12
+    ],
+    "skateMean": [
+     4.12,
+     3.7
+    ]
+   }
+  },
+  "Shrug": {
+   "kept": "import",
+   "why": "fits its source closer (12 → 10 mm on average), though further at its worst (61 → 65 mm), and the sensors judge it better (warn)",
+   "fit": {
+    "import": [
+     10,
+     65
+    ],
+    "migrated": [
+     12,
+     61
+    ]
+   },
+   "qa": {
+    "import": "warn",
+    "migrated": "fail"
+   },
+   "hands": [
+    12.3,
+    9.4
+   ],
+   "moved": {
+    "slide": [
+     16.5,
+     108
+    ],
+    "skate": [
+     1.18,
+     16.1
+    ],
+    "penetration": [
+     19.9,
+     33.7
+    ],
+    "intersection": [
+     0.709,
+     0.766
+    ],
+    "jitter": [
+     8.92,
+     11.7
+    ],
+    "pop": [
+     478,
+     479
+    ],
+    "twistFlip": [
+     175,
+     43
+    ],
+    "fit": [
+     12,
+     10
+    ],
+    "skateMean": [
+     1.18,
+     7.11
+    ]
+   }
+  },
+  "Stretch_Yawn": {
+   "kept": "import",
+   "why": "fits its source closer (12 → 11 mm on average), though further at its worst (53 → 130 mm), and the sensors judge it better (pass)",
+   "fit": {
+    "import": [
+     11,
+     130
+    ],
+    "migrated": [
+     12,
+     53
+    ]
+   },
+   "qa": {
+    "import": "pass",
+    "migrated": "fail"
+   },
+   "hands": [
+    14.5,
+    12
+   ],
+   "moved": {
+    "slide": [
+     62.4,
+     72.1
+    ],
+    "skate": [
+     5.45,
+     3.78
+    ],
+    "penetration": [
+     21,
+     32.6
+    ],
+    "intersection": [
+     0,
+     0.067
+    ],
+    "jitter": [
+     2.95,
+     4.22
+    ],
+    "pop": [
+     544,
+     656
+    ],
+    "twistFlip": [
+     174,
+     45
+    ],
+    "jointLimit": [
+     154,
+     27
+    ],
+    "fit": [
+     12,
+     11
+    ],
+    "skateMean": [
+     4.75,
+     2.63
+    ]
+   }
+  },
+  "Curtsey": {
+   "kept": "import",
+   "why": "fits its source closer (19 → 15 mm on average), though further at its worst (94 → 126 mm), and the sensors judge it the same (fail)",
+   "fit": {
+    "import": [
+     15,
+     126
+    ],
+    "migrated": [
+     19,
+     94
+    ]
+   },
+   "qa": {
+    "import": "fail",
+    "migrated": "fail"
+   },
+   "hands": [
+    10.1,
+    8.6
+   ],
+   "moved": {
+    "slide": [
+     82.6,
+     88.7
+    ],
+    "skate": [
+     16.5,
+     18.4
+    ],
+    "penetration": [
+     35.1,
+     56.2
+    ],
+    "pop": [
+     1440,
+     1320
+    ],
+    "twistFlip": [
+     178,
+     160
+    ],
+    "jointLimit": [
+     160,
+     37
+    ],
+    "fit": [
+     19,
+     15
+    ],
+    "skateMean": [
+     12.4,
+     12.8
+    ]
+   }
+  },
+  "Waiting_Loop": {
+   "kept": "import",
+   "why": "fits its source closer (33 → 26 mm on average), and the sensors judge it the same (warn)",
+   "fit": {
+    "import": [
+     26,
+     103
+    ],
+    "migrated": [
+     33,
+     105
+    ]
+   },
+   "qa": {
+    "import": "warn",
+    "migrated": "warn"
+   },
+   "hands": [
+    13.8,
+    14.2
+   ],
+   "moved": {
+    "slide": [
+     52.9,
+     72.8
+    ],
+    "skate": [
+     0,
+     14.2
+    ],
+    "penetration": [
+     34.1,
+     47.1
+    ],
+    "intersection": [
+     0.633,
+     0.701
+    ],
+    "jitter": [
+     16.1,
+     12.3
+    ],
+    "pop": [
+     1410,
+     1950
+    ],
+    "twistFlip": [
+     122,
+     144
+    ],
+    "jointLimit": [
+     164,
+     162
+    ],
+    "seamVelocity": [
+     988,
+     924
+    ],
+    "fit": [
+     33,
+     26
+    ],
+    "skateMean": [
+     25.9,
+     22.7
+    ]
+   }
+  },
+  "Frankenstein_Walk_Loop": {
+   "kept": "import",
+   "why": "fits its source closer (16 → 15 mm on average), though further at its worst (78 → 85 mm), and the sensors judge it better (pass)",
+   "fit": {
+    "import": [
+     15,
+     85
+    ],
+    "migrated": [
+     16,
+     78
+    ]
+   },
+   "qa": {
+    "import": "pass",
+    "migrated": "warn"
+   },
+   "hands": [
+    13.3,
+    12.8
+   ],
+   "moved": {
+    "slide": [
+     152,
+     82
+    ],
+    "skate": [
+     11.5,
+     5.12
+    ],
+    "penetration": [
+     20.3,
+     20.5
+    ],
+    "jitter": [
+     1.44,
+     1.14
+    ],
+    "pop": [
+     341,
+     0
+    ],
+    "twistFlip": [
+     142,
+     38
+    ],
+    "jointLimit": [
+     131,
+     33
+    ],
+    "seamVelocity": [
+     629,
+     623
+    ],
+    "fit": [
+     16,
+     15
+    ],
+    "skateMean": [
+     7.82,
+     4.3
+    ]
+   }
+  },
+  "Stumble_Walk": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     17,
+     137
+    ]
+   },
+   "qa": {
+    "import": "fail"
+   },
+   "hands": [
+    14.8
+   ]
+  },
+  "Monkey": {
+   "kept": "import",
+   "why": "fits its source closer (15 → 12 mm on average), and the sensors judge it the same (pass)",
+   "fit": {
+    "import": [
+     12,
+     66
+    ],
+    "migrated": [
+     15,
+     75
+    ]
+   },
+   "qa": {
+    "import": "pass",
+    "migrated": "pass"
+   },
+   "hands": [
+    13.9,
+    13.9
+   ],
+   "moved": {
+    "slide": [
+     88.2,
+     90.3
+    ],
+    "skate": [
+     10.7,
+     15.1
+    ],
+    "penetration": [
+     0,
+     13.3
+    ],
+    "jitter": [
+     5.95,
+     5.96
+    ],
+    "pop": [
+     372,
+     359
+    ],
+    "twistFlip": [
+     39,
+     34
+    ],
+    "fit": [
+     15,
+     12
+    ],
+    "skateMean": [
+     2.6,
+     3.33
+    ]
+   }
+  },
+  "Bear": {
+   "kept": "import",
+   "why": "fits its source closer (26 → 20 mm on average), and the sensors judge it the same (pass)",
+   "fit": {
+    "import": [
+     20,
+     132
+    ],
+    "migrated": [
+     26,
+     137
+    ]
+   },
+   "qa": {
+    "import": "pass",
+    "migrated": "pass"
+   },
+   "hands": [
+    17,
+    17.7
+   ],
+   "moved": {
+    "slide": [
+     78.8,
+     94.7
+    ],
+    "skate": [
+     5.17,
+     4.72
+    ],
+    "jitter": [
+     16,
+     12.7
+    ],
+    "pop": [
+     335,
+     415
+    ],
+    "twistFlip": [
+     42,
+     43
+    ],
+    "fit": [
+     26,
+     20
+    ],
+    "skateMean": [
+     2.39,
+     2.78
+    ]
+   }
+  },
+  "Dragon": {
+   "kept": "import",
+   "why": "fits its source closer (15 → 11 mm on average), and the sensors judge it the same (pass)",
+   "fit": {
+    "import": [
+     11,
+     57
+    ],
+    "migrated": [
+     15,
+     87
+    ]
+   },
+   "qa": {
+    "import": "pass",
+    "migrated": "pass"
+   },
+   "hands": [
+    18.3,
+    16.7
+   ],
+   "moved": {
+    "slide": [
+     58.9,
+     73
+    ],
+    "skate": [
+     4.71,
+     4.25
+    ],
+    "penetration": [
+     3.13,
+     17.8
+    ],
+    "jitter": [
+     19,
+     15.7
+    ],
+    "pop": [
+     738,
+     696
+    ],
+    "twistFlip": [
+     44,
+     40
+    ],
+    "fit": [
+     15,
+     11
+    ],
+    "skateMean": [
+     2.15,
+     2.53
+    ]
+   }
+  },
+  "Ghost": {
+   "kept": "import",
+   "why": "fits its source closer (16 → 10 mm on average), and the sensors judge it the same (pass)",
+   "fit": {
+    "import": [
+     10,
+     39
+    ],
+    "migrated": [
+     16,
+     63
+    ]
+   },
+   "qa": {
+    "import": "pass",
+    "migrated": "pass"
+   },
+   "hands": [
+    16.5,
+    12.9
+   ],
+   "moved": {
+    "slide": [
+     31.6,
+     111
+    ],
+    "skate": [
+     8.61,
+     10.2
+    ],
+    "penetration": [
+     0,
+     14.4
+    ],
+    "intersection": [
+     0.534,
+     0.506
+    ],
+    "jitter": [
+     10.8,
+     9.05
+    ],
+    "pop": [
+     396,
+     349
+    ],
+    "jointLimit": [
+     29,
+     28
+    ],
+    "fit": [
+     16,
+     10
+    ],
+    "skateMean": [
+     8.61,
+     3.44
+    ]
+   }
+  },
+  "Chicken": {
+   "kept": "import",
+   "why": "fits its source closer (14 → 13 mm on average), and the sensors judge it the same (pass)",
+   "fit": {
+    "import": [
+     13,
+     69
+    ],
+    "migrated": [
+     14,
+     76
+    ]
+   },
+   "qa": {
+    "import": "pass",
+    "migrated": "pass"
+   },
+   "hands": [
+    19,
+    18.6
+   ],
+   "moved": {
+    "slide": [
+     35.3,
+     26.8
+    ],
+    "skate": [
+     0.588,
+     0.447
+    ],
+    "penetration": [
+     1.5,
+     6.22
+    ],
+    "jitter": [
+     2.52,
+     2.68
+    ],
+    "pop": [
+     886,
+     874
+    ],
+    "twistFlip": [
+     33,
+     35
+    ],
+    "fit": [
+     14,
+     13
+    ],
+    "skateMean": [
+     0.434,
+     0.369
+    ]
+   }
+  },
+  "Backflip": {
+   "kept": "import",
+   "why": "fits its source closer (14 → 13 mm on average), and the sensors judge it the same (fail)",
+   "fit": {
+    "import": [
+     13,
+     97
+    ],
+    "migrated": [
+     14,
+     145
+    ]
+   },
+   "qa": {
+    "import": "fail",
+    "migrated": "fail"
+   },
+   "hands": [
+    9.6,
+    13
+   ],
+   "moved": {
+    "slide": [
+     40.8,
+     56.4
+    ],
+    "skate": [
+     0,
+     9.74
+    ],
+    "penetration": [
+     2.77,
+     39.5
+    ],
+    "intersection": [
+     0.887,
+     0.334
+    ],
+    "jitter": [
+     256,
+     255
+    ],
+    "pop": [
+     3590,
+     2040
+    ],
+    "twistFlip": [
+     161,
+     173
+    ],
+    "jointLimit": [
+     161,
+     158
+    ],
+    "fit": [
+     14,
+     13
+    ],
+    "skateMean": [
+     16.1,
+     15.3
+    ]
+   }
+  },
+  "Get_Up_Slow": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     14,
+     74
+    ]
+   },
+   "qa": {
+    "import": "warn"
+   },
+   "hands": [
+    13.5
+   ]
+  },
+  "Lie_Down": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     18,
+     138
+    ]
+   },
+   "qa": {
+    "import": "fail"
+   },
+   "hands": [
+    12.7
+   ]
+  },
+  "Mope": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     14,
+     91
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    11.1
+   ]
+  },
+  "Take_A_Bow": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     14,
+     97
+    ]
+   },
+   "qa": {
+    "import": "warn"
+   },
+   "hands": [
+    8
+   ]
+  },
+  "Free_Dance": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     13,
+     100
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    10.2
+   ]
+  },
+  "Punch_Kick": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     13,
+     107
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    9.2
+   ]
+  },
+  "Stumble_Into": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     17,
+     69
+    ]
+   },
+   "qa": {
+    "import": "warn"
+   },
+   "hands": [
+    11.6
+   ]
+  },
+  "Bumped": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     9,
+     71
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    8.8
+   ]
+  },
+  "Comfort": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     10,
+     49
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    8.9
+   ]
+  },
+  "Quarrel": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     14,
+     82
+    ]
+   },
+   "qa": {
+    "import": "warn"
+   },
+   "hands": [
+    12.8
+   ]
+  },
+  "Explain": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     12,
+     58
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    11.4
+   ]
+  },
+  "Referee_Signals": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     7,
+     35
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    9
+   ]
+  },
+  "Charleston": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     12,
+     83
+    ]
+   },
+   "qa": {
+    "import": "warn"
+   },
+   "hands": [
+    14.7
+   ]
+  },
+  "Lindy_Hop": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     16,
+     84
+    ]
+   },
+   "qa": {
+    "import": "warn"
+   },
+   "hands": [
+    14.1
+   ]
+  },
+  "Salsa": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     12,
+     44
+    ]
+   },
+   "qa": {
+    "import": "warn"
+   },
+   "hands": [
+    13.8
+   ]
+  },
+  "Ballet_Pirouette": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     14,
+     92
+    ]
+   },
+   "qa": {
+    "import": "warn"
+   },
+   "hands": [
+    16.5
+   ]
+  },
+  "Ballet_Grand_Jete": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     13,
+     134
+    ]
+   },
+   "qa": {
+    "import": "fail"
+   },
+   "hands": [
+    16
+   ]
+  },
+  "Hammer_Nail": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     10,
+     47
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    11.4
+   ]
+  },
+  "Saw_Wood": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     11,
+     53
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    12.3
+   ]
+  },
+  "Wrench_Bolt": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     11,
+     61
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    12.5
+   ]
+  },
+  "Screwdriver": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     9,
+     47
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    13
+   ]
+  },
+  "Pull_Nail": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     12,
+     54
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    12.8
+   ]
+  },
+  "Open_Box": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     11,
+     81
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    13.6
+   ]
+  },
+  "Open_Umbrella": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     11,
+     57
+    ]
+   },
+   "qa": {
+    "import": "warn"
+   },
+   "hands": [
+    13.5
+   ]
+  },
+  "Push_Heavy_Box": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     12,
+     47
+    ]
+   },
+   "qa": {
+    "import": "fail"
+   },
+   "hands": [
+    19.6
+   ]
+  },
+  "Pull_Heavy_Object": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     10,
+     80
+    ]
+   },
+   "qa": {
+    "import": "warn"
+   },
+   "hands": [
+    12.5
+   ]
+  },
+  "Drag_Heavy_Object": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     10,
+     49
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    12
+   ]
+  },
+  "Jump_Off_Ledge_Back": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     10,
+     74
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    9.6
+   ]
+  },
+  "Carry_Suitcase": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     13,
+     80
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    16.5
+   ]
+  },
+  "Bend_Lift": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     13,
+     68
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    13.6
+   ]
+  },
+  "Step_Up_Ledge": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     13,
+     59
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    15.5
+   ]
+  },
+  "Long_Jump": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     13,
+     49
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    15.2
+   ]
+  },
+  "Hop_Turn_360": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     9,
+     45
+    ]
+   },
+   "qa": {
+    "import": "warn"
+   },
+   "hands": [
+    13.2
+   ]
+  },
+  "Hopscotch": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     14,
+     70
+    ]
+   },
+   "qa": {
+    "import": "warn"
+   },
+   "hands": [
+    11.6
+   ]
+  },
+  "High_Jump": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     18,
+     68
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    10
+   ]
+  },
+  "Guard_Pose": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     10,
+     67
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    11.8
+   ]
+  },
+  "Baseball_Pitch": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     15,
+     184
+    ]
+   },
+   "qa": {
+    "import": "fail"
+   },
+   "hands": [
+    10.8
+   ]
+  },
+  "Baseball_Swing": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     15,
+     106
+    ]
+   },
+   "qa": {
+    "import": "warn"
+   },
+   "hands": [
+    12.6
+   ]
+  }
+ },
+ "skipped": [],
+ "dropped": []
+}

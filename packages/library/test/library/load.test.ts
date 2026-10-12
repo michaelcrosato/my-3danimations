@@ -19,8 +19,8 @@ describe("the library loader", () => {
   it("loads every migrated set, its content id and every clip file as the lock says, and the lock is the library's", () => {
     const lib = openLibrary({ dir: DIR, tiers: TIERS });
     expect(() => lib.verify()).not.toThrow();
-    expect(lib.sets().map((s) => s.set)).toEqual(["CMU_CURATED", "MESH2MOTION", "QUATERNIUS_3D2DGE", "QUATERNIUS_SHARDFALL", "STYLE100"]);
-    expect(lib.sets().reduce((a, s) => a + s.clips, 0)).toBe(525);
+    expect(lib.sets().map((s) => s.set)).toEqual(Object.keys(LOCK.sets).sort());
+    expect(lib.sets().reduce((a, s) => a + s.clips, 0)).toBe(Object.values(LOCK.sets).reduce((a, s) => a + Object.keys(s.files).length, 0));
     // the committed lock is what the files give now: a clip changed without relocking fails here
     expect(lockLibrary(DIR, LOCK)).toEqual(LOCK);
     const { clip, rest, set, tier } = lib.clip("QUATERNIUS_3D2DGE/Walk_Loop");

@@ -1,0 +1,24 @@
+{
+"format": "2.0",
+"id": "STYLE100_IDLE/DuckFoot_Idle",
+"name": "DuckFoot_Idle",
+"legend": "2.0",
+"dur": 2.5,
+"loop": true,
+"fps": 30,
+"tags": ["idle","style"],
+"desc": "Standing, duck foot style: toes pointing inwards",
+"skeleton": "humanoid",
+"restSrc": "100STYLE",
+"provenance": {"src":"100STYLE","take":"DuckFoot_ID 24.95-27.45","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
+"quality": {"fit":[4,13],"qa":"unchecked","qaVersion":"none"},
+"keys": [
+  {"t":0,
+   "hips":[0,0,101], "body":[0,-12,0], "chest":[2,16,1], "head":[-2,18,-2],
+   "shL":[2,-10], "shR":[0,-8], "armL":[10,3,-100,0,34], "armR":[16,6,-98,0,-57], "handL":[3,-8,102], "handR":[-13,-14,159], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[-23,4,-97,2,-2], "legR":[-24,3,-97,6,0], "footL":[7,62,0], "footR":[6,67,0]},
+  {"t":2.5,
+   "hips":[0,0,101], "body":[0,-12,0], "chest":[2,16,1], "head":[-2,18,-2],
+   "shL":[2,-10], "shR":[0,-8], "armL":[10,3,-100,0,34], "armR":[16,6,-98,0,-57], "handL":[3,-8,102], "handR":[-13,-14,159], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[-23,4,-97,2,-2], "legR":[-24,3,-97,6,0], "footL":[7,62,0], "footR":[6,67,0]}
+]}

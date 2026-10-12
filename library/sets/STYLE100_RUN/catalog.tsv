@@ -1,0 +1,98 @@
+STYLE100_RUN/Aeroplane_Run	0.967	loop	68	run style	Running, aeroplane style: both arms raised as wings – tilting from side to side	100STYLE
+STYLE100_RUN/Akimbo_Run	0.667	loop	173	run style	Running, akimbo style: hands on hips	100STYLE
+STYLE100_RUN/Angry_Run	1.233	loop	106	run style	Running, angry style: swing lower arms aggressively - fists closed	100STYLE
+STYLE100_RUN/ArmsAboveHead_Run	0.7	loop	191	run style	Running, arms above head style: arms raised straight above head	100STYLE
+STYLE100_RUN/ArmsBehindBack_Run	0.833	loop	141	run style	Running, arms behind back style: hands clasped behind back	100STYLE
+STYLE100_RUN/ArmsBySide_Run	0.7	loop	196	run style	Running, arms by side style: keep arms fixed by side and do not move them	100STYLE
+STYLE100_RUN/ArmsFolded_Run	1.7	loop	86	run style	Running, arms folded style: right arm folded over left	100STYLE
+STYLE100_RUN/Balance_Run	0.9	loop	151	run style	Running, balance style: arms out to side for balance - tilting side to side	100STYLE
+STYLE100_RUN/BeatChest_Run	0.733	loop	174	run style	Running, beat chest style: beat chest while moving normally	100STYLE
+STYLE100_RUN/BentForward_Run	0.867	loop	145	run style	Running, bent forward style: tilt torso forwards	100STYLE
+STYLE100_RUN/BentKnees_Run	0.933	loop	156	run style	Running, bent knees style: bend knees as much as possible	100STYLE
+STYLE100_RUN/BigSteps_Run	1.033	loop	244	run style	Running, big steps style: as large steps as possible	100STYLE
+STYLE100_RUN/BouncyLeft_Run	0.733	loop	155	run style	Running, bouncy left style: step normally with right foot but spring off left foot	100STYLE
+STYLE100_RUN/BouncyRight_Run	0.767	loop	149	run style	Running, bouncy right style: step normally with left foot but spring off right foot	100STYLE
+STYLE100_RUN/Cat_Run	1.133	loop	162	run style	Running, cat style: use hands as paws - step opposite hand and foot	100STYLE
+STYLE100_RUN/Chicken_Run	0.867	loop	108	run style	Running, chicken style: bob head - arms as wings	100STYLE
+STYLE100_RUN/CrossOver_Run	0.933	loop	144	run style	Running, cross over style: step each foot in front of other leg	100STYLE
+STYLE100_RUN/Crouched_Run	0.867	loop	138	run style	Running, crouched style: squat slightly and bend back	100STYLE
+STYLE100_RUN/CrowdAvoidance_Run	0.733	loop	166	run style varies	Running, crowd avoidance style: occasionally turning shoulders or turn sideways to avoid others	100STYLE
+STYLE100_RUN/Depressed_Run	0.867	loop	143	run style	Running, depressed style: head bowed arms swinging	100STYLE
+STYLE100_RUN/Dinosaur_Run	1.1	loop	152	run style	Running, dinosaur style: like a t-rex arms close to body dinosaur posture	100STYLE
+STYLE100_RUN/DragLeftLeg_Run	0.7	loop	110	run style	Running, drag left leg style: drag left foot along the floor	100STYLE
+STYLE100_RUN/DragRightLeg_Run	0.7	loop	128	run style	Running, drag right leg style: drag right foot along the floor	100STYLE
+STYLE100_RUN/Drunk_Run	1.1	loop	108	run style varies	Running, drunk style: stumbling around at random. Various foot step sizes and arm motions	100STYLE
+STYLE100_RUN/DuckFoot_Run	0.967	loop	133	run style	Running, duck foot style: toes pointing inwards	100STYLE
+STYLE100_RUN/Elated_Run	0.567	loop	27	run style	Running, elated style: swing arms with spring	100STYLE
+STYLE100_RUN/FairySteps_Run	0.967	loop	111	run style	Running, fairy steps style: one foot in front of the other so the heel touches the toe	100STYLE
+STYLE100_RUN/Flapping_Run	1.467	loop	94	run style	Running, flapping style: flap arms as wings on tiptoes	100STYLE
+STYLE100_RUN/FlickLegs_Run	0.8	loop	151	run style	Running, flick legs style: knees together and flick legs to sides as moving	100STYLE
+STYLE100_RUN/Followed_Run	0.733	loop	209	run style varies	Running, followed style: check behind occasionally	100STYLE
+STYLE100_RUN/GracefulArms_Run	0.8	loop	175	run style	Running, graceful arms style: one arm across chest the other extended walk tall	100STYLE
+STYLE100_RUN/HandsBetweenLegs_Run	0.767	loop	167	run style	Running, hands between legs style: bent back – legs wide - hands swing between legs	100STYLE
+STYLE100_RUN/HandsInPockets_Run	0.8	loop	172	run style	Running, hands in pockets style: place hands in pockets and walk and run	100STYLE
+STYLE100_RUN/Heavyset_Run	0.967	loop	161	run style	Running, heavyset style: walking as a muscle man tensed biceps	100STYLE
+STYLE100_RUN/HighKnees_Run	0.733	loop	158	run style	Running, high knees style: lift knees high but only knees – not marching	100STYLE
+STYLE100_RUN/InTheDark_Run	0.6	loop	134	run style varies	Running, in the dark style: feeling around as if in darkness	100STYLE
+STYLE100_RUN/KarateChop_Run	1.467	loop	88	run style	Running, karate chop style	100STYLE
+STYLE100_RUN/Kick_Run	0.933	loop	119	run style	Running, kick style: kick with every step	100STYLE
+STYLE100_RUN/LawnMower_Run	2	loop	71	run style	Running, lawn mower style: roll hands over one another like disco move and tilt torso forwards and then back	100STYLE
+STYLE100_RUN/LeanBack_Run	0.867	loop	129	run style	Running, lean back style: bent backwards	100STYLE
+STYLE100_RUN/LeanLeft_Run	0.8	loop	130	run style	Running, lean left style: normal motion upperbody tilted right	100STYLE
+STYLE100_RUN/LeanRight_Run	0.767	loop	108	run style	Running, lean right style: normal motion upperbody tilted left	100STYLE
+STYLE100_RUN/LeftHop_Run	1.067	loop	169	run style	Running, left hop style: hop on left foot	100STYLE
+STYLE100_RUN/LegsApart_Run	0.9	loop	173	run style	Running, legs apart style: legs relatively straight wide apart	100STYLE
+STYLE100_RUN/LimpLeft_Run	0.767	loop	133	run style	Running, limp left style: keep left leg straight and limp	100STYLE
+STYLE100_RUN/LimpRight_Run	0.867	loop	112	run style	Running, limp right style: keep right leg straight and limp	100STYLE
+STYLE100_RUN/LookUp_Run	0.733	loop	156	run style	Running, look up style: tilt head to look at ceiling	100STYLE
+STYLE100_RUN/Lunge_Run	1.767	loop	71	run style	Running, lunge style: wide step bend knee every step in lunge position	100STYLE
+STYLE100_RUN/March_Run	0.7	loop	143	run style	Running, march style: high knees swing arms at elbows	100STYLE
+STYLE100_RUN/Monk_Run	0.9	loop	123	run style	Running, monk style: interlock hands in front of pelvis head slightly bowed	100STYLE
+STYLE100_RUN/Morris_Run	1.367	loop	161	run style	Running, morris style: swing hands side to side as if waving hankies	100STYLE
+STYLE100_RUN/Neutral_Run	0.8	loop	191	run style	Running, neutral style: normal walking	100STYLE
+STYLE100_RUN/Old_Run	0.733	loop	64	run style	Running, old style: hunchbacked move very slowly	100STYLE
+STYLE100_RUN/OnHeels_Run	0.633	loop	127	run style	Running, on heels style: walk on heels with toes raised	100STYLE
+STYLE100_RUN/OnPhoneLeft_Run	0.733	loop	221	run style	Running, on phone left style: holding phone in left	100STYLE
+STYLE100_RUN/OnPhoneRight_Run	0.8	loop	205	run style	Running, on phone right style: holding phone in right	100STYLE
+STYLE100_RUN/OnToesBentForward_Run	0.733	loop	185	run style	Running, on toes bent forward style: as bent forward style but on tip toes	100STYLE
+STYLE100_RUN/OnToesCrouched_Run	0.767	loop	145	run style	Running, on toes crouched style	100STYLE
+STYLE100_RUN/PendulumHands_Run	0.9	loop	129	run style	Running, pendulum hands style: squat slightly make right angle with elbows and swing hands freely	100STYLE
+STYLE100_RUN/Penguin_Run	0.533	loop	53	run style	Running, penguin style: waddle with feet close together	100STYLE
+STYLE100_RUN/PigeonToed_Run	0.7	loop	135	run style	Running, pigeon toed style: toes turned inwards	100STYLE
+STYLE100_RUN/Proud_Run	0.867	loop	193	run style	Running, proud style: straight back arms move as if marching to a lesser degree	100STYLE
+STYLE100_RUN/Punch_Run	2.033	loop	150	run style	Running, punch style: punch with every step	100STYLE
+STYLE100_RUN/Quail_Run	0.5	loop	164	run style	Running, quail style: arms straight by sides slightly back very small quick steps	100STYLE
+STYLE100_RUN/RaisedLeftArm_Run	0.833	loop	155	run style	Running, raised left arm style: raise left arm perpendicular to body	100STYLE
+STYLE100_RUN/RaisedRightArm_Run	0.7	loop	201	run style	Running, raised right arm style: raise right arm perpendicular to body	100STYLE
+STYLE100_RUN/RightHop_Run	0.567	loop	94	run style	Running, right hop style: hop on right foot	100STYLE
+STYLE100_RUN/Roadrunner_Run	1.667	loop	78	run style	Running, roadrunner style: arms behind as wings pick up knees - bent a little	100STYLE
+STYLE100_RUN/Robot_Run	0.567	loop	98	run style	Running, robot style: stiff movements arms bending at elbows	100STYLE
+STYLE100_RUN/Rocket_Run	0.633	loop	220	run style	Running, rocket style: bent to flat back with hands behind as thrusters	100STYLE
+STYLE100_RUN/Rushed_Run	0.8	loop	134	run style	Running, rushed style: rushing about swinging arms for extra momentum	100STYLE
+STYLE100_RUN/ShieldedLeft_Run	1	loop	135	run style	Running, shielded left style	100STYLE
+STYLE100_RUN/ShieldedRight_Run	1	loop	135	run style	Running, shielded right style	100STYLE
+STYLE100_RUN/Skip_Run	1.4	loop	154	run style	Running, skip style: skipping like a child	100STYLE
+STYLE100_RUN/SlideFeet_Run	0.867	loop	167	run style	Running, slide feet style: barely lift feet off the floor/kick into floor	100STYLE
+STYLE100_RUN/Star_Run	0.733	loop	137	run style	Running, star style: wide arms and legs. Arms slightly below horizontal	100STYLE
+STYLE100_RUN/StartStop_Run	1.667	loop	94	run style	Running, start stop style: pause briefly after step	100STYLE
+STYLE100_RUN/Stiff_Run	0.633	loop	156	run style	Running, stiff style: stiff limbs arms straight	100STYLE
+STYLE100_RUN/Strutting_Run	0.9	loop	149	run style	Running, strutting style: with swagger leant slightly back arms swinging freely	100STYLE
+STYLE100_RUN/Superman_Run	0.5	loop	24	run style	Running, superman style: right arm raised like superman flying	100STYLE
+STYLE100_RUN/Swat_Run	0.933	loop	159	run style	Running, swat style: as if holding a rifle and raiding a building	100STYLE
+STYLE100_RUN/Sweep_Run	0.7	loop	141	run style	Running, sweep style: sweeping with a broom while moving	100STYLE
+STYLE100_RUN/Swimming_Run	1.267	loop	203	run style	Running, swimming style: breaststroke walking	100STYLE
+STYLE100_RUN/SwingArmsRound_Run	0.5	loop	23	run style	Running, swing arms round style	100STYLE
+STYLE100_RUN/SwingShoulders_Run	0.9	loop	185	run style	Running, swing shoulders style: rotate torso and shoulders left to right and back	100STYLE
+STYLE100_RUN/Teapot_Run	1.5	loop	86	run style	Running, teapot style: one arm on hip other arm raised	100STYLE
+STYLE100_RUN/Tiptoe_Run	0.767	loop	141	run style	Running, tiptoe style: walk on toes with heels raised	100STYLE
+STYLE100_RUN/TogetherStep_Run	1.233	loop	65	run style	Running, together step style: step left foot - then together – then right foot	100STYLE
+STYLE100_RUN/TwoFootJump_Run	0.6	loop	154	run style	Running, two foot jump style: feet together and jump	100STYLE
+STYLE100_RUN/WalkingStickLeft_Run	0.5	loop	14	run style	Running, walking stick left style: walk with a stick – used broom handle	100STYLE
+STYLE100_RUN/WalkingStickRight_Run	1.867	loop	104	run style	Running, walking stick right style: walk with a stick – used broom handle	100STYLE
+STYLE100_RUN/Waving_Run	0.733	loop	217	run style varies	Running, waving style: waving at somebody else at random	100STYLE
+STYLE100_RUN/WhirlArms_Run	1.5	loop	121	run style	Running, whirl arms style: windmill arms	100STYLE
+STYLE100_RUN/WideLegs_Run	0.767	loop	107	run style	Running, wide legs style: legs apart motions	100STYLE
+STYLE100_RUN/WiggleHips_Run	1	loop	145	run style	Running, wiggle hips style: hands raised in front of body wiggle hips side to side	100STYLE
+STYLE100_RUN/WildArms_Run	1.667	loop	136	run style	Running, wild arms style: swing arms much more than normal almost punching into the air	100STYLE
+STYLE100_RUN/WildLegs_Run	0.8	loop	119	run style	Running, wild legs style: kick legs into the air with each step	100STYLE
+STYLE100_RUN/Zombie_Run	0.8	loop	144	run style	Running, zombie style: arms in front like zombie	100STYLE
