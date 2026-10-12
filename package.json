@@ -30,7 +30,8 @@
     "migrate": "node tools/migrate/main.ts",
     "qa": "node tools/qa/main.ts",
     "plant": "node tools/plant/main.ts",
-    "fixtures": "node tools/fixtures/main.ts"
+    "fixtures": "node tools/fixtures/main.ts",
+    "sweep": "node tools/sweep/main.ts"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

@@ -1,0 +1,44 @@
+// The sweep (WP-4.5): clips played on two test characters, a row for each clip on each skeleton, and a deliberately
+// broken clip listed as a failure with its reason; `npm run sweep` writes the clip-by-skeleton results.
+import { execFileSync } from "node:child_process";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import { describe, expect, it } from "vitest";
+import type { Clip, Key } from "@m3a/core";
+import { ROOT } from "../run/cli.ts";
+import { libraryClips, sample } from "../qa/qa.ts";
+import { rigOf, sweepOne, type SweepRow } from "./sweep.ts";
+
+const RIGS = ["gen-0", "gen-7"];
+
+describe("the sweep", () => {
+  it("plays each clip on each skeleton, and lists a broken clip as a failure with its reason", async () => {
+    const clips = sample(libraryClips(), 8), rows: SweepRow[] = [];
+    // a walk with one key's pelvis not a number
+    const walk = libraryClips().find((c) => c.clip.id === "QUATERNIUS_3D2DGE/Walk_Loop")!;
+    const broken = { ...walk.clip, id: "BROKEN/Walk_Loop", keys: walk.clip.keys.map((k, i) => (i === 2 ? { ...k, hips: [Number.NaN, 0, 0] } : k)) as Key[] } as Clip;
+    for (const rig of RIGS) {
+      const b = await rigOf(rig);
+      for (const c of clips) rows.push(sweepOne(c.clip, c.rest, b, rig));
+      rows.push(sweepOne(broken, walk.rest, b, rig));
+    }
+    expect(rows.map((r) => `${r.rig} ${r.clip}`)).toEqual(RIGS.flatMap((rig) => [...clips.map((c) => `${rig} ${c.clip.id}`), `${rig} BROKEN/Walk_Loop`]));
+    for (const r of rows.filter((x) => x.clip === "BROKEN/Walk_Loop")) {
+      expect(r.ok).toBe(false);
+      expect(r.why[0], r.why.join("; ")).toMatch(/^nan: /);
+    }
+    // the clean clips pass, or each failure says why
+    for (const r of rows.filter((x) => x.clip !== "BROKEN/Walk_Loop")) expect(r.ok || r.why.length > 0, `${r.rig} ${r.clip}`).toBe(true);
+    expect(rows.filter((r) => r.clip !== "BROKEN/Walk_Loop" && r.ok).length).toBeGreaterThanOrEqual(0.95 * clips.length * RIGS.length);
+  }, 120_000);
+  it("names a skeleton it can't find, and how to fetch it", async () => {
+    await expect(rigOf("no-such-rig")).rejects.toThrow(/^sweep: no rig "no-such-rig" in the cache: npm run fixtures -- fetch/);
+  });
+  it("npm run sweep writes the clip-by-skeleton results", () => {
+    const out = execFileSync(process.execPath, [join(ROOT, "tools/sweep/main.ts"), ...RIGS, "--sample", "4"], { cwd: ROOT, encoding: "utf8" });
+    expect(out).toMatch(/^sweep: (PASS|FAIL), \d+ of 8 clip-skeleton pairs pass/m);
+    const res = JSON.parse(readFileSync(join(ROOT, "check-output/sweep/results.json"), "utf8")) as { rigs: string[]; clips: number; rows: SweepRow[] };
+    expect([res.rigs, res.clips, res.rows.length]).toEqual([RIGS, 4, 8]);
+    for (const r of res.rows) expect(Object.keys(r).sort()).toEqual(["clip", "ok", "own", "played", "reach", "rig", "why"]);
+  }, 120_000);
+});

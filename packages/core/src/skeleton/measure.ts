@@ -76,8 +76,9 @@ export function measure(clips: Record<string, Capture>, tposeName = "A_TPose"): 
     shin: rnd(d("kneeL", "ankleL"), 100),
     ab: rnd(d("ankleL", "ballL"), 100),
     bt: rnd(d("ballL", "toeL"), 100),
-    abPitch: rnd(PM.asin((q("ankleL")[2] - q("ballL")[2]) / d("ankleL", "ballL")) / DG, 100),
-    btPitch: rnd(PM.asin((q("ballL")[2] - q("toeL")[2]) / d("ballL", "toeL")) / DG, 100),
+    // a segment of no length (a foot with no toes: the ball and toe both at its tip, SKELETON.md §4) has no pitch
+    abPitch: d("ankleL", "ballL") > 1e-6 ? rnd(PM.asin((q("ankleL")[2] - q("ballL")[2]) / d("ankleL", "ballL")) / DG, 100) : 0,
+    btPitch: d("ballL", "toeL") > 1e-6 ? rnd(PM.asin((q("ballL")[2] - q("toeL")[2]) / d("ballL", "toeL")) / DG, 100) : 0,
     spineW,
     neckW,
   };
@@ -112,7 +113,10 @@ export function restPoints(sk: SkeletonIn, rec: Recognition, frame: { forward: V
     return pl.at === "ahead" ? add(h, frame.forward, 120 / toMm) : h;
   };
   const pelvis = place({ bone: "hips", at: "joint" }) ?? [0, 0, 0];
-  const feet = ["leftToes", "rightToes", "leftFoot", "rightFoot"].map((b) => place({ bone: b, at: "joint" })).filter((v): v is V => v !== null);
+  // the ground: under the lowest foot or toe joint, or the tip of the bone a foot ends with where that tip is a child's
+  // joint (an end bone where its mesh ends)
+  const tips = ["left", "right"].map((s) => rec.bones[s + "Toes"] ?? rec.bones[s + "Foot"]).filter((b): b is string => !!b && !!kids.get(b)?.length).map((b) => tip(b));
+  const feet = [...["leftToes", "rightToes", "leftFoot", "rightFoot"].map((b) => place({ bone: b, at: "joint" })).filter((v): v is V => v !== null), ...tips];
   const ground = feet.length ? Math.min(...feet.map((v) => v[0] * frame.up[0] + v[1] * frame.up[1] + v[2] * frame.up[2])) : 0;
   const base = (pelvis[0] * frame.up[0] + pelvis[1] * frame.up[1] + pelvis[2] * frame.up[2]) - ground;
   const out = new Float32Array(P * 3);

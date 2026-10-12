@@ -24,7 +24,12 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 
 ## Next
 
-- Phase 4 First flight: WP-4.5 headless capture and the sweep, 4.6 the demo, 4.7 B1, then G4 (M1).
+- WP-4.5 in progress (WIP commit, 2 tests red): the sweep plays each clip through the Animator with contacts
+  detected on its own body, judged against the clip on its own body. It found player bugs, fixed in
+  `core/contact/plant.ts` (the knee pole at a straight leg; ground setting eased; contacts through a loop's seam;
+  continuous lift and settle) and a NaN rest for toeless rigs (`measure.ts`, three's bind adds mesh end bones).
+  To do: the fix test "footLocks on every planted slide" (planting changed); the sweep test's 95% bar; rerun the
+  sweep on 8 rigs (77–89% before the last fixes); D49; capture e2e; version; ledger. Then 4.6, 4.7, G4.
 
 ## Blocked on the owner
 
