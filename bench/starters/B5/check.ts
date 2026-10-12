@@ -1,5 +1,6 @@
 // `npm run check`: compiles emote.json against the CC0 library and prints what the grader reads: issues, the clip's
-// length and loop, the sensors' verdict and findings, its description, and how high the hands go. It doesn't grade.
+// length and loop, the sensors' verdict and findings, its description, how high the hands go and how they wave. It
+// doesn't grade.
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { format, recipe as R, validate } from "@m3a/core";
@@ -17,3 +18,10 @@ console.log(`sensors: ${m.text}`);
 console.log(`describe: ${describe(clip, rest).text}`);
 const frames = checks.motionOf(clip, rest).frames, P = (X: Float32Array, n: string) => X[format.IDX[n]! * 3 + 2]!;
 console.log(`both wrists above the head in ${frames.filter((X) => P(X, "wristL") > P(X, "head") && P(X, "wristR") > P(X, "head")).length} of ${frames.length} frames`);
+// each hand's wave as the grader reads it: how far it goes side to side (of the hip height) and how often it turns back
+for (const s of ["L", "R"]) {
+  const side = frames.map((X) => X[format.IDX[`wrist${s}`]! * 3 + 1]!), span = Math.max(...side) - Math.min(...side);
+  let turns = 0;
+  for (let i = 2; i < side.length; i++) if ((side[i]! - side[i - 1]!) * (side[i - 1]! - side[i - 2]!) < 0 && Math.abs(side[i]! - side[i - 2]!) > 0.002 * rest.H0) turns++;
+  console.log(`the ${s === "L" ? "left" : "right"} hand goes side to side ${((100 * span) / rest.H0).toFixed(0)}% of the hip height, turning ${turns} times`);
+}

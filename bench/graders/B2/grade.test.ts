@@ -1,7 +1,7 @@
 // B2's grader (WP-6.6's Done-when): it passes the known-good fighter and fails each planted bad one, naming the check it
 // broke, on the default character (gen-1, of WP-4.2's set) and on a generator seed outside it (gen-37). The planted
-// fighters are the known-good one edited: damage when the button is pressed, when the punch ends, twice per punch, and
-// a fighter that never punches (damage on a timer).
+// fighters are the known-good one edited: damage when the button is pressed, when the punch ends, twice per punch, an
+// idle held still, and a fighter that never punches (damage on a timer).
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -20,6 +20,8 @@ const BAD: Record<string, { fighter: string; fails: string }> = {
   "damage on the press": { fighter: planted("        punching = true;", "        punching = true;\n        game.damage(10);").replace(HIT, "player.update(dt);"), fails: "damage when the punch" },
   "damage as the punch ends": { fighter: planted(HIT, "player.update(dt);").replace("if (L && L.held === \"end\") {", "if (L && L.held === \"end\") {\n        if (L.weight === 1) game.damage(10);"), fails: "damage when the punch" },
   "damage twice": { fighter: planted(HIT, 'for (const e of player.update(dt).events) if (e.name === "hit") [game.damage(10), game.damage(10)];'), fails: "damage once per punch" },
+  // the idle held still: a stance, not an idle (the verifier's)
+  "a held pose for an idle": { fighter: planted('layer("base", { clip: playable(idle.clip, idle.rest) })', 'layer("base", { clip: playable(idle.clip, idle.rest), speed: 0 })'), fails: "it idles" },
   "never punches": { fighter: planted("animator.layer(\"punch\", { weight: Math.min(1, L.weight + dt / 0.1) });", "void L;"), fails: "punches after the press" },
 };
 /** Grades a fighter in a workspace inside the repository (the packages resolve to their sources). */

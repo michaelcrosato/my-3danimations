@@ -1,7 +1,7 @@
 {
   "about": "Spec 2.0-rc, frozen at gate G1. A frozen file changes only with a logged decision and a rerun of node tools/doctrine/freeze.ts <decision> in the same commit; npm run doctrine checks it.",
   "version": "2.0-rc",
-  "decision": "D75",
+  "decision": "D73",
   "files": {
     "spec/MOTION.md": "9e9998a05275e8c7eabfd7c5dc9638d0582861583ee4618ca7a58315856a52fc",
     "spec/SKELETON.md": "4b2eb7caec140850f14253e01fa21be4c354d538492c02099bb3513dd6318e90",
@@ -11,7 +11,7 @@
     "spec/schemas/baseline.schema.json": "617dbbc7ccb655280708c6b9525d6bfad3887d455eed2ff5d21a9932d2cd6c57",
     "spec/schemas/catalog-row.schema.json": "0d2edf21092f68e3c38a92979cf9dda960bde279f21348f89f7014f408e54f39",
     "spec/schemas/clip.schema.json": "e4f0bace61616550154ffc883c5908fb2a23128a36050d20edb03b3b7371d10c",
-    "spec/schemas/graph.schema.json": "c3826320e1c9d0012dad3ac6019d6adcc25df84c789f6b683460b469eb3cce43",
+    "spec/schemas/graph.schema.json": "923c4f9e9ee24bad3b6808025c1f11cbc2d5ed3efaf306a5e4af63fa0d73aab2",
     "spec/schemas/moves.schema.json": "5e14b3dc8d0d39f6d9c20984f5e5b594740ddee65f61df9c46686e2b509a22b0",
     "spec/schemas/recipe.schema.json": "cf3e20f7fcef3e5645e59828c1a4cbebcbe499e99de5d28373d89a2afcd9e612",
     "spec/schemas/set.schema.json": "7f5cf4b3c19ddead1d74d8751f63796eb76ca964b32e6041f266519999260613",

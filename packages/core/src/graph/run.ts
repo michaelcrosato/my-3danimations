@@ -102,19 +102,21 @@ export class GraphRun<C extends GraphClip = GraphClip> {
 
   /** `clips` finds each clip a state names (the graph checked and its clips found by the caller); `hashOf` hashes one. */
   constructor(graph: Graph, clips: (id: string) => C, hashOf?: (c: C) => string) {
-    this.graph = graph;
-    this.hash = hashValue(JSON.parse(JSON.stringify(graph)));
+    // the run reads its own copy: the caller's graph may change after play without changing (or breaking) the run, and
+    // a -0 in it is 0, as it is in a save that went through JSON
+    this.graph = JSON.parse(JSON.stringify(graph)) as Graph;
+    this.hash = hashValue(this.graph);
     this.#clips = new Map();
-    for (const L of layersOf(graph)) for (const s of Object.values(L.states)) for (const id of clipsOf(s)) this.#clips.set(id, clips(id));
+    for (const L of layersOf(this.graph)) for (const s of Object.values(L.states)) for (const id of clipsOf(s)) this.#clips.set(id, clips(id));
     this.clipHashes = Object.fromEntries([...this.#clips.entries()].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)).map(([id, c]) => [id, hashOf ? hashOf(c) : ""]));
-    for (const [name, p] of Object.entries(graph.parameters ?? {})) {
+    for (const [name, p] of Object.entries(this.graph.parameters ?? {})) {
       this.#types.set(name, p.type);
       if (p.type !== "trigger") this.#params.set(name, p.type === "bool" ? (p.value ?? false) : ((p.value ?? 0) as number) + 0);
       else if (p.buffer !== undefined) this.#buffers.set(name, p.buffer);
     }
-    this.#runs = layersOf(graph).map((def, i) => {
+    this.#runs = layersOf(this.graph).map((def, i) => {
       const r: Run = { def, mask: i === 0 || def.mask === undefined ? null : typeof def.mask === "string" || Array.isArray(def.mask) ? maskOf(def.mask) : { ...def.mask }, weight: i === 0 ? 1 : (def.weight ?? 1), state: def.start, entry: 1, out: [], fade: 0, elapsed: 0, interruptible: false, count: 1, starts: new Map() };
-      this.#enter(r, def.start, 1, phaseAt(def.states[def.start]!, this.#len(def.states[def.start]!)));
+      this.#enter(r, def.start, 1, this.#startOf(def.states[def.start]!));
       return r;
     });
   }
@@ -228,6 +230,11 @@ export class GraphRun<C extends GraphClip = GraphClip> {
   }
 
   /** A state's length: a clip's, or a blend space's by its weights now (its cycle at the speed that keeps it in phase). */
+  /** Where a state starts on its own (`phaseAt`), its clip a loop or not. */
+  #startOf(s: GraphState): number {
+    const ids = clipsOf(s);
+    return phaseAt(s, this.#len(s), ids.length > 0 && this.#clips.get(ids[0]!)?.loop === true);
+  }
   #len(s: GraphState): number {
     const ids = clipsOf(s);
     if (!ids.length) return 0;
@@ -290,8 +297,11 @@ export class GraphRun<C extends GraphClip = GraphClip> {
     for (const c of t.when ?? []) if (!this.#test(c.param, c.op, c.value)) return false;
     if (t.exit !== undefined && !this.#exited(r, t.exit, read, h)) return false;
     if (t.window) {
-      const secs = this.#phase(r, { state: r.state, entry: r.entry }, read) * this.#len(r.def.states[r.state]!);
-      if (secs < t.window[0] - 1e-9 || secs > t.window[1] + 1e-9) return false;
+      // open while the state's time is within it, or when its last step carried it over it (a window narrower than a
+      // step is never stepped over, as an exit share isn't)
+      const len = this.#len(r.def.states[r.state]!), secs = this.#phase(r, { state: r.state, entry: r.entry }, read) * len;
+      const l = this.#lead(r, { state: r.state, entry: r.entry }, read), before = l ? secs - l.moved * h * len : secs;
+      if (secs < t.window[0] - 1e-9 || before > t.window[1] + 1e-9) return false;
     }
     return true;
   }
@@ -324,7 +334,7 @@ export class GraphRun<C extends GraphClip = GraphClip> {
     r.elapsed = 0;
     r.interruptible = t.interruptible === true;
     r.count++;
-    const start = this.#enter(r, t.to, r.count, phase ?? phaseAt(to, this.#len(to)));
+    const start = this.#enter(r, t.to, r.count, phase ?? this.#startOf(to));
     const ids = clipsOf(to);
     return { layer: r.def.name, state: t.to, from: prev, clip: ids[0] ?? "", t: start, event: { t: start, name: "enter", state: t.to, from: prev } };
   }
@@ -342,5 +352,6 @@ export class GraphRun<C extends GraphClip = GraphClip> {
 const share = (r: Run) => (!r.out.length || !(r.fade > 0) || r.elapsed >= r.fade - EPS ? 1 : r.elapsed / r.fade);
 /** An instance's layer for point i: `@layer/entry/i`. */
 const nameOf = (r: Run, inst: Instance, i: number) => `@${r.def.name}/${inst.entry}/${i}`;
-/** Where a state starts on its own, 0 to 1: a clip state's `at` over its length, else its start. */
-const phaseAt = (s: GraphState, len: number) => (s.at !== undefined && len > 0 ? Math.min(1, s.at / len) : 0);
+/** Where a state starts on its own, 0 to 1: a clip state's `at` over its length (round a loop's cycle, held at a
+ *  one-shot's end), else its start. */
+const phaseAt = (s: GraphState, len: number, loop: boolean) => (s.at !== undefined && len > 0 ? (loop ? (s.at / len) % 1 : Math.min(1, s.at / len)) : 0);

@@ -1,7 +1,7 @@
 // B7's grader (WP-6.6's Done-when): it passes the known-good graph and fails each planted bad one, naming the check it
 // broke, on the default character (gen-1, of WP-4.2's set) and on a generator seed outside it (gen-37). The planted
 // graphs are the known-good one edited: a jump from the air, a landing that waits for the jump to end, a clip that
-// isn't in the library, never running, the jump button kept for later.
+// isn't in the library, every state playing the idle, never running, the jump button kept for later.
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -20,6 +20,8 @@ const BAD: Record<string, { graph: string; fails: string }> = {
   "keeps the press": { graph: planted('"jump": { "type": "trigger", "buffer": 0.1 }', '"jump": { "type": "trigger" }'), fails: "jumps only when grounded" },
   "lands late": { graph: planted('{ "from": ["jump", "air"], "to": "land", "when": [{ "param": "grounded" }], "fade": 0.1 }', '{ "from": "air", "to": "land", "when": [{ "param": "grounded" }], "fade": 0.1 }'), fails: "lands on contact" },
   "a clip not in the library": { graph: planted("QUATERNIUS_3D2DGE/Jog_Fwd_Loop", "QUATERNIUS_3D2DGE/Jog_Loop"), fails: "the graph checks" },
+  // every state the idle: it goes through the states in order, and stands (the verifier's)
+  "every state idles": { graph: good.replace(/"clip": "QUATERNIUS_3D2DGE\/(Walk_Loop|Jog_Fwd_Loop|Jump_Start|Jump_Loop|Jump_Land)"/g, '"clip": "QUATERNIUS_3D2DGE/Idle_Loop"'), fails: "walk travels" },
   "never runs": { graph: planted('"to": "run", "when": [{ "param": "speed", "op": ">=", "value": 2.2 }], "fade": 0.25, "sync": true', '"to": "run", "when": [{ "param": "speed", "op": ">=", "value": 9 }], "fade": 0.25, "sync": true'), fails: "plays run at" },
 };
 /** Grades a graph in a workspace inside the repository (the packages resolve to their sources). */

@@ -360,3 +360,195 @@ describe("a graph playing", () => {
     expect([a.layers.length, a.graph, a.save().graph]).toEqual([0, null, undefined]);
   });
 });
+
+describe("what the verifier's second round pinned", () => {
+  const r9 = (x: number) => Math.round(x * 1e9) / 1e9;
+  /** The graph's base states each step: its layer's state, as `layer:state`, from a script of `steps`. */
+  const statesOf = (g: G.Graph, steps: number, script: (a: Animator, i: number) => void = () => {}) => {
+    const a = animator().play(g, data.clips), out: string[] = [];
+    for (let i = 0; i < steps; i++) {
+      script(a, i);
+      a.step(1 / 60);
+      out.push(a.graph!.states.map((s) => `${s.layer}:${s.state}`).join(" "));
+    }
+    return out;
+  };
+  it("fades a blend in at each point's weight times the fade's share, keeping a point at weight 0 out of the events", () => {
+    const a = animator().play(data.locomotion, data.clips).set("speed", 2.3);
+    for (let i = 0; i < 3; i++) a.step(1 / 60);
+    expect(a.layers.map((L) => `${L.name}:${r9(L.weight)}`)).toEqual(["@base/1/0:1", "@base/2/0:0.111111111", "@base/2/1:0.1", "@base/2/2:0"]);
+    // at 5.5 the walk weighs nothing: only the jog and the sprint step
+    const b = animator().play(data.locomotion, data.clips).set("speed", 5.5), steps: Record<string, number> = {};
+    b.on("step", (e) => void (steps[e.clip.split("/")[1]!] = (steps[e.clip.split("/")[1]!] ?? 0) + 1));
+    seconds(b, 3);
+    expect(steps).toEqual({ Jog_Fwd_Loop: 9, Sprint_Loop: 9 });
+  });
+  it("keeps a synced blend at the weighted mean of its clips' lengths, and starts a blend synced into at the phase left", () => {
+    const a = animator().play(data.locomotion, data.clips).set("speed", 2.3);
+    seconds(a, 1);
+    expect(a.layers.filter((L) => L.name.startsWith("@base/2/")).map((L) => r9(L.speed))).toEqual([1.176522507, 0.823477493, 0.58870256]);
+    const g = graphOf({ i: { clip: Q + "Idle_Loop" }, m: { blend: { param: "s", points: [{ at: 0, clip: Q + "Walk_Loop" }, { at: 1, clip: Q + "Jog_Fwd_Loop" }] } } }, [{ from: "i", to: "m", when: [{ param: "go" }], sync: true, fade: 0 }], { s: { type: "number", value: 0.5 }, go: { type: "trigger" } });
+    const b = animator().play(g, data.clips);
+    for (let i = 0; i < 40; i++) b.step(1 / 60);
+    b.trigger("go");
+    b.step(1 / 60);
+    expect(b.layers.map((L) => r9(L.time / clip(L.clip!.split("/")[1]!).dur))).toEqual([0.281376876, 0.281376876]);
+    expect(G.weights2D([[0, 0], [2, 0], [0, 2]], [0.5, 0.5]).map(r9)).toEqual([0.6, 0.2, 0.2]);
+  });
+  it("leaves a loop at its exit share at any speed, restarts a state a transition names as its own, and starts over when played again", () => {
+    const g = graphOf({ w: { clip: Q + "Jog_Fwd_Loop", rate: "r" }, b: { clip: Q + "Sword_Idle" } }, [{ from: "w", to: "b", exit: 0.99, fade: 0 }], { r: { type: "number", value: 1.9 } });
+    expect(statesOf(g, 100).findIndex((s) => s === "base:b")).toBe(30);
+    const self = graphOf({ a: { clip: Q + "Walk_Loop" } }, [{ from: "a", to: "a", when: [{ param: "go" }], fade: 0 }], { go: { type: "trigger" } });
+    const a = animator().play(self, data.clips);
+    for (let i = 0; i < 10; i++) a.step(1 / 60);
+    a.trigger("go");
+    a.step(1 / 60);
+    expect(a.layers.map((L) => `${L.name}:${r9(L.time)}`)).toEqual(["@base/2/0:0.016666667"]);
+    const c = animator().play(data.combo, data.clips);
+    seconds(c, 0.5);
+    c.play(data.combo, data.clips);
+    expect(c.layers.map((L) => `${L.name}:${L.time}`)).toEqual(["@base/1/0:0"]);
+  });
+  it("compares at a value and either side of it, each op", () => {
+    const at = (op: G.Condition["op"], v: number) => statesOf(graphOf({ a: { clip: Q + "Walk_Loop" }, b: { clip: Q + "Sword_Idle" } }, [{ from: "a", to: "b", when: [{ param: "n", op, value: 2 }], fade: 0 }], { n: { type: "number", value: v } }), 1)[0]!.slice(5);
+    expect((["==", "!=", "<", "<=", ">", ">="] as const).map((op) => `${op} ${[1.9, 2, 2.1].map((v) => at(op, v)).join("")}`)).toEqual(["== aba", "!= bab", "< baa", "<= bba", "> aab", ">= abb"]);
+  });
+  it("carries on exactly after a save and restore at every step of a graph with what the examples lack", () => {
+    // a 2D blend space, an additive layer, a mask by field weights, cuts six deep, rate, sync and windows, its triggers
+    // and parameters set by a seeded script: every step saved, sent through JSON and restored, against the run unbroken
+    const g: G.Graph = {
+      format: "2.0", id: "GRAPHS/Rich",
+      parameters: { x: { type: "number" }, y: { type: "number", value: 0.5 }, r: { type: "number", value: 1 }, go: { type: "trigger", buffer: 0.25 }, cut: { type: "trigger" }, on: { type: "bool" } },
+      start: "m",
+      states: {
+        m: { blend: { params: ["x", "y"], points: [{ at: [0, 0], clip: Q + "Idle_Loop" }, { at: [0, 1], clip: Q + "Walk_Loop" }, { at: [1, 1], clip: Q + "Jog_Fwd_Loop" }, { at: [1, 0], clip: Q + "Sprint_Loop" }, { at: [0.5, 0.5], clip: Q + "Jump_Loop" }] }, rate: "r" },
+        a: { clip: Q + "Sword_Regular_A", speed: 1.3 }, b: { clip: Q + "Sword_Regular_B", at: 0.05 }, c: { clip: Q + "Sword_Regular_C", rate: "r" }, g: { clip: Q + "Sword_Idle" },
+      },
+      transitions: [
+        { from: "*", to: "g", when: [{ param: "cut" }], fade: 0.4, interruptible: true },
+        { from: ["m", "g"], to: "a", when: [{ param: "go" }], fade: 0.15, interruptible: true },
+        { from: "a", to: "b", when: [{ param: "go" }], window: [0.15, 0.4], fade: 0.1, sync: true },
+        { from: "a", to: "m", exit: 1, fade: 0.3 },
+        { from: "b", to: "c", when: [{ param: "on", op: "==", value: true }], exit: 0.6, fade: 0.2, interruptible: true },
+        { from: "b", to: "m", exit: 1, fade: 0.2 },
+        { from: "c", to: "m", exit: 0.9, fade: 0.25 },
+        { from: "g", to: "m", when: [{ param: "x", op: ">", value: 0.2 }], fade: 0.5, sync: true, interruptible: true },
+      ],
+      layers: [
+        { name: "arm", mask: { armR: 1, handR: 1, shR: 0.5, head: 0.25 }, weight: 0.8, start: "none", states: { none: { pass: true }, jab: { clip: Q + "Punch_Jab", speed: 1.1 } }, transitions: [{ from: "none", to: "jab", when: [{ param: "on", op: "==", value: true }], fade: 0.1 }, { from: "jab", to: "none", exit: 0.95, fade: 0.2 }] },
+        { name: "add", additive: true, weight: 0.6, start: "n", states: { n: { pass: true }, nod: { clip: Q + "Punch_Jab" } }, transitions: [{ from: "n", to: "nod", when: [{ param: "x", op: ">=", value: 0.7 }], fade: 0.2 }, { from: "nod", to: "n", when: [{ param: "x", op: "<", value: 0.7 }], fade: 0.2, interruptible: true }] },
+      ],
+    };
+    expect(G.validateGraph(g, { clips: (id) => data.clips.find((c) => c.id === id) })).toEqual([]);
+    const rnd = (i: number, k: number) => ((Math.imul(((i * 2246822519 + k * 3266489917) >>> 0), 1103515245) + 12345) >>> 0) / 4294967296;
+    const script = (a: Animator, i: number) => {
+      const u = rnd(i, 1);
+      if (u < 0.05) a.trigger("go");
+      else if (u < 0.07) a.trigger("cut");
+      else if (u < 0.1) a.set("on", !(a.graph!.params.on === true));
+      if (rnd(i, 2) < 0.08) a.set("x", Math.round(rnd(i, 3) * 140 - 20) / 100).set("y", Math.round(rnd(i, 4) * 140 - 20) / 100);
+      if (rnd(i, 5) < 0.1) a.set("r", 0.5 + rnd(i, 6) * 1.5);
+    };
+    const body = bind(data.skeleton), run = (restore: boolean) => {
+      let a = new Animator(body, { step: 1 / 60 }).play(g, data.clips);
+      const hashes: string[] = [];
+      // (the verifier's mutants of the trigger ages and the cut fades restored went astray by steps 18 and 22)
+      for (let i = 0; i < 150; i++) {
+        if (restore) a = new Animator(body, { step: 1 / 60 }).restore(JSON.parse(JSON.stringify(a.save())), data.clips, g);
+        script(a, i);
+        a.step(1 / 60);
+        hashes.push(a.hash());
+      }
+      return hashes;
+    };
+    const plain = run(false), restored = run(true);
+    expect(restored.findIndex((h, i) => h !== plain[i])).toBe(-1);
+  }, 30_000);
+  it("plays its own copy of the graph: one edited after play neither breaks the run nor changes it, and a -0 is 0", () => {
+    const g = structuredClone(data.combo), a = animator().play(g, data.clips), b = animator().play(data.combo, data.clips);
+    a.step(0.1);
+    b.step(0.1);
+    g.transitions[0]!.to = "nope";
+    g.desc = "edited";
+    a.trigger("attack");
+    b.trigger("attack");
+    for (let i = 0; i < 30; i++) {
+      a.step(1 / 60);
+      b.step(1 / 60);
+    }
+    expect(a.hash()).toBe(b.hash());
+    // a state starting at -0 hashes as at 0, after a save through JSON too
+    const z = graphOf({ w: { clip: Q + "Walk_Loop", at: -0 } }, []), s = animator().play(z, data.clips);
+    s.step(1 / 60);
+    expect(animator().restore(JSON.parse(JSON.stringify(s.save())), data.clips, z).hash()).toBe(s.hash());
+  });
+  it("starts a loop's `at` round its cycle, and opens a window narrower than a step when the step goes over it", () => {
+    const w = clip("Walk_Loop").dur, a = animator().play(graphOf({ w: { clip: Q + "Walk_Loop", at: w + 0.25 } }, []), data.clips);
+    expect(r9(a.layers[0]!.time)).toBe(0.25);
+    // [0.21, 0.23] s of the swing: never a step's end at 30 a second (0.2, 0.233)
+    const g = graphOf({ a: { clip: Q + "Sword_Regular_A" }, b: { clip: Q + "Sword_Idle" } }, [{ from: "a", to: "b", when: [{ param: "go" }], window: [0.21, 0.23], fade: 0 }], { go: { type: "trigger", buffer: 1 } });
+    const b = animator().play(g, data.clips);
+    b.trigger("go");
+    for (let i = 0; i < 10; i++) b.step(1 / 30);
+    expect(b.graph!.states[0]!.state).toBe("b");
+  });
+  it("refuses what would never play or never stop: a one-shot at speed 0, a rate starting at 0, a pass state's exit, a state into itself waiting on nothing", () => {
+    const has = (id: string) => data.clips.find((c) => c.id === id) ?? (id === "MESH2MOTION/Two-hand_Blast" ? clip("Sword_Idle") : undefined);
+    const issues = (g: G.Graph) => G.validateGraph(g, { clips: has }).map((i) => `${i.code} ${i.field}`);
+    expect(issues(graphOf({ i: { clip: Q + "Sword_Idle" }, a: { clip: Q + "Sword_Regular_A", speed: 0 } }, [{ from: "i", to: "a" }]))).toEqual(["G-E005 states.a.speed"]);
+    expect(issues(graphOf({ w: { clip: Q + "Walk_Loop", rate: "warp" } }, [], { warp: { type: "number" } }))).toEqual(["G-E006 parameters.warp.value"]);
+    expect(issues(graphOf({ w: { clip: Q + "Walk_Loop" } }, [{ from: "w", to: "w" }]))).toEqual(["G-E003 transitions.0"]);
+    const layered: G.Graph = { ...graphOf({ w: { clip: Q + "Walk_Loop" } }, []), layers: [{ name: "up", start: "n", states: { n: { pass: true }, j: { clip: Q + "Punch_Jab" } }, transitions: [{ from: "n", to: "j", exit: 0.5 }, { from: "j", to: "n", exit: 1 }] }] };
+    expect(issues(layered)).toEqual(["G-E003 layers.0.transitions.0.exit"]);
+    // a clip id with a hyphen, as the library's are
+    expect(issues(graphOf({ b: { clip: "MESH2MOTION/Two-hand_Blast" } }, []))).toEqual([]);
+  });
+  it("names each rule's problem, one graph breaking each, and plays parameters, a start state's `at` and a fade by their defaults", () => {
+    const idle = { clip: Q + "Idle_Loop" }, walk = { clip: Q + "Walk_Loop" }, P = { s: { type: "number" as const }, t: { type: "trigger" as const }, b: { type: "bool" as const } };
+    const ok = graphOf({ idle, walk }, [{ from: "idle", to: "walk" }], P), to = (states: object) => graphOf(states as never, [{ from: "idle", to: "walk" }], P);
+    const lay = (L: object) => ({ ...ok, layers: [{ name: "up", start: "a", states: { a: idle }, transitions: [], ...L }] });
+    const has = (id: string) => data.clips.find((c) => c.id === id);
+    const cases: [string[], unknown][] = [
+      [["G-E001"], { ...ok, format: "3.0" }],
+      [["G-E001"], { ...ok, desc: 3 }],
+      [["G-E001"], { ...ok, tags: ["Loco"] }],
+      [["G-E001", "G-E003"], lay({ states: {} })],
+      [["G-E006"], { ...ok, parameters: { ...P, t: { type: "trigger", buffer: 11 } } }],
+      [["G-E006"], { ...ok, parameters: { ...P, "1x": { type: "number" } } }],
+      [["G-E005"], lay({ weight: 2 })],
+      [["G-E005"], lay({ additive: "yes" })],
+      [["G-E002"], graphOf({ idle, "my state": walk }, [{ from: "idle", to: "my state" }], P)],
+      [["G-E002"], lay({ states: { a: { pass: false } } })],
+      [["G-E002", "G-E006"], lay({ states: { a: { pass: true, rate: "s" } } })],
+      [["G-E005"], to({ idle: { ...idle, speed: 101 }, walk })],
+      [["G-E003"], to({ idle: { ...idle, rate: "b" }, walk })],
+      [["G-E005"], to({ idle: { ...idle, at: -1 }, walk })],
+      [["G-E002"], to({ idle, walk: { blend: { param: "s", points: [{ at: 0, clip: Q + "Walk_Loop" }, { at: 1, clip: Q + "Jog_Fwd_Loop" }] }, at: 0.2 } })],
+    ];
+    for (const [want, g] of cases) expect([want, codes(g)]).toEqual([want, want]);
+    // every clip a blend names is looked for, not only its first
+    expect(codes(to({ idle, walk: { blend: { param: "s", points: [{ at: 0, clip: Q + "Walk_Loop" }, { at: 1, clip: "X/Nope" }] } } }), has)).toEqual(["G-E009"]);
+    // a number starts at 0 and a bool false; a start state at its `at`; a fade of 0.2 s unless one is given (12 steps)
+    const states = (when: G.Condition[]) => {
+      const a = animator();
+      a.play(graphOf({ idle, walk }, [{ from: "idle", to: "walk", when, fade: 0 }], P), data.clips);
+      a.step(1 / 60);
+      return a.graph!.states.map((s) => s.state);
+    };
+    expect([states([{ param: "s", op: "<", value: 0.5 }]), states([{ param: "b" }])]).toEqual([["walk"], ["idle"]]);
+    const a = animator();
+    a.play(graphOf({ w: { ...walk, at: 0.5 } }, []), data.clips);
+    expect(a.layers.map((L) => [L.name, L.time])).toEqual([["@base/1/0", 0.5]]);
+    const f = animator();
+    f.play(graphOf({ idle, walk }, [{ from: "idle", to: "walk", when: [{ param: "t" }] }], P), data.clips);
+    f.trigger("t");
+    const fading: boolean[] = [];
+    for (let i = 0; i < 14; i++) {
+      f.step(1 / 60);
+      fading.push(!!f.graph!.states[0]!.from);
+    }
+    expect(fading.indexOf(false)).toBe(12);
+    // a trigger is pressed, or set false to clear it; nothing else
+    expect(() => f.set("t", 5)).toThrow(/"t" is a trigger: trigger\("t"\), or set it false/);
+  });
+});

@@ -1,7 +1,8 @@
 // B3's grader (WP-6.6's Done-when): it passes the known-good reactor and fails each planted bad one, naming the check it
-// broke, on the default character (gen-1, of WP-4.2's set) and on a generator seed outside it (gen-37). The planted
-// reactors are the known-good one edited: the light hit on the whole body, a heavy hit that gets up at once, one that
-// never gets up, and a light hit that does nothing.
+// broke, on the default character (gen-1, of WP-4.2's set) and on generator seeds outside it (gen-37; gen-29, a spine
+// without chest bones). The planted reactors are the known-good one edited: the light hit on the whole body, a heavy
+// hit that gets up at once, one that never gets up, the idle slid along for the walk, and a light hit that does
+// nothing.
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -19,6 +20,8 @@ const BAD: Record<string, { reactor: string; fails: string }> = {
   "the whole body flinches": { reactor: planted('weight: 0, mask: "upper" }', "weight: 0 }"), fails: "a light hit moves the legs" },
   "gets up at once": { reactor: planted('down.phase === "lie" && down.t >= 1', 'down.phase === "lie" && down.t >= 0'), fails: "it lies down 1 s" },
   "never gets up": { reactor: planted('down.phase === "lie" && down.t >= 1', 'down.phase === "lie" && down.t >= 99'), fails: "it lies down 1 s" },
+  // the idle slid along by the game for the walk (the verifier's): its feet never stand
+  "slides an idle": { reactor: planted("const want = speed * H0 > 0.3 * H0 ? walk : idle,", "const want = idle,").replace("character.position.z += player.moved.forward / 1000;", "character.position.z += player.moved.forward / 1000 + (down ? 0 : (speed * H0 * dt) / 1000);"), fails: "a foot stands still walking" },
   "no flinch": { reactor: planted('animator.layer("flinch", { clip: flinch, time: 0, weight: 0, mask: "upper" });', "void flinch;"), fails: "a light hit moves the upper body" },
 };
 /** Grades a reactor in a workspace inside the repository (the packages resolve to their sources). */
@@ -30,8 +33,8 @@ async function grade(name: string, reactor: string, character: CharacterSpec): P
 const text = (g: Grade) => g.checks.map((c) => `${c.ok ? "ok  " : "FAIL"} ${c.name}: ${c.detail}`).join("\n");
 
 describe("B3's grader", () => {
-  // T1 grades on gen-1; T2 (M3A_FULL=1) on gen-37 too (D74)
-  for (const character of (process.env.M3A_FULL === "1" ? [{ seed: 1 }, { seed: 37 }] : [{ seed: 1 }]) as CharacterSpec[]) {
+  // T1 grades on gen-1; T2 (M3A_FULL=1) on gen-37 and gen-29 (no chest bones: its spine one bone) too (D74)
+  for (const character of (process.env.M3A_FULL === "1" ? [{ seed: 1 }, { seed: 37 }, { seed: 29 }] : [{ seed: 1 }]) as CharacterSpec[]) {
     const who = "seed" in character ? `gen-${character.seed}` : character.rig;
     it(`passes the known-good reactor on ${who}, and fails each planted bad one, naming the check it broke`, async () => {
       const g = await grade("good", good, character);

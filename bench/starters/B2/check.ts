@@ -1,5 +1,5 @@
 // `npm run check`: drives the fighter as the grader will (attack pressed on frames 60 and 180 of 300, 60 a second) and
-// prints when damage came and on which frame each punch's hand moved forward fastest (by the character's bones). It
+// prints when damage came and on which frame each punch struck (by the character's bones, as the grader reads them). It
 // doesn't grade.
 import { createFighter } from "./src/fighter.ts";
 import { loadCharacter } from "./src/character.ts";
@@ -15,13 +15,23 @@ for (frame = 0; frame < 300; frame++) {
   character.traverse((o) => void (wristish(o.name) && p.push(...o.matrixWorld.elements.slice(12, 15))));
   hands.push({ t: frame, p });
 }
-// the frame each punch's hands move forward (+Z, the way the character faces) fastest, the body standing still
+// each punch's strike, as the grader finds it: the hand that reaches farthest forward (+Z, the way the character
+// faces; the body standing still) after the press, and the last time its forward speed peaks (at half its fastest or
+// more) before it is farthest out, so a fade into a fighting stance before the punch, which can carry the hand forward
+// faster, isn't taken for it
 for (const press of [60, 180]) {
-  let best = -1, at = press;
-  for (let i = press + 1; i < Math.min(299, press + 90); i++) {
-    const v = Math.max(...hands[i + 1]!.p.filter((_, k) => k % 3 === 2).map((z, k) => z - hands[i - 1]!.p[k * 3 + 2]!));
-    if (v > best) [best, at] = [v, i];
+  const end = Math.min(299, press + 90), z = (i: number, h: number) => hands[i]!.p[h * 3 + 2]!, v = (i: number, h: number) => z(i + 1, h) - z(i - 1, h);
+  let hand = 0, far = press;
+  for (let h = 0; h < hands[0]!.p.length / 3; h++) for (let i = press; i < end; i++) if (z(i, h) > z(far, hand)) [hand, far] = [h, i];
+  let fastest = press + 1;
+  for (let i = press + 1; i <= far; i++) if (v(i, hand) > v(fastest, hand)) fastest = i;
+  let at = fastest;
+  for (let i = far - 1; i > press + 1; i--) {
+    if (v(i, hand) >= v(i - 1, hand) && v(i, hand) >= v(i + 1, hand) && v(i, hand) >= 0.5 * v(fastest, hand)) {
+      at = i;
+      break;
+    }
   }
-  console.log(`press on frame ${press}: a hand moves forward fastest about frame ${at}`);
+  console.log(`press on frame ${press}: the punch strikes about frame ${at} (its hand farthest out on frame ${far})`);
 }
 console.log(`damage on frames ${damage.join(", ") || "none"}`);

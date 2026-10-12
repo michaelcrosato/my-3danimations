@@ -1,27 +1,53 @@
-// What the graders read of a character (PLAN.md §7): its joints from its bones each frame, in the sensors' axes and
-// millimetres, by the body points they map to (the grader binds its own copy of the character for the mapping). A
+// What the graders read of a character (PLAN.md §7): its body points from its bones each frame, in the sensors' axes
+// and millimetres (the grader binds its own copy of the character for the mapping). A point on a bone's joint is that
+// bone's place; a point off the joints (a bone's tip, a share along it, ahead of it: a toe-less foot's ball, a hand's
+// knuckles, the head's top, a chest a missing bone leaves between joints) rides its bone from where it sits at rest. A
 // character is graded by what its bones do, not by what its code says it does.
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { format, type Bound } from "@m3a/core";
+import { format, skeleton, solver, type Bound } from "@m3a/core";
 import { bind } from "@m3a/three";
 import { loadGlb } from "@m3a/three/test-characters";
 
 type Node = { getObjectByName(n: string): { matrixWorld: { elements: number[] } } | undefined };
 /** A point: forward, right, up mm. */
 export type V3 = [number, number, number];
+/** A body point and the bone it rides: on the bone's joint, or at `local`, its rest place in the bone's frame. */
+export type BonePoint = [point: string, bone: string, local?: V3];
 
-/** The grader's own bound copy of a workspace's character: its body (rest, H0) and its bones by the points they map. */
-export async function bodyOf(workspace: string): Promise<{ core: Bound; bones: [point: string, bone: string][] }> {
-  const ref = bind((await loadGlb(new Uint8Array(readFileSync(join(workspace, "character.glb"))), { textures: false })).scene), core = ref.core;
-  return { core, bones: Object.entries(core.jointPoint).map(([h, point]) => [point, core.recognition.bones[h]!] as [string, string]).filter(([, bone]) => bone) };
+/** p in the frame of the bone whose world matrix (column-major, an affine) is e. */
+function inFrame(e: readonly number[], p: readonly number[]): V3 {
+  const [a, b, c, d, f, g, h, i, j] = [e[0]!, e[4]!, e[8]!, e[1]!, e[5]!, e[9]!, e[2]!, e[6]!, e[10]!], x = p[0]! - e[12]!, y = p[1]! - e[13]!, z = p[2]! - e[14]!;
+  const det = a * (f * j - g * i) - b * (d * j - g * h) + c * (d * i - f * h);
+  return [((f * j - g * i) * x - (b * j - c * i) * y + (b * g - c * f) * z) / det, (-(d * j - g * h) * x + (a * j - c * h) * y - (a * g - c * d) * z) / det, ((d * i - f * h) * x - (a * i - b * h) * y + (a * f - b * d) * z) / det];
 }
-/** The named joints of a character's scene as it stands (call updateMatrixWorld first), mm, forward (+Z), right (−X), up. */
-export function jointsOf(scene: Node, bones: readonly [string, string][]): Record<string, V3> {
+
+/** The grader's own bound copy of a workspace's character: its body (rest, H0) and the bones its body points ride. */
+export async function bodyOf(workspace: string): Promise<{ core: Bound; bones: BonePoint[] }> {
+  const scene = (await loadGlb(new Uint8Array(readFileSync(join(workspace, "character.glb"))), { textures: false })).scene, core = bind(scene).core, R = core.recognition.bones;
+  const bones: BonePoint[] = Object.entries(core.jointPoint).map(([h, point]) => [point, R[h]!] as BonePoint).filter(([, bone]) => bone);
+  const on = new Set(bones.map(([p]) => p));
+  scene.updateMatrixWorld(true);
+  for (const point of format.POINTS) {
+    const place = skeleton.BODY_POINTS[point]?.find((pl) => R[pl.bone]);
+    // a toe-less foot's toe falls back to the foot's tip, where its ball is: `pointsOf` extends the toe past the ball
+    if (on.has(point) || !place || (point.startsWith("toe") && place.bone.endsWith("Foot"))) continue;
+    const e = scene.getObjectByName(R[place.bone]!)?.matrixWorld.elements;
+    if (e) bones.push([point, R[place.bone]!, inFrame(e, solver.toSkeleton(core, core.restPts, format.IDX[point]! * 3))]);
+  }
+  return { core, bones };
+}
+/** The body points of a character's scene as it stands (call updateMatrixWorld first), mm, forward (+Z), right (−X),
+ *  up. */
+export function jointsOf(scene: Node, bones: readonly BonePoint[]): Record<string, V3> {
   const out: Record<string, V3> = {};
-  for (const [point, bone] of bones) {
+  for (const [point, bone, l] of bones) {
     const e = scene.getObjectByName(bone)?.matrixWorld.elements;
-    out[point] = e ? [e[14]! * 1000, -e[12]! * 1000, e[13]! * 1000] : [Number.NaN, Number.NaN, Number.NaN];
+    if (!e) out[point] = [Number.NaN, Number.NaN, Number.NaN];
+    else {
+      const [x, y, z] = l ?? [0, 0, 0], at = [0, 1, 2].map((r) => e[r]! * x + e[4 + r]! * y + e[8 + r]! * z + e[12 + r]!);
+      out[point] = [at[2]! * 1000, -at[0]! * 1000, at[1]! * 1000];
+    }
   }
   return out;
 }
@@ -31,9 +57,9 @@ export const sub = (a: V3, b: V3): V3 => [b[0] - a[0], b[1] - a[1], b[2] - a[2]]
 export const len = (v: V3): number => Math.hypot(v[0], v[1], v[2]);
 
 /**
- * The body points a frame of joints gives, as the sensors read them (format.P × 3, mm): the points the bones map, and
- * the rest from them as B1's grader fills them (the toe along the foot, the hand's points at the wrist, the torso and
- * head at their nearest).
+ * The body points a frame of joints gives, as the sensors read them (format.P × 3, mm): the points the bones carry, a
+ * toe-less foot's toe along the foot past its ball, and any point a skeleton has no bone for at its nearest (the
+ * hand's points at the wrist, the torso and head at theirs).
  */
 export function pointsOf(joints: Record<string, V3>, R: { bt: number }): Float32Array {
   const X = new Float32Array(format.P * 3);

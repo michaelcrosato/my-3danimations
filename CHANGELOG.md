@@ -4,6 +4,41 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.42.3 · 2026-10-12
+
+### Spec
+- A graph names library clips whose ids have a hyphen; its schema refuses what JSON Schema can say the checks do (a
+  mask's groups, a pass state in the base, `at` off a clip state, `rate` on a pass, a layer named `base`, 2D points
+  in a 1D blend); refrozen (D73).
+- `GRAPH.md`: a loop's exit of 1 is taken at each seam; a window a step goes over opens; the fade-out cap is four
+  besides the state fading in; a loop's `at` wraps (D73).
+
+### Core
+- Graphs (D73, the verifier's round 2): a one-shot at speed 0, a rate parameter starting at 0, a pass state's exit or
+  late window and a state into itself waiting on nothing are refused; the run plays its own copy of the graph, so one
+  edited after `play` changes nothing and a `-0` is 0; a loop's `at` wraps; a window narrower than a step opens.
+- Gaits (D71, the verifier's round 4): a lift over 12% of the hip height needs a swing of 0.25 s, a run (stance under
+  half) a cycle of 0.6 s (0.65 lifting over 25), and a gait 50 frames a second or more; each refused with what to
+  change. A gait has an even number of frames, so its left foot is seen at its right's phases (a run of 0.65 s, 39
+  frames, popped its left knee on 10 of 64 rests). The cap's message names the right foot only for a limp. "At any
+  cycle" was more than was measured: at the cycles these allow.
+- `BODY_POINTS`: a spine without chest bones puts the chest points a third and two thirds along it, not at its tip
+  (D77: B3's lying head went through the floor on chest-less characters).
+
+### Tools
+- The manual's examples are no longer the briefs' answers: a swimmer's graph, a torch walk's recipe, a throw's
+  edits; reactions name no clips; `H0` is the hip height (D77).
+
+### Repo
+- Graders read every body point from the bones, those off the joints carried on theirs (`bench/graders/bones.ts`);
+  B2's strike is the last peak of the punching hand's speed before it is farthest out; B3 checks the walk's pace and a
+  standing foot; B4 checks steps and a standing foot staying; B7 checks each motion's travel, the jump leaving the
+  ground, and a fall when `grounded` goes without a jump (D77).
+- `npm run bench`: `--variant` takes one brief; B4's variant must give VRM bone names; `speeds.json` only in B1's
+  workspaces; a T2 test runs every brief's known-good through the packed packages (D77).
+- Tests: the verifier's graph mutants (52 of 79 now fail them), the gaits' new refusals, each knee's twist step on
+  three rests, at 50 frames a second and on an odd count made even (D71, D73).
+
 ## 0.42.2 · 2026-10-12
 
 ### Repo

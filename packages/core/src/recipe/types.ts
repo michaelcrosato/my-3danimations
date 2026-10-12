@@ -48,7 +48,8 @@ export interface Track {
   dur: number;
   loop: boolean;
   fps: number;
-  /** Each frame's time: every 1/fps s from 0, and `dur` last for a once track. */
+  /** Each frame's time: every 1/fps s from 0, and `dur` last for a once track (a gait's own: its cycle split evenly
+   *  into the even number of frames nearest dur × fps; a recipe reads it every 1/fps s, as any clip). */
   times: number[];
   /** The key numbers of every frame, without `root` and `yaw` (those are in `roots`). */
   poses: Pose[];

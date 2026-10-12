@@ -5,6 +5,7 @@
 import { describe, expect, it } from "vitest";
 import { HUMANOID_BONES, HUMANOID_PARENT, measure, patchMapping, recognize, REQUIRED_BONES, restFrame, restPoints, TABLES, type Capture, type SkeletonIn } from "./all.ts";
 import { firstDiff, loadTier1a, VECTORS } from "../../../spec/conformance/runner/vectors.ts";
+import { IDX } from "../src/format/body.ts";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
@@ -213,6 +214,14 @@ describe("rest measurement", () => {
     const X = restPoints(sk, rec, restFrame(sk, rec));
     const want = loadTier1a("rig").clips.A_TPose!.capture.data[0]!;
     expect(firstDiff(Array.from(X), want, 1e-3)).toBeNull();
+  });
+  it("puts a spine with no chest bones' chest points a third and two thirds along it, as a full spine's are", () => {
+    // with the chest at the spine's tip (the neck), the chest's whole turn fell on a segment of no length and a body
+    // lying flat put its head through the floor (WP-6.6's verifier: B3's get-up on every character without a chest)
+    const vrm = TABLES.find((t) => t.name === "vrm")!, names = Object.fromEntries(HUMANOID_BONES.filter((b) => REST[b] && b !== "chest" && b !== "upperChest").map((b) => [b, tableNames(vrm, (n) => n)[b] ?? b]));
+    const sk = skeleton(names), rec = recognize(sk), X = restPoints(sk, rec, restFrame(sk, rec)), up = (n: string) => X[IDX[n]! * 3 + 2]!;
+    const span = up("neck") - up("spine1");
+    expect([(up("spine2") - up("spine1")) / span, (up("chest") - up("spine1")) / span].map((x) => Math.round(x * 1000) / 1000)).toEqual([0.333, 0.667]);
   });
   it("covers VRM 1.0's 55 bones and 15 required", () => {
     expect(HUMANOID_BONES).toHaveLength(55);

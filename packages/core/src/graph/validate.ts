@@ -9,17 +9,19 @@ import { layersOf, type Condition, type Graph, type GraphLayer, type GraphState,
 export const GRAPH_RULES: Readonly<Record<string, string>> = {
   "G-E001": "not a graph: no format, id, start, states or transitions, or a name, desc or tags of the wrong kind",
   "G-E002": "a state that isn't exactly one of clip, recipe, blend or pass, or a blend space out of order",
-  "G-E003": "a name that isn't there (a transition's state, a layer's start, a blend's number parameter), or a transition that isn't one",
+  "G-E003": "a name that isn't there (a transition's state, a layer's start, a blend's number parameter), a transition that isn't one, one that never fires (an exit or late window from a pass state) or one that fires every step (into its own state, waiting on nothing)",
   "G-E004": "a condition that doesn't fit its parameter: an unknown one, or an op or value of the wrong kind",
-  "G-E005": "a value out of range or of the wrong kind: a fade, exit or window, a speed (a one-shot's backward), a weight, a flag",
-  "G-E006": "a parameter of an unknown type, or a value (or buffer) that isn't of it",
+  "G-E005": "a value out of range or of the wrong kind: a fade, exit or window, a speed (a one-shot's at or under 0), a weight, a flag",
+  "G-E006": "a parameter of an unknown type, a value (or buffer) that isn't of it, or a rate parameter starting at 0 or under",
   "G-E007": "an unknown field",
   "G-E008": "a state the layer's start never reaches",
   "G-E009": "a clip the host's clips don't have",
   "G-E010": "a layer named twice, or with an unknown mask (a body group or a field it doesn't have)",
 };
 
-const ID = /^[A-Z0-9_]+\/[A-Za-z0-9_]+$/, NAME = /^[A-Za-z][A-Za-z0-9_-]*$/;
+// a graph's own id and a recipe's are SET/Slug as recipes name theirs; a clip's slug may have a hyphen, as the
+// library's do (the format's clip id: MESH2MOTION/Two-hand_Blast)
+const ID = /^[A-Z0-9_]+\/[A-Za-z0-9_]+$/, CLIP_ID = /^[A-Z0-9_]+\/[A-Za-z0-9_-]+$/, NAME = /^[A-Za-z][A-Za-z0-9_-]*$/;
 const OPS = ["==", "!=", "<", "<=", ">", ">="];
 /** The fields a mask weighs: every body group's. */
 const MASK_FIELDS = [...new Set(Object.values(GROUPS).flat())];
@@ -52,7 +54,7 @@ function near(f: string, known: readonly string[]): string | undefined {
 export function validateGraph(data: unknown, opts: { clips?: (id: string) => unknown } = {}): RecipeIssue[] {
   const out: RecipeIssue[] = [];
   const add = (code: string, field: string, message: string, fix?: string) => void out.push({ code, field, message, ...(fix ? { fix } : {}) });
-  if (!isObj(data)) return [{ code: "G-E001", message: "a graph is a JSON object", fix: '{ "format": "2.0", "id": "GRAPHS/Name", "start": "idle", "states": { … }, "transitions": [ … ] }' }];
+  if (!isObj(data)) return [{ code: "G-E001", field: "", message: "a graph is a JSON object", fix: '{ "format": "2.0", "id": "GRAPHS/Name", "start": "idle", "states": { … }, "transitions": [ … ] }' }];
   const g = data;
   if (typeof g.format !== "string" || !/^2\.\d+$/.test(g.format)) add("G-E001", "format", "format is 2.x", '"format": "2.0"');
   if (typeof g.id !== "string" || !ID.test(g.id)) add("G-E001", "id", "id is SET/Slug", '"id": "GRAPHS/Locomotion"');
@@ -100,10 +102,16 @@ export function validateGraph(data: unknown, opts: { clips?: (id: string) => unk
       }
       if (L.weight !== undefined && !(isNum(L.weight) && L.weight >= 0 && L.weight <= 1)) add("G-E005", `${at}weight`, "a layer's weight is 0 to 1", '"weight": 1');
       if (L.additive !== undefined && typeof L.additive !== "boolean") add("G-E005", `${at}additive`, "additive is true or false", '"additive": true');
-      if (!isObj(L.states)) return add("G-E001", `${at}states`, "a layer has states, by name");
+      if (!isObj(L.states)) return add("G-E001", `${at}states`, "a layer has states, by name", '"states": { "none": { "pass": true } }');
       if (!Array.isArray(L.transitions)) return add("G-E001", `${at}transitions`, "a layer has a list of transitions", '"transitions": []');
     }
     checkLayer(L, at, li === 0 && base, params, add, opts.clips);
+    // a state's rate parameter starts above 0: a number parameter's value is 0 when it has none, and a rate of 0 plays
+    // nothing (a one-shot's exit never comes)
+    for (const [name, s] of isObj(L.states) ? Object.entries(L.states) : []) {
+      const p = isObj(s) && typeof s.rate === "string" && isObj(g.parameters) ? (g.parameters as Record<string, { type?: string; value?: unknown }>)[s.rate] : undefined;
+      if (p?.type === "number" && !(isNum(p.value) && p.value > 0)) add("G-E006", `parameters.${String(s.rate)}.value`, `state "${name}" plays at the rate "${String(s.rate)}" gives, and it starts at ${p.value === undefined ? "0 (no value)" : String(p.value)}: nothing plays`, '"value": 1');
+    }
   });
   return out;
 }
@@ -122,6 +130,16 @@ function checkLayer(L: GraphLayer, at: string, isBase: boolean, params: Map<stri
   for (const [name, s] of Object.entries(L.states)) checkState(name, s, `${at}states.${name}`, isBase, params, add, clips);
   const known = new Set(states);
   L.transitions.forEach((t, i) => checkTransition(t, `${at}transitions.${i}`, known, params, add));
+  // what never fires: a pass state plays nothing, so its time stays 0 (an exit share or a window after 0 never comes),
+  // and a transition from a state into itself with nothing to wait for re-enters it every step
+  L.transitions.forEach((t, i) => {
+    if (!isObj(t)) return;
+    const from = t.from === "*" ? [] : typeof t.from === "string" ? [t.from] : Array.isArray(t.from) ? t.from : [];
+    const pass = from.filter((f) => isObj(L.states[f]) && (L.states[f] as GraphState).pass === true);
+    if (pass.length && isNum(t.exit) && t.exit > 0) add("G-E003", `${at}transitions.${i}.exit`, `"${pass[0]}" is a pass state: it plays nothing, so an exit share from it never comes`, "leave exit out, or wait on a condition");
+    if (pass.length && Array.isArray(t.window) && isNum(t.window[0]) && t.window[0] > 0) add("G-E003", `${at}transitions.${i}.window`, `"${pass[0]}" is a pass state: its time stays 0, so a window from after 0 never opens`, "leave window out, or start it at 0");
+    if (typeof t.to === "string" && from.includes(t.to) && !(Array.isArray(t.when) && t.when.length) && t.exit === undefined && t.window === undefined) add("G-E003", `${at}transitions.${i}`, `from "${t.to}" into itself with nothing to wait for: it re-enters every step`, '"when": [{ "param": "again" }], or "exit": 1');
+  });
   // every state the start reaches by some transition (conditions aside)
   if (typeof L.start === "string" && known.has(L.start)) {
     const seen = new Set([L.start]), todo = [L.start];
@@ -146,14 +164,14 @@ function checkState(name: string, s: GraphState, at: string, isBase: boolean, pa
   unknown(s as Record<string, unknown>, FIELDS.state, at, add);
   const kinds = (["clip", "recipe", "blend", "pass"] as const).filter((k) => s[k] !== undefined);
   if (kinds.length !== 1) add("G-E002", at, `state "${name}" is ${kinds.length ? kinds.join(" and ") : "none"} of clip, recipe, blend and pass: it is exactly one`, '{ "clip": "SET/Slug" }');
-  for (const k of ["clip", "recipe"] as const) if (s[k] !== undefined && (typeof s[k] !== "string" || !ID.test(s[k]))) add("G-E002", `${at}.${k}`, `${k} is an id, SET/Slug`, '"SET/Slug"');
+  for (const k of ["clip", "recipe"] as const) if (s[k] !== undefined && (typeof s[k] !== "string" || !(k === "clip" ? CLIP_ID : ID).test(s[k]))) add("G-E002", `${at}.${k}`, `${k} is an id, SET/Slug`, '"SET/Slug"');
   if (s.pass !== undefined && s.pass !== true) add("G-E002", `${at}.pass`, "pass is true", '"pass": true');
   if (s.pass === true && isBase) add("G-E002", `${at}.pass`, "the base layer has nothing below it to show through: a pass state belongs on a layer over it", "a clip, or move it to a layer");
   if (s.speed !== undefined && !(isNum(s.speed) && Math.abs(s.speed) <= 100)) add("G-E005", `${at}.speed`, "speed is a number, -100 to 100", '"speed": 1');
   if (s.rate !== undefined && params.get(s.rate as string) !== "number") add("G-E003", `${at}.rate`, `rate names a number parameter: "${String(s.rate)}" isn't one`, '"rate": "warp", with "warp": { "type": "number", "value": 1 } in parameters');
   if (s.rate !== undefined && s.pass === true) add("G-E002", `${at}.rate`, "a pass state plays nothing to rate", "leave it out");
-  // a one-shot played backward starts at its start and stays there: its exit never comes
-  const one = clips && isNum(s.speed) && s.speed < 0 ? [s.clip, s.recipe].find((id) => typeof id === "string" && (clips(id) as { loop?: unknown } | undefined)?.loop === false) : undefined;
+  // a one-shot played backward starts at its start and stays there, and one at speed 0 never moves: its exit never comes
+  const one = clips && isNum(s.speed) && s.speed <= 0 ? [s.clip, s.recipe].find((id) => typeof id === "string" && (clips(id) as { loop?: unknown } | undefined)?.loop === false) : undefined;
   if (one) add("G-E005", `${at}.speed`, `clip ${one} is a one-shot: it plays forward (speed above 0)`, "a speed above 0, or a looping clip");
   if (s.at !== undefined && !(isNum(s.at) && s.at >= 0)) add("G-E005", `${at}.at`, "at is seconds, 0 or more", '"at": 0');
   if (s.at !== undefined && s.clip === undefined && s.recipe === undefined) add("G-E002", `${at}.at`, "only a clip state starts at a time", "leave it out");
@@ -172,7 +190,7 @@ function checkState(name: string, s: GraphState, at: string, isBase: boolean, pa
       const pat = `${bat}.points.${i}`;
       if (!isObj(p)) return add("G-E002", pat, "a point is { at, clip }", '{ "at": 1.4, "clip": "SET/Walk" }');
       unknown(p as Record<string, unknown>, ["at", "clip"], pat, add);
-      if (typeof p.clip !== "string" || !ID.test(p.clip)) add("G-E002", `${pat}.clip`, "clip is an id, SET/Slug", '"clip": "SET/Walk"');
+      if (typeof p.clip !== "string" || !CLIP_ID.test(p.clip)) add("G-E002", `${pat}.clip`, "clip is an id, SET/Slug", '"clip": "SET/Walk"');
       const ok = two ? Array.isArray(p.at) && p.at.length === 2 && p.at.every(isNum) : isNum(p.at);
       if (!ok) add("G-E002", `${pat}.at`, two ? "at is [x, y]" : "at is a number", two ? '"at": [0, 1]' : '"at": 1.4');
       else if (!two && i > 0 && isObj(points[i - 1]) && isNum(points[i - 1]!.at) && (p.at as number) <= (points[i - 1]!.at as number)) add("G-E002", `${pat}.at`, "points are in rising order of at, each its own", `more than ${String(points[i - 1]!.at)}`);
@@ -181,7 +199,7 @@ function checkState(name: string, s: GraphState, at: string, isBase: boolean, pa
   }
   // the clips it names, as far as they are ids (a malformed point is an issue above)
   const bl = s.blend as { points?: unknown } | undefined, ids = bl ? (Array.isArray(bl.points) ? (bl.points as unknown[]).map((p) => (isObj(p) ? p.clip : undefined)) : []) : [s.clip, s.recipe];
-  if (clips) for (const id of ids) if (typeof id === "string" && ID.test(id) && !clips(id)) add("G-E009", at, `clip ${id} is not among the clips given`, "pass it in the clips, or name one there");
+  if (clips) for (const id of ids) if (typeof id === "string" && CLIP_ID.test(id) && !clips(id)) add("G-E009", at, `clip ${id} is not among the clips given`, "pass it in the clips, or name one there");
 }
 
 function checkTransition(t: GraphTransition, at: string, known: Set<string>, params: Map<string, string>, add: (code: string, field: string, message: string, fix?: string) => void): void {

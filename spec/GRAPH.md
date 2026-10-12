@@ -47,7 +47,8 @@ hashes and events, in every engine.
 
 It may have `speed` (1; a one-shot's above 0, as it plays forward); `rate`, a number parameter the speed is multiplied
 by each step (a host matching playback to its ground speed sets it: stride warping, `SIM.md` §3); and, a clip state,
-`at`: where it starts, seconds (0).
+`at`: where it starts, seconds (0; round a loop's cycle, at a one-shot's end past it). A state a `rate` plays needs
+that parameter to start above 0 (a number parameter with no value is 0).
 
 **A transition** goes `from` a state (a list of them, or `"*"` for any) `to` another, and is taken when all of `when`
 hold: `{ "param", "op", "value" }` compares a number (`== != < <= > >=`) or a bool (`==`, `!=`); a bool or a trigger
@@ -55,11 +56,11 @@ alone, `{ "param" }`, is true or set. It may also have:
 
 | Field | Meaning |
 |---|---|
-| `exit` | Taken only once the state it leaves has played this share of its length, 0 to 1 (of each cycle for a loop, so a loop's is under 1; a step that carries a loop past it into the next cycle takes it too): `1` chains a one-shot into the next at its end |
-| `window` | `[from, to]`: taken only while the state it leaves is within these seconds of its own time, a cancel window |
+| `exit` | Taken only once the state it leaves has played this share of its length, 0 to 1 (of each cycle for a loop: a loop's 1 is taken at each seam, as is a share a step carries it past into the next cycle): `1` chains a one-shot into the next at its end |
+| `window` | `[from, to]`: taken only while the state it leaves is within these seconds of its own time (or its last step went over them), a cancel window |
 | `fade` | The crossfade, seconds (0.2); 0 cuts |
 | `sync` | The state it goes to starts at the phase the one it leaves is at (a walk into a jog in step), not at its start |
-| `interruptible` | While it fades, the state it goes to may be left by its own transitions (false: the fade plays out first); cut, what it was fading out goes on fading out from where it was, so the pose carries on (at most four states at once, the faintest dropped) |
+| `interruptible` | While it fades, the state it goes to may be left by its own transitions (false: the fade plays out first); cut, what it was fading out goes on fading out from where it was, so the pose carries on (at most four fading out at once, besides the one fading in, the faintest dropped) |
 
 **A layer** over the base has a `mask` (body groups, `"upper"` or `["armL", "head"]`, or weights by field; all by
 default), a `weight` (1) and `additive` (false: its states' changes from their first keys added over what is below).
@@ -120,10 +121,10 @@ states at the same steps and the same hashes in Node and Chromium (`npm run e2e`
 |---|---|
 | `G-E001` | Not a graph: no format, id, start, states or transitions, or a name, desc or tags of the wrong kind |
 | `G-E002` | A state that isn't exactly one of clip, recipe, blend or pass (a pass in the base), or a blend space out of order |
-| `G-E003` | A name that isn't there (a transition's state, a layer's start, a blend's number parameter), or a transition that isn't one |
+| `G-E003` | A name that isn't there (a transition's state, a layer's start, a blend's number parameter), a transition that isn't one, or one that never fires (an exit or late window from a pass state) or fires every step (into its own state, waiting on nothing) |
 | `G-E004` | A condition that doesn't fit its parameter: an unknown one, or an op or value of the wrong kind |
-| `G-E005` | A value out of range or of the wrong kind: a fade, exit or window, a speed (a one-shot's backward, with the clips), a weight, a flag |
-| `G-E006` | A parameter of an unknown type, or a value (or a trigger's buffer) that isn't of it |
+| `G-E005` | A value out of range or of the wrong kind: a fade, exit or window, a speed (a one-shot's at or under 0, with the clips), a weight, a flag |
+| `G-E006` | A parameter of an unknown type, a value (or a trigger's buffer) that isn't of it, or a rate parameter that starts at 0 or under |
 | `G-E007` | An unknown field (the nearest named) |
 | `G-E008` | A state the layer's start never reaches |
 | `G-E009` | A clip the host's clips don't have |

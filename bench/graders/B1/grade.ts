@@ -12,8 +12,7 @@ import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { format } from "@m3a/core";
 import { checks } from "@m3a/sensors";
-import { bind } from "@m3a/three";
-import { loadGlb } from "@m3a/three/test-characters";
+import { bodyOf, jointsOf, pointsOf } from "../bones.ts";
 
 /** One part of the script: a speed (m/s), for how long (s), and the motion it must play. */
 export type Part = { speed: number; secs: number; motion: "idle" | "walk" | "run" };
@@ -49,19 +48,12 @@ export interface Grade {
   ms: number;
 }
 
-/** The world point (mm) of a three object, by name, in the sensors' axes: forward (+Z), right (−X), up (+Y). */
-function at(root: { getObjectByName(n: string): { matrixWorld: { elements: number[] } } | undefined }, name: string): [number, number, number] {
-  const e = root.getObjectByName(name)?.matrixWorld.elements;
-  return e ? [e[14]! * 1000, -e[12]! * 1000, e[13]! * 1000] : [Number.NaN, Number.NaN, Number.NaN];
-}
-
 /** Grades the player in `workspace` (its src/player.ts and src/sheet.ts, on its character.glb). */
 export async function gradeB1(workspace: string): Promise<Grade> {
   const t0 = performance.now(), checks_: Check[] = [], add = (name: string, ok: boolean, detail: string) => checks_.push({ name, ok, detail });
   // the grader's own copy, for the mapping from points to bones and the body's rest
-  const ref = bind((await loadGlb(new Uint8Array(readFileSync(join(workspace, "character.glb"))), { textures: false })).scene), core = ref.core;
+  const { core, bones } = await bodyOf(workspace);
   const script = scriptFor(core.rest.H0), scale = core.rest.H0 / 1000;
-  const named = Object.entries(core.jointPoint).map(([h, point]) => ({ point, bone: core.recognition.bones[h]! })).filter((x) => x.bone);
   const { loadCharacter } = (await import(pathToFileURL(join(workspace, "src/character.ts")).href)) as { loadCharacter(): Promise<never> };
   const { createPlayer } = (await import(pathToFileURL(join(workspace, "src/player.ts")).href)) as { createPlayer(c: unknown): Promise<{ motion: string; update(dt: number, i: { speed: number }): void }> };
   let character: { updateMatrixWorld(f: boolean): void; traverse(f: (o: { matrixWorld: { elements: number[] } }) => void): void; getObjectByName(n: string): never };
@@ -89,10 +81,7 @@ export async function gradeB1(workspace: string): Promise<Grade> {
       character.traverse((o) => {
         if (!o.matrixWorld.elements.every(Number.isFinite)) nonFinite++;
       });
-      const X = new Float32Array(format.P * 3);
-      for (const { point, bone } of named) X.set(at(character, bone), format.IDX[point]! * 3);
-      fill(X, core.rest);
-      frames.push(X);
+      frames.push(pointsOf(jointsOf(character, bones), core.rest));
       motions.push(player.motion);
       judged.push(i * dt >= SETTLE ? k : -1);
     }
@@ -157,19 +146,4 @@ export async function gradeB1(workspace: string): Promise<Grade> {
   const bytes = existsSync(png) ? readFileSync(png) : null, isPng = !!bytes && bytes.length > 2000 && bytes.subarray(1, 4).toString() === "PNG";
   add("a sheet is produced", isPng, isPng ? `sheet.png, ${(bytes!.length / 1024).toFixed(0)} KB` : `npm run sheet ${ran ? `failed: ${ran}` : "wrote no sheet.png (or an empty one)"}`);
   return { pass: checks_.every((c) => c.ok), checks: checks_, ms: performance.now() - t0 };
-}
-
-/** The points the bones don't give, from those they do: the toe along the foot, the hand's points at the wrist, the rest
- *  of the torso and head at their nearest. Only the feet and the pelvis are graded. */
-function fill(X: Float32Array, R: { ab: number; bt: number }): void {
-  const g = (n: string) => [X[format.IDX[n]! * 3]!, X[format.IDX[n]! * 3 + 1]!, X[format.IDX[n]! * 3 + 2]!], put = (n: string, v: number[]) => X.set(v, format.IDX[n]! * 3);
-  const has = (n: string) => g(n).some((x) => x !== 0);
-  for (const s of ["L", "R"]) {
-    const a = g("ankle" + s), b = g("ball" + s), k = R.bt / Math.max(1e-6, Math.hypot(b[0]! - a[0]!, b[1]! - a[1]!, b[2]! - a[2]!));
-    put("toe" + s, [b[0]! + (b[0]! - a[0]!) * k, b[1]! + (b[1]! - a[1]!) * k, b[2]! + (b[2]! - a[2]!) * k]);
-    for (const n of ["index", "knuck", "pinky", "fist"]) put(n + s, g("wrist" + s));
-  }
-  if (!has("spine2")) put("spine2", g("spine1"));
-  if (!has("chest")) put("chest", g("spine2"));
-  for (const [n, from] of [["chestF", "chest"], ["pelvisF", "pelvis"], ["headTop", "head"], ["faceF", "head"]] as const) put(n, g(from));
 }

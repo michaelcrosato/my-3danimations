@@ -2135,8 +2135,8 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
       double support. Without that, neither foot stood just before the strong foot landed.
     - `GAITS` gives four ready made: walk, brisk, run and limp. On three rests (Mesh2Motion, 100STYLE, CMU) they slide
       at most 7.8 mm per contact and none fails; on all 64 of the library's rests (set and source pairs, 62 distinct)
-      none fails and one reads over 10 mm (round 1; 10.1, the limp on CMU_31). The origin's gait slid 12–28% of body speed; capture's median is 52 mm. The run warns: a knee pops
-      late in its swing.
+      none fails and one reads over 10 mm (round 1; 10.1, the limp on CMU_31). The origin's gait slid 12–28% of body speed; capture's median is 52 mm. The run passes on the
+      three rests and on 63 of 64 (round 4; it warned of a knee before round 3).
   - **Idles:** the body breathes (the chest lifting, leaning back a touch, and the shoulders rising) and shifts its
     weight (the pelvis swaying over the standing foot, the chest leaning against it) on planted feet. The loop holds
     whole breaths and one shift. `IDLES` gives two, breathe and fidget; both pass on three rests, sliding 1.1–3.7 mm.
@@ -2285,8 +2285,41 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
     fail them; the seventh, the elbows left out of the closing, changes nothing, so the closing is the knees'.
   - **D74's loose ends:** WP-2.5's Verify says T1 reads every third loop and `M3A_FULL=1` or T2 all; AGENTS.md's T2
     row and G6's e2e step name the sweeps; T1 back within its budget is D77's.
+- **Verifier, round 4** (at 2eb0a1f): not done, two blocking findings, both round 3's claims measured at the default
+  lift and the presets' cycles only. Fixed or answered in v0.42.3, every finding:
+  - **A high lift on a short swing popped a knee** (blocking): lifting 20 or more in 0.2 to 0.22 s of swing, 199 gaits
+    failed (R1: speed 120, cycle 0.5, stance 0.6, lift 25; R5: a stance of 0.75 at 0.8 s lifting 35). A lift over 12
+    now needs a swing of 0.25 s: lifts of 16 to 35 at swings of 0.25 to 0.3 s, walks and limps, 660 on the three rests
+    and 1,024 on all 64 (0.25 s, lifting 25 and 35), none fail (worst slide 12.2 mm).
+  - **Short-cycle runs failed at the seam** (blocking): a run of 0.4 s lifting 25 failed on all 64 rests (R3), and
+    under 0.5 s the verifier's grid failed 4 to 100%; the seam fell where the swinging foot accelerates hardest. A run
+    (a stance under half) now needs a cycle of 0.6 s (200 steps a minute), and 0.65 s lifting over 25 (a run lifting
+    35 and swaying 4 failed its seam at 0.6 and 0.625 s on one of three rests). Runs of 0.6 to 0.7 s on three rests,
+    148 played, none fail; at 0.6 s on all 64, 128 none; lifting 35 at 0.65 s on all 64, 187 none. The verifier's
+    other fix, the loop's origin at a calm phase, wasn't taken: the refusal says what to change, and the presets' run
+    is 0.7 s.
+  - **An odd number of frames popped a run's left knee** (found measuring that bound): a run of 0.65 s at 4.25 hip
+    heights a second, stance 0.3 (39 frames), popped the left knee on 10 of 64 rests, and at 0.6, 0.625 and 0.7 s
+    none did. A plain gait's left foot lands half a cycle after the right, so on an odd count it was seen half a frame
+    off the right's phases. A gait now has the even number of frames nearest cycle × fps: that run passes on all 64;
+    the cycles within 50 ms of the presets, 1,212 on three rests, none fail, worst 14.2 mm as before.
+  - **Rates under 60:** at 24 frames a second the run with the ranges' low ends failed on 53 of 64 rests. A gait is
+    made at 50 frames a second or more (refused under): the presets and that run at 50 on all 64, 512, none fail.
+  - **Starts other than standing:** from 21 library idles (84 clips, each on its rest), 2 failed (brisk from
+    `MESH2MOTION/Idle_Talking`, the run from `STYLE100_IDLE/ArmsFolded_Idle`; both before round 3 too) and 26 slid over
+    10 mm (25.6, the limp from `QUATERNIUS_3D2DGE/Pistol_Idle_Loop`). The gaits are measured from the standing pose
+    (`standingOn(rest)`, the default); from another, these are their limits, recorded, not refused.
+  - **Tests:** the verifier's surviving mutants M10 (the knees not closed frame by frame) and M20 (the rate ignored):
+    every knee's twist step, the seam's among them, 3° or less on three rests, at 60 and 50 frames a second, an odd
+    count made even; the refusals, with R1, R5 and R3.
+  - **Records:** "at any cycle" (0.42.1, the ledger) is at the cycles these allow. The cap was measured on walks and
+    limps (stances 0.62 to 0.75): a run's feet come forward slower than the body goes, so it reaches the cap only past
+    400% of H0 a second (930% at stance 0.3), where no run was measured. Round 3's "stances of 0.7 and 0.65 at 420 to
+    427 passed" is where they played: the 0.65 at 230 and 0.75 s was refused for reach on 25 of 64 rests. The code's
+    and test's "13 of 64 rests" is 13 of 128 clips on 12 rests. "The run warns" was stale. The cap's message named a
+    foot by rounding: it names the right one for a limp, both otherwise. Two docs said a gait's frames were 1/fps apart.
 - **Answered:** no: made without a response, to review.
-- **Landed in:** v0.37.0, v0.37.2, v0.39.1, v0.42.1
+- **Landed in:** v0.37.0, v0.37.2, v0.39.1, v0.42.1, v0.42.3
 
 ## D72 · 2026-10-12 · Actions: multi-beat motions with their ground, beats and interrupt points (WP-6.3)
 
@@ -2411,8 +2444,37 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
     as `layer()` does; the docs' section numbers; `GraphRun`'s fields documented; the spec says the start states fire
     no `enter`. A fade lasts its length to a billionth of a second (a 0.1 s fade ran a seventh step at a share of
     1e-16).
+- **Verifier, round 2** (at 2eb0a1f): done, nothing blocking; every round-1 fix held, restored at every one of 600
+  steps per example and 900 of a richer graph (a 2D blend of five points, an additive layer, a mask by field weights,
+  cut fades, rate, sync, windows), in Node and Chromium alike. Fixed or answered in v0.42.3:
+  - **A one-shot at speed 0 never ended** and passed the checks: a one-shot's speed is now above 0, as the spec said.
+  - **A library clip id with a hyphen** (`MESH2MOTION/Two-hand_Blast`) was refused: a state's and a blend point's
+    `clip` take the clip schema's ids (`[A-Za-z0-9_-]`); the graph's own id and `recipe` keep the stricter pattern.
+  - **The graph was held by reference:** edited after `play`, a step threw a TypeError, and `restore` with the very
+    graph playing was refused. The run plays its own copy (JSON), which also makes every `-0` in it 0 (N1).
+  - **Test gaps** (79 of 138 one-line mutants lived): the tests now pin a blend fading in at each point's weight
+    times the fade's share, a zero-weight point kept out of the events, a synced blend's mean length and its start
+    phase, 2D weights by value, a loop's exit at a speed other than 1, a state restarted by a transition naming it,
+    each op either side of its value, `play` again, a richer graph restored at every one of 150 steps, each
+    validator rule broken once, and the parameters', a start state's `at` and a fade's defaults. Rerun, 52 of the 79
+    die; one was rewritten with the code it mutated (the loop's `at`, now wrapped); 26 live. About ten of those
+    are equivalent: the base layer's mask (it has none), a bool condition read as `!!v`, a 1D blend's ends and its
+    early exit, the unreachable 2D fallback, the Animator clamping a weight the checks bound, and restore's layer
+    count and names, which the graph's hash refuses first. The rest are edges no example reaches: ties between
+    points, a one-shot held at its end, the fade-out list's order and its cap, the fade's last 1e-9, and an event
+    named `*`.
+  - **Nits:** N1 (`-0` in `at` or a mask) by the copy; N2, the two issues without a fix or a field, have them; N3, the
+    spec and D73 said a loop's exit of 1 never comes, but it is taken at each seam, and the fade-out cap is four
+    besides the state fading in (both reworded); N4, a state played at a `rate` whose parameter starts at 0 never
+    moved: refused (G-E006); `set()` still takes 0, a host's pause; N5, a pass state's exit or late window never
+    fired, and a state into itself waiting on nothing fired every step: both refused (G-E003); N6, a loop's `at` past
+    its length wraps round its cycle, as `layer({ time })` does; N7, a window narrower than a step opens when the step
+    goes over it, as an exit does; N8, the schema says what JSON Schema can (a mask's groups, no pass state in the
+    base, `at` only on a clip state, `rate` not on a pass, no layer named `base`, 1D points as numbers), refrozen.
+    N9 stays: the saved `count` equals `entry` (kept, so a save's shape doesn't change), and a save without a graph
+    ignores the graph passed to `restore`.
 - **Answered:** no: made without a response, to review.
-- **Landed in:** v0.39.0, v0.39.2
+- **Landed in:** v0.39.0, v0.39.2, v0.42.3
 
 ## D74 · 2026-10-12 · T1 samples the library-wide sweeps; T2 runs them in full
 
@@ -2501,8 +2563,10 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   - **T1 and T2:** the graders' tests grade on gen-1 in T1 and on gen-37 too in T2's full step (D74).
   - **The manual:** its wire sections (graphs, events and hit timing, reactions, root motion and stride warping, the
     simulation) bring it to 3,916 of 8,000 tokens.
+- **Verifier, round 1:** both halves together, recorded in D77 (B2's strike and idle, B3's chest-less characters and
+  walk, B7's travel, jump and fall, the manual's examples).
 - **Answered:** no: made without a response, to review.
-- **Landed in:** v0.41.0
+- **Landed in:** v0.41.0, v0.42.3
 
 ## D77 · 2026-10-12 · Briefs B4, B5 and B6: a VRM avatar's sneak, an emote and an edited punch (WP-6.6b)
 
@@ -2515,7 +2579,8 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
     less) and travelling (15% of the hip height a second); a foot stands still at times (the lower foot's slowest tenth
     under the sensors' standing speed, as B1 reads it: a foot sliding faster than that is never read as standing, so
     the slide alone can't see a skate); slide and skate under their limits; the sensors' read of the bones fails on
-    nothing but jitter and pops (the points the bones don't carry are filled in).
+    nothing but jitter and pops (the points the bones don't carry are filled in). (Round 1 of its verifier, below,
+    changed this: steps, a standing foot staying, every point from the bones, pops counted.)
   - **B5, an emote, and B6, an edited punch:** the agent hands in a recipe, which the grader compiles against the CC0
     library (`library.resolver()`, new: a recipe's clips from the library with their rests and content ids). A made
     clip is graded on its own rest and played on the workspace's character (every joint finite). B5: 1.5 s (±0.05) and
@@ -2535,8 +2600,51 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
     gives an action's fields with the ledge climb inline (it compiles on the CC0 sets an agent's workspace has; the get
     up, the vault and the hop down read CMU's clips, which it doesn't), compiling, the root curve with its `up`, cutting
     at an interrupt point, paired actions and a gait of one's own: 5,564 of 8,000 tokens, each snippet run as written.
+- **Verifier, round 1** (both halves, at 2eb0a1f): not done. The Done-when held as written, but two graders could be
+  fooled or failed a right answer, and the manual held the answers. Fixed or answered in v0.42.3, every finding:
+  - **B3's known-good failed on every character without chest bones** (blocking; seeds 5 mod 6: 7 of gen-20 to 59).
+    With chest and upper chest missing, the body's chest point sat at the spine bone's tip (the neck), so the decoder's
+    top segment, which takes the chest's whole turn, had no length, and the one below took the source library's 55%:
+    lying flat, the head went 16 to 19 cm through the floor. The missing points now sit a third and two thirds along
+    the spine bone, as a full spine's would (core's `BODY_POINTS`; a skeleton test holds it); lying, gen-29's head is
+    80 mm up. B3's T2 step grades gen-29 too.
+  - **B4 passed a crouched idle slid or jumped along, and read nothing on a foot without toes** (blocking). The
+    graders read every body point from the bones now: one off the joints (a toe-less foot's ball at the foot's tip, a
+    hand's knuckles, the head's top) rides its bone from its rest place (`bench/graders/bones.ts`); filled in from the
+    joints, a toe-less ball sat at the world's origin and the sensors read no contact at all. B1's grader reads them
+    the same way. B4 grades steps (each foot lifts 7% of the hip height and sets down, three lifts or more in 5 s) and
+    a standing foot staying (while the sensors read it standing, its median speed a quarter of the travel or less), and
+    counts pops again (the filled-in points made them). The verifier's slides, jumps and skates fail; the crouch walks
+    played at their pace pass, a constant 0.65 hip heights a second on gen-44 too (that body's own pace, 0.62).
+    `MESH2MOTION/Walk_Stealth`, which the verifier counted a right answer, fails: its standing feet move at 56 to 63% of
+    the travel on these avatars (the library passes it on its own rest). The known-good passes on all 40 of gen-20 to
+    59; B3's floor check reads the feet by their joints (a toe's tip digs in lying, as the library's get-ups' do).
+  - **The manual held the known-good solutions** (the recipe example was B5's, the edits B6's, the graph B7's pattern,
+    the events and reactions B2's and B3's clips): its examples are other jobs now (a swimmer's graph climbing out on a
+    buffered press, a torch walk's recipe, a throw's wind-up); the reactions name no clips (search, and check with
+    `describe` what a clip does: one set's knockback gets back up); `Fit` says `bound.core.rest.H0` is the hip height.
+    5,620 of 8,000 tokens; each new snippet run.
+  - **B2's strike** was the hand's fastest moment after the press, which a fade into a fighting stance can be (5.4 m/s
+    at the press against the jab's 3.1): it is now the last peak of the punching hand's forward speed before it is
+    farthest out, at half its fastest or more, and the starter's check prints the same. 17 solutions on gen-1 and gen-29
+    pass, the two that failed among them.
+  - **Wrong solutions that passed:** B7 checks each motion's travel where the speed holds (idle under 0.3 hip heights a
+    second, walk 0.6 to 2, run over 2) and the jump leaving the ground (both feet 5% of the hip height); B3 the walk's
+    pace (1.2, ±10%: the known-good 1.18 to 1.20, the clip's own pace 1.05 to 1.08 fails) and a foot standing still;
+    B2 an idle (a point moving 0.5% of the hip height against the pelvis before the first press and at the end) and
+    damage 10. Each is a planted bad solution in its test.
+  - **B7's fall:** the brief says `grounded` goes false 0.1 s after a jump press and may go without a jump; the
+    grader takes a fall and a landing at the end, the script runs 14 s and idle is checked at 13.8 s.
+  - **The runner:** `--variant` takes one brief, as `--heldout` does; B4's spec names its avatar's naming and a
+    variant seed that doesn't give it is refused, saying which seeds do. A T2 test runs every brief's known-good
+    through the packed packages, B4 on its avatar.
+  - **Nits:** `speeds.json` only in B1's workspaces; B5's check prints the wave; B5's README lists the character;
+    WP-6.6's Owns lists what it touched. Left: B3's lying window (1.3 to 3.5 s with the fall and rise) can't tell half
+    a second of lying from two, as clips' falls and rises differ; and its two runs import the top module anew, so
+    state a solution keeps in a helper module of its own carries over (nothing a fresh agent's reactor needs).
+  - **Measured:** the known-good solutions on gen-20 to 59: B2, B3, B4, B5, B6 and B7 each 40 of 40.
 - **Answered:** no: made without a response, to review.
-- **Landed in:** v0.42.0, v0.42.1
+- **Landed in:** v0.42.0, v0.42.1, v0.42.3
 
 ## D78 · 2026-10-12 · G6's command set; a held-out run's variants on generator seeds alone
 

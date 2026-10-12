@@ -1,14 +1,16 @@
 // B3's grader (PLAN.md §7, WP-6.6): the workspace's reactor driven twice, walking, with a light hit at 3 s and a heavy
-// one at 6 s, and once without the light hit, graded from the character's bones: during the light hit the legs (hips,
-// knees, ankles against the pelvis) stay within 2 cm of the walk without it while the hands or head move 5 cm from it;
-// the heavy hit puts the hips below 45% of their standing height within 1.5 s and on the ground (under 15%) for 1.3 to
-// 3.5 s (a second lying, the fall and the rise's start included), then back above 85% within 3 s; it walks again by
-// the end; the feet, pelvis and head never go 5% of the hip height under the floor; no transform goes non-finite. The
-// character is the grader's parameter: the workspace's character.glb.
+// one at 6 s, and once without the light hit, graded from the character's bones: walking, it travels at the speed asked
+// (±10%) and a foot stands still at times; during the light hit the legs (hips, knees, ankles against the pelvis) stay
+// within 2 cm of the walk without it while the hands or head move 5 cm from it; the heavy hit puts the hips below 45%
+// of their standing height within 1.5 s and on the ground (under 15%) for 1.3 to 3.5 s (a second lying, the fall and
+// the rise's start included), then back above 85% within 3 s; it walks again by the end; the feet, pelvis and head
+// never go 5% of the hip height under the floor; no transform goes non-finite. The character is the grader's parameter:
+// the workspace's character.glb.
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
+import { checks } from "@m3a/sensors";
 import type { Check, Grade } from "../B1/grade.ts";
-import { bodyOf, jointsOf, len, sub, type V3 } from "../bones.ts";
+import { bodyOf, jointsOf, len, sub, type BonePoint, type V3 } from "../bones.ts";
 
 /** The frames (60 a second): walking from 1 s, the light hit at 3 s, the heavy one at 6 s, the run's end at 13 s. */
 export const WALK = 60, LIGHT = 180, HEAVY = 360, FRAMES = 780;
@@ -16,7 +18,7 @@ const LEGS = ["hipL", "hipR", "kneeL", "kneeR", "ankleL", "ankleR"], UPPER = ["w
 
 type Run = { joints: Record<string, V3>[]; nonFinite: number; threw: string };
 /** Drives a reactor from the workspace (`light`: whether the light hit comes). */
-async function drive(workspace: string, bones: readonly [string, string][], light: boolean): Promise<Run> {
+async function drive(workspace: string, bones: readonly BonePoint[], light: boolean): Promise<Run> {
   const v = `?run=${light ? "a" : "b"}`;
   const { loadCharacter } = (await import(pathToFileURL(join(workspace, "src/character.ts")).href + v)) as { loadCharacter(): Promise<never> };
   const { createReactor } = (await import(pathToFileURL(join(workspace, "src/reactor.ts")).href + v)) as { createReactor(c: unknown): Promise<{ update(dt: number, i: { speed: number; hit?: "light" | "heavy" }): void }> };
@@ -45,6 +47,17 @@ export async function gradeB3(workspace: string): Promise<Grade> {
   add("runs", !a.threw && !b.threw, a.threw || b.threw || `${FRAMES} frames, twice`);
   add("finite", !a.threw && a.nonFinite + b.nonFinite === 0, a.nonFinite + b.nonFinite ? `${a.nonFinite + b.nonFinite} non-finite transforms` : "every bone finite every frame");
   if (a.threw || b.threw) return done();
+  // walking before the light hit (its last second): at the speed asked, 1.2 hip heights a second (±10%), its feet
+  // stepping: the lower foot's slowest tenth slower than the sensors' standing speed (an idle slid along, or a walk
+  // played at its own pace whatever the speed asked, isn't)
+  const pace = (a.joints[LIGHT - 1]!.pelvis![0] - a.joints[LIGHT - 60]!.pelvis![0]) / (59 / 60) / H0;
+  add("it walks at the speed asked", Math.abs(pace - 1.2) <= 0.12, `the hips travel ${pace.toFixed(2)} hip heights a second walking (asked 1.2, ±0.12)`);
+  const low = (j: Record<string, V3>, s: string) => ["ankle", "ball", "toe"].map((p) => j[p + s]).filter((p): p is V3 => !!p).reduce((x, y) => (y[2] < x[2] ? y : x));
+  const v = a.joints.slice(LIGHT - 60, LIGHT).slice(1).map((j, k) => {
+    const s = low(j, "L")[2] < low(j, "R")[2] ? "L" : "R", p = low(a.joints[LIGHT - 60 + k]!, s), q = low(j, s);
+    return Math.hypot(q[0] - p[0], q[1] - p[1]) * 60;
+  }).sort((x, y) => x - y), p10 = v[Math.floor(0.1 * (v.length - 1))]!, still = H0 * checks.STANCE.speed;
+  add("a foot stands still walking", p10 < still, `the lower foot's slowest tenth moves ${(p10 / 1000).toFixed(2)} m/s or less (at most ${(still / 1000).toFixed(2)})`);
   const rel = (j: Record<string, V3>, p: string) => sub(j.pelvis!, j[p]!);
   // the light hit: its 0.8 s against the walk without it
   let legs = 0, upper = 0;
@@ -69,7 +82,10 @@ export async function gradeB3(workspace: string): Promise<Grade> {
   add("it walks again", went > 0.5 * H0, `the hips went ${(went / H0).toFixed(2)} hip heights in the last second`);
   // the feet, the pelvis and the head (the arms may push against the floor getting up, as the sensors' lying profile
   // allows: touching it is the motion)
-  const held = Object.keys(a.joints[0]!).filter((p) => /^(ankle|ball|toe)[LR]$|^pelvis$|^head$/.test(p));
+  // (a foot by its joints, the ankle and the ball where it has toes, as a capture's bones would give it: a toe's tip, or
+  // a toe-less foot's, digs in a little as a lying body's feet point down, as the library's get-ups' do)
+  const onJoints = new Set(bones.filter(([, , local]) => !local).map(([p]) => p));
+  const held = Object.keys(a.joints[0]!).filter((p) => onJoints.has(p) && /^(ankle|ball)[LR]$|^pelvis$|^head$/.test(p));
   const sunk = Math.min(...a.joints.flatMap((j) => held.map((p) => j[p]![2])));
   add("nothing sinks through the floor", sunk >= -0.05 * H0, `the feet, pelvis and head ${(sunk / 10).toFixed(1)} cm at lowest (at most ${((0.05 * H0) / 10).toFixed(1)} cm under)`);
   return done();

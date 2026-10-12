@@ -66,7 +66,8 @@ bound.report.text;                                // how it was recognized; conf
 ```
 
 `bind` throws if required bones are missing, saying which. It works on Mixamo, Unreal, Rigify, VRM and most other
-humanoid rigs, by names or by topology.
+humanoid rigs, by names or by topology. `bound.core.rest.H0` is the character's hip height in mm: speeds and sizes in
+"hip heights" are multiples of it.
 
 ## Wire: play clips
 
@@ -107,21 +108,20 @@ Animator runs it inside its fixed step, the same in Node and in a browser.
 
 ```json
 {
-  "format": "2.0", "id": "GRAPHS/Hero",
-  "parameters": { "speed": { "type": "number" }, "grounded": { "type": "bool", "value": true },
-                  "jump": { "type": "trigger", "buffer": 0.1 } },
-  "start": "idle",
+  "format": "2.0", "id": "GRAPHS/Swimmer",
+  "parameters": { "speed": { "type": "number" }, "atEdge": { "type": "bool" },
+                  "climb": { "type": "trigger", "buffer": 0.2 } },
+  "start": "swim",
   "states": {
-    "idle": { "clip": "QUATERNIUS_3D2DGE/Idle_Loop" },
-    "move": { "blend": { "param": "speed", "points": [{ "at": 1.2, "clip": "QUATERNIUS_3D2DGE/Walk_Loop" },
-                                                      { "at": 3.5, "clip": "QUATERNIUS_3D2DGE/Jog_Fwd_Loop" }] } },
-    "jump": { "clip": "QUATERNIUS_3D2DGE/Jump_Start" }
+    "swim": { "blend": { "param": "speed", "points": [{ "at": 0, "clip": "QUATERNIUS_3D2DGE/Swim_Idle_Loop" },
+                                                      { "at": 1, "clip": "QUATERNIUS_3D2DGE/Swim_Fwd_Loop" }] } },
+    "climb": { "clip": "QUATERNIUS_3D2DGE/ClimbUp_1m_RM" },
+    "stand": { "clip": "QUATERNIUS_3D2DGE/Idle_Loop" }
   },
   "transitions": [
-    { "from": ["idle", "move"], "to": "jump", "when": [{ "param": "jump" }, { "param": "grounded" }], "fade": 0.1 },
-    { "from": "idle", "to": "move", "when": [{ "param": "speed", "op": ">", "value": 0.2 }], "fade": 0.25 },
-    { "from": "move", "to": "idle", "when": [{ "param": "speed", "op": "<=", "value": 0.2 }] },
-    { "from": "jump", "to": "idle", "exit": 1 }
+    { "from": "swim", "to": "climb", "when": [{ "param": "climb" }, { "param": "atEdge" }], "fade": 0.15 },
+    { "from": "climb", "to": "stand", "exit": 1, "fade": 0.2 },
+    { "from": "stand", "to": "swim", "when": [{ "param": "speed", "op": ">", "value": 0.5 }] }
   ]
 }
 ```
@@ -143,8 +143,8 @@ import { Animator, graph, playable } from "@m3a/core";
 const clips = (id: string) => { const { clip, rest } = library.clip(id); return playable(clip, rest); };
 graph.validateGraph(g, { clips });            // issues: { code, field, message, fix }; none means it plays
 const animator = new Animator(bound.core).play(g, clips);   // throws E_GRAPH naming the issues
-animator.set("speed", 2.1); animator.trigger("jump");       // read from the next step
-animator.on("hit", (e) => game.damage(10));                 // each event as its step passes it ("*": all)
+animator.set("speed", 0.8); animator.trigger("climb");      // read from the next step
+animator.on("splash", (e) => playSound(e.name));           // each event as its step passes it ("*": all)
 animator.graph!.states;                                     // [{ layer, state, from, fade }]
 ```
 
@@ -155,11 +155,12 @@ with `layer()` go over them.
 
 - An event (`clip.events`: `{ t, name, … }`) fires on the step the playhead passes it: in `step(dt).events`,
   `player.update(dt).events` and `animator.on(name, fn)`. A layer at weight 0 fires none (the lowest layer always does).
-- An attack's strike is `clip.facts.strike[0]` (or `measureFacts(clip, rest).strike[0]`): when its hand moves fastest
-  toward the target. Put `{ t: strike, name: "hit" }` in the clip (`playable({ ...clip, events }, rest)`) and apply
-  damage when it fires. Played at speed s, it comes `strike / s` s in.
-- Fade a one-shot in over about 0.1 s: snapped in at weight 1, the body jumps faster than it punches.
-  `animator.layers` shows `held: "end"` once a one-shot ended.
+- An attack's strike is `clip.facts.strike[0]` (or `measureFacts(clip, rest).strike[0]`): when its fastest hand or
+  foot moves fastest toward the target. To act at a moment of a clip, put an event there
+  (`playable({ ...clip, events: [{ t, name }] }, rest)`) and act when it fires, not on a timer. Played at speed s, an
+  event at t comes `t / s` s in.
+- Fade a one-shot in over about 0.1 s or more: snapped in at weight 1, the body jumps. `animator.layers` shows
+  `held: "end"` once a one-shot ended.
 
 ## Wire: reactions
 
@@ -167,8 +168,8 @@ with `layer()` go over them.
   keep what the layers below play. Groups: `upper`, `lower`, `armL`, `armR`, `legs`, `head`, `spine`.
 - **Knocked down:** the knockdown takes the base layer (cross-fade), holds its end, then the next clip. From one pose
   lying on the floor to another, cut (`layer("base", { clip, time: 0 })`): a blend between two lying poses swings the
-  limbs through the floor. The library has `Hit_Head`, `Hit_Chest` (light), `Hit_Knockback` (ends lying) and
-  `LayToIdle` (a get-up from lying).
+  limbs through the floor. Search the library for the reactions (hits, knockdowns, get-ups), and check what a clip does
+  before you use it: `describe` says whether it ends lying, and sets differ (one set's knockback may get back up).
 
 ## Wire: root motion, in place, stride warping
 
@@ -182,8 +183,8 @@ with `layer()` go over them.
 ```ts
 import { sim } from "@m3a/tools";
 const script = { format: "2.0", id: "SIMS/Test", dur: 6, input: [
-  { t: 0.5, set: { speed: 1.2 }, over: 0.3 },   // over: eased there in 0.3 s
-  { t: 3, trigger: "jump" }, { t: 3.1, set: { grounded: false } } ] };
+  { t: 0.5, set: { speed: 0.8 }, over: 0.3 },   // over: eased there in 0.3 s
+  { t: 2, set: { atEdge: true } }, { t: 2.2, trigger: "climb" } ] };
 const run = sim.simulate({ graph: g, script, body: bound.core, clips });
 run.trace.states;    // [{ step, t, layer, state, from }]: when each state was entered
 run.trace.events;    // every event; run.trace.hits: windows from "hit" events
@@ -202,12 +203,12 @@ names its inputs.
 
 ```json
 {
-  "format": "2.0", "id": "EMOTES/Wave_Hop",
+  "format": "2.0", "id": "PATROL/Torch_Walk",
   "steps": [
-    { "op": "clip", "id": "MESH2MOTION/Victory", "loop": 0.2, "as": "hop" },
-    { "op": "retime", "in": "hop", "dur": 1.5, "as": "hop15" },
-    { "op": "clip", "id": "MESH2MOTION/Help_Two_Arms", "loop": 0.2, "as": "wave" },
-    { "op": "layer", "base": "hop15", "over": "wave", "mask": "upper" }
+    { "op": "clip", "id": "QUATERNIUS_3D2DGE/Walk_Loop", "as": "walk" },
+    { "op": "clip", "id": "QUATERNIUS_3D2DGE/Idle_Torch_Loop", "loop": 0.2, "as": "torch" },
+    { "op": "retime", "in": "torch", "dur": 1.333, "as": "torch2" },
+    { "op": "layer", "base": "walk", "over": "torch2", "mask": "upper" }
   ]
 }
 ```
@@ -240,17 +241,17 @@ recipe.validateRecipe(r);                                      // issues: { code
 const { clip, rest } = recipe.compile(r, openLibrary().resolver());   // throws, naming the step
 validate(clip).errors;                                         // a valid format-2 clip
 metrics(clip, rest).verdict;                                   // the sensors, on the clip's own rest
-describe(clip, rest).text;                                     // "a 1.50 s loop; 0.52–0.95 s in the air; …"
-writeFileSync("wave.json", serialize(clip));                   // the clip, as the library writes clips
+describe(clip, rest).text;                                     // "a 1.33 s loop; 0.00–1.33 s walks; …"
+writeFileSync("torch_walk.json", serialize(clip));                   // the clip, as the library writes clips
 ```
 
 ## Make: edits
 
-- **Faster:** `retime` with `speed` (1.3 is 30% faster); the strike and events come sooner with it.
-- **The other hand:** `mirror`.
-- **More anticipation:** before the strike, move the body away from it with a `pose` over `from` 0 `to` just before
-  the strike, faded in and out (`{ "chest": { "turn": 25 } }` winds a right cross back); check that the striking fist
-  draws back before it goes out.
+- **Faster or slower:** `retime` with `speed` (1.5 is half again as fast) or `dur`; events and facts move with it.
+- **The other side:** `mirror` (left and right swapped: the other hand or foot leads).
+- **More anticipation:** before the key moment, move the body the other way with a `pose` from 0 to just before it,
+  faded in and out (an overhand throw: `{ "chest": { "turn": -20, "lean": -8 } }` winds the throwing side back), and
+  check that the moving part draws back before it goes out.
 - **Bigger or softer:** `exaggerate` (1.25: a quarter more), `stiffen`, `smooth`.
 - **What changed:** `measureFacts(clip, rest)` gives `strike` (when the fastest fist or foot moves fastest), `speed`,
   `travel` and `height`; compare an edit's with its source's.

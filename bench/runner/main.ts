@@ -27,6 +27,7 @@ import { closest, finish, fmtMs, parseArgs, usage, type Report, type Step } from
 import { runAgent, type AgentRun } from "./agent.ts";
 import { pack } from "./pack.ts";
 import { answersIn, QUIZ, quizPrompt, score } from "./quiz.ts";
+import { variant } from "@m3a/three/test-characters";
 import { DEFAULT_CHARACTER, prepareWorkspace, type CharacterSpec } from "./workspace.ts";
 
 const ROOT = join(import.meta.dirname, "../.."), BENCH = join(ROOT, "bench");
@@ -38,13 +39,15 @@ export interface BriefSpec {
   good: string[];
   /** Its starter character, when not the default one (B4's avatar: a VRM-named chibi). */
   character?: CharacterSpec;
+  /** The bone naming a variant's generated character must have (B4's: a VRM avatar's, which seeds 0 mod 4 give). */
+  naming?: string;
 }
 /** The briefs, by name (B8 with WP-9.1). */
 export const SPECS: Record<string, BriefSpec> = {
   B1: { starter: "B1", grade: gradeB1, good: ["src/player.ts", "src/sheet.ts"] },
   B2: { starter: "B2", grade: gradeB2, good: ["src/fighter.ts"] },
   B3: { starter: "B3", grade: gradeB3, good: ["src/reactor.ts"] },
-  B4: { starter: "B4", grade: gradeB4, good: ["src/sneak.ts"], character: { seed: 40 } },
+  B4: { starter: "B4", grade: gradeB4, good: ["src/sneak.ts"], character: { seed: 40 }, naming: "vrm" },
   B5: { starter: "B5", grade: gradeB5, good: ["emote.json"] },
   B6: { starter: "B6", grade: gradeB6, good: ["punch.json"] },
   B7: { starter: "B7", grade: gradeB7, good: ["graph.json"] },
@@ -132,6 +135,7 @@ export function runB1(opts: Omit<Parameters<typeof runBrief>[1], "discovery"> & 
 export async function runBrief(name: string, opts: { trials: number; discovery?: number; parallel?: number; variant?: string; model?: string; fake?: boolean; base: string; packs: Record<string, string> }): Promise<{ check?: Trial; trials: Trial[]; discovery: Trial[] }> {
   const spec = SPECS[name]!, { brief, character } = opts.variant ? variantOf(opts.variant) : { brief: join(BENCH, `briefs/${name}.md`), character: spec.character ?? DEFAULT_CHARACTER };
   const out: { check?: Trial; trials: Trial[]; discovery: Trial[] } = { trials: [], discovery: [] };
+  if (spec.naming && "seed" in character && variant(character.seed).naming !== spec.naming) throw new Error(`bench: ${name}'s character must have ${spec.naming} bone names, and seed ${character.seed} gives ${variant(character.seed).naming}'s (a generator seed's naming goes vrm, mixamo, ue5, rigify by its remainder over 4: ${spec.naming} for seeds that leave ${["vrm", "mixamo", "ue5", "rigify"].indexOf(spec.naming)})`);
   if (opts.variant) {
     // the brief's known-good solution on the variant first: if it fails, the package or the grader is at fault
     const ws = await prepareWorkspace(join(opts.base, `${name}-known-good`), { starter: join(BENCH, "starters", spec.starter), brief, character, packs: opts.packs, files: knownGood(name) });
@@ -183,10 +187,8 @@ if (import.meta.main) {
     const names = (parsed.positionals[0] ?? "").split(",").filter(Boolean);
     if (!names.length) throw new Error(`name a brief: ${BRIEFS.join(", ")}`);
     for (const n of names) if (!BRIEFS.includes(n)) throw new Error(`no brief "${n}"; did you mean ${closest(n, BRIEFS)}? (B8 arrives with WP-9.1)`);
-    if (typeof parsed.flags.heldout === "string") {
-      if (names.filter((n) => n !== "quiz").length !== 1) throw new Error("--heldout takes one brief at a time: its variant is the brief's");
-      parsed.flags.variant = latestVariant(parsed.flags.heldout, names.find((n) => n !== "quiz")!);
-    }
+    if ((typeof parsed.flags.heldout === "string" || typeof parsed.flags.variant === "string") && names.filter((n) => n !== "quiz").length !== 1) throw new Error(`--${typeof parsed.flags.heldout === "string" ? "heldout" : "variant"} takes one brief at a time: its variant is the brief's`);
+    if (typeof parsed.flags.heldout === "string") parsed.flags.variant = latestVariant(parsed.flags.heldout, names.find((n) => n !== "quiz")!);
   } catch (err) {
     usage("bench", err, specs);
   }

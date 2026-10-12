@@ -117,7 +117,9 @@ export interface ProceduralOptions {
   /** The pose to start from (and end at): a key's fields, `standingOn` the rest by default. */
   start?: Pose;
   /** The rate frames are sampled at before keys are fitted, and the key budget in mm: a move's 30 and 30, a gait's 60
-   *  and 2, an idle's 30 and 2. */
+   *  and 2, an idle's 30 and 2. A gait's cycle is split evenly into the even number of frames nearest cycle × fps, so its
+   *  loop meets itself and both feet are seen at the same phases (a 0.705 s cycle at 60 is 42 frames, 59.57 a second);
+   *  a gait is made at 50 or more. */
   fps?: number;
   budget?: number;
 }

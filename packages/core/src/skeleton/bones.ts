@@ -57,8 +57,8 @@ export const BODY_POINTS: Readonly<Record<string, readonly Place[]>> = (() => {
   const m: Record<string, Place[]> = {
     pelvis: [j("hips")],
     spine1: [j("spine")],
-    spine2: [j("chest"), { bone: "spine", at: "along", share: 0.5 }],
-    chest: [j("upperChest"), j("chest"), { bone: "spine", at: "tip" }],
+    spine2: [j("chest"), { bone: "spine", at: "along", share: 1 / 3 }],
+    chest: [j("upperChest"), j("chest"), { bone: "spine", at: "along", share: 2 / 3 }],
     neck: [j("neck"), { bone: "head", at: "joint" }],
     head: [j("head")],
     headTop: [{ bone: "head", at: "tip" }],

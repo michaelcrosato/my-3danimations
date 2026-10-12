@@ -51,7 +51,19 @@
    "description": "The state the base layer starts in."
   },
   "states": {
-   "$ref": "#/$defs/states"
+   "allOf": [
+    {
+     "$ref": "#/$defs/states"
+    }
+   ],
+   "additionalProperties": {
+    "not": {
+     "required": [
+      "pass"
+     ]
+    }
+   },
+   "description": "The base layer's states: a pass state belongs on a layer over it."
   },
   "transitions": {
    "$ref": "#/$defs/transitions"
@@ -68,6 +80,11 @@
   "id": {
    "type": "string",
    "pattern": "^[A-Z0-9_]+/[A-Za-z0-9_]+$"
+  },
+  "clipId": {
+   "type": "string",
+   "pattern": "^[A-Z0-9_]+/[A-Za-z0-9_-]+$",
+   "description": "A clip's id, SET/Slug, as the format writes it (its slug may have a hyphen)."
   },
   "name": {
    "type": "string",
@@ -162,7 +179,7 @@
    ],
    "properties": {
     "clip": {
-     "$ref": "#/$defs/id"
+     "$ref": "#/$defs/clipId"
     },
     "recipe": {
      "$ref": "#/$defs/id"
@@ -190,7 +207,48 @@
      "minimum": 0,
      "description": "Where a clip state starts, seconds (0), unless its transition syncs it."
     }
-   }
+   },
+   "allOf": [
+    {
+     "if": {
+      "not": {
+       "anyOf": [
+        {
+         "required": [
+          "clip"
+         ]
+        },
+        {
+         "required": [
+          "recipe"
+         ]
+        }
+       ]
+      }
+     },
+     "then": {
+      "not": {
+       "required": [
+        "at"
+       ]
+      }
+     }
+    },
+    {
+     "if": {
+      "required": [
+       "pass"
+      ]
+     },
+     "then": {
+      "not": {
+       "required": [
+        "rate"
+       ]
+      }
+     }
+    }
+   ]
   },
   "blend": {
    "type": "object",
@@ -249,7 +307,7 @@
         ]
        },
        "clip": {
-        "$ref": "#/$defs/id"
+        "$ref": "#/$defs/clipId"
        }
       }
      }
@@ -257,6 +315,37 @@
     "sync": {
      "type": "boolean",
      "description": "Its clips kept in phase (true)."
+    }
+   },
+   "if": {
+    "required": [
+     "param"
+    ]
+   },
+   "then": {
+    "properties": {
+     "points": {
+      "items": {
+       "properties": {
+        "at": {
+         "type": "number"
+        }
+       }
+      }
+     }
+    }
+   },
+   "else": {
+    "properties": {
+     "points": {
+      "items": {
+       "properties": {
+        "at": {
+         "type": "array"
+        }
+       }
+      }
+     }
     }
    }
   },
@@ -373,7 +462,17 @@
    "additionalProperties": false,
    "properties": {
     "name": {
-     "$ref": "#/$defs/name"
+     "allOf": [
+      {
+       "$ref": "#/$defs/name"
+      },
+      {
+       "not": {
+        "const": "base"
+       }
+      }
+     ],
+     "description": "Its name: not base, the graph's own."
     },
     "start": {
      "$ref": "#/$defs/name"
@@ -387,12 +486,28 @@
     "mask": {
      "oneOf": [
       {
-       "type": "string"
+       "enum": [
+        "upper",
+        "lower",
+        "armL",
+        "armR",
+        "legs",
+        "head",
+        "spine"
+       ]
       },
       {
        "type": "array",
        "items": {
-        "type": "string"
+        "enum": [
+         "upper",
+         "lower",
+         "armL",
+         "armR",
+         "legs",
+         "head",
+         "spine"
+        ]
        }
       },
       {

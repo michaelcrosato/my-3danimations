@@ -8,9 +8,11 @@
 // (each foot from its touchdown to its lift-off). The root and pelvis are put on the format's grid before the feet are
 // aimed, and each planted leg's rounded numbers are chosen to keep its ankle within the format's rounding (a leg's
 // direction is held in hundredths: about 4 mm) of where it landed, through the in-betweening too. A gait it can't play
-// (a stride past the legs' reach, a swing under 0.2 s or faster past the hips than 4 hip heights a second, a number
-// past the range the sensors pass) is refused with what to change. The frames are spread evenly over the cycle, and each
-// knee's turn about its leg, carried on from frame to frame, is closed over it, so the loop meets itself.
+// (a stride past the legs' reach, a swing under 0.2 s, or under 0.25 s lifting over 12%, or faster past the hips than 4
+// hip heights a second, a run's cycle under 0.6 s (0.65 lifting over 25%), a number past the range the sensors pass,
+// under 50 frames a second) is refused with what to change. The frames are spread evenly over the cycle, an even number
+// of them, and each knee's turn about its leg, carried on from frame to frame, is closed over it, so the loop meets
+// itself.
 import { IDX, P, type Rest } from "../format/body.ts";
 import { add, len, mul, qmul, qrot, sub, type Quat, type V3 } from "../format/math.ts";
 import { decodePose, encodePose, type KeyLike } from "../format/pose.ts";
@@ -148,9 +150,19 @@ const MIN_SWING = 0.2;
 /**
  * The fastest a swinging foot may come forward past the hips, % of the hip height a second (its stride over its swing:
  * the speed times its stance over its swing, whatever the cycle): at 420 a long stance's knee pops mid-swing on some
- * bodies (stance 0.75 at 140 on 13 of 64 rests); at 402 and under none did (D71, round 3).
+ * bodies (stance 0.75 at 140: 13 of 128 clips, on 12 rests); at 402 and under none did (D71, round 3). Measured on walks
+ * and limps (stances of 0.62 to 0.75); a run's feet, standing under half the cycle, come forward slower than the body goes,
+ * so it reaches the cap only past 400% of the hip height a second (at stance 0.3, past 930%), where no run was measured.
  */
 const SWING_SPEED = 400;
+/** A lift over 12 (% of the hip height) needs a swing this long, s: lifting 20 or more in 0.2 to 0.22 s, a knee pops on
+ *  most bodies; at 0.25 s and longer none did, up to 35 (D71, round 4). */
+const HIGH_LIFT_SWING = 0.25;
+/** A run's (a stance under half the cycle's) shortest cycle, s, and lifting over 25: under it its feet move too sharply
+ *  between frames, and its seam and knees pop (D71, round 4). */
+const MIN_RUN_CYCLE = 0.6, MIN_HIGH_RUN_CYCLE = 0.65;
+/** The fewest frames a second a gait is made at: fewer, a fast gait's seam steps too far between them (D71, round 4). */
+const MIN_GAIT_FPS = 50;
 /** A gait's numbers checked: in range, and each foot given time to swing (a limp's strong foot most of all). */
 export function checkGait(g: Gait): void {
   const bad = (what: string) => {
@@ -169,9 +181,15 @@ export function checkGait(g: Gait): void {
   const both = g.stance - 0.5, right = 1 - g.stance * (1 - 0.3 * limp) + 2 * both, left = g.stance * (1 - 0.3 * limp);
   if (right > 0.85) bad(`a limp of ${limp} on a stance of ${g.stance} leaves the right foot ${Math.round((1 - right) * 100)}% of the cycle to swing: use a shorter stance or a lighter limp`);
   const swingT = Math.min(1 - right, 1 - left) * g.cycle;
-  if (swingT < MIN_SWING) bad(`its ${1 - right < 1 - left ? "right" : "left"} foot swings for ${swingT.toFixed(3)} s, under ${MIN_SWING} s: a foot up for under 0.1 s reads as never leaving the floor; use a longer cycle, a shorter stance${limp > 0 ? " or a lighter limp" : ""}`);
-  const pace = (share: number) => (g.speed * share) / (1 - share), fast = Math.max(pace(right), pace(left));
-  if (fast > SWING_SPEED) bad(`its ${pace(right) >= pace(left) ? "right" : "left"} foot swings forward past the hips at ${Math.round(fast)}% of the hip height a second, over ${SWING_SPEED}: a knee pops mid-swing on some bodies; use a lower speed or a shorter stance${limp > 0 ? " or a lighter limp" : ""}`);
+  const foot = limp > 0 ? "its right foot swings" : "its feet swing";
+  if (swingT < MIN_SWING) bad(`${foot} for ${swingT.toFixed(3)} s, under ${MIN_SWING} s: a foot up for under 0.1 s reads as never leaving the floor; use a longer cycle, a shorter stance${limp > 0 ? " or a lighter limp" : ""}`);
+  const lift = g.lift ?? 12;
+  if (lift > 12 && swingT < HIGH_LIFT_SWING) bad(`${foot} for ${swingT.toFixed(3)} s, lifting ${lift}% of the hip height: a lift over 12 needs a swing of ${HIGH_LIFT_SWING} s or more (a knee pops lifting higher in less); use a lower lift, a longer cycle or a shorter stance`);
+  const least = lift > 25 ? MIN_HIGH_RUN_CYCLE : MIN_RUN_CYCLE;
+  if (g.stance < 0.5 && g.cycle < least) bad(`a run's cycle of ${g.cycle} s${lift > 25 ? `, lifting ${lift}% of the hip height,` : ""} is under ${least} s (over ${Math.round(120 / least)} steps a minute): its feet move too sharply between frames, and its seam and knees pop; use a longer cycle${lift > 25 ? " or a lift of 25 or less" : ""}`);
+  // (the right foot stands at least as long as the left, so it is the faster forward)
+  const pace = (g.speed * right) / (1 - right);
+  if (pace > SWING_SPEED) bad(`${limp > 0 ? "its right foot comes" : "its feet come"} forward past the hips at ${Math.round(pace)}% of the hip height a second, over ${SWING_SPEED}: a knee pops mid-swing on some bodies; use a lower speed or a shorter stance${limp > 0 ? " or a lighter limp" : ""}`);
 }
 
 /** The gaits the library offers ready made: an easy walk, a brisk one, a run and a limp. */
@@ -185,11 +203,14 @@ export const GAITS: readonly Gait[] = [
 /** A gait as a travelling loop on `rest`, one cycle, from the standing pose (or `opts.start`). */
 export function gaitClip(g: Gait, rest: Rest, opts: ProceduralOptions): Clip {
   checkGait(g);
+  if (opts.fps !== undefined && !(opts.fps >= MIN_GAIT_FPS)) throw new Error(`gait ${g.name}: made at ${opts.fps} frames a second, under ${MIN_GAIT_FPS}: a fast gait's seam steps too far between its frames; use ${MIN_GAIT_FPS} or more (60 by default)`);
   const fps = opts.fps ?? 60, start = opts.start ?? standingOn(rest), S = new Float32Array(P * 3);
   decodePose(rest, start as KeyLike, S);
   // the frames spread evenly over the cycle (to the ms), so the last is as far from the seam as from the one before:
-  // on the rate's grid, a cycle off it would leave its seam a step of a few ms, and any difference there reads as a pop
-  const b = bodyOf(rest, S), pct = rest.H0 / 100, dur = Math.round(g.cycle * 1000) / 1000, nf = Math.max(1, Math.round(dur * fps));
+  // on the rate's grid, a cycle off it would leave its seam a step of a few ms, and any difference there reads as a pop;
+  // an even number of them, so a plain gait's left foot, half a cycle on, is seen at the very phases its right is (with
+  // an odd number its knee fell between frames: a run of 0.65 s, 39 frames, popped the left knee on 10 of 64 rests)
+  const b = bodyOf(rest, S), pct = rest.H0 / 100, dur = Math.round(g.cycle * 1000) / 1000, nf = Math.max(2, 2 * Math.round((dur * fps) / 2));
   const times = Array.from({ length: nf }, (_, i) => Math.round((i * dur * 1000) / nf) / 1000);
   const lift = (g.lift ?? 12) * pct, limp = g.limp ?? 0;
   // the right foot lands at phase 0 and the left at landL; a limp's weak left leg stands for less, landing late enough
