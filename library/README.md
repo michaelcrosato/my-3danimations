@@ -29,3 +29,21 @@ lock's `aliases`, with a warning naming its successor.
 
 Clips change only through the canonical serializer (core's `serialize`, then the library's writer), one work package
 at a time (PLAN.md §8.4).
+
+## Licenses and credits (WP-5.7)
+
+`npm run license -- check library` checks every set's terms: each source an SPDX id (`LicenseRef-CMU-Mocap` for CMU's
+notice) that fits the set's tier, its text kept verbatim in `LICENSES/<id>.txt`, and a credit line on every `cc-by`
+and `cmu` set; an open `audit` on a source is listed as a question. `npm run license -- check <SET>` checks one set.
+
+A game checks what it uses with a game manifest:
+
+```json
+{ "game": "Dockside Courier", "tiers": ["cc0", "cc-by"], "clips": ["QUATERNIUS_3D2DGE/Walk_Loop", "STYLE100/Angry_Walk"] }
+```
+
+`npm run license -- check game.json` fails a clip from a tier the game didn't opt into (CC0 alone by default), a clip
+the library doesn't have, and `local` content in a game that ships (`"ships": false` for one that stays on its
+machine), and prints the credits block the game shows: one line per credited set its clips come from. Listing no
+clips credits every set of its tiers. In code: `checkSets` and `checkGame` from `@m3a/library`, `licenseText` from
+`@m3a/library/node`.

@@ -4,6 +4,16 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.29.0 · 2026-10-12
+
+### Library
+- License compliance (WP-5.7, D59): `checkSets` (each source an SPDX id fitting its set's tier, its text kept, a
+  credited set's credit; open audits listed) and `checkGame` (a game manifest's clips from the tiers it opts into, no
+  `local` content shipped), the credits owed and `creditsBlock`; `licenseText` in `@m3a/library/node`.
+
+### Tools
+- `npm run license -- check <library | SET | game.json>`: the check, with the credits block a game shows.
+
 ## 0.28.1 · 2026-10-12
 
 ### Core

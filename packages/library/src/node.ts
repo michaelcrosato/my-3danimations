@@ -43,3 +43,11 @@ export function lockLibrary(dir = defaultSets(), previous?: LibraryLock): Librar
   }
   return { about: "Each set's content id (spec/MOTION.md §9.2) and each clip file's SHA-256, so the loader names a file that changed (WP-5.1). Written by npm run library -- lock; aliases map a deprecated id to its successor.", sets, aliases: previous?.aliases ?? {} };
 }
+
+/** A license's text as the library keeps it (`LICENSES/<id>.txt` beside the sets), or null when it isn't kept. */
+export function licenseText(dir = defaultSets()): (id: string) => string | null {
+  return (id) => {
+    const f = join(dirname(dir), "LICENSES", `${id}.txt`);
+    return /^[\w.+-]+$/.test(id) && existsSync(f) ? readFileSync(f, "utf8") : null;
+  };
+}

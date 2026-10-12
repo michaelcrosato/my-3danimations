@@ -29,3 +29,9 @@ export type { SetInfo } from "./load/index.ts";
 export type { CatalogRow } from "./load/index.ts";
 /** A clip loaded with its rest, set and tier. */
 export type { LoadedClip } from "./load/index.ts";
+/** License compliance: sets checked against their tiers and texts, or a game's clips against the tiers it opts into. */
+export { checkSets, checkGame, creditsBlock } from "./license/index.ts";
+/** What a game uses: its tiers, its clips, whether it ships. */
+export type { GameManifest } from "./license/index.ts";
+/** A license check's outcome, one problem, and a credit owed. */
+export type { LicenseReport, LicenseFinding, Credit } from "./license/index.ts";

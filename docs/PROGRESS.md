@@ -3,7 +3,7 @@
 The current state on one screen (at most 40 lines; `npm run doctrine` checks it from WP-0.3). The ledger is
 `PLAN.md` §14; decisions are in `docs/DECISIONS.md`.
 
-**Phase:** 4 First flight. **Next gate:** G4 (M1), run 2. **Version:** 0.28.1.
+**Phase:** 4 First flight. **Next gate:** G4 (M1), run 2. **Version:** 0.29.0.
 **Mode:** one agent (D21), branch `claude/relaxed-albattani-939ofg` (D50: it takes over michaelcrosato/my-3danimations#9).
 
 ## Done
@@ -12,9 +12,8 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 - Phase 1 (G1 passed, michaelcrosato/my-3danimations#5): spec 2.0-rc frozen; validator; codec; skeleton profile;
   seed sets in format 2 (525 clips, 0 errors). D25 to D32.
 - Phase 2 (G2 passed, michaelcrosato/my-3danimations#6): portable math, the same bits in V8 and JavaScriptCore (D33);
-  the clip runtime and measured facts (D34); pose operations (D35); the solver on any recognized skeleton, its roll
-  tested (D36, F2); planted feet and the ground (D37); the Animator, the same hashes and exact poses in Node,
-  Chromium and Bun, and core's public API of 38 documented names (D38, F3).
+  the clip runtime and facts (D34); pose operations (D35); the solver (D36, F2); planted feet and the ground (D37); the
+  Animator, the same hashes and exact poses in Node, Chromium and Bun; core's API of 38 documented names (D38, F3).
 - Phase 3 (G3 passed, michaelcrosato/my-3danimations#7): raster (D39); sheets, diffs (D40); 14 metrics, predicates,
   qa (D41); describe 30 of 30 (D42); 100 of 100 planted defects at their times (D43); lint and fix (D44). The G3
   verifier's 16 findings and its second review's 5, all fixed (0.19.0, 0.19.1).
@@ -25,6 +24,7 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 
 - Fix forward from G4 run 1: the sweep's 185 missing pairs and the verifier's findings. A second failure is K1
   (PLAN.md §12): run 2 waits for a sweep at ≥95% at a clean commit. Phase 5 lanes that don't need G4 go on.
+- Phase 5 so far: WP-5.1 (D53); WP-5.7 license compliance (D59).
 
 ## Blocked on the owner
 

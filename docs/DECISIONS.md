@@ -1539,3 +1539,23 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   flip; that and the clips' own defects are the next round's.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.28.1
+
+## D59 · 2026-10-12 · License compliance: the sets' terms by tier, and a game manifest of tiers and clips
+
+- **Principle:** 8, WP-5.7, D10
+- **Call:**
+  - `checkSets` (`@m3a/library`): each set's sources carry an SPDX id (or `LicenseRef-` for terms SPDX doesn't list)
+    that fits the set's tier: `cc0` holds CC0-1.0 alone, `cc-by` a CC-BY-x.y (not share-alike: a CC BY-SA clip can't
+    sit in a pack a game ships under its own terms), `cmu` CMU's notice, `local` anything (it never ships). Each
+    license's text is kept verbatim in `library/LICENSES/<id>.txt`; a `cc-by` or `cmu` set says how to credit it. An
+    open `audit` on a source (Mesh2Motion's three, until WP-5.3's per-asset audit) is a question, listed, not a failure.
+  - **A game manifest** (the plan names one, never its shape): `{ game?, tiers?, clips?, ships? }`. The tiers it opts
+    into (CC0 alone by default, D10), the clips it plays by id (none: every set of its tiers), and whether it ships
+    (true by default). `checkGame` fails a clip from a tier it didn't opt into, a clip the library lacks, and `local`
+    content in a game that ships; the credits it owes are the credited sets its clips come from, and `creditsBlock`
+    writes them as lines a game shows. WP-7.1's game config can carry the same fields.
+  - `npm run license -- check <library | SET | game.json>` runs either and prints the block.
+- **Result:** the five seed sets pass, with Mesh2Motion's three open audits listed; CMU_CURATED (60 clips) and STYLE100
+  (98) are the sets to credit. A fixture for each failure fails with its reason.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.29.0

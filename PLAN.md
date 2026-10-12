@@ -2243,7 +2243,7 @@ version, commit, date and a note with the numbers. Gates are rows too.
 | **G4 = M1** | failed, run 1 | 0.28.0 | 6798b45 | 2026-10-12 | run 1, 5 of 8 in 19.7 min (D57, `bench/results/gates/G4-run-1/`): sweep 89.1% of 3,150 (bar 95%; held-out rig 90.9%); B1's variant a grader failure (seed 935, fixed in D56); vectors without the pins in the worktree; check, test (469), doctrine, T2 (the set on six skeletons and the held-out rig, no fail finding), B1 5/5 passed. Run 2 waits for the sweep at ≥95% (K1) |
 | 5.1 Library layout and loader | done | 0.26.0 | (this commit) | 2026-10-12 | ahead of the ledger for WP-4.7 (D53): 5 sets, 525 clips load with their content ids and every file as locked; a tampered file fails with its clip named; a game that hasn't opted in sees the 3 CC0 sets (367 clips); CC0, CC BY and CMU texts in library/LICENSES/ |
 | 5.2 Importers | todo | | | | |
-| 5.7 License compliance | todo | | | | |
+| 5.7 License compliance | done | 0.29.0 | (this commit) | 2026-10-12 | `npm run license -- check`: the 5 seed sets pass (Mesh2Motion's 3 open audits listed; CMU and 100STYLE credited); a game manifest's clips by its tiers, no local content shipped, its credits block (D59); a fixture for each failure fails |
 | 5.6 Large corpora on demand | todo | | | | |
 | 5.3 Re-import from the sources | todo | | | | |
 | 5.4 Facts and auto-labels | todo | | | | |
