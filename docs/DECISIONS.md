@@ -1236,3 +1236,18 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   locks (`settle: false`).
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.24.0
+
+## D50 · 2026-10-12 · Phase 4 continues on this session's branch; michaelcrosato/my-3danimations#9 is superseded
+
+- **Principle:** process
+- **Call:** A new session continues Phase 4. Its branch is `claude/relaxed-albattani-939ofg`, and it may push to no
+  other branch. michaelcrosato/my-3danimations#9 was the phase's draft pull request, on `claude/relaxed-albattani-35xhjq`.
+  Its two commits (c04014e, CI's WebGPU check on SwiftShader's Vulkan; 5b85094, WP-4.5 done at 0.24.0) were checked here
+  before being taken: T0 green in 14.0 s, T1 440 tests in 39.8 s, and T2 9 of 9 with the real rigs (library QA as
+  baselined). They are taken unchanged by a fast-forward. The rest of the phase goes to a new draft pull request from
+  this branch, and #9 is closed with a link to it, not merged.
+- **Why:** a phase's pull request must be one the working session can push to. A fast-forward keeps #9's commits and
+  their history, so nothing in it is lost or rewritten. Closing #9, rather than leaving two open pull requests with the
+  same commits, leaves one place for the G4 report. Reopening #9 undoes the call.
+- **Answered:** no: made without a response, to review (the owner asked this session to review #9 and decide).
+- **Landed in:** v0.24.0 (no package change)

@@ -4,7 +4,7 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 `PLAN.md` §14; decisions are in `docs/DECISIONS.md`.
 
 **Phase:** 4 First flight. **Next gate:** G4 (M1). **Version:** 0.24.0.
-**Mode:** one agent (D21), branch `claude/relaxed-albattani-35xhjq`.
+**Mode:** one agent (D21), branch `claude/relaxed-albattani-939ofg` (D50: it takes over michaelcrosato/my-3danimations#9).
 
 ## Done
 
