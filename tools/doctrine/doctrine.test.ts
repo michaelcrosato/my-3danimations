@@ -1,4 +1,5 @@
 // Tests for the doctrine checks: each check has a passing and a failing fixture, built in a temporary folder.
+import { execFileSync } from "node:child_process";
 import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
@@ -182,10 +183,24 @@ describe("the decisions log", () => {
 });
 
 describe("the local lane", () => {
+  /** A fixture that is a git checkout ignoring the local lane as the repository does, with `add` forced into its index. */
+  const gitFixture = (files: Record<string, string | Uint8Array>, add: string[]): Ctx => {
+    const ctx = fixture({ ...files, ".gitignore": "library/local/*\n!library/local/README.md\n" });
+    execFileSync("git", ["init", "-q"], { cwd: ctx.root });
+    if (add.length) execFileSync("git", ["add", "-f", ...add], { cwd: ctx.root });
+    return makeCtx(ctx.root);
+  };
   it("passes the README alone and fails a committed clip or a shipped set that points at it", () => {
     expect(checkLocal(fixture({ "library/local/README.md": "x", "library/sets/A/_set.json": '{"tier":"cc0"}' }))).toEqual([]);
-    const msgs = checkLocal(fixture({ "library/local/X/Walk.json": "{}", "library/sets/A/_set.json": '{"tier":"local"}', "library/sets/B/catalog.tsv": "see library/local/X" })).map((f) => f.message);
+    const msgs = checkLocal(gitFixture({ "library/local/X/Walk.json": "{}", "library/sets/A/_set.json": '{"tier":"local"}', "library/sets/B/catalog.tsv": "see library/local/X" }, ["library/local/X/Walk.json"])).map((f) => f.message);
     expect(msgs).toHaveLength(3);
+  });
+  it("never reads local content that isn't committed, in a checkout or outside one", () => {
+    const local = { "library/local/README.md": "x", "library/local/LAFAN1/rig.glb": new Uint8Array([0, 1]), "library/local/LAFAN1/_set.json": '{"tier":"local"}' };
+    for (const ctx of [fixture(local), gitFixture(local, [])]) {
+      expect(ctx.files.filter((f) => f.startsWith("library/local/"))).toEqual(["library/local/README.md"]);
+      expect([checkLocal(ctx), checkBinaries(ctx)]).toEqual([[], []]);
+    }
   });
 });
 

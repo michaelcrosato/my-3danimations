@@ -4,6 +4,27 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.31.0 · 2026-10-12
+
+### Tools
+- Large corpora on demand (WP-5.6, D62): `npm run corpora -- cmu --fetch | --survey [--check] | --import | --find |
+  --ledger` fetches CMU's index, archive and the takes it lacks into `.cache/cmu`, each file held to
+  `tools/corpora/cmu.lock.json`, and writes the ledger `tools/corpora/cmu-takes.tsv` (2,548 takes; every row as
+  my-3d2dge's survey wrote it); `npm run corpora -- 100style --fetch | --import [--check]` fetches 100STYLE's archive
+  (held to `tools/corpora/100style.lock.json`) and cuts its extras' six catalogs (`tools/corpora/100style/`) into sets:
+  780 clips, every one cut at the same stretch with the same keys as shardfall's sets (`--check`).
+- The doctrine check outside git reads only what a commit could hold: not `library/local/`'s content, `.cache/` or
+  the outputs.
+
+### IO
+- The shared cutter finds a pick's stretch when asked (`Pick.find`: `straight`, `still`, `whole`, or a way to go:
+  `forward`, `back`, `left`, `right`), cuts a loop going a way from the pass with the cleanest cycle, facing forward,
+  and, `lenient`, leaves out a pick it can't cut with the reason (shardfall's takes.rs); `readBvh` takes `lenient`.
+
+### Library
+- `library/local/README.md`: the local lane's three rules and how to import into it; the library README lists the
+  corpora.
+
 ## 0.30.0 · 2026-10-12
 
 ### IO

@@ -327,9 +327,10 @@ export interface BvhLibrary {
 /**
  * Takes in BVH files cut into clips: `bvh(take)` gives a take's text; each pick a stretch of one (seconds, at the
  * file's own rate unless it says), or each take whole when there are no picks. The rest comes from the first take
- * (every take of a library shares its skeleton; a take whose joints differ is refused).
+ * (every take of a library shares its skeleton; a take whose joints differ is refused). `lenient`: a pick that can't
+ * be cut is left out, the reason logged (`cutPicks`).
  */
-export function readBvh(bvh: (take: string) => string, picks: readonly Pick[] | readonly string[], FPS = 30, opts: { units?: number } = {}): BvhLibrary {
+export function readBvh(bvh: (take: string) => string, picks: readonly Pick[] | readonly string[], FPS = 30, opts: { units?: number; lenient?: boolean } = {}): BvhLibrary {
   const parsed = new Map<string, RiggedBvh>(), first: { r?: RiggedBvh } = {};
   const rigOf = (take: string): RiggedBvh => {
     let r = parsed.get(take);
@@ -338,7 +339,7 @@ export function readBvh(bvh: (take: string) => string, picks: readonly Pick[] | 
       if (first.r && b.names.join("\n") !== first.r.bvh.names.join("\n")) throw new IoError("E_RIG", "its joints differ from the library's first take's", { file: `${take}.bvh` });
       // the same skeleton (its joints and their offsets) takes the first take's rig; another is rigged on its own
       const same = first.r && b.offset.every((o, j) => o.every((x, k) => x === first.r!.bvh.offset[j]![k]));
-      r = first.r && same ? { ...first.r, bvh: b } : rigBvh(b, { ...opts, file: `${take}.bvh` });
+      r = first.r && same ? { ...first.r, bvh: b } : rigBvh(b, { ...(opts.units !== undefined ? { units: opts.units } : {}), file: `${take}.bvh` });
       first.r ??= r;
       parsed.set(take, r);
     }
@@ -354,7 +355,7 @@ export function readBvh(bvh: (take: string) => string, picks: readonly Pick[] | 
     const r = rigOf(take);
     return { frames: bvhFrames(r.bvh), points: (k: number) => bvhPoints(r, bvhPose(r.bvh, k)) };
   };
-  const { clips, lows, log } = cutPicks(takeOf, R.facing, list, FPS);
+  const { clips, lows, log } = cutPicks(takeOf, R.facing, list, FPS, undefined, { lenient: !!opts.lenient });
   clips._rest = restCapture(R.rest, lows, R.facing, FPS);
   return { rig: `bvh:${R.map}`, clips, body: null, log: [`${R.map} skeleton, ${R.scale} m a unit, rest ${R.restFrame === null ? "the zero pose" : `frame ${R.restFrame}`} (stands ${R.stands.toFixed(2)})`, ...log] };
 }

@@ -63,6 +63,40 @@ describe("BVH", () => {
   });
 });
 
+describe("a stretch found in a long take (100STYLE's way)", () => {
+  // 15 s at 30 fps, facing +z (the figure's left is +x): 3 s walking in, 4 s sidestepping left, 4 s sidestepping right,
+  // 4 s walking out; the elbow bends once a second all along, so every stretch holds cycles
+  const bend = (f: number) => 45 + 45 * Math.sin((2 * Math.PI * f) / 30);
+  const side = tinyBvh(450, 1 / 30, bend, (f, v) => {
+    const t = f / 30;
+    v[0] = t < 3 ? 0 : t < 7 ? 40 * (t - 3) : t < 11 ? 160 - 40 * (t - 7) : 0;
+    v[2] = t < 3 ? 40 * t : t < 11 ? 120 : 120 + 40 * (t - 11);
+  });
+  // 12 s: walking forward 4 s, standing 4 s, walking on 4 s
+  const pause = tinyBvh(360, 1 / 30, bend, (f, v) => {
+    const t = f / 30;
+    v[2] = t < 4 ? 40 * t : t < 8 ? 160 : 160 + 40 * (t - 8);
+  });
+  const cut = (text: string, find: "left" | "right" | "still" | "back") => readBvh(() => text, [{ name: "C", take: "t", loop: true, minCycle: 0.8, find }], 30, { lenient: true });
+  const span = (c: Capture) => c.take!.split(" ")[1]!.split("-").map(Number) as [number, number];
+  it("cuts a loop going a way from the pass that goes that way, facing forward", () => {
+    for (const [way, a, b] of [["left", 3, 7], ["right", 7, 11]] as const) {
+      const lib = cut(side, way), c = lib.clips.C!, [from, to] = span(c);
+      expect([from >= a, to <= b, c.loop], `${way}: ${c.take}`).toEqual([true, true, true]);
+      expect(lib.log.some((l) => l.startsWith(`C: 1 passes of t going ${way}`))).toBe(true);
+      // facing forward: the pelvis's own forward point ahead of it, whichever way the clip went
+      expect(at(c, 0, "pelvisF")[0]! - at(c, 0, "pelvis")[0]!).toBeGreaterThan(50);
+    }
+  });
+  it("finds where the hips stay put, and leaves out a pick that has no pass its way, saying why", () => {
+    const [from, to] = span(cut(pause, "still").clips.C!);
+    expect([from >= 4, to <= 8], `${from}-${to}`).toEqual([true, true]);
+    const none = cut(side, "back");
+    expect([none.clips.C, none.log.find((l) => l.startsWith("left out C"))]).toEqual([undefined, expect.stringMatching(/t has no straight stretch going back/)]);
+    expect(() => readBvh(() => side, [{ name: "C", take: "t", loop: true, find: "back" }], 30)).toThrow(/no straight stretch going back/);
+  });
+});
+
 describe("glTF on any rig", () => {
   it("reads the tiny rig by its bone map with the joints where the exact reader puts them", () => {
     const doc = parseGlb(tier1bRigGlb()), exact = readGltf(doc).clips.Wave_Loop!, posed = readGltfPosed(doc, { fps: 30 });

@@ -3,7 +3,7 @@
 The current state on one screen (at most 40 lines; `npm run doctrine` checks it from WP-0.3). The ledger is
 `PLAN.md` §14; decisions are in `docs/DECISIONS.md`.
 
-**Phase:** 4 First flight. **Next gate:** G4 (M1), run 2. **Version:** 0.30.0.
+**Phase:** 4 First flight. **Next gate:** G4 (M1), run 2. **Version:** 0.31.0.
 **Mode:** one agent (D21), branch `claude/relaxed-albattani-939ofg` (D50: it takes over michaelcrosato/my-3danimations#9).
 
 ## Done
@@ -24,7 +24,7 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 
 - Fix forward from G4 run 1: the sweep's 185 missing pairs and the verifier's findings. A second failure is K1
   (PLAN.md §12): run 2 waits for a sweep at ≥95% at a clean commit. Phase 5 lanes that don't need G4 go on.
-- Phase 5 so far: WP-5.1 (D53); WP-5.7 license compliance (D59); WP-5.2 the importers, `@m3a/io` (D61).
+- Phase 5 so far: WP-5.1 (D53); 5.7 licenses (D59); 5.2 the importers, `@m3a/io` (D61); 5.6 the corpora (D62).
 
 ## Blocked on the owner
 

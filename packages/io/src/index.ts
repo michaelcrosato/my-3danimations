@@ -63,7 +63,7 @@ export const rigBvh = guard(bvh.rigBvh, optFile(1));
 /** Takes in BVH files cut into clips. */
 export const readBvh = guard(bvh.readBvh);
 /** Takes cut into clips (loops at their best cycle, closed), and the rest stood on the takes' floor. */
-export { cutPicks, restCapture, type Pick, type Take, type Facing } from "./takes.ts";
+export { cutPicks, restCapture, type Pick, type Take, type Facing, type Find, type Way } from "./takes.ts";
 /** VRM animations: a clip played on a bound skeleton written as .vrma, and its types. */
 export { vrmaOf, encodeVrma, writeVrma, type Vrma, type VrmaNode, type VrmaTrack, type VrmaExtras } from "./vrma/vrma.ts";
 /** A .vrma read back exactly. */

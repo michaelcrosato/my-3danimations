@@ -47,3 +47,20 @@ the library doesn't have, and `local` content in a game that ships (`"ships": fa
 machine), and prints the credits block the game shows: one line per credited set its clips come from. Listing no
 clips credits every set of its tiers. In code: `checkSets` and `checkGame` from `@m3a/library`, `licenseText` from
 `@m3a/library/node`.
+
+## Large corpora (WP-5.6)
+
+The libraries too large to commit are fetched on demand into `.cache/` (git-ignored), each file held to a lock in
+`tools/corpora/`, and read from there:
+
+- **CMU** (2,548 takes, 10.7 hours): `npm run corpora -- cmu --fetch` takes the site's index, its 1.08 GB archive and
+  the takes the archive lacks. `--survey` converts every take with `@m3a/io` and writes the ledger,
+  `tools/corpora/cmu-takes.tsv` (one line a take: category, length, fit, where it moves, which CMU_CURATED clips use
+  it, your note); `--survey --check` regenerates it byte for byte. `--ledger combat --status none` and `--find kick`
+  search it; `--import` writes every take as a set a subject into `.cache/corpora/cmu`.
+- **100STYLE** (CC BY 4.0): `npm run corpora -- 100style --fetch` takes the 1.47 GB archive from Zenodo; `--import`
+  cuts the extras (runs, backward walks and runs, sidesteps and sideways runs each way, idles: six catalogs in
+  `tools/corpora/100style/`) from it, inside the frames the dataset marks as each style, into sets in
+  `.cache/corpora/100style`; `--check` compares each clip with shardfall's.
+
+Libraries that may not be redistributed go in `library/local/` instead (its README).
