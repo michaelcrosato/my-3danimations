@@ -54,6 +54,20 @@ export const GATES: Record<string, [string, string, ...string[]][]> = {
     ["B1: at least 4 of 5 fresh agents; 2 discovery trials, reported (§7)", "bench", "B1", "--trials", "5", "--discovery", "2"],
     ["B1's held-out variant: at least 4 of 5 fresh agents", "bench", "B1", "--trials", "5", "--heldout", "G4"],
   ],
+  G5: [
+    ["check", "check"],
+    ["test", "test"],
+    ["doctrine", "doctrine"],
+    ["vectors --check", "vectors", "--check"],
+    ["the re-imported sets rebuild byte for byte, within the fit limits, every clip valid", "import", "--check"],
+    ["the migrated sets rebuild byte for byte, their keys the sources'", "migrate", "--check"],
+    ["every clip's facts and contacts as measured; no tag its facts don't bear out", "facts", "--check"],
+    ["library QA: every clip's verdict, 1,000 unique motions, the category floors, the CC0 pack's count", "qa", "library", "--check"],
+    ["search: the 40 game moments and the held-out queries", "test", "search"],
+    ["licenses: every shipped set", "license", "check", "library"],
+    ["the library loads, every file as locked", "library", "check"],
+    ["T2: browser checks and library QA", "e2e"],
+  ],
 };
 
 if (import.meta.main) {
