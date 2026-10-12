@@ -28,7 +28,8 @@ Units: millimetres and degrees in m3a, metres in three.js (the adapter converts)
   the mixed pose onto the skeleton. With `@m3a/three`, `attach(animator, bound).update(dt)` does both and writes the
   bones.
 - **Contacts** (when a foot stands) let the Animator plant feet and move the root the way the feet push it. The
-  library's clips don't carry them yet: measure them with `measureFacts(clip, rest).contacts` and put them on the clip.
+  library's clips don't carry them yet; `playable(clip, rest)` measures them on the clip's own rest and puts them on
+  the clip, with its library's spine and neck shares (so its torso bends as its library posed it, on any body).
 - **Root motion**: an in-place loop with contacts travels as its planted feet imply. `attach(...).moved` (mm, the
   character's own frame: `forward`, `right`, `yaw`) is how far it went in the last update; move your character by
   it, and its feet stay put.
@@ -69,10 +70,10 @@ humanoid rigs, by names or by topology.
 ## Wire: play clips
 
 ```ts
-import { Animator, contact, measureFacts } from "@m3a/core";
+import { Animator, contact, measureFacts, playable } from "@m3a/core";
 import { attach } from "@m3a/three";
 
-const ready = { ...repaired, contacts: measureFacts(repaired, rest).contacts };   // feet planted, root motion
+const ready = playable(repaired, rest);           // contacts (feet planted, root motion) and its library's spine
 const animator = new Animator(bound.core).layer("base", { clip: ready });
 const player = attach(animator, bound);
 
@@ -119,7 +120,7 @@ A sheet costs about width × height / 750 tokens to look at; read the numbers fi
 ## Rules and common mistakes
 
 - Clips are data: never edit `clip.keys` by hand to fix motion; use `fix`, or make a new clip (WP-6).
-- Measure contacts on the clip's own `rest`, not on your character's: `measureFacts(clip, rest)`.
+- Measure a clip on its own `rest`, not on your character's: `playable(clip, rest)`, `measureFacts(clip, rest)`.
 - A clip's `speed` in the catalog is % of hip height per second on its own body; on yours, use `contactRoot(...).speed`.
 - Don't scale or re-parent the character's bones yourself; `bind` reads them once, and `attach` writes rotations.
 - `update(dt)` with a varying `dt` is fine: the Animator steps in fixed 1/60 s steps and carries the rest.

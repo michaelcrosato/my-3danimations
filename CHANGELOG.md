@@ -4,6 +4,28 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.28.0 · 2026-10-12
+
+### Core
+- A clip plays with its library's spine and neck shares (spec §3.3, D55): `AnimClip.shares`; the Animator carries them
+  in each key's `spine` and mixes the neck's as the head is; `playable(clip, rest)` makes a library clip ready (its
+  contacts measured on its rest, its shares); `solver.reachable(k, R)` keeps the neck where R's shares put it when
+  the hips carry the lowest segment.
+- Planting: the settle, a planted foot's float and the reach drop averaged over ±0.1 s (`PlantOptions.settleSmooth`),
+  within 2% of H0 of the pose's own; a planted sole within 2.5 mm of the surface, the body down far enough that a
+  planted foot floats at most 3 mm; each sample reads its own hold; the reach drop continuous past the leg's reach;
+  a knee the clip holds past straight no longer folds backward when the planted leg bends further.
+- `clip.sole`: a foot's sole points (the heel turned with the foot), moved from the sensors.
+
+### Sensors
+- The sole comes from core (`clip.sole`); readings unchanged.
+
+### Three
+- The demo (`apps/lab/hello`): the jab for the attack; the flight lasts through the landing's fade.
+
+### Tools
+- The sweep plays clips with their library's shares.
+
 ## 0.27.0 · 2026-10-12
 
 ### Sensors

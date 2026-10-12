@@ -8,7 +8,7 @@
 // Carried from my-3d2dge's Mocap.drive (src/mocap/mocap.js:165-262: directions at the rig's own lengths, two-bone IK,
 // the sole on the floor), E.ik3 and readable.js's pole helpers, through the decoder that ports them.
 import { hintFor, IDX, SG, type Rest, type Side } from "../format/body.ts";
-import { loc, wld, type Frame, type V3 } from "../format/math.ts";
+import { add, compose, fromEuler, loc, qFromTo, qrot, qslerp, sub, wld, type Frame, type V3 } from "../format/math.ts";
 import { decodePose, limbPoles, torso, type KeyLike } from "../format/pose.ts";
 import { PORTABLE } from "../math/portable.ts";
 import * as quat from "../math/quat.ts";
@@ -107,15 +107,50 @@ export function solveRest(b: Bound, source?: Pick<Rest, "spineW" | "neckW">): Re
   const w = source ? source.spineW : b.rest.spineW;
   return { ...b.rest, spineW: [0, w[1]!, w[2]!, w[3]!], neckW: source ? source.neckW : b.rest.neckW };
 }
-/** Key k as the solver decodes it: a format-2 `spine` share on the lowest segment carried by the hips (`solveRest`). */
-export function reachable(k: KeyLike): KeyLike {
+/**
+ * Key k as the solver decodes it: no share of the chest's turn on the lowest spine segment, which the hips carry
+ * (`solveRest`). Given the body R with its shares (the source library's or its own), the segments above bend further,
+ * their shares raised toward the chest's turn by one amount, until the neck (where the arms and the head hang) sits as
+ * near as they can bring it to where R's shares put it: a body leaning over keeps its shoulders over the same place, so
+ * its arms hold what they hold rather than swinging into its hips. Without R, the lowest share is only dropped.
+ */
+export function reachable(k: KeyLike, R?: Rest): KeyLike {
   const sp = k.spine as number[] | undefined;
-  return sp && sp[0] !== 0 ? { ...k, spine: [0, sp[1]!, sp[2]!] } : k;
+  if (!R) return sp && sp[0] !== 0 ? { ...k, spine: [0, sp[1]!, sp[2]!] } : k;
+  const w = [0, 1, 2].map((i) => (sp ? sp[i]! / 100 : R.spineW[i]!));
+  if (!(w[0] !== 0) || !k.body || !k.chest) return w[0] !== 0 ? { ...k, spine: [0, w[1]! * 100, w[2]! * 100] } : k;
+  const RP = fromEuler(k.body), qP = qFromTo(R.Pr, RP), qC = qFromTo(R.Cr, compose(RP, fromEuler(k.chest)));
+  const neck = (ws: readonly number[]): V3 => {
+    let at: V3 = [0, 0, 0];
+    for (let i = 0; i < 4; i++) at = add(at, qrot(qslerp(qP, qC, i < 3 ? ws[i]! : R.spineW[3]!), R.spine[i]!));
+    return at;
+  };
+  const aim = neck(w), raised = (a: number) => [0, w[1]! + a * (1 - w[1]!), w[2]! + a * (1 - w[2]!)];
+  const miss = (a: number) => {
+    const d = sub(neck(raised(a)), aim);
+    return d[0] * d[0] + d[1] * d[1] + d[2] * d[2];
+  };
+  // the amount by golden section over [0, 1] (the miss is smooth and has one low there for a body's bend)
+  const G = 0.6180339887498949;
+  let lo = 0, hi = 1, x1 = hi - G * (hi - lo), x2 = lo + G * (hi - lo), f1 = miss(x1), f2 = miss(x2);
+  for (let i = 0; i < 24; i++) {
+    if (f1 <= f2) {
+      [hi, x2, f2] = [x2, x1, f1];
+      x1 = hi - G * (hi - lo);
+      f1 = miss(x1);
+    } else {
+      [lo, x1, f1] = [x1, x2, f2];
+      x2 = lo + G * (hi - lo);
+      f2 = miss(x2);
+    }
+  }
+  const best = [0, lo, hi, (lo + hi) / 2].reduce((a, b) => (miss(b) < miss(a) ? b : a)), r = raised(best);
+  return { ...k, spine: [0, r[1]! * 100, r[2]! * 100] };
 }
 /** The target body points the solver turns bones toward for key k: decoded on `solveRest`, before any floor lift. */
 export function decodeOn(b: Bound, k: KeyLike, source?: Pick<Rest, "spineW" | "neckW">): Float64Array {
   const X = new Float64Array(108);
-  decodePose(solveRest(b, source), reachable(k), X as unknown as number[]);
+  decodePose(solveRest(b, source), reachable(k, { ...b.rest, spineW: (source ?? b.rest).spineW }), X as unknown as number[]);
   return X;
 }
 
@@ -129,7 +164,7 @@ const CURL: Readonly<Record<string, readonly number[]>> = { Thumb: [20, 40, 40],
 
 /** Solves key pose k onto bound skeleton b. */
 export function solve(key: KeyLike, b: Bound, opts: SolveOptions = {}): Solved {
-  const R = solveRest(b, opts.source), k = reachable(key);
+  const R = solveRest(b, opts.source), k = reachable(key, { ...b.rest, spineW: (opts.source ?? b.rest).spineW });
   const X = new Float64Array(108);
   if (opts.points) X.set(opts.points);
   else decodePose(R, k, X as unknown as number[]);

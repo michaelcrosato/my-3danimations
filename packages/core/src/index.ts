@@ -17,8 +17,10 @@ export { AnimatorError } from "./animator/index.ts";
 export type { AnimatorOptions } from "./animator/index.ts";
 /** One layer's settings: clip, weight, mask, additive, speed and time. */
 export type { LayerOptions } from "./animator/index.ts";
-/** A clip as the Animator plays it: a format-2 clip, or its id, timing and keys. */
+/** A clip as the Animator plays it: a format-2 clip, or its id, timing and keys (with its library's shares). */
 export type { AnimClip } from "./animator/index.ts";
+/** A library clip made ready to play on any body: contacts measured on its own rest, its library's spine shares. */
+export { playable } from "./animator/index.ts";
 /** What one `step(dt)` did: steps run, events passed in order, the root's move. */
 export type { StepResult } from "./animator/index.ts";
 /** One event a playhead passed: its name, layer, clip, clip time and when it fired. */

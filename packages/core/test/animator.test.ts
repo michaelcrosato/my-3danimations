@@ -3,6 +3,8 @@
 // posed; saving at any step and restoring into a new Animator, through JSON, continues exactly; a changed or missing
 // clip is refused by name; and the cost of one character's step and pose, measured. Node against Chromium is the e2e
 // test `animator-parity`. It uses core through its public API (src/index.ts).
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import * as core from "../src/index.ts";
 import { Animator, AnimatorError, bind, type AnimClip, type AnimatorSave, type Key } from "../src/index.ts";
@@ -161,6 +163,35 @@ describe("pose", () => {
     }
     expect(contacts).toBeGreaterThan(5);
     expect(worst).toBeLessThanOrEqual(10);
+  });
+});
+
+describe("a clip's library (spec/MOTION.md §3.3, D55)", () => {
+  const lib = join(import.meta.dirname, "../../../library/sets");
+  const load = (id: string) => {
+    const [set, name] = id.split("/") as [string, string], m = JSON.parse(readFileSync(join(lib, set, "_set.json"), "utf8")), clip = core.parseClip(readFileSync(join(lib, set, `${name}.json`), "utf8"));
+    return { clip, R: m.sources[clip.restSrc].rest as core.Rest };
+  };
+  const at = (X: ArrayLike<number>, n: string) => [0, 1, 2].map((i) => X[core.format.IDX[n]! * 3 + i]!);
+  const neck = (X: ArrayLike<number>) => at(X, "neck").map((x, i) => x - at(X, "pelvis")[i]!);
+  it("bends the spine with its library's shares (playable): the neck where the clip puts it on this body, not 60 mm off", () => {
+    const rig = bind(scriptData().skeleton);
+    // a Quaternius, a CMU and a 100STYLE clip: their shares [0, 0, 0.5, 1], [0.25, 0.65, 1, 1] and [0, 0.45, 0.75, 1];
+    // the CMU's lowest segment, which the hips carry, takes a share, so the segments above bend further to keep the neck
+    for (const [id, close] of [["QUATERNIUS_SHARDFALL/Pistol_Aim_Down", 0.1], ["CMU_CURATED/Hurt_Stomach_Walk_Loop", 2], ["STYLE100/Monk_Walk", 0.1]] as const) {
+      const { clip, R } = load(id), want = { ...rig.rest, spineW: R.spineW, neckW: R.neckW }, ready = core.playable(clip, R);
+      expect(ready.contacts).toEqual(core.measureFacts(clip, R).contacts);
+      expect(ready.shares).toEqual({ spineW: R.spineW, neckW: R.neckW });
+      let kept = 0, lost = 0;
+      for (const t of [0.1, 0.4, 0.7, 1]) {
+        const target = neck(core.format.decodePose(want, core.format.keyAt(clip, t), new Array(108)));
+        const off = (c: AnimClip) => Math.hypot(...neck(new Animator(rig).layer("b", { clip: c, time: t }).pose().points).map((x, i) => x - target[i]!));
+        kept = Math.max(kept, off(ready));
+        lost = Math.max(lost, off({ ...clip, contacts: ready.contacts }));
+      }
+      expect(kept, id).toBeLessThan(close);
+      expect(lost, id).toBeGreaterThan(50);
+    }
   });
 });
 

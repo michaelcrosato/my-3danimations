@@ -129,11 +129,13 @@ describe("the ground", () => {
     });
   }
   it("sets the sole, not the ankle, on flat ground: a planted contact point touches the floor", () => {
+    // within the clip's own dip between keys, which a planted sole keeps by up to 4 mm (D55); the ankle sits ankleZ up
     const { clip, R } = byId("QUATERNIUS_3D2DGE/Walk_Loop"), contacts = measureFacts(clip, R).contacts, m = motionOf(clip, R, contacts);
-    for (let t = 0; t < clip.dur; t += 1 / 30) {
+    for (let t = 0; t < clip.dur; t += 1 / 60) {
       const X = plant(m, t), c = contactsAt({ ...clip, contacts }, t);
-      for (const s of ["L", "R"] as const) if (c[`foot${s}`]) expect(Math.abs(lowest(X, s, R).z)).toBeLessThan(1e-6);
+      for (const s of ["L", "R"] as const) if (c[`foot${s}`]) expect(Math.abs(lowest(X, s, R).z)).toBeLessThanOrEqual(4 + 1e-9);
     }
+    expect(R.ankleZ).toBeGreaterThan(40);
   });
   it("without settling, keeps the body at its height but where a leg can't reach, the planted soles on the floor", () => {
     for (const id of ["QUATERNIUS_3D2DGE/Walk_Loop", "MESH2MOTION/Zombie_Scratch"]) {
@@ -208,6 +210,38 @@ describe("on another body, and under a cross-fade (D51)", () => {
       }
       expect(worst, id).toBeLessThan(14);
     }
+  });
+  it("doesn't carry a planted sole's every millimetre into the hips: the pelvis jerks at most 12 mm a step² more than unplanted", () => {
+    // the settle followed a planted toe dipping between two keys frame by frame: Sprint's pelvis jerked 37 mm more (D55)
+    const { clip, R } = byId("MESH2MOTION/Sprint"), a = new Animator(rig).layer("b", { clip: { ...clip, contacts: measureFacts(clip, R).contacts } });
+    const z: [number, number][] = [];
+    for (let i = 0; i <= clip.dur * 60; i++) {
+      z.push([a.pose().points[2]!, a.pose(undefined, { lod: 1 }).points[2]!]);
+      a.step(1 / 60);
+    }
+    let worst = 0;
+    for (let i = 1; i + 1 < z.length; i++) worst = Math.max(worst, Math.abs(z[i + 1]![0] - 2 * z[i]![0] + z[i - 1]![0]) - Math.abs(z[i + 1]![1] - 2 * z[i]![1] + z[i - 1]![1]));
+    expect(worst).toBeLessThan(12);
+  });
+  it("never folds a planted knee backward where the clip's isn't: a leg held a little past straight bends forward", () => {
+    // Chop_Wood's feet held all along: the knee followed the clip's offset behind the line, 273 frames, up to 33 mm (D55)
+    const { clip } = byId("CMU_CURATED/Chop_Wood"), a = new Animator(rig).layer("b", { clip: { ...clip, contacts: { by: "labelled", footL: [[0, clip.dur]], footR: [[0, clip.dur]] } } });
+    const behind = (X: ArrayLike<number>, s: string) => {
+      const h = P(X, "hip" + s), d = P(X, "ankle" + s).map((x, i) => x - h[i]!), u = P(X, "knee" + s).map((x, i) => x - h[i]!), f = P(X, "pelvisF").map((x, i) => x - P(X, "pelvis")[i]!);
+      const al = u.reduce((t, x, i) => t + x * d[i]!, 0) / d.reduce((t, x) => t + x * x, 0), fl = Math.hypot(...f);
+      return u.reduce((t, x, i) => t + ((x - d[i]! * al) * f[i]!) / fl, 0);
+    };
+    let frames = 0, deepest = 0;
+    for (let i = 0; i <= clip.dur * 60; i++) {
+      const p = a.pose().points, free = a.pose(undefined, { lod: 1 }).points;
+      for (const s of ["L", "R"]) {
+        const extra = behind(p, s) - Math.min(0, behind(free, s));
+        if (extra < -5) [frames, deepest] = [frames + 1, Math.min(deepest, extra)];
+      }
+      a.step(1 / 60);
+    }
+    expect(frames).toBeLessThanOrEqual(20);
+    expect(deepest).toBeGreaterThan(-15);
   });
   it("keeps a re-solved knee from snapping: a planted knee moves at most 16 mm a step more than the unplanted one", () => {
     // a knee held straight and let go, or turned round by a nearly straight leg's twist, moved up to 37 mm more

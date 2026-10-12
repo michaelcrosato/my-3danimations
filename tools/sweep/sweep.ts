@@ -5,7 +5,7 @@
 // the clip's own body, read the same way (the clip's own defects are the clip's, not the skeleton's: 29% of the library
 // fails on its own body), and the bones reach every mapped joint's point within 5 mm.
 import { readFileSync } from "node:fs";
-import { Animator, format, measureFacts, solver, type AnimatorPose, type Clip, type Rest } from "@m3a/core";
+import { Animator, format, measureFacts, solver, type AnimatorPose, type AnimClip, type Clip, type Rest } from "@m3a/core";
 import { checks, metrics } from "@m3a/sensors";
 import { bind, type ThreeBound } from "../../packages/three/src/index.ts";
 import { character, loadGlb, variant } from "../../packages/three/test-characters/index.ts";
@@ -59,7 +59,7 @@ export function ownFrames(clip: Clip, R: Rest): Played {
  * over the clip; a loop's last sample its cycle's end, as the sensors take a loop's keys), the feet planted, on the
  * root, with the root's path; and the farthest any mapped bone's joint was from its body point (mm), with when.
  */
-export function played(clip: Clip, b: ThreeBound, lod: 0 | 1 = 0): Played & { reach: number; at: number } {
+export function played(clip: Clip & Pick<AnimClip, "shares">, b: ThreeBound, lod: 0 | 1 = 0): Played & { reach: number; at: number } {
   const n = Math.max(1, Math.ceil(clip.dur * RATE)), h = clip.dur / n, c = b.core, a = new Animator(c, { step: h });
   a.layer("clip", { clip });
   const joints = Object.entries(c.jointPoint), frames: Float32Array[] = [], root: Played["root"] = [];
@@ -121,7 +121,7 @@ export function sweepOne(clip: Clip, R: Rest, b: ThreeBound, rig: string): Sweep
       const opts = { loop: clip.loop, id: clip.id, tags: clip.tags ?? [], parts: true };
       const own = ownFrames(clip, R), mo = checks.motionOfFrames(own.frames, R, { ...opts, root: own.root }), verdict = checks.measure(mo).verdict;
       // played with its contacts, detected on its own body where it carries none (as WP-5.4 writes them into clips)
-      const p = played({ ...clip, contacts: contactsFor(clip, R) }, b), mp = checks.motionOfFrames(p.frames, b.core.rest, { ...opts, root: p.root }), rp = checks.measure(mp);
+      const p = played({ ...clip, contacts: contactsFor(clip, R), shares: R }, b), mp = checks.motionOfFrames(p.frames, b.core.rest, { ...opts, root: p.root }), rp = checks.measure(mp);
       // slide and skate like for like: on the clip's own body over the stretches the played body stands on, where its
       // foot is down too (by height: a foot the clip drags along the floor too fast to read as standing still slides
       // there, and that slide is the clip's)

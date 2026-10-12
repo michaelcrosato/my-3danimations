@@ -5,7 +5,7 @@
 // asks. The character travels by the clip's root motion, which its planted feet imply. The attack's `hit` event is put
 // at the strike time core measures, as a game would add it. Each clip is repaired at load by the sensors' fix, as a game
 // would until WP-5.8 writes the repairs back into the library.
-import { Animator, contact, math, measureFacts, type AnimatorEvent, type Bound, type Clip, type Rest } from "@m3a/core";
+import { Animator, contact, math, measureFacts, playable, type AnimatorEvent, type Bound, type Clip, type Rest } from "@m3a/core";
 import { fix } from "@m3a/sensors";
 
 const { PORTABLE, hashValue } = math;
@@ -26,7 +26,7 @@ export const DEFAULT_CLIPS: Readonly<Record<MoveName, string>> = {
   jumpStart: "MESH2MOTION/Jump_Start",
   jumpAir: "MESH2MOTION/Jump_air",
   jumpLand: "MESH2MOTION/Jump_Land",
-  attack: "QUATERNIUS_3D2DGE/Punch_Cross",
+  attack: "QUATERNIUS_3D2DGE/Punch_Jab",
 };
 
 /** A move ready to play: its clip with the contacts measured on its own body (and for an attack, a `hit` event at its
@@ -43,7 +43,7 @@ export interface Move {
 export function prepare(source: Clip, R: Rest, body: Rest, hit = false): Move {
   const clip = fix(source, R).clip, f = measureFacts(clip, R), events = [...(clip.events ?? [])];
   if (hit && f.strike?.length && !events.some((e) => e.name === "hit")) events.push({ t: f.strike[0]!, name: "hit" });
-  const ready = { ...clip, contacts: clip.contacts ?? f.contacts, events: events.sort((a, b) => a.t - b.t) };
+  const ready = { ...playable(clip, R), events: events.sort((a, b) => a.t - b.t) };
   return { clip: ready, speed: clip.loop ? contact.contactRoot(ready, body, ready.contacts).speed : 0 };
 }
 
@@ -143,9 +143,11 @@ export class Hello {
     this.y += f * c - rt * sn;
     this.heading += yaw;
     this.#advance(dt);
-    // the flight: from the take-off (the jump's start ending) through the hang to the landing, a ballistic arc
+    // the flight: from the take-off (the jump's start ending) through the hang and the fade into the landing, a
+    // ballistic arc; the feet touch down as the landing clip takes over whole, so they don't skid on the ground from the
+    // hang's pose to the landing's
     if (this.#flight !== null) {
-      const T = QUICK + AIR, u = (this.#flight = Math.min(T, this.#flight + dt));
+      const T = QUICK + AIR + QUICK, u = (this.#flight = Math.min(T, this.#flight + dt));
       this.z = (G * T * u) / 2 - (G * u * u) / 2;
       if (u >= T) [this.z, this.#flight] = [0, null];
     }

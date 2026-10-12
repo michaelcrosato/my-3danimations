@@ -1,7 +1,7 @@
 // B1's known-good solution (WP-4.7): idle, walk and run from the CC0 library, repaired by the sensors' fix, their
 // contacts measured, played by core's Animator on the bound character; walk and run at the rate the asked speed needs;
 // the character moved by the root motion its planted feet imply, so they don't slide; moves cross-fade over 0.25 s.
-import { Animator, contact, measureFacts, type Clip } from "@m3a/core";
+import { Animator, contact, playable, type Clip } from "@m3a/core";
 import { openLibrary } from "@m3a/library/node";
 import { fix } from "@m3a/sensors";
 import { attach, bind } from "@m3a/three";
@@ -23,7 +23,7 @@ export async function createPlayer(character: Object3D): Promise<Player> {
   const library = openLibrary(), bound = bind(character), moves = {} as Record<Motion, { clip: Clip; speed: number }>;
   for (const m of ["idle", "walk", "run"] as const) {
     const { clip, rest } = library.clip(CLIPS[m]), repaired = fix(clip, rest).clip;
-    const ready = { ...repaired, contacts: measureFacts(repaired, rest).contacts };
+    const ready = playable(repaired, rest);
     // its own speed on this body (mm/s): the path its planted feet imply here
     moves[m] = { clip: ready, speed: contact.contactRoot(ready, bound.core.rest, ready.contacts).speed };
   }

@@ -109,36 +109,9 @@ export function world(m: Motion, i: number, p: readonly number[]): [number, numb
   return [r.forward + p[0]!, r.right + p[1]!, p[2]!];
 }
 
-const restFoot = new WeakMap<Rest, { f: [number, number, number]; heel: [number, number, number] }>();
-/** The rest's standing foot: the ankle-to-ball direction, and the heel's sole point from the ankle (ankleZ straight down). */
-function standingFoot(R: Rest) {
-  let s = restFoot.get(R);
-  if (!s) {
-    const key = { t: 0, hips: [0, 0, 100], body: [0, 0, 0], chest: [0, 0, 0], head: [0, 0, 0], armL: [0, 0, -100, 0, 0], armR: [0, 0, -100, 0, 0], legL: [0, 0, -100, 0, 0], legR: [0, 0, -100, 0, 0] };
-    const X = format.decodePose(R, key as never, new Float32Array(format.P * 3)), a = at(X, "ankleL"), b = at(X, "ballL");
-    const d = [b[0] - a[0], b[1] - a[1], b[2] - a[2]], n = PORTABLE.hypot(d[0]!, d[1]!, d[2]!);
-    restFoot.set(R, (s = { f: [d[0]! / n, d[1]! / n, d[2]! / n], heel: [0, 0, -R.ankleZ] }));
-  }
-  return s;
-}
-/** v turned by the rotation that takes unit a to unit b (about their common perpendicular). */
-function turn(v: readonly number[], a: readonly number[], b: readonly number[]): [number, number, number] {
-  const ax = [a[1]! * b[2]! - a[2]! * b[1]!, a[2]! * b[0]! - a[0]! * b[2]!, a[0]! * b[1]! - a[1]! * b[0]!], s = PORTABLE.hypot(ax[0]!, ax[1]!, ax[2]!), c = a[0]! * b[0]! + a[1]! * b[1]! + a[2]! * b[2]!;
-  // a and b opposite: half a turn about the side axis (the rest foot's direction lies in the forward-up plane)
-  if (s < 1e-9) return c > 0 ? [v[0]!, v[1]!, v[2]!] : [-v[0]!, v[1]!, -v[2]!];
-  const k = ax.map((x) => x / s), kv = k[0]! * v[0]! + k[1]! * v[1]! + k[2]! * v[2]!, kx = [k[1]! * v[2]! - k[2]! * v[1]!, k[2]! * v[0]! - k[0]! * v[2]!, k[0]! * v[1]! - k[1]! * v[0]!];
-  return [0, 1, 2].map((i) => v[i]! * c + kx[i]! * s + k[i]! * kv * (1 - c)) as [number, number, number];
-}
-/**
- * A foot's sole points: the heel (the standing rest's sole under the ankle, turned with the foot: the ankle-to-ball
- * direction's turn from standing, so a foot pointing up when lying on the back has its heel behind the ankle, not
- * under it), the ball and the toe.
- */
+/** A foot's sole points (heel, ball, toe), core's: the heel turned with the foot from the standing rest's sole. */
 export function sole(m: Motion, X: ArrayLike<number>, s: "L" | "R"): { name: string; p: [number, number, number] }[] {
-  const ank = at(X, "ankle" + s), ball = at(X, "ball" + s), toe = at(X, "toe" + s), rest = standingFoot(m.rest);
-  const d = [ball[0] - ank[0], ball[1] - ank[1], ball[2] - ank[2]], n = PORTABLE.hypot(d[0]!, d[1]!, d[2]!);
-  const h = n > 1e-6 ? turn(rest.heel, rest.f, d.map((x) => x / n)) : rest.heel;
-  return [{ name: "heel", p: [ank[0] + h[0], ank[1] + h[1], ank[2] + h[2]] }, { name: "ball", p: ball }, { name: "toe", p: toe }];
+  return clipNs.sole(m.rest, X, s);
 }
 const HAND = ["wrist", "knuck", "fist"];
 /** An end's points that touch the floor: a foot's sole, a hand's wrist, knuckles and fist. */

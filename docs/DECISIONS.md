@@ -1408,3 +1408,49 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   `STANCE` export (the grader's stillness bar); the boundaries check; `bench/quiz/legend.json`.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.27.0
+
+## D55 · 2026-10-12 · The sweep, round three: clips keep their library's spine, the hips settle smoothly, knees bend forward
+
+- **Principle:** 3, 5, 8, G4 (WP-4.5's follow-up)
+- **Call:** the round-two sweep (D51, 87.7%) was traced again, failure by failure, on G4's six skeletons:
+  - **A clip's library's spine.** Spec §3.3 has a clip decode with its library's spine and neck shares; the Animator
+    used the bound body's own (a skinned rig's are `[0, 0, 0, 1]` and 0), so on every body a torso leaned and a head
+    turned unlike the clip's: a Quaternius pistol aim held its arms 79 mm nearer the hips, and arms went through them.
+    `AnimClip.shares` carries the library's; the Animator puts them in each key's `spine` (so layers blend them) and
+    mixes the neck's as the head is mixed. `playable(clip, rest)` makes a library clip ready: its contacts measured on
+    its rest, its shares. Where the lowest segment takes a share (CMU's), which the hips carry, `solver.reachable`
+    raises the shares above it until the neck sits where the library's shares put it (within 1.2 mm on the test rig).
+  - **The hips settle as a weight shift.** The settle followed a planted sole frame by frame: a toe dipping between two
+    keys (a foot's angles turn its toe through an arc), or pitching at toe-off, bobbed the whole body (Sprint's pelvis
+    jerked 37 mm). The settle, a planted foot's float and the reach drop are now averaged over ±0.1 s
+    (`PlantOptions.settleSmooth`, a triangle over the 60 Hz grid), each within 2% of H0 of the pose's own (a foot
+    landing on a step lifts the body only as the foot on the low ground lets go); a planted sole keeps the clip's dip
+    by at most 2.5 mm, and the body comes down far enough that a planted foot floats at most 3 mm (WP-2.5's 5 mm holds).
+  - **Each sample its own hold.** Each contact's drift is followed once a call and kept as running sums, so the poses
+    either side of t each read their own hold (one hold for all moved every sample at once in a dash).
+  - **The reach drop never jumps.** Past the leg's reach along the ground it went to nothing; it now brings the hip down
+    toward the ankle's height, its limit there (a pushup's feet crossed it).
+  - **Knees bend forward.** A capture often holds a straight leg a little past straight; where the planted leg bends
+    further, the knee followed the clip's offset behind the line. That offset now fades by how far back it points and
+    how much further the leg bends (none at the clip's own bend, so a knee the clip winds round stays the clip's).
+  - **One heel.** The sensors' sole (the heel turned with the foot) moves into core (`clip.sole`).
+  - **The demo.** The cross punch's fade back to idle took the forearm through the chest on three skeletons; the jab's
+    doesn't. The feet touched down as the landing's fade began and skidded on gen-0; the flight now lasts through it.
+- **Tried and not kept:**
+  - Contacts read as the sensors read standing (slower than 0.5 H0/s in the world, or carried with the pelvis, on the
+    shared sole), in core's detection. The sweep's slides and skates fell from 187 to 99 (91.0% with the rest), but
+    holding a foot that slides that fast cost a walk's travel 12 mm, slid planted feet 26 to 89 mm a contact (WP-2.5
+    asks 10) and snapped knees. Core keeps its stricter rule (0.3 H0/s, half the body's speed). The gap between what
+    the sensors judge standing and what core plants is now the largest cause of failure.
+  - A float read straight between keys: the window does more. Pulling a planting foot down over its sole's three-frame
+    ease to meet the surface: 9 of 16 sampled pairs failed on it.
+- **Result:** 89.1% (2,808 of 3,150; 91 pairs fixed, 46 worse): gen-0 85.0%, gen-1 91.4%, gen-2 90.7%, gen-3 91.0%,
+  mannequin 90.5%, Knight 86.3%. The reasons: skate 105, pop 82, slide 82, jitter 59, the seam's speed 47,
+  intersection 15 (58 before), penetration 11, seam 2. G4 asks 95%. The idle, walk, run, jump and attack set plays
+  on all six with no fail finding (warns: jitter, a skate).
+- **Tests:** each fails on the code before it: the neck with and without shares (Quaternius, CMU, 100STYLE), Sprint's
+  pelvis, Chop_Wood's knees held all along, four sweep pairs on generated rigs; WP-2.5's ground tests hold.
+- **Outside WP-4.5's Owns** (one agent, D21): core's planting, solver, Animator and contacts, its public `playable`;
+  the sensors' sole; the demo's attack and flight.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.28.0

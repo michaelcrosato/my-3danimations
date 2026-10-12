@@ -4,9 +4,11 @@
 // them onto the skeleton, with planted feet, the ground and hand targets. It is presentation only: it may be skipped or
 // run at lower detail, and it never feeds back into `step`. Every path runs on the portable math (D33). So the same
 // script of steps gives the same hashes, and an exact pose gives the same joints bit for bit, in Node and in a browser.
+import { measureFacts } from "../clip/facts.ts";
 import type { RootPose } from "../clip/sample.ts";
 import { plant, plantMix, type Ground, type HandTarget, type Motion, type PlantPart } from "../contact/plant.ts";
 import { contactRoot, type ContactRoot } from "../contact/root.ts";
+import type { Rest } from "../format/body.ts";
 import type { V3 } from "../format/math.ts";
 import type { KeyLike } from "../format/pose.ts";
 import { keyAt } from "../format/sample.ts";
@@ -17,8 +19,21 @@ import { addDelta, blend, delta, mask as maskOf, wrap180, type Mask } from "../o
 import type { Bound } from "../solve/bind.ts";
 import { decodeOn, forward, solve, type Solved } from "../solve/solve.ts";
 
-/** A clip the Animator plays: a format-2 clip, or anything with its id, timing and keys (events and contacts optional). */
-export type AnimClip = Pick<Clip, "id" | "dur" | "loop" | "keys"> & Partial<Pick<Clip, "events" | "contacts">>;
+/**
+ * A clip the Animator plays: a format-2 clip, or anything with its id, timing and keys (events and contacts optional).
+ * `shares` are its library's spine and neck shares (its rest's `spineW` and `neckW`, spec/MOTION.md §3.3): with them
+ * its spine bends and its head turns as its library posed them on any body; without, the bound body's own.
+ */
+export type AnimClip = Pick<Clip, "id" | "dur" | "loop" | "keys"> & Partial<Pick<Clip, "events" | "contacts">> & { shares?: Pick<Rest, "spineW" | "neckW"> };
+
+/**
+ * A library clip made ready to play on any body (`const { clip, rest } = library.clip(id)`, then `playable(clip, rest)`):
+ * its contacts measured on its own rest unless it carries them, so its feet plant and its planted feet move the root,
+ * and its library's spine and neck shares, so its spine and head bend as its library posed them (spec/MOTION.md §3.3).
+ */
+export function playable<C extends AnimClip>(clip: C, rest: Rest): C & Required<Pick<AnimClip, "contacts" | "shares">> {
+  return { ...clip, contacts: clip.contacts ?? measureFacts(clip as never, rest).contacts, shares: { spineW: [...rest.spineW], neckW: rest.neckW } };
+}
 
 /** How an Animator runs: the fixed step (seconds, 1/60), the most steps one `step()` call takes, and the ground. */
 export interface AnimatorOptions {
@@ -149,14 +164,15 @@ const NONE: Contacts = { by: "detected" };
 const STILL: ContactRoot = { root: () => ({ forward: 0, right: 0, yaw: 0 }), speed: 0 };
 const HASHES = new WeakMap<AnimClip, string>();
 /**
- * A clip's content hash: what playing it reads (timing, keys, events, contacts), as its JSON text would give it.
+ * A clip's content hash: what playing it reads (timing, keys, events, contacts, and its shares when it has them), as
+ * its JSON text would give it.
  * Cached by object for `layer()`, which reads clips as immutable (edit a copy and set that); `fresh` hashes again, as
  * `restore()` does, so a clip edited in place is still refused.
  */
 export function clipHash(c: AnimClip, fresh = false): string {
   let h = fresh ? undefined : HASHES.get(c);
   if (!h) {
-    h = hashValue(JSON.parse(JSON.stringify({ dur: c.dur, loop: c.loop, keys: c.keys, events: c.events ?? [], contacts: c.contacts ?? null })));
+    h = hashValue(JSON.parse(JSON.stringify({ dur: c.dur, loop: c.loop, keys: c.keys, events: c.events ?? [], contacts: c.contacts ?? null, ...(c.shares ? { shares: { spineW: c.shares.spineW, neckW: c.shares.neckW } } : {}) })));
     HASHES.set(c, h);
   }
   return h;
@@ -424,7 +440,7 @@ export class Animator {
     for (const L of this.#layers) {
       const c = L.src;
       if (!c) continue;
-      const k = keyAt(c, L.time);
+      const k = this.#keyOf(c, L.time);
       if (L.additive) {
         if (acc && L.weight > 0) acc = addDelta(acc, delta(k, this.#ref(c)), L.weight, L.mask ?? undefined);
       } else acc = acc === null ? k : L.weight > 0 ? blend(acc, k, L.weight, L.mask ?? undefined) : acc;
@@ -442,26 +458,26 @@ export class Animator {
     if (!k) throw new AnimatorError("E_LAYER", "nothing to pose: no layer plays a clip; add one with animator.layer(name, { clip })");
     let s: Solved;
     const full = opts.exact || (opts.lod ?? 0) === 0, shares = full ? this.#shares() : [], P = full ? this.#planter() : null;
-    const plantOpts = { ...(this.#ground ? { ground: this.#ground } : {}), ...(opts.hands ? { hands: opts.hands } : {}) };
-    if (!P) s = solve(k, b);
+    const plantOpts = { ...(this.#ground ? { ground: this.#ground } : {}), ...(opts.hands ? { hands: opts.hands } : {}) }, source = this.#source();
+    if (!P) s = solve(k, b, source ? { source } : {});
     else if (shares.length > 1) {
       // a cross-fade or blend: each layer plants its own clip, and their corrections blend by their shares of the legs
       const at = this.#root, parts: PlantPart[] = shares.map(({ L, w }) => {
         const c = L.src!, path = this.#path(c), now = path.root(L.time);
-        return { w, t: L.time, m: { rest: b.rest, dur: c.dur, loop: c.loop, contacts: c.contacts ?? NONE, key: (t) => keyAt(c, t), points: (t) => this.#decoded(c, t), root: (t) => compose(at, between(now, path.root(t))) } };
+        return { w, t: L.time, m: { rest: b.rest, dur: c.dur, loop: c.loop, contacts: c.contacts ?? NONE, key: (t) => this.#keyOf(c, t), points: (t) => this.#decoded(c, t), root: (t) => compose(at, between(now, path.root(t))) } };
       });
-      s = solve(k, b, { points: plantMix(parts, decodeOn(b, k), k, at, plantOpts) });
+      s = solve(k, b, { points: plantMix(parts, decodeOn(b, k, source), k, at, plantOpts), ...(source ? { source } : {}) });
     } else {
       // feet planted by the layer that most decides the legs: its clip's contacts and path, anchored where the root
       // stands now; at its playhead the mixed pose stands in for the clip's
-      const c = P.src!, tL = P.time, path = this.#path(c), now = path.root(tL), at = this.#root, X = decodeOn(b, k);
+      const c = P.src!, tL = P.time, path = this.#path(c), now = path.root(tL), at = this.#root, X = decodeOn(b, k, source);
       const m: Motion = {
         rest: b.rest, dur: c.dur, loop: c.loop, contacts: c.contacts ?? NONE,
-        key: (t) => (t === tL ? k : keyAt(c, t)),
+        key: (t) => (t === tL ? k : this.#keyOf(c, t)),
         points: (t) => (t === tL ? X : this.#decoded(c, t)),
         root: (t) => compose(at, between(now, path.root(t))),
       };
-      s = solve(k, b, { points: plant(m, tL, plantOpts) });
+      s = solve(k, b, { points: plant(m, tL, plantOpts), ...(source ? { source } : {}) });
     }
     const res: AnimatorPose = { ...s, root: { ...this.#root }, key: k, joints: forward(b, s) };
     return out ? Object.assign(out, res) : res;
@@ -524,9 +540,34 @@ export class Animator {
     let X = m.get(t);
     if (!X) {
       if (m.size >= 1024) m.clear();
-      m.set(t, (X = decodeOn(this.bound, keyAt(c, t))));
+      m.set(t, (X = decodeOn(this.bound, this.#keyOf(c, t), c.shares)));
     }
     return X;
+  }
+  /**
+   * Clip c's key at time t, carrying its shares as the key's spine shares when any layer's clip has shares (the bound
+   * body's own for a clip without), so layers blend them as they blend the spine.
+   */
+  #keyOf(c: AnimClip, t: number): KeyLike {
+    const k = keyAt(c, t);
+    if (k.spine !== undefined || !this.#layers.some((L) => L.src?.shares)) return k;
+    const w = (c.shares ?? this.bound.rest).spineW;
+    return { ...k, spine: [w[0]! * 100, w[1]! * 100, w[2]! * 100] };
+  }
+  /**
+   * The shares the solver decodes the mixed key with, when any layer's clip has shares: the neck's taken as the head
+   * is (the lowest layer whole, each above by its weight on the head), the spine's carried in the key itself.
+   */
+  #source(): Pick<Rest, "spineW" | "neckW"> | undefined {
+    if (!this.#layers.some((L) => L.src?.shares)) return undefined;
+    let neck: number | null = null;
+    for (const L of this.#layers) {
+      const c = L.src;
+      if (!c || L.additive) continue;
+      const own = (c.shares ?? this.bound.rest).neckW, k = L.weight * (L.mask ? (L.mask.head ?? 0) : 1);
+      neck = neck === null ? own : neck + (own - neck) * k;
+    }
+    return { spineW: this.bound.rest.spineW, neckW: neck ?? this.bound.rest.neckW };
   }
   /** The key an additive clip's changes are measured from: its first. */
   #ref(c: AnimClip): KeyLike {

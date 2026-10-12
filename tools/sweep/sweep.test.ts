@@ -3,7 +3,8 @@
 // row for each clip on each skeleton, that every failing row gives at least one reason, and that the broken clip fails
 // on both with its "nan: " reason first; that a skeleton missing from the cache is named with how to fetch it; and that
 // `npm run sweep` writes the clip-by-skeleton results to check-output/sweep/results.json; a walk's travel is not read as
-// its loop's seam, and the clip's own slide is read over the stretches the played body stands on (D51). How many clips
+// its loop's seam, and the clip's own slide is read over the stretches the played body stands on (D51); clips play
+// with their library's shares, and four that failed before D55 pass. How many clips
 // pass is not checked here: that is gate G4's bar (95% over its six skeletons and the whole library, PLAN.md §9.3).
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
@@ -55,6 +56,15 @@ describe("the sweep", () => {
     const down = { by: "detected" as const, footL: [[0.5, 2.2]] as [number, number][], handL: [[0, 1]] as [number, number][] };
     expect(likeFor(played, down, { by: "detected", handL: [[0.2, 0.4]] })).toEqual({ by: "detected", footL: [[0.5, 1], [2, 2.2]], handL: [[0.2, 0.4]] });
   });
+  it("plays clips with their library's shares and their soles settled smoothly: four that failed before D55 pass", async () => {
+    // a sprint's toe dipping between keys bobbed the hips (pops); a hurt walk's and a dive roll's torsos lost their
+    // library's lean, and the arms went into the hips (D55)
+    const rigs: Record<string, Awaited<ReturnType<typeof rigOf>>> = {}, lib = libraryClips();
+    for (const [id, rig] of [["MESH2MOTION/Sprint", "gen-0"], ["CMU_CURATED/Wounded_Walk_Loop", "gen-3"], ["MESH2MOTION/Zombie_Yell", "gen-3"], ["CMU_CURATED/Dive_Roll", "gen-0"]] as const) {
+      const c = lib.find((x) => x.clip.id === id)!, r = sweepOne(c.clip, c.rest, (rigs[rig] ??= await rigOf(rig)), rig);
+      expect(r.why, `${id} on ${rig}`).toEqual([]);
+    }
+  }, 120_000);
   it("names a skeleton it can't find, and how to fetch it", async () => {
     await expect(rigOf("no-such-rig")).rejects.toThrow(/^sweep: no rig "no-such-rig" in the cache: npm run fixtures -- fetch/);
   });
