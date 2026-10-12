@@ -3,6 +3,7 @@
 // so a changed file is named. Sets carry a license tier (D10); the default pack is CC0, and a game sees `cc-by`, `cmu`
 // or `local` sets only when it opts in. A deprecated id still resolves, with a warning naming its successor.
 import { parseClip, type Clip, type Rest } from "@m3a/core";
+import { search, type SearchItem, type SearchOptions, type SearchResult } from "../search/index.ts";
 
 /** A set's license tier (D10): `cc0` is the default pack; the others need opting in. */
 export type Tier = "cc0" | "cc-by" | "cmu" | "local";
@@ -90,6 +91,7 @@ export class Library {
   #opts: LibraryOptions;
   #manifests = new Map<string, SetManifest>();
   #verified = new Set<string>();
+  #items: SearchItem[] | undefined;
 
   constructor(source: LibrarySource, opts: LibraryOptions = {}) {
     for (const t of opts.tiers ?? []) if (!(TIERS as readonly string[]).includes(t)) throw new Error(`library: no tier "${t}"; the tiers are ${TIERS.join(", ")}`);
@@ -106,10 +108,26 @@ export class Library {
   /** The catalog rows of the sets the game sees, or of one of them. */
   catalog(set?: string): CatalogRow[] {
     const names = set ? [this.#visible(set).set] : this.sets().map((s) => s.set);
-    return names.flatMap((s) => this.#src.read(s, "catalog.tsv").split("\n").filter((l) => l.trim()).map((line) => {
+    return names.flatMap((s) => this.#rows(s));
+  }
+  /** A set's catalog rows, whatever its tier. */
+  #rows(set: string): CatalogRow[] {
+    return this.#src.read(set, "catalog.tsv").split("\n").filter((l) => l.trim()).map((line) => {
       const [id, dur, loop, speed, tags, desc, src] = line.split("\t");
       return { id: id!, dur: Number(dur), loop: loop === "loop", speed: speed ? Number(speed) : null, tags: tags ? tags.split(" ") : [], desc: desc ?? "", src: src ?? "" };
-    }));
+    });
+  }
+
+  /**
+   * Searches every set's catalog for a game moment in words and filters (WP-5.5's `search`): rows only from the tiers
+   * the game opted into, and `next` naming a closer match in one it hasn't.
+   */
+  search(query: string, opts: Omit<SearchOptions, "tiers"> = {}): SearchResult {
+    this.#items ??= this.#src.sets().sort().flatMap((s) => {
+      const tier = this.#manifest(s).tier;
+      return this.#rows(s).map((r) => ({ ...r, tier }));
+    });
+    return search(this.#items, query, { ...opts, tiers: this.tiers });
   }
 
   /** A clip by id ("SET/Name"), with its rest: its set checked first (a deprecated id resolves, with a warning). */

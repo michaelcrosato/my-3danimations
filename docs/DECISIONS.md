@@ -1794,3 +1794,36 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   on whether they are there; the check makes the tags say what the motion does.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.33.0
+
+## D65 · 2026-10-12 · Search: a vocabulary of motion, the verb first, measured on queries it never saw
+
+- **Principle:** 1, 2, 10, WP-5.5, D10
+- **Call:**
+  - **What it searches:** every set's catalog row (id, duration, loop, speed from the facts, tags, description), in
+    every tier, but it returns only the tiers the game opted into (CC0 alone by default, D10); a better match in another
+    tier is named in `next` with the tiers to opt into. No match is not an error: zero rows, and `next` gives the
+    nearest tags. Rows are short (a description cut at 90 characters), at most 40, 10 by default. The reading tiers: the
+    core list (43 CC0 clips a game usually needs, first among equal scores), then the catalogs, then the CMU ledger,
+    whose takes `next` names when the library has nothing close.
+  - **How it scores:** each word of the query against a clip's tags (3), name (2.5) and description (1), weighted by how
+    rare the word is in the library; through a synonym, 0.7 of that for the concept's first library word and 0.5 for the
+    others ("cut" finds a sword before any attack); the first word, the moment's verb, counts half again ("sneaks past a
+    guard" is a sneak); a clip that answers every word, a third more. Before scoring, stop words go, then idioms become
+    the word they mean ("throws a punch", "slips past", "flags down"), then particles, degree words and light verbs
+    ("gets hit" is a hit; "shuffles down the lane" isn't about anything down).
+  - **The measure:** for the 40 queries written from game moments, a fitting clip (each query's own regex over ids) is
+    in the top 5 for 40, every tier opted in; 37 on CC0 alone, the three misses having no CC0 clip that fits (a dig, a
+    limp, a trip), for which `next` names the CMU clip. Held out, written by verifier subagents that saw only the
+    catalogs:
+    - **Round 1** scored 4 of 10 against the first table, a small list of synonyms: game moments say "elderly",
+      "clinging to the edge", "winded", "split logs", "flag down", and the table knew none of them, while particles
+      ("down") matched clips named …_Down. The vocabulary was rebuilt by kind of motion (moving, fighting, reacting,
+      working, gesturing, resting, about 100 concepts), with idioms, particles and the scoring above. Round 1 is no
+      longer held out (`heldout-round1.json`, kept as a record; it now passes 10 of 10).
+    - **Round 2**, written by a new subagent after the vocabulary was frozen again, without the vocabulary, the 40 or
+      round 1: 8 of 10 every tier opted in (the bar is 8), 7 on CC0 alone. Its misses: "loses his footing on black ice"
+      (a slip it reads as feet) and "teeth chattering in a blizzard" (chattering read as talk).
+- **Why:** an agent writes what the game needs in a designer's words, not the library's; the held-out rounds are what
+  says the search understands them, and the first one said it didn't.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.34.0

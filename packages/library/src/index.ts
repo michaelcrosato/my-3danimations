@@ -50,3 +50,24 @@ export { tagConflicts } from "./facts/index.ts";
 export type { ClipFacts } from "./facts/index.ts";
 /** A tag the facts don't bear out. */
 export type { TagConflict } from "./facts/index.ts";
+
+/** Searches catalog rows for a game moment in words and filters (`Library.search` does it over the library). */
+export { search } from "./search/index.ts";
+/** The core list: the CC0 clips a game usually needs, read first. */
+export { CORE } from "./search/index.ts";
+/** The search's vocabulary as synonyms: a word as a game moment says it, and the words the library says it with. */
+export { SYNONYMS } from "./search/index.ts";
+/** The search's phrases: idioms and words written as one, each the word it means. */
+export { PHRASES } from "./search/index.ts";
+/** A query's words (stemmed) and filters, as the search reads them. */
+export { parseQuery } from "./search/index.ts";
+/** A catalog row with its set's tier: what the search reads. */
+export type { SearchItem } from "./search/index.ts";
+/** A CMU ledger row: a take that can be imported. */
+export type { LedgerItem } from "./search/index.ts";
+/** How to search: tiers, limit, the ledger. */
+export type { SearchOptions } from "./search/index.ts";
+/** One row found. */
+export type { SearchHit } from "./search/index.ts";
+/** What a search found: rows, the total, and what to try next. */
+export type { SearchResult } from "./search/index.ts";

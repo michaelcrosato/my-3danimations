@@ -4,6 +4,17 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.34.0 · 2026-10-12
+
+### Library
+- Search (WP-5.5, D65): `search(items, query, opts)` and `Library.search(query)` over every set's catalog. A game
+  moment in words ("drinks a potion", "slips past the guards unseen") matched against tags, names and descriptions
+  through a vocabulary of concepts by kind of motion, idioms (`PHRASES`) and stems, the moment's verb and rare words
+  counting most; filters `speed>1.5` (m/s on 0.95 m hips), `dur<2`, `loop`, `once`, `set:`, `tier:`, `tag:`. At most
+  40 short rows, the core list (`CORE`, 43 CC0 clips a game usually needs) first among equals, and a `next` hint: the
+  nearest tags when nothing matches, a closer match in a tier the game hasn't opted into, the CMU ledger's takes.
+  For 40 game moments a fitting clip is in the top 5 for 40 (37 on CC0 alone); for 10 held-out ones, 8 (7).
+
 ## 0.33.0 · 2026-10-12
 
 ### Core
