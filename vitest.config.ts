@@ -4,7 +4,7 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
   cacheDir: ".cache/vite",
   test: {
-    include: ["packages/*/test/**/*.test.ts", "tools/**/*.test.ts", "spec/**/*.test.ts"],
-    exclude: ["**/node_modules/**", ".cache/**", "**/dist/**"],
+    include: ["packages/*/test/**/*.test.ts", "tools/**/*.test.ts", "spec/**/*.test.ts", "bench/**/*.test.ts"],
+    exclude: ["**/node_modules/**", ".cache/**", "**/dist/**", "bench/starters/**", "bench/graders/*/known-good/**"],
   },
 });

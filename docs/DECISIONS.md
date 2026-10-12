@@ -1362,3 +1362,42 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   entry), `tools/library/main.ts` (`npm run library`), `library/sets.lock.json`.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.26.0
+
+## D54 · 2026-10-12 · The benchmark harness: isolation level 1, B1 graded on the bones, running seen as flight
+
+- **Principle:** 1, 6, 7, WP-4.7
+- **Call:**
+  - The runner packs each package as an agent installs it (`bench/runner/pack.ts`): each file's types stripped by
+    Node's `stripTypeScriptTypes`, relative `.ts` imports pointed at `.js`, declarations from `tsc -b`, then
+    `npm pack`. `@m3a/library` ships the CC0 sets, the lock narrowed to them and the licenses; `@m3a/tools` ships the
+    manual. WP-7.4 replaces this with the real packaging.
+  - Isolation level 1 as §7 has it: `claude -p` in `/tmp/m3a-bench/<run>/<trial>/`, with a clean environment (the
+    proxy, its certificates and a PATH; none of this session's tokens), a fresh home (no settings, skills or memory),
+    the tools limited to files and a shell, no MCP servers. `--dangerously-skip-permissions` is refused as root, so
+    the tools are pre-approved with `--allowedTools` instead. The stream-json transcript is kept; each trial records
+    its time, turns, tokens and cost, the paths it touched outside its workspace and the files it read past the
+    manual. A one-turn probe checks the credentials first. `--parallel N` runs N agents at once.
+  - B1's grader drives the workspace's player headless with scripted speeds (0, 1.2, 3.5, 1.2, 0 m/s) on the
+    starter's character and judges the bones, not the player's word: the motion reported; the speed travelled
+    (within 25%; under 0.15 m/s idle); the feet stepping when walking (their speed against the pelvis over twice
+    idle's); running seen as flight, both feet off the ground in at least 10% of running frames and under 2% of
+    walking ones; the lower foot still at times while walking or running; the sensors' slide and skate on what played
+    under their **fail** levels; nothing non-finite; a non-blank sheet.
+  - Results go to `bench/results/<date>-<model>-<briefs>.json` (§7 says `<date>-<model>.json`; one file per run of a
+    brief, so a quiz and a B1 run on the same day don't overwrite each other).
+  - `@m3a/three/test-characters` becomes a public subpath (the runner writes a starter's character from a seed, and
+    the grader loads it); the boundaries check now allows any subpath a package's exports map declares.
+- **Why:**
+  - Fail levels, not warn levels, for slide and skate: the sensors' stance (D41) reads a foot as standing only when
+    it is slow, so a skating foot moving fast is never judged, and the known-good solution's slow drift at the start
+    of a stance reads as a warn (skate 25 against 19.8) while nothing is wrong to the eye. The stillness check catches
+    the fast skate the sensors can't see. Raising stance coverage is the sweep's work (D51) and WP-5.8's.
+  - Flight, not a swing ratio, for running: how much faster the feet swing running than walking depends on the
+    body's proportions (1.61 on generator seed 41 against a 1.65 bar, with the known-good playing a jog), while every
+    run has moments with both feet off the ground (62% and 65% of the known-good's running frames) and a walk none.
+  - The quiz runs with no tools and one turn: it tests the legend, not a search.
+- **Outside WP-4.7's Owns** (one agent, D21): `package.json` (`npm run bench`); `vitest.config.ts` and
+  `tsconfig.tests.json` (bench/ in the tests, its starters and known-good out); `@m3a/three`'s exports; sensors'
+  `STANCE` export (the grader's stillness bar); the boundaries check; `bench/quiz/legend.json`.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.27.0

@@ -7,7 +7,7 @@
     "lib": ["es2023", "dom"],
     "types": ["node", "vite/client"]
   },
-  "include": ["packages/*/test/**/*.ts", "packages/three/test-characters/**/*.ts", "tools/**/*.ts", "tests/**/*.ts", "spec/**/*.ts", "apps/**/*.ts", "*.config.ts"],
+  "include": ["packages/*/test/**/*.ts", "packages/three/test-characters/**/*.ts", "tools/**/*.ts", "tests/**/*.ts", "spec/**/*.ts", "apps/**/*.ts", "bench/**/*.ts", "*.config.ts"],
   "exclude": ["node_modules", ".cache", "**/dist"],
   "references": [
     { "path": "packages/core" },

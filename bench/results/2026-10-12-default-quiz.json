@@ -1,0 +1,76 @@
+{
+ "about": "npm run bench: fresh agents on the briefs (PLAN.md §7); isolation 1 is the claude CLI in a clean workspace",
+ "date": "2026-10-12T03-37-36",
+ "commit": "c6d1235aa08e2d3e6261958a03771dc2c2f5d3af",
+ "model": "the CLI's default",
+ "fake": false,
+ "quiz": [
+  {
+   "trial": "quiz-1",
+   "right": 10,
+   "of": 10,
+   "wrong": [],
+   "agent": {
+    "isolation": 1,
+    "ok": true,
+    "ms": 3820.138402,
+    "model": "claude-sonnet-5-5",
+    "turns": 1,
+    "tokens": {
+     "input": 2,
+     "output": 226,
+     "cacheRead": 535,
+     "cacheWrite": 5873
+    },
+    "costUsd": 0.0258095,
+    "outside": [],
+    "pastManual": []
+   }
+  },
+  {
+   "trial": "quiz-2",
+   "right": 10,
+   "of": 10,
+   "wrong": [],
+   "agent": {
+    "isolation": 1,
+    "ok": true,
+    "ms": 4223.830515,
+    "model": "claude-sonnet-5-5",
+    "turns": 1,
+    "tokens": {
+     "input": 2,
+     "output": 274,
+     "cacheRead": 535,
+     "cacheWrite": 5873
+    },
+    "costUsd": 0.0262895,
+    "outside": [],
+    "pastManual": []
+   }
+  },
+  {
+   "trial": "quiz-3",
+   "right": 10,
+   "of": 10,
+   "wrong": [],
+   "agent": {
+    "isolation": 1,
+    "ok": true,
+    "ms": 3828.683056,
+    "model": "claude-sonnet-5-5",
+    "turns": 1,
+    "tokens": {
+     "input": 2,
+     "output": 247,
+     "cacheRead": 535,
+     "cacheWrite": 5873
+    },
+    "costUsd": 0.0260195,
+    "outside": [],
+    "pastManual": []
+   }
+  }
+ ],
+ "ms": 11875
+}

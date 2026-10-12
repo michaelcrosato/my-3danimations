@@ -4,6 +4,25 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.27.0 · 2026-10-12
+
+### Sensors
+- `checks.STANCE` is exported (the speed under which a foot stands).
+
+### Three
+- `@m3a/three/test-characters` is a public entry: the generated test characters and `loadGlb`.
+
+### Tools
+- The benchmark (WP-4.7, D54): `npm run bench -- B1 | quiz [--trials N] [--discovery N] [--parallel N] [--variant
+  dir] [--model m] [--fake]`; fresh agents at isolation level 1 in workspaces outside the repository, the packages
+  installed from their tarballs; each trial's time, turns, tokens, cost and audit in `bench/results/`.
+- B1 (locomotion): its brief, starter, discovery starter and brief, and a grader that judges the character's bones;
+  the legend quiz (deferred from WP-1.1).
+- The manual's first draft (`packages/tools/MANUAL.md`, shipped in `@m3a/tools`).
+
+### Repo
+- The boundaries check allows any subpath a package's exports map declares.
+
 ## 0.26.0 · 2026-10-12
 
 ### Library

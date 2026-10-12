@@ -2,8 +2,9 @@
 // - @m3a/core imports nothing outside its own src/: no packages, no `node:`, no relative path out.
 // - Other packages: Node built-ins only in their `/node` entry (src/node.ts or src/node/), only the packages in
 //   ALLOWED, never another package's internals; @supabase/supabase-js only in @m3a/tools' src/intake/.
-// - Apps and the benchmark reach packages only through `@m3a/<name>` or `@m3a/<name>/node`; labs (apps/lab/) may
-//   reach past, and are listed instead of failed. Nothing imports from apps/ but a lab's own e2e test, its lab.
+// - Apps and the benchmark reach packages only through their public entries: `@m3a/<name>` and the subpaths its
+//   exports map declares (`/node`, `/capture`); labs (apps/lab/) may reach past, and are listed instead of failed.
+//   Nothing imports from apps/ but a lab's own e2e test, its lab.
 // - Each package's public API is its src/index.ts, all of it listed there (PLAN.md WP-2.6): one export per statement,
 //   each with a doc comment, no bare `export *` (a module's surface goes in as a namespace), and core's at most 40.
 import { builtinModules } from "node:module";
@@ -21,6 +22,14 @@ export const ALLOWED: Record<string, RegExp[]> = {
   three: [/^@m3a\/core$/, /^three(\/.*)?$/, /^@pixiv\/three-vrm(-animation)?$/],
   tools: [/^@m3a\/(core|sensors|io|library|three)(\/node)?$/, /^@supabase\/supabase-js$/],
 };
+
+/** The entries a package's exports map declares ("." and its subpaths), none when it has no package.json. */
+function entries(ctx: Ctx, pkg: string): string[] {
+  const file = `packages/${pkg}/package.json`;
+  if (!ctx.files.includes(file)) return [];
+  const e = (JSON.parse(ctx.read(file)) as { exports?: Record<string, unknown> }).exports ?? {};
+  return Object.keys(e);
+}
 
 /** Every module specifier a source file imports, re-exports or loads dynamically. */
 export function specifiers(text: string): string[] {
@@ -106,10 +115,12 @@ export function checkBoundaries(ctx: Ctx): { findings: Finding[]; reachPasts: st
           fail(f, s, "only the IntakeStore in packages/tools/src/intake/ imports the Supabase client (§5.9)");
         }
       } else if (app) {
-        const deep = /^@m3a\/[^/]+\/(?!node$)/.test(s) || (target !== null && target.startsWith("packages/"));
+        // a subpath is public when its package's exports map declares it (`@m3a/three/test-characters`)
+        const sub = /^@m3a\/([^/]+)\/(.+)$/.exec(s), declared = sub ? entries(ctx, sub[1]!).includes(`./${sub[2]}`) : true;
+        const deep = !declared || (target !== null && target.startsWith("packages/"));
         if (deep) {
           if (isLab) reachPasts.push(`${f} -> ${s}`);
-          else fail(f, s, "apps and the benchmark use only the packages' public entries (@m3a/<name> or @m3a/<name>/node)");
+          else fail(f, s, "apps and the benchmark use only the packages' public entries (@m3a/<name>, or a subpath its exports map declares)");
         }
       }
     }
