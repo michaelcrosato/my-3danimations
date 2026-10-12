@@ -68,6 +68,8 @@ describe("boundaries", () => {
       "packages/tools/src/intake/store.ts": 'import { createClient } from "@supabase/supabase-js";',
       "apps/gallery/main.ts": 'import { PACKAGE } from "@m3a/core"; import { x } from "@m3a/io/node";',
       "apps/lab/2026-10-11-q/main.ts": 'import { inner } from "../../../packages/core/src/inner.ts";',
+      // (the specifier built in two parts, so this file's own scan doesn't read it as an import)
+      "tests/e2e/hello.e2e.ts": 'import { Hello } from "../../' + 'apps/lab/hello/src/game.ts";',
     });
     const r = checkBoundaries(ctx);
     expect(r.findings).toEqual([]);
@@ -80,9 +82,10 @@ describe("boundaries", () => {
       "packages/tools/src/cli.ts": 'import { createClient } from "@supabase/supabase-js";',
       "apps/gallery/main.ts": 'import { inner } from "@m3a/core/src/inner.ts";',
       "tools/x.ts": 'import { g } from "../apps/gallery/main.ts";',
+      "tests/e2e/other.e2e.ts": 'import { Hello } from "../../' + 'apps/lab/hello/src/game.ts";',
     });
     const msgs = checkBoundaries(ctx).findings.map((f) => f.message);
-    expect(msgs).toHaveLength(8);
+    expect(msgs).toHaveLength(9);
     expect(msgs.filter((m) => m.startsWith("packages/core/"))).toHaveLength(3);
     expect(msgs.some((m) => m.includes("node entry"))).toBe(true);
     expect(msgs.some((m) => m.includes("IntakeStore"))).toBe(true);

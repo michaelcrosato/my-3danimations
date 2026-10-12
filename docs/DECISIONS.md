@@ -1306,3 +1306,35 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.25.0
 
+## D52 · 2026-10-12 · The first-flight demo: a lab that plays what passes, repaired at load, its jump and travel the game's
+
+- **Principle:** 1, 2, 3, WP-4.6
+- **Call:**
+  - `apps/lab/hello` is a lab (dated 2026-10-12, its question in its README). It reaches past `@m3a/three`'s entry
+    only for the generated test characters.
+  - `game.ts` is the game without a renderer: input → idle, walk or run by speed (cross-faded, each at the rate its
+    speed asks), a jump and an attack. Node runs it too, so the e2e test checks the page's hashes against Node's. The
+    character travels by the Animator's whole root move (forward, right and turn) along its facing, so a held foot
+    stays held where the game puts it. The in-place jump clips leave the height to the game: a ballistic arc from
+    take-off to landing.
+  - The clips are the library's own, CC0, and repaired at load by the sensors' `fix` (each step kept only if it makes
+    the clip better), as a game would do until WP-5.8 writes the repairs back. They were chosen so that each passes
+    the sensors on its own body after repair: Idle_Loop, Walk_Loop, Mesh2Motion's jump and Punch_Cross. Quaternius's
+    Jump_Start opens with a key 38% of H0 lower than the next, 1/30 s later. The jog has no passing alternative
+    (D51). The attack's `hit` is put at the strike time core measures.
+  - Deep links `?char=gen-<seed>`, `?clip=SET/Name`, `?t=` (paused there), `?view=`, `?renderer=webgl2`. The handle
+    `window.__m3a` has `state()`, `play()`, `step(n, input)`, `hash()` and `points()`, the last placed as the game
+    places them. A phone gets a stick and buttons. The stamp shows the version, the commit and the query.
+  - `vercel.json` builds it (`npm run hello -- build`) for when O3 is linked. A Vercel project already reports on the
+    pull requests, so the preview may build from this commit.
+- **Result:** the e2e `hello` builds it with Vite and drives a 13 s session headless on WebGL 2. The page's hashes
+  equal Node's after every part, the hit fires and the HUD counts it, and the sensors read every frame it played:
+  WARN, no fail (a toe's jitter from the jog's twist, a forearm in the chest during the punch). Six screenshots, a
+  deep-linked frame and a contact sheet go to `check-output/hello/`, CI's T2 artifact.
+- **The boundaries check:** nothing imports from `apps/`, except now a lab's own e2e test reading its lab
+  (`tests/e2e/<lab>.e2e.ts` → `apps/lab/<lab>/`), to run the game in Node beside the page.
+- **Outside WP-4.6's Owns** (one agent, D21): `tools/run/hello.ts` (the npm script); `tests/e2e/hello.e2e.ts` (the e2e
+  registry is shared); the boundaries check; `apps/**` in `tsconfig.tests.json`; core's `plantMix`, found by this
+  demo's sensors (D51).
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.25.0

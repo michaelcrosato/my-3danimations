@@ -3,7 +3,7 @@
 The current state on one screen (at most 40 lines; `npm run doctrine` checks it from WP-0.3). The ledger is
 `PLAN.md` §14; decisions are in `docs/DECISIONS.md`.
 
-**Phase:** 4 First flight. **Next gate:** G4 (M1). **Version:** 0.24.0.
+**Phase:** 4 First flight. **Next gate:** G4 (M1). **Version:** 0.25.0.
 **Mode:** one agent (D21), branch `claude/relaxed-albattani-939ofg` (D50: it takes over michaelcrosato/my-3danimations#9).
 
 ## Done
@@ -18,13 +18,13 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 - Phase 3 (G3 passed, michaelcrosato/my-3danimations#7): raster (D39); sheets, diffs (D40); 14 metrics, predicates,
   qa (D41); describe 30 of 30 (D42); 100 of 100 planted defects at their times (D43); lint and fix (D44). The G3
   verifier's 16 findings and its second review's 5, all fixed (0.19.0, 0.19.1).
-- Phase 4 so far (done beside G3's review, brought over after it merged): three.js pinned at r182 (D45); test
-  characters in code and real CC0 rigs by hash (D46); binding, with a report to patch (D47); baking within 0.5 mm (D48).
+- Phase 4 so far: three.js r182 (D45); test characters and real CC0 rigs (D46); binding (D47); baking (D48); capture
+  and the sweep (D49, D51); the first-flight demo `apps/lab/hello`, driven headless, hashes = Node's (D52).
 
 ## Next
 
-- WP-4.5 done (D49): headless capture; the sweep (80–91% generated, 86–88% Quaternius, 62% Knight; G4 asks 95%).
-  Next: WP-4.6 the demo, WP-4.7 B1, then G4.
+- The sweep (D51): 87.7% of 3,150 pairs (84–91% a skeleton; the Knight 62 → 85%); G4 asks 95%.
+- Next: WP-4.7 (the benchmark harness and B1), the sweep's remaining causes, then G4.
 
 ## Blocked on the owner
 

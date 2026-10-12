@@ -1480,7 +1480,7 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
 - **Verify:** `npm run e2e -- capture && npm test -- sweep`
 
 #### WP-4.6 The first-flight demo
-- **Owns:** `apps/lab/hello/*`, `vercel.json`
+- **Owns:** `apps/lab/hello/*`, `vercel.json`, `tools/run/hello.ts` (`npm run hello`, D52)
 - **Needs:** 4.4
 - **Size:** M
 - **Build:**
@@ -2235,7 +2235,7 @@ version, commit, date and a note with the numbers. Gates are rows too.
 | 4.3 Binding a skeleton | done | 0.22.0 | 4197608, 56855f6 | 2026-10-11 | 20 test characters + a held-out seed + the real rigs bind with no hand mapping, lengths as generated to the mm; a fully renamed rig binds through topology at 0.85; renamed, 22 of 24 map as by name, 2 flagged at 0.55; report ≤ 20 lines with a patch that binds; topology fixes in core (D47, D28); 0.23.1: control bones left out, the Knight mapped bone by bone |
 | 4.4 Playback and baking | done | 0.23.0 | 570b92d | 2026-10-11 | baked clips within 0.5 mm of the live solve on Mixamo, UE5 and Rigify characters (4 clips each, ≤1 mm through AnimationMixer); loop, events, contacts, facts in userData and GLTFExporter's extras; masked layers and crossfades through attach; the write allocates 0 bytes a frame, a whole update ≈7 KB and 0.16 ms (D48) |
 | 4.5 Headless capture | done | 0.24.0 | e7d7456, (this commit) | 2026-10-12 | capture: 2 generated + 2 real rigs drawn headless on WebGL 2 in CI, every frame drawn, pose hashes = Node's; blank and wrong-renderer frames fail by code; sweep over 2 test characters lists the broken clip with its reason; library sweep 80–91% on 5 generated, 86–88% on the Quaternius mannequins, 62% on the Knight (G4 asks 95%); planting and toeless-rig fixes (D49) |
-| 4.6 The first-flight demo | todo | | | | |
+| 4.6 The first-flight demo | done | 0.25.0 | (this commit) | 2026-10-12 | lab `apps/lab/hello`: idle, walk, run by speed, jump, attack with its hit; deep links, `__m3a`, phone layout, stamp; `vercel.json`; e2e: a 13 s session headless on WebGL 2, hashes = Node's after every part, the sensors on what it played WARN with no fail, screenshots and a sheet as T2's artifact (D52); cross-fade planting fixed on the way (D51) |
 | 4.7 The benchmark harness and B1 | todo | | | | |
 | **G4 = M1** | todo | | | | |
 | 5.1 Library layout and loader | todo | | | | |

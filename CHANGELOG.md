@@ -4,6 +4,36 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.25.0 · 2026-10-12
+
+### Core
+- Planting on another body (D51): the body settles onto its feet over 0.2 s (`PlantOptions.settleBlend`), from the
+  float a foot had as it lifted or toward the one it lands with; only a standing foot lifts the body; a re-solved knee
+  keeps the clip's knee unless the new ankle bends the leg further; a hold lets go of its drift over 0.2 s
+  (`PlantOptions.release`), done before the foot lands again.
+- `contact.plantMix`: under a cross-fade or a blend each layer plants its own clip and their corrections blend by their
+  shares of the legs; the Animator uses it whenever two layers share the legs, so a planted foot no longer jumps when
+  the layer that most decides the legs changes.
+- `ik3` keeps a limb's lengths when its end is inside its fold (a thigh much longer than its shin folded tight).
+
+### Sensors
+- `checks.motionOfFrames` takes the root's path (`root`): the points on the root, so a loop's seam is read on the body
+  and its feet's slide in the world.
+- Reading by parts (`Motion.parts`, `checks.partScale`, `checks.TYPICAL_CHAIN`): each point against its chain from the
+  pelvis, for bodies whose proportions are far from a person's; off by default, so the library's readings are as
+  baselined. `checks.stance` is exported.
+
+### Three
+- The first-flight demo (`apps/lab/hello`, a lab, D52): a test character idles, walks and runs by speed, jumps and
+  attacks, its hit shown; deep links, `window.__m3a`, a phone layout, the build stamp; `vercel.json` for O3.
+
+### Tools
+- `npm run sweep` reads seams on the body, every point by its part, and the clip's own slide over the stretches the
+  played body stands on; each failing metric's own and played values and levels are in the results (D51).
+- `npm run hello [-- build | preview]`: the demo served, built into `apps/lab/hello/dist`, or that build served.
+- e2e `hello`: the demo driven headless; its hashes are Node's, its hit shows, the sensors read what it plays, its
+  screenshots and contact sheet go to `check-output/hello/`.
+
 ## 0.24.0 · 2026-10-12
 
 ### Core

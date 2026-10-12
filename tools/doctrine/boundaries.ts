@@ -3,7 +3,7 @@
 // - Other packages: Node built-ins only in their `/node` entry (src/node.ts or src/node/), only the packages in
 //   ALLOWED, never another package's internals; @supabase/supabase-js only in @m3a/tools' src/intake/.
 // - Apps and the benchmark reach packages only through `@m3a/<name>` or `@m3a/<name>/node`; labs (apps/lab/) may
-//   reach past, and are listed instead of failed. Nothing imports from apps/.
+//   reach past, and are listed instead of failed. Nothing imports from apps/ but a lab's own e2e test, its lab.
 // - Each package's public API is its src/index.ts, all of it listed there (PLAN.md WP-2.6): one export per statement,
 //   each with a doc comment, no bare `export *` (a module's surface goes in as a namespace), and core's at most 40.
 import { builtinModules } from "node:module";
@@ -88,7 +88,9 @@ export function checkBoundaries(ctx: Ctx): { findings: Finding[]; reachPasts: st
     const isLab = f.startsWith("apps/lab/");
     for (const s of specs) {
       const target = isRelative(s) ? normalize(join(dirname(f), s)).split("\\").join("/") : null;
-      if (target?.startsWith("apps/") && !f.startsWith("apps/")) fail(f, s, "nothing imports from apps/; move the shared code into a package");
+      // a lab's own e2e test (tests/e2e/<lab>.e2e.ts) may read its lab (apps/lab/<lab>/), to run it in Node beside the page
+      const ownLab = /^tests\/e2e\/([\w-]+)\.e2e\.ts$/.exec(f)?.[1], toOwnLab = ownLab !== undefined && target?.startsWith(`apps/lab/${ownLab}/`);
+      if (target?.startsWith("apps/") && !f.startsWith("apps/") && !toOwnLab) fail(f, s, "nothing imports from apps/; move the shared code into a package");
       if (pkg) {
         const nodeEntry = new RegExp(`^packages/${pkg}/src/node(\\.ts|/)`).test(f);
         if (target) {
