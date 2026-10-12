@@ -13,7 +13,7 @@
 "contacts": {"by":"detected","footL":[[0.05,0.383]],"footR":[[0.45,0.7]]},
 "facts": {"by":"m3a-facts@1","captured":["speed"],"height":[94,102],"seam":0,"speed":119,"travel":[-77.1,13.5]},
 "provenance": {"src":"100STYLE","take":"LookUp_BR 24.97-25.65","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
-"quality": {"fit":[10,41],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"warn on skate: short of every fail level (thresholds.ts): unusual, not broken"},
+"quality": {"fit":[10,41],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"warn on skate: short of every fail level the sensors apply (thresholds.ts)"},
 "keys": [
   {"t":0,
    "hips":[0,0,102], "body":[4,-3,-2], "chest":[3,8,0], "head":[-4,-12,2],

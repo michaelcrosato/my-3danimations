@@ -1,23 +1,23 @@
 {
  "about": "The library's QA distributions (npm run qa -- library --baseline): the sensors' verdicts' counts and each metric's p50, p95 and most of each clip's worst value, three significant digits. npm run qa -- library --check fails on any that gets worse; a change lands in a commit that says why (PLAN.md WP-5.8).",
- "verdicts": {"pass":1045,"warn":206,"fail":139},
+ "verdicts": {"pass":1008,"warn":230,"fail":155},
  "metrics": {
-  "slide": {"p50":38.2,"p95":121,"max":1370},
-  "skate": {"p50":5.28,"p95":22.6,"max":366},
-  "penetration": {"p50":5.93,"p95":47.1,"max":660},
+  "slide": {"p50":38.3,"p95":124,"max":1370},
+  "skate": {"p50":5.3,"p95":22.9,"max":366},
+  "penetration": {"p50":5.93,"p95":49.2,"max":660},
   "bodyPenetration": {"p50":0,"p95":0,"max":158},
-  "intersection": {"p50":0.084,"p95":0.654,"max":1.93},
-  "jitter": {"p50":5.21,"p95":44.7,"max":618},
-  "pop": {"p50":485,"p95":2060,"max":37500},
-  "twistFlip": {"p50":40,"p95":153,"max":180},
-  "jointLimit": {"p50":20,"p95":66,"max":180},
+  "intersection": {"p50":0.084,"p95":0.649,"max":1.93},
+  "jitter": {"p50":5.18,"p95":45.4,"max":618},
+  "pop": {"p50":492,"p95":2100,"max":37500},
+  "twistFlip": {"p50":40,"p95":160,"max":180},
+  "jointLimit": {"p50":20,"p95":67,"max":180},
   "stretch": {"p50":0,"p95":0,"max":0},
   "seam": {"p50":0,"p95":0,"max":125},
-  "seamVelocity": {"p50":774,"p95":2710,"max":7720},
-  "fit": {"p50":9,"p95":17,"max":33},
+  "seamVelocity": {"p50":773,"p95":2720,"max":7720},
+  "fit": {"p50":9,"p95":18,"max":33},
   "nan": {"p50":0,"p95":0,"max":0},
   "events": {"p50":0,"p95":0,"max":0},
   "symmetry": {"p50":0,"p95":0,"max":0},
-  "skateMean": {"p50":4.71,"p95":20.6,"max":124}
+  "skateMean": {"p50":4.76,"p95":20.3,"max":124}
  }
 }

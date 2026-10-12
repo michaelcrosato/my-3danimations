@@ -8,8 +8,8 @@
 // each clip's facts and contacts measured (@m3a/library's `withFacts`, WP-5.4), the importer's revision in every clip's
 // provenance and the sources' edition in the manifest. Fit limits: a set's mean at most 20 mm, a clip's mean at most 40
 // mm and its worst at most 300 mm. WP-5.8: a re-import the sensors flag is repaired by their fix where that makes it
-// better within CLOSE mm of its source, a re-import the sensors judge better is kept over its migrated version within
-// CLOSE mm too, and every clip records its QA verdict (tools/qa/verdict.ts).
+// better within CLOSE mm of its source on average and WORST mm at its worst point, a re-import the sensors judge better
+// is kept over its migrated version within the same, and every clip records its QA verdict (tools/qa/verdict.ts).
 import { format, math, serialize, validate, type Clip, type Rest } from "@m3a/core";
 
 const { fromFormat1 } = format, { PORTABLE } = math;
@@ -31,9 +31,9 @@ export const IMPORTER = { tool: "m3a-import", version: "1" };
 export const ENCODE = { hands: true, spine: true, yaw: true, steadyTwist: true, closeLoop: true } as const;
 /** The fit limits (mm): a set's mean, a clip's mean, a clip's worst. */
 export const LIMITS = { setMean: 20, clipMean: 40, clipWorst: 300 } as const;
-/** How much further from its source (mm on average) a clip may go for a better QA verdict: a repair, or a re-import kept
- *  over its migrated version (WP-5.8). */
-export const CLOSE = 2;
+/** How much further from its source a clip may go for a better QA verdict, a repair or a re-import kept over its
+ *  migrated version (WP-5.8, D66): mm on average, and mm at its worst point. */
+export const CLOSE = 2, WORST = 30;
 
 /** What happened to one clip: which version it keeps and why, the two fits, the two QA verdicts, the metrics that moved. */
 export interface ClipChoice {
@@ -47,6 +47,8 @@ export interface ClipChoice {
   hands: number[];
   /** The sensors' fix steps the re-import was repaired with (WP-5.8). */
   repaired?: string[];
+  /** The re-import's fit before its repair (mean, worst mm). */
+  unrepairedFit?: [number, number];
   /** Why a re-import the sensors flag wasn't repaired: no step of the fix makes it better, or the repair would take it
    *  this many mm further from its source on average (or past the fit limits). */
   unrepaired?: string;
@@ -117,15 +119,37 @@ export function fitOf(clip: Clip, rest: Rest, cap: format.Capture): [number, num
  * findings), still valid, and no further from its capture than CLOSE mm on average and the fit limits; its facts measured
  * again and its fit against the capture with them. Otherwise the clip as it was.
  */
-function repaired(clip: Clip, rest: Rest, cap: format.Capture): { clip: Clip; fit: [number, number]; repairs: string[]; unrepaired?: string } {
+function repaired(clip: Clip, rest: Rest, cap: format.Capture): { clip: Clip; fit: [number, number]; repairs: string[]; unrepaired?: string; was?: [number, number] } {
   const was = clip.quality.fit as [number, number], out = fix(clip, rest), b = out.before, a = out.after;
   if (b.verdict === "pass") return { clip, fit: was, repairs: [] };
   const better = RANK[a.verdict]! < RANK[b.verdict]! || (a.verdict === b.verdict && a.findings.length < b.findings.length);
   const repairs = out.steps.filter((s) => !s.rejected && !s.skipped && s.changes.length && s.op !== "facts").map((s) => s.op);
   if (!better || !repairs.length || validate(out.clip, { mode: "read" }).errors.length) return { clip, fit: was, repairs: [], unrepaired: "no step makes it better" };
   const next = withFacts(out.clip, rest), fit = fitOf(next, rest, cap);
-  if (fit[0] > was[0] + CLOSE || fit[0] > LIMITS.clipMean || fit[1] > LIMITS.clipWorst) return { clip, fit: was, repairs: [], unrepaired: `${repairs.join(", ")} would take it ${fit[0] - was[0]} mm further from its source on average${fit[1] > LIMITS.clipWorst ? `, ${fit[1]} mm at worst` : ""}` };
-  return { clip: { ...next, quality: { ...next.quality, fit } }, fit, repairs };
+  const held = repairGuard(was, fit, repairs);
+  if (held) return { clip, fit: was, repairs: [], unrepaired: held };
+  return { clip: { ...next, quality: { ...next.quality, fit } }, fit, repairs, was };
+}
+
+/** Why a repair is held back, or null to keep it: it takes the clip more than CLOSE mm further from its source on
+ *  average or past the fit limits, or moves a point more than WORST mm further at its worst (`was` and `fit` the clip's
+ *  fit before and after, mean and worst mm). */
+export function repairGuard(was: readonly number[], fit: readonly number[], repairs: readonly string[]): string | null {
+  if (fit[0]! > was[0]! + CLOSE || fit[0]! > LIMITS.clipMean || fit[1]! > LIMITS.clipWorst) return `${repairs.join(", ")} would take it ${fit[0]! - was[0]!} mm further from its source on average${fit[1]! > LIMITS.clipWorst ? `, ${fit[1]} mm at worst` : ""}`;
+  if (fit[1]! > was[1]! + WORST) return `${repairs.join(", ")} would move a point ${fit[1]! - was[1]!} mm further from its source at worst`;
+  return null;
+}
+
+/**
+ * Which version a clip keeps, and why: the re-import, unless it fits its source worse on average or the sensors judge
+ * it worse. A re-import the sensors judge better may fit up to CLOSE mm worse on average, and then WORST mm at its worst.
+ */
+export function choose(now: string, was: string, fit: readonly number[], fitWas: readonly number[]): ["import" | "migrated", string] {
+  const better = RANK[now]! < RANK[was]!;
+  if (fit[0]! > fitWas[0]! + (better ? CLOSE : 0)) return ["migrated", `the re-import fits its source worse (${fit[0]} mm on average against ${fitWas[0]}${better ? `, more than ${CLOSE} mm worse though the sensors judge it better` : ""})`];
+  if (fit[0]! > fitWas[0]! && fit[1]! > fitWas[1]! + WORST) return ["migrated", `the re-import fits its source worse (${fit[0]} mm on average against ${fitWas[0]}, ${fit[1]} mm at worst against ${fitWas[1]})`];
+  if (RANK[now]! > RANK[was]!) return ["migrated", `the sensors judge the re-import worse (${was} → ${now})`];
+  return ["import", `fits its source ${fit[0]! < fitWas[0]! ? `closer (${fitWas[0]} → ${fit[0]} mm on average)` : fit[0] === fitWas[0] ? `as closely (${fit[0]} mm on average)` : `within ${CLOSE} mm (${fitWas[0]} → ${fit[0]} mm on average)`}${fit[1]! > fitWas[1]! ? `, though further at its worst (${fitWas[1]} → ${fit[1]} mm)` : ""}, and the sensors judge it ${now === was ? "the same" : "better"} (${now})`];
 }
 
 /** A clip's QA verdict and metric values on its rest. */
@@ -185,10 +209,10 @@ function importOne(spec: ImportSpec, mig: ReturnType<typeof migrate>, legend: st
     // its facts and contacts measured on its rest (WP-5.4), the capture's speed kept; then repaired where the sensors'
     // fix makes it better without taking it from its source (WP-5.8)
     const made = withFacts(fromFormat1({ ...(c1 as unknown as format.Clip1), src, ...(orig ? { orig } : {}) }, { set: spec.set, slug, name, fps: out.set.fps, restSrc: src, method: rule.method, license: rule.license, ...(rule.credit ? { credit: rule.credit } : {}), fit: out.set.fit[name]!, producer: IMPORTER, qaVersion: "none" }), rest);
-    const { clip, fit, repairs, unrepaired } = repaired(made, rest, cap);
+    const { clip, fit, repairs, unrepaired, was: unrepairedFit } = repaired(made, rest, cap);
     const now = measured(clip, rest), hands = handError(clip, rest, cap);
     let kept: ClipChoice["kept"] = before ? "import" : "new", why = before ? "" : "new in the re-import";
-    const choice: ClipChoice = { kept, why, fit: { import: fit }, qa: { import: now.verdict }, hands: [hands], ...(repairs.length ? { repaired: repairs } : {}), ...(unrepaired ? { unrepaired } : {}) };
+    const choice: ClipChoice = { kept, why, fit: { import: fit }, qa: { import: now.verdict }, hands: [hands], ...(repairs.length ? { repaired: repairs, unrepairedFit: unrepairedFit! } : {}), ...(unrepaired ? { unrepaired } : {}) };
     if (before) {
       const migRest = migManifest!.sources[before.restSrc]!.rest, was = measured(before, migRest), fitWas = before.quality.fit as [number, number];
       choice.fit.migrated = fitWas;
@@ -197,11 +221,7 @@ function importOne(spec: ImportSpec, mig: ReturnType<typeof migrate>, legend: st
       const moved: Record<string, [number, number]> = {};
       for (const k of new Set([...Object.keys(was.values), ...Object.keys(now.values)])) if (sig(was.values[k] ?? 0) !== sig(now.values[k] ?? 0)) moved[k] = [sig(was.values[k] ?? 0), sig(now.values[k] ?? 0)];
       if (Object.keys(moved).length) choice.moved = moved;
-      // a re-import the sensors judge better may fit up to CLOSE mm worse on average
-      const better = RANK[now.verdict]! < RANK[was.verdict]!;
-      if (fit[0] > fitWas[0] + (better ? CLOSE : 0)) [kept, why] = ["migrated", `the re-import fits its source worse (${fit[0]} mm on average against ${fitWas[0]}${better ? `, more than ${CLOSE} mm worse though the sensors judge it better` : ""})`];
-      else if (RANK[now.verdict]! > RANK[was.verdict]!) [kept, why] = ["migrated", `the sensors judge the re-import worse (${was.verdict} → ${now.verdict})`];
-      else why = `fits its source ${fit[0] < fitWas[0] ? `closer (${fitWas[0]} → ${fit[0]} mm on average)` : fit[0] === fitWas[0] ? `as closely (${fit[0]} mm on average)` : `within ${CLOSE} mm (${fitWas[0]} → ${fit[0]} mm on average)`}${fit[1] > fitWas[1] ? `, though further at its worst (${fitWas[1]} → ${fit[1]} mm)` : ""}, and the sensors judge it ${now.verdict === was.verdict ? "the same" : "better"} (${now.verdict})`;
+      [kept, why] = choose(now.verdict, was.verdict, fit, fitWas);
       choice.kept = kept;
       choice.why = why;
     }

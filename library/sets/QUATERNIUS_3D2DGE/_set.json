@@ -3,7 +3,7 @@
 "title": "Quaternius UAL 1 and 2 (my-3d2dge's import)",
 "format": "2.0",
 "tier": "cc0",
-"content": {"edition":"Universal Animation Library 1 Standard (Godot export, AnimationLibrary_Godot_Standard.glb, 45 clips and a T-pose) and 2 Standard (UAL2_Standard.glb, 42 clips), as my-3d2dge@14a561c imported them","importer":"m3a-migrate 1, from format 1 (my-3d2dge src/mocap/sets/quaternius.js)","sha256":"bbdfc9fa5db2bf2508efbd119259fe2348bfa730104b626aaa4f202c0ab82ea3"},
+"content": {"edition":"Universal Animation Library 1 Standard (Godot export, AnimationLibrary_Godot_Standard.glb, 45 clips and a T-pose) and 2 Standard (UAL2_Standard.glb, 42 clips), as my-3d2dge@14a561c imported them","importer":"m3a-migrate 1, from format 1 (my-3d2dge src/mocap/sets/quaternius.js)","sha256":"761ca3ee77e82890ad132a24786e627ebc3b8f043fff18664571e0a05ebd523e"},
 "credit": "Universal Animation Library 1 and 2 by Quaternius (quaternius.com), CC0 1.0.",
 "producer": {"tool":"m3a-migrate","version":"1"},
 "sources": {

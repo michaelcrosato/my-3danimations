@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "m3a library QA distributions (library/baselines/distributions.json)",
+  "description": "The library's QA as recorded (PLAN.md WP-5.8): the sensors' verdicts' counts and each metric's p50, p95 and most of each clip's worst value. npm run qa -- library --check fails on any that gets worse; --baseline records them.",
+  "type": "object",
+  "required": ["verdicts", "metrics"],
+  "additionalProperties": false,
+  "properties": {
+    "about": { "type": "string" },
+    "verdicts": {
+      "type": "object",
+      "required": ["pass", "warn", "fail"],
+      "additionalProperties": false,
+      "properties": { "pass": { "type": "integer", "minimum": 0 }, "warn": { "type": "integer", "minimum": 0 }, "fail": { "type": "integer", "minimum": 0 } }
+    },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["p50", "p95", "max"],
+        "additionalProperties": false,
+        "properties": { "p50": { "type": "number", "minimum": 0 }, "p95": { "type": "number", "minimum": 0 }, "max": { "type": "number", "minimum": 0 } }
+      }
+    }
+  }
+}

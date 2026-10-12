@@ -119,7 +119,7 @@ describe("the ledger", () => {
   it("names the clips of the CMU set each take feeds, as the set says", () => {
     const used = usedBy();
     for (const r of Object.values(rows)) expect(r.used, r.id).toBe((used[r.id!] ?? []).join(" "));
-    expect(Object.keys(used)).toHaveLength(148);
+    expect(Object.keys(used)).toHaveLength(152);
   });
   it("surveys a take as the ledger measured it: its length, category, active stretch, travel and flags", () => {
     const dir = tmp(), v = join(ROOT, "spec/vectors/tier1b/cmu");

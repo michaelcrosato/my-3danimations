@@ -85,6 +85,10 @@
    ],
    "repaired": [
     "twistFlips"
+   ],
+   "unrepairedFit": [
+    9,
+    74
    ]
   },
   "Angry_SideRunRight": {
@@ -121,6 +125,10 @@
    ],
    "repaired": [
     "jitter"
+   ],
+   "unrepairedFit": [
+    7,
+    34
    ]
   },
   "ArmsAboveHead_SideRunRight": {
@@ -302,6 +310,10 @@
    ],
    "repaired": [
     "seam"
+   ],
+   "unrepairedFit": [
+    8,
+    44
    ]
   },
   "BentForward_SideRunLeft": {
@@ -385,6 +397,10 @@
    ],
    "repaired": [
     "seam"
+   ],
+   "unrepairedFit": [
+    10,
+    68
    ]
   },
   "BigSteps_SideRunRight": {
@@ -484,6 +500,10 @@
    ],
    "repaired": [
     "seam"
+   ],
+   "unrepairedFit": [
+    9,
+    69
    ]
   },
   "Cat_SideRunRight": {
@@ -585,6 +605,10 @@
    ],
    "repaired": [
     "jitter"
+   ],
+   "unrepairedFit": [
+    8,
+    32
    ]
   },
   "Crouched_SideRunRight": {
@@ -898,6 +922,10 @@
    ],
    "repaired": [
     "jitter"
+   ],
+   "unrepairedFit": [
+    8,
+    40
    ]
   },
   "FlickLegs_SideRunRight": {
@@ -949,6 +977,10 @@
    ],
    "repaired": [
     "seam"
+   ],
+   "unrepairedFit": [
+    10,
+    58
    ]
   },
   "GracefulArms_SideRunLeft": {
@@ -968,6 +1000,10 @@
    ],
    "repaired": [
     "jitter"
+   ],
+   "unrepairedFit": [
+    8,
+    44
    ]
   },
   "GracefulArms_SideRunRight": {
@@ -1051,6 +1087,10 @@
    ],
    "repaired": [
     "jitter"
+   ],
+   "unrepairedFit": [
+    7,
+    34
    ]
   },
   "Heavyset_SideRunLeft": {
@@ -1070,6 +1110,10 @@
    ],
    "repaired": [
     "seam"
+   ],
+   "unrepairedFit": [
+    7,
+    35
    ]
   },
   "Heavyset_SideRunRight": {
@@ -1202,6 +1246,10 @@
    ],
    "repaired": [
     "jitter"
+   ],
+   "unrepairedFit": [
+    8,
+    42
    ]
   },
   "Kick_SideRunRight": {
@@ -1383,6 +1431,10 @@
    ],
    "repaired": [
     "jitter"
+   ],
+   "unrepairedFit": [
+    9,
+    68
    ]
   },
   "LegsApart_SideRunLeft": {
@@ -1562,6 +1614,10 @@
    ],
    "repaired": [
     "twistFlips"
+   ],
+   "unrepairedFit": [
+    9,
+    45
    ]
   },
   "March_SideRunRight": {
@@ -1679,6 +1735,10 @@
    "repaired": [
     "jitter",
     "seam"
+   ],
+   "unrepairedFit": [
+    8,
+    40
    ]
   },
   "Old_SideRunLeft": {
@@ -1811,6 +1871,10 @@
    ],
    "repaired": [
     "jitter"
+   ],
+   "unrepairedFit": [
+    8,
+    45
    ]
   },
   "OnToesBentForward_SideRunLeft": {
@@ -2042,6 +2106,10 @@
    ],
    "repaired": [
     "twistFlips"
+   ],
+   "unrepairedFit": [
+    12,
+    142
    ]
   },
   "Quail_SideRunLeft": {
@@ -2146,19 +2214,17 @@
    "why": "new in the re-import",
    "fit": {
     "import": [
-     10,
-     114
+     8,
+     36
     ]
    },
    "qa": {
-    "import": "pass"
+    "import": "warn"
    },
    "hands": [
     10
    ],
-   "repaired": [
-    "jitter"
-   ]
+   "unrepaired": "jitter would move a point 78 mm further from its source at worst"
   },
   "RightHop_SideRunRight": {
    "kept": "new",
@@ -2193,6 +2259,10 @@
    ],
    "repaired": [
     "seam"
+   ],
+   "unrepairedFit": [
+    11,
+    137
    ]
   },
   "Roadrunner_SideRunRight": {
@@ -2292,6 +2362,10 @@
    ],
    "repaired": [
     "seam"
+   ],
+   "unrepairedFit": [
+    12,
+    90
    ]
   },
   "Rushed_SideRunRight": {
@@ -2311,6 +2385,10 @@
    ],
    "repaired": [
     "seam"
+   ],
+   "unrepairedFit": [
+    10,
+    59
    ]
   },
   "ShieldedLeft_SideRunLeft": {
@@ -2363,6 +2441,10 @@
    ],
    "repaired": [
     "seam"
+   ],
+   "unrepairedFit": [
+    7,
+    44
    ]
   },
   "ShieldedRight_SideRunRight": {
@@ -2448,6 +2530,10 @@
    ],
    "repaired": [
     "seam"
+   ],
+   "unrepairedFit": [
+    8,
+    33
    ]
   },
   "Star_SideRunLeft": {
@@ -2547,6 +2633,10 @@
    ],
    "repaired": [
     "seam"
+   ],
+   "unrepairedFit": [
+    7,
+    34
    ]
   },
   "Strutting_SideRunLeft": {
@@ -2583,6 +2673,10 @@
    ],
    "repaired": [
     "jitter"
+   ],
+   "unrepairedFit": [
+    13,
+    77
    ]
   },
   "Superman_SideRunLeft": {
@@ -2634,6 +2728,10 @@
    ],
    "repaired": [
     "seam"
+   ],
+   "unrepairedFit": [
+    8,
+    75
    ]
   },
   "Swat_SideRunRight": {
@@ -2719,6 +2817,10 @@
    ],
    "repaired": [
     "twistFlips"
+   ],
+   "unrepairedFit": [
+    13,
+    132
    ]
   },
   "SwingArmsRound_SideRunLeft": {
@@ -2755,6 +2857,10 @@
    ],
    "repaired": [
     "seam"
+   ],
+   "unrepairedFit": [
+    10,
+    91
    ]
   },
   "SwingShoulders_SideRunLeft": {
@@ -3033,6 +3139,10 @@
    ],
    "repaired": [
     "twistFlips"
+   ],
+   "unrepairedFit": [
+    14,
+    120
    ]
   },
   "WhirlArms_SideRunRight": {
@@ -3152,6 +3262,10 @@
    ],
    "repaired": [
     "twistFlips"
+   ],
+   "unrepairedFit": [
+    16,
+    129
    ]
   },
   "WildLegs_SideRunLeft": {

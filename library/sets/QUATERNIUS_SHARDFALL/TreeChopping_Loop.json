@@ -13,7 +13,7 @@
 "contacts": {"by":"detected","footL":[[0.115,0.967]],"footR":[[0.066,0.164],[0.377,0.967]]},
 "facts": {"by":"m3a-facts@1","height":[84,86],"seam":0,"speed":1,"travel":[-0.5,-0.8]},
 "provenance": {"src":"UAL2","method":"keyed","producer":{"tool":"m3a-migrate","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
-"quality": {"fit":[13,64],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"warn on seamVelocity: short of every fail level (thresholds.ts): unusual, not broken"},
+"quality": {"fit":[13,64],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"warn on seamVelocity: short of every fail level the sensors apply (thresholds.ts)"},
 "keys": [
   {"t":0,
    "hips":[-11,-6,86], "body":[45,-8,0], "chest":[13,6,2], "head":[-39,18,1],

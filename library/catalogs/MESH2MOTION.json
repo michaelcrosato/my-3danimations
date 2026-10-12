@@ -4,7 +4,7 @@
     "M2M_ANIMATED": {"label": "Mesh2Motion, hand-animated", "origin": "Animated in Blender by Mesh2Motion's contributors on its human rig (human-addon-animations.glb; the Blender sources are in Mesh2Motion/mesh2motion-assets, rigs/human)", "license": "CC0-1.0", "url": "https://github.com/Mesh2Motion/mesh2motion-app"},
     "M2M_MOCOPI": {"label": "Mesh2Motion, motion capture", "origin": "Captured by Mesh2Motion with a Sony mocopi suit and retargeted onto its human rig with its own Blender add-on (human-mocap-animations.glb; the raw BVH captures are in Mesh2Motion/mesh2motion-assets, motion-capture)", "license": "CC0-1.0", "url": "https://github.com/Mesh2Motion/mesh2motion-assets"}
   },
-  "$skip": {"Sword_Regular_A_Rec": "Mesh2Motion's re-export whips the whole body round in its last three frames; Quaternius' own clip, which ends cleanly, is Sword_Regular_A_Rec in the Quaternius set"},
+  "$skip": {"Sword_Regular_A_Rec": "Mesh2Motion's re-export whips the whole body round in its last three frames; Quaternius' own clip, which ends cleanly, is Sword_Regular_A_Rec in the Quaternius set", "Hit_Chest": "Mesh2Motion's re-export floats its whole length, its lowest point 59 cm above the floor (it fits the export within 7 mm, so the export is off); Quaternius' own clip is Hit_Chest in the Quaternius sets"},
   "Chest_Open": ["interact chest once", "bends forward and lifts a chest's lid with both hands, then straightens", "QUATERNIUS/Chest_Open"],
   "Chop_Tree": ["work loop", "chops with an axe: swings from over the shoulder down into a tree", "QUATERNIUS/TreeChopping_Loop"],
   "ClimbUp_1m_RM": ["climb root-motion once", "grabs a ledge about 1 m high and hauls up onto it (travels)", "QUATERNIUS/ClimbUp_1m_RM"],

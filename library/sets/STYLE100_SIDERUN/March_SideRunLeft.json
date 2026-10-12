@@ -13,7 +13,7 @@
 "contacts": {"by":"detected","footL":[[0.617,0.9],[1.333,1.616]],"footR":[[0.25,0.517],[1.066,1.25]]},
 "facts": {"by":"m3a-facts@1","captured":["speed"],"height":[98,109],"seam":0,"speed":93,"travel":[53.9,-128.3]},
 "provenance": {"src":"100STYLE","take":"March_SR 36.55-37.97","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
-"quality": {"fit":[9,51],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"warn on seamVelocity: short of every fail level (thresholds.ts): unusual, not broken"},
+"quality": {"fit":[9,51],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"warn on seamVelocity: short of every fail level the sensors apply (thresholds.ts)"},
 "keys": [
   {"t":0,
    "hips":[0,0,98], "body":[9,-11,0], "chest":[-2,18,-3], "head":[-9,7,-1],

@@ -53,6 +53,10 @@
    "repaired": [
     "twistFlips",
     "seam"
+   ],
+   "unrepairedFit": [
+    14,
+    63
    ]
   },
   "ArmsAboveHead_Run": {
@@ -110,18 +114,16 @@
    "fit": {
     "import": [
      8,
-     130
+     48
     ]
    },
    "qa": {
-    "import": "pass"
+    "import": "warn"
    },
    "hands": [
     4.9
    ],
-   "repaired": [
-    "twistFlips"
-   ]
+   "unrepaired": "twistFlips would move a point 82 mm further from its source at worst"
   },
   "Balance_Run": {
    "kept": "new",
@@ -191,6 +193,10 @@
    ],
    "repaired": [
     "twistFlips"
+   ],
+   "unrepairedFit": [
+    9,
+    54
    ]
   },
   "BigSteps_Run": {
@@ -243,6 +249,10 @@
    ],
    "repaired": [
     "twistFlips"
+   ],
+   "unrepairedFit": [
+    9,
+    56
    ]
   },
   "Cat_Run": {
@@ -335,18 +345,16 @@
    "fit": {
     "import": [
      8,
-     98
+     62
     ]
    },
    "qa": {
-    "import": "pass"
+    "import": "fail"
    },
    "hands": [
     11.1
    ],
-   "repaired": [
-    "twistFlips"
-   ]
+   "unrepaired": "twistFlips would move a point 36 mm further from its source at worst"
   },
   "Dinosaur_Run": {
    "kept": "new",
@@ -365,6 +373,10 @@
    ],
    "repaired": [
     "twistFlips"
+   ],
+   "unrepairedFit": [
+    9,
+    63
    ]
   },
   "DragLeftLeg_Run": {
@@ -465,6 +477,10 @@
    ],
    "repaired": [
     "twistFlips"
+   ],
+   "unrepairedFit": [
+    8,
+    98
    ]
   },
   "Flapping_Run": {
@@ -484,6 +500,10 @@
    ],
    "repaired": [
     "twistFlips"
+   ],
+   "unrepairedFit": [
+    16,
+    157
    ]
   },
   "FlickLegs_Run": {
@@ -571,6 +591,10 @@
    "repaired": [
     "twistFlips",
     "seam"
+   ],
+   "unrepairedFit": [
+    9,
+    81
    ]
   },
   "Heavyset_Run": {
@@ -590,6 +614,10 @@
    ],
    "repaired": [
     "twistFlips"
+   ],
+   "unrepairedFit": [
+    9,
+    86
    ]
   },
   "HighKnees_Run": {
@@ -609,6 +637,10 @@
    ],
    "repaired": [
     "twistFlips"
+   ],
+   "unrepairedFit": [
+    10,
+    63
    ]
   },
   "InTheDark_Run": {
@@ -661,6 +693,10 @@
    ],
    "repaired": [
     "jitter"
+   ],
+   "unrepairedFit": [
+    10,
+    62
    ]
   },
   "LawnMower_Run": {
@@ -696,6 +732,10 @@
    ],
    "repaired": [
     "seam"
+   ],
+   "unrepairedFit": [
+    12,
+    107
    ]
   },
   "LeanLeft_Run": {
@@ -833,19 +873,17 @@
    "why": "new in the re-import",
    "fit": {
     "import": [
-     10,
-     184
+     8,
+     55
     ]
    },
    "qa": {
-    "import": "pass"
+    "import": "warn"
    },
    "hands": [
     9.5
    ],
-   "repaired": [
-    "twistFlips"
-   ]
+   "unrepaired": "twistFlips would move a point 129 mm further from its source at worst"
   },
   "Monk_Run": {
    "kept": "new",
@@ -864,6 +902,10 @@
    ],
    "repaired": [
     "twistFlips"
+   ],
+   "unrepairedFit": [
+    6,
+    63
    ]
   },
   "Morris_Run": {
@@ -1153,18 +1195,16 @@
    "fit": {
     "import": [
      11,
-     190
+     81
     ]
    },
    "qa": {
-    "import": "pass"
+    "import": "fail"
    },
    "hands": [
     7.1
    ],
-   "repaired": [
-    "twistFlips"
-   ]
+   "unrepaired": "twistFlips would move a point 109 mm further from its source at worst"
   },
   "Robot_Run": {
    "kept": "new",
@@ -1221,19 +1261,17 @@
    "why": "new in the re-import",
    "fit": {
     "import": [
-     7,
-     148
+     6,
+     78
     ]
    },
    "qa": {
-    "import": "pass"
+    "import": "fail"
    },
    "hands": [
     3.5
    ],
-   "repaired": [
-    "twistFlips"
-   ]
+   "unrepaired": "twistFlips would move a point 70 mm further from its source at worst"
   },
   "ShieldedRight_Run": {
    "kept": "new",
@@ -1268,6 +1306,10 @@
    ],
    "repaired": [
     "jitter"
+   ],
+   "unrepairedFit": [
+    16,
+    127
    ]
   },
   "SlideFeet_Run": {
@@ -1287,6 +1329,10 @@
    ],
    "repaired": [
     "twistFlips"
+   ],
+   "unrepairedFit": [
+    10,
+    96
    ]
   },
   "Star_Run": {
@@ -1405,6 +1451,10 @@
    ],
    "repaired": [
     "seam"
+   ],
+   "unrepairedFit": [
+    9,
+    39
    ]
   },
   "Swimming_Run": {
@@ -1458,6 +1508,10 @@
    ],
    "repaired": [
     "twistFlips"
+   ],
+   "unrepairedFit": [
+    12,
+    146
    ]
   },
   "Teapot_Run": {
@@ -1559,6 +1613,10 @@
    ],
    "repaired": [
     "twistFlips"
+   ],
+   "unrepairedFit": [
+    9,
+    133
    ]
   },
   "Waving_Run": {

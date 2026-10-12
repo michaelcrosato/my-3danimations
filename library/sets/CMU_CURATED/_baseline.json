@@ -38,6 +38,25 @@
     "reason": "the body really spins: its turn accumulates past ±540 degrees, and unwrapping keeps the spin continuous (MOTION.md §6.3)"
    }
   ],
+  "Fall_On_Face": [
+   {
+    "code": "M2-W003",
+    "at": "key 45 (t 1.9) hips[2]",
+    "reason": "the hips go below standing ground on purpose (the clip swims or rises from the ground); tag profiles refine the rule (WP-3.3)"
+   }
+  ],
+  "Rug_Pull_Fall": [
+   {
+    "code": "M2-W003",
+    "at": "key 11 (t 0.767) hips[2]",
+    "reason": "the hips go below standing ground on purpose (the clip swims or rises from the ground); tag profiles refine the rule (WP-3.3)"
+   },
+   {
+    "code": "M2-W003",
+    "at": "key 12 (t 0.8) hips[2]",
+    "reason": "the hips go below standing ground on purpose (the clip swims or rises from the ground); tag profiles refine the rule (WP-3.3)"
+   }
+  ],
   "Russian_Dance": [
    {
     "code": "M2-W005",
@@ -829,11 +848,156 @@
     "reason": "the foot's out angle is measured about the shin, which turns over in the flip, so it winds past ±540 degrees; the flip is real, the extra turns are the measure's, and a re-import folds them (WP-5.3)"
    }
   ],
-  "Lie_Down": [
+  "Get_Up_Sit_Kneel": [
    {
-    "code": "M2-W002",
-    "at": "key 19 (t 2.467) legL[4]",
-    "reason": "format 1's twist pop: a limb turns while bent past 135 degrees, where its twist barely shows; re-import from the source fixes it (WP-5.3)"
+    "code": "M2-W005",
+    "at": "key 59 (t 5.767) handL[2]",
+    "reason": "the hand rolls round as the armL bends 0–70 degrees at these keys: its roll reaches -646 degrees, counted on past ±540 so it stays continuous (MOTION.md §6.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 60 (t 5.9) handL[2]",
+    "reason": "the hand rolls round as the armL bends 0–70 degrees at these keys: its roll reaches -646 degrees, counted on past ±540 so it stays continuous (MOTION.md §6.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 61 (t 6) handL[2]",
+    "reason": "the hand rolls round as the armL bends 0–70 degrees at these keys: its roll reaches -646 degrees, counted on past ±540 so it stays continuous (MOTION.md §6.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 62 (t 6.1) handL[2]",
+    "reason": "the hand rolls round as the armL bends 0–70 degrees at these keys: its roll reaches -646 degrees, counted on past ±540 so it stays continuous (MOTION.md §6.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 63 (t 6.2) handL[2]",
+    "reason": "the hand rolls round as the armL bends 0–70 degrees at these keys: its roll reaches -646 degrees, counted on past ±540 so it stays continuous (MOTION.md §6.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 64 (t 6.3) handL[2]",
+    "reason": "the hand rolls round as the armL bends 0–70 degrees at these keys: its roll reaches -646 degrees, counted on past ±540 so it stays continuous (MOTION.md §6.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 65 (t 6.4) handL[2]",
+    "reason": "the hand rolls round as the armL bends 0–70 degrees at these keys: its roll reaches -646 degrees, counted on past ±540 so it stays continuous (MOTION.md §6.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 66 (t 6.467) handL[2]",
+    "reason": "the hand rolls round as the armL bends 0–70 degrees at these keys: its roll reaches -646 degrees, counted on past ±540 so it stays continuous (MOTION.md §6.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 67 (t 6.6) handL[2]",
+    "reason": "the hand rolls round as the armL bends 0–70 degrees at these keys: its roll reaches -646 degrees, counted on past ±540 so it stays continuous (MOTION.md §6.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 68 (t 6.8) handL[2]",
+    "reason": "the hand rolls round as the armL bends 0–70 degrees at these keys: its roll reaches -646 degrees, counted on past ±540 so it stays continuous (MOTION.md §6.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 69 (t 6.967) handL[2]",
+    "reason": "the hand rolls round as the armL bends 0–70 degrees at these keys: its roll reaches -646 degrees, counted on past ±540 so it stays continuous (MOTION.md §6.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 70 (t 7.167) handL[2]",
+    "reason": "the hand rolls round as the armL bends 0–70 degrees at these keys: its roll reaches -646 degrees, counted on past ±540 so it stays continuous (MOTION.md §6.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 71 (t 7.3) handL[2]",
+    "reason": "the hand rolls round as the armL bends 0–70 degrees at these keys: its roll reaches -646 degrees, counted on past ±540 so it stays continuous (MOTION.md §6.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 72 (t 7.433) handL[2]",
+    "reason": "the hand rolls round as the armL bends 0–70 degrees at these keys: its roll reaches -646 degrees, counted on past ±540 so it stays continuous (MOTION.md §6.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 73 (t 7.533) handL[2]",
+    "reason": "the hand rolls round as the armL bends 0–70 degrees at these keys: its roll reaches -646 degrees, counted on past ±540 so it stays continuous (MOTION.md §6.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 74 (t 7.633) handL[2]",
+    "reason": "the hand rolls round as the armL bends 0–70 degrees at these keys: its roll reaches -646 degrees, counted on past ±540 so it stays continuous (MOTION.md §6.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 75 (t 7.767) handL[2]",
+    "reason": "the hand rolls round as the armL bends 0–70 degrees at these keys: its roll reaches -646 degrees, counted on past ±540 so it stays continuous (MOTION.md §6.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 76 (t 7.9) handL[2]",
+    "reason": "the hand rolls round as the armL bends 0–70 degrees at these keys: its roll reaches -646 degrees, counted on past ±540 so it stays continuous (MOTION.md §6.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 77 (t 7.967) handL[2]",
+    "reason": "the hand rolls round as the armL bends 0–70 degrees at these keys: its roll reaches -646 degrees, counted on past ±540 so it stays continuous (MOTION.md §6.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 78 (t 8.067) handL[2]",
+    "reason": "the hand rolls round as the armL bends 0–70 degrees at these keys: its roll reaches -646 degrees, counted on past ±540 so it stays continuous (MOTION.md §6.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 79 (t 8.1) handL[2]",
+    "reason": "the hand rolls round as the armL bends 0–70 degrees at these keys: its roll reaches -646 degrees, counted on past ±540 so it stays continuous (MOTION.md §6.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 80 (t 8.133) handL[2]",
+    "reason": "the hand rolls round as the armL bends 0–70 degrees at these keys: its roll reaches -646 degrees, counted on past ±540 so it stays continuous (MOTION.md §6.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 81 (t 8.3) handL[2]",
+    "reason": "the hand rolls round as the armL bends 0–70 degrees at these keys: its roll reaches -646 degrees, counted on past ±540 so it stays continuous (MOTION.md §6.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 82 (t 8.433) handL[2]",
+    "reason": "the hand rolls round as the armL bends 0–70 degrees at these keys: its roll reaches -646 degrees, counted on past ±540 so it stays continuous (MOTION.md §6.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 83 (t 8.633) handL[2]",
+    "reason": "the hand rolls round as the armL bends 0–70 degrees at these keys: its roll reaches -646 degrees, counted on past ±540 so it stays continuous (MOTION.md §6.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 84 (t 8.733) handL[2]",
+    "reason": "the hand rolls round as the armL bends 0–70 degrees at these keys: its roll reaches -646 degrees, counted on past ±540 so it stays continuous (MOTION.md §6.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 85 (t 8.833) handL[2]",
+    "reason": "the hand rolls round as the armL bends 0–70 degrees at these keys: its roll reaches -646 degrees, counted on past ±540 so it stays continuous (MOTION.md §6.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 86 (t 9.033) handL[2]",
+    "reason": "the hand rolls round as the armL bends 0–70 degrees at these keys: its roll reaches -646 degrees, counted on past ±540 so it stays continuous (MOTION.md §6.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 87 (t 9.167) handL[2]",
+    "reason": "the hand rolls round as the armL bends 0–70 degrees at these keys: its roll reaches -646 degrees, counted on past ±540 so it stays continuous (MOTION.md §6.3)"
+   },
+   {
+    "code": "M2-W005",
+    "at": "key 88 (t 9.3) handL[2]",
+    "reason": "the hand rolls round as the armL bends 0–70 degrees at these keys: its roll reaches -646 degrees, counted on past ±540 so it stays continuous (MOTION.md §6.3)"
    }
   ],
   "Ballet_Grand_Jete": [

@@ -13,7 +13,7 @@
 "contacts": {"by":"detected"},
 "facts": {"by":"m3a-facts@1","height":[94,211],"travel":[0,0]},
 "provenance": {"src":"M2M_QUATERNIUS","orig":"QUATERNIUS_SHARDFALL/ClimbUp_1m_RM","method":"keyed","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
-"quality": {"fit":[9,51],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"fail on pop: as keyed in its source, fitted within 9 mm of it on average; the sensors' fix: no step makes it better"},
+"quality": {"fit":[9,51],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"fail on pop: as keyed in its source, fitted within 9 mm of it on average; the sensors' fix: no step makes it better; not measured for its tags: bodyPenetration, intersection"},
 "keys": [
   {"t":0,
    "hips":[-6,-2,94], "body":[0,6,6], "chest":[-20,26,1], "head":[19,-9,-3], "root":[0,0], "spine":[-10,-2,62],

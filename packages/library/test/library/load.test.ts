@@ -46,7 +46,7 @@ describe("the library loader", () => {
     const lib = openLibrary({ dir: DIR });
     expect(lib.sets().map((s) => [s.set, s.tier])).toEqual([["MESH2MOTION", "cc0"], ["QUATERNIUS_3D2DGE", "cc0"], ["QUATERNIUS_SHARDFALL", "cc0"]]);
     expect(lib.catalog().every((r) => !r.id.startsWith("CMU_") && !r.id.startsWith("STYLE100"))).toBe(true);
-    expect(lib.catalog().length).toBe(367);
+    expect(lib.catalog().length).toBe(366);
     expect(() => lib.clip("CMU_CURATED/Walk_Loop")).toThrow(/a cmu set, and this game sees only cc0: opt in with \{ tiers: \["cc0", "cmu"\] \}/);
     expect(() => lib.catalog("STYLE100")).toThrow(LibraryError);
     const all = openLibrary({ dir: DIR, tiers: ["cc0", "cc-by", "cmu"] });
@@ -58,7 +58,7 @@ describe("the library loader", () => {
     const warned: string[] = [], lib = new Library(directory(DIR), { sha256, lock: { ...LOCK, aliases: { "QUATERNIUS/Walk": "QUATERNIUS_3D2DGE/Walk_Loop" } }, warn: (m) => warned.push(m) });
     expect(lib.clip("QUATERNIUS/Walk").clip.id).toBe("QUATERNIUS_3D2DGE/Walk_Loop");
     expect(warned).toEqual(['library: "QUATERNIUS/Walk" is deprecated; use "QUATERNIUS_3D2DGE/Walk_Loop"']);
-    expect(() => lib.clip("MESH2MOTION/Nope")).toThrow(/no clip "MESH2MOTION\/Nope"; MESH2MOTION has 177 clips/);
+    expect(() => lib.clip("MESH2MOTION/Nope")).toThrow(/no clip "MESH2MOTION\/Nope"; MESH2MOTION has 176 clips/);
     expect(() => lib.clip("NOPE/Walk")).toThrow(/no set "NOPE"/);
     expect(() => lib.clip("Walk_Loop")).toThrow(/isn't a clip id/);
   });

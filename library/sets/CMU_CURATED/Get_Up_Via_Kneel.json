@@ -13,7 +13,7 @@
 "contacts": {"by":"detected","footL":[[0,1.15],[3.25,4.117],[4.567,8.35],[8.55,9.7]],"footR":[[3.233,4.417],[4.85,4.917],[5.217,9.217]],"handR":[[2.917,3.65],[3.9,5.417]]},
 "facts": {"by":"m3a-facts@1","height":[9,106],"travel":[103,35]},
 "provenance": {"src":"CMU_114","take":"114_11 11.00-20.80","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
-"quality": {"fit":[11,61],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"fail on slide: as captured, fitted within 11 mm of it on average; the sensors' fix: footLocks would take it 14 mm further from its source on average"},
+"quality": {"fit":[11,61],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"fail on slide: as captured, fitted within 11 mm of it on average; the sensors' fix: footLocks would take it 14 mm further from its source on average; not measured for its tags: bodyPenetration, intersection"},
 "keys": [
   {"t":0,
    "hips":[0,0,9], "body":[15,-74,8], "chest":[-11,-22,-9], "head":[0,11,3], "root":[0,0], "yaw":0, "spine":[33,71,102],

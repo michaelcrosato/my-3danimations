@@ -13,7 +13,7 @@
 "contacts": {"by":"detected","footL":[[0.348,1.159],[1.838,2.467]],"footR":[[0,0.48],[1.027,2.003]]},
 "facts": {"by":"m3a-facts@1","captured":["speed"],"height":[99,101],"seam":0,"speed":40,"travel":[-106.1,-11]},
 "provenance": {"src":"100STYLE","take":"SwingArmsRound_BW 137.95-140.42","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
-"quality": {"fit":[9,109],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"warn on seamVelocity: short of every fail level (thresholds.ts): unusual, not broken"},
+"quality": {"fit":[9,109],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"warn on seamVelocity: short of every fail level the sensors apply (thresholds.ts)"},
 "keys": [
   {"t":0,
    "hips":[0,0,100], "body":[27,-6,0], "chest":[9,21,-6], "head":[-10,18,-1], "spine":[1,44,75],

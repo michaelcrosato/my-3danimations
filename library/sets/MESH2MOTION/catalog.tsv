@@ -11,7 +11,6 @@ MESH2MOTION/Farm_Harvest	2.333	once		farm work	bends down and pulls a crop up ou
 MESH2MOTION/Farm_PlantSeed	2.792	once		farm work	kneels, presses a seed into the soil	M2M_QUATERNIUS
 MESH2MOTION/Farm_Watering	3.833	once		farm work	tips a watering can held in the right hand	M2M_QUATERNIUS
 MESH2MOTION/Fixing_Kneeling	6.5	once		work interact	kneels on one knee and works with both…	M2M_QUATERNIUS
-MESH2MOTION/Hit_Chest	0.417	once		hurt	a slight flinch	M2M_QUATERNIUS
 MESH2MOTION/Hit_Head	0.542	once		hurt	takes a blow to the head: head snaps aside, recovers	M2M_QUATERNIUS
 MESH2MOTION/Hit_Knockback	0.833	once		hurt getup	hit hard	M2M_QUATERNIUS
 MESH2MOTION/Hit_Knockback_RM	0.625	once		hurt death root-motion	hit hard and thrown back onto the back	M2M_QUATERNIUS
@@ -77,9 +76,9 @@ MESH2MOTION/Sword_Regular_B_Rec	1	once		sword stance root-motion	recovers from t
 MESH2MOTION/Sword_Regular_C	1.667	once		sword attack root-motion	the combo's finisher	M2M_QUATERNIUS
 MESH2MOTION/Sword_Regular_C_RM	1.667	once		sword attack root-motion	the combo's finisher	M2M_QUATERNIUS
 MESH2MOTION/Sword_Regular_Combo	2.958	once		sword attack root-motion	the three strikes chained: thrust, sweep	M2M_QUATERNIUS
-MESH2MOTION/Walk	1.667	loop	88.5	walk	relaxed walk, in place	M2M_QUATERNIUS
+MESH2MOTION/Walk	1.667	loop	88.7	walk	relaxed walk, in place	M2M_QUATERNIUS
 MESH2MOTION/Walk_Carry	2	loop	73.9	walk carry	walking with a box held in both arms in front	M2M_QUATERNIUS
-MESH2MOTION/Walk_Formal	1.667	loop	88.4	walk	upright, measured walk, in place	M2M_QUATERNIUS
+MESH2MOTION/Walk_Formal	1.667	loop	89.1	walk	upright, measured walk, in place	M2M_QUATERNIUS
 MESH2MOTION/Yes	2.5	once		emote gesture	agrees	M2M_QUATERNIUS
 MESH2MOTION/Zombie_Idle	1.333	loop	0.2	zombie idle	hunched and swaying, arms hanging	M2M_QUATERNIUS
 MESH2MOTION/Zombie_Scratch	1.792	once		zombie attack	lunges and claws down with both hands, then settles back	M2M_QUATERNIUS

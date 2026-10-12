@@ -13,7 +13,7 @@
 "contacts": {"by":"detected","footL":[[0.017,0.267],[0.75,0.916]],"footR":[[0.55,0.716],[1.15,1.266]]},
 "facts": {"by":"m3a-facts@1","captured":["speed"],"height":[91,112],"seam":0,"speed":156,"travel":[46.3,-183.5]},
 "provenance": {"src":"100STYLE","take":"Elated_SR 29.42-30.65","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
-"quality": {"fit":[14,143],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"warn on seamVelocity: short of every fail level (thresholds.ts): unusual, not broken"},
+"quality": {"fit":[14,143],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"warn on seamVelocity: short of every fail level the sensors apply (thresholds.ts)"},
 "keys": [
   {"t":0,
    "hips":[0,0,92], "body":[-6,-2,0], "chest":[-2,21,4], "head":[3,-7,-6], "spine":[-1,45,76],

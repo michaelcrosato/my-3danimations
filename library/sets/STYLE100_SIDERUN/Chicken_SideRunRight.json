@@ -13,7 +13,7 @@
 "contacts": {"by":"detected","footL":[[0.198,0.478],[0.989,1.286]],"footR":[[0.577,0.841],[1.269,1.566]]},
 "facts": {"by":"m3a-facts@1","captured":["speed"],"height":[95,107],"seam":0,"speed":96,"travel":[25.4,138.4]},
 "provenance": {"src":"100STYLE","take":"Chicken_SR 42.80-44.25","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
-"quality": {"fit":[9,44],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"warn on intersection: short of every fail level (thresholds.ts): unusual, not broken"},
+"quality": {"fit":[9,44],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"warn on intersection: short of every fail level the sensors apply (thresholds.ts)"},
 "keys": [
   {"t":0,
    "hips":[0,0,96], "body":[-4,7,-2], "chest":[-1,38,0], "head":[1,-12,2],

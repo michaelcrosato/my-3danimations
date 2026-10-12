@@ -13,7 +13,7 @@
 "contacts": {"by":"detected","footL":[[0.743,0.974],[1.37,1.997]],"footR":[[0.363,0.644],[1.122,1.419],[1.601,1.667]]},
 "facts": {"by":"m3a-facts@1","captured":["speed"],"height":[99,106],"seam":0,"speed":106,"travel":[-169.3,-9.6]},
 "provenance": {"src":"100STYLE","take":"WildArms_BR 59.90-61.57","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
-"quality": {"fit":[20,184],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"warn on skate: short of every fail level (thresholds.ts): unusual, not broken"},
+"quality": {"fit":[20,184],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"warn on skate: short of every fail level the sensors apply (thresholds.ts)"},
 "keys": [
   {"t":0,
    "hips":[0,0,104], "body":[15,4,-2], "chest":[0,8,1], "head":[-9,-5,4], "spine":[-2,41,72],

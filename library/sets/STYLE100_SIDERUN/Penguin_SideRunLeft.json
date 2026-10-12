@@ -13,7 +13,7 @@
 "contacts": {"by":"detected","footL":[[0.033,0.167]]},
 "facts": {"by":"m3a-facts@1","captured":["speed"],"height":[98,101],"seam":0,"speed":42,"travel":[0.4,-11.3]},
 "provenance": {"src":"100STYLE","take":"Penguin_SR 57.38-57.90","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
-"quality": {"fit":[8,28],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"warn on skate: short of every fail level (thresholds.ts): unusual, not broken"},
+"quality": {"fit":[8,28],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"warn on skate: short of every fail level the sensors apply (thresholds.ts)"},
 "keys": [
   {"t":0,
    "hips":[0,0,99], "body":[-1,2,-2], "chest":[-4,6,4], "head":[6,14,-2],

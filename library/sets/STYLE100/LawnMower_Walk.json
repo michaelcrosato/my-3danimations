@@ -13,7 +13,7 @@
 "contacts": {"by":"detected","footL":[[0,0.45]],"footR":[[0.45,1.033]]},
 "facts": {"by":"m3a-facts@1","captured":["speed"],"height":[98,101],"seam":0,"speed":78,"travel":[109.4,-1.2]},
 "provenance": {"src":"100STYLE","take":"LawnMower_FW 102.20-103.25","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
-"quality": {"fit":[12,131],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"warn on skate, twistFlip: short of every fail level (thresholds.ts): unusual, not broken"},
+"quality": {"fit":[12,131],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"warn on skate, twistFlip: short of every fail level the sensors apply (thresholds.ts)"},
 "keys": [
   {"t":0,
    "hips":[0,0,100], "body":[-5,-11,-1], "chest":[-1,36,-3], "head":[4,-3,4],

@@ -13,7 +13,7 @@
 "contacts": {"by":"detected","footL":[[0,0.28],[0.592,0.872]],"footR":[[0.378,0.642],[0.971,1.349]]},
 "facts": {"by":"m3a-facts@1","captured":["speed"],"height":[92,109],"seam":0,"speed":140,"travel":[16.5,-167.3]},
 "provenance": {"src":"100STYLE","take":"Swimming_SR 40.13-41.40","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
-"quality": {"fit":[16,178],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"warn on skate: short of every fail level (thresholds.ts): unusual, not broken"},
+"quality": {"fit":[16,178],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"warn on skate: short of every fail level the sensors apply (thresholds.ts)"},
 "keys": [
   {"t":0,
    "hips":[0,0,94], "body":[2,1,-7], "chest":[4,22,5], "head":[12,1,-1],

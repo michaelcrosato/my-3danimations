@@ -13,7 +13,7 @@ CMU_CURATED/Direct_Traffic	6	once		gesture	Directing traffic, waving it on	CMU_1
 CMU_CURATED/Drink_Soda	12.1	once		eat	Unscrews a bottle cap and drinks the soda	CMU_13
 CMU_CURATED/Climb_Steps	10	once		climb	Climbs three steps	CMU_13
 CMU_CURATED/Jump_Kick	2.4	once		attack kick jump	A spinning jump kick (a tornado kick): a run-up	CMU_90
-CMU_CURATED/Fall_On_Face	2.2	once		death hurt	Toppling forward flat onto the face	CMU_90
+CMU_CURATED/Fall_On_Face	2.2	once		death hurt	Diving forward and landing flat on the face	CMU_90
 CMU_CURATED/Slip_Fall	2.8	once		hurt	Slips as on a banana peel and falls	CMU_90
 CMU_CURATED/Rug_Pull_Fall	1.6	once		hurt	Falls as if a rug were pulled from under the feet	CMU_90
 CMU_CURATED/Moonwalk	6	once		dance	A moonwalk, gliding backwards	CMU_90
@@ -28,6 +28,7 @@ CMU_CURATED/Get_Up_Ready	4.6	once		getup	Gets up from lying on the ground	CMU_13
 CMU_CURATED/Get_Up_From_Back_Ready	7.1	once		getup	Gets up from lying on the back	CMU_139
 CMU_CURATED/Give_Directions	5.5	once		talk gesture	Giving someone directions	CMU_139
 CMU_CURATED/Draw_Gun	4.267	once		gun aim	Pulls a gun	CMU_139
+CMU_CURATED/Get_Up_From_Ground	5.1	once		getup	Getting up from lying on the ground	CMU_139
 CMU_CURATED/Hurt_Stomach_Walk_Loop	1.267	loop	113	walk hurt	Walking hunched over, a hand clutching the stomach	CMU_91
 CMU_CURATED/Stumble_Turn	1.7	once		hurt	A small stumble, turning all the way round	CMU_91
 CMU_CURATED/Limp_Loop	1.033	loop	135	walk hurt	A limping walk, favouring one leg. One stride cycle, in place	CMU_91
@@ -52,10 +53,11 @@ CMU_CURATED/Stepping_Punch	6	once		attack unarmed walk	Karate stepping punches (
 CMU_CURATED/Get_Up_Face_Down	6.1	once		getup	Getting up from lying face down: push up on the arms	CMU_140
 CMU_CURATED/Get_Up_From_Back	7.067	once		getup	Getting up from lying on the back: sit up, roll to a knee, stand	CMU_140
 CMU_CURATED/Get_Up_From_Side	8.5	once		getup	Getting up from lying on the side	CMU_140
+CMU_CURATED/Get_Up_From_Front	4.5	once		getup	Getting up from lying face down	CMU_140
+CMU_CURATED/Get_Up_Side_Roll	6	once		getup	Getting up from lying on the side, by way of sitting and a kneel	CMU_140
+CMU_CURATED/Get_Up_Back_Quick	5	once		getup	A quick get-up from lying on the back	CMU_140
 CMU_CURATED/Duck_Thrown_Object	5.5	once		dodge crouch	Ducking from something thrown	CMU_77
 CMU_CURATED/Creep_Limp_Loop	1.5	loop	20	walk crouch hurt	Creeping along low and careful, with a limp	CMU_77
-CMU_CURATED/Get_Up_Careful	6.2	once		getup	Getting up from lying on the floor into a careful, ready pose	CMU_77
-CMU_CURATED/Get_Up_Careful_From_Back	8	once		getup	Getting up from lying on the back into a careful, ready pose	CMU_77
 CMU_CURATED/Chop_Wood	6	once		work	Chopping wood: an axe raised overhead in both hands and brought down hard	CMU_79
 CMU_CURATED/Dig	6	once		work farm	Digging with a spade: foot on the blade, lever back	CMU_79
 CMU_CURATED/Fishing	8	once		fish	Fishing: a cast with a rod, waiting, then reeling in (no rod is drawn)	CMU_79
@@ -97,7 +99,7 @@ CMU_CURATED/Wave_Hello	2.3	once		gesture	Waving hello with a raised hand	CMU_141
 CMU_CURATED/Shrug	1.4	once		gesture	A shrug: shoulders up, palms turned out, who knows	CMU_141
 CMU_CURATED/Stretch_Yawn	3.067	once		idle rest	A big stretch with a yawn, arms reaching up overhead	CMU_141
 CMU_CURATED/Curtsey	3.3	once		emote	A curtsey: one foot behind, knees dipping, a small bow of the head	CMU_141
-CMU_CURATED/Waiting_Loop	0.933	loop	98	idle	Waiting impatiently: shifting weight from foot to foot, looking about	CMU_141
+CMU_CURATED/Waiting_Loop	0.933	loop		idle	Waiting impatiently: shifting weight from foot to foot, looking about	CMU_141
 CMU_CURATED/Frankenstein_Walk_Loop	2.5	loop	47	walk monster zombie	Frankenstein's monster: stiff legs, arms held straight out ahead	CMU_104
 CMU_CURATED/Stumble_Walk	4.567	once		walk hurt	Walking, stumbles	CMU_104
 CMU_CURATED/Monkey	6	once		monster	A monkey, acted by a person: hunched, scratching, hopping about	CMU_54
@@ -114,6 +116,8 @@ CMU_CURATED/Take_A_Bow	3.2	once		emote	Takes a bow	CMU_111
 CMU_CURATED/Free_Dance	7.7	once		dance	A loose, freestyle dance	CMU_111
 CMU_CURATED/Punch_Kick	6	once		attack unarmed kick	Punches and kicks	CMU_111
 CMU_CURATED/Get_Up_Heavy	8	once		getup	A slow, heavy get-up from lying on the floor: up to sitting, a pause	CMU_111
+CMU_CURATED/Get_Up_Sit_Kneel	9.3	once		getup	A slow get-up from lying flat: sitting up, a long sit	CMU_111
+CMU_CURATED/Get_Up_Labored	10.2	once		getup	A labored get-up from lying flat, a little at a time	CMU_111
 CMU_CURATED/Stumble_Into	2.5	once		hurt	Stumbles into someone	CMU_22
 CMU_CURATED/Bumped	2.5	once		hurt	Bumped by someone stumbling into them	CMU_23
 CMU_CURATED/Comfort	4.3	once		gesture	Puts a comforting hand on someone's shoulder	CMU_23

@@ -790,6 +790,10 @@
    ],
    "repaired": [
     "twistFlips"
+   ],
+   "unrepairedFit": [
+    8,
+    92
    ]
   },
   "Elated_SideRight": {
@@ -810,6 +814,10 @@
    "repaired": [
     "twistFlips",
     "jitter"
+   ],
+   "unrepairedFit": [
+    9,
+    120
    ]
   },
   "FairySteps_SideLeft": {
@@ -1549,6 +1557,10 @@
    ],
    "repaired": [
     "twistFlips"
+   ],
+   "unrepairedFit": [
+    7,
+    53
    ]
   },
   "Monk_SideLeft": {
@@ -1777,6 +1789,10 @@
    ],
    "repaired": [
     "twistFlips"
+   ],
+   "unrepairedFit": [
+    7,
+    53
    ]
   },
   "OnToesBentForward_SideLeft": {
@@ -2341,6 +2357,10 @@
    ],
    "repaired": [
     "jitter"
+   ],
+   "unrepairedFit": [
+    9,
+    58
    ]
   },
   "Skip_SideRight": {
@@ -2520,6 +2540,10 @@
    ],
    "repaired": [
     "twistFlips"
+   ],
+   "unrepairedFit": [
+    10,
+    116
    ]
   },
   "Superman_SideLeft": {
@@ -2667,6 +2691,10 @@
    ],
    "repaired": [
     "twistFlips"
+   ],
+   "unrepairedFit": [
+    9,
+    150
    ]
   },
   "SwingArmsRound_SideRight": {
@@ -2961,6 +2989,10 @@
    ],
    "repaired": [
     "jitter"
+   ],
+   "unrepairedFit": [
+    11,
+    103
    ]
   },
   "WhirlArms_SideRight": {
@@ -3060,6 +3092,10 @@
    ],
    "repaired": [
     "twistFlips"
+   ],
+   "unrepairedFit": [
+    8,
+    84
    ]
   },
   "WildArms_SideRight": {

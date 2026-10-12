@@ -1878,3 +1878,51 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   motion is broken (the stunt fall). Everything else is explained in the clip itself, where a game will look.
 - **Answered:** no: made without a response, to review (the reactions floor above all).
 - **Landed in:** v0.35.0
+
+## D67 · 2026-10-12 · G5's verifier: duplicate captures, an unlinked re-export, floating falls, repairs that moved a point too far
+
+- **Principle:** 3, 8, 10, G5, D66
+- **Call:** the gate's commands passed (12 of 12, 9.6 min), but its verifier found the reactions floor not met even at
+  D66's 33, and more. What changed:
+  - **Reactions (blocking).** Two of D66's five get-ups were the same capture as picks already in: CMU subject 77's
+    takes 01–34 are byte for byte subject 139's (77_16 is 139_16, Get_Up_Ready). They are gone, and six get-ups from
+    takes no pick shares (111_06, 111_08, 140_02, 140_04, 140_09, 139_17; four are second takes of a get-up already
+    picked, by the same performer) are in. Mesh2Motion's `Death_D` and `Hit_Chest` are re-exports of Quaternius without
+    an `orig`: the census now finds such a clip's original by pose with the original read at the rate the re-export
+    plays it (Mesh2Motion plays library 1 at 0.8 of its speed; REEXPORT_NEAR 80 mm, the declared copies sit at 47–65),
+    and `Hit_Chest`, whose export floats 59 cm above the floor its whole length, is left out (`$skip`). Reactions: 35
+    unique (the floor stays 33, D66).
+  - **Floating falls.** A CMU take whose feet don't show its floor stood on the floor of the subject's other takes,
+    23–25 cm off for subject 90's falls. It now stands where its feet stand while the body is upright (the hips at 0.8
+    of their tallest above the feet: before a fall, after a get-up, a ledge jump's lower level), else on the floor its
+    whole body shows (`@m3a/io` cutPicks). The falls start on the floor; some get-ups' lying parts dip 10–16 cm below
+    it (Lie_Down's 24 cm), as their captures put the lying body below where the feet stand. `Fall_On_Face` is a dive
+    (its hips rise to 1.6 times standing height): its description says so.
+  - **Repairs that moved a point too far.** A repair, and a re-import kept for a better verdict, may now also move no
+    point more than WORST (30 mm) further from its source at its worst; `_import.json` keeps the fit before a repair
+    (`unrepairedFit`). 110 clips are repaired (148 before), 38 held back by the new guard (their twist flips stay,
+    with that reason); of D66's 8 walks only Tiptoe_Walk is kept by the relaxed rule. Fails 139 → 155.
+  - **Combat.** Two clips that hold the same pose still count once whatever their lengths (STILL, 10 mm): a held aim
+    and a held idle. Combat 61.
+  - **Reasons.** A warn's reason no longer says "unusual, not broken": it is short of every fail level the sensors
+    apply, and every reason names the metrics its tags' profile turns off ("not measured for its tags:
+    bodyPenetration, intersection" on a get-up). `qa library --check` now compares each clip's whole reason with what
+    `library/baselines/qa.json` and the writer's record give, and names a set's reason when no clip in it fails.
+  - **Schemas** for `library/baselines/qa.json` and `distributions.json` (`tools/qa/*.schema.json`), checked on read;
+    tests for the repair guard and the choice rule, the census's new rules, the summary, and the floors against
+    PLAN.md's; `npm run qa -- library` is in AGENTS.md's table.
+- **Answered, not changed:**
+  - Categories by first tag: a hurt or dizzy idle is a reaction a game plays after a hit, a talking idle a gesture, a
+    sitting idle or an exercise interaction; the rule is coarse and written down (`CATEGORIES`).
+  - Two levitations count as combat through `magic`: in this library magic is a fighting style. A combo that strings
+    two sword attacks is its own motion. Left and right mirrors (a dodge, a strafe) both count: a game needs each.
+  - Subject 77 and 139 are the same files at 60 and 120 fps in CMU's index; the two picks from 77 left
+    (Duck_Thrown_Object, Creep_Limp_Loop) keep the index's 60, and no new pick takes a file another pick shares.
+  - Repairs may raise another metric short of its warn level (a slide 34 → 93 mm): `fix` refuses a step that pushes
+    any metric past a level (WP-3.5).
+  - The acrobatics profile turns bodyPenetration off, so a get-up's knee 10 cm under the floor isn't measured: the
+    reasons now say so; a profile that measures how deep a contact goes is the sensors' next change, not G5's.
+- **Why:** the floors count what a game can use; a duplicate capture, an unlinked re-export or a floating clip
+  counted where it shouldn't, and a repair kept for its verdict at a point's expense trades the motion for the number.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.35.1

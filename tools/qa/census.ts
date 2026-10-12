@@ -1,11 +1,12 @@
 // The library's census for G5 (PLAN.md WP-5.8): a category per clip, read from its tags, and a minimal dedup so the gate
 // counts unique motions. Clips are joined by their `orig` chains (Mesh2Motion's re-exports of Quaternius), as re-exports
-// (one source's animation of one name in two sets, or its root-motion take `_RM`), and by pose: two clips of about the
-// same length whose poses lie within NEAR mm of each other on average over their whole length are one motion (two
-// standing idles a style barely shows in, an animation saved twice under two names). A pose is the body's 36 points
-// in the root's frame, centred on the pelvis over the floor and scaled to the reference hip height, at SAMPLES times over
-// the clip (two loops compared at every shift of their phase); a clip's mean pose bounds the distance from below, so
-// most pairs are never compared in full. The full dedup is WP-9.3.
+// (one source's animation of one name in two sets, or its root-motion take `_RM`; a re-export source's clip without an
+// orig, by pose at its own rate, REEXPORT_NEAR), and by pose: two clips of about the same length whose poses lie within
+// NEAR mm of each other on average over their whole length are one motion (two standing idles a style barely shows in,
+// an animation saved twice under two names), and two that hold still the same pose are one whatever their lengths. A
+// pose is the body's 36 points in the root's frame, centred on the pelvis over the floor and scaled to the reference hip
+// height, at SAMPLES times over the clip (two loops compared at every shift of their phase); a clip's mean pose bounds
+// the distance from below, so most pairs are never compared in full. The full dedup is WP-9.3.
 import { format } from "@m3a/core";
 import type { LibraryClip } from "./qa.ts";
 
@@ -44,6 +45,15 @@ export const SAMPLES = 24;
 export const NEAR = 20;
 /** Two clips are compared only when the longer is at most this many times the shorter. */
 const LENGTHS = 1.1;
+/** Sources that re-export another library's animations: that library's sources, and the rates the re-export may play
+ *  them at (Mesh2Motion plays Quaternius' library 1 at 0.8 of its speed, 25% longer, and library 2 at its own). */
+export const REEXPORTS: Readonly<Record<string, { from: readonly string[]; rates: readonly number[] }>> = { M2M_QUATERNIUS: { from: ["UAL1", "UAL2"], rates: [1, 0.8] } };
+/** A re-export without an `orig` counts with its original when their poses lie this close over the re-export's length,
+ *  the original read at the re-export's rate: the declared copies sit at 47–65 mm, other clips 240 mm and more apart. */
+export const REEXPORT_NEAR = 80;
+/** A clip whose poses all lie within this many mm of its mean pose holds still: two such count once when their mean
+ *  poses lie within NEAR, whatever their lengths (a held aim and a held idle of the same pose). */
+export const STILL = 10;
 
 interface Sampled {
   id: string;
@@ -53,6 +63,8 @@ interface Sampled {
   poses: Float32Array;
   /** The mean pose. */
   mean: Float32Array;
+  /** The farthest any pose lies from the mean (mm a point). */
+  spread: number;
 }
 const N = format.P * 3, PELVIS = format.IDX.pelvis! * 3;
 
@@ -70,7 +82,27 @@ function sampled({ clip, rest }: LibraryClip): Sampled {
       for (let d = 0; d < 3; d++) mean[p * 3 + d]! += poses[o + d]! / SAMPLES;
     }
   }
-  return { id: clip.id, dur: clip.dur, loop: clip.loop, poses, mean };
+  let spread = 0;
+  for (let i = 0; i < SAMPLES; i++) spread = Math.max(spread, between(poses, i * N, mean, 0));
+  return { id: clip.id, dur: clip.dur, loop: clip.loop, poses, mean, spread };
+}
+
+/** How far a re-export lies from a clip read at `rate` of its time: the poses' mean distance over the re-export's length
+ *  (the original held at its end past it). */
+function rated(re: LibraryClip, o: LibraryClip, rate: number): number {
+  const A = new Float32Array(N), B = new Float32Array(N), at = (c: LibraryClip, t: number, Y: Float32Array, k: number) => {
+    format.pose(c.rest, c.clip, t, Y);
+    const x0 = Y[PELVIS]!, y0 = Y[PELVIS + 1]!;
+    for (let p = 0; p < format.P; p++) [Y[p * 3], Y[p * 3 + 1], Y[p * 3 + 2]] = [(Y[p * 3]! - x0) * k, (Y[p * 3 + 1]! - y0) * k, Y[p * 3 + 2]! * k];
+  };
+  let sum = 0;
+  for (let i = 0; i < SAMPLES; i++) {
+    const t = (re.clip.dur * i) / (SAMPLES - 1);
+    at(re, t, A, 950 / re.rest.H0);
+    at(o, Math.min(o.clip.dur, t * rate), B, 950 / o.rest.H0);
+    sum += between(A, 0, B, 0);
+  }
+  return sum / SAMPLES;
 }
 
 /** The mean distance between two poses (mm a point). */
@@ -119,8 +151,8 @@ export function census(lib: readonly LibraryClip[], cc0: ReadonlySet<string>): C
     links.set(j, [...(links.get(j) ?? []), { kind: kind === "orig" ? "copied" : kind, why: whyJ }]);
     const a = find(i), b = find(j);
     if (a === b) return;
-    // the one that counts: an original over its copy, CC0 over another tier, a clip others copy, then by id
-    const rank = (k: number) => `${lib[k]!.clip.provenance.orig ? 1 : 0}${cc0.has(lib[k]!.set) ? 0 : 1}${copied.has(ids[k]!) ? 0 : 1}${ids[k]}`;
+    // the one that counts: an original over its copy or re-export, CC0 over another tier, a clip others copy, then by id
+    const rank = (k: number) => `${lib[k]!.clip.provenance.orig || REEXPORTS[lib[k]!.clip.provenance.src] ? 1 : 0}${cc0.has(lib[k]!.set) ? 0 : 1}${copied.has(ids[k]!) ? 0 : 1}${ids[k]}`;
     if (rank(a) < rank(b)) parent[b] = a;
     else parent[a] = b;
   };
@@ -136,8 +168,31 @@ export function census(lib: readonly LibraryClip[], cc0: ReadonlySet<string>): C
     if (j === undefined) exported.set(key, i);
     else join(i, j, "export", `the same animation of ${c.clip.provenance.src} as ${ids[j]}`, `the same animation of ${c.clip.provenance.src} as ${ids[i]}`);
   });
+  const s = lib.map(sampled);
+  // a re-export source's clips without an orig: their original by pose, read at the rate the re-export plays it
+  lib.forEach((c, i) => {
+    const re = REEXPORTS[c.clip.provenance.src];
+    if (!re || c.clip.provenance.orig) return;
+    let best = -1, d = REEXPORT_NEAR, at = 1;
+    lib.forEach((o, j) => {
+      if (!re.from.includes(o.clip.provenance.src) || o.clip.loop !== c.clip.loop || o.clip.skeleton !== c.clip.skeleton) return;
+      for (const rate of re.rates) {
+        const e = rated(c, o, rate);
+        if (e < d) [best, d, at] = [j, e, rate];
+      }
+    });
+    if (best >= 0) join(i, best, "export", `re-exported from ${ids[best]} (within ${d.toFixed(0)} mm over its length, played at ${at} of its speed)`, `re-exported as ${ids[i]}`);
+  });
+  // clips that hold still: by their mean poses, whatever their lengths
+  const still = s.map((x, i) => i).filter((i) => s[i]!.spread < STILL);
+  for (let x = 0; x < still.length; x++) for (let y = x + 1; y < still.length; y++) {
+    const i = still[x]!, j = still[y]!;
+    if (lib[i]!.clip.skeleton !== lib[j]!.clip.skeleton || find(i) === find(j)) continue;
+    const d = between(s[i]!.mean, 0, s[j]!.mean, 0);
+    if (d < NEAR) join(i, j, "pose", `held still within ${d.toFixed(1)} mm of ${ids[j]}`, `held still within ${d.toFixed(1)} mm of ${ids[i]}`);
+  }
   // near-duplicates by pose
-  const s = lib.map(sampled), order = s.map((_, i) => i).sort((a, b) => s[a]!.dur - s[b]!.dur);
+  const order = s.map((_, i) => i).sort((a, b) => s[a]!.dur - s[b]!.dur);
   for (let x = 0; x < order.length; x++) {
     const i = order[x]!, a = s[i]!;
     for (let y = x + 1; y < order.length; y++) {

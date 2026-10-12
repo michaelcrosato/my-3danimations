@@ -13,7 +13,7 @@
 "contacts": {"by":"detected","footL":[[0.35,0.6]],"footR":[[0.283,0.333]]},
 "facts": {"by":"m3a-facts@1","captured":["speed"],"height":[95,99],"seam":0,"speed":143,"travel":[-67.8,-11.1]},
 "provenance": {"src":"100STYLE","take":"Teapot_BR 10.90-11.50","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
-"quality": {"fit":[9,82],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"warn on skate: short of every fail level (thresholds.ts): unusual, not broken"},
+"quality": {"fit":[9,82],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"warn on skate: short of every fail level the sensors apply (thresholds.ts)"},
 "keys": [
   {"t":0,
    "hips":[0,0,98], "body":[-6,-15,-1], "chest":[-10,21,3], "head":[4,15,4],

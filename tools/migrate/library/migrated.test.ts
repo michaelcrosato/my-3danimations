@@ -27,7 +27,7 @@ const TIER2: Record<string, string> = { QUATERNIUS_3D2DGE: "QUATERNIUS", MESH2MO
 describe("the migrated library", () => {
   it("holds the five seed sets and 100STYLE's extras, with the clip counts WP-1.5, WP-5.3 and WP-5.8 leave them", () => {
     const count = (s: string) => readdirSync(join(LIB, s)).filter((f) => !f.startsWith("_") && f.endsWith(".json")).length;
-    expect(Object.fromEntries(sets.map((s) => [s, count(s)]))).toEqual({ CMU_CURATED: 149, MESH2MOTION: 177, QUATERNIUS_3D2DGE: 88, QUATERNIUS_SHARDFALL: 102, STYLE100: 95, STYLE100_BACK: 98, STYLE100_BACKRUN: 98, STYLE100_IDLE: 98, STYLE100_RUN: 98, STYLE100_SIDE: 194, STYLE100_SIDERUN: 193 });
+    expect(Object.fromEntries(sets.map((s) => [s, count(s)]))).toEqual({ CMU_CURATED: 153, MESH2MOTION: 176, QUATERNIUS_3D2DGE: 88, QUATERNIUS_SHARDFALL: 102, STYLE100: 95, STYLE100_BACK: 98, STYLE100_BACKRUN: 98, STYLE100_IDLE: 98, STYLE100_RUN: 98, STYLE100_SIDE: 194, STYLE100_SIDERUN: 193 });
   });
   for (const set of sets) {
     describe(set, () => {
@@ -62,9 +62,11 @@ describe("the migrated library", () => {
             const bend = m ? (clip.keys[Number(m[1]) - 1]![`${m[2]}${m[3]}` as "armL"] as number[])[3]! : undefined;
             if (b.code === "M2-W002") expect(bend, `${f} ${b.at}`).toBeGreaterThan(135);
             if (b.code === "M2-W005" && m) expect(bend, `${f} ${b.at}`).toBeLessThanOrEqual(25);
-            // a hand's roll winds only on a nearly straight arm, as its reason says
+            // a hand's roll winds on a nearly straight arm, or rolls round as the arm bends within the range its reason gives
             const h = /^key (\d+) .*?hand([LR])\[2\]$/.exec(b.at);
-            if (b.code === "M2-W005" && h) expect((clip.keys[Number(h[1]) - 1]![`arm${h[2]}` as "armL"] as number[])[3]!, `${f} ${b.at}`).toBeLessThanOrEqual(25);
+            const armBend = h ? (clip.keys[Number(h[1]) - 1]![`arm${h[2]}` as "armL"] as number[])[3]! : undefined;
+            const range = /as the arm[LR] bends (\d+)–(\d+) degrees/.exec(b.reason);
+            if (b.code === "M2-W005" && h) expect(range ? Number(range[2]) > 25 && armBend! >= Number(range[1]) && armBend! <= Number(range[2]) : armBend! <= 25, `${f} ${b.at}: ${b.reason}`).toBe(true);
           }
           expect(clip.id).toBe(`${set}/${f.replace(/\.json$/, "")}`);
           expect(manifest.sources[clip.restSrc], f).toBeDefined();

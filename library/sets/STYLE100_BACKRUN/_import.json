@@ -200,6 +200,10 @@
    ],
    "repaired": [
     "jitter"
+   ],
+   "unrepairedFit": [
+    19,
+    168
    ]
   },
   "BouncyLeft_RunBack": {
@@ -284,6 +288,10 @@
    ],
    "repaired": [
     "jitter"
+   ],
+   "unrepairedFit": [
+    8,
+    42
    ]
   },
   "Crouched_RunBack": {
@@ -335,6 +343,10 @@
    ],
    "repaired": [
     "twistFlips"
+   ],
+   "unrepairedFit": [
+    7,
+    105
    ]
   },
   "Dinosaur_RunBack": {
@@ -354,6 +366,10 @@
    ],
    "repaired": [
     "twistFlips"
+   ],
+   "unrepairedFit": [
+    8,
+    45
    ]
   },
   "DragLeftLeg_RunBack": {
@@ -407,6 +423,10 @@
    ],
    "repaired": [
     "seam"
+   ],
+   "unrepairedFit": [
+    7,
+    55
    ]
   },
   "DuckFoot_RunBack": {
@@ -490,6 +510,10 @@
    ],
    "repaired": [
     "jitter"
+   ],
+   "unrepairedFit": [
+    8,
+    46
    ]
   },
   "Followed_RunBack": {
@@ -546,19 +570,17 @@
    "why": "new in the re-import",
    "fit": {
     "import": [
-     8,
-     120
+     7,
+     47
     ]
    },
    "qa": {
-    "import": "pass"
+    "import": "warn"
    },
    "hands": [
     4.9
    ],
-   "repaired": [
-    "twistFlips"
-   ]
+   "unrepaired": "twistFlips would move a point 73 mm further from its source at worst"
   },
   "Heavyset_RunBack": {
    "kept": "new",
@@ -593,6 +615,10 @@
    ],
    "repaired": [
     "twistFlips"
+   ],
+   "unrepairedFit": [
+    12,
+    73
    ]
   },
   "InTheDark_RunBack": {
@@ -645,6 +671,10 @@
    ],
    "repaired": [
     "jitter"
+   ],
+   "unrepairedFit": [
+    10,
+    67
    ]
   },
   "LawnMower_RunBack": {
@@ -859,6 +889,10 @@
    ],
    "repaired": [
     "twistFlips"
+   ],
+   "unrepairedFit": [
+    7,
+    52
    ]
   },
   "Neutral_RunBack": {
@@ -1225,19 +1259,17 @@
    "why": "new in the re-import",
    "fit": {
     "import": [
-     11,
-     165
+     10,
+     58
     ]
    },
    "qa": {
-    "import": "pass"
+    "import": "fail"
    },
    "hands": [
-    9.6
+    9.5
    ],
-   "repaired": [
-    "twistFlips"
-   ]
+   "unrepaired": "twistFlips would move a point 107 mm further from its source at worst"
   },
   "SlideFeet_RunBack": {
    "kept": "new",
@@ -1371,6 +1403,10 @@
    ],
    "repaired": [
     "seam"
+   ],
+   "unrepairedFit": [
+    7,
+    38
    ]
   },
   "Swimming_RunBack": {
@@ -1406,6 +1442,10 @@
    ],
    "repaired": [
     "seam"
+   ],
+   "unrepairedFit": [
+    12,
+    129
    ]
   },
   "SwingShoulders_RunBack": {
@@ -1540,6 +1580,10 @@
    ],
    "repaired": [
     "twistFlips"
+   ],
+   "unrepairedFit": [
+    9,
+    40
    ]
   },
   "WhirlArms_RunBack": {
@@ -1608,6 +1652,10 @@
    ],
    "repaired": [
     "twistFlips"
+   ],
+   "unrepairedFit": [
+    18,
+    169
    ]
   },
   "WildLegs_RunBack": {

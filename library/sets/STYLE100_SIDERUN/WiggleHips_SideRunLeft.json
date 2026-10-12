@@ -13,7 +13,7 @@
 "contacts": {"by":"detected","footL":[[0.083,0.383]],"footR":[[0.5,0.85]]},
 "facts": {"by":"m3a-facts@1","captured":["speed"],"height":[93,109],"seam":0,"speed":104,"travel":[11.8,-84.1]},
 "provenance": {"src":"100STYLE","take":"WiggleHips_SR 44.75-45.48","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
-"quality": {"fit":[8,33],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"warn on skate: short of every fail level (thresholds.ts): unusual, not broken"},
+"quality": {"fit":[8,33],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"warn on skate: short of every fail level the sensors apply (thresholds.ts)"},
 "keys": [
   {"t":0,
    "hips":[0,0,93], "body":[-4,-3,5], "chest":[-7,14,1], "head":[13,4,-4],

@@ -53,6 +53,10 @@
    "repaired": [
     "twistFlips",
     "jitter"
+   ],
+   "unrepairedFit": [
+    7,
+    71
    ]
   },
   "ArmsAboveHead_WalkBack": {
@@ -200,6 +204,10 @@
    ],
    "repaired": [
     "twistFlips"
+   ],
+   "unrepairedFit": [
+    11,
+    78
    ]
   },
   "BouncyLeft_WalkBack": {
@@ -1022,6 +1030,10 @@
    ],
    "repaired": [
     "twistFlips"
+   ],
+   "unrepairedFit": [
+    9,
+    98
    ]
   },
   "Quail_WalkBack": {
@@ -1558,6 +1570,10 @@
    ],
    "repaired": [
     "twistFlips"
+   ],
+   "unrepairedFit": [
+    10,
+    103
    ]
   },
   "WildLegs_WalkBack": {

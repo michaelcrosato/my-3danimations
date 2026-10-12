@@ -164,9 +164,9 @@ export function localTo(f: Facing, p: V3, o: V3): V3 {
 /**
  * Each pick cut from its take as a clip, and the takes' lowest foot points (where the floor is). `lenient`: a pick that
  * can't be cut (no stretch going its way, no cycle) is left out with the reason logged, rather than failing them all
- * (a catalog of a hundred styles). `floorEach`: each take stood on the ground (0), on its own floor where it shows one
- * (a capture's floor can sit centimetres apart take to take), else on the floor of the takes that do (`STEADY_FLOOR`),
- * and the lowest foot points returned as they stand then.
+ * (a catalog of a hundred styles). `floorEach`: each take stood on the ground (0), on its own floor where its feet show
+ * one (`STEADY_FLOOR`; a capture's floor can sit centimetres apart take to take), else where its feet stand while it is
+ * upright (`UPRIGHT`), else on the floor its whole body shows, and the lowest foot points returned as they stand then.
  */
 export function cutPicks(takeOf: (take: string) => Take, facing: Facing, picks: readonly Pick[], FPS: number, file?: string, opts: { lenient?: boolean; floorEach?: boolean } = {}): { clips: Record<string, Capture>; lows: number[]; log: string[] } {
   const POINTS = format.POINTS, P = format.P, { fwd: fwd0, right: RIGHT } = facing, log: string[] = [];
@@ -218,10 +218,10 @@ export function cutPicks(takeOf: (take: string) => Take, facing: Facing, picks: 
     return [(a + best.i) / src, (a + best.j) / src, best.cost];
   };
   const takes: Record<string, Take> = {}, clips: Record<string, Capture> = {}, lows: number[] = [];
-  const low = (W: V3[]) => Math.min(...["toeL", "toeR", "ballL", "ballR"].map((k) => W[POINTS.indexOf(k)]![1]!));
+  const low = (W: V3[]) => Math.min(...["toeL", "toeR", "ballL", "ballR"].map((k) => W[POINTS.indexOf(k)]![1]!)), lowest = (W: V3[]) => Math.min(...W.map((p) => p[1]!)), PEL = POINTS.indexOf("pelvis");
   if (opts.floorEach) {
     // every take read first, each one's floor found and its points moved onto the ground
-    const lowsOf = new Map<string, number[]>();
+    const lowsOf = new Map<string, number[]>(), uprightOf = new Map<string, number[]>(), bodyOf = new Map<string, number[]>();
     for (const pk of picks) {
       if (takes[pk.take]) continue;
       let T: Take;
@@ -231,15 +231,26 @@ export function cutPicks(takeOf: (take: string) => Take, facing: Facing, picks: 
         if (!opts.lenient || !(err instanceof IoError)) throw err;
         continue; // cutOne logs it
       }
-      const own: number[] = [];
-      for (let k = 0; k < T.frames; k += Math.max(1, Math.round((pk.fps || 120) / 30))) own.push(low(T.points(k)));
+      const own: number[] = [], body: number[] = [], tall: number[] = [];
+      for (let k = 0; k < T.frames; k += Math.max(1, Math.round((pk.fps || 120) / 30))) {
+        const W = T.points(k);
+        own.push(low(W));
+        body.push(lowest(W));
+        tall.push(W[PEL]![1]! - low(W));
+      }
+      // the foot points of the frames where the body is upright: the hips at least UPRIGHT of their tallest above the feet
+      const most = Math.max(...tall);
       lowsOf.set(pk.take, own);
+      uprightOf.set(pk.take, own.filter((_, i) => tall[i]! >= UPRIGHT * most));
+      bodyOf.set(pk.take, body);
     }
     // a take whose feet mostly stand on one level shows its floor; one that mostly falls, jumps or lies doesn't (its
-    // lowest foot points sit wherever the feet are), and stands on the floor of the takes that do
-    const steady = [...lowsOf.values()].filter(floorShown), all = steady.length ? steady.flat() : [...lowsOf.values()].flat(), F = floorOf(all);
+    // lowest foot points sit wherever the feet are), and stands where its feet stand while it is upright (before a
+    // fall, after a get-up; a jump down from a ledge on the lower level), or, never upright for half a second, on the
+    // floor its whole body shows (the most common low centimetre of each frame's lowest point): its own floor either
+    // way, though its capture sit apart from the other takes'
     for (const [take, own] of lowsOf) {
-      const lift = -(floorShown(own) ? floorOf([...own]) : F), T = takes[take]!;
+      const up = uprightOf.get(take)!, lift = -(floorShown(own) ? floorOf([...own]) : up.length >= 15 ? floorOf([...up]) : floorOf([...bodyOf.get(take)!])), T = takes[take]!;
       lows.push(...own.map((v) => v + lift));
       if (lift !== 0) takes[take] = { frames: T.frames, points: (k) => T.points(k).map((p) => [p[0]!, p[1]! + lift, p[2]!]) };
     }
@@ -339,6 +350,8 @@ export function cutPicks(takeOf: (take: string) => Take, facing: Facing, picks: 
 /** How many of a take's lowest foot points (its lower half) must sit within a centimetre of its floor for the take to
  *  show where its floor is: feet that mostly stand on one level. */
 export const STEADY_FLOOR = 0.9;
+/** A frame is upright when its hips stand at least this share of their tallest in the take above its lowest foot point. */
+export const UPRIGHT = 0.8;
 /** Whether a take's lowest foot points show its floor (`STEADY_FLOOR`). */
 export function floorShown(lows: readonly number[]): boolean {
   if (!lows.length) return false;

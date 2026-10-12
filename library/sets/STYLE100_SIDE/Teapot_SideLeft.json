@@ -13,7 +13,7 @@
 "contacts": {"by":"detected","footL":[[0.92,1.545]],"footR":[[0.181,1.019]]},
 "facts": {"by":"m3a-facts@1","captured":["speed"],"height":[96,100],"seam":0,"speed":53,"travel":[13.1,-59.3]},
 "provenance": {"src":"100STYLE","take":"Teapot_SW 68.33-69.48","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
-"quality": {"fit":[7,41],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"warn on intersection: short of every fail level (thresholds.ts): unusual, not broken"},
+"quality": {"fit":[7,41],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"warn on intersection: short of every fail level the sensors apply (thresholds.ts)"},
 "keys": [
   {"t":0,
    "hips":[0,0,100], "body":[-1,-4,0], "chest":[-5,12,4], "head":[1,14,-4],

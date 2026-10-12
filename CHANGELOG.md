@@ -4,6 +4,28 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.35.1 · 2026-10-12
+
+### IO
+- `cutPicks` with `floorEach` stands a take whose feet don't show its floor where its feet stand while the body is
+  upright (`UPRIGHT`: before a fall, after a get-up), else on the floor its whole body shows, not on the other takes'
+  floor (D67): CMU subject 90's falls floated 23–25 cm.
+
+### Library
+- G5's verifier's findings (D67): two get-ups that duplicated captures already picked replaced, and six get-ups from
+  takes no pick shares added (CMU_CURATED 153 clips); Mesh2Motion's floating `Hit_Chest` left out; `Fall_On_Face`
+  described as the dive it is. Reactions 35 unique, 1,194 unique motions in all.
+- A repair, or a re-import kept for a better verdict, moves no point more than 30 mm further from its source
+  (`WORST`); `_import.json` records the fit before a repair. 110 clips repaired; fails 155.
+- A clip's QA reason names the metrics its tags' profile turns off, and a warn's says no more than the sensors
+  measured.
+
+### Tools
+- The census finds a re-export's original by pose at the rate it plays (`REEXPORTS`) and counts two clips that hold the
+  same pose once (`STILL`); `qa library --check` compares each clip's whole reason and names a set reason no clip
+  needs; `tools/qa/qa.schema.json` and `distributions.schema.json`, checked on read; the importer's `repairGuard` and
+  `choose`, tested.
+
 ## 0.35.0 · 2026-10-12
 
 ### Sensors

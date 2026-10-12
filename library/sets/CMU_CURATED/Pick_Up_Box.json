@@ -13,7 +13,7 @@
 "contacts": {"by":"detected","footL":[[0,0.517],[0.833,1.033],[1.367,1.833],[2.017,2.283],[2.583,2.8],[3.117,3.283],[3.483,4.6]],"footR":[[0.55,0.783],[1.083,1.267],[1.583,2.083],[2.3,2.533],[2.867,3.083],[3.383,4.6]]},
 "facts": {"by":"m3a-facts@1","height":[87,103],"travel":[70,9]},
 "provenance": {"src":"CMU_143","take":"143_11 0.50-5.10","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
-"quality": {"fit":[9,58],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"warn on intersection, jitter, pop: short of every fail level (thresholds.ts): unusual, not broken"},
+"quality": {"fit":[9,58],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"warn on intersection, jitter, pop: short of every fail level the sensors apply (thresholds.ts)"},
 "keys": [
   {"t":0,
    "hips":[0,0,102], "body":[4,-2,-1], "chest":[-10,17,2], "head":[-12,15,2], "root":[0,0], "yaw":0, "spine":[45,84,98],

@@ -36,9 +36,23 @@ export interface QaContext {
 /** A clip's quality as its writer records it. */
 export type Quality = Clip["quality"];
 
-/** The reasons, or none when there is no file yet. */
+/** What is wrong with a reasons file's shape (tools/qa/qa.schema.json), none when it is right. */
+export function reasonsProblems(r: unknown): string[] {
+  const out: string[] = [], text = (v: unknown) => typeof v === "string" && v.trim().length > 0, obj = (v: unknown): v is Record<string, unknown> => Boolean(v) && typeof v === "object" && !Array.isArray(v);
+  if (!obj(r)) return ["the reasons are a JSON object"];
+  for (const k of Object.keys(r)) if (!["about", "warn", "sets", "clips"].includes(k)) out.push(`"${k}" is not a field of the reasons (about, warn, sets, clips)`);
+  if (!text(r.warn)) out.push("warn is the reason a warn is kept, a text");
+  if (!obj(r.sets) || !Object.values(r.sets).every(text)) out.push("sets maps a set to its reason, a text");
+  if (!obj(r.clips) || !Object.values(r.clips).every((m) => obj(m) && Object.values(m).every(text))) out.push("clips maps a clip id to { metric: reason }");
+  else for (const id of Object.keys(r.clips)) if (!/^[A-Z0-9_]+\/[A-Za-z0-9_]+$/.test(id)) out.push(`"${id}" is not a clip id`);
+  return out;
+}
+/** The reasons (checked: a bad file throws, naming what is wrong), or none when there is no file yet. */
 export function readReasons(file = QA_REASONS): QaReasons {
-  return existsSync(file) ? (JSON.parse(readFileSync(file, "utf8")) as QaReasons) : { warn: "short of every fail level", sets: {}, clips: {} };
+  if (!existsSync(file)) return { warn: "short of every fail level the sensors apply", sets: {}, clips: {} };
+  const r = JSON.parse(readFileSync(file, "utf8")) as unknown, bad = reasonsProblems(r);
+  if (bad.length) throw new Error(`${file}: ${bad.join("; ")}`);
+  return r as QaReasons;
 }
 
 /** The metrics past a report's verdict level, in order. */
@@ -49,7 +63,8 @@ export function pastLevel(report: Pick<Report, "verdict" | "findings">): string[
 /** What a baselined clip's reason starts with: its level and the metrics past it. */
 export const reasonHead = (report: Pick<Report, "verdict" | "findings">) => `${report.verdict} on ${pastLevel(report).join(", ")}: `;
 
-/** Why a flagged clip is kept: the hand reasons for its metrics, then its set's, the warn level's or its source's. */
+/** Why a flagged clip is kept: the hand reasons for its metrics, then its set's, the warn level's or its source's; and
+ *  the metrics its tags' profile turns off, so it never says more than the sensors measured. */
 export function reasonOf(clip: Clip, report: Report, reasons: QaReasons, ctx: QaContext = {}): string {
   const past = pastLevel(report), own = reasons.clips[clip.id] ?? {}, set = clip.id.split("/")[0]!;
   const byHand = past.filter((m) => own[m]), rest = past.filter((m) => !own[m]);
@@ -57,7 +72,7 @@ export function reasonOf(clip: Clip, report: Report, reasons: QaReasons, ctx: Qa
   const source = `${how} ${fit[0]} mm of it on average${ctx.migrated ? `; kept as migrated: ${ctx.migrated}` : ctx.unrepaired ? `; the sensors' fix: ${ctx.unrepaired}` : ctx.repaired?.length ? `; repaired (${ctx.repaired.join(", ")}), and still past it` : ""}`;
   const general = report.verdict === "warn" ? reasons.warn : (reasons.sets[set] ?? source);
   const parts = [...byHand.map((m) => `${m}: ${own[m]}`), ...(rest.length ? [`${byHand.length ? `${rest.join(", ")}: ` : ""}${general}`] : [])];
-  return reasonHead(report) + parts.join("; ");
+  return reasonHead(report) + parts.join("; ") + (report.off.length ? `; not measured for its tags: ${[...report.off].sort().join(", ")}` : "");
 }
 
 /** The quality a writer records for a clip (its fit kept): pass, or baselined with the reason. */

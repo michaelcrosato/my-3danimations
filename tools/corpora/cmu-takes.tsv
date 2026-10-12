@@ -1008,9 +1008,9 @@ id	subject	fps	sec	category	active	fit	travel	hips	flags	used	note	desc	about
 77_13	77	60	23.1	locomotion	1.8-23.1	15/94	29.9	89-104				careful run in figure eight	careful actions
 77_14	77	60	16.5	locomotion	0.0-16.5	20/81	8.7	88-97				careful creeping	careful actions
 77_15	77	60	18.0	locomotion	0.2-18.0	18/77	8.5	86-95				careful creeping	careful actions
-77_16	77	60	10.9	reaction	1.6-10.9	18/109	2.0	10-97		Get_Up_Careful		laying down, getting up, careful ready pose	careful actions
+77_16	77	60	10.9	reaction	1.6-10.9	18/109	2.0	10-97				laying down, getting up, careful ready pose	careful actions
 77_17	77	60	12.0	reaction	1.5-12.0	23/103	2.4	9-100				laying down, getting up, careful ready pose	careful actions
-77_18	77	60	14.2	reaction	0.0-14.2	22/118	2.6	12-104	inverted	Get_Up_Careful_From_Back		laying down on back, getting up, careful ready pose	careful actions
+77_18	77	60	14.2	reaction	0.0-14.2	22/118	2.6	12-104	inverted			laying down on back, getting up, careful ready pose	careful actions
 77_19	77	60	16.6	reaction	0.0-16.6	18/105	5.9	79-104				limping, hurt right leg	careful actions
 77_20	77	60	26.2	reaction	0.0-26.2	19/93	11.1	77-104				limping, hurt right leg	careful actions
 77_21	77	60	21.8	exercise	0.0-20.8	18/116	1.2	40-110				stretching	careful actions
@@ -1770,9 +1770,9 @@ id	subject	fps	sec	category	active	fit	travel	hips	flags	used	note	desc	about
 111_03	111	120	12.7	locomotion	0.0-12.7	29/148	2.3	34-101				Crawling	Pregnant Woman
 111_04	111	120	6.1	gesture and talk	0.0-6.1	15/99	1.0	93-105				Curtsey	Pregnant Woman
 111_05	111	120	7.7	dance	0.0-7.7	16/101	2.6	96-106		Free_Dance		Dance	Pregnant Woman
-111_06	111	120	12.7	reaction	0.0-11.6	30/185	2.0	10-105	inverted			Get up from floor	Pregnant Woman
+111_06	111	120	12.7	reaction	0.0-11.6	30/185	2.0	10-105	inverted	Get_Up_Sit_Kneel		Get up from floor	Pregnant Woman
 111_07	111	120	16.4	reaction	0.0-16.4	19/117	1.4	6-105		Get_Up_Heavy		Get up from floor	Pregnant Woman
-111_08	111	120	12.8	reaction	0.0-12.1	26/147	1.8	5-105				Get up from floor	Pregnant Woman
+111_08	111	120	12.8	reaction	0.0-12.1	26/147	1.8	5-105		Get_Up_Labored		Get up from floor	Pregnant Woman
 111_09	111	120	6.5	reaction	0.0-6.5	24/152	0.9	60-106				Get up from chair	Pregnant Woman
 111_10	111	120	3.7	reaction	0.0-3.7	21/128	1.1	61-107				get up from chair	Pregnant Woman
 111_11	111	120	4.8	reaction	0.0-4.8	19/118	0.7	67-108				get up from chair	Pregnant Woman
@@ -2398,7 +2398,7 @@ id	subject	fps	sec	category	active	fit	travel	hips	flags	used	note	desc	about
 139_14	139	120	8.2	locomotion	0.0-8.2	19/81	8.6	88-97			pick: Sneak_Sideways (along a wall)	Sneak Sideways	Action Walks, sneaking, wounded, looking around
 139_15	139	120	9.0	locomotion	0.0-9.0	19/78	8.4	86-95				Sneak Sideways	Action Walks, sneaking, wounded, looking around
 139_16	139	120	5.4	reaction	0.8-5.4	19/111	2.0	10-97		Get_Up_Ready		Get Up From Ground	Action Walks, sneaking, wounded, looking around
-139_17	139	120	6.0	reaction	0.7-6.0	23/103	2.3	9-100				Get Up From Ground	Action Walks, sneaking, wounded, looking around
+139_17	139	120	6.0	reaction	0.7-6.0	23/103	2.3	9-100		Get_Up_From_Ground		Get Up From Ground	Action Walks, sneaking, wounded, looking around
 139_18	139	120	7.1	reaction	0.0-7.1	22/117	2.5	12-104	inverted	Get_Up_From_Back_Ready		Get Up From Ground Laying on Back	Action Walks, sneaking, wounded, looking around
 139_19	139	120	8.3	reaction	0.0-8.3	18/105	5.9	79-103		Wounded_Walk_Loop		Walk Wounded Leg	Action Walks, sneaking, wounded, looking around
 139_20	139	120	13.1	reaction	0.0-13.1	19/95	11.0	77-104				Walk Wounded Leg	Action Walks, sneaking, wounded, looking around
@@ -2417,14 +2417,14 @@ id	subject	fps	sec	category	active	fit	travel	hips	flags	used	note	desc	about
 139_33	139	120	25.0	locomotion	0.6-25.0	16/75	16.2	91-104				Sneaking	Action Walks, sneaking, wounded, looking around
 139_34	139	120	9.3	locomotion	0.0-9.3	14/84	3.9	93-104				Sneaking	Action Walks, sneaking, wounded, looking around
 140_01	140	120	6.9	reaction	0.8-6.9	22/128	1.7	15-98		Get_Up_Face_Down		Get Up Face Down	Getting Up From Ground
-140_02	140	120	7.8	reaction	0.1-7.8	19/108	1.9	15-103				Get Up Face Down	Getting Up From Ground
+140_02	140	120	7.8	reaction	0.1-7.8	19/108	1.9	15-103		Get_Up_From_Front		Get Up Face Down	Getting Up From Ground
 140_03	140	120	8.5	reaction	0.0-8.5	18/92	1.4	11-102		Get_Up_From_Side		Get Up Laying on Side	Getting Up From Ground
-140_04	140	120	9.2	reaction	0.6-9.2	20/98	1.5	10-98				Get Up Laying on Side	Getting Up From Ground
+140_04	140	120	9.2	reaction	0.6-9.2	20/98	1.5	10-98		Get_Up_Side_Roll		Get Up Laying on Side	Getting Up From Ground
 140_05	140	120	0.2	calibration	0.0-0.2	25/107	0.0	73-73	short			Motorcycle	Getting Up From Ground
 140_06	140	120	29.7	idle	0.0-29.7	16/66	4.6	82-103			pick: Idle_Shift (a long idle)	Idle	Getting Up From Ground
 140_07	140	120	10.3	idle	0.0-10.3	16/85	1.2	89-92				Idle	Getting Up From Ground
 140_08	140	120	7.5	reaction	0.4-7.5	18/79	1.3	9-100		Get_Up_From_Back		Get Up From Ground Laying on Back	Getting Up From Ground
-140_09	140	120	6.8	reaction	0.2-6.0	18/75	1.3	11-100				Get Up From Ground Laying on Back	Getting Up From Ground
+140_09	140	120	6.8	reaction	0.2-6.0	18/75	1.3	11-100		Get_Up_Back_Quick		Get Up From Ground Laying on Back	Getting Up From Ground
 141_01	141	120	0.6	locomotion	0.0-0.6	16/58	3.4	96-109	short			Run	General Subject Capture
 141_02	141	120	0.9	locomotion	0.0-0.9	16/79	3.7	94-107	short			Run	General Subject Capture
 141_03	141	120	1.9	locomotion	0.6-1.9	16/62	5.1	96-108				Run	General Subject Capture

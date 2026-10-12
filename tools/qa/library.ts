@@ -9,7 +9,8 @@ import { checks } from "@m3a/sensors";
 import { ROOT } from "../run/cli.ts";
 import { CATEGORIES, OTHER, type Census } from "./census.ts";
 import { CAPTURE, distributions, type LibraryClip, type QaRow } from "./qa.ts";
-import { pastLevel, readReasons, reasonHead, type QaReasons } from "./verdict.ts";
+import type { Report } from "@m3a/sensors";
+import { pastLevel, readReasons, reasonHead, reasonOf, type QaContext, type QaReasons } from "./verdict.ts";
 
 /** The recorded distributions. */
 export const DISTRIBUTIONS = join(ROOT, "library/baselines/distributions.json");
@@ -34,24 +35,45 @@ export function setInfo(dir = join(ROOT, "library/sets")): Record<string, SetInf
   return out;
 }
 
+/** What each clip's writer knew of how it stands to its source, from the sets' `_import.json` (none for a set the
+ *  migrator writes): the steps it was repaired with, why it wasn't, or why the migrated version was kept. */
+export function contextsOf(dir = join(ROOT, "library/sets")): Map<string, QaContext> {
+  const out = new Map<string, QaContext>();
+  for (const set of readdirSync(dir).sort()) {
+    const f = join(dir, set, "_import.json");
+    if (!existsSync(f)) continue;
+    const rec = JSON.parse(readFileSync(f, "utf8")) as { clips: Record<string, { kept: string; why: string; repaired?: string[]; unrepaired?: string }> };
+    for (const [slug, c] of Object.entries(rec.clips)) out.set(`${set}/${slug}`, c.kept === "migrated" ? { migrated: c.why.split(";")[0]! } : { ...(c.repaired ? { repaired: c.repaired } : {}), ...(c.unrepaired ? { unrepaired: c.unrepaired } : {}) });
+  }
+  return out;
+}
+
 /** What the verdicts check found. */
 export interface VerdictCheck {
   /** Clips whose recorded quality isn't what the sensors give now. */
   problems: string[];
-  /** Reasons in qa.json whose clip or finding is gone. */
+  /** Reasons in qa.json whose clip or finding is gone, or whose set has no clip that fails. */
   gone: string[];
 }
-/** Every clip's recorded verdict against the sensors' (`rows`, in the clips' order). */
-export function checkVerdicts(lib: readonly LibraryClip[], rows: readonly QaRow[], reasons: QaReasons = readReasons()): VerdictCheck {
-  const problems: string[] = [], past = new Map<string, string[]>();
-  lib.forEach(({ clip }, i) => {
+/**
+ * Every clip's recorded verdict against the sensors' (`rows`, in the clips' order): its revision, pass or baselined,
+ * and a baselined clip's whole reason as the reasons file and its writer's context (`contexts`) give it now.
+ */
+export function checkVerdicts(lib: readonly LibraryClip[], rows: readonly QaRow[], reasons: QaReasons = readReasons(), contexts: ReadonlyMap<string, QaContext> = contextsOf()): VerdictCheck {
+  const problems: string[] = [], past = new Map<string, string[]>(), failing = new Set<string>();
+  lib.forEach(({ set, clip }, i) => {
     const r = rows[i]!, q = clip.quality as { qa: string; qaVersion: string; baseline?: string }, want = r.verdict === "pass" ? "pass" : "baselined";
     past.set(clip.id, pastLevel(r));
+    if (r.verdict === "fail") failing.add(set);
     if (q.qaVersion !== checks.QA_VERSION) problems.push(`${clip.id}: its verdict was read with ${q.qaVersion}, not ${checks.QA_VERSION}`);
     else if (q.qa !== want) problems.push(`${clip.id}: recorded ${q.qa}, the sensors give ${r.verdict}`);
     else if (want === "baselined" && !q.baseline?.startsWith(reasonHead(r))) problems.push(`${clip.id}: its reason doesn't start "${reasonHead(r)}"`);
+    else if (want === "baselined" && q.baseline !== reasonOf(clip, r as unknown as Report, reasons, contexts.get(clip.id))) problems.push(`${clip.id}: its reason isn't what library/baselines/qa.json and its writer give now`);
   });
-  const gone = Object.entries(reasons.clips).flatMap(([id, by]) => Object.keys(by).filter((m) => !past.get(id)?.includes(m)).map((m) => `${id} ${m}`));
+  const gone = [
+    ...Object.entries(reasons.clips).flatMap(([id, by]) => Object.keys(by).filter((m) => !past.get(id)?.includes(m)).map((m) => `${id} ${m}`)),
+    ...Object.keys(reasons.sets).filter((set) => !failing.has(set)).map((set) => `${set} (no clip in it fails)`),
+  ];
   return { problems, gone };
 }
 
@@ -86,9 +108,22 @@ export function againstRecord(was: Recorded, now: Recorded): { worse: string[]; 
   }
   return { worse, better };
 }
-/** The record, or none yet. */
+/** What is wrong with a record's shape (tools/qa/distributions.schema.json), none when it is right. */
+export function recordProblems(r: unknown): string[] {
+  const n = (v: unknown) => typeof v === "number" && Number.isFinite(v) && v >= 0, obj = (v: unknown): v is Record<string, unknown> => Boolean(v) && typeof v === "object" && !Array.isArray(v);
+  if (!obj(r)) return ["the record is a JSON object"];
+  const out: string[] = [];
+  for (const k of Object.keys(r)) if (!["about", "verdicts", "metrics"].includes(k)) out.push(`"${k}" is not a field of the record (about, verdicts, metrics)`);
+  if (!obj(r.verdicts) || !["pass", "warn", "fail"].every((k) => Number.isInteger((r.verdicts as Record<string, unknown>)[k]) && n((r.verdicts as Record<string, unknown>)[k]))) out.push("verdicts counts pass, warn and fail");
+  if (!obj(r.metrics) || !Object.values(r.metrics).every((m) => obj(m) && ["p50", "p95", "max"].every((k) => n(m[k])))) out.push("metrics gives each metric's p50, p95 and max");
+  return out;
+}
+/** The record (checked: a bad file throws, naming what is wrong), or none yet. */
 export function readRecord(file = DISTRIBUTIONS): Recorded | null {
-  return existsSync(file) ? (JSON.parse(readFileSync(file, "utf8")) as Recorded) : null;
+  if (!existsSync(file)) return null;
+  const r = JSON.parse(readFileSync(file, "utf8")) as unknown, bad = recordProblems(r);
+  if (bad.length) throw new Error(`${file}: ${bad.join("; ")}`);
+  return r as Recorded;
 }
 /** The record's text. */
 export function recordText(r: Recorded): string {
