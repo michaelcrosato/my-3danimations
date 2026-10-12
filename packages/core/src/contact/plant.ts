@@ -43,6 +43,13 @@ export interface PlantOptions {
   /** Seconds a hold takes to ease out after its contact ends (0.05: three frames at 60 Hz); it needs none to engage. */
   blend?: number;
   hands?: Partial<Record<"L" | "R", HandTarget>>;
+  /**
+   * Whether the body settles onto the feet (true by default): lifted where a sole is under the surface and lowered by a
+   * planted foot's float above it, so the legs keep their shape. False keeps the body at its height (lowered only where
+   * a planted leg can't reach) and sets a planted foot on the surface with its leg alone, as a pose baked into a clip's
+   * keys needs: there the settle would carry a capture's sole noise into the hips.
+   */
+  settle?: boolean;
 }
 
 const DEG = Math.PI / 180;
@@ -101,11 +108,12 @@ function startAhead(m: Motion, end: keyof Contacts & string, t: number, within: 
  * The body points at time t with the feet planted: each foot in a contact held at its contact point (eased out over
  * `blend` when the contact ends) with its sole on the ground (pitched to the surface under it), and the legs solved
  * again. The body is set onto the lower foot's ground (with a ground probe), lifted where a sole is under the surface,
- * lowered by the planted feet's float above it, and lowered where a planted leg can't reach; hands drawn to targets.
+ * lowered by the planted feet's float above it (both unless `settle` is false), and lowered where a planted leg can't
+ * reach; hands drawn to targets.
  * Every correction eases in and out with the contacts, so none jumps as a contact starts or ends.
  */
 export function plant(m: Motion, t: number, opts: PlantOptions = {}): Float64Array {
-  const R = m.rest, blend = opts.blend ?? 0.05, ground = opts.ground, surface = ground ?? FLAT;
+  const R = m.rest, blend = opts.blend ?? 0.05, ground = opts.ground, surface = ground ?? FLAT, settle = opts.settle ?? true;
   const X = Float64Array.from(m.points(t));
   const k = m.key(t), poles = limbPoles(R, k), root = m.root(t);
   const legPoles = { L: legPole(X, R, k, "L"), R: legPole(X, R, k, "R") };
@@ -147,11 +155,15 @@ export function plant(m: Motion, t: number, opts: PlantOptions = {}): Float64Arr
   }
   // the body lifted where a sole is under the surface (as the solver lifts a pose it decodes alone: another body's
   // proportions can take a foot under it), then lowered by a planted foot's float above it, by how fully it is planted
-  // (both planted: the higher one's, so the other leg bends to its ground rather than stretching past its reach)
-  const gap = { L: gapOf(feet.L.foot, R, root, surface), R: gapOf(feet.R.foot, R, root, surface) };
-  const up = Math.max(0, -Math.min(gap.L, gap.R));
-  const dz = up - Math.max(feet.L.on * (gap.L + up), feet.R.on * (gap.R + up));
-  shift(dz);
+  // (both planted: the higher one's, so the other leg bends to its ground rather than stretching past its reach);
+  // without `settle` the body stays and each leg reaches its foot's place on the surface
+  let dz = 0;
+  if (settle) {
+    const gap = { L: gapOf(feet.L.foot, R, root, surface), R: gapOf(feet.R.foot, R, root, surface) };
+    const up = Math.max(0, -Math.min(gap.L, gap.R));
+    dz = up - Math.max(feet.L.on * (gap.L + up), feet.R.on * (gap.R + up));
+    shift(dz);
+  }
   // each foot's target: moved with the body and brought up out of the surface (a planted one is on it now: the body
   // lowered to the higher one, the other came up), and a planted one turned to the surface's slope by `on`, at the
   // same height (so easing a contact in or out never stretches a leg: a nearly straight knee swings far for a little)
@@ -161,8 +173,8 @@ export function plant(m: Motion, t: number, opts: PlantOptions = {}): Float64Arr
     let foot = free;
     if (w > 0) {
       // turned to the slope with its sole on the surface, then raised by what it still floats above it (nothing once
-      // fully planted: the body was lowered to it, or it was under)
-      const set = onGround(moved, R, root, surface, true), up = Math.max(0, moved[0]![2] - set[0]![2]);
+      // fully planted: the body was lowered to it, or it was under; nothing without `settle`: the leg sets it down)
+      const set = onGround(moved, R, root, surface, true), up = settle ? Math.max(0, moved[0]![2] - set[0]![2]) : 0;
       foot = free.map((v, i) => [v[0] + (set[i]![0] - v[0]) * w, v[1] + (set[i]![1] - v[1]) * w, v[2] + (set[i]![2] + up - v[2]) * w] as V3);
     }
     targets[s] = { foot, planted: feet[s].planted, on: w };

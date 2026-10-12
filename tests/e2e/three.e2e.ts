@@ -65,15 +65,19 @@ async function readback(renderer, target) {
   return { lit, sum };
 }
 
+// On a failure the WebGPU device's loss is waited for (2 s at most) and reported with the adapter it ran on, so a
+// browser that drops the GPU connection (a mapAsync cancelled with "no longer exists") says why in the log.
 window.run = async (forceWebGL) => {
-  const out = { adapter: !!(navigator.gpu && (await navigator.gpu.requestAdapter())), backend: null, frames: [], error: null, warnings: [] };
+  const adapter = navigator.gpu && (await navigator.gpu.requestAdapter());
+  const out = { adapter: !!adapter, adapterInfo: adapter ? \`\${adapter.info.vendor}/\${adapter.info.architecture}\${adapter.info.isFallbackAdapter ? " (fallback)" : ""}\` : null, backend: null, frames: [], error: null, lost: null, warnings: [] };
   const warn = console.warn;
   console.warn = (...a) => { out.warnings.push(a.join(" ").slice(0, 160)); warn(...a); };
+  let renderer;
   try {
     const built = character();
     const glb = await new GLTFExporter().parseAsync(built.scene, { binary: true, animations: built.clips });
     const gltf = await new GLTFLoader().parseAsync(glb, "");
-    const renderer = new THREE.WebGPURenderer({ antialias: false, forceWebGL });
+    renderer = new THREE.WebGPURenderer({ antialias: false, forceWebGL });
     renderer.setSize(160, 160, false);
     await renderer.init();
     const target = new THREE.RenderTarget(160, 160);
@@ -100,6 +104,8 @@ window.run = async (forceWebGL) => {
     renderer.dispose();
   } catch (e) {
     out.error = String(e && e.message || e).slice(0, 300);
+    const lost = renderer && renderer.backend && renderer.backend.device && renderer.backend.device.lost;
+    if (lost) out.lost = await Promise.race([lost.then((i) => \`\${i.reason}: \${i.message}\`.slice(0, 300)), new Promise((r) => setTimeout(() => r("not lost after 2 s"), 2000))]);
   }
   console.warn = warn;
   return out;
@@ -124,7 +130,7 @@ test.beforeEach(async ({ page }) => {
 });
 const errors: string[] = [];
 
-type Run = { adapter: boolean; backend: string | null; frames: { lit: number; sum: number }[]; error: string | null; warnings: string[]; weights?: number[] };
+type Run = { adapter: boolean; adapterInfo: string | null; backend: string | null; lost: string | null; frames: { lit: number; sum: number }[]; error: string | null; warnings: string[]; weights?: number[] };
 const run = (page: import("@playwright/test").Page, forceWebGL: boolean) => page.evaluate((f) => (window as unknown as { run: (f: boolean) => Promise<Run> }).run(f), forceWebGL);
 
 test(`three ${VERSION}: a skinned glTF plays and crossfades on the forced WebGL 2 backend`, async ({ page }) => {
@@ -142,12 +148,12 @@ test(`three ${VERSION}: a skinned glTF plays and crossfades on the forced WebGL 
 
 test(`three ${VERSION}: WebGPURenderer starts on the WebGPU backend and draws`, async ({ page }) => {
   const r = await run(page, false);
-  console.log(`three ${VERSION} webgpu: ${JSON.stringify({ adapter: r.adapter, backend: r.backend, error: r.error, lit: r.frames.map((f) => f.lit), weights: r.weights, warnings: r.warnings.length })}`);
-  test.info().annotations.push({ type: "webgpu", description: `three ${VERSION}: ${r.error ? `fails: ${r.error}` : `${r.backend}, lit ${r.frames.map((f) => f.lit).join("/")}`}` });
+  console.log(`three ${VERSION} webgpu: ${JSON.stringify({ adapter: r.adapterInfo, backend: r.backend, error: r.error, lost: r.lost, lit: r.frames.map((f) => f.lit), weights: r.weights, warnings: r.warnings.length })}`);
+  test.info().annotations.push({ type: "webgpu", description: `three ${VERSION} on ${r.adapterInfo ?? "no adapter"}: ${r.error ? `fails: ${r.error}${r.lost ? ` (device lost: ${r.lost})` : ""}` : `${r.backend}, lit ${r.frames.map((f) => f.lit).join("/")}`}` });
   if (!PINNED) return; // the other candidate's WebGPU result is reported, not asserted (docs/THREE.md)
   test.skip(!r.adapter, "this browser has no WebGPU adapter: WebGPURenderer falls back to WebGL 2, checked above");
   expect(errors).toEqual([]);
-  expect(r.error).toBeNull();
+  expect(r.error, `on ${r.adapterInfo}, device lost: ${r.lost ?? "no"}`).toBeNull();
   expect(r.backend).toBe("webgpu");
   expect(r.frames).toHaveLength(3);
   for (const f of r.frames) expect(f.lit, "the character is drawn (the frame is not blank)").toBeGreaterThan(200);

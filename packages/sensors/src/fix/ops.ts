@@ -408,7 +408,8 @@ export const footLocks: Operator = tidied((clip, R, report, opts) => {
   for (const k of keys) {
     // each locked side's leg and foot aimed at the body points mixed from the clip's own toward the locked pose by the
     // lock's weight, its twist kept (re-read from the knee, a near-straight leg's twist jumps); the other leg isn't
-    // touched; the pelvis lowers where a locked leg can't reach
+    // touched; the pelvis lowers where a locked leg can't reach (and only there: the body isn't settled onto the feet,
+    // which would carry the clip's sole noise into its hips)
     const X0 = original(k.t);
     let dz = 0, wz = 0;
     for (const l of locks) {
@@ -416,7 +417,7 @@ export const footLocks: Operator = tidied((clip, R, report, opts) => {
       if (tau === null) continue;
       const w = tau <= l.b ? 1 : 1 - ease((tau - l.b) / BLEND), s = l.end.slice(-1);
       // the end of a loop's cycle is read just before it (at the end, core starts the next cycle's contact)
-      const P = contact.plant(pm, c.loop && Math.abs(tau - c.dur) < 1e-9 ? c.dur - 1e-6 : tau, { blend: 0 });
+      const P = contact.plant(pm, c.loop && Math.abs(tau - c.dur) < 1e-9 ? c.dur - 1e-6 : tau, { blend: 0, settle: false });
       const X = Float64Array.from(X0, (x, i) => x + (P[i]! - x) * w), e = format.encodePose(R, X, k as never, { round: false }) as K;
       k["leg" + s] = aimed(k["leg" + s] as number[], e["leg" + s] as number[]);
       if (k["foot" + s] !== undefined) k["foot" + s] = round(e["foot" + s] as number[]);

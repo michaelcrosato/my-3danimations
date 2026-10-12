@@ -1,6 +1,7 @@
 // Contacts and ground (WP-2.5): on every migrated locomotion loop and on synced walk–run blends a planted foot slides at
 // most 10 mm per contact; on a 10° slope and a 0.2 m step the planted soles stay within 5 mm of the surface and no sole
-// goes under it; hands reach their targets; and planting depends on the time alone, so skipped poses change nothing.
+// goes under it; without settling the body keeps its height but where a leg can't reach; hands reach their targets;
+// and planting depends on the time alone, so skipped poses change nothing.
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -129,6 +130,21 @@ describe("the ground", () => {
     for (let t = 0; t < clip.dur; t += 1 / 30) {
       const X = plant(m, t), c = contactsAt({ ...clip, contacts }, t);
       for (const s of ["L", "R"] as const) if (c[`foot${s}`]) expect(Math.abs(lowest(X, s, R).z)).toBeLessThan(1e-6);
+    }
+  });
+  it("without settling, keeps the body at its height but where a leg can't reach, the planted soles on the floor", () => {
+    for (const id of ["QUATERNIUS_3D2DGE/Walk_Loop", "MESH2MOTION/Zombie_Scratch"]) {
+      const { clip, R } = byId(id), contacts = measureFacts(clip, R).contacts, m = motionOf(clip, R, contacts);
+      let moved = 0;
+      for (let t = 0; t < clip.dur; t += 1 / 30) {
+        const X = plant(m, t, { settle: false }), c = contactsAt({ ...clip, contacts }, t), dz = P(X, "pelvis")[2] - P(m.points(t), "pelvis")[2];
+        expect(dz, `${id} ${t}`).toBeLessThanOrEqual(0);
+        expect(dz, `${id} ${t}`).toBeGreaterThanOrEqual(-0.1 * R.H0 - 1e-9);
+        for (const s of ["L", "R"] as const) if (c[`foot${s}`]) expect(Math.abs(lowest(X, s, R).z), `${id} ${t}`).toBeLessThan(1e-6);
+        moved = Math.max(moved, Math.abs(P(plant(m, t), "pelvis")[2] - P(m.points(t), "pelvis")[2]));
+      }
+      // settled (the default), the body follows its planted soles
+      expect(moved, id).toBeGreaterThan(0.5);
     }
   });
 });

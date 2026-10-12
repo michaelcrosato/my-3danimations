@@ -1,5 +1,9 @@
-// The sweep (WP-4.5): clips played on two test characters, a row for each clip on each skeleton, and a deliberately
-// broken clip listed as a failure with its reason; `npm run sweep` writes the clip-by-skeleton results.
+// The sweep (WP-4.5's Done-when): eight sampled library clips and a deliberately broken one (a walk with one key's
+// pelvis not a number) played on two generated test characters, gen-0 (a chibi) and gen-7. It checks that there is one
+// row for each clip on each skeleton, that every failing row gives at least one reason, and that the broken clip fails
+// on both with its "nan: " reason first; that a skeleton missing from the cache is named with how to fetch it; and that
+// `npm run sweep` writes the clip-by-skeleton results to check-output/sweep/results.json. How many clips pass is not
+// checked here: that is gate G4's bar (95% over its six skeletons and the whole library, PLAN.md §9.3).
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -22,14 +26,20 @@ describe("the sweep", () => {
       for (const c of clips) rows.push(sweepOne(c.clip, c.rest, b, rig));
       rows.push(sweepOne(broken, walk.rest, b, rig));
     }
+    // one row for each clip on each skeleton, in order
     expect(rows.map((r) => `${r.rig} ${r.clip}`)).toEqual(RIGS.flatMap((rig) => [...clips.map((c) => `${rig} ${c.clip.id}`), `${rig} BROKEN/Walk_Loop`]));
-    for (const r of rows.filter((x) => x.clip === "BROKEN/Walk_Loop")) {
+    // a row fails exactly when it gives a reason, and every reason says something
+    for (const r of rows) {
+      expect(r.ok, `${r.rig} ${r.clip}: ${r.why.join("; ")}`).toBe(r.why.length === 0);
+      for (const w of r.why) expect(w.trim(), `${r.rig} ${r.clip}`).not.toBe("");
+    }
+    // the broken clip fails on both skeletons, its non-number named first
+    const broke = rows.filter((x) => x.clip === "BROKEN/Walk_Loop");
+    expect(broke.map((r) => r.rig)).toEqual(RIGS);
+    for (const r of broke) {
       expect(r.ok).toBe(false);
       expect(r.why[0], r.why.join("; ")).toMatch(/^nan: /);
     }
-    // the clean clips pass, or each failure says why
-    for (const r of rows.filter((x) => x.clip !== "BROKEN/Walk_Loop")) expect(r.ok || r.why.length > 0, `${r.rig} ${r.clip}`).toBe(true);
-    expect(rows.filter((r) => r.clip !== "BROKEN/Walk_Loop" && r.ok).length).toBeGreaterThanOrEqual(0.95 * clips.length * RIGS.length);
   }, 120_000);
   it("names a skeleton it can't find, and how to fetch it", async () => {
     await expect(rigOf("no-such-rig")).rejects.toThrow(/^sweep: no rig "no-such-rig" in the cache: npm run fixtures -- fetch/);

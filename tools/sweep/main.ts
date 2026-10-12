@@ -5,7 +5,6 @@
 // under P% (G4 asks 95).
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
-import { metrics } from "@m3a/sensors";
 import { libraryClips, sample } from "../qa/qa.ts";
 import { finish, fmtMs, parseArgs, ROOT, usage, type Report, type Step } from "../run/cli.ts";
 import { rigOf, sweepOne, type SweepRow } from "./sweep.ts";
@@ -28,7 +27,6 @@ if (import.meta.main) {
   let clips = libraryClips();
   if (typeof f.clip === "string") clips = clips.filter((c) => c.clip.id === f.clip);
   if (typeof f.sample === "string") clips = sample(clips, Math.max(1, Number(f.sample)));
-  const own = new Map(clips.map((c) => [c.clip.id, metrics(c.clip, c.rest)]));
   const rows: SweepRow[] = [], steps: Step[] = [], min = typeof f.min === "string" ? Number(f.min) : 0;
   for (const rig of parsed.positionals) {
     const s0 = performance.now();
@@ -39,7 +37,7 @@ if (import.meta.main) {
       steps.push({ name: rig, ok: false, ms: 0, summary: "not bound", detail: [String((err as Error).message)] });
       continue;
     }
-    const mine = clips.map((c) => sweepOne(c.clip, c.rest, b, rig, own.get(c.clip.id)));
+    const mine = clips.map((c) => sweepOne(c.clip, c.rest, b, rig));
     rows.push(...mine);
     const pass = mine.filter((r) => r.ok).length, pct = (100 * pass) / Math.max(1, mine.length);
     steps.push({ name: rig, ok: pct >= min, ms: performance.now() - s0, summary: `${pass} of ${mine.length} clips pass (${pct.toFixed(1)}%), bound ${b.report.method === "table" ? `by name (${b.report.table})` : "by topology"} at ${b.report.confidence.toFixed(2)}`, detail: mine.filter((r) => !r.ok).map((r) => `${r.clip}: ${r.why.join("; ")}`) });
