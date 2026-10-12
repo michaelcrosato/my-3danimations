@@ -62,6 +62,9 @@ async function nodeSession(): Promise<string[]> {
 type Handle = { ready: boolean; error?: string; hash(): string; state(): { mode: string; hits: number; layers: { clip: string; time: number }[] }; step(n: number, input?: Input): { name: string }[]; points(): { points: number[]; root: { forward: number; right: number; yaw: number } } };
 
 test("hello: the console handle drives a session headless; its hashes are Node's, its hit shows, the sensors read it", async ({ page }) => {
+  // 860 steps driven one call a part, 6 screenshots on SwiftShader, the session again in Node and the sensors over it:
+  // about 20 s here, over Playwright's default 30 s on CI's two cores
+  test.setTimeout(180_000);
   const log: string[] = [];
   page.on("console", (m) => log.push(m.text()));
   page.on("pageerror", (e) => log.push(String(e)));
