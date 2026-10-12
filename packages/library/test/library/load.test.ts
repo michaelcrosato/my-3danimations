@@ -1,9 +1,12 @@
 // The library loader (WP-5.1): every migrated set loads with its content id and every clip file as locked; a tampered
 // file fails with its clip named; a game that hasn't opted in sees only the CC0 sets, and a clip in another tier is
-// refused with how to opt in; a deprecated id resolves with a warning naming its successor.
+// refused with how to opt in; a deprecated id resolves with a warning naming its successor; the library resolves a
+// recipe's clips.
+import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { recipe as R } from "@m3a/core";
 import { Library, LibraryError, TIERS, type LibraryLock, type LibrarySource } from "../../src/index.ts";
 import { directory, lockLibrary, openLibrary, sha256 } from "../../src/node.ts";
 
@@ -65,5 +68,17 @@ describe("the library loader", () => {
   it("reads catalog rows as their fields", () => {
     const row = openLibrary({ dir: DIR }).catalog("QUATERNIUS_3D2DGE").find((r) => r.id === "QUATERNIUS_3D2DGE/Walk_Loop")!;
     expect(row).toMatchObject({ dur: 1.333, loop: true, tags: ["walk"], src: "UAL1" });
+  });
+  it("resolves a recipe's clips: each visible clip with its rest and its file's SHA-256, none it can't see", () => {
+    const lib = openLibrary({ dir: DIR }), resolve = lib.resolver(), got = resolve("QUATERNIUS_3D2DGE/Walk_Loop")!;
+    const text = readFileSync(join(DIR, "QUATERNIUS_3D2DGE/Walk_Loop.json"), "utf8");
+    expect([got.clip.id, got.rest.H0, got.contentId]).toEqual(["QUATERNIUS_3D2DGE/Walk_Loop", 916.7, createHash("sha256").update(text).digest("hex")]);
+    // a clip of a tier it hasn't opted into, and one it doesn't have, aren't there
+    const cmu = openLibrary({ dir: DIR, tiers: TIERS }).catalog().find((r) => r.id.startsWith("CMU"))!.id;
+    expect([openLibrary({ dir: DIR, tiers: TIERS }).resolver()(cmu)?.clip.id, resolve(cmu), resolve("QUATERNIUS_3D2DGE/Nope")]).toEqual([cmu, undefined, undefined]);
+    expect(resolve.ids!().length).toBe(lib.catalog().length);
+    // and a recipe compiles with it, naming its input's content id
+    const out = R.compile({ format: "2.0", id: "RECIPES/Fast_Walk", steps: [{ op: "clip", id: "QUATERNIUS_3D2DGE/Walk_Loop", as: "w" }, { op: "retime", in: "w", speed: 1.3 }] } as R.Recipe, resolve);
+    expect([out.clip.dur, JSON.stringify(out.clip.provenance).includes(got.contentId)]).toEqual([Math.round((got.clip.dur / 1.3) * 1000) / 1000, true]);
   });
 });

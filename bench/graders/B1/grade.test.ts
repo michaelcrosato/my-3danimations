@@ -1,5 +1,6 @@
 // B1's grader (WP-4.7's Done-when): it passes the known-good solution and fails each planted bad one, with the check it
-// broke, on the default character (gen-1, of WP-4.2's set) and on a generator seed outside it (gen-37). The planted
+// broke, on the default character (gen-1, of WP-4.2's set) and, in T2's full step (M3A_FULL=1, D74), on a generator
+// seed outside it (gen-37). The planted
 // solutions are the known-good one edited: never running, skating (moving at the asked speed with walk and run at
 // their own rate), a bone gone NaN, no sheet.
 import { readFileSync } from "node:fs";
@@ -41,7 +42,7 @@ describe("B1's grader", () => {
     expect(g.pass, text(g)).toBe(true);
     expect(g.checks.find((c) => c.name.startsWith("plays walk at"))!.name).toBe("plays walk at 0.53 m/s");
   }, 120_000);
-  for (const character of [{ seed: 1 }, { seed: 37 }] as CharacterSpec[]) {
+  for (const character of (process.env.M3A_FULL === "1" ? [{ seed: 1 }, { seed: 37 }] : [{ seed: 1 }]) as CharacterSpec[]) {
     const who = "seed" in character ? `gen-${character.seed}` : character.rig;
     it(`passes the known-good solution on ${who}`, async () => {
       const g = await grade("good", good, character);

@@ -1,4 +1,4 @@
-// `npm run bench -- <B1 | B2 | B3 | B7 | quiz>[,...] [--trials N] [--discovery N] [--parallel N] [--variant <dir>] [--model <m>] [--fake]`
+// `npm run bench -- <B1 to B7 | quiz>[,...] [--trials N] [--discovery N] [--parallel N] [--variant <dir>] [--model <m>] [--fake]`
 // (PLAN.md §7, WP-4.7): each brief given to fresh agents in workspaces outside the repository, graded headless.
 // - B1: the packages packed (bench/runner/pack.ts); per trial a workspace in /tmp/m3a-bench/<run>/ with the tarballs
 //   installed, the brief, the starter and its character; a fresh agent (isolation level 1, bench/runner/agent.ts)
@@ -19,6 +19,9 @@ import { join, relative, resolve } from "node:path";
 import { gradeB1, type Grade } from "../graders/B1/grade.ts";
 import { gradeB2 } from "../graders/B2/grade.ts";
 import { gradeB3 } from "../graders/B3/grade.ts";
+import { gradeB4 } from "../graders/B4/grade.ts";
+import { gradeB5 } from "../graders/B5/grade.ts";
+import { gradeB6 } from "../graders/B6/grade.ts";
 import { gradeB7 } from "../graders/B7/grade.ts";
 import { closest, finish, fmtMs, parseArgs, usage, type Report, type Step } from "../../tools/run/cli.ts";
 import { runAgent, type AgentRun } from "./agent.ts";
@@ -33,12 +36,17 @@ export interface BriefSpec {
   grade(workspace: string): Promise<Grade>;
   /** The known-good solution: its files by path in a workspace, read from bench/graders/<brief>/known-good. */
   good: string[];
+  /** Its starter character, when not the default one (B4's avatar: a VRM-named chibi). */
+  character?: CharacterSpec;
 }
-/** The briefs, by name (B4, B5, B6 with WP-6.6's second half, B8 with WP-9.1). */
+/** The briefs, by name (B8 with WP-9.1). */
 export const SPECS: Record<string, BriefSpec> = {
   B1: { starter: "B1", grade: gradeB1, good: ["src/player.ts", "src/sheet.ts"] },
   B2: { starter: "B2", grade: gradeB2, good: ["src/fighter.ts"] },
   B3: { starter: "B3", grade: gradeB3, good: ["src/reactor.ts"] },
+  B4: { starter: "B4", grade: gradeB4, good: ["src/sneak.ts"], character: { seed: 40 } },
+  B5: { starter: "B5", grade: gradeB5, good: ["emote.json"] },
+  B6: { starter: "B6", grade: gradeB6, good: ["punch.json"] },
   B7: { starter: "B7", grade: gradeB7, good: ["graph.json"] },
 };
 const BRIEFS = [...Object.keys(SPECS), "quiz"];
@@ -122,7 +130,7 @@ export function runB1(opts: Omit<Parameters<typeof runBrief>[1], "discovery"> & 
  * first, and stops there if that fails (a package or grader failure).
  */
 export async function runBrief(name: string, opts: { trials: number; discovery?: number; parallel?: number; variant?: string; model?: string; fake?: boolean; base: string; packs: Record<string, string> }): Promise<{ check?: Trial; trials: Trial[]; discovery: Trial[] }> {
-  const spec = SPECS[name]!, { brief, character } = opts.variant ? variantOf(opts.variant) : { brief: join(BENCH, `briefs/${name}.md`), character: DEFAULT_CHARACTER };
+  const spec = SPECS[name]!, { brief, character } = opts.variant ? variantOf(opts.variant) : { brief: join(BENCH, `briefs/${name}.md`), character: spec.character ?? DEFAULT_CHARACTER };
   const out: { check?: Trial; trials: Trial[]; discovery: Trial[] } = { trials: [], discovery: [] };
   if (opts.variant) {
     // the brief's known-good solution on the variant first: if it fails, the package or the grader is at fault
@@ -174,7 +182,7 @@ if (import.meta.main) {
     parsed = parseArgs(process.argv.slice(2), specs);
     const names = (parsed.positionals[0] ?? "").split(",").filter(Boolean);
     if (!names.length) throw new Error(`name a brief: ${BRIEFS.join(", ")}`);
-    for (const n of names) if (!BRIEFS.includes(n)) throw new Error(`no brief "${n}"; did you mean ${closest(n, BRIEFS)}? (B4 to B6 arrive with WP-6.6's second half, B8 with WP-9.1)`);
+    for (const n of names) if (!BRIEFS.includes(n)) throw new Error(`no brief "${n}"; did you mean ${closest(n, BRIEFS)}? (B8 arrives with WP-9.1)`);
     if (typeof parsed.flags.heldout === "string") {
       if (names.filter((n) => n !== "quiz").length !== 1) throw new Error("--heldout takes one brief at a time: its variant is the brief's");
       parsed.flags.variant = latestVariant(parsed.flags.heldout, names.find((n) => n !== "quiz")!);

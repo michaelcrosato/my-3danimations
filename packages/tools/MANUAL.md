@@ -195,6 +195,66 @@ writePng("film.png", sim.filmstrip(run, 8));
 stride warped. `sim.validateScript(script, g)` checks a script; `sim.compareTraces(expected, actual)` names the first
 difference.
 
+## Make: recipes
+
+A recipe is JSON: steps that make a new clip from the library's. It compiles the same everywhere, and the clip it makes
+names its inputs.
+
+```json
+{
+  "format": "2.0", "id": "EMOTES/Wave_Hop",
+  "steps": [
+    { "op": "clip", "id": "MESH2MOTION/Victory", "loop": 0.2, "as": "hop" },
+    { "op": "retime", "in": "hop", "dur": 1.5, "as": "hop15" },
+    { "op": "clip", "id": "MESH2MOTION/Help_Two_Arms", "loop": 0.2, "as": "wave" },
+    { "op": "layer", "base": "hop15", "over": "wave", "mask": "upper" }
+  ]
+}
+```
+
+Each step names its result with `as`; later steps read it by name (`in`, `base`, `over`, `a`, `b`, `items`); the last
+step's result is the clip.
+
+| op | Fields | Result |
+|---|---|---|
+| `clip` | `id`; `from`, `to` (s); `loop` (true, or seconds to blend its seam over) | A library clip, sliced, closed into a loop |
+| `sequence` | `items`; `fade` (0.2) | One after another, each cross-faded and placed where the last left the root |
+| `blend` | `a`, `b`; `w` (0 to 1, or `[[t, w], …]`) | `a` toward `b`, each at the same phase of its own time |
+| `layer` | `base`, `over`; `mask`; `weight`; `additive` | `over` on `base` in the masked parts |
+| `mirror` | `in` | Left and right swapped: the other hand strikes |
+| `retime` | `in`; `speed`, `dur` or `ease` | Faster or slower (its events and strike too), or to a length |
+| `pose` | `in`; a field's parts (`{ "chest": { "turn": 25, "lean": -8 } }`) or `yaw`; `from`, `to` (s); `fade` | The parts moved by that much over the span, faded in and out |
+| `look`, `pin` | `in`; `at` (mm); `end`, `path` | The head turned to a point; a hand or foot held on a path |
+| `exaggerate`, `smooth`, `overshoot`, `stiffen` | `in`; `amount` or `window`; `mask` | Bigger, smoother, springier, or stiffer motion |
+| `events`, `contacts` | `in`; `add` | Events (`[{ "t": 0.4, "name": "hit" }]`) or contacts added |
+
+A field's parts: `body`, `chest` and `head` turn, lean and tilt (degrees); an arm or leg points forward, out and up,
+bends and twists; hips move forward, right and up (% of the hip height).
+
+```ts
+import { recipe, serialize, validate } from "@m3a/core";
+import { openLibrary } from "@m3a/library/node";
+import { describe, metrics } from "@m3a/sensors";
+
+recipe.validateRecipe(r);                                      // issues: { code, field, message, fix }
+const { clip, rest } = recipe.compile(r, openLibrary().resolver());   // throws, naming the step
+validate(clip).errors;                                         // a valid format-2 clip
+metrics(clip, rest).verdict;                                   // the sensors, on the clip's own rest
+describe(clip, rest).text;                                     // "a 1.50 s loop; 0.52–0.95 s in the air; …"
+writeFileSync("wave.json", serialize(clip));                   // the clip, as the library writes clips
+```
+
+## Make: edits
+
+- **Faster:** `retime` with `speed` (1.3 is 30% faster); the strike and events come sooner with it.
+- **The other hand:** `mirror`.
+- **More anticipation:** before the strike, move the body away from it with a `pose` over `from` 0 `to` just before
+  the strike, faded in and out (`{ "chest": { "turn": 25 } }` winds a right cross back); check that the striking fist
+  draws back before it goes out.
+- **Bigger or softer:** `exaggerate` (1.25: a quarter more), `stiffen`, `smooth`.
+- **What changed:** `measureFacts(clip, rest)` gives `strike` (when the fastest fist or foot moves fastest), `speed`,
+  `travel` and `height`; compare an edit's with its source's.
+
 ## Check: sensors and sheets
 
 ```ts
@@ -215,7 +275,7 @@ A sheet costs about width × height / 750 tokens to look at; read the numbers fi
 
 ## Rules and common mistakes
 
-- Clips are data: never edit `clip.keys` by hand to fix motion; use `fix`, or make a new clip (WP-6).
+- Clips are data: never edit `clip.keys` by hand to fix motion; use `fix`, or make a new clip with a recipe.
 - Measure a clip on its own `rest`, not on your character's: `playable(clip, rest)`, `measureFacts(clip, rest)`.
 - A clip's `speed` in the catalog is % of hip height per second on its own body; on yours, use `contactRoot(...).speed`.
 - Don't scale or re-parent the character's bones yourself; `bind` reads them once, and `attach` writes rotations.

@@ -2471,3 +2471,33 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
     simulation) bring it to 3,916 of 8,000 tokens.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.41.0
+
+## D77 · 2026-10-12 · Briefs B4, B5 and B6: a VRM avatar's sneak, an emote and an edited punch (WP-6.6b)
+
+- **Principle:** 1, 7, 9, §7
+- **Call:**
+  - **B4, a VRM avatar:** no VRM loader is installed (`@pixiv/three-vrm` is allowed, not a dependency), so the avatar
+    is a generated test character named as a VRM 1.0 humanoid, which `bind` recognizes by its names: gen-40 (a chibi,
+    hips 442 mm up, no neck bone) by default, gen-44 (tall, twist bones) for the second seed, both outside WP-4.2's set.
+    The runner gives a brief its own default character. Graded from the bones: crouched (the hips 85% of standing or
+    less) and travelling (15% of the hip height a second); a foot stands still at times (the lower foot's slowest tenth
+    under the sensors' standing speed, as B1 reads it: a foot sliding faster than that is never read as standing, so
+    the slide alone can't see a skate); slide and skate under their limits; the sensors' read of the bones fails on
+    nothing but jitter and pops (the points the bones don't carry are filled in).
+  - **B5, an emote, and B6, an edited punch:** the agent hands in a recipe, which the grader compiles against the CC0
+    library (`library.resolver()`, new: a recipe's clips from the library with their rests and content ids). A made
+    clip is graded on its own rest and played on the workspace's character (every joint finite). B5: 1.5 s (±0.05) and
+    looping; nothing failing; `describe` reports it in the air; both wrists above the head a quarter of the cycle or
+    more, each waving side to side 10% of the hip height with two turns. `describe` reads jumping jacks as running (feet
+    landing one after the other count as steps), so the known-good hops with the library's victory jump under its
+    two-arm wave: "0.52–0.95 s in the air". B6 edits `MESH2MOTION/Punch_Cross`, which passes the sensors 30% faster
+    (Quaternius' cross pops its wrist then): the length and strike over 1.3 (±3%, ±0.05 s); the left fist strikes;
+    mirrored back, its fist at the strike within 10% of the hip height of the original's; the fist draws back 4% of
+    the hip height first (the original's goes straight out: 0 mm; the known-good's chest wound 25° before it, 91 mm).
+  - **The manual:** its make sections (recipes and their operations, compiling against the library, edits, facts)
+    bring it to 5,007 of 8,000 tokens.
+  - **T1:** with six graders it took 97–100 s, over its 90 s budget. D74's sampling now covers the two files it
+    missed: B1's grader grades gen-37 only in T2's full step, as the others do, and describe's token count reads every
+    third clip (all of them in T2): 88.6 s.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.42.0

@@ -1,0 +1,7 @@
+{
+ "format": "2.0",
+ "id": "EMOTES/Wave_Hop",
+ "steps": [
+  { "op": "clip", "id": "MESH2MOTION/Help_Two_Arms" }
+ ]
+}

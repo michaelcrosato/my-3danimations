@@ -4,6 +4,20 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.42.0 · 2026-10-12
+
+### Library
+- `library.resolver()`: a recipe's clips from the library, each with its rest and content id (D77).
+
+### Tools
+- The manual's make sections (D77): recipes and their operations, compiling against the library, edits, facts.
+
+### Repo
+- Briefs B4 (a sneak on a VRM-named avatar), B5 (an emote: a two-handed wave with a hop) and B6 (an edited punch), each
+  with a starter, a grader, a known-good solution and planted bad ones; a brief may have its own default character.
+- T1 samples B1's grader (gen-1; gen-37 in T2) and describe's token count (every third clip; all in T2), as D74's
+  sweeps: 88.6 s (D77).
+
 ## 0.41.0 · 2026-10-12
 
 ### Tools

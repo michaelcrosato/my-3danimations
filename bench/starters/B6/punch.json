@@ -1,0 +1,7 @@
+{
+ "format": "2.0",
+ "id": "EDITS/Punch_Cross_Left",
+ "steps": [
+  { "op": "clip", "id": "MESH2MOTION/Punch_Cross" }
+ ]
+}

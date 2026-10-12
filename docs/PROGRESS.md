@@ -3,7 +3,7 @@
 The current state on one screen (at most 40 lines; `npm run doctrine` checks it from WP-0.3). The ledger is
 `PLAN.md` §14; decisions are in `docs/DECISIONS.md`.
 
-**Phase:** 6 Composition (5 done, G5 passed; 4 waits on G4). **Next gates:** G6; G4 (M1), run 2. **Version:** 0.41.0.
+**Phase:** 6 Composition (5 done, G5 passed; 4 waits on G4). **Next gates:** G6; G4 (M1), run 2. **Version:** 0.42.0.
 **Mode:** one agent (D21), branch `claude/relaxed-albattani-939ofg` (D50: it takes over michaelcrosato/my-3danimations#9).
 
 ## Done
@@ -25,7 +25,7 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 ## Next
 
 - G4 run 2 waits for a sweep at ≥95% at a clean commit (a second failure is K1, PLAN.md §12), over 1,393 clips.
-- Phase 6: WP-6.1 to 6.5 and 6.6a (B2, B3, B7) done (D70–D76); next 6.6b (B4–B6), then G6.
+- Phase 6: WP-6.1 to 6.6 done (D70–D77): recipes to briefs B2–B7; next gate G6.
 
 ## Blocked on the owner
 

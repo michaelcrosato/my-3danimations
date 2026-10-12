@@ -2,7 +2,7 @@
 // in a browser), each set's content id checked against its files (spec/MOTION.md §9.2) and each clip against the lock,
 // so a changed file is named. Sets carry a license tier (D10); the default pack is CC0, and a game sees `cc-by`, `cmu`
 // or `local` sets only when it opts in. A deprecated id still resolves, with a warning naming its successor.
-import { parseClip, type Clip, type Rest } from "@m3a/core";
+import { parseClip, type Clip, type recipe, type Rest } from "@m3a/core";
 import { search, type SearchItem, type SearchOptions, type SearchResult } from "../search/index.ts";
 
 /** A set's license tier (D10): `cc0` is the default pack; the others need opting in. */
@@ -145,6 +145,28 @@ export class Library {
     const clip = parseClip(this.#src.read(set, file)), source = m.sources[clip.restSrc];
     if (!source) throw new LibraryError("E_NO_CLIP", `library: clip "${id}" names rest "${clip.restSrc}", which ${set}'s manifest doesn't have`, id);
     return { clip, rest: source.rest, set, tier: m.tier };
+  }
+
+  /**
+   * The library as a recipe's resolver (`recipe.compile(r, library.resolver())`): each visible clip by id, with its rest
+   * and its content id (its file's SHA-256, given one; "" without); undefined for an id it doesn't have.
+   */
+  resolver(): recipe.Resolver {
+    const sha = this.#opts.sha256;
+    return Object.assign(
+      (id: string): recipe.Resolved | undefined => {
+        let got: LoadedClip;
+        try {
+          got = this.clip(id);
+        } catch {
+          return undefined;
+        }
+        // (a deprecated id's successor's file)
+        const [set, name] = got.clip.id.split("/") as [string, string];
+        return { clip: got.clip, rest: got.rest, contentId: sha ? sha(this.#src.read(set, `${name}.json`)) : "" };
+      },
+      { ids: () => this.catalog().map((r) => r.id) },
+    );
   }
 
   /**
