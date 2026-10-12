@@ -1,0 +1,107 @@
+{
+ "tool": "gate",
+ "ok": true,
+ "verdict": "gate G5: PASS in 583.8 s (12/12 commands)",
+ "steps": [
+  {
+   "name": "check",
+   "ok": true,
+   "ms": 1995.1945190000001,
+   "detail": [],
+   "log": "check-output/gate/check.log",
+   "summary": "check: PASS (T0) in 1.8 s, budget 15.0 s"
+  },
+  {
+   "name": "test",
+   "ok": true,
+   "ms": 72063.180494,
+   "detail": [],
+   "log": "check-output/gate/test.log",
+   "summary": "test: PASS (T1) in 71.8 s, budget 90.0 s"
+  },
+  {
+   "name": "doctrine",
+   "ok": true,
+   "ms": 530.4268430000084,
+   "detail": [],
+   "log": "check-output/gate/doctrine.log",
+   "summary": "doctrine: PASS in 0.2 s (8 checks)"
+  },
+  {
+   "name": "vectors --check",
+   "ok": true,
+   "ms": 2055.1558099999966,
+   "detail": [],
+   "log": "check-output/gate/vectors-check.log",
+   "summary": "vectors: PASS (--check) in 1.7 s"
+  },
+  {
+   "name": "the re-imported sets rebuild byte for byte, within the fit limits, every clip valid",
+   "ok": true,
+   "ms": 407430.74233200005,
+   "detail": [],
+   "log": "check-output/gate/the-re-imported-sets-rebuild-byte-for-byte-within-the-fit-limits-every-clip-valid.log",
+   "summary": "import: PASS (--check) in 406.8 s: 9 set(s)"
+  },
+  {
+   "name": "the migrated sets rebuild byte for byte, their keys the sources'",
+   "ok": true,
+   "ms": 9974.201086000015,
+   "detail": [],
+   "log": "check-output/gate/the-migrated-sets-rebuild-byte-for-byte-their-keys-the-sources-.log",
+   "summary": "migrate: PASS (--check) in 9.4 s: 525 clips in 5 sets"
+  },
+  {
+   "name": "every clip's facts and contacts as measured; no tag its facts don't bear out",
+   "ok": true,
+   "ms": 5640.604188000027,
+   "detail": [],
+   "log": "check-output/gate/every-clip-s-facts-and-contacts-as-measured-no-tag-its-facts-don-t-bear-out.log",
+   "summary": "facts: PASS (--check) in 5.2 s: 1393 clips, 0 stale, 0 tag conflict(s), 0 without a reason"
+  },
+  {
+   "name": "library QA: every clip's verdict, 1,000 unique motions, the category floors, the CC0 pack's count",
+   "ok": true,
+   "ms": 17265.574016000028,
+   "detail": [],
+   "log": "check-output/gate/library-QA-every-clip-s-verdict-1-000-unique-motions-the-category-floors-the-CC0-pack-s-count.log",
+   "summary": "qa: PASS, 1393 clips measured: 1008 pass, 230 warn, 155 fail"
+  },
+  {
+   "name": "search: the 40 game moments and the held-out queries",
+   "ok": true,
+   "ms": 1719.8968489999534,
+   "detail": [],
+   "log": "check-output/gate/search-the-40-game-moments-and-the-held-out-queries.log",
+   "summary": "test: PASS (T1) in 1.5 s, budget 90.0 s"
+  },
+  {
+   "name": "licenses: every shipped set",
+   "ok": true,
+   "ms": 445.608676999982,
+   "detail": [],
+   "log": "check-output/gate/licenses-every-shipped-set.log",
+   "summary": "license check library: PASS in 0.0 s"
+  },
+  {
+   "name": "the library loads, every file as locked",
+   "ok": true,
+   "ms": 508.6498000000138,
+   "detail": [],
+   "log": "check-output/gate/the-library-loads-every-file-as-locked.log",
+   "summary": "library check: PASS in 0.1 s"
+  },
+  {
+   "name": "T2: browser checks and library QA",
+   "ok": true,
+   "ms": 64171.70665099996,
+   "detail": [],
+   "log": "check-output/gate/T2-browser-checks-and-library-QA.log",
+   "summary": "e2e: PASS (T2) in 63.9 s, budget 480.0 s"
+  }
+ ],
+ "warnings": [],
+ "ms": 583804.172185,
+ "next": "write the G5 report in docs/PROGRESS.md and on the PR, then merge (PLAN.md \u00a78.5)",
+ "commit": "754adfe"
+}

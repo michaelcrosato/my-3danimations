@@ -1926,3 +1926,25 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   counted where it shouldn't, and a repair kept for its verdict at a point's expense trades the motion for the number.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.35.1
+
+## D68 · 2026-10-12 · G5 passes at 754adfe; what its verifier left open
+
+- **Principle:** 3, 8, G5, D66, D67
+- **Call:** G5's commands passed at 754adfe (12 of 12, 9.7 min; `bench/results/gates/G5/`), and its verifier's second
+  round found nothing blocking: the six new get-ups are takes no pick shares and distinct by the census's own measure,
+  the falls start on the floor, every repair keeps both guards, all 385 baselined reasons are what `verdict.ts` gives,
+  and the numbers in D67, the ledger and `docs/LIBRARY.md` match the data. G5 passes. Its open items, fixed forward:
+  - **Floating since D67's floor rule:** a take whose feet don't show its floor stands where its feet stand while
+    upright over the whole take, which lifts `Shoot_Bow` 55–73 mm off the floor (take 79_86) and four others 17–31 mm;
+    nothing in the sensors measures a clip floating. Next: a float check, and each pick stood on its own stretch.
+  - **Floors met by one or two under the tag rule** (combat 61, gestures 61; reactions 35 counting two tired rests):
+    the verifier reads the levitations as not combat. Next: CMU picks for combat and gestures, so no floor rests on
+    those readings.
+  - **Notes, answered:** a bare `pass` doesn't say which metrics its profile turned off (only baselined reasons do;
+    three get-ups would fail bodyPenetration if it were measured, the sensors' next change, D67); D67's "four of the
+    six" second takes is six of six; `Pistol_Idle_Loop`'s description says held low where it is held up; D63's base
+    choice rule keeps a re-import whose mean doesn't get worse whatever its worst (seven are 30 mm and more worse at
+    worst), as D63 disclosed.
+- **Why:** the gate's bar is met and checked twice; what is left makes the library better, not the gate true.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.35.1 (the record), the fixes after
