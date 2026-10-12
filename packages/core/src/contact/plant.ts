@@ -76,6 +76,8 @@ const SOLE_TOUCH = 3;
 /** How far (mm) a planted sole set by its averaged float may sit off the surface: the clip's own dip between keys. */
 const SOLE_DIP = 2.5;
 const FOOT = ["ankle", "ball", "toe"] as const;
+/** Seconds: a foot off the floor for less than this between two of its contacts took no step; it stays planted. */
+const BRIDGE = 0.1;
 /** The format's own floor. */
 const FLAT: Ground = () => 0;
 const smooth = (u: number) => (u <= 0 ? 0 : u >= 1 ? 1 : u * u * (3 - 2 * u));
@@ -95,6 +97,38 @@ export function toWorld(root: RootPose, p: readonly number[]): V3 {
 export function toPose(root: RootPose, w: readonly number[]): V3 {
   const c = PORTABLE.cos(root.yaw * DEG), s = PORTABLE.sin(root.yaw * DEG), f = w[0]! - root.forward, r = w[1]! - root.right;
   return [f * c + r * s, -f * s + r * c, w[2]!];
+}
+
+const BRIDGED = new WeakMap<Contacts, { dur: number; loop: boolean; out: Contacts }>();
+/**
+ * The contacts with each foot's gaps shorter than BRIDGE closed (in a loop, the gap across its seam too: the last
+ * contact then runs on into the next cycle to the first one's end). Letting a hold go and taking it again within a few
+ * frames would move the foot by its whole drift in those frames.
+ */
+function bridged(c: Contacts, dur: number, loop: boolean): Contacts {
+  const had = BRIDGED.get(c);
+  if (had && had.dur === dur && had.loop === loop) return had.out;
+  const out = { ...c } as Record<string, unknown>;
+  for (const end of ["footL", "footR"] as const) {
+    const iv = [...((c as unknown as Record<string, [number, number][] | undefined>)[end] ?? [])].sort((p, q) => p[0] - q[0]);
+    if (!iv.length) continue;
+    const kept: [number, number][] = [[iv[0]![0], iv[0]![1]]];
+    for (const [a, b] of iv.slice(1)) {
+      const last = kept[kept.length - 1]!;
+      if (a - last[1] < BRIDGE) last[1] = Math.max(last[1], b);
+      else kept.push([a, b]);
+    }
+    if (loop && dur > 0 && kept.length > 1) {
+      const first = kept[0]!, last = kept[kept.length - 1]!, gap = first[0] + dur - last[1];
+      if (gap < BRIDGE) {
+        last[1] = Math.max(last[1], first[1] + dur);
+        kept.shift();
+      }
+    }
+    out[end] = kept;
+  }
+  BRIDGED.set(c, { dur, loop, out: out as unknown as Contacts });
+  return out as unknown as Contacts;
 }
 
 /** The contact of `end` that `t` falls in or just after (within `tail` seconds), as absolute times [a, b], or null. */
@@ -142,8 +176,8 @@ function startAhead(m: Motion, end: keyof Contacts & string, t: number, within: 
  * reach; hands drawn to targets.
  * Every correction eases in and out with the contacts, so none jumps as a contact starts or ends.
  */
-export function plant(m: Motion, t: number, opts: PlantOptions = {}): Float64Array {
-  const R = m.rest, blend = opts.blend ?? 0.05, ground = opts.ground, surface = ground ?? FLAT, settle = opts.settle ?? true;
+export function plant(m0: Motion, t: number, opts: PlantOptions = {}): Float64Array {
+  const m: Motion = { ...m0, contacts: bridged(m0.contacts, m0.dur, m0.loop) }, R = m.rest, blend = opts.blend ?? 0.05, ground = opts.ground, surface = ground ?? FLAT, settle = opts.settle ?? true;
   const settleBlend = Math.max(blend, opts.settleBlend ?? 0.2), release = Math.max(blend, opts.release ?? 0.2), settleSmooth = opts.settleSmooth ?? 0.1;
   const X = Float64Array.from(m.points(t));
   const k = m.key(t), poles = limbPoles(R, k), root = m.root(t);

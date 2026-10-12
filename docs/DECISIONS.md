@@ -1507,3 +1507,35 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
 - **Why:** a gate's report says what its outputs show; a run that redrew a failing variant didn't pass that step.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.28.0 (records and the plan's wording only)
+
+## D58 · 2026-10-12 · The sweep, round four: where its failures come from, and what was tried
+
+- **Principle:** 1, 4, WP-2.5, WP-4.5, G4
+- **Call:**
+  - **Where the 342 failing pairs of run 1 come from** (each traced on the played body):
+    - **contacts:** skate and slide fail 187 pairs, and on the Knight 47 of their 68 findings lie wholly outside the
+      contacts planting uses (20 partly, 1 inside): the foot stands by the sensors' rule, the player doesn't plant it;
+    - **the clip's own defects, larger on another body:** a foot's heading that flips between two keys (Jog's left
+      foot, 7° to 169°) swings a longer foot's toe further, past a level its own body stays under; a knee the clip
+      bends against its foot (Chop_Wood's right knee, 40–143 mm on every body);
+    - **planting's transitions:** pops and seam speeds where a hold starts or lets go.
+  - **Kept:** a foot off the floor for under 0.1 s between two of its contacts stays planted (`plant`, a loop's seam
+    included): Zombie_Walk_Loop's left foot lifts for 33 ms across its seam, and letting its hold go there moved the
+    ankle 31 mm in a frame (10 mm now). The sweep: one pair more.
+  - **Tried, not kept** (each over all 3,150 pairs):
+    - planting on contacts read on the played body (core's, joined with the sensors' stance on a first play): skate
+      105 → 12, slide 82 → 4, but pops 82 → 144 and seams 2 → 27, so 90.3% (157 fixed, 119 broken). The new pops:
+      a foot the clip drags with its body is standing by the sensors' rule, and held still it stretches the leg and
+      drops the body up to 62 mm in a frame; knees that flip to the other side where a planted leg bends further than a
+      knee the clip bends against its foot (the pole's fade crosses zero). Planting only feet still in the world fixes
+      the first, not the second;
+    - a release continuous in speed (the foot's move since it lifted undone too, then let go): 88.7%: the planted
+      target lags the swing and the leg's reach drops the body;
+    - trusting a clip's clearly bent knee (offset over 10% of the leg): net 0 (5 fixed, 5 broken), and it folds
+      Chop_Wood's knee 27 mm further back on the core test's rig;
+    - a constant-speed root for in-place loops: 89.2%.
+- **Why:** the gate wants 95%; each of these is measured, and only what helps without breaking a test is kept. The
+  largest lever left is planting where the playing body's feet stand, which needs the knee's way chosen without a
+  flip; that and the clips' own defects are the next round's.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.28.1

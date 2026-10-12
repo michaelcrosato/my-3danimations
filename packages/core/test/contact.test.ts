@@ -243,6 +243,19 @@ describe("on another body, and under a cross-fade (D51)", () => {
     expect(frames).toBeLessThanOrEqual(20);
     expect(deepest).toBeGreaterThan(-15);
   });
+  it("holds a foot through a gap of under 0.1 s between its contacts: no step was taken (D58)", () => {
+    // Zombie_Walk_Loop's left foot stands 0.45–1.4 s, lifts for 33 ms across the seam and stands again: letting its hold
+    // go and taking it again there moved the ankle 31 mm in a frame
+    const { clip, R } = byId("CMU_CURATED/Zombie_Walk_Loop"), a = new Animator(rig).layer("b", { clip: { ...clip, contacts: measureFacts(clip, R).contacts }, time: 1.3 });
+    let prev: number[] | null = null, worst = 0;
+    for (let i = 0; i <= 14; i++) {
+      const p = a.pose(), w = toWorld(p.root, P(p.points, "ankleL"));
+      if (prev) worst = Math.max(worst, Math.hypot(w[0]! - prev[0]!, w[1]! - prev[1]!));
+      prev = w;
+      a.step(1 / 60);
+    }
+    expect(worst).toBeLessThan(15);
+  });
   it("keeps a re-solved knee from snapping: a planted knee moves at most 16 mm a step more than the unplanted one", () => {
     // a knee held straight and let go, or turned round by a nearly straight leg's twist, moved up to 37 mm more
     for (const id of CLIPS) {

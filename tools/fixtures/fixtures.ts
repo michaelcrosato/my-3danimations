@@ -1,10 +1,11 @@
 // Real rigs fetched by hash (PLAN.md WP-4.2): a manifest lists each rig's URL, SHA-256, license and license file; a
 // fetch downloads what the cache lacks into .cache/fixtures/<id>.glb, keeps it only if its SHA-256 matches, reads its
-// license file and keeps it only if it says the license recorded, and writes what it fetched to fetched.json. A check
-// reads the cache alone (no network). Any manifest works the same way, so a gate's held-out rig is one more file.
+// license file and keeps it only if it says the license recorded (and has the SHA-256 recorded, where the manifest pins
+// one), and writes what it fetched to fetched.json. A check reads the cache alone (no network). Any manifest works the
+// same way, so a gate's held-out rig is one more file.
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { ROOT } from "../run/cli.ts";
 
@@ -18,6 +19,8 @@ export interface Rig {
   sha256: string;
   license: string;
   licenseUrl: string;
+  /** The license file's SHA-256, when the manifest pins it (a gate's held-out rig does): a changed file isn't kept. */
+  licenseSha256?: string;
 }
 /** A manifest of rigs. */
 export interface Manifest {
@@ -44,6 +47,7 @@ export function lintManifest(m: Manifest): string[] {
     if (!/^[a-z0-9-]+$/.test(r.id ?? "") || ids.has(r.id)) out.push(`rig "${r.id}": an id of lower-case letters, digits and dashes, used once`);
     ids.add(r.id);
     if (!/^[0-9a-f]{64}$/.test(r.sha256 ?? "")) out.push(`${r.id}: sha256 must be 64 hex digits`);
+    if (r.licenseSha256 !== undefined && !/^[0-9a-f]{64}$/.test(r.licenseSha256)) out.push(`${r.id}: licenseSha256 must be 64 hex digits`);
     if (!SAYS[r.license]) out.push(`${r.id}: license "${r.license}" isn't one a fetch can check (${Object.keys(SAYS).join(", ")})`);
     for (const k of ["url", "licenseUrl"] as const) if (!/^(https|file):\/\//.test(r[k] ?? "")) out.push(`${r.id}: ${k} must be https (or file:// in a test)`);
     if (!r.author || !r.source) out.push(`${r.id}: author and source are recorded`);
@@ -59,6 +63,12 @@ export interface RigState {
   why?: string;
 }
 
+/** Why a license file's text isn't the one rig r records (it doesn't say its license, or its SHA-256 isn't pinned one), or null. */
+function licenseWrong(r: Rig, text: string): string | null {
+  if (!SAYS[r.license]!.test(text)) return `doesn't say ${r.license}`;
+  const got = sha256(new TextEncoder().encode(text));
+  return r.licenseSha256 !== undefined && got !== r.licenseSha256 ? `has SHA-256 ${got}, the manifest says ${r.licenseSha256}` : null;
+}
 /** Whether a cached rig matches its manifest entry (its hash, and a license file that says its license). */
 function cached(r: Rig, dir: string): string | null {
   const glb = join(dir, `${r.id}.glb`), lic = join(dir, `${r.id}.LICENSE.txt`);
@@ -66,7 +76,8 @@ function cached(r: Rig, dir: string): string | null {
   const got = sha256(readFileSync(glb));
   if (got !== r.sha256) return `its SHA-256 is ${got}, the manifest says ${r.sha256}`;
   if (!existsSync(lic)) return "its license file isn't in the cache: npm run fixtures -- fetch";
-  if (!SAYS[r.license]!.test(readFileSync(lic, "utf8"))) return `its license file doesn't say ${r.license}`;
+  const wrong = licenseWrong(r, readFileSync(lic, "utf8"));
+  if (wrong) return `its license file ${wrong}`;
   return null;
 }
 
@@ -83,7 +94,8 @@ export function fetchRigs(m: Manifest, dir = CACHE): RigState[] {
       if (got !== r.sha256) throw new Error(`its SHA-256 is ${got}, the manifest says ${r.sha256}: not kept`);
       download(r.licenseUrl, ltmp);
       const text = readFileSync(ltmp, "utf8");
-      if (!SAYS[r.license]!.test(text)) throw new Error(`its license file (${r.licenseUrl}) doesn't say ${r.license}: not kept`);
+      const wrong = licenseWrong(r, text);
+      if (wrong) throw new Error(`its license file (${r.licenseUrl}) ${wrong}: not kept`);
       renameSync(tmp, glb);
       renameSync(ltmp, lic);
       fetched[r.id] = { url: r.url, sha256: r.sha256, license: r.license, licenseUrl: r.licenseUrl, licenseSha256: sha256(new TextEncoder().encode(text)), author: r.author, source: r.source };
@@ -110,4 +122,29 @@ export function checkRigs(m: Manifest, dir = CACHE): RigState[] {
 export function rigBytes(id: string, m: Manifest = JSON.parse(readFileSync(MANIFEST, "utf8")) as Manifest, dir = CACHE): Uint8Array | null {
   const r = m.rigs.find((x) => x.id === id);
   return r && cached(r, dir) === null ? new Uint8Array(readFileSync(join(dir, `${r.id}.glb`))) : null;
+}
+
+/**
+ * Whether a gate's latest held-out run (bench/results/heldout/<gate>/run-<n>/) is fit for a gate run (PLAN.md §7,
+ * §9.3, D57): no recorded gate run used it (bench/results/gates/<gate>-run-<n>/), its rig manifest lints and pins each
+ * license file's SHA-256, each rig is in the cache and verified, and each brief's variant has its brief and character.
+ * Returns the run and its problems, one line each.
+ */
+export function freshHeldout(gate: string, base = join(ROOT, "bench/results"), dir = CACHE): { run: string | null; problems: string[] } {
+  const runs = join(base, "heldout", gate), all = existsSync(runs) ? readdirSync(runs).filter((d) => /^run-\d+$/.test(d)) : [];
+  const run = all.sort((a, b) => Number(a.slice(4)) - Number(b.slice(4))).pop() ?? null;
+  if (!run) return { run, problems: [`no held-out run for ${gate}: a fresh subagent writes bench/results/heldout/${gate}/run-<n>/ first (PLAN.md §7)`] };
+  const problems: string[] = [], at = join(runs, run);
+  if (existsSync(join(base, "gates", `${gate}-${run}`))) problems.push(`${run} was used by a gate run already (bench/results/gates/${gate}-${run}/): a rerun writes fresh variants into run-${Number(run.slice(4)) + 1}`);
+  if (!existsSync(join(at, "rig.json"))) problems.push(`${run} has no rig.json`);
+  else {
+    const m = JSON.parse(readFileSync(join(at, "rig.json"), "utf8")) as Manifest;
+    problems.push(...lintManifest(m));
+    for (const r of m.rigs) if (r.licenseSha256 === undefined) problems.push(`${r.id}: its license file's SHA-256 isn't pinned (licenseSha256)`);
+    for (const st of checkRigs(m, dir)) if (!st.ok) problems.push(`${st.id}: ${st.why}`);
+  }
+  for (const brief of readdirSync(at).filter((d) => /^B\d+$/.test(d))) {
+    for (const f of ["brief.md", "character.json"]) if (!existsSync(join(at, brief, f))) problems.push(`${run}/${brief} has no ${f}`);
+  }
+  return { run, problems };
 }

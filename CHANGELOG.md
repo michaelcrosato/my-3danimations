@@ -4,6 +4,23 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.28.1 · 2026-10-12
+
+### Core
+- Planting holds a foot through a gap of under 0.1 s between two of its contacts (a loop's seam included): letting
+  the hold go and taking it again there moved the foot by its whole drift in a frame (D58).
+
+### Tools
+- `npm run fixtures -- heldout <gate>`: whether the gate's latest held-out run is fit for a gate run (unused by a
+  recorded one, its license file's SHA-256 pinned, its rig cached and verified); G4 runs it first (D57).
+- A rig manifest may pin its license file's SHA-256 (`licenseSha256`), checked at fetch and in the cache.
+- `npm run bench` records the commit under test with `git` (a worktree's too) and whether the tree differed, the models
+  the agents ran and a variant's directory and character, and no longer overwrites an earlier run's results.
+- G4 runs B1's discovery trials (2, reported, not gating; §7).
+
+### Repo
+- The capture e2e draws sheets of G4's six skeletons, a toeless test character and the held-out rig.
+
 ## 0.28.0 · 2026-10-12
 
 ### Core

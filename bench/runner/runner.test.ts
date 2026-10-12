@@ -6,7 +6,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { audit, pathsOf } from "./agent.ts";
-import { latestVariant, pool, runB1, variantOf } from "./main.ts";
+import { commitOf, latestVariant, pool, runB1, variantOf } from "./main.ts";
 import { pack } from "./pack.ts";
 import { answersIn, QUIZ, quizPrompt, score } from "./quiz.ts";
 
@@ -54,6 +54,12 @@ describe("held-out variants", () => {
       writeFileSync(join(base, "G4", run, "B1", "character.json"), JSON.stringify({ seed: 41 }));
     }
     expect(latestVariant("G4", "B1", base)).toBe(join(base, "G4", "run-2", "B1"));
+  });
+  it("records the commit under test and whether the tree differs from it, a worktree's too (D57)", () => {
+    const here = commitOf(ROOT);
+    expect(here.commit).toMatch(/^[0-9a-f]{40}$/);
+    expect(typeof here.dirty).toBe("boolean");
+    expect(commitOf(mkdtempSync(join(tmpdir(), "m3a-nogit-")))).toEqual({ commit: "unknown", dirty: null });
   });
 });
 

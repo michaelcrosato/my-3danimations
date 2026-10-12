@@ -11,9 +11,11 @@
 //   to /tmp by name, the same names, so a run that counts at a gate runs them one at a time).
 // - quiz: the legend quiz (bench/runner/quiz.ts), at least 9 of 10.
 // --fake plays the known-good solution (or the quiz's answers) instead of an agent, to check the pipeline for free.
-// Results go to bench/results/<date>-<model>-<brief>.json; the pass mark is 4 of 5 (PLAN.md §7).
+// Results go to bench/results/<date>-<model>-<brief>.json (-2, -3... for later runs that day), with the commit, whether
+// the tree differed from it, the models the agents ran and a variant's directory; the pass mark is 4 of 5 (PLAN.md §7).
+import { execFileSync } from "node:child_process";
 import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { join, relative, resolve } from "node:path";
 import { gradeB1, type Grade } from "../graders/B1/grade.ts";
 import { closest, finish, fmtMs, parseArgs, usage, type Report, type Step } from "../../tools/run/cli.ts";
 import { runAgent, type AgentRun } from "./agent.ts";
@@ -53,6 +55,21 @@ export function latestVariant(gate: string, brief: string, base = join(BENCH, "r
   const run = runs.sort((a, b) => Number(a.slice(4)) - Number(b.slice(4))).pop();
   if (!run) throw new Error(`no held-out ${brief} variant for ${gate} yet (bench/results/heldout/${gate}/run-<n>/${brief}/; PLAN.md §7)`);
   return join(dir, run, brief);
+}
+/** The commit under test and whether the tree differs from it (`git`, so a worktree reads right too). */
+export function commitOf(root = ROOT): { commit: string; dirty: boolean | null } {
+  try {
+    const git = (...a: string[]) => execFileSync("git", ["-C", root, ...a], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] });
+    return { commit: git("rev-parse", "HEAD").trim(), dirty: git("status", "--porcelain", "--untracked-files=no").trim() !== "" };
+  } catch {
+    return { commit: "unknown", dirty: null };
+  }
+}
+/** A results file's path that no earlier run wrote: the name itself, or the name with -2, -3... */
+function unused(file: string): string {
+  let n = 1, out = file;
+  while (existsSync(out)) out = file.replace(/\.json$/, `-${++n}.json`);
+  return out;
 }
 /** Whether a solution imports an @m3a package. */
 function usesPackage(ws: string): boolean {
@@ -141,18 +158,13 @@ if (import.meta.main) {
   const f = parsed.flags, names = parsed.positionals[0]!.split(","), trials = Number(f.trials ?? 5), t0 = performance.now(), steps: Step[] = [];
   const stamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19), base = join("/tmp/m3a-bench", stamp), model = typeof f.model === "string" ? f.model : undefined, fake = f.fake === true;
   mkdirSync(base, { recursive: true });
-  const commit = (() => {
-    try {
-      return readFileSync(join(ROOT, ".git/HEAD"), "utf8").startsWith("ref:") ? readFileSync(join(ROOT, ".git", readFileSync(join(ROOT, ".git/HEAD"), "utf8").slice(5).trim()), "utf8").trim() : readFileSync(join(ROOT, ".git/HEAD"), "utf8").trim();
-    } catch {
-      return "unknown";
-    }
-  })();
-  const results: Record<string, unknown> = { about: "npm run bench: fresh agents on the briefs (PLAN.md §7); isolation 1 is the claude CLI in a clean workspace", date: stamp, commit, model: model ?? "the CLI's default", fake };
+  const results: Record<string, unknown> = { about: "npm run bench: fresh agents on the briefs (PLAN.md §7); isolation 1 is the claude CLI in a clean workspace", date: stamp, ...commitOf(), model: model ?? "the CLI's default", fake };
+  if (typeof f.variant === "string") results.variant = { dir: relative(ROOT, resolve(f.variant)), character: variantOf(resolve(f.variant)).character };
   if (names.includes("B1")) {
     const s0 = performance.now(), packs = pack(join(base, "packs"));
     const r = await runB1({ trials, discovery: Number(f.discovery ?? 0), parallel: Number(f.parallel ?? 1), base, packs, fake, ...(typeof f.variant === "string" ? { variant: resolve(f.variant) } : {}), ...(model ? { model } : {}) });
     results.B1 = r;
+    results.models = [...new Set([...r.trials, ...r.discovery].map((t) => ("model" in t.agent ? t.agent.model : undefined)).filter(Boolean))];
     if (r.check && !r.check.pass) steps.push({ name: "B1 known-good on the variant", ok: false, ms: performance.now() - s0, summary: "the brief's known-good solution fails: a package or grader failure, not the agents'", detail: r.check.failed });
     else {
       const passed = r.trials.filter((t) => t.pass).length;
@@ -164,7 +176,7 @@ if (import.meta.main) {
     results.quiz = q;
     steps.push({ name: "quiz", ok: q.every((x) => x.right >= 9), ms: performance.now() - s0, summary: q.map((x) => `${x.right} of ${x.of}`).join(", "), detail: q.flatMap((x) => x.wrong.map((w) => `${x.trial} ${w}`)) });
   }
-  const ms = performance.now() - t0, ok = steps.every((s) => s.ok), file = join(BENCH, "results", `${stamp.slice(0, 10)}-${(model ?? "default").replace(/[^\w.-]/g, "")}-${names.join("-")}${fake ? "-fake" : ""}${typeof f.variant === "string" ? "-variant" : ""}.json`);
+  const ms = performance.now() - t0, ok = steps.every((s) => s.ok), file = unused(join(BENCH, "results", `${stamp.slice(0, 10)}-${(model ?? "default").replace(/[^\w.-]/g, "")}-${names.join("-")}${fake ? "-fake" : ""}${typeof f.variant === "string" ? "-variant" : ""}.json`));
   writeFileSync(file, `${JSON.stringify({ ...results, ms: Math.round(ms) }, null, 1)}\n`);
   cpSync(file, join(base, "results.json"));
   const report: Report = { tool: "bench", ok, verdict: `bench ${names.join(", ")}: ${ok ? "PASS" : "FAIL"} in ${fmtMs(ms)}`, steps, warnings: [], ms, next: `results in ${file.slice(ROOT.length + 1)}; workspaces and transcripts in ${base}` };
