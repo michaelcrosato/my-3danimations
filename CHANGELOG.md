@@ -4,6 +4,28 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.30.0 · 2026-10-12
+
+### IO
+- The importers (WP-5.2, D61): `@m3a/io` reads untrusted input with capped sizes, a per-file budget of frames and
+  joint transforms, bounds-checked buffers and glTF shapes checked before use; the readers it exports let nothing out
+  but an `IoError` naming its cause and offset. `readGltf` (Rigify and Unreal rigs) and `readCmu` (ASF/AMC picks) read
+  bit for bit like the origin's importer (conformance tier 1b); `parseBvh`/`rigBvh`/`readBvh` and `readGltfPosed` read
+  any skeleton a bone map knows (MotionBuilder/Mixamo, Unreal, Rigify, VRM, 100STYLE, Bandai Namco);
+  `vrmaOf`/`encodeVrma`/`decodeVrma`/`writeVrma`/`readVrma` write and read VRM animations byte for byte, the humanoid
+  bones alone with the root's travel in the hips, the clip's loop, events, contacts and facts in the animation's
+  extras as three's bake writes them; `importSet` fits libraries into a set as a catalog says (`$sources`, one CMU
+  record a subject, `$pick` with the ledger's stretches, `$skip` with reasons), with a fit report per clip; `subset`
+  picks a smaller set from bigger ones. FBX through an optional converter outside the package (README).
+
+### Spec
+- Conformance tier 1b runs: `spec/conformance/tier1b.test.ts`, with a second glTF vector, a Rigify rig with a skinned
+  mesh (`tier1b/rigify.gltf`, `rigify-expected.json`): every accessor form, STEP and scale tracks, a turned and scaled
+  root, and the mannequin's look, bit for bit like the origin's importer.
+
+### Tools
+- `tools/vectors/rigify.ts` builds the Rigify rig; `npm run vectors` reads it with the origin's importer.
+
 ## 0.29.0 · 2026-10-12
 
 ### Library

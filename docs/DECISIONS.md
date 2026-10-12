@@ -1574,3 +1574,64 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   numbers would be the agent grading itself.
 - **Answered:** no: escalated, waiting.
 - **Landed in:** v0.29.0 (no code)
+
+## D61 · 2026-10-12 · The importers: two readers bit for bit, the rest through bone maps, VRMA written and read exactly
+
+- **Principle:** 2, 6, 8, WP-5.2
+- **Call:**
+  - **`@m3a/io`** reads every input as untrusted: sizes capped (`LIMITS`), and a file's work too (its frames, every
+    clip together, at most 262,144; frames times joints at most 2^24), so a 6 KB file can't ask for hours or
+    gigabytes; every buffer read bounds-checked; a glTF's JSON checked for the shapes glTF gives it before anything
+    reads it; skeletons walked without recursion, names in maps without a prototype; nothing evaluated. A refusal is
+    an `IoError` naming its cause and line or byte offset, and the readers the package exports let nothing else out
+    (anything else an input provokes is refused as E_FORMAT, named). No dependency beyond `@m3a/core`; the entry
+    runs in a browser (text and bytes in, never a path).
+  - **Bit for bit where an oracle exists:** the glTF reader for Rigify and Unreal rigs (`readGltf`) and CMU's
+    ASF/AMC (`readCmu`) port my-3d2dge's `anim-import.mjs` and `asf-amc.mjs` in the originals' order of operations,
+    with core's portable math (V8's results in every engine). Tier 1b reads the tiny rig and take 09_02 into tier 1a's
+    captures, every float32 of every frame, the travel, the takes, the rest and the log line, and now a second glTF
+    vector the review asked for: a Rigify rig with a skinned mesh (strided, normalized and short accessors, a split
+    weight, a joint-ring material), STEP and scale tracks and a root turned 20° and scaled to centimetres, read with
+    its look bit for bit like the origin's importer (`tier1b/rigify.gltf`, `rigify-expected.json`; the .gltf generated
+    by `tools/vectors/rigify.ts` and approved as a binary, as D23 approved the tiny rig's). The frozen
+    `tiers.md` is unchanged: tier 1b's rule (the readers, bit for bit) covers it. Where the original was wrong on a
+    valid file, the port reads it right and nothing in the vectors moves: a node's `matrix` is its transform (the
+    original ignored it), a skin without inverse bind matrices has identity ones, chunks of other types are skipped,
+    and a file that needs an extension to read its buffers (meshopt, Draco) is refused by name.
+  - **Everything else through bone maps:** shardfall's BVH reader (as reference) gives five maps (100STYLE, MotionBuilder
+    for Mixamo and most converters, Bandai Namco, Unreal, Rigify), the units from the legs' length and the rest that
+    stands straightest; a later take of the same joints shares the first take's rig only when its offsets match too
+    (shardfall's `adopt`). A glTF animation on any other rig is read as posed joints through the same maps
+    (`readGltfPosed`), posed frame by frame as asked, so memory stays with the tracks; a sixth map takes VRM's humanoid
+    names. Takes are cut into clips by one shared cutter (`takes.ts`, CMU's: loops at their best cycle, closed; the
+    rest stood on the takes' floor).
+  - **VRMA:** `vrmaOf` plays a clip on a bound skeleton (the Animator: feet planted, the root's travel and turn) and
+    keeps what a VRM player plays, the humanoid bones alone: each bone's rotation relative to its parent as a player
+    sees the parent (a non-humanoid node at rest), and the hips' place with the root's travel and turn in it. The
+    first cut kept the root's motion on the skeleton's non-humanoid root node, which a VRM player never reads, so a
+    knockback played in place; the review caught it. Every humanoid bone now lands within 0.01 mm of where the
+    Animator put it, root motion and all (forward kinematics of the file against the Animator, the test). The clip's
+    id, loop, length, events, contacts and facts go in the animation's `extras`, where three's bake puts them, and
+    `readVrma` reads the loop back. `decodeVrma` reads back the same structure, so a file written, read and written
+    again is the same bytes.
+  - **Import:** `importSet` fits libraries into a set as a hand-written catalog says (`$sources`, `$pick`, `$skip` with
+    each reason on record, tags, `orig`), with a fit report per clip (mean, worst, keys); on the tiny rig and the CMU
+    take its fits are tier 1a's bit for bit. As the original did, the catalog's `$sources.CMU` becomes one record a
+    subject (`CMU_NN`, its line and page), and a `$pick` that names only its take plays the stretch where the take
+    moves at its own rate, as the ledger measured it (`picksOf(cat, fps, ledger)`). It writes format 1, as the
+    migrator reads it (WP-5.3 runs both). `subset` makes a smaller set from bigger ones with their libraries' records
+    (my-3d2dge's `anim-set.mjs`).
+  - **Carried elsewhere:** `cmu.mjs`'s survey and ledger fetch and write files, so they are Node tooling, not the
+    browser-safe package: they land in WP-5.6's `tools/corpora/` (its owner), built on `readCmu`.
+  - **FBX** is documented, not shipped: convert to .glb first, with Blender (my-3d2dge's `tools/to-glb.py` at the
+    pinned commit, not carried here) or a ufbx-based converter (none in this repository); nothing reads FBX at runtime.
+  - **The verifier's review** (a fresh subagent): one blocking finding (hostile files hung the readers or took
+    gigabytes: the budgets above), five to fix (non-IoError throws, tier 1b's narrow coverage, VRMA root motion, CMU
+    provenance, the carry), and notes (error wording, unknown chunks, `matrix`, extras placement, FBX wording); each
+    is fixed above, with tests (`packages/io/test/hostile.test.ts`: the budgets, the shapes, 600 random corruptions of
+    real files giving a reading or an IoError and nothing else).
+- **Why:** the readers decide the library's numbers, so where an oracle exists they match it exactly; where none does,
+  a table per skeleton (shardfall's design) reads new sources without new code. A reader takes files from anywhere,
+  so a hostile one must cost at most a bounded refusal.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.30.0
