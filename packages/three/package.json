@@ -1,14 +1,22 @@
 {
   "name": "@m3a/three",
-  "version": "0.19.1",
+  "version": "0.23.1",
   "private": true,
   "description": "The three.js adapter: binding, playback, baking and capture.",
   "license": "MIT",
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./capture": "./src/capture/index.ts"
   },
   "dependencies": {
-    "@m3a/core": "0.19.1"
+    "@m3a/core": "0.23.1"
+  },
+  "peerDependencies": {
+    "three": "0.182.0"
+  },
+  "devDependencies": {
+    "@types/three": "0.182.0",
+    "three": "0.182.0"
   }
 }

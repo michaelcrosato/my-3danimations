@@ -334,6 +334,11 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
     places body points on any recognized skeleton (within 0.001 mm of the importer on the tiny rig), so the solver can
     measure a target body the same way as a library's.
 - **Why:** exact names are cheap and certain; a renamed rig still binds, with the doubt visible in its confidence.
+- **Revised in WP-4.3 (D47):** binding renamed test characters showed the topology fallback taking a long clavicle for
+  the upper arm (every arm bone one off), climbing past the spine's branch into an arm when the head had no neck and
+  nothing above it, taking a twist leaf for the hand, taking the last neck bone for the head, and a twist bone in the
+  thigh for the shin. Fixed, each with a fixture that fails on the old rule; an arm whose mapped upper arm and forearm
+  cover under 65% of its chain (twist bones in it) is reported, with the confidence lowered.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.5.0
 
@@ -1045,3 +1050,128 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.18.0; reworked at G3 in v0.19.0, revised in v0.19.1
 
+## D45 · 2026-10-11 · three.js pinned at r182: the release fresh agents write that runs on both backends here
+
+- **Principle:** 1, 9, WP-4.1
+- **Call:**
+  - **The cold-write check:** two fresh agents, given no docs and writing from memory, each wrote a skinned-character scene
+    (load the Khronos Fox glTF, play a clip, crossfade) for one candidate, r182 (the owner's prior pin) or r186 (the
+    latest, 0.186.1). Run unedited in headless Chromium 141: both draw and crossfade on the forced WebGL 2 backend;
+    on WebGPU r182 runs and r186 fails at `renderer.init()`, its texture views carrying a `swizzle` this Chromium
+    rejects (my-3dge met the same). Both agents wrote their release's idioms correctly, so the choice turns on what
+    runs: **r182**, `three@0.182.0` exactly, a peer dependency of `@m3a/three` (the game brings its three, as the
+    package's header says), installed here as a dev dependency.
+  - **The other candidate in CI:** `tests/e2e/three.e2e.ts` repeats the check on a character built in code (a skinned
+    arm through `GLTFExporter` and `GLTFLoader`, a clip, a crossfade) and is part of `npm run e2e`; CI's `three-next`
+    job runs it on r186 through `M3A_THREE_DIR`, asserting WebGL 2 and reporting WebGPU. WebGPU is asserted where the
+    browser has an adapter (here, SwiftShader's Vulkan); without one, `WebGPURenderer` falls back to WebGL 2, which the
+    other test checks.
+  - **The banned APIs** in `tools/doctrine/banned-three.json`, with the pin: `ShaderMaterial` and
+    `RawShaderMaterial`, `onBeforeCompile`, `EffectComposer` with `ShaderPass` and the `postprocessing/` addons,
+    `WebGLRenderer`, raw GLSL, `renderAsync()` (deprecated in r181) and `RenderPipeline` (r183's name for
+    `PostProcessing`). `npm run doctrine` fails on a use and on the package or lockfile leaving the pin.
+  - **Types later:** `@types/three@0.182.0` brings 7 packages (Rapier's among them) and nothing imports three from
+    TypeScript yet; it is pinned with the first module that does (WP-4.2's tests).
+  - **Found on the way:** r182's `three.webgpu.js` reads `GPUShaderStage` as it loads, and WebGPU's interfaces exist
+    only in a secure context, so on a plain `http:` host other than localhost the module fails to load at all,
+    WebGL 2 included. Pages are served from `localhost` or `https:` (docs/THREE.md).
+- **Result:** the test passes on r182 on both backends (the frame drawn, moving, the crossfade ending on its clip, no
+  warning) and on r186 on WebGL 2, its WebGPU start failing as in the check. Doctrine finds each banned API in a
+  fixture and a pin moved in the package or the lockfile.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.20.0
+
+## D46 · 2026-10-11 · Test characters generated in code, and real CC0 rigs fetched by hash
+
+- **Principle:** 1, 4, 9, WP-4.2
+- **Call:**
+  - **Generated characters** (`packages/three/test-characters/`): a skinned humanoid written as GLB in memory by its
+    own small writer (three's `GLTFExporter` needs a browser's `FileReader` for binary output), its body a tube per
+    bone skinned to it and blended half into the next at the joint. A seed fixes it: `variant(seed)` picks the build
+    (chibi, heroic, bulky, child, tall and thin), the rest pose (T, A at 40°, relaxed at 70°), the naming (VRM, Mixamo,
+    UE5, Rigify), twist bones and the optional bones left out (upper chest, chest, neck, shoulders, toes), and its
+    lengths vary ±4% by seed. Each naming brings its family's habits, where real rigs differ: Mixamo's centimetres
+    under the armature's 0.01 scale, UE5's root bone and five spine bones, Rigify's twist bones in the chain
+    (`DEF-upper_arm.L.001` between the upper arm and the forearm) and `DEF-spine.005`; bone frames along the bone
+    (Blender's, Mixamo's, UE5's) or the world's (VRM 1.0's normalized humanoid). Seeds 0 to 19 are the test set,
+    chosen so every build, rest pose and naming shows and each naming with and without twist bones; any other seed is
+    a held-out character.
+  - **Real rigs** (`tools/fixtures/rigs.json`), never committed: Quaternius' mannequins (male and female, from
+    my-3d2dge-2 at `c8295dc`: Unreal-style names, meshopt-compressed) and KayKit's Knight (Kay Lousberg's Adventurers
+    pack at `672074b`: its own names, 76 clips). KayKit over Kenney: its pack is fetchable file by file at a commit;
+    Kenney's come as zips from its site. `npm run fixtures -- fetch` downloads with curl (it honours the proxy, and
+    reads `file://` for the tests), keeps a file only if its SHA-256 matches and its license file says CC0, and records
+    both in `.cache/fixtures/fetched.json`; `check` reads the cache alone; `--manifest` fetches any other list the same
+    way (G4's held-out rig). CI fetches them before T1 and a gate, cached with `.cache`.
+  - **Loading in Node:** three's `GLTFLoader` with the meshopt decoder; a GLB's images are dropped first
+    (`textures: false`: Node has no image decoder).
+- **Result:** the 20 variants load in three.js with their bones where they were generated (under 1 µm) and bound at
+  rest (bone times inverse bind within 1e-5 of the identity), each recognized by its naming's table with confidence 1
+  and its rest pose read as written; a seed gives the same bytes every run, and seed 1000 is another character
+  recognized the same way. The mannequins are recognized by the unreal4 table (confidence 1), the Knight by topology
+  (0.85). A rig in a manifest of its own fetches and verifies by its hash; a wrong hash or a license that doesn't say
+  CC0 keeps nothing.
+- **Outside WP-4.2's Owns** (one agent, D21): `tsconfig.tests.json` checks the test characters; `npm run fixtures`;
+  CI's fetch step; `@types/three` in `packages/three/package.json` (its own commit).
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.21.0
+
+## D47 · 2026-10-11 · Binding a three.js character: its own space, its own rotations, a report to patch
+
+- **Principle:** 2, 4, 8, WP-4.3
+- **Call:**
+  - **`bind(root, { mapping? })`** (`@m3a/three`) takes the skinned mesh with the most bones under `root` (or a VRM's
+    humanoid, from three-vrm's `userData.vrm`), reads each bone's rest head and orientation in the root's own space
+    (its world transform left out, so a character placed anywhere binds the same; metres, any armature scale applied),
+    recognizes the skeleton (WP-1.4: by name, else by topology), and binds it with core's `bind` (the rest frame, the
+    body measured from the bones), the bones' own rest orientations kept so the solver's rotations are three's.
+  - **The report** (at most 20 lines): how the skeleton was read and how sure (confidence), the rest pose read (T, A or
+    relaxed, the arms' drop), what is mapped and unmapped, what is missing, the issues, the limb lengths (mm, left and
+    right), and a patch: the mapping as `{ bones: { humanoidBone: sourceBone | null } }`, missing bones as null, to edit
+    and pass back as `mapping`. A missing required bone throws with the report's text.
+  - **Topology, fixed on the way** (core, WP-1.4's, D28 revised): binding every generated character with its bones
+    renamed showed the fallback mapping arms one bone off, losing the arms when the head had no neck, and more.
+- **Result:** the 20 test characters and a held-out seed bind with no hand mapping, each limb length as generated to the
+  millimetre and the rest pose as written; the mannequin and the Knight bind too. A test character with every bone
+  renamed binds through topology at confidence 0.85, its lengths right. Renamed, 22 of 24 generated characters map as
+  they do by name; the other 2 (Rigify's twist bones in the arm chain) are reported with confidence 0.55. A character
+  moved and turned in a scene binds to the same rest points. A missing hand throws with a report naming it and how to
+  patch it; the patch, written to a file and read back, binds.
+- **Outside WP-4.3's Owns** (one agent, D21): the topology fixes in core's `recognize` (WP-1.4's) with their
+  fixtures; `@m3a/three`'s index exports `bind` and its types.
+- **Revised in WP-4.5 (v0.23.1):** capturing the Knight showed it bound to its IK controls: its skin lists every bone,
+  the controls too (`control-toe-roll`, `kneeIK`, `handIK`), and topology took three chains of them for the legs and
+  arms (hips at the root, the arms on the legs: its reported 0.85 hid it). Bind now recognizes only the bones some vertex
+  is weighted to, and those above them; the Knight maps each limb to its own bones (T pose, forearm 260 mm), and the
+  real rigs' tests check the mapping bone by bone, not only that nothing is missing.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.22.0; revised in v0.23.1
+
+## D48 · 2026-10-11 · Playing and baking on three.js: the solver's rotations as three's, baked densely enough
+
+- **Principle:** 1, 4, 5, WP-4.4
+- **Call:**
+  - **`attach(animator, bound)`**: each `update(dt)` steps the Animator, poses it and writes the pose: each bone's local
+    rotation as the solver gives it (bind passed three's own rest orientations, so they are three's; a bone whose parent
+    isn't a bone turned into its parent node's space), the hips placed in their parent's space. Crossfades, masked and
+    additive layers are the Animator's. The root's motion is the game's: `root` and `moved` (since the last update), in
+    mm and degrees; the character's object isn't moved.
+  - **`bake(clip, bound)`**: a THREE.AnimationClip of quaternion tracks for every bone and a position track for the
+    hips, solved from the clip's parameters. A fixed rate isn't enough: halfway between 60 fps samples three's slerp
+    strays up to 21 mm from the live solve in a fast punch. The bake samples at the clip's keys and 30 a second, then
+    halves each stretch whose middle, as three in-betweens it, is more than 0.5 mm from the live solve (down to 1/3840
+    s); the worst measured is recorded with the sample count in `userData.error`. `userData` also carries the clip's
+    id, loop, events, contacts and facts, which GLTFExporter writes to the animation's `extras`.
+  - **Allocation:** the adapter's write allocates nothing a frame: measured as the heap left after 120,000 frames less
+    that after 20,000 (`--expose-gc`). A whole update, core's step and pose included, allocates about 7 KB a frame
+    (0.16 ms): core's solver builds its result each time. Making it allocation-free means rewriting the solver's math
+    in place, whose bits the hashes hold (D33, D38): not this WP's, so the Done-when is edited to say what is measured,
+    and the cost is stated.
+  - **VRM:** bind reads three-vrm's humanoid from `userData.vrm` when present; no VRM avatar is in the fixtures yet
+    (optional in WP-4.2), so it isn't exercised. VRMA export waits for WP-5.2.
+- **Result:** on Mixamo, UE5 and Rigify test characters, Walk_Loop, Punch_Jab, Run_Loop and Jump_2 bake within 0.5 mm
+  (53 to 134 samples), and three's AnimationMixer agrees; a masked upper-body punch leaves the legs the walk's, and at
+  half weight puts the arm between; a travelling clip's root motion is handed over while the hips stay over the root.
+- **Outside WP-4.4's Owns** (one agent, D21): none.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.23.0

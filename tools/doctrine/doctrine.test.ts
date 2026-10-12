@@ -3,7 +3,7 @@ import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { checkBanned } from "./banned.ts";
+import { BANNED, checkBanned, checkPin } from "./banned.ts";
 import { checkBinaries } from "./binaries.ts";
 import { checkBoundaries, publicApi, specifiers } from "./boundaries.ts";
 import { checkBudgets } from "./budgets.ts";
@@ -112,6 +112,28 @@ describe("banned APIs", () => {
     expect(checkBanned(fixture({ "packages/three/src/a.ts": "new BufferGeometry()" }), bans)).toEqual([]);
     const ctx = fixture({ "packages/three/src/a.ts": "// ok\nnew THREE.Geometry()", "apps/lab/b.ts": "new THREE.Geometry()" });
     expect(checkBanned(ctx, bans).map((f) => f.message)).toEqual(["packages/three/src/a.ts:2 uses \\bTHREE\\.Geometry\\b: use BufferGeometry"]);
+  });
+});
+
+describe("the three.js bans and pin (WP-4.1)", () => {
+  it("finds each WebGL-era API that breaks under WebGPURenderer, naming its replacement", () => {
+    const uses = ["new THREE.ShaderMaterial({})", "new RawShaderMaterial()", "material.onBeforeCompile = (s) => s", "const composer = new EffectComposer(renderer)", "import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js'", "new WebGLRenderer()", "gl_FragColor = vec4(1.0);", "await renderer.renderAsync(scene, camera)", "import { RenderPipeline } from 'three/webgpu'"];
+    const ctx = fixture(Object.fromEntries(uses.map((u, i) => [`apps/lab/hello/u${i}.ts`, u])));
+    const found = checkBanned(ctx, BANNED);
+    for (let i = 0; i < uses.length; i++) expect(found.some((f) => f.message.startsWith(`apps/lab/hello/u${i}.ts:1 uses `)), uses[i]).toBe(true);
+    expect(checkBanned(fixture({ "apps/lab/hello/ok.ts": "import { WebGPURenderer, MeshStandardNodeMaterial, PostProcessing } from 'three/webgpu';\nnew WebGPURenderer({ forceWebGL: true });\nawait renderer.init();" }), BANNED)).toEqual([]);
+    // docs/ may name them (docs/THREE.md lists them)
+    expect(checkBanned(fixture({ "docs/THREE.md": "`ShaderMaterial` is banned" }), BANNED)).toEqual([]);
+  });
+  it("holds packages/three to the pin, in its package.json and in the lockfile", () => {
+    const pkg = (v: string) => JSON.stringify({ name: "@m3a/three", peerDependencies: { three: v }, devDependencies: { three: v } });
+    const lock = (v: string) => JSON.stringify({ packages: { "node_modules/three": { version: v } } });
+    expect(checkPin(fixture({ "packages/three/package.json": pkg("0.182.0"), "package-lock.json": lock("0.182.0") }), { three: "0.182.0" })).toEqual([]);
+    expect(checkPin(fixture({ "packages/three/package.json": pkg("0.186.1"), "package-lock.json": lock("0.186.1") }), { three: "0.182.0" }).map((f) => f.message)).toEqual([
+      "packages/three/package.json peerDependencies declares three@0.186.1, the pin is 0.182.0 (tools/doctrine/banned-three.json, docs/THREE.md)",
+      "packages/three/package.json devDependencies declares three@0.186.1, the pin is 0.182.0 (tools/doctrine/banned-three.json, docs/THREE.md)",
+      "package-lock.json installs three@0.186.1, the pin is 0.182.0: run npm install",
+    ]);
   });
 });
 

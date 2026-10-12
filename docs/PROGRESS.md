@@ -3,15 +3,14 @@
 The current state on one screen (at most 40 lines; `npm run doctrine` checks it from WP-0.3). The ledger is
 `PLAN.md` §14; decisions are in `docs/DECISIONS.md`.
 
-**Phase:** 4 First flight. **Next gate:** G4 (M1). **Version:** 0.19.1.
+**Phase:** 4 First flight. **Next gate:** G4 (M1). **Version:** 0.23.1.
 **Mode:** one agent (D21), branch `claude/relaxed-albattani-35xhjq`.
 
 ## Done
 
 - Phase 0 (G0 passed, michaelcrosato/my-3danimations#4): doctrine, toolchain, checks, pins, vectors, CI, hook.
-- Phase 1 (G1 passed, merged as michaelcrosato/my-3danimations#5): spec 2.0-rc frozen (`MOTION.md`, `LEGEND.md`,
-  `SKELETON.md`); the validator (30 rules); the codec (tier 1a bit for bit, tier 2 to the µm); the skeleton profile;
-  the seed sets in format 2 (5 sets, 525 clips, 0 errors). D25 to D32.
+- Phase 1 (G1 passed, michaelcrosato/my-3danimations#5): spec 2.0-rc frozen; validator; codec; skeleton profile;
+  seed sets in format 2 (525 clips, 0 errors). D25 to D32.
 - Phase 2 (G2 passed, michaelcrosato/my-3danimations#6): portable math, the same bits in V8 and JavaScriptCore (D33);
   the clip runtime and measured facts (D34); pose operations (D35); the solver on any recognized skeleton, its roll
   tested (D36, F2); planted feet and the ground (D37); the Animator, the same hashes and exact poses in Node,
@@ -19,10 +18,13 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 - Phase 3 (G3 passed, michaelcrosato/my-3danimations#7): raster (D39); sheets, diffs (D40); 14 metrics, predicates,
   qa (D41); describe 30 of 30 (D42); 100 of 100 planted defects at their times (D43); lint and fix (D44). The G3
   verifier's 16 findings and its second review's 5, all fixed (0.19.0, 0.19.1).
+- Phase 4 so far (done beside G3's review, brought over after it merged): three.js pinned at r182 (D45); test
+  characters in code and real CC0 rigs by hash (D46); binding, with a report to patch (D47); baking within 0.5 mm (D48).
 
 ## Next
 
-- Phase 4 First flight: WP-4.1 to 4.4 (done on a side branch while G3 was reviewed), then 4.5 to 4.7 and G4.
+- WP-4.5 partial (merged before G4 at the owner's request): sweep, planting and toeless-rig fixes. To do: sweep on
+  6 rigs, D49, ledger row; CI WebGPU e2e loses its GPU process on GitHub runners. Then WP-4.6, 4.7, G4.
 
 ## Blocked on the owner
 

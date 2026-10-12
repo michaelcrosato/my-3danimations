@@ -43,6 +43,13 @@ export interface PlantOptions {
   /** Seconds a hold takes to ease out after its contact ends (0.05: three frames at 60 Hz); it needs none to engage. */
   blend?: number;
   hands?: Partial<Record<"L" | "R", HandTarget>>;
+  /**
+   * Whether the body settles onto the feet (true by default): lifted where a sole is under the surface and lowered by a
+   * planted foot's float above it, so the legs keep their shape. False keeps the body at its height (lowered only where
+   * a planted leg can't reach) and sets a planted foot on the surface with its leg alone, as a pose baked into a clip's
+   * keys needs: there the settle would carry a capture's sole noise into the hips.
+   */
+  settle?: boolean;
 }
 
 const DEG = Math.PI / 180;
@@ -71,39 +78,58 @@ export function toPose(root: RootPose, w: readonly number[]): V3 {
 /** The contact of `end` that `t` falls in or just after (within `tail` seconds), as absolute times [a, b], or null. */
 function contactAt(m: Motion, end: keyof Contacts & string, t: number, tail: number): [number, number] | null {
   const iv = (m.contacts as unknown as Record<string, [number, number][] | undefined>)[end] ?? [];
-  const cycles = m.loop && m.dur > 0 ? [Math.floor(t / m.dur) - 1, Math.floor(t / m.dur)] : [0];
+  const loop = m.loop && m.dur > 0, cycles = loop ? [Math.floor(t / m.dur) - 1, Math.floor(t / m.dur)] : [0];
+  // in a loop, a contact running to the cycle's end and another starting at its start are one contact through the
+  // seam (one contact the whole cycle long stays one a cycle)
+  const last = loop ? iv.find(([a, b]) => b >= m.dur - 1e-6 && a > 1e-6) : undefined, first = last ? iv.find(([a]) => a <= 1e-6) : undefined;
   // the latest one: at a loop's seam, t is both the end of a cycle's contact and the start of the next's
   let best: [number, number] | null = null;
-  for (const k of cycles) for (const [a0, b0] of iv) {
-    const a = a0 + k * m.dur, b = b0 + k * m.dur;
+  for (const k of cycles) for (const iv0 of iv) {
+    if (iv0 === first) continue;
+    const [a0, b0] = iv0, a = a0 + k * m.dur, b = (iv0 === last && first ? m.dur + first[1] : b0) + k * m.dur;
     if (t >= a && t <= b + tail && (!best || a > best[0])) best = [a, b];
+  }
+  return best;
+}
+
+/** The start of end's next contact within `within` seconds after t (a loop's next cycle included), or null. */
+function startAhead(m: Motion, end: keyof Contacts & string, t: number, within: number): number | null {
+  const iv = (m.contacts as unknown as Record<string, [number, number][] | undefined>)[end] ?? [];
+  const loop = m.loop && m.dur > 0, cycles = loop ? [Math.floor(t / m.dur), Math.floor(t / m.dur) + 1] : [0];
+  let best: number | null = null;
+  for (const k of cycles) for (const [a0] of iv) {
+    const a = a0 + k * m.dur;
+    if (a > t && a <= t + within && (best === null || a < best)) best = a;
   }
   return best;
 }
 
 /**
  * The body points at time t with the feet planted: each foot in a contact held at its contact point (eased out over
- * `blend` when the contact ends) with its sole on the ground (pitched to the surface under it), the pelvis lowered where
- * a leg can't reach, and the legs solved again; the body set onto the lower foot's ground; hands drawn to targets.
+ * `blend` when the contact ends) with its sole on the ground (pitched to the surface under it), and the legs solved
+ * again. The body is set onto the lower foot's ground (with a ground probe), lifted where a sole is under the surface,
+ * lowered by the planted feet's float above it (both unless `settle` is false), and lowered where a planted leg can't
+ * reach; hands drawn to targets.
+ * Every correction eases in and out with the contacts, so none jumps as a contact starts or ends.
  */
 export function plant(m: Motion, t: number, opts: PlantOptions = {}): Float64Array {
-  const R = m.rest, blend = opts.blend ?? 0.05, ground = opts.ground;
+  const R = m.rest, blend = opts.blend ?? 0.05, ground = opts.ground, surface = ground ?? FLAT, settle = opts.settle ?? true;
   const X = Float64Array.from(m.points(t));
   const k = m.key(t), poles = limbPoles(R, k), root = m.root(t);
+  const legPoles = { L: legPole(X, R, k, "L"), R: legPole(X, R, k, "R") };
+  const shift = (dz: number) => {
+    for (let i = 2; i < X.length; i += 3) X[i] = X[i]! + dz;
+  };
   // the body on the ground: lowered (or raised) onto the lower foot's ground, so both legs can reach theirs
-  const lift = (Y: Float64Array, at: RootPose) => {
-    if (!ground) return 0;
+  if (ground) {
     const g = ["L", "R"].map((s) => {
-      const w = toWorld(at, get(Y, "ankle" + s));
+      const w = toWorld(root, get(X, "ankle" + s));
       return ground(w[0], w[1]);
     });
-    const dz = Math.min(g[0]!, g[1]!);
-    for (let i = 2; i < Y.length; i += 3) Y[i] = Y[i]! + dz;
-    return dz;
-  };
-  lift(X, root);
-  // each foot's target: held at its contact point while planted, set on the ground
-  const targets = {} as Record<"L" | "R", { foot: V3[]; planted: boolean }>;
+    shift(Math.min(g[0]!, g[1]!));
+  }
+  // each foot: held at its contact point while planted, and how fully its sole is set on the surface (`on`)
+  const feet = {} as Record<"L" | "R", { foot: V3[]; planted: boolean; on: number }>;
   for (const s of ["L", "R"] as const) {
     let foot = FOOT.map((p) => get(X, p + s));
     const c = contactAt(m, `foot${s}`, t, blend);
@@ -120,30 +146,61 @@ export function plant(m: Motion, t: number, opts: PlantOptions = {}): Float64Arr
       }
     }
     const planted = c !== null && t <= c[1];
-    targets[s] = { foot: onGround(foot, R, root, ground ?? FLAT, planted), planted };
+    // the sole set on the surface eases in over `blend` before the contact starts and out over `blend` after it ends, as
+    // the drift does: a foot the motion holds a little above the floor (another body's proportions) isn't snapped down
+    // to it and back
+    const next = c === null && blend > 0 ? startAhead(m, `foot${s}`, t, blend) : null;
+    const on = c !== null ? (planted ? 1 : blend > 0 ? smooth(1 - (t - c[1]) / blend) : 0) : next !== null ? smooth(1 - (next - t) / blend) : 0;
+    feet[s] = { foot, planted, on };
+  }
+  // the body lifted where a sole is under the surface (as the solver lifts a pose it decodes alone: another body's
+  // proportions can take a foot under it), then lowered by a planted foot's float above it, by how fully it is planted
+  // (both planted: the higher one's, so the other leg bends to its ground rather than stretching past its reach);
+  // without `settle` the body stays and each leg reaches its foot's place on the surface
+  let dz = 0;
+  if (settle) {
+    const gap = { L: gapOf(feet.L.foot, R, root, surface), R: gapOf(feet.R.foot, R, root, surface) };
+    const up = Math.max(0, -Math.min(gap.L, gap.R));
+    dz = up - Math.max(feet.L.on * (gap.L + up), feet.R.on * (gap.R + up));
+    shift(dz);
+  }
+  // each foot's target: moved with the body and brought up out of the surface (a planted one is on it now: the body
+  // lowered to the higher one, the other came up), and a planted one turned to the surface's slope by `on`, at the
+  // same height (so easing a contact in or out never stretches a leg: a nearly straight knee swings far for a little)
+  const targets = {} as Record<"L" | "R", { foot: V3[]; planted: boolean; on: number }>;
+  for (const s of ["L", "R"] as const) {
+    const w = feet[s].on, moved = feet[s].foot.map((v) => [v[0], v[1], v[2] + dz] as V3), free = onGround(moved, R, root, surface, false);
+    let foot = free;
+    if (w > 0) {
+      // turned to the slope with its sole on the surface, then raised by what it still floats above it (nothing once
+      // fully planted: the body was lowered to it, or it was under; nothing without `settle`: the leg sets it down)
+      const set = onGround(moved, R, root, surface, true), up = settle ? Math.max(0, moved[0]![2] - set[0]![2]) : 0;
+      foot = free.map((v, i) => [v[0] + (set[i]![0] - v[0]) * w, v[1] + (set[i]![1] - v[1]) * w, v[2] + (set[i]![2] + up - v[2]) * w] as V3);
+    }
+    targets[s] = { foot, planted: feet[s].planted, on: w };
   }
   // the pelvis lowered where a planted foot's ankle is out of its leg's reach (a long stride, a step down), by at most
-  // a tenth of H0; a free foot goes down with the body, kept out of the surface
+  // a tenth of H0 and by how fully the foot is planted; a free foot goes down with the body, kept out of the surface
   let drop = 0;
   for (const s of ["L", "R"] as const) {
-    if (!targets[s].planted) continue;
+    if (!(targets[s].on > 0)) continue;
     const hip = get(X, "hip" + s), an = targets[s].foot[0]!, L = (R.thigh + R.shin) * 0.9995;
     const d = PORTABLE.hypot(an[0] - hip[0], an[1] - hip[1]);
-    if (PORTABLE.hypot(d, an[2] - hip[2]) > L && d < L) drop = Math.max(drop, hip[2] - (an[2] + Math.sqrt(L * L - d * d)));
+    if (PORTABLE.hypot(d, an[2] - hip[2]) > L && d < L) drop = Math.max(drop, targets[s].on * (hip[2] - (an[2] + Math.sqrt(L * L - d * d))));
   }
   drop = Math.min(drop, 0.1 * R.H0);
   if (drop > 0) {
-    for (let i = 2; i < X.length; i += 3) X[i] = X[i]! - drop;
+    shift(-drop);
     for (const s of ["L", "R"] as const) {
-      if (targets[s].planted) continue;
-      const lowered = targets[s].foot.map((v) => [v[0], v[1], v[2] - drop] as V3);
-      targets[s].foot = onGround(lowered, R, root, ground ?? FLAT, false);
+      if (targets[s].on >= 1) continue;
+      const lowered = targets[s].foot.map((v) => [v[0], v[1], v[2] - drop * (1 - targets[s].on)] as V3);
+      targets[s].foot = onGround(lowered, R, root, surface, false);
     }
   }
   for (const s of ["L", "R"] as const) {
     // the leg solved again to the foot's ankle; the foot keeps its shape on the ankle the leg reaches
     const foot = targets[s].foot;
-    const [kn, an] = ik3(get(X, "hip" + s), foot[0]!, R.thigh, R.shin, poles[`leg${s}`]);
+    const [kn, an] = ik3(get(X, "hip" + s), foot[0]!, R.thigh, R.shin, legPoles[s]);
     const d = [an[0] - foot[0]![0], an[1] - foot[0]![1], an[2] - foot[0]![2]];
     put(X, "knee" + s, kn);
     FOOT.forEach((p, i) => put(X, p + s, foot[i]!.map((x, j) => x + d[j]!)));
@@ -154,6 +211,31 @@ export function plant(m: Motion, t: number, opts: PlantOptions = {}): Float64Arr
   }
   return X;
 }
+
+/** How far a foot's ankle is above where setting its sole on the surface would put it (negative: under it), mm. */
+function gapOf(foot: V3[], R: Rest, root: RootPose, surface: Ground): number {
+  return foot[0]![2] - onGround(foot, R, root, surface, true)[0]![2];
+}
+
+/**
+ * The way leg s's knee points, to solve the leg again: the clip's own knee where the leg bends enough to place it (its
+ * offset from the hip-to-ankle line), easing into the knee's natural way (the key's leg with no twist) as the leg
+ * straightens, where the twist places the knee nowhere in particular (a straight leg's twist can wind round in a few
+ * frames, and a foot set on the ground bends the leg along it).
+ */
+function legPole(X: ArrayLike<number>, R: Rest, k: KeyLike, s: "L" | "R"): V3 {
+  const hip = get(X, "hip" + s), d = sub(get(X, "ankle" + s), hip), kn = sub(get(X, "knee" + s), hip);
+  const dl = Math.sqrt(dot(d, d)), along = dl > 1e-9 ? dot(kn, d) / (dl * dl) : 0;
+  const o: V3 = [kn[0] - d[0] * along, kn[1] - d[1] * along, kn[2] - d[2] * along], ol = Math.sqrt(dot(o, o));
+  const leg = k[`leg${s}`] as number[] | undefined;
+  const natural = limbPoles(R, { ...k, [`leg${s}`]: leg ? [leg[0]!, leg[1]!, leg[2]!, leg[3] ?? 0, 0] : leg } as KeyLike)[`leg${s}`];
+  // fully the clip's own knee from an offset of a tenth of the thigh (a bend of about 12°)
+  const w = smooth(ol / (0.1 * R.thigh));
+  if (w <= 0) return natural;
+  return [(o[0] / ol) * w + natural[0] * (1 - w), (o[1] / ol) * w + natural[1] * (1 - w), (o[2] / ol) * w + natural[2] * (1 - w)];
+}
+const sub = (a: readonly number[], b: readonly number[]): V3 => [a[0]! - b[0]!, a[1]! - b[1]!, a[2]! - b[2]!];
+const dot = (a: readonly number[], b: readonly number[]) => a[0]! * b[0]! + a[1]! * b[1]! + a[2]! * b[2]!;
 
 /** Steps per second when following a planted foot's drift. */
 const STEPS = 60;

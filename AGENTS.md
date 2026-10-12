@@ -13,6 +13,7 @@ why. This file is how.
   files it cites. The plan is a map, not a corpus: don't reread it end to end.
 - **Where the truth lives:** `docs/PROGRESS.md` (one screen, the current state), the ledger (`PLAN.md` §14, one row per
   WP), `docs/DECISIONS.md` (never cleaned up), `docs/FEEDBACK-LOG.md` (points not acted on, counted by theme).
+- **Writing three.js:** read `docs/THREE.md` first: the pinned release (r182), how to write against it, what is banned.
 
 ## Two tiers
 
@@ -32,6 +33,7 @@ why. This file is how.
 | `npm run test:changed` | | the suites covering files changed against `main`, saying why each ran | |
 | `npm run test:cross-engine` | | the portable math, a quaternion chain, the helpers and the Animator's script in V8 and JavaScriptCore (Bun), bit for bit, with each function's cost | |
 | `npm run qa [-- --sample N] [--dist] [--check] [--fix]` | | the sensors over the migrated library: verdicts, the metrics that fail most, the distributions the thresholds come from; `--check` against the committed baseline (`--baseline` rewrites it, in a commit that says why); `--fix` lints and fixes every clip, failing on any that comes out worse or invalid | |
+| `npm run fixtures -- fetch \| check [--manifest <file>]` | | the real CC0 rigs (`tools/fixtures/rigs.json`) fetched by SHA-256 into `.cache/fixtures/`, their licenses read; `check` reads the cache alone | |
 | `npm run plant [-- --check]` | | plant ten kinds of defect into 100 clean library clips, with the times the sensors must find them (`--check`: the fixtures rebuild byte for byte) | |
 | `npm run gate -- G<n>` | Gate | the gate's fixed command set (`PLAN.md` §9.3), with its time | none |
 | `npm run doctrine` | | binaries, token budgets, import boundaries, banned APIs, pins, decisions log, local lane | |

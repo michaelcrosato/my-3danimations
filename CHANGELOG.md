@@ -4,6 +4,57 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.23.1 · 2026-10-11
+
+### Three
+- `bind` recognizes only the bones that deform the mesh (and those above them): a rig's IK and roll controls were taken
+  for limbs (KayKit's Knight bound its arms to its legs' controls) (D47).
+
+## 0.23.0 · 2026-10-11
+
+### Three
+- WP-4.4: `attach(animator, bound)` writes an Animator's poses to a character's bones each update (the write allocates
+  nothing) and hands the root's motion to the game; `bake(clip, bound)` makes a THREE.AnimationClip within 0.5 mm of the
+  live solve, carrying the clip's loop, events, contacts and facts in `userData` (D48).
+
+## 0.22.0 · 2026-10-11
+
+### Three
+- WP-4.3: `bind(root, { mapping? })`: a three.js character's skeleton (or VRM humanoid) recognized, its rest read in
+  its own space, bound for the solver, with a report of at most 20 lines and a mapping patch to edit and pass back (D47).
+
+### Core
+- Recognition by topology: a long clavicle is the shoulder, a rig with no neck keeps its arms, a twist leaf isn't the
+  hand, a chain of neck bones ends at the head, a twist bone in the thigh is passed over, and an arm with twist bones in
+  it is reported with lower confidence (D28 revised).
+
+## 0.21.0 · 2026-10-11
+
+### Three
+- WP-4.2: test characters (`packages/three/test-characters/`): skinned humanoids generated from a seed as GLB in
+  memory, varying in build, rest pose, bone names (VRM, Mixamo, UE5, Rigify, with each family's habits), twist bones
+  and left-out bones; the 20 of the test set load in three.js and are recognized; `loadGlb` and `skeletonIn` read any
+  character in three (D46).
+
+### Tools
+- `npm run fixtures -- fetch | check [--manifest <file>]`: real CC0 rigs fetched by SHA-256 into `.cache/fixtures/`,
+  their license files read and checked; Quaternius' mannequins and KayKit's Knight. CI fetches them before T1.
+
+## 0.20.0 · 2026-10-11
+
+### Three
+- WP-4.1: `@m3a/three` pins three.js r182 (`three@0.182.0`), the release fresh agents write correctly that runs on
+  both of `WebGPURenderer`'s backends in the platform's Chromium (r186's WebGPU fails to start there) (D45).
+
+### Tools
+- `npm run doctrine` bans the WebGL-era three.js APIs that break under `WebGPURenderer` and holds `packages/three` to
+  the pin (`tools/doctrine/banned-three.json`).
+- e2e `three`: the pinned release loads a skinned glTF, plays and crossfades on both backends; CI's `three-next` job
+  runs it on r186.
+
+### Docs
+- `docs/THREE.md`: the pin, why, how to write against it, and the banned APIs.
+
 ## 0.19.1 · 2026-10-11
 
 ### Sensors

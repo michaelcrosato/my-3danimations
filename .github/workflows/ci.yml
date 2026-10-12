@@ -1,4 +1,5 @@
-# CI (PLAN.md §6, WP-0.5): T0 and T1 on every push, T2 on pull requests, a gate's command set by manual dispatch.
+# CI (PLAN.md §6, WP-0.5): T0 and T1 on every push, T2 on pull requests (and the other three.js candidate's pin test),
+# a gate's command set by manual dispatch.
 # Actions are pinned by commit SHA (principle 9); the comment names the release.
 name: ci
 
@@ -39,9 +40,11 @@ jobs:
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: .cache
-          key: m3a-cache-${{ runner.os }}-${{ hashFiles('tools/pins.json', 'package-lock.json') }}
+          key: m3a-cache-${{ runner.os }}-${{ hashFiles('tools/pins.json', 'tools/fixtures/rigs.json', 'package-lock.json') }}
           restore-keys: m3a-cache-${{ runner.os }}-
       - run: npm ci
+      # the real CC0 rigs by hash (WP-4.2), so their tests run; cached with .cache
+      - run: npm run fixtures -- fetch
       - run: npm run check -- --json
       - run: npm test -- --json
       - if: always()
@@ -67,7 +70,7 @@ jobs:
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: .cache
-          key: m3a-cache-${{ runner.os }}-${{ hashFiles('tools/pins.json', 'package-lock.json') }}
+          key: m3a-cache-${{ runner.os }}-${{ hashFiles('tools/pins.json', 'tools/fixtures/rigs.json', 'package-lock.json') }}
           restore-keys: m3a-cache-${{ runner.os }}-
       - run: npm ci
       # The cloud container has Chromium preinstalled; CI runners fetch the build the pinned Playwright expects.
@@ -79,6 +82,26 @@ jobs:
           name: check-output-t2
           path: check-output/
           if-no-files-found: ignore
+
+  three-next:
+    # the other three.js candidate (WP-4.1, D45, docs/THREE.md): the pin test on r186, served beside the pinned r182;
+    # its WebGL 2 result is checked and its WebGPU result reported, so the day a browser or a release fixes it shows here
+    name: three r186 (the other candidate)
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24.21.0
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm install --no-save --no-package-lock --prefix .cache/three-next three@0.186.1
+      - run: node_modules/.bin/playwright test three
+        env:
+          M3A_THREE_DIR: .cache/three-next/node_modules/three
 
   gate:
     name: Gate (manual dispatch)
@@ -96,11 +119,12 @@ jobs:
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: .cache
-          key: m3a-cache-${{ runner.os }}-${{ hashFiles('tools/pins.json', 'package-lock.json') }}
+          key: m3a-cache-${{ runner.os }}-${{ hashFiles('tools/pins.json', 'tools/fixtures/rigs.json', 'package-lock.json') }}
           restore-keys: m3a-cache-${{ runner.os }}-
       - run: npm ci
       - run: npx playwright install --with-deps chromium
       - run: npm run pins -- fetch
+      - run: npm run fixtures -- fetch
       - run: npm run gate -- "$GATE" --json
         env:
           GATE: ${{ inputs.gate }}

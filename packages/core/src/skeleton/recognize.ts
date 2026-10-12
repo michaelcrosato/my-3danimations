@@ -119,12 +119,15 @@ function topology(sk: SkeletonIn): Recognition | null {
   const depth = (n: string): number => 1 + Math.max(0, ...kids.get(n)!.map(depth));
   const sub_ = (n: string): string[] => [n, ...kids.get(n)!.flatMap(sub_)];
   const h = (n: string) => dot(head.get(n)!, up);
+  const blen = (a: string, b: string) => len(sub(head.get(b)!, head.get(a)!));
+  // the longest chain down from n; of chains as long, the one whose first bone is farther from n (the hand, not a twist
+  // leaf halfway along the forearm; the head's top, not the jaw)
   const longest = (n: string): string[] => {
     const ks = kids.get(n)!;
     if (!ks.length) return [n];
-    return [n, ...ks.map(longest).sort((a, b) => b.length - a.length)[0]!];
+    return [n, ...ks.map(longest).sort((a, b) => b.length - a.length || blen(n, b[0]!) - blen(n, a[0]!))[0]!];
   };
-  const blen = (a: string, b: string) => len(sub(head.get(b)!, head.get(a)!));
+
   // hips: the shallowest bone where three chains of at least two bones meet
   const level = (n: string): number => {
     const p = sk.bones.find((b) => b.name === n)!.parent;
@@ -139,6 +142,7 @@ function topology(sk: SkeletonIn): Recognition | null {
   const spineChild = [...branches].sort((a, b) => highest(b) - highest(a))[0]!;
   const legs = branches.filter((c) => c !== spineChild).sort((a, b) => lowest(a) - lowest(b)).slice(0, 2);
   const issues: string[] = [`no table matched; mapped by topology from ${hips}`];
+  let doubt = 0;
   const bones: Record<string, string> = { hips };
   // the leg chains, a short sideways first bone (CMU's hip joint) skipped
   const legChain = (c: string) => {
@@ -148,7 +152,7 @@ function topology(sk: SkeletonIn): Recognition | null {
   };
   const legChains = legs.map(legChain);
   // forward from heels to toes, right from up and forward; the leg further right is the right leg
-  const fwdOf = (ch: string[]) => (ch.length >= 4 ? sub(head.get(ch[3]!)!, head.get(ch[2]!)!) : ([0, 0, 0] as V));
+  const fwdOf = (ch: string[]) => (ch.length >= 4 ? sub(head.get(ch[ch.length - 1]!)!, head.get(ch[ch.length - 2]!)!) : ([0, 0, 0] as V));
   let fwd = legChains.map(fwdOf).reduce((a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]] as V, [0, 0, 0] as V);
   fwd = sub(fwd, [up[0] * dot(fwd, up), up[1] * dot(fwd, up), up[2] * dot(fwd, up)]);
   if (len(fwd) < 1e-9) {
@@ -159,7 +163,15 @@ function topology(sk: SkeletonIn): Recognition | null {
   const side = (n: string) => dot(head.get(n)!, right);
   if (legChains.length === 2) {
     const [a, b] = side(legChains[0]![0]!) > side(legChains[1]![0]!) ? [legChains[1]!, legChains[0]!] : [legChains[0]!, legChains[1]!];
-    for (const [s, ch] of [["left", a], ["right", b]] as const) ["UpperLeg", "LowerLeg", "Foot", "Toes"].forEach((p, i) => ch[i] && (bones[s + p] = ch[i]!));
+    for (const [s, ch] of [["left", a], ["right", b]] as const) {
+      // the foot is the first bone after the knee whose head is near the floor (the ankle), the shin the bone before it:
+      // a twist bone in the thigh (Rigify's .001) is passed over
+      const ground = Math.min(...ch.map(h)), hipH = h(ch[0]!) - ground;
+      const f = ch.findIndex((x, i) => i >= 2 && h(x) - ground < 0.3 * hipH);
+      const legs = f > 2 ? [ch[0]!, ch[f - 1]!, ch[f]!, ch[f + 1]] : ch;
+      if (f > 2) issues.push(`the ${s} leg has ${f - 2} bone(s) between the thigh and the shin, passed over as twist bones`);
+      ["UpperLeg", "LowerLeg", "Foot", "Toes"].forEach((p, i) => legs[i] && (bones[s + p] = legs[i]!));
+    }
     const la = blen(a[0]!, a[2] ?? a[1]!);
     const lb = blen(b[0]!, b[2] ?? b[1]!);
     if (Math.abs(la - lb) > 0.1 * Math.max(la, lb)) issues.push("the legs differ in length by more than 10%");
@@ -169,8 +181,9 @@ function topology(sk: SkeletonIn): Recognition | null {
   let n: string | undefined = spineChild;
   while (n) {
     spine.push(n);
+    // the branch: three chains (two arms and a neck), or two arms and a head with nothing above it
     const ks = kids.get(n)!.filter((c) => depth(c) >= 2);
-    if (ks.length >= 3) break;
+    if (ks.length >= 3 || (kids.get(n)!.filter((c) => depth(c) >= 3).length >= 2 && kids.get(n)!.length >= 3)) break;
     n = [...kids.get(n)!].sort((a, b) => depth(b) - depth(a))[0];
   }
   const branch = spine[spine.length - 1]!;
@@ -184,7 +197,10 @@ function topology(sk: SkeletonIn): Recognition | null {
   if (neckChild) {
     const ch = longest(neckChild);
     bones.neck = ch[0]!;
-    bones.head = ch[ch.length >= 3 ? ch.length - 2 : ch.length - 1]!;
+    // the head is the last bone, or the one before when the last is a leaf on the head (the head branches into its
+    // top, jaw or eyes, or the last segment is far longer than the neck's): a chain of neck bones ends at the head
+    const k = ch.length, leaf = k >= 3 && (kids.get(ch[k - 2]!)!.length > 1 || blen(ch[k - 2]!, ch[k - 1]!) > 1.5 * blen(ch[k - 3]!, ch[k - 2]!));
+    bones.head = ch[leaf ? k - 2 : k - 1]!;
     if (ch.length === 1) issues.push("one bone above the arms: taken as the head, no neck");
     if (ch.length === 1) delete bones.neck;
   }
@@ -192,13 +208,27 @@ function topology(sk: SkeletonIn): Recognition | null {
   if (arms.length === 2) {
     for (const [s, c] of [["left", arms[0]!], ["right", arms[1]!]] as const) {
       const ch = longest(c);
-      const shoulder = ch.length >= 4 && blen(ch[0]!, ch[1]!) < 0.6 * blen(ch[1]!, ch[2]!);
+      // a shoulder (clavicle) first, when there are four bones or more: short beside the next, or its head much nearer
+      // the spine across the body than the next's (a long clavicle reaching out to the arm)
+      const across = (x: string) => {
+        const d = sub(head.get(x)!, head.get(branch)!), v = dot(d, up);
+        return len(sub(d, [up[0] * v, up[1] * v, up[2] * v]));
+      };
+      const shoulder = ch.length >= 4 && (blen(ch[0]!, ch[1]!) < 0.6 * blen(ch[1]!, ch[2]!) || across(ch[0]!) < 0.3 * across(ch[1]!));
       const rest = shoulder ? ch.slice(1) : ch;
       if (shoulder) bones[s + "Shoulder"] = ch[0]!;
       ["UpperArm", "LowerArm", "Hand"].forEach((p, i) => rest[i] && (bones[s + p] = rest[i]!));
+      // an arm whose upper arm and forearm, as mapped, cover under 65% of its chain: twist bones in the chain (they
+      // can't be told from the joints in a straight arm) put the elbow and hand too near the shoulder, so the mapping
+      // is in doubt (bones past the hand, a wrist and a palm, leave the arm itself long)
+      const along = rest.slice(1).reduce((a, x, i) => a + blen(rest[i]!, x), 0);
+      if (rest.length > 3 && blen(rest[0]!, rest[1]!) + blen(rest[1]!, rest[2]!) < 0.65 * along) {
+        issues.push(`the ${s} arm's upper arm and forearm are short for its chain of ${rest.length} bones: twist bones in it? check its mapping`);
+        doubt += 0.15;
+      }
     }
   } else issues.push("could not find two arms where the spine branches");
-  return finish(sk, "topology", null, bones, issues, 0.85);
+  return finish(sk, "topology", null, bones, issues, 0.85 - doubt);
 }
 
 /** The rest frame measured from the bones: forward from heels to toes, right from the left thigh to the right, and how the arms rest. */
