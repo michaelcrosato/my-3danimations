@@ -23,10 +23,8 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 
 ## Next
 
-- WP-4.5 partly done, merged at the owner's request before G4: the sweep plays clips through the Animator (contacts
-  detected on the clip's own body); planting and toeless-rig fixes in core and three; footLocks plants with `settle:
-  false`. To do: the sweep on 6 rigs, D49, capture's ledger row; CI's WebGPU e2e loses its GPU process on GitHub's
-  runners (diagnostics added). Then WP-4.6, 4.7, G4.
+- WP-4.5 partial (merged before G4 at the owner's request): sweep, planting and toeless-rig fixes. To do: sweep on
+  6 rigs, D49, ledger row; CI WebGPU e2e loses its GPU process on GitHub runners. Then WP-4.6, 4.7, G4.
 
 ## Blocked on the owner
 
