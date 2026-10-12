@@ -10,7 +10,8 @@
 "desc": "Running sideways to the right, high knees style: lift knees high but only knees – not marching",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":109},
+"contacts": {"by":"detected","footL":[[0.717,1.017]],"footR":[[0.15,0.467]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[94,118],"seam":0,"speed":109,"travel":[9.8,87.5]},
 "provenance": {"src":"100STYLE","take":"HighKnees_SR 54.80-55.58","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[10,62],"qa":"unchecked","qaVersion":"none"},
 "keys": [

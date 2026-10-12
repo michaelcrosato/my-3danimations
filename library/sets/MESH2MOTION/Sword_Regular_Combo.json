@@ -10,6 +10,8 @@
 "desc": "the three strikes chained: thrust, sweep, finisher",
 "skeleton": "humanoid",
 "restSrc": "M2M_QUATERNIUS",
+"contacts": {"by":"detected","footL":[[0.332,0.648],[0.831,1.047],[1.662,2.293],[2.509,2.725]],"footR":[[0.316,1.047],[2.26,2.775]]},
+"facts": {"by":"m3a-facts@1","height":[55,100],"strike":[0.715],"travel":[42.6,0]},
 "provenance": {"src":"M2M_QUATERNIUS","orig":"QUATERNIUS_SHARDFALL/Sword_Regular_Combo","method":"keyed","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
 "quality": {"fit":[11,87],"qa":"unchecked","qaVersion":"none"},
 "keys": [

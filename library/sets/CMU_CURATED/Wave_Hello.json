@@ -10,6 +10,8 @@
 "desc": "Waving hello with a raised hand",
 "skeleton": "humanoid",
 "restSrc": "CMU_141",
+"contacts": {"by":"detected","footL":[[0.4,1.45],[1.617,2.3]],"footR":[[0.6,1.183]]},
+"facts": {"by":"m3a-facts@1","height":[104,106],"travel":[-1,3]},
 "provenance": {"src":"CMU_141","take":"141_16 0.00-2.30","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[12,58],"qa":"unchecked","qaVersion":"none"},
 "keys": [

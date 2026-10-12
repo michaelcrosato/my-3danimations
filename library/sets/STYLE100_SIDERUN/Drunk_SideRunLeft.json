@@ -10,7 +10,8 @@
 "desc": "Running sideways to the left, drunk style: stumbling around at random. Various foot step sizes and arm motions",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":113},
+"contacts": {"by":"detected","footL":[[0,0.333]],"footR":[[0.533,0.733]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[91,111],"seam":0,"speed":113,"travel":[40.4,-92.2]},
 "provenance": {"src":"100STYLE","take":"Drunk_SR 14.27-15.10","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[14,154],"qa":"unchecked","qaVersion":"none"},
 "keys": [

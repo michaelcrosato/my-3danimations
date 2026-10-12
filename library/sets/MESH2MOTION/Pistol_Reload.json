@@ -10,6 +10,8 @@
 "desc": "reloads the pistol",
 "skeleton": "humanoid",
 "restSrc": "M2M_QUATERNIUS",
+"contacts": {"by":"detected","footL":[[0,2.083]],"footR":[[0,2.083]]},
+"facts": {"by":"m3a-facts@1","height":[100,100]},
 "provenance": {"src":"M2M_QUATERNIUS","orig":"QUATERNIUS_SHARDFALL/Pistol_Reload","method":"keyed","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
 "quality": {"fit":[9,49],"qa":"unchecked","qaVersion":"none"},
 "keys": [

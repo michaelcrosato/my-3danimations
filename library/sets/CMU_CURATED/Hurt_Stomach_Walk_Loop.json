@@ -10,7 +10,8 @@
 "desc": "Walking hunched over, a hand clutching the stomach. One cycle, in place",
 "skeleton": "humanoid",
 "restSrc": "CMU_91",
-"facts": {"by":"m3a-import@1","speed":113},
+"contacts": {"by":"detected","footL":[[0.494,1.185]],"footR":[[1.119,1.794]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[99,103],"seam":0,"speed":113,"travel":[136.7,4.3]},
 "provenance": {"src":"CMU_91","take":"91_26 6.13-7.39","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[17,67],"qa":"unchecked","qaVersion":"none"},
 "keys": [

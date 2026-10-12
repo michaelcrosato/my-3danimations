@@ -97,9 +97,9 @@ function sourceOf(cat: Catalog, L: LibraryIn): SourceInfo | undefined {
 /**
  * Fits libraries into one set as the catalog says. A clip name is taken once (a later library's clip of a taken name is
  * left out); `_`-named clips are a reader's rest pose, not clips. `tol` is the fit's limit in mm (30); `encode` asks
- * for format 2's hands, spine curl and root yaw (core's `fit`).
+ * for format 2's hands, spine curl and root yaw, a steady twist and closed loops (core's `fit`).
  */
-export function importSet(libs: readonly LibraryIn[], cat: Catalog, opts: { name: string; title?: string; credit: string; fps?: number; tol?: number; only?: readonly string[]; blade?: RegExp; encode?: { hands?: boolean; spine?: boolean; yaw?: boolean; steadyTwist?: boolean } }): Imported {
+export function importSet(libs: readonly LibraryIn[], cat: Catalog, opts: { name: string; title?: string; credit: string; fps?: number; tol?: number; only?: readonly string[]; blade?: RegExp; encode?: { hands?: boolean; spine?: boolean; yaw?: boolean; steadyTwist?: boolean; closeLoop?: boolean } }): Imported {
   const fps = opts.fps ?? 30, tol = opts.tol ?? 30, blade = opts.blade ?? /Sword/, warnings: string[] = [], skipped: Imported["report"]["skipped"] = [], fits: Imported["report"]["clips"] = [];
   const named = Object.keys(cat).filter((k) => !k.startsWith("$")).length > 0, only = opts.only ? new Set(opts.only) : null;
   const set: Imported["set"] = { set: opts.name, ...(opts.title ? { title: opts.title } : {}), format: 1, credit: opts.credit, fps, sources: {}, body: null, fit: {}, clips: {} };

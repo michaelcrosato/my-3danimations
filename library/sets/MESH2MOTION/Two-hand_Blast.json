@@ -10,6 +10,8 @@
 "desc": "crouched forward, thrusts both hands out to cast a blast",
 "skeleton": "humanoid",
 "restSrc": "M2M_ANIMATED",
+"contacts": {"by":"detected","footL":[[0,0.458]],"footR":[[0,0.458]]},
+"facts": {"by":"m3a-facts@1","height":[66,67],"strike":[0.164]},
 "provenance": {"src":"M2M_ANIMATED","method":"keyed","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
 "quality": {"fit":[10,97],"qa":"unchecked","qaVersion":"none"},
 "keys": [

@@ -10,7 +10,8 @@
 "desc": "Running, look up style: tilt head to look at ceiling",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":156},
+"contacts": {"by":"detected","footL":[[0.35,0.583]],"footR":[[0.683,1.05]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[93,100],"seam":0,"speed":156,"travel":[112.1,-3.5]},
 "provenance": {"src":"100STYLE","take":"LookUp_FR 7.80-8.52","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[8,41],"qa":"unchecked","qaVersion":"none"},
 "keys": [

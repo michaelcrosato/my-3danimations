@@ -10,7 +10,8 @@
 "desc": "Sidestepping to the right, cross over style: step each foot in front of other leg",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":39},
+"contacts": {"by":"detected","footL":[[0.55,2.2]],"footR":[[2.067,3.567]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[97,101],"seam":0,"speed":39,"travel":[32.7,80.1]},
 "provenance": {"src":"100STYLE","take":"CrossOver_SW 99.70-101.90","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[7,39],"qa":"unchecked","qaVersion":"none"},
 "keys": [

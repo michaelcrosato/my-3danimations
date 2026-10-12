@@ -10,6 +10,8 @@
 "desc": "Freezing cold",
 "skeleton": "humanoid",
 "restSrc": "CMU_80",
+"contacts": {"by":"detected","footL":[[0,3.333],[3.467,6]],"footR":[[0,2.8],[3.683,6]]},
+"facts": {"by":"m3a-facts@1","height":[102,104],"travel":[0,1]},
 "provenance": {"src":"CMU_80","take":"80_41 0.00-6.00","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[15,52],"qa":"unchecked","qaVersion":"none"},
 "keys": [

@@ -10,6 +10,8 @@
 "desc": "A slow, unhurried get-up from lying on the floor to standing",
 "skeleton": "humanoid",
 "restSrc": "CMU_114",
+"contacts": {"by":"detected","footL":[[0,0.417],[2.717,2.917],[3.083,3.15],[3.333,3.867],[4,4.567],[5.35,6.333],[6.767,6.917],[7.767,10.6]],"footR":[[2.083,2.917],[3.133,3.167],[3.683,6.217],[6.85,6.933],[7.117,7.567],[7.7,7.783],[8.217,10.6]],"handL":[[0,2.25],[2.683,2.933],[3.117,4.417]]},
+"facts": {"by":"m3a-facts@1","height":[12,105],"travel":[18,-27]},
 "provenance": {"src":"CMU_114","take":"114_02 3.90-14.50","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[14,74],"qa":"unchecked","qaVersion":"none"},
 "keys": [

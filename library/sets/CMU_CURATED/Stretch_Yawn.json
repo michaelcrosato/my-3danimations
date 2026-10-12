@@ -10,6 +10,8 @@
 "desc": "A big stretch with a yawn, arms reaching up overhead",
 "skeleton": "humanoid",
 "restSrc": "CMU_141",
+"contacts": {"by":"detected","footL":[[0,0.464],[0.796,2.172],[2.52,3.067]],"footR":[[0.249,0.796],[2.155,2.437]]},
+"facts": {"by":"m3a-facts@1","height":[103,110],"travel":[-1,38]},
 "provenance": {"src":"CMU_141","take":"141_13 0.00-3.06","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[11,130],"qa":"unchecked","qaVersion":"none"},
 "keys": [

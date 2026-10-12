@@ -10,6 +10,8 @@
 "desc": "Standing, rushed style: rushing about swinging arms for extra momentum",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
+"contacts": {"by":"detected","footL":[[0,2.967]],"footR":[[0,2.967]]},
+"facts": {"by":"m3a-facts@1","height":[100,100],"seam":0,"speed":0,"travel":[0,0]},
 "provenance": {"src":"100STYLE","take":"Rushed_ID 20.12-23.08","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[7,31],"qa":"unchecked","qaVersion":"none"},
 "keys": [

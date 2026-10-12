@@ -10,7 +10,8 @@
 "desc": "Running sideways to the left, limp left style: keep left leg straight and limp",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":57},
+"contacts": {"by":"detected","footL":[[0.5,1.2]],"footR":[[1.017,1.75]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[98,101],"seam":0,"speed":57,"travel":[18.2,-58.3]},
 "provenance": {"src":"100STYLE","take":"LimpLeft_SR 52.95-54.15","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[7,37],"qa":"unchecked","qaVersion":"none"},
 "keys": [

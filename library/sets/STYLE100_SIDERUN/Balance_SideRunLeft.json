@@ -10,7 +10,8 @@
 "desc": "Running sideways to the left, balance style: arms out to side for balance - tilting side to side",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":131},
+"contacts": {"by":"detected","footL":[[0.592,0.79],[1.152,1.432]],"footR":[[0.346,0.592],[0.938,1.201]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[93,109],"seam":0,"speed":131,"travel":[22.4,-174]},
 "provenance": {"src":"100STYLE","take":"Balance_SR 41.00-42.28","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[10,86],"qa":"unchecked","qaVersion":"none"},
 "keys": [

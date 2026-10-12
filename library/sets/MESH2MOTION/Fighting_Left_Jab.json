@@ -10,6 +10,8 @@
 "desc": "from the fighting stance, swings the left fist out wide and back to guard",
 "skeleton": "humanoid",
 "restSrc": "M2M_ANIMATED",
+"contacts": {"by":"detected","footL":[[0.147,0.295],[0.475,0.557],[0.884,0.917]],"footR":[[0.491,0.917]]},
+"facts": {"by":"m3a-facts@1","height":[86,86],"strike":[0.328]},
 "provenance": {"src":"M2M_ANIMATED","method":"keyed","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
 "quality": {"fit":[9,59],"qa":"unchecked","qaVersion":"none"},
 "keys": [

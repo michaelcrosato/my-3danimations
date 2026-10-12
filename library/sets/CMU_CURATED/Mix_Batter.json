@@ -10,6 +10,8 @@
 "desc": "Mixing batter in a bowl",
 "skeleton": "humanoid",
 "restSrc": "CMU_79",
+"contacts": {"by":"detected","footL":[[0,2.4],[2.55,6]],"footR":[[0,0.45],[3.033,3.167]]},
+"facts": {"by":"m3a-facts@1","height":[101,101],"travel":[-2,1]},
 "provenance": {"src":"CMU_79","take":"79_13 0.90-6.90","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[10,46],"qa":"unchecked","qaVersion":"none"},
 "keys": [

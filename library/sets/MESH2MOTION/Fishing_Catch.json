@@ -10,6 +10,8 @@
 "desc": "jerks the rod up to hook a fish and pulls it in",
 "skeleton": "humanoid",
 "restSrc": "M2M_MOCOPI",
+"contacts": {"by":"detected","footL":[[0,0.567],[0.783,2.05]],"footR":[[0,0.467],[0.7,1.167],[1.467,2.05]]},
+"facts": {"by":"m3a-facts@1","height":[101,105]},
 "provenance": {"src":"M2M_MOCOPI","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCapture"},
 "quality": {"fit":[14,151],"qa":"unchecked","qaVersion":"none"},
 "keys": [

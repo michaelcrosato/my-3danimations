@@ -10,7 +10,8 @@
 "desc": "Running sideways to the right, walking stick right style: walk with a stick – used broom handle",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":152},
+"contacts": {"by":"detected","footL":[[0.15,0.433]],"footR":[[0.366,0.633]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[94,109],"seam":0,"speed":152,"travel":[-1.1,98.9]},
 "provenance": {"src":"100STYLE","take":"WalkingStickRight_SR 41.78-42.42","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[7,49],"qa":"unchecked","qaVersion":"none"},
 "keys": [

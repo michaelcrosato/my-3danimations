@@ -10,6 +10,8 @@
 "desc": "a slight flinch: the shoulders jolt and the arms swing a little; the body barely moves",
 "skeleton": "humanoid",
 "restSrc": "M2M_QUATERNIUS",
+"contacts": {"by":"detected"},
+"facts": {"by":"m3a-facts@1","height":[163,166],"travel":[0,0]},
 "provenance": {"src":"M2M_QUATERNIUS","method":"keyed","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
 "quality": {"fit":[7,32],"qa":"unchecked","qaVersion":"none"},
 "keys": [

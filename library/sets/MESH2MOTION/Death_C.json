@@ -10,6 +10,8 @@
 "desc": "falls straight back, rolls over and lies spread out",
 "skeleton": "humanoid",
 "restSrc": "M2M_ANIMATED",
+"contacts": {"by":"detected","footL":[[0,0.083]],"footR":[[0,0.083]],"handL":[[1.71,2.208]],"handR":[[1.727,2.208]]},
+"facts": {"by":"m3a-facts@1","height":[9,106]},
 "provenance": {"src":"M2M_ANIMATED","method":"keyed","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
 "quality": {"fit":[9,74],"qa":"unchecked","qaVersion":"none"},
 "keys": [

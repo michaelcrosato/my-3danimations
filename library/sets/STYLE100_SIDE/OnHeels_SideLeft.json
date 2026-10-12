@@ -10,7 +10,8 @@
 "desc": "Sidestepping to the left, on heels style: walk on heels with toes raised",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":51},
+"contacts": {"by":"detected"},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[98,102],"seam":0,"speed":51},
 "provenance": {"src":"100STYLE","take":"OnHeels_SW 25.60-26.77","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[9,90],"qa":"unchecked","qaVersion":"none"},
 "keys": [
@@ -60,6 +61,6 @@
    "legL":[23,-15,-96,17,-7], "legR":[23,3,-97,9,18], "footL":[-18,-8,0], "footR":[-20,28,0]},
   {"t":1.167,
    "hips":[0,0,102], "body":[-4,7,5], "chest":[-3,3,4], "head":[-8,29,-15],
-   "shL":[3,-8], "shR":[5,-7], "armL":[16,3,-99,0,236], "armR":[40,14,-91,0,-80], "handL":[-15,-7,-28], "handR":[-6,-12,-162], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "shL":[3,-8], "shR":[5,-7], "armL":[16,3,-99,0,178], "armR":[40,14,-91,0,-80], "handL":[-15,-7,-86], "handR":[-6,-12,-162], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
    "legL":[27,-1,-96,14,-14], "legR":[21,9,-97,0,13], "footL":[-20,-3,0], "footR":[-20,29,0]}
 ]}

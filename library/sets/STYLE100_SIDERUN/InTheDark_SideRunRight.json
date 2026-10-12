@@ -10,7 +10,8 @@
 "desc": "Running sideways to the right, in the dark style: feeling around as if in darkness",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":138},
+"contacts": {"by":"detected","footL":[[0.099,0.394],[0.674,0.97]],"footR":[[0.362,0.493],[0.888,1.167]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[96,108],"seam":0,"speed":138,"travel":[28.6,161.3]},
 "provenance": {"src":"100STYLE","take":"InTheDark_SR 38.48-39.65","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[11,74],"qa":"unchecked","qaVersion":"none"},
 "keys": [

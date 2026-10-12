@@ -10,7 +10,8 @@
 "desc": "Running sideways to the right, lean back style: bent backwards",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":152},
+"contacts": {"by":"detected","footL":[[0.081,0.13],[0.486,0.567]],"footR":[[0.113,0.356]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[93,107],"seam":0,"speed":152,"travel":[25.4,84.6]},
 "provenance": {"src":"100STYLE","take":"LeanBack_SR 36.82-37.38","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[10,65],"qa":"unchecked","qaVersion":"none"},
 "keys": [

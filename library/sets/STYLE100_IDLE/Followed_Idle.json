@@ -10,6 +10,8 @@
 "desc": "Standing, followed style: check behind occasionally",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
+"contacts": {"by":"detected","footL":[[0,3.967]],"footR":[[0,3.967]]},
+"facts": {"by":"m3a-facts@1","height":[100,100],"seam":0,"speed":0.3,"travel":[0.8,-0.7]},
 "provenance": {"src":"100STYLE","take":"Followed_ID 14.73-18.68","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[11,75],"qa":"unchecked","qaVersion":"none"},
 "keys": [

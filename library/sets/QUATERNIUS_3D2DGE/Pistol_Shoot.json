@@ -10,6 +10,8 @@
 "desc": "one pistol shot with recoil",
 "skeleton": "humanoid",
 "restSrc": "UAL1",
+"contacts": {"by":"detected","footL":[[0,0.633]],"footR":[[0,0.633]]},
+"facts": {"by":"m3a-facts@1","height":[96,96],"strike":[0.017]},
 "provenance": {"src":"UAL1","method":"keyed","producer":{"tool":"m3a-migrate","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
 "quality": {"fit":[12,79],"qa":"unchecked","qaVersion":"none"},
 "keys": [

@@ -10,7 +10,8 @@
 "desc": "Sidestepping to the right, march style: high knees swing arms at elbows",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":38},
+"contacts": {"by":"detected","footL":[[0.15,0.85]],"footR":[[0.717,1.433]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[98,102],"seam":0,"speed":38,"travel":[-0.9,45.8]},
 "provenance": {"src":"100STYLE","take":"March_SW 16.27-17.45","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[7,53],"qa":"unchecked","qaVersion":"none"},
 "keys": [
@@ -76,6 +77,6 @@
    "legL":[21,-1,-98,79,0], "legR":[-9,-1,-100,21,3], "footL":[32,6,0], "footR":[7,10,0]},
   {"t":1.2,
    "hips":[0,0,100], "body":[-6,-5,-2], "chest":[0,14,8], "head":[-1,21,-4],
-   "shL":[2,-3], "shR":[6,-7], "armL":[88,-43,-22,127,-3], "armR":[12,21,-97,0,-3], "handL":[-3,-1,76], "handR":[-6,1,-247], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "shL":[2,-3], "shR":[6,-7], "armL":[88,-43,-22,127,-3], "armR":[12,21,-97,0,-132], "handL":[-3,-1,76], "handR":[-6,1,-118], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
    "legL":[10,0,-100,69,-4], "legR":[-9,-7,-99,18,7], "footL":[30,-3,0], "footR":[7,3,0]}
 ]}

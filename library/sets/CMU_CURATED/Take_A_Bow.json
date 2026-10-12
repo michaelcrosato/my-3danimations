@@ -10,6 +10,8 @@
 "desc": "Takes a bow",
 "skeleton": "humanoid",
 "restSrc": "CMU_111",
+"contacts": {"by":"detected","footR":[[0,0.717],[0.967,2.217],[2.483,3.2]]},
+"facts": {"by":"m3a-facts@1","height":[107,109],"travel":[2,0]},
 "provenance": {"src":"CMU_111","take":"111_02 0.30-3.50","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[14,97],"qa":"unchecked","qaVersion":"none"},
 "keys": [

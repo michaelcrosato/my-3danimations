@@ -10,7 +10,8 @@
 "desc": "Running sideways to the left, robot style: stiff movements arms bending at elbows",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":77},
+"contacts": {"by":"detected","footL":[[0.162,0.486]],"footR":[[0.454,0.794]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[98,102],"seam":0,"speed":77,"travel":[24.5,-33.4]},
 "provenance": {"src":"100STYLE","take":"Robot_SR 22.80-23.35","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[7,24],"qa":"unchecked","qaVersion":"none"},
 "keys": [

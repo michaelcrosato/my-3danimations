@@ -10,6 +10,8 @@
 "desc": "charges forward behind a shield, in place",
 "skeleton": "humanoid",
 "restSrc": "UAL2",
+"contacts": {"by":"detected","footR":[[0.983,1.1]]},
+"facts": {"by":"m3a-facts@1","height":[53,96],"strike":[0.05]},
 "provenance": {"src":"UAL2","method":"keyed","producer":{"tool":"m3a-migrate","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
 "quality": {"fit":[19,71],"qa":"unchecked","qaVersion":"none"},
 "keys": [

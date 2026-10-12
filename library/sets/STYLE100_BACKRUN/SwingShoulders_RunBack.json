@@ -10,7 +10,8 @@
 "desc": "Running backward, swing shoulders style: rotate torso and shoulders left to right and back",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":113},
+"contacts": {"by":"detected","footL":[[0,0.35],[0.783,1.017]],"footR":[[0.383,0.683],[1.15,1.4]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[98,106],"seam":0,"speed":113,"travel":[-151.9,-18]},
 "provenance": {"src":"100STYLE","take":"SwingShoulders_BR 70.15-71.57","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[10,83],"qa":"unchecked","qaVersion":"none"},
 "keys": [

@@ -10,7 +10,8 @@
 "desc": "Walking backwards at an easy pace. One cycle, in place",
 "skeleton": "humanoid",
 "restSrc": "CMU_136",
-"facts": {"by":"m3a-import@1","speed":58},
+"contacts": {"by":"detected","footL":[[1.216,2.416]],"footR":[[0.383,1.516]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[104,105],"seam":0,"speed":58,"travel":[88.2,0.1]},
 "provenance": {"src":"CMU_136","take":"136_25 8.13-9.77","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[11,112],"qa":"unchecked","qaVersion":"none"},
 "keys": [

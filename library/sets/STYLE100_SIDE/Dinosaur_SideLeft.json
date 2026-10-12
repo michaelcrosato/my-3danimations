@@ -10,7 +10,8 @@
 "desc": "Sidestepping to the left, dinosaur style: like a t-rex arms close to body dinosaur posture",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":42},
+"contacts": {"by":"detected","footL":[[0.417,1.417]],"footR":[[1.15,2.133]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[86,96],"seam":0,"speed":42,"travel":[26.3,-56.5]},
 "provenance": {"src":"100STYLE","take":"Dinosaur_SW 94.03-95.52","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[8,43],"qa":"unchecked","qaVersion":"none"},
 "keys": [

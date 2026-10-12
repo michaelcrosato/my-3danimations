@@ -10,7 +10,8 @@
 "desc": "Walking backward, swing arms round style: swing arms round body (right in front left at back then switch)",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":40},
+"contacts": {"by":"detected","footL":[[0.348,1.159],[1.838,2.467]],"footR":[[0,0.48],[1.027,2.003]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[99,101],"seam":0,"speed":40,"travel":[-106.1,-11]},
 "provenance": {"src":"100STYLE","take":"SwingArmsRound_BW 137.95-140.42","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[9,109],"qa":"unchecked","qaVersion":"none"},
 "keys": [

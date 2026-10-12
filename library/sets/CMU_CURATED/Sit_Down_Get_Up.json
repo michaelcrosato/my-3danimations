@@ -10,6 +10,8 @@
 "desc": "Sitting down on a chair and getting up again (no chair is drawn)",
 "skeleton": "humanoid",
 "restSrc": "CMU_143",
+"contacts": {"by":"detected","footL":[[0,5.252],[5.419,5.967]],"footR":[[0,5.053],[5.186,5.967]]},
+"facts": {"by":"m3a-facts@1","height":[58,103],"travel":[12,-5]},
 "provenance": {"src":"CMU_143","take":"143_18 0.30-6.26","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[9,49],"qa":"unchecked","qaVersion":"none"},
 "keys": [

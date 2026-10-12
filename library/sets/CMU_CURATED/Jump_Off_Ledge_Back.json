@@ -10,6 +10,8 @@
 "desc": "Jumps backwards off a ledge",
 "skeleton": "humanoid",
 "restSrc": "CMU_81",
+"contacts": {"by":"detected","footL":[[1.278,1.61],[1.859,3.037],[3.419,3.767]],"footR":[[1.195,1.942],[2.738,3.767]]},
+"facts": {"by":"m3a-facts@1","height":[81,181],"travel":[-198,-5]},
 "provenance": {"src":"CMU_81","take":"81_12 0.40-4.17","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[10,74],"qa":"unchecked","qaVersion":"none"},
 "keys": [

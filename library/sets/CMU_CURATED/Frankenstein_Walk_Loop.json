@@ -10,7 +10,8 @@
 "desc": "Frankenstein's monster: stiff legs, arms held straight out ahead, a heavy lurching walk. One cycle, in place",
 "skeleton": "humanoid",
 "restSrc": "CMU_104",
-"facts": {"by":"m3a-import@1","speed":47},
+"contacts": {"by":"detected","footL":[[0.183,1.8]],"footR":[[1.5,2.95]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[101,104],"seam":0,"speed":47,"travel":[110.9,-0.6]},
 "provenance": {"src":"CMU_104","take":"104_03 3.08-5.58","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[15,85],"qa":"unchecked","qaVersion":"none"},
 "keys": [

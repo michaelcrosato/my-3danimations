@@ -10,7 +10,8 @@
 "desc": "Running, teapot style: one arm on hip other arm raised",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":86},
+"contacts": {"by":"detected","footL":[[1,2.083]],"footR":[[0.583,0.917],[1.35,1.65]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[92,100],"seam":0,"speed":86,"travel":[135.5,-23.6]},
 "provenance": {"src":"100STYLE","take":"Teapot_FR 46.57-48.08","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[10,78],"qa":"unchecked","qaVersion":"none"},
 "keys": [

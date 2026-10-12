@@ -10,7 +10,8 @@
 "desc": "Walking backward, quail style: arms straight by sides slightly back very small quick steps",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":36},
+"contacts": {"by":"detected","footL":[[0.785,1.374]],"footR":[[0.393,0.982]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[96,97],"seam":0,"speed":36,"travel":[-32.5,-0.4]},
 "provenance": {"src":"100STYLE","take":"Quail_BW 16.60-17.47","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[8,37],"qa":"unchecked","qaVersion":"none"},
 "keys": [

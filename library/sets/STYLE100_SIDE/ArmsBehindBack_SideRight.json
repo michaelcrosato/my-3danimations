@@ -10,7 +10,8 @@
 "desc": "Sidestepping to the right, arms behind back style: hands clasped behind back",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":60},
+"contacts": {"by":"detected","footL":[[0.15,1.05]],"footR":[[0.85,1.65]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[95,101],"seam":0,"speed":60,"travel":[23.7,74.4]},
 "provenance": {"src":"100STYLE","take":"ArmsBehindBack_SW 15.90-17.20","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[7,32],"qa":"unchecked","qaVersion":"none"},
 "keys": [

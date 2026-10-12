@@ -10,7 +10,8 @@
 "desc": "Running backward, march style: high knees swing arms at elbows",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":106},
+"contacts": {"by":"detected","footL":[[0.553,0.797]],"footR":[[0.325,0.472]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[98,107],"seam":0,"speed":106,"travel":[-59.8,-9.5]},
 "provenance": {"src":"100STYLE","take":"March_BR 10.95-11.62","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[8,88],"qa":"unchecked","qaVersion":"none"},
 "keys": [

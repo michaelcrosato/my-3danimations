@@ -10,6 +10,8 @@
 "desc": "Fishing: a cast with a rod, waiting, then reeling in (no rod is drawn)",
 "skeleton": "humanoid",
 "restSrc": "CMU_79",
+"contacts": {"by":"detected","footL":[[0,6.3],[6.433,8]],"footR":[[0,8]]},
+"facts": {"by":"m3a-facts@1","height":[98,103],"travel":[-2,1]},
 "provenance": {"src":"CMU_79","take":"79_34 1.30-9.30","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[15,76],"qa":"unchecked","qaVersion":"none"},
 "keys": [

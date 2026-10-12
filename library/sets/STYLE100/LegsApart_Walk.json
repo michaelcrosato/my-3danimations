@@ -10,7 +10,8 @@
 "desc": "Legs relatively straight wide apart",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":12},
+"contacts": {"by":"detected","footR":[[0.5,1.167]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[99,101],"seam":0,"speed":12,"travel":[0.1,1.1]},
 "provenance": {"src":"100STYLE","take":"LegsApart_FW 132.12-132.92","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[8,37],"qa":"unchecked","qaVersion":"none"},
 "keys": [
@@ -36,6 +37,6 @@
    "legL":[-10,18,-98,0,-21], "legR":[-10,31,-95,7,-4], "footL":[-6,23,0], "footR":[2,30,0]},
   {"t":0.8,
    "hips":[0,0,101], "body":[0,-2,6], "chest":[4,20,4], "head":[3,23,-4],
-   "shL":[4,-9], "shR":[4,-6], "armL":[15,22,-96,0,52], "armR":[13,45,-88,0,-143], "handL":[2,-5,166], "handR":[4,3,-129], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "shL":[4,-9], "shR":[4,-6], "armL":[15,22,-96,0,52], "armR":[13,45,-88,0,-97], "handL":[2,-5,166], "handR":[4,3,-175], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
    "legL":[0,23,-97,0,16], "legR":[-5,25,-97,0,-11], "footL":[-9,24,0], "footR":[-1,30,0]}
 ]}

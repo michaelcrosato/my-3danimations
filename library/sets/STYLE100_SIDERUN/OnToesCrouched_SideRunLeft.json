@@ -10,7 +10,8 @@
 "desc": "Running sideways to the left, on toes crouched style: as crouched style but on tip toes",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":128},
+"contacts": {"by":"detected","footL":[[0,0.2]],"footR":[[0.367,0.7]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[91,103],"seam":0,"speed":128,"travel":[18.6,-92.6]},
 "provenance": {"src":"100STYLE","take":"OnToesCrouched_SR 42.52-43.20","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[7,29],"qa":"unchecked","qaVersion":"none"},
 "keys": [

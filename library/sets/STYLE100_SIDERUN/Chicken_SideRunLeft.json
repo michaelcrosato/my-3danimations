@@ -10,7 +10,8 @@
 "desc": "Running sideways to the left, chicken style: bob head - arms as wings",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":78},
+"contacts": {"by":"detected","footL":[[0.05,0.283]],"footR":[[0.317,0.65]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[96,107],"seam":0,"speed":78,"travel":[23.8,-49.3]},
 "provenance": {"src":"100STYLE","take":"Chicken_SR 46.45-47.18","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[11,40],"qa":"unchecked","qaVersion":"none"},
 "keys": [

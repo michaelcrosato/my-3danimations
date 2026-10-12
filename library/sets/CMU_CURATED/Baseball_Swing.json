@@ -10,6 +10,8 @@
 "desc": "Swinging a baseball bat",
 "skeleton": "humanoid",
 "restSrc": "CMU_124",
+"contacts": {"by":"detected","footL":[[0,2.333],[2.833,3.1],[3.567,4.017],[4.55,6]],"footR":[[0.183,2.6],[2.95,3.017],[3.283,3.733],[4.033,4.767],[5.05,6]]},
+"facts": {"by":"m3a-facts@1","height":[96,101],"travel":[3,1]},
 "provenance": {"src":"CMU_124","take":"124_07 0.00-6.00","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[15,106],"qa":"unchecked","qaVersion":"none"},
 "keys": [

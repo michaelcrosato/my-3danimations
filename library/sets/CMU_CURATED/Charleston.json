@@ -10,6 +10,8 @@
 "desc": "A Charleston step",
 "skeleton": "humanoid",
 "restSrc": "CMU_93",
+"contacts": {"by":"detected","footL":[[0,0.315],[0.581,0.664],[1.112,1.709],[2.422,3.567]],"footR":[[0,0.564],[0.713,1.029],[1.725,1.875],[2.041,2.356],[3.102,3.567]]},
+"facts": {"by":"m3a-facts@1","height":[97,106],"travel":[14,4]},
 "provenance": {"src":"CMU_93","take":"93_03 0.10-3.67","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[12,83],"qa":"unchecked","qaVersion":"none"},
 "keys": [

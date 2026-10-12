@@ -10,7 +10,8 @@
 "desc": "Sidestepping to the left, drag right leg style: drag right foot along the floor",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":44},
+"contacts": {"by":"detected","footL":[[0.567,1.433]],"footR":[[1.183,2.15]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[95,101],"seam":0,"speed":44,"travel":[5.2,-62.9]},
 "provenance": {"src":"100STYLE","take":"DragRightLeg_SW 13.65-15.08","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[8,28],"qa":"unchecked","qaVersion":"none"},
 "keys": [

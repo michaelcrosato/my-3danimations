@@ -10,7 +10,8 @@
 "desc": "Sidestepping to the right, rushed style: rushing about swinging arms for extra momentum",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":88},
+"contacts": {"by":"detected","footL":[[0,0.25],[0.717,1.633]],"footR":[[0.217,1.15],[1.617,1.933]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[92,101],"seam":0,"speed":88,"travel":[9.1,167.9]},
 "provenance": {"src":"100STYLE","take":"Rushed_SW 37.17-39.18","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[9,88],"qa":"unchecked","qaVersion":"none"},
 "keys": [

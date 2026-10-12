@@ -10,7 +10,8 @@
 "desc": "Running sideways to the left, right hop style: hop on right foot",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":97},
+"contacts": {"by":"detected","footR":[[0.437,0.697]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[90,108],"seam":0,"speed":97,"travel":[-3.3,-58.2]},
 "provenance": {"src":"100STYLE","take":"RightHop_SR 25.95-26.50","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[8,36],"qa":"unchecked","qaVersion":"none"},
 "keys": [

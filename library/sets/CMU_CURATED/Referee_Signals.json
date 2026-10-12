@@ -10,6 +10,8 @@
 "desc": "A basketball referee's hand signals",
 "skeleton": "humanoid",
 "restSrc": "CMU_31",
+"contacts": {"by":"detected","footL":[[0,2.367],[2.567,3.167],[3.35,6]]},
+"facts": {"by":"m3a-facts@1","height":[106,106],"travel":[1,0]},
 "provenance": {"src":"CMU_31","take":"31_05 0.00-6.00","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[7,35],"qa":"unchecked","qaVersion":"none"},
 "keys": [

@@ -10,7 +10,8 @@
 "desc": "Sidestepping to the left, old style: hunchbacked move very slowly",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":16},
+"contacts": {"by":"detected","footL":[[0.198,1.153]],"footR":[[0.889,1.911]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[99,100],"seam":0,"speed":16,"travel":[6.7,-22.4]},
 "provenance": {"src":"100STYLE","take":"Old_SW 64.77-66.13","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[6,21],"qa":"unchecked","qaVersion":"none"},
 "keys": [

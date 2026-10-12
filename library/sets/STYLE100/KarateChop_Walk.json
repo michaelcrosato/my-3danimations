@@ -10,7 +10,8 @@
 "desc": "Open hands swing hand with each step to do a karate chop",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":76},
+"contacts": {"by":"detected","footL":[[1.883,3]],"footR":[[0.833,1.883]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[96,101],"seam":0,"speed":76,"travel":[157.7,-0.9]},
 "provenance": {"src":"100STYLE","take":"KarateChop_FW 128.50-130.53","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[7,70],"qa":"unchecked","qaVersion":"none"},
 "keys": [

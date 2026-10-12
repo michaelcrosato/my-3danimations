@@ -10,6 +10,8 @@
 "desc": "Toppling forward flat onto the face",
 "skeleton": "humanoid",
 "restSrc": "CMU_90",
+"contacts": {"by":"detected"},
+"facts": {"by":"m3a-facts@1","height":[27,193],"travel":[9,16]},
 "provenance": {"src":"CMU_90","take":"90_16 1.90-4.10","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[13,84],"qa":"unchecked","qaVersion":"none"},
 "keys": [

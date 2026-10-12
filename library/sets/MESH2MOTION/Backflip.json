@@ -10,6 +10,8 @@
 "desc": "crouches, springs into a full backward somersault, lands crouched and stands",
 "skeleton": "humanoid",
 "restSrc": "M2M_ANIMATED",
+"contacts": {"by":"detected","footL":[[0,0.35],[2.25,2.5]],"footR":[[0,0.283],[2,2.033],[2.233,2.5]]},
+"facts": {"by":"m3a-facts@1","height":[65,304]},
 "provenance": {"src":"M2M_ANIMATED","method":"keyed","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
 "quality": {"fit":[8,150],"qa":"unchecked","qaVersion":"none"},
 "keys": [

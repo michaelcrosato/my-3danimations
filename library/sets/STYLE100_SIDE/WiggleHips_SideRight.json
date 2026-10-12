@@ -10,7 +10,8 @@
 "desc": "Sidestepping to the right, wiggle hips style: hands raised in front of body wiggle hips side to side",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":30},
+"contacts": {"by":"detected","footL":[[1.35,2.717]],"footR":[[0.517,1.7]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[92,100],"seam":0,"speed":30,"travel":[16.6,53.4]},
 "provenance": {"src":"100STYLE","take":"WiggleHips_SW 98.35-100.05","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[8,52],"qa":"unchecked","qaVersion":"none"},
 "keys": [

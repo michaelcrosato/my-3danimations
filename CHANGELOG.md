@@ -4,6 +4,28 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.33.0 · 2026-10-12
+
+### Core
+- `measureFacts` and `playable` detect a tool's contacts again and take only a source's labelled ones as given (WP-5.4,
+  D64): library clips carry their detected contacts now, and an edit since (a repair, a retime) may have moved the feet.
+- The fitter's `closeLoop`: a loop whose capture closes ends on its first key, each angle by the whole turns nearest
+  its own, so a nearly straight limb's held twist can't leave it open.
+
+### Library
+- Facts and auto-labels (WP-5.4, D64): `measureClipFacts`, `withFacts`, `capturedSpeed`, `tagConflicts`. Every clip
+  carries its facts (`by: m3a-facts@1`: speed, travel, height, seam, strikes; a source's speed kept and named in
+  `captured`) and its detected contacts, written by the importer and the migrator. A clip tagged `loop` must close,
+  and a `run` must travel or be tagged `inplace`.
+- The re-imported loops close (`closeLoop`): the 15 tagged loops that didn't now do. Mesh2Motion's Run_Anime and
+  Run_Stealth and 100STYLE's Flapping_RunBack run on the spot: tagged `inplace` (and no longer `root-motion`).
+- QA's baseline rewritten: 920 pass, 285 warn, 180 fail.
+
+### Tools
+- `npm run facts [-- --check]` (`tools/facts/`): every clip's facts and contacts against a fresh measurement, and
+  every tag its facts don't bear out, each resolved or given a reason in `library/baselines/tags.json`.
+- `npm run import` and `npm run migrate` write each clip's facts and contacts (`withFacts`).
+
 ## 0.32.0 · 2026-10-12
 
 ### Core

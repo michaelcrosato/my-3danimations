@@ -10,7 +10,8 @@
 "desc": "shambling, dragging zombie walk, in place",
 "skeleton": "humanoid",
 "restSrc": "UAL2",
-"facts": {"by":"m3a-migrate@1","speed":115},
+"contacts": {"by":"detected","footL":[[0.017,0.667]],"footR":[[0.683,1.333]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[84,96],"seam":0,"speed":115,"travel":[137.1,0.3]},
 "provenance": {"src":"UAL2","method":"keyed","producer":{"tool":"m3a-migrate","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
 "quality": {"fit":[15,97],"qa":"unchecked","qaVersion":"none"},
 "keys": [

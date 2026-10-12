@@ -10,6 +10,8 @@
 "desc": "swimming forward, body flat",
 "skeleton": "humanoid",
 "restSrc": "M2M_QUATERNIUS",
+"contacts": {"by":"detected"},
+"facts": {"by":"m3a-facts@1","height":[113,114],"seam":0},
 "provenance": {"src":"M2M_QUATERNIUS","orig":"QUATERNIUS_SHARDFALL/Swim_Fwd_Loop","method":"keyed","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
 "quality": {"fit":[10,78],"qa":"unchecked","qaVersion":"none"},
 "keys": [

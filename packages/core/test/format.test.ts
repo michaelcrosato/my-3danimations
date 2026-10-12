@@ -114,6 +114,17 @@ describe("format 2's optional fields", () => {
     expect(last.yaw as number).toBeGreaterThan(70);
     expect(fit(R, capOf(61, () => key0), 10, { yaw: true }).clip.keys.some((k) => "yaw" in k)).toBe(false);
   });
+  it("ends a loop whose capture closes on its first key, where a held twist would leave it open", () => {
+    // a nearly straight arm (bent 20°) whose twist swings to 170° and back to 0 in its last frame: steadyTwist holds the
+    // swing, so the last key's twist would stay at 170 while the capture is back where it began
+    const arm = key0.armL as number[], twist = (f: number) => (f < 30 ? Math.min(170, 6 * f) : 0);
+    const cap = { ...capOf(31, (f) => ({ ...key0, armL: [arm[0]!, arm[1]!, arm[2]!, 20, twist(f)] })), loop: true };
+    const open = fit(R, cap, 10, { steadyTwist: true }).clip, shut = fit(R, cap, 10, { steadyTwist: true, closeLoop: true }).clip;
+    const tw = (c: typeof open, i: number) => (c.keys.at(i)!.armL as number[])[4]!;
+    expect(Math.abs(tw(open, -1) - tw(open, 0))).toBeGreaterThan(90);
+    expect((((tw(shut, -1) - tw(shut, 0)) % 360) + 360) % 360).toBe(0);
+    expect(dist(point(decode(shut.keys.at(-1)!), "wristL"), point(decode(shut.keys[0]!), "wristL"))).toBeLessThan(0.01);
+  });
   it("in-betweens yaw and mirrors it with the hands, fingers and contacts", () => {
     const clip = { dur: 1, loop: false, keys: [{ ...key0, t: 0, yaw: 0, handL: [10, 0, 0] }, { ...key0, t: 1, yaw: 90, handL: [30, 0, 0] }] as KeyLike[] };
     expect(keyAt(clip, 0.5).yaw).toBe(45);

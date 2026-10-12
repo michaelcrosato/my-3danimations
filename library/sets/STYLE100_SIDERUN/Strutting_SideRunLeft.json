@@ -10,7 +10,8 @@
 "desc": "Running sideways to the left, strutting style: with swagger leant slightly back arms swinging freely",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":111},
+"contacts": {"by":"detected","footL":[[0.247,0.445],[0.791,1.367]],"footR":[[0.082,0.296],[0.626,0.906],[1.186,1.367]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[96,110],"seam":0,"speed":111,"travel":[19,-139.7]},
 "provenance": {"src":"100STYLE","take":"Strutting_SR 37.02-38.38","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[12,95],"qa":"unchecked","qaVersion":"none"},
 "keys": [

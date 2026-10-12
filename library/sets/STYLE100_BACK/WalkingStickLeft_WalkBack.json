@@ -10,7 +10,8 @@
 "desc": "Walking backward, walking stick left style: walk with a stick – used broom handle",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":61},
+"contacts": {"by":"detected","footL":[[0.183,0.95]],"footR":[[0.816,1.733]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[99,101],"seam":0,"speed":61,"travel":[-84.9,3.9]},
 "provenance": {"src":"100STYLE","take":"WalkingStickLeft_BW 15.43-16.87","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[7,30],"qa":"unchecked","qaVersion":"none"},
 "keys": [

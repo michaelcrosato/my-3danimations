@@ -10,6 +10,8 @@
 "desc": "standing still, breathing gently",
 "skeleton": "humanoid",
 "restSrc": "M2M_ANIMATED",
+"contacts": {"by":"detected","footL":[[0,2.583]],"footR":[[0,2.583]]},
+"facts": {"by":"m3a-facts@1","height":[96,96],"seam":0,"speed":0,"travel":[0,0]},
 "provenance": {"src":"M2M_ANIMATED","method":"keyed","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
 "quality": {"fit":[6,34],"qa":"unchecked","qaVersion":"none"},
 "keys": [

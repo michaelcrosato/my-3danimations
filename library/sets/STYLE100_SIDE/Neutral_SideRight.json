@@ -10,7 +10,8 @@
 "desc": "Sidestepping to the right, neutral style: normal walking",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":56},
+"contacts": {"by":"detected","footL":[[0.79,1.678]],"footR":[[0.214,0.987]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[94,102],"seam":0,"speed":56,"travel":[9.6,71.2]},
 "provenance": {"src":"100STYLE","take":"Neutral_SW 92.12-93.37","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[9,37],"qa":"unchecked","qaVersion":"none"},
 "keys": [

@@ -10,6 +10,8 @@
 "desc": "A baseball pitch",
 "skeleton": "humanoid",
 "restSrc": "CMU_124",
+"contacts": {"by":"detected","footL":[[0,0.249],[0.681,1.312],[2.54,3.37],[3.852,4.267]],"footR":[[0,2.424],[3.37,4.051]]},
+"facts": {"by":"m3a-facts@1","height":[81,101],"travel":[42,-45]},
 "provenance": {"src":"CMU_124","take":"124_01 1.10-5.35","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[15,184],"qa":"unchecked","qaVersion":"none"},
 "keys": [

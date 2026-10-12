@@ -10,6 +10,8 @@
 "desc": "Breakdance: on the floor, the legs sweeping round under the body (the helicopter)",
 "skeleton": "humanoid",
 "restSrc": "CMU_85",
+"contacts": {"by":"detected","footL":[[0,0.615],[1.214,1.513],[1.696,1.929],[2.494,3.126],[3.459,3.741],[5.886,6.302],[6.685,7.067]],"footR":[[0,0.366],[0.815,1.048],[1.979,2.261],[3.159,3.376],[5.986,6.219],[6.535,7.067]],"handL":[[4.29,4.49],[6.701,7.067]],"handR":[[4.041,4.074],[5.454,5.487]]},
+"facts": {"by":"m3a-facts@1","height":[20,105],"travel":[-19,-16]},
 "provenance": {"src":"CMU_85","take":"85_08 1.40-8.46","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[13,94],"qa":"unchecked","qaVersion":"none"},
 "keys": [

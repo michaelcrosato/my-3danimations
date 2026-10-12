@@ -10,7 +10,8 @@
 "desc": "Running backward, limp right style: keep right leg straight and limp",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":73},
+"contacts": {"by":"detected","footL":[[0.617,1.183]],"footR":[[0.25,0.75]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[98,103],"seam":0,"speed":73,"travel":[-60,5.4]},
 "provenance": {"src":"100STYLE","take":"LimpRight_BR 30.05-30.97","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[7,28],"qa":"unchecked","qaVersion":"none"},
 "keys": [

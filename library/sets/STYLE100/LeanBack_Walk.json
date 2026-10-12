@@ -10,7 +10,8 @@
 "desc": "Bent backwards",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":73},
+"contacts": {"by":"detected","footL":[[0.971,1.744]],"footR":[[0.395,1.02]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[95,99],"seam":0,"speed":73,"travel":[89.7,3.8]},
 "provenance": {"src":"100STYLE","take":"LeanBack_FW 120.22-121.50","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[7,76],"qa":"unchecked","qaVersion":"none"},
 "keys": [

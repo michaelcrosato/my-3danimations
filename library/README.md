@@ -5,6 +5,9 @@ manifest (`_set.json`: its sources, their licenses and rest bodies, its tier and
 (`catalog.tsv`, one line a clip, at most 40 tokens, how a model picks clips) and a warnings baseline (`_baseline.json`).
 A set re-imported from its sources (WP-5.3, `npm run import`) also has `_import.json`: each clip's choice between its
 re-import and its migrated version, and why. What each set picks from its sources is in `catalogs/<SET>.json`.
+Every clip carries its facts and contacts as measured (WP-5.4: `facts.by` names the revision, `captured` the facts its
+source gave); `npm run facts -- --check` measures them again and reads its tags against them (a `loop` closes, a `run`
+travels or is tagged `inplace`), each exception given a reason in `baselines/tags.json`.
 
 ## Tiers and the default pack (D10)
 

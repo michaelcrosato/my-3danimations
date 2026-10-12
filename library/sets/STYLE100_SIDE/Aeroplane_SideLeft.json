@@ -10,7 +10,8 @@
 "desc": "Sidestepping to the left, aeroplane style: both arms raised as wings – tilting from side to side",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":45},
+"contacts": {"by":"detected","footL":[[0.197,0.889]],"footR":[[0.658,1.58]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[98,100],"seam":0,"speed":45,"travel":[6.4,-52]},
 "provenance": {"src":"100STYLE","take":"Aeroplane_SW 18.40-19.67","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[10,49],"qa":"unchecked","qaVersion":"none"},
 "keys": [

@@ -10,7 +10,8 @@
 "desc": "Running sideways to the right, hands in pockets style: place hands in pockets and walk and run",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":178},
+"contacts": {"by":"detected","footL":[[0.5,0.783]],"footR":[[0.15,0.367]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[94,109],"seam":0,"speed":178,"travel":[20,100.4]},
 "provenance": {"src":"100STYLE","take":"HandsInPockets_SR 40.13-40.72","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[7,34],"qa":"unchecked","qaVersion":"none"},
 "keys": [

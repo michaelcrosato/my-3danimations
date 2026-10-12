@@ -10,6 +10,8 @@
 "desc": "Takes up a defensive guard",
 "skeleton": "humanoid",
 "restSrc": "CMU_76",
+"contacts": {"by":"detected","footL":[[0,1.543],[1.907,3.367]],"footR":[[0,2.305],[2.587,3.367]]},
+"facts": {"by":"m3a-facts@1","height":[71,106],"travel":[-44,4]},
 "provenance": {"src":"CMU_76","take":"76_04 0.10-3.47","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[10,67],"qa":"unchecked","qaVersion":"none"},
 "keys": [

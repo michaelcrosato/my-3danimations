@@ -10,7 +10,8 @@
 "desc": "Walking backward, chicken style: bob head - arms as wings",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":55},
+"contacts": {"by":"detected","footL":[[0.017,0.716]],"footR":[[0.483,1.133]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[91,97],"seam":0,"speed":55,"travel":[-54,-4.3]},
 "provenance": {"src":"100STYLE","take":"Chicken_BW 12.88-13.92","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[8,54],"qa":"unchecked","qaVersion":"none"},
 "keys": [

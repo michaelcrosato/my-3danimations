@@ -10,6 +10,8 @@
 "desc": "Digging with a spade: foot on the blade, lever back, toss the earth aside (no spade is drawn)",
 "skeleton": "humanoid",
 "restSrc": "CMU_79",
+"contacts": {"by":"detected","footL":[[0,4.933],[5.1,6]],"footR":[[0.267,0.35]]},
+"facts": {"by":"m3a-facts@1","height":[101,103],"travel":[-8,-4]},
 "provenance": {"src":"CMU_79","take":"79_04 1.30-7.30","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[18,78],"qa":"unchecked","qaVersion":"none"},
 "keys": [

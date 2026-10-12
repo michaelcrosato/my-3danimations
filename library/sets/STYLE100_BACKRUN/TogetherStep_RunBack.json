@@ -10,7 +10,8 @@
 "desc": "Running backward, together step style: step left foot - then together – then right foot",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":46},
+"contacts": {"by":"detected","footL":[[0.167,1]],"footR":[[0.417,1.15]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[96,100],"seam":0,"speed":46,"travel":[-17.9,-54.6]},
 "provenance": {"src":"100STYLE","take":"TogetherStep_BR 107.85-108.85","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[7,29],"qa":"unchecked","qaVersion":"none"},
 "keys": [
@@ -56,6 +57,6 @@
    "legL":[-4,17,-98,45,-2], "legR":[3,8,-100,36,-9], "footL":[9,46,-1], "footR":[2,30,0]},
   {"t":1,
    "hips":[0,0,98], "body":[-1,8,0], "chest":[1,12,4], "head":[8,23,-3],
-   "shL":[8,-10], "shR":[9,-7], "armL":[7,11,-99,0,2], "armR":[37,25,-89,0,-117], "handL":[-6,-5,97], "handR":[-7,5,231], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "shL":[8,-10], "shR":[9,-7], "armL":[7,11,-99,0,2], "armR":[37,25,-89,0,-40], "handL":[-6,-5,97], "handR":[-7,4,154], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
    "legL":[6,23,-97,51,-3], "legR":[14,12,-98,30,-9], "footL":[6,58,-2], "footR":[-4,33,0]}
 ]}

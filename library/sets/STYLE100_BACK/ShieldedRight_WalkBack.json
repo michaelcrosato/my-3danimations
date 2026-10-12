@@ -10,7 +10,8 @@
 "desc": "Walking backward, shielded right style: squat down with right arm raised in block as if holding a shield above head. Left arm as if holding a sword",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":61},
+"contacts": {"by":"detected","footL":[[0.483,1.166]],"footR":[[0,0.616]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[95,96],"seam":0,"speed":61,"travel":[-59.7,-4.8]},
 "provenance": {"src":"100STYLE","take":"ShieldedRight_BW 33.53-34.57","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[6,30],"qa":"unchecked","qaVersion":"none"},
 "keys": [

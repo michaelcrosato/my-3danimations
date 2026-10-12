@@ -10,7 +10,8 @@
 "desc": "Walking backward, pigeon toed style: toes turned inwards",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":34},
+"contacts": {"by":"detected","footL":[[0,0.617]],"footR":[[0.517,1]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[100,101],"seam":0,"speed":34,"travel":[-31.8,-1.5]},
 "provenance": {"src":"100STYLE","take":"PigeonToed_BW 39.20-40.22","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[8,43],"qa":"unchecked","qaVersion":"none"},
 "keys": [

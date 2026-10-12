@@ -10,6 +10,8 @@
 "desc": "A karate front kick (mae-geri): knee up, foot snapped straight ahead, back to the stance",
 "skeleton": "humanoid",
 "restSrc": "CMU_135",
+"contacts": {"by":"detected","footL":[[0.383,2.917],[3.083,3.867],[4.633,6]],"footR":[[0,2.15],[2.85,4.633],[4.883,5.733]]},
+"facts": {"by":"m3a-facts@1","height":[83,99],"strike":[4.183],"travel":[292,-84]},
 "provenance": {"src":"CMU_135","take":"135_04 0.60-6.60","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[15,71],"qa":"unchecked","qaVersion":"none"},
 "keys": [

@@ -10,7 +10,8 @@
 "desc": "Running sideways to the right, penguin style: waddle with feet close together",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":95},
+"contacts": {"by":"detected","footL":[[0.35,0.65]],"footR":[[0.183,0.333]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[98,101],"seam":0,"speed":95,"travel":[16.3,40.7]},
 "provenance": {"src":"100STYLE","take":"Penguin_SR 10.80-11.32","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[8,31],"qa":"unchecked","qaVersion":"none"},
 "keys": [
@@ -44,6 +45,6 @@
    "legL":[0,9,-100,29,8], "legR":[9,-2,-100,42,-10], "footL":[0,19,0], "footR":[4,43,0]},
   {"t":0.5,
    "hips":[0,0,99], "body":[5,1,-1], "chest":[-3,9,-2], "head":[3,15,2],
-   "shL":[6,-11], "shR":[3,-8], "armL":[18,9,-98,10,-107], "armR":[13,10,-99,8,-150], "handL":[-35,5,-69], "handR":[-43,5,-155], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "shL":[6,-11], "shR":[3,-8], "armL":[18,9,-98,10,-56], "armR":[13,10,-99,8,-150], "handL":[-38,1,-16], "handR":[-43,5,-155], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
    "legL":[-3,14,-99,23,9], "legR":[15,7,-99,38,-7], "footL":[1,23,0], "footR":[-4,42,0]}
 ]}

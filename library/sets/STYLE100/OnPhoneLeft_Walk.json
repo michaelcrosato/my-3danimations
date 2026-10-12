@@ -10,7 +10,8 @@
 "desc": "Holding phone in left",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":91},
+"contacts": {"by":"detected","footL":[[0.412,1.154]],"footR":[[1.137,1.863]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[96,100],"seam":0,"speed":91,"travel":[141.2,5.7]},
 "provenance": {"src":"100STYLE","take":"OnPhoneLeft_FW 97.83-99.30","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[7,96],"qa":"unchecked","qaVersion":"none"},
 "keys": [

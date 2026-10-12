@@ -10,7 +10,8 @@
 "desc": "Waiting impatiently: shifting weight from foot to foot, looking about",
 "skeleton": "humanoid",
 "restSrc": "CMU_141",
-"facts": {"by":"m3a-import@1","speed":98},
+"contacts": {"by":"detected","footL":[[0.267,0.3]],"footR":[[0.133,0.283],[0.866,0.933]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[98,103],"seam":0,"speed":98,"travel":[80.8,-11.3]},
 "provenance": {"src":"CMU_141","take":"141_20 3.64-4.58","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[26,103],"qa":"unchecked","qaVersion":"none"},
 "keys": [

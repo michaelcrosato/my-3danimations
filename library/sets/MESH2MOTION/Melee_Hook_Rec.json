@@ -10,6 +10,8 @@
 "desc": "recovers from the hook back to standing",
 "skeleton": "humanoid",
 "restSrc": "M2M_QUATERNIUS",
+"contacts": {"by":"detected"},
+"facts": {"by":"m3a-facts@1","height":[63,93]},
 "provenance": {"src":"M2M_QUATERNIUS","orig":"QUATERNIUS_SHARDFALL/Melee_Hook_Rec","method":"keyed","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
 "quality": {"fit":[11,40],"qa":"unchecked","qaVersion":"none"},
 "keys": [

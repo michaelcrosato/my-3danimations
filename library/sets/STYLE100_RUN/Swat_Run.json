@@ -10,7 +10,8 @@
 "desc": "Running, swat style: as if holding a rifle and raiding a building",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":159},
+"contacts": {"by":"detected","footL":[[0.217,0.583]],"footR":[[0.7,1.116]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[92,94],"seam":0,"speed":159,"travel":[152,-47.2]},
 "provenance": {"src":"100STYLE","take":"Swat_FR 61.55-62.48","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[7,54],"qa":"unchecked","qaVersion":"none"},
 "keys": [

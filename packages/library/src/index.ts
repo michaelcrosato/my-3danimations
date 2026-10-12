@@ -35,3 +35,18 @@ export { checkSets, checkGame, creditsBlock } from "./license/index.ts";
 export type { GameManifest } from "./license/index.ts";
 /** A license check's outcome, one problem, and a credit owed. */
 export type { LicenseReport, LicenseFinding, Credit } from "./license/index.ts";
+
+/** The revision of the facts this package measures (`m3a-facts@N`). */
+export { FACTS_BY } from "./facts/index.ts";
+/** A clip's facts and contacts measured on its rest, a source's speed kept. */
+export { measure as measureClipFacts } from "./facts/index.ts";
+/** The clip with its facts and contacts measured. */
+export { withFacts } from "./facts/index.ts";
+/** The speed a clip's writer took from its source, if any. */
+export { capturedSpeed } from "./facts/index.ts";
+/** The tags a clip's facts don't bear out (`loop` that doesn't close, `run` that doesn't travel). */
+export { tagConflicts } from "./facts/index.ts";
+/** A clip's facts as written. */
+export type { ClipFacts } from "./facts/index.ts";
+/** A tag the facts don't bear out. */
+export type { TagConflict } from "./facts/index.ts";

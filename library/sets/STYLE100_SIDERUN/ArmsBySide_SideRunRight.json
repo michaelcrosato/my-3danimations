@@ -10,7 +10,8 @@
 "desc": "Running sideways to the right, arms by side style: keep arms fixed by side and do not move them",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":179},
+"contacts": {"by":"detected","footL":[[0,0.26]],"footR":[[0.277,0.488]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[93,111],"seam":0,"speed":179,"travel":[40,118.3]},
 "provenance": {"src":"100STYLE","take":"ArmsBySide_SR 45.02-45.68","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[9,91],"qa":"unchecked","qaVersion":"none"},
 "keys": [

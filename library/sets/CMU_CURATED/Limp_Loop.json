@@ -10,7 +10,8 @@
 "desc": "A limping walk, favouring one leg. One stride cycle, in place",
 "skeleton": "humanoid",
 "restSrc": "CMU_91",
-"facts": {"by":"m3a-import@1","speed":135},
+"contacts": {"by":"detected","footL":[[0.75,1.35]],"footR":[[0.283,0.866]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[100,104],"seam":0,"speed":135,"travel":[133.2,-1.8]},
 "provenance": {"src":"CMU_91","take":"91_16 3.86-4.88","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[18,96],"qa":"unchecked","qaVersion":"none"},
 "keys": [

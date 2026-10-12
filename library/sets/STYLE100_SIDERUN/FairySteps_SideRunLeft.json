@@ -10,7 +10,8 @@
 "desc": "Running sideways to the left, fairy steps style: one foot in front of the other so the heel touches the toe",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":119},
+"contacts": {"by":"detected","footL":[[0.653,1.044]],"footR":[[0.326,0.669]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[96,101],"seam":0,"speed":119,"travel":[41.9,-81.3]},
 "provenance": {"src":"100STYLE","take":"FairySteps_SR 15.53-16.32","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[6,36],"qa":"unchecked","qaVersion":"none"},
 "keys": [

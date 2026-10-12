@@ -10,7 +10,8 @@
 "desc": "Running sideways to the left, raised left arm style: raise left arm perpendicular to body",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":159},
+"contacts": {"by":"detected","footL":[[0.366,0.566]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[93,109],"seam":0,"speed":159,"travel":[15.6,-103.4]},
 "provenance": {"src":"100STYLE","take":"RaisedLeftArm_SR 35.75-36.40","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[11,50],"qa":"unchecked","qaVersion":"none"},
 "keys": [

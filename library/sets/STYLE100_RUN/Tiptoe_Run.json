@@ -10,7 +10,8 @@
 "desc": "Running, tiptoe style: walk on toes with heels raised",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":141},
+"contacts": {"by":"detected","footL":[[0.277,0.62]],"footR":[[0.685,0.963]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[97,106],"seam":0,"speed":141,"travel":[112.7,-7.3]},
 "provenance": {"src":"100STYLE","take":"Tiptoe_FR 8.90-9.67","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[8,44],"qa":"unchecked","qaVersion":"none"},
 "keys": [

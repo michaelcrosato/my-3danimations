@@ -10,6 +10,8 @@
 "desc": "tips a watering can held in the right hand, sweeping it over the ground",
 "skeleton": "humanoid",
 "restSrc": "UAL2",
+"contacts": {"by":"detected","footL":[[0,3.8]],"footR":[[0,3.8]]},
+"facts": {"by":"m3a-facts@1","height":[95,96]},
 "provenance": {"src":"UAL2","method":"keyed","producer":{"tool":"m3a-migrate","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
 "quality": {"fit":[15,88],"qa":"unchecked","qaVersion":"none"},
 "keys": [

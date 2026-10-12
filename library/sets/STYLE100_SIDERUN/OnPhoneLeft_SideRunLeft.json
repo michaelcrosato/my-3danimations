@@ -10,7 +10,8 @@
 "desc": "Running sideways to the left, on phone left style: holding phone in left",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":163},
+"contacts": {"by":"detected","footL":[[0.55,0.766]],"footR":[[0.233,0.533]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[94,109],"seam":0,"speed":163,"travel":[16,-103.4]},
 "provenance": {"src":"100STYLE","take":"OnPhoneLeft_SR 33.98-34.62","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[7,47],"qa":"unchecked","qaVersion":"none"},
 "keys": [

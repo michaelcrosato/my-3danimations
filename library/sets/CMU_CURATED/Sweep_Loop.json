@@ -10,6 +10,8 @@
 "desc": "Sweeping the floor with a broom, steady strokes (no broom is drawn). In place",
 "skeleton": "humanoid",
 "restSrc": "CMU_13",
+"contacts": {"by":"detected","footL":[[0,1.833]],"footR":[[0,1.833]]},
+"facts": {"by":"m3a-facts@1","height":[106,106],"seam":0,"speed":1.2,"travel":[-0.4,-2.1]},
 "provenance": {"src":"CMU_13","take":"13_23 12.50-14.32","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[11,79],"qa":"unchecked","qaVersion":"none"},
 "keys": [

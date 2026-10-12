@@ -10,7 +10,8 @@
 "desc": "Running, star style: wide arms and legs. Arms slightly below horizontal",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":137},
+"contacts": {"by":"detected","footL":[[0.616,0.95]],"footR":[[0.233,0.5]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[96,101],"seam":0,"speed":137,"travel":[104,3.3]},
 "provenance": {"src":"100STYLE","take":"Star_FR 10.67-11.40","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[9,59],"qa":"unchecked","qaVersion":"none"},
 "keys": [

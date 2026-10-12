@@ -10,7 +10,8 @@
 "desc": "Walking backward, hands between legs style: bent back – legs wide - hands swing between legs",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":67},
+"contacts": {"by":"detected","footR":[[0.181,0.986]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[92,99],"seam":0,"speed":67,"travel":[-30,-7.3]},
 "provenance": {"src":"100STYLE","take":"HandsBetweenLegs_BW 102.22-103.38","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[10,63],"qa":"unchecked","qaVersion":"none"},
 "keys": [

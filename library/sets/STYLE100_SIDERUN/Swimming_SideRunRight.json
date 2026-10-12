@@ -10,7 +10,8 @@
 "desc": "Running sideways to the right, swimming style: breaststroke walking",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":146},
+"contacts": {"by":"detected","footL":[[0.033,0.133],[0.467,0.717],[1.067,1.4]],"footR":[[0.2,0.333],[0.767,0.95]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[94,110],"seam":0,"speed":146,"travel":[33.9,187]},
 "provenance": {"src":"100STYLE","take":"Swimming_SR 38.17-39.57","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[13,132],"qa":"unchecked","qaVersion":"none"},
 "keys": [

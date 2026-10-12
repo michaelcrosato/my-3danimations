@@ -10,7 +10,8 @@
 "desc": "Sidestepping to the right, lunge style: wide step bend knee every step in lunge position",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":31},
+"contacts": {"by":"detected","footL":[[0.45,2.3]],"footR":[[1.683,3.45]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[83,101],"seam":0,"speed":31,"travel":[7.2,73.2]},
 "provenance": {"src":"100STYLE","take":"Lunge_SW 87.03-89.33","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[8,41],"qa":"unchecked","qaVersion":"none"},
 "keys": [

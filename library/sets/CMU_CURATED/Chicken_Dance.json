@@ -10,6 +10,8 @@
 "desc": "The chicken dance: flapping elbows and a wiggle down",
 "skeleton": "humanoid",
 "restSrc": "CMU_143",
+"contacts": {"by":"detected","footL":[[0,4.067],[4.2,4.433],[4.683,5.433],[6.3,6.5]],"footR":[[0,0.3],[0.433,2.167],[2.4,3.967],[4.167,4.2],[4.367,4.433],[4.617,6.233]]},
+"facts": {"by":"m3a-facts@1","height":[71,103],"travel":[6,-13]},
 "provenance": {"src":"CMU_143","take":"143_34 0.00-6.50","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[10,51],"qa":"unchecked","qaVersion":"none"},
 "keys": [

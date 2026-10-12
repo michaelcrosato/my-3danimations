@@ -10,6 +10,8 @@
 "desc": "guarding: the left forearm held across the chest behind a shield",
 "skeleton": "humanoid",
 "restSrc": "UAL2",
+"contacts": {"by":"detected","footL":[[0,2.5]],"footR":[[0,2.5]]},
+"facts": {"by":"m3a-facts@1","height":[95,96],"seam":0,"speed":0.1,"travel":[0,-0.2]},
 "provenance": {"src":"UAL2","method":"keyed","producer":{"tool":"m3a-migrate","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
 "quality": {"fit":[15,61],"qa":"unchecked","qaVersion":"none"},
 "keys": [

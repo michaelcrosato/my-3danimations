@@ -10,6 +10,8 @@
 "desc": "Hands raised in front of body wiggle hips side to side",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
+"contacts": {"by":"detected","footL":[[1.85,2.883]]},
+"facts": {"by":"m3a-facts@1","height":[100,102],"seam":0,"speed":9.7,"travel":[-12.4,-15.4]},
 "provenance": {"src":"100STYLE","take":"WiggleHips_FW 160.12-162.15","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[26,149],"qa":"unchecked","qaVersion":"none"},
 "keys": [

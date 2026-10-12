@@ -10,6 +10,8 @@
 "desc": "Pulling a heavy object",
 "skeleton": "humanoid",
 "restSrc": "CMU_81",
+"contacts": {"by":"detected","footL":[[0,4.317],[5.117,6]],"footR":[[0,2.883],[3.217,5.783]],"handL":[[1.867,2.133]]},
+"facts": {"by":"m3a-facts@1","height":[52,104],"travel":[-122,25]},
 "provenance": {"src":"CMU_81","take":"81_07 0.00-6.00","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[10,80],"qa":"unchecked","qaVersion":"none"},
 "keys": [

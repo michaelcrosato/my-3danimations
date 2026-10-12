@@ -10,6 +10,8 @@
 "desc": "Hammering a nail",
 "skeleton": "humanoid",
 "restSrc": "CMU_62",
+"contacts": {"by":"detected","footL":[[0,2.533],[3.483,6]],"footR":[[0,1.7],[2.55,3.367],[3.5,3.6],[3.85,6]]},
+"facts": {"by":"m3a-facts@1","height":[104,107],"travel":[67,-24]},
 "provenance": {"src":"CMU_62","take":"62_07 0.00-6.00","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[10,47],"qa":"unchecked","qaVersion":"none"},
 "keys": [

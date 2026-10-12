@@ -10,7 +10,8 @@
 "desc": "Walking backward, lean back style: bent backwards",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":62},
+"contacts": {"by":"detected","footL":[[1,1.717]],"footR":[[0.417,1.1]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[98,100],"seam":0,"speed":62,"travel":[-59.8,-21.8]},
 "provenance": {"src":"100STYLE","take":"LeanBack_BW 29.38-30.48","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[8,33],"qa":"unchecked","qaVersion":"none"},
 "keys": [

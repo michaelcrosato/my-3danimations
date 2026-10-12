@@ -10,6 +10,8 @@
 "desc": "bends down and pulls a crop up out of the ground",
 "skeleton": "humanoid",
 "restSrc": "M2M_QUATERNIUS",
+"contacts": {"by":"detected","footL":[[0,0.317],[0.467,1.633],[1.866,2.333]],"footR":[[0.033,1.616],[1.833,2.333]]},
+"facts": {"by":"m3a-facts@1","height":[82,100]},
 "provenance": {"src":"M2M_QUATERNIUS","orig":"QUATERNIUS_SHARDFALL/Farm_Harvest","method":"keyed","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
 "quality": {"fit":[8,37],"qa":"unchecked","qaVersion":"none"},
 "keys": [

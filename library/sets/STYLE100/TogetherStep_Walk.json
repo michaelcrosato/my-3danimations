@@ -10,7 +10,8 @@
 "desc": "Step left foot - then together – then right foot",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":64},
+"contacts": {"by":"detected","footL":[[1.235,2.19]],"footR":[[0.758,1.499]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[95,101],"seam":0,"speed":64,"travel":[93.1,0.3]},
 "provenance": {"src":"100STYLE","take":"TogetherStep_FW 59.75-61.12","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[7,60],"qa":"unchecked","qaVersion":"none"},
 "keys": [

@@ -10,7 +10,8 @@
 "desc": "Running backward, lunge style: wide step bend knee every step in lunge position",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":161},
+"contacts": {"by":"detected","footL":[[0.533,1.116]],"footR":[[0.117,0.533]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[85,99],"seam":0,"speed":161,"travel":[-157.1,2.9]},
 "provenance": {"src":"100STYLE","take":"Lunge_BR 9.33-10.48","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[13,88],"qa":"unchecked","qaVersion":"none"},
 "keys": [
@@ -76,6 +77,6 @@
    "legL":[33,-2,-94,29,-5], "legR":[-38,6,-92,54,2], "footL":[1,15,0], "footR":[39,19,10]},
   {"t":1.133,
    "hips":[0,0,99], "body":[0,5,0], "chest":[-9,4,0], "head":[0,14,0],
-   "shL":[11,-8], "shR":[9,-11], "armL":[-9,18,-98,0,-23], "armR":[30,20,-93,11,-120], "handL":[-2,7,80], "handR":[-12,9,242], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "shL":[11,-8], "shR":[9,-11], "armL":[-9,18,-98,0,-23], "armR":[30,20,-93,11,-8], "handL":[-2,7,80], "handR":[-11,1,132], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
    "legL":[46,3,-89,16,0], "legR":[-28,5,-96,38,3], "footL":[0,3,0], "footR":[27,13,22]}
 ]}

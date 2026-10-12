@@ -10,7 +10,8 @@
 "desc": "Running sideways to the left, big steps style: as large steps as possible",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":164},
+"contacts": {"by":"detected","footL":[[0.147,0.473]],"footR":[[0.636,0.979]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[83,104],"seam":0,"speed":164,"travel":[23.2,-134.9]},
 "provenance": {"src":"100STYLE","take":"BigSteps_SR 13.43-14.20","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[10,68],"qa":"unchecked","qaVersion":"none"},
 "keys": [

@@ -10,6 +10,8 @@
 "desc": "Ducking from something thrown: dropping into a tight crouch with the head covered, staying down, then rising",
 "skeleton": "humanoid",
 "restSrc": "CMU_77",
+"contacts": {"by":"detected","footL":[[0,1.35],[1.65,2.267],[2.633,5.5]],"footR":[[0,1.133],[1.283,1.367],[1.533,5.5]]},
+"facts": {"by":"m3a-facts@1","height":[53,95],"travel":[6,13]},
 "provenance": {"src":"CMU_77","take":"77_09 2.50-8.00","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[14,104],"qa":"unchecked","qaVersion":"none"},
 "keys": [

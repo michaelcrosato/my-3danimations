@@ -10,7 +10,8 @@
 "desc": "Raise left arm perpendicular to body",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":101},
+"contacts": {"by":"detected","footL":[[0.333,0.916]],"footR":[[0.95,1.583]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[97,100],"seam":0,"speed":101,"travel":[123.5,5.6]},
 "provenance": {"src":"100STYLE","take":"RaisedLeftArm_FW 10.30-11.52","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[6,72],"qa":"unchecked","qaVersion":"none"},
 "keys": [

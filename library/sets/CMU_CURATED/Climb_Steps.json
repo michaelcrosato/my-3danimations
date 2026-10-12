@@ -10,6 +10,8 @@
 "desc": "Climbs three steps",
 "skeleton": "humanoid",
 "restSrc": "CMU_13",
+"contacts": {"by":"detected","footL":[[0.8,1.267],[9.75,10]],"footR":[[0,0.7],[1.117,2.1],[9.183,10]]},
+"facts": {"by":"m3a-facts@1","height":[97,167],"travel":[33,27]},
 "provenance": {"src":"CMU_13","take":"13_35 0.00-10.00","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[13,120],"qa":"unchecked","qaVersion":"none"},
 "keys": [

@@ -10,7 +10,8 @@
 "desc": "Running backward, bent knees style: bend knees as much as possible",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":116},
+"contacts": {"by":"detected","footL":[[0.433,0.833]],"footR":[[0.033,0.483]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[91,96],"seam":0,"speed":116,"travel":[-80.2,-0.1]},
 "provenance": {"src":"100STYLE","take":"BentKnees_BR 10.10-10.95","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[10,42],"qa":"unchecked","qaVersion":"none"},
 "keys": [

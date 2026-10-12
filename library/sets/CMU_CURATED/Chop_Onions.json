@@ -10,6 +10,8 @@
 "desc": "Chopping onions",
 "skeleton": "humanoid",
 "restSrc": "CMU_79",
+"contacts": {"by":"detected","footL":[[0,5.9]],"footR":[[3.367,4],[5.217,5.4]]},
+"facts": {"by":"m3a-facts@1","height":[101,101],"travel":[-1,0]},
 "provenance": {"src":"CMU_79","take":"79_10 0.70-6.70","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[9,51],"qa":"unchecked","qaVersion":"none"},
 "keys": [

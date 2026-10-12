@@ -10,6 +10,8 @@
 "desc": "Getting up from lying face down: push up on the arms, a knee under, stand",
 "skeleton": "humanoid",
 "restSrc": "CMU_140",
+"contacts": {"by":"detected","footL":[[0,3.55],[3.75,6.1]],"footR":[[0.317,3.9],[4.433,6.1]],"handL":[[0,0.283],[1.15,1.3],[2.083,2.25]],"handR":[[1.133,1.817],[2.267,2.767]]},
+"facts": {"by":"m3a-facts@1","height":[10,98],"travel":[9,-97]},
 "provenance": {"src":"CMU_140","take":"140_01 0.80-6.90","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[15,73],"qa":"unchecked","qaVersion":"none"},
 "keys": [

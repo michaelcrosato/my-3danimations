@@ -10,7 +10,8 @@
 "desc": "Running, walking stick right style: walk with a stick – used broom handle",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":104},
+"contacts": {"by":"detected","footL":[[0.116,0.81],[1.239,1.669]],"footR":[[0.793,1.107],[1.586,2.247]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[92,100],"seam":0,"speed":104,"travel":[188,-14.8]},
 "provenance": {"src":"100STYLE","take":"WalkingStickRight_FR 63.42-65.30","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[9,133],"qa":"unchecked","qaVersion":"none"},
 "keys": [

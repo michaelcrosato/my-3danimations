@@ -10,6 +10,8 @@
 "desc": "Standing, aeroplane style: both arms raised as wings – tilting from side to side",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
+"contacts": {"by":"detected","footL":[[0,2.5]],"footR":[[0,2.5]]},
+"facts": {"by":"m3a-facts@1","height":[100,100],"seam":0,"speed":0,"travel":[0,0]},
 "provenance": {"src":"100STYLE","take":"Aeroplane_ID 14.23-16.73","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[8,33],"qa":"unchecked","qaVersion":"none"},
 "keys": [

@@ -10,6 +10,8 @@
 "desc": "crawls on the belly, reaching ahead with alternate arms (travels)",
 "skeleton": "humanoid",
 "restSrc": "M2M_ANIMATED",
+"contacts": {"by":"detected","handR":[[0.232,0.497]]},
+"facts": {"by":"m3a-facts@1","height":[17,23],"seam":0,"speed":83.1,"travel":[142,0]},
 "provenance": {"src":"M2M_ANIMATED","method":"keyed","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
 "quality": {"fit":[9,39],"qa":"unchecked","qaVersion":"none"},
 "keys": [

@@ -10,7 +10,8 @@
 "desc": "Running sideways to the right, crowd avoidance style: occasionally turning shoulders or turn sideways to avoid others",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":54},
+"contacts": {"by":"detected","footL":[[0,0.05]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[96,98],"seam":0,"speed":54,"travel":[-3.6,-8.8]},
 "provenance": {"src":"100STYLE","take":"CrowdAvoidance_SR 41.60-42.10","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[8,28],"qa":"unchecked","qaVersion":"none"},
 "keys": [

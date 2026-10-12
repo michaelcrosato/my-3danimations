@@ -10,6 +10,8 @@
 "desc": "Jumping jacks: hop the feet apart while the arms swing up overhead, then back together. One jack, in place",
 "skeleton": "humanoid",
 "restSrc": "CMU_13",
+"contacts": {"by":"detected","footL":[[0.433,0.567],[1.05,1.133]],"footR":[[0.583,0.616]]},
+"facts": {"by":"m3a-facts@1","height":[84,112],"seam":0,"speed":4.7,"travel":[-3.2,-4.3]},
 "provenance": {"src":"CMU_13","take":"13_29 2.30-3.42","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[15,126],"qa":"unchecked","qaVersion":"none"},
 "keys": [

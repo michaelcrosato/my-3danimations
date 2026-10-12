@@ -10,7 +10,8 @@
 "desc": "Running, rocket style: bent to flat back with hands behind as thrusters",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":220},
+"contacts": {"by":"detected","footL":[[0.167,0.416]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[92,97],"seam":0,"speed":220,"travel":[121.2,-9.3]},
 "provenance": {"src":"100STYLE","take":"Rocket_FR 12.63-13.27","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[8,98],"qa":"unchecked","qaVersion":"none"},
 "keys": [

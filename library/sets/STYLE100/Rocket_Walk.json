@@ -10,7 +10,8 @@
 "desc": "Bent to flat back with hands behind as thrusters",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":92},
+"contacts": {"by":"detected","footL":[[0.25,0.883]],"footR":[[0.833,1.45]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[97,100],"seam":0,"speed":92,"travel":[94.4,0.2]},
 "provenance": {"src":"100STYLE","take":"Rocket_FW 94.35-95.48","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[6,60],"qa":"unchecked","qaVersion":"none"},
 "keys": [

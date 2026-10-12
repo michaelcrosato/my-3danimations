@@ -1,10 +1,12 @@
 // Builds the migrated library in memory (WP-1.5): every seed set's clips as format-2 files written by core's
-// `serialize`, with `_set.json` (sources, rests, tier, content id), `catalog.tsv` and `_baseline.json` (the validator's
-// warnings, accepted per clip with a reason). Deterministic: the same pins give the same bytes and content ids.
+// `serialize`, each with its facts and contacts measured (@m3a/library's `withFacts`, WP-5.4), with `_set.json`
+// (sources, rests, tier, content id), `catalog.tsv` and `_baseline.json` (the validator's warnings, accepted per clip
+// with a reason). Deterministic: the same pins give the same bytes and content ids.
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { format, serialize, validate, type Clip } from "@m3a/core";
+import { format, serialize, validate, type Clip, type Rest } from "@m3a/core";
+import { withFacts } from "@m3a/library";
 
 const { fromFormat1, slugs } = format;
 type Clip1 = format.Clip1;
@@ -115,7 +117,8 @@ export function migrate(root: string): { files: Map<string, string>; report: Mig
         if (r) orig = r;
         else unresolved.push(`${name}: ${orig}`);
       }
-      const clip = fromFormat1({ ...c1, src, ...(orig ? { orig } : {}) }, { set: spec.set, slug: slugList[i]!, name, fps: (data.fps as number) ?? 30, restSrc: src, method: rule.method, license: rule.license, ...(rule.credit ? { credit: rule.credit } : {}), ...(fit ? { fit } : {}), producer: MIGRATOR, qaVersion: "none" });
+      // its facts and contacts measured on its rest (WP-5.4), the origin's speed kept as captured
+      const clip = withFacts(fromFormat1({ ...c1, src, ...(orig ? { orig } : {}) }, { set: spec.set, slug: slugList[i]!, name, fps: (data.fps as number) ?? 30, restSrc: src, method: rule.method, license: rule.license, ...(rule.credit ? { credit: rule.credit } : {}), ...(fit ? { fit } : {}), producer: MIGRATOR, qaVersion: "none" }), (data.sources[src] as unknown as { rest: Rest }).rest);
       const r = validate(clip, { mode: "read" });
       for (const e of r.errors) errors.push(`${name}: ${e.code} ${e.message}`);
       if (r.warnings.length) {

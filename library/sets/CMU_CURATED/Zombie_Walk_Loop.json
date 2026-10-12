@@ -10,6 +10,8 @@
 "desc": "A zombie's shamble: head and shoulders slumped forward, a dragging step, arms hanging. One cycle, in place",
 "skeleton": "humanoid",
 "restSrc": "CMU_120_MIGRATED",
+"contacts": {"by":"detected","footL":[[0.033,0.117],[0.45,1.4]],"footR":[[1.033,2.15]]},
+"facts": {"by":"m3a-facts@1","height":[99,103],"seam":0,"speed":67.9,"travel":[95,2.7]},
 "provenance": {"src":"CMU_120","take":"120_22 5.65-7.05","method":"captured","producer":{"tool":"m3a-migrate","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[19,84],"qa":"unchecked","qaVersion":"none"},
 "keys": [

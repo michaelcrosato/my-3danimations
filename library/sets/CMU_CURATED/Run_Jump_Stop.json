@@ -10,6 +10,8 @@
 "desc": "Running, jumps, stops, then runs on",
 "skeleton": "humanoid",
 "restSrc": "CMU_127",
+"contacts": {"by":"detected","footL":[[0.464,0.63]],"footR":[[0,0.315]]},
+"facts": {"by":"m3a-facts@1","height":[88,135],"travel":[575,79]},
 "provenance": {"src":"CMU_127","take":"127_21 0.00-2.95","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[15,72],"qa":"unchecked","qaVersion":"none"},
 "keys": [

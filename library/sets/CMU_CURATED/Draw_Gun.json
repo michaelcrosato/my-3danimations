@@ -10,6 +10,8 @@
 "desc": "Pulls a gun",
 "skeleton": "humanoid",
 "restSrc": "CMU_139",
+"contacts": {"by":"detected","footL":[[0.083,2.424],[2.656,4.101]],"footR":[[0.083,1.079],[1.212,1.262],[1.411,4.267]]},
+"facts": {"by":"m3a-facts@1","height":[94,95],"travel":[4,5]},
 "provenance": {"src":"CMU_139","take":"139_05 0.00-4.25","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[12,74],"qa":"unchecked","qaVersion":"none"},
 "keys": [

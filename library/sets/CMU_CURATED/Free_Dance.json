@@ -10,6 +10,8 @@
 "desc": "A loose, freestyle dance",
 "skeleton": "humanoid",
 "restSrc": "CMU_111",
+"contacts": {"by":"detected","footL":[[0,0.217],[0.617,0.7],[1.05,2.35],[2.85,4.083],[4.85,6.117],[6.55,7.7]],"footR":[[0.233,1.467],[1.983,3.05],[3.85,5.167],[5.633,7.583]]},
+"facts": {"by":"m3a-facts@1","height":[97,107],"travel":[7,29]},
 "provenance": {"src":"CMU_111","take":"111_05 0.00-7.70","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[13,100],"qa":"unchecked","qaVersion":"none"},
 "keys": [

@@ -10,6 +10,8 @@
 "desc": "Standing, lawn mower style: roll hands over one another like disco move and tilt torso forwards and then back",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
+"contacts": {"by":"detected","footL":[[0,0.3],[0.433,0.767],[0.933,3.666]],"footR":[[0,3.733]]},
+"facts": {"by":"m3a-facts@1","height":[100,100],"seam":0,"speed":0,"travel":[0,0]},
 "provenance": {"src":"100STYLE","take":"LawnMower_ID 17.33-21.05","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[7,33],"qa":"unchecked","qaVersion":"none"},
 "keys": [

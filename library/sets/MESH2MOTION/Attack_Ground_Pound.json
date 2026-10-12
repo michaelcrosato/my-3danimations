@@ -10,6 +10,8 @@
 "desc": "crouches, springs up with the arms spread, and slams down into a low crouch",
 "skeleton": "humanoid",
 "restSrc": "M2M_ANIMATED",
+"contacts": {"by":"detected","footL":[[0,0.598],[1.412,2.708]],"footR":[[0.698,0.797],[1.661,2.708]]},
+"facts": {"by":"m3a-facts@1","height":[44,94],"strike":[1.08]},
 "provenance": {"src":"M2M_ANIMATED","method":"keyed","producer":{"tool":"m3a-migrate","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
 "quality": {"fit":[18,121],"qa":"unchecked","qaVersion":"none"},
 "keys": [

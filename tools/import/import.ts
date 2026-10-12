@@ -5,12 +5,14 @@
 // the sensors judge it worse), with the reason on record in the set's `_import.json`; a migrated clip kept decodes on
 // the rest it was made on (a `<source>_MIGRATED` record when the re-import measures its source's anew). The files come
 // out as the migrator writes them (core's `serialize`, `_set.json`, `catalog.tsv`, `_baseline.json`), deterministic,
-// the importer's revision in every clip's provenance and the sources' edition in the manifest. Fit limits: a set's mean
-// at most 20 mm, a clip's mean at most 40 mm and its worst at most 300 mm.
+// each clip's facts and contacts measured (@m3a/library's `withFacts`, WP-5.4), the importer's revision in every clip's
+// provenance and the sources' edition in the manifest. Fit limits: a set's mean at most 20 mm, a clip's mean at most 40
+// mm and its worst at most 300 mm.
 import { format, math, serialize, validate, type Clip, type Rest } from "@m3a/core";
 
 const { fromFormat1 } = format, { PORTABLE } = math;
 import { importSet, type Catalog } from "@m3a/io";
+import { withFacts } from "@m3a/library";
 import { metrics } from "@m3a/sensors";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -21,8 +23,9 @@ import { CATALOGS, IMPORTS, type ImportSpec } from "./sets.ts";
 
 /** The importer's own revision: it goes in every clip it writes, so a change to its output is a change to this. */
 export const IMPORTER = { tool: "m3a-import", version: "1" };
-/** Format 2's degrees of freedom every re-imported clip is fitted with, and a steady twist on nearly straight limbs. */
-export const ENCODE = { hands: true, spine: true, yaw: true, steadyTwist: true } as const;
+/** Format 2's degrees of freedom every re-imported clip is fitted with, a steady twist on nearly straight limbs, and a
+ *  loop whose capture closes ending on its first key. */
+export const ENCODE = { hands: true, spine: true, yaw: true, steadyTwist: true, closeLoop: true } as const;
 /** The fit limits (mm): a set's mean, a clip's mean, a clip's worst. */
 export const LIMITS = { setMean: 20, clipMean: 40, clipWorst: 300 } as const;
 
@@ -139,7 +142,8 @@ function importOne(spec: ImportSpec, mig: ReturnType<typeof migrate>, legend: st
   for (const name of names) {
     const c1 = out.set.clips[name]!, slug = slugOf.get(name)!, src = c1.src, rule = spec.sources(src), fit = out.set.fit[name]!;
     const before = migClips.get(name), orig = before?.provenance.orig ?? c1.orig;
-    const clip = fromFormat1({ ...(c1 as unknown as format.Clip1), src, ...(orig ? { orig } : {}) }, { set: spec.set, slug, name, fps: out.set.fps, restSrc: src, method: rule.method, license: rule.license, ...(rule.credit ? { credit: rule.credit } : {}), fit, producer: IMPORTER, qaVersion: "none" });
+    // its facts and contacts measured on its rest (WP-5.4), the capture's speed kept
+    const clip = withFacts(fromFormat1({ ...(c1 as unknown as format.Clip1), src, ...(orig ? { orig } : {}) }, { set: spec.set, slug, name, fps: out.set.fps, restSrc: src, method: rule.method, license: rule.license, ...(rule.credit ? { credit: rule.credit } : {}), fit, producer: IMPORTER, qaVersion: "none" }), out.set.sources[src]!.rest);
     const now = measured(clip, out.set.sources[src]!.rest), cap = capOf(name)!, hands = handError(clip, out.set.sources[src]!.rest, cap);
     let kept: ClipChoice["kept"] = before ? "import" : "new", why = before ? "" : "new in the re-import";
     const choice: ClipChoice = { kept, why, fit: { import: fit }, qa: { import: now.verdict }, hands: [hands] };

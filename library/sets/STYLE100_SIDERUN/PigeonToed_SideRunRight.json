@@ -10,7 +10,8 @@
 "desc": "Running sideways to the right, pigeon toed style: toes turned inwards",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":128},
+"contacts": {"by":"detected","footL":[[0,0.217]],"footR":[[0.1,0.383]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[97,108],"seam":0,"speed":128,"travel":[9.4,60]},
 "provenance": {"src":"100STYLE","take":"PigeonToed_SR 47.23-47.77","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[8,40],"qa":"unchecked","qaVersion":"none"},
 "keys": [

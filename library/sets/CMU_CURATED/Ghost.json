@@ -10,6 +10,8 @@
 "desc": "A ghost, acted by a person: gliding, arms floating up, a spooky drift",
 "skeleton": "humanoid",
 "restSrc": "CMU_54",
+"contacts": {"by":"detected","footL":[[0.483,1.617],[1.767,4.383],[4.683,4.9],[5.033,5.417]],"footR":[[1.35,1.833],[3.183,4.017]]},
+"facts": {"by":"m3a-facts@1","height":[108,116],"travel":[-65,9]},
 "provenance": {"src":"CMU_54","take":"54_10 0.20-6.20","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[10,39],"qa":"unchecked","qaVersion":"none"},
 "keys": [

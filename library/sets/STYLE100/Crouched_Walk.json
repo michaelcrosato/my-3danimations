@@ -10,7 +10,8 @@
 "desc": "Squat slightly and bend back",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":70},
+"contacts": {"by":"detected","footL":[[0.767,1.45]],"footR":[[0.133,0.883]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[92,95],"seam":0,"speed":70,"travel":[80.7,-1.6]},
 "provenance": {"src":"100STYLE","take":"Crouched_FW 11.67-12.87","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[8,36],"qa":"unchecked","qaVersion":"none"},
 "keys": [

@@ -10,8 +10,10 @@
 "desc": "jog, in place",
 "skeleton": "humanoid",
 "restSrc": "M2M_QUATERNIUS",
+"contacts": {"by":"detected","footL":[[0.082,0.214]],"footR":[[0.657,0.773]]},
+"facts": {"by":"m3a-facts@1","height":[80,108],"seam":0,"speed":540.3,"travel":[630.4,15.2]},
 "provenance": {"src":"M2M_QUATERNIUS","orig":"QUATERNIUS_SHARDFALL/Jog_Fwd_Loop","method":"keyed","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
-"quality": {"fit":[10,139],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[9,139],"qa":"unchecked","qaVersion":"none"},
 "keys": [
   {"t":0,
    "hips":[-6,-2,94], "body":[0,6,6], "chest":[-45,29,8], "head":[19,-8,-8], "spine":[-7,-2,64],
@@ -105,8 +107,12 @@
    "hips":[-6,-2,106], "body":[0,6,5], "chest":[-44,27,9], "head":[18,-7,-8], "spine":[-10,-1,59],
    "shL":[-10,4], "shR":[5,2], "armL":[50,48,-72,83,0], "armR":[80,58,-16,93,-28], "handL":[5,24,94], "handR":[4,31,92], "fingersL":[87,87,87,87,87], "fingersR":[87,87,87,87,87],
    "legL":[69,-8,-72,50,-6], "legR":[-74,8,-66,30,7], "footL":[-36,-2,0], "footR":[36,528,-45]},
+  {"t":1.133,
+   "hips":[-6,-2,99], "body":[0,6,5], "chest":[-45,28,9], "head":[18,-8,-8], "spine":[-6,-3,61],
+   "shL":[-11,4], "shR":[6,1], "armL":[44,50,-75,77,1], "armR":[81,59,-5,95,-30], "handL":[5,24,95], "handR":[4,31,92], "fingersL":[87,87,87,87,87], "fingersR":[87,87,87,87,87],
+   "legL":[65,-8,-75,7,-11], "legR":[-84,7,-54,43,8], "footL":[-41,-6,0], "footR":[26,532,-59]},
   {"t":1.167,
    "hips":[-6,-2,94], "body":[0,6,6], "chest":[-45,29,8], "head":[19,-8,-8], "spine":[-7,-2,64],
    "shL":[-10,4], "shR":[6,1], "armL":[44,51,-74,79,0], "armR":[81,59,-3,96,-30], "handL":[5,24,94], "handR":[4,30,91], "fingersL":[87,87,87,87,87], "fingersR":[87,87,87,87,87],
-   "legL":[65,-10,-75,13,-6], "legR":[-87,7,-49,49,6], "footL":[-41,-7,0], "footR":[25,531,-58]}
+   "legL":[65,-10,-75,13,45], "legR":[-87,7,-49,49,6], "footL":[-41,-7,0], "footR":[25,531,-58]}
 ]}

@@ -10,7 +10,8 @@
 "desc": "Sidestepping to the left, bent forward style: tilt torso forwards",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":56},
+"contacts": {"by":"detected","footL":[[1.116,1.949]],"footR":[[0.517,1.35]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[94,99],"seam":0,"speed":56,"travel":[6.4,-70.3]},
 "provenance": {"src":"100STYLE","take":"BentForward_SW 81.72-82.95","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[7,32],"qa":"unchecked","qaVersion":"none"},
 "keys": [

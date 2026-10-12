@@ -10,7 +10,8 @@
 "desc": "Running, chicken style: bob head - arms as wings",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":108},
+"contacts": {"by":"detected","footL":[[0.409,0.736]],"footR":[[0,0.327]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[93,108],"seam":0,"speed":108,"travel":[92.7,1]},
 "provenance": {"src":"100STYLE","take":"Chicken_FR 76.10-76.95","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[8,35],"qa":"unchecked","qaVersion":"none"},
 "keys": [

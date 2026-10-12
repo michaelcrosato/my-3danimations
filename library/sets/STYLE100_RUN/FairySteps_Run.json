@@ -10,7 +10,8 @@
 "desc": "Running, fairy steps style: one foot in front of the other so the heel touches the toe",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":111},
+"contacts": {"by":"detected","footL":[[0.918,1.328]],"footR":[[0.344,0.819]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[96,99],"seam":0,"speed":111,"travel":[106.5,6]},
 "provenance": {"src":"100STYLE","take":"FairySteps_FR 23.22-24.18","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[8,98],"qa":"unchecked","qaVersion":"none"},
 "keys": [

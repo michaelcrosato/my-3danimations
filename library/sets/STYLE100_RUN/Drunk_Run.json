@@ -10,7 +10,8 @@
 "desc": "Running, drunk style: stumbling around at random. Various foot step sizes and arm motions",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":108},
+"contacts": {"by":"detected","footL":[[0,0.217],[0.783,0.933]],"footR":[[0.133,0.717]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[92,99],"seam":0,"speed":108,"travel":[119.5,-25.8]},
 "provenance": {"src":"100STYLE","take":"Drunk_FR 53.62-54.72","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[16,103],"qa":"unchecked","qaVersion":"none"},
 "keys": [
@@ -60,6 +61,6 @@
    "legL":[-23,6,-97,0,7], "legR":[-16,2,-99,46,1], "footL":[-9,50,-8], "footR":[28,40,-1]},
   {"t":1.1,
    "hips":[0,0,99], "body":[-16,-6,-3], "chest":[0,19,7], "head":[18,25,11],
-   "shL":[14,-5], "shR":[7,-13], "armL":[38,14,-91,7,64], "armR":[8,20,-98,9,-61], "handL":[-1,4,183], "handR":[-10,-6,146], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "shL":[14,-5], "shR":[7,-13], "armL":[38,14,-91,7,-14], "armR":[8,20,-98,9,-61], "handL":[-3,1,105], "handR":[-10,-6,146], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
    "legL":[-35,4,-94,5,24], "legR":[-2,2,-100,34,-3], "footL":[2,55,0], "footR":[8,37,0]}
 ]}

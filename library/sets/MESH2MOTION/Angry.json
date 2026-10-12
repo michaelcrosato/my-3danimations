@@ -10,6 +10,8 @@
 "desc": "an angry outburst: flings both arms out wide and down, twice",
 "skeleton": "humanoid",
 "restSrc": "M2M_ANIMATED",
+"contacts": {"by":"detected","footL":[[0,0.167],[0.416,0.666]],"footR":[[0,0.233],[0.416,0.833]]},
+"facts": {"by":"m3a-facts@1","height":[91,91]},
 "provenance": {"src":"M2M_ANIMATED","method":"keyed","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
 "quality": {"fit":[11,109],"qa":"unchecked","qaVersion":"none"},
 "keys": [

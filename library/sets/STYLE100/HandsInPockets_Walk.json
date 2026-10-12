@@ -10,7 +10,8 @@
 "desc": "Place hands in pockets and walk and run",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":102},
+"contacts": {"by":"detected","footL":[[0.85,1.516]],"footR":[[0.167,0.783]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[97,100],"seam":0,"speed":102,"travel":[131.1,-0.2]},
 "provenance": {"src":"100STYLE","take":"HandsInPockets_FW 10.95-12.27","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[9,92],"qa":"unchecked","qaVersion":"none"},
 "keys": [
@@ -77,5 +78,5 @@
   {"t":1.333,
    "hips":[0,0,98], "body":[-1,-8,-1], "chest":[1,29,1], "head":[-5,-10,-2],
    "shL":[7,-7], "shR":[3,-6], "armL":[41,-6,-91,60,-9], "armR":[50,-3,-87,66,3], "handL":[9,-7,104], "handR":[13,-1,101], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
-   "legL":[-41,-9,-91,6,4], "legR":[21,-2,-98,3,-2], "footL":[11,-358,0], "footR":[-19,6,0]}
+   "legL":[-41,-9,-91,6,4], "legR":[21,-2,-98,3,-63], "footL":[11,-358,0], "footR":[-19,6,0]}
 ]}

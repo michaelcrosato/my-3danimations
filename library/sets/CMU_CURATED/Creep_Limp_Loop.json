@@ -10,7 +10,8 @@
 "desc": "Creeping along low and careful, with a limp. One stride cycle, in place",
 "skeleton": "humanoid",
 "restSrc": "CMU_77",
-"facts": {"by":"m3a-import@1","speed":20},
+"contacts": {"by":"detected","footL":[[0.183,1.283]],"footR":[[1.25,1.883]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[101,103],"seam":0,"speed":20,"travel":[40.8,-5.4]},
 "provenance": {"src":"CMU_77","take":"77_33 9.30-10.80","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[16,75],"qa":"unchecked","qaVersion":"none"},
 "keys": [

@@ -10,6 +10,8 @@
 "desc": "Climbs up a ladder and back down",
 "skeleton": "humanoid",
 "restSrc": "CMU_143",
+"contacts": {"by":"detected","footL":[[0,0.183],[3.35,3.75],[3.917,4.5]],"footR":[[0,0.733],[3.717,4.5]]},
+"facts": {"by":"m3a-facts@1","height":[97,171],"travel":[1,-2]},
 "provenance": {"src":"CMU_143","take":"143_37 0.10-4.58","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[11,60],"qa":"unchecked","qaVersion":"none"},
 "keys": [

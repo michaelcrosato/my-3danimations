@@ -10,7 +10,8 @@
 "desc": "Walking backward, flapping style: flap arms as wings on tiptoes",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":36},
+"contacts": {"by":"detected","footL":[[0.214,0.759],[1.023,1.567]],"footR":[[0.66,1.814]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[100,103],"seam":0,"speed":36,"travel":[-43,5]},
 "provenance": {"src":"100STYLE","take":"Flapping_BW 67.25-68.82","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[9,52],"qa":"unchecked","qaVersion":"none"},
 "keys": [

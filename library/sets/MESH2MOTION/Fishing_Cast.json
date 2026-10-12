@@ -10,6 +10,8 @@
 "desc": "swings a fishing rod back over the shoulder and casts it forward",
 "skeleton": "humanoid",
 "restSrc": "M2M_MOCOPI",
+"contacts": {"by":"detected","footL":[[0.05,1.267],[1.4,1.5],[1.867,2.95]],"footR":[[0.05,1.5],[1.683,2.95]]},
+"facts": {"by":"m3a-facts@1","height":[100,105]},
 "provenance": {"src":"M2M_MOCOPI","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCapture"},
 "quality": {"fit":[10,50],"qa":"unchecked","qaVersion":"none"},
 "keys": [

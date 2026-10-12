@@ -10,6 +10,8 @@
 "desc": "jumping jacks: the arms and legs scissor out and in",
 "skeleton": "humanoid",
 "restSrc": "M2M_ANIMATED",
+"contacts": {"by":"detected","footL":[[0.017,0.15],[0.733,0.767]]},
+"facts": {"by":"m3a-facts@1","height":[86,121],"seam":29.4,"speed":15,"travel":[5.4,-17.9]},
 "provenance": {"src":"M2M_ANIMATED","method":"keyed","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
 "quality": {"fit":[7,40],"qa":"unchecked","qaVersion":"none"},
 "keys": [
@@ -116,5 +118,5 @@
   {"t":1.267,
    "hips":[-5,0,92], "body":[0,0,0], "chest":[0,-5,0], "head":[0,17,0], "spine":[-21,-3,45],
    "shL":[0,0], "shR":[0,0], "armL":[16,-10,98,20,-46], "armR":[16,-10,98,20,46], "handL":[8,25,-29], "handR":[8,25,-29], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
-   "legL":[-6,40,-91,11,43], "legR":[-6,40,-91,11,-43], "footL":[-1,5,0], "footR":[-1,5,0]}
+   "legL":[-6,40,-91,11,-4], "legR":[-6,40,-91,11,4], "footL":[-1,5,0], "footR":[-1,5,0]}
 ]}

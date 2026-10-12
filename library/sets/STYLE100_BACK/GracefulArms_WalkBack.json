@@ -10,7 +10,8 @@
 "desc": "Walking backward, graceful arms style: one arm across chest the other extended walk tall",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":83},
+"contacts": {"by":"detected","footL":[[0.889,1.613]],"footR":[[0.28,0.938]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[98,100],"seam":0,"speed":83,"travel":[-102.2,-11]},
 "provenance": {"src":"100STYLE","take":"GracefulArms_BW 92.23-93.48","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[8,36],"qa":"unchecked","qaVersion":"none"},
 "keys": [

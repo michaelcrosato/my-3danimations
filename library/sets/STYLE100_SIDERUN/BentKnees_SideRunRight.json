@@ -10,7 +10,8 @@
 "desc": "Running sideways to the right, bent knees style: bend knees as much as possible",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":146},
+"contacts": {"by":"detected","footL":[[0.097,0.356]],"footR":[[0.308,0.567]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[90,100],"seam":0,"speed":146,"travel":[-5.1,82.4]},
 "provenance": {"src":"100STYLE","take":"BentKnees_SR 34.78-35.33","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[9,31],"qa":"unchecked","qaVersion":"none"},
 "keys": [

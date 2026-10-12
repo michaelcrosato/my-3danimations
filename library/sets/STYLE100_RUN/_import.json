@@ -189,10 +189,10 @@
     ]
    },
    "qa": {
-    "import": "fail"
+    "import": "warn"
    },
    "hands": [
-    25.6
+    25.5
    ]
   },
   "BouncyLeft_Run": {
@@ -448,7 +448,7 @@
     "import": "fail"
    },
    "hands": [
-    28.1
+    27.8
    ]
   },
   "FlickLegs_Run": {
@@ -640,7 +640,7 @@
     "import": "fail"
    },
    "hands": [
-    15
+    14.4
    ]
   },
   "LeanLeft_Run": {
@@ -704,7 +704,7 @@
     "import": "pass"
    },
    "hands": [
-    12.2
+    12.3
    ]
   },
   "LimpLeft_Run": {
@@ -992,7 +992,7 @@
     "import": "warn"
    },
    "hands": [
-    8.4
+    8.6
    ]
   },
   "Punch_Run": {
@@ -1200,7 +1200,7 @@
     "import": "fail"
    },
    "hands": [
-    12.8
+    12.3
    ]
   },
   "Star_Run": {
@@ -1488,7 +1488,7 @@
     "import": "fail"
    },
    "hands": [
-    55.6
+    55.5
    ]
   },
   "WideLegs_Run": {
@@ -1501,10 +1501,10 @@
     ]
    },
    "qa": {
-    "import": "warn"
+    "import": "pass"
    },
    "hands": [
-    9.3
+    9.2
    ]
   },
   "WiggleHips_Run": {
@@ -1536,7 +1536,7 @@
     "import": "fail"
    },
    "hands": [
-    15.2
+    15.1
    ]
   },
   "WildLegs_Run": {

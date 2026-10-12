@@ -10,6 +10,8 @@
 "desc": "Standing, legs apart style: legs relatively straight wide apart",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
+"contacts": {"by":"detected","footL":[[0,2.5]],"footR":[[0,2.5]]},
+"facts": {"by":"m3a-facts@1","height":[96,96],"seam":0,"speed":0,"travel":[0,0]},
 "provenance": {"src":"100STYLE","take":"LegsApart_ID 19.78-22.28","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[10,36],"qa":"unchecked","qaVersion":"none"},
 "keys": [

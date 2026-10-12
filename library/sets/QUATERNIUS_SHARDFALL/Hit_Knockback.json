@@ -10,6 +10,8 @@
 "desc": "hit hard: thrown back off the feet onto the back, and lies there",
 "skeleton": "humanoid",
 "restSrc": "UAL2",
+"contacts": {"by":"detected","footR":[[0,0.05]],"handL":[[0.716,0.833]]},
+"facts": {"by":"m3a-facts@1","height":[4,93]},
 "provenance": {"src":"UAL2","method":"keyed","producer":{"tool":"m3a-migrate","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
 "quality": {"fit":[11,99],"qa":"unchecked","qaVersion":"none"},
 "keys": [

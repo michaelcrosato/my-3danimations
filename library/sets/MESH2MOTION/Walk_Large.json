@@ -10,6 +10,8 @@
 "desc": "a heavy, lumbering walk, the arms held out from the body (a big character), in place",
 "skeleton": "humanoid",
 "restSrc": "M2M_ANIMATED",
+"contacts": {"by":"detected","footL":[[0.165,0.857]],"footR":[[0,0.165],[0.873,1.401]]},
+"facts": {"by":"m3a-facts@1","height":[82,96],"seam":0,"speed":75.5,"travel":[107,-0.4]},
 "provenance": {"src":"M2M_ANIMATED","method":"keyed","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
 "quality": {"fit":[8,41],"qa":"unchecked","qaVersion":"none"},
 "keys": [

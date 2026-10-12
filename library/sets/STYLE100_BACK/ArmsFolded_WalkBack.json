@@ -10,7 +10,8 @@
 "desc": "Walking backward, arms folded style: right arm folded over left",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":66},
+"contacts": {"by":"detected","footL":[[0.816,1.683]],"footR":[[0.183,0.983]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[99,101],"seam":0,"speed":66,"travel":[-85.3,-11.3]},
 "provenance": {"src":"100STYLE","take":"ArmsFolded_BW 11.32-12.65","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[5,41],"qa":"unchecked","qaVersion":"none"},
 "keys": [

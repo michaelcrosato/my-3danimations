@@ -10,6 +10,8 @@
 "desc": "Standing, in the dark style: feeling around as if in darkness",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
+"contacts": {"by":"detected","footL":[[0,2.767]],"footR":[[0,2.767]]},
+"facts": {"by":"m3a-facts@1","height":[100,100],"seam":0,"speed":0.2,"travel":[-0.5,0.4]},
 "provenance": {"src":"100STYLE","take":"InTheDark_ID 22.75-25.52","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[8,52],"qa":"unchecked","qaVersion":"none"},
 "keys": [

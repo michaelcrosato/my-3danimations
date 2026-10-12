@@ -10,6 +10,8 @@
 "desc": "crouches and jumps up and forward with the arms flung forward, then lands (travels)",
 "skeleton": "humanoid",
 "restSrc": "M2M_ANIMATED",
+"contacts": {"by":"detected","footL":[[1.426,1.625]],"footR":[[1.21,1.393]]},
+"facts": {"by":"m3a-facts@1","height":[77,270]},
 "provenance": {"src":"M2M_ANIMATED","method":"keyed","producer":{"tool":"m3a-migrate","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
 "quality": {"fit":[18,178],"qa":"unchecked","qaVersion":"none"},
 "keys": [

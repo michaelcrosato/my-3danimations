@@ -10,6 +10,8 @@
 "desc": "leaps and chops down with a two-handed overhead swing, landing crouched",
 "skeleton": "humanoid",
 "restSrc": "M2M_ANIMATED",
+"contacts": {"by":"detected","handR":[[0.45,0.483]]},
+"facts": {"by":"m3a-facts@1","height":[96,106],"strike":[0.883]},
 "provenance": {"src":"M2M_ANIMATED","method":"keyed","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
 "quality": {"fit":[5,69],"qa":"unchecked","qaVersion":"none"},
 "keys": [

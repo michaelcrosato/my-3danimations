@@ -10,6 +10,8 @@
 "desc": "rises into a floating pose: knees drawn up, one arm out",
 "skeleton": "humanoid",
 "restSrc": "M2M_ANIMATED",
+"contacts": {"by":"detected"},
+"facts": {"by":"m3a-facts@1","height":[125,133]},
 "provenance": {"src":"M2M_ANIMATED","method":"keyed","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
 "quality": {"fit":[9,36],"qa":"unchecked","qaVersion":"none"},
 "keys": [

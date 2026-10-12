@@ -10,7 +10,8 @@
 "desc": "Running backward, angry style: swing lower arms aggressively - fists closed",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":95},
+"contacts": {"by":"detected","footL":[[0,0.4],[0.75,1.333]],"footR":[[0.65,0.683],[1.083,1.516]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[93,99],"seam":0,"speed":95,"travel":[-114.9,-30.9]},
 "provenance": {"src":"100STYLE","take":"Angry_BR 40.33-41.78","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[16,110],"qa":"unchecked","qaVersion":"none"},
 "keys": [

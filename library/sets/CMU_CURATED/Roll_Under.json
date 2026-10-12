@@ -10,6 +10,8 @@
 "desc": "Running, rolls underneath something",
 "skeleton": "humanoid",
 "restSrc": "CMU_128",
+"contacts": {"by":"detected","footL":[[0.083,0.217]],"footR":[[0.35,0.383],[0.633,0.85]],"handL":[[1.1,1.133]]},
+"facts": {"by":"m3a-facts@1","height":[7,100],"travel":[440,92]},
 "provenance": {"src":"CMU_128","take":"128_09 0.00-1.40","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[17,69],"qa":"unchecked","qaVersion":"none"},
 "keys": [

@@ -10,7 +10,8 @@
 "desc": "Running backward, heavyset style: walking as a muscle man tensed biceps",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":107},
+"contacts": {"by":"detected","footL":[[0.918,1.377]],"footR":[[0.443,0.967]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[93,99],"seam":0,"speed":107,"travel":[-95.3,-3.2]},
 "provenance": {"src":"100STYLE","take":"Heavyset_BR 12.70-13.65","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[7,36],"qa":"unchecked","qaVersion":"none"},
 "keys": [

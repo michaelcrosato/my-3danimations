@@ -10,6 +10,8 @@
 "desc": "casts: drives the hand forward",
 "skeleton": "humanoid",
 "restSrc": "M2M_QUATERNIUS",
+"contacts": {"by":"detected","footL":[[0,0.625]],"footR":[[0,0.625]]},
+"facts": {"by":"m3a-facts@1","height":[100,100],"strike":[0.148]},
 "provenance": {"src":"M2M_QUATERNIUS","orig":"QUATERNIUS_SHARDFALL/Spell_Simple_Shoot","method":"keyed","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
 "quality": {"fit":[7,33],"qa":"unchecked","qaVersion":"none"},
 "keys": [

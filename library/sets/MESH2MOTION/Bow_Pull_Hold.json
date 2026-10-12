@@ -10,6 +10,8 @@
 "desc": "holds a bow at full draw, aiming",
 "skeleton": "humanoid",
 "restSrc": "M2M_ANIMATED",
+"contacts": {"by":"detected","footL":[[0,0.25]],"footR":[[0,0.25]]},
+"facts": {"by":"m3a-facts@1","height":[98,98],"seam":0,"speed":0,"travel":[0,0]},
 "provenance": {"src":"M2M_ANIMATED","method":"keyed","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
 "quality": {"fit":[5,29],"qa":"unchecked","qaVersion":"none"},
 "keys": [

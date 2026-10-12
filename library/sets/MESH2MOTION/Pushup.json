@@ -10,6 +10,8 @@
 "desc": "push-ups: the body held straight, arms bending and pressing up",
 "skeleton": "humanoid",
 "restSrc": "M2M_ANIMATED",
+"contacts": {"by":"detected","footL":[[0,1.542]],"footR":[[0,1.542]],"handL":[[0.431,0.945],[1.326,1.691]],"handR":[[0.431,0.945],[1.326,1.691]]},
+"facts": {"by":"m3a-facts@1","height":[33,49],"seam":0,"speed":0.1,"travel":[0.1,0]},
 "provenance": {"src":"M2M_ANIMATED","method":"keyed","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
 "quality": {"fit":[12,106],"qa":"unchecked","qaVersion":"none"},
 "keys": [

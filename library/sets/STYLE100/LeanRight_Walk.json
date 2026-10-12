@@ -10,7 +10,8 @@
 "desc": "Normal motion upperbody tilted left",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":72},
+"contacts": {"by":"detected","footL":[[0.65,1.383]],"footR":[[0.067,0.783]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[99,100],"seam":0,"speed":72,"travel":[81.4,8.2]},
 "provenance": {"src":"100STYLE","take":"LeanRight_FW 116.62-117.75","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[8,40],"qa":"unchecked","qaVersion":"none"},
 "keys": [

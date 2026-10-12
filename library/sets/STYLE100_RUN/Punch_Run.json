@@ -10,7 +10,8 @@
 "desc": "Running, punch style: punch with every step",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":150},
+"contacts": {"by":"detected","footL":[[0.567,0.9],[1.4,2.233]],"footR":[[1.033,1.283],[1.816,2.483]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[91,104],"seam":0,"speed":150,"travel":[306.8,39.7]},
 "provenance": {"src":"100STYLE","take":"Punch_FR 50.63-52.68","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[12,102],"qa":"unchecked","qaVersion":"none"},
 "keys": [
@@ -141,5 +142,5 @@
   {"t":2.033,
    "hips":[0,0,98], "body":[-15,1,-4], "chest":[8,15,5], "head":[7,12,8], "spine":[-3,43,75],
    "shL":[2,-5], "shR":[2,-7], "armL":[64,-75,-17,125,-14], "armR":[73,-69,3,129,1], "handL":[-7,-7,119], "handR":[-31,0,126], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
-   "legL":[-23,1,-97,12,-28], "legR":[4,-15,-99,48,-6], "footL":[-5,69,0], "footR":[12,-347,-1]}
+   "legL":[-23,1,-97,12,46], "legR":[4,-15,-99,48,-6], "footL":[-5,69,0], "footR":[12,-347,-1]}
 ]}

@@ -10,6 +10,8 @@
 "desc": "A shrug: shoulders up, palms turned out, who knows",
 "skeleton": "humanoid",
 "restSrc": "CMU_141",
+"contacts": {"by":"detected","footL":[[0,0.467],[0.617,0.65],[0.95,1.4]]},
+"facts": {"by":"m3a-facts@1","height":[102,105],"travel":[-1,-1]},
 "provenance": {"src":"CMU_141","take":"141_21 0.30-1.70","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[10,65],"qa":"unchecked","qaVersion":"none"},
 "keys": [

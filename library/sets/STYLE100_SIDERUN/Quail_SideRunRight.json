@@ -10,7 +10,8 @@
 "desc": "Running sideways to the right, quail style: arms straight by sides slightly back very small quick steps",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":87},
+"contacts": {"by":"detected","footL":[[0.113,0.47]],"footR":[[0.47,0.745]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[96,98],"seam":0,"speed":87,"travel":[15.8,48.4]},
 "provenance": {"src":"100STYLE","take":"Quail_SR 13.37-13.93","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[8,34],"qa":"unchecked","qaVersion":"none"},
 "keys": [

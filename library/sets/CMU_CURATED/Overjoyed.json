@@ -10,6 +10,8 @@
 "desc": "Very happy",
 "skeleton": "humanoid",
 "restSrc": "CMU_79",
+"contacts": {"by":"detected","footL":[[0,3.2],[3.367,3.533],[3.7,3.867],[4,4.483],[4.8,5.733],[5.9,6]],"footR":[[0.167,3.583],[3.717,3.933],[4.167,6]]},
+"facts": {"by":"m3a-facts@1","height":[93,103],"travel":[8,1]},
 "provenance": {"src":"CMU_79","take":"79_69 1.50-7.50","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[13,196],"qa":"unchecked","qaVersion":"none"},
 "keys": [

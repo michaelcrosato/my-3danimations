@@ -10,7 +10,8 @@
 "desc": "Walking crouched low on deeply bent knees. One cycle, in place",
 "skeleton": "humanoid",
 "restSrc": "CMU_136",
-"facts": {"by":"m3a-import@1","speed":95},
+"contacts": {"by":"detected","footL":[[1.15,1.983]],"footR":[[0.633,1.383]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[84,88],"seam":0,"speed":95,"travel":[98,-3.3]},
 "provenance": {"src":"CMU_136","take":"136_09 7.48-8.69","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[6,34],"qa":"unchecked","qaVersion":"none"},
 "keys": [

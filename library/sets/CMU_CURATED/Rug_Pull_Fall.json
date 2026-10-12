@@ -10,6 +10,8 @@
 "desc": "Falls as if a rug were pulled from under the feet",
 "skeleton": "humanoid",
 "restSrc": "CMU_90",
+"contacts": {"by":"detected"},
+"facts": {"by":"m3a-facts@1","height":[20,129],"travel":[1,-2]},
 "provenance": {"src":"CMU_90","take":"90_18 0.30-1.90","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[17,93],"qa":"unchecked","qaVersion":"none"},
 "keys": [

@@ -10,7 +10,8 @@
 "desc": "Sidestepping to the left, duck foot style: toes pointing inwards",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":40},
+"contacts": {"by":"detected","footL":[[0.533,1.2]],"footR":[[0.983,1.817]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[96,99],"seam":0,"speed":40,"travel":[19,-45.9]},
 "provenance": {"src":"100STYLE","take":"DuckFoot_SW 39.55-40.75","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[10,33],"qa":"unchecked","qaVersion":"none"},
 "keys": [

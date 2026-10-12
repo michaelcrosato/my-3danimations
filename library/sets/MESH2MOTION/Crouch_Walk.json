@@ -10,6 +10,8 @@
 "desc": "crouched sneaking walk, in place",
 "skeleton": "humanoid",
 "restSrc": "M2M_QUATERNIUS",
+"contacts": {"by":"detected","footL":[[0.333,1.583]],"footR":[[1.35,2.833]]},
+"facts": {"by":"m3a-facts@1","height":[53,60],"seam":0,"speed":65,"travel":[162.4,-1]},
 "provenance": {"src":"M2M_QUATERNIUS","orig":"QUATERNIUS_SHARDFALL/Crouch_Fwd_Loop","method":"keyed","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
 "quality": {"fit":[10,54],"qa":"unchecked","qaVersion":"none"},
 "keys": [

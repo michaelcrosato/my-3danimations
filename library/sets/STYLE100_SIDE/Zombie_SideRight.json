@@ -10,7 +10,8 @@
 "desc": "Sidestepping to the right, zombie style: arms in front like zombie",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":34},
+"contacts": {"by":"detected","footL":[[1.221,2.375]],"footR":[[0.61,1.567]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[99,102],"seam":0,"speed":34,"travel":[11.4,51.2]},
 "provenance": {"src":"100STYLE","take":"Zombie_SW 16.25-17.80","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[10,42],"qa":"unchecked","qaVersion":"none"},
 "keys": [
@@ -48,6 +49,6 @@
    "legL":[-7,-1,-100,22,2], "legR":[-12,-5,-99,0,-40], "footL":[5,4,0], "footR":[4,18,0]},
   {"t":1.567,
    "hips":[0,0,101], "body":[0,-5,-5], "chest":[-2,26,-1], "head":[8,-4,9],
-   "shL":[5,-1], "shR":[3,0], "armL":[97,15,18,17,4], "armR":[94,29,18,7,-121], "handL":[12,-11,132], "handR":[10,3,-110], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "shL":[5,-1], "shR":[3,0], "armL":[97,15,18,17,4], "armR":[94,29,18,7,-73], "handL":[12,-11,132], "handR":[12,1,-158], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
    "legL":[-9,4,-99,11,8], "legR":[-12,-12,-99,9,4], "footL":[3,18,0], "footR":[7,1,0]}
 ]}

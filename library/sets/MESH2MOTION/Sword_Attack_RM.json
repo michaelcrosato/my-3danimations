@@ -10,6 +10,8 @@
 "desc": "stepping one-handed slash that travels",
 "skeleton": "humanoid",
 "restSrc": "M2M_QUATERNIUS",
+"contacts": {"by":"detected","footL":[[0,0.38],[0.529,0.958]],"footR":[[0,0.347],[0.578,1.289],[1.487,1.603]]},
+"facts": {"by":"m3a-facts@1","height":[61,91],"strike":[0.479],"travel":[10,0]},
 "provenance": {"src":"M2M_QUATERNIUS","orig":"QUATERNIUS_SHARDFALL/Sword_Attack_RM","method":"keyed","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
 "quality": {"fit":[12,116],"qa":"unchecked","qaVersion":"none"},
 "keys": [

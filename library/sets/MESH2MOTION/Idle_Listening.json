@@ -10,6 +10,8 @@
 "desc": "weight on one leg, a hand on the hip, head cocked: listening",
 "skeleton": "humanoid",
 "restSrc": "M2M_ANIMATED",
+"contacts": {"by":"detected","footL":[[0,1.708]],"footR":[[0,1.708]]},
+"facts": {"by":"m3a-facts@1","height":[96,96],"seam":0,"speed":0,"travel":[0,0]},
 "provenance": {"src":"M2M_ANIMATED","method":"keyed","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
 "quality": {"fit":[4,28],"qa":"unchecked","qaVersion":"none"},
 "keys": [

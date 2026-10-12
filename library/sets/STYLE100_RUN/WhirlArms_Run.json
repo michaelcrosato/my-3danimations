@@ -10,7 +10,8 @@
 "desc": "Running, whirl arms style: windmill arms",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":121},
+"contacts": {"by":"detected","footL":[[1.2,1.5]],"footR":[[0.067,0.3],[0.85,1.283]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[95,102],"seam":0,"speed":121,"travel":[165.7,29]},
 "provenance": {"src":"100STYLE","take":"WhirlArms_FR 52.75-54.23","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[25,213],"qa":"unchecked","qaVersion":"none"},
 "keys": [
@@ -100,6 +101,6 @@
    "legL":[-30,3,-95,53,-9], "legR":[4,8,-100,51,2], "footL":[50,-791,20], "footR":[4,19,16]},
   {"t":1.5,
    "hips":[0,0,99], "body":[-8,-1,6], "chest":[-2,9,10], "head":[19,27,-19],
-   "shL":[-2,-5], "shR":[4,-8], "armL":[51,81,29,14,40], "armR":[34,30,-89,9,-210], "handL":[-13,-2,116], "handR":[-22,6,-70], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "shL":[-2,-5], "shR":[4,-8], "armL":[51,81,29,14,40], "armR":[34,30,-89,9,-145], "handL":[-13,-2,116], "handR":[-18,5,-135], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
    "legL":[-40,-1,-92,47,-2], "legR":[19,10,-98,26,6], "footL":[53,-808,21], "footR":[-17,25,0]}
 ]}

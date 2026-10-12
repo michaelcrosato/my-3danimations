@@ -10,6 +10,8 @@
 "desc": "Eating dinner",
 "skeleton": "humanoid",
 "restSrc": "CMU_79",
+"contacts": {"by":"detected","footL":[[0,6]],"footR":[[0,1.367],[1.5,1.7],[1.867,6]]},
+"facts": {"by":"m3a-facts@1","height":[101,101],"travel":[-3,-1]},
 "provenance": {"src":"CMU_79","take":"79_12 1.20-7.20","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[10,55],"qa":"unchecked","qaVersion":"none"},
 "keys": [

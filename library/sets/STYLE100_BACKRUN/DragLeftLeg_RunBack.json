@@ -10,7 +10,8 @@
 "desc": "Running backward, drag left leg style: drag left foot along the floor",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":101},
+"contacts": {"by":"detected","footL":[[0.167,0.217]],"footR":[[0.366,0.433]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[96,104],"seam":0,"speed":101,"travel":[-31.3,20.8]},
 "provenance": {"src":"100STYLE","take":"DragLeftLeg_BR 70.65-71.30","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[6,29],"qa":"unchecked","qaVersion":"none"},
 "keys": [

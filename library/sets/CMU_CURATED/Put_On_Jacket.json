@@ -10,6 +10,8 @@
 "desc": "Putting on a jacket",
 "skeleton": "humanoid",
 "restSrc": "CMU_79",
+"contacts": {"by":"detected","footL":[[0,6]],"footR":[[0,2.117],[2.333,2.417],[4.167,4.317]]},
+"facts": {"by":"m3a-facts@1","height":[101,101],"travel":[3,6]},
 "provenance": {"src":"CMU_79","take":"79_23 0.00-6.00","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[12,49],"qa":"unchecked","qaVersion":"none"},
 "keys": [

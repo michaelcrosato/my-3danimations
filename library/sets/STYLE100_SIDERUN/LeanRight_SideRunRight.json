@@ -10,7 +10,8 @@
 "desc": "Running sideways to the right, lean right style: normal motion upperbody tilted left",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":126},
+"contacts": {"by":"detected","footL":[[0.454,0.745]],"footR":[[0.162,0.389]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[94,105],"seam":0,"speed":126,"travel":[-8.4,80.7]},
 "provenance": {"src":"100STYLE","take":"LeanRight_SR 21.08-21.65","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[8,42],"qa":"unchecked","qaVersion":"none"},
 "keys": [

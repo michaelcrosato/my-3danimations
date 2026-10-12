@@ -10,9 +10,10 @@
 "desc": "Sidestepping to the left, akimbo style: hands on hips",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":46},
+"contacts": {"by":"detected","footL":[[0.214,1.053]],"footR":[[0.79,1.695]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[97,101],"seam":0,"speed":46,"travel":[5,-57.6]},
 "provenance": {"src":"100STYLE","take":"Akimbo_SW 97.82-99.08","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
-"quality": {"fit":[8,119],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[7,108],"qa":"unchecked","qaVersion":"none"},
 "keys": [
   {"t":0,
    "hips":[0,0,101], "body":[1,5,5], "chest":[2,13,0], "head":[-10,3,-19],
@@ -54,12 +55,12 @@
    "hips":[-2,-4,101], "body":[0,8,5], "chest":[3,14,1], "head":[-10,-1,-21],
    "shL":[5,-6], "shR":[4,-6], "armL":[15,4,-99,70,-35], "armR":[34,0,-94,86,27], "handL":[-53,22,146], "handR":[-13,26,127], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
    "legL":[11,-8,-99,16,110], "legR":[11,10,-99,14,2], "footL":[-4,9,0], "footR":[-8,0,0]},
-  {"t":1.233,
-   "hips":[0,0,101], "body":[1,6,5], "chest":[2,13,1], "head":[-11,3,-20],
-   "shL":[5,-6], "shR":[4,-6], "armL":[13,5,-99,69,-35], "armR":[31,-1,-95,87,27], "handL":[-56,28,143], "handR":[-13,24,128], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
-   "legL":[8,10,-99,21,110], "legR":[4,14,-99,12,3], "footL":[0,25,0], "footR":[-6,0,0]},
+  {"t":1.1,
+   "hips":[-1,-3,101], "body":[0,7,5], "chest":[3,14,2], "head":[-11,1,-21],
+   "shL":[5,-6], "shR":[4,-6], "armL":[13,4,-99,68,-35], "armR":[33,0,-95,86,27], "handL":[-55,24,144], "handR":[-12,26,127], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[9,-5,-99,19,110], "legR":[8,10,-99,14,-1], "footL":[-3,11,0], "footR":[-7,1,0]},
   {"t":1.267,
    "hips":[0,0,101], "body":[1,5,5], "chest":[2,13,0], "head":[-10,3,-19],
    "shL":[5,-6], "shR":[4,-7], "armL":[13,5,-99,69,-37], "armR":[32,-1,-95,86,28], "handL":[-55,27,142], "handR":[-13,25,126], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
-   "legL":[7,14,-99,20,110], "legR":[3,16,-99,10,1], "footL":[2,29,0], "footR":[-5,0,0]}
+   "legL":[7,14,-99,20,9], "legR":[3,16,-99,10,1], "footL":[2,29,0], "footR":[-5,0,0]}
 ]}

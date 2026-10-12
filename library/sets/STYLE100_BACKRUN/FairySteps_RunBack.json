@@ -10,7 +10,8 @@
 "desc": "Running backward, fairy steps style: one foot in front of the other so the heel touches the toe",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":81},
+"contacts": {"by":"detected","footL":[[0.25,0.816]],"footR":[[0.733,1.266]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[97,100],"seam":0,"speed":81,"travel":[-69.8,-10.7]},
 "provenance": {"src":"100STYLE","take":"FairySteps_BR 80.47-81.40","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[7,37],"qa":"unchecked","qaVersion":"none"},
 "keys": [

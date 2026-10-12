@@ -1,6 +1,6 @@
 {
  "about": "The re-import (WP-5.3) by m3a-import 1: each clip's choice between its re-import and its migrated version, with why; both fits (mean, worst mm against the source); both QA verdicts; the sensor metrics that moved ([migrated, re-import]); the hands' mean error against the capture ([migrated, re-import] mm; props: over the clips that hold something); what the catalog skips; the clips the migrated set had that are gone.",
- "mean": 9.6,
+ "mean": 9.5,
  "props": {
   "clips": 40,
   "migrated": 32.4,
@@ -1065,10 +1065,10 @@
   },
   "Jog": {
    "kept": "import",
-   "why": "fits its source closer (16 → 10 mm on average), and the sensors judge it the same (fail)",
+   "why": "fits its source closer (16 → 9 mm on average), and the sensors judge it the same (fail)",
    "fit": {
     "import": [
-     10,
+     9,
      139
     ],
     "migrated": [
@@ -1082,20 +1082,24 @@
    },
    "hands": [
     35.4,
-    12.1
+    11.8
    ],
    "moved": {
     "jitter": [
      12.9,
      12.1
     ],
-    "seam": [
-     0,
-     40.4
+    "pop": [
+     531,
+     685
+    ],
+    "seamVelocity": [
+     5920,
+     5840
     ],
     "fit": [
      16,
-     10
+     9
     ]
    }
   },
@@ -1740,8 +1744,8 @@
    }
   },
   "Push": {
-   "kept": "migrated",
-   "why": "the sensors judge the re-import worse (pass → warn)",
+   "kept": "import",
+   "why": "fits its source closer (20 → 9 mm on average), and the sensors judge it the same (pass)",
    "fit": {
     "import": [
      9,
@@ -1753,7 +1757,7 @@
     ]
    },
    "qa": {
-    "import": "warn",
+    "import": "pass",
     "migrated": "pass"
    },
    "hands": [
@@ -1772,10 +1776,6 @@
     "twistFlip": [
      4,
      62
-    ],
-    "seam": [
-     0,
-     27.1
     ],
     "fit": [
      20,
@@ -2343,15 +2343,7 @@
    "moved": {
     "twistFlip": [
      172,
-     151
-    ],
-    "seam": [
-     0,
-     28.1
-    ],
-    "seamVelocity": [
-     4860,
-     4510
+     153
     ],
     "fit": [
      15,
@@ -3836,8 +3828,8 @@
    }
   },
   "Dizzy": {
-   "kept": "migrated",
-   "why": "the sensors judge the re-import worse (pass → warn)",
+   "kept": "import",
+   "why": "fits its source closer (21 → 14 mm on average), and the sensors judge it the same (pass)",
    "fit": {
     "import": [
      14,
@@ -3849,7 +3841,7 @@
     ]
    },
    "qa": {
-    "import": "warn",
+    "import": "pass",
     "migrated": "pass"
    },
    "hands": [
@@ -3871,15 +3863,15 @@
     ],
     "twistFlip": [
      11,
-     49
+     49.7
     ],
     "seam": [
      2.9,
-     45.5
+     5.26
     ],
     "seamVelocity": [
      186,
-     226
+     310
     ],
     "fit": [
      21,
@@ -4639,7 +4631,7 @@
     ],
     "seam": [
      44,
-     31.8
+     29.4
     ],
     "seamVelocity": [
      2060,

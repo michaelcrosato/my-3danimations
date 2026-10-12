@@ -10,6 +10,8 @@
 "desc": "thrown back off the feet into the air and lands flat on the ground",
 "skeleton": "humanoid",
 "restSrc": "M2M_ANIMATED",
+"contacts": {"by":"detected","footL":[[0,0.348]],"footR":[[0,0.265]],"handL":[[1.261,1.875]],"handR":[[1.178,1.875]]},
+"facts": {"by":"m3a-facts@1","height":[25,113]},
 "provenance": {"src":"M2M_ANIMATED","method":"keyed","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
 "quality": {"fit":[13,106],"qa":"unchecked","qaVersion":"none"},
 "keys": [

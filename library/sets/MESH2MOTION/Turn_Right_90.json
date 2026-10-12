@@ -10,6 +10,8 @@
 "desc": "turns a quarter to the right on the spot",
 "skeleton": "humanoid",
 "restSrc": "M2M_MOCOPI",
+"contacts": {"by":"detected","footL":[[0,1.183]],"footR":[[0,0.417],[1.933,2]]},
+"facts": {"by":"m3a-facts@1","height":[103,105]},
 "provenance": {"src":"M2M_MOCOPI","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCapture"},
 "quality": {"fit":[10,122],"qa":"unchecked","qaVersion":"none"},
 "keys": [

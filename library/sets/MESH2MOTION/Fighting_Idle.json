@@ -10,6 +10,8 @@
 "desc": "a boxer's stance: fists up, bouncing lightly",
 "skeleton": "humanoid",
 "restSrc": "M2M_ANIMATED",
+"contacts": {"by":"detected","footL":[[0,1.708]],"footR":[[0,1.708]]},
+"facts": {"by":"m3a-facts@1","height":[93,93],"seam":0,"speed":0.3,"travel":[0,-0.5]},
 "provenance": {"src":"M2M_ANIMATED","method":"keyed","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
 "quality": {"fit":[10,36],"qa":"unchecked","qaVersion":"none"},
 "keys": [

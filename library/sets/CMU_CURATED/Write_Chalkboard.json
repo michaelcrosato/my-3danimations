@@ -10,6 +10,8 @@
 "desc": "Writing on a chalkboard",
 "skeleton": "humanoid",
 "restSrc": "CMU_79",
+"contacts": {"by":"detected","footL":[[0,1.183],[1.4,6]]},
+"facts": {"by":"m3a-facts@1","height":[101,101],"travel":[4,-2]},
 "provenance": {"src":"CMU_79","take":"79_31 0.50-6.50","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[13,49],"qa":"unchecked","qaVersion":"none"},
 "keys": [

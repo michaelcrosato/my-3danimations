@@ -10,7 +10,8 @@
 "desc": "Running backward, dinosaur style: like a t-rex arms close to body dinosaur posture",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":98},
+"contacts": {"by":"detected","footL":[[0.35,0.8]],"footR":[[0.817,1.333]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[87,97],"seam":0,"speed":98,"travel":[-92.1,-19]},
 "provenance": {"src":"100STYLE","take":"Dinosaur_BR 11.37-12.37","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[8,45],"qa":"unchecked","qaVersion":"none"},
 "keys": [

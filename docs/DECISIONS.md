@@ -1754,3 +1754,43 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   can't be fetched waits rather than coming from a copy that isn't the original.
 - **Answered:** no: made without a response, to review. Quaternius' option 3 is the default the owner was told of.
 - **Landed in:** v0.32.0
+
+## D64 · 2026-10-12 · Facts and contacts in every clip; detected contacts are re-read; loops close
+
+- **Principle:** 3, 4, 5, 10, WP-5.4
+- **Call:**
+  - **Every clip carries its facts and contacts.** `@m3a/library`'s `measure` reads core's `measureFacts` on the clip's
+    own rest: speed, travel, the hips' height range, a loop's seam, an attack's strikes (spec/MOTION.md §7.3), and the
+    planted intervals (§7.1, `by: "detected"`, to the millisecond). They are marked `by: m3a-facts@1`, a revision a
+    change to the measurement bumps. A speed the source gave (a capture's own travel over its cycle, the migrated sets'
+    and 100STYLE's) is kept and named in `captured`: planted feet on a decoded clip estimate it within 5% at the median
+    but miss an odd gait's by half (LegsApart_Walk's 12 against 1.4). 1,385 clips: 1,329 with planted contacts, 793 with
+    a captured speed, 75 with strikes.
+  - **Written by the writers.** The importer and the migrator call `withFacts` on each clip before it is written, so
+    `npm run import -- --check` and `npm run migrate -- --check` still rebuild the library byte for byte, and a change
+    to the measurement is a change to the clips. `npm run facts -- --check` (the Verify) measures every clip again and
+    fails on a fact or contact that differs.
+  - **Detected contacts are re-read.** A clip that carries contacts used to have them taken as given, by `measureFacts`
+    and by `playable`. Once written into the library, that changed what the sensors read (the speed a loop's first-pass
+    contacts give, so its treadmill: Strafe_right went from pass to warn). It also planted feet on intervals a repair
+    had since moved (the demo's toe popped at 9.5 m/s after `fix`). So both detect a tool's contacts again and take only
+    a source's labelled ones as given (spec §7.1's `by`). The written ones are for reading (an agent, search) without
+    measuring, and every reading is the same with them or without.
+  - **The tags against the facts:** a clip tagged `loop` must close (its seam within the sensors' seam fail level, 60 mm
+    at a 950 mm hip height, scaled), and a `run` that loops must travel (10% of its hip height a second, the importer's
+    least speed) or be tagged `inplace`. A conflict is resolved, or given a reason in `library/baselines/tags.json`
+    (none is needed now). There were 18:
+    - 15 loops that didn't close. All re-imported, all from the same cause: a nearly straight limb's twist or a wrist's
+      roll, which its points barely show, held by `steadyTwist` in the last key while the capture had come back to its
+      first frame (Akimbo_SideLeft's leg 9° → 110°). The fitter's `closeLoop` (on in the importer) ends a loop whose
+      capture closes on its first key, each angle by the whole turns nearest its own. All 15 now close; QA goes from 901
+      pass, 296 warn, 188 fail to 920, 285, 180; and closed loops let more re-imports win (Mesh2Motion keeps 168,
+      STYLE100 86, whose prop clips' hands go 19.6 → 6.1 mm).
+    - 3 runs that don't travel. Mesh2Motion's Run_Anime and Run_Stealth, both before WP-5.3 too, have a still root and
+      never plant a foot: runs on the spot, wrongly tagged `root-motion` and described as travelling. 100STYLE's
+      Flapping_RunBack moves back 1.2% of its hip height a second, flapping on tiptoes. All three are tagged `inplace`
+      in their catalogs.
+- **Why:** facts in the file let an agent or a search read a clip without measuring it, but only if no reading depends
+  on whether they are there; the check makes the tags say what the motion does.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.33.0

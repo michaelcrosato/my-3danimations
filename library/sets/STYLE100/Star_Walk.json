@@ -10,7 +10,8 @@
 "desc": "Wide arms and legs. Arms slightly below horizontal",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":76},
+"contacts": {"by":"detected","footL":[[0.2,0.883]],"footR":[[0.783,1.416]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[97,101],"seam":0,"speed":76,"travel":[82.5,3.5]},
 "provenance": {"src":"100STYLE","take":"Star_FW 109.52-110.63","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[8,40],"qa":"unchecked","qaVersion":"none"},
 "keys": [
@@ -60,6 +61,6 @@
    "legL":[-9,19,-98,42,11], "legR":[-1,20,-98,13,4], "footL":[21,47,-1], "footR":[-3,32,0]},
   {"t":1.133,
    "hips":[0,0,100], "body":[-6,4,3], "chest":[-1,25,8], "head":[3,-4,-7],
-   "shL":[3,-2], "shR":[7,-2], "armL":[28,78,-56,6,-46], "armR":[41,82,-39,0,-87], "handL":[7,9,-63], "handR":[11,14,88], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "shL":[3,-2], "shR":[7,-2], "armL":[28,78,-56,6,30], "armR":[41,82,-39,0,-87], "handL":[5,6,13], "handR":[11,14,88], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
    "legL":[22,18,-96,22,19], "legR":[-2,18,-98,7,6], "footL":[-6,29,0], "footR":[-6,28,0]}
 ]}

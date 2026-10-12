@@ -10,6 +10,8 @@
 "desc": "A boxer's guard: fists up by the face, bouncing light on the feet, weaving a little. In place",
 "skeleton": "humanoid",
 "restSrc": "CMU_13_MIGRATED",
+"contacts": {"by":"detected"},
+"facts": {"by":"m3a-facts@1","height":[83,100],"seam":0,"speed":8.9,"travel":[0.7,9.2]},
 "provenance": {"src":"CMU_13","take":"13_17 12.87-13.91","method":"captured","producer":{"tool":"m3a-migrate","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[16,96],"qa":"unchecked","qaVersion":"none"},
 "keys": [

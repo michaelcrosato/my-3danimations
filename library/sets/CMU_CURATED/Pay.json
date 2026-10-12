@@ -10,6 +10,8 @@
 "desc": "Paying for something",
 "skeleton": "humanoid",
 "restSrc": "CMU_80",
+"contacts": {"by":"detected","footL":[[2.267,2.933],[3.083,3.967],[5.3,6]],"footR":[[1.067,2.6],[4.217,6]]},
+"facts": {"by":"m3a-facts@1","height":[104,104],"travel":[-2,2]},
 "provenance": {"src":"CMU_80","take":"80_06 0.00-6.00","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[16,61],"qa":"unchecked","qaVersion":"none"},
 "keys": [

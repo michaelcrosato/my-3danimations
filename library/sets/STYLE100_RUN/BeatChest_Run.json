@@ -10,7 +10,8 @@
 "desc": "Running, beat chest style: beat chest while moving normally",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":174},
+"contacts": {"by":"detected","footL":[[0.616,0.883]],"footR":[[0.25,0.566]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[94,104],"seam":0,"speed":174,"travel":[133.1,11.4]},
 "provenance": {"src":"100STYLE","take":"BeatChest_FR 54.87-55.60","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[7,44],"qa":"unchecked","qaVersion":"none"},
 "keys": [

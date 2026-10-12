@@ -10,6 +10,8 @@
 "desc": "Planting a tree",
 "skeleton": "humanoid",
 "restSrc": "CMU_79",
+"contacts": {"by":"detected","footL":[[0,1.733],[1.867,5.667]],"footR":[[0,0.4],[1.183,1.35]]},
+"facts": {"by":"m3a-facts@1","height":[102,104],"travel":[-9,-1]},
 "provenance": {"src":"CMU_79","take":"79_26 1.60-7.60","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[15,68],"qa":"unchecked","qaVersion":"none"},
 "keys": [

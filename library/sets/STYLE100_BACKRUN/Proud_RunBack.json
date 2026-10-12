@@ -10,7 +10,8 @@
 "desc": "Running backward, proud style: straight back arms move as if marching to a lesser degree",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":153},
+"contacts": {"by":"detected","footL":[[0.653,0.702]],"footR":[[0.62,0.669]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[95,105],"seam":0,"speed":153,"travel":[-68.7,-20.1]},
 "provenance": {"src":"100STYLE","take":"Proud_BR 11.53-12.30","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[7,43],"qa":"unchecked","qaVersion":"none"},
 "keys": [

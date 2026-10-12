@@ -10,6 +10,8 @@
 "desc": "A long jump forward",
 "skeleton": "humanoid",
 "restSrc": "CMU_83",
+"contacts": {"by":"detected","footL":[[0.033,2.233],[3.15,3.8]],"footR":[[0.033,2.25],[2.417,2.567],[3.15,3.8]]},
+"facts": {"by":"m3a-facts@1","height":[85,131],"travel":[127,17]},
 "provenance": {"src":"CMU_83","take":"83_42 0.00-3.80","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[13,49],"qa":"unchecked","qaVersion":"none"},
 "keys": [

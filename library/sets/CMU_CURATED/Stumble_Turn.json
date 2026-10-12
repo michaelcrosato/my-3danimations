@@ -10,6 +10,8 @@
 "desc": "A small stumble, turning all the way round",
 "skeleton": "humanoid",
 "restSrc": "CMU_91",
+"contacts": {"by":"detected","footL":[[0,0.55],[1,1.183],[1.367,1.7]],"footR":[[0,0.533],[0.967,1.183]]},
+"facts": {"by":"m3a-facts@1","height":[92,131],"travel":[-14,-37]},
 "provenance": {"src":"CMU_91","take":"91_59 0.20-1.90","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[18,82],"qa":"unchecked","qaVersion":"none"},
 "keys": [

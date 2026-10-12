@@ -10,7 +10,8 @@
 "desc": "Running sideways to the left, skip style: skipping like a child",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":121},
+"contacts": {"by":"detected","footL":[[0.217,0.35],[0.633,0.683]],"footR":[[0.033,0.15],[0.8,1]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[95,115],"seam":0,"speed":121,"travel":[96.4,-104.5]},
 "provenance": {"src":"100STYLE","take":"Skip_SR 33.95-35.18","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[9,113],"qa":"unchecked","qaVersion":"none"},
 "keys": [
@@ -96,6 +97,6 @@
    "legL":[24,22,-95,56,6], "legR":[-18,8,-98,19,-4], "footL":[14,44,-1], "footR":[31,-19,11]},
   {"t":1.233,
    "hips":[0,0,103], "body":[9,-4,4], "chest":[-2,17,-5], "head":[7,23,0], "spine":[0,45,76],
-   "shL":[3,-6], "shR":[5,-10], "armL":[-2,25,-97,8,-18], "armR":[88,-16,-44,107,-11], "handL":[-11,8,-302], "handR":[-17,10,106], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "shL":[3,-6], "shR":[5,-10], "armL":[-2,25,-97,8,118], "armR":[88,-16,-44,107,-11], "handL":[-5,12,-167], "handR":[-17,10,106], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
    "legL":[15,27,-95,39,-4], "legR":[-23,6,-97,26,0], "footL":[14,38,-2], "footR":[20,3,14]}
 ]}

@@ -10,7 +10,8 @@
 "desc": "Running backward, raised right arm style: raise right arm perpendicular to body",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":98},
+"contacts": {"by":"detected","footL":[[0.033,0.293]],"footR":[[0.309,0.667]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[100,105],"seam":0,"speed":98,"travel":[-66.9,6.1]},
 "provenance": {"src":"100STYLE","take":"RaisedRightArm_BR 51.92-52.58","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[10,67],"qa":"unchecked","qaVersion":"none"},
 "keys": [
@@ -56,6 +57,6 @@
    "legL":[-16,8,-98,45,-11], "legR":[19,-6,-98,22,-1], "footL":[36,-35,-3], "footR":[7,-10,2]},
   {"t":0.667,
    "hips":[0,0,105], "body":[4,5,-5], "chest":[2,17,-5], "head":[-4,-2,6],
-   "shL":[7,-5], "shR":[8,-1], "armL":[34,25,-91,0,-66], "armR":[38,84,-39,10,-176], "handL":[-5,-9,12], "handR":[-4,-5,-99], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "shL":[7,-5], "shR":[8,-1], "armL":[34,25,-91,0,-9], "armR":[38,84,-39,10,-176], "handL":[-5,-9,69], "handR":[-4,-5,-99], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
    "legL":[-17,8,-98,40,-8], "legR":[22,-6,-97,15,-1], "footL":[35,-22,5], "footR":[4,-13,-1]}
 ]}

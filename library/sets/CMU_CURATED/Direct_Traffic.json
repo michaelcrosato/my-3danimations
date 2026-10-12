@@ -10,6 +10,8 @@
 "desc": "Directing traffic, waving it on",
 "skeleton": "humanoid",
 "restSrc": "CMU_13",
+"contacts": {"by":"detected","footL":[[0,0.367],[0.7,1.55],[1.883,3.117],[3.4,3.65],[3.867,4.65],[4.983,6]],"footR":[[0,0.867],[1.333,2.667],[2.817,3.367],[3.817,5.3],[5.65,6]]},
+"facts": {"by":"m3a-facts@1","height":[94,103],"travel":[-3,16]},
 "provenance": {"src":"CMU_13","take":"13_26 0.00-6.00","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[12,115],"qa":"unchecked","qaVersion":"none"},
 "keys": [

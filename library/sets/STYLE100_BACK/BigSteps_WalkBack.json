@@ -10,7 +10,8 @@
 "desc": "Walking backward, big steps style: as large steps as possible",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":102},
+"contacts": {"by":"detected","footL":[[0.38,1.504]],"footR":[[1.388,2.445]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[87,101],"seam":0,"speed":102,"travel":[-184.4,-27.9]},
 "provenance": {"src":"100STYLE","take":"BigSteps_BW 8.47-10.33","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[11,78],"qa":"unchecked","qaVersion":"none"},
 "keys": [

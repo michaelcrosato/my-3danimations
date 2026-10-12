@@ -10,6 +10,8 @@
 "desc": "A large step up onto a short ledge",
 "skeleton": "humanoid",
 "restSrc": "CMU_83",
+"contacts": {"by":"detected","footL":[[0,3.433]],"footR":[[0,2.433]]},
+"facts": {"by":"m3a-facts@1","height":[96,123],"travel":[86,38]},
 "provenance": {"src":"CMU_83","take":"83_03 0.00-5.10","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[13,59],"qa":"unchecked","qaVersion":"none"},
 "keys": [

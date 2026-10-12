@@ -10,7 +10,8 @@
 "desc": "Walking backward, on phone right style: holding phone in right",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":66},
+"contacts": {"by":"detected","footL":[[0.483,1.333]],"footR":[[1.15,2.066]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[98,101],"seam":0,"speed":66,"travel":[-84,-1.5]},
 "provenance": {"src":"100STYLE","take":"OnPhoneRight_BW 11.93-13.37","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[8,112],"qa":"unchecked","qaVersion":"none"},
 "keys": [
@@ -64,6 +65,6 @@
    "legL":[22,2,-97,0,-8], "legR":[-25,-10,-96,7,8], "footL":[-12,-3,0], "footR":[6,-1,0]},
   {"t":1.433,
    "hips":[0,0,99], "body":[0,-3,0], "chest":[-6,20,3], "head":[-1,14,3],
-   "shL":[6,-10], "shR":[-2,5], "armL":[41,8,-91,13,-44], "armR":[29,-71,64,142,7], "handL":[-1,-11,50], "handR":[-45,-15,137], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
-   "legL":[24,1,-97,12,-8], "legR":[-20,-11,-97,19,4], "footL":[-15,5,0], "footR":[6,0,0]}
+   "shL":[6,-10], "shR":[-2,5], "armL":[41,8,-91,13,18], "armR":[29,-71,64,142,7], "handL":[5,-11,112], "handR":[-45,-15,137], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[24,1,-97,12,107], "legR":[-20,-11,-97,19,4], "footL":[-15,5,0], "footR":[6,0,0]}
 ]}

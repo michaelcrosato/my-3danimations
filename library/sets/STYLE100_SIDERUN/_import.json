@@ -77,7 +77,7 @@
     ]
    },
    "qa": {
-    "import": "fail"
+    "import": "warn"
    },
    "hands": [
     11
@@ -1933,10 +1933,10 @@
     ]
    },
    "qa": {
-    "import": "fail"
+    "import": "pass"
    },
    "hands": [
-    8.6
+    8.7
    ]
   },
   "Punch_SideRunLeft": {
@@ -1968,7 +1968,7 @@
     "import": "fail"
    },
    "hands": [
-    12.5
+    12.3
    ]
   },
   "Quail_SideRunLeft": {
@@ -2304,7 +2304,7 @@
     "import": "fail"
    },
    "hands": [
-    8.9
+    8.8
    ]
   },
   "Skip_SideRunRight": {
@@ -3069,10 +3069,10 @@
     ]
    },
    "qa": {
-    "import": "warn"
+    "import": "pass"
    },
    "hands": [
-    11.1
+    11.3
    ]
   },
   "Zombie_SideRunRight": {
@@ -3085,10 +3085,10 @@
     ]
    },
    "qa": {
-    "import": "warn"
+    "import": "pass"
    },
    "hands": [
-    14.8
+    14.5
    ]
   }
  },

@@ -10,7 +10,8 @@
 "desc": "Raise right arm perpendicular to body",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":100},
+"contacts": {"by":"detected","footL":[[1.033,1.733]],"footR":[[0.383,1.05]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[97,101],"seam":0,"speed":100,"travel":[125.4,-0.8]},
 "provenance": {"src":"100STYLE","take":"RaisedRightArm_FW 9.97-11.27","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[7,67],"qa":"unchecked","qaVersion":"none"},
 "keys": [

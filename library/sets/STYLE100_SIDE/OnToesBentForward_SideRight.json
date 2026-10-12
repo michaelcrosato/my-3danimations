@@ -10,7 +10,8 @@
 "desc": "Sidestepping to the right, on toes bent forward style: as bent forward style but on tip toes",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":53},
+"contacts": {"by":"detected","footL":[[0.263,1.052]],"footR":[[0.888,1.693]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[94,99],"seam":0,"speed":53,"travel":[10.1,59]},
 "provenance": {"src":"100STYLE","take":"OnToesBentForward_SW 15.82-16.98","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[9,30],"qa":"unchecked","qaVersion":"none"},
 "keys": [

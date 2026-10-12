@@ -4,11 +4,11 @@ QUATERNIUS_SHARDFALL/ClimbUp_1m	0.667	once		climb	grabs a ledge about 1 m high a
 QUATERNIUS_SHARDFALL/ClimbUp_1m_RM	0.667	once		climb root-motion	grabs a ledge about 1…	UAL2
 QUATERNIUS_SHARDFALL/Consume	1.333	once		item eat	eats or drinks: lifts the left hand to the mouth	UAL2
 QUATERNIUS_SHARDFALL/Crouch_Fwd_Loop	2	loop	82	crouch walk stealth	crouched sneaking walk, in place	UAL1
-QUATERNIUS_SHARDFALL/Crouch_Idle_Loop	2.933	loop		crouch idle stealth	crouched low and still, looking about	UAL1
-QUATERNIUS_SHARDFALL/Dance_Loop	1	loop		emote dance	a one-second groove: hips sway, arms swing out	UAL1
+QUATERNIUS_SHARDFALL/Crouch_Idle_Loop	2.933	loop	0.2	crouch idle stealth	crouched low and still	UAL1
+QUATERNIUS_SHARDFALL/Dance_Loop	1	loop	0.6	emote dance	a one-second groove: hips sway, arms swing out	UAL1
 QUATERNIUS_SHARDFALL/Death01	2.4	once		death	staggers and falls flat on the back	UAL1
 QUATERNIUS_SHARDFALL/Death01_RM	2.4	once		death root-motion	staggers and falls flat on the back…	UAL1
-QUATERNIUS_SHARDFALL/Driving_Loop	1.667	loop		sit vehicle	seated, hands on a steering wheel, small turns	UAL1
+QUATERNIUS_SHARDFALL/Driving_Loop	1.667	loop	0	sit vehicle	seated, hands on a steering wheel, small turns	UAL1
 QUATERNIUS_SHARDFALL/Farm_Harvest	2.5	once		farm work	bends down and pulls a crop up out of the ground	UAL2
 QUATERNIUS_SHARDFALL/Farm_PlantSeed	2.767	once		farm work	kneels, presses a seed into the soil, stands	UAL2
 QUATERNIUS_SHARDFALL/Farm_Watering	3.8	once		farm work	tips a watering can held in the right hand	UAL2
@@ -17,17 +17,17 @@ QUATERNIUS_SHARDFALL/Hit_Chest	0.333	once		hurt	takes a blow to the chest: torso
 QUATERNIUS_SHARDFALL/Hit_Head	0.433	once		hurt	takes a blow to the head: head snaps aside, recovers	UAL1
 QUATERNIUS_SHARDFALL/Hit_Knockback	0.833	once		hurt death	hit hard: thrown back off the feet onto the back	UAL2
 QUATERNIUS_SHARDFALL/Hit_Knockback_RM	0.833	once		hurt death root-motion	hit hard and thrown back onto the back	UAL2
-QUATERNIUS_SHARDFALL/Idle_FoldArms_Loop	2.5	loop		idle talk	standing with the arms folded across the chest	UAL2
-QUATERNIUS_SHARDFALL/Idle_Lantern_Loop	2.5	loop		idle prop	standing	UAL2
-QUATERNIUS_SHARDFALL/Idle_Loop	2.5	loop		idle	standing at rest, breathing and shifting weight	UAL1
-QUATERNIUS_SHARDFALL/Idle_No_Loop	2.5	loop		idle emote gesture	standing, shakes the head no	UAL2
+QUATERNIUS_SHARDFALL/Idle_FoldArms_Loop	2.5	loop	0.1	idle talk	standing with the arms folded across…	UAL2
+QUATERNIUS_SHARDFALL/Idle_Lantern_Loop	2.5	loop	0	idle prop	standing	UAL2
+QUATERNIUS_SHARDFALL/Idle_Loop	2.5	loop	0.2	idle	standing at rest, breathing and shifting weight	UAL1
+QUATERNIUS_SHARDFALL/Idle_No_Loop	2.5	loop	0	idle emote gesture	standing, shakes the head no	UAL2
 QUATERNIUS_SHARDFALL/Idle_Rail_Call	2.5	once		idle lean gesture	leaning on a railing	UAL2
-QUATERNIUS_SHARDFALL/Idle_Rail_Loop	2.5	loop		idle lean	leaning forward on the forearms, as over a railing	UAL2
+QUATERNIUS_SHARDFALL/Idle_Rail_Loop	2.5	loop	0.4	idle lean	leaning forward on the forearms	UAL2
 QUATERNIUS_SHARDFALL/Idle_Shield_Break	1.067	once		shield hurt	the guard breaks	UAL2
-QUATERNIUS_SHARDFALL/Idle_Shield_Loop	2.5	loop		shield idle stance	guarding	UAL2
-QUATERNIUS_SHARDFALL/Idle_TalkingPhone_Loop	2.933	loop		idle talk prop	on the phone: right hand at the ear	UAL2
-QUATERNIUS_SHARDFALL/Idle_Talking_Loop	2.933	loop		idle talk	standing and talking with hand gestures	UAL1
-QUATERNIUS_SHARDFALL/Idle_Torch_Loop	1.267	loop		idle prop	standing with one arm raised, holding up a torch or lantern	UAL1
+QUATERNIUS_SHARDFALL/Idle_Shield_Loop	2.5	loop	0.1	shield idle stance	guarding	UAL2
+QUATERNIUS_SHARDFALL/Idle_TalkingPhone_Loop	2.933	loop	0.2	idle talk prop	on the phone	UAL2
+QUATERNIUS_SHARDFALL/Idle_Talking_Loop	2.933	loop	0	idle talk	standing and talking with hand gestures	UAL1
+QUATERNIUS_SHARDFALL/Idle_Torch_Loop	1.267	loop	1	idle prop	standing with one arm raised	UAL1
 QUATERNIUS_SHARDFALL/Interact	2	once		interact	reaches forward at chest height and works something with the hands (a lever	UAL1
 QUATERNIUS_SHARDFALL/Jog_Fwd_Loop	0.933	loop	585	run	jog, in place	UAL1
 QUATERNIUS_SHARDFALL/Jump_Land	1.267	once		jump	lands from a fall, knees soak it up, stands	UAL1
@@ -45,7 +45,7 @@ QUATERNIUS_SHARDFALL/PickUp_Table	0.833	once		interact item	reaches out and pick
 QUATERNIUS_SHARDFALL/Pistol_Aim_Down	0.167	once		gun aim pose	two-handed pistol aim, pointing down	UAL1
 QUATERNIUS_SHARDFALL/Pistol_Aim_Neutral	0.167	once		gun aim pose	two-handed pistol aim	UAL1
 QUATERNIUS_SHARDFALL/Pistol_Aim_Up	0.167	once		gun aim pose	two-handed pistol aim, pointing up	UAL1
-QUATERNIUS_SHARDFALL/Pistol_Idle_Loop	1.667	loop		gun idle	standing ready, pistol held low in both hands	UAL1
+QUATERNIUS_SHARDFALL/Pistol_Idle_Loop	1.667	loop	0	gun idle	standing ready, pistol held low in both hands	UAL1
 QUATERNIUS_SHARDFALL/Pistol_Reload	1.667	once		gun	reloads the pistol	UAL1
 QUATERNIUS_SHARDFALL/Pistol_Shoot	0.633	once		gun attack	one pistol shot with recoil	UAL1
 QUATERNIUS_SHARDFALL/Punch_Cross	1	once		unarmed attack	rear-hand straight punch with a hip turn	UAL1
@@ -58,8 +58,8 @@ QUATERNIUS_SHARDFALL/Shield_Dash_RM	1.1	once		shield attack root-motion	charges 
 QUATERNIUS_SHARDFALL/Shield_OneShot	0.833	once		shield block	a quick block: snaps the shield arm up across the chest	UAL2
 QUATERNIUS_SHARDFALL/Sitting_Enter	1.3	once		sit	sits down onto a seat (no chair is drawn)	UAL1
 QUATERNIUS_SHARDFALL/Sitting_Exit	1.033	once		sit	stands up from a seat	UAL1
-QUATERNIUS_SHARDFALL/Sitting_Idle_Loop	1.667	loop		sit idle	seated at rest	UAL1
-QUATERNIUS_SHARDFALL/Sitting_Talking_Loop	2.933	loop		sit talk	seated, talking with hand gestures	UAL1
+QUATERNIUS_SHARDFALL/Sitting_Idle_Loop	1.667	loop	0	sit idle	seated at rest	UAL1
+QUATERNIUS_SHARDFALL/Sitting_Talking_Loop	2.933	loop	0	sit talk	seated, talking with hand gestures	UAL1
 QUATERNIUS_SHARDFALL/Slide_Exit	0.5	once		slide	springs up out of the slide into a run	UAL2
 QUATERNIUS_SHARDFALL/Slide_Exit_RM	0.5	once		slide root-motion	springs up out of the slide into a run…	UAL2
 QUATERNIUS_SHARDFALL/Slide_Loop	2	loop	491	slide	sliding feet first, leaning back on one hand	UAL2
@@ -67,7 +67,7 @@ QUATERNIUS_SHARDFALL/Slide_Start	0.833	once		slide dodge	drops from a run into a
 QUATERNIUS_SHARDFALL/Slide_Start_RM	0.833	once		slide dodge root-motion	drops from a run into a feet-first slide on…	UAL2
 QUATERNIUS_SHARDFALL/Spell_Simple_Enter	0.533	once		magic stance	raises a hand to ready a spell	UAL1
 QUATERNIUS_SHARDFALL/Spell_Simple_Exit	0.433	once		magic stance	lowers the casting hand	UAL1
-QUATERNIUS_SHARDFALL/Spell_Simple_Idle_Loop	2.1	loop		magic idle	holds a spell ready	UAL1
+QUATERNIUS_SHARDFALL/Spell_Simple_Idle_Loop	2.1	loop	0.5	magic idle	holds a spell ready	UAL1
 QUATERNIUS_SHARDFALL/Spell_Simple_Shoot	0.5	once		magic attack	casts: drives the hand forward	UAL1
 QUATERNIUS_SHARDFALL/Sprint_Loop	0.667	loop	900	run	full sprint with big arm swings, in place	UAL1
 QUATERNIUS_SHARDFALL/Swim_Fwd_Loop	1.333	loop	237	swim	swimming forward, body flat	UAL1
@@ -79,7 +79,7 @@ QUATERNIUS_SHARDFALL/Sword_Dash	1.567	once		sword attack dodge	dashes forward lo
 QUATERNIUS_SHARDFALL/Sword_Dash_RM	1.567	once		sword attack dodge root-motion	dashes forward low and slashes…	UAL2
 QUATERNIUS_SHARDFALL/Sword_Heavy_Combo	4.333	once		sword attack	a heavy chain: a low lunging thrust	UAL2
 QUATERNIUS_SHARDFALL/Sword_Heavy_Combo_RM	4.333	once		sword attack root-motion	a heavy chain	UAL2
-QUATERNIUS_SHARDFALL/Sword_Idle	1.667	loop		sword idle	standing ready with a sword in the right hand	UAL1
+QUATERNIUS_SHARDFALL/Sword_Idle	1.667	loop	0.2	sword idle	standing ready with a sword in the right hand	UAL1
 QUATERNIUS_SHARDFALL/Sword_Regular_A	0.433	once		sword attack	the combo's first strike	UAL2
 QUATERNIUS_SHARDFALL/Sword_Regular_A_RM	0.433	once		sword attack root-motion	the combo's first strike	UAL2
 QUATERNIUS_SHARDFALL/Sword_Regular_A_Rec	0.967	once		sword stance	recovers from the first strike back to standing	UAL2
@@ -92,11 +92,11 @@ QUATERNIUS_SHARDFALL/Sword_Regular_C	2	once		sword attack	the combo's finisher: 
 QUATERNIUS_SHARDFALL/Sword_Regular_C_RM	2	once		sword attack root-motion	the combo's finisher	UAL2
 QUATERNIUS_SHARDFALL/Sword_Regular_Combo	3	once		sword attack	the three strikes chained: thrust, sweep, finisher	UAL2
 QUATERNIUS_SHARDFALL/Sword_Regular_Combo_RM	3	once		sword attack root-motion	the three strikes chained: thrust, sweep	UAL2
-QUATERNIUS_SHARDFALL/TreeChopping_Loop	0.967	loop		work	chops with an axe	UAL2
+QUATERNIUS_SHARDFALL/TreeChopping_Loop	0.967	loop	1	work	chops with an axe	UAL2
 QUATERNIUS_SHARDFALL/Walk_Carry_Loop	2	loop	71	walk carry	walking with a box held in both arms in front, in place	UAL2
 QUATERNIUS_SHARDFALL/Walk_Formal_Loop	1.333	loop	106	walk	upright, measured walk, in place	UAL1
 QUATERNIUS_SHARDFALL/Walk_Loop	1.333	loop	106	walk	relaxed walk, in place	UAL1
 QUATERNIUS_SHARDFALL/Yes	2.5	once		emote gesture	agrees: raises the left hand out in front (a thumbs-up)	UAL2
-QUATERNIUS_SHARDFALL/Zombie_Idle_Loop	1.333	loop		zombie idle	hunched and swaying, arms hanging	UAL2
+QUATERNIUS_SHARDFALL/Zombie_Idle_Loop	1.333	loop	0	zombie idle	hunched and swaying, arms hanging	UAL2
 QUATERNIUS_SHARDFALL/Zombie_Scratch	1.8	once		zombie attack	lunges and claws down with both hands, then settles back	UAL2
 QUATERNIUS_SHARDFALL/Zombie_Walk_Fwd_Loop	1.333	loop	115	zombie walk	shambling, dragging zombie walk	UAL2

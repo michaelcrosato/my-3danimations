@@ -40,8 +40,12 @@ const pt = (o: Float32Array, name: string): [number, number, number] => {
   return [o[i]!, o[i + 1]!, o[i + 2]!];
 };
 
-/** Every fact of `clip` on rest R. */
+/**
+ * Every fact of `clip` on rest R. Contacts a source labelled are taken as given; contacts a tool detected (a library
+ * clip carries them, WP-5.4) are detected again, so the facts read from them are the same with or without them.
+ */
 export function measureFacts(clip: Measurable, R: Rest, opts: DetectOptions = {}): Facts {
+  if (clip.contacts && clip.contacts.by !== "labelled") clip = { ...clip, contacts: undefined };
   const sampled = sampleAll(clip, R, opts.fps ?? 60);
   const { frames, dt } = sampled;
   const n = frames.length - 1;

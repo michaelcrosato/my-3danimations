@@ -10,7 +10,8 @@
 "desc": "Walking backward, lawn mower style: roll hands over one another like disco move and tilt torso forwards and then back",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":64},
+"contacts": {"by":"detected","footL":[[1.026,1.655],[2.217,2.863]],"footR":[[0.496,1.142],[1.572,2.184]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[97,101],"seam":0,"speed":64,"travel":[-139.6,3.9]},
 "provenance": {"src":"100STYLE","take":"LawnMower_BW 12.13-14.40","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[7,61],"qa":"unchecked","qaVersion":"none"},
 "keys": [

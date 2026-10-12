@@ -10,6 +10,8 @@
 "desc": "looses the arrow: the drawing hand springs back, the bow arm held out",
 "skeleton": "humanoid",
 "restSrc": "M2M_ANIMATED",
+"contacts": {"by":"detected","footL":[[0,0.5]],"footR":[[0,0.5]]},
+"facts": {"by":"m3a-facts@1","height":[98,98],"strike":[0.2]},
 "provenance": {"src":"M2M_ANIMATED","method":"keyed","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
 "quality": {"fit":[5,29],"qa":"unchecked","qaVersion":"none"},
 "keys": [

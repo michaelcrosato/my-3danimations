@@ -10,7 +10,8 @@
 "desc": "Running backward, in the dark style: feeling around as if in darkness",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":112},
+"contacts": {"by":"detected","footL":[[0.439,0.732]],"footR":[[0.081,0.423]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[98,103],"seam":0,"speed":112,"travel":[-60.9,-15.3]},
 "provenance": {"src":"100STYLE","take":"InTheDark_BR 71.48-72.13","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[9,56],"qa":"unchecked","qaVersion":"none"},
 "keys": [

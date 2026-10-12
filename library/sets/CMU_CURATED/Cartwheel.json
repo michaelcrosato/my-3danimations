@@ -10,6 +10,8 @@
 "desc": "A cartwheel to the side: hands to the floor one after the other, legs wheeling over, back up to standing",
 "skeleton": "humanoid",
 "restSrc": "CMU_49",
+"contacts": {"by":"detected","footL":[[0,0.617],[1.633,2]],"footR":[[0.417,0.85],[2.2,2.6]],"handL":[[0.933,1.1],[1.317,1.633]],"handR":[[0.733,0.867]]},
+"facts": {"by":"m3a-facts@1","height":[86,103],"travel":[295,41]},
 "provenance": {"src":"CMU_49","take":"49_06 1.00-3.60","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[21,157],"qa":"unchecked","qaVersion":"none"},
 "keys": [

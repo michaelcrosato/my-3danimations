@@ -10,6 +10,8 @@
 "desc": "holds on to a ladder, hands and feet on the rungs",
 "skeleton": "humanoid",
 "restSrc": "M2M_ANIMATED",
+"contacts": {"by":"detected"},
+"facts": {"by":"m3a-facts@1","height":[97,97],"seam":0},
 "provenance": {"src":"M2M_ANIMATED","method":"keyed","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
 "quality": {"fit":[10,66],"qa":"unchecked","qaVersion":"none"},
 "keys": [

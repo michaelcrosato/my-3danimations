@@ -10,7 +10,8 @@
 "desc": "Running sideways to the left, cross over style: step each foot in front of other leg",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":163},
+"contacts": {"by":"detected","footL":[[0.417,0.766]],"footR":[[0.816,1.283]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[93,98],"seam":0,"speed":163,"travel":[100.4,-124.1]},
 "provenance": {"src":"100STYLE","take":"CrossOver_SR 38.97-39.90","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[11,108],"qa":"unchecked","qaVersion":"none"},
 "keys": [
@@ -76,6 +77,6 @@
    "legL":[-15,-28,-95,69,22], "legR":[30,-15,-94,42,-9], "footL":[39,-20,14], "footR":[-7,21,0]},
   {"t":0.933,
    "hips":[0,0,93], "body":[-5,8,0], "chest":[15,9,4], "head":[-13,28,-6],
-   "shL":[7,-8], "shR":[2,-10], "armL":[48,17,-86,28,-6], "armR":[3,32,-95,0,-45], "handL":[-10,1,128], "handR":[-11,-6,-202], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "shL":[7,-8], "shR":[2,-10], "armL":[48,17,-86,28,-6], "armR":[3,32,-95,0,-125], "handL":[-10,1,128], "handR":[-11,-5,-122], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
    "legL":[-8,-19,-98,71,21], "legR":[26,-14,-95,45,-9], "footL":[39,6,25], "footR":[-6,18,0]}
 ]}

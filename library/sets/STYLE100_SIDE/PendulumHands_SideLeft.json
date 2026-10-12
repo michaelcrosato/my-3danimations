@@ -10,6 +10,8 @@
 "desc": "Sidestepping to the left, pendulum hands style: squat slightly make right angle with elbows and swing hands freely",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
+"contacts": {"by":"detected","footL":[[0.066,0.901]],"footR":[[0.066,0.967]]},
+"facts": {"by":"m3a-facts@1","height":[94,95],"seam":0,"speed":0.1,"travel":[0,0.1]},
 "provenance": {"src":"100STYLE","take":"PendulumHands_SW 66.37-67.32","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[7,46],"qa":"unchecked","qaVersion":"none"},
 "keys": [

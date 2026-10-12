@@ -10,7 +10,8 @@
 "desc": "Running, duck foot style: toes pointing inwards",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":133},
+"contacts": {"by":"detected","footL":[[0.311,0.836]],"footR":[[0.836,1.196]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[95,98],"seam":0,"speed":133,"travel":[129.5,10.8]},
 "provenance": {"src":"100STYLE","take":"DuckFoot_FR 46.45-47.42","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[8,50],"qa":"unchecked","qaVersion":"none"},
 "keys": [

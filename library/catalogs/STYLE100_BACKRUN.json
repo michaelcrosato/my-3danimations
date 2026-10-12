@@ -134,7 +134,7 @@
 "DuckFoot_RunBack": ["run back loop style", "Running backward, duck foot style: toes pointing inwards"],
 "Elated_RunBack": ["run back loop style", "Running backward, elated style: swing arms with spring"],
 "FairySteps_RunBack": ["run back loop style", "Running backward, fairy steps style: one foot in front of the other so the heel touches the toe"],
-"Flapping_RunBack": ["run back loop style", "Running backward, flapping style: flap arms as wings on tiptoes"],
+"Flapping_RunBack": ["run back loop style inplace", "Running backward, flapping style: flap arms as wings on tiptoes, all but on the spot"],
 "FlickLegs_RunBack": ["run back loop style", "Running backward, flick legs style: knees together and flick legs to sides as moving"],
 "Followed_RunBack": ["run back loop style varies", "Running backward, followed style: check behind occasionally"],
 "GracefulArms_RunBack": ["run back loop style", "Running backward, graceful arms style: one arm across chest the other extended walk tall"],

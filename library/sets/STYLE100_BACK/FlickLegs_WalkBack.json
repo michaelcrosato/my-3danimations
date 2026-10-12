@@ -10,7 +10,8 @@
 "desc": "Walking backward, flick legs style: knees together and flick legs to sides as moving",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":23},
+"contacts": {"by":"detected","footL":[[0.067,0.117],[0.883,1.633]],"footR":[[0.083,0.983]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[100,101],"seam":0,"speed":23,"travel":[-36.2,3.3]},
 "provenance": {"src":"100STYLE","take":"FlickLegs_BW 43.93-45.57","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[7,36],"qa":"unchecked","qaVersion":"none"},
 "keys": [

@@ -10,7 +10,8 @@
 "desc": "Sidestepping to the left, swat style: as if holding a rifle and raiding a building",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":64},
+"contacts": {"by":"detected","footL":[[0.542,1.248]],"footR":[[0,0.722]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[92,98],"seam":0,"speed":64,"travel":[-6.9,-62.9]},
 "provenance": {"src":"100STYLE","take":"Swat_SW 61.65-62.70","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[6,32],"qa":"unchecked","qaVersion":"none"},
 "keys": [

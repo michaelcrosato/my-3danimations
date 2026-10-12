@@ -10,7 +10,8 @@
 "desc": "Running, limp left style: keep left leg straight and limp",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":133},
+"contacts": {"by":"detected","footL":[[0.62,1.012]],"footR":[[0.196,0.571]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[94,104],"seam":0,"speed":133,"travel":[93.4,30.4]},
 "provenance": {"src":"100STYLE","take":"LimpLeft_FR 38.52-39.28","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[7,46],"qa":"unchecked","qaVersion":"none"},
 "keys": [

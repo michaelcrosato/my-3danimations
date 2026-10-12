@@ -10,7 +10,8 @@
 "desc": "Walking backward, elated style: swing arms with spring",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":136},
+"contacts": {"by":"detected","footL":[[0.567,1.067]],"footR":[[0.067,0.567]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[92,101],"seam":0,"speed":136,"travel":[-132.2,0]},
 "provenance": {"src":"100STYLE","take":"Elated_BW 8.00-9.00","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[11,94],"qa":"unchecked","qaVersion":"none"},
 "keys": [
@@ -92,6 +93,6 @@
    "legL":[1,6,-100,32,-5], "legR":[-47,-3,-88,63,2], "footL":[15,-2,0], "footR":[52,-80,2]},
   {"t":1,
    "hips":[0,0,93], "body":[3,-13,0], "chest":[-4,18,1], "head":[0,6,-1],
-   "shL":[6,-6], "shR":[5,-8], "armL":[97,-21,-14,86,0], "armR":[-22,21,-95,10,-411], "handL":[-10,14,80], "handR":[-2,7,-208], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "shL":[6,-6], "shR":[5,-8], "armL":[97,-21,-14,86,0], "armR":[-22,21,-95,10,-516], "handL":[-10,14,80], "handR":[-5,13,-103], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
    "legL":[10,5,-99,32,-6], "legR":[-58,0,-81,66,5], "footL":[14,2,0], "footR":[56,-110,19]}
 ]}

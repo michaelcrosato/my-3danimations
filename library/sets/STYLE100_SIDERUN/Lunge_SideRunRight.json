@@ -10,7 +10,8 @@
 "desc": "Running sideways to the right, lunge style: wide step bend knee every step in lunge position",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":143},
+"contacts": {"by":"detected","footL":[[0.766,1.216]],"footR":[[0.15,0.6]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[78,108],"seam":0,"speed":143,"travel":[49.6,118.8]},
 "provenance": {"src":"100STYLE","take":"Lunge_SR 40.75-41.68","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[9,40],"qa":"unchecked","qaVersion":"none"},
 "keys": [

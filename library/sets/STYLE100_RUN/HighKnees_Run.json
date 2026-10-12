@@ -10,7 +10,8 @@
 "desc": "Running, high knees style: lift knees high but only knees – not marching",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":158},
+"contacts": {"by":"detected","footL":[[0.133,0.416]],"footR":[[0.566,0.733]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[97,109],"seam":0,"speed":158,"travel":[120.4,4.4]},
 "provenance": {"src":"100STYLE","take":"HighKnees_FR 6.73-7.45","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[10,63],"qa":"unchecked","qaVersion":"none"},
 "keys": [

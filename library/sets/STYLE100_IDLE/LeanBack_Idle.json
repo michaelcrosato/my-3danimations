@@ -10,6 +10,8 @@
 "desc": "Standing, lean back style: bent backwards",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
+"contacts": {"by":"detected","footL":[[0,3.167]],"footR":[[0,3.167]]},
+"facts": {"by":"m3a-facts@1","height":[97,97],"seam":0,"speed":0.1,"travel":[0.2,0]},
 "provenance": {"src":"100STYLE","take":"LeanBack_ID 14.65-17.80","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[8,33],"qa":"unchecked","qaVersion":"none"},
 "keys": [

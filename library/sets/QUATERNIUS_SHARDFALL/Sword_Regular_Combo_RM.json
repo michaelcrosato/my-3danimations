@@ -10,6 +10,8 @@
 "desc": "the three strikes chained: thrust, sweep, finisher (travels)",
 "skeleton": "humanoid",
 "restSrc": "UAL2",
+"contacts": {"by":"detected","footL":[[0.3,0.65],[0.817,1.067],[1.667,2.283],[2.5,3]],"footR":[[0.183,0.65],[0.783,1.083],[2.25,3]]},
+"facts": {"by":"m3a-facts@1","height":[52,96],"strike":[0.717],"travel":[255,0]},
 "provenance": {"src":"UAL2","method":"keyed","producer":{"tool":"m3a-migrate","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
 "quality": {"fit":[16,120],"qa":"unchecked","qaVersion":"none"},
 "keys": [

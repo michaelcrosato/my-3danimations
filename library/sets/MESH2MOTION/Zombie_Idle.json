@@ -10,6 +10,8 @@
 "desc": "hunched and swaying, arms hanging: a zombie at rest",
 "skeleton": "humanoid",
 "restSrc": "M2M_QUATERNIUS",
+"contacts": {"by":"detected","footL":[[0,1.333]],"footR":[[0,1.333]]},
+"facts": {"by":"m3a-facts@1","height":[85,92],"seam":0,"speed":0.2,"travel":[0.2,0.1]},
 "provenance": {"src":"M2M_QUATERNIUS","orig":"QUATERNIUS_SHARDFALL/Zombie_Idle_Loop","method":"keyed","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
 "quality": {"fit":[10,38],"qa":"unchecked","qaVersion":"none"},
 "keys": [

@@ -10,7 +10,8 @@
 "desc": "Sidestepping to the left, balance style: arms out to side for balance - tilting side to side",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":30},
+"contacts": {"by":"detected","footL":[[0.75,1.85]],"footR":[[0,1.083]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[99,102],"seam":0,"speed":30,"travel":[8,-45.3]},
 "provenance": {"src":"100STYLE","take":"Balance_SW 105.88-107.50","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[9,42],"qa":"unchecked","qaVersion":"none"},
 "keys": [

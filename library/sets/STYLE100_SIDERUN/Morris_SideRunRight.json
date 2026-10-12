@@ -10,7 +10,8 @@
 "desc": "Running sideways to the right, morris style: swing hands side to side as if waving hankies. Bouncy/skipping footsteps",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":88},
+"contacts": {"by":"detected","footL":[[0.4,0.75],[0.966,1.15]],"footR":[[0.283,0.45],[1.083,1.316]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[92,111],"seam":0,"speed":88,"travel":[15,107.8]},
 "provenance": {"src":"100STYLE","take":"Morris_SR 44.37-45.60","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[10,119],"qa":"unchecked","qaVersion":"none"},
 "keys": [

@@ -10,7 +10,8 @@
 "desc": "Sidestepping to the left, walking stick right style: walk with a stick – used broom handle",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":39},
+"contacts": {"by":"detected","footL":[[1.171,2.045]],"footR":[[0.247,1.353]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[97,101],"seam":0,"speed":39,"travel":[17.8,-58.9]},
 "provenance": {"src":"100STYLE","take":"WalkingStickRight_SW 40.38-41.95","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[8,38],"qa":"unchecked","qaVersion":"none"},
 "keys": [

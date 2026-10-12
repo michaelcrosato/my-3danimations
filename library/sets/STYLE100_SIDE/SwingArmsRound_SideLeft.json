@@ -10,7 +10,8 @@
 "desc": "Sidestepping to the left, swing arms round style: swing arms round body (right in front left at back then switch)",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":43},
+"contacts": {"by":"detected","footL":[[0.583,1.5],[1.967,2.583]],"footR":[[0,0.783],[1.267,2.183]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[97,101],"seam":0,"speed":43,"travel":[2.7,-102.8]},
 "provenance": {"src":"100STYLE","take":"SwingArmsRound_SW 34.90-37.38","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[9,150],"qa":"unchecked","qaVersion":"none"},
 "keys": [

@@ -10,6 +10,8 @@
 "desc": "Standing, elated style: swing arms with spring",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
+"contacts": {"by":"detected","footL":[[0,2.6]],"footR":[[0,2.6]]},
+"facts": {"by":"m3a-facts@1","height":[100,101],"seam":0,"speed":0,"travel":[-0.1,0]},
 "provenance": {"src":"100STYLE","take":"Elated_ID 9.70-12.30","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[7,54],"qa":"unchecked","qaVersion":"none"},
 "keys": [

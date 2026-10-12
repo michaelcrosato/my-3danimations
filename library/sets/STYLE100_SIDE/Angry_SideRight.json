@@ -10,7 +10,8 @@
 "desc": "Sidestepping to the right, angry style: swing lower arms aggressively - fists closed",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":41},
+"contacts": {"by":"detected","footL":[[0,0.546],[0.877,2.069]],"footR":[[0.414,1.556],[2.003,2.417]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[98,101],"seam":0,"speed":41,"travel":[10.4,97.2]},
 "provenance": {"src":"100STYLE","take":"Angry_SW 58.67-61.02","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[8,58],"qa":"unchecked","qaVersion":"none"},
 "keys": [
@@ -144,6 +145,6 @@
    "legL":[4,-5,-100,27,4], "legR":[4,7,-100,14,4], "footL":[-4,-1,0], "footR":[-3,13,0]},
   {"t":2.367,
    "hips":[0,0,100], "body":[-2,1,-1], "chest":[2,10,3], "head":[2,15,-1],
-   "shL":[4,-15], "shR":[7,-10], "armL":[41,4,-91,51,12], "armR":[1,10,-99,0,-70], "handL":[-29,1,84], "handR":[-21,21,132], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "shL":[4,-15], "shR":[7,-10], "armL":[41,4,-91,51,12], "armR":[1,10,-99,0,-24], "handL":[-29,1,84], "handR":[-21,21,86], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
    "legL":[1,-6,-100,17,4], "legR":[3,1,-100,12,5], "footL":[-2,5,0], "footR":[-1,7,0]}
 ]}

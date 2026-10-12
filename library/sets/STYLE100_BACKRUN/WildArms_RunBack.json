@@ -10,7 +10,8 @@
 "desc": "Running backward, wild arms style: swing arms much more than normal almost punching into the air",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":106},
+"contacts": {"by":"detected","footL":[[0.743,0.974],[1.37,1.997]],"footR":[[0.363,0.644],[1.122,1.419],[1.601,1.667]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[99,106],"seam":0,"speed":106,"travel":[-169.3,-9.6]},
 "provenance": {"src":"100STYLE","take":"WildArms_BR 59.90-61.57","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[18,169],"qa":"unchecked","qaVersion":"none"},
 "keys": [

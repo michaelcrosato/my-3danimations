@@ -10,7 +10,8 @@
 "desc": "Running sideways to the left, start stop style: pause briefly after step",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":34},
+"contacts": {"by":"detected","footL":[[1.233,1.8]],"footR":[[0,1.317]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[99,103],"seam":0,"speed":34,"travel":[18.6,-63.1]},
 "provenance": {"src":"100STYLE","take":"StartStop_SR 60.75-62.55","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[8,51],"qa":"unchecked","qaVersion":"none"},
 "keys": [

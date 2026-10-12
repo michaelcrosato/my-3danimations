@@ -10,7 +10,8 @@
 "desc": "Sidestepping to the left, karate chop style: open hands swing hand with each step to do a karate chop",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":56},
+"contacts": {"by":"detected","footL":[[0.9,1.567]],"footR":[[0.117,1.017]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[95,101],"seam":0,"speed":56,"travel":[13.8,-71.3]},
 "provenance": {"src":"100STYLE","take":"KarateChop_SW 84.12-85.42","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[7,37],"qa":"unchecked","qaVersion":"none"},
 "keys": [

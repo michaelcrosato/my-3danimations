@@ -10,6 +10,8 @@
 "desc": "Running, a leap over an obstacle, and running on",
 "skeleton": "humanoid",
 "restSrc": "CMU_127_MIGRATED",
+"contacts": {"by":"detected","footL":[[0.367,0.533],[1.267,1.517]],"footR":[[0,0.233],[1.133,1.183],[1.617,1.783]]},
+"facts": {"by":"m3a-facts@1","height":[87,155],"travel":[568,47]},
 "provenance": {"src":"CMU_127","take":"127_25 0.00-1.90","method":"captured","producer":{"tool":"m3a-migrate","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[19,100],"qa":"unchecked","qaVersion":"none"},
 "keys": [

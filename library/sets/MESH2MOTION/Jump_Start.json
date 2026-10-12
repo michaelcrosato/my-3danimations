@@ -10,6 +10,8 @@
 "desc": "dips, then springs up with the arms thrown out (in place: the game lifts the body)",
 "skeleton": "humanoid",
 "restSrc": "M2M_QUATERNIUS",
+"contacts": {"by":"detected","footR":[[1.023,1.172]]},
+"facts": {"by":"m3a-facts@1","height":[60,100]},
 "provenance": {"src":"M2M_QUATERNIUS","orig":"QUATERNIUS_SHARDFALL/Jump_Start","method":"keyed","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
 "quality": {"fit":[10,69],"qa":"unchecked","qaVersion":"none"},
 "keys": [

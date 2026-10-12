@@ -65,6 +65,21 @@ export interface Extra extends EncodeOptions {
   desc?: string;
   blade?: boolean;
   yaw?: boolean;
+  /** A loop whose capture closes (its last frame its first) ends on its first key, each angle by the whole turns
+   *  nearest its own: a nearly straight limb's twist, which its points barely show, can't leave the loop open. */
+  closeLoop?: boolean;
+}
+
+/** The components of each key field that are angles (degrees), as the sensors' seam fix reads them. */
+const ANGLE_PARTS: Readonly<Record<string, readonly number[]>> = {
+  body: [0, 1, 2], chest: [0, 1, 2], head: [0, 1, 2], armL: [4], armR: [4], legL: [4], legR: [4], handL: [0, 1, 2], handR: [0, 1, 2],
+  footL: [0, 1, 2], footR: [0, 1, 2], shL: [0, 1], shR: [0, 1],
+};
+/** Whether a capture's last frame is its first (every point within half a millimetre). */
+function closes(cap: Capture): boolean {
+  const A = capSample(cap, 0, new Float32Array(P * 3)), B = capSample(cap, (cap.n - 1) / cap.fps, new Float32Array(P * 3));
+  for (let i = 0; i < A.length; i += 3) if (PM.hypot(A[i]! - B[i]!, A[i + 1]! - B[i + 1]!, A[i + 2]! - B[i + 2]!) > 0.5) return false;
+  return true;
 }
 
 /** A clip's spine curl is kept when it brings a spine point this much nearer (mm) in some key. */
@@ -142,6 +157,14 @@ export function encode(R: Rest, cap: Capture, kf: readonly number[], extra: Extr
   }
   // a spine curl that helps nowhere isn't kept: the clip is encoded again on the body's own shares
   if (extra.spine && gain < SPINE_GAIN) return encode(R, cap, kf, { ...extra, spine: false });
+  if (extra.closeLoop && cap.loop && keys.length > 1 && kf[0] === 0 && kf[kf.length - 1] === cap.n - 1 && closes(cap)) {
+    const a = keys[0]! as Record<string, unknown>, b = keys[keys.length - 1]! as Record<string, unknown>;
+    for (const [f, v] of Object.entries(a)) {
+      if (f === "t" || f === "root" || f === "yaw" || !Array.isArray(v)) continue;
+      const ang = ANGLE_PARTS[f] ?? [], w = b[f] as number[] | undefined;
+      b[f] = (v as number[]).map((x, j) => (ang.includes(j) && w ? x + 360 * Math.round((w[j]! - x) / 360) : x));
+    }
+  }
   return Object.assign({ clip: cap.name, dur: Math.round(cap.dur * 1000) / 1000, loop: cap.loop }, extra.tags ? { tags: extra.tags } : {}, extra.desc ? { desc: extra.desc } : {}, { keys });
 }
 

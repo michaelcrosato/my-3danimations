@@ -79,7 +79,7 @@ STYLE100_BACK/Stiff_WalkBack	2	loop	46	walk back style	Walking backward, stiff s
 STYLE100_BACK/Strutting_WalkBack	1.2	loop	55	walk back style	Walking backward, strutting style: with swagger leant slightly back arms swinging freely	100STYLE
 STYLE100_BACK/Superman_WalkBack	1.067	loop	55	walk back style	Walking backward, superman style: right arm raised like superman flying	100STYLE
 STYLE100_BACK/Swat_WalkBack	1.067	loop	68	walk back style	Walking backward, swat style: as if holding a rifle and raiding a building	100STYLE
-STYLE100_BACK/Sweep_WalkBack	1.2	loop		walk back style	Walking backward, sweep style: sweeping with a broom while moving	100STYLE
+STYLE100_BACK/Sweep_WalkBack	1.2	loop	0.6	walk back style	Walking backward, sweep style: sweeping with a broom while moving	100STYLE
 STYLE100_BACK/Swimming_WalkBack	2.367	loop	54	walk back style	Walking backward, swimming style: breaststroke walking	100STYLE
 STYLE100_BACK/SwingArmsRound_WalkBack	2.467	loop	40	walk back style	Walking backward, swing arms round style	100STYLE
 STYLE100_BACK/SwingShoulders_WalkBack	1.6	loop	63	walk back style	Walking backward, swing shoulders style	100STYLE

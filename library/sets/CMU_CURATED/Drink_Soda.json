@@ -10,6 +10,8 @@
 "desc": "Unscrews a bottle cap and drinks the soda",
 "skeleton": "humanoid",
 "restSrc": "CMU_13",
+"contacts": {"by":"detected","footR":[[0,12.1]]},
+"facts": {"by":"m3a-facts@1","height":[104,104],"travel":[-1,0]},
 "provenance": {"src":"CMU_13","take":"13_07 0.00-12.09","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[10,72],"qa":"unchecked","qaVersion":"none"},
 "keys": [

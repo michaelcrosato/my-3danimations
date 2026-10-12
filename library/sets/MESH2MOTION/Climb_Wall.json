@@ -10,6 +10,8 @@
 "desc": "climbs a sheer wall, reaching high hand over hand and stepping up, in place",
 "skeleton": "humanoid",
 "restSrc": "M2M_ANIMATED",
+"contacts": {"by":"detected"},
+"facts": {"by":"m3a-facts@1","height":[99,104],"seam":0},
 "provenance": {"src":"M2M_ANIMATED","method":"keyed","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
 "quality": {"fit":[11,63],"qa":"unchecked","qaVersion":"none"},
 "keys": [

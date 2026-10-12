@@ -10,7 +10,8 @@
 "desc": "Waving at somebody else at random",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":81},
+"contacts": {"by":"detected","footL":[[1.187,1.978]],"footR":[[0.494,1.302]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[97,100],"seam":0,"speed":81,"travel":[113.8,2.1]},
 "provenance": {"src":"100STYLE","take":"Waving_FW 115.63-117.10","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[8,77],"qa":"unchecked","qaVersion":"none"},
 "keys": [

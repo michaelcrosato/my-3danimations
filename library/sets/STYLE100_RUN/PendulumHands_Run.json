@@ -10,7 +10,8 @@
 "desc": "Running, pendulum hands style: squat slightly make right angle with elbows and swing hands freely",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":129},
+"contacts": {"by":"detected","footL":[[0.3,0.683]],"footR":[[0.767,1.2]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[93,99],"seam":0,"speed":129,"travel":[108.8,1.5]},
 "provenance": {"src":"100STYLE","take":"PendulumHands_FR 78.87-79.75","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[8,76],"qa":"unchecked","qaVersion":"none"},
 "keys": [

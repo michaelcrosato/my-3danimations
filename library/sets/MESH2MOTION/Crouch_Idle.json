@@ -10,6 +10,8 @@
 "desc": "crouched low and still, looking about",
 "skeleton": "humanoid",
 "restSrc": "M2M_QUATERNIUS",
+"contacts": {"by":"detected","footL":[[0,3.667]],"footR":[[0,3.667]]},
+"facts": {"by":"m3a-facts@1","height":[53,54],"seam":0,"speed":0.2,"travel":[0.2,0.7]},
 "provenance": {"src":"M2M_QUATERNIUS","orig":"QUATERNIUS_SHARDFALL/Crouch_Idle_Loop","method":"keyed","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
 "quality": {"fit":[15,60],"qa":"unchecked","qaVersion":"none"},
 "keys": [

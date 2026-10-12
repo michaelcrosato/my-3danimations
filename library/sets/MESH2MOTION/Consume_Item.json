@@ -10,6 +10,8 @@
 "desc": "brings an item up to the mouth with both hands and eats, then lowers it",
 "skeleton": "humanoid",
 "restSrc": "M2M_ANIMATED",
+"contacts": {"by":"detected","footL":[[0,4.167]],"footR":[[0,4.167]]},
+"facts": {"by":"m3a-facts@1","height":[90,94]},
 "provenance": {"src":"M2M_ANIMATED","method":"keyed","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
 "quality": {"fit":[6,39],"qa":"unchecked","qaVersion":"none"},
 "keys": [

@@ -10,6 +10,8 @@
 "desc": "Climbing a ladder hand over hand, rising about a step a second (no ladder is drawn)",
 "skeleton": "humanoid",
 "restSrc": "CMU_13",
+"contacts": {"by":"detected"},
+"facts": {"by":"m3a-facts@1","height":[107,194],"travel":[26,13]},
 "provenance": {"src":"CMU_13","take":"13_33 2.00-9.00","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[17,170],"qa":"unchecked","qaVersion":"none"},
 "keys": [

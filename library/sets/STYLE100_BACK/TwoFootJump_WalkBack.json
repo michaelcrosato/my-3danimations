@@ -10,7 +10,8 @@
 "desc": "Walking backward, two foot jump style: feet together and jump",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":83},
+"contacts": {"by":"detected","footL":[[0.067,0.283],[0.467,0.75]],"footR":[[0.133,0.267],[0.467,0.75]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[91,109],"seam":0,"speed":83,"travel":[-51.4,-1.6]},
 "provenance": {"src":"100STYLE","take":"TwoFootJump_BW 88.05-88.97","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[11,32],"qa":"unchecked","qaVersion":"none"},
 "keys": [

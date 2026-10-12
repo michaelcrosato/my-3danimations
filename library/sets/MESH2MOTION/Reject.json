@@ -10,6 +10,8 @@
 "desc": "crosses both forearms in front of the chest and turns the head away: no",
 "skeleton": "humanoid",
 "restSrc": "M2M_ANIMATED",
+"contacts": {"by":"detected","footL":[[0,3.792]],"footR":[[0,3.792]]},
+"facts": {"by":"m3a-facts@1","height":[99,100]},
 "provenance": {"src":"M2M_ANIMATED","method":"keyed","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
 "quality": {"fit":[5,38],"qa":"unchecked","qaVersion":"none"},
 "keys": [

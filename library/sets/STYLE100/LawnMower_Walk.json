@@ -10,7 +10,8 @@
 "desc": "Roll hands over one another like disco move and tilt torso forwards and then back",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":78},
+"contacts": {"by":"detected","footL":[[0,0.45]],"footR":[[0.45,1.033]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[98,101],"seam":0,"speed":78,"travel":[109.4,-1.2]},
 "provenance": {"src":"100STYLE","take":"LawnMower_FW 102.20-103.25","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[12,131],"qa":"unchecked","qaVersion":"none"},
 "keys": [

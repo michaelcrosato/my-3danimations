@@ -10,6 +10,8 @@
 "desc": "Getting up from lying on the back: sit up, roll to a knee, stand",
 "skeleton": "humanoid",
 "restSrc": "CMU_140",
+"contacts": {"by":"detected","footL":[[0.748,1.862],[2.694,3.675],[4.473,7.067]],"footR":[[0,1.879],[2.062,2.976],[3.475,3.691],[4.273,4.905],[5.255,7.067]],"handL":[[2.611,3.176]],"handR":[[0,0.333],[2.744,3.193]]},
+"facts": {"by":"m3a-facts@1","height":[4,100],"travel":[-74,-23]},
 "provenance": {"src":"CMU_140","take":"140_08 0.40-7.47","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[13,100],"qa":"unchecked","qaVersion":"none"},
 "keys": [

@@ -10,7 +10,8 @@
 "desc": "Running backward, strutting style: with swagger leant slightly back arms swinging freely",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":135},
+"contacts": {"by":"detected","footL":[[0.326,0.62]],"footR":[[0,0.228]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[97,106],"seam":0,"speed":135,"travel":[-93.5,3.8]},
 "provenance": {"src":"100STYLE","take":"Strutting_BR 10.08-10.85","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[11,67],"qa":"unchecked","qaVersion":"none"},
 "keys": [
@@ -56,6 +57,6 @@
    "legL":[-3,13,-99,29,-3], "legR":[-47,-3,-88,38,1], "footL":[15,-17,0], "footR":[45,44,18]},
   {"t":0.767,
    "hips":[0,0,97], "body":[5,-14,1], "chest":[-5,18,2], "head":[-6,-10,-6],
-   "shL":[-1,-11], "shR":[6,-5], "armL":[7,-1,-100,6,17], "armR":[49,56,-67,18,-42], "handL":[-8,1,70], "handR":[-15,6,114], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "shL":[-1,-11], "shR":[6,-5], "armL":[7,-1,-100,6,-73], "armR":[49,56,-67,18,-42], "handL":[-10,5,-20], "handR":[-15,6,114], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
    "legL":[-11,22,-97,45,-5], "legR":[-35,-4,-94,34,2], "footL":[19,22,0], "footR":[16,17,-1]}
 ]}

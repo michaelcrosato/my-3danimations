@@ -10,6 +10,8 @@
 "desc": "A bear, acted by a person: heavy, lumbering, rearing up with paws raised",
 "skeleton": "humanoid",
 "restSrc": "CMU_54",
+"contacts": {"by":"detected","footL":[[0,2.75],[3.7,5.1],[5.267,6]],"footR":[[0,2.05],[2.467,3.55],[3.967,4.583],[5.117,6]]},
+"facts": {"by":"m3a-facts@1","height":[91,104],"travel":[45,-10]},
 "provenance": {"src":"CMU_54","take":"54_02 5.10-11.10","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[20,132],"qa":"unchecked","qaVersion":"none"},
 "keys": [

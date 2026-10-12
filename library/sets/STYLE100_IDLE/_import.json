@@ -1485,7 +1485,7 @@
     ]
    },
    "qa": {
-    "import": "warn"
+    "import": "pass"
    },
    "hands": [
     15.9

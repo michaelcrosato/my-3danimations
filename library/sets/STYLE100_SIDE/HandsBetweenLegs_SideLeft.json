@@ -10,7 +10,8 @@
 "desc": "Sidestepping to the left, hands between legs style: bent back – legs wide - hands swing between legs",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":52},
+"contacts": {"by":"detected","footL":[[0.533,1.133]],"footR":[[0,0.683]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[92,97],"seam":0,"speed":52,"travel":[17.7,-55.2]},
 "provenance": {"src":"100STYLE","take":"HandsBetweenLegs_SW 33.78-34.93","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[8,28],"qa":"unchecked","qaVersion":"none"},
 "keys": [

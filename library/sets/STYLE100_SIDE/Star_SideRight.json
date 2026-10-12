@@ -10,7 +10,8 @@
 "desc": "Sidestepping to the right, star style: wide arms and legs. Arms slightly below horizontal",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":47},
+"contacts": {"by":"detected","footL":[[0.313,1.253]],"footR":[[1.137,1.912]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[95,102],"seam":0,"speed":47,"travel":[9,71.5]},
 "provenance": {"src":"100STYLE","take":"Star_SW 83.55-85.00","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[9,50],"qa":"unchecked","qaVersion":"none"},
 "keys": [

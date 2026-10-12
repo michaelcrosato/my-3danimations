@@ -10,7 +10,8 @@
 "desc": "Running, swing arms round style: swing arms round body (right in front left at back then switch)",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":23},
+"contacts": {"by":"detected","footL":[[0.25,0.5]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[97,99],"seam":0,"speed":23,"travel":[14.6,6.7]},
 "provenance": {"src":"100STYLE","take":"SwingArmsRound_FR 69.88-70.38","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[8,78],"qa":"unchecked","qaVersion":"none"},
 "keys": [

@@ -10,7 +10,8 @@
 "desc": "Sidestepping to the left, heavyset style: walking as a muscle man tensed biceps",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":33},
+"contacts": {"by":"detected","footL":[[1.47,2.626]],"footR":[[0.182,1.585]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[96,100],"seam":0,"speed":33,"travel":[20.6,-56.4]},
 "provenance": {"src":"100STYLE","take":"Heavyset_SW 80.68-82.45","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[7,28],"qa":"unchecked","qaVersion":"none"},
 "keys": [

@@ -10,6 +10,8 @@
 "desc": "A chicken, acted by a person: elbows as flapping wings, pecking, strutting",
 "skeleton": "humanoid",
 "restSrc": "CMU_29",
+"contacts": {"by":"detected","footL":[[0,3.167],[3.333,4.8],[4.95,5.9]],"footR":[[0,1.233],[1.45,6]]},
+"facts": {"by":"m3a-facts@1","height":[94,104],"travel":[2,-5]},
 "provenance": {"src":"CMU_29","take":"29_22 0.10-6.10","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[13,69],"qa":"unchecked","qaVersion":"none"},
 "keys": [

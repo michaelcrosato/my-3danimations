@@ -10,6 +10,8 @@
 "desc": "a running leap held in the air: legs split, arms back (travels)",
 "skeleton": "humanoid",
 "restSrc": "M2M_ANIMATED",
+"contacts": {"by":"detected","footL":[[0.767,1.1]]},
+"facts": {"by":"m3a-facts@1","height":[77,77],"travel":[0,0]},
 "provenance": {"src":"M2M_ANIMATED","method":"keyed","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
 "quality": {"fit":[9,41],"qa":"unchecked","qaVersion":"none"},
 "keys": [

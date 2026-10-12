@@ -10,7 +10,8 @@
 "desc": "Running backward, robot style: stiff movements arms bending at elbows",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":101},
+"contacts": {"by":"detected","footL":[[0.4,0.583]],"footR":[[0.1,0.333]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[98,104],"seam":0,"speed":101,"travel":[-43.8,-3.6]},
 "provenance": {"src":"100STYLE","take":"Robot_BR 10.98-11.50","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[7,20],"qa":"unchecked","qaVersion":"none"},
 "keys": [

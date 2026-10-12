@@ -10,7 +10,8 @@
 "desc": "Walk on toes with heels raised",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-migrate@1","speed":83},
+"contacts": {"by":"detected","footL":[[0,0.717]],"footR":[[0.617,1.283]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[101,104],"seam":0,"speed":83,"travel":[101.4,-4.1]},
 "provenance": {"src":"100STYLE","take":"Tiptoe_FW 10.87-12.07","method":"captured","producer":{"tool":"m3a-migrate","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[6,74],"qa":"unchecked","qaVersion":"none"},
 "keys": [

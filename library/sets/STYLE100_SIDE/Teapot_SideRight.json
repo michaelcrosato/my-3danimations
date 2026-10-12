@@ -10,7 +10,8 @@
 "desc": "Sidestepping to the right, teapot style: one arm on hip other arm raised",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":48},
+"contacts": {"by":"detected","footL":[[0.791,1.912]],"footR":[[0.33,1.335]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[95,101],"seam":0,"speed":48,"travel":[4.3,69.1]},
 "provenance": {"src":"100STYLE","take":"Teapot_SW 71.23-72.70","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[8,28],"qa":"unchecked","qaVersion":"none"},
 "keys": [

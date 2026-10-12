@@ -10,6 +10,8 @@
 "desc": "Raking leaves with long pulls toward the feet (no rake is drawn)",
 "skeleton": "humanoid",
 "restSrc": "CMU_80",
+"contacts": {"by":"detected","footL":[[0.833,3.033],[3.383,4.6],[4.85,6]],"footR":[[0.233,1.617]]},
+"facts": {"by":"m3a-facts@1","height":[103,106],"travel":[2,-1]},
 "provenance": {"src":"CMU_80","take":"80_34 2.00-8.00","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[24,101],"qa":"unchecked","qaVersion":"none"},
 "keys": [

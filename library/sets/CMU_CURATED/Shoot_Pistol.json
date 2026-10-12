@@ -10,6 +10,8 @@
 "desc": "Shooting a gun",
 "skeleton": "humanoid",
 "restSrc": "CMU_79",
+"contacts": {"by":"detected","footL":[[0,1.067],[1.217,6]],"footR":[[0,1],[1.2,4.933],[5.133,5.733],[5.867,6]]},
+"facts": {"by":"m3a-facts@1","height":[102,103],"strike":[0.317],"travel":[2,1]},
 "provenance": {"src":"CMU_79","take":"79_96 1.50-7.50","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[13,71],"qa":"unchecked","qaVersion":"none"},
 "keys": [

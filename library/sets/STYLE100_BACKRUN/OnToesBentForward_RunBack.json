@@ -10,7 +10,8 @@
 "desc": "Running backward, on toes bent forward style: as bent forward style but on tip toes",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":109},
+"contacts": {"by":"detected","footL":[[0.483,0.783]],"footR":[[0.117,0.483]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[95,98],"seam":0,"speed":109,"travel":[-61.1,-6]},
 "provenance": {"src":"100STYLE","take":"OnToesBentForward_BR 27.53-28.18","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[7,36],"qa":"unchecked","qaVersion":"none"},
 "keys": [

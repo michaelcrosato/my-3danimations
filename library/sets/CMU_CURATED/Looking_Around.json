@@ -10,6 +10,8 @@
 "desc": "Standing a little hunched, looking warily about",
 "skeleton": "humanoid",
 "restSrc": "CMU_139",
+"contacts": {"by":"detected","footL":[[0.083,1.85],[1.983,6]],"footR":[[0.4,6]]},
+"facts": {"by":"m3a-facts@1","height":[96,102],"travel":[28,-2]},
 "provenance": {"src":"CMU_139","take":"139_03 1.00-7.00","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[12,83],"qa":"unchecked","qaVersion":"none"},
 "keys": [

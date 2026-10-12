@@ -10,6 +10,8 @@
 "desc": "reaches out and picks something up from table height",
 "skeleton": "humanoid",
 "restSrc": "M2M_QUATERNIUS",
+"contacts": {"by":"detected","footL":[[0,0.595],[0.777,0.992]],"footR":[[0.066,0.198],[0.331,0.992]]},
+"facts": {"by":"m3a-facts@1","height":[100,101]},
 "provenance": {"src":"M2M_QUATERNIUS","orig":"QUATERNIUS_SHARDFALL/PickUp_Table","method":"keyed","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
 "quality": {"fit":[6,42],"qa":"unchecked","qaVersion":"none"},
 "keys": [

@@ -10,6 +10,8 @@
 "desc": "Standing, flapping style: flap arms as wings on tiptoes",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
+"contacts": {"by":"detected","footL":[[0,3.367]],"footR":[[0,3.367]]},
+"facts": {"by":"m3a-facts@1","height":[105,106],"seam":0,"speed":0.1,"travel":[-0.3,-0.3]},
 "provenance": {"src":"100STYLE","take":"Flapping_ID 11.45-14.80","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[8,100],"qa":"unchecked","qaVersion":"none"},
 "keys": [
@@ -79,6 +81,6 @@
    "legL":[-34,2,-94,11,-3], "legR":[-34,-5,-94,10,4], "footL":[32,-2,21], "footR":[32,1,21]},
   {"t":3.367,
    "hips":[0,0,105], "body":[0,-10,0], "chest":[14,15,2], "head":[-14,22,-4],
-   "shL":[11,-6], "shR":[7,-3], "armL":[7,3,-100,0,5], "armR":[16,16,-97,7,228], "handL":[-9,-3,82], "handR":[0,5,-117], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "shL":[11,-6], "shR":[7,-3], "armL":[7,3,-100,0,5], "armR":[16,16,-97,7,175], "handL":[-9,-3,82], "handR":[-3,5,-64], "fingersL":[0,0,0,0,0], "fingersR":[1,1,1,1,1],
    "legL":[-32,1,-95,14,0], "legR":[-32,-5,-95,14,6], "footL":[32,1,22], "footR":[32,2,22]}
 ]}

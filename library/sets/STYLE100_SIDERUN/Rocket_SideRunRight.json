@@ -10,7 +10,8 @@
 "desc": "Running sideways to the right, rocket style: bent to flat back with hands behind as thrusters",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":157},
+"contacts": {"by":"detected","footL":[[0.55,0.816]],"footR":[[0.2,0.433]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[91,105],"seam":0,"speed":157,"travel":[13.8,99.5]},
 "provenance": {"src":"100STYLE","take":"Rocket_SR 42.15-42.77","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[10,40],"qa":"unchecked","qaVersion":"none"},
 "keys": [

@@ -10,7 +10,8 @@
 "desc": "Running sideways to the right, skip style: skipping like a child",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":120},
+"contacts": {"by":"detected","footL":[[0,0.317],[0.5,0.733]],"footR":[[0.666,0.866],[1.05,1.2]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[94,113],"seam":0,"speed":120,"travel":[41.2,135.3]},
 "provenance": {"src":"100STYLE","take":"Skip_SR 36.88-38.02","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[11,75],"qa":"unchecked","qaVersion":"none"},
 "keys": [

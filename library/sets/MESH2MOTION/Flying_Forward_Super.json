@@ -10,6 +10,8 @@
 "desc": "flying forward like a superhero, both arms stretched ahead",
 "skeleton": "humanoid",
 "restSrc": "M2M_ANIMATED",
+"contacts": {"by":"detected"},
+"facts": {"by":"m3a-facts@1","height":[140,140],"seam":0},
 "provenance": {"src":"M2M_ANIMATED","method":"keyed","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
 "quality": {"fit":[8,33],"qa":"unchecked","qaVersion":"none"},
 "keys": [

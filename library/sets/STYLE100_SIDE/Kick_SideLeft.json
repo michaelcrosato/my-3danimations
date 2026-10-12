@@ -10,7 +10,8 @@
 "desc": "Sidestepping to the left, kick style: kick with every step",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":21},
+"contacts": {"by":"detected","footL":[[2.168,3.493]],"footR":[[1.059,2.152]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[98,102],"seam":0,"speed":21,"travel":[24,-43]},
 "provenance": {"src":"100STYLE","take":"Kick_SW 115.97-118.35","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[8,60],"qa":"unchecked","qaVersion":"none"},
 "keys": [

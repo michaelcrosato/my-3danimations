@@ -10,7 +10,8 @@
 "desc": "Running sideways to the right, waving style: waving at somebody else at random",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":160},
+"contacts": {"by":"detected","footL":[[0.067,0.35]],"footR":[[0.35,0.467]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[96,111],"seam":0,"speed":160,"travel":[-7.4,98.6]},
 "provenance": {"src":"100STYLE","take":"Waving_SR 36.70-37.30","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[12,90],"qa":"unchecked","qaVersion":"none"},
 "keys": [
@@ -60,6 +61,6 @@
    "legL":[-20,1,-98,18,-4], "legR":[-15,-1,-99,26,-13], "footL":[19,-43,-3], "footR":[32,-21,-3]},
   {"t":0.6,
    "hips":[0,0,111], "body":[7,-7,0], "chest":[-10,23,-3], "head":[-48,26,-13],
-   "shL":[12,-7], "shR":[2,-8], "armL":[24,10,-96,0,-62], "armR":[78,-29,-56,90,-5], "handL":[-15,-10,39], "handR":[-55,15,86], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "shL":[12,-7], "shR":[2,-8], "armL":[24,10,-96,0,11], "armR":[78,-29,-56,90,-5], "handL":[-15,-10,112], "handR":[-55,15,86], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
    "legL":[-20,-3,-98,7,8], "legR":[-17,0,-99,27,-6], "footL":[14,-51,-5], "footR":[36,-13,-1]}
 ]}

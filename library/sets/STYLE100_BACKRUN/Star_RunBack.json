@@ -10,7 +10,8 @@
 "desc": "Running backward, star style: wide arms and legs. Arms slightly below horizontal",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":116},
+"contacts": {"by":"detected","footL":[[0.383,0.633]],"footR":[[0.083,0.366]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[97,103],"seam":0,"speed":116,"travel":[-68.5,-2.4]},
 "provenance": {"src":"100STYLE","take":"Star_BR 12.75-13.38","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[9,37],"qa":"unchecked","qaVersion":"none"},
 "keys": [

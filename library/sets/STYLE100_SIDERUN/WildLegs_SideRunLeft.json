@@ -10,7 +10,8 @@
 "desc": "Running sideways to the left, wild legs style: kick legs into the air with each step",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":82},
+"contacts": {"by":"detected","footL":[[0.25,0.516]],"footR":[[0.716,0.983]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[97,110],"seam":0,"speed":82,"travel":[24.5,-66.8]},
 "provenance": {"src":"100STYLE","take":"WildLegs_SR 19.58-20.42","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[10,67],"qa":"unchecked","qaVersion":"none"},
 "keys": [

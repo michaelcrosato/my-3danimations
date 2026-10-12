@@ -10,7 +10,8 @@
 "desc": "Running, big steps style: as large steps as possible",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":244},
+"contacts": {"by":"detected","footR":[[0.283,0.633]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[90,97],"seam":0,"speed":244,"travel":[253.9,-0.7]},
 "provenance": {"src":"100STYLE","take":"BigSteps_FR 6.18-7.20","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[20,216],"qa":"unchecked","qaVersion":"none"},
 "keys": [
@@ -96,6 +97,6 @@
    "legL":[5,-16,-98,62,-8], "legR":[9,7,-99,82,-14], "footL":[9,-378,28], "footR":[14,63,-6]},
   {"t":1.033,
    "hips":[0,0,92], "body":[-8,16,3], "chest":[10,20,-3], "head":[4,1,2],
-   "shL":[4,-6], "shR":[5,-8], "armL":[65,14,-74,21,-81], "armR":[45,31,-84,10,-8], "handL":[-15,14,13], "handR":[-2,-1,133], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "shL":[4,-6], "shR":[5,-8], "armL":[65,14,-74,21,-11], "armR":[45,31,-84,10,-8], "handL":[-7,7,84], "handR":[-2,-1,133], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
    "legL":[-13,-9,-99,52,-13], "legR":[40,12,-91,72,-11], "footL":[14,-382,30], "footR":[0,40,0]}
 ]}

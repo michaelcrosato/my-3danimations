@@ -10,7 +10,8 @@
 "desc": "Running, lunge style: wide step bend knee every step in lunge position",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":71},
+"contacts": {"by":"detected","footL":[[0.76,1.354],[1.668,1.767]],"footR":[[1.189,2.428]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[81,101],"seam":0,"speed":71,"travel":[123.6,-37.4]},
 "provenance": {"src":"100STYLE","take":"Lunge_FR 50.92-52.67","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[12,62],"qa":"unchecked","qaVersion":"none"},
 "keys": [

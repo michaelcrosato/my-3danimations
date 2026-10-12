@@ -10,6 +10,8 @@
 "desc": "kneels, presses a seed into the soil, stands",
 "skeleton": "humanoid",
 "restSrc": "M2M_QUATERNIUS",
+"contacts": {"by":"detected","footL":[[0.05,0.299],[0.715,1.928],[2.194,2.792]],"footR":[[0.831,1.662],[2.293,2.792]]},
+"facts": {"by":"m3a-facts@1","height":[43,100]},
 "provenance": {"src":"M2M_QUATERNIUS","orig":"QUATERNIUS_SHARDFALL/Farm_PlantSeed","method":"keyed","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
 "quality": {"fit":[10,57],"qa":"unchecked","qaVersion":"none"},
 "keys": [

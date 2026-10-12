@@ -10,7 +10,8 @@
 "desc": "Lift knees high but only knees – not marching",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":62},
+"contacts": {"by":"detected","footL":[[0.956,1.714]],"footR":[[0.198,1.038]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[97,101],"seam":0,"speed":62,"travel":[88.5,1.6]},
 "provenance": {"src":"100STYLE","take":"HighKnees_FW 10.88-12.35","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[8,47],"qa":"unchecked","qaVersion":"none"},
 "keys": [
@@ -84,6 +85,6 @@
    "legL":[-21,-1,-98,8,-4], "legR":[24,-11,-96,102,0], "footL":[9,-358,0], "footR":[38,8,0]},
   {"t":1.467,
    "hips":[0,0,100], "body":[0,-10,-3], "chest":[-1,17,3], "head":[6,1,1],
-   "shL":[6,-10], "shR":[5,-7], "armL":[21,3,-98,13,34], "armR":[16,9,-98,12,-214], "handL":[-13,-12,108], "handR":[2,0,-62], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "shL":[6,-10], "shR":[5,-7], "armL":[21,3,-98,13,34], "armR":[16,9,-98,12,-152], "handL":[-13,-12,108], "handR":[7,0,-124], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
    "legL":[-28,-2,-96,13,-7], "legR":[22,-9,-97,78,4], "footL":[10,-359,0], "footR":[22,12,0]}
 ]}

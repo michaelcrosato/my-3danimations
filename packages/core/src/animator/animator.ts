@@ -27,12 +27,14 @@ import { decodeOn, forward, solve, type Solved } from "../solve/solve.ts";
 export type AnimClip = Pick<Clip, "id" | "dur" | "loop" | "keys"> & Partial<Pick<Clip, "events" | "contacts">> & { shares?: Pick<Rest, "spineW" | "neckW"> };
 
 /**
- * A library clip made ready to play on any body (`const { clip, rest } = library.clip(id)`, then `playable(clip, rest)`):
- * its contacts measured on its own rest unless it carries them, so its feet plant and its planted feet move the root,
- * and its library's spine and neck shares, so its spine and head bend as its library posed them (spec/MOTION.md §3.3).
+ * A library clip made ready to play on any body (`const { clip, rest } = library.clip(id)`, then `playable(clip,
+ * rest)`): its contacts measured on its own rest unless a source labelled them (the ones a tool detected, which a
+ * library clip carries, are detected again: an edit since may have moved its feet), so its feet plant and its planted
+ * feet move the root, and its library's spine and neck shares, so its spine and head bend as its library posed them
+ * (spec/MOTION.md §3.3).
  */
 export function playable<C extends AnimClip>(clip: C, rest: Rest): C & Required<Pick<AnimClip, "contacts" | "shares">> {
-  return { ...clip, contacts: clip.contacts ?? measureFacts(clip as never, rest).contacts, shares: { spineW: [...rest.spineW], neckW: rest.neckW } };
+  return { ...clip, contacts: measureFacts(clip as never, rest).contacts, shares: { spineW: [...rest.spineW], neckW: rest.neckW } };
 }
 
 /** How an Animator runs: the fixed step (seconds, 1/60), the most steps one `step()` call takes, and the ground. */

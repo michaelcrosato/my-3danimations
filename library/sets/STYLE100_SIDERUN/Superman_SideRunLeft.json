@@ -10,7 +10,8 @@
 "desc": "Running sideways to the left, superman style: right arm raised like superman flying",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":136},
+"contacts": {"by":"detected","footL":[[0.217,0.483]],"footR":[[0,0.283]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[94,105],"seam":0,"speed":136,"travel":[-2.6,-89.4]},
 "provenance": {"src":"100STYLE","take":"Superman_SR 33.10-33.70","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[8,41],"qa":"unchecked","qaVersion":"none"},
 "keys": [

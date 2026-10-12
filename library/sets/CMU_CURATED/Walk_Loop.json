@@ -10,7 +10,8 @@
 "desc": "An everyday walk at a steady pace, arms swinging loosely. One stride cycle, in place",
 "skeleton": "humanoid",
 "restSrc": "CMU_02",
-"facts": {"by":"m3a-import@1","speed":130},
+"contacts": {"by":"detected","footL":[[0.333,0.917]],"footR":[[0.867,1.45]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[99,102],"seam":0,"speed":130,"travel":[133.2,1.2]},
 "provenance": {"src":"CMU_02","take":"02_01 0.91-2.01","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[9,100],"qa":"unchecked","qaVersion":"none"},
 "keys": [

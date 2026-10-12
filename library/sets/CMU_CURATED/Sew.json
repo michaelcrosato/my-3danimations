@@ -10,6 +10,8 @@
 "desc": "Sewing by hand",
 "skeleton": "humanoid",
 "restSrc": "CMU_79",
+"contacts": {"by":"detected","footL":[[0,6]],"footR":[[0.233,6]]},
+"facts": {"by":"m3a-facts@1","height":[101,101],"travel":[1,0]},
 "provenance": {"src":"CMU_79","take":"79_05 1.80-7.80","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[9,42],"qa":"unchecked","qaVersion":"none"},
 "keys": [

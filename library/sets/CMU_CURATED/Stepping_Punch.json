@@ -10,6 +10,8 @@
 "desc": "Karate stepping punches (oi-zuki): a long stride forward with a straight punch on each step",
 "skeleton": "humanoid",
 "restSrc": "CMU_135",
+"contacts": {"by":"detected","footL":[[0,2.183],[2.683,6]],"footR":[[0,0.317],[0.783,1.933],[2.133,4.1],[4.583,5.833]]},
+"facts": {"by":"m3a-facts@1","height":[78,90],"strike":[4.483],"travel":[293,-130]},
 "provenance": {"src":"CMU_135","take":"135_09 1.80-7.80","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[24,91],"qa":"unchecked","qaVersion":"none"},
 "keys": [

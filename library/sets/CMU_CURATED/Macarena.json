@@ -10,6 +10,8 @@
 "desc": "The Macarena, move by move",
 "skeleton": "humanoid",
 "restSrc": "CMU_143",
+"contacts": {"by":"detected","footL":[[0,0.116],[0.283,0.366],[0.516,1.98],[2.13,3.062],[3.212,4.493],[5.308,5.408],[5.608,8.403],[8.536,8.719],[9.485,9.818]],"footR":[[0,1.98],[2.147,3.927],[4.177,4.493],[4.942,5.092],[5.308,8.403],[8.536,8.736],[9.219,9.252],[9.501,9.734]]},
+"facts": {"by":"m3a-facts@1","height":[92,115],"travel":[13,18]},
 "provenance": {"src":"CMU_143","take":"143_35 0.50-10.65","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[9,55],"qa":"unchecked","qaVersion":"none"},
 "keys": [

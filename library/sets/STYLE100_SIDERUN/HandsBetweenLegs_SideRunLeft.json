@@ -10,7 +10,8 @@
 "desc": "Running sideways to the left, hands between legs style: bent back – legs wide - hands swing between legs",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":149},
+"contacts": {"by":"detected","footL":[[0.277,0.553]],"footR":[[0,0.293]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[90,106],"seam":0,"speed":149,"travel":[33.8,-96.4]},
 "provenance": {"src":"100STYLE","take":"HandsBetweenLegs_SR 42.07-42.75","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[7,52],"qa":"unchecked","qaVersion":"none"},
 "keys": [

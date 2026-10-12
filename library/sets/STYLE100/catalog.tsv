@@ -90,6 +90,6 @@ STYLE100/WalkingStickRight_Walk	1.5	loop	81	walk style	Walk with a stick – use
 STYLE100/Waving_Walk	1.467	loop	81	walk style varies	Waving at somebody else at random	100STYLE
 STYLE100/WhirlArms_Walk	1.8	loop	73	walk style	Windmill arms	100STYLE
 STYLE100/WideLegs_Walk	1.3	loop	27	walk style	Legs apart motions	100STYLE
-STYLE100/WiggleHips_Walk	2.033	loop		walk style	Hands raised in front of body wiggle hips side to side	100STYLE
+STYLE100/WiggleHips_Walk	2.033	loop	9.7	walk style	Hands raised in front of body wiggle hips side to side	100STYLE
 STYLE100/WildArms_Walk	1.467	loop	101	walk style	Swing arms much more than normal almost punching into the air	100STYLE
 STYLE100/Zombie_Walk	1.633	loop	51	walk style	Arms in front like zombie	100STYLE

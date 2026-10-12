@@ -10,6 +10,8 @@
 "desc": "Mesh2Motion's rest pose, arms out: the pose its clips are measured from",
 "skeleton": "humanoid",
 "restSrc": "M2M_ANIMATED",
+"contacts": {"by":"detected","footL":[[0,0.417]],"footR":[[0,0.417]]},
+"facts": {"by":"m3a-facts@1","height":[100,100]},
 "provenance": {"src":"M2M_ANIMATED","method":"keyed","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
 "quality": {"fit":[4,27],"qa":"unchecked","qaVersion":"none"},
 "keys": [

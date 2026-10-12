@@ -10,7 +10,8 @@
 "desc": "Running backward, karate chop style: open hands swing hand with each step to do a karate chop",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":87},
+"contacts": {"by":"detected","footL":[[0.767,1],[1.417,2.133]],"footR":[[0.483,0.667],[1.15,1.85]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[95,102],"seam":0,"speed":87,"travel":[-149.3,-31.9]},
 "provenance": {"src":"100STYLE","take":"KarateChop_BR 58.28-60.08","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[12,98],"qa":"unchecked","qaVersion":"none"},
 "keys": [

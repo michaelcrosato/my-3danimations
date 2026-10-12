@@ -10,6 +10,8 @@
 "desc": "Standing, bouncy left style: step normally with right foot but spring off left foot",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
+"contacts": {"by":"detected","footL":[[0.55,1.766],[1.966,3.016]],"footR":[[0,2.633]]},
+"facts": {"by":"m3a-facts@1","height":[101,108],"seam":0,"speed":0.5,"travel":[0.8,-0.9]},
 "provenance": {"src":"100STYLE","take":"BouncyLeft_ID 13.53-16.17","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[9,44],"qa":"unchecked","qaVersion":"none"},
 "keys": [
@@ -55,6 +57,6 @@
    "legL":[-29,-6,-96,7,-4], "legR":[-32,4,-95,0,-5], "footL":[21,-5,12], "footR":[19,-1,11]},
   {"t":2.633,
    "hips":[0,0,101], "body":[0,-8,1], "chest":[2,18,-2], "head":[3,5,-1],
-   "shL":[1,-12], "shR":[1,-8], "armL":[22,5,-97,0,40], "armR":[28,7,-96,0,-14], "handL":[-3,-6,-233], "handR":[-5,7,128], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "shL":[1,-12], "shR":[1,-8], "armL":[22,5,-97,0,105], "armR":[28,7,-96,0,-14], "handL":[-3,-6,-168], "handR":[-5,7,128], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
    "legL":[-29,-3,-96,0,3], "legR":[-32,0,-95,0,3], "footL":[12,-1,0], "footR":[13,0,0]}
 ]}

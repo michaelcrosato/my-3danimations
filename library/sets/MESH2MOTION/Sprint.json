@@ -10,6 +10,8 @@
 "desc": "full sprint with big arm swings, in place",
 "skeleton": "humanoid",
 "restSrc": "M2M_QUATERNIUS",
+"contacts": {"by":"detected","footR":[[0.533,0.6]]},
+"facts": {"by":"m3a-facts@1","height":[91,106],"seam":0,"speed":776.2,"travel":[646.6,3.8]},
 "provenance": {"src":"M2M_QUATERNIUS","orig":"QUATERNIUS_SHARDFALL/Sprint_Loop","method":"keyed","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
 "quality": {"fit":[10,62],"qa":"unchecked","qaVersion":"none"},
 "keys": [
@@ -104,5 +106,5 @@
   {"t":0.833,
    "hips":[-8,-2,99], "body":[0,23,6], "chest":[-33,19,4], "head":[14,-2,-8],
    "shL":[-10,5], "shR":[6,1], "armL":[44,50,-74,77,0], "armR":[80,60,-6,96,-32], "handL":[5,25,95], "handR":[4,32,93], "fingersL":[87,87,87,87,87], "fingersR":[87,87,87,87,87],
-   "legL":[72,-9,-68,4,-7], "legR":[-41,12,-90,71,7], "footL":[-51,-6,0], "footR":[42,160,-32]}
+   "legL":[72,-9,-68,4,146], "legR":[-41,12,-90,71,7], "footL":[-51,-6,0], "footR":[42,160,-32]}
 ]}

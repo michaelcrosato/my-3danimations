@@ -10,7 +10,8 @@
 "desc": "Running sideways to the right, star style: wide arms and legs. Arms slightly below horizontal",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":157},
+"contacts": {"by":"detected","footL":[[0,0.25]],"footR":[[0.25,0.45]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[94,109],"seam":0,"speed":157,"travel":[1.1,94.5]},
 "provenance": {"src":"100STYLE","take":"Star_SR 39.95-40.55","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[10,73],"qa":"unchecked","qaVersion":"none"},
 "keys": [

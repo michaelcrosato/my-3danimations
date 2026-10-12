@@ -10,6 +10,8 @@
 "desc": "Stumbles into someone",
 "skeleton": "humanoid",
 "restSrc": "CMU_22",
+"contacts": {"by":"detected","footL":[[0.45,1.083],[1.533,2.2]],"footR":[[0,0.517],[0.917,1.65],[2.117,2.5]]},
+"facts": {"by":"m3a-facts@1","height":[68,104],"travel":[208,-64]},
 "provenance": {"src":"CMU_22","take":"22_12 0.00-2.50","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[17,69],"qa":"unchecked","qaVersion":"none"},
 "keys": [

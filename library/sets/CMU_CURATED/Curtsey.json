@@ -10,6 +10,8 @@
 "desc": "A curtsey: one foot behind, knees dipping, a small bow of the head",
 "skeleton": "humanoid",
 "restSrc": "CMU_141",
+"contacts": {"by":"detected","footL":[[0.533,0.75],[1.1,1.383],[1.6,1.917],[2.25,2.767]],"footR":[[0,0.45],[0.8,0.983],[1.417,2.233],[2.9,3.3]]},
+"facts": {"by":"m3a-facts@1","height":[64,106],"travel":[221,36]},
 "provenance": {"src":"CMU_141","take":"141_26 0.00-3.30","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[15,126],"qa":"unchecked","qaVersion":"none"},
 "keys": [

@@ -10,6 +10,8 @@
 "desc": "Hopscotch",
 "skeleton": "humanoid",
 "restSrc": "CMU_75",
+"contacts": {"by":"detected","footL":[[1.9,2.583],[3.033,3.65],[4.067,5]],"footR":[[0,0.517],[0.85,1.567],[1.9,2.6],[3.017,3.667],[4,5]]},
+"facts": {"by":"m3a-facts@1","height":[91,123],"travel":[246,21]},
 "provenance": {"src":"CMU_75","take":"75_13 0.20-5.20","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[14,70],"qa":"unchecked","qaVersion":"none"},
 "keys": [

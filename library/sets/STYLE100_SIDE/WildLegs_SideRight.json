@@ -10,7 +10,8 @@
 "desc": "Sidestepping to the right, wild legs style: kick legs into the air with each step",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":23},
+"contacts": {"by":"detected","footL":[[0,1.217]],"footR":[[0.05,0.117],[1.133,2.1]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[99,104],"seam":0,"speed":23,"travel":[6,47.5]},
 "provenance": {"src":"100STYLE","take":"WildLegs_SW 154.87-156.97","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[8,46],"qa":"unchecked","qaVersion":"none"},
 "keys": [
@@ -116,6 +117,6 @@
    "legL":[3,3,-100,33,3], "legR":[-15,-3,-99,6,-16], "footL":[9,-13,-1], "footR":[4,23,0]},
   {"t":2.1,
    "hips":[0,0,101], "body":[-11,-3,0], "chest":[4,8,2], "head":[-1,8,-2], "spine":[-5,43,73],
-   "shL":[4,-8], "shR":[4,-10], "armL":[6,8,-100,0,21], "armR":[12,13,-98,0,181], "handL":[-15,-1,67], "handR":[-13,-13,-78], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "shL":[4,-8], "shR":[4,-10], "armL":[6,8,-100,0,21], "armR":[12,13,-98,0,123], "handL":[-15,-1,67], "handR":[-13,-13,-20], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
    "legL":[-1,-2,-100,23,-1], "legR":[-12,-6,-99,0,-27], "footL":[4,-3,0], "footR":[3,23,0]}
 ]}

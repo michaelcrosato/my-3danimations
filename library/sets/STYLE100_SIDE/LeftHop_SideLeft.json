@@ -10,7 +10,8 @@
 "desc": "Sidestepping to the left, left hop style: hop on left foot",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":86},
+"contacts": {"by":"detected","footL":[[0,0.317],[0.483,0.816]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[95,112],"seam":0,"speed":86,"travel":[12.2,-86.1]},
 "provenance": {"src":"100STYLE","take":"LeftHop_SW 11.32-12.35","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[9,41],"qa":"unchecked","qaVersion":"none"},
 "keys": [

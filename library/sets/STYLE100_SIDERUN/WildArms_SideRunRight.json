@@ -10,7 +10,8 @@
 "desc": "Running sideways to the right, wild arms style: swing arms much more than normal almost punching into the air",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":163},
+"contacts": {"by":"detected","footL":[[0.082,0.362],[0.79,0.987]],"footR":[[0.313,0.559],[0.987,1.135]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[92,113],"seam":0,"speed":163,"travel":[9.8,213.7]},
 "provenance": {"src":"100STYLE","take":"WildArms_SR 34.62-35.90","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[16,129],"qa":"unchecked","qaVersion":"none"},
 "keys": [

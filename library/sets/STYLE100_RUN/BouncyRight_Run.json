@@ -10,7 +10,8 @@
 "desc": "Running, bouncy right style: step normally with left foot but spring off right foot",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":149},
+"contacts": {"by":"detected","footL":[[0.294,0.555]],"footR":[[0.587,0.767]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[92,115],"seam":0,"speed":149,"travel":[117.5,1.8]},
 "provenance": {"src":"100STYLE","take":"BouncyRight_FR 61.50-62.25","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[9,56],"qa":"unchecked","qaVersion":"none"},
 "keys": [

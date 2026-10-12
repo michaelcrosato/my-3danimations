@@ -10,7 +10,8 @@
 "desc": "Running sideways to the right, shielded right style: squat down with right arm raised in block as if holding a shield above head. Left arm as if holding a sword",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":145},
+"contacts": {"by":"detected","footL":[[0.433,0.716]],"footR":[[0.133,0.333]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[90,102],"seam":0,"speed":145,"travel":[-1.3,96.5]},
 "provenance": {"src":"100STYLE","take":"ShieldedRight_SR 38.23-38.87","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[8,33],"qa":"unchecked","qaVersion":"none"},
 "keys": [

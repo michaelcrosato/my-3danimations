@@ -10,7 +10,8 @@
 "desc": "leans in and shoves something heavy, stepping",
 "skeleton": "humanoid",
 "restSrc": "UAL1",
-"facts": {"by":"m3a-migrate@1","speed":33},
+"contacts": {"by":"detected","footL":[[2.485,4.174]],"footR":[[1.507,3.595]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[74,79],"seam":0,"speed":33,"travel":[82.9,-0.4]},
 "provenance": {"src":"UAL1","method":"keyed","producer":{"tool":"m3a-migrate","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
 "quality": {"fit":[22,138],"qa":"unchecked","qaVersion":"none"},
 "keys": [

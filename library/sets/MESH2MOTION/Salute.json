@@ -10,6 +10,8 @@
 "desc": "stands at attention, salutes and lowers the hand",
 "skeleton": "humanoid",
 "restSrc": "M2M_MOCOPI",
+"contacts": {"by":"detected","footL":[[0,4.383]],"footR":[[0,4.383]]},
+"facts": {"by":"m3a-facts@1","height":[101,102]},
 "provenance": {"src":"M2M_MOCOPI","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCapture"},
 "quality": {"fit":[9,48],"qa":"unchecked","qaVersion":"none"},
 "keys": [

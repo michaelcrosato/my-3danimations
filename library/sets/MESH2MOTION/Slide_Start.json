@@ -10,6 +10,8 @@
 "desc": "drops from a run into a feet-first slide on the back; ends back in the running pose",
 "skeleton": "humanoid",
 "restSrc": "M2M_QUATERNIUS",
+"contacts": {"by":"detected"},
+"facts": {"by":"m3a-facts@1","height":[6,94]},
 "provenance": {"src":"M2M_QUATERNIUS","orig":"QUATERNIUS_SHARDFALL/Slide_Start","method":"keyed","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
 "quality": {"fit":[11,72],"qa":"unchecked","qaVersion":"none"},
 "keys": [

@@ -10,7 +10,8 @@
 "desc": "Running backward, kick style: kick with every step",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":56},
+"contacts": {"by":"detected","footL":[[0.067,0.45]],"footR":[[0.65,0.883]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[90,106],"seam":0,"speed":56,"travel":[-38,26.6]},
 "provenance": {"src":"100STYLE","take":"Kick_BR 52.30-53.28","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[10,67],"qa":"unchecked","qaVersion":"none"},
 "keys": [

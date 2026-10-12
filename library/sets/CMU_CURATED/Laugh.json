@@ -10,6 +10,8 @@
 "desc": "Laughing",
 "skeleton": "humanoid",
 "restSrc": "CMU_79",
+"contacts": {"by":"detected","footL":[[0,5.1],[5.233,6]],"footR":[[0,3.183],[3.333,6]]},
+"facts": {"by":"m3a-facts@1","height":[97,104],"travel":[-7,0]},
 "provenance": {"src":"CMU_79","take":"79_70 1.20-7.20","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[14,185],"qa":"unchecked","qaVersion":"none"},
 "keys": [

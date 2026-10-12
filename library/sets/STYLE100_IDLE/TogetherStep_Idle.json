@@ -10,6 +10,8 @@
 "desc": "Standing, together step style: step left foot - then together – then right foot",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
+"contacts": {"by":"detected","footL":[[0,2.7]],"footR":[[0,2.7]]},
+"facts": {"by":"m3a-facts@1","height":[100,100],"seam":0,"speed":0,"travel":[0,0]},
 "provenance": {"src":"100STYLE","take":"TogetherStep_ID 16.93-19.65","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[9,27],"qa":"unchecked","qaVersion":"none"},
 "keys": [

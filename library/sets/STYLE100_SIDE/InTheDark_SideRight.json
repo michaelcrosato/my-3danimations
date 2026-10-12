@@ -10,7 +10,8 @@
 "desc": "Sidestepping to the right, in the dark style: feeling around as if in darkness",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":38},
+"contacts": {"by":"detected","footL":[[0.483,1.75]],"footR":[[1.516,2.649]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[98,102],"seam":0,"speed":38,"travel":[6.2,61]},
 "provenance": {"src":"100STYLE","take":"InTheDark_SW 126.33-127.95","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[8,109],"qa":"unchecked","qaVersion":"none"},
 "keys": [
@@ -68,6 +69,6 @@
    "legL":[-20,26,-95,12,2], "legR":[-10,25,-96,13,20], "footL":[4,12,-1], "footR":[18,-1,0]},
   {"t":1.633,
    "hips":[0,0,98], "body":[0,-5,-4], "chest":[22,20,-12], "head":[32,21,25],
-   "shL":[7,-5], "shR":[7,-4], "armL":[55,-3,-84,0,251], "armR":[23,79,-58,3,-170], "handL":[8,-7,48], "handR":[-40,0,-101], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "shL":[7,-5], "shR":[7,-4], "armL":[55,-3,-84,0,151], "armR":[23,79,-58,3,-170], "handL":[8,-7,-52], "handR":[-40,0,-101], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
    "legL":[-17,38,-91,9,-7], "legR":[-10,12,-99,15,14], "footL":[9,21,5], "footR":[6,-7,0]}
 ]}

@@ -10,7 +10,8 @@
 "desc": "Running sideways to the right, beat chest style: beat chest while moving normally",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":163},
+"contacts": {"by":"detected","footL":[[0.117,0.333]],"footR":[[0.367,0.583]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[95,108],"seam":0,"speed":163,"travel":[25.5,104.9]},
 "provenance": {"src":"100STYLE","take":"BeatChest_SR 34.90-35.50","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[8,44],"qa":"unchecked","qaVersion":"none"},
 "keys": [

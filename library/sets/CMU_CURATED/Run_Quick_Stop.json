@@ -10,6 +10,8 @@
 "desc": "A run that skids to a sudden stop, leaning back to brake",
 "skeleton": "humanoid",
 "restSrc": "CMU_127",
+"contacts": {"by":"detected","footL":[[0.933,1.6]],"footR":[[1.05,1.6]]},
+"facts": {"by":"m3a-facts@1","height":[72,101],"travel":[440,13]},
 "provenance": {"src":"CMU_127","take":"127_05 0.00-1.60","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[19,102],"qa":"unchecked","qaVersion":"none"},
 "keys": [

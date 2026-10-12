@@ -10,7 +10,8 @@
 "desc": "Running backward, flick legs style: knees together and flick legs to sides as moving",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":83},
+"contacts": {"by":"detected","footL":[[0.474,0.703]],"footR":[[0,0.262]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[92,108],"seam":0,"speed":83,"travel":[-69.5,-6.3]},
 "provenance": {"src":"100STYLE","take":"FlickLegs_BR 77.28-78.15","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[8,46],"qa":"unchecked","qaVersion":"none"},
 "keys": [
@@ -92,6 +93,6 @@
    "legL":[9,8,-99,45,-11], "legR":[-12,6,-99,47,7], "footL":[28,-16,0], "footR":[31,8,-1]},
   {"t":0.867,
    "hips":[0,0,103], "body":[7,4,0], "chest":[-5,11,-1], "head":[-5,8,1],
-   "shL":[8,1], "shR":[7,-11], "armL":[14,11,-98,0,-22], "armR":[14,2,-99,12,-3], "handL":[-55,2,49], "handR":[-28,-1,94], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "shL":[8,1], "shR":[7,-11], "armL":[14,11,-98,0,37], "armR":[14,2,-99,12,-3], "handL":[-55,2,108], "handR":[-28,-1,94], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
    "legL":[-11,26,-96,83,-17], "legR":[-6,-5,-100,30,-2], "footL":[49,63,-5], "footR":[17,12,18]}
 ]}

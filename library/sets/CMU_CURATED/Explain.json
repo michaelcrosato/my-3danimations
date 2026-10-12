@@ -10,6 +10,8 @@
 "desc": "In conversation, explaining with hand gestures",
 "skeleton": "humanoid",
 "restSrc": "CMU_18",
+"contacts": {"by":"detected","footL":[[0,1.15],[1.617,6]],"footR":[[0,0.317],[1.167,2.05],[2.35,6]]},
+"facts": {"by":"m3a-facts@1","height":[104,105],"travel":[30,11]},
 "provenance": {"src":"CMU_18","take":"18_08 0.00-6.00","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[12,58],"qa":"unchecked","qaVersion":"none"},
 "keys": [

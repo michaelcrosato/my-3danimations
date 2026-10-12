@@ -10,7 +10,8 @@
 "desc": "One foot in front of the other so the heel touches the toe",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":26},
+"contacts": {"by":"detected","footL":[[1.3,2.783]],"footR":[[0.3,1.516]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[99,101],"seam":0,"speed":26,"travel":[61.5,0.7]},
 "provenance": {"src":"100STYLE","take":"FairySteps_FW 177.25-179.60","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[8,67],"qa":"unchecked","qaVersion":"none"},
 "keys": [
@@ -76,6 +77,6 @@
    "legL":[-9,-9,-99,9,4], "legR":[24,-7,-97,8,21], "footL":[1,-18,0], "footR":[-18,-24,0]},
   {"t":2.333,
    "hips":[0,0,100], "body":[5,-1,0], "chest":[-1,7,2], "head":[-6,31,0],
-   "shL":[2,-11], "shR":[2,-8], "armL":[8,4,-100,0,-172], "armR":[9,20,-98,0,-102], "handL":[3,-13,-80], "handR":[9,-3,-132], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "shL":[2,-11], "shR":[2,-8], "armL":[8,4,-100,0,-92], "armR":[9,20,-98,0,-102], "handL":[3,-13,0], "handR":[9,-3,-132], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
    "legL":[-14,-10,-98,0,-1], "legR":[17,-6,-98,0,17], "footL":[1,-24,0], "footR":[-14,-26,0]}
 ]}

@@ -10,6 +10,8 @@
 "desc": "holds the rod out and turns the reel",
 "skeleton": "humanoid",
 "restSrc": "M2M_MOCOPI",
+"contacts": {"by":"detected","footL":[[0.567,1.883]],"footR":[[0,1.45]]},
+"facts": {"by":"m3a-facts@1","height":[100,102],"seam":7.6,"speed":0.2,"travel":[-0.2,0.1]},
 "provenance": {"src":"M2M_MOCOPI","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCapture"},
 "quality": {"fit":[8,46],"qa":"unchecked","qaVersion":"none"},
 "keys": [

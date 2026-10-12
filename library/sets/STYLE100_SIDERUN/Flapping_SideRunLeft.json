@@ -10,7 +10,8 @@
 "desc": "Running sideways to the left, flapping style: flap arms as wings on tiptoes",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":114},
+"contacts": {"by":"detected","footL":[[0.263,0.51],[0.823,1.267]],"footR":[[0.132,0.362],[0.724,0.971]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[97,112],"seam":0,"speed":114,"travel":[18.1,-151.9]},
 "provenance": {"src":"100STYLE","take":"Flapping_SR 32.80-34.07","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[13,96],"qa":"unchecked","qaVersion":"none"},
 "keys": [

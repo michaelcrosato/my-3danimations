@@ -71,7 +71,7 @@ STYLE100_SIDE/InTheDark_SideRight	1.633	loop	38	sidestep right style varies	Side
 STYLE100_SIDE/KarateChop_SideLeft	1.3	loop	56	sidestep left style	Sidestepping to the left, karate chop style	100STYLE
 STYLE100_SIDE/KarateChop_SideRight	1.367	loop	46	sidestep right style	Sidestepping to the right, karate chop style	100STYLE
 STYLE100_SIDE/Kick_SideLeft	2.367	loop	21	sidestep left style	Sidestepping to the left, kick style: kick with every step	100STYLE
-STYLE100_SIDE/Kick_SideRight	1.233	loop		sidestep right style	Sidestepping to the right, kick style: kick with every step	100STYLE
+STYLE100_SIDE/Kick_SideRight	1.233	loop	1.2	sidestep right style	Sidestepping to the right, kick style	100STYLE
 STYLE100_SIDE/LawnMower_SideLeft	2.267	loop	42	sidestep left style	Sidestepping to the left, lawn mower style	100STYLE
 STYLE100_SIDE/LawnMower_SideRight	2.2	loop	44	sidestep right style	Sidestepping to the right, lawn mower style	100STYLE
 STYLE100_SIDE/LeanBack_SideLeft	1.033	loop	60	sidestep left style	Sidestepping to the left, lean back style: bent backwards	100STYLE
@@ -112,7 +112,7 @@ STYLE100_SIDE/OnToesBentForward_SideLeft	1.067	loop	69	sidestep left style	Sides
 STYLE100_SIDE/OnToesBentForward_SideRight	1.167	loop	53	sidestep right style	Sidestepping to the right	100STYLE
 STYLE100_SIDE/OnToesCrouched_SideLeft	1.067	loop	63	sidestep left style	Sidestepping to the left	100STYLE
 STYLE100_SIDE/OnToesCrouched_SideRight	1.067	loop	57	sidestep right style	Sidestepping to the right	100STYLE
-STYLE100_SIDE/PendulumHands_SideLeft	0.967	loop		sidestep left style	Sidestepping to the left, pendulum hands style	100STYLE
+STYLE100_SIDE/PendulumHands_SideLeft	0.967	loop	0.1	sidestep left style	Sidestepping to the left, pendulum hands style	100STYLE
 STYLE100_SIDE/PendulumHands_SideRight	1	loop	48	sidestep right style	Sidestepping to the right, pendulum hands style	100STYLE
 STYLE100_SIDE/Penguin_SideLeft	0.867	loop	23	sidestep left style	Sidestepping to the left, penguin style	100STYLE
 STYLE100_SIDE/Penguin_SideRight	0.933	loop	17	sidestep right style	Sidestepping to the right, penguin style	100STYLE

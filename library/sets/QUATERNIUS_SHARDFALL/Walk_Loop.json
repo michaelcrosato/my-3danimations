@@ -10,7 +10,8 @@
 "desc": "relaxed walk, in place",
 "skeleton": "humanoid",
 "restSrc": "UAL1",
-"facts": {"by":"m3a-migrate@1","speed":106},
+"contacts": {"by":"detected","footL":[[0.117,0.816]],"footR":[[0.783,1.333]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[95,100],"seam":0,"speed":106,"travel":[141.9,1.8]},
 "provenance": {"src":"UAL1","method":"keyed","producer":{"tool":"m3a-migrate","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
 "quality": {"fit":[16,76],"qa":"unchecked","qaVersion":"none"},
 "keys": [

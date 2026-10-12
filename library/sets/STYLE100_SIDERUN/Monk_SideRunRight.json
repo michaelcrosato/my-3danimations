@@ -10,7 +10,8 @@
 "desc": "Running sideways to the right, monk style: interlock hands in front of pelvis head slightly bowed",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":119},
+"contacts": {"by":"detected","footL":[[0.211,0.569]],"footR":[[0.456,0.667]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[96,106],"seam":0,"speed":119,"travel":[-1,79.1]},
 "provenance": {"src":"100STYLE","take":"Monk_SR 47.42-48.07","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[7,27],"qa":"unchecked","qaVersion":"none"},
 "keys": [

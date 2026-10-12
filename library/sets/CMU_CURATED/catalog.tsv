@@ -1,14 +1,14 @@
 CMU_CURATED/Walk_Loop	1.1	loop	130	walk	An everyday walk at a steady pace, arms swinging loosely. One stride cycle, in place	CMU_02
 CMU_CURATED/Sword_Lunge	2	once		attack sword	Swordplay: from a guard, a lunge forward with the sword arm thrust straight out	CMU_02
-CMU_CURATED/Zombie_Walk_Loop	1.4	loop		walk zombie	A zombie's shamble: head and shoulders slumped forward, a dragging step	CMU_120
-CMU_CURATED/Gorilla_Walk_Loop	0.9	loop		walk monster	A gorilla: hunched, knuckles low, a rolling heavy walk	CMU_120
+CMU_CURATED/Zombie_Walk_Loop	1.4	loop	67.9	walk zombie	A zombie's shamble: head and shoulders slumped forward	CMU_120
+CMU_CURATED/Gorilla_Walk_Loop	0.9	loop	171.6	walk monster	A gorilla: hunched, knuckles low	CMU_120
 CMU_CURATED/Robot	6	once		monster	A robot, acted by a person: stiff, jerky steps and arm moves in straight lines	CMU_120
-CMU_CURATED/Jumping_Jacks_Loop	1.133	loop		exercise	Jumping jacks: hop the feet apart while the arms swing up overhead	CMU_13
-CMU_CURATED/Boxing_Guard_Loop	1.033	loop		stance unarmed	A boxer's guard: fists up by the face	CMU_13
+CMU_CURATED/Jumping_Jacks_Loop	1.133	loop	4.7	exercise	Jumping jacks	CMU_13
+CMU_CURATED/Boxing_Guard_Loop	1.033	loop	8.9	stance unarmed	A boxer's guard: fists up by the face	CMU_13
 CMU_CURATED/Boxing_Jab	1.1	once		attack unarmed	From the guard, a straight jab with the lead fist, snapped back to the guard	CMU_13
 CMU_CURATED/Climb_Ladder	7	once		climb	Climbing a ladder hand over hand	CMU_13
-CMU_CURATED/Sweep_Loop	1.833	loop		work	Sweeping the floor with a broom, steady strokes (no broom is drawn)	CMU_13
-CMU_CURATED/Wash_Window_Loop	1.3	loop		work	Washing a window: one hand wiping in circles at head height (no window is drawn)	CMU_13
+CMU_CURATED/Sweep_Loop	1.833	loop	1.2	work	Sweeping the floor with a broom	CMU_13
+CMU_CURATED/Wash_Window_Loop	1.3	loop	2.9	work	Washing a window	CMU_13
 CMU_CURATED/Direct_Traffic	6	once		gesture	Directing traffic, waving it on	CMU_13
 CMU_CURATED/Drink_Soda	12.1	once		eat	Unscrews a bottle cap and drinks the soda	CMU_13
 CMU_CURATED/Climb_Steps	10	once		climb	Climbs three steps	CMU_13

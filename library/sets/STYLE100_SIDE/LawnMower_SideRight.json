@@ -10,7 +10,8 @@
 "desc": "Sidestepping to the right, lawn mower style: roll hands over one another like disco move and tilt torso forwards and then back",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":44},
+"contacts": {"by":"detected","footL":[[0.117,0.883],[1.283,1.983]],"footR":[[0.767,1.483],[1.8,2.583]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[97,100],"seam":0,"speed":44,"travel":[-9.7,90.4]},
 "provenance": {"src":"100STYLE","take":"LawnMower_SW 100.25-102.43","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[8,42],"qa":"unchecked","qaVersion":"none"},
 "keys": [

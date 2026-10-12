@@ -10,7 +10,8 @@
 "desc": "Hopping on the left foot, the right held up, arms out for balance. One hop, in place",
 "skeleton": "humanoid",
 "restSrc": "CMU_132",
-"facts": {"by":"m3a-import@1","speed":121},
+"contacts": {"by":"detected","footL":[[0.85,1.467]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[98,116],"seam":0,"speed":121,"travel":[120.5,-1.9]},
 "provenance": {"src":"CMU_132","take":"132_23 3.11-4.12","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[17,98],"qa":"unchecked","qaVersion":"none"},
 "keys": [

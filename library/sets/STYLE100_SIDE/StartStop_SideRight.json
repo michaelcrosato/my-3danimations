@@ -10,7 +10,8 @@
 "desc": "Sidestepping to the right, start stop style: pause briefly after step",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":23},
+"contacts": {"by":"detected","footL":[[1.256,2.759]],"footR":[[0.347,1.718]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[99,101],"seam":0,"speed":23,"travel":[0.3,45]},
 "provenance": {"src":"100STYLE","take":"StartStop_SW 36.27-38.13","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[8,35],"qa":"unchecked","qaVersion":"none"},
 "keys": [

@@ -10,6 +10,8 @@
 "desc": "A spinning jump kick (a tornado kick): a run-up, a leap that turns the body round with a high roundhouse kick in the air, landing turned away",
 "skeleton": "humanoid",
 "restSrc": "CMU_90",
+"contacts": {"by":"detected","footL":[[0,0.15],[1.883,2.333]]},
+"facts": {"by":"m3a-facts@1","height":[89,146],"strike":[0.817],"travel":[36,295]},
 "provenance": {"src":"CMU_90","take":"90_05 1.00-3.40","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[17,97],"qa":"unchecked","qaVersion":"none"},
 "keys": [

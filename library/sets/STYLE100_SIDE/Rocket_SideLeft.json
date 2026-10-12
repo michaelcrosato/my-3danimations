@@ -10,7 +10,8 @@
 "desc": "Sidestepping to the left, rocket style: bent to flat back with hands behind as thrusters",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":52},
+"contacts": {"by":"detected","footL":[[0.083,0.117],[0.567,1.2]],"footR":[[1.117,1.867]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[95,99],"seam":0,"speed":52,"travel":[21.7,-61.2]},
 "provenance": {"src":"100STYLE","take":"Rocket_SW 38.17-39.37","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[6,29],"qa":"unchecked","qaVersion":"none"},
 "keys": [

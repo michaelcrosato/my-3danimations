@@ -10,7 +10,8 @@
 "desc": "Running sideways to the right, followed style: check behind occasionally",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":167},
+"contacts": {"by":"detected","footL":[[0.283,0.533]],"footR":[[0.017,0.133],[0.517,0.6]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[95,108],"seam":0,"speed":167,"travel":[32.7,97.5]},
 "provenance": {"src":"100STYLE","take":"Followed_SR 39.43-40.02","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[10,58],"qa":"unchecked","qaVersion":"none"},
 "keys": [

@@ -10,7 +10,8 @@
 "desc": "Running, crouched style: squat slightly and bend back",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":138},
+"contacts": {"by":"detected","footL":[[0.638,1.047]],"footR":[[0.164,0.622]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[94,98],"seam":0,"speed":138,"travel":[114.8,11.2]},
 "provenance": {"src":"100STYLE","take":"Crouched_FR 63.03-63.88","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[7,71],"qa":"unchecked","qaVersion":"none"},
 "keys": [

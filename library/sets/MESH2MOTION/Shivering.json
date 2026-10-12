@@ -10,6 +10,8 @@
 "desc": "hunched with the arms hugged in, shivering with cold",
 "skeleton": "humanoid",
 "restSrc": "M2M_ANIMATED",
+"contacts": {"by":"detected","footL":[[0,0.25]],"footR":[[0,0.25]]},
+"facts": {"by":"m3a-facts@1","height":[83,83],"seam":0,"speed":0,"travel":[0,0]},
 "provenance": {"src":"M2M_ANIMATED","method":"keyed","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
 "quality": {"fit":[4,25],"qa":"unchecked","qaVersion":"none"},
 "keys": [

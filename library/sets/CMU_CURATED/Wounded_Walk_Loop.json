@@ -10,7 +10,8 @@
 "desc": "Limping on a wounded leg: a short careful step on the bad leg, a longer one on the good. One cycle, in place",
 "skeleton": "humanoid",
 "restSrc": "CMU_139",
-"facts": {"by":"m3a-import@1","speed":75},
+"contacts": {"by":"detected","footL":[[0.279,0.607],[0.854,1.133]],"footR":[[0,0.328],[0.492,0.886]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[82,92],"seam":0,"speed":75,"travel":[74,13.2]},
 "provenance": {"src":"CMU_139","take":"139_19 6.01-7.07","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[18,90],"qa":"unchecked","qaVersion":"none"},
 "keys": [

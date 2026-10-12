@@ -10,7 +10,8 @@
 "desc": "Sidestepping to the left, monk style: interlock hands in front of pelvis head slightly bowed",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":35},
+"contacts": {"by":"detected","footL":[[0.757,1.514]],"footR":[[0.099,0.905]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[98,100],"seam":0,"speed":35,"travel":[15.7,-42.3]},
 "provenance": {"src":"100STYLE","take":"Monk_SW 39.25-40.52","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[6,30],"qa":"unchecked","qaVersion":"none"},
 "keys": [

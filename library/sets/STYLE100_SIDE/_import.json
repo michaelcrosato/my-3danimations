@@ -40,15 +40,15 @@
    "why": "new in the re-import",
    "fit": {
     "import": [
-     8,
-     119
+     7,
+     108
     ]
    },
    "qa": {
-    "import": "fail"
+    "import": "pass"
    },
    "hands": [
-    4
+    3.8
    ]
   },
   "Akimbo_SideRight": {
@@ -80,7 +80,7 @@
     "import": "warn"
    },
    "hands": [
-    10.8
+    10.9
    ]
   },
   "Angry_SideRight": {
@@ -96,7 +96,7 @@
     "import": "warn"
    },
    "hands": [
-    10
+    9.9
    ]
   },
   "ArmsAboveHead_SideLeft": {
@@ -253,7 +253,7 @@
     ]
    },
    "qa": {
-    "import": "warn"
+    "import": "pass"
    },
    "hands": [
     10.7
@@ -845,7 +845,7 @@
     ]
    },
    "qa": {
-    "import": "warn"
+    "import": "pass"
    },
    "hands": [
     24.7
@@ -1680,7 +1680,7 @@
     "import": "fail"
    },
    "hands": [
-    10.1
+    10
    ]
   },
   "OnHeels_SideRight": {
@@ -1757,7 +1757,7 @@
     ]
    },
    "qa": {
-    "import": "pass"
+    "import": "warn"
    },
    "hands": [
     5.8
@@ -1864,7 +1864,7 @@
    "why": "new in the re-import",
    "fit": {
     "import": [
-     10,
+     9,
      49
     ]
    },
@@ -1872,7 +1872,7 @@
     "import": "pass"
    },
    "hands": [
-    10.5
+    10.3
    ]
   },
   "Penguin_SideRight": {
@@ -1961,14 +1961,14 @@
    "fit": {
     "import": [
      7,
-     60
+     42
     ]
    },
    "qa": {
-    "import": "fail"
+    "import": "pass"
    },
    "hands": [
-    8.2
+    7.9
    ]
   },
   "Punch_SideRight": {
@@ -2477,10 +2477,10 @@
     ]
    },
    "qa": {
-    "import": "warn"
+    "import": "pass"
    },
    "hands": [
-    9.5
+    9.3
    ]
   },
   "Strutting_SideRight": {
@@ -2525,10 +2525,10 @@
     ]
    },
    "qa": {
-    "import": "warn"
+    "import": "pass"
    },
    "hands": [
-    10
+    10.5
    ]
   },
   "Swat_SideLeft": {
@@ -2621,10 +2621,10 @@
     ]
    },
    "qa": {
-    "import": "warn"
+    "import": "pass"
    },
    "hands": [
-    13
+    13.2
    ]
   },
   "SwingArmsRound_SideLeft": {
@@ -3024,7 +3024,7 @@
     "import": "warn"
    },
    "hands": [
-    11.1
+    11.2
    ]
   },
   "WildArms_SideRight": {
@@ -3040,7 +3040,7 @@
     "import": "fail"
    },
    "hands": [
-    13.1
+    13.2
    ]
   },
   "WildLegs_SideLeft": {
@@ -3104,7 +3104,7 @@
     "import": "pass"
    },
    "hands": [
-    10.1
+    9.7
    ]
   }
  },

@@ -10,7 +10,8 @@
 "desc": "A steady run, arms pumping. One stride cycle, in place",
 "skeleton": "humanoid",
 "restSrc": "CMU_09",
-"facts": {"by":"m3a-import@1","speed":387},
+"contacts": {"by":"detected","footL":[[0,0.133]],"footR":[[0.367,0.516]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[100,109],"seam":0,"speed":387,"travel":[272.6,-4.2]},
 "provenance": {"src":"CMU_09","take":"09_01 0.01-0.74","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[9,55],"qa":"unchecked","qaVersion":"none"},
 "keys": [

@@ -10,6 +10,8 @@
 "desc": "kicks a door in with a front kick, then steps back",
 "skeleton": "humanoid",
 "restSrc": "M2M_MOCOPI",
+"contacts": {"by":"detected","footL":[[1.283,1.5]]},
+"facts": {"by":"m3a-facts@1","height":[100,114],"strike":[0.583]},
 "provenance": {"src":"M2M_MOCOPI","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCapture"},
 "quality": {"fit":[11,58],"qa":"unchecked","qaVersion":"none"},
 "keys": [

@@ -10,6 +10,8 @@
 "desc": "kneels, presses a seed into the soil, stands",
 "skeleton": "humanoid",
 "restSrc": "UAL2",
+"contacts": {"by":"detected","footL":[[0.066,0.365],[0.679,1.955],[2.27,2.767]],"footR":[[0.133,0.182],[0.779,1.657],[2.287,2.767]]},
+"facts": {"by":"m3a-facts@1","height":[41,96]},
 "provenance": {"src":"UAL2","method":"keyed","producer":{"tool":"m3a-migrate","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
 "quality": {"fit":[13,68],"qa":"unchecked","qaVersion":"none"},
 "keys": [

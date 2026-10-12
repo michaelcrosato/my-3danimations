@@ -10,6 +10,8 @@
 "desc": "walking with a box held in both arms in front, in place",
 "skeleton": "humanoid",
 "restSrc": "UAL2",
+"contacts": {"by":"detected","footL":[[0,1.067]],"footR":[[1.017,2]]},
+"facts": {"by":"m3a-facts@1","height":[85,96],"seam":0,"speed":73.9,"travel":[147.8,-0.5]},
 "provenance": {"src":"UAL2","method":"keyed","producer":{"tool":"m3a-migrate","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
 "quality": {"fit":[11,111],"qa":"unchecked","qaVersion":"none"},
 "keys": [

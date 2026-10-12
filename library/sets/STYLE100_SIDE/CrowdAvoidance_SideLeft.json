@@ -10,7 +10,8 @@
 "desc": "Sidestepping to the left, crowd avoidance style: occasionally turning shoulders or turn sideways to avoid others",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":31},
+"contacts": {"by":"detected","footL":[[0.69,1.479]],"footR":[[0.115,0.888]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[99,101],"seam":0,"speed":31,"travel":[-4.7,-34.9]},
 "provenance": {"src":"100STYLE","take":"CrowdAvoidance_SW 95.77-96.93","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[6,38],"qa":"unchecked","qaVersion":"none"},
 "keys": [

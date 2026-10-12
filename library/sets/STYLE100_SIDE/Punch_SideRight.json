@@ -10,7 +10,8 @@
 "desc": "Sidestepping to the right, punch style: punch with every step",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":48},
+"contacts": {"by":"detected","footL":[[1.086,2.024]],"footR":[[0.625,1.267]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[97,101],"seam":0,"speed":48,"travel":[12,61.1]},
 "provenance": {"src":"100STYLE","take":"Punch_SW 11.37-12.62","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[8,100],"qa":"unchecked","qaVersion":"none"},
 "keys": [

@@ -1,12 +1,12 @@
 MESH2MOTION/Chest_Open	1.375	once		interact chest	bends forward and lifts a chest's lid with both hands	M2M_QUATERNIUS
-MESH2MOTION/Chop_Tree	0.958	loop		work	chops with an axe: swings from over the shoulder down into a tree	M2M_QUATERNIUS
+MESH2MOTION/Chop_Tree	0.958	loop	1.2	work	chops with an axe	M2M_QUATERNIUS
 MESH2MOTION/ClimbUp_1m_RM	0.667	once		climb root-motion	grabs a ledge about…	M2M_QUATERNIUS
 MESH2MOTION/Consume	1.333	once		item eat	eats or drinks: lifts the left hand to the mouth	M2M_QUATERNIUS
-MESH2MOTION/Crouch_Idle	3.667	loop		crouch idle stealth	crouched low and still, looking about	M2M_QUATERNIUS
-MESH2MOTION/Crouch_Walk	2.5	loop		crouch walk stealth	crouched sneaking walk, in place	M2M_QUATERNIUS
-MESH2MOTION/Dance_Simple	1.25	loop		emote dance	a one-second groove: hips sway, arms swing out	M2M_QUATERNIUS
+MESH2MOTION/Crouch_Idle	3.667	loop	0.2	crouch idle stealth	crouched low and still, looking about	M2M_QUATERNIUS
+MESH2MOTION/Crouch_Walk	2.5	loop	65	crouch walk stealth	crouched sneaking walk, in place	M2M_QUATERNIUS
+MESH2MOTION/Dance_Simple	1.25	loop	1.3	emote dance	a one-second groove: hips sway	M2M_QUATERNIUS
 MESH2MOTION/Death_D	2.167	once		death	staggers back, the knees buckle, and falls onto the side	M2M_QUATERNIUS
-MESH2MOTION/Driving	2.083	loop		sit vehicle	seated, hands on a steering wheel, small turns	M2M_QUATERNIUS
+MESH2MOTION/Driving	2.083	loop	0	sit vehicle	seated, hands on a steering wheel, small turns	M2M_QUATERNIUS
 MESH2MOTION/Farm_Harvest	2.333	once		farm work	bends down and pulls a crop up out of…	M2M_QUATERNIUS
 MESH2MOTION/Farm_PlantSeed	2.792	once		farm work	kneels, presses a seed into the soil	M2M_QUATERNIUS
 MESH2MOTION/Farm_Watering	3.833	once		farm work	tips a watering can held in the right hand	M2M_QUATERNIUS
@@ -15,20 +15,20 @@ MESH2MOTION/Hit_Chest	0.417	once		hurt	a slight flinch	M2M_QUATERNIUS
 MESH2MOTION/Hit_Head	0.542	once		hurt	takes a blow to the head: head snaps aside, recovers	M2M_QUATERNIUS
 MESH2MOTION/Hit_Knockback	0.833	once		hurt getup	hit hard	M2M_QUATERNIUS
 MESH2MOTION/Hit_Knockback_RM	0.625	once		hurt death root-motion	hit hard and thrown back onto the back	M2M_QUATERNIUS
-MESH2MOTION/Idle_A	3.125	loop		idle	standing at rest, breathing and shifting weight	M2M_QUATERNIUS
-MESH2MOTION/Idle_FoldArms	2.5	loop		idle talk	standing with the arms folded across the chest, shifting weight	M2M_QUATERNIUS
-MESH2MOTION/Idle_Lantern	2.5	loop		idle prop	standing, holding a lantern out in front in the right hand	M2M_QUATERNIUS
-MESH2MOTION/Idle_Rail	2.5	loop		idle lean	leaning forward on the forearms, as over a railing	M2M_QUATERNIUS
+MESH2MOTION/Idle_A	3.125	loop	0.2	idle	standing at rest, breathing and shifting weight	M2M_QUATERNIUS
+MESH2MOTION/Idle_FoldArms	2.5	loop	0.2	idle talk	standing with the arms folded across the chest	M2M_QUATERNIUS
+MESH2MOTION/Idle_Lantern	2.5	loop	0.5	idle prop	standing	M2M_QUATERNIUS
+MESH2MOTION/Idle_Rail	2.5	loop	0	idle lean	leaning forward on the forearms, as over a railing	M2M_QUATERNIUS
 MESH2MOTION/Idle_Rail_Call	2.5	once		idle lean gesture	leaning on a railing	M2M_QUATERNIUS
-MESH2MOTION/Idle_ShakeOff	2.5	loop		idle emote gesture	standing, shakes the head no	M2M_QUATERNIUS
-MESH2MOTION/Idle_Shield	2.5	loop		shield idle stance	guarding	M2M_QUATERNIUS
+MESH2MOTION/Idle_ShakeOff	2.5	loop	0.4	idle emote gesture	standing, shakes the head no	M2M_QUATERNIUS
+MESH2MOTION/Idle_Shield	2.5	loop	0.5	shield idle stance	guarding	M2M_QUATERNIUS
 MESH2MOTION/Idle_Shield_Break	1.083	once		shield hurt	the guard breaks	M2M_QUATERNIUS
-MESH2MOTION/Idle_Sword	2.083	loop		sword idle	standing ready with a sword in the right hand	M2M_QUATERNIUS
-MESH2MOTION/Idle_Talking	3.667	loop		idle talk	standing and talking with hand gestures	M2M_QUATERNIUS
-MESH2MOTION/Idle_TalkingPhone	2.917	loop		idle talk prop	on the phone: right hand at the ear	M2M_QUATERNIUS
-MESH2MOTION/Idle_Torch	1.583	loop		idle prop	standing with one arm raised, holding up a torch or lantern	M2M_QUATERNIUS
+MESH2MOTION/Idle_Sword	2.083	loop	0.1	sword idle	standing ready with a sword in the right hand	M2M_QUATERNIUS
+MESH2MOTION/Idle_Talking	3.667	loop	0	idle talk	standing and talking with hand gestures	M2M_QUATERNIUS
+MESH2MOTION/Idle_TalkingPhone	2.917	loop	0	idle talk prop	on the phone: right hand at the ear	M2M_QUATERNIUS
+MESH2MOTION/Idle_Torch	1.583	loop	0.2	idle prop	standing with one arm raised	M2M_QUATERNIUS
 MESH2MOTION/Interact	2.5	once		interact	reaches forward at chest height and works something with the hands…	M2M_QUATERNIUS
-MESH2MOTION/Jog	1.167	loop		run	jog, in place	M2M_QUATERNIUS
+MESH2MOTION/Jog	1.167	loop	540.3	run	jog, in place	M2M_QUATERNIUS
 MESH2MOTION/Jump_air	3.125	loop		jump air	airborne pose held while rising or falling	M2M_QUATERNIUS
 MESH2MOTION/Jump_Land	1.583	once		jump	lands from a fall, knees soak it up, stands	M2M_QUATERNIUS
 MESH2MOTION/Jump_Start	1.667	once		jump	dips, then springs up with the arms thrown out (in place	M2M_QUATERNIUS
@@ -43,30 +43,30 @@ MESH2MOTION/PickUp_Table	1.042	once		interact item	reaches out and picks somethi
 MESH2MOTION/Pistol_Aim_Down	0.208	once		gun aim pose	two-handed pistol aim, pointing down	M2M_QUATERNIUS
 MESH2MOTION/Pistol_Aim_Neutral	0.208	once		gun aim pose	two-handed pistol aim	M2M_QUATERNIUS
 MESH2MOTION/Pistol_Aim_Up	0.208	once		gun aim pose	two-handed pistol aim, pointing up	M2M_QUATERNIUS
-MESH2MOTION/Pistol_Idle	2.083	loop		gun idle	standing ready, pistol held low in both hands	M2M_QUATERNIUS
+MESH2MOTION/Pistol_Idle	2.083	loop	0	gun idle	standing ready, pistol held low in both hands	M2M_QUATERNIUS
 MESH2MOTION/Pistol_Reload	2.083	once		gun	reloads the pistol	M2M_QUATERNIUS
 MESH2MOTION/Pistol_Shoot	0.792	once		gun attack	one pistol shot with recoil	M2M_QUATERNIUS
 MESH2MOTION/Punch_Cross	1.25	once		unarmed attack	rear-hand straight punch with a hip turn	M2M_QUATERNIUS
 MESH2MOTION/Punch_Jab	1.083	once		unarmed attack	quick lead-hand jab from the stance	M2M_QUATERNIUS
-MESH2MOTION/Push	3.333	loop		interact push	leans in and shoves something heavy, stepping	M2M_QUATERNIUS
+MESH2MOTION/Push	3.333	loop	26.4	interact push	leans in and shoves something heavy, stepping	M2M_QUATERNIUS
 MESH2MOTION/Roll	1.833	once		dodge	forward roll over the shoulder and back to standing, in place	M2M_QUATERNIUS
 MESH2MOTION/Roll_RM	1.833	once		dodge root-motion	forward roll that travels (root motion)	M2M_QUATERNIUS
 MESH2MOTION/Shield_Dash_RM	1.083	once		shield attack root-motion	charges forward behind a shield…	M2M_QUATERNIUS
 MESH2MOTION/Shield_OneShot	0.833	once		shield block	a quick block: snaps the shield arm up across the chest	M2M_QUATERNIUS
 MESH2MOTION/Sitting_Enter	1.625	once		sit	sits down onto a seat (no chair is drawn)	M2M_QUATERNIUS
 MESH2MOTION/Sitting_Exit	1.292	once		sit	stands up from a seat	M2M_QUATERNIUS
-MESH2MOTION/Sitting_Idle	2.083	loop		sit idle	seated at rest	M2M_QUATERNIUS
-MESH2MOTION/Sitting_Talking	3.667	loop		sit talk	seated, talking with hand gestures	M2M_QUATERNIUS
+MESH2MOTION/Sitting_Idle	2.083	loop	0	sit idle	seated at rest	M2M_QUATERNIUS
+MESH2MOTION/Sitting_Talking	3.667	loop	0	sit talk	seated, talking with hand gestures	M2M_QUATERNIUS
 MESH2MOTION/Slide	2	loop		slide	sliding feet first, leaning back on one hand	M2M_QUATERNIUS
 MESH2MOTION/Slide_Exit	0.5	once		slide	springs up out of the slide into a run	M2M_QUATERNIUS
 MESH2MOTION/Slide_Start	0.833	once		slide dodge	drops from a run into a feet-first slide on the back	M2M_QUATERNIUS
 MESH2MOTION/Spell_Simple_Enter	0.667	once		magic stance	raises a hand to ready a spell	M2M_QUATERNIUS
 MESH2MOTION/Spell_Simple_Exit	0.542	once		magic stance	lowers the casting hand	M2M_QUATERNIUS
-MESH2MOTION/Spell_Simple_Idle	2.667	loop		magic idle	holds a spell ready	M2M_QUATERNIUS
+MESH2MOTION/Spell_Simple_Idle	2.667	loop	0.2	magic idle	holds a spell ready	M2M_QUATERNIUS
 MESH2MOTION/Spell_Simple_Shoot	0.625	once		magic attack	casts: drives the hand forward	M2M_QUATERNIUS
-MESH2MOTION/Sprint	0.833	loop		run	full sprint with big arm swings, in place	M2M_QUATERNIUS
+MESH2MOTION/Sprint	0.833	loop	776.2	run	full sprint with big arm swings, in place	M2M_QUATERNIUS
 MESH2MOTION/Swim_Fwd	1.667	loop		swim	swimming forward, body flat	M2M_QUATERNIUS
-MESH2MOTION/Swim_Idle	4.167	loop		swim idle	treading water, upright	M2M_QUATERNIUS
+MESH2MOTION/Swim_Idle	4.167	loop	33	swim idle	treading water, upright	M2M_QUATERNIUS
 MESH2MOTION/Sword_Attack	1.917	once		sword attack	stepping one-handed slash, in place	M2M_QUATERNIUS
 MESH2MOTION/Sword_Attack_RM	1.917	once		sword attack root-motion	stepping one-handed slash that travels	M2M_QUATERNIUS
 MESH2MOTION/Sword_Block	1.25	once		sword block	braces and raises the sword to block, then recovers	M2M_QUATERNIUS
@@ -77,41 +77,41 @@ MESH2MOTION/Sword_Regular_B_Rec	1	once		sword stance root-motion	recovers from t
 MESH2MOTION/Sword_Regular_C	1.667	once		sword attack root-motion	the combo's finisher	M2M_QUATERNIUS
 MESH2MOTION/Sword_Regular_C_RM	1.667	once		sword attack root-motion	the combo's finisher	M2M_QUATERNIUS
 MESH2MOTION/Sword_Regular_Combo	2.958	once		sword attack root-motion	the three strikes chained: thrust, sweep	M2M_QUATERNIUS
-MESH2MOTION/Walk	1.667	loop		walk	relaxed walk, in place	M2M_QUATERNIUS
-MESH2MOTION/Walk_Carry	2	loop		walk carry	walking with a box held in both arms in front, in place	M2M_QUATERNIUS
-MESH2MOTION/Walk_Formal	1.667	loop		walk	upright, measured walk, in place	M2M_QUATERNIUS
+MESH2MOTION/Walk	1.667	loop	88.7	walk	relaxed walk, in place	M2M_QUATERNIUS
+MESH2MOTION/Walk_Carry	2	loop	73.9	walk carry	walking with a box held in both arms in front	M2M_QUATERNIUS
+MESH2MOTION/Walk_Formal	1.667	loop	89.1	walk	upright, measured walk, in place	M2M_QUATERNIUS
 MESH2MOTION/Yes	2.5	once		emote gesture	agrees	M2M_QUATERNIUS
-MESH2MOTION/Zombie_Idle	1.333	loop		zombie idle	hunched and swaying, arms hanging: a zombie at rest	M2M_QUATERNIUS
+MESH2MOTION/Zombie_Idle	1.333	loop	0.2	zombie idle	hunched and swaying, arms hanging	M2M_QUATERNIUS
 MESH2MOTION/Zombie_Scratch	1.792	once		zombie attack	lunges and claws down with both hands, then settles back	M2M_QUATERNIUS
-MESH2MOTION/Zombie_Walk	1.333	loop		zombie walk	shambling, dragging zombie walk, in place	M2M_QUATERNIUS
+MESH2MOTION/Zombie_Walk	1.333	loop	85.2	zombie walk	shambling, dragging zombie walk, in place	M2M_QUATERNIUS
 MESH2MOTION/Angry	0.833	once		emote gesture	an angry outburst: flings both arms out wide and down, twice	M2M_ANIMATED
 MESH2MOTION/Attack_Ground_Pound	2.708	once		attack unarmed jump	crouches, springs up with the arms spread	M2M_ANIMATED
 MESH2MOTION/Backflip	2.5	once		jump dodge	crouches, springs into a full backward somersault	M2M_ANIMATED
 MESH2MOTION/Bow	3.75	once		bow aim	raises a bow from low to aim at head height, holds the aim	M2M_ANIMATED
 MESH2MOTION/Bow_Pull_Back	1.25	once		bow attack	raises a bow	M2M_ANIMATED
-MESH2MOTION/Bow_Pull_Hold	0.25	loop		bow aim pose	holds a bow at full draw, aiming	M2M_ANIMATED
+MESH2MOTION/Bow_Pull_Hold	0.25	loop	0	bow aim pose	holds a bow at full draw, aiming	M2M_ANIMATED
 MESH2MOTION/Bow_Release	0.5	once		bow attack	looses the arrow: the drawing hand springs back	M2M_ANIMATED
 MESH2MOTION/Climb_Ladder	3.625	loop		climb	climbs a ladder hand over hand, in place	M2M_ANIMATED
 MESH2MOTION/Climb_Wall	2.083	loop		climb	climbs a sheer wall, reaching high hand over hand and stepping up	M2M_ANIMATED
 MESH2MOTION/Confused	2.917	once		emote gesture	scratches the head and looks about, puzzled	M2M_ANIMATED
 MESH2MOTION/Consume_Item	4.167	once		item eat	brings an item up to the mouth with both hands and eats	M2M_ANIMATED
 MESH2MOTION/Crawl	1.708	loop		crawl stealth	crawls on the belly, reaching ahead with alternate arms, in place	M2M_ANIMATED
-MESH2MOTION/Crawl_RM	1.708	loop		crawl stealth root-motion	crawls on the belly	M2M_ANIMATED
+MESH2MOTION/Crawl_RM	1.708	loop	83.1	crawl stealth root-motion	crawls on the belly	M2M_ANIMATED
 MESH2MOTION/Dance_Body_Roll	6.5	once		emote dance	a long dance: body rolls, arm waves and a dip	M2M_ANIMATED
-MESH2MOTION/Dance_Charleston	2.333	loop		emote dance	the Charleston: the knees swing in and out, the hands cross over them	M2M_ANIMATED
+MESH2MOTION/Dance_Charleston	2.333	loop	0.4	emote dance	the Charleston: the knees swing in and out	M2M_ANIMATED
 MESH2MOTION/Dance_Reach_Hip	2.542	once		emote dance	a dance: hip pops	M2M_ANIMATED
 MESH2MOTION/Death_A	4.5	once		death	clutches the chest, staggers and sinks down onto the side	M2M_ANIMATED
 MESH2MOTION/Death_B	1.875	once		death	thrown back off the feet into the air and lands flat on the ground	M2M_ANIMATED
 MESH2MOTION/Death_C	2.208	once		death	falls straight back, rolls over and lies spread out	M2M_ANIMATED
-MESH2MOTION/Defend	0.958	loop		block stance unarmed	crouched behind raised forearms, guarding the head	M2M_ANIMATED
-MESH2MOTION/Dizzy	2.417	loop		hurt idle	sways in place, unsteady, the head lolling	M2M_ANIMATED
+MESH2MOTION/Defend	0.958	loop	0.2	block stance unarmed	crouched behind raised forearms, guarding the head	M2M_ANIMATED
+MESH2MOTION/Dizzy	2.417	loop	0.2	hurt idle	sways in place, unsteady, the head lolling	M2M_ANIMATED
 MESH2MOTION/Dodge_back	1	once		dodge	hops back a step out of the way of a blow, in place	M2M_ANIMATED
 MESH2MOTION/Dodge_back_RM	1	once		dodge root-motion	hops back a step out of the way of a blow…	M2M_ANIMATED
 MESH2MOTION/Dodge_left	0.833	once		dodge	throws the body to the left in a low lunge and recovers	M2M_ANIMATED
 MESH2MOTION/Dodge_left_RM	0.833	once		dodge root-motion	throws the body to the left in a low lunge and…	M2M_ANIMATED
 MESH2MOTION/Dodge_right	0.833	once		dodge	throws the body to the right in a low lunge and recovers	M2M_ANIMATED
 MESH2MOTION/Dodge_right_RM	0.833	once		dodge root-motion	throws the body to the right in a low lunge and…	M2M_ANIMATED
-MESH2MOTION/Fighting_Idle	1.708	loop		unarmed stance idle	a boxer's stance: fists up, bouncing lightly	M2M_ANIMATED
+MESH2MOTION/Fighting_Idle	1.708	loop	0.3	unarmed stance idle	a boxer's stance: fists up, bouncing lightly	M2M_ANIMATED
 MESH2MOTION/Fighting_Left_Jab	0.917	once		unarmed attack	from the fighting stance	M2M_ANIMATED
 MESH2MOTION/Fighting_Right_Jab	0.917	once		unarmed attack	from the fighting stance, a straight right punch and back to guard	M2M_ANIMATED
 MESH2MOTION/Flying_Forward	0.5	loop		fly air	flying forward, body level, arms at the sides, legs trailing	M2M_ANIMATED
@@ -119,53 +119,53 @@ MESH2MOTION/Flying_Forward_Super	0.5	loop		fly air	flying forward like a superhe
 MESH2MOTION/Glide	0.792	loop		fly air	gliding: the body leaning forward, both arms raised overhead in a V	M2M_ANIMATED
 MESH2MOTION/Greeting	4.833	once		emote gesture talk	lays the right hand on the chest and bows the head in greeting	M2M_ANIMATED
 MESH2MOTION/Head_Nod	0.875	once		emote gesture	nods the head yes, standing	M2M_ANIMATED
-MESH2MOTION/Idle_Hurt	1.667	loop		idle hurt	stands hunched, holding the side, hurt	M2M_ANIMATED
-MESH2MOTION/Idle_Listening	1.708	loop		idle talk	weight on one leg, a hand on the hip, head cocked	M2M_ANIMATED
-MESH2MOTION/Idle_Subtle	2.583	loop		idle	standing still, breathing gently	M2M_ANIMATED
+MESH2MOTION/Idle_Hurt	1.667	loop	0.3	idle hurt	stands hunched, holding the side, hurt	M2M_ANIMATED
+MESH2MOTION/Idle_Listening	1.708	loop	0	idle talk	weight on one leg, a hand on the hip, head cocked	M2M_ANIMATED
+MESH2MOTION/Idle_Subtle	2.583	loop	0	idle	standing still, breathing gently	M2M_ANIMATED
 MESH2MOTION/Jump_2	1.625	once		jump	crouches and jumps with the arms flung forward, then lands	M2M_ANIMATED
 MESH2MOTION/Jump_2_RM	1.625	once		jump root-motion	crouches and jumps up and forward with the arms…	M2M_ANIMATED
-MESH2MOTION/Jumping_Jacks	1.25	loop		emote exercise	jumping jacks: the arms and legs scissor out and in	M2M_ANIMATED
-MESH2MOTION/Kneeling_Tired	0.833	loop		rest hurt	down on one knee, leaning on it, worn out	M2M_ANIMATED
+MESH2MOTION/Jumping_Jacks	1.25	loop	15	emote exercise	jumping jacks: the arms and legs scissor out and in	M2M_ANIMATED
+MESH2MOTION/Kneeling_Tired	0.833	loop	0.4	rest hurt	down on one knee, leaning on it, worn out	M2M_ANIMATED
 MESH2MOTION/Ladder_Idle	2.5	loop		climb idle	holds on to a ladder, hands and feet on the rungs	M2M_ANIMATED
 MESH2MOTION/Land_Three_Point	1.375	once		jump air	drops from above into a crouched three-point landing	M2M_ANIMATED
 MESH2MOTION/Ledge_Hang	1.917	loop		climb idle	hangs from a ledge by both hands, legs dangling	M2M_ANIMATED
 MESH2MOTION/Levitate_Entrance	2	once		magic air	rises into a floating pose: knees drawn up	M2M_ANIMATED
 MESH2MOTION/Levitate_Idle	2	loop		magic air idle	floats in the air, knees drawn up, bobbing gently	M2M_ANIMATED
 MESH2MOTION/Meditate	1.5	loop		sit rest idle	sits cross-legged, hands on the knees, breathing slowly	M2M_ANIMATED
-MESH2MOTION/Pipe_Climb	1.875	loop		climb	shins up a pole or pipe, hands and knees gripping, in place	M2M_ANIMATED
-MESH2MOTION/Power_Up	0.75	loop		magic stance	crouched, fists clenched, gathering power and shaking with effort	M2M_ANIMATED
-MESH2MOTION/Pushup	1.542	loop		emote exercise	push-ups: the body held straight, arms bending and pressing up	M2M_ANIMATED
+MESH2MOTION/Pipe_Climb	1.875	loop	18.2	climb	shins up a pole or pipe, hands and knees gripping	M2M_ANIMATED
+MESH2MOTION/Power_Up	0.75	loop	0.7	magic stance	crouched, fists clenched	M2M_ANIMATED
+MESH2MOTION/Pushup	1.542	loop	0.1	emote exercise	push-ups: the body held straight, arms bending and pressing up	M2M_ANIMATED
 MESH2MOTION/Reject	3.792	once		emote gesture	crosses both forearms in front of the chest and turns the head away	M2M_ANIMATED
 MESH2MOTION/Rest_Pose	0.417	once		reference	Mesh2Motion's rest pose, arms out	M2M_ANIMATED
 MESH2MOTION/Run_Jump	1.25	once		jump air run	a running leap held in the air: legs split	M2M_ANIMATED
-MESH2MOTION/Run_Anime	0.75	loop		run root-motion	an anime ninja run: body pitched forward	M2M_ANIMATED
-MESH2MOTION/Run_Female	0.833	loop		run	a light run with swinging arms, in place	M2M_ANIMATED
-MESH2MOTION/Run_Stealth	0.542	loop		run crouch stealth root-motion	a quick crouched sneaking run…	M2M_ANIMATED
-MESH2MOTION/Shivering	0.25	loop		idle emote	hunched with the arms hugged in, shivering with cold	M2M_ANIMATED
+MESH2MOTION/Run_Anime	0.75	loop	0	run inplace	an anime ninja run on the spot: body pitched forward	M2M_ANIMATED
+MESH2MOTION/Run_Female	0.833	loop	395.3	run	a light run with swinging arms, in place	M2M_ANIMATED
+MESH2MOTION/Run_Stealth	0.542	loop	0	run crouch stealth inplace	a quick crouched sneaking run	M2M_ANIMATED
+MESH2MOTION/Shivering	0.25	loop	0	idle emote	hunched with the arms hugged in, shivering with cold	M2M_ANIMATED
 MESH2MOTION/Sleeping	1.667	loop		rest lie idle	lies on the back asleep, the chest rising and falling	M2M_ANIMATED
-MESH2MOTION/Strafe_left	1	loop		walk strafe	sidesteps to the left while facing forward, in place	M2M_ANIMATED
-MESH2MOTION/Strafe_right	1	loop		walk strafe	sidesteps to the right while facing forward, in place	M2M_ANIMATED
+MESH2MOTION/Strafe_left	1	loop	22.5	walk strafe	sidesteps to the left while facing forward, in place	M2M_ANIMATED
+MESH2MOTION/Strafe_right	1	loop	27.8	walk strafe	sidesteps to the right while facing forward, in place	M2M_ANIMATED
 MESH2MOTION/Sword_Attack_Air_Vertical	4.833	once		sword attack jump air	leaps and chops down with a…	M2M_ANIMATED
 MESH2MOTION/Throw_Object	1.875	once		throw attack	winds up and hurls an object, dropping into a deep lunge	M2M_ANIMATED
-MESH2MOTION/Tired_Hunched	1.042	loop		rest hurt	crouched low and doubled over, exhausted, catching breath	M2M_ANIMATED
+MESH2MOTION/Tired_Hunched	1.042	loop	0.7	rest hurt	crouched low and doubled over, exhausted, catching breath	M2M_ANIMATED
 MESH2MOTION/Two-hand_Blast	0.458	once		magic attack	crouched forward	M2M_ANIMATED
 MESH2MOTION/Victory	1.667	once		emote cheer	jumps up with a fist raised in triumph and lands	M2M_ANIMATED
 MESH2MOTION/Victory_Fist_Pump	2.25	once		emote cheer gesture	pumps a fist down at the side in triumph	M2M_ANIMATED
-MESH2MOTION/Walk_Backwards	1	loop		walk	walks backward, in place	M2M_ANIMATED
-MESH2MOTION/Walk_Female	1.375	loop		walk	a swaying walk, the hips moving, in place	M2M_ANIMATED
-MESH2MOTION/Walk_Large	1.417	loop		walk	a heavy, lumbering walk	M2M_ANIMATED
-MESH2MOTION/Walk_Stealth	1.5	loop		walk crouch stealth	a crouched sneaking walk, knees wide	M2M_ANIMATED
+MESH2MOTION/Walk_Backwards	1	loop	55.1	walk	walks backward, in place	M2M_ANIMATED
+MESH2MOTION/Walk_Female	1.375	loop	47.2	walk	a swaying walk, the hips moving, in place	M2M_ANIMATED
+MESH2MOTION/Walk_Large	1.417	loop	75.5	walk	a heavy, lumbering walk	M2M_ANIMATED
+MESH2MOTION/Walk_Stealth	1.5	loop	49.4	walk crouch stealth	a crouched sneaking walk	M2M_ANIMATED
 MESH2MOTION/Zombie_Yell	3.708	once		zombie emote	hunched, rears up and roars with the arms raised	M2M_ANIMATED
-MESH2MOTION/Zombie_Idle_Crouch	2.958	loop		zombie idle crouch	crouched low and swaying	M2M_ANIMATED
+MESH2MOTION/Zombie_Idle_Crouch	2.958	loop	0	zombie idle crouch	crouched low and swaying	M2M_ANIMATED
 MESH2MOTION/Zombie_Rise	3.375	once		zombie getup	rises from the ground: lying	M2M_ANIMATED
-MESH2MOTION/Zombie_Walk_2	2.917	loop		zombie walk	a lurching zombie walk, deeply hunched, in place	M2M_ANIMATED
+MESH2MOTION/Zombie_Walk_2	2.917	loop	17.4	zombie walk	a lurching zombie walk, deeply hunched	M2M_ANIMATED
 MESH2MOTION/Cheer_One_arm	2.167	once		emote cheer	cheers with one fist raised high	M2M_MOCOPI
 MESH2MOTION/Cheering_Two_Hands	1.583	once		emote cheer	cheers with both arms raised overhead, waving	M2M_MOCOPI
 MESH2MOTION/Fishing_Cast	2.95	once		fish work prop	swings a fishing rod back over the shoulder and casts…	M2M_MOCOPI
 MESH2MOTION/Fishing_Catch	2.05	once		fish work prop	jerks the rod up to hook a fish and pulls…	M2M_MOCOPI
-MESH2MOTION/Fishing_Reel	1.45	loop		fish work prop	holds the rod out and turns the reel	M2M_MOCOPI
+MESH2MOTION/Fishing_Reel	1.45	loop	0.2	fish work prop	holds the rod out and turns the reel	M2M_MOCOPI
 MESH2MOTION/Golf_Drive	3.1	once		sport prop	addresses the ball and swings a golf club through	M2M_MOCOPI
-MESH2MOTION/Golf_idle	1.833	loop		sport prop idle	stands over a golf ball, the club held low, shifting weight	M2M_MOCOPI
+MESH2MOTION/Golf_idle	1.833	loop	0.5	sport prop idle	stands over a golf ball, the club held low	M2M_MOCOPI
 MESH2MOTION/Help_One_Arm	2.667	once		emote gesture	waves one arm overhead for attention: help	M2M_MOCOPI
 MESH2MOTION/Help_Two_Arms	1.583	once		emote gesture	waves both arms overhead for attention	M2M_MOCOPI
 MESH2MOTION/Insult	2.783	once		emote gesture	an insulting gesture, jabbing an arm forward at someone	M2M_MOCOPI

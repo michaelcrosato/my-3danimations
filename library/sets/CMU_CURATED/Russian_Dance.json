@@ -10,6 +10,8 @@
 "desc": "A Russian dance",
 "skeleton": "humanoid",
 "restSrc": "CMU_90",
+"contacts": {"by":"detected","footL":[[0.35,1.283]]},
+"facts": {"by":"m3a-facts@1","height":[41,114],"travel":[76,-49]},
 "provenance": {"src":"CMU_90","take":"90_30 2.50-8.50","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[16,116],"qa":"unchecked","qaVersion":"none"},
 "keys": [

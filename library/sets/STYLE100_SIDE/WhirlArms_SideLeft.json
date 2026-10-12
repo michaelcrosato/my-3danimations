@@ -10,7 +10,8 @@
 "desc": "Sidestepping to the left, whirl arms style: windmill arms",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":34},
+"contacts": {"by":"detected","footL":[[0.35,1.133]],"footR":[[0.983,2.066]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[98,101],"seam":0,"speed":34,"travel":[27.6,-50.1]},
 "provenance": {"src":"100STYLE","take":"WhirlArms_SW 36.13-37.78","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[11,103],"qa":"unchecked","qaVersion":"none"},
 "keys": [

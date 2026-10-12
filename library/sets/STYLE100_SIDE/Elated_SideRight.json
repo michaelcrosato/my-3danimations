@@ -10,7 +10,8 @@
 "desc": "Sidestepping to the right, elated style: swing arms with spring",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":66},
+"contacts": {"by":"detected","footL":[[0.816,1.516]],"footR":[[0.317,0.983]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[94,102],"seam":0,"speed":66,"travel":[8.4,67.2]},
 "provenance": {"src":"100STYLE","take":"Elated_SW 58.70-59.73","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[9,120],"qa":"unchecked","qaVersion":"none"},
 "keys": [
@@ -92,6 +93,6 @@
    "legL":[-8,13,-99,29,1], "legR":[-11,-5,-99,41,3], "footL":[1,9,0], "footR":[10,-14,-1]},
   {"t":1.033,
    "hips":[0,0,100], "body":[-1,-3,-6], "chest":[2,16,-4], "head":[2,6,9],
-   "shL":[8,-4], "shR":[2,-12], "armL":[93,-26,-27,80,-9], "armR":[-3,18,-98,0,-38], "handL":[-13,14,75], "handR":[-7,2,-228], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "shL":[8,-4], "shR":[2,-12], "armL":[93,-26,-27,80,-9], "armR":[-3,18,-98,0,-135], "handL":[-13,14,75], "handR":[-8,2,-131], "fingersL":[0,0,0,0,0], "fingersR":[1,1,1,1,1],
    "legL":[-10,14,-98,24,2], "legR":[-13,-1,-99,40,5], "footL":[3,9,0], "footR":[12,-8,0]}
 ]}

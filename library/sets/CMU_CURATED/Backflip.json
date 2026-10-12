@@ -10,6 +10,8 @@
 "desc": "A standing backflip: a deep swing of the arms, a jump up and over backwards, landing on the feet",
 "skeleton": "humanoid",
 "restSrc": "CMU_87",
+"contacts": {"by":"detected","footL":[[0,0.283],[0.583,0.817],[2.183,2.283]],"footR":[[0.733,0.767]]},
+"facts": {"by":"m3a-facts@1","height":[76,144],"travel":[-226,-91]},
 "provenance": {"src":"CMU_87","take":"87_03 1.50-3.90","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[13,97],"qa":"unchecked","qaVersion":"none"},
 "keys": [

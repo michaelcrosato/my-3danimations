@@ -10,6 +10,8 @@
 "desc": "a heavy chain: a low lunging thrust, a wide rising slash, then a big chop down to the ground and back to standing (travels)",
 "skeleton": "humanoid",
 "restSrc": "UAL2",
+"contacts": {"by":"detected","footL":[[0.55,0.967],[1.217,1.25],[1.483,1.717],[1.933,2.117],[2.25,2.366],[2.633,3.25],[3.683,4.333]],"footR":[[0.583,0.967],[1.933,2.233],[2.65,3.5],[3.783,4.333]]},
+"facts": {"by":"m3a-facts@1","height":[54,96],"strike":[1.817],"travel":[581,0]},
 "provenance": {"src":"UAL2","method":"keyed","producer":{"tool":"m3a-migrate","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
 "quality": {"fit":[13,145],"qa":"unchecked","qaVersion":"none"},
 "keys": [

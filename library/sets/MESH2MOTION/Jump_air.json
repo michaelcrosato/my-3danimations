@@ -10,6 +10,8 @@
 "desc": "airborne pose held while rising or falling",
 "skeleton": "humanoid",
 "restSrc": "M2M_QUATERNIUS",
+"contacts": {"by":"detected"},
+"facts": {"by":"m3a-facts@1","height":[99,99],"seam":0.7},
 "provenance": {"src":"M2M_QUATERNIUS","orig":"QUATERNIUS_SHARDFALL/Jump_Loop","method":"keyed","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
 "quality": {"fit":[10,56],"qa":"unchecked","qaVersion":"none"},
 "keys": [

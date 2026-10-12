@@ -10,7 +10,8 @@
 "desc": "Walking backward, swing shoulders style: rotate torso and shoulders left to right and back",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":63},
+"contacts": {"by":"detected","footL":[[0.35,1.333]],"footR":[[1.083,2.117]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[99,102],"seam":0,"speed":63,"travel":[-96.3,-0.8]},
 "provenance": {"src":"100STYLE","take":"SwingShoulders_BW 139.08-140.70","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[8,42],"qa":"unchecked","qaVersion":"none"},
 "keys": [

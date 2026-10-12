@@ -10,7 +10,8 @@
 "desc": "Sidestepping to the right, chicken style: bob head - arms as wings",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":52},
+"contacts": {"by":"detected","footL":[[0.217,0.933]],"footR":[[0.866,1.45]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[92,96],"seam":0,"speed":52,"travel":[26.9,44.8]},
 "provenance": {"src":"100STYLE","take":"Chicken_SW 13.50-14.52","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[6,34],"qa":"unchecked","qaVersion":"none"},
 "keys": [

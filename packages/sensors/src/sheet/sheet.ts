@@ -103,7 +103,8 @@ export function sheet(clip: SheetClip, R: Rest, opts: SheetOptions = {}): Sheet 
   for (layout(); cw > 24 && tokens({ width: cols * cw, height: H }) > budget; cw--) layout();
   const W = cols * cw, ls = labelScale(W), top = (GLYPH.height + 6) * ls;
   const img = image(W, H);
-  const contacts = opts.contacts === false ? undefined : (clip.contacts ?? measureFacts(clip as Clip, R).contacts);
+  // a source's labelled contacts as given, a tool's detected again (core's measureFacts)
+  const contacts = opts.contacts === false ? undefined : measureFacts(clip as Clip, R).contacts;
   const playing = { ...clip, contacts };
   const at = (c: SheetClip, t: number) => clipNs.sample(c, c.loop && t >= c.dur ? c.dur * (1 - 1e-12) : t, R);
   const poses = times.map((t) => at(clip, t));

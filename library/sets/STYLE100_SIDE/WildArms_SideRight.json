@@ -10,7 +10,8 @@
 "desc": "Sidestepping to the right, wild arms style: swing arms much more than normal almost punching into the air",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":41},
+"contacts": {"by":"detected","footL":[[1.316,2.499]],"footR":[[0.783,1.716]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[97,101],"seam":0,"speed":41,"travel":[18.8,56.1]},
 "provenance": {"src":"100STYLE","take":"WildArms_SW 22.17-23.70","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[9,95],"qa":"unchecked","qaVersion":"none"},
 "keys": [
@@ -120,6 +121,6 @@
    "legL":[3,-5,-100,17,-5], "legR":[-4,-6,-100,11,-9], "footL":[-3,3,0], "footR":[-1,12,0]},
   {"t":1.533,
    "hips":[0,0,100], "body":[-2,0,-1], "chest":[2,8,1], "head":[6,8,8],
-   "shL":[2,-11], "shR":[0,6], "armL":[-26,-4,-97,5,-46], "armR":[44,-11,89,45,-20], "handL":[2,-10,11], "handR":[-4,12,74], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "shL":[2,-11], "shR":[0,6], "armL":[-26,-4,-97,5,-165], "armR":[44,-11,89,45,-20], "handL":[5,-7,-108], "handR":[-4,12,74], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
    "legL":[-1,-6,-100,15,-3], "legR":[-8,-5,-100,10,-1], "footL":[-1,5,0], "footR":[0,11,0]}
 ]}

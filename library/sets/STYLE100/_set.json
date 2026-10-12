@@ -3,7 +3,7 @@
 "title": "100STYLE walks",
 "format": "2.0",
 "tier": "cc-by",
-"content": {"edition":"100STYLE (zenodo.org/records/8127870, the archive tools/corpora/100style.lock.json pins): 95 forward walks, each cut at its best cycle inside the frames the dataset marks as the style","importer":"m3a-import 1, from the sources (WP-5.3); 12 clip(s) kept as m3a-migrate 1 made them (_import.json says why)","sha256":"0be09e45c560389e78796005490225697f31af1dc5cfbc59e16cc8b0c0578a86"},
+"content": {"edition":"100STYLE (zenodo.org/records/8127870, the archive tools/corpora/100style.lock.json pins): 95 forward walks, each cut at its best cycle inside the frames the dataset marks as the style","importer":"m3a-import 1, from the sources (WP-5.3); 9 clip(s) kept as m3a-migrate 1 made them (_import.json says why)","sha256":"774fbfa3023ba4a6f59e1ebafa7786f7d4cf938963b3e1ad1844e4b3222e2b30"},
 "credit": "100STYLE by Ian Mason, Sebastian Starke and Taku Komura, CC BY 4.0.",
 "producer": {"tool":"m3a-import","version":"1"},
 "sources": {

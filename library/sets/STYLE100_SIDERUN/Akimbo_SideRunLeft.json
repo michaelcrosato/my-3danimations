@@ -10,7 +10,8 @@
 "desc": "Running sideways to the left, akimbo style: hands on hips",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":126},
+"contacts": {"by":"detected","footL":[[0.1,0.333]],"footR":[[0.5,0.8]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[96,109],"seam":0,"speed":126,"travel":[7.4,-93.4]},
 "provenance": {"src":"100STYLE","take":"Akimbo_SR 19.10-19.82","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[7,32],"qa":"unchecked","qaVersion":"none"},
 "keys": [

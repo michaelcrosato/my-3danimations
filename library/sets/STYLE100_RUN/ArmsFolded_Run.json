@@ -10,7 +10,8 @@
 "desc": "Running, arms folded style: right arm folded over left",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":86},
+"contacts": {"by":"detected","footL":[[1.133,2.367]],"footR":[[0.667,1.2],[1.45,2.017]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[94,100],"seam":0,"speed":86,"travel":[145.2,-48.9]},
 "provenance": {"src":"100STYLE","take":"ArmsFolded_FR 55.47-57.18","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[8,48],"qa":"unchecked","qaVersion":"none"},
 "keys": [

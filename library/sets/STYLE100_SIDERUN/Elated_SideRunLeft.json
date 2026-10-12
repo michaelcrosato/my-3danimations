@@ -10,7 +10,8 @@
 "desc": "Running sideways to the left, elated style: swing arms with spring",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":156},
+"contacts": {"by":"detected","footL":[[0.017,0.267],[0.75,0.916]],"footR":[[0.55,0.716],[1.15,1.266]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[91,112],"seam":0,"speed":156,"travel":[46.3,-183.5]},
 "provenance": {"src":"100STYLE","take":"Elated_SR 29.42-30.65","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[14,143],"qa":"unchecked","qaVersion":"none"},
 "keys": [

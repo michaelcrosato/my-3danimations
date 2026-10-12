@@ -10,7 +10,8 @@
 "desc": "Running sideways to the left, wide legs style: legs apart motions",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-import@1","speed":135},
+"contacts": {"by":"detected","footL":[[0.25,0.533]],"footR":[[0,0.283]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[91,106],"seam":0,"speed":135,"travel":[7.6,-87.1]},
 "provenance": {"src":"100STYLE","take":"WideLegs_SR 33.17-33.78","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[10,39],"qa":"unchecked","qaVersion":"none"},
 "keys": [
