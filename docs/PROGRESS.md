@@ -28,7 +28,7 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 
 ## Blocked on the owner
 
-- Nothing yet.
+- G4's bar (D60, on michaelcrosato/my-3danimations#10): D49's reading gives 89.1%, "no fail finding added" 97.2%.
 
 ## Last gate
 

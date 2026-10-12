@@ -1559,3 +1559,18 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   (98) are the sets to credit. A fixture for each failure fails with its reason.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.29.0
+
+## D60 · 2026-10-12 · G4's bar goes to the owner: which reading of "pass the sensors" M1 means
+
+- **Principle:** 1, 9, G4, K1
+- **Call:** escalated on michaelcrosato/my-3danimations#10 with the numbers. Over run 1's 3,150 pairs, the readings
+  give: D49's (the skeleton adds no warn or fail the clip lacks) 89.1%; the skeleton adds no fail finding (warns
+  listed) 97.2% (gen-0 95.6%, gen-1 98.1, gen-2 98.3, gen-3 98.5, the mannequin 98.5, the Knight 94.1); the played
+  verdict alone has no fail 91.7%; is "pass" 72.4%. Round four's levers (D58) and clips repaired at load (89.8%)
+  together reach about 91% under D49's. Recommended: "no fail finding added", every added warn listed, since the
+  sensors set warn at capture's p95 and fail past all capture; the set test already reads "green" so. Until answered,
+  D49's reading stands and G4 run 2 doesn't start (K1); Phase 5 and 6 go on.
+- **Why:** the reading decides whether M1 passes, so it is the owner's; choosing the one that passes after seeing the
+  numbers would be the agent grading itself.
+- **Answered:** no: escalated, waiting.
+- **Landed in:** v0.29.0 (no code)
