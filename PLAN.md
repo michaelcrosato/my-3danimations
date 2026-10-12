@@ -766,7 +766,8 @@ G5 gates M3 (through WP-9.1) and M4 (G10). Clips change in sequence (§8.4), so 
   - on at least 6 skeletons (4 or more generated variants, 2 or more real CC0 rigs from different sources), the idle,
     walk, run, jump and attack set plays with the sensors green;
   - **a headless sweep** (`npm run sweep`, WP-4.5) plays every migrated clip on those six skeletons, and at least 95%
-    pass the sensors, with every failure listed and its reason given. The gate report links the clip-by-skeleton
+    pass the sensors (WP-4.5's rule: the skeleton adds no finding the clip lacks on its own body), with every failure
+    listed and its reason given. The gate report links the clip-by-skeleton
     results, and M1 claims only what they show;
   - **a held-out rig:** a real CC0 rig from a source that neither WP-4.2's list nor an earlier run under
     `bench/results/heldout/` used. On each run of G4, reruns included, a fresh subagent chooses one, reads its license,
@@ -1470,7 +1471,9 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
 
   Also `npm run sweep -- <rig ids | --manifest <file>>`: it plays every migrated clip on each given skeleton (bound by
   WP-4.3, solved in Node), runs the sensors (WP-3.3), and writes the clip-by-skeleton results with every failure and
-  its reason. G4 runs it on its six skeletons and, separately, on the held-out rig (§9.3).
+  its reason. G4 runs it on its six skeletons and, separately, on the held-out rig (§9.3). A clip passes on a skeleton
+  when the skeleton adds nothing wrong (D49): its data is sound, no metric goes past a level (warn or fail) it was
+  under on the clip's own body, read the same way, and every mapped bone's joint is within 5 mm of its body point.
 - **Done when:**
   - sheets of the generated and real rigs render in CI;
   - the hashes match;
@@ -2237,7 +2240,7 @@ version, commit, date and a note with the numbers. Gates are rows too.
 | 4.5 Headless capture | done | 0.24.0 | e7d7456, (this commit) | 2026-10-12 | capture: 2 generated + 2 real rigs drawn headless on WebGL 2 in CI, every frame drawn, pose hashes = Node's; blank and wrong-renderer frames fail by code; sweep over 2 test characters lists the broken clip with its reason; library sweep 80–91% on 5 generated, 86–88% on the Quaternius mannequins, 62% on the Knight (G4 asks 95%); planting and toeless-rig fixes (D49) |
 | 4.6 The first-flight demo | done | 0.25.0 | (this commit) | 2026-10-12 | lab `apps/lab/hello`: idle, walk, run by speed, jump, attack with its hit; deep links, `__m3a`, phone layout, stamp; `vercel.json`; e2e: a 13 s session headless on WebGL 2, hashes = Node's after every part, the sensors on what it played WARN with no fail, screenshots and a sheet as T2's artifact (D52); cross-fade planting fixed on the way (D51) |
 | 4.7 The benchmark harness and B1 | done | 0.27.0 | a7cc153, (this commit) | 2026-10-12 | isolation 1 (`claude -p`, clean env and home): B1 4/5 (the fifth skates at 54.5 cm/s running), 0.6–1.7 min, 7–18 turns, $0.11–0.24 a trial; discovery 2/2 found and used the package, both pass; quiz 10/10 in 3 trials; the grader fails 4 planted bad solutions and passes the known-good on seeds 1, 37 and held-out 41; a variant runs by path, its known-good first; manual draft shipped in @m3a/tools (D54) |
-| **G4 = M1** | todo | | | | |
+| **G4 = M1** | failed, run 1 | 0.28.0 | 6798b45 | 2026-10-12 | run 1, 5 of 8 in 19.7 min (D57, `bench/results/gates/G4-run-1/`): sweep 89.1% of 3,150 (bar 95%; held-out rig 90.9%); B1's variant a grader failure (seed 935, fixed in D56); vectors without the pins in the worktree; check, test (469), doctrine, T2 (the set on six skeletons and the held-out rig, no fail finding), B1 5/5 passed. Run 2 waits for the sweep at ≥95% (K1) |
 | 5.1 Library layout and loader | done | 0.26.0 | (this commit) | 2026-10-12 | ahead of the ledger for WP-4.7 (D53): 5 sets, 525 clips load with their content ids and every file as locked; a tampered file fails with its clip named; a game that hasn't opted in sees the 3 CC0 sets (367 clips); CC0, CC BY and CMU texts in library/LICENSES/ |
 | 5.2 Importers | todo | | | | |
 | 5.7 License compliance | todo | | | | |

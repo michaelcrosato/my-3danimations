@@ -1,0 +1,88 @@
+{
+ "tool": "gate",
+ "ok": false,
+ "verdict": "gate G4: FAIL in 1182.4 s (6/8 commands)",
+ "steps": [
+  {
+   "name": "check",
+   "ok": true,
+   "ms": 11722.820142999999,
+   "detail": [],
+   "log": "check-output/gate/check.log",
+   "summary": "check: PASS (T0) in 11.5 s, budget 15.0 s"
+  },
+  {
+   "name": "test",
+   "ok": true,
+   "ms": 54106.343087,
+   "detail": [],
+   "log": "check-output/gate/test.log",
+   "summary": "test: PASS (T1) in 53.9 s, budget 90.0 s"
+  },
+  {
+   "name": "doctrine",
+   "ok": true,
+   "ms": 533.0775900000008,
+   "detail": [],
+   "log": "check-output/gate/doctrine.log",
+   "summary": "doctrine: PASS in 0.2 s (8 checks)"
+  },
+  {
+   "name": "vectors --check",
+   "ok": false,
+   "ms": 411.5964499999973,
+   "detail": [
+    "vectors: FAIL, the pinned sources are not in .cache/src/",
+    "next: npm run pins -- fetch, then rerun"
+   ],
+   "log": "check-output/gate/vectors-check.log",
+   "summary": "vectors: FAIL, the pinned sources are not in .cache/src/"
+  },
+  {
+   "name": "the sweep: every migrated clip on the six skeletons, 95% together; the held-out rig apart",
+   "ok": false,
+   "ms": 502159.66886100004,
+   "detail": [
+    "sweep: FAIL, 3285 of 3675 clip-skeleton pairs pass in 501.6 s",
+    "  ok   gen-0 72.7 s: 446 of 525 clips pass (85.0%), bound by name (vrm) at 1.00",
+    "  ok   gen-1 69.3 s: 480 of 525 clips pass (91.4%), bound by name (mixamo) at 1.00",
+    "  ok   gen-2 73.0 s: 476 of 525 clips pass (90.7%), bound by name (unreal5) at 1.00",
+    "  ok   gen-3 68.6 s: 478 of 525 clips pass (91.0%), bound by name (rigify) at 1.00",
+    "  ok   quaternius-mannequin-m 78.2 s: 475 of 525 clips pass (90.5%), bound by name (unreal4) at 1.00",
+    "  ok   kaykit-knight 68.2 s: 453 of 525 clips pass (86.3%), bound by topology at 0.85",
+    "  ok   orangejuice-male-base (held out, run-1) 71.5 s: 477 of 525 clips pass (90.9%), bound by topology at 0.85",
+    "  FAIL together 0.0 s: 2808 of 3150 clip-skeleton pairs pass (89.1%; the bar 95%)",
+    "next: read check-output/sweep/results.json for every clip on every skeleton"
+   ],
+   "log": "check-output/gate/the-sweep-every-migrated-clip-on-the-six-skeletons-95-together-the-held-out-rig-apart.log",
+   "summary": "sweep: FAIL, 3285 of 3675 clip-skeleton pairs pass in 501.6 s"
+  },
+  {
+   "name": "T2: the demo headless, its set on the six skeletons and the held-out rig, sheets",
+   "ok": true,
+   "ms": 40982.44817300001,
+   "detail": [],
+   "log": "check-output/gate/T2-the-demo-headless-its-set-on-the-six-skeletons-and-the-held-out-rig-sheets.log",
+   "summary": "e2e: PASS (T2) in 40.8 s, budget 480.0 s"
+  },
+  {
+   "name": "B1: at least 4 of 5 fresh agents",
+   "ok": true,
+   "ms": 291090.34075900004,
+   "detail": [],
+   "log": "check-output/gate/B1-at-least-4-of-5-fresh-agents.log",
+   "summary": "bench B1: PASS in 290.7 s"
+  },
+  {
+   "name": "B1's held-out variant: at least 4 of 5 fresh agents",
+   "ok": true,
+   "ms": 281415.62921299995,
+   "detail": [],
+   "log": "check-output/gate/B1-s-held-out-variant-at-least-4-of-5-fresh-agents.log",
+   "summary": "bench B1: PASS in 280.8 s"
+  }
+ ],
+ "warnings": [],
+ "ms": 1182425.430526,
+ "next": "fix forward; a gate that fails twice is checked against the kill criteria (PLAN.md \u00a712)"
+}

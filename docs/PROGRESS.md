@@ -3,7 +3,7 @@
 The current state on one screen (at most 40 lines; `npm run doctrine` checks it from WP-0.3). The ledger is
 `PLAN.md` §14; decisions are in `docs/DECISIONS.md`.
 
-**Phase:** 4 First flight. **Next gate:** G4 (M1). **Version:** 0.28.0.
+**Phase:** 4 First flight. **Next gate:** G4 (M1), run 2. **Version:** 0.28.0.
 **Mode:** one agent (D21), branch `claude/relaxed-albattani-939ofg` (D50: it takes over michaelcrosato/my-3danimations#9).
 
 ## Done
@@ -23,8 +23,8 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 
 ## Next
 
-- The sweep (D51, D55): 89.1% of 3,150 pairs (85–91% a skeleton); G4 asks 95%. The set plays on all six, no fail.
-- WP-5.1 done early (D53). WP-4.7 done (D54): B1 4/5 with fresh agents, discovery 2/2, quiz 10/10 ×3. Next: G4.
+- Fix forward from G4 run 1: the sweep's 185 missing pairs and the verifier's findings. A second failure is K1
+  (PLAN.md §12): run 2 waits for a sweep at ≥95% at a clean commit. Phase 5 lanes that don't need G4 go on.
 
 ## Blocked on the owner
 
@@ -32,9 +32,9 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 
 ## Last gate
 
-- **G3 passed** 2026-10-11 at 504d0f6 in 122.8 s, 11 of 11:
-  - check (T0) 1.7 s; test (T1) 25.6 s, 407 tests; doctrine 8 of 8; vectors byte for byte;
-  - the sensors over all 525 clips in 5.2 s, as the baseline says: 267 pass, 104 warn, 154 fail;
-  - planted defects rebuilt byte for byte and 100 of 100 caught at their times; describe 30 of 30;
-  - fix: each operator removes its planted defect; over the library 252 linted, 144 better, 53 with fewer findings,
-    none worse or invalid; T2 8.7 s. 27 of 27 mutants of the reworked operators fail the tests.
+- **G4 run 1 failed** 2026-10-12 at 6798b45 in 19.7 min, 5 of 8 (`bench/results/gates/G4-run-1/`, review in D57):
+  - passed: check (T0) 11.5 s; test (T1) 469 tests in 53.9 s; doctrine 8/8; T2 40.8 s, the set on the six skeletons
+    and the held-out rig with no fail finding; B1 5/5;
+  - failed: the sweep, 2,808 of 3,150 pairs (89.1%, the bar 95%; 85.0–91.4% a skeleton; the held-out rig 90.9%, apart);
+    B1's held-out variant, as a grader failure: its first seed broke the known-good solution (fixed in D56; the redrawn
+    seed's 5/5 is information only); vectors --check, the worktree lacking the pinned sources (byte for byte with them).

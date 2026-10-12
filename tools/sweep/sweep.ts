@@ -3,7 +3,8 @@
 // clip-by-skeleton result with every failure and its reason. A clip passes on a skeleton when the skeleton adds nothing
 // wrong: its data is sound (no non-number, events in order), the sensors find no metric past a level it was under on
 // the clip's own body, read the same way (the clip's own defects are the clip's, not the skeleton's: 29% of the library
-// fails on its own body), and the bones reach every mapped joint's point within 5 mm.
+// fails as qa reads it, 10% as the sweep reads it, by parts every 1/60 s), and the bones reach every mapped joint's point
+// within 5 mm.
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { Animator, format, measureFacts, solver, type AnimatorPose, type AnimClip, type Clip, type Rest } from "@m3a/core";

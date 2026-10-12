@@ -1475,3 +1475,35 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   asks of a small character are smaller (a walk's speed goes with leg length).
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.28.0 (bench only; no package changed)
+
+## D57 · 2026-10-12 · G4 run 1 failed, 5 of 8; what run 2 needs
+
+- **Principle:** 1, 9, G4, K1
+- **Call:**
+  - `npm run gate -- G4` ran at 6798b45 (the held-out run's files beside it, untracked, identical to 11c6130's) in a
+    worktree: 19.7 min, **failed**. Passed: check (T0), test (T1, 469 tests), doctrine 8/8, T2 (12 Playwright tests:
+    the idle, walk, run, jump and attack set on the six skeletons and the held-out rig, no fail finding on any, all
+    warn), B1 5/5. Failed: the sweep, 2,808 of 3,150 pairs (89.1%; gen-0 85.0%, gen-1 91.4%, gen-2 90.7%, gen-3
+    91.0%, the Quaternius mannequin 90.5%, the Knight 86.3%; the held-out rig 477 of 525, 90.9%, apart); `vectors
+    --check`, which found no pinned sources in the worktree (with them, byte for byte at the same commit). The record:
+    `bench/results/gates/G4-run-1/` (the report, every failing pair with its reasons, the set, both B1 runs).
+  - **The verifier's review** (a fresh subagent, AGENTS.md): it recounted every number from the outputs and found them
+    right, and found:
+    - B1's held-out variant is a failure, not a pass: its first seed (935) broke the brief's known-good solution, and
+      §7 then reports a package or grader failure instead of running trials. Run 1 redrew (seed 401: 5/5, kept as
+      information). So run 1 is 5 of 8. Run 2 doesn't redraw.
+    - The sweep's pass rule (D49: the skeleton adds no finding the clip lacks on its own body) was never written into
+      §9.3 or WP-4.5. It now is, unchanged. Read literally on the played body alone, "pass the sensors" gives 91.7% (no
+      fail finding) or 72.4% (no finding): every reading misses 95%. The owner is asked which reading M1 means; until
+      answered, D49's stands.
+    - The B1 records lack the commit (a worktree's `.git` is a file), a dirty flag, the variant's directory and seed,
+      and discovery trials (§7 reports them at G4); agents wrote scratch files to `/tmp` outside their workspaces (no
+      repository path read: no contamination found). The capture sheets cover four of G4's seven bodies. The held-out
+      rig's license file is its re-uploader's, and only its SHA is unrecorded in `rig.json`.
+  - **Run 2** (K1: a second failure for any reason stops Phase 4): only when a sweep outside the gate passes ≥95% at a
+    clean commit; then pins and fixtures fetched first, a fresh held-out rig whose author's own source carries its
+    license (its license file's SHA-256 recorded), fresh variants written after the commit is fixed, the gate run on
+    that commit with every log kept.
+- **Why:** a gate's report says what its outputs show; a run that redrew a failing variant didn't pass that step.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.28.0 (records and the plan's wording only)

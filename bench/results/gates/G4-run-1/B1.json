@@ -1,0 +1,130 @@
+{
+ "about": "npm run bench: fresh agents on the briefs (PLAN.md §7); isolation 1 is the claude CLI in a clean workspace",
+ "date": "2026-10-12T05-10-43",
+ "commit": "unknown",
+ "model": "the CLI's default",
+ "fake": false,
+ "B1": {
+  "trials": [
+   {
+    "trial": "B1-1",
+    "pass": true,
+    "failed": [],
+    "agent": {
+     "isolation": 1,
+     "ok": true,
+     "ms": 65650.130937,
+     "model": "claude-sonnet-5-5",
+     "turns": 12,
+     "tokens": {
+      "input": 22,
+      "output": 6159,
+      "cacheRead": 178449,
+      "cacheWrite": 19652
+     },
+     "costUsd": 0.15808689999999995,
+     "outside": [
+      "/tmp/scr",
+      "/tmp/scr/e.mjs"
+     ],
+     "pastManual": []
+    }
+   },
+   {
+    "trial": "B1-2",
+    "pass": true,
+    "failed": [],
+    "agent": {
+     "isolation": 1,
+     "ok": true,
+     "ms": 50472.178595000005,
+     "model": "claude-sonnet-5-5",
+     "turns": 9,
+     "tokens": {
+      "input": 18,
+      "output": 5299,
+      "cacheRead": 132353,
+      "cacheWrite": 18180
+     },
+     "costUsd": 0.1389813,
+     "outside": [
+      "/tmp/m.ts",
+      "/tmp/s.ts"
+     ],
+     "pastManual": []
+    }
+   },
+   {
+    "trial": "B1-3",
+    "pass": true,
+    "failed": [],
+    "agent": {
+     "isolation": 1,
+     "ok": true,
+     "ms": 67758.41259400001,
+     "model": "claude-sonnet-5-5",
+     "turns": 12,
+     "tokens": {
+      "input": 24,
+      "output": 6959,
+      "cacheRead": 213513,
+      "cacheWrite": 22907
+     },
+     "costUsd": 0.18261729999999998,
+     "outside": [
+      "/tmp/cat.mjs"
+     ],
+     "pastManual": []
+    }
+   },
+   {
+    "trial": "B1-4",
+    "pass": true,
+    "failed": [],
+    "agent": {
+     "isolation": 1,
+     "ok": true,
+     "ms": 44333.584495999996,
+     "model": "claude-sonnet-5-5",
+     "turns": 9,
+     "tokens": {
+      "input": 18,
+      "output": 4996,
+      "cacheRead": 125489,
+      "cacheWrite": 18669
+     },
+     "costUsd": 0.1372209,
+     "outside": [
+      "/tmp/cat.mjs"
+     ],
+     "pastManual": []
+    }
+   },
+   {
+    "trial": "B1-5",
+    "pass": true,
+    "failed": [],
+    "agent": {
+     "isolation": 1,
+     "ok": true,
+     "ms": 41484.841965,
+     "model": "claude-sonnet-5-5",
+     "turns": 6,
+     "tokens": {
+      "input": 12,
+      "output": 4533,
+      "cacheRead": 68018,
+      "cacheWrite": 16039
+     },
+     "costUsd": 0.1163118,
+     "outside": [
+      "/tmp/cat.mjs"
+     ],
+     "pastManual": []
+    }
+   }
+  ],
+  "discovery": []
+ },
+ "ms": 290659
+}
