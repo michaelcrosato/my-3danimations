@@ -1,6 +1,6 @@
 # m3a: character animation for agents
 
-**First draft** (WP-4.7): enough to find, fit and wire locomotion; WP-7.3 finishes it.
+**Draft** (WP-4.7, WP-6.6): enough to find, fit and wire characters; WP-7.3 finishes it.
 
 m3a plays humanoid motion clips on any humanoid character, in a game or headless. Everything is text and code: clips
 are JSON, the runtime is deterministic, and the sensors measure motion as numbers (and draw it as PNGs) without a
@@ -14,6 +14,7 @@ display.
 | `@m3a/library` | the clip library (the CC0 default pack): catalogs and clips by id | `@m3a/library/node` (`openLibrary`) |
 | `@m3a/three` | binds a three.js character and writes poses to its bones | `@m3a/three` (three r182 is a peer) |
 | `@m3a/sensors` | metrics, repairs (`fix`), contact sheets | `@m3a/sensors`, `@m3a/sensors/node` (`writePng`) |
+| `@m3a/tools` | the simulation (`sim`) and this manual | `@m3a/tools` |
 
 Units: millimetres and degrees in m3a, metres in three.js (the adapter converts). Time in seconds.
 
@@ -98,6 +99,101 @@ scene.position.x -= player.moved.right / 1000;
 - **Masks**: `mask: "upper"` (or `["armL", "head"]`) plays a layer on those parts only.
 - **Determinism**: the same steps give the same `animator.hash()`, in Node and in a browser; `save()` and
   `restore(data, clips)` round-trip through JSON.
+
+## Wire: graphs
+
+A graph is JSON: states that play clips, transitions on parameters the game sets, blend spaces and layers. The
+Animator runs it inside its fixed step, the same in Node and in a browser.
+
+```json
+{
+  "format": "2.0", "id": "GRAPHS/Hero",
+  "parameters": { "speed": { "type": "number" }, "grounded": { "type": "bool", "value": true },
+                  "jump": { "type": "trigger", "buffer": 0.1 } },
+  "start": "idle",
+  "states": {
+    "idle": { "clip": "QUATERNIUS_3D2DGE/Idle_Loop" },
+    "move": { "blend": { "param": "speed", "points": [{ "at": 1.2, "clip": "QUATERNIUS_3D2DGE/Walk_Loop" },
+                                                      { "at": 3.5, "clip": "QUATERNIUS_3D2DGE/Jog_Fwd_Loop" }] } },
+    "jump": { "clip": "QUATERNIUS_3D2DGE/Jump_Start" }
+  },
+  "transitions": [
+    { "from": ["idle", "move"], "to": "jump", "when": [{ "param": "jump" }, { "param": "grounded" }], "fade": 0.1 },
+    { "from": "idle", "to": "move", "when": [{ "param": "speed", "op": ">", "value": 0.2 }], "fade": 0.25 },
+    { "from": "move", "to": "idle", "when": [{ "param": "speed", "op": "<=", "value": 0.2 }] },
+    { "from": "jump", "to": "idle", "exit": 1 }
+  ]
+}
+```
+
+- **A state** is one of `clip`, `recipe`, `blend` (one parameter: `param`, points in rising `at`; two: `params`, `at`
+  `[x, y]`; its clips kept in step) or `pass` (on a layer only: what is below shows). It may have `speed`, `rate` (a
+  number parameter multiplying the speed) and `at` (the clip time it starts at).
+- **A transition** goes `from` a state (a list, or `"*"`) `to` another when all of `when` hold: a number compared
+  (`== != < <= > >=`), a bool alone (true) or a trigger alone (pressed; used up when taken). `exit`: only once the
+  state has played that share (1: a one-shot's end). `window`: `[from, to]` s of the state's time (a cancel window).
+  `fade`: seconds (0.2; 0 cuts). `sync`: start at the phase of the state left. `interruptible`: may be left mid-fade.
+  The first that holds is taken.
+- **A trigger** waits until a transition uses it, or for its `buffer` seconds; `set(name, false)` clears it.
+- **Layers** over the base: `"layers": [{ "name": "upper", "mask": "upper", "start": "none", "states": { "none":
+  { "pass": true }, "jab": { "clip": "…" } }, "transitions": [ … ] }]`, with `weight` and `additive`.
+
+```ts
+import { Animator, graph, playable } from "@m3a/core";
+const clips = (id: string) => { const { clip, rest } = library.clip(id); return playable(clip, rest); };
+graph.validateGraph(g, { clips });            // issues: { code, field, message, fix }; none means it plays
+const animator = new Animator(bound.core).play(g, clips);   // throws E_GRAPH naming the issues
+animator.set("speed", 2.1); animator.trigger("jump");       // read from the next step
+animator.on("hit", (e) => game.damage(10));                 // each event as its step passes it ("*": all)
+animator.graph!.states;                                     // [{ layer, state, from, fade }]
+```
+
+The graph plays on Animator layers named `@layer/entry/point`; leave them be (`stop()` removes them). Layers you add
+with `layer()` go over them.
+
+## Wire: events and hit timing
+
+- An event (`clip.events`: `{ t, name, … }`) fires on the step the playhead passes it: in `step(dt).events`,
+  `player.update(dt).events` and `animator.on(name, fn)`. A layer at weight 0 fires none (the lowest layer always does).
+- An attack's strike is `clip.facts.strike[0]` (or `measureFacts(clip, rest).strike[0]`): when its hand moves fastest
+  toward the target. Put `{ t: strike, name: "hit" }` in the clip (`playable({ ...clip, events }, rest)`) and apply
+  damage when it fires. Played at speed s, it comes `strike / s` s in.
+- Fade a one-shot in over about 0.1 s: snapped in at weight 1, the body jumps faster than it punches.
+  `animator.layers` shows `held: "end"` once a one-shot ended.
+
+## Wire: reactions
+
+- **Upper body only:** `animator.layer("flinch", { clip, time: 0, mask: "upper", weight })`; the legs, hips and root
+  keep what the layers below play. Groups: `upper`, `lower`, `armL`, `armR`, `legs`, `head`, `spine`.
+- **Knocked down:** the knockdown takes the base layer (cross-fade), holds its end, then the next clip. From one pose
+  lying on the floor to another, cut (`layer("base", { clip, time: 0 })`): a blend between two lying poses swings the
+  limbs through the floor. The library has `Hit_Head`, `Hit_Chest` (light), `Hit_Knockback` (ends lying) and
+  `LayToIdle` (a get-up from lying).
+
+## Wire: root motion, in place, stride warping
+
+- **Root-driven:** move the character by `player.moved`: the clips decide its speed and planted feet stay put.
+- **In place** (the game moves the character): play the moving clips at the ground speed over their own, or the feet
+  slide. A clip's own speed on this body is `contact.contactRoot(clip, bound.core.rest, clip.contacts).speed` (mm/s).
+  In a graph, give the moving state `"rate": "warp"` (a number parameter) and set it each frame: stride warping.
+
+## Check a graph: the simulation
+
+```ts
+import { sim } from "@m3a/tools";
+const script = { format: "2.0", id: "SIMS/Test", dur: 6, input: [
+  { t: 0.5, set: { speed: 1.2 }, over: 0.3 },   // over: eased there in 0.3 s
+  { t: 3, trigger: "jump" }, { t: 3.1, set: { grounded: false } } ] };
+const run = sim.simulate({ graph: g, script, body: bound.core, clips });
+run.trace.states;    // [{ step, t, layer, state, from }]: when each state was entered
+run.trace.events;    // every event; run.trace.hits: windows from "hit" events
+run.sensors;         // { verdict, slide, skate, findings } over the whole run
+writePng("film.png", sim.filmstrip(run, 8));
+```
+
+`root: "in-place"` with `move` (the ground speed, m/s) and `warp: "warp"` simulates a game moving the character,
+stride warped. `sim.validateScript(script, g)` checks a script; `sim.compareTraces(expected, actual)` names the first
+difference.
 
 ## Check: sensors and sheets
 

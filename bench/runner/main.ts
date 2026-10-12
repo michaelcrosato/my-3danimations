@@ -1,4 +1,4 @@
-// `npm run bench -- <B1 | quiz>[,...] [--trials N] [--discovery N] [--parallel N] [--variant <dir>] [--model <m>] [--fake]`
+// `npm run bench -- <B1 | B2 | B3 | B7 | quiz>[,...] [--trials N] [--discovery N] [--parallel N] [--variant <dir>] [--model <m>] [--fake]`
 // (PLAN.md §7, WP-4.7): each brief given to fresh agents in workspaces outside the repository, graded headless.
 // - B1: the packages packed (bench/runner/pack.ts); per trial a workspace in /tmp/m3a-bench/<run>/ with the tarballs
 //   installed, the brief, the starter and its character; a fresh agent (isolation level 1, bench/runner/agent.ts)
@@ -17,14 +17,31 @@ import { execFileSync } from "node:child_process";
 import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
 import { gradeB1, type Grade } from "../graders/B1/grade.ts";
+import { gradeB2 } from "../graders/B2/grade.ts";
+import { gradeB3 } from "../graders/B3/grade.ts";
+import { gradeB7 } from "../graders/B7/grade.ts";
 import { closest, finish, fmtMs, parseArgs, usage, type Report, type Step } from "../../tools/run/cli.ts";
 import { runAgent, type AgentRun } from "./agent.ts";
 import { pack } from "./pack.ts";
 import { answersIn, QUIZ, quizPrompt, score } from "./quiz.ts";
 import { DEFAULT_CHARACTER, prepareWorkspace, type CharacterSpec } from "./workspace.ts";
 
-const ROOT = join(import.meta.dirname, "../.."), BENCH = join(ROOT, "bench"), BRIEFS = ["B1", "quiz"];
-const GOOD = join(BENCH, "graders/B1/known-good/src");
+const ROOT = join(import.meta.dirname, "../.."), BENCH = join(ROOT, "bench");
+/** A brief the runner gives agents: its starter, its brief, its grader, and its known-good solution's files. */
+export interface BriefSpec {
+  starter: string;
+  grade(workspace: string): Promise<Grade>;
+  /** The known-good solution: its files by path in a workspace, read from bench/graders/<brief>/known-good. */
+  good: string[];
+}
+/** The briefs, by name (B4, B5, B6 with WP-6.6's second half, B8 with WP-9.1). */
+export const SPECS: Record<string, BriefSpec> = {
+  B1: { starter: "B1", grade: gradeB1, good: ["src/player.ts", "src/sheet.ts"] },
+  B2: { starter: "B2", grade: gradeB2, good: ["src/fighter.ts"] },
+  B3: { starter: "B3", grade: gradeB3, good: ["src/reactor.ts"] },
+  B7: { starter: "B7", grade: gradeB7, good: ["graph.json"] },
+};
+const BRIEFS = [...Object.keys(SPECS), "quiz"];
 /** What a trial is told: the brief does the rest. */
 export const PROMPT = "Read BRIEF.md in this directory and do what it asks. Work only in this directory.";
 
@@ -38,9 +55,9 @@ export interface Trial {
   usedPackage?: boolean;
 }
 
-/** The known-good solution's files, by path in a workspace. */
-export function knownGood(): Record<string, string> {
-  return { "src/player.ts": readFileSync(join(GOOD, "player.ts"), "utf8"), "src/sheet.ts": readFileSync(join(GOOD, "sheet.ts"), "utf8") };
+/** A brief's known-good solution's files, by path in a workspace (B1's by default). */
+export function knownGood(brief = "B1"): Record<string, string> {
+  return Object.fromEntries(SPECS[brief]!.good.map((f) => [f, readFileSync(join(BENCH, "graders", brief, "known-good", f), "utf8")]));
 }
 /** A held-out variant's brief and character, read from its directory. */
 export function variantOf(dir: string): { brief: string; character: CharacterSpec } {
@@ -95,27 +112,34 @@ export async function pool<T, R>(items: readonly T[], n: number, work: (item: T)
   return out;
 }
 
-/** Runs B1's trials (and discovery trials) and returns their records: the workspaces built one by one, the agents
- *  `parallel` at a time, each graded once its agent is done. */
-export async function runB1(opts: { trials: number; discovery: number; parallel?: number; variant?: string; model?: string; fake?: boolean; base: string; packs: Record<string, string> }): Promise<{ check?: Trial; trials: Trial[]; discovery: Trial[] }> {
-  const { brief, character } = opts.variant ? variantOf(opts.variant) : { brief: join(BENCH, "briefs/B1.md"), character: DEFAULT_CHARACTER };
+/** Runs B1's trials (and discovery trials) and returns their records (`runBrief` for B1). */
+export function runB1(opts: Omit<Parameters<typeof runBrief>[1], "discovery"> & { discovery: number }): ReturnType<typeof runBrief> {
+  return runBrief("B1", opts);
+}
+/**
+ * Runs a brief's trials (and, for B1, discovery trials) and returns their records: the workspaces built one by one,
+ * the agents `parallel` at a time, each graded once its agent is done. A variant runs the known-good solution on it
+ * first, and stops there if that fails (a package or grader failure).
+ */
+export async function runBrief(name: string, opts: { trials: number; discovery?: number; parallel?: number; variant?: string; model?: string; fake?: boolean; base: string; packs: Record<string, string> }): Promise<{ check?: Trial; trials: Trial[]; discovery: Trial[] }> {
+  const spec = SPECS[name]!, { brief, character } = opts.variant ? variantOf(opts.variant) : { brief: join(BENCH, `briefs/${name}.md`), character: DEFAULT_CHARACTER };
   const out: { check?: Trial; trials: Trial[]; discovery: Trial[] } = { trials: [], discovery: [] };
   if (opts.variant) {
     // the brief's known-good solution on the variant first: if it fails, the package or the grader is at fault
-    const ws = await prepareWorkspace(join(opts.base, "known-good"), { starter: join(BENCH, "starters/B1"), brief, character, packs: opts.packs, files: knownGood() });
-    const g = await gradeB1(ws);
+    const ws = await prepareWorkspace(join(opts.base, `${name}-known-good`), { starter: join(BENCH, "starters", spec.starter), brief, character, packs: opts.packs, files: knownGood(name) });
+    const g = await spec.grade(ws);
     out.check = { trial: "known-good", pass: g.pass, failed: failedOf(g), agent: { fake: true } };
     if (!g.pass) return out;
   }
   const specs = [
-    ...Array.from({ length: opts.trials }, (_, i) => ({ name: `B1-${i + 1}`, starter: "B1", brief, discovery: false })),
-    ...Array.from({ length: opts.discovery }, (_, i) => ({ name: `B1-discovery-${i + 1}`, starter: "B1-discovery", brief: join(BENCH, "briefs/B1-discovery.md"), discovery: true })),
+    ...Array.from({ length: opts.trials }, (_, i) => ({ name: `${name}-${i + 1}`, starter: spec.starter, brief, discovery: false })),
+    ...Array.from({ length: name === "B1" ? (opts.discovery ?? 0) : 0 }, (_, i) => ({ name: `B1-discovery-${i + 1}`, starter: "B1-discovery", brief: join(BENCH, "briefs/B1-discovery.md"), discovery: true })),
   ];
   const jobs: ((typeof specs)[number] & { ws: string })[] = [];
-  for (const j of specs) jobs.push({ ...j, ws: await prepareWorkspace(join(opts.base, j.name), { starter: join(BENCH, "starters", j.starter), brief: j.brief, character, packs: opts.packs, ...(opts.fake && !j.discovery ? { files: knownGood() } : {}) }) });
+  for (const j of specs) jobs.push({ ...j, ws: await prepareWorkspace(join(opts.base, j.name), { starter: join(BENCH, "starters", j.starter), brief: j.brief, character, packs: opts.packs, ...(opts.fake && !j.discovery ? { files: knownGood(name) } : {}) }) });
   const done = await pool(jobs, opts.parallel ?? 1, async (j): Promise<Trial> => {
     const agent = opts.fake ? ({ fake: true } as const) : summary(await runAgent(j.ws, PROMPT, join(opts.base, `${j.name}.jsonl`), { ...(opts.model ? { model: opts.model } : {}) }));
-    const g = await gradeB1(j.ws);
+    const g = await spec.grade(j.ws);
     return { trial: j.name, pass: g.pass, failed: failedOf(g), agent, ...(j.discovery ? { usedPackage: usesPackage(j.ws) } : {}) };
   });
   for (const [k, j] of jobs.entries()) (j.discovery ? out.discovery : out.trials).push(done[k]!);
@@ -150,8 +174,11 @@ if (import.meta.main) {
     parsed = parseArgs(process.argv.slice(2), specs);
     const names = (parsed.positionals[0] ?? "").split(",").filter(Boolean);
     if (!names.length) throw new Error(`name a brief: ${BRIEFS.join(", ")}`);
-    for (const n of names) if (!BRIEFS.includes(n)) throw new Error(`no brief "${n}"; did you mean ${closest(n, BRIEFS)}? (B2 to B8 arrive with WP-6.6 and WP-9.1)`);
-    if (typeof parsed.flags.heldout === "string") parsed.flags.variant = latestVariant(parsed.flags.heldout, "B1");
+    for (const n of names) if (!BRIEFS.includes(n)) throw new Error(`no brief "${n}"; did you mean ${closest(n, BRIEFS)}? (B4 to B6 arrive with WP-6.6's second half, B8 with WP-9.1)`);
+    if (typeof parsed.flags.heldout === "string") {
+      if (names.filter((n) => n !== "quiz").length !== 1) throw new Error("--heldout takes one brief at a time: its variant is the brief's");
+      parsed.flags.variant = latestVariant(parsed.flags.heldout, names.find((n) => n !== "quiz")!);
+    }
   } catch (err) {
     usage("bench", err, specs);
   }
@@ -160,17 +187,19 @@ if (import.meta.main) {
   mkdirSync(base, { recursive: true });
   const results: Record<string, unknown> = { about: "npm run bench: fresh agents on the briefs (PLAN.md §7); isolation 1 is the claude CLI in a clean workspace", date: stamp, ...commitOf(), model: model ?? "the CLI's default", fake };
   if (typeof f.variant === "string") results.variant = { dir: relative(ROOT, resolve(f.variant)), character: variantOf(resolve(f.variant)).character };
-  if (names.includes("B1")) {
-    const s0 = performance.now(), packs = pack(join(base, "packs"));
-    const r = await runB1({ trials, discovery: Number(f.discovery ?? 0), parallel: Number(f.parallel ?? 1), base, packs, fake, ...(typeof f.variant === "string" ? { variant: resolve(f.variant) } : {}), ...(model ? { model } : {}) });
-    results.B1 = r;
-    results.models = [...new Set([...r.trials, ...r.discovery].map((t) => ("model" in t.agent ? t.agent.model : undefined)).filter(Boolean))];
-    if (r.check && !r.check.pass) steps.push({ name: "B1 known-good on the variant", ok: false, ms: performance.now() - s0, summary: "the brief's known-good solution fails: a package or grader failure, not the agents'", detail: r.check.failed });
+  const briefs = names.filter((n) => n !== "quiz"), packs = briefs.length ? pack(join(base, "packs")) : {}, models = new Set<string>();
+  for (const name of briefs) {
+    const s0 = performance.now();
+    const r = await runBrief(name, { trials, discovery: Number(f.discovery ?? 0), parallel: Number(f.parallel ?? 1), base, packs, fake, ...(typeof f.variant === "string" ? { variant: resolve(f.variant) } : {}), ...(model ? { model } : {}) });
+    results[name] = r;
+    for (const t of [...r.trials, ...r.discovery]) if ("model" in t.agent && t.agent.model) models.add(t.agent.model);
+    if (r.check && !r.check.pass) steps.push({ name: `${name} known-good on the variant`, ok: false, ms: performance.now() - s0, summary: "the brief's known-good solution fails: a package or grader failure, not the agents'", detail: r.check.failed });
     else {
       const passed = r.trials.filter((t) => t.pass).length;
-      steps.push({ name: "B1", ok: passed >= Math.ceil(0.8 * trials), ms: performance.now() - s0, summary: `${passed} of ${trials} trials pass${r.discovery.length ? `; discovery: ${r.discovery.filter((t) => t.usedPackage).length} of ${r.discovery.length} used the package, ${r.discovery.filter((t) => t.pass).length} passed` : ""}`, detail: r.trials.filter((t) => !t.pass).map((t) => `${t.trial}: ${t.failed.join("; ")}`) });
+      steps.push({ name, ok: passed >= Math.ceil(0.8 * trials), ms: performance.now() - s0, summary: `${passed} of ${trials} trials pass${r.discovery.length ? `; discovery: ${r.discovery.filter((t) => t.usedPackage).length} of ${r.discovery.length} used the package, ${r.discovery.filter((t) => t.pass).length} passed` : ""}`, detail: r.trials.filter((t) => !t.pass).map((t) => `${t.trial}: ${t.failed.join("; ")}`) });
     }
   }
+  if (briefs.length) results.models = [...models];
   if (names.includes("quiz")) {
     const s0 = performance.now(), q = await runQuiz({ trials: Number(f.trials ?? 1), base, fake, ...(model ? { model } : {}) });
     results.quiz = q;

@@ -1,0 +1,21 @@
+{
+ "format": "2.0",
+ "id": "SIMS/B7",
+ "desc": "The grader's script: speeds in hip heights a second; a jump, a second press in the air, landing on the run; a press while not grounded",
+ "graph": "GRAPHS/B7",
+ "dur": 13,
+ "film": 10,
+ "input": [
+  {"t": 1.5, "set": {"speed": 1.2}, "over": 0.3},
+  {"t": 3.5, "set": {"speed": 3.5}, "over": 0.5},
+  {"t": 5.5, "trigger": "jump"},
+  {"t": 5.6, "set": {"grounded": false}},
+  {"t": 6, "trigger": "jump"},
+  {"t": 6.8, "set": {"grounded": true}},
+  {"t": 8.5, "set": {"speed": 1.2}, "over": 0.5},
+  {"t": 10, "set": {"speed": 0}, "over": 0.3},
+  {"t": 11.5, "set": {"grounded": false}},
+  {"t": 11.7, "trigger": "jump"},
+  {"t": 12.2, "set": {"grounded": true}}
+ ]
+}

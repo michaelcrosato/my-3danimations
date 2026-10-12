@@ -2438,3 +2438,36 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   script's speeds in metres a second are a body's: `"units": "H0"` makes them any body's.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.40.0
+
+## D76 · 2026-10-12 · Briefs B2, B3 and B7, graded from bones and traces; WP-6.6 in two halves (WP-6.6a)
+
+- **Principle:** 1, 7, 9, §7
+- **Call:**
+  - **The split:** WP-6.6's six briefs, each a starter, a grader, a known-good solution and planted bad ones, are two
+    M halves: 6.6a the wiring briefs (B2, B3, B7) with the runner made to run any brief and the manual's wire sections;
+    6.6b the making briefs (B4, B5, B6) and the make sections. WP-6.6's entry says so.
+  - **B2, an attack's hit timing:** the grader drives the fighter with two presses and finds each punch's strike on the
+    character's bones, as the format's facts define it: when a hand moves fastest toward the target (forward) against
+    the pelvis. Measured as speed alone, raising the guard as the jab fades in (11 m/s) beat the jab itself. Damage
+    must come once per punch, within one frame of it. Planted: damage on the press, as the punch ends, twice, and a
+    fighter that never punches.
+  - **B3, reactions:** the reactor runs twice, with and without the light hit (an Animator is deterministic): during
+    the hit the legs stay within 2 cm of the walk without it (0.0 cm, masked to the upper body) and the hands or head
+    move 5 cm (33 cm). The heavy hit's lying is the hips under 15% of their standing height for 1.3 to 3.5 s (the
+    known-good lies 2.0 s, the fall and the start of the rise included; at once, 0.95). Ground contact is judged on the
+    feet, the pelvis and the head: the library's get-up pushes an elbow 13.5 cm under the floor on gen-37, which the
+    sensors' lying profile allows (touching the floor is the motion). From one lying pose to another the known-good
+    cuts: cross-faded, an elbow went 33 cm through the floor.
+  - **B7, a locomotion graph:** the speed is in hip heights a second, so one graph and one script serve any body. The
+    grader simulates the graph with its own copy of the script (the root following the animation) and reads the
+    trace: the motion asked before each change of speed, the base layer's states in order, the jump only from a
+    grounded press (a press in the air must not be kept: the trigger's `buffer`), the landing within 0.1 s of touching
+    down. The feet are not graded (B1 grades them): the known-good's transitions slid 313 mm on gen-37 against a limit
+    of 264.
+  - **The runner:** `npm run bench -- B1,B2,B3,B7` runs any registered brief (`SPECS`: its starter, grader and
+    known-good files); `--heldout` takes one brief's variant.
+  - **T1 and T2:** the graders' tests grade on gen-1 in T1 and on gen-37 too in T2's full step (D74).
+  - **The manual:** its wire sections (graphs, events and hit timing, reactions, root motion and stride warping, the
+    simulation) bring it to 3,916 of 8,000 tokens.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.41.0

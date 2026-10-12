@@ -4,6 +4,17 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.41.0 · 2026-10-12
+
+### Tools
+- The manual's wire sections (D76): graphs, events and hit timing, reactions, root motion and stride warping, and
+  checking a graph with the simulation.
+
+### Repo
+- Briefs B2 (an attack's hit timing), B3 (reactions) and B7 (a locomotion graph), each with a starter, a grader, a
+  known-good solution and planted bad ones (D76); `npm run bench` runs any brief; T2's full step grades them on a
+  second character.
+
 ## 0.40.0 · 2026-10-12
 
 ### Tools

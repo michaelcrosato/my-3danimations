@@ -1783,18 +1783,23 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
 - **Verify:** `npm test -- sim`
 
 #### WP-6.6 Briefs B2 to B7, and the manual's wire and make sections
-- **Owns:** `bench/briefs/B2.md` to `B7.md`, `bench/graders/B2/**` to `B7/**`, and the wire and make sections of
+Split in two (D76): 6.6a the wiring briefs and the runner for any brief, 6.6b the making briefs.
+- **Owns:** `bench/briefs/B2.md` to `B7.md`, `bench/starters/B2/**` to `B7/**`, `bench/graders/B2/**` to `B7/**` and
+  `bench/graders/bones.ts`, the runner's brief registry (`bench/runner/main.ts`), and the wire and make sections of
   `packages/tools/MANUAL.md`
 - **Needs:** 4.7, 6.5
-- **Size:** M
+- **Size:** L, as two halves of M (D76)
 - **Build:**
   - The briefs B2 to B7 of §7, each with a starter and a grader made of predicates and sensor thresholds. Graders take
     the starter character as a parameter (§7) and derive expected traces and thresholds from it, in hip heights.
-  - The manual's sections for wiring (events, graphs, root motion) and making (recipes, edits, actions), so G6's fresh
-    agents can work from the manual alone.
+    - **6.6a:** B2 (an attack's hit timing), B3 (reactions), B7 (a locomotion graph); `npm run bench` runs any brief.
+    - **6.6b:** B4 (a VRM avatar), B5 (an emote), B6 (an edited punch).
+  - The manual's sections for wiring (events, graphs, root motion: 6.6a) and making (recipes, edits, actions: 6.6b),
+    so G6's fresh agents can work from the manual alone.
 - **Done when:** every grader passes a known-good solution and fails a planted bad one, on the default character and
   on a generator seed outside WP-4.2's test set, and the manual draft stays within budget.
-- **Verify:** `npm test -- bench/graders && npm run doctrine`
+- **Verify:** `npm test -- bench/graders && npm run doctrine` (T1 grades on the default character, `npm run e2e` on the
+  other seed too: D74)
 
 **Gate G6.**
 
@@ -2262,7 +2267,8 @@ version, commit, date and a note with the numbers. Gates are rows too.
 | 6.3 Actions | done | 0.38.0 | (this commit) | 2026-10-12 | `npm test -- actions` (11 tests): the six actions and the paired one are the frozen schema's shape and check clean; each action and each role plays on the six test characters, no row worse than on its own body and none failing; each of the 14 interrupt cuts is a valid clip the sensors don't fail, from a moment a foot stands (both where its reason says); the climb's ground rises and the hop's falls; the A- checks; the pair's roles meet on their event (D72) |
 | 6.4 Graphs | done | 0.39.2 | 4e7cb0c, (this commit) | 2026-10-12 | `npm test -- graph` (20 tests): the checks and their codes, the schema agreeing; blend weights; the locomotion and combo graphs' scripted runs take the expected transitions and carry on exactly after a save and restore; triggers, exit, windows, sync, interrupts, layers, blend phase, callbacks, refusals; `npm run e2e` `animator-parity`: both graphs give the same states, hashes, events and exact poses in Node and Chromium (D73); the verifier's round 1 fixed in 0.39.2 (a faded-in state's first events, a loop's exit stepped over, cut fades, trigger buffers, clip hashes in the save) |
 | 6.5 Simulation and gameplay sync | done | 0.40.0 | (this commit) | 2026-10-12 | `npm test -- sim` (7 tests): the walk-to-run-to-jump script runs into `spec/sims/Walk_Run_Jump.trace.json` exactly, on three bodies; stride warped, a walk in place from 0.5× to 1.8× its own speed slides 69–91 mm per contact (warn 150), its rate the ratio, and 268 and 240 mm unwarped at 0.75× and 1.5×; hit windows from events; root modes; S-E001–S-E007 with the schemas agreeing; a run the same twice; a filmstrip; `npm run sim` writes trace, result and film in 1–2 s (D75) |
-| 6.6 Briefs B2 to B7 and manual sections | todo | | | | |
+| 6.6a Briefs B2, B3, B7, the wire sections | done | 0.41.0 | (this commit) | 2026-10-12 | `npm test -- bench/graders`: the B2, B3 and B7 graders each pass their known-good solution and fail every planted bad one (4, 4 and 5), naming the check, on gen-1 (T1) and gen-37 (T2's full step); `npm run bench -- B2,B3,B7 --trials 1 --fake` runs them through packed packages in 12.5 s; the manual's wire sections (graphs, events and hit timing, reactions, root motion and stride warping, the simulation), 3,916 of 8,000 tokens (D76) |
+| 6.6b Briefs B4, B5, B6, the make sections | todo | | | | |
 | **G6** | todo | | | | |
 | 7.1 The tool registry | todo | | | | |
 | 7.2 The tools | todo | | | | |
