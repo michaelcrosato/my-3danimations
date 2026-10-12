@@ -1,0 +1,55 @@
+{
+ "format": "2.0",
+ "id": "ACTIONS/Heavy_Landing",
+ "name": "Heavy Landing",
+ "tags": [
+  "jump"
+ ],
+ "desc": "Lands from a fall into a deep crouch, holds it, and slowly stands",
+ "steps": [
+  {
+   "as": "l",
+   "op": "clip",
+   "id": "MESH2MOTION/NinjaJump_Land"
+  },
+  {
+   "op": "retime",
+   "in": "l",
+   "speed": 0.7
+  }
+ ],
+ "beats": [
+  {
+   "name": "impact",
+   "from": 0,
+   "to": 0.25
+  },
+  {
+   "name": "absorb",
+   "from": 0.25,
+   "to": 0.75
+  },
+  {
+   "name": "rise",
+   "from": 0.75,
+   "to": 1.786
+  }
+ ],
+ "interrupts": [
+  {
+   "t": 0.35,
+   "to": [
+    "ACTIONS/Roll"
+   ],
+   "why": "crouched low: it can roll out"
+  },
+  {
+   "t": 1.2,
+   "to": [
+    "PROCEDURAL/Breathe",
+    "PROCEDURAL/Walk"
+   ],
+   "why": "standing"
+  }
+ ]
+}

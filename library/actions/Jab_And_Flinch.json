@@ -1,0 +1,56 @@
+{
+ "format": "2.0",
+ "id": "ACTIONS/Jab_And_Flinch",
+ "name": "Jab and Flinch",
+ "tags": [
+  "unarmed",
+  "hurt"
+ ],
+ "desc": "A paired action, the stub of a takedown: one jabs, the other, a step away and facing it, flinches as the fist lands",
+ "sync": "hit",
+ "roles": {
+  "attacker": {
+   "steps": [
+    {
+     "as": "j",
+     "op": "clip",
+     "id": "MESH2MOTION/Punch_Jab"
+    },
+    {
+     "op": "events",
+     "in": "j",
+     "add": [
+      {
+       "t": 0.267,
+       "name": "hit"
+      }
+     ]
+    }
+   ]
+  },
+  "victim": {
+   "steps": [
+    {
+     "as": "h",
+     "op": "clip",
+     "id": "MESH2MOTION/Hit_Head"
+    },
+    {
+     "op": "events",
+     "in": "h",
+     "add": [
+      {
+       "t": 0,
+       "name": "hit"
+      }
+     ]
+    }
+   ],
+   "place": [
+    105,
+    0,
+    180
+   ]
+  }
+ }
+}

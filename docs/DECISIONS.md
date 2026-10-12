@@ -2219,3 +2219,58 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
     tree's core (its `node_modules` link), so a mutant only they could see passed there; those were rerun in place.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.37.0, v0.37.2
+
+## D72 · 2026-10-12 · Actions: multi-beat motions with their ground, beats and interrupt points (WP-6.3)
+
+- **Principle:** 3, 4, 5, 8, 12, D70, D71
+- **Call:** an action is a recipe (`spec/RECIPE.md`, D70) with three fields more: `floor`, the ground it ends on (% of
+  the hip height above where it starts: a climb +, a hop down −), its `beats` by name, and its `interrupts`, the moments
+  it may be cut into another clip, each with the clips it may go on into and why there (`spec/ACTION.md`,
+  `spec/schemas/action.schema.json`, which joins the frozen set under this decision; the freeze is rerun). `@m3a/core`'s
+  `actions` namespace (core's 42nd name, within D71's 44):
+  - **Compiling** (`compileAction`): the recipe on the library and its procedural parts (`PROCEDURAL/<Name>`: a gait,
+    idle or move of D71 made on the action's first clip's rest, from its standing pose; a ready-made gait or idle is
+    made once a body), an event at each beat's start and one named `interrupt` at each point, and the ground under it
+    read from the lowest sole: it rises to a ledge only as the feet leave the floor for good, falls from one only as
+    they do. The feet near each end must stand on the grounds the floor gives, within 6% of the hip height (A-E006,
+    with the floor they show): the lowest they come within 0.3 s of the end, and of the start (a run or a landing may
+    start in the air) except on a drop, where its first frame stands on the ledge.
+  - **The root curve** (`actionRootAt`): the clip's travel and turn, and `up`, the ground's height above the start: a
+    host plays the clip as any clip and raises the character by `up`.
+  - **Interrupts** (`interruptInto`): the action until the point, then the target crossfaded in (0.3 s), in step on the
+    feet, raised to the ground there and turned to face as the action faces then; `play` plays only so much of the
+    target, a preview of the cut.
+  - **Paired actions** (`compilePaired`, `pairAt`): two or more roles, each a recipe placed in the first's frame
+    (`[forward, right, turn]`), each started so the event named `sync` falls with the others'. Each role is its own clip,
+    so each plays on its own character, whatever its skeleton.
+  - **Checks** (`validateAction`, `validatePaired`): the recipe's R- codes, and A-E001–A-E007 (`ACTION_RULES`).
+  - **The library's actions** (`library/actions/`), each from library clips: `Get_Up` (CMU's get-up from lying face
+    down, turning about a third of a turn), `Climb_Up` (Mesh2Motion's 1 m climb, floor +115), `Vault` (CMU's run and
+    jump over, smoothed), `Hop_Down` (CMU's jump off a ledge from its step off, floor −72), `Roll` (Mesh2Motion's dive
+    roll, smoothed), `Heavy_Landing` (Mesh2Motion's landing, slowed to 0.7), and the paired stub `Jab_And_Flinch`
+    (Mesh2Motion's jab and head hit, the victim 105% of the hip height away facing the jab, met at its `hit`). Its first
+    draft took Quaternius' jab, a baselined fail on its own body; Mesh2Motion's passes.
+  - **A bug the actions found in the recipes (D70):** a loop's root one float step short of its end read the start of
+    its cycle without the cycle's travel (`((t % d) + d) % d` rounds such a time to 0 for some lengths, 1.1 s among
+    them), so a sequence ending on a procedural walk jumped back a cycle on its last frame (a climb then a walk ended at
+    65% of the hip height instead of 208). The track's time within a cycle no longer wraps twice; a test holds it.
+- **Limits, on record:**
+  - The climb's source is 0.667 s and ends mid-step, one foot on the ledge: its point says so (the draft said both
+    feet). The hop down's later point moved to 1.85 s, where both feet stand (at 2.2 one was 6% up).
+  - **The cut clips on the six skeletons** (not the bar: a host crossfades at its own pace at a point): of 84 rows (14
+    cuts on six), 41 are no worse than on the clip's own body and 33 fail as played. A 0.3 s crossfade between poses
+    that differ pops on the chibi, gen-0 (13 of the 14 cuts are worse there); a walk after a run or a vault slides as
+    the speed changes at once (both worse on five or six skeletons); and the climb's walk and breath, raised onto the
+    ledge, are read by the sweep on flat ground, where a foot on the ledge never reads as standing.
+- **Why:** these are the `E.ACTIONS` my-3d2dge listed and never built, which a game then writes by hand: a motion of
+  several beats that moves the character's ground and must be cut cleanly into whatever comes next. As recipes over the
+  library they are text an agent can read and change, and the points say where a cut works and why.
+- **Done when** (`npm test -- actions`):
+  - each action and each role of the pair plays on the six test characters (gen-0 to gen-3, Quaternius' mannequin,
+    KayKit's knight), no row worse than on its own body and none failing;
+  - each interrupt point goes on into every clip it names, a valid clip the sensors don't fail, read 1.5 s on, with a
+    foot on the ground at the point (both where its reason says both);
+  - the actions are the schema's shape and check clean; the climb's ground rises and the hop's falls; the checks name
+    each problem; the pair's roles meet on their event.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.38.0

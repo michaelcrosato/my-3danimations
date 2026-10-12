@@ -1,0 +1,52 @@
+{
+ "format": "2.0",
+ "id": "ACTIONS/Roll",
+ "name": "Roll",
+ "tags": [
+  "dodge"
+ ],
+ "desc": "From a crouch, dives forward, rolls over a shoulder and comes up on its feet three hip heights on",
+ "steps": [
+  {
+   "as": "r",
+   "op": "clip",
+   "id": "MESH2MOTION/Roll_RM"
+  },
+  {
+   "op": "smooth",
+   "in": "r",
+   "window": 0.1,
+   "mask": [
+    "upper",
+    "legs"
+   ]
+  }
+ ],
+ "beats": [
+  {
+   "name": "dive",
+   "from": 0,
+   "to": 0.45
+  },
+  {
+   "name": "roll",
+   "from": 0.45,
+   "to": 1.08
+  },
+  {
+   "name": "rise",
+   "from": 1.08,
+   "to": 1.833
+  }
+ ],
+ "interrupts": [
+  {
+   "t": 1.25,
+   "to": [
+    "PROCEDURAL/Run",
+    "PROCEDURAL/Walk"
+   ],
+   "why": "on its feet"
+  }
+ ]
+}

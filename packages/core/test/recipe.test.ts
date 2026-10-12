@@ -146,6 +146,11 @@ describe("the operations", () => {
     expect(s.dur).toBeGreaterThan(walk.dur * 2 - 0.5);
     // travel never jumps: at most a frame's worth of a run's speed
     expect(rootJump(s)).toBeLessThan(5);
+    // a travelling loop's root a hair short of its end is where the cycle ends, not where it starts (WP-6.3 found a
+    // sequence's last frame read so: ((t % d) + d) % d rounds such a time to 0 for some lengths, 1.1 s among them)
+    const short = retime(track("MESH2MOTION/Crawl_RM"), { dur: 1.1 }), bits = new Float64Array([short.dur]), word = new BigInt64Array(bits.buffer);
+    word[0]! -= 1n;
+    expect([short.loop, bits[0]! < short.dur, Math.abs(rootAt(short, bits[0]!).forward - rootAt(short, short.dur).forward) < 0.01]).toEqual([true, true, true]);
     // a travelling crawl followed by itself in step: the second starts mid-stride, its root carried on from there, so
     // travel never jumps more than a frame's worth of the crawl's own
     const cw = track("MESH2MOTION/Crawl_RM"), twice = sequence([cw, cw], 0.25, true);

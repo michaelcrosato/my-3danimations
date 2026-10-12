@@ -4,6 +4,24 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.38.0 · 2026-10-12
+
+### Core
+- `actions` (D72): `compileAction` compiles an action (a recipe with its floor, beats and interrupt points) with its
+  procedural parts, marks its beats and points as events and reads the ground its feet stand on (A-E006 when it isn't
+  the floor given); `actionRootAt` its root curve, the ground's height with it; `interruptInto` cuts it into another
+  clip, in step, raised and turned (`play` for a preview); `compilePaired` and `pairAt` time and place a pair's roles
+  to meet on an event; `validateAction`, `validatePaired` (A-E001–A-E007).
+- Recipes: a loop's root a float step short of its end reads the end of its cycle, not its start (a sequence ending on
+  a walk jumped back a cycle on its last frame).
+
+### Spec
+- `spec/ACTION.md` and `spec/schemas/action.schema.json` (frozen under D72).
+
+### Library
+- `library/actions/`: get up, climb up, vault, hop down, roll and a heavy landing, and a paired jab and flinch, each
+  from library clips, playing on the six test characters.
+
 ## 0.37.2 · 2026-10-12
 
 ### Core

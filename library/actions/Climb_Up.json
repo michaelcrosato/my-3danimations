@@ -1,0 +1,39 @@
+{
+ "format": "2.0",
+ "id": "ACTIONS/Climb_Up",
+ "name": "Climb Up",
+ "tags": [
+  "climb"
+ ],
+ "desc": "From the foot of a wall, pulls itself up onto a ledge a hip height and a sixth high and steps forward on it",
+ "floor": 115,
+ "steps": [
+  {
+   "op": "clip",
+   "id": "MESH2MOTION/ClimbUp_1m_RM",
+   "to": 0.6
+  }
+ ],
+ "beats": [
+  {
+   "name": "pull",
+   "from": 0,
+   "to": 0.3
+  },
+  {
+   "name": "step_on",
+   "from": 0.3,
+   "to": 0.6
+  }
+ ],
+ "interrupts": [
+  {
+   "t": 0.45,
+   "to": [
+    "PROCEDURAL/Walk",
+    "PROCEDURAL/Breathe"
+   ],
+   "why": "a foot on the ledge, the other stepping up onto it"
+  }
+ ]
+}

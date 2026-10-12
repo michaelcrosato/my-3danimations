@@ -46,7 +46,9 @@ export const STILL: Root = { forward: 0, right: 0, yaw: 0 };
 function between(t: Track, time: number): [number, number, number] {
   const n = t.times.length;
   if (n === 1 && !t.loop) return [0, 0, 0];
-  const u = t.loop ? ((time % t.dur) + t.dur) % t.dur : Math.min(Math.max(0, time), t.dur);
+  // a loop's time within its cycle (a time a hair short of the end stays there: ((x % d) + d) % d rounds it to 0, a
+  // cycle early for rootAt, which counts the cycle from the time itself)
+  const r = t.loop ? time % t.dur : 0, u = t.loop ? (r < 0 ? r + t.dur : r) : Math.min(Math.max(0, time), t.dur);
   let lo = 0, hi = n - 1;
   while (lo < hi) {
     const mid = (lo + hi + 1) >> 1;

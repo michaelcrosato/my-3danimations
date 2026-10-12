@@ -1,0 +1,193 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "$id": "https://github.com/michaelcrosato/my-3danimations/spec/schemas/action.schema.json",
+ "title": "m3a action 2.0",
+ "description": "An action (spec/ACTION.md; PLAN.md WP-6.3, D72): a recipe (recipe.schema.json) with the ground it ends on, its beats and the points where it may be cut into another clip; or a paired action, two or more roles placed and timed to meet on an event. The shape only: @m3a/core actions.validateAction and validatePaired also check that beats and interrupts are in time order and that an action reads a library clip.",
+ "if": {
+  "type": "object",
+  "properties": {
+   "roles": true
+  },
+  "required": [
+   "roles"
+  ]
+ },
+ "then": {
+  "$ref": "#/$defs/paired"
+ },
+ "else": {
+  "$ref": "#/$defs/action"
+ },
+ "$defs": {
+  "id": {
+   "type": "string",
+   "pattern": "^[A-Z0-9_]+/[A-Za-z0-9_]+$"
+  },
+  "word": {
+   "type": "string",
+   "pattern": "^[a-z][a-z0-9_-]*$"
+  },
+  "time": {
+   "type": "number",
+   "minimum": 0
+  },
+  "action": {
+   "type": "object",
+   "required": [
+    "format",
+    "id",
+    "steps",
+    "beats",
+    "interrupts"
+   ],
+   "additionalProperties": false,
+   "properties": {
+    "format": {
+     "$ref": "recipe.schema.json#/properties/format"
+    },
+    "id": {
+     "$ref": "recipe.schema.json#/properties/id"
+    },
+    "name": {
+     "$ref": "recipe.schema.json#/properties/name"
+    },
+    "tags": {
+     "$ref": "recipe.schema.json#/properties/tags"
+    },
+    "desc": {
+     "$ref": "recipe.schema.json#/properties/desc"
+    },
+    "fps": {
+     "$ref": "recipe.schema.json#/properties/fps"
+    },
+    "steps": {
+     "$ref": "recipe.schema.json#/properties/steps"
+    },
+    "floor": {
+     "type": "number",
+     "minimum": -500,
+     "maximum": 500,
+     "description": "The ground it ends on, % of the hip height above the ground it starts on: a climb +, a hop down -; 0 by default."
+    },
+    "beats": {
+     "type": "array",
+     "minItems": 1,
+     "description": "Its named stretches in order, seconds.",
+     "items": {
+      "type": "object",
+      "required": [
+       "name",
+       "from",
+       "to"
+      ],
+      "additionalProperties": false,
+      "properties": {
+       "name": {
+        "$ref": "#/$defs/word"
+       },
+       "from": {
+        "$ref": "#/$defs/time"
+       },
+       "to": {
+        "type": "number",
+        "exclusiveMinimum": 0
+       }
+      }
+     }
+    },
+    "interrupts": {
+     "type": "array",
+     "minItems": 1,
+     "description": "The moments it may be cut, in time order: the time, the clips it may go on into and why there.",
+     "items": {
+      "type": "object",
+      "required": [
+       "t",
+       "to",
+       "why"
+      ],
+      "additionalProperties": false,
+      "properties": {
+       "t": {
+        "$ref": "#/$defs/time"
+       },
+       "to": {
+        "type": "array",
+        "minItems": 1,
+        "items": {
+         "$ref": "#/$defs/id"
+        }
+       },
+       "why": {
+        "type": "string",
+        "minLength": 1
+       }
+      }
+     }
+    }
+   }
+  },
+  "paired": {
+   "type": "object",
+   "required": [
+    "format",
+    "id",
+    "desc",
+    "sync",
+    "roles"
+   ],
+   "additionalProperties": false,
+   "properties": {
+    "format": {
+     "$ref": "recipe.schema.json#/properties/format"
+    },
+    "id": {
+     "$ref": "recipe.schema.json#/properties/id"
+    },
+    "name": {
+     "$ref": "recipe.schema.json#/properties/name"
+    },
+    "tags": {
+     "$ref": "recipe.schema.json#/properties/tags"
+    },
+    "desc": {
+     "type": "string",
+     "minLength": 1
+    },
+    "sync": {
+     "$ref": "#/$defs/word",
+     "description": "The event every role carries; each role starts so its falls at the same moment."
+    },
+    "roles": {
+     "type": "object",
+     "minProperties": 2,
+     "propertyNames": {
+      "pattern": "^[a-z][a-z0-9_]*$"
+     },
+     "description": "By name; the first leads and the others are placed in its frame.",
+     "additionalProperties": {
+      "type": "object",
+      "required": [
+       "steps"
+      ],
+      "additionalProperties": false,
+      "properties": {
+       "steps": {
+        "$ref": "recipe.schema.json#/properties/steps"
+       },
+       "place": {
+        "type": "array",
+        "minItems": 3,
+        "maxItems": 3,
+        "items": {
+         "type": "number"
+        },
+        "description": "[forward, right, turn] at the start in the lead role's frame: % of the hip height, and degrees + toward the right."
+       }
+      }
+     }
+    }
+   }
+  }
+ }
+}

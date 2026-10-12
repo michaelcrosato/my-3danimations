@@ -1,0 +1,48 @@
+{
+ "format": "2.0",
+ "id": "ACTIONS/Get_Up",
+ "name": "Get Up",
+ "tags": [
+  "getup"
+ ],
+ "desc": "Lying face down, pushes up onto hands and knees, kneels and stands, turning about a third of a turn as it rises",
+ "steps": [
+  {
+   "op": "clip",
+   "id": "CMU_CURATED/Get_Up_From_Front",
+   "to": 3.6
+  }
+ ],
+ "beats": [
+  {
+   "name": "lie",
+   "from": 0,
+   "to": 0.7
+  },
+  {
+   "name": "push",
+   "from": 0.7,
+   "to": 1.7
+  },
+  {
+   "name": "kneel",
+   "from": 1.7,
+   "to": 2.8
+  },
+  {
+   "name": "rise",
+   "from": 2.8,
+   "to": 3.6
+  }
+ ],
+ "interrupts": [
+  {
+   "t": 3.3,
+   "to": [
+    "PROCEDURAL/Breathe",
+    "PROCEDURAL/Walk"
+   ],
+   "why": "standing, both feet down"
+  }
+ ]
+}
