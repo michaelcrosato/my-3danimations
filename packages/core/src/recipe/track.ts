@@ -118,18 +118,19 @@ export function trackOfClip(clip: Clip, rest: Rest, fps: number, opts: { from?: 
 }
 
 /**
- * A track's contacts moved by `map` and kept within 0–dur. A loop's are read round its cycle: an interval past `from`'s
- * end (`to > oldDur`) is the same contact carried over the seam, mapped as its two parts, and the result written the
- * format's way (§7.1): sorted, merged, the last one wrapping past `dur` where it carries over to the start.
+ * A track's contacts moved by `map` and kept within 0–dur. A loop's (`was`, the source a loop; `loop` by default) are
+ * read round its cycle: an interval past the source's end (`to > oldDur`) is the same contact carried over the seam,
+ * mapped as its two parts. A loop's result is written the format's way (§7.1): sorted, merged, the last one wrapping
+ * past `dur` where it carries over to the start; a once result keeps both parts.
  */
-export function shiftContacts(c: Contacts | undefined, map: (time: number) => number, dur: number, loop = false, oldDur = dur): Contacts | undefined {
+export function shiftContacts(c: Contacts | undefined, map: (time: number) => number, dur: number, loop = false, oldDur = dur, was = loop): Contacts | undefined {
   if (!c) return undefined;
   const out: Contacts = { by: c.by };
   for (const end of ["footL", "footR", "handL", "handR"] as const) {
     let iv = c[end] ?? [];
-    if (loop) iv = iv.flatMap(([a, b]): [number, number][] => (b > oldDur + 1e-9 ? [[a, oldDur], [0, b - oldDur]] : [[a, b]]));
+    if (was) iv = iv.flatMap(([a, b]): [number, number][] => (b > oldDur + 1e-9 ? [[a, oldDur], [0, b - oldDur]] : [[a, b]]));
     const mapped = iv.map(([a, b]): [number, number] => [ms(map(a)), ms(map(b))]).filter(([a, b]) => b > a && a < dur && b > 0).map(([a, b]): [number, number] => [Math.max(0, a), Math.min(dur, b)]);
-    const written = loop ? cyclic(mapped, dur) : mapped;
+    const written = cyclic(mapped, loop ? dur : Infinity);
     if (written.length) out[end] = written;
   }
   return out;

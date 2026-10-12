@@ -6,13 +6,15 @@ import type { Recipe, Step } from "./types.ts";
 /** Most tokens the text may have. */
 const BUDGET = 100;
 /**
- * A count of tokens no lower than a tokenizer's (cl100k and o200k read the text in as many or fewer; the sensors'
- * describe counts the same way): a word every six letters, a number every three digits, a space before a number one,
- * any other mark one.
+ * A count of tokens no lower than a tokenizer's on the lines describe writes (cl100k and o200k, checked over the
+ * example recipes, every library id and made-up names such as Walka_Walkb; a run of random letters can count higher):
+ * a word split at its capitals, a lower-case run a token every three letters, an upper-case run one every two
+ * (STYLE100 and the like break up small), a number one every three digits, a space before a number one, any other
+ * mark one.
  */
 export function tokenCount(s: string): number {
   let n = 0;
-  for (const x of s.match(/[A-Za-z]+|\d+|\s(?=\d)|[^\sA-Za-z\d]/g) ?? []) n += /^\d/.test(x) ? Math.ceil(x.length / 3) : /^[A-Za-z]/.test(x) ? Math.ceil(x.length / 6) : 1;
+  for (const x of s.match(/[A-Z]{2,}(?![a-z])|[A-Z]?[a-z]+|[A-Z]|\d+|\s(?=\d)|[^\sA-Za-z\d]/g) ?? []) n += /^\d/.test(x) ? Math.ceil(x.length / 3) : /^[A-Z]{2,}$/.test(x) ? Math.ceil(x.length / 2) : /^[A-Za-z]/.test(x) ? Math.ceil(x.length / 3) : 1;
   return n;
 }
 
@@ -59,10 +61,15 @@ function stepText(s: Step): string {
 
 /** The recipe in at most 100 tokens: its id, then its steps; the later ones counted when they don't fit. */
 export function describeRecipe(r: Recipe): string {
-  const head = `${r.id}: `, parts = r.steps.map(stepText), more = (n: number) => `; … ${n} more step${n === 1 ? "" : "s"}`;
-  let text = head + parts.join("; ");
-  for (let k = parts.length - 1; tokenCount(text) > BUDGET && k > 0; k--) text = `${head}${parts.slice(0, k).join("; ")}${more(parts.length - k)}`;
-  // a single step too long for the line (a long id) is cut at a word, still counted
-  while (tokenCount(text) > BUDGET) text = `${text.slice(0, text.lastIndexOf(" ", text.length - 2))} …`;
+  const head = `${r.id}: `, parts = r.steps.map(stepText), more = (n: number) => (n ? `; … ${n} more step${n === 1 ? "" : "s"}` : "");
+  let k = parts.length, body = head + parts.join("; ");
+  while (tokenCount(body + more(parts.length - k)) > BUDGET && k > 1) body = head + parts.slice(0, --k).join("; ");
+  // a first step too long for the line (a long id) is cut at a word (a long word a few letters at a time), still counted
+  let text = body + more(parts.length - k);
+  while (tokenCount(text) > BUDGET) {
+    const cut = body.lastIndexOf(" ");
+    body = cut > 0 ? body.slice(0, cut) : body.slice(0, Math.max(0, body.length - 8));
+    text = `${body} …${more(parts.length - k)}`;
+  }
   return text;
 }

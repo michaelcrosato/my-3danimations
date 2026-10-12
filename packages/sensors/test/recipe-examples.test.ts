@@ -48,9 +48,18 @@ describe("the example recipes", () => {
       { as: "g", op: "pin", in: "f", end: "handR", path: [[0.1, 300, 200, 1100], [0.5, 350, 250, 1150], [0.8, 300, 200, 1100]] }, { as: "h", op: "smooth", in: "g", window: 0.1, mask: "upper" },
       { as: "i", op: "events", in: "h", add: [{ t: 0.4, name: "hit" }, { t: 0.6, name: "release" }] }, { op: "contacts", in: "i", add: { handR: [[0.2, 0.5]], footL: [[0, 0.3]] } },
     ] };
-    for (const r of [...examples.map((e) => e.recipe), long]) {
-      const text = R.describeRecipe(r);
-      expect(Math.max(encode(text).length, cl100k(text).length), text).toBeLessThanOrEqual(100);
+    // a first step too long for the line, an id of 45 words or a pose of many parts, is cut, and the cutting ends
+    const longId = `RECIPES/${Array.from({ length: 45 }, (_, i) => `Walk${String.fromCharCode(97 + (i % 26))}`).join("_")}`;
+    const wordy: R.Recipe[] = [
+      { format: "2.0", id: longId, steps: [{ op: "clip", id: "STYLE100/Neutral_Walk" }, { op: "pose", in: "s1", chest: { lean: 4 } }] },
+      { format: "2.0", id: "RECIPES/Many_Parts", steps: [{ op: "pose", in: "s1", ...Object.fromEntries(["chest", "head", "body", "armL", "armR", "legL", "legR", "footL", "footR", "hips"].map((f) => [f, { lean: 12.5, tilt: -4.25, turn: 30.75 }])) }, { op: "mirror", in: "s1" }] },
+    ];
+    for (const r of [...examples.map((e) => e.recipe), long, ...wordy]) {
+      const text = R.describeRecipe(r), real = Math.max(encode(text).length, cl100k(text).length);
+      expect(real, text).toBeLessThanOrEqual(100);
+      // the count describe keeps to is never under what the tokenizers count
+      expect(R.tokenCount(text), text).toBeGreaterThanOrEqual(real);
     }
+    expect(R.describeRecipe(wordy[0]!)).toMatch(/ …; … 1 more step$/);
   });
 });

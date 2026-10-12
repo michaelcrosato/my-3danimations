@@ -38,7 +38,7 @@ pose and the root's travel and turn from the start, with events and contacts, an
 Times are seconds within the step's own track. A pose is in clip space, as a clip's is: its pelvis turn (`body[0]`)
 carries the heading the root's `yaw` records (`MOTION.md` §5.3), so a step that turns the root turns the body with it.
 A loop's contact that runs over its seam is one interval that wraps (`MOTION.md` §7.1), and stays one through every
-step. Poses are read on one rest body, that of the first clip the result is made from: a clip from another source is read on it too, its angles as
+step that keeps the loop; a step whose result plays once keeps both its parts. Poses are read on one rest body, that of the first clip the result is made from: a clip from another source is read on it too, its angles as
 they are, so proportions that differ (a longer stride on shorter legs) can leave a foot off or into the floor, which
 the sensors then report. Between frames a track blends the two either side, as a clip in-betweens its keys; each angle
 is kept at the whole turn nearest the frame before, so a track never jumps a turn that means nothing.
@@ -47,13 +47,13 @@ is kept at the whole turn nearest the frame before, so a track never jumps a tur
 
 | `op` | Fields | Result |
 |---|---|---|
-| `clip` | `id`; `from`, `to` (s); `loop` (true, or the seconds to blend its seam over) | A library clip by id, sliced to `from`–`to`, closed into a loop |
-| `sequence` | `items` (names); `fade` (s, 0.2 by default); `sync` (`"contacts"`) | The items one after another, each crossfading into the next over `fade`, each turned and moved to where the last one left the root; with `sync`, each next item starts as far into its first plant of the foot the last one planted last (a step: a foot planted since its clip began, or one the next item never lifts, sets no phase) |
-| `blend` | `a`, `b`; `w` (0 to 1, or `[[t, w], …]`, t rising, within a); `warp` (true by default) | `a` blended toward `b`, each read at the same phase of its own time (two loops by their contacts), lasting between their durations by `w`. Two loops in step blend the pelvis, legs and feet as points (a foot both plant stays down) and the rest as numbers. Two loops blend into a loop only where it closes: the weight the same at both ends, and read in step or equally long; otherwise the result plays once |
+| `clip` | `id`; `from`, `to` (s); `loop` (true, or the seconds to blend its seam over, no more than what's left of the clip) | A library clip by id, sliced to `from`–`to`, closed into a loop |
+| `sequence` | `items` (names); `fade` (s, 0.2 by default); `sync` (`"contacts"`) | The items one after another, each crossfading into the next over `fade`, each turned and moved to where the last one left the root; with `sync`, each next item starts as far into its first plant of the foot the last one planted last (a loop's plant over its seam counted from where it began; a step: a foot planted since its clip began, or one the next item never lifts, sets no phase). An item's own first turn (a `pose` step's `yaw` on it) turns it from where it starts |
+| `blend` | `a`, `b`; `w` (0 to 1, or `[[t, w], …]`, t rising, within a); `warp` (true by default) | `a` blended toward `b`, each read at the same phase of its own time (two loops by their contacts), lasting between their durations by `w` (a curve's times are `a`'s, stretched with the result). Two loops in step blend the pelvis, legs and feet as points (a foot both plant stays down) and the rest as numbers. Two loops blend into a loop only where it closes: the weight the same at both ends, and read in step or equally long; otherwise the result plays once |
 | `layer` | `base`, `over`; `mask` (group names or `{field: weight}`); `feather`; `weight` (1 by default); `additive` | `over` laid on `base` in the masked fields, over the base's length: two loops loop, the over stretched to the base's cycle; otherwise the over plays once from the start and holds its end. Additive: `over`'s change from its first pose added on `base` |
 | `mirror` | `in` | Left and right swapped |
 | `retime` | `in`; one of `speed`, `dur`, `ease` (`"in"`, `"out"`, `"inOut"`) | Faster or slower, to a duration, or through an ease (which starts and ends at rest, so an eased loop plays once) |
-| `pose` | `in`; a field and its parts in degrees or the field's units (`{"chest": {"lean": 10}}`), or `yaw` (degrees); `from`, `to`; `fade` (s) | The parts moved by that much from `from` to `to`, faded in and out over `fade`; `yaw` turns the character, its root and its body. `root` is no field of a pose: travel is the clip's |
+| `pose` | `in`; a field and its parts in degrees or the field's units (`{"chest": {"lean": 10}}`), or `yaw` (degrees); `from`, `to`; `fade` (s) | The parts moved by that much from `from` to `to`, faded in and out over `fade`; `yaw` turns the character, its root and its body, and the way it travels from then on. `root` is no field of a pose: travel is the clip's |
 | `look` | `in`; `at` (`[forward, right, up]` mm from the root); `from`, `to`; `fade`; `weight` | The head turned to look at the point, within what a neck does (80° to a side, 60° up or down from the chest) |
 | `pin` | `in`; `end` (`handL`, `handR`, `footL`, `footR`); `path` (`[[t, f, r, z], …]` mm from the root, t rising); `fade` | That end held on the path (two-bone IK; the elbow or knee keeps its side, turned with the limb's swing, and bends the way an elbow or knee does as the limb straightens) |
 | `exaggerate` | `in`; `amount` (1.25 is a quarter more); `mask` | Every pose further from the track's mean pose |
@@ -98,6 +98,8 @@ in `spec/recipes/` compile into clips the sensors pass (`npm test -- recipe`).
 `id` or `steps`), `R-E002` an unknown `op` (the nearest named), `R-E003` a field the operation needs is missing, `R-E004`
 a value out of range or of the wrong type, `R-E005` a step reads a name that isn't an earlier step, `R-E006` a name used
 twice, `R-E007` an unknown field (the nearest named). Compiling adds `R-E008` a clip `resolve` doesn't know (the nearest
-ids it offers) and `R-E009` a time outside its track (a span's ends, a path's or a curve's points, an event's, a contact's start).
+ids it offers) and `R-E009` a time outside its track (a span's ends, a clip's slice that leaves none of it or a seam blend
+longer than it, a path's or a curve's points, an event's, a contact's ends: a loop's may wrap past its end by up to a
+cycle, `MOTION.md` §7.1).
 `spec/schemas/recipe.schema.json` gives the shape; `validateRecipe` also checks what a schema can't: names read before
 they are given and given once, times that rise, a pose step's parts.

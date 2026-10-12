@@ -4,6 +4,20 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.36.2 · 2026-10-12
+
+### Core
+- Recipes, after WP-6.1's second verifier (D70): a pose `yaw` turns the way the character travels (a turned loop no
+  longer jumps at its seam), and a sequence keeps an item's own turn; `describeRecipe` always ends, and `tokenCount`
+  counts at or over o200k and cl100k (it undercounted ids); a weight curve blends the legs as points and reads `a`'s
+  clock; a loop that plays once keeps both parts of a seam contact; `sync` reads a plant over a loop's seam; `pin`
+  stops short of a straight limb; a slice leaving nothing, a seam blend too long and a contact's end are coded R-E009,
+  and a loop's contact may wrap; every issue has a fix. 66 one-line mutants each fail the tests.
+
+### Spec
+- `spec/RECIPE.md`: the yaw's travel, a curve's clock, a once result's contacts, the R-E009 times; the schema refuses
+  a pose `root` (refrozen under D70); Jab_Cross_Combo's cross hit at 1.3 s, two descriptions say the upper body.
+
 ## 0.36.1 · 2026-10-12
 
 ### Core

@@ -20,7 +20,7 @@ import { exaggerate, overshoot, smooth, stiffen } from "./style.ts";
 import { addContacts, addEvents, blendTracks, layer, maskFrom, mirror, poseDeltas, retime, sequence, type Parts } from "./steps.ts";
 import { cyclic, cycleOf, ms, nextCycle, trackOfClip } from "./track.ts";
 import type { Recipe, Resolved, Resolver, Root, Step, Track } from "./types.ts";
-import { RecipeError, validateRecipe, type RecipeIssue } from "./validate.ts";
+import { OPS, RecipeError, validateRecipe, type RecipeIssue } from "./validate.ts";
 
 /** The compiler's own revision in a clip's provenance. */
 export const RECIPE_PRODUCER = { tool: "m3a-recipe", version: VERSION };
@@ -55,6 +55,10 @@ function run(s: Step, at: number, named: Map<string, Track>, resolve: Resolver, 
       }
       used.set(s.id as string, r);
       for (const f of ["from", "to"]) if (typeof s[f] === "number" && (s[f] as number) > r.clip.dur + 1e-9) fail("R-E009", f, `${f} ${s[f]} s is past the clip's end (${r.clip.dur} s)`, `a time from 0 to ${r.clip.dur}`);
+      // what's left of the clip: some of it, and a seam blended over no more than all of it
+      const from = (s.from as number | undefined) ?? 0, to = (s.to as number | undefined) ?? r.clip.dur, left = Math.round((to - from) * 1000) / 1000;
+      if (left < 0.001) fail("R-E009", "from", `from ${from} s leaves none of the clip (it ends at ${to} s)`, `a from before ${to}`);
+      if (typeof s.loop === "number" && s.loop > left) fail("R-E009", "loop", `loop blends the seam over ${s.loop} s, longer than the ${left} s of clip`, `a blend up to ${left} s (a quarter of it is usual), or true`);
       return trackOfClip(r.clip, r.rest, fps, { ...(s.from !== undefined ? { from: s.from as number } : {}), ...(s.to !== undefined ? { to: s.to as number } : {}), ...(s.loop !== undefined ? { loop: s.loop as boolean | number } : {}) });
     }
     case "sequence":
@@ -101,12 +105,15 @@ function run(s: Step, at: number, named: Map<string, Track>, resolve: Resolver, 
     }
     case "contacts": {
       const t = get(s.in), add = s.add as Record<string, [number, number][]>;
-      for (const iv of Object.values(add)) for (const [a] of iv) within(t, "add", a);
-      for (const iv of Object.values(add)) for (const [, b] of iv) within(t, "add", b);
+      // a loop's contact may run over its seam (MOTION.md §7.1), up to a whole cycle; a once track's ends by its end
+      for (const iv of Object.values(add)) for (const [a, b] of iv) {
+        within(t, "add", a);
+        if (t.loop ? b > a + t.dur + 1e-9 : b > t.dur + 1e-9) fail("R-E009", "add", `a contact ending at ${b} s runs past ${t.loop ? "a whole cycle" : "the track's end"} (${t.dur} s)`, t.loop ? `an end before ${ms(a + t.dur)} (it may wrap past ${t.dur})` : `an end up to ${t.dur}`);
+      }
       return addContacts(t, add);
     }
   }
-  return fail("R-E002", "op", `no operation ${s.op}`);
+  return fail("R-E002", "op", `no operation ${s.op}`, `one of ${Object.keys(OPS).join(", ")}`);
 }
 
 /** A pose rounded as the format rounds: whole numbers, a limb's or blade's direction scaled to 100 first. */

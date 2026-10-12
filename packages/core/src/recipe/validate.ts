@@ -109,7 +109,7 @@ function poseParts(s: Step, at: number, out: RecipeIssue[]): void {
       continue;
     }
     if (f === "yaw") {
-      if (!isNum(v)) out.push({ code: "R-E004", step: at, field: f, message: "yaw is a number of degrees" });
+      if (!isNum(v)) out.push({ code: "R-E004", step: at, field: f, message: "yaw is a number of degrees", fix: '"yaw": 30 (degrees, + to the left)' });
       continue;
     }
     if (!v || typeof v !== "object" || Array.isArray(v)) {
@@ -119,8 +119,8 @@ function poseParts(s: Step, at: number, out: RecipeIssue[]): void {
     for (const [p, x] of Object.entries(v)) {
       if (!Object.hasOwn(v, p) || !spec!.parts.includes(p)) {
         const near = nearest(p, spec!.parts);
-        out.push({ code: "R-E007", step: at, field: `${f}.${p}`, message: `${f} has no part "${p}" (${spec!.parts.join(", ")})`, ...(near ? { fix: `did you mean "${near}"?` } : {}) });
-      } else if (!isNum(x)) out.push({ code: "R-E004", step: at, field: `${f}.${p}`, message: "an amount is a number" });
+        out.push({ code: "R-E007", step: at, field: `${f}.${p}`, message: `${f} has no part "${p}" (${spec!.parts.join(", ")})`, fix: near ? `did you mean "${near}"?` : `one of ${spec!.parts.join(", ")}` });
+      } else if (!isNum(x)) out.push({ code: "R-E004", step: at, field: `${f}.${p}`, message: "an amount is a number", fix: `"${p}": 10` });
     }
   }
 }
@@ -133,24 +133,24 @@ export function validateRecipe(r: unknown): RecipeIssue[] {
   if (typeof o.format !== "string" || !/^2\.\d+$/.test(o.format)) out.push({ code: "R-E001", field: "format", message: `format ${JSON.stringify(o.format)} is not 2.x`, fix: '"format": "2.0"' });
   if (id(o.id) !== null) out.push({ code: "R-E001", field: "id", message: `id ${JSON.stringify(o.id)} is not SET/Slug`, fix: '"id": "RECIPES/My_Clip"' });
   if (!Array.isArray(o.steps) || !o.steps.length) return [...out, { code: "R-E001", field: "steps", message: "a recipe has at least one step", fix: '"steps": [{ "op": "clip", "id": "SET/Slug" }]' }];
-  if (o.fps !== undefined && num(1, 120)(o.fps) !== null) out.push({ code: "R-E004", field: "fps", message: "fps is a number from 1 to 120" });
-  if (o.tags !== undefined && !(Array.isArray(o.tags) && o.tags.every((t) => typeof t === "string" && /^[a-z0-9-]+$/.test(t)))) out.push({ code: "R-E004", field: "tags", message: "tags are lower-case words" });
-  for (const k of ["name", "desc"]) if (o[k] !== undefined && typeof o[k] !== "string") out.push({ code: "R-E004", field: k, message: `${k} is text` });
+  if (o.fps !== undefined && num(1, 120)(o.fps) !== null) out.push({ code: "R-E004", field: "fps", message: "fps is a number from 1 to 120", fix: '"fps": 30 (or leave it out)' });
+  if (o.tags !== undefined && !(Array.isArray(o.tags) && o.tags.every((t) => typeof t === "string" && /^[a-z0-9-]+$/.test(t)))) out.push({ code: "R-E004", field: "tags", message: "tags are lower-case words", fix: '"tags": ["walk", "loop"]' });
+  for (const k of ["name", "desc"]) if (o[k] !== undefined && typeof o[k] !== "string") out.push({ code: "R-E004", field: k, message: `${k} is text`, fix: `"${k}": "…"` });
   for (const k of Object.keys(o)) if (!["format", "id", "name", "tags", "desc", "fps", "steps"].includes(k)) {
     const near = nearest(k, ["format", "id", "name", "tags", "desc", "fps", "steps"]);
-    out.push({ code: "R-E007", field: k, message: `"${k}" is not a recipe field`, ...(near ? { fix: `did you mean "${near}"?` } : {}) });
+    out.push({ code: "R-E007", field: k, message: `"${k}" is not a recipe field`, fix: near ? `did you mean "${near}"?` : "a recipe's fields: format, id, name, tags, desc, fps, steps" });
   }
   const seen = new Set<string>();
   (o.steps as unknown[]).forEach((raw, i) => {
     const at = i + 1;
-    if (!raw || typeof raw !== "object" || Array.isArray(raw)) return void out.push({ code: "R-E004", step: at, message: "a step is an object with an op" });
+    if (!raw || typeof raw !== "object" || Array.isArray(raw)) return void out.push({ code: "R-E004", step: at, message: "a step is an object with an op", fix: '{ "op": "clip", "id": "SET/Slug" }' });
     const s = raw as Step, spec = typeof s.op === "string" && Object.hasOwn(OPS, s.op) ? OPS[s.op] : undefined;
     if (!spec) {
       const near = typeof s.op === "string" ? nearest(s.op, Object.keys(OPS)) : undefined;
       out.push({ code: "R-E002", step: at, field: "op", message: `no operation ${JSON.stringify(s.op)}`, fix: near ? `did you mean "${near}"?` : `one of ${Object.keys(OPS).join(", ")}` });
     } else {
       for (const f of spec.needs) if (s[f] === undefined) out.push({ code: "R-E003", step: at, field: f, message: `${s.op} needs ${f}`, fix: `add "${f}" (${FIELD_HELP[f] ?? "see spec/RECIPE.md §2"})` });
-      if (spec.oneOf && spec.oneOf.filter((f) => s[f] !== undefined).length !== 1) out.push({ code: "R-E003", step: at, message: `${s.op} takes exactly one of ${spec.oneOf.join(", ")}` });
+      if (spec.oneOf && spec.oneOf.filter((f) => s[f] !== undefined).length !== 1) out.push({ code: "R-E003", step: at, message: `${s.op} takes exactly one of ${spec.oneOf.join(", ")}`, fix: `keep one of ${spec.oneOf.join(", ")}` });
       if (s.op === "pose") poseParts(s, at, out);
       for (const [f, v] of Object.entries(s)) {
         if (f === "op" || f === "as" || (s.op === "pose" && ((Object.hasOwn(KEY_FIELDS, f) && f !== "root") || f === "yaw"))) continue;
@@ -158,7 +158,7 @@ export function validateRecipe(r: unknown): RecipeIssue[] {
         if (!check) {
           if (s.op === "pose") continue;
           const near = nearest(f, Object.keys(spec.fields));
-          out.push({ code: "R-E007", step: at, field: f, message: `${s.op} has no field "${f}"`, ...(near ? { fix: `did you mean "${near}"?` } : {}) });
+          out.push({ code: "R-E007", step: at, field: f, message: `${s.op} has no field "${f}"`, fix: near ? `did you mean "${near}"?` : `${s.op} takes ${Object.keys(spec.fields).join(", ")}` });
           continue;
         }
         const bad = check(v);
@@ -175,8 +175,8 @@ export function validateRecipe(r: unknown): RecipeIssue[] {
       }
     }
     if (s.as !== undefined) {
-      if (name(s.as) !== null || /^s\d+$/.test(s.as)) out.push({ code: "R-E006", step: at, field: "as", message: `${JSON.stringify(s.as)} can't name a step (a word, not s1, s2, …)` });
-      else if (seen.has(s.as)) out.push({ code: "R-E006", step: at, field: "as", message: `"${s.as}" names an earlier step already` });
+      if (name(s.as) !== null || /^s\d+$/.test(s.as)) out.push({ code: "R-E006", step: at, field: "as", message: `${JSON.stringify(s.as)} can't name a step (a word, not s1, s2, …)`, fix: 'a word of your own, e.g. "walk2"' });
+      else if (seen.has(s.as)) out.push({ code: "R-E006", step: at, field: "as", message: `"${s.as}" names an earlier step already`, fix: `another name, e.g. "${s.as}2"` });
     }
     seen.add(`s${at}`);
     if (typeof s.as === "string") seen.add(s.as);

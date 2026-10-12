@@ -6,7 +6,7 @@
   "walk",
   "loop"
  ],
- "desc": "A walk with the arms' and chest's swing a quarter bigger",
+ "desc": "A walk with the upper body's swing (arms, chest, spine and head) a quarter bigger",
  "steps": [
   {
    "as": "walk",

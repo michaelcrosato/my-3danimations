@@ -2031,5 +2031,30 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   - **Notes:** four examples became chained ones and three descriptions were corrected. A recipe clip with a
     compound license (`CC-BY-4.0 AND LicenseRef-CMU-Mocap`) has no set tier: such a clip enters the library only in
     a set of the stricter tier, when a WP adds recipe clips to it.
+- **Verifier, round 2** (at e568fba): not done. All ten round-1 mutants failed, but 15 of 40 new ones passed, and two
+  bugs were blocking. Fixed in v0.36.2, every finding:
+  - **A pose yaw turns the way the character travels**, each frame's step taken the way it then faces, a loop's cycle
+    from where the turned travel got to. Before, the travel went straight on while the closing key turned: a crawl
+    turned 90° jumped at every seam (11 %H0 in 1/120 s; a ducking clip looped, 107). In a sequence an item's own first
+    turn now turns it from where it starts: `[crawl, crawl yaw 60]` went toward −60° facing 0°, and now goes and faces 60°.
+  - **`describeRecipe` ends:** past the first cut each cut changed nothing, so a long id looped forever. It now cuts the
+    first step's text and keeps the count of the rest. `tokenCount` was no upper bound: it undercounted 249 of 486
+    lines of library ids. It now splits words at their capitals and counts an upper-case run a token every two letters,
+    a lower-case run one every three. A test holds it at or over o200k and cl100k on every example and on the long and
+    made-up cases (random letters can still count higher).
+  - **A curve blends the legs as points**, as a number does: a constant curve popped at the seam where the same
+    number only warned. A curve's times are `a`'s, stretched with the result (one reached 1 halfway through).
+  - **A loop that now plays once keeps both parts of a seam contact:** an unwarped or unclosed blend, an eased retime,
+    and a layer under a once clip each dropped one.
+  - **`sync` reads a loop's plant over its seam** from where it began: three walks faded over 0.5 s fell a step behind.
+  - **`pin` reaches at most 98.5% of an arm, 99.8% of a leg:** a hand pinned to full reach flipped its twist (141°).
+  - **Times are coded:** a slice that leaves none of a clip, and a seam blend longer than the clip, threw uncoded
+    errors; they are R-E009 now. A contact's end is checked as an end: within a once track, or wrapping a loop's seam
+    by up to a cycle, which `MOTION.md` §7.1 allows and the check had refused. 0.36.1's "every time checked" and
+    "every issue has a fix" were false (15 issues carried no fix, or one only with a near name); both hold now, tested.
+  - **Records:** the schema refuses a pose `root` as the validator does (refrozen under D70); Jab_Cross_Combo's second
+    hit moves to 1.3 s, where the cross lands (at 1.0 the fist was at guard); two descriptions say the upper body,
+    which the `upper` mask moves, not "arms and chest".
+  - **Tests:** the 15 surviving mutants and 26 more of the new code, 66 in all, each fail `npm test -- recipe`.
 - **Answered:** no: made without a response, to review.
-- **Landed in:** v0.36.0, v0.36.1
+- **Landed in:** v0.36.0, v0.36.1, v0.36.2

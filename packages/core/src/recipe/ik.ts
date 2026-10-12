@@ -71,19 +71,24 @@ function pathAt(path: readonly (readonly number[])[], time: number): V3 {
 }
 
 /**
- * In the points X, `end` put at T by two-bone IK (held within reach), the elbow or knee on the side it was: its offset
+ * In the points X, `end` put at T by two-bone IK (held within REACH of an arm's length, LEG_REACH of a leg's), the
+ * elbow or knee on the side it was: its offset
  * from the limb, turned as the limb swings from its end to the target, and as the limb nears straight (that offset
- * under a fifth of the upper bone), the way an elbow or a knee bends (back and out, forward). A hand's points turn with the forearm; a foot's move with the
- * ankle, keeping how it points. With T where the end already is and the limb bent, X is unchanged.
+ * under a twentieth of the upper bone, about 6° of bend), the way an elbow or a knee bends (back and out, forward). A hand's points turn with the forearm; a foot's move with the
+ * ankle, keeping how it points. With T where the end already is and the limb bent, X is unchanged. `prev`, the joint and
+ * end the last frame put (relative to the same root joint), takes the side from there instead, for a limb swung far;
+ * `lengths`, the upper and lower bones', for points whose root joint has moved since the limb was last solved.
  */
-export function reachTo(X: Float32Array, end: keyof typeof CHAINS, T: V3): void {
+export function reachTo(X: Float32Array, end: keyof typeof CHAINS, T: V3, prev?: { mid: V3; end: V3 }, lengths?: readonly [number, number]): void {
   const c = CHAINS[end], S = pt(X, c.root), E = pt(X, c.mid), F = pt(X, c.end);
-  const a = len(sub(E, S)), b = len(sub(F, E)), toT = sub(T, S), dT = Math.max(1e-6, len(toT)), u = mul(toT, 1 / dT);
-  const d = Math.min(Math.max(dT, Math.abs(a - b) + 1e-3), a + b - 1e-3);
+  const [a, b] = lengths ?? [len(sub(E, S)), len(sub(F, E))], toT = sub(T, S), dT = Math.max(1e-6, len(toT)), u = mul(toT, 1 / dT);
+  // short of full reach by a little: a limb pulled straight has no side to bend to, and its twist no reference
+  const d = Math.min(Math.max(dT, Math.abs(a - b) + 1e-3), (a + b) * (c.rigid ? REACH : LEG_REACH));
   // the side the joint bends to: where it is, turned with the limb's swing to the target (a knee kicked forward points
   // up, not down), and as the limb straightens, the way an elbow or a knee bends
-  const perp = (v: readonly number[]) => sub(v, mul(u, dot(v, u))), swing = between(sub(F, S), toT);
-  const own = perp(qrot(swing, sub(E, S))), hint = perp(c.bend), lean = Math.max(0, 0.2 * a - len(own));
+  // (given the joint where the last frame left it, frame after frame, from there: a big swing turns it the short way)
+  const perp = (v: readonly number[]) => sub(v, mul(u, dot(v, u))), from = prev ? [prev.mid, prev.end] : [E, F], swing = between(sub(from[1]!, S), toT);
+  const own = perp(qrot(swing, sub(from[0]!, S))), hint = perp(c.bend), lean = Math.max(0, 0.05 * a - len(own));
   let side = add(own, mul(norm(hint), lean));
   if (len(side) < 1e-6) side = cross(u, [0, 0, 1]);
   const x = (a * a - b * b + d * d) / (2 * d), h = Math.sqrt(Math.max(0, a * a - x * x));
@@ -93,6 +98,10 @@ export function reachTo(X: Float32Array, end: keyof typeof CHAINS, T: V3): void 
   put(X, c.mid, E2);
   put(X, c.end, F2);
 }
+/** The most of an arm's length IK reaches out to: about 20° short of straight. */
+export const REACH = 0.985;
+/** A leg's: a standing leg is nearly straight, its knee kept forward by the bend direction. */
+export const LEG_REACH = 0.998;
 /** The fields an end's chain moves. */
 export const chainFields = (end: keyof typeof CHAINS): readonly string[] => CHAINS[end].fields;
 

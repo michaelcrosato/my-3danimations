@@ -5,7 +5,7 @@
  "tags": [
   "walk"
  ],
- "desc": "A walk whose arms and chest stiffen over one stride",
+ "desc": "A walk whose upper body (arms, chest, spine and head) stiffens over one stride",
  "steps": [
   {
    "as": "walk",
