@@ -43,7 +43,7 @@
    "additionalProperties": {
     "$ref": "#/$defs/parameter"
    },
-   "description": "By name: number, bool or trigger, with a starting value."
+   "description": "By name: number, bool or trigger, with a starting value (a trigger with how long a press waits)."
   },
   "start": {
    "type": "string",
@@ -114,6 +114,12 @@
      "properties": {
       "type": {
        "const": "trigger"
+      },
+      "buffer": {
+       "type": "number",
+       "minimum": 0,
+       "maximum": 10,
+       "description": "How long a press waits to be used, seconds (until it is, without one): input buffering."
       }
      }
     }
@@ -172,7 +178,7 @@
      "type": "number",
      "minimum": -100,
      "maximum": 100,
-     "description": "Playback speed (1)."
+     "description": "Playback speed (1); a one-shot plays forward (above 0), which graph.validateGraph checks with the clips."
     },
     "at": {
      "type": "number",
@@ -390,6 +396,30 @@
         "type": "number",
         "minimum": 0,
         "maximum": 1
+       },
+       "propertyNames": {
+        "enum": [
+         "chest",
+         "head",
+         "spine",
+         "shL",
+         "shR",
+         "armL",
+         "armR",
+         "handL",
+         "handR",
+         "fingersL",
+         "fingersR",
+         "blade",
+         "hips",
+         "body",
+         "root",
+         "yaw",
+         "legL",
+         "legR",
+         "footL",
+         "footR"
+        ]
        }
       }
      ]

@@ -16,10 +16,12 @@
    "value": true
   },
   "jump": {
-   "type": "trigger"
+   "type": "trigger",
+   "buffer": 0.2
   },
   "punch": {
-   "type": "trigger"
+   "type": "trigger",
+   "buffer": 0.3
   }
  },
  "start": "idle",

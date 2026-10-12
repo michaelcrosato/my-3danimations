@@ -383,9 +383,9 @@ export class Animator {
     return this;
   }
 
-  /** Removes layer `name` (nothing if there is none; a graph's layers go with `stop()`). */
+  /** Removes layer `name` (nothing if there is none). A graph's layers (named `@…`) go with `stop()`: E_LAYER. */
   remove(name: string): this {
-    if (name.startsWith("@")) return this;
+    if (name.startsWith("@")) throw new AnimatorError("E_LAYER", `layer "${name}" is a playing graph's: its layers go with stop()`);
     this.#layers = this.#layers.filter((x) => x.name !== name);
     return this;
   }
@@ -408,7 +408,7 @@ export class Animator {
       const before = fired.length;
       moved = compose(moved, this.#tick(fired));
       // the step's events to the callbacks, in order: what they set or trigger plays from the next step
-      for (let i = before; i < fired.length; i++) for (const key of [fired[i]!.name, "*"]) for (const fn of this.#listeners.get(key) ?? []) fn(fired[i]!);
+      for (let i = before; i < fired.length; i++) for (const key of fired[i]!.name === "*" ? ["*"] : [fired[i]!.name, "*"]) for (const fn of this.#listeners.get(key) ?? []) fn(fired[i]!);
       n++;
     }
     return { steps: n, events: fired, root: moved };
@@ -517,18 +517,29 @@ export class Animator {
     this.#layers = this.#layers.filter((L) => !L.name.startsWith("@"));
     return this;
   }
-  /** Sets a number or bool parameter of the playing graph; it is read from the next step. */
+  /**
+   * Sets a number or bool parameter of the playing graph; it is read from the next step. A trigger set true is
+   * `trigger(name)`; set false, it is cleared, unused.
+   */
   set(name: string, value: number | boolean): this {
     const g = this.#need(), type = g.typeOf(name);
+    if (type === "trigger" && typeof value === "boolean") {
+      if (value) g.trigger(name);
+      else g.reset(name);
+      return this;
+    }
     if (type === "number" ? !finite(value) : type === "bool" ? typeof value !== "boolean" : true)
-      throw new AnimatorError("E_PARAM", type === undefined ? `graph "${g.graph.id}" has no parameter "${name}": ${Object.keys(g.graph.parameters ?? {}).join(", ") || "it has none"}` : type === "trigger" ? `"${name}" is a trigger: trigger("${name}")` : `"${name}" is a ${type}, not ${JSON.stringify(value)}`);
+      throw new AnimatorError("E_PARAM", type === undefined ? `graph "${g.graph.id}" has no parameter "${name}": ${Object.keys(g.graph.parameters ?? {}).join(", ") || "it has none"}` : type === "trigger" ? `"${name}" is a trigger: trigger("${name}"), or set it false to clear it` : `"${name}" is a ${type}, not ${typeof value === "number" ? String(value) : JSON.stringify(value)}`);
     g.set(name, type === "number" ? z(value as number) : value);
     return this;
   }
-  /** Sets a trigger of the playing graph: it stays set until a transition reading it is taken. */
+  /** Sets a trigger of the playing graph: it stays set until a transition reading it is taken (or its buffer runs out). */
   trigger(name: string): this {
     const g = this.#need();
-    if (g.typeOf(name) !== "trigger") throw new AnimatorError("E_PARAM", `graph "${g.graph.id}" has no trigger "${name}"`);
+    if (g.typeOf(name) !== "trigger") {
+      const triggers = Object.entries(g.graph.parameters ?? {}).filter(([, p]) => p.type === "trigger").map(([k]) => k);
+      throw new AnimatorError("E_PARAM", `graph "${g.graph.id}" has no trigger "${name}": ${triggers.join(", ") || "it has none"}`);
+    }
     g.trigger(name);
     return this;
   }
@@ -585,8 +596,11 @@ export class Animator {
       run = this.#graphRun(graph, find);
       const g = d.graph as Partial<GraphSave>;
       if (run.hash !== g.hash) throw new AnimatorError("E_GRAPH_CHANGED", `graph "${graph.id}" changed since the save (content hash ${String(g.hash)}, now ${run.hash}): restore with the graph as it was saved, or play it again`);
-      const shaped = Array.isArray(g.layers) && g.layers.length === run.states.length && g.layers.every((x, i) => x && x.name === run!.states[i]!.layer && typeof x.state === "string" && [x.entry, x.fade, x.elapsed, x.count].every(finite));
-      if (!shaped || !g.params || !Array.isArray(g.triggers)) throw notSave("its graph state is malformed");
+      // every clip the graph names, playing or not, as it was: a state entered later would play an edited one
+      if (!g.clips || typeof g.clips !== "object") throw notSave("its graph's clips are missing");
+      for (const [id, h] of Object.entries(run.clipHashes)) if (g.clips[id] !== h) throw new AnimatorError("E_CLIP_CHANGED", `clip "${id}", which graph "${graph.id}" names, changed since the save (content hash ${String(g.clips[id])}, now ${h}): restore with the clip as it was saved, or play the graph again`, id);
+      const misfit = run.misfit(g as GraphSave);
+      if (misfit) throw notSave(`its graph state doesn't fit graph "${graph.id}": ${misfit}`);
       run.restore(g as GraphSave);
     }
     this.#graph = run;
@@ -601,11 +615,15 @@ export class Animator {
   #graphRun(graph: Graph, find: (id: string) => AnimClip | undefined): GraphRun<AnimClip> {
     const issues = validateGraph(graph, { clips: find });
     if (issues.length) throw new AnimatorError("E_GRAPH", `graph ${JSON.stringify((graph as { id?: unknown } | null)?.id ?? null)} doesn't check: ${issues.slice(0, 4).map((i) => `${i.code} ${i.field ?? ""} ${i.message}${i.fix ? ` (${i.fix})` : ""}`).join("; ")}${issues.length > 4 ? `; and ${issues.length - 4} more (graph.validateGraph lists them)` : ""}`);
-    return new GraphRun<AnimClip>(graph, (id) => {
-      const c = find(id)!;
-      if (!Array.isArray(c.keys) || c.keys.length === 0 || !(c.dur >= 0)) throw new AnimatorError("E_GRAPH", `clip "${id}" has no keys or no duration; parse it with parseClip first`, id);
-      return c;
-    });
+    return new GraphRun<AnimClip>(
+      graph,
+      (id) => {
+        const c = find(id)!;
+        if (!Array.isArray(c.keys) || c.keys.length === 0 || !(c.dur >= 0)) throw new AnimatorError("E_GRAPH", `clip "${id}" has no keys or no duration; parse it with parseClip first`, id);
+        return c;
+      },
+      (c) => clipHash(c, true),
+    );
   }
   /** The playing graph, or E_GRAPH. */
   #need(): GraphRun<AnimClip> {
@@ -616,7 +634,7 @@ export class Animator {
   #drive(fired: AnimatorEvent[]): void {
     const read = (name: string) => {
       const L = this.#layers.find((x) => x.name === name);
-      return L ? { time: L.time, held: L.held } : undefined;
+      return L ? { time: L.time, held: L.held, cycle: L.cycle, speed: L.speed } : undefined;
     };
     const { plan, entered } = this.#graph!.step(this.#h, read);
     this.#apply(plan);

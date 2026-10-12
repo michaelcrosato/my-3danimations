@@ -39,7 +39,7 @@ function locomotion(a: Core.Animator, i: number): void {
   if (i === 160) a.set("speed", 5.5);
   if (i === 220) a.trigger("jump");
   if (i === 232) a.set("grounded", false);
-  if (i === 290) a.set("grounded", true);
+  if (i === 330) a.set("grounded", true);
   if (i === 360 || i === 470) a.trigger("punch");
   if (i === 420) a.set("speed", 0);
   if (i === 520) a.set("speed", 2);
@@ -49,8 +49,9 @@ function combo(a: Core.Animator, i: number): void {
   if ([20, 40, 62, 200, 300, 318, 420, 480].includes(i)) a.trigger("attack");
 }
 
-/** Runs one graph's script, saving and restoring the Animator (as JSON) at step `restoreAt` when it is given. */
-export function runGraph(core: typeof Core, data: GraphScriptData, which: "locomotion" | "combo", opts: { restoreAt?: number; poses?: "none" | "every" } = {}): GraphRun {
+/** Runs one graph's script, saving and restoring the Animator (as JSON) at step `restoreAt` when it is given; `onStep`
+ *  sees the Animator after each step. */
+export function runGraph(core: typeof Core, data: GraphScriptData, which: "locomotion" | "combo", opts: { restoreAt?: number; poses?: "none" | "every"; onStep?: (a: Core.Animator, i: number) => void } = {}): GraphRun {
   const g = which === "locomotion" ? data.locomotion : data.combo, drive = which === "locomotion" ? locomotion : combo;
   let a = new core.Animator(core.bind(data.skeleton), { step: 1 / 60 });
   const out: GraphRun = { hashes: [], events: [], states: [], exact: {} };
@@ -75,6 +76,7 @@ export function runGraph(core: typeof Core, data: GraphScriptData, which: "locom
       out.exact[i] = core.math.hashNumbers(a.bound.order.flatMap((b) => p.joints[b.name]!));
     }
     out.hashes.push(a.hash());
+    opts.onStep?.(a, i);
   }
   return out;
 }

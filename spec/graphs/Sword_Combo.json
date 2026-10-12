@@ -9,7 +9,8 @@
  ],
  "parameters": {
   "attack": {
-   "type": "trigger"
+   "type": "trigger",
+   "buffer": 0.3
   }
  },
  "start": "guard",

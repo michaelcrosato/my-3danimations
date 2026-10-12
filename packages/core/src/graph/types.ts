@@ -9,6 +9,8 @@ export interface GraphParameter {
   type: "number" | "bool" | "trigger";
   /** Its value before the host sets it (0, false). A trigger starts unset. */
   value?: number | boolean;
+  /** A trigger only: how long a press waits to be used, seconds (until it is, without one): input buffering. */
+  buffer?: number;
 }
 
 /** A blend point: where on the parameter (or the two) the clip plays alone. */
@@ -33,7 +35,7 @@ export interface GraphState {
   blend?: BlendSpace;
   /** Nothing plays (a layer over the base only): what is below shows through. */
   pass?: true;
-  /** Playback speed (1). */
+  /** Playback speed (1; a one-shot's is above 0). */
   speed?: number;
   /** Where a clip state starts, seconds (0), unless its transition syncs it. */
   at?: number;

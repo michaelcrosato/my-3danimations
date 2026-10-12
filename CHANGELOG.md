@@ -4,6 +4,20 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.39.2 · 2026-10-12
+
+### Core
+- Graphs, after WP-6.4's verifier (D73): a state faded into plays, and fires its events, from its first step; a loop's
+  exit share is taken when a step carries it past; a cut fade carries on from what it was fading out; a trigger may
+  have a `buffer`, and `set(trigger, false)` clears one; a save holds the content hash of every clip the graph names,
+  and restore refuses one edited since (E_CLIP_CHANGED) or a graph state the graph can't have (E_SAVE);
+  `validateGraph` returns issues where it threw, checks a mask's field names, `name`, `desc` and `tags`, and gives
+  every issue a fix; `remove("@…")` refuses a graph's layer.
+
+### Spec
+- `graph.schema.json`: a trigger's `buffer`, a mask's field names (refrozen under D73); `spec/GRAPH.md` says the
+  above; the examples' presses wait 0.2 to 0.3 s.
+
 ## 0.39.1 · 2026-10-12
 
 ### Core

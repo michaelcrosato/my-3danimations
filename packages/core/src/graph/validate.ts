@@ -1,26 +1,28 @@
-// The graph's checks (PLAN.md WP-6.4, D73; spec/GRAPH.md §5): every issue with its code, where it is and a fix.
+// The graph's checks (PLAN.md WP-6.4, D73; spec/GRAPH.md §4): every issue with its code, where it is and a fix.
 // spec/schemas/graph.schema.json gives the shape; these also check what a schema can't: names that exist, blend points
 // in order, conditions that fit their parameter's type, states the start reaches, clips the host has.
 import { GROUPS } from "../ops/pose.ts";
 import type { RecipeIssue } from "../recipe/validate.ts";
-import { clipsOf, layersOf, type Condition, type Graph, type GraphLayer, type GraphState, type GraphTransition } from "./types.ts";
+import { layersOf, type Condition, type Graph, type GraphLayer, type GraphState, type GraphTransition } from "./types.ts";
 
 /** The graph rules: each code and what it catches. */
 export const GRAPH_RULES: Readonly<Record<string, string>> = {
-  "G-E001": "not a graph: no format, id, start, states or transitions",
+  "G-E001": "not a graph: no format, id, start, states or transitions, or a name, desc or tags of the wrong kind",
   "G-E002": "a state that isn't exactly one of clip, recipe, blend or pass, or a blend space out of order",
-  "G-E003": "a name that isn't there: a transition's state, a layer's start, a blend's parameter",
+  "G-E003": "a name that isn't there (a transition's state, a layer's start, a blend's number parameter), or a transition that isn't one",
   "G-E004": "a condition that doesn't fit its parameter: an unknown one, or an op or value of the wrong kind",
-  "G-E005": "a value out of range: a fade, exit or window, a speed, a weight",
-  "G-E006": "a parameter of an unknown type, or a value that isn't of it",
+  "G-E005": "a value out of range or of the wrong kind: a fade, exit or window, a speed (a one-shot's backward), a weight, a flag",
+  "G-E006": "a parameter of an unknown type, or a value (or buffer) that isn't of it",
   "G-E007": "an unknown field",
   "G-E008": "a state the layer's start never reaches",
   "G-E009": "a clip the host's clips don't have",
-  "G-E010": "a layer named twice, or with an unknown mask",
+  "G-E010": "a layer named twice, or with an unknown mask (a body group or a field it doesn't have)",
 };
 
 const ID = /^[A-Z0-9_]+\/[A-Za-z0-9_]+$/, NAME = /^[A-Za-z][A-Za-z0-9_-]*$/;
 const OPS = ["==", "!=", "<", "<=", ">", ">="];
+/** The fields a mask weighs: every body group's. */
+const MASK_FIELDS = [...new Set(Object.values(GROUPS).flat())];
 const isNum = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v);
 const isObj = (v: unknown): v is Record<string, unknown> => !!v && typeof v === "object" && !Array.isArray(v);
 const FIELDS = {
@@ -54,18 +56,21 @@ export function validateGraph(data: unknown, opts: { clips?: (id: string) => unk
   const g = data;
   if (typeof g.format !== "string" || !/^2\.\d+$/.test(g.format)) add("G-E001", "format", "format is 2.x", '"format": "2.0"');
   if (typeof g.id !== "string" || !ID.test(g.id)) add("G-E001", "id", "id is SET/Slug", '"id": "GRAPHS/Locomotion"');
+  for (const k of ["name", "desc"] as const) if (g[k] !== undefined && typeof g[k] !== "string") add("G-E001", k, `${k} is text`, `"${k}": "Locomotion"`);
+  if (g.tags !== undefined && !(Array.isArray(g.tags) && g.tags.every((t) => typeof t === "string" && /^[a-z0-9-]+$/.test(t)))) add("G-E001", "tags", "tags are a list of lower-case words (letters, digits and -)", '"tags": ["locomotion"]');
   unknown(g, FIELDS.graph, "", add);
   // parameters
   const params = new Map<string, string>();
   if (g.parameters !== undefined && !isObj(g.parameters)) add("G-E006", "parameters", "parameters are an object, by name", '"parameters": { "speed": { "type": "number" } }');
   for (const [name, p] of Object.entries(isObj(g.parameters) ? g.parameters : {})) {
     const at = `parameters.${name}`;
-    if (!NAME.test(name)) add("G-E006", at, `parameter name "${name}" is letters, digits, _ and -`);
+    if (!NAME.test(name)) add("G-E006", at, `parameter name "${name}" is letters, digits, _ and -`, "a name such as speed or on_ground");
     if (!isObj(p) || !["number", "bool", "trigger"].includes(p.type as string)) {
       add("G-E006", at, `parameter "${name}" has no type number, bool or trigger`, '{ "type": "number", "value": 0 }');
       continue;
     }
-    unknown(p, ["type", "value"], at, add);
+    unknown(p, p.type === "trigger" ? ["type", "buffer"] : ["type", "value"], at, add);
+    if (p.type === "trigger" && p.buffer !== undefined && !(isNum(p.buffer) && p.buffer >= 0 && p.buffer <= 10)) add("G-E006", `${at}.buffer`, `trigger "${name}"'s buffer is seconds, 0 to 10`, '"buffer": 0.2');
     params.set(name, p.type as string);
     if (p.value !== undefined && !(p.type === "number" ? isNum(p.value) : p.type === "bool" ? typeof p.value === "boolean" : false))
       add("G-E006", `${at}.value`, `parameter "${name}" is a ${p.type as string}: its value ${JSON.stringify(p.value)} isn't one`, p.type === "trigger" ? "a trigger has no value: leave it out" : p.type === "bool" ? '"value": false' : '"value": 0');
@@ -74,10 +79,10 @@ export function validateGraph(data: unknown, opts: { clips?: (id: string) => unk
   if (!isObj(g.states)) add("G-E001", "states", "a graph has states, by name", '"states": { "idle": { "clip": "SET/Idle" } }');
   if (!Array.isArray(g.transitions)) add("G-E001", "transitions", "a graph has a list of transitions (it may be empty)", '"transitions": []');
   if (typeof g.start !== "string") add("G-E001", "start", "a graph names the state it starts in", '"start": "idle"');
-  if (g.layers !== undefined && !Array.isArray(g.layers)) add("G-E010", "layers", "layers are a list", '"layers": [{ "name": "upper", "mask": "upper", … }]');
+  if (g.layers !== undefined && !Array.isArray(g.layers)) add("G-E010", "layers", "layers are a list, bottom first (not an object by name, as states are)", '"layers": [{ "name": "upper", "mask": "upper", … }]');
   const names = new Set(["base"]);
-  const layers = base ? layersOf(g as unknown as Graph) : [];
-  if (!base) for (const L of Array.isArray(g.layers) ? (g.layers as GraphLayer[]) : []) layers.push(L);
+  const over = Array.isArray(g.layers) ? (g.layers as GraphLayer[]) : [];
+  const layers = base ? [layersOf({ ...(g as unknown as Graph), layers: [] })[0]!, ...over] : [...over];
   layers.forEach((L, li) => {
     const at = li === 0 && base ? "" : `layers.${li - (base ? 1 : 0)}.`;
     if (!isObj(L)) return add("G-E010", at.slice(0, -1), "a layer is an object", '{ "name": "upper", "start": "none", "states": { … }, "transitions": [ … ] }');
@@ -90,9 +95,11 @@ export function validateGraph(data: unknown, opts: { clips?: (id: string) => unk
         const groups = typeof L.mask === "string" ? [L.mask] : Array.isArray(L.mask) ? L.mask : null;
         if (groups) for (const m of groups) if (!Object.hasOwn(GROUPS, m)) add("G-E010", `${at}mask`, `no body group "${String(m)}"`, `one of ${Object.keys(GROUPS).join(", ")}`);
         if (!groups && !(isObj(L.mask) && Object.values(L.mask).every((w) => isNum(w) && w >= 0 && w <= 1))) add("G-E010", `${at}mask`, "a mask is body groups or weights 0 to 1 by field", '"mask": "upper"');
+        // weights by field name the key's fields (a group's name there weighs nothing: "upper" is a group)
+        else if (!groups) for (const f of Object.keys(L.mask)) if (!MASK_FIELDS.includes(f)) add("G-E010", `${at}mask.${f}`, `no field "${f}" to weigh${Object.hasOwn(GROUPS, f) ? `: "${f}" is a body group, named as the mask itself` : ""}`, Object.hasOwn(GROUPS, f) ? `"mask": "${f}"` : (near(f, MASK_FIELDS) ? `"${near(f, MASK_FIELDS)!}"` : `one of ${MASK_FIELDS.join(", ")}`));
       }
       if (L.weight !== undefined && !(isNum(L.weight) && L.weight >= 0 && L.weight <= 1)) add("G-E005", `${at}weight`, "a layer's weight is 0 to 1", '"weight": 1');
-      if (L.additive !== undefined && typeof L.additive !== "boolean") add("G-E005", `${at}additive`, "additive is true or false");
+      if (L.additive !== undefined && typeof L.additive !== "boolean") add("G-E005", `${at}additive`, "additive is true or false", '"additive": true');
       if (!isObj(L.states)) return add("G-E001", `${at}states`, "a layer has states, by name");
       if (!Array.isArray(L.transitions)) return add("G-E001", `${at}transitions`, "a layer has a list of transitions", '"transitions": []');
     }
@@ -110,8 +117,8 @@ function unknown(o: Record<string, unknown>, known: readonly string[], at: strin
 
 function checkLayer(L: GraphLayer, at: string, isBase: boolean, params: Map<string, string>, add: (code: string, field: string, message: string, fix?: string) => void, clips?: (id: string) => unknown): void {
   const states = Object.keys(L.states);
-  if (!states.length) add("G-E001", `${at}states`, "a layer has at least one state");
-  if (typeof L.start !== "string" || !Object.hasOwn(L.states, L.start)) add("G-E003", `${at}start`, `start "${String(L.start)}" is not one of its states`, states.length ? `one of ${states.join(", ")}` : undefined);
+  if (!states.length) add("G-E001", `${at}states`, "a layer has at least one state", '"states": { "idle": { "clip": "SET/Idle" } }');
+  if (typeof L.start !== "string" || !Object.hasOwn(L.states, L.start)) add("G-E003", `${at}start`, `start "${String(L.start)}" is not one of its states`, states.length ? `one of ${states.join(", ")}` : "a state to start in");
   for (const [name, s] of Object.entries(L.states)) checkState(name, s, `${at}states.${name}`, isBase, params, add, clips);
   const known = new Set(states);
   L.transitions.forEach((t, i) => checkTransition(t, `${at}transitions.${i}`, known, params, add));
@@ -134,7 +141,7 @@ function checkLayer(L: GraphLayer, at: string, isBase: boolean, params: Map<stri
 }
 
 function checkState(name: string, s: GraphState, at: string, isBase: boolean, params: Map<string, string>, add: (code: string, field: string, message: string, fix?: string) => void, clips?: (id: string) => unknown): void {
-  if (!NAME.test(name)) add("G-E002", at, `state name "${name}" is letters, digits, _ and -`);
+  if (!NAME.test(name)) add("G-E002", at, `state name "${name}" is letters, digits, _ and -`, "a name such as idle or attack_1");
   if (!isObj(s)) return add("G-E002", at, "a state is an object", '{ "clip": "SET/Slug" }');
   unknown(s as Record<string, unknown>, FIELDS.state, at, add);
   const kinds = (["clip", "recipe", "blend", "pass"] as const).filter((k) => s[k] !== undefined);
@@ -143,6 +150,9 @@ function checkState(name: string, s: GraphState, at: string, isBase: boolean, pa
   if (s.pass !== undefined && s.pass !== true) add("G-E002", `${at}.pass`, "pass is true", '"pass": true');
   if (s.pass === true && isBase) add("G-E002", `${at}.pass`, "the base layer has nothing below it to show through: a pass state belongs on a layer over it", "a clip, or move it to a layer");
   if (s.speed !== undefined && !(isNum(s.speed) && Math.abs(s.speed) <= 100)) add("G-E005", `${at}.speed`, "speed is a number, -100 to 100", '"speed": 1');
+  // a one-shot played backward starts at its start and stays there: its exit never comes
+  const one = clips && isNum(s.speed) && s.speed < 0 ? [s.clip, s.recipe].find((id) => typeof id === "string" && (clips(id) as { loop?: unknown } | undefined)?.loop === false) : undefined;
+  if (one) add("G-E005", `${at}.speed`, `clip ${one} is a one-shot: it plays forward (speed above 0)`, "a speed above 0, or a looping clip");
   if (s.at !== undefined && !(isNum(s.at) && s.at >= 0)) add("G-E005", `${at}.at`, "at is seconds, 0 or more", '"at": 0');
   if (s.at !== undefined && s.clip === undefined && s.recipe === undefined) add("G-E002", `${at}.at`, "only a clip state starts at a time", "leave it out");
   if (s.blend !== undefined) {
@@ -153,21 +163,23 @@ function checkState(name: string, s: GraphState, at: string, isBase: boolean, pa
     if ((b.param === undefined) === !two) add("G-E002", bat, "a blend space reads one parameter (param) or two (params)", '"param": "speed"');
     for (const p of Array.isArray(names) ? names : []) if (params.get(p as string) !== "number") add("G-E003", `${bat}.param`, `"${String(p)}" is not a number parameter`, "a parameter of type number");
     if (two && !(Array.isArray(b.params) && b.params.length === 2)) add("G-E002", `${bat}.params`, "params names two parameters", '"params": ["x", "y"]');
-    if (b.sync !== undefined && typeof b.sync !== "boolean") add("G-E002", `${bat}.sync`, "sync is true or false");
+    if (b.sync !== undefined && typeof b.sync !== "boolean") add("G-E002", `${bat}.sync`, "sync is true or false", '"sync": true');
     if (!Array.isArray(b.points) || b.points.length < 2) return add("G-E002", `${bat}.points`, "a blend space has two points or more", '[{ "at": 0, "clip": "SET/Walk" }, { "at": 3, "clip": "SET/Run" }]');
-    const points = b.points as { at?: unknown; clip?: unknown }[];
+    const points = b.points as ({ at?: unknown; clip?: unknown } | null)[];
     points.forEach((p, i) => {
       const pat = `${bat}.points.${i}`;
-      if (!isObj(p)) return add("G-E002", pat, "a point is { at, clip }");
+      if (!isObj(p)) return add("G-E002", pat, "a point is { at, clip }", '{ "at": 1.4, "clip": "SET/Walk" }');
       unknown(p as Record<string, unknown>, ["at", "clip"], pat, add);
-      if (typeof p.clip !== "string" || !ID.test(p.clip)) add("G-E002", `${pat}.clip`, "clip is an id, SET/Slug");
+      if (typeof p.clip !== "string" || !ID.test(p.clip)) add("G-E002", `${pat}.clip`, "clip is an id, SET/Slug", '"clip": "SET/Walk"');
       const ok = two ? Array.isArray(p.at) && p.at.length === 2 && p.at.every(isNum) : isNum(p.at);
       if (!ok) add("G-E002", `${pat}.at`, two ? "at is [x, y]" : "at is a number", two ? '"at": [0, 1]' : '"at": 1.4');
-      else if (!two && i > 0 && isNum(points[i - 1]!.at) && (p.at as number) <= (points[i - 1]!.at as number)) add("G-E002", `${pat}.at`, "points are in rising order of at, each its own", `more than ${String(points[i - 1]!.at)}`);
-      else if (two && points.slice(0, i).some((q) => Array.isArray(q.at) && q.at[0] === (p.at as number[])[0] && q.at[1] === (p.at as number[])[1])) add("G-E002", `${pat}.at`, "each point is at its own place");
+      else if (!two && i > 0 && isObj(points[i - 1]) && isNum(points[i - 1]!.at) && (p.at as number) <= (points[i - 1]!.at as number)) add("G-E002", `${pat}.at`, "points are in rising order of at, each its own", `more than ${String(points[i - 1]!.at)}`);
+      else if (two && points.slice(0, i).some((q) => isObj(q) && Array.isArray(q.at) && q.at[0] === (p.at as number[])[0] && q.at[1] === (p.at as number[])[1])) add("G-E002", `${pat}.at`, "each point is at its own place", "move it, or drop one of the two");
     });
   }
-  if (clips) for (const id of clipsOf(s)) if (typeof id === "string" && ID.test(id) && !clips(id)) add("G-E009", at, `clip ${id} is not among the clips given`, "pass it in the clips, or name one there");
+  // the clips it names, as far as they are ids (a malformed point is an issue above)
+  const bl = s.blend as { points?: unknown } | undefined, ids = bl ? (Array.isArray(bl.points) ? (bl.points as unknown[]).map((p) => (isObj(p) ? p.clip : undefined)) : []) : [s.clip, s.recipe];
+  if (clips) for (const id of ids) if (typeof id === "string" && ID.test(id) && !clips(id)) add("G-E009", at, `clip ${id} is not among the clips given`, "pass it in the clips, or name one there");
 }
 
 function checkTransition(t: GraphTransition, at: string, known: Set<string>, params: Map<string, string>, add: (code: string, field: string, message: string, fix?: string) => void): void {
@@ -182,7 +194,7 @@ function checkTransition(t: GraphTransition, at: string, known: Set<string>, par
   if (t.exit !== undefined && !(isNum(t.exit) && t.exit >= 0 && t.exit <= 1)) add("G-E005", `${at}.exit`, "exit is a share of the state's length, 0 to 1", '"exit": 1');
   if (t.window !== undefined && !(Array.isArray(t.window) && t.window.length === 2 && t.window.every(isNum) && t.window[0] >= 0 && t.window[1] > t.window[0])) add("G-E005", `${at}.window`, "window is [from, to] seconds, from 0, to after from", '"window": [0.2, 0.5]');
   if (t.fade !== undefined && !(isNum(t.fade) && t.fade >= 0 && t.fade <= 10)) add("G-E005", `${at}.fade`, "fade is seconds, 0 to 10", '"fade": 0.2');
-  for (const k of ["sync", "interruptible"] as const) if (t[k] !== undefined && typeof t[k] !== "boolean") add("G-E005", `${at}.${k}`, `${k} is true or false`);
+  for (const k of ["sync", "interruptible"] as const) if (t[k] !== undefined && typeof t[k] !== "boolean") add("G-E005", `${at}.${k}`, `${k} is true or false`, `"${k}": true`);
 }
 
 function checkCondition(c: Condition, at: string, params: Map<string, string>, add: (code: string, field: string, message: string, fix?: string) => void): void {

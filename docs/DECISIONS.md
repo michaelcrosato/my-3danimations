@@ -2345,8 +2345,42 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
 - **Done when** (`npm test -- graph`, `npm run e2e`): the two example graphs validate (schema and checks), their
   scripted runs take the expected transitions and carry on exactly after a save and restore, and they run the same in
   Node and Chromium: states, hashes after every step, events and exact poses.
+- **Verifier, round 1** (at 4e7cb0c): the Done-when holds (both graphs validate and run the same in Node and
+  Chromium; restored at every 7th step they carry on exactly; no graph, the same hashes as before), with two blocking
+  defects in the runtime. Fixed or answered in v0.39.2, every finding:
+  - **A state faded into lost its first events** (blocking): the plan was made before the fade moved on, so on the
+    step a fade began the new state's share was 0, and the Animator fires a layer's events only when it weighs
+    something. Clip events at 0 and 0.01 s were dropped on the default fade. The fade now moves on first: each state
+    plays at its share as the step ends, from its first step.
+  - **A loop's exit share could be stepped over** (blocking): `exit: 0.99` on the jog (56 steps; its phases k/56)
+    never left, and the walk left eleven cycles late. A step that carries a loop past its exit share into the next
+    cycle now takes the transition too.
+  - **A cut fade jumped:** the state fading out was dropped and its target went to its whole share at once (a joint
+    0.70 m in a step; 0.36 in the example's jump out of the land). What a cut fade was fading out now goes on fading
+    out from its share then (at most four states, the faintest dropped), and the pose carries on.
+  - **Triggers never expired and couldn't be cleared:** a jump pressed in the air fired 3.5 s after landing. A trigger
+    may have a `buffer` (seconds a press waits; without one, until used, as before), and `set(trigger, false)` clears
+    one. The examples' presses wait 0.2 s (a jump) and 0.3 s (a jab, a strike).
+  - **The checks threw** on `"layers": {}` or a null blend point, and `"layers": "upper"` gave six issues. They are
+    issues now. A mask by field names its fields (`{"upper": 1}` and `{"armr": 1}` changed nothing; the fix names
+    `"mask": "upper"` and `"armR"`), in the schema too. `name`, `desc` and `tags` are checked as the schema does, and
+    every issue has a fix. A one-shot with a negative speed (it never reaches its exit) is refused with the clips.
+  - **Restore and clips the graph names but isn't playing:** the save now holds every such clip's content hash, and
+    restore refuses one edited since (`E_CLIP_CHANGED`), as PLAN.md §5.5 asks. A graph state the graph can't have (a
+    state, parameter, trigger or fade it doesn't have) is `E_SAVE`, not a TypeError on the next step.
+  - **Tests:** of the verifier's 15 surviving mutants, those that mattered now fail them: an upper layer's fade and an
+    additive one's shares; triggers and an interruptible fade restored (restores at the first step with a press waiting
+    and inside the land's cut-able fade); the fade's linear share and its first step; the heaviest point's phase; a
+    state's `at`; callbacks inside one long step; the graph's layers under the host's; playing again. The Locomotion
+    script lands later, so the jump goes through `air`. Each fix reverted (the fade's order, the loop's exit, the cut
+    fade, the buffer) fails them.
+  - **Nits:** `-0` in a graph's value or fade is made 0 (it broke a hash after a JSON round trip); `set(x, NaN)` says
+    NaN; an unknown trigger lists the graph's; an event named `*` reaches `*` listeners once; `remove("@…")` refuses
+    as `layer()` does; the docs' section numbers; `GraphRun`'s fields documented; the spec says the start states fire
+    no `enter`. A fade lasts its length to a billionth of a second (a 0.1 s fade ran a seventh step at a share of
+    1e-16).
 - **Answered:** no: made without a response, to review.
-- **Landed in:** v0.39.0
+- **Landed in:** v0.39.0, v0.39.2
 
 ## D74 · 2026-10-12 · T1 samples the library-wide sweeps; T2 runs them in full
 

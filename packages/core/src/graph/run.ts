@@ -1,8 +1,9 @@
-// A graph playing (PLAN.md WP-6.4, D73; spec/GRAPH.md §3): its parameters, each layer's state and the crossfade out of
-// the one before, and, each fixed step, the transitions taken and the Animator layers that play the states: a clip
-// state one layer, a blend space one per point (weighted by its parameters, kept in phase), a fade both states' at
-// their shares. The Animator mixes and advances those layers as it does any; their playheads are the states' time.
-// Plain arithmetic in a fixed order, so every engine takes the same transitions at the same steps.
+// A graph playing (PLAN.md WP-6.4, D73; spec/GRAPH.md §2): its parameters, each layer's state and the crossfade out of
+// the states before it, and, each fixed step, the transitions taken and the Animator layers that play the states: a
+// clip state one layer, a blend space one per point (weighted by its parameters, kept in phase), a fade the states
+// fading out at their shares and the one fading in at its. The Animator mixes and advances those layers as it does
+// any; their playheads are the states' time. Plain arithmetic in a fixed order, so every engine takes the same
+// transitions at the same steps.
 import type { ClipEvent } from "../format/types.ts";
 import { hashValue } from "../math/hash.ts";
 import { mask as maskOf, type Mask } from "../ops/pose.ts";
@@ -35,33 +36,44 @@ export interface Entered {
   t: number;
   event: ClipEvent;
 }
-/** A playhead as the Animator holds it. */
+/** A playhead as the Animator holds it: its clip time, the end it rests on, its loop cycles and its speed. */
 export interface Playhead {
   time: number;
   held: "start" | "end" | null;
+  cycle: number;
+  speed: number;
+}
+/** A state entered (the `entry`-th of its layer) and, fading out, its share of what fades out. */
+export interface Instance {
+  state: string;
+  entry: number;
 }
 /** A graph's state as JSON-safe data: in the Animator's `save()` and `hash()`. */
 export interface GraphSave {
   id: string;
   /** The graph's content hash: a restore refuses another graph. */
   hash: string;
+  /** The content hash of each clip the graph names, by id: a restore refuses a clip edited since. */
+  clips: Record<string, string>;
   params: Record<string, number | boolean>;
-  /** Triggers set and not yet used, in name order. */
-  triggers: string[];
-  layers: { name: string; state: string; entry: number; from: { state: string; entry: number } | null; fade: number; elapsed: number; interruptible: boolean; count: number }[];
+  /** Triggers set and not yet used, each with how long it has waited (s). */
+  triggers: Record<string, number>;
+  layers: { name: string; state: string; entry: number; out: (Instance & { w: number })[]; fade: number; elapsed: number; interruptible: boolean; count: number }[];
 }
 
-interface Instance {
-  state: string;
-  entry: number;
-}
+/** Fades are done, and shares reached, to a billionth of a second (as the Animator's steps are). */
+const EPS = 1e-9;
+/** The most states one layer fades out at once: a fade cut while another is cut drops the faintest past this. */
+const MAX_OUT = 4;
 interface Run {
   def: GraphLayer;
   mask: Mask | null;
   weight: number;
   state: string;
   entry: number;
-  from: Instance | null;
+  /** The states fading out, each with its share of what fades out (summing to 1): the state left, and when a fade was
+   *  cut, the states it was fading out too. Empty when no fade plays. */
+  out: (Instance & { w: number })[];
   fade: number;
   elapsed: number;
   interruptible: boolean;
@@ -74,26 +86,34 @@ interface Run {
 
 /** A graph made ready to play on clips: each state's clips found, the start states entered. */
 export class GraphRun<C extends GraphClip = GraphClip> {
+  /** The graph it plays. */
   readonly graph: Graph;
+  /** The graph's content hash. */
   readonly hash: string;
+  /** Each clip's content hash, by id (from `hashOf`; none without it). */
+  readonly clipHashes: Record<string, string>;
   readonly #clips: Map<string, C>;
   readonly #types = new Map<string, string>();
+  readonly #buffers = new Map<string, number>();
   readonly #params = new Map<string, number | boolean>();
-  #triggers = new Set<string>();
+  /** Triggers set and not yet used, and how long each has waited (s). */
+  #triggers = new Map<string, number>();
   readonly #runs: Run[];
 
-  /** `clips` finds each clip a state names (the graph checked and its clips found by the caller). */
-  constructor(graph: Graph, clips: (id: string) => C) {
+  /** `clips` finds each clip a state names (the graph checked and its clips found by the caller); `hashOf` hashes one. */
+  constructor(graph: Graph, clips: (id: string) => C, hashOf?: (c: C) => string) {
     this.graph = graph;
     this.hash = hashValue(JSON.parse(JSON.stringify(graph)));
     this.#clips = new Map();
     for (const L of layersOf(graph)) for (const s of Object.values(L.states)) for (const id of clipsOf(s)) this.#clips.set(id, clips(id));
+    this.clipHashes = Object.fromEntries([...this.#clips.entries()].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)).map(([id, c]) => [id, hashOf ? hashOf(c) : ""]));
     for (const [name, p] of Object.entries(graph.parameters ?? {})) {
       this.#types.set(name, p.type);
-      if (p.type !== "trigger") this.#params.set(name, p.value ?? (p.type === "bool" ? false : 0));
+      if (p.type !== "trigger") this.#params.set(name, p.type === "bool" ? (p.value ?? false) : ((p.value ?? 0) as number) + 0);
+      else if (p.buffer !== undefined) this.#buffers.set(name, p.buffer);
     }
     this.#runs = layersOf(graph).map((def, i) => {
-      const r: Run = { def, mask: i === 0 || def.mask === undefined ? null : typeof def.mask === "string" || Array.isArray(def.mask) ? maskOf(def.mask) : { ...def.mask }, weight: i === 0 ? 1 : (def.weight ?? 1), state: def.start, entry: 1, from: null, fade: 0, elapsed: 0, interruptible: false, count: 1, starts: new Map() };
+      const r: Run = { def, mask: i === 0 || def.mask === undefined ? null : typeof def.mask === "string" || Array.isArray(def.mask) ? maskOf(def.mask) : { ...def.mask }, weight: i === 0 ? 1 : (def.weight ?? 1), state: def.start, entry: 1, out: [], fade: 0, elapsed: 0, interruptible: false, count: 1, starts: new Map() };
       this.#enter(r, def.start, 1, phaseAt(def.states[def.start]!, this.#len(def.states[def.start]!)));
       return r;
     });
@@ -107,43 +127,52 @@ export class GraphRun<C extends GraphClip = GraphClip> {
   set(name: string, value: number | boolean): void {
     this.#params.set(name, value);
   }
-  /** Sets a trigger: it stays set until a transition reading it is taken. */
+  /** Sets a trigger: it stays set until a transition reading it is taken, or for its `buffer` seconds. */
   trigger(name: string): void {
-    this.#triggers.add(name);
+    this.#triggers.set(name, 0);
+  }
+  /** Clears a trigger set and not yet used. */
+  reset(name: string): void {
+    this.#triggers.delete(name);
   }
   /** The parameters' values, and the triggers set. */
   get params(): Record<string, number | boolean> {
-    return Object.fromEntries([...this.#params.entries(), ...[...this.#triggers].map((t) => [t, true] as const)]);
+    return Object.fromEntries([...this.#params.entries(), ...[...this.#triggers.keys()].map((t) => [t, true] as const)]);
   }
-  /** Each layer's state, the one fading out (if any) and how far the fade is (0 to 1). */
+  /** Each layer's state, the one it left (if it still fades out) and how far the fade is (0 to 1). */
   get states(): { layer: string; state: string; from: string | null; fade: number }[] {
-    return this.#runs.map((r) => ({ layer: r.def.name, state: r.state, from: r.from?.state ?? null, fade: r.from ? Math.min(1, r.elapsed / r.fade) : 1 }));
+    return this.#runs.map((r) => ({ layer: r.def.name, state: r.state, from: r.out.at(-1)?.state ?? null, fade: share(r) }));
   }
 
   /**
-   * One fixed step of `h` s: each layer takes the first transition that holds (unless it is fading and the fade may not
-   * be interrupted), then the plan of Animator layers for this step; the fades then move on. `read` gives a planned
-   * layer's playhead.
+   * One fixed step of `h` s: each layer lets a finished fade go and takes the first transition that holds (unless it is
+   * fading and the fade may not be interrupted); the fades move on, and the plan of Animator layers is made for the
+   * step, each state at its share as the step ends (a state faded into plays, and fires its events, from its first
+   * step). `read` gives a planned layer's playhead. A trigger not used ages by the step, and goes past its buffer.
    */
   step(h: number, read: (name: string) => Playhead | undefined): { plan: PlanLayer<C>[]; entered: Entered[] } {
     const entered: Entered[] = [];
     for (const r of this.#runs) {
-      if (r.from && r.elapsed >= r.fade) r.from = null;
-      if (r.from && !r.interruptible) continue;
-      const t = r.def.transitions.find((x) => this.#holds(r, x, read));
+      if (r.out.length && r.elapsed >= r.fade - EPS) r.out = [];
+      if (r.out.length && !r.interruptible) continue;
+      const t = r.def.transitions.find((x) => this.#holds(r, x, read, h));
       if (t) entered.push(this.#take(r, t, read));
     }
-    const plan = this.plan();
-    for (const r of this.#runs) if (r.from) r.elapsed += h;
-    return { plan, entered };
+    for (const r of this.#runs) if (r.out.length) r.elapsed += h;
+    for (const [name, age] of [...this.#triggers]) {
+      const buffer = this.#buffers.get(name);
+      if (buffer !== undefined && age + h > buffer + EPS) this.#triggers.delete(name);
+      else this.#triggers.set(name, age + h);
+    }
+    return { plan: this.plan(), entered };
   }
 
   /** The Animator layers that play the graph now, bottom first, without moving on. */
   plan(): PlanLayer<C>[] {
     const out: PlanLayer<C>[] = [];
     this.#runs.forEach((r, li) => {
-      const f = r.from ? (r.fade > 0 ? Math.min(1, r.elapsed / r.fade) : 1) : 1;
-      const parts = [...(r.from ? this.#members(r, r.from, 1 - f) : []), ...this.#members(r, { state: r.state, entry: r.entry }, f)];
+      const f = share(r);
+      const parts = [...r.out.flatMap((o) => this.#members(r, o, o.w * (1 - f))), ...this.#members(r, { state: r.state, entry: r.entry }, f)];
       // the parts that show first, so the layer at the bottom (taken whole) is one that does
       const shown = [...parts.filter((p) => p.w > 0), ...parts.filter((p) => !(p.w > 0))], total = shown.reduce((a, p) => a + p.w, 0);
       let sum = 0;
@@ -161,18 +190,36 @@ export class GraphRun<C extends GraphClip = GraphClip> {
   /** The graph's state as plain data. */
   save(): GraphSave {
     return {
-      id: this.graph.id, hash: this.hash, params: Object.fromEntries(this.#params), triggers: [...this.#triggers].sort(),
-      layers: this.#runs.map((r) => ({ name: r.def.name, state: r.state, entry: r.entry, from: r.from ? { ...r.from } : null, fade: r.fade, elapsed: r.elapsed, interruptible: r.interruptible, count: r.count })),
+      id: this.graph.id, hash: this.hash, clips: { ...this.clipHashes }, params: Object.fromEntries(this.#params), triggers: Object.fromEntries(this.#triggers),
+      layers: this.#runs.map((r) => ({ name: r.def.name, state: r.state, entry: r.entry, out: r.out.map((o) => ({ ...o })), fade: r.fade, elapsed: r.elapsed, interruptible: r.interruptible, count: r.count })),
     };
   }
-  /** Carries on from saved state (the caller checked the hash). */
+  /**
+   * Why saved state can't be carried on from (a state, parameter or trigger the graph doesn't have, or a malformed
+   * fade), or null; `restore` takes it only when null.
+   */
+  misfit(s: GraphSave): string | null {
+    const layers = layersOf(this.graph), finite = (x: unknown) => typeof x === "number" && Number.isFinite(x);
+    if (!Array.isArray(s.layers) || s.layers.length !== layers.length) return `it has ${Array.isArray(s.layers) ? s.layers.length : "no"} layers, the graph ${layers.length}`;
+    for (const [i, x] of s.layers.entries()) {
+      const L = layers[i]!, has = (st: unknown) => typeof st === "string" && Object.hasOwn(L.states, st);
+      if (!x || x.name !== L.name || !has(x.state) || ![x.entry, x.fade, x.elapsed, x.count].every(finite) || typeof x.interruptible !== "boolean") return `its layer ${i} isn't one of the graph's layers in a state it has`;
+      if (!Array.isArray(x.out) || !x.out.every((o) => o && has(o.state) && finite(o.entry) && finite(o.w))) return `its layer "${L.name}" fades out of states the graph doesn't have`;
+    }
+    if (!s.params || typeof s.params !== "object") return "it has no parameters";
+    for (const [k, v] of Object.entries(s.params)) if (this.#types.get(k) !== (typeof v === "boolean" ? "bool" : finite(v) ? "number" : "")) return `its parameter "${k}" isn't one of the graph's, of its type`;
+    if (!s.triggers || typeof s.triggers !== "object" || Array.isArray(s.triggers)) return "its triggers aren't by name";
+    for (const [k, v] of Object.entries(s.triggers)) if (this.#types.get(k) !== "trigger" || !finite(v)) return `its trigger "${k}" isn't one of the graph's`;
+    return null;
+  }
+  /** Carries on from saved state (the caller checked the hashes and `misfit`). */
   restore(s: GraphSave): void {
     this.#params.clear();
-    for (const [k, v] of Object.entries(s.params)) this.#params.set(k, v);
-    this.#triggers = new Set(s.triggers);
+    for (const [k, v] of Object.entries(s.params)) this.#params.set(k, typeof v === "number" ? v + 0 : v);
+    this.#triggers = new Map(Object.entries(s.triggers).map(([k, v]) => [k, v + 0]));
     s.layers.forEach((x, i) => {
       const r = this.#runs[i]!;
-      Object.assign(r, { state: x.state, entry: x.entry, from: x.from ? { ...x.from } : null, fade: x.fade, elapsed: x.elapsed, interruptible: x.interruptible, count: x.count, starts: new Map() });
+      Object.assign(r, { state: x.state, entry: x.entry, out: x.out.map((o) => ({ state: o.state, entry: o.entry, w: o.w + 0 })), fade: x.fade + 0, elapsed: x.elapsed + 0, interruptible: x.interruptible, count: x.count, starts: new Map() });
     });
   }
   /** Forgets the start times of layers the Animator has made. */
@@ -206,24 +253,42 @@ export class GraphRun<C extends GraphClip = GraphClip> {
   }
   /** Where an instance is in its length, 0 to 1 (a loop's within its cycle; a one-shot at its end 1). */
   #phase(r: Run, inst: Instance, read: (name: string) => Playhead | undefined): number {
+    return this.#lead(r, inst, read)?.phase ?? 0;
+  }
+  /**
+   * An instance's leading point (a blend's heaviest, the first of equals; in phase with the rest when it syncs): its
+   * phase, 0 to 1, and the share of its length the last step moved it (to tell a loop's step past its cycle's end).
+   */
+  #lead(r: Run, inst: Instance, read: (name: string) => Playhead | undefined): { phase: number; moved: number; loop: boolean; cycle: number } | null {
     const s = r.def.states[inst.state]!, ids = clipsOf(s);
-    if (!ids.length) return 0;
-    // a blend's leading point: the heaviest (the first of equals); in phase with the rest when it syncs
+    if (!ids.length) return null;
     const w = s.blend ? this.#weights(s) : [1];
     let k = 0;
     for (let i = 1; i < w.length; i++) if (w[i]! > w[k]!) k = i;
     const c = this.#clips.get(ids[k]!)!, p = read(nameOf(r, inst, k));
-    if (!p || !(c.dur > 0)) return 0;
-    return p.held === "end" ? 1 : Math.min(1, p.time / c.dur);
+    if (!p || !(c.dur > 0)) return null;
+    return { phase: p.held === "end" ? 1 : Math.min(1, p.time / c.dur), moved: p.speed / c.dur, loop: c.loop, cycle: p.cycle };
+  }
+  /**
+   * Whether a transition's exit share allows it now: the state has played that share of its length (of this cycle, for
+   * a loop), or, a loop, its last step carried it over that share into the next cycle (a share within a step of the
+   * end is never stepped over).
+   */
+  #exited(r: Run, exit: number, read: (name: string) => Playhead | undefined, h: number): boolean {
+    const l = this.#lead(r, { state: r.state, entry: r.entry }, read);
+    if (!l) return exit <= EPS;
+    if (l.phase >= exit - EPS) return true;
+    const before = l.phase - l.moved * h;
+    return l.loop && l.cycle >= 1 && before < 0 && before + 1 < exit - EPS;
   }
   /** Whether a transition holds now for a layer. */
-  #holds(r: Run, t: GraphTransition, read: (name: string) => Playhead | undefined): boolean {
+  #holds(r: Run, t: GraphTransition, read: (name: string) => Playhead | undefined, h: number): boolean {
     const named = t.from === "*" ? false : (typeof t.from === "string" ? [t.from] : t.from).includes(r.state);
     if (!(named || t.from === "*")) return false;
     // into the state it is in only when the transition names it: "*" never restarts a state
     if (t.to === r.state && !named) return false;
     for (const c of t.when ?? []) if (!this.#test(c.param, c.op, c.value)) return false;
-    if (t.exit !== undefined && this.#phase(r, { state: r.state, entry: r.entry }, read) < t.exit - 1e-9) return false;
+    if (t.exit !== undefined && !this.#exited(r, t.exit, read, h)) return false;
     if (t.window) {
       const secs = this.#phase(r, { state: r.state, entry: r.entry }, read) * this.#len(r.def.states[r.state]!);
       if (secs < t.window[0] - 1e-9 || secs > t.window[1] + 1e-9) return false;
@@ -243,15 +308,21 @@ export class GraphRun<C extends GraphClip = GraphClip> {
       default: return (v as number) >= (value as number);
     }
   }
-  /** Takes a transition: the triggers it read used up, the state it leaves fading out, the new one entered. */
+  /**
+   * Takes a transition: the triggers it read used up, the state it leaves fading out (with what a fade it cuts was
+   * fading out, each at its share now, so the pose carries on), the new one entered.
+   */
   #take(r: Run, t: GraphTransition, read: (name: string) => Playhead | undefined): Entered {
     for (const c of t.when ?? []) if (this.#types.get(c.param) === "trigger") this.#triggers.delete(c.param);
     const prev = r.state, phase = t.sync ? this.#phase(r, { state: r.state, entry: r.entry }, read) : undefined, to = r.def.states[t.to]!;
-    r.from = { state: r.state, entry: r.entry };
-    r.fade = t.fade ?? 0.2;
+    const f = share(r), out = [...r.out.map((o) => ({ ...o, w: o.w * (1 - f) })), { state: r.state, entry: r.entry, w: r.out.length ? f : 1 }].filter((o) => o.w > EPS);
+    // past MAX_OUT the faintest go, the rest scaled up to make up their share
+    while (out.length > MAX_OUT) out.splice(out.reduce((m, o, i) => (o.w < out[m]!.w ? i : m), 0), 1);
+    const sum = out.reduce((a, o) => a + o.w, 0);
+    r.fade = (t.fade ?? 0.2) + 0;
+    r.out = r.fade > 0 ? out.map((o) => ({ ...o, w: o.w / sum })) : [];
     r.elapsed = 0;
     r.interruptible = t.interruptible === true;
-    if (!(r.fade > 0)) r.from = null;
     r.count++;
     const start = this.#enter(r, t.to, r.count, phase ?? phaseAt(to, this.#len(to)));
     const ids = clipsOf(to);
@@ -267,6 +338,8 @@ export class GraphRun<C extends GraphClip = GraphClip> {
   }
 }
 
+/** How far a layer's fade is, 0 to 1 (1 when none plays): linear over its length, done to a billionth of a second. */
+const share = (r: Run) => (!r.out.length || !(r.fade > 0) || r.elapsed >= r.fade - EPS ? 1 : r.elapsed / r.fade);
 /** An instance's layer for point i: `@layer/entry/i`. */
 const nameOf = (r: Run, inst: Instance, i: number) => `@${r.def.name}/${inst.entry}/${i}`;
 /** Where a state starts on its own, 0 to 1: a clip state's `at` over its length, else its start. */

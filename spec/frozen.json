@@ -11,7 +11,7 @@
     "spec/schemas/baseline.schema.json": "617dbbc7ccb655280708c6b9525d6bfad3887d455eed2ff5d21a9932d2cd6c57",
     "spec/schemas/catalog-row.schema.json": "0d2edf21092f68e3c38a92979cf9dda960bde279f21348f89f7014f408e54f39",
     "spec/schemas/clip.schema.json": "e4f0bace61616550154ffc883c5908fb2a23128a36050d20edb03b3b7371d10c",
-    "spec/schemas/graph.schema.json": "b8dc87c4e8797912832156d6cfc99da92f76b420a23da8a8ebb716c8b4b46af3",
+    "spec/schemas/graph.schema.json": "d59333707f5b20041d0b18edcce9d51933471051df208f7f0b81b0e9b24b4eca",
     "spec/schemas/moves.schema.json": "5e14b3dc8d0d39f6d9c20984f5e5b594740ddee65f61df9c46686e2b509a22b0",
     "spec/schemas/recipe.schema.json": "cf3e20f7fcef3e5645e59828c1a4cbebcbe499e99de5d28373d89a2afcd9e612",
     "spec/schemas/set.schema.json": "7f5cf4b3c19ddead1d74d8751f63796eb76ca964b32e6041f266519999260613"
