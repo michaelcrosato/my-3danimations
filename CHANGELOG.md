@@ -28,6 +28,9 @@ features, patch for fixes. One line per change, under the part it touched (**Spe
 - B1 asks speeds in proportion to the character's hip height (D56): `speeds.json` in each workspace, read by the
   starters' `npm run check`; the briefs say so.
 
+### Repo
+- CI's T2 job fetches each gate's held-out rigs (`bench/results/heldout/*/run-*/rig.json`) before the e2e suite.
+
 ## 0.27.0 · 2026-10-12
 
 ### Sensors
