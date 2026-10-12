@@ -35,7 +35,7 @@ export interface Move {
   wind: number;
   active: number;
   recover: number;
-  /** The share of the recovery that holds the end pose. */
+  /** The share of the recovery that holds the end pose: above 0, at most 0.95 (the rest eases back). */
   hold: number;
   /** The share of the strike where it connects. */
   hit: number;
@@ -135,11 +135,12 @@ export function moveState(m: Move, phase: Phase, u: number, opts: { settle?: boo
       else s.spin = -TAU * k;
     }
   } else {
-    const k = (settle ? io : ease.outQuad)(clamp(u / m.hold, 0, 1)), span = m.spin ? 0 : a1 - a0;
+    // the hold kept inside the recovery, as shardfall keeps it (a hold of 0 or 1 would divide by nothing)
+    const hold = clamp(m.hold, 0.01, 0.95), k = (settle ? io : ease.outQuad)(clamp(u / hold, 0, 1)), span = m.spin ? 0 : a1 - a0;
     s.theta = (m.spin ? a0 : a1) + span * 0.08 * k;
     s.height = z1;
     s.reach = r1;
-    s.arm = u < m.hold ? 1 : 1 - ease.inOut((u - m.hold) / (1 - m.hold));
+    s.arm = u < hold ? 1 : 1 - ease.inOut((u - hold) / (1 - hold));
     s.lean = lean * s.arm;
     s.lunge = m.lunge * s.arm;
     s.step = s.arm;

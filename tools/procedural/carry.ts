@@ -7,11 +7,14 @@
 // the hip height, become %. Run it once when a source's moves change; --check compares the file.
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { procedural } from "@m3a/core";
 import { ROOT } from "../run/cli.ts";
 
 type Src = Record<string, number | string | boolean | undefined>;
 const r2 = (x: number) => Math.round(x * 100) / 100, r4 = (x: number) => Math.round(x * 10000) / 10000;
-const deg = (rad: number) => r2((rad * 180) / Math.PI), pctU = (units: number) => r2((units / 11.6) * 100), pctM = (m: number) => pctU(m / 0.0529);
+// my-3d2dge's hip height and arm length in its units (procedural.SOURCE), and shardfall's metres a unit
+const { hip: HIP, arm: ARM } = procedural.SOURCE, METRES = 0.0529;
+const deg = (rad: number) => r2((rad * 180) / Math.PI), pctU = (units: number) => r2((units / HIP) * 100), pctM = (m: number) => pctU(m / METRES);
 
 /** shardfall's moves.toml, read for the fields it uses: one table per [[move]], key = value lines. */
 function toml(text: string): Src[] {
@@ -39,9 +42,9 @@ for (const [src, s] of Object.entries(frozen.specs)) {
   const zRest = kick ? 0.1 : -7, z0 = n("z0") ?? zRest, z1 = n("z1") ?? z0, h = (z: number) => (kick ? r2(z * 100) : pctU(z));
   moves.push({
     name, about: about.get(name)!, hand: kick ? "kick" : s.hand === "L" ? "left" : s.hand === "both" ? "both" : "right", plane: s.plane === "side" ? "side" : "ground",
-    from: deg(n("a0")!), to: deg(n("a1")!), ...(s.plane === "side" ? {} : { height: [h(z0), h(z1)] }), reach: [r4(r0 / 9.2), r4(r1 / 9.2)],
+    from: deg(n("a0")!), to: deg(n("a1")!), ...(s.plane === "side" ? {} : { height: [h(z0), h(z1)] }), reach: [r4(r0 / ARM), r4(r1 / ARM)],
     // the wind draws the hand back to 0.75 of the scalar reach (7.5 units when a move gives only r0 and r1)
-    ...(n("r0") !== undefined && n("reach") === undefined ? { windReach: r4((0.75 * 7.5) / 9.2) } : {}),
+    ...(n("r0") !== undefined && n("reach") === undefined ? { windReach: r4((0.75 * 7.5) / ARM) } : {}),
     wind: n("wind"), active: n("active"), recover: n("recover"), hold: n("hold") ?? 0.3, hit: 0.35,
     lunge: pctU(n("lunge") ?? (kick ? 0.4 : 1.2)), hop: pctU(n("hop") ?? 0), crouch: n("crouch") ?? (kick ? 0 : 0.15), lean: deg(n("lean") ?? (kick ? -0.22 : 0.3)), twist: n("twist") ?? 1,
     spin: s.spin === true, trail: s.blade !== 0, ...(PUNCHES.includes(name) ? { guard: true } : {}), ...(sf.find((m) => m.name === name)?.alt ? { alt: sf.find((m) => m.name === name)!.alt } : {}),
@@ -54,7 +57,7 @@ for (const s of sf.filter((m) => SF_ONLY[m.name as string])) {
   const [h0, h1] = pair(n("height"), -0.76), [r0, r1] = pair(n("reach"), 0.82);
   moves.push({
     name: SF_ONLY[s.name as string], about: s.about, hand: s.hand ?? "right", plane: s.plane === "side" ? "side" : "ground", from: s.from ?? 0, to: s.to ?? 0,
-    ...(s.plane === "side" ? {} : { height: [pctU(h0 * 9.2), pctU(h1 * 9.2)] }), reach: [r0, r1],
+    ...(s.plane === "side" ? {} : { height: [pctU(h0 * ARM), pctU(h1 * ARM)] }), reach: [r0, r1],
     wind: n("wind") ?? 0.06, active: n("active") ?? 0.1, recover: n("recover") ?? 0.18, hold: n("hold") ?? 0.3, hit: n("hit") ?? 0.35,
     lunge: pctM((n("lunge") as number | undefined) ?? 0.064), hop: pctM((n("hop") as number | undefined) ?? 0), crouch: n("crouch") ?? 0.15, lean: deg((n("lean") as number | undefined) ?? 0.3), twist: n("twist") ?? 1,
     spin: s.spin === true, trail: s.trail !== false, ...(s.alt ? { alt: SF_ONLY[s.alt as string] ?? s.alt } : {}),

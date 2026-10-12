@@ -11,7 +11,7 @@
     "spec/schemas/catalog-row.schema.json": "0d2edf21092f68e3c38a92979cf9dda960bde279f21348f89f7014f408e54f39",
     "spec/schemas/clip.schema.json": "e4f0bace61616550154ffc883c5908fb2a23128a36050d20edb03b3b7371d10c",
     "spec/schemas/graph.schema.json": "7de7cbc36970cffa2594091c08c6e6f9204cd666ed8dbac741d7807cc9e14cce",
-    "spec/schemas/moves.schema.json": "605ac2e603ed8d996e785f4fd70552dbdf852763652f1a55b82523a7af7ddc1f",
+    "spec/schemas/moves.schema.json": "5e14b3dc8d0d39f6d9c20984f5e5b594740ddee65f61df9c46686e2b509a22b0",
     "spec/schemas/recipe.schema.json": "cf3e20f7fcef3e5645e59828c1a4cbebcbe499e99de5d28373d89a2afcd9e612",
     "spec/schemas/set.schema.json": "7f5cf4b3c19ddead1d74d8751f63796eb76ca964b32e6041f266519999260613"
   }

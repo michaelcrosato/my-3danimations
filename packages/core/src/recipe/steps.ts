@@ -24,7 +24,7 @@ export function build(base: Pick<Track, "rest" | "restSrc" | "fps" | "sources">,
   return t;
 }
 /** A pose with each angle at the whole turn nearest the frame before's (the same pose: a turn is no turn). */
-function unwrapped(p: Pose, before: Pose): Pose {
+export function unwrapped(p: Pose, before: Pose): Pose {
   const out = { ...p };
   for (const [f, spec] of Object.entries(KEY_FIELDS)) {
     const v = p[f] as number[] | undefined, w = before[f] as number[] | undefined;

@@ -68,6 +68,14 @@ export const GATES: Record<string, [string, string, ...string[]][]> = {
     ["the library loads, every file as locked", "library", "check"],
     ["T2: browser checks and library QA", "e2e"],
   ],
+  G6: [
+    ["check", "check"],
+    ["test", "test"],
+    ["doctrine", "doctrine"],
+    ["vectors --check", "vectors", "--check"],
+    ["library/moves.json as the pinned sources give it (the gate fetches them)", "moves", "--check"],
+    ["T2: browser checks and library QA", "e2e"],
+  ],
 };
 
 if (import.meta.main) {

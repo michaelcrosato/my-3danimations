@@ -1,8 +1,9 @@
 // @m3a/core: the format codec, profiles, sampler, pose ops, solver, contacts, recipes, procedural sources and graphs.
 // Imports nothing outside itself: no DOM, no `node:` modules, no renderer (DOCTRINE.md, principle 6).
 // The public API, all of it (PLAN.md WP-2.6): every export is listed here, one per statement, each with a doc comment,
-// at most 40 (`npm run doctrine` counts them). The everyday names are top-level; each module's whole surface is one
-// namespace (`format.keyAt`, `ops.blend`, `math.quat`, ...).
+// at most 44 (`npm run doctrine` counts them; WP-2.6's 40, and one namespace each for Phase 6's procedural sources,
+// actions and graphs, D71). The everyday names are top-level; each module's whole surface is one namespace
+// (`format.keyAt`, `ops.blend`, `math.quat`, ...).
 
 /** The version every `@m3a` package and the spec share. */
 export { VERSION } from "./version.ts";

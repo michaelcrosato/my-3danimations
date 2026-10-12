@@ -2,7 +2,7 @@
  "$schema": "https://json-schema.org/draft/2020-12/schema",
  "$id": "https://github.com/michaelcrosato/my-3danimations/spec/schemas/moves.schema.json",
  "title": "m3a moves (procedural sources)",
- "description": "The move model's moves (library/moves.json; PLAN.md WP-6.2, D71): a strike, kick, throw or cast in three phases (wind, active, recover), in one unit system: angles in degrees, reach in arm lengths, heights, lunges and hops in % of the hip height, times in seconds. The shape only: @m3a/core's procedural.validateMoves also checks that a name is used once, that an alternate names a move in the file, and that a height is given on the ground plane only.",
+ "description": "The move model's moves (library/moves.json; PLAN.md WP-6.2, D71): a strike, kick, throw or cast in three phases (wind, active, recover), in one unit system: angles in degrees, reach in arm lengths, heights, lunges and hops in % of the hip height, times in seconds. The shape only: @m3a/core's procedural.validateMoves also checks that a name is used once, that an alternate names a move in the file, that a height is given on the ground plane only, and that a kick is on the ground plane.",
  "type": "object",
  "required": [
   "about",
@@ -11,7 +11,8 @@
  "additionalProperties": false,
  "properties": {
   "about": {
-   "type": "string"
+   "type": "string",
+   "pattern": "\\S"
   },
   "moves": {
    "type": "array",
@@ -53,7 +54,7 @@
     },
     "about": {
      "type": "string",
-     "minLength": 1,
+     "pattern": "\\S",
      "description": "What it looks like, in a line: what a model picks a move by."
     },
     "hand": {
@@ -70,7 +71,7 @@
       "ground",
       "side"
      ],
-     "description": "ground: a level arc round the shoulders (0 ahead, + to the right); side: an arc up and down in front (+ up)."
+     "description": "ground: a level arc round the shoulders (0 ahead, + to the right); side: an arc up and down in front (+ up). A kick is on the ground plane."
     },
     "from": {
      "type": "number",
@@ -132,9 +133,9 @@
     },
     "hold": {
      "type": "number",
-     "minimum": 0,
-     "exclusiveMaximum": 1,
-     "description": "The share of the recovery that holds the end pose."
+     "exclusiveMinimum": 0,
+     "maximum": 0.95,
+     "description": "The share of the recovery that holds the end pose (above 0, at most 0.95: the rest eases back)."
     },
     "hit": {
      "type": "number",
@@ -184,6 +185,23 @@
     "alt": {
      "type": "string",
      "pattern": "^[a-z][a-z0-9_]*$"
+    }
+   },
+   "if": {
+    "properties": {
+     "hand": {
+      "const": "kick"
+     }
+    },
+    "required": [
+     "hand"
+    ]
+   },
+   "then": {
+    "properties": {
+     "plane": {
+      "const": "ground"
+     }
     }
    }
   }

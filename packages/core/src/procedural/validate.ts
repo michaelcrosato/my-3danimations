@@ -1,6 +1,7 @@
 // The moves file's validator (PLAN.md WP-6.2, D71): library/moves.json is the shape spec/schemas/moves.schema.json
 // gives, and these rules say what JSON Schema can't: a name used once, an alternate that names a move the file has, a
-// height on the ground plane only, the strike's share and the hold's inside their phase.
+// height on the ground plane only, and a kick on the ground plane (the strike's share and the hold's ranges are the
+// schema's too).
 import type { RecipeIssue } from "../recipe/validate.ts";
 
 /** The moves rules: each code and what it catches. */
@@ -12,27 +13,32 @@ export const MOVES_RULES: Readonly<Record<string, string>> = {
   "MV-E005": "an alternate that names no move in the file",
   "MV-E006": "an unknown field",
   "MV-E007": "a height on the side plane, or none on the ground plane",
+  "MV-E008": "a kick on the side plane: a kick's arc is level, round the hips",
 };
 
 const isNum = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v);
+/** A value's JSON type: null and arrays apart from objects. */
+const typeOf = (v: unknown): string => (v === null ? "null" : Array.isArray(v) ? "array" : typeof v);
+/** Text with something in it besides spaces. */
+const said = (v: unknown): boolean => typeof v === "string" && /\S/.test(v);
 const NAME = /^[a-z][a-z0-9_]*$/;
 const HANDS = ["right", "left", "both", "pair", "kick"], PLANES = ["ground", "side"];
 /** Each field a move may have: whether it's required, the JSON type it holds, whether a value is in range, and what it
  *  holds in words. */
 const FIELDS: Record<string, { need: boolean; type: string; ok: (v: unknown) => boolean; range: string }> = {
   name: { need: true, type: "string", ok: () => true, range: "a name" },
-  about: { need: true, type: "string", ok: (v) => (v as string).length > 0, range: "a line of text" },
+  about: { need: true, type: "string", ok: said, range: "a line of text" },
   hand: { need: true, type: "string", ok: (v) => HANDS.includes(v as string), range: HANDS.join(", ") },
   plane: { need: true, type: "string", ok: (v) => PLANES.includes(v as string), range: PLANES.join(", ") },
   from: { need: true, type: "number", ok: (v) => isNum(v) && Math.abs(v) <= 720, range: "degrees, -720..720" },
   to: { need: true, type: "number", ok: (v) => isNum(v) && Math.abs(v) <= 720, range: "degrees, -720..720" },
-  height: { need: false, type: "object", ok: (v) => Array.isArray(v) && v.length === 2 && v.every((x) => isNum(x) && Math.abs(x) <= 300), range: "[start, end], % of the hip height, -300..300" },
-  reach: { need: true, type: "object", ok: (v) => Array.isArray(v) && v.length === 2 && v.every((x) => isNum(x) && x > 0 && x <= 2), range: "[start, end], arm lengths, above 0 and at most 2" },
+  height: { need: false, type: "array", ok: (v) => Array.isArray(v) && v.length === 2 && v.every((x) => isNum(x) && Math.abs(x) <= 300), range: "[start, end], % of the hip height, -300..300" },
+  reach: { need: true, type: "array", ok: (v) => Array.isArray(v) && v.length === 2 && v.every((x) => isNum(x) && x > 0 && x <= 2), range: "[start, end], arm lengths, above 0 and at most 2" },
   windReach: { need: false, type: "number", ok: (v) => isNum(v) && v > 0 && v <= 2, range: "arm lengths, above 0 and at most 2" },
   wind: { need: true, type: "number", ok: (v) => isNum(v) && v > 0 && v <= 5, range: "seconds, above 0 and at most 5" },
   active: { need: true, type: "number", ok: (v) => isNum(v) && v > 0 && v <= 5, range: "seconds, above 0 and at most 5" },
   recover: { need: true, type: "number", ok: (v) => isNum(v) && v > 0 && v <= 5, range: "seconds, above 0 and at most 5" },
-  hold: { need: true, type: "number", ok: (v) => isNum(v) && v >= 0 && v < 1, range: "a share, 0 to under 1" },
+  hold: { need: true, type: "number", ok: (v) => isNum(v) && v > 0 && v <= 0.95, range: "a share, above 0 and at most 0.95 (the rest eases back)" },
   hit: { need: true, type: "number", ok: (v) => isNum(v) && v >= 0 && v <= 1, range: "a share, 0..1" },
   lunge: { need: true, type: "number", ok: (v) => isNum(v) && Math.abs(v) <= 100, range: "% of the hip height, -100..100" },
   hop: { need: true, type: "number", ok: (v) => isNum(v) && v >= 0 && v <= 100, range: "% of the hip height, 0..100" },
@@ -50,7 +56,7 @@ export function validateMoves(data: unknown): RecipeIssue[] {
   const o = data as Record<string, unknown> | null;
   if (!o || typeof o !== "object" || Array.isArray(o)) return [{ code: "MV-E001", message: "a moves file is a JSON object", fix: '{ "about": "…", "moves": [ … ] }' }];
   const out: RecipeIssue[] = [];
-  if (typeof o.about !== "string") out.push({ code: "MV-E001", field: "about", message: "a moves file says what it holds in about" });
+  if (!said(o.about)) out.push({ code: "MV-E001", field: "about", message: "a moves file says what it holds in about" });
   if (!Array.isArray(o.moves) || !o.moves.length) return [...out, { code: "MV-E001", field: "moves", message: "a moves file has at least one move" }];
   for (const k of Object.keys(o)) if (k !== "about" && k !== "moves") out.push({ code: "MV-E006", field: k, message: `"${k}" is not a moves file's field (about, moves)` });
   const names = new Set<string>(), moves = o.moves as unknown[];
@@ -60,7 +66,7 @@ export function validateMoves(data: unknown): RecipeIssue[] {
     for (const [f, spec] of Object.entries(FIELDS)) {
       if (!Object.hasOwn(mv, f)) {
         if (spec.need) out.push({ code: "MV-E002", step: at, field: f, message: `a move needs ${f}` });
-      } else if (typeof mv[f] !== spec.type || !spec.ok(mv[f])) out.push({ code: typeof mv[f] === spec.type ? "MV-E003" : "MV-E002", step: at, field: f, message: `${f} ${JSON.stringify(mv[f])} is not ${spec.range}` });
+      } else if (typeOf(mv[f]) !== spec.type || !spec.ok(mv[f])) out.push({ code: typeOf(mv[f]) === spec.type ? "MV-E003" : "MV-E002", step: at, field: f, message: `${f} ${JSON.stringify(mv[f])} is not ${spec.range}` });
     }
     for (const f of Object.keys(mv)) if (!Object.hasOwn(FIELDS, f)) out.push({ code: "MV-E006", step: at, field: f, message: `"${f}" is not a move's field` });
     if (typeof mv.name === "string") {
@@ -70,6 +76,7 @@ export function validateMoves(data: unknown): RecipeIssue[] {
     }
     if (mv.plane === "ground" && mv.height === undefined) out.push({ code: "MV-E007", step: at, field: "height", message: "a move on the ground plane gives the hand's (or foot's) height", fix: '"height": [-60, -60]' });
     if (mv.plane === "side" && mv.height !== undefined) out.push({ code: "MV-E007", step: at, field: "height", message: "a move on the side plane has no height: its arc goes up and down in front" });
+    if (mv.plane === "side" && mv.hand === "kick") out.push({ code: "MV-E008", step: at, field: "plane", message: "a kick is on the ground plane: its foot swings level, round the hips", fix: '"plane": "ground"' });
   });
   moves.forEach((m, at) => {
     const alt = (m as Record<string, unknown> | null)?.alt;

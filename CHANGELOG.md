@@ -4,6 +4,28 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.37.2 · 2026-10-12
+
+### Core
+- Procedural sources, after WP-6.2's first verifier (D71): a move begins and ends at any start pose (straight limbs, a
+  `spine` field, a pose from a clip), each frame blended from it over the first and last 0.1 s; a leg whose start knee
+  points back starts from its knee turned to the front; the hold is kept above 0 and at most 0.95.
+- Gaits: a foot lifts off straight up to 9% of the hip height (above the 7% a lifted foot is read at) and sets down
+  from 4.5%; a stride past 75% of a leg, a lift under 9% and a limp that leaves a foot no swing are refused with what
+  to change; contacts are the model's; 60 fps. The presets slide at most 7.8 mm on three rests and none fails on any
+  of 64; the run preset is 350.
+- Idles: a breath leans the chest back and shrugs the shoulders (the torso's lengthening never reached the keys); the
+  chest tips away from the standing hip (it tipped with it).
+- `validateMoves`: MV-E008, a kick on the side plane; a blank `about`; a null height is a type error.
+
+### Spec
+- `moves.schema.json`: `hold` above 0 and at most 0.95, a kick on the ground plane, an `about` with text (refrozen
+  under D71).
+
+### Tools
+- `npm run moves -- --check` (the carry tool), in gate G6's first command set; `carry.ts` reads the source's lengths
+  from `procedural.SOURCE`.
+
 ## 0.37.1 · 2026-10-12
 
 ### Core

@@ -9,9 +9,9 @@ import { PORTABLE as PM } from "../math/portable.ts";
 import { decodePose, encodePose, type KeyLike } from "../format/pose.ts";
 import type { Clip, ClipEvent, Contacts } from "../format/types.ts";
 import { detectContacts, sole } from "../clip/contacts.ts";
-import type { Pose } from "../ops/pose.ts";
+import { blend, type Pose } from "../ops/pose.ts";
 import { keysOf, tidyContacts } from "../recipe/compile.ts";
-import { steady } from "../recipe/steps.ts";
+import { steady, unwrapped } from "../recipe/steps.ts";
 import { frameTimes } from "../recipe/track.ts";
 import type { Root, Track } from "../recipe/types.ts";
 import { validate } from "../validate/index.ts";
@@ -68,13 +68,13 @@ function phaseAt(m: Move, time: number): { phase: "wind" | "active" | "recover";
 /** The pose of a move's state on the start pose's points S: as clip.ts's header says. */
 function posed(m: Move, st: MoveState, R: Rest, b: MoveBody, S: Float32Array, hint: Pose, guard: boolean, limbs: Limbs): { pose: Pose; root: Root } {
   const canon = standing(b), J = placeMove(m, st, b, canon, { guard }), J0 = placeMove(m, REST_STATE, b, canon, { guard });
-  const X = Float32Array.from(S), piv = pt(S, "pelvis"), dHip = sub(J.hipC, J0.hipC), hands = hint.handL !== undefined || hint.handR !== undefined;
+  const X = Float32Array.from(S), piv = pt(S, "pelvis"), dHip = sub(J.hipC, J0.hipC), hands = hint.handL !== undefined || hint.handR !== undefined, spine = hint.spine !== undefined;
   const qPel = turn([0, 0, 1], st.twist * 0.4), qUp = qmul(turn([0, 1, 0], st.lean + st.crouch * 0.22), turn([0, 0, 1], st.twist));
   for (const n of PELVIS) put(X, n, add(add(piv, qrot(qPel, sub(pt(S, n), piv))), dHip));
   for (const n of UPPER) put(X, n, add(add(piv, qrot(qUp, sub(pt(S, n), piv))), dHip));
   // the body as the format holds it: a torso turned and leaned that far is held by the chest's and shoulders' parts
   // within their ranges, so the shoulders the limbs hang from are the decoded ones (the points' can be 13 cm away)
-  const first = encodePose(R, X, hint, { hands, round: false }), Y = new Float32Array(P * 3);
+  const first = encodePose(R, X, hint, { hands, spine, round: false }), Y = new Float32Array(P * 3);
   decodePose(R, first, Y);
   // the hands: each aim relative to the shoulders' centre, reached for from where the start pose's hand is carried, and
   // kept clear of the torso as the wind comes in (the source's rig is a stick figure: its hands cross where a body is)
@@ -87,7 +87,7 @@ function posed(m: Move, st: MoveState, R: Rest, b: MoveBody, S: Float32Array, hi
   }
   // the feet: each ankle moved as the model moves its foot
   for (const s of ["L", "R"] as const) limbs.reach(Y, `foot${s}`, add(pt(S, `ankle${s}`), sub(J[`foot${s}`], J0[`foot${s}`])));
-  const e = encodePose(R, Y, hint, { hands, round: false });
+  const e = encodePose(R, Y, hint, { hands, spine, round: false });
   const { t: _t, root: _r, yaw: _y, ...pose } = e;
   return { pose, root: { forward: 0, right: 0, yaw: (st.spin * 180) / Math.PI } };
 }
@@ -99,6 +99,10 @@ function clear(p: V3, pelvis: V3, shC: V3, r: number): V3 {
   const on = add(pelvis, mul(axis, k)), off = sub(p, on), d = len(off);
   return d >= r ? p : d < 1e-6 ? add(on, [r, 0, 0]) : add(on, mul(off, r / d));
 }
+/** How long a move takes to leave its start pose and to come back to it exactly, s. */
+const ENDS = 0.1;
+/** 0 to 1 with zero slope at both ends. */
+const smooth = (u: number) => (u <= 0 ? 0 : u >= 1 ? 1 : u * u * (3 - 2 * u));
 /** The fields a move brings home through its recovery: the arms, and a kick's leg too. */
 const ARMS_HOME = { armL: 1, armR: 1, handL: 1, handR: 1 }, KICK_HOME = { ...ARMS_HOME, legR: 1, footR: 1 };
 /** The model's state with nothing moved: the body as the start pose has it. */
@@ -121,8 +125,7 @@ export interface ProceduralOptions {
 export function clipOfTrack(t: Track, meta: { id: string; name: string; tags: string[]; desc: string; events?: ClipEvent[]; contacts?: Contacts }, budget = 30): Clip {
   // contacts are detected on the keys, which carry the root's travel (a planted foot is still in the world, not in
   // the root's frame)
-  const { keys, fit } = keysOf(t, budget), detected = meta.contacts ?? detectContacts({ dur: t.dur, loop: t.loop, keys }, t.rest);
-  const contacts = tidyContacts(CONTACT_ENDS_OF(detected), t.dur, t.loop);
+  const { keys, fit } = keysOf(t, budget), contacts = tidyContacts(meta.contacts ?? CONTACT_ENDS_OF(detectContacts({ dur: t.dur, loop: t.loop, keys }, t.rest)), t.dur, t.loop);
   const clip: Clip = {
     format: "2.0", id: meta.id, name: meta.name, legend: "2.0", dur: t.dur, loop: t.loop, fps: t.fps, tags: meta.tags, desc: meta.desc, skeleton: "humanoid", restSrc: t.restSrc,
     ...(contacts ? { contacts } : {}), ...(meta.events?.length ? { events: meta.events } : {}),
@@ -155,11 +158,15 @@ export function moveClip(m: Move, rest: Rest, opts: ProceduralOptions): Clip {
     // as the recovery lets go, the arms (and a kick's leg) come home: the hands return to where they started, and the
     // elbows and knee, which the reach left wherever the strike turned them, return with them, all the way at the end
     // (a stepping foot comes back lifted, on its own clock)
-    const home = phase === "recover" ? (1 - st.arm) ** 2 : 0;
-    t.poses.push(home > 0 ? mix(f.pose, start, home, m.hand === "kick" ? KICK_HOME : ARMS_HOME) : f.pose);
+    const home = phase === "recover" ? (1 - st.arm) ** 2 : 0, homed = home > 0 ? mix(f.pose, start, home, m.hand === "kick" ? KICK_HOME : ARMS_HOME) : f.pose;
+    // and over its first and last moments the whole body is the start pose's, whatever the reach makes of a straight
+    // limb or the encoding of a pose's spine: a move begins and ends exactly where it was given
+    const ends = Math.min(smooth((time + 1e-9) / ENDS), smooth((dur - time + 1e-9) / ENDS));
+    const before = t.poses[t.poses.length - 1], pose = ends < 1 ? blend(start, homed, ends) : homed;
+    t.poses.push(before ? unwrapped(pose, before) : pose);
     t.roots.push(f.root);
     hint = f.pose;
   }
   const name = m.name.charAt(0).toUpperCase() + m.name.slice(1), hit = Math.round((p.wind + m.hit * p.active) * 1000) / 1000;
-  return clipOfTrack(t, { id: opts.id ?? `PROCEDURAL/${name}`, name, tags: [m.hand === "kick" ? "kick" : "attack", "once"].filter((x) => x !== "once"), desc: m.about.charAt(0).toUpperCase() + m.about.slice(1), events: [{ t: hit, name: "hit" }] }, opts.budget);
+  return clipOfTrack(t, { id: opts.id ?? `PROCEDURAL/${name}`, name, tags: [m.hand === "kick" ? "kick" : "attack"], desc: m.about.charAt(0).toUpperCase() + m.about.slice(1), events: [{ t: hit, name: "hit" }] }, opts.budget);
 }
