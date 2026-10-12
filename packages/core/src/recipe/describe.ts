@@ -1,9 +1,20 @@
-// A recipe in a line (PLAN.md WP-6.1): what it makes and each step in a few words, within 100 tokens; past that, the
-// steps left out are counted. It reads the recipe alone, so it explains one before it compiles.
+// A recipe in a line (PLAN.md WP-6.1): what it makes and each step in a few words, within 100 tokens as tokenCount
+// counts them (no fewer than cl100k or o200k); past that, the steps left out are counted. It reads the recipe alone,
+// so it explains one before it compiles.
 import type { Recipe, Step } from "./types.ts";
 
-/** Most characters the text may have: 100 tokens at the 3 characters a token the shortest English text runs to. */
-const BUDGET = 300;
+/** Most tokens the text may have. */
+const BUDGET = 100;
+/**
+ * A count of tokens no lower than a tokenizer's (cl100k and o200k read the text in as many or fewer; the sensors'
+ * describe counts the same way): a word every six letters, a number every three digits, a space before a number one,
+ * any other mark one.
+ */
+export function tokenCount(s: string): number {
+  let n = 0;
+  for (const x of s.match(/[A-Za-z]+|\d+|\s(?=\d)|[^\sA-Za-z\d]/g) ?? []) n += /^\d/.test(x) ? Math.ceil(x.length / 3) : /^[A-Za-z]/.test(x) ? Math.ceil(x.length / 6) : 1;
+  return n;
+}
 
 const span = (s: Step) => (s.from !== undefined || s.to !== undefined ? ` ${s.from ?? 0}–${s.to ?? "end"} s` : "");
 const signed = (v: number) => (v > 0 ? `+${v}` : `${v}`);
@@ -48,8 +59,10 @@ function stepText(s: Step): string {
 
 /** The recipe in at most 100 tokens: its id, then its steps; the later ones counted when they don't fit. */
 export function describeRecipe(r: Recipe): string {
-  const head = `${r.id}: `, parts = r.steps.map(stepText);
+  const head = `${r.id}: `, parts = r.steps.map(stepText), more = (n: number) => `; … ${n} more step${n === 1 ? "" : "s"}`;
   let text = head + parts.join("; ");
-  for (let k = parts.length - 1; text.length > BUDGET && k > 0; k--) text = `${head}${parts.slice(0, k).join("; ")}; … ${parts.length - k} more steps`;
-  return text.length > BUDGET ? `${text.slice(0, BUDGET - 1)}…` : text;
+  for (let k = parts.length - 1; tokenCount(text) > BUDGET && k > 0; k--) text = `${head}${parts.slice(0, k).join("; ")}${more(parts.length - k)}`;
+  // a single step too long for the line (a long id) is cut at a word, still counted
+  while (tokenCount(text) > BUDGET) text = `${text.slice(0, text.lastIndexOf(" ", text.length - 2))} …`;
+  return text;
 }

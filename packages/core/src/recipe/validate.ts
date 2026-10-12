@@ -53,18 +53,22 @@ const names: Check = (v) => (Array.isArray(v) && v.length >= 2 && v.every((x) =>
 const vec3: Check = (v) => (Array.isArray(v) && v.length === 3 && v.every(isNum) ? null : "[forward, right, up] in mm");
 const time = num(0, 600);
 const loopOrBlend: Check = (v) => (typeof v === "boolean" || (isNum(v) && v > 0 && v <= 5) ? null : "true, or the seconds to blend the seam over (up to 5)");
-const weightCurve: Check = (v) => (isNum(v) && v >= 0 && v <= 1) || (Array.isArray(v) && v.length > 0 && v.every((p) => Array.isArray(p) && p.length === 2 && isNum(p[0]) && p[0] >= 0 && isNum(p[1]) && p[1] >= 0 && p[1] <= 1)) ? null : "a weight from 0 to 1, or [[t, w], …]";
+/** Points whose times (each one's first number) rise. */
+const rising = (v: unknown[]) => v.every((p, i) => i === 0 || (p as number[])[0]! > (v[i - 1] as number[])[0]!);
+const weightCurve: Check = (v) => (isNum(v) && v >= 0 && v <= 1) || (Array.isArray(v) && v.length > 0 && v.every((p) => Array.isArray(p) && p.length === 2 && isNum(p[0]) && p[0] >= 0 && isNum(p[1]) && p[1] >= 0 && p[1] <= 1) && rising(v)) ? null : "a weight from 0 to 1, or [[t, w], …] with t rising";
 const maskOf: Check = (v) => {
   const groups = Object.keys(GROUPS), fields = [...Object.keys(KEY_FIELDS), "yaw"];
   if (typeof v === "string") return groups.includes(v) ? null : `a group: ${groups.join(", ")}`;
   if (Array.isArray(v)) return v.length && v.every((g) => typeof g === "string" && groups.includes(g)) ? null : `groups: ${groups.join(", ")}`;
-  if (v && typeof v === "object") return Object.entries(v).every(([f, w]) => fields.includes(f) && isNum(w) && w >= 0 && w <= 1) ? null : "{ field: weight 0 to 1 }";
+  if (v && typeof v === "object") return Object.keys(v).length > 0 && Object.entries(v).every(([f, w]) => fields.includes(f) && isNum(w) && w >= 0 && w <= 1) ? null : "{ field: weight 0 to 1 }, at least one";
   return "group names or { field: weight }";
 };
-const path: Check = (v) => (Array.isArray(v) && v.length > 0 && v.every((p) => Array.isArray(p) && p.length === 4 && p.every(isNum) && (p[0] as number) >= 0) ? null : "[[t, forward, right, up], …] in s and mm");
-const eventList: Check = (v) => (Array.isArray(v) && v.length > 0 && v.every((e) => e && typeof e === "object" && isNum((e as { t: unknown }).t) && typeof (e as { name: unknown }).name === "string" && /^[a-z][a-zA-Z0-9_]*$/.test((e as { name: string }).name)) ? null : "[{ t, name }, …] (a name: a word starting lower-case)");
+const path: Check = (v) => (Array.isArray(v) && v.length > 0 && v.every((p) => Array.isArray(p) && p.length === 4 && p.every(isNum) && (p[0] as number) >= 0) && rising(v) ? null : "[[t, forward, right, up], …] in s and mm, t rising");
+const eventList: Check = (v) => (Array.isArray(v) && v.length > 0 && v.every((e) => e && typeof e === "object" && isNum((e as { t: unknown }).t) && typeof (e as { name: unknown }).name === "string" && /^[a-z][a-z0-9_-]*$/.test((e as { name: string }).name)) ? null : "[{ t, name }, …] (a name: lower-case letters, digits, _ and -, as a clip's events, MOTION.md §7.2)");
 const contactsAdd: Check = (v) => (v && typeof v === "object" && !Array.isArray(v) && Object.keys(v).length > 0 && Object.entries(v).every(([end, iv]) => ["footL", "footR", "handL", "handR"].includes(end) && Array.isArray(iv) && iv.every((p) => Array.isArray(p) && p.length === 2 && isNum(p[0]) && isNum(p[1]) && p[0] >= 0 && p[1] > p[0]))) ? null : "{ footL | footR | handL | handR: [[from, to], …] }";
 
+/** What a needed field is, for R-E003's fix. */
+const FIELD_HELP: Readonly<Record<string, string>> = { id: "a clip id, SET/Slug", items: "the names of the steps to play in turn", a: "a step's name", b: "a step's name", w: "a weight from 0 to 1", base: "a step's name", over: "a step's name", in: "a step's name", at: "[forward, right, up] in mm", end: "handL, handR, footL or footR", path: "[[t, forward, right, up], …]", amount: "a number", window: "seconds", add: "what to add" };
 /** An operation: the fields that read steps, the ones it needs, and every field it takes. */
 interface OpSpec {
   reads: readonly string[];
@@ -98,10 +102,10 @@ function poseParts(s: Step, at: number, out: RecipeIssue[]): void {
   const fields = Object.keys(s).filter((k) => !["op", "as", "in", "from", "to", "fade"].includes(k));
   if (!fields.length) out.push({ code: "R-E003", step: at, message: "a pose step moves at least one field's parts", fix: 'add one, e.g. "chest": { "lean": 10 }' });
   for (const f of fields) {
-    const spec = KEY_FIELDS[f], v = s[f];
+    const spec = Object.hasOwn(KEY_FIELDS, f) && f !== "root" ? KEY_FIELDS[f] : undefined, v = s[f];
     if (!spec && f !== "yaw") {
       const near = nearest(f, [...Object.keys(OPS.pose!.fields), ...Object.keys(KEY_FIELDS), "yaw"]);
-      out.push({ code: "R-E007", step: at, field: f, message: `"${f}" is not a field a pose step moves`, ...(near ? { fix: `did you mean "${near}"?` } : {}) });
+      out.push({ code: "R-E007", step: at, field: f, message: `"${f}" is not a field a pose step moves`, fix: f === "root" ? "a pose step turns the character with yaw; its travel is the clip's" : near ? `did you mean "${near}"?` : `one of yaw, ${Object.keys(KEY_FIELDS).filter((k) => k !== "root").join(", ")}` });
       continue;
     }
     if (f === "yaw") {
@@ -113,7 +117,7 @@ function poseParts(s: Step, at: number, out: RecipeIssue[]): void {
       continue;
     }
     for (const [p, x] of Object.entries(v)) {
-      if (!spec!.parts.includes(p)) {
+      if (!Object.hasOwn(v, p) || !spec!.parts.includes(p)) {
         const near = nearest(p, spec!.parts);
         out.push({ code: "R-E007", step: at, field: `${f}.${p}`, message: `${f} has no part "${p}" (${spec!.parts.join(", ")})`, ...(near ? { fix: `did you mean "${near}"?` } : {}) });
       } else if (!isNum(x)) out.push({ code: "R-E004", step: at, field: `${f}.${p}`, message: "an amount is a number" });
@@ -140,17 +144,17 @@ export function validateRecipe(r: unknown): RecipeIssue[] {
   (o.steps as unknown[]).forEach((raw, i) => {
     const at = i + 1;
     if (!raw || typeof raw !== "object" || Array.isArray(raw)) return void out.push({ code: "R-E004", step: at, message: "a step is an object with an op" });
-    const s = raw as Step, spec = OPS[s.op];
+    const s = raw as Step, spec = typeof s.op === "string" && Object.hasOwn(OPS, s.op) ? OPS[s.op] : undefined;
     if (!spec) {
       const near = typeof s.op === "string" ? nearest(s.op, Object.keys(OPS)) : undefined;
       out.push({ code: "R-E002", step: at, field: "op", message: `no operation ${JSON.stringify(s.op)}`, fix: near ? `did you mean "${near}"?` : `one of ${Object.keys(OPS).join(", ")}` });
     } else {
-      for (const f of spec.needs) if (s[f] === undefined) out.push({ code: "R-E003", step: at, field: f, message: `${s.op} needs ${f}` });
+      for (const f of spec.needs) if (s[f] === undefined) out.push({ code: "R-E003", step: at, field: f, message: `${s.op} needs ${f}`, fix: `add "${f}" (${FIELD_HELP[f] ?? "see spec/RECIPE.md §2"})` });
       if (spec.oneOf && spec.oneOf.filter((f) => s[f] !== undefined).length !== 1) out.push({ code: "R-E003", step: at, message: `${s.op} takes exactly one of ${spec.oneOf.join(", ")}` });
       if (s.op === "pose") poseParts(s, at, out);
       for (const [f, v] of Object.entries(s)) {
-        if (f === "op" || f === "as" || (s.op === "pose" && (KEY_FIELDS[f] || f === "yaw"))) continue;
-        const check = spec.fields[f];
+        if (f === "op" || f === "as" || (s.op === "pose" && ((Object.hasOwn(KEY_FIELDS, f) && f !== "root") || f === "yaw"))) continue;
+        const check = Object.hasOwn(spec.fields, f) ? spec.fields[f] : undefined;
         if (!check) {
           if (s.op === "pose") continue;
           const near = nearest(f, Object.keys(spec.fields));
@@ -158,9 +162,9 @@ export function validateRecipe(r: unknown): RecipeIssue[] {
           continue;
         }
         const bad = check(v);
-        if (bad) out.push({ code: "R-E004", step: at, field: f, message: `${f} is ${bad}, not ${JSON.stringify(v)?.slice(0, 40)}` });
+        if (bad) out.push({ code: "R-E004", step: at, field: f, message: `${f} is ${bad}, not ${JSON.stringify(v)?.slice(0, 40)}`, fix: `give ${f} as ${bad}` });
       }
-      if (isNum(s.from) && isNum(s.to) && s.to <= s.from) out.push({ code: "R-E004", step: at, field: "to", message: `to (${s.to}) comes after from (${s.from})` });
+      if (isNum(s.from) && isNum(s.to) && s.to <= s.from) out.push({ code: "R-E004", step: at, field: "to", message: `to (${s.to}) comes after from (${s.from})`, fix: `a to later than ${s.from}` });
       // the names it reads: earlier steps only
       for (const f of spec.reads) {
         const v = s[f], read = Array.isArray(v) ? v : v === undefined ? [] : [v];

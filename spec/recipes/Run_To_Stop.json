@@ -5,7 +5,7 @@
  "tags": [
   "run"
  ],
- "desc": "A run that slows into a quick stop",
+ "desc": "A run into a quick stop, slowed from 1.6 s to 2 s",
  "steps": [
   {
    "as": "stop",

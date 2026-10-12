@@ -1,0 +1,32 @@
+{
+ "format": "2.0",
+ "id": "RECIPES/Idle_Turn_Right",
+ "name": "Idle Turn Right",
+ "tags": [
+  "idle",
+  "turn",
+  "loop"
+ ],
+ "desc": "Standing, turning to the right and back, a little quicker than the idle's own pace",
+ "steps": [
+  {
+   "as": "idle",
+   "op": "clip",
+   "id": "MESH2MOTION/Idle_A"
+  },
+  {
+   "as": "turned",
+   "op": "pose",
+   "in": "idle",
+   "yaw": 45,
+   "from": 0.6,
+   "to": 2.4,
+   "fade": 0.5
+  },
+  {
+   "op": "retime",
+   "in": "turned",
+   "speed": 1.25
+  }
+ ]
+}

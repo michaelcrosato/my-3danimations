@@ -2005,5 +2005,31 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
     turn its heading between keys; the sensors report both.
 - **Why:** a recipe is how an agent makes the clip the library lacks without keying it: text it can write and a person
   can read, compiled into the same format every tool already checks.
+- **Verifier, round 1** (at 85dc149): not done. 10 of 14 one-line mutants passed the tests, and untested paths hid
+  bugs. Fixed in v0.36.1, every finding:
+  - **Tests:** every operation's test now fails its mutant (the ease's midpoint, a blend reaching `b`, an additive
+    layer's change, a pose yaw, merged contacts, the elbow's side, the neck's limit, a mirrored turn, a sequence
+    started mid-stride, an overshoot that never lags); all ten mutants fail.
+  - **The heading:** a sequence turns each next item's body (`body[0]`, and the pelvis's place) by the heading the
+    root has reached, as `MOTION.md` §5.3 has a pose carry it; a pose `yaw` turns body and root together; a loop whose
+    first root is turned closes on it (`nextCycle`), and repeats its cycle in that frame.
+  - **Contacts:** a loop's contact over its seam stays one interval that wraps (`MOTION.md` §7.1) through every step
+    and the compiler (556 of the library's 1,028 loops have one); `contacts` merges round the loop and labels all.
+  - **Blends and retimes that can't loop play once:** a curve ending elsewhere than it starts, two loops read out of
+    step at different lengths, an ease (which stalls at the seam).
+  - **`sync` only on a step:** a foot planted since its clip began, or one the next item never lifts, sets no phase
+    (a jab into a cross played 0.88 s into the cross).
+  - **Inputs:** the clips the last track is made from, the one whose rest it decodes on first; `src`, `orig`,
+    `restSrc`, the license and the default `desc` follow it.
+  - **Checks:** every time a step gives (R-E009, events before 0 too); JavaScript's own names (`toString`,
+    `constructor`) are no operation, field or part; a pose has no `root`; event names are a clip's; an empty mask
+    and unsorted curves and paths are refused; every issue has a fix; `s1`-style names are refused by the schema too.
+  - **`describeRecipe`** counts tokens (`tokenCount`, no fewer than cl100k or o200k), tested on a ten-step recipe.
+  - **`pin`** turns the elbow or knee with the limb's swing and, as the limb straightens, bends it the way an elbow
+    or a knee bends (a straight leg's knee wandered 30 cm).
+  - **`RECIPE.md`** matches the code; a content id is the SHA-256 of the clip as `serialize` writes it.
+  - **Notes:** four examples became chained ones and three descriptions were corrected. A recipe clip with a
+    compound license (`CC-BY-4.0 AND LicenseRef-CMU-Mocap`) has no set tier: such a clip enters the library only in
+    a set of the stricter tier, when a WP adds recipe clips to it.
 - **Answered:** no: made without a response, to review.
-- **Landed in:** v0.36.0
+- **Landed in:** v0.36.0, v0.36.1

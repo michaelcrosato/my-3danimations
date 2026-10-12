@@ -65,20 +65,23 @@ export function poseAt(t: Track, time: number): Pose {
 export function cycleOf(t: Track): Root {
   return t.loop ? (t.cycle ?? STILL) : STILL;
 }
-/** The root at a time relative to the start: a loop's cycles compose, a once track holds its ends. */
+/** The root at a time: a loop's cycles compose, a once track holds its ends. A loop whose first root isn't the start's
+ *  (a pose step's turn) repeats its cycle in that frame: at k cycles on, r0 ∘ cycleᵏ ∘ r0⁻¹ ∘ root. */
 export function rootAt(t: Track, time: number): Root {
   if (!t.loop) {
     const [i, j, w] = between(t, time);
     return lerpRoot(t.roots[i]!, t.roots[j]!, w);
   }
-  const k = Math.floor(time / t.dur), u = time - k * t.dur, cyc = cycleOf(t);
+  const k = Math.floor(time / t.dur), u = time - k * t.dur, cyc = cycleOf(t), r0 = t.roots[0]!;
   let acc = STILL;
   const step = k >= 0 ? cyc : invert(cyc);
   for (let c = 0; c < Math.abs(k); c++) acc = compose(acc, step);
   // past the last frame the root goes on to where the next cycle starts
-  const [i, j, w] = between(t, u);
-  return compose(acc, lerpRoot(t.roots[i]!, j === 0 && i !== 0 ? cyc : t.roots[j]!, w));
+  const [i, j, w] = between(t, u), next = compose(r0, cyc), at = lerpRoot(t.roots[i]!, j === 0 && i !== 0 ? next : t.roots[j]!, w);
+  return k === 0 ? at : compose(compose(r0, acc), compose(invert(r0), at));
 }
+/** Where a loop's next cycle starts: its first root carried round one cycle. */
+export const nextCycle = (t: Track): Root => compose(t.roots[0]!, cycleOf(t));
 
 /** A track as a playable clip: its frames as keys (a loop closed by its first pose at `dur`). */
 export function playable(t: Track): Playable {
@@ -101,7 +104,7 @@ export function trackOfClip(clip: Clip, rest: Rest, fps: number, opts: { from?: 
   let c: Clip = clip;
   if (opts.from !== undefined || opts.to !== undefined) c = slice(c, opts.from ?? 0, opts.to ?? c.dur);
   if (opts.loop !== undefined && opts.loop !== false && (!c.loop || typeof opts.loop === "number")) c = loopify(c, typeof opts.loop === "number" ? opts.loop : Math.min(0.25, c.dur / 3));
-  const t: Track = { dur: c.dur, loop: c.loop, fps, times: frameTimes(c.dur, c.loop, fps), poses: [], roots: [], events: [...(c.events ?? [])], rest, restSrc: c.restSrc, ...(c.contacts ? { contacts: c.contacts } : {}) };
+  const t: Track = { dur: c.dur, loop: c.loop, fps, times: frameTimes(c.dur, c.loop, fps), poses: [], roots: [], events: [...(c.events ?? [])], rest, restSrc: c.restSrc, sources: [clip.id], ...(c.contacts ? { contacts: c.contacts } : {}) };
   for (const time of t.times) {
     t.poses.push(bodyOf(keyAt(c, time) as KeyLike));
     const r = clipRootAt(c, time);
@@ -114,15 +117,38 @@ export function trackOfClip(clip: Clip, rest: Rest, fps: number, opts: { from?: 
   return t;
 }
 
-/** A track's contacts moved by `dt` and kept within 0–dur (a loop's wrap kept as the format writes it). */
-export function shiftContacts(c: Contacts | undefined, map: (time: number) => number, dur: number): Contacts | undefined {
+/**
+ * A track's contacts moved by `map` and kept within 0–dur. A loop's are read round its cycle: an interval past `from`'s
+ * end (`to > oldDur`) is the same contact carried over the seam, mapped as its two parts, and the result written the
+ * format's way (§7.1): sorted, merged, the last one wrapping past `dur` where it carries over to the start.
+ */
+export function shiftContacts(c: Contacts | undefined, map: (time: number) => number, dur: number, loop = false, oldDur = dur): Contacts | undefined {
   if (!c) return undefined;
   const out: Contacts = { by: c.by };
   for (const end of ["footL", "footR", "handL", "handR"] as const) {
-    const iv = (c[end] ?? []).map(([a, b]): [number, number] => [ms(map(a)), ms(map(b))]).filter(([a, b]) => b > a && a < dur && b > 0).map(([a, b]): [number, number] => [Math.max(0, a), Math.min(dur, b)]);
-    if (iv.length) out[end] = iv;
+    let iv = c[end] ?? [];
+    if (loop) iv = iv.flatMap(([a, b]): [number, number][] => (b > oldDur + 1e-9 ? [[a, oldDur], [0, b - oldDur]] : [[a, b]]));
+    const mapped = iv.map(([a, b]): [number, number] => [ms(map(a)), ms(map(b))]).filter(([a, b]) => b > a && a < dur && b > 0).map(([a, b]): [number, number] => [Math.max(0, a), Math.min(dur, b)]);
+    const written = loop ? cyclic(mapped, dur) : mapped;
+    if (written.length) out[end] = written;
   }
   return out;
+}
+/** Intervals on a loop of length dur (each within 0–dur), sorted and merged, the one ending at dur joined to the one
+ *  starting at 0 as a last interval that wraps. */
+export function cyclic(iv: readonly [number, number][], dur: number): [number, number][] {
+  const merged: [number, number][] = [];
+  for (const [a, b] of [...iv].sort((x, y) => x[0] - y[0])) {
+    const l = merged[merged.length - 1];
+    if (l && a <= l[1] + 1e-9) l[1] = Math.max(l[1], b);
+    else merged.push([a, b]);
+  }
+  const first = merged[0], last = merged[merged.length - 1];
+  if (merged.length > 1 && first && last && first[0] <= 1e-9 && last[1] >= dur - 1e-9) {
+    merged.shift();
+    last[1] = ms(dur + first[1]);
+  }
+  return merged;
 }
 /** A time rounded to the millisecond. */
 export const ms = (t: number): number => Math.round(t * 1000) / 1000;

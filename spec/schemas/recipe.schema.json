@@ -54,7 +54,7 @@
         "const": "clip"
        },
        "as": {
-        "$ref": "#/$defs/name"
+        "$ref": "#/$defs/stepName"
        },
        "id": {
         "type": "string",
@@ -92,7 +92,7 @@
         "const": "sequence"
        },
        "as": {
-        "$ref": "#/$defs/name"
+        "$ref": "#/$defs/stepName"
        },
        "items": {
         "type": "array",
@@ -127,7 +127,7 @@
         "const": "blend"
        },
        "as": {
-        "$ref": "#/$defs/name"
+        "$ref": "#/$defs/stepName"
        },
        "a": {
         "$ref": "#/$defs/name"
@@ -156,7 +156,7 @@
         "const": "layer"
        },
        "as": {
-        "$ref": "#/$defs/name"
+        "$ref": "#/$defs/stepName"
        },
        "base": {
         "$ref": "#/$defs/name"
@@ -194,7 +194,7 @@
         "const": "mirror"
        },
        "as": {
-        "$ref": "#/$defs/name"
+        "$ref": "#/$defs/stepName"
        },
        "in": {
         "$ref": "#/$defs/name"
@@ -213,7 +213,7 @@
         "const": "retime"
        },
        "as": {
-        "$ref": "#/$defs/name"
+        "$ref": "#/$defs/stepName"
        },
        "in": {
         "$ref": "#/$defs/name"
@@ -267,7 +267,7 @@
         "const": "pose"
        },
        "as": {
-        "$ref": "#/$defs/name"
+        "$ref": "#/$defs/stepName"
        },
        "in": {
         "$ref": "#/$defs/name"
@@ -336,7 +336,7 @@
         "const": "look"
        },
        "as": {
-        "$ref": "#/$defs/name"
+        "$ref": "#/$defs/stepName"
        },
        "in": {
         "$ref": "#/$defs/name"
@@ -379,7 +379,7 @@
         "const": "pin"
        },
        "as": {
-        "$ref": "#/$defs/name"
+        "$ref": "#/$defs/stepName"
        },
        "in": {
         "$ref": "#/$defs/name"
@@ -428,7 +428,7 @@
         "const": "exaggerate"
        },
        "as": {
-        "$ref": "#/$defs/name"
+        "$ref": "#/$defs/stepName"
        },
        "in": {
         "$ref": "#/$defs/name"
@@ -456,7 +456,7 @@
         "const": "smooth"
        },
        "as": {
-        "$ref": "#/$defs/name"
+        "$ref": "#/$defs/stepName"
        },
        "in": {
         "$ref": "#/$defs/name"
@@ -484,7 +484,7 @@
         "const": "overshoot"
        },
        "as": {
-        "$ref": "#/$defs/name"
+        "$ref": "#/$defs/stepName"
        },
        "in": {
         "$ref": "#/$defs/name"
@@ -512,7 +512,7 @@
         "const": "stiffen"
        },
        "as": {
-        "$ref": "#/$defs/name"
+        "$ref": "#/$defs/stepName"
        },
        "in": {
         "$ref": "#/$defs/name"
@@ -540,7 +540,7 @@
         "const": "events"
        },
        "as": {
-        "$ref": "#/$defs/name"
+        "$ref": "#/$defs/stepName"
        },
        "in": {
         "$ref": "#/$defs/name"
@@ -580,7 +580,7 @@
         "const": "contacts"
        },
        "as": {
-        "$ref": "#/$defs/name"
+        "$ref": "#/$defs/stepName"
        },
        "in": {
         "$ref": "#/$defs/name"
@@ -725,6 +725,17 @@
      }
     }
    ]
+  },
+  "stepName": {
+   "allOf": [
+    {
+     "$ref": "#/$defs/name"
+    }
+   ],
+   "not": {
+    "pattern": "^s[0-9]+$"
+   },
+   "description": "a step's own name: not s1, s2, …, which name steps by place"
   }
  }
 }

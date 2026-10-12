@@ -50,10 +50,10 @@ export function look(t: Track, at: V3, from: number, to: number, fade: number, w
 
 /** The chain of each end: the joint it hangs from, the middle joint, its end point and what moves with the end. */
 const CHAINS = {
-  handL: { root: "shL", mid: "elbowL", end: "fistL", carried: ["wristL", "indexL", "knuckL", "pinkyL"], fields: ["armL", "handL"], rigid: true },
-  handR: { root: "shR", mid: "elbowR", end: "fistR", carried: ["wristR", "indexR", "knuckR", "pinkyR"], fields: ["armR", "handR"], rigid: true },
-  footL: { root: "hipL", mid: "kneeL", end: "ankleL", carried: ["ballL", "toeL"], fields: ["legL", "footL"], rigid: false },
-  footR: { root: "hipR", mid: "kneeR", end: "ankleR", carried: ["ballR", "toeR"], fields: ["legR", "footR"], rigid: false },
+  handL: { root: "shL", mid: "elbowL", end: "fistL", carried: ["wristL", "indexL", "knuckL", "pinkyL"], fields: ["armL", "handL"], rigid: true, bend: [-1, -0.7, -0.2] },
+  handR: { root: "shR", mid: "elbowR", end: "fistR", carried: ["wristR", "indexR", "knuckR", "pinkyR"], fields: ["armR", "handR"], rigid: true, bend: [-1, 0.7, -0.2] },
+  footL: { root: "hipL", mid: "kneeL", end: "ankleL", carried: ["ballL", "toeL"], fields: ["legL", "footL"], rigid: false, bend: [1, -0.15, 0.1] },
+  footR: { root: "hipR", mid: "kneeR", end: "ankleR", carried: ["ballR", "toeR"], fields: ["legR", "footR"], rigid: false, bend: [1, 0.15, 0.1] },
 } as const;
 
 /** A path's point at a time: linear between its points, held at its ends. */
@@ -70,6 +70,32 @@ function pathAt(path: readonly (readonly number[])[], time: number): V3 {
   return [l[1]!, l[2]!, l[3]!];
 }
 
+/**
+ * In the points X, `end` put at T by two-bone IK (held within reach), the elbow or knee on the side it was: its offset
+ * from the limb, turned as the limb swings from its end to the target, and as the limb nears straight (that offset
+ * under a fifth of the upper bone), the way an elbow or a knee bends (back and out, forward). A hand's points turn with the forearm; a foot's move with the
+ * ankle, keeping how it points. With T where the end already is and the limb bent, X is unchanged.
+ */
+export function reachTo(X: Float32Array, end: keyof typeof CHAINS, T: V3): void {
+  const c = CHAINS[end], S = pt(X, c.root), E = pt(X, c.mid), F = pt(X, c.end);
+  const a = len(sub(E, S)), b = len(sub(F, E)), toT = sub(T, S), dT = Math.max(1e-6, len(toT)), u = mul(toT, 1 / dT);
+  const d = Math.min(Math.max(dT, Math.abs(a - b) + 1e-3), a + b - 1e-3);
+  // the side the joint bends to: where it is, turned with the limb's swing to the target (a knee kicked forward points
+  // up, not down), and as the limb straightens, the way an elbow or a knee bends
+  const perp = (v: readonly number[]) => sub(v, mul(u, dot(v, u))), swing = between(sub(F, S), toT);
+  const own = perp(qrot(swing, sub(E, S))), hint = perp(c.bend), lean = Math.max(0, 0.2 * a - len(own));
+  let side = add(own, mul(norm(hint), lean));
+  if (len(side) < 1e-6) side = cross(u, [0, 0, 1]);
+  const x = (a * a - b * b + d * d) / (2 * d), h = Math.sqrt(Math.max(0, a * a - x * x));
+  const E2 = add(add(S, mul(u, x)), mul(norm(side), h)), F2 = add(S, mul(u, d));
+  const q = between(sub(F, E), sub(F2, E2));
+  for (const n of c.carried) put(X, n, c.rigid ? add(E2, qrot(q, sub(pt(X, n), E))) : add(pt(X, n), sub(F2, F)));
+  put(X, c.mid, E2);
+  put(X, c.end, F2);
+}
+/** The fields an end's chain moves. */
+export const chainFields = (end: keyof typeof CHAINS): readonly string[] => CHAINS[end].fields;
+
 /** `end` held on `path` ([[t, forward, right, up], …] mm from the root) over the path's span, faded in and out. */
 export function pin(t: Track, end: keyof typeof CHAINS, path: readonly (readonly number[])[], fade: number): Track {
   const c = CHAINS[end], env = envelope(path[0]![0]!, path[path.length - 1]![0]!, fade), X = new Float32Array(P * 3);
@@ -77,18 +103,7 @@ export function pin(t: Track, end: keyof typeof CHAINS, path: readonly (readonly
     const p = poseAt(t, time), root = rootAt(t, time), w = env(time);
     if (w === 0) return { pose: p, root };
     decodePose(t.rest, p, X);
-    const S = pt(X, c.root), E = pt(X, c.mid), F = pt(X, c.end), T = pathAt(path, time);
-    const a = len(sub(E, S)), b = len(sub(F, E)), toT = sub(T, S), dT = Math.max(1e-6, len(toT)), u = mul(toT, 1 / dT);
-    const d = Math.min(Math.max(dT, Math.abs(a - b) + 1e-3), a + b - 1e-3);
-    // the elbow or knee stays on the side it was: its offset from the line to the target
-    let side = sub(sub(E, S), mul(u, dot(sub(E, S), u)));
-    if (len(side) < 1e-6) side = cross(u, [0, 0, 1]);
-    const x = (a * a - b * b + d * d) / (2 * d), h = Math.sqrt(Math.max(0, a * a - x * x));
-    const E2 = add(add(S, mul(u, x)), mul(norm(side), h)), F2 = add(S, mul(u, d));
-    const q = between(sub(F, E), sub(F2, E2));
-    for (const n of c.carried) put(X, n, c.rigid ? add(E2, qrot(q, sub(pt(X, n), E))) : add(pt(X, n), sub(F2, F)));
-    put(X, c.mid, E2);
-    put(X, c.end, F2);
+    reachTo(X, end, pathAt(path, time));
     const solved = encoded(t.rest, X, p, c.fields), mask = Object.fromEntries(c.fields.map((f) => [f, 1]));
     return { pose: blend(p, solved, w, mask), root };
   }, { events: t.events, ...(t.contacts ? { contacts: t.contacts } : {}), ...(t.cycle ? { cycle: t.cycle } : {}) });

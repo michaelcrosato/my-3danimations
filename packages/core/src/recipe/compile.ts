@@ -18,7 +18,7 @@ import { look, pin } from "./ik.ts";
 import { canonical, sha256 } from "./sha256.ts";
 import { exaggerate, overshoot, smooth, stiffen } from "./style.ts";
 import { addContacts, addEvents, blendTracks, layer, maskFrom, mirror, poseDeltas, retime, sequence, type Parts } from "./steps.ts";
-import { cycleOf, ms, trackOfClip } from "./track.ts";
+import { cyclic, cycleOf, ms, nextCycle, trackOfClip } from "./track.ts";
 import type { Recipe, Resolved, Resolver, Root, Step, Track } from "./types.ts";
 import { RecipeError, validateRecipe, type RecipeIssue } from "./validate.ts";
 
@@ -44,7 +44,7 @@ function run(s: Step, at: number, named: Map<string, Track>, resolve: Resolver, 
     throw new RecipeError([{ code, step: at, field, message, ...(fix ? { fix } : {}) } as RecipeIssue]);
   };
   const within = (t: Track, field: string, v: unknown) => {
-    if (typeof v === "number" && v > t.dur + 1e-9) fail("R-E009", field, `${field} ${v} s is past the track's end (${t.dur} s)`, `a time from 0 to ${t.dur}`);
+    if (typeof v === "number" && (v > t.dur + 1e-9 || v < 0)) fail("R-E009", field, `${field} ${v} s is outside the track (0 to ${t.dur} s)`, `a time from 0 to ${t.dur}`);
   };
   switch (s.op) {
     case "clip": {
@@ -60,6 +60,7 @@ function run(s: Step, at: number, named: Map<string, Track>, resolve: Resolver, 
     case "sequence":
       return sequence((s.items as string[]).map(get), (s.fade as number | undefined) ?? 0.2, s.sync === "contacts");
     case "blend":
+      if (Array.isArray(s.w)) for (const [time] of s.w as [number, number][]) within(get(s.a), "w", time);
       return blendTracks(get(s.a), get(s.b), s.w as number | [number, number][], s.warp !== false);
     case "layer":
       return layer(get(s.base), get(s.over), maskFrom(s.mask, (s.feather as number | undefined) ?? 0), (s.weight as number | undefined) ?? 1, s.additive === true);
@@ -70,17 +71,19 @@ function run(s: Step, at: number, named: Map<string, Track>, resolve: Resolver, 
     case "pose": {
       const t = get(s.in), parts: Parts = {};
       within(t, "from", s.from);
+      within(t, "to", s.to);
       for (const [k, v] of Object.entries(s)) if (!SPAN.has(k)) parts[k] = v as Record<string, number> | number;
       return poseDeltas(t, parts, (s.from as number | undefined) ?? 0, (s.to as number | undefined) ?? t.dur, (s.fade as number | undefined) ?? 0);
     }
     case "look": {
       const t = get(s.in);
       within(t, "from", s.from);
+      within(t, "to", s.to);
       return look(t, s.at as [number, number, number], (s.from as number | undefined) ?? 0, (s.to as number | undefined) ?? t.dur, (s.fade as number | undefined) ?? 0, (s.weight as number | undefined) ?? 1);
     }
     case "pin": {
       const t = get(s.in), path = s.path as number[][];
-      within(t, "path", path[0]![0]);
+      for (const p of path) within(t, "path", p[0]);
       return pin(t, s.end as "handL", path, (s.fade as number | undefined) ?? 0);
     }
     case "exaggerate":
@@ -98,6 +101,7 @@ function run(s: Step, at: number, named: Map<string, Track>, resolve: Resolver, 
     }
     case "contacts": {
       const t = get(s.in), add = s.add as Record<string, [number, number][]>;
+      for (const iv of Object.values(add)) for (const [a] of iv) within(t, "add", a);
       for (const iv of Object.values(add)) for (const [, b] of iv) within(t, "add", b);
       return addContacts(t, add);
     }
@@ -135,15 +139,16 @@ export function nearestTo(p: Pose, ref: Pose): Pose {
   return out;
 }
 
-/** The keys for a track: its frames rounded, as few as keep every frame within the budget. */
-function keysOf(t: Track, budget: number): { keys: Key[]; fit: [number, number] } {
+/** The keys for a track: its frames rounded, as few as keep every frame within the budget (mm), and their fit (mean
+ *  and worst mm). Procedural sources write their clips with it too. */
+export function keysOf(t: Track, budget: number): { keys: Key[]; fit: [number, number] } {
   const moves = t.roots.some((r) => Math.abs(r.forward) > 0.5 || Math.abs(r.right) > 0.5) || (t.loop && (Math.abs(cycleOf(t).forward) > 0.5 || Math.abs(cycleOf(t).right) > 0.5));
   const turns = t.roots.some((r) => Math.abs(r.yaw) > 0.5) || (t.loop && Math.abs(cycleOf(t).yaw) > 0.5);
   const withRoot = (p: Pose, r: Root, time: number): Key => ({ t: ms(time), ...p, ...(moves ? { root: [Math.round(r.forward) + 0, Math.round(r.right) + 0] } : {}), ...(turns ? { yaw: Math.round(r.yaw) + 0 } : {}) }) as unknown as Key;
   const all = t.poses.map((p, i) => withRoot(quantize(p), t.roots[i]!, t.times[i]!));
   // a loop closes on its first pose, each angle taken nearest the frame before it so the last in-between turns the
   // short way (a heading that crossed ±180 in the cycle doesn't swing back round)
-  if (t.loop) all.push(withRoot(quantize(nearestTo(t.poses[0]!, t.poses[t.poses.length - 1]!)), cycleOf(t), t.dur));
+  if (t.loop) all.push(withRoot(quantize(nearestTo(t.poses[0]!, t.poses[t.poses.length - 1]!)), nextCycle(t), t.dur));
   // the frames as points, for choosing keys and measuring them
   const n = all.length, data = new Float32Array(n * P * 3), X = new Float32Array(P * 3);
   t.poses.forEach((p, i) => data.set(decodePose(t.rest, p, X) as Float32Array, i * P * 3));
@@ -173,16 +178,13 @@ function keysOf(t: Track, budget: number): { keys: Key[]; fit: [number, number] 
 }
 
 /** Contacts kept within the clip, sorted, merged where they meet (the format's rule, §7.1). */
-function tidyContacts(c: Contacts | undefined, dur: number): Contacts | undefined {
+export function tidyContacts(c: Contacts | undefined, dur: number, loop = false): Contacts | undefined {
   if (!c) return undefined;
   const out: Contacts = { by: c.by };
   for (const end of CONTACT_ENDS) {
-    const iv = (c[end] ?? []).map(([a, b]): [number, number] => [ms(Math.max(0, a)), ms(Math.min(dur, b))]).filter(([a, b]) => b > a).sort((x, y) => x[0] - y[0]), merged: [number, number][] = [];
-    for (const [a, b] of iv) {
-      const l = merged[merged.length - 1];
-      if (l && a <= l[1]) l[1] = Math.max(l[1], b);
-      else merged.push([a, b]);
-    }
+    // a loop's contact over its seam (`to` past dur) is read as its two parts and written back as one that wraps
+    const iv = (c[end] ?? []).flatMap(([a, b]): [number, number][] => (loop && b > dur + 1e-9 ? [[a, dur], [0, b - dur]] : [[a, b]])).map(([a, b]): [number, number] => [ms(Math.max(0, a)), ms(Math.min(dur, b))]).filter(([a, b]) => b > a);
+    const merged = cyclic(iv, loop ? dur : Infinity);
     if (merged.length) out[end] = merged;
   }
   return CONTACT_ENDS.some((e) => out[e]) ? out : undefined;
@@ -209,9 +211,10 @@ export function compile(recipe: Recipe, resolve: Resolver, opts: { budget?: numb
     named.set(`s${i + 1}`, last);
     if (s.as) named.set(s.as, last);
   });
-  const t = last!, first = used.values().next().value as Resolved, { keys, fit } = keysOf(t, opts.budget ?? KEY_BUDGET);
-  const events = t.events.filter((e) => e.t >= 0 && e.t <= t.dur).sort((a, b) => a.t - b.t), contacts = tidyContacts(t.contacts, t.dur);
-  const inputs = Object.fromEntries([...used.entries()].sort(([a], [b]) => (a < b ? -1 : 1)).map(([id, r]) => [id, r.contentId]));
+  // the clips the result is made from (a step read by none doesn't count), the one whose rest it decodes on first
+  const t = last!, read = t.sources.map((id) => [id, used.get(id)!] as const), first = read[0]![1], { keys, fit } = keysOf(t, opts.budget ?? KEY_BUDGET);
+  const events = t.events.filter((e) => e.t >= 0 && e.t <= t.dur).sort((a, b) => a.t - b.t), contacts = tidyContacts(t.contacts, t.dur, t.loop);
+  const inputs = Object.fromEntries([...read].sort(([a], [b]) => (a < b ? -1 : 1)).map(([id, r]) => [id, r.contentId]));
   const clip: Clip = {
     format: "2.0",
     id: recipe.id,
@@ -221,12 +224,12 @@ export function compile(recipe: Recipe, resolve: Resolver, opts: { budget?: numb
     loop: t.loop,
     fps,
     tags: recipe.tags ?? first.clip.tags,
-    desc: recipe.desc ?? "",
+    desc: recipe.desc ?? first.clip.desc,
     skeleton: "humanoid",
     restSrc: t.restSrc,
     ...(contacts ? { contacts } : {}),
     ...(events.length ? { events } : {}),
-    provenance: { src: first.clip.provenance.src, orig: first.clip.id, method: "composed", producer: RECIPE_PRODUCER, ...licenseOf([...used.values()]), ai: "composite", recipe: { sha256: sha256(canonical(recipe)), inputs } } as Clip["provenance"],
+    provenance: { src: first.clip.provenance.src, orig: first.clip.id, method: "composed", producer: RECIPE_PRODUCER, ...licenseOf(read.map(([, r]) => r)), ai: "composite", recipe: { sha256: sha256(canonical(recipe)), inputs } } as Clip["provenance"],
     quality: { fit, qa: "unchecked", qaVersion: "none" },
     keys,
   };

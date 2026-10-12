@@ -4,6 +4,22 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.36.1 · 2026-10-12
+
+### Core
+- Recipes, after WP-6.1's verifier (D70): a sequence turns each next item's body with the heading the root has
+  reached; a pose `yaw` turns the body with the root, and a loop closes on its first root; a loop's contact over its
+  seam stays one wrapping interval; a blend that can't close and an eased loop play once; `sync` keeps in step only
+  on a step; the clip's inputs are the clips the result is made from; every time a step gives is checked (R-E009);
+  `validateRecipe` ignores JavaScript's own names, refuses a pose `root` and an empty mask, takes a clip's event
+  names and gives every issue a fix; `describeRecipe` counts tokens, not characters; `pin` turns the elbow or knee
+  with the limb's swing and bends it the natural way as the limb straightens.
+
+### Spec
+- `spec/RECIPE.md` matches the compiler (the content id, the inputs, canonical JSON, the defaults); the schema refuses
+  `s1`-style step names and an empty mask (refrozen under D70); four examples replaced by chained ones (a hand on a
+  rail, a timed turn, a jab-cross combo, a walk stiffening along a curve), three descriptions corrected.
+
 ## 0.36.0 · 2026-10-12
 
 ### Spec

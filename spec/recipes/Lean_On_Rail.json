@@ -1,0 +1,51 @@
+{
+ "format": "2.0",
+ "id": "RECIPES/Lean_On_Rail",
+ "name": "Lean On Rail",
+ "tags": [
+  "idle",
+  "interact",
+  "lean"
+ ],
+ "desc": "Standing, resting the right hand on a rail a little in front at waist height, then letting go",
+ "steps": [
+  {
+   "as": "idle",
+   "op": "clip",
+   "id": "MESH2MOTION/Idle_A"
+  },
+  {
+   "as": "rest",
+   "op": "pin",
+   "in": "idle",
+   "end": "handR",
+   "path": [
+    [
+     0.5,
+     60,
+     320,
+     830
+    ],
+    [
+     2.5,
+     60,
+     320,
+     830
+    ]
+   ],
+   "fade": 0.3
+  },
+  {
+   "op": "contacts",
+   "in": "rest",
+   "add": {
+    "handR": [
+     [
+      0.7,
+      2.3
+     ]
+    ]
+   }
+  }
+ ]
+}

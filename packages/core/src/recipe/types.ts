@@ -61,4 +61,6 @@ export interface Track {
   /** The rest body the poses decode on, and its source entry. */
   rest: Rest;
   restSrc: string;
+  /** The library clips the track is made from, in order, the one whose rest it decodes on first. */
+  sources: string[];
 }

@@ -7,14 +7,15 @@ import type { ClipEvent, Contacts } from "../format/types.ts";
 import { CONTACT_ENDS } from "../format/types.ts";
 import { KEY_FIELDS } from "../format/types.ts";
 import { ease } from "../math/helpers.ts";
+import { PORTABLE as PM } from "../math/portable.ts";
 import { addDelta, blend, delta, mask as maskOf, mirrorPose, wrap180, type Mask, type Pose } from "../ops/pose.ts";
 import { phaseMap, syncBlend } from "../ops/sync.ts";
-import { compose, cycleOf, frameTimes, invert, lerpRoot, ms, playable, poseAt, rootAt, shiftContacts, STILL } from "./track.ts";
+import { compose, cycleOf, cyclic, frameTimes, invert, lerpRoot, ms, playable, poseAt, rootAt, shiftContacts, STILL } from "./track.ts";
 import type { Root, Track } from "./types.ts";
 
 /** A track of `dur` at `fps` whose frame at each time comes from `at`. */
-export function build(base: Pick<Track, "rest" | "restSrc" | "fps">, dur: number, loop: boolean, at: (time: number) => { pose: Pose; root: Root }, extra: Partial<Track> = {}): Track {
-  const d = ms(dur), t: Track = { dur: d, loop, fps: base.fps, times: frameTimes(d, loop, base.fps), poses: [], roots: [], events: [], rest: base.rest, restSrc: base.restSrc, ...extra };
+export function build(base: Pick<Track, "rest" | "restSrc" | "fps" | "sources">, dur: number, loop: boolean, at: (time: number) => { pose: Pose; root: Root }, extra: Partial<Track> = {}): Track {
+  const d = ms(dur), t: Track = { dur: d, loop, fps: base.fps, times: frameTimes(d, loop, base.fps), poses: [], roots: [], events: [], rest: base.rest, restSrc: base.restSrc, sources: base.sources, ...extra };
   for (const time of t.times) {
     const f = at(time), last = t.poses[t.poses.length - 1];
     t.poses.push(last ? unwrapped(f.pose, last) : f.pose);
@@ -32,6 +33,20 @@ function unwrapped(p: Pose, before: Pose): Pose {
   }
   return out;
 }
+/** A pose turned by `deg` about the vertical in clip space, as a root turned that much carries it: the pelvis's turn
+ *  (`body[0]`, which carries the heading, MOTION.md §5.3) and its place relative to the root. */
+export function turnPose(p: Pose, deg: number): Pose {
+  if (Math.abs(deg) < 1e-9) return p;
+  const out = { ...p }, c = PM.cos((deg * Math.PI) / 180), s = PM.sin((deg * Math.PI) / 180);
+  if (Array.isArray(p.body)) out.body = [(p.body as number[])[0]! + deg, ...(p.body as number[]).slice(1)];
+  if (Array.isArray(p.hips)) {
+    const [f, r, ...up] = p.hips as number[];
+    out.hips = [f! * c - r! * s, f! * s + r! * c, ...up];
+  }
+  return out;
+}
+/** Every source of these tracks once, in order. */
+const sourcesOf = (...ts: readonly Track[]): string[] => [...new Set(ts.flatMap((t) => t.sources))];
 /** 0 to 1 with zero slope at both ends. */
 export const smoothstep = (u: number): number => (u <= 0 ? 0 : u >= 1 ? 1 : u * u * (3 - 2 * u));
 /** An envelope: 1 within from–to, fading in after `from` and out before `to` over `fade`, 0 outside. */
@@ -118,8 +133,9 @@ export function sequence(items: readonly Track[], fade: number, sync: boolean): 
     let off = 0;
     if (sync) {
       // a's own time when the crossfade starts, its last plant before it, and the same moment of b's step
+      // only a step to keep in: a foot planted since its clip began, or one the next item never lifts, sets no phase
       const at = local(k, c), wrapped = a.loop ? ((at % a.dur) + a.dur) % a.dur : at, p = lastPlant(a.contacts, wrapped), q = p ? (b.contacts?.[p.foot] ?? [])[0] : undefined;
-      if (p && q) {
+      if (p && q && p.t > 1e-3 && !(q[0] <= 1e-3 && q[1] >= b.dur - 1e-3)) {
         const o = q[0] + (wrapped - p.t);
         off = b.loop ? o % b.dur : o + f > b.dur ? 0 : o;
       }
@@ -136,15 +152,16 @@ export function sequence(items: readonly Track[], fade: number, sync: boolean): 
     // the item playing, and the next one while their crossfade runs
     let k = 0;
     while (k < last && time >= cross[k]! + len[k]!) k++;
-    const self = { pose: poseAt(items[k]!, local(k, time)), root: compose(base[k]!, rootAt(items[k]!, local(k, time))) };
+    // each item's poses turned by the heading the sequence has reached when it starts, as its root is
+    const self = { pose: turnPose(poseAt(items[k]!, local(k, time)), base[k]!.yaw), root: compose(base[k]!, rootAt(items[k]!, local(k, time))) };
     if (k === last || time < cross[k]!) return self;
     const w = smoothstep((time - cross[k]!) / Math.max(len[k]!, 1e-9)), nx = items[k + 1]!;
-    return { pose: blendLegs(self.pose, poseAt(nx, local(k + 1, time)), w, items[0]!.rest), root: lerpRoot(self.root, compose(base[k + 1]!, rootAt(nx, local(k + 1, time))), w) };
+    return { pose: blendLegs(self.pose, turnPose(poseAt(nx, local(k + 1, time)), base[k + 1]!.yaw), w, items[0]!.rest), root: lerpRoot(self.root, compose(base[k + 1]!, rootAt(nx, local(k + 1, time))), w) };
   };
   const events: ClipEvent[] = [], contacts: Contacts = { by: "detected" };
   items.forEach((it, k) => {
     // what an item holds at its own time t falls at t − from + t0 (a loop's earlier part a cycle on)
-    const lo = k ? cross[k - 1]! : 0, hi = k < last ? cross[k]! + len[k]! / 2 : dur, shifts = it.loop ? [t0[k]! - from[k]!, t0[k]! - from[k]! + it.dur] : [t0[k]! - from[k]!];
+    const lo = k ? cross[k - 1]! : 0, hi = k < last ? cross[k]! + len[k]! / 2 : dur, shifts = it.loop ? [t0[k]! - from[k]! - it.dur, t0[k]! - from[k]!, t0[k]! - from[k]! + it.dur] : [t0[k]! - from[k]!];
     for (const d of shifts) {
       for (const e of it.events) if (e.t + d >= lo && e.t + d <= hi) events.push({ ...e, t: ms(e.t + d) });
       const moved = shiftContacts(it.contacts, (x) => x + d, dur);
@@ -152,7 +169,8 @@ export function sequence(items: readonly Track[], fade: number, sync: boolean): 
     }
   });
   events.sort((x, y) => x.t - y.t);
-  return build(items[0]!, dur, false, at, { events, contacts });
+  for (const e of CONTACT_ENDS) if (contacts[e]) contacts[e] = cyclic(contacts[e]!, Infinity);
+  return build(items[0]!, dur, false, at, { events, contacts, sources: sourcesOf(...items) });
 }
 
 /** A weight that is a number or a curve [[t, w], …] read at a time (linear between its points, held past its ends). */
@@ -169,23 +187,25 @@ export function weightAt(w: number | [number, number][], time: number): number {
  * by w (its mean, for a curve); unwarped, both at the same time over a's duration.
  */
 export function blendTracks(a: Track, b: Track, w: number | [number, number][], warp: boolean): Track {
-  const mean = typeof w === "number" ? w : w.reduce((s, p) => s + p[1], 0) / w.length, mix = steady();
+  const mean = typeof w === "number" ? w : w.reduce((s, p) => s + p[1], 0) / w.length, mix = steady(), sources = sourcesOf(a, b);
+  // a blend of two loops loops only where it closes: its weight the same at both ends, and read in step or as long
+  const closes = (dur: number) => Math.abs(weightAt(w, 0) - weightAt(w, dur)) < 1e-6;
   if (warp && a.loop && b.loop) {
     const ma = phaseMap(playable(a), a.contacts), mb = phaseMap(playable(b), b.contacts), s = syncBlend(playable(a), ma, playable(b), mb, mean, { rest: a.rest });
-    const cycle = lerpRoot(cycleOf(a), cycleOf(b), mean);
-    return build(a, s.dur, true, (time) => {
+    const cycle = lerpRoot(cycleOf(a), cycleOf(b), mean), loop = closes(s.dur);
+    return build(a, s.dur, loop, (time) => {
       // the pelvis, legs and feet blended as points (a foot both plant stays down, and a foot's heading, which a foot
       // pointing down leaves loose, comes out as its points show it), the rest as numbers held steady
       const p = time / s.dur, pa = poseAt(a, ma.time(p)), pb = poseAt(b, mb.time(p)), k = weightAt(w, time), nb = mix(pa, pb, k);
       return { pose: typeof w === "number" ? pointLegs(pa, pb, k, a.rest, nb, LEGS_AND_FEET) : nb, root: lerpRoot(rootAt(a, ma.time(p)), rootAt(b, mb.time(p)), mean) };
-    }, { cycle, contacts: s.contacts, events: a.events.map((e) => ({ ...e, t: ms((ma.phase(e.t) * s.dur)) })) });
+    }, { ...(loop ? { cycle } : {}), contacts: loop ? s.contacts : shiftContacts(s.contacts, (x) => x, ms(s.dur)), events: a.events.map((e) => ({ ...e, t: ms((ma.phase(e.t) * s.dur)) })), sources });
   }
-  const dur = warp ? a.dur + (b.dur - a.dur) * mean : a.dur;
+  const dur = warp ? a.dur + (b.dur - a.dur) * mean : a.dur, loop = a.loop && b.loop && closes(dur) && (warp || Math.abs(a.dur - b.dur) < 1e-3);
   const ta = (time: number) => (warp ? (time / dur) * a.dur : time), tb = (time: number) => (warp ? (time / dur) * b.dur : time);
-  return build(a, dur, a.loop && b.loop, (time) => {
+  return build(a, dur, loop, (time) => {
     const k = weightAt(w, time);
     return { pose: mix(poseAt(a, ta(time)), poseAt(b, tb(time)), k), root: lerpRoot(rootAt(a, ta(time)), rootAt(b, tb(time)), k) };
-  }, { events: a.events.map((e) => ({ ...e, t: ms(warp ? (e.t / a.dur) * dur : e.t) })).filter((e) => e.t <= dur), ...(a.contacts ? { contacts: shiftContacts(a.contacts, (x) => (warp ? (x / a.dur) * dur : x), dur)! } : {}), ...(a.loop && b.loop ? { cycle: lerpRoot(cycleOf(a), cycleOf(b), mean) } : {}) });
+  }, { events: a.events.map((e) => ({ ...e, t: ms(warp ? (e.t / a.dur) * dur : e.t) })).filter((e) => e.t <= dur), ...(a.contacts ? { contacts: shiftContacts(a.contacts, (x) => (warp ? (x / a.dur) * dur : x), dur, a.loop && loop, a.dur)! } : {}), ...(loop ? { cycle: lerpRoot(cycleOf(a), cycleOf(b), mean) } : {}), sources });
 }
 
 /**
@@ -198,7 +218,7 @@ export function layer(base: Track, over: Track, m: Mask | undefined, weight: num
   return build(base, base.dur, both, (time) => {
     const b = poseAt(base, time), o = poseAt(over, at(time));
     return { pose: additive ? addDelta(b, delta(o, ref), weight, m) : mix(b, o, Math.min(1, weight), m), root: rootAt(base, time) };
-  }, { events: [...base.events, ...over.events.map((e) => ({ ...e, t: ms(both ? (e.t / over.dur) * base.dur : e.t) })).filter((e) => e.t <= base.dur)].sort((x, y) => x.t - y.t), ...(base.contacts ? { contacts: base.contacts } : {}), ...(both ? { cycle: cycleOf(base) } : {}) });
+  }, { events: [...base.events, ...over.events.map((e) => ({ ...e, t: ms(both ? (e.t / over.dur) * base.dur : e.t) })).filter((e) => e.t <= base.dur)].sort((x, y) => x.t - y.t), ...(base.contacts ? { contacts: base.contacts } : {}), ...(both ? { cycle: cycleOf(base) } : {}), sources: sourcesOf(base, over) });
 }
 
 /** Left and right swapped: poses, the root's sideways travel and turn, and the contacts. */
@@ -210,7 +230,8 @@ export function mirror(t: Track): Track {
 
 /** The ease curves `retime` takes by name. */
 const EASES = { in: ease.inQuad, out: ease.outQuad, inOut: ease.inOut } as const;
-/** Retimed: `speed` times as fast, to `dur` seconds, or through an ease (the result at u shows the track at E(u)). */
+/** Retimed: `speed` times as fast, to `dur` seconds, or through an ease (the result at u shows the track at E(u); an
+ *  eased loop plays once). */
 export function retime(t: Track, how: { speed?: number; dur?: number; ease?: keyof typeof EASES }): Track {
   const dur = how.speed ? t.dur / how.speed : how.dur ?? t.dur, E = how.ease ? EASES[how.ease] : null;
   const src = (time: number) => (E ? E(Math.min(1, Math.max(0, time / dur))) * t.dur : (time / dur) * t.dur);
@@ -225,7 +246,9 @@ export function retime(t: Track, how: { speed?: number; dur?: number; ease?: key
     }
     return (lo + hi) / 2;
   };
-  return build(t, dur, t.loop, (time) => ({ pose: poseAt(t, src(time)), root: rootAt(t, src(time)) }), { events: t.events.map((e) => ({ ...e, t: ms(inverse(e.t)) })), ...(t.contacts ? { contacts: shiftContacts(t.contacts, inverse, ms(dur))! } : {}), ...(t.cycle ? { cycle: t.cycle } : {}) });
+  // an ease starts and ends at rest, so an eased loop would stall at its seam: it plays once
+  const loop = t.loop && !E;
+  return build(t, dur, loop, (time) => ({ pose: poseAt(t, src(time)), root: rootAt(t, src(time)) }), { events: t.events.map((e) => ({ ...e, t: ms(inverse(e.t)) })), ...(t.contacts ? { contacts: shiftContacts(t.contacts, inverse, ms(dur), loop, t.dur)! } : {}), ...(loop && t.cycle ? { cycle: t.cycle } : {}) });
 }
 
 /** The parts a pose step moves: per field, per part index, the amount. */
@@ -242,7 +265,8 @@ export function poseDeltas(t: Track, parts: Parts, from: number, to: number, fad
       for (const [part, amount] of Object.entries(by as Record<string, number>)) v[spec.parts.indexOf(part)]! += amount * e;
       p[f] = v;
     }
-    return { pose: p, root: typeof parts.yaw === "number" ? { ...r, yaw: r.yaw + parts.yaw * e } : r };
+    // a yaw turns the character: its root and, in clip space, its body (MOTION.md §5.3)
+    return typeof parts.yaw === "number" ? { pose: turnPose(p, parts.yaw * e), root: { ...r, yaw: r.yaw + parts.yaw * e } } : { pose: p, root: r };
   }, { events: t.events, ...(t.contacts ? { contacts: t.contacts } : {}), ...(t.cycle ? { cycle: t.cycle } : {}) });
 }
 
@@ -254,12 +278,9 @@ export function addEvents(t: Track, add: readonly ClipEvent[]): Track {
 export function addContacts(t: Track, add: Partial<Record<(typeof CONTACT_ENDS)[number], [number, number][]>>): Track {
   const out: Contacts = { by: "labelled" };
   for (const end of CONTACT_ENDS) {
-    const all = [...(t.contacts?.[end] ?? []), ...(add[end] ?? [])].map(([a, b]): [number, number] => [ms(a), ms(b)]).sort((x, y) => x[0] - y[0]), merged: [number, number][] = [];
-    for (const [a, b] of all) {
-      const l = merged[merged.length - 1];
-      if (l && a <= l[1]) l[1] = Math.max(l[1], b);
-      else merged.push([a, b]);
-    }
+    // a loop's contact over its seam is read as its two parts, then written the format's way again
+    const all = [...(t.contacts?.[end] ?? []), ...(add[end] ?? [])].flatMap(([a, b]): [number, number][] => (t.loop && b > t.dur + 1e-9 ? [[a, t.dur], [0, b - t.dur]] : [[a, b]])).map(([a, b]): [number, number] => [ms(a), ms(b)]);
+    const merged = cyclic(all, t.loop ? t.dur : Infinity);
     if (merged.length) out[end] = merged;
   }
   return { ...t, contacts: out };

@@ -1,0 +1,45 @@
+{
+ "format": "2.0",
+ "id": "RECIPES/Jab_Cross_Combo",
+ "name": "Jab Cross Combo",
+ "tags": [
+  "attack",
+  "unarmed"
+ ],
+ "desc": "A jab, then a cross, each with a hit event where the fist lands",
+ "steps": [
+  {
+   "as": "jab",
+   "op": "clip",
+   "id": "MESH2MOTION/Punch_Jab"
+  },
+  {
+   "as": "cross",
+   "op": "clip",
+   "id": "MESH2MOTION/Punch_Cross"
+  },
+  {
+   "as": "combo",
+   "op": "sequence",
+   "items": [
+    "jab",
+    "cross"
+   ],
+   "fade": 0.15
+  },
+  {
+   "op": "events",
+   "in": "combo",
+   "add": [
+    {
+     "t": 0.3,
+     "name": "hit"
+    },
+    {
+     "t": 1.0,
+     "name": "hit"
+    }
+   ]
+  }
+ ]
+}
