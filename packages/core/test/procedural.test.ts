@@ -330,6 +330,20 @@ describe("a gait", () => {
       }
     }
   }, 30_000);
+  it("closes its loop at any cycle: its frames evenly spaced, each knee's twist meeting its first across the seam", () => {
+    // off the 60 fps grid (a run of 0.705 s, a walk of 1.102 s) and on it with the knees swung widest (a run lifting 35%
+    // and swaying 4%): the verifier's, whose last frame came 5 ms before the seam with the knees turned 9° to 23° on
+    const src = load("MESH2MOTION/Idle_A"), [walk, , run] = PR.GAITS;
+    for (const g of [{ ...run!, cycle: 0.705 }, { ...walk!, cycle: 1.102 }, { ...run!, lift: 35, sway: 4 }]) {
+      const c = PR.gaitClip(g, src.rest, { restSrc: src.clip.restSrc }), n = Math.round(g.cycle * 60), times = Array.from({ length: n }, (_, i) => Math.round((i * g.cycle * 1000) / n) / 1000);
+      expect([g.cycle, c.dur, c.keys.every((k) => times.includes(k.t) || k.t === c.dur)]).toEqual([g.cycle, g.cycle, true]);
+      for (const l of ["armL", "armR", "legL", "legR"]) {
+        const tw = [...times, c.dur].map((t) => (keyAt(c, t) as unknown as Record<string, number[]>)[l]![4]!), steps = tw.slice(1).map((x, i) => Math.abs(x - tw[i]!));
+        // the seam's step no larger than the largest of the cycle's own (a degree's rounding aside)
+        expect([g.cycle, l, steps.at(-1)! <= Math.max(...steps.slice(0, -1)) + 1]).toEqual([g.cycle, l, true]);
+      }
+    }
+  }, 30_000);
   it("swings the arms against the legs and leans its torso as told", () => {
     const src = load("MESH2MOTION/Idle_A"), walk = PR.GAITS.find((g) => g.name === "walk")!, c = PR.gaitClip(walk, src.rest, { restSrc: src.clip.restSrc });
     // the right foot lands ahead at 0 with the left hand forward, the left at half a cycle with the right hand forward
@@ -381,8 +395,14 @@ describe("a gait", () => {
     expect(play({ lift: 40 })).toThrow(/lift 40 is not 9 to 35 .*knees pop/);
     expect(play({ sway: 5 })).toThrow(/sway 5 is not 0 to 4/);
     expect(play({ bounce: -1 })).toThrow(/bounce -1 is not 0 to 6/);
+    expect(play({ dip: 13 })).toThrow(/dip 13 is not 0 to 12/);
+    expect(play({ lean: 26 })).toThrow(/lean 26 is not -10 to 25 degrees/);
     expect(play({ swing: 90 })).toThrow(/swing 90 is not 0 to 80 degrees/);
-    expect(play({ speed: 600, cycle: 1.2 })).toThrow(/reach \d+% of a leg .* past 75%: slow it/);
+    expect(play({ speed: 380, cycle: 1.2, stance: 0.5 })).toThrow(/reach \d+% of a leg .* past 75%: slow it/);
+    // a foot swinging forward past the hips faster than 4 hip heights a second: a long stance's knee popped mid-swing
+    // (the verifier's 140 % a second at stance 0.75, on 13 of 64 rests)
+    expect(play({ speed: 140, cycle: 0.8, stance: 0.75 })).toThrow(/its right foot swings forward past the hips at 420% of the hip height a second, over 400: .*; use a lower speed or a shorter stance$/);
+    expect(play({ speed: 110, cycle: 1.05, stance: 0.62, limp: 1 })).toThrow(/at 457% .* or a lighter limp$/);
   });
   it("offers the presets D71 measured", () => {
     expect(PR.GAITS.map((g) => [g.name, g.speed, g.cycle, g.stance, g.lift ?? 12, g.limp ?? 0])).toEqual([["walk", 130, 1.1, 0.6, 12, 0], ["brisk", 170, 1, 0.58, 12, 0], ["run", 350, 0.7, 0.35, 25, 0], ["limp", 90, 1.3, 0.62, 12, 0.8]]);

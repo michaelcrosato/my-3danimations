@@ -75,7 +75,7 @@ export const GATES: Record<string, [string, string, ...string[]][]> = {
     ["the pinned sources, for the moves", "pins", "fetch"],
     ["vectors --check", "vectors", "--check"],
     ["library/moves.json as the pinned sources give it", "moves", "--check"],
-    ["T2: browser checks and library QA", "e2e"],
+    ["T2: browser checks, library QA and the sweeps T1 samples, in full", "e2e"],
   ],
 };
 

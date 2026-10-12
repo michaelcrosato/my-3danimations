@@ -8,8 +8,9 @@
 // (each foot from its touchdown to its lift-off). The root and pelvis are put on the format's grid before the feet are
 // aimed, and each planted leg's rounded numbers are chosen to keep its ankle within the format's rounding (a leg's
 // direction is held in hundredths: about 4 mm) of where it landed, through the in-betweening too. A gait it can't play
-// (a stride past the legs' reach, a swing under 0.2 s, a number past the range the sensors pass) is refused with what
-// to change.
+// (a stride past the legs' reach, a swing under 0.2 s or faster past the hips than 4 hip heights a second, a number
+// past the range the sensors pass) is refused with what to change. The frames are spread evenly over the cycle, and each
+// knee's turn about its leg, carried on from frame to frame, is closed over it, so the loop meets itself.
 import { IDX, P, type Rest } from "../format/body.ts";
 import { add, len, mul, qmul, qrot, sub, type Quat, type V3 } from "../format/math.ts";
 import { decodePose, encodePose, type KeyLike } from "../format/pose.ts";
@@ -17,7 +18,6 @@ import type { Clip, Contacts } from "../format/types.ts";
 import { PORTABLE as PM } from "../math/portable.ts";
 import type { Pose } from "../ops/pose.ts";
 import { quantize } from "../recipe/compile.ts";
-import { frameTimes } from "../recipe/track.ts";
 import type { Root, Track } from "../recipe/types.ts";
 import { Limbs } from "./limbs.ts";
 import { bodyOf, clipOfTrack, standingOn, type ProceduralOptions } from "./clip.ts";
@@ -145,6 +145,12 @@ const RANGES: readonly [keyof Gait, number, number, string][] = [
  * (core's contact bands, the sensors' too), and in a swing under 0.19 s it is up above their 7% for less than that.
  */
 const MIN_SWING = 0.2;
+/**
+ * The fastest a swinging foot may come forward past the hips, % of the hip height a second (its stride over its swing:
+ * the speed times its stance over its swing, whatever the cycle): at 420 a long stance's knee pops mid-swing on some
+ * bodies (stance 0.75 at 140 on 13 of 64 rests); at 402 and under none did (D71, round 3).
+ */
+const SWING_SPEED = 400;
 /** A gait's numbers checked: in range, and each foot given time to swing (a limp's strong foot most of all). */
 export function checkGait(g: Gait): void {
   const bad = (what: string) => {
@@ -164,6 +170,8 @@ export function checkGait(g: Gait): void {
   if (right > 0.85) bad(`a limp of ${limp} on a stance of ${g.stance} leaves the right foot ${Math.round((1 - right) * 100)}% of the cycle to swing: use a shorter stance or a lighter limp`);
   const swingT = Math.min(1 - right, 1 - left) * g.cycle;
   if (swingT < MIN_SWING) bad(`its ${1 - right < 1 - left ? "right" : "left"} foot swings for ${swingT.toFixed(3)} s, under ${MIN_SWING} s: a foot up for under 0.1 s reads as never leaving the floor; use a longer cycle, a shorter stance${limp > 0 ? " or a lighter limp" : ""}`);
+  const pace = (share: number) => (g.speed * share) / (1 - share), fast = Math.max(pace(right), pace(left));
+  if (fast > SWING_SPEED) bad(`its ${pace(right) >= pace(left) ? "right" : "left"} foot swings forward past the hips at ${Math.round(fast)}% of the hip height a second, over ${SWING_SPEED}: a knee pops mid-swing on some bodies; use a lower speed or a shorter stance${limp > 0 ? " or a lighter limp" : ""}`);
 }
 
 /** The gaits the library offers ready made: an easy walk, a brisk one, a run and a limp. */
@@ -179,7 +187,10 @@ export function gaitClip(g: Gait, rest: Rest, opts: ProceduralOptions): Clip {
   checkGait(g);
   const fps = opts.fps ?? 60, start = opts.start ?? standingOn(rest), S = new Float32Array(P * 3);
   decodePose(rest, start as KeyLike, S);
-  const b = bodyOf(rest, S), pct = rest.H0 / 100, dur = Math.round(g.cycle * 1000) / 1000, times = frameTimes(dur, true, fps);
+  // the frames spread evenly over the cycle (to the ms), so the last is as far from the seam as from the one before:
+  // on the rate's grid, a cycle off it would leave its seam a step of a few ms, and any difference there reads as a pop
+  const b = bodyOf(rest, S), pct = rest.H0 / 100, dur = Math.round(g.cycle * 1000) / 1000, nf = Math.max(1, Math.round(dur * fps));
+  const times = Array.from({ length: nf }, (_, i) => Math.round((i * dur * 1000) / nf) / 1000);
   const lift = (g.lift ?? 12) * pct, limp = g.limp ?? 0;
   // the right foot lands at phase 0 and the left at landL; a limp's weak left leg stands for less, landing late enough
   // and the right standing long enough that each hand-over keeps the plain gait's double support (none in a run)
@@ -205,10 +216,8 @@ export function gaitClip(g: Gait, rest: Rest, opts: ProceduralOptions): Clip {
   const dip = Math.max((g.dip ?? 2) * pct, high - reachable);
   const t: Track = { dur, loop: true, fps, times, poses: [], roots: [], events: [], rest, restSrc: opts.restSrc, sources: [], cycle: { forward: g.speed * g.cycle, right: 0, yaw: 0 } };
   const limbs = new Limbs(S);
-  let hint: Pose = start;
-  // each frame's points, unrounded pose and whether each foot is still in the world, for the second pass
-  const frames: { X: Float32Array; raw: Pose; stand: Record<"L" | "R", boolean> }[] = [];
-  for (const time of times) {
+  /** The points, unrounded pose and root of the frame at `time`, and whether each foot is still in the world. */
+  const frameAt = (time: number, hint: Pose) => {
     const phase = time / dur, X = Float32Array.from(S), stand = { L: false, R: false };
     // the pelvis: lowered, bouncing twice a cycle (lowest just after each touchdown), swaying over the standing foot,
     // dropping over the weak leg while it stands
@@ -236,12 +245,35 @@ export function gaitClip(g: Gait, rest: Rest, opts: ProceduralOptions): Clip {
       limbs.reach(X, `hand${s}`, add(sh, mul([PM.sin(sw), side * 0.12, -PM.cos(sw)], armLen * 0.94)));
     }
     const e = encodePose(rest, X, hint as KeyLike, { hands: hint.handL !== undefined || hint.handR !== undefined, round: false }), { t: _t, root: _r, yaw: _y, ...raw } = e;
-    const pose = snapLegs(rest, raw, X);
+    return { X, raw: raw as Pose, stand, rootF };
+  };
+  // each frame's points, unrounded pose and whether each foot is still in the world, for the second pass
+  const frames: { X: Float32Array; raw: Pose; stand: Record<"L" | "R", boolean> }[] = [];
+  let hint: Pose = start;
+  for (const time of times) {
+    const f = frameAt(time, hint), pose = snapLegs(rest, f.raw, f.X);
     t.poses.push(pose);
-    t.roots.push({ forward: rootF, right: 0, yaw: 0 } satisfies Root);
-    frames.push({ X, raw, stand });
+    t.roots.push({ forward: f.rootF, right: 0, yaw: 0 } satisfies Root);
+    frames.push(f);
     hint = pose;
   }
+  // the loop closed: each knee is carried on from the frame before, so over a cycle its turn about the line from the
+  // hip to the ankle drifts (3° on a walk, 8° on a run, 22° on a run lifting 35%), and the first frame, from the start
+  // pose, doesn't meet the last. The frame after the last (the seam's, the knees carried on) says how far each leg's
+  // twist drifted, and it is taken back a share at a time over the cycle: a turn about that line moves no ankle, so a
+  // planted foot stays where it is (whole turns aside: they move nothing). The elbows come back: their swing retraces
+  // itself.
+  const after = frameAt(dur, hint).raw, turned = (d: number) => d - 360 * Math.round(d / 360);
+  const drift = ["legL", "legR"].map((l) => [l, turned((after[l] as number[])[4]! - (frames[0]!.raw[l] as number[])[4]!)] as const).filter(([, d]) => Math.abs(d) > 1e-6);
+  if (drift.length)
+    frames.forEach((f, i) => {
+      for (const [l, d] of drift) {
+        const v = [...(f.raw[l] as number[])];
+        v[4] = v[4]! - (d * times[i]!) / dur;
+        f.raw[l] = v;
+      }
+      t.poses[i] = snapLegs(rest, f.raw, f.X);
+    });
   // the second pass: while each foot is still in the world (set down, standing, lifting off), its ankle snapped to where
   // it was first rounded to over the floor (in the world, so in the root's frame it goes back as the root comes on),
   // not to where it ideally is: its rounding then wanders half as far over the contact

@@ -4,6 +4,22 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.42.1 · 2026-10-12
+
+### Core
+- A gait's loop meets itself at any cycle: its frames spread evenly over it, and each knee's turn about the leg, which
+  drifted 3° to 22° over a cycle, closed over it (D71, the verifier's round 3).
+- A gait whose foot swings forward past the hips faster than 400% of the hip height a second is refused: a long
+  stance's knee popped mid-swing (D71).
+
+### Tools
+- The manual's "Make: actions": an action's fields, compiling, its root curve, cutting at an interrupt point, paired
+  actions, a gait of one's own (D77).
+
+### Repo
+- Tests: the seam, the short swings' slide, the swing's speed, the dip's and lean's ranges (D71).
+- WP-2.5's Verify, AGENTS.md's T2 row and G6's e2e step say what T1 samples and T2 runs in full (D74).
+
 ## 0.42.0 · 2026-10-12
 
 ### Library

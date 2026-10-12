@@ -29,7 +29,7 @@ why. This file is how.
 |---|---|---|---|
 | `npm run check` | T0 | typecheck, lint, quick doctrine checks | 15 s |
 | `npm test` | T1 | unit, conformance, sensors on a sample | 90 s |
-| `npm run e2e` | T2 | browser adapter checks, full library QA | 8 min |
+| `npm run e2e` | T2 | browser adapter checks, full library QA, the library-wide sweeps T1 samples, in full (D74) | 8 min |
 | `npm run test:changed` | | the suites covering files changed against `main`, saying why each ran | |
 | `npm run test:cross-engine` | | the portable math, a quaternion chain, the helpers and the Animator's script in V8 and JavaScriptCore (Bun), bit for bit, with each function's cost | |
 | `npm run qa [-- --sample N] [--dist] [--check] [--fix]` | | the sensors over the migrated library: verdicts, the metrics that fail most, the distributions the thresholds come from; `--check` against the committed baseline (`--baseline` rewrites it, in a commit that says why); `--fix` lints and fixes every clip, failing on any that comes out worse or invalid | |

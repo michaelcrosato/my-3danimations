@@ -255,6 +255,38 @@ writeFileSync("wave.json", serialize(clip));                   // the clip, as t
 - **What changed:** `measureFacts(clip, rest)` gives `strike` (when the fastest fist or foot moves fastest), `speed`,
   `travel` and `height`; compare an edit's with its source's.
 
+## Make: actions
+
+An action is a recipe with the ground it ends on, its beats and the moments it may be cut (a climb, a get-up, a roll):
+
+```json
+{
+  "format": "2.0", "id": "ACTIONS/Climb_Up", "desc": "Pulls up onto a ledge and steps on",
+  "steps": [{ "op": "clip", "id": "MESH2MOTION/ClimbUp_1m_RM", "to": 0.6 }],
+  "floor": 115,
+  "beats": [{ "name": "pull", "from": 0, "to": 0.3 }, { "name": "step_on", "from": 0.3, "to": 0.6 }],
+  "interrupts": [{ "t": 0.45, "to": ["PROCEDURAL/Walk"], "why": "both feet on the ledge" }]
+}
+```
+
+`floor` is the ground it ends on, % of the hip height above where it starts (a hop down's is below 0). A step may read
+`PROCEDURAL/Walk`, `Brisk`, `Run`, `Limp`, `Breathe` or `Fidget`: a gait or idle made on the action's body
+(`procedural.gaitClip(g, rest, { restSrc })` makes one with your own speed, cycle and stance).
+
+```ts
+import { actions } from "@m3a/core";
+
+const c = actions.compileAction(a, openLibrary().resolver());  // c.clip: events at each beat's start, and "interrupt"
+actions.actionRootAt(c, t);                // { forward, right, yaw, up } (% of the hip height): move and raise the character
+const cut = actions.interruptAt(c, t);     // the next cut from t: { t, to, why }
+actions.interruptInto(c, cut!, "PROCEDURAL/Walk").clip;  // the action to the cut, faded into the walk on the ledge
+```
+
+Two characters timed together (a jab and the flinch it lands on): a paired action, `{ "sync": "hit", "roles": {
+"attacker": { "steps": […] }, "victim": { "steps": […], "place": [105, 0, 180] } } }`, each role's steps carrying the
+`sync` event (an `events` step adds it); `actions.compilePaired(p, resolve)`, and `actions.pairAt(c, t)` gives each
+role's clip time and root.
+
 ## Check: sensors and sheets
 
 ```ts

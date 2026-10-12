@@ -2253,8 +2253,40 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
     it, and the whole file where the pinned sources are. Without them `carry.ts` says to fetch them, and G6 fetches
     them before checking the moves (its label said it did). The about lines and the alternates are shardfall's, so
     only that second test and G6 see an edit to them.
+- **Verifier, round 3** (at 9ad1b39): not done, one blocking finding, older than round 2 (a1dc1fd gives the same
+  numbers). Its grids had cycles on 0.05 s and changed one number at a time. Fixed or answered in v0.42.1, every finding:
+  - **A loop didn't meet itself at the seam** (blocking). Each knee is carried on from the frame before, so over a
+    cycle its turn about the leg drifted (3° on a walk, 8° on a run, 22° on a run lifting 35% and swaying 4%), and the
+    first frame, from the start pose, didn't meet the last. And on the frame grid a cycle off it left its last frame
+    1 to 16 ms before the seam, where that step, or a pelvis rounding a whole % of H0, read as a pop. Within 50 ms of
+    the presets' cycles 326 of 1,212 clips failed at the seam on the three rests; a run lifting 35% and swaying 4%
+    failed on all 64 rests (237 of the 1,280 combinations of the ranges' ends). The frames are now spread evenly over
+    the cycle, and the frame after the last says how far each knee drifted, taken back a share at a time over the
+    cycle: a turn about the leg moves no ankle, so the feet are where they were (the presets on 64 rests are as before,
+    none failing, worst 10.1 mm). The elbows come back by themselves (0° on every preset). Now 0 of the 1,212 fail,
+    and 0 of the 1,280. Off the frame grid a clip's keys fall between the sensors' frames, which read the in-betweens:
+    the worst slide there is 14.2 mm (a brisk walk of 0.997 s on 100STYLE; 6.8 before), on the grid 12.5 as before.
+  - **A long fast stride popped a knee mid-swing.** At 0.2 s of swing, a stance of 0.75 at 140% of H0 a second failed
+    on 12 of 64 rests (CMU's and Quaternius'), at 0.95 s on 1, and at 160 on two of the three. A grid by how fast the
+    swinging foot comes forward past the hips (its stride over its swing: the speed times its stance over its swing,
+    whatever the cycle), 36 gaits on all 64 rests, read none failing at 402 and under; at 420 the stance of 0.75 failed
+    13 of 128, while stances of 0.7 and 0.65 at 420 to 427 and a full limp at 457 passed. A foot faster than 400 is
+    refused with what to change (a lower speed, a shorter stance, a lighter limp); the presets' fastest is the limp's
+    strong foot, 299. Off the frame grid, swings of 0.17 to 0.30 s (1,596 gaits on three rests): 450 refused, 3 failed
+    (each that knee pop, now refused; at 9ad1b39 132 of 886 failed), worst slide 13.5 mm.
+  - **Records:** "every swing of 0.19 s or more passes" (round 2) held for its grids only: it is a swing of 0.2 s or
+    more, at most 400 a second past the hips, now measured as above; the ranges' ends hold together too, not only one
+    at a time; off the presets the gaits slide up to 14.2 mm, not 12.7.
+  - **Tests:** the frames' spacing and each knee's twist across the seam (a run of 0.705 s, a walk of 1.102 s, a run
+    lifting 35% and swaying 4%); those three on the three rests under the sensors; two swings of 0.2 s held to their
+    slide (7.6 and 13.1 mm on 100STYLE, bars 9 and 14: lifting off as round 2 did, they slid 500 to 690 mm, a mutant
+    no test saw); the swing's speed, the dip's and the lean's ranges refused. Of seven mutants of this round's fixes and
+    the verifier's survivors (the frames on the grid, no closing, no cap, round 2's lift-off, any dip, any lean), six
+    fail them; the seventh, the elbows left out of the closing, changes nothing, so the closing is the knees'.
+  - **D74's loose ends:** WP-2.5's Verify says T1 reads every third loop and `M3A_FULL=1` or T2 all; AGENTS.md's T2
+    row and G6's e2e step name the sweeps; T1 back within its budget is D77's.
 - **Answered:** no: made without a response, to review.
-- **Landed in:** v0.37.0, v0.37.2, v0.39.1
+- **Landed in:** v0.37.0, v0.37.2, v0.39.1, v0.42.1
 
 ## D72 · 2026-10-12 · Actions: multi-beat motions with their ground, beats and interrupt points (WP-6.3)
 
@@ -2499,5 +2531,9 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   - **T1:** with six graders it took 97–100 s, over its 90 s budget. D74's sampling now covers the two files it
     missed: B1's grader grades gen-37 only in T2's full step, as the others do, and describe's token count reads every
     third clip (all of them in T2): 88.6 s.
+  - **The manual's actions** (v0.42.1): WP-6.6's make sections name actions too, which 6.6b left out. "Make: actions"
+    gives an action's fields with the ledge climb inline (it compiles on the CC0 sets an agent's workspace has; the get
+    up, the vault and the hop down read CMU's clips, which it doesn't), compiling, the root curve with its `up`, cutting
+    at an interrupt point, paired actions and a gait of one's own: 5,564 of 8,000 tokens, each snippet run as written.
 - **Answered:** no: made without a response, to review.
-- **Landed in:** v0.42.0
+- **Landed in:** v0.42.0, v0.42.1
