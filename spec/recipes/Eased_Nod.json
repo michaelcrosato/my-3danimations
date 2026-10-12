@@ -1,0 +1,21 @@
+{
+ "format": "2.0",
+ "id": "RECIPES/Eased_Nod",
+ "name": "Eased Nod",
+ "tags": [
+  "gesture"
+ ],
+ "desc": "A nod that starts slow and ends slow",
+ "steps": [
+  {
+   "as": "nod",
+   "op": "clip",
+   "id": "MESH2MOTION/Head_Nod"
+  },
+  {
+   "op": "retime",
+   "in": "nod",
+   "ease": "inOut"
+  }
+ ]
+}

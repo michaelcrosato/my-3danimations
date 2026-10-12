@@ -1,0 +1,21 @@
+{
+ "format": "2.0",
+ "id": "RECIPES/Talk_Short_Loop",
+ "name": "Talk short loop",
+ "tags": [
+  "talk",
+  "idle",
+  "loop"
+ ],
+ "desc": "A stretch of a talking idle cut out and closed into a shorter loop",
+ "steps": [
+  {
+   "as": "talk",
+   "op": "clip",
+   "id": "MESH2MOTION/Idle_Talking",
+   "from": 0.5,
+   "to": 2.0,
+   "loop": 0.3
+  }
+ ]
+}

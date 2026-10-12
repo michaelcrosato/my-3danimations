@@ -1973,3 +1973,37 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   answers keep that seen. The floors stand on clips the verifier reads as what their tags say.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.35.2
+
+## D70 · 2026-10-12 · Recipes: clips made from clips (WP-6.1)
+
+- **Principle:** 1, 3, 4, D10, D32
+- **Call:** a recipe is JSON (`spec/RECIPE.md`): an id and description and a list of steps, each one operation on
+  library clips or on earlier steps by name. Fifteen operations: `clip` (slice, loop), `sequence` (crossfades, in step
+  on the contacts), `blend` (time-warped, a weight or a curve), `layer` (mask, weight, additive), `mirror`, `retime`
+  (speed, length, ease), `pose` (deltas over a span), `look` and `pin` (IK), `exaggerate`, `smooth`, `overshoot`,
+  `stiffen`, `events` and `contacts`. `recipe.compile` (`@m3a/core`) runs the steps on tracks (frames every 1/fps s,
+  roots composed so travel never jumps), fits keys within 30 mm the way an import does, and writes a format-2 clip
+  whose provenance is `composed`/`composite` with the recipe's SHA-256 (canonical JSON) and its inputs' content ids,
+  under the license its inputs force (D10). The same recipe and inputs give the same bytes. `validateRecipe` gives
+  coded issues R-E001–R-E007 with where and a fix; compiling adds R-E008 (an unknown clip, the nearest named) and
+  R-E009 (a time past its track). `describeRecipe` says it in one line, at most 100 tokens.
+  - **Blending over time keeps each angle's gap** from the other track on the frame before, and every track keeps each
+    angle at the turn nearest its frame before: a short-way blend flipped half a turn where two clips' angles came
+    180° apart (Mesh2Motion's hands at ±180° roll against a clip with none; 100STYLE's `BigSteps_Walk` winding its
+    foot heading as the foot points down), and the sensors read a turn as a jump. Two loops blended in step take the
+    pelvis, legs and feet from blended points (a foot both plant stays down), the steady numbers choosing the reading.
+  - **One rest:** a recipe's poses are read on its first clip's rest; another source's clip is read on it as is, so a
+    CMU walk into a 100STYLE run sank a foot 51 mm; the example uses 100STYLE's walk, and the sensors judge the rest.
+  - **The schema:** `spec/schemas/recipe.schema.json`, a stub frozen at G1 (D32: "stub until Phase 6"), now gives
+    every operation and its fields; a test holds it to `OPS`. This decision allows the change, and the freeze is rerun.
+    WP-6.1's entry named `spec/schemas/recipe.json`; it is the stub's name, and the entry now says so.
+  - **Done when:** every operation has tests (`packages/core/test/recipe.test.ts`); the 20 example recipes
+    (`spec/recipes/`) validate and their clips pass the sensors, and each is explained in at most 100 tokens by o200k
+    and cl100k (`packages/sensors/test/recipe-examples.test.ts`).
+  - **Limits, on record:** two loops whose angles wind a turn apart over a cycle (100STYLE's `Strutting_Walk` arm twist,
+    already a warn in its source) can't blend into a loop without a seam, and a foot pointing straight down can still
+    turn its heading between keys; the sensors report both.
+- **Why:** a recipe is how an agent makes the clip the library lacks without keying it: text it can write and a person
+  can read, compiled into the same format every tool already checks.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.36.0

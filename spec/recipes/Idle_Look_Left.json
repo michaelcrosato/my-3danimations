@@ -1,0 +1,27 @@
+{
+ "format": "2.0",
+ "id": "RECIPES/Idle_Look_Left",
+ "name": "Idle Look Left",
+ "tags": [
+  "idle"
+ ],
+ "desc": "Standing, looking off to the left at head height",
+ "steps": [
+  {
+   "as": "idle",
+   "op": "clip",
+   "id": "MESH2MOTION/Idle_A"
+  },
+  {
+   "op": "look",
+   "in": "idle",
+   "at": [
+    1500,
+    -1200,
+    1600
+   ],
+   "from": 0.3,
+   "fade": 0.4
+  }
+ ]
+}

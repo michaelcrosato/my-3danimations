@@ -1,6 +1,6 @@
 {
   "name": "@m3a/io",
-  "version": "0.35.2",
+  "version": "0.36.0",
   "private": true,
   "description": "Readers and writers for glTF/GLB, VRMA, BVH and ASF/AMC.",
   "license": "MIT",
@@ -9,6 +9,6 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "@m3a/core": "0.35.2"
+    "@m3a/core": "0.36.0"
   }
 }

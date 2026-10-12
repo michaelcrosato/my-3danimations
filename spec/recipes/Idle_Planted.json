@@ -1,0 +1,35 @@
+{
+ "format": "2.0",
+ "id": "RECIPES/Idle_Planted",
+ "name": "Idle Planted",
+ "tags": [
+  "idle",
+  "loop"
+ ],
+ "desc": "An idle with both feet labelled planted throughout",
+ "steps": [
+  {
+   "as": "idle",
+   "op": "clip",
+   "id": "MESH2MOTION/Idle_FoldArms"
+  },
+  {
+   "op": "contacts",
+   "in": "idle",
+   "add": {
+    "footL": [
+     [
+      0,
+      1
+     ]
+    ],
+    "footR": [
+     [
+      0,
+      1
+     ]
+    ]
+   }
+  }
+ ]
+}

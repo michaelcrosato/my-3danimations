@@ -86,3 +86,5 @@ export * as contact from "./contact/index.ts";
 export * as validation from "./validate/index.ts";
 /** The Animator's whole surface: its types, errors and the clip content hash. */
 export * as animator from "./animator/index.ts";
+/** Recipes, clips made from clips (spec/RECIPE.md): check one, compile it into a clip, describe it in a line. */
+export * as recipe from "./recipe/index.ts";

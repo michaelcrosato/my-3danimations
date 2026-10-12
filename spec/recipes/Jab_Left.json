@@ -1,0 +1,21 @@
+{
+ "format": "2.0",
+ "id": "RECIPES/Jab_Left",
+ "name": "Jab Left",
+ "tags": [
+  "attack",
+  "unarmed"
+ ],
+ "desc": "A right jab mirrored into a left one",
+ "steps": [
+  {
+   "as": "jab",
+   "op": "clip",
+   "id": "MESH2MOTION/Fighting_Right_Jab"
+  },
+  {
+   "op": "mirror",
+   "in": "jab"
+  }
+ ]
+}

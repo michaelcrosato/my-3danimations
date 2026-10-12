@@ -1,0 +1,29 @@
+{
+ "format": "2.0",
+ "id": "RECIPES/Left_Lean_Walk",
+ "name": "Left Lean Walk",
+ "tags": [
+  "walk",
+  "loop"
+ ],
+ "desc": "An angry walk mirrored, the chest tilted toward the left",
+ "steps": [
+  {
+   "as": "walk",
+   "op": "clip",
+   "id": "STYLE100/Angry_Walk"
+  },
+  {
+   "as": "m",
+   "op": "mirror",
+   "in": "walk"
+  },
+  {
+   "op": "pose",
+   "in": "m",
+   "chest": {
+    "tilt": -10
+   }
+  }
+ ]
+}

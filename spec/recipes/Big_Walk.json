@@ -1,0 +1,23 @@
+{
+ "format": "2.0",
+ "id": "RECIPES/Big_Walk",
+ "name": "Big Walk",
+ "tags": [
+  "walk",
+  "loop"
+ ],
+ "desc": "A walk with every swing a quarter bigger",
+ "steps": [
+  {
+   "as": "walk",
+   "op": "clip",
+   "id": "STYLE100/Neutral_Walk"
+  },
+  {
+   "op": "exaggerate",
+   "in": "walk",
+   "amount": 1.25,
+   "mask": "upper"
+  }
+ ]
+}

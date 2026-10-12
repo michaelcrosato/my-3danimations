@@ -4,6 +4,22 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.36.0 · 2026-10-12
+
+### Spec
+- `spec/RECIPE.md`: recipes, clips made from clips (D70): fifteen operations, how a recipe compiles, its errors
+  R-E001–R-E009. `spec/schemas/recipe.schema.json` gives every operation and its fields (the G1 stub, refrozen under
+  D70); 20 example recipes in `spec/recipes/`.
+
+### Core
+- `recipe`: `validateRecipe`, `compile` (a format-2 clip, keys within 30 mm, provenance with the recipe's SHA-256 and
+  its inputs' content ids, the license its inputs force), `describeRecipe` (one line, at most 100 tokens), and the
+  tracks the steps make; a blend over time keeps each angle's gap from frame to frame, and two loops in step blend
+  the pelvis, legs and feet as points.
+
+### Sensors
+- The 20 example recipes compile into valid clips the sensors pass (`npm test -- recipe`).
+
 ## 0.35.2 · 2026-10-12
 
 ### Library

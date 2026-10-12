@@ -1,0 +1,22 @@
+{
+ "format": "2.0",
+ "id": "RECIPES/Smooth_Talk",
+ "name": "Smooth Talk",
+ "tags": [
+  "talk",
+  "idle"
+ ],
+ "desc": "A talking idle with its small shakes smoothed out",
+ "steps": [
+  {
+   "as": "talk",
+   "op": "clip",
+   "id": "MESH2MOTION/Idle_Talking"
+  },
+  {
+   "op": "smooth",
+   "in": "talk",
+   "window": 0.15
+  }
+ ]
+}

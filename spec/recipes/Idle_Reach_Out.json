@@ -1,0 +1,37 @@
+{
+ "format": "2.0",
+ "id": "RECIPES/Idle_Reach_Out",
+ "name": "Idle Reach Out",
+ "tags": [
+  "idle",
+  "interact"
+ ],
+ "desc": "Standing, reaching the right hand out to a point and back",
+ "steps": [
+  {
+   "as": "idle",
+   "op": "clip",
+   "id": "MESH2MOTION/Idle_A"
+  },
+  {
+   "op": "pin",
+   "in": "idle",
+   "end": "handR",
+   "path": [
+    [
+     0.4,
+     350,
+     250,
+     1150
+    ],
+    [
+     1.2,
+     450,
+     200,
+     1250
+    ]
+   ],
+   "fade": 0.3
+  }
+ ]
+}
