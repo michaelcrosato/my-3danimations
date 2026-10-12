@@ -38,17 +38,24 @@ describe("procedural clips under the sensors", () => {
         expect([id, g.name, r.values.slide <= 10, r.verdict === "fail"]).toEqual([id, g.name, true, false]);
       }
     }
-    // and the four gaits off the presets that slid most when a foot lifted off lower (12.5 to 13.5 mm, D71)
-    for (const [id, g] of [
-      ["MESH2MOTION/Idle_A", { speed: 100, cycle: 1, stance: 0.6 }],
-      ["STYLE100/Neutral_Walk", { speed: 60, cycle: 1.3, stance: 0.58, limp: 0.2 }],
-      ["STYLE100/Neutral_Walk", { speed: 160, cycle: 0.9, stance: 0.6 }],
-      ["CMU_CURATED/Walk_Loop", { speed: 180, cycle: 1, stance: 0.6 }],
+    // and gaits off the presets, each within its bar (mm): the four that slid most when a foot lifted off lower (12.5 to
+    // 13.5 mm, D71), and those that slide most when a foot is let go of where it landed (the verifier's mutants: as it
+    // sets down, 10.7 to 11.9; with no second pass, 7.2 to 9.0; as it lifts off, 11.0)
+    for (const [id, g, bar] of [
+      ["MESH2MOTION/Idle_A", { speed: 100, cycle: 1, stance: 0.6 }, 10],
+      ["STYLE100/Neutral_Walk", { speed: 60, cycle: 1.3, stance: 0.58, limp: 0.2 }, 10],
+      ["STYLE100/Neutral_Walk", { speed: 160, cycle: 0.9, stance: 0.6 }, 10],
+      ["CMU_CURATED/Walk_Loop", { speed: 180, cycle: 1, stance: 0.6 }, 10],
+      ["STYLE100/Neutral_Walk", { speed: 140, cycle: 1.1, stance: 0.65 }, 8],
+      ["MESH2MOTION/Idle_A", { speed: 120, cycle: 1.3, stance: 0.58, limp: 1 }, 7],
+      ["STYLE100/Neutral_Walk", { speed: 100, cycle: 0.9, stance: 0.55 }, 7],
+      ["MESH2MOTION/Idle_A", { speed: 140, cycle: 0.9, stance: 0.65 }, 5],
+      ["STYLE100/Neutral_Walk", { speed: 60, cycle: 1.3, stance: 0.7, limp: 0.4 }, 9],
     ] as const) {
       const { rest, restSrc } = RESTS.find(([x]) => x === id)![1], r = metrics(PR.gaitClip({ name: "g", about: "a gait", ...g }, rest, { restSrc }), rest);
-      expect([id, g, r.values.slide <= 10, r.verdict === "fail"]).toEqual([id, g, true, false]);
+      expect([id, g, r.values.slide <= bar, r.verdict === "fail"]).toEqual([id, g, true, false]);
     }
-  }, 30_000);
+  }, 60_000);
   it("idles pass on every rest, their feet still", () => {
     for (const [id, { rest, restSrc }] of RESTS) {
       for (const i of PR.IDLES) {

@@ -12,16 +12,16 @@ import {
 } from "./all.ts";
 import { ik3 } from "../src/format/body.ts";
 import { scriptData } from "./animator-data.ts";
-import { library, locomotionSlides, lowest, motionOf, P, worstSlide } from "./contact-data.ts";
+import { library, locomotionSlides, lowest, motionOf, P, worstSlide, SAMPLE } from "./contact-data.ts";
 
 // the sets the library held before WP-5.3 (100STYLE's other gaits have their own files)
 const lib = library((set) => !set.startsWith("STYLE100_"));
 const byId = (id: string) => lib.find((x) => x.id === id)!;
 
 describe("planted feet don't slide", () => {
-  it("on every locomotion loop of the sets from before 100STYLE's other gaits: at most 10 mm per contact (unplanted, they slide up to tens of mm)", () => {
+  it("on every locomotion loop (every third in T1) of the sets from before 100STYLE's other gaits: at most 10 mm per contact (unplanted, they slide up to tens of mm)", () => {
     const { clips, worst, at, worstFree } = locomotionSlides(lib);
-    expect(clips).toBeGreaterThan(120);
+    expect(clips).toBeGreaterThan(120 / SAMPLE);
     expect(worst, at).toBeLessThanOrEqual(10);
     expect(worstFree).toBeGreaterThan(30);
   }, 60_000);

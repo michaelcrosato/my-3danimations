@@ -10,7 +10,9 @@ import { metrics } from "@m3a/sensors";
 import { ROOT } from "../run/cli.ts";
 import { rigOf, sweepOne } from "./sweep.ts";
 
-const LIB = join(ROOT, "library/sets"), DIR = join(ROOT, "library/actions"), RIGS = ["gen-0", "gen-1", "gen-2", "gen-3", "quaternius-mannequin-m", "kaykit-knight"];
+// T1 plays them on two of the six (a generated body and a real rig); T2 (`npm run e2e`, M3A_FULL=1) on all six (D74)
+const SIX = ["gen-0", "gen-1", "gen-2", "gen-3", "quaternius-mannequin-m", "kaykit-knight"], RIGS = process.env.M3A_FULL === "1" ? SIX : ["gen-0", "kaykit-knight"];
+const LIB = join(ROOT, "library/sets"), DIR = join(ROOT, "library/actions");
 const FILES = readdirSync(DIR).filter((f) => f.endsWith(".json")).sort().map((f) => JSON.parse(readFileSync(join(DIR, f), "utf8")) as A.Action | A.PairedAction);
 const SINGLE = FILES.filter((f): f is A.Action => !A.isPaired(f)), PAIRED = FILES.filter(A.isPaired);
 const clips = new Map<string, { clip: Clip; rest: Rest; contentId: string }>(), compiled = new Map<string, A.CompiledAction>();
@@ -41,7 +43,7 @@ const resolve = Object.assign(
 const action = (id: string): A.CompiledAction => (resolve(id), compiled.get(id)!);
 
 describe("actions on the test characters", () => {
-  it("each action and each paired role plays on the six skeletons, no row worse than on its own body, none failing", async () => {
+  it("each action and each paired role plays on the six skeletons (two in T1), no row worse than on its own body, none failing", async () => {
     const bound = await Promise.all(RIGS.map((r) => rigOf(r))), played: { id: string; clip: Clip; rest: Rest }[] = SINGLE.map((a) => ({ id: a.id, ...action(a.id) }));
     for (const p of PAIRED) for (const [name, r] of Object.entries(A.compilePaired(p, resolve).roles)) played.push({ id: `${p.id} ${name}`, clip: r.compiled.clip, rest: r.compiled.rest });
     expect(played).toHaveLength(8);

@@ -2108,8 +2108,9 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   - **From any start pose:** `moveClip` places the model's numbers on the rest's body and applies them to the start
     pose's points (the standing pose by default).
     - The first and last keys are the start pose: each frame is blended from it over the first and last 0.1 s (twists
-      unwrapped from the frame before), so a move begins within 1 mm of any start pose and ends within 2 mm once
-      fitted: straight limbs, a `spine` field and poses from clips too (round 1).
+      unwrapped from the frame before), and the first and last frames are the start pose itself, its angles rounded
+      before they are unwrapped and the fields it leaves out at their defaults. A move begins and ends exactly there,
+      0.000 mm from 88 library poses, straight limbs and a `spine` field (rounds 1 and 2).
     - As the recovery lets go, the arms (and a kick's leg) come home. Without that, the IK left elbows up to 11 cm from
       where they started.
     - The limbs are solved by the recipes' two-bone IK on the body as the format holds it (encoded, then decoded). A
@@ -2120,18 +2121,21 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
       where the strike connects.
   - **Gaits**, after riftlight's "zero foot slide by construction":
     - A foot stands still in the world through its stance: in the root's frame it slides back at the ground speed.
-    - In swing it lifts straight up to 9% of H0, past the 7% a lifting foot is read as lifted at, and later sets
-      straight down from 4.5%, above the 4% a foot is read as standing within, both still in the world. Between, it
+    - In swing it lifts straight up to 9% of H0, past the 7% a lifting foot is read as lifted at, however short the
+      swing (round 2), and later sets straight down from 4.5%, above the 4% a foot is read as standing within, both
+      still in the world. Between, it
       travels on a Hermite curve. Without the rise, a slow swing's foot read as planted while it still moved: up to
       39 mm of slide (round 1 gives the lift-off's height).
     - The root and pelvis are put on the format's grid before the feet are aimed. Each leg's numbers are whichever of
       81 roundings lands the ankle nearest where it landed, and the keys are fitted within 2 mm.
-    - Its parameters are speed, cadence, stance, lift, bounce, dip, sway, lean, arm swing and limp. A limp shortens
+    - Its parameters are speed, cadence, stance, lift, bounce, dip, sway, lean, arm swing and limp, each taken in the
+      range the presets pass on three rests (lift 9–35, bounce 0–6, dip 0–12, sway 0–4, lean −10° to 25°, arm swing
+      0–80°); a swing under 0.2 s is refused (round 2). A limp shortens
       the weak leg's stance by up to 30%; that leg lands later and the other stands longer, keeping the plain gait's
       double support. Without that, neither foot stood just before the strong foot landed.
     - `GAITS` gives four ready made: walk, brisk, run and limp. On three rests (Mesh2Motion, 100STYLE, CMU) they slide
-      at most 7.8 mm per contact and none fails; on all 64 of the library's rests none fails and one reads over 10 mm
-      (round 1). The origin's gait slid 12–28% of body speed; capture's median is 52 mm. The run warns: a knee pops
+      at most 7.8 mm per contact and none fails; on all 64 of the library's rests (set and source pairs, 62 distinct)
+      none fails and one reads over 10 mm (round 1; 10.1, the limp on CMU_31). The origin's gait slid 12–28% of body speed; capture's median is 52 mm. The run warns: a knee pops
       late in its swing.
   - **Idles:** the body breathes (the chest lifting, leaning back a touch, and the shoulders rising) and shifts its
     weight (the pelvis swaying over the standing foot, the chest leaning against it) on planted feet. The loop holds
@@ -2156,7 +2160,10 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   `packages/sensors/test/procedural.test.ts` holds them as a floor, by reason: no other move fails, a listed move
   fails for no other reason, and at least 23 of 31 pass or warn on each rest. Off those three rests, on five more:
   roundhouse's knee doubles back as the kicking leg folds and comes down (88 mm, on Mocopi's and UAL1's rests), and
-  overhead, leap and claw put the hand into the hips on two CMU rests.
+  overhead, leap and claw put the hand into the hips on two CMU rests. On all 64 rests (round 2's verifier, at
+  a1dc1fd), 50 have a failure outside the floor's reasons: claw on 14, roundhouse 15, overhead 8, leap 5, uppercut 3
+  (Quaternius'), thrust 2, jab 1, rising 1, and twohand's arm into the belly on many CMU rests. The fewest that pass or
+  warn on one rest is 19 of 31 (CMU_141, 12 failing). The floor is the three test rests'; the rest are on record.
 - **Why:** the library holds what was captured, but a game asks for a slash on its own character, from where the
   character stands. The move model is the one three repos already shared. It is now one unit system with a line per
   move, so an agent picks a move by its line and gets a clip the sensors have read. Gaits and idles fill the loops a
@@ -2201,6 +2208,7 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
     turned to the front. From the arms-up idle 29 of 31 moves bent a knee back; 6 now fail. From five non-standing
     starts (arms up, two crouches, a fighting idle, a crouch walk) 4 to 8 of 31 fail, mostly an arm already raised
     flipping its twist as the arc swings it. The moves are drawn from a standing body; a graph blends any remainder.
+    (Round 2: from STYLE100_IDLE's Crouched_Idle 16 of 31 fail, and from BentKnees_Idle 25 of 31.)
   - **The idle's breath shows:** the format holds the bones' directions, not their lengths, so the torso's
     lengthening never reached the keys, and lifting the collarbones with the shoulders shrugged nothing. A breath in now
     leans the chest back 1.5° and lifts the shoulders 0.8% of H0 for each unit of depth: the keys' `chest` and `sh`.
@@ -2217,8 +2225,36 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
     hips' twist factor (MM1) is read by nothing; and no move in the file tells fists that ignore `left` apart (MM6).
     Eleven mutants of this round's fixes all fail them. The verifier's harness ran the sensors' tests on the main
     tree's core (its `node_modules` link), so a mutant only they could see passed there; those were rerun in place.
+- **Verifier, round 2** (at a1dc1fd): not done, one blocking finding. Fixed or answered in v0.39.1, every finding:
+  - **A swing under about 0.21 s dragged** (blocking). The lift-off took at least 0.08 s to reach 9% and its share
+    was capped at 0.3 of the swing, so a short swing's foot was under 7% when it moved on; and the sensors read a foot
+    up for under 0.1 s as never having left the floor. Limps on a 1 s cycle and fast walks slid 500–1,300 mm (82 of
+    459 limps on the verifier's grid). The lift-off now reaches 9% however short the swing (quicker), and a swing
+    under 0.2 s is refused with what to change: on the grids every swing of 0.19 s or more passes, every shorter one
+    failed. Limps (540 on three rests, 171 refused) and fast walks (144, 27 refused) now have none failing, worst
+    10.6 mm.
+  - **Numbers that broke a clip:** a lift of 60 failed all four presets (knee pops), 40 the run, a sway of 5 the run on
+    two rests. Each optional number has the range the presets pass on three rests, refused past it with why.
+  - **Begins and ends exactly:** 3 of the verifier's 88 library starts were 3.0–3.3 mm off at a first or last key: a
+    field ending in .5, blended by a hair, or a twist unwrapped a turn on (−5.5 against 354.5), rounded the other
+    way. The first and last frames are now the start pose itself: all 88 starts × 31 moves are 0.000 mm at both ends,
+    and a test holds those three.
+  - **The soft reach did nothing:** round 1's swinging foot held within the leg's reach (for the run's knee) changed
+    no result on 496 gaits (the presets on 64 rests, the lift grid and 132 others): refusing a stride past 75% of a
+    leg already keeps the feet within reach. It is removed.
+  - **Records:** off the presets the gaits slide up to 12.7 mm (a walk on CMU at 115, 1.05 s, 0.6), not 11.2; "held
+    where it landed" is within the format's rounding, about ±4.5 mm frame to frame, as the gait's header now says; the
+    moves on all 64 rests and the crouched starts above; the `ProceduralOptions` doc gives each source's rate and
+    budget; the boundaries check's comment says 44.
+  - **Tests:** the surviving mutants that mattered now fail them: the set-down and lift-off held in the second pass,
+    and the second pass itself (gaits held to their slide, 5 to 9 mm); the limp's refusal and range; 60 fps; the
+    limp's 30%; the presets' numbers. A T1 test (`tools/procedural/carry.test.ts`) derives every number of
+    `library/moves.json` that my-3d2dge's frozen moves give, so a hand edit to a guard, a hit share or a reach fails
+    it, and the whole file where the pinned sources are. Without them `carry.ts` says to fetch them, and G6 fetches
+    them before checking the moves (its label said it did). The about lines and the alternates are shardfall's, so
+    only that second test and G6 see an edit to them.
 - **Answered:** no: made without a response, to review.
-- **Landed in:** v0.37.0, v0.37.2
+- **Landed in:** v0.37.0, v0.37.2, v0.39.1
 
 ## D72 · 2026-10-12 · Actions: multi-beat motions with their ground, beats and interrupt points (WP-6.3)
 
@@ -2311,3 +2347,17 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   Node and Chromium: states, hashes after every step, events and exact poses.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.39.0
+
+## D74 · 2026-10-12 · T1 samples the library-wide sweeps; T2 runs them in full
+
+- **Principle:** 9, §6
+- **Call:** `npm test` reads every third locomotion loop in the planted-feet sweeps (`contact`, `contact-gaits`,
+  `contact-sidesteps`, `contact-siderun`) and plays the actions on two of the six test characters (gen-0 and KayKit's
+  knight). `npm run e2e` runs the same files in full (`M3A_FULL=1`: every loop, all six skeletons), as its "library
+  sweeps in full" step. A tier step can now set environment variables. WP-6.3's Verify says so.
+- **Why:** T1 had grown to 91.8 s on an idle machine (budget 90 s): 664 tests, with WP-6.3's six-skeleton actions
+  sweep (29 s of CPU) on top of the planted-feet sweeps (80 s of CPU, a fifth of T1). PLAN.md §6 gives T1 "sensors on
+  a sample" and T2 the full library, and T2 runs on every pull request in CI, so every claim is still checked before a
+  merge. Sampled, the five files take 52 s of CPU against 107 s in full; both pass.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.39.1

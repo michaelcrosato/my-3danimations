@@ -4,6 +4,23 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.39.1 · 2026-10-12
+
+### Core
+- Gaits, after WP-6.2's second verifier (D71): a foot lifts off to 9% of the hip height however short its swing, and a
+  swing under 0.2 s is refused (a foot up for under 0.1 s reads as never leaving the floor: limps on a 1 s cycle slid
+  up to 1.3 m); lift, bounce, dip, sway, lean and arm swing are taken in the ranges the presets pass (a lift of 40 or
+  a sway of 5 popped a run's knee); the soft reach, which changed nothing, is gone.
+- Moves begin and end exactly at the start pose given (a field ending in .5 was a degree off at the first or last
+  key: up to 3.3 mm).
+
+### Tools
+- `carry.ts` exports its derivation; a T1 test holds `library/moves.json`'s numbers to my-3d2dge's frozen moves, and
+  the whole file to the carry tool's where the pinned sources are. Without them `npm run moves` says to fetch them;
+  gate G6 fetches them first.
+- T1 reads every third loop of the planted-feet sweeps and plays the actions on two of the six test characters; T2
+  runs those files in full (`M3A_FULL=1`, D74). T1 was 91.8 s against its 90.
+
 ## 0.39.0 · 2026-10-12
 
 ### Core

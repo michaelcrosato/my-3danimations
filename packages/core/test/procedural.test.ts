@@ -115,8 +115,8 @@ describe("a move as a clip", () => {
       for (const m of MOVES.moves) {
         const c = PR.moveClip(m, rest, { restSrc: src, start: start as never });
         expect([m.name, validate(c).errors]).toEqual([m.name, []]);
-        expect([m.name, farthest(points(rest, c.keys[0]!), S) < 1]).toEqual([m.name, true]);
-        expect([m.name, farthest(points(rest, keyAt(c, c.dur) as never), S) < 2]).toEqual([m.name, true]);
+        expect([m.name, farthest(points(rest, c.keys[0]!), S) < 0.01]).toEqual([m.name, true]);
+        expect([m.name, farthest(points(rest, keyAt(c, c.dur) as never), S) < 0.01]).toEqual([m.name, true]);
       }
     }
   }, 30_000);
@@ -143,13 +143,24 @@ describe("a move as a clip", () => {
       const S = points(rest, quantize(start as never));
       for (const m of some) {
         const c = PR.moveClip(m, rest, { restSrc: src, start: start as never });
-        expect([what, m.name, farthest(points(rest, c.keys[0]!), S) < 1, farthest(points(rest, keyAt(c, c.dur) as never), S) < 2]).toEqual([what, m.name, true, true]);
+        expect([what, m.name, farthest(points(rest, c.keys[0]!), S) < 0.01, farthest(points(rest, keyAt(c, c.dur) as never), S) < 0.01]).toEqual([what, m.name, true, true]);
         // and as it strikes, each knee it stands on bends forward, ahead of the line from its hip to its ankle
         const X = points(rest, keyAt(c, c.events![0]!.t) as never), ahead = (s: string) => at(X, `knee${s}`)[0] - (at(X, `hip${s}`)[0] + at(X, `ankle${s}`)[0]) / 2;
         expect([what, m.name, ahead("L") > 0, m.hand === "kick" || ahead("R") > 0]).toEqual([what, m.name, true, true]);
       }
     }
   }, 30_000);
+  it("begins and ends exactly where a start pose's fields end in .5, or its twist comes back a turn on", () => {
+    // the library's middles the verifier found 3 mm off (a field of .5 rounded the other way after a blend by a hair,
+    // or after the recovery unwrapped a twist a turn on: -5.5 against 354.5)
+    for (const [id, names] of [["MESH2MOTION/Hit_Knockback", ["jab", "kick"]], ["STYLE100_BACK/RaisedRightArm_WalkBack", ["jab", "slash"]], ["STYLE100_BACKRUN/RaisedRightArm_RunBack", ["roundhouse"]]] as const) {
+      const src = load(id), { t: _a, root: _b, yaw: _c, ...start } = keyAt(src.clip, src.clip.dur / 2) as unknown as Record<string, unknown>, S = points(src.rest, quantize(start as never));
+      for (const m of MOVES.moves.filter((x) => (names as readonly string[]).includes(x.name))) {
+        const c = PR.moveClip(m, src.rest, { restSrc: src.clip.restSrc, start: start as never });
+        expect([id, m.name, farthest(points(src.rest, c.keys[0]!), S), farthest(points(src.rest, keyAt(c, c.dur) as never), S)]).toEqual([id, m.name, 0, 0]);
+      }
+    }
+  });
   it("keeps the fists out of the torso from the wind's end on, where the source's stick figure has none", () => {
     // each fist's distance from the line from the pelvis to the shoulders' centre, between their heights, in half
     // shoulder widths (the hands are pushed out to 1.3 of them as the wind comes in; the IK and fitting lose a little)
@@ -299,7 +310,7 @@ describe("a gait", () => {
       for (const g of PR.GAITS) {
         const c = PR.gaitClip(g, src.rest, { restSrc: src.clip.restSrc });
         expect([g.name, validate(c).errors]).toEqual([g.name, []]);
-        expect([c.loop, c.dur, c.id, c.contacts?.by]).toEqual([true, g.cycle, `PROCEDURAL/${g.name.charAt(0).toUpperCase()}${g.name.slice(1)}`, "labelled"]);
+        expect([c.loop, c.dur, c.fps, c.id, c.contacts?.by]).toEqual([true, g.cycle, 60, `PROCEDURAL/${g.name.charAt(0).toUpperCase()}${g.name.slice(1)}`, "labelled"]);
         expect([g.name, c.contacts?.footL?.length, c.contacts?.footR?.length]).toEqual([g.name, 1, 1]);
         // the root goes speed × cycle (% of the hip height) each cycle
         expect(rootAt(c, c.dur).forward).toBe(Math.round(g.speed * g.cycle));
@@ -340,6 +351,8 @@ describe("a gait", () => {
     const src = load("MESH2MOTION/Idle_A"), g = PR.GAITS.find((x) => x.name === "limp")!, limp = PR.gaitClip(g, src.rest, { restSrc: src.clip.restSrc });
     const span = (iv: [number, number][]) => iv.reduce((a, [x, y]) => a + y - x, 0);
     expect(span(limp.contacts!.footL!)).toBeLessThan(span(limp.contacts!.footR!) * 0.8);
+    // the weak leg's stance is the plain one shortened by 30% × the limp
+    expect(span(limp.contacts!.footL!)).toBeCloseTo(g.stance * (1 - 0.3 * g.limp!) * g.cycle, 2);
     const down = (t: number) => (["footL", "footR"] as const).some((f) => limp.contacts![f]!.some(([a, b]) => (a <= t && b >= t) || (b > limp.dur && t <= b - limp.dur)));
     for (let t = 0; t < limp.dur; t += 0.02) expect([t, down(t)]).toEqual([t, true]);
     // the pelvis, less its bounce (1.5% of the hip height, twice a cycle), drops over the weak leg as it stands: by
@@ -356,8 +369,23 @@ describe("a gait", () => {
     expect(play({ cycle: 5 })).toThrow(/cycle 5 is not 0.3 to 3 s/);
     expect(play({ stance: 0.8 })).toThrow(/stance 0.8 is not 0.2 to 0.75/);
     expect(play({ stance: 0.75, limp: 1 })).toThrow(/leaves the right foot \d+% of the cycle to swing/);
-    expect(play({ lift: 5 })).toThrow(/lift 5 is not 9 to 60/);
+    // a long cycle's limp swings long enough in time, but for 9% of the cycle
+    expect(play({ speed: 30, cycle: 2.5, stance: 0.7, limp: 1 })).toThrow(/leaves the right foot 9% of the cycle to swing/);
+    expect(play({ limp: 1.01 })).toThrow(/limp 1.01 is not 0 to 1/);
+    // a swing under 0.2 s: the foot is up for under the 0.1 s the sensors read a step by (the verifier's limps and
+    // fast walks, which slid 500 to 1,300 mm)
+    expect(play({ speed: 70, cycle: 1, stance: 0.68, limp: 0.6 })).toThrow(/its right foot swings for 0.198 s, under 0.2 s: .* or a lighter limp/);
+    expect(play({ cycle: 0.45 })).toThrow(/swings for 0.180 s, under 0.2 s: .*; use a longer cycle, a shorter stance$/);
+    expect(play({ lift: 5 })).toThrow(/lift 5 is not 9 to 35/);
+    // the numbers past which a preset's knees pop (D71): a lift of 40, a sway of 5
+    expect(play({ lift: 40 })).toThrow(/lift 40 is not 9 to 35 .*knees pop/);
+    expect(play({ sway: 5 })).toThrow(/sway 5 is not 0 to 4/);
+    expect(play({ bounce: -1 })).toThrow(/bounce -1 is not 0 to 6/);
+    expect(play({ swing: 90 })).toThrow(/swing 90 is not 0 to 80 degrees/);
     expect(play({ speed: 600, cycle: 1.2 })).toThrow(/reach \d+% of a leg .* past 75%: slow it/);
+  });
+  it("offers the presets D71 measured", () => {
+    expect(PR.GAITS.map((g) => [g.name, g.speed, g.cycle, g.stance, g.lift ?? 12, g.limp ?? 0])).toEqual([["walk", 130, 1.1, 0.6, 12, 0], ["brisk", 170, 1, 0.58, 12, 0], ["run", 350, 0.7, 0.35, 25, 0], ["limp", 90, 1.3, 0.62, 12, 0.8]]);
   });
 });
 

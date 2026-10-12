@@ -72,8 +72,9 @@ export const GATES: Record<string, [string, string, ...string[]][]> = {
     ["check", "check"],
     ["test", "test"],
     ["doctrine", "doctrine"],
+    ["the pinned sources, for the moves", "pins", "fetch"],
     ["vectors --check", "vectors", "--check"],
-    ["library/moves.json as the pinned sources give it (the gate fetches them)", "moves", "--check"],
+    ["library/moves.json as the pinned sources give it", "moves", "--check"],
     ["T2: browser checks and library QA", "e2e"],
   ],
 };

@@ -7,7 +7,7 @@ import { IDX, P, type Rest } from "../format/body.ts";
 import { add, len, mul, qmul, qrot, sub, type Quat, type V3 } from "../format/math.ts";
 import { PORTABLE as PM } from "../math/portable.ts";
 import { decodePose, encodePose, type KeyLike } from "../format/pose.ts";
-import type { Clip, ClipEvent, Contacts } from "../format/types.ts";
+import { KEY_FIELDS, type Clip, type ClipEvent, type Contacts } from "../format/types.ts";
 import { detectContacts, sole } from "../clip/contacts.ts";
 import { blend, type Pose } from "../ops/pose.ts";
 import { keysOf, tidyContacts } from "../recipe/compile.ts";
@@ -116,7 +116,8 @@ export interface ProceduralOptions {
   restSrc: string;
   /** The pose to start from (and end at): a key's fields, `standingOn` the rest by default. */
   start?: Pose;
-  /** The rate frames are sampled at before keys are fitted (30), and the key budget in mm (30). */
+  /** The rate frames are sampled at before keys are fitted, and the key budget in mm: a move's 30 and 30, a gait's 60
+   *  and 2, an idle's 30 and 2. */
   fps?: number;
   budget?: number;
 }
@@ -136,6 +137,15 @@ export function clipOfTrack(t: Track, meta: { id: string; name: string; tags: st
   const v = validate(clip, { mode: "read" });
   if (v.errors.length) throw new Error(`${meta.id}: the generated clip is invalid: ${v.errors.map((x) => `${x.code} ${x.message}`).join("; ")}`);
   return clip;
+}
+/** A pose with its angles (a limb's bend and twist, a turn) rounded to the whole degrees a key holds them in. */
+function anglesRounded(p: Pose): Pose {
+  const out: Pose = { ...p };
+  for (const [f, v] of Object.entries(p)) {
+    const spec = KEY_FIELDS[f];
+    if (spec?.angles.length && Array.isArray(v)) out[f] = (v as number[]).map((x, i) => (spec.angles.includes(i) ? Math.round(x) : x));
+  }
+  return out;
 }
 /** Detected contacts as the format keeps them (by: detected). */
 const CONTACT_ENDS_OF = (c: Contacts): Contacts => ({ ...c, by: "detected" });
@@ -162,7 +172,10 @@ export function moveClip(m: Move, rest: Rest, opts: ProceduralOptions): Clip {
     // and over its first and last moments the whole body is the start pose's, whatever the reach makes of a straight
     // limb or the encoding of a pose's spine: a move begins and ends exactly where it was given
     const ends = Math.min(smooth((time + 1e-9) / ENDS), smooth((dur - time + 1e-9) / ENDS));
-    const before = t.poses[t.poses.length - 1], pose = ends < 1 ? blend(start, homed, ends) : homed;
+    // (the very first and last frames the start pose itself, its angles rounded before they are unwrapped, and the
+    // fields it leaves out at their defaults: a blend by a hair, or a twist a turn on, rounds a field ending in .5 the
+    // other way, 3 mm off)
+    const before = t.poses[t.poses.length - 1], pose = ends < 1e-6 ? { ...blend(start, homed, 0), ...anglesRounded(start) } : ends < 1 ? blend(start, homed, ends) : homed;
     t.poses.push(before ? unwrapped(pose, before) : pose);
     t.roots.push(f.root);
     hint = f.pose;

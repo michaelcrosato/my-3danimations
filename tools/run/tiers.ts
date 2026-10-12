@@ -7,6 +7,8 @@ export interface TierStep {
   name: string;
   cmd: string;
   args: string[];
+  /** Variables added to the environment it runs in. */
+  env?: Record<string, string>;
   summarize?: (output: string) => string | undefined;
 }
 
@@ -55,7 +57,7 @@ export function runTier(tier: Tier, argv: readonly string[], extra: readonly Fla
   const steps: Step[] = [];
   const t0 = performance.now();
   for (const s of tier.steps) {
-    const r = runStep(tier.tool, s.name, s.cmd, s.args, verbose);
+    const r = runStep(tier.tool, s.name, s.cmd, s.args, verbose, s.env ? { ...process.env, ...s.env } : undefined);
     const { output: _output, ...step } = r;
     if (r.ok && s.summarize) step.summary = s.summarize(r.output);
     steps.push(step);

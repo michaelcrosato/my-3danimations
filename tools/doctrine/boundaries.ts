@@ -6,7 +6,8 @@
 //   exports map declares (`/node`, `/capture`); labs (apps/lab/) may reach past, and are listed instead of failed.
 //   Nothing imports from apps/ but a lab's own e2e test, its lab.
 // - Each package's public API is its src/index.ts, all of it listed there (PLAN.md WP-2.6): one export per statement,
-//   each with a doc comment, no bare `export *` (a module's surface goes in as a namespace), and core's at most 40.
+//   each with a doc comment, no bare `export *` (a module's surface goes in as a namespace), and core's at most 44
+//   (40 until Phase 6's namespaces, D71).
 import { builtinModules } from "node:module";
 import { dirname, join, normalize } from "node:path";
 import type { Ctx, Finding } from "./context.ts";

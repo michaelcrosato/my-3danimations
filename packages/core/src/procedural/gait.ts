@@ -6,9 +6,10 @@
 // foot near the floor never moves. The pelvis bobs twice a cycle and sways over the standing foot, the arms swing
 // against the legs, and a limp shortens one leg's stance and drops the pelvis on it. The contacts are the model's own
 // (each foot from its touchdown to its lift-off). The root and pelvis are put on the format's grid before the feet are
-// aimed, and each planted leg's rounded numbers are chosen to keep its ankle where it landed, so a planted foot stays
-// put through the rounding and the in-betweening too. A gait it can't play (a stride past the legs' reach, a limp
-// that leaves a foot no time to swing) is refused with what to change.
+// aimed, and each planted leg's rounded numbers are chosen to keep its ankle within the format's rounding (a leg's
+// direction is held in hundredths: about 4 mm) of where it landed, through the in-betweening too. A gait it can't play
+// (a stride past the legs' reach, a swing under 0.2 s, a number past the range the sensors pass) is refused with what
+// to change.
 import { IDX, P, type Rest } from "../format/body.ts";
 import { add, len, mul, qmul, qrot, sub, type Quat, type V3 } from "../format/math.ts";
 import { decodePose, encodePose, type KeyLike } from "../format/pose.ts";
@@ -31,18 +32,18 @@ export interface Gait {
   cycle: number;
   /** The share of the cycle each foot is down (a walk 0.6, a run 0.35). */
   stance: number;
-  /** How high the swinging ankle rises (% of the hip height, 12 by default; 9 to 60: a foot that lifts less never
-   *  reads as lifted, so it reads as dragged). */
+  /** How high the swinging ankle rises (% of the hip height, 12 by default; 9 to 35: a foot that lifts less never
+   *  reads as lifted, so it reads as dragged, and a run's knees pop lifting more). */
   lift?: number;
-  /** The pelvis's bounce, twice a cycle, and how far it is lowered throughout (% of the hip height; 1.5, and 2 or as
-   *  far as a leg needs to reach half a stride ahead and behind). */
+  /** The pelvis's bounce, twice a cycle, and how far it is lowered throughout (% of the hip height; 1.5 (0 to 6), and
+   *  2 (0 to 12) or as far as a leg needs to reach half a stride ahead and behind). */
   bounce?: number;
   dip?: number;
-  /** The pelvis's sway over the standing foot (% of the hip height, 2 by default). */
+  /** The pelvis's sway over the standing foot (% of the hip height, 2 by default; 0 to 4: a run's knee pops at 5). */
   sway?: number;
-  /** Forward lean of the torso, degrees (3 by default). */
+  /** Forward lean of the torso, degrees (3 by default; −10 to 25). */
   lean?: number;
-  /** The arms' swing either way, degrees (25 by default). */
+  /** The arms' swing either way, degrees (25 by default; 0 to 80). */
   swing?: number;
   /** 0..1: the left leg's stance shortened by up to 30% and the pelvis dropped over it by up to 4% of the hip height;
    *  the left foot lands later and the right stands longer, so both are down together as long as in the plain gait. */
@@ -70,14 +71,15 @@ const STRIDE_MAX = 0.75;
 /** How high it sets down from, straight down, % of the hip height: above the 4% a foot is read as standing within. */
 const CLEAR = 4.5;
 /**
- * How high it lifts off to, straight up, % of the hip height, and in what time at least: past the 7% a standing foot
- * must lift through to be read as lifted (core's contact bands, the sensors' too), with the sole a little below the
- * ankle. It must be there before it moves on: as the swing starts, the foot stops going back with the ground and comes
- * forward, and for a moment it moves with the hips, which reads as a dragged foot (standing) while it is that low.
+ * How high it lifts off to, straight up, % of the hip height, and in what time when the swing has it: past the 7% a
+ * standing foot must lift through to be read as lifted (core's contact bands, the sensors' too), with the sole a little
+ * below the ankle. It must be there before it moves on, however short the swing (then it rises quicker): as the swing
+ * starts, the foot stops going back with the ground and comes forward, and for a moment it moves with the hips, which
+ * reads as a dragged foot (standing) while it is that low.
  */
 const UP = 9, RISE_UP = 0.08;
 /** The farthest a lifting foot may trail behind the hips while it rises, of a leg: past that a fast gait's lift-off
- *  is cut short (lower and quicker, as a run's is), so the trailing leg never sets how low the pelvis goes. */
+ *  is quicker (as a run's is), so the trailing leg never sets how low the pelvis goes. */
 const TRAIL = 0.7;
 /**
  * Where an ankle is at cycle phase v (0..1 from its touchdown): forward of its standing place and up, in mm. In stance
@@ -126,14 +128,24 @@ export function snapLegs(R: Rest, p: Pose, X: Float32Array, goals: Partial<Recor
   return out;
 }
 
-/** A target pulled toward `from` to stay softly within reach `leg`: as it is up to 98.5% of it, then closing on 99.8%. */
-function withinReach(from: V3, target: V3, leg: number): V3 {
-  const d = len(sub(target, from)), k0 = 0.985 * leg, k1 = 0.998 * leg;
-  if (d <= k0) return target;
-  const e = PM.exp((-2 * (d - k0)) / (k1 - k0)), soft = k0 + (k1 - k0) * ((1 - e) / (1 + e));
-  return add(from, mul(sub(target, from), soft / d));
-}
-/** A gait's numbers checked: in range (a lift a foot reads as lifted at), and a limp that leaves the strong foot a swing. */
+/**
+ * The ranges a gait's own numbers are taken in: those the sensors pass on every preset on three rests (D71); past them
+ * a run's knees pop (a lift of 40, a sway of 5).
+ */
+const RANGES: readonly [keyof Gait, number, number, string][] = [
+  ["lift", UP, 35, `a foot must lift past ${UP}% to read as lifted, and a run's knees pop lifting more than 35%`],
+  ["bounce", 0, 6, ""],
+  ["dip", 0, 12, ""],
+  ["sway", 0, 4, "a run's knee pops swaying 5%"],
+  ["lean", -10, 25, ""],
+  ["swing", 0, 80, ""],
+];
+/**
+ * The shortest swing a foot is given, s: the sensors read a foot lifted for under 0.1 s as never having left the floor
+ * (core's contact bands, the sensors' too), and in a swing under 0.19 s it is up above their 7% for less than that.
+ */
+const MIN_SWING = 0.2;
+/** A gait's numbers checked: in range, and each foot given time to swing (a limp's strong foot most of all). */
 export function checkGait(g: Gait): void {
   const bad = (what: string) => {
     throw new Error(`gait ${g.name}: ${what}`);
@@ -141,11 +153,17 @@ export function checkGait(g: Gait): void {
   if (!(g.speed > 0 && g.speed <= 1000)) bad(`speed ${g.speed} is not above 0 and at most 1000 (% of the hip height a second)`);
   if (!(g.cycle >= 0.3 && g.cycle <= 3)) bad(`cycle ${g.cycle} is not 0.3 to 3 s`);
   if (!(g.stance >= 0.2 && g.stance <= 0.75)) bad(`stance ${g.stance} is not 0.2 to 0.75 of the cycle`);
-  const limp = g.limp ?? 0, lift = g.lift ?? 12;
+  const limp = g.limp ?? 0;
   if (!(limp >= 0 && limp <= 1)) bad(`limp ${limp} is not 0 to 1`);
-  if (!(lift >= UP && lift <= 60)) bad(`lift ${lift} is not ${UP} to 60 (% of the hip height): a foot must lift past ${UP}% to read as lifted`);
-  const right = 1 - g.stance * (1 - 0.3 * limp) + 2 * (g.stance - 0.5);
+  for (const [k, lo, hi, why] of RANGES) {
+    const v = g[k] as number | undefined;
+    if (v !== undefined && !(v >= lo && v <= hi)) bad(`${k} ${v} is not ${lo} to ${hi}${k === "lean" || k === "swing" ? " degrees" : " (% of the hip height)"}${why ? `: ${why}` : ""}`);
+  }
+  // the right foot stands from 0 to its lift-off, the left for its shortened stance (gaitClip's numbers)
+  const both = g.stance - 0.5, right = 1 - g.stance * (1 - 0.3 * limp) + 2 * both, left = g.stance * (1 - 0.3 * limp);
   if (right > 0.85) bad(`a limp of ${limp} on a stance of ${g.stance} leaves the right foot ${Math.round((1 - right) * 100)}% of the cycle to swing: use a shorter stance or a lighter limp`);
+  const swingT = Math.min(1 - right, 1 - left) * g.cycle;
+  if (swingT < MIN_SWING) bad(`its ${1 - right < 1 - left ? "right" : "left"} foot swings for ${swingT.toFixed(3)} s, under ${MIN_SWING} s: a foot up for under 0.1 s reads as never leaving the floor; use a longer cycle, a shorter stance${limp > 0 ? " or a lighter limp" : ""}`);
 }
 
 /** The gaits the library offers ready made: an easy walk, a brisk one, a run and a limp. */
@@ -170,13 +188,12 @@ export function gaitClip(g: Gait, rest: Rest, opts: ProceduralOptions): Clip {
   const offOf = { L: Math.min(0.3, Math.max(OFF, RISE / ((1 - stanceOf.L) * g.cycle))), R: Math.min(0.3, Math.max(OFF, RISE / ((1 - stanceOf.R) * g.cycle))) };
   // each foot covers the ground speed times its own stance while it stands
   const strideOf = { L: g.speed * pct * stanceOf.L * g.cycle, R: g.speed * pct * stanceOf.R * g.cycle };
-  // each foot's lift-off: up to UP in RISE_UP s, its share of the swing no more than a trailing leg allows (then as
-  // high as that time reaches at the same speed, and no lower than the set-down's)
+  // each foot's lift-off: up to UP in RISE_UP s, its share of the swing no more than a short swing or a trailing leg
+  // allows (then up to UP quicker)
   const leg = b.legUpper + b.legLower;
   const upFor = (x: "L" | "R") => {
     const swingT = (1 - stanceOf[x]) * g.cycle, trail = ((TRAIL * leg - strideOf[x] / 2) * stanceOf[x]) / (strideOf[x] * (1 - stanceOf[x]));
-    const off = Math.max(offOf[x], Math.min(0.3, RISE_UP / swingT, trail));
-    return { off, clear: Math.max(CLEAR, Math.min(UP, (UP * off * swingT) / RISE_UP)) };
+    return { off: Math.max(offOf[x], Math.min(0.3, RISE_UP / swingT, trail)), clear: UP };
   };
   const upL = upFor("L"), upR = upFor("R"), upOf = { L: upL.off, R: upR.off }, upClear = { L: upL.clear, R: upR.clear };
   const armLen = b.armUpper + b.armLower, piv = pt(S, "pelvis");
@@ -210,10 +227,8 @@ export function gaitClip(g: Gait, rest: Rest, opts: ProceduralOptions): Clip {
       // still in the world: standing, or rising or setting down straight
       const ws = (v - stanceOf[s]) / (1 - stanceOf[s]);
       stand[s] = v < stanceOf[s] || ws < upOf[s] || ws > 1 - offOf[s];
-      // high in its swing a foot reaches ahead of where it lands (it sets down still in the world while the body comes
-      // on): there its target is held softly within the leg's reach, so the knee never snaps straight
-      const sw = (v - stanceOf[s]) / (1 - stanceOf[s]), high = v >= stanceOf[s] && sw > upOf[s] && sw < 1 - offOf[s], T: V3 = [a[0] + fwd + behind, a[1], a[2] + up];
-      limbs.reach(X, `foot${s}`, high ? withinReach(pt(X, `hip${s}`), T, leg) : T);
+      // (a foot never reaches past STRIDE_MAX of a leg from the hips, so its knee never snaps straight)
+      limbs.reach(X, `foot${s}`, [a[0] + fwd + behind, a[1], a[2] + up]);
     }
     // the arms swing against the legs: the left forward as the right foot is
     for (const [s, off] of [["R", 0.5], ["L", 0]] as const) {
