@@ -1,0 +1,21 @@
+{
+ "format": "2.0",
+ "script": "SIMS/Walk_Run_Jump",
+ "graph": "GRAPHS/Locomotion",
+ "rate": 60,
+ "steps": 510,
+ "states": [
+  {"step":0,"t":0,"layer":"base","state":"idle","from":null},
+  {"step":0,"t":0,"layer":"upper","state":"none","from":null},
+  {"step":33,"t":0.55,"layer":"base","state":"move","from":"idle"},
+  {"step":270,"t":4.5,"layer":"base","state":"jump","from":"move"},
+  {"step":350,"t":5.833333,"layer":"base","state":"air","from":"jump"},
+  {"step":372,"t":6.2,"layer":"base","state":"land","from":"air"},
+  {"step":403,"t":6.716667,"layer":"base","state":"move","from":"land"},
+  {"step":420,"t":7,"layer":"upper","state":"jab","from":"none"},
+  {"step":464,"t":7.733333,"layer":"upper","state":"none","from":"jab"},
+  {"step":480,"t":8,"layer":"base","state":"idle","from":"move"}
+ ],
+ "events": [],
+ "hits": []
+}

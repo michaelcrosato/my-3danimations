@@ -1,0 +1,17 @@
+{
+ "format": "2.0",
+ "id": "SIMS/Walk_Run_Jump",
+ "desc": "Locomotion driven from standing through a walk, a jog and a sprint (the speed eased, as a game eases it) into a jump, in the air, landing on the run, a jab thrown over it, and standing again; the root follows the animation",
+ "graph": "GRAPHS/Locomotion",
+ "dur": 8.5,
+ "input": [
+  {"t": 0.5, "set": {"speed": 1.4}, "over": 0.3},
+  {"t": 2, "set": {"speed": 3.2}, "over": 0.8},
+  {"t": 3.5, "set": {"speed": 6}, "over": 0.8},
+  {"t": 4.5, "trigger": "jump"},
+  {"t": 4.6, "set": {"grounded": false}},
+  {"t": 6.2, "set": {"grounded": true}},
+  {"t": 7, "trigger": "punch"},
+  {"t": 7.5, "set": {"speed": 0}, "over": 0.5}
+ ]
+}

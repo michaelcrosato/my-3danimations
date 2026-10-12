@@ -28,7 +28,7 @@ const isObj = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 
 const FIELDS = {
   graph: ["format", "id", "name", "desc", "tags", "parameters", "start", "states", "transitions", "layers"],
   layer: ["name", "start", "states", "transitions", "mask", "weight", "additive"],
-  state: ["clip", "recipe", "blend", "pass", "speed", "at"],
+  state: ["clip", "recipe", "blend", "pass", "speed", "rate", "at"],
   blend: ["param", "params", "points", "sync"],
   transition: ["from", "to", "when", "exit", "window", "fade", "sync", "interruptible"],
   condition: ["param", "op", "value"],
@@ -150,6 +150,8 @@ function checkState(name: string, s: GraphState, at: string, isBase: boolean, pa
   if (s.pass !== undefined && s.pass !== true) add("G-E002", `${at}.pass`, "pass is true", '"pass": true');
   if (s.pass === true && isBase) add("G-E002", `${at}.pass`, "the base layer has nothing below it to show through: a pass state belongs on a layer over it", "a clip, or move it to a layer");
   if (s.speed !== undefined && !(isNum(s.speed) && Math.abs(s.speed) <= 100)) add("G-E005", `${at}.speed`, "speed is a number, -100 to 100", '"speed": 1');
+  if (s.rate !== undefined && params.get(s.rate as string) !== "number") add("G-E003", `${at}.rate`, `rate names a number parameter: "${String(s.rate)}" isn't one`, '"rate": "warp", with "warp": { "type": "number", "value": 1 } in parameters');
+  if (s.rate !== undefined && s.pass === true) add("G-E002", `${at}.rate`, "a pass state plays nothing to rate", "leave it out");
   // a one-shot played backward starts at its start and stays there: its exit never comes
   const one = clips && isNum(s.speed) && s.speed < 0 ? [s.clip, s.recipe].find((id) => typeof id === "string" && (clips(id) as { loop?: unknown } | undefined)?.loop === false) : undefined;
   if (one) add("G-E005", `${at}.speed`, `clip ${one} is a one-shot: it plays forward (speed above 0)`, "a speed above 0, or a looping clip");

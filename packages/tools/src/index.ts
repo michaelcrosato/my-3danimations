@@ -6,3 +6,6 @@ export { VERSION } from "@m3a/core";
 
 /** This package's name. */
 export const PACKAGE = "@m3a/tools";
+
+/** Simulation (spec/SIM.md): a script of a game's input run on a graph, its trace, its sensors and a filmstrip. */
+export * as sim from "./sim/index.ts";

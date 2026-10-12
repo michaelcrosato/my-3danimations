@@ -1,6 +1,6 @@
 {
   "name": "my-3danimations",
-  "version": "0.39.2",
+  "version": "0.40.0",
   "private": true,
   "description": "An open animation package for AI coding agents: spec, runtime, sensors, library and tools.",
   "license": "MIT",
@@ -38,7 +38,8 @@
     "corpora": "node tools/corpora/main.ts",
     "import": "node tools/import/main.ts",
     "facts": "node tools/facts/main.ts",
-    "moves": "node tools/procedural/carry.ts"
+    "moves": "node tools/procedural/carry.ts",
+    "sim": "node tools/sim/main.ts"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

@@ -45,8 +45,9 @@ hashes and events, in every engine.
   keeps its clips in phase;
 - `pass`: nothing plays, so what is below shows through (a layer over the base only).
 
-It may have `speed` (1; a one-shot's above 0, as it plays forward) and, a clip state, `at`: where it starts, seconds
-(0).
+It may have `speed` (1; a one-shot's above 0, as it plays forward); `rate`, a number parameter the speed is multiplied
+by each step (a host matching playback to its ground speed sets it: stride warping, `SIM.md` §3); and, a clip state,
+`at`: where it starts, seconds (0).
 
 **A transition** goes `from` a state (a list of them, or `"*"` for any) `to` another, and is taken when all of `when`
 hold: `{ "param", "op", "value" }` compares a number (`== != < <= > >=`) or a bool (`==`, `!=`); a bool or a trigger

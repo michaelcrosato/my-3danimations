@@ -4,6 +4,22 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.40.0 · 2026-10-12
+
+### Tools
+- `sim` (D75): `simulate` runs a script of a game's input on a graph (eased parameters, triggers, a ground speed) and
+  gives its trace (states, events, hit windows at their steps), where the root went, the body every step and the
+  sensors' read; the root follows the animation or stays in place, stride warped to the ground speed;
+  `validateScript` (S-E001–S-E007), `compareTraces`, `traceText`, `filmstrip`. `npm run sim -- <graph> --input
+  <script>` writes trace.json, result.json and film.png, and compares with `--expect`.
+
+### Core
+- Graphs: a state's `rate`, a number parameter its speed is multiplied by each step (stride warping sets it).
+
+### Spec
+- `spec/SIM.md`, `sim.schema.json` and `sim-trace.schema.json` (frozen under D75); `graph.schema.json`'s `rate`
+  (refrozen under D75); `spec/sims/`: two scripts and an expected trace; Locomotion's move reads `warp`.
+
 ## 0.39.2 · 2026-10-12
 
 ### Core

@@ -180,6 +180,11 @@
      "maximum": 100,
      "description": "Playback speed (1); a one-shot plays forward (above 0), which graph.validateGraph checks with the clips."
     },
+    "rate": {
+     "type": "string",
+     "pattern": "^[A-Za-z][A-Za-z0-9_-]*$",
+     "description": "A number parameter the speed is multiplied by each step: a host matching playback to its ground speed (stride warping) sets it."
+    },
     "at": {
      "type": "number",
      "minimum": 0,

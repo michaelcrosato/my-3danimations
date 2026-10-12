@@ -242,7 +242,7 @@ export class GraphRun<C extends GraphClip = GraphClip> {
   }
   /** An instance's layers: each point of a blend (or the clip), its share of `scale`, its speed. */
   #members(r: Run, inst: Instance, scale: number): { name: string; clip: C; w: number; speed: number }[] {
-    const s = r.def.states[inst.state]!, ids = clipsOf(s), speed = s.speed ?? 1;
+    const s = r.def.states[inst.state]!, ids = clipsOf(s), speed = (s.speed ?? 1) * (s.rate !== undefined ? Number(this.#params.get(s.rate) ?? 1) : 1);
     if (!ids.length) return [];
     if (!s.blend) return [{ name: nameOf(r, inst, 0), clip: this.#clips.get(ids[0]!)!, w: scale, speed }];
     const w = this.#weights(s), len = this.#len(s), sync = s.blend.sync !== false;

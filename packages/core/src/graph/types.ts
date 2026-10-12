@@ -37,6 +37,9 @@ export interface GraphState {
   pass?: true;
   /** Playback speed (1; a one-shot's is above 0). */
   speed?: number;
+  /** A number parameter the speed is multiplied by, each step: a host matching playback to its ground speed (stride
+   *  warping) sets it. */
+  rate?: string;
   /** Where a clip state starts, seconds (0), unless its transition syncs it. */
   at?: number;
 }

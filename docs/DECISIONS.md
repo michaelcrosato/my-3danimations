@@ -2395,3 +2395,46 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   merge. Sampled, the five files take 52 s of CPU against 107 s in full; both pass.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.39.1
+
+## D75 · 2026-10-12 · Simulation: a game's input run on a graph, its trace, root modes and stride warping (WP-6.5)
+
+- **Principle:** 1, 2, 4, 8, 9, §5.5
+- **Call:**
+  - **Where it lives:** `@m3a/tools`' `sim` namespace (`packages/tools/src/sim/*`, browser-safe: `simulate`,
+    `validateScript`, `compareTraces`, `traceText`, `filmstrip`), and `npm run sim` in `tools/sim/` (reading files,
+    the library's clips and the example recipes, and a rig: the tiny conformance rig, a generated test character or a
+    cached real one). The tools package may import only the packages' main and `/node` entries, and loading a
+    character's GLB needs three.js's loader, so the CLI is the repo's until WP-7.1's `m3a sim`. WP-6.5's entry owns
+    `tools/sim/*`, `spec/SIM.md`, `spec/sims/*` and the two schemas too, and says so.
+  - **A script** (`spec/SIM.md` §1, `sim.schema.json`, frozen under this decision) is rows of a game's input at their
+    times: parameters set (`over` eases a row's numbers, as a game eases its speed: set at once, the walk–jog blend
+    switched in a step and popped the toes and the chest), triggers pressed, and the ground speed (`move`, in metres
+    or hip heights a second). `validateScript` gives S-E001–S-E007, each with a fix.
+  - **A trace** (`sim-trace.schema.json`, frozen) is the states each graph layer entered, every event and every hit
+    window, at the fixed step each came in: integers, so an expected trace is compared exactly. With the root
+    following the animation, the graph's timing is the clips', not the body's: the example's trace is the same on the
+    tiny rig, on it with longer legs and shorter arms, on a half-size one, and on gen-3.
+  - **Hit windows from events:** a `hit` event opens one, closed after its `dur` (clip seconds: played at 1.2, a
+    0.1 s window is 5 steps), at the clip's `hit_end`, or after its step; sooner if its state's layer goes. A clip
+    played with a measured strike and no `hit` event is warned of (the library's carry none yet: B2's job).
+  - **Root modes:** `"root"` (default), the character goes where the root motion takes it; `"in-place"`, where the
+    game's ground speed does, the root motion dropped.
+  - **Stride warping** matches playback to the ground speed, as PLAN.md's entry says: core's graph gains a state's
+    `rate`, a number parameter its speed is multiplied by each step (Unity's speed multiplier; the graph schema,
+    refrozen under this decision). The sim sets it each step to the ground speed over the root's speed as the layers
+    mix it (each clip's own speed on this body, from the path its planted feet imply, at its layer's speed and share),
+    within 0.25× to 4×. Locomotion's `move` reads `warp`. Scaling the stride's length instead (the feet placed further
+    apart at the same cadence) is not done: the planted-feet solve would need the root's path scaled, and the plan
+    asks for playback matched.
+  - **The sensors** read the whole run in the world (`motionOfFrames` with the world root), and the filmstrip draws
+    frames spread over it, labelled with the states playing.
+- **Done when** (`npm test -- sim`, 7 tests): the walk-to-run-to-jump script's trace is `spec/sims/Walk_Run_Jump.trace.json`
+  exactly, on the tiny rig and on two other proportions; stride warped, a walk in place from 0.5× to 1.8× its own speed
+  slides 69–91 mm per contact (the warn level 150), its rate the ratio exactly, and unwarped at 0.75× and 1.5× it slides
+  268 and 240 mm (at 0.5× and 1.8× its feet move too fast to read as standing at all); hit windows, root modes, the
+  checks with the schemas agreeing, a run the same twice, a filmstrip.
+- **Limits, on record:** on the test characters the runs warn and fail on the planted feet's toes (pops), the sweep's
+  open issue (G4, D57–D60), not the sim's: the example reads a slide of 120 mm on the tiny rig and 127 on gen-0. A
+  script's speeds in metres a second are a body's: `"units": "H0"` makes them any body's.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.40.0

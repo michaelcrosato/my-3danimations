@@ -1768,7 +1768,8 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
 - **Verify:** `npm test -- graph`
 
 #### WP-6.5 Simulation and gameplay sync
-- **Owns:** `packages/tools/src/sim/*`
+- **Owns:** `packages/tools/src/sim/*`; `tools/sim/*` (the CLI, which reads rigs and clips: D75), `spec/SIM.md`,
+  `spec/sims/*`, `spec/schemas/sim.schema.json` and `sim-trace.schema.json`, and a graph state's `rate` in core
 - **Needs:** 6.4
 - **Size:** M
 - **Build:**
@@ -2260,7 +2261,7 @@ version, commit, date and a note with the numbers. Gates are rows too.
 | 6.2 Procedural sources | done | 0.39.1 | 2bfe276, a1dc1fd, (this commit) | 2026-10-12 | `npm test -- procedural` (26 tests, with `tools/procedural`'s carry test): the move model against my-3d2dge's frozen `moves.json`, 0.0018 cm mean and 0.012 cm worst, no exceptions; every move begins and ends exactly (0.000 mm) at three start poses on two rests, ten at five more and the three library poses a .5 field rounded off; the four gaits slide at most 7.8 mm per contact on three rests, none failing on any of 64, their contacts where the feet stand; the idles pass, 1.1–3.7 mm; `library/moves.json` (31 moves, one unit system) is the frozen schema's shape and checks clean, and its seven shardfall-only moves are their source's numbers; the moves floor by reason (D71); a gait swinging under 0.2 s or past the ranges the presets pass is refused; `library/moves.json`'s numbers are the frozen moves'; the verifier's rounds 1 and 2 fixed in 0.37.2 and 0.39.1 |
 | 6.3 Actions | done | 0.38.0 | (this commit) | 2026-10-12 | `npm test -- actions` (11 tests): the six actions and the paired one are the frozen schema's shape and check clean; each action and each role plays on the six test characters, no row worse than on its own body and none failing; each of the 14 interrupt cuts is a valid clip the sensors don't fail, from a moment a foot stands (both where its reason says); the climb's ground rises and the hop's falls; the A- checks; the pair's roles meet on their event (D72) |
 | 6.4 Graphs | done | 0.39.2 | 4e7cb0c, (this commit) | 2026-10-12 | `npm test -- graph` (20 tests): the checks and their codes, the schema agreeing; blend weights; the locomotion and combo graphs' scripted runs take the expected transitions and carry on exactly after a save and restore; triggers, exit, windows, sync, interrupts, layers, blend phase, callbacks, refusals; `npm run e2e` `animator-parity`: both graphs give the same states, hashes, events and exact poses in Node and Chromium (D73); the verifier's round 1 fixed in 0.39.2 (a faded-in state's first events, a loop's exit stepped over, cut fades, trigger buffers, clip hashes in the save) |
-| 6.5 Simulation and gameplay sync | todo | | | | |
+| 6.5 Simulation and gameplay sync | done | 0.40.0 | (this commit) | 2026-10-12 | `npm test -- sim` (7 tests): the walk-to-run-to-jump script runs into `spec/sims/Walk_Run_Jump.trace.json` exactly, on three bodies; stride warped, a walk in place from 0.5× to 1.8× its own speed slides 69–91 mm per contact (warn 150), its rate the ratio, and 268 and 240 mm unwarped at 0.75× and 1.5×; hit windows from events; root modes; S-E001–S-E007 with the schemas agreeing; a run the same twice; a filmstrip; `npm run sim` writes trace, result and film in 1–2 s (D75) |
 | 6.6 Briefs B2 to B7 and manual sections | todo | | | | |
 | **G6** | todo | | | | |
 | 7.1 The tool registry | todo | | | | |
