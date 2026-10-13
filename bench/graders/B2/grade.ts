@@ -1,7 +1,8 @@
 // B2's grader (PLAN.md §7, WP-6.6): the workspace's fighter driven with two presses two seconds apart, graded from the
-// character's bones: after each press a hand reaches forward and strikes faster than one hip height a second against
-// the pelvis (a punch), then comes back (an idle again); the game's damage comes exactly once per punch, never without
-// one, from two frames before the strike to the hand's farthest reach, the strike being the last time that hand's speed
+// character's bones: after each press a hand reaches 15% of the hip height forward and strikes faster than one hip
+// height a second against the pelvis (a punch), then comes back (an idle again); the game's damage comes exactly once
+// per punch, never without one, from two frames before the strike to four after (and not past the hand's farthest
+// reach), the strike being the last time that hand's speed
 // toward its target (forward) against the pelvis peaks faster than one hip height a second before it is farthest out
 // (the starter's strike.ts, which its check prints from: the punch's own peak, not a fade into a stance before it); it
 // idles before and after; no transform goes non-finite. The character is the grader's parameter: its character.glb.
@@ -41,7 +42,7 @@ export async function gradeB2(workspace: string): Promise<Grade> {
   // press's punch and its strike found by the starter's strike.ts, which `npm run check` prints from too
   const hands = ["wristL", "wristR"], ahead = hands.map((w) => joints.map((j) => sub(j.pelvis!, j[w]!)[0]));
   const strikes = PRESSES.map((p) => ({ press: p, ...strikeOf(ahead, p, H0) }));
-  for (const s of strikes) add(`punches after the press on frame ${s.press}`, s.speed > H0, `its hand strikes forward at ${(s.speed / 1000).toFixed(2)} m/s against the pelvis, on frame ${s.at} (one hip height a second is ${(H0 / 1000).toFixed(2)})`);
+  for (const s of strikes) add(`punches after the press on frame ${s.press}`, s.speed > H0 && s.reach >= 0.15 * H0, `its hand strikes forward at ${(s.speed / 1000).toFixed(2)} m/s against the pelvis, on frame ${s.at}, reaching ${Math.round((100 * s.reach) / H0)}% of the hip height forward (one hip height a second is ${(H0 / 1000).toFixed(2)}; a punch reaches 15% or more)`);
   const inWindow = (p: number) => damage.filter((d) => d.frame >= p && d.frame < p + WINDOW);
   add("damage once per punch", strikes.every((s) => inWindow(s.press).length === 1) && damage.length === PRESSES.length, `damage on frames ${damage.map((d) => d.frame).join(", ") || "none"}`);
   for (const s of strikes) {

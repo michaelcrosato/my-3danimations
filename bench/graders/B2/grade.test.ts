@@ -2,7 +2,7 @@
 // broke, on the default character (gen-1, of WP-4.2's set) and on a generator seed outside it (gen-37). The planted
 // fighters are the known-good one edited: damage when the button is pressed, when the punch ends, twice per punch, an
 // idle held still, a fighter that never punches (damage on a timer), damage on the press with a fighting jab (its fade
-// into the stance faster than its punch), and the jab looped on.
+// into the stance faster than its punch), the jab looped on, and the jab at 15% weight (a twitch).
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -29,6 +29,8 @@ const BAD: Record<string, { fighter: string; fails: string }> = {
   "damage on the press, a fighting jab": { fighter: planted('"QUATERNIUS_3D2DGE/Punch_Jab"', '"MESH2MOTION/Fighting_Right_Jab"').replace("        punching = true;", "        punching = true;\n        game.damage(10);").replace(HIT, "player.update(dt);"), fails: "damage when the punch" },
   // the jab looped on after a press, damage once a press: it never goes back to idling (the verifier's)
   "punches on": { fighter: planted("events: [{ t: strike, name: \"hit\" }] }", "loop: true, events: [{ t: strike, name: \"hit\" }] }"), fails: "back to idling" },
+  // the jab layered at 15% weight: a hand twitched forward a few cm at a punch's speed (the verifier's round 3)
+  "a twitch": { fighter: planted("animator.layer(\"punch\", { weight: Math.min(1, L.weight + dt / 0.1) });", "animator.layer(\"punch\", { weight: Math.min(0.15, L.weight + dt / 0.1) });"), fails: "punches after the press" },
 };
 /** Grades a fighter in a workspace inside the repository (the packages resolve to their sources). */
 async function grade(name: string, fighter: string, character: CharacterSpec): Promise<Grade> {

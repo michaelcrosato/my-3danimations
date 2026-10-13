@@ -20,6 +20,6 @@ for (frame = 0; frame < 300; frame++) {
 }
 for (const press of [60, 180]) {
   const s = strikeOf(ahead, press, bound.core.rest.H0);
-  console.log(s.speed ? `press on frame ${press}: the ${s.hand ? "right" : "left"} hand strikes on frame ${s.at} at ${(s.speed / 1000).toFixed(2)} m/s and is farthest out on ${s.far}: damage from frame ${s.from} to ${s.to}` : `press on frame ${press}: no punch (no hand's forward speed peaks faster than one hip height a second)`);
+  console.log(s.speed ? `press on frame ${press}: the ${s.hand ? "right" : "left"} hand strikes on frame ${s.at} at ${(s.speed / 1000).toFixed(2)} m/s, reaching ${Math.round((100 * s.reach) / bound.core.rest.H0)}% of the hip height forward, farthest out on ${s.far}: damage from frame ${s.from} to ${s.to}` : `press on frame ${press}: no punch (no hand's forward speed peaks faster than one hip height a second)`);
 }
 console.log(`damage on frames ${damage.join(", ") || "none"}`);

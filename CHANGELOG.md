@@ -4,6 +4,17 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.42.5 · 2026-10-13
+
+### Repo
+- B3 checks the body stays where it lies (from 0.3 s after the hips are down, 0.6 hip heights at most), and its
+  standing-foot bar is 25%, as B4's: walks stride-warped as the manual shows read up to 22% (D77, the verifier's round
+  3).
+- B2's damage comes from two frames before the strike to four after, not to the hand's farthest reach, and a punch
+  reaches 15% of the hip height; PLAN.md §7's B2 row says so (D77).
+- The verifiers' sliding body and twitching hand planted; B6's README lists its character; the records' numbers
+  corrected (D77).
+
 ## 0.42.4 · 2026-10-12
 
 ### Core

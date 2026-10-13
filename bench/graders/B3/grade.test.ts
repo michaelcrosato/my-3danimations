@@ -2,7 +2,8 @@
 // broke, on the default character (gen-1, of WP-4.2's set) and on generator seeds outside it (gen-37; gen-29, a spine
 // without chest bones). The planted reactors are the known-good one edited: the light hit on the whole body, a heavy
 // hit that gets up at once, one that never gets up, the idle slid along for the walk, a light hit that does nothing,
-// a knockdown flung, the idle slid along after getting up, and the walk skating at half its rate.
+// a knockdown flung, the idle slid along after getting up, the body sliding as it lies, and the walk skating at half
+// its rate.
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -29,6 +30,8 @@ const BAD: Record<string, { reactor: string; fails: string }> = {
   // after getting up, the idle slid along at the speed asked (the verifier's): it never walks again
   "idles after": { reactor: planted("const want = speed * H0 > 0.3 * H0 ? walk : idle,", "const want = speed * H0 > 0.3 * H0 && !rose ? walk : idle,").replace("else if (down.phase === \"rise\" && L.held === \"end\") down = null;", "else if (down.phase === \"rise\" && L.held === \"end\") [down, rose] = [null, true];").replace("character.position.z += player.moved.forward / 1000;", "character.position.z += player.moved.forward / 1000 + (rose ? (speed * H0 * dt) / 1000 : 0);").replace("let ", "let rose = false, "), fails: "a foot stands still walking, again at the end" },
   // the walk played at half the rate the speed needs while the character moves at the speed asked: its feet skate
+  // the body carried on along the floor while it lies (the verifier's round 3: a game that keeps moving it while down)
+  "slides as it lies": { reactor: planted("character.position.z += player.moved.forward / 1000;", 'character.position.z += player.moved.forward / 1000 + (down && down.phase === "lie" ? (0.8 * H0 * dt) / 1000 : 0);'), fails: "it stays where it lies" },
   "skates": { reactor: planted("character.position.z += player.moved.forward / 1000;", "character.position.z += down ? player.moved.forward / 1000 : (speed * H0 * dt) / 1000;").replace("speed: want === walk ? Math.min(2, Math.max(0.5, (speed * H0) / own)) : 1", "speed: want === walk ? 0.5 * Math.min(2, Math.max(0.5, (speed * H0) / own)) : 1"), fails: "a standing foot stays, before the hits" },
 };
 /** Grades a reactor in a workspace inside the repository (the packages resolve to their sources). */

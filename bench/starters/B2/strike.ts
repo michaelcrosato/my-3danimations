@@ -1,13 +1,17 @@
 // A punch's strike, found as B2's grader finds it (the grader imports this very file, and `npm run check` prints what
 // it finds): from each hand's place forward of the hips on every frame, the hand that reaches farthest forward after a
-// press, the frame it is farthest out, and its strike, the last time its forward speed peaks faster than one hip height
-// a second before then. Damage may come from two frames before the strike (a cross-fade moves the played peak a frame
-// or two from the clip's own) to the frame the hand is farthest out.
+// press, the frame it is farthest out, how far it reached from where it was before the press, and its strike, the last
+// time its forward speed peaks faster than one hip height a second before then. Damage may come from two frames before
+// the strike to four after it (a cross-fade moves the played peak a frame or two from the clip's own), and not after the
+// hand is farthest out.
 
-/** A press's punch: its hand, the frame it is farthest out, its strike and that speed, and the frames damage may come on. */
+/** A press's punch: its hand, the frame it is farthest out and how far it reached, its strike and that speed, and the
+ *  frames damage may come on. */
 export interface Strike {
   hand: number;
   far: number;
+  /** How far forward the hand went, from its farthest in the half second before the press to its farthest after, mm. */
+  reach: number;
   at: number;
   /** The hand's forward speed at its strike, mm/s (0 when it never peaks faster than one hip height a second). */
   speed: number;
@@ -36,5 +40,6 @@ export function strikeOf(ahead: number[][], press: number, H0: number, fps = 60)
     const v = speed(hand, i);
     if (v > H0 && v >= speed(hand, i - 1) && v >= speed(hand, i + 1)) at = i;
   }
-  return at < 0 ? { hand, far, at: far, speed: 0, from: far, to: far } : { hand, far, at, speed: speed(hand, at), from: at - 2, to: Math.max(at, far) };
+  const reach = ahead[hand]![far]! - Math.max(...ahead[hand]!.slice(Math.max(0, press - 30), press + 1));
+  return at < 0 ? { hand, far, reach, at: far, speed: 0, from: far, to: far } : { hand, far, reach, at, speed: speed(hand, at), from: at - 2, to: Math.min(far, at + 4) };
 }

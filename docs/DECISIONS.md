@@ -2680,9 +2680,9 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   - **B3's knockdown flung the body 7 hip heights** (blocking): core's root motion held `Hit_Knockback`'s take-off
     speed (its right foot read planted 4 frames while swept away, about 9 hip heights a second) to the clip's end. A
     one-shot that ends off its feet now spends its speed over the time a body falls its hip height: the three sets'
-    knockbacks travel 2.6 to 2.8 hip heights (the root-motion clip's own, 3.3; core's test holds it and fails the old
-    code). B3 checks it: from the hit until it stands, the hips go no more than 3.5 hip heights (the 17 alternatives
-    0.2 to 2.6); a flung knockdown is a planted bad one.
+    knockbacks travel 2.6 to 2.9 hip heights (the root-motion clips', 3.3 to 3.4; core's test holds it and fails the
+    old code). B3 checks it: from the hit until it stands, the hips go no more than 3.5 hip heights (the alternatives
+    0.2 to 2.9); a flung knockdown is a planted bad one.
   - **B3's other bars (S1 to S3):** the light hit's in hip heights (2% and 5%); a foot may go twice the floor's limit
     in the half second after the heavy hit (a cross-fade from a step dipped one 6 cm on bulky bodies); the walk is
     checked in the last second too, with a standing foot staying (the lower foot at 15% of the travel or less 40% of
@@ -2713,9 +2713,40 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
     recorded); T1's time ran under the other verifier's load.
   - **Measured:** the known-goods on new seeds, B2, B3 and B7 40 of 40 (gen-60 to 99), B4 35 of 35 (VRM seeds 60 to
     196); on three real rigs, B2 and B7 pass on all, B3 and B4 on the mannequin. T1 grades every other planted solution
-    of B2, B3 and B4 on gen-1, T2 all of them on three characters (as D74 samples the sweeps), keeping T1 in budget.
+    of B2, B3 and B4 on its default character (gen-1; B4's gen-40), T2 all of them on two or three (as D74 samples the
+    sweeps), keeping T1 in budget.
+- **Verifier, round 3** (both halves, at e9c0c52): done, nothing blocking; every round-2 fix held (1,548 right
+  fighters, B3's and B7's alternatives, B4's crouch walks on 10 more VRM seeds, the known-goods 40 of 40 on gen-100 to
+  139, the starters and graders on the four real rigs as round 2 said). Five should-fix findings, fixed or answered in
+  v0.42.5:
+  - **B3 passed a body sliding along the floor as it lay** (a game that keeps moving the character while it is down:
+    2 hip heights along the floor, inside the 3.5 the knockdown may carry it). B3 now checks it stays where it lies:
+    from 0.3 s after the hips are down until they rise, they move no more than 0.6 hip heights (right solutions 0.02 to
+    0.16, `Death01`'s slower fall 0.44; the verifier's sliders 0.81 to 2.1); the brief says so; one is planted.
+  - **B2's damage window ran to the hand's farthest reach**, up to 17 frames after the strike: a timer 9 frames late
+    passed. It now runs from two frames before the strike to four after, and not past the farthest reach (of the
+    verifier's 2,304 right punches, two landed four after); PLAN.md §7's B2 row says so, as the plan's "within one frame
+    of the clip's measured strike" no longer did.
+  - **B2 had no reach:** a jab layered at 15% weight (a hand 3 to 8 cm forward at 1.3 m/s) passed as a punch. A punch
+    now reaches 15% of the hip height forward of where the hand was before the press (right punches 28% or more); the
+    brief and the check say so; the twitch is planted.
+  - **B3's standing-foot bar failed walks stride-warped as the manual shows:** `MESH2MOTION/Walk_Large` reads 14 to 22%
+    (moved by its feet, 0%), `Walk_Formal_Loop` 15 to 17% on a chibi; the default walk 6 to 14% (round 2's "7 to 13%"
+    was short). The bar is now 25%, as B4's. The walk played at its own pace while the body goes at the asked one (13
+    to 23%) passes with it: its slide is no worse than stride warping's own. `MESH2MOTION/Walk_Female` fails moved by
+    its feet too (its contacts are read poorly: 22 to 56%), recorded.
+  - **Records:** round 2's knockback travel (2.6 to 2.9, not 2.8), its alternatives (to 2.9, not 2.6), and T1's
+    sampling (B4's default character is gen-40, and T2 grades B2 and B4 on two characters) are corrected above; "a
+    landing played to its end first passes" holds for the Quaternius landings, while `MESH2MOTION/Jump_Land` (1.58 s)
+    played to its end isn't running by 8.3 s; the ledger rows say T1 grades half the planted ones; WP-6.6's Owns lists
+    core's `contact/root.ts`.
+  - **Nits, recorded:** a jog played at a fifth of its rate passes B3's end walk on some seeds; B7's travel bands pass
+    some wrong clips played at odd rates (a run that is a crawl at 3x); a lie of 0.3 s passes inside the 1.3 to 3.5 s
+    window; on the off-floor rig the starters' checks print raw heights (G7's); a jab on an upper-body layer over a
+    turned stance fails, rightly (the hand goes sideways); a table pick-up passed as a punch at round 3 (it fails now);
+    `Run_Female` reads no contacts; B1's known-good fails on KayKit's textures too. B6's README lists the character.
 - **Answered:** no: made without a response, to review.
-- **Landed in:** v0.42.0, v0.42.1, v0.42.3, v0.42.4
+- **Landed in:** v0.42.0, v0.42.1, v0.42.3, v0.42.4, v0.42.5
 
 ## D78 · 2026-10-12 · G6's command set; a held-out run's variants on generator seeds alone
 

@@ -1,11 +1,11 @@
 // B3's grader (PLAN.md §7, WP-6.6): the workspace's reactor driven twice, walking, with a light hit at 3 s and a heavy
 // one at 6 s, and once without the light hit, graded from the character's bones: walking (the second before the light
 // hit, and the last second), it travels at the speed asked (±10%), a foot stands still at times, and a standing foot
-// stays (the lower foot at 15% of the travel or less 40% of the time); during the light hit the legs (hips, knees,
+// stays (the lower foot at 25% of the travel or less 40% of the time); during the light hit the legs (hips, knees,
 // ankles against the pelvis) stay within 2% of the hip height of the walk without it while the hands or head move 5%
 // from it; the heavy hit puts the hips below 45% of their standing height within 1.5 s and on the ground (under 15%)
 // for 1.3 to 3.5 s (a second lying, the fall and the rise's start included), then back above 85% within 3 s, carried no
-// more than 3.5 hip heights over the ground till then; the feet, pelvis and head never go 5% of the hip height under the
+// more than 3.5 hip heights over the ground till then, and no more than 0.6 while it lies; the feet, pelvis and head never go 5% of the hip height under the
 // floor (a foot 10% in the half second after the heavy hit); no transform goes non-finite. The character is the
 // grader's parameter: the workspace's character.glb.
 import { join } from "node:path";
@@ -18,10 +18,10 @@ import { bodyOf, jointsOf, len, sub, type BonePoint, type V3 } from "../bones.ts
 export const WALK = 60, LIGHT = 180, HEAVY = 360, FRAMES = 780;
 const LEGS = ["hipL", "hipR", "kneeL", "kneeR", "ankleL", "ankleR"], UPPER = ["wristL", "wristR", "head"];
 /** Of the hip height: the most a light hit may move the legs, and the least it moves the hands or head, from the walk
- *  without it; the farthest a heavy hit may carry the hips before it stands again. */
-const LEGS_AT = 0.02, UPPER_AT = 0.05, THROWN = 3.5;
+ *  without it; the farthest a heavy hit may carry the hips before it stands again, and while it lies. */
+const LEGS_AT = 0.02, UPPER_AT = 0.05, THROWN = 3.5, LIES = 0.6;
 /** The most the lower foot may move walking, 40% of the time, of the body's travel. */
-const STAYS = 0.15;
+const STAYS = 0.25;
 
 type Run = { joints: Record<string, V3>[]; nonFinite: number; threw: string };
 /** Drives a reactor from the workspace (`light`: whether the light hit comes). */
@@ -56,9 +56,9 @@ export async function gradeB3(workspace: string): Promise<Grade> {
   if (a.threw || b.threw) return done();
   // walking, before the light hit and again at the end (each its last second): at the speed asked, 1.2 hip heights a
   // second (±10%), its feet stepping: the lower foot's slowest tenth slower than the sensors' standing speed (an idle
-  // slid along isn't), and a standing foot staying where it stands: the lower foot at 15% of the travel or less at
+  // slid along isn't), and a standing foot staying where it stands: the lower foot at 25% of the travel or less at
   // least 40% of the time (a walk moved by its feet: 0%; played at the rate the speed needs while the character moves
-  // at it, as the manual's stride warping does: 7 to 13%; slid at half its rate: 48%)
+  // at it, as the manual's stride warping does: 5 to 22%; slid at half its rate: 48%)
   const low = (j: Record<string, V3>, s: string) => ["ankle", "ball", "toe"].map((p) => j[p + s]).filter((p): p is V3 => !!p).reduce((x, y) => (y[2] < x[2] ? y : x));
   const walking = (end: number, when: string) => {
     const J = a.joints.slice(end - 60, end), pace = (J[59]!.pelvis![0] - J[0]!.pelvis![0]) / (59 / 60) / H0;
@@ -97,6 +97,14 @@ export async function gradeB3(workspace: string): Promise<Grade> {
     let far = 0;
     for (let i = HEAVY; i <= to; i++) far = Math.max(far, Math.hypot(a.joints[i]!.pelvis![0] - P[0], a.joints[i]!.pelvis![1] - P[1]));
     add("a heavy hit throws it, no further", far <= THROWN * H0, `the hips ${(far / H0).toFixed(2)} hip heights from where the hit found them before it stands again (at most ${THROWN})`);
+    // it stays where it lies: from 0.3 s after the hips are down (the fall's slide spent) until they rise, they move
+    // over the ground no more than LIES hip heights (a body the game carries on moving while it lies slides along)
+    if (lieAt >= 0 && upAt > lieAt + 18) {
+      const L = a.joints[lieAt + 18]!.pelvis!;
+      let slid = 0;
+      for (let i = lieAt + 18; i < upAt; i++) slid = Math.max(slid, Math.hypot(a.joints[i]!.pelvis![0] - L[0], a.joints[i]!.pelvis![1] - L[1]));
+      add("it stays where it lies", slid <= LIES * H0, `the hips ${(slid / H0).toFixed(2)} hip heights over the ground while it lies (at most ${LIES})`);
+    }
   }
   walking(FRAMES, "again at the end");
   // the feet, the pelvis and the head (the arms may push against the floor getting up, as the sensors' lying profile
