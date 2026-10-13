@@ -246,12 +246,12 @@ export function gaitClip(g: Gait, rest: Rest, opts: ProceduralOptions): Clip {
   // cycle, and where it does with a foot far ahead or behind (a stance of a half, a fast stride), a leg lowered only for
   // the stance's ends was driven straight and its knee popped (D71, round 6)
   let dip = Math.max((g.dip ?? 2) * pct, high - reachable);
+  const legs = ([["R", 0], ["L", 1 - landL]] as const).map(([s, off]) => ({ s, off, ahead: pt(S, `ankle${s}`)[0] - pt(S, `hip${s}`)[0], under: pt(S, `hip${s}`)[2] - pt(S, `ankle${s}`)[2] }));
   for (let k = 0; k < 240; k++) {
     const phase = k / 240, raise = -(g.bounce ?? 1.5) * pct * PM.cos(4 * Math.PI * (phase - 0.08));
-    for (const [s, off] of [["R", 0], ["L", 1 - landL]] as const) {
-      const v = (phase + off) % 1, [fwd, up] = footAt(v, stanceOf[s], strideOf[s], lift, upClear[s] * pct, upOf[s], CLEAR * pct, offOf[s]);
-      const ahead = pt(S, `ankle${s}`)[0] - pt(S, `hip${s}`)[0] + fwd, under = pt(S, `hip${s}`)[2] - pt(S, `ankle${s}`)[2];
-      dip = Math.max(dip, under + raise - up - Math.sqrt(Math.max(0, (0.985 * leg) ** 2 - ahead ** 2)));
+    for (const { s, off, ahead, under } of legs) {
+      const [fwd, up] = footAt((phase + off) % 1, stanceOf[s], strideOf[s], lift, upClear[s] * pct, upOf[s], CLEAR * pct, offOf[s]);
+      dip = Math.max(dip, under + raise - up - Math.sqrt(Math.max(0, (0.985 * leg) ** 2 - (ahead + fwd) ** 2)));
     }
   }
   const t: Track = { dur, loop: true, fps, times, poses: [], roots: [], events: [], rest, restSrc: opts.restSrc, sources: [], cycle: { forward: g.speed * g.cycle, right: 0, yaw: 0 } };

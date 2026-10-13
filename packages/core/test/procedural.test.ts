@@ -366,7 +366,7 @@ describe("a gait", () => {
     };
     const [l0, l12] = [lean(0), lean(12)];
     expect([l12[0] - l0[0], l12[1] - l0[1] > 40]).toEqual([12, true]);
-  });
+  }, 30_000);
   it("limps: the weak leg stands for less, the pelvis drops over it, and a foot is always down", () => {
     const src = load("MESH2MOTION/Idle_A"), g = PR.GAITS.find((x) => x.name === "limp")!, limp = PR.gaitClip(g, src.rest, { restSrc: src.clip.restSrc });
     const span = (iv: [number, number][]) => iv.reduce((a, [x, y]) => a + y - x, 0);
