@@ -4,6 +4,17 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.42.6 · 2026-10-13
+
+### Core
+- Gaits (D71, the verifier's round 6): the pelvis is lowered until no leg reaches past 98.5% of its length at any
+  phase, the bounce counted (a bounce of 3 or more drove a far-reaching leg straight, popping its knee); the reach
+  bound is 72% of a leg; the shortest swing 0.26 s; 50 to 110 frames a second.
+
+### Repo
+- Tests: the gaits' refusals at the new bounds, a gait made at 110 frames a second; a one-shot's sideways root speed
+  spent and a loop's flight in-betweened (D71, D77); the gaits' arm-swing test given 30 s.
+
 ## 0.42.5 · 2026-10-13
 
 ### Repo

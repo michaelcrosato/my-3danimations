@@ -2130,7 +2130,7 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
       81 roundings lands the ankle nearest where it landed, and the keys are fitted within 2 mm.
     - Its parameters are speed, cadence, stance, lift, bounce, dip, sway, lean, arm swing and limp, each taken in the
       range the presets pass on three rests (lift 9–35, bounce 0–6, dip 0–12, sway 0–4, lean −10° to 25°, arm swing
-      0–80°); a swing under 0.2 s is refused (round 2; under 0.25 s from round 5). A limp shortens
+      0–80°); a swing under 0.2 s is refused (round 2; under 0.25 s from round 5, 0.26 s from round 6). A limp shortens
       the weak leg's stance by up to 30%; that leg lands later and the other stands longer, keeping the plain gait's
       double support. Without that, neither foot stood just before the strong foot landed.
     - `GAITS` gives four ready made: walk, brisk, run and limp. On three rests (Mesh2Motion, 100STYLE, CMU) they slide
@@ -2341,8 +2341,30 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
     1,024 on all 64 rests were walks; the worst slide off the presets is 14.4 mm (a limp at 2.5 s, 100STYLE), not
     14.2; the `Gait` type now says what `checkGait` refuses. Round 4's "none of the grids at those bounds fails" was
     true of its grids, not of the bounds: this round's grids are at the bounds themselves.
+- **Verifier, round 6** (at e9c0c52): not done, one blocking finding: 770 of the 10,102 accepted gaits it played
+  failed, 752 with a bounce of 3 or more. Fixed or answered in v0.42.6:
+  - **The bounce drove a far-reaching leg straight** (blocking): the pelvis was lowered for a leg to reach the stance's
+    ends at its base height, and the bounce then lifted it twice a cycle, at a stance of a half while the swinging
+    foot reached far ahead (a leg at 99.7% of its length against 97.4% without the bounce), and the knee snapped.
+    `gaitClip` now samples the cycle and lowers the pelvis until no leg reaches past 98.5% of its length at any phase,
+    the bounce, the foot's lift and its place ahead or behind all counted (5 of the presets' 256 clips on 64 rests
+    change, the run on five CMU rests; they pass). The verifier's grids rerun: 147 of 8,306 failing, nearly all at 72.5
+    to 74.5% of a leg's reach. So the reach bound is 72% (no preset reaches it on any rest), and the grids rerun at
+    71.5%: 97 of 8,244 failing, all but 5 at swings of 0.25 to 0.257 s (a stance of 0.5 near the reach bound with a
+    bounce). The shortest swing is 0.26 s: at 0.26 s and more, 5 of 5,258 fail (four runs lifting 35 at a stance of 0.2
+    with every range end at the reach edge, one run's seam at 0.6 s), recorded, not refused.
+  - **Rates over 110:** at 120 a brisk walk with the ranges' high ends popped its elbows on 4 of 64 rests (Quaternius'
+    two UAL rests): a gait is made at 50 to 110; at 110 with those ends, 512 on all 64, none fail.
+  - **Records:** round 5's "every grid either verifier ran at 0.25 s or more passed" was false (the round-5 verifier's
+    own grid held 2 failures at 0.25 s), as was the code's "at 0.25 s and more none did"; its "2 failing at the reach
+    bound's edge" was that edge failing far more with a bounce; mutant N13 (a stance of 0.5 read as a run) refused
+    exactly where the failures were. The `Gait` doc credited `checkGait` with the reach check, which is `gaitClip`'s on
+    the rest given. The ledger and this decision's own call still said 0.2 s.
+  - **Tests:** the refusals at 0.25 s, 111 frames a second and 72%; a gait made at 110; the cap's cases at swings of
+    0.26 s; the sensors' two shortest swings now 0.26 s (6.2 and 8.0 mm on 100STYLE). The root change (D77): a one-shot's
+    sideways speed is spent too, and a loop's flight is still in-betweened (its mutants R6 and R11 now fail the test).
 - **Answered:** no: made without a response, to review.
-- **Landed in:** v0.37.0, v0.37.2, v0.39.1, v0.42.1, v0.42.3, v0.42.4
+- **Landed in:** v0.37.0, v0.37.2, v0.39.1, v0.42.1, v0.42.3, v0.42.4, v0.42.6
 
 ## D72 · 2026-10-12 · Actions: multi-beat motions with their ground, beats and interrupt points (WP-6.3)
 
@@ -2745,8 +2767,15 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
     window; on the off-floor rig the starters' checks print raw heights (G7's); a jab on an upper-body layer over a
     turned stance fails, rightly (the hand goes sideways); a table pick-up passed as a punch at round 3 (it fails now);
     `Run_Female` reads no contacts; B1's known-good fails on KayKit's textures too. B6's README lists the character.
+- **The root change, measured** (WP-6.2's verifier, round 6): it moves 38 of the library's 167 in-place one-shots,
+  every loop (993) unchanged. The knockbacks go from 9.3, 8.4 and 7.9 hip heights to 2.9, 2.6 and 2.7; `Death_C` from
+  3.8 to 0.4; the three `NinjaJump_Start` from 4.5 to 1.2; `ClimbUp_1m` from 2.2 to 0.9; `Slide_Start` from 1.25 to 0.9;
+  no clip travels over 3 hip heights now (7 did). A jump start does lose travel a body in flight would keep: its
+  take-off speed was read off a foot sweeping away (the overestimate the knockbacks showed), and a one-shot with no
+  landing in view can't say how far its flight goes; the clip after it (a jump loop, a landing) carries the travel
+  on. Of the sweeps' rows for the 21 most moved, on two test characters, 6 of 42 change, all for the better.
 - **Answered:** no: made without a response, to review.
-- **Landed in:** v0.42.0, v0.42.1, v0.42.3, v0.42.4, v0.42.5
+- **Landed in:** v0.42.0, v0.42.1, v0.42.3, v0.42.4, v0.42.5, v0.42.6
 
 ## D78 · 2026-10-12 · G6's command set; a held-out run's variants on generator seeds alone
 

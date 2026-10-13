@@ -8,7 +8,7 @@
 // (each foot from its touchdown to its lift-off). The root and pelvis are put on the format's grid before the feet are
 // aimed, and each planted leg's rounded numbers are chosen to keep its ankle within the format's rounding (a leg's
 // direction is held in hundredths: about 4 mm) of where it landed, through the in-betweening too. A gait it can't play
-// (a stride past the legs' reach, a swing under 0.25 s or faster past the hips than 4 hip heights a second, a run's
+// (a stride past the legs' reach, a swing under 0.26 s or faster past the hips than 4 hip heights a second, a run's
 // cycle under 0.6 s (0.65 lifting over 25%), a number past the range the sensors pass, a rate outside 50 to 110 frames
 // a second) is refused with what to change. The frames are spread evenly over the cycle, an even number
 // of them, and each knee's turn about its leg, carried on from frame to frame, is closed over it, so the loop meets
@@ -26,7 +26,7 @@ import { bodyOf, clipOfTrack, standingOn, type ProceduralOptions } from "./clip.
 
 /**
  * A gait, in the format's units: speed and lengths in % of the hip height, angles in degrees, times in seconds. Besides
- * each number's range, `gaitClip` refuses a swing under 0.25 s (the cycle times the share a foot is up), a foot
+ * each number's range, `gaitClip` refuses a swing under 0.26 s (the cycle times the share a foot is up), a foot
  * swinging forward past the hips faster than 400% of the hip height a second, a run's (a stance under 0.5) cycle under
  * 0.6 s (0.65 lifting over 25), a rate outside 50 to 110 frames a second, and, on the rest given, a stride past the
  * legs' reach; each with what to change (D71).
@@ -153,10 +153,10 @@ const RANGES: readonly [keyof Gait, number, number, string][] = [
  * The shortest swing a foot is given, s: the sensors read a foot lifted for under 0.1 s as never having left the floor
  * (core's contact bands, the sensors' too), and in a swing under 0.19 s it is up above their 7% for less than that
  * (round 2); under 0.25 s a knee pops lifting more than 12, bouncing 6, or at a stance of 0.5 near the cap, on many
- * bodies (D71, rounds 4 and 5; at 0.25 s and more the bounce still drove a far-reaching leg straight, until the pelvis
- * was lowered for it: round 6).
+ * bodies (D71, rounds 4 and 5); at 0.25 to 0.257 s, a stance of 0.5 near the reach bound still did on some, the pelvis
+ * lowered for the bounce (round 6).
  */
-const MIN_SWING = 0.25;
+const MIN_SWING = 0.26;
 /**
  * The fastest a swinging foot may come forward past the hips, % of the hip height a second (its stride over its swing:
  * the speed times its stance over its swing, whatever the cycle): at 420 a long stance's knee pops mid-swing on some

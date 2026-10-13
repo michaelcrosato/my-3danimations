@@ -51,10 +51,10 @@ describe("procedural clips under the sensors", () => {
       ["STYLE100/Neutral_Walk", { speed: 100, cycle: 0.9, stance: 0.55 }, 7],
       ["MESH2MOTION/Idle_A", { speed: 140, cycle: 0.9, stance: 0.65 }, 5],
       ["STYLE100/Neutral_Walk", { speed: 60, cycle: 1.3, stance: 0.7, limp: 0.4 }, 9],
-      // swings of 0.25 s, the shortest taken: their feet lift off quicker to clear the height a lifted foot is read at
+      // swings of 0.26 s, the shortest taken: their feet lift off quicker to clear the height a lifted foot is read at
       // (lifting off as a longer swing does, swings of 0.2 s slid 500 to 690 mm: the verifier's round 3)
-      ["STYLE100/Neutral_Walk", { speed: 140, cycle: 0.625, stance: 0.6 }, 12],
-      ["STYLE100/Neutral_Walk", { speed: 50, cycle: 1.44, stance: 0.7, limp: 0.6 }, 8],
+      ["STYLE100/Neutral_Walk", { speed: 140, cycle: 0.65, stance: 0.6 }, 8],
+      ["STYLE100/Neutral_Walk", { speed: 50, cycle: 1.5, stance: 0.7, limp: 0.6 }, 10],
     ] as const) {
       const { rest, restSrc } = RESTS.find(([x]) => x === id)![1], r = metrics(PR.gaitClip({ name: "g", about: "a gait", ...g }, rest, { restSrc }), rest);
       expect([id, g, r.values.slide <= bar, r.verdict === "fail"]).toEqual([id, g, true, false]);

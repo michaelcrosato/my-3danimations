@@ -3,7 +3,7 @@
 The current state on one screen (at most 40 lines; `npm run doctrine` checks it from WP-0.3). The ledger is
 `PLAN.md` §14; decisions are in `docs/DECISIONS.md`.
 
-**Phase:** 6 Composition (5 done, G5 passed; 4 waits on G4). **Next gates:** G6; G4 (M1), run 2. **Version:** 0.42.5.
+**Phase:** 6 Composition (5 done, G5 passed; 4 waits on G4). **Next gates:** G6; G4 (M1), run 2. **Version:** 0.42.6.
 **Mode:** one agent (D21), branch `claude/relaxed-albattani-939ofg` (D50: it takes over michaelcrosato/my-3danimations#9).
 
 ## Done
@@ -19,7 +19,7 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
   and the sweep (D49, D51); the first-flight demo `apps/lab/hello`, driven headless, hashes = Node's (D52).
 - Phase 5 (G5 passed, on michaelcrosato/my-3danimations#10 with Phase 4): layout (D53); licenses (D59); `@m3a/io` (D61);
   corpora (D62); the re-import (D63); facts (D64); search (D65); library QA, 1,199 unique motions (D66–D69).
-- Phase 6 so far: recipes (D70); procedural moves, gaits and idles (D71, five verifier rounds); actions (D72); graphs,
+- Phase 6 so far: recipes (D70); procedural moves, gaits and idles (D71, six verifier rounds); actions (D72); graphs,
   Node = Chromium (D73, two rounds); simulation, stride warping (D75); briefs B2–B7, the manual's wire and make (D76, D77).
 
 ## Next
