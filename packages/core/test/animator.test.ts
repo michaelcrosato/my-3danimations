@@ -118,8 +118,12 @@ describe("step", () => {
     const r = contact.contactRoot(thrown, rig.rest, thrown.contacts!);
     const v = (r.root(off).forward - r.root(off - 1 / 60).forward) * 60, at = (t: number) => r.root(t).forward;
     expect(Math.abs(v)).toBeGreaterThan(100);
-    expect([thrown.dur > off + fall + 0.1, at(thrown.dur)]).toEqual([true, at(off + fall + 1 / 30)]);
+    expect([thrown.dur > off + fall + 0.1, at(thrown.dur), r.root(thrown.dur).right]).toEqual([true, at(off + fall + 1 / 30), r.root(off + fall + 1 / 30).right]);
     expect((at(off + fall) - at(off)) / (v * fall)).toBeCloseTo(0.5, 1);
+    // a loop's flight is in-betweened round the cycle as before: the same contact, looped, carries the body on through
+    // its flight to its next touchdown
+    const looped = contact.contactRoot({ ...thrown, loop: true }, rig.rest, thrown.contacts!), lat = (t: number) => looped.root(t).forward;
+    expect(Math.abs(lat(off + fall + 0.05) - lat(off + fall)) / 0.05).toBeGreaterThan(0.25 * Math.abs(v));
   });
   it("gives the same hashes and events on every run of the same script", () => {
     expect(straight.hashes).toHaveLength(LENGTH);

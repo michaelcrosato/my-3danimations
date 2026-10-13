@@ -26,10 +26,10 @@ import { bodyOf, clipOfTrack, standingOn, type ProceduralOptions } from "./clip.
 
 /**
  * A gait, in the format's units: speed and lengths in % of the hip height, angles in degrees, times in seconds. Besides
- * each number's range, `checkGait` (which `gaitClip` calls first) refuses a swing under 0.25 s
- * (the cycle times the share a foot is up), a foot swinging forward past the hips faster than 400% of the hip height a
- * second, a run's (a stance under 0.5) cycle under 0.6 s (0.65 lifting over 25), and a stride past the legs' reach;
- * each with what to change (D71).
+ * each number's range, `gaitClip` refuses a swing under 0.25 s (the cycle times the share a foot is up), a foot
+ * swinging forward past the hips faster than 400% of the hip height a second, a run's (a stance under 0.5) cycle under
+ * 0.6 s (0.65 lifting over 25), a rate outside 50 to 120 frames a second, and, on the rest given, a stride past the
+ * legs' reach; each with what to change (D71).
  */
 export interface Gait {
   name: string;
@@ -152,7 +152,8 @@ const RANGES: readonly [keyof Gait, number, number, string][] = [
  * The shortest swing a foot is given, s: the sensors read a foot lifted for under 0.1 s as never having left the floor
  * (core's contact bands, the sensors' too), and in a swing under 0.19 s it is up above their 7% for less than that
  * (round 2); under 0.25 s a knee pops lifting more than 12, bouncing 6, or at a stance of 0.5 near the cap, on many
- * bodies; at 0.25 s and more none did in any grid (D71, rounds 4 and 5).
+ * bodies (D71, rounds 4 and 5; at 0.25 s and more the bounce still drove a far-reaching leg straight, until the pelvis
+ * was lowered for it: round 6).
  */
 const MIN_SWING = 0.25;
 /**
@@ -239,7 +240,18 @@ export function gaitClip(g: Gait, rest: Rest, opts: ProceduralOptions): Clip {
   const reach = Math.max(...(["L", "R"] as const).map((x) => strideOf[x] / 2 + (strideOf[x] * (1 - stanceOf[x]) * Math.max(offOf[x], upOf[x])) / stanceOf[x]));
   const high = pt(S, "hipR")[2] - pt(S, "ankleR")[2], reachable = Math.sqrt(Math.max(0, (0.985 * leg) ** 2 - reach ** 2));
   if (reach > STRIDE_MAX * leg) throw new Error(`gait ${g.name}: its feet reach ${Math.round((100 * reach) / leg)}% of a leg ahead and behind (half a stride and the set-down), past ${100 * STRIDE_MAX}%: slow it, or shorten its cycle or stance`);
-  const dip = Math.max((g.dip ?? 2) * pct, high - reachable);
+  // and low enough that no leg reaches past 98.5% of its length at any phase: the bounce lifts the pelvis twice a
+  // cycle, and where it does with a foot far ahead or behind (a stance of a half, a fast stride), a leg lowered only for
+  // the stance's ends was driven straight and its knee popped (D71, round 6)
+  let dip = Math.max((g.dip ?? 2) * pct, high - reachable);
+  for (let k = 0; k < 240; k++) {
+    const phase = k / 240, raise = -(g.bounce ?? 1.5) * pct * PM.cos(4 * Math.PI * (phase - 0.08));
+    for (const [s, off] of [["R", 0], ["L", 1 - landL]] as const) {
+      const v = (phase + off) % 1, [fwd, up] = footAt(v, stanceOf[s], strideOf[s], lift, upClear[s] * pct, upOf[s], CLEAR * pct, offOf[s]);
+      const ahead = pt(S, `ankle${s}`)[0] - pt(S, `hip${s}`)[0] + fwd, under = pt(S, `hip${s}`)[2] - pt(S, `ankle${s}`)[2];
+      dip = Math.max(dip, under + raise - up - Math.sqrt(Math.max(0, (0.985 * leg) ** 2 - ahead ** 2)));
+    }
+  }
   const t: Track = { dur, loop: true, fps, times, poses: [], roots: [], events: [], rest, restSrc: opts.restSrc, sources: [], cycle: { forward: g.speed * g.cycle, right: 0, yaw: 0 } };
   const limbs = new Limbs(S);
   /** The points, unrounded pose and root of the frame at `time`, and whether each foot is still in the world. */
