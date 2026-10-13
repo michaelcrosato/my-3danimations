@@ -2130,7 +2130,7 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
       81 roundings lands the ankle nearest where it landed, and the keys are fitted within 2 mm.
     - Its parameters are speed, cadence, stance, lift, bounce, dip, sway, lean, arm swing and limp, each taken in the
       range the presets pass on three rests (lift 9–35, bounce 0–6, dip 0–12, sway 0–4, lean −10° to 25°, arm swing
-      0–80°); a swing under 0.2 s is refused (round 2). A limp shortens
+      0–80°); a swing under 0.2 s is refused (round 2; under 0.25 s from round 5). A limp shortens
       the weak leg's stance by up to 30%; that leg lands later and the other stands longer, keeping the plain gait's
       double support. Without that, neither foot stood just before the strong foot landed.
     - `GAITS` gives four ready made: walk, brisk, run and limp. On three rests (Mesh2Motion, 100STYLE, CMU) they slide

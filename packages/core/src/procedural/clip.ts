@@ -119,7 +119,7 @@ export interface ProceduralOptions {
   /** The rate frames are sampled at before keys are fitted, and the key budget in mm: a move's 30 and 30, a gait's 60
    *  and 2, an idle's 30 and 2. A gait's cycle is split evenly into the even number of frames nearest cycle × fps, so its
    *  loop meets itself and a plain gait's feet are seen at the same phases (a 0.705 s cycle at 60 is 42 frames, 59.57 a
-   *  second); a gait is made at 50 to 120. */
+   *  second); a gait is made at 50 to 110. */
   fps?: number;
   budget?: number;
 }

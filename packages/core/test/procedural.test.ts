@@ -407,10 +407,11 @@ describe("a gait", () => {
     expect(play({ speed: 350, cycle: 0.4, stance: 0.3, lift: 25, bounce: 3, lean: 8, swing: 45 })).toThrow(/a run's cycle of 0.4 s is under 0.6 s \(over 200 steps a minute\): .*; use a longer cycle$/);
     // lifting over 25, 0.65 s: a run lifting 35% and swaying 4% failed its seam at 0.6 and 0.625 s
     expect(play({ ...PR.GAITS[2], cycle: 0.6, lift: 35, sway: 4 })).toThrow(/a run's cycle of 0.6 s, lifting 35% of the hip height, is under 0.65 s .*; use a longer cycle or a lift of 25 or less$/);
-    // 50 to 120 frames a second: under, a fast gait's seam steps too far between frames (the verifier's at 24, on 53 of
+    // 50 to 110 frames a second: under, a fast gait's seam steps too far between frames (the verifier's at 24, on 53 of
     // 64 rests); over, its keys pop between them (a walk at 240, on every rest)
-    expect(() => PR.gaitClip(walk, src.rest, { restSrc: src.clip.restSrc, fps: 30 })).toThrow(/made at 30 frames a second, not 50 to 120: .*use 50 to 120/);
-    expect(() => PR.gaitClip(walk, src.rest, { restSrc: src.clip.restSrc, fps: 240 })).toThrow(/made at 240 frames a second, not 50 to 120/);
+    expect(() => PR.gaitClip(walk, src.rest, { restSrc: src.clip.restSrc, fps: 30 })).toThrow(/made at 30 frames a second, not 50 to 110: .*use 50 to 110/);
+    expect(() => PR.gaitClip(walk, src.rest, { restSrc: src.clip.restSrc, fps: 111 })).toThrow(/made at 111 frames a second, not 50 to 110/);
+    expect(PR.gaitClip(walk, src.rest, { restSrc: src.clip.restSrc, fps: 110 }).fps).toBe(110);
     expect(play({ lift: 5 })).toThrow(/lift 5 is not 9 to 35/);
     // the numbers past which a preset's knees pop (D71): a lift of 40, a sway of 5
     expect(play({ lift: 40 })).toThrow(/lift 40 is not 9 to 35 .*knees pop/);
@@ -419,7 +420,7 @@ describe("a gait", () => {
     expect(play({ dip: 13 })).toThrow(/dip 13 is not 0 to 12/);
     expect(play({ lean: 26 })).toThrow(/lean 26 is not -10 to 25 degrees/);
     expect(play({ swing: 90 })).toThrow(/swing 90 is not 0 to 80 degrees/);
-    expect(play({ speed: 380, cycle: 1.2, stance: 0.5 })).toThrow(/reach \d+% of a leg .* past 75%: slow it/);
+    expect(play({ speed: 380, cycle: 1.2, stance: 0.5 })).toThrow(/reach \d+% of a leg .* past 72%: slow it/);
     // a foot swinging forward past the hips faster than 4 hip heights a second: a long stance's knee popped mid-swing
     // (the verifier's 140 % a second at stance 0.75: 13 of 128 clips, on 12 rests)
     expect(play({ speed: 140, cycle: 1, stance: 0.75 })).toThrow(/its feet come forward past the hips at 420% of the hip height a second, over 400: .*; use a lower speed or a shorter stance$/);

@@ -9,7 +9,7 @@
 // aimed, and each planted leg's rounded numbers are chosen to keep its ankle within the format's rounding (a leg's
 // direction is held in hundredths: about 4 mm) of where it landed, through the in-betweening too. A gait it can't play
 // (a stride past the legs' reach, a swing under 0.25 s or faster past the hips than 4 hip heights a second, a run's
-// cycle under 0.6 s (0.65 lifting over 25%), a number past the range the sensors pass, a rate outside 50 to 120 frames
+// cycle under 0.6 s (0.65 lifting over 25%), a number past the range the sensors pass, a rate outside 50 to 110 frames
 // a second) is refused with what to change. The frames are spread evenly over the cycle, an even number
 // of them, and each knee's turn about its leg, carried on from frame to frame, is closed over it, so the loop meets
 // itself.
@@ -28,7 +28,7 @@ import { bodyOf, clipOfTrack, standingOn, type ProceduralOptions } from "./clip.
  * A gait, in the format's units: speed and lengths in % of the hip height, angles in degrees, times in seconds. Besides
  * each number's range, `gaitClip` refuses a swing under 0.25 s (the cycle times the share a foot is up), a foot
  * swinging forward past the hips faster than 400% of the hip height a second, a run's (a stance under 0.5) cycle under
- * 0.6 s (0.65 lifting over 25), a rate outside 50 to 120 frames a second, and, on the rest given, a stride past the
+ * 0.6 s (0.65 lifting over 25), a rate outside 50 to 110 frames a second, and, on the rest given, a stride past the
  * legs' reach; each with what to change (D71).
  */
 export interface Gait {
@@ -74,8 +74,9 @@ const hermite = (s: number, p0: number, p1: number, m0: number, m1: number) => {
  *  a fast gait's swing is short, and a rise quicker than a couple of frames reads as the foot dragging forward. */
 const OFF = 0.1, RISE = 0.05;
 /** The farthest a foot may reach ahead of or behind the hips (half a stride, and the set-down's lead), of a leg: a
- *  longer stride needs the pelvis so low the knees pop. */
-const STRIDE_MAX = 0.75;
+ *  longer stride needs the pelvis so low the knees pop (at 72.5 to 74.5%, lowered for the bounce too, a knee still
+ *  popped on some bodies: D71, round 6). */
+const STRIDE_MAX = 0.72;
 /** How high it sets down from, straight down, % of the hip height: above the 4% a foot is read as standing within. */
 const CLEAR = 4.5;
 /**
@@ -168,8 +169,9 @@ const SWING_SPEED = 400;
  *  between frames, and its seam and knees pop (D71, round 4). */
 const MIN_RUN_CYCLE = 0.6, MIN_HIGH_RUN_CYCLE = 0.65;
 /** The fewest and most frames a second a gait is made at: fewer, a fast gait's seam steps too far between them; more,
- *  its keys, fitted to 2 mm, pop between frames (a walk at 240 failed on every rest; D71, rounds 4 and 5). */
-const MIN_GAIT_FPS = 50, MAX_GAIT_FPS = 120;
+ *  its keys, fitted to 2 mm, pop between frames (a walk at 240 failed on every rest; at 120 a brisk walk with the
+ *  ranges' high ends popped its elbows on 4 of 64; D71, rounds 4 to 6). */
+const MIN_GAIT_FPS = 50, MAX_GAIT_FPS = 110;
 /** A gait's numbers checked: in range, and each foot given time to swing (a limp's strong foot most of all). */
 export function checkGait(g: Gait): void {
   const bad = (what: string) => {
