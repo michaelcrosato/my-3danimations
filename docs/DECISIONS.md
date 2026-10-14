@@ -2796,3 +2796,21 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.42.2
 
+## D79 · 2026-10-14 · The SessionStart hook runs Node 24 and fetches what the tests and gates read
+
+- **Principle:** process, WP-0.5 (D22: Node 24; principle 9: pins)
+- **Call:**
+  - Numbered D79, after D78 on michaelcrosato/my-3danimations#10's branch (D50 to D78 are taken there), so the two
+    logs merge without a duplicate id.
+  - The cloud container's default `node` is 22.22.0; Node 24.21.0, CI's pin, sits in `/opt/node24`. The hook reads
+    `engines.node` from `package.json` and, when the default is older, puts the first `/opt/node<major>/bin` that
+    qualifies first on `PATH`, for `npm ci` (npm 11, as CI) and through `CLAUDE_ENV_FILE` for the session.
+  - It then fetches what CI fetches before T1 and the gates: the real CC0 rigs, each gate's held-out rigs
+    (`bench/results/heldout/*/run-*/rig.json`, where they exist) and the pinned sources, each by hash. A failed fetch
+    warns and the session still starts; the tests that need it say so when they skip.
+- **Why:** a fresh session's T1 passed with 5 of the rigs' tests skipped (`test-characters`, `bind`), and on #10's
+  branch the carry test skipped for want of shardfall's pin: "never skip a test to get green" held in CI only. The
+  toolchain ran on Node 22 while D22, §5.8 and CI say 24. The hook now takes about 24 s from a fresh clone (npm ci 3 s,
+  rigs 2 s, pins 13 s), measured; after it, T0 passes and T1 runs 440 of 440 with none skipped, on v24.21.0.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** the Repo lines under 0.42.6, no version (no package changes)

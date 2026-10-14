@@ -14,6 +14,9 @@ features, patch for fixes. One line per change, under the part it touched (**Spe
 ### Repo
 - Tests: the gaits' refusals at the new bounds, a gait made at 110 frames a second; a one-shot's sideways root speed
   spent and a loop's flight in-betweened (D71, D77); the gaits' arm-swing test given 30 s.
+- The SessionStart hook puts Node 24 (`engines`, CI's pin) first on `PATH` when the container's default is older, and
+  fetches the real rigs, each gate's held-out rigs and the pinned sources by hash, so no test skips for want of them
+  (D79).
 
 ## 0.42.5 · 2026-10-13
 

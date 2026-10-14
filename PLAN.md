@@ -576,7 +576,8 @@ game:  graph (L3) ─▶ Animator.step(dt) ─▶ events, root motion, hashed st
   and `intake.yml` is on `main` (scheduled workflows run only from the default branch), the intake workflow (WP-9.1)
   also runs every 15 minutes.
 - **Claude Code:**
-  - a SessionStart hook runs `npm ci` and sets `CHROMIUM_PATH`;
+  - a SessionStart hook puts Node 24 first on `PATH`, runs `npm ci`, fetches the rigs and the pinned sources by hash
+    and sets `CHROMIUM_PATH` (D79);
   - `.mcp.json` registers the package's own MCP server, so the agent uses what it builds;
   - the skill lives in `.claude/skills/m3a/`.
 - **Docs drift:** generated docs (`docs/LIBRARY.md`, the manual's tool list) are rewritten by tools and checked.
@@ -934,7 +935,9 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
 - **Size:** S
 - **Build:**
   - CI: T0 and T1 on every push, T2 on pull requests, gates by manual dispatch. Cache npm and `.cache/`.
-  - A SessionStart hook that runs `npm ci` and exports `CHROMIUM_PATH` in cloud sessions.
+  - A SessionStart hook that, in cloud sessions, puts the Node `engines` asks for first on `PATH`, runs `npm ci`,
+    fetches by hash the real rigs, each gate's held-out rigs and the pinned sources (a failed fetch warns), and exports
+    `CHROMIUM_PATH` (D79).
   - A PR template: what changed, Verify output, decisions made without an answer, the version.
 - **Done when:** CI is green on the PR, and a fresh clone of the branch passes `npm run check` after only the hook.
 - **Verify:**

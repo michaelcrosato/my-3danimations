@@ -43,8 +43,8 @@ why. This file is how.
 | `npm run bench -- B<n> --trials 5` | | the fresh-agent benchmark | |
 
 A tool warns when a tier runs over budget and fails it at 1.5×. Never skip a test to get green; a test that waits on
-wall-clock time is a bug. In cloud sessions the SessionStart hook runs `npm ci` and exports `CHROMIUM_PATH`; never run
-`playwright install`.
+wall-clock time is a bug. In cloud sessions the SessionStart hook puts Node 24 first on `PATH`, runs `npm ci`, fetches
+the rigs and the pinned sources by hash and exports `CHROMIUM_PATH` (D79); never run `playwright install`.
 
 ## Work rules (`PLAN.md` §8)
 
