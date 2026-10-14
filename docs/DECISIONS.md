@@ -2904,3 +2904,14 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   50 agent-runs in a row to 10 rounds.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.42.7
+
+## D85 · 2026-10-14 · O3: the Vercel deployment is paused until the project is complete
+
+- **Principle:** O3, WP-4.6, WP-8.3, G4, G8
+- **Call:** the owner paused the repository's Vercel deployment: it isn't needed until the project is complete. Until
+  then O3's default holds: demos run locally and in CI's e2e, their sheets kept as CI artifacts; G4's public link and
+  WP-8.3's preview URL on the pull request wait for it and are reported when it comes; G8's phone review uses a build
+  the owner opens. A pull request's checks no longer list Vercel's.
+- **Why:** the owner's call.
+- **Answered:** yes, the owner, 2026-10-14.
+- **Landed in:** (this pull request; no version)
