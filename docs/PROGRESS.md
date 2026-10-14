@@ -4,7 +4,7 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 `PLAN.md` §14; decisions are in `docs/DECISIONS.md`.
 
 **Phase:** 6 Composition (5 done, G5 passed; 4 waits on G4). **Next gates:** G6; G4 (M1), run 2. **Version:** 0.42.6.
-**Mode:** one agent (D21); #10 merged into `main` at the owner's request (D82), the rest on a fresh branch and draft PR.
+**Mode:** ultracode (D83): implementers in worktrees, the main session integrates; a fresh draft PR from `main`.
 
 ## Done
 

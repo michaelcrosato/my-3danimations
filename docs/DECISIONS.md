@@ -2856,3 +2856,22 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   temporary directories, the held-out variants); it is redone, not recovered.
 - **Answered:** yes, the owner, 2026-10-14.
 - **Landed in:** michaelcrosato/my-3danimations#10
+
+## D83 · 2026-10-14 · Ultracode from here: implementers in worktrees, one integrator; gates in the main checkout
+
+- **Principle:** process (`PLAN.md` §11), D21
+- **Call:**
+  - The owner's prompt for this session names ultracode, so the plan switches from D21's single agent to §11's
+    multi-agent mode. The main session is the integrator: it owns §8.4's shared files, `docs/DECISIONS.md`, the root
+    `package.json`, the `tsconfig` roots and the generated docs, and does every merge. Up to five implementers work
+    in git worktrees, each editing only its WP's Owns; a verifier reviews every L WP and every gate; a separate fresh
+    subagent writes each gate's held-out variants (§7).
+  - A worktree lacks what the SessionStart hook leaves in the main checkout (`.cache/`'s pinned sources, rigs and
+    held-out rigs; `node_modules`): G4 run 1's `vectors --check` failed so (D57). An implementer's worktree links
+    `.cache` to the main checkout's and runs `npm ci`; gates run in the main checkout, never a worktree.
+  - The branch is `claude/cool-goldberg-qgyu06`, restarted from `main` after each gate's squash merge with a fresh
+    draft pull request (D82).
+- **Why:** the owner asked for it; the lanes that remain (G6's preparation, G4 run 2's, Phases 7 to 10) have Owns that
+  don't overlap often enough for parallel work to pay.
+- **Answered:** yes, the owner's prompt, 2026-10-14.
+- **Landed in:** (this pull request; no version)
