@@ -1,0 +1,88 @@
+{
+ "about": "G4 run 2's agent transcripts (the CLI's stream-json), kept in the runs' directories under /tmp/m3a-bench/ and not committed: each trial's path, SHA-256 and size, the evidence B1.json's and B1-variant.json's audits are read from (D88)",
+ "audit": "bench/runner/agent.ts's audit as corrected after the run (D88), which resolves a shell command's relative paths: B1.json's pastManual (B1-1, B1-3, B1-discovery-1 and -2) and B1-2's scratch are its; B1-variant.json's are unchanged. The audit at adf77ee, run over these same files, gives the fields the run first recorded, 12 trials of 12",
+ "B1": {
+  "record": "B1.json",
+  "run": "/tmp/m3a-bench/2026-10-14T22-23-23",
+  "trials": [
+   {
+    "trial": "B1-1",
+    "transcript": "/tmp/m3a-bench/2026-10-14T22-23-23/B1-1.jsonl",
+    "sha256": "22d8d3628b552606da8d8ad696f3996b2b8e11d335e10762efe6c86fed985fad",
+    "bytes": 125421
+   },
+   {
+    "trial": "B1-2",
+    "transcript": "/tmp/m3a-bench/2026-10-14T22-23-23/B1-2.jsonl",
+    "sha256": "4d1f1751c35b296b68287effeeb784014d8d79c79f843528226ead529769d589",
+    "bytes": 118603
+   },
+   {
+    "trial": "B1-3",
+    "transcript": "/tmp/m3a-bench/2026-10-14T22-23-23/B1-3.jsonl",
+    "sha256": "ebbd25abc45a15ef5dc60efa9c6ac709a7784c83631f1da5d72b50a05779c39e",
+    "bytes": 170483
+   },
+   {
+    "trial": "B1-4",
+    "transcript": "/tmp/m3a-bench/2026-10-14T22-23-23/B1-4.jsonl",
+    "sha256": "e26af114be0548339ff60b61a28050f1be941fc2ed1ee41b6130c4707c591443",
+    "bytes": 420892
+   },
+   {
+    "trial": "B1-5",
+    "transcript": "/tmp/m3a-bench/2026-10-14T22-23-23/B1-5.jsonl",
+    "sha256": "155242fc5fe4232a166138577f0f4abcdca8cdac94532efb81444eceeeffc102",
+    "bytes": 113595
+   },
+   {
+    "trial": "B1-discovery-1",
+    "transcript": "/tmp/m3a-bench/2026-10-14T22-23-23/B1-discovery-1.jsonl",
+    "sha256": "3bf93683cb876b92f7666645c927dbebe54bd7be675bcbc1262b0eef896ec789",
+    "bytes": 498052
+   },
+   {
+    "trial": "B1-discovery-2",
+    "transcript": "/tmp/m3a-bench/2026-10-14T22-23-23/B1-discovery-2.jsonl",
+    "sha256": "e2a22ba73ab100a888f2a386d55532e80ac1cd0a8f5af1795c3042bee1b288ff",
+    "bytes": 501938
+   }
+  ]
+ },
+ "B1-variant": {
+  "record": "B1-variant.json",
+  "run": "/tmp/m3a-bench/2026-10-14T22-32-18",
+  "trials": [
+   {
+    "trial": "B1-1",
+    "transcript": "/tmp/m3a-bench/2026-10-14T22-32-18/B1-1.jsonl",
+    "sha256": "ad2ae2faf8436d754947908d343964cd367ffe37b3d82056e4de5840ad6c0954",
+    "bytes": 110231
+   },
+   {
+    "trial": "B1-2",
+    "transcript": "/tmp/m3a-bench/2026-10-14T22-32-18/B1-2.jsonl",
+    "sha256": "fe26bd91e3d99f3aa0e022d5acb1dfdcdcc6a87093973f2c660349436e3658f7",
+    "bytes": 114033
+   },
+   {
+    "trial": "B1-3",
+    "transcript": "/tmp/m3a-bench/2026-10-14T22-32-18/B1-3.jsonl",
+    "sha256": "b814ca79c60fc13540a236360da89dabe7d7bfb8296804bb636105ba708e3313",
+    "bytes": 116584
+   },
+   {
+    "trial": "B1-4",
+    "transcript": "/tmp/m3a-bench/2026-10-14T22-32-18/B1-4.jsonl",
+    "sha256": "1ac46c41d357b73becf93a0d1371a8c77439697984313e556db9a165da566457",
+    "bytes": 116195
+   },
+   {
+    "trial": "B1-5",
+    "transcript": "/tmp/m3a-bench/2026-10-14T22-32-18/B1-5.jsonl",
+    "sha256": "9cd7f68ee7c871c82a6aaf79ca62afc167462f46e15d5268f7419780d944552a",
+    "bytes": 117732
+   }
+  ]
+ }
+}
