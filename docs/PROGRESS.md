@@ -8,8 +8,8 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 
 ## Done
 
-- Phase 0 (G0 passed, michaelcrosato/my-3danimations#4): doctrine, toolchain, checks, pins, vectors, CI, hook.
-- Phase 1 (G1 passed, michaelcrosato/my-3danimations#5): spec 2.0-rc frozen; validator; codec; skeleton; seed sets.
+- Phases 0 and 1 (G0, G1 passed, michaelcrosato/my-3danimations#4, #5): doctrine, toolchain, checks, pins, vectors,
+  CI, hook; spec 2.0-rc frozen; validator; codec; skeleton; seed sets.
 - Phase 2 (G2 passed, michaelcrosato/my-3danimations#6): portable math, the same bits in V8 and JavaScriptCore (D33);
   the clip runtime and facts (D34); pose operations (D35); the solver (D36, F2); planted feet and the ground (D37); the
   Animator, the same hashes and exact poses in Node, Chromium and Bun; core's API of 38 documented names (D38, F3).
@@ -26,7 +26,8 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 
 - G4 run 2: the sweep's rule (D80) reads 97.8% over the whole library (1,398 clips); B1 on real rigs (D86); bind's
   soles on multi-mesh rigs in hand; then the qualifying sweep at a clean commit and the gate.
-- Phase 6: agents get a /tmp of their own (D84); WP-6.2's seventh verifier round is running; then G6.
+- Phase 6: agents get a /tmp of their own (D84); WP-6.2's round 7 found 3 blocking (the swing's slope at its joins,
+  knee pops at 50 and 110 fps): being fixed, then round 8; then G6.
 
 ## Blocked on the owner
 
