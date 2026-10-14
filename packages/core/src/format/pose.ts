@@ -86,6 +86,12 @@ export function encodePose(R: Rest, X: ArrayLike<number>, prev: KeyLike | null, 
   for (const s of SIDES) {
     const v = loc(RC, sub(p("sh" + s), p("clav" + s)));
     const v0 = R.cv[s];
+    // a body measured without shoulder bones has nothing to swing (as torso's sh decodes it): no reach, no shrug, where
+    // its elevation was 0 / 0
+    if (len(v0) === 0) {
+      k["sh" + s] = [0, 0];
+      continue;
+    }
     const az = (a: V3) => PM.atan2(a[0], a[1] * SG[s]) / DG;
     const el = (a: V3) => PM.asin(Math.max(-1, Math.min(1, a[2] / len(a)))) / DG;
     k["sh" + s] = [r0(az(v) - az(v0)), r0(el(v) - el(v0))];

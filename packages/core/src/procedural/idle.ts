@@ -52,6 +52,8 @@ export const IDLES: readonly Idle[] = [
 
 /** An idle as a loop on `rest`, from the standing pose (or `opts.start`), its feet where the start pose has them. */
 export function idleClip(i: Idle, rest: Rest, opts: ProceduralOptions): Clip {
+  // (its clip is named and described from them, after it is made)
+  for (const k of ["name", "about"] as const) if (typeof i[k] !== "string" || !i[k].trim()) throw new Error(`idle${typeof i.name === "string" && i.name.trim() ? ` ${i.name}` : ""}: its ${k} is ${i[k] === undefined ? "missing" : JSON.stringify(i[k])}: give it a name (its clip is PROCEDURAL/<Name>) and an about line (the clip's description)`);
   const fps = opts.fps ?? 30, start = opts.start ?? standingOn(rest), S = new Float32Array(P * 3);
   decodePose(rest, start as KeyLike, S);
   const shift = i.shift ?? 6.8, breaths = Math.max(1, Math.round(shift / (i.breath ?? 3.4))), dur = Math.round(shift * 1000) / 1000;
