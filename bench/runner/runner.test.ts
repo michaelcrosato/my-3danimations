@@ -1,8 +1,8 @@
-// The benchmark runner (WP-4.7): the audit of a transcript (paths outside the workspace, files read past the manual),
-// the legend quiz's prompt and scoring, a fake trial through the packed packages installed in a workspace outside the
-// repository, agents run a few at once, each `claude` started in its workspace with a /tmp of its own and the
-// repository hidden (D84), and a held-out variant given by path, whose known-good solution runs first. Every temporary
-// directory a test makes is removed after it.
+// The benchmark runner (WP-4.7): the audit of a transcript (paths outside the workspace, files read past the manual,
+// a shell's relative paths among them, D88), the legend quiz's prompt and scoring, a fake trial through the packed
+// packages installed in a workspace outside the repository, agents run a few at once, each `claude` started in its
+// workspace with a /tmp of its own and the repository hidden (D84), and a held-out variant given by path, whose
+// known-good solution runs first. Every temporary directory a test makes is removed after it.
 import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -36,13 +36,41 @@ describe("the agent's audit", () => {
       "not json",
     ];
     expect(audit(lines, ws)).toEqual({ outside: [`${ROOT}/PLAN.md`, "/root/.claude"].sort(), scratch: [], pastManual: ["node_modules/@m3a/core/dist/animator/animator.js"] });
-    // with a /tmp of its own, its scratch files there are its own, listed apart (D84)
+    // with a /tmp of its own, its scratch files there are its own, listed apart (D84); the repository is outside
+    // wherever it lives, a checkout under /tmp too (its own /tmp covers that path, but the name is the repository's)
     const scratch = [call("Write", { file_path: "/tmp/cat.mjs", content: "" }), call("Bash", { command: `node /tmp/cat.mjs && cat ${ROOT}/PLAN.md` })];
     expect(audit(scratch, ws, true)).toEqual({ outside: [`${ROOT}/PLAN.md`], scratch: ["/tmp/cat.mjs"], pastManual: [] });
     expect(audit(scratch, ws).outside).toEqual([`${ROOT}/PLAN.md`, "/tmp/cat.mjs"].sort());
-    expect(pathsOf("Bash", { command: "ls -la && cat '/etc/hosts' x=/home/me" })).toEqual(["/etc/hosts", "/home/me"]);
-    // a glob, a bare root, a regex in a script and a word whose first directory isn't here are not paths
-    expect(pathsOf("Bash", { command: "find / -name '/**' ; node -e 'x.filter((o) => /foot/i.test(o.name))' ; grep /export a.ts > /tmp/s/out" })).toEqual(["/tmp/s/out"]);
+    const paths = (command: string) => pathsOf("Bash", { command }).map((n) => n.path);
+    expect(pathsOf("Bash", { command: "ls -la /root && cat '/etc/hosts' x=/home/me" })).toEqual([{ path: "/root", lists: true }, { path: "/etc/hosts", lists: false }, { path: "/home/me", lists: false }]);
+    // a glob over the root, a bare root, a regex in a script and a word whose first directory isn't here are not paths
+    expect(paths("find / -name '/**' ; node -e 'x.filter((o) => /foot/i.test(o.name))' ; grep /export a.ts > /tmp/s/out")).toEqual(["/tmp/s/out"]);
+  });
+  it("resolves a shell's relative paths from its directory, as G4 run 2's agents named them (D88)", () => {
+    // a workspace under /tmp itself (a private /tmp holds what's beside it, D84), with the packages' directories
+    const base = mkdtempSync("/tmp/m3a-audit-"), ws = join(base, "B1-1"), bash = (command: string) => JSON.stringify({ type: "assistant", message: { content: [{ type: "tool_use", name: "Bash", input: { command } }] } });
+    made.push(base);
+    for (const d of ["src", "node_modules/@m3a/tools", "node_modules/@m3a/three/dist", "node_modules/@m3a/core/dist", "node_modules/@m3a/sensors/dist", "node_modules/@m3a/library"]) mkdirSync(join(ws, d), { recursive: true });
+    const lines = [
+      // B1-1: a glob as written; the manual, and listing the packages, aren't reads past it
+      bash(`cd ${ws}; cat node_modules/@m3a/tools/MANUAL.md; ls node_modules/@m3a/*`),
+      bash(`cd ${ws}; grep -n "pose\\|root" node_modules/@m3a/three/dist/*.d.ts | head -20`),
+      // B1-3
+      bash(`cd ${ws}; sed -n 10,60p node_modules/@m3a/three/dist/index.d.ts; sed -n 40,75p node_modules/@m3a/sensors/dist/metrics/motion.d.ts`),
+      // B1-discovery-1: a for loop's variable, and a read after a heredoc (whose body is a script, not the shell's)
+      bash(`cd ${ws}; ls packs; for d in node_modules/@m3a/*; do echo == $d; ls $d; cat $d/README* 2>/dev/null | head -60; done`),
+      bash(`cd ${ws}; python3 - <<'E'\ns=open('../src/player.ts').read()\nE\nnode check.ts | sed -n '4,8p'; sed -n 1,400p node_modules/@m3a/sensors/dist/index.d.ts | grep -n "sheet\\|measure"`),
+      // B1-discovery-2: after a cd into the packages (a grep's pattern isn't a path), and in the next call, whose
+      // shell starts where this one ended
+      bash(`cd ${ws}/node_modules/@m3a; cat library/sets.lock.json | head -50; ls three/dist/play sensors/dist/sheet; grep -n "contactRoot" -r core/dist/contact/*.d.ts | head`),
+      bash("cat sensors/dist/sheet/*.d.ts | head -60; cd /tmp"),
+      // B1-2: a file written beside the workspace, from the workspace again (a shell that left it is put back there)
+      bash(`cat > /tmp/probe.ts <<'EOF'\nimport { loadCharacter } from "${ws}/src/character.ts";\nEOF\ncp /tmp/probe.ts ./../probe_tmp.ts 2>/dev/null; rm -f ../probe_tmp.ts; echo ok`),
+    ];
+    const pastManual = ["*/README*", "core/dist/contact/*.d.ts", "library/sets.lock.json", "sensors/dist/index.d.ts", "sensors/dist/metrics/motion.d.ts", "sensors/dist/sheet/*.d.ts", "three/dist/*.d.ts", "three/dist/index.d.ts"].map((p) => `node_modules/@m3a/${p}`);
+    expect(audit(lines, ws, true)).toEqual({ outside: [], scratch: [`${base}/probe_tmp.ts`, "/tmp/probe.ts"].sort(), pastManual });
+    // without a /tmp of its own, what it wrote beside its workspace is outside it
+    expect(audit(lines, ws).outside).toEqual([`${base}/probe_tmp.ts`, "/tmp/probe.ts"].sort());
   });
 });
 
