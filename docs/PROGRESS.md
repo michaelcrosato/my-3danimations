@@ -35,7 +35,6 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 
 ## Last gate
 
-- **G5 passed** 2026-10-12 at 754adfe in 9.7 min, 12 of 12 (`bench/results/gates/G5/`, D68): 1,194 unique motions of
-  1,393 clips (CC0 pack 170); every floor met; every clip valid with its verdict; search 40/40, held out 8/10 (D67,
-  D69).
+- **G5 passed** 2026-10-12 at 754adfe in 9.7 min, 12 of 12 (`bench/results/gates/G5/`, D67–D69): 1,194 unique
+  motions of 1,393 clips (CC0 170); every floor met; every clip valid with its verdict; search 40/40, held out 8/10.
 - **G4 run 1 failed** 2026-10-12 at 6798b45, 5 of 8 (D57): the sweep 89.1% (bar 95%), B1's variant a grader failure.
