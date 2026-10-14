@@ -1572,7 +1572,7 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   D49's reading stands and G4 run 2 doesn't start (K1); Phase 5 and 6 go on.
 - **Why:** the reading decides whether M1 passes, so it is the owner's; choosing the one that passes after seeing the
   numbers would be the agent grading itself.
-- **Answered:** no: escalated, waiting.
+- **Answered:** yes, the owner, 2026-10-14: "no fail finding added" (D80).
 - **Landed in:** v0.29.0 (no code)
 
 ## D61 · 2026-10-12 · The importers: two readers bit for bit, the rest through bone maps, VRMA written and read exactly
@@ -1752,7 +1752,7 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
     - G4 run 2's sweep reads the whole library: 1,385 clips on six skeletons, 8,310 pairs (run 1: 525 and 3,150).
 - **Why:** a re-import is only worth its churn where it is better, clip by clip, and the record says so; a source that
   can't be fetched waits rather than coming from a copy that isn't the original.
-- **Answered:** no: made without a response, to review. Quaternius' option 3 is the default the owner was told of.
+- **Answered:** no: made without a response, to review. Quaternius' option 3 is the default the owner was told of; the owner kept it, 2026-10-14 (D81).
 - **Landed in:** v0.32.0
 
 ## D64 · 2026-10-12 · Facts and contacts in every clip; detected contacts are re-read; loops close
