@@ -1,5 +1,5 @@
 {
- "about": "G4 run 2s sweep step (npm run sweep, D80): every library clip on the six skeletons and the held-out rig apart; a pair fails on a fail finding the skeleton adds; every pair that passes with a warn the skeleton added is listed in warned; a pair in neither list passes clean",
+ "about": "G4 run 2's sweep step (npm run sweep, D80), recorded from its raw results by npm run sweep -- --record: 1398 library clips on 6 skeletons, the held-out talkinghead-mpfb apart (in neither together nor a bar); a pair fails on a fail finding the skeleton adds; every failing pair is listed in failures with its reasons (why) and every warn the skeleton added (warns, [] when none); every pair that passes with a warn the skeleton added is listed in warned; a pair in neither list passes clean",
  "commit": "adf77ee66f00161565e055307d84b122d8483121",
  "rigs": [
   "gen-0",
@@ -80,20 +80,25 @@
    "rig": "gen-0",
    "why": [
     "slide 118 on its own body → 163 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Backflip",
    "rig": "gen-0",
    "why": [
     "pop 3029 on its own body → 4512 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Bear",
    "rig": "gen-0",
    "why": [
     "skate 10.5 on its own body → 18.4 played on this one, past its fail level"
+   ],
+   "warns": [
+    "slide 66.4 on its own body → 70.3 played on this one, past its warn level"
    ]
   },
   {
@@ -101,13 +106,17 @@
    "rig": "gen-0",
    "why": [
     "skate 13.7 on its own body → 18.2 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Chop_Wood",
    "rig": "gen-0",
    "why": [
     "pop 0.0 on its own body → 3028 played on this one, past its fail level"
+   ],
+   "warns": [
+    "jitter 9.4 on its own body → 16.1 played on this one, past its warn level"
    ]
   },
   {
@@ -115,6 +124,9 @@
    "rig": "gen-0",
    "why": [
     "pop 0.0 on its own body → 2634 played on this one, past its fail level"
+   ],
+   "warns": [
+    "jitter 21.1 on its own body → 14.0 played on this one, past its warn level"
    ]
   },
   {
@@ -122,6 +134,9 @@
    "rig": "gen-0",
    "why": [
     "slide 51.4 on its own body → 130 played on this one, past its fail level"
+   ],
+   "warns": [
+    "skate 7.0 on its own body → 10.1 played on this one, past its warn level"
    ]
   },
   {
@@ -129,6 +144,10 @@
    "rig": "gen-0",
    "why": [
     "jitter 64.5 on its own body → 42.1 played on this one, past its fail level"
+   ],
+   "warns": [
+    "slide 141 on its own body → 81.3 played on this one, past its warn level",
+    "skate 10.6 on its own body → 9.0 played on this one, past its warn level"
    ]
   },
   {
@@ -137,21 +156,24 @@
    "why": [
     "slide 122 on its own body → 226 played on this one, past its fail level",
     "skate 9.9 on its own body → 19.8 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Gorilla_Walk_Loop",
    "rig": "gen-0",
    "why": [
     "bodyPenetration 0.0 on its own body → 29.1 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Long_Jump",
    "rig": "gen-0",
    "why": [
     "pop 2262 on its own body → 2370 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Mope",
@@ -159,6 +181,9 @@
    "why": [
     "slide 54.9 on its own body → 160 played on this one, past its fail level",
     "skate 13.7 on its own body → 20.4 played on this one, past its fail level"
+   ],
+   "warns": [
+    "intersection 0.5 on its own body → 1.0 played on this one, past its warn level"
    ]
   },
   {
@@ -166,6 +191,9 @@
    "rig": "gen-0",
    "why": [
     "pop 496 on its own body → 1689 played on this one, past its fail level"
+   ],
+   "warns": [
+    "jitter 3.2 on its own body → 28.4 played on this one, past its warn level"
    ]
   },
   {
@@ -173,48 +201,57 @@
    "rig": "gen-0",
    "why": [
     "pop 0.0 on its own body → 2309 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Search_Ground",
    "rig": "gen-0",
    "why": [
     "slide 36.7 on its own body → 134 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Shoot_Pistol",
    "rig": "gen-0",
    "why": [
     "pop 0.0 on its own body → 2368 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Stumble_Walk",
    "rig": "gen-0",
    "why": [
     "pop 0.0 on its own body → 2180 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Sword_Lunge",
    "rig": "gen-0",
    "why": [
     "skate 4.5 on its own body → 19.4 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "MESH2MOTION/Chop_Tree",
    "rig": "gen-0",
    "why": [
     "seamVelocity 3022 on its own body → 1865 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "MESH2MOTION/Walk_Formal",
    "rig": "gen-0",
    "why": [
     "seamVelocity 1993 on its own body → 2296 played on this one, past its fail level"
+   ],
+   "warns": [
+    "pop 0.0 on its own body → 1067 played on this one, past its warn level"
    ]
   },
   {
@@ -222,6 +259,9 @@
    "rig": "gen-0",
    "why": [
     "pop 0.0 on its own body → 10998 played on this one, past its fail level"
+   ],
+   "warns": [
+    "jitter 20.9 on its own body → 40.6 played on this one, past its warn level"
    ]
   },
   {
@@ -229,20 +269,25 @@
    "rig": "gen-0",
    "why": [
     "pop 0.0 on its own body → 2478 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "QUATERNIUS_3D2DGE/Hit_Knockback_RM",
    "rig": "gen-0",
    "why": [
     "pop 0.0 on its own body → 2424 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "QUATERNIUS_3D2DGE/Jump_Start",
    "rig": "gen-0",
    "why": [
     "pop 1970 on its own body → 1977 played on this one, past its fail level"
+   ],
+   "warns": [
+    "skate 0.0 on its own body → 9.8 played on this one, past its warn level"
    ]
   },
   {
@@ -250,48 +295,57 @@
    "rig": "gen-0",
    "why": [
     "pop 3364 on its own body → 2894 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "QUATERNIUS_3D2DGE/Slide_Exit",
    "rig": "gen-0",
    "why": [
     "pop 0.0 on its own body → 7226 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "QUATERNIUS_SHARDFALL/ClimbUp_1m",
    "rig": "gen-0",
    "why": [
     "jitter 84.5 on its own body → 45.9 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "QUATERNIUS_SHARDFALL/ClimbUp_1m_RM",
    "rig": "gen-0",
    "why": [
     "jitter 85.6 on its own body → 45.8 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "QUATERNIUS_SHARDFALL/Hit_Knockback",
    "rig": "gen-0",
    "why": [
     "pop 0.0 on its own body → 2447 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "QUATERNIUS_SHARDFALL/Hit_Knockback_RM",
    "rig": "gen-0",
    "why": [
     "pop 0.0 on its own body → 2424 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "QUATERNIUS_SHARDFALL/Jump_Start",
    "rig": "gen-0",
    "why": [
     "pop 1970 on its own body → 1977 played on this one, past its fail level"
+   ],
+   "warns": [
+    "skate 0.0 on its own body → 9.8 played on this one, past its warn level"
    ]
   },
   {
@@ -299,41 +353,50 @@
    "rig": "gen-0",
    "why": [
     "skate 23.7 on its own body → 19.0 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "STYLE100_BACKRUN/DragRightLeg_RunBack",
    "rig": "gen-0",
    "why": [
     "skate 26.0 on its own body → 18.8 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "STYLE100_RUN/GracefulArms_Run",
    "rig": "gen-0",
    "why": [
     "seamVelocity 2020 on its own body → 1917 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "STYLE100_RUN/InTheDark_Run",
    "rig": "gen-0",
    "why": [
     "skate 6.9 on its own body → 17.6 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "STYLE100_RUN/LeanBack_Run",
    "rig": "gen-0",
    "why": [
     "pop 3640 on its own body → 3925 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "STYLE100_RUN/Teapot_Run",
    "rig": "gen-0",
    "why": [
     "pop 0.0 on its own body → 2131 played on this one, past its fail level"
+   ],
+   "warns": [
+    "skate 13.2 on its own body → 9.4 played on this one, past its warn level",
+    "seamVelocity 2784 on its own body → 1379 played on this one, past its warn level"
    ]
   },
   {
@@ -341,7 +404,8 @@
    "rig": "gen-0",
    "why": [
     "seamVelocity 3914 on its own body → 1923 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "STYLE100_SIDE/Waving_SideLeft",
@@ -349,27 +413,33 @@
    "why": [
     "pop 0.0 on its own body → 1852 played on this one, past its fail level",
     "seamVelocity 514 on its own body → 1965 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Backflip",
    "rig": "gen-1",
    "why": [
     "pop 3029 on its own body → 4425 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Boxing_Jab",
    "rig": "gen-1",
    "why": [
     "skate 38.3 on its own body → 46.7 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Chop_Wood",
    "rig": "gen-1",
    "why": [
     "pop 0.0 on its own body → 7332 played on this one, past its fail level"
+   ],
+   "warns": [
+    "jitter 9.4 on its own body → 35.6 played on this one, past its warn level"
    ]
   },
   {
@@ -377,6 +447,9 @@
    "rig": "gen-1",
    "why": [
     "slide 121 on its own body → 257 played on this one, past its fail level"
+   ],
+   "warns": [
+    "skate 9.6 on its own body → 34.2 played on this one, past its warn level"
    ]
   },
   {
@@ -384,6 +457,9 @@
    "rig": "gen-1",
    "why": [
     "pop 0.0 on its own body → 6766 played on this one, past its fail level"
+   ],
+   "warns": [
+    "intersection 0.4 on its own body → 1.0 played on this one, past its warn level"
    ]
   },
   {
@@ -392,20 +468,25 @@
    "why": [
     "slide 122 on its own body → 305 played on this one, past its fail level",
     "skate 13.9 on its own body → 47.1 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Gorilla_Walk_Loop",
    "rig": "gen-1",
    "why": [
     "bodyPenetration 0.0 on its own body → 110 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Jump_Kick",
    "rig": "gen-1",
    "why": [
     "skate 0.0 on its own body → 49.1 played on this one, past its fail level"
+   ],
+   "warns": [
+    "intersection 0.0 on its own body → 1.0 played on this one, past its warn level"
    ]
   },
   {
@@ -413,7 +494,8 @@
    "rig": "gen-1",
    "why": [
     "pop 0.0 on its own body → 8040 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Mope",
@@ -421,20 +503,26 @@
    "why": [
     "slide 54.9 on its own body → 371 played on this one, past its fail level",
     "skate 13.7 on its own body → 50.7 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Overjoyed",
    "rig": "gen-1",
    "why": [
     "pop 496 on its own body → 7973 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Pick_Up_Basket",
    "rig": "gen-1",
    "why": [
     "pop 0.0 on its own body → 6142 played on this one, past its fail level"
+   ],
+   "warns": [
+    "skate 5.5 on its own body → 31.4 played on this one, past its warn level",
+    "jitter 16.1 on its own body → 29.4 played on this one, past its warn level"
    ]
   },
   {
@@ -442,6 +530,9 @@
    "rig": "gen-1",
    "why": [
     "pop 0.0 on its own body → 5385 played on this one, past its fail level"
+   ],
+   "warns": [
+    "skate 5.2 on its own body → 27.1 played on this one, past its warn level"
    ]
   },
   {
@@ -449,13 +540,17 @@
    "rig": "gen-1",
    "why": [
     "slide 48.6 on its own body → 258 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Swordplay",
    "rig": "gen-1",
    "why": [
     "slide 35.1 on its own body → 295 played on this one, past its fail level"
+   ],
+   "warns": [
+    "skate 8.7 on its own body → 27.5 played on this one, past its warn level"
    ]
   },
   {
@@ -463,55 +558,65 @@
    "rig": "gen-1",
    "why": [
     "pop 0.0 on its own body → 6237 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "MESH2MOTION/Chop_Tree",
    "rig": "gen-1",
    "why": [
     "seamVelocity 3022 on its own body → 4540 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "MESH2MOTION/Hit_Knockback",
    "rig": "gen-1",
    "why": [
     "pop 0.0 on its own body → 9563 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "MESH2MOTION/Pushup",
    "rig": "gen-1",
    "why": [
     "bodyPenetration 21.1 on its own body → 74.4 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "QUATERNIUS_3D2DGE/NinjaJump_Start",
    "rig": "gen-1",
    "why": [
     "pop 3364 on its own body → 6992 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "QUATERNIUS_SHARDFALL/Roll",
    "rig": "gen-1",
    "why": [
     "pop 0.0 on its own body → 5683 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "QUATERNIUS_SHARDFALL/Roll_RM",
    "rig": "gen-1",
    "why": [
     "pop 0.0 on its own body → 5683 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "STYLE100/Rushed_Walk",
    "rig": "gen-1",
    "why": [
     "skate 22.4 on its own body → 51.4 played on this one, past its fail level"
+   ],
+   "warns": [
+    "slide 59.8 on its own body → 240 played on this one, past its warn level"
    ]
   },
   {
@@ -519,13 +624,17 @@
    "rig": "gen-1",
    "why": [
     "pop 3640 on its own body → 6105 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "STYLE100_RUN/SwingArmsRound_Run",
    "rig": "gen-1",
    "why": [
     "skate 30.2 on its own body → 42.7 played on this one, past its fail level"
+   ],
+   "warns": [
+    "slide 126 on its own body → 178 played on this one, past its warn level"
    ]
   },
   {
@@ -533,7 +642,8 @@
    "rig": "gen-1",
    "why": [
     "seamVelocity 3914 on its own body → 4819 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "STYLE100_SIDE/Waving_SideLeft",
@@ -541,14 +651,16 @@
    "why": [
     "pop 0.0 on its own body → 4218 played on this one, past its fail level",
     "seamVelocity 514 on its own body → 4800 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "STYLE100_SIDERUN/SwingShoulders_SideRunRight",
    "rig": "gen-1",
    "why": [
     "seamVelocity 4058 on its own body → 4411 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Chop_Wood",
@@ -556,13 +668,17 @@
    "why": [
     "jitter 9.4 on its own body → 105 played on this one, past its fail level",
     "pop 0.0 on its own body → 6726 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Comfort",
    "rig": "gen-2",
    "why": [
     "slide 81.6 on its own body → 334 played on this one, past its fail level"
+   ],
+   "warns": [
+    "skate 10.3 on its own body → 30.7 played on this one, past its warn level"
    ]
   },
   {
@@ -570,6 +686,9 @@
    "rig": "gen-2",
    "why": [
     "skate 9.5 on its own body → 52.7 played on this one, past its fail level"
+   ],
+   "warns": [
+    "slide 124 on its own body → 239 played on this one, past its warn level"
    ]
   },
   {
@@ -578,6 +697,9 @@
    "why": [
     "skate 13.0 on its own body → 46.4 played on this one, past its fail level",
     "pop 0.0 on its own body → 4171 played on this one, past its fail level"
+   ],
+   "warns": [
+    "intersection 0.4 on its own body → 1.0 played on this one, past its warn level"
    ]
   },
   {
@@ -585,6 +707,9 @@
    "rig": "gen-2",
    "why": [
     "slide 122 on its own body → 330 played on this one, past its fail level"
+   ],
+   "warns": [
+    "skate 15.5 on its own body → 41.9 played on this one, past its warn level"
    ]
   },
   {
@@ -592,13 +717,17 @@
    "rig": "gen-2",
    "why": [
     "bodyPenetration 0.0 on its own body → 137 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Jump_Kick",
    "rig": "gen-2",
    "why": [
     "skate 0.0 on its own body → 50.0 played on this one, past its fail level"
+   ],
+   "warns": [
+    "intersection 0.0 on its own body → 1.0 played on this one, past its warn level"
    ]
   },
   {
@@ -606,7 +735,8 @@
    "rig": "gen-2",
    "why": [
     "pop 2262 on its own body → 4356 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Mope",
@@ -614,6 +744,9 @@
    "why": [
     "slide 69.6 on its own body → 469 played on this one, past its fail level",
     "skate 14.0 on its own body → 48.2 played on this one, past its fail level"
+   ],
+   "warns": [
+    "intersection 0.5 on its own body → 1.0 played on this one, past its warn level"
    ]
   },
   {
@@ -621,13 +754,17 @@
    "rig": "gen-2",
    "why": [
     "pop 0.0 on its own body → 4749 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Pick_Up_Basket",
    "rig": "gen-2",
    "why": [
     "pop 0.0 on its own body → 4905 played on this one, past its fail level"
+   ],
+   "warns": [
+    "skate 5.5 on its own body → 32.1 played on this one, past its warn level"
    ]
   },
   {
@@ -635,13 +772,17 @@
    "rig": "gen-2",
    "why": [
     "slide 36.7 on its own body → 270 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Wave_Hello",
    "rig": "gen-2",
    "why": [
     "pop 0.0 on its own body → 4604 played on this one, past its fail level"
+   ],
+   "warns": [
+    "jitter 6.9 on its own body → 74.2 played on this one, past its warn level"
    ]
   },
   {
@@ -649,20 +790,25 @@
    "rig": "gen-2",
    "why": [
     "seamVelocity 3022 on its own body → 4753 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "MESH2MOTION/Run_Stealth",
    "rig": "gen-2",
    "why": [
     "jitter 82.9 on its own body → 106 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "MESH2MOTION/Zombie_Rise",
    "rig": "gen-2",
    "why": [
     "slide 69.0 on its own body → 293 played on this one, past its fail level"
+   ],
+   "warns": [
+    "skate 10.6 on its own body → 22.8 played on this one, past its warn level"
    ]
   },
   {
@@ -670,13 +816,17 @@
    "rig": "gen-2",
    "why": [
     "pop 3364 on its own body → 7431 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "STYLE100/Swimming_Walk",
    "rig": "gen-2",
    "why": [
     "slide 85.0 on its own body → 263 played on this one, past its fail level"
+   ],
+   "warns": [
+    "skate 9.4 on its own body → 22.5 played on this one, past its warn level"
    ]
   },
   {
@@ -684,6 +834,9 @@
    "rig": "gen-2",
    "why": [
     "skate 30.2 on its own body → 45.8 played on this one, past its fail level"
+   ],
+   "warns": [
+    "slide 126 on its own body → 191 played on this one, past its warn level"
    ]
   },
   {
@@ -691,7 +844,8 @@
    "rig": "gen-2",
    "why": [
     "seamVelocity 3914 on its own body → 4852 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "STYLE100_SIDE/Waving_SideLeft",
@@ -699,41 +853,49 @@
    "why": [
     "pop 0.0 on its own body → 4754 played on this one, past its fail level",
     "seamVelocity 514 on its own body → 4831 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Backflip",
    "rig": "gen-3",
    "why": [
     "pop 3029 on its own body → 2961 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Boxing_Jab",
    "rig": "gen-3",
    "why": [
     "skate 37.9 on its own body → 30.0 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Chop_Wood",
    "rig": "gen-3",
    "why": [
     "pop 0.0 on its own body → 2763 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Curtsey",
    "rig": "gen-3",
    "why": [
     "pop 0.0 on its own body → 3781 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Direct_Traffic",
    "rig": "gen-3",
    "why": [
     "slide 121 on its own body → 175 played on this one, past its fail level"
+   ],
+   "warns": [
+    "skate 9.6 on its own body → 24.4 played on this one, past its warn level"
    ]
   },
   {
@@ -741,6 +903,9 @@
    "rig": "gen-3",
    "why": [
     "pop 0.0 on its own body → 4371 played on this one, past its fail level"
+   ],
+   "warns": [
+    "intersection 0.4 on its own body → 1.0 played on this one, past its warn level"
    ]
   },
   {
@@ -749,13 +914,17 @@
    "why": [
     "slide 122 on its own body → 209 played on this one, past its fail level",
     "skate 13.9 on its own body → 32.5 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Jump_Kick",
    "rig": "gen-3",
    "why": [
     "skate 0.0 on its own body → 35.8 played on this one, past its fail level"
+   ],
+   "warns": [
+    "intersection 0.0 on its own body → 1.0 played on this one, past its warn level"
    ]
   },
   {
@@ -763,7 +932,8 @@
    "rig": "gen-3",
    "why": [
     "pop 0.0 on its own body → 5200 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Mope",
@@ -771,6 +941,9 @@
    "why": [
     "slide 54.9 on its own body → 254 played on this one, past its fail level",
     "skate 13.7 on its own body → 35.0 played on this one, past its fail level"
+   ],
+   "warns": [
+    "intersection 0.5 on its own body → 1.0 played on this one, past its warn level"
    ]
   },
   {
@@ -778,6 +951,10 @@
    "rig": "gen-3",
    "why": [
     "pop 0.0 on its own body → 3921 played on this one, past its fail level"
+   ],
+   "warns": [
+    "skate 5.5 on its own body → 21.1 played on this one, past its warn level",
+    "jitter 16.1 on its own body → 20.2 played on this one, past its warn level"
    ]
   },
   {
@@ -785,6 +962,9 @@
    "rig": "gen-3",
    "why": [
     "pop 0.0 on its own body → 3778 played on this one, past its fail level"
+   ],
+   "warns": [
+    "skate 5.2 on its own body → 18.6 played on this one, past its warn level"
    ]
   },
   {
@@ -792,13 +972,17 @@
    "rig": "gen-3",
    "why": [
     "slide 48.6 on its own body → 178 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Wave_Hello",
    "rig": "gen-3",
    "why": [
     "pop 0.0 on its own body → 4096 played on this one, past its fail level"
+   ],
+   "warns": [
+    "jitter 6.9 on its own body → 35.3 played on this one, past its warn level"
    ]
   },
   {
@@ -806,14 +990,16 @@
    "rig": "gen-3",
    "why": [
     "intersection 0.2 on its own body → 1.8 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "QUATERNIUS_3D2DGE/NinjaJump_Start",
    "rig": "gen-3",
    "why": [
     "pop 3364 on its own body → 5238 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "STYLE100/Rushed_Walk",
@@ -821,42 +1007,48 @@
    "why": [
     "slide 59.8 on its own body → 173 played on this one, past its fail level",
     "skate 22.4 on its own body → 35.8 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "STYLE100_BACK/Elated_WalkBack",
    "rig": "gen-3",
    "why": [
     "pop 3308 on its own body → 2733 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "STYLE100_BACKRUN/Angry_RunBack",
    "rig": "gen-3",
    "why": [
     "pop 0.0 on its own body → 3269 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "STYLE100_BACKRUN/Elated_RunBack",
    "rig": "gen-3",
    "why": [
     "skate 0.0 on its own body → 29.5 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "STYLE100_RUN/LeanBack_Run",
    "rig": "gen-3",
    "why": [
     "pop 3640 on its own body → 4385 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "STYLE100_RUN/TogetherStep_Run",
    "rig": "gen-3",
    "why": [
     "seamVelocity 3914 on its own body → 3266 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "STYLE100_SIDE/Waving_SideLeft",
@@ -864,7 +1056,8 @@
    "why": [
     "pop 0.0 on its own body → 2855 played on this one, past its fail level",
     "seamVelocity 514 on its own body → 3451 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Angry_Quarrel",
@@ -872,13 +1065,17 @@
    "why": [
     "slide 120 on its own body → 278 played on this one, past its fail level",
     "skate 22.5 on its own body → 36.5 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Cartwheel",
    "rig": "quaternius-mannequin-m",
    "why": [
     "skate 13.7 on its own body → 42.9 played on this one, past its fail level"
+   ],
+   "warns": [
+    "slide 48.0 on its own body → 157 played on this one, past its warn level"
    ]
   },
   {
@@ -887,7 +1084,8 @@
    "why": [
     "jitter 9.4 on its own body → 99.9 played on this one, past its fail level",
     "pop 0.0 on its own body → 6833 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Direct_Traffic",
@@ -895,7 +1093,8 @@
    "why": [
     "slide 124 on its own body → 234 played on this one, past its fail level",
     "skate 9.5 on its own body → 39.2 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Free_Dance",
@@ -903,13 +1102,17 @@
    "why": [
     "skate 27.0 on its own body → 38.3 played on this one, past its fail level",
     "pop 0.0 on its own body → 5682 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Get_Up_Via_Kneel",
    "rig": "quaternius-mannequin-m",
    "why": [
     "slide 122 on its own body → 284 played on this one, past its fail level"
+   ],
+   "warns": [
+    "skate 15.5 on its own body → 35.2 played on this one, past its warn level"
    ]
   },
   {
@@ -917,7 +1120,8 @@
    "rig": "quaternius-mannequin-m",
    "why": [
     "bodyPenetration 0.0 on its own body → 88.9 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Jump_Kick",
@@ -925,6 +1129,9 @@
    "why": [
     "skate 0.0 on its own body → 47.7 played on this one, past its fail level",
     "pop 0.0 on its own body → 10004 played on this one, past its fail level"
+   ],
+   "warns": [
+    "intersection 0.0 on its own body → 1.0 played on this one, past its warn level"
    ]
   },
   {
@@ -932,6 +1139,9 @@
    "rig": "quaternius-mannequin-m",
    "why": [
     "pop 0.0 on its own body → 7199 played on this one, past its fail level"
+   ],
+   "warns": [
+    "intersection 0.5 on its own body → 1.2 played on this one, past its warn level"
    ]
   },
   {
@@ -939,6 +1149,9 @@
    "rig": "quaternius-mannequin-m",
    "why": [
     "skate 14.6 on its own body → 39.7 played on this one, past its fail level"
+   ],
+   "warns": [
+    "slide 56.1 on its own body → 152 played on this one, past its warn level"
    ]
   },
   {
@@ -947,6 +1160,9 @@
    "why": [
     "slide 60.1 on its own body → 401 played on this one, past its fail level",
     "skate 8.4 on its own body → 38.8 played on this one, past its fail level"
+   ],
+   "warns": [
+    "intersection 0.5 on its own body → 1.0 played on this one, past its warn level"
    ]
   },
   {
@@ -954,13 +1170,18 @@
    "rig": "quaternius-mannequin-m",
    "why": [
     "pop 496 on its own body → 7183 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Pick_Up_Basket",
    "rig": "quaternius-mannequin-m",
    "why": [
     "pop 0.0 on its own body → 4834 played on this one, past its fail level"
+   ],
+   "warns": [
+    "skate 8.7 on its own body → 31.0 played on this one, past its warn level",
+    "jitter 16.1 on its own body → 26.7 played on this one, past its warn level"
    ]
   },
   {
@@ -968,34 +1189,42 @@
    "rig": "quaternius-mannequin-m",
    "why": [
     "slide 36.7 on its own body → 271 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Wave_Hello",
    "rig": "quaternius-mannequin-m",
    "why": [
     "pop 0.0 on its own body → 4964 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "MESH2MOTION/Hit_Knockback",
    "rig": "quaternius-mannequin-m",
    "why": [
     "pop 0.0 on its own body → 3976 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "STYLE100/Angry_Walk",
    "rig": "quaternius-mannequin-m",
    "why": [
     "seamVelocity 1965 on its own body → 3928 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "STYLE100/Rushed_Walk",
    "rig": "quaternius-mannequin-m",
    "why": [
     "skate 22.4 on its own body → 44.0 played on this one, past its fail level"
+   ],
+   "warns": [
+    "slide 59.8 on its own body → 161 played on this one, past its warn level",
+    "seamVelocity 2240 on its own body → 2687 played on this one, past its warn level"
    ]
   },
   {
@@ -1003,27 +1232,34 @@
    "rig": "quaternius-mannequin-m",
    "why": [
     "pop 3640 on its own body → 5721 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "STYLE100_RUN/TogetherStep_Run",
    "rig": "quaternius-mannequin-m",
    "why": [
     "seamVelocity 3914 on its own body → 4196 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "STYLE100_SIDE/OnHeels_SideLeft",
    "rig": "quaternius-mannequin-m",
    "why": [
     "slide 179 on its own body → 285 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Angry_Quarrel",
    "rig": "kaykit-knight",
    "why": [
     "slide 96.0 on its own body → 118 played on this one, past its fail level"
+   ],
+   "warns": [
+    "skate 7.2 on its own body → 9.8 played on this one, past its warn level",
+    "pop 0.0 on its own body → 1387 played on this one, past its warn level"
    ]
   },
   {
@@ -1031,34 +1267,41 @@
    "rig": "kaykit-knight",
    "why": [
     "pop 3029 on its own body → 8398 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Ballet_Grand_Jete",
    "rig": "kaykit-knight",
    "why": [
     "pop 1854 on its own body → 2389 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Bear",
    "rig": "kaykit-knight",
    "why": [
     "bodyPenetration 0.0 on its own body → 107 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Bend_Lift",
    "rig": "kaykit-knight",
    "why": [
     "bodyPenetration 0.0 on its own body → 35.1 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Breakdance_Helicopter",
    "rig": "kaykit-knight",
    "why": [
     "jitter 47.6 on its own body → 79.9 played on this one, past its fail level"
+   ],
+   "warns": [
+    "intersection 0.0 on its own body → 1.4 played on this one, past its warn level"
    ]
   },
   {
@@ -1066,20 +1309,25 @@
    "rig": "kaykit-knight",
    "why": [
     "pop 0.0 on its own body → 2415 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Dig",
    "rig": "kaykit-knight",
    "why": [
     "skate 26.6 on its own body → 16.6 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Direct_Traffic",
    "rig": "kaykit-knight",
    "why": [
     "slide 47.5 on its own body → 105 played on this one, past its fail level"
+   ],
+   "warns": [
+    "skate 5.9 on its own body → 11.3 played on this one, past its warn level"
    ]
   },
   {
@@ -1087,7 +1335,8 @@
    "rig": "kaykit-knight",
    "why": [
     "bodyPenetration 0.0 on its own body → 48.3 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Duck_Under",
@@ -1095,6 +1344,10 @@
    "why": [
     "slide 48.2 on its own body → 122 played on this one, past its fail level",
     "skate 19.3 on its own body → 48.9 played on this one, past its fail level"
+   ],
+   "warns": [
+    "jitter 22.9 on its own body → 17.5 played on this one, past its warn level",
+    "pop 0.0 on its own body → 913 played on this one, past its warn level"
    ]
   },
   {
@@ -1103,6 +1356,9 @@
    "why": [
     "slide 59.1 on its own body → 102 played on this one, past its fail level",
     "jitter 64.5 on its own body → 57.6 played on this one, past its fail level"
+   ],
+   "warns": [
+    "skate 9.0 on its own body → 14.9 played on this one, past its warn level"
    ]
   },
   {
@@ -1110,7 +1366,8 @@
    "rig": "kaykit-knight",
    "why": [
     "jitter 8.5 on its own body → 70.7 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Get_Up_Via_Kneel",
@@ -1118,13 +1375,17 @@
    "why": [
     "slide 90.3 on its own body → 170 played on this one, past its fail level",
     "skate 9.9 on its own body → 17.1 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Ghost",
    "rig": "kaykit-knight",
    "why": [
     "slide 68.9 on its own body → 152 played on this one, past its fail level"
+   ],
+   "warns": [
+    "skate 9.5 on its own body → 13.1 played on this one, past its warn level"
    ]
   },
   {
@@ -1132,6 +1393,9 @@
    "rig": "kaykit-knight",
    "why": [
     "bodyPenetration 0.0 on its own body → 84.7 played on this one, past its fail level"
+   ],
+   "warns": [
+    "skate 9.6 on its own body → 8.2 played on this one, past its warn level"
    ]
   },
   {
@@ -1139,7 +1403,8 @@
    "rig": "kaykit-knight",
    "why": [
     "pop 0.0 on its own body → 1681 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Hopscotch",
@@ -1147,20 +1412,25 @@
    "why": [
     "skate 13.0 on its own body → 16.8 played on this one, past its fail level",
     "pop 0.0 on its own body → 2535 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Jump_Kick",
    "rig": "kaykit-knight",
    "why": [
     "pop 0.0 on its own body → 2762 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Jump_Off_Ledge_Back",
    "rig": "kaykit-knight",
    "why": [
     "slide 58.9 on its own body → 101 played on this one, past its fail level"
+   ],
+   "warns": [
+    "skate 14.6 on its own body → 11.8 played on this one, past its warn level"
    ]
   },
   {
@@ -1169,6 +1439,10 @@
    "why": [
     "slide 104 on its own body → 160 played on this one, past its fail level",
     "skate 13.2 on its own body → 34.2 played on this one, past its fail level"
+   ],
+   "warns": [
+    "jitter 25.0 on its own body → 15.4 played on this one, past its warn level",
+    "pop 243 on its own body → 1433 played on this one, past its warn level"
    ]
   },
   {
@@ -1176,6 +1450,9 @@
    "rig": "kaykit-knight",
    "why": [
     "pop 2262 on its own body → 1725 played on this one, past its fail level"
+   ],
+   "warns": [
+    "jitter 20.5 on its own body → 20.6 played on this one, past its warn level"
    ]
   },
   {
@@ -1184,13 +1461,18 @@
    "why": [
     "jitter 21.1 on its own body → 53.3 played on this one, past its fail level",
     "pop 0.0 on its own body → 2763 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Mope",
    "rig": "kaykit-knight",
    "why": [
     "slide 49.4 on its own body → 135 played on this one, past its fail level"
+   ],
+   "warns": [
+    "skate 7.5 on its own body → 14.0 played on this one, past its warn level",
+    "pop 0.0 on its own body → 971 played on this one, past its warn level"
    ]
   },
   {
@@ -1199,6 +1481,10 @@
    "why": [
     "skate 10.4 on its own body → 19.4 played on this one, past its fail level",
     "bodyPenetration 0.0 on its own body → 73.5 played on this one, past its fail level"
+   ],
+   "warns": [
+    "jitter 16.1 on its own body → 15.0 played on this one, past its warn level",
+    "pop 0.0 on its own body → 1251 played on this one, past its warn level"
    ]
   },
   {
@@ -1207,21 +1493,24 @@
    "why": [
     "slide 116 on its own body → 117 played on this one, past its fail level",
     "bodyPenetration 0.0 on its own body → 57.3 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Roll_Under",
    "rig": "kaykit-knight",
    "why": [
     "pop 0.0 on its own body → 1942 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Roundhouse_Kick",
    "rig": "kaykit-knight",
    "why": [
     "pop 0.0 on its own body → 1575 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Run_Over",
@@ -1229,6 +1518,9 @@
    "why": [
     "skate 12.8 on its own body → 31.7 played on this one, past its fail level",
     "pop 0.0 on its own body → 1637 played on this one, past its fail level"
+   ],
+   "warns": [
+    "slide 55.0 on its own body → 84.6 played on this one, past its warn level"
    ]
   },
   {
@@ -1236,14 +1528,16 @@
    "rig": "kaykit-knight",
    "why": [
     "skate 12.1 on its own body → 20.5 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Russian_Dance",
    "rig": "kaykit-knight",
    "why": [
     "pop 0.0 on its own body → 3275 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Search_Ground",
@@ -1251,14 +1545,16 @@
    "why": [
     "slide 36.7 on its own body → 139 played on this one, past its fail level",
     "bodyPenetration 0.0 on its own body → 26.9 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Slip_Fall",
    "rig": "kaykit-knight",
    "why": [
     "bodyPenetration 0.0 on its own body → 131 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Stepping_Punch",
@@ -1267,41 +1563,49 @@
     "slide 49.8 on its own body → 116 played on this one, past its fail level",
     "skate 12.6 on its own body → 19.8 played on this one, past its fail level",
     "pop 0.0 on its own body → 1875 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Stumble_Walk",
    "rig": "kaykit-knight",
    "why": [
     "pop 0.0 on its own body → 1891 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Sweep_Loop",
    "rig": "kaykit-knight",
    "why": [
     "seam 0.0 on its own body → 50.6 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Waiting_Loop",
    "rig": "kaykit-knight",
    "why": [
     "pop 0.0 on its own body → 1550 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "MESH2MOTION/Dance_Simple",
    "rig": "kaykit-knight",
    "why": [
     "seam 5.7 on its own body → 51.7 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "MESH2MOTION/Golf_Drive",
    "rig": "kaykit-knight",
    "why": [
     "intersection 0.2 on its own body → 1.8 played on this one, past its fail level"
+   ],
+   "warns": [
+    "skate 8.7 on its own body → 9.0 played on this one, past its warn level"
    ]
   },
   {
@@ -1310,28 +1614,32 @@
    "why": [
     "slide 13.8 on its own body → 98.4 played on this one, past its fail level",
     "skate 2.4 on its own body → 20.4 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "MESH2MOTION/Kick_Breach",
    "rig": "kaykit-knight",
    "why": [
     "skate 28.2 on its own body → 19.1 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "MESH2MOTION/Run_Anime",
    "rig": "kaykit-knight",
    "why": [
     "pop 2608 on its own body → 7680 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "MESH2MOTION/Run_Female",
    "rig": "kaykit-knight",
    "why": [
     "seamVelocity 3852 on its own body → 1785 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "MESH2MOTION/Run_Stealth",
@@ -1339,34 +1647,41 @@
    "why": [
     "jitter 82.9 on its own body → 94.8 played on this one, past its fail level",
     "pop 0.0 on its own body → 5908 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "MESH2MOTION/Slide_Exit",
    "rig": "kaykit-knight",
    "why": [
     "jitter 35.7 on its own body → 43.0 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "MESH2MOTION/Sword_Attack_Air_Vertical",
    "rig": "kaykit-knight",
    "why": [
     "bodyPenetration 0.0 on its own body → 232 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "MESH2MOTION/Sword_Regular_B",
    "rig": "kaykit-knight",
    "why": [
     "pop 2143 on its own body → 3800 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "MESH2MOTION/Sword_Regular_Combo",
    "rig": "kaykit-knight",
    "why": [
     "pop 937 on its own body → 2649 played on this one, past its fail level"
+   ],
+   "warns": [
+    "skate 2.2 on its own body → 8.3 played on this one, past its warn level"
    ]
   },
   {
@@ -1374,6 +1689,9 @@
    "rig": "kaykit-knight",
    "why": [
     "pop 0.0 on its own body → 7128 played on this one, past its fail level"
+   ],
+   "warns": [
+    "jitter 20.9 on its own body → 21.1 played on this one, past its warn level"
    ]
   },
   {
@@ -1381,41 +1699,49 @@
    "rig": "kaykit-knight",
    "why": [
     "pop 0.0 on its own body → 1714 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "QUATERNIUS_3D2DGE/Hit_Knockback_RM",
    "rig": "kaykit-knight",
    "why": [
     "pop 0.0 on its own body → 1539 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "QUATERNIUS_3D2DGE/Slide_Exit",
    "rig": "kaykit-knight",
    "why": [
     "jitter 42.1 on its own body → 44.7 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "QUATERNIUS_3D2DGE/Slide_Start",
    "rig": "kaykit-knight",
    "why": [
     "pop 0.0 on its own body → 1547 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "QUATERNIUS_3D2DGE/Sword_Regular_C",
    "rig": "kaykit-knight",
    "why": [
     "jitter 71.9 on its own body → 44.9 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "QUATERNIUS_3D2DGE/Sword_Regular_Combo",
    "rig": "kaykit-knight",
    "why": [
     "jitter 70.9 on its own body → 39.7 played on this one, past its fail level"
+   ],
+   "warns": [
+    "skate 9.8 on its own body → 8.1 played on this one, past its warn level"
    ]
   },
   {
@@ -1423,41 +1749,49 @@
    "rig": "kaykit-knight",
    "why": [
     "pop 0.0 on its own body → 1719 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "QUATERNIUS_SHARDFALL/Hit_Knockback_RM",
    "rig": "kaykit-knight",
    "why": [
     "pop 0.0 on its own body → 1539 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "QUATERNIUS_SHARDFALL/Slide_Exit",
    "rig": "kaykit-knight",
    "why": [
     "jitter 41.6 on its own body → 43.1 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "QUATERNIUS_SHARDFALL/Slide_Exit_RM",
    "rig": "kaykit-knight",
    "why": [
     "jitter 41.6 on its own body → 43.1 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "QUATERNIUS_SHARDFALL/Slide_Start_RM",
    "rig": "kaykit-knight",
    "why": [
     "pop 0.0 on its own body → 1568 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "QUATERNIUS_SHARDFALL/Sword_Regular_C",
    "rig": "kaykit-knight",
    "why": [
     "jitter 67.2 on its own body → 44.5 played on this one, past its fail level"
+   ],
+   "warns": [
+    "skate 15.9 on its own body → 9.1 played on this one, past its warn level"
    ]
   },
   {
@@ -1465,34 +1799,41 @@
    "rig": "kaykit-knight",
    "why": [
     "jitter 67.2 on its own body → 44.5 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "QUATERNIUS_SHARDFALL/Sword_Regular_Combo",
    "rig": "kaykit-knight",
    "why": [
     "jitter 70.9 on its own body → 38.7 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "QUATERNIUS_SHARDFALL/Sword_Regular_Combo_RM",
    "rig": "kaykit-knight",
    "why": [
     "jitter 70.9 on its own body → 38.7 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "STYLE100/BeatChest_Walk",
    "rig": "kaykit-knight",
    "why": [
     "seamVelocity 2434 on its own body → 2254 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "STYLE100/HighKnees_Walk",
    "rig": "kaykit-knight",
    "why": [
     "pop 0.0 on its own body → 2509 played on this one, past its fail level"
+   ],
+   "warns": [
+    "jitter 8.8 on its own body → 13.2 played on this one, past its warn level"
    ]
   },
   {
@@ -1500,13 +1841,17 @@
    "rig": "kaykit-knight",
    "why": [
     "seamVelocity 2710 on its own body → 1958 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "STYLE100/Rushed_Walk",
    "rig": "kaykit-knight",
    "why": [
     "pop 0.0 on its own body → 1921 played on this one, past its fail level"
+   ],
+   "warns": [
+    "seamVelocity 2240 on its own body → 1199 played on this one, past its warn level"
    ]
   },
   {
@@ -1514,7 +1859,8 @@
    "rig": "kaykit-knight",
    "why": [
     "pop 0.0 on its own body → 1901 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "STYLE100/StartStop_Walk",
@@ -1522,21 +1868,24 @@
    "why": [
     "slide 122 on its own body → 111 played on this one, past its fail level",
     "skate 14.4 on its own body → 16.4 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "STYLE100/WalkingStickLeft_Walk",
    "rig": "kaykit-knight",
    "why": [
     "seamVelocity 2853 on its own body → 1859 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "STYLE100_BACKRUN/Drunk_RunBack",
    "rig": "kaykit-knight",
    "why": [
     "seamVelocity 2828 on its own body → 1880 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "STYLE100_BACKRUN/Kick_RunBack",
@@ -1544,6 +1893,9 @@
    "why": [
     "slide 66.6 on its own body → 109 played on this one, past its fail level",
     "skate 20.0 on its own body → 32.7 played on this one, past its fail level"
+   ],
+   "warns": [
+    "seamVelocity 2475 on its own body → 1664 played on this one, past its warn level"
    ]
   },
   {
@@ -1551,6 +1903,9 @@
    "rig": "kaykit-knight",
    "why": [
     "skate 5.7 on its own body → 18.6 played on this one, past its fail level"
+   ],
+   "warns": [
+    "slide 16.3 on its own body → 77.3 played on this one, past its warn level"
    ]
   },
   {
@@ -1558,13 +1913,17 @@
    "rig": "kaykit-knight",
    "why": [
     "seamVelocity 2171 on its own body → 1795 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "STYLE100_BACKRUN/SwingShoulders_RunBack",
    "rig": "kaykit-knight",
    "why": [
     "skate 16.2 on its own body → 17.5 played on this one, past its fail level"
+   ],
+   "warns": [
+    "pop 0.0 on its own body → 957 played on this one, past its warn level"
    ]
   },
   {
@@ -1572,63 +1931,72 @@
    "rig": "kaykit-knight",
    "why": [
     "seamVelocity 2405 on its own body → 1797 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "STYLE100_IDLE/BouncyLeft_Idle",
    "rig": "kaykit-knight",
    "why": [
     "seam 0.0 on its own body → 55.6 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "STYLE100_IDLE/Drunk_Idle",
    "rig": "kaykit-knight",
    "why": [
     "seam 0.0 on its own body → 34.4 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "STYLE100_IDLE/SwingArmsRound_Idle",
    "rig": "kaykit-knight",
    "why": [
     "seam 0.0 on its own body → 32.0 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "STYLE100_RUN/ArmsBehindBack_Run",
    "rig": "kaykit-knight",
    "why": [
     "seamVelocity 2742 on its own body → 2326 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "STYLE100_RUN/ArmsBySide_Run",
    "rig": "kaykit-knight",
    "why": [
     "seamVelocity 2204 on its own body → 1744 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "STYLE100_RUN/BouncyRight_Run",
    "rig": "kaykit-knight",
    "why": [
     "seamVelocity 1761 on its own body → 1800 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "STYLE100_RUN/Heavyset_Run",
    "rig": "kaykit-knight",
    "why": [
     "seamVelocity 2417 on its own body → 2011 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "STYLE100_RUN/March_Run",
    "rig": "kaykit-knight",
    "why": [
     "seamVelocity 2075 on its own body → 1719 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "STYLE100_RUN/Roadrunner_Run",
@@ -1636,13 +2004,17 @@
    "why": [
     "slide 174 on its own body → 144 played on this one, past its fail level",
     "skate 25.5 on its own body → 20.1 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "STYLE100_RUN/Skip_Run",
    "rig": "kaykit-knight",
    "why": [
     "pop 0.0 on its own body → 1795 played on this one, past its fail level"
+   ],
+   "warns": [
+    "jitter 20.6 on its own body → 23.3 played on this one, past its warn level"
    ]
   },
   {
@@ -1650,13 +2022,17 @@
    "rig": "kaykit-knight",
    "why": [
     "seamVelocity 3138 on its own body → 2197 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "STYLE100_RUN/WhirlArms_Run",
    "rig": "kaykit-knight",
    "why": [
     "seamVelocity 3639 on its own body → 1781 played on this one, past its fail level"
+   ],
+   "warns": [
+    "pop 0.0 on its own body → 934 played on this one, past its warn level"
    ]
   },
   {
@@ -1664,20 +2040,25 @@
    "rig": "kaykit-knight",
    "why": [
     "seamVelocity 2302 on its own body → 1873 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "STYLE100_SIDE/RightHop_SideLeft",
    "rig": "kaykit-knight",
    "why": [
     "seamVelocity 3203 on its own body → 1788 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "STYLE100_SIDERUN/ArmsBySide_SideRunLeft",
    "rig": "kaykit-knight",
    "why": [
     "skate 8.1 on its own body → 27.2 played on this one, past its fail level"
+   ],
+   "warns": [
+    "slide 24.2 on its own body → 81.7 played on this one, past its warn level"
    ]
   },
   {
@@ -1686,41 +2067,49 @@
    "why": [
     "slide 34.4 on its own body → 129 played on this one, past its fail level",
     "skate 8.3 on its own body → 28.7 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "STYLE100_SIDERUN/CrowdAvoidance_SideRunRight",
    "rig": "kaykit-knight",
    "why": [
     "skate 19.5 on its own body → 19.6 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "STYLE100_SIDERUN/Followed_SideRunRight",
    "rig": "kaykit-knight",
    "why": [
     "seamVelocity 3557 on its own body → 1899 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "STYLE100_SIDERUN/Kick_SideRunLeft",
    "rig": "kaykit-knight",
    "why": [
     "skate 8.8 on its own body → 17.8 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "STYLE100_SIDERUN/LeanRight_SideRunLeft",
    "rig": "kaykit-knight",
    "why": [
     "seamVelocity 3124 on its own body → 1862 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "STYLE100_SIDERUN/Lunge_SideRunLeft",
    "rig": "kaykit-knight",
    "why": [
     "skate 13.9 on its own body → 19.9 played on this one, past its fail level"
+   ],
+   "warns": [
+    "slide 51.0 on its own body → 72.9 played on this one, past its warn level"
    ]
   },
   {
@@ -1728,27 +2117,33 @@
    "rig": "kaykit-knight",
    "why": [
     "seamVelocity 3204 on its own body → 1784 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "STYLE100_SIDERUN/Morris_SideRunLeft",
    "rig": "kaykit-knight",
    "why": [
     "seamVelocity 2268 on its own body → 2198 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "STYLE100_SIDERUN/PigeonToed_SideRunLeft",
    "rig": "kaykit-knight",
    "why": [
     "seamVelocity 3368 on its own body → 2036 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "STYLE100_SIDERUN/Quail_SideRunRight",
    "rig": "kaykit-knight",
    "why": [
     "skate 10.2 on its own body → 17.9 played on this one, past its fail level"
+   ],
+   "warns": [
+    "slide 49.2 on its own body → 68.7 played on this one, past its warn level"
    ]
   },
   {
@@ -1756,20 +2151,25 @@
    "rig": "kaykit-knight",
    "why": [
     "seamVelocity 3129 on its own body → 1923 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "STYLE100_SIDERUN/Robot_SideRunRight",
    "rig": "kaykit-knight",
    "why": [
     "seamVelocity 2554 on its own body → 1753 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "STYLE100_SIDERUN/Star_SideRunRight",
    "rig": "kaykit-knight",
    "why": [
     "skate 22.5 on its own body → 22.0 played on this one, past its fail level"
+   ],
+   "warns": [
+    "slide 71.2 on its own body → 69.6 played on this one, past its warn level"
    ]
   },
   {
@@ -1777,6 +2177,9 @@
    "rig": "kaykit-knight",
    "why": [
     "seamVelocity 3812 on its own body → 1714 played on this one, past its fail level"
+   ],
+   "warns": [
+    "skate 7.0 on its own body → 8.5 played on this one, past its warn level"
    ]
   },
   {
@@ -1784,34 +2187,41 @@
    "rig": "kaykit-knight",
    "why": [
     "seamVelocity 3308 on its own body → 1753 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "STYLE100_SIDERUN/WildArms_SideRunLeft",
    "rig": "kaykit-knight",
    "why": [
     "skate 15.2 on its own body → 21.0 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Backflip",
    "rig": "talkinghead-mpfb",
    "why": [
     "pop 3029 on its own body → 4195 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Chop_Wood",
    "rig": "talkinghead-mpfb",
    "why": [
     "pop 0.0 on its own body → 9193 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Comfort",
    "rig": "talkinghead-mpfb",
    "why": [
     "slide 81.6 on its own body → 279 played on this one, past its fail level"
+   ],
+   "warns": [
+    "skate 10.0 on its own body → 26.9 played on this one, past its warn level"
    ]
   },
   {
@@ -1819,6 +2229,10 @@
    "rig": "talkinghead-mpfb",
    "why": [
     "pop 0.0 on its own body → 4813 played on this one, past its fail level"
+   ],
+   "warns": [
+    "skate 15.2 on its own body → 21.5 played on this one, past its warn level",
+    "intersection 0.4 on its own body → 1.0 played on this one, past its warn level"
    ]
   },
   {
@@ -1827,7 +2241,8 @@
    "why": [
     "slide 121 on its own body → 284 played on this one, past its fail level",
     "skate 15.5 on its own body → 41.7 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Jump_Kick",
@@ -1835,6 +2250,9 @@
    "why": [
     "skate 0.0 on its own body → 42.8 played on this one, past its fail level",
     "pop 0.0 on its own body → 11286 played on this one, past its fail level"
+   ],
+   "warns": [
+    "intersection 0.0 on its own body → 1.0 played on this one, past its warn level"
    ]
   },
   {
@@ -1842,7 +2260,8 @@
    "rig": "talkinghead-mpfb",
    "why": [
     "pop 0.0 on its own body → 7790 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Mope",
@@ -1850,6 +2269,9 @@
    "why": [
     "slide 54.9 on its own body → 336 played on this one, past its fail level",
     "skate 13.7 on its own body → 46.4 played on this one, past its fail level"
+   ],
+   "warns": [
+    "intersection 0.5 on its own body → 1.0 played on this one, past its warn level"
    ]
   },
   {
@@ -1857,13 +2279,17 @@
    "rig": "talkinghead-mpfb",
    "why": [
     "pop 496 on its own body → 7475 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Pick_Up_Basket",
    "rig": "talkinghead-mpfb",
    "why": [
     "pop 0.0 on its own body → 6235 played on this one, past its fail level"
+   ],
+   "warns": [
+    "skate 5.5 on its own body → 29.1 played on this one, past its warn level"
    ]
   },
   {
@@ -1871,6 +2297,9 @@
    "rig": "talkinghead-mpfb",
    "why": [
     "pop 0.0 on its own body → 4184 played on this one, past its fail level"
+   ],
+   "warns": [
+    "skate 12.6 on its own body → 29.3 played on this one, past its warn level"
    ]
   },
   {
@@ -1878,41 +2307,50 @@
    "rig": "talkinghead-mpfb",
    "why": [
     "bodyPenetration 56.1 on its own body → 74.4 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Search_Ground",
    "rig": "talkinghead-mpfb",
    "why": [
     "slide 48.6 on its own body → 254 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "CMU_CURATED/Wave_Hello",
    "rig": "talkinghead-mpfb",
    "why": [
     "pop 0.0 on its own body → 5466 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "MESH2MOTION/Pushup",
    "rig": "talkinghead-mpfb",
    "why": [
     "bodyPenetration 21.1 on its own body → 105 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "MESH2MOTION/Sword_Regular_Combo",
    "rig": "talkinghead-mpfb",
    "why": [
     "skate 7.0 on its own body → 39.2 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "MESH2MOTION/Zombie_Rise",
    "rig": "talkinghead-mpfb",
    "why": [
     "pop 0.0 on its own body → 17638 played on this one, past its fail level"
+   ],
+   "warns": [
+    "slide 69.0 on its own body → 222 played on this one, past its warn level",
+    "skate 10.6 on its own body → 21.3 played on this one, past its warn level"
    ]
   },
   {
@@ -1920,13 +2358,17 @@
    "rig": "talkinghead-mpfb",
    "why": [
     "jitter 85.6 on its own body → 94.1 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "STYLE100/Rushed_Walk",
    "rig": "talkinghead-mpfb",
    "why": [
     "skate 22.4 on its own body → 40.1 played on this one, past its fail level"
+   ],
+   "warns": [
+    "slide 59.8 on its own body → 201 played on this one, past its warn level"
    ]
   },
   {
@@ -1934,13 +2376,17 @@
    "rig": "talkinghead-mpfb",
    "why": [
     "pop 3640 on its own body → 5401 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "STYLE100_RUN/SwingArmsRound_Run",
    "rig": "talkinghead-mpfb",
    "why": [
     "skate 30.2 on its own body → 40.5 played on this one, past its fail level"
+   ],
+   "warns": [
+    "slide 126 on its own body → 169 played on this one, past its warn level"
    ]
   },
   {
@@ -1948,7 +2394,8 @@
    "rig": "talkinghead-mpfb",
    "why": [
     "seamVelocity 3914 on its own body → 4474 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   },
   {
    "clip": "STYLE100_SIDE/Waving_SideLeft",
@@ -1956,7 +2403,8 @@
    "why": [
     "pop 0.0 on its own body → 7821 played on this one, past its fail level",
     "seamVelocity 514 on its own body → 5289 played on this one, past its fail level"
-   ]
+   ],
+   "warns": []
   }
  ],
  "warned": [
