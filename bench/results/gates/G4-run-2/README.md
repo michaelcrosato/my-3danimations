@@ -17,3 +17,8 @@ commit first (`presweep.json`).
   variant, its known-good first); `B1-variant-known-good.json`: the known-good on the variant, run before the gate
   (`npm run bench -- B1 --trials 1 --fake --heldout G4`). The agents' transcripts stayed in the run's workspaces under
   `/tmp/m3a-bench/` (not committed).
+- `transcripts.json`: those twelve transcripts by path, SHA-256 and size. `B1.json`'s audit (and its byte copy's,
+  `bench/results/2026-10-14-default-B1.json`) is the corrected one, read from them (D88: the G4 run 2 verifier found
+  the runner's audit took only a shell command's absolute paths): B1-1, B1-3 and both discovery trials read past the
+  manual (the packages' `.d.ts` files and READMEs, the library's lock), B1-2 wrote a scratch file beside its workspace
+  in its own /tmp, none touched anything outside; `B1-variant.json`'s audit is unchanged.

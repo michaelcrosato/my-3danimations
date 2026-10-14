@@ -32,7 +32,9 @@
       "/tmp/feet.ts",
       "/tmp/probe.mjs"
      ],
-     "pastManual": []
+     "pastManual": [
+      "node_modules/@m3a/three/dist/*.d.ts"
+     ]
     }
    },
    {
@@ -55,6 +57,7 @@
      "costUsd": 0.1594669,
      "outside": [],
      "scratch": [
+      "/tmp/m3a-bench/2026-10-14T22-23-23/probe_tmp.ts",
       "/tmp/probe",
       "/tmp/probe.ts",
       "/tmp/probe/p.ts"
@@ -86,7 +89,12 @@
       "/tmp/pr/p.ts",
       "/tmp/probe.mjs"
      ],
-     "pastManual": []
+     "pastManual": [
+      "node_modules/@m3a/sensors/dist/*.d.ts",
+      "node_modules/@m3a/sensors/dist/*/*.d.ts",
+      "node_modules/@m3a/sensors/dist/metrics/motion.d.ts",
+      "node_modules/@m3a/three/dist/index.d.ts"
+     ]
     }
    },
    {
@@ -162,7 +170,11 @@
      "costUsd": 0.3078908,
      "outside": [],
      "scratch": [],
-     "pastManual": []
+     "pastManual": [
+      "node_modules/@m3a/*/README*",
+      "node_modules/@m3a/library/sets.lock.json",
+      "node_modules/@m3a/sensors/dist/index.d.ts"
+     ]
     },
     "usedPackage": true
    },
@@ -189,7 +201,12 @@
       "/tmp/cat.mjs",
       "/tmp/probe.ts"
      ],
-     "pastManual": []
+     "pastManual": [
+      "node_modules/@m3a/core/dist/contact/*.d.ts",
+      "node_modules/@m3a/library/sets.lock.json",
+      "node_modules/@m3a/sensors/dist/sheet/*.d.ts",
+      "node_modules/@m3a/three/dist/index.d.ts"
+     ]
     },
     "usedPackage": true
    }
