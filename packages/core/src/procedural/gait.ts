@@ -14,9 +14,9 @@
 // refused with what to change; `fitGait` slows one to the reach of a body's legs. The frames are spread evenly over the
 // cycle, an even number of them, and each knee's turn about its leg, carried on from frame to frame, is closed over it,
 // so the loop meets itself.
-import { IDX, P, type Rest } from "../format/body.ts";
-import { add, len, mul, qmul, qrot, sub, type Quat, type V3 } from "../format/math.ts";
-import { decodePose, encodePose, type KeyLike } from "../format/pose.ts";
+import { IDX, ik3, limbEnd, P, reachOf, type Rest, type Side } from "../format/body.ts";
+import { add, len, mul, norm, qmul, qrot, sub, type Frame, type Quat, type V3 } from "../format/math.ts";
+import { decodePose, encodePose, torso, type KeyLike } from "../format/pose.ts";
 import type { Clip, Contacts } from "../format/types.ts";
 import { PORTABLE as PM } from "../math/portable.ts";
 import type { Pose } from "../ops/pose.ts";
@@ -130,16 +130,27 @@ const knot = (h0: number, h1: number, dh0: number, dh1: number) => {
 };
 
 /**
+ * Where a leg's numbers `l` put its ankle, from `hip` in the pelvis's frame RP on rest R: decodePose's own steps for it
+ * (the leg's end at its bend's reach, kept by ik3 within the leg's), as its Float32Array holds the point, bit for bit.
+ * ik3's hint (from the twist) turns only the knee, so a fixed one serves (up). snapLegs weighs 81 candidates a leg
+ * with it, where a whole decode each took 85% of a gait's time (an idle's too) and made one in about 0.3 s.
+ */
+export function ankleOf(R: Rest, hip: V3, RP: Frame, l: readonly number[], s: Side): V3 {
+  const end = ik3(hip, limbEnd(hip, RP, norm(l), s, reachOf(l[3] || 0, R.thigh, R.shin)), R.thigh, R.shin, [0, 0, 1])[1];
+  return [Math.fround(end[0]), Math.fround(end[1]), Math.fround(end[2])];
+}
+
+/**
  * A pose rounded as a key is (quantize), its legs' numbers each chosen from the whole numbers about their roundings to
  * land the ankles nearest where the points X have them, or the `goals` given: a leg's direction is held in hundredths,
  * so a planted ankle can't land closer than about 4 mm to any one place; given where it landed, it stays within that
- * of it.
+ * of it. Each candidate's ankle is the decoder's (ankleOf), from the hips the rounded pose places.
  */
 export function snapLegs(R: Rest, p: Pose, X: Float32Array, goals: Partial<Record<"L" | "R", V3>> = {}): Pose {
-  const out = quantize(p), Y = new Float32Array(P * 3);
+  const out = quantize(p), tq = torso(R, out as KeyLike);
   for (const s of ["L", "R"] as const) {
-    const f = `leg${s}`, raw = p[f] as number[], goal = goals[s] ?? pt(X, `ankle${s}`), base = out[f] as number[];
-    const miss = (v: number[]) => (decodePose(R, { ...out, [f]: v } as KeyLike, Y), len(sub(pt(Y, `ankle${s}`), goal)));
+    const f = `leg${s}`, raw = p[f] as number[], goal = goals[s] ?? pt(X, `ankle${s}`), base = out[f] as number[], hip = tq.hip(s);
+    const miss = (v: number[]) => len(sub(ankleOf(R, hip, tq.RP, v, s), goal));
     let best = base, err = miss(base);
     // the four numbers that place the ankle (direction and bend), each its rounding or a whole number either side
     // (each as a key holds it: quantize scales a direction to 100 again, so a candidate is judged as it will be written)
