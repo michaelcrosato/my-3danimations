@@ -1,0 +1,10 @@
+{
+  "name": "b1-starter",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "node check.ts",
+    "sheet": "node src/sheet.ts"
+  },
+  "dependencies": {}
+}

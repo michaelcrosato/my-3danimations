@@ -35,7 +35,8 @@ describe("mirror", () => {
         clips++;
       }
     }
-    expect(clips).toBe(525);
+    // every clip the library's lock names
+    expect(clips).toBe(Object.values(JSON.parse(readFileSync(join(LIB, "../sets.lock.json"), "utf8")).sets as Record<string, { files: object }>).reduce((a, s) => a + Object.keys(s.files).length, 0));
     expect(worst).toBeLessThanOrEqual(0.5);
   });
   it("a mirrored pose decodes as the reflection across the body's midline", () => {

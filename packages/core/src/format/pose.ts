@@ -11,6 +11,10 @@ import { PORTABLE as PM } from "../math/portable.ts";
 export type KeyLike = Partial<Key> & Record<string, unknown>;
 
 const round = (v: number) => Math.round(v);
+/** Below this bend (degrees) a limb is nearly straight: its twist barely moves a point (the baselines' "nearly straight" too). */
+const STEADY_BEND = 25;
+/** A twist that jumps this far (degrees) between keys of a nearly straight limb is noise winding it, not a turn. */
+const STEADY_JUMP = 45;
 const SIDES: Side[] = ["L", "R"];
 const arr = (k: KeyLike, f: string) => k[f] as number[] | undefined;
 
@@ -44,9 +48,13 @@ export function torso(R: Rest, k: KeyLike) {
   return { p, RP, RC, RH, spine1: sp[1]!, spine2: sp[2]!, chest: sp[3]!, neck, head, sh, hip: (s: Side) => add(p, wld(RP, R.hip[s])) };
 }
 
-/** Options for encoding: `hands` also fits format 2's hand and finger fields from the hand's body points. */
+/** Options for encoding: `hands` also fits format 2's hand and finger fields from the hand's body points; `spine` its
+ *  spine curl (`encode` keeps it only for a clip it helps, every key or none); `steadyTwist` keeps a nearly straight
+ *  limb's twist (bent less than 25°) as the key before had it rather than jump 45° or more. */
 export interface EncodeOptions {
   hands?: boolean;
+  spine?: boolean;
+  steadyTwist?: boolean;
   /** Whole numbers, as a file holds them (the default); false keeps the exact values, for blending in point space. */
   round?: boolean;
 }
@@ -82,6 +90,8 @@ export function encodePose(R: Rest, X: ArrayLike<number>, prev: KeyLike | null, 
     const el = (a: V3) => PM.asin(Math.max(-1, Math.min(1, a[2] / len(a)))) / DG;
     k["sh" + s] = [r0(az(v) - az(v0)), r0(el(v) - el(v0))];
   }
+  // format 2's spine curl, before anything hangs off the chest: each share fitted in turn to the captured spine points
+  if (opts.spine) k.spine = fitSpine(R, k, X);
   const tq = torso(R, k);
   for (const s of SIDES) {
     const limbs: [string, V3, Frame, string, string, number, number][] = [
@@ -101,7 +111,10 @@ export function encodePose(R: Rest, X: ArrayLike<number>, prev: KeyLike | null, 
       const tw = poleOf(dd, hintFor(limb as "arm" | "leg", SG[s], M, [dir[0]!, dir[1]! * SG[s], dir[2]!]), sub(p(mid + s), root));
       const before = arr(pr, limb + s);
       const prevT = before ? before[4] : undefined;
-      k[limb + s] = [...dir, bend, r0(unwrap(tw, prevT))];
+      // a nearly straight limb's twist barely shows and capture noise winds it: `steadyTwist` keeps the key before's
+      // when it would jump 45° or more (small drifts are followed, so a loop's ends still meet)
+      const twist = unwrap(tw, prevT);
+      k[limb + s] = [...dir, bend, opts.steadyTwist && prevT !== undefined && bend < STEADY_BEND && Math.abs(twist - prevT) >= STEADY_JUMP ? prevT : r0(twist)];
     }
     const fd = loc(tq.RP, norm(sub(p("ball" + s), p("ankle" + s))));
     const td = loc(tq.RP, norm(sub(p("toe" + s), p("ball" + s))));
@@ -111,6 +124,48 @@ export function encodePose(R: Rest, X: ArrayLike<number>, prev: KeyLike | null, 
   }
   if (opts.hands) for (const s of SIDES) encodeHand(R, X, k, tq, s, arr(pr, "hand" + s), r0);
   return k;
+}
+
+/** The spine's points (spine1, spine2, chest) as key k's torso places them: its own shares, or the body's. */
+function spinePoints(R: Rest, k: KeyLike, own: boolean): V3[] {
+  const t = torso(R, own ? k : { ...k, spine: undefined });
+  return [t.spine1, t.spine2, t.chest];
+}
+
+/** Format 2's spine shares for key k (whole percents, −100..200): each fitted in turn, from the hips up, to bring its
+ *  point nearest the captured one (a coarse pass, then the percents around the best). */
+function fitSpine(R: Rest, k: KeyLike, X: ArrayLike<number>): number[] {
+  const want = ["spine1", "spine2", "chest"].map((n) => pt(X, n)), out = R.spineW.slice(0, 3).map((w) => Math.round(w * 100));
+  for (let i = 0; i < 3; i++) {
+    const err = (w: number) => {
+      out[i] = w;
+      return len(sub(spinePoints(R, { ...k, spine: out }, true)[i]!, want[i]!));
+    };
+    let best = out[i]!, e = err(best);
+    for (let w = -100; w <= 200; w += 10) {
+      const x = err(w);
+      if (x < e) [best, e] = [w, x];
+    }
+    for (let w = Math.max(-100, best - 9); w <= Math.min(200, best + 9); w++) {
+      const x = err(w);
+      if (x < e) [best, e] = [w, x];
+    }
+    out[i] = best;
+  }
+  return out;
+}
+
+/** How much nearer key k's own spine shares bring the spine's points to the captured ones than the body's do (mm, the
+ *  worst point's gain): what `encode` weighs to keep a clip's `spine`. */
+export function spineGain(R: Rest, k: KeyLike, X: ArrayLike<number>): number {
+  if (!k.spine) return 0;
+  const want = ["spine1", "spine2", "chest"].map((n) => pt(X, n)), own = spinePoints(R, k, true), body = spinePoints(R, k, false);
+  let worstOwn = 0, worstBody = 0;
+  for (let i = 0; i < 3; i++) {
+    worstOwn = Math.max(worstOwn, len(sub(own[i]!, want[i]!)));
+    worstBody = Math.max(worstBody, len(sub(body[i]!, want[i]!)));
+  }
+  return worstBody - worstOwn;
 }
 
 /** The decoded arm for side s of key k: shoulder, elbow, the IK's end, and the pole the elbow bends toward. */
@@ -245,11 +300,12 @@ function encodeHand(R: Rest, X: ArrayLike<number>, k: KeyLike, tq: ReturnType<ty
   // roll unwraps against the key before, like a twist (spec/MOTION.md §6.3)
   const roll = unwrap(PM.atan2(dot(lp, base.m), dot(lp, base.l)) / DG, prev ? prev[2] : undefined);
   const f = handFrame(el, wr, pole, s, roll);
-  const side = PM.asin(Math.max(-1, Math.min(1, dot(h, f.l)))) / DG;
-  const flex = PM.atan2(dot(h, f.m), dot(h, f.a)) / DG;
+  // within the spec's ranges (flex −90..90, side −45..45): a hand bent further is held at the edge
+  const side = Math.max(-45, Math.min(45, PM.asin(Math.max(-1, Math.min(1, dot(h, f.l)))) / DG));
+  const flex = Math.max(-90, Math.min(90, PM.atan2(dot(h, f.m), dot(h, f.a)) / DG));
   k["hand" + s] = [r0(flex), r0(side), r0(roll)];
   const hd = norm(sub(p("fist" + s), p("knuck" + s)));
-  const ph = flex * DG;
+  const ph = r0(flex) * DG;
   const n = sub(mul(f.m, PM.cos(ph)), mul(f.a, PM.sin(ph)));
   const curl = PM.atan2(dot(hd, n), dot(hd, h)) / DG / 0.9;
   // the body points hold the middle finger only: the others are taken to close with it

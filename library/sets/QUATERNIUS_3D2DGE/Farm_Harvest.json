@@ -10,8 +10,10 @@
 "desc": "bends down and pulls a crop up out of the ground",
 "skeleton": "humanoid",
 "restSrc": "UAL2",
+"contacts": {"by":"detected","footL":[[0.067,0.383],[0.533,2.5]],"footR":[[0.183,1.6],[1.817,2.5]]},
+"facts": {"by":"m3a-facts@1","height":[78,96]},
 "provenance": {"src":"UAL2","method":"keyed","producer":{"tool":"m3a-migrate","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
-"quality": {"fit":[15,109],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[15,109],"qa":"pass","qaVersion":"m3a-sensors@1"},
 "keys": [
   {"t":0,
    "hips":[-9,-1,96], "body":[13,-5,0], "chest":[0,19,0], "head":[-11,-18,0],

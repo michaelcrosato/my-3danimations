@@ -1,0 +1,26 @@
+{
+"format": "2.0",
+"id": "STYLE100_IDLE/Rocket_Idle",
+"name": "Rocket_Idle",
+"legend": "2.0",
+"dur": 2.5,
+"loop": true,
+"fps": 30,
+"tags": ["idle","style"],
+"desc": "Standing, rocket style: bent to flat back with hands behind as thrusters",
+"skeleton": "humanoid",
+"restSrc": "100STYLE",
+"contacts": {"by":"detected","footL":[[0,2.5]],"footR":[[0,2.5]]},
+"facts": {"by":"m3a-facts@1","height":[101,101],"seam":0,"speed":0,"travel":[0,0]},
+"provenance": {"src":"100STYLE","take":"Rocket_ID 19.17-21.67","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
+"quality": {"fit":[6,16],"qa":"pass","qaVersion":"m3a-sensors@1"},
+"keys": [
+  {"t":0,
+   "hips":[0,0,101], "body":[0,42,1], "chest":[2,41,1], "head":[3,10,1],
+   "shL":[8,-9], "shR":[10,-7], "armL":[-44,13,-89,8,-63], "armR":[-24,20,-95,4,-174], "handL":[-25,-7,97], "handR":[-12,9,-31], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[71,-6,-70,4,19], "legR":[70,0,-72,0,-163], "footL":[-40,-2,0], "footR":[-41,8,0]},
+  {"t":2.5,
+   "hips":[0,0,101], "body":[0,42,1], "chest":[2,41,1], "head":[3,10,1],
+   "shL":[8,-9], "shR":[10,-7], "armL":[-44,13,-89,8,-63], "armR":[-24,20,-95,4,-174], "handL":[-25,-7,97], "handR":[-12,9,-31], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[71,-6,-70,4,19], "legR":[70,0,-72,0,-163], "footL":[-40,-2,0], "footR":[-41,8,0]}
+]}

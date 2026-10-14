@@ -1,0 +1,207 @@
+{
+ "about": "npm run bench: fresh agents on the briefs (PLAN.md §7); isolation 1 is the claude CLI in a clean workspace",
+ "date": "2026-10-12T03-40-09",
+ "commit": "a7cc15342fca122b7720f2fc4ce476f7d0d31454",
+ "model": "the CLI's default",
+ "fake": false,
+ "B1": {
+  "trials": [
+   {
+    "trial": "B1-1",
+    "pass": true,
+    "failed": [],
+    "agent": {
+     "isolation": 1,
+     "ok": true,
+     "ms": 41610.94530200001,
+     "model": "claude-sonnet-5-5",
+     "turns": 9,
+     "tokens": {
+      "input": 18,
+      "output": 4601,
+      "cacheRead": 126661,
+      "cacheWrite": 17366
+     },
+     "costUsd": 0.12817610000000002,
+     "outside": [
+      "/",
+      "/**",
+      "/tmp/cat.mjs",
+      "/tmp/t.ts"
+     ],
+     "pastManual": []
+    }
+   },
+   {
+    "trial": "B1-2",
+    "pass": false,
+    "failed": [
+     "planted feet don't slide: slide 163 mm (fail 253), skate 54.5 cm/s (fail 41.9); worst: footL 7.40–7.70 s: the planted foot glides at 54.5 cm/s (163 mm in 0.30 s) (fail at 42)"
+    ],
+    "agent": {
+     "isolation": 1,
+     "ok": true,
+     "ms": 85563.86418199999,
+     "model": "claude-sonnet-5-5",
+     "turns": 17,
+     "tokens": {
+      "input": 34,
+      "output": 8868,
+      "cacheRead": 337928,
+      "cacheWrite": 25630
+     },
+     "costUsd": 0.22506080000000003,
+     "outside": [
+      "/",
+      "/**",
+      "/tmp/cat.mjs"
+     ],
+     "pastManual": [
+      "node_modules/@m3a/core/dist"
+     ]
+    }
+   },
+   {
+    "trial": "B1-3",
+    "pass": true,
+    "failed": [],
+    "agent": {
+     "isolation": 1,
+     "ok": true,
+     "ms": 34702.700187,
+     "model": "claude-sonnet-5-5",
+     "turns": 7,
+     "tokens": {
+      "input": 14,
+      "output": 3734,
+      "cacheRead": 86907,
+      "cacheWrite": 16148
+     },
+     "costUsd": 0.1106507,
+     "outside": [
+      "/",
+      "/**",
+      "/tmp/cat.mjs"
+     ],
+     "pastManual": []
+    }
+   },
+   {
+    "trial": "B1-4",
+    "pass": true,
+    "failed": [],
+    "agent": {
+     "isolation": 1,
+     "ok": true,
+     "ms": 103983.98299799999,
+     "model": "claude-sonnet-5-5",
+     "turns": 18,
+     "tokens": {
+      "input": 36,
+      "output": 10250,
+      "cacheRead": 364385,
+      "cacheWrite": 26349
+     },
+     "costUsd": 0.24440650000000005,
+     "outside": [
+      "/",
+      "/**",
+      "/foot",
+      "/tmp/cat.mjs",
+      "/tmp/s",
+      "/toe/i.test(o.name"
+     ],
+     "pastManual": [
+      "node_modules/@m3a/core/dist"
+     ]
+    }
+   },
+   {
+    "trial": "B1-5",
+    "pass": true,
+    "failed": [],
+    "agent": {
+     "isolation": 1,
+     "ok": true,
+     "ms": 42288.7335,
+     "model": "claude-sonnet-5-5",
+     "turns": 8,
+     "tokens": {
+      "input": 14,
+      "output": 4482,
+      "cacheRead": 84805,
+      "cacheWrite": 15064
+     },
+     "costUsd": 0.11358449999999999,
+     "outside": [
+      "/",
+      "/**",
+      "/tmp/cat.mts"
+     ],
+     "pastManual": []
+    }
+   }
+  ],
+  "discovery": [
+   {
+    "trial": "B1-discovery-1",
+    "pass": true,
+    "failed": [],
+    "agent": {
+     "isolation": 1,
+     "ok": true,
+     "ms": 65641.867588,
+     "model": "claude-sonnet-5-5",
+     "turns": 11,
+     "tokens": {
+      "input": 22,
+      "output": 7152,
+      "cacheRead": 166148,
+      "cacheWrite": 26272
+     },
+     "costUsd": 0.19326680000000002,
+     "outside": [
+      "/",
+      "/**",
+      "/tmp/cat.mjs"
+     ],
+     "pastManual": []
+    },
+    "usedPackage": true
+   },
+   {
+    "trial": "B1-discovery-2",
+    "pass": true,
+    "failed": [],
+    "agent": {
+     "isolation": 1,
+     "ok": true,
+     "ms": 105633.337123,
+     "model": "claude-sonnet-5-5",
+     "turns": 21,
+     "tokens": {
+      "input": 40,
+      "output": 11214,
+      "cacheRead": 513641,
+      "cacheWrite": 36489
+     },
+     "costUsd": 0.3095401,
+     "outside": [
+      "/",
+      "/**",
+      "/export",
+      "/foot/i.test(o.name",
+      "/node_modules/.*/node_modules",
+      "/tmp/cat.mjs",
+      "/tmp/w"
+     ],
+     "pastManual": [
+      "node_modules/@m3a/sensors/dist"
+     ]
+    },
+    "usedPackage": true
+   }
+  ]
+ },
+ "ms": 201372
+}

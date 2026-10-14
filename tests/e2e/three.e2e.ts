@@ -16,7 +16,7 @@ const VERSION = (JSON.parse(readFileSync(join(DIR, "package.json"), "utf8")) as 
 const PIN = (JSON.parse(readFileSync(join(ROOT, "packages/three/package.json"), "utf8")) as { peerDependencies: Record<string, string> }).peerDependencies.three;
 const PINNED = VERSION === PIN && !process.env.M3A_THREE_DIR;
 
-test.use({ launchOptions: { ...(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {}), args: ["--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--enable-unsafe-webgpu", "--enable-features=Vulkan"] } });
+test.use({ launchOptions: { ...(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {}), args: ["--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--enable-unsafe-webgpu", "--enable-features=Vulkan", "--use-vulkan=swiftshader", "--use-webgpu-adapter=swiftshader", "--disable-gpu-sandbox"] } });
 
 const PAGE = `<!doctype html><title>three ${VERSION}</title><style>body{margin:0}</style>
 <script type="importmap">{"imports":{"three":"/three/build/three.module.js","three/webgpu":"/three/build/three.webgpu.js","three/tsl":"/three/build/three.tsl.js","three/addons/":"/three/examples/jsm/"}}</script>

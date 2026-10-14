@@ -1,0 +1,32 @@
+{
+ "format": "2.0",
+ "id": "RECIPES/Walk_Into_Run",
+ "name": "Walk Into Run",
+ "tags": [
+  "walk",
+  "run"
+ ],
+ "desc": "Walking, breaking into a run in step",
+ "steps": [
+  {
+   "as": "walk",
+   "op": "clip",
+   "id": "STYLE100/Neutral_Walk"
+  },
+  {
+   "as": "run",
+   "op": "clip",
+   "id": "STYLE100_RUN/Neutral_Run"
+  },
+  {
+   "op": "sequence",
+   "items": [
+    "walk",
+    "walk",
+    "run"
+   ],
+   "fade": 0.25,
+   "sync": "contacts"
+  }
+ ]
+}

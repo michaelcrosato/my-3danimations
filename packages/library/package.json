@@ -1,14 +1,15 @@
 {
   "name": "@m3a/library",
-  "version": "0.23.1",
+  "version": "0.42.6",
   "private": true,
   "description": "The library loader, search, facts, license tiers and dedup.",
   "license": "MIT",
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./node": "./src/node.ts"
   },
   "dependencies": {
-    "@m3a/core": "0.23.1"
+    "@m3a/core": "0.42.6"
   }
 }

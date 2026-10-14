@@ -1,0 +1,26 @@
+{
+"format": "2.0",
+"id": "STYLE100_IDLE/OnPhoneLeft_Idle",
+"name": "OnPhoneLeft_Idle",
+"legend": "2.0",
+"dur": 2.7,
+"loop": true,
+"fps": 30,
+"tags": ["idle","style"],
+"desc": "Standing, on phone left style: holding phone in left",
+"skeleton": "humanoid",
+"restSrc": "100STYLE",
+"contacts": {"by":"detected","footL":[[0,2.7]],"footR":[[0,2.7]]},
+"facts": {"by":"m3a-facts@1","height":[100,100],"seam":0,"speed":0,"travel":[0,0]},
+"provenance": {"src":"100STYLE","take":"OnPhoneLeft_ID 16.10-18.80","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
+"quality": {"fit":[10,37],"qa":"pass","qaVersion":"m3a-sensors@1"},
+"keys": [
+  {"t":0,
+   "hips":[0,0,100], "body":[0,-11,0], "chest":[5,18,-2], "head":[-10,14,4],
+   "shL":[0,-1], "shR":[1,-8], "armL":[28,-59,76,141,-3], "armR":[26,4,-96,15,7], "handL":[-24,-27,149], "handR":[-2,-9,122], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[-27,4,-96,14,2], "legR":[-30,0,-95,12,3], "footL":[12,-3,0], "footR":[12,9,0]},
+  {"t":2.7,
+   "hips":[0,0,100], "body":[0,-11,0], "chest":[5,18,-2], "head":[-10,14,4],
+   "shL":[0,-1], "shR":[1,-8], "armL":[28,-59,76,141,-3], "armR":[26,4,-96,15,7], "handL":[-24,-27,149], "handR":[-2,-9,122], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[-27,4,-96,14,2], "legR":[-30,0,-95,12,3], "footL":[12,-3,0], "footR":[12,9,0]}
+]}

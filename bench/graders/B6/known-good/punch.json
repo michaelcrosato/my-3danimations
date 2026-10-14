@@ -1,0 +1,11 @@
+{
+ "format": "2.0",
+ "id": "EDITS/Punch_Cross_Left",
+ "desc": "The library's cross, the chest wound back before it strikes, 30% faster, thrown with the left",
+ "steps": [
+  { "op": "clip", "id": "MESH2MOTION/Punch_Cross", "as": "cross" },
+  { "op": "pose", "in": "cross", "chest": { "turn": 25 }, "from": 0, "to": 0.2, "fade": 0.1, "as": "wound" },
+  { "op": "retime", "in": "wound", "speed": 1.3, "as": "fast" },
+  { "op": "mirror", "in": "fast" }
+ ]
+}

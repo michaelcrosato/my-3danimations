@@ -1,0 +1,26 @@
+{
+"format": "2.0",
+"id": "STYLE100_IDLE/FairySteps_Idle",
+"name": "FairySteps_Idle",
+"legend": "2.0",
+"dur": 2.6,
+"loop": true,
+"fps": 30,
+"tags": ["idle","style"],
+"desc": "Standing, fairy steps style: one foot in front of the other so the heel touches the toe",
+"skeleton": "humanoid",
+"restSrc": "100STYLE",
+"contacts": {"by":"detected","footL":[[0,2.6]],"footR":[[0,2.6]]},
+"facts": {"by":"m3a-facts@1","height":[100,100],"seam":0,"speed":0,"travel":[0,0]},
+"provenance": {"src":"100STYLE","take":"FairySteps_ID 13.70-16.28","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
+"quality": {"fit":[9,34],"qa":"pass","qaVersion":"m3a-sensors@1"},
+"keys": [
+  {"t":0,
+   "hips":[0,0,100], "body":[0,-7,0], "chest":[1,12,0], "head":[-5,19,1],
+   "shL":[2,-8], "shR":[1,-8], "armL":[20,7,-98,12,25], "armR":[17,7,-98,15,-26], "handL":[-4,-11,119], "handR":[-3,2,130], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[-20,-5,-98,11,-11], "legR":[-20,-6,-98,12,12], "footL":[7,-3,0], "footR":[8,-2,0]},
+  {"t":2.6,
+   "hips":[0,0,100], "body":[0,-7,0], "chest":[1,12,0], "head":[-5,19,1],
+   "shL":[2,-8], "shR":[1,-8], "armL":[20,7,-98,12,25], "armR":[17,7,-98,15,-26], "handL":[-4,-11,119], "handR":[-3,2,130], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[-20,-5,-98,11,-11], "legR":[-20,-6,-98,12,12], "footL":[7,-3,0], "footR":[8,-2,0]}
+]}

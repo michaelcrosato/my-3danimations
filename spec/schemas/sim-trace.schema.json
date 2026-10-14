@@ -1,0 +1,167 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "$id": "https://github.com/michaelcrosato/my-3danimations/spec/schemas/sim-trace.schema.json",
+ "title": "m3a simulation trace 2.0",
+ "description": "A simulation's trace (spec/SIM.md \u00a72; PLAN.md WP-6.5, D75): the states each graph layer went through, the events, and the hit windows, each at the fixed step it happened in. An expected trace is one of these, compared exactly (@m3a/tools sim.compareTraces).",
+ "type": "object",
+ "required": [
+  "format",
+  "script",
+  "graph",
+  "rate",
+  "steps",
+  "states",
+  "events",
+  "hits"
+ ],
+ "additionalProperties": false,
+ "properties": {
+  "format": {
+   "type": "string",
+   "pattern": "^2\\.[0-9]+$"
+  },
+  "script": {
+   "type": "string",
+   "pattern": "^[A-Z0-9_]+/[A-Za-z0-9_]+$"
+  },
+  "graph": {
+   "type": "string",
+   "pattern": "^[A-Z0-9_]+/[A-Za-z0-9_]+$"
+  },
+  "rate": {
+   "type": "integer",
+   "minimum": 10,
+   "maximum": 240
+  },
+  "steps": {
+   "type": "integer",
+   "minimum": 0
+  },
+  "states": {
+   "type": "array",
+   "items": {
+    "type": "object",
+    "required": [
+     "step",
+     "t",
+     "layer",
+     "state",
+     "from"
+    ],
+    "additionalProperties": false,
+    "properties": {
+     "step": {
+      "type": "integer",
+      "minimum": 0
+     },
+     "t": {
+      "type": "number",
+      "minimum": 0
+     },
+     "layer": {
+      "type": "string"
+     },
+     "state": {
+      "type": "string"
+     },
+     "from": {
+      "type": [
+       "string",
+       "null"
+      ]
+     }
+    }
+   }
+  },
+  "events": {
+   "type": "array",
+   "items": {
+    "type": "object",
+    "required": [
+     "step",
+     "t",
+     "name",
+     "layer",
+     "state",
+     "clip",
+     "at"
+    ],
+    "additionalProperties": false,
+    "properties": {
+     "step": {
+      "type": "integer",
+      "minimum": 0
+     },
+     "t": {
+      "type": "number",
+      "minimum": 0
+     },
+     "name": {
+      "type": "string"
+     },
+     "layer": {
+      "type": "string"
+     },
+     "state": {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     "clip": {
+      "type": "string"
+     },
+     "at": {
+      "type": "number"
+     }
+    }
+   }
+  },
+  "hits": {
+   "type": "array",
+   "items": {
+    "type": "object",
+    "required": [
+     "open",
+     "close",
+     "t0",
+     "t1",
+     "layer",
+     "state",
+     "clip"
+    ],
+    "additionalProperties": false,
+    "properties": {
+     "open": {
+      "type": "integer",
+      "minimum": 0
+     },
+     "close": {
+      "type": "integer",
+      "minimum": 0
+     },
+     "t0": {
+      "type": "number",
+      "minimum": 0
+     },
+     "t1": {
+      "type": "number",
+      "minimum": 0
+     },
+     "layer": {
+      "type": "string"
+     },
+     "state": {
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     "clip": {
+      "type": "string"
+     }
+    }
+   }
+  }
+ }
+}

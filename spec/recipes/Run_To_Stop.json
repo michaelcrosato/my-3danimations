@@ -1,0 +1,21 @@
+{
+ "format": "2.0",
+ "id": "RECIPES/Run_To_Stop",
+ "name": "Run To Stop",
+ "tags": [
+  "run"
+ ],
+ "desc": "A run into a quick stop, slowed from 1.6 s to 2 s",
+ "steps": [
+  {
+   "as": "stop",
+   "op": "clip",
+   "id": "CMU_CURATED/Run_Quick_Stop"
+  },
+  {
+   "op": "retime",
+   "in": "stop",
+   "dur": 2.0
+  }
+ ]
+}

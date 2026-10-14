@@ -10,8 +10,10 @@
 "desc": "leaning on a railing, raises the right hand to wave or call out, then leans back on it",
 "skeleton": "humanoid",
 "restSrc": "UAL2",
+"contacts": {"by":"detected","footL":[[0,2.5]],"footR":[[0,2.5]]},
+"facts": {"by":"m3a-facts@1","height":[100,101]},
 "provenance": {"src":"UAL2","method":"keyed","producer":{"tool":"m3a-migrate","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
-"quality": {"fit":[13,91],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[13,91],"qa":"pass","qaVersion":"m3a-sensors@1"},
 "keys": [
   {"t":0,
    "hips":[-51,-1,101], "body":[6,34,-2], "chest":[0,19,1], "head":[-15,-23,-1],

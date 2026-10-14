@@ -1,9 +1,11 @@
 // `npm run migrate [-- --check]` (WP-1.5): the seed sets in format 2 under library/sets/, from the pinned sources
 // (`npm run pins -- fetch` first). With no flag it writes them; --check rebuilds in memory and fails on any byte that
-// differs, a stale file, a validator error, or a migrated key that differs from its source.
+// differs, a stale file, a validator error, or a migrated key that differs from its source. The sets WP-5.3 re-imports
+// (tools/import/sets.ts) are the import's: the migrator neither checks nor writes them.
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import { finish, fmtMs, parseArgs, ROOT, usage, type Report, type Step } from "../run/cli.ts";
+import { IMPORTS } from "../import/sets.ts";
 import { migrate } from "./migrate.ts";
 
 const DIR = join(ROOT, "library/sets");
@@ -36,7 +38,10 @@ if (import.meta.main) {
     finish({ tool: "migrate", ok: false, verdict: "migrate: FAIL, the pinned sources are not in .cache/src/", steps: [], warnings: [], ms: 0, next: "npm run pins -- fetch, then rerun" }, parsed);
   }
   const t0 = performance.now();
-  const { files, report, clips } = migrate(ROOT);
+  // the sets WP-5.3 re-imports are the import's (npm run import -- --check covers them, the clips it keeps as migrated
+  // included); the migrator checks and writes the rest
+  const reimported = new Set(IMPORTS.map((s) => s.set)), all = migrate(ROOT), files = new Map([...all.files].filter(([p]) => !reimported.has(p.split("/")[0]!)));
+  const { report, clips } = all;
   const steps: Step[] = [];
   for (const s of report.sets) {
     steps.push({ name: s.set, ok: s.errors.length === 0, ms: 0, summary: `${s.clips} clips, ${s.warnings} warnings baselined${s.unresolvedOrig.length ? `, ${s.unresolvedOrig.length} orig unresolved` : ""}`, detail: [...s.errors, ...s.unresolvedOrig.map((u) => `orig not found in either Quaternius import: ${u}`)] });
@@ -58,10 +63,10 @@ if (import.meta.main) {
       if (!existsSync(f)) problems.push(`${p} is missing: run npm run migrate`);
       else if (readFileSync(f, "utf8") !== s) problems.push(`${p} differs from what the migrator writes`);
     }
-    for (const p of existing()) if (!files.has(p)) problems.push(`${p} is stale: no set writes it`);
+    for (const p of existing()) if (!files.has(p) && !reimported.has(p.split("/")[0]!)) problems.push(`${p} is stale: no set writes it`);
     steps.push({ name: "compare", ok: problems.length === 0, ms: 0, summary: problems.length ? `${problems.length} file(s) differ` : `${files.size} files byte for byte`, detail: problems.slice(0, 20) });
   } else if (steps.every((s) => s.ok)) {
-    for (const p of existing()) if (!files.has(p)) rmSync(join(DIR, p));
+    for (const p of existing()) if (!files.has(p) && !reimported.has(p.split("/")[0]!)) rmSync(join(DIR, p));
     for (const [p, s] of files) {
       mkdirSync(dirname(join(DIR, p)), { recursive: true });
       writeFileSync(join(DIR, p), s);

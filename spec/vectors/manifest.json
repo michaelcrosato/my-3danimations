@@ -8,6 +8,8 @@
   "tier1b/cmu/catalog.json": {"bytes":558,"sha256":"790d9b022a70563c189636dd9945860416541beda6dec2e5c8936466eb58c4b4"},
   "tier1b/rig-catalog.json": {"bytes":326,"sha256":"a44e4b00ec5580595b551156c4308ecc864f1929ad812914f047252e3fe15270"},
   "tier1b/rig.gltf": {"bytes":6868,"sha256":"70d99ed5d675649c267e39af800e2a4bb9d5b387bb3fe87ee44f4f87b945ebfe"},
+  "tier1b/rigify-expected.json": {"bytes":33719,"sha256":"5fde9124d9e67ea214451ecd06d616cb91a2e3892d58cd40a0570c95a4e54f65"},
+  "tier1b/rigify.gltf": {"bytes":51594,"sha256":"c14778f2682a851b47fb85105b5ece7d8144da1e124929acf56a9f55b76aa946"},
   "tier2/CMU.json": {"bytes":3010231,"sha256":"2d4a37d01edd37feca6f3303f7af7de9f4cbb39b300cf7337eae9698e01a3c9a"},
   "tier2/FORMAT2.json": {"bytes":168513,"sha256":"66c3ee1d3b1b71ea7f93a33a747d3d461992a3eca6dc45778217eacf50127580"},
   "tier2/MESH2MOTION.json": {"bytes":3824592,"sha256":"a9053d2828c34014118f7a5677900a2182ca944f61b91d8951cd0c4913fe5e18"},

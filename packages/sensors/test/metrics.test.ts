@@ -283,3 +283,30 @@ describe("profiles, the report and the thresholds", () => {
     expect(metrics(punch, R, { mirrorOf: punch }).findings.some((f) => f.metric === "symmetry")).toBe(true);
   });
 });
+
+describe("captured frames with their root's path, and reading by parts (D51)", () => {
+  it("reads a travelling loop's seam on the body: frames on the root with its path have none, the same frames in the world do", () => {
+    const n = 61, step = 1200 / (n - 1), still3 = frames(() => {}, n), root = still3.map((_, i) => ({ forward: i * step, right: 0, yaw: 0 }));
+    const world = still3.map((X, i) => X.map((x, j) => (j % 3 === 0 ? x + root[i]!.forward : x)));
+    expect(checks.seam(checks.motionOfFrames(still3, R, { loop: true, root })).pose.value).toBe(0);
+    expect(checks.seam(checks.motionOfFrames(world, R, { loop: true })).pose.value).toBeCloseTo(1200, 0);
+    // its feet still stand in the world where the root carries them
+    expect(checks.motionOfFrames(still3, R, { root }).root.at(-1)!.forward).toBeCloseTo(1200, 6);
+    expect(() => checks.motionOfFrames(still3, R, { root: root.slice(1) })).toThrow(/root places for 61 frames/);
+  });
+  it("reads each point against its part's size only when asked: arms twice a person's read an arm's shake against their length", () => {
+    const long = { ...R, up: R.up * 2, fore: R.fore * 2 }, shake = frames((X, i) => move(X, ["elbowL", "wristL", "fistL", "knuckL", "indexL", "pinkyL"], [i % 2 ? 6 : -6, 0, 0]));
+    const plain = checks.motionOfFrames(shake, long), parts = checks.motionOfFrames(shake, long, { parts: true });
+    expect(checks.partScale(plain, "elbowL")).toBe(1);
+    expect(checks.partScale(parts, "pelvis")).toBe(1);
+    const typical = checks.partScale(checks.motionOfFrames(shake, R, { parts: true }), "wristL");
+    // the wrist's chain runs from the pelvis up the spine and out along the arm: its arm doubled, it is 1.38 times as long
+    const ratio = checks.partScale(parts, "wristL") / typical;
+    expect(ratio).toBeGreaterThan(1.3);
+    // the same shake reads smaller against the longer arm: each point by its own chain's scale
+    const scaleOf = (n: string) => checks.partScale(parts, n);
+    expect(checks.jitter(parts).value).toBeLessThan(checks.jitter(plain).value / Math.min(scaleOf("elbowL"), scaleOf("fistL")) + 1e-9);
+    expect(checks.jitter(parts).value).toBeLessThan(checks.jitter(plain).value / 1.2);
+    expect(checks.TYPICAL_CHAIN.toe).toBeGreaterThan(checks.TYPICAL_CHAIN.ankle!);
+  });
+});

@@ -5,3 +5,4 @@ library/local/*
 check-output/
 dist/
 *.tsbuildinfo
+.claude/worktrees/

@@ -1,0 +1,9 @@
+{
+  "about": "100STYLE as tools/corpora/style100.ts fetches it (PLAN.md WP-5.6): Zenodo record 8127870's 100STYLE.zip (its MD5 as Zenodo lists it, the SHA-256 taken on fetch). A fetch keeps the archive only if it matches.",
+  "archive": {
+    "url": "https://zenodo.org/api/records/8127870/files/100STYLE.zip/content",
+    "bytes": 1468515354,
+    "md5": "3cf627852fd8192024c04a8d0ef49583",
+    "sha256": "2c3b4017f8e2397ee6904c9b9f43551d8b426d39ddc3558d121fee9e55cb2d58"
+  }
+}

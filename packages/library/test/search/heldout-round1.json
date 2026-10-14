@@ -1,0 +1,45 @@
+{
+ "about": "Round 1 of the held-out queries (WP-5.5, D65): written by a verifier subagent without the vocabulary or the 40; it scored 4/10 against the first, small table, which was then rebuilt by kind of motion. No longer held out: kept as a record and as more queries the search answers.",
+ "queries": [
+  [
+   "an elderly man shuffles down the lane",
+   "STYLE100/(Old|WalkingStick(Left|Right))_Walk$"
+  ],
+  [
+   "slip past the guards unseen",
+   "Sneak_Loop|Crouch_Walk|Crouch_Fwd|Walk_Stealth|Run_Stealth|Crawl|STYLE100/(Tiptoe|OnToesCrouched|Crouched)_Walk$"
+  ],
+  [
+   "cut down the goblin with a blade",
+   "Sword_(Attack|Regular_[ABC](_RM)?$|Regular_Combo|Heavy_Combo|Dash|Lunge)"
+  ],
+  [
+   "staggered by a blow to the jaw",
+   "Hit_Head"
+  ],
+  [
+   "split logs for the campfire",
+   "Chop_Wood|Chop_Tree|TreeChopping"
+  ],
+  [
+   "loot the treasure chest",
+   "Chest_Open|Open_Box"
+  ],
+  [
+   "celebrate scoring the winning goal",
+   "Victory|Cheer|Overjoyed"
+  ],
+  [
+   "flag down a passing ship",
+   "Help_(One|Two)_Arms?$|Wave_Hello|STYLE100_IDLE/Waving_Idle$"
+  ],
+  [
+   "clinging to the edge of a cliff",
+   "Ledge_Hang"
+  ],
+  [
+   "winded after a long chase",
+   "Kneeling_Tired|Tired_Hunched"
+  ]
+ ]
+}

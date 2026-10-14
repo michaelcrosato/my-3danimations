@@ -10,9 +10,10 @@
 "desc": "walking with a box held in both arms in front, in place",
 "skeleton": "humanoid",
 "restSrc": "UAL2",
-"facts": {"by":"m3a-migrate@1","speed":71},
+"contacts": {"by":"detected","footL":[[0,1.083]],"footR":[[1.017,2]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[85,96],"seam":0,"speed":71,"travel":[142.2,3.3]},
 "provenance": {"src":"UAL2","method":"keyed","producer":{"tool":"m3a-migrate","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
-"quality": {"fit":[11,111],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[11,111],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"fail on twistFlip: as migrated from Quaternius's Universal Animation Library, with no source frames to measure a repair against: its keys stay the source's (WP-1.5) until the re-import can fetch its files (D63)"},
 "keys": [
   {"t":0,
    "hips":[-1,2,86], "body":[-2,-33,-2], "chest":[-4,33,-1], "head":[5,-32,6],

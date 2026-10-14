@@ -1,0 +1,45 @@
+{
+ "about": "10 held-out queries (round 2) written by a verifier subagent that had not seen the search's vocabulary, its 40 queries or round 1 (WP-5.5)",
+ "queries": [
+  [
+   "grandpa totters down the road with a cane",
+   "^STYLE100/(Old|WalkingStick(Left|Right))_Walk$"
+  ],
+  [
+   "the sorceress hurls a fireball",
+   "^(MESH2MOTION|QUATERNIUS_3D2DGE|QUATERNIUS_SHARDFALL)/(Spell_Simple_Shoot|Two-hand_Blast)$"
+  ],
+  [
+   "boot the barricaded door in",
+   "^(MESH2MOTION/Kick_Breach|CMU_CURATED/Front_Kick)$"
+  ],
+  [
+   "reels from a punch to the jaw",
+   "^(MESH2MOTION|QUATERNIUS_3D2DGE|QUATERNIUS_SHARDFALL)/Hit_Head$"
+  ],
+  [
+   "loses his footing on black ice",
+   "^CMU_CURATED/(Slip_Fall|Rug_Pull_Fall)$"
+  ],
+  [
+   "the mechanic tinkers with a broken engine",
+   "^((MESH2MOTION|QUATERNIUS_3D2DGE|QUATERNIUS_SHARDFALL)/(Fixing_Kneeling|Interact)|CMU_CURATED/(Wrench_Bolt|Screwdriver))$"
+  ],
+  [
+   "flag down a rescue helicopter",
+   "^MESH2MOTION/(Help_One_Arm|Help_Two_Arms)$"
+  ],
+  [
+   "the striker celebrates the winning goal",
+   "^(MESH2MOTION/(Victory|Victory_Fist_Pump|Cheer_One_arm|Cheering_Two_Hands)|CMU_CURATED/Overjoyed)$"
+  ],
+  [
+   "skid beneath the closing portcullis",
+   "^((MESH2MOTION|QUATERNIUS_3D2DGE|QUATERNIUS_SHARDFALL)/Slide_Start(_RM)?|MESH2MOTION/Slide|QUATERNIUS_(3D2DGE|SHARDFALL)/Slide_Loop|CMU_CURATED/(Roll_Under|Duck_Under))$"
+  ],
+  [
+   "teeth chattering in a blizzard",
+   "^(MESH2MOTION/Shivering|CMU_CURATED/Freezing)$"
+  ]
+ ]
+}

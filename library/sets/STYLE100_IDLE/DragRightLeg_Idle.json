@@ -1,0 +1,26 @@
+{
+"format": "2.0",
+"id": "STYLE100_IDLE/DragRightLeg_Idle",
+"name": "DragRightLeg_Idle",
+"legend": "2.0",
+"dur": 2.5,
+"loop": true,
+"fps": 30,
+"tags": ["idle","style"],
+"desc": "Standing, drag right leg style: drag right foot along the floor",
+"skeleton": "humanoid",
+"restSrc": "100STYLE",
+"contacts": {"by":"detected","footL":[[0,2.5]],"footR":[[0,2.5]]},
+"facts": {"by":"m3a-facts@1","height":[100,100],"seam":0,"speed":0,"travel":[0,0]},
+"provenance": {"src":"100STYLE","take":"DragRightLeg_ID 19.03-21.53","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
+"quality": {"fit":[4,12],"qa":"pass","qaVersion":"m3a-sensors@1"},
+"keys": [
+  {"t":0,
+   "hips":[0,0,100], "body":[0,-11,2], "chest":[-3,13,-2], "head":[-14,27,-1],
+   "shL":[1,-7], "shR":[2,-7], "armL":[13,10,-99,0,48], "armR":[17,7,-98,0,-66], "handL":[-3,-9,123], "handR":[-6,0,174], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[-23,-13,-96,5,3], "legR":[-32,11,-94,15,-6], "footL":[12,18,0], "footR":[9,42,0]},
+  {"t":2.5,
+   "hips":[0,0,100], "body":[0,-11,2], "chest":[-3,13,-2], "head":[-14,27,-1],
+   "shL":[1,-7], "shR":[2,-7], "armL":[13,10,-99,0,48], "armR":[17,7,-98,0,-66], "handL":[-3,-9,123], "handR":[-6,0,174], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[-23,-13,-96,5,3], "legR":[-32,11,-94,15,-6], "footL":[12,18,0], "footR":[9,42,0]}
+]}

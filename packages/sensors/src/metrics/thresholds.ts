@@ -20,6 +20,11 @@ export const METRICS = ["slide", "skate", "penetration", "bodyPenetration", "int
 /** A metric's name. */
 export type MetricName = (typeof METRICS)[number];
 
+/** The metrics' and their levels' revision: a clip's `quality.qaVersion` names the one its verdict was read with
+ *  (WP-5.8). It changes when a change here or in the metrics moves a verdict, and the library's writers record it
+ *  anew. */
+export const QA_VERSION = "m3a-sensors@1";
+
 /** The hip height thresholds are written for (the reference rig's). */
 export const REFERENCE_H0 = 950;
 

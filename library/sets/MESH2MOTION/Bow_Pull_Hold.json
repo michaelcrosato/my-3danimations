@@ -10,15 +10,17 @@
 "desc": "holds a bow at full draw, aiming",
 "skeleton": "humanoid",
 "restSrc": "M2M_ANIMATED",
-"provenance": {"src":"M2M_ANIMATED","method":"keyed","producer":{"tool":"m3a-migrate","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
-"quality": {"fit":[28,137],"qa":"unchecked","qaVersion":"none"},
+"contacts": {"by":"detected","footL":[[0,0.25]],"footR":[[0,0.25]]},
+"facts": {"by":"m3a-facts@1","height":[98,98],"seam":0,"speed":0,"travel":[0,0]},
+"provenance": {"src":"M2M_ANIMATED","method":"keyed","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
+"quality": {"fit":[5,29],"qa":"pass","qaVersion":"m3a-sensors@1"},
 "keys": [
   {"t":0,
-   "hips":[-5,0,98], "body":[0,0,0], "chest":[67,-6,4], "head":[-64,11,12],
-   "shL":[15,-3], "shR":[23,-4], "armL":[66,70,-28,72,-9], "armR":[87,37,-32,147,25],
+   "hips":[-5,0,98], "body":[0,0,0], "chest":[67,-6,4], "head":[-64,11,12], "spine":[-1,11,-26],
+   "shL":[15,-3], "shR":[23,-4], "armL":[53,78,-32,13,-6], "armR":[84,45,-30,115,23], "handL":[51,35,32], "handR":[41,20,21], "fingersL":[83,83,83,83,83], "fingersR":[83,83,83,83,83],
    "legL":[-7,0,-100,26,-3], "legR":[-7,0,-100,26,3], "footL":[0,0,0], "footR":[0,0,0]},
   {"t":0.267,
-   "hips":[-5,0,98], "body":[0,0,0], "chest":[67,-6,4], "head":[-64,11,12],
-   "shL":[15,-3], "shR":[23,-4], "armL":[66,70,-28,72,-9], "armR":[87,37,-32,147,25],
+   "hips":[-5,0,98], "body":[0,0,0], "chest":[67,-6,4], "head":[-64,11,12], "spine":[-1,11,-26],
+   "shL":[15,-3], "shR":[23,-4], "armL":[53,78,-32,13,-6], "armR":[84,45,-30,115,23], "handL":[51,35,32], "handR":[41,20,21], "fingersL":[83,83,83,83,83], "fingersR":[83,83,83,83,83],
    "legL":[-7,0,-100,26,-3], "legR":[-7,0,-100,26,3], "footL":[0,0,0], "footR":[0,0,0]}
 ]}

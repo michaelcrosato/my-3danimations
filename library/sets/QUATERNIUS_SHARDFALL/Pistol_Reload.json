@@ -10,8 +10,10 @@
 "desc": "reloads the pistol",
 "skeleton": "humanoid",
 "restSrc": "UAL1",
+"contacts": {"by":"detected","footL":[[0,1.667]],"footR":[[0,1.667]]},
+"facts": {"by":"m3a-facts@1","height":[96,96]},
 "provenance": {"src":"UAL1","method":"keyed","producer":{"tool":"m3a-migrate","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
-"quality": {"fit":[11,82],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[11,82],"qa":"pass","qaVersion":"m3a-sensors@1"},
 "keys": [
   {"t":0,
    "hips":[-9,0,96], "body":[13,-6,0], "chest":[26,16,-8], "head":[-37,8,8],

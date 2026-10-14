@@ -1,0 +1,26 @@
+{
+"format": "2.0",
+"id": "STYLE100_IDLE/ArmsBehindBack_Idle",
+"name": "ArmsBehindBack_Idle",
+"legend": "2.0",
+"dur": 2.5,
+"loop": true,
+"fps": 30,
+"tags": ["idle","style"],
+"desc": "Standing, arms behind back style: hands clasped behind back",
+"skeleton": "humanoid",
+"restSrc": "100STYLE",
+"contacts": {"by":"detected","footL":[[0,2.5]],"footR":[[0,2.5]]},
+"facts": {"by":"m3a-facts@1","height":[100,100],"seam":0,"speed":0,"travel":[0,0]},
+"provenance": {"src":"100STYLE","take":"ArmsBehindBack_ID 13.75-16.25","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
+"quality": {"fit":[5,19],"qa":"pass","qaVersion":"m3a-sensors@1"},
+"keys": [
+  {"t":0,
+   "hips":[0,0,100], "body":[0,-10,0], "chest":[2,17,-3], "head":[1,11,1],
+   "shL":[4,-12], "shR":[3,-12], "armL":[-24,-15,-96,12,-85], "armR":[-16,-22,-96,23,45], "handL":[-12,15,96], "handR":[1,22,114], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[-27,2,-96,11,-3], "legR":[-28,3,-96,8,-3], "footL":[10,-11,0], "footR":[10,7,0]},
+  {"t":2.5,
+   "hips":[0,0,100], "body":[0,-10,0], "chest":[2,17,-3], "head":[1,11,1],
+   "shL":[4,-12], "shR":[3,-12], "armL":[-24,-15,-96,12,-85], "armR":[-16,-22,-96,23,45], "handL":[-12,15,96], "handR":[1,22,114], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[-27,2,-96,11,-3], "legR":[-28,3,-96,8,-3], "footL":[10,-11,0], "footR":[10,7,0]}
+]}

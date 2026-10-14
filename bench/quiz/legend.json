@@ -1,0 +1,16 @@
+{
+ "about": "The legend quiz (WP-1.1, deferred to WP-4.7): a fresh agent given only spec/LEGEND.md and this clip answers ten fixed questions; nine right passes. Numbers are compared within 0.01, words without case.",
+ "clip": "QUATERNIUS_3D2DGE/Punch_Cross",
+ "questions": [
+  { "q": "Does the clip loop? Answer yes or no.", "answer": "no" },
+  { "q": "How long is the clip, in seconds?", "answer": 1 },
+  { "q": "How many key poses does the clip have?", "answer": 13 },
+  { "q": "At t = 0, how far is the right elbow bent, in degrees?", "answer": 133 },
+  { "q": "At t = 0.267, how far is the right elbow bent, in degrees?", "answer": 24 },
+  { "q": "At t = 0, does the pelvis lean forward or backward? Answer forward or backward.", "answer": "backward" },
+  { "q": "At t = 0.233, is the chest turned to the left or to the right of the pelvis? Answer left or right.", "answer": "left" },
+  { "q": "At t = 0, how high are the hips, in percent of standing hip height?", "answer": 90 },
+  { "q": "At t = 0.233, how many degrees does the right foot point down?", "answer": 51 },
+  { "q": "Does the clip travel (carry root motion)? Answer yes or no.", "answer": "no" }
+ ]
+}

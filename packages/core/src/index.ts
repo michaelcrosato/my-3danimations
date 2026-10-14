@@ -1,8 +1,10 @@
-// @m3a/core: the format codec, profiles, sampler, pose ops, solver, contacts, recipes, graphs and sources.
+// @m3a/core: the format codec, profiles, sampler, pose ops, solver, contacts, recipes, procedural sources, actions
+// and graphs.
 // Imports nothing outside itself: no DOM, no `node:` modules, no renderer (DOCTRINE.md, principle 6).
 // The public API, all of it (PLAN.md WP-2.6): every export is listed here, one per statement, each with a doc comment,
-// at most 40 (`npm run doctrine` counts them). The everyday names are top-level; each module's whole surface is one
-// namespace (`format.keyAt`, `ops.blend`, `math.quat`, ...).
+// at most 44 (`npm run doctrine` counts them; WP-2.6's 40, and one namespace each for Phase 6's procedural sources,
+// actions and graphs, D71). The everyday names are top-level; each module's whole surface is one namespace
+// (`format.keyAt`, `ops.blend`, `math.quat`, ...).
 
 /** The version every `@m3a` package and the spec share. */
 export { VERSION } from "./version.ts";
@@ -17,8 +19,10 @@ export { AnimatorError } from "./animator/index.ts";
 export type { AnimatorOptions } from "./animator/index.ts";
 /** One layer's settings: clip, weight, mask, additive, speed and time. */
 export type { LayerOptions } from "./animator/index.ts";
-/** A clip as the Animator plays it: a format-2 clip, or its id, timing and keys. */
+/** A clip as the Animator plays it: a format-2 clip, or its id, timing and keys (with its library's shares). */
 export type { AnimClip } from "./animator/index.ts";
+/** A library clip made ready to play on any body: contacts measured on its own rest, its library's spine shares. */
+export { playable } from "./animator/index.ts";
 /** What one `step(dt)` did: steps run, events passed in order, the root's move. */
 export type { StepResult } from "./animator/index.ts";
 /** One event a playhead passed: its name, layer, clip, clip time and when it fired. */
@@ -84,3 +88,11 @@ export * as contact from "./contact/index.ts";
 export * as validation from "./validate/index.ts";
 /** The Animator's whole surface: its types, errors and the clip content hash. */
 export * as animator from "./animator/index.ts";
+/** Recipes, clips made from clips (spec/RECIPE.md): check one, compile it into a clip, describe it in a line. */
+export * as recipe from "./recipe/index.ts";
+/** Procedural sources (PLAN.md WP-6.2): moves (library/moves.json), gaits and idles made into clips on any rest. */
+export * as procedural from "./procedural/index.ts";
+/** Actions (spec/ACTION.md): multi-beat motions with their ground, beats and interrupt points, and paired ones. */
+export * as actions from "./actions/index.ts";
+/** Graphs (spec/GRAPH.md): states, transitions, blend spaces and layers, checked, and the run `Animator.play` steps. */
+export * as graph from "./graph/index.ts";

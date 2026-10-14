@@ -10,8 +10,10 @@
 "desc": "a quick block: snaps the shield arm up across the chest, then lowers it",
 "skeleton": "humanoid",
 "restSrc": "UAL2",
+"contacts": {"by":"detected","footL":[[0.167,0.833]],"footR":[[0.083,0.633]]},
+"facts": {"by":"m3a-facts@1","height":[91,96]},
 "provenance": {"src":"UAL2","method":"keyed","producer":{"tool":"m3a-migrate","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
-"quality": {"fit":[15,64],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[15,64],"qa":"pass","qaVersion":"m3a-sensors@1"},
 "keys": [
   {"t":0,
    "hips":[-9,-1,96], "body":[13,-5,0], "chest":[0,19,0], "head":[-11,2,0],

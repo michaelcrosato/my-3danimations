@@ -1,0 +1,26 @@
+{
+"format": "2.0",
+"id": "STYLE100_IDLE/Superman_Idle",
+"name": "Superman_Idle",
+"legend": "2.0",
+"dur": 2.533,
+"loop": true,
+"fps": 30,
+"tags": ["idle","style"],
+"desc": "Standing, superman style: right arm raised like superman flying",
+"skeleton": "humanoid",
+"restSrc": "100STYLE",
+"contacts": {"by":"detected","footL":[[0,2.533]],"footR":[[0,2.533]]},
+"facts": {"by":"m3a-facts@1","height":[101,101],"seam":0,"speed":0,"travel":[0,0]},
+"provenance": {"src":"100STYLE","take":"Superman_ID 18.12-20.65","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
+"quality": {"fit":[5,19],"qa":"pass","qaVersion":"m3a-sensors@1"},
+"keys": [
+  {"t":0,
+   "hips":[0,0,101], "body":[0,20,-1], "chest":[0,18,-1], "head":[-4,28,13],
+   "shL":[5,-13], "shR":[-6,19], "armL":[-57,25,-78,3,-147], "armR":[67,38,64,16,-82], "handL":[22,7,20], "handR":[-15,-1,-178], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[37,5,-93,0,1], "legR":[36,4,-93,3,3], "footL":[-19,-6,0], "footR":[-18,3,0]},
+  {"t":2.533,
+   "hips":[0,0,101], "body":[0,20,-1], "chest":[0,18,-1], "head":[-4,28,13],
+   "shL":[5,-13], "shR":[-6,19], "armL":[-57,25,-78,3,-147], "armR":[67,38,64,16,-82], "handL":[22,7,20], "handR":[-15,-1,-178], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[37,5,-93,0,1], "legR":[36,4,-93,3,3], "footL":[-19,-6,0], "footR":[-18,3,0]}
+]}

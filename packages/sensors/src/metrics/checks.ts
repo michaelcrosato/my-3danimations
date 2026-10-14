@@ -31,6 +31,51 @@ export function levels(m: Motion, name: MetricName): { warn: number; fail: numbe
   const t = THRESHOLDS[name], k = t.scales ? m.rest.H0 / REFERENCE_H0 : 1;
   return { warn: t.warn * k, fail: t.fail * k };
 }
+/**
+ * A typical person's chain from the pelvis to each point, over H0: the median over the migrated library's bodies
+ * (33 rests). A point's chain is its segments from the pelvis (the toe's: hip offset, thigh, shin and both foot
+ * segments; the fist's: the spine to the neck, the clavicle, upper arm, forearm and fist).
+ */
+export const TYPICAL_CHAIN: Readonly<Record<string, number>> = { spine1: 0.151, spine2: 0.286, chest: 0.44, chestF: 0.44, neck: 0.629, head: 0.719, headTop: 0.843, faceF: 0.85, clav: 0.726, sh: 0.967, elbow: 1.267, wrist: 1.564, knuck: 1.697, index: 1.697, pinky: 1.697, fist: 1.743, hip: 0.113, knee: 0.557, ankle: 1.019, ball: 1.218, toe: 1.294 };
+const len = (v: readonly number[]) => PORTABLE.hypot(v[0]!, v[1]!, v[2]!);
+const CHAINS = new WeakMap<object, Record<string, number>>();
+/** Each point's chain from the pelvis on rest R (mm), its side's (the left's for a point without one). */
+function chains(R: Motion["rest"]): Record<string, number> {
+  let c = CHAINS.get(R);
+  if (!c) {
+    c = {};
+    c.spine1 = len(R.spine[0]);
+    c.spine2 = c.spine1 + len(R.spine[1]);
+    c.chest = c.chestF = c.spine2 + len(R.spine[2]);
+    c.neck = c.chest + len(R.spine[3]);
+    c.head = c.neck + len(R.neckSeg);
+    c.headTop = c.head + len(R.topH);
+    c.faceF = c.head + len(R.faceH);
+    c.clav = c.neck + len(R.clav.L);
+    c.sh = c.clav + len(R.cv.L);
+    c.elbow = c.sh + R.up;
+    c.wrist = c.elbow + R.fore;
+    c.knuck = c.index = c.pinky = c.wrist + R.knuck;
+    c.fist = c.wrist + R.fist;
+    c.hip = len(R.hip.L);
+    c.knee = c.hip + R.thigh;
+    c.ankle = c.knee + R.shin;
+    c.ball = c.ankle + R.ab;
+    c.toe = c.ball + R.bt;
+    CHAINS.set(R, c);
+  }
+  return c;
+}
+/**
+ * How much longer point `point`'s chain from the pelvis is on this body than on a typical person of its hip height
+ * (TYPICAL_CHAIN): 1 unless the motion reads by parts (`Motion.parts`), and 1 for the pelvis, which moves with H0. A
+ * length a metric reads at the point is divided by it, so a chibi's long arm or big foot is read against its own size.
+ */
+export function partScale(m: Motion, point: string): number {
+  if (!m.parts) return 1;
+  const name = /[LR]$/.test(point) && point !== "pelvis" ? point.slice(0, -1) : point, typical = TYPICAL_CHAIN[name];
+  return typical ? chains(m.rest)[name]! / m.rest.H0 / typical : 1;
+}
 const fmt = (x: number, d = 0) => x.toFixed(d);
 const span = (a: number, b: number) => (Math.abs(b - a) < 1e-9 ? `${fmt(a, 2)} s` : `${fmt(a, 2)}–${fmt(b, 2)} s`);
 /** A finding if `value` reaches its warn level. */
@@ -82,6 +127,7 @@ export function slide(m: Motion): Measured & { skate: Measured; skateMean: numbe
           dur += m.dt;
         }
       }
+      far /= partScale(m, "ball" + s);
       total += far;
       time += dur;
       worst = Math.max(worst, far);
@@ -101,10 +147,10 @@ export const SKATE_MIN = 0.25;
 
 /** A sole under the floor, and other body parts under it. */
 export function penetration(m: Motion): { soles: Measured; body: Measured } {
-  const soleDepth = m.frames.map((X) => Math.max(0, ...(["L", "R"] as const).flatMap((s) => sole(m, X, s).map((p) => -p.p[2]))));
+  const soleDepth = m.frames.map((X) => Math.max(0, ...(["L", "R"] as const).flatMap((s) => sole(m, X, s).map((p) => -p.p[2] / partScale(m, "ball" + s)))));
   const deeper = (X: Float32Array) => (["L", "R"] as const).reduce((a, s) => (Math.min(...sole(m, X, s).map((p) => p.p[2])) < Math.min(...sole(m, X, a).map((p) => p.p[2])) ? s : a));
   const BODY = ["kneeL", "kneeR", "elbowL", "elbowR", "fistL", "fistR", "pelvis", "head", "headTop", "chest"];
-  const bodyDepth = m.frames.map((X) => Math.max(0, ...BODY.map((n) => -at(X, n)[2])));
+  const bodyDepth = m.frames.map((X) => Math.max(0, ...BODY.map((n) => -at(X, n)[2] / partScale(m, n))));
   const lowest = (X: Float32Array) => BODY.reduce((a, n) => (at(X, n)[2] < at(X, a)[2] ? n : a));
   const s = levels(m, "penetration"), b = levels(m, "bodyPenetration");
   return {
@@ -181,8 +227,9 @@ export function jitter(m: Motion): Measured {
       const a = [bend[i * 3]!, bend[i * 3 + 1]!, bend[i * 3 + 2]!], b = [bend[i * 3 + 3]!, bend[i * 3 + 4]!, bend[i * 3 + 5]!];
       osc[i] = a[0]! * b[0]! + a[1]! * b[1]! + a[2]! * b[2]! < 0 ? Math.min(PORTABLE.hypot(a[0]!, a[1]!, a[2]!), PORTABLE.hypot(b[0]!, b[1]!, b[2]!)) : 0;
     }
+    const scale = partScale(m, format.POINTS[j]!);
     for (let i = 2; i + 2 < n; i++) {
-      const w = Array.from(osc.subarray(i - 2, i + 3)).sort((a, b) => a - b), med = w[2]!;
+      const w = Array.from(osc.subarray(i - 2, i + 3)).sort((a, b) => a - b), med = w[2]! / scale;
       if (med > per[i]!) [per[i], point[i]] = [med, format.POINTS[j]!];
     }
   }
@@ -207,11 +254,11 @@ export function pops(m: Motion): Measured {
   const { frames: F, times: T } = m.grid, n = F.length, P = format.P, found: { t0: number; t1: number; excess: number; where: string }[] = [];
   const RATIO = 2.5;
   for (let j = 0; j < P; j++) {
-    const d: number[][] = [], v: number[] = [];
+    const d: number[][] = [], v: number[] = [], scale = partScale(m, format.POINTS[j]!);
     for (let i = 0; i + 1 < n; i++) {
       const dd = [0, 1, 2].map((c) => F[i + 1]![j * 3 + c]! - F[i]![j * 3 + c]!);
       d.push(dd);
-      v.push(PORTABLE.hypot(dd[0]!, dd[1]!, dd[2]!) / (T[i + 1]! - T[i]!));
+      v.push(PORTABLE.hypot(dd[0]!, dd[1]!, dd[2]!) / (T[i + 1]! - T[i]!) / scale);
     }
     const near = (...ks: number[]) => Math.max(0, ...ks.filter((k) => k >= 0 && k < v.length).map((k) => v[k]!));
     for (let i = 0; i < v.length; i++) {
@@ -327,9 +374,9 @@ export function seam(m: Motion): { pose: Measured; velocity: Measured } {
   const F = m.frames, n = F.length - 1, a = F[n]!, b = F[0]!;
   let jump = 0, vel = 0, jw = "", vw = "";
   for (let j = 0; j < format.P; j++) {
-    const d = PORTABLE.hypot(a[j * 3]! - b[j * 3]!, a[j * 3 + 1]! - b[j * 3 + 1]!, a[j * 3 + 2]! - b[j * 3 + 2]!);
+    const scale = partScale(m, format.POINTS[j]!), d = PORTABLE.hypot(a[j * 3]! - b[j * 3]!, a[j * 3 + 1]! - b[j * 3 + 1]!, a[j * 3 + 2]! - b[j * 3 + 2]!) / scale;
     if (d > jump) [jump, jw] = [d, format.POINTS[j]!];
-    const dv = [0, 1, 2].map((c) => (F[n]![j * 3 + c]! - F[n - 1]![j * 3 + c]! - (F[1]![j * 3 + c]! - F[0]![j * 3 + c]!)) / m.dt), v = PORTABLE.hypot(dv[0]!, dv[1]!, dv[2]!);
+    const dv = [0, 1, 2].map((c) => (F[n]![j * 3 + c]! - F[n - 1]![j * 3 + c]! - (F[1]![j * 3 + c]! - F[0]![j * 3 + c]!)) / m.dt), v = PORTABLE.hypot(dv[0]!, dv[1]!, dv[2]!) / scale;
     if (v > vel) [vel, vw] = [v, format.POINTS[j]!];
   }
   return {

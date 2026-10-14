@@ -1,0 +1,30 @@
+{
+ "format": "2.0",
+ "id": "RECIPES/Cheer_Walk",
+ "name": "Cheer Walk",
+ "tags": [
+  "walk",
+  "cheer"
+ ],
+ "desc": "Walking while cheering with one arm",
+ "steps": [
+  {
+   "as": "walk",
+   "op": "clip",
+   "id": "STYLE100/Neutral_Walk"
+  },
+  {
+   "as": "cheer",
+   "op": "clip",
+   "id": "MESH2MOTION/Cheer_One_arm",
+   "loop": 0.3
+  },
+  {
+   "op": "layer",
+   "base": "walk",
+   "over": "cheer",
+   "mask": "armR",
+   "feather": 0.3
+  }
+ ]
+}

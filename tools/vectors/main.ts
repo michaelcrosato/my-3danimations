@@ -55,6 +55,8 @@ POINTS order (36 points, each forward, right, up), millimetres in tiers 1a and 3
 | \`tier1a/cmu-09_02.json\` | 1a | The same for two picks of CMU take 09_02 (a loop cut at its best cycle, and a burst) |
 | \`tier1b/rig.gltf\` | 1b | The tiny rig as glTF JSON (buffer embedded); packed as .glb it is the reader's input (its SHA-256 is in tier1a/rig.json) |
 | \`tier1b/rig-catalog.json\` | 1b | The catalog the importer read for the rig (tags, descriptions) |
+| \`tier1b/rigify.gltf\` | 1b | A Rigify rig with a skinned mesh (strided, normalized and short accessors), STEP and scale tracks and a turned, scaled root |
+| \`tier1b/rigify-expected.json\` | 1b | Its captured body points, rest and mannequin look as the origin's importer read them (bit for bit) |
 | \`tier1b/cmu/\` | 1b | CMU subject 09's skeleton (\`09.asf\`), take 09_02 (\`09_02.amc\`) and the picks catalog |
 | \`tier2/<SET>.json\` | 2 | Every curated clip decoded on its reference body at each key and at three in-betweens; mirror and text checks |
 | \`tier2/FORMAT2.json\` | 2 | Format 2's hand, fingers, spine and yaw on six clips, decoded by \`@m3a/core\` (their reference, D2) |

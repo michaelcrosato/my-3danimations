@@ -10,15 +10,17 @@
 "desc": "standing still, breathing gently",
 "skeleton": "humanoid",
 "restSrc": "M2M_ANIMATED",
-"provenance": {"src":"M2M_ANIMATED","method":"keyed","producer":{"tool":"m3a-migrate","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
-"quality": {"fit":[15,61],"qa":"unchecked","qaVersion":"none"},
+"contacts": {"by":"detected","footL":[[0,2.583]],"footR":[[0,2.583]]},
+"facts": {"by":"m3a-facts@1","height":[96,96],"seam":0,"speed":0,"travel":[0,0]},
+"provenance": {"src":"M2M_ANIMATED","method":"keyed","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
+"quality": {"fit":[6,34],"qa":"pass","qaVersion":"m3a-sensors@1"},
 "keys": [
   {"t":0,
-   "hips":[-5,-1,96], "body":[24,-2,-6], "chest":[-4,-10,7], "head":[-9,19,2],
-   "shL":[0,1], "shR":[0,0], "armL":[-1,15,-99,33,-18], "armR":[-25,22,-94,39,30],
+   "hips":[-5,-1,96], "body":[24,-2,-6], "chest":[-4,-10,7], "head":[-9,19,2], "spine":[-17,114,105],
+   "shL":[0,1], "shR":[0,0], "armL":[-7,25,-97,9,-10], "armR":[-33,23,-92,28,29], "handL":[15,8,49], "handR":[5,24,56], "fingersL":[51,51,51,51,51], "fingersR":[16,16,16,16,16],
    "legL":[-8,21,-97,37,20], "legR":[-7,-9,-99,30,-11], "footL":[-1,27,0], "footR":[5,18,0]},
   {"t":2.567,
-   "hips":[-5,-1,96], "body":[24,-2,-6], "chest":[-4,-10,7], "head":[-9,19,2],
-   "shL":[0,1], "shR":[0,0], "armL":[-1,15,-99,33,-18], "armR":[-25,22,-94,39,30],
+   "hips":[-5,-1,96], "body":[24,-2,-6], "chest":[-4,-10,7], "head":[-9,19,2], "spine":[-17,114,105],
+   "shL":[0,1], "shR":[0,0], "armL":[-7,25,-97,9,-10], "armR":[-33,23,-92,28,29], "handL":[15,8,49], "handR":[5,24,56], "fingersL":[51,51,51,51,51], "fingersR":[16,16,16,16,16],
    "legL":[-8,21,-97,37,20], "legR":[-7,-9,-99,30,-11], "footL":[-1,27,0], "footR":[5,18,0]}
 ]}

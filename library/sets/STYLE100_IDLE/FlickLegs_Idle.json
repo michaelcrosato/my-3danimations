@@ -1,0 +1,26 @@
+{
+"format": "2.0",
+"id": "STYLE100_IDLE/FlickLegs_Idle",
+"name": "FlickLegs_Idle",
+"legend": "2.0",
+"dur": 2.5,
+"loop": true,
+"fps": 30,
+"tags": ["idle","style"],
+"desc": "Standing, flick legs style: knees together and flick legs to sides as moving",
+"skeleton": "humanoid",
+"restSrc": "100STYLE",
+"contacts": {"by":"detected","footL":[[0,2.5]],"footR":[[0,2.5]]},
+"facts": {"by":"m3a-facts@1","height":[100,100],"seam":0,"speed":0,"travel":[0,0]},
+"provenance": {"src":"100STYLE","take":"FlickLegs_ID 16.78-19.28","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
+"quality": {"fit":[7,24],"qa":"pass","qaVersion":"m3a-sensors@1"},
+"keys": [
+  {"t":0,
+   "hips":[0,0,100], "body":[0,-14,0], "chest":[0,26,1], "head":[-4,12,-2],
+   "shL":[2,-1], "shR":[3,-7], "armL":[30,3,-95,13,18], "armR":[34,4,-94,13,3], "handL":[-4,-13,121], "handR":[-5,-5,123], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[-32,2,-95,11,-3], "legR":[-32,-5,-95,12,7], "footL":[14,-13,0], "footR":[15,8,0]},
+  {"t":2.5,
+   "hips":[0,0,100], "body":[0,-14,0], "chest":[0,26,1], "head":[-4,12,-2],
+   "shL":[2,-1], "shR":[3,-7], "armL":[30,3,-95,13,18], "armR":[34,4,-94,13,3], "handL":[-4,-13,121], "handR":[-5,-5,123], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[-32,2,-95,11,-3], "legR":[-32,-5,-95,12,7], "footL":[14,-13,0], "footR":[15,8,0]}
+]}

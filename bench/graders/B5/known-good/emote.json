@@ -1,0 +1,11 @@
+{
+ "format": "2.0",
+ "id": "EMOTES/Wave_Hop",
+ "desc": "Waves both arms overhead with a hop: the library's two-arm wave over its victory jump's legs, a 1.5 s loop",
+ "steps": [
+  { "op": "clip", "id": "MESH2MOTION/Victory", "loop": 0.2, "as": "hop" },
+  { "op": "retime", "in": "hop", "dur": 1.5, "as": "hop15" },
+  { "op": "clip", "id": "MESH2MOTION/Help_Two_Arms", "loop": 0.2, "as": "wave" },
+  { "op": "layer", "base": "hop15", "over": "wave", "mask": "upper" }
+ ]
+}

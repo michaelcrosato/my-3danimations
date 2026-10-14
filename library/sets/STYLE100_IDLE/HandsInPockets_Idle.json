@@ -1,0 +1,26 @@
+{
+"format": "2.0",
+"id": "STYLE100_IDLE/HandsInPockets_Idle",
+"name": "HandsInPockets_Idle",
+"legend": "2.0",
+"dur": 2.5,
+"loop": true,
+"fps": 30,
+"tags": ["idle","style"],
+"desc": "Standing, hands in pockets style: place hands in pockets and walk and run",
+"skeleton": "humanoid",
+"restSrc": "100STYLE",
+"contacts": {"by":"detected","footL":[[0,2.5]],"footR":[[0,2.5]]},
+"facts": {"by":"m3a-facts@1","height":[100,100],"seam":0,"speed":0,"travel":[0,0]},
+"provenance": {"src":"100STYLE","take":"HandsInPockets_ID 24.05-26.55","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
+"quality": {"fit":[10,41],"qa":"pass","qaVersion":"m3a-sensors@1"},
+"keys": [
+  {"t":0,
+   "hips":[0,0,100], "body":[0,-14,0], "chest":[1,25,-1], "head":[-1,4,1],
+   "shL":[5,-8], "shR":[2,-7], "armL":[36,2,-93,45,-10], "armR":[35,-2,-93,44,17], "handL":[23,7,109], "handR":[27,12,92], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[-28,-2,-96,12,-1], "legR":[-32,-2,-95,14,1], "footL":[14,9,0], "footR":[14,13,0]},
+  {"t":2.5,
+   "hips":[0,0,100], "body":[0,-14,0], "chest":[1,25,-1], "head":[-1,4,1],
+   "shL":[5,-8], "shR":[2,-7], "armL":[36,2,-93,45,-10], "armR":[35,-2,-93,44,17], "handL":[23,7,109], "handR":[27,12,92], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[-28,-2,-96,12,-1], "legR":[-32,-2,-95,14,1], "footL":[14,9,0], "footR":[14,13,0]}
+]}

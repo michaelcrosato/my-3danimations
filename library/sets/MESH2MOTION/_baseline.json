@@ -1,42 +1,6 @@
 {
- "about": "Validator warnings accepted per clip at migration, each with its reason (WP-1.5). A new warning, or one gone, fails library/migrated's test.",
+ "about": "Validator warnings accepted per clip, each with its reason (WP-1.5, WP-5.3). A new warning, or one gone, fails library/migrated's test.",
  "clips": {
-  "Roll": [
-   {
-    "code": "M2-W002",
-    "at": "key 18 (t 0.667) armL[4]",
-    "reason": "format 1's twist pop: a limb turns while bent past 135 degrees, where its twist barely shows; re-import from the source fixes it (WP-5.3)"
-   },
-   {
-    "code": "M2-W002",
-    "at": "key 20 (t 0.767) armL[4]",
-    "reason": "format 1's twist pop: a limb turns while bent past 135 degrees, where its twist barely shows; re-import from the source fixes it (WP-5.3)"
-   }
-  ],
-  "Roll_RM": [
-   {
-    "code": "M2-W002",
-    "at": "key 18 (t 0.667) armL[4]",
-    "reason": "format 1's twist pop: a limb turns while bent past 135 degrees, where its twist barely shows; re-import from the source fixes it (WP-5.3)"
-   },
-   {
-    "code": "M2-W002",
-    "at": "key 20 (t 0.767) armL[4]",
-    "reason": "format 1's twist pop: a limb turns while bent past 135 degrees, where its twist barely shows; re-import from the source fixes it (WP-5.3)"
-   }
-  ],
-  "Victory": [
-   {
-    "code": "M2-W002",
-    "at": "key 20 (t 1.233) armR[4]",
-    "reason": "format 1's twist pop: a limb turns while bent past 135 degrees, where its twist barely shows; re-import from the source fixes it (WP-5.3)"
-   },
-   {
-    "code": "M2-W002",
-    "at": "key 21 (t 1.267) armR[4]",
-    "reason": "format 1's twist pop: a limb turns while bent past 135 degrees, where its twist barely shows; re-import from the source fixes it (WP-5.3)"
-   }
-  ],
   "Zombie_Rise": [
    {
     "code": "M2-W003",

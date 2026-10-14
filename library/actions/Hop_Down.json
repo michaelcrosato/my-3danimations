@@ -1,0 +1,62 @@
+{
+ "format": "2.0",
+ "id": "ACTIONS/Hop_Down",
+ "name": "Hop Down",
+ "tags": [
+  "jump"
+ ],
+ "desc": "Steps back off a ledge three quarters of a hip height high, drops, lands facing the ledge and steps back to steady itself",
+ "floor": -72,
+ "steps": [
+  {
+   "as": "h",
+   "op": "clip",
+   "id": "CMU_CURATED/Jump_Off_Ledge_Back",
+   "from": 0.9
+  },
+  {
+   "op": "smooth",
+   "in": "h",
+   "window": 0.1
+  }
+ ],
+ "beats": [
+  {
+   "name": "step_off",
+   "from": 0,
+   "to": 0.3
+  },
+  {
+   "name": "drop",
+   "from": 0.3,
+   "to": 0.5
+  },
+  {
+   "name": "land",
+   "from": 0.5,
+   "to": 1
+  },
+  {
+   "name": "steady",
+   "from": 1,
+   "to": 2.867
+  }
+ ],
+ "interrupts": [
+  {
+   "t": 1,
+   "to": [
+    "PROCEDURAL/Breathe"
+   ],
+   "why": "landed, both feet down"
+  },
+  {
+   "t": 1.85,
+   "to": [
+    "PROCEDURAL/Breathe",
+    "PROCEDURAL/Walk"
+   ],
+   "why": "steadied, both feet down"
+  }
+ ]
+}

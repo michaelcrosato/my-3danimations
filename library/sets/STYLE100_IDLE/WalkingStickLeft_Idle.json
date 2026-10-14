@@ -1,0 +1,26 @@
+{
+"format": "2.0",
+"id": "STYLE100_IDLE/WalkingStickLeft_Idle",
+"name": "WalkingStickLeft_Idle",
+"legend": "2.0",
+"dur": 2.5,
+"loop": true,
+"fps": 30,
+"tags": ["idle","style"],
+"desc": "Standing, walking stick left style: walk with a stick – used broom handle",
+"skeleton": "humanoid",
+"restSrc": "100STYLE",
+"contacts": {"by":"detected","footL":[[0,2.5]],"footR":[[0,2.5]]},
+"facts": {"by":"m3a-facts@1","height":[100,100],"seam":0,"speed":0,"travel":[0,0]},
+"provenance": {"src":"100STYLE","take":"WalkingStickLeft_ID 20.33-22.83","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
+"quality": {"fit":[8,39],"qa":"pass","qaVersion":"m3a-sensors@1"},
+"keys": [
+  {"t":0,
+   "hips":[0,0,100], "body":[0,-8,1], "chest":[1,14,1], "head":[2,11,-3],
+   "shL":[2,-10], "shR":[1,-7], "armL":[72,17,-68,56,35], "armR":[17,7,-98,14,-6], "handL":[-3,9,96], "handR":[-8,-11,107], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[-22,1,-98,12,-8], "legR":[-22,2,-98,14,0], "footL":[9,-7,0], "footR":[8,0,0]},
+  {"t":2.5,
+   "hips":[0,0,100], "body":[0,-8,1], "chest":[1,14,1], "head":[2,11,-3],
+   "shL":[2,-10], "shR":[1,-7], "armL":[72,17,-68,56,35], "armR":[17,7,-98,14,-6], "handL":[-3,9,96], "handR":[-8,-11,107], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[-22,1,-98,12,-8], "legR":[-22,2,-98,14,0], "footL":[9,-7,0], "footR":[8,0,0]}
+]}

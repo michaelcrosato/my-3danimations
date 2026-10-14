@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/michaelcrosato/my-3danimations/tools/import/import.schema.json",
+  "title": "m3a re-import record (_import.json)",
+  "description": "What `npm run import` chose for each clip of a set re-imported from its sources (PLAN.md WP-5.3, D63): its re-import or its migrated version, and why; both fits, both QA verdicts, the metrics that moved and the hands' error; the catalog's skips and the clips gone.",
+  "type": "object",
+  "required": ["about", "mean", "props", "clips", "skipped", "dropped"],
+  "additionalProperties": false,
+  "properties": {
+    "about": { "type": "string" },
+    "mean": { "type": "number", "minimum": 0, "description": "the set's mean fit against its sources (mm), as kept" },
+    "props": {
+      "description": "the hands' mean error from the pelvis on the clips that hold something (mm): migrated, and as kept; null with none",
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "required": ["clips", "migrated", "import"],
+          "additionalProperties": false,
+          "properties": { "clips": { "type": "integer", "minimum": 1 }, "migrated": { "type": "number" }, "import": { "type": "number" } }
+        }
+      ]
+    },
+    "clips": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["kept", "why", "fit", "qa", "hands"],
+        "additionalProperties": false,
+        "properties": {
+          "kept": { "enum": ["import", "migrated", "new"] },
+          "why": { "type": "string", "minLength": 1 },
+          "fit": {
+            "type": "object",
+            "required": ["import"],
+            "additionalProperties": false,
+            "properties": { "import": { "$ref": "#/$defs/fit" }, "migrated": { "$ref": "#/$defs/fit" } }
+          },
+          "qa": {
+            "type": "object",
+            "required": ["import"],
+            "additionalProperties": false,
+            "properties": { "import": { "$ref": "#/$defs/verdict" }, "migrated": { "$ref": "#/$defs/verdict" } }
+          },
+          "hands": { "type": "array", "minItems": 1, "maxItems": 2, "items": { "type": "number", "minimum": 0 }, "description": "[re-import] for a new clip, else [migrated, re-import] (mm)" },
+          "moved": { "type": "object", "additionalProperties": { "type": "array", "minItems": 2, "maxItems": 2, "items": { "type": "number" } }, "description": "each metric that moved: [migrated, re-import]" },
+          "repaired": { "type": "array", "items": { "type": "string" }, "description": "the sensors' fix steps the re-import was repaired with (WP-5.8)" },
+          "unrepairedFit": { "$ref": "#/$defs/fit", "description": "the re-import's fit before its repair (mean, worst mm)" },
+          "unrepaired": { "type": "string", "description": "why a re-import the sensors flag wasn't repaired: no step makes it better, or how much further from its source the repair would take it (WP-5.8)" }
+        }
+      }
+    },
+    "skipped": {
+      "type": "array",
+      "items": { "type": "object", "required": ["name", "why"], "additionalProperties": false, "properties": { "name": { "type": "string" }, "why": { "type": "string", "minLength": 1 } } }
+    },
+    "dropped": { "type": "array", "items": { "type": "string" } }
+  },
+  "$defs": {
+    "fit": { "type": "array", "minItems": 2, "maxItems": 2, "items": { "type": "number", "minimum": 0 }, "description": "[mean, worst] mm against the source" },
+    "verdict": { "enum": ["pass", "warn", "fail"] }
+  }
+}

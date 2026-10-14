@@ -10,8 +10,10 @@
 "desc": "the combo's first strike: crouches and thrusts forward (travels)",
 "skeleton": "humanoid",
 "restSrc": "UAL2",
+"contacts": {"by":"detected","footL":[[0.3,0.433]],"footR":[[0.183,0.433]]},
+"facts": {"by":"m3a-facts@1","height":[62,95],"strike":[0.217],"travel":[90,0]},
 "provenance": {"src":"UAL2","method":"keyed","producer":{"tool":"m3a-migrate","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
-"quality": {"fit":[18,94],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[18,94],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"fail on jitter: as migrated from Quaternius's Universal Animation Library, with no source frames to measure a repair against: its keys stay the source's (WP-1.5) until the re-import can fetch its files (D63)"},
 "keys": [
   {"t":0,
    "hips":[-1,0,95], "body":[13,-4,0], "chest":[0,19,0], "head":[-11,2,0], "root":[-7,0],

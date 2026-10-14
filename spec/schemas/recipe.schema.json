@@ -1,9 +1,740 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/michaelcrosato/my-3danimations/spec/schemas/recipe.schema.json",
-  "title": "m3a recipe (L2), a stub",
-  "description": "A clip made from clips by operators (spec/RECIPE.md, WP-6.1). Stub until Phase 6: an object naming its format and its steps.",
-  "type": "object",
-  "required": ["format", "steps"],
-  "properties": {"format": {"type": "string", "pattern": "^2\\.[0-9]+$"}, "steps": {"type": "array"}}
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "$id": "https://github.com/michaelcrosato/my-3danimations/spec/schemas/recipe.schema.json",
+ "title": "m3a recipe (L2)",
+ "description": "A clip made from clips by operations (spec/RECIPE.md, WP-6.1, D70): its id and description and its steps, each one operation with its fields. The shape only: @m3a/core's recipe.validateRecipe also checks that a step reads earlier steps' names, that a name is used once, and that a pose step's parts are its field's (spec/MOTION.md §5).",
+ "type": "object",
+ "required": [
+  "format",
+  "id",
+  "steps"
+ ],
+ "additionalProperties": false,
+ "properties": {
+  "format": {
+   "type": "string",
+   "pattern": "^2\\.[0-9]+$"
+  },
+  "id": {
+   "type": "string",
+   "pattern": "^[A-Z0-9_]+/[A-Za-z0-9_]+$",
+   "description": "the compiled clip's id, SET/Slug"
+  },
+  "name": {
+   "type": "string"
+  },
+  "tags": {
+   "type": "array",
+   "items": {
+    "type": "string",
+    "pattern": "^[a-z0-9-]+$"
+   }
+  },
+  "desc": {
+   "type": "string"
+  },
+  "fps": {
+   "type": "number",
+   "minimum": 1,
+   "maximum": 120
+  },
+  "steps": {
+   "type": "array",
+   "minItems": 1,
+   "items": {
+    "oneOf": [
+     {
+      "type": "object",
+      "required": [
+       "op",
+       "id"
+      ],
+      "properties": {
+       "op": {
+        "const": "clip"
+       },
+       "as": {
+        "$ref": "#/$defs/stepName"
+       },
+       "id": {
+        "type": "string",
+        "pattern": "^[A-Z0-9_]+/[A-Za-z0-9_]+$"
+       },
+       "from": {
+        "$ref": "#/$defs/time"
+       },
+       "to": {
+        "$ref": "#/$defs/time"
+       },
+       "loop": {
+        "oneOf": [
+         {
+          "type": "boolean"
+         },
+         {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 5
+         }
+        ]
+       }
+      },
+      "additionalProperties": false
+     },
+     {
+      "type": "object",
+      "required": [
+       "op",
+       "items"
+      ],
+      "properties": {
+       "op": {
+        "const": "sequence"
+       },
+       "as": {
+        "$ref": "#/$defs/stepName"
+       },
+       "items": {
+        "type": "array",
+        "minItems": 2,
+        "items": {
+         "$ref": "#/$defs/name"
+        }
+       },
+       "fade": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 5
+       },
+       "sync": {
+        "enum": [
+         "contacts"
+        ]
+       }
+      },
+      "additionalProperties": false
+     },
+     {
+      "type": "object",
+      "required": [
+       "op",
+       "a",
+       "b",
+       "w"
+      ],
+      "properties": {
+       "op": {
+        "const": "blend"
+       },
+       "as": {
+        "$ref": "#/$defs/stepName"
+       },
+       "a": {
+        "$ref": "#/$defs/name"
+       },
+       "b": {
+        "$ref": "#/$defs/name"
+       },
+       "w": {
+        "$ref": "#/$defs/weight"
+       },
+       "warp": {
+        "type": "boolean"
+       }
+      },
+      "additionalProperties": false
+     },
+     {
+      "type": "object",
+      "required": [
+       "op",
+       "base",
+       "over"
+      ],
+      "properties": {
+       "op": {
+        "const": "layer"
+       },
+       "as": {
+        "$ref": "#/$defs/stepName"
+       },
+       "base": {
+        "$ref": "#/$defs/name"
+       },
+       "over": {
+        "$ref": "#/$defs/name"
+       },
+       "mask": {
+        "$ref": "#/$defs/mask"
+       },
+       "feather": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1
+       },
+       "weight": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 2
+       },
+       "additive": {
+        "type": "boolean"
+       }
+      },
+      "additionalProperties": false
+     },
+     {
+      "type": "object",
+      "required": [
+       "op",
+       "in"
+      ],
+      "properties": {
+       "op": {
+        "const": "mirror"
+       },
+       "as": {
+        "$ref": "#/$defs/stepName"
+       },
+       "in": {
+        "$ref": "#/$defs/name"
+       }
+      },
+      "additionalProperties": false
+     },
+     {
+      "type": "object",
+      "required": [
+       "op",
+       "in"
+      ],
+      "properties": {
+       "op": {
+        "const": "retime"
+       },
+       "as": {
+        "$ref": "#/$defs/stepName"
+       },
+       "in": {
+        "$ref": "#/$defs/name"
+       },
+       "speed": {
+        "type": "number",
+        "minimum": 0.05,
+        "maximum": 20
+       },
+       "dur": {
+        "type": "number",
+        "minimum": 0.001,
+        "maximum": 600
+       },
+       "ease": {
+        "enum": [
+         "in",
+         "out",
+         "inOut"
+        ]
+       }
+      },
+      "additionalProperties": false,
+      "oneOf": [
+       {
+        "required": [
+         "speed"
+        ]
+       },
+       {
+        "required": [
+         "dur"
+        ]
+       },
+       {
+        "required": [
+         "ease"
+        ]
+       }
+      ]
+     },
+     {
+      "type": "object",
+      "required": [
+       "op",
+       "in"
+      ],
+      "minProperties": 3,
+      "properties": {
+       "op": {
+        "const": "pose"
+       },
+       "as": {
+        "$ref": "#/$defs/stepName"
+       },
+       "in": {
+        "$ref": "#/$defs/name"
+       },
+       "from": {
+        "$ref": "#/$defs/time"
+       },
+       "to": {
+        "$ref": "#/$defs/time"
+       },
+       "fade": {
+        "$ref": "#/$defs/fade"
+       },
+       "yaw": {
+        "type": "number"
+       }
+      },
+      "propertyNames": {
+       "enum": [
+        "op",
+        "as",
+        "in",
+        "from",
+        "to",
+        "fade",
+        "yaw",
+        "hips",
+        "body",
+        "chest",
+        "head",
+        "shL",
+        "shR",
+        "armL",
+        "armR",
+        "legL",
+        "legR",
+        "footL",
+        "footR",
+        "blade",
+        "handL",
+        "handR",
+        "fingersL",
+        "fingersR",
+        "spine"
+       ]
+      },
+      "additionalProperties": {
+       "type": "object",
+       "minProperties": 1,
+       "additionalProperties": {
+        "type": "number"
+       },
+       "description": "a key field's parts by name (spec/MOTION.md §5), each moved by that much"
+      }
+     },
+     {
+      "type": "object",
+      "required": [
+       "op",
+       "in",
+       "at"
+      ],
+      "properties": {
+       "op": {
+        "const": "look"
+       },
+       "as": {
+        "$ref": "#/$defs/stepName"
+       },
+       "in": {
+        "$ref": "#/$defs/name"
+       },
+       "at": {
+        "type": "array",
+        "items": {
+         "type": "number"
+        },
+        "minItems": 3,
+        "maxItems": 3
+       },
+       "weight": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1
+       },
+       "from": {
+        "$ref": "#/$defs/time"
+       },
+       "to": {
+        "$ref": "#/$defs/time"
+       },
+       "fade": {
+        "$ref": "#/$defs/fade"
+       }
+      },
+      "additionalProperties": false
+     },
+     {
+      "type": "object",
+      "required": [
+       "op",
+       "in",
+       "end",
+       "path"
+      ],
+      "properties": {
+       "op": {
+        "const": "pin"
+       },
+       "as": {
+        "$ref": "#/$defs/stepName"
+       },
+       "in": {
+        "$ref": "#/$defs/name"
+       },
+       "end": {
+        "enum": [
+         "handL",
+         "handR",
+         "footL",
+         "footR"
+        ]
+       },
+       "path": {
+        "type": "array",
+        "minItems": 1,
+        "items": {
+         "type": "array",
+         "prefixItems": [
+          {
+           "type": "number",
+           "minimum": 0
+          }
+         ],
+         "items": {
+          "type": "number"
+         },
+         "minItems": 4,
+         "maxItems": 4
+        }
+       },
+       "fade": {
+        "$ref": "#/$defs/fade"
+       }
+      },
+      "additionalProperties": false
+     },
+     {
+      "type": "object",
+      "required": [
+       "op",
+       "in",
+       "amount"
+      ],
+      "properties": {
+       "op": {
+        "const": "exaggerate"
+       },
+       "as": {
+        "$ref": "#/$defs/stepName"
+       },
+       "in": {
+        "$ref": "#/$defs/name"
+       },
+       "amount": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 4
+       },
+       "mask": {
+        "$ref": "#/$defs/mask"
+       }
+      },
+      "additionalProperties": false
+     },
+     {
+      "type": "object",
+      "required": [
+       "op",
+       "in",
+       "window"
+      ],
+      "properties": {
+       "op": {
+        "const": "smooth"
+       },
+       "as": {
+        "$ref": "#/$defs/stepName"
+       },
+       "in": {
+        "$ref": "#/$defs/name"
+       },
+       "window": {
+        "type": "number",
+        "minimum": 0.01,
+        "maximum": 5
+       },
+       "mask": {
+        "$ref": "#/$defs/mask"
+       }
+      },
+      "additionalProperties": false
+     },
+     {
+      "type": "object",
+      "required": [
+       "op",
+       "in",
+       "amount"
+      ],
+      "properties": {
+       "op": {
+        "const": "overshoot"
+       },
+       "as": {
+        "$ref": "#/$defs/stepName"
+       },
+       "in": {
+        "$ref": "#/$defs/name"
+       },
+       "amount": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1
+       },
+       "mask": {
+        "$ref": "#/$defs/mask"
+       }
+      },
+      "additionalProperties": false
+     },
+     {
+      "type": "object",
+      "required": [
+       "op",
+       "in",
+       "amount"
+      ],
+      "properties": {
+       "op": {
+        "const": "stiffen"
+       },
+       "as": {
+        "$ref": "#/$defs/stepName"
+       },
+       "in": {
+        "$ref": "#/$defs/name"
+       },
+       "amount": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1
+       },
+       "mask": {
+        "$ref": "#/$defs/mask"
+       }
+      },
+      "additionalProperties": false
+     },
+     {
+      "type": "object",
+      "required": [
+       "op",
+       "in",
+       "add"
+      ],
+      "properties": {
+       "op": {
+        "const": "events"
+       },
+       "as": {
+        "$ref": "#/$defs/stepName"
+       },
+       "in": {
+        "$ref": "#/$defs/name"
+       },
+       "add": {
+        "type": "array",
+        "minItems": 1,
+        "items": {
+         "type": "object",
+         "required": [
+          "t",
+          "name"
+         ],
+         "properties": {
+          "t": {
+           "type": "number"
+          },
+          "name": {
+           "type": "string",
+           "pattern": "^[a-z][a-zA-Z0-9_]*$"
+          }
+         }
+        }
+       }
+      },
+      "additionalProperties": false
+     },
+     {
+      "type": "object",
+      "required": [
+       "op",
+       "in",
+       "add"
+      ],
+      "properties": {
+       "op": {
+        "const": "contacts"
+       },
+       "as": {
+        "$ref": "#/$defs/stepName"
+       },
+       "in": {
+        "$ref": "#/$defs/name"
+       },
+       "add": {
+        "type": "object",
+        "minProperties": 1,
+        "propertyNames": {
+         "enum": [
+          "footL",
+          "footR",
+          "handL",
+          "handR"
+         ]
+        },
+        "additionalProperties": {
+         "type": "array",
+         "items": {
+          "type": "array",
+          "items": {
+           "type": "number",
+           "minimum": 0
+          },
+          "minItems": 2,
+          "maxItems": 2
+         }
+        }
+       }
+      },
+      "additionalProperties": false
+     }
+    ]
+   }
+  }
+ },
+ "$defs": {
+  "name": {
+   "type": "string",
+   "pattern": "^[A-Za-z0-9_]+$",
+   "description": "a step's name: letters, digits and _"
+  },
+  "time": {
+   "type": "number",
+   "minimum": 0,
+   "maximum": 600
+  },
+  "fade": {
+   "type": "number",
+   "minimum": 0,
+   "maximum": 10
+  },
+  "mask": {
+   "description": "mask groups (core's ops.GROUPS), or { field: weight 0 to 1 }",
+   "oneOf": [
+    {
+     "enum": [
+      "upper",
+      "lower",
+      "armL",
+      "armR",
+      "legs",
+      "head",
+      "spine"
+     ]
+    },
+    {
+     "type": "array",
+     "minItems": 1,
+     "items": {
+      "enum": [
+       "upper",
+       "lower",
+       "armL",
+       "armR",
+       "legs",
+       "head",
+       "spine"
+      ]
+     }
+    },
+    {
+     "type": "object",
+     "minProperties": 1,
+     "propertyNames": {
+      "enum": [
+       "hips",
+       "body",
+       "chest",
+       "head",
+       "shL",
+       "shR",
+       "armL",
+       "armR",
+       "legL",
+       "legR",
+       "footL",
+       "footR",
+       "blade",
+       "root",
+       "handL",
+       "handR",
+       "fingersL",
+       "fingersR",
+       "spine",
+       "yaw"
+      ]
+     },
+     "additionalProperties": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+     }
+    }
+   ]
+  },
+  "weight": {
+   "description": "a weight from 0 to 1, or a curve [[t, w], …]",
+   "oneOf": [
+    {
+     "type": "number",
+     "minimum": 0,
+     "maximum": 1
+    },
+    {
+     "type": "array",
+     "minItems": 1,
+     "items": {
+      "type": "array",
+      "prefixItems": [
+       {
+        "type": "number",
+        "minimum": 0
+       },
+       {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1
+       }
+      ],
+      "minItems": 2,
+      "maxItems": 2
+     }
+    }
+   ]
+  },
+  "stepName": {
+   "allOf": [
+    {
+     "$ref": "#/$defs/name"
+    }
+   ],
+   "not": {
+    "pattern": "^s[0-9]+$"
+   },
+   "description": "a step's own name: not s1, s2, …, which name steps by place"
+  }
+ }
 }

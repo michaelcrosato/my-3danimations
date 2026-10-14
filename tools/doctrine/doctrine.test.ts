@@ -1,11 +1,12 @@
 // Tests for the doctrine checks: each check has a passing and a failing fixture, built in a temporary folder.
+import { execFileSync } from "node:child_process";
 import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { BANNED, checkBanned, checkPin } from "./banned.ts";
 import { checkBinaries } from "./binaries.ts";
-import { checkBoundaries, publicApi, specifiers } from "./boundaries.ts";
+import { API_MAX, checkBoundaries, publicApi, specifiers } from "./boundaries.ts";
 import { checkBudgets } from "./budgets.ts";
 import { makeCtx, type Ctx } from "./context.ts";
 import { checkDecisions, entryIds } from "./decisions.ts";
@@ -66,8 +67,12 @@ describe("boundaries", () => {
       "packages/sensors/src/index.ts": 'import { VERSION } from "@m3a/core";',
       "packages/sensors/src/node.ts": 'import { readFileSync } from "node:fs";',
       "packages/tools/src/intake/store.ts": 'import { createClient } from "@supabase/supabase-js";',
-      "apps/gallery/main.ts": 'import { PACKAGE } from "@m3a/core"; import { x } from "@m3a/io/node";',
+      "apps/gallery/main.ts": 'import { PACKAGE } from "@m3a/core"; import { x } from "@m3a/io/node"; import { c } from "@m3a/three/capture";',
+      "packages/io/package.json": '{ "exports": { ".": "./src/index.ts", "./node": "./src/node.ts" } }',
+      "packages/three/package.json": '{ "exports": { ".": "./src/index.ts", "./capture": "./src/capture/index.ts" } }',
       "apps/lab/2026-10-11-q/main.ts": 'import { inner } from "../../../packages/core/src/inner.ts";',
+      // (the specifier built in two parts, so this file's own scan doesn't read it as an import)
+      "tests/e2e/hello.e2e.ts": 'import { Hello } from "../../' + 'apps/lab/hello/src/game.ts";',
     });
     const r = checkBoundaries(ctx);
     expect(r.findings).toEqual([]);
@@ -78,11 +83,13 @@ describe("boundaries", () => {
       "packages/core/src/a.ts": 'import { x } from "@m3a/io"; import fs from "node:fs"; import { y } from "../../io/src/y.ts";',
       "packages/sensors/src/index.ts": 'import fs from "node:fs"; import * as THREE from "three";',
       "packages/tools/src/cli.ts": 'import { createClient } from "@supabase/supabase-js";',
-      "apps/gallery/main.ts": 'import { inner } from "@m3a/core/src/inner.ts";',
+      "apps/gallery/main.ts": 'import { inner } from "@m3a/core/src/inner.ts"; import { y } from "@m3a/three/undeclared";',
+      "packages/three/package.json": '{ "exports": { ".": "./src/index.ts" } }',
       "tools/x.ts": 'import { g } from "../apps/gallery/main.ts";',
+      "tests/e2e/other.e2e.ts": 'import { Hello } from "../../' + 'apps/lab/hello/src/game.ts";',
     });
     const msgs = checkBoundaries(ctx).findings.map((f) => f.message);
-    expect(msgs).toHaveLength(8);
+    expect(msgs).toHaveLength(10);
     expect(msgs.filter((m) => m.startsWith("packages/core/"))).toHaveLength(3);
     expect(msgs.some((m) => m.includes("node entry"))).toBe(true);
     expect(msgs.some((m) => m.includes("IntakeStore"))).toBe(true);
@@ -97,10 +104,10 @@ describe("the public API", () => {
     expect(publicApi(text)).toEqual({ names: ["VERSION", "A", "C", "X", "ns", "f"], undocumented: ["X"], bare: ['export * from "./z.ts";'] });
   });
   it("fails a package entry over its limit, with a bare export * or an undocumented export", () => {
-    const many = Array.from({ length: 41 }, (_, i) => `/** n${i} */\nexport const n${i} = ${i};`).join("\n");
+    const many = Array.from({ length: API_MAX.core! + 1 }, (_, i) => `/** n${i} */\nexport const n${i} = ${i};`).join("\n");
     const msgs = checkBoundaries(fixture({ "packages/core/src/index.ts": many, "packages/io/src/index.ts": 'export * from "./a.ts";\nexport const Y = 1;' })).findings.map((f) => f.message);
     expect(msgs).toHaveLength(3);
-    expect(msgs.some((m) => m.includes("41 names, more than 40"))).toBe(true);
+    expect(msgs.some((m) => m.includes(`${API_MAX.core! + 1} names, more than ${API_MAX.core}`))).toBe(true);
     expect(msgs.some((m) => m.includes("as a namespace"))).toBe(true);
     expect(msgs.some((m) => m.includes("no doc comment above the export of Y"))).toBe(true);
   });
@@ -176,10 +183,24 @@ describe("the decisions log", () => {
 });
 
 describe("the local lane", () => {
+  /** A fixture that is a git checkout ignoring the local lane as the repository does, with `add` forced into its index. */
+  const gitFixture = (files: Record<string, string | Uint8Array>, add: string[]): Ctx => {
+    const ctx = fixture({ ...files, ".gitignore": "library/local/*\n!library/local/README.md\n" });
+    execFileSync("git", ["init", "-q"], { cwd: ctx.root });
+    if (add.length) execFileSync("git", ["add", "-f", ...add], { cwd: ctx.root });
+    return makeCtx(ctx.root);
+  };
   it("passes the README alone and fails a committed clip or a shipped set that points at it", () => {
     expect(checkLocal(fixture({ "library/local/README.md": "x", "library/sets/A/_set.json": '{"tier":"cc0"}' }))).toEqual([]);
-    const msgs = checkLocal(fixture({ "library/local/X/Walk.json": "{}", "library/sets/A/_set.json": '{"tier":"local"}', "library/sets/B/catalog.tsv": "see library/local/X" })).map((f) => f.message);
+    const msgs = checkLocal(gitFixture({ "library/local/X/Walk.json": "{}", "library/sets/A/_set.json": '{"tier":"local"}', "library/sets/B/catalog.tsv": "see library/local/X" }, ["library/local/X/Walk.json"])).map((f) => f.message);
     expect(msgs).toHaveLength(3);
+  });
+  it("never reads local content that isn't committed, in a checkout or outside one", () => {
+    const local = { "library/local/README.md": "x", "library/local/LAFAN1/rig.glb": new Uint8Array([0, 1]), "library/local/LAFAN1/_set.json": '{"tier":"local"}' };
+    for (const ctx of [fixture(local), gitFixture(local, [])]) {
+      expect(ctx.files.filter((f) => f.startsWith("library/local/"))).toEqual(["library/local/README.md"]);
+      expect([checkLocal(ctx), checkBinaries(ctx)]).toEqual([[], []]);
+    }
   });
 });
 

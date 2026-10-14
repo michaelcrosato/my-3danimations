@@ -10,8 +10,10 @@
 "desc": "crouches and leaps into a running ninja's air pose, arms swept back",
 "skeleton": "humanoid",
 "restSrc": "UAL2",
+"contacts": {"by":"detected","footL":[[0,0.066]],"footR":[[0,0.098]]},
+"facts": {"by":"m3a-facts@1","height":[57,97]},
 "provenance": {"src":"UAL2","method":"keyed","producer":{"tool":"m3a-migrate","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
-"quality": {"fit":[17,89],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[17,89],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"fail on pop: as migrated from Quaternius's Universal Animation Library, with no source frames to measure a repair against: its keys stay the source's (WP-1.5) until the re-import can fetch its files (D63)"},
 "keys": [
   {"t":0,
    "hips":[-18,0,57], "body":[13,6,0], "chest":[0,56,0], "head":[-11,-40,-10],

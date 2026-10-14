@@ -1,0 +1,26 @@
+{
+"format": "2.0",
+"id": "STYLE100_IDLE/ShieldedLeft_Idle",
+"name": "ShieldedLeft_Idle",
+"legend": "2.0",
+"dur": 2.5,
+"loop": true,
+"fps": 30,
+"tags": ["idle","style"],
+"desc": "Standing, shielded left style: squat down with left arm raised in block as if holding a shield above head. Right arm as if holding a sword",
+"skeleton": "humanoid",
+"restSrc": "100STYLE",
+"contacts": {"by":"detected","footL":[[0,2.5]],"footR":[[0,2.5]]},
+"facts": {"by":"m3a-facts@1","height":[94,94],"seam":0,"speed":0,"travel":[0,0]},
+"provenance": {"src":"100STYLE","take":"ShieldedLeft_ID 17.95-20.45","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
+"quality": {"fit":[5,24],"qa":"pass","qaVersion":"m3a-sensors@1"},
+"keys": [
+  {"t":0,
+   "hips":[0,0,94], "body":[0,-10,6], "chest":[-13,40,20], "head":[-2,11,-16],
+   "shL":[3,9], "shR":[5,-10], "armL":[46,14,88,80,12], "armR":[82,32,-48,91,6], "handL":[-41,0,168], "handR":[-17,-12,118], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[-9,-8,-99,40,7], "legR":[-14,17,-98,46,-5], "footL":[10,11,0], "footR":[8,11,0]},
+  {"t":2.5,
+   "hips":[0,0,94], "body":[0,-10,6], "chest":[-13,40,20], "head":[-2,11,-16],
+   "shL":[3,9], "shR":[5,-10], "armL":[46,14,88,80,12], "armR":[82,32,-48,91,6], "handL":[-41,0,168], "handR":[-17,-12,118], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[-9,-8,-99,40,7], "legR":[-14,17,-98,46,-5], "footL":[10,11,0], "footR":[8,11,0]}
+]}

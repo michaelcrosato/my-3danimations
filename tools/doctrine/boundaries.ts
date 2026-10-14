@@ -2,10 +2,12 @@
 // - @m3a/core imports nothing outside its own src/: no packages, no `node:`, no relative path out.
 // - Other packages: Node built-ins only in their `/node` entry (src/node.ts or src/node/), only the packages in
 //   ALLOWED, never another package's internals; @supabase/supabase-js only in @m3a/tools' src/intake/.
-// - Apps and the benchmark reach packages only through `@m3a/<name>` or `@m3a/<name>/node`; labs (apps/lab/) may
-//   reach past, and are listed instead of failed. Nothing imports from apps/.
+// - Apps and the benchmark reach packages only through their public entries: `@m3a/<name>` and the subpaths its
+//   exports map declares (`/node`, `/capture`); labs (apps/lab/) may reach past, and are listed instead of failed.
+//   Nothing imports from apps/ but a lab's own e2e test, its lab.
 // - Each package's public API is its src/index.ts, all of it listed there (PLAN.md WP-2.6): one export per statement,
-//   each with a doc comment, no bare `export *` (a module's surface goes in as a namespace), and core's at most 40.
+//   each with a doc comment, no bare `export *` (a module's surface goes in as a namespace), and core's at most 44
+//   (40 until Phase 6's namespaces, D71).
 import { builtinModules } from "node:module";
 import { dirname, join, normalize } from "node:path";
 import type { Ctx, Finding } from "./context.ts";
@@ -22,6 +24,14 @@ export const ALLOWED: Record<string, RegExp[]> = {
   tools: [/^@m3a\/(core|sensors|io|library|three)(\/node)?$/, /^@supabase\/supabase-js$/],
 };
 
+/** The entries a package's exports map declares ("." and its subpaths), none when it has no package.json. */
+function entries(ctx: Ctx, pkg: string): string[] {
+  const file = `packages/${pkg}/package.json`;
+  if (!ctx.files.includes(file)) return [];
+  const e = (JSON.parse(ctx.read(file)) as { exports?: Record<string, unknown> }).exports ?? {};
+  return Object.keys(e);
+}
+
 /** Every module specifier a source file imports, re-exports or loads dynamically. */
 export function specifiers(text: string): string[] {
   const out: string[] = [];
@@ -31,8 +41,9 @@ export function specifiers(text: string): string[] {
   return out;
 }
 
-/** The most names a package's public entry may export. */
-export const API_MAX: Record<string, number> = { core: 40 };
+/** The most names a package's public entry may export (core's 40 of WP-2.6, raised by D71 to 44 for Phase 6's
+ *  namespaces: procedural sources, actions, graphs). */
+export const API_MAX: Record<string, number> = { core: 44 };
 
 /** A public entry's exports: each statement's names, and whether a doc comment sits right above it. */
 export function publicApi(text: string): { names: string[]; undocumented: string[]; bare: string[] } {
@@ -88,7 +99,9 @@ export function checkBoundaries(ctx: Ctx): { findings: Finding[]; reachPasts: st
     const isLab = f.startsWith("apps/lab/");
     for (const s of specs) {
       const target = isRelative(s) ? normalize(join(dirname(f), s)).split("\\").join("/") : null;
-      if (target?.startsWith("apps/") && !f.startsWith("apps/")) fail(f, s, "nothing imports from apps/; move the shared code into a package");
+      // a lab's own e2e test (tests/e2e/<lab>.e2e.ts) may read its lab (apps/lab/<lab>/), to run it in Node beside the page
+      const ownLab = /^tests\/e2e\/([\w-]+)\.e2e\.ts$/.exec(f)?.[1], toOwnLab = ownLab !== undefined && target?.startsWith(`apps/lab/${ownLab}/`);
+      if (target?.startsWith("apps/") && !f.startsWith("apps/") && !toOwnLab) fail(f, s, "nothing imports from apps/; move the shared code into a package");
       if (pkg) {
         const nodeEntry = new RegExp(`^packages/${pkg}/src/node(\\.ts|/)`).test(f);
         if (target) {
@@ -104,10 +117,12 @@ export function checkBoundaries(ctx: Ctx): { findings: Finding[]; reachPasts: st
           fail(f, s, "only the IntakeStore in packages/tools/src/intake/ imports the Supabase client (§5.9)");
         }
       } else if (app) {
-        const deep = /^@m3a\/[^/]+\/(?!node$)/.test(s) || (target !== null && target.startsWith("packages/"));
+        // a subpath is public when its package's exports map declares it (`@m3a/three/test-characters`)
+        const sub = /^@m3a\/([^/]+)\/(.+)$/.exec(s), declared = sub ? entries(ctx, sub[1]!).includes(`./${sub[2]}`) : true;
+        const deep = !declared || (target !== null && target.startsWith("packages/"));
         if (deep) {
           if (isLab) reachPasts.push(`${f} -> ${s}`);
-          else fail(f, s, "apps and the benchmark use only the packages' public entries (@m3a/<name> or @m3a/<name>/node)");
+          else fail(f, s, "apps and the benchmark use only the packages' public entries (@m3a/<name>, or a subpath its exports map declares)");
         }
       }
     }

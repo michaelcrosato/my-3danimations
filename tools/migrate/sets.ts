@@ -116,5 +116,13 @@ export function baselineReason(w: Warned, warned: readonly Warned[], keys: reado
     const most = Math.max(...bends);
     if (most <= STRAIGHT) return `the twist of a nearly straight ${field.slice(0, 3)} (bend at most ${most} degrees at these keys) is barely defined, so capture noise winds it past ±540 degrees; a re-import that resets twist on straight limbs fixes it (WP-5.3)`;
   }
+  if (w.code === "M2-W005" && /^hand[LR]$/.test(field) && w.index === 2) {
+    const arm = `arm${field.slice(-1)}`, bends = warned.filter((o) => o.code === w.code && o.field === field && o.index === 2).map((o) => (keys[o.key! - 1]![arm] as number[])[3]!);
+    const most = Math.max(...bends);
+    if (most <= STRAIGHT) return `the hand's roll is measured from the elbow's bend, and this ${arm} is nearly straight (bend at most ${most} degrees at these keys), so its roll is barely defined and capture noise winds it past ±540 degrees (MOTION.md §6.3)`;
+    // an arm that bends: the roll really turns that far over the clip, and unwrapping keeps the count
+    const rolls = warned.filter((o) => o.code === w.code && o.field === field && o.index === 2).map((o) => (keys[o.key! - 1]![field] as number[])[2]!);
+    return `the hand rolls round as the ${arm} bends ${Math.min(...bends)}–${most} degrees at these keys: its roll reaches ${rolls.reduce((a, b) => (Math.abs(b) > Math.abs(a) ? b : a))} degrees, counted on past ±540 so it stays continuous (MOTION.md §6.3)`;
+  }
   throw new Error(`no baseline reason covers ${w.code} at ${field}[${w.index}]: write one in tools/migrate/sets.ts before baselining it`);
 }

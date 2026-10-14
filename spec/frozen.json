@@ -1,17 +1,21 @@
 {
   "about": "Spec 2.0-rc, frozen at gate G1. A frozen file changes only with a logged decision and a rerun of node tools/doctrine/freeze.ts <decision> in the same commit; npm run doctrine checks it.",
   "version": "2.0-rc",
-  "decision": "D32",
+  "decision": "D73",
   "files": {
     "spec/MOTION.md": "9e9998a05275e8c7eabfd7c5dc9638d0582861583ee4618ca7a58315856a52fc",
     "spec/SKELETON.md": "4b2eb7caec140850f14253e01fa21be4c354d538492c02099bb3513dd6318e90",
     "spec/LEGEND.md": "54cf21fac7493c6c5b3057fefcc6306f9e4d6919466582345b2e0b9678e0c15a",
     "spec/conformance/tiers.md": "407c024b6ba2db82cb7fa40132083235d41551fa0001f3e9546e6fbd54ad3151",
+    "spec/schemas/action.schema.json": "00027cb28e63cfa4bc8cb0fe690ea42a9dacc72e7b6db879429c1b7f3e8a3300",
     "spec/schemas/baseline.schema.json": "617dbbc7ccb655280708c6b9525d6bfad3887d455eed2ff5d21a9932d2cd6c57",
     "spec/schemas/catalog-row.schema.json": "0d2edf21092f68e3c38a92979cf9dda960bde279f21348f89f7014f408e54f39",
     "spec/schemas/clip.schema.json": "e4f0bace61616550154ffc883c5908fb2a23128a36050d20edb03b3b7371d10c",
-    "spec/schemas/graph.schema.json": "7de7cbc36970cffa2594091c08c6e6f9204cd666ed8dbac741d7807cc9e14cce",
-    "spec/schemas/recipe.schema.json": "6ff7424897b40de83fbd185a73a78facbc1e70f87cb0a02b8ef91b0768161acc",
-    "spec/schemas/set.schema.json": "7f5cf4b3c19ddead1d74d8751f63796eb76ca964b32e6041f266519999260613"
+    "spec/schemas/graph.schema.json": "923c4f9e9ee24bad3b6808025c1f11cbc2d5ed3efaf306a5e4af63fa0d73aab2",
+    "spec/schemas/moves.schema.json": "5e14b3dc8d0d39f6d9c20984f5e5b594740ddee65f61df9c46686e2b509a22b0",
+    "spec/schemas/recipe.schema.json": "cf3e20f7fcef3e5645e59828c1a4cbebcbe499e99de5d28373d89a2afcd9e612",
+    "spec/schemas/set.schema.json": "7f5cf4b3c19ddead1d74d8751f63796eb76ca964b32e6041f266519999260613",
+    "spec/schemas/sim-trace.schema.json": "d7586ed1e386f465c320f9212fe4661125294d11034649520c7d2c48cade462f",
+    "spec/schemas/sim.schema.json": "a243343cfd03d59f82538051a3703895dc17f1cf1a9966ef409ed7c7b2e6f0a1"
   }
 }

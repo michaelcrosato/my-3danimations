@@ -10,8 +10,10 @@
 "desc": "treading water, upright",
 "skeleton": "humanoid",
 "restSrc": "UAL1",
+"contacts": {"by":"detected","footR":[[0.683,0.883]]},
+"facts": {"by":"m3a-facts@1","height":[89,100],"seam":0,"speed":7.6,"travel":[-13.9,21.1]},
 "provenance": {"src":"UAL1","method":"keyed","producer":{"tool":"m3a-migrate","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
-"quality": {"fit":[8,75],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[8,75],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"warn on twistFlip: short of every fail level the sensors apply (thresholds.ts); not measured for its tags: bodyPenetration, penetration, skate, slide"},
 "keys": [
   {"t":0,
    "hips":[-5,0,100], "body":[0,0,0], "chest":[-3,6,3], "head":[3,4,0],

@@ -1,0 +1,26 @@
+{
+"format": "2.0",
+"id": "STYLE100_IDLE/PigeonToed_Idle",
+"name": "PigeonToed_Idle",
+"legend": "2.0",
+"dur": 2.833,
+"loop": true,
+"fps": 30,
+"tags": ["idle","style"],
+"desc": "Standing, pigeon toed style: toes turned inwards",
+"skeleton": "humanoid",
+"restSrc": "100STYLE",
+"contacts": {"by":"detected","footL":[[0,2.833]],"footR":[[0,2.833]]},
+"facts": {"by":"m3a-facts@1","height":[101,101],"seam":0,"speed":0,"travel":[0,0]},
+"provenance": {"src":"100STYLE","take":"PigeonToed_ID 25.28-28.13","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
+"quality": {"fit":[10,29],"qa":"pass","qaVersion":"m3a-sensors@1"},
+"keys": [
+  {"t":0,
+   "hips":[0,0,101], "body":[0,-6,0], "chest":[1,5,-1], "head":[-3,23,1],
+   "shL":[2,-10], "shR":[2,-10], "armL":[5,2,-100,0,73], "armR":[9,-1,-100,0,-4], "handL":[-2,-8,160], "handR":[-7,-6,120], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[-16,6,-98,0,-23], "legR":[-16,0,-99,0,25], "footL":[5,-41,0], "footR":[4,-27,0]},
+  {"t":2.833,
+   "hips":[0,0,101], "body":[0,-6,0], "chest":[1,5,-1], "head":[-3,23,1],
+   "shL":[2,-10], "shR":[2,-10], "armL":[5,2,-100,0,73], "armR":[9,-1,-100,0,-4], "handL":[-2,-8,160], "handR":[-7,-6,120], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[-16,6,-98,0,-23], "legR":[-16,0,-99,0,25], "footL":[5,-41,0], "footR":[4,-27,0]}
+]}

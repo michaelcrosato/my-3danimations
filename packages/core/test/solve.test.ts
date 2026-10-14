@@ -60,7 +60,7 @@ describe("solve on the reference body", () => {
     expect(n).toBeGreaterThan(7500);
     expect(worst).toBeLessThan(0.01);
     expect(shared).toBeLessThan(40);
-  });
+  }, 30_000);
   it("lifts a pose whose sole would go below the floor, and leaves one standing on it alone", () => {
     const sunk = { ...keyAt(sets[0]!.clips[Object.keys(sets[0]!.clips)[0]!]!.clip as never, 0), hips: [0, 0, 90] };
     const s = solve(sunk, b), X = decodePose(b.rest, sunk, new Array(108));

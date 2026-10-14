@@ -1,14 +1,17 @@
 // The root an in-place clip implies (PLAN.md WP-2.5; riftlight's zero-slide gait, docs/ANIMATION.md:234-244): while
 // a foot is planted it slides back under the body exactly as fast as the body moves, so the body's path is the planted
 // foot's contact point's, reversed. Sampled once per clip: at each sample the weight-bearing foot (of the planted ones,
-// the one nearest under the pelvis), its lowest sole point's velocity; flight phases in-betweened; summed over loop
-// cycles. A clip with its own root travel keeps it.
+// the one nearest under the pelvis), its lowest sole point's velocity; flight phases in-betweened (a one-shot that ends
+// off its feet spends its speed over the time a body falls its hip height); summed over loop cycles. A clip with its own
+// root travel keeps it.
 import { PORTABLE } from "../math/portable.ts";
 import { IDX, type Rest } from "../format/body.ts";
 import type { Contacts } from "../format/types.ts";
 import { rootAt, type Playable, type RootPose } from "../clip/sample.ts";
 import { sampleAll } from "../clip/contacts.ts";
 
+/** Gravity, mm/s². */
+const G = 9810;
 /** A clip's root over time in millimetres (world: forward, right; heading in degrees), and its mean speed (mm/s). */
 export interface ContactRoot {
   root(t: number): RootPose;
@@ -61,7 +64,13 @@ export function contactRoot(clip: Playable, R: Rest, contacts: Contacts, fps = 6
     }
     const pv = prev ? velAt(i - prev)! : null, nv = next ? velAt(i + next)! : null;
     if (pv && nv) return [pv[0]! + ((nv[0]! - pv[0]!) * prev) / (prev + next), pv[1]! + ((nv[1]! - pv[1]!) * prev) / (prev + next)];
-    return pv ?? nv ?? [0, 0];
+    // a one-shot that ends off its feet (thrown, falling): its speed is spent over the time a body falls its hip height
+    // (held to the clip's end, a knockback's take-off flung the body 7 to 9 hip heights)
+    if (pv && !nv) {
+      const s = Math.max(0, 1 - (prev * dt) / PORTABLE.sqrt((2 * R.H0) / G));
+      return [pv[0]! * s, pv[1]! * s];
+    }
+    return nv ?? [0, 0];
   });
   // the path: the velocities summed (trapezoids)
   const pos: [number, number][] = [[0, 0]];

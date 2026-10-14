@@ -1,0 +1,26 @@
+{
+"format": "2.0",
+"id": "STYLE100_IDLE/OnToesCrouched_Idle",
+"name": "OnToesCrouched_Idle",
+"legend": "2.0",
+"dur": 2.8,
+"loop": true,
+"fps": 30,
+"tags": ["idle","style"],
+"desc": "Standing, on toes crouched style: as crouched style but on tip toes",
+"skeleton": "humanoid",
+"restSrc": "100STYLE",
+"contacts": {"by":"detected","footL":[[0,2.8]],"footR":[[0,2.8]]},
+"facts": {"by":"m3a-facts@1","height":[89,89],"seam":0,"speed":0,"travel":[0,0]},
+"provenance": {"src":"100STYLE","take":"OnToesCrouched_ID 11.23-14.02","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
+"quality": {"fit":[11,47],"qa":"pass","qaVersion":"m3a-sensors@1"},
+"keys": [
+  {"t":0,
+   "hips":[0,0,89], "body":[0,9,0], "chest":[0,14,2], "head":[-3,-5,-1],
+   "shL":[7,-8], "shR":[4,-10], "armL":[38,5,-93,8,33], "armR":[32,14,-94,11,-85], "handL":[-4,-8,137], "handR":[-1,-1,-156], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[18,3,-98,76,-1], "legR":[24,-5,-97,74,-6], "footL":[19,-12,28], "footR":[15,15,23]},
+  {"t":2.8,
+   "hips":[0,0,89], "body":[0,9,0], "chest":[0,14,2], "head":[-3,-5,-1],
+   "shL":[7,-8], "shR":[4,-10], "armL":[38,5,-93,8,33], "armR":[32,14,-94,11,-85], "handL":[-4,-8,137], "handR":[-1,-1,-156], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[18,3,-98,76,-1], "legR":[24,-5,-97,74,-6], "footL":[19,-12,28], "footR":[15,15,23]}
+]}

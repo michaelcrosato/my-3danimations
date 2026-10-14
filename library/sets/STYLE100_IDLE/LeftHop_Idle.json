@@ -1,0 +1,26 @@
+{
+"format": "2.0",
+"id": "STYLE100_IDLE/LeftHop_Idle",
+"name": "LeftHop_Idle",
+"legend": "2.0",
+"dur": 2.5,
+"loop": true,
+"fps": 30,
+"tags": ["idle","style"],
+"desc": "Standing, left hop style: hop on left foot",
+"skeleton": "humanoid",
+"restSrc": "100STYLE",
+"contacts": {"by":"detected","footL":[[0,2.5]]},
+"facts": {"by":"m3a-facts@1","height":[102,102],"seam":0,"speed":0,"travel":[0,0]},
+"provenance": {"src":"100STYLE","take":"LeftHop_ID 15.88-18.38","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
+"quality": {"fit":[11,31],"qa":"pass","qaVersion":"m3a-sensors@1"},
+"keys": [
+  {"t":0,
+   "hips":[0,0,102], "body":[0,-3,-5], "chest":[0,11,4], "head":[-1,12,4],
+   "shL":[0,-8], "shR":[3,-5], "armL":[12,9,-99,4,-6], "armR":[10,16,-98,0,-19], "handL":[-10,1,73], "handR":[-5,9,129], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[-13,0,-99,0,-4], "legR":[-29,-6,-96,84,-2], "footL":[5,8,0], "footR":[48,-127,-18]},
+  {"t":2.5,
+   "hips":[0,0,102], "body":[0,-3,-5], "chest":[0,11,4], "head":[-1,12,4],
+   "shL":[0,-8], "shR":[3,-5], "armL":[12,9,-99,4,-6], "armR":[10,16,-98,0,-19], "handL":[-10,1,73], "handR":[-5,9,129], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[-13,0,-99,0,-4], "legR":[-29,-6,-96,84,-2], "footL":[5,8,0], "footR":[48,-127,-18]}
+]}

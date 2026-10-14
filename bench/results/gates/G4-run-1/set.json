@@ -1,0 +1,83 @@
+{
+ "about": "the demo's scripted session on G4's skeletons, read by the sensors (PLAN.md §9.3)",
+ "rigs": [
+  {
+   "rig": "gen-0",
+   "verdict": "warn",
+   "hits": 1,
+   "fails": [],
+   "warns": [
+    "ballL 3.65–3.77 s: shakes 15.7 mm back and forth, key after key (warn at 12): smooth it (fix: filter jitter)",
+    "ballR 4.18–4.23 s: shakes 15.0 mm back and forth, key after key (warn at 12): smooth it (fix: filter jitter)",
+    "ballL 4.58–4.70 s: shakes 16.4 mm back and forth, key after key (warn at 12): smooth it (fix: filter jitter)",
+    "elbowL 10.97–11.02 s: shakes 33.7 mm back and forth, key after key (warn at 12): smooth it (fix: filter jitter)"
+   ]
+  },
+  {
+   "rig": "gen-1",
+   "verdict": "warn",
+   "hits": 1,
+   "fails": [],
+   "warns": [
+    "toeR 4.75–4.80 s: shakes 35.7 mm back and forth, key after key (warn at 29): smooth it (fix: filter jitter)",
+    "elbowL 10.97–11.02 s: shakes 89.4 mm back and forth, key after key (warn at 29): smooth it (fix: filter jitter)"
+   ]
+  },
+  {
+   "rig": "gen-2",
+   "verdict": "warn",
+   "hits": 1,
+   "fails": [],
+   "warns": [
+    "toeR 4.77–4.88 s: shakes 43.1 mm back and forth, key after key (warn at 30): smooth it (fix: filter jitter)",
+    "elbowL 10.97–11.02 s: shakes 94.5 mm back and forth, key after key (warn at 30): smooth it (fix: filter jitter)"
+   ]
+  },
+  {
+   "rig": "gen-3",
+   "verdict": "warn",
+   "hits": 1,
+   "fails": [],
+   "warns": [
+    "footL 2.43–3.17 s: the planted foot glides at 13.7 cm/s (101 mm in 0.73 s) (warn at 14): hold it still while planted (fix: bake foot locks), or match the root's speed to the stride",
+    "elbowL 10.97–11.02 s: shakes 58.6 mm back and forth, key after key (warn at 20): smooth it (fix: filter jitter)"
+   ]
+  },
+  {
+   "rig": "quaternius-mannequin-m",
+   "verdict": "warn",
+   "hits": 1,
+   "fails": [],
+   "warns": [
+    "footR 3.12–3.55 s: the planted foot glides at 20.0 cm/s (83 mm in 0.42 s) (warn at 17): hold it still while planted (fix: bake foot locks), or match the root's speed to the stride",
+    "toeR 4.35–4.38 s: shakes 27.1 mm back and forth, key after key (warn at 25): smooth it (fix: filter jitter)",
+    "elbowL 10.97–11.02 s: shakes 64.1 mm back and forth, key after key (warn at 25): smooth it (fix: filter jitter)"
+   ]
+  },
+  {
+   "rig": "kaykit-knight",
+   "verdict": "warn",
+   "hits": 1,
+   "fails": [],
+   "warns": [
+    "footL 2.50–3.17 s: the planted foot slides 85 mm from where it landed (warn at 60): hold it still while planted (fix: bake foot locks), or end the contact where it lifts",
+    "footL 2.50–3.17 s: the planted foot glides at 12.8 cm/s (85 mm in 0.67 s) (warn at 7): hold it still while planted (fix: bake foot locks), or match the root's speed to the stride",
+    "ballL 3.78–3.82 s: shakes 12.8 mm back and forth, key after key (warn at 10): smooth it (fix: filter jitter)",
+    "ballR 4.25–4.28 s: shakes 13.2 mm back and forth, key after key (warn at 10): smooth it (fix: filter jitter)",
+    "ballL 4.72–4.75 s: shakes 13.0 mm back and forth, key after key (warn at 10): smooth it (fix: filter jitter)",
+    "elbowL 10.97–11.02 s: shakes 21.4 mm back and forth, key after key (warn at 10): smooth it (fix: filter jitter)"
+   ]
+  },
+  {
+   "rig": "orangejuice-male-base",
+   "verdict": "warn",
+   "hits": 1,
+   "fails": [],
+   "warns": [
+    "footL 2.50–3.22 s: the planted foot glides at 17.5 cm/s (125 mm in 0.72 s) (warn at 17): hold it still while planted (fix: bake foot locks), or match the root's speed to the stride",
+    "toeR 4.80 s: shakes 27.5 mm back and forth, key after key (warn at 25): smooth it (fix: filter jitter)",
+    "elbowL 10.97–11.02 s: shakes 64.5 mm back and forth, key after key (warn at 25): smooth it (fix: filter jitter)"
+   ]
+  }
+ ]
+}

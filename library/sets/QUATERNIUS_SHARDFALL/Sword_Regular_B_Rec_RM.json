@@ -10,8 +10,10 @@
 "desc": "recovers from the second strike back to standing (travels)",
 "skeleton": "humanoid",
 "restSrc": "UAL2",
+"contacts": {"by":"detected","footL":[[0,0.317],[0.783,1.033]],"footR":[[0,1.033]]},
+"facts": {"by":"m3a-facts@1","height":[59,96],"travel":[40,0]},
 "provenance": {"src":"UAL2","method":"keyed","producer":{"tool":"m3a-migrate","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
-"quality": {"fit":[15,113],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[15,113],"qa":"pass","qaVersion":"m3a-sensors@1"},
 "keys": [
   {"t":0,
    "hips":[-5,3,59], "body":[22,32,-12], "chest":[51,33,-16], "head":[-62,-27,3], "root":[76,0],

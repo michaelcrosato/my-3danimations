@@ -10,9 +10,10 @@
 "desc": "Swing arms much more than normal almost punching into the air",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"facts": {"by":"m3a-migrate@1","speed":101},
+"contacts": {"by":"detected","footL":[[0.874,1.599]],"footR":[[0.198,0.874]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[95,100],"seam":0,"speed":101,"travel":[140.9,0.5]},
 "provenance": {"src":"100STYLE","take":"WildArms_FW 11.68-13.17","method":"captured","producer":{"tool":"m3a-migrate","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
-"quality": {"fit":[9,72],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[9,72],"qa":"pass","qaVersion":"m3a-sensors@1"},
 "keys": [
   {"t":0,
    "hips":[0,0,98], "body":[-13,-4,-2], "chest":[-2,22,9], "head":[9,3,6],

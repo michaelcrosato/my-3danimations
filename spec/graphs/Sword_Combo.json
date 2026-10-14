@@ -1,0 +1,135 @@
+{
+ "format": "2.0",
+ "id": "GRAPHS/Sword_Combo",
+ "name": "Sword Combo",
+ "desc": "Three sword strikes, each pressed on within its cancel window (late in a strike, early in its recovery), else recovered to guard",
+ "tags": [
+  "attack",
+  "combo"
+ ],
+ "parameters": {
+  "attack": {
+   "type": "trigger",
+   "buffer": 0.3
+  }
+ },
+ "start": "guard",
+ "states": {
+  "guard": {
+   "clip": "QUATERNIUS_3D2DGE/Sword_Idle"
+  },
+  "a": {
+   "clip": "QUATERNIUS_3D2DGE/Sword_Regular_A"
+  },
+  "a_rec": {
+   "clip": "QUATERNIUS_3D2DGE/Sword_Regular_A_Rec"
+  },
+  "b": {
+   "clip": "QUATERNIUS_3D2DGE/Sword_Regular_B"
+  },
+  "b_rec": {
+   "clip": "QUATERNIUS_3D2DGE/Sword_Regular_B_Rec"
+  },
+  "c": {
+   "clip": "QUATERNIUS_3D2DGE/Sword_Regular_C"
+  }
+ },
+ "transitions": [
+  {
+   "from": "guard",
+   "to": "a",
+   "when": [
+    {
+     "param": "attack"
+    }
+   ],
+   "fade": 0.1
+  },
+  {
+   "from": "a",
+   "to": "b",
+   "when": [
+    {
+     "param": "attack"
+    }
+   ],
+   "window": [
+    0.2,
+    0.433
+   ],
+   "fade": 0.1
+  },
+  {
+   "from": "a",
+   "to": "a_rec",
+   "exit": 1,
+   "fade": 0.05
+  },
+  {
+   "from": "a_rec",
+   "to": "b",
+   "when": [
+    {
+     "param": "attack"
+    }
+   ],
+   "window": [
+    0,
+    0.45
+   ],
+   "fade": 0.1
+  },
+  {
+   "from": "a_rec",
+   "to": "guard",
+   "exit": 1,
+   "fade": 0.25
+  },
+  {
+   "from": "b",
+   "to": "c",
+   "when": [
+    {
+     "param": "attack"
+    }
+   ],
+   "window": [
+    0.25,
+    0.533
+   ],
+   "fade": 0.1
+  },
+  {
+   "from": "b",
+   "to": "b_rec",
+   "exit": 1,
+   "fade": 0.05
+  },
+  {
+   "from": "b_rec",
+   "to": "c",
+   "when": [
+    {
+     "param": "attack"
+    }
+   ],
+   "window": [
+    0,
+    0.5
+   ],
+   "fade": 0.1
+  },
+  {
+   "from": "b_rec",
+   "to": "guard",
+   "exit": 1,
+   "fade": 0.25
+  },
+  {
+   "from": "c",
+   "to": "guard",
+   "exit": 1,
+   "fade": 0.3
+  }
+ ]
+}

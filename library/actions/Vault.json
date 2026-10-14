@@ -1,0 +1,54 @@
+{
+ "format": "2.0",
+ "id": "ACTIONS/Vault",
+ "name": "Vault",
+ "tags": [
+  "jump",
+  "run"
+ ],
+ "desc": "Runs up, leaps over a wall about two thirds of a hip height high, lands and runs on",
+ "steps": [
+  {
+   "as": "v",
+   "op": "clip",
+   "id": "CMU_CURATED/Run_Jump_Over"
+  },
+  {
+   "op": "smooth",
+   "in": "v",
+   "window": 0.15
+  }
+ ],
+ "beats": [
+  {
+   "name": "run_up",
+   "from": 0,
+   "to": 0.55
+  },
+  {
+   "name": "leap",
+   "from": 0.55,
+   "to": 1.13
+  },
+  {
+   "name": "land",
+   "from": 1.13,
+   "to": 1.52
+  },
+  {
+   "name": "run_on",
+   "from": 1.52,
+   "to": 1.9
+  }
+ ],
+ "interrupts": [
+  {
+   "t": 1.52,
+   "to": [
+    "PROCEDURAL/Run",
+    "PROCEDURAL/Walk"
+   ],
+   "why": "landed, a foot planted"
+  }
+ ]
+}

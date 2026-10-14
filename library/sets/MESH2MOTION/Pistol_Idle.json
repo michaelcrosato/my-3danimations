@@ -10,15 +10,17 @@
 "desc": "standing ready, pistol held low in both hands",
 "skeleton": "humanoid",
 "restSrc": "M2M_QUATERNIUS",
-"provenance": {"src":"M2M_QUATERNIUS","orig":"QUATERNIUS_SHARDFALL/Pistol_Idle_Loop","method":"keyed","producer":{"tool":"m3a-migrate","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
-"quality": {"fit":[13,61],"qa":"unchecked","qaVersion":"none"},
+"contacts": {"by":"detected","footL":[[0,2.083]],"footR":[[0,2.083]]},
+"facts": {"by":"m3a-facts@1","height":[100,100],"seam":0,"speed":0,"travel":[0,0]},
+"provenance": {"src":"M2M_QUATERNIUS","orig":"QUATERNIUS_SHARDFALL/Pistol_Idle_Loop","method":"keyed","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
+"quality": {"fit":[11,48],"qa":"pass","qaVersion":"m3a-sensors@1"},
 "keys": [
   {"t":0,
    "hips":[-10,0,100], "body":[13,-6,0], "chest":[25,6,-5], "head":[-13,16,7],
-   "shL":[-29,7], "shR":[33,-6], "armL":[99,15,-9,38,19], "armR":[72,-68,15,22,2],
+   "shL":[-29,7], "shR":[33,-6], "armL":[99,1,-10,47,2], "armR":[75,-66,10,7,2], "handL":[-25,29,6], "handR":[-4,18,55], "fingersL":[0,0,0,0,0], "fingersR":[84,84,84,84,84],
    "legL":[4,18,-98,20,8], "legR":[-33,13,-94,14,-36], "footL":[6,8,0], "footR":[5,33,0]},
   {"t":2.067,
    "hips":[-10,0,100], "body":[13,-6,0], "chest":[25,6,-5], "head":[-13,16,7],
-   "shL":[-29,7], "shR":[33,-6], "armL":[99,15,-9,38,19], "armR":[72,-68,15,22,2],
+   "shL":[-29,7], "shR":[33,-6], "armL":[99,1,-10,47,2], "armR":[75,-66,10,7,2], "handL":[-25,29,6], "handR":[-4,18,55], "fingersL":[0,0,0,0,0], "fingersR":[84,84,84,84,84],
    "legL":[4,18,-98,20,8], "legR":[-33,13,-94,14,-36], "footL":[6,8,0], "footR":[5,33,0]}
 ]}

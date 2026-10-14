@@ -1,0 +1,30 @@
+{
+ "format": "2.0",
+ "id": "RECIPES/Idle_Flinch",
+ "name": "Idle Flinch",
+ "tags": [
+  "idle",
+  "hurt"
+ ],
+ "desc": "Standing, flinching as if hit in the chest",
+ "steps": [
+  {
+   "as": "idle",
+   "op": "clip",
+   "id": "MESH2MOTION/Idle_A"
+  },
+  {
+   "as": "hit",
+   "op": "clip",
+   "id": "QUATERNIUS_SHARDFALL/Hit_Chest"
+  },
+  {
+   "op": "layer",
+   "base": "idle",
+   "over": "hit",
+   "mask": "upper",
+   "additive": true,
+   "weight": 0.6
+  }
+ ]
+}

@@ -1,0 +1,38 @@
+{
+ "format": "2.0",
+ "id": "RECIPES/Walk_Stiffening",
+ "name": "Walk Stiffening",
+ "tags": [
+  "walk"
+ ],
+ "desc": "A walk whose upper body (arms, chest, spine and head) stiffens over one stride",
+ "steps": [
+  {
+   "as": "walk",
+   "op": "clip",
+   "id": "STYLE100/Neutral_Walk"
+  },
+  {
+   "as": "stiff",
+   "op": "stiffen",
+   "in": "walk",
+   "amount": 0.8
+  },
+  {
+   "op": "blend",
+   "a": "walk",
+   "b": "stiff",
+   "w": [
+    [
+     0,
+     0
+    ],
+    [
+     1.3,
+     1
+    ]
+   ],
+   "warp": false
+  }
+ ]
+}

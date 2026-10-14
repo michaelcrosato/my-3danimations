@@ -69,11 +69,18 @@ export const pt = (X: ArrayLike<number>, n: string): V3 => {
 export function ik3(a: V3, b: V3, L1: number, L2: number, hint: V3): [V3, V3] {
   let d = sub(b, a);
   let dist = len(d);
-  const max = L1 + L2 - 0.01;
+  // the end is reached within [|L1 - L2|, L1 + L2]: past the far end the limb straightens toward it, inside the near end
+  // (a thigh much longer than its shin folded tight) it folds fully along the way to it, the lengths kept either way
+  // (a fully folded limb, as a decoded bend of 180° gives, is at |L1 - L2| already and stays as it is)
+  const max = L1 + L2 - 0.01, min = Math.abs(L1 - L2);
   if (dist > max) {
     d = mul(d, max / dist);
     b = add(a, d);
     dist = max;
+  } else if (dist < min - 1e-6 && dist > 1e-9) {
+    d = mul(d, min / dist);
+    b = add(a, d);
+    dist = min;
   }
   dist = Math.max(dist, 0.01);
   const n = mul(d, 1 / dist);

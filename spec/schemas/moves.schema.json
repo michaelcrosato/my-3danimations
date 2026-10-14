@@ -1,0 +1,209 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "$id": "https://github.com/michaelcrosato/my-3danimations/spec/schemas/moves.schema.json",
+ "title": "m3a moves (procedural sources)",
+ "description": "The move model's moves (library/moves.json; PLAN.md WP-6.2, D71): a strike, kick, throw or cast in three phases (wind, active, recover), in one unit system: angles in degrees, reach in arm lengths, heights, lunges and hops in % of the hip height, times in seconds. The shape only: @m3a/core's procedural.validateMoves also checks that a name is used once, that an alternate names a move in the file, that a height is given on the ground plane only, and that a kick is on the ground plane.",
+ "type": "object",
+ "required": [
+  "about",
+  "moves"
+ ],
+ "additionalProperties": false,
+ "properties": {
+  "about": {
+   "type": "string",
+   "pattern": "\\S"
+  },
+  "moves": {
+   "type": "array",
+   "minItems": 1,
+   "items": {
+    "$ref": "#/$defs/move"
+   }
+  }
+ },
+ "$defs": {
+  "move": {
+   "type": "object",
+   "required": [
+    "name",
+    "about",
+    "hand",
+    "plane",
+    "from",
+    "to",
+    "reach",
+    "wind",
+    "active",
+    "recover",
+    "hold",
+    "hit",
+    "lunge",
+    "hop",
+    "crouch",
+    "lean",
+    "twist",
+    "spin",
+    "trail"
+   ],
+   "additionalProperties": false,
+   "properties": {
+    "name": {
+     "type": "string",
+     "pattern": "^[a-z][a-z0-9_]*$"
+    },
+    "about": {
+     "type": "string",
+     "pattern": "\\S",
+     "description": "What it looks like, in a line: what a model picks a move by."
+    },
+    "hand": {
+     "enum": [
+      "right",
+      "left",
+      "both",
+      "pair",
+      "kick"
+     ]
+    },
+    "plane": {
+     "enum": [
+      "ground",
+      "side"
+     ],
+     "description": "ground: a level arc round the shoulders (0 ahead, + to the right); side: an arc up and down in front (+ up). A kick is on the ground plane."
+    },
+    "from": {
+     "type": "number",
+     "minimum": -720,
+     "maximum": 720,
+     "description": "Where the arc starts, degrees."
+    },
+    "to": {
+     "type": "number",
+     "minimum": -720,
+     "maximum": 720,
+     "description": "Where the arc ends, degrees."
+    },
+    "height": {
+     "type": "array",
+     "minItems": 2,
+     "maxItems": 2,
+     "items": {
+      "type": "number",
+      "minimum": -300,
+      "maximum": 300
+     },
+     "description": "[start, end] in % of the hip height: above the shoulders' centre for a hand, above the floor for a kick. The ground plane only."
+    },
+    "reach": {
+     "type": "array",
+     "minItems": 2,
+     "maxItems": 2,
+     "items": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "maximum": 2
+     },
+     "description": "[start, end] in arm lengths from the shoulders' centre (a kick: the foot from the hips' centre)."
+    },
+    "windReach": {
+     "type": "number",
+     "exclusiveMinimum": 0,
+     "maximum": 2,
+     "description": "Where the wind starts the hand, arm lengths."
+    },
+    "wind": {
+     "type": "number",
+     "exclusiveMinimum": 0,
+     "maximum": 5,
+     "description": "Seconds."
+    },
+    "active": {
+     "type": "number",
+     "exclusiveMinimum": 0,
+     "maximum": 5,
+     "description": "Seconds."
+    },
+    "recover": {
+     "type": "number",
+     "exclusiveMinimum": 0,
+     "maximum": 5,
+     "description": "Seconds."
+    },
+    "hold": {
+     "type": "number",
+     "exclusiveMinimum": 0,
+     "maximum": 0.95,
+     "description": "The share of the recovery that holds the end pose (above 0, at most 0.95: the rest eases back)."
+    },
+    "hit": {
+     "type": "number",
+     "minimum": 0,
+     "maximum": 1,
+     "description": "The share of the strike where it connects."
+    },
+    "lunge": {
+     "type": "number",
+     "minimum": -100,
+     "maximum": 100,
+     "description": "% of the hip height."
+    },
+    "hop": {
+     "type": "number",
+     "minimum": 0,
+     "maximum": 100,
+     "description": "% of the hip height."
+    },
+    "crouch": {
+     "type": "number",
+     "minimum": 0,
+     "maximum": 1,
+     "description": "How deep the body dips."
+    },
+    "lean": {
+     "type": "number",
+     "minimum": -90,
+     "maximum": 90,
+     "description": "Degrees forward (back when negative)."
+    },
+    "twist": {
+     "type": "number",
+     "minimum": 0,
+     "maximum": 2,
+     "description": "How much the torso turns with the swing."
+    },
+    "spin": {
+     "type": "boolean"
+    },
+    "trail": {
+     "type": "boolean"
+    },
+    "guard": {
+     "type": "boolean"
+    },
+    "alt": {
+     "type": "string",
+     "pattern": "^[a-z][a-z0-9_]*$"
+    }
+   },
+   "if": {
+    "properties": {
+     "hand": {
+      "const": "kick"
+     }
+    },
+    "required": [
+     "hand"
+    ]
+   },
+   "then": {
+    "properties": {
+     "plane": {
+      "const": "ground"
+     }
+    }
+   }
+  }
+ }
+}

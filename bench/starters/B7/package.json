@@ -1,0 +1,9 @@
+{
+  "name": "b7-starter",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "node check.ts"
+  },
+  "dependencies": {}
+}

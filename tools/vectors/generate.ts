@@ -9,6 +9,7 @@ import { join } from "node:path";
 import { stringify } from "../../spec/conformance/runner/json.ts";
 import { loadCmuReader, loadCodec, loadGlbReader, loadSet, quietly, type Capture, type Clip1, type MR } from "./oracle.ts";
 import { glb, rigGltf, type Proportions } from "./rig.ts";
+import { rigifyGltf } from "./rigify.ts";
 import { format, type Rest } from "@m3a/core";
 
 const { keyLens, mirror: mirror2, pose: pose2 } = format;
@@ -99,6 +100,24 @@ export async function generate(root: string, work: string): Promise<Map<string, 
   const rigT1 = tier1a(MR, "the tiny rig (tier1b/rig.gltf packed as .glb, read by anim-import.mjs readLibrary)", rigLib.clips, "A_TPose", rigCat, rigLog);
   put("tier1a/rig.json", { ...rigT1, glbSha256: sha256(rigGlb) });
   crossCheck("rig", rigT1, JSON.parse(readFileSync(join(fixtures, "rig_expected.json"), "utf8")));
+
+  // ---- the Rigify rig: tier 1b input (a skinned mesh, every accessor form, STEP and scale tracks, a turned and scaled
+  // root), and the origin's reading of it: every clip's captured body points, the rest and the mannequin's look
+  const rf = rigifyGltf(), rfGlb = glb(rf), rfPath = join(work, "rigify.glb");
+  writeFileSync(rfPath, rfGlb);
+  put("tier1b/rigify.gltf", stringify({ ...rf.json, buffers: [{ byteLength: rf.bin.length, uri: `data:application/octet-stream;base64,${Buffer.from(rf.bin).toString("base64")}` }] }) + "\n");
+  const readRigify = await loadGlbReader(root, work, rfPath, "RIGIFY");
+  const { value: rfLib, log: rfLog } = await quietly(() => readRigify(rfPath));
+  put("tier1b/rigify-expected.json", {
+    about: "Tier 1b, the Rigify rig (tier1b/rigify.gltf packed as .glb, read by anim-import.mjs readLibrary): its rig, every clip's captured body points (POINTS order, f r z mm, float32 values), the rest measured from A_TPose and the mannequin's look. Bit for bit.",
+    glbSha256: sha256(rfGlb),
+    points: MR.POINTS,
+    rig: rfLib.rig,
+    rest: MR.measure(rfLib.clips, "A_TPose"),
+    body: rfLib.body,
+    clips: Object.fromEntries(Object.entries(rfLib.clips).map(([n, c]) => [n, { capture: captureData(c, MR.P) }])),
+    log: rfLog,
+  });
 
   // ---- the CMU take 09_02: tier 1b input (the ASF and AMC text), tier 1a output, cross-checked likewise
   const asf = readFileSync(join(fixtures, "cmu/09.asf"), "latin1");

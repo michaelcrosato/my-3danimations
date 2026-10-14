@@ -1,0 +1,26 @@
+{
+"format": "2.0",
+"id": "STYLE100_IDLE/Heavyset_Idle",
+"name": "Heavyset_Idle",
+"legend": "2.0",
+"dur": 2.5,
+"loop": true,
+"fps": 30,
+"tags": ["idle","style"],
+"desc": "Standing, heavyset style: walking as a muscle man tensed biceps",
+"skeleton": "humanoid",
+"restSrc": "100STYLE",
+"contacts": {"by":"detected","footL":[[0,2.5]],"footR":[[0,2.5]]},
+"facts": {"by":"m3a-facts@1","height":[100,100],"seam":0,"speed":0,"travel":[0,0]},
+"provenance": {"src":"100STYLE","take":"Heavyset_ID 19.72-22.22","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
+"quality": {"fit":[7,28],"qa":"pass","qaVersion":"m3a-sensors@1"},
+"keys": [
+  {"t":0,
+   "hips":[0,0,100], "body":[0,-9,1], "chest":[3,18,0], "head":[-2,15,-1],
+   "shL":[3,-3], "shR":[4,-1], "armL":[30,26,-92,67,-32], "armR":[32,19,-93,64,31], "handL":[-5,18,116], "handR":[-4,18,119], "fingersL":[0,0,0,0,0], "fingersR":[1,1,1,1,1],
+   "legL":[-23,1,-97,10,-4], "legR":[-25,2,-97,12,5], "footL":[9,-5,0], "footR":[9,2,0]},
+  {"t":2.5,
+   "hips":[0,0,100], "body":[0,-9,1], "chest":[3,18,0], "head":[-2,15,-1],
+   "shL":[3,-3], "shR":[4,-1], "armL":[30,26,-92,67,-32], "armR":[32,19,-93,64,31], "handL":[-5,18,116], "handR":[-4,18,119], "fingersL":[0,0,0,0,0], "fingersR":[1,1,1,1,1],
+   "legL":[-23,1,-97,10,-4], "legR":[-25,2,-97,12,5], "footL":[9,-5,0], "footR":[9,2,0]}
+]}

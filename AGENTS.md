@@ -29,10 +29,11 @@ why. This file is how.
 |---|---|---|---|
 | `npm run check` | T0 | typecheck, lint, quick doctrine checks | 15 s |
 | `npm test` | T1 | unit, conformance, sensors on a sample | 90 s |
-| `npm run e2e` | T2 | browser adapter checks, full library QA | 8 min |
+| `npm run e2e` | T2 | browser adapter checks, full library QA, the library-wide sweeps T1 samples, in full (D74) | 8 min |
 | `npm run test:changed` | | the suites covering files changed against `main`, saying why each ran | |
 | `npm run test:cross-engine` | | the portable math, a quaternion chain, the helpers and the Animator's script in V8 and JavaScriptCore (Bun), bit for bit, with each function's cost | |
 | `npm run qa [-- --sample N] [--dist] [--check] [--fix]` | | the sensors over the migrated library: verdicts, the metrics that fail most, the distributions the thresholds come from; `--check` against the committed baseline (`--baseline` rewrites it, in a commit that says why); `--fix` lints and fixes every clip, failing on any that comes out worse or invalid | |
+| `npm run qa -- library [--check] [--baseline]` | | the library as a whole (WP-5.8): every clip's recorded verdict and reason, reasons whose finding is gone, clips that stand off the floor unanswered (D69), the census against G5's floors, the distributions against `library/baselines/distributions.json` (they may only improve; `--baseline` records them), `docs/LIBRARY.md` (`--check` compares it); T2 runs it | |
 | `npm run fixtures -- fetch \| check [--manifest <file>]` | | the real CC0 rigs (`tools/fixtures/rigs.json`) fetched by SHA-256 into `.cache/fixtures/`, their licenses read; `check` reads the cache alone | |
 | `npm run plant [-- --check]` | | plant ten kinds of defect into 100 clean library clips, with the times the sensors must find them (`--check`: the fixtures rebuild byte for byte) | |
 | `npm run gate -- G<n>` | Gate | the gate's fixed command set (`PLAN.md` §9.3), with its time | none |
@@ -42,7 +43,8 @@ why. This file is how.
 | `npm run bench -- B<n> --trials 5` | | the fresh-agent benchmark | |
 
 A tool warns when a tier runs over budget and fails it at 1.5×. Never skip a test to get green; a test that waits on
-wall-clock time is a bug. In cloud sessions the SessionStart hook runs `npm ci` and exports `CHROMIUM_PATH`; never run
+wall-clock time is a bug. In cloud sessions the SessionStart hook puts Node 24 first on `PATH` when the default is
+older, runs `npm ci`, exports `CHROMIUM_PATH` and fetches the rigs and the pinned sources by hash (D79); never run
 `playwright install`.
 
 ## Work rules (`PLAN.md` §8)

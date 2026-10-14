@@ -1,0 +1,26 @@
+{
+"format": "2.0",
+"id": "STYLE100_IDLE/Roadrunner_Idle",
+"name": "Roadrunner_Idle",
+"legend": "2.0",
+"dur": 2.5,
+"loop": true,
+"fps": 30,
+"tags": ["idle","style"],
+"desc": "Standing, roadrunner style: arms behind as wings pick up knees - bent a little",
+"skeleton": "humanoid",
+"restSrc": "100STYLE",
+"contacts": {"by":"detected","footL":[[0,2.5]],"footR":[[0,2.5]]},
+"facts": {"by":"m3a-facts@1","height":[97,97],"seam":0,"speed":0,"travel":[0,0]},
+"provenance": {"src":"100STYLE","take":"Roadrunner_ID 13.55-16.05","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
+"quality": {"fit":[6,28],"qa":"pass","qaVersion":"m3a-sensors@1"},
+"keys": [
+  {"t":0,
+   "hips":[0,0,97], "body":[0,12,-1], "chest":[4,38,1], "head":[-1,-5,0],
+   "shL":[9,-11], "shR":[8,-7], "armL":[-34,-2,-94,47,-33], "armR":[-21,6,-97,45,28], "handL":[-24,24,53], "handR":[-20,19,66], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[25,1,-97,33,0], "legR":[26,0,-97,34,0], "footL":[-13,1,0], "footR":[-11,0,0]},
+  {"t":2.5,
+   "hips":[0,0,97], "body":[0,12,-1], "chest":[4,38,1], "head":[-1,-5,0],
+   "shL":[9,-11], "shR":[8,-7], "armL":[-34,-2,-94,47,-33], "armR":[-21,6,-97,45,28], "handL":[-24,24,53], "handR":[-20,19,66], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[25,1,-97,33,0], "legR":[26,0,-97,34,0], "footL":[-13,1,0], "footR":[-11,0,0]}
+]}

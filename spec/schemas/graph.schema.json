@@ -1,13 +1,558 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/michaelcrosato/my-3danimations/spec/schemas/graph.schema.json",
-  "title": "m3a graph (L3), a stub",
-  "description": "States, transitions and blend spaces (spec/GRAPH.md, WP-6.4). Stub until Phase 6: an object naming its format, states and transitions.",
-  "type": "object",
-  "required": ["format", "states", "transitions"],
-  "properties": {
-    "format": {"type": "string", "pattern": "^2\\.[0-9]+$"},
-    "states": {"type": "object"},
-    "transitions": {"type": "array"}
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "$id": "https://github.com/michaelcrosato/my-3danimations/spec/schemas/graph.schema.json",
+ "title": "m3a graph 2.0",
+ "description": "A graph (spec/GRAPH.md; PLAN.md WP-6.4, D73): parameters a host sets, a base layer of states and transitions (start, states, transitions), and layers over it. A state plays a clip, a compiled recipe, a blend space of clips by one or two parameters, or nothing (pass, over the base). The shape only: @m3a/core graph.validateGraph also checks that the names a graph uses exist, blend points are in order, conditions fit their parameters, every state is reached from its start, and the clips are there.",
+ "type": "object",
+ "required": [
+  "format",
+  "id",
+  "start",
+  "states",
+  "transitions"
+ ],
+ "additionalProperties": false,
+ "properties": {
+  "format": {
+   "type": "string",
+   "pattern": "^2\\.[0-9]+$"
+  },
+  "id": {
+   "type": "string",
+   "pattern": "^[A-Z0-9_]+/[A-Za-z0-9_]+$",
+   "description": "The graph id, SET/Slug."
+  },
+  "name": {
+   "type": "string"
+  },
+  "desc": {
+   "type": "string"
+  },
+  "tags": {
+   "type": "array",
+   "items": {
+    "type": "string",
+    "pattern": "^[a-z0-9-]+$"
+   }
+  },
+  "parameters": {
+   "type": "object",
+   "propertyNames": {
+    "pattern": "^[A-Za-z][A-Za-z0-9_-]*$"
+   },
+   "additionalProperties": {
+    "$ref": "#/$defs/parameter"
+   },
+   "description": "By name: number, bool or trigger, with a starting value (a trigger with how long a press waits)."
+  },
+  "start": {
+   "type": "string",
+   "pattern": "^[A-Za-z][A-Za-z0-9_-]*$",
+   "description": "The state the base layer starts in."
+  },
+  "states": {
+   "allOf": [
+    {
+     "$ref": "#/$defs/states"
+    }
+   ],
+   "additionalProperties": {
+    "not": {
+     "required": [
+      "pass"
+     ]
+    }
+   },
+   "description": "The base layer's states: a pass state belongs on a layer over it."
+  },
+  "transitions": {
+   "$ref": "#/$defs/transitions"
+  },
+  "layers": {
+   "type": "array",
+   "items": {
+    "$ref": "#/$defs/layer"
+   },
+   "description": "Layers over the base, bottom first."
   }
+ },
+ "$defs": {
+  "id": {
+   "type": "string",
+   "pattern": "^[A-Z0-9_]+/[A-Za-z0-9_]+$"
+  },
+  "clipId": {
+   "type": "string",
+   "pattern": "^[A-Z0-9_]+/[A-Za-z0-9_-]+$",
+   "description": "A clip's id, SET/Slug, as the format writes it (its slug may have a hyphen)."
+  },
+  "name": {
+   "type": "string",
+   "pattern": "^[A-Za-z][A-Za-z0-9_-]*$"
+  },
+  "parameter": {
+   "oneOf": [
+    {
+     "type": "object",
+     "required": [
+      "type"
+     ],
+     "additionalProperties": false,
+     "properties": {
+      "type": {
+       "const": "number"
+      },
+      "value": {
+       "type": "number"
+      }
+     }
+    },
+    {
+     "type": "object",
+     "required": [
+      "type"
+     ],
+     "additionalProperties": false,
+     "properties": {
+      "type": {
+       "const": "bool"
+      },
+      "value": {
+       "type": "boolean"
+      }
+     }
+    },
+    {
+     "type": "object",
+     "required": [
+      "type"
+     ],
+     "additionalProperties": false,
+     "properties": {
+      "type": {
+       "const": "trigger"
+      },
+      "buffer": {
+       "type": "number",
+       "minimum": 0,
+       "maximum": 10,
+       "description": "How long a press waits to be used, seconds (until it is, without one): input buffering."
+      }
+     }
+    }
+   ]
+  },
+  "states": {
+   "type": "object",
+   "minProperties": 1,
+   "propertyNames": {
+    "pattern": "^[A-Za-z][A-Za-z0-9_-]*$"
+   },
+   "additionalProperties": {
+    "$ref": "#/$defs/state"
+   }
+  },
+  "state": {
+   "type": "object",
+   "additionalProperties": false,
+   "oneOf": [
+    {
+     "required": [
+      "clip"
+     ]
+    },
+    {
+     "required": [
+      "recipe"
+     ]
+    },
+    {
+     "required": [
+      "blend"
+     ]
+    },
+    {
+     "required": [
+      "pass"
+     ]
+    }
+   ],
+   "properties": {
+    "clip": {
+     "$ref": "#/$defs/clipId"
+    },
+    "recipe": {
+     "$ref": "#/$defs/id"
+    },
+    "blend": {
+     "$ref": "#/$defs/blend"
+    },
+    "pass": {
+     "const": true,
+     "description": "Nothing plays: what is below shows through (a layer over the base only)."
+    },
+    "speed": {
+     "type": "number",
+     "minimum": -100,
+     "maximum": 100,
+     "description": "Playback speed (1); a one-shot plays forward (above 0), which graph.validateGraph checks with the clips."
+    },
+    "rate": {
+     "type": "string",
+     "pattern": "^[A-Za-z][A-Za-z0-9_-]*$",
+     "description": "A number parameter the speed is multiplied by each step: a host matching playback to its ground speed (stride warping) sets it."
+    },
+    "at": {
+     "type": "number",
+     "minimum": 0,
+     "description": "Where a clip state starts, seconds (0), unless its transition syncs it."
+    }
+   },
+   "allOf": [
+    {
+     "if": {
+      "not": {
+       "anyOf": [
+        {
+         "required": [
+          "clip"
+         ]
+        },
+        {
+         "required": [
+          "recipe"
+         ]
+        }
+       ]
+      }
+     },
+     "then": {
+      "not": {
+       "required": [
+        "at"
+       ]
+      }
+     }
+    },
+    {
+     "if": {
+      "required": [
+       "pass"
+      ]
+     },
+     "then": {
+      "not": {
+       "required": [
+        "rate"
+       ]
+      }
+     }
+    }
+   ]
+  },
+  "blend": {
+   "type": "object",
+   "required": [
+    "points"
+   ],
+   "additionalProperties": false,
+   "oneOf": [
+    {
+     "required": [
+      "param"
+     ]
+    },
+    {
+     "required": [
+      "params"
+     ]
+    }
+   ],
+   "properties": {
+    "param": {
+     "$ref": "#/$defs/name"
+    },
+    "params": {
+     "type": "array",
+     "minItems": 2,
+     "maxItems": 2,
+     "items": {
+      "$ref": "#/$defs/name"
+     }
+    },
+    "points": {
+     "type": "array",
+     "minItems": 2,
+     "items": {
+      "type": "object",
+      "required": [
+       "at",
+       "clip"
+      ],
+      "additionalProperties": false,
+      "properties": {
+       "at": {
+        "oneOf": [
+         {
+          "type": "number"
+         },
+         {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+           "type": "number"
+          }
+         }
+        ]
+       },
+       "clip": {
+        "$ref": "#/$defs/clipId"
+       }
+      }
+     }
+    },
+    "sync": {
+     "type": "boolean",
+     "description": "Its clips kept in phase (true)."
+    }
+   },
+   "if": {
+    "required": [
+     "param"
+    ]
+   },
+   "then": {
+    "properties": {
+     "points": {
+      "items": {
+       "properties": {
+        "at": {
+         "type": "number"
+        }
+       }
+      }
+     }
+    }
+   },
+   "else": {
+    "properties": {
+     "points": {
+      "items": {
+       "properties": {
+        "at": {
+         "type": "array"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "transitions": {
+   "type": "array",
+   "items": {
+    "$ref": "#/$defs/transition"
+   }
+  },
+  "transition": {
+   "type": "object",
+   "required": [
+    "from",
+    "to"
+   ],
+   "additionalProperties": false,
+   "properties": {
+    "from": {
+     "oneOf": [
+      {
+       "$ref": "#/$defs/name"
+      },
+      {
+       "const": "*"
+      },
+      {
+       "type": "array",
+       "minItems": 1,
+       "items": {
+        "$ref": "#/$defs/name"
+       }
+      }
+     ],
+     "description": "A state, a list of them, or * for any."
+    },
+    "to": {
+     "$ref": "#/$defs/name"
+    },
+    "when": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/condition"
+     },
+     "description": "All must hold; the triggers read are used up."
+    },
+    "exit": {
+     "type": "number",
+     "minimum": 0,
+     "maximum": 1,
+     "description": "The share of the state it leaves that must have played (of each cycle for a loop)."
+    },
+    "window": {
+     "type": "array",
+     "minItems": 2,
+     "maxItems": 2,
+     "items": {
+      "type": "number",
+      "minimum": 0
+     },
+     "description": "[from, to] seconds of the state it leaves: a cancel window."
+    },
+    "fade": {
+     "type": "number",
+     "minimum": 0,
+     "maximum": 10,
+     "description": "The crossfade, seconds (0.2)."
+    },
+    "sync": {
+     "type": "boolean",
+     "description": "Start at the phase the state it leaves is at."
+    },
+    "interruptible": {
+     "type": "boolean",
+     "description": "While it fades, the state it goes to may be left."
+    }
+   }
+  },
+  "condition": {
+   "type": "object",
+   "required": [
+    "param"
+   ],
+   "additionalProperties": false,
+   "properties": {
+    "param": {
+     "$ref": "#/$defs/name"
+    },
+    "op": {
+     "enum": [
+      "==",
+      "!=",
+      "<",
+      "<=",
+      ">",
+      ">="
+     ]
+    },
+    "value": {
+     "type": [
+      "number",
+      "boolean"
+     ]
+    }
+   }
+  },
+  "layer": {
+   "type": "object",
+   "required": [
+    "name",
+    "start",
+    "states",
+    "transitions"
+   ],
+   "additionalProperties": false,
+   "properties": {
+    "name": {
+     "allOf": [
+      {
+       "$ref": "#/$defs/name"
+      },
+      {
+       "not": {
+        "const": "base"
+       }
+      }
+     ],
+     "description": "Its name: not base, the graph's own."
+    },
+    "start": {
+     "$ref": "#/$defs/name"
+    },
+    "states": {
+     "$ref": "#/$defs/states"
+    },
+    "transitions": {
+     "$ref": "#/$defs/transitions"
+    },
+    "mask": {
+     "oneOf": [
+      {
+       "enum": [
+        "upper",
+        "lower",
+        "armL",
+        "armR",
+        "legs",
+        "head",
+        "spine"
+       ]
+      },
+      {
+       "type": "array",
+       "items": {
+        "enum": [
+         "upper",
+         "lower",
+         "armL",
+         "armR",
+         "legs",
+         "head",
+         "spine"
+        ]
+       }
+      },
+      {
+       "type": "object",
+       "additionalProperties": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1
+       },
+       "propertyNames": {
+        "enum": [
+         "chest",
+         "head",
+         "spine",
+         "shL",
+         "shR",
+         "armL",
+         "armR",
+         "handL",
+         "handR",
+         "fingersL",
+         "fingersR",
+         "blade",
+         "hips",
+         "body",
+         "root",
+         "yaw",
+         "legL",
+         "legR",
+         "footL",
+         "footR"
+        ]
+       }
+      }
+     ]
+    },
+    "weight": {
+     "type": "number",
+     "minimum": 0,
+     "maximum": 1
+    },
+    "additive": {
+     "type": "boolean"
+    }
+   }
+  }
+ }
 }

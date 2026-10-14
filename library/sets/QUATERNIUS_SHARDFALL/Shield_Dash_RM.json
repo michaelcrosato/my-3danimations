@@ -10,8 +10,10 @@
 "desc": "charges forward behind a shield (travels)",
 "skeleton": "humanoid",
 "restSrc": "UAL2",
+"contacts": {"by":"detected","footL":[[0.283,0.5],[0.717,1.1]],"footR":[[0.283,0.75],[0.983,1.1]]},
+"facts": {"by":"m3a-facts@1","height":[53,96],"strike":[0.05],"travel":[109,0]},
 "provenance": {"src":"UAL2","method":"keyed","producer":{"tool":"m3a-migrate","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
-"quality": {"fit":[19,71],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[19,71],"qa":"pass","qaVersion":"m3a-sensors@1"},
 "keys": [
   {"t":0,
    "hips":[-8,-8,53], "body":[79,-2,-14], "chest":[37,66,-24], "head":[-26,-21,-3], "root":[0,0],

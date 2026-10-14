@@ -9,9 +9,11 @@
 "tags": ["idle"],
 "desc": "Waiting impatiently: shifting weight from foot to foot, looking about",
 "skeleton": "humanoid",
-"restSrc": "CMU_141",
+"restSrc": "CMU_141_MIGRATED",
+"contacts": {"by":"detected","footL":[[0.866,0.933]]},
+"facts": {"by":"m3a-facts@1","height":[100,104],"seam":0},
 "provenance": {"src":"CMU_141","take":"141_20 3.64-4.58","method":"captured","producer":{"tool":"m3a-migrate","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
-"quality": {"fit":[33,105],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[33,105],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"warn on fit, jointLimit, twistFlip: short of every fail level the sensors apply (thresholds.ts)"},
 "keys": [
   {"t":0,
    "hips":[0,0,102], "body":[-15,9,-10], "chest":[-11,-10,7], "head":[-24,23,0],

@@ -3,38 +3,38 @@
 The current state on one screen (at most 40 lines; `npm run doctrine` checks it from WP-0.3). The ledger is
 `PLAN.md` §14; decisions are in `docs/DECISIONS.md`.
 
-**Phase:** 4 First flight. **Next gate:** G4 (M1). **Version:** 0.23.1.
-**Mode:** one agent (D21), branch `claude/relaxed-albattani-35xhjq`.
+**Phase:** 6 Composition (5 done, G5 passed; 4 waits on G4). **Next gates:** G6; G4 (M1), run 2. **Version:** 0.42.6.
+**Mode:** one agent (D21); #10 merged into `main` at the owner's request (D82), the rest on a fresh branch and draft PR.
 
 ## Done
 
 - Phase 0 (G0 passed, michaelcrosato/my-3danimations#4): doctrine, toolchain, checks, pins, vectors, CI, hook.
-- Phase 1 (G1 passed, michaelcrosato/my-3danimations#5): spec 2.0-rc frozen; validator; codec; skeleton profile;
-  seed sets in format 2 (525 clips, 0 errors). D25 to D32.
+- Phase 1 (G1 passed, michaelcrosato/my-3danimations#5): spec 2.0-rc frozen; validator; codec; skeleton; seed sets.
 - Phase 2 (G2 passed, michaelcrosato/my-3danimations#6): portable math, the same bits in V8 and JavaScriptCore (D33);
-  the clip runtime and measured facts (D34); pose operations (D35); the solver on any recognized skeleton, its roll
-  tested (D36, F2); planted feet and the ground (D37); the Animator, the same hashes and exact poses in Node,
-  Chromium and Bun, and core's public API of 38 documented names (D38, F3).
-- Phase 3 (G3 passed, michaelcrosato/my-3danimations#7): raster (D39); sheets, diffs (D40); 14 metrics, predicates,
-  qa (D41); describe 30 of 30 (D42); 100 of 100 planted defects at their times (D43); lint and fix (D44). The G3
-  verifier's 16 findings and its second review's 5, all fixed (0.19.0, 0.19.1).
-- Phase 4 so far (done beside G3's review, brought over after it merged): three.js pinned at r182 (D45); test
-  characters in code and real CC0 rigs by hash (D46); binding, with a report to patch (D47); baking within 0.5 mm (D48).
+  the clip runtime and facts (D34); pose operations (D35); the solver (D36, F2); planted feet and the ground (D37); the
+  Animator, the same hashes and exact poses in Node, Chromium and Bun; core's API of 38 documented names (D38, F3).
+- Phase 3 (G3 passed, michaelcrosato/my-3danimations#7): raster (D39); sheets, diffs (D40); 14 metrics, qa (D41);
+  describe 30/30 (D42); 100/100 planted defects (D43); lint and fix (D44); the verifier's 21 findings fixed (0.19.x).
+- Phase 4 so far: three.js r182 (D45); test characters and real CC0 rigs (D46); binding (D47); baking (D48); capture
+  and the sweep (D49, D51); the first-flight demo `apps/lab/hello`, driven headless, hashes = Node's (D52).
+- Phase 5 (G5 passed, on michaelcrosato/my-3danimations#10 with Phase 4): layout (D53); licenses (D59); `@m3a/io` (D61);
+  corpora (D62); the re-import (D63); facts (D64); search (D65); library QA, 1,199 unique motions (D66–D69).
+- Phase 6 so far: recipes (D70); procedural moves, gaits and idles (D71, six verifier rounds); actions (D72); graphs,
+  Node = Chromium (D73, two rounds); simulation, stride warping (D75); briefs B2–B7, the manual's wire and make (D76, D77).
 
 ## Next
 
-- WP-4.5 partial (merged before G4 at the owner's request): sweep, planting and toeless-rig fixes. To do: sweep on
-  6 rigs, D49, ledger row; CI WebGPU e2e loses its GPU process on GitHub runners. Then WP-4.6, 4.7, G4.
+- G4 run 2: the bar is "no fail finding added" (D80); the sweep, §9.3 and WP-4.5 change to it; run 2 starts once a
+  sweep outside the gate passes ≥95% over the whole library at a clean commit (D57; a second failure is K1, §12).
+- Phase 6: WP-6.2's seventh verifier round and G6's preparation (D82: lost to a usage limit, redone); then G6.
 
 ## Blocked on the owner
 
-- Nothing yet.
+- Nothing: G4's bar (D80) and the Quaternius sets (D81) answered 2026-10-14.
 
 ## Last gate
 
-- **G3 passed** 2026-10-11 at 504d0f6 in 122.8 s, 11 of 11:
-  - check (T0) 1.7 s; test (T1) 25.6 s, 407 tests; doctrine 8 of 8; vectors byte for byte;
-  - the sensors over all 525 clips in 5.2 s, as the baseline says: 267 pass, 104 warn, 154 fail;
-  - planted defects rebuilt byte for byte and 100 of 100 caught at their times; describe 30 of 30;
-  - fix: each operator removes its planted defect; over the library 252 linted, 144 better, 53 with fewer findings,
-    none worse or invalid; T2 8.7 s. 27 of 27 mutants of the reworked operators fail the tests.
+- **G5 passed** 2026-10-12 at 754adfe in 9.7 min, 12 of 12 (`bench/results/gates/G5/`, D68): 1,194 unique motions of
+  1,393 clips (CC0 pack 170); every floor met; every clip valid with its verdict; search 40/40, held out 8/10. Its
+  first verifier blocked run 1 (reactions short, D67). Its open items, fixed forward: a float check; picks (D69).
+- **G4 run 1 failed** 2026-10-12 at 6798b45, 5 of 8 (D57): the sweep 89.1% (bar 95%), B1's variant a grader failure.

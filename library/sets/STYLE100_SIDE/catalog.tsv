@@ -1,0 +1,194 @@
+STYLE100_SIDE/Aeroplane_SideLeft	1.267	loop	45	sidestep left style	Sidestepping to the left, aeroplane style	100STYLE
+STYLE100_SIDE/Aeroplane_SideRight	1.133	loop	51	sidestep right style	Sidestepping to the right, aeroplane style	100STYLE
+STYLE100_SIDE/Akimbo_SideLeft	1.267	loop	46	sidestep left style	Sidestepping to the left, akimbo style	100STYLE
+STYLE100_SIDE/Akimbo_SideRight	1.133	loop	55	sidestep right style	Sidestepping to the right, akimbo style	100STYLE
+STYLE100_SIDE/Angry_SideLeft	0.8	loop	74	sidestep left style	Sidestepping to the left, angry style	100STYLE
+STYLE100_SIDE/Angry_SideRight	2.367	loop	41	sidestep right style	Sidestepping to the right, angry style	100STYLE
+STYLE100_SIDE/ArmsAboveHead_SideLeft	1.2	loop	55	sidestep left style	Sidestepping to the left, arms above head style	100STYLE
+STYLE100_SIDE/ArmsAboveHead_SideRight	1.067	loop	73	sidestep right style	Sidestepping to the right, arms above head style	100STYLE
+STYLE100_SIDE/ArmsBehindBack_SideLeft	1.333	loop	51	sidestep left style	Sidestepping to the left, arms behind back style	100STYLE
+STYLE100_SIDE/ArmsBehindBack_SideRight	1.3	loop	60	sidestep right style	Sidestepping to the right, arms behind back style	100STYLE
+STYLE100_SIDE/ArmsBySide_SideLeft	1.2	loop	52	sidestep left style	Sidestepping to the left, arms by side style	100STYLE
+STYLE100_SIDE/ArmsBySide_SideRight	1.233	loop	61	sidestep right style	Sidestepping to the right, arms by side style	100STYLE
+STYLE100_SIDE/ArmsFolded_SideLeft	1.333	loop	51	sidestep left style	Sidestepping to the left, arms folded style	100STYLE
+STYLE100_SIDE/ArmsFolded_SideRight	1.233	loop	52	sidestep right style	Sidestepping to the right, arms folded style	100STYLE
+STYLE100_SIDE/Balance_SideLeft	1.6	loop	30	sidestep left style	Sidestepping to the left, balance style	100STYLE
+STYLE100_SIDE/Balance_SideRight	1.767	loop	27	sidestep right style	Sidestepping to the right, balance style	100STYLE
+STYLE100_SIDE/BeatChest_SideLeft	1.467	loop	44	sidestep left style	Sidestepping to the left, beat chest style	100STYLE
+STYLE100_SIDE/BeatChest_SideRight	1.3	loop	55	sidestep right style	Sidestepping to the right, beat chest style	100STYLE
+STYLE100_SIDE/BentForward_SideLeft	1.233	loop	56	sidestep left style	Sidestepping to the left, bent forward style: tilt torso forwards	100STYLE
+STYLE100_SIDE/BentForward_SideRight	1.367	loop	40	sidestep right style	Sidestepping to the right, bent forward style: tilt torso forwards	100STYLE
+STYLE100_SIDE/BentKnees_SideLeft	1.3	loop	38	sidestep left style	Sidestepping to the left, bent knees style	100STYLE
+STYLE100_SIDE/BentKnees_SideRight	1.267	loop	44	sidestep right style	Sidestepping to the right, bent knees style	100STYLE
+STYLE100_SIDE/BigSteps_SideLeft	1.367	loop	74	sidestep left style	Sidestepping to the left, big steps style	100STYLE
+STYLE100_SIDE/BigSteps_SideRight	2.033	loop	46	sidestep right style	Sidestepping to the right, big steps style	100STYLE
+STYLE100_SIDE/BouncyLeft_SideLeft	1.167	loop	53	sidestep left style	Sidestepping to the left, bouncy left style	100STYLE
+STYLE100_SIDE/BouncyLeft_SideRight	1.233	loop	58	sidestep right style	Sidestepping to the right, bouncy left style	100STYLE
+STYLE100_SIDE/BouncyRight_SideLeft	1.067	loop	51	sidestep left style	Sidestepping to the left, bouncy right style	100STYLE
+STYLE100_SIDE/BouncyRight_SideRight	1	loop	60	sidestep right style	Sidestepping to the right, bouncy right style	100STYLE
+STYLE100_SIDE/Cat_SideLeft	1.4	loop	43	sidestep left style	Sidestepping to the left, cat style	100STYLE
+STYLE100_SIDE/Cat_SideRight	1.433	loop	39	sidestep right style	Sidestepping to the right, cat style	100STYLE
+STYLE100_SIDE/Chicken_SideLeft	1.033	loop	32	sidestep left style	Sidestepping to the left, chicken style	100STYLE
+STYLE100_SIDE/Chicken_SideRight	1.033	loop	52	sidestep right style	Sidestepping to the right, chicken style	100STYLE
+STYLE100_SIDE/CrossOver_SideLeft	2.4	loop	38	sidestep left style	Sidestepping to the left, cross over style	100STYLE
+STYLE100_SIDE/CrossOver_SideRight	2.2	loop	39	sidestep right style	Sidestepping to the right, cross over style	100STYLE
+STYLE100_SIDE/Crouched_SideLeft	1.133	loop	56	sidestep left style	Sidestepping to the left, crouched style	100STYLE
+STYLE100_SIDE/Crouched_SideRight	1.167	loop	60	sidestep right style	Sidestepping to the right, crouched style	100STYLE
+STYLE100_SIDE/CrowdAvoidance_SideLeft	1.167	loop	31	sidestep left style varies	Sidestepping to the left, crowd avoidance style	100STYLE
+STYLE100_SIDE/CrowdAvoidance_SideRight	1.2	loop	42	sidestep right style varies	Sidestepping to the right, crowd avoidance style	100STYLE
+STYLE100_SIDE/Depressed_SideLeft	1.6	loop	30	sidestep left style	Sidestepping to the left, depressed style: head bowed arms swinging	100STYLE
+STYLE100_SIDE/Depressed_SideRight	1.333	loop	39	sidestep right style	Sidestepping to the right, depressed style: head bowed arms swinging	100STYLE
+STYLE100_SIDE/Dinosaur_SideLeft	1.5	loop	42	sidestep left style	Sidestepping to the left, dinosaur style	100STYLE
+STYLE100_SIDE/Dinosaur_SideRight	1.4	loop	46	sidestep right style	Sidestepping to the right, dinosaur style	100STYLE
+STYLE100_SIDE/DragLeftLeg_SideRight	1.2	loop	58	sidestep right style	Sidestepping to the right, drag left leg style	100STYLE
+STYLE100_SIDE/DragRightLeg_SideLeft	1.433	loop	44	sidestep left style	Sidestepping to the left, drag right leg style	100STYLE
+STYLE100_SIDE/Drunk_SideLeft	0.8	loop	90	sidestep left style varies	Sidestepping to the left, drunk style	100STYLE
+STYLE100_SIDE/Drunk_SideRight	1.267	loop	43	sidestep right style varies	Sidestepping to the right, drunk style	100STYLE
+STYLE100_SIDE/DuckFoot_SideLeft	1.2	loop	40	sidestep left style	Sidestepping to the left, duck foot style	100STYLE
+STYLE100_SIDE/DuckFoot_SideRight	1.167	loop	39	sidestep right style	Sidestepping to the right, duck foot style	100STYLE
+STYLE100_SIDE/Elated_SideLeft	1	loop	77	sidestep left style	Sidestepping to the left, elated style: swing arms with spring	100STYLE
+STYLE100_SIDE/Elated_SideRight	1.033	loop	66	sidestep right style	Sidestepping to the right, elated style	100STYLE
+STYLE100_SIDE/FairySteps_SideLeft	1.5	loop	27	sidestep left style	Sidestepping to the left, fairy steps style	100STYLE
+STYLE100_SIDE/FairySteps_SideRight	1.467	loop	40	sidestep right style	Sidestepping to the right, fairy steps style	100STYLE
+STYLE100_SIDE/Flapping_SideLeft	1.3	loop	44	sidestep left style	Sidestepping to the left, flapping style	100STYLE
+STYLE100_SIDE/Flapping_SideRight	1.267	loop	52	sidestep right style	Sidestepping to the right, flapping style	100STYLE
+STYLE100_SIDE/FlickLegs_SideLeft	1.733	loop	31	sidestep left style	Sidestepping to the left, flick legs style	100STYLE
+STYLE100_SIDE/FlickLegs_SideRight	1.833	loop	26	sidestep right style	Sidestepping to the right, flick legs style	100STYLE
+STYLE100_SIDE/Followed_SideLeft	1.133	loop	71	sidestep left style varies	Sidestepping to the left, followed style: check behind occasionally	100STYLE
+STYLE100_SIDE/Followed_SideRight	0.933	loop	71	sidestep right style varies	Sidestepping to the right, followed style: check behind occasionally	100STYLE
+STYLE100_SIDE/GracefulArms_SideLeft	1.267	loop	61	sidestep left style	Sidestepping to the left, graceful arms style	100STYLE
+STYLE100_SIDE/GracefulArms_SideRight	1.167	loop	56	sidestep right style	Sidestepping to the right, graceful arms style	100STYLE
+STYLE100_SIDE/HandsBetweenLegs_SideLeft	1.133	loop	52	sidestep left style	Sidestepping to the left, hands between legs style	100STYLE
+STYLE100_SIDE/HandsBetweenLegs_SideRight	1.067	loop	55	sidestep right style	Sidestepping to the right, hands between legs style	100STYLE
+STYLE100_SIDE/HandsInPockets_SideLeft	1.2	loop	68	sidestep left style	Sidestepping to the left, hands in pockets style	100STYLE
+STYLE100_SIDE/HandsInPockets_SideRight	1.267	loop	63	sidestep right style	Sidestepping to the right, hands in pockets style	100STYLE
+STYLE100_SIDE/Heavyset_SideLeft	1.767	loop	33	sidestep left style	Sidestepping to the left, heavyset style	100STYLE
+STYLE100_SIDE/Heavyset_SideRight	1.433	loop	41	sidestep right style	Sidestepping to the right, heavyset style	100STYLE
+STYLE100_SIDE/HighKnees_SideLeft	1.633	loop	35	sidestep left style	Sidestepping to the left, high knees style	100STYLE
+STYLE100_SIDE/HighKnees_SideRight	1.7	loop	32	sidestep right style	Sidestepping to the right, high knees style	100STYLE
+STYLE100_SIDE/InTheDark_SideLeft	1.5	loop	33	sidestep left style varies	Sidestepping to the left, in the dark style	100STYLE
+STYLE100_SIDE/InTheDark_SideRight	1.633	loop	38	sidestep right style varies	Sidestepping to the right, in the dark style	100STYLE
+STYLE100_SIDE/KarateChop_SideLeft	1.3	loop	56	sidestep left style	Sidestepping to the left, karate chop style	100STYLE
+STYLE100_SIDE/KarateChop_SideRight	1.367	loop	46	sidestep right style	Sidestepping to the right, karate chop style	100STYLE
+STYLE100_SIDE/Kick_SideLeft	2.367	loop	21	sidestep left style	Sidestepping to the left, kick style: kick with every step	100STYLE
+STYLE100_SIDE/Kick_SideRight	1.233	loop	1.2	sidestep right style	Sidestepping to the right, kick style	100STYLE
+STYLE100_SIDE/LawnMower_SideLeft	2.267	loop	42	sidestep left style	Sidestepping to the left, lawn mower style	100STYLE
+STYLE100_SIDE/LawnMower_SideRight	2.2	loop	44	sidestep right style	Sidestepping to the right, lawn mower style	100STYLE
+STYLE100_SIDE/LeanBack_SideLeft	1.033	loop	60	sidestep left style	Sidestepping to the left, lean back style: bent backwards	100STYLE
+STYLE100_SIDE/LeanBack_SideRight	1.3	loop	44	sidestep right style	Sidestepping to the right, lean back style: bent backwards	100STYLE
+STYLE100_SIDE/LeanLeft_SideLeft	1.133	loop	50	sidestep left style	Sidestepping to the left, lean left style	100STYLE
+STYLE100_SIDE/LeanLeft_SideRight	1	loop	63	sidestep right style	Sidestepping to the right, lean left style	100STYLE
+STYLE100_SIDE/LeanRight_SideLeft	1.2	loop	56	sidestep left style	Sidestepping to the left, lean right style	100STYLE
+STYLE100_SIDE/LeanRight_SideRight	1.467	loop	44	sidestep right style	Sidestepping to the right, lean right style	100STYLE
+STYLE100_SIDE/LeftHop_SideLeft	1.033	loop	86	sidestep left style	Sidestepping to the left, left hop style	100STYLE
+STYLE100_SIDE/LeftHop_SideRight	1.1	loop	66	sidestep right style	Sidestepping to the right, left hop style	100STYLE
+STYLE100_SIDE/LegsApart_SideLeft	1.6	loop	48	sidestep left style	Sidestepping to the left, legs apart style	100STYLE
+STYLE100_SIDE/LegsApart_SideRight	2.267	loop	36	sidestep right style	Sidestepping to the right, legs apart style	100STYLE
+STYLE100_SIDE/LimpLeft_SideLeft	1.2	loop	51	sidestep left style	Sidestepping to the left, limp left style	100STYLE
+STYLE100_SIDE/LimpLeft_SideRight	1.267	loop	43	sidestep right style	Sidestepping to the right, limp left style	100STYLE
+STYLE100_SIDE/LimpRight_SideLeft	1.067	loop	57	sidestep left style	Sidestepping to the left, limp right style	100STYLE
+STYLE100_SIDE/LimpRight_SideRight	1.1	loop	53	sidestep right style	Sidestepping to the right, limp right style	100STYLE
+STYLE100_SIDE/LookUp_SideLeft	1.233	loop	48	sidestep left style	Sidestepping to the left, look up style	100STYLE
+STYLE100_SIDE/LookUp_SideRight	1.333	loop	43	sidestep right style	Sidestepping to the right, look up style	100STYLE
+STYLE100_SIDE/Lunge_SideLeft	2.367	loop	34	sidestep left style	Sidestepping to the left, lunge style	100STYLE
+STYLE100_SIDE/Lunge_SideRight	2.3	loop	31	sidestep right style	Sidestepping to the right, lunge style	100STYLE
+STYLE100_SIDE/March_SideLeft	1.133	loop	51	sidestep left style	Sidestepping to the left, march style	100STYLE
+STYLE100_SIDE/March_SideRight	1.2	loop	38	sidestep right style	Sidestepping to the right, march style	100STYLE
+STYLE100_SIDE/Monk_SideLeft	1.267	loop	35	sidestep left style	Sidestepping to the left, monk style	100STYLE
+STYLE100_SIDE/Monk_SideRight	1.267	loop	40	sidestep right style	Sidestepping to the right, monk style	100STYLE
+STYLE100_SIDE/Morris_SideLeft	1.233	loop	62	sidestep left style	Sidestepping to the left, morris style	100STYLE
+STYLE100_SIDE/Morris_SideRight	1.1	loop	60	sidestep right style	Sidestepping to the right, morris style	100STYLE
+STYLE100_SIDE/Neutral_SideLeft	1.5	loop	41	sidestep left style	Sidestepping to the left, neutral style: normal walking	100STYLE
+STYLE100_SIDE/Neutral_SideRight	1.267	loop	56	sidestep right style	Sidestepping to the right, neutral style: normal walking	100STYLE
+STYLE100_SIDE/Old_SideLeft	1.367	loop	16	sidestep left style	Sidestepping to the left, old style	100STYLE
+STYLE100_SIDE/Old_SideRight	1.333	loop	18	sidestep right style	Sidestepping to the right, old style	100STYLE
+STYLE100_SIDE/OnHeels_SideLeft	1.167	loop	51	sidestep left style	Sidestepping to the left, on heels style	100STYLE
+STYLE100_SIDE/OnHeels_SideRight	1.1	loop	61	sidestep right style	Sidestepping to the right, on heels style	100STYLE
+STYLE100_SIDE/OnPhoneLeft_SideLeft	1.2	loop	56	sidestep left style	Sidestepping to the left, on phone left style	100STYLE
+STYLE100_SIDE/OnPhoneLeft_SideRight	1.267	loop	59	sidestep right style	Sidestepping to the right, on phone left style	100STYLE
+STYLE100_SIDE/OnPhoneRight_SideLeft	1.4	loop	41	sidestep left style	Sidestepping to the left, on phone right style	100STYLE
+STYLE100_SIDE/OnPhoneRight_SideRight	1.333	loop	50	sidestep right style	Sidestepping to the right, on phone right style	100STYLE
+STYLE100_SIDE/OnToesBentForward_SideLeft	1.067	loop	69	sidestep left style	Sidestepping to the left	100STYLE
+STYLE100_SIDE/OnToesBentForward_SideRight	1.167	loop	53	sidestep right style	Sidestepping to the right	100STYLE
+STYLE100_SIDE/OnToesCrouched_SideLeft	1.067	loop	63	sidestep left style	Sidestepping to the left	100STYLE
+STYLE100_SIDE/OnToesCrouched_SideRight	1.067	loop	57	sidestep right style	Sidestepping to the right	100STYLE
+STYLE100_SIDE/PendulumHands_SideLeft	0.967	loop	0.1	sidestep left style	Sidestepping to the left, pendulum hands style	100STYLE
+STYLE100_SIDE/PendulumHands_SideRight	1	loop	48	sidestep right style	Sidestepping to the right, pendulum hands style	100STYLE
+STYLE100_SIDE/Penguin_SideLeft	0.867	loop	23	sidestep left style	Sidestepping to the left, penguin style	100STYLE
+STYLE100_SIDE/Penguin_SideRight	0.933	loop	17	sidestep right style	Sidestepping to the right, penguin style	100STYLE
+STYLE100_SIDE/PigeonToed_SideLeft	1.6	loop	38	sidestep left style	Sidestepping to the left, pigeon toed style	100STYLE
+STYLE100_SIDE/PigeonToed_SideRight	1.167	loop	48	sidestep right style	Sidestepping to the right, pigeon toed style	100STYLE
+STYLE100_SIDE/Proud_SideLeft	1.133	loop	51	sidestep left style	Sidestepping to the left, proud style	100STYLE
+STYLE100_SIDE/Proud_SideRight	1.2	loop	55	sidestep right style	Sidestepping to the right, proud style	100STYLE
+STYLE100_SIDE/Punch_SideLeft	1.267	loop	50	sidestep left style	Sidestepping to the left, punch style: punch with every step	100STYLE
+STYLE100_SIDE/Punch_SideRight	1.267	loop	48	sidestep right style	Sidestepping to the right, punch style: punch with every step	100STYLE
+STYLE100_SIDE/Quail_SideLeft	1.4	loop	43	sidestep left style	Sidestepping to the left, quail style	100STYLE
+STYLE100_SIDE/Quail_SideRight	1.5	loop	46	sidestep right style	Sidestepping to the right, quail style	100STYLE
+STYLE100_SIDE/RaisedLeftArm_SideLeft	1.367	loop	47	sidestep left style	Sidestepping to the left, raised left arm style	100STYLE
+STYLE100_SIDE/RaisedLeftArm_SideRight	1.3	loop	56	sidestep right style	Sidestepping to the right, raised left arm style	100STYLE
+STYLE100_SIDE/RaisedRightArm_SideLeft	1.467	loop	47	sidestep left style	Sidestepping to the left, raised right arm style	100STYLE
+STYLE100_SIDE/RaisedRightArm_SideRight	1.233	loop	65	sidestep right style	Sidestepping to the right, raised right arm style	100STYLE
+STYLE100_SIDE/RightHop_SideLeft	1	loop	73	sidestep left style	Sidestepping to the left, right hop style: hop on right foot	100STYLE
+STYLE100_SIDE/RightHop_SideRight	0.9	loop	57	sidestep right style	Sidestepping to the right, right hop style	100STYLE
+STYLE100_SIDE/Roadrunner_SideLeft	1	loop	78	sidestep left style	Sidestepping to the left, roadrunner style	100STYLE
+STYLE100_SIDE/Roadrunner_SideRight	0.967	loop	64	sidestep right style	Sidestepping to the right, roadrunner style	100STYLE
+STYLE100_SIDE/Robot_SideLeft	0.967	loop	33	sidestep left style	Sidestepping to the left, robot style	100STYLE
+STYLE100_SIDE/Robot_SideRight	0.967	loop	29	sidestep right style	Sidestepping to the right, robot style	100STYLE
+STYLE100_SIDE/Rocket_SideLeft	1.2	loop	52	sidestep left style	Sidestepping to the left, rocket style	100STYLE
+STYLE100_SIDE/Rocket_SideRight	1.233	loop	54	sidestep right style	Sidestepping to the right, rocket style	100STYLE
+STYLE100_SIDE/Rushed_SideLeft	1.767	loop	88	sidestep left style	Sidestepping to the left, rushed style	100STYLE
+STYLE100_SIDE/Rushed_SideRight	2	loop	88	sidestep right style	Sidestepping to the right, rushed style: rushing about swinging arms for extra momentum	100STYLE
+STYLE100_SIDE/ShieldedLeft_SideLeft	1.733	loop	37	sidestep left style	Sidestepping to the left, shielded left style	100STYLE
+STYLE100_SIDE/ShieldedLeft_SideRight	1.067	loop	50	sidestep right style	Sidestepping to the right, shielded left style	100STYLE
+STYLE100_SIDE/ShieldedRight_SideLeft	1.067	loop	58	sidestep left style	Sidestepping to the left, shielded right style	100STYLE
+STYLE100_SIDE/ShieldedRight_SideRight	1.5	loop	44	sidestep right style	Sidestepping to the right, shielded right style	100STYLE
+STYLE100_SIDE/Skip_SideLeft	1.267	loop	69	sidestep left style	Sidestepping to the left, skip style: skipping like a child	100STYLE
+STYLE100_SIDE/Skip_SideRight	1.2	loop	75	sidestep right style	Sidestepping to the right, skip style: skipping like a child	100STYLE
+STYLE100_SIDE/SlideFeet_SideLeft	1.3	loop	49	sidestep left style	Sidestepping to the left, slide feet style	100STYLE
+STYLE100_SIDE/SlideFeet_SideRight	1.433	loop	43	sidestep right style	Sidestepping to the right, slide feet style	100STYLE
+STYLE100_SIDE/Star_SideLeft	1.3	loop	51	sidestep left style	Sidestepping to the left, star style: wide arms and legs	100STYLE
+STYLE100_SIDE/Star_SideRight	1.467	loop	47	sidestep right style	Sidestepping to the right, star style: wide arms and legs	100STYLE
+STYLE100_SIDE/StartStop_SideLeft	1.7	loop	27	sidestep left style	Sidestepping to the left, start stop style	100STYLE
+STYLE100_SIDE/StartStop_SideRight	1.867	loop	23	sidestep right style	Sidestepping to the right, start stop style	100STYLE
+STYLE100_SIDE/Stiff_SideLeft	1.667	loop	37	sidestep left style	Sidestepping to the left, stiff style: stiff limbs arms straight	100STYLE
+STYLE100_SIDE/Stiff_SideRight	1.4	loop	49	sidestep right style	Sidestepping to the right, stiff style: stiff limbs arms straight	100STYLE
+STYLE100_SIDE/Strutting_SideLeft	1.2	loop	38	sidestep left style	Sidestepping to the left, strutting style	100STYLE
+STYLE100_SIDE/Strutting_SideRight	1.333	loop	40	sidestep right style	Sidestepping to the right, strutting style	100STYLE
+STYLE100_SIDE/Superman_SideLeft	1.267	loop	52	sidestep left style	Sidestepping to the left, superman style	100STYLE
+STYLE100_SIDE/Superman_SideRight	1.2	loop	69	sidestep right style	Sidestepping to the right, superman style	100STYLE
+STYLE100_SIDE/Swat_SideLeft	1.067	loop	64	sidestep left style	Sidestepping to the left, swat style	100STYLE
+STYLE100_SIDE/Swat_SideRight	0.967	loop	71	sidestep right style	Sidestepping to the right, swat style	100STYLE
+STYLE100_SIDE/Sweep_SideLeft	1.167	loop	42	sidestep left style	Sidestepping to the left, sweep style	100STYLE
+STYLE100_SIDE/Sweep_SideRight	1.2	loop	51	sidestep right style	Sidestepping to the right, sweep style	100STYLE
+STYLE100_SIDE/Swimming_SideLeft	1.3	loop	62	sidestep left style	Sidestepping to the left, swimming style: breaststroke walking	100STYLE
+STYLE100_SIDE/Swimming_SideRight	1.7	loop	48	sidestep right style	Sidestepping to the right, swimming style: breaststroke walking	100STYLE
+STYLE100_SIDE/SwingArmsRound_SideLeft	2.5	loop	43	sidestep left style	Sidestepping to the left, swing arms round style	100STYLE
+STYLE100_SIDE/SwingArmsRound_SideRight	2.4	loop	48	sidestep right style	Sidestepping to the right, swing arms round style	100STYLE
+STYLE100_SIDE/SwingShoulders_SideLeft	1.633	loop	41	sidestep left style	Sidestepping to the left, swing shoulders style	100STYLE
+STYLE100_SIDE/SwingShoulders_SideRight	1.6	loop	35	sidestep right style	Sidestepping to the right, swing shoulders style	100STYLE
+STYLE100_SIDE/Teapot_SideLeft	1.167	loop	53	sidestep left style	Sidestepping to the left, teapot style	100STYLE
+STYLE100_SIDE/Teapot_SideRight	1.467	loop	48	sidestep right style	Sidestepping to the right, teapot style	100STYLE
+STYLE100_SIDE/Tiptoe_SideLeft	1.133	loop	50	sidestep left style	Sidestepping to the left, tiptoe style	100STYLE
+STYLE100_SIDE/Tiptoe_SideRight	1	loop	63	sidestep right style	Sidestepping to the right, tiptoe style	100STYLE
+STYLE100_SIDE/TogetherStep_SideLeft	2.5	loop	45	sidestep left style	Sidestepping to the left, together step style	100STYLE
+STYLE100_SIDE/TogetherStep_SideRight	2.367	loop	32	sidestep right style	Sidestepping to the right, together step style	100STYLE
+STYLE100_SIDE/TwoFootJump_SideLeft	1.033	loop	51	sidestep left style	Sidestepping to the left, two foot jump style	100STYLE
+STYLE100_SIDE/TwoFootJump_SideRight	1.067	loop	64	sidestep right style	Sidestepping to the right, two foot jump style	100STYLE
+STYLE100_SIDE/WalkingStickLeft_SideLeft	1.533	loop	35	sidestep left style	Sidestepping to the left, walking stick left style	100STYLE
+STYLE100_SIDE/WalkingStickLeft_SideRight	1.433	loop	41	sidestep right style	Sidestepping to the right, walking stick left style	100STYLE
+STYLE100_SIDE/WalkingStickRight_SideLeft	1.567	loop	39	sidestep left style	Sidestepping to the left, walking stick right style	100STYLE
+STYLE100_SIDE/WalkingStickRight_SideRight	1.6	loop	37	sidestep right style	Sidestepping to the right, walking stick right style	100STYLE
+STYLE100_SIDE/Waving_SideLeft	1.7	loop	36	sidestep left style varies	Sidestepping to the left, waving style	100STYLE
+STYLE100_SIDE/Waving_SideRight	1.333	loop	56	sidestep right style varies	Sidestepping to the right, waving style	100STYLE
+STYLE100_SIDE/WhirlArms_SideLeft	1.633	loop	34	sidestep left style	Sidestepping to the left, whirl arms style	100STYLE
+STYLE100_SIDE/WhirlArms_SideRight	1.367	loop	49	sidestep right style	Sidestepping to the right, whirl arms style	100STYLE
+STYLE100_SIDE/WideLegs_SideLeft	1.367	loop	52	sidestep left style	Sidestepping to the left, wide legs style	100STYLE
+STYLE100_SIDE/WideLegs_SideRight	2.267	loop	32	sidestep right style	Sidestepping to the right, wide legs style	100STYLE
+STYLE100_SIDE/WiggleHips_SideLeft	1.567	loop	24	sidestep left style	Sidestepping to the left, wiggle hips style	100STYLE
+STYLE100_SIDE/WiggleHips_SideRight	1.7	loop	30	sidestep right style	Sidestepping to the right, wiggle hips style	100STYLE
+STYLE100_SIDE/WildArms_SideLeft	1.5	loop	41	sidestep left style	Sidestepping to the left, wild arms style	100STYLE
+STYLE100_SIDE/WildArms_SideRight	1.533	loop	41	sidestep right style	Sidestepping to the right, wild arms style	100STYLE
+STYLE100_SIDE/WildLegs_SideLeft	2.2	loop	19	sidestep left style	Sidestepping to the left, wild legs style	100STYLE
+STYLE100_SIDE/WildLegs_SideRight	2.1	loop	23	sidestep right style	Sidestepping to the right, wild legs style	100STYLE
+STYLE100_SIDE/Zombie_SideLeft	1.5	loop	37	sidestep left style	Sidestepping to the left, zombie style: arms in front like zombie	100STYLE
+STYLE100_SIDE/Zombie_SideRight	1.567	loop	34	sidestep right style	Sidestepping to the right, zombie style: arms in front like zombie	100STYLE

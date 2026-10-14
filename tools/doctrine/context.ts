@@ -29,14 +29,22 @@ function gitFiles(root: string): string[] | null {
   }
 }
 
-/** Every file under `dir`, skipping .git and node_modules (for contexts outside git). */
+/** Folders a commit never holds: git's own, dependencies, caches and outputs (as .gitignore has them). */
+const SKIP = new Set([".git", "node_modules", ".cache", "check-output", "dist"]);
+
+/**
+ * Every file under `dir` a commit could hold (for contexts outside git): skipping git's own folder, dependencies,
+ * caches and outputs, and the local lane's content (D10: library/local/ holds libraries that never ship, so no check
+ * reads them; its README alone is the repository's).
+ */
 function walk(root: string, dir: string = root): string[] {
   const out: string[] = [];
   for (const name of readdirSync(dir)) {
-    if (name === ".git" || name === "node_modules") continue;
-    const p = join(dir, name);
+    if (SKIP.has(name)) continue;
+    const p = join(dir, name), rel = relative(root, p).split("\\").join("/");
+    if (rel.startsWith("library/local/") && rel !== "library/local/README.md") continue;
     if (statSync(p).isDirectory()) out.push(...walk(root, p));
-    else out.push(relative(root, p).split("\\").join("/"));
+    else out.push(rel);
   }
   return out;
 }

@@ -1,0 +1,2915 @@
+{
+ "about": "gate G4 run 1 at 6798b45 (2026-10-12): the sweep step's clip-by-skeleton results, every failing pair with its reasons (a pair not listed passes). From check-output/sweep/results.json; the held-out rig is reported apart (PLAN.md \u00a79.3).",
+ "commit": "6798b45",
+ "rigs": [
+  "gen-0",
+  "gen-1",
+  "gen-2",
+  "gen-3",
+  "quaternius-mannequin-m",
+  "kaykit-knight",
+  "orangejuice-male-base"
+ ],
+ "heldout": {
+  "run": "run-1",
+  "rigs": [
+   "orangejuice-male-base"
+  ]
+ },
+ "clips": 525,
+ "perRig": {
+  "gen-0": {
+   "pass": 446,
+   "of": 525,
+   "reasons": {
+    "skate": 27,
+    "pop": 24,
+    "seamVelocity": 16,
+    "jitter": 13,
+    "slide": 11,
+    "intersection": 2,
+    "bodyPenetration": 1,
+    "seam": 1
+   }
+  },
+  "gen-1": {
+   "pass": 480,
+   "of": 525,
+   "reasons": {
+    "slide": 11,
+    "skate": 10,
+    "pop": 9,
+    "jitter": 9,
+    "seamVelocity": 8,
+    "bodyPenetration": 2
+   }
+  },
+  "gen-2": {
+   "pass": 476,
+   "of": 525,
+   "reasons": {
+    "slide": 14,
+    "pop": 12,
+    "skate": 11,
+    "jitter": 10,
+    "seamVelocity": 5,
+    "bodyPenetration": 2,
+    "intersection": 1
+   }
+  },
+  "gen-3": {
+   "pass": 478,
+   "of": 525,
+   "reasons": {
+    "pop": 11,
+    "slide": 11,
+    "skate": 11,
+    "jitter": 7,
+    "seamVelocity": 7,
+    "intersection": 4,
+    "bodyPenetration": 1
+   }
+  },
+  "quaternius-mannequin-m": {
+   "pass": 475,
+   "of": 525,
+   "reasons": {
+    "skate": 17,
+    "slide": 11,
+    "jitter": 10,
+    "intersection": 6,
+    "pop": 6,
+    "seamVelocity": 6,
+    "bodyPenetration": 1
+   }
+  },
+  "kaykit-knight": {
+   "pass": 453,
+   "of": 525,
+   "reasons": {
+    "skate": 29,
+    "slide": 24,
+    "pop": 20,
+    "jitter": 10,
+    "seamVelocity": 5,
+    "bodyPenetration": 4,
+    "intersection": 2,
+    "seam": 1
+   }
+  },
+  "orangejuice-male-base": {
+   "pass": 477,
+   "of": 525,
+   "reasons": {
+    "pop": 15,
+    "slide": 11,
+    "jitter": 11,
+    "skate": 10,
+    "seamVelocity": 4,
+    "bodyPenetration": 3,
+    "intersection": 2
+   }
+  }
+ },
+ "failures": [
+  {
+   "clip": "CMU_CURATED/Backflip",
+   "rig": "gen-0",
+   "why": [
+    "pop 3191 on its own body \u2192 4670 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Curtsey",
+   "rig": "gen-0",
+   "why": [
+    "pop 1701 on its own body \u2192 4100 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Duck_Under",
+   "rig": "gen-0",
+   "why": [
+    "jitter 22.2 on its own body \u2192 13.4 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Front_Kick",
+   "rig": "gen-0",
+   "why": [
+    "pop 0.0 on its own body \u2192 2189 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Get_Up_From_Side",
+   "rig": "gen-0",
+   "why": [
+    "slide 141 on its own body \u2192 81.3 played on this one, past its warn level",
+    "skate 10.6 on its own body \u2192 9.0 played on this one, past its warn level",
+    "jitter 64.5 on its own body \u2192 42.1 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Ghost",
+   "rig": "gen-0",
+   "why": [
+    "slide 25.9 on its own body \u2192 72.7 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Gorilla_Walk_Loop",
+   "rig": "gen-0",
+   "why": [
+    "bodyPenetration 0.0 on its own body \u2192 29.1 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Hurt_Stomach_Walk_Loop",
+   "rig": "gen-0",
+   "why": [
+    "seamVelocity 1391 on its own body \u2192 1285 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Monkey",
+   "rig": "gen-0",
+   "why": [
+    "skate 15.7 on its own body \u2192 12.3 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Punch_Combo",
+   "rig": "gen-0",
+   "why": [
+    "slide 98.1 on its own body \u2192 88.4 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Robot",
+   "rig": "gen-0",
+   "why": [
+    "pop 0.0 on its own body \u2192 1809 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Roundhouse_Kick",
+   "rig": "gen-0",
+   "why": [
+    "jitter 24.0 on its own body \u2192 15.0 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Run_Jump_Over",
+   "rig": "gen-0",
+   "why": [
+    "pop 0.0 on its own body \u2192 1520 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Run_Loop",
+   "rig": "gen-0",
+   "why": [
+    "jitter 23.6 on its own body \u2192 16.6 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Side_Kick",
+   "rig": "gen-0",
+   "why": [
+    "slide 66.0 on its own body \u2192 92.4 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Sword_Lunge",
+   "rig": "gen-0",
+   "why": [
+    "slide 30.7 on its own body \u2192 69.1 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Wounded_Walk_Loop",
+   "rig": "gen-0",
+   "why": [
+    "skate 9.2 on its own body \u2192 10.1 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Zombie_Walk_Loop",
+   "rig": "gen-0",
+   "why": [
+    "pop 0.0 on its own body \u2192 3596 played on this one, past its fail level",
+    "seamVelocity 1191 on its own body \u2192 5603 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Chop_Tree",
+   "rig": "gen-0",
+   "why": [
+    "seamVelocity 3049 on its own body \u2192 1875 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Dance_Reach_Hip",
+   "rig": "gen-0",
+   "why": [
+    "skate 11.7 on its own body \u2192 14.4 played on this one, past its warn level",
+    "pop 104 on its own body \u2192 1164 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Dance_Simple",
+   "rig": "gen-0",
+   "why": [
+    "seam 5.7 on its own body \u2192 22.9 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Death_B",
+   "rig": "gen-0",
+   "why": [
+    "jitter 11.5 on its own body \u2192 12.5 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Fighting_Left_Jab",
+   "rig": "gen-0",
+   "why": [
+    "skate 7.9 on its own body \u2192 10.5 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Golf_Drive",
+   "rig": "gen-0",
+   "why": [
+    "slide 64.0 on its own body \u2192 95.3 played on this one, past its warn level",
+    "pop 1394 on its own body \u2192 1212 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Idle_FoldArms",
+   "rig": "gen-0",
+   "why": [
+    "intersection 0.5 on its own body \u2192 1.0 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Jog",
+   "rig": "gen-0",
+   "why": [
+    "jitter 20.2 on its own body \u2192 12.2 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Jump_Start",
+   "rig": "gen-0",
+   "why": [
+    "jitter 22.9 on its own body \u2192 13.3 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/LayToIdle",
+   "rig": "gen-0",
+   "why": [
+    "slide 46.6 on its own body \u2192 73.4 played on this one, past its warn level",
+    "skate 6.6 on its own body \u2192 10.2 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Strafe_right",
+   "rig": "gen-0",
+   "why": [
+    "skate 0.0 on its own body \u2192 14.0 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Sword_Regular_B_Rec",
+   "rig": "gen-0",
+   "why": [
+    "jitter 7.2 on its own body \u2192 25.4 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Sword_Regular_C_RM",
+   "rig": "gen-0",
+   "why": [
+    "skate 2.7 on its own body \u2192 10.2 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Sword_Regular_Combo",
+   "rig": "gen-0",
+   "why": [
+    "skate 7.0 on its own body \u2192 10.3 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Turn_Left_180",
+   "rig": "gen-0",
+   "why": [
+    "skate 6.3 on its own body \u2192 9.3 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Turn_Right_180",
+   "rig": "gen-0",
+   "why": [
+    "skate 6.4 on its own body \u2192 13.9 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Turn_Right_90",
+   "rig": "gen-0",
+   "why": [
+    "slide 44.3 on its own body \u2192 83.2 played on this one, past its warn level",
+    "pop 0.0 on its own body \u2192 1414 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Walk",
+   "rig": "gen-0",
+   "why": [
+    "seamVelocity 1445 on its own body \u2192 1939 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Walk_Backwards",
+   "rig": "gen-0",
+   "why": [
+    "skate 0.0 on its own body \u2192 13.6 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Walk_Formal",
+   "rig": "gen-0",
+   "why": [
+    "pop 0.0 on its own body \u2192 1067 played on this one, past its warn level",
+    "seamVelocity 1993 on its own body \u2192 2296 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Zombie_Rise",
+   "rig": "gen-0",
+   "why": [
+    "jitter 2.3 on its own body \u2192 40.6 played on this one, past its warn level",
+    "pop 0.0 on its own body \u2192 11041 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/Hit_Knockback",
+   "rig": "gen-0",
+   "why": [
+    "pop 0.0 on its own body \u2192 2478 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/Hit_Knockback_RM",
+   "rig": "gen-0",
+   "why": [
+    "pop 0.0 on its own body \u2192 2424 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/Jump_Start",
+   "rig": "gen-0",
+   "why": [
+    "skate 0.0 on its own body \u2192 9.8 played on this one, past its warn level",
+    "pop 1970 on its own body \u2192 1977 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/Melee_Hook_Rec",
+   "rig": "gen-0",
+   "why": [
+    "skate 7.8 on its own body \u2192 9.6 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/NinjaJump_Start",
+   "rig": "gen-0",
+   "why": [
+    "pop 3364 on its own body \u2192 2894 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/OverhandThrow",
+   "rig": "gen-0",
+   "why": [
+    "skate 7.2 on its own body \u2192 8.9 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/Pistol_Aim_Down",
+   "rig": "gen-0",
+   "why": [
+    "intersection 0.5 on its own body \u2192 1.4 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/Roll",
+   "rig": "gen-0",
+   "why": [
+    "pop 0.0 on its own body \u2192 1003 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/Roll_RM",
+   "rig": "gen-0",
+   "why": [
+    "pop 0.0 on its own body \u2192 1003 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/Slide_Exit",
+   "rig": "gen-0",
+   "why": [
+    "pop 0.0 on its own body \u2192 7226 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/Sword_Regular_C",
+   "rig": "gen-0",
+   "why": [
+    "skate 10.4 on its own body \u2192 12.2 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/Sword_Regular_Combo",
+   "rig": "gen-0",
+   "why": [
+    "skate 9.8 on its own body \u2192 11.2 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/TreeChopping_Loop",
+   "rig": "gen-0",
+   "why": [
+    "seamVelocity 2629 on its own body \u2192 1509 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/ClimbUp_1m",
+   "rig": "gen-0",
+   "why": [
+    "jitter 84.5 on its own body \u2192 45.9 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/ClimbUp_1m_RM",
+   "rig": "gen-0",
+   "why": [
+    "jitter 85.6 on its own body \u2192 45.8 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Hit_Knockback",
+   "rig": "gen-0",
+   "why": [
+    "pop 0.0 on its own body \u2192 2447 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Hit_Knockback_RM",
+   "rig": "gen-0",
+   "why": [
+    "pop 0.0 on its own body \u2192 2424 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Jump_Start",
+   "rig": "gen-0",
+   "why": [
+    "skate 0.0 on its own body \u2192 9.8 played on this one, past its warn level",
+    "pop 1970 on its own body \u2192 1977 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Shield_Dash",
+   "rig": "gen-0",
+   "why": [
+    "skate 7.5 on its own body \u2192 11.3 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Sword_Regular_C_RM",
+   "rig": "gen-0",
+   "why": [
+    "skate 2.6 on its own body \u2192 11.8 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Sword_Regular_Combo",
+   "rig": "gen-0",
+   "why": [
+    "skate 17.2 on its own body \u2192 12.5 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Sword_Regular_Combo_RM",
+   "rig": "gen-0",
+   "why": [
+    "skate 4.4 on its own body \u2192 10.5 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/TreeChopping_Loop",
+   "rig": "gen-0",
+   "why": [
+    "seamVelocity 2629 on its own body \u2192 1509 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Walk_Formal_Loop",
+   "rig": "gen-0",
+   "why": [
+    "slide 52.5 on its own body \u2192 72.8 played on this one, past its warn level",
+    "skate 6.3 on its own body \u2192 8.7 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Walk_Loop",
+   "rig": "gen-0",
+   "why": [
+    "slide 47.3 on its own body \u2192 76.0 played on this one, past its warn level",
+    "skate 5.7 on its own body \u2192 9.1 played on this one, past its warn level",
+    "seamVelocity 1820 on its own body \u2192 1434 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Zombie_Walk_Fwd_Loop",
+   "rig": "gen-0",
+   "why": [
+    "jitter 2.4 on its own body \u2192 13.8 played on this one, past its warn level",
+    "pop 0.0 on its own body \u2192 1177 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "STYLE100/Angry_Walk",
+   "rig": "gen-0",
+   "why": [
+    "seamVelocity 1965 on its own body \u2192 1812 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "STYLE100/ArmsBySide_Walk",
+   "rig": "gen-0",
+   "why": [
+    "seamVelocity 1217 on its own body \u2192 1310 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "STYLE100/ArmsFolded_Walk",
+   "rig": "gen-0",
+   "why": [
+    "seamVelocity 1174 on its own body \u2192 1788 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "STYLE100/BeatChest_Walk",
+   "rig": "gen-0",
+   "why": [
+    "seamVelocity 2434 on its own body \u2192 1648 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "STYLE100/BouncyLeft_Walk",
+   "rig": "gen-0",
+   "why": [
+    "seamVelocity 2230 on its own body \u2192 1440 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "STYLE100/CrossOver_Walk",
+   "rig": "gen-0",
+   "why": [
+    "seamVelocity 2355 on its own body \u2192 1338 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "STYLE100/Elated_Walk",
+   "rig": "gen-0",
+   "why": [
+    "seamVelocity 2826 on its own body \u2192 1367 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "STYLE100/FlickLegs_Walk",
+   "rig": "gen-0",
+   "why": [
+    "seamVelocity 2813 on its own body \u2192 1316 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "STYLE100/Followed_Walk",
+   "rig": "gen-0",
+   "why": [
+    "skate 8.5 on its own body \u2192 8.6 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "STYLE100/HandsBetweenLegs_Walk",
+   "rig": "gen-0",
+   "why": [
+    "skate 4.7 on its own body \u2192 17.9 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "STYLE100/Neutral_Walk",
+   "rig": "gen-0",
+   "why": [
+    "pop 0.0 on its own body \u2192 1296 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "STYLE100/OnHeels_Walk",
+   "rig": "gen-0",
+   "why": [
+    "slide 96.8 on its own body \u2192 84.5 played on this one, past its warn level",
+    "skate 11.4 on its own body \u2192 9.9 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "STYLE100/Rushed_Walk",
+   "rig": "gen-0",
+   "why": [
+    "jitter 16.7 on its own body \u2192 14.8 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "STYLE100/Skip_Walk",
+   "rig": "gen-0",
+   "why": [
+    "pop 0.0 on its own body \u2192 2548 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Backflip",
+   "rig": "gen-1",
+   "why": [
+    "pop 3191 on its own body \u2192 7438 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Gorilla_Walk_Loop",
+   "rig": "gen-1",
+   "why": [
+    "bodyPenetration 0.0 on its own body \u2192 110 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Roundhouse_Kick",
+   "rig": "gen-1",
+   "why": [
+    "slide 133 on its own body \u2192 186 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Run_Loop",
+   "rig": "gen-1",
+   "why": [
+    "jitter 23.6 on its own body \u2192 36.9 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Angry",
+   "rig": "gen-1",
+   "why": [
+    "jitter 23.6 on its own body \u2192 29.1 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Chop_Tree",
+   "rig": "gen-1",
+   "why": [
+    "seamVelocity 3049 on its own body \u2192 4638 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Crouch_Walk",
+   "rig": "gen-1",
+   "why": [
+    "slide 84.5 on its own body \u2192 228 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Dance_Body_Roll",
+   "rig": "gen-1",
+   "why": [
+    "skate 32.6 on its own body \u2192 45.5 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Farm_PlantSeed",
+   "rig": "gen-1",
+   "why": [
+    "bodyPenetration 0.0 on its own body \u2192 28.2 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Jog",
+   "rig": "gen-1",
+   "why": [
+    "jitter 20.2 on its own body \u2192 39.3 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/LayToIdle",
+   "rig": "gen-1",
+   "why": [
+    "slide 46.6 on its own body \u2192 202 played on this one, past its warn level",
+    "skate 6.6 on its own body \u2192 28.2 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Strafe_right",
+   "rig": "gen-1",
+   "why": [
+    "skate 0.0 on its own body \u2192 29.1 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Sword_Regular_B",
+   "rig": "gen-1",
+   "why": [
+    "pop 2143 on its own body \u2192 4206 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Sword_Regular_B_Rec",
+   "rig": "gen-1",
+   "why": [
+    "jitter 7.2 on its own body \u2192 57.5 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Walk_Formal",
+   "rig": "gen-1",
+   "why": [
+    "seamVelocity 1993 on its own body \u2192 3158 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/Crouch_Fwd_Loop",
+   "rig": "gen-1",
+   "why": [
+    "slide 103 on its own body \u2192 242 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/Dance_Loop",
+   "rig": "gen-1",
+   "why": [
+    "seamVelocity 1705 on its own body \u2192 3443 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/Jump_Start",
+   "rig": "gen-1",
+   "why": [
+    "skate 0.0 on its own body \u2192 20.5 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/LayToIdle",
+   "rig": "gen-1",
+   "why": [
+    "skate 7.0 on its own body \u2192 21.8 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/NinjaJump_Start",
+   "rig": "gen-1",
+   "why": [
+    "pop 3364 on its own body \u2192 6992 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/Punch_Cross",
+   "rig": "gen-1",
+   "why": [
+    "jitter 21.0 on its own body \u2192 34.0 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/Roll",
+   "rig": "gen-1",
+   "why": [
+    "pop 0.0 on its own body \u2192 2342 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/Sword_Block",
+   "rig": "gen-1",
+   "why": [
+    "jitter 23.6 on its own body \u2192 29.7 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/TreeChopping_Loop",
+   "rig": "gen-1",
+   "why": [
+    "seamVelocity 2629 on its own body \u2192 3261 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Crouch_Fwd_Loop",
+   "rig": "gen-1",
+   "why": [
+    "slide 103 on its own body \u2192 242 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Dance_Loop",
+   "rig": "gen-1",
+   "why": [
+    "seamVelocity 1705 on its own body \u2192 3467 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Jump_Start",
+   "rig": "gen-1",
+   "why": [
+    "skate 0.0 on its own body \u2192 20.5 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/LayToIdle",
+   "rig": "gen-1",
+   "why": [
+    "slide 46.9 on its own body \u2192 173 played on this one, past its warn level",
+    "skate 6.9 on its own body \u2192 23.6 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Punch_Cross",
+   "rig": "gen-1",
+   "why": [
+    "jitter 21.0 on its own body \u2192 33.3 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Roll",
+   "rig": "gen-1",
+   "why": [
+    "pop 0.0 on its own body \u2192 5683 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Roll_RM",
+   "rig": "gen-1",
+   "why": [
+    "pop 0.0 on its own body \u2192 5683 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Shield_Dash",
+   "rig": "gen-1",
+   "why": [
+    "skate 4.6 on its own body \u2192 19.9 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Sword_Block",
+   "rig": "gen-1",
+   "why": [
+    "jitter 23.6 on its own body \u2192 29.6 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Sword_Regular_A",
+   "rig": "gen-1",
+   "why": [
+    "pop 0.0 on its own body \u2192 2459 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/TreeChopping_Loop",
+   "rig": "gen-1",
+   "why": [
+    "seamVelocity 2629 on its own body \u2192 3261 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Walk_Formal_Loop",
+   "rig": "gen-1",
+   "why": [
+    "pop 0.0 on its own body \u2192 3143 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Walk_Loop",
+   "rig": "gen-1",
+   "why": [
+    "seamVelocity 1820 on its own body \u2192 4274 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Zombie_Walk_Fwd_Loop",
+   "rig": "gen-1",
+   "why": [
+    "jitter 2.4 on its own body \u2192 59.1 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "STYLE100/BeatChest_Walk",
+   "rig": "gen-1",
+   "why": [
+    "seamVelocity 2434 on its own body \u2192 3073 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "STYLE100/OnHeels_Walk",
+   "rig": "gen-1",
+   "why": [
+    "slide 98.3 on its own body \u2192 224 played on this one, past its warn level",
+    "skate 12.0 on its own body \u2192 27.4 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "STYLE100/Punch_Walk",
+   "rig": "gen-1",
+   "why": [
+    "pop 2813 on its own body \u2192 4894 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "STYLE100/Rushed_Walk",
+   "rig": "gen-1",
+   "why": [
+    "slide 59.8 on its own body \u2192 240 played on this one, past its warn level",
+    "skate 22.4 on its own body \u2192 51.4 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "STYLE100/StartStop_Walk",
+   "rig": "gen-1",
+   "why": [
+    "slide 135 on its own body \u2192 194 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "STYLE100/WideLegs_Walk",
+   "rig": "gen-1",
+   "why": [
+    "slide 145 on its own body \u2192 167 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "STYLE100/WiggleHips_Walk",
+   "rig": "gen-1",
+   "why": [
+    "slide 125 on its own body \u2192 205 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Boxing_Jab",
+   "rig": "gen-2",
+   "why": [
+    "skate 24.5 on its own body \u2192 43.7 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Breakdance_Helicopter",
+   "rig": "gen-2",
+   "why": [
+    "pop 0.0 on its own body \u2192 2503 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Frankenstein_Walk_Loop",
+   "rig": "gen-2",
+   "why": [
+    "slide 36.7 on its own body \u2192 199 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Gorilla_Walk_Loop",
+   "rig": "gen-2",
+   "why": [
+    "bodyPenetration 0.0 on its own body \u2192 137 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Jumping_Jacks_Loop",
+   "rig": "gen-2",
+   "why": [
+    "skate 0.0 on its own body \u2192 22.9 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Roundhouse_Kick",
+   "rig": "gen-2",
+   "why": [
+    "jitter 24.0 on its own body \u2192 30.6 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Run_Jump_Over",
+   "rig": "gen-2",
+   "why": [
+    "skate 0.0 on its own body \u2192 21.9 played on this one, past its warn level",
+    "jitter 24.9 on its own body \u2192 30.7 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Side_Kick",
+   "rig": "gen-2",
+   "why": [
+    "slide 139 on its own body \u2192 230 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Chop_Tree",
+   "rig": "gen-2",
+   "why": [
+    "seamVelocity 3049 on its own body \u2192 4845 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Crouch_Walk",
+   "rig": "gen-2",
+   "why": [
+    "slide 60.9 on its own body \u2192 183 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Dance_Reach_Hip",
+   "rig": "gen-2",
+   "why": [
+    "slide 139 on its own body \u2192 236 played on this one, past its warn level",
+    "pop 104 on its own body \u2192 2845 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Jog",
+   "rig": "gen-2",
+   "why": [
+    "jitter 20.2 on its own body \u2192 52.6 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Land_Three_Point",
+   "rig": "gen-2",
+   "why": [
+    "bodyPenetration 0.0 on its own body \u2192 32.0 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/LayToIdle",
+   "rig": "gen-2",
+   "why": [
+    "slide 46.6 on its own body \u2192 193 played on this one, past its warn level",
+    "skate 6.6 on its own body \u2192 26.9 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Run_Stealth",
+   "rig": "gen-2",
+   "why": [
+    "jitter 82.9 on its own body \u2192 106 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Strafe_right",
+   "rig": "gen-2",
+   "why": [
+    "skate 0.0 on its own body \u2192 29.6 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Sword_Regular_B",
+   "rig": "gen-2",
+   "why": [
+    "pop 2143 on its own body \u2192 4551 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Sword_Regular_B_Rec",
+   "rig": "gen-2",
+   "why": [
+    "jitter 7.2 on its own body \u2192 58.8 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Turn_Left_180",
+   "rig": "gen-2",
+   "why": [
+    "slide 57.7 on its own body \u2192 178 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Walk_Backwards",
+   "rig": "gen-2",
+   "why": [
+    "skate 0.0 on its own body \u2192 33.6 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Walk_Formal",
+   "rig": "gen-2",
+   "why": [
+    "seamVelocity 1993 on its own body \u2192 4417 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Zombie_Rise",
+   "rig": "gen-2",
+   "why": [
+    "slide 69.0 on its own body \u2192 293 played on this one, past its fail level",
+    "skate 10.6 on its own body \u2192 22.8 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/Crouch_Fwd_Loop",
+   "rig": "gen-2",
+   "why": [
+    "slide 73.9 on its own body \u2192 190 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/Jump_Start",
+   "rig": "gen-2",
+   "why": [
+    "pop 1970 on its own body \u2192 3035 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/NinjaJump_Start",
+   "rig": "gen-2",
+   "why": [
+    "pop 3364 on its own body \u2192 7431 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/Punch_Cross",
+   "rig": "gen-2",
+   "why": [
+    "jitter 21.0 on its own body \u2192 32.9 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/Roll",
+   "rig": "gen-2",
+   "why": [
+    "pop 0.0 on its own body \u2192 3164 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/Roll_RM",
+   "rig": "gen-2",
+   "why": [
+    "pop 0.0 on its own body \u2192 3164 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/Sword_Block",
+   "rig": "gen-2",
+   "why": [
+    "jitter 23.6 on its own body \u2192 29.9 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/Sword_Regular_A_Rec",
+   "rig": "gen-2",
+   "why": [
+    "slide 31.6 on its own body \u2192 182 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/TreeChopping_Loop",
+   "rig": "gen-2",
+   "why": [
+    "seamVelocity 2629 on its own body \u2192 3705 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Crouch_Fwd_Loop",
+   "rig": "gen-2",
+   "why": [
+    "slide 68.6 on its own body \u2192 190 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Jump_Start",
+   "rig": "gen-2",
+   "why": [
+    "pop 1970 on its own body \u2192 3035 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/LayToIdle",
+   "rig": "gen-2",
+   "why": [
+    "skate 6.9 on its own body \u2192 20.6 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/NinjaJump_Land",
+   "rig": "gen-2",
+   "why": [
+    "jitter 24.1 on its own body \u2192 30.6 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Punch_Cross",
+   "rig": "gen-2",
+   "why": [
+    "jitter 21.0 on its own body \u2192 30.8 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Roll",
+   "rig": "gen-2",
+   "why": [
+    "pop 0.0 on its own body \u2192 2428 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Sword_Regular_A",
+   "rig": "gen-2",
+   "why": [
+    "pop 0.0 on its own body \u2192 2402 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Sword_Regular_A_Rec_RM",
+   "rig": "gen-2",
+   "why": [
+    "slide 22.1 on its own body \u2192 183 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Sword_Regular_Combo",
+   "rig": "gen-2",
+   "why": [
+    "pop 0.0 on its own body \u2192 2414 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/TreeChopping_Loop",
+   "rig": "gen-2",
+   "why": [
+    "seamVelocity 2629 on its own body \u2192 3706 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Walk_Formal_Loop",
+   "rig": "gen-2",
+   "why": [
+    "pop 0.0 on its own body \u2192 2488 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Zombie_Walk_Fwd_Loop",
+   "rig": "gen-2",
+   "why": [
+    "jitter 2.4 on its own body \u2192 57.5 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "STYLE100/ArmsFolded_Walk",
+   "rig": "gen-2",
+   "why": [
+    "seamVelocity 1174 on its own body \u2192 3346 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "STYLE100/HandsBetweenLegs_Walk",
+   "rig": "gen-2",
+   "why": [
+    "skate 4.7 on its own body \u2192 43.3 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "STYLE100/OnHeels_Walk",
+   "rig": "gen-2",
+   "why": [
+    "slide 96.8 on its own body \u2192 211 played on this one, past its warn level",
+    "skate 11.4 on its own body \u2192 24.8 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "STYLE100/Swimming_Walk",
+   "rig": "gen-2",
+   "why": [
+    "slide 85.0 on its own body \u2192 263 played on this one, past its fail level",
+    "skate 9.4 on its own body \u2192 22.5 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "STYLE100/SwingArmsRound_Walk",
+   "rig": "gen-2",
+   "why": [
+    "intersection 1.6 on its own body \u2192 1.7 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "STYLE100/WiggleHips_Walk",
+   "rig": "gen-2",
+   "why": [
+    "slide 125 on its own body \u2192 196 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Backflip",
+   "rig": "gen-3",
+   "why": [
+    "pop 3191 on its own body \u2192 5036 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Curtsey",
+   "rig": "gen-3",
+   "why": [
+    "intersection 0.0 on its own body \u2192 1.0 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Run_Jump_Over",
+   "rig": "gen-3",
+   "why": [
+    "pop 0.0 on its own body \u2192 1980 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Run_Loop",
+   "rig": "gen-3",
+   "why": [
+    "jitter 23.6 on its own body \u2192 22.7 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Zombie_Walk_Loop",
+   "rig": "gen-3",
+   "why": [
+    "pop 0.0 on its own body \u2192 1731 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Crouch_Walk",
+   "rig": "gen-3",
+   "why": [
+    "slide 84.5 on its own body \u2192 152 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Dance_Body_Roll",
+   "rig": "gen-3",
+   "why": [
+    "skate 31.6 on its own body \u2192 30.5 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Dance_Reach_Hip",
+   "rig": "gen-3",
+   "why": [
+    "slide 139 on its own body \u2192 114 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Fixing_Kneeling",
+   "rig": "gen-3",
+   "why": [
+    "skate 16.1 on its own body \u2192 13.7 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Golf_Drive",
+   "rig": "gen-3",
+   "why": [
+    "intersection 0.0 on its own body \u2192 1.7 played on this one, past its fail level",
+    "pop 1394 on its own body \u2192 2057 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Golf_idle",
+   "rig": "gen-3",
+   "why": [
+    "intersection 0.0 on its own body \u2192 1.1 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Jog",
+   "rig": "gen-3",
+   "why": [
+    "jitter 20.2 on its own body \u2192 24.6 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Land_Three_Point",
+   "rig": "gen-3",
+   "why": [
+    "bodyPenetration 0.0 on its own body \u2192 18.9 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/LayToIdle",
+   "rig": "gen-3",
+   "why": [
+    "slide 46.6 on its own body \u2192 136 played on this one, past its warn level",
+    "skate 6.6 on its own body \u2192 18.9 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Strafe_right",
+   "rig": "gen-3",
+   "why": [
+    "skate 0.0 on its own body \u2192 20.0 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Sword_Regular_B",
+   "rig": "gen-3",
+   "why": [
+    "pop 2143 on its own body \u2192 2913 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Sword_Regular_B_Rec",
+   "rig": "gen-3",
+   "why": [
+    "jitter 7.2 on its own body \u2192 39.2 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Walk_Formal",
+   "rig": "gen-3",
+   "why": [
+    "seamVelocity 1993 on its own body \u2192 2672 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Zombie_Rise",
+   "rig": "gen-3",
+   "why": [
+    "pop 0.0 on its own body \u2192 2025 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/Crouch_Fwd_Loop",
+   "rig": "gen-3",
+   "why": [
+    "slide 103 on its own body \u2192 161 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/Dance_Loop",
+   "rig": "gen-3",
+   "why": [
+    "seamVelocity 1705 on its own body \u2192 2139 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/Jump_Start",
+   "rig": "gen-3",
+   "why": [
+    "skate 0.0 on its own body \u2192 14.0 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/LayToIdle",
+   "rig": "gen-3",
+   "why": [
+    "skate 7.0 on its own body \u2192 14.5 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/NinjaJump_Start",
+   "rig": "gen-3",
+   "why": [
+    "pop 3364 on its own body \u2192 5238 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/Punch_Cross",
+   "rig": "gen-3",
+   "why": [
+    "jitter 21.0 on its own body \u2192 21.0 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/Roll",
+   "rig": "gen-3",
+   "why": [
+    "pop 0.0 on its own body \u2192 1608 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/Sword_Block",
+   "rig": "gen-3",
+   "why": [
+    "jitter 23.6 on its own body \u2192 19.8 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/TreeChopping_Loop",
+   "rig": "gen-3",
+   "why": [
+    "seamVelocity 2629 on its own body \u2192 2269 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Crouch_Fwd_Loop",
+   "rig": "gen-3",
+   "why": [
+    "slide 103 on its own body \u2192 161 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Dance_Loop",
+   "rig": "gen-3",
+   "why": [
+    "seamVelocity 1705 on its own body \u2192 2162 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Jump_Start",
+   "rig": "gen-3",
+   "why": [
+    "skate 0.0 on its own body \u2192 14.0 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/LayToIdle",
+   "rig": "gen-3",
+   "why": [
+    "slide 46.9 on its own body \u2192 116 played on this one, past its warn level",
+    "skate 6.9 on its own body \u2192 15.8 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Roll",
+   "rig": "gen-3",
+   "why": [
+    "pop 0.0 on its own body \u2192 1608 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Shield_Dash",
+   "rig": "gen-3",
+   "why": [
+    "skate 4.6 on its own body \u2192 13.9 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Sword_Block",
+   "rig": "gen-3",
+   "why": [
+    "jitter 23.6 on its own body \u2192 19.9 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/TreeChopping_Loop",
+   "rig": "gen-3",
+   "why": [
+    "seamVelocity 2629 on its own body \u2192 2269 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Walk_Formal_Loop",
+   "rig": "gen-3",
+   "why": [
+    "pop 0.0 on its own body \u2192 2092 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Walk_Loop",
+   "rig": "gen-3",
+   "why": [
+    "seamVelocity 1820 on its own body \u2192 2953 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Zombie_Walk_Fwd_Loop",
+   "rig": "gen-3",
+   "why": [
+    "jitter 2.4 on its own body \u2192 39.3 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "STYLE100/BeatChest_Walk",
+   "rig": "gen-3",
+   "why": [
+    "seamVelocity 2434 on its own body \u2192 2116 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "STYLE100/OnHeels_Walk",
+   "rig": "gen-3",
+   "why": [
+    "slide 96.8 on its own body \u2192 152 played on this one, past its warn level",
+    "skate 11.4 on its own body \u2192 17.9 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "STYLE100/Punch_Walk",
+   "rig": "gen-3",
+   "why": [
+    "pop 2813 on its own body \u2192 3620 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "STYLE100/Rushed_Walk",
+   "rig": "gen-3",
+   "why": [
+    "slide 59.8 on its own body \u2192 173 played on this one, past its fail level",
+    "skate 22.4 on its own body \u2192 35.8 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "STYLE100/StartStop_Walk",
+   "rig": "gen-3",
+   "why": [
+    "slide 135 on its own body \u2192 124 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "STYLE100/SwingArmsRound_Walk",
+   "rig": "gen-3",
+   "why": [
+    "intersection 1.6 on its own body \u2192 1.8 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "STYLE100/WideLegs_Walk",
+   "rig": "gen-3",
+   "why": [
+    "slide 145 on its own body \u2192 113 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "STYLE100/WiggleHips_Walk",
+   "rig": "gen-3",
+   "why": [
+    "slide 125 on its own body \u2192 136 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Bear",
+   "rig": "quaternius-mannequin-m",
+   "why": [
+    "skate 6.5 on its own body \u2192 26.0 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Boxing_Jab",
+   "rig": "quaternius-mannequin-m",
+   "why": [
+    "skate 15.3 on its own body \u2192 17.3 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Curtsey",
+   "rig": "quaternius-mannequin-m",
+   "why": [
+    "intersection 0.0 on its own body \u2192 1.0 played on this one, past its warn level",
+    "pop 1701 on its own body \u2192 9513 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Dive_Roll",
+   "rig": "quaternius-mannequin-m",
+   "why": [
+    "skate 13.1 on its own body \u2192 19.4 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Frankenstein_Walk_Loop",
+   "rig": "quaternius-mannequin-m",
+   "why": [
+    "slide 18.0 on its own body \u2192 180 played on this one, past its warn level",
+    "skate 1.4 on its own body \u2192 20.8 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Ghost",
+   "rig": "quaternius-mannequin-m",
+   "why": [
+    "skate 9.7 on its own body \u2192 23.3 played on this one, past its warn level",
+    "intersection 0.5 on its own body \u2192 1.0 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Gorilla_Walk_Loop",
+   "rig": "quaternius-mannequin-m",
+   "why": [
+    "bodyPenetration 0.0 on its own body \u2192 88.9 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Hurt_Stomach_Walk_Loop",
+   "rig": "quaternius-mannequin-m",
+   "why": [
+    "intersection 0.5 on its own body \u2192 1.6 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Monkey",
+   "rig": "quaternius-mannequin-m",
+   "why": [
+    "skate 16.4 on its own body \u2192 20.4 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Pick_Up_Box",
+   "rig": "quaternius-mannequin-m",
+   "why": [
+    "skate 7.7 on its own body \u2192 18.7 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Roundhouse_Kick",
+   "rig": "quaternius-mannequin-m",
+   "why": [
+    "jitter 24.0 on its own body \u2192 25.0 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Run_Jump_Over",
+   "rig": "quaternius-mannequin-m",
+   "why": [
+    "jitter 24.9 on its own body \u2192 27.2 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Run_Loop",
+   "rig": "quaternius-mannequin-m",
+   "why": [
+    "jitter 23.6 on its own body \u2192 41.2 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Side_Kick",
+   "rig": "quaternius-mannequin-m",
+   "why": [
+    "slide 136 on its own body \u2192 155 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Stretch_Yawn",
+   "rig": "quaternius-mannequin-m",
+   "why": [
+    "intersection 0.0 on its own body \u2192 1.0 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Backflip",
+   "rig": "quaternius-mannequin-m",
+   "why": [
+    "jitter 47.3 on its own body \u2192 126 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Crouch_Walk",
+   "rig": "quaternius-mannequin-m",
+   "why": [
+    "slide 84.5 on its own body \u2192 201 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Jog",
+   "rig": "quaternius-mannequin-m",
+   "why": [
+    "jitter 20.2 on its own body \u2192 31.5 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Jump_Start",
+   "rig": "quaternius-mannequin-m",
+   "why": [
+    "jitter 22.9 on its own body \u2192 32.1 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Land_Three_Point",
+   "rig": "quaternius-mannequin-m",
+   "why": [
+    "jitter 9.5 on its own body \u2192 28.3 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/LayToIdle",
+   "rig": "quaternius-mannequin-m",
+   "why": [
+    "slide 46.6 on its own body \u2192 164 played on this one, past its warn level",
+    "skate 6.6 on its own body \u2192 22.8 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Sprint",
+   "rig": "quaternius-mannequin-m",
+   "why": [
+    "pop 3317 on its own body \u2192 3477 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Strafe_right",
+   "rig": "quaternius-mannequin-m",
+   "why": [
+    "skate 0.0 on its own body \u2192 27.8 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Sword_Regular_B",
+   "rig": "quaternius-mannequin-m",
+   "why": [
+    "skate 3.5 on its own body \u2192 20.2 played on this one, past its warn level",
+    "pop 2143 on its own body \u2192 4351 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Sword_Regular_B_Rec",
+   "rig": "quaternius-mannequin-m",
+   "why": [
+    "jitter 7.2 on its own body \u2192 34.5 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Tired_Hunched",
+   "rig": "quaternius-mannequin-m",
+   "why": [
+    "intersection 0.3 on its own body \u2192 1.0 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Turn_Left_180",
+   "rig": "quaternius-mannequin-m",
+   "why": [
+    "skate 6.3 on its own body \u2192 19.2 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Zombie_Rise",
+   "rig": "quaternius-mannequin-m",
+   "why": [
+    "skate 10.6 on its own body \u2192 19.5 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/Crouch_Fwd_Loop",
+   "rig": "quaternius-mannequin-m",
+   "why": [
+    "slide 79.7 on its own body \u2192 190 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/LayToIdle",
+   "rig": "quaternius-mannequin-m",
+   "why": [
+    "skate 7.0 on its own body \u2192 18.2 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/Sword_Regular_A_Rec",
+   "rig": "quaternius-mannequin-m",
+   "why": [
+    "slide 31.6 on its own body \u2192 154 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/Zombie_Walk_Fwd_Loop",
+   "rig": "quaternius-mannequin-m",
+   "why": [
+    "skate 5.8 on its own body \u2192 20.2 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Crouch_Fwd_Loop",
+   "rig": "quaternius-mannequin-m",
+   "why": [
+    "slide 79.7 on its own body \u2192 190 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/LayToIdle",
+   "rig": "quaternius-mannequin-m",
+   "why": [
+    "skate 6.9 on its own body \u2192 18.8 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Shield_Dash_RM",
+   "rig": "quaternius-mannequin-m",
+   "why": [
+    "jitter 9.8 on its own body \u2192 25.3 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Sword_Regular_A_Rec_RM",
+   "rig": "quaternius-mannequin-m",
+   "why": [
+    "slide 22.1 on its own body \u2192 162 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Walk_Loop",
+   "rig": "quaternius-mannequin-m",
+   "why": [
+    "seamVelocity 1820 on its own body \u2192 3225 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Yes",
+   "rig": "quaternius-mannequin-m",
+   "why": [
+    "pop 0.0 on its own body \u2192 2750 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Zombie_Walk_Fwd_Loop",
+   "rig": "quaternius-mannequin-m",
+   "why": [
+    "jitter 2.4 on its own body \u2192 50.9 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "STYLE100/Angry_Walk",
+   "rig": "quaternius-mannequin-m",
+   "why": [
+    "seamVelocity 1965 on its own body \u2192 3414 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "STYLE100/ArmsFolded_Walk",
+   "rig": "quaternius-mannequin-m",
+   "why": [
+    "seamVelocity 1174 on its own body \u2192 3243 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "STYLE100/BeatChest_Walk",
+   "rig": "quaternius-mannequin-m",
+   "why": [
+    "seamVelocity 2434 on its own body \u2192 2995 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "STYLE100/Elated_Walk",
+   "rig": "quaternius-mannequin-m",
+   "why": [
+    "seamVelocity 2826 on its own body \u2192 2819 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "STYLE100/HandsBetweenLegs_Walk",
+   "rig": "quaternius-mannequin-m",
+   "why": [
+    "seamVelocity 1585 on its own body \u2192 2806 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "STYLE100/Morris_Walk",
+   "rig": "quaternius-mannequin-m",
+   "why": [
+    "pop 0.0 on its own body \u2192 2093 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "STYLE100/OnHeels_Walk",
+   "rig": "quaternius-mannequin-m",
+   "why": [
+    "slide 96.0 on its own body \u2192 195 played on this one, past its warn level",
+    "skate 11.1 on its own body \u2192 22.5 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "STYLE100/Punch_Walk",
+   "rig": "quaternius-mannequin-m",
+   "why": [
+    "pop 2813 on its own body \u2192 4608 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "STYLE100/Rushed_Walk",
+   "rig": "quaternius-mannequin-m",
+   "why": [
+    "slide 59.8 on its own body \u2192 161 played on this one, past its warn level",
+    "skate 22.4 on its own body \u2192 44.0 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "STYLE100/SwingArmsRound_Walk",
+   "rig": "quaternius-mannequin-m",
+   "why": [
+    "intersection 1.6 on its own body \u2192 1.8 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "STYLE100/WiggleHips_Walk",
+   "rig": "quaternius-mannequin-m",
+   "why": [
+    "slide 125 on its own body \u2192 187 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Backflip",
+   "rig": "kaykit-knight",
+   "why": [
+    "slide 76.4 on its own body \u2192 63.6 played on this one, past its warn level",
+    "skate 28.6 on its own body \u2192 23.8 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Bear",
+   "rig": "kaykit-knight",
+   "why": [
+    "slide 67.4 on its own body \u2192 83.4 played on this one, past its warn level",
+    "skate 15.7 on its own body \u2192 12.5 played on this one, past its warn level",
+    "bodyPenetration 0.0 on its own body \u2192 104 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Boxing_Guard_Loop",
+   "rig": "kaykit-knight",
+   "why": [
+    "slide 82.2 on its own body \u2192 88.7 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Breakdance_Helicopter",
+   "rig": "kaykit-knight",
+   "why": [
+    "jitter 30.5 on its own body \u2192 68.4 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Climb_Ladder",
+   "rig": "kaykit-knight",
+   "why": [
+    "skate 0.0 on its own body \u2192 14.2 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Dig",
+   "rig": "kaykit-knight",
+   "why": [
+    "slide 156 on its own body \u2192 76.1 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Dive_Roll",
+   "rig": "kaykit-knight",
+   "why": [
+    "slide 42.8 on its own body \u2192 70.2 played on this one, past its warn level",
+    "skate 13.4 on its own body \u2192 8.1 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Dragon",
+   "rig": "kaykit-knight",
+   "why": [
+    "slide 72.2 on its own body \u2192 101 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Duck_Thrown_Object",
+   "rig": "kaykit-knight",
+   "why": [
+    "slide 108 on its own body \u2192 73.7 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Duck_Under",
+   "rig": "kaykit-knight",
+   "why": [
+    "pop 0.0 on its own body \u2192 1224 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Frankenstein_Walk_Loop",
+   "rig": "kaykit-knight",
+   "why": [
+    "slide 77.3 on its own body \u2192 115 played on this one, past its fail level",
+    "skate 5.4 on its own body \u2192 8.8 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Front_Kick",
+   "rig": "kaykit-knight",
+   "why": [
+    "pop 0.0 on its own body \u2192 940 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Get_Up_Face_Down",
+   "rig": "kaykit-knight",
+   "why": [
+    "skate 9.8 on its own body \u2192 8.3 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Get_Up_From_Back",
+   "rig": "kaykit-knight",
+   "why": [
+    "slide 22.3 on its own body \u2192 81.9 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Get_Up_From_Side",
+   "rig": "kaykit-knight",
+   "why": [
+    "slide 63.0 on its own body \u2192 60.4 played on this one, past its warn level",
+    "jitter 64.5 on its own body \u2192 72.2 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Ghost",
+   "rig": "kaykit-knight",
+   "why": [
+    "slide 25.9 on its own body \u2192 107 played on this one, past its fail level",
+    "skate 9.7 on its own body \u2192 14.8 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Gorilla_Walk_Loop",
+   "rig": "kaykit-knight",
+   "why": [
+    "bodyPenetration 0.0 on its own body \u2192 75.6 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Jump_Kick",
+   "rig": "kaykit-knight",
+   "why": [
+    "slide 94.2 on its own body \u2192 62.5 played on this one, past its warn level",
+    "skate 16.6 on its own body \u2192 11.0 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Monkey",
+   "rig": "kaykit-knight",
+   "why": [
+    "slide 83.8 on its own body \u2192 87.6 played on this one, past its warn level",
+    "skate 33.5 on its own body \u2192 27.7 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Pick_Up_Box",
+   "rig": "kaykit-knight",
+   "why": [
+    "bodyPenetration 0.0 on its own body \u2192 54.0 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Punch_Combo",
+   "rig": "kaykit-knight",
+   "why": [
+    "skate 9.2 on its own body \u2192 10.8 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Rake_Leaves",
+   "rig": "kaykit-knight",
+   "why": [
+    "slide 62.0 on its own body \u2192 61.3 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Run_Jump_Over",
+   "rig": "kaykit-knight",
+   "why": [
+    "skate 0.0 on its own body \u2192 10.8 played on this one, past its warn level",
+    "pop 0.0 on its own body \u2192 2902 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Search_Ground",
+   "rig": "kaykit-knight",
+   "why": [
+    "slide 45.3 on its own body \u2192 88.1 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Sword_Lunge",
+   "rig": "kaykit-knight",
+   "why": [
+    "slide 29.4 on its own body \u2192 73.6 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Waiting_Loop",
+   "rig": "kaykit-knight",
+   "why": [
+    "jitter 7.1 on its own body \u2192 13.4 played on this one, past its warn level",
+    "pop 0.0 on its own body \u2192 1908 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Walk_Loop",
+   "rig": "kaykit-knight",
+   "why": [
+    "slide 129 on its own body \u2192 108 played on this one, past its fail level",
+    "skate 20.9 on its own body \u2192 17.6 played on this one, past its fail level",
+    "jitter 10.6 on its own body \u2192 29.7 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Zombie_Walk_Loop",
+   "rig": "kaykit-knight",
+   "why": [
+    "pop 0.0 on its own body \u2192 2174 played on this one, past its fail level",
+    "seamVelocity 1191 on its own body \u2192 3056 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Climb_Ladder",
+   "rig": "kaykit-knight",
+   "why": [
+    "skate 0.0 on its own body \u2192 10.4 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Climb_Wall",
+   "rig": "kaykit-knight",
+   "why": [
+    "skate 0.0 on its own body \u2192 7.8 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Dance_Reach_Hip",
+   "rig": "kaykit-knight",
+   "why": [
+    "skate 9.6 on its own body \u2192 12.6 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Dance_Simple",
+   "rig": "kaykit-knight",
+   "why": [
+    "seam 5.7 on its own body \u2192 52.8 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Golf_Drive",
+   "rig": "kaykit-knight",
+   "why": [
+    "intersection 0.0 on its own body \u2192 1.8 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Jog",
+   "rig": "kaykit-knight",
+   "why": [
+    "jitter 20.2 on its own body \u2192 14.5 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Kick_Breach",
+   "rig": "kaykit-knight",
+   "why": [
+    "slide 106 on its own body \u2192 61.2 played on this one, past its warn level",
+    "skate 29.0 on its own body \u2192 16.7 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Run_Stealth",
+   "rig": "kaykit-knight",
+   "why": [
+    "jitter 82.9 on its own body \u2192 65.3 played on this one, past its fail level",
+    "pop 0.0 on its own body \u2192 944 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Strafe_left",
+   "rig": "kaykit-knight",
+   "why": [
+    "skate 0.0 on its own body \u2192 8.1 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Strafe_right",
+   "rig": "kaykit-knight",
+   "why": [
+    "slide 3.7 on its own body \u2192 64.2 played on this one, past its warn level",
+    "skate 0.0 on its own body \u2192 13.8 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Sword_Attack_Air_Vertical",
+   "rig": "kaykit-knight",
+   "why": [
+    "bodyPenetration 0.0 on its own body \u2192 215 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Sword_Regular_B",
+   "rig": "kaykit-knight",
+   "why": [
+    "pop 2143 on its own body \u2192 2058 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Turn_Left_90",
+   "rig": "kaykit-knight",
+   "why": [
+    "slide 118 on its own body \u2192 76.2 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Turn_Right_90",
+   "rig": "kaykit-knight",
+   "why": [
+    "skate 5.6 on its own body \u2192 7.6 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Walk",
+   "rig": "kaykit-knight",
+   "why": [
+    "seamVelocity 1445 on its own body \u2192 1142 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Zombie_Rise",
+   "rig": "kaykit-knight",
+   "why": [
+    "skate 15.7 on its own body \u2192 11.1 played on this one, past its warn level",
+    "pop 0.0 on its own body \u2192 1752 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/Hit_Knockback",
+   "rig": "kaykit-knight",
+   "why": [
+    "pop 0.0 on its own body \u2192 1530 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/Hit_Knockback_RM",
+   "rig": "kaykit-knight",
+   "why": [
+    "pop 0.0 on its own body \u2192 1442 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/Jump_Start",
+   "rig": "kaykit-knight",
+   "why": [
+    "slide 82.2 on its own body \u2192 68.9 played on this one, past its warn level",
+    "skate 0.0 on its own body \u2192 9.0 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/LayToIdle",
+   "rig": "kaykit-knight",
+   "why": [
+    "skate 15.1 on its own body \u2192 15.0 played on this one, past its warn level",
+    "pop 0.0 on its own body \u2192 1231 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/NinjaJump_Start",
+   "rig": "kaykit-knight",
+   "why": [
+    "jitter 82.7 on its own body \u2192 38.2 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/Roll",
+   "rig": "kaykit-knight",
+   "why": [
+    "pop 0.0 on its own body \u2192 1307 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/Roll_RM",
+   "rig": "kaykit-knight",
+   "why": [
+    "pop 0.0 on its own body \u2192 1335 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/Swim_Idle_Loop",
+   "rig": "kaykit-knight",
+   "why": [
+    "pop 0.0 on its own body \u2192 1209 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/Zombie_Scratch",
+   "rig": "kaykit-knight",
+   "why": [
+    "skate 2.0 on its own body \u2192 9.1 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/ClimbUp_1m",
+   "rig": "kaykit-knight",
+   "why": [
+    "jitter 84.5 on its own body \u2192 38.4 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/ClimbUp_1m_RM",
+   "rig": "kaykit-knight",
+   "why": [
+    "jitter 85.6 on its own body \u2192 38.1 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Hit_Knockback",
+   "rig": "kaykit-knight",
+   "why": [
+    "pop 0.0 on its own body \u2192 1541 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Hit_Knockback_RM",
+   "rig": "kaykit-knight",
+   "why": [
+    "pop 0.0 on its own body \u2192 1442 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Jump_Start",
+   "rig": "kaykit-knight",
+   "why": [
+    "slide 73.7 on its own body \u2192 68.9 played on this one, past its warn level",
+    "skate 0.0 on its own body \u2192 9.0 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/LayToIdle",
+   "rig": "kaykit-knight",
+   "why": [
+    "skate 15.7 on its own body \u2192 14.0 played on this one, past its warn level",
+    "pop 61.6 on its own body \u2192 1250 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Roll",
+   "rig": "kaykit-knight",
+   "why": [
+    "pop 0.0 on its own body \u2192 1307 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Roll_RM",
+   "rig": "kaykit-knight",
+   "why": [
+    "pop 0.0 on its own body \u2192 1335 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Shield_Dash",
+   "rig": "kaykit-knight",
+   "why": [
+    "skate 2.8 on its own body \u2192 11.6 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Sword_Attack",
+   "rig": "kaykit-knight",
+   "why": [
+    "skate 3.9 on its own body \u2192 8.9 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "STYLE100/BouncyLeft_Walk",
+   "rig": "kaykit-knight",
+   "why": [
+    "seamVelocity 2230 on its own body \u2192 1239 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "STYLE100/FlickLegs_Walk",
+   "rig": "kaykit-knight",
+   "why": [
+    "seamVelocity 2813 on its own body \u2192 1138 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "STYLE100/RightHop_Walk",
+   "rig": "kaykit-knight",
+   "why": [
+    "seamVelocity 2083 on its own body \u2192 1101 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "STYLE100/Rushed_Walk",
+   "rig": "kaykit-knight",
+   "why": [
+    "jitter 16.7 on its own body \u2192 11.7 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "STYLE100/Skip_Walk",
+   "rig": "kaykit-knight",
+   "why": [
+    "pop 0.0 on its own body \u2192 2201 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "STYLE100/StartStop_Walk",
+   "rig": "kaykit-knight",
+   "why": [
+    "slide 122 on its own body \u2192 106 played on this one, past its fail level",
+    "skate 14.9 on its own body \u2192 16.1 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "STYLE100/SwingArmsRound_Walk",
+   "rig": "kaykit-knight",
+   "why": [
+    "intersection 1.6 on its own body \u2192 1.9 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "STYLE100/WiggleHips_Walk",
+   "rig": "kaykit-knight",
+   "why": [
+    "slide 104 on its own body \u2192 62.9 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "STYLE100/WildLegs_Walk",
+   "rig": "kaykit-knight",
+   "why": [
+    "skate 4.1 on its own body \u2192 12.3 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Backflip",
+   "rig": "orangejuice-male-base",
+   "why": [
+    "pop 3191 on its own body \u2192 5637 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Breakdance_Helicopter",
+   "rig": "orangejuice-male-base",
+   "why": [
+    "intersection 0.1 on its own body \u2192 1.2 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Curtsey",
+   "rig": "orangejuice-male-base",
+   "why": [
+    "pop 1701 on its own body \u2192 2306 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Dive_Roll",
+   "rig": "orangejuice-male-base",
+   "why": [
+    "skate 13.4 on its own body \u2192 29.8 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Frankenstein_Walk_Loop",
+   "rig": "orangejuice-male-base",
+   "why": [
+    "slide 18.0 on its own body \u2192 231 played on this one, past its fail level",
+    "skate 1.5 on its own body \u2192 24.8 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Gorilla_Walk_Loop",
+   "rig": "orangejuice-male-base",
+   "why": [
+    "bodyPenetration 0.0 on its own body \u2192 158 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Roundhouse_Kick",
+   "rig": "orangejuice-male-base",
+   "why": [
+    "jitter 24.0 on its own body \u2192 46.1 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Run_Jump_Over",
+   "rig": "orangejuice-male-base",
+   "why": [
+    "pop 0.0 on its own body \u2192 2046 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Run_Loop",
+   "rig": "orangejuice-male-base",
+   "why": [
+    "jitter 23.6 on its own body \u2192 35.1 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "CMU_CURATED/Side_Kick",
+   "rig": "orangejuice-male-base",
+   "why": [
+    "slide 139 on its own body \u2192 185 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Climb_Wall",
+   "rig": "orangejuice-male-base",
+   "why": [
+    "skate 0.0 on its own body \u2192 24.7 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Crouch_Walk",
+   "rig": "orangejuice-male-base",
+   "why": [
+    "slide 84.5 on its own body \u2192 218 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Dance_Reach_Hip",
+   "rig": "orangejuice-male-base",
+   "why": [
+    "jitter 7.9 on its own body \u2192 27.3 played on this one, past its warn level",
+    "pop 104 on its own body \u2192 3019 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Fishing_Catch",
+   "rig": "orangejuice-male-base",
+   "why": [
+    "jitter 6.2 on its own body \u2192 28.5 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Idle_FoldArms",
+   "rig": "orangejuice-male-base",
+   "why": [
+    "intersection 0.5 on its own body \u2192 1.0 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Jog",
+   "rig": "orangejuice-male-base",
+   "why": [
+    "jitter 20.2 on its own body \u2192 40.6 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Jump_Start",
+   "rig": "orangejuice-male-base",
+   "why": [
+    "jitter 22.9 on its own body \u2192 30.0 played on this one, past its warn level",
+    "pop 1868 on its own body \u2192 2237 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Kick_Breach",
+   "rig": "orangejuice-male-base",
+   "why": [
+    "jitter 23.6 on its own body \u2192 25.8 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Land_Three_Point",
+   "rig": "orangejuice-male-base",
+   "why": [
+    "jitter 9.5 on its own body \u2192 29.0 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/LayToIdle",
+   "rig": "orangejuice-male-base",
+   "why": [
+    "slide 48.7 on its own body \u2192 150 played on this one, past its warn level",
+    "skate 6.6 on its own body \u2192 20.0 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Pushup",
+   "rig": "orangejuice-male-base",
+   "why": [
+    "bodyPenetration 0.0 on its own body \u2192 64.6 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Roll",
+   "rig": "orangejuice-male-base",
+   "why": [
+    "pop 2246 on its own body \u2192 16595 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Roll_RM",
+   "rig": "orangejuice-male-base",
+   "why": [
+    "pop 2246 on its own body \u2192 16595 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Sprint",
+   "rig": "orangejuice-male-base",
+   "why": [
+    "pop 3317 on its own body \u2192 3644 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Strafe_right",
+   "rig": "orangejuice-male-base",
+   "why": [
+    "skate 0.0 on its own body \u2192 25.7 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Sword_Attack_Air_Vertical",
+   "rig": "orangejuice-male-base",
+   "why": [
+    "bodyPenetration 0.0 on its own body \u2192 49.6 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Sword_Dash_RM",
+   "rig": "orangejuice-male-base",
+   "why": [
+    "pop 0.0 on its own body \u2192 2352 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Sword_Regular_B",
+   "rig": "orangejuice-male-base",
+   "why": [
+    "pop 2143 on its own body \u2192 4309 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Sword_Regular_B_Rec",
+   "rig": "orangejuice-male-base",
+   "why": [
+    "jitter 7.2 on its own body \u2192 26.3 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Turn_Left_90",
+   "rig": "orangejuice-male-base",
+   "why": [
+    "slide 135 on its own body \u2192 162 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "MESH2MOTION/Zombie_Rise",
+   "rig": "orangejuice-male-base",
+   "why": [
+    "slide 69.0 on its own body \u2192 240 played on this one, past its fail level",
+    "skate 10.6 on its own body \u2192 17.9 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/Crouch_Fwd_Loop",
+   "rig": "orangejuice-male-base",
+   "why": [
+    "slide 103 on its own body \u2192 148 played on this one, past its warn level",
+    "skate 10.6 on its own body \u2192 59.0 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_3D2DGE/Jog_Fwd_Loop",
+   "rig": "orangejuice-male-base",
+   "why": [
+    "pop 0.0 on its own body \u2192 2697 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/ClimbUp_1m_RM",
+   "rig": "orangejuice-male-base",
+   "why": [
+    "jitter 85.6 on its own body \u2192 87.5 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Crouch_Fwd_Loop",
+   "rig": "orangejuice-male-base",
+   "why": [
+    "slide 103 on its own body \u2192 148 played on this one, past its warn level",
+    "skate 10.6 on its own body \u2192 59.0 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Jog_Fwd_Loop",
+   "rig": "orangejuice-male-base",
+   "why": [
+    "pop 0.0 on its own body \u2192 2697 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Roll",
+   "rig": "orangejuice-male-base",
+   "why": [
+    "pop 0.0 on its own body \u2192 7114 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Roll_RM",
+   "rig": "orangejuice-male-base",
+   "why": [
+    "pop 0.0 on its own body \u2192 7109 played on this one, past its fail level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Shield_Dash",
+   "rig": "orangejuice-male-base",
+   "why": [
+    "skate 4.1 on its own body \u2192 19.3 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Sword_Heavy_Combo_RM",
+   "rig": "orangejuice-male-base",
+   "why": [
+    "slide 130 on its own body \u2192 154 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Sword_Regular_Combo",
+   "rig": "orangejuice-male-base",
+   "why": [
+    "pop 0.0 on its own body \u2192 2597 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Walk_Loop",
+   "rig": "orangejuice-male-base",
+   "why": [
+    "seamVelocity 1820 on its own body \u2192 3498 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "QUATERNIUS_SHARDFALL/Zombie_Walk_Fwd_Loop",
+   "rig": "orangejuice-male-base",
+   "why": [
+    "jitter 2.4 on its own body \u2192 36.5 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "STYLE100/Angry_Walk",
+   "rig": "orangejuice-male-base",
+   "why": [
+    "seamVelocity 1965 on its own body \u2192 3213 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "STYLE100/GracefulArms_Walk",
+   "rig": "orangejuice-male-base",
+   "why": [
+    "seamVelocity 2062 on its own body \u2192 2790 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "STYLE100/HandsBetweenLegs_Walk",
+   "rig": "orangejuice-male-base",
+   "why": [
+    "seamVelocity 1585 on its own body \u2192 2952 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "STYLE100/OnHeels_Walk",
+   "rig": "orangejuice-male-base",
+   "why": [
+    "slide 96.8 on its own body \u2192 205 played on this one, past its warn level",
+    "skate 11.4 on its own body \u2192 24.1 played on this one, past its warn level"
+   ]
+  },
+  {
+   "clip": "STYLE100/WiggleHips_Walk",
+   "rig": "orangejuice-male-base",
+   "why": [
+    "slide 140 on its own body \u2192 227 played on this one, past its fail level"
+   ]
+  }
+ ]
+}

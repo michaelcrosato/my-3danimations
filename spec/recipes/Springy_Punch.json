@@ -1,0 +1,23 @@
+{
+ "format": "2.0",
+ "id": "RECIPES/Springy_Punch",
+ "name": "Springy Punch",
+ "tags": [
+  "attack",
+  "unarmed"
+ ],
+ "desc": "A cross whose fist overshoots and settles back",
+ "steps": [
+  {
+   "as": "p",
+   "op": "clip",
+   "id": "MESH2MOTION/Punch_Cross"
+  },
+  {
+   "op": "overshoot",
+   "in": "p",
+   "amount": 0.5,
+   "mask": "armR"
+  }
+ ]
+}

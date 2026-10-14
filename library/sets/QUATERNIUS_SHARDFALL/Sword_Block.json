@@ -10,8 +10,10 @@
 "desc": "braces and raises the sword to block, then recovers",
 "skeleton": "humanoid",
 "restSrc": "UAL2",
+"contacts": {"by":"detected","footL":[[0.117,1.233]],"footR":[[0,1.233]]},
+"facts": {"by":"m3a-facts@1","height":[70,95]},
 "provenance": {"src":"UAL2","method":"keyed","producer":{"tool":"m3a-migrate","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
-"quality": {"fit":[12,62],"qa":"unchecked","qaVersion":"none"},
+"quality": {"fit":[12,62],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"fail on pop: as migrated from Quaternius's Universal Animation Library, with no source frames to measure a repair against: its keys stay the source's (WP-1.5) until the re-import can fetch its files (D63)"},
 "keys": [
   {"t":0,
    "hips":[0,0,95], "body":[13,-4,0], "chest":[0,19,0], "head":[-11,2,0],

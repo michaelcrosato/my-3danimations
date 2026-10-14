@@ -1,0 +1,30 @@
+{
+ "format": "2.0",
+ "id": "RECIPES/Idle_To_Walk",
+ "name": "Idle To Walk",
+ "tags": [
+  "walk",
+  "idle"
+ ],
+ "desc": "Standing, then setting off walking",
+ "steps": [
+  {
+   "as": "idle",
+   "op": "clip",
+   "id": "STYLE100_IDLE/Neutral_Idle"
+  },
+  {
+   "as": "walk",
+   "op": "clip",
+   "id": "STYLE100/Neutral_Walk"
+  },
+  {
+   "op": "sequence",
+   "items": [
+    "idle",
+    "walk"
+   ],
+   "fade": 0.3
+  }
+ ]
+}

@@ -140,9 +140,11 @@ export function fix(clip: Clip, R: Rest, opts: FixOptions & { ops?: readonly (Fi
     steps.push({ op: name, changes: [...out.changes, ...moved(c, out.clip)], before: report.values, after: next.values, findings: { before: count(report.findings), after: count(next.findings) } });
     [c, report] = [out.clip, next];
   }
-  // stored facts are the motion's: measured again, and reported where they differ
+  // stored facts are the motion's: measured again, and reported where they differ (the ones its source gave, which
+  // `captured` names, kept)
   if (c.facts && steps.some((s) => s.changes.length)) {
-    const fresh = measureFacts(c, R) as unknown as Record<string, unknown>, old = c.facts, diff = Object.keys(fresh).filter((k) => k in old && !same(old[k], fresh[k]));
+    const fresh = measureFacts(c, R) as unknown as Record<string, unknown>, old = c.facts, given = new Set(Array.isArray(old.captured) ? (old.captured as string[]) : []);
+    const diff = Object.keys(fresh).filter((k) => k in old && !given.has(k) && !same(old[k], fresh[k]));
     if (diff.length) {
       c = { ...c, facts: { ...old, ...Object.fromEntries(diff.map((k) => [k, fresh[k]])) } };
       steps.push({ op: "facts", changes: diff.map((k) => `facts.${k} ${JSON.stringify(old[k])} → ${JSON.stringify(fresh[k])}`), before: report.values, after: report.values, findings: { before: count(report.findings), after: count(report.findings) } });

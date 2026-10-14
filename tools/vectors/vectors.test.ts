@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import { packGlb, sha256 } from "../../spec/conformance/runner/vectors.ts";
 import { num, stringify } from "../../spec/conformance/runner/json.ts";
 import { glb, rigGltf } from "./rig.ts";
+import { rigifyGltf } from "./rigify.ts";
 
 describe("the vectors' JSON", () => {
   it("writes the shortest round-trip number and keeps -0", () => {
@@ -16,6 +17,14 @@ describe("the vectors' JSON", () => {
     const v = { a: [1, 2], b: { c: [[1], [2]] } };
     expect(stringify(v)).toBe(stringify(JSON.parse(stringify(v))));
     expect(stringify(v)).toContain('"a": [1,2]');
+  });
+});
+
+describe("the Rigify rig", () => {
+  it("packs to the same bytes as the runner's packer, its accessors in every form the reader takes", () => {
+    const g = rigifyGltf(), acc = g.json.accessors as { componentType: number; normalized?: boolean }[], views = g.json.bufferViews as { byteStride?: number }[];
+    expect(sha256(glb(g))).toBe(sha256(packGlb(g.json, g.bin)));
+    expect([acc.some((a) => a.componentType === 5121 && a.normalized), acc.some((a) => a.componentType === 5123), views.some((v) => v.byteStride === 24)]).toEqual([true, true, true]);
   });
 });
 

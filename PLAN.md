@@ -565,7 +565,7 @@ game:  graph (L3) ─▶ Animator.step(dt) ─▶ events, root motion, hashed st
   |---|---|---|---|---|
   | T0 | `npm run check` | typecheck, lint, quick doctrine checks | 15 s | after edits and before stopping |
   | T1 | `npm test` | unit, conformance, sensors on a sample | 90 s | before every commit |
-  | T2 | `npm run e2e` | browser adapter checks, full library QA | 8 min | before every push |
+  | T2 | `npm run e2e` | browser adapter checks, full library QA, the library-wide sweeps T1 samples (D74) | 8 min | before every push |
   | Gate | `npm run gate -- G<n>` | the gate's command set | none (time reported) | at gates |
 - **Selection:** `npm run test:changed` picks the suites that cover the changed files and says why it ran each.
 - **No committed images.** Pictures go to `check-output/`, which git ignores; tests commit numbers and hashes.
@@ -576,7 +576,8 @@ game:  graph (L3) ─▶ Animator.step(dt) ─▶ events, root motion, hashed st
   and `intake.yml` is on `main` (scheduled workflows run only from the default branch), the intake workflow (WP-9.1)
   also runs every 15 minutes.
 - **Claude Code:**
-  - a SessionStart hook runs `npm ci` and sets `CHROMIUM_PATH`;
+  - a SessionStart hook puts Node 24 first on `PATH` when the default is older, runs `npm ci`, sets `CHROMIUM_PATH` and
+    fetches the rigs and the pinned sources by hash (D79);
   - `.mcp.json` registers the package's own MCP server, so the agent uses what it builds;
   - the skill lives in `.claude/skills/m3a/`.
 - **Docs drift:** generated docs (`docs/LIBRARY.md`, the manual's tool list) are rewritten by tools and checked.
@@ -591,7 +592,7 @@ character), a grader, and a pass rule graded headless.
 | Brief | Job | Pass rule |
 |---|---|---|
 | B1 Locomotion | find, fit, wire | Idle, walk and run switch by speed under scripted input; foot sliding stays under threshold during contacts; no NaN; a sheet is produced |
-| B2 Attack with hit timing | wire | The `hit` event lands within one frame of the clip's measured strike, and damage is applied then |
+| B2 Attack with hit timing | wire | Damage is applied once per punch, from two frames before to four after its strike as played (the punching hand's last forward-speed peak before its full reach; a cross-fade moves it a frame or two from the clip's measured strike, D77) |
 | B3 Reactions | wire, make | Light hits play on the upper body only while walking; heavy hits knock down and the character gets up after 1 s; ground contact holds |
 | B4 Retarget onto a VRM avatar | fit, check | A sneak loop on an avatar of different proportions; sensors green |
 | B5 Compose an emote | make | A two-handed wave with a hop, 1.5 s, looping; validator and sensors green; `describe` reports the hop |
@@ -766,7 +767,8 @@ G5 gates M3 (through WP-9.1) and M4 (G10). Clips change in sequence (§8.4), so 
   - on at least 6 skeletons (4 or more generated variants, 2 or more real CC0 rigs from different sources), the idle,
     walk, run, jump and attack set plays with the sensors green;
   - **a headless sweep** (`npm run sweep`, WP-4.5) plays every migrated clip on those six skeletons, and at least 95%
-    pass the sensors, with every failure listed and its reason given. The gate report links the clip-by-skeleton
+    pass the sensors (WP-4.5's rule: the skeleton adds no finding the clip lacks on its own body), with every failure
+    listed and its reason given. The gate report links the clip-by-skeleton
     results, and M1 claims only what they show;
   - **a held-out rig:** a real CC0 rig from a source that neither WP-4.2's list nor an earlier run under
     `bench/results/heldout/` used. On each run of G4, reruns included, a fresh subagent chooses one, reads its license,
@@ -783,7 +785,7 @@ G5 gates M3 (through WP-9.1) and M4 (G10). Clips change in sequence (§8.4), so 
     - locomotion 200;
     - combat 60;
     - traversal 30;
-    - reactions (hits, deaths, get-ups) 40;
+    - reactions (hits, deaths, get-ups) 33 (40 until WP-5.8 revised it, D66);
     - interaction and work 60;
     - gestures and emotes 60;
     - idles 30.
@@ -933,12 +935,15 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
 - **Size:** S
 - **Build:**
   - CI: T0 and T1 on every push, T2 on pull requests, gates by manual dispatch. Cache npm and `.cache/`.
-  - A SessionStart hook that runs `npm ci` and exports `CHROMIUM_PATH` in cloud sessions.
+  - A SessionStart hook that, in cloud sessions, puts the Node `engines` asks for first on `PATH`, runs `npm ci`,
+    fetches by hash the real rigs, each gate's held-out rigs and the pinned sources (a failed fetch warns), and exports
+    `CHROMIUM_PATH` (D79).
   - A PR template: what changed, Verify output, decisions made without an answer, the version.
 - **Done when:** CI is green on the PR, and a fresh clone of the branch passes `npm run check` after only the hook.
 - **Verify:**
   - the PR's checks are green, read with `gh pr checks` or the session's GitHub tools;
-  - `git clone -b <branch> . /tmp/m3a-fresh && cd /tmp/m3a-fresh && bash .claude/hooks/session-start.sh && npm run check`
+  - `git clone -b <branch> . /tmp/m3a-fresh && cd /tmp/m3a-fresh && CLAUDE_CODE_REMOTE=true CLAUDE_ENV_FILE=/tmp/m3a-env
+    bash .claude/hooks/session-start.sh && . /tmp/m3a-env && npm run check`
 
 **Gate G0** (§9.3).
 
@@ -1218,7 +1223,7 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
   - on the migrated locomotion clips and synced blends, a planted foot slides at most 10 mm per contact (the origin's
     procedural gait slid 12 to 28% of body speed);
   - on a 10° slope and a 0.2 m step, soles stay within 5 mm of the surface.
-- **Verify:** `npm test -- contact`
+- **Verify:** `npm test -- contact` (every third loop since D74; `M3A_FULL=1 npm test -- contact`, or T2, reads them all)
 
 #### WP-2.6 The Animator: step and pose
 - **Owns:** `packages/core/src/animator/*`, `packages/core/src/index.ts`
@@ -1247,6 +1252,7 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
   - "Exports" counts the names `src/index.ts` lists: 38. Each module's whole surface sits behind one of them as a
     namespace (145 runtime names through 9 namespaces).
   - The boundary check enforces it: one export per statement, each with a doc comment, no bare `export *`.
+  - D71 raised the cap to 44 for Phase 6's namespaces (procedural sources, actions, graphs), one name each.
   - Outside the Owns: the boundary check, the tools and conformance tests moved onto the namespaces, core's test
     barrel, and the Animator's run in `test:cross-engine`.
 
@@ -1461,7 +1467,7 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
 - **Verify:** `npm test -- play`
 
 #### WP-4.5 Headless capture
-- **Owns:** `packages/three/src/capture/*`, `tests/e2e/capture.spec.ts`, `tools/sweep/*`
+- **Owns:** `packages/three/src/capture/*`, `tests/e2e/capture.e2e.ts` (the repo runs `*.e2e.ts`, D49), `tools/sweep/*`
 - **Needs:** 4.4, 3.3
 - **Size:** M
 - **Build:** a Playwright harness that renders a bound character in headless Chromium on the WebGL 2 backend. It reads
@@ -1470,7 +1476,9 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
 
   Also `npm run sweep -- <rig ids | --manifest <file>>`: it plays every migrated clip on each given skeleton (bound by
   WP-4.3, solved in Node), runs the sensors (WP-3.3), and writes the clip-by-skeleton results with every failure and
-  its reason. G4 runs it on its six skeletons and, separately, on the held-out rig (§9.3).
+  its reason. G4 runs it on its six skeletons and, separately, on the held-out rig (§9.3). A clip passes on a skeleton
+  when the skeleton adds nothing wrong (D49): its data is sound, no metric goes past a level (warn or fail) it was
+  under on the clip's own body, read the same way, and every mapped bone's joint is within 5 mm of its body point.
 - **Done when:**
   - sheets of the generated and real rigs render in CI;
   - the hashes match;
@@ -1480,7 +1488,7 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
 - **Verify:** `npm run e2e -- capture && npm test -- sweep`
 
 #### WP-4.6 The first-flight demo
-- **Owns:** `apps/lab/hello/*`, `vercel.json`
+- **Owns:** `apps/lab/hello/*`, `vercel.json`, `tools/run/hello.ts` (`npm run hello`, D52)
 - **Needs:** 4.4
 - **Size:** M
 - **Build:**
@@ -1569,9 +1577,11 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
 - **Size:** L
 - **Build:** re-import from the original sources with the new degrees of freedom (wrists, forearm roll, spine curl, root
   yaw). Sources are fetched into `.cache/`, never committed.
-  - **Quaternius UAL1 and UAL2,** in their current editions. UAL2 was updated to v2.2 on 2026-09-28.
+  - **Quaternius UAL1 and UAL2,** in their current editions. UAL2 was updated to v2.2 on 2026-09-28. *Deviation
+    (D63): they come only through itch.io's download flow, which this session can't use; the owner chose to keep
+    them as migrated (D81), so `QUATERNIUS_3D2DGE` and `QUATERNIUS_SHARDFALL` stay as they are.*
   - **Mesh2Motion.** Audit each asset's license: the README says CC0, but a July 2026 report says some assets are CC BY
-    or CC BY-SA. Unaudited or share-alike assets go to `local`.
+    or CC BY-SA. Unaudited or share-alike assets go to `local`. *Audited CC0 (D63).*
   - **CMU:** the curated picks, plus new picks from the surveyed corpus (WP-5.6) chosen for the G5 category floors
     (combat, traversal, reactions, work).
   - **100STYLE** (CC BY 4.0, about 18.5 hours): import the styles the catalogs pick.
@@ -1658,10 +1668,12 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
 - **Size:** M
 - **Build:**
   - Run every sensor over every clip (`npm run qa`, from WP-3.3), with tag-aware thresholds.
-  - Baseline the exceptions, each with a reason.
+  - Repair what the sensors flag where a re-import can be measured against its source: the sensors' fix, kept when it
+    makes the clip better within 2 mm of its source on average (D66).
+  - Baseline the exceptions, each with a reason. The writers record every clip's verdict in its `quality` (D66).
   - A minimal dedup, so G5 counts unique motions:
     - the `orig` chains;
-    - exact re-exports (Mesh2Motion's 86 Quaternius copies);
+    - exact re-exports (Mesh2Motion's 86 Quaternius copies; one source's animation in two sets, or its `_RM` take);
     - a simple pose-distance pass for near-duplicates (the full dedup is WP-9.3).
   - A category per clip for G5's floors.
   - Generate `docs/LIBRARY.md`: sets, counts (raw and unique), categories, licenses, fit, QA distributions.
@@ -1676,7 +1688,7 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
 ### Phase 6: Composition and behavior (lane A)
 
 #### WP-6.1 Recipes
-- **Owns:** `spec/RECIPE.md`, `spec/schemas/recipe.json`, `packages/core/src/recipe/*`
+- **Owns:** `spec/RECIPE.md`, `spec/schemas/recipe.schema.json` (the stub G1 froze; D70), `spec/recipes/*`, `packages/core/src/recipe/*`
 - **Needs:** G2, 3.3
 - **Size:** L
 - **Build:** a small declarative language (JSON) for making clips from clips. Its operations:
@@ -1702,15 +1714,15 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
 - **Needs:** 6.1
 - **Size:** L
 - **Carry:**
-  - from my-3d2dge: `E.MOVES` (25 moves, 1.8k tokens; engine sections 10–12);
+  - from my-3d2dge: `E.MOVES` (24 moves, 1.8k tokens; engine sections 10–12);
   - from shardfall: `anim/moves.toml` (31 moves with `about` lines) and `moves.rs`;
   - from my-3dge: `tests/baselines/port/moves.json`, frozen (§4);
   - from riftlight: the gait generator with "zero foot slide by construction" (`docs/ANIMATION.md:234-244`).
 - **Build:** each source below produces format-2 clips with `method: procedural`; no procedural source runs inside
   `Animator.step` in v1.
   - **One move model, as data:** wind, active and recover phases; arcs; lunge, hop, crouch, lean and twist; chaining
-    from a start pose given as an input (the rest pose by default; graph transitions blend any remainder). The three
-    unit systems are reconciled into one, with an `about` line per move.
+    from a start pose given as an input (a standing pose on the rest by default, D71; graph transitions blend any
+    remainder). The three unit systems are reconciled into one, with an `about` line per move.
   - **A gait synthesizer:** speed, stride, bounce and limp, with real contacts.
   - **A procedural idle:** breathing and weight shifts.
 - **Done when:**
@@ -1737,10 +1749,11 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
 
   These are the `E.ACTIONS` that were never built in my-3d2dge, which the GPT-6 build then had to write by hand.
 - **Done when:** each action plays on every test character with the sensors green, and its interrupt points work.
-- **Verify:** `npm test -- actions`
+- **Verify:** `npm test -- actions` (on two of the test characters), and `npm run e2e` on all six (D74)
 
 #### WP-6.4 Graphs
-- **Owns:** `spec/GRAPH.md`, `spec/schemas/graph.json`, `packages/core/src/graph/*`
+- **Owns:** `spec/GRAPH.md`, `spec/schemas/graph.schema.json` (Phase 1's stub, filled; D73), `spec/graphs/*`,
+  `packages/core/src/graph/*`
 - **Needs:** 6.1
 - **Size:** L
 - **Carry:**
@@ -1759,7 +1772,8 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
 - **Verify:** `npm test -- graph`
 
 #### WP-6.5 Simulation and gameplay sync
-- **Owns:** `packages/tools/src/sim/*`
+- **Owns:** `packages/tools/src/sim/*`; `tools/sim/*` (the CLI, which reads rigs and clips: D75), `spec/SIM.md`,
+  `spec/sims/*`, `spec/schemas/sim.schema.json` and `sim-trace.schema.json`, and a graph state's `rate` in core
 - **Needs:** 6.4
 - **Size:** M
 - **Build:**
@@ -1773,18 +1787,26 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
 - **Verify:** `npm test -- sim`
 
 #### WP-6.6 Briefs B2 to B7, and the manual's wire and make sections
-- **Owns:** `bench/briefs/B2.md` to `B7.md`, `bench/graders/B2/**` to `B7/**`, and the wire and make sections of
-  `packages/tools/MANUAL.md`
+Split in two (D76): 6.6a the wiring briefs and the runner for any brief, 6.6b the making briefs.
+- **Owns:** `bench/briefs/B2.md` to `B7.md`, `bench/starters/B2/**` to `B7/**`, `bench/graders/B2/**` to `B7/**`,
+  `bench/graders/bones.ts` and `recipes.ts`, the runner's brief registry (`bench/runner/main.ts`) and its brief tests,
+  the wire and make sections of `packages/tools/MANUAL.md`; it touches the library's `resolver()` (D77), T1's and T2's
+  sampling (`tools/run/e2e.ts`, B1's grader test, describe's token test: D77), the body points a spine without chest
+  bones gets (`packages/core/src/skeleton/bones.ts`, D77) and the root motion of a one-shot that ends off its feet
+  (`packages/core/src/contact/root.ts`, D77)
 - **Needs:** 4.7, 6.5
-- **Size:** M
+- **Size:** L, as two halves of M (D76)
 - **Build:**
   - The briefs B2 to B7 of §7, each with a starter and a grader made of predicates and sensor thresholds. Graders take
     the starter character as a parameter (§7) and derive expected traces and thresholds from it, in hip heights.
-  - The manual's sections for wiring (events, graphs, root motion) and making (recipes, edits, actions), so G6's fresh
-    agents can work from the manual alone.
+    - **6.6a:** B2 (an attack's hit timing), B3 (reactions), B7 (a locomotion graph); `npm run bench` runs any brief.
+    - **6.6b:** B4 (a VRM avatar), B5 (an emote), B6 (an edited punch).
+  - The manual's sections for wiring (events, graphs, root motion: 6.6a) and making (recipes, edits, actions: 6.6b),
+    so G6's fresh agents can work from the manual alone.
 - **Done when:** every grader passes a known-good solution and fails a planted bad one, on the default character and
   on a generator seed outside WP-4.2's test set, and the manual draft stays within budget.
-- **Verify:** `npm test -- bench/graders && npm run doctrine`
+- **Verify:** `npm test -- bench/graders && npm run doctrine` (T1 grades on the default character, `npm run e2e` on the
+  other seed too: D74)
 
 **Gate G6.**
 
@@ -2234,25 +2256,26 @@ version, commit, date and a note with the numbers. Gates are rows too.
 | 4.2 Test characters | done | 0.21.0 | 5830e84, dac7541 | 2026-10-11 | 20 seeded variants (5 builds, 3 rests, 4 namings with their habits, twist and left-out bones) load in three and are recognized at confidence 1, bones within 1 µm, bound at rest; real rigs by hash: 2 Quaternius mannequins (unreal4, 1) and KayKit's Knight (topology, 0.85); a separate manifest fetches by its hash (D46) |
 | 4.3 Binding a skeleton | done | 0.22.0 | 4197608, 56855f6 | 2026-10-11 | 20 test characters + a held-out seed + the real rigs bind with no hand mapping, lengths as generated to the mm; a fully renamed rig binds through topology at 0.85; renamed, 22 of 24 map as by name, 2 flagged at 0.55; report ≤ 20 lines with a patch that binds; topology fixes in core (D47, D28); 0.23.1: control bones left out, the Knight mapped bone by bone |
 | 4.4 Playback and baking | done | 0.23.0 | 570b92d | 2026-10-11 | baked clips within 0.5 mm of the live solve on Mixamo, UE5 and Rigify characters (4 clips each, ≤1 mm through AnimationMixer); loop, events, contacts, facts in userData and GLTFExporter's extras; masked layers and crossfades through attach; the write allocates 0 bytes a frame, a whole update ≈7 KB and 0.16 ms (D48) |
-| 4.5 Headless capture | todo | | | | |
-| 4.6 The first-flight demo | todo | | | | |
-| 4.7 The benchmark harness and B1 | todo | | | | |
-| **G4 = M1** | todo | | | | |
-| 5.1 Library layout and loader | todo | | | | |
-| 5.2 Importers | todo | | | | |
-| 5.7 License compliance | todo | | | | |
-| 5.6 Large corpora on demand | todo | | | | |
-| 5.3 Re-import from the sources | todo | | | | |
-| 5.4 Facts and auto-labels | todo | | | | |
-| 5.5 Search | todo | | | | |
-| 5.8 Library QA | todo | | | | |
-| **G5** | todo | | | | |
-| 6.1 Recipes | todo | | | | |
-| 6.2 Procedural sources | todo | | | | |
-| 6.3 Actions | todo | | | | |
-| 6.4 Graphs | todo | | | | |
-| 6.5 Simulation and gameplay sync | todo | | | | |
-| 6.6 Briefs B2 to B7 and manual sections | todo | | | | |
+| 4.5 Headless capture | done | 0.24.0 | e7d7456, (this commit) | 2026-10-12 | capture: 2 generated + 2 real rigs drawn headless on WebGL 2 in CI, every frame drawn, pose hashes = Node's; blank and wrong-renderer frames fail by code; sweep over 2 test characters lists the broken clip with its reason; library sweep 80–91% on 5 generated, 86–88% on the Quaternius mannequins, 62% on the Knight (G4 asks 95%); planting and toeless-rig fixes (D49) |
+| 4.6 The first-flight demo | done | 0.25.0 | (this commit) | 2026-10-12 | lab `apps/lab/hello`: idle, walk, run by speed, jump, attack with its hit; deep links, `__m3a`, phone layout, stamp; `vercel.json`; e2e: a 13 s session headless on WebGL 2, hashes = Node's after every part, the sensors on what it played WARN with no fail, screenshots and a sheet as T2's artifact (D52); cross-fade planting fixed on the way (D51) |
+| 4.7 The benchmark harness and B1 | done | 0.27.0 | a7cc153, (this commit) | 2026-10-12 | isolation 1 (`claude -p`, clean env and home): B1 4/5 (the fifth skates at 54.5 cm/s running), 0.6–1.7 min, 7–18 turns, $0.11–0.24 a trial; discovery 2/2 found and used the package, both pass; quiz 10/10 in 3 trials; the grader fails 4 planted bad solutions and passes the known-good on seeds 1, 37 and held-out 41; a variant runs by path, its known-good first; manual draft shipped in @m3a/tools (D54) |
+| **G4 = M1** | failed, run 1 | 0.28.0 | 6798b45 | 2026-10-12 | run 1, 5 of 8 in 19.7 min (D57, `bench/results/gates/G4-run-1/`): sweep 89.1% of 3,150 (bar 95%; held-out rig 90.9%); B1's variant a grader failure (seed 935, fixed in D56); vectors without the pins in the worktree; check, test (469), doctrine, T2 (the set on six skeletons and the held-out rig, no fail finding), B1 5/5 passed. Run 2 waits for the sweep at ≥95% (K1) |
+| 5.1 Library layout and loader | done | 0.26.0 | (this commit) | 2026-10-12 | ahead of the ledger for WP-4.7 (D53): 5 sets, 525 clips load with their content ids and every file as locked; a tampered file fails with its clip named; a game that hasn't opted in sees the 3 CC0 sets (367 clips); CC0, CC BY and CMU texts in library/LICENSES/ |
+| 5.2 Importers | done | 0.30.0 | (this commit) | 2026-10-12 | `@m3a/io`: readGltf and readCmu bit for bit (tier 1b: the tiny rig, a Rigify rig with a skinned mesh and its look, take 09_02); BVH and glTF on any rig through six bone maps; VRMA written, read and written again byte for byte, its humanoid bones within 0.01 mm of the Animator, root motion in the hips; importSet and subset; per-file budgets and only IoError out, 600 random corruptions included (D61); 37 io and tier 1b tests |
+| 5.7 License compliance | done | 0.29.0 | (this commit) | 2026-10-12 | `npm run license -- check`: the 5 seed sets pass (Mesh2Motion's 3 open audits listed; CMU and 100STYLE credited); a game manifest's clips by its tiers, no local content shipped, its credits block (D59); a fixture for each failure fails |
+| 5.6 Large corpora on demand | done | 0.31.0 | (this commit) | 2026-10-12 | `npm run corpora -- cmu --survey --check`: all 2,548 takes regenerate the ledger byte for byte (every row as my-3d2dge's survey wrote it), each fetched file held to its lock; 100STYLE's archive pinned and its extras' six catalogs cut into sets, all 780 clips at the same stretch with the same keys as shardfall's (`--check`); library/local/ lane, the doctrine check reads no local content (D62) |
+| 5.3 Re-import from the sources | done | 0.32.0 | (this commit) | 2026-10-12 | `npm run import -- --check`: 9 sets re-imported from pinned sources with format 2's hands, spine curl and root yaw, every CMU take on the ground, each clip the better of import and migrated (the reason in `_import.json`, its schema in tools/import), every set within the fit limits (means 7.7–13.9 mm); hands on prop clips 32.4 → 13.7 mm (Mesh2Motion), 19.6 → 7.3 (STYLE100), CMU 15.1 → 15.3; Mesh2Motion audited CC0; 84 new CMU picks for G5's floors (144 clips); 1,385 clips in all, QA 901/296/188; Quaternius stays as migrated until its files can be fetched, a deviation (D63) |
+| 5.4 Facts and auto-labels | done | 0.33.0 | (this commit) | 2026-10-12 | `npm run facts -- --check`: all 1,385 clips carry their facts (`m3a-facts@1`; 793 with a captured speed kept) and detected contacts (1,329), written by the importer and the migrator and measured again with nothing stale; detected contacts are re-read by `measureFacts` and `playable`; the 18 tag–fact conflicts all resolved, 15 open loops closed by the fitter's `closeLoop` and 3 runs on the spot tagged `inplace`, none baselined; QA 920/285/180 (D64) |
+| 5.5 Search | done | 0.34.0 | (this commit) | 2026-10-12 | `npm test -- search`: `search` and `Library.search` over every set's catalog, rows only from the tiers opted into and `next` naming a closer match elsewhere, no match zero rows with the nearest tags, filters (speed, dur, loop, set, tier, tag), the 43-clip core list first among equals, the CMU ledger's takes; 40/40 game moments with a fitting clip in the top 5 (37 on CC0 alone); held out: round 1 4/10 against the first table, round 2 after the vocabulary was rebuilt and frozen 8/10 (7 on CC0) (D65) |
+| 5.8 Library QA | done | 0.35.1 | f874b01, (this commit) | 2026-10-12 | `npm run qa -- library --check`: all 1,393 clips carry the sensors' verdict (1,008 pass; 230 warn and 155 fail baselined, each with its reason, `baselines/qa.json` by set and by clip, the metrics a profile turns off named); 110 re-imports repaired within 2 mm on average and 30 mm at worst; 1,194 unique motions (84 copies by `orig`, 112 re-exports, 3 near-duplicates by pose), the CC0 pack 170; every G5 floor met, 9 CMU get-ups added and reactions revised 40 → 33 (35); distributions recorded; `docs/LIBRARY.md` generated (D66; G5's verifier's findings, D67). After G5 (0.35.2, D69): a float check, three floats answered; 5 CMU picks, combat 64 and gestures 63, 1,199 unique of 1,398 |
+| **G5** | passed | 0.35.1 | 754adfe | 2026-10-12 | 12/12 in 9.7 min (`bench/results/gates/G5/`, D68): 1,194 unique motions of 1,393 clips, the CC0 pack 170 of 366; every floor met (reactions 35/33, combat 61, gestures 61, work 65, traversal 50, locomotion 812, idles 108); every clip valid with its verdict (1,008 pass, 230 warn and 155 fail baselined); search 40/40, held out 8/10; licenses pass. Run 1 at add333b passed its commands but its verifier blocked it (reactions short, D67) |
+| 6.1 Recipes | done | 0.37.1 | 85dc149, e568fba, 8076745, (this commit) | 2026-10-12 | `npm test -- recipe` (28 tests): 66 one-line mutants and 36 of the verifier's 41 fail them (five pass for reasons D70 gives); the 20 example recipes validate (schema and `validateRecipe`), compile into valid clips the sensors pass, and are explained in at most 100 tokens by o200k and cl100k, as are a ten-step recipe, a 45-word id and a pose of many parts; `spec/RECIPE.md` and the full `recipe.schema.json`, refrozen (D70); the verifier's rounds 1 to 3 fixed in 0.36.1, 0.36.2 and 0.37.1 |
+| 6.2 Procedural sources | done | 0.42.6 | 2bfe276, a1dc1fd, 9ad1b39, 2eb0a1f, 8a53245, e9c0c52, (this commit) | 2026-10-12 | `npm test -- procedural` (28 tests, with `tools/procedural`'s carry test): the move model against my-3d2dge's frozen `moves.json`, 0.0018 cm mean and 0.012 cm worst, no exceptions; every move begins and ends exactly (0.000 mm) at three start poses on two rests, ten at five more and the three library poses a .5 field rounded off; the four gaits slide at most 7.8 mm per contact on three rests, none failing on any of 64, their contacts where the feet stand; the idles pass, 1.1–3.7 mm; `library/moves.json` (31 moves, one unit system) is the frozen schema's shape and checks clean, and its seven shardfall-only moves are their source's numbers; the moves floor by reason (D71); a gait swinging under 0.26 s (0.2 s until round 5) or past the ranges the presets pass is refused; `library/moves.json`'s numbers are the frozen moves'; the verifier's rounds 1 and 2 fixed in 0.37.2 and 0.39.1; round 3 in 0.42.1: a gait's loop meets itself (frames spread evenly, each knee's twist closed), 0 of 1,212 cycles near the presets failing (326 before) and 0 of 1,280 combinations of the ranges' ends on 64 rests (237), and a foot swinging past the hips faster than 400% of H0 a second refused; round 4 in 0.42.3: a run's cycle under 0.6 s (0.65 lifting over 25) and under 50 frames a second refused, an even number of frames; round 5 in 0.42.4: every gait swings 0.25 s or more and is made at 50 to 120 frames a second; round 6 in 0.42.6: the pelvis lowered so no leg reaches past 98.5% at any phase (the bounce counted), the reach bound 72%, the shortest swing 0.26 s, 50 to 110 frames a second; at those bounds the verifier's grids fail 5 of 5,258 played (recorded) (D71) |
+| 6.3 Actions | done | 0.38.0 | (this commit) | 2026-10-12 | `npm test -- actions` (11 tests): the six actions and the paired one are the frozen schema's shape and check clean; each action and each role plays on the six test characters, no row worse than on its own body and none failing; each of the 14 interrupt cuts is a valid clip the sensors don't fail, from a moment a foot stands (both where its reason says); the climb's ground rises and the hop's falls; the A- checks; the pair's roles meet on their event (D72) |
+| 6.4 Graphs | done | 0.42.3 | 4e7cb0c, 6b2bd3b, (this commit) | 2026-10-12 | `npm test -- graph` (29 tests): the checks and their codes, the schema agreeing; blend weights; the locomotion and combo graphs' scripted runs take the expected transitions and carry on exactly after a save and restore; triggers, exit, windows, sync, interrupts, layers, blend phase, callbacks, refusals; `npm run e2e` `animator-parity`: both graphs give the same states, hashes, events and exact poses in Node and Chromium (D73); the verifier's round 1 fixed in 0.39.2 (a faded-in state's first events, a loop's exit stepped over, cut fades, trigger buffers, clip hashes in the save); round 2 in 0.42.3 (a one-shot at speed 0, hyphenated clip ids, the graph copied, the schema tightened and refrozen; 52 of its 79 surviving mutants now fail the tests) |
+| 6.5 Simulation and gameplay sync | done | 0.40.0 | (this commit) | 2026-10-12 | `npm test -- sim` (7 tests): the walk-to-run-to-jump script runs into `spec/sims/Walk_Run_Jump.trace.json` exactly, on three bodies; stride warped, a walk in place from 0.5× to 1.8× its own speed slides 69–91 mm per contact (warn 150), its rate the ratio, and 268 and 240 mm unwarped at 0.75× and 1.5×; hit windows from events; root modes; S-E001–S-E007 with the schemas agreeing; a run the same twice; a filmstrip; `npm run sim` writes trace, result and film in 1–2 s (D75) |
+| 6.6a Briefs B2, B3, B7, the wire sections | done | 0.42.5 | 6cdf2e1, 8a53245, e9c0c52, (this commit) | 2026-10-12 | `npm test -- bench/graders`: the B2, B3 and B7 graders each pass their known-good solution and fail every planted bad one (8, 9 and 6), naming the check, on gen-1 (T1 every other planted one) and gen-37 (T2's full step, all); `npm run bench -- B2,B3,B7 --trials 1 --fake` runs them through packed packages in 12.5 s; the manual's wire sections (graphs, events and hit timing, reactions, root motion and stride warping, the simulation), 3,916 of 8,000 tokens (D76); the verifier's round 1 in 0.42.3 (D77): graders reading every body point from the bones, B2's strike, B3 on chest-less characters, B7's fall, wrong solutions that passed now planted bad ones; the known-good B2, B3 and B7 pass on all 40 of gen-20 to 59; round 2 in 0.42.4 (D77): B2's strike shared with its check, B3's knockdown bounded (and core's root motion no longer flings a one-shot that ends off its feet), B4 and B3 judging a standing foot by the lower foot's speed, B7's windows, the starters loading real rigs; the known-goods pass on 40 more seeds each (B4 on 35 VRM seeds); round 3 found it done, its should-fix in 0.42.5: B3's body staying where it lies, B2's damage window and reach |
+| 6.6b Briefs B4, B5, B6, the make sections | done | 0.42.5 | a56a96c, 8a53245, e9c0c52, (this commit) | 2026-10-12 | `npm test -- bench/graders`: the B4, B5 and B6 graders each pass their known-good solution and fail every planted bad one (7, 5 and 4), naming the check, on the default character (gen-40 for B4, a VRM-named chibi; gen-1) in T1 (B4 every other planted one) and on a second seed (gen-44; gen-37) in T2's full step; `npm run bench -- B4,B5,B6 --trials 1 --fake` in 13.3 s; `library.resolver()`; the manual's make sections (recipes, edits, and in 0.42.1 actions), 5,564 of 8,000 tokens; T1 88.6 s, B1's second seed and describe's token count sampled as D74's sweeps (D77); the verifier's round 1 in 0.42.3 (D77): B4 grading steps and a standing foot, the manual's examples no longer the briefs' answers (5,620 tokens), `--variant` for one brief, B4's naming checked; the known-good B4, B5 and B6 pass on all 40 of gen-20 to 59; round 2 in 0.42.4 (D77): B2's strike shared with its check, B3's knockdown bounded (and core's root motion no longer flings a one-shot that ends off its feet), B4 and B3 judging a standing foot by the lower foot's speed, B7's windows, the starters loading real rigs; the known-goods pass on 40 more seeds each (B4 on 35 VRM seeds); round 3 found it done, its should-fix in 0.42.5: B3's body staying where it lies, B2's damage window and reach |
 | **G6** | todo | | | | |
 | 7.1 The tool registry | todo | | | | |
 | 7.2 The tools | todo | | | | |

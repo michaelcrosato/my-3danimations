@@ -1,0 +1,133 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "$id": "https://github.com/michaelcrosato/my-3danimations/spec/schemas/sim.schema.json",
+ "title": "m3a simulation script 2.0",
+ "description": "A simulation's input script (spec/SIM.md; PLAN.md WP-6.5, D75): what a game does to a graph over time (parameters set, eased or at once, triggers pressed, the ground speed it moves at), how long, and how the root moves (by the animation's root motion, or in place, its playback stride warped to the ground speed). The shape only: @m3a/tools sim.validateScript also checks the rows' time order, and with the graph its parameters, triggers and the warp's parameter.",
+ "type": "object",
+ "required": [
+  "format",
+  "id",
+  "dur",
+  "input"
+ ],
+ "additionalProperties": false,
+ "properties": {
+  "format": {
+   "type": "string",
+   "pattern": "^2\\.[0-9]+$"
+  },
+  "id": {
+   "type": "string",
+   "pattern": "^[A-Z0-9_]+/[A-Za-z0-9_]+$",
+   "description": "The script id, SET/Slug (SIMS/Name)."
+  },
+  "desc": {
+   "type": "string"
+  },
+  "graph": {
+   "type": "string",
+   "pattern": "^[A-Z0-9_]+/[A-Za-z0-9_]+$",
+   "description": "The graph it is written for."
+  },
+  "dur": {
+   "type": "number",
+   "exclusiveMinimum": 0,
+   "maximum": 600,
+   "description": "Seconds simulated."
+  },
+  "rate": {
+   "type": "integer",
+   "minimum": 10,
+   "maximum": 240,
+   "description": "Fixed steps a second (60)."
+  },
+  "root": {
+   "enum": [
+    "root",
+    "in-place"
+   ],
+   "description": "root: the character goes where the animation's root motion takes it (default); in-place: the game moves it at the ground speed `move` gives."
+  },
+  "warp": {
+   "type": "string",
+   "pattern": "^[A-Za-z][A-Za-z0-9_-]*$",
+   "description": "In place: the number parameter (a state's rate) set each step to match playback to the ground speed."
+  },
+  "units": {
+   "enum": [
+    "m",
+    "H0"
+   ],
+   "description": "What move is in: metres a second (default), or the character's hip heights a second."
+  },
+  "film": {
+   "type": "integer",
+   "minimum": 0,
+   "maximum": 32,
+   "description": "Frames in the filmstrip (8)."
+  },
+  "input": {
+   "type": "array",
+   "items": {
+    "$ref": "#/$defs/row"
+   }
+  }
+ },
+ "$defs": {
+  "row": {
+   "type": "object",
+   "required": [
+    "t"
+   ],
+   "additionalProperties": false,
+   "minProperties": 2,
+   "properties": {
+    "t": {
+     "type": "number",
+     "minimum": 0,
+     "description": "When, seconds: rows in time order."
+    },
+    "set": {
+     "type": "object",
+     "propertyNames": {
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]*$"
+     },
+     "additionalProperties": {
+      "type": [
+       "number",
+       "boolean"
+      ]
+     },
+     "description": "Parameters by name."
+    },
+    "over": {
+     "type": "number",
+     "minimum": 0,
+     "maximum": 60,
+     "description": "Seconds the row's numbers take to get there, linearly (0)."
+    },
+    "trigger": {
+     "oneOf": [
+      {
+       "type": "string",
+       "pattern": "^[A-Za-z][A-Za-z0-9_-]*$"
+      },
+      {
+       "type": "array",
+       "items": {
+        "type": "string",
+        "pattern": "^[A-Za-z][A-Za-z0-9_-]*$"
+       }
+      }
+     ]
+    },
+    "move": {
+     "type": "number",
+     "minimum": 0,
+     "maximum": 50,
+     "description": "Ground speed forward from t on."
+    }
+   }
+  }
+ }
+}

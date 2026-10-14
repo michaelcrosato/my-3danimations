@@ -1,8 +1,9 @@
 // e2e `capture` (WP-4.5): a bound character played by an Animator, drawn headless in Chromium through WebGPURenderer
 // on its WebGL 2 backend, each frame read back and checked not blank; the proof hash of the bone transforms at every
 // frame equals Node's for the same play; each rig's frames written as a sheet (check-output/capture/, CI's artifact).
-// Two generated test characters and the two real rigs (once fetched); a blank frame and a renderer other than the one
-// asked for fail loudly with their reason. The page runs the packages' own TypeScript, served with its types stripped.
+// G4's six skeletons, a toeless test character and the held-out rig of G4's latest run (real rigs once fetched); a blank
+// frame and a renderer other than the one asked for fail loudly with their reason. The page runs the packages' own
+// TypeScript, served with its types stripped.
 import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { stripTypeScriptTypes } from "node:module";
 import { join, normalize } from "node:path";
@@ -14,6 +15,7 @@ import { attach, bind } from "../../packages/three/src/index.ts";
 import { poseHash } from "../../packages/three/src/capture/hash.ts";
 import { character, loadGlb, variant } from "../../packages/three/test-characters/index.ts";
 import { libraryClips } from "../../tools/qa/qa.ts";
+import { heldout } from "../../tools/sweep/sweep.ts";
 
 const ROOT = join(import.meta.dirname, "../.."), ORIGIN = "http://localhost:4174", THREE = join(ROOT, "node_modules/three");
 const IMPORTS = { three: "/three/build/three.module.js", "three/webgpu": "/three/build/three.webgpu.js", "three/tsl": "/three/build/three.tsl.js", "three/addons/": "/three/examples/jsm/", "@m3a/core": "/packages/core/src/index.ts", "@m3a/three": "/packages/three/src/index.ts", "@m3a/three/capture": "/packages/three/src/capture/index.ts" };
@@ -73,7 +75,14 @@ async function nodeHashes(rig: string): Promise<string[]> {
   return out;
 }
 
-for (const rig of ["gen-2", "gen-7", "quaternius-mannequin-m", "kaykit-knight"]) {
+/** G4's skeletons (PLAN.md §9.3) and a toeless test character, then the held-out rig of the gate's latest run. */
+const RIGS = ["gen-0", "gen-1", "gen-2", "gen-3", "gen-7", "quaternius-mannequin-m", "kaykit-knight"];
+try {
+  RIGS.push(...heldout("G4").rigs);
+} catch {
+  // no held-out run recorded yet
+}
+for (const rig of RIGS) {
   test(`capture ${rig}: frames drawn on WebGL 2, not blank, the pose hashes Node's, written as a sheet`, async ({ page }) => {
     test.skip(!rig.startsWith("gen-") && !existsSync(join(ROOT, ".cache/fixtures", `${rig}.glb`)), `${rig} isn't fetched: npm run fixtures -- fetch`);
     const got = await shoot(page, rig);

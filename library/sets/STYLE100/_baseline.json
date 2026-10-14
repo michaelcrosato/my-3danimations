@@ -1,4 +1,4 @@
 {
- "about": "Validator warnings accepted per clip at migration, each with its reason (WP-1.5). A new warning, or one gone, fails library/migrated's test.",
+ "about": "Validator warnings accepted per clip, each with its reason (WP-1.5, WP-5.3). A new warning, or one gone, fails library/migrated's test.",
  "clips": {}
 }

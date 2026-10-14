@@ -1,0 +1,26 @@
+{
+"format": "2.0",
+"id": "STYLE100_IDLE/LimpRight_Idle",
+"name": "LimpRight_Idle",
+"legend": "2.0",
+"dur": 2.5,
+"loop": true,
+"fps": 30,
+"tags": ["idle","style"],
+"desc": "Standing, limp right style: keep right leg straight and limp",
+"skeleton": "humanoid",
+"restSrc": "100STYLE",
+"contacts": {"by":"detected","footL":[[0,2.5]],"footR":[[0,2.5]]},
+"facts": {"by":"m3a-facts@1","height":[101,101],"seam":0,"speed":0,"travel":[0,0]},
+"provenance": {"src":"100STYLE","take":"LimpRight_ID 14.83-17.33","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
+"quality": {"fit":[6,16],"qa":"pass","qaVersion":"m3a-sensors@1"},
+"keys": [
+  {"t":0,
+   "hips":[0,0,101], "body":[0,-8,4], "chest":[3,14,-4], "head":[-5,18,-1],
+   "shL":[2,-8], "shR":[1,-7], "armL":[16,7,-98,0,124], "armR":[19,5,-98,0,19], "handL":[-5,-7,-154], "handR":[-5,3,100], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[-20,-2,-98,16,4], "legR":[-27,-1,-96,0,84], "footL":[15,0,7], "footR":[3,46,0]},
+  {"t":2.5,
+   "hips":[0,0,101], "body":[0,-8,4], "chest":[3,14,-4], "head":[-5,18,-1],
+   "shL":[2,-8], "shR":[1,-7], "armL":[16,7,-98,0,124], "armR":[19,5,-98,0,19], "handL":[-5,-7,-154], "handR":[-5,3,100], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[-20,-2,-98,16,4], "legR":[-27,-1,-96,0,84], "footL":[15,0,7], "footR":[3,46,0]}
+]}

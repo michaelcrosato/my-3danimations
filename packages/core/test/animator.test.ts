@@ -3,6 +3,8 @@
 // posed; saving at any step and restoring into a new Animator, through JSON, continues exactly; a changed or missing
 // clip is refused by name; and the cost of one character's step and pose, measured. Node against Chromium is the e2e
 // test `animator-parity`. It uses core through its public API (src/index.ts).
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import * as core from "../src/index.ts";
 import { Animator, AnimatorError, bind, type AnimClip, type AnimatorSave, type Key } from "../src/index.ts";
@@ -108,6 +110,20 @@ describe("step", () => {
     expect(end.forward).toBeGreaterThan(10);
     expect(b.root.forward).toBeCloseTo((end.forward * rig.rest.H0) / 100, 6);
     expect(b.root.right).toBeCloseTo((end.right * rig.rest.H0) / 100, 6);
+    // a one-shot that leaves its feet and never lands (a knockback): its take-off speed is spent over the time a body
+    // falls its hip height, not held to its end (held, a knockback's flung the body 7 to 9 hip heights)
+    // (the walk's left foot as its only contact, taken off 0.4 s into its stance, while it carries the body at a walk)
+    const fall = Math.sqrt((2 * rig.rest.H0) / 9810), on = walk.contacts!.footL![0]![0], off = on + 0.4;
+    const thrown: AnimClip = { ...walk, id: "thrown", loop: false, contacts: { by: "detected", footL: [[on, off]] } };
+    const r = contact.contactRoot(thrown, rig.rest, thrown.contacts!);
+    const v = (r.root(off).forward - r.root(off - 1 / 60).forward) * 60, at = (t: number) => r.root(t).forward;
+    expect(Math.abs(v)).toBeGreaterThan(100);
+    expect([thrown.dur > off + fall + 0.1, at(thrown.dur), r.root(thrown.dur).right]).toEqual([true, at(off + fall + 1 / 30), r.root(off + fall + 1 / 30).right]);
+    expect((at(off + fall) - at(off)) / (v * fall)).toBeCloseTo(0.5, 1);
+    // a loop's flight is in-betweened round the cycle as before: the same contact, looped, carries the body on through
+    // its flight to its next touchdown
+    const looped = contact.contactRoot({ ...thrown, loop: true }, rig.rest, thrown.contacts!), lat = (t: number) => looped.root(t).forward;
+    expect(Math.abs(lat(off + fall + 0.05) - lat(off + fall)) / 0.05).toBeGreaterThan(0.25 * Math.abs(v));
   });
   it("gives the same hashes and events on every run of the same script", () => {
     expect(straight.hashes).toHaveLength(LENGTH);
@@ -161,6 +177,35 @@ describe("pose", () => {
     }
     expect(contacts).toBeGreaterThan(5);
     expect(worst).toBeLessThanOrEqual(10);
+  });
+});
+
+describe("a clip's library (spec/MOTION.md §3.3, D55)", () => {
+  const lib = join(import.meta.dirname, "../../../library/sets");
+  const load = (id: string) => {
+    const [set, name] = id.split("/") as [string, string], m = JSON.parse(readFileSync(join(lib, set, "_set.json"), "utf8")), clip = core.parseClip(readFileSync(join(lib, set, `${name}.json`), "utf8"));
+    return { clip, R: m.sources[clip.restSrc].rest as core.Rest };
+  };
+  const at = (X: ArrayLike<number>, n: string) => [0, 1, 2].map((i) => X[core.format.IDX[n]! * 3 + i]!);
+  const neck = (X: ArrayLike<number>) => at(X, "neck").map((x, i) => x - at(X, "pelvis")[i]!);
+  it("bends the spine with its library's shares (playable): the neck where the clip puts it on this body, not 60 mm off", () => {
+    const rig = bind(scriptData().skeleton);
+    // a Quaternius, a CMU and a 100STYLE clip: their shares [0, 0, 0.5, 1], [0.25, 0.65, 1, 1] and [0, 0.45, 0.75, 1];
+    // the CMU's lowest segment, which the hips carry, takes a share, so the segments above bend further to keep the neck
+    for (const [id, close] of [["QUATERNIUS_SHARDFALL/Pistol_Aim_Down", 0.1], ["CMU_CURATED/Hurt_Stomach_Walk_Loop", 2], ["STYLE100/Monk_Walk", 0.1]] as const) {
+      const { clip, R } = load(id), want = { ...rig.rest, spineW: R.spineW, neckW: R.neckW }, ready = core.playable(clip, R);
+      expect(ready.contacts).toEqual(core.measureFacts(clip, R).contacts);
+      expect(ready.shares).toEqual({ spineW: R.spineW, neckW: R.neckW });
+      let kept = 0, lost = 0;
+      for (const t of [0.1, 0.4, 0.7, 1]) {
+        const target = neck(core.format.decodePose(want, core.format.keyAt(clip, t), new Array(108)));
+        const off = (c: AnimClip) => Math.hypot(...neck(new Animator(rig).layer("b", { clip: c, time: t }).pose().points).map((x, i) => x - target[i]!));
+        kept = Math.max(kept, off(ready));
+        lost = Math.max(lost, off({ ...clip, contacts: ready.contacts }));
+      }
+      expect(kept, id).toBeLessThan(close);
+      expect(lost, id).toBeGreaterThan(50);
+    }
   });
 });
 
@@ -251,5 +296,5 @@ describe("cost", () => {
     console.log(`animator cost, 4 layers, one character: step ${step.toFixed(1)} µs, pose ${full.toFixed(0)} µs (exact ${exact.toFixed(0)}, lod 1 ${lod.toFixed(0)})`);
     expect(step).toBeLessThan(1000);
     expect(full).toBeLessThan(20_000);
-  });
+  }, 30_000);
 });

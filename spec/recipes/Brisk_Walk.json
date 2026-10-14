@@ -1,0 +1,28 @@
+{
+ "format": "2.0",
+ "id": "RECIPES/Brisk_Walk",
+ "name": "Brisk Walk",
+ "tags": [
+  "walk",
+  "loop"
+ ],
+ "desc": "Halfway between a neutral and a big-stepping walk, in step",
+ "steps": [
+  {
+   "as": "a",
+   "op": "clip",
+   "id": "STYLE100/Neutral_Walk"
+  },
+  {
+   "as": "b",
+   "op": "clip",
+   "id": "STYLE100/BigSteps_Walk"
+  },
+  {
+   "op": "blend",
+   "a": "a",
+   "b": "b",
+   "w": 0.5
+  }
+ ]
+}

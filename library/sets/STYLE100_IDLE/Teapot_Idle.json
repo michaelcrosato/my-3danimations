@@ -1,0 +1,26 @@
+{
+"format": "2.0",
+"id": "STYLE100_IDLE/Teapot_Idle",
+"name": "Teapot_Idle",
+"legend": "2.0",
+"dur": 2.5,
+"loop": true,
+"fps": 30,
+"tags": ["idle","style"],
+"desc": "Standing, teapot style: one arm on hip other arm raised",
+"skeleton": "humanoid",
+"restSrc": "100STYLE",
+"contacts": {"by":"detected","footL":[[0,2.5]],"footR":[[0,2.5]]},
+"facts": {"by":"m3a-facts@1","height":[100,100],"seam":0,"speed":0,"travel":[0,0]},
+"provenance": {"src":"100STYLE","take":"Teapot_ID 15.83-18.33","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
+"quality": {"fit":[6,29],"qa":"pass","qaVersion":"m3a-sensors@1"},
+"keys": [
+  {"t":0,
+   "hips":[0,0,100], "body":[0,-8,1], "chest":[-3,13,-2], "head":[7,17,8],
+   "shL":[6,10], "shR":[2,-9], "armL":[16,99,6,16,179], "armR":[13,1,-99,85,27], "handL":[71,-24,-114], "handR":[-20,29,116], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[-21,0,-98,12,-12], "legR":[-24,2,-97,11,14], "footL":[8,-7,0], "footR":[8,4,0]},
+  {"t":2.5,
+   "hips":[0,0,100], "body":[0,-8,1], "chest":[-3,13,-2], "head":[7,17,8],
+   "shL":[6,10], "shR":[2,-9], "armL":[16,99,6,16,179], "armR":[13,1,-99,85,27], "handL":[71,-24,-114], "handR":[-20,29,116], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[-21,0,-98,12,-12], "legR":[-24,2,-97,11,14], "footL":[8,-7,0], "footR":[8,4,0]}
+]}

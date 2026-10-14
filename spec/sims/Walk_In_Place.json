@@ -1,0 +1,14 @@
+{
+ "format": "2.0",
+ "id": "SIMS/Walk_In_Place",
+ "desc": "Locomotion moved by the game, in place: a walk at 1 m/s, eased into a jog at 3 m/s, and a stop; stride warping matches the playback to the ground speed, so the feet don't slide",
+ "graph": "GRAPHS/Locomotion",
+ "dur": 7,
+ "root": "in-place",
+ "warp": "warp",
+ "input": [
+  {"t": 0.3, "set": {"speed": 1.4}, "move": 1, "over": 0.5},
+  {"t": 3, "set": {"speed": 3.2}, "move": 3, "over": 1},
+  {"t": 5.5, "set": {"speed": 0}, "move": 0, "over": 0.5}
+ ]
+}

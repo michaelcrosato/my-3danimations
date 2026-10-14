@@ -10,15 +10,17 @@
 "desc": "lies on the back asleep, the chest rising and falling",
 "skeleton": "humanoid",
 "restSrc": "M2M_ANIMATED",
-"provenance": {"src":"M2M_ANIMATED","method":"keyed","producer":{"tool":"m3a-migrate","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
-"quality": {"fit":[15,68],"qa":"unchecked","qaVersion":"none"},
+"contacts": {"by":"detected"},
+"facts": {"by":"m3a-facts@1","height":[7,7],"seam":0},
+"provenance": {"src":"M2M_ANIMATED","method":"keyed","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
+"quality": {"fit":[6,32],"qa":"pass","qaVersion":"m3a-sensors@1"},
 "keys": [
   {"t":0,
-   "hips":[0,0,7], "body":[174,-90,174], "chest":[0,0,0], "head":[15,-12,18],
-   "shL":[0,0], "shR":[0,0], "armL":[60,-54,-59,145,-21], "armR":[-2,97,-24,37,-33],
+   "hips":[0,0,7], "body":[174,-90,174], "chest":[0,0,0], "head":[15,-12,18], "spine":[18,-2,43],
+   "shL":[0,0], "shR":[0,0], "armL":[82,-33,-46,136,-14], "armR":[-2,99,-11,31,-55], "handL":[32,-2,55], "handR":[29,6,144], "fingersL":[11,11,11,11,11], "fingersR":[33,33,33,33,33],
    "legL":[-8,16,-98,14,-14], "legR":[-8,12,-99,18,10], "footL":[0,15,0], "footR":[0,23,0]},
   {"t":1.667,
-   "hips":[0,0,7], "body":[174,-90,174], "chest":[0,0,0], "head":[15,-12,18],
-   "shL":[0,0], "shR":[0,0], "armL":[60,-54,-59,145,-21], "armR":[-2,97,-24,37,-33],
+   "hips":[0,0,7], "body":[174,-90,174], "chest":[0,0,0], "head":[15,-12,18], "spine":[18,-2,43],
+   "shL":[0,0], "shR":[0,0], "armL":[82,-33,-46,136,-14], "armR":[-2,99,-11,31,-55], "handL":[32,-2,55], "handR":[29,6,144], "fingersL":[11,11,11,11,11], "fingersR":[33,33,33,33,33],
    "legL":[-8,16,-98,14,-14], "legR":[-8,12,-99,18,10], "footL":[0,15,0], "footR":[0,23,0]}
 ]}

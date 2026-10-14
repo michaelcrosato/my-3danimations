@@ -1,0 +1,14 @@
+{
+ "format": "2.0",
+ "id": "GRAPHS/B7",
+ "parameters": {
+  "speed": { "type": "number", "value": 0 },
+  "grounded": { "type": "bool", "value": true },
+  "jump": { "type": "trigger" }
+ },
+ "start": "idle",
+ "states": {
+  "idle": { "clip": "QUATERNIUS_3D2DGE/Idle_Loop" }
+ },
+ "transitions": []
+}
