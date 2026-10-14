@@ -47,9 +47,8 @@ export async function createPlayer(character: Object3D): Promise<Player> {
       animator.layer("base", { speed: rate(motion, speed) });
       if (fading) animator.layer("fade", { speed: rate(fading.to, speed) });
       player.update(dt);
-      // travel along the facing by the root's move (mm)
-      character.position.z += player.moved.forward / 1000;
-      character.position.x -= player.moved.right / 1000;
+      // travel along the facing by the root's move (not every model faces +Z: G4's held-out rig faces +X)
+      character.position.add(player.travel);
       if (fading) {
         fading.t += dt;
         const u = Math.min(1, fading.t / FADE);
