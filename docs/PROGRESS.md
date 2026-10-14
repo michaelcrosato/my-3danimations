@@ -24,9 +24,8 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 
 ## Next
 
-- G4 run 2: the sweep fails a pair only on an added fail finding (D80); measured over the whole library (1,398 clips)
-  on the six skeletons, 97.8%; B1's known-good on meshopt and off-floor rigs (D86); bind's soles on multi-mesh rigs
-  (the Knight floats 55 mm) in hand; then the qualifying sweep at a clean commit and the gate.
+- G4 run 2: the sweep's rule (D80) reads 97.8% over the whole library (1,398 clips); B1 on real rigs (D86); bind's
+  soles on multi-mesh rigs in hand; then the qualifying sweep at a clean commit and the gate.
 - Phase 6: agents get a /tmp of their own (D84); WP-6.2's seventh verifier round is running; then G6.
 
 ## Blocked on the owner
