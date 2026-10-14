@@ -45,6 +45,9 @@ jobs:
       - run: npm ci
       # the real CC0 rigs by hash (WP-4.2), so their tests run; cached with .cache
       - run: npm run fixtures -- fetch
+      # each gate's held-out rigs (PLAN.md §9.3), so the tests that read them (B1's grader loads every real rig on
+      # hand) run too, as in T2; cached with .cache (the key covers their manifests)
+      - run: for m in bench/results/heldout/*/run-*/rig.json; do npm run fixtures -- fetch --manifest "$m"; done
       # the pinned sources, so the tests that read them (the carry test) run too (D79); cached with .cache
       - run: npm run pins -- fetch
       - run: npm run check -- --json
