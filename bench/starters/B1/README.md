@@ -1,6 +1,6 @@
 # B1 starter
 
-- `character.glb`: the character (a skinned humanoid, glTF, metres, facing +Z).
+- `character.glb`: the character (a skinned humanoid, glTF, metres; most models face +Z).
 - `src/character.ts`: loads it with three.js (given).
 - `src/player.ts`: the locomotion to write (`createPlayer`).
 - `src/sheet.ts`: the contact sheet to write (`npm run sheet` → `sheet.png`).
