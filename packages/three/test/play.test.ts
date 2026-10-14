@@ -1,16 +1,17 @@
 // Playback and baking (WP-4.4): a baked clip plays within 1 mm of the live solve on characters of three namings
 // (Mixamo's centimetres, UE5's root, Rigify's twist bones), and carries the source clip's loop, events, contacts and
 // facts in userData, which GLTFExporter writes to the animation's extras; an attached Animator writes its crossfades and
-// masked layers to the bones and hands the root's motion to the game; the adapter's per-frame write allocates nothing
+// masked layers to the bones and hands the root's motion to the game, along the way the character faces (`travel`: a
+// model facing +X walks along +X, its standing foot still); the adapter's per-frame write allocates nothing
 // (measured), and a whole update's cost is stated.
 import { execFileSync } from "node:child_process";
 import { join } from "node:path";
-import type { Bone } from "three";
+import { Group, Vector3, type Bone } from "three";
 import { describe, expect, it } from "vitest";
-import { Animator, type Clip } from "@m3a/core";
+import { Animator, playable, type Clip } from "@m3a/core";
 import { GLTFExporter } from "three/addons/exporters/GLTFExporter.js";
 import { libraryClips } from "../../../tools/qa/qa.ts";
-import { attach, bake, bakeError, bind, type BakedData } from "../src/index.ts";
+import { attach, bake, bakeError, bind, type Attached, type BakedData } from "../src/index.ts";
 import { character, loadGlb, variant } from "../test-characters/index.ts";
 
 const lib = new Map(libraryClips().map((c) => [c.clip.id, c.clip]));
@@ -87,6 +88,51 @@ describe("an attached Animator", () => {
     expect(travelled).toBeGreaterThan(100);
     expect([att.root.forward, att.root.right]).toEqual([att.animator.root.forward, att.animator.root.right]);
     expect(far).toBeLessThan(0.3);
+  });
+  it("hands the game its move along the way the character faces (`travel`): a model facing +X walks along +X, its standing foot still", async () => {
+    // G4's held-out rig faces +X (its armature turned a quarter about Y): moved along +Z by `moved`, it crabbed sideways
+    const { clip: walk0, rest } = libraryClips().find((c) => c.clip.id === "QUATERNIUS_3D2DGE/Walk_Loop")!, walk = playable(walk0, rest);
+    const run = async (turn: (scene: Group) => void, move: (scene: Group, att: Attached) => void) => {
+      const scene = (await loadGlb(character(variant(2)).glb)).scene as Group;
+      turn(scene);
+      const b = bind(scene), att = attach(new Animator(b.core).layer("base", { clip: walk }), b), feet = [b.humanoid.leftFoot!, b.humanoid.rightFoot!];
+      const speeds: number[] = [];
+      let last: Vector3 | null = null;
+      for (let i = 0; i < 150; i++) {
+        att.update(1 / 60);
+        move(scene, att);
+        scene.updateMatrixWorld(true);
+        // the lower foot's ankle, and how fast it moves along the ground (m/s)
+        const low = feet.map((f) => f.getWorldPosition(new Vector3())).reduce((a, c) => (c.y < a.y ? c : a));
+        if (last && i > 30) speeds.push(Math.hypot(low.x - last.x, low.z - last.z) * 60);
+        last = low;
+      }
+      return { b, att, at: scene.position.clone(), still: speeds.sort((x, y) => x - y)[Math.floor(speeds.length / 10)]! };
+    };
+    const quarter = (scene: Group) => {
+      const g = new Group();
+      g.add(...scene.children);
+      g.rotation.y = Math.PI / 2;
+      scene.add(g);
+    };
+    const facingZ = await run(() => {}, (s, att) => s.position.add(att.travel));
+    // a model facing +Z: travel is `moved` along +Z and −X, as a glTF character's
+    expect(facingZ.at.z).toBeGreaterThan(1);
+    expect(Math.abs(facingZ.at.x)).toBeLessThan(0.05);
+    const facingX = await run(quarter, (s, att) => s.position.add(att.travel)), crabbed = await run(quarter, (s, att) => {
+      s.position.z += att.moved.forward / 1000;
+      s.position.x -= att.moved.right / 1000;
+    });
+    expect(facingX.b.core.frame.forward[0]).toBeCloseTo(1, 6);
+    expect(facingX.at.x).toBeCloseTo(facingZ.at.z, 6);
+    expect(Math.abs(facingX.at.z)).toBeLessThan(0.05);
+    // the standing foot: still at times along its facing (the slowest tenth of the lower ankle), sliding when crabbed
+    expect(facingX.still).toBeLessThan(0.05);
+    expect(crabbed.still).toBeGreaterThan(0.5);
+    // the root turned by the game: travel turns with it
+    const turned = await run((s) => (s.rotation.y = Math.PI / 2), (s, att) => s.position.add(att.travel));
+    expect(turned.at.x).toBeCloseTo(facingZ.at.z, 6);
+    console.log(`travel: facing +Z ${facingZ.at.z.toFixed(2)} m along +Z, the lower ankle's slowest tenth ${facingZ.still.toFixed(3)} m/s; facing +X ${facingX.at.x.toFixed(2)} m along +X, ${facingX.still.toFixed(3)} m/s (crabbed by moved along +Z: ${crabbed.still.toFixed(2)} m/s)`);
   });
   it("refuses an Animator made for another skeleton", async () => {
     const a = await boundOf(2), b = await boundOf(3);
