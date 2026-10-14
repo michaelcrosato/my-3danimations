@@ -4,6 +4,22 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.43.0 · 2026-10-14
+
+### Three
+- `attach(...).travel`: the last update's root move in the root's parent space (metres), along the way the model faces,
+  read from its bones, turned and scaled as the root is; G4 run 1's held-out rig faces +X, and moved along +Z its
+  standing feet slid 1.2 m/s (D86).
+
+### Tools
+- The manual moves the character by `player.travel` (5,656 of 8,000 tokens).
+
+### Repo
+- B1's starters read meshopt and leave textures out (the discovery starter with three's own decoder, naming no
+  package); B1's known-good moves by `travel` and passes on both Quaternius mannequins and G4 run 1's held-out rig
+  (1 m below its origin, facing +X), and on seeds 1, 37, 41 and 935; T2 grades it there, with the planted bad ones
+  (D86, D77's S7 and S8).
+
 ## 0.42.7 · 2026-10-14
 
 ### Repo

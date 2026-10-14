@@ -2915,3 +2915,28 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
 - **Why:** the owner's call.
 - **Answered:** yes, the owner, 2026-10-14.
 - **Landed in:** (this pull request; no version)
+
+## D86 · 2026-10-14 · B1 on real rigs: the starters read meshopt; a model's move along the way it faces (D77's S7, S8)
+
+- **Principle:** 3, 8, §7, G4 (D57, D77)
+- **Call:**
+  - **S7:** B1's starters load their character as B2, B3, B4 and B7's do (`loadGlb`: meshopt read, textures left
+    out); the discovery starter does the same with three's own `MeshoptDecoder` and a loader plugin that drops texture
+    slots, naming no `@m3a` package. G4's starters threw on the Quaternius mannequins (meshopt) and on KayKit's Knight
+    (no image decoder in Node). A T1 test loads all four real rigs on hand through both starters as the grader does.
+  - **S8 was the facing, not the floor:** core already takes the ground at the rest soles (G4 run 1's held-out rig
+    stands at y −0.997 m; its planted toes sit 0 to 3 mm on the grader's floor). That rig faces +X (its armature turned
+    a quarter about Y), and the known-good moved it along +Z, as the manual showed, so it walked sideways and its lower
+    foot slid 1.2 to 3.1 m/s. `@m3a/three`'s `attach(...).travel` is the last update's root move in the root's parent
+    space, along the facing bind reads from the bones; the manual's snippet moves the character by it. A test: facing
+    +X it travels 2.83 m along +X with the standing ankle at 0.000 m/s (the old way, 1.26 m/s).
+  - B1's known-good passes on the mannequins, G4 run 1's held-out rig and seeds 1, 37, 41 and 935; the four planted
+    bad ones fail on gen-1, gen-37 and the held-out rig, naming their check (T2, 11 tests in 40 s).
+  - **Left open:** KayKit's Knight floats 55 mm, because bind reads its soles from its arm mesh, the one with the most
+    bones, so B1's known-good fails there; reading every mesh made its boots drag and moved the actions sweep, so the
+    fix goes with a sweep of its own (in hand). B3's and B4's known-goods still move along +Z (their planted bad ones
+    edit those lines); G6 grades them on generator seeds, which face +Z, and G7 reruns them on real rigs.
+- **Why:** §7 wants the known-good to pass on any held-out variant before trials, and an agent can't see which way a
+  model faces while bind can read it.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.43.0
