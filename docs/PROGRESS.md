@@ -31,11 +31,11 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 
 ## Blocked on the owner
 
-- Nothing: G4's bar (D80) and the Quaternius sets (D81) answered 2026-10-14.
+- Nothing: G4's bar (D80), the Quaternius sets (D81) and Vercel, paused until the end (D85), answered 2026-10-14.
 
 ## Last gate
 
 - **G5 passed** 2026-10-12 at 754adfe in 9.7 min, 12 of 12 (`bench/results/gates/G5/`, D68): 1,194 unique motions of
-  1,393 clips (CC0 pack 170); every floor met; every clip valid with its verdict; search 40/40, held out 8/10. Its
-  first verifier blocked run 1 (reactions short, D67). Its open items, fixed forward: a float check; picks (D69).
+  1,393 clips (CC0 pack 170); every floor met; every clip valid with its verdict; search 40/40, held out 8/10 (D67,
+  D69).
 - **G4 run 1 failed** 2026-10-12 at 6798b45, 5 of 8 (D57): the sweep 89.1% (bar 95%), B1's variant a grader failure.
