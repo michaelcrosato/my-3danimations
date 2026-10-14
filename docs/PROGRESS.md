@@ -3,7 +3,7 @@
 The current state on one screen (at most 40 lines; `npm run doctrine` checks it from WP-0.3). The ledger is
 `PLAN.md` §14; decisions are in `docs/DECISIONS.md`.
 
-**Phase:** 6 Composition (5 done, G5 passed; 4 waits on G4). **Next gates:** G6; G4 (M1), run 2. **Version:** 0.43.0.
+**Phase:** 6 Composition (5 done, G5 passed; 4 waits on G4). **Next gates:** G6; G4 (M1), run 2. **Version:** 0.43.1.
 **Mode:** ultracode (D83): implementers in worktrees, the main session integrates; a fresh draft PR from `main`.
 
 ## Done
@@ -24,8 +24,8 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 
 ## Next
 
-- G4 run 2: the sweep's rule (D80) reads 97.8% over the whole library (1,398 clips); B1 on real rigs (D86); bind's
-  soles on multi-mesh rigs in hand; then the qualifying sweep at a clean commit and the gate.
+- G4 run 2: the sweep's rule (D80) reads 97.1% over the whole library (1,398 clips); B1 on real rigs (D86); bind's
+  soles from every mesh (D87); next the qualifying sweep at a clean commit, then the gate.
 - Phase 6: agents get a /tmp of their own (D84); WP-6.2's round 7 found 3 blocking (the swing's slope at its joins,
   knee pops at 50 and 110 fps): being fixed, then round 8; then G6.
 

@@ -2940,3 +2940,31 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   model faces while bind can read it.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.43.0
+
+## D87 · 2026-10-14 · bind reads a foot's sole from every mesh; long feet are the retargeting's next limit (R1)
+
+- **Principle:** 8, 3, R1, G4
+- **Call:**
+  - `@m3a/three`'s `bind` places a childless foot's or toe's end bone where its part of the mesh ends, read now from
+    every skinned mesh that skins it (half its weight or more), not only the mesh with the most bones. KayKit's Knight
+    keeps its feet in its leg meshes (its arm mesh has the most bones), so it floated 55 mm at idle and its boots sank
+    to −61 mm walking; it now stands on its soles (within 5 mm over its idle). The 21 generated characters, both
+    Quaternius mannequins (two meshes each) and G4 run 1's held-out rig bind byte for byte as before (a test pins their
+    bound rests' hashes).
+  - **Measured on the Knight:** the whole-library sweep 96.1% → 92.3% (18 pairs fixed, 72 broken: pop 30, seam speed
+    25, skate 24, slide 17, jitter 15); the six skeletons together 97.8% → 97.1% (8,148 of 8,388; the bar 95%). G4's
+    set (idle, walk, run, jump, attack) still has no fail finding on any of the seven skeletons; on the Knight its warns
+    change (a sole 36 mm under the floor at the run's end, a slide 85 → 81 mm, jitter on the balls moved).
+  - **Why the Knight loses pairs:** its boots are 430 mm, 106% of its hip height, the toe 205 mm past the ball (the
+    library's rests: 51 to 92 mm). The clips curl a human toe straight down in a swing (92 mm under the ball on their
+    own body), which puts the Knight's 205 mm under, so the body must lift and a run never leaves the ground. A short
+    end bone hides the boot's front under the floor instead (122 to 154 mm walking) while the sweep reads 96.9%: the
+    sensors' gain, the eye's loss, so not taken. B1's known-good still fails its run on the Knight, which its test
+    leaves ungraded, saying why.
+  - **Left open (R1):** retargeting a long foot for clearance in core (the toe's curl and the foot's pitch capped so
+    its tip clears the floor as the source's does, scaled by hip height; a heel behind the ankle, where the boot's is
+    101 mm). Not on the ledger; G7 reruns the briefs on real rigs and is where it next shows.
+- **Why:** a body standing in the air is a binding bug whatever the sensors read; the Knight's long feet are a real
+  limit of retargeting a human foot's motion, and the sweep should show it rather than hide it.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.43.1

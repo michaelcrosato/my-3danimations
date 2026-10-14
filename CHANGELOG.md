@@ -4,6 +4,17 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.43.1 · 2026-10-14
+
+### Three
+- `bind` reads where a childless foot or toe ends from every skinned mesh that skins it, not only the one with the most
+  bones: KayKit's Knight keeps its feet in its leg meshes and floated 55 mm at idle; it stands on its soles now. Rigs
+  whose feet one mesh skins bind exactly as before (their bound rests' hashes pinned in a test) (D87).
+
+### Repo
+- B1's grader test says why the Knight stays ungraded: its 430 mm boots ride the floor under the library's toe curls
+  (D87).
+
 ## 0.43.0 · 2026-10-14
 
 ### Three
