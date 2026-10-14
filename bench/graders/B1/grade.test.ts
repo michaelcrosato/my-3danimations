@@ -3,7 +3,10 @@
 // seed outside it (gen-37) and on G4's first held-out rig (it stands 1 m below its origin and faces +X); T2 passes the
 // known-good on gen-41 and the Quaternius mannequins (meshopt-compressed) too. Both starters load every real rig on
 // hand as the grader reads it (meshopt-compressed, textured, off the floor). KayKit's knight loads but isn't graded: the
-// package floats it 55 mm (bind reads its soles from its arm mesh; its legs are meshes of their own). The planted
+// package floats it 55 mm (bind reads its soles from its arm mesh; its legs are meshes of their own). Read from its
+// legs, it stands on its soles but still fails: its boots are 430 mm (106% of its hips' height), the toe 205 mm past the
+// ball, and the jog's swinging toe, curled straight down as the clip's is, rides the floor (both feet off it in 0% of
+// running frames; 10% needed); a toe read shorter passes, its boots' fronts 124 mm under the floor walking. The planted
 // solutions are the known-good one edited: never running, skating (moving at the asked speed with walk and run at
 // their own rate), a bone gone NaN, no sheet.
 import { readFileSync } from "node:fs";
