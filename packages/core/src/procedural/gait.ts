@@ -271,8 +271,10 @@ function fastest(g: Gait, pct: number, leg: number): number {
  * A gait fitted to a body: its speed lowered, if it must be, to the fastest whole % of the hip height a second at which
  * its feet reach no farther ahead and behind than `gaitClip` takes on `rest`'s legs (72% of a leg); its other numbers as
  * given. The presets are drawn for a person's proportions: on a short-legged or heavy body the run and the brisk walk
- * reach past that (on 13 and 5 of the 17 test characters), and this plays them there, a little slower:
- * `gaitClip(fitGait(GAITS[2], rest), rest, opts)`. It fits the speed alone; no other refusal depends on the body.
+ * reach past that (of the 20 test characters, the run fits only the tall ones and the brisk walk all but the chibis and
+ * two bulky ones; the walk and the limp fit all), and this plays them there, a little slower (the run at 301 to 349,
+ * brisk at 153 to 169; all 80 pass the sensors: D71, round 7): `gaitClip(fitGait(GAITS[2], rest), rest, opts)`. It
+ * fits the speed alone; no other refusal depends on the body.
  */
 export function fitGait(g: Gait, rest: Rest): Gait {
   const S = new Float32Array(P * 3);

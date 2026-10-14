@@ -64,10 +64,11 @@ describe("procedural clips under the sensors", () => {
       expect([id, g, r.values.slide <= bar, r.verdict === "fail"]).toEqual([id, g, true, false]);
     }
   }, 60_000);
-  it("gaits at the reach bound with a bounce keep every leg bent: at most 99% of its length as the clip holds it, and none fails", () => {
+  it("gaits at the reach bound with a bounce keep every leg bent: at most 98.5% of its length as the clip holds it, and none fails", () => {
     // a stance of a half at its fastest (fitGait: the reach bound), bouncing 6% twice a cycle while a foot reaches far
     // ahead: the pelvis lowered for the stance's ends alone drove a leg to 99.7% and its knee popped (D71, round 6); the
     // pelvis is lowered until none passes 98.5% at any phase, its bounce, sway and rounding to the format's grid counted
+    // (with the rounding uncounted, the clip held legs at up to 98.9% here, 99.3% on the verifier's grid: round 7)
     for (const [id, { rest, restSrc }] of RESTS) {
       const S = new Float32Array(format.P * 3);
       format.decodePose(rest, PR.standingOn(rest) as never, S);
@@ -79,7 +80,7 @@ describe("procedural clips under the sensors", () => {
           format.decodePose(rest, format.keyAt(c, (i / 240) * c.dur) as never, X);
           for (const s of ["L", "R"]) most = Math.max(most, Math.hypot(...at(`hip${s}`).map((v, k) => v - at(`ankle${s}`)[k]!)) / leg);
         }
-        expect([id, g, most <= 0.99, metrics(c, rest).verdict === "fail"]).toEqual([id, g, true, false]);
+        expect([id, g, most <= 0.985, metrics(c, rest).verdict === "fail"]).toEqual([id, g, true, false]);
       }
     }
     // the verifier's case: lowered for the stance's ends alone it popped a knee (3.6 m/s, a leg at 99.7%)
