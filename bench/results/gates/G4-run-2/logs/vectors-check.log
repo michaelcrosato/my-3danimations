@@ -1,0 +1,6 @@
+vectors: PASS (--check) in 1.6 s
+  ok   generate 1.5 s: 16 files, 8.78 MB
+  ok   size 0.0 s: 9.78 of 10 MB committed, frozen fixtures included
+  ok   frozen 0.0 s: 2 fixtures
+  ok   compare 0.0 s: 16 files byte for byte
+next: npm test

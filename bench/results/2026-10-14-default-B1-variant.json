@@ -1,0 +1,159 @@
+{
+ "about": "npm run bench: fresh agents on the briefs (PLAN.md §7); isolation 1 is the claude CLI in a clean workspace",
+ "date": "2026-10-14T22-32-18",
+ "commit": "adf77ee66f00161565e055307d84b122d8483121",
+ "dirty": false,
+ "model": "the CLI's default",
+ "fake": false,
+ "parallel": 1,
+ "privateTmp": true,
+ "variant": {
+  "dir": "bench/results/heldout/G4/run-2/B1",
+  "character": {
+   "manifest": "/home/user/my-3danimations/bench/results/heldout/G4/run-2/rig.json",
+   "rig": "talkinghead-mpfb"
+  }
+ },
+ "B1": {
+  "trials": [
+   {
+    "trial": "B1-1",
+    "pass": true,
+    "failed": [],
+    "agent": {
+     "isolation": 1,
+     "privateTmp": true,
+     "ok": true,
+     "ms": 40613.074499,
+     "model": "claude-sonnet-5-5",
+     "turns": 7,
+     "tokens": {
+      "input": 14,
+      "output": 4585,
+      "cacheRead": 111509,
+      "cacheWrite": 22224
+     },
+     "costUsd": 0.1459249,
+     "outside": [],
+     "scratch": [
+      "/tmp/cat.mjs"
+     ],
+     "pastManual": []
+    }
+   },
+   {
+    "trial": "B1-2",
+    "pass": true,
+    "failed": [],
+    "agent": {
+     "isolation": 1,
+     "privateTmp": true,
+     "ok": true,
+     "ms": 41315.52773899999,
+     "model": "claude-sonnet-5-5",
+     "turns": 8,
+     "tokens": {
+      "input": 16,
+      "output": 4416,
+      "cacheRead": 137251,
+      "cacheWrite": 22461
+     },
+     "costUsd": 0.14776109999999998,
+     "outside": [],
+     "scratch": [
+      "/tmp/p.ts"
+     ],
+     "pastManual": []
+    }
+   },
+   {
+    "trial": "B1-3",
+    "pass": true,
+    "failed": [],
+    "agent": {
+     "isolation": 1,
+     "privateTmp": true,
+     "ok": true,
+     "ms": 48520.74760999999,
+     "model": "claude-sonnet-5-5",
+     "turns": 8,
+     "tokens": {
+      "input": 14,
+      "output": 5276,
+      "cacheRead": 109698,
+      "cacheWrite": 22799
+     },
+     "costUsd": 0.15495380000000003,
+     "outside": [],
+     "scratch": [
+      "/tmp/probe.mjs"
+     ],
+     "pastManual": []
+    }
+   },
+   {
+    "trial": "B1-4",
+    "pass": true,
+    "failed": [],
+    "agent": {
+     "isolation": 1,
+     "privateTmp": true,
+     "ok": true,
+     "ms": 46818.65854200002,
+     "model": "claude-sonnet-5-5",
+     "turns": 9,
+     "tokens": {
+      "input": 16,
+      "output": 5095,
+      "cacheRead": 137354,
+      "cacheWrite": 22969
+     },
+     "costUsd": 0.1565934,
+     "outside": [],
+     "scratch": [
+      "/tmp/probe.ts"
+     ],
+     "pastManual": []
+    }
+   },
+   {
+    "trial": "B1-5",
+    "pass": true,
+    "failed": [],
+    "agent": {
+     "isolation": 1,
+     "privateTmp": true,
+     "ok": true,
+     "ms": 47769.78212400002,
+     "model": "claude-sonnet-5-5",
+     "turns": 9,
+     "tokens": {
+      "input": 18,
+      "output": 4744,
+      "cacheRead": 154026,
+      "cacheWrite": 21989
+     },
+     "costUsd": 0.15083459999999999,
+     "outside": [],
+     "scratch": [
+      "/tmp/ex.ts"
+     ],
+     "pastManual": []
+    }
+   }
+  ],
+  "discovery": [],
+  "check": {
+   "trial": "known-good",
+   "pass": true,
+   "failed": [],
+   "agent": {
+    "fake": true
+   }
+  }
+ },
+ "models": [
+  "claude-sonnet-5-5"
+ ],
+ "ms": 246300
+}
