@@ -1,10 +1,10 @@
 // The sweep (PLAN.md WP-4.5): every migrated clip played on each given skeleton (bound by WP-4.3, played by core's
 // Animator in Node with its feet planted, solved onto the bones), the sensors (WP-3.3) run on what it plays, and a
-// clip-by-skeleton result with every failure and its reason. A clip passes on a skeleton when the skeleton adds nothing
-// wrong: its data is sound (no non-number, events in order), the sensors find no metric past a level it was under on
-// the clip's own body, read the same way (the clip's own defects are the clip's, not the skeleton's: 29% of the library
-// fails as qa reads it, 10% as the sweep reads it, by parts every 1/60 s), and the bones reach every mapped joint's point
-// within 5 mm.
+// clip-by-skeleton result with every failure and its reason. A clip passes on a skeleton when the skeleton adds no fail
+// finding (D80): its data is sound (no non-number, events in order), the sensors find no metric past its fail level that
+// was under it on the clip's own body, read the same way (the clip's own defects are the clip's, not the skeleton's: 29%
+// of the library fails as qa reads it, 10% as the sweep reads it, by parts every 1/60 s), and the bones reach every
+// mapped joint's point within 5 mm. A metric the skeleton takes past its warn level only is listed with the row.
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { Animator, format, measureFacts, solver, type AnimatorPose, type AnimClip, type Clip, type Rest } from "@m3a/core";
@@ -20,19 +20,21 @@ const RATE = 60;
 /** Data a skeleton can't fix: a finding of these fails a clip on any skeleton. */
 const DATA = ["nan", "events"];
 
-/** One clip on one skeleton: whether it passes, and why not. */
+/** One clip on one skeleton: whether it passes, why not, and the warns the skeleton added. */
 export interface SweepRow {
   clip: string;
   rig: string;
   ok: boolean;
   why: string[];
+  /** Each metric the skeleton took past its warn level and no further (D80): listed, not failed. */
+  warns: string[];
   /** The clip's verdict on its own body and as played on the skeleton, read the same way. */
   own: string;
   played: string;
   /** The farthest a mapped joint was from its body point (mm). */
   reach: number;
-  /** Each metric past a level it was under on the clip's own body: its value and levels there and as played here. */
-  worse: { metric: string; own: number; ownLevels: [number, number]; played: number; playedLevels: [number, number] }[];
+  /** Each metric past a level it was under on the clip's own body: the level, its value and levels there and here. */
+  worse: { metric: string; level: "warn" | "fail"; own: number; ownLevels: [number, number]; played: number; playedLevels: [number, number] }[];
 }
 
 /** A skeleton by id: `gen-<seed>` for a generated test character, else a real rig fetched by `npm run fixtures`. */
@@ -115,7 +117,7 @@ const num = (v: number) => (Math.abs(v) >= 100 ? String(Math.round(v)) : v.toFix
 
 /** Plays one clip (on its own rest R) on one skeleton and judges what the skeleton added. */
 export function sweepOne(clip: Clip, R: Rest, b: ThreeBound, rig: string): SweepRow {
-  const why: string[] = [], worse: SweepRow["worse"] = [];
+  const why: string[] = [], warns: string[] = [], worse: SweepRow["worse"] = [];
   let ownVerdict = "none", playedVerdict = "none", reach = 0;
   try {
     for (const f of metrics(clip, R).findings.filter((x) => DATA.includes(x.metric))) why.push(`${f.metric}: ${f.message}`);
@@ -134,9 +136,10 @@ export function sweepOne(clip: Clip, R: Rest, b: ThreeBound, rig: string): Sweep
         if (DATA.includes(k) || rp.off.includes(k)) continue;
         const was = level(mo, k, ro.values[k]), now = level(mp, k, rp.values[k]);
         if (now > was) {
-          why.push(`${k} ${num(ro.values[k])} on its own body → ${num(rp.values[k])} played on this one, past its ${now === 2 ? "fail" : "warn"} level`);
+          // an added fail fails the pair; an added warn is listed with it (D80)
+          (now === 2 ? why : warns).push(`${k} ${num(ro.values[k])} on its own body → ${num(rp.values[k])} played on this one, past its ${now === 2 ? "fail" : "warn"} level`);
           const lo = checks.levels(mo, k), lp = checks.levels(mp, k), r3 = (x: number) => Math.round(x * 1000) / 1000;
-          worse.push({ metric: k, own: r3(ro.values[k]), ownLevels: [r3(lo.warn), r3(lo.fail)], played: r3(rp.values[k]), playedLevels: [r3(lp.warn), r3(lp.fail)] });
+          worse.push({ metric: k, level: now === 2 ? "fail" : "warn", own: r3(ro.values[k]), ownLevels: [r3(lo.warn), r3(lo.fail)], played: r3(rp.values[k]), playedLevels: [r3(lp.warn), r3(lp.fail)] });
         }
       }
       if (!(p.reach <= REACH)) why.push(Number.isNaN(p.reach) ? `the solve isn't a number at ${p.at.toFixed(2)} s` : `a joint ${num(p.reach)} mm from its point at ${p.at.toFixed(2)} s (at most ${REACH})`);
@@ -144,7 +147,7 @@ export function sweepOne(clip: Clip, R: Rest, b: ThreeBound, rig: string): Sweep
   } catch (err) {
     why.push(`threw: ${String((err as Error).message).split("\n")[0]}`);
   }
-  return { clip: clip.id, rig, ok: why.length === 0, why, own: ownVerdict, played: playedVerdict, reach: Math.round(reach * 1000) / 1000, worse };
+  return { clip: clip.id, rig, ok: why.length === 0, why, warns, own: ownVerdict, played: playedVerdict, reach: Math.round(reach * 1000) / 1000, worse };
 }
 
 /** A gate's latest held-out run: its directory's name, its rig manifest and the rigs that manifest lists. */

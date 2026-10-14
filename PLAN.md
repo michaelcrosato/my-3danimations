@@ -604,8 +604,9 @@ character), a grader, and a pass rule graded headless.
   - **The workspace:** a scratch directory outside the repository (`/tmp/m3a-bench/<trial>/`). It holds only the
     packed tarballs (`npm pack` of each package), the brief, the starter and the manual inside the installed package.
   - **Isolation level 1:** the `claude` CLI (installed in the container) in print mode (`claude -p`), started in that
-    directory with tools limited to it. It runs on the session's own Claude Code credentials; check them with a
-    one-line call first.
+    directory with tools limited to it, and, where the machine allows a mount namespace, a `/tmp` of its own with the
+    repository hidden (D84), so agents run at once never meet. It runs on the session's own Claude Code credentials;
+    check them with a one-line call first.
   - **Isolation level 2:** a fresh remote session with no repository attached, when the session can create one.
   - **Isolation level 3:** an in-session subagent confined by instruction, its transcript audited for reads outside the
     workspace.
@@ -766,10 +767,10 @@ G5 gates M3 (through WP-9.1) and M4 (G10). Clips change in sequence (§8.4), so 
 - **G4 First flight (M1):**
   - on at least 6 skeletons (4 or more generated variants, 2 or more real CC0 rigs from different sources), the idle,
     walk, run, jump and attack set plays with the sensors green;
-  - **a headless sweep** (`npm run sweep`, WP-4.5) plays every migrated clip on those six skeletons, and at least 95%
-    pass the sensors (WP-4.5's rule: the skeleton adds no finding the clip lacks on its own body), with every failure
-    listed and its reason given. The gate report links the clip-by-skeleton
-    results, and M1 claims only what they show;
+  - **a headless sweep** (`npm run sweep`, WP-4.5) plays every library clip (about 1,400 since WP-5.3) on those six
+    skeletons, and at least 95% pass the sensors (WP-4.5's rule, D80: the skeleton adds no fail finding the clip lacks
+    on its own body), with every failure listed and its reason given, and every warn the skeleton adds listed. The gate
+    report links the clip-by-skeleton results, and M1 claims only what they show;
   - **a held-out rig:** a real CC0 rig from a source that neither WP-4.2's list nor an earlier run under
     `bench/results/heldout/` used. On each run of G4, reruns included, a fresh subagent chooses one, reads its license,
     records its URL, license and SHA-256 in `bench/results/heldout/G4/run-<n>/rig.json`, and fetches it with
@@ -1474,17 +1475,19 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
   the frame back with `preserveDrawingBuffer`, checks it is not blank, and writes a sheet. The proof hash of the bone
   transforms must equal the Node solve's.
 
-  Also `npm run sweep -- <rig ids | --manifest <file>>`: it plays every migrated clip on each given skeleton (bound by
+  Also `npm run sweep -- <rig ids | --manifest <file>>`: it plays every library clip on each given skeleton (bound by
   WP-4.3, solved in Node), runs the sensors (WP-3.3), and writes the clip-by-skeleton results with every failure and
   its reason. G4 runs it on its six skeletons and, separately, on the held-out rig (§9.3). A clip passes on a skeleton
-  when the skeleton adds nothing wrong (D49): its data is sound, no metric goes past a level (warn or fail) it was
-  under on the clip's own body, read the same way, and every mapped bone's joint is within 5 mm of its body point.
+  when the skeleton adds no fail finding (D80; D49 counted warns too): its data is sound, no metric goes past its fail
+  level when it was under it on the clip's own body, read the same way, and every mapped bone's joint is within 5 mm
+  of its body point. Every metric the skeleton takes past its warn level and no further is listed with its pair.
 - **Done when:**
   - sheets of the generated and real rigs render in CI;
   - the hashes match;
   - a blank frame, or one that fell back to another renderer, fails loudly with the reason;
   - a sweep over two test characters writes the clip-by-skeleton results and lists a deliberately broken clip as a
-    failure with its reason.
+    failure with its reason;
+  - an added fail finding fails a pair, and an added warn passes it, listed (D80).
 - **Verify:** `npm run e2e -- capture && npm test -- sweep`
 
 #### WP-4.6 The first-flight demo

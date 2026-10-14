@@ -3,7 +3,7 @@
 The current state on one screen (at most 40 lines; `npm run doctrine` checks it from WP-0.3). The ledger is
 `PLAN.md` §14; decisions are in `docs/DECISIONS.md`.
 
-**Phase:** 6 Composition (5 done, G5 passed; 4 waits on G4). **Next gates:** G6; G4 (M1), run 2. **Version:** 0.42.6.
+**Phase:** 6 Composition (5 done, G5 passed; 4 waits on G4). **Next gates:** G6; G4 (M1), run 2. **Version:** 0.42.7.
 **Mode:** ultracode (D83): implementers in worktrees, the main session integrates; a fresh draft PR from `main`.
 
 ## Done
@@ -24,9 +24,9 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 
 ## Next
 
-- G4 run 2: the bar is "no fail finding added" (D80); the sweep, §9.3 and WP-4.5 change to it; run 2 starts once a
-  sweep outside the gate passes ≥95% over the whole library at a clean commit (D57; a second failure is K1, §12).
-- Phase 6: WP-6.2's seventh verifier round and G6's preparation (D82: lost to a usage limit, redone); then G6.
+- G4 run 2: the sweep fails a pair only on an added fail finding, warns listed (D80, 0.42.7); a sweep over the whole
+  library (1,393 clips) on the six skeletons is measuring; B1's known-good on meshopt and off-floor rigs is being made.
+- Phase 6: agents get a /tmp of their own (D84); WP-6.2's seventh verifier round is running; then G6.
 
 ## Blocked on the owner
 

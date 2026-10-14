@@ -1378,7 +1378,8 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
     its time, turns, tokens and cost, the paths it touched outside its workspace and the files it read past the
     manual. A one-turn probe checks the credentials first. `--parallel N` runs N agents at once, each with its own
     TMPDIR; agents still write scratch files to `/tmp` by name (all 7 of the first run wrote `/tmp/cat.mjs`), so runs
-    that count at a gate run one at a time.
+    that count at a gate run one at a time. **Superseded in part by D84:** each agent gets a `/tmp` of its own, so
+    agents run at once where the machine allows it.
   - B1's grader drives the workspace's player headless with scripted speeds (0, 1.2, 3.5, 1.2, 0 m/s) on the
     starter's character and judges the bones, not the player's word: the motion reported; the speed travelled
     (within 25%; under 0.15 m/s idle); the feet stepping when walking (their speed against the pelvis over twice
@@ -2831,7 +2832,7 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
 - **Why:** answered by the owner after the numbers were put to them, so the reading isn't the agent grading itself
   (D60); the sensors set warn at real capture's p95 and fail past all of it.
 - **Answered:** yes, the owner, 2026-10-14.
-- **Landed in:** michaelcrosato/my-3danimations#10 (recorded only); the change lands with G4 run 2's preparation
+- **Landed in:** michaelcrosato/my-3danimations#10 (recorded only); the sweep, §9.3 and WP-4.5 in v0.42.7
 
 ## D81 · 2026-10-14 · D63's question answered: the Quaternius sets stay as migrated
 
@@ -2875,3 +2876,31 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   don't overlap often enough for parallel work to pay.
 - **Answered:** yes, the owner's prompt, 2026-10-14.
 - **Landed in:** (this pull request; no version)
+
+## D84 · 2026-10-14 · A benchmark agent gets a /tmp of its own, the repository hidden; agents run at once (D54, D78)
+
+- **Principle:** 3, §7 (isolation level 1), D54, D78
+- **Call:**
+  - `bench/runner/agent.ts` starts each `claude` in a mount namespace of its own (`unshare -m`, or `unshare -r -m`
+    through a user namespace when not root; probed once by bind-mounting a directory). Its workspace and home are
+    bound into a directory beside them, `<trial>-tmp`, at their own paths, that directory is bound over `/tmp`, and the
+    repository and this session's Claude home are covered by empty directories; then `claude` starts in its workspace,
+    `TMPDIR=/tmp`. What an agent writes to `/tmp` by name (`/tmp/cat.mjs`, as all 7 of D54's first trials did) lands
+    in its own `<trial>-tmp`, kept with the run; the audit lists those paths as its `scratch`, apart from `outside`.
+    Each trial records `privateTmp`.
+  - D54's "runs that count at a gate run one at a time" is superseded: D78's gate set runs five agents at once
+    (`--parallel 5`), as `tools/run/gate.ts` has it. Where no namespace can be made, the runner runs agents one at a
+    time whatever `--parallel` asks (`lanes`), and the results file records the lanes it used.
+  - The test: two stand-in `claude`s first on the agents' PATH, run at once, each report that they started in their
+    own workspace with `TMPDIR=/tmp`, that their `/tmp` held only the way to their workspace and home, that the
+    repository showed empty, and that the `/tmp/cat.mjs` each wrote is in its own `<trial>-tmp`. CI's runners (a user,
+    not root) get user namespaces with `kernel.apparmor_restrict_unprivileged_userns=0`, so the test runs there too.
+  - `runner.test.ts` and `briefs.test.ts` remove the temporary directories they make (packs, workspaces and installs:
+    they were kept, and filled the disk).
+  - The quiz probe at isolation level 1 passes: 10 of 10 in 4.9 s on the CLI's default model.
+- **Why:** five agents writing the same `/tmp` file at once can read each other's work, and an agent able to read the
+  repository can read the graders and the known-good solutions; the audit found neither in D54's or G4 run 1's trials,
+  but a gate shouldn't rest on an audit when the machine can prevent it. Running five at once cuts a G6 run from about
+  50 agent-runs in a row to 10 rounds.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.42.7

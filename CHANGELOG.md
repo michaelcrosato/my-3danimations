@@ -4,6 +4,16 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.42.7 · 2026-10-14
+
+### Repo
+- The benchmark: each agent starts in a mount namespace with a `/tmp` of its own (its scratch files kept beside its
+  workspace, listed apart by the audit) and the repository and this session's Claude home hidden; agents run at once
+  only where that holds, else one at a time; each trial records it; the runner's and briefs' tests remove their
+  temporary directories; CI's runners allow user namespaces (D84).
+- The sweep: a pair fails on a fail finding the skeleton adds; a warn it adds passes, listed with the pair and in the
+  results' `warned` list; `--out` names the results file; PLAN.md §9.3's G4 line and WP-4.5 say so (D80).
+
 ## 0.42.6 · 2026-10-13
 
 ### Core

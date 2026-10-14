@@ -1,12 +1,14 @@
-// `npm run sweep -- <rig ids> [--manifest <file>] [--heldout <gate>] [--sample N] [--clip ID] [--min P] [--min-total P]`
-// (PLAN.md WP-4.5): every migrated clip on each given skeleton (gen-<seed> for a generated test character; a real rig's
-// id from the fixtures manifest, or from --manifest), the sensors run on what it plays. Prints each skeleton's pass rate
-// and its failures with their reasons; writes the clip-by-skeleton results to check-output/sweep/results.json. --min P
+// `npm run sweep -- <rig ids> [--manifest <file>] [--heldout <gate>] [--sample N] [--clip ID] [--min P] [--min-total P]
+// [--out <file>]` (PLAN.md WP-4.5): every library clip on each given skeleton (gen-<seed> for a generated test
+// character; a real rig's id from the fixtures manifest, or from --manifest), the sensors run on what it plays. Prints
+// each skeleton's pass rate (a pair fails on a fail finding the skeleton adds, D80), its failures with their reasons
+// and how many pairs it added a warn to; writes the clip-by-skeleton results, every added warn listed, to
+// check-output/sweep/results.json (or --out). --min P
 // fails a skeleton that passes under P%; --min-total P fails when the skeletons together pass under P% (G4 asks 95).
 // --heldout G4 adds the rigs of the gate's latest held-out run (bench/results/heldout/G4/run-<n>/rig.json, a fixtures
 // manifest), reported apart: they count toward neither bar.
 import { mkdirSync, writeFileSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { dirname, join, relative, resolve } from "node:path";
 import { libraryClips, sample } from "../qa/qa.ts";
 import { finish, fmtMs, parseArgs, ROOT, usage, type Report, type Step } from "../run/cli.ts";
 import { heldout, rigOf, sweepOne, type SweepRow } from "./sweep.ts";
@@ -19,6 +21,7 @@ if (import.meta.main) {
     { name: "min", takesValue: true, help: "fail a skeleton that passes under this percentage" },
     { name: "min-total", takesValue: true, help: "fail when all the skeletons together pass under this percentage" },
     { name: "heldout", takesValue: true, help: "add the rigs of a gate's latest held-out run (G4), reported apart" },
+    { name: "out", takesValue: true, help: "the results file (check-output/sweep/results.json)" },
   ];
   let parsed, held: ReturnType<typeof heldout> | null = null;
   try {
@@ -45,17 +48,19 @@ if (import.meta.main) {
     }
     const mine = clips.map((c) => sweepOne(c.clip, c.rest, b, rig));
     rows.push(...mine);
-    const pass = mine.filter((r) => r.ok).length, pct = (100 * pass) / Math.max(1, mine.length);
-    steps.push({ name: apart ? `${rig} (held out, ${held!.run})` : rig, ok: apart || pct >= min, ms: performance.now() - s0, summary: `${pass} of ${mine.length} clips pass (${pct.toFixed(1)}%), bound ${b.report.method === "table" ? `by name (${b.report.table})` : "by topology"} at ${b.report.confidence.toFixed(2)}`, detail: mine.filter((r) => !r.ok).map((r) => `${r.clip}: ${r.why.join("; ")}`) });
+    const pass = mine.filter((r) => r.ok).length, pct = (100 * pass) / Math.max(1, mine.length), warned = mine.filter((r) => r.ok && r.warns.length).length;
+    steps.push({ name: apart ? `${rig} (held out, ${held!.run})` : rig, ok: apart || pct >= min, ms: performance.now() - s0, summary: `${pass} of ${mine.length} clips pass (${pct.toFixed(1)}%; ${warned} of them with a warn it added, listed), bound ${b.report.method === "table" ? `by name (${b.report.table})` : "by topology"} at ${b.report.confidence.toFixed(2)}`, detail: mine.filter((r) => !r.ok).map((r) => `${r.clip}: ${r.why.join("; ")}`) });
   }
   if (typeof f["min-total"] === "string") {
     const counted = rows.filter((r) => !held?.rigs.includes(r.rig)), pass = counted.filter((r) => r.ok).length, pct = (100 * pass) / Math.max(1, counted.length), bar = Number(f["min-total"]);
     steps.push({ name: "together", ok: pct >= bar, ms: 0, summary: `${pass} of ${counted.length} clip-skeleton pairs pass (${pct.toFixed(1)}%; the bar ${bar}%)` });
   }
-  const out = join(ROOT, "check-output/sweep");
-  mkdirSync(out, { recursive: true });
-  writeFileSync(join(out, "results.json"), JSON.stringify({ about: "npm run sweep: each clip on each skeleton; ok when the skeleton adds nothing wrong (tools/sweep/sweep.ts)", rigs, ...(held ? { heldout: held } : {}), clips: clips.length, rows }, null, 1));
+  const out = typeof f.out === "string" ? resolve(f.out) : join(ROOT, "check-output/sweep/results.json");
+  mkdirSync(dirname(out), { recursive: true });
+  // every pair that passes with a warn the skeleton added, listed apart for the gate's report (D80)
+  const warned = rows.filter((r) => r.ok && r.warns.length).map((r) => ({ clip: r.clip, rig: r.rig, warns: r.warns }));
+  writeFileSync(out, JSON.stringify({ about: "npm run sweep: each clip on each skeleton; ok when the skeleton adds no fail finding, every warn it adds listed (tools/sweep/sweep.ts, D80)", rigs, ...(held ? { heldout: held } : {}), clips: clips.length, warned, rows }, null, 1));
   const ms = performance.now() - t0, ok = steps.every((s) => s.ok), passed = rows.filter((r) => r.ok).length;
-  const report: Report = { tool: "sweep", ok, verdict: `sweep: ${ok ? "PASS" : "FAIL"}, ${passed} of ${rows.length} clip-skeleton pairs pass in ${fmtMs(ms)}`, steps, warnings: [], ms, next: "read check-output/sweep/results.json for every clip on every skeleton" };
+  const report: Report = { tool: "sweep", ok, verdict: `sweep: ${ok ? "PASS" : "FAIL"}, ${passed} of ${rows.length} clip-skeleton pairs pass in ${fmtMs(ms)}`, steps, warnings: [], ms, next: `read ${relative(ROOT, out)} for every clip on every skeleton, and its warned list` };
   finish(report, parsed);
 }

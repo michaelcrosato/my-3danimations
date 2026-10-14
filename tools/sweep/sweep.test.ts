@@ -4,8 +4,9 @@
 // on both with its "nan: " reason first; that a skeleton missing from the cache is named with how to fetch it; and that
 // `npm run sweep` writes the clip-by-skeleton results to check-output/sweep/results.json; a walk's travel is not read as
 // its loop's seam, and the clip's own slide is read over the stretches the played body stands on (D51); clips play
-// with their library's shares, and four that failed before D55 pass. How many clips
-// pass is not checked here: that is gate G4's bar (95% over its six skeletons and the whole library, PLAN.md §9.3).
+// with their library's shares, and four that failed before D55 pass; a pair fails on a fail finding the skeleton adds,
+// and one it adds a warn to passes with the warn listed (D80). How many clips pass is not checked here: that is gate
+// G4's bar (95% over its six skeletons and the whole library, PLAN.md §9.3).
 import { execFileSync } from "node:child_process";
 import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -66,6 +67,18 @@ describe("the sweep", () => {
       expect(r.why, `${id} on ${rig}`).toEqual([]);
     }
   }, 120_000);
+  it("fails a pair on a fail finding the skeleton adds, and passes one with a warn it adds, listed (D80)", async () => {
+    // on gen-0, a running jump's landing pops past its warn level (none on its own body) and a backflip's past its fail
+    const b = await rigOf("gen-0"), lib = libraryClips(), row = (id: string) => {
+      const c = lib.find((x) => x.clip.id === id)!;
+      return sweepOne(c.clip, c.rest, b, "gen-0");
+    };
+    const jump = row("CMU_CURATED/Run_Jump_Over"), flip = row("CMU_CURATED/Backflip");
+    expect([jump.ok, jump.why, jump.worse.map((w) => [w.metric, w.level])]).toEqual([true, [], [["pop", "warn"]]]);
+    expect(jump.warns).toEqual([expect.stringMatching(/^pop 0\.0 on its own body → \d+ played on this one, past its warn level$/)]);
+    expect([flip.ok, flip.warns, flip.worse.map((w) => [w.metric, w.level])]).toEqual([false, [], [["pop", "fail"]]]);
+    expect(flip.why).toEqual([expect.stringMatching(/^pop \d+ on its own body → \d+ played on this one, past its fail level$/)]);
+  }, 120_000);
   it("finds a gate's latest held-out run, and says so when there is none", () => {
     const base = mkdtempSync(join(tmpdir(), "m3a-heldout-"));
     expect(() => heldout("G4", base)).toThrow(/no held-out run for G4 yet/);
@@ -81,8 +94,9 @@ describe("the sweep", () => {
   it("npm run sweep writes the clip-by-skeleton results", () => {
     const out = execFileSync(process.execPath, [join(ROOT, "tools/sweep/main.ts"), ...RIGS, "--sample", "4"], { cwd: ROOT, encoding: "utf8" });
     expect(out).toMatch(/^sweep: (PASS|FAIL), \d+ of 8 clip-skeleton pairs pass/m);
-    const res = JSON.parse(readFileSync(join(ROOT, "check-output/sweep/results.json"), "utf8")) as { rigs: string[]; clips: number; rows: SweepRow[] };
+    const res = JSON.parse(readFileSync(join(ROOT, "check-output/sweep/results.json"), "utf8")) as { rigs: string[]; clips: number; warned: unknown[]; rows: SweepRow[] };
     expect([res.rigs, res.clips, res.rows.length]).toEqual([RIGS, 4, 8]);
-    for (const r of res.rows) expect(Object.keys(r).sort()).toEqual(["clip", "ok", "own", "played", "reach", "rig", "why", "worse"]);
+    expect(res.warned).toEqual(res.rows.filter((r) => r.ok && r.warns.length).map((r) => ({ clip: r.clip, rig: r.rig, warns: r.warns })));
+    for (const r of res.rows) expect(Object.keys(r).sort()).toEqual(["clip", "ok", "own", "played", "reach", "rig", "warns", "why", "worse"]);
   }, 120_000);
 });
