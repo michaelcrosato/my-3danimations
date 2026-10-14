@@ -4,7 +4,7 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 `PLAN.md` §14; decisions are in `docs/DECISIONS.md`.
 
 **Phase:** 6 Composition (5 done, G5 passed; 4 waits on G4). **Next gates:** G6; G4 (M1), run 2. **Version:** 0.42.6.
-**Mode:** one agent (D21), branch `claude/relaxed-albattani-939ofg` (D50: it takes over michaelcrosato/my-3danimations#9).
+**Mode:** one agent (D21); #10 merged into `main` at the owner's request (D82), the rest on a fresh branch and draft PR.
 
 ## Done
 
@@ -24,13 +24,12 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 
 ## Next
 
-- G4 run 2 waits for a sweep at ≥95% at a clean commit (a second failure is K1, PLAN.md §12), over 1,393 clips.
-- Phase 6: WP-6.1 to 6.6 done (D70–D77), their verifiers' rounds fixed through 0.42.4; a last round on 6.2 and 6.6; then G6.
+- G4 run 2: the bar is "no fail finding added" (D80); the sweep, §9.3 and WP-4.5 change to it, then run 2 (K1 next).
+- Phase 6: WP-6.2's seventh verifier round and G6's preparation (D82: lost to a usage limit, redone); then G6.
 
 ## Blocked on the owner
 
-- G4's bar (D60, on michaelcrosato/my-3danimations#10): D49's reading gives 89.1%, "no fail finding added" 97.2%.
-- Quaternius' current editions (D63): itch.io's download is refused here, so its two sets stay as migrated.
+- Nothing: G4's bar (D80) and the Quaternius sets (D81) answered 2026-10-14.
 
 ## Last gate
 

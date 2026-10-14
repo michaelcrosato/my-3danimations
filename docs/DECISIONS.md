@@ -2814,3 +2814,40 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   rigs 2 s, pins 13 s), measured; after it, T0 passes and T1 runs 440 of 440 with none skipped, on v24.21.0.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** the Repo lines under 0.42.6, no version (no package changes)
+
+## D80 · 2026-10-14 · D60 answered: a sweep pair passes when the skeleton adds no fail finding
+
+- **Principle:** 1, 9, G4, K1 (D60)
+- **Call:** the owner took D60's recommendation. A clip passes on a skeleton when the skeleton adds no *fail* finding
+  the clip lacks on its own body; every warn it adds is listed in the sweep's and the gate's report. Run 1's 3,150 pairs
+  read 97.2% so (gen-0 95.6%, gen-1 98.1, gen-2 98.3, gen-3 98.5, the mannequin 98.5, the Knight 94.1). §9.3's G4 line,
+  WP-4.5's rule and `tools/sweep/sweep.ts` change to this reading together, with tests, before G4 run 2, which runs at
+  a clean commit (a second failure is still K1).
+- **Why:** answered by the owner after the numbers were put to them, so the reading isn't the agent grading itself
+  (D60); the sensors set warn at real capture's p95 and fail past all of it.
+- **Answered:** yes, the owner, 2026-10-14.
+- **Landed in:** recorded only; the change lands with G4 run 2's preparation.
+
+## D81 · 2026-10-14 · D63's question answered: the Quaternius sets stay as migrated
+
+- **Principle:** 4, 10, WP-5.3, O4
+- **Call:** QUATERNIUS_3D2DGE and QUATERNIUS_SHARDFALL stay as migrated (D63's third option): no itch.io download and
+  no Drive upload. WP-5.3 stays done with that deviation; a re-import from UAL 1 and 2's current editions waits until
+  their files reach a session.
+- **Why:** the owner's call; nothing waits on it (G5 passed with both sets as migrated).
+- **Answered:** yes, the owner, 2026-10-14.
+- **Landed in:** recorded only
+
+## D82 · 2026-10-14 · #10 merged before G6 and G4 run 2, at the owner's request; a fresh branch from here
+
+- **Principle:** process (AGENTS.md, "Gates"), D50
+- **Call:** the owner asked for every branch merged or deleted before work resumes. michaelcrosato/my-3danimations#10
+  (Phase 4 but G4, Phase 5 with G5, Phase 6 but G6: 0.42.6, with D79 to D82) is squash-merged into `main` with CI
+  green, as #8 was before G4. Its branch `claude/relaxed-albattani-939ofg`, #9's `claude/relaxed-albattani-35xhjq`
+  (contained in #10) and `claude/cool-goldberg-qgyu06` (D79, carried into #10) are deleted. The next session starts a
+  fresh branch from `main` and a draft pull request for the rest of Phase 6 onward, merging at each gate.
+- **Why:** one line of history and no stale branches. The previous session ended on a usage limit with work unpushed
+  (WP-6.2's seventh verifier round and G6's preparation: a private `/tmp` per benchmark agent, tests that remove their
+  temporary directories, the held-out variants); it is redone, not recovered.
+- **Answered:** yes, the owner, 2026-10-14.
+- **Landed in:** the merge of #10
