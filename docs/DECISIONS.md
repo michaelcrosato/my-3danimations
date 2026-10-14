@@ -2796,24 +2796,28 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.42.2
 
-## D79 · 2026-10-14 · The SessionStart hook runs Node 24 and fetches what the tests and gates read
+## D79 · 2026-10-14 · The SessionStart hook runs Node 24 and fetches what the tests and gates read; so does CI's T1
 
 - **Principle:** process, WP-0.5 (D22: Node 24; principle 9: pins)
 - **Call:**
-  - Numbered D79, after D78 on michaelcrosato/my-3danimations#10's branch (D50 to D78 are taken there), so the two
-    logs merge without a duplicate id.
+  - Numbered D79, after D78 on michaelcrosato/my-3danimations#10's branch (D49 to D78 were taken there, `main` ended at
+    D48), so the two logs merge without a duplicate id.
   - The cloud container's default `node` is 22.22.0; Node 24.21.0, CI's pin, sits in `/opt/node24`. The hook reads
-    `engines.node` from `package.json` and, when the default is older, puts the first `/opt/node<major>/bin` that
-    qualifies first on `PATH`, for `npm ci` (npm 11, as CI) and through `CLAUDE_ENV_FILE` for the session.
-  - It then fetches what CI fetches before T1 and the gates: the real CC0 rigs, each gate's held-out rigs
-    (`bench/results/heldout/*/run-*/rig.json`, where they exist) and the pinned sources, each by hash. A failed fetch
-    warns and the session still starts; the tests that need it say so when they skip.
-- **Why:** a fresh session's T1 passed with 5 of the rigs' tests skipped (`test-characters`, `bind`), and on #10's
-  branch the carry test skipped for want of shardfall's pin: "never skip a test to get green" held in CI only. The
-  toolchain ran on Node 22 while D22, §5.8 and CI say 24. The hook now takes about 24 s from a fresh clone (npm ci 3 s,
-  rigs 2 s, pins 13 s), measured; after it, T0 passes and T1 runs 440 of 440 with none skipped, on v24.21.0.
+    `engines.node` from `package.json` (none read as 0) and, when the default is older, puts the lowest
+    `/opt/node<major>/bin` that qualifies (sorted by version) first on `PATH`, for `npm ci` (npm 11, as CI) and through
+    `CLAUDE_ENV_FILE` for the session. It exports `CHROMIUM_PATH` before any download.
+  - It then fetches by hash the real CC0 rigs, each gate's held-out rigs (`bench/results/heldout/*/run-*/rig.json`,
+    where they exist) and the pinned sources. A failed fetch warns and the session still starts; `test-characters` and
+    `bind` name what to fetch when they skip, the carry test (`it.skipIf`) skips without a reason.
+  - CI's T1 job fetches the pinned sources too (`npm run pins -- fetch`, cached with `.cache`): it fetched only the
+    rigs, so the carry test skipped there (694 passed, 8 skipped at 0870490).
+- **Why:** on `main` a fresh session's T1 passed with 5 of the rigs' tests skipped (`test-characters`, `bind`), and on
+  #10's branch the carry test skipped, in sessions and in CI, for want of shardfall's pin: "never skip a test to get
+  green" didn't hold. The toolchain ran on Node 22 while D22, §5.8 and CI say 24. Measured from a fresh clone, the hook
+  takes 20 to 24 s (npm ci 3 s, rigs 2 s, pins 13 s); after it, on v24.21.0, T0 passes, and T1 runs 440 of 440 on
+  `main` and 695 of 702 on #10, the 7 skipped being the briefs' runner test, which runs in T2 only (`M3A_FULL`, D74).
 - **Answered:** no: made without a response, to review.
-- **Landed in:** the Repo lines under 0.42.6, no version (no package changes)
+- **Landed in:** michaelcrosato/my-3danimations#10, after 0.42.6 (Repo lines only, no version)
 
 ## D80 · 2026-10-14 · D60 answered: a sweep pair passes when the skeleton adds no fail finding
 
@@ -2821,12 +2825,13 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
 - **Call:** the owner took D60's recommendation. A clip passes on a skeleton when the skeleton adds no *fail* finding
   the clip lacks on its own body; every warn it adds is listed in the sweep's and the gate's report. Run 1's 3,150 pairs
   read 97.2% so (gen-0 95.6%, gen-1 98.1, gen-2 98.3, gen-3 98.5, the mannequin 98.5, the Knight 94.1). §9.3's G4 line,
-  WP-4.5's rule and `tools/sweep/sweep.ts` change to this reading together, with tests, before G4 run 2, which runs at
-  a clean commit (a second failure is still K1).
+  WP-4.5's rule and `tools/sweep/sweep.ts` change to this reading together, with tests. D57's condition stands: run 2
+  starts only when a sweep outside the gate passes 95% under this reading, at a clean commit, over the library G4
+  sweeps (about 1,400 clips; run 1's 97.2% covered its 525), since a second failure is K1.
 - **Why:** answered by the owner after the numbers were put to them, so the reading isn't the agent grading itself
   (D60); the sensors set warn at real capture's p95 and fail past all of it.
 - **Answered:** yes, the owner, 2026-10-14.
-- **Landed in:** recorded only; the change lands with G4 run 2's preparation.
+- **Landed in:** michaelcrosato/my-3danimations#10 (recorded only); the change lands with G4 run 2's preparation
 
 ## D81 · 2026-10-14 · D63's question answered: the Quaternius sets stay as migrated
 
@@ -2836,7 +2841,7 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   their files reach a session.
 - **Why:** the owner's call; nothing waits on it (G5 passed with both sets as migrated).
 - **Answered:** yes, the owner, 2026-10-14.
-- **Landed in:** recorded only
+- **Landed in:** michaelcrosato/my-3danimations#10 (recorded only)
 
 ## D82 · 2026-10-14 · #10 merged before G6 and G4 run 2, at the owner's request; a fresh branch from here
 
@@ -2850,4 +2855,4 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   (WP-6.2's seventh verifier round and G6's preparation: a private `/tmp` per benchmark agent, tests that remove their
   temporary directories, the held-out variants); it is redone, not recovered.
 - **Answered:** yes, the owner, 2026-10-14.
-- **Landed in:** the merge of #10
+- **Landed in:** michaelcrosato/my-3danimations#10

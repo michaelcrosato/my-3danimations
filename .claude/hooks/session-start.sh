@@ -13,11 +13,11 @@ fi
 cd "${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "$0")/../.." && pwd)}"
 
 # Node: the container's default may be older than the toolchain's (D22: Node 24, CI's 24.21.0) and keeps others as
-# /opt/node<major>. The first that qualifies (the lowest major, nearest CI's) goes first on PATH, here and for the session.
+# /opt/node<major>. The lowest major that qualifies (nearest CI's) goes first on PATH, here and for the session.
 major() { "$1" -p 'process.versions.node.split(".")[0]' 2>/dev/null || echo 0; }
-need=$(node -p 'parseInt(require("./package.json").engines.node.replace(/^\D+/, ""), 10)')
+need=$(node -p 'parseInt(((require("./package.json").engines || {}).node || "0").replace(/^\D+/, ""), 10) || 0' 2>/dev/null || echo 0)
 if [ "$(major node)" -lt "$need" ]; then
-  for candidate in /opt/node*/bin/node; do
+  while read -r candidate; do
     if [ -x "$candidate" ] && [ "$(major "$candidate")" -ge "$need" ]; then
       bin=$(dirname "$candidate")
       export PATH="$bin:$PATH"
@@ -26,13 +26,24 @@ if [ "$(major node)" -lt "$need" ]; then
       fi
       break
     fi
-  done
+  done < <(printf '%s\n' /opt/node*/bin/node | sort -V)
 fi
 if [ "$(major node)" -lt "$need" ]; then
   echo "session-start: warning: node $(node --version) is older than package.json's engines (>=$need) and no newer one was found"
 fi
 
 npm ci --no-audit --no-fund --loglevel=error
+
+chromium=""
+for candidate in "${CHROMIUM_PATH:-}" /opt/pw-browsers/chromium-1194/chrome-linux/chrome /opt/pw-browsers/chromium; do
+  if [ -n "$candidate" ] && [ -x "$candidate" ] && [ -f "$candidate" ]; then
+    chromium="$candidate"
+    break
+  fi
+done
+if [ -n "$chromium" ] && [ -n "${CLAUDE_ENV_FILE:-}" ]; then
+  echo "export CHROMIUM_PATH=\"$chromium\"" >> "$CLAUDE_ENV_FILE"
+fi
 
 # Fixtures by hash, as CI fetches them: the real CC0 rigs (whose tests skip without them), each gate's held-out rigs,
 # and the pinned sources (vectors, gates, the carry test). A failed fetch warns instead of failing the session.
@@ -53,18 +64,7 @@ for manifest in bench/results/heldout/*/run-*/rig.json; do
 done
 fetch npm run --silent pins -- fetch
 
-chromium=""
-for candidate in "${CHROMIUM_PATH:-}" /opt/pw-browsers/chromium-1194/chrome-linux/chrome /opt/pw-browsers/chromium; do
-  if [ -n "$candidate" ] && [ -x "$candidate" ] && [ -f "$candidate" ]; then
-    chromium="$candidate"
-    break
-  fi
-done
-
 if [ -n "$chromium" ]; then
-  if [ -n "${CLAUDE_ENV_FILE:-}" ]; then
-    echo "export CHROMIUM_PATH=\"$chromium\"" >> "$CLAUDE_ENV_FILE"
-  fi
   echo "session-start: node $(node --version), npm ci done; CHROMIUM_PATH=$chromium"
 else
   echo "session-start: node $(node --version), npm ci done; no preinstalled Chromium found (npm run e2e needs one)"

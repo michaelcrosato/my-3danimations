@@ -24,7 +24,8 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 
 ## Next
 
-- G4 run 2: the bar is "no fail finding added" (D80); the sweep, §9.3 and WP-4.5 change to it, then run 2 (K1 next).
+- G4 run 2: the bar is "no fail finding added" (D80); the sweep, §9.3 and WP-4.5 change to it; run 2 starts once a
+  sweep outside the gate passes ≥95% over the whole library at a clean commit (D57; a second failure is K1, §12).
 - Phase 6: WP-6.2's seventh verifier round and G6's preparation (D82: lost to a usage limit, redone); then G6.
 
 ## Blocked on the owner

@@ -576,8 +576,8 @@ game:  graph (L3) ─▶ Animator.step(dt) ─▶ events, root motion, hashed st
   and `intake.yml` is on `main` (scheduled workflows run only from the default branch), the intake workflow (WP-9.1)
   also runs every 15 minutes.
 - **Claude Code:**
-  - a SessionStart hook puts Node 24 first on `PATH`, runs `npm ci`, fetches the rigs and the pinned sources by hash
-    and sets `CHROMIUM_PATH` (D79);
+  - a SessionStart hook puts Node 24 first on `PATH` when the default is older, runs `npm ci`, sets `CHROMIUM_PATH` and
+    fetches the rigs and the pinned sources by hash (D79);
   - `.mcp.json` registers the package's own MCP server, so the agent uses what it builds;
   - the skill lives in `.claude/skills/m3a/`.
 - **Docs drift:** generated docs (`docs/LIBRARY.md`, the manual's tool list) are rewritten by tools and checked.
@@ -942,7 +942,8 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
 - **Done when:** CI is green on the PR, and a fresh clone of the branch passes `npm run check` after only the hook.
 - **Verify:**
   - the PR's checks are green, read with `gh pr checks` or the session's GitHub tools;
-  - `git clone -b <branch> . /tmp/m3a-fresh && cd /tmp/m3a-fresh && bash .claude/hooks/session-start.sh && npm run check`
+  - `git clone -b <branch> . /tmp/m3a-fresh && cd /tmp/m3a-fresh && CLAUDE_CODE_REMOTE=true CLAUDE_ENV_FILE=/tmp/m3a-env
+    bash .claude/hooks/session-start.sh && . /tmp/m3a-env && npm run check`
 
 **Gate G0** (§9.3).
 
@@ -1577,8 +1578,8 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
 - **Build:** re-import from the original sources with the new degrees of freedom (wrists, forearm roll, spine curl, root
   yaw). Sources are fetched into `.cache/`, never committed.
   - **Quaternius UAL1 and UAL2,** in their current editions. UAL2 was updated to v2.2 on 2026-09-28. *Deviation
-    (D63): they come only through itch.io's download flow, which this session can't use; until the owner allows it or
-    supplies the zips, `QUATERNIUS_3D2DGE` and `QUATERNIUS_SHARDFALL` stay as migrated.*
+    (D63): they come only through itch.io's download flow, which this session can't use; the owner chose to keep
+    them as migrated (D81), so `QUATERNIUS_3D2DGE` and `QUATERNIUS_SHARDFALL` stay as they are.*
   - **Mesh2Motion.** Audit each asset's license: the README says CC0, but a July 2026 report says some assets are CC BY
     or CC BY-SA. Unaudited or share-alike assets go to `local`. *Audited CC0 (D63).*
   - **CMU:** the curated picks, plus new picks from the surveyed corpus (WP-5.6) chosen for the G5 category floors

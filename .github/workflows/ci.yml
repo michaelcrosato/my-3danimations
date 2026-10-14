@@ -45,6 +45,8 @@ jobs:
       - run: npm ci
       # the real CC0 rigs by hash (WP-4.2), so their tests run; cached with .cache
       - run: npm run fixtures -- fetch
+      # the pinned sources, so the tests that read them (the carry test) run too (D79); cached with .cache
+      - run: npm run pins -- fetch
       - run: npm run check -- --json
       - run: npm test -- --json
       - if: always()
