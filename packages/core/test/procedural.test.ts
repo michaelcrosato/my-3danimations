@@ -7,9 +7,10 @@ import { Ajv2020 } from "ajv/dist/2020.js";
 import { describe, expect, it } from "vitest";
 import { parseClip, procedural as PR, validate, type Clip, type Rest } from "../src/index.ts";
 import { P, POINTS } from "../src/format/body.ts";
-import { decodePose, type KeyLike } from "../src/format/pose.ts";
+import { decodePose, torso, type KeyLike } from "../src/format/pose.ts";
 import { keyAt } from "../src/format/sample.ts";
 import { rootAt } from "../src/clip/sample.ts";
+import { ankleOf } from "../src/procedural/gait.ts";
 import { quantize } from "../src/recipe/compile.ts";
 
 const ROOT = join(import.meta.dirname, "../../.."), LIB = join(ROOT, "library/sets");
@@ -486,6 +487,28 @@ describe("a gait", () => {
   }, 30_000);
   it("offers the presets D71 measured", () => {
     expect(PR.GAITS.map((g) => [g.name, g.speed, g.cycle, g.stance, g.lift ?? 12, g.limp ?? 0])).toEqual([["walk", 130, 1.1, 0.6, 12, 0], ["brisk", 170, 1, 0.58, 12, 0], ["run", 350, 0.7, 0.35, 25, 0], ["limp", 90, 1.3, 0.62, 12, 0.8]]);
+  });
+  it("weighs each leg it rounds by the ankle the decoder places, to the bit: straight past its reach, folded, any twist", () => {
+    // snapLegs scores 81 candidates a leg by their ankles (ankleOf), not a whole decode each (85% of a gait's time
+    // before); the clips are the same only while the two agree exactly, so they are held to it on library keys with
+    // leg numbers across their ranges (a seeded draw), a leg pointing nowhere, and the ends ik3 keeps (bend 0, 180)
+    let seed = 7;
+    const draw = (lo: number, hi: number) => lo + Math.round(((seed = (seed * 48271) % 2147483647) / 2147483647) * (hi - lo));
+    const X = new Float32Array(P * 3);
+    let n = 0;
+    for (const id of ["MESH2MOTION/Idle_A", "STYLE100/Neutral_Walk", "CMU_CURATED/Walk_Loop"]) {
+      const { clip, rest } = load(id);
+      for (const k of clip.keys) {
+        const tq = torso(rest, k as KeyLike);
+        for (const leg of [[0, 0, -100, 0, 0], [0, 0, -100, 180, 40], [0, 0, 0, 30, 0], ...Array.from({ length: 12 }, () => [draw(-100, 100), draw(-100, 100), draw(-100, 100), draw(0, 180), draw(-180, 180)])])
+          for (const s of ["L", "R"] as const) {
+            decodePose(rest, { ...k, [`leg${s}`]: leg } as KeyLike, X);
+            expect([id, k.t, s, leg, ankleOf(rest, tq.hip(s), tq.RP, leg, s)]).toEqual([id, k.t, s, leg, at(X, `ankle${s}`)]);
+            n++;
+          }
+      }
+    }
+    expect(n).toBeGreaterThan(1000);
   });
 });
 
