@@ -72,24 +72,31 @@ function deforming(root: Object3D, bones: Bone[]): Set<Bone> {
   return keep;
 }
 /**
- * Where bone `bone`'s part of the mesh ends: the vertex skinned to it (half its weight or more) farthest from its head
- * along the ground, brought down to the lowest such vertex (the sole), in the root's space at rest; null when none is.
+ * Where bone `bone`'s part of the mesh ends, read from every skinned mesh under `root` that skins it (a rig split into
+ * meshes keeps its feet in its leg meshes, not in the one with the most bones): the vertex skinned to it (half its weight
+ * or more) farthest from its head along the ground, brought down to the lowest such vertex (the sole), in the root's
+ * space at rest; null when none is. With one mesh that skins it, as that mesh alone reads it.
  */
-function meshEnd(mesh: SkinnedMesh, bone: Bone, inv: Matrix4, from: readonly number[], up: readonly number[]): [number, number, number] | null {
-  const i = mesh.skeleton.bones.indexOf(bone), g = mesh.geometry, pos = g.getAttribute("position"), idx = g.getAttribute("skinIndex"), w = g.getAttribute("skinWeight");
-  if (i < 0 || !pos || !idx || !w) return null;
-  const toRoot = new Matrix4().multiplyMatrices(inv, mesh.matrixWorld), v = new Vector3(), n = Math.hypot(up[0]!, up[1]!, up[2]!);
+function meshEnd(root: Object3D, bone: Bone, inv: Matrix4, from: readonly number[], up: readonly number[]): [number, number, number] | null {
+  const v = new Vector3(), n = Math.hypot(up[0]!, up[1]!, up[2]!);
   let best: [number, number, number] | null = null, far = -1, height = 0, low = Infinity;
-  for (let k = 0; k < pos.count; k++) {
-    let mine = 0;
-    for (let j = 0; j < idx.itemSize; j++) if (idx.getComponent(k, j) === i) mine += w.getComponent(k, j);
-    if (mine < 0.5) continue;
-    mesh.applyBoneTransform(k, v.fromBufferAttribute(pos, k)).applyMatrix4(toRoot);
-    const d = [v.x - from[0]!, v.y - from[1]!, v.z - from[2]!], along = (d[0]! * up[0]! + d[1]! * up[1]! + d[2]! * up[2]!) / (n * n);
-    const flat = Math.hypot(d[0]! - up[0]! * along, d[1]! - up[1]! * along, d[2]! - up[2]! * along);
-    if (flat > far) [far, best, height] = [flat, [v.x, v.y, v.z], along];
-    low = Math.min(low, along);
-  }
+  root.traverse((o) => {
+    const mesh = o as SkinnedMesh;
+    if (!mesh.isSkinnedMesh) return;
+    const i = mesh.skeleton.bones.indexOf(bone), g = mesh.geometry, pos = g.getAttribute("position"), idx = g.getAttribute("skinIndex"), w = g.getAttribute("skinWeight");
+    if (i < 0 || !pos || !idx || !w) return;
+    const toRoot = new Matrix4().multiplyMatrices(inv, mesh.matrixWorld);
+    for (let k = 0; k < pos.count; k++) {
+      let mine = 0;
+      for (let j = 0; j < idx.itemSize; j++) if (idx.getComponent(k, j) === i) mine += w.getComponent(k, j);
+      if (mine < 0.5) continue;
+      mesh.applyBoneTransform(k, v.fromBufferAttribute(pos, k)).applyMatrix4(toRoot);
+      const d = [v.x - from[0]!, v.y - from[1]!, v.z - from[2]!], along = (d[0]! * up[0]! + d[1]! * up[1]! + d[2]! * up[2]!) / (n * n);
+      const flat = Math.hypot(d[0]! - up[0]! * along, d[1]! - up[1]! * along, d[2]! - up[2]! * along);
+      if (flat > far) [far, best, height] = [flat, [v.x, v.y, v.z], along];
+      low = Math.min(low, along);
+    }
+  });
   return best && [best[0] - up[0]! * (height - low), best[1] - up[1]! * (height - low), best[2] - up[2]! * (height - low)];
 }
 /** The skinned mesh whose skeleton has the most bones under `root`, or null. */
@@ -149,14 +156,15 @@ export function bind(root: Object3D, opts: BindOptions = {}): ThreeBound {
   }
   const report = reportOf(root, bones.length, rec, frame, lengths);
   if (rec.missing.length) throw new Error(`bind:\n${report.text}`);
-  // the bone a foot ends with (its toes, or the foot itself), where it has no child, ends where its mesh does: an end
-  // bone there, on the sole (as rigs with a LeftToe_End have), so the toe and the ground under it are the foot's real
-  // tip (a bone's tip with no child is read on in its parent's direction: down the shin, or down the foot's slope)
+  // the bone a foot ends with (its toes, or the foot itself), where it has no child, ends where its mesh does (in every
+  // mesh that skins it): an end bone there, on the sole (as rigs with a LeftToe_End have), so the toe and the ground
+  // under it are the foot's real tip (a bone's tip with no child is read on in its parent's direction: down the shin, or
+  // down the foot's slope)
   const byName = new Map(bones.map((b) => [b.name, b]));
   for (const side of ["left", "right"]) {
     const last = rec.bones[side + "Toes"] ?? rec.bones[side + "Foot"];
     if (!mesh || !last || sk.bones.some((x) => x.parent === last)) continue;
-    const end = meshEnd(mesh, byName.get(last)!, inv, head.get(last)!, sk.up ?? [0, 1, 0]);
+    const end = meshEnd(root, byName.get(last)!, inv, head.get(last)!, sk.up ?? [0, 1, 0]);
     if (end) {
       sk.bones.push({ name: `${last}_end`, parent: last, head: end });
       restWorld[`${last}_end`] = [0, 0, 0, 1];
