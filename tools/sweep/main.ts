@@ -64,7 +64,7 @@ if (import.meta.main) {
     const pass = mine.filter((r) => r.ok).length, pct = (100 * pass) / Math.max(1, mine.length), warned = mine.filter((r) => r.ok && r.warns.length).length;
     const failWarned = mine.filter((r) => !r.ok && r.warns.length).length;
     // a failing pair's added warns listed with its reasons, as a passing pair's are (D80)
-    steps.push({ name: apart ? `${rig} (held out, ${held!.run})` : rig, ok: apart || pct >= min, ms: performance.now() - s0, summary: `${pass} of ${mine.length} clips pass (${pct.toFixed(1)}%; ${warned} of them and ${failWarned} failing ones with a warn it added, listed), bound ${b.report.method === "table" ? `by name (${b.report.table})` : "by topology"} at ${b.report.confidence.toFixed(2)}`, detail: mine.filter((r) => !r.ok).map((r) => `${r.clip}: ${r.why.join("; ")}${r.warns.length ? `; warns: ${r.warns.join("; ")}` : ""}`) });
+    steps.push({ name: apart ? `${rig} (held out, ${held!.run})` : rig, ok: apart || pct >= min, ms: performance.now() - s0, summary: `${pass} of ${mine.length} clips pass (${pct.toFixed(1)}%; ${warned} passing and ${failWarned} failing with a warn it added, listed), bound ${b.report.method === "table" ? `by name (${b.report.table})` : "by topology"} at ${b.report.confidence.toFixed(2)}`, detail: mine.filter((r) => !r.ok).map((r) => `${r.clip}: ${r.why.join("; ")}${r.warns.length ? `; warns: ${r.warns.join("; ")}` : ""}`) });
   }
   if (typeof f["min-total"] === "string") {
     const counted = rows.filter((r) => !held?.rigs.includes(r.rig)), pass = counted.filter((r) => r.ok).length, pct = (100 * pass) / Math.max(1, counted.length), bar = Number(f["min-total"]);

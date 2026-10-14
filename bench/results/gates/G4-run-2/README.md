@@ -10,7 +10,7 @@ commit first (`presweep.json`).
 - `sweep.json`: the sweep step: per skeleton, the six together, every failing pair with its reasons, and every pair
   that passes with a warn the skeleton added (`warned`, D80); a pair in neither list passes clean. The held-out rig
   apart.
-- `sweep.json` was re-derived on 2026-10-14, in this lane's commit that adds this line (lane/sweep-warns), from the
+- `sweep.json` was re-derived on 2026-10-14 (d0bcfd5) from the
   gate's raw results (`check-output/sweep/results.json`, written at adf77ee) by `npm run sweep -- --record`, no rerun:
   each failing pair now carries the warns the skeleton added (`warns`: 86 of the 263; 792 pairs carry one in all),
   which the first record dropped (the G4 run 2 verifier, D88); every field but those and `about` is byte for byte as
@@ -25,5 +25,7 @@ commit first (`presweep.json`).
 - `transcripts.json`: those twelve transcripts by path, SHA-256 and size. `B1.json`'s audit (and its byte copy's,
   `bench/results/2026-10-14-default-B1.json`) is the corrected one, read from them (D88: the G4 run 2 verifier found
   the runner's audit took only a shell command's absolute paths): B1-1, B1-3 and both discovery trials read past the
-  manual (the packages' `.d.ts` files and READMEs, the library's lock), B1-2 wrote a scratch file beside its workspace
-  in its own /tmp, none touched anything outside; `B1-variant.json`'s audit is unchanged.
+  manual (the packages' `.d.ts` files and the library's lock; discovery-1's `README*` glob matched no file, since no
+  package ships one), B1-2 wrote a scratch file beside its workspace in its own /tmp, none touched anything outside;
+  `B1-variant.json`'s audit is unchanged. The transcripts live only in this machine's `/tmp/m3a-bench/`: the hashes
+  let a kept copy be checked, not the transcripts be recovered.

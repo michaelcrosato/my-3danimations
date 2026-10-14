@@ -3000,3 +3000,67 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   limit of retargeting a human foot's motion, and the sweep should show it rather than hide it.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.43.1
+
+## D88 · 2026-10-14 · G4 = M1 passed on run 2, 9 of 9; what M1 means under D80, and the verifier's five fixes
+
+- **Principle:** 1, 9, G4, K1 (D57, D80)
+- **Call:**
+  - **Run 2 passed**, 9 of 9, at adf77ee on 2026-10-14 in 41.8 min, in the main checkout (D83) with the pinned
+    sources and the rigs fetched first. The commit was fixed before a fresh subagent wrote the held-out run, and D57's
+    sweep outside the gate ran at the same commit first (`presweep.json`; its 240 failures are the gate's six-skeleton
+    failures). Times from the files: commit 20:57:45, presweep 20:58 to 21:06, held-out run written 21:23, gate 21:54 to
+    22:36 UTC. The record is `bench/results/gates/G4-run-2/`.
+  - **Its commands:** check 4.9 s; test 76.9 s (702 passed, 7 skipped); doctrine 8 of 8; vectors byte for byte; the
+    held-out run fresh (its rig, `talkinghead-mpfb` from met4citizen/TalkingHead@2afe6d7, CC0 by its author's README,
+    used by no earlier run or test); the sweep under D80's reading, the six skeletons together 8,148 of 8,388 pairs
+    (97.14%; bar 95%): gen-0 1,359 of 1,398, gen-1 1,370, gen-2 1,377, gen-3 1,375, the mannequin 1,377, the Knight
+    1,290 (92.3% alone, R1, D87), the held-out rig 1,375 (98.4%) apart, 9,523 of 9,786 with it; T2 in 123.7 s; B1 5 of
+    5 fresh agents, both discovery trials passing with the package; B1's held-out variant 5 of 5, its known-good first.
+  - **What M1 claims, by D80's reading:** on the six skeletons together, 95% of the library's pairs gain no fail finding
+    (the Knight alone does not reach 95%); the demo's set (idle, walk, run, jump, attack) shows no fail finding on any
+    of the seven bodies, and every one warns (the Knight's sole 36 mm under the floor, a planted foot sliding 81 mm; on
+    the held-out rig planted feet glide at 18.7 and 20.0 cm/s against a warn level of 18). Nothing per skeleton beyond
+    that.
+  - **The verifier** recounted every number from the outputs and found no blocking finding; its five should-fix items
+    are fixed here: (1) the record dropped the warns skeletons added on 86 failing pairs: `npm run sweep -- --record`
+    now writes the record, failures carrying `warns`, re-derived from the gate's raw results with no rerun (792 pairs
+    carry an added warn, 706 passing and 86 failing); `presweep.json` keeps its count of warns, its role being the 95%.
+    (2) CI's T1 never fetched the held-out rigs (D89). (3) The runner's audit took only a shell's absolute paths: it
+    resolves relative ones now, and the record is corrected from the kept transcripts: B1-1, B1-3 and both discovery
+    trials read packages' `.d.ts` files and the library's lock (inside the installed packages: not contamination), B1-2
+    wrote a scratch file in its own `/tmp`; `transcripts.json` pins the twelve by SHA-256 (they live only in this
+    machine's `/tmp/m3a-bench`). (4) This entry's wording of M1. (5) The presweep's times above, read from file times
+    (its record has no date or dirty flag).
+  - **Known limits of the audit's shell reading:** brace expansion, a subshell's `cd`, `pushd`, `cd` through a variable
+    and `cd -` are missed, and xargs and `$(...)` approximate; a here-string or a grep pattern naming a package path
+    counts as a read. None occurs in G4 run 2's transcripts (every command starts with an absolute `cd`).
+  - **Not verified:** that the held-out variant's writer had not read the manual's examples (its prompt is not kept).
+- **Why:** the gate met its bar under the reading the owner chose after seeing the numbers (D60, D80); saying exactly
+  what that reading covers keeps M1 from claiming more than the outputs show.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.44.1, michaelcrosato/my-3danimations#11
+
+## D89 · 2026-10-14 · CI's T1 green again: the held-out rigs fetched, gaits made 7 to 8 times faster, the same bytes
+
+- **Principle:** process, WP-6.2 (D71), D33, D74
+- **Call:**
+  - CI's T1 was red from adf77ee: B1's grader test reads run 1's held-out rig and the T1 job fetched none. It fetches
+    every gate's held-out manifest now, as T2 does (the cache key already covered them).
+  - From 585bbf1 T1 also ran long (146.2 s on one runner, 78.1 s on another; budget 90 s) and "refuses a gait it can't
+    play" passed vitest's 5 s. Round 7 didn't slow a gait (a walk 330 → 353 ms); its tests made 52 more (core's
+    procedural test 57 → 83, the sensors' 32 → 58). Profiled: 86% of a gait was `snapLegs`, decoding the whole pose for
+    each of 81 candidates a leg, three times a frame, to read one ankle. It now scores a candidate with `ankleOf`, the
+    decoder's own steps for the ankle (`limbEnd` at `reachOf`'s length, `ik3`'s clamp, `Math.fround` as the decoder's
+    Float32Array), and computes the hips once; the idle's `snapLegs` too.
+  - **The same bytes:** 896 gait and idle clips on all 64 library rests (the presets, fitted presets, 256 seeded random
+    gaits at 55 to 90 fps, starts, limps, 84 refusals with the same messages) serialize identically before and after,
+    checked by the implementer and again by an independent reviewer; a test holds `ankleOf` to `decodePose`'s ankle
+    exactly on 1,200 legs (it fails without the `fround`).
+  - **Measured** (the same load): a walk 353 → 49 ms; the 896 clips 349 → 42.5 s (8.2×); core's procedural test
+    34.6 → 9.2 s, the sensors' 39.3 → 8.2 s; the refusal test 4.1 → 0.6 s. No test skipped, sampled or given more time.
+  - **Left:** `ankleOf` repeats `format/pose.ts`'s leg-end steps; the exact test catches drift, and sharing one helper
+    is later cleanup.
+- **Why:** a red T1 is fixed, not waited out; the regression was test count times an avoidable cost, so removing the
+  cost keeps every test.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.44.1

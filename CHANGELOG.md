@@ -4,6 +4,25 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.44.1 · 2026-10-14
+
+### Core
+- Gaits and idles are made 7 to 8 times faster, the same clips byte for byte: `snapLegs` scores each candidate leg by
+  its ankle alone (`ankleOf`, the decoder's own steps for it) instead of decoding the whole pose for each of 81
+  candidates a leg; a test holds `ankleOf` to `decodePose`'s ankle exactly (D89).
+
+### Tools
+- `npm run sweep -- --record <results.json> --commit <sha>` writes a gate's sweep record from the sweep's raw results
+  (`tools/sweep/record.ts`); its failing pairs carry the warns the skeleton added too, as D80 asks (D88).
+
+### Repo
+- CI's T1 job fetches the gates' held-out rigs, as T2 does: B1's grader test reads run 1's (D89).
+- The benchmark's audit reads a shell command's relative paths (from the workspace, following `cd`, a `for` loop's
+  variable and globs as written) and counts any read under `node_modules/@m3a/` but the manual as past the manual; the
+  repository counts as outside wherever it lives (D88).
+- G4 run 2's record (D88): passed, 9 of 9, at adf77ee; its sweep record re-derived with the failing pairs' added warns,
+  no rerun; its trials' audit corrected from the kept transcripts, which `transcripts.json` pins by SHA-256.
+
 ## 0.44.0 · 2026-10-14
 
 ### Core

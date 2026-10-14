@@ -3,7 +3,7 @@
 The current state on one screen (at most 40 lines; `npm run doctrine` checks it from WP-0.3). The ledger is
 `PLAN.md` §14; decisions are in `docs/DECISIONS.md`.
 
-**Phase:** 6 Composition (5 done, G5 passed; 4 waits on G4). **Next gates:** G6; G4 (M1), run 2. **Version:** 0.44.0.
+**Phase:** 6 Composition (4 and 5 done: G4 = M1 and G5 passed). **Next gate:** G6. **Version:** 0.44.1.
 **Mode:** ultracode (D83): implementers in worktrees, the main session integrates; a fresh draft PR from `main`.
 
 ## Done
@@ -15,8 +15,8 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
   Animator, the same hashes and exact poses in Node, Chromium and Bun; core's API of 38 documented names (D38, F3).
 - Phase 3 (G3 passed, michaelcrosato/my-3danimations#7): raster (D39); sheets, diffs (D40); 14 metrics, qa (D41);
   describe 30/30 (D42); 100/100 planted defects (D43); lint and fix (D44); the verifier's 21 findings fixed (0.19.x).
-- Phase 4 so far: three.js r182 (D45); test characters and real CC0 rigs (D46); binding (D47); baking (D48); capture
-  and the sweep (D49, D51); the first-flight demo `apps/lab/hello`, driven headless, hashes = Node's (D52).
+- Phase 4 (G4 = M1 passed on run 2, michaelcrosato/my-3danimations#11): three.js r182 (D45); test characters and CC0
+  rigs (D46); binding (D47, D87); baking (D48); capture, the sweep (D49, D51); the demo (D52); B1 (D54–D56, D84, D86).
 - Phase 5 (G5 passed, on michaelcrosato/my-3danimations#10 with Phase 4): layout (D53); licenses (D59); `@m3a/io` (D61);
   corpora (D62); the re-import (D63); facts (D64); search (D65); library QA, 1,199 unique motions (D66–D69).
 - Phase 6 so far: recipes (D70); procedural moves, gaits and idles (D71, six verifier rounds); actions (D72); graphs,
@@ -24,10 +24,8 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 
 ## Next
 
-- G4 run 2: the sweep's rule (D80) reads 97.1% over the whole library (1,398 clips); B1 on real rigs (D86); bind's
-  soles from every mesh (D87); next the qualifying sweep at a clean commit, then the gate.
-- Phase 6: agents get a /tmp of their own (D84); WP-6.2's round 7 fixed in 0.44.0 (the swing's slope, 55 to 90 fps,
-  `fitGait`; D71); round 8 next, then G6.
+- Phase 6: WP-6.2's round 8 on 0.44.0's gaits (D71), then G6 (B2, B3, B5, B6, B7; D78, D84). Gaits are made 7 to 8
+  times faster, the same bytes; CI's T1 fetches the held-out rigs (D89). Then Phase 7 (WP-7.1 needed G4).
 
 ## Blocked on the owner
 
@@ -35,6 +33,7 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 
 ## Last gate
 
-- **G5 passed** 2026-10-12 at 754adfe in 9.7 min, 12 of 12 (`bench/results/gates/G5/`, D67–D69): 1,194 unique
-  motions of 1,393 clips (CC0 170); every floor met; every clip valid with its verdict; search 40/40, held out 8/10.
-- **G4 run 1 failed** 2026-10-12 at 6798b45, 5 of 8 (D57): the sweep 89.1% (bar 95%), B1's variant a grader failure.
+- **G4 = M1 passed** (run 2) 2026-10-14 at adf77ee in 41.8 min, 9 of 9 (`bench/results/gates/G4-run-2/`, D88): the
+  sweep 97.14% of 8,388 pairs on the six skeletons together (bar 95%; the Knight 92.3% alone; held-out rig 98.4%); no
+  fail finding on any of the seven bodies, every one warns; B1 5/5, its held-out variant 5/5. Run 1 failed (D57).
+- **G5 passed** 2026-10-12 at 754adfe in 9.7 min, 12 of 12 (D67–D69): 1,194 unique motions of 1,393 clips.
