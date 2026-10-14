@@ -2364,8 +2364,40 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   - **Tests:** the refusals at 0.25 s, 111 frames a second and 72%; a gait made at 110; the cap's cases at swings of
     0.26 s; the sensors' two shortest swings now 0.26 s (6.2 and 8.0 mm on 100STYLE). The root change (D77): a one-shot's
     sideways speed is spent too, and a loop's flight is still in-betweened (its mutants R6 and R11 now fail the test).
+- **Verifier, round 7** (at bf3f9ed): not done, three blocking findings. Fixed or answered in v0.44.0:
+  - **The swing's height broke its slope** (blocking) where the lift-off met the arc (infinite there, sin(πw^0.756))
+    and where the arc met the set-down. A run lifting 35 whose foot began its arc on the loop's seam failed seam speed
+    on all three test rests (4.1 to 5.0 m/s). The height is now one curve with continuous slope through the floor, 9%,
+    the peak (at 40% of the swing), 4.5% and the floor, still at the floor at its ends: the repros pass (1.0 to 1.9
+    m/s), the verifier's seam grid goes from 9 to 0 of 129, and the walk keeps 5% of H0 clearance at 80% of its swing
+    (6.6%).
+  - **At 50 frames a second short swings popped knees** (blocking): 44 of 418 failed; with the arc fixed, 7 of 456 (a
+    fast thigh sweep on 0.26 s swings); at 55 and 60, none. A gait is made at 55 frames a second or more.
+  - **At 110 the pelvis stair-stepped** (blocking): the format holds the hips in whole % of H0, so a slow bouncing
+    pelvis steps every other frame and a planted knee jumps about 30 mm with it. Counting the pelvis's sway and
+    rounding in the 98.5% loop cut the 64-rest grid from 29 to 8 of 256, not to none; at 90 none fail (35 warn, 59
+    before). A gait is made at 90 frames a second or fewer.
+  - **Should-fix:** 15 mutants of 0.42.6's fixes survived the tests (the 98.5% loop gone or blind to the bounce, the
+    reach check at 0.75 with its message kept, the stance end, the swing and rate checks a hair off): tests now pin the
+    loop (a gait at speed 375, cycle 0.52, stance 0.5, bounce 6 on `MESH2MOTION/Idle_A`, a pop without it), legs at
+    most 98.5% of their length at the reach bound with a bounce, the reach's edge (189 taken and 190 refused on
+    Mesh2Motion's rest, 177 and 178 on 100STYLE's), a swing of 0.255 s and 54.9 frames a second refused; all 15 and
+    this round's own 12 mutants fail them. A body without collarbones (test characters 3, 9, 15...) made NaN in every
+    procedural source: the encoder writes no shrug for a collarbone 0 mm long (the vectors byte for byte), and a gait,
+    an idle and a move are made on test character 3. Since the 72% bound the run preset fits 4 of the 20 test
+    characters as it is (the tall ones) and the brisk walk 14: the refusal names the fastest speed the legs take, and
+    `procedural.fitGait(g, rest)` slows a gait to it (all 80 fitted presets pass, read plainly and by parts).
+  - **Nits:** a swing of 0.26 s is compared to the millisecond (0.8 s at a stance of 0.675 is taken); a missing or
+    blank name or about, a non-number field or rate is refused by its name before the clip is made (idles too); "no
+    leg past 98.5% at any phase" held for the model's targets while the written clip read up to 99.3%: the loop now
+    counts the pelvis's rounding, and the 5,160-gait grid reads at most 98.46% (a leg's own rounding, about 0.3%, is
+    not counted).
+  - **Measured:** the verifier's 5,160 gaits (64 library rests and 33 test characters, rates within 55 to 90): none
+    fail, 768 warn, knee-pop findings 50 (187 before), the worst seam speed 3.8 m/s (6.6); the presets on 64 rests at
+    60: none fail, the worst slide 8.3 mm (10.1). The arc moved two off-preset slides by about 2 mm (format rounding):
+    two sensors-test bars 5 → 6.5 mm and 7 → 8 mm.
 - **Answered:** no: made without a response, to review.
-- **Landed in:** v0.37.0, v0.37.2, v0.39.1, v0.42.1, v0.42.3, v0.42.4, v0.42.6
+- **Landed in:** v0.37.0, v0.37.2, v0.39.1, v0.42.1, v0.42.3, v0.42.4, v0.42.6, v0.44.0
 
 ## D72 · 2026-10-12 · Actions: multi-beat motions with their ground, beats and interrupt points (WP-6.3)
 

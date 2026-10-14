@@ -4,6 +4,24 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.44.0 · 2026-10-14
+
+### Core
+- Gaits (D71, the verifier's round 7): the swinging foot's height keeps its slope where the lift-off meets the arc and
+  the arc the set-down (a run's seam and short swings' knees popped); the pelvis is lowered with its sway and rounding
+  counted; gaits are made at 55 to 90 frames a second. Refusals name the field, take a 0.26 s swing to the
+  millisecond, and give the reach with the fastest speed the legs take; `procedural.fitGait(g, rest)` slows a gait to a
+  body's reach.
+- Format: a body measured without collarbones encodes no shrug (every procedural source made NaN on one).
+
+### Tools
+- The manual names `procedural.fitGait`.
+
+### Repo
+- Tests: the swing's slope at its joins, the round's repros under the sensors, the reach's edge on two rests, legs at
+  most 98.5% of their length at the bound with a bounce, the stance end's margin, refusals, `fitGait`, procedural clips
+  on test character 3; two slide bars moved with the arc (D71).
+
 ## 0.43.1 · 2026-10-14
 
 ### Three
