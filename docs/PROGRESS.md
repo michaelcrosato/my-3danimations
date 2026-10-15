@@ -24,8 +24,9 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 
 ## Next
 
-- Phase 6: WP-6.2's round 8 (D71) found 2 blocking: legs folding shut at stance 0.2, lift 35, bounce 6 (fitGait's own
-  output too) and three edge corners; being fixed, with the actions resolver fitting its gaits; round 9 next, then G6.
+- Phase 6: WP-6.2's round 8 (D71) and its reviews 9 to 13 are merged (folds, knees, the seam read on the clip's keys,
+  75 fps, standing starts; actions fit their gaits); a last pass under a margin rule (every bound's worst fresh reading
+  at most ~90% of fail: MIN_SWING raised) is running, then D71's record, then G6.
 
 ## Blocked on the owner
 
