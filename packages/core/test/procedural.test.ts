@@ -20,6 +20,8 @@ function load(id: string): { clip: Clip; rest: Rest } {
   const manifest = JSON.parse(readFileSync(join(LIB, set, "_set.json"), "utf8")) as { sources: Record<string, { rest: Rest }> };
   return { clip, rest: manifest.sources[clip.restSrc]!.rest };
 }
+/** A library source's rest by its set and source. */
+const sourceRest = (set: string, src: string): Rest => (JSON.parse(readFileSync(join(LIB, set, "_set.json"), "utf8")) as { sources: Record<string, { rest: Rest }> }).sources[src]!.rest;
 /** The points of a key (or pose) on a rest. */
 function points(rest: Rest, k: object): Float32Array {
   const X = new Float32Array(P * 3);
@@ -345,11 +347,13 @@ describe("a gait", () => {
     // three rests, and at 55 frames a second (the fewest taken) as well as 60; an even number of frames (a run of 0.65 s
     // at 60 is 40, not 39, whose left knee fell between frames and popped). Every frame kept as a key (a budget of 0 mm:
     // a frame within 2 mm of its neighbours' in-between is dropped otherwise, as one of the walk's on 100STYLE's rest is
-    // since round 10, its arms bent alike throughout), so each is weighed
+    // since round 10, its arms bent alike throughout), so each is weighed. The run of 0.65 s fitted: on Mesh2Motion's rest
+    // its left knee turns round on the seam past SEAM_TURN at 350 (0.76 of the sensors' fail level at 55 frames a
+    // second), and it plays at 349 (round 11)
     const [walk, , run] = PR.GAITS;
     for (const id of ["MESH2MOTION/Idle_A", "STYLE100/Neutral_Walk", "CMU_CURATED/Crouch_Walk_Loop"]) {
       const src = load(id);
-      for (const [g, fps] of [[{ ...run!, cycle: 0.705 }, 60], [{ ...walk!, cycle: 1.102 }, 60], [{ ...run!, lift: 35, sway: 4 }, 60], [{ ...run!, cycle: 0.65 }, 60], [{ ...run!, cycle: 0.705 }, 55]] as const) {
+      for (const [g, fps] of [[{ ...run!, cycle: 0.705 }, 60], [{ ...walk!, cycle: 1.102 }, 60], [{ ...run!, lift: 35, sway: 4 }, 60], [PR.fitGait({ ...run!, cycle: 0.65 }, src.rest), 60], [{ ...run!, cycle: 0.705 }, 55]] as const) {
         const c = PR.gaitClip(g, src.rest, { restSrc: src.clip.restSrc, fps, budget: 0 }), n = 2 * Math.round((g.cycle * fps) / 2), times = Array.from({ length: n }, (_, i) => Math.round((i * g.cycle * 1000) / n) / 1000);
         expect([id, g.cycle, fps, c.dur, c.keys.length, c.keys.every((k) => times.includes(k.t) || k.t === c.dur)]).toEqual([id, g.cycle, fps, g.cycle, n + 1, true]);
         for (const l of ["armL", "armR", "legL", "legR"]) {
@@ -487,7 +491,12 @@ describe("a gait", () => {
     // arms swinging 80° either way in a 0.52 s cycle turn round on the loop's seam so fast that, read by parts, a test
     // character's fists read 101% of the seam's fail level (round 9): a swing takes 250° for each second squared
     expect(play({ speed: 100, cycle: 0.565, stance: 0.5, swing: 80 })).toThrow(/its arms swing 80° either way in a cycle of 0.565 s, over 250° for each second squared of the cycle: .*; use a swing of at most 79° or a cycle of at least 0.566 s$/);
-    expect(play({ speed: 100, cycle: 0.566, stance: 0.5, swing: 80 })).not.toThrow();
+    // at 0.566 s the body's own reading bounds it (handsTurn): on Mesh2Motion's rest its hands read up to 79% of the
+    // fail level so (measured, at 60 to 75 frames a second), past SEAM_TURN; 75° plays, and fitGait narrows it so
+    // (round 11). A swing past ARM_TURN is refused by it, whatever the body
+    expect(play({ speed: 100, cycle: 0.566, stance: 0.5, swing: 80 })).toThrow(/^gait walk: its (left|right) hand turns round on the loop's seam 7\d% as sharply as the sensors read a hitch there, over 70% \(its arms turning round as the cycle ends and begins\): on this body, at this cycle, its arms swing at most 75° either way; narrow its swing \(fitGait does\), or use a longer cycle$/);
+    expect(play({ speed: 100, cycle: 0.566, stance: 0.5, swing: 75 })).not.toThrow();
+    expect(PR.fitGait({ ...walk, speed: 100, cycle: 0.566, stance: 0.5, swing: 80 }, src.rest).swing).toBe(75);
     // and the reach the same way ("72.0% ... past 72%" at fractional speeds just past the bound), a rate of NaN as
     // itself (it read "null"), and a body without legs in the gait's own words (a validator's dump of NaNs)
     expect(play({ speed: 619.2, cycle: 0.6, stance: 0.2 })).toThrow(/its feet reach 72\.1% of a leg ahead and behind .* past 72%/);
@@ -510,6 +519,16 @@ describe("a gait", () => {
     const cmu = load("CMU_CURATED/Walk_Loop"), low = { ...walk, cycle: 0.6, stance: 0.2, lift: 9, bounce: 6, dip: 6, sway: 4 };
     expect(() => PR.gaitClip({ ...low, speed: 559 }, cmu.rest, { restSrc: cmu.clip.restSrc })).toThrow(/^gait walk: a knee goes 0\.1% of the hip height under the floor: .*; on these legs, at this cycle and stance, it goes at most 558% of the hip height a second \(\d+ mm\/s\); slow it \(fitGait does\), or shorten its cycle, or lower its bounce$/);
     expect(PR.fitGait({ ...low, speed: 1000 }, cmu.rest)).toEqual({ ...low, speed: 558 });
+    // a knee turning round on the loop's seam: a run's left foot lands half a cycle after the right, so as the loop ends
+    // and begins it swings, and at the shortest run cycles, at a stance of about 0.35 to 0.45, it has just stopped going
+    // back with the ground and is coming forward at its sharpest; the knee reversed across the seam and the sensors read
+    // a hitch there (round 10's review: 33 of 2,600 fitted runs at 0.6 to 0.63 s, to 113.5%, and CMU_26's own at 364.307
+    // read 107% at 60 frames a second, plays at 345). Past SEAM_TURN (70% of the level the sensors fail it at) it is refused, naming the
+    // speed that plays; the presets' run at 0.65 s too, on Mesh2Motion's rest (0.76 at 55 frames a second, measured)
+    const cmu26 = sourceRest("CMU_CURATED", "CMU_26");
+    expect(() => PR.gaitClip({ ...walk, cycle: 0.6, stance: 0.374, lift: 12.274, bounce: 1.273, dip: 11.24, sway: 4, speed: 364.307 }, cmu26, { restSrc: "CMU_26" })).toThrow(/^gait walk: its left knee turns round on the loop's seam 105% as sharply as the sensors read a hitch there, over 70% \(a run's left foot coming forward as the cycle ends and begins\): on these legs, at this cycle and stance, it goes at most 345% of the hip height a second \(\d+ mm\/s\); slow it \(fitGait does\), or use a longer cycle or another stance$/);
+    expect(play({ ...PR.GAITS[2], cycle: 0.65 })).toThrow(/its left knee turns round on the loop's seam 74% .* at most 349% of the hip height a second/);
+    expect(play({ ...PR.GAITS[2], cycle: 0.65, speed: 349 })).not.toThrow();
   });
   it("fits a gait to a body by its speed alone, the fastest whole speed its legs reach", () => {
     const idle = load("MESH2MOTION/Idle_A"), style = load("STYLE100/Neutral_Walk"), fast = { ...PR.GAITS[0]!, speed: 1000, cycle: 1.2, stance: 0.5 };
@@ -523,6 +542,13 @@ describe("a gait", () => {
     expect([PR.fitGait({ ...run, cycle: 0.65 }, idle.rest).speed, PR.fitGait({ ...run, cycle: 0.75 }, style.rest).speed]).toEqual([500, 396]);
     // and limping, slower again: the pelvis drops over the weak leg while the strong foot swings (uncounted, 456)
     expect(PR.fitGait({ ...run, cycle: 0.65, limp: 1 }, idle.rest).speed).toBe(438);
+    // and where a knee turns round on the loop's seam: its share of the sensors' level rises and falls with the speed (as
+    // the knee turns round between two keys of a grid, or doesn't), so from the fastest the legs take each whole speed
+    // down is tried. CMU_23's run at 0.6 s plays at 343 to 355 but 353, and at 300 to 342 not at all: halving found 259
+    // (round 11)
+    const cmu23 = sourceRest("CMU_CURATED", "CMU_23"), seam = { ...PR.GAITS[0]!, cycle: 0.6, stance: 0.386, lift: 9, bounce: 0.967, dip: 10.154, sway: 0.318, lean: 25, swing: 5.565, speed: 1000 };
+    expect(PR.fitGait(seam, cmu23)).toEqual({ ...seam, speed: 355 });
+    for (const [speed, most] of [[320, 299], [356, 355]]) expect(() => PR.gaitClip({ ...seam, speed }, cmu23, { restSrc: "CMU_23" })).toThrow(new RegExp(`its left (knee|foot) turns round on the loop's seam .* at most ${most}% of the hip height a second`));
     // a gait whose own numbers gaitClip refuses is given back as it is, refused by its field (fitted, each read as speed 0
     // and was refused for that: the verifier's round 8)
     const walk = PR.GAITS[0]!;

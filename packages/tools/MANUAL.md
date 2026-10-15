@@ -273,7 +273,8 @@ An action is a recipe with the ground it ends on, its beats and the moments it m
 `floor` is the ground it ends on, % of the hip height above where it starts (a hop down's is below 0). A step may read
 `PROCEDURAL/Walk`, `Brisk`, `Run`, `Limp`, `Breathe` or `Fidget`: a gait or idle made on the action's body
 (`procedural.gaitClip(g, rest, { restSrc })` makes one with your own speed, cycle and stance; a speed past what the
-body's legs reach is refused, and `procedural.fitGait(g, rest)` slows it to fit).
+body's legs take is refused, and so is an arm swing its hands turn round too sharply on the loop's seam;
+`procedural.fitGait(g, rest)` slows the one and narrows the other to fit).
 
 ```ts
 import { actions } from "@m3a/core";

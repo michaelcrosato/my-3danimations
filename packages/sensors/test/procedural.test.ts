@@ -126,6 +126,45 @@ describe("procedural clips under the sensors", () => {
     const rest = sourceRest("CMU_CURATED", "CMU_91"), g = PR.fitGait({ name: "g", about: "a run", cycle: 1.2, stance: 0.2, lift: 9, bounce: 6, dip: 6, sway: 4, lean: 8, swing: 80, speed: 1000 }, rest), r = metrics(PR.gaitClip(g, rest, { restSrc: "CMU_91" }), rest);
     expect([g.speed, r.values.bodyPenetration, r.verdict === "fail"]).toEqual([289, 0, false]);
   }, 30_000);
+  it("gaits at a run's shortest cycles keep the knee from turning round on the loop's seam: fitted, read as the protocol reads them", async () => {
+    // a run's left foot lands half a cycle after the right, so as the loop ends and begins it swings: at a cycle of 0.6 s
+    // and a stance of about 0.4 it has just stopped going back with the ground and comes forward at its sharpest, and the
+    // knee reversed across the seam. Test character 4's fitted run (366) failed seamVelocity@kneeL at 112% at 60 frames
+    // a second read by parts, and CMU_80's (354) pop@kneeL at 113.5% at 75 read plainly (the knee going back fast in the
+    // clip's first step, then still as it turns round: the pop rule reads the first step against the second alone).
+    // fitGait now slows each until no knee or foot turns there past SEAM_TURN (round 10's review; round 11)
+    const r4 = await characterRest(4), cmu80 = sourceRest("CMU_CURATED", "CMU_80");
+    const g4 = PR.fitGait({ name: "g", about: "a run", cycle: 0.6, stance: 0.394, lift: 11.962, bounce: 1.175, dip: 11.866, sway: 0.112, speed: 615.228 }, r4);
+    const g80 = PR.fitGait({ name: "g", about: "a run", cycle: 0.6, stance: 0.426, lift: 9.507, bounce: 0.777, dip: 8.138, sway: 0.674, speed: 538.967 }, cmu80);
+    for (const [rest, g, fps, parts] of [[r4, g4, 60, true], [cmu80, g80, 75, false]] as const) {
+      const m = checks.motionOf(PR.gaitClip(g, rest, { restSrc: "x", fps }), rest);
+      m.parts = parts;
+      const r = checks.measure(m), legs = r.findings.filter((f) => (f.metric === "seamVelocity" || f.metric === "pop") && /^(knee|ankle|ball|toe)/.test(f.where ?? "")).map((f) => f.value / checks.levels(m, f.metric).fail);
+      expect([g.speed, fps, Math.max(0, ...legs) <= 0.85, r.verdict === "fail"]).toEqual([g.speed, fps, true, false]);
+    }
+    expect([g4.speed, g80.speed]).toEqual([340, 324]);
+  }, 30_000);
+  it("gaits keep their hands from turning round on the loop's seam past the bound: fitted, read by parts", async () => {
+    // the arms turn round on the seam (as each foot lands): test character 9 swinging 69° in 0.527 s read seamVelocity@fist
+    // at 98% of the fail level at 75 frames a second by parts (round 10's review), and its swing of 72.7° in 0.546 s, and
+    // test character 21's limp swinging 68.3° in 0.628 s (173° for each second squared, under ARM_TURN), failed at 103%
+    // (round 11's searches): their arms are short for their hip height, so read by parts the swing's turn counts for more,
+    // and the chest turned a whole degree on the seam's frame alone, the pelvis's whole-% steps and the arm's own rounding
+    // there add to it. Each is refused on its body and fitGait narrows its swing (to 54°, 61° and 64°)
+    const r9 = await characterRest(9), r21 = await characterRest(21);
+    const gaits = [[r9, { cycle: 0.527, stance: 0.5, lift: 9, bounce: 1.164, dip: 7.303, sway: 0.128, lean: -8.432, swing: 69, speed: 340 }, 75], [r9, { cycle: 0.546, stance: 0.5, lift: 9, bounce: 0.55, dip: 7.303, sway: 0.128, lean: -8.432, swing: 72.729, speed: 331 }, 60], [r21, { cycle: 0.628, stance: 0.314, limp: 1, lift: 10.746, bounce: 0.527, dip: 10.511, sway: 2.632, lean: 4.78, swing: 68.331, speed: 324 }, 72.5]] as const;
+    const swings: number[] = [];
+    for (const [rest, g0, fps] of gaits) {
+      const g = { name: "g", about: "a gait", ...g0 };
+      expect(() => PR.gaitClip(g, rest, { restSrc: "x", fps })).toThrow(/hand turns round on the loop's seam .* its arms swing at most \d+° either way; narrow its swing \(fitGait does\)/);
+      const f = PR.fitGait(g, rest), m = checks.motionOf(PR.gaitClip(f, rest, { restSrc: "x", fps }), rest);
+      m.parts = true;
+      const r = checks.measure(m);
+      swings.push(f.swing!);
+      expect([f.swing, r.values.seamVelocity <= 0.85 * checks.levels(m, "seamVelocity").fail, r.verdict === "fail"]).toEqual([f.swing, true, false]);
+    }
+    expect(swings).toEqual([54, 61, 64]);
+  }, 30_000);
   it("gaits keep the pelvis's whole-% steps from popping a short spine, read by parts", async () => {
     // the pelvis on the format's grid stepped two % in a frame beside still frames (a bob moving about a % a frame, and
     // the clip's first step, read against the one after it): read by parts, on a test character's short pelvis-to-spine,
