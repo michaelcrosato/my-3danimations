@@ -4,6 +4,29 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.45.0 · 2026-10-15
+
+### Core
+- Gaits (WP-6.2's rounds 8 to 14, D71, D90): every bound keeps the worst reading of its class at about 90% of the
+  sensors' fail level or under, measured on fresh grids. A swinging leg folded under 25% of its length and a knee under
+  the floor are refused; the loop's seam is read on the clip's own keys and bounded at 70%, the pelvis's whole-% steps
+  about it re-rounded; the hands are aimed from the decoded shoulders. A gait is made from the rest's standing pose
+  only, at 55 to 75 frames a second (was 90), with a key budget of 0 to 2 mm; the shortest swing is 0.3 s (was 0.26).
+  `fitGait` fits speed, lift and arm swing together, monotone in each: the fastest whole speed that plays within the
+  pace bound, a lower lift only where no speed plays, a narrower swing where the hands need it. Refusals name what
+  `fitGait` would make. ARM_TURN is gone (every cycle taken now covers it).
+- Actions: a ready-made procedural gait is fitted to the action's body (`fitGait`), so a run on a short-legged body
+  plays a little slower instead of throwing.
+
+### Tools
+- The manual's procedural gait lines name the standing start, 55 to 75 frames a second, the pace bound, the shortest
+  swing and run cycle, and what `fitGait` changes.
+
+### Repo
+- Tests: core's copies of the sensors' seam and pop levels held equal to the sensors'; the round-8 to 14 repros and the
+  margin's worst cases pinned under the fail level; actions on test characters 0 to 3 at the fitted speed.
+- `.gitignore` matches a worktree's `.cache` symlink (D83's implementer worktrees link it).
+
 ## 0.44.1 · 2026-10-14
 
 ### Core
