@@ -137,6 +137,21 @@ describe("procedural clips under the sensors", () => {
     const r = checks.measure(m);
     expect([r.values.pop <= 0.85 * checks.levels(m, "pop").fail, r.verdict === "fail"]).toEqual([true, false]);
   }, 30_000);
+  it("gaits leaning far keep their elbows from popping: read plainly on a library rest and by parts on a test character", async () => {
+    // a hand aimed from the torso turned whole, not from the shoulder its key decodes, was past the arm's reach from
+    // there through part of the swing: the key held the arm straight, and as it bent again the elbow stepped three times
+    // as far as on either side. Quaternius's UAL1 walking leaning 25° and swinging 60 failed pop@elbowL at 109% of the
+    // fail level at 75 frames a second, read plainly, and test character 15's fitted run failed pop@elbowL at 105% at 70,
+    // read by parts (round 9's review); each hand is aimed from the shoulder its key puts it on
+    const ual1 = sourceRest("QUATERNIUS_3D2DGE", "UAL1"), r15 = await characterRest(15);
+    const run = PR.fitGait({ name: "g", about: "a run", cycle: 0.711, stance: 0.2, limp: 0.403, lift: 9, bounce: 3, dip: 7.825, sway: 2, lean: 25, swing: 45, speed: 1000 }, r15);
+    for (const [rest, g, fps, parts] of [[ual1, { name: "g", about: "a walk", speed: 130, cycle: 0.736, stance: 0.6, lean: 25, swing: 60 }, 75, false], [r15, run, 70, true]] as const) {
+      const m = checks.motionOf(PR.gaitClip(g, rest, { restSrc: "x", fps }), rest);
+      m.parts = parts;
+      const r = checks.measure(m), elbows = r.findings.filter((f) => f.metric === "pop" && /^elbow/.test(f.where ?? ""));
+      expect([g.speed, fps, elbows, r.values.pop <= 0.85 * checks.levels(m, "pop").fail, r.verdict === "fail"]).toEqual([g.speed, fps, [], true, false]);
+    }
+  }, 30_000);
   it("fits gaits on short legs so that they play: slower, or lifting less where no slower speed keeps a leg from folding", async () => {
     const rest = characterRest;
     // test character 10's legs, lifting 35 under a pelvis dipped 12 and bouncing 6, fold to 24.6% of their length at 63%
@@ -151,9 +166,18 @@ describe("procedural clips under the sensors", () => {
     // and test character 25's limp lifting 35 at a stance of 0.2: no speed plays lifting 35 (its legs fold), and fitGait
     // gave back the reach bound's 333 lifting 35, refused, though a slower speed lifting less plays (round 8's review):
     // it takes the fastest speed at which a lower lift plays, with the highest lift there; the refusals name both
-    const r25 = await rest(25), j = PR.fitGait({ name: "g", about: "a gait", cycle: 0.759, stance: 0.2, limp: 1, lift: 35, bounce: 6, dip: 12, speed: 1000 }, r25);
+    const r25 = await rest(25), limp25 = { name: "g", about: "a gait", cycle: 0.759, stance: 0.2, limp: 1, lift: 35, bounce: 6, dip: 12, speed: 1000 }, j = PR.fitGait(limp25, r25);
     expect([j.speed, j.lift, metrics(PR.gaitClip(j, r25, { restSrc: "GEN25" }), r25).verdict === "fail"]).toEqual([328, 9, false]);
-    expect(() => PR.gaitClip({ name: "g", about: "a gait", cycle: 0.868, stance: 0.2, limp: 0.5, lift: 35, bounce: 6, dip: 12, speed: 320 }, r25, { restSrc: "GEN25" })).toThrow(/reach 74\.3% of a leg .* past 72%: on these legs, at this cycle and stance, it plays at no speed lifting 35% of the hip height, and at most 303% of the hip height a second \(\d+ mm\/s\) lifting 9%; slow it and lower its lift \(fitGait does\), or shorten its cycle or stance$/);
+    expect(() => PR.gaitClip(limp25, r25, { restSrc: "GEN25" })).toThrow(/reach 215\.7% of a leg .* past 72%: on these legs, at this cycle and stance, it plays at no speed lifting 35% of the hip height, and at most 328% of the hip height a second \(\d+ mm\/s\) lifting 9%; slow it and lower its lift \(fitGait does\), or shorten its cycle or stance$/);
+    // and where a gait's own lift plays only between two speeds (slower, the lifted foot passes under the hips at the top
+    // of its lift and the leg folds too), the halving found none at half its speed and below, so fitGait lowered the lift
+    // and the refusal said it played at no speed lifting 35 (round 9's review; round 9's own test held test character
+    // 25's at 320 so: 303 lifting 9, where 177 to 209 play lifting 35): where the halving finds none, each whole speed
+    // down is tried. Test character 25's, and test character 15's limp at 204 (109 to 157 play)
+    expect(() => PR.gaitClip({ name: "g", about: "a gait", cycle: 0.868, stance: 0.2, limp: 0.5, lift: 35, bounce: 6, dip: 12, speed: 320 }, r25, { restSrc: "GEN25" })).toThrow(/reach 74\.3% of a leg .* past 72%: on these legs, at this cycle and stance, it goes at most 209% of the hip height a second \(\d+ mm\/s\); slow it \(fitGait does\), or shorten its cycle or stance$/);
+    const r15 = await rest(15), n = { name: "g", about: "a limp", stance: 0.21, limp: 1, lift: 35, cycle: 1.111, bounce: 5.502, dip: 12, sway: 4, speed: 204 }, k = PR.fitGait(n, r15);
+    expect([k.speed, k.lift, metrics(PR.gaitClip(k, r15, { restSrc: "GEN15" }), r15).verdict === "fail"]).toEqual([157, 35, false]);
+    expect(() => PR.gaitClip(n, r15, { restSrc: "GEN15" })).toThrow(/comes within 11\.1% of a leg of its hip, .*; on these legs, at this cycle and stance, it goes at most 157% of the hip height a second \(\d+ mm\/s\); slow it \(fitGait does\)/);
   }, 30_000);
   it("gaits lift and set their feet down without a hitch: the verifier's round-7 cases pass on the three rests", () => {
     // a run lifting 35 whose left foot starts its arc on the seam (at 60 frames a second the foot's height turned from

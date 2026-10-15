@@ -6,17 +6,17 @@
 // its height's slope continuous throughout: a foot near the floor never moves. The pelvis bobs twice a cycle and sways
 // over the standing foot, lowered until no leg reaches past 98.5% of its length as the clip holds it (a gait whose
 // swinging leg it would then fold under 25% of it, or whose knee it would put under the floor, is refused), the arms
-// swing against the legs, and a limp shortens one leg's stance and drops the pelvis on it. The contacts are the model's
-// own (each foot from its touchdown to its lift-off). The root and pelvis are put on the format's grid before the feet
-// are aimed (the pelvis's step of two % beside still frames taken a frame early or late, which reads as a pop), and
-// each planted leg's rounded numbers are chosen to keep its ankle within the format's rounding (a leg's direction is
-// held in hundredths: about 4 mm) of where it landed, through the in-betweening too. A gait it can't play (a stride
-// past the legs' reach, a leg folded shut, a knee under the floor, a swing under 0.26 s or faster past the hips than 4
-// hip heights a second, a run's cycle under 0.6 s (0.65 lifting over 25%), arms swinging too wide for the cycle, a
-// number past the range the sensors pass, a rate outside 55 to 75 frames a second) is refused with what to change;
-// `fitGait` slows one to what a body's legs take (lowering its lift where no speed does). The frames are spread evenly
-// over the cycle, an even number of them, and each knee's turn about its leg, carried on from frame to frame, is closed
-// over it, so the loop meets itself.
+// swing against the legs (each hand aimed from the shoulder its key decodes), and a limp shortens one leg's stance and
+// drops the pelvis on it. The contacts are the model's own (each foot from its touchdown to its lift-off). The root and
+// pelvis are put on the format's grid before the feet are aimed (the pelvis's step of two % beside still frames taken a
+// frame early or late, which reads as a pop), and each planted leg's rounded numbers are chosen to keep its ankle
+// within the format's rounding (a leg's direction is held in hundredths: about 4 mm) of where it landed, through the
+// in-betweening too. A gait it can't play (a stride past the legs' reach, a leg folded shut, a knee under the floor, a
+// swing under 0.26 s or faster past the hips than 4 hip heights a second, a run's cycle under 0.6 s (0.65 lifting over
+// 25%), arms swinging too wide for the cycle, a number past the range the sensors pass, a rate outside 55 to 75 frames
+// a second) is refused with what to change; `fitGait` slows one to what a body's legs take (lowering its lift where no
+// speed does). The frames are spread evenly over the cycle, an even number of them, and each knee's turn about its leg,
+// carried on from frame to frame, is closed over it, so the loop meets itself.
 import { IDX, ik3, limbEnd, P, reachOf, type Rest, type Side } from "../format/body.ts";
 import { add, len, mul, norm, qmul, qrot, sub, type Frame, type Quat, type V3 } from "../format/math.ts";
 import { decodePose, encodePose, torso, type KeyLike } from "../format/pose.ts";
@@ -74,6 +74,31 @@ const turn = (axis: V3, a: number): Quat => [axis[0] * PM.sin(a / 2), axis[1] * 
 const D2R = Math.PI / 180;
 const PELVIS = ["pelvis", "pelvisF", "hipL", "hipR"];
 const UPPER = ["spine1", "spine2", "chest", "neck", "head", "headTop", "faceF", "chestF", ...["L", "R"].flatMap((s) => ["clav", "sh", "elbow", "wrist", "index", "knuck", "pinky", "fist"].map((n) => n + s))];
+/** The torso's points as a key places them (the arms hang from its shoulders), and each arm's own, moved with them. */
+const TORSO = ["spine1", "spine2", "chest", "neck", "head", "headTop", "faceF", "chestF", "clavL", "clavR", "shL", "shR"];
+const ARM = ["elbow", "wrist", "index", "knuck", "pinky", "fist"];
+/**
+ * The torso in the points X put where its key decodes it (quantize's whole numbers, as the clip will hold it), each
+ * arm moved with its shoulder, so the hands are aimed from the shoulders the key puts them on. The key spreads a lean
+ * up the spine, so a torso turned whole about the pelvis decodes with its shoulders back where the spine bends less:
+ * at a lean of 25° by a fifth to a quarter of an arm (an eighth to a sixth at 15, 3% at the default 3; on the UAL
+ * rests and test characters), and a hand aimed at 94% of an arm from the turned shoulder was past the arm's reach from
+ * the decoded one through part of the swing. The key then held that arm straight, its bend falling from 25° to 0
+ * between two frames as the hand came within reach again, and the elbow stepped three times as far as on either side:
+ * a pop at 70 to 75 frames a second where the frames fell so (leaning 25, swinging 39 to 60, on library rests and test
+ * characters; round 9's review). From the decoded shoulder the hand is at 94% of an arm in every frame, so the arm the
+ * key holds is bent alike throughout (37 to 39° on the 104 bodies, within 1° in any clip; 0 to 79 before). The torso
+ * so placed encodes back to the same whole numbers (4,160 leans and turns on 104 bodies, round 10), so the key's
+ * shoulders are these.
+ */
+function onKeyTorso(R: Rest, X: Float32Array, hint: Pose, T: Float32Array): void {
+  decodePose(R, quantize(encodePose(R, X, hint as KeyLike, { hands: hint.handL !== undefined || hint.handR !== undefined, round: false }) as Pose) as KeyLike, T);
+  for (const s of ["L", "R"]) {
+    const d = sub(pt(T, `sh${s}`), pt(X, `sh${s}`));
+    for (const n of ARM) put(X, n + s, add(pt(X, n + s), d));
+  }
+  for (const n of TORSO) put(X, n, pt(T, n));
+}
 /** Hermite on 0..1 between p0 and p1 with slopes m0 and m1. */
 const hermite = (s: number, p0: number, p1: number, m0: number, m1: number) => {
   const s2 = s * s, s3 = s2 * s;
@@ -204,25 +229,36 @@ const MIN_RUN_CYCLE = 0.6, MIN_HIGH_RUN_CYCLE = 0.65;
 /**
  * The widest arm swing, degrees either way, for each second squared of the cycle: the arms turn round on the loop's
  * seam (as each foot lands), and the sensors read a loop's change of velocity across it, there the swing's own
- * acceleration (no more than anywhere else in the cycle). Read by parts, a test character's fists then read up to
- * 101% of the fail level (swinging 80 in 0.52 s, at 75 frames a second; 93% at 55): of round 9's grids, 445 gaits at
- * 75 swung over 250 and read up to that, and under it no arm read over 89% at any rate (D71, round 9). So a swing of 80
- * takes a cycle of 0.566 s; the presets' widest is the run's 45 in 0.7 s, 92.
+ * acceleration (no more than anywhere else in the cycle). Read by parts, a test character's fists then read up to 101%
+ * of the fail level (swinging 80 in 0.52 s, at 75 frames a second; 93% at 55): 445 of round 9's gaits at 75 swung over
+ * 250 (D71, round 9). It bounds the reading the sensors' protocol makes (a library rest read plainly, a test character
+ * by parts): under it, on round 10's grids (19,738 gaits at 55 to 75 on the 64 library rests and test characters 0 to
+ * 39, the hands aimed from the shoulders the keys decode), no gait failed and a fist read at most 93% at the seam
+ * (test character 38 swinging 72 in 0.537 s, 250, at 73 frames a second). Read by parts, CMU's rests' fists read up to
+ * 101% (CMU_91 swinging 67 in 0.52 s, 248, at 75: the one fail of those 19,738 read so), and 97% at 161: the swing is
+ * not all of what turns round there (the chest's turn and the bob do too, and an arm's direction, held in hundredths,
+ * puts a fist a few mm off its path, another way each frame), so no tighter bound clears that reading (round 9's
+ * review read 108% so before the hands were aimed from the decoded shoulders). A swing of 80 takes a cycle of 0.566 s;
+ * the presets' widest is the run's 45 in 0.7 s, 92.
  */
 const ARM_TURN = 250;
 /**
- * The fewest and most frames a second a gait is made at: fewer, a fast gait's seam steps too far between them, and at 50
- * a swing of 0.26 s just over a stance of a half, lifting 30 or 35, still popped a knee as the thigh swept through (7
- * of 456 on 19 rests; at 55 and 60 none; D71, round 7). More, the format's grid reads as pops: it holds the pelvis's
- * and the root's places in whole % of the hip height, so a slow pelvis steps a whole % in one frame beside still ones
- * (across and up at once at worst), read the faster the more frames a second, and a planted leg takes each step at
- * once. On round 9's grids (the verifier's corner, slow and focused ones, the reviewer's and fresh ones, on the 64
- * library rests and test characters 0 to 39, these read by parts; 13,278 gaits at 75), at 75 none fails and those
- * steps read at most 82% of the fail level (a test character's short spine) and 79% at a knee, any reading at most 88%
- * (a loop's seam, as at 55 to 70); at 80 the steps read 89% and an elbow popped (118%: test character 30 swinging 60
- * in 0.6 s), at 90 97% and elbows popped on 3 (to 139%, as test character 20's did for round 8's verifier). (At 110 a
- * planted knee failed on 7 of 64 rests, round 7; at 240 a walk failed on every rest, and at 120 a brisk walk's elbows
- * on 4, rounds 4 to 6.)
+ * The fewest and most frames a second a gait is made at: fewer, a fast gait's seam steps too far between them, and at
+ * 50 a swing of 0.26 s just over a stance of a half, lifting 30 or 35, still popped a knee as the thigh swept through
+ * (7 of 456 on 19 rests; at 55 and 60 none; D71, round 7). More, the format's grid reads as pops: it holds the
+ * pelvis's and the root's places in whole % of the hip height, so a slow pelvis steps a whole % in one frame beside
+ * still ones (across and up at once at worst), read the faster the more frames a second, and a planted leg takes each
+ * step at once. On round 10's grids (round 9's review's corner, knee, seam, arm, elbow, slow and random grids and an
+ * arm grid near ARM_TURN: 19,738 gaits at 55 to 75, on the 64 library rests read plainly and test characters 0 to 39
+ * by parts), none fails so read (one library rest's fist failed read by parts: ARM_TURN); at 75 the pelvis's steps
+ * read at most 82% of the fail level (a test character's short spine), any reading at most 91% (a fist turning round
+ * at the loop's seam; 93% at 73). Round 9 said as much, but its hands, aimed from a torso turned whole and not from
+ * the shoulders the keys decode, straightened their arms through part of a far-leaning swing, and the elbows popped at
+ * 70 to 75 where the frames fell so (to 116%: round 9's review); now no elbow reads a pop on those grids (16 warned,
+ * in 11 clips, before), nor on 837 leaning, swinging clips at 70 to 75 searched for one (an elbow read 85% there
+ * before, 41% now). At 80 none of 7,280 of those gaits failed so read, the pelvis's steps reading 89% and a fist 95%;
+ * at 90 the steps failed on 3 test characters (to 106%). (At 110 a planted knee failed on 7 of 64 rests, round 7; at
+ * 240 a walk failed on every rest, and at 120 a brisk walk's elbows on 4, rounds 4 to 6.)
  */
 const MIN_GAIT_FPS = 55, MAX_GAIT_FPS = 75;
 /** What is wrong with a gait's own numbers, the first field refused (named and described, each a number in its range),
@@ -297,11 +333,16 @@ function feetOf(g: Gait, pct: number, leg: number) {
   const reach = Math.max(...(["L", "R"] as const).map((x) => strideOf[x] / 2 + (strideOf[x] * (1 - stanceOf[x]) * Math.max(offOf[x], upOf[x])) / stanceOf[x]));
   return { landL, stanceOf, offOf, strideOf, upOf, reach };
 }
-/** The fastest whole speed (% of the hip height a second) up to g's at which g `fits`, or 0 if none does: found by
- *  halving (a faster gait strides longer, so its feet reach farther and its pelvis goes lower), then taken down a whole
- *  % at a time until it fits (a leg's fold is not quite monotone in the speed: slower, a foot can pass nearer under the
- *  hips). */
-function fastest(g: Gait, fits: (g: Gait) => boolean): number {
+/**
+ * The fastest whole speed (% of the hip height a second) up to g's at which g `fits`, or 0 if none does: found by
+ * halving (a faster gait strides longer, so its feet reach farther and its pelvis goes lower), then taken down a whole
+ * % at a time until it fits (a leg's fold is not quite monotone in the speed: slower, a foot can pass nearer under the
+ * hips). With `scan`, where the halving finds none, each whole speed from g's down is tried: slower, a leg can fold
+ * too (its foot passes under the hips at the top of a high lift, the pelvis dipped and bouncing), so a gait may play
+ * only between two speeds (test character 15 lifting 35: 109 to 157), and the halving, finding none at half its speed
+ * (204: 102), never looks above it (round 9's review).
+ */
+function fastest(g: Gait, fits: (g: Gait) => boolean, scan = false): number {
   let lo = 0, hi = g.speed;
   for (let k = 0; k < 40; k++) {
     const mid = (lo + hi) / 2;
@@ -310,6 +351,7 @@ function fastest(g: Gait, fits: (g: Gait) => boolean): number {
   }
   let v = Math.floor(lo);
   while (v > 0 && !fits({ ...g, speed: v })) v--;
+  if (v === 0 && scan) for (v = Math.floor(g.speed); v > 0 && !fits({ ...g, speed: v }); ) v--;
   return v;
 }
 /** As `fastest`, halving the whole speeds instead, for a costlier test (lowering the lift weighs up to 27 lifts at each
@@ -476,15 +518,19 @@ function highestLift(g: Gait, rest: Rest, S: Float32Array): number {
   return lift;
 }
 /**
- * How `fitGait` fits gait g to the body S: the fastest whole speed up to its own at which it plays at its lift, or,
- * where none does (short legs lifting high, bouncing and dipping fold at every speed), the fastest at which some lower
- * whole lift plays, with the highest that does there; or nothing, where no speed and lift from 9 up to its own plays.
+ * How `fitGait` fits gait g to the body S: the fastest whole speed up to its own at which it plays at its lift (halved,
+ * and where that finds none, each whole speed down tried: a gait may play only between two speeds), or, where none
+ * does (short legs lifting high, bouncing and dipping fold at every speed), the fastest at which some lower whole lift
+ * plays (halved), with the highest that does there; or nothing, where no speed and lift from 9 up to its own plays.
+ * Brute-forced on round 10's 2,587 shapes that don't play as given (104 bodies, most lifting high, dipping and bouncing
+ * at short stances), no faster whole speed played at its lift, and where the lift was lowered (13), none played at its
+ * own and none faster at any lift from 9; fitting took 11 ms on average, 114 at most.
  */
 function fitOf(g: Gait, rest: Rest, S: Float32Array): { speed: number; lift?: number } | undefined {
   const pct = rest.H0 / 100, b = bodyOf(rest, S), leg = b.legUpper + b.legLower;
   // the reach first (it needs no phase sampled), then the rest of legsFit under it
   const reached = feetOf(g, pct, leg).reach <= STRIDE_MAX * leg ? g : { ...g, speed: fastest(g, (x) => feetOf(x, pct, leg).reach <= STRIDE_MAX * leg) };
-  const v = legsFit(reached, rest, S) ? reached.speed : fastest(reached, (x) => legsFit(x, rest, S));
+  const v = legsFit(reached, rest, S) ? reached.speed : fastest(reached, (x) => legsFit(x, rest, S), true);
   if (v > 0) return { speed: v };
   const w = highestLift(reached, rest, S) >= UP ? reached.speed : fastestWhole(reached, (x) => highestLift(x, rest, S) >= UP);
   return w > 0 ? { speed: w, lift: highestLift({ ...g, speed: w }, rest, S) } : undefined;
@@ -546,7 +592,7 @@ export function gaitClip(g: Gait, rest: Rest, opts: ProceduralOptions): Clip {
   }
   if (legs.knee < KNEE_FLOOR) throw new Error(`gait ${g.name}: a knee goes ${(Math.ceil((10 * -legs.knee) / pct) / 10).toFixed(1)}% of the hip height under the floor: the pelvis lowered for its stride and bounce, a leg trailing far behind bends its knee down through the floor as the foot swings back; ${fitText(g, rest, S, "shorten its cycle, or lower its bounce")}`);
   const t: Track = { dur, loop: true, fps, times, poses: [], roots: [], events: [], rest, restSrc: opts.restSrc, sources: [], cycle: { forward: g.speed * g.cycle, right: 0, yaw: 0 } };
-  const limbs = new Limbs(S);
+  const limbs = new Limbs(S), T = new Float32Array(P * 3);
   /** Where the pelvis is drawn at `time`, and the root. */
   const pelvisAt = (time: number) => {
     // the pelvis: lowered, bouncing twice a cycle (lowest just after each touchdown), swaying over the standing foot,
@@ -579,6 +625,7 @@ export function gaitClip(g: Gait, rest: Rest, opts: ProceduralOptions): Clip {
     const qUp = qmul(turn([0, 1, 0], (g.lean ?? 3) * D2R), turn([0, 0, 1], -6 * D2R * PM.cos(2 * Math.PI * phase)));
     for (const n of PELVIS) put(X, n, add(pt(S, n), dHip));
     for (const n of UPPER) put(X, n, add(add(piv, qrot(qUp, sub(pt(S, n), piv))), dHip));
+    onKeyTorso(rest, X, hint, T);
     // the feet
     for (const [s, off] of [["R", 0], ["L", 1 - landL]] as const) {
       const v = (phase + off) % 1, [fwd, up] = p.aim[s], a = pt(S, `ankle${s}`);

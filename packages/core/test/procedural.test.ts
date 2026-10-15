@@ -343,12 +343,14 @@ describe("a gait", () => {
     // off the 60 fps grid (a run of 0.705 s, a walk of 1.102 s) and on it with the knees swung widest (a run lifting 35%
     // and swaying 4%): the verifier's, whose last frame came 5 ms before the seam with the knees turned 9° to 23° on; on
     // three rests, and at 55 frames a second (the fewest taken) as well as 60; an even number of frames (a run of 0.65 s
-    // at 60 is 40, not 39, whose left knee fell between frames and popped)
+    // at 60 is 40, not 39, whose left knee fell between frames and popped). Every frame kept as a key (a budget of 0 mm:
+    // a frame within 2 mm of its neighbours' in-between is dropped otherwise, as one of the walk's on 100STYLE's rest is
+    // since round 10, its arms bent alike throughout), so each is weighed
     const [walk, , run] = PR.GAITS;
     for (const id of ["MESH2MOTION/Idle_A", "STYLE100/Neutral_Walk", "CMU_CURATED/Crouch_Walk_Loop"]) {
       const src = load(id);
       for (const [g, fps] of [[{ ...run!, cycle: 0.705 }, 60], [{ ...walk!, cycle: 1.102 }, 60], [{ ...run!, lift: 35, sway: 4 }, 60], [{ ...run!, cycle: 0.65 }, 60], [{ ...run!, cycle: 0.705 }, 55]] as const) {
-        const c = PR.gaitClip(g, src.rest, { restSrc: src.clip.restSrc, fps }), n = 2 * Math.round((g.cycle * fps) / 2), times = Array.from({ length: n }, (_, i) => Math.round((i * g.cycle * 1000) / n) / 1000);
+        const c = PR.gaitClip(g, src.rest, { restSrc: src.clip.restSrc, fps, budget: 0 }), n = 2 * Math.round((g.cycle * fps) / 2), times = Array.from({ length: n }, (_, i) => Math.round((i * g.cycle * 1000) / n) / 1000);
         expect([id, g.cycle, fps, c.dur, c.keys.length, c.keys.every((k) => times.includes(k.t) || k.t === c.dur)]).toEqual([id, g.cycle, fps, g.cycle, n + 1, true]);
         for (const l of ["armL", "armR", "legL", "legR"]) {
           const tw = [...times, c.dur].map((t) => (keyAt(c, t) as unknown as Record<string, number[]>)[l]![4]!), steps = tw.slice(1).map((x, i) => 180 - Math.abs(180 - Math.abs(x - tw[i]!)));
@@ -376,6 +378,20 @@ describe("a gait", () => {
     const [l0, l12] = [lean(0), lean(12)];
     expect([l12[0] - l0[0], l12[1] - l0[1] > 40]).toEqual([12, true]);
   }, 30_000);
+  it("aims each hand from the shoulder its key puts it on, so the arm the key holds is bent alike however far it leans", () => {
+    // the key spreads a lean up the spine, so a torso turned whole about the pelvis decodes with its shoulders back (at
+    // 25°, a fifth of an arm on Quaternius's UAL1), and a hand aimed from the turned shoulder was past the arm's reach
+    // from the decoded one through part of the swing: the key held the arm straight there, its bend falling from 25° to 0
+    // between two frames, and the elbow popped (109% of the fail level at 75 frames a second; round 9's review). Its
+    // bends then ran 0 to 71 leaning 25, 0 to 61 leaning back 10, 0 to 55 leaning 8 (the run's lean) and 28 to 46 at the
+    // default 3: now 39 throughout at each
+    const { rest, clip } = load("QUATERNIUS_3D2DGE/A_TPose");
+    for (const lean of [-10, 25]) {
+      const c = PR.gaitClip({ name: "g", about: "a walk", speed: 130, cycle: 0.736, stance: 0.6, lean, swing: 60 }, rest, { restSrc: clip.restSrc, fps: 75 });
+      const bends = c.keys.flatMap((k) => ["armL", "armR"].map((f) => (k as unknown as Record<string, number[]>)[f]![3]!));
+      expect([lean, Math.min(...bends), Math.max(...bends)]).toEqual([lean, 39, 39]);
+    }
+  });
   it("limps: the weak leg stands for less, the pelvis drops over it, and a foot is always down", () => {
     const src = load("MESH2MOTION/Idle_A"), g = PR.GAITS.find((x) => x.name === "limp")!, limp = PR.gaitClip(g, src.rest, { restSrc: src.clip.restSrc });
     const span = (iv: [number, number][]) => iv.reduce((a, [x, y]) => a + y - x, 0);
