@@ -1,6 +1,9 @@
 // `npm run gate -- G<n>`: a gate's fixed command set (PLAN.md §8.5, §9.3), run in order with times. Every command
-// runs even after a failure, so the report lists everything that failed. With --json the report lands in
-// check-output/gate/report.json; the gate report for docs/PROGRESS.md and the PR is built from it.
+// runs even after a failure, so the report lists everything that failed. The report records the commit it ran at and
+// whether the tracked tree differed from it, read before the first command (D91, as the bench's records do). With
+// --json the report lands in check-output/gate/report.json; the gate report for docs/PROGRESS.md and the PR is built
+// from it.
+import { commitOf } from "../../bench/runner/main.ts";
 import { closest, finish, fmtMs, parseArgs, runStep, usage, type Report, type Step } from "./cli.ts";
 
 /** A gate's commands as [name, npm script, ...args]. A WP that reaches a gate's phase fills its set. */
@@ -86,6 +89,22 @@ export const GATES: Record<string, [string, string, ...string[]][]> = {
   ],
 };
 
+/** A gate's report from its steps' outcomes: its verdict, with the commit it ran at and whether the tracked tree
+ *  differed from it (`commitOf`, read before the first command), recorded beside the steps (D91). */
+export function gateReport(gate: string, steps: Step[], ms: number, at: ReturnType<typeof commitOf>): Report & ReturnType<typeof commitOf> {
+  const ok = steps.every((s) => s.ok);
+  return {
+    tool: "gate",
+    ok,
+    verdict: `gate ${gate}: ${ok ? "PASS" : "FAIL"} in ${fmtMs(ms)} (${steps.filter((s) => s.ok).length}/${steps.length} commands) at ${at.commit.slice(0, 7)}${at.dirty ? ", the tree differing from it" : ""}`,
+    steps,
+    warnings: [],
+    ms,
+    next: ok ? `write the ${gate} report in docs/PROGRESS.md and on the PR, then merge (PLAN.md §8.5)` : `fix forward; a gate that fails twice is checked against the kill criteria (PLAN.md §12)`,
+    ...at,
+  };
+}
+
 if (import.meta.main) {
   let parsed;
   try {
@@ -98,7 +117,7 @@ if (import.meta.main) {
   }
   const gate = parsed.positionals[0]!;
   const steps: Step[] = [];
-  const t0 = performance.now();
+  const t0 = performance.now(), at = commitOf();
   for (const [name, script, ...args] of GATES[gate]!) {
     const { output, ...r } = runStep("gate", name.replace(/\W+/g, "-"), "npm", ["run", "--silent", script, ...(args.length ? ["--", ...args] : [])], Boolean(parsed.flags.verbose));
     r.name = name;
@@ -106,16 +125,5 @@ if (import.meta.main) {
     if (firstLine) r.summary = firstLine.trim().slice(0, 140);
     steps.push(r);
   }
-  const ms = performance.now() - t0;
-  const ok = steps.every((s) => s.ok);
-  const report: Report = {
-    tool: "gate",
-    ok,
-    verdict: `gate ${gate}: ${ok ? "PASS" : "FAIL"} in ${fmtMs(ms)} (${steps.filter((s) => s.ok).length}/${steps.length} commands)`,
-    steps,
-    warnings: [],
-    ms,
-    next: ok ? `write the ${gate} report in docs/PROGRESS.md and on the PR, then merge (PLAN.md §8.5)` : `fix forward; a gate that fails twice is checked against the kill criteria (PLAN.md §12)`,
-  };
-  finish(report, parsed);
+  finish(gateReport(gate, steps, performance.now() - t0, at), parsed);
 }

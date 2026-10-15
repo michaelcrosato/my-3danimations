@@ -4,11 +4,11 @@
 // committed manifest lists real CC0 rigs from two authors, each with an https source, a hash and a license file. Runs
 // on file:// URLs, so it needs no network.
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { checkRigs, fetchRigs, freshHeldout, lintManifest, MANIFEST, usedSeeds, type Manifest, type Rig } from "./fixtures.ts";
+import { checkRigs, fetchRigs, freshHeldout, heldoutStep, lintManifest, MANIFEST, usedSeeds, type Manifest, type Rig } from "./fixtures.ts";
 
 const dir = mkdtempSync(join(tmpdir(), "m3a-fixtures-")), src = join(dir, "src");
 const file = (name: string, text: string) => {
@@ -59,7 +59,8 @@ describe("fixtures by hash", () => {
     writeFileSync(join(at, "rig.json"), JSON.stringify({ rigs: [rig({ licenseSha256: pinned })] }));
     writeFileSync(join(at, "B1", "character.json"), JSON.stringify({ seed: 401 }));
     fetchRigs({ rigs: [rig({ licenseSha256: pinned })] }, cache);
-    expect(freshHeldout("G4", base, cache)).toEqual({ run: "run-1", problems: [] });
+    expect(freshHeldout("G4", base, cache, [])).toMatchObject({ run: "run-1", problems: [], rigs: ["held-out"], seeds: [{ brief: "B1", seed: 401, used: false }] });
+    expect(heldoutStep(freshHeldout("G4", base, cache, [])).summary).toMatch(/^run-1 is fresh: no gate run used it; its rigs pinned and cached \(held-out\); seeds B1 401, none of the \d+ used/);
     mkdirSync(join(base, "gates", "G4-run-1"), { recursive: true });
     expect(freshHeldout("G4", base, cache).problems).toEqual([expect.stringMatching(/^run-1 was used by a gate run already .* run-2$/)]);
     // another gate's variants may use seeds alone, none WP-4.2's, a test's or another run's
@@ -77,6 +78,17 @@ describe("fixtures by hash", () => {
       "run-1/B5: seed 401 is WP-4.2's, a test's or another run's: a variant takes a character none used (PLAN.md §7)",
     ]);
     expect([...usedSeeds(base, undefined, [tests])].filter((x) => x > 19).sort((a, b) => a - b)).toEqual([37, 401, 512]);
+    // a run of seeds alone, as G6's, says so, each variant's seed checked against the used ones (WP-4.2's 20, a test's
+    // 37 and G4's run's 401) (D91)
+    writeFileSync(join(g6, "B2", "character.json"), JSON.stringify({ seed: 722 }));
+    writeFileSync(join(g6, "B3", "character.json"), JSON.stringify({ seed: 808 }));
+    rmSync(join(g6, "B5"), { recursive: true });
+    const h = freshHeldout("G6", base, cache, [tests]);
+    expect(h).toEqual({ run: "run-1", problems: [], rigs: null, seeds: [{ brief: "B2", seed: 722, used: false }, { brief: "B3", seed: 808, used: false }, { brief: "B6", seed: 512, used: false }], used: 22 });
+    expect(heldoutStep(h)).toEqual({
+      summary: "run-1 is fresh: no gate run used it; no rig: seeds only; seeds B2 722, B3 808, B6 512, none of the 22 used (WP-4.2's, the tests', other runs')",
+      detail: ["B2: seed 722, not among the 22 used", "B3: seed 808, not among the 22 used", "B6: seed 512, not among the 22 used"],
+    });
   });
   it("lists real CC0 rigs from at least two authors, each with an https source, a hash and a license file", () => {
     const m = JSON.parse(readFileSync(MANIFEST, "utf8")) as Manifest;
