@@ -114,13 +114,17 @@ describe("procedural clips under the sensors", () => {
       }
     }
   }, 60_000);
-  it("fits a slow gait on short legs by its lift where no slower speed keeps a leg from folding", async () => {
+  it("fits gaits on short legs so that they play: slower, or lifting less where no slower speed keeps a leg from folding", async () => {
+    const rest = async (n: number) => bind((await loadGlb(character(variant(n)).glb, { textures: false })).scene).core.rest;
     // test character 10's legs, lifting 35 under a pelvis dipped 12 and bouncing 6, fold to 24.6% of their length at 63%
     // of the hip height a second and at every speed under it (the verifier's corner grid, a pass then): fitGait lowers
     // the lift a whole % instead, and it plays
-    const { glb } = character(variant(10)), rest = bind((await loadGlb(glb, { textures: false })).scene).core.rest;
-    const g = PR.fitGait({ name: "g", about: "a gait", cycle: 0.65, stance: 0.2, limp: 0.5, lift: 35, bounce: 6, dip: 12, sway: 0, lean: -10, swing: 80, speed: 63 }, rest);
-    expect([g.speed, g.lift, metrics(PR.gaitClip(g, rest, { restSrc: "GEN10", fps: 55 }), rest).verdict === "fail"]).toEqual([63, 34, false]);
+    const r10 = await rest(10), g = PR.fitGait({ name: "g", about: "a gait", cycle: 0.65, stance: 0.2, limp: 0.5, lift: 35, bounce: 6, dip: 12, sway: 0, lean: -10, swing: 80, speed: 63 }, r10);
+    expect([g.speed, g.lift, metrics(PR.gaitClip(g, r10, { restSrc: "GEN10", fps: 55 }), r10).verdict === "fail"]).toEqual([63, 34, false]);
+    // and test character 33's limp from the verifier's random grid: the fold is not quite monotone in the speed, and the
+    // halving's whole speed (43) folded a leg, so the speed is taken down until it fits (1 of 7,744 fits on its grids)
+    const r33 = await rest(33), h = PR.fitGait({ name: "g", about: "a gait", cycle: 3, stance: 0.6353223501471803, limp: 0.984651219798252, lift: 33.778545876499265, bounce: 1.541428820695728, dip: 9.256668255664408, sway: 2.994950328953564, lean: 0.9756551228929311, swing: 7.215953636914492, speed: 1000 }, r33);
+    expect([h.speed, metrics(PR.gaitClip(h, r33, { restSrc: "GEN33" }), r33).verdict === "fail"]).toEqual([42, false]);
   }, 30_000);
   it("gaits lift and set their feet down without a hitch: the verifier's round-7 cases pass on the three rests", () => {
     // a run lifting 35 whose left foot starts its arc on the seam (at 60 frames a second the foot's height turned from

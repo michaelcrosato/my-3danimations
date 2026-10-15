@@ -205,7 +205,9 @@ const MIN_RUN_CYCLE = 0.6, MIN_HIGH_RUN_CYCLE = 0.65;
  * And the format holds the pelvis's place in whole % of the hip height: past 90 a frame, a slow bouncing pelvis moves
  * less than that, so it steps every other frame and a planted leg takes each step at once, its knee jumping 30 mm and
  * still between, a pop (stances of 0.7 and 0.75 bouncing 6 at 110: 8 of 256 failed, on 7 of 64 rests, and 179 warned;
- * at 90 none failed and 35 warned; round 7).
+ * at 90 none failed and 35 warned; round 7). Slower still, the root steps that way too: slow long stances at 90 all
+ * pass but most warn (929 of 1,248 on 104 bodies), a whole % in one frame reading 97% of the fail level on a short
+ * spine read by parts and 94% at a knee, whatever the speed (at 75, 547 warn, 82% and 80%; round 8).
  */
 const MIN_GAIT_FPS = 55, MAX_GAIT_FPS = 90;
 /** What is wrong with a gait's own numbers, the first field refused (named and described, each a number in its range),
