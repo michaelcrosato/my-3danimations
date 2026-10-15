@@ -43,6 +43,7 @@
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
+    "@modelcontextprotocol/inspector": "2.9.0",
     "@playwright/test": "1.56.1",
     "@types/node": "24.19.2",
     "ajv": "8.20.0",
@@ -55,6 +56,7 @@
     "vitest": "4.1.11"
   },
   "allowScripts": {
-    "esbuild": false
+    "esbuild": false,
+    "@modelcontextprotocol/inspector": false
   }
 }
