@@ -116,7 +116,9 @@ export interface ProceduralOptions {
   id?: string;
   /** The rest's source entry, `restSrc`. */
   restSrc: string;
-  /** The pose to start from (and end at): a key's fields, `standingOn` the rest by default. */
+  /** A move's or an idle's pose to start from (and end at): a key's fields, `standingOn` the rest by default. A gait is
+   *  made from the standing pose only, and refuses any other: its legs, pelvis, torso and arms are its own, and every
+   *  bound it is fitted and measured to is read from there. */
   start?: Pose;
   /** The rate frames are sampled at before keys are fitted, and the key budget in mm: a move's 30 and 30, a gait's 60
    *  and 2, an idle's 30 and 2. A gait's cycle is split evenly into the even number of frames nearest cycle × fps, so its

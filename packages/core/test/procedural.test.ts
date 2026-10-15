@@ -438,6 +438,13 @@ describe("a gait", () => {
     // to the ms: 0.8 s at a stance of 0.675 swings 0.26 s, which a float makes 0.25999999999999995 (the verifier's round 7
     // saw it refused as "0.260 s, under 0.26 s")
     expect(play({ speed: 100, cycle: 0.8, stance: 0.675 })).not.toThrow();
+    // from a start pose other than the standing one, a gait kept the start's bent elbows and turned hands and swung them
+    // into the body (a library clip's first key on its rest: Fighting_Right_Jab's wrist popped, Walk_Stealth's forearm
+    // went into the pelvis; 8 of 227 such clips failed, round 12's review), and nothing of a gait is fitted or measured
+    // from one: it is refused, and the standing pose itself taken
+    const jab = load("MESH2MOTION/Fighting_Right_Jab"), { t: _t, root: _r, yaw: _y, ...jabStart } = jab.clip.keys[0] as unknown as Record<string, unknown>;
+    expect(() => PR.gaitClip(walk, jab.rest, { restSrc: jab.clip.restSrc, start: jabStart as never })).toThrow(/given a start pose other than the standing one: a gait is made from the standing pose .* give it no start, and blend into it from another pose$/);
+    expect(PR.gaitClip(walk, jab.rest, { restSrc: jab.clip.restSrc, start: PR.standingOn(jab.rest) })).toEqual(PR.gaitClip(walk, jab.rest, { restSrc: jab.clip.restSrc }));
     // a run's cycle under 0.6 s: its seam moved too sharply (R3: 64 of 64 rests)
     expect(play({ speed: 350, cycle: 0.4, stance: 0.3, lift: 25, bounce: 3, lean: 8, swing: 45 })).toThrow(/a run's cycle of 0.4 s is under 0.6 s \(over 200 steps a minute\): .*; use a longer cycle$/);
     // lifting over 25, 0.65 s: a run lifting 35% and swaying 4% failed its seam at 0.6 and 0.625 s
