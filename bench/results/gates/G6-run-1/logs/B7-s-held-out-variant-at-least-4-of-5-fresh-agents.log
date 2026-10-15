@@ -1,0 +1,5 @@
+bench B7: PASS in 99.4 s
+  ok   B7 96.5 s: 5 of 5 trials pass
+next: results in bench/results/2026-10-15-default-B7-variant.json; workspaces and transcripts in /tmp/m3a-bench/2026-10-15T22-34-45
+(node:32470) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)

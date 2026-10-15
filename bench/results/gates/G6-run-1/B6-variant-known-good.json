@@ -1,0 +1,39 @@
+{
+ "about": "npm run bench: fresh agents on the briefs (PLAN.md §7); isolation 1 is the claude CLI in a clean workspace",
+ "date": "2026-10-15T22-18-21",
+ "commit": "a9731b1d9db445ffdaf8f7949b05cc278bd92189",
+ "dirty": false,
+ "model": "the CLI's default",
+ "fake": true,
+ "parallel": 1,
+ "privateTmp": true,
+ "variant": {
+  "dir": "bench/results/heldout/G6/run-1/B6",
+  "character": {
+   "seed": 871
+  }
+ },
+ "B6": {
+  "trials": [
+   {
+    "trial": "B6-1",
+    "pass": true,
+    "failed": [],
+    "agent": {
+     "fake": true
+    }
+   }
+  ],
+  "discovery": [],
+  "check": {
+   "trial": "known-good",
+   "pass": true,
+   "failed": [],
+   "agent": {
+    "fake": true
+   }
+  }
+ },
+ "models": [],
+ "ms": 5993
+}

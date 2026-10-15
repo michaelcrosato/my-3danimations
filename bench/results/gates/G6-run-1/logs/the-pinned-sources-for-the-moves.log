@@ -1,0 +1,8 @@
+pins fetch: PASS in 0.0 s
+  ok   my-3d2dge 0.0 s: cached at 14a561c031fd
+  ok   my-3d2dge-2 0.0 s: cached at c8295dc0300f
+  ok   shardfall 0.0 s: cached at a9ca003069db
+  ok   my-3dge 0.0 s: cached at 652ea6bc0aff
+  ok   riftlight 0.0 s: cached at f3693fca0039
+  ok   check 0.0 s: 5 repos at their SHAs, 2 frozen fixtures match
+next: npm run vectors -- --check

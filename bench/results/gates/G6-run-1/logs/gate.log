@@ -1,0 +1,30 @@
+GATE START 2026-10-15T22:19:14Z
+
+> my-3danimations@0.45.1 gate
+> node tools/run/gate.ts G6 --json
+
+gate G6: PASS in 1029.9 s (20/20 commands)
+  ok   check 10.9 s: check: PASS (T0) in 10.6 s, budget 15.0 s
+  ok   test 76.2 s: test: PASS (T1) in 76.0 s, budget 90.0 s
+  ok   doctrine 0.6 s: doctrine: PASS in 0.3 s (8 checks)
+  ok   the pinned sources, for the moves 0.2 s: pins fetch: PASS in 0.0 s
+  ok   vectors --check 2.0 s: vectors: PASS (--check) in 1.6 s
+  ok   library/moves.json as the pinned sources give it 0.4 s: carry --check: library/moves.json is as the sources give it
+  ok   composed clips pass QA: the example recipes, the procedural sources, the actions and their cuts 18.3 s: test: PASS (T1) in 18.1 s, budget 90.0 s
+  ok   graph simulations are deterministic: the expected traces exactly, a run the same twice, save and restore 6.0 s: test: PASS (T1) in 5.7 s, budget 90.0 s
+  ok   T2: browser checks (graphs Node = Chromium), library QA and the sweeps T1 samples, in full 129.0 s: e2e: PASS (T2) in 128.8 s, budget 480.0 s
+  ok   the held-out run is fresh: no gate run used it, each variant's character one no test or run used 0.2 s: fixtures heldout G6: PASS in 0.0 s
+  ok   B2: at least 4 of 5 fresh agents (§7) 42.3 s: bench B2: PASS in 41.9 s
+  ok   B2's held-out variant: at least 4 of 5 fresh agents 38.4 s: bench B2: PASS in 37.8 s
+  ok   B3: at least 4 of 5 fresh agents (§7) 162.5 s: bench B3: PASS in 162.0 s
+  ok   B3's held-out variant: at least 4 of 5 fresh agents 110.2 s: bench B3: PASS in 109.7 s
+  ok   B5: at least 4 of 5 fresh agents (§7) 45.7 s: bench B5: PASS in 45.2 s
+  ok   B5's held-out variant: at least 4 of 5 fresh agents 37.6 s: bench B5: PASS in 37.1 s
+  ok   B6: at least 4 of 5 fresh agents (§7) 92.1 s: bench B6: PASS in 91.7 s
+  ok   B6's held-out variant: at least 4 of 5 fresh agents 75.2 s: bench B6: PASS in 74.7 s
+  ok   B7: at least 4 of 5 fresh agents (§7) 82.2 s: bench B7: PASS in 81.7 s
+  ok   B7's held-out variant: at least 4 of 5 fresh agents 99.8 s: bench B7: PASS in 99.4 s
+report: check-output/gate/report.json
+next: write the G6 report in docs/PROGRESS.md and on the PR, then merge (PLAN.md §8.5)
+GATE EXIT 0
+GATE END 2026-10-15T22:36:25Z

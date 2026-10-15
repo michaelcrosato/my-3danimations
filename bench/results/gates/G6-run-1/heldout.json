@@ -1,0 +1,140 @@
+{
+ "about": "G6 run 1's held-out variants (bench/results/heldout/G6/run-1/): the fresh writer's report (seeds, characters as generated, the contract kept, every file it read) and the independent check's (verdict, issues, what it confirmed). Written at a9731b1, the commit fixed for the gate (PLAN.md \u00a77, D78).",
+ "writer": {
+  "variants": [
+   {
+    "brief": "/home/user/my-3danimations/bench/results/heldout/G6/run-1/B2/brief.md (428 words against the original's 337, x1.27)",
+    "seed": 722,
+    "character": "gen-722: bulky build (broad shoulders, thick tubes, hips bone 1.03 m up, H0 1066 mm, about 1.85 m tall), relaxed rest (arms 70 degrees down), ue5 naming (root bone, pelvis, hand_l/hand_r), no twist bones, toes left out. The brief describes it as a bulky, broad-shouldered, thick-limbed humanoid with its hips about 1 m up, arms hanging loosely at its sides, plus the original's 'skinned humanoid, in metres, facing +Z'.",
+    "scenario": "Lantern Row, a back-alley brawling game: the bruiser's single attack button must deal its hit on the frame the fist connects.",
+    "keptContract": "Same job and files: createFighter in src/fighter.ts (types in the file), fighter.update(dt, { attack }) at 60 fps, attack true on the press frame. Idle and punch clips from the CC0 library, the game's damage(10) once per punch on the strike frame. The original's hint about an event in the clip is kept and nothing is added. npm run check is still described as two presses two seconds apart, printing the damage frames and each punch's strike and damage window. The grading rule is unchanged: idles before the first press and after the last punch (a pose held still is no idle); a punch reaches at least 15% of the hip height forward and strikes faster than 1 hip height/s against the pelvis; idling again within 1.5 s (the hand comes at least half way back); damage exactly once per punch, never without one, from 2 frames before the strike to 4 after and not after the hand is farthest out; the strike is defined as the last forward-speed peak faster than 1 hip height/s before the farthest reach, found by strike.ts for the grader and the check alike; no NaN; work only in this directory. With ue5 naming, the check's bind() still finds hips, leftHand and rightHand (pelvis, hand_l, hand_r), checked by running bind on the seed."
+   },
+   {
+    "brief": "/home/user/my-3danimations/bench/results/heldout/G6/run-1/B3/brief.md (572 words against 463, x1.24)",
+    "seed": 808,
+    "character": "gen-808: child build (hips bone 0.70 m up, H0 719 mm, about 1.3 m tall), A rest (arms 40 degrees down), vrm naming, no twist bones, neck left out. The brief describes it as a child about 1.3 m tall with the hips about 0.7 m up, in an A-pose with the arms angled down and out.",
+    "scenario": "Recess Rumble, a playground dodgeball game: a glancing ball makes the kid flinch mid-stride, a full hit knocks them flat for a second before they get up and walk on.",
+    "keptContract": "Same job and files: createReactor in src/reactor.ts, reactor.update(dt, { speed, hit }) at 60 fps, speed in the character's hip heights a second (0 stand, 1.2 walk), hit 'light' or 'heavy' on the frame it lands. Idle and walk clips from the CC0 library, moving character.position along its facing. Light hit: upper body only. Heavy hit: lies 1 s, gets up, walks again. Nothing sinks through the floor. npm run check (13 s: walking from 1 s, light hit at 3 s, heavy at 6 s) prints the hips' height and the position every half second. The grading rule is unchanged: compared against a run without the light hit; walking in the second before the light hit and in the last second at 1.2 hip heights/s \u00b110%, the lower foot below the sensors' standing speed at times, the lower foot at 25% of the travel or less at least 40% of the time; over the light hit's 0.8 s the legs stay within 2% of the hip height while the hands or head move at least 5%; hips below 45% within 1.5 s, under 15% for 1.3 to 3.5 s, above 85% within 3 s of rising past 15%, no more than 3.5 hip heights from the hit position until standing and no more than 0.6 from 0.3 s after lying until rising; feet, pelvis and head at most 5% under the floor (a foot 10% in the half second after the heavy hit); no NaN. The seed is vrm, not rigify, because the B3 check finds the hips by /hips|pelvis/i: on rigify (DEF-spine) it would print NaN. The hips node 'hips' was confirmed on this seed."
+   },
+   {
+    "brief": "/home/user/my-3danimations/bench/results/heldout/G6/run-1/B5/brief.md (253 words against 198, x1.28)",
+    "seed": 765,
+    "character": "gen-765: chibi build (oversized 0.36 m head on a short body, hips bone 0.41 m up, H0 434 mm), T rest (arms level), mixamo naming (0.01 armature scale), twist bones, shoulders left out. The brief describes it as a chibi, an oversized head on a short body, at rest in a T-pose with the arms straight out. The hip height is left out on purpose, because B5's percentages are measured on the clip's own rest.",
+    "scenario": "Cairn Climbers, a co-op mountaineering game: the mascot's summit celebration, built from existing clips.",
+    "keptContract": "Same file: emote.json, an m3a recipe (the manual's 'Make') compiled against the CC0 library into a two-handed wave with a hop, 1.5 s, looping. npm run check prints the checks' issues, length and loop, the sensors' verdict, describe's text and how the hands move. The grading rule is unchanged: checks and compiles into a valid clip; 1.5 s \u00b10.05 and looping; sensors find nothing failing; the description reports it in the air; both wrists above the head at least a quarter of the cycle, each moving side to side at least 10% of the hip height with at least two turns; plays on character.glb with every joint finite. One truthful clarification was added: the measures are taken on the clip's own rest. The character only enters through playsOn, so any naming works."
+   },
+   {
+    "brief": "/home/user/my-3danimations/bench/results/heldout/G6/run-1/B6/brief.md (315 words against 247, x1.28)",
+    "seed": 871,
+    "character": "gen-871: heroic build (hips bone 1.09 m up, H0 1106 mm, about 1.9 m tall), A rest (arms 40 degrees down), rigify naming (DEF-*), twist bones, upperChest left out. The brief describes it as a heroic, athletic build, at rest in an A-pose with the arms angled down, plus 'skinned humanoid, in metres, facing +Z'. No hip height is given, because the facts are measured on the clip's rest, as the original states.",
+    "scenario": "Ironclad Arena, a boxing game: a southpaw contender gets the library's right cross reworked as its own punch.",
+    "keptContract": "Same file: punch.json, an m3a recipe compiled against the CC0 library, editing MESH2MOTION/Punch_Cross, named as in the original: 30% faster (time over 1.3, strike included), a draw-back of at least 4% of the hip height before the strike (the original has none), mirrored so that the left fist strikes. npm run check prints, beside the original's: issues, length, the strike (measured fact), which fist, the draw-back and the sensors' verdict. The grading rule is unchanged (facts measured on its rest): valid clip; length the original's over 1.3 \u00b13%; strike the original's over 1.3 \u00b10.05 s; left fist strikes; mirrored back, the fist at the strike within 10% of the hip height of the original's against the pelvis; draws back at least 4% of the hip height; sensors find nothing failing; plays on character.glb with every joint finite. The character only enters through playsOn, so rigify naming is safe."
+   },
+   {
+    "brief": "/home/user/my-3danimations/bench/results/heldout/G6/run-1/B7/brief.md (607 words against 497, x1.22)",
+    "seed": 809,
+    "character": "gen-809: tall build (thin, hips bone 1.23 m up, H0 1238 mm, about 2.15 m tall), relaxed rest (arms 70 degrees down), mixamo naming, no twist bones, chest and upperChest left out. The brief describes it as a tall, thin figure over 2 m tall with the hips about 1.2 m up, at rest with the arms hanging close to its sides.",
+    "scenario": "Stilt Town: the lamplighter strolls, sprints, hops gaps and steps off boardwalk edges between houses on stilts.",
+    "keptContract": "Same file: graph.json with the parameters speed (number, hip heights/s: 0, about 1.2, about 3.5), grounded (bool, true at the start) and jump (trigger). The base layer has the states idle, walk, run, jump and land (others allowed, e.g. one in the air), with clips from the CC0 library. Kept: jump only when grounded, a press while not grounded not kept; land as soon as grounded returns, then the motion asked; grounded goes false 0.1 s after a press and may go without a jump. The starter graph.json checks and only stands. npm run check simulates with script.json (its content described in new words) and prints the states. The grading rule is unchanged, and the motion-asked times are listed exactly as the grader's BEFORE table has them (1.3 idle, 3.3 walk, 5.3 run, 8.3 run, 9.8 walk, 13.8 idle). That makes truthful the original's 'before each change of speed', which leaves out that 5.3 s comes before the jump press. Travel bands and windows are verbatim in substance: idle under 0.3 at 0.5-1.3 and 13-13.8; walk 0.6-2 at 2.5-3.3 and 9-9.8; run over 2 at 4.5-5.3 and 8.1-8.6. Also kept: state order idle, walk, run, jump, land, run, walk, idle (or plus land, idle), other states ignored; jump within 0.1 s of the grounded press and never from a press while not grounded; both feet 5% of the hip height off the ground while jumping; land within 0.1 s of grounded returning; no NaN."
+   }
+  ],
+  "freshCheck": "In /home/user/my-3danimations, `npm run --silent fixtures -- heldout G6` printed 'fixtures heldout G6: PASS in 0.0 s / ok heldout 0.0 s: run-1 is fresh: no gate run used it, its rigs pinned and cached / next: npm run gate -- G6' and exited 0.\n\nSeeds: 722, 808, 765, 871, 809, all different. usedSeeds() computed by node from tools/fixtures/fixtures.ts was [0-19, 29, 37, 40, 41, 44, 401, 935], and none of the five is in it. They are also outside every range the decisions record as measured: verifier runs on gen-20 to 196, seeds 1000, 1411-1418 and 1501-1513.\n\nThe runner's latestVariant('G6', B) and variantOf resolve each brief to run-1/<B> with its seed. The only new files are untracked, under bench/results/heldout/G6/run-1/{B2,B3,B5,B6,B7}/{brief.md,character.json}. git status shows only '?? bench/results/heldout/G6/'; nothing tracked was modified, committed or switched, and HEAD stays detached at a9731b1.\n\nNot done: I did not run the known-good solutions on these seeds. Picking seeds by whether the known-good passes on them would be cherry-picking, and the gate runs that check itself before the trials.",
+  "readFiles": [
+   "/home/user/my-3danimations/PLAN.md (section 7, lines 587-640, and the heading list only)",
+   "/home/user/my-3danimations/docs/DECISIONS.md (D54, D76, D77, D78 entries; grep of seed numbers across DECISIONS/PROGRESS/CHANGELOG/PLAN)",
+   "/home/user/my-3danimations/bench/briefs/B1.md",
+   "/home/user/my-3danimations/bench/briefs/B2.md",
+   "/home/user/my-3danimations/bench/briefs/B3.md",
+   "/home/user/my-3danimations/bench/briefs/B5.md",
+   "/home/user/my-3danimations/bench/briefs/B6.md",
+   "/home/user/my-3danimations/bench/briefs/B7.md",
+   "/home/user/my-3danimations/bench/results/heldout/G4/run-1/B1/brief.md",
+   "/home/user/my-3danimations/bench/results/heldout/G4/run-1/B1/character.json",
+   "/home/user/my-3danimations/bench/results/heldout/G4/run-1/rig.json",
+   "/home/user/my-3danimations/bench/results/heldout/G4/run-2/B1/brief.md",
+   "/home/user/my-3danimations/bench/results/heldout/G4/run-2/B1/character.json",
+   "/home/user/my-3danimations/bench/results/heldout/G4/run-2/rig.json",
+   "/home/user/my-3danimations/bench/starters/B2/README.md",
+   "/home/user/my-3danimations/bench/starters/B2/package.json",
+   "/home/user/my-3danimations/bench/starters/B2/src/fighter.ts",
+   "/home/user/my-3danimations/bench/starters/B2/src/character.ts",
+   "/home/user/my-3danimations/bench/starters/B2/strike.ts",
+   "/home/user/my-3danimations/bench/starters/B2/check.ts",
+   "/home/user/my-3danimations/bench/starters/B3/README.md",
+   "/home/user/my-3danimations/bench/starters/B3/package.json",
+   "/home/user/my-3danimations/bench/starters/B3/src/reactor.ts",
+   "/home/user/my-3danimations/bench/starters/B3/src/character.ts",
+   "/home/user/my-3danimations/bench/starters/B3/check.ts",
+   "/home/user/my-3danimations/bench/starters/B5/README.md",
+   "/home/user/my-3danimations/bench/starters/B5/package.json",
+   "/home/user/my-3danimations/bench/starters/B5/emote.json",
+   "/home/user/my-3danimations/bench/starters/B5/check.ts",
+   "/home/user/my-3danimations/bench/starters/B6/README.md",
+   "/home/user/my-3danimations/bench/starters/B6/package.json",
+   "/home/user/my-3danimations/bench/starters/B6/punch.json",
+   "/home/user/my-3danimations/bench/starters/B6/check.ts",
+   "/home/user/my-3danimations/bench/starters/B7/README.md",
+   "/home/user/my-3danimations/bench/starters/B7/package.json",
+   "/home/user/my-3danimations/bench/starters/B7/graph.json",
+   "/home/user/my-3danimations/bench/starters/B7/script.json",
+   "/home/user/my-3danimations/bench/starters/B7/src/character.ts",
+   "/home/user/my-3danimations/bench/starters/B7/check.ts",
+   "/home/user/my-3danimations/bench/graders/B2/grade.ts",
+   "/home/user/my-3danimations/bench/graders/B3/grade.ts",
+   "/home/user/my-3danimations/bench/graders/B5/grade.ts",
+   "/home/user/my-3danimations/bench/graders/B6/grade.ts",
+   "/home/user/my-3danimations/bench/graders/B7/grade.ts",
+   "/home/user/my-3danimations/bench/graders/bones.ts",
+   "/home/user/my-3danimations/bench/graders/recipes.ts",
+   "/home/user/my-3danimations/bench/graders/*/grade.test.ts and /home/user/my-3danimations/bench/runner/*.test.ts (grep of their 'seed' lines only)",
+   "/home/user/my-3danimations/bench/runner/main.ts (lines 1-180, and grep)",
+   "/home/user/my-3danimations/bench/runner/workspace.ts",
+   "/home/user/my-3danimations/tools/fixtures/fixtures.ts",
+   "/home/user/my-3danimations/tools/fixtures/main.ts",
+   "/home/user/my-3danimations/packages/three/test-characters/variants.ts",
+   "/home/user/my-3danimations/packages/three/test-characters/characters.ts",
+   "/home/user/my-3danimations/packages/three/test-characters/index.ts",
+   "/home/user/my-3danimations/packages/three/test-characters/load.ts",
+   "/home/user/my-3danimations/package.json (grep of the fixtures script line)"
+  ]
+ },
+ "check": {
+  "verdict": "ok",
+  "issues": [
+   {
+    "brief": "B6",
+    "severity": "nit",
+    "what": "/home/user/my-3danimations/bench/results/heldout/G6/run-1/B6/brief.md renames the original's 'more anticipation' as 'a wind-up'. D77 records that the manual's replacement example for this technique is 'a throw's wind-up' (round 2: 'the throw's wind-up turns +20'). Using that word ties the variant's wording straight to that manual example, which the original's 'anticipation ... draws back' does not. The requirement itself is unchanged (fist pulls back at least 4% of the hip height before the strike, more than the original's), so it is gradeable and not misleading. It is a slightly easier lexical path than the original.",
+    "fix": "Use a neutral phrasing such as 'a draw-back first' or keep 'anticipation' in the bold label, and leave the 'pulls back at least 4% of the hip height' sentence as it is."
+   },
+   {
+    "brief": "B6",
+    "severity": "nit",
+    "what": "B6 reuses the most of the original's wording of all five variants: 35% of its 6-grams appear in the original, against 14-24% for the other variants and 23% for G4 run-2's B1 example. The overlap is mostly in the 'What passes' list, which repeats the original's clauses ('it lasts the original's length over 1.3 (\u00b13%), and strikes at the original's strike time over 1.3 (\u00b10.05 s)', 'mirrored back, its striking fist at the strike is within 10% of the hip height of the original's (against the pelvis)').",
+    "fix": "Optional: reword those pass-rule clauses with the numbers unchanged, for example 'its length is the original's divided by 1.3, within 3%; its strike comes at the original's strike time divided by 1.3, within 0.05 s'."
+   },
+   {
+    "brief": "B2",
+    "severity": "nit",
+    "what": "The title is 'Tavern brawler', but the scenario is Lantern Row, 'a back-alley brawling game', and no tavern appears anywhere in the brief.",
+    "fix": "Retitle it (e.g. 'Back-alley bruiser') or set the scene in a tavern."
+   }
+  ],
+  "confirmed": [
+   "Fresh: `npm run --silent fixtures -- heldout G6` in /home/user/my-3danimations printed 'fixtures heldout G6: PASS ... run-1 is fresh: no gate run used it' and exited 0. usedSeeds() without G6 run-1 is {0-19, 29, 37, 40, 41, 44, 401, 935}. The seeds 722, 808, 765, 871 and 809 are all different and none is in that set. No grader or runner test names them in any form ({ seed: n } or a bare number). No DECISIONS, PLAN or CHANGELOG measurement names gen-722, 765, 808, 809 or 871. They are outside every recorded range: gen-20 to 196, 1411-1418, 1501-1513.",
+   "Characters, from running variant(seed), the generator and bind on each seed: gen-722 is bulky, relaxed rest, ue5, no twist bones, toes left out, hips bone 1.025 m, H0 1066 mm, about 1.85 m tall. gen-808 is child, A rest, vrm, no twist bones, neck left out, hips 0.703 m, H0 719 mm, about 1.3 m tall. gen-765 is chibi, T rest, mixamo, twist bones, shoulders left out, head 0.36 m, hips 0.41 m, H0 434 mm. gen-871 is heroic, A rest, rigify, twist bones, upperChest left out, hips 1.086 m, H0 1106 mm. gen-809 is tall (thin), relaxed rest, mixamo, no twist bones, chest and upperChest left out, hips 1.23 m, H0 1238 mm, about 2.15 m tall. Every description in the five briefs is true for its seed.",
+   "The graders can read all five characters: bench/graders/bones.ts bodyOf loads each generated character.glb with 34-36 body points and floor 0.",
+   "Starter checks work on the chosen seeds. B2's check.ts bind() finds hips, leftHand and rightHand on gen-722 (pelvis, hand_l, hand_r). B3's check.ts regex /hips|pelvis/i finds the 'hips' bone on gen-808 (vrm); rigify (DEF-spine) would have printed NaN. B5, B6 and B7 use the character only through bind, playsOn or sim, so any naming works.",
+   "B2 keeps the original's job and contract: createFighter in src/fighter.ts (types in the file), update(dt, { attack }) at 60 fps, idle and punch clips from the CC0 library, damage(10) once per punch on the strike frame. The event hint is the original's, nothing added. The npm run check description is true for check.ts. The pass rule matches grade.ts exactly: idle at 0.5% of H0 before the first press and at the end; reach of 15% of H0 and speed over one hip height a second against the pelvis; back at least half way within 1.5 s (the 90-frame window); damage exactly once per punch, from 2 frames before the strike to 4 after and not past the farthest reach; the strike as defined in strike.ts; no NaN.",
+   "B3 keeps the original's job and contract: createReactor in src/reactor.ts, update(dt, { speed, hit }), speed in hip heights a second, the light hit on the upper body only, the heavy hit lying 1 s, nothing through the floor. 'npm run check' (13 s, walking from 1 s, light hit at 3 s, heavy at 6 s, printing every half second) is true for check.ts. Every number matches grade.ts: two runs; pace 1.2 \u00b10.12; the slowest tenth under STANCE speed; 40% of the time at 25% of the travel or less; light hit over 48 frames, legs 2% and upper body 5%; hips under 45% within 90 frames; lying 1.3-3.5 s; above 85% within 180 frames of rising past 15%, the variant's wording being more precise than the original's; 3.5 hip heights until standing; 0.6 from lieAt+18 until rising; the 5% floor limit, 10% for a foot in the 30 frames after the heavy hit; no NaN.",
+   "B5 keeps the original's job and contract: emote.json, a recipe compiled against the CC0 library into a two-handed wave with a hop, 1.5 s, looping. The check description is true. The pass rule matches grade.ts and recipes.ts: valid; 1.5 \u00b10.05 and looping; sensors not failing; describe says 'in the air'; both wrists above the head at least 25% of the time; each hand's side-to-side span at least 10% of H0 with at least 2 turns; playsOn with every joint finite. The added 'measured on the clip's own rest' is true (grade.ts measures on the compiled clip's rest) and checks nothing new.",
+   "B6 keeps the original's job and contract: punch.json edits MESH2MOTION/Punch_Cross to be 30% faster, strike included, with a draw-back of at least 4% of H0 (the original's is none), mirrored so the left fist strikes. 'beside the original's' is true for check.ts. The pass rule matches grade.ts: dur/1.3 \u00b13%; strike/1.3 \u00b10.05 s; left fist; mirrored back within 10% of H0; windup at least 4% of H0; sensors; playsOn.",
+   "B7 keeps the original's job and contract: graph.json with parameters speed (number), grounded (bool) and jump (trigger); the five base states; jump only when grounded with no buffering; land on contact; grounded false 0.1 s after a press; may fall without a jump. The starter graph checks and only stands, and the check description is true. The listed times equal grade.ts's BEFORE table (1.3 idle, 3.3 walk, 5.3 run, 8.3 run, 9.8 walk, 13.8 idle). 'Before the jump' is true because script.json presses jump at 5.5 s. PACES, the two state orders, exactly one jump within 0.1 s of the 5.5 s press, feet at 5% of H0, land within 0.1 s of 6.8 s and the finite check all match grade.ts.",
+   "Wording: each variant has a new scenario and title and a restructured layout. 6-gram overlap with the original is 14% (B2), 21% (B3), 23% (B5), 35% (B6) and 24% (B7), against 23% for G4 run-2's B1 example. No variant adds a solution hint beyond the original's except the B6 'wind-up' nit.",
+   "Format matches G4's held-out example: '# B<n> (held-out) \u00b7 <title>' with brief.md plus character.json {\"seed\": n} in each B2, B3, B5, B6, B7 directory. The writer's word counts are correct (428/337, 572/463, 253/198, 315/247, 607/497).",
+   "The writer's readFiles list breaks no rule. It has no packages/tools/MANUAL.md, no docs code examples, nothing under bench/graders/*/known-good/ and no library usage examples. Everything else is in the allowed set or is non-example code or records: bones.ts, recipes.ts, tools/fixtures/main.ts, G4 run-1, the original B1 brief, and a grep of seed numbers in PROGRESS and CHANGELOG.",
+   "The repository is untouched: HEAD is detached at a9731b1, git status shows only '?? bench/results/heldout/G6/', and the tracked diff is empty. This check wrote only to its scratchpad (/tmp/claude-0/-home-user-my-3danimations/6fa7db0b-96ab-5322-a7a6-649e6c7d3f92/scratchpad).",
+   "Not checked (left to the gate's pre-trial step): the known-good solutions on these five seeds. This checker did not read or run them."
+  ]
+ }
+}
