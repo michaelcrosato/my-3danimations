@@ -32,8 +32,15 @@ const GROUND_TOLERANCE = 6;
 /** How near an end the feet are looked for, s. */
 const ENDS = 0.3;
 
-/** The ready-made gaits and idles made so far, by id and body (at most six to a rest). */
-const PARTS = new Map<string, Resolved>();
+/**
+ * The ready-made gaits and idles made, by id and body (six to a rest: the four gaits and the two idles), the PARTS_KEPT
+ * used last, the one used longest ago dropped first: a game's handful of bodies (16, each asking all six) never makes
+ * one twice. Kept without a bound they grew with each body asked for: the four gaits resolved on the 104 bodies (the 64
+ * library rests and test characters 0 to 39) held 43 MB after a forced gc, 0.33 MB more a body (WP-6.2's close-out's
+ * review); kept so they hold about 24 MB after two forced gcs (some 10 MB for the 96 parts, the seam's readings, up to
+ * 16 MB, the rest), every content id the same. Seventeen bodies or more asking all six in turn miss every time.
+ */
+const PARTS = new Map<string, Resolved>(), PARTS_KEPT = 96;
 
 /**
  * A resolver over `base` that also makes procedural parts on `rest`: PROCEDURAL/<Name> is the gait, idle (or, given
@@ -47,11 +54,18 @@ export function proceduralResolver(base: Resolver, rest: Rest, restSrc: string, 
     const m = /^PROCEDURAL\/([A-Za-z0-9_]+)$/.exec(id);
     if (!m) return undefined;
     const name = m[1]!.toLowerCase(), opts = { restSrc, id }, g = GAITS.find((x) => x.name === name), i = IDLES.find((x) => x.name === name), mv = moves.find((x) => x.name === name);
-    // a ready-made gait or idle is the same clip on the same body whichever action asks: made once
+    // a ready-made gait or idle is the same clip on the same body whichever action asks: made once while kept
     const key = `${id}\n${body}`, kept = g || i ? PARTS.get(key) : undefined;
-    if (kept) return kept;
+    if (kept) {
+      PARTS.delete(key);
+      PARTS.set(key, kept);
+      return kept;
+    }
     const clip = g ? gaitClip(fitGait(g, rest), rest, opts) : i ? idleClip(i, rest, opts) : mv ? moveClip(mv, rest, opts) : undefined, out = clip ? { clip, rest, contentId: sha256(serialize(clip)) } : undefined;
-    if (out && (g || i)) PARTS.set(key, out);
+    if (out && (g || i)) {
+      PARTS.set(key, out);
+      if (PARTS.size > PARTS_KEPT) PARTS.delete(PARTS.keys().next().value!);
+    }
     return out;
   };
   return Object.assign((id: string) => base(id) ?? (made.has(id) ? made.get(id) : (made.set(id, make(id)), made.get(id))), {
