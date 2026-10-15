@@ -32,8 +32,8 @@ Units: millimetres and degrees in m3a, metres in three.js (the adapter converts)
   library's clips don't carry them yet; `playable(clip, rest)` measures them on the clip's own rest and puts them on
   the clip, with its library's spine and neck shares (so its torso bends as its library posed it, on any body).
 - **Root motion**: an in-place loop with contacts travels as its planted feet imply. `attach(...).moved` (mm, the
-  character's own frame: `forward`, `right`, `yaw`) is how far it went in the last update; move your character by
-  it, and its feet stay put.
+  character's own frame: `forward`, `right`, `yaw`) is how far it went in the last update, and `.travel` that move in
+  the scene (metres, the way the model faces: not always +Z); move your character by it, and its feet stay put.
 
 ## Find: the library
 
@@ -81,8 +81,7 @@ const player = attach(animator, bound);
 
 // each frame
 player.update(dt);                                // steps, poses, writes the bones
-scene.position.z += player.moved.forward / 1000;  // a glTF character faces +Z; mm → m
-scene.position.x -= player.moved.right / 1000;
+scene.position.add(player.travel);                // the root's move (m), the way the model faces
 ```
 
 - **Layers**: `animator.layer(name, { clip, weight, speed, time, mask, additive })` adds or changes a layer; omitted
@@ -92,7 +91,7 @@ scene.position.x -= player.moved.right / 1000;
   the base layer at the top layer's `time` and remove the top layer. Planting blends across the fade.
 - **Matching speed**: a loop's own ground speed on this body is
   `contact.contactRoot(ready, bound.core.rest, ready.contacts).speed` (mm/s). To travel at `v` m/s, play it at
-  `speed: (v * 1000) / own` (keep it within about 0.5 to 2), and move the character by `player.moved`. Moving the
+  `speed: (v * 1000) / own` (keep it within about 0.5 to 2), and move the character by `player.travel`. Moving the
   character at one speed while the feet step at another makes them slide.
 - **Events**: `animator.step(dt).events` (and `player.update(dt)`) returns the events passed, in order:
   `{ name, layer, clip, t, at }`. Add your own to a clip: `{ ...clip, events: [{ t: 0.42, name: "hit" }] }`.
@@ -174,7 +173,7 @@ with `layer()` go over them.
 
 ## Wire: root motion, in place, stride warping
 
-- **Root-driven:** move the character by `player.moved`: the clips decide its speed and planted feet stay put.
+- **Root-driven:** move the character by `player.travel`: the clips decide its speed and planted feet stay put.
 - **In place** (the game moves the character): play the moving clips at the ground speed over their own, or the feet
   slide. A clip's own speed on this body is `contact.contactRoot(clip, bound.core.rest, clip.contacts).speed` (mm/s).
   In a graph, give the moving state `"rate": "warp"` (a number parameter) and set it each frame: stride warping.
@@ -273,7 +272,8 @@ An action is a recipe with the ground it ends on, its beats and the moments it m
 
 `floor` is the ground it ends on, % of the hip height above where it starts (a hop down's is below 0). A step may read
 `PROCEDURAL/Walk`, `Brisk`, `Run`, `Limp`, `Breathe` or `Fidget`: a gait or idle made on the action's body
-(`procedural.gaitClip(g, rest, { restSrc })` makes one with your own speed, cycle and stance).
+(`procedural.gaitClip(g, rest, { restSrc })` makes one with your own speed, cycle and stance; a speed past what the
+body's legs reach is refused, and `procedural.fitGait(g, rest)` slows it to fit).
 
 ```ts
 import { actions } from "@m3a/core";

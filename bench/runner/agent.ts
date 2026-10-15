@@ -1,15 +1,22 @@
 // A fresh agent on a benchmark workspace (PLAN.md §7, WP-4.7). Isolation level 1: the `claude` CLI in print mode,
 // started in the workspace with a clean environment (the proxy and its certificates, nothing of this session's: no
 // tokens, no repository) and a fresh home (no settings, skills or memory), its tools limited to files and a shell.
+// Where the machine allows a mount namespace (`unshare`), each agent gets a /tmp of its own, holding only its workspace
+// and home, and the repository and this session's Claude home are hidden from it (D84): agents write scratch files to
+// /tmp by name, so agents run at once no longer meet there.
 // The transcript (stream-json) is kept; the run records its time, tokens, cost and turns, and the audit lists every
-// path it touched outside the workspace and every file it read past the manual (the packages' code in node_modules).
-import { spawn } from "node:child_process";
-import { existsSync, mkdirSync, writeFileSync } from "node:fs";
+// path it touched outside the workspace (and its own /tmp's scratch files apart) and every file it read past the
+// manual (the packages' code in node_modules), a shell command's relative paths resolved as its shell would (D88).
+import { execFileSync, spawn } from "node:child_process";
+import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { homedir } from "node:os";
 import { isAbsolute, join, normalize, resolve } from "node:path";
 
 /** What one agent run did. */
 export interface AgentRun {
   isolation: 1 | 3;
+  /** Whether it ran with a /tmp of its own, the repository hidden (D84). */
+  privateTmp: boolean;
   ok: boolean;
   ms: number;
   model: string;
@@ -18,6 +25,8 @@ export interface AgentRun {
   costUsd: number;
   /** Paths it touched outside its workspace (an isolation breach to read about in the transcript). */
   outside: string[];
+  /** Paths in its own /tmp outside its workspace: its scratch files, which no other agent sees (D84). */
+  scratch: string[];
   /** Files it read inside the workspace past the manual and the starter: the packages' own code and data. */
   pastManual: string[];
   transcript: string;
@@ -37,24 +46,171 @@ export interface AgentOptions {
 /** The variables a trial keeps from this process: the network's proxy and certificates, a PATH; nothing else. */
 const KEEP = ["PATH", "ANTHROPIC_BASE_URL", "HTTPS_PROXY", "https_proxy", "HTTP_PROXY", "http_proxy", "NO_PROXY", "no_proxy", "NODE_EXTRA_CA_CERTS", "SSL_CERT_FILE", "LANG"];
 
+/** The repository the runner runs from, and this session's Claude home: hidden from the agents (D84). */
+const REPO = join(import.meta.dirname, "../.."), HIDDEN = [REPO, join(homedir(), ".claude")];
+/** Whether `path` is `dir` or under it. */
+const within = (path: string, dir: string) => path === dir || path.startsWith(`${dir}/`);
+
+/** A path a tool call names (absolute; a glob as written), and whether the call only lists it (`ls`, Glob) or reads it. */
+export interface Named {
+  path: string;
+  lists: boolean;
+}
 /**
- * The paths a tool call names: a file tool's path, and the absolute paths in a shell command (a word of path characters
- * standing alone, whose first directory exists here: not a glob, nor a regex like `/foot/i.test(`).
+ * Where a tool call runs: its workspace, and its shell's directory, which a command's `cd`s move and the next command
+ * starts from (the CLI's shell keeps it from call to call, and puts it back at the workspace when a call leaves it).
+ * `exists` says whether a path is there as the agent sees it (with a /tmp of its own, D84, in `<trial>-tmp`).
  */
-export function pathsOf(tool: string, input: Record<string, unknown>): string[] {
-  if (tool === "Bash") {
-    return [...String(input.command ?? "").matchAll(/(?:^|[\s'"=:(])(\/[\w.@+~-]+(?:\/[\w.@+~-]*)*)(?=$|[\s'"`;|&)<>])/g)].map((m) => m[1]!).filter((p) => existsSync(`/${p.split("/")[1]}`));
+export interface Where {
+  workspace: string;
+  cwd: string;
+  exists?: (path: string) => boolean;
+}
+/** Commands that name paths without reading them: what they list, enter, make or remove is touched, not read (as Glob). */
+const LISTS = new Set(["ls", "cd", "find", "tree", "du", "stat", "mkdir", "rmdir", "rm", "touch", "echo", "printf", "test", "[", "realpath", "readlink", "dirname", "basename", "for"]);
+/** Words that open a command without being it. */
+const LEADS = new Set(["do", "then", "else", "elif", "if", "while", "until", "!", "{", "time"]);
+/** A word of path characters, a glob's among them. */
+const PATHLIKE = /^[\w.@+~*?[\]/-]+$/;
+/** An absolute path in a script, a pattern or a heredoc: path characters standing alone (no glob). */
+const ABSOLUTE = /(?:^|[\s'"=:(])(\/[\w.@+~-]+(?:\/[\w.@+~-]*)*)(?=$|[\s'"`;|&)<>])/g;
+
+/**
+ * A shell command's simple commands (split at newlines, `;`, `&&`, `||`, `|`, `&`, parentheses and `$(`), each its
+ * words with the quotes taken off, a redirection's file kept as a word and its descriptors (`2>&1`) dropped; and its
+ * heredocs' bodies apart, as text. A sketch of the shell's grammar: enough to tell which words a command names.
+ */
+function shellWords(command: string): { commands: string[][]; heredocs: string[] } {
+  const commands: string[][] = [], heredocs: string[] = [], pending: { end: string; tabs: boolean }[] = [];
+  let words: string[] = [], word = null as string | null, i = 0;
+  const add = (s: string) => void (word = (word ?? "") + s);
+  const end = () => {
+    if (word !== null) words.push(word);
+    word = null;
+  };
+  const cut = () => {
+    end();
+    if (words.length) commands.push(words);
+    words = [];
+  };
+  while (i < command.length) {
+    const ch = command[i]!, next = command[i + 1] ?? "";
+    if (ch === "'") {
+      const j = command.indexOf("'", i + 1);
+      add(command.slice(i + 1, j < 0 ? undefined : j));
+      i = j < 0 ? command.length : j + 1;
+    } else if (ch === '"') {
+      let s = "";
+      for (i++; i < command.length && command[i] !== '"'; i++) s += command[i] === "\\" && /["\\$`\n]/.test(command[i + 1] ?? "") ? command[++i]! : command[i]!;
+      add(s);
+      i++;
+    } else if (ch === "\\") {
+      if (next !== "\n") add(next);
+      i += 2;
+    } else if (ch === "#" && word === null) {
+      while (i < command.length && command[i] !== "\n") i++;
+    } else if (ch === "\n") {
+      cut();
+      i++;
+      // the heredocs opened on that line: their bodies, each up to its delimiter's line
+      for (const h of pending.splice(0)) {
+        const body: string[] = [];
+        while (i < command.length) {
+          const nl = command.indexOf("\n", i), line = command.slice(i, nl < 0 ? undefined : nl);
+          i = nl < 0 ? command.length : nl + 1;
+          if ((h.tabs ? line.replace(/^\t+/, "") : line) === h.end) break;
+          body.push(line);
+        }
+        heredocs.push(body.join("\n"));
+      }
+    } else if (ch === " " || ch === "\t") {
+      end();
+      i++;
+    } else if (ch === "<" && next === "<" && command[i + 2] !== "<") {
+      end();
+      i += 2;
+      const tabs = command[i] === "-";
+      if (tabs) i++;
+      while (command[i] === " " || command[i] === "\t") i++;
+      let d = "";
+      for (; i < command.length && !/[\s;|&<>()]/.test(command[i]!); i++) if (!`'"\\`.includes(command[i]!)) d += command[i];
+      pending.push({ end: d, tabs });
+    } else if (ch === "<" || ch === ">" || (ch === "&" && next === ">")) {
+      // a redirection (`>`, `>>`, `&>`, `<<<`): the next word is its file; a descriptor's number before it isn't a word
+      if (word !== null && /^\d+$/.test(word)) word = null;
+      end();
+      for (i++; /[<>|]/.test(command[i] ?? ""); i++);
+      if (command[i] === "&") for (i++; /[\d-]/.test(command[i] ?? ""); i++);
+    } else if (";|&()`".includes(ch) || (ch === "$" && next === "(")) {
+      cut();
+      i += ch === "$" ? 2 : 1;
+    } else {
+      add(ch);
+      i++;
+    }
   }
-  return ["file_path", "path", "notebook_path"].map((k) => input[k]).filter((p): p is string => typeof p === "string");
+  cut();
+  return { commands, heredocs };
+}
+
+/**
+ * The paths a tool call names: a file tool's path (and Glob's pattern, which lists), from the workspace; and in a shell
+ * command, each word that names a path, absolute or relative (from the shell's directory, following the command's `cd`s
+ * and a `for` loop's variable; a glob as written), whose first directory exists (not a regex like `/foot/i.test(`, a
+ * grep pattern or a sed script), and the absolute paths in its scripts and heredocs. A command that only lists (`ls`,
+ * `cd`, `find` without `-exec`...) lists its paths. Without `at`, a shell command's relative paths are left out and a
+ * file tool's left as they are; with it, `at.cwd` moves to where the next command starts.
+ */
+export function pathsOf(tool: string, input: Record<string, unknown>, at?: Where): Named[] {
+  const ws = at?.workspace ?? "", exists = at?.exists ?? existsSync, from = (p: string, dir: string | null) => (isAbsolute(p) ? normalize(p) : dir === null ? p : resolve(dir, p));
+  if (tool !== "Bash") {
+    const named = ["file_path", "path", "notebook_path"].map((k) => input[k]).filter((p): p is string => typeof p === "string").map((p) => ({ path: from(p, at ? ws : null), lists: tool === "Glob" }));
+    if (tool === "Glob" && typeof input.pattern === "string") named.push({ path: from(input.pattern, at ? (named[0]?.path ?? ws) : null), lists: true });
+    return named;
+  }
+  const out: Named[] = [], vars = new Map<string, string[]>(), { commands, heredocs } = shellWords(String(input.command ?? ""));
+  let cwd: string | null = at?.cwd ?? null;
+  const inText = (text: string) => {
+    for (const m of text.matchAll(ABSOLUTE)) if (exists(`/${m[1]!.split("/")[1]}`)) out.push({ path: normalize(m[1]!), lists: false });
+  };
+  const home = (w: string) => (at && (w === "~" || w.startsWith("~/")) ? `${ws}-home${w.slice(1)}` : w);
+  // a word with a `for` loop's variable put in, once per value (any other variable leaves it a word of text)
+  const expand = (w: string): string[] => {
+    const m = /\$\{?(\w+)\}?/.exec(w), values = m ? vars.get(m[1]!) : undefined;
+    return m && values ? values.flatMap((v) => expand(w.slice(0, m.index) + v + w.slice(m.index + m[0].length))) : [w];
+  };
+  const named = (word: string, lists: boolean) => {
+    const w = home(word);
+    if (!PATHLIKE.test(w) || w.startsWith("-")) return inText(w);
+    const first = w.split("/")[isAbsolute(w) ? 1 : 0]!;
+    if (isAbsolute(w) ? first && exists(`/${first}`) : cwd !== null && (/[*?[]/.test(first) || exists(resolve(cwd, first)))) out.push({ path: from(w, cwd), lists });
+  };
+  for (const raw of commands) {
+    const words = raw.flatMap(expand);
+    let k = 0;
+    for (; k < words.length && (LEADS.has(words[k]!) || /^\w+=/.test(words[k]!)); k++) inText(words[k]!);
+    const cmd = words[k] ?? "", args = words.slice(k + 1), lists = LISTS.has(cmd) && !args.some((a) => /^-(exec|execdir|ok)$/.test(a));
+    if (cmd === "for") vars.set(args[0] ?? "", args[1] === "in" ? args.slice(2).filter((v) => !v.includes("$")) : []);
+    for (const w of cmd === "for" ? args.slice(2) : [...(cmd.includes("/") ? [cmd] : []), ...args]) named(w, lists);
+    if (cmd === "cd") {
+      const to = home(args.find((a) => !a.startsWith("-")) ?? "~");
+      cwd = args.includes("-") || to.includes("$") ? null : isAbsolute(to) ? normalize(to) : cwd === null ? null : resolve(cwd, to);
+    }
+  }
+  for (const h of heredocs) inText(h);
+  if (at) at.cwd = cwd !== null && within(cwd, ws) ? cwd : ws;
+  return out;
 }
 /**
  * The audit of a transcript's tool calls: paths outside the workspace (system and tool paths a shell names as a matter
- * of course, like /usr/bin or /tmp, aside), and files read past the manual (in node_modules/@m3a/, other than the
- * manual itself).
+ * of course, like /usr/bin or /tmp, aside; with a /tmp of its own, the paths in it are its `scratch`, but never the
+ * repository's or the Claude home's, wherever they live), and files read past the manual (under node_modules/@m3a/,
+ * other than the manual itself; a listing isn't a read).
  */
-export function audit(lines: readonly string[], workspace: string): { outside: string[]; pastManual: string[] } {
-  const outside = new Set<string>(), past = new Set<string>(), ws = normalize(workspace);
+export function audit(lines: readonly string[], workspace: string, privateTmp = false): { outside: string[]; scratch: string[]; pastManual: string[] } {
+  const outside = new Set<string>(), scratch = new Set<string>(), past = new Set<string>(), ws = resolve(workspace);
   const ordinary = /^\/(usr|bin|sbin|lib|lib64|etc|proc|dev|sys|opt\/node|tmp\/?$|var\/tmp\/?$)/;
+  const at: Where = { workspace: ws, cwd: ws, exists: (p) => existsSync(p) || (privateTmp && p.startsWith("/tmp/") && existsSync(`${ws}-tmp${p.slice(4)}`)) };
   for (const line of lines) {
     let j: { type?: string; message?: { content?: { type: string; name?: string; input?: Record<string, unknown> }[] } };
     try {
@@ -65,28 +221,78 @@ export function audit(lines: readonly string[], workspace: string): { outside: s
     if (j.type !== "assistant") continue;
     for (const c of j.message?.content ?? []) {
       if (c.type !== "tool_use" || !c.name || !c.input) continue;
-      for (const p of pathsOf(c.name, c.input)) {
-        const abs = isAbsolute(p) ? normalize(p) : resolve(ws, p);
-        if (!abs.startsWith(ws)) {
-          if (!ordinary.test(abs)) outside.add(abs);
-        } else if (/node_modules\/@m3a\//.test(abs) && !/node_modules\/@m3a\/tools\/MANUAL\.md$/.test(abs) && c.name !== "Glob") past.add(abs.slice(ws.length + 1));
+      for (const { path, lists } of pathsOf(c.name, c.input, at)) {
+        const rel = path.slice(ws.length + 1);
+        if (!within(path, ws)) {
+          if (privateTmp && path.startsWith("/tmp/") && !HIDDEN.some((d) => within(path, d))) scratch.add(path);
+          else if (!ordinary.test(path)) outside.add(path);
+        } else if (!lists && /^node_modules\/@m3a(\/|$)/.test(rel) && rel !== "node_modules/@m3a/tools/MANUAL.md") past.add(rel);
       }
     }
   }
-  return { outside: [...outside].sort(), pastManual: [...past].sort() };
+  return { outside: [...outside].sort(), scratch: [...scratch].sort(), pastManual: [...past].sort() };
+}
+
+let probed: string[] | null | undefined;
+/**
+ * The `unshare` arguments that give a process a mount namespace of its own (as root, or through a user namespace
+ * mapping this user to root), or null where the machine allows neither. Probed once, by bind-mounting a directory.
+ */
+export function namespace(): string[] | null {
+  if (probed !== undefined) return probed;
+  probed = null;
+  const dir = mkdtempSync("/tmp/m3a-ns-");
+  for (const args of [...(process.getuid?.() === 0 ? [["-m"]] : []), ["-r", "-m"]]) {
+    try {
+      execFileSync("unshare", [...args, "--propagation", "private", "mount", "--bind", dir, dir], { stdio: "ignore", timeout: 10_000 });
+      probed = args;
+      break;
+    } catch {
+      // not allowed here: try the next way, or run agents without one
+    }
+  }
+  rmSync(dir, { recursive: true, force: true });
+  return probed;
+}
+/**
+ * The command that starts `cmd args` in `workspace` with a /tmp of its own, `tmp` (a directory outside the workspace):
+ * in a mount namespace, the workspace and `home` are bound into `tmp` at their own paths, `tmp` is bound over /tmp,
+ * and the repository and this session's Claude home are covered by empty directories. Null where no namespace can be
+ * made (the agent then shares the machine's /tmp).
+ */
+export function privateTmp(workspace: string, home: string, tmp: string, cmd: string, args: readonly string[]): { cmd: string; args: string[] } | null {
+  const ns = namespace();
+  if (!ns) return null;
+  const binds = [workspace, home].filter((d) => d.startsWith("/tmp/"));
+  for (const d of binds) mkdirSync(join(tmp, d.slice(4)), { recursive: true });
+  const hide = HIDDEN.filter((d) => existsSync(d) && !d.startsWith("/tmp/") && !workspace.startsWith(d));
+  // $1 the workspace, $2 the private /tmp, $3 the binds and $4 the hidden directories (each joined by newlines)
+  const script = [
+    "set -e",
+    "IFS='\n'",
+    'for d in $3; do mount --bind "$d" "$2${d#/tmp}"; done',
+    'mount --rbind "$2" /tmp',
+    'for d in $4; do mount -t tmpfs -o size=64k,mode=0755 m3a-hidden "$d"; done',
+    'cd "$1"',
+    "shift 4",
+    'exec "$@"',
+  ].join("\n");
+  return { cmd: "unshare", args: [...ns, "--propagation", "private", "sh", "-c", script, "sh", workspace, tmp, binds.join("\n"), hide.join("\n"), cmd, ...args] };
 }
 
 /** Runs a fresh agent in `workspace` on `prompt`; the transcript goes to `transcript`. */
 export function runAgent(workspace: string, prompt: string, transcript: string, opts: AgentOptions = {}): Promise<AgentRun> {
-  const home = join(workspace, "..", `${workspace.split("/").pop()}-home`), t0 = performance.now();
-  mkdirSync(join(home, "tmp"), { recursive: true });
-  // its own temporary directory, for the tools that ask for one (an agent may still name /tmp itself: the audit lists it)
-  const env: Record<string, string> = { HOME: home, TMPDIR: join(home, "tmp") };
-  for (const k of KEEP) if (process.env[k]) env[k] = process.env[k]!;
+  const name = workspace.split("/").pop(), home = join(workspace, "..", `${name}-home`), tmp = join(workspace, "..", `${name}-tmp`), t0 = performance.now();
+  mkdirSync(home, { recursive: true });
+  mkdirSync(tmp, { recursive: true });
   const tools = opts.tools ?? "Bash,Read,Write,Edit,Glob,Grep";
   const args = ["-p", prompt, "--output-format", "stream-json", "--verbose", "--max-turns", String(opts.maxTurns ?? 80), "--tools", tools, "--allowedTools", tools, "--strict-mcp-config", ...(opts.model ? ["--model", opts.model] : [])];
+  // its own /tmp where a namespace can be made (D84); else its own temporary directory for the tools that ask for one
+  // (an agent may still name /tmp itself: the audit lists it)
+  const own = privateTmp(workspace, home, tmp, "claude", args), env: Record<string, string> = { HOME: home, TMPDIR: own ? "/tmp" : tmp };
+  for (const k of KEEP) if (process.env[k]) env[k] = process.env[k]!;
   return new Promise((done) => {
-    const child = spawn("claude", args, { cwd: workspace, env, stdio: ["ignore", "pipe", "pipe"] }), out: string[] = [];
+    const child = spawn(own?.cmd ?? "claude", own?.args ?? args, { cwd: workspace, env, stdio: ["ignore", "pipe", "pipe"] }), out: string[] = [];
     let buf = "", err = "";
     child.stdout.on("data", (d: Buffer) => {
       buf += d.toString();
@@ -107,11 +313,11 @@ export function runAgent(workspace: string, prompt: string, transcript: string, 
           return {};
         }
       }).findLast((j) => j.type === "result") as { subtype?: string; num_turns?: number; total_cost_usd?: number; usage?: Record<string, number>; modelUsage?: Record<string, unknown>; is_error?: boolean; result?: string } | undefined;
-      const u = result?.usage ?? {}, a = audit(out, workspace);
+      const u = result?.usage ?? {}, a = audit(out, workspace, own !== null);
       done({
-        isolation: 1, ok: code === 0 && result?.subtype === "success", ms: performance.now() - t0, model: Object.keys(result?.modelUsage ?? {})[0] ?? opts.model ?? "default",
+        isolation: 1, privateTmp: own !== null, ok: code === 0 && result?.subtype === "success", ms: performance.now() - t0, model: Object.keys(result?.modelUsage ?? {})[0] ?? opts.model ?? "default",
         turns: result?.num_turns ?? 0, tokens: { input: u.input_tokens ?? 0, output: u.output_tokens ?? 0, cacheRead: u.cache_read_input_tokens ?? 0, cacheWrite: u.cache_creation_input_tokens ?? 0 },
-        costUsd: result?.total_cost_usd ?? 0, outside: a.outside, pastManual: a.pastManual, transcript, reply: result?.result ?? "",
+        costUsd: result?.total_cost_usd ?? 0, outside: a.outside, scratch: a.scratch, pastManual: a.pastManual, transcript, reply: result?.result ?? "",
         ...(code === 0 && result?.subtype === "success" ? {} : { error: (result?.subtype ?? `exit ${code}`) + (err ? `: ${err.trim().split("\n").slice(-1)[0]}` : "") }),
       });
     });

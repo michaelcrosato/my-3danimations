@@ -49,7 +49,7 @@ export const GATES: Record<string, [string, string, ...string[]][]> = {
     ["doctrine", "doctrine"],
     ["vectors --check", "vectors", "--check"],
     ["the held-out run is fresh: no gate run used it, its rig's license pinned, the rig cached (D57)", "fixtures", "heldout", "G4"],
-    ["the sweep: every migrated clip on the six skeletons, 95% together; the held-out rig apart", "sweep", "gen-0", "gen-1", "gen-2", "gen-3", "quaternius-mannequin-m", "kaykit-knight", "--min-total", "95", "--heldout", "G4"],
+    ["the sweep: every library clip on the six skeletons, 95% together, no fail finding added (D80); the held-out rig apart", "sweep", "gen-0", "gen-1", "gen-2", "gen-3", "quaternius-mannequin-m", "kaykit-knight", "--min-total", "95", "--heldout", "G4"],
     ["T2: the demo headless, its set on the six skeletons and the held-out rig, sheets", "e2e"],
     ["B1: at least 4 of 5 fresh agents; 2 discovery trials, reported (§7)", "bench", "B1", "--trials", "5", "--discovery", "2"],
     ["B1's held-out variant: at least 4 of 5 fresh agents", "bench", "B1", "--trials", "5", "--heldout", "G4"],

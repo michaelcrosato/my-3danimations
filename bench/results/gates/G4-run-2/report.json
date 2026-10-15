@@ -1,0 +1,82 @@
+{
+  "tool": "gate",
+  "ok": true,
+  "verdict": "gate G4: PASS in 2505.8 s (9/9 commands)",
+  "steps": [
+    {
+      "name": "check",
+      "ok": true,
+      "ms": 5098.898088,
+      "detail": [],
+      "log": "check-output/gate/check.log",
+      "summary": "check: PASS (T0) in 4.9 s, budget 15.0 s"
+    },
+    {
+      "name": "test",
+      "ok": true,
+      "ms": 77063.972978,
+      "detail": [],
+      "log": "check-output/gate/test.log",
+      "summary": "test: PASS (T1) in 76.9 s, budget 90.0 s"
+    },
+    {
+      "name": "doctrine",
+      "ok": true,
+      "ms": 521.398829999991,
+      "detail": [],
+      "log": "check-output/gate/doctrine.log",
+      "summary": "doctrine: PASS in 0.2 s (8 checks)"
+    },
+    {
+      "name": "vectors --check",
+      "ok": true,
+      "ms": 1868.502290000004,
+      "detail": [],
+      "log": "check-output/gate/vectors-check.log",
+      "summary": "vectors: PASS (--check) in 1.6 s"
+    },
+    {
+      "name": "the held-out run is fresh: no gate run used it, its rig's license pinned, the rig cached (D57)",
+      "ok": true,
+      "ms": 295.8974479999888,
+      "detail": [],
+      "log": "check-output/gate/the-held-out-run-is-fresh-no-gate-run-used-it-its-rig-s-license-pinned-the-rig-cached-D57-.log",
+      "summary": "fixtures heldout G4: PASS in 0.1 s"
+    },
+    {
+      "name": "the sweep: every library clip on the six skeletons, 95% together, no fail finding added (D80); the held-out rig apart",
+      "ok": true,
+      "ms": 1515745.6721869998,
+      "detail": [],
+      "log": "check-output/gate/the-sweep-every-library-clip-on-the-six-skeletons-95-together-no-fail-finding-added-D80-the-held-out-rig-apart.log",
+      "summary": "sweep: PASS, 9523 of 9786 clip-skeleton pairs pass in 1515.3 s"
+    },
+    {
+      "name": "T2: the demo headless, its set on the six skeletons and the held-out rig, sheets",
+      "ok": true,
+      "ms": 123937.98896500003,
+      "detail": [],
+      "log": "check-output/gate/T2-the-demo-headless-its-set-on-the-six-skeletons-and-the-held-out-rig-sheets.log",
+      "summary": "e2e: PASS (T2) in 123.7 s, budget 480.0 s"
+    },
+    {
+      "name": "B1: at least 4 of 5 fresh agents; 2 discovery trials, reported (§7)",
+      "ok": true,
+      "ms": 534562.838794,
+      "detail": [],
+      "log": "check-output/gate/B1-at-least-4-of-5-fresh-agents-2-discovery-trials-reported-7-.log",
+      "summary": "bench B1: PASS in 534.1 s"
+    },
+    {
+      "name": "B1's held-out variant: at least 4 of 5 fresh agents",
+      "ok": true,
+      "ms": 246701.92700400017,
+      "detail": [],
+      "log": "check-output/gate/B1-s-held-out-variant-at-least-4-of-5-fresh-agents.log",
+      "summary": "bench B1: PASS in 246.3 s"
+    }
+  ],
+  "warnings": [],
+  "ms": 2505801.5032530003,
+  "next": "write the G4 report in docs/PROGRESS.md and on the PR, then merge (PLAN.md §8.5)"
+}

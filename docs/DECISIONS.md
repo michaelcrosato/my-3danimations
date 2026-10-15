@@ -1378,7 +1378,8 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
     its time, turns, tokens and cost, the paths it touched outside its workspace and the files it read past the
     manual. A one-turn probe checks the credentials first. `--parallel N` runs N agents at once, each with its own
     TMPDIR; agents still write scratch files to `/tmp` by name (all 7 of the first run wrote `/tmp/cat.mjs`), so runs
-    that count at a gate run one at a time.
+    that count at a gate run one at a time. **Superseded in part by D84:** each agent gets a `/tmp` of its own, so
+    agents run at once where the machine allows it.
   - B1's grader drives the workspace's player headless with scripted speeds (0, 1.2, 3.5, 1.2, 0 m/s) on the
     starter's character and judges the bones, not the player's word: the motion reported; the speed travelled
     (within 25%; under 0.15 m/s idle); the feet stepping when walking (their speed against the pelvis over twice
@@ -2363,8 +2364,40 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   - **Tests:** the refusals at 0.25 s, 111 frames a second and 72%; a gait made at 110; the cap's cases at swings of
     0.26 s; the sensors' two shortest swings now 0.26 s (6.2 and 8.0 mm on 100STYLE). The root change (D77): a one-shot's
     sideways speed is spent too, and a loop's flight is still in-betweened (its mutants R6 and R11 now fail the test).
+- **Verifier, round 7** (at bf3f9ed): not done, three blocking findings. Fixed or answered in v0.44.0:
+  - **The swing's height broke its slope** (blocking) where the lift-off met the arc (infinite there, sin(πw^0.756))
+    and where the arc met the set-down. A run lifting 35 whose foot began its arc on the loop's seam failed seam speed
+    on all three test rests (4.1 to 5.0 m/s). The height is now one curve with continuous slope through the floor, 9%,
+    the peak (at 40% of the swing), 4.5% and the floor, still at the floor at its ends: the repros pass (1.0 to 1.9
+    m/s), the verifier's seam grid goes from 9 to 0 of 129, and the walk keeps 5% of H0 clearance at 80% of its swing
+    (6.6%).
+  - **At 50 frames a second short swings popped knees** (blocking): 44 of 418 failed; with the arc fixed, 7 of 456 (a
+    fast thigh sweep on 0.26 s swings); at 55 and 60, none. A gait is made at 55 frames a second or more.
+  - **At 110 the pelvis stair-stepped** (blocking): the format holds the hips in whole % of H0, so a slow bouncing
+    pelvis steps every other frame and a planted knee jumps about 30 mm with it. Counting the pelvis's sway and
+    rounding in the 98.5% loop cut the 64-rest grid from 29 to 8 of 256, not to none; at 90 none fail (35 warn, 59
+    before). A gait is made at 90 frames a second or fewer.
+  - **Should-fix:** 15 mutants of 0.42.6's fixes survived the tests (the 98.5% loop gone or blind to the bounce, the
+    reach check at 0.75 with its message kept, the stance end, the swing and rate checks a hair off): tests now pin the
+    loop (a gait at speed 375, cycle 0.52, stance 0.5, bounce 6 on `MESH2MOTION/Idle_A`, a pop without it), legs at
+    most 98.5% of their length at the reach bound with a bounce, the reach's edge (189 taken and 190 refused on
+    Mesh2Motion's rest, 177 and 178 on 100STYLE's), a swing of 0.255 s and 54.9 frames a second refused; all 15 and
+    this round's own 12 mutants fail them. A body without collarbones (test characters 3, 9, 15...) made NaN in every
+    procedural source: the encoder writes no shrug for a collarbone 0 mm long (the vectors byte for byte), and a gait,
+    an idle and a move are made on test character 3. Since the 72% bound the run preset fits 4 of the 20 test
+    characters as it is (the tall ones) and the brisk walk 14: the refusal names the fastest speed the legs take, and
+    `procedural.fitGait(g, rest)` slows a gait to it (all 80 fitted presets pass, read plainly and by parts).
+  - **Nits:** a swing of 0.26 s is compared to the millisecond (0.8 s at a stance of 0.675 is taken); a missing or
+    blank name or about, a non-number field or rate is refused by its name before the clip is made (idles too); "no
+    leg past 98.5% at any phase" held for the model's targets while the written clip read up to 99.3%: the loop now
+    counts the pelvis's rounding, and the 5,160-gait grid reads at most 98.46% (a leg's own rounding, about 0.3%, is
+    not counted).
+  - **Measured:** the verifier's 5,160 gaits (64 library rests and 33 test characters, rates within 55 to 90): none
+    fail, 768 warn, knee-pop findings 50 (187 before), the worst seam speed 3.8 m/s (6.6); the presets on 64 rests at
+    60: none fail, the worst slide 8.3 mm (10.1). The arc moved two off-preset slides by about 2 mm (format rounding):
+    two sensors-test bars 5 → 6.5 mm and 7 → 8 mm.
 - **Answered:** no: made without a response, to review.
-- **Landed in:** v0.37.0, v0.37.2, v0.39.1, v0.42.1, v0.42.3, v0.42.4, v0.42.6
+- **Landed in:** v0.37.0, v0.37.2, v0.39.1, v0.42.1, v0.42.3, v0.42.4, v0.42.6, v0.44.0
 
 ## D72 · 2026-10-12 · Actions: multi-beat motions with their ground, beats and interrupt points (WP-6.3)
 
@@ -2831,7 +2864,7 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
 - **Why:** answered by the owner after the numbers were put to them, so the reading isn't the agent grading itself
   (D60); the sensors set warn at real capture's p95 and fail past all of it.
 - **Answered:** yes, the owner, 2026-10-14.
-- **Landed in:** michaelcrosato/my-3danimations#10 (recorded only); the change lands with G4 run 2's preparation
+- **Landed in:** michaelcrosato/my-3danimations#10 (recorded only); the sweep, §9.3 and WP-4.5 in v0.42.7
 
 ## D81 · 2026-10-14 · D63's question answered: the Quaternius sets stay as migrated
 
@@ -2856,3 +2889,178 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   temporary directories, the held-out variants); it is redone, not recovered.
 - **Answered:** yes, the owner, 2026-10-14.
 - **Landed in:** michaelcrosato/my-3danimations#10
+
+## D83 · 2026-10-14 · Ultracode from here: implementers in worktrees, one integrator; gates in the main checkout
+
+- **Principle:** process (`PLAN.md` §11), D21
+- **Call:**
+  - The owner's prompt for this session names ultracode, so the plan switches from D21's single agent to §11's
+    multi-agent mode. The main session is the integrator: it owns §8.4's shared files, `docs/DECISIONS.md`, the root
+    `package.json`, the `tsconfig` roots and the generated docs, and does every merge. Up to five implementers work
+    in git worktrees, each editing only its WP's Owns; a verifier reviews every L WP and every gate; a separate fresh
+    subagent writes each gate's held-out variants (§7).
+  - A worktree lacks what the SessionStart hook leaves in the main checkout (`.cache/`'s pinned sources, rigs and
+    held-out rigs; `node_modules`): G4 run 1's `vectors --check` failed so (D57). An implementer's worktree links
+    `.cache` to the main checkout's and runs `npm ci`; gates run in the main checkout, never a worktree.
+  - The branch is `claude/cool-goldberg-qgyu06`, restarted from `main` after each gate's squash merge with a fresh
+    draft pull request (D82).
+- **Why:** the owner asked for it; the lanes that remain (G6's preparation, G4 run 2's, Phases 7 to 10) have Owns that
+  don't overlap often enough for parallel work to pay.
+- **Answered:** yes, the owner's prompt, 2026-10-14.
+- **Landed in:** (this pull request; no version)
+
+## D84 · 2026-10-14 · A benchmark agent gets a /tmp of its own, the repository hidden; agents run at once (D54, D78)
+
+- **Principle:** 3, §7 (isolation level 1), D54, D78
+- **Call:**
+  - `bench/runner/agent.ts` starts each `claude` in a mount namespace of its own (`unshare -m`, or `unshare -r -m`
+    through a user namespace when not root; probed once by bind-mounting a directory). Its workspace and home are
+    bound into a directory beside them, `<trial>-tmp`, at their own paths, that directory is bound over `/tmp`, and the
+    repository and this session's Claude home are covered by empty directories; then `claude` starts in its workspace,
+    `TMPDIR=/tmp`. What an agent writes to `/tmp` by name (`/tmp/cat.mjs`, as all 7 of D54's first trials did) lands
+    in its own `<trial>-tmp`, kept with the run; the audit lists those paths as its `scratch`, apart from `outside`.
+    Each trial records `privateTmp`.
+  - D54's "runs that count at a gate run one at a time" is superseded: D78's gate set runs five agents at once
+    (`--parallel 5`), as `tools/run/gate.ts` has it. Where no namespace can be made, the runner runs agents one at a
+    time whatever `--parallel` asks (`lanes`), and the results file records the lanes it used.
+  - The test: two stand-in `claude`s first on the agents' PATH, run at once, each report that they started in their
+    own workspace with `TMPDIR=/tmp`, that their `/tmp` held only the way to their workspace and home, that the
+    repository showed empty, and that the `/tmp/cat.mjs` each wrote is in its own `<trial>-tmp`. CI's runners (a user,
+    not root) get user namespaces with `kernel.apparmor_restrict_unprivileged_userns=0`, so the test runs there too.
+  - `runner.test.ts` and `briefs.test.ts` remove the temporary directories they make (packs, workspaces and installs:
+    they were kept, and filled the disk).
+  - The quiz probe at isolation level 1 passes: 10 of 10 in 4.9 s on the CLI's default model.
+- **Why:** five agents writing the same `/tmp` file at once can read each other's work, and an agent able to read the
+  repository can read the graders and the known-good solutions; the audit found neither in D54's or G4 run 1's trials,
+  but a gate shouldn't rest on an audit when the machine can prevent it. Running five at once cuts a G6 run from about
+  50 agent-runs in a row to 10 rounds.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.42.7
+
+## D85 · 2026-10-14 · O3: the Vercel deployment is paused until the project is complete
+
+- **Principle:** O3, WP-4.6, WP-8.3, G4, G8
+- **Call:** the owner paused the repository's Vercel deployment: it isn't needed until the project is complete. Until
+  then O3's default holds: demos run locally and in CI's e2e, their sheets kept as CI artifacts; G4's public link and
+  WP-8.3's preview URL on the pull request wait for it and are reported when it comes; G8's phone review uses a build
+  the owner opens. A pull request's checks no longer list Vercel's.
+- **Why:** the owner's call.
+- **Answered:** yes, the owner, 2026-10-14.
+- **Landed in:** (this pull request; no version)
+
+## D86 · 2026-10-14 · B1 on real rigs: the starters read meshopt; a model's move along the way it faces (D77's S7, S8)
+
+- **Principle:** 3, 8, §7, G4 (D57, D77)
+- **Call:**
+  - **S7:** B1's starters load their character as B2, B3, B4 and B7's do (`loadGlb`: meshopt read, textures left
+    out); the discovery starter does the same with three's own `MeshoptDecoder` and a loader plugin that drops texture
+    slots, naming no `@m3a` package. G4's starters threw on the Quaternius mannequins (meshopt) and on KayKit's Knight
+    (no image decoder in Node). A T1 test loads all four real rigs on hand through both starters as the grader does.
+  - **S8 was the facing, not the floor:** core already takes the ground at the rest soles (G4 run 1's held-out rig
+    stands at y −0.997 m; its planted toes sit 0 to 3 mm on the grader's floor). That rig faces +X (its armature turned
+    a quarter about Y), and the known-good moved it along +Z, as the manual showed, so it walked sideways and its lower
+    foot slid 1.2 to 3.1 m/s. `@m3a/three`'s `attach(...).travel` is the last update's root move in the root's parent
+    space, along the facing bind reads from the bones; the manual's snippet moves the character by it. A test: facing
+    +X it travels 2.83 m along +X with the standing ankle at 0.000 m/s (the old way, 1.26 m/s).
+  - B1's known-good passes on the mannequins, G4 run 1's held-out rig and seeds 1, 37, 41 and 935; the four planted
+    bad ones fail on gen-1, gen-37 and the held-out rig, naming their check (T2, 11 tests in 40 s).
+  - **Left open:** KayKit's Knight floats 55 mm, because bind reads its soles from its arm mesh, the one with the most
+    bones, so B1's known-good fails there; reading every mesh made its boots drag and moved the actions sweep, so the
+    fix goes with a sweep of its own (in hand). B3's and B4's known-goods still move along +Z (their planted bad ones
+    edit those lines); G6 grades them on generator seeds, which face +Z, and G7 reruns them on real rigs.
+- **Why:** §7 wants the known-good to pass on any held-out variant before trials, and an agent can't see which way a
+  model faces while bind can read it.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.43.0
+
+## D87 · 2026-10-14 · bind reads a foot's sole from every mesh; long feet are the retargeting's next limit (R1)
+
+- **Principle:** 8, 3, R1, G4
+- **Call:**
+  - `@m3a/three`'s `bind` places a childless foot's or toe's end bone where its part of the mesh ends, read now from
+    every skinned mesh that skins it (half its weight or more), not only the mesh with the most bones. KayKit's Knight
+    keeps its feet in its leg meshes (its arm mesh has the most bones), so it floated 55 mm at idle and its boots sank
+    to −61 mm walking; it now stands on its soles (within 5 mm over its idle). The 21 generated characters, both
+    Quaternius mannequins (two meshes each) and G4 run 1's held-out rig bind byte for byte as before (a test pins their
+    bound rests' hashes).
+  - **Measured on the Knight:** the whole-library sweep 96.1% → 92.3% (18 pairs fixed, 72 broken: pop 30, seam speed
+    25, skate 24, slide 17, jitter 15); the six skeletons together 97.8% → 97.1% (8,148 of 8,388; the bar 95%). G4's
+    set (idle, walk, run, jump, attack) still has no fail finding on any of the seven skeletons; on the Knight its warns
+    change (a sole 36 mm under the floor at the run's end, a slide 85 → 81 mm, jitter on the balls moved).
+  - **Why the Knight loses pairs:** its boots are 430 mm, 106% of its hip height, the toe 205 mm past the ball (the
+    library's rests: 51 to 92 mm). The clips curl a human toe straight down in a swing (92 mm under the ball on their
+    own body), which puts the Knight's 205 mm under, so the body must lift and a run never leaves the ground. A short
+    end bone hides the boot's front under the floor instead (122 to 154 mm walking) while the sweep reads 96.9%: the
+    sensors' gain, the eye's loss, so not taken. B1's known-good still fails its run on the Knight, which its test
+    leaves ungraded, saying why.
+  - **Left open (R1):** retargeting a long foot for clearance in core (the toe's curl and the foot's pitch capped so
+    its tip clears the floor as the source's does, scaled by hip height; a heel behind the ankle, where the boot's is
+    101 mm). Not on the ledger; G7 reruns the briefs on real rigs and is where it next shows.
+- **Why:** a body standing in the air is a binding bug whatever the sensors read; the Knight's long feet are a real
+  limit of retargeting a human foot's motion, and the sweep should show it rather than hide it.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.43.1
+
+## D88 · 2026-10-14 · G4 = M1 passed on run 2, 9 of 9; what M1 means under D80, and the verifier's five fixes
+
+- **Principle:** 1, 9, G4, K1 (D57, D80)
+- **Call:**
+  - **Run 2 passed**, 9 of 9, at adf77ee on 2026-10-14 in 41.8 min, in the main checkout (D83) with the pinned
+    sources and the rigs fetched first. The commit was fixed before a fresh subagent wrote the held-out run, and D57's
+    sweep outside the gate ran at the same commit first (`presweep.json`; its 240 failures are the gate's six-skeleton
+    failures). Times from the files: commit 20:57:45, presweep 20:58 to 21:06, held-out run written 21:23, gate 21:54 to
+    22:36 UTC. The record is `bench/results/gates/G4-run-2/`.
+  - **Its commands:** check 4.9 s; test 76.9 s (702 passed, 7 skipped); doctrine 8 of 8; vectors byte for byte; the
+    held-out run fresh (its rig, `talkinghead-mpfb` from met4citizen/TalkingHead@2afe6d7, CC0 by its author's README,
+    used by no earlier run or test); the sweep under D80's reading, the six skeletons together 8,148 of 8,388 pairs
+    (97.14%; bar 95%): gen-0 1,359 of 1,398, gen-1 1,370, gen-2 1,377, gen-3 1,375, the mannequin 1,377, the Knight
+    1,290 (92.3% alone, R1, D87), the held-out rig 1,375 (98.4%) apart, 9,523 of 9,786 with it; T2 in 123.7 s; B1 5 of
+    5 fresh agents, both discovery trials passing with the package; B1's held-out variant 5 of 5, its known-good first.
+  - **What M1 claims, by D80's reading:** on the six skeletons together, 95% of the library's pairs gain no fail finding
+    (the Knight alone does not reach 95%); the demo's set (idle, walk, run, jump, attack) shows no fail finding on any
+    of the seven bodies, and every one warns (the Knight's sole 36 mm under the floor, a planted foot sliding 81 mm; on
+    the held-out rig planted feet glide at 18.7 and 20.0 cm/s against a warn level of 18). Nothing per skeleton beyond
+    that.
+  - **The verifier** recounted every number from the outputs and found no blocking finding; its five should-fix items
+    are fixed here: (1) the record dropped the warns skeletons added on 86 failing pairs: `npm run sweep -- --record`
+    now writes the record, failures carrying `warns`, re-derived from the gate's raw results with no rerun (792 pairs
+    carry an added warn, 706 passing and 86 failing); `presweep.json` keeps its count of warns, its role being the 95%.
+    (2) CI's T1 never fetched the held-out rigs (D89). (3) The runner's audit took only a shell's absolute paths: it
+    resolves relative ones now, and the record is corrected from the kept transcripts: B1-1, B1-3 and both discovery
+    trials read packages' `.d.ts` files and the library's lock (inside the installed packages: not contamination), B1-2
+    wrote a scratch file in its own `/tmp`; `transcripts.json` pins the twelve by SHA-256 (they live only in this
+    machine's `/tmp/m3a-bench`). (4) This entry's wording of M1. (5) The presweep's times above, read from file times
+    (its record has no date or dirty flag).
+  - **Known limits of the audit's shell reading:** brace expansion, a subshell's `cd`, `pushd`, `cd` through a variable
+    and `cd -` are missed, and xargs and `$(...)` approximate; a here-string or a grep pattern naming a package path
+    counts as a read. None occurs in G4 run 2's transcripts (every command starts with an absolute `cd`).
+  - **Not verified:** that the held-out variant's writer had not read the manual's examples (its prompt is not kept).
+- **Why:** the gate met its bar under the reading the owner chose after seeing the numbers (D60, D80); saying exactly
+  what that reading covers keeps M1 from claiming more than the outputs show.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.44.1, michaelcrosato/my-3danimations#11
+
+## D89 · 2026-10-14 · CI's T1 green again: the held-out rigs fetched, gaits made 7 to 8 times faster, the same bytes
+
+- **Principle:** process, WP-6.2 (D71), D33, D74
+- **Call:**
+  - CI's T1 was red from adf77ee: B1's grader test reads run 1's held-out rig and the T1 job fetched none. It fetches
+    every gate's held-out manifest now, as T2 does (the cache key already covered them).
+  - From 585bbf1 T1 also ran long (146.2 s on one runner, 78.1 s on another; budget 90 s) and "refuses a gait it can't
+    play" passed vitest's 5 s. Round 7 didn't slow a gait (a walk 330 → 353 ms); its tests made 52 more (core's
+    procedural test 57 → 83, the sensors' 32 → 58). Profiled: 86% of a gait was `snapLegs`, decoding the whole pose for
+    each of 81 candidates a leg, three times a frame, to read one ankle. It now scores a candidate with `ankleOf`, the
+    decoder's own steps for the ankle (`limbEnd` at `reachOf`'s length, `ik3`'s clamp, `Math.fround` as the decoder's
+    Float32Array), and computes the hips once; the idle's `snapLegs` too.
+  - **The same bytes:** 896 gait and idle clips on all 64 library rests (the presets, fitted presets, 256 seeded random
+    gaits at 55 to 90 fps, starts, limps, 84 refusals with the same messages) serialize identically before and after,
+    checked by the implementer and again by an independent reviewer; a test holds `ankleOf` to `decodePose`'s ankle
+    exactly on 1,200 legs (it fails without the `fround`).
+  - **Measured** (the same load): a walk 353 → 49 ms; the 896 clips 349 → 42.5 s (8.2×); core's procedural test
+    34.6 → 9.2 s, the sensors' 39.3 → 8.2 s; the refusal test 4.1 → 0.6 s. No test skipped, sampled or given more time.
+  - **Left:** `ankleOf` repeats `format/pose.ts`'s leg-end steps; the exact test catches drift, and sharing one helper
+    is later cleanup.
+- **Why:** a red T1 is fixed, not waited out; the regression was test count times an avoidable cost, so removing the
+  cost keeps every test.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.44.1

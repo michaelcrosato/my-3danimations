@@ -1,0 +1,16 @@
+{
+ "about": "G4's held-out rig, run 2 (PLAN.md §9.3): chosen on 2026-10-14 by a fresh subagent for the commit under test, adf77ee, from a source that neither WP-4.2's list (Quaternius, KayKit), G4 run 1 (orange juice games, re-uploaded by BoQsc) nor the library's motion sources (Mesh2Motion, CMU, 100STYLE, Quaternius) used. Its author's own repository carries the file and its CC0 statement (D57). Fetched by SHA-256 into .cache/fixtures/ and never committed (npm run fixtures -- fetch --manifest bench/results/heldout/G4/run-2/rig.json). Its license file is read at fetch time and must say CC0.",
+ "rigs": [
+  {
+   "id": "talkinghead-mpfb",
+   "author": "Mika Suominen (met4citizen), made in Blender with MPFB 2 from MakeHuman's CC0 assets",
+   "source": "met4citizen/TalkingHead at 2afe6d7, avatars/mpfb.glb (added by its author in 6318ff8 on 2026-01-15, unchanged since). The license file is the repository's README.md at the same commit, whose asset notes say: 'Example avatar \"mpfb.glb\" was created using Blender and MPFB Blender extension. The avatar is licensed under CC0.' (the code is MIT; another avatar in the same notes, brunette.glb, is CC BY-NC and not used)",
+   "rig": "Mixamo names without the mixamorig: prefix (Hips, Spine to Spine2, Neck, Head, LeftShoulder, LeftArm, LeftForeArm, LeftHand, LeftUpLeg, LeftLeg, LeftFoot, LeftToeBase), plus LeftButtock, LeftBreast, Jaw, eye and eyelid bones, a four-bone ponytail and 15 finger bones a hand: 67 bones, one skin. A realistic young woman in a casual suit, 1.77 m, in metres, A-pose, facing +Z, soles at y 0 and hips 0.97 m up. 8 skinned meshes (body, suit, eyes, eyebrows, eyelashes, ponytail, teeth, tongue), 155 morph targets, 7 embedded PNG textures, no clips, 36.8 MB",
+   "url": "https://raw.githubusercontent.com/met4citizen/TalkingHead/2afe6d79779313db8909badebf46f9805a6c7b70/avatars/mpfb.glb",
+   "sha256": "63c645a2a863b9972e9a9c2ed576a1de4c390b8475508e1473e69c87a3ee299c",
+   "license": "CC0 1.0",
+   "licenseUrl": "https://raw.githubusercontent.com/met4citizen/TalkingHead/2afe6d79779313db8909badebf46f9805a6c7b70/README.md",
+   "licenseSha256": "1415c35c3c328f000fc9408456861f2d74bd0fb7bd365cfe1d14e510fa9a2fa4"
+  }
+ ]
+}

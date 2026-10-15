@@ -1,16 +1,28 @@
-// The benchmark runner (WP-4.7): the audit of a transcript (paths outside the workspace, files read past the manual),
-// the legend quiz's prompt and scoring, a fake trial through the packed packages installed in a workspace outside the
-// repository, agents run a few at once, and a held-out variant given by path, whose known-good solution runs first.
-import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
+// The benchmark runner (WP-4.7): the audit of a transcript (paths outside the workspace, files read past the manual,
+// a shell's relative paths among them, D88), the legend quiz's prompt and scoring, a fake trial through the packed
+// packages installed in a workspace outside the repository, agents run a few at once, each `claude` started in its
+// workspace with a /tmp of its own and the repository hidden (D84), and a held-out variant given by path, whose
+// known-good solution runs first. Every temporary directory a test makes is removed after it.
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { describe, expect, it } from "vitest";
-import { audit, pathsOf } from "./agent.ts";
-import { commitOf, latestVariant, pool, runB1, variantOf } from "./main.ts";
+import { afterAll, describe, expect, it } from "vitest";
+import { audit, namespace, pathsOf, runAgent } from "./agent.ts";
+import { commitOf, lanes, latestVariant, pool, runB1, variantOf } from "./main.ts";
 import { pack } from "./pack.ts";
 import { answersIn, QUIZ, quizPrompt, score } from "./quiz.ts";
 
 const ROOT = join(import.meta.dirname, "../..");
+/** A temporary directory, removed after this file's tests (they filled the disk when kept). */
+const made: string[] = [];
+const temp = (prefix: string) => {
+  const d = mkdtempSync(join(tmpdir(), prefix));
+  made.push(d);
+  return d;
+};
+afterAll(() => {
+  for (const d of made) rmSync(d, { recursive: true, force: true });
+});
 
 describe("the agent's audit", () => {
   it("lists paths touched outside the workspace and files read past the manual", () => {
@@ -23,10 +35,42 @@ describe("the agent's audit", () => {
       call("Write", { file_path: "src/player.ts", content: "" }),
       "not json",
     ];
-    expect(audit(lines, ws)).toEqual({ outside: [`${ROOT}/PLAN.md`, "/root/.claude"].sort(), pastManual: ["node_modules/@m3a/core/dist/animator/animator.js"] });
-    expect(pathsOf("Bash", { command: "ls -la && cat '/etc/hosts' x=/home/me" })).toEqual(["/etc/hosts", "/home/me"]);
-    // a glob, a bare root, a regex in a script and a word whose first directory isn't here are not paths
-    expect(pathsOf("Bash", { command: "find / -name '/**' ; node -e 'x.filter((o) => /foot/i.test(o.name))' ; grep /export a.ts > /tmp/s/out" })).toEqual(["/tmp/s/out"]);
+    expect(audit(lines, ws)).toEqual({ outside: [`${ROOT}/PLAN.md`, "/root/.claude"].sort(), scratch: [], pastManual: ["node_modules/@m3a/core/dist/animator/animator.js"] });
+    // with a /tmp of its own, its scratch files there are its own, listed apart (D84); the repository is outside
+    // wherever it lives, a checkout under /tmp too (its own /tmp covers that path, but the name is the repository's)
+    const scratch = [call("Write", { file_path: "/tmp/cat.mjs", content: "" }), call("Bash", { command: `node /tmp/cat.mjs && cat ${ROOT}/PLAN.md` })];
+    expect(audit(scratch, ws, true)).toEqual({ outside: [`${ROOT}/PLAN.md`], scratch: ["/tmp/cat.mjs"], pastManual: [] });
+    expect(audit(scratch, ws).outside).toEqual([`${ROOT}/PLAN.md`, "/tmp/cat.mjs"].sort());
+    const paths = (command: string) => pathsOf("Bash", { command }).map((n) => n.path);
+    expect(pathsOf("Bash", { command: "ls -la /root && cat '/etc/hosts' x=/home/me" })).toEqual([{ path: "/root", lists: true }, { path: "/etc/hosts", lists: false }, { path: "/home/me", lists: false }]);
+    // a glob over the root, a bare root, a regex in a script and a word whose first directory isn't here are not paths
+    expect(paths("find / -name '/**' ; node -e 'x.filter((o) => /foot/i.test(o.name))' ; grep /export a.ts > /tmp/s/out")).toEqual(["/tmp/s/out"]);
+  });
+  it("resolves a shell's relative paths from its directory, as G4 run 2's agents named them (D88)", () => {
+    // a workspace under /tmp itself (a private /tmp holds what's beside it, D84), with the packages' directories
+    const base = mkdtempSync("/tmp/m3a-audit-"), ws = join(base, "B1-1"), bash = (command: string) => JSON.stringify({ type: "assistant", message: { content: [{ type: "tool_use", name: "Bash", input: { command } }] } });
+    made.push(base);
+    for (const d of ["src", "node_modules/@m3a/tools", "node_modules/@m3a/three/dist", "node_modules/@m3a/core/dist", "node_modules/@m3a/sensors/dist", "node_modules/@m3a/library"]) mkdirSync(join(ws, d), { recursive: true });
+    const lines = [
+      // B1-1: a glob as written; the manual, and listing the packages, aren't reads past it
+      bash(`cd ${ws}; cat node_modules/@m3a/tools/MANUAL.md; ls node_modules/@m3a/*`),
+      bash(`cd ${ws}; grep -n "pose\\|root" node_modules/@m3a/three/dist/*.d.ts | head -20`),
+      // B1-3
+      bash(`cd ${ws}; sed -n 10,60p node_modules/@m3a/three/dist/index.d.ts; sed -n 40,75p node_modules/@m3a/sensors/dist/metrics/motion.d.ts`),
+      // B1-discovery-1: a for loop's variable, and a read after a heredoc (whose body is a script, not the shell's)
+      bash(`cd ${ws}; ls packs; for d in node_modules/@m3a/*; do echo == $d; ls $d; cat $d/README* 2>/dev/null | head -60; done`),
+      bash(`cd ${ws}; python3 - <<'E'\ns=open('../src/player.ts').read()\nE\nnode check.ts | sed -n '4,8p'; sed -n 1,400p node_modules/@m3a/sensors/dist/index.d.ts | grep -n "sheet\\|measure"`),
+      // B1-discovery-2: after a cd into the packages (a grep's pattern isn't a path), and in the next call, whose
+      // shell starts where this one ended
+      bash(`cd ${ws}/node_modules/@m3a; cat library/sets.lock.json | head -50; ls three/dist/play sensors/dist/sheet; grep -n "contactRoot" -r core/dist/contact/*.d.ts | head`),
+      bash("cat sensors/dist/sheet/*.d.ts | head -60; cd /tmp"),
+      // B1-2: a file written beside the workspace, from the workspace again (a shell that left it is put back there)
+      bash(`cat > /tmp/probe.ts <<'EOF'\nimport { loadCharacter } from "${ws}/src/character.ts";\nEOF\ncp /tmp/probe.ts ./../probe_tmp.ts 2>/dev/null; rm -f ../probe_tmp.ts; echo ok`),
+    ];
+    const pastManual = ["*/README*", "core/dist/contact/*.d.ts", "library/sets.lock.json", "sensors/dist/index.d.ts", "sensors/dist/metrics/motion.d.ts", "sensors/dist/sheet/*.d.ts", "three/dist/*.d.ts", "three/dist/index.d.ts"].map((p) => `node_modules/@m3a/${p}`);
+    expect(audit(lines, ws, true)).toEqual({ outside: [], scratch: [`${base}/probe_tmp.ts`, "/tmp/probe.ts"].sort(), pastManual });
+    // without a /tmp of its own, what it wrote beside its workspace is outside it
+    expect(audit(lines, ws).outside).toEqual([`${base}/probe_tmp.ts`, "/tmp/probe.ts"].sort());
   });
 });
 
@@ -47,7 +91,7 @@ describe("the legend quiz", () => {
 
 describe("held-out variants", () => {
   it("takes a brief's variant from a gate's latest run, and says so when there is none", () => {
-    const base = mkdtempSync(join(tmpdir(), "m3a-heldout-"));
+    const base = temp("m3a-heldout-");
     expect(() => latestVariant("G4", "B1", base)).toThrow(/no held-out B1 variant for G4 yet/);
     for (const run of ["run-1", "run-2"]) {
       mkdirSync(join(base, "G4", run, "B1"), { recursive: true });
@@ -59,7 +103,47 @@ describe("held-out variants", () => {
     const here = commitOf(ROOT);
     expect(here.commit).toMatch(/^[0-9a-f]{40}$/);
     expect(typeof here.dirty).toBe("boolean");
-    expect(commitOf(mkdtempSync(join(tmpdir(), "m3a-nogit-")))).toEqual({ commit: "unknown", dirty: null });
+    expect(commitOf(temp("m3a-nogit-"))).toEqual({ commit: "unknown", dirty: null });
+  });
+});
+
+describe("an agent's own /tmp (D84)", () => {
+  // a stand-in for `claude`, first on the PATH the agent keeps: it says where it started, what its /tmp holds and how
+  // much of the repository it sees, and writes a scratch file to /tmp by name, as agents do
+  const stand = (home: string) => {
+    mkdirSync(join(home, "bin"), { recursive: true });
+    const sh = join(home, "bin", "claude");
+    writeFileSync(sh, ["#!/bin/sh", "before=$(ls -A /tmp | tr '\\n' ' ')", 'echo "$PWD" > /tmp/cat.mjs', `repo=$(ls -A '${ROOT}' 2>/dev/null | wc -l)`, `printf '{"type":"result","subtype":"success","num_turns":1,"result":"%s|%s|%s|%s|%s"}\\n' "$PWD" "$TMPDIR" "$before" "$(cat /tmp/cat.mjs)" "$repo"`, ""].join("\n"));
+    chmodSync(sh, 0o755);
+    return join(home, "bin");
+  };
+  it("starts claude in its workspace with a /tmp of its own: two at once write /tmp/cat.mjs and never meet", async () => {
+    expect(namespace(), "this machine can't make a mount namespace (unshare), so agents would share /tmp").not.toBeNull();
+    const base = temp("m3a-own-tmp-"), path = process.env.PATH;
+    const wss = ["A-1", "A-2"].map((n) => {
+      mkdirSync(join(base, n), { recursive: true });
+      return join(base, n);
+    });
+    process.env.PATH = `${wss.map((ws) => stand(`${ws}-home`)).join(":")}:${path}`;
+    try {
+      const runs = await pool(wss, 2, (ws) => runAgent(ws, "hello", `${ws}.jsonl`));
+      for (const [i, r] of runs.entries()) {
+        const ws = wss[i]!, [pwd, tmp, before, cat, repo] = r.reply.split("|");
+        expect([r.ok, r.privateTmp, pwd, tmp, cat], r.error).toEqual([true, true, ws, "/tmp", ws]);
+        // its /tmp held only the way to its own workspace and home, and the repository showed empty
+        expect(before!.trim()).toBe(base.split("/")[2]);
+        expect(repo!.trim()).toBe("0");
+        // its scratch file landed in its own /tmp, beside its workspace
+        expect(readFileSync(`${ws}-tmp/cat.mjs`, "utf8").trim()).toBe(ws);
+      }
+      expect(existsSync("/tmp/cat.mjs") && readFileSync("/tmp/cat.mjs", "utf8").trim().startsWith(base)).toBe(false);
+    } finally {
+      process.env.PATH = path;
+    }
+  });
+  it("runs agents at once only where each gets its own /tmp; fakes always may", () => {
+    expect(lanes(5)).toBe(namespace() ? 5 : 1);
+    expect([lanes(5, true), lanes(0, true)]).toEqual([5, 1]);
   });
 });
 
@@ -74,7 +158,7 @@ describe("trials", () => {
     });
     expect([r, most]).toEqual([[60, 20, 40, 10, 30], 2]);
   });
-  const base = mkdtempSync(join(tmpdir(), "m3a-bench-test-")), packs = pack(join(base, "packs"));
+  const base = temp("m3a-bench-test-"), packs = pack(join(base, "packs"));
   it("installs the packed packages outside the repository, and grades the known-good solution there (a fake trial)", async () => {
     const r = await runB1({ trials: 1, discovery: 0, base, packs, fake: true });
     expect(r.trials.map((t) => [t.trial, t.pass, t.failed])).toEqual([["B1-1", true, []]]);

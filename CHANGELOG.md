@@ -4,6 +4,80 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.44.1 · 2026-10-14
+
+### Core
+- Gaits and idles are made 7 to 8 times faster, the same clips byte for byte: `snapLegs` scores each candidate leg by
+  its ankle alone (`ankleOf`, the decoder's own steps for it) instead of decoding the whole pose for each of 81
+  candidates a leg; a test holds `ankleOf` to `decodePose`'s ankle exactly (D89).
+
+### Tools
+- `npm run sweep -- --record <results.json> --commit <sha>` writes a gate's sweep record from the sweep's raw results
+  (`tools/sweep/record.ts`); its failing pairs carry the warns the skeleton added too, as D80 asks (D88).
+
+### Repo
+- CI's T1 job fetches the gates' held-out rigs, as T2 does: B1's grader test reads run 1's (D89).
+- The benchmark's audit reads a shell command's relative paths (from the workspace, following `cd`, a `for` loop's
+  variable and globs as written) and counts any read under `node_modules/@m3a/` but the manual as past the manual; the
+  repository counts as outside wherever it lives (D88).
+- G4 run 2's record (D88): passed, 9 of 9, at adf77ee; its sweep record re-derived with the failing pairs' added warns,
+  no rerun; its trials' audit corrected from the kept transcripts, which `transcripts.json` pins by SHA-256.
+
+## 0.44.0 · 2026-10-14
+
+### Core
+- Gaits (D71, the verifier's round 7): the swinging foot's height keeps its slope where the lift-off meets the arc and
+  the arc the set-down (a run's seam and short swings' knees popped); the pelvis is lowered with its sway and rounding
+  counted; gaits are made at 55 to 90 frames a second. Refusals name the field, take a 0.26 s swing to the
+  millisecond, and give the reach with the fastest speed the legs take; `procedural.fitGait(g, rest)` slows a gait to a
+  body's reach.
+- Format: a body measured without collarbones encodes no shrug (every procedural source made NaN on one).
+
+### Tools
+- The manual names `procedural.fitGait`.
+
+### Repo
+- Tests: the swing's slope at its joins, the round's repros under the sensors, the reach's edge on two rests, legs at
+  most 98.5% of their length at the bound with a bounce, the stance end's margin, refusals, `fitGait`, procedural clips
+  on test character 3; two slide bars moved with the arc (D71).
+
+## 0.43.1 · 2026-10-14
+
+### Three
+- `bind` reads where a childless foot or toe ends from every skinned mesh that skins it, not only the one with the most
+  bones: KayKit's Knight keeps its feet in its leg meshes and floated 55 mm at idle; it stands on its soles now. Rigs
+  whose feet one mesh skins bind exactly as before (their bound rests' hashes pinned in a test) (D87).
+
+### Repo
+- B1's grader test says why the Knight stays ungraded: its 430 mm boots ride the floor under the library's toe curls
+  (D87).
+
+## 0.43.0 · 2026-10-14
+
+### Three
+- `attach(...).travel`: the last update's root move in the root's parent space (metres), along the way the model faces,
+  read from its bones, turned and scaled as the root is; G4 run 1's held-out rig faces +X, and moved along +Z its
+  standing feet slid 1.2 m/s (D86).
+
+### Tools
+- The manual moves the character by `player.travel` (5,656 of 8,000 tokens).
+
+### Repo
+- B1's starters read meshopt and leave textures out (the discovery starter with three's own decoder, naming no
+  package); B1's known-good moves by `travel` and passes on both Quaternius mannequins and G4 run 1's held-out rig
+  (1 m below its origin, facing +X), and on seeds 1, 37, 41 and 935; T2 grades it there, with the planted bad ones
+  (D86, D77's S7 and S8).
+
+## 0.42.7 · 2026-10-14
+
+### Repo
+- The benchmark: each agent starts in a mount namespace with a `/tmp` of its own (its scratch files kept beside its
+  workspace, listed apart by the audit) and the repository and this session's Claude home hidden; agents run at once
+  only where that holds, else one at a time; each trial records it; the runner's and briefs' tests remove their
+  temporary directories; CI's runners allow user namespaces (D84).
+- The sweep: a pair fails on a fail finding the skeleton adds; a warn it adds passes, listed with the pair and in the
+  results' `warned` list; `--out` names the results file; PLAN.md §9.3's G4 line and WP-4.5 say so (D80).
+
 ## 0.42.6 · 2026-10-13
 
 ### Core

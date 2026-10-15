@@ -1,0 +1,10 @@
+sweep: PASS, 9523 of 9786 clip-skeleton pairs pass in 1515.3 s
+  ok   gen-0 208.3 s: 1359 of 1398 clips pass (97.2%; 137 of them with a warn it added, listed), bound by name (vrm) at 1.00
+  ok   gen-1 207.6 s: 1370 of 1398 clips pass (98.0%; 81 of them with a warn it added, listed), bound by name (mixamo) at 1.00
+  ok   gen-2 211.6 s: 1377 of 1398 clips pass (98.5%; 78 of them with a warn it added, listed), bound by name (unreal5) at 1.00
+  ok   gen-3 208.3 s: 1375 of 1398 clips pass (98.4%; 88 of them with a warn it added, listed), bound by name (rigify) at 1.00
+  ok   quaternius-mannequin-m 236.7 s: 1377 of 1398 clips pass (98.5%; 67 of them with a warn it added, listed), bound by name (unreal4) at 1.00
+  ok   kaykit-knight 205.8 s: 1290 of 1398 clips pass (92.3%; 176 of them with a warn it added, listed), bound by topology at 0.85
+  ok   talkinghead-mpfb (held out, run-2) 236.8 s: 1375 of 1398 clips pass (98.4%; 79 of them with a warn it added, listed), bound by name (mixamo) at 1.00
+  ok   together 0.0 s: 8148 of 8388 clip-skeleton pairs pass (97.1%; the bar 95%)
+next: read check-output/sweep/results.json for every clip on every skeleton, and its warned list

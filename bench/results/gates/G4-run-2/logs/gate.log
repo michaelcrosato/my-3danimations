@@ -1,0 +1,18 @@
+
+> my-3danimations@0.43.1 gate
+> node tools/run/gate.ts G4 --json
+
+gate G4: PASS in 2505.8 s (9/9 commands)
+  ok   check 5.1 s: check: PASS (T0) in 4.9 s, budget 15.0 s
+  ok   test 77.1 s: test: PASS (T1) in 76.9 s, budget 90.0 s
+  ok   doctrine 0.5 s: doctrine: PASS in 0.2 s (8 checks)
+  ok   vectors --check 1.9 s: vectors: PASS (--check) in 1.6 s
+  ok   the held-out run is fresh: no gate run used it, its rig's license pinned, the rig cached (D57) 0.3 s: fixtures heldout G4: PASS in 0.1 s
+  ok   the sweep: every library clip on the six skeletons, 95% together, no fail finding added (D80); the held-out rig apart 1515.7 s: sweep: PASS, 9523 of 9786 clip-skeleton pairs pass in 1515.3 s
+  ok   T2: the demo headless, its set on the six skeletons and the held-out rig, sheets 123.9 s: e2e: PASS (T2) in 123.7 s, budget 480.0 s
+  ok   B1: at least 4 of 5 fresh agents; 2 discovery trials, reported (§7) 534.6 s: bench B1: PASS in 534.1 s
+  ok   B1's held-out variant: at least 4 of 5 fresh agents 246.7 s: bench B1: PASS in 246.3 s
+report: check-output/gate/report.json
+next: write the G4 report in docs/PROGRESS.md and on the PR, then merge (PLAN.md §8.5)
+exit 0
+2026-10-14T22:36:24Z
