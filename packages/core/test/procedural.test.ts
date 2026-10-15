@@ -10,7 +10,7 @@ import { P, POINTS } from "../src/format/body.ts";
 import { decodePose, torso, type KeyLike } from "../src/format/pose.ts";
 import { keyAt } from "../src/format/sample.ts";
 import { rootAt } from "../src/clip/sample.ts";
-import { ankleOf, legsOf } from "../src/procedural/gait.ts";
+import { ankleOf, checkGait, legsOf } from "../src/procedural/gait.ts";
 import { quantize } from "../src/recipe/compile.ts";
 
 const ROOT = join(import.meta.dirname, "../../.."), LIB = join(ROOT, "library/sets");
@@ -388,10 +388,11 @@ describe("a gait", () => {
     // from the decoded one through part of the swing: the key held the arm straight there, its bend falling from 25° to 0
     // between two frames, and the elbow popped (109% of the fail level at 75 frames a second; round 9's review). Its
     // bends then ran 0 to 71 leaning 25, 0 to 61 leaning back 10, 0 to 55 leaning 8 (the run's lean) and 28 to 46 at the
-    // default 3: now 39 throughout at each
+    // default 3: now 39 throughout at each (the review's walk was 0.736 s; 0.75, its swing the shortest taken since round
+    // 14, 0.3 s)
     const { rest, clip } = load("QUATERNIUS_3D2DGE/A_TPose");
     for (const lean of [-10, 25]) {
-      const c = PR.gaitClip({ name: "g", about: "a walk", speed: 130, cycle: 0.736, stance: 0.6, lean, swing: 60 }, rest, { restSrc: clip.restSrc, fps: 75 });
+      const c = PR.gaitClip({ name: "g", about: "a walk", speed: 130, cycle: 0.75, stance: 0.6, lean, swing: 60 }, rest, { restSrc: clip.restSrc, fps: 75 });
       const bends = c.keys.flatMap((k) => ["armL", "armR"].map((f) => (k as unknown as Record<string, number[]>)[f]![3]!));
       expect([lean, Math.min(...bends), Math.max(...bends)]).toEqual([lean, 39, 39]);
     }
@@ -412,6 +413,15 @@ describe("a gait", () => {
     };
     expect((z((a + b) / 2) - (z(a) + z(b)) / 2) / pct).toBeLessThan(-0.6 * 4 * g.limp!);
   });
+  it("takes a key budget of 0 to 2 mm, the one every bound is measured at, and refuses any other", () => {
+    // past it the sensors read what the keys leave out (at 150 to 300 mm the knees popped past the fail level, at 1,000, a
+    // NaN or an infinite one 8 or 9 keys failed, and -1 threw a TypeError: round 13's review)
+    const src = load("MESH2MOTION/Idle_A"), walk = PR.GAITS[0]!;
+    for (const budget of [-1, NaN, Infinity, 2.5, 150, 1000]) expect(() => PR.gaitClip(walk, src.rest, { restSrc: src.clip.restSrc, budget })).toThrow(new RegExp(`^gait walk: a key budget of ${budget} mm, not 0 to 2: .*; leave it out \\(2\\), or use 0 \\(every frame a key\\) to 2$`));
+    expect(() => PR.gaitClip(walk, src.rest, { restSrc: src.clip.restSrc, budget: "2" as never })).toThrow(/a key budget of "2" mm, not 0 to 2/);
+    expect(PR.gaitClip(walk, src.rest, { restSrc: src.clip.restSrc, budget: 2 })).toEqual(PR.gaitClip(walk, src.rest, { restSrc: src.clip.restSrc }));
+    expect(PR.gaitClip(walk, src.rest, { restSrc: src.clip.restSrc, budget: 0 }).keys.length).toBe(67);
+  }, 30_000);
   it("refuses a gait it can't play, saying what to change", () => {
     const src = load("MESH2MOTION/Idle_A"), walk = PR.GAITS[0]!, play = (g: Partial<PR.Gait>) => () => PR.gaitClip({ ...walk, ...g }, src.rest, { restSrc: src.clip.restSrc });
     expect(play({ speed: 0 })).toThrow(/speed 0 is not above 0/);
@@ -421,40 +431,64 @@ describe("a gait", () => {
     // a long cycle's limp swings long enough in time, but for 9% of the cycle
     expect(play({ speed: 30, cycle: 2.5, stance: 0.7, limp: 1 })).toThrow(/leaves the right foot 9% of the cycle to swing/);
     expect(play({ limp: 1.01 })).toThrow(/limp 1.01 is not 0 to 1/);
-    // a swing under 0.26 s: under 0.2 the foot is up for under the 0.1 s the sensors read a step by (the verifier's limps
+    // a swing under 0.3 s: under 0.2 the foot is up for under the 0.1 s the sensors read a step by (the verifier's limps
     // and fast walks, which slid 500 to 1,300 mm); under 0.25 a knee pops lifting more than 12 (R1, R5), bouncing 6, or
     // at a stance of 0.5 near the cap (the verifier's rounds 4 and 5), on many bodies; under 0.26 a stance of 0.5 near
-    // the reach bound still did on some (round 6)
-    expect(play({ speed: 70, cycle: 1, stance: 0.68, limp: 0.6 })).toThrow(/its right foot swings for 0.198 s, under 0.26 s: .* or a lighter limp$/);
-    expect(play({ cycle: 0.45 })).toThrow(/its feet swing for 0.180 s, under 0.26 s: .*; use a longer cycle, a shorter stance$/);
-    expect(play({ speed: 120, cycle: 0.5, stance: 0.6, lift: 25 })).toThrow(/its feet swing for 0.200 s, under 0.26 s/);
-    expect(play({ speed: 131, cycle: 0.8, stance: 0.75, lift: 35, sway: 4 })).toThrow(/its feet swing for 0.200 s, under 0.26 s/);
-    expect(play({ speed: 60, cycle: 0.84, stance: 0.75, bounce: 6 })).toThrow(/its feet swing for 0.210 s, under 0.26 s/);
-    expect(play({ speed: 400, cycle: 0.45, stance: 0.5 })).toThrow(/its feet swing for 0.225 s, under 0.26 s/);
-    expect(play({ speed: 100, cycle: 0.6, stance: 0.6, lift: 13 })).toThrow(/its feet swing for 0.240 s, under 0.26 s/);
-    expect(play({ speed: 100, cycle: 0.625, stance: 0.6, lift: 13 })).toThrow(/its feet swing for 0.250 s, under 0.26 s/);
-    expect(play({ speed: 100, cycle: 0.6375, stance: 0.6 })).toThrow(/its feet swing for 0.255 s, under 0.26 s/);
-    expect(play({ speed: 100, cycle: 0.65, stance: 0.6, lift: 13 })).not.toThrow();
-    // to the ms: 0.8 s at a stance of 0.675 swings 0.26 s, which a float makes 0.25999999999999995 (the verifier's round 7
-    // saw it refused as "0.260 s, under 0.26 s")
-    expect(play({ speed: 100, cycle: 0.8, stance: 0.675 })).not.toThrow();
+    // the reach bound still did on some (round 6); and under 0.3, near the reach bound, the leading knee straightens and
+    // bends again within one key where a swing spans under 16 frames, as it can at 55 to 60 frames a second, and popped
+    // (round 13's review: CMU_18's rest, a swing of 0.261 s, 104.6% at 57.5). Each refusal names the shortest cycle and
+    // the longest stance that swing long enough (a run's stance only where the cycle is long enough for one), and shows
+    // the swing rounded down, so one just under the bound never reads as at it (0.1976 s here)
+    expect(play({ speed: 70, cycle: 1, stance: 0.68, limp: 0.6 })).toThrow(/its right foot swings for 0.197 s, under 0.3 s: .*; use a cycle of at least 1.519 s, a stance of at most 0.593 or a lighter limp$/);
+    expect(play({ cycle: 0.45 })).toThrow(/its feet swing for 0.180 s, under 0.3 s: .*; use a cycle of at least 0.75 s$/);
+    expect(play({ speed: 120, cycle: 0.5, stance: 0.6, lift: 25 })).toThrow(/its feet swing for 0.200 s, under 0.3 s/);
+    expect(play({ speed: 131, cycle: 0.8, stance: 0.75, lift: 35, sway: 4 })).toThrow(/its feet swing for 0.200 s, under 0.3 s: .*; use a cycle of at least 1.2 s or a stance of at most 0.625$/);
+    expect(play({ speed: 60, cycle: 0.84, stance: 0.75, bounce: 6 })).toThrow(/its feet swing for 0.210 s, under 0.3 s/);
+    expect(play({ speed: 400, cycle: 0.45, stance: 0.5 })).toThrow(/its feet swing for 0.225 s, under 0.3 s: .*; use a cycle of at least 0.6 s$/);
+    expect(play({ speed: 100, cycle: 0.6, stance: 0.6, lift: 13 })).toThrow(/its feet swing for 0.240 s, under 0.3 s/);
+    expect(play({ speed: 100, cycle: 0.625, stance: 0.6, lift: 13 })).toThrow(/its feet swing for 0.250 s, under 0.3 s/);
+    expect(play({ speed: 100, cycle: 0.65, stance: 0.6, lift: 13 })).toThrow(/its feet swing for 0.260 s, under 0.3 s: .*; use a cycle of at least 0.75 s or a stance of at most 0.538$/);
+    expect(play({ speed: 333.6, cycle: 0.555, stance: 0.53, lift: 10, bounce: 5.3, dip: 5.7, sway: 1.7, lean: -6, swing: 17 })).toThrow(/its feet swing for 0.260 s, under 0.3 s: .*; use a cycle of at least 0.639 s$/);
+    expect(play({ speed: 100, cycle: 0.74, stance: 0.6 })).toThrow(/its feet swing for 0.296 s, under 0.3 s: .*; use a cycle of at least 0.75 s or a stance of at most 0.594$/);
+    expect(play({ speed: 100, cycle: 0.75, stance: 0.6, lift: 13 })).not.toThrow();
+    // each suggestion swings long enough (its numbers checked as gaitClip checks them first), and is the shortest cycle and
+    // the longest stance that do: a ms shorter or a thousandth longer swings under 0.3 s (round 14 named them against 0.3
+    // s and took swings of 0.2995 s, so a cycle a ms shorter than it named, or a stance a thousandth longer, was taken too:
+    // round 14's review, {0.341 s, 0.547} named 0.663 s and took 0.662)
+    for (const g of [{ speed: 70, cycle: 1.519, stance: 0.68, limp: 0.6 }, { speed: 70, cycle: 1, stance: 0.593, limp: 0.6 }, { speed: 100, cycle: 0.65, stance: 0.538 }, { speed: 100, cycle: 0.74, stance: 0.594 }, { speed: 100, cycle: 0.663, stance: 0.547 }]) expect(() => checkGait({ ...walk, ...g })).not.toThrow();
+    for (const g of [{ speed: 70, cycle: 1.518, stance: 0.68, limp: 0.6 }, { speed: 70, cycle: 1, stance: 0.594, limp: 0.6 }, { speed: 100, cycle: 0.65, stance: 0.539 }, { speed: 100, cycle: 0.74, stance: 0.595 }, { speed: 100, cycle: 0.662, stance: 0.547 }]) expect(() => checkGait({ ...walk, ...g })).toThrow(/under 0.3 s/);
+    expect(play({ speed: 100, cycle: 0.341, stance: 0.547 })).toThrow(/its feet swing for 0.154 s, under 0.3 s: .*; use a cycle of at least 0.663 s$/);
+    // 0.3 s to within a float's error: 0.9375 s at a stance of 0.68 swings 0.3 s, which a float makes 0.29999999999999993
+    // (the verifier's round 7 saw 0.8 s at a stance of 0.675 refused as "0.260 s, under 0.26 s"), and nothing shorter
+    // (rounds 7 to 14 took the swing to the ms, so 0.2995 s passed, and with it a cycle of 0.599 s at a stance of a half,
+    // 15.97 frames a swing at 55: round 14's review); and the limp, the presets' shortest swing (its right foot's 0.3006
+    // s), is taken
+    expect(() => checkGait({ ...walk, speed: 100, cycle: 0.9375, stance: 0.68 })).not.toThrow();
+    expect(() => checkGait(PR.GAITS[3]!)).not.toThrow();
+    for (const cycle of [0.599, 0.5995, 0.5999]) expect(play({ speed: 100, cycle, stance: 0.5 })).toThrow(/its feet swing for 0.299 s, under 0.3 s: .*; use a cycle of at least 0.6 s$/);
+    expect(() => checkGait({ ...walk, speed: 100, cycle: 0.6, stance: 0.5 })).not.toThrow();
     // from a start pose other than the standing one, a gait kept the start's bent elbows and turned hands and swung them
     // into the body (a library clip's first key on its rest: Fighting_Right_Jab's wrist popped, Walk_Stealth's forearm
     // went into the pelvis; 8 of 227 such clips failed, round 12's review), and nothing of a gait is fitted or measured
     // from one: it is refused, and the standing pose itself taken
     const jab = load("MESH2MOTION/Fighting_Right_Jab"), { t: _t, root: _r, yaw: _y, ...jabStart } = jab.clip.keys[0] as unknown as Record<string, unknown>;
     expect(() => PR.gaitClip(walk, jab.rest, { restSrc: jab.clip.restSrc, start: jabStart as never })).toThrow(/given a start pose other than the standing one: a gait is made from the standing pose .* give it no start, and blend into it from another pose$/);
+    // and anything but a pose likewise, in the gait's words (null threw a TypeError: round 14's review)
+    for (const start of [null, 1, "standing", []]) expect(() => PR.gaitClip(walk, jab.rest, { restSrc: jab.clip.restSrc, start: start as never })).toThrow(/^gait walk: given a start pose other than the standing one/);
     expect(PR.gaitClip(walk, jab.rest, { restSrc: jab.clip.restSrc, start: PR.standingOn(jab.rest) })).toEqual(PR.gaitClip(walk, jab.rest, { restSrc: jab.clip.restSrc }));
-    // a run's cycle under 0.6 s: its seam moved too sharply (R3: 64 of 64 rests)
-    expect(play({ speed: 350, cycle: 0.4, stance: 0.3, lift: 25, bounce: 3, lean: 8, swing: 45 })).toThrow(/a run's cycle of 0.4 s is under 0.6 s \(over 200 steps a minute\): .*; use a longer cycle$/);
+    // a run's cycle under 0.6 s: its seam moved too sharply (R3: 64 of 64 rests; at 0.4 s, which swings 0.28 s, refused
+    // for its swing since round 14, naming a cycle that is a run's too)
+    expect(play({ speed: 350, cycle: 0.45, stance: 0.3, lift: 25, bounce: 3, lean: 8, swing: 45 })).toThrow(/a run's cycle of 0.45 s is under 0.6 s \(over 200 steps a minute\): .*; use a longer cycle$/);
+    expect(play({ speed: 350, cycle: 0.4, stance: 0.3, lift: 25, bounce: 3, lean: 8, swing: 45 })).toThrow(/its feet swing for 0.280 s, under 0.3 s: .*; use a cycle of at least 0.6 s$/);
     // lifting over 25, 0.65 s: a run lifting 35% and swaying 4% failed its seam at 0.6 and 0.625 s
     expect(play({ ...PR.GAITS[2], cycle: 0.6, lift: 35, sway: 4 })).toThrow(/a run's cycle of 0.6 s, lifting 35% of the hip height, is under 0.65 s .*; use a longer cycle or a lift of 25 or less$/);
     // 55 to 75 frames a second: under, a fast gait's seam steps too far between frames (the verifier's at 24, on 53 of
     // 64 rests) and at 50 a swing of 0.26 s just over a stance of a half still popped a knee (round 7: 7 of 456 on 19
     // rests); over, the pelvis's whole-% steps between them read as pops (at 90 a slow gait read 97% of the fail level
-    // and an elbow popped: round 9; at 110 a planted knee jumped with it, round 7; at 240 a walk failed on every rest)
-    expect(play({ speed: 283, cycle: 0.542, stance: 0.52, lift: 30 })).not.toThrow();
-    expect(() => PR.gaitClip({ ...walk, speed: 283, cycle: 0.542, stance: 0.52, lift: 30 }, src.rest, { restSrc: src.clip.restSrc, fps: 50 })).toThrow(/made at 50 frames a second, not 55 to 75/);
+    // and an elbow popped: round 9; at 110 a planted knee jumped with it, round 7; at 240 a walk failed on every rest).
+    // Such a gait at the shortest swing taken now (0.3 s, round 14)
+    expect(play({ speed: 300, cycle: 0.625, stance: 0.52, lift: 30 })).not.toThrow();
+    expect(() => PR.gaitClip({ ...walk, speed: 300, cycle: 0.625, stance: 0.52, lift: 30 }, src.rest, { restSrc: src.clip.restSrc, fps: 50 })).toThrow(/made at 50 frames a second, not 55 to 75/);
     expect(() => PR.gaitClip(walk, src.rest, { restSrc: src.clip.restSrc, fps: 30 })).toThrow(/made at 30 frames a second, not 55 to 75: .*use 55 to 75/);
     expect(() => PR.gaitClip(walk, src.rest, { restSrc: src.clip.restSrc, fps: 75.1 })).toThrow(/made at 75.1 frames a second, not 55 to 75/);
     expect(() => PR.gaitClip(walk, src.rest, { restSrc: src.clip.restSrc, fps: 90 })).toThrow(/made at 90 frames a second, not 55 to 75: .*more, the pelvis's whole-% steps between them read as pops/);
@@ -490,27 +524,29 @@ describe("a gait", () => {
     }
     // a foot swinging forward past the hips faster than 4 hip heights a second: a long stance's knee popped mid-swing
     // (the verifier's 140 % a second at stance 0.75: 13 of 128 clips, on 12 rests)
-    expect(play({ speed: 140, cycle: 1.04, stance: 0.75 })).toThrow(/its feet come forward past the hips at 420% of the hip height a second, over 400: .*; use a lower speed or a shorter stance$/);
+    expect(play({ speed: 140, cycle: 1.2, stance: 0.75 })).toThrow(/its feet come forward past the hips at 420% of the hip height a second, over 400: .*; use a speed of at most 133 \(fitGait slows it so\) or a shorter stance$/);
     // (457.01, shown rounded up: a pace just over the cap read as at it, "400% ..., over 400", at speeds of 266.7 to 267
     // here: the verifier's round 8)
-    expect(play({ speed: 110, cycle: 1.35, stance: 0.62, limp: 1 })).toThrow(/its right foot comes forward past the hips at 458% .* or a lighter limp$/);
+    expect(play({ speed: 110, cycle: 1.55, stance: 0.62, limp: 1 })).toThrow(/its right foot comes forward past the hips at 458% .*; use a speed of at most 96 \(fitGait slows it so\), a shorter stance or a lighter limp$/);
     expect(play({ speed: 266.7, cycle: 1, stance: 0.6 })).toThrow(/its feet come forward past the hips at 401% of the hip height a second, over 400/);
-    // arms swinging 80° either way in a 0.52 s cycle turn round on the loop's seam so fast that, read by parts, a test
-    // character's fists read 101% of the seam's fail level (round 9): a swing takes 250° for each second squared
-    expect(play({ speed: 100, cycle: 0.565, stance: 0.5, swing: 80 })).toThrow(/its arms swing 80° either way in a cycle of 0.565 s, over 250° for each second squared of the cycle: .*; use a swing of at most 79° or a cycle of at least 0.566 s$/);
-    // at 0.566 s the body's own reading bounds it (the seam's keys as the clip holds them, read as the sensors read them):
-    // on Mesh2Motion's rest its hands read past SEAM_TURN at swings of 61° (71% of the fail level) and many wider, and
-    // under it at 60 and every narrower whole swing, so the widest that plays, and every narrower one with it, is 60 (round
-    // 12; each swing's own reading rises and falls with it: round 11 read 75 as playing, and 64 to 68 not, on a test
-    // character). A swing past ARM_TURN is refused by it, whatever the body
-    expect(play({ speed: 100, cycle: 0.566, stance: 0.5, swing: 80 })).toThrow(/^gait walk: its left hand turns round on the loop's seam 71% as sharply as the sensors read a hitch there swinging 61°, narrower than its own swing, over 70% \(its arms turning round as the cycle ends and begins\): on this body, at this cycle, its arms play swinging any whole number of degrees up to 60 either way; narrow its swing so \(fitGait does\), or use a longer cycle$/);
-    for (const swing of [60, 45]) expect(play({ speed: 100, cycle: 0.566, stance: 0.5, swing })).not.toThrow();
+    // arms swinging 80° either way in a 0.52 s cycle turned round on the loop's seam so fast that, read by parts, a test
+    // character's fists read 101% of the seam's fail level (round 9), and a swing took 250° for each second squared of
+    // the cycle (rounds 9 to 13): every cycle taken now is 0.6 s or more (a swing of 0.3 s at a stance of a half, and a
+    // run's shortest), where that is 90°, past the swing's range, so the body's own reading bounds it alone (the seam's
+    // keys as the clip holds them, read as the sensors read them). On Mesh2Motion's rest at 0.6 s, its feet at the reach
+    // bound (340), its hands read past SEAM_TURN at a swing of 69° (76% of the fail level) and under it at 68 and every
+    // narrower whole swing, so the widest that plays, and every narrower one with it, is 68 (each swing's own reading rises
+    // and falls with it: round 11 read 75 as playing, and 64 to 68 not, on a test character)
+    expect(play({ speed: 100, cycle: 0.565, stance: 0.5, swing: 80 })).toThrow(/its feet swing for 0.282 s, under 0.3 s/);
+    expect(play({ speed: 100, cycle: 0.6, stance: 0.5, swing: 80 })).not.toThrow();
+    expect(play({ speed: 340, cycle: 0.6, stance: 0.5, swing: 80 })).toThrow(/^gait walk: its right hand turns round on the loop's seam 76% as sharply as the sensors read a hitch there swinging 69°, narrower than its own swing, over 70% \(its arms turning round as the cycle ends and begins\): on this body, at this cycle, its arms play swinging any whole number of degrees up to 68 either way; narrow its swing so \(fitGait does\), or use a longer cycle$/);
+    for (const swing of [68, 45]) expect(play({ speed: 340, cycle: 0.6, stance: 0.5, swing })).not.toThrow();
     // fitGait narrows to it from any wider swing (so a narrower swing asked for is never fitted wider), and keeps one under it
-    expect([80, 70, 61, 60, 45].map((swing) => PR.fitGait({ ...walk, speed: 100, cycle: 0.566, stance: 0.5, swing }, src.rest).swing)).toEqual([60, 60, 60, 60, 45]);
+    expect([80, 70, 69, 68, 45].map((swing) => PR.fitGait({ ...walk, speed: 340, cycle: 0.6, stance: 0.5, swing }, src.rest).swing)).toEqual([68, 68, 68, 68, 45]);
     // and a refusal of its legs names the whole of what fitGait makes of it, the swing narrowed too (round 11's named the
     // speed alone, at which the hands were then refused: round 11's review)
-    expect(play({ speed: 380, cycle: 0.566, stance: 0.5, swing: 80 })).toThrow(/past 72%: on these legs, at this cycle and stance, it plays at 355% of the hip height a second \(\d+ mm\/s\), its arms swinging 60° either way; slow it and narrow its swing so \(fitGait does\), or shorten its cycle or stance$/);
-    expect(PR.fitGait({ ...walk, speed: 380, cycle: 0.566, stance: 0.5, swing: 80 }, src.rest)).toEqual({ ...walk, speed: 355, cycle: 0.566, stance: 0.5, swing: 60 });
+    expect(play({ speed: 380, cycle: 0.6, stance: 0.5, swing: 80 })).toThrow(/past 72%: on these legs, at this cycle and stance, it plays at 340% of the hip height a second \(\d+ mm\/s\), its arms swinging 68° either way; slow it and narrow its swing so \(fitGait does\), or shorten its cycle or stance$/);
+    expect(PR.fitGait({ ...walk, speed: 380, cycle: 0.6, stance: 0.5, swing: 80 }, src.rest)).toEqual({ ...walk, speed: 340, cycle: 0.6, stance: 0.5, swing: 68 });
     // and the reach the same way ("72.0% ... past 72%" at fractional speeds just past the bound), a rate of NaN as
     // itself (it read "null"), and a body without legs in the gait's own words (a validator's dump of NaNs)
     expect(play({ speed: 619.2, cycle: 0.6, stance: 0.2 })).toThrow(/its feet reach 72\.1% of a leg ahead and behind .* past 72%/);
@@ -555,12 +591,20 @@ describe("a gait", () => {
     expect(() => PR.gaitClip(run18, cmu18, { restSrc: "CMU_18" })).toThrow(/its left foot turns round on the loop's seam 71% .* it plays at 350% of the hip height a second/);
     expect([PR.fitGait(run144, cmu144).speed, PR.fitGait(run18, cmu18).speed]).toEqual([368, 350]);
   });
-  it("fits a gait to a body: the fastest whole speed its legs take, a lower lift only where none does, and its arms' swing narrowed where its hands need it", () => {
+  it("fits a gait to a body: the fastest whole speed its legs and its pace take, a lower lift only where none does, and its arms' swing narrowed where its hands need it", () => {
     const idle = load("MESH2MOTION/Idle_A"), style = load("STYLE100/Neutral_Walk"), fast = { ...PR.GAITS[0]!, speed: 1000, cycle: 1.2, stance: 0.5 };
     expect([PR.fitGait(fast, idle.rest), PR.fitGait(fast, style.rest)]).toEqual([{ ...fast, speed: 189 }, { ...fast, speed: 177 }]);
     // a gait that fits is given back as it is; one that doesn't plays once fitted
     for (const g of PR.GAITS) expect([g.name, PR.fitGait(g, idle.rest) === g]).toEqual([g.name, true]);
     expect(PR.gaitClip(PR.fitGait({ ...PR.GAITS[2]!, speed: 600 }, idle.rest), idle.rest, { restSrc: idle.clip.restSrc }).dur).toBe(0.7);
+    // and no faster than its feet may come forward past the hips (400% of the hip height a second, which gaitClip refuses
+    // whatever the body): the limp asked to go at 300 on CMU_91's rest was fitted to 121, as fast as its legs take, and
+    // refused there for its pace (403%), as on 8 other library rests asked 300 or 1,000 (round 14's review); the fastest
+    // whole speed under the pace is 120, and it plays
+    const cmu91 = load("CMU_CURATED/Limp_Loop"), limp = { ...PR.GAITS[3]!, speed: 300 };
+    expect([PR.fitGait(limp, cmu91.rest), PR.fitGait({ ...limp, speed: 1000 }, cmu91.rest).speed]).toEqual([{ ...limp, speed: 120 }, 120]);
+    expect(() => PR.gaitClip({ ...limp, speed: 121 }, cmu91.rest, { restSrc: cmu91.clip.restSrc })).toThrow(/^gait limp: its right foot comes forward past the hips at 403% of the hip height a second, over 400: .*; use a speed of at most 120 \(fitGait slows it so\), a shorter stance or a lighter limp$/);
+    expect(PR.gaitClip(PR.fitGait(limp, cmu91.rest), cmu91.rest, { restSrc: cmu91.clip.restSrc }).dur).toBe(1.3);
     // slower still where a leg would fold shut at the reach bound (a stance of 0.2 lifting 35 and bouncing 6: 582 and 474
     // there, the knees popping at 22 to 26 m/s; the verifier's round 8)
     const run = { ...PR.GAITS[0]!, speed: 1000, stance: 0.2, lift: 35, bounce: 6 };
@@ -586,16 +630,17 @@ describe("a gait", () => {
       expect(() => PR.gaitClip(PR.fitGait(g, idle.rest), idle.rest, { restSrc: idle.clip.restSrc })).toThrow(why);
     }
   });
-  it("reads its loop's seam on the very keys the clip holds there, kept as keys whatever the budget", () => {
+  it("reads its loop's seam on the very keys the clip holds there, kept as keys at any budget it takes", () => {
     // round 11's model read the seam from where each foot and hand was aimed, before the format's rounding (a leg's
     // direction held in hundredths, its bend and twist in whole degrees, the pelvis re-rounded on its grid), and read up to
     // 0.42 of the fail level under what the sensors then read (round 11's review): it now makes the keys about the seam as
     // gaitClip does (each knee carried from the start and closed over the cycle, each leg snapped, a planted foot to where
-    // it landed) and reads those; the clip keeps them as keys (a budget of 30 mm drops none of them)
+    // it landed) and reads those; the clip keeps them as keys whatever its budget (round 12 held them at 30 mm; a gait
+    // takes 0 to 2 since round 14, and at 2 the limp at 60 frames a second drops a frame on Mesh2Motion's rest)
     const idle = load("MESH2MOTION/Idle_A"), [walk, , run, limp] = PR.GAITS, cmu144 = sourceRest("CMU_CURATED", "CMU_144");
     const run144 = { ...walk!, cycle: 0.6, stance: 0.402, limp: 0, lift: 11.002, bounce: 5.603, dip: 8.861, sway: 0.91, lean: -2.158, swing: 12.87, speed: 368 };
-    for (const [rest, g, fps] of [[idle.rest, walk, 55], [idle.rest, walk, 75], [idle.rest, run, 60], [idle.rest, limp, 65], [cmu144, run144, 72.5]] as const) {
-      const S = points(rest, PR.standingOn(rest)), c = PR.gaitClip(g!, rest, { restSrc: "x", fps, budget: 30 }), nf = 2 * Math.round((c.dur * fps) / 2);
+    for (const [rest, g, fps, budget] of [[idle.rest, walk, 55, 2], [idle.rest, walk, 75, 2], [idle.rest, run, 60, 2], [idle.rest, limp, 65, 2], [idle.rest, limp, 60, 2], [cmu144, run144, 72.5, 0]] as const) {
+      const S = points(rest, PR.standingOn(rest)), c = PR.gaitClip(g!, rest, { restSrc: "x", fps, budget }), nf = 2 * Math.round((c.dur * fps) / 2);
       const times = Array.from({ length: nf }, (_, i) => Math.round((i * c.dur * 1000) / nf) / 1000), { head, tail } = legsOf(g!, rest, S, PR.standingOn(rest)).seam.keys(nf);
       [0, 1, 2, 3, nf - 3, nf - 2, nf - 1, nf].forEach((i, k) => {
         const t = i < nf ? times[i]! : c.dur, held = c.keys.find((x) => x.t === t) as unknown as Record<string, number[]> | undefined, model = (k < 4 ? head[k] : tail[k - 4]) as Record<string, number[]>;
@@ -667,9 +712,10 @@ describe("a gait", () => {
     expect([g.speed, L.knee >= 0, lowest >= L.knee]).toEqual([558, true, true]);
   });
   it("puts the pelvis on the grid without a step of two beside still ones, at most 0.75% of the hip height from where it is drawn", () => {
-    // a bob moving about a % a frame rounds 93.25, 91.49, 90.54 to 93, 91, 91 here: the clip's first step, read against
+    // a bob moving about a % a frame rounds 92.62, 91.39, 90.59 to 93, 91, 91 here: the clip's first step, read against
     // the one after it, a step of two beside a still one (by parts, on the test characters' short pelvis-to-spine, such
     // steps popped the spine at up to 136% of the fail level: D71, round 9); the second frame is taken a % up instead
+    // (0.68 s since round 14; round 9's 0.55 s, 93.25, 91.49 and 90.54, swings 0.275 s, refused now)
     const { clip, rest } = load("MESH2MOTION/Idle_A"), S = points(rest, PR.standingOn(rest)), pct = rest.H0 / 100;
     /** Each key's pelvis height and how far it is from where the gait draws it (% of the hip height), at 55 a second. */
     const pelvis = (g: PR.Gait) => {
@@ -677,7 +723,7 @@ describe("a gait", () => {
       const drop = (ph: number, vL = (ph + 1 - L.landL) % 1) => (vL < L.stanceOf.L ? -4 * (g.limp ?? 0) * pct * Math.sin((Math.PI * vL) / L.stanceOf.L) : 0);
       return { hips, off: c.keys.map((k, i) => hips[i]![2]! - (at(S, "pelvis")[2] - L.dip - g.bounce! * pct * Math.cos(4 * Math.PI * (k.t / c.dur - 0.08)) + drop(k.t / c.dur)) / pct) };
     };
-    const { hips, off } = pelvis({ name: "g", about: "a gait", speed: 150, cycle: 0.55, stance: 0.5, bounce: 6, dip: 2, sway: 0 });
+    const { hips, off } = pelvis({ name: "g", about: "a gait", speed: 150, cycle: 0.68, stance: 0.5, bounce: 5, dip: 2, sway: 0 });
     const step = (i: number) => Math.hypot(...hips[i + 1]!.map((v, j) => v - hips[i]![j]!)), n = hips.length - 1;
     const lone = Array.from({ length: n }, (_, i) => i).filter((i) => Math.abs(hips[i + 1]![2]! - hips[i]![2]!) >= 2 && step(i) > 2.5 * Math.max(i > 0 ? step(i - 1) : 0, i < n - 1 ? step(i + 1) : 0));
     expect([lone, Math.max(...off.map(Math.abs)) <= 0.75, off.some((x) => Math.abs(x) > 0.5)]).toEqual([[], true, true]);

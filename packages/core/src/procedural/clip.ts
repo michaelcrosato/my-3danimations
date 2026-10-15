@@ -123,7 +123,9 @@ export interface ProceduralOptions {
   /** The rate frames are sampled at before keys are fitted, and the key budget in mm: a move's 30 and 30, a gait's 60
    *  and 2, an idle's 30 and 2. A gait's cycle is split evenly into the even number of frames nearest cycle × fps, so its
    *  loop meets itself and a plain gait's feet are seen at the same phases (a 0.705 s cycle at 60 is 42 frames, 59.57 a
-   *  second); a gait is made at 55 to 75. */
+   *  second). A gait takes a rate of 55 to 75 and a budget of 0 (every frame a key) to 2, and refuses any other: every
+   *  bound it is fitted to is measured over those, the worst of each kind of defect at 90% of the sensors' fail level or
+   *  under (D71, round 14). */
   fps?: number;
   budget?: number;
 }
