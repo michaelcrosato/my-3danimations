@@ -1,0 +1,37 @@
+{
+ "about": "npm run bench: fresh agents on the briefs (PLAN.md §7); isolation 1 is the claude CLI in a clean workspace",
+ "date": "2026-10-15T18-47-37",
+ "commit": "70a45c6e9b27e7a894574d672537d7fe190c8a5d",
+ "dirty": false,
+ "model": "the CLI's default",
+ "fake": false,
+ "parallel": 1,
+ "privateTmp": true,
+ "quiz": [
+  {
+   "trial": "quiz-1",
+   "right": 10,
+   "of": 10,
+   "wrong": [],
+   "agent": {
+    "isolation": 1,
+    "privateTmp": true,
+    "ok": true,
+    "ms": 4508.126923000001,
+    "model": "claude-sonnet-5-5",
+    "turns": 1,
+    "tokens": {
+     "input": 2,
+     "output": 240,
+     "cacheRead": 649,
+     "cacheWrite": 5997
+    },
+    "costUsd": 0.0264569,
+    "outside": [],
+    "scratch": [],
+    "pastManual": []
+   }
+  }
+ ],
+ "ms": 4531
+}

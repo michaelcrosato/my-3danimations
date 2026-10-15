@@ -4,7 +4,7 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 `PLAN.md` §14; decisions are in `docs/DECISIONS.md`.
 
 **Phase:** 6 Composition (4 and 5 done: G4 = M1 and G5 passed). **Next gate:** G6. **Version:** 0.44.1.
-**Mode:** ultracode (D83): implementers in worktrees, the main session integrates; a fresh draft PR from `main`.
+**Mode:** ultracode (D83): implementers in worktrees, the main session integrates; #11 merged (G4), a fresh draft PR.
 
 ## Done
 
@@ -24,8 +24,9 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 
 ## Next
 
-- Phase 6: WP-6.2's round 8 on 0.44.0's gaits (D71), then G6 (B2, B3, B5, B6, B7; D78, D84). Gaits are made 7 to 8
-  times faster, the same bytes; CI's T1 fetches the held-out rigs (D89). Then Phase 7 (WP-7.1 needed G4).
+- Phase 6: WP-6.2's round 8 (D71) and its reviews 9 to 13 are merged (folds, knees, the seam read on the clip's keys,
+  75 fps, standing starts; actions fit their gaits); a last pass under a margin rule (every bound's worst fresh reading
+  at most ~90% of fail: MIN_SWING raised) is running, then D71's record, then G6.
 
 ## Blocked on the owner
 
