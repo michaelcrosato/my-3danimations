@@ -4,6 +4,19 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.45.1 · 2026-10-15
+
+### Core
+- Gaits (WP-6.2's close-out, D71): the seam readings `fitGait` and `gaitClip` share are kept by weight, 16 MB across
+  all rests, the one read longest ago dropped first, each grid keeping only what is read again; before, they grew with
+  each rest (40 gaits of 3 s held 157 MB, and a process over about 100 rests ran out of a 3 GB heap). Every clip and
+  refusal is the same to the bit; `fitGait` is about 8% quicker and `gaitClip` about 5%.
+- Actions: the ready-made procedural parts are kept for the 96 used last (16 bodies of six), not without limit.
+
+### Sensors
+- Tests: the run knee the margin rule records (91.1%, D90) is pinned between 90% and 92%, naming what to restate when
+  it moves.
+
 ## 0.45.0 · 2026-10-15
 
 ### Core

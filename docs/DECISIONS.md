@@ -2564,6 +2564,7 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
       from round 2, 0.25 from 5, 0.26 from 6, 0.3 from 14).
     - MIN_RUN_CYCLE 0.6 s, 0.65 lifting over 25 (a run's knee popping within the clip, the most any knee reads): 79.7%
       (the review's climb, CMU_54 at 70; 750 more steps found none higher), 75.4% tuned, 74.4% fresh; the seam 70.0%.
+      The final review climbed to 91.1% on a fitted run (the close-out below; recorded, D90).
     - STRIDE_MAX 72% of a leg: just under it a knee's pop 75.4% (the review's tuned), 73.5% (5,101 clips), the seam
       69.5%, anything 82.3%.
     - FOLD_MIN 25%: the model's fold under 27% a knee's pop 66.7% (the review's), 61.4% (1,328 clips), joints 33.9%;
@@ -2585,11 +2586,41 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
       twist flips 4.4%; the feet into the floor 5.2%; stretch 0.
     - ARM_TURN (250° a second squared, rounds 9 to 13): removed in round 14, subsumed.
     - Recorded, measured only: the pelvis's whole-% steps within a clip, 82.3% by parts (test character 9's diagonal
-      step over a 13 ms key at 75), the most any class reads, on every grid since round 12; a three-axis step (1.007)
-      never found.
+      step over a 13 ms key at 75), the most any class reads on fresh grids since round 12 (the run knee's 91.1% was
+      climbed, D90); a three-axis step (1.008) never found.
+- **The close-out** (lane G: ae25401, 16990ef; its review's fixes 00e3b69, a7b326e, f8cdd68; v0.45.1). Two passes, each
+  reviewed (sound):
+  - **The seam cache, bounded.** Round 12's `SEAMS` kept 32 `seamOf` readings a rest for as long as the rest lived, each
+    with every grid's frames and keys: 40 distinct 3 s gaits on CMU_54 held 157 MB, the presets fitted and made on the
+    64 library rests 297 MB, and shards over about 100 rests ran out of a 3 GB heap (round 14's final review). Each grid
+    now keeps only its reading, the pelvis's places and the hands' footing (packed, 2.7 KB), the frames redrawn and the
+    keys re-derived when read again; `seamAt` keeps readings across all rests while they weigh 16 MB or less
+    (`SEAM_BYTES`, each reading weighing itself within 10% of what it holds), the one read longest ago dropped first.
+    The first pass kept 32 readings in all, which made a make three times slower (74 ms against 23) when more than 32
+    readings came between a gait's fit and its make (the review's 124 fits, then 124 makes); by weight 16 MB holds some
+    225 presets or 57 gaits of 3 s, and that order makes at 23 ms again. Fitting more than about 225 presets before
+    making any still re-reads them (the 64 rests' 256: 76 ms a make), as the comment says. Held after two forced gcs,
+    heap and array buffers: 13 MB for the 40 gaits, 17 MB for the presets on 64 rests, 17 MB for all 104 bodies in one
+    process (2,904 clips), past 16 MB by at most the newest reading's growth (about 0.3 MB). `proceduralResolver`'s
+    ready-made parts are kept for the 96 used last (16 bodies of six), not without limit (43 MB on 104 bodies; about 24
+    MB now, the seam's readings counted). Every output is the same to the bit: the presets' 5,824 makes on 104 bodies at
+    55 to 75 frames a second, raw, fitted and asked at 300 and 1,000 (225 refusals), 7,072 grid gaits (922 refused) and
+    the four gaits' 416 content ids through the resolver. `fitGait` is about 8% quicker over the grid gaits and
+    `gaitClip` about 5% (by shard, 6 to 10% and 3 to 7%).
+  - **The final review's worsts**, no fail anywhere, plainly or by parts. Fresh grids, 18,815 clips: a knee's pop 72.7%
+    (CMU_77's walk at 74.675), the seam 70.0% at a knee or foot, 69.9% at a hand or the torso, knuckles 68.0%, elbows
+    and wrists 65.7%, the hands' pop 65.0%, anything 82.3% (test character 9's pelvis steps). Tuned to the bounds,
+    14,841 clips: a knee's pop 73.4%, the hands' pop 76.1%, the seam at a hand 70.0%, anything 82.3%. Runs under 0.65 s:
+    71.6% fresh, 68.2% tuned, 77.4% over 27,487 fitted runs remade on every grid from 60 to 75.
+  - **Climbed, recorded (D90):** a run's knee 91.1% on MESH2MOTION's Animated rest (cycle 0.6 s, stance 0.415, lift
+    10.246, bounce 1.12, dip 6.819, sway 2.833, lean 3.407, swing 62.979) fitted to 377 for any faster ask, at 73.333
+    frames a second (44 frames), plainly and by parts; also 88.1% (CMU_140 at 375.5, 70) and 87.2% (Quaternius's at 359,
+    70.968, its numbers whole in `MIN_RUN_CYCLE`'s comment). The sensors' test pins it between 90% and 92%, naming what
+    to restate when it moves. The bounds' comments say so: every bound but this one at 90% or under, and the pelvis's
+    82.3% the most only on fresh grids (its worked sum with `partScale` 0.3488; a three-axis step 1.008).
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.37.0, v0.37.2, v0.39.1, v0.42.1, v0.42.3, v0.42.4, v0.42.6, v0.44.0, v0.44.1 (lane G merged in
-  michaelcrosato/my-3danimations#12), v0.45.0
+  michaelcrosato/my-3danimations#12), v0.45.0, v0.45.1
 
 ## D72 · 2026-10-12 · Actions: multi-beat motions with their ground, beats and interrupt points (WP-6.3)
 
@@ -3274,8 +3305,9 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   - **Recorded, not bounded:** a run's knee popping within the clip reads 0.911 of the fail level on one gait `fitGait`
     returns (MESH2MOTION's Animated rest, cycle 0.6 s, stance 0.415, fitted to 377, at 73.333 frames a second; also
     0.881 on CMU_140 at 70 and 0.872 on Quaternius's at 70.968), predating round 14. It is not a fail; a further round
-    to win the last point is not worth its cost, so the bound's comment states it and a test pins it under 1.0.
+    to win the last point is not worth its cost, so the bound's comment states it and a test pins it between 0.90
+    and 0.92 (v0.45.1), naming what to restate when it moves.
 - **Why:** a bound that sits at the fail line is moved by the next grid; a stated margin makes the claim checkable and
   stops the rounds. The one class past 0.90 by 1.1 points is named rather than chased.
 - **Answered:** no: made without a response, to review.
-- **Landed in:** v0.45.0, michaelcrosato/my-3danimations#12
+- **Landed in:** v0.45.0, v0.45.1, michaelcrosato/my-3danimations#12

@@ -3,7 +3,7 @@
 The current state on one screen (at most 40 lines; `npm run doctrine` checks it from WP-0.3). The ledger is
 `PLAN.md` §14; decisions are in `docs/DECISIONS.md`.
 
-**Phase:** 6 Composition (4 and 5 done: G4 = M1 and G5 passed). **Next gate:** G6. **Version:** 0.44.1.
+**Phase:** 6 Composition (4 and 5 done: G4 = M1 and G5 passed). **Next gate:** G6. **Version:** 0.45.1.
 **Mode:** ultracode (D83): implementers in worktrees, the main session integrates; #11 merged (G4), a fresh draft PR.
 
 ## Done
@@ -19,14 +19,14 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
   rigs (D46); binding (D47, D87); baking (D48); capture, the sweep (D49, D51); the demo (D52); B1 (D54–D56, D84, D86).
 - Phase 5 (G5 passed, on michaelcrosato/my-3danimations#10 with Phase 4): layout (D53); licenses (D59); `@m3a/io` (D61);
   corpora (D62); the re-import (D63); facts (D64); search (D65); library QA, 1,199 unique motions (D66–D69).
-- Phase 6 so far: recipes (D70); procedural moves, gaits and idles (D71, six verifier rounds); actions (D72); graphs,
-  Node = Chromium (D73, two rounds); simulation, stride warping (D75); briefs B2–B7, the manual's wire and make (D76, D77).
+- Phase 6 so far: recipes (D70); procedural moves, gaits and idles (D71, 14 verifier rounds, the margin rule D90);
+  actions (D72); graphs, Node = Chromium (D73); simulation, stride warping (D75); briefs B2–B7, wire and make (D76–77).
 
 ## Next
 
-- Phase 6: WP-6.2 closed under the margin rule (D71's rounds 8 to 14, D90); its close-out (the seam cache bounded, the
-  run knee's 91.1% pinned) is merged, its review's fixes running. Then G6 at a fixed commit: fresh held-out variants
-  (D78), each known-good on its variant, the gate (`claude -p` checked). WP-7.1 runs in a lane, merged after G6.
+- G6 at a fixed commit (0.45.1, after T0, T1, T2 and CI): fresh held-out variants on generator seeds (D78), each
+  brief's known-good on its variant, then the gate (`claude -p` checked, quiz 10/10). WP-7.1 (the tool registry) is
+  done in a lane (four verifier rounds) and merges after G6, on the next branch.
 
 ## Blocked on the owner
 
