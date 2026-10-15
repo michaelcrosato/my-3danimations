@@ -1,8 +1,8 @@
 // The four surfaces of one registry (WP-7.1's Done-when): every tool shows the same name, description and schema, and
 // every example (each one a test) gives the same reply through the TypeScript API, the m3a CLI (report.json and its exit
-// code), the MCP server (structuredContent, valid against its outputSchema) and the console handle, and the same text on
-// the CLI and MCP with and without verbose. Then MCP itself: both eras, its errors against tool errors, images as image
-// content; the Node host's paths; and the bin, as a process, on the CLI and stdio.
+// code), the MCP server (structuredContent, valid against its outputSchema; isError for a failed tool only) and the
+// console handle, and the same text on the CLI and MCP with and without verbose. Then MCP itself: both eras, its errors
+// against tool errors, images as image content; the Node host's paths; and the bin, as a process, on the CLI and stdio.
 import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -12,7 +12,7 @@ import { describe, expect, it } from "vitest";
 import { commandLine, runCli } from "../src/cli.ts";
 import { base64, mcpServer, mcpTool } from "../src/mcp.ts";
 import { nodeHost } from "../src/node.ts";
-import { consoleHandle, defineTool, describeTool, EXIT, Registry, replySchema, tools, type Reply } from "../src/registry/index.ts";
+import { consoleHandle, defineTool, describeTool, EXIT, memoryStore, Registry, replySchema, tools, type Reply } from "../src/registry/index.ts";
 
 const ROOT = join(import.meta.dirname, "../../.."), BIN = join(ROOT, "packages/tools/src/node.ts"), host = nodeHost(ROOT);
 const META = { "io.modelcontextprotocol/protocolVersion": "2026-07-28", "io.modelcontextprotocol/clientCapabilities": {} };
@@ -26,7 +26,10 @@ const swatch = defineTool({
 let n = 0;
 const note = defineTool({ name: "demo.note", description: "Count a note.", params: { type: "object", properties: {} }, examples: [{ args: { request_id: "ex-1" } }], edit: { revision: () => `r${n}` }, run: () => ({ verdict: `note ${++n}`, data: { n }, next: "again", revision: `r${n}` }) });
 const long = defineTool({ name: "demo.long", description: "Many lines.", params: { type: "object", properties: { n: { type: "integer", minimum: 0, default: 30 } } }, examples: [{ args: {} }, { args: { n: 2, verbose: true } }], run: (a: { n: number }) => ({ verdict: `${a.n} lines`, data: {}, lines: Array.from({ length: a.n }, (_, i) => `line ${i + 1}`), next: "read them" }) });
-const reg = new Registry([...tools.list(), swatch, note, long]), mcp = mcpServer(reg, { host }), handle = consoleHandle(reg, host);
+const boom = defineTool({ name: "demo.boom", description: "Fail.", params: { type: "object", properties: {} }, examples: [{ args: {}, expect: "error" }], run: () => Promise.reject(new Error("no disk")) });
+// runCli runs in this process here, so the store outlives each command, as WP-7.2's file will.
+const reg = new Registry([...tools.list(), swatch, note, long, boom], { ...memoryStore(), durable: true });
+const mcp = mcpServer(reg, { host }), handle = consoleHandle(reg, host);
 const rpc = async (method: string, params: Record<string, unknown> = {}, meta: object | null = META) => (await mcp.handle({ jsonrpc: "2.0", id: 1, method, params: meta ? { ...params, _meta: meta } : params })) as { result?: Record<string, unknown>; error?: { code: number; message: string; data?: unknown } };
 const ajv = new Ajv2020({ strict: false });
 
@@ -55,7 +58,7 @@ describe("one definition, four surfaces", () => {
         const c = await cli(commandLine(t, ex.args));
         expect([c.report, c.code]).toEqual([api, EXIT[api.status]]);
         const m = (await rpc("tools/call", { name: t.name.replace(/\./g, "_"), arguments: ex.args })).result!;
-        expect(m.structuredContent).toEqual(api);
+        expect([m.structuredContent, m.isError]).toEqual([api, api.status === "error"]);
         expect(ajv.validate(replySchema(t.output), m.structuredContent), ajv.errorsText()).toBe(true);
         expect(await (handle[t.name] as (a: object) => Promise<Reply>)(ex.args)).toEqual(api);
         for (const verbose of [false, true]) {
@@ -65,6 +68,9 @@ describe("one definition, four surfaces", () => {
       });
     }
   }
+  it("help --json writes a report valid against m3a.reply/1", async () => {
+    for (const argv of [["help"], ["help", "version"]]) expect(ajv.validate(replySchema(), (await cli(argv)).report), ajv.errorsText()).toBe(true);
+  });
 });
 
 describe("MCP", () => {
@@ -73,6 +79,7 @@ describe("MCP", () => {
     expect(d).toMatchObject({ resultType: "complete", supportedVersions: ["2026-07-28", "2025-11-25", "2025-06-18", "2025-03-26", "2024-11-05"], capabilities: { tools: { listChanged: false } }, cacheScope: "public" });
     expect(d._meta).toEqual({ "io.modelcontextprotocol/serverInfo": expect.objectContaining({ name: "m3a" }) });
     expect((await rpc("tools/list")).result).toMatchObject({ resultType: "complete", ttlMs: 3_600_000, cacheScope: "public" });
+    expect((await rpc("tools/call", { name: "version" })).result).toMatchObject({ resultType: "complete", _meta: { "io.modelcontextprotocol/serverInfo": { name: "m3a" } } });
     expect((await rpc("tools/list", {}, { ...META, "io.modelcontextprotocol/protocolVersion": "2099-01-01" })).error).toMatchObject({ code: -32022, data: { requested: "2099-01-01" } });
     expect((await rpc("tools/list", {}, { "io.modelcontextprotocol/protocolVersion": "2026-07-28" })).error?.code).toBe(-32602);
     expect((await rpc("ping")).error?.code).toBe(-32601);
@@ -91,7 +98,7 @@ describe("MCP", () => {
   });
 
   it("answers a wrong request with a JSON-RPC error and a wrong call with isError, naming the closest", async () => {
-    expect((await rpc("tools/call", { name: "valdate" })).error).toEqual({ code: -32602, message: 'Unknown tool: valdate; did you mean "validate"?' });
+    expect((await rpc("tools/call", { name: "valdate" })).error).toEqual({ code: -32602, message: 'Unknown tool: "valdate"; did you mean "validate"?' });
     expect((await rpc("tools/call", { name: "version", arguments: [] })).error?.code).toBe(-32602);
     expect((await rpc("resources/list")).error?.code).toBe(-32601);
     expect(await mcp.handle([{ jsonrpc: "2.0", id: 1, method: "ping" }])).toMatchObject({ id: null, error: { code: -32600 } });
@@ -130,7 +137,7 @@ describe("the m3a bin", () => {
     expect([ok.status, ok.stdout.split("\n")[0]]).toEqual([0, "validate library/sets/QUATERNIUS_3D2DGE/A_TPose.json: PASS, 0 errors, 0 warnings"]);
     expect(JSON.parse(readFileSync(join(ROOT, "check-output/validate/report.json"), "utf8"))).toMatchObject({ status: "ok", data: { ok: true } });
     const bad = run("validate", "--pth", "x");
-    expect([bad.status, bad.stdout]).toEqual([2, expect.stringContaining('unknown flag --pth; did you mean "--path"?')]);
+    expect([bad.status, bad.stdout]).toEqual([2, expect.stringContaining('unknown flag "--pth"; did you mean "--path"?')]);
   });
 
   it("serves MCP over stdio, one message per line, and exits when stdin ends", () => {

@@ -1,6 +1,7 @@
 // The tool registry (WP-7.1): definitions refused with their fix, arguments checked with "did you mean" (own names
 // only), defaults filled, edits' request_id (a retry applies once; the same id with other arguments is refused) and
-// if_revision, failures as replies, the one-line verdict and 20-line text, and the CLI's parsing and exit codes.
+// if_revision, nested objects closed, output schemas enforced, failures as replies, the one-line verdict and 20-line
+// text (many images folded), and the CLI's parsing, help, exit codes and --request-id refusal.
 import { describe, expect, it } from "vitest";
 import { commandLine, parseCall, runCli } from "../src/cli.ts";
 import { CONSOLE_KEY, defineTool, EXIT, imageTokens, installConsole, Registry, render, reply, ToolError } from "../src/registry/index.ts";
@@ -35,6 +36,7 @@ describe("defineTool", () => {
     expect(() => tool({ params: { type: "object", properties: { verbose: { type: "boolean" } } } })).toThrow(/kept by the registry and the CLI/);
     for (const p of ["path", "constructor"]) expect(() => tool({ positionals: [p] })).toThrow(/not one of its parameters/);
     expect(() => tool({ edit: {} })).toThrow(/give edit.revision\(args, ctx\), so if_revision is checked/);
+    expect(() => tool({ params: { type: "object", properties: { "dry-run": { type: "boolean" } } } })).toThrow('rename it "dry_run", which the CLI spells --dry-run');
     expect(() => new Registry([tool(), tool()])).toThrow(/defined twice/);
   });
   it("adds verbose (and an edit's if_revision and request_id) and the examples to the schema", () => {
@@ -62,15 +64,33 @@ describe("Registry.call", () => {
 
   it("applies a retried request_id once and refuses the same id with other arguments", async () => {
     const { state, reg } = counter();
-    const first = await reg.call("demo.set", { value: 5, request_id: "r-1" });
-    expect(await reg.call("demo.set", { value: 5, request_id: "r-1", verbose: true })).toEqual(first);
+    const first = await reg.call("demo.set", { value: 5, tags: ["a"], request_id: "r-1" });
+    expect(await reg.call("demo.set", { request_id: "r-1", tags: ["a"], value: 5, verbose: true })).toEqual(first); // key order aside
     expect(state).toEqual({ n: 1, value: 5 });
-    const other = await reg.call("demo.set", { value: 6, request_id: "r-1" });
+    const other = await reg.call("demo.set", { value: 6, tags: ["a"], request_id: "r-1" });
     expect(other).toMatchObject({ status: "usage", error: { code: "E_REQUEST_ID" } });
     expect(other.error!.message).toBe('request_id "r-1" was first used with other arguments (they differ in value)');
     expect(state).toEqual({ n: 1, value: 5 });
     expect((await reg.call("demo.set", { value: -1, request_id: "r-2" })).status).toBe("usage"); // refused calls are not kept
     expect((await reg.call("demo.set", { value: 7, request_id: "r-2" })).revision).toBe("r2");
+  });
+
+  it("keeps request_ids per tool, and only replies that applied", async () => {
+    let calls = 0;
+    const flaky = tool({ name: "demo.flaky", edit: { revision: () => "r0" }, run: () => (++calls === 1 ? Promise.reject(new Error("busy")) : noop) });
+    const reg = new Registry([counter().edit, flaky]), again = async () => (await reg.call("demo.flaky", { request_id: "same" })).status;
+    expect((await reg.call("demo.set", { value: 1, request_id: "same" })).status).toBe("ok");
+    expect([await again(), await again(), calls]).toEqual(["error", "ok", 2]);
+  });
+
+  it("closes nested objects unless they say otherwise, and checks ranges and forms", async () => {
+    const fps = { type: "integer", maximum: 120 }, open = { type: "object", properties: { fps }, additionalProperties: true };
+    const reg = new Registry([tool({ name: "demo.opts", params: { type: "object", properties: { opts: { type: "object", properties: { fps } }, open, n: { anyOf: [{ type: "integer" }, { type: "null" }] } } } })]);
+    const err = async (args: object) => (await reg.call("demo.opts", args)).error?.message;
+    expect(await err({ opts: { fsp: 30 } })).toBe('unknown field in opts "fsp"; did you mean "fps"? (takes fps)');
+    expect(await err({ opts: { fps: 121 } })).toBe("opts.fps is 121, above its maximum 120");
+    expect(await err({ open: { fsp: 1 }, n: null })).toBeUndefined();
+    expect(await err({ n: "1" })).toBe("n matches none of its 2 forms");
   });
 
   it("fills defaults, so a call without one is the call with it, also for a retried request_id", async () => {
@@ -95,10 +115,12 @@ describe("Registry.call", () => {
       tool({ name: "a", run: () => { throw new ToolError("E_X", "give x", true); } }),
       tool({ name: "b", run: () => { throw new Error("boom"); } }),
       tool({ name: "c", run: () => ({ ...noop, data: [1] }) }),
+      tool({ name: "e", output: { type: "object", properties: { n: { type: "integer" } } }, run: () => ({ ...noop, data: { n: "x" } }) }),
     ]);
     expect(await reg.call("a")).toMatchObject({ status: "usage", error: { code: "E_X", message: "give x" } });
     expect(await reg.call("b")).toMatchObject({ status: "error", verdict: "b: error: boom", error: { code: "E_RUN" } });
     expect((await reg.call("c")).error?.message).toBe("c replied with data that is not a JSON object");
+    expect((await reg.call("e")).error).toEqual({ code: "E_RUN", message: 'e replied with data off its output schema (data.n should be an integer, not "x")' });
     expect((await reg.call("a", {}, {})).next).toMatch(/schema lists its arguments/);
     expect((await new Registry([tool({ name: "d", run: async (_a: object, ctx: { read(p: string): Promise<string> }) => ({ ...noop, verdict: await ctx.read("x") }) })]).call("d")).error?.code).toBe("E_HOST");
   });
@@ -114,6 +136,11 @@ describe("the reply's text", () => {
     expect(render(long, { verbose: true }).split("\n")).toHaveLength(33);
     expect(reply("demo", "ok", { verdict: "not JSON:\n  a\nb", data: {}, lines: ["c\nd"], next: "n" })).toMatchObject({ verdict: "not JSON: a b", lines: ["c", "d"] });
   });
+  it("folds more than 10 images into one line unless verbose", () => {
+    const many = reply("demo", "ok", { ...noop, lines: ["a", "b", "c"] }, Array.from({ length: 25 }, (_, i) => ({ name: `i${i}`, width: 100, height: 100, tokens: 14, bytes: null, path: `check-output/demo/i${i}.png` })));
+    expect(render(many, { more: "rerun with --verbose" }).split("\n")).toEqual(["ok", "a", "b", "c", "25 images, ~350 tokens in all: check-output/demo/ (to list each: rerun with --verbose)", "next: nothing"]);
+    expect(render(many, { verbose: true }).split("\n")).toHaveLength(30);
+  });
   it("prices an image as a model sees it, downscaled to 1568 px and about 1.15 megapixels", () => {
     expect(imageTokens(1000, 1000)).toBe(1334);
     expect(imageTokens(4000, 3000)).toBeLessThan(1600);
@@ -128,20 +155,20 @@ describe("the CLI", () => {
   };
   it("parses positionals, flags in both spellings, booleans, numbers and repeated arrays", () => {
     const { edit } = counter();
-    expect(parseCall(edit, ["3", "--tags", "a", "--tags=b", "--request-id", "x", "--verbose"])).toEqual({ value: 3, tags: ["a", "b"], request_id: "x", verbose: true });
+    expect(parseCall(edit, ["3", "--tags", "a,b", '--tags=["b"]', "--request-id", "x", "--verbose"])).toEqual({ value: 3, tags: ["a", "b", "b"], request_id: "x", verbose: true });
     expect(parseCall(edit, ["--value=4", "--if_revision", "r0"])).toEqual({ value: 4, if_revision: "r0" });
     expect(parseCall(edit, ["3", "4"])).toMatch(/"4" is one argument too many/);
-    expect(parseCall(edit, ["--valeu", "4"])).toMatch(/^unknown flag --valeu; did you mean "--value"\?/);
+    expect(parseCall(edit, ["--valeu", "4"])).toMatch(/^unknown flag "--valeu"; did you mean "--value"\?/);
     expect(parseCall(edit, ["--value"])).toBe('--value needs a value: the new value (one starting with "--" is written --value=<value>)');
     expect(parseCall(edit, ["--value", "--verbose"])).toMatch(/^--value needs a value/);
     expect(parseCall(edit, ["-1"])).toEqual({ value: -1 });
-    expect(parseCall(edit, ["-v", "3"])).toMatch(/^unknown flag -v: flags take two dashes; did you mean "--value"\? \(demo.set takes --value/);
+    expect(parseCall(edit, ["-v", "3"])).toMatch(/^unknown flag "-v": flags take two dashes; did you mean "--value"\? \(demo.set takes --value/);
     expect(parseCall(edit, ["3", "--value=4"])).toBe("--value is given twice; give it once (only an array flag repeats)");
     expect(parseCall(edit, ["--json=true"])).toBe("--json takes no value; write --json alone");
-    for (const f of ["--constructor", "--__proto__", "--toString"]) expect(parseCall(edit, [f, "x"])).toMatch(new RegExp(`^unknown flag ${f};`));
+    for (const f of ["--constructor", "--__proto__", "--toString"]) expect(parseCall(edit, [f, "x"])).toMatch(new RegExp(`^unknown flag "${f}";`));
     expect(commandLine(edit, { value: 3, tags: ["a"], verbose: true })).toEqual(["demo.set", "3", '--tags=["a"]', "--verbose"]);
   });
-  it("exits 0 ok, 1 findings, 2 usage, and writes report.json with --json", async () => {
+  it("exits 0 ok, 1 findings, 2 usage, writes report.json with --json, and refuses what it can't honour", async () => {
     const { reg } = counter(), run = async (...argv: string[]) => {
       const { out, io: x } = io();
       return { code: await runCli(reg, argv, x), ...out };
@@ -154,6 +181,10 @@ describe("the CLI", () => {
     expect((await run("demo.sett")).text).toContain('no tool "demo.sett"; did you mean "demo.set"?');
     expect((await run()).text).toMatch(/^m3a .*: 1 tools;/);
     expect((await run("demo.set", "-h")).text).toContain("  m3a demo.set 1\n");
+    expect((await run("--verbose")).code).toBe(0);
+    expect((await run("help", "--verbos")).text).toMatch(/^help: usage error: unknown flag "--verbos"; did you mean "--verbose"\?/);
+    expect((await run("help", "demo.set", "bogus")).text).toMatch(/^help: usage error: "bogus" is one argument too many/);
+    expect((await run("demo.set", "2", "--request-id", "x")).text).toMatch(/^demo.set: usage error: --request-id is not kept between m3a commands yet/);
   });
 });
 

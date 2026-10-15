@@ -1,13 +1,14 @@
 // The m3a command line (PLAN.md §5.6), platform-neutral: `m3a <tool> [args] [--json] [--verbose]` and `m3a help [tool]`
 // (or -h), parsed against the tool's schema. Flags are its parameter names (`--if-revision` or `--if_revision`,
 // `--flag=value` or `--flag value`; a value starting with "--" takes the `=` form), given once unless an array; its
-// positionals fill the parameters it names in order. An unknown flag or tool is a usage error naming the closest one.
-// The text is the reply, verdict first; --json also writes check-output/<tool>/report.json (the Reply, schema
-// m3a.reply/1). Exit 0 ok, 1 findings, 2 usage error. The Node entry (./node.ts) supplies the IO.
+// positionals fill the parameters it names in order. An unknown flag, tool or help argument is a usage error naming the
+// closest one; so is --request-id until the registry's store outlives a command (WP-7.2). The text is the reply, verdict
+// first; --json also writes check-output/<tool>/report.json (the Reply, schema m3a.reply/1). Exit 0 ok, 1 findings or a
+// failed tool, 2 usage error. The Node entry (./node.ts) supplies the IO.
 import { VERSION } from "@m3a/core";
 import { describeTool, reply, usage, type Host, type Registry, type Tool } from "./registry/registry.ts";
 import { EXIT, render, type Reply } from "./registry/reply.ts";
-import { didYouMean, type Schema } from "./registry/schema.ts";
+import { didYouMean, quote, type Schema } from "./registry/schema.ts";
 
 /** What the CLI needs from its platform: printing, writing a file (report.json) and the registry's host. */
 export interface CliIo {
@@ -17,9 +18,9 @@ export interface CliIo {
 }
 
 const flag = (param: string) => `--${param.replace(/_/g, "-")}`;
-const quote = (a: string) => (/^[\w./:=@,+-]*$/.test(a) ? a : `'${a.replace(/'/g, "'\\''")}'`);
+const shellWord = (a: string) => (/^[\w./:=@,+-]*$/.test(a) ? a : `'${a.replace(/'/g, "'\\''")}'`);
 /** An argv as a shell line, each value quoted only where it needs it (`--text='{"a":1}'`). */
-const shell = (argv: readonly string[]) => argv.map((a) => a.replace(/^(--[\w-]+=)?(.*)$/s, (_, f: string | undefined, v: string) => (f ?? "") + quote(v))).join(" ");
+const shell = (argv: readonly string[]) => argv.map((a) => a.replace(/^(--[\w-]+=)?(.*)$/s, (_, f: string | undefined, v: string) => (f ?? "") + shellWord(v))).join(" ");
 
 /** The argv that makes a call: positionals first (strings and numbers), then `--flag=value` for the rest. */
 export function commandLine(tool: Tool, args: Record<string, unknown>): string[] {
@@ -55,17 +56,17 @@ export function parseCall(tool: Tool, argv: readonly string[]): Record<string, u
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i]!;
     let name: string, v: unknown;
-    if (/^-[^-\d.]/.test(a)) return `unknown flag ${a}: flags take two dashes${didYouMean(`-${a}`, flags)} ${takes}`;
+    if (/^-[^-\d.]/.test(a)) return `unknown flag ${quote(a)}: flags take two dashes${didYouMean(`-${a}`, flags)} ${takes}`;
     if (!a.startsWith("--")) {
       const p = pos.shift();
-      if (p === undefined) return `"${a}" is one argument too many: ${tool.name} takes ${tool.positionals?.length ? `${tool.positionals.join(", ")} by position` : "flags only"} ${takes}`;
+      if (p === undefined) return `${quote(a)} is one argument too many: ${tool.name} takes ${tool.positionals?.length ? `${tool.positionals.join(", ")} by position` : "flags only"} ${takes}`;
       [name, v] = [p, coerce(a, props[p])];
     } else {
       const eq = a.indexOf("="), raw = eq < 0 ? a : a.slice(0, eq);
       name = raw.slice(2).replace(/-/g, "_");
       const s = Object.hasOwn(props, name) ? props[name] : undefined;
       if (raw === "--json" || raw === "--help") return `${raw} takes no value; write ${raw} alone`;
-      if (!s) return `unknown flag ${raw}${didYouMean(raw, flags)} ${takes}`;
+      if (!s) return `unknown flag ${quote(raw)}${didYouMean(raw, flags)} ${takes}`;
       let value = eq < 0 ? undefined : a.slice(eq + 1);
       if (value === undefined && s.type !== "boolean" && !argv[i + 1]?.startsWith("--")) value = argv[++i];
       if (value === undefined && s.type !== "boolean") return `${raw} needs a value${s.description ? `: ${s.description}` : ""} (one starting with "--" is written ${raw}=<value>)`;
@@ -78,12 +79,13 @@ export function parseCall(tool: Tool, argv: readonly string[]): Record<string, u
   return args;
 }
 
-/** `m3a help` (every tool) or `m3a help <tool>` (its usage, parameters and examples) as a reply. */
+/** `m3a help` (every tool) or `m3a help <tool>` (its usage, parameters and examples) as a reply; `data` is
+ *  `{ tools: Description[] }` or the tool's Description. */
 export function help(registry: Registry, name?: string): Reply {
   if (name === undefined) {
     const list = registry.list(), w = Math.max(...list.map((t) => t.name.length));
     const lines = list.map((t) => `  ${t.name.padEnd(w)}  ${t.description}`);
-    return reply("help", "ok", { verdict: `m3a ${VERSION}: ${list.length} tools; m3a <tool> [args] [--json] [--verbose]; m3a mcp serves them over MCP (stdio)`, data: list.map(describeTool), lines, next: "m3a help <tool> shows its arguments and examples" });
+    return reply("help", "ok", { verdict: `m3a ${VERSION}: ${list.length} tools; m3a <tool> [args] [--json] [--verbose]; m3a mcp serves them over MCP (stdio)`, data: { tools: list.map(describeTool) }, lines, next: "m3a help <tool> shows its arguments and examples" });
   }
   const t = registry.get(name);
   if (!t) return registry.unknown(name);
@@ -94,18 +96,28 @@ export function help(registry: Registry, name?: string): Reply {
   return reply("help", "ok", { verdict: `m3a ${t.name}: ${t.description}`, data: describeTool(t), lines, next: `run an example: m3a ${shell(commandLine(t, t.examples[0]!.args))}` });
 }
 
+/** `m3a help [tool] [--verbose]` from its arguments: anything else is refused, naming the closest. */
+function helpCall(registry: Registry, argv: readonly string[]): Reply {
+  const names = argv.filter((a) => !a.startsWith("-")), odd = argv.find((a) => a.startsWith("-") && a !== "--help" && a !== "--verbose");
+  const next = "m3a help [tool] [--verbose] [--json]; a tool's own flags follow its name (m3a <tool> [args] --verbose)";
+  if (odd !== undefined) return usage("help", "E_ARGS", `unknown flag ${quote(odd)}${didYouMean(odd, ["--verbose", "--json", "--help"])} (help takes a tool name, --verbose and --json)`, next);
+  return names.length > 1 ? usage("help", "E_ARGS", `${quote(names[1])} is one argument too many: help takes one tool name`, next) : help(registry, names[0]);
+}
+
 /** Runs one m3a command line; prints the reply, writes report.json with --json, and returns the exit code. */
 export async function runCli(registry: Registry, argv: readonly string[], io: CliIo): Promise<number> {
   const json = argv.includes("--json"), rest = argv.filter((a) => a !== "--json").map((a) => (a === "-h" ? "--help" : a));
   const [first, ...more] = rest;
   let r: Reply, verbose = rest.includes("--verbose");
-  if (first === undefined || first === "help" || first === "--help") r = help(registry, more.find((a) => !a.startsWith("-")));
+  if (first === undefined || first === "help" || first.startsWith("-")) r = helpCall(registry, first === "help" ? more : rest);
   else if (!registry.get(first)) r = registry.unknown(first);
   else if (more.includes("--help")) r = help(registry, first);
   else {
     const tool = registry.get(first)!, args = parseCall(tool, more);
     verbose = typeof args !== "string" && args.verbose === true; // the parsed flag, as MCP's argument
-    r = typeof args === "string" ? usage(tool.name, "E_ARGS", args, `m3a help ${tool.name} shows its arguments and examples`) : await registry.call(tool.name, args, { host: io.host });
+    if (typeof args === "string") r = usage(tool.name, "E_ARGS", args, `m3a help ${tool.name} shows its arguments and examples`);
+    else if (Object.hasOwn(args, "request_id") && !registry.requests.durable) r = usage(tool.name, "E_REQUEST_ID", "--request-id is not kept between m3a commands yet, so a retried edit would apply twice", "leave it out, or retry through the MCP server or the API, which keep it");
+    else r = await registry.call(tool.name, args, { host: io.host });
   }
   const report = json ? `check-output/${r.tool}/report.json` : undefined;
   if (report) io.write(report, `${JSON.stringify(r, null, 2)}\n`);

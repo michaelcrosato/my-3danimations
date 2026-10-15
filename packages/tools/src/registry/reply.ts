@@ -76,9 +76,12 @@ export function imageLine(i: ImageRef): string {
 export const MAX_LINES = 20;
 
 /** A reply as text: the verdict, the details (cut to fit 20 lines unless `verbose`; `more` says how to ask for the
- *  rest), one line per image, the report's path when written, and `next:` last. */
+ *  rest), one line per image (past 10, one line for them all unless `verbose`), the report's path when written, and
+ *  `next:` last. */
 export function render(r: Reply, opts: { verbose?: boolean; more?: string; report?: string } = {}): string {
-  const tail = [...r.images.map(imageLine), ...(opts.report ? [`report: ${opts.report}`] : []), `next: ${r.next}`];
+  const dir = r.images[0]?.path?.replace(/[^/]*$/, ""), all = `${r.images.length} images, ~${r.images.reduce((n, i) => n + i.tokens, 0)} tokens in all${dir ? `: ${dir}` : ""}`;
+  const images = !opts.verbose && r.images.length > 10 ? [`${all} (to list each: ${opts.more ?? "ask with verbose"})`] : r.images.map(imageLine);
+  const tail = [...images, ...(opts.report ? [`report: ${opts.report}`] : []), `next: ${r.next}`];
   let body = [r.verdict, ...r.lines];
   const room = Math.max(2, MAX_LINES - tail.length);
   if (!opts.verbose && body.length > room) {

@@ -11,6 +11,7 @@ import { png } from "@m3a/sensors/node";
 import { runCli } from "./cli.ts";
 import { mcpServer, type McpServer } from "./mcp.ts";
 import { ToolError, type Host, type Registry } from "./registry/registry.ts";
+import { quote } from "./registry/schema.ts";
 import { tools } from "./registry/tools.ts";
 
 function write(cwd: string, path: string, data: string | Uint8Array): void {
@@ -24,11 +25,11 @@ export function nodeHost(cwd: string = process.cwd()): Host {
   return {
     async read(path) {
       const p = resolve(cwd, path), up = relative(cwd, p);
-      if (!path.trim() || up === ".." || up.startsWith(`..${sep}`) || isAbsolute(up)) throw new ToolError("E_PATH", `${path.trim() ? `${path} is outside ${cwd}` : "the path is empty"}; give a file under the working directory, or pass its text`, true);
+      if (!path.trim() || up === ".." || up.startsWith(`..${sep}`) || isAbsolute(up)) throw new ToolError("E_PATH", `${path.trim() ? `${quote(path)} is outside ${cwd}` : "the path is empty"}; give a file under the working directory, or pass its text`, true);
       try {
         return readFileSync(p, "utf8");
       } catch (err) {
-        throw new ToolError("E_PATH", `can't read ${path} (${(err as NodeJS.ErrnoException).code ?? "unreadable"}); paths are relative to ${cwd}`, true);
+        throw new ToolError("E_PATH", `can't read ${quote(path)} (${(err as NodeJS.ErrnoException).code ?? "unreadable"}); paths are relative to ${cwd}`, true);
       }
     },
     image(tool, name, img) {
@@ -61,7 +62,7 @@ export async function main(argv: readonly string[], registry: Registry = tools, 
   const host = nodeHost(cwd);
   if (argv[0] !== "mcp") return runCli(registry, argv, { print: (t) => process.stdout.write(t), write: (p, t) => write(cwd, p, t), host });
   if (argv.length > 1) {
-    process.stdout.write(`m3a mcp: usage error: it takes no arguments, not ${argv.slice(1).join(" ")}\nnext: have the MCP client run "m3a mcp" (stdio)\n`);
+    process.stdout.write(`m3a mcp: usage error: it takes no arguments, not ${quote(argv.slice(1).join(" "))}\nnext: have the MCP client run "m3a mcp" (stdio)\n`);
     return 2;
   }
   await serveStdio(mcpServer(registry, { host }));

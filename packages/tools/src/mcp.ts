@@ -9,7 +9,7 @@
 // and structuredContent the whole Reply (outputSchema m3a.reply/1); images come as image content and as files under
 // check-output/.
 import { VERSION } from "@m3a/core";
-import { didYouMean } from "./registry/schema.ts";
+import { didYouMean, quote } from "./registry/schema.ts";
 import type { Host, Registry, Tool } from "./registry/registry.ts";
 import { render, replySchema } from "./registry/reply.ts";
 
@@ -78,10 +78,10 @@ export function mcpServer(registry: Registry, opts: { host?: Host } = {}): McpSe
         if (method === "tools/call") {
           if (typeof params.name !== "string") return fail(id, -32602, "Invalid params: tools/call needs a tool name");
           if (params.arguments !== undefined && (typeof params.arguments !== "object" || params.arguments === null || Array.isArray(params.arguments))) return fail(id, -32602, "Invalid params: arguments is an object");
-          if (!registry.get(params.name)) return fail(id, -32602, `Unknown tool: ${params.name}${didYouMean(params.name, registry.list().map((t) => mcpName(t.name)))}`);
+          if (!registry.get(params.name)) return fail(id, -32602, `Unknown tool: ${quote(params.name)}${didYouMean(params.name, registry.list().map((t) => mcpName(t.name)))}`);
           return done(await call(params));
         }
-        return fail(id, -32601, `Method not found: ${method}${method === "ping" ? " (removed in 2026-07-28)" : ""}`);
+        return fail(id, -32601, `Method not found: ${quote(method)}${method === "ping" ? " (removed in 2026-07-28)" : ""}`);
       } catch (err) {
         return fail(id, -32603, `Internal error: ${err instanceof Error ? err.message : String(err)}`);
       }

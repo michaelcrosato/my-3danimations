@@ -1,7 +1,7 @@
 // The JSON Schema subset tool parameters are written in (PLAN.md §5.6) and the one checker every surface shares:
 // types, enums, ranges, required names and unknown ones, each refusal naming the closest valid choice ("did you mean").
 // Unknown arguments are errors, never ignored (shardfall's dry run counted silent ones among its 13 frictions); names are
-// own properties only, so `constructor` or `__proto__` is unknown too.
+// own properties only, so `constructor` or `__proto__` is unknown too, and `closed` shuts nested objects by default.
 
 /** A JSON type name. */
 export type SchemaType = "object" | "array" | "string" | "number" | "integer" | "boolean" | "null";
@@ -82,7 +82,7 @@ export function check(value: unknown, schema: Schema, at = "arguments"): string 
     const obj = value as Record<string, unknown>, props = schema.properties ?? {}, names = Object.keys(props);
     if (schema.additionalProperties === false) {
       for (const k of Object.keys(obj)) {
-        if (!Object.hasOwn(props, k)) return `unknown ${at === "arguments" ? "argument" : `field in ${at}`} "${k}"${didYouMean(k, names)} (${names.length ? `takes ${names.join(", ")}` : "takes none"})`;
+        if (!Object.hasOwn(props, k)) return `unknown ${at === "arguments" ? "argument" : `field in ${at}`} ${quote(k)}${didYouMean(k, names)} (${names.length ? `takes ${names.join(", ")}` : "takes none"})`;
       }
     }
     for (const r of schema.required ?? []) if (own(obj, r) === undefined) return `${here(r)} is required${props[r]?.description ? `: ${props[r].description}` : ""}`;
@@ -92,4 +92,15 @@ export function check(value: unknown, schema: Schema, at = "arguments"): string 
     }
   }
   return undefined;
+}
+
+/** `schema` with every object that lists properties closed (additionalProperties false) unless it says otherwise, so a
+ *  misspelt field in a nested object is refused like a misspelt argument. */
+export function closed(schema: Schema): Schema {
+  const c: Schema = { ...schema };
+  if (schema.properties) c.properties = Object.fromEntries(Object.entries(schema.properties).map(([k, v]) => [k, closed(v)]));
+  if (schema.properties && schema.additionalProperties === undefined) c.additionalProperties = false;
+  if (schema.items) c.items = closed(schema.items);
+  if (schema.anyOf) c.anyOf = schema.anyOf.map(closed);
+  return c;
 }

@@ -4,12 +4,12 @@
 // what a platform supplies (reading files, writing images) comes in as a Host; the Node entry has one.
 import type { Image } from "@m3a/sensors";
 import { REPLY_ID, imageTokens, type ImageRef, type Reply, type Status } from "./reply.ts";
-import { check, didYouMean, quote, type Schema } from "./schema.ts";
+import { check, closed, didYouMean, quote, type Schema } from "./schema.ts";
 
 /** One example call. It runs in the tests on every surface; `expect` is the status it replies with (ok by default). */
 export interface Example {
   args: Record<string, unknown>;
-  expect?: "ok" | "findings";
+  expect?: "ok" | "findings" | "error";
 }
 
 /** What a tool's run returns: a one-line verdict, its data (a JSON object), detail lines, whether it found problems, the
@@ -37,7 +37,8 @@ export interface Host {
   image?(tool: string, name: string, img: Image): { path: string | null; png: Uint8Array | null };
 }
 
-/** One tool, defined once (PLAN.md §5.6). `positionals` lets the CLI fill those parameters in order; `edit` marks a tool
+/** One tool, defined once (PLAN.md §5.6). Parameter names are a letter, then letters, digits or "_"; `output` is its
+ *  data's schema, checked on every reply; `positionals` lets the CLI fill those parameters in order; `edit` marks a tool
  *  that changes something: it takes `if_revision` and `request_id`, and `revision` (required) reads the target's current
  *  revision, so a stale if_revision is refused rather than ignored. */
 export interface ToolDef<A extends object = Record<string, unknown>, D = unknown> {
@@ -70,7 +71,7 @@ export class ToolError extends Error {
 
 /** Names kept for the surfaces: `m3a help`, `m3a mcp`, and the console handle's list, help and call. */
 export const RESERVED: readonly string[] = ["help", "list", "call", "mcp"];
-const NAME = /^[a-z][a-z0-9-]*(\.[a-z][a-z0-9-]*)*$/;
+const NAME = /^[a-z][a-z0-9-]*(\.[a-z][a-z0-9-]*)*$/, PARAM = /^[a-z][a-z0-9_]*$/i;
 const VERBOSE: Schema = { type: "boolean", description: "every detail line, not only the first 20" };
 const EDIT: Record<string, Schema> = {
   if_revision: { type: "string", description: "apply only if the target is still at this revision" },
@@ -90,8 +91,9 @@ export function defineTool<A extends object, D>(def: ToolDef<A, D>): Tool {
   if (def.edit && typeof def.edit.revision !== "function") fail("an edit reads its target's revision: give edit.revision(args, ctx), so if_revision is checked");
   const own = def.params.properties ?? {}, reserved = ["verbose", "json", "help", ...(def.edit ? Object.keys(EDIT) : [])];
   for (const k of reserved) if (Object.hasOwn(own, k)) fail(`"${k}" is kept by the registry and the CLI (--${k}); rename yours`);
+  for (const k of Object.keys(own)) if (!PARAM.test(k)) fail(`parameter ${quote(k)} is out of the CLI's reach: a name is a letter, then letters, digits or "_" (rename it ${quote(k.replace(/\W/g, "_"))}, which the CLI spells --${k.replace(/[\W_]/g, "-")})`);
   for (const p of def.positionals ?? []) if (!Object.hasOwn(own, p)) fail(`positional "${p}" is not one of its parameters`);
-  const schema: Schema = { ...def.params, properties: { ...own, ...(def.edit ? EDIT : {}), verbose: VERBOSE }, additionalProperties: false, examples: def.examples.map((e) => e.args) };
+  const schema = closed({ ...def.params, properties: { ...own, ...(def.edit ? EDIT : {}), verbose: VERBOSE }, additionalProperties: false, examples: def.examples.map((e) => e.args) });
   return { ...(def as unknown as ToolDef), schema };
 }
 
@@ -108,10 +110,12 @@ export function describeTool(t: Tool): Description {
   return { name: t.name, description: t.description, params: t.schema, edit: Boolean(t.edit) };
 }
 
-/** Where an edit's request_id results are kept: the first reply per tool and id, with the arguments it came from. */
+/** Where an edit's request_id results are kept: the first reply per tool and id, with the arguments it came from.
+ *  `durable` says it outlives the process (a file); the CLI, one process per command, takes --request-id only then. */
 export interface RequestStore {
   get(key: string): { args: string; reply: Reply } | undefined;
   set(key: string, entry: { args: string; reply: Reply }): void;
+  durable?: boolean;
 }
 
 /** A RequestStore in memory, keeping the latest `max` ids. */
@@ -179,7 +183,7 @@ export class Registry {
 
   /** A usage reply for a name that is no tool, naming the closest. */
   unknown(name: string): Reply {
-    return usage("m3a", "E_TOOL", `no tool "${name}"${didYouMean(name, [...this.#tools.keys()])}`, `m3a help lists the ${this.#tools.size} tools`);
+    return usage("m3a", "E_TOOL", `no tool ${quote(name)}${didYouMean(name, [...this.#tools.keys()])}`, `m3a help lists the ${this.#tools.size} tools`);
   }
 
   /** Calls a tool and replies; a wrong call replies with status usage and a failing tool with status error, never a throw. */
@@ -194,7 +198,7 @@ export class Registry {
     for (const [k, s] of Object.entries(tool.schema.properties ?? {})) if ((!Object.hasOwn(a, k) || a[k] === undefined) && s.default !== undefined) a[k] = structuredClone(s.default);
     const images: ImageRef[] = [], host = opts.host ?? {};
     const ctx: ToolContext = {
-      read: (p) => (host.read ? host.read(p) : Promise.reject(new ToolError("E_HOST", `this surface reads no files (${p}); pass the text instead`, true))),
+      read: (p) => (host.read ? host.read(p) : Promise.reject(new ToolError("E_HOST", `this surface reads no files (${quote(p)}); pass the text instead`, true))),
       image(n, img) {
         const safe = n.replace(/[^\w.-]/g, "_"), kept = host.image?.(tool.name, safe, img) ?? { path: null, png: null };
         if (kept.png) opts.pngs?.set(safe, kept.png);
@@ -217,12 +221,14 @@ export class Registry {
       if (tool.edit && typeof a.if_revision === "string") {
         const now = await tool.edit.revision(a, ctx);
         if (now !== a.if_revision) {
-          const message = `the target is at revision ${now ?? "none"}, not ${a.if_revision}; nothing was changed`;
+          const message = `the target is at revision ${now ?? "none"}, not ${quote(a.if_revision)}; nothing was changed`;
           return reply(tool.name, "error", { verdict: `${tool.name}: conflict: ${message}`, next: `read it again, then retry with if_revision "${now}"`, revision: now }, [], { code: "E_CONFLICT", message });
         }
       }
       const out = await tool.run(a, ctx), r = reply(tool.name, out.findings ? "findings" : "ok", out, images);
       if (typeof r.data !== "object" || Array.isArray(r.data)) throw new Error(`${tool.name} replied with data that is not a JSON object`);
+      const off = r.data !== null && tool.output ? check(r.data, tool.output, "data") : undefined;
+      if (off) throw new Error(`${tool.name} replied with data off its output schema (${off})`);
       if (key) this.requests.set(key, { args: sent!, reply: structuredClone(r) });
       return r;
     } catch (err) {
