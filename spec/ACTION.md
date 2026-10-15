@@ -31,7 +31,9 @@ Every field a recipe has (`RECIPE.md` §1), and:
 
 A step may read `PROCEDURAL/<Name>`: the gait, idle or move of that name (`@m3a/core`'s `procedural`: `Walk`, `Brisk`,
 `Run`, `Limp`, `Breathe`, `Fidget`, and the moves of `library/moves.json` when the compiler is given them), made on
-the rest of the action's first library clip, from its standing pose. An action reads at least one library clip.
+the rest of the action's first library clip, from its standing pose; a gait is slowed, if it must be, to the fastest
+that rest's legs reach (`procedural.fitGait`), so the run plays on a short-legged body a little slower. An action reads
+at least one library clip.
 
 ## 2. Compiling
 

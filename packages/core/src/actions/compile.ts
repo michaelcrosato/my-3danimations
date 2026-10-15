@@ -7,7 +7,7 @@ import { P, type Rest } from "../format/body.ts";
 import { decodePose, type KeyLike } from "../format/pose.ts";
 import { serialize } from "../format/serialize.ts";
 import { PORTABLE as PM } from "../math/portable.ts";
-import { gaitClip, GAITS } from "../procedural/gait.ts";
+import { fitGait, gaitClip, GAITS } from "../procedural/gait.ts";
 import { idleClip, IDLES } from "../procedural/idle.ts";
 import { moveClip } from "../procedural/clip.ts";
 import type { Move } from "../procedural/move.ts";
@@ -37,7 +37,9 @@ const PARTS = new Map<string, Resolved>();
 
 /**
  * A resolver over `base` that also makes procedural parts on `rest`: PROCEDURAL/<Name> is the gait, idle (or, given
- * `moves`, the move) of that name, from the standing pose, its content id the SHA-256 of the clip as written.
+ * `moves`, the move) of that name, from the standing pose, its content id the SHA-256 of the clip as written. A gait is
+ * fitted to the body first (`fitGait`): one its legs don't reach (the run on all but the tall test characters, the brisk
+ * walk on the chibis and two bulky ones) is slowed to the fastest they do, and one that fits is played as it is.
  */
 export function proceduralResolver(base: Resolver, rest: Rest, restSrc: string, moves: readonly Move[] = []): Resolver {
   const made = new Map<string, Resolved | undefined>(), body = `${restSrc}\n${JSON.stringify(rest)}`;
@@ -48,7 +50,7 @@ export function proceduralResolver(base: Resolver, rest: Rest, restSrc: string, 
     // a ready-made gait or idle is the same clip on the same body whichever action asks: made once
     const key = `${id}\n${body}`, kept = g || i ? PARTS.get(key) : undefined;
     if (kept) return kept;
-    const clip = g ? gaitClip(g, rest, opts) : i ? idleClip(i, rest, opts) : mv ? moveClip(mv, rest, opts) : undefined, out = clip ? { clip, rest, contentId: sha256(serialize(clip)) } : undefined;
+    const clip = g ? gaitClip(fitGait(g, rest), rest, opts) : i ? idleClip(i, rest, opts) : mv ? moveClip(mv, rest, opts) : undefined, out = clip ? { clip, rest, contentId: sha256(serialize(clip)) } : undefined;
     if (out && (g || i)) PARTS.set(key, out);
     return out;
   };
