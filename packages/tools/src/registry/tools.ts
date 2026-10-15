@@ -1,0 +1,52 @@
+// The tools WP-7.1 registers to prove the four surfaces: `version`, and `validate`, a clip through @m3a/core's
+// validator. WP-7.2 adds the rest of PLAN.md's list (search, show, describe, metrics, sheet, ...) to `tools`.
+import { VERSION, format, validate as validateData, validation, type Issue } from "@m3a/core";
+import { defineTool, Registry, ToolError } from "./registry.ts";
+
+/** `m3a version`: the package version and the clip format it reads and writes. */
+export const version = defineTool({
+  name: "version",
+  description: "The m3a version and the clip format it reads and writes.",
+  params: { type: "object", properties: {} },
+  output: { type: "object", properties: { version: { type: "string" }, format: { type: "string" } }, required: ["version", "format"] },
+  examples: [{ args: {} }],
+  run: () => ({ verdict: `m3a ${VERSION}, clip format ${format.FORMAT}`, data: { version: VERSION, format: format.FORMAT }, next: "m3a help lists the tools" }),
+});
+
+/** `m3a validate`: a clip, by path or as text, through the validator; errors fail it, warnings are listed. */
+export const validate = defineTool<{ path?: string; text?: string; mode: "read" | "lint" }, { ok: boolean; errors: Issue[]; warnings: Issue[] }>({
+  name: "validate",
+  description: "Validate a clip (format 2) by path or as text: coded errors and warnings, each with its fix.",
+  params: {
+    type: "object",
+    properties: {
+      path: { type: "string", description: "the clip file, relative to the working directory" },
+      text: { type: "string", description: "the clip's JSON text, instead of a path" },
+      mode: { type: "string", enum: ["read", "lint"], default: "lint", description: "lint flags unknown fields; read accepts them" },
+    },
+  },
+  positionals: ["path"],
+  examples: [{ args: { path: "library/sets/QUATERNIUS_3D2DGE/A_TPose.json" } }, { args: { text: '{"format":"2.0","id":"DEMO/Bad","dur":0}' }, expect: "findings" }],
+  async run(a, ctx) {
+    if ((a.path === undefined) === (a.text === undefined)) throw new ToolError("E_ARGS", "give a path or a text, one of the two", true);
+    const text = a.text ?? (await ctx.read(a.path!)), what = a.path ?? "the text";
+    let data: unknown;
+    try {
+      data = JSON.parse(text);
+    } catch (err) {
+      const message = `not JSON: ${(err as Error).message}`;
+      return { verdict: `validate ${what}: FAIL, ${message}`, data: { ok: false, errors: [{ code: "E_JSON", severity: "error", message }], warnings: [] }, findings: true, next: "write the clip as JSON (spec/MOTION.md), then validate again" };
+    }
+    const r = validateData(data, { mode: a.mode }), count = (n: number, w: string) => `${n} ${w}${n === 1 ? "" : "s"}`;
+    return {
+      verdict: `validate ${what}: ${r.ok ? "PASS" : "FAIL"}, ${count(r.errors.length, "error")}, ${count(r.warnings.length, "warning")}`,
+      data: { ok: r.ok, errors: r.errors, warnings: r.warnings },
+      lines: [...r.errors, ...r.warnings].flatMap((i) => validation.formatIssue(i).split("\n")),
+      findings: !r.ok,
+      next: r.ok ? (r.warnings.length ? "a warning is baselined per clip with its reason, or fixed as its fix line says" : "the clip is valid; play it (MANUAL.md, Wire)") : "fix each error as its fix line says, then validate again",
+    };
+  },
+});
+
+/** The m3a tools: what the m3a CLI, the MCP server and the console handle serve. */
+export const tools = new Registry([version, validate]);
