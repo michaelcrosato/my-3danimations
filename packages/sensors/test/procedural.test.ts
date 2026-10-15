@@ -163,13 +163,15 @@ describe("procedural clips under the sensors", () => {
     // on over the planted foot, and where a swing spans under 16 frames that falls within one key and the knee popped:
     // CMU_18's rest swinging 0.261 s, 15 frames at 57.5 frames a second, 104.6% of the fail level plainly (round 13's
     // review). A swing takes 0.3 s since round 14, 16 frames or more at 55 whatever the cycle: the review's gait at the
-    // cycle its refusal names (0.639 s), fitted (299), and the worst round 14's climbs found at that swing, on CMU_114's
-    // rest (75.5% at 55), read plainly on every grid from 55 to 60 frames a second, at 90% of the fail level or under
-    const r18 = sourceRest("CMU_CURATED", "CMU_18"), r114 = sourceRest("CMU_CURATED", "CMU_114");
+    // cycle its refusal names (0.639 s), fitted (299), and the worst the climbs found at that swing, on CMU_18's rest
+    // (72.3% at 55, 34 frames: 16.1 a swing), read plainly on every grid from 55 to 60 frames a second, at 90% of the
+    // fail level or under. (Round 14's worst, CMU_114's rest at 0.635 s, 75.5% at 55, swung 0.2997 s, which the swing's
+    // rounding to the ms took then and is refused since its review: 0.3 s to within a float's error.)
+    const r18 = sourceRest("CMU_CURATED", "CMU_18");
     const g18 = PR.fitGait({ name: "g", about: "a gait", cycle: 0.639, stance: 0.53, lift: 10, bounce: 5.3, dip: 5.7, sway: 1.7, lean: -6, swing: 17, speed: 1000 }, r18);
-    const g114 = { name: "g", about: "a gait", cycle: 0.635, stance: 0.528, limp: 0, lift: 10.066, bounce: 4.598, dip: 10.596, sway: 0.751, lean: -7.4, swing: 12.851, speed: 302 };
+    const climbed = { name: "g", about: "a gait", cycle: 0.633, stance: 0.526, limp: 0, lift: 10.078, bounce: 5.18, dip: 5.7, sway: 1.7, lean: -6.105, swing: 17, speed: 303.5 };
     expect(g18.speed).toBe(299);
-    for (const [rest, g] of [[r18, g18], [r114, g114]] as const)
+    for (const [rest, g] of [[r18, g18], [r18, climbed]] as const)
       for (const fps of [55, 58, 60]) {
         const m = checks.motionOf(PR.gaitClip(g, rest, { restSrc: "x", fps }), rest), r = checks.measure(m);
         expect([g.speed, fps, r.values.pop <= 0.9 * checks.levels(m, "pop").fail, r.verdict === "fail"]).toEqual([g.speed, fps, true, false]);
