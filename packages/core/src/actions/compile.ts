@@ -37,7 +37,8 @@ const ENDS = 0.3;
  * used last, the one used longest ago dropped first: a game's handful of bodies (16, each asking all six) never makes
  * one twice. Kept without a bound they grew with each body asked for: the four gaits resolved on the 104 bodies (the 64
  * library rests and test characters 0 to 39) held 43 MB after a forced gc, 0.33 MB more a body (WP-6.2's close-out's
- * review), and hold 19 MB kept so (the seam's readings, up to 16 MB, with them), every content id the same.
+ * review); kept so they hold about 24 MB after two forced gcs (some 10 MB for the 96 parts, the seam's readings, up to
+ * 16 MB, the rest), every content id the same. Seventeen bodies or more asking all six in turn miss every time.
  */
 const PARTS = new Map<string, Resolved>(), PARTS_KEPT = 96;
 

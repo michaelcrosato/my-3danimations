@@ -1164,20 +1164,21 @@ function seamOf(g: Gait, rest: Rest, S: Float32Array, start: Pose | undefined, d
  * number), the gait's numbers but its swing (which only the hands' reading takes, as asked), and the start pose's. A
  * reading is the same however often it is made, so what is kept changes only the time. Round 12 kept 32 a rest for as
  * long as the rest lived, with each grid's frames and keys: 40 gaits of 3 s on one rest held 157 MB (heap and array
- * buffers), the presets fitted and made on the 64 library rests 298 MB, and a process making them on about 100 rests
+ * buffers), the presets fitted and made on the 64 library rests 297 MB, and a process making them on about 100 rests
  * ran out of a 3 GB heap (round 14's second pass's review). The close-out kept the 32 read last on any rest, each grid
- * only what is read again (19, 12, and 15 MB on all 104 bodies in one process: the presets fitted, asked at their speed
- * and at 1,000, and made at 55, 65 and 75, and four 3 s gaits each, 2,904 clips), but a gait made after more than 32
- * other readings since its fit was read again: the four presets asked 1,000 fitted on 31 library rests, then the 124
- * made at 60, 74 ms a make against 23 before the close-out (its review). Kept by what they hold (16 MB: some 225
- * presets' readings, or 57 of 3 s gaits), each grid's hands' footing packed (handsBase), they hold 13, 23 and 19 MB;
- * that order makes at 23 ms (23 before the close-out; rest by rest 25 against 24); every clip and refusal is the same
- * to the hash (the presets' 5,824 makes on the 104 bodies, 7,072 grid gaits); and fitGait and gaitClip are 8% quicker
- * than before the close-out (75.1 against 81.6 ms a fit and 49.6 against 54.0 a make over those grid gaits, four
- * processes at once, run base, new, new, base) and as quick as its first bound. A gait made after more than 16 MB of
- * other readings since its fit (more than about 225 presets fitted, or 57 gaits of 3 s, before any is made) is still
- * read again, and in that order each reading read again drops the next one wanted: the 64 library rests' 256 presets so
- * made at 76 ms a make against 25 before the close-out.
+ * only what is read again (19, 8 and 12 MB after two forced gcs: the 40 gaits, the presets on the 64 rests, and all 104
+ * bodies in one process: the presets fitted, asked at their speed and at 1,000, and made at 55, 65 and 75, and four 3 s
+ * gaits each, 2,904 clips), but a gait made after more than 32 other readings since its fit was read again: the four
+ * presets asked 1,000 fitted on 31 library rests, then the 124 made at 60, 74 ms a make against 23 before the close-out
+ * (its review). Kept by what they hold (16 MB: some 225 presets' readings, or 57 of 3 s gaits), each grid's hands'
+ * footing packed (handsBase), they hold 13, 17 and 17 MB after two forced gcs (past 16 MB by at most the newest
+ * reading's growth as its hands are read, about 0.3 MB); that order makes at 23 ms (23 before the close-out; rest by
+ * rest 25 against 24); every clip and refusal is the same to the hash (the presets' 5,824 makes on the 104 bodies,
+ * 7,072 grid gaits); and fitGait is about 8% and gaitClip about 5% quicker than before the close-out over those grid
+ * gaits (four processes at once: fits 6 to 10% by shard, makes 3 to 7%), and as quick as its first bound. A gait made
+ * after more than 16 MB of other readings since its fit (more than about 225 presets fitted, or 57 gaits of 3 s, before
+ * any is made) is still read again, and in that order each reading read again drops the next one wanted: the 64 library
+ * rests' 256 presets so made at 76 ms a make against 25 before the close-out.
  */
 const SEAMS = new Map<string, ReturnType<typeof seamOf>>(), SEAM_BYTES = 16e6, STAGE_BYTES = 1500, READ_BYTES = 150, REST_IDS = new WeakMap<Rest, number>();
 let restIds = 0;
