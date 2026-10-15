@@ -196,6 +196,22 @@ describe("procedural clips under the sensors", () => {
     }
     expect([g4.speed, g80.speed]).toEqual([338, 331]);
   }, 30_000);
+  it("gaits at a run's shortest cycle keep a knee's pop within the clip under the fail level, where it reads the most (recorded)", () => {
+    // climbing on fitted runs at 0.6 s near the reach bound, round 14's second pass's review read a knee popping within
+    // the clip at 91.1% of the fail level, plainly and by parts alike: M2M_ANIMATED's rest, fitted to 377 asked any speed
+    // over it, at 73.333 frames a second (44 frames; the right knee at 0.545 s). It is past the 90% every bound keeps and
+    // under the fail level, recorded rather than bounded (D71; gait.ts's MIN_RUN_CYCLE): this holds it under the fail
+    // level, so a change that pushes it over shows
+    const rest = sourceRest("MESH2MOTION", "M2M_ANIMATED");
+    const g = PR.fitGait({ name: "g", about: "a run", cycle: 0.6, stance: 0.415, limp: 0, lift: 10.246, bounce: 1.12, dip: 6.819, sway: 2.833, lean: 3.407, swing: 62.979, speed: 1000 }, rest);
+    expect(g.speed).toBe(377);
+    for (const parts of [false, true]) {
+      const m = checks.motionOf(PR.gaitClip(g, rest, { restSrc: "M2M_ANIMATED", fps: 73.333 }), rest);
+      m.parts = parts;
+      const r = checks.measure(m), knees = r.findings.filter((f) => f.metric === "pop" && /^knee[LR]$/.test(f.where ?? "")).map((f) => f.value / checks.levels(m, "pop").fail);
+      expect([parts, Math.max(0, ...knees) < 1, r.verdict === "fail"]).toEqual([parts, true, false]);
+    }
+  }, 30_000);
   it("gaits keep their hands from turning round on the loop's seam past the bound: fitted, read by parts", async () => {
     // the arms turn round on the seam (as each foot lands): test character 9 swinging 69° in 0.527 s read seamVelocity@fist
     // at 98% of the fail level at 75 frames a second by parts (round 10's review), and its swing of 72.7° in 0.546 s, and

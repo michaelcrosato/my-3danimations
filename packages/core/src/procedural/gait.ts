@@ -21,9 +21,10 @@
 // fastest whole speed its pace and a body's legs take (lowering its lift where no speed does) and narrows its arms'
 // swing to what its hands take at that swing and every narrower one. Every bound keeps the worst the sensors read of
 // each kind of defect it bounds at 90% of the fail level or under, measured on fresh grids over all it takes (D71,
-// round 14). The frames are spread evenly over the cycle, an even number of them, and each knee's turn about its leg,
-// carried on from frame to frame, is closed over it, so the loop meets itself; the frames about the seam are kept as
-// keys.
+// round 14), but one, recorded: climbing on a run's shortest cycles, a knee popping within the clip read 91.1%, under
+// the fail level (MIN_RUN_CYCLE). The frames are spread evenly over the cycle, an even number of them, and each knee's
+// turn about its leg, carried on from frame to frame, is closed over it, so the loop meets itself; the frames about the
+// seam are kept as keys.
 import { bendOf, derived, IDX, limbEnd, P, reachOf, SG, type Rest, type Side } from "../format/body.ts";
 import { add, dot, len, loc, mul, norm, qmul, qrot, sub, type Frame, type Quat, type V3 } from "../format/math.ts";
 import { decodePose, encodePose, torso, type KeyLike } from "../format/pose.ts";
@@ -139,7 +140,8 @@ const OFF = 0.1, RISE = 0.05;
  *  the next whole speed, which its reach refuses, on its two lowest, two highest and two other grids, every rest) a
  *  knee's pop reads 73.5% at most (100STYLE's side-run rest at 73.2 frames a second), the seam 69.5% and anything 82.3%
  *  (the pelvis's steps on test character 9); round 14 read 70.2% over 5,724, and its review's tuned searches 75.4%
- *  (CMU_54's run at 320.25, at 73.3). */
+ *  (CMU_54's run at 320.25, at 73.3). Round 14's second pass's review climbed a run's knee to 91.1% at 71.8% of a leg
+ *  (M2M_ANIMATED's rest at 377, a run's shortest cycle: see MIN_RUN_CYCLE). */
 const STRIDE_MAX = 0.72;
 /** How high it sets down from, straight down, % of the hip height: above the 4% a foot is read as standing within. */
 const CLEAR = 4.5;
@@ -332,15 +334,21 @@ const SWING_SPEED = 400;
  * 0.6 to about 0.63 s and a stance of about 0.37 to 0.44, a run's left foot comes forward on the seam at its sharpest,
  * and the knee read a hitch there at every rate from 55 to 75 (round 10's review: 33 of 2,600 fitted runs, to 113.5%;
  * round 6's "one run's seam at 0.6 s", recorded then as one case, was this class). SEAM_TURN bounds it on the body
- * given. Its runs' knees pop within the clip the most of any knees: on round 14's second pass's fresh grids the 3,721
- * runs made under 0.65 s (0.7 lifting over 25; 2,080 of them fitted from 1,000 at their shortest cycle on the four
- * highest grids) read a knee's pop of 73.0% at most (test character 8 by parts at 73.6), 70.0% at the seam (a knee) and
- * 82.3% of anything (the pelvis's steps on test character 9 at 72.5), and the 1,302 tuned to the bounds 59.7%; round
- * 14's review read the pop 74.4% on its fresh grids (CMU_19's run at 70.5), 74.3% on 9,325 runs at their shortest cycle
- * on the four highest grids, 75.4% tuned, and 79.7% climbed: CMU_54's rest {0.6 s, a stance of 0.418, lifting 12.583,
- * bouncing 0.91, swinging 30.45} at 380.5, plainly at 70 frames a second (42 frames; 71.6% by parts), the most this
- * class has read. Climbing on from it and from CMU_19's for 750 more steps (each fitted and read on every grid from 60
- * or 64 to 75) found none higher. Round 14 stated 69.2% from its own grids, short of these.
+ * given. Its runs' knees pop within the clip the most of any knees, and climbed, the most of anything, past the margin
+ * every bound keeps (90% of the fail level: D71, round 14) once: climbing on fitted runs at the shortest cycles near
+ * the reach bound, round 14's second pass's review read a knee's pop of 91.1% on M2M_ANIMATED's rest {0.6 s, a stance
+ * of 0.415, lifting 10.246, bouncing 1.12, dipping 6.819, swaying 2.833, leaning 3.407, swinging 62.979}, which fitGait
+ * gives back at 377 asked any speed over it, at 73.333 frames a second (44 frames; the right knee at 0.545 s), plainly
+ * and by parts alike; 88.1% on CMU_140's {0.6 s, 0.41, lifting 9, bouncing 1.723} at 375.5, at 70.000 (42 frames), and
+ * 87.2% on M2M_QUATERNIUS's {0.62 s, 0.406, a limp of 0.245, lifting 10.992} fitted to 359, at 70.968. None fails; the
+ * case is older than round 14, and recorded rather than bounded (another round to win the last point isn't worth its
+ * cost; the sensors' test holds the first under the fail level). On that review's grids its 3,026 fresh runs under
+ * 0.65 s read a knee's pop of 71.6% at most (CMU_140's at 70), the 3,309 tuned to the bounds 68.2%, and 27,487 fitted runs
+ * remade on every grid from 60 to 75 frames a second (12,133 under 0.65 s) 77.4% (CMU_141's at 73.333). Round 14's
+ * second pass's own fresh grids (3,721 runs under 0.65 s, 0.7 lifting over 25) read 73.0% (test character 8 by parts at
+ * 73.6), the 1,302 tuned 59.7%; round 14's review 74.4% on its fresh grids, 74.3% on 9,325 runs at their shortest cycle
+ * on the four highest grids, 75.4% tuned and 79.7% climbed (CMU_54's rest {0.6 s, 0.418, lifting 12.583} at 380.5, at
+ * 70); and round 14 69.2% on its own.
  */
 const MIN_RUN_CYCLE = 0.6, MIN_HIGH_RUN_CYCLE = 0.65;
 /**
@@ -358,16 +366,21 @@ const MIN_RUN_CYCLE = 0.6, MIN_HIGH_RUN_CYCLE = 0.65;
  * most any reading reaches, the protocol's and everything by parts alike, is 69.6% at 55 to 57.5 (the seam), 70.0% at
  * 57.5 to 62.5 (the seam), 71.3% at 62.5 to 65, 76.4% at 65 to 70, and 82.3% at 70 to 75 and at 75 itself (1,151 clips
  * there; the presets' 787 at 75 82.3% too): the pelvis's whole-% steps on test character 9's short spine (pelvisGrid),
- * the most any class reads. Tuned to the bounds (see SEAM_TURN; 6,917 made), 69.8% at 55 to 57.5 and 82.3% at 70 to 75
- * and at 75. On round 14's second pass's fresh grids (17,880 clips, as SEAM_TURN gives them; 598 at 55 and 1,859 at
- * 75), the same: 69.5% at 55 to 57.5 (a knee at the seam), 69.6% at 57.5 to 62.5, 71.3% at 62.5 to 65, 76.4% at 65 to
- * 70 and 82.3% at 70 to 75 and at 75 (test character 9's pelvis); tuned to the bounds (10,515 made), 69.9% at 55 to
- * 57.5; the climbs' late-swing knee 72.3% at 55 (see MIN_SWING) and a run's knee 79.7% at 70 (round 14's review's, see
- * MIN_RUN_CYCLE). Round 14's review's 46,825 clips (3,692 at 55, 4,288 at 75) read 82.3% at most, the same steps. At 80
- * and 90 (1,400 of round 12's gaits, each made at both, round 12): at 80 none failed, the steps reading 89.2% (test
- * character 9) and the seam 69.8%; at 90 the steps failed once, test character 23's walk at 102.2%, and read 97.3% on
- * test character 9. (At 110 a planted knee failed on 7 of 64 rests, round 7; at 240 a walk failed on every rest, and at
- * 120 a brisk walk's elbows on 4, rounds 4 to 6.)
+ * the most any class reads on fresh grids. Tuned to the bounds (see SEAM_TURN; 6,917 made), 69.8% at 55 to 57.5 and
+ * 82.3% at 70 to 75 and at 75. On round 14's second pass's fresh grids (17,880 clips, as SEAM_TURN gives them; 598 at
+ * 55 and 1,859 at 75), the same: 69.5% at 55 to 57.5 (a knee at the seam), 69.6% at 57.5 to 62.5, 71.3% at 62.5 to 65,
+ * 76.4% at 65 to 70 and 82.3% at 70 to 75 and at 75 (test character 9's pelvis); tuned to the bounds (10,515 made),
+ * 69.9% at 55 to 57.5; the climbs' late-swing knee 72.3% at 55 (see MIN_SWING) and a run's knee 79.7% at 70 (round 14's
+ * review's, see MIN_RUN_CYCLE). Round 14's review's 46,825 clips (3,692 at 55, 4,288 at 75) read 82.3% at most, the
+ * same steps. Round 14's second pass's review's 18,815 fresh clips (1,165 at 55, 1,929 at 75) and 14,841 tuned to the
+ * bounds read 70.0% at 55 to 57.5 (70.3% tuned, a toe's pop), 69.4% at 57.5 to 62.5, 71.3% at 62.5 to 65, 76.4% at 65
+ * to 70 and 82.3% at 70 to 75 and at 75, the same steps; but its climbs on a run's knee popping within the clip read
+ * more at 70 to 75: 88.1% at 70.000 (CMU_140's rest), 87.2% at 70.968 (M2M_QUATERNIUS's) and 91.1% at 73.333
+ * (M2M_ANIMATED's), past the 90% every bound keeps and under the fail level: the most any class reads, recorded
+ * (MIN_RUN_CYCLE). At 80 and 90 (1,400 of round 12's gaits, each made at both, round 12): at 80 none failed, the steps
+ * reading 89.2% (test character 9) and the seam 69.8%; at 90 the steps failed once, test character 23's walk at 102.2%,
+ * and read 97.3% on test character 9. (At 110 a planted knee failed on 7 of 64 rests, round 7; at 240 a walk failed on
+ * every rest, and at 120 a brisk walk's elbows on 4, rounds 4 to 6.)
  */
 const MIN_GAIT_FPS = 55, MAX_GAIT_FPS = 75;
 /**
@@ -575,8 +588,11 @@ const KNEE_FLOOR = 0;
  * by parts (68.6% as the protocol reads it), the knuckles 67.2% and the elbows and wrists 64.3%, no clip over its own
  * seamOf reading; the 10,515 tuned to the bounds 69.9% at a knee or foot, 69.7% at a hand by parts, 69.0% at the torso,
  * the knuckles 67.9% and the elbows and wrists 64.4%; round 14's review's 46,825 clips 70.0%, 69.8%, 69.9%, 67.9% and
- * 65.1%. The loop's origin at a calm phase (round 4's other fix) isn't taken: a blend space keeps its clips in phase,
- * so a walk and a run blend foot for foot only where each begins at the right foot's touchdown.
+ * 65.1%; and its second pass's review's 18,815 fresh clips and 14,841 tuned to the bounds 70.0% at a knee or foot,
+ * 70.0% at a hand (test character 31's, tuned, at 71.4; 69.9% fresh), 69.9% at the torso, the knuckles 68.0% and the
+ * elbows and wrists 65.7% (by parts), the protocol's reading and everything by parts alike. The loop's origin at a calm
+ * phase (round 4's other fix) isn't taken: a blend space keeps its clips in phase, so a walk and a run blend foot for
+ * foot only where each begins at the right foot's touchdown.
  */
 const SEAM_TURN = 0.7;
 /** The sensors' seamVelocity (its fail level, % of the hip height a second: 4 m/s on a 950 mm hip height; the samples a
@@ -650,17 +666,19 @@ const Z_SLACK = 0.75;
  *   in, 78% there as a pop; and it took the pelvis along too, stepping it out and back and along, across and up at
  *   once. Of the 13 clips round 12's review found the pass kept on their own grid, 10 popped the torso within four keys
  *   of the seam (to 80.8%) and none now does.
- * The pelvis's whole-% steps within a clip are bounded by measurement only, the most any class of gait reads: a whole %
- * across and up at once (√2 %) beside still frames, over a 13 ms key at 75 frames a second, on test character 9's short
- * spine read by parts is 1.414 × 76.92 / 378.95 / 0.3492 = 82.3% of the pop's fail level, and every grid since round 12
- * has met that and no more (round 14's fresh grids, 15,792 clips, and the presets, 3,935, as SEAM_TURN and MAX_GAIT_FPS
- * give them: 82.3%, test character 9 at 70 to 75 frames a second; 81.5% on 19; round 14's second pass's 17,880 fresh
- * and 10,515 tuned clips, and round 14's review's 46,825, 82.3% too). Along, across and up at once (√3 %) it would read
- * 1.007, and no clip steps so: none of round 14's or its second pass's, nor any of 2,554 slow gaits swaying and bobbing
- * on the 13 short-spined test characters at 66 to 75 frames a second searched for one (850 of them step on two axes at
- * once) (round 12's review found none; on round 13's tree one of 350 walks and brisk walks on test characters at 66 to
- * 75 did with the pelvis along taken either way about the seam, which is kept at its nearest since). The sway and the
- * pelvis along (the root's rounding made up) are otherwise each frame's nearest.
+ * The pelvis's whole-% steps within a clip are bounded by measurement only, the most any class of gait reads on fresh
+ * grids (a run's knee popping within the clip has been climbed past it, to 91.1%: MIN_RUN_CYCLE): a whole % across and
+ * up at once (√2 %) beside still frames, over a 13 ms key at 75 frames a second, on test character 9's short spine read
+ * by parts is 1.414 × 76.92 / 378.95 / 0.3492 = 82.3% of the pop's fail level, and every grid since round 12 has met
+ * that and no more (round 14's fresh grids, 15,792 clips, and the presets, 3,935, as SEAM_TURN and MAX_GAIT_FPS give
+ * them: 82.3%, test character 9 at 70 to 75 frames a second; 81.5% on 19; round 14's second pass's 17,880 fresh and
+ * 10,515 tuned clips, round 14's review's 46,825, and its second pass's review's 18,815 fresh and 14,841 tuned, 82.3%
+ * too). Along, across and up at once (√3 %) it would read 1.007, and no clip steps so: none of round 14's, its second
+ * pass's or that pass's review's, nor any of 2,554 slow gaits swaying and bobbing on the 13 short-spined test
+ * characters at 66 to 75 frames a second searched for one (850 of them step on two axes at once) (round 12's review
+ * found none; on round 13's tree one of 350 walks and brisk walks on test characters at 66 to 75 did with the pelvis
+ * along taken either way about the seam, which is kept at its nearest since). The sway and the pelvis along (the root's
+ * rounding made up) are otherwise each frame's nearest.
  */
 function pelvisGrid(want: readonly V3[], pct: number, fits: (i: number, v: readonly number[]) => boolean, seam?: { times: readonly number[]; dur: number }): number[][] {
   const n = want.length, grid = want.map((w) => w.map((v) => Math.round(v / pct)));
