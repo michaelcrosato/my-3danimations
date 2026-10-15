@@ -5,8 +5,9 @@
 // legacy handshake for the process (2025-11-25 back to 2024-11-05, with ping). Handles are ordinary tool arguments.
 // A tool's name is its registry name with "_" for "." (clients such as the Claude API take only [a-zA-Z0-9_-]), and its
 // title the registry name. Unknown tools are JSON-RPC errors; wrong arguments and failing tools are results with
-// isError, so a model can correct itself. Each result's text is the reply verdict first and structuredContent the
-// whole Reply (outputSchema m3a.reply/1); images come as image content and as files under check-output/.
+// isError, so a model can correct itself. Each result's text is the reply verdict first (every line with `verbose: true`)
+// and structuredContent the whole Reply (outputSchema m3a.reply/1); images come as image content and as files under
+// check-output/.
 import { VERSION } from "@m3a/core";
 import { didYouMean } from "./registry/schema.ts";
 import type { Host, Registry, Tool } from "./registry/registry.ts";
@@ -44,9 +45,10 @@ export function mcpServer(registry: Registry, opts: { host?: Host } = {}): McpSe
   let legacy: string | undefined;
 
   async function call(params: Record<string, unknown>) {
-    const pngs = new Map<string, Uint8Array>(), r = await registry.call(params.name as string, params.arguments ?? {}, { host: opts.host, pngs });
+    const args = (params.arguments ?? {}) as Record<string, unknown>, pngs = new Map<string, Uint8Array>(), r = await registry.call(params.name as string, args, { host: opts.host, pngs });
     const images = r.images.flatMap((i) => (pngs.has(i.name) ? [{ type: "image", data: base64(pngs.get(i.name)!), mimeType: "image/png" }] : []));
-    return { content: [{ type: "text", text: render(r, { more: "call again with verbose: true" }) }, ...images], structuredContent: r, isError: r.status === "usage" || r.status === "error" };
+    const text = render(r, { verbose: args.verbose === true, more: "call again with verbose: true" });
+    return { content: [{ type: "text", text }, ...images], structuredContent: r, isError: r.status === "usage" || r.status === "error" };
   }
 
   return {

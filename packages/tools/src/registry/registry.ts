@@ -4,7 +4,7 @@
 // what a platform supplies (reading files, writing images) comes in as a Host; the Node entry has one.
 import type { Image } from "@m3a/sensors";
 import { REPLY_ID, imageTokens, type ImageRef, type Reply, type Status } from "./reply.ts";
-import { check, didYouMean, type Schema } from "./schema.ts";
+import { check, didYouMean, quote, type Schema } from "./schema.ts";
 
 /** One example call. It runs in the tests on every surface; `expect` is the status it replies with (ok by default). */
 export interface Example {
@@ -38,7 +38,8 @@ export interface Host {
 }
 
 /** One tool, defined once (PLAN.md §5.6). `positionals` lets the CLI fill those parameters in order; `edit` marks a tool
- *  that changes something: it takes `if_revision` and `request_id`, and `revision` reads the target's current one. */
+ *  that changes something: it takes `if_revision` and `request_id`, and `revision` (required) reads the target's current
+ *  revision, so a stale if_revision is refused rather than ignored. */
 export interface ToolDef<A extends object = Record<string, unknown>, D = unknown> {
   name: string;
   description: string;
@@ -46,7 +47,7 @@ export interface ToolDef<A extends object = Record<string, unknown>, D = unknown
   output?: Schema;
   examples: Example[];
   positionals?: string[];
-  edit?: { revision?(args: A, ctx: ToolContext): string | undefined | Promise<string | undefined> };
+  edit?: { revision(args: A, ctx: ToolContext): string | undefined | Promise<string | undefined> };
   run(args: A, ctx: ToolContext): ToolOutput<D> | Promise<ToolOutput<D>>;
 }
 
@@ -86,9 +87,10 @@ export function defineTool<A extends object, D>(def: ToolDef<A, D>): Tool {
   if (!def.description.trim()) fail("give it a description");
   if (def.params.type !== "object") fail('params is a JSON Schema with type "object"');
   if (!def.examples.length) fail("give it an example; every example runs in the tests");
+  if (def.edit && typeof def.edit.revision !== "function") fail("an edit reads its target's revision: give edit.revision(args, ctx), so if_revision is checked");
   const own = def.params.properties ?? {}, reserved = ["verbose", "json", "help", ...(def.edit ? Object.keys(EDIT) : [])];
-  for (const k of reserved) if (k in own) fail(`"${k}" is kept by the registry and the CLI (--${k}); rename yours`);
-  for (const p of def.positionals ?? []) if (!(p in own)) fail(`positional "${p}" is not one of its parameters`);
+  for (const k of reserved) if (Object.hasOwn(own, k)) fail(`"${k}" is kept by the registry and the CLI (--${k}); rename yours`);
+  for (const p of def.positionals ?? []) if (!Object.hasOwn(own, p)) fail(`positional "${p}" is not one of its parameters`);
   const schema: Schema = { ...def.params, properties: { ...own, ...(def.edit ? EDIT : {}), verbose: VERBOSE }, additionalProperties: false, examples: def.examples.map((e) => e.args) };
   return { ...(def as unknown as ToolDef), schema };
 }
@@ -125,17 +127,19 @@ export function memoryStore(max = 256): RequestStore {
   };
 }
 
-/** Arguments as canonical JSON (keys sorted), to compare a retry with the first call. */
+/** Arguments as canonical JSON (keys sorted, undefined ones left out), to compare a retry with the first call. */
 function canonical(v: unknown): string {
   if (Array.isArray(v)) return `[${v.map(canonical).join(",")}]`;
-  if (v && typeof v === "object") return `{${Object.keys(v).sort().map((k) => `${JSON.stringify(k)}:${canonical((v as Record<string, unknown>)[k])}`).join(",")}}`;
+  const o = v as Record<string, unknown>;
+  if (v && typeof v === "object") return `{${Object.keys(o).filter((k) => o[k] !== undefined).sort().map((k) => `${JSON.stringify(k)}:${canonical(o[k])}`).join(",")}}`;
   return JSON.stringify(v);
 }
 
-/** A reply from its parts; `error` is set for usage and error replies. */
+/** A reply from its parts; `error` is set for usage and error replies. The verdict is kept to one line (newlines in it
+ *  become spaces) and each detail to one line (split at newlines), so the 20-line count holds. */
 export function reply(tool: string, status: Status, out: ToolOutput<unknown> | { verdict: string; next: string }, images: ImageRef[] = [], error: { code: string; message: string } | null = null): Reply {
-  const o = out as Partial<ToolOutput<unknown>>;
-  return { schema: REPLY_ID, tool, status, verdict: out.verdict, lines: o.lines ?? [], data: o.data ?? null, images, revision: o.revision ?? null, error, next: out.next };
+  const o = out as Partial<ToolOutput<unknown>>, verdict = out.verdict.replace(/\s*\n\s*/g, " ");
+  return { schema: REPLY_ID, tool, status, verdict, lines: (o.lines ?? []).flatMap((l) => l.split("\n")), data: o.data ?? null, images, revision: o.revision ?? null, error, next: out.next };
 }
 
 /** A usage reply: the call was wrong; `message` says how, `next` how to find the right one. */
@@ -187,7 +191,7 @@ export class Registry {
     if (problem) return usage(tool.name, "E_ARGS", problem, fixArgs);
     const a: Record<string, unknown> = { ...(args as Record<string, unknown>) };
     delete a.verbose;
-    for (const [k, s] of Object.entries(tool.schema.properties ?? {})) if (a[k] === undefined && s.default !== undefined) a[k] = structuredClone(s.default);
+    for (const [k, s] of Object.entries(tool.schema.properties ?? {})) if ((!Object.hasOwn(a, k) || a[k] === undefined) && s.default !== undefined) a[k] = structuredClone(s.default);
     const images: ImageRef[] = [], host = opts.host ?? {};
     const ctx: ToolContext = {
       read: (p) => (host.read ? host.read(p) : Promise.reject(new ToolError("E_HOST", `this surface reads no files (${p}); pass the text instead`, true))),
@@ -203,11 +207,14 @@ export class Registry {
       const { request_id: _id, ...rest } = a;
       [key, sent] = [`${tool.name} ${a.request_id}`, canonical(rest)];
       const first = this.requests.get(key);
-      if (first && first.args !== sent) return usage(tool.name, "E_REQUEST_ID", `request_id "${a.request_id}" was first used with other arguments (${first.args})`, "a retry repeats the first arguments exactly; a new edit takes a new request_id");
+      if (first && first.args !== sent) {
+        const was = JSON.parse(first.args) as Record<string, unknown>, differ = Object.keys({ ...was, ...rest }).filter((k) => canonical(was[k]) !== canonical(rest[k]));
+        return usage(tool.name, "E_REQUEST_ID", `request_id ${quote(a.request_id)} was first used with other arguments (they differ in ${differ.join(", ")})`, "a retry repeats the first arguments exactly; a new edit takes a new request_id");
+      }
       if (first) return structuredClone(first.reply);
     }
     try {
-      if (tool.edit?.revision && typeof a.if_revision === "string") {
+      if (tool.edit && typeof a.if_revision === "string") {
         const now = await tool.edit.revision(a, ctx);
         if (now !== a.if_revision) {
           const message = `the target is at revision ${now ?? "none"}, not ${a.if_revision}; nothing was changed`;

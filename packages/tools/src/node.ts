@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 // @m3a/tools/node: the tools' Node entry (PLAN.md §5.1), the only module here that imports Node built-ins, and the `m3a`
-// bin. It supplies the Node host (files read relative to the working directory, images written as PNG under
+// bin. It supplies the Node host (files read under the working directory, never outside it, images written as PNG under
 // check-output/<tool>/), runs the CLI on process.argv, and serves MCP over stdio with `m3a mcp`: one JSON-RPC message
 // per line each way, nothing else on stdout, and an exit when stdin ends.
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { dirname, resolve } from "node:path";
+import { dirname, isAbsolute, relative, resolve, sep } from "node:path";
 import { createInterface } from "node:readline";
 import type { Readable, Writable } from "node:stream";
 import { png } from "@m3a/sensors/node";
@@ -19,12 +19,14 @@ function write(cwd: string, path: string, data: string | Uint8Array): void {
   writeFileSync(p, data);
 }
 
-/** The Node host: reads text files and writes images as PNG, both relative to `cwd`. */
+/** The Node host: reads text files and writes images as PNG, both relative to `cwd`; a path outside it is refused. */
 export function nodeHost(cwd: string = process.cwd()): Host {
   return {
     async read(path) {
+      const p = resolve(cwd, path), up = relative(cwd, p);
+      if (!path.trim() || up === ".." || up.startsWith(`..${sep}`) || isAbsolute(up)) throw new ToolError("E_PATH", `${path.trim() ? `${path} is outside ${cwd}` : "the path is empty"}; give a file under the working directory, or pass its text`, true);
       try {
-        return readFileSync(resolve(cwd, path), "utf8");
+        return readFileSync(p, "utf8");
       } catch (err) {
         throw new ToolError("E_PATH", `can't read ${path} (${(err as NodeJS.ErrnoException).code ?? "unreadable"}); paths are relative to ${cwd}`, true);
       }

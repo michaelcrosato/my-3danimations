@@ -1,6 +1,6 @@
-// The tool registry (WP-7.1): definitions refused with their fix, arguments checked with "did you mean", edits'
-// request_id (a retry applies once; the same id with other arguments is refused) and if_revision, failures as replies,
-// the 20-line text, and the CLI's parsing and exit codes.
+// The tool registry (WP-7.1): definitions refused with their fix, arguments checked with "did you mean" (own names
+// only), defaults filled, edits' request_id (a retry applies once; the same id with other arguments is refused) and
+// if_revision, failures as replies, the one-line verdict and 20-line text, and the CLI's parsing and exit codes.
 import { describe, expect, it } from "vitest";
 import { commandLine, parseCall, runCli } from "../src/cli.ts";
 import { CONSOLE_KEY, defineTool, EXIT, imageTokens, installConsole, Registry, render, reply, ToolError } from "../src/registry/index.ts";
@@ -33,7 +33,8 @@ describe("defineTool", () => {
     expect(() => tool({ name: "help" })).toThrow(/kept for the surfaces/);
     expect(() => tool({ examples: [] })).toThrow(/give it an example/);
     expect(() => tool({ params: { type: "object", properties: { verbose: { type: "boolean" } } } })).toThrow(/kept by the registry and the CLI/);
-    expect(() => tool({ positionals: ["path"] })).toThrow(/not one of its parameters/);
+    for (const p of ["path", "constructor"]) expect(() => tool({ positionals: [p] })).toThrow(/not one of its parameters/);
+    expect(() => tool({ edit: {} })).toThrow(/give edit.revision\(args, ctx\), so if_revision is checked/);
     expect(() => new Registry([tool(), tool()])).toThrow(/defined twice/);
   });
   it("adds verbose (and an edit's if_revision and request_id) and the examples to the schema", () => {
@@ -51,6 +52,9 @@ describe("Registry.call", () => {
     expect(await err({ value: "2" })).toBe('value should be an integer, not "2"');
     expect(await err({ value: -1 })).toBe("value is -1, below its minimum 0");
     expect(await err({ value: 1, tags: ["a", "bb"] })).toBe('tags[1] is "bb", not one of a, b; did you mean "b"?');
+    expect(await err({ value: "x".repeat(500) })).toBe(`value should be an integer, not "${"x".repeat(55)}...`);
+    expect(await err({ value: 1, constructor: 1 })).toMatch(/^unknown argument "constructor"; did you mean/); // own names only
+    expect(await err(JSON.parse('{"value":1,"__proto__":{}}'))).toMatch(/^unknown argument "__proto__"/);
     const r = await reg.call("demo_sett");
     expect(r).toMatchObject({ tool: "m3a", status: "usage", error: { code: "E_TOOL", message: 'no tool "demo_sett"; did you mean "demo.set"?' } });
     expect((await reg.call("demo_set", { value: 3 })).status).toBe("ok"); // MCP's spelling of the name
@@ -63,10 +67,19 @@ describe("Registry.call", () => {
     expect(state).toEqual({ n: 1, value: 5 });
     const other = await reg.call("demo.set", { value: 6, request_id: "r-1" });
     expect(other).toMatchObject({ status: "usage", error: { code: "E_REQUEST_ID" } });
-    expect(other.error!.message).toContain('"value":5');
+    expect(other.error!.message).toBe('request_id "r-1" was first used with other arguments (they differ in value)');
     expect(state).toEqual({ n: 1, value: 5 });
     expect((await reg.call("demo.set", { value: -1, request_id: "r-2" })).status).toBe("usage"); // refused calls are not kept
     expect((await reg.call("demo.set", { value: 7, request_id: "r-2" })).revision).toBe("r2");
+  });
+
+  it("fills defaults, so a call without one is the call with it, also for a retried request_id", async () => {
+    const seen: object[] = [], mode = { type: "string", enum: ["a", "b"], default: "a" } as const;
+    const reg = new Registry([tool({ name: "demo.mode", params: { type: "object", properties: { mode } }, edit: { revision: () => "r0" }, run: (a: object) => (seen.push(a), noop) })]);
+    expect(await reg.call("demo.mode", {})).toEqual(await reg.call("demo.mode", { mode: "a" }));
+    const first = await reg.call("demo.mode", { request_id: "q" });
+    expect(await reg.call("demo.mode", { mode: "a", request_id: "q" })).toEqual(first);
+    expect(seen).toEqual([{ mode: "a" }, { mode: "a" }, { mode: "a", request_id: "q" }]);
   });
 
   it("checks if_revision before an edit and replies with the current revision on a conflict", async () => {
@@ -99,6 +112,7 @@ describe("the reply's text", () => {
     expect(lines[0]).toBe("demo: FAIL");
     expect(lines.slice(-3)).toEqual(["... 14 more lines: rerun with --verbose", "image sheet: 1000x1000, 20.0 kB PNG, ~1334 tokens: check-output/demo/sheet.png", "next: fix it"]);
     expect(render(long, { verbose: true }).split("\n")).toHaveLength(33);
+    expect(reply("demo", "ok", { verdict: "not JSON:\n  a\nb", data: {}, lines: ["c\nd"], next: "n" })).toMatchObject({ verdict: "not JSON: a b", lines: ["c", "d"] });
   });
   it("prices an image as a model sees it, downscaled to 1568 px and about 1.15 megapixels", () => {
     expect(imageTokens(1000, 1000)).toBe(1334);
@@ -118,7 +132,13 @@ describe("the CLI", () => {
     expect(parseCall(edit, ["--value=4", "--if_revision", "r0"])).toEqual({ value: 4, if_revision: "r0" });
     expect(parseCall(edit, ["3", "4"])).toMatch(/"4" is one argument too many/);
     expect(parseCall(edit, ["--valeu", "4"])).toMatch(/^unknown flag --valeu; did you mean "--value"\?/);
-    expect(parseCall(edit, ["--value"])).toBe("--value needs a value: the new value");
+    expect(parseCall(edit, ["--value"])).toBe('--value needs a value: the new value (one starting with "--" is written --value=<value>)');
+    expect(parseCall(edit, ["--value", "--verbose"])).toMatch(/^--value needs a value/);
+    expect(parseCall(edit, ["-1"])).toEqual({ value: -1 });
+    expect(parseCall(edit, ["-v", "3"])).toMatch(/^unknown flag -v: flags take two dashes; did you mean "--value"\? \(demo.set takes --value/);
+    expect(parseCall(edit, ["3", "--value=4"])).toBe("--value is given twice; give it once (only an array flag repeats)");
+    expect(parseCall(edit, ["--json=true"])).toBe("--json takes no value; write --json alone");
+    for (const f of ["--constructor", "--__proto__", "--toString"]) expect(parseCall(edit, [f, "x"])).toMatch(new RegExp(`^unknown flag ${f};`));
     expect(commandLine(edit, { value: 3, tags: ["a"], verbose: true })).toEqual(["demo.set", "3", '--tags=["a"]', "--verbose"]);
   });
   it("exits 0 ok, 1 findings, 2 usage, and writes report.json with --json", async () => {
@@ -133,7 +153,7 @@ describe("the CLI", () => {
     expect((await run("demo.set", "--value", "x")).code).toBe(2);
     expect((await run("demo.sett")).text).toContain('no tool "demo.sett"; did you mean "demo.set"?');
     expect((await run()).text).toMatch(/^m3a .*: 1 tools;/);
-    expect((await run("demo.set", "--help")).text).toContain("  m3a demo.set 1\n");
+    expect((await run("demo.set", "-h")).text).toContain("  m3a demo.set 1\n");
   });
 });
 

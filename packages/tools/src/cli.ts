@@ -1,8 +1,9 @@
-// The m3a command line (PLAN.md §5.6), platform-neutral: `m3a <tool> [args] [--json] [--verbose]` and `m3a help [tool]`,
-// parsed against the tool's schema. Flags are its parameter names (`--if-revision` or `--if_revision`, `--flag=value`
-// or `--flag value`), its positionals fill the parameters it names in order, and an unknown flag or tool is a usage
-// error naming the closest one. The text is the reply, verdict first; --json also writes check-output/<tool>/report.json
-// (the Reply, schema m3a.reply/1). Exit 0 ok, 1 findings, 2 usage error. The Node entry (./node.ts) supplies the IO.
+// The m3a command line (PLAN.md §5.6), platform-neutral: `m3a <tool> [args] [--json] [--verbose]` and `m3a help [tool]`
+// (or -h), parsed against the tool's schema. Flags are its parameter names (`--if-revision` or `--if_revision`,
+// `--flag=value` or `--flag value`; a value starting with "--" takes the `=` form), given once unless an array; its
+// positionals fill the parameters it names in order. An unknown flag or tool is a usage error naming the closest one.
+// The text is the reply, verdict first; --json also writes check-output/<tool>/report.json (the Reply, schema
+// m3a.reply/1). Exit 0 ok, 1 findings, 2 usage error. The Node entry (./node.ts) supplies the IO.
 import { VERSION } from "@m3a/core";
 import { describeTool, reply, usage, type Host, type Registry, type Tool } from "./registry/registry.ts";
 import { EXIT, render, type Reply } from "./registry/reply.ts";
@@ -50,22 +51,29 @@ function coerce(v: string, s: Schema = {}): unknown {
 /** Parses a tool's arguments from argv (without --json); returns them, or the usage error's message. */
 export function parseCall(tool: Tool, argv: readonly string[]): Record<string, unknown> | string {
   const props = tool.schema.properties ?? {}, args: Record<string, unknown> = {}, pos = [...(tool.positionals ?? [])];
-  const flags = [...Object.keys(props).map(flag), "--json", "--help"];
+  const flags = [...Object.keys(props).map(flag), "--json", "--help"], takes = `(${tool.name} takes ${flags.join(" ")})`;
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i]!;
+    let name: string, v: unknown;
+    if (/^-[^-\d.]/.test(a)) return `unknown flag ${a}: flags take two dashes${didYouMean(`-${a}`, flags)} ${takes}`;
     if (!a.startsWith("--")) {
       const p = pos.shift();
-      if (p === undefined) return `"${a}" is one argument too many: ${tool.name} takes ${tool.positionals?.length ? `${tool.positionals.join(", ")} by position` : "flags only"} (${flags.join(" ")})`;
-      args[p] = coerce(a, props[p]);
-      continue;
+      if (p === undefined) return `"${a}" is one argument too many: ${tool.name} takes ${tool.positionals?.length ? `${tool.positionals.join(", ")} by position` : "flags only"} ${takes}`;
+      [name, v] = [p, coerce(a, props[p])];
+    } else {
+      const eq = a.indexOf("="), raw = eq < 0 ? a : a.slice(0, eq);
+      name = raw.slice(2).replace(/-/g, "_");
+      const s = Object.hasOwn(props, name) ? props[name] : undefined;
+      if (raw === "--json" || raw === "--help") return `${raw} takes no value; write ${raw} alone`;
+      if (!s) return `unknown flag ${raw}${didYouMean(raw, flags)} ${takes}`;
+      let value = eq < 0 ? undefined : a.slice(eq + 1);
+      if (value === undefined && s.type !== "boolean" && !argv[i + 1]?.startsWith("--")) value = argv[++i];
+      if (value === undefined && s.type !== "boolean") return `${raw} needs a value${s.description ? `: ${s.description}` : ""} (one starting with "--" is written ${raw}=<value>)`;
+      v = value === undefined ? true : coerce(value, s);
     }
-    const eq = a.indexOf("="), raw = eq < 0 ? a : a.slice(0, eq), name = raw.slice(2).replace(/-/g, "_"), s = props[name];
-    if (!s) return `unknown flag ${raw}${didYouMean(raw, flags)} (${tool.name} takes ${flags.join(" ")})`;
-    let value = eq < 0 ? undefined : a.slice(eq + 1);
-    if (value === undefined && s.type !== "boolean") value = argv[++i];
-    if (value === undefined && s.type !== "boolean") return `${raw} needs a value${s.description ? `: ${s.description}` : ""}`;
-    const v = value === undefined ? true : coerce(value, s), was = args[name];
-    args[name] = Array.isArray(was) && Array.isArray(v) ? [...was, ...v] : v;
+    const was = args[name], both = Array.isArray(was) && Array.isArray(v);
+    if (Object.hasOwn(args, name) && !both) return `${flag(name)} is given twice; give it once (only an array flag repeats)`;
+    args[name] = both ? [...(was as unknown[]), ...(v as unknown[])] : v;
   }
   return args;
 }
@@ -88,14 +96,15 @@ export function help(registry: Registry, name?: string): Reply {
 
 /** Runs one m3a command line; prints the reply, writes report.json with --json, and returns the exit code. */
 export async function runCli(registry: Registry, argv: readonly string[], io: CliIo): Promise<number> {
-  const json = argv.includes("--json"), verbose = argv.includes("--verbose"), rest = argv.filter((a) => a !== "--json");
+  const json = argv.includes("--json"), rest = argv.filter((a) => a !== "--json").map((a) => (a === "-h" ? "--help" : a));
   const [first, ...more] = rest;
-  let r: Reply;
-  if (first === undefined || first === "help" || first === "--help") r = help(registry, more.find((a) => !a.startsWith("--")));
+  let r: Reply, verbose = rest.includes("--verbose");
+  if (first === undefined || first === "help" || first === "--help") r = help(registry, more.find((a) => !a.startsWith("-")));
   else if (!registry.get(first)) r = registry.unknown(first);
   else if (more.includes("--help")) r = help(registry, first);
   else {
     const tool = registry.get(first)!, args = parseCall(tool, more);
+    verbose = typeof args !== "string" && args.verbose === true; // the parsed flag, as MCP's argument
     r = typeof args === "string" ? usage(tool.name, "E_ARGS", args, `m3a help ${tool.name} shows its arguments and examples`) : await registry.call(tool.name, args, { host: io.host });
   }
   const report = json ? `check-output/${r.tool}/report.json` : undefined;

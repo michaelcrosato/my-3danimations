@@ -1,7 +1,8 @@
 // The four surfaces of one registry (WP-7.1's Done-when): every tool shows the same name, description and schema, and
 // every example (each one a test) gives the same reply through the TypeScript API, the m3a CLI (report.json and its exit
-// code), the MCP server (structuredContent, valid against its outputSchema) and the console handle. Then MCP itself:
-// both eras, its errors against tool errors, images as image content; and the bin, as a process, on the CLI and stdio.
+// code), the MCP server (structuredContent, valid against its outputSchema) and the console handle, and the same text on
+// the CLI and MCP with and without verbose. Then MCP itself: both eras, its errors against tool errors, images as image
+// content; the Node host's paths; and the bin, as a process, on the CLI and stdio.
 import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -23,16 +24,19 @@ const swatch = defineTool({
   run: (a: { size: number }, ctx) => ({ verdict: "drawn", data: { ref: ctx.image("swatch", raster.image(a.size, a.size, [200, 40, 40])) }, next: "look at it" }),
 });
 let n = 0;
-const note = defineTool({ name: "demo.note", description: "Count a note.", params: { type: "object", properties: {} }, examples: [{ args: { request_id: "ex-1" } }], edit: {}, run: () => ({ verdict: `note ${++n}`, data: { n }, next: "again", revision: `r${n}` }) });
-const reg = new Registry([...tools.list(), swatch, note]), mcp = mcpServer(reg, { host }), handle = consoleHandle(reg, host);
+const note = defineTool({ name: "demo.note", description: "Count a note.", params: { type: "object", properties: {} }, examples: [{ args: { request_id: "ex-1" } }], edit: { revision: () => `r${n}` }, run: () => ({ verdict: `note ${++n}`, data: { n }, next: "again", revision: `r${n}` }) });
+const long = defineTool({ name: "demo.long", description: "Many lines.", params: { type: "object", properties: { n: { type: "integer", minimum: 0, default: 30 } } }, examples: [{ args: {} }, { args: { n: 2, verbose: true } }], run: (a: { n: number }) => ({ verdict: `${a.n} lines`, data: {}, lines: Array.from({ length: a.n }, (_, i) => `line ${i + 1}`), next: "read them" }) });
+const reg = new Registry([...tools.list(), swatch, note, long]), mcp = mcpServer(reg, { host }), handle = consoleHandle(reg, host);
 const rpc = async (method: string, params: Record<string, unknown> = {}, meta: object | null = META) => (await mcp.handle({ jsonrpc: "2.0", id: 1, method, params: meta ? { ...params, _meta: meta } : params })) as { result?: Record<string, unknown>; error?: { code: number; message: string; data?: unknown } };
 const ajv = new Ajv2020({ strict: false });
 
-async function cli(argv: string[]): Promise<{ code: number; report: Reply; text: string }> {
-  let report = "", text = "";
-  const code = await runCli(reg, [...argv, "--json"], { print: (t) => void (text += t), write: (_p, t) => void (report = t), host });
+async function cli(argv: string[], json = ["--json"]): Promise<{ code: number; report: Reply; text: string }> {
+  let report = "null", text = "";
+  const code = await runCli(reg, [...argv, ...json], { print: (t) => void (text += t), write: (_p, t) => void (report = t), host });
   return { code, report: JSON.parse(report) as Reply, text };
 }
+/** A reply's text without the surface's own words for "ask for the rest". */
+const said = (text: string) => text.replace(/(more lines?): .*/, "$1").trimEnd();
 
 describe("one definition, four surfaces", () => {
   const listed = rpc("tools/list").then((r) => r.result!.tools as ReturnType<typeof mcpTool>[]);
@@ -54,6 +58,10 @@ describe("one definition, four surfaces", () => {
         expect(m.structuredContent).toEqual(api);
         expect(ajv.validate(replySchema(t.output), m.structuredContent), ajv.errorsText()).toBe(true);
         expect(await (handle[t.name] as (a: object) => Promise<Reply>)(ex.args)).toEqual(api);
+        for (const verbose of [false, true]) {
+          const args = { ...ex.args, verbose }, mt = (await rpc("tools/call", { name: t.name.replace(/\./g, "_"), arguments: args })).result!;
+          expect(said((await cli(commandLine(t, args), [])).text)).toBe(said((mt.content as { text: string }[])[0]!.text));
+        }
       });
     }
   }
@@ -91,6 +99,14 @@ describe("MCP", () => {
     const r = (await rpc("tools/call", { name: "validate", arguments: { pth: "x" } })).result!;
     expect(r.isError).toBe(true);
     expect((r.content as { text: string }[])[0]!.text).toMatch(/^validate: usage error: unknown argument "pth"; did you mean "path"\?/);
+    const proto = (await rpc("tools/call", { name: "version", arguments: JSON.parse('{"constructor":1,"__proto__":{}}') })).result!;
+    expect([proto.isError, (proto.structuredContent as Reply).error?.message]).toEqual([true, expect.stringMatching(/^unknown argument "constructor"/)]);
+  });
+
+  it("cuts a result's text to 20 lines and gives every line with verbose: true", async () => {
+    const text = async (verbose: boolean) => ((await rpc("tools/call", { name: "demo_long", arguments: { verbose } })).result!.content as { text: string }[])[0]!.text.split("\n");
+    const [cut, all] = [await text(false), await text(true)];
+    expect([cut.length, cut[18], all.length]).toEqual([20, "... 13 more lines: call again with verbose: true", 32]);
   });
 
   it("returns images as image content with their size and token cost, and writes them to check-output/", async () => {
@@ -103,6 +119,11 @@ describe("MCP", () => {
 });
 
 describe("the m3a bin", () => {
+  it("reads files under the working directory only", async () => {
+    for (const path of ["", "/etc/hostname", "../x.json", "library/../../x.json"]) expect((await reg.call("validate", { path }, { host })).error?.code, path).toBe("E_PATH");
+    expect((await reg.call("validate", { path: "" }, { host })).verdict).toBe("validate: usage error: the path is empty; give a file under the working directory, or pass its text");
+  });
+
   it("runs the CLI: a report.json with the API's reply, and exit 2 naming the closest flag", () => {
     const run = (...a: string[]) => spawnSync(process.execPath, [BIN, ...a], { cwd: ROOT, encoding: "utf8" });
     const ok = run("validate", "library/sets/QUATERNIUS_3D2DGE/A_TPose.json", "--json");
