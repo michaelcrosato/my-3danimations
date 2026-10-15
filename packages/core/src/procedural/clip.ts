@@ -7,12 +7,14 @@ import { IDX, P, type Rest } from "../format/body.ts";
 import { add, len, mul, qmul, qrot, sub, type Quat, type V3 } from "../format/math.ts";
 import { PORTABLE as PM } from "../math/portable.ts";
 import { decodePose, encodePose, type KeyLike } from "../format/pose.ts";
-import { KEY_FIELDS, type Clip, type ClipEvent, type Contacts } from "../format/types.ts";
+import { error, meanError } from "../format/fit.ts";
+import { keyAt } from "../format/sample.ts";
+import { KEY_FIELDS, type Clip, type ClipEvent, type Contacts, type Key } from "../format/types.ts";
 import { detectContacts, sole } from "../clip/contacts.ts";
 import { blend, type Pose } from "../ops/pose.ts";
-import { keysOf, tidyContacts } from "../recipe/compile.ts";
+import { keysOf, quantize, tidyContacts } from "../recipe/compile.ts";
 import { steady, unwrapped } from "../recipe/steps.ts";
-import { frameTimes } from "../recipe/track.ts";
+import { frameTimes, ms } from "../recipe/track.ts";
 import type { Root, Track } from "../recipe/types.ts";
 import { validate } from "../validate/index.ts";
 import { VERSION } from "../version.ts";
@@ -124,11 +126,14 @@ export interface ProceduralOptions {
   budget?: number;
 }
 
-/** A track written as a format-2 clip: keys fitted within the budget, contacts detected, procedural provenance. */
-export function clipOfTrack(t: Track, meta: { id: string; name: string; tags: string[]; desc: string; events?: ClipEvent[]; contacts?: Contacts }, budget = 30): Clip {
+/**
+ * A track written as a format-2 clip: keys fitted within the budget, and the frames `keep` keys too (a gait's about its
+ * loop's seam, where the sensors read the keys themselves), contacts detected, procedural provenance.
+ */
+export function clipOfTrack(t: Track, meta: { id: string; name: string; tags: string[]; desc: string; events?: ClipEvent[]; contacts?: Contacts }, budget = 30, keep: readonly number[] = []): Clip {
   // contacts are detected on the keys, which carry the root's travel (a planted foot is still in the world, not in
   // the root's frame)
-  const { keys, fit } = keysOf(t, budget), contacts = tidyContacts(meta.contacts ?? CONTACT_ENDS_OF(detectContacts({ dur: t.dur, loop: t.loop, keys }, t.rest)), t.dur, t.loop);
+  const { keys, fit } = withFrames(t, keysOf(t, budget), keep), contacts = tidyContacts(meta.contacts ?? CONTACT_ENDS_OF(detectContacts({ dur: t.dur, loop: t.loop, keys }, t.rest)), t.dur, t.loop);
   const clip: Clip = {
     format: "2.0", id: meta.id, name: meta.name, legend: "2.0", dur: t.dur, loop: t.loop, fps: t.fps, tags: meta.tags, desc: meta.desc, skeleton: "humanoid", restSrc: t.restSrc,
     ...(contacts ? { contacts } : {}), ...(meta.events?.length ? { events: meta.events } : {}),
@@ -139,6 +144,32 @@ export function clipOfTrack(t: Track, meta: { id: string; name: string; tags: st
   const v = validate(clip, { mode: "read" });
   if (v.errors.length) throw new Error(`${meta.id}: the generated clip is invalid: ${v.errors.map((x) => `${x.code} ${x.message}`).join("; ")}`);
   return clip;
+}
+/**
+ * Keys `fitted` (keysOf's) with the track's frames `keep` among them, each written as keysOf writes a frame (rounded,
+ * the root's whole % where the keys carry it), and their fit measured again as keysOf measures it: every frame, and a
+ * loop's closing one, against the keys' in-betweens. Where they already are, `fitted` is given back as it is.
+ */
+function withFrames(t: Track, fitted: { keys: Key[]; fit: [number, number] }, keep: readonly number[]): { keys: Key[]; fit: [number, number] } {
+  const have = new Set(fitted.keys.map((k) => k.t)), add = [...new Set(keep)].filter((i) => i >= 0 && i < t.poses.length && !have.has(ms(t.times[i]!)));
+  if (!add.length) return fitted;
+  const like = fitted.keys[0] as unknown as Record<string, unknown>, root = like.root !== undefined, yaw = like.yaw !== undefined;
+  const more = add.map((i) => {
+    const r = t.roots[i]!;
+    return { t: ms(t.times[i]!), ...quantize(t.poses[i]!), ...(root ? { root: [Math.round(r.forward) + 0, Math.round(r.right) + 0] } : {}), ...(yaw ? { yaw: Math.round(r.yaw) + 0 } : {}) } as unknown as Key;
+  });
+  const keys = [...fitted.keys, ...more].sort((a, b) => a.t - b.t), clip = { dur: t.dur, loop: false, keys };
+  const n = t.poses.length + (t.loop ? 1 : 0), X = new Float32Array(P * 3), Y = new Float32Array(P * 3), data = new Float32Array(n * P * 3);
+  t.poses.forEach((p, i) => data.set(decodePose(t.rest, p as KeyLike, X) as Float32Array, i * P * 3));
+  if (t.loop) data.set(data.subarray(0, P * 3), (n - 1) * P * 3);
+  let worst = 0, sum = 0;
+  for (let i = 0; i < n; i++) {
+    decodePose(t.rest, keyAt(clip, i < t.poses.length ? ms(t.times[i]!) : ms(t.dur)) as KeyLike, Y);
+    const frame = data.subarray(i * P * 3, (i + 1) * P * 3);
+    worst = Math.max(worst, error(frame, Y));
+    sum += meanError(frame, Y);
+  }
+  return { keys, fit: [Math.round(sum / n), Math.round(worst)] };
 }
 /** A pose with its angles (a limb's bend and twist, a turn) rounded to the whole degrees a key holds them in. */
 function anglesRounded(p: Pose): Pose {
