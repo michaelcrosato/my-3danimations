@@ -24,9 +24,9 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 
 ## Next
 
-- Phase 6: WP-6.2's round 8 (D71) and its reviews 9 to 13 are merged (folds, knees, the seam read on the clip's keys,
-  75 fps, standing starts; actions fit their gaits); a last pass under a margin rule (every bound's worst fresh reading
-  at most ~90% of fail: MIN_SWING raised) is running, then D71's record, then G6.
+- Phase 6: WP-6.2 closed under the margin rule (D71's rounds 8 to 14, D90); its close-out (the seam cache bounded, the
+  run knee's 91.1% pinned) is merged, its review's fixes running. Then G6 at a fixed commit: fresh held-out variants
+  (D78), each known-good on its variant, the gate (`claude -p` checked). WP-7.1 runs in a lane, merged after G6.
 
 ## Blocked on the owner
 
