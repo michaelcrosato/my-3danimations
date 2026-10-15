@@ -1,12 +1,15 @@
 // Actions (WP-6.3, spec/ACTION.md): the library's six actions and its paired one are the schema's shape and check
 // clean; each compiles into a valid clip with its beats and interrupt points as events, standing on the grounds its
 // floor gives, the root curve rising or falling with them; each interrupt goes on into every clip it names, raised and
-// turned; the checks name each problem with its code; and a paired action meets its roles on their event.
+// turned; the checks name each problem with its code; a paired action meets its roles on their event; and on a body a
+// ready-made gait outreaches (test characters), an action plays it fitted to the legs.
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+import { bind } from "@m3a/three";
+import { character, loadGlb, variant } from "@m3a/three/test-characters";
 import { Ajv2020 } from "ajv/dist/2020.js";
 import { describe, expect, it } from "vitest";
-import { actions as A, clip as C, format, parseClip, serialize, validate, type Clip, type Rest } from "../src/index.ts";
+import { actions as A, clip as C, format, parseClip, procedural as PR, serialize, validate, type Clip, type Rest } from "../src/index.ts";
 import type { Resolver } from "../src/recipe/types.ts";
 import { sha256 } from "../src/recipe/sha256.ts";
 import { RecipeError } from "../src/recipe/validate.ts";
@@ -117,7 +120,39 @@ describe("the library's actions", () => {
     const climb = action("ACTIONS/Climb_Up"), walk = climb.resolve("PROCEDURAL/Walk")!;
     expect([walk.clip.id, walk.rest === climb.rest, walk.contentId]).toEqual(["PROCEDURAL/Walk", true, sha256(serialize(walk.clip))]);
     expect([climb.resolve("PROCEDURAL/Nothing"), climb.resolve.ids!().includes("PROCEDURAL/Breathe")]).toEqual([undefined, true]);
+    // a gait the body's legs reach is played as it is (fitGait returns it): the run on Mesh2Motion's rest, byte for byte
+    const run = climb.resolve("PROCEDURAL/Run")!, plain = PR.gaitClip(PR.GAITS[2]!, climb.rest, { restSrc: climb.clip.restSrc, id: "PROCEDURAL/Run" });
+    expect([PR.fitGait(PR.GAITS[2]!, climb.rest) === PR.GAITS[2], run.contentId]).toEqual([true, sha256(serialize(plain))]);
   });
+});
+
+describe("an action on another body", () => {
+  it("plays a ready-made gait fitted to the legs: the run on test characters it outreaches, slowed to fit", async () => {
+    // the run reaches past 72% of a leg on all but the tall test characters, where gaitClip refuses it; the resolver
+    // fits each gait to the body first (fitGait), so an action that runs compiles there, its run at the speed the legs
+    // take (D71, round 7; chibi, heroic, bulky, and the child without collarbones)
+    const run = PR.GAITS[2]!, setOff: A.Action = {
+      format: "2.0", id: "ACTIONS/Set_Off", desc: "Stands, then runs",
+      steps: [{ as: "stand", op: "clip", id: "MESH2MOTION/Idle_A", to: 0.5 }, { as: "run", op: "clip", id: "PROCEDURAL/Run" }, { op: "sequence", items: ["stand", "run"], sync: "contacts" }],
+      beats: [{ name: "stand", from: 0, to: 0.5 }, { name: "run", from: 0.5, to: 1 }],
+      interrupts: [{ t: 0.5, to: ["PROCEDURAL/Walk"], why: "both feet down" }],
+    };
+    for (const seed of [0, 1, 2, 3]) {
+      const rest = bind((await loadGlb(character(variant(seed)).glb, { textures: false })).scene).core.rest, fit = PR.fitGait(run, rest);
+      expect([seed, fit.speed < run.speed]).toEqual([seed, true]);
+      expect(() => PR.gaitClip(run, rest, { restSrc: `GEN${seed}` })).toThrow(/its feet reach .* past 72%/);
+      // the library's clips on this body, as a host's resolver gives them
+      const c = A.compileAction(setOff, (id) => { const r = resolve(id); return r && { ...r, rest }; });
+      // after the 0.2 s fade the run alone, at the fitted speed (the root on whole % of the hip height: 1% over 0.5 s)
+      const [from, to] = [A.actionRootAt(c, 0.5), A.actionRootAt(c, c.clip.dur)], speed = (to.forward - from.forward) / (c.clip.dur - 0.5);
+      expect([seed, validate(c.clip).errors, c.clip.dur, Math.abs(speed - fit.speed) <= 2]).toEqual([seed, [], 1, true]);
+      // each ready-made gait is the fitted one's clip, going its speed
+      for (const g of PR.GAITS) {
+        const part = c.resolve(`PROCEDURAL/${g.name.charAt(0).toUpperCase()}${g.name.slice(1)}`)!, own = PR.gaitClip(PR.fitGait(g, rest), rest, { restSrc: c.clip.restSrc, id: part.clip.id });
+        expect([seed, g.name, validate(part.clip).errors, part.contentId, Math.abs(C.rootAt(part.clip, part.clip.dur).forward - PR.fitGait(g, rest).speed * part.clip.dur) <= 0.5]).toEqual([seed, g.name, [], sha256(serialize(own)), true]);
+      }
+    }
+  }, 30_000);
 });
 
 describe("an action's checks", () => {
