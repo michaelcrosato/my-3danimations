@@ -21,9 +21,10 @@
 // fastest whole speed its pace and a body's legs take (lowering its lift where no speed does) and narrows its arms'
 // swing to what its hands take at that swing and every narrower one. Every bound keeps the worst the sensors read of
 // each kind of defect it bounds at 90% of the fail level or under, measured on fresh grids over all it takes (D71,
-// round 14). The frames are spread evenly over the cycle, an even number of them, and each knee's turn about its leg,
-// carried on from frame to frame, is closed over it, so the loop meets itself; the frames about the seam are kept as
-// keys.
+// round 14), but one, recorded: climbing on a run's shortest cycles, a knee popping within the clip read 91.1%, under
+// the fail level (MIN_RUN_CYCLE). The frames are spread evenly over the cycle, an even number of them, and each knee's
+// turn about its leg, carried on from frame to frame, is closed over it, so the loop meets itself; the frames about the
+// seam are kept as keys.
 import { bendOf, derived, IDX, limbEnd, P, reachOf, SG, type Rest, type Side } from "../format/body.ts";
 import { add, dot, len, loc, mul, norm, qmul, qrot, sub, type Frame, type Quat, type V3 } from "../format/math.ts";
 import { decodePose, encodePose, torso, type KeyLike } from "../format/pose.ts";
@@ -139,7 +140,8 @@ const OFF = 0.1, RISE = 0.05;
  *  the next whole speed, which its reach refuses, on its two lowest, two highest and two other grids, every rest) a
  *  knee's pop reads 73.5% at most (100STYLE's side-run rest at 73.2 frames a second), the seam 69.5% and anything 82.3%
  *  (the pelvis's steps on test character 9); round 14 read 70.2% over 5,724, and its review's tuned searches 75.4%
- *  (CMU_54's run at 320.25, at 73.3). */
+ *  (CMU_54's run at 320.25, at 73.3). Round 14's second pass's review climbed a run's knee to 91.1% at 71.8% of a leg
+ *  (M2M_ANIMATED's rest at 377, a run's shortest cycle: see MIN_RUN_CYCLE). */
 const STRIDE_MAX = 0.72;
 /** How high it sets down from, straight down, % of the hip height: above the 4% a foot is read as standing within. */
 const CLEAR = 4.5;
@@ -332,15 +334,21 @@ const SWING_SPEED = 400;
  * 0.6 to about 0.63 s and a stance of about 0.37 to 0.44, a run's left foot comes forward on the seam at its sharpest,
  * and the knee read a hitch there at every rate from 55 to 75 (round 10's review: 33 of 2,600 fitted runs, to 113.5%;
  * round 6's "one run's seam at 0.6 s", recorded then as one case, was this class). SEAM_TURN bounds it on the body
- * given. Its runs' knees pop within the clip the most of any knees: on round 14's second pass's fresh grids the 3,721
- * runs made under 0.65 s (0.7 lifting over 25; 2,080 of them fitted from 1,000 at their shortest cycle on the four
- * highest grids) read a knee's pop of 73.0% at most (test character 8 by parts at 73.6), 70.0% at the seam (a knee) and
- * 82.3% of anything (the pelvis's steps on test character 9 at 72.5), and the 1,302 tuned to the bounds 59.7%; round
- * 14's review read the pop 74.4% on its fresh grids (CMU_19's run at 70.5), 74.3% on 9,325 runs at their shortest cycle
- * on the four highest grids, 75.4% tuned, and 79.7% climbed: CMU_54's rest {0.6 s, a stance of 0.418, lifting 12.583,
- * bouncing 0.91, swinging 30.45} at 380.5, plainly at 70 frames a second (42 frames; 71.6% by parts), the most this
- * class has read. Climbing on from it and from CMU_19's for 750 more steps (each fitted and read on every grid from 60
- * or 64 to 75) found none higher. Round 14 stated 69.2% from its own grids, short of these.
+ * given. Its runs' knees pop within the clip the most of any knees, and climbed, the most of anything, past the margin
+ * every bound keeps (90% of the fail level: D71, round 14) once: climbing on fitted runs at the shortest cycles near
+ * the reach bound, round 14's second pass's review read a knee's pop of 91.1% on M2M_ANIMATED's rest {0.6 s, a stance
+ * of 0.415, lifting 10.246, bouncing 1.12, dipping 6.819, swaying 2.833, leaning 3.407, swinging 62.979}, which fitGait
+ * gives back at 377 asked any speed over it, at 73.333 frames a second (44 frames; the right knee at 0.545 s), plainly
+ * and by parts alike; 88.1% on CMU_140's {0.6 s, 0.41, lifting 9, bouncing 1.723} at 375.5, at 70.000 (42 frames), and
+ * 87.2% on M2M_QUATERNIUS's {0.62 s, 0.406, a limp of 0.245, lifting 10.992} fitted to 359, at 70.968. None fails; the
+ * case is older than round 14, and recorded rather than bounded (another round to win the last point isn't worth its
+ * cost; the sensors' test holds the first under the fail level). On that review's grids its 3,026 fresh runs under
+ * 0.65 s read a knee's pop of 71.6% at most (CMU_140's at 70), the 3,309 tuned to the bounds 68.2%, and 27,487 fitted runs
+ * remade on every grid from 60 to 75 frames a second (12,133 under 0.65 s) 77.4% (CMU_141's at 73.333). Round 14's
+ * second pass's own fresh grids (3,721 runs under 0.65 s, 0.7 lifting over 25) read 73.0% (test character 8 by parts at
+ * 73.6), the 1,302 tuned 59.7%; round 14's review 74.4% on its fresh grids, 74.3% on 9,325 runs at their shortest cycle
+ * on the four highest grids, 75.4% tuned and 79.7% climbed (CMU_54's rest {0.6 s, 0.418, lifting 12.583} at 380.5, at
+ * 70); and round 14 69.2% on its own.
  */
 const MIN_RUN_CYCLE = 0.6, MIN_HIGH_RUN_CYCLE = 0.65;
 /**
@@ -358,16 +366,21 @@ const MIN_RUN_CYCLE = 0.6, MIN_HIGH_RUN_CYCLE = 0.65;
  * most any reading reaches, the protocol's and everything by parts alike, is 69.6% at 55 to 57.5 (the seam), 70.0% at
  * 57.5 to 62.5 (the seam), 71.3% at 62.5 to 65, 76.4% at 65 to 70, and 82.3% at 70 to 75 and at 75 itself (1,151 clips
  * there; the presets' 787 at 75 82.3% too): the pelvis's whole-% steps on test character 9's short spine (pelvisGrid),
- * the most any class reads. Tuned to the bounds (see SEAM_TURN; 6,917 made), 69.8% at 55 to 57.5 and 82.3% at 70 to 75
- * and at 75. On round 14's second pass's fresh grids (17,880 clips, as SEAM_TURN gives them; 598 at 55 and 1,859 at
- * 75), the same: 69.5% at 55 to 57.5 (a knee at the seam), 69.6% at 57.5 to 62.5, 71.3% at 62.5 to 65, 76.4% at 65 to
- * 70 and 82.3% at 70 to 75 and at 75 (test character 9's pelvis); tuned to the bounds (10,515 made), 69.9% at 55 to
- * 57.5; the climbs' late-swing knee 72.3% at 55 (see MIN_SWING) and a run's knee 79.7% at 70 (round 14's review's, see
- * MIN_RUN_CYCLE). Round 14's review's 46,825 clips (3,692 at 55, 4,288 at 75) read 82.3% at most, the same steps. At 80
- * and 90 (1,400 of round 12's gaits, each made at both, round 12): at 80 none failed, the steps reading 89.2% (test
- * character 9) and the seam 69.8%; at 90 the steps failed once, test character 23's walk at 102.2%, and read 97.3% on
- * test character 9. (At 110 a planted knee failed on 7 of 64 rests, round 7; at 240 a walk failed on every rest, and at
- * 120 a brisk walk's elbows on 4, rounds 4 to 6.)
+ * the most any class reads on fresh grids. Tuned to the bounds (see SEAM_TURN; 6,917 made), 69.8% at 55 to 57.5 and
+ * 82.3% at 70 to 75 and at 75. On round 14's second pass's fresh grids (17,880 clips, as SEAM_TURN gives them; 598 at
+ * 55 and 1,859 at 75), the same: 69.5% at 55 to 57.5 (a knee at the seam), 69.6% at 57.5 to 62.5, 71.3% at 62.5 to 65,
+ * 76.4% at 65 to 70 and 82.3% at 70 to 75 and at 75 (test character 9's pelvis); tuned to the bounds (10,515 made),
+ * 69.9% at 55 to 57.5; the climbs' late-swing knee 72.3% at 55 (see MIN_SWING) and a run's knee 79.7% at 70 (round 14's
+ * review's, see MIN_RUN_CYCLE). Round 14's review's 46,825 clips (3,692 at 55, 4,288 at 75) read 82.3% at most, the
+ * same steps. Round 14's second pass's review's 18,815 fresh clips (1,165 at 55, 1,929 at 75) and 14,841 tuned to the
+ * bounds read 70.0% at 55 to 57.5 (70.3% tuned, a toe's pop), 69.4% at 57.5 to 62.5, 71.3% at 62.5 to 65, 76.4% at 65
+ * to 70 and 82.3% at 70 to 75 and at 75, the same steps; but its climbs on a run's knee popping within the clip read
+ * more at 70 to 75: 88.1% at 70.000 (CMU_140's rest), 87.2% at 70.968 (M2M_QUATERNIUS's) and 91.1% at 73.333
+ * (M2M_ANIMATED's), past the 90% every bound keeps and under the fail level: the most any class reads, recorded
+ * (MIN_RUN_CYCLE). At 80 and 90 (1,400 of round 12's gaits, each made at both, round 12): at 80 none failed, the steps
+ * reading 89.2% (test character 9) and the seam 69.8%; at 90 the steps failed once, test character 23's walk at 102.2%,
+ * and read 97.3% on test character 9. (At 110 a planted knee failed on 7 of 64 rests, round 7; at 240 a walk failed on
+ * every rest, and at 120 a brisk walk's elbows on 4, rounds 4 to 6.)
  */
 const MIN_GAIT_FPS = 55, MAX_GAIT_FPS = 75;
 /**
@@ -575,8 +588,11 @@ const KNEE_FLOOR = 0;
  * by parts (68.6% as the protocol reads it), the knuckles 67.2% and the elbows and wrists 64.3%, no clip over its own
  * seamOf reading; the 10,515 tuned to the bounds 69.9% at a knee or foot, 69.7% at a hand by parts, 69.0% at the torso,
  * the knuckles 67.9% and the elbows and wrists 64.4%; round 14's review's 46,825 clips 70.0%, 69.8%, 69.9%, 67.9% and
- * 65.1%. The loop's origin at a calm phase (round 4's other fix) isn't taken: a blend space keeps its clips in phase,
- * so a walk and a run blend foot for foot only where each begins at the right foot's touchdown.
+ * 65.1%; and its second pass's review's 18,815 fresh clips and 14,841 tuned to the bounds 70.0% at a knee or foot,
+ * 70.0% at a hand (test character 31's, tuned, at 71.4; 69.9% fresh), 69.9% at the torso, the knuckles 68.0% and the
+ * elbows and wrists 65.7% (by parts), the protocol's reading and everything by parts alike. The loop's origin at a calm
+ * phase (round 4's other fix) isn't taken: a blend space keeps its clips in phase, so a walk and a run blend foot for
+ * foot only where each begins at the right foot's touchdown.
  */
 const SEAM_TURN = 0.7;
 /** The sensors' seamVelocity (its fail level, % of the hip height a second: 4 m/s on a 950 mm hip height; the samples a
@@ -650,17 +666,19 @@ const Z_SLACK = 0.75;
  *   in, 78% there as a pop; and it took the pelvis along too, stepping it out and back and along, across and up at
  *   once. Of the 13 clips round 12's review found the pass kept on their own grid, 10 popped the torso within four keys
  *   of the seam (to 80.8%) and none now does.
- * The pelvis's whole-% steps within a clip are bounded by measurement only, the most any class of gait reads: a whole %
- * across and up at once (√2 %) beside still frames, over a 13 ms key at 75 frames a second, on test character 9's short
- * spine read by parts is 1.414 × 76.92 / 378.95 / 0.3492 = 82.3% of the pop's fail level, and every grid since round 12
- * has met that and no more (round 14's fresh grids, 15,792 clips, and the presets, 3,935, as SEAM_TURN and MAX_GAIT_FPS
- * give them: 82.3%, test character 9 at 70 to 75 frames a second; 81.5% on 19; round 14's second pass's 17,880 fresh
- * and 10,515 tuned clips, and round 14's review's 46,825, 82.3% too). Along, across and up at once (√3 %) it would read
- * 1.007, and no clip steps so: none of round 14's or its second pass's, nor any of 2,554 slow gaits swaying and bobbing
- * on the 13 short-spined test characters at 66 to 75 frames a second searched for one (850 of them step on two axes at
- * once) (round 12's review found none; on round 13's tree one of 350 walks and brisk walks on test characters at 66 to
- * 75 did with the pelvis along taken either way about the seam, which is kept at its nearest since). The sway and the
- * pelvis along (the root's rounding made up) are otherwise each frame's nearest.
+ * The pelvis's whole-% steps within a clip are bounded by measurement only, the most any class of gait reads on fresh
+ * grids (a run's knee popping within the clip has been climbed past it, to 91.1%: MIN_RUN_CYCLE): a whole % across and
+ * up at once (√2 %) beside still frames, over a 13 ms key at 75 frames a second, on test character 9's short spine read
+ * by parts is 1.414 × 76.92 / 378.95 / 0.3492 = 82.3% of the pop's fail level, and every grid since round 12 has met
+ * that and no more (round 14's fresh grids, 15,792 clips, and the presets, 3,935, as SEAM_TURN and MAX_GAIT_FPS give
+ * them: 82.3%, test character 9 at 70 to 75 frames a second; 81.5% on 19; round 14's second pass's 17,880 fresh and
+ * 10,515 tuned clips, round 14's review's 46,825, and its second pass's review's 18,815 fresh and 14,841 tuned, 82.3%
+ * too). Along, across and up at once (√3 %) it would read 1.007, and no clip steps so: none of round 14's, its second
+ * pass's or that pass's review's, nor any of 2,554 slow gaits swaying and bobbing on the 13 short-spined test
+ * characters at 66 to 75 frames a second searched for one (850 of them step on two axes at once) (round 12's review
+ * found none; on round 13's tree one of 350 walks and brisk walks on test characters at 66 to 75 did with the pelvis
+ * along taken either way about the seam, which is kept at its nearest since). The sway and the pelvis along (the root's
+ * rounding made up) are otherwise each frame's nearest.
  */
 function pelvisGrid(want: readonly V3[], pct: number, fits: (i: number, v: readonly number[]) => boolean, seam?: { times: readonly number[]; dur: number }): number[][] {
   const n = want.length, grid = want.map((w) => w.map((v) => Math.round(v / pct)));
@@ -783,14 +801,15 @@ function drawnAt(g: Gait, d: Drawn, piv: V3, dur: number, time: number) {
  * any time), and the pelvis on the format's grid (pelvisGrid, each frame's legs still fitting: none past 98.5% of its
  * length or folded under FOLD_MIN, no knee under the floor; and with `seam`, its places about the loop's seam taken again
  * to change its velocity across it as little as they can); `hip(i)` is frame i's pelvis moved from its standing place,
- * mm (frame nf: the seam's, after the last, at the first one's height).
+ * mm (frame nf: the seam's, after the last, at the first one's height), and `places` the pelvis's places, which given
+ * (`places`, as a grid of these frames found them) are taken as they are.
  */
-function gridOf(g: Gait, S: Float32Array, d: Drawn, nf: number, seam = false) {
+function gridOf(g: Gait, S: Float32Array, d: Drawn, nf: number, seam = false, places?: number[][]) {
   const pct = d.pct, dur = Math.round(g.cycle * 1000) / 1000, piv = pt(S, "pelvis");
   const times = Array.from({ length: nf }, (_, i) => Math.round((i * dur * 1000) / nf) / 1000);
   const at = (time: number) => drawnAt(g, d, piv, dur, time), drawn = times.map(at);
   const off = (v: readonly number[]): V3 => sub([v[0]! * pct, v[1]! * pct, v[2]! * pct], piv);
-  const grid = pelvisGrid(drawn.map((p) => p.want), pct, (i, v) => {
+  const grid = places ?? pelvisGrid(drawn.map((p) => p.want), pct, (i, v) => {
     const p = drawn[i]!, dHip = off(v);
     return (["R", "L"] as const).every((s) => {
       const hip = add(pt(S, `hip${s}`), dHip), a = pt(S, `ankle${s}`), [fwd, up] = p.aim[s], w = sub([a[0] + fwd + p.behind, a[1], a[2] + up], hip), l = len(w);
@@ -799,7 +818,7 @@ function gridOf(g: Gait, S: Float32Array, d: Drawn, nf: number, seam = false) {
   }, seam ? { times, dur } : undefined);
   const last = at(dur);
   const hip = (i: number): V3 => off(i < nf ? grid[i]! : [Math.round(last.want[0] / pct), Math.round(last.want[1] / pct), grid[0]![2]!]);
-  return { nf, dur, times, drawn, at, hip, piv };
+  return { nf, dur, times, drawn, at, hip, piv, places: grid };
 }
 type Grid = ReturnType<typeof gridOf>;
 /** The frames either side of a loop's seam that a gait's clip keeps as keys whatever the budget (gaitClip), and the seam's
@@ -869,10 +888,11 @@ function seamOf(g: Gait, rest: Rest, S: Float32Array, start: Pose | undefined, d
   const steps = Math.ceil(dur * SEAM_RATE), dts = dur / steps, tB = (steps - 1) * dts, tE = dur * (1 - 1e-12);
   const nfs: number[] = [];
   for (let nf = Math.max(2, 2 * Math.round((dur * MIN_GAIT_FPS) / 2)); nf <= Math.max(2, 2 * Math.round((dur * MAX_GAIT_FPS) / 2)); nf += 2) nfs.push(nf);
-  // each grid's frames about the seam with their torsos as their keys hold them (the arms hang from those shoulders)
+  // each grid's frames about the seam with their torsos as their keys hold them (the arms hang from those shoulders); the
+  // pelvis's places on it, where already found, as they are
   const T = new Float32Array(P * 3);
-  function torsoOf(nf: number, again: boolean) {
-    const grid = gridOf(g, S, d, nf, again), idx = [nf - 3, nf - 2, nf - 1, 0, 1, 2, 3];
+  function torsoOf(nf: number, again: boolean, places?: number[][]) {
+    const grid = gridOf(g, S, d, nf, again, places), idx = [nf - 3, nf - 2, nf - 1, 0, 1, 2, 3];
     const frames = idx.map((i) => {
       const p = grid.drawn[i]!, X = Float32Array.from(S), hint = i === 0 ? hint0 : null;
       placeTorso(g, S, piv, X, p.phase, grid.hip(i));
@@ -884,42 +904,47 @@ function seamOf(g: Gait, rest: Rest, S: Float32Array, start: Pose | undefined, d
   }
   // each grid's frames and how sharply the body turns there; where its torso turns past SEAM_TURN, the pelvis's places
   // about the seam taken again (pelvisGrid's `seam`), the grid kept that reads less (gaitClip makes its clip on the one
-  // kept)
-  const stages = new Map<number, { G: ReturnType<typeof torsoOf>; read: { share: number; where: string } }>();
+  // kept). Once read, a grid keeps only its reading, the pelvis's places (gridOf draws the rest of its frames again from
+  // them, as cheap as it is exact) and its hands' footing (handsBase): its frames and keys (31 grids of up to 226 frames
+  // at a cycle of 3 s) held 4.8 MB a gait (round 14's second pass's review)
+  const stages = new Map<number, { read: { share: number; where: string }; places: Float64Array; hands: ReturnType<typeof handsBase> }>();
   const stageAt = (nf: number) => {
     let st = stages.get(nf);
     if (!st) {
-      const G = torsoOf(nf, false);
-      st = { G, read: readBody(G) };
+      let G = torsoOf(nf, false), read = readBody(G);
       // (where the torso turns past it: a knee or a foot is the gait's, which slowing it answers)
-      if (st.read.share > SEAM_TURN && !/knee|foot/.test(st.read.where)) {
-        const H = torsoOf(nf, true), read = readBody(H);
-        if (read.share < st.read.share) st = { G: H, read };
+      if (read.share > SEAM_TURN && !/knee|foot/.test(read.where)) {
+        const H = torsoOf(nf, true), again = readBody(H);
+        if (again.share < read.share) [G, read] = [H, again];
       }
+      st = { read, places: Float64Array.from(G.grid.places.flat()), hands: handsBase(G) };
       stages.set(nf, st);
     }
     return st;
   };
-  const torsoAt = (nf: number) => stageAt(nf).G;
+  /** The pelvis's places on a grid of nf frames, as its stage kept them. */
+  const placesAt = (nf: number) => {
+    const p = stageAt(nf).places;
+    return Array.from({ length: nf }, (_, i) => [p[3 * i]!, p[3 * i + 1]!, p[3 * i + 2]!]);
+  };
   // each grid's hands' footing whatever the swing: each frame's shoulders as its points hold them (the arm reaches from
   // there), as its unrounded numbers place them (the encoder reads the arm from there) and as its key's do (the decoder
-  // hangs it there), the closing key's torso, and the torso at each sample, between which keys and how far
+  // hangs it there), with those torsos' turns, the closing key's torso, and the torso at each sample, between which keys
+  // and how far
   const lengths = Object.fromEntries((["L", "R"] as const).map((s) => [s, [len(sub(pt(S, `elbow${s}`), pt(S, `sh${s}`))), len(sub(pt(S, `fist${s}`), pt(S, `elbow${s}`)))]])) as Record<Side, [number, number]>;
-  const bases = new Map<number, ReturnType<typeof handsBase>>();
-  function handsBase(nf: number) {
-    const G = torsoAt(nf), { headT, tailT } = timesOf(G), both = (f: (s: Side) => V3) => ({ L: f("L"), R: f("R") });
-    const shX = new Map(G.frames.map((f) => [f.i, both((s) => pt(f.X, `sh${s}`))])), shRaw = new Map(G.frames.map((f) => [f.i, both((s) => f.tq.sh(s))])), shKey = new Map(G.frames.map((f) => [f.i, both((s) => f.tk.sh(s))]));
+  function handsBase(G: ReturnType<typeof torsoOf>) {
+    const nf = G.grid.nf, { headT, tailT } = timesOf(G), both = (f: (s: Side) => V3) => ({ L: f("L"), R: f("R") });
+    const frames = G.frames.map((f) => ({ i: f.i, phase: f.p.phase, RC: f.tq.RC, keyRC: f.tk.RC, shX: both((s) => pt(f.X, `sh${s}`)), shRaw: both((s) => f.tq.sh(s)), shKey: both((s) => f.tk.sh(s)) }));
     const key = (i: number) => G.frames.find((f) => f.i === i)!.key, closingKey = quantize(nearestTo(key(0), key(nf - 1))), cq = torso(rest, closingKey as KeyLike);
     const head = [0, 1, 2, 3].map(key), tail = [key(nf - 3), key(nf - 2), key(nf - 1), closingKey];
     const at = (K: readonly Pose[], KT: readonly number[], t: number) => {
       let i = 0;
       while (i < K.length - 2 && KT[i + 1]! <= t) i++;
       const u = KT[i + 1]! > KT[i]! ? Math.min(1, Math.max(0, (t - KT[i]!) / (KT[i + 1]! - KT[i]!))) : 0, tq = torso(rest, between(K[i]!, K[i + 1]!, u) as KeyLike);
-      return { i, u, tq, sh: both((s) => tq.sh(s)) };
+      return { i, u, RC: tq.RC, sh: both((s) => tq.sh(s)) };
     };
-    return { G, headT, tailT, lengths, shX, shRaw, shKey, closing: { tq: cq, sh: both((s) => cq.sh(s)) }, after: at(head, headT, dts), before: at(tail, tailT, tB), end: at(tail, tailT, tE) };
+    return { nf, headT, tailT, frames, closing: { RC: cq.RC, sh: both((s) => cq.sh(s)) }, after: at(head, headT, dts), before: at(tail, tailT, tB), end: at(tail, tailT, tE) };
   }
-  const handsAt = (nf: number) => bases.get(nf) ?? (bases.set(nf, handsBase(nf)), bases.get(nf)!);
   // the keys' times about the seam (the closing one at the cycle's end), and each sample's place among them
   const timesOf = (G: ReturnType<typeof torsoOf>) => ({ headT: [0, 1, 2, 3].map((i) => G.grid.times[i]!), tailT: [...[3, 2, 1].map((k) => G.grid.times[G.grid.nf - k]!), dur] });
   const sampleIn = (K: readonly Pose[], KT: readonly number[], t: number) => {
@@ -1036,65 +1061,76 @@ function seamOf(g: Gait, rest: Rest, S: Float32Array, start: Pose | undefined, d
       const out = { share: 0, where: "" }, h = { ...g, swing };
       if (only === undefined) handsRead.set(swing, out);
       for (const nf of only === undefined ? nfs : [only]) {
-        const B = handsAt(nf), { G, headT, tailT } = B;
+        const B = stageAt(nf).hands, { headT, tailT } = B;
         // each frame's arms at this swing as its key holds them: aimed from the shoulder the key decodes, the fist where
         // the arm reaches it (as reachTo does, to the float a clip's points hold), its direction and bend rounded twice
         // (snapLegs' rounding, then the key's), from the fist as the encoder reads it
         const arms = new Map<number, Record<Side, number[]>>(), pts = new Map<number, Record<string, V3>>();
-        for (const f of G.frames) {
+        for (const f of B.frames) {
           const a = {} as Record<Side, number[]>;
           for (const s of ["L", "R"] as const) {
-            const sh = B.shX.get(f.i)![s], [la, lb] = B.lengths[s], toT = sub(handAim(h, s, f.p.phase, sh, d.armLen), sh), dT = Math.max(1e-6, len(toT));
+            const sh = f.shX[s], [la, lb] = lengths[s], toT = sub(handAim(h, s, f.phase, sh, d.armLen), sh), dT = Math.max(1e-6, len(toT));
             const reach = add(sh, mul(mul(toT, 1 / dT), Math.min(Math.max(dT, Math.abs(la - lb) + 1e-3), (la + lb) * REACH))), fist = reach.map((x) => Math.fround(x));
-            const v = loc(f.tq.RC, sub(fist, B.shRaw.get(f.i)![s]));
+            const v = loc(f.RC, sub(fist, f.shRaw[s]));
             a[s] = roundLimb(roundLimb([...norm([v[0], v[1] * SG[s], v[2]]).map((x) => x * 100), bendOf(len(v), rest.up, lower), 0]));
           }
           arms.set(f.i, a);
         }
         // the hands' points as the decoder places them (a key without hand fields): each fist where its arm reaches, the
-        // index and pinky points 20 mm either side of it across the chest
-        const place = (tq: ReturnType<typeof torso>, sh: Record<Side, V3>, a: Record<Side, number[]>): Record<string, V3> => {
+        // index and pinky points 20 mm either side of it across the chest (RC: the chest's turn)
+        const place = (RC: Frame, sh: Record<Side, V3>, a: Record<Side, number[]>): Record<string, V3> => {
           const o: Record<string, V3> = {};
           for (const s of ["L", "R"] as const) {
-            const fist = limbEnd(sh[s], tq.RC, norm(a[s]), s, reachOf(a[s][3] || 0, rest.up, lower));
+            const fist = limbEnd(sh[s], RC, norm(a[s]), s, reachOf(a[s][3] || 0, rest.up, lower));
             o[`fist${s}`] = fist;
-            o[`index${s}`] = add(fist, mul(tq.RC[1], 20));
-            o[`pinky${s}`] = add(fist, mul(tq.RC[1], -20));
+            o[`index${s}`] = add(fist, mul(RC[1], 20));
+            o[`pinky${s}`] = add(fist, mul(RC[1], -20));
           }
           return o;
         };
-        const nfG = G.grid.nf, headI = [0, 1, 2, 3], tailI = [nfG - 3, nfG - 2, nfG - 1, 0];
-        for (const f of G.frames) pts.set(f.i, place(f.tk, B.shKey.get(f.i)!, arms.get(f.i)!));
-        const lerp = (K: number[], at: { i: number; u: number; tq: ReturnType<typeof torso>; sh: Record<Side, V3> }) => {
+        const nfG = B.nf, headI = [0, 1, 2, 3], tailI = [nfG - 3, nfG - 2, nfG - 1, 0];
+        for (const f of B.frames) pts.set(f.i, place(f.keyRC, f.shKey, arms.get(f.i)!));
+        const lerp = (K: number[], at: { i: number; u: number; RC: Frame; sh: Record<Side, V3> }) => {
           const a = arms.get(K[at.i]!)!, b = arms.get(K[at.i + 1]!)!;
-          return place(at.tq, at.sh, { L: a.L.map((x, j) => x + (b.L[j]! - x) * at.u), R: a.R.map((x, j) => x + (b.R[j]! - x) * at.u) });
+          return place(at.RC, at.sh, { L: a.L.map((x, j) => x + (b.L[j]! - x) * at.u), R: a.R.map((x, j) => x + (b.R[j]! - x) * at.u) });
         };
-        const H = headI.map((i) => pts.get(i)!), L = [...tailI.slice(0, 3).map((i) => pts.get(i)!), place(B.closing.tq, B.closing.sh, arms.get(0)!)];
+        const H = headI.map((i) => pts.get(i)!), L = [...tailI.slice(0, 3).map((i) => pts.get(i)!), place(B.closing.RC, B.closing.sh, arms.get(0)!)];
         const [A, Bf, E] = [lerp(headI, B.after), lerp(tailI, B.before), lerp(tailI, B.end)];
         worst(out, HANDS_AT, (n) => turnOf(H.map((x) => x[n]!), L.map((x) => x[n]!), A[n]!, Bf[n]!, E[n]!, headT, tailT, dts, scale(n)));
       }
       return out;
     },
     /** Gait g's frames on a grid of nf (gridOf), the one the clip is made on among them. */
-    grid: (nf: number): Grid => (nfs.includes(nf) ? torsoAt(nf).grid : gridOf(g, S, d, nf)),
+    grid: (nf: number): Grid => (nfs.includes(nf) ? gridOf(g, S, d, nf, false, placesAt(nf)) : gridOf(g, S, d, nf)),
     /** The keys about the seam on a grid of nf, as the clip holds them (its arms' twist aside, and its arms as the gait
      *  this was first made for swings them): the seam's and the three after it, the three before it and the closing one. */
-    keys: (nf: number): { head: Pose[]; tail: Pose[] } => keysAbout(torsoAt(nf)),
+    keys: (nf: number): { head: Pose[]; tail: Pose[] } => keysAbout(torsoOf(nf, false, placesAt(nf))),
   };
 }
-/** seamOf's readings kept for the gaits last read on each rest (fitGait reads a gait's seam and gaitClip reads it again,
- *  and fitting tries a speed and its swings more than once): by the gait's numbers but its swing (which only the hands'
- *  reading takes, as asked), and the start pose's. */
-const SEAMS = new WeakMap<Rest, Map<string, ReturnType<typeof seamOf>>>();
+/**
+ * seamOf's readings kept for the SEAMS_KEPT gaits last read, on any rest (fitGait reads a gait's seam and gaitClip reads
+ * it again, at each rate it is made at, and fitting tries a speed and its swings more than once), the one read longest
+ * ago dropped first: by the rest (each rest object its own number), the gait's numbers but its swing (which only the
+ * hands' reading takes, as asked), and the start pose's. A reading is the same however often it is made, so what is kept
+ * changes only the time. Round 12 kept 32 a rest for as long as the rest lived, with each grid's frames and keys: 40
+ * gaits of 3 s on one rest held 154 MB, the presets fitted and made on the 64 library rests 288 MB, and a process
+ * making them on about 100 rests ran out of a 3 GB heap (round 14's second pass's review). Kept so, each grid keeping
+ * only what is read again (seamOf), they hold 14 MB (0.4 MB a 3 s gait, 32 at most), 7 MB, and 5 MB on all 104 bodies
+ * in one process (the presets fitted, asked at their speed and at 1,000, and made at 55, 65 and 75, and four 3 s gaits
+ * each, 2,904 clips: 2.85 GB before), every clip and refusal the same to the hash (the presets' 5,824 makes on the 104
+ * bodies, 7,072 grid gaits), and fitGait and gaitClip 8% and 6% quicker (less to collect).
+ */
+const SEAMS = new Map<string, ReturnType<typeof seamOf>>(), SEAMS_KEPT = 32, REST_IDS = new WeakMap<Rest, number>();
+let restIds = 0;
 function seamAt(g: Gait, rest: Rest, S: Float32Array, start: Pose | undefined, d: Drawn): ReturnType<typeof seamOf> {
-  const key = JSON.stringify([g.speed, g.cycle, g.stance, g.lift, g.bounce, g.dip, g.sway, g.lean, g.limp, start ?? null]), seen = SEAMS.get(rest) ?? new Map<string, ReturnType<typeof seamOf>>();
-  SEAMS.set(rest, seen);
-  let m = seen.get(key);
-  if (!m) {
-    m = seamOf(g, rest, S, start, d);
-    seen.set(key, m);
-    if (seen.size > 32) seen.delete(seen.keys().next().value!);
-  }
+  let id = REST_IDS.get(rest);
+  if (id === undefined) REST_IDS.set(rest, (id = restIds++));
+  const key = JSON.stringify([id, g.speed, g.cycle, g.stance, g.lift, g.bounce, g.dip, g.sway, g.lean, g.limp, start ?? null]);
+  let m = SEAMS.get(key);
+  if (m) SEAMS.delete(key);
+  else m = seamOf(g, rest, S, start, d);
+  SEAMS.set(key, m);
+  if (SEAMS.size > SEAMS_KEPT) SEAMS.delete(SEAMS.keys().next().value!);
   return m;
 }
 /**
