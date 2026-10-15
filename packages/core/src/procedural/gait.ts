@@ -340,9 +340,10 @@ const SWING_SPEED = 400;
  * of 0.415, lifting 10.246, bouncing 1.12, dipping 6.819, swaying 2.833, leaning 3.407, swinging 62.979}, which fitGait
  * gives back at 377 asked any speed over it, at 73.333 frames a second (44 frames; the right knee at 0.545 s), plainly
  * and by parts alike; 88.1% on CMU_140's {0.6 s, 0.41, lifting 9, bouncing 1.723} at 375.5, at 70.000 (42 frames), and
- * 87.2% on M2M_QUATERNIUS's {0.62 s, 0.406, a limp of 0.245, lifting 10.992} fitted to 359, at 70.968. None fails; the
- * case is older than round 14, and recorded rather than bounded (another round to win the last point isn't worth its
- * cost; the sensors' test holds the first under the fail level). On that review's grids its 3,026 fresh runs under
+ * 87.2% on M2M_QUATERNIUS's {0.62 s, 0.406, a limp of 0.245, lifting 10.992, bouncing 1.881, dipping 11.07, swaying
+ * 2.51, leaning 20.767, swinging 2.276} fitted to 359, at 70.968 (84.5% by parts). None fails; the case is older
+ * than round 14, and recorded rather than bounded (another round to win the last point isn't worth its cost; the
+ * sensors' test holds the first at what is recorded, 90 to 92%). On that review's grids its 3,026 fresh runs under
  * 0.65 s read a knee's pop of 71.6% at most (CMU_140's at 70), the 3,309 tuned to the bounds 68.2%, and 27,487 fitted runs
  * remade on every grid from 60 to 75 frames a second (12,133 under 0.65 s) 77.4% (CMU_141's at 73.333). Round 14's
  * second pass's own fresh grids (3,721 runs under 0.65 s, 0.7 lifting over 25) read 73.0% (test character 8 by parts at
@@ -669,11 +670,11 @@ const Z_SLACK = 0.75;
  * The pelvis's whole-% steps within a clip are bounded by measurement only, the most any class of gait reads on fresh
  * grids (a run's knee popping within the clip has been climbed past it, to 91.1%: MIN_RUN_CYCLE): a whole % across and
  * up at once (√2 %) beside still frames, over a 13 ms key at 75 frames a second, on test character 9's short spine read
- * by parts is 1.414 × 76.92 / 378.95 / 0.3492 = 82.3% of the pop's fail level, and every grid since round 12 has met
+ * by parts is 1.414 × 76.92 / 378.95 / 0.3488 = 82.3% of the pop's fail level, and every grid since round 12 has met
  * that and no more (round 14's fresh grids, 15,792 clips, and the presets, 3,935, as SEAM_TURN and MAX_GAIT_FPS give
  * them: 82.3%, test character 9 at 70 to 75 frames a second; 81.5% on 19; round 14's second pass's 17,880 fresh and
  * 10,515 tuned clips, round 14's review's 46,825, and its second pass's review's 18,815 fresh and 14,841 tuned, 82.3%
- * too). Along, across and up at once (√3 %) it would read 1.007, and no clip steps so: none of round 14's, its second
+ * too). Along, across and up at once (√3 %) it would read 1.008, and no clip steps so: none of round 14's, its second
  * pass's or that pass's review's, nor any of 2,554 slow gaits swaying and bobbing on the 13 short-spined test
  * characters at 66 to 75 frames a second searched for one (850 of them step on two axes at once) (round 12's review
  * found none; on round 13's tree one of 350 walks and brisk walks on test characters at 66 to 75 did with the pelvis
@@ -864,6 +865,43 @@ function turnOf(head: readonly V3[], tail: readonly V3[], after: V3, before: V3,
   };
   return Math.max(sv, Math.max(0, pops(head, headT), pops([...tail].reverse(), [...tailT].reverse())) / (POP_FAIL * scale));
 }
+/** A grid's hands' footing about the seam (seamOf's handsBase): each of the seven frames' turns and shoulders, the
+ *  closing key's, and the torso at each sample about the seam, between which keys and how far. */
+type Footing = { nf: number; headT: number[]; tailT: number[]; frames: { i: number; phase: number; RC: Frame; keyRC: Frame; shX: Record<Side, V3>; shRaw: Record<Side, V3>; shKey: Record<Side, V3> }[]; closing: { RC: Frame; sh: Record<Side, V3> }; after: FootingAt; before: FootingAt; end: FootingAt };
+type FootingAt = { i: number; u: number; RC: Frame; sh: Record<Side, V3> };
+/** A grid's hands' footing as one run of 341 numbers, as seamOf keeps it (its 104 points and turns each an array of
+ *  their own, with their records, held about four times the bytes: some 11 KB a grid against 2.7). */
+function packed(B: Footing): Float64Array {
+  const out: number[] = [B.nf, ...B.headT, ...B.tailT], side = (o: Record<Side, V3>) => out.push(...o.L, ...o.R), turn = (RC: Frame) => out.push(...RC[0], ...RC[1], ...RC[2]);
+  for (const f of B.frames) {
+    out.push(f.i, f.phase);
+    turn(f.RC);
+    turn(f.keyRC);
+    side(f.shX);
+    side(f.shRaw);
+    side(f.shKey);
+  }
+  turn(B.closing.RC);
+  side(B.closing.sh);
+  for (const a of [B.after, B.before, B.end]) {
+    out.push(a.i, a.u);
+    turn(a.RC);
+    side(a.sh);
+  }
+  return Float64Array.from(out);
+}
+/** A grid's hands' footing from its packed numbers, every number as it was. */
+function unpacked(F: Float64Array): Footing {
+  let k = 0;
+  const n = () => F[k++]!, v3 = (): V3 => [n(), n(), n()], turn = (): Frame => [v3(), v3(), v3()], side = () => ({ L: v3(), R: v3() }), at = (): FootingAt => ({ i: n(), u: n(), RC: turn(), sh: side() });
+  const nf = n(), headT = [n(), n(), n(), n()], tailT = [n(), n(), n(), n()];
+  const frames = Array.from({ length: 7 }, () => ({ i: n(), phase: n(), RC: turn(), keyRC: turn(), shX: side(), shRaw: side(), shKey: side() }));
+  return { nf, headT, tailT, frames, closing: { RC: turn(), sh: side() }, after: at(), before: at(), end: at() };
+}
+/** The footing unpacked of the gait whose hands were read last, by grid: handsOf reads every whole swing in turn, each
+ *  over every grid, and unpacking each grid's footing again at each swing made fitGait about 4% slower. One gait's at
+ *  most (some 0.34 MB at a 3 s cycle's 31 grids, and that gait's readings while this holds it). */
+let unpackedFeet: { of: object; feet: Map<number, Footing> } = { of: {}, feet: new Map() };
 /**
  * Gait g about its loop's seam, as gaitClip makes it on the body S from the standing pose `start` (D71, round 12): on each
  * grid of frames a rate from MIN_GAIT_FPS to MAX_GAIT_FPS gives, the keys the clip holds there (the SEAM_KEYS either side
@@ -904,10 +942,11 @@ function seamOf(g: Gait, rest: Rest, S: Float32Array, start: Pose | undefined, d
   }
   // each grid's frames and how sharply the body turns there; where its torso turns past SEAM_TURN, the pelvis's places
   // about the seam taken again (pelvisGrid's `seam`), the grid kept that reads less (gaitClip makes its clip on the one
-  // kept). Once read, a grid keeps only its reading, the pelvis's places (gridOf draws the rest of its frames again from
-  // them, as cheap as it is exact) and its hands' footing (handsBase): its frames and keys (31 grids of up to 226 frames
-  // at a cycle of 3 s) held 4.8 MB a gait (round 14's second pass's review)
-  const stages = new Map<number, { read: { share: number; where: string }; places: Float64Array; hands: ReturnType<typeof handsBase> }>();
+  // kept). Once read, a grid keeps only its reading, the pelvis's places (gridOf draws the rest of its frames again
+  // from them, as cheap as it is exact) and its hands' footing (handsBase, packed): its frames and keys (31 grids of up
+  // to 226 frames at a cycle of 3 s) held 4.8 MB a gait (round 14's second pass's review)
+  const stages = new Map<number, { read: { share: number; where: string }; places: Float64Array; hands: Float64Array }>();
+  let bytes = 0;
   const stageAt = (nf: number) => {
     let st = stages.get(nf);
     if (!st) {
@@ -919,6 +958,7 @@ function seamOf(g: Gait, rest: Rest, S: Float32Array, start: Pose | undefined, d
       }
       st = { read, places: Float64Array.from(G.grid.places.flat()), hands: handsBase(G) };
       stages.set(nf, st);
+      bytes += st.places.byteLength + st.hands.byteLength + STAGE_BYTES;
     }
     return st;
   };
@@ -943,7 +983,7 @@ function seamOf(g: Gait, rest: Rest, S: Float32Array, start: Pose | undefined, d
       const u = KT[i + 1]! > KT[i]! ? Math.min(1, Math.max(0, (t - KT[i]!) / (KT[i + 1]! - KT[i]!))) : 0, tq = torso(rest, between(K[i]!, K[i + 1]!, u) as KeyLike);
       return { i, u, RC: tq.RC, sh: both((s) => tq.sh(s)) };
     };
-    return { nf, headT, tailT, frames, closing: { RC: cq.RC, sh: both((s) => cq.sh(s)) }, after: at(head, headT, dts), before: at(tail, tailT, tB), end: at(tail, tailT, tE) };
+    return packed({ nf, headT, tailT, frames, closing: { RC: cq.RC, sh: both((s) => cq.sh(s)) }, after: at(head, headT, dts), before: at(tail, tailT, tB), end: at(tail, tailT, tE) });
   }
   // the keys' times about the seam (the closing one at the cycle's end), and each sample's place among them
   const timesOf = (G: ReturnType<typeof torsoOf>) => ({ headT: [0, 1, 2, 3].map((i) => G.grid.times[i]!), tailT: [...[3, 2, 1].map((k) => G.grid.times[G.grid.nf - k]!), dur] });
@@ -1059,9 +1099,15 @@ function seamOf(g: Gait, rest: Rest, S: Float32Array, start: Pose | undefined, d
       const known = only === undefined ? handsRead.get(swing) : undefined;
       if (known) return known;
       const out = { share: 0, where: "" }, h = { ...g, swing };
-      if (only === undefined) handsRead.set(swing, out);
+      if (unpackedFeet.of !== stages) unpackedFeet = { of: stages, feet: new Map() };
+      if (only === undefined) {
+        handsRead.set(swing, out);
+        bytes += READ_BYTES;
+      }
       for (const nf of only === undefined ? nfs : [only]) {
-        const B = stageAt(nf).hands, { headT, tailT } = B;
+        let B = unpackedFeet.feet.get(nf);
+        if (!B) unpackedFeet.feet.set(nf, (B = unpacked(stageAt(nf).hands)));
+        const { headT, tailT } = B;
         // each frame's arms at this swing as its key holds them: aimed from the shoulder the key decodes, the fist where
         // the arm reaches it (as reachTo does, to the float a clip's points hold), its direction and bend rounded twice
         // (snapLegs' rounding, then the key's), from the fist as the encoder reads it
@@ -1105,22 +1151,35 @@ function seamOf(g: Gait, rest: Rest, S: Float32Array, start: Pose | undefined, d
     /** The keys about the seam on a grid of nf, as the clip holds them (its arms' twist aside, and its arms as the gait
      *  this was first made for swings them): the seam's and the three after it, the three before it and the closing one. */
     keys: (nf: number): { head: Pose[]; tail: Pose[] } => keysAbout(torsoOf(nf, false, placesAt(nf))),
+    /** About how many bytes what has been read so far holds, on the heap and in array buffers: each grid's places and
+     *  hands' footing as kept, STAGE_BYTES more for each grid read, and READ_BYTES for each swing's hands read. */
+    bytes: (): number => bytes,
   };
 }
 /**
- * seamOf's readings kept for the SEAMS_KEPT gaits last read, on any rest (fitGait reads a gait's seam and gaitClip reads
- * it again, at each rate it is made at, and fitting tries a speed and its swings more than once), the one read longest
- * ago dropped first: by the rest (each rest object its own number), the gait's numbers but its swing (which only the
- * hands' reading takes, as asked), and the start pose's. A reading is the same however often it is made, so what is kept
- * changes only the time. Round 12 kept 32 a rest for as long as the rest lived, with each grid's frames and keys: 40
- * gaits of 3 s on one rest held 154 MB, the presets fitted and made on the 64 library rests 288 MB, and a process
- * making them on about 100 rests ran out of a 3 GB heap (round 14's second pass's review). Kept so, each grid keeping
- * only what is read again (seamOf), they hold 14 MB (0.4 MB a 3 s gait, 32 at most), 7 MB, and 5 MB on all 104 bodies
- * in one process (the presets fitted, asked at their speed and at 1,000, and made at 55, 65 and 75, and four 3 s gaits
- * each, 2,904 clips: 2.85 GB before), every clip and refusal the same to the hash (the presets' 5,824 makes on the 104
- * bodies, 7,072 grid gaits), and fitGait and gaitClip 8% and 6% quicker (less to collect).
+ * seamOf's readings kept, on any rest, while what they hold comes to SEAM_BYTES or less (each its bytes(), within 10%
+ * over what it holds on the heap and in array buffers after a forced gc: a 3 s gait's 0.26 MB, a preset's about 0.07),
+ * the one read longest ago dropped first: fitGait reads a gait's seam and gaitClip reads it again, at each rate it is
+ * made at, and fitting tries a speed and its swings more than once. Each is found by the rest (each rest object its own
+ * number), the gait's numbers but its swing (which only the hands' reading takes, as asked), and the start pose's. A
+ * reading is the same however often it is made, so what is kept changes only the time. Round 12 kept 32 a rest for as
+ * long as the rest lived, with each grid's frames and keys: 40 gaits of 3 s on one rest held 157 MB (heap and array
+ * buffers), the presets fitted and made on the 64 library rests 298 MB, and a process making them on about 100 rests
+ * ran out of a 3 GB heap (round 14's second pass's review). The close-out kept the 32 read last on any rest, each grid
+ * only what is read again (19, 12, and 15 MB on all 104 bodies in one process: the presets fitted, asked at their speed
+ * and at 1,000, and made at 55, 65 and 75, and four 3 s gaits each, 2,904 clips), but a gait made after more than 32
+ * other readings since its fit was read again: the four presets asked 1,000 fitted on 31 library rests, then the 124
+ * made at 60, 74 ms a make against 23 before the close-out (its review). Kept by what they hold (16 MB: some 225
+ * presets' readings, or 57 of 3 s gaits), each grid's hands' footing packed (handsBase), they hold 13, 23 and 19 MB;
+ * that order makes at 23 ms (23 before the close-out; rest by rest 25 against 24); every clip and refusal is the same
+ * to the hash (the presets' 5,824 makes on the 104 bodies, 7,072 grid gaits); and fitGait and gaitClip are 8% quicker
+ * than before the close-out (75.1 against 81.6 ms a fit and 49.6 against 54.0 a make over those grid gaits, four
+ * processes at once, run base, new, new, base) and as quick as its first bound. A gait made after more than 16 MB of
+ * other readings since its fit (more than about 225 presets fitted, or 57 gaits of 3 s, before any is made) is still
+ * read again, and in that order each reading read again drops the next one wanted: the 64 library rests' 256 presets so
+ * made at 76 ms a make against 25 before the close-out.
  */
-const SEAMS = new Map<string, ReturnType<typeof seamOf>>(), SEAMS_KEPT = 32, REST_IDS = new WeakMap<Rest, number>();
+const SEAMS = new Map<string, ReturnType<typeof seamOf>>(), SEAM_BYTES = 16e6, STAGE_BYTES = 1500, READ_BYTES = 150, REST_IDS = new WeakMap<Rest, number>();
 let restIds = 0;
 function seamAt(g: Gait, rest: Rest, S: Float32Array, start: Pose | undefined, d: Drawn): ReturnType<typeof seamOf> {
   let id = REST_IDS.get(rest);
@@ -1130,7 +1189,13 @@ function seamAt(g: Gait, rest: Rest, S: Float32Array, start: Pose | undefined, d
   if (m) SEAMS.delete(key);
   else m = seamOf(g, rest, S, start, d);
   SEAMS.set(key, m);
-  if (SEAMS.size > SEAMS_KEPT) SEAMS.delete(SEAMS.keys().next().value!);
+  let kept = 0;
+  for (const x of SEAMS.values()) kept += x.bytes();
+  for (const [k, x] of SEAMS) {
+    if (kept <= SEAM_BYTES || x === m) break;
+    kept -= x.bytes();
+    SEAMS.delete(k);
+  }
   return m;
 }
 /**

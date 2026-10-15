@@ -196,12 +196,12 @@ describe("procedural clips under the sensors", () => {
     }
     expect([g4.speed, g80.speed]).toEqual([338, 331]);
   }, 30_000);
-  it("gaits at a run's shortest cycle keep a knee's pop within the clip under the fail level, where it reads the most (recorded)", () => {
+  it("gaits at a run's shortest cycle keep a knee's pop within the clip at the 91.1% recorded, where it reads the most", () => {
     // climbing on fitted runs at 0.6 s near the reach bound, round 14's second pass's review read a knee popping within
     // the clip at 91.1% of the fail level, plainly and by parts alike: M2M_ANIMATED's rest, fitted to 377 asked any speed
     // over it, at 73.333 frames a second (44 frames; the right knee at 0.545 s). It is past the 90% every bound keeps and
-    // under the fail level, recorded rather than bounded (D71; gait.ts's MIN_RUN_CYCLE): this holds it under the fail
-    // level, so a change that pushes it over shows
+    // under the fail level, recorded rather than bounded (D71, D90; gait.ts's MIN_RUN_CYCLE): this holds it at what is
+    // recorded, so a change that moves it shows, and with it the comments that cite it
     const rest = sourceRest("MESH2MOTION", "M2M_ANIMATED");
     const g = PR.fitGait({ name: "g", about: "a run", cycle: 0.6, stance: 0.415, limp: 0, lift: 10.246, bounce: 1.12, dip: 6.819, sway: 2.833, lean: 3.407, swing: 62.979, speed: 1000 }, rest);
     expect(g.speed).toBe(377);
@@ -209,7 +209,9 @@ describe("procedural clips under the sensors", () => {
       const m = checks.motionOf(PR.gaitClip(g, rest, { restSrc: "M2M_ANIMATED", fps: 73.333 }), rest);
       m.parts = parts;
       const r = checks.measure(m), knees = r.findings.filter((f) => f.metric === "pop" && /^knee[LR]$/.test(f.where ?? "")).map((f) => f.value / checks.levels(m, "pop").fail);
-      expect([parts, Math.max(0, ...knees) < 1, r.verdict === "fail"]).toEqual([parts, true, false]);
+      const knee = Math.max(0, ...knees);
+      expect(r.verdict, `read ${parts ? "by parts" : "plainly"}`).not.toBe("fail");
+      expect(knee >= 0.9 && knee <= 0.92, `M2M_ANIMATED's run's knee read ${parts ? "by parts" : "plainly"} at ${(100 * knee).toFixed(2)}% of the pop's fail level, not the 91.1% recorded: restate what cites 91.1% (gait.ts's header, STRIDE_MAX, MIN_RUN_CYCLE, MIN_GAIT_FPS's rate bands, pelvisGrid, this test's comment) and D71 and D90`).toBe(true);
     }
   }, 30_000);
   it("gaits keep their hands from turning round on the loop's seam past the bound: fitted, read by parts", async () => {
