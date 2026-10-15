@@ -64,29 +64,64 @@ describe("procedural clips under the sensors", () => {
       expect([id, g, r.values.slide <= bar, r.verdict === "fail"]).toEqual([id, g, true, false]);
     }
   }, 60_000);
+  /** The longest and shortest any leg is drawn in clip c on rest, hip to ankle, of its length, at 240 times a cycle. */
+  const longest = (rest: Rest, c: ReturnType<typeof PR.gaitClip>) => {
+    const S = new Float32Array(format.P * 3);
+    format.decodePose(rest, PR.standingOn(rest) as never, S);
+    const b = PR.bodyOf(rest, S), leg = b.legUpper + b.legLower, X = new Float32Array(format.P * 3), at = (n: string) => [0, 1, 2].map((i) => X[format.IDX[n]! * 3 + i]!);
+    let most = 0, least = Infinity;
+    for (let i = 0; i <= 240; i++) {
+      format.decodePose(rest, format.keyAt(c, (i / 240) * c.dur) as never, X);
+      for (const s of ["L", "R"]) {
+        const d = Math.hypot(...at(`hip${s}`).map((v, k) => v - at(`ankle${s}`)[k]!)) / leg;
+        [most, least] = [Math.max(most, d), Math.min(least, d)];
+      }
+    }
+    return { most, least };
+  };
   it("gaits at the reach bound with a bounce keep every leg bent: at most 98.5% of its length as the clip holds it, and none fails", () => {
     // a stance of a half at its fastest (fitGait: the reach bound), bouncing 6% twice a cycle while a foot reaches far
     // ahead: the pelvis lowered for the stance's ends alone drove a leg to 99.7% and its knee popped (D71, round 6); the
     // pelvis is lowered until none passes 98.5% at any phase, its bounce, sway and rounding to the format's grid counted
     // (with the rounding uncounted, the clip held legs at up to 98.9% here, 99.3% on the verifier's grid: round 7)
     for (const [id, { rest, restSrc }] of RESTS) {
-      const S = new Float32Array(format.P * 3);
-      format.decodePose(rest, PR.standingOn(rest) as never, S);
-      const b = PR.bodyOf(rest, S), leg = b.legUpper + b.legLower, X = new Float32Array(format.P * 3), at = (n: string) => [0, 1, 2].map((i) => X[format.IDX[n]! * 3 + i]!);
       for (const [cycle, stance, lift] of [[0.52, 0.5, 12], [0.6, 0.5, 25], [0.75, 0.5, 12], [0.7, 0.35, 25]] as const) {
         const g = PR.fitGait({ name: "g", about: "a gait", cycle, stance, lift, bounce: 6, speed: 1000 }, rest), c = PR.gaitClip(g, rest, { restSrc });
-        let most = 0;
-        for (let i = 0; i <= 240; i++) {
-          format.decodePose(rest, format.keyAt(c, (i / 240) * c.dur) as never, X);
-          for (const s of ["L", "R"]) most = Math.max(most, Math.hypot(...at(`hip${s}`).map((v, k) => v - at(`ankle${s}`)[k]!)) / leg);
-        }
-        expect([id, g, most <= 0.985, metrics(c, rest).verdict === "fail"]).toEqual([id, g, true, false]);
+        expect([id, g, longest(rest, c).most <= 0.985, metrics(c, rest).verdict === "fail"]).toEqual([id, g, true, false]);
       }
     }
     // the verifier's case: lowered for the stance's ends alone it popped a knee (3.6 m/s, a leg at 99.7%)
     const { rest, restSrc } = RESTS[0]![1];
     expect(metrics(PR.gaitClip({ name: "g", about: "a gait", speed: 375, cycle: 0.52, stance: 0.5, bounce: 6 }, rest, { restSrc }), rest).verdict).not.toBe("fail");
+    // and on Mocopi's rest swaying 2 and 4: with the pelvis's vertical rounding left out of the loop, a leg read 98.63%
+    // here (the verifier's round 8; the core's test holds the sway's and the across rounding's share directly)
+    const mocopi = restOf("MESH2MOTION/Cheer_One_arm");
+    for (const sway of [2, 4]) {
+      const g = PR.fitGait({ name: "g", about: "a gait", cycle: 1.2, stance: 0.6, lift: 12, bounce: 6, sway, speed: 1000 }, mocopi.rest), c = PR.gaitClip(g, mocopi.rest, { restSrc: mocopi.restSrc });
+      expect([g, longest(mocopi.rest, c).most <= 0.985, metrics(c, mocopi.rest).verdict === "fail"]).toEqual([g, true, false]);
+    }
   }, 60_000);
+  it("gaits at a short stance lifting high and bouncing keep their knees from folding shut once fitted: none fails at 55, 60 or 90 frames a second", () => {
+    // a stance of 0.2 lifting 35 and bouncing 6 at the reach bound swung its foot back and forward far past the stride's
+    // ends, the pelvis lowered for a leg to reach them (to 46 to 50% of the hip height), and the lifted foot passed under
+    // the hips within 5 to 9% of a leg: the knee flipped round, popping at 22 to 30 m/s (the verifier's round 8, at 582,
+    // 474 and 485); fitGait now slows it until no leg folds under 25% of its length
+    for (const [[id, { rest, restSrc }], cycle] of RESTS.map((r, i) => [r, i ? 0.75 : 0.65] as const)) {
+      const g = PR.fitGait({ name: "g", about: "a run", cycle, stance: 0.2, lift: 35, bounce: 6, speed: 1000 }, rest);
+      for (const fps of [55, 60, 90]) {
+        const c = PR.gaitClip(g, rest, { restSrc, fps });
+        expect([id, g.speed, fps, longest(rest, c).least >= 0.245, metrics(c, rest).verdict === "fail"]).toEqual([id, g.speed, fps, true, false]);
+      }
+    }
+  }, 60_000);
+  it("fits a slow gait on short legs by its lift where no slower speed keeps a leg from folding", async () => {
+    // test character 10's legs, lifting 35 under a pelvis dipped 12 and bouncing 6, fold to 24.6% of their length at 63%
+    // of the hip height a second and at every speed under it (the verifier's corner grid, a pass then): fitGait lowers
+    // the lift a whole % instead, and it plays
+    const { glb } = character(variant(10)), rest = bind((await loadGlb(glb, { textures: false })).scene).core.rest;
+    const g = PR.fitGait({ name: "g", about: "a gait", cycle: 0.65, stance: 0.2, limp: 0.5, lift: 35, bounce: 6, dip: 12, sway: 0, lean: -10, swing: 80, speed: 63 }, rest);
+    expect([g.speed, g.lift, metrics(PR.gaitClip(g, rest, { restSrc: "GEN10", fps: 55 }), rest).verdict === "fail"]).toEqual([63, 34, false]);
+  }, 30_000);
   it("gaits lift and set their feet down without a hitch: the verifier's round-7 cases pass on the three rests", () => {
     // a run lifting 35 whose left foot starts its arc on the seam (at 60 frames a second the foot's height turned from
     // still to 9.6 m/s there: seam velocity 4.1 to 4.8 m/s); short swings just over a stance of a half lifting 30 and 35,
