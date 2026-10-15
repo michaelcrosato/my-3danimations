@@ -1,7 +1,8 @@
 // e2e `mcp-smoke` (WP-7.1): the official MCP Inspector (@modelcontextprotocol/inspector, pinned; its CLI mode) drives
 // `m3a mcp` over stdio as a client does: tools/list with --strict (no schema portability problem), tools/call on every
-// example of every tool (structuredContent equal to the API's reply), an unknown tool and a wrong argument refused. The
-// inspector opens with the legacy initialize (2025-11-25); the stateless era is unit-tested in packages/tools/test/.
+// example of every tool (structuredContent equal to the API's reply; exit 5, isError, for one that expects an error),
+// an unknown tool and a wrong argument refused. The inspector opens with the legacy initialize (2025-11-25); the
+// stateless era is unit-tested in packages/tools/test/.
 // Then the console handle in Chromium: the main entry, bundled by Vite, puts __M3A_TOOLS__ on a page and replies as Node.
 import { spawnSync } from "node:child_process";
 import { join } from "node:path";
@@ -29,7 +30,7 @@ test("the MCP Inspector calls every example and gets the API's reply", async () 
   for (const t of tools.list()) {
     for (const ex of t.examples) {
       const r = inspector("--method", "tools/call", "--tool-name", t.name.replace(/\./g, "_"), "--tool-args-json", JSON.stringify(ex.args));
-      expect(r.code, r.out + r.err).toBe(0);
+      expect(r.code, r.out + r.err).toBe(ex.expect === "error" ? 5 : 0); // the inspector exits 5 on isError
       expect((JSON.parse(r.out) as { structuredContent: unknown }).structuredContent).toEqual(await tools.call(t.name, ex.args, { host }));
     }
   }

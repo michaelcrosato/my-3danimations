@@ -2,9 +2,10 @@
 // (or -h), parsed against the tool's schema. Flags are its parameter names (`--if-revision` or `--if_revision`,
 // `--flag=value` or `--flag value`; a value starting with "--" takes the `=` form), given once unless an array; its
 // positionals fill the parameters it names in order. An unknown flag, tool or help argument is a usage error naming the
-// closest one; so is --request-id until the registry's store outlives a command (WP-7.2). The text is the reply, verdict
-// first; --json also writes check-output/<tool>/report.json (the Reply, schema m3a.reply/1). Exit 0 ok, 1 findings or a
-// failed tool, 2 usage error. The Node entry (./node.ts) supplies the IO.
+// closest one; so is --request-id until the registry's store outlives a command (WP-7.2), and help says so. The text is
+// the reply, verdict first; `m3a help`, the index, lists every tool uncut. --json also writes
+// check-output/<tool>/report.json (the Reply, schema m3a.reply/1). Exit 0 ok, 1 findings or a failed tool, 2 usage
+// error. The Node entry (./node.ts) supplies the IO.
 import { VERSION } from "@m3a/core";
 import { describeTool, reply, usage, type Host, type Registry, type Tool } from "./registry/registry.ts";
 import { EXIT, render, type Reply } from "./registry/reply.ts";
@@ -79,8 +80,9 @@ export function parseCall(tool: Tool, argv: readonly string[]): Record<string, u
   return args;
 }
 
-/** `m3a help` (every tool) or `m3a help <tool>` (its usage, parameters and examples) as a reply; `data` is
- *  `{ tools: Description[] }` or the tool's Description. */
+/** `m3a help` (every tool, one line each) or `m3a help <tool>` (its usage, parameters and examples) as a reply; `data`
+ *  is `{ tools: Description[] }` or the tool's Description. --request-id is marked MCP and API only while the
+ *  registry's store does not outlive a command. */
 export function help(registry: Registry, name?: string): Reply {
   if (name === undefined) {
     const list = registry.list(), w = Math.max(...list.map((t) => t.name.length));
@@ -91,7 +93,11 @@ export function help(registry: Registry, name?: string): Reply {
   if (!t) return registry.unknown(name);
   const req = new Set(t.schema.required ?? []), props = Object.entries(t.schema.properties ?? {});
   const lines = [`usage: m3a ${t.name}${(t.positionals ?? []).map((p) => ` [${p}]`).join("")} [flags]`];
-  for (const [k, s] of props) lines.push(`  ${flag(k)}${s.type === "boolean" ? "" : ` <${s.type ?? "json"}>`}  ${s.description ?? ""}${s.enum ? ` (${s.enum.join(" | ")})` : ""}${s.default !== undefined ? ` (default ${JSON.stringify(s.default)})` : ""}${req.has(k) ? " (required)" : ""}`.trimEnd());
+  for (const [k, s] of props) {
+    const notes = [s.enum && s.enum.join(" | "), s.default !== undefined && `default ${JSON.stringify(s.default)}`, req.has(k) && "required"];
+    if (k === "request_id" && !registry.requests.durable) notes.push("MCP and the API only: m3a keeps no retries between commands yet");
+    lines.push(`  ${flag(k)}${s.type === "boolean" ? "" : ` <${s.type ?? "json"}>`}  ${s.description ?? ""}${notes.map((n) => (n ? ` (${n})` : "")).join("")}`.trimEnd());
+  }
   lines.push("examples:", ...t.examples.map((e) => `  m3a ${shell(commandLine(t, e.args))}`));
   return reply("help", "ok", { verdict: `m3a ${t.name}: ${t.description}`, data: describeTool(t), lines, next: `run an example: m3a ${shell(commandLine(t, t.examples[0]!.args))}` });
 }
@@ -100,7 +106,13 @@ export function help(registry: Registry, name?: string): Reply {
 function helpCall(registry: Registry, argv: readonly string[]): Reply {
   const names = argv.filter((a) => !a.startsWith("-")), odd = argv.find((a) => a.startsWith("-") && a !== "--help" && a !== "--verbose");
   const next = "m3a help [tool] [--verbose] [--json]; a tool's own flags follow its name (m3a <tool> [args] --verbose)";
-  if (odd !== undefined) return usage("help", "E_ARGS", `unknown flag ${quote(odd)}${didYouMean(odd, ["--verbose", "--json", "--help"])} (help takes a tool name, --verbose and --json)`, next);
+  if (odd !== undefined) {
+    // the tools too (--version: the version tool); a one-letter flag reads as the first one it begins (-v: --verbose)
+    const all = ["--verbose", "--json", "--help", ...registry.list().map((t) => t.name)];
+    const letter = /^-[a-z]$/i.test(odd) ? all.find((c) => c.replace(/^--/, "").startsWith(odd[1]!.toLowerCase())) : undefined;
+    const hint = letter ? `; did you mean "${letter}"?` : didYouMean(odd, all);
+    return usage("help", "E_ARGS", `unknown flag ${quote(odd)}${hint} (help takes a tool name, --verbose and --json)`, next);
+  }
   return names.length > 1 ? usage("help", "E_ARGS", `${quote(names[1])} is one argument too many: help takes one tool name`, next) : help(registry, names[0]);
 }
 
@@ -109,8 +121,10 @@ export async function runCli(registry: Registry, argv: readonly string[], io: Cl
   const json = argv.includes("--json"), rest = argv.filter((a) => a !== "--json").map((a) => (a === "-h" ? "--help" : a));
   const [first, ...more] = rest;
   let r: Reply, verbose = rest.includes("--verbose");
-  if (first === undefined || first === "help" || first.startsWith("-")) r = helpCall(registry, first === "help" ? more : rest);
-  else if (!registry.get(first)) r = registry.unknown(first);
+  if (first === undefined || first === "help" || first.startsWith("-")) {
+    r = helpCall(registry, first === "help" ? more : rest);
+    verbose ||= r.status === "ok" && Object.hasOwn(r.data as object, "tools"); // the index: every tool, never cut
+  } else if (!registry.get(first)) r = registry.unknown(first);
   else if (more.includes("--help")) r = help(registry, first);
   else {
     const tool = registry.get(first)!, args = parseCall(tool, more);

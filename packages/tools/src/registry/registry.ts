@@ -39,8 +39,8 @@ export interface Host {
 
 /** One tool, defined once (PLAN.md §5.6). Parameter names are a letter, then letters, digits or "_"; `output` is its
  *  data's schema, checked on every reply; `positionals` lets the CLI fill those parameters in order; `edit` marks a tool
- *  that changes something: it takes `if_revision` and `request_id`, and `revision` (required) reads the target's current
- *  revision, so a stale if_revision is refused rather than ignored. */
+ *  that changes something: it takes `if_revision` and `request_id` (names no tool declares itself), and `revision`
+ *  (required) reads the target's current revision, so a stale if_revision is refused rather than ignored. */
 export interface ToolDef<A extends object = Record<string, unknown>, D = unknown> {
   name: string;
   description: string;
@@ -89,8 +89,11 @@ export function defineTool<A extends object, D>(def: ToolDef<A, D>): Tool {
   if (def.params.type !== "object") fail('params is a JSON Schema with type "object"');
   if (!def.examples.length) fail("give it an example; every example runs in the tests");
   if (def.edit && typeof def.edit.revision !== "function") fail("an edit reads its target's revision: give edit.revision(args, ctx), so if_revision is checked");
-  const own = def.params.properties ?? {}, reserved = ["verbose", "json", "help", ...(def.edit ? Object.keys(EDIT) : [])];
-  for (const k of reserved) if (Object.hasOwn(own, k)) fail(`"${k}" is kept by the registry and the CLI (--${k}); rename yours`);
+  // if_revision and request_id are kept on every tool, edit or not, so they mean the same on every surface
+  const own = def.params.properties ?? {};
+  for (const k of ["verbose", "json", "help", ...Object.keys(EDIT)]) {
+    if (Object.hasOwn(own, k)) fail(`"${k}" is kept by the registry and the CLI (--${k.replace(/_/g, "-")}); rename yours`);
+  }
   for (const k of Object.keys(own)) if (!PARAM.test(k)) fail(`parameter ${quote(k)} is out of the CLI's reach: a name is a letter, then letters, digits or "_" (rename it ${quote(k.replace(/\W/g, "_"))}, which the CLI spells --${k.replace(/[\W_]/g, "-")})`);
   for (const p of def.positionals ?? []) if (!Object.hasOwn(own, p)) fail(`positional "${p}" is not one of its parameters`);
   const schema = closed({ ...def.params, properties: { ...own, ...(def.edit ? EDIT : {}), verbose: VERBOSE }, additionalProperties: false, examples: def.examples.map((e) => e.args) });
@@ -217,6 +220,7 @@ export class Registry {
       }
       if (first) return structuredClone(first.reply);
     }
+    let out: ToolOutput<unknown> | undefined;
     try {
       if (tool.edit && typeof a.if_revision === "string") {
         const now = await tool.edit.revision(a, ctx);
@@ -225,7 +229,8 @@ export class Registry {
           return reply(tool.name, "error", { verdict: `${tool.name}: conflict: ${message}`, next: `read it again, then retry with if_revision "${now}"`, revision: now }, [], { code: "E_CONFLICT", message });
         }
       }
-      const out = await tool.run(a, ctx), r = reply(tool.name, out.findings ? "findings" : "ok", out, images);
+      out = await tool.run(a, ctx);
+      const r = reply(tool.name, out.findings ? "findings" : "ok", out, images);
       if (typeof r.data !== "object" || Array.isArray(r.data)) throw new Error(`${tool.name} replied with data that is not a JSON object`);
       const off = r.data !== null && tool.output ? check(r.data, tool.output, "data") : undefined;
       if (off) throw new Error(`${tool.name} replied with data off its output schema (${off})`);
@@ -234,7 +239,11 @@ export class Registry {
     } catch (err) {
       const e = err instanceof ToolError ? err : new ToolError("E_RUN", err instanceof Error ? err.message : String(err));
       const next = e.usage ? fixArgs : e.code === "E_RUN" ? "if the arguments are right, this is a bug in the tool: report the call and this message" : "fix what the message names, then call again";
-      return e.usage ? usage(tool.name, e.code, e.message, next) : reply(tool.name, "error", { verdict: `${tool.name}: error: ${e.message}`, next }, images, { code: e.code, message: e.message });
+      if (e.usage) return usage(tool.name, e.code, e.message, next);
+      const r = reply(tool.name, "error", { verdict: `${tool.name}: error: ${e.message}`, next, revision: out?.revision }, images, { code: e.code, message: e.message });
+      // run() returned, so an edit applied though its data failed the checks: kept, so a retry does not apply it again
+      if (key && out) this.requests.set(key, { args: sent!, reply: structuredClone(r) });
+      return r;
     }
   }
 }
