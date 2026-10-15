@@ -136,5 +136,6 @@
    "The repository is untouched: HEAD is detached at a9731b1, git status shows only '?? bench/results/heldout/G6/', and the tracked diff is empty. This check wrote only to its scratchpad (/tmp/claude-0/-home-user-my-3danimations/6fa7db0b-96ab-5322-a7a6-649e6c7d3f92/scratchpad).",
    "Not checked (left to the gate's pre-trial step): the known-good solutions on these five seeds. This checker did not read or run them."
   ]
- }
+ },
+ "verifier": "The G6 verifier (D91): the writer read docs/DECISIONS.md's D76 and D77, which describe the known-good solutions and name the manual's examples; the check's 'breaks no rule' is wrong on that point. Diffing every variant against its original found no solution hint but B6's 'wind-up' (D77's word for a manual example). Recorded, not rerun; later writers are barred from them."
 }
