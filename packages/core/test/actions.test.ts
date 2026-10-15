@@ -146,8 +146,9 @@ describe("an action on another body", () => {
       // after the 0.2 s fade the run alone, at the fitted speed (the root on whole % of the hip height: 1% over 0.5 s)
       const [from, to] = [A.actionRootAt(c, 0.5), A.actionRootAt(c, c.clip.dur)], speed = (to.forward - from.forward) / (c.clip.dur - 0.5);
       expect([seed, validate(c.clip).errors, c.clip.dur, Math.abs(speed - fit.speed) <= 2]).toEqual([seed, [], 1, true]);
-      // each ready-made gait is the fitted one's clip, going its speed
-      for (const g of PR.GAITS) {
+      // each ready-made gait this body's legs don't take is the fitted one's clip, going its speed (one they take is
+      // played as it is: the Mesh2Motion pin above)
+      for (const g of PR.GAITS.filter((x) => PR.fitGait(x, rest) !== x)) {
         const part = c.resolve(`PROCEDURAL/${g.name.charAt(0).toUpperCase()}${g.name.slice(1)}`)!, own = PR.gaitClip(PR.fitGait(g, rest), rest, { restSrc: c.clip.restSrc, id: part.clip.id });
         expect([seed, g.name, validate(part.clip).errors, part.contentId, Math.abs(C.rootAt(part.clip, part.clip.dur).forward - PR.fitGait(g, rest).speed * part.clip.dur) <= 0.5]).toEqual([seed, g.name, [], sha256(serialize(own)), true]);
       }

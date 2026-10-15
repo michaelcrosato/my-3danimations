@@ -38,8 +38,8 @@ const PARTS = new Map<string, Resolved>();
 /**
  * A resolver over `base` that also makes procedural parts on `rest`: PROCEDURAL/<Name> is the gait, idle (or, given
  * `moves`, the move) of that name, from the standing pose, its content id the SHA-256 of the clip as written. A gait is
- * fitted to the body first (`fitGait`): one its legs don't reach (the run on all but the tall test characters, the brisk
- * walk on the chibis and two bulky ones) is slowed to the fastest they do, and one that fits is played as it is.
+ * fitted to the body first (`fitGait`): one the legs don't take is slowed (or, rarely, lifted less) until they do, and
+ * one that fits is played as it is.
  */
 export function proceduralResolver(base: Resolver, rest: Rest, restSrc: string, moves: readonly Move[] = []): Resolver {
   const made = new Map<string, Resolved | undefined>(), body = `${restSrc}\n${JSON.stringify(rest)}`;
