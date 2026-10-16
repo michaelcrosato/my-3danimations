@@ -54,6 +54,10 @@ export function naming(ref: Pick<ClipRef, "id" | "where" | "path" | "name">, who
   return hidden ? { as: `<${whose} ${hidden}>`, title: `${ref.id} (${whose} ${hidden})` } : { as: arg(ref.path!), title: arg(ref.path!) };
 }
 
+/** What a hint's flag passes for an argument replies name `as` (call quotes it): `as` where naming hid it (`<the clip's
+ *  JSON>`, `<the clip's file>`), else the argument as given. */
+export const given = (as: string, value: string): string => (as.startsWith("<") ? as : value);
+
 /** A license's parts: a composed clip carries each of its inputs' licenses, joined with " AND " (D10). */
 export const parts = (license: string): string[] => license.split(" AND ").map((p) => p.trim());
 /** Whether a game at `tiers` may use what `tier` holds: that tier is among them, or local, which holds anything. */

@@ -15,7 +15,7 @@ import { defineTool, ToolError, type LibraryAccess, type ToolContext } from "../
 import { quote, type Schema } from "../registry/schema.ts";
 import { compareTraces, filmstrip, simulate, traceText, validateScript, type SimScript, type Trace } from "../sim/index.ts";
 import { bodyOf, CHARACTER, characterName } from "./body.ts";
-import { bounded, clipResolver, fits, loadClip, naming, refusal, suggestId, type ClipRef } from "./clips.ts";
+import { bounded, clipResolver, fits, given, loadClip, naming, refusal, suggestId, type ClipRef } from "./clips.ts";
 import { call, capped, count, cut, fileOrJson, mm, more, output, round, sec } from "./common.ts";
 import { WORKSHOP } from "./workshop.ts";
 
@@ -50,10 +50,6 @@ function cuts(lists: Record<string, { more?: number }>): { more?: Record<string,
 }
 /** The WORKSHOP ids among a document's strings (the user's copies a graph's states name, wherever its shape has them). */
 const workshopIds = (v: unknown): string[] => (typeof v === "string" ? (v.startsWith(`${WORKSHOP}/`) ? [v] : []) : v && typeof v === "object" ? Object.values(v).flatMap(workshopIds) : []);
-
-/** What a hint's flag passes for an argument replies name `as` (call quotes it): `as` where it is hidden (`<the clip's
- *  JSON>`), else the argument as given. */
-const given = (as: string, value: string): string => (as.startsWith("<") ? as : value);
 
 /** A document given as a file or JSON (common.ts fileOrJson), with its id (null when it has none) and how replies name
  *  it (clips.ts naming): `as` as a hint's positional, `flag` as its flag, `title` in a verdict (`as` without an id). */

@@ -47,8 +47,10 @@ export function gameTiers(cwd: string): Tier[] {
 const opened = new Map<string, { lib: Library; stamp: string; to: { warnings?: string[] } }>();
 /** The most libraries the host keeps open: each working directory with imported sets opens its own. */
 export const MAX_OPEN = 8;
-/** How many libraries the host keeps open now (at most MAX_OPEN). */
-export const openCount = (): number => opened.size;
+/** How many libraries the host has opened, each verifying its sets the first time it is used (one dropped opens again). */
+let opens = 0;
+/** How many libraries the host keeps open now (at most MAX_OPEN), and has opened in all. */
+export const openCount = (): { open: number; opens: number } => ({ open: opened.size, opens });
 
 /** Whether `path` is under the working directory `cwd`, through no link out of it. */
 const within = (cwd: string, path: string): boolean => {
@@ -136,6 +138,7 @@ export function libraryAccess(cwd: string, tiers?: readonly Tier[], dir: string 
     // opened again when an imported set's manifest or catalog changed (the lock, beside the default sets, has none)
     const to: { warnings?: string[] } = {};
     o = { lib: openLibrary({ dir, source, tiers: want, warn: (m) => to.warnings?.push(m) }), stamp, to };
+    opens++;
   }
   opened.delete(key);
   opened.set(key, o);

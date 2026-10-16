@@ -8,7 +8,8 @@
 // matched byte for byte, a strike with no hit event alone making findings, a hit window from a clip's own event on a
 // character file, a trace that differs with hints that run it again as given (names the shell would split passed as
 // given), an unknown trigger (S-E003, not run), an unknown character (E_ARGS), a character file's absolute path never
-// echoed, a run too long refused; and writes only under check-output/recipe.compile/ and check-output/graph.sim/.
+// echoed, nor a script's that is no JSON (E_JSON), a run too long refused; and writes only under
+// check-output/recipe.compile/ and check-output/graph.sim/.
 import { cpSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { recipe } from "@m3a/core";
@@ -135,6 +136,9 @@ describe("compose and wire", () => {
       expect((await call("graph.sim", { graph: L, script: SHORT, character: "gen-x" })).error).toEqual({ code: "E_ARGS", message: 'gen-x is not a character: give a .glb, .gltf or .vrm file, or "tiny"' });
       writeFileSync(join(cwd, "bad.gltf"), '{"asset":{"version":"2.0"}}');
       expect((await call("graph.sim", { graph: L, script: SHORT, character: join(cwd, "bad.gltf") })).error!.message).toMatch(/^<the character's file>: [^/]*$/);
+      // a script file that is no JSON named as clips.ts names a file: "file" for an absolute path, else as given
+      writeFileSync(join(cwd, "bad one.json"), "{nope");
+      for (const [script, named] of [[join(cwd, "bad one.json"), /^the script file is not JSON: [^/]*$/], ["bad one.json", /^the script 'bad one\.json' is not JSON: /]] as const) expect((await call("graph.sim", { graph: L, script })).error).toEqual({ code: "E_JSON", message: expect.stringMatching(named) });
       const long = JSON.stringify({ format: "2.0", id: "SIMS/Long", dur: 600, rate: 240, input: [] });
       expect((await call("graph.sim", { graph: L, script: long })).error).toEqual({ code: "E_ARGS", message: "the script runs 144000 steps (dur 600 s at rate 240), past the 36000 graph.sim takes: shorten dur or lower rate" });
       for (const bad of ["[1]", '{"script":"SIMS/Short","states":[]}']) expect((await call("graph.sim", { graph: L, script: SHORT, expect: bad })).error).toEqual({ code: "E_JSON", message: "the expected trace is not one: give a trace.json graph.sim wrote (spec/SIM.md §2)" });

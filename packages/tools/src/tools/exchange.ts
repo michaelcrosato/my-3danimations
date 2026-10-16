@@ -13,7 +13,7 @@ import { setFiles, tierOf, withFacts } from "@m3a/library";
 import { defineTool, ToolError, type LibraryAccess, type ToolContext } from "../registry/registry.ts";
 import { quote } from "../registry/schema.ts";
 import { bodyOf, CHARACTER, characterName, MAPPING, type MappingPatch } from "./body.ts";
-import { loadClip, naming, parts } from "./clips.ts";
+import { given, loadClip, naming, parts } from "./clips.ts";
 import { ARROW, call, capped, CLIP, count, cut, fileOrJson, imageName, mm, more, output, round, sec } from "./common.ts";
 
 /** The motion files import reads, by extension. */
@@ -30,9 +30,6 @@ const SPDX = /^(LicenseRef-[A-Za-z0-9.-]+|[A-Za-z0-9][A-Za-z0-9.+-]*)$/;
 /** A path as a reply names it (clips.ts's naming): as given, quoted where a shell would split it, or `<whose file>` for
  *  an absolute path or one with a control character. */
 const named = (path: string, whose = "the"): string => naming({ id: path, where: "file", path, name: null }, whose).as;
-/** What a hint's flag passes for an argument replies name `as` (call quotes it): `as` where it is hidden, else the
- *  argument as given. */
-const given = (as: string, value: string): string => (as.startsWith("<") ? as : value);
 /** Whether a license owes a credit where its clips are used: any but CC0's (CC BY's, CMU's, a share-alike's or a
  *  non-commercial one's, MIT's notice), each part of a composed clip's. */
 const owes = (license: string): boolean => parts(license).some((x) => x !== "CC0-1.0");
@@ -125,10 +122,12 @@ export const importMotion = defineTool<{ path: string; set: string; license?: st
     if (!a.list && a.license === undefined) throw new ToolError("E_ARGS", "license is the file's SPDX id (CC0-1.0, CC-BY-4.0, ...), which each clip carries; list needs none", true);
     if (a.license !== undefined && !SPDX.test(a.license)) throw new ToolError("E_ARGS", `license ${quote(a.license)} is no SPDX id: CC0-1.0, CC-BY-4.0, ..., or LicenseRef-<name> for other terms`, true);
     const lib = ctx.library();
-    // an imported set (the manifest the library reads is the one under imports/) is imported again in place; a library
-    // set's name is the library's, even where imports/ holds a set so named (the library's wins: it would go unseen)
-    if (lib.source.sets().includes(a.set) && lib.source.read(a.set, "_set.json") !== (await ctx.tryRead(`${dir}/_set.json`))) throw new ToolError("E_ARGS", `set ${a.set} is the library's: name the new set another way`, true);
-    const got = a.catalog === undefined ? null : await fileOrJson(ctx, a.catalog, "catalog");
+    // an imported set (tier local, the manifest the library reads the one under imports/) is imported again in place; a
+    // library set's name is the library's, even where imports/ holds a set so named, its manifest copied too (the
+    // library's wins: it would go unseen)
+    const theirs = lib.source.sets().includes(a.set) && (lib.library.about(a.set).tier !== "local" || lib.source.read(a.set, "_set.json") !== (await ctx.tryRead(`${dir}/_set.json`)));
+    if (theirs) throw new ToolError("E_ARGS", `set ${a.set} is the library's: name the new set another way`, true);
+    const got = a.catalog === undefined ? null : await fileOrJson(ctx, a.catalog, "the catalog");
     const cat = got && catalogOf(got.data, got.path === null), m = await motionOf(ctx, a.path, kind, cat), at = [file];
     if (a.list) {
       const from = a.from ?? 0, shown = capped(m.names.slice(from), 50), glTF = kind === "gltf" || kind === "glb";
@@ -154,7 +153,8 @@ export const importMotion = defineTool<{ path: string; set: string; license?: st
       bad = true;
       skipped.push({ name, why: cut(validation.formatIssue(r.errors[0]!).replace(/\s*\n\s*/g, "; ")) });
     });
-    if (!made.length) throw new ToolError("E_NO_CLIP", `no clip came out of ${file}${skipped.length ? `: ${skipped.map((s) => `${s.name}: ${s.why}`).join("; ")}` : ""}`);
+    const cutSkips = capped(skipped, 20), also = cutSkips.more ? `; and ${cutSkips.more} more skipped` : "";
+    if (!made.length) throw new ToolError("E_NO_CLIP", `no clip came out of ${file}${skipped.length ? `: ${cutSkips.rows.map((s) => `${s.name}: ${s.why}`).join("; ")}${also}` : ""}`);
     const manifest = {
       set: a.set,
       title: `${base}, imported`,
@@ -183,7 +183,7 @@ export const importMotion = defineTool<{ path: string; set: string; license?: st
     const worst = rows.reduce((w, r) => (r.fit[1]! > w.fit[1]! ? r : w)), mean = round(rows.reduce((s, r) => s + r.fit[0]!, 0) / rows.length, 1), over = rows.filter((r) => r.over).length;
     // the reader's and the fit's notes first, with the license's text the library doesn't keep (license.check needs it)
     const kept = lib.licenseText(license) !== null, noted = capped([...(kept ? [] : [`${license}'s text isn't in library/LICENSES/: license.check fails the set`]), ...out.report.warnings, ...log].map((w) => cut(w)), 5);
-    const shown = capped(rows, 50), cutSkips = capped(skipped, 20), findings = bad || over > 0;
+    const shown = capped(rows, 50), findings = bad || over > 0;
     return {
       verdict: `import ${file}: ${count(made.length, "clip")} into ${dir}/ (${input.rig}, tier local), fit ${mean} mm mean, worst ${mm(worst.fit[1]!)} (${worst.id})${skipped.length ? `; ${skipped.length} skipped` : ""}${over ? `; ${over} past the fit limits` : ""}`,
       data: { file, kind, rig: input.rig, set: a.set, dir: `${dir}/`, license, tier: "local", clips: shown.rows, ...(shown.more ? { more: shown.more } : {}), skipped: cutSkips.rows, notes: noted.rows, mean_fit: mean, worst: { id: worst.id, mm: worst.fit[1] } },
