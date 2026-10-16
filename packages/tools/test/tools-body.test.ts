@@ -205,7 +205,7 @@ describe("characters bound through core", () => {
     const doc = parseGlb(character(variant(1)).glb), w = doc.json.meshes![0]!.primitives[0]!.attributes.WEIGHTS_0!;
     const as = (json: object) => characterOf(holding(packGlb({ ...doc.json, ...json }, doc.bin!.raw())), "m.glb");
     const packed = await as({ extensionsRequired: ["EXT_meshopt_compression"] }), broken = await as({ accessors: doc.json.accessors!.map((a, i) => (i === w ? { ...a, count: 2 * a.count } : a)) });
-    expect([packed.report.issues, endsOf(packed.bound!)]).toEqual([["mesh compressed (EXT_meshopt_compression): weights unread, every joint kept, no sole end bones"], []]);
+    expect([packed.report.issues, endsOf(packed.bound!)]).toEqual([["mesh compressed (EXT_meshopt_compression): weights and soles unread; every joint kept"], []]);
     expect([broken.report.issues.map((i) => i.split(":")[0]), endsOf(broken.bound!)]).toEqual([["mesh unreadable", "sole end bones unread"], []]);
   });
   it("gives no end bone to a foot whose last bone keeps a child (its toes unmapped), as three's bind does", async () => {
@@ -218,7 +218,7 @@ describe("characters bound through core", () => {
     const glb = rigBytes("quaternius-mannequin-m");
     if (!glb) return ctx.skip("quaternius-mannequin-m isn't fetched: npm run fixtures -- fetch");
     const c = await characterOf(holding(glb), "m.glb");
-    expect([c.report.issues[0], c.report.bones, c.bound!.skeleton.bones.length]).toEqual(["mesh compressed (EXT_meshopt_compression): weights unread, every joint kept, no sole end bones", 65, 65]);
+    expect([c.report.issues[0], c.report.bones, c.bound!.skeleton.bones.length]).toEqual(["mesh compressed (EXT_meshopt_compression): weights and soles unread; every joint kept", 65, 65]);
     expect(c.report.text).toContain("issue: mesh compressed (EXT_meshopt_compression)");
   });
   it("takes a patch: a bone unmapped leaves it unbound (bodyOf refuses, naming it); swapped arms bind, the issue named", async () => {
@@ -226,7 +226,7 @@ describe("characters bound through core", () => {
       { character: RIGIFY }, { character: RIGIFY, mapping: { bones: { leftUpperLeg: null } } }, { character: RIGIFY, mapping: { bones: { leftUpperLeg: null } }, bound: true }, { character: RIGIFY, mapping: { bones: swap } }]);
     expect([gone!.status, gone!.data]).toMatchObject(["findings", { missing: ["leftUpperLeg"], patch: { bones: { leftUpperLeg: null } }, H0: null }]);
     expect(gone!.lines).toContain('patch: write each missing bone\'s source bone into "bones" (now null) and pass it back as mapping');
-    expect(need!.error).toEqual({ code: "E_RIG", message: `${RIGIFY}: leftUpperLeg not mapped; retarget.inspect ${RIGIFY} shows the mapping: write each into its patch and pass it as mapping` });
+    expect(need!.error).toEqual({ code: "E_RIG", message: `${RIGIFY}: leftUpperLeg not mapped; \`retarget.inspect ${RIGIFY} --mapping '{"bones":{"leftUpperLeg":null}}'\` gives the patch: write each into it and pass it as mapping` });
     expect([swapped!.status, (swapped!.data as { issues: string[] }).issues]).toEqual(["ok", ["patched by hand", "leftLowerArm (DEF-upper_arm.L) does not descend from leftUpperArm (DEF-forearm.L)"]]);
     // the report's patch passed back binds as recognized
     const [back] = await bodies({}, [{ character: RIGIFY, mapping: (plain!.data as { patch: MappingPatch }).patch }]);
@@ -239,7 +239,7 @@ describe("characters bound through core", () => {
     expect(got.map((r) => [r.status, r.error?.code, r.error?.message])).toEqual([
       ["usage", "E_ARGS", 'mapping: "leftUpperLegg" is not a VRM 1.0 humanoid bone; did you mean "leftUpperLeg"?'],
       ["usage", "E_ARGS", 'mapping: leftHand: the character has no bone "DEF-hand.l"; did you mean "DEF-hand.L"?'],
-      ["usage", "E_ARGS", '"spec/vectors/tier1b/rig-catalog.json" is not a character: give a .glb, .gltf or .vrm file, or "tiny"'],
+      ["usage", "E_ARGS", 'spec/vectors/tier1b/rig-catalog.json is not a character: give a .glb, .gltf or .vrm file, or "tiny"'],
       ["error", "E_FORMAT", "junk.glb: not a binary glTF (.glb): its first 4 bytes aren't 'glTF' (at byte 0)"],
       ["error", "E_RIG", 'chain.gltf: no humanoid bone recognized among its 3 bones, by name or by shape; give each bone in mapping {bones: {hips: "<its bone>", ...}}'],
       ["error", "E_LIMIT", "long.gltf: 4097 bones; a character may have at most 4096"],
