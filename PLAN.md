@@ -604,9 +604,11 @@ character), a grader, and a pass rule graded headless.
   - **The workspace:** a scratch directory outside the repository (`/tmp/m3a-bench/<trial>/`). It holds only the
     packed tarballs (`npm pack` of each package), the brief, the starter and the manual inside the installed package.
   - **Isolation level 1:** the `claude` CLI (installed in the container) in print mode (`claude -p`), started in that
-    directory with tools limited to it, and, where the machine allows a mount namespace, a `/tmp` of its own with the
-    repository hidden (D84), so agents run at once never meet. It runs on the session's own Claude Code credentials;
-    check them with a one-line call first.
+    directory with tools limited to it, and, where the machine allows the namespaces, a `/tmp`, `/var/tmp` and
+    `/dev/shm` of its own with every checkout of the repository hidden (D84, D91), as an unprivileged user with no
+    capabilities (D94), so agents run at once never meet and can't read `/root`, the raw disks or the checkouts. It runs
+    on the session's own Claude Code credentials (in a cloud session the CLI reads them from `/home/claude/.claude/
+    remote/`, handed to the agent's user as a copy in its namespace, D94); check them with a one-line call first.
   - **Isolation level 2:** a fresh remote session with no repository attached, when the session can create one.
   - **Isolation level 3:** an in-session subagent confined by instruction, its transcript audited for reads outside the
     workspace.

@@ -3,7 +3,7 @@
 The current state on one screen (at most 40 lines; `npm run doctrine` checks it from WP-0.3). The ledger is
 `PLAN.md` §14; decisions are in `docs/DECISIONS.md`.
 
-**Phase:** 7 The datalink (6 done: G6 passed). **Next gate:** G7 = M2. **Version:** 0.46.0.
+**Phase:** 7 The datalink (6 done: G6 passed). **Next gate:** G7 = M2. **Version:** 0.46.1.
 **Mode:** ultracode (D83): implementers in worktrees, the main session integrates; #12 merged (G6), a fresh draft PR.
 
 ## Done
@@ -25,12 +25,12 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 
 ## Next
 
-- WP-7.2a in lanes: the foundation a0 (the host's library and write roots, a durable request store) is in review, then
-  find, check and change at once; then 7.2b. Before G7's trials the benchmark agent runs unprivileged (D91).
+- WP-7.2a's tool lanes (find and ship, check, change) run at once on the merged foundation a0; then 7.2b. Benchmark
+  agents now run as `nobody` with no capabilities (D94), closing D91's limits before G7.
 
 ## Blocked on the owner
 
-- Nothing: G4's bar (D80), the Quaternius sets (D81) and Vercel, paused until the end (D85), answered 2026-10-14.
+- Nothing blocks. For review: D94 hands the benchmark agent a namespace-private copy of the session's credentials.
 
 ## Last gate
 

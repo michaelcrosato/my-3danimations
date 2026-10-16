@@ -4,6 +4,16 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.46.1 · 2026-10-16
+
+### Repo
+- Benchmark agents run as `nobody` with no capabilities and no new privileges where the runner is root (as itself
+  where it isn't: CI), so `/root`, the raw disks and every checkout (covers now mode 0700) refuse them; their
+  workspace, home and own `/tmp` are handed to them walking real directories only, the proxy's CA copied into the home,
+  and in a cloud session the CLI's credentials copied into a tmpfs of the namespace's own (D94).
+- In an agent's namespace `/var/tmp` and `/dev/shm` are an empty tmpfs of its own; the audit counts its files there as
+  its scratch. Trials and results record `uid` and `unprivileged`; `capsDropped` means no capabilities at all (D94).
+
 ## 0.46.0 · 2026-10-16
 
 ### Tools

@@ -3319,10 +3319,10 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   - **Run 1 passed**, 20 of 20, at a9731b1 (0.45.1) on 2026-10-15 in 17.2 min, in the main checkout (D83) with the
     pinned sources and the rigs fetched first. The commit was fixed first (committed 22:04:27; T0, T1 and T2 passed
     locally and CI went green at 22:07). A fresh subagent then wrote the held-out run, 22:10 to 22:11 UTC; it read
-    neither the manual nor a known-good solution (but two decision entries, below), and its file list is kept. An independent check found that each
-    variant keeps its brief's job, contract and pass rule, describes its character as the seed generates it, and uses
-    a fresh seed. Each brief's known-good passed on its variant at 22:17 to 22:18, and the gate ran from 22:19 to 22:36.
-    The record is `bench/results/gates/G6-run-1/`.
+    neither the manual nor a known-good solution (but two decision entries, below), and its file list is kept. An
+    independent check found that each variant keeps its brief's job, contract and pass rule, describes its character as
+    the seed generates it, and uses a fresh seed. Each brief's known-good passed on its variant at 22:17 to 22:18, and
+    the gate ran from 22:19 to 22:36. The record is `bench/results/gates/G6-run-1/`.
   - **Its commands:**
     - check 10.6 s; test 76.0 s; doctrine 8 of 8; the pinned sources and `library/moves.json` as they give it;
       vectors byte for byte;
@@ -3478,3 +3478,73 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   policies keep an agent's view of the library the one its game ships.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.46.0
+
+## D94 · 2026-10-16 · Benchmark agents run as nobody with no capabilities; the CLI's credentials are handed to them
+(D84, D91)
+
+- **Principle:** 3, §7 (isolation level 1), D84, D91
+- **Call:**
+  - **Who the agent runs as.** Where the runner is root, `bench/runner/agent.ts` starts each trial's `claude` in its
+    mount and PID namespaces as `nobody` (the passwd entry, 65534). Its supplementary groups are cleared, and it gets no
+    capabilities and no new privileges (`setpriv --reuid --regid --clear-groups --bounding-set -all --inh-caps -all
+    --no-new-privs`). The switch is probed once in the namespace (`agentUser`).
+  - **What refuses it.** `/root` (`.ssh`, `.aws`, `.gitconfig`, `.boto`, the proxy's CA), the raw disks under `/dev` and
+    other users' unreadable files. The covers over every checkout, the git directory and the Claude home are mode 0700,
+    so it is refused rather than shown an empty directory. Neither `umount`, `mount` nor a nested `unshare -r -m` can
+    lift them.
+  - **What it is handed.**
+    - Its workspace, home and `<trial>-tmp` become its user's. The walk lchowns real directories only: a link is handed
+      itself, never what it leads to, and is never walked through.
+    - The /tmp directories leading to them stay root's, so it writes nothing beside them.
+    - The files that NODE_EXTRA_CA_CERTS and SSL_CERT_FILE name are copied into `<home>/.ca/`, and both variables point
+      there.
+  - **What it shares with other agents.** Nothing: /tmp (D84), /var/tmp and /dev/shm are each its own in its namespace.
+    The last two are an empty tmpfs, mode 1777 as before. Agents run at once, all `nobody` now, meet in none of them.
+  - **The audit.** The audit counts a file in any of those three as the agent's `scratch` (`ownScratch()`: /var/tmp and
+    /dev/shm where each is a directory, not a link, as the namespace covers them). Without a namespace, it counts such a
+    file as `outside`. Before this, a file in /var/tmp read as `outside` and a file in /dev/shm was not reported at all.
+  - **Credentials.** The CLI does not get its credentials from the proxy, as §7 implied. In a cloud session it reads
+    `/home/claude/.claude/remote/` (root's alone), whoever it runs as; as `nobody` it said "Not logged in". The
+    namespace script copies that directory into a tmpfs of the namespace's own, owned by the agent's user, binds it over
+    the directory and drops the scratch mount.
+    - The CLI reads the credentials where it did as root.
+    - The copy never lands on disk and ends with the namespace. The session's files stay root's (the test checks this).
+    - The agent's tools can read the copy, as they could read the original as root, so its reach is no wider than
+      before.
+  - **Where the machine refuses.** A runner that isn't root (CI) runs agents as itself, already unprivileged, with all
+    capabilities dropped in its user namespace. Where the switch is refused, the agent runs as root. Where `setpriv` is
+    refused, it runs as root with its capabilities.
+  - **Records.** Each trial and each results file record `uid` (as the machine counts users) and `unprivileged`, beside
+    `privateTmp`, `ownPids` and `capsDropped`. `capsDropped` now means no capabilities at all. The audit's and the
+    transcripts' formats are unchanged, and the grader reads the workspace as root, as before.
+  - **The test.** D84's test now asserts:
+    - the user, and zero capabilities;
+    - `/root`, the raw disks and every checkout refused to `nobody`;
+    - the workspace and home writable, and the CA read from the home's copy;
+    - the credentials' copy owned by the agent's user, while the session's stay root's;
+    - a directory link in the workspace handed alone, with what it leads to still the runner's;
+    - /var/tmp and /dev/shm empty and private between two agents run at once;
+    - the audit's scratch and outside for /var/tmp and /dev/shm, with and without a namespace.
+
+    It passes as root here and as a non-root user through a user namespace. Two reviews caught real faults, and each
+    fails on its version:
+    - the link assertion fails on the first walk (a recursive readdir with lchown, which went through links to
+      directories);
+    - the audit assertion fails on the old classification.
+  - **Proof.**
+    - Zero-cost probes as `nobody` in the namespace: `id`; `/root`, `/dev/vda`, `/home/user/*` and the hidden checkouts
+      refused; /var/tmp and /dev/shm its own; the workspace writable; `node`, `npm` and `npm run check` run in it; curl
+      and node reach the API, the registry and the proxy; `claude --version` starts.
+    - The quiz, one real trial on a clean tree: 10 of 10 in 4.0 s, $0.026, uid 65534.
+    - B2 `--fake` passes.
+- **Why:** to close D91's known limits before G7's trials. As root with CAP_DAC_OVERRIDE, the agent could read the raw
+  disks and `/root`'s other files. Now the machine prevents it, rather than the audit only reporting it.
+- **Known limits:**
+  - **World-readable files stay readable, as for any user.** This covers the system's files, the two names in
+    `/home/user`, `/home/claude`'s world-readable files and a sibling repository in a session with several. Covering
+    `/home/claude` except `remote/` is left open, because the CLI reads its cloud-session state there. The audit lists
+    any such path.
+  - **The CA is copied at each trial's start.**
+- **Answered:** no: made without a response, to review; the credentials hand-off is flagged for the owner on
+  michaelcrosato/my-3danimations#13.
+- **Landed in:** v0.46.1
