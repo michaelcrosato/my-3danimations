@@ -7,7 +7,7 @@ import { recipe, validate, validation, type Clip, type Rest } from "@m3a/core";
 import { LibraryError, tierOf, type SourceAbout, type Tier } from "@m3a/library";
 import { ToolError, type LibraryAccess, type ToolContext } from "../registry/registry.ts";
 import { closest, quote } from "../registry/schema.ts";
-import { arg, count } from "./common.ts";
+import { absolute, arg, count } from "./common.ts";
 import { readTarget, WORKSHOP, workshopName } from "./workshop.ts";
 
 /** Where a clip's rest comes from: the set and key (the clip's restSrc) of a manifest's source, with that source. */
@@ -39,9 +39,6 @@ export type ClipData = Omit<ClipRef, "rest"> & { rest: Rest | null };
 
 /** The set a clip id names: its part before the "/". */
 const setOf = (id: string): string => id.split("/")[0]!;
-
-/** Whether `path` is absolute (a reply never echoes one). */
-export const absolute = (path: string): boolean => /^([A-Za-z]:|[\\/])/.test(path);
 
 /**
  * How replies name a loaded clip: `as`, the way a next hint gives it to be called again (its library id, WORKSHOP/<Name>

@@ -2,8 +2,7 @@
 // through @m3a/core's validator (an absolute path named "the file", as no reply echoes one).
 import { VERSION, format, validate as validateData, validation, type Issue } from "@m3a/core";
 import { defineTool, ToolError } from "../registry/registry.ts";
-import { absolute } from "./clips.ts";
-import { output } from "./common.ts";
+import { absolute, output } from "./common.ts";
 
 /** `m3a version`: the package version and the clip format it reads and writes. */
 export const version = defineTool({

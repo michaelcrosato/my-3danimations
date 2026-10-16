@@ -13,7 +13,7 @@ import type { Readable, Writable } from "node:stream";
 import { png } from "@m3a/sensors/node";
 import { runCli } from "./cli.ts";
 import { mcpServer, type McpServer } from "./mcp.ts";
-import { errno, lockFile, under, writable, writeAtomic } from "./node/files.ts";
+import { errno, lockFile, shown, under, writable, writeAtomic } from "./node/files.ts";
 import { libraryAccess } from "./node/library.ts";
 import { fileStore } from "./node/store.ts";
 import { Registry, ToolError, type Host, type Tool } from "./registry/registry.ts";
@@ -29,7 +29,7 @@ export function nodeHost(cwd: string = process.cwd()): Host {
     try {
       writeAtomic(p, data);
     } catch (err) {
-      throw new ToolError("E_WRITE", `can't write ${quote(path)} (${errno(err)})`);
+      throw new ToolError("E_WRITE", `can't write ${shown(path)} (${errno(err)})`);
     }
     return relative(base, p).split(sep).join("/");
   };
@@ -39,7 +39,7 @@ export function nodeHost(cwd: string = process.cwd()): Host {
       return readFileSync(p, "utf8");
     } catch (err) {
       if (missing && (errno(err) === "ENOENT" || errno(err) === "ENOTDIR")) return null;
-      throw new ToolError("E_PATH", `can't read ${quote(path)} (${errno(err)}); paths are relative to the working directory`, true);
+      throw new ToolError("E_PATH", `can't read ${shown(path)} (${errno(err)}); paths are relative to the working directory`, true);
     }
   };
   return {
@@ -51,7 +51,7 @@ export function nodeHost(cwd: string = process.cwd()): Host {
       try {
         unlinkSync(p);
       } catch (err) {
-        if (errno(err) !== "ENOENT") throw new ToolError("E_WRITE", `can't remove ${quote(path)} (${errno(err)})`);
+        if (errno(err) !== "ENOENT") throw new ToolError("E_WRITE", `can't remove ${shown(path)} (${errno(err)})`);
       }
     },
     library: (tiers) => libraryAccess(base, tiers),

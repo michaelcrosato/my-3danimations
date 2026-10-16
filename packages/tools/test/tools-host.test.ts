@@ -53,6 +53,11 @@ describe("the base tools, and an edit, on every surface", () => {
     try {
       const abs = await reg.call("validate", { path: join(cwd, "library/sets/QUATERNIUS_3D2DGE/A_TPose.json") }, { host: nodeHost(cwd) });
       expect([abs.verdict, JSON.stringify(abs).includes(cwd)]).toEqual(["validate the file: PASS, 0 errors, 0 warnings", false]);
+      const refused = [[join(cwd, "nothere.json"), "can't read the file (ENOENT); paths are relative to the working directory"], [join(tmpdir(), "x.json"), "the file is outside the working directory; give a file under the working directory, or pass its text"]];
+      for (const [path, message] of refused) {
+        const r = await reg.call("validate", { path }, { host: nodeHost(cwd) });
+        expect([r.error?.message, JSON.stringify(r).includes(tmpdir())], path).toEqual([message, false]);
+      }
     } finally {
       rm();
     }

@@ -10,8 +10,8 @@ import type { Clip } from "@m3a/core";
 import { checkGame, checkSets, credited, creditsBlock, tierOf, TIERS, type Credit, type LicenseFinding, type LicenseReport, type Tier } from "@m3a/library";
 import { defineTool, ToolError, type ToolContext } from "../registry/registry.ts";
 import { didYouMean, quote } from "../registry/schema.ts";
-import { absolute, fits, libraryClips, namedBy, parts, readClip, suggestId } from "./clips.ts";
-import { call, capped, count, more, output, ROW_CHARS } from "./common.ts";
+import { fits, libraryClips, namedBy, parts, readClip, suggestId } from "./clips.ts";
+import { absolute, call, capped, count, more, output, ROW_CHARS } from "./common.ts";
 
 /** A given name as a finding echoes it (D92): as given when it is a plain id or path of at most 60 characters, else
  *  JSON-quoted and cut to 60, so no control character in it starts a line of its own. */

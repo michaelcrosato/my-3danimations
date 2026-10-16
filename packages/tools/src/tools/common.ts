@@ -1,8 +1,8 @@
 // What the m3a tools share (PLAN.md WP-7.2): the clip parameter, capped rows and the one line that says what a cap
 // cut, counts, the fixed units (mm with no decimals, seconds with 3), the one arrow from before to after, strings cut
 // for rows, image names a file system takes, the one form a next hint writes a call in (`call`), each tool's minimal
-// output schema, and "a file or JSON" arguments read one way everywhere. Every tool names the clip in its data
-// `clip`.
+// output schema, "a file or JSON" arguments read one way everywhere, and the absolute paths no reply echoes. Every tool
+// names the clip in its data `clip`.
 import { recipe } from "@m3a/core";
 import { ToolError, type ToolContext } from "../registry/registry.ts";
 import { quote, type Schema, type SchemaType } from "../registry/schema.ts";
@@ -69,6 +69,9 @@ export function call(tool: string, positionals: readonly string[] = [], flags: R
   const flag = ([k, v]: [string, unknown]) => (typeof v === "boolean" ? [v ? `--${k}` : `--${k}=false`] : [`--${k}`, arg(typeof v === "string" ? v : JSON.stringify(v))]);
   return `\`${[tool, ...positionals, ...rest.flatMap(flag)].join(" ")}\``;
 }
+
+/** Whether `path` is absolute (a reply never echoes one: it is "the file", or `<the clip's file>` in a hint). */
+export const absolute = (path: string): boolean => /^([A-Za-z]:|[\\/])/.test(path);
 
 /** `text` cut to `n` characters (a row's 90 by default), "..." ending a cut. */
 export const cut = (text: string, n = ROW_CHARS): string => (text.length > n ? `${text.slice(0, n - 3)}...` : text);

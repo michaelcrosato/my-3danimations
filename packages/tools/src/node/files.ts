@@ -2,12 +2,13 @@
 // only under its write roots (workshop/, .m3a/, imports/, check-output/: never library/), each checked by its name and
 // by its real path, so no link leads out; every write atomic; and lock files, taken exclusively, so two m3a processes
 // never write one clip at once. The host's own files (images, report.json, request records) go through the same checks
-// as a tool's. A refusal names the working directory, never its absolute path.
+// as a tool's. A refusal names the working directory, never its absolute path, nor an absolute path it was given.
 import { lstatSync, mkdirSync, readFileSync, realpathSync, renameSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { hostname } from "node:os";
 import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { ToolError } from "../registry/registry.ts";
 import { quote } from "../registry/schema.ts";
+import { absolute } from "../tools/common.ts";
 
 /** Where m3a writes in a project, under the working directory: its edited clips, its own state, imported sets and its
  *  check output. Nothing else, and never library/. */
@@ -17,6 +18,10 @@ const inside = (base: string, p: string) => {
   const up = relative(base, p);
   return up !== ".." && !up.startsWith(`..${sep}`) && !isAbsolute(up);
 };
+
+/** How a refusal names a path it was given: quoted (and cut) as given, or "the file" when absolute, which no reply
+ *  echoes. */
+export const shown = (path: string): string => (absolute(path) ? "the file" : quote(path));
 
 /** A filesystem error's code (ENOENT, EACCES ...), or "unreadable". */
 export const errno = (err: unknown): string => (err as NodeJS.ErrnoException).code ?? "unreadable";
@@ -28,7 +33,7 @@ function real(p: string, path: string): string {
       return realpathSync(q);
     } catch (err) {
       const missing = errno(err) === "ENOENT" || errno(err) === "ENOTDIR";
-      if (!missing || dirname(q) === q) throw new ToolError("E_PATH", `can't follow ${quote(path)} (${errno(err)})`, true);
+      if (!missing || dirname(q) === q) throw new ToolError("E_PATH", `can't follow ${shown(path)} (${errno(err)})`, true);
     }
   }
 }
@@ -37,8 +42,8 @@ function real(p: string, path: string): string {
  *  `to` says what to do instead. */
 export function under(cwd: string, path: string, to: string): string {
   const p = resolve(cwd, path);
-  if (!path.trim() || !inside(cwd, p)) throw new ToolError("E_PATH", `${path.trim() ? `${quote(path)} is outside the working directory` : "the path is empty"}; ${to}`, true);
-  if (!inside(realpathSync(cwd), real(p, path))) throw new ToolError("E_PATH", `${quote(path)} leads out of the working directory through a link; ${to}`, true);
+  if (!path.trim() || !inside(cwd, p)) throw new ToolError("E_PATH", `${path.trim() ? `${shown(path)} is outside the working directory` : "the path is empty"}; ${to}`, true);
+  if (!inside(realpathSync(cwd), real(p, path))) throw new ToolError("E_PATH", `${shown(path)} leads out of the working directory through a link; ${to}`, true);
   return p;
 }
 
@@ -47,10 +52,10 @@ export function under(cwd: string, path: string, to: string): string {
 export function writable(cwd: string, path: string): string {
   const roots = WRITE_ROOTS.map((r) => `${r}/`).join(", "), p = under(cwd, path, `m3a writes only under ${roots}`);
   const [root, ...rest] = relative(cwd, p).split(sep), top = realpathSync(cwd);
-  if (!WRITE_ROOTS.includes(root!) || !rest.length) throw new ToolError("E_PATH", `${quote(path)} is not under m3a's write roots: it writes only under ${roots}, never library/`, true);
+  if (!WRITE_ROOTS.includes(root!) || !rest.length) throw new ToolError("E_PATH", `${shown(path)} is not under m3a's write roots: it writes only under ${roots}, never library/`, true);
   // a root not there yet resolves to the working directory itself; one that is there must hold the file's real path
   const r = real(p, path), there = lstatSync(join(cwd, root!), { throwIfNoEntry: false });
-  if (there ? !inside(join(top, root!), r) : r !== top) throw new ToolError("E_PATH", `${quote(path)} leads out of ${root}/ through a link; m3a writes only under ${roots}`, true);
+  if (there ? !inside(join(top, root!), r) : r !== top) throw new ToolError("E_PATH", `${shown(path)} leads out of ${root}/ through a link; m3a writes only under ${roots}`, true);
   return p;
 }
 
@@ -101,14 +106,14 @@ export async function lockFile(cwd: string, path: string, wait = LOCK_WAIT, stal
       writeFileSync(p, me, { flag: "wx" });
       return () => void tryIt(() => drop(me));
     } catch (err) {
-      if (errno(err) !== "EEXIST") throw new ToolError("E_WRITE", `can't take ${quote(path)} (${errno(err)})`);
+      if (errno(err) !== "EEXIST") throw new ToolError("E_WRITE", `can't take ${shown(path)} (${errno(err)})`);
     }
     const was = tryIt(held), [host, pid] = (was ?? "").split(" "), age = tryIt(() => Date.now() - statSync(p).mtimeMs) ?? 0;
     if (was !== undefined && ((host === hostname() && Number(pid) > 0 && !alive(Number(pid))) || age > stale)) {
       tryIt(() => drop(was));
       continue;
     }
-    if (waited >= wait) throw new ToolError("E_LOCKED", `${quote(path)} is held by another m3a process; nothing was changed`, false, { next: "call again when that edit is done" });
+    if (waited >= wait) throw new ToolError("E_LOCKED", `${shown(path)} is held by another m3a process; nothing was changed`, false, { next: "call again when that edit is done" });
     await new Promise((ok) => setTimeout(ok, pause));
     waited += pause;
   }
