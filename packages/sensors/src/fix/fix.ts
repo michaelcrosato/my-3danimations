@@ -47,7 +47,7 @@ export interface FixReport {
 }
 
 /** Which metrics' findings each operator answers. */
-const ANSWERS: Readonly<Record<FixName, readonly string[]>> = {
+export const ANSWERS: Readonly<Record<FixName, readonly string[]>> = {
   twistFlips: ["twistFlip"], jitter: ["jitter", "pop"], penetration: ["penetration"], footLocks: ["slide", "skate"], seam: ["seam", "seamVelocity"], refit: [],
 };
 /** Keys a second past which re-fitting is suggested: the library's 30 fps grid. */

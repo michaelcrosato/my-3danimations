@@ -1,0 +1,203 @@
+// The check tools (PLAN.md WP-7.2a §1): a clip measured by the sensors (metrics), drawn as a contact sheet with its
+// findings in red (sheet) or as frames moving through space around a moment (film), two clips compared (diff: where
+// their poses part, travel, both verdicts and a picture of what moved; findings when b is worse), and the repairs a
+// clip needs (lint). Rows are capped, each reply's `next` names the tool to call after it, and images go through
+// ctx.image with cells at most 125 px wide (film's 160), so their cost stays near the plan's: sheet 8 frames ~331
+// tokens, film 8 ~346, diff 6 ~614.
+import { clip as clipNs, format, measureFacts, type Clip, type Rest } from "@m3a/core";
+import { measureClipFacts, tagConflicts } from "@m3a/library";
+import { checks, fixes, metrics as measure, raster, sheets, type Report } from "@m3a/sensors";
+import { defineTool, ToolError } from "../registry/registry.ts";
+import { imageTokens } from "../registry/reply.ts";
+import { strip } from "../sim/film.ts";
+import { loadClip } from "./clips.ts";
+import { capped, CLIP, count, cut, mm, round, sec } from "./common.ts";
+
+const RANK = { pass: 0, warn: 1, fail: 2 } as const;
+/** Seconds either side of film's moment. */
+const AROUND = 0.2;
+/** A pose distance over this (mm) counts as a difference in diff's intervals. */
+const OVER = 5;
+
+/** A time span with 3 decimals: "0.367–0.433 s". */
+const span = (t0: number, t1: number) => `${round(t0, 3).toFixed(3)}–${sec(t1)}`;
+/** "more: n" for a capped list, naming its cap. */
+const more = (n: number | undefined, cap: number): string[] => (n ? [`more: ${n} (the first ${cap} shown)`] : []);
+/** A finding as a row, its message cut to a row's 90 characters. */
+const row = (f: checks.Finding) => ({ metric: f.metric, level: f.level, t0: f.t0, t1: f.t1, value: f.value, where: f.where ?? null, message: cut(f.message) });
+/** Fail and warn counts: "2 fail, 2 warn". */
+const tally = (r: Report) => ((n) => `${n} fail, ${r.findings.length - n} warn`)(r.findings.filter((f) => f.level === "fail").length);
+/** The metrics whose findings no fix operator answers. */
+const unanswered = (r: Report) => ((all) => [...new Set(r.findings.map((f) => f.metric))].filter((m) => !all.has(m)))(new Set(Object.values(fixes.ANSWERS).flat()));
+/** An image's width for `frames` cells of at most 125 px (eight to the sheets' 1,000 px row): fewer frames, a smaller image. */
+const cells = (frames: number) => Math.min(1000, frames * 125);
+/** A drawing whose poses show no body (non-numbers in the keys) refused as E_BLANK, an error naming the times. */
+function drawn<T>(draw: () => T): T {
+  try {
+    return draw();
+  } catch (err) {
+    if (err instanceof Error && /no body drawn/.test(err.message)) throw new ToolError("E_BLANK", err.message.replace(/^[^:]*: /, ""));
+    throw err;
+  }
+}
+/** The clip's pose at t on R, a loop's end its cycle's last pose. */
+const poseAt = (c: Clip, t: number, R: Rest, out?: Float32Array) => clipNs.sample(c, c.loop && t >= c.dur ? c.dur * (1 - 1e-12) : t, R, out);
+/** Where the root stands at t in mm (the format's % of H0 × H0 / 100). */
+const rootMm = (c: Clip, t: number, R: Rest) => ((r) => ({ forward: (r.forward * R.H0) / 100, right: (r.right * R.H0) / 100, yaw: r.yaw }))(clipNs.rootAt(c, t));
+/** The root's travel over the clip (one cycle of a loop): [forward, right] mm. */
+const travel = (c: Clip, R: Rest) => ((r) => [round(r.forward), round(r.right)])(rootMm(c, c.dur, R));
+
+/** Where two clips' poses part, both on rest R, every 1/60 s over the shorter: the largest point distance (mm), its
+ *  point and time, the mean of each sample's largest, and the intervals where it is over 5 mm. */
+export function poseDiff(a: Clip, b: Clip, R: Rest): { max: number; point: string | null; at: number; mean: number; over: [number, number][] } {
+  const dur = Math.min(a.dur, b.dur), n = Math.max(1, Math.ceil(dur * 60)), X = new Float32Array(format.P * 3), Y = new Float32Array(format.P * 3);
+  let max = 0, point: string | null = null, at = 0, sum = 0, open: [number, number] | null = null;
+  const over: [number, number][] = [];
+  for (let i = 0; i <= n; i++) {
+    const t = (dur * i) / n;
+    poseAt(a, t, R, X);
+    poseAt(b, t, R, Y);
+    let worst = 0, p = 0;
+    for (let j = 0; j < format.P; j++) {
+      const d = Math.sqrt((X[3 * j]! - Y[3 * j]!) ** 2 + (X[3 * j + 1]! - Y[3 * j + 1]!) ** 2 + (X[3 * j + 2]! - Y[3 * j + 2]!) ** 2);
+      if (d > worst) [worst, p] = [d, j];
+    }
+    sum += worst;
+    if (worst > max) [max, point, at] = [worst, format.POINTS[p]!, t];
+    if (worst > OVER) open = open ? [open[0], t] : [t, t];
+    else if (open) {
+      over.push(open);
+      open = null;
+    }
+  }
+  if (open) over.push(open);
+  return { max: round(max), point, at: round(at, 3), mean: round(sum / (n + 1)), over: over.map(([x, y]) => [round(x, 3), round(y, 3)]) };
+}
+
+/** `metrics`: a clip's sensors report, its findings worst first, and how it compares with the verdict it records. */
+export const metrics = defineTool<{ clip: string; limit: number }, unknown>({
+  name: "metrics",
+  description: "Measure a clip with the sensors: pass, warn or fail, each finding with its time, body part and repair.",
+  params: { type: "object", properties: { clip: CLIP, limit: { type: "integer", minimum: 1, maximum: 50, default: 10 } }, required: ["clip"] },
+  positionals: ["clip"],
+  examples: [{ args: { clip: "QUATERNIUS_3D2DGE/Walk_Loop" }, expect: "findings" }],
+  async run(a, ctx) {
+    const c = await loadClip(ctx, a.clip), r = measure(c.clip, c.rest), shown = capped(r.findings, a.limit), q = c.clip.quality, open = unanswered(r);
+    const current = q.qaVersion === checks.QA_VERSION, agrees = current && q.qa === (r.verdict === "pass" ? "pass" : "baselined");
+    const values = Object.fromEntries(checks.METRICS.filter((k) => !r.off.includes(k)).map((k) => [k, round(r.values[k], 1)]));
+    return {
+      verdict: `metrics ${c.id}: ${r.verdict.toUpperCase()}${r.findings.length ? ` (${tally(r)})` : ""}, ${sec(r.dur)} ${r.loop ? "loop" : "once"}`,
+      data: { clip: c.id, tier: c.tier, verdict: r.verdict, dur: r.dur, loop: r.loop, profiles: r.profiles, off: r.off, values, findings: shown.rows.map(row), ...(shown.more ? { more: shown.more } : {}), total: r.findings.length, recorded: { qa: q.qa, qaVersion: q.qaVersion, current, agrees } },
+      lines: [...shown.rows.map((f) => `${f.level.toUpperCase()} ${f.metric}: ${f.message}`), ...more(shown.more, a.limit), `recorded: ${q.qa} with ${q.qaVersion}${!current ? `, not the current ${checks.QA_VERSION}` : agrees ? ", as measured" : `; the sensors now give ${r.verdict}`}`],
+      findings: r.verdict === "fail",
+      next: !r.findings.length ? `the clip measures clean; sheet ${c.id} to look at it` : open.length === new Set(r.findings.map((f) => f.metric)).size ? `no repair answers ${open.join(", ")}: search for another clip, or edit its keys` : `lint ${c.id} names the repairs; sheet ${c.id} shows the findings in red`,
+    };
+  },
+});
+
+/** `sheet`: a clip's contact sheet, the metrics' findings flagged in red. */
+export const sheet = defineTool<{ clip: string; frames: number; view: raster.ViewName }, unknown>({
+  name: "sheet",
+  description: "A clip as a contact-sheet PNG, the sensors' findings in red.",
+  params: { type: "object", properties: { clip: CLIP, frames: { type: "integer", minimum: 1, maximum: 64, default: 8 }, view: { type: "string", enum: Object.keys(raster.VIEWS), default: "three-quarter" } }, required: ["clip"] },
+  positionals: ["clip"],
+  examples: [{ args: { clip: "QUATERNIUS_3D2DGE/Walk_Loop", frames: 8 } }],
+  async run(a, ctx) {
+    const c = await loadClip(ctx, a.clip), r = measure(c.clip, c.rest);
+    const s = drawn(() => sheets.sheet(c.clip, c.rest, { frames: a.frames, view: a.view, width: cells(a.frames), flags: r.findings.map((f) => ({ t0: f.t0, t1: f.t1, label: f.metric })) }));
+    const image = ctx.image(c.id, s.image), tokens = imageTokens(s.width, s.height), red = capped(r.findings, 10);
+    return {
+      verdict: `sheet ${c.id}: ${count(s.times.length, "frame")} ${span(s.times[0]!, s.times.at(-1)!)}, ${s.width}x${s.height}, ~${tokens} tokens, ${count(r.findings.length, "finding")} in red`,
+      data: { clip: c.id, view: a.view, frames: s.times.length, from: round(s.times[0]!, 3), to: round(s.times.at(-1)!, 3), width: s.width, height: s.height, tokens, image, flagged: red.rows.map((f) => ({ metric: f.metric, level: f.level, t0: f.t0, t1: f.t1 })), ...(red.more ? { more: red.more } : {}) },
+      lines: [...red.rows.map((f) => `red: ${f.metric}${f.where ? ` ${f.where}` : ""} ${span(f.t0, f.t1)} (${f.level})`), ...more(red.more, 10)],
+      next: `open the image: red cells are the findings; metrics ${c.id} gives the numbers, film ${c.id} shows it moving`,
+    };
+  },
+});
+
+/** `film`: frames of a clip moving through space, around a moment (its strike by default) or over the whole clip. */
+export const film = defineTool<{ clip: string; frames: number; around?: number }, unknown>({
+  name: "film",
+  description: "A PNG strip of a clip moving through space around a moment (its strike by default).",
+  params: { type: "object", properties: { clip: CLIP, frames: { type: "integer", minimum: 1, maximum: 16, default: 8 }, around: { type: "number", minimum: 0, description: "seconds" } }, required: ["clip"] },
+  positionals: ["clip"],
+  examples: [{ args: { clip: "QUATERNIUS_3D2DGE/Punch_Jab", around: 0.147 } }],
+  async run(a, ctx) {
+    const c = await loadClip(ctx, a.clip), { clip, rest } = c, n = a.frames;
+    if (a.around !== undefined && a.around > clip.dur) throw new ToolError("E_ARGS", `around is ${a.around} s, past the clip's end (${sec(clip.dur)})`, true);
+    const strike = measureFacts(clip, rest).strike?.[0] ?? null, at = a.around ?? strike;
+    const [t0, t1] = at === null ? [0, clip.dur] : [Math.max(0, at - AROUND), Math.min(clip.dur, at + AROUND)];
+    const times = at === null ? sheets.sheetTimes(clip, { frames: n }) : n === 1 ? [at] : Array.from({ length: n }, (_, i) => t0 + ((t1 - t0) * i) / (n - 1));
+    // the frame nearest each moment (the strike, an event) carries its name
+    const half = times.length > 1 ? (times[1]! - times[0]!) / 2 : AROUND, marks = [...(strike === null ? [] : [{ t: strike, name: "strike" }]), ...(clip.events ?? [])].filter((m) => m.t >= times[0]! - half && m.t <= times.at(-1)! + half);
+    const nearest = (t: number) => times.reduce((k, x, i) => (Math.abs(x - t) < Math.abs(times[k]! - t) ? i : k), 0);
+    const labels = times.map((t, i) => [`${t.toFixed(2)} S`, ...marks.filter((m) => nearest(m.t) === i).map((m) => m.name)].join(" ").toUpperCase());
+    const img = strip(times.map((t) => poseAt(clip, t, rest)), times.map((t) => rootMm(clip, t, rest)), labels, Math.min(160, Math.floor((1568 - 2 * (n - 1)) / n)));
+    const image = ctx.image(c.id, img), tokens = imageTokens(img.width, img.height), went = travel(clip, rest);
+    return {
+      verdict: `film ${c.id}: ${count(times.length, "frame")} ${span(times[0]!, times.at(-1)!)}${strike === null ? "" : `, strike at ${sec(strike)}`}, ${img.width}x${img.height}, ~${tokens} tokens`,
+      data: { clip: c.id, frames: times.length, times: times.map((t) => round(t, 3)), strike, travel: went, width: img.width, height: img.height, tokens, image },
+      lines: [`frames at ${times.map((t) => round(t, 3).toFixed(3)).join(", ")} s`, `travels ${mm(went[0]!)} forward, ${mm(went[1]!)} right over ${sec(clip.dur)}`],
+      next: at === null ? `film ${c.id} with around (seconds) zooms on a moment; sheet ${c.id} shows contacts and findings` : `sheet ${c.id} shows the whole clip with its findings; metrics ${c.id} measures it`,
+    };
+  },
+});
+
+/** `diff`: two clips compared on a's rest, pose by pose, metric by metric and pixel by pixel; findings when b is worse
+ *  (qa's rule: a worse verdict or more findings), each way it is worse named (with fix's rule per metric). */
+export const diff = defineTool<{ a: string; b: string; frames: number }, unknown>({
+  name: "diff",
+  description: "Compare two clips: pose distance, travel, both verdicts and a PNG of what moved; findings when b is worse.",
+  params: { type: "object", properties: { a: CLIP, b: CLIP, frames: { type: "integer", minimum: 1, maximum: 32, default: 6 } }, required: ["a", "b"] },
+  positionals: ["a", "b"],
+  examples: [{ args: { a: "QUATERNIUS_3D2DGE/Punch_Jab", b: "QUATERNIUS_3D2DGE/Punch_Cross" } }],
+  async run(x, ctx) {
+    const A = await loadClip(ctx, x.a), B = await loadClip(ctx, x.b), R = A.rest, mb = checks.motionOf(B.clip, B.rest), ra = measure(A.clip, A.rest), rb = checks.measure(mb);
+    const pose = poseDiff(A.clip, B.clip, R), d = drawn(() => sheets.compareClips(A.clip, B.clip, R, { frames: x.frames, width: cells(x.frames) }));
+    const image = ctx.image(`${A.id}-vs-${B.id}`, d.image), over = capped(pose.over, 5), [va, vb] = [ra.verdict, rb.verdict];
+    const worse = RANK[vb] > RANK[va] || rb.findings.length > ra.findings.length ? [...(RANK[vb] > RANK[va] ? [`verdict ${va} → ${vb}`] : []), ...fixes.worse(mb, ra, rb)] : [];
+    const keys = checks.METRICS.filter((k) => !ra.off.includes(k) && !rb.off.includes(k) && round(ra.values[k], 1) !== round(rb.values[k], 1));
+    const moved = capped(keys.map((k) => ({ metric: k, a: round(ra.values[k], 1), b: round(rb.values[k], 1), by: Math.abs(rb.values[k] - ra.values[k]) / checks.THRESHOLDS[k].fail })).sort((p, q) => q.by - p.by), 8);
+    const same = pose.max === 0 && d.changed === 0, went = { a: travel(A.clip, R), b: travel(B.clip, R) };
+    return {
+      verdict: `diff ${A.id} → ${B.id}: ${same ? "no difference" : `poses differ up to ${mm(pose.max)}${pose.point ? ` (${pose.point} at ${sec(pose.at)})` : ""}`}; ${va.toUpperCase()} → ${vb.toUpperCase()} (${ra.findings.length} → ${count(rb.findings.length, "finding")})`,
+      data: { a: A.id, b: B.id, rest: `${A.clip.restSrc} (a's)`, dur: [A.clip.dur, B.clip.dur], pose: { ...pose, over: over.rows, ...(over.more ? { more: over.more } : {}) }, travel: went, metrics: { verdict: [va, vb], findings: [ra.findings.length, rb.findings.length], changed: moved.rows.map(({ by: _, ...m }) => m), ...(moved.more ? { more: moved.more } : {}) }, worse, pixels: { changed: d.changed, box: d.box }, image },
+      lines: [
+        ...(JSON.stringify(B.rest) === JSON.stringify(R) ? [] : [`b drawn on a's rest (${A.clip.restSrc}): a clip's keys are rest-relative`]),
+        ...(A.clip.dur === B.clip.dur ? [] : [`the image compares by phase (frame i of n at i/n of each clip); the poses by time over the shorter ${sec(Math.min(A.clip.dur, B.clip.dur))}`]),
+        ...(over.rows.length ? [`poses over ${OVER} mm apart: ${over.rows.map(([p, q]) => span(p, q)).join(", ")}`, ...more(over.more, 5)] : []),
+        ...moved.rows.map((m) => `${m.metric} ${m.a} → ${m.b}`),
+        ...more(moved.more, 8),
+        ...([...went.a, ...went.b].some((v) => v !== 0) ? [`travel ${went.a.map(mm).join(", ")} → ${went.b.map(mm).join(", ")} (forward, right)`] : []),
+        ...worse.map((w) => `worse: ${w}`),
+      ],
+      findings: worse.length > 0,
+      next: worse.length ? `b is worse: keep a, or lint ${B.id} names its repairs` : `open the image: magenta marks what moved; metrics ${B.id} gives b's findings`,
+    };
+  },
+});
+
+/** `lint`: the fix operators a clip's findings ask for, the tags its measured facts contradict, and what no operator
+ *  answers. */
+export const lint = defineTool<{ clip: string }, unknown>({
+  name: "lint",
+  description: "The repairs a clip needs (fix's operators) and the tags its motion doesn't bear out.",
+  params: { type: "object", properties: { clip: CLIP }, required: ["clip"] },
+  positionals: ["clip"],
+  examples: [{ args: { clip: "QUATERNIUS_3D2DGE/Walk_Loop" }, expect: "findings" }],
+  async run(a, ctx) {
+    const c = await loadClip(ctx, a.clip), r = measure(c.clip, c.rest), l = fixes.lint(c.clip, c.rest, r), open = unanswered(r);
+    const tags = tagConflicts(c.clip, measureClipFacts(c.clip, c.rest).facts, c.rest), ops = l.items.map((i) => i.op);
+    const what = [...(ops.length ? [`fix ${ops.join(", ")} (${count(r.findings.filter((f) => !open.includes(f.metric)).length, "finding")})`] : []), ...(tags.length ? [`tags ${tags.map((t) => t.tag).join(", ")} don't hold`] : []), ...(open.length ? [`no repair answers ${open.join(", ")}`] : [])];
+    return {
+      verdict: `lint ${c.id}: ${what.join("; ") || "nothing to fix"}`,
+      data: { clip: c.id, verdict: r.verdict, repairs: l.items.map((i) => ({ op: i.op, answers: i.why.length, why: i.why.slice(0, 3).map((w) => cut(w)) })), tags, unanswered: open },
+      lines: [...l.text.split("\n").slice(1), ...tags.map((t) => `tag ${t.tag}: ${t.message}`)],
+      findings: ops.length + tags.length > 0,
+      next: ops.length
+        ? `fix ${c.id} applies ${ops.join(", ")}, keeping only steps that don't make it worse; diff it with the fixed copy`
+        : tags.length ? `edit ${c.id} with meta tags to drop ${tags.map((t) => t.tag).join(", ")}, or search for another clip`
+        : open.length ? `no repair answers ${open.join(", ")}: search for another clip, or edit its keys` : `nothing to fix; metrics ${c.id} gives the values`,
+    };
+  },
+});
