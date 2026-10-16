@@ -109,26 +109,41 @@ let taken = 0;
 /**
  * Takes lock file `path` under `cwd`'s write roots: created exclusively ("wx") holding this machine's name, this
  * process's pid and a count, so no two callers hold it, in this process or another; retried with a growing pause
- * while held. A lock is broken when stale: its process on this machine is gone, or it is older than `stale` ms; it is
- * removed only while it still holds what was judged stale. Resolves to the release, which removes the lock only
- * while it is still this one. E_LOCKED (an error) when it stays held `wait` ms.
+ * while held. A lock is broken when stale: its process on this machine is gone, or it is older than `stale` ms. One
+ * caller breaks it at a time, under `<path>.break` (taken the same way), and removes it only while it still holds what
+ * was judged stale: so no breaker removes the lock another caller took in its place. A break lock left by a caller
+ * killed while breaking is stale by the same rule, and removed the same way. Resolves to the release, which removes
+ * the lock only while it is still this one. E_LOCKED (an error) when it stays held `wait` ms.
  */
 export async function lockFile(cwd: string, path: string, wait = LOCK_WAIT, stale = LOCK_STALE): Promise<() => void> {
-  const p = writable(resolve(cwd), path), me = `${hostname()} ${process.pid} ${++taken}`;
-  const held = () => readFileSync(p, "utf8"), drop = (was: string) => held() === was && rmSync(p, { force: true });
+  const p = writable(resolve(cwd), path), b = `${p}.break`, me = `${hostname()} ${process.pid} ${++taken}`;
+  /** Removes lock file `f` while it holds `was`; whether it did. */
+  const drop = (f: string, was: string) => tryIt(() => readFileSync(f, "utf8") === was && (rmSync(f, { force: true }), true)) === true;
+  /** What lock file `f` holds when it is stale (its process on this machine gone, or older than `stale`), else undefined. */
+  const staleOf = (f: string) => {
+    const was = tryIt(() => readFileSync(f, "utf8")), [host, pid] = (was ?? "").split(" "), age = tryIt(() => Date.now() - statSync(f).mtimeMs) ?? 0;
+    return was !== undefined && ((host === hostname() && Number(pid) > 0 && !alive(Number(pid))) || age > stale) ? was : undefined;
+  };
+  /** Breaks the lock while it holds `was`, under the break lock, or removes a stale break lock; whether one was removed. */
+  const breaks = (was: string) => {
+    if (!tryIt(() => (writeFileSync(b, me, { flag: "wx" }), true))) {
+      const dead = staleOf(b);
+      return dead !== undefined && drop(b, dead);
+    }
+    const gone = drop(p, was);
+    drop(b, me);
+    return gone;
+  };
   mkdirSync(dirname(p), { recursive: true });
   for (let pause = 2, waited = 0; ; pause = Math.min(pause * 2, 100)) {
     try {
       writeFileSync(p, me, { flag: "wx" });
-      return () => void tryIt(() => drop(me));
+      return () => void drop(p, me);
     } catch (err) {
       if (errno(err) !== "EEXIST") throw new ToolError("E_WRITE", `can't take ${shown(path)} (${errno(err)})`);
     }
-    const was = tryIt(held), [host, pid] = (was ?? "").split(" "), age = tryIt(() => Date.now() - statSync(p).mtimeMs) ?? 0;
-    if (was !== undefined && ((host === hostname() && Number(pid) > 0 && !alive(Number(pid))) || age > stale)) {
-      tryIt(() => drop(was));
-      continue;
-    }
+    const was = staleOf(p);
+    if (was !== undefined && breaks(was)) continue;
     if (waited >= wait) throw new ToolError("E_LOCKED", `${shown(path)} is held by another m3a process; nothing was changed`, false, { next: "call again when that edit is done" });
     await new Promise((ok) => setTimeout(ok, pause));
     waited += pause;

@@ -99,7 +99,7 @@ describe("the Node host", () => {
     }
   });
 
-  it("takes a lock file for one caller at a time, waits while it is held, and breaks a stale one", async () => {
+  it("takes a lock file for one caller at a time, waits while it is held, and breaks a stale one, one breaker at a time", async () => {
     const { cwd, rm } = exampleCwd(false), L = ".m3a/locks/X.lock", file = join(cwd, L), order: string[] = [];
     try {
       const first = await lockFile(cwd, L), second = lockFile(cwd, L).then((release) => (order.push("second"), release));
@@ -119,7 +119,16 @@ describe("the Node host", () => {
       }
       writeFileSync(file, `elsewhere ${gone} 1`);
       await expect(lockFile(cwd, L, 0)).rejects.toMatchObject({ code: "E_LOCKED" });
-      rmSync(file);
+      // one caller breaks a stale lock at a time: while another's break lock is held the stale lock stays, so no breaker
+      // removes the lock another took in its place; a break lock whose process is gone is broken too
+      const breaking = `${file}.break`, dead = `${hostname()} ${gone} 1`;
+      writeFileSync(file, dead);
+      writeFileSync(breaking, `${hostname()} ${process.pid} 0`);
+      await expect(lockFile(cwd, L, 0)).rejects.toMatchObject({ code: "E_LOCKED" });
+      expect(readFileSync(file, "utf8")).toBe(dead);
+      writeFileSync(breaking, `${hostname()} ${gone} 2`);
+      (await lockFile(cwd, L, 0))();
+      expect([existsSync(file), existsSync(breaking)]).toEqual([false, false]);
       const mine = await lockFile(cwd, L); // released only while it is still this caller's
       writeFileSync(file, "another");
       mine();
