@@ -4,10 +4,11 @@
 // agents run a few at once, each `claude` started in its workspace with a /tmp of its own, every checkout of the
 // repository hidden, the CLI's account file empty, its processes alone in /proc and unable to unmount what hides the
 // repository (D84, D91), as an unprivileged user with no capabilities whom /root, the raw disks and the covers refuse,
-// its workspace and home its own and the proxy's CA copied into that home; and a held-out variant given by path, whose
-// known-good solution runs first. Every temporary directory a test makes is removed after it.
+// its workspace and home its own (a link in them handed, never what it leads to), /var/tmp and /dev/shm its own too,
+// and the proxy's CA copied into that home; and a held-out variant given by path, whose known-good solution runs first.
+// Every temporary directory a test makes is removed after it.
 import { execFileSync } from "node:child_process";
-import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, symlinkSync, writeFileSync } from "node:fs";
 import { homedir, tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, describe, expect, it } from "vitest";
@@ -154,7 +155,8 @@ describe("an agent's own /tmp (D84)", () => {
   // reached), how much of the CLI's account file it reads, whether it can unmount what covers the repository, who it is
   // and with what capabilities, whether /root and the raw disks open, whether it can write its workspace and home,
   // where its CA is and whose the CLI's credentials are (a cloud session's: it doesn't read them); and writes a scratch
-  // file to /tmp by name, as agents do. It replies name=value pairs.
+  // file to /tmp, /var/tmp and /dev/shm by name, as agents do, after saying what the last two held. It replies
+  // name=value pairs.
   const stand = (home: string) => {
     mkdirSync(join(home, "bin"), { recursive: true });
     const sh = join(home, "bin", "claude"), all = checkouts.map((d) => `'${d}'`).join(" ");
@@ -162,6 +164,9 @@ describe("an agent's own /tmp (D84)", () => {
       "before=$(ls -A /tmp | tr '\\n' ' ')",
       'echo "$PWD" > /tmp/cat.mjs',
       "cat=$(cat /tmp/cat.mjs)",
+      "shared=$(ls -A /var/tmp /dev/shm 2>/dev/null | grep -v ':$' | grep -c .)",
+      'echo "$PWD" > /var/tmp/cat.mjs; echo "$PWD" > /dev/shm/cat.mjs',
+      "vcat=$(cat /var/tmp/cat.mjs /dev/shm/cat.mjs | sort -u)",
       `repo=$(ls -A '${ROOT}' 2>/dev/null | wc -l)`,
       `others=$(for d in ${all}; do ls -A "$d" 2>/dev/null; done | wc -l)`,
       `opened=$(for d in ${all}; do ls -A "$d" >/dev/null 2>&1 && echo "$d"; done | wc -l)`,
@@ -203,6 +208,12 @@ describe("an agent's own /tmp (D84)", () => {
       return join(base, n);
     });
     process.env.PATH = `${wss.map((ws) => stand(`${ws}-home`)).join(":")}:${path}`;
+    // a directory link in each workspace to a directory outside it, the runner's: handing the workspace to its user
+    // hands the link alone, never what it leads to nor anything through it
+    const outside = join(base, "outside"), me = process.getuid?.() ?? 0;
+    mkdirSync(join(outside, "sub"), { recursive: true });
+    writeFileSync(join(outside, "sub", "kept"), "");
+    for (const ws of wss) symlinkSync("../outside", join(ws, "link"));
     try {
       const runs = await pool(wss, 2, (ws) => runAgent(ws, "hello", `${ws}.jsonl`));
       for (const [i, r] of runs.entries()) {
@@ -234,10 +245,14 @@ describe("an agent's own /tmp (D84)", () => {
         // (a runner that isn't root can't read them, nor hand them on)
         expect(s.creds).toBe(!existsSync(CLOUD_CREDENTIALS) ? "none" : process.getuid?.() === 0 ? "own" : "other");
         if (existsSync(CLOUD_CREDENTIALS)) expect(statSync(CLOUD_CREDENTIALS).uid).toBe(0);
-        // its scratch file landed in its own /tmp, beside its workspace, which the runner reads after it
+        // the link in its workspace is its user's; what the link leads to, and what lies through it, stayed the runner's
+        expect([lstatSync(join(ws, "link")).uid, ...["", "sub", "sub/kept"].map((f) => statSync(join(outside, f)).uid)]).toEqual([r.uid, me, me, me]);
+        // its scratch file landed in its own /tmp, beside its workspace, which the runner reads after it; /var/tmp and
+        // /dev/shm were empty and its own too (two at once never meet there), gone with its namespace
         expect(readFileSync(`${ws}-tmp/cat.mjs`, "utf8").trim()).toBe(ws);
+        expect([s.shared, s.vcat]).toEqual(["0", ws]);
       }
-      expect(existsSync("/tmp/cat.mjs") && readFileSync("/tmp/cat.mjs", "utf8").trim().startsWith(base)).toBe(false);
+      for (const f of ["/tmp/cat.mjs", "/var/tmp/cat.mjs", "/dev/shm/cat.mjs"]) expect(existsSync(f) && readFileSync(f, "utf8").trim().startsWith(base), f).toBe(false);
     } finally {
       process.env.PATH = path;
     }

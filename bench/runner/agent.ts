@@ -5,8 +5,9 @@
 // and home, and every checkout of the repository (each worktree, with the graders, the known-good solutions and the
 // held-out originals), its git directory and this session's Claude home are hidden from it, and the CLI's account file
 // beside that home (~/.claude.json) reads empty (D84, D91): agents write scratch files to /tmp by name, so agents run at
-// once no longer meet there. Where the machine allows a PID namespace too, /proc shows only the agent's own processes,
-// so no /proc/<pid>/root reaches the machine's view (D91).
+// once no longer meet there, nor in /var/tmp and /dev/shm, each an empty tmpfs of its own. Where the machine allows a
+// PID namespace too, /proc shows only the agent's own processes, so no /proc/<pid>/root reaches the machine's view
+// (D91).
 // Why hide, not allow: every copy of the graders outside /tmp on this machine lies in a worktree (`find /`, 2026-10-15),
 // and covering directories keeps D84's mechanism, tested as root and through a user namespace on CI; a fresh root
 // holding only what an agent needs would have to carry everything the CLI reaches for (the node installs, the resolver's
@@ -38,7 +39,7 @@
 //   line it wrote, and replaced it before running anything); relative paths in such a file are taken only as `./` or
 //   `../` strings, from its directory, and only when they exist.
 import { execFileSync, spawn } from "node:child_process";
-import { copyFileSync, existsSync, lchownSync, mkdirSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import { copyFileSync, existsSync, lchownSync, lstatSync, mkdirSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, isAbsolute, join, normalize, resolve } from "node:path";
 
@@ -450,21 +451,31 @@ export function agentUser(): AgentUser {
 function dropTo(u: AgentUser): string[] {
   return ["setpriv", ...(u.switched ? ["--reuid", String(u.uid), "--regid", String(u.gid), "--clear-groups"] : []), ...NOCAPS, "--"];
 }
-/** Hands `dirs` and everything in them to `u` (symbolic links themselves, never followed). */
+/**
+ * Hands `dirs` and everything in them to `u`, walking only real directories: a symbolic link is handed itself, never
+ * what it leads to, and never walked through (`lchown` spares only a path's last part, and a recursive `readdir` goes
+ * into a link to a directory, so `link/file` would hand the file outside). Nothing else runs in them meanwhile: the
+ * agent starts after.
+ */
 function handTo(u: AgentUser, dirs: readonly string[]): void {
-  for (const d of dirs) for (const p of [d, ...readdirSync(d, { recursive: true, encoding: "utf8" }).map((f) => join(d, f))]) lchownSync(p, u.uid, u.gid);
+  const hand = (path: string, dir: boolean): void => {
+    lchownSync(path, u.uid, u.gid);
+    if (dir) for (const e of readdirSync(path, { withFileTypes: true })) hand(join(path, e.name), e.isDirectory());
+  };
+  for (const d of dirs) hand(d, lstatSync(d).isDirectory());
 }
 /**
  * The command that starts `cmd args` in `workspace` with a /tmp of its own, `tmp` (a directory outside the workspace):
  * in a mount namespace, the workspace and `home` are bound into `tmp` at their own paths, `tmp` is bound over /tmp,
  * every checkout of the repository, its git directory and this session's Claude home (`hidden`) are covered by empty
- * directories only root may open, and the CLI's account file beside that home (~/.claude.json), where there is one, by
- * /dev/null; in a PID namespace where the machine allows one (`pids`); with no capabilities where `setpriv` works
- * (`caps`), as `agentUser()` (who must own the workspace, `home` and `tmp`). Where that user isn't the runner, the CLI's
- * credentials in a cloud session (`CLOUD_CREDENTIALS`, root's alone) are copied into a tmpfs of the namespace's own,
- * made its user's and bound over their directory: the CLI reads them where it did as root, they never land on disk, and
- * the session's own files stay as they are. Null where no namespace can be made (the agent then shares the machine's
- * /tmp).
+ * directories only root may open, the CLI's account file beside that home (~/.claude.json), where there is one, by
+ * /dev/null, and /var/tmp and /dev/shm (each where it is a directory, not a link) by an empty tmpfs of its own, as open
+ * as they were (1777), so agents run at once never meet there either; in a PID namespace where the machine allows one
+ * (`pids`); with no capabilities where `setpriv` works (`caps`), as `agentUser()` (who must own the workspace, `home`
+ * and `tmp`). Where that user isn't the runner, the CLI's credentials in a cloud session (`CLOUD_CREDENTIALS`, root's
+ * alone) are copied into a tmpfs of the namespace's own, made its user's and bound over their directory: the CLI reads
+ * them where it did as root, they never land on disk, and the session's own files stay as they are. Null where no
+ * namespace can be made (the agent then shares the machine's /tmp).
  */
 export function privateTmp(workspace: string, home: string, tmp: string, cmd: string, args: readonly string[]): { cmd: string; args: string[]; pids: boolean; caps: boolean } | null {
   const ns = namespace();
@@ -482,6 +493,7 @@ export function privateTmp(workspace: string, home: string, tmp: string, cmd: st
     'mount --rbind "$2" /tmp',
     'for d in $4; do mount -t tmpfs -o size=64k,mode=0700 m3a-hidden "$d"; done',
     'if [ -e "$5" ]; then mount --bind /dev/null "$5"; fi',
+    'for d in /var/tmp /dev/shm; do if [ -d "$d" ] && [ ! -L "$d" ]; then mount -t tmpfs -o mode=1777 m3a-own "$d"; fi; done',
     'if [ -n "$6" ]; then',
     '  c=/tmp/.m3a-credentials; mkdir "$c"; mount -t tmpfs -o "size=64k,mode=0700,uid=$7,gid=$8" m3a-credentials "$c"',
     '  cp -R "$6/." "$c"; chown -R "$7:$8" "$c"; mount --bind "$c" "$6"; umount "$c"; rmdir "$c"',
