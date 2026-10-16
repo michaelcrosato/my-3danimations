@@ -18,6 +18,7 @@ import { CLIP } from "../src/tools/common.ts";
 import { BASE } from "../src/tools/index.ts";
 import { exampleCwd, ROOT, runExamples } from "./helpers/surfaces.ts";
 import { tally } from "./helpers/tally.ts";
+import { workshopClip } from "./helpers/workshop.ts";
 
 /** demo.put: writes `text` to `path` (or removes it without), then reads it back. */
 const put = defineTool({
@@ -229,9 +230,14 @@ describe("the library and the clip loader", () => {
       expect(await refused("WORKSHOP/Pose")).toEqual(["usage", "E_NO_CLIP", expect.stringMatching(/^no workshop clip "WORKSHOP\/Pose" \(workshop\/Pose.json\)/)]);
       host.write!("workshop/Pose.json", JSON.stringify({ ...pose, id: "WORKSHOP/Pose" }));
       expect((await call("WORKSHOP/Pose")).data).toMatchObject({ id: "WORKSHOP/Pose", set: "WORKSHOP", tier: null, where: "workshop", H0: 916.7, resolved: "WORKSHOP/Pose" });
-      const rest = libraryAccess(cwd).library.about("QUATERNIUS_3D2DGE").sources[pose.restSrc]!.rest;
-      host.write!(".m3a/history/Pose.json", JSON.stringify({ from: "QUATERNIUS_3D2DGE/A_TPose", rest: { ...rest, H0: 900 } }));
+      // its rest and tier from its history while the history is the file's; a history set aside counts for nothing
+      const rest = libraryAccess(cwd).library.about("QUATERNIUS_3D2DGE").sources[pose.restSrc]!.rest, text = JSON.stringify({ ...pose, id: "WORKSHOP/Pose" });
+      workshopClip(cwd, "Pose", text, "QUATERNIUS_3D2DGE/A_TPose", { ...rest, H0: 900 });
       expect((await call("WORKSHOP/Pose")).data).toMatchObject({ tier: "cc0", H0: 900 });
+      host.write!("workshop/Pose.json", `${text}\n`); // changed outside m3a
+      expect((await call("WORKSHOP/Pose")).data).toMatchObject({ tier: null, H0: 916.7 });
+      workshopClip(cwd, "Pose", text, "QUATERNIUS_3D2DGE/A_TPose", { ...rest, H0: 900, spine: [] as unknown as typeof rest.spine }); // a rest broken by hand
+      expect((await call("WORKSHOP/Pose")).data).toMatchObject({ tier: null, H0: 916.7 });
     } finally {
       rm();
     }

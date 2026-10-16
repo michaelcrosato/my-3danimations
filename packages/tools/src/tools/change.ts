@@ -11,7 +11,7 @@ import { defineTool, ToolError, type ToolContext, type ToolOutput } from "../reg
 import { didYouMean, quote, type Schema } from "../registry/schema.ts";
 import { loadClip, type ClipRef } from "./clips.ts";
 import { capped, CLIP, count, cut, sec } from "./common.ts";
-import { applied, back, commit, mayCopy, originOf, ownState, readTarget, replay, targetName, targetRevision, type History, type Target } from "./workshop.ts";
+import { applied, back, commit, mayCopy, readTarget, replay, targetName, targetRevision, WORKSHOP, type Entry, type History, type Target } from "./workshop.ts";
 
 const SAVE_AS: Schema = { type: "string", description: "WORKSHOP/Name" };
 /** What edit's own ops take: meta sets the clip's name, tags and desc; slice (first only) cuts the clip it starts from. */
@@ -25,8 +25,19 @@ const CHAIN = 32;
 const summary = (c: Clip, m: Report) => ({ dur: c.dur, keys: c.keys.length, strike: (c.facts?.strike as number[] | undefined)?.[0] ?? null, verdict: m.verdict, findings: m.findings.length });
 /** A clip's license and the credit it owes. */
 const license = (c: Clip) => ({ spdx: c.provenance.license, credit: c.provenance.credit ?? null });
-/** The clip a call names; the target's own file, named by its path, loads as the workshop clip it is. */
-const load = (ctx: ToolContext, clip: string, t: Target | null) => loadClip(ctx, t && clip.trim().replace(/^\.\//, "") === t.path ? t.id : clip);
+/** The library clip a loaded clip comes from: a workshop copy's provenance names it (wherever its file is); any other
+ *  is its own. */
+const originOf = (ref: ClipRef): string => (ref.id.startsWith(`${WORKSHOP}/`) ? (ref.clip.provenance.orig ?? ref.id) : ref.id);
+/** The target's own origin and rest when its history doesn't hold them (there is none, or it was set aside): its file
+ *  loaded as every tool loads it; undefined when there is no file, or it is no clip. */
+async function ownState(ctx: ToolContext, t: Target): Promise<Pick<Entry, "from" | "rest"> | undefined> {
+  if (t.history || t.text === null) return undefined;
+  const r = await loadClip(ctx, t.id).catch((err: unknown) => {
+    if (err instanceof ToolError) return undefined;
+    throw err;
+  });
+  return r && { from: originOf(r), rest: r.rest };
+}
 /** Whether `ref` is the target's own file, whatever id it holds. */
 const inPlace = (ref: ClipRef, t: Target) => ref.where === "workshop" && ref.path === t.path;
 const stacks = (h: History | null) => ({ undo: h?.undo.length ?? 0, redo: h?.redo.length ?? 0 });
@@ -50,7 +61,7 @@ export const fix = defineTool<{ clip: string; ops?: fixes.FixName[]; save_as?: s
     const named = !a.dry_run || a.save_as !== undefined || !/^\s*\{/.test(a.clip);
     const t = named ? await readTarget(ctx, targetName(a.clip, a.save_as)) : null, again = t && replay(t, "fix", a);
     if (again) return again.out;
-    const ref = await load(ctx, a.clip, t);
+    const ref = await loadClip(ctx, a.clip);
     if (t) mayCopy(t, inPlace(ref, t), a);
     const r = repair(ref.clip, ref.rest, { ops: a.ops, maxKeys: a.max_keys }), [b, f] = [r.before, r.after].map((m) => ({ verdict: m.verdict, findings: m.findings.length }));
     const steps = r.steps.map((s) => ({ op: s.op, changes: s.changes.length, why: s.skipped ?? (s.rejected ? cut(`would make worse: ${s.rejected.join("; ")}`) : null) }));
@@ -114,7 +125,7 @@ export const edit = defineTool<{ clip: string; ops?: Record<string, unknown>[]; 
     }
     const ops = a.ops ?? [];
     if (ops.length < 1 || ops.length > 16) throw new ToolError("E_ARGS", `ops takes 1 to 16 recipe steps, not ${ops.length} (spec/RECIPE.md lists them: retime, mirror, pose, ...)`, true);
-    const ref = await load(ctx, a.clip, t), from = originOf(ref), lib = ctx.library().library.resolver(), h = t.history, here = inPlace(ref, t);
+    const ref = await loadClip(ctx, a.clip), from = originOf(ref), lib = ctx.library().library.resolver(), h = t.history, here = inPlace(ref, t);
     mayCopy(t, here, a);
     // the recipe since the copy, when this edits it in place, its library clip is still the one the file was made from
     // (visible, and the content its provenance names) and the chain stays within CHAIN steps; a slice cuts the clip as

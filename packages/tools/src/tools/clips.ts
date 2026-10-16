@@ -1,45 +1,44 @@
 // One way to name a clip for every clip tool (PLAN.md WP-7.2): a library id (SET/Name, at the game's tiers), a workshop
-// copy (WORKSHOP/Name: workshop/Name.json, its rest kept in its history), a .json path, or the clip's JSON. A file or
-// JSON clip is checked with @m3a/core's validator and takes its rest from a set's manifest. A refusal names the closest
-// id, or the game.json line that opts in to a tier. And a recipe resolver over the library and the workshop.
+// copy (WORKSHOP/Name: workshop/Name.json, its origin and rest kept in its history while that history is the file's), a
+// .json path, or the clip's JSON. A file or JSON clip is checked with @m3a/core's validator and takes its rest from a
+// set's manifest. A refusal names the closest id, or the game.json line that opts in to a tier. And a recipe resolver
+// over the library and the workshop.
 import { recipe, validate, validation, type Clip, type Rest } from "@m3a/core";
 import { LibraryError, type SourceAbout, type Tier } from "@m3a/library";
 import { ToolError, type LibraryAccess, type ToolContext } from "../registry/registry.ts";
 import { closest, quote } from "../registry/schema.ts";
 import { count } from "./common.ts";
-
-/** The workshop's set name: WORKSHOP/<Name> is the edited clip in workshop/<Name>.json. */
-export const WORKSHOP = "WORKSHOP";
-/** A workshop clip's name: a letter, then letters, digits or "_". */
-export const WORKSHOP_NAME = /^[A-Za-z][A-Za-z0-9_]*$/;
-/** The file a workshop clip lives in. */
-export const workshopFile = (name: string): string => `workshop/${name}.json`;
-/** The file a workshop clip's history lives in: the clip it came from (`from`), that clip's rest, its undo stack. */
-export const historyFile = (name: string): string => `.m3a/history/${name}.json`;
+import { readTarget, WORKSHOP, workshopName } from "./workshop.ts";
 
 /** Where a clip's rest comes from: the set and key (the clip's restSrc) of a manifest's source, with that source. */
 export type ClipSource = SourceAbout & { set: string; key: string };
 
-/** A clip loaded for a tool: its id, the clip, its rest, the set its id names (WORKSHOP for a workshop copy), its tier
- *  (a workshop copy's origin's; null when no library set is its), its rest's source (null when only a history kept the
- *  rest), where it came from, and its file and text (null for a library clip). */
+/** A clip loaded for a tool: its id, the clip, its rest, the set its id names (WORKSHOP for a workshop copy), `home`,
+ *  the set it belongs to (a workshop copy's origin's: its history's, else the set of the library clip its provenance
+ *  names; a file's own set, else that one's; its tier and rest are looked up there), that set's tier (null when it is
+ *  no library set), its rest's source (null when only a history kept the rest), the library clip its workshop history
+ *  names (`origin`; null for any other), where it came from, its file and text (null for a library clip), and its
+ *  workshop name (null unless a workshop copy). */
 export interface ClipRef {
   id: string;
   clip: Clip;
   rest: Rest;
   set: string;
+  home: string;
   tier: Tier | null;
   source: ClipSource | null;
+  origin: string | null;
   where: "library" | "workshop" | "file" | "text";
   path: string | null;
   text: string | null;
+  name: string | null;
 }
 
 /** A clip read for its own data alone (readClip): a ClipRef whose rest is null when no set has it. */
 export type ClipData = Omit<ClipRef, "rest"> & { rest: Rest | null };
 
 /** Whether `path` is absolute (a reply never echoes one). */
-export const absolute = (path: string): boolean => /^([A-Za-z]:)?[\\/]/.test(path);
+export const absolute = (path: string): boolean => /^([A-Za-z]:|[\\/])/.test(path);
 
 /**
  * Loads the clip `ref` names: its JSON (starting with "{"), a .json path, WORKSHOP/<Name> (or its file's path, read as
@@ -54,28 +53,27 @@ export async function loadClip(ctx: ToolContext, ref: string): Promise<ClipRef> 
   throw new ToolError("E_REST", `${r.path === null ? "the clip JSON" : quote(r.path)} names rest ${quote(r.clip.restSrc)}, which no set's manifest has; make it on a library rest (each set's _set.json lists its sources)`, r.where === "text");
 }
 
+const setOf = (id: string): string => id.split("/")[0]!;
+
 /** As loadClip, for a tool that needs only the clip's own data (license.check): a clip whose rest no set has (and no
- *  history kept) loads too, its rest null. */
+ *  history kept) loads too, its rest null. A workshop copy's history counts only as the edit tools read it (workshop.ts
+ *  readTarget): the file's own, or stepped back from a write cut short; set aside (the file changed outside m3a, or
+ *  the history unreadable), the file is read as any clip file is. */
 export async function readClip(ctx: ToolContext, ref: string): Promise<ClipData> {
-  const lib = ctx.library(), id = ref.trim().replace(/^(?:\.\/)?workshop\/([A-Za-z][A-Za-z0-9_]*)\.json$/, `${WORKSHOP}/$1`);
-  if (id.startsWith("{")) return fromText(lib, id, "text", null);
-  if (/\.json$/i.test(id)) return fromText(lib, await ctx.read(id), "file", id);
-  const [set, name, more] = id.split("/");
-  if (set !== WORKSHOP) return fromLibrary(lib, id);
-  if (!name || more !== undefined || !WORKSHOP_NAME.test(name)) throw new ToolError("E_NO_CLIP", `${quote(id)} is no workshop id: WORKSHOP/<Name>, the name a letter, then letters, digits or "_"`, true);
-  const path = workshopFile(name), text = await ctx.tryRead(path);
-  if (text === null) throw new ToolError("E_NO_CLIP", `no workshop clip ${quote(id)} (${path}); fix or edit a library clip with save_as "${id}" to make one`, true);
-  let h: { from?: unknown; rest?: Rest } | null;
-  try {
-    h = JSON.parse((await ctx.tryRead(historyFile(name))) ?? "null") as { from?: unknown; rest?: Rest } | null;
-  } catch {
-    h = null; // an unreadable history: the rest comes from the manifests, as for a file
+  const lib = ctx.library(), given = ref.trim(), name = workshopName(given);
+  if (name !== null) {
+    const t = await readTarget(ctx, name), h = t.history;
+    if (t.text === null) throw new ToolError("E_NO_CLIP", `no workshop clip ${quote(t.id)} (${t.path}); fix or edit a library clip with save_as "${t.id}" to make one`, true);
+    return fromText(lib, t.text, "workshop", t.path, name, h && { origin: h.from, rest: h.rest });
   }
-  return fromText(lib, text, "workshop", path, typeof h?.from === "string" ? h.from.split("/")[0] : undefined, h?.rest);
+  if (given.startsWith("{")) return fromText(lib, given, "text", null, null);
+  if (/\.json$/i.test(given)) return fromText(lib, await ctx.read(given), "file", given, null);
+  return fromLibrary(lib, given);
 }
 
-/** A clip from its text: parsed and checked with core's validator (read mode), its rest from `rest` or a manifest. */
-function fromText(lib: LibraryAccess, text: string, where: "workshop" | "file" | "text", path: string | null, origin?: string, rest?: Rest): ClipData {
+/** A clip from its text: parsed and checked with core's validator (read mode), its rest from its history (`kept`) or a
+ *  manifest. */
+function fromText(lib: LibraryAccess, text: string, where: "workshop" | "file" | "text", path: string | null, name: string | null, kept?: { origin: string; rest: Rest } | null): ClipData {
   const what = path === null ? "the clip JSON" : quote(path), inline = where === "text";
   let data: unknown;
   try {
@@ -85,16 +83,17 @@ function fromText(lib: LibraryAccess, text: string, where: "workshop" | "file" |
   }
   const r = validate(data, { mode: "read" });
   if (!r.ok) throw new ToolError("E_CLIP", `${what} is not a valid clip (${count(r.errors.length, "error")}): ${validation.formatIssue(r.errors[0]!).replace(/\s*\n\s*/g, "; ")}`, inline);
-  const clip = data as Clip, set = clip.id.split("/")[0]!, own = origin ?? set, found = restFor(lib, clip, own);
-  const tier = lib.source.sets().includes(own) ? lib.library.about(own).tier : null;
-  return { id: clip.id, clip, rest: rest ?? found?.rest ?? null, set, tier, source: found?.source ?? null, where, path, text };
+  const clip = data as Clip, set = setOf(clip.id), sets = lib.source.sets(), orig = clip.provenance.orig;
+  const home = kept ? setOf(kept.origin) : !sets.includes(set) && typeof orig === "string" && sets.includes(setOf(orig)) ? setOf(orig) : set;
+  const found = restFor(lib, clip, home), tier = sets.includes(home) ? lib.library.about(home).tier : null;
+  return { id: clip.id, clip, rest: kept?.rest ?? found?.rest ?? null, set, home, tier, source: found?.source ?? null, origin: kept?.origin ?? null, where, path, text, name };
 }
 
 /** A library clip, its refusal turned into a tool's. */
 function fromLibrary(lib: LibraryAccess, id: string): ClipRef {
   try {
     const got = lib.library.clip(id), key = got.clip.restSrc, src = lib.library.about(got.set).sources[key]!;
-    return { id: got.clip.id, clip: got.clip, rest: got.rest, set: got.set, tier: got.tier, source: { ...src, set: got.set, key }, where: "library", path: null, text: null };
+    return { id: got.clip.id, clip: got.clip, rest: got.rest, set: got.set, home: got.set, tier: got.tier, source: { ...src, set: got.set, key }, origin: null, where: "library", path: null, text: null, name: null };
   } catch (err) {
     throw err instanceof LibraryError ? refusal(err, id, lib) : err;
   }
@@ -105,7 +104,7 @@ function fromLibrary(lib: LibraryAccess, id: string): ClipRef {
  * first set by name with its restSrc (rest names repeat across sets: UAL1 is in both QUATERNIUS sets). Every tier is
  * read, since a rest is no clip. Null when no set has it.
  */
-export function restFor(lib: LibraryAccess, clip: Clip, set = clip.id.split("/")[0]!): { rest: Rest; source: ClipSource } | null {
+export function restFor(lib: LibraryAccess, clip: Clip, set = setOf(clip.id)): { rest: Rest; source: ClipSource } | null {
   const sets = lib.source.sets().sort();
   for (const s of [set, ...sets].filter((x) => sets.includes(x))) {
     const src = lib.library.about(s).sources[clip.restSrc];

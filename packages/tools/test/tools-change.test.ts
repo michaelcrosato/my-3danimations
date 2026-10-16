@@ -13,7 +13,7 @@ import { mcpServer } from "../src/mcp.ts";
 import { nodeHost } from "../src/node.ts";
 import { memoryStore, Registry, ToolError, type Reply, type RequestStore } from "../src/registry/index.ts";
 import type { Tier } from "@m3a/library";
-import { CHANGE } from "../src/tools/index.ts";
+import { CHANGE, CHECK, FIND } from "../src/tools/index.ts";
 import { revisionOf, type History } from "../src/tools/workshop.ts";
 import { exampleCwd, ROOT, runExamples } from "./helpers/surfaces.ts";
 
@@ -200,6 +200,38 @@ describe("the Change tools", () => {
         expect(refused(await w.call("edit", { clip: "WORKSHOP/Punch_Left", action: "redo" }))[2]).toBe("WORKSHOP/Punch_Left has an unreadable history (.m3a/history/Punch_Left.json); the next edit starts its history again");
         expect((await w.call("edit", { clip: "WORKSHOP/Punch_Left", ops: [{ op: "mirror" }] })).data).toMatchObject({ history_reset: true, undo: 1 });
       }
+    } finally {
+      w.rm();
+    }
+  });
+});
+
+describe("a workshop clip changed outside m3a", () => {
+  it("is read on its own rest by every tool, and the next edit's history keeps that rest", async () => {
+    const w = workshop(), reg = new Registry([...CHANGE, ...CHECK, ...FIND]), base = nodeHost(w.cwd), WALK = "QUATERNIUS_3D2DGE/Walk_Loop";
+    const call = (tool: string, args: object, host = base) => reg.call(tool, args, { host }), data = async (tool: string, args: object) => (await call(tool, args)).data;
+    const walk = readFileSync(join(ROOT, `library/sets/${WALK}.json`), "utf8");
+    try {
+      await call("edit", { clip: "MESH2MOTION/Punch_Cross", save_as: "WORKSHOP/Y", ops: [{ op: "mirror" }] }); // its history on Punch_Cross's rest
+      writeFileSync(join(w.cwd, "workshop/Y.json"), walk); // replaced by hand with a clip on another rest
+      for (const tool of ["metrics", "show", "lint"]) expect(await data(tool, { clip: "WORKSHOP/Y" }), tool).toEqual(await data(tool, { clip: WALK }));
+      const [mine, lib] = [await call("fix", { clip: "WORKSHOP/Y" }), await call("fix", { clip: WALK, dry_run: true, save_as: "WORKSHOP/Cmp" })];
+      expect([mine.data, w.history("Y").from, w.history("Y").rest.H0]).toEqual([expect.objectContaining({ before: (lib.data as { before: object }).before, after: (lib.data as { after: object }).after, saved: "WORKSHOP/Y" }), WALK, 916.7]);
+      // a replace cut short between its history's write and the clip's: the history steps back, so the file keeps its rest
+      await call("edit", { clip: WALK, save_as: "WORKSHOP/D", ops: [{ op: "mirror" }] });
+      let dead = false; // killed at the clip's write, so nothing after it is written (the history isn't put back)
+      const text = w.file("workshop/D.json")!, killed = (p: string, d: string | Uint8Array) => {
+        dead ||= p.startsWith("workshop/");
+        return dead ? JSON.parse("{killed") : base.write!(p, d);
+      };
+      expect((await call("edit", { clip: "MESH2MOTION/Punch_Cross", save_as: "WORKSHOP/D", ops: [{ op: "mirror" }], if_revision: revisionOf(text) }, { ...base, write: killed })).status).toBe("error");
+      expect([w.file("workshop/D.json"), w.history("D").rest.H0, await data("metrics", { clip: "WORKSHOP/D" })]).toEqual([text, 877.17, await data("metrics", { clip: text })]);
+      // a history whose rest was broken by hand is set aside: measured on the manifests' rest, and the next edit starts again
+      writeFileSync(join(w.cwd, "workshop/H.json"), walk);
+      writeFileSync(join(w.cwd, ".m3a/history/H.json"), JSON.stringify({ ...w.history("D"), head: revisionOf(walk), rest: { bones: "x" } }));
+      expect(await data("metrics", { clip: "WORKSHOP/H" })).toEqual(await data("metrics", { clip: WALK }));
+      expect(await data("edit", { clip: "WORKSHOP/H", ops: [{ op: "mirror" }] })).toMatchObject({ history_reset: true, undo: 1 });
+      expect(w.history("H").rest.H0).toBe(916.7);
     } finally {
       w.rm();
     }

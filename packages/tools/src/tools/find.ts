@@ -9,7 +9,7 @@ import { describe as timeline } from "@m3a/sensors";
 import { defineTool, ToolError } from "../registry/registry.ts";
 import { MAX_LINES } from "../registry/reply.ts";
 import { quote } from "../registry/schema.ts";
-import { absolute, loadClip, WORKSHOP, type ClipRef } from "./clips.ts";
+import { absolute, loadClip, type ClipRef } from "./clips.ts";
 import { capped, CLIP, count, cut, sec } from "./common.ts";
 import { credited, fits, libraryClips, namedBy, parts, tierOf } from "./ship.ts";
 
@@ -49,7 +49,7 @@ function legendLines(text: readonly string[]): string[] {
  *  given (JSON-quoted when it holds a space or control character); null for clip JSON or an absolute path, which a
  *  reply doesn't echo. */
 export function nameOf(ref: ClipRef): string | null {
-  if (ref.where === "workshop") return `${WORKSHOP}/${ref.path!.replace(/^workshop\/|\.json$/g, "")}`;
+  if (ref.where === "workshop") return `WORKSHOP/${ref.name}`;
   if (ref.where !== "file" || absolute(ref.path!)) return ref.where === "library" ? ref.id : null;
   return /[\s\p{Cc}]/u.test(ref.path!) ? JSON.stringify(ref.path) : ref.path;
 }
@@ -60,8 +60,8 @@ export function nameOf(ref: ClipRef): string | null {
  *  check; null when the game may ship it. */
 export function tierWarning(ref: ClipRef, tiers: readonly Tier[], named: readonly (readonly [string, Tier])[] = []): string | null {
   if (ref.where === "library") return null;
-  const license = ref.clip.provenance.license, home = ref.where === "workshop" ? (ref.source?.set ?? ref.set) : ref.set;
-  const out = [...(ref.tier ? [[home, ref.tier] as const] : []), ...named].filter(([, t]) => !tiers.includes(t));
+  const license = ref.clip.provenance.license;
+  const out = [...(ref.tier ? [[ref.home, ref.tier] as const] : []), ...named].filter(([, t]) => !tiers.includes(t));
   const missing = [...new Set([...out.map(([, t]) => t), ...parts(license).map(tierOf).filter((t) => !fits(t, tiers))])];
   if (missing.includes("local")) return `warning: its license (${license}) fits no tier a shipped game opts in to (D10)`;
   const why = `${[...new Set(out.map(([s, t]) => `${s} is a ${t} set, `))].join("")}its license is ${license}`;
@@ -92,7 +92,7 @@ export const show = defineTool<{ clip: string; from: number; legend: boolean }, 
       `qa ${c.quality.qa}`,
       `${p.src}${src ? ` (${src.label})` : ""}, ${p.method}, ${p.license}, ${credit ? `credit owed: ${credit}` : owed ? "credit owed, none given" : "no credit owed"}`,
     ].join("; ");
-    const named = libraryClips(lib, namedBy(c)).map((id) => [id.split("/")[0]!, lib.library.about(id.split("/")[0]!).tier] as const);
+    const named = libraryClips(lib, [ref.origin, ...namedBy(c)]).map((id) => [id.split("/")[0]!, lib.library.about(id.split("/")[0]!).tier] as const);
     const warn = tierWarning(ref, lib.tiers, named), head = [...(a.legend ? [] : [summary]), ...(warn ? [warn] : [])];
     // a page is what the text shows whole on every surface, beside the verdict, the head, the library's warnings (a
     // deprecated id), report.json's line and next's; the reply holds that page alone, so it stays small on every page

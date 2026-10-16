@@ -12,7 +12,25 @@
 import { recipe, type Rest } from "@m3a/core";
 import { ToolError, type ToolContext, type ToolOutput } from "../registry/registry.ts";
 import { quote } from "../registry/schema.ts";
-import { historyFile, loadClip, WORKSHOP, WORKSHOP_NAME, workshopFile, type ClipRef } from "./clips.ts";
+
+/** The workshop's set name: WORKSHOP/<Name> is the edited clip in workshop/<Name>.json. */
+export const WORKSHOP = "WORKSHOP";
+/** A workshop clip's name: a letter, then letters, digits or "_". */
+export const WORKSHOP_NAME = /^[A-Za-z][A-Za-z0-9_]*$/;
+/** The file a workshop clip lives in. */
+export const workshopFile = (name: string): string => `workshop/${name}.json`;
+/** The file a workshop clip's history lives in. */
+export const historyFile = (name: string): string => `.m3a/history/${name}.json`;
+
+/** The workshop clip a clip argument names: <Name> for WORKSHOP/<Name> or its file's path (workshop/<Name>.json, with
+ *  or without ./), null for any other; E_NO_CLIP (usage) for a WORKSHOP/ id whose name breaks the rule. */
+export function workshopName(given: string): string | null {
+  const id = given.trim().replace(/^(?:\.\/)?workshop\/([A-Za-z][A-Za-z0-9_]*)\.json$/, `${WORKSHOP}/$1`);
+  if (!id.startsWith(`${WORKSHOP}/`)) return null;
+  const name = id.slice(WORKSHOP.length + 1);
+  if (!WORKSHOP_NAME.test(name)) throw new ToolError("E_NO_CLIP", `${quote(id)} is no workshop id: WORKSHOP/<Name>, the name a letter, then letters, digits or "_"`, true);
+  return name;
+}
 
 /** The most entries a clip's undo and redo stacks keep between them (shardfall's HISTORY_LIMIT): an apply drops the
  *  oldest past it, and undo and redo only move entries from one stack to the other. */
@@ -77,7 +95,15 @@ export function targetName(clip: string, saveAs?: string): string {
 }
 
 const isText = (v: unknown) => v === null || typeof v === "string";
-const entry = (e: Partial<Entry> | null) => Boolean(e) && typeof e!.from === "string" && typeof e!.rest === "object" && typeof e!.recipe === "object" && isText(e!.text);
+const num = (v: unknown) => typeof v === "number" && Number.isFinite(v), v3 = (v: unknown) => Array.isArray(v) && v.length === 3 && v.every(num);
+const each = (v: unknown, n: number, f: (x: unknown) => boolean) => Array.isArray(v) && (n < 0 || v.length === n) && v.every(f);
+const sides = (v: unknown) => typeof v === "object" && v !== null && v3((v as Record<string, unknown>).L) && v3((v as Record<string, unknown>).R);
+/** Whether `r` has core's Rest's shape, every number finite: a history's rest broken by hand is set aside, not measured. */
+function isRest(r: unknown): r is Rest {
+  const o = (r ?? {}) as Record<string, unknown>, nums = ["H0", "hipZ", "ankleZ", "up", "fore", "knuck", "fist", "thigh", "shin", "ab", "bt", "abPitch", "btPitch", "neckW"];
+  return typeof r === "object" && nums.every((k) => num(o[k])) && ["Pr", "Cr", "Hr"].every((k) => each(o[k], 3, v3)) && ["hip", "clav", "cv"].every((k) => sides(o[k])) && ["neckSeg", "topH", "faceH"].every((k) => v3(o[k])) && each(o.spine, 4, v3) && each(o.spineW, -1, num);
+}
+const entry = (e: Partial<Entry> | null) => Boolean(e) && typeof e!.from === "string" && isRest(e!.rest) && typeof e!.recipe === "object" && isText(e!.text);
 /** `raw` as a history, or undefined when it isn't one (not JSON, or not its shape). */
 function parsed(raw: string): History | undefined {
   try {
@@ -137,21 +163,6 @@ export const targetRevision =
     const t = await readTarget(ctx, targetName(a.clip, a.save_as));
     return replay(t, tool, a as Record<string, unknown>)?.before ?? t.revision;
   };
-
-/** The library clip a loaded clip comes from: a workshop copy's provenance names it (wherever its file is); any other
- *  is its own. */
-export const originOf = (ref: ClipRef): string => (ref.id.startsWith(`${WORKSHOP}/`) ? (ref.clip.provenance.orig ?? ref.id) : ref.id);
-
-/** The target's own origin and rest when its history doesn't hold them (there is none, or it was set aside): its file
- *  loaded as every tool loads it; undefined when there is no file, or it is no clip. */
-export async function ownState(ctx: ToolContext, t: Target): Promise<Pick<Entry, "from" | "rest"> | undefined> {
-  if (t.history || t.text === null) return undefined;
-  const r = await loadClip(ctx, t.id).catch((err: unknown) => {
-    if (err instanceof ToolError) return undefined;
-    throw err;
-  });
-  return r && { from: originOf(r), rest: r.rest };
-}
 
 /** Refuses (E_EXISTS) to write a copy over a workshop clip that is there, unless the call names its revision. */
 export function mayCopy(t: Target, inPlace: boolean, a: Record<string, unknown>): void {

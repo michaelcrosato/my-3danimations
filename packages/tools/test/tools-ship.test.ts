@@ -1,13 +1,14 @@
 // Ship (PLAN.md WP-7.2a): license.check on every surface, then its failing inputs: a tier not opted in to, a clip or set
 // that isn't there, local content shipped, a wrong call, and a workshop copy, clip file or clip JSON checked as each
 // library clip it names and by its own license, its credit owed.
-import { mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { nodeHost } from "../src/node.ts";
 import { Registry, type Reply } from "../src/registry/index.ts";
 import { SHIP } from "../src/tools/index.ts";
 import { exampleCwd, ROOT, runExamples } from "./helpers/surfaces.ts";
+import { workshopClip } from "./helpers/workshop.ts";
 
 const AKIMBO = "STYLE100/Akimbo_Walk", text = (id: string) => readFileSync(join(ROOT, `library/sets/${id}.json`), "utf8");
 const clipOf = (id: string) => JSON.parse(text(id)) as { provenance: object };
@@ -64,11 +65,11 @@ describe("ship", () => {
 
   it("checks a workshop copy, a clip file or a clip's JSON as each library clip it names and by its own license", () =>
     inCwd(async (call, cwd) => {
-      for (const d of ["workshop", ".m3a/history"]) mkdirSync(join(cwd, d), { recursive: true });
-      for (const name of ["Proud", "Lost", "Odd"]) writeFileSync(join(cwd, `workshop/${name}.json`), JSON.stringify({ ...clipOf(AKIMBO), id: `WORKSHOP/${name}`, name }));
-      writeFileSync(join(cwd, ".m3a/history/Proud.json"), JSON.stringify({ from: AKIMBO }));
+      const copy = (name: string) => JSON.stringify({ ...clipOf(AKIMBO), id: `WORKSHOP/${name}`, name });
+      workshopClip(cwd, "Proud", copy("Proud"), AKIMBO);
+      workshopClip(cwd, "Lost", copy("Lost"), AKIMBO);
       writeFileSync(join(cwd, ".m3a/history/Lost.json"), "{"); // unreadable: its own provenance decides
-      writeFileSync(join(cwd, ".m3a/history/Odd.json"), JSON.stringify({ from: "STYLE100/Gone_Walk" })); // a set's clip no longer in it
+      workshopClip(cwd, "Odd", copy("Odd"), "STYLE100/Gone_Walk"); // a set's clip no longer in it
       writeFileSync(join(cwd, "akimbo.json"), text(AKIMBO));
       // composed clips as compile writes them: one whose first input (its orig) is cc0 and second cc-by, one with an input
       // from no library clip whose credit it carries; and a cc0 set's clip carrying a CC-BY license

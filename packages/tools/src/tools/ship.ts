@@ -10,7 +10,7 @@ import type { Clip } from "@m3a/core";
 import { checkGame, checkSets, creditsBlock, TIERS, type Credit, type LicenseFinding, type LicenseReport, type Tier } from "@m3a/library";
 import { defineTool, ToolError, type LibraryAccess, type ToolContext } from "../registry/registry.ts";
 import { didYouMean, quote } from "../registry/schema.ts";
-import { absolute, historyFile, readClip, suggestId, WORKSHOP } from "./clips.ts";
+import { absolute, readClip, suggestId } from "./clips.ts";
 import { capped, count } from "./common.ts";
 
 /** The tier a license fits, by the library's rule (D10): CC0-1.0 cc0, CC-BY-x.y cc-by, LicenseRef-CMU-Mocap cmu (both
@@ -36,21 +36,14 @@ export function libraryClips(lib: LibraryAccess, xs: readonly unknown[]): string
 const listed = (c: unknown): boolean => Array.isArray(c) && c.length > 0 && c.every((x) => typeof x === "string" && x.trim() !== "");
 
 /** A clip as license.check sees it: what a finding calls it (as given; a JSON clip or absolute path by its id), the
- *  library clips it names, and its own data unless it is a library id: a workshop copy's history's `from`, the
- *  provenance's `orig` and recipe inputs, and its own id, each that is a library clip; and the set its id or history
- *  names, with that set's tier (null when it is no library set). */
+ *  library clips it names, and its own data unless it is a library id: the library clip its workshop history names,
+ *  its provenance's `orig` and recipe inputs, and its own id, each that is a library clip; and the set it belongs to
+ *  (clips.ts's `home`), with that set's tier (null when it is no library set). */
 async function originsOf(ctx: ToolContext, given: string): Promise<{ label: string; ids: string[]; clip: Clip | null; set: string; tier: Tier | null }> {
   const id = given.trim();
-  if (!id.startsWith("{") && !/\.json$/i.test(id) && !id.startsWith(`${WORKSHOP}/`)) return { label: id, ids: [id], clip: null, set: id, tier: null };
-  const r = await readClip(ctx, id);
-  let from: unknown;
-  try {
-    from = r.where === "workshop" ? (JSON.parse((await ctx.tryRead(historyFile(r.path!.replace(/^workshop\/|\.json$/g, "")))) ?? "{}") as { from?: unknown }).from : undefined;
-  } catch {
-    from = undefined; // an unreadable history: the clip's own provenance says where it came from
-  }
-  const ids = libraryClips(ctx.library(), [from, ...namedBy(r.clip), r.clip.id]);
-  return { label: id.startsWith("{") || absolute(id) ? r.clip.id : id, ids, clip: r.clip, set: typeof from === "string" ? from.split("/")[0]! : r.set, tier: r.tier };
+  if (!id.startsWith("{") && !/\.json$/i.test(id) && !id.startsWith("WORKSHOP/")) return { label: id, ids: [id], clip: null, set: id, tier: null };
+  const r = await readClip(ctx, id), ids = libraryClips(ctx.library(), [r.origin, ...namedBy(r.clip), r.clip.id]);
+  return { label: id.startsWith("{") || absolute(id) ? r.clip.id : id, ids, clip: r.clip, set: r.home, tier: r.tier };
 }
 
 /** game.json's clips and ships, and whether there is one (the host reads its tiers, and refuses a file that isn't a JSON

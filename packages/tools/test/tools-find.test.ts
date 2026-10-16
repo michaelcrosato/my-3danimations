@@ -1,12 +1,13 @@
 // Find and read (PLAN.md WP-7.2a): search, show and describe on every surface, then their failing inputs, show's pages
 // and legend, and a file, JSON or workshop clip flagged when the game hasn't opted in to its set's or license's tier.
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { nodeHost } from "../src/node.ts";
 import { Registry, render, type Reply } from "../src/registry/index.ts";
 import { FIND } from "../src/tools/index.ts";
 import { exampleCwd, ROOT, runExamples } from "./helpers/surfaces.ts";
+import { workshopClip } from "./helpers/workshop.ts";
 
 /** Runs `body` with a call into a fresh working directory (unseeded), deleted after. */
 async function inCwd(body: (call: (tool: string, args: object) => Promise<Reply>, cwd: string) => Promise<void>): Promise<void> {
@@ -55,9 +56,7 @@ describe("find and read", () => {
   it("show flags a file, workshop or JSON clip whose set or license needs a tier the game hasn't opted in to, or from no library set", () =>
     inCwd(async (call, cwd) => {
       writeFileSync(join(cwd, "akimbo.json"), clipText("STYLE100/Akimbo_Walk"));
-      for (const d of ["workshop", ".m3a/history"]) mkdirSync(join(cwd, d), { recursive: true });
-      writeFileSync(join(cwd, "workshop/Proud.json"), JSON.stringify({ ...clipOf("STYLE100/Akimbo_Walk"), id: "WORKSHOP/Proud" }));
-      writeFileSync(join(cwd, ".m3a/history/Proud.json"), JSON.stringify({ from: "STYLE100/Akimbo_Walk" }));
+      workshopClip(cwd, "Proud", JSON.stringify({ ...clipOf("STYLE100/Akimbo_Walk"), id: "WORKSHOP/Proud" }), "STYLE100/Akimbo_Walk");
       const flagged = await call("show", { clip: "akimbo.json" }), akimbo = 'warning: add "cc-by" to "tiers" in game.json before shipping it (STYLE100 is a cc-by set, its license is CC-BY-4.0)';
       expect([flagged.data, flagged.lines[0], flagged.lines[1], flagged.next]).toEqual([expect.objectContaining({ tier: "cc-by", credit: "100STYLE, Mason, Starke and Komura (CC BY 4.0)" }), expect.stringMatching(/, CC-BY-4.0, credit owed: 100STYLE, Mason, Starke and Komura \(CC BY 4.0\)$/), akimbo, expect.stringMatching(/^show akimbo.json from: /)]);
       const text = render(flagged, { report: "check-output/show/report.json" }); // the warning costs no key: 5, whole, in 20 lines
