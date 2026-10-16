@@ -4,12 +4,13 @@
 // texts (32 entries in all), and the last request it applied. A revision is the first 12 hex digits of the file's
 // SHA-256, or "absent". Writes go history first, then the clip (a failed clip write puts the history back), after the
 // target's revision is read again. A file a step from the history's head is a write cut short between the two: the
-// history steps back to it. Any other file the history doesn't know was changed outside m3a: undo refuses, the next
-// edit starts a new history. The history's `last` closes the crash window between the write and the registry's record.
+// history steps back to it (a cut-short apply's result is dropped, never offered to redo). Any other file the history
+// doesn't know was changed outside m3a: undo refuses, the next edit starts a new history. The history's `last` closes
+// the crash window between the write and the registry's record.
 import { recipe, type Rest } from "@m3a/core";
 import { ToolError, type ToolContext, type ToolOutput } from "../registry/registry.ts";
 import { quote } from "../registry/schema.ts";
-import { historyFile, WORKSHOP, WORKSHOP_NAME, workshopFile } from "./clips.ts";
+import { historyFile, loadClip, WORKSHOP, WORKSHOP_NAME, workshopFile, type ClipRef } from "./clips.ts";
 
 /** The most entries a clip's undo and redo stacks keep between them (shardfall's HISTORY_LIMIT): an apply drops the
  *  oldest past it, and undo and redo only move entries from one stack to the other. */
@@ -36,12 +37,14 @@ export interface LastRequest {
 }
 
 /** A workshop clip's history: the state it last wrote (clips.ts reads its `from` and `rest`; `head` is its revision;
- *  `recipe` is null once a fix or a clip from outside the library breaks the chain), the stacks, the last request. */
+ *  `recipe` is null once a fix or a clip from outside the library breaks the chain), the stacks, the last request, and
+ *  what wrote it (an apply, an undo or a redo). */
 export interface History extends Omit<Entry, "revision"> {
   head: string;
   undo: Entry[];
   redo: Entry[];
   last?: LastRequest;
+  wrote?: "apply" | "undo" | "redo";
 }
 
 /** A workshop clip as it stands: its id, name and file, the file's text and revision, and its history (null when
@@ -88,7 +91,7 @@ function parsed(raw: string): History | undefined {
 function step(h: History, way: "undo" | "redo"): History {
   const { revision, ...e } = h[way].at(-1)!, other = way === "undo" ? "redo" : "undo";
   const now: Entry = { from: h.from, rest: h.rest, recipe: h.recipe, revision: h.head, text: h.text };
-  return { ...h, ...e, head: revision, [way]: h[way].slice(0, -1), [other]: [...h[other], now] } as History;
+  return { ...h, ...e, head: revision, wrote: way, [way]: h[way].slice(0, -1), [other]: [...h[other], now] } as History;
 }
 
 /** Reads workshop clip `name`: its file, revision and history (set aside as `stale` when unreadable, or when the file
@@ -98,7 +101,8 @@ export async function readTarget(ctx: ToolContext, name: string): Promise<Target
   let h = raw === null ? null : parsed(raw), stale = h === undefined ? `has an unreadable history (${historyFile(name)})` : null;
   if (h && h.head !== revision) {
     const way = h.undo.at(-1)?.revision === revision ? "undo" : h.redo.at(-1)?.revision === revision ? "redo" : null;
-    if (way) h = { ...step(h, way), last: undefined };
+    const s = way && step(h, way);
+    if (s) h = { ...s, redo: h.wrote === "apply" ? [] : s.redo, last: undefined };
     else [stale, h] = [`changed outside m3a (revision ${revision}, history at ${h.head})`, null];
   }
   return { id: `${WORKSHOP}/${name}`, name, path, text, revision, history: h ?? null, stale };
@@ -130,17 +134,32 @@ export const targetRevision =
     return replay(t, tool, a as Record<string, unknown>)?.before ?? t.revision;
   };
 
+/** The library clip a loaded clip comes from: a workshop copy's provenance names it (wherever its file is); any other
+ *  is its own. */
+export const originOf = (ref: ClipRef): string => (ref.id.startsWith(`${WORKSHOP}/`) ? (ref.clip.provenance.orig ?? ref.id) : ref.id);
+
+/** The target's own origin and rest when its history doesn't hold them (there is none, or it was set aside): its file
+ *  loaded as every tool loads it; undefined when there is no file, or it is no clip. */
+export async function ownState(ctx: ToolContext, t: Target): Promise<Pick<Entry, "from" | "rest"> | undefined> {
+  if (t.history || t.text === null) return undefined;
+  const r = await loadClip(ctx, t.id).catch((err: unknown) => {
+    if (err instanceof ToolError) return undefined;
+    throw err;
+  });
+  return r && { from: originOf(r), rest: r.rest };
+}
+
 /** Refuses (E_EXISTS) to write a copy over a workshop clip that is there, unless the call names its revision. */
 export function mayCopy(t: Target, inPlace: boolean, a: Record<string, unknown>): void {
   if (inPlace || t.text === null || a.if_revision !== undefined) return;
   throw new ToolError("E_EXISTS", `${t.id} exists at revision ${t.revision}; change it in place (clip "${t.id}"), give another save_as, or replace it with if_revision "${t.revision}"`);
 }
 
-/** The history after an edit writes `text` over `t`: the state before pushed onto undo (the oldest past the limit
- *  dropped), redo cleared; a stale history starts again from the state before. */
-export function applied(t: Target, text: string, base: Pick<History, "from" | "rest" | "recipe">): History {
-  const h = t.history, now: Entry = { from: h?.from ?? base.from, rest: h?.rest ?? base.rest, recipe: h?.recipe ?? null, revision: t.revision, text: t.text };
-  return { ...base, head: revisionOf(text), text, undo: [...(h?.undo ?? []), now].slice(-HISTORY_LIMIT), redo: [] };
+/** The history after an edit writes `text` (from `base`) over `t`: the state before (its origin and rest the history's,
+ *  else `own`'s, else base's) pushed onto undo, the oldest past the limit dropped, redo cleared. */
+export function applied(t: Target, text: string, base: Pick<History, "from" | "rest" | "recipe">, own?: Pick<Entry, "from" | "rest">): History {
+  const h = t.history, o = h ?? own ?? base, now: Entry = { from: o.from, rest: o.rest, recipe: h?.recipe ?? null, revision: t.revision, text: t.text };
+  return { ...base, head: revisionOf(text), text, undo: [...(h?.undo ?? []), now].slice(-HISTORY_LIMIT), redo: [], wrote: "apply" };
 }
 
 /** Undo (or redo): the history with the entry on top of that stack as the state now, its text the bytes to write back

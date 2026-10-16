@@ -2,15 +2,16 @@
 // it with recipe steps compiled by @m3a/core, and undoes and redoes. Both write a WORKSHOP copy (never the library),
 // revisioned (if_revision), retry-safe (request_id, through the registry's store and the history's last request) and
 // sharing one history (workshop.ts). An edit in place recompiles the recipe since the copy from the library clip, so
-// chained edits don't pile up the key fit's error; a slice, or a chain past 32 steps, compiles from the file as it is.
+// chained edits don't pile up the key fit's error; a slice, a chain past 32 steps, or a library clip changed since the
+// copy compiles from the file as it is.
 import { parseClip, recipe, serialize, VERSION, type Clip, type Rest } from "@m3a/core";
 import { tagConflicts, withFacts, type ClipFacts } from "@m3a/library";
 import { fix as repair, fixes, metrics, type Report } from "@m3a/sensors";
-import { defineTool, ToolError, type ToolOutput } from "../registry/registry.ts";
+import { defineTool, ToolError, type ToolContext, type ToolOutput } from "../registry/registry.ts";
 import { didYouMean, quote, type Schema } from "../registry/schema.ts";
-import { loadClip, WORKSHOP, type ClipRef } from "./clips.ts";
+import { loadClip, type ClipRef } from "./clips.ts";
 import { capped, CLIP, count, cut, sec } from "./common.ts";
-import { applied, back, commit, mayCopy, readTarget, replay, targetName, targetRevision, type History, type Target } from "./workshop.ts";
+import { applied, back, commit, mayCopy, originOf, ownState, readTarget, replay, targetName, targetRevision, type History, type Target } from "./workshop.ts";
 
 const SAVE_AS: Schema = { type: "string", description: "WORKSHOP/Name" };
 /** What edit's own ops take: meta sets the clip's name, tags and desc; slice (first only) cuts the clip it starts from. */
@@ -24,9 +25,8 @@ const CHAIN = 32;
 const summary = (c: Clip, m: Report) => ({ dur: c.dur, keys: c.keys.length, strike: (c.facts?.strike as number[] | undefined)?.[0] ?? null, verdict: m.verdict, findings: m.findings.length });
 /** A clip's license and the credit it owes. */
 const license = (c: Clip) => ({ spdx: c.provenance.license, credit: c.provenance.credit ?? null });
-/** The library clip a loaded clip comes from: a workshop copy's provenance names it (wherever its file is); any other
- *  is its own. */
-const originOf = (ref: ClipRef) => (ref.id.startsWith(`${WORKSHOP}/`) ? (ref.clip.provenance.orig ?? ref.id) : ref.id);
+/** The clip a call names; the target's own file, named by its path, loads as the workshop clip it is. */
+const load = (ctx: ToolContext, clip: string, t: Target | null) => loadClip(ctx, t && clip.trim().replace(/^\.\//, "") === t.path ? t.id : clip);
 /** Whether `ref` is the target's own file, whatever id it holds. */
 const inPlace = (ref: ClipRef, t: Target) => ref.where === "workshop" && ref.path === t.path;
 const stacks = (h: History | null) => ({ undo: h?.undo.length ?? 0, redo: h?.redo.length ?? 0 });
@@ -46,18 +46,21 @@ export const fix = defineTool<{ clip: string; ops?: fixes.FixName[]; save_as?: s
   examples: [{ args: { clip: "QUATERNIUS_3D2DGE/Walk_Loop", dry_run: true } }],
   edit: { revision: targetRevision("fix") },
   async run(a, ctx) {
-    const t = a.dry_run ? null : await readTarget(ctx, targetName(a.clip, a.save_as)), again = t && replay(t, "fix", a);
+    // a dry run resolves the target too, so it promises only what the real run does (clip JSON without save_as has none)
+    const named = !a.dry_run || a.save_as !== undefined || !/^\s*\{/.test(a.clip);
+    const t = named ? await readTarget(ctx, targetName(a.clip, a.save_as)) : null, again = t && replay(t, "fix", a);
     if (again) return again.out;
-    const ref = await loadClip(ctx, a.clip);
+    const ref = await load(ctx, a.clip, t);
     if (t) mayCopy(t, inPlace(ref, t), a);
     const r = repair(ref.clip, ref.rest, { ops: a.ops, maxKeys: a.max_keys }), [b, f] = [r.before, r.after].map((m) => ({ verdict: m.verdict, findings: m.findings.length }));
     const steps = r.steps.map((s) => ({ op: s.op, changes: s.changes.length, why: s.skipped ?? (s.rejected ? cut(`would make worse: ${s.rejected.join("; ")}`) : null) }));
     const head = `fix ${ref.id}: ${b!.verdict.toUpperCase()} -> ${f!.verdict.toUpperCase()} (${b!.findings} -> ${count(f!.findings, "finding")})`, fails = f!.verdict === "fail";
     const data = { clip: ref.id, saved: null as string | null, path: null as string | null, before: b, after: f, steps, ...stacks(t?.history ?? null) };
-    const out = { data, lines: r.text.split("\n").slice(1), findings: fails };
+    const out = { data, lines: r.text.split("\n").slice(1).map((l) => cut(l.replace(/→/g, "->"))), findings: fails };
     const changes = steps.some((s) => s.changes);
-    if (!t || !changes) {
-      const next = changes ? `fix ${ref.id} without dry_run saves it to the workshop` : fails ? `lint ${ref.id} names what is left; edit reshapes it` : `nothing to fix: sheet ${ref.id} shows it`;
+    if (!t || a.dry_run || !changes) {
+      const save = t ? `fix without dry_run saves it as ${t.id}` : `fix with save_as "WORKSHOP/<Name>", without dry_run, saves it`;
+      const next = changes ? save : fails ? `lint ${ref.id} names what is left; edit reshapes it` : `nothing to fix: sheet ${ref.id} shows it`;
       return { ...out, verdict: `${head}; ${changes ? "dry run" : "nothing changed"}, nothing saved`, next };
     }
     // the fixed clip is no longer a recipe's output (its lineage stays in orig), nor the motion a review saw
@@ -65,7 +68,7 @@ export const fix = defineTool<{ clip: string; ops?: fixes.FixName[]; save_as?: s
     const { recipe: _made, ...was } = c.provenance as Clip["provenance"] & { recipe?: unknown };
     const provenance = { ...was, orig: from, method: "edited" as const, producer: { tool: "m3a-tools", version: VERSION }, ai: "humanEdits" as const };
     const text = serialize({ ...kept, id: t.id, provenance, quality: { fit: c.quality.fit, qa: "unchecked", qaVersion: "none" } });
-    const h = applied(t, text, { from, rest: ref.rest, recipe: null }), undo = `take it back: edit ${t.id} --action undo`;
+    const h = applied(t, text, { from, rest: ref.rest, recipe: null }, await ownState(ctx, t)), undo = `take it back: edit ${t.id} --action undo`;
     const next = fails ? `lint ${t.id} names what is left; ${undo}` : `see it: sheet ${t.id}; ${undo}`;
     return commit(ctx, "fix", t, h, a, { ...out, data: { ...data, saved: t.id, path: t.path, ...stacks(h) }, verdict: `${head}; saved ${t.id} at ${h.head}`, next, revision: h.head });
   },
@@ -111,11 +114,13 @@ export const edit = defineTool<{ clip: string; ops?: Record<string, unknown>[]; 
     }
     const ops = a.ops ?? [];
     if (ops.length < 1 || ops.length > 16) throw new ToolError("E_ARGS", `ops takes 1 to 16 recipe steps, not ${ops.length} (spec/RECIPE.md lists them: retime, mirror, pose, ...)`, true);
-    const ref = await loadClip(ctx, a.clip), from = originOf(ref), lib = ctx.library().library.resolver(), h = t.history, here = inPlace(ref, t);
+    const ref = await load(ctx, a.clip, t), from = originOf(ref), lib = ctx.library().library.resolver(), h = t.history, here = inPlace(ref, t);
     mayCopy(t, here, a);
-    // the recipe since the copy, when this edits it in place, its library clip still resolves and the chain stays
-    // within CHAIN steps; a slice cuts the clip as it is now, so it compiles from the file
-    const chain = here && h?.recipe && lib(h.from) && ops[0]!.op !== "slice" && h.recipe.steps.length + ops.length <= CHAIN ? h.recipe : null;
+    // the recipe since the copy, when this edits it in place, its library clip is still the one the file was made from
+    // (visible, and the content its provenance names) and the chain stays within CHAIN steps; a slice cuts the clip as
+    // it is now, so it compiles from the file
+    const input = (ref.clip.provenance as { recipe?: { inputs: Record<string, string> } }).recipe?.inputs[h?.from ?? ""];
+    const chain = here && h?.recipe && input !== undefined && lib(h.from)?.contentId === input && ops[0]!.op !== "slice" && h.recipe.steps.length + ops.length <= CHAIN ? h.recipe : null;
     const r: recipe.Recipe = chain ? structuredClone(chain) : { format: "2.0", id: t.id, steps: [{ op: "clip", id: ref.id }] }, at: number[] = [];
     for (const [i, { op, ...f }] of ops.entries()) {
       if (typeof op !== "string" || !OPS.includes(op)) {
@@ -147,7 +152,7 @@ export const edit = defineTool<{ clip: string; ops?: Record<string, unknown>[]; 
       throw new ToolError("E_ARGS", err.issues.slice(0, 3).map((x) => `${where(x.step)}${x.field ? `.${x.field}` : ""}: ${x.message}${x.fix ? `; ${x.fix}` : ""}`).join("; "), true);
     }
     const clip = withFacts({ ...made.clip, provenance: { ...made.clip.provenance, orig: from } }, made.rest), text = serialize(clip), m = metrics(clip, made.rest);
-    const hist = applied(t, text, { from, rest: made.rest, recipe: chain || ref.where === "library" ? r : null });
+    const hist = applied(t, text, { from, rest: made.rest, recipe: chain || ref.where === "library" ? r : null }, await ownState(ctx, t));
     const [b, n] = [summary(ref.clip, metrics(ref.clip, ref.rest)), summary(clip, m)], s = (x: number | null) => (x === null ? "none" : sec(x));
     const strike = b.strike ?? n.strike ? `, strike ${s(b.strike)} -> ${s(n.strike)}` : "";
     const found = capped(m.findings, 3), tags = capped(tagConflicts(clip, clip.facts as unknown as ClipFacts, made.rest), 3);

@@ -5,12 +5,13 @@
 // (the history's last), and after a crash at the history's write (nothing written) or the clip's (the history stepping
 // back).
 import { spawnSync } from "node:child_process";
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { mcpServer } from "../src/mcp.ts";
 import { nodeHost } from "../src/node.ts";
 import { memoryStore, Registry, ToolError, type Reply, type RequestStore } from "../src/registry/index.ts";
+import type { Tier } from "@m3a/library";
 import { CHANGE } from "../src/tools/index.ts";
 import { revisionOf, type History } from "../src/tools/workshop.ts";
 import { exampleCwd, ROOT, runExamples } from "./helpers/surfaces.ts";
@@ -34,7 +35,7 @@ describe("the Change tools", () => {
     const w = workshop();
     try {
       expect(refused(await w.call("fix", { clip: "QUATERNIUS_3D2DGE/Walk_Loop", ops: ["jiter"] }))).toEqual(["usage", "E_ARGS", expect.stringMatching(/ops\[0\] is "jiter", not one of .*; did you mean "jitter"\?/)]);
-      expect(refused(await w.call("fix", { clip: "QUATERNIUS_3D2DGE/Walk_Loop", save_as: "MESH2MOTION/X" }))).toEqual(["usage", "E_ARGS", expect.stringMatching(/^save_as is "MESH2MOTION\/X": give save_as "WORKSHOP\/<Name>"/)]);
+      for (const dry_run of [false, true]) expect(refused(await w.call("fix", { clip: "QUATERNIUS_3D2DGE/Walk_Loop", save_as: "MESH2MOTION/X", dry_run }))).toEqual(["usage", "E_ARGS", expect.stringMatching(/^save_as is "MESH2MOTION\/X": give save_as "WORKSHOP\/<Name>"/)]);
       expect(refused(await w.call("edit", { clip: '{"format":"2.0"}', ops: [{ op: "mirror" }] }))).toEqual(["usage", "E_ARGS", expect.stringMatching(/^the clip names no workshop copy: give save_as/)]);
       const ops = async (...list: object[]) => (await w.call("edit", { ...PUNCH, ops: list })).error?.message;
       expect(await ops({ op: "retme", speed: 1.3 })).toBe('ops[0].op: no operation "retme"; did you mean "retime"?');
@@ -49,8 +50,8 @@ describe("the Change tools", () => {
       expect(refused(await w.call("edit", { clip: "WORKSHOP/Punch_Left", action: "undo", ops: [] }))).toEqual(["usage", "E_ARGS", "undo takes no ops: it restores the clip as it was"]);
       expect(w.file(CLIP)).toBeNull();
       const saved = await w.call("fix", { clip: "QUATERNIUS_3D2DGE/Walk_Loop" }), text = w.file("workshop/Walk_Loop.json");
-      expect([saved.status, saved.data]).toEqual(["ok", expect.objectContaining({ saved: "WORKSHOP/Walk_Loop", after: { verdict: "pass", findings: 0 }, undo: 1 })]);
-      expect(refused(await w.call("fix", { clip: "QUATERNIUS_3D2DGE/Walk_Loop" }))).toEqual(["error", "E_EXISTS", expect.stringMatching(/^WORKSHOP\/Walk_Loop exists at revision [0-9a-f]{12}; change it in place/)]);
+      expect([saved.status, saved.data, saved.lines.filter((l) => l.length > 90 || l.includes("→"))]).toEqual(["ok", expect.objectContaining({ saved: "WORKSHOP/Walk_Loop", after: { verdict: "pass", findings: 0 }, undo: 1 }), []]);
+      for (const dry_run of [false, true]) expect(refused(await w.call("fix", { clip: "QUATERNIUS_3D2DGE/Walk_Loop", dry_run }))).toEqual(["error", "E_EXISTS", expect.stringMatching(/^WORKSHOP\/Walk_Loop exists at revision [0-9a-f]{12}; change it in place/)]);
       expect(w.file("workshop/Walk_Loop.json")).toBe(text);
       for (const dry_run of [true, false]) {
         const idle = await w.call("fix", { clip: "QUATERNIUS_3D2DGE/Idle_Loop", dry_run }); // a fix that changes nothing saves nothing
@@ -60,12 +61,15 @@ describe("the Change tools", () => {
       const stamped = { provenance: { orig: "QUATERNIUS_3D2DGE/Walk_Loop", method: "edited", producer: { tool: "m3a-tools" }, ai: "humanEdits" }, quality: { qa: "unchecked", qaVersion: "none" } };
       expect(JSON.parse(text!)).toMatchObject(stamped);
       const reviewed = { ...JSON.parse(readFileSync(join(ROOT, "library/sets/QUATERNIUS_3D2DGE/Walk_Loop.json"), "utf8")), review: { state: "approved", by: "me", date: "2026-10-16", motion: "0".repeat(64) } };
+      const dry = async (a: object) => (await w.call("fix", { clip: JSON.stringify(reviewed), dry_run: true, ...a })).next; // clip JSON names no copy
+      expect([await dry({}), await dry({ save_as: "WORKSHOP/J" })]).toEqual(['fix with save_as "WORKSHOP/<Name>", without dry_run, saves it', "fix without dry_run saves it as WORKSHOP/J"]);
       writeFileSync(join(w.cwd, "rev.json"), JSON.stringify(reviewed)); // a review of the motion before the fix is dropped
       expect([(await w.call("fix", { clip: "rev.json" })).data, "review" in JSON.parse(w.file("workshop/rev.json")!)]).toMatchObject([{ saved: "WORKSHOP/rev" }, false]);
       // a workshop file is edited in place by its path, whatever id it holds; a file copy of it keeps its library origin
       for (const p of ["workshop/Odd.json", "mine.json"]) writeFileSync(join(w.cwd, p), text!);
       const odd = await w.call("edit", { clip: "WORKSHOP/Odd", ops: [{ op: "mirror" }] }), mine = await w.call("edit", { clip: "mine.json", ops: [{ op: "mirror" }] });
       expect([odd.status, odd.data, mine.data]).toMatchObject(["ok", { from: "QUATERNIUS_3D2DGE/Walk_Loop" }, { clip: "WORKSHOP/mine", from: "QUATERNIUS_3D2DGE/Walk_Loop" }]);
+      expect((await w.call("edit", { clip: "./workshop/Odd.json", ops: [{ op: "mirror" }] })).data).toMatchObject({ clip: "WORKSHOP/Odd", undo: 2 });
       const sprint = await w.call("edit", { clip: "QUATERNIUS_3D2DGE/Sprint_Loop", ops: [{ op: "mirror" }] }); // 8 findings, 3 shown
       expect([sprint.status, sprint.lines.slice(3)]).toEqual(["findings", ["more: 5 findings (metrics WORKSHOP/Sprint_Loop lists them)", 'ops[0] {"op":"mirror"}']]);
       // a fixed clip is no longer its recipe's output: the recipe's hash goes, the origin stays
@@ -98,6 +102,15 @@ describe("the Change tools", () => {
       // a replace compiles from the clip it names, not the target's chain; its undo restores the target's own rest
       expect([other.data, undone]).toMatchObject([{ from: "QUATERNIUS_3D2DGE/Walk_Loop", undo: 2, after: { dur: 1.333 } }, { from: "MESH2MOTION/Punch_Cross", recipe: { steps } }]);
       expect([undone.before, w.history().rest.H0]).toEqual([(other.data as Record<string, unknown>).after, 877.17]); // each side on its own rest
+      // a clip put there by hand (no history) keeps its own origin and rest for the undo, replaced by edit or by fix
+      const lib = (id: string) => readFileSync(join(ROOT, `library/sets/${id}.json`), "utf8");
+      for (const [tool, mine, by, H0] of [["edit", "QUATERNIUS_3D2DGE/Walk_Loop", "MESH2MOTION/Punch_Cross", 916.7], ["fix", "MESH2MOTION/Punch_Cross", "QUATERNIUS_3D2DGE/Walk_Loop", 877.17]] as const) {
+        rmSync(join(w.cwd, ".m3a/history/X.json"), { force: true });
+        writeFileSync(join(w.cwd, "workshop/X.json"), lib(mine));
+        await w.call(tool, { clip: by, save_as: "WORKSHOP/X", ...(tool === "edit" && { ops: [{ op: "mirror" }] }), if_revision: revisionOf(lib(mine)) });
+        expect((await w.call("edit", { clip: "WORKSHOP/X", action: "undo" })).data).toMatchObject({ from: mine });
+        expect([w.file("workshop/X.json"), w.history("X").rest.H0]).toEqual([lib(mine), H0]);
+      }
     } finally {
       w.rm();
     }
@@ -173,8 +186,8 @@ describe("the Change tools", () => {
       expect(JSON.parse(w.file(CLIP)!).provenance.orig).toBe("MESH2MOTION/Punch_Cross"); // compiled from the file, its origin kept
       expect((await w.call("edit", { clip: "WORKSHOP/Punch_Left", action: "undo" })).revision).toBe(revisionOf(hand));
       expect(w.file(CLIP)).toBe(hand);
-      for (const bad of ["{", '{"head":"absent","undo":7}']) {
-        writeFileSync(join(w.cwd, ".m3a/history/Punch_Left.json"), bad);
+      for (const bad of ["{", { undo: 7 }, { last: { tool: "edit" } }]) {
+        writeFileSync(join(w.cwd, ".m3a/history/Punch_Left.json"), typeof bad === "string" ? bad : JSON.stringify({ ...w.history(), ...bad }));
         expect(refused(await w.call("edit", { clip: "WORKSHOP/Punch_Left", action: "redo" }))[2]).toBe("WORKSHOP/Punch_Left has an unreadable history (.m3a/history/Punch_Left.json); the next edit starts its history again");
         expect((await w.call("edit", { clip: "WORKSHOP/Punch_Left", ops: [{ op: "mirror" }] })).data).toMatchObject({ history_reset: true, undo: 1 });
       }
@@ -195,11 +208,20 @@ describe("an edit in place", () => {
       expect((await edit({ ops: [{ op: "slice", from: 0.2 }] })).after.dur).toBeCloseTo(0.55, 6);
       const mirrors = Array.from({ length: 16 }, () => ({ op: "mirror" }));
       expect((await edit({ clip: "MESH2MOTION/Punch_Cross", save_as: "WORKSHOP/M", ops: mirrors })).recipe!.steps).toHaveLength(17);
-      expect((await edit({ clip: "WORKSHOP/M", ops: mirrors })).recipe).toBeNull();
+      expect((await edit({ clip: "WORKSHOP/M", ops: mirrors.slice(1) })).recipe!.steps).toHaveLength(32);
+      expect((await edit({ clip: "WORKSHOP/M", ops: mirrors.slice(15) })).recipe).toBeNull();
       writeFileSync(join(w.cwd, "game.json"), '{"tiers": ["cc0", "cc-by"]}');
       expect((await edit({ clip: "STYLE100/Akimbo_Walk", save_as: "WORKSHOP/A", ops: [{ op: "mirror" }] })).recipe).not.toBeNull();
       writeFileSync(join(w.cwd, "game.json"), '{"tiers": ["cc0"]}'); // the library clip out of the game's tiers: compiled from the file
       expect(await edit({ clip: "WORKSHOP/A", ops: [{ op: "mirror" }] })).toMatchObject({ recipe: null, license: { spdx: "CC-BY-4.0" } });
+      // a library clip changed since the copy (a later m3a): the chain goes, the edit compiles from the file as it is
+      await edit({ clip: "MESH2MOTION/Punch_Cross", save_as: "WORKSHOP/L", ops: [{ op: "retime", speed: 1.3 }] });
+      const host = nodeHost(w.cwd), later = (tiers?: readonly Tier[]) => {
+        const l = host.library!(tiers), was = l.library.resolver(), swap = (id: string) => was(id === "MESH2MOTION/Punch_Cross" ? "MESH2MOTION/Punch_Jab" : id);
+        return { ...l, library: new Proxy(l.library, { get: (o, k) => (k === "resolver" ? () => Object.assign(swap, { ids: was.ids }) : ((v: unknown) => (typeof v === "function" ? v.bind(o) : v))(Reflect.get(o, k))) }) };
+      };
+      const r = await new Registry(CHANGE).call("edit", { clip: "WORKSHOP/L", ops: [{ op: "meta", desc: "x" }] }, { host: { ...host, library: later } });
+      expect(r.data).toMatchObject({ recipe: null, after: { dur: 0.962 } });
     } finally {
       w.rm();
     }
@@ -277,10 +299,13 @@ describe("a retried edit applies once", () => {
       const text = w.file(CLIP);
       // killed at the history's write (the clip is written after it, so it is untouched), then at the clip's write
       for (at of [".m3a/history/", "workshop/"]) expect([(await call(retime, { ...base, write })).status, w.file(CLIP)]).toEqual(["error", text]);
+      expect(refused(await call({ action: "redo" }))[1]).toBe("E_HISTORY"); // the cut-short apply is not offered to redo
       expect((await call(retime)).data).toMatchObject({ history_reset: false, undo: 3, redo: 0, after: { dur: 0.481 } }); // the retry applies once
       const retimed = w.file(CLIP);
       expect([(await call({ action: "undo" }, { ...base, write })).status, w.file(CLIP)]).toEqual(["error", retimed]);
       expect([(await call({ action: "undo" })).data, w.file(CLIP)]).toMatchObject([{ undo: 2, redo: 1 }, text]);
+      expect([(await call({ action: "redo" }, { ...base, write })).status, w.file(CLIP)]).toEqual(["error", text]); // a redo cut short
+      expect([(await call({ action: "redo" })).data, w.file(CLIP)]).toMatchObject([{ undo: 3, redo: 0 }, retimed]);
     } finally {
       w.rm();
     }
