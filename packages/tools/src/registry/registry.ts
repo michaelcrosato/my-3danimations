@@ -52,6 +52,10 @@ export interface ToolContext {
   library(tiers?: readonly Tier[]): LibraryAccess;
   /** Attaches an image to the reply (a PNG under check-output/<tool>/ in Node); returns its path or `image:<name>`. */
   image(name: string, img: Image): string;
+  /** Takes the lock file `path` (under the write roots) against every other caller, waiting while one holds it;
+   *  resolves to its release. Callers in one process take it one at a time whatever the host (the registry's own lock,
+   *  by path); the host's lock, when it has one, keeps other processes out too. */
+  lock(path: string): Promise<() => void>;
 }
 
 /** What a platform supplies, each part optional: files read (as text or bytes), written and removed (ToolContext says
@@ -64,6 +68,9 @@ export interface Host {
   remove?(path: string): void;
   library?(tiers?: readonly Tier[]): LibraryAccess;
   image?(tool: string, name: string, img: Image): { path: string | null; png: Uint8Array | null };
+  /** ToolContext's lock across processes (a lock file in Node), taken after the registry's own in this process; without
+   *  it, edits from two processes may race. */
+  lock?(path: string): Promise<() => void>;
 }
 
 /** One tool, defined once (PLAN.md §5.6). Parameter names are a letter, then letters, digits or "_"; `output` is its
@@ -86,16 +93,57 @@ export interface Tool extends ToolDef {
   schema: Schema;
 }
 
-/** A tool's refusal: a code (E_...), a message in the API's words that says the fix, and whether the call was wrong
- *  (usage, exit 2) or the work failed (error, exit 1). */
+/** A tool's refusal: a code (E_...), a message in the API's words that says the fix, whether the call was wrong (usage,
+ *  exit 2) or the work failed (error, exit 1), and optionally the reply's `next` (the registry's own otherwise) and the
+ *  target's current revision (an edit's E_CONFLICT). */
 export class ToolError extends Error {
   readonly code: string;
   readonly usage: boolean;
-  constructor(code: string, message: string, usage = false) {
+  readonly next?: string;
+  readonly revision?: string;
+  constructor(code: string, message: string, usage = false, more: { next?: string; revision?: string } = {}) {
     super(message);
     this.code = code;
     this.usage = usage;
+    if (more.next !== undefined) this.next = more.next;
+    if (more.revision !== undefined) this.revision = more.revision;
   }
+}
+
+/** The lock paths taken in this process, each to the promise its latest taker's release resolves; a taker waits for the
+ *  one before it, so callers in one process hold a path one at a time, whatever their host (two hosts on one working
+ *  directory too: the path alone is the key). */
+const held = new Map<string, Promise<void>>();
+
+/** Takes lock `path` in this process (once its taker before lets go), then the host's (other processes) when it has
+ *  one; resolves to the release of both, which does nothing a second time. */
+async function locked(path: string, host: Host): Promise<() => void> {
+  const before = held.get(path) ?? Promise.resolve();
+  let free!: () => void;
+  const mine = new Promise<void>((ok) => (free = ok)), tail = before.then(() => mine);
+  held.set(path, tail);
+  const done = () => {
+    free();
+    if (held.get(path) === tail) held.delete(path);
+  };
+  await before;
+  let outer: () => void;
+  try {
+    outer = host.lock ? await host.lock(path) : () => {};
+  } catch (err) {
+    done();
+    throw err;
+  }
+  let once = false;
+  return () => {
+    if (once) return;
+    once = true;
+    try {
+      outer();
+    } finally {
+      done();
+    }
+  };
 }
 
 /** Names kept for the surfaces: `m3a help`, `m3a mcp`, and the console handle's list, help and call. */
@@ -259,6 +307,7 @@ export class Registry {
         images.push({ name: safe, width: img.width, height: img.height, tokens: imageTokens(img.width, img.height), bytes: kept.png?.length ?? null, path: kept.path });
         return kept.path ?? `image:${safe}`;
       },
+      lock: (p) => locked(p, host),
     };
     let key: string | undefined, sent: string | undefined;
     // the call's library warnings (a deprecated id), first among the lines so the 20-line cut keeps them
@@ -289,7 +338,7 @@ export class Registry {
         const now = await tool.edit.revision(a, ctx);
         if (now !== a.if_revision) {
           const message = `the target is at revision ${now ?? "none"}, not ${quote(a.if_revision)}; nothing was changed`;
-          return reply(tool.name, "error", { verdict: `${tool.name}: conflict: ${message}`, next: `read it again, then retry with if_revision "${now}"`, revision: now }, [], { code: "E_CONFLICT", message });
+          return reply(tool.name, "error", { verdict: `${tool.name}: conflict: ${message}`, next: `read it again, then retry with \`--if_revision ${now}\``, revision: now }, [], { code: "E_CONFLICT", message });
         }
       }
       out = await tool.run(a, ctx);
@@ -300,9 +349,9 @@ export class Registry {
       return key ? keep(r) : r;
     } catch (err) {
       const e = err instanceof ToolError ? err : new ToolError("E_RUN", err instanceof Error ? err.message : String(err));
-      const next = e.usage ? fixArgs : e.code === "E_RUN" ? "if the arguments are right, this is a bug in the tool: report the call and this message" : "fix what the message names, then call again";
+      const next = e.next ?? (e.usage ? fixArgs : e.code === "E_RUN" ? "if the arguments are right, this is a bug in the tool: report the call and this message" : "fix what the message names, then call again");
       if (e.usage) return { ...usage(tool.name, e.code, e.message, next), lines: warned() };
-      const r = reply(tool.name, "error", { verdict: `${tool.name}: error: ${e.message}`, next, revision: out?.revision, lines: warned() }, images, { code: e.code, message: e.message });
+      const r = reply(tool.name, "error", { verdict: `${tool.name}: error: ${e.message}`, next, revision: e.revision ?? out?.revision, lines: warned() }, images, { code: e.code, message: e.message });
       // run() returned, so an edit applied though its data failed the checks: kept, so a retry does not apply it again
       return key && out ? keep(r) : r;
     }

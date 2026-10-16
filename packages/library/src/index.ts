@@ -35,6 +35,8 @@ export type { SetAbout } from "./load/index.ts";
 export type { SourceAbout } from "./load/index.ts";
 /** License compliance: sets checked against their tiers and texts, or a game's clips against the tiers it opts into. */
 export { checkSets, checkGame, creditsBlock } from "./license/index.ts";
+/** D10's tier rule: the tier a license fits, and whether a tier's clips are credited. */
+export { tierOf, credited } from "./license/index.ts";
 /** What a game uses: its tiers, its clips, whether it ships. */
 export type { GameManifest } from "./license/index.ts";
 /** A license check's outcome, one problem, and a credit owed. */

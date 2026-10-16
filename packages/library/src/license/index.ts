@@ -62,6 +62,14 @@ const FITS: Readonly<Record<Tier, (id: string) => boolean>> = {
 /** The tiers whose clips must be credited where they are used. */
 const CREDITED: readonly Tier[] = ["cc-by", "cmu"];
 
+/** The tier a license fits by D10's rule, the one checkSets holds each set's sources to: CC0-1.0 cc0, CC-BY-x.y cc-by,
+ *  LicenseRef-CMU-Mocap cmu, any other only local, which never ships. A composed clip's license joins its parts with
+ *  " AND "; each part has its tier. */
+export const tierOf = (license: string): Tier => (["cc0", "cc-by", "cmu"] as const).find((t) => FITS[t](license)) ?? "local";
+
+/** Whether a tier's clips must be credited where they are used (cc-by and cmu, D10). */
+export const credited = (tier: Tier): boolean => CREDITED.includes(tier);
+
 const manifestOf = (src: LibrarySource, set: string) => JSON.parse(src.read(set, "_set.json")) as SetManifest;
 
 /**

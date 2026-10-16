@@ -23,8 +23,9 @@ describe("the tools' token budget", () => {
     expect(cost(all)).toBeLessThanOrEqual(3000);
     for (const t of all) expect(cost([t]), t.name).toBeLessThanOrEqual(240);
   });
-  it("puts each tool's first example, a good call, in its schema, and only that", () => {
+  it("puts each tool's first example, a good call, in its schema, and only that; and gives each an output schema", () => {
     for (const t of tools.list()) {
+      expect(t.output?.required?.length, t.name).toBeGreaterThan(0);
       expect([t.schema.examples, t.examples[0]!.expect ?? "ok"], t.name).toEqual([[t.examples[0]!.args], expect.stringMatching(/^(ok|findings)$/)]);
     }
   });

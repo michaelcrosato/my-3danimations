@@ -1,11 +1,14 @@
 // Where the Node host may read and write (PLAN.md WP-7.2, decision §8.3): reads under the working directory, writes
 // only under its write roots (workshop/, .m3a/, imports/, check-output/: never library/), each checked by its name and
-// by its real path, so no link leads out; and every write atomic. The host's own files (images, report.json, request
-// records) go through the same checks as a tool's.
-import { lstatSync, mkdirSync, realpathSync, renameSync, rmSync, writeFileSync } from "node:fs";
-import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
+// by its real path, so no link leads out; every write atomic; and lock files, taken exclusively, so two m3a processes
+// never write one clip at once. The host's own files (images, report.json, request records) go through the same checks
+// as a tool's. A refusal names the working directory, never its absolute path, nor an absolute path it was given.
+import { lstatSync, mkdirSync, readdirSync, readFileSync, realpathSync, renameSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { hostname } from "node:os";
+import { basename, dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { ToolError } from "../registry/registry.ts";
 import { quote } from "../registry/schema.ts";
+import { absolute } from "../tools/common.ts";
 
 /** Where m3a writes in a project, under the working directory: its edited clips, its own state, imported sets and its
  *  check output. Nothing else, and never library/. */
@@ -15,6 +18,10 @@ const inside = (base: string, p: string) => {
   const up = relative(base, p);
   return up !== ".." && !up.startsWith(`..${sep}`) && !isAbsolute(up);
 };
+
+/** How a refusal names a path it was given: quoted (and cut) as given, or "the file" when absolute, which no reply
+ *  echoes. */
+export const shown = (path: string): string => (absolute(path) ? "the file" : quote(path));
 
 /** A filesystem error's code (ENOENT, EACCES ...), or "unreadable". */
 export const errno = (err: unknown): string => (err as NodeJS.ErrnoException).code ?? "unreadable";
@@ -26,7 +33,7 @@ function real(p: string, path: string): string {
       return realpathSync(q);
     } catch (err) {
       const missing = errno(err) === "ENOENT" || errno(err) === "ENOTDIR";
-      if (!missing || dirname(q) === q) throw new ToolError("E_PATH", `can't follow ${quote(path)} (${errno(err)})`, true);
+      if (!missing || dirname(q) === q) throw new ToolError("E_PATH", `can't follow ${shown(path)} (${errno(err)})`, true);
     }
   }
 }
@@ -35,8 +42,8 @@ function real(p: string, path: string): string {
  *  `to` says what to do instead. */
 export function under(cwd: string, path: string, to: string): string {
   const p = resolve(cwd, path);
-  if (!path.trim() || !inside(cwd, p)) throw new ToolError("E_PATH", `${path.trim() ? `${quote(path)} is outside ${cwd}` : "the path is empty"}; ${to}`, true);
-  if (!inside(realpathSync(cwd), real(p, path))) throw new ToolError("E_PATH", `${quote(path)} leads out of the working directory through a link; ${to}`, true);
+  if (!path.trim() || !inside(cwd, p)) throw new ToolError("E_PATH", `${path.trim() ? `${shown(path)} is outside the working directory` : "the path is empty"}; ${to}`, true);
+  if (!inside(realpathSync(cwd), real(p, path))) throw new ToolError("E_PATH", `${shown(path)} leads out of the working directory through a link; ${to}`, true);
   return p;
 }
 
@@ -45,19 +52,21 @@ export function under(cwd: string, path: string, to: string): string {
 export function writable(cwd: string, path: string): string {
   const roots = WRITE_ROOTS.map((r) => `${r}/`).join(", "), p = under(cwd, path, `m3a writes only under ${roots}`);
   const [root, ...rest] = relative(cwd, p).split(sep), top = realpathSync(cwd);
-  if (!WRITE_ROOTS.includes(root!) || !rest.length) throw new ToolError("E_PATH", `${quote(path)} is not under m3a's write roots: it writes only under ${roots}, never library/`, true);
+  if (!WRITE_ROOTS.includes(root!) || !rest.length) throw new ToolError("E_PATH", `${shown(path)} is not under m3a's write roots: it writes only under ${roots}, never library/`, true);
   // a root not there yet resolves to the working directory itself; one that is there must hold the file's real path
   const r = real(p, path), there = lstatSync(join(cwd, root!), { throwIfNoEntry: false });
-  if (there ? !inside(join(top, root!), r) : r !== top) throw new ToolError("E_PATH", `${quote(path)} leads out of ${root}/ through a link; m3a writes only under ${roots}`, true);
+  if (there ? !inside(join(top, root!), r) : r !== top) throw new ToolError("E_PATH", `${shown(path)} leads out of ${root}/ through a link; m3a writes only under ${roots}`, true);
   return p;
 }
 
 /** Writes a file atomically: its directory made, the data written to a new temporary file beside it (whatever sat at
  *  that name removed first, a link itself rather than its target, and the file created exclusively, so no link there
- *  is followed), then renamed over it. */
+ *  is followed), then renamed over it. A write killed before its rename leaves its temporary file: this file's are
+ *  swept here once their process is gone (an edit's, under its clip's lock). */
 export function writeAtomic(path: string, data: string | Uint8Array): void {
   mkdirSync(dirname(path), { recursive: true });
   const tmp = `${path}.${process.pid}.tmp`;
+  sweep(path);
   try {
     rmSync(tmp, { force: true });
     writeFileSync(tmp, data, { flag: "wx" });
@@ -65,5 +74,87 @@ export function writeAtomic(path: string, data: string | Uint8Array): void {
   } catch (err) {
     rmSync(tmp, { force: true });
     throw err;
+  }
+}
+
+/** Removes `path`'s temporary files (`<name>.<pid>.tmp`) whose process on this machine is gone. Housekeeping: a failure
+ *  leaves them for the next write. */
+function sweep(path: string): void {
+  const dir = dirname(path), mine = `${basename(path)}.`;
+  try {
+    for (const n of readdirSync(dir)) {
+      const pid = n.startsWith(mine) ? Number(/^(\d+)\.tmp$/.exec(n.slice(mine.length))?.[1]) : 0;
+      if (pid && pid !== process.pid && !alive(pid)) rmSync(join(dir, n), { force: true });
+    }
+  } catch {
+    // swept at the next write
+  }
+}
+
+/** Whether process `pid` on this machine is running (one we may not signal is). */
+export function alive(pid: number): boolean {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch (err) {
+    return errno(err) === "EPERM";
+  }
+}
+
+/** How long a lock is waited for, and when one is stale whatever its holder (ms): a lock is held across a revision's
+ *  check and two file writes, so either is far past any real hold. */
+export const LOCK_WAIT = 10_000, LOCK_STALE = 30_000;
+let taken = 0;
+
+/**
+ * Takes lock file `path` under `cwd`'s write roots: created exclusively ("wx") holding this machine's name, this
+ * process's pid and a count, so no two callers hold it, in this process or another; retried with a growing pause
+ * while held. A lock is broken when stale: its process on this machine is gone, or it is older than `stale` ms. One
+ * caller breaks it at a time, under `<path>.break` (taken the same way), and removes it only while it still holds what
+ * was judged stale: so no breaker removes the lock another caller took in its place. A break lock left by a caller
+ * killed while breaking is stale by the same rule, and removed the same way. Resolves to the release, which removes
+ * the lock only while it is still this one. E_LOCKED (an error) when it stays held `wait` ms.
+ */
+export async function lockFile(cwd: string, path: string, wait = LOCK_WAIT, stale = LOCK_STALE): Promise<() => void> {
+  const p = writable(resolve(cwd), path), b = `${p}.break`, me = `${hostname()} ${process.pid} ${++taken}`;
+  /** Removes lock file `f` while it holds `was`; whether it did. */
+  const drop = (f: string, was: string) => tryIt(() => readFileSync(f, "utf8") === was && (rmSync(f, { force: true }), true)) === true;
+  /** What lock file `f` holds when it is stale (its process on this machine gone, or older than `stale`), else undefined. */
+  const staleOf = (f: string) => {
+    const was = tryIt(() => readFileSync(f, "utf8")), [host, pid] = (was ?? "").split(" "), age = tryIt(() => Date.now() - statSync(f).mtimeMs) ?? 0;
+    return was !== undefined && ((host === hostname() && Number(pid) > 0 && !alive(Number(pid))) || age > stale) ? was : undefined;
+  };
+  /** Breaks the lock while it holds `was`, under the break lock, or removes a stale break lock; whether one was removed. */
+  const breaks = (was: string) => {
+    if (!tryIt(() => (writeFileSync(b, me, { flag: "wx" }), true))) {
+      const dead = staleOf(b);
+      return dead !== undefined && drop(b, dead);
+    }
+    const gone = drop(p, was);
+    drop(b, me);
+    return gone;
+  };
+  mkdirSync(dirname(p), { recursive: true });
+  for (let pause = 2, waited = 0; ; pause = Math.min(pause * 2, 100)) {
+    try {
+      writeFileSync(p, me, { flag: "wx" });
+      return () => void drop(p, me);
+    } catch (err) {
+      if (errno(err) !== "EEXIST") throw new ToolError("E_WRITE", `can't take ${shown(path)} (${errno(err)})`);
+    }
+    const was = staleOf(p);
+    if (was !== undefined && breaks(was)) continue;
+    if (waited >= wait) throw new ToolError("E_LOCKED", `${shown(path)} is held by another m3a process; nothing was changed`, false, { next: "call again when that edit is done" });
+    await new Promise((ok) => setTimeout(ok, pause));
+    waited += pause;
+  }
+}
+
+/** `f()`, or undefined when it throws (a lock read or removed while another caller changes it). */
+function tryIt<T>(f: () => T): T | undefined {
+  try {
+    return f();
+  } catch {
+    return undefined;
   }
 }

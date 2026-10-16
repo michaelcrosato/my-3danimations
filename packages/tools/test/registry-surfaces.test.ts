@@ -131,8 +131,8 @@ describe("the m3a bin", () => {
   it("reads files under the working directory only", async () => {
     for (const path of ["", "/etc/hostname", "../x.json", "library/../../x.json"]) expect((await reg.call("validate", { path }, { host })).error?.code, path).toBe("E_PATH");
     expect((await reg.call("validate", { path: "" }, { host })).verdict).toBe("validate: usage error: the path is empty; give a file under the working directory, or pass its text");
-    const far = (await reg.call("validate", { path: `/${"x".repeat(100)}` }, { host })).error?.message; // quoted, cut to 60
-    expect(far).toBe(`"/${"x".repeat(54)}... is outside ${ROOT}; give a file under the working directory, or pass its text`);
+    const far = (await reg.call("validate", { path: `/${"x".repeat(100)}` }, { host })).error?.message; // an absolute path is "the file"
+    expect(far).toBe("the file is outside the working directory; give a file under the working directory, or pass its text"); // never an absolute path
   });
 
   it("runs the CLI: a report.json with the API's reply, and exit 2 naming the closest flag", () => {

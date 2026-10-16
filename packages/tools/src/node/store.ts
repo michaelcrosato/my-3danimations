@@ -2,15 +2,16 @@
 // working directory, one per tool and id, so a retry from another m3a process (the CLI is one process a command; an MCP
 // server restarts) replies the first result instead of applying again. Synchronous, as the registry calls it; each
 // record read and written only where the host may write (a .m3a/ linked out of the working directory refused), and
-// written atomically; past `max` records the oldest go (housekeeping: no reply depends on it, so a failure there is
-// ignored). A record it can't write throws, naming it by its relative path; the registry then replies anyway.
+// written atomically; past `max` records the oldest go, and a killed write's temporary file once its process is gone
+// (housekeeping: no reply depends on it, so a failure there is ignored). A record it can't write throws, naming it by
+// its relative path; the registry then replies anyway.
 import { createHash } from "node:crypto";
 import { readdirSync, readFileSync, rmSync, statSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { ToolError, type RequestStore } from "../registry/registry.ts";
 import type { Reply } from "../registry/reply.ts";
 import { quote } from "../registry/schema.ts";
-import { errno, writable, writeAtomic } from "./files.ts";
+import { alive, errno, writable, writeAtomic } from "./files.ts";
 
 /**
  * A RequestStore in files under `<cwd>/.m3a/requests/`: each record `{key, args, reply}` named by the first 32 hex
@@ -38,6 +39,11 @@ export function fileStore(cwd: string, max = 256): RequestStore {
         throw new ToolError("E_WRITE", `can't write ${quote(name(key))} (${errno(err)})`);
       }
       try {
+        // a write killed before its rename leaves <record>.<pid>.tmp: swept once its process is gone
+        for (const n of readdirSync(dir)) {
+          const pid = Number(/\.(\d+)\.tmp$/.exec(n)?.[1]);
+          if (pid && pid !== process.pid && !alive(pid)) rmSync(join(dir, n), { force: true });
+        }
         const names = readdirSync(dir).filter((n) => n.endsWith(".json"));
         if (names.length <= max) return;
         const age = (p: string) => statSync(p, { throwIfNoEntry: false })?.mtimeMs ?? 0;

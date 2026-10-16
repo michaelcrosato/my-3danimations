@@ -3,12 +3,13 @@
 // library at game.json's tiers, each call with its own warnings; and the clip loader's forms and refusals.
 import { spawnSync } from "node:child_process";
 import { existsSync, linkSync, mkdirSync, readdirSync, readFileSync, rmSync, symlinkSync, utimesSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { hostname, tmpdir } from "node:os";
 import { join } from "node:path";
 import type { LibraryError } from "@m3a/library";
 import { describe, expect, it } from "vitest";
 import { runCli } from "../src/cli.ts";
 import { nodeHost } from "../src/node.ts";
+import { lockFile } from "../src/node/files.ts";
 import { libraryAccess } from "../src/node/library.ts";
 import { fileStore } from "../src/node/store.ts";
 import { defineTool, Registry, reply } from "../src/registry/index.ts";
@@ -17,6 +18,7 @@ import { CLIP } from "../src/tools/common.ts";
 import { BASE } from "../src/tools/index.ts";
 import { exampleCwd, ROOT, runExamples } from "./helpers/surfaces.ts";
 import { tally } from "./helpers/tally.ts";
+import { workshopClip } from "./helpers/workshop.ts";
 
 /** demo.put: writes `text` to `path` (or removes it without), then reads it back. */
 const put = defineTool({
@@ -47,6 +49,18 @@ describe("the base tools, and an edit, on every surface", () => {
     const reg = new Registry(BASE);
     expect(await reg.call("validate", { text: '{"format":"2.0","id":"DEMO/Bad","dur":0}' })).toMatchObject({ status: "findings", data: { ok: false } });
     expect((await reg.call("validate", { pth: "x" })).error).toMatchObject({ code: "E_ARGS", message: expect.stringMatching(/did you mean "path"/) });
+    const { cwd, rm } = exampleCwd(); // an absolute path is named "the file": no reply echoes one
+    try {
+      const abs = await reg.call("validate", { path: join(cwd, "library/sets/QUATERNIUS_3D2DGE/A_TPose.json") }, { host: nodeHost(cwd) });
+      expect([abs.verdict, JSON.stringify(abs).includes(cwd)]).toEqual(["validate the file: PASS, 0 errors, 0 warnings", false]);
+      const refused = [[join(cwd, "nothere.json"), "can't read the file (ENOENT); paths are relative to the working directory"], [join(tmpdir(), "x.json"), "the file is outside the working directory; give a file under the working directory, or pass its text"]];
+      for (const [path, message] of refused) {
+        const r = await reg.call("validate", { path }, { host: nodeHost(cwd) });
+        expect([r.error?.message, JSON.stringify(r).includes(tmpdir())], path).toEqual([message, false]);
+      }
+    } finally {
+      rm();
+    }
   });
 });
 
@@ -58,6 +72,11 @@ describe("the Node host", () => {
       expect(readdirSync(join(cwd, "workshop"))).toEqual(["a.txt"]); // the temporary file renamed over it
       linkSync(join(cwd, "workshop/a.txt"), join(cwd, "workshop/a.lnk")); // a rename replaces the name; an in-place write would change both
       expect([host.write!("workshop/a.txt", "b"), ...["a.txt", "a.lnk"].map((f) => readFileSync(join(cwd, "workshop", f), "utf8"))]).toEqual(["workshop/a.txt", "b", "a"]);
+      // a write killed before its rename leaves <file>.<pid>.tmp: the file's next write sweeps it once its process is gone
+      const gone = spawnSync(process.execPath, ["-e", ""]).pid!, live = process.ppid, left = [`a.txt.${live}.tmp`, `b.txt.${gone}.tmp`];
+      for (const n of [`a.txt.${gone}.tmp`, ...left]) writeFileSync(join(cwd, "workshop", n), "x");
+      host.write!("workshop/a.txt", "b");
+      expect(readdirSync(join(cwd, "workshop")).sort()).toEqual(["a.lnk", "a.txt", ...left].sort());
       for (const path of ["library/sets/x.json", "../x", join(tmpdir(), "x.json"), "workshop", "game.json", "check-output/../x"]) expect((await call({ path, text: "x" })).error?.code, path).toBe("E_PATH");
       mkdirSync(join(cwd, "elsewhere"));
       symlinkSync(join(cwd, "elsewhere/via-tmp.txt"), join(cwd, `workshop/t.txt.${process.pid}.tmp`)); // a link planted at the temporary name
@@ -75,6 +94,46 @@ describe("the Node host", () => {
       expect((await call({ path: "workshop/a.txt" })).data).toEqual({ wrote: null, now: null });
       expect((await call({ path: "workshop/a.txt" })).status).toBe("ok"); // removing what isn't there is no error
       expect((await reg.call("demo.put", { path: "workshop/a.txt", text: "a" })).error).toMatchObject({ code: "E_HOST", message: expect.stringMatching(/^this surface writes no files/) });
+    } finally {
+      rm();
+    }
+  });
+
+  it("takes a lock file for one caller at a time, waits while it is held, and breaks a stale one, one breaker at a time", async () => {
+    const { cwd, rm } = exampleCwd(false), L = ".m3a/locks/X.lock", file = join(cwd, L), order: string[] = [];
+    try {
+      const first = await lockFile(cwd, L), second = lockFile(cwd, L).then((release) => (order.push("second"), release));
+      order.push("first");
+      first();
+      (await second)();
+      expect([order, existsSync(file)]).toEqual([["first", "second"], false]);
+      const held = await lockFile(cwd, L); // held by a live process (this one), and not let go in time
+      await expect(lockFile(cwd, L, 0)).rejects.toMatchObject({ code: "E_LOCKED", message: '".m3a/locks/X.lock" is held by another m3a process; nothing was changed', next: "call again when that edit is done" });
+      held();
+      // stale: its process gone, or older than the limit; another machine's process can't be asked, so only its age counts
+      const gone = spawnSync(process.execPath, ["-e", ""]).pid;
+      for (const [text, old] of [[`${hostname()} ${gone} 1`, false], [`${hostname()} ${process.pid} 1`, true], [`elsewhere ${gone} 1`, true]] as const) {
+        writeFileSync(file, text);
+        if (old) utimesSync(file, 1, 1);
+        (await lockFile(cwd, L, 0))();
+      }
+      writeFileSync(file, `elsewhere ${gone} 1`);
+      await expect(lockFile(cwd, L, 0)).rejects.toMatchObject({ code: "E_LOCKED" });
+      // one caller breaks a stale lock at a time: while another's break lock is held the stale lock stays, so no breaker
+      // removes the lock another took in its place; a break lock whose process is gone is broken too
+      const breaking = `${file}.break`, dead = `${hostname()} ${gone} 1`;
+      writeFileSync(file, dead);
+      writeFileSync(breaking, `${hostname()} ${process.pid} 0`);
+      await expect(lockFile(cwd, L, 0)).rejects.toMatchObject({ code: "E_LOCKED" });
+      expect(readFileSync(file, "utf8")).toBe(dead);
+      writeFileSync(breaking, `${hostname()} ${gone} 2`);
+      (await lockFile(cwd, L, 0))();
+      expect([existsSync(file), existsSync(breaking)]).toEqual([false, false]);
+      const mine = await lockFile(cwd, L); // released only while it is still this caller's
+      writeFileSync(file, "another");
+      mine();
+      expect(readFileSync(file, "utf8")).toBe("another");
+      await expect(lockFile(cwd, "locks/X.lock")).rejects.toMatchObject({ code: "E_PATH" }); // under the write roots only
     } finally {
       rm();
     }
@@ -127,6 +186,10 @@ describe("the Node host", () => {
       utimesSync(join(dir, file!), 1, 1); // "a" the oldest
       store.set("d", rec(4));
       expect([store.get("a"), store.get("d"), readdirSync(dir).length]).toEqual([undefined, rec(4), 3]);
+      const gone = spawnSync(process.execPath, ["-e", ""]).pid; // a killed write's temporary file is swept once its process is gone
+      for (const pid of [gone, process.pid]) writeFileSync(join(dir, `x.json.${pid}.tmp`), "{");
+      store.set("e", rec(5));
+      expect(readdirSync(dir).filter((f) => f.endsWith(".tmp"))).toEqual([`x.json.${process.pid}.tmp`]);
       symlinkSync(join(cwd, ".m3a"), join(other.cwd, ".m3a")); // records reached through a link out read as missing
       expect(fileStore(other.cwd).get("d")).toBeUndefined();
     } finally {
@@ -197,9 +260,14 @@ describe("the library and the clip loader", () => {
       expect(await refused("WORKSHOP/Pose")).toEqual(["usage", "E_NO_CLIP", expect.stringMatching(/^no workshop clip "WORKSHOP\/Pose" \(workshop\/Pose.json\)/)]);
       host.write!("workshop/Pose.json", JSON.stringify({ ...pose, id: "WORKSHOP/Pose" }));
       expect((await call("WORKSHOP/Pose")).data).toMatchObject({ id: "WORKSHOP/Pose", set: "WORKSHOP", tier: null, where: "workshop", H0: 916.7, resolved: "WORKSHOP/Pose" });
-      const rest = libraryAccess(cwd).library.about("QUATERNIUS_3D2DGE").sources[pose.restSrc]!.rest;
-      host.write!(".m3a/history/Pose.json", JSON.stringify({ from: "QUATERNIUS_3D2DGE/A_TPose", rest: { ...rest, H0: 900 } }));
+      // its rest and tier from its history while the history is the file's; a history set aside counts for nothing
+      const rest = libraryAccess(cwd).library.about("QUATERNIUS_3D2DGE").sources[pose.restSrc]!.rest, text = JSON.stringify({ ...pose, id: "WORKSHOP/Pose" });
+      workshopClip(cwd, "Pose", text, "QUATERNIUS_3D2DGE/A_TPose", { ...rest, H0: 900 });
       expect((await call("WORKSHOP/Pose")).data).toMatchObject({ tier: "cc0", H0: 900 });
+      host.write!("workshop/Pose.json", `${text}\n`); // changed outside m3a
+      expect((await call("WORKSHOP/Pose")).data).toMatchObject({ tier: null, H0: 916.7 });
+      workshopClip(cwd, "Pose", text, "QUATERNIUS_3D2DGE/A_TPose", { ...rest, H0: 900, spine: [] as unknown as typeof rest.spine }); // a rest broken by hand
+      expect((await call("WORKSHOP/Pose")).data).toMatchObject({ tier: null, H0: 916.7 });
     } finally {
       rm();
     }
