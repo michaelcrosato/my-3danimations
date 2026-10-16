@@ -111,7 +111,10 @@ describe("the Change tools", () => {
       writeFileSync(join(w.cwd, "game.json"), '{"tiers": ["cc0", "cc-by"]}');
       expect(await first("edit", { clip: "STYLE100/Akimbo_Walk", save_as: "WORKSHOP/Ak", ops: [{ op: "mirror" }] })).not.toMatch(/^warning/);
       writeFileSync(join(w.cwd, "game.json"), '{"tiers": ["cc0"]}'); // the game drops cc-by: its workshop copy is flagged
-      expect(await first("edit", { clip: "WORKSHOP/Ak", ops: [{ op: "mirror" }] })).toBe(warned("WORKSHOP/Ak", "cc-by", "STYLE100", "CC-BY-4.0"));
+      const ak = warned("WORKSHOP/Ak", "cc-by", "STYLE100", "CC-BY-4.0");
+      expect(await first("edit", { clip: "WORKSHOP/Ak", ops: [{ op: "mirror" }] })).toBe(ak);
+      for (const action of ["undo", "redo", "undo"]) expect(await first("edit", { clip: "WORKSHOP/Ak", action }), action).toBe(ak); // undo and redo flag it too
+      expect(await first("edit", { clip: "WORKSHOP/Ak", action: "undo" })).toBeUndefined(); // back to no file: nothing to flag
     } finally {
       w.rm();
     }

@@ -9,7 +9,7 @@ import { tagConflicts, withFacts, type ClipFacts } from "@m3a/library";
 import { fix as repair, fixes, metrics, type Report } from "@m3a/sensors";
 import { defineTool, ToolError, type ToolContext, type ToolOutput } from "../registry/registry.ts";
 import { didYouMean, quote, type Schema } from "../registry/schema.ts";
-import { loadClip, naming, type ClipRef } from "./clips.ts";
+import { flagTier, fromText, loadClip, naming, type ClipRef } from "./clips.ts";
 import { ARROW, call, capped, CLIP, count, cut, more, output, sec } from "./common.ts";
 import { applied, back, commit, mayCopy, readTarget, replay, targetName, targetRevision, WORKSHOP, type Entry, type History, type Target } from "./workshop.ts";
 
@@ -99,6 +99,18 @@ function restored(t: Target, h: History, way: "undo" | "redo"): ToolOutput {
   };
 }
 
+/** Flags an undo or redo of `t` into history `h` as every tool that loads the clip does (clips.ts flagTier): its file as
+ *  `h` left it, on `h`'s origin and rest. A state that is no clip, or no file, has nothing to flag. */
+function flagRestored(ctx: ToolContext, t: Target, h: History): void {
+  if (h.text === null) return;
+  const lib = ctx.library();
+  try {
+    flagTier(lib, fromText(lib, h.text, "workshop", t.path, t.name, { origin: h.from, rest: h.rest }));
+  } catch (err) {
+    if (!(err instanceof ToolError)) throw err;
+  }
+}
+
 /** Refuses (usage E_ARGS) a recipe whose running length passes the most a clip may last (format.LIMITS.dur, M2-E010)
  *  at any step, naming the step: compile builds each step's track in full, so slow retimes in a row would run out of
  *  memory long before the result's own check. `input` is the clip its first step names; `at` maps a step to its op. */
@@ -135,8 +147,9 @@ export const edit = defineTool<{ clip: string; ops?: Record<string, unknown>[]; 
     if (again) return again.out;
     if (a.action !== "apply") {
       if (a.ops) throw new ToolError("E_ARGS", `${a.action} takes no ops: it restores the clip as it was`, true);
-      const h = back(t, a.action);
-      return commit(ctx, "edit", t, h, a, restored(t, h, a.action));
+      const h = back(t, a.action), out = await commit(ctx, "edit", t, h, a, restored(t, h, a.action));
+      flagRestored(ctx, t, h);
+      return out;
     }
     const ops = a.ops ?? [];
     if (ops.length < 1 || ops.length > 16) throw new ToolError("E_ARGS", `ops takes 1 to 16 recipe steps, not ${ops.length} (spec/RECIPE.md lists them: retime, mirror, pose, ...)`, true);

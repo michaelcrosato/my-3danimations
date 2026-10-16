@@ -86,6 +86,13 @@ export function tierWarning(lib: LibraryAccess, ref: ClipData): string | null {
   return missing.length ? `add ${missing.map((t) => `"${t}"`).join(" and ")} to "tiers" in game.json before shipping ${title}: ${why}` : null;
 }
 
+/** Puts tierWarning's line for `ref` among the call's warnings (once), which the registry puts first among the reply's
+ *  lines. */
+export function flagTier(lib: LibraryAccess, ref: ClipData): void {
+  const warn = tierWarning(lib, ref);
+  if (warn && !lib.warnings.includes(warn)) lib.warnings.push(warn);
+}
+
 /**
  * Loads the clip `ref` names: its JSON (starting with "{"), a .json path, WORKSHOP/<Name> (or its file's path, read as
  * that id so its history applies), or a library id at the game's tiers. Refusals: E_NO_CLIP, E_NO_SET and E_TIER
@@ -95,8 +102,8 @@ export function tierWarning(lib: LibraryAccess, ref: ClipData): string | null {
  * which the registry puts first among the reply's lines, for every tool that loads a clip.
  */
 export async function loadClip(ctx: ToolContext, ref: string): Promise<ClipRef> {
-  const r = await readClip(ctx, ref), lib = ctx.library(), warn = tierWarning(lib, r);
-  if (warn && !lib.warnings.includes(warn)) lib.warnings.push(warn); // the call's warnings, first among its lines
+  const r = await readClip(ctx, ref);
+  flagTier(ctx.library(), r);
   if (r.rest) return { ...r, rest: r.rest };
   throw new ToolError("E_REST", `${r.path === null ? "the clip JSON" : absolute(r.path) ? "the clip file" : quote(r.path)} names rest ${quote(r.clip.restSrc)}, which no set's manifest has; make it on a library rest (each set's _set.json lists its sources)`, r.where === "text");
 }
@@ -118,8 +125,8 @@ export async function readClip(ctx: ToolContext, ref: string): Promise<ClipData>
 }
 
 /** A clip from its text: parsed and checked with core's validator (read mode), its rest from its history (`kept`) or a
- *  manifest. */
-function fromText(lib: LibraryAccess, text: string, where: "workshop" | "file" | "text", path: string | null, name: string | null, kept?: { origin: string; rest: Rest } | null): ClipData {
+ *  manifest. E_CLIP when it is no clip (usage for JSON given inline). */
+export function fromText(lib: LibraryAccess, text: string, where: "workshop" | "file" | "text", path: string | null, name: string | null, kept?: { origin: string; rest: Rest } | null): ClipData {
   const what = path === null ? "the clip JSON" : absolute(path) ? "the clip file" : quote(path), inline = where === "text";
   let data: unknown;
   try {
