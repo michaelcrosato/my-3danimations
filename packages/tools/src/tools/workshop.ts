@@ -99,7 +99,7 @@ export function targetName(clip: string, saveAs?: string): string {
   const id = saveAs ?? (/^\s*\{/.test(clip) ? "" : `${WORKSHOP}/${clip.trim().replace(/\.json$/i, "").split("/").pop()}`);
   const name = id.startsWith(`${WORKSHOP}/`) ? id.slice(WORKSHOP.length + 1) : "";
   const what = saveAs !== undefined ? `save_as is ${quote(saveAs)}` : id.startsWith(`${WORKSHOP}/`) ? `${quote(id)} is no workshop name` : "the clip names no workshop copy";
-  if (!WORKSHOP_NAME.test(name)) throw new ToolError("E_ARGS", `${what}: give save_as "WORKSHOP/<Name>" (${NAME_RULE}); the library changes only through its writer`, true);
+  if (!WORKSHOP_NAME.test(name)) throw new ToolError("E_ARGS", `${what}: give \`--save_as WORKSHOP/<Name>\` (${NAME_RULE}); the library changes only through its writer`, true);
   return name;
 }
 
@@ -173,10 +173,12 @@ export const targetRevision =
     return replay(t, tool, a as Record<string, unknown>)?.before ?? t.revision;
   };
 
-/** Refuses (E_EXISTS) to write a copy over a workshop clip that is there, unless the call names its revision. */
+/** Refuses (E_EXISTS, carrying its revision) to write a copy over a workshop clip that is there, unless the call names
+ *  its revision. */
 export function mayCopy(t: Target, inPlace: boolean, a: Record<string, unknown>): void {
   if (inPlace || t.text === null || a.if_revision !== undefined) return;
-  throw new ToolError("E_EXISTS", `${t.id} exists at revision ${t.revision}; change it in place (clip "${t.id}"), give another save_as, or replace it with if_revision "${t.revision}"`);
+  const how = `change it in place (the clip \`${t.id}\`), give another \`--save_as\`, or replace it with \`--if_revision ${t.revision}\``;
+  throw new ToolError("E_EXISTS", `${t.id} exists at revision ${t.revision}; ${how}`, false, { revision: t.revision });
 }
 
 /** The history after an edit writes `text` (from `base`) over `t`: the state before (its origin and rest the history's,
@@ -210,7 +212,7 @@ export async function commit(ctx: ToolContext, tool: string, t: Target, h: Histo
     const now = revisionOf(await ctx.tryRead(t.path)), file = historyFile(t.name), was = await ctx.tryRead(file);
     if (now !== t.revision || was !== t.raw || (typeof a.if_revision === "string" && a.if_revision !== now)) {
       const how = now === t.revision && was !== t.raw ? `'s history moved during the edit (another edit, at revision ${now})` : ` moved to revision ${now} during the edit`;
-      throw new ToolError("E_CONFLICT", `${t.id}${how}; nothing was changed`, false, { revision: now, next: `read it again, then retry with --if_revision ${now}` });
+      throw new ToolError("E_CONFLICT", `${t.id}${how}; nothing was changed`, false, { revision: now, next: `read it again, then retry with \`--if_revision ${now}\`` });
     }
     const last = typeof a.request_id === "string" ? { tool, request_id: a.request_id, args: argsOf(a), before: t.revision, out } : undefined;
     const earlier = [...(t.history?.earlier ?? []), ...(t.history?.last ? [t.history.last] : [])].slice(1 - REQUESTS_KEPT);

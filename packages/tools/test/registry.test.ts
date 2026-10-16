@@ -118,7 +118,7 @@ describe("Registry.call", () => {
   it("checks if_revision before an edit and replies with the current revision on a conflict", async () => {
     const { state, reg } = counter();
     const stale = await reg.call("demo.set", { value: 2, if_revision: "r9" });
-    expect(stale).toMatchObject({ status: "error", revision: "r0", error: { code: "E_CONFLICT" }, next: 'read it again, then retry with if_revision "r0"' });
+    expect(stale).toMatchObject({ status: "error", revision: "r0", error: { code: "E_CONFLICT" }, next: "read it again, then retry with `--if_revision r0`" });
     expect(state.n).toBe(0);
     expect(await reg.call("demo.set", { value: 2, if_revision: "r0" })).toMatchObject({ status: "ok", revision: "r1" });
   });

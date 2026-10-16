@@ -36,12 +36,12 @@ describe("the Change tools", () => {
     const w = workshop();
     try {
       expect(refused(await w.call("fix", { clip: "QUATERNIUS_3D2DGE/Walk_Loop", ops: ["jiter"] }))).toEqual(["usage", "E_ARGS", expect.stringMatching(/ops\[0\] is "jiter", not one of .*; did you mean "jitter"\?/)]);
-      for (const dry_run of [false, true]) expect(refused(await w.call("fix", { clip: "QUATERNIUS_3D2DGE/Walk_Loop", save_as: "MESH2MOTION/X", dry_run }))).toEqual(["usage", "E_ARGS", expect.stringMatching(/^save_as is "MESH2MOTION\/X": give save_as "WORKSHOP\/<Name>"/)]);
-      expect(refused(await w.call("edit", { clip: '{"format":"2.0"}', ops: [{ op: "mirror" }] }))).toEqual(["usage", "E_ARGS", expect.stringMatching(/^the clip names no workshop copy: give save_as/)]);
+      for (const dry_run of [false, true]) expect(refused(await w.call("fix", { clip: "QUATERNIUS_3D2DGE/Walk_Loop", save_as: "MESH2MOTION/X", dry_run }))).toEqual(["usage", "E_ARGS", expect.stringMatching(/^save_as is "MESH2MOTION\/X": give `--save_as WORKSHOP\/<Name>`/)]);
+      expect(refused(await w.call("edit", { clip: '{"format":"2.0"}', ops: [{ op: "mirror" }] }))).toEqual(["usage", "E_ARGS", expect.stringMatching(/^the clip names no workshop copy: give `--save_as/)]);
       // a name past 100 characters is refused as a wrong call, before any file is written
       for (const n of [101, 245]) {
         expect(refused(await w.call("edit", { clip: "QUATERNIUS_3D2DGE/Walk_Loop", save_as: `WORKSHOP/${"A".repeat(n)}`, ops: [{ op: "mirror" }] }))).toEqual(["usage", "E_ARGS", expect.stringMatching(/at most 100 in all\); the library changes only through its writer$/)]);
-        expect(refused(await w.call("edit", { clip: `WORKSHOP/${"A".repeat(n)}`, action: "undo" }))).toEqual(["usage", "E_ARGS", expect.stringMatching(/^"WORKSHOP\/A+\.\.\. is no workshop name: give save_as .*at most 100 in all\)/)]);
+        expect(refused(await w.call("edit", { clip: `WORKSHOP/${"A".repeat(n)}`, action: "undo" }))).toEqual(["usage", "E_ARGS", expect.stringMatching(/^"WORKSHOP\/A+\.\.\. is no workshop name: give `--save_as .*at most 100 in all\)/)]);
         expect(refused(await w.call("fix", { clip: "QUATERNIUS_3D2DGE/Walk_Loop", save_as: `WORKSHOP/${"A".repeat(n)}`, dry_run: true })).slice(0, 2)).toEqual(["usage", "E_ARGS"]);
       }
       const ops = async (...list: object[]) => (await w.call("edit", { ...PUNCH, ops: list })).error?.message;
@@ -126,7 +126,8 @@ describe("the Change tools", () => {
         const r = await w.call("edit", { clip: "WORKSHOP/Punch_Left", ops: [{ op: "mirror" }], if_revision: stale });
         expect([...refused(r), r.revision]).toEqual(["error", "E_CONFLICT", `the target is at revision ${first.revision}, not "${stale}"; nothing was changed`, first.revision]);
       }
-      expect(refused(await w.call("edit", PUNCH))).toEqual(["error", "E_EXISTS", expect.stringMatching(/^WORKSHOP\/Punch_Left exists at revision [0-9a-f]{12}; change it in place/)]);
+      const exists = await w.call("edit", PUNCH), how = `change it in place (the clip \`WORKSHOP/Punch_Left\`), give another \`--save_as\`, or replace it with \`--if_revision ${first.revision}\``;
+      expect([...refused(exists), exists.revision]).toEqual(["error", "E_EXISTS", `WORKSHOP/Punch_Left exists at revision ${first.revision}; ${how}`, first.revision]);
       expect([w.file(CLIP), w.history().undo.length]).toEqual([text, 1]);
       const next = await w.call("edit", { clip: "WORKSHOP/Punch_Left", ops: [{ op: "mirror" }], if_revision: first.revision });
       const steps = [{ op: "clip", id: "MESH2MOTION/Punch_Cross" }, { op: "retime", speed: 1.3, in: "s1" }, { op: "mirror", in: "s2" }];
@@ -155,7 +156,7 @@ describe("the Change tools", () => {
   it("write nothing when the target moves while the edit runs, and put the history back when the clip can't be written", async () => {
     const w = workshop(), base = nodeHost(w.cwd), HISTORY = ".m3a/history/Punch_Left.json";
     // the reply's status, code, message, revision and next when the target moved to `to` (or only its history did)
-    const moved = (to: string, how = ` moved to revision ${revisionOf(to)} during the edit`) => ["error", "E_CONFLICT", `WORKSHOP/Punch_Left${how}; nothing was changed`, revisionOf(to), `read it again, then retry with --if_revision ${revisionOf(to)}`];
+    const moved = (to: string, how = ` moved to revision ${revisionOf(to)} during the edit`) => ["error", "E_CONFLICT", `WORKSHOP/Punch_Left${how}; nothing was changed`, revisionOf(to), `read it again, then retry with \`--if_revision ${revisionOf(to)}\``];
     // another writer puts `to` in `file` just before the `at`th read of the clip's file in a call (at 0: just before
     // the call takes the clip's lock to write)
     const race = async (at: number, to: string, args: object, file = CLIP) => {
@@ -350,7 +351,7 @@ describe("two edits of one clip in one process", () => {
         };
         const reg = new Registry(CHANGE), [a, b] = await Promise.all([1.01, 0.99].map((speed) => reg.call("edit", { clip: "WORKSHOP/C", ops: [{ op: "retime", speed }] }, { host: { ...host, tryRead } })));
         const [won, lost] = a!.status === "ok" ? [a!, b!] : [b!, a!], h = w.history("C");
-        expect([won.status, ...refused(lost), lost.revision, lost.next]).toEqual(["ok", "error", "E_CONFLICT", `WORKSHOP/C moved to revision ${won.revision} during the edit; nothing was changed`, won.revision, `read it again, then retry with --if_revision ${won.revision}`]);
+        expect([won.status, ...refused(lost), lost.revision, lost.next]).toEqual(["ok", "error", "E_CONFLICT", `WORKSHOP/C moved to revision ${won.revision} during the edit; nothing was changed`, won.revision, `read it again, then retry with \`--if_revision ${won.revision}\``]);
         expect([revisionOf(w.file("workshop/C.json")), h.head, h.undo.map((e) => e.revision)]).toEqual([won.revision, won.revision, kept]); // nothing lost
         kept.push(won.revision!);
       }

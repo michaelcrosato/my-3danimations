@@ -333,7 +333,7 @@ export class Registry {
         const now = await tool.edit.revision(a, ctx);
         if (now !== a.if_revision) {
           const message = `the target is at revision ${now ?? "none"}, not ${quote(a.if_revision)}; nothing was changed`;
-          return reply(tool.name, "error", { verdict: `${tool.name}: conflict: ${message}`, next: `read it again, then retry with if_revision "${now}"`, revision: now }, [], { code: "E_CONFLICT", message });
+          return reply(tool.name, "error", { verdict: `${tool.name}: conflict: ${message}`, next: `read it again, then retry with \`--if_revision ${now}\``, revision: now }, [], { code: "E_CONFLICT", message });
         }
       }
       out = await tool.run(a, ctx);

@@ -109,7 +109,7 @@ export async function readClip(ctx: ToolContext, ref: string): Promise<ClipData>
   const lib = ctx.library(), given = ref.trim(), name = workshopName(given);
   if (name !== null) {
     const t = await readTarget(ctx, name), h = t.history;
-    if (t.text === null) throw new ToolError("E_NO_CLIP", `no workshop clip ${quote(t.id)} (${t.path}); fix or edit a library clip with save_as "${t.id}" to make one`, true);
+    if (t.text === null) throw new ToolError("E_NO_CLIP", `no workshop clip ${quote(t.id)} (${t.path}); fix or edit a library clip with \`--save_as ${t.id}\` to make one`, true);
     return fromText(lib, t.text, "workshop", t.path, name, h && { origin: h.from, rest: h.rest });
   }
   if (given.startsWith("{")) return fromText(lib, given, "text", null, null);
