@@ -1,6 +1,7 @@
 // The set writer (WP-7.2b, D93; moved from tools/migrate, which imports it back): a committed set written again from its
 // manifest and clips, byte for byte (the clips by core's serializer, catalog.tsv's rows within their 40 cl100k tokens,
-// _set.json with its content id), with Node's SHA-256 or core's; and, with the rough token count, rows that fit.
+// _set.json with its content id), with Node's SHA-256 or core's; and, with the rough token count, rows that fit, each
+// one row whatever control characters its description holds.
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { encode } from "gpt-tokenizer/encoding/cl100k_base";
@@ -21,5 +22,8 @@ describe("the set writer", () => {
     expect(setFiles(manifest, clips, { tokens: cl100k }).get("_set.json")).toBe(read("_set.json")); // core's SHA-256 is Node's
     // without a tokenizer, a token every two bytes: more than cl100k counts, so a row stays in its budget
     for (const c of clips) expect(encode(catalogRow(c)).length, c.id).toBeLessThanOrEqual(ROW_BUDGET);
+    // a tab or a line break in what the body does (or the name it falls back on) stays one row of seven columns
+    const row = catalogRow({ ...clips[0]!, desc: "", name: "Step RM!\n\u0007x\ty" });
+    expect([row.split("\n").length, row.split("\t").length, row.split("\t")[5]]).toEqual([1, 7, "Step RM!  x y"]);
   });
 });

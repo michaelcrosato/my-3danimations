@@ -1,8 +1,10 @@
-// The writers (WP-7.2b, D93): a clip played on a bound skeleton written as BVH and as a glTF animation on a character's
-// own nodes, each read back through io's readers to the joints the Animator put there, within 1 mm: the BVH through
-// parseBvh and readBvh (Unreal's names, its travel), the .glb through posedOf and readGltf, the exact reader, with the
-// file's own animations and buffer kept, and on Rigify's turned and scaled armature; a VRMA carrying its clip's license
-// and credit, read back byte for byte (I5); and a one-frame take imported as a clip that lasts a frame (I4).
+// The writers (WP-7.2b, D93): a clip played on a bound skeleton written as BVH (each joint named its own) and as a glTF
+// animation on a character's own nodes, each read back through io's readers to the joints the Animator put there,
+// within 1 mm: the BVH through parseBvh and readBvh (Unreal's names, its travel), the .glb through posedOf and
+// readGltf, the exact reader, with the file's own animations and buffer kept, on Rigify's turned and scaled armature,
+// and with a mesh's compression required; off under an uneven scale, which no animation of turns follows; a VRMA
+// carrying its clip's license and credit, read back byte for byte (I5); and a one-frame take imported as a clip that
+// lasts a frame (I4).
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { Animator, bind, parseClip, playable, solver, validate, format, type AnimClip, type Bound, type Rest } from "@m3a/core";
@@ -46,6 +48,11 @@ describe("writers", () => {
     expect(bvhGap(text, knock, rig.b)).toBeLessThan(0.01);
     const take = readBvh(() => text, ["knock"]);
     expect([take.rig, Math.round(take.clips.knock!.dur * 1000) / 1000, take.clips.knock!.move !== null]).toEqual(["bvh:unreal", knock.dur, true]);
+    // two bones whose names write the same ("x y" and "x_y") stay two joints
+    const json = JSON.parse(tier1bText("rig.gltf")) as { nodes: { name: string }[] };
+    for (const [from, to] of [["index_01_l", "x y"], ["middle_01_l", "x_y"]]) json.nodes.find((x) => x.name === from)!.name = to!;
+    const twin = character(JSON.stringify(json)), both = writeBvh(knock, twin.b);
+    expect([/JOINT x_y\n/.test(both), /JOINT x_y_\n/.test(both), bvhGap(both, knock, twin.b) < 0.01]).toEqual([true, true, true]);
   });
   it("adds a glTF animation on the character's own nodes, its own kept, read back within 1 mm (Rigify's scaled armature too)", () => {
     const bytes = addAnimation(rig.doc, gltfAnimOf(knock, rig.b, rig.doc, rig.nodes)), doc = parseGlb(bytes), an = doc.json.animations!;
@@ -55,6 +62,14 @@ describe("writers", () => {
     expect(Object.keys(readGltf(doc).clips)).toEqual(["A_TPose", "Wave_Loop", "Step_RM", KNOCK]); // the exact reader reads it
     const rigify = character(tier1bText("rigify.gltf"));
     expect(glbGap(addAnimation(rigify.doc, gltfAnimOf(knock, rigify.b, rigify.doc, rigify.nodes)), knock, rigify.b, rigify.nodes)).toBeLessThan(0.01);
+    // a mesh's compression required (meshopt's) is no bar: only the nodes and the animation added are read back
+    const packed = { ...rig.doc, json: { ...rig.doc.json, extensionsUsed: ["EXT_meshopt_compression"], extensionsRequired: ["EXT_meshopt_compression"] } };
+    expect(glbGap(addAnimation(packed, gltfAnimOf(knock, rig.b, packed, rig.nodes)), knock, rig.b, rig.nodes)).toBeLessThan(0.01);
+    // Rigify's armature scaled unevenly shears the bones as they turn, as a viewer shows them: read back off
+    const json = structuredClone(rigify.doc.json);
+    json.nodes![0]!.scale = [0.01, 0.012, 0.01];
+    const skew = character(JSON.stringify(json));
+    expect(glbGap(addAnimation(skew.doc, gltfAnimOf(knock, skew.b, skew.doc, skew.nodes)), knock, skew.b, skew.nodes)).toBeGreaterThan(10);
   });
   it("writes a VRMA's license in its extras and its credit as the asset's copyright, read back byte for byte (I5)", () => {
     const owed = { ...knock, provenance: { ...(knock as unknown as { provenance: object }).provenance, license: "CC-BY-4.0", credit: "Someone, CC BY 4.0" } } as AnimClip;

@@ -4,11 +4,11 @@
 // armature with its turn and scale) keeps its rest. D49's end bones have no node and ride on their parents.
 // `addAnimation` adds the animation to the character's document, its accessors appended to the buffer, packed as .glb;
 // `skeletonDoc` makes a document of a bound skeleton's own bones, for a character with no file. `glbGap` reads a written
-// file back through io (`posedOf`, each node's scale kept) and measures how far each bone's node lands from where the
-// Animator put the bone.
+// file back through io (`posedOf`; a compressed mesh no bar, since it reads only the nodes and the animation added),
+// places each node as a viewer does (every node's matrix, its scale uneven too) and measures how far each bone's node
+// lands from where the Animator put the bone.
 import { math, VERSION, type AnimClip, type Bound } from "@m3a/core";
 import { IoError } from "../bytes.ts";
-import { bvhPose } from "../bvh/read.ts";
 import { extrasOf, restNodes, sampleNodes, worldAt, type VrmaExtras, type VrmaTrack } from "../vrma/vrma.ts";
 import { packGlb, parseGlb, type GltfDoc, type GltfJson } from "./container.ts";
 import { posedOf } from "./posed.ts";
@@ -120,22 +120,33 @@ export function skeletonDoc(b: Bound): { doc: GltfDoc; nodes: Record<string, num
   return { doc: { json, bin: null }, nodes: Object.fromEntries(at.map((nd, i) => [nd.name, i])) };
 }
 
+/** 3x3 matrices, row by row: a product, and one applied to a vector. */
+const mat = (a: readonly number[], b: readonly number[]): number[] => [0, 1, 2].flatMap((r) => [0, 1, 2].map((c) => a[r * 3]! * b[c]! + a[r * 3 + 1]! * b[3 + c]! + a[r * 3 + 2]! * b[6 + c]!));
+const apply = (m: readonly number[], v: readonly number[]): V3 => [0, 1, 2].map((r) => m[r * 3]! * v[0]! + m[r * 3 + 1]! * v[1]! + m[r * 3 + 2]! * v[2]!) as V3;
+
 /**
  * How far (mm) the bones' nodes of a .glb that `addAnimation` wrote land from where the Animator puts the bones, read
- * back through io (`posedOf` on its last animation, each node's scale kept): the most at any sample. E_FORMAT (from the
- * reader) for a file it can't read back, as one whose meshes need a decompressor.
+ * back through io (`posedOf` on its last animation) and placed as a glTF viewer places them, each node's matrix (its
+ * turn and its scale, uneven too) applied to its children: the most at any sample. A node between two bones that
+ * scales unevenly shears its children as they turn, which no animation of turns can follow, so it reads back off. The
+ * extensions a file requires (a mesh's compression, meshopt's or Draco's) are no bar: it reads only the nodes and that
+ * animation, whose accessors are plain. E_FORMAT or E_LIMIT (from the reader) for a file it can't read back.
  */
 export function glbGap(bytes: Uint8Array, clip: AnimClip, b: Bound, nodes: Readonly<Record<string, number>>, opts: { fps?: number } = {}): number {
-  const s = sampleNodes(clip, b, opts), doc = parseGlb(bytes), n = s.times.length - 1, S = scales(doc), parent = hierarchy(doc.json.nodes ?? []).parent;
-  const back = posedOf(doc, (doc.json.animations ?? []).length - 1, n / clip.dur, String), node = back.names.map(Number), at = new Map(node.map((x, k) => [x, k]));
-  // each node's place in its parent scaled as the parent is, so the reader's world places are the scene's
-  const scaled = { ...back, poses: { ...back.poses!, at: (f: number) => back.poses!.at(f).map(([r, t], k): [number[], number[]] => [r, parent[node[k]!]! < 0 ? t : each(S[parent[node[k]!]!]!, t, (a, x) => a * x)]) } };
+  const s = sampleNodes(clip, b, opts), doc = parseGlb(bytes), n = s.times.length - 1, all = doc.json.nodes ?? [];
+  delete doc.json.extensionsRequired;
+  const back = posedOf(doc, (doc.json.animations ?? []).length - 1, n / clip.dur, String), node = back.names.map(Number), at = new Map(node.map((x, k) => [x, k])), scale = node.map((x) => restOf(all[x]!).s);
   let worst = 0;
   for (let i = 0; i <= n; i++) {
-    const w = worldAt(s, i), pose = bvhPose(scaled, i);
+    const w = worldAt(s, i), L: number[][] = [], P: V3[] = [];
+    // parents come first: each node's matrix its turn times its scale, its place its parent's matrix on its translation
+    back.poses!.at(i).forEach(([r, t], k) => {
+      const m = r.map((x, e) => x * scale[k]![e % 3]!), up = back.parent[k];
+      [L[k], P[k]] = up === null || up === undefined ? [m, [t[0]!, t[1]!, t[2]!]] : [mat(L[up]!, m), each(P[up]!, apply(L[up]!, t), (a, x) => a + x)];
+    });
     b.order.forEach((o, k) => {
-      const j = at.get(nodes[o.name] ?? -1), p = j === undefined ? null : pose[j]![1];
-      if (p) worst = Math.max(worst, PORTABLE.hypot(p[0]! - w.p[k]![0], p[1]! - w.p[k]![1], p[2]! - w.p[k]![2]));
+      const j = at.get(nodes[o.name] ?? -1);
+      if (j !== undefined) worst = Math.max(worst, PORTABLE.hypot(P[j]![0] - w.p[k]![0], P[j]![1] - w.p[k]![1], P[j]![2] - w.p[k]![2]));
     });
   }
   return worst / b.scale;

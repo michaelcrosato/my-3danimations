@@ -45,13 +45,14 @@ export function shorten(what: string, room: number, tokens: Tokens = rough): str
   return words.join(" ") + "…";
 }
 
-/** One catalog row: id, seconds, loop or once, speed, tags, what the body does, source (spec/MOTION.md §9.3), within
- *  ROW_BUDGET tokens by `tokens`. */
+/** One catalog row: id, seconds, loop or once, speed, tags, what the body does (a tab, a line break or another control
+ *  character in it a space, so the row stays one row), source (spec/MOTION.md §9.3), within ROW_BUDGET tokens by
+ *  `tokens`. */
 export function catalogRow(c: Clip, tokens: Tokens = rough): string {
   const speed = c.facts && typeof c.facts.speed === "number" ? String(c.facts.speed) : "";
   const cols = [c.id, String(c.dur), c.loop ? "loop" : "once", speed, c.tags.join(" "), "", c.provenance.src];
   const room = ROW_BUDGET - tokens(cols.join("\t"));
-  cols[5] = shorten(c.desc || c.name.replace(/_/g, " "), room, tokens);
+  cols[5] = shorten((c.desc || c.name.replace(/_/g, " ")).replace(/\p{Cc}/gu, " "), room, tokens);
   return cols.join("\t");
 }
 

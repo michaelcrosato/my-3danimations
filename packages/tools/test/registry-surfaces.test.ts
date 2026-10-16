@@ -49,7 +49,7 @@ describe("one definition, four surfaces", () => {
     it(`${t.name}: the same name, description and schema everywhere`, async () => {
       const api = describeTool(t), m = (await listed).find((x) => x.title === t.name)!;
       expect((await cli(["help", t.name])).report.data).toEqual(api);
-      expect({ name: m.title, description: m.description, params: m.inputSchema, edit: !m.annotations.readOnlyHint }).toEqual(api);
+      expect({ name: m.title, description: m.description, params: m.inputSchema, edit: !m.annotations.readOnlyHint }).toEqual({ ...api, edit: api.edit || Boolean(t.writes) });
       expect(m.name).toBe(t.name.replace(/\./g, "_"));
       expect(handle.help(t.name)).toEqual(api);
     });
