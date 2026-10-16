@@ -1844,11 +1844,12 @@ Split in two (D76): 6.6a the wiring briefs and the runner for any brief, 6.6b th
 
 #### WP-7.2a The tools: find, check, change, ship
 WP-7.2 is split in two, each an L (D93): its tools, their host and the writers they need come to about 4,500 lines.
-- **Owns:** `packages/tools/src/tools/{index,base,common,clips,workshop,find,check,change,ship}.ts`,
-  `packages/tools/src/node/*`, `packages/tools/test/tools-*.test.ts`, `packages/tools/test/helpers/*`; and (D93) the
-  host's additions in `packages/tools/src/registry/registry.ts`, `src/node.ts` and `src/mcp.ts`, `Library#about` and
-  the export of search's speed conversion in `@m3a/library`, the fix tables' export in `@m3a/sensors`, a strip from
-  `src/sim/film.ts`
+- **Owns:** `packages/tools/src/tools/*`, `packages/tools/src/node/*`, `packages/tools/test/tools-*.test.ts`,
+  `packages/tools/test/helpers/*`
+- **Also touches** (logged crossings, D95): the registry and the Node host (`registry/registry.ts`, `src/node.ts`,
+  `src/mcp.ts`, `src/cli.ts`), `Library#about`, search's speed conversion and D10's tier rule in `@m3a/library`, the
+  fix tables' export in `@m3a/sensors`, a strip from `src/sim/film.ts`, the manual's two request_id sentences, the
+  e2e `mcp-smoke` suite and `.gitignore`
 - **Needs:** 7.1, 5.5, 5.7, G6
 - **Size:** L
 - **Carry:** from shardfall: the clip tool's `name=` branch (`crates/pav_tools/src/anim_tools.rs:750-800`), which
@@ -2312,7 +2313,7 @@ version, commit, date and a note with the numbers. Gates are rows too.
 | 6.6b Briefs B4, B5, B6, the make sections | done | 0.42.5 | a56a96c, 8a53245, e9c0c52, (this commit) | 2026-10-12 | `npm test -- bench/graders`: the B4, B5 and B6 graders each pass their known-good solution and fail every planted bad one (7, 5 and 4), naming the check, on the default character (gen-40 for B4, a VRM-named chibi; gen-1) in T1 (B4 every other planted one) and on a second seed (gen-44; gen-37) in T2's full step; `npm run bench -- B4,B5,B6 --trials 1 --fake` in 13.3 s; `library.resolver()`; the manual's make sections (recipes, edits, and in 0.42.1 actions), 5,564 of 8,000 tokens; T1 88.6 s, B1's second seed and describe's token count sampled as D74's sweeps (D77); the verifier's round 1 in 0.42.3 (D77): B4 grading steps and a standing foot, the manual's examples no longer the briefs' answers (5,620 tokens), `--variant` for one brief, B4's naming checked; the known-good B4, B5 and B6 pass on all 40 of gen-20 to 59; round 2 in 0.42.4 (D77): B2's strike shared with its check, B3's knockdown bounded (and core's root motion no longer flings a one-shot that ends off its feet), B4 and B3 judging a standing foot by the lower foot's speed, B7's windows, the starters loading real rigs; the known-goods pass on 40 more seeds each (B4 on 35 VRM seeds); round 3 found it done, its should-fix in 0.42.5: B3's body staying where it lies, B2's damage window and reach |
 | **G6** | passed, run 1 | 0.45.1 | a9731b1 | 2026-10-15 | 20 of 20 in 17.2 min (D91, `bench/results/gates/G6-run-1/`): B2, B3, B5, B6 and B7 each 5/5 fresh agents and 5/5 on their held-out variants (seeds 722, 808, 765, 871, 809; each known-good first), 50/50 trials at isolation 1 with a private /tmp, five at a time, $7.15; check 10.6 s, test 76.0 s, doctrine, vectors, the moves; composed clips QA 18.1 s; graphs deterministic 5.7 s; T2 128.8 s; the verifiers' findings fixed in 0.45.2 (every worktree hidden from the agents, a PID namespace, the audit; the records' byte copies) |
 | 7.1 The tool registry | done | 0.46.0 | 8ee7cb3, a3921f9, 4ae8505, 31a3567, 61b251b | 2026-10-16 | `npm test -- registry` (39 tests) and `npm run e2e -- mcp-smoke` (the MCP Inspector 2.9.0's `tools/list --strict` and `tools/call` on every example, the console handle in Chromium): one `defineTool`, four surfaces (the API, `m3a`, MCP stdio at 2026-07-28 and the legacy handshake, `__M3A_TOOLS__`), one reply `m3a.reply/1`; a parity test on every example, a failing one included; unknown names refused with the closest; request_id kept per tool, an applied edit never twice, the CLI refusing it until 7.2a's durable store; four verifier rounds, 44 targeted mutants killed; 1,323 lines, past M (D92) |
-| 7.2a The tools: find, check, change, ship | todo | | | | |
+| 7.2a The tools: find, check, change, ship | done | 0.47.0 | the lanes a0, find, check, change and a-fix (merges e32c159, daefab3, ce649e8, 294f0eb, 55ccf65) | 2026-10-16 | `npm test -- packages/tools` (193 tests with io and library; T1 829+): 11 tools and version and validate, each example the same on the API, `m3a`, MCP and the console and a failing-input test; 1,763 of 1,900 tokens (edit 222 the largest); the durable store (a retried edit applies once across two processes, in one MCP server, after a crash), concurrent edits locked (E_CONFLICT, never lost), undo and redo byte-exact, an outside edit resetting every tool's history; writes only under workshop/, .m3a/, imports/, check-output/; every lane reviewed up to three rounds, the WP verified on two lenses (two blocking findings fixed, D95); about 3,688 lines, past L (D95) |
 | 7.2b The tools: retarget, compose, exchange | todo | | | | |
 | 7.3 The manual and the skill | todo | | | | |
 | 7.4 Packaging | todo | | | | |

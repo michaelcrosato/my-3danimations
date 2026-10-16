@@ -3548,3 +3548,120 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
 - **Answered:** no: made without a response, to review; the credentials hand-off is flagged for the owner on
   michaelcrosato/my-3danimations#13.
 - **Landed in:** v0.46.1
+
+## D95 · 2026-10-16 · WP-7.2a's verifier fixes, and every crossing of its Owns
+
+- **Principle:** 2, 7, 8, 9, §8 (sizes), D10, D92, D93 (WP-7.2a, PLAN.md §5.6)
+- **Call:**
+  - **Concurrent edits are locked.** An edit writes under its clip's lock, `.m3a/locks/<Name>.lock`.
+    - Within one process (the API, one MCP server), two edits take turns, whatever the host. The registry keeps its own
+      lock per path (`locked`: a chain of promises, platform-neutral).
+    - The host's lock keeps out other processes. The Node host creates the lock file exclusively (`lockFile` in
+      `src/node/files.ts`).
+    - The lock is held across the revision's re-check, the history's write and the clip's write. The re-check compares
+      the history's text as well as the file's revision. So of two edits from one state, the second is refused with
+      E_CONFLICT, and nothing is lost.
+    - A lock is stale when its process on this machine is gone, or when it is older than 30 s.
+    - One waiter at a time breaks a stale lock, under `<lock>.break` (taken the same way). It removes the lock only
+      while it still holds what was judged stale, so no waiter removes a lock another just took in its place.
+    - A `.break` file left by a waiter killed while breaking is stale by the same rule. A lock still held after 10 s
+      gives E_LOCKED.
+    - A host without `lock` is safe within one process. Across processes, only a host's lock keeps writers apart.
+    - E_CONFLICT carries the current revision and a next hint naming the retry, through ToolError's optional `next` and
+      `revision`.
+    - This replaces plan §3's "no lock files". A two-process race disproved it (both processes replied applied), and so
+      did an in-process race on a host without a lock.
+  - **An outside edit resets the history for every tool.** readClip reads a workshop clip the way the edit tools do
+    (readTarget).
+    - Its history counts only while it is the file's, or when it steps back from a write cut short.
+    - Otherwise the file is read like any clip file, on the manifests' rest, found by its own id or by the library clip
+      its provenance names.
+    - A history whose rest doesn't have core's Rest shape is unreadable.
+    - While a history is the file's, its rest is the one the clip was made on, kept as is if a manifest changes later.
+      .m3a/ is m3a's own state, so it is checked for its shape, not against the manifests. Checking against the
+      manifests would reset every copy's undo whenever a library update re-measures a rest.
+  - **Tiers for the user's own clips (D93).** A library id outside the game's tiers is still refused.
+    - A file, JSON or workshop clip that needs such a tier gets a warning line naming the game.json line to add.
+    - This applies in every tool that loads a clip, and on an edit's undo and redo.
+    - The check covers the clip's own set, the library clips it names, and each part of its license.
+  - **Bounded edits.** A recipe whose running length passes 600 s (M2-E010) at any step is refused as usage, naming the
+    step, before it compiles.
+  - **One naming, one hint form.**
+    - Replies name a clip one way (`clips.ts` naming): its id, `WORKSHOP/<Name>`, or the path as given. Clip JSON, an
+      absolute path or a path with a control character becomes `<the clip's JSON>` / `<the clip's file>`.
+    - A hint writes each call in backticks as the m3a command takes it, `--<parameter> <value>` with the parameter's own
+      name. The CLI parses it as written, and on MCP it reads as the arguments.
+    - A flag alone in backticks (`--if_revision X`, `--save_as WORKSHOP/<Name>`) is one to set on the call just made,
+      added or in place of its own. Both E_CONFLICTs, E_EXISTS, the save_as refusal and E_NO_CLIP name a parameter that
+      way.
+    - E_EXISTS carries the revision, and names changing in place as "the same call on WORKSHOP/<Name>", with no clip id
+      in backticks.
+    - The tests parse every example's next, and the E_EXISTS and E_CONFLICT texts, each flag alone set on the call just
+      made.
+  - **No absolute path in a reply.** E_PATH, E_WRITE and E_LOCKED call an absolute path they were given "the file"
+    (`files.ts` shown, `common.ts` absolute). They never name the working directory's absolute path. E_CLIP, E_REST and
+    validate do the same.
+  - **Leftovers.** A write killed before its rename leaves `<file>.<pid>.tmp`. The file's next write sweeps it once its
+    process is gone. The request store also sweeps its own.
+  - **Retries.** A history keeps the requests of its last 8 writes, not only the last one.
+  - **D10's tier rule** is exported from @m3a/library (`tierOf`, `credited`) and used by the tools. license.check owes
+    credit per license part.
+  - **Crossings of WP-7.2a's Owns, all lanes (a0, a-find, a-check, a-change, a-fix):**
+    - WP-7.1's files:
+      - `packages/tools/src/registry/registry.ts`:
+        - Host and ToolContext gain tryRead, write, remove, library and lock; LibraryAccess.
+        - Only examples[0] in the schema, and shorter reserved descriptions.
+        - ToolError's next and revision.
+        - The registry's own lock per path within one process, and the pre-run E_CONFLICT's next in the hint form.
+      - `registry/index.ts`: exports; it no longer lists tools.
+      - `registry/reply.ts`: replySchema's doc.
+      - `registry/tools.ts`: deleted, moved to `tools/base.ts`.
+      - `src/mcp.ts`: tools/list without outputSchema.
+      - `src/cli.ts`: the report-write warning; help's --request-id note.
+      - `src/node.ts`: the Node host's library, writes, durable store and lock; E_PATH and E_WRITE without the absolute
+        working directory or an absolute path given.
+      - `src/node/{files,library,store}.ts`: new.
+      - `src/index.ts`: the shared export list.
+      - `test/registry-surfaces.test.ts`: built from the demo tools; one line pins the E_PATH words.
+      - `test/registry.test.ts`: the E_CONFLICT next.
+    - The library (WP-5.1, 5.5, 5.7):
+      - `packages/library/src/load/library.ts` and `load/index.ts`: Library#about, SetAbout, SourceAbout.
+      - `src/search/index.ts`: `mps`.
+      - `src/license/index.ts`: `tierOf`, `credited`.
+      - `src/index.ts`: the shared export list.
+      - `test/library/load.test.ts`.
+    - The sensors (D44): `packages/sensors/src/fix/fix.ts` and `fix/index.ts` export `worse` and `ANSWERS`.
+    - WP-6.5: `packages/tools/src/sim/film.ts` (`strip` extracted).
+    - WP-7.3: `packages/tools/MANUAL.md`, its two request_id sentences only.
+    - The e2e registry: `tests/e2e/mcp-smoke.e2e.ts` runs each example in a fresh seeded working directory (acdeeb1).
+    - Test helpers beyond `surfaces.ts`: `packages/tools/test/helpers/{cwd,tally,race,workshop}.ts`.
+    - `.gitignore`: workshop/, .m3a/, imports/.
+    - WP-7.2b's foundation lane (b0) also touches `registry.ts` and `node.ts` (bytes), in its own decision. This lane
+      merges onto the integration head with b0 (3f8cf6c) without conflict.
+  - **Owns edited to match:**
+    - WP-7.2a's Owns becomes `packages/tools/src/tools/*`, `packages/tools/src/node/*`,
+      `packages/tools/test/tools-*.test.ts` and `packages/tools/test/helpers/*`.
+    - Everything else above stays a logged crossing, also listed under "Also touches".
+  - **Size:** about 3,688 new lines: 2,659 across the four lane merges, plus 1,029 from the verifier fixes and their two
+    reviews. That is past L's 3,000, because of the verifiers' findings.
+  - **The verifiers:** two lenses, then two reviews of the fixes.
+    - Contract: should-fixes on naming, the hint form and the records. Nits on conventions, the tier rule, `last`,
+      output schemas and refusals.
+    - Adversarial: two blocking findings (concurrent edits lost; the outside-edit reset only partial). Should-fixes on
+      slow retimes and out-of-tier files. Nits on paths, quoting, credit parts, the example's request_id, .tmp files and
+      long names.
+    - The first review of the fixes:
+      - One should-fix: two in-process edits on a host without a lock.
+      - Nits: an echoed absolute path, the conflict hints' form, the workshop's .tmp files, undo's tier warning, and the
+        history's rest. The last is answered above.
+    - The second review: sound. Its nits were E_EXISTS's hint form, a stale lock broken by two waiters at once, and an
+      out-of-date note about lane b0's merge.
+    - Each is fixed, with a test that fails without the fix where one could be written.
+- **Why:**
+  - An edit tool that can report applied while the edit is lost breaks the plan's contract (§3, §5.6), on any surface.
+  - A history that every tool reads one way keeps each measurement on the clip's own rest.
+  - Flagging rather than refusing the user's own copies keeps D93's promise that an agent learns early what it can't
+    ship.
+  - One hint form lets a hint be run as written on every surface.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.47.0

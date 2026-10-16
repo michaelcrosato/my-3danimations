@@ -31,13 +31,16 @@ test("the MCP Inspector lists every tool with portable schemas", () => {
 test("the MCP Inspector calls every example and gets the API's reply", async () => {
   for (const t of tools.list()) {
     for (const ex of t.examples) {
-      const { cwd, rm } = exampleCwd();
+      // the inspector and the API each in a working directory of its own, seeded alike: an example that writes (edit,
+      // fix) would otherwise find the other's file there
+      const viaMcp = exampleCwd(), viaApi = exampleCwd();
       try {
-        const r = inspector(cwd, "--method", "tools/call", "--tool-name", t.name.replace(/\./g, "_"), "--tool-args-json", JSON.stringify(ex.args));
+        const r = inspector(viaMcp.cwd, "--method", "tools/call", "--tool-name", t.name.replace(/\./g, "_"), "--tool-args-json", JSON.stringify(ex.args));
         expect(r.code, r.out + r.err).toBe(ex.expect === "error" ? 5 : 0); // the inspector exits 5 on isError
-        expect((JSON.parse(r.out) as { structuredContent: unknown }).structuredContent).toEqual(await tools.call(t.name, ex.args, { host: nodeHost(cwd) }));
+        expect((JSON.parse(r.out) as { structuredContent: unknown }).structuredContent).toEqual(await tools.call(t.name, ex.args, { host: nodeHost(viaApi.cwd) }));
       } finally {
-        rm();
+        viaMcp.rm();
+        viaApi.rm();
       }
     }
   }

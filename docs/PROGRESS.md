@@ -3,7 +3,7 @@
 The current state on one screen (at most 40 lines; `npm run doctrine` checks it from WP-0.3). The ledger is
 `PLAN.md` §14; decisions are in `docs/DECISIONS.md`.
 
-**Phase:** 7 The datalink (6 done: G6 passed). **Next gate:** G7 = M2. **Version:** 0.46.1.
+**Phase:** 7 The datalink (6 done: G6 passed). **Next gate:** G7 = M2. **Version:** 0.47.0.
 **Mode:** ultracode (D83): implementers in worktrees, the main session integrates; #12 merged (G6), a fresh draft PR.
 
 ## Done
@@ -21,12 +21,12 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
   corpora (D62); the re-import (D63); facts (D64); search (D65); library QA, 1,199 unique motions (D66–D69).
 - Phase 6 (G6 passed, michaelcrosato/my-3danimations#12): recipes (D70); procedural moves, gaits and idles (D71, the
   margin rule D90); actions (D72); graphs (D73); simulation (D75); briefs B2–B7, the wire and make sections (D76, D77).
-- Phase 7 so far: the tool registry, one `defineTool` on four surfaces (D92); WP-7.2 split into 7.2a and 7.2b (D93).
+- Phase 7 so far: the tool registry, one `defineTool` on four surfaces (D92); WP-7.2 split (D93); 7.2a's 11 tools (D95).
 
 ## Next
 
-- WP-7.2a's 11 tools merged (find, check, change, ship; 1,770 of 1,900 tokens; T1 829 tests, T2 green); its verifier
-  runs, then its records. WP-7.2b's foundation b0 runs beside it, then retarget, compose and exchange at once.
+- WP-7.2b: its foundation b0 is merged (characters bound through core, D49's soles); retarget, compose and exchange
+  run at once next, then its verifier; then WP-7.3 (the manual and the skill) and WP-7.4 (packaging), then G7.
 
 ## Blocked on the owner
 

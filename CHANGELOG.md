@@ -4,6 +4,39 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.47.0 · 2026-10-16
+
+### Tools
+- WP-7.2a's tools (D93, D95), each on the API, `m3a`, MCP and the console, opening the library at the game's tiers
+  (`game.json`, else cc0): `search` (a game moment in words and filters, best first, naming a closer clip in another
+  tier); `show` (a clip's keys as text, its provenance, license and the credit owed); `describe` (a short timeline);
+  `metrics`, `sheet`, `film`, `diff`, `lint` (the sensors' verdicts, findings and pictures, each image with its size
+  and token cost); `fix` and `edit` (into `workshop/<Name>.json`, revisioned, retry-safe, with undo and redo in one
+  history); `license.check` (clips, a set or the game against licenses and tiers, with the credits block).
+- The host: a tool reads, writes and removes files only under `workshop/`, `.m3a/`, `imports/` and `check-output/`,
+  atomically and never through a link out; `m3a` keeps retries in `.m3a/requests/`, so `--request-id` works on the
+  CLI; two edits of one clip never both apply (a per-clip lock, E_CONFLICT with the current revision); a clip edited
+  outside m3a resets its history for every tool; slow retimes past 600 s are refused before they compile.
+- A clip given by path, JSON or from the workshop that the game's tiers couldn't ship gets a warning line in every
+  tool; a library id outside them is refused.
+- Every next hint writes its calls as the `m3a` command takes them, and they run as written; replies name a clip one
+  way and never an absolute path; every tool declares an output schema; MCP's `tools/list` leaves out
+  `outputSchema` (about 250 tokens a tool). The 13 tools cost 1,763 tokens to describe.
+
+### Library
+- `Library#about(set)` (a set's legend and sources, whatever the game's tiers); search's `mps`; D10's tier rule
+  (`tierOf`, `credited`).
+
+### Sensors
+- `fixes.worse` and `fixes.ANSWERS` are exported.
+
+### Docs
+- The manual's two request_id sentences match the durable store.
+
+### Repo
+- e2e `mcp-smoke` runs each example through the Inspector and the API in working directories of their own, seeded
+  alike, so an example that writes doesn't meet the other's file.
+
 ## 0.46.1 · 2026-10-16
 
 ### Repo
