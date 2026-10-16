@@ -76,7 +76,9 @@ export interface Host {
 /** One tool, defined once (PLAN.md §5.6). Parameter names are a letter, then letters, digits or "_"; `output` is its
  *  data's schema, checked on every reply; `positionals` lets the CLI fill those parameters in order; `edit` marks a tool
  *  that changes something: it takes `if_revision` and `request_id` (names no tool declares itself), and `revision`
- *  (required) reads the target's current revision, so a stale if_revision is refused rather than ignored. */
+ *  (required) reads the target's current revision, so a stale if_revision is refused rather than ignored. `writes`
+ *  marks one that is no edit but writes or removes files the user keeps (import's imports/; check-output/ is no such
+ *  file): MCP lists it, as an edit, as no read-only tool. */
 export interface ToolDef<A extends object = Record<string, unknown>, D = unknown> {
   name: string;
   description: string;
@@ -85,6 +87,7 @@ export interface ToolDef<A extends object = Record<string, unknown>, D = unknown
   examples: Example[];
   positionals?: string[];
   edit?: { revision(args: A, ctx: ToolContext): string | undefined | Promise<string | undefined> };
+  writes?: boolean;
   run(args: A, ctx: ToolContext): ToolOutput<D> | Promise<ToolOutput<D>>;
 }
 

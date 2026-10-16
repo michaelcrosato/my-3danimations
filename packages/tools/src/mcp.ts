@@ -26,10 +26,11 @@ const TOOLS_TTL_MS = 3_600_000;
 /** A tool's MCP name: its registry name with "_" for ".". */
 export const mcpName = (name: string) => name.replace(/\./g, "_");
 
-/** A tool as MCP's tools/list shows it: no outputSchema, though structuredContent follows replySchema(t.output). */
+/** A tool as MCP's tools/list shows it: no outputSchema, though structuredContent follows replySchema(t.output). An edit,
+ *  or a tool that writes files the user keeps (`writes`, which also says it may remove them), is no read-only tool. */
 export function mcpTool(t: Tool) {
   const name = mcpName(t.name);
-  return { name, title: t.name, description: t.description, inputSchema: t.schema, annotations: { readOnlyHint: !t.edit, openWorldHint: false } };
+  return { name, title: t.name, description: t.description, inputSchema: t.schema, annotations: { readOnlyHint: !t.edit && !t.writes, ...(t.writes ? { destructiveHint: true } : {}), openWorldHint: false } };
 }
 
 /** A JSON-RPC response. */

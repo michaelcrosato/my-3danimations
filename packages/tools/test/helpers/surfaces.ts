@@ -68,7 +68,7 @@ export function runExamples(group: readonly Tool[]): void {
     const reg = new Registry(group), handle = consoleHandle(reg);
     for (const t of group) {
       const api = describeTool(t), m = mcpTool(t);
-      expect({ name: m.title, description: m.description, params: m.inputSchema, edit: !m.annotations.readOnlyHint }).toEqual(api);
+      expect({ name: m.title, description: m.description, params: m.inputSchema, edit: !m.annotations.readOnlyHint }).toEqual({ ...api, edit: api.edit || Boolean(t.writes) });
       expect([m.name, help(reg, t.name).data, handle.help(t.name)]).toEqual([mcpName(t.name), api, api]);
       expect(Object.keys(m).sort(), "tools/list sends no outputSchema (decision §8.2)").toEqual(["annotations", "description", "inputSchema", "name", "title"]);
     }

@@ -8,7 +8,7 @@ import { encode } from "gpt-tokenizer/encoding/cl100k_base";
 import { describe, expect, it } from "vitest";
 import { mcpName, mcpTool } from "../src/mcp.ts";
 import type { Tool } from "../src/registry/index.ts";
-import { BASE, CHANGE, CHECK, COMPOSE, FIND, RETARGET, SHIP, tools } from "../src/tools/index.ts";
+import { BASE, CHANGE, CHECK, COMPOSE, EXCHANGE, FIND, RETARGET, SHIP, TOOLS, tools } from "../src/tools/index.ts";
 
 /** cl100k tokens of a value as JSON. */
 const tokens = (v: unknown) => encode(JSON.stringify(v)).length;
@@ -16,19 +16,20 @@ const tokens = (v: unknown) => encode(JSON.stringify(v)).length;
 const cost = (list: readonly Tool[]) => tokens(list.map((t) => ({ name: mcpName(t.name), description: t.description, inputSchema: t.schema })));
 
 describe("the tools' token budget", () => {
-  it("describes WP-7.2a's tools in at most 1,900 tokens, 7.2b's compose in 420, all in at most 3,000, none over 240", () => {
-    const all = tools.list(), a = [...FIND, ...CHECK, ...CHANGE, ...SHIP, ...BASE], b = [...RETARGET, ...COMPOSE];
+  it("describes WP-7.2a's tools in at most 1,900 tokens, compose in 420, exchange in 400, all in at most 3,000, none over 240", () => {
+    const all = tools.list(), a = [...FIND, ...CHECK, ...CHANGE, ...SHIP, ...BASE], b = [...RETARGET, ...COMPOSE, ...EXCHANGE];
     const rows = all.map((t) => `${t.name.padEnd(18)} ${String(cost([t])).padStart(5)}`), sum = (k: string, n: number) => `${k.padEnd(18)} ${String(n).padStart(5)}`;
     console.log([...rows, sum("7.2a", cost(a)), sum("7.2b", cost(b)), sum("all", cost(all)), sum("tools/list", tokens(all.map(mcpTool)))].join("\n"));
-    expect(all).toEqual([...FIND, ...CHECK, ...CHANGE, ...RETARGET, ...COMPOSE, ...SHIP, ...BASE]); // every group, each counted in all
-    expect(all.map((t) => t.name)).toEqual(["search", "show", "describe", "metrics", "sheet", "film", "diff", "lint", "fix", "edit", "retarget.inspect", "retarget.apply", "recipe.compile", "graph.validate", "graph.sim", "license.check", "version", "validate"]);
+    expect([...a, ...b].map((t) => t.name).sort()).toEqual(all.map((t) => t.name).sort()); // each tool counted in 7.2a or 7.2b
     expect(cost(a)).toBeLessThanOrEqual(1900);
     expect(cost(COMPOSE)).toBeLessThanOrEqual(420);
+    expect(cost(EXCHANGE)).toBeLessThanOrEqual(400);
     expect(cost(all)).toBeLessThanOrEqual(3000);
     for (const t of all) expect(cost([t]), t.name).toBeLessThanOrEqual(240);
   });
-  it("registers exactly PLAN.md's tools, by name, in help order", () => {
-    expect(tools.list().map((t) => t.name)).toEqual(TOOLS_NAMED);
+  it("registers exactly the tools PLAN.md names, in help order", () => {
+    expect(TOOLS.map((t) => t.name)).toEqual(["search", "show", "describe", "metrics", "sheet", "film", "diff", "lint", "fix", "edit", "retarget.inspect", "retarget.apply", "recipe.compile", "graph.validate", "graph.sim", "license.check", "import", "export", "version", "validate"]);
+    expect(tools.list()).toEqual(TOOLS);
   });
   it("puts each tool's first example, a good call, in its schema, and only that; and gives each an output schema", () => {
     for (const t of tools.list()) {

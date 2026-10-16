@@ -129,7 +129,8 @@ export function importSet(libs: readonly LibraryIn[], cat: Catalog, opts: { name
       // a loop that walks or runs in place keeps how fast it travelled, so a player can match it to the ground; one
       // that hardly moves has none
       const speed = cap.loop && cap.stride !== undefined && cap.dur > 0 ? Math.round(((cap.stride / rest.H0) * 100) / cap.dur) : 0;
-      const out: ImportedClip = { clip: clip.clip, src: L.id, ...(cap.take ? { take: cap.take } : {}), ...(c?.[2] ? { orig: c[2] } : {}), dur: clip.dur, loop: clip.loop, ...(speed >= 10 ? { speed } : {}), ...(clip.tags ? { tags: clip.tags } : {}), ...(clip.desc ? { desc: clip.desc } : {}), keys: clip.keys };
+      // a one-frame take (a rest pose) holds its pose a frame: a clip lasts more than 0 s (M2-E014); its key is the fit's
+      const out: ImportedClip = { clip: clip.clip, src: L.id, ...(cap.take ? { take: cap.take } : {}), ...(c?.[2] ? { orig: c[2] } : {}), dur: clip.dur > 0 ? clip.dur : Math.round(1000 / fps) / 1000, loop: clip.loop, ...(speed >= 10 ? { speed } : {}), ...(clip.tags ? { tags: clip.tags } : {}), ...(clip.desc ? { desc: clip.desc } : {}), keys: clip.keys };
       set.clips[name] = out;
       set.fit[name] = [Math.round(mean), Math.round(max)];
       fits.push({ name, src: L.id, mean, max, keys: clip.keys.length });

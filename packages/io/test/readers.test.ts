@@ -142,7 +142,7 @@ describe("VRM animations", () => {
   it("writes a clip, reads it back and writes it again byte for byte, its loop, events, contacts and facts in extras", () => {
     const clip = clipOf("QUATERNIUS_3D2DGE/Walk_Loop"), bytes = writeVrma(clip, b), v = decodeVrma(bytes);
     expect(encodeVrma(v)).toEqual(bytes);
-    expect(v.extras).toEqual({ id: clip.id, loop: true, dur: clip.dur, events: [{ t: 0.4, name: "step" }], contacts: clip.contacts, facts: { speed: 1.2 } });
+    expect(v.extras).toEqual({ id: clip.id, loop: true, dur: clip.dur, events: [{ t: 0.4, name: "step" }], contacts: clip.contacts, facts: { speed: 1.2 }, license: "CC0-1.0" });
     // where three's bake puts them: the animation's extras
     expect((parseGlb(bytes).json.animations![0] as { extras?: unknown }).extras).toEqual(v.extras);
     expect(Object.keys(v.humanBones)).toEqual(expect.arrayContaining(["hips", "spine", "head", "leftUpperArm", "rightLowerLeg", "leftFoot"]));
