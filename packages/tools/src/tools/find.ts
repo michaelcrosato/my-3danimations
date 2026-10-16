@@ -8,7 +8,7 @@ import { describe as timeline } from "@m3a/sensors";
 import { defineTool, ToolError } from "../registry/registry.ts";
 import { MAX_LINES } from "../registry/reply.ts";
 import { quote } from "../registry/schema.ts";
-import { loadClip, WORKSHOP, type ClipRef } from "./clips.ts";
+import { absolute, loadClip, WORKSHOP, type ClipRef } from "./clips.ts";
 import { capped, CLIP, count, cut, sec } from "./common.ts";
 import { credited, fits, parts, tierOf } from "./ship.ts";
 
@@ -48,7 +48,7 @@ function legendLines(text: readonly string[]): string[] {
  *  given; null for clip JSON or an absolute path, which a reply doesn't echo. */
 export function nameOf(ref: ClipRef): string | null {
   if (ref.where === "workshop") return `${WORKSHOP}/${ref.path!.replace(/^workshop\/|\.json$/g, "")}`;
-  return ref.where === "library" ? ref.id : ref.where === "file" && !/^([A-Za-z]:)?[\\/]/.test(ref.path!) ? ref.path : null;
+  return ref.where === "library" ? ref.id : ref.where === "file" && !absolute(ref.path!) ? ref.path : null;
 }
 
 /** A warning line when shipping `ref` (a file, JSON or workshop clip: a library id is held to the tiers before) needs

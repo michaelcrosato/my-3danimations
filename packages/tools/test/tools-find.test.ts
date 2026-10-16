@@ -18,7 +18,7 @@ async function inCwd(body: (call: (tool: string, args: object) => Promise<Reply>
   }
 }
 const refused = (r: Reply) => [r.status, r.error?.code, r.error?.message];
-const clipText = (id: string) => readFileSync(join(ROOT, `library/sets/${id}.json`), "utf8"), clipOf = (id: string) => JSON.parse(clipText(id)) as { provenance: object };
+const clipText = (id: string) => readFileSync(join(ROOT, `library/sets/${id}.json`), "utf8"), clipOf = (id: string) => JSON.parse(clipText(id)) as { provenance: object; keys: { t: number }[] };
 const keysIn = (text: string) => text.match(/\{"t":/g)?.length;
 
 describe("find and read", () => {
@@ -30,7 +30,7 @@ describe("find and read", () => {
       expect(refused(await call("search", { q: "walk" }))).toEqual(["usage", "E_ARGS", expect.stringMatching(/^unknown argument "q"; did you mean "query"\?/)]);
       expect(await call("search", { query: "wlak" })).toMatchObject({ status: "ok", data: { total: 0, rows: [] }, next: expect.stringMatching(/nearest tags: walk.*; search again$/) });
       const proud = await call("search", { query: "walks proudly", limit: 2 });
-      expect([proud.data, proud.next]).toEqual([expect.objectContaining({ tiers: ["cc0"], total: 26, more: 24 }), expect.stringMatching(/^describe MESH2MOTION\/\S+ or show .*STYLE100\/Proud_Walk .*; add "cc-by" to "tiers" in game.json; 24 more/)]);
+      expect([proud.verdict, proud.data, proud.next]).toEqual(['search "walks proudly": 2 of 26 clips (tiers cc0)', expect.objectContaining({ tiers: ["cc0"], total: 26, more: 24 }), expect.stringMatching(/^describe MESH2MOTION\/\S+ or show .*STYLE100\/Proud_Walk .*; add "cc-by" to "tiers" in game.json; 24 more/)]);
       expect(((await call("search", { query: "" })).data as { rows: { core?: true }[] }).rows.every((r) => r.core)).toBe(true); // "" lists the core clips first
       writeFileSync(join(cwd, "game.json"), '{"tiers": ["cc0", "cc-by"]}');
       expect((await call("search", { query: "walks proudly", limit: 1 })).data).toMatchObject({ tiers: ["cc0", "cc-by"], rows: [{ id: "STYLE100/Proud_Walk", tier: "cc-by" }] });
@@ -66,8 +66,12 @@ describe("find and read", () => {
       const mixed = clipOf("STYLE100/Neutral_Walk"), credit = "100STYLE (CC BY 4.0); CMU Graphics Lab Motion Capture Database", license = "CC-BY-4.0 AND LicenseRef-CMU-Mocap";
       const both = await call("show", { clip: JSON.stringify({ ...mixed, id: "STYLE100/Mixed", provenance: { ...mixed.provenance, license, credit } }) });
       expect([both.lines[0], both.lines[1], both.next]).toEqual([expect.stringContaining(`credit owed: ${credit}`), `warning: add "cc-by" and "cmu" to "tiers" in game.json before shipping it (STYLE100 is a cc-by set, its license is ${license})`, expect.stringMatching(/^show with the same clip from: /)]);
-      const mine = JSON.stringify({ ...clipOf("QUATERNIUS_3D2DGE/A_TPose"), id: "MINE/Pose" });
-      expect((await call("show", { clip: mine })).lines[1]).toBe('warning: "MINE/Pose" is from no library set: its license (CC0-1.0) is for you to check');
+      const pose = clipOf("QUATERNIUS_3D2DGE/A_TPose"), mine = await call("show", { clip: JSON.stringify({ ...pose, id: "MINE/Pose", provenance: { ...pose.provenance, credit: "Someone" } }) });
+      expect(mine.lines.slice(0, 2)).toEqual([expect.stringMatching(/, CC0-1.0, no credit owed$/), 'warning: "MINE/Pose" is from no library set: its license (CC0-1.0) is for you to check']); // a CC0 clip owes none
+      const mit = JSON.stringify({ ...pose, id: "MINE/Mit", provenance: { ...pose.provenance, license: "MIT" } });
+      expect((await call("show", { clip: mit })).lines[1]).toBe("warning: its license (MIT) fits no tier a shipped game opts in to (D10)");
+      expect((await call("show", { clip: join(cwd, "akimbo.json") })).next).toMatch(/^show with the same clip from: /); // never an absolute path
+      expect(refused(await call("show", { clip: JSON.stringify({ ...pose, restSrc: "MYRIG" }) }))).toEqual(["usage", "E_REST", expect.stringMatching(/^the clip JSON names rest "MYRIG", which no set's manifest has/)]);
       writeFileSync(join(cwd, "game.json"), '{"tiers": ["cc0", "cc-by"]}');
       expect((await call("show", { clip: "akimbo.json" })).lines[1]).toMatch(/^\{"t":0,/);
     }));
@@ -79,6 +83,9 @@ describe("find and read", () => {
       expect((await call("describe", { clip: "MESH2MOTION/Roll" })).next).toMatch(/^show MESH2MOTION\/Roll from: 0.533 reads the keys at its land;/);
       const ticks = Array.from({ length: 21 }, (_, i) => ({ t: i * 0.05, name: "tick" })), many = await call("describe", { clip: JSON.stringify({ ...clipOf("QUATERNIUS_3D2DGE/Sword_Attack"), events: ticks }), detail: true });
       expect([(many.data as { moments: object[] }).moments.length, many.data, many.lines.at(-1)]).toEqual([20, expect.objectContaining({ more: 2 }), "more: 2"]); // 21 events and a strike
+      const kneel = clipOf("CMU_CURATED/Get_Up_Sit_Kneel"), keys = [0, 1, 2, 3, 4].flatMap((j) => kneel.keys.map((k) => ({ ...k, t: Math.round((k.t + j * 9.4) * 1000) / 1000 })));
+      const long = await call("describe", { clip: JSON.stringify({ ...kneel, dur: 46.9, keys, events: [], facts: undefined }), detail: true }); // its 6 phases 5 times
+      expect([(long.data as { phases: object[] }).phases.length, long.lines.at(-1)]).toEqual([20, "more: 2"]);
       expect(refused(await call("describe", { clip: "CMU_CURATED/Drink_Soda" }))).toEqual(["usage", "E_TIER", expect.stringMatching(/a cmu set, and this game sees only cc0: add "cmu" to "tiers" in game.json/)]);
       writeFileSync(join(cwd, "bad.json"), '{"format":"2.0","id":"DEMO/Bad","dur":0}');
       expect(refused(await call("describe", { clip: "bad.json" }))).toEqual(["error", "E_CLIP", expect.stringMatching(/^"bad.json" is not a valid clip/)]);

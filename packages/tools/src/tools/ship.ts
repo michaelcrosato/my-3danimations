@@ -2,13 +2,14 @@
 // set of its tiers) against their licenses and the tiers the game opts in to, with the credits block it shows. A
 // workshop copy, a clip file or a clip's JSON is checked as each library clip it names (its history's `from`, its
 // provenance's `orig` and recipe inputs, its own id), so an edit can't carry a clip out of a tier the game hasn't opted
-// in to; and by its own license, each part of which must fit an opted-in tier, its credit owed. One from no library
-// clip is an open question, its terms for the game to check.
+// in to; by the set its id or history names; and by its own license, each part of which must fit an opted-in tier. The
+// parts of its credit line no library clip it names carries are its own credits owed. One from no library clip is an
+// open question, its terms for the game to check; one that won't load is a finding, so one check reports every problem.
 import type { Clip } from "@m3a/core";
 import { checkGame, checkSets, creditsBlock, TIERS, type Credit, type LicenseFinding, type LicenseReport, type Tier } from "@m3a/library";
 import { defineTool, ToolError, type ToolContext } from "../registry/registry.ts";
 import { didYouMean, quote } from "../registry/schema.ts";
-import { historyFile, loadClip, suggestId, WORKSHOP } from "./clips.ts";
+import { absolute, historyFile, readClip, suggestId, WORKSHOP } from "./clips.ts";
 import { capped, count } from "./common.ts";
 
 /** The tier a license fits, by the library's rule (D10): CC0-1.0 cc0, CC-BY-x.y cc-by, LicenseRef-CMU-Mocap cmu (both
@@ -21,13 +22,14 @@ export const fits = (tier: Tier, tiers: readonly Tier[]): boolean => tiers.inclu
 /** Whether a tier's clips must be credited where they are used: cc-by and cmu. */
 export const credited = (t: Tier): boolean => t === "cc-by" || t === "cmu";
 
-/** A clip as license.check sees it: what a finding calls it (as given; a JSON clip by its id), the library clips it
- *  names, and its own data unless it is a library id: a workshop copy's history's `from`, the provenance's `orig` and
- *  recipe inputs, and its own id, each that is a library clip. */
-async function originsOf(ctx: ToolContext, given: string): Promise<{ label: string; ids: string[]; clip: Clip | null }> {
+/** A clip as license.check sees it: what a finding calls it (as given; a JSON clip or absolute path by its id), the
+ *  library clips it names, and its own data unless it is a library id: a workshop copy's history's `from`, the
+ *  provenance's `orig` and recipe inputs, and its own id, each that is a library clip; and the set its id or history
+ *  names, with that set's tier (null when it is no library set). */
+async function originsOf(ctx: ToolContext, given: string): Promise<{ label: string; ids: string[]; clip: Clip | null; set: string; tier: Tier | null }> {
   const id = given.trim(), src = ctx.library().source;
-  if (!id.startsWith("{") && !/\.json$/i.test(id) && !id.startsWith(`${WORKSHOP}/`)) return { label: id, ids: [id], clip: null };
-  const r = await loadClip(ctx, id), p = r.clip.provenance as Clip["provenance"] & { recipe?: { inputs?: Record<string, string> } };
+  if (!id.startsWith("{") && !/\.json$/i.test(id) && !id.startsWith(`${WORKSHOP}/`)) return { label: id, ids: [id], clip: null, set: id, tier: null };
+  const r = await readClip(ctx, id), p = r.clip.provenance as Clip["provenance"] & { recipe?: { inputs?: Record<string, string> } };
   let from: unknown;
   try {
     from = r.where === "workshop" ? (JSON.parse((await ctx.tryRead(historyFile(r.path!.replace(/^workshop\/|\.json$/g, "")))) ?? "{}") as { from?: unknown }).from : undefined;
@@ -38,7 +40,8 @@ async function originsOf(ctx: ToolContext, given: string): Promise<{ label: stri
     const [set = "", name] = typeof x === "string" ? x.split("/") : [];
     return src.sets().includes(set) && src.files(set).includes(`${name}.json`);
   };
-  return { label: id.startsWith("{") ? r.clip.id : id, ids: [...new Set([from, p.orig, ...Object.keys(p.recipe?.inputs ?? {}), r.clip.id].filter(isClip))], clip: r.clip };
+  const ids = [...new Set([from, p.orig, ...Object.keys(p.recipe?.inputs ?? {}), r.clip.id].filter(isClip))];
+  return { label: id.startsWith("{") || absolute(id) ? r.clip.id : id, ids, clip: r.clip, set: typeof from === "string" ? from.split("/")[0]! : r.set, tier: r.tier };
 }
 
 /** game.json's clips and ships, and whether there is one (the host reads its tiers, and refuses a file that isn't a JSON
@@ -68,31 +71,47 @@ export const licenseCheck = defineTool<{ clips?: string[]; tiers?: Tier[]; ships
   examples: [{ args: { clips: ["STYLE100/Akimbo_Walk"], tiers: ["cc0", "cc-by"] } }],
   async run(a, ctx) {
     if (a.set !== undefined && a.clips) throw new ToolError("E_ARGS", "give clips or set, not both: license.check one, then the other", true);
+    if (a.clips?.length === 0) throw new ToolError("E_ARGS", 'clips lists at least one clip, as ["SET/Name"]', true);
     if (a.tiers?.length === 0) throw new ToolError("E_ARGS", 'tiers lists at least one tier, as ["cc0"]', true);
+    if (a.set === "library" && (a.tiers || a.ships !== undefined)) throw new ToolError("E_ARGS", 'set "library" audits every set with no tier gate: give it no tiers or ships, or name a set', true);
     const game = await gameOf(ctx), lib = ctx.library(a.tiers), tiers = [...lib.tiers], src = lib.source, ships = a.ships ?? game.ships ?? true;
     const clips = a.clips ?? (a.set === undefined ? game.clips : undefined), labels = new Map<string, { label: string; i: number }[]>();
-    const own: (LicenseFinding & { i: number })[] = [], mine: Credit[] = [], end = clips?.length ?? 0;
-    let r: LicenseReport, what: string;
+    const own: (LicenseFinding & { i: number })[] = [], mine: Credit[] = [], end = clips?.length ?? 0, at = `this game opts into ${tiers.join(", ")}`;
+    const fail = (where: string, message: string, i: number) => own.push({ level: "fail", where, message, i });
+    let r: LicenseReport, what: string, stray = false;
     if (a.set !== undefined) {
       if (a.set !== "library" && !src.sets().includes(a.set)) throw new ToolError("E_ARGS", `no set ${quote(a.set)}${didYouMean(a.set, src.sets())} ("library" checks every set)`, true);
       const tier = a.set === "library" ? null : lib.library.about(a.set).tier;
-      if (tier && !tiers.includes(tier)) own.push({ level: "fail", where: a.set, message: `a ${tier} set and this game opts into ${tiers.join(", ")}: opt in, or use another set`, i: 0 });
+      if (tier && !tiers.includes(tier)) fail(a.set, `a ${tier} set and ${at}: opt in, or use another set`, 0);
+      if (tier === "local" && ships) fail(a.set, "local content never ships (D10): drop it, or mark the manifest ships: false for a game that stays on this machine", 0);
+      if (tier && ships && tiers.includes("local")) fail("tiers", "a shipped game opts into local: local content never ships (D10)", 0);
       [r, what] = [checkSets(src, a.set === "library" ? src.sets().sort() : [a.set], lib.licenseText), a.set === "library" ? "the library" : `set ${a.set}`];
     } else {
-      const ids: string[] = [];
+      const ids: string[] = [], creditOf = (id: string) => (JSON.parse(src.read(id.split("/")[0]!, `${id.split("/")[1]}.json`)) as Clip).provenance.credit;
       for (const [i, given] of (clips ?? []).entries()) {
-        const o = await originsOf(ctx, given);
+        let o: Awaited<ReturnType<typeof originsOf>>;
+        try {
+          o = await originsOf(ctx, given);
+        } catch (err) {
+          if (!(err instanceof ToolError) || err.code === "E_PATH") throw err;
+          fail(given.trim().startsWith("{") ? "the clip JSON" : given, err.message, i); // one that won't load is a finding, so one check reports every problem
+          continue;
+        }
         for (const id of o.ids) labels.set(id, [...(labels.get(id) ?? []), { label: o.label === id ? id : `${o.label} (from ${id})`, i }]);
         ids.push(...o.ids);
         if (!o.clip) continue;
-        // the parts of its own license no library clip it names answers for: each must fit a tier, its credit owed
-        const p = o.clip.provenance, covered = new Set(o.ids.map((id) => lib.library.about(id.split("/")[0]!).tier));
-        const left = parts(p.license).filter((x) => !covered.has(tierOf(x))), bad = left.filter((x) => !fits(tierOf(x), tiers)), owed = left.filter((x) => !bad.includes(x) && credited(tierOf(x))).sort();
-        for (const x of bad) own.push({ level: "fail", where: o.label, message: `its license ${x} needs the ${tierOf(x)} tier and this game opts into ${tiers.join(", ")}: opt in, or use a clip from those tiers`, i });
-        const had = mine.find((c) => c.credit === p.credit); // a CC BY or CMU license has a credit line (core's M2-E018)
-        if (had && owed.length) Object.assign(had, { title: `${had.title}, ${o.clip.name}`, licenses: [...new Set([...had.licenses, ...owed])].sort(), clips: had.clips + 1 });
-        else if (owed.length && p.credit) mine.push({ set: o.label, title: o.clip.name, tier: tierOf(owed[0]!), licenses: owed, credit: p.credit, clips: 1 });
-        if (!o.ids.length && !bad.length) own.push({ level: "warn", where: o.label, message: `from no library clip (license ${p.license}): check its terms yourself`, i });
+        // the set its id or history names, when no library clip it names is that set's; then each part of its own license
+        // no such set answers for, which must fit a tier
+        const p = o.clip.provenance, named = new Set(o.ids.map((id) => lib.library.about(id.split("/")[0]!).tier)), was = own.length;
+        if (o.tier && !tiers.includes(o.tier) && !named.has(o.tier)) fail(o.label, `${o.set} is a ${o.tier} set and ${at}: opt in, or use a clip from those tiers`, i);
+        for (const x of parts(p.license).filter((x) => !named.has(tierOf(x)) && tierOf(x) !== o.tier && !fits(tierOf(x), tiers))) fail(o.label, `its license ${x} needs the ${tierOf(x)} tier and ${at}: opt in, or use a clip from those tiers`, i);
+        // its credit line's parts (compile joins its inputs' with "; ") that no library clip it names carries are its own to credit
+        const owed = [...new Set(parts(p.license).filter((x) => credited(tierOf(x))))].sort(), theirs = new Set(o.ids.map(creditOf));
+        const credit = owed.length ? (p.credit ?? "").split("; ").filter((c) => c && !theirs.has(c)).join("; ") : "", had = mine.find((c) => c.credit === credit);
+        if (credit && had) Object.assign(had, { title: `${had.title}, ${o.clip.name}`, licenses: [...new Set([...had.licenses, ...owed])].sort(), clips: had.clips + 1 });
+        else if (credit) mine.push({ set: o.label, title: o.clip.name, tier: tierOf(owed[0]!), licenses: owed, credit, clips: 1 });
+        stray ||= !o.ids.length;
+        if (!o.ids.length && own.length === was) own.push({ level: "warn", where: o.label, message: `from no library clip (license ${p.license}): check its terms yourself`, i });
       }
       r = checkGame(src, { tiers, ships, ...(clips ? { clips: ids } : {}) }, lib.licenseText);
       what = a.clips ? count(a.clips.length, "clip") : clips ? `game.json's ${count(clips.length, "clip")}` : game.found ? "game.json" : "every set";
@@ -102,9 +121,10 @@ export const licenseCheck = defineTool<{ clips?: string[]; tiers?: Tier[]; ships
       const l = labels.get(f.where)?.shift(), near = /^no clip /.test(f.message) ? suggestId(lib, f.where) : undefined;
       return { ...f, where: l?.label ?? f.where, message: near ? `${f.message}; did you mean ${quote(near)}?` : f.message, i: l?.i ?? end };
     })].sort((x, y) => x.i - y.i).map(({ i: _, ...f }) => f);
-    const fails = all.filter((f) => f.level === "fail").length, warns = all.length - fails, ok = fails === 0, shown = capped(all, 20), credits = [...r.credits, ...mine], block = creditsBlock(credits);
+    const fails = all.filter((f) => f.level === "fail").length, warns = all.length - fails, ok = fails === 0, shown = capped(all, 20), credits = [...r.credits, ...mine];
+    const block = stray ? creditsBlock(credits).replace(" from the m3a library", "") : creditsBlock(credits); // a clip from no library clip
     return {
-      verdict: `license.check ${what} (tiers ${tiers.join(", ")}): ${ok ? `PASS, ${count(credits.length, "credit")} owed` : `FAIL, ${fails} failing`}${warns ? `, ${count(warns, "open question")}` : ""}`,
+      verdict: `license.check ${what} (${a.set === "library" ? "every tier" : `tiers ${tiers.join(", ")}`}): ${ok ? `PASS, ${count(credits.length, "credit")} owed` : `FAIL, ${fails} failing`}${warns ? `, ${count(warns, "open question")}` : ""}`,
       data: { ok, fails, warns, findings: shown.rows, ...(shown.more ? { more: shown.more } : {}), credits, block },
       lines: [...shown.rows.map((f) => `${f.level} ${f.where}: ${f.message}`), ...(shown.more ? [`more: ${shown.more}`] : []), ...block.split("\n")],
       findings: !ok,
