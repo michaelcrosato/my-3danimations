@@ -3,7 +3,9 @@
 // without chest bones). The planted reactors are the known-good one edited: the light hit on the whole body, a heavy
 // hit that gets up at once, one that never gets up, the idle slid along for the walk, a light hit that does nothing,
 // a knockdown flung, the idle slid along after getting up, the body sliding as it lies, and the walk skating at half
-// its rate.
+// its rate. On a rigify character (gen-7: DEF- bones, none named hips or pelvis) the known-good passes too, and the
+// starter's check finds the hips with bind() and prints their height (by name it printed NaN, D91).
+import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -57,4 +59,14 @@ describe("B3's grader", () => {
       }
     }, 300_000);
   }
+  it("passes the known-good reactor on a rigify character (gen-7), whose hips the starter's check finds as the grader does", async () => {
+    const g = await grade("good", good, { seed: 7 });
+    expect(g.pass, text(g)).toBe(true);
+    // the starter's `npm run check` in that workspace: the hips' height every half second, standing, down after the
+    // heavy hit (7 s) and up again at the end
+    const out = execFileSync(process.execPath, ["check.ts"], { cwd: join(ROOT, ".cache/bench/test-ws/B3-good-7"), encoding: "utf8" });
+    const hips = [...out.matchAll(/hips (\S+) m up/g)].map((m) => Number(m[1]));
+    expect([hips.length, hips.every(Number.isFinite)]).toEqual([26, true]);
+    expect([hips[14]! < 0.3 * hips[0]!, hips[25]! > 0.8 * hips[0]!]).toEqual([true, true]);
+  }, 300_000);
 });

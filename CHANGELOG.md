@@ -4,6 +4,62 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.45.2 · 2026-10-16
+
+### Tools
+- `npm run gate` records the commit it ran at and whether the tracked tree differed from it, in the report and at the
+  end of its verdict (D91).
+- `npm run fixtures -- heldout` says "no rig: seeds only" for a held-out run without a rig.json, and lists each
+  variant's seed against the seeds already used (D91).
+
+### Repo
+- G6 passed on run 1, 20 of 20: B2, B3, B5, B6 and B7 and their held-out variants 5 of 5 each
+  (`bench/results/gates/G6-run-1/`, D91).
+- The benchmark hides every checkout of the repository (`git worktree list`), its git directory, the Claude home and
+  `~/.claude.json` from each agent; the agent runs in a PID namespace of its own and, where `setpriv` works, without
+  CAP_SYS_ADMIN (`ownPids` and `capsDropped` recorded per trial); a timeout ends the whole namespace (D91).
+- The benchmark's audit scans what a Write, an Edit or a heredoc written to a file names (for outside and scratch, not
+  as reads past the manual), paths in template literals, and another process's `/proc` entry by PID, glob or variable
+  (D91).
+- B7's brief names the check before the jump; B3's starter check finds the hips with `bind()` (it printed NaN on
+  rigify characters), and B3's known-good is graded on a rigify character in T1 (D91).
+
+## 0.45.1 · 2026-10-15
+
+### Core
+- Gaits (WP-6.2's close-out, D71): the seam readings `fitGait` and `gaitClip` share are kept by weight, 16 MB across
+  all rests, the one read longest ago dropped first, each grid keeping only what is read again; before, they grew with
+  each rest (40 gaits of 3 s held 157 MB, and a process over about 100 rests ran out of a 3 GB heap). Every clip and
+  refusal is the same to the bit; `fitGait` is about 8% quicker and `gaitClip` about 5%.
+- Actions: the ready-made procedural parts are kept for the 96 used last (16 bodies of six), not without limit.
+
+### Sensors
+- Tests: the run knee the margin rule records (91.1%, D90) is pinned between 90% and 92%, naming what to restate when
+  it moves.
+
+## 0.45.0 · 2026-10-15
+
+### Core
+- Gaits (WP-6.2's rounds 8 to 14, D71, D90): every bound keeps the worst reading of its class at about 90% of the
+  sensors' fail level or under, measured on fresh grids. A swinging leg folded under 25% of its length and a knee under
+  the floor are refused; the loop's seam is read on the clip's own keys and bounded at 70%, the pelvis's whole-% steps
+  about it re-rounded; the hands are aimed from the decoded shoulders. A gait is made from the rest's standing pose
+  only, at 55 to 75 frames a second (was 90), with a key budget of 0 to 2 mm; the shortest swing is 0.3 s (was 0.26).
+  `fitGait` fits speed, lift and arm swing together, monotone in each: the fastest whole speed that plays within the
+  pace bound, a lower lift only where no speed plays, a narrower swing where the hands need it. Refusals name what
+  `fitGait` would make. ARM_TURN is gone (every cycle taken now covers it).
+- Actions: a ready-made procedural gait is fitted to the action's body (`fitGait`), so a run on a short-legged body
+  plays a little slower instead of throwing.
+
+### Tools
+- The manual's procedural gait lines name the standing start, 55 to 75 frames a second, the pace bound, the shortest
+  swing and run cycle, and what `fitGait` changes.
+
+### Repo
+- Tests: core's copies of the sensors' seam and pop levels held equal to the sensors'; the round-8 to 14 repros and the
+  margin's worst cases pinned under the fail level; actions on test characters 0 to 3 at the fitted speed.
+- `.gitignore` matches a worktree's `.cache` symlink (D83's implementer worktrees link it).
+
 ## 0.44.1 · 2026-10-14
 
 ### Core

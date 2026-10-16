@@ -1,0 +1,134 @@
+{
+ "about": "npm run bench: fresh agents on the briefs (PLAN.md §7); isolation 1 is the claude CLI in a clean workspace",
+ "date": "2026-10-15T22-23-19",
+ "commit": "a9731b1d9db445ffdaf8f7949b05cc278bd92189",
+ "dirty": false,
+ "model": "the CLI's default",
+ "fake": false,
+ "parallel": 5,
+ "privateTmp": true,
+ "B2": {
+  "trials": [
+   {
+    "trial": "B2-1",
+    "pass": true,
+    "failed": [],
+    "agent": {
+     "isolation": 1,
+     "privateTmp": true,
+     "ok": true,
+     "ms": 23000.977466,
+     "model": "claude-sonnet-5-5",
+     "turns": 5,
+     "tokens": {
+      "input": 10,
+      "output": 2412,
+      "cacheRead": 59222,
+      "cacheWrite": 18799
+     },
+     "costUsd": 0.10525820000000001,
+     "outside": [],
+     "scratch": [],
+     "pastManual": []
+    }
+   },
+   {
+    "trial": "B2-2",
+    "pass": true,
+    "failed": [],
+    "agent": {
+     "isolation": 1,
+     "privateTmp": true,
+     "ok": true,
+     "ms": 23435.41072,
+     "model": "claude-sonnet-5-5",
+     "turns": 5,
+     "tokens": {
+      "input": 10,
+      "output": 2322,
+      "cacheRead": 58993,
+      "cacheWrite": 18441
+     },
+     "costUsd": 0.1029033,
+     "outside": [],
+     "scratch": [],
+     "pastManual": []
+    }
+   },
+   {
+    "trial": "B2-3",
+    "pass": true,
+    "failed": [],
+    "agent": {
+     "isolation": 1,
+     "privateTmp": true,
+     "ok": true,
+     "ms": 20696.395664,
+     "model": "claude-sonnet-5-5",
+     "turns": 5,
+     "tokens": {
+      "input": 10,
+      "output": 1937,
+      "cacheRead": 59224,
+      "cacheWrite": 18341
+     },
+     "costUsd": 0.09867640000000001,
+     "outside": [],
+     "scratch": [],
+     "pastManual": []
+    }
+   },
+   {
+    "trial": "B2-4",
+    "pass": true,
+    "failed": [],
+    "agent": {
+     "isolation": 1,
+     "privateTmp": true,
+     "ok": true,
+     "ms": 27162.86236,
+     "model": "claude-sonnet-5-5",
+     "turns": 6,
+     "tokens": {
+      "input": 12,
+      "output": 2566,
+      "cacheRead": 87827,
+      "cacheWrite": 21682
+     },
+     "costUsd": 0.1211947,
+     "outside": [],
+     "scratch": [],
+     "pastManual": []
+    }
+   },
+   {
+    "trial": "B2-5",
+    "pass": true,
+    "failed": [],
+    "agent": {
+     "isolation": 1,
+     "privateTmp": true,
+     "ok": true,
+     "ms": 21897.205543000004,
+     "model": "claude-sonnet-5-5",
+     "turns": 5,
+     "tokens": {
+      "input": 10,
+      "output": 2200,
+      "cacheRead": 58993,
+      "cacheWrite": 18392
+     },
+     "costUsd": 0.10148730000000002,
+     "outside": [],
+     "scratch": [],
+     "pastManual": []
+    }
+   }
+  ],
+  "discovery": []
+ },
+ "models": [
+  "claude-sonnet-5-5"
+ ],
+ "ms": 41862
+}

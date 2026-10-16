@@ -24,7 +24,7 @@ import { gradeB5 } from "../graders/B5/grade.ts";
 import { gradeB6 } from "../graders/B6/grade.ts";
 import { gradeB7 } from "../graders/B7/grade.ts";
 import { closest, finish, fmtMs, parseArgs, usage, type Report, type Step } from "../../tools/run/cli.ts";
-import { namespace, runAgent, type AgentRun } from "./agent.ts";
+import { capsDropped, namespace, ownPids, runAgent, type AgentRun } from "./agent.ts";
 import { pack } from "./pack.ts";
 import { answersIn, QUIZ, quizPrompt, score } from "./quiz.ts";
 import { variant } from "@m3a/three/test-characters";
@@ -200,7 +200,7 @@ if (import.meta.main) {
   const f = parsed.flags, names = parsed.positionals[0]!.split(","), trials = Number(f.trials ?? 5), t0 = performance.now(), steps: Step[] = [];
   const stamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19), base = join("/tmp/m3a-bench", stamp), model = typeof f.model === "string" ? f.model : undefined, fake = f.fake === true;
   mkdirSync(base, { recursive: true });
-  const results: Record<string, unknown> = { about: "npm run bench: fresh agents on the briefs (PLAN.md §7); isolation 1 is the claude CLI in a clean workspace", date: stamp, ...commitOf(), model: model ?? "the CLI's default", fake, parallel: lanes(Number(f.parallel ?? 1), fake), privateTmp: namespace() !== null };
+  const results: Record<string, unknown> = { about: "npm run bench: fresh agents on the briefs (PLAN.md §7); isolation 1 is the claude CLI in a clean workspace", date: stamp, ...commitOf(), model: model ?? "the CLI's default", fake, parallel: lanes(Number(f.parallel ?? 1), fake), privateTmp: namespace() !== null, ownPids: ownPids(), capsDropped: capsDropped() };
   if (typeof f.variant === "string") results.variant = { dir: relative(ROOT, resolve(f.variant)), character: variantOf(resolve(f.variant)).character };
   const briefs = names.filter((n) => n !== "quiz"), packs = briefs.length ? pack(join(base, "packs")) : {}, models = new Set<string>();
   for (const name of briefs) {

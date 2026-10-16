@@ -1,0 +1,7 @@
+check: PASS (T0) in 10.6 s, budget 15.0 s
+  ok   typecheck 0.1 s
+  ok   lint 9.8 s
+  ok   headers 0.1 s
+  ok   version 0.1 s
+  ok   doctrine 0.5 s
+next: npm test

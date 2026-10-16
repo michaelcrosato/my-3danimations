@@ -1,0 +1,144 @@
+{
+ "about": "npm run bench: fresh agents on the briefs (PLAN.md §7); isolation 1 is the claude CLI in a clean workspace",
+ "date": "2026-10-15T22-24-40",
+ "commit": "a9731b1d9db445ffdaf8f7949b05cc278bd92189",
+ "dirty": false,
+ "model": "the CLI's default",
+ "fake": false,
+ "parallel": 5,
+ "privateTmp": true,
+ "B3": {
+  "trials": [
+   {
+    "trial": "B3-1",
+    "pass": true,
+    "failed": [],
+    "agent": {
+     "isolation": 1,
+     "privateTmp": true,
+     "ok": true,
+     "ms": 48921.361902,
+     "model": "claude-sonnet-5-5",
+     "turns": 7,
+     "tokens": {
+      "input": 14,
+      "output": 5516,
+      "cacheRead": 105040,
+      "cacheWrite": 21418
+     },
+     "costUsd": 0.151364,
+     "outside": [],
+     "scratch": [
+      "/tmp/cat.mjs",
+      "/tmp/probe.mts"
+     ],
+     "pastManual": []
+    }
+   },
+   {
+    "trial": "B3-2",
+    "pass": true,
+    "failed": [],
+    "agent": {
+     "isolation": 1,
+     "privateTmp": true,
+     "ok": true,
+     "ms": 149418.783464,
+     "model": "claude-sonnet-5-5",
+     "turns": 22,
+     "tokens": {
+      "input": 42,
+      "output": 16021,
+      "cacheRead": 673150,
+      "cacheWrite": 41909
+     },
+     "costUsd": 0.39524500000000007,
+     "outside": [],
+     "scratch": [
+      "/tmp/cat.mjs",
+      "/tmp/probe.ts"
+     ],
+     "pastManual": []
+    }
+   },
+   {
+    "trial": "B3-3",
+    "pass": true,
+    "failed": [],
+    "agent": {
+     "isolation": 1,
+     "privateTmp": true,
+     "ok": true,
+     "ms": 53126.721841,
+     "model": "claude-sonnet-5-5",
+     "turns": 8,
+     "tokens": {
+      "input": 16,
+      "output": 5856,
+      "cacheRead": 165373,
+      "cacheWrite": 30384
+     },
+     "costUsd": 0.1966653,
+     "outside": [],
+     "scratch": [],
+     "pastManual": []
+    }
+   },
+   {
+    "trial": "B3-4",
+    "pass": true,
+    "failed": [],
+    "agent": {
+     "isolation": 1,
+     "privateTmp": true,
+     "ok": true,
+     "ms": 58189.102158,
+     "model": "claude-sonnet-5-5",
+     "turns": 8,
+     "tokens": {
+      "input": 16,
+      "output": 6675,
+      "cacheRead": 150167,
+      "cacheWrite": 27950
+     },
+     "costUsd": 0.1935987,
+     "outside": [],
+     "scratch": [
+      "/tmp/cat.mjs",
+      "/tmp/t",
+      "/tmp/t/g.ts"
+     ],
+     "pastManual": []
+    }
+   },
+   {
+    "trial": "B3-5",
+    "pass": true,
+    "failed": [],
+    "agent": {
+     "isolation": 1,
+     "privateTmp": true,
+     "ok": true,
+     "ms": 51969.686398,
+     "model": "claude-sonnet-5-5",
+     "turns": 7,
+     "tokens": {
+      "input": 14,
+      "output": 5893,
+      "cacheRead": 132247,
+      "cacheWrite": 29124
+     },
+     "costUsd": 0.18867869999999998,
+     "outside": [],
+     "scratch": [],
+     "pastManual": []
+    }
+   }
+  ],
+  "discovery": []
+ },
+ "models": [
+  "claude-sonnet-5-5"
+ ],
+ "ms": 162038
+}

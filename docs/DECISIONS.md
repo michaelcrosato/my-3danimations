@@ -2085,7 +2085,8 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
 
 - **Principle:** 3, 4, 5, 8, 10, 12, D10, D32
 - **Call:** `@m3a/core`'s `procedural` namespace makes format-2 clips (`method: procedural`, CC0, `ai:
-  algorithmicMedia`) from three sources, each on any rest from any start pose. None runs inside `Animator.step`.
+  algorithmicMedia`) from three sources, each on any rest: a move and an idle from any start pose, a gait from the
+  rest's standing pose (any other start is refused, round 13). None runs inside `Animator.step`.
   - **One move model, as data:** `library/moves.json` holds 31 moves: my-3d2dge's `E.MOVES` (24; WP-6.2's entry said
     25 and now says 24) and shardfall's seven others, each with shardfall's `about` line. `node
     tools/procedural/carry.ts` writes it from the pinned sources. The three unit systems become one:
@@ -2131,9 +2132,10 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
       81 roundings lands the ankle nearest where it landed, and the keys are fitted within 2 mm.
     - Its parameters are speed, cadence, stance, lift, bounce, dip, sway, lean, arm swing and limp, each taken in the
       range the presets pass on three rests (lift 9–35, bounce 0–6, dip 0–12, sway 0–4, lean −10° to 25°, arm swing
-      0–80°); a swing under 0.2 s is refused (round 2; under 0.25 s from round 5, 0.26 s from round 6). A limp shortens
-      the weak leg's stance by up to 30%; that leg lands later and the other stands longer, keeping the plain gait's
-      double support. Without that, neither foot stood just before the strong foot landed.
+      0–80°); a swing under 0.3 s is refused (0.2 s from round 2, 0.25 s from round 5, 0.26 s from round 6, 0.3 s
+      from round 14). A limp shortens the weak leg's stance by up to 30%; that leg lands later and the other stands
+      longer, keeping the plain gait's double support. Without that, neither foot stood just before the strong foot
+      landed.
     - `GAITS` gives four ready made: walk, brisk, run and limp. On three rests (Mesh2Motion, 100STYLE, CMU) they slide
       at most 7.8 mm per contact and none fails; on all 64 of the library's rests (set and source pairs, 62 distinct)
       none fails and one reads over 10 mm (round 1; 10.1, the limp on CMU_31). The origin's gait slid 12–28% of body speed; capture's median is 52 mm. The run passes on the
@@ -2376,7 +2378,7 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   - **At 110 the pelvis stair-stepped** (blocking): the format holds the hips in whole % of H0, so a slow bouncing
     pelvis steps every other frame and a planted knee jumps about 30 mm with it. Counting the pelvis's sway and
     rounding in the 98.5% loop cut the 64-rest grid from 29 to 8 of 256, not to none; at 90 none fail (35 warn, 59
-    before). A gait is made at 90 frames a second or fewer.
+    before). A gait is made at 90 frames a second or fewer (75 or fewer since round 9).
   - **Should-fix:** 15 mutants of 0.42.6's fixes survived the tests (the 98.5% loop gone or blind to the bounce, the
     reach check at 0.75 with its message kept, the stance end, the swing and rate checks a hair off): tests now pin the
     loop (a gait at speed 375, cycle 0.52, stance 0.5, bounce 6 on `MESH2MOTION/Idle_A`, a pop without it), legs at
@@ -2387,17 +2389,238 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
     an idle and a move are made on test character 3. Since the 72% bound the run preset fits 4 of the 20 test
     characters as it is (the tall ones) and the brisk walk 14: the refusal names the fastest speed the legs take, and
     `procedural.fitGait(g, rest)` slows a gait to it (all 80 fitted presets pass, read plainly and by parts).
-  - **Nits:** a swing of 0.26 s is compared to the millisecond (0.8 s at a stance of 0.675 is taken); a missing or
-    blank name or about, a non-number field or rate is refused by its name before the clip is made (idles too); "no
-    leg past 98.5% at any phase" held for the model's targets while the written clip read up to 99.3%: the loop now
-    counts the pelvis's rounding, and the 5,160-gait grid reads at most 98.46% (a leg's own rounding, about 0.3%, is
-    not counted).
+  - **Nits:** a swing of 0.26 s is compared to the millisecond (0.8 s at a stance of 0.675 is taken; to within a float's
+    error since round 14); a missing or blank name or about, a non-number field or rate is refused by its name before
+    the clip is made (idles too); "no leg past 98.5% at any phase" held for the model's targets while the written clip
+    read up to 99.3%: the loop now counts the pelvis's rounding, and the 5,160-gait grid reads at most 98.46% (a leg's
+    own rounding, about 0.3%, is not counted).
   - **Measured:** the verifier's 5,160 gaits (64 library rests and 33 test characters, rates within 55 to 90): none
     fail, 768 warn, knee-pop findings 50 (187 before), the worst seam speed 3.8 m/s (6.6); the presets on 64 rests at
     60: none fail, the worst slide 8.3 mm (10.1). The arc moved two off-preset slides by about 2 mm (format rounding):
     two sensors-test bars 5 → 6.5 mm and 7 → 8 mm.
+- **Verifier, round 8, and its fixes' reviews, rounds 9 to 14** (lane G in ultracode, D83; the margin rule, D90): (the
+  verifier's round 8 on 0.44.0, then the integrator's reviews of lane G, each fixed Fixed, answered or recorded in
+  v0.44.1 and v0.45.0:
+  - **Round 8, the verifier (at 585bbf1).** Blocking: a short-stance run lifting high and bouncing folded its swinging
+    leg shut (stance 0.2 at the reach bound: the swing's ends keep the ground speed, the foot swings 87% of a leg past
+    the stride's ends, the pelvis was lowered to 44-56% of H0 for it, and the lifted foot passed under the hips: legs
+    2-8% of their length, knees flipping round at 18-50 m/s; fitGait's own output on the three rests; 25 of 1,248 of the
+    corner grid). Change: legsOf measures the shortest leg at any phase as the clip holds it; under FOLD_MIN (25%)
+    gaitClip refuses naming the speed and lift that fit, and fitGait slows to it (every grid failure was under 25%).
+    Should-fixes: fitGait gives back unfittable numbers for gaitClip to refuse by field; reach and pace shown rounded
+    up; NaN rates printed as themselves; a legless rest refused in words; the halving's whole speed taken down until it
+    fits (test character 33's limp). Recorded: at 90 fps 929 of 1,248 slow gaits warned (97% by parts on a short spine).
+  - **Round 8's review → round 9.** A knee went 61-85 mm under the floor (stance 0.2 near the reach bound lifting 9-15,
+    bouncing 6: the pelvis under half of H0, the trailing knee bent forward through the floor; legs only folded to
+    24-27%). Change: legsOf weighs the lowest a knee can be (kneeLow: ik3's apex turned the lowest way a forward knee
+    can be, the pelvis half a % lower and either way along and across, bounce, sway and limp counted); under KNEE_FLOOR
+    (0) refused and fitted (CMU_91's 309 → 289). fitGait fits speed and lift together. The pelvis's lone steps of two %
+    beside still frames popped a short spine by parts (to 136% at 90, 104-121% at 75 and 80): pelvisGrid takes one end a
+    % toward the other (Z_SLACK 0.75 of its drawn place, the legs still fitting). The integrator capped the rate at 75
+    (from 90: at 75 steps 82%, at 80 89% and an elbow 118%, at 90 97%). The arms turning round on the seam read 101% by
+    parts at 75 swinging 80 in 0.52 s: ARM_TURN, 250° a second squared of the cycle.
+  - **Round 9's review → round 10.** Elbows popped (a lean spread up the spine decodes the shoulders back, so a hand
+    aimed from the turned shoulder was past the arm's reach from the decoded one: the arm held straight, its bend 25 → 0
+    in a frame; 109% at 75 plainly, 105% by parts): the torso is placed where its key decodes it before the hands are
+    aimed (onKeyTorso; the arm bent 37-39° throughout; every made preset clip changed, its arms only). fitGait scans
+    each whole speed down where the halving finds none (a gait playing only between two speeds). ARM_TURN's claim
+    restated.
+  - **Round 10's review → round 11.** A run's left knee turned round on the loop's seam (its foot comes forward there at
+    a run's shortest cycles and a stance of 0.35-0.45: seamVelocity or pop@knee to 113.5%, 33 of 2,600 fitted runs, at
+    every rate; MIN_RUN_CYCLE doesn't bound it). Change: the knees and feet read at the seam on every grid 55-75 gives,
+    refused past SEAM_TURN (0.7) naming the speed that plays, fitGait slowing to it; the hands likewise (failing once
+    searched, to 103%), the refusal naming the widest swing, fitGait narrowing.
+  - **Round 11's review → round 12.** The seam was read where the feet were aimed, before the format's rounding (to 0.42
+    under the sensors' pop rule: CMU_144's run taken at 0.70 read 0.91). Change: seamOf makes the keys about each grid's
+    seam exactly as gaitClip makes them and reads them as the sensors do (the pop rule at the first and last steps
+    counted conservatively), and gaitClip keeps those frames as keys whatever the budget; SEAM_TURN bounds that reading
+    itself (to 1e-5 of the level against the sensors). The pelvis's whole-% steps either side of the seam jolted a short
+    spine to 0.938: where the torso reads past SEAM_TURN pelvisGrid takes the pelvis's places about the seam again. The
+    refusal's widest swing made monotone (every narrower whole swing plays); refusals name the whole of what fitGait
+    makes of a gait.
+  - **Round 12's review → round 13.** From a library clip's first key as the start, 8 of 227 gaits failed (a forearm
+    into the hips, a wrist popping), and nothing had been measured from one: gaitClip refuses any start but the standing
+    pose. fitGait made monotone in the lift (the highest whole lift some speed plays at, at the fastest speed there:
+    test character 25's limp asking 35 played at 328 lifting 9, now 215 lifting 34). The pelvis's seam pass weighs the
+    steps within the clip its frames make or stand beside, the pelvis along kept nearest (it had moved the seam's step
+    two frames in, 0.779, and stepped on three axes at once). Recorded then, not bounded: the late-swing knee at the
+    shortest swings (to 95% at 14.5-15.5 frames a swing).
+  - **Round 13's review → round 14, and the margin rule.** The integrator's rule for WP-6.2 replaces "no fail found":
+    every bound on what gaitClip accepts (and what fitGait returns) keeps the worst reading of each class of defect it
+    bounds at about 90% of that class's fail level or under, on fresh grids over the whole accepted space at 55 to 75
+    frames a second (real rates and every even frame grid), the library's rests plainly and test characters by parts
+    (and everything by parts), raw and fitted, plus searches tuned to sit just under each bound; the measured worst is
+    stated in the bound's comment with the grid it covers.
+    - **The late-swing knee at the shortest swings** (blocking): CMU_18's rest read plainly, {cycle 0.555, stance 0.53,
+      lift 10, bounce 5.3, dip 5.7, sway 1.7, lean -6, swing 17, speed 333.6} (a swing of 0.261 s), failed pop@knee at
+      104.6% at 57.5 to 58 frames a second (32 frames: 15 a swing), and fitGait gave it back unchanged. Cause: near the
+      reach bound the leading leg straightens as its foot comes farthest ahead and bends again as the hips come on over
+      the planted foot; where the swing spans under 16 frames that falls within one key. The model can't read it (the
+      keys' rounding moves the knee's step by up to 24 mm, and the pop rule's ratio turns that into readings where the
+      model's points read none). Change: MIN_SWING 0.26 → 0.3 s, rate-free: a cycle's grid holds the even number of
+      frames nearest it, as few as one fewer than 55 a second gives, and every cycle taken is 0.6 s or more, so a swing
+      of T spans at least T × (55 − 1/0.6) frames, 16 at 0.3 s. The refusal names the shortest cycle and the longest
+      stance that swing so (a run's only where its cycle is a run's), and a lighter limp. Measured on round 13's tree
+      (every rest, the protocol's reading, the knee's pop the worst): over swings of 0.26 to 0.34 s on every even grid
+      (2,492 gaits, 37,870 clips), by frames a swing 87.5% at 14.5 to 15.5, 82.7% at 15.5 to 16, 72.7% at 16 to 16.5,
+      71.5% at 16.5 to 17; at the worst grid alignment (4,160 gaits, the three lowest grids, 27,213 clips) 78.7% at
+      0.285 to 0.29 s, 70.5% at 0.29 to 0.3, 72.8% at 0.3 to 0.302. Round 14 took the swing to the ms, so 0.2995 s still
+      passed (a 0.599 s cycle at a stance of a half, 15.97 frames a swing at 55: corrected in the second pass, below),
+      and its climbs' worst, CMU_114 plainly at 55 at 75.5%, swung 0.2997 s. Every preset swings 0.3 s or more (the
+      limp's right foot 0.3006 s).
+    - **ARM_TURN removed** (found applying the rule): with every cycle 0.6 s or more, 250° for each second squared of
+      the cycle allows 90°, past the swing's 0 to 80 range, so it could refuse nothing; the hands' turn on the seam
+      stays SEAM_TURN's. Its refusal test refuses the 0.565 s cycle by its swing and reads the hands at 0.6 s
+      (Mesh2Motion at the reach bound, 340: 69° refused at 76%, 68 and narrower play, fitGait narrows to 68).
+    - **fitGait not monotone over whole speeds** (should-fix): test character 1's limping run lifting 35 plays at 215
+      and 217 but not 216 nor 218 to 368 (its reach's bound), and the halving stopped at 215, so asking 218 to 368
+      fitted 215 while asking 217 fitted 217. Change: after the halving (the fold and the knee, at each lift) every
+      whole speed above its result up to the one asked (or the reach's bound) is tried from the top, the reach, fold and
+      knee first and the seam only where they fit; the old scan where the halving found none is folded into it. Round
+      14's 9,820 grid fits and 2,400 fits on ladders of asked speeds fit as round 13's did, at 65 ms a fit against 64.
+    - **opts.budget** (nit): -1 threw a bare TypeError, NaN, Infinity or 1,000 kept 8 or 9 keys that failed, 150 to 300
+      mm popped knees past 1.0. Change: a gait takes a budget of 0 (every frame a key) to 2 mm (its default) and refuses
+      any other in its own words. Measured: 2,310 gaits at 0, 1 and 2 mm: none reads more at 0 or 1 than at 2, 82.3% at
+      most.
+    - **Measured** on round 14's fresh grids (seeds 1411 to 1418: 17,238 gaits, 9,820 fitted, 15,792 made), the presets
+      on every rest at 55 to 75 (3,935 made) and 13,872 jobs tuned to the bounds (6,917 made): none fails. Round 14
+      stated its own grids' class worsts (a knee's or foot's pop 69.2%, a hand's 57.8% by parts, the fold class 51.4%,
+      the knee-floor class 47.3%, the pace class 51.8%); its review's wider grids read more in each (below), none past
+      0.90.
+    - **Outputs:** all 4,160 preset makes, the unfitted grid clips and the fits are round 13's byte for byte; what
+      changed is what is refused (swings of 0.26 to 0.3 s; budgets outside 0 to 2 mm) and the swing refusal's words.
+  - **Round 14's review → its second pass (2664d06, on 43d9df6).**
+    - **fitGait past the pace bound** (should-fix): fitOf and legsFit weighed only the reach, fold, knee and seam, so a
+      gait asked faster than SWING_SPEED (400% of H0 a second: its stride over its swing, checkGait's on any body) was
+      slowed only to its legs' bound and given back at a speed gaitClip refused: Mesh2Motion's Quaternius rest asked
+      {1000, 1.933 s, stance 0.65, limp 1, lift 9} fitted 78 (426%; 73 plays), the limp preset asked 300 on CMU_91
+      fitted 121 (403%; 120 plays), on CMU_141 and CMU_54 122 (406%): the limp asked 300 or 1,000 on 9 of the 104 rests,
+      and 346 of 2,912 long stances at the shortest cycles their swing takes asked 1,000 (to 425%). The same on ee57aaf:
+      it predates round 14, whose grids never asked past the cap. Change: fitOf caps the starting speed at the fastest
+      whole speed under the pace (paceSpeed, with checkGait's own arithmetic), as the reach caps it, and fitGait gives a
+      gait back as it is only where its pace takes it too; the pace refusal names that speed ("use a speed of at most
+      120 (fitGait slows it so), a shorter stance or a lighter limp"). Of 14,069 fresh-grid fits, the 398 that change
+      are exactly those the base tree gave past the pace, each now the cap's whole speed, lift and swing as before; the
+      2,912 scan, again at the swing's exact bound, all play (420 at the pace bound); no fit on any grid is refused;
+      fitGait's time unchanged (about 80 ms a fit).
+    - **Class worsts stated short** (should-fix): the review's grids on 43d9df6 (46,825 clips on all 104 rests at 55 to
+      75: 12,168 fresh jobs, 14,203 tuned, 9,325 runs at their shortest cycle on the four highest grids, 9,760 fitted
+      swings at the 0.2995 s bound on the four lowest, 2,288 high lifts, about 30 climbs; none failing, nothing at 0.90)
+      read more than the comments and D71 stated: a knee's or foot's pop within the clip 79.7% climbed (CMU_54's run
+      {0.6 s, stance 0.418, limp 0.003, lift 12.583, bounce 0.91, dip 0, sway 1.001, lean -6.803, swing 30.45} at 380.5,
+      plainly at 70: 42 frames; 71.6% by parts), 75.4% tuned, 74.7% fresh (test character 14's slow walk at 74.9 by
+      parts), against 69.2%; the model's fold under 27% 66.7% (test character 18's fitted run lifting 35, at 64.6; 51.4%
+      stated); the knee within 40 mm of the floor 68.5% by parts, 65.4% plainly (CMU_81's run at 0.6 s, 455.5, at 60;
+      47.3%); the pace past 360 60.6% over 1,478 clips (51.8%); a hand's pop 62.4% (test character 24's limp by parts at
+      71.3; 57.8%). No class past 0.90, so no bound tightens. Change: each bound's comment restates its class's worst
+      from the review's grids and this pass's, naming the case and the grid.
+    - **The swing to the ms** (nit): checkGait rounded the swing to the ms, so 0.2995 s passed and a 0.599 s cycle at a
+      stance of a half was taken (CMU_91's at 55 read 71.3%), against "every cycle taken is 0.6 s or more" and "16
+      frames a swing at 0.3 s"; and round 14's late-swing worsts sat in that sliver (its climbs' 75.5% at 0.2997 s, the
+      review's climbs' 76.4% and its 9,760 at 0.2995 s, 68.8%). Change: the swing is compared with 0.3 s to within a
+      float's error (1e-9 s: 0.9375 s at a stance of 0.68 still swings 0.3 s) and shown rounded down in the refusal
+      (0.1976 s reads 0.197), so the comments' 0.6 s and 16 frames hold; swings of 0.2995 to 0.3 s are refused now.
+    - **The refusal's shortest and longest** (nit): computed against 300 ms while 299.5 passed, the named cycle was a ms
+      longer than the shortest taken (13,928 of 20,000) and the stance 0.001 shorter (3,492). Each is now found against
+      the check itself: over 20,000 random swing refusals every named cycle and stance is taken and a ms shorter or
+      0.001 longer is not, and no swing shown reads 0.3; over 20,000 pace refusals the speed named is taken and one more
+      is not.
+    - **opts.start null** (nit): threw a TypeError from samePose; anything but a pose (null, a number, a string, an
+      array) is refused as a start other than the standing one, in the gait's words.
+    - **Measured on this tree** (seeds 1501 to 1513): fresh grids of 20,592 gaits on every rest at 55 to 75 (real rates
+      and every even grid; 598 clips at 55, 1,859 at 75): round 14's kinds, those fitted asked up to 1,000 past the pace
+      cap too; long stances and limps fitted past the cap or within 10% under it; those at the shortest cycles their
+      swing takes (2,600); the review's pace scan (2,912); 2,080 runs at their shortest cycle on the four highest grids
+      and 2,080 shortest swings at the reach bound, fitted from 1,000; 14,069 fitted, 17,880 made. 19,800 jobs tuned
+      just under the bounds (each slowed or narrowed fit a half and 0.99 over its whole speed, its swing a half wider,
+      and the speed just under the pace cap where that set it, on its two lowest, two highest and two other grids:
+      10,515 made just under a bound, 9,285 refused just over, by the reach 650 gaits, the pace 400, the fold 47, the
+      seam's legs 38 and hands 12, the floor 1). Seven climbs (1,620 steps; runs at their shortest cycle on 60 or 64 to
+      75, the late swing at the exact bound on 55 to 63, a test character's hands on 69 to 74). None fails, plainly or
+      by parts. Worst of each class: the pelvis's whole-% steps 82.3% (test character 9 at 72.5 and 75); a knee's or
+      foot's pop within the clip 73.0% fresh (test character 8's fitted run by parts at 73.6), 73.5% tuned (100STYLE's
+      side-run rest at 73.2, just under the reach), 79.7% at most climbed (the climbs from CMU_54's and CMU_19's runs
+      found none higher); the late-swing knee at the exact bound 72.3% (climbs: CMU_18 {0.633 s, stance 0.526, swinging
+      0.30004 s} at 303.5, plainly at 55, 34 frames; 67.2% by parts), 68.1% fresh at 55 to 63, 54.9% on the
+      shortest-swing grid; the seam 70.0% at a knee, 69.9% at the torso, 69.3% at a hand by parts, the knuckles 67.9%
+      and the elbows and wrists 64.4% by parts, no clip over its own seamOf reading; a hand's pop 62.6% by parts
+      (CMU_13's migrated rest, a fitted limp at 73.7), the elbows and wrists 60.8%; pace past 360 69.9% (2,733 clips;
+      UAL2's at 75 by parts), past 395 65.3% (586), just under the cap 67.1% (4,991); the fold class 61.4% (1,328),
+      42.6% just under it; the knee-floor class 44.7% (126), the body into the floor 0, the feet 5.2%; jitter 57.0%;
+      intersection 53.2%; joints 32.7%; twist flips 4.4%; stretch 0. By rate: 69.5% at 55 to 57.5 (69.9% tuned; 72.3% at
+      55 climbed), 69.6% at 57.5 to 62.5, 71.3% at 62.5 to 65, 76.4% at 65 to 70, 82.3% at 70 to 75 and at 75.
+    - **Outputs:** all 4,160 preset makes (104 rests, raw and fitted at their own speeds, 55 to 75) byte-identical; the
+      limp asked 300 or 1,000 on the 9 rests above now fits to 120 and plays (36 makes, refused before); swings of
+      0.2995 to 0.3 s refused; the swing and pace refusals' words.
+    - **Tests:** the limp asked 300 and 1,000 on CMU_91 fits to 120 and plays, 121 refused naming 120; the pace refusals
+      name the speed; cycles of 0.599, 0.5995 and 0.5999 s at a stance of a half refused, 0.6 taken; each named cycle
+      and stance exact ({0.341 s, 0.547} names 0.663, 0.662 refused); non-pose starts refused; the late-swing case moved
+      from CMU_114's 0.2997 s swing (refused now) to the climbs' worst at the bound, CMU_18 at 0.633 s, read at 55, 58
+      and 60 under 90%. T1 78.0 s.
+  - **The bounds as they stand**, each with its class's worst over round 14's grids, its review's and the second pass's
+    (the protocol's reading unless given; by parts within 0.03 unless given):
+    - MIN_SWING 0.3 s, to within a float's error (the late-swing knee's pop): 72.3% at the bound (CMU_18 at 55,
+      climbed), 68.1% fresh, 67.1% tuned; 75.5 to 76.4% only at 0.2995 to 0.3 s, refused since the second pass (0.2 s
+      from round 2, 0.25 from 5, 0.26 from 6, 0.3 from 14).
+    - MIN_RUN_CYCLE 0.6 s, 0.65 lifting over 25 (a run's knee popping within the clip, the most any knee reads): 79.7%
+      (the review's climb, CMU_54 at 70; 750 more steps found none higher), 75.4% tuned, 74.4% fresh; the seam 70.0%.
+      The final review climbed to 91.1% on a fitted run (the close-out below; recorded, D90).
+    - STRIDE_MAX 72% of a leg: just under it a knee's pop 75.4% (the review's tuned), 73.5% (5,101 clips), the seam
+      69.5%, anything 82.3%.
+    - FOLD_MIN 25%: the model's fold under 27% a knee's pop 66.7% (the review's), 61.4% (1,328 clips), joints 33.9%;
+      just under it 47.3%.
+    - KNEE_FLOOR 0 mm: the body into the floor 0 in every clip; the model's knee within 40 mm a knee's pop 68.5% by
+      parts, 65.4% plainly (the review's), 44.7% (126 clips); just under it 42.7%.
+    - SWING_SPEED 400% of H0 a second (fitGait slows to it since the second pass): past 360 a knee's or foot's pop 69.9%
+      by parts (2,733 clips), past 395 65.3%, just under it 67.1% by parts (4,991).
+    - SEAM_TURN 0.7 (the legs, torso and hands on the seam, read on the clip's own keys): the legs 70.0%, the torso
+      69.9%, the hands 69.8%; knuckles 67.9%, elbows and wrists 65.1% by parts (not read by it); no clip over its own
+      reading.
+    - MIN_GAIT_FPS 55: 72.3% at 55 (the late-swing climbs), 69.9% on the grids at 55 to 57.5; MAX_GAIT_FPS 75: 82.3% at
+      70 to 75 and at 75 (the pelvis's steps).
+    - GAIT_BUDGET 0 to 2 mm: none reads more at 0 or 1 than at 2 (2,310 gaits); 82.3% at most.
+    - RANGES (lift 9-35, bounce 0-6, dip 0-12, sway 0-4, lean -10-25, swing 0-80): drawn at their ends a quarter of the
+      time on the fresh grids; within the readings above.
+    - Not bound-specific: a hand's pop 62.6% by parts (the review's 62.4%; climbed 58.7%), the elbows and wrists 60.8%;
+      jitter 71.8% (round 14's tuned, test character 5), 64.6% climbed (the review's); intersection 54.4%; joints 34.5%;
+      twist flips 4.4%; the feet into the floor 5.2%; stretch 0.
+    - ARM_TURN (250° a second squared, rounds 9 to 13): removed in round 14, subsumed.
+    - Recorded, measured only: the pelvis's whole-% steps within a clip, 82.3% by parts (test character 9's diagonal
+      step over a 13 ms key at 75), the most any class reads on fresh grids since round 12 (the run knee's 91.1% was
+      climbed, D90); a three-axis step (1.008) never found.
+- **The close-out** (lane G: ae25401, 16990ef; its review's fixes 00e3b69, a7b326e, f8cdd68; v0.45.1). Two passes, each
+  reviewed (sound):
+  - **The seam cache, bounded.** Round 12's `SEAMS` kept 32 `seamOf` readings a rest for as long as the rest lived, each
+    with every grid's frames and keys: 40 distinct 3 s gaits on CMU_54 held 157 MB, the presets fitted and made on the
+    64 library rests 297 MB, and shards over about 100 rests ran out of a 3 GB heap (round 14's final review). Each grid
+    now keeps only its reading, the pelvis's places and the hands' footing (packed, 2.7 KB), the frames redrawn and the
+    keys re-derived when read again; `seamAt` keeps readings across all rests while they weigh 16 MB or less
+    (`SEAM_BYTES`, each reading weighing itself within 10% of what it holds), the one read longest ago dropped first.
+    The first pass kept 32 readings in all, which made a make three times slower (74 ms against 23) when more than 32
+    readings came between a gait's fit and its make (the review's 124 fits, then 124 makes); by weight 16 MB holds some
+    225 presets or 57 gaits of 3 s, and that order makes at 23 ms again. Fitting more than about 225 presets before
+    making any still re-reads them (the 64 rests' 256: 76 ms a make), as the comment says. Held after two forced gcs,
+    heap and array buffers: 13 MB for the 40 gaits, 17 MB for the presets on 64 rests, 17 MB for all 104 bodies in one
+    process (2,904 clips), past 16 MB by at most the newest reading's growth (about 0.3 MB). `proceduralResolver`'s
+    ready-made parts are kept for the 96 used last (16 bodies of six), not without limit (43 MB on 104 bodies; about 24
+    MB now, the seam's readings counted). Every output is the same to the bit: the presets' 5,824 makes on 104 bodies at
+    55 to 75 frames a second, raw, fitted and asked at 300 and 1,000 (225 refusals), 7,072 grid gaits (922 refused) and
+    the four gaits' 416 content ids through the resolver. `fitGait` is about 8% quicker over the grid gaits and
+    `gaitClip` about 5% (by shard, 6 to 10% and 3 to 7%).
+  - **The final review's worsts**, no fail anywhere, plainly or by parts. Fresh grids, 18,815 clips: a knee's pop 72.7%
+    (CMU_77's walk at 74.675), the seam 70.0% at a knee or foot, 69.9% at a hand or the torso, knuckles 68.0%, elbows
+    and wrists 65.7%, the hands' pop 65.0%, anything 82.3% (test character 9's pelvis steps). Tuned to the bounds,
+    14,841 clips: a knee's pop 73.4%, the hands' pop 76.1%, the seam at a hand 70.0%, anything 82.3%. Runs under 0.65 s:
+    71.6% fresh, 68.2% tuned, 77.4% over 27,487 fitted runs remade on every grid from 60 to 75.
+  - **Climbed, recorded (D90):** a run's knee 91.1% on MESH2MOTION's Animated rest (cycle 0.6 s, stance 0.415, lift
+    10.246, bounce 1.12, dip 6.819, sway 2.833, lean 3.407, swing 62.979) fitted to 377 for any faster ask, at 73.333
+    frames a second (44 frames), plainly and by parts; also 88.1% (CMU_140 at 375.5, 70) and 87.2% (Quaternius's at 359,
+    70.968, its numbers whole in `MIN_RUN_CYCLE`'s comment). The sensors' test pins it between 90% and 92%, naming what
+    to restate when it moves. The bounds' comments say so: every bound but this one at 90% or under, and the pelvis's
+    82.3% the most only on fresh grids (its worked sum with `partScale` 0.3488; a three-axis step 1.008).
 - **Answered:** no: made without a response, to review.
-- **Landed in:** v0.37.0, v0.37.2, v0.39.1, v0.42.1, v0.42.3, v0.42.4, v0.42.6, v0.44.0
+- **Landed in:** v0.37.0, v0.37.2, v0.39.1, v0.42.1, v0.42.3, v0.42.4, v0.42.6, v0.44.0, v0.44.1 (lane G merged in
+  michaelcrosato/my-3danimations#12), v0.45.0, v0.45.1
 
 ## D72 · 2026-10-12 · Actions: multi-beat motions with their ground, beats and interrupt points (WP-6.3)
 
@@ -3064,3 +3287,119 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   cost keeps every test.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.44.1
+
+## D90 · 2026-10-15 · WP-6.2 closes under a margin rule: every gait bound at about 90% of its class's fail level
+
+- **Principle:** 1, 8, process (WP-6.2, D71)
+- **Call:**
+  - WP-6.2's verifier rounds 1 to 8 and the reviews of their fixes (rounds 9 to 13) each found the next failing corner
+    of the gait space, because each bound sat at the fail line and "no fail found" was the only test. From round 14 the
+    integrator's rule replaces it: every bound on what `gaitClip` accepts and `fitGait` returns keeps the worst reading
+    of each class of defect it bounds at about 90% of that class's fail level or under, on fresh grids over the whole
+    accepted space at 55 to 75 frames a second (real rates and every even frame grid), the library's rests read plainly
+    and test characters by parts, raw and fitted, plus searches tuned to sit just under each bound; each bound's comment
+    states its measured worst and the grid behind it.
+  - Under it round 14 raised the shortest swing to 0.3 s (the late-swing knee: 104.6% at 0.261 s, 72.3% at 0.3 s) and
+    made `fitGait` the fastest whole speed that plays, within the pace bound; its review and the second pass's found no
+    fail over more than 60,000 clips.
+  - **Recorded, not bounded:** a run's knee popping within the clip reads 0.911 of the fail level on one gait `fitGait`
+    returns (MESH2MOTION's Animated rest, cycle 0.6 s, stance 0.415, fitted to 377, at 73.333 frames a second; also
+    0.881 on CMU_140 at 70 and 0.872 on Quaternius's at 70.968), predating round 14. It is not a fail; a further round
+    to win the last point is not worth its cost, so the bound's comment states it and a test pins it between 0.90
+    and 0.92 (v0.45.1), naming what to restate when it moves.
+- **Why:** a bound that sits at the fail line is moved by the next grid; a stated margin makes the claim checkable and
+  stops the rounds. The one class past 0.90 by 1.1 points is named rather than chased.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.45.0, v0.45.1, michaelcrosato/my-3danimations#12
+
+## D91 · 2026-10-15 · G6 passed on run 1, 20 of 20: every brief and its held-out variant 5 of 5
+
+- **Principle:** 1, 9, G6 (§7, D78, D84)
+- **Call:**
+  - **Run 1 passed**, 20 of 20, at a9731b1 (0.45.1) on 2026-10-15 in 17.2 min, in the main checkout (D83) with the
+    pinned sources and the rigs fetched first. The commit was fixed first (committed 22:04:27; T0, T1 and T2 passed
+    locally and CI went green at 22:07). A fresh subagent then wrote the held-out run, 22:10 to 22:11 UTC; it read
+    neither the manual nor a known-good solution (but two decision entries, below), and its file list is kept. An independent check found that each
+    variant keeps its brief's job, contract and pass rule, describes its character as the seed generates it, and uses
+    a fresh seed. Each brief's known-good passed on its variant at 22:17 to 22:18, and the gate ran from 22:19 to 22:36.
+    The record is `bench/results/gates/G6-run-1/`.
+  - **Its commands:**
+    - check 10.6 s; test 76.0 s; doctrine 8 of 8; the pinned sources and `library/moves.json` as they give it;
+      vectors byte for byte;
+    - composed clips passing QA (the example recipes, the procedural sources, the actions and their cuts) 18.1 s; graph
+      simulations deterministic (the expected traces exactly, a run the same twice, save and restore) 5.7 s;
+    - T2 in 128.8 s (the graphs in Node and Chromium, library QA, the sweeps in full); the held-out run fresh;
+    - B2, B3, B5, B6 and B7: each 5 of 5 fresh agents, and 5 of 5 on its held-out variant (seeds 722, 808, 765, 871 and
+      809: a bulky ue5 body, a child, a chibi with twist bones, a heroic rigify body with twist bones and a tall one).
+      50 of 50 trials, isolation 1 with each agent's own `/tmp`, five at a time, 17 to 149 s and 5 to 22 turns each,
+      $7.15 in all.
+  - **What the agents read:** nothing outside their workspaces and their own `/tmp`. The verifier read all fifty
+    transcripts (379 tool calls), and the records' audit matches them except one over-report. Twenty trials kept
+    scratch files in their own `/tmp`. Some read past the manual into the installed packages' types, one README and
+    some built JS: all five of B3's variant trials, three of B6's and two of B7's across brief and variant. That shows
+    what the manual leaves to the types: `Animator.layer`'s weights and masks, `contactRoot`, `@m3a/three`'s attach,
+    the recipe pose step's arm fields and signs, and `simulate()`'s result shape. It is WP-7.3's input.
+  - **The held-out check's three nits,** recorded and not changed (the writer's text):
+    - B2's title names a tavern its scene doesn't have.
+    - B6 calls the draw-back a "wind-up", the word D77 gives a manual example.
+    - B6 reuses more of its original's wording than the others.
+  - **The gate's verifiers** (two lenses, D83): one on the records and the gate's line, one on the agents' isolation
+    and the audit. They recounted the numbers, regraded four trials from copies (all pass) and checked that the
+    grader's inputs were untouched. Their findings, each fixed or answered:
+    - **The record's byte copies were not committed.** The local exclude that kept the gate checkout's untracked
+      files out of `git status` is shared by every worktree, so the first record commit silently skipped
+      `bench/results/2026-10-15-default-*.json`, which the README said it held. They were committed in 76c54ce, and
+      the exclude is gone.
+    - **The writer read D76 and D77,** which describe the known-good solutions and name the manual's examples. It
+      read neither the manual nor a known-good solution. Diffing every variant against its original, the one trace
+      found is B6's "wind-up"; B6 passed 5/5 on its original too. Recorded, not rerun. From G7, a held-out writer
+      reads §7, D78, the briefs, the starters, the graders and the generator, and no decision entry that describes a
+      solution or a manual example; the checker reviews the read list against that bar.
+    - **D84 hid only the checkout the runner ran from.** The integration worktree, holding the graders, the
+      known-good solutions and the held-out originals, stayed readable, and with no PID namespace `/proc/<pid>/root`
+      reaches the outer mount view. No trial came near either: no call names `/home`, `/root`, `/proc` or another
+      worktree. So G6's isolation rests here on the transcripts, not the machine. Fixed below.
+    - **The audit's blind spots:** Write and Edit content wasn't scanned; `/proc` counted as an ordinary path; a path
+      named only in a heredoc counted as a read (B7-2 on the variant, `@m3a/library`'s Node entry). Fixed below.
+    - **Nits:** the README's costs rounded and model named; the quiz's time and commit; the cuts on all six characters
+      proved by T2's full sweep, not the composed-clips step; the gate report records its commit; the freshness log
+      on a run with seeds only; B7's brief names the grader's check before the jump; B3's check finds the hips with
+      `bind()` (on rigify the name regex printed NaN).
+  - **Fixed after the gate** (063c0a3, 7ae691e, each reviewed; the gate not rerun, since no trial came near what
+    they close):
+    - **Isolation.** `bench/runner/agent.ts` covers every checkout `git worktree list` gives, the git directory and
+      the Claude home (`hidden`), and binds `/dev/null` over `~/.claude.json`. Each agent runs in a PID namespace with
+      a `/proc` of its own (`unshare --pid --fork --mount-proc --kill-child`), and the timeout kills the whole
+      namespace. Where `setpriv` works it starts without CAP_SYS_ADMIN, so it can't unmount the covers or mount
+      anything, even through a nested user namespace. Each trial and results file records `ownPids` and
+      `capsDropped`, and each falls back cleanly where the machine refuses it. A stand-in agent saw 102 entries of
+      the other checkouts, 86 processes and the repository through the runner's `/proc` entry; now it sees 0, 4 and
+      nothing, and an unmount is refused. D84's test asserts all of it. `claude --version` still starts inside, and
+      node and curl still reach the proxy.
+    - **Why hide, not allow:** every copy of the graders outside `/tmp` lies in a worktree. Hiding keeps D84's
+      mechanism, which is tested as root and through a user namespace on CI. A fresh root holding only what an agent
+      needs would have to carry everything the CLI reaches for, and a miss would show only as failed trials at a
+      gate.
+    - **Known limits:** the agent still runs as root, so it could read a raw disk under `/dev`, and `/root`'s other
+      files (`.ssh`, `.aws`, `.gitconfig`) stay readable. No G6 trial named any of them, and the audit would list
+      them. They are closed before G7's trials (running agents as an unprivileged user).
+    - **The audit** now scans a Write's content, an Edit's new string and a heredoc that `cat` or `tee` writes,
+      taking relative paths from the written file's directory, and catches paths in template literals. What these
+      name counts for `outside` and `scratch`, not as a read past the manual. Another process's `/proc` entry is
+      outside, by PID, glob or shell variable; `/proc/self` and `/proc/$$` are the agent's own. Its header lists what
+      it still over- and under-reports. Re-run over the 50 kept transcripts, unchanged by SHA-256, one field changes:
+      B7-2's `pastManual` on the variant becomes empty. `outside` stays empty in all 50.
+    - **The rest:**
+      - `npm run gate` records the commit it ran at and whether the tree differed from it.
+      - `fixtures heldout` says "no rig: seeds only" and lists each variant's seed against the 27 already used.
+      - B7's brief names the check before the jump.
+      - B3's starter check finds the hips with `bind()`; B3's known-good is graded on a rigify character (gen-7) in
+        T1.
+  - **Worktree lanes' `.cache` (D83):** a lane linked the main checkout's whole `.cache`, so T0's TypeScript build
+    information was shared, and a typecheck could pass on a newer build info another checkout wrote (found by the fix
+    lane). From here, a lane's `.cache` is its own directory, linking only the pinned sources and the rigs, as the
+    integration checkout's does.
+- **Why:** G6's line, command by command; the held-out variants stand in for briefs the agents have never seen, on
+  bodies no test grades on.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.45.1, v0.45.2, michaelcrosato/my-3danimations#12

@@ -1,0 +1,3 @@
+fixtures heldout G6: PASS in 0.0 s
+  ok   heldout 0.0 s: run-1 is fresh: no gate run used it, its rigs pinned and cached
+next: npm run gate -- G6

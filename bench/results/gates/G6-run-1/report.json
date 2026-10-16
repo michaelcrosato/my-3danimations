@@ -1,0 +1,170 @@
+{
+  "tool": "gate",
+  "ok": true,
+  "verdict": "gate G6: PASS in 1029.9 s (20/20 commands)",
+  "steps": [
+    {
+      "name": "check",
+      "ok": true,
+      "ms": 10852.624835999999,
+      "detail": [],
+      "log": "check-output/gate/check.log",
+      "summary": "check: PASS (T0) in 10.6 s, budget 15.0 s"
+    },
+    {
+      "name": "test",
+      "ok": true,
+      "ms": 76228.29797,
+      "detail": [],
+      "log": "check-output/gate/test.log",
+      "summary": "test: PASS (T1) in 76.0 s, budget 90.0 s"
+    },
+    {
+      "name": "doctrine",
+      "ok": true,
+      "ms": 572.100980999996,
+      "detail": [],
+      "log": "check-output/gate/doctrine.log",
+      "summary": "doctrine: PASS in 0.3 s (8 checks)"
+    },
+    {
+      "name": "the pinned sources, for the moves",
+      "ok": true,
+      "ms": 244.12084400000458,
+      "detail": [],
+      "log": "check-output/gate/the-pinned-sources-for-the-moves.log",
+      "summary": "pins fetch: PASS in 0.0 s"
+    },
+    {
+      "name": "vectors --check",
+      "ok": true,
+      "ms": 1974.8901729999925,
+      "detail": [],
+      "log": "check-output/gate/vectors-check.log",
+      "summary": "vectors: PASS (--check) in 1.6 s"
+    },
+    {
+      "name": "library/moves.json as the pinned sources give it",
+      "ok": true,
+      "ms": 379.2800980000029,
+      "detail": [],
+      "log": "check-output/gate/library-moves-json-as-the-pinned-sources-give-it.log",
+      "summary": "carry --check: library/moves.json is as the sources give it"
+    },
+    {
+      "name": "composed clips pass QA: the example recipes, the procedural sources, the actions and their cuts",
+      "ok": true,
+      "ms": 18315.52096899999,
+      "detail": [],
+      "log": "check-output/gate/composed-clips-pass-QA-the-example-recipes-the-procedural-sources-the-actions-and-their-cuts.log",
+      "summary": "test: PASS (T1) in 18.1 s, budget 90.0 s"
+    },
+    {
+      "name": "graph simulations are deterministic: the expected traces exactly, a run the same twice, save and restore",
+      "ok": true,
+      "ms": 5954.067221999998,
+      "detail": [],
+      "log": "check-output/gate/graph-simulations-are-deterministic-the-expected-traces-exactly-a-run-the-same-twice-save-and-restore.log",
+      "summary": "test: PASS (T1) in 5.7 s, budget 90.0 s"
+    },
+    {
+      "name": "T2: browser checks (graphs Node = Chromium), library QA and the sweeps T1 samples, in full",
+      "ok": true,
+      "ms": 129034.603868,
+      "detail": [],
+      "log": "check-output/gate/T2-browser-checks-graphs-Node-Chromium-library-QA-and-the-sweeps-T1-samples-in-full.log",
+      "summary": "e2e: PASS (T2) in 128.8 s, budget 480.0 s"
+    },
+    {
+      "name": "the held-out run is fresh: no gate run used it, each variant's character one no test or run used",
+      "ok": true,
+      "ms": 246.66788500000257,
+      "detail": [],
+      "log": "check-output/gate/the-held-out-run-is-fresh-no-gate-run-used-it-each-variant-s-character-one-no-test-or-run-used.log",
+      "summary": "fixtures heldout G6: PASS in 0.0 s"
+    },
+    {
+      "name": "B2: at least 4 of 5 fresh agents (§7)",
+      "ok": true,
+      "ms": 42311.29487500002,
+      "detail": [],
+      "log": "check-output/gate/B2-at-least-4-of-5-fresh-agents-7-.log",
+      "summary": "bench B2: PASS in 41.9 s"
+    },
+    {
+      "name": "B2's held-out variant: at least 4 of 5 fresh agents",
+      "ok": true,
+      "ms": 38360.131138,
+      "detail": [],
+      "log": "check-output/gate/B2-s-held-out-variant-at-least-4-of-5-fresh-agents.log",
+      "summary": "bench B2: PASS in 37.8 s"
+    },
+    {
+      "name": "B3: at least 4 of 5 fresh agents (§7)",
+      "ok": true,
+      "ms": 162506.831197,
+      "detail": [],
+      "log": "check-output/gate/B3-at-least-4-of-5-fresh-agents-7-.log",
+      "summary": "bench B3: PASS in 162.0 s"
+    },
+    {
+      "name": "B3's held-out variant: at least 4 of 5 fresh agents",
+      "ok": true,
+      "ms": 110247.80313800002,
+      "detail": [],
+      "log": "check-output/gate/B3-s-held-out-variant-at-least-4-of-5-fresh-agents.log",
+      "summary": "bench B3: PASS in 109.7 s"
+    },
+    {
+      "name": "B5: at least 4 of 5 fresh agents (§7)",
+      "ok": true,
+      "ms": 45680.80748900003,
+      "detail": [],
+      "log": "check-output/gate/B5-at-least-4-of-5-fresh-agents-7-.log",
+      "summary": "bench B5: PASS in 45.2 s"
+    },
+    {
+      "name": "B5's held-out variant: at least 4 of 5 fresh agents",
+      "ok": true,
+      "ms": 37634.10167100001,
+      "detail": [],
+      "log": "check-output/gate/B5-s-held-out-variant-at-least-4-of-5-fresh-agents.log",
+      "summary": "bench B5: PASS in 37.1 s"
+    },
+    {
+      "name": "B6: at least 4 of 5 fresh agents (§7)",
+      "ok": true,
+      "ms": 92122.92055099993,
+      "detail": [],
+      "log": "check-output/gate/B6-at-least-4-of-5-fresh-agents-7-.log",
+      "summary": "bench B6: PASS in 91.7 s"
+    },
+    {
+      "name": "B6's held-out variant: at least 4 of 5 fresh agents",
+      "ok": true,
+      "ms": 75192.31832099997,
+      "detail": [],
+      "log": "check-output/gate/B6-s-held-out-variant-at-least-4-of-5-fresh-agents.log",
+      "summary": "bench B6: PASS in 74.7 s"
+    },
+    {
+      "name": "B7: at least 4 of 5 fresh agents (§7)",
+      "ok": true,
+      "ms": 82160.794154,
+      "detail": [],
+      "log": "check-output/gate/B7-at-least-4-of-5-fresh-agents-7-.log",
+      "summary": "bench B7: PASS in 81.7 s"
+    },
+    {
+      "name": "B7's held-out variant: at least 4 of 5 fresh agents",
+      "ok": true,
+      "ms": 99846.15547400003,
+      "detail": [],
+      "log": "check-output/gate/B7-s-held-out-variant-at-least-4-of-5-fresh-agents.log",
+      "summary": "bench B7: PASS in 99.4 s"
+    }
+  ],
+  "warnings": [],
+  "ms": 1029873.840636,
+  "next": "write the G6 report in docs/PROGRESS.md and on the PR, then merge (PLAN.md §8.5)"
+}

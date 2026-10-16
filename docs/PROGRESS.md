@@ -3,8 +3,8 @@
 The current state on one screen (at most 40 lines; `npm run doctrine` checks it from WP-0.3). The ledger is
 `PLAN.md` §14; decisions are in `docs/DECISIONS.md`.
 
-**Phase:** 6 Composition (4 and 5 done: G4 = M1 and G5 passed). **Next gate:** G6. **Version:** 0.44.1.
-**Mode:** ultracode (D83): implementers in worktrees, the main session integrates; a fresh draft PR from `main`.
+**Phase:** 7 The datalink (6 done: G6 passed). **Next gate:** G7 = M2. **Version:** 0.45.2.
+**Mode:** ultracode (D83): implementers in worktrees, the main session integrates; #12 (Phase 6, G6) merging.
 
 ## Done
 
@@ -19,13 +19,13 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
   rigs (D46); binding (D47, D87); baking (D48); capture, the sweep (D49, D51); the demo (D52); B1 (D54–D56, D84, D86).
 - Phase 5 (G5 passed, on michaelcrosato/my-3danimations#10 with Phase 4): layout (D53); licenses (D59); `@m3a/io` (D61);
   corpora (D62); the re-import (D63); facts (D64); search (D65); library QA, 1,199 unique motions (D66–D69).
-- Phase 6 so far: recipes (D70); procedural moves, gaits and idles (D71, six verifier rounds); actions (D72); graphs,
-  Node = Chromium (D73, two rounds); simulation, stride warping (D75); briefs B2–B7, the manual's wire and make (D76, D77).
+- Phase 6 (G6 passed, michaelcrosato/my-3danimations#12): recipes (D70); procedural moves, gaits and idles (D71, the
+  margin rule D90); actions (D72); graphs (D73); simulation (D75); briefs B2–B7, the wire and make sections (D76, D77).
 
 ## Next
 
-- Phase 6: WP-6.2's round 8 on 0.44.0's gaits (D71), then G6 (B2, B3, B5, B6, B7; D78, D84). Gaits are made 7 to 8
-  times faster, the same bytes; CI's T1 fetches the held-out rigs (D89). Then Phase 7 (WP-7.1 needed G4).
+- Phase 7 on a fresh branch: WP-7.1 (the tool registry, done in a lane) merges first; then WP-7.2 in two (7.2a find,
+  check, change, ship; 7.2b retarget, compose, exchange); WP-7.3 takes G6's reads past the manual (D91).
 
 ## Blocked on the owner
 
@@ -36,4 +36,5 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 - **G4 = M1 passed** (run 2) 2026-10-14 at adf77ee in 41.8 min, 9 of 9 (`bench/results/gates/G4-run-2/`, D88): the
   sweep 97.14% of 8,388 pairs on the six skeletons together (bar 95%; the Knight 92.3% alone; held-out rig 98.4%); no
   fail finding on any of the seven bodies, every one warns; B1 5/5, its held-out variant 5/5. Run 1 failed (D57).
-- **G5 passed** 2026-10-12 at 754adfe in 9.7 min, 12 of 12 (D67–D69): 1,194 unique motions of 1,393 clips.
+- **G6 passed** (run 1) 2026-10-15 at a9731b1 in 17.2 min, 20 of 20 (`bench/results/gates/G6-run-1/`, D91): B2, B3,
+  B5, B6, B7 each 5/5 and 5/5 on held-out variants (50/50 trials, $7.15); composed clips QA; graphs deterministic; T2.

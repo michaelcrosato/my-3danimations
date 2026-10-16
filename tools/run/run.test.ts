@@ -1,5 +1,5 @@
-// Tests for the repo runners: the output contract's parsing and budgets, the header lint, versioning and the
-// test:changed selection.
+// Tests for the repo runners: the output contract's parsing and budgets, the header lint, versioning, the
+// test:changed selection and a gate's report (the commit it ran at, D91).
 import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -7,6 +7,7 @@ import { describe, expect, it } from "vitest";
 import { bump, check, write } from "../version.ts";
 import { select } from "./changed.ts";
 import { budget, closest, distance, parseArgs, UsageError } from "./cli.ts";
+import { gateReport } from "./gate.ts";
 import { hasHeader, undocumentedExports } from "./headers.ts";
 
 describe("the output contract", () => {
@@ -27,6 +28,14 @@ describe("the output contract", () => {
     expect(budget(16_000, 15_000).fail).toBe(false);
     expect(budget(16_000, 15_000).warning).toMatch(/over budget/);
     expect(budget(23_000, 15_000).fail).toBe(true);
+  });
+});
+
+describe("a gate's report", () => {
+  it("records the commit it ran at and whether the tree differed from it (D91)", () => {
+    const steps = [{ name: "check", ok: true, ms: 10 }, { name: "test", ok: false, ms: 20 }], commit = "a9731b1".padEnd(40, "0");
+    expect(gateReport("G6", steps.slice(0, 1), 1500, { commit, dirty: false })).toMatchObject({ ok: true, verdict: "gate G6: PASS in 1.5 s (1/1 commands) at a9731b1", commit, dirty: false });
+    expect(gateReport("G6", steps, 1500, { commit, dirty: true })).toMatchObject({ ok: false, verdict: "gate G6: FAIL in 1.5 s (1/2 commands) at a9731b1, the tree differing from it", commit, dirty: true });
   });
 });
 

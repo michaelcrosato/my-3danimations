@@ -1,5 +1,6 @@
 // Procedural sources' public surface (PLAN.md WP-6.2, D71): moves (the my-3d2dge and shardfall move model, units
-// reconciled in library/moves.json), gaits and idles, each made into a format-2 clip on any rest from any start pose.
+// reconciled in library/moves.json), gaits and idles, each made into a format-2 clip on any rest: a move and an idle
+// from any start pose, a gait from the standing pose.
 export { moveState, placeMove, standing, ik3, PHASES, SOURCE, type Move, type MoveState, type MoveBody, type MoveJoints, type MoveStart, type MoveAim, type Phase } from "./move.ts";
 export { moveClip, clipOfTrack, standingOn, bodyOf, STANDING, MIN_PHASE, PROCEDURAL_PRODUCER, type ProceduralOptions } from "./clip.ts";
 export { gaitClip, fitGait, footAt, GAITS, type Gait } from "./gait.ts";
