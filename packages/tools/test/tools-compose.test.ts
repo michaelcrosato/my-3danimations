@@ -6,10 +6,10 @@
 // file to pass), which checks once its compiled file is given, named in hints as given (a path) or as `<the clip's
 // JSON>`; a WORKSHOP copy found, a missing one the copy to make; 64 clips taken, 65 refused. A script: the example trace
 // matched byte for byte, a strike with no hit event alone making findings, a hit window from a clip's own event on a
-// character file, a trace that differs with hints that run it again as given, an unknown trigger (S-E003, not run), an
-// unknown character (E_ARGS), a character file's absolute path never echoed, a run too long refused; and writes only
-// under check-output/recipe.compile/ and check-output/graph.sim/.
-import { mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+// character file, a trace that differs with hints that run it again as given (names the shell would split passed as
+// given), an unknown trigger (S-E003, not run), an unknown character (E_ARGS), a character file's absolute path never
+// echoed, a run too long refused; and writes only under check-output/recipe.compile/ and check-output/graph.sim/.
+import { cpSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { recipe } from "@m3a/core";
 import { describe, expect, it } from "vitest";
@@ -113,15 +113,17 @@ describe("compose and wire", () => {
       const g = loco(), mine = { ...JSON.parse(text(`library/sets/${Q}Punch_Jab.json`)), id: "MINE/Jab", events: [{ t: 0.147, name: "hit", dur: 0.1 }] };
       g.layers[0]!.states.jab!.clip = "MINE/Jab";
       writeFileSync(join(cwd, "g.json"), JSON.stringify(g));
-      writeFileSync(join(cwd, "short.json"), SHORT);
-      const r = await call("graph.sim", { graph: "g.json", script: "short.json", clips: [JSON.stringify(mine)], character: "spec/vectors/tier1b/rigify.gltf", expect: "spec/sims/Walk_Run_Jump.trace.json" });
-      expect(r).toMatchObject({ status: "findings", data: { character: "spec/vectors/tier1b/rigify.gltf", steps: 36, matches: false, diff: 'script: expected "SIMS/Walk_Run_Jump", got "SIMS/Short"', warnings: [], hits: [{ t0: 0.217, t1: 0.3, layer: "upper", state: "jab", clip: "MINE/Jab" }] }, images: [] });
-      // its hints run it again as given (the character, the clips as <the clip's JSON>), then with the trace's copy
-      const as = { graph: "g.json", script: "short.json", character: "spec/vectors/tier1b/rigify.gltf", clips: ["<the clip's JSON>"] };
+      writeFileSync(join(cwd, "short one.json"), SHORT);
+      cpSync(join(cwd, "spec/vectors/tier1b/rigify.gltf"), join(cwd, "my rig.gltf"));
+      const r = await call("graph.sim", { graph: "g.json", script: "short one.json", clips: [JSON.stringify(mine)], character: "my rig.gltf", expect: "spec/sims/Walk_Run_Jump.trace.json" });
+      expect(r).toMatchObject({ status: "findings", data: { character: "'my rig.gltf'", steps: 36, matches: false, diff: 'script: expected "SIMS/Walk_Run_Jump", got "SIMS/Short"', warnings: [], hits: [{ t0: 0.217, t1: 0.3, layer: "upper", state: "jab", clip: "MINE/Jab" }] }, images: [] });
+      // its hints run it again as given (a script and character the shell would split, the clips as <the clip's JSON>),
+      // then with the trace's copy
+      const as = { graph: "g.json", script: "short one.json", character: "my rig.gltf", clips: ["<the clip's JSON>"] };
       expect([r.lines[0], hintedCalls(r.next).map((h) => h.args)]).toEqual([`trace differs: ${r.data!.diff}`, [{ ...as, expect: "spec/sims/Walk_Run_Jump.trace.json" }, { ...as, expect: "<copy>" }]]);
       // a strike with no hit event alone makes findings (the sensors warn), its hint the same call again
-      const jab = await call("graph.sim", { graph: L, script: "short.json" });
-      expect([jab.status, (jab.data!.sensors as Row).verdict, (jab.data!.warnings as string[]).length, hintedCalls(jab.next).map((h) => h.args)]).toEqual(["findings", "warn", 1, [{ graph: L, script: "short.json" }]]);
+      const jab = await call("graph.sim", { graph: L, script: "short one.json" });
+      expect([jab.status, (jab.data!.sensors as Row).verdict, (jab.data!.warnings as string[]).length, hintedCalls(jab.next).map((h) => h.args)]).toEqual(["findings", "warn", 1, [{ graph: L, script: "short one.json" }]]);
       // a sprint from standing fails the sensors on tiny (its pops): the findings' cut counted, no filmstrip named
       writeFileSync(join(cwd, "sprint.json"), JSON.stringify({ format: "2.0", id: "SIMS/Sprint", dur: 1, film: 0, input: [{ t: 0.1, set: { speed: 6 } }] }));
       const fast = await call("graph.sim", { graph: L, script: "sprint.json" });
