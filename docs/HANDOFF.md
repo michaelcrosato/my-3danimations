@@ -42,7 +42,13 @@ SHIP, EXCHANGE, BASE, in that help order) and `packages/tools/test/tools-budget.
 - `tools-compose.test.ts`: "graph.sim: a hit window…": an E_ARGS message differs from the expected (likely exchange's
   or retarget's naming change of character files, `<the character's file>`, meeting compose's expectation).
 
-T0, the full T1 and T2 were **not** run on the merged head; expect CI to show these failures.
+On the merged head (6a4ce83), run once more after the handoff:
+- **T0** (`npm run check`): every check passes (typecheck, lint, headers, version, doctrine); it failed only on time,
+  23.0 s against the 22.5 s hard limit, on a loaded machine. Rerun it on an idle machine first.
+- **T1** (`npm test`): fails at vitest after 72.6 s, on the retarget failure above ("retarget.apply judges clips as
+  the sweep does": a `next` line expected to match a pattern). The log printed only that first failure, so assume
+  the other two failures stand as well.
+- **T2** was not run. Expect CI to show these failures.
 
 ## Next, in order
 
