@@ -2,10 +2,11 @@
 // skeleton reader and bound through core (recognize, an agent's mapping patch, bind), never three.js's loader, which
 // fails in Node and renames bones, so a patch names the file's own bones. A VRM's humanoid (1.0's or 0.x's) maps its
 // bones before any patch. A foot that ends with no child gets an end bone where its mesh ends, on the sole (D49), as
-// three's bind gives it, so the body bound here stands as the game's does. `tiny` is the 34-bone conformance rig,
-// graph.sim's default body. The report says how the bones were recognized, how sure, what is missing or odd, the rest
-// pose, limb lengths and a patch to edit back, in at most 20 lines; retarget.inspect shows it, and a tool that needs
-// the body bound refuses with it (bodyOf).
+// three's bind gives it, so the body bound here stands as the game's does (a compressed mesh, whose weights io can't
+// read, gives none: every joint is kept and the report says so). `tiny` is the 34-bone conformance rig, graph.sim's
+// default body. The report says how the bones were recognized, how sure, what is missing or odd, the rest pose, limb
+// lengths and a patch to edit back, in at most 20 lines; retarget.inspect shows it, and a tool that needs the body
+// bound refuses with it (bodyOf).
 import { bind, skeleton, type Bound, type SkeletonIn } from "@m3a/core";
 import { IoError, meshEnds, parseGlb, parseGltf, skeletonOfGltf, type GltfDoc, type GltfJson, type GltfSkeleton } from "@m3a/io";
 import { ToolError, type ToolContext } from "../registry/registry.ts";
@@ -169,6 +170,8 @@ export async function characterOf(ctx: ToolContext, ref: string, mapping?: Mappi
     const own = skeleton.REQUIRED_BONES.filter((h) => rec.bones[h] && !given(h)).map((h) => `${h}: not in its VRM humanoid; found ${how}`);
     rec = { ...rec, issues: [...own, ...rec.issues.filter((i) => mapping || i !== "patched by hand")] };
   }
+  const unread = read.file?.g.unread;
+  if (unread) rec = { ...rec, issues: [`mesh ${unread === "unreadable" ? "unreadable" : `compressed (${unread})`}: weights unread, every joint kept, no sole end bones`, ...rec.issues] };
   if (!Object.keys(rec.bones).length) throw new ToolError("E_RIG", `${ref}: no humanoid bone recognized among its ${sk.bones.length} bones, by name or by shape; give each bone in mapping {bones: {hips: "<its bone>", ...}}`);
   const report = reportOf(ref, sk, rec, byVrm);
   let bound: Bound | null = null;

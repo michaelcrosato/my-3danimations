@@ -1,11 +1,13 @@
 // A glTF character's skeleton for core's bind (WP-7.2b, I1): tier 1b's skinless rig reads as the conformance skeleton
 // exactly; its Rigify rig (a skin, its root rotated and scaled) binds by name at its hip height, its soles' end bones
-// (D49) included; every generated test character reads as generated, an armature's 0.01 scale and each bone's rest frame
-// included, the leaves no vertex is weighted to left out (a VRM keeps them, as do weights it can't read, but not another
-// required extension); the biggest skin is read, a bone's parent the nearest joint above it; where a joint's mesh ends,
-// exactly (half its weight or more, summed to 1, farthest across the ground, down to the lowest, the mesh node's own
-// transform after); the real CC0 rigs, when fetched, map each limb to its own bones, KayKit's IK and roll controls left
-// out; names are unique; no bones, or a joint past the nodes, refused.
+// (D49) included; every generated test character reads as generated, an armature's 0.01 scale and each bone's rest
+// frame included, the leaves no vertex is weighted to left out (a VRM, 1.0 or 0.x, keeps them, as do weights it can't
+// read, which it says, but not another required extension); the biggest skin is read, a bone's parent the nearest
+// joint above it; a joint no vertex is weighted to is kept only above one of the skin's own, through joints (not a
+// helper node, nor from another skin's joint); where a joint's mesh ends, exactly (half its weight or more, summed to
+// 1, farthest across the ground, down to the lowest, the skinned mesh node's own transform ignored); the real CC0
+// rigs, when fetched, map each limb to its own bones, KayKit's IK and roll controls left out; names are unique; no
+// bones, or a joint past the nodes, refused.
 import { bind, math, recognize } from "@m3a/core";
 import { describe, expect, it } from "vitest";
 import { IoError, meshEnds, packGlb, parseGlb, parseGltf, skeletonOfGltf } from "../src/index.ts";
@@ -17,9 +19,10 @@ import { TEST_SEEDS, variant } from "../../three/test-characters/variants.ts";
 
 const gltf = (json: object) => parseGltf(JSON.stringify({ asset: { version: "2.0" }, ...json }));
 /** A small skinned glTF: C alone in a skin of one, and A (1 m up) and B (2 m up, a helper node between) in a skin of two
- *  that a mesh moved 1 m along x skins: four vertices, each weighted [to B, to A] (the last's weights summing to 0.6). */
-function skinned(extra: object = {}) {
-  const P = [[0, 0, 0.3], [0, -0.5, 0.1], [0, -1, 2], [0, 0, 0.5]], W = [[1, 0], [0.6, 0.4], [0.4, 0.6], [0.4, 0.2]];
+ *  that a mesh node moved 1 m along x skins (a move glTF says to ignore): four vertices, each weighted [to B, to A] (by
+ *  default the last's weights summing to 0.6). */
+function skinned(extra: object = {}, W = [[1, 0], [0.6, 0.4], [0.4, 0.6], [0.4, 0.2]]) {
+  const P = [[0, 0, 0.3], [0, -0.5, 0.1], [0, -1, 2], [0, 0, 0.5]];
   const bin = new Uint8Array(128), f = new Float32Array(bin.buffer), view = (byteOffset: number, byteLength: number) => ({ buffer: 0, byteOffset, byteLength });
   P.forEach((p, v) => f.set(p, v * 3));
   W.forEach((w, v) => {
@@ -52,13 +55,25 @@ describe("skeletonOfGltf", () => {
   });
   it("reads the biggest skin's joints, each bone's parent the nearest joint above it (a helper node between left out)", () => {
     const s = skeletonOfGltf(skinned());
-    expect([s.skeleton.bones, s.nodes]).toEqual([[{ name: "A", parent: null, head: [0, 1, 0] }, { name: "B", parent: "A", head: [0, 2, 0] }], [0, 2]]);
+    expect([s.skeleton.bones, s.nodes, s.unread]).toEqual([[{ name: "A", parent: null, head: [0, 1, 0] }, { name: "B", parent: "A", head: [0, 2, 0] }], [0, 2], null]);
+  });
+  it("keeps a joint no vertex is weighted to only above one of its skin's own, through joints, as three's bind climbs", () => {
+    // every vertex B's: A, above B through the helper node, stays out
+    const onlyB = [[1, 0], [1, 0], [1, 0], [1, 0]], B = { name: "B", parent: null, head: [0, 2, 0] };
+    expect(skeletonOfGltf(skinned({}, onlyB)).skeleton.bones).toEqual([B]);
+    // D (a joint of the small skin, under A) moves a hat; A stays out still: three's bind climbs from its own skeleton's
+    const nodes = [{ name: "A", translation: [0, 1, 0], children: [1, 5] }, { name: "helper", translation: [0, 0.5, 0], children: [2] }, { name: "B", translation: [0, 0.5, 0] }, { name: "C" }, { name: "Body", mesh: 0, skin: 0 }, { name: "D" }, { name: "Hat", mesh: 0, skin: 1 }];
+    expect(skeletonOfGltf(skinned({ skins: [{ joints: [0, 2] }, { joints: [3, 5] }], nodes }, onlyB)).skeleton.bones).toEqual([B]);
+    // weights it can't read (an accessor past its buffer): every joint kept, and why
+    const broken = skeletonOfGltf(skinned({ accessors: [{ bufferView: 0, componentType: 5126, count: 4, type: "VEC3" }, { bufferView: 1, componentType: 5121, count: 4, type: "VEC4" }, { bufferView: 2, componentType: 5126, count: 40, type: "VEC4" }] }, onlyB));
+    expect([broken.nodes, broken.unread]).toEqual([[0, 2], "unreadable"]);
   });
   it("reads where a joint's mesh ends: of its vertices weighted half or more, the farthest across the ground, down to the lowest", () => {
     // B's vertices: the first (2 m up, 0.3 out), the second (1.1 m up) and the last (its weights summed to 1: 2/3 to B,
-    // 5/3 m up, 0.5 out, the farthest); the third, 0.4 to B, is A's; the mesh node's 1 m along x applied after skinning
+    // 5/3 m up, 0.5 out, the farthest); the third, 0.4 to B, is A's; the mesh node's 1 m along x ignored, as three's
+    // bind matrix cancels it
     const [b, a, c] = meshEnds(skinned(), [2, 0, 3]);
-    for (const [got, want] of [[b, [1, 1.1, 0.5]], [a, [1, 0.4, 2]]] as const) for (let k = 0; k < 3; k++) expect(got![k]).toBeCloseTo(want[k], 6);
+    for (const [got, want] of [[b, [0, 1.1, 0.5]], [a, [0, 0.4, 2]]] as const) for (let k = 0; k < 3; k++) expect(got![k]).toBeCloseTo(want[k], 6);
     expect([c, meshEnds(skinned({ extensionsRequired: ["KHR_draco_mesh_compression"] }), [2, 0])]).toEqual([null, [null, null]]);
   });
   it("reads every generated character as generated: names, parents, heads, rest frames; unweighted leaves left out", () => {
@@ -80,12 +95,13 @@ describe("skeletonOfGltf", () => {
       for (const b of bones.filter((x) => x.humanoid)) expect(rec.bones[b.humanoid!], `${spec.id} ${b.humanoid}`).toBe(b.name);
     }
   });
-  it("keeps every joint of a VRM (its humanoid names them) and of a mesh whose weights it can't read", () => {
+  it("keeps every joint of a VRM, 1.0 or 0.x (its humanoid names them), and of a mesh whose weights it can't read, saying why", () => {
     const { glb, bones } = character(variant(4)), doc = parseGlb(glb), repack = (extra: object) => skeletonOfGltf(parseGlb(packGlb({ ...doc.json, ...extra }, doc.bin!.raw())));
+    const kept = (extra: object) => [repack(extra).skeleton.bones.length, repack(extra).unread];
     expect(skeletonOfGltf(doc).skeleton.bones.length).toBeLessThan(bones.length);
-    expect(repack({ extensions: { VRMC_vrm: { specVersion: "1.0" } } }).skeleton.bones.length).toBe(bones.length);
-    expect(repack({ extensionsRequired: ["EXT_meshopt_compression"] }).skeleton.bones.length).toBe(bones.length);
-    expect(repack({ extensionsRequired: ["KHR_materials_variants"] }).skeleton.bones.length).toBeLessThan(bones.length);
+    expect([kept({ extensions: { VRMC_vrm: { specVersion: "1.0" } } }), kept({ extensions: { VRM: {} } })]).toEqual([[bones.length, null], [bones.length, null]]);
+    expect(kept({ extensionsRequired: ["EXT_meshopt_compression"] })).toEqual([bones.length, "EXT_meshopt_compression"]);
+    expect(kept({ extensionsRequired: ["KHR_materials_variants"] })[0]).toBeLessThan(bones.length);
   });
   it("names a bone with no name, or a name taken, for its node; refuses no bones and a joint past the nodes", () => {
     const s = skeletonOfGltf(gltf({ nodes: [{ name: "a", children: [1, 2] }, { name: "a" }, { translation: [0, 2, 0] }] }));
@@ -114,7 +130,7 @@ describe("skeletonOfGltf on the real CC0 rigs", () => {
       const bytes = rigBytes(id);
       if (!bytes) return ctx.skip(`${id} isn't fetched: npm run fixtures -- fetch`);
       const s = skeletonOfGltf(parseGlb(bytes)), rec = recognize(s.skeleton), b = bind(s.skeleton, { recognition: rec, restWorld: s.restWorld });
-      expect([s.skeleton.bones.length, rec.missing, b.frame.kind]).toEqual([n, [], "T"]);
+      expect([s.skeleton.bones.length, rec.missing, b.frame.kind, s.unread]).toEqual([n, [], "T", id === "kaykit-knight" ? null : "EXT_meshopt_compression"]);
       expect(rec.bones).toMatchObject(want);
       expect(s.skeleton.bones.filter((x) => /IK|^control-|slot/.test(x.name))).toEqual([]);
     });

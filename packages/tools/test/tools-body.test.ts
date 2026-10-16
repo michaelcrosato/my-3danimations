@@ -2,20 +2,23 @@
 // directory (R6); the tiny rig equal to the conformance skeleton (B1), frozen; a character bound through io and core,
 // never three.js: .gltf text and .glb bytes alike, tiny as tier 1b's rig.gltf, each bone's rest orientation as read, a
 // patch unmapping or swapping bones, a misspelt bone named with the closest, a file that is no character, a chain with
-// no humanoid and too many bones refused; the soles' end bones (D49) put Rigify, every generated character and KayKit's
-// knight (when fetched) at three's bind's rest points and hip height exactly; a VRM's humanoid, 1.0's or 0.x's, mapping
-// bones no table names, a required bone it leaves out said (V1).
+// no humanoid and too many bones refused; the soles' end bones (D49) put Rigify, every generated character, one with
+// its mesh under its turned, moved and scaled armature (the mesh node's transform ignored, as three ignores it), and
+// the real rigs when fetched (KayKit's knight, G4's held-out orangejuice-male-base and talkinghead-mpfb) at three's
+// bind's rest points and hip height exactly; a foot whose last bone keeps a child gets none, as in three's bind; a
+// compressed mesh said; a VRM's humanoid, 1.0's or 0.x's, mapping bones no table names, a required bone it leaves out
+// said (V1).
 import { readFileSync, symlinkSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { recognize } from "@m3a/core";
-import { gltfToGlb, parseGltf, skeletonOfGltf, type GltfSkeleton } from "@m3a/io";
+import { gltfToGlb, packGlb, parseGlb, parseGltf, skeletonOfGltf, type GltfSkeleton } from "@m3a/io";
 import { bind as threeBind } from "@m3a/three";
 import { describe, expect, it } from "vitest";
 import { nodeHost } from "../src/node.ts";
 import { defineTool, Registry, type Host, type ToolContext } from "../src/registry/index.ts";
 import { bodyOf, CHARACTER, characterOf, MAPPING, TINY, vrmMapping, type MappingPatch } from "../src/tools/body.ts";
 import { rigSkeleton } from "../../../spec/conformance/runner/skeleton.ts";
-import { rigBytes } from "../../../tools/fixtures/fixtures.ts";
+import { rigBytes, type Manifest } from "../../../tools/fixtures/fixtures.ts";
 import { character, loadGlb, TEST_SEEDS, variant } from "../../three/test-characters/index.ts";
 import { exampleCwd } from "./helpers/surfaces.ts";
 
@@ -45,6 +48,17 @@ async function bodies(files: Record<string, string | Uint8Array>, calls: object[
 const rigText = (f: string) => readFileSync(join(import.meta.dirname, "../../..", f), "utf8");
 /** A context that reads one character file, whatever its name. */
 const holding = (glb: Uint8Array, text = "") => ({ bytes: async () => glb, read: async () => text }) as unknown as ToolContext;
+/** G4's held-out rig of run `n` (bench/results/heldout/G4/run-n/rig.json): its bytes when fetched, else null. */
+const heldOut = (id: string, n: number) => rigBytes(id, JSON.parse(rigText(`bench/results/heldout/G4/run-${n}/rig.json`)) as Manifest);
+/** Generated character `seed` with its mesh moved under its armature (Blender's usual layout), the armature turned a
+ *  quarter about +y and moved, its scale kept (seed 1's is 0.01): the mesh node's own transform is then the armature's.
+ *  Seed 1's toe tips have no two vertices equally far across the ground (a tie io and three break by float noise). */
+function underArmature(seed: number): Uint8Array {
+  const doc = parseGlb(character(variant(seed)).glb), J = structuredClone(doc.json), nodes = J.nodes!, body = nodes.findIndex((n) => n.mesh !== undefined), arm = nodes.findIndex((n) => n.name === "Armature");
+  nodes[arm] = { ...nodes[arm]!, rotation: [0, Math.SQRT1_2, 0, Math.SQRT1_2], translation: [0.3, -1, 0.2], children: [...nodes[arm]!.children!, body] };
+  (J as { scenes: { nodes: number[] }[] }).scenes[0]!.nodes = [arm];
+  return packGlb(J, doc.bin!.raw());
+}
 
 describe("a character's bytes (R6)", () => {
   it("reads a binary file under the working directory, refused out of it, through a link or missing; a host without bytes refuses", async () => {
@@ -83,12 +97,28 @@ describe("characters bound through core", () => {
     expect(c.bound!.restWorld).toEqual({ ...skeletonOfGltf(parseGltf(rigText(RIGIFY))).restWorld, "DEF-toe.L_end": [0, 0, 0, 1], "DEF-toe.R_end": [0, 0, 0, 1] });
   });
   it("stands each foot that ends with no child on an end bone where its mesh ends (D49), at three's bind's rest exactly", async () => {
-    const knight = rigBytes("kaykit-knight"), glbs: [string, Uint8Array][] = [["rigify", gltfToGlb(rigText(RIGIFY))], ...TEST_SEEDS.map((s): [string, Uint8Array] => [`seed ${s}`, character(variant(s)).glb])];
-    for (const [id, glb] of knight ? [...glbs, ["kaykit-knight", knight] as [string, Uint8Array]] : glbs) {
+    const glbs: [string, Uint8Array | null][] = [["rigify", gltfToGlb(rigText(RIGIFY))], ...TEST_SEEDS.map((s): [string, Uint8Array] => [`seed ${s}`, character(variant(s)).glb]), ["seed 1 under its armature", underArmature(1)],
+      ["kaykit-knight", rigBytes("kaykit-knight")], ["orangejuice-male-base", heldOut("orangejuice-male-base", 1)], ["talkinghead-mpfb", heldOut("talkinghead-mpfb", 2)]];
+    // the real rigs not fetched are left out (npm run fixtures -- fetch); the rest always bind
+    for (const [id, glb] of glbs.filter((x): x is [string, Uint8Array] => x[1] !== null)) {
       const c = (await characterOf(holding(glb), "c.glb")).bound!, t = threeBind((await loadGlb(glb, { textures: false })).scene).core;
       const ends = (b: typeof c) => b.skeleton.bones.filter((x) => x.name.endsWith("_end")).map((x) => x.parent);
       expect([c.rest.H0, ends(c).length, Math.max(...c.restPts.map((v, i) => Math.abs(v - t.restPts[i]!))) < 1e-3], id).toEqual([t.rest.H0, ends(t).length, true]);
     }
+  });
+  it("gives no end bone to a foot whose last bone keeps a child (its toes unmapped), as three's bind does", async () => {
+    const glb = character(variant(0)).glb, mapping = { bones: { leftToes: null } };
+    const c = (await characterOf(holding(glb), "c.glb", mapping)).bound!, t = threeBind((await loadGlb(glb, { textures: false })).scene, { mapping }).core;
+    const ends = (b: typeof c) => b.skeleton.bones.filter((x) => x.name.endsWith("_end")).map((x) => x.name);
+    expect([ends(c), c.rest.H0, Math.max(...c.restPts.map((v, i) => Math.abs(v - t.restPts[i]!))) < 1e-3]).toEqual([["rightToes_end"], t.rest.H0, true]);
+    expect(ends(t)).toEqual(ends(c));
+  });
+  it("says when a compressed mesh leaves its weights unread: every joint kept, no soles", async (ctx) => {
+    const glb = rigBytes("quaternius-mannequin-m");
+    if (!glb) return ctx.skip("quaternius-mannequin-m isn't fetched: npm run fixtures -- fetch");
+    const c = await characterOf(holding(glb), "m.glb");
+    expect([c.report.issues[0], c.report.bones, c.bound!.skeleton.bones.length]).toEqual(["mesh compressed (EXT_meshopt_compression): weights unread, every joint kept, no sole end bones", 65, 65]);
+    expect(c.report.text).toContain("issue: mesh compressed (EXT_meshopt_compression)");
   });
   it("takes a patch: a bone unmapped leaves it unbound (bodyOf refuses, naming it); swapped arms bind, the issue named", async () => {
     const swap = { leftUpperArm: "DEF-forearm.L", leftLowerArm: "DEF-upper_arm.L" }, [plain, gone, need, swapped] = await bodies({}, [
