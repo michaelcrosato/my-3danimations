@@ -3,26 +3,34 @@
 // tokens, no repository) and a fresh home (no settings, skills or memory), its tools limited to files and a shell.
 // Where the machine allows a mount namespace (`unshare`), each agent gets a /tmp of its own, holding only its workspace
 // and home, and every checkout of the repository (each worktree, with the graders, the known-good solutions and the
-// held-out originals), its git directory and this session's Claude home are hidden from it (D84, D91): agents write
-// scratch files to /tmp by name, so agents run at once no longer meet there. Where the machine allows a PID namespace
-// too, /proc shows only the agent's own processes, so no /proc/<pid>/root reaches the machine's view (D91).
+// held-out originals), its git directory and this session's Claude home are hidden from it, and the CLI's account file
+// beside that home (~/.claude.json) reads empty (D84, D91): agents write scratch files to /tmp by name, so agents run at
+// once no longer meet there. Where the machine allows a PID namespace too, /proc shows only the agent's own processes,
+// so no /proc/<pid>/root reaches the machine's view (D91).
 // Why hide, not allow: every copy of the graders outside /tmp on this machine lies in a worktree (`find /`, 2026-10-15),
 // and covering directories keeps D84's mechanism, tested as root and through a user namespace on CI; a fresh root
 // holding only what an agent needs would have to carry everything the CLI reaches for (the node installs, the resolver's
-// files, the proxy's CA), and a miss would show only as failed trials at a gate. Neither would stop an agent running as
-// root from unmounting what covers the repository (or leaving a fresh root): the audit below lists any path outside.
+// files, the proxy's CA), and a miss would show only as failed trials at a gate. The agent runs as root in its
+// namespace: where util-linux's `setpriv` works, it starts without CAP_SYS_ADMIN (out of its bounding and inheritable
+// sets, so nothing it runs gets it back), so it can neither unmount what covers the repository nor mount anything
+// (D91); elsewhere it could, and the audit below lists any path outside.
 // The transcript (stream-json) is kept; the run records its time, tokens, cost and turns, and the audit lists every
 // path it touched outside the workspace (and its own /tmp's scratch files apart) and every file it read past the
 // manual (the packages' code in node_modules), a shell command's relative paths resolved as its shell would (D88).
 // The audit's known limits (D88, D91):
 // - over-reports: a grep pattern or a here-string naming a package path counts as a read; so does a path in a script
 //   a command runs as it is given (`node -e`, a heredoc fed to `node` or `python3`), whether or not the script reads it;
+//   /proc/<x>/... is another process's wherever x is a PID, a glob or a shell variable (`$$` aside), though in a PID
+//   namespace of its own every process it sees is its own (/proc/1/status is the agent itself) and a variable may
+//   hold its own PID (`$BASHPID`);
 // - under-reports: brace expansion, a subshell's `cd`, `pushd`, `cd` through a variable and `cd -` are missed, and
-//   xargs and `$(...)` approximate; a path named in a file the agent writes (a Write's content, an Edit's new string, a
-//   heredoc that `cat` or `tee` writes) is scanned for `outside` and `scratch` but isn't a read, so a script that later
-//   runs and reads it isn't counted (G6's B7-2 on the variant only named a package's Node entry in an import line it
-//   wrote, and replaced it before running anything); relative paths in such a file are taken only as `./` or `../`
-//   strings, from its directory, and only when they exist.
+//   xargs and `$(...)` approximate; a shell variable in /proc/<x>/... is seen only in a command's own word
+//   (`cat /proc/$pid/environ`), not in an assignment, a script, a written file's text (`/proc/${pid}/root` in a
+//   template literal) or through `$(...)`; a path named in a file the agent writes (a Write's content, an Edit's new
+//   string, a heredoc that `cat` or `tee` writes) is scanned for `outside` and `scratch` but isn't a read, so a script
+//   that later runs and reads it isn't counted (G6's B7-2 on the variant only named a package's Node entry in an import
+//   line it wrote, and replaced it before running anything); relative paths in such a file are taken only as `./` or
+//   `../` strings, from its directory, and only when they exist.
 import { execFileSync, spawn } from "node:child_process";
 import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
@@ -35,6 +43,8 @@ export interface AgentRun {
   privateTmp: boolean;
   /** Whether its processes ran in a PID namespace of their own, /proc showing only them (D91). */
   ownPids: boolean;
+  /** Whether it started without CAP_SYS_ADMIN, so it could neither unmount what hides the repository nor mount (D91). */
+  capsDropped: boolean;
   ok: boolean;
   ms: number;
   model: string;
@@ -113,8 +123,12 @@ const LISTS = new Set(["ls", "cd", "find", "tree", "du", "stat", "mkdir", "rmdir
 const LEADS = new Set(["do", "then", "else", "elif", "if", "while", "until", "!", "{", "time"]);
 /** A word of path characters, a glob's among them. */
 const PATHLIKE = /^[\w.@+~*?[\]/-]+$/;
-/** An absolute path in a script, a pattern or a heredoc: path characters standing alone (no glob). */
-const ABSOLUTE = /(?:^|[\s'"=:(])(\/[\w.@+~-]+(?:\/[\w.@+~-]*)*)(?=$|[\s'"`;|&)<>])/g;
+/** An absolute path in a script, a pattern or a heredoc: path characters standing alone (no glob), opened as a word, a
+ *  quoted string (a template literal's among them), a value or a call's argument. */
+const ABSOLUTE = /(?:^|[\s'"`=:(])(\/[\w.@+~-]+(?:\/[\w.@+~-]*)*)(?=$|[\s'"`;|&)<>])/g;
+/** Another process's entry in /proc, `/proc/<x>/...`: x a PID, a glob or a shell variable, not self, thread-self or
+ *  `$$` (the shell itself) (D91). */
+const OTHER_PROC = /^\/proc\/(?:\d+|[^/]*[*?[][^/]*|\$(?!\$\/)[^/]+)\/./;
 /** A relative path in a file's text, as a module names one: a quoted string starting `./` or `../`. */
 const RELATIVE = /(["'`])(\.\.?\/[\w.@+~/-]*)\1/g;
 
@@ -237,11 +251,11 @@ function namedIn(text: string, file: string | null, exists: (path: string) => bo
  * The paths a tool call names: a file tool's path (and Glob's pattern, which lists), from the workspace; and in a shell
  * command, each word that names a path, absolute or relative (from the shell's directory, following the command's `cd`s
  * and a `for` loop's variable; a glob as written), whose first directory exists (not a regex like `/foot/i.test(`, a
- * grep pattern or a sed script), and the absolute paths in its scripts and heredocs. A command that only lists (`ls`,
- * `cd`, `find` without `-exec`...) lists its paths. The text of a file the call writes (a Write's content, an Edit's
- * new string, a heredoc `cat` or `tee` writes) names its paths (`namedIn`): they aren't read by the call (D91). Without
- * `at`, a shell command's relative paths are left out and a file tool's left as they are; with it, `at.cwd` moves to
- * where the next command starts.
+ * grep pattern or a sed script), a /proc entry through a shell variable (`/proc/$pid/environ`, D91), and the absolute
+ * paths in its scripts and heredocs. A command that only lists (`ls`, `cd`, `find` without `-exec`...) lists its paths.
+ * The text of a file the call writes (a Write's content, an Edit's new string, a heredoc `cat` or `tee` writes) names
+ * its paths (`namedIn`): they aren't read by the call (D91). Without `at`, a shell command's relative paths are left out
+ * and a file tool's left as they are; with it, `at.cwd` moves to where the next command starts.
  */
 export function pathsOf(tool: string, input: Record<string, unknown>, at?: Where): Named[] {
   const ws = at?.workspace ?? "", exists = at?.exists ?? existsSync, from = (p: string, dir: string | null) => (isAbsolute(p) ? normalize(p) : dir === null ? p : resolve(dir, p));
@@ -258,13 +272,16 @@ export function pathsOf(tool: string, input: Record<string, unknown>, at?: Where
     for (const m of text.matchAll(ABSOLUTE)) if (exists(`/${m[1]!.split("/")[1]}`)) out.push({ path: normalize(m[1]!), lists: false });
   };
   const home = (w: string) => (at && (w === "~" || w.startsWith("~/")) ? `${ws}-home${w.slice(1)}` : w);
-  // a word with a `for` loop's variable put in, once per value (any other variable leaves it a word of text)
+  // a word with a `for` loop's variable put in, once per value (any other variable, or a loop's over `$(...)`, leaves it
+  // as written)
   const expand = (w: string): string[] => {
     const m = /\$\{?(\w+)\}?/.exec(w), values = m ? vars.get(m[1]!) : undefined;
-    return m && values ? values.flatMap((v) => expand(w.slice(0, m.index) + v + w.slice(m.index + m[0].length))) : [w];
+    return m && values?.length ? values.flatMap((v) => expand(w.slice(0, m.index) + v + w.slice(m.index + m[0].length))) : [w];
   };
   const named = (word: string, lists: boolean) => {
     const w = home(word);
+    // a /proc entry through a shell variable (`/proc/$pid/environ`) is a path, though `$` isn't a path character (D91)
+    if (/^\/proc\/\$[^/]+\/./.test(w)) return void out.push({ path: normalize(w), lists });
     if (!PATHLIKE.test(w) || w.startsWith("-")) return inText(w);
     const first = w.split("/")[isAbsolute(w) ? 1 : 0]!;
     if (isAbsolute(w) ? first && exists(`/${first}`) : cwd !== null && (/[*?[]/.test(first) || exists(resolve(cwd, first)))) out.push({ path: from(w, cwd), lists });
@@ -294,12 +311,13 @@ export function pathsOf(tool: string, input: Record<string, unknown>, at?: Where
  * The audit of a transcript's tool calls: paths outside the workspace (system and tool paths a shell names as a matter
  * of course, like /usr/bin or /tmp, aside; with a /tmp of its own, the paths in it are its `scratch`, but never the
  * repository's or the Claude home's, wherever they live; another process's entries in /proc, its root, cwd,
- * environment or files, are outside, and /proc/self/root/<p> is /<p>, D91), and files read past the manual (under
- * node_modules/@m3a/, other than the manual itself; a listing isn't a read, nor a path named in a file it writes).
+ * environment or files, by PID, glob or shell variable (`OTHER_PROC`), are outside, and /proc/self/root/<p> is /<p>,
+ * D91), and files read past the manual (under node_modules/@m3a/, other than the manual itself; a listing isn't a
+ * read, nor a path named in a file it writes).
  */
 export function audit(lines: readonly string[], workspace: string, privateTmp = false): { outside: string[]; scratch: string[]; pastManual: string[] } {
   const outside = new Set<string>(), scratch = new Set<string>(), past = new Set<string>(), ws = resolve(workspace);
-  const ordinary = /^\/(usr|bin|sbin|lib|lib64|etc|proc|dev|sys|opt\/node|tmp\/?$|var\/tmp\/?$)/, other = /^\/proc\/\d+\/./, hide = hidden();
+  const ordinary = /^\/(usr|bin|sbin|lib|lib64|etc|proc|dev|sys|opt\/node|tmp\/?$|var\/tmp\/?$)/, hide = hidden();
   const at: Where = { workspace: ws, cwd: ws, exists: (p) => existsSync(p) || (privateTmp && p.startsWith("/tmp/") && existsSync(`${ws}-tmp${p.slice(4)}`)) };
   for (const line of lines) {
     let j: { type?: string; message?: { content?: { type: string; name?: string; input?: Record<string, unknown> }[] } };
@@ -312,10 +330,10 @@ export function audit(lines: readonly string[], workspace: string, privateTmp = 
     for (const c of j.message?.content ?? []) {
       if (c.type !== "tool_use" || !c.name || !c.input) continue;
       for (const n of pathsOf(c.name, c.input, at)) {
-        const path = n.path.replace(/^\/proc\/(self|thread-self)\/root(?=\/.)/, ""), rel = path.slice(ws.length + 1);
+        const path = n.path.replace(/^\/proc\/(self|thread-self|\$\$)\/root(?=\/.)/, ""), rel = path.slice(ws.length + 1);
         if (!within(path, ws)) {
           if (privateTmp && path.startsWith("/tmp/") && !hide.some((d) => within(path, d))) scratch.add(path);
-          else if (other.test(path) || !ordinary.test(path)) outside.add(path);
+          else if (OTHER_PROC.test(path) || !ordinary.test(path)) outside.add(path);
         } else if (!n.lists && !n.names && /^node_modules\/@m3a(\/|$)/.test(rel) && rel !== "node_modules/@m3a/tools/MANUAL.md") past.add(rel);
       }
     }
@@ -352,31 +370,58 @@ export function namespace(): string[] | null {
 export function ownPids(): boolean {
   return namespace()?.includes("--pid") ?? false;
 }
+/** util-linux's `setpriv`, starting a program without CAP_SYS_ADMIN: out of its bounding set and its inheritable one, so
+ *  nothing it runs gets it back over its namespace (a setuid `mount` among them), and a user namespace it makes holds
+ *  the covers locked (D91). */
+const DROP = ["setpriv", "--bounding-set", "-sys_admin", "--inh-caps", "-sys_admin", "--"];
+let dropping: boolean | undefined;
+/**
+ * Whether the agents start without CAP_SYS_ADMIN (`DROP`), so they can neither unmount what hides the repository nor
+ * mount anything (D91): probed once in the namespace, where `setpriv` must start a program and a bind mount through it
+ * must fail. False where no namespace can be made or `setpriv` is missing or refused.
+ */
+export function capsDropped(): boolean {
+  if (dropping !== undefined) return dropping;
+  const ns = namespace(), drop = DROP.join(" ");
+  if (!ns) return (dropping = false);
+  const dir = mkdtempSync("/tmp/m3a-caps-");
+  try {
+    execFileSync("unshare", [...ns, "--propagation", "private", "sh", "-c", `${drop} true && ! ${drop} mount --bind "$0" "$0"`, dir], { stdio: "ignore", timeout: 10_000 });
+    dropping = true;
+  } catch {
+    dropping = false;
+  }
+  rmSync(dir, { recursive: true, force: true });
+  return dropping;
+}
 /**
  * The command that starts `cmd args` in `workspace` with a /tmp of its own, `tmp` (a directory outside the workspace):
  * in a mount namespace, the workspace and `home` are bound into `tmp` at their own paths, `tmp` is bound over /tmp,
- * and every checkout of the repository, its git directory and this session's Claude home (`hidden`) are covered by
- * empty directories; in a PID namespace where the machine allows one (`pids`). Null where no namespace can be made
- * (the agent then shares the machine's /tmp).
+ * every checkout of the repository, its git directory and this session's Claude home (`hidden`) are covered by empty
+ * directories, and the CLI's account file beside that home (~/.claude.json), where there is one, by /dev/null; in a
+ * PID namespace where the machine allows one (`pids`); without CAP_SYS_ADMIN where `setpriv` works (`caps`). Null where
+ * no namespace can be made (the agent then shares the machine's /tmp).
  */
-export function privateTmp(workspace: string, home: string, tmp: string, cmd: string, args: readonly string[]): { cmd: string; args: string[]; pids: boolean } | null {
+export function privateTmp(workspace: string, home: string, tmp: string, cmd: string, args: readonly string[]): { cmd: string; args: string[]; pids: boolean; caps: boolean } | null {
   const ns = namespace();
   if (!ns) return null;
   const binds = [workspace, home].filter((d) => d.startsWith("/tmp/"));
   for (const d of binds) mkdirSync(join(tmp, d.slice(4)), { recursive: true });
-  const hide = hidden().filter((d) => existsSync(d) && !d.startsWith("/tmp/") && !workspace.startsWith(d));
-  // $1 the workspace, $2 the private /tmp, $3 the binds and $4 the hidden directories (each joined by newlines)
+  const hide = hidden().filter((d) => existsSync(d) && !d.startsWith("/tmp/") && !workspace.startsWith(d)), caps = capsDropped();
+  // $1 the workspace, $2 the private /tmp, $3 the binds and $4 the hidden directories (each joined by newlines), $5 the
+  // CLI's account file
   const script = [
     "set -e",
     "IFS='\n'",
     'for d in $3; do mount --bind "$d" "$2${d#/tmp}"; done',
     'mount --rbind "$2" /tmp',
     'for d in $4; do mount -t tmpfs -o size=64k,mode=0755 m3a-hidden "$d"; done',
+    'if [ -e "$5" ]; then mount --bind /dev/null "$5"; fi',
     'cd "$1"',
-    "shift 4",
-    'exec "$@"',
+    "shift 5",
+    `exec ${caps ? `${DROP.join(" ")} ` : ""}"$@"`,
   ].join("\n");
-  return { cmd: "unshare", args: [...ns, "--propagation", "private", "sh", "-c", script, "sh", workspace, tmp, binds.join("\n"), hide.join("\n"), cmd, ...args], pids: ownPids() };
+  return { cmd: "unshare", args: [...ns, "--propagation", "private", "sh", "-c", script, "sh", workspace, tmp, binds.join("\n"), hide.join("\n"), join(homedir(), ".claude.json"), cmd, ...args], pids: ownPids(), caps };
 }
 
 /** Runs a fresh agent in `workspace` on `prompt`; the transcript goes to `transcript`. */
@@ -415,7 +460,7 @@ export function runAgent(workspace: string, prompt: string, transcript: string, 
       }).findLast((j) => j.type === "result") as { subtype?: string; num_turns?: number; total_cost_usd?: number; usage?: Record<string, number>; modelUsage?: Record<string, unknown>; is_error?: boolean; result?: string } | undefined;
       const u = result?.usage ?? {}, a = audit(out, workspace, own !== null);
       done({
-        isolation: 1, privateTmp: own !== null, ownPids: own?.pids ?? false, ok: code === 0 && result?.subtype === "success", ms: performance.now() - t0, model: Object.keys(result?.modelUsage ?? {})[0] ?? opts.model ?? "default",
+        isolation: 1, privateTmp: own !== null, ownPids: own?.pids ?? false, capsDropped: own?.caps ?? false, ok: code === 0 && result?.subtype === "success", ms: performance.now() - t0, model: Object.keys(result?.modelUsage ?? {})[0] ?? opts.model ?? "default",
         turns: result?.num_turns ?? 0, tokens: { input: u.input_tokens ?? 0, output: u.output_tokens ?? 0, cacheRead: u.cache_read_input_tokens ?? 0, cacheWrite: u.cache_creation_input_tokens ?? 0 },
         costUsd: result?.total_cost_usd ?? 0, outside: a.outside, scratch: a.scratch, pastManual: a.pastManual, transcript, reply: result?.result ?? "",
         ...(code === 0 && result?.subtype === "success" ? {} : { error: (result?.subtype ?? `exit ${code}`) + (err ? `: ${err.trim().split("\n").slice(-1)[0]}` : "") }),

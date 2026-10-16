@@ -2,14 +2,15 @@
 // a shell's relative paths among them, D88; what a file it writes names, and another process's /proc, D91), the legend
 // quiz's prompt and scoring, a fake trial through the packed packages installed in a workspace outside the repository,
 // agents run a few at once, each `claude` started in its workspace with a /tmp of its own, every checkout of the
-// repository hidden and its processes alone in /proc (D84, D91), and a held-out variant given by path, whose
-// known-good solution runs first. Every temporary directory a test makes is removed after it.
+// repository hidden, the CLI's account file empty, its processes alone in /proc and unable to unmount what hides the
+// repository (D84, D91), and a held-out variant given by path, whose known-good solution runs first. Every temporary
+// directory a test makes is removed after it.
 import { execFileSync } from "node:child_process";
 import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { homedir, tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, describe, expect, it } from "vitest";
-import { audit, hidden, namespace, pathsOf, runAgent } from "./agent.ts";
+import { audit, capsDropped, hidden, namespace, pathsOf, runAgent } from "./agent.ts";
 import { commitOf, lanes, latestVariant, pool, runB1, variantOf } from "./main.ts";
 import { pack } from "./pack.ts";
 import { answersIn, QUIZ, quizPrompt, score } from "./quiz.ts";
@@ -86,16 +87,24 @@ describe("the agent's audit", () => {
       // a Write's content and an Edit's new string: absolute paths, and a relative one from the written file's directory
       call("Write", { file_path: "src/probe.ts", content: `import x from "../../B7-1/src";\nimport "${lib}";\nreadFileSync("${ROOT}/PLAN.md");` }),
       call("Edit", { file_path: `${ws}/src/probe.ts`, old_string: "x", new_string: `y from "${ROOT}/bench/graders/B7/grade.ts"` }),
+      // a JS template literal's path
+      call("Write", { file_path: "src/read.ts", content: "readFileSync(`" + ROOT + "/DOCTRINE.md`, \"utf8\");" }),
     ];
-    expect(audit(lines, ws, true)).toEqual({ outside: [`${ROOT}/PLAN.md`, `${ROOT}/bench/graders/B7/grade.ts`], scratch: [`${base}/B7-1/src`, "/tmp/cat.mjs"].sort(), pastManual: [] });
-    expect(audit(lines, ws).outside).toEqual([`${ROOT}/PLAN.md`, `${ROOT}/bench/graders/B7/grade.ts`, `${base}/B7-1/src`, "/tmp/cat.mjs"].sort());
+    const named = [`${ROOT}/DOCTRINE.md`, `${ROOT}/PLAN.md`, `${ROOT}/bench/graders/B7/grade.ts`];
+    expect(audit(lines, ws, true)).toEqual({ outside: named, scratch: [`${base}/B7-1/src`, "/tmp/cat.mjs"].sort(), pastManual: [] });
+    expect(audit(lines, ws).outside).toEqual([...named, `${base}/B7-1/src`, "/tmp/cat.mjs"].sort());
     // a heredoc a command runs is a script it reads, and its output written to a file doesn't make it one (nor `2>`)
     const run = [call("Bash", { command: `node <<'E' > out.txt 2>/tmp/err\nconsole.log(readFileSync("${lib}", "utf8"))\nE` })];
     expect(audit(run, ws, true).pastManual).toEqual(["node_modules/@m3a/library/dist/node.js"]);
     expect(pathsOf("Bash", { command: `tee -a /tmp/t.mjs <<E\n"${lib}"\nE` }).find((n) => n.path === lib)).toEqual({ path: lib, lists: false, names: true });
-    // another process's root, cwd or environment is outside, and /proc/self/root/<p> is /<p>; its own /proc entries aren't
-    const proc = [call("Bash", { command: `ls /proc/1/root/home; cat /proc/42/environ /proc/self/status /proc/cpuinfo /proc/self/root${ROOT}/PLAN.md` })];
-    expect(audit(proc, ws, true).outside).toEqual(["/proc/1/root/home", "/proc/42/environ", `${ROOT}/PLAN.md`].sort());
+    // another process's root, cwd or environment is outside, by PID, glob or shell variable (a loop's over `$(...)`
+    // too), and /proc/self/root/<p> is /<p>; its own /proc entries aren't (self, thread-self, the shell's `$$`)
+    const proc = [
+      call("Bash", { command: `ls /proc/1/root/home; cat /proc/42/environ /proc/self/status /proc/cpuinfo /proc/self/root${ROOT}/PLAN.md` }),
+      call("Bash", { command: `cat /proc/*/environ "/proc/$pid/cmdline" /proc/$$/status /proc/thread-self/status /proc/$$/root${ROOT}/AGENTS.md` }),
+      call("Bash", { command: "for p in $(pgrep node); do ls /proc/$p/root/home; done" }),
+    ];
+    expect(audit(proc, ws, true).outside).toEqual(["/proc/$p/root/home", "/proc/$pid/cmdline", "/proc/*/environ", "/proc/1/root/home", "/proc/42/environ", `${ROOT}/AGENTS.md`, `${ROOT}/PLAN.md`].sort());
   });
 });
 
@@ -136,10 +145,13 @@ describe("an agent's own /tmp (D84)", () => {
   // every checkout of the repository (`git worktree list`, ROOT among them) and what `hidden` covers: a sibling worktree
   // with the graders shows nothing either (D91)
   const checkouts = [...new Set([...execFileSync("git", ["-C", ROOT, "worktree", "list", "--porcelain"], { encoding: "utf8" }).split("\n").filter((l) => l.startsWith("worktree ")).map((l) => l.slice(9)), ...hidden()])];
+  // the CLI's account file beside the Claude home, and what covers the repository
+  const conf = join(homedir(), ".claude.json"), cover = hidden().find((d) => ROOT === d || ROOT.startsWith(`${d}/`))!;
   // a stand-in for `claude`, first on the PATH the agent keeps: it says where it started, what its /tmp holds, how much
   // of the repository and of its other checkouts it sees, and what /proc shows (how many processes, whether PID 1 is
-  // itself, whether the test's own process and PID 1's view of the repository can be reached), and writes a scratch
-  // file to /tmp by name, as agents do
+  // itself, whether the test's own process and PID 1's view of the repository can be reached), how much of the CLI's
+  // account file it reads and whether it can unmount what covers the repository, and writes a scratch file to /tmp by
+  // name, as agents do
   const stand = (home: string) => {
     mkdirSync(join(home, "bin"), { recursive: true });
     const sh = join(home, "bin", "claude");
@@ -153,7 +165,9 @@ describe("an agent's own /tmp (D84)", () => {
       "one=$(tr '\\0' '\\n' < /proc/1/cmdline | grep -c '/bin/claude$')",
       `host=$(ls -A /proc/${process.pid}/root/ 2>/dev/null | wc -l)`,
       `root=$(ls -A '/proc/1/root${ROOT}' 2>/dev/null | wc -l)`,
-      `printf '{"type":"result","subtype":"success","num_turns":1,"result":"%s|%s|%s|%s|%s|%s|%s|%s|%s|%s"}\\n' "$PWD" "$TMPDIR" "$before" "$(cat /tmp/cat.mjs)" "$repo" "$others" "$pids" "$one" "$host" "$root"`,
+      `conf=$(if [ -e '${conf}' ]; then wc -c < '${conf}'; else echo none; fi)`,
+      `um=$(umount '${cover}' 2>/dev/null && echo unmounted || echo refused)`,
+      `printf '{"type":"result","subtype":"success","num_turns":1,"result":"%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s"}\\n' "$PWD" "$TMPDIR" "$before" "$(cat /tmp/cat.mjs)" "$repo" "$others" "$pids" "$one" "$host" "$root" "$conf" "$um"`,
       "",
     ].join("\n"));
     chmodSync(sh, 0o755);
@@ -181,7 +195,7 @@ describe("an agent's own /tmp (D84)", () => {
     try {
       const runs = await pool(wss, 2, (ws) => runAgent(ws, "hello", `${ws}.jsonl`));
       for (const [i, r] of runs.entries()) {
-        const ws = wss[i]!, [pwd, tmp, before, cat, repo, others, pids, one, host, root] = r.reply.split("|").map((x) => x.trim());
+        const ws = wss[i]!, [pwd, tmp, before, cat, repo, others, pids, one, host, root, confBytes, um] = r.reply.split("|").map((x) => x.trim());
         expect([r.ok, r.privateTmp, pwd, tmp, cat], r.error).toEqual([true, true, ws, "/tmp", ws]);
         // its /tmp held only the way to its own workspace and home, and the repository and its other checkouts showed
         // empty (D91)
@@ -191,6 +205,11 @@ describe("an agent's own /tmp (D84)", () => {
         // repository out of reach (D91)
         expect(r.ownPids, "this machine can't make a PID namespace (unshare --pid), so /proc would show its processes").toBe(true);
         expect([one, host, root, Number(pids) < 10]).toEqual(["1", "0", "0", true]);
+        // the CLI's account file reads empty where there is one, and where setpriv works it starts without CAP_SYS_ADMIN,
+        // so what covers the repository stays (D91)
+        expect(confBytes).toBe(existsSync(conf) ? "0" : "none");
+        expect(r.capsDropped).toBe(capsDropped());
+        if (r.capsDropped) expect(um).toBe("refused");
         // its scratch file landed in its own /tmp, beside its workspace
         expect(readFileSync(`${ws}-tmp/cat.mjs`, "utf8").trim()).toBe(ws);
       }
