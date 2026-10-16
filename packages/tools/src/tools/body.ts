@@ -3,10 +3,10 @@
 // fails in Node and renames bones, so a patch names the file's own bones. A VRM's humanoid (1.0's or 0.x's) maps its
 // bones before any patch. A foot that ends with no child gets an end bone where its mesh ends, on the sole (D49), as
 // three's bind gives it, so the body bound here stands as the game's does (a compressed mesh, whose weights io can't
-// read, gives none: every joint is kept and the report says so). `tiny` is the 34-bone conformance rig, graph.sim's
-// default body. The report says how the bones were recognized, how sure, what is missing or odd, the rest pose, limb
-// lengths and a patch to edit back, in at most 20 lines; retarget.inspect shows it, and a tool that needs the body
-// bound refuses with it (bodyOf).
+// read, gives none: every joint is kept and the report says so; so does a mesh whose positions io can't read, which
+// leaves the hips low). `tiny` is the 34-bone conformance rig, graph.sim's default body. The report says how the bones
+// were recognized, how sure, what is missing or odd, the rest pose, limb lengths and a patch to edit back, in at most
+// 20 lines; retarget.inspect shows it, and a tool that needs the body bound refuses with it (bodyOf).
 import { bind, skeleton, type Bound, type SkeletonIn } from "@m3a/core";
 import { IoError, meshEnds, parseGlb, parseGltf, skeletonOfGltf, type GltfDoc, type GltfJson, type GltfSkeleton } from "@m3a/io";
 import { ToolError, type ToolContext } from "../registry/registry.ts";
@@ -123,19 +123,21 @@ async function skeletonOf(ctx: ToolContext, ref: string): Promise<Read> {
 
 /** The skeleton bound, with D49's end bones (as three's bind adds them): each foot's last bone (its toes, else the foot)
  *  that has no child ends where its mesh does, on the sole, so its toe and the ground under it are the foot's real tip;
- *  the tiny rig, and a foot no vertex is weighted to, as they are. */
-function withSoles({ sk, file }: Read, rec: skeleton.Recognition): { sk: SkeletonIn; restWorld?: GltfSkeleton["restWorld"] } {
-  if (!file) return { sk };
+ *  the tiny rig, and a foot no vertex is weighted to, as they are; `unread` says why a mesh that would give one went
+ *  unread (meshEnds). */
+function withSoles({ sk, file }: Read, rec: skeleton.Recognition): { sk: SkeletonIn; restWorld?: GltfSkeleton["restWorld"]; unread: string | null } {
+  if (!file) return { sk, unread: null };
   const lasts = [...new Set(["left", "right"].map((s) => rec.bones[`${s}Toes`] ?? rec.bones[`${s}Foot`]))].filter((b): b is string => !!b && !sk.bones.some((x) => x.parent === b));
-  const at = meshEnds(file.doc, lasts.map((b) => file.g.nodes[sk.bones.findIndex((x) => x.name === b)]!)), bones = [...sk.bones], restWorld = { ...file.g.restWorld };
+  const { ends, unread } = meshEnds(file.doc, lasts.map((b) => file.g.nodes[sk.bones.findIndex((x) => x.name === b)]!)), bones = [...sk.bones], restWorld = { ...file.g.restWorld };
   lasts.forEach((b, k) => {
-    if (!at[k]) return;
+    const at = ends[k];
+    if (!at) return;
     let name = `${b}_end`;
     while (bones.some((x) => x.name === name)) name += "_";
-    bones.push({ name, parent: b, head: at[k] });
+    bones.push({ name, parent: b, head: at });
     restWorld[name] = [0, 0, 0, 1];
   });
-  return { sk: { ...sk, bones }, restWorld };
+  return { sk: { ...sk, bones }, restWorld, unread };
 }
 
 /** The most bones a character may have (recognition by shape is quadratic in them, and deep chains recurse). */
@@ -170,16 +172,15 @@ export async function characterOf(ctx: ToolContext, ref: string, mapping?: Mappi
     const own = skeleton.REQUIRED_BONES.filter((h) => rec.bones[h] && !given(h)).map((h) => `${h}: not in its VRM humanoid; found ${how}`);
     rec = { ...rec, issues: [...own, ...rec.issues.filter((i) => mapping || i !== "patched by hand")] };
   }
-  const unread = read.file?.g.unread;
-  if (unread) rec = { ...rec, issues: [`mesh ${unread === "unreadable" ? "unreadable" : `compressed (${unread})`}: weights unread, every joint kept, no sole end bones`, ...rec.issues] };
   if (!Object.keys(rec.bones).length) throw new ToolError("E_RIG", `${ref}: no humanoid bone recognized among its ${sk.bones.length} bones, by name or by shape; give each bone in mapping {bones: {hips: "<its bone>", ...}}`);
+  // the weights unread (every joint kept, no soles), or else the soles' mesh: said first, for retarget.inspect to show
+  const body = rec.missing.length ? null : withSoles(read, rec), unread = read.file?.g.unread;
+  if (unread) rec = { ...rec, issues: [`mesh ${unread === "unreadable" ? "unreadable" : `compressed (${unread})`}: weights unread, every joint kept, no sole end bones`, ...rec.issues] };
+  else if (body?.unread) rec = { ...rec, issues: [`sole end bones unread: ${body.unread}; the hips may sit 10-40 mm low`, ...rec.issues] };
   const report = reportOf(ref, sk, rec, byVrm);
   let bound: Bound | null = null;
   try {
-    if (!rec.missing.length) {
-      const body = withSoles(read, rec);
-      bound = bind(body.sk, { recognition: rec, ...(body.restWorld ? { restWorld: body.restWorld } : {}) });
-    }
+    if (body) bound = bind(body.sk, { recognition: rec, ...(body.restWorld ? { restWorld: body.restWorld } : {}) });
   } catch (err) {
     throw new ToolError("E_RIG", `${ref}: can't bind it (${err instanceof Error ? err.message : String(err)}); retarget.inspect shows its mapping`);
   }

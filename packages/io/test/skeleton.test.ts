@@ -4,13 +4,16 @@
 // frame included, the leaves no vertex is weighted to left out (a VRM, 1.0 or 0.x, keeps them, as do weights it can't
 // read, which it says, but not another required extension); the biggest skin is read, a bone's parent the nearest
 // joint above it; a joint no vertex is weighted to is kept only above one of the skin's own, through joints (not a
-// helper node, nor from another skin's joint); where a joint's mesh ends, exactly (half its weight or more, summed to
-// 1, farthest across the ground, down to the lowest, the skinned mesh node's own transform ignored); the real CC0
-// rigs, when fetched, map each limb to its own bones, KayKit's IK and roll controls left out; names are unique; no
-// bones, or a joint past the nodes, refused.
+// helper node, nor from another skin's joint), one only another skin's mesh moves kept, a vertex weighted to nothing
+// counting its first joint (three's loader's), every joint kept when no mesh is skinned; where a joint's mesh ends,
+// exactly (half its weight or more, summed to 1, in every mesh a skin naming it skins, farthest across the ground,
+// down to the lowest, the skinned mesh node's own transform ignored), or why it read none; signed and unsigned bytes
+// and shorts read, normalized or not, a sparse accessor refused; the real CC0 rigs, when fetched, map each limb to its
+// own bones, KayKit's IK and roll controls left out; names are unique; no bones, or a joint past the nodes, refused.
 import { bind, math, recognize } from "@m3a/core";
 import { describe, expect, it } from "vitest";
 import { IoError, meshEnds, packGlb, parseGlb, parseGltf, skeletonOfGltf } from "../src/index.ts";
+import { accessor } from "../src/gltf/read.ts";
 import { rigSkeleton } from "../../../spec/conformance/runner/skeleton.ts";
 import { tier1bText } from "../../../spec/conformance/runner/vectors.ts";
 import { rigBytes } from "../../../tools/fixtures/fixtures.ts";
@@ -18,24 +21,42 @@ import { character } from "../../three/test-characters/characters.ts";
 import { TEST_SEEDS, variant } from "../../three/test-characters/variants.ts";
 
 const gltf = (json: object) => parseGltf(JSON.stringify({ asset: { version: "2.0" }, ...json }));
+/** A mesh for skinned(): its vertices, each weighted [w0, w1] to joints [J0, J1] of the skin that skins it. */
+interface Part {
+  P: number[][];
+  W: number[][];
+  J?: [number, number];
+}
 /** A small skinned glTF: C alone in a skin of one, and A (1 m up) and B (2 m up, a helper node between) in a skin of two
- *  that a mesh node moved 1 m along x skins (a move glTF says to ignore): four vertices, each weighted [to B, to A] (by
- *  default the last's weights summing to 0.6). */
-function skinned(extra: object = {}, W = [[1, 0], [0.6, 0.4], [0.4, 0.6], [0.4, 0.2]]) {
-  const P = [[0, 0, 0.3], [0, -0.5, 0.1], [0, -1, 2], [0, 0, 0.5]];
-  const bin = new Uint8Array(128), f = new Float32Array(bin.buffer), view = (byteOffset: number, byteLength: number) => ({ buffer: 0, byteOffset, byteLength });
-  P.forEach((p, v) => f.set(p, v * 3));
-  W.forEach((w, v) => {
-    bin.set([1, 0, 0, 0], 48 + v * 4);
-    f.set([...w, 0, 0], 16 + v * 4);
-  });
+ *  that a mesh node moved 1 m along x skins (a move glTF says to ignore): four vertices `P`, each weighted `W` [to B, to
+ *  A] (by default the last's weights summing to 0.6). Each of `more` is a mesh more (mesh 1, 2, ...), for `extra`'s
+ *  nodes to skin, its joints [1, 0] of its skin unless it says. */
+function skinned(extra: object = {}, W = [[1, 0], [0.6, 0.4], [0.4, 0.6], [0.4, 0.2]], P = [[0, 0, 0.3], [0, -0.5, 0.1], [0, -1, 2], [0, 0, 0.5]], more: Part[] = []) {
+  const parts: Part[] = [{ P, W }, ...more], size = parts.reduce((n, m) => n + m.P.length * 32, 0), bin = new Uint8Array(size), f = new Float32Array(bin.buffer);
+  const accessors: object[] = [], bufferViews: object[] = [];
+  let at = 0;
+  const view = (byteLength: number, componentType: number, count: number, type: string) => {
+    accessors.push({ bufferView: bufferViews.length, componentType, count, type });
+    bufferViews.push({ buffer: 0, byteOffset: at, byteLength });
+    at += byteLength;
+  };
+  for (const m of parts) {
+    const n = m.P.length, [j0, j1] = m.J ?? [1, 0];
+    m.P.forEach((p, v) => f.set(p, at / 4 + v * 3));
+    view(12 * n, 5126, n, "VEC3");
+    m.W.forEach((_, v) => bin.set([j0, j1, 0, 0], at + v * 4));
+    view(4 * n, 5121, n, "VEC4");
+    m.W.forEach((w, v) => f.set([...w, 0, 0], at / 4 + v * 4));
+    view(16 * n, 5126, n, "VEC4");
+  }
   return parseGlb(packGlb({
-    asset: { version: "2.0" }, skins: [{ joints: [3] }, { joints: [0, 2] }], meshes: [{ primitives: [{ attributes: { POSITION: 0, JOINTS_0: 1, WEIGHTS_0: 2 } }] }],
+    asset: { version: "2.0" }, skins: [{ joints: [3] }, { joints: [0, 2] }], meshes: parts.map((_, k) => ({ primitives: [{ attributes: { POSITION: 3 * k, JOINTS_0: 3 * k + 1, WEIGHTS_0: 3 * k + 2 } }] })),
     nodes: [{ name: "A", translation: [0, 1, 0], children: [1] }, { name: "helper", translation: [0, 0.5, 0], children: [2] }, { name: "B", translation: [0, 0.5, 0] }, { name: "C" }, { name: "Body", mesh: 0, skin: 1, translation: [1, 0, 0] }],
-    accessors: [{ bufferView: 0, componentType: 5126, count: 4, type: "VEC3" }, { bufferView: 1, componentType: 5121, count: 4, type: "VEC4" }, { bufferView: 2, componentType: 5126, count: 4, type: "VEC4" }],
-    bufferViews: [view(0, 48), view(48, 16), view(64, 64)], buffers: [{ byteLength: 128 }], ...extra,
+    accessors, bufferViews, buffers: [{ byteLength: size }], ...extra,
   }, bin));
 }
+/** skinned()'s nodes, with a shoe (mesh 1) that skin 2, B's alone, skins. */
+const SHOE = { skins: [{ joints: [3] }, { joints: [0, 2] }, { joints: [2] }], nodes: [{ name: "A", translation: [0, 1, 0], children: [1] }, { name: "helper", translation: [0, 0.5, 0], children: [2] }, { name: "B", translation: [0, 0.5, 0] }, { name: "C" }, { name: "Body", mesh: 0, skin: 1 }, { name: "Shoe", mesh: 1, skin: 2 }] };
 
 describe("skeletonOfGltf", () => {
   it("reads tier 1b's skinless rig as the conformance skeleton, bit for bit, every node a bone at rest unturned", () => {
@@ -49,7 +70,7 @@ describe("skeletonOfGltf", () => {
     expect(s.skeleton.bones[1]).toMatchObject({ name: "DEF-hips", parent: "root" });
     expect(s.skeleton.bones[1]!.head![1]).toBeCloseTo(0.95, 12);
     // from the bones alone the ground is under the toes' heads; the end bones on the soles put it where three's bind does
-    const toes = ["DEF-toe.L", "DEF-toe.R"], ends = meshEnds(doc, toes.map((t) => s.nodes[s.skeleton.bones.findIndex((b) => b.name === t)]!));
+    const toes = ["DEF-toe.L", "DEF-toe.R"], { ends } = meshEnds(doc, toes.map((t) => s.nodes[s.skeleton.bones.findIndex((b) => b.name === t)]!));
     const soles = { ...s.skeleton, bones: [...s.skeleton.bones, ...toes.map((t, k) => ({ name: `${t}_end`, parent: t, head: ends[k]! }))] };
     expect([bind(s.skeleton, { recognition: rec, restWorld: s.restWorld }).rest.H0, bind(soles, { recognition: rec, restWorld: s.restWorld }).rest.H0]).toEqual([930, 930.35]);
   });
@@ -65,16 +86,54 @@ describe("skeletonOfGltf", () => {
     const nodes = [{ name: "A", translation: [0, 1, 0], children: [1, 5] }, { name: "helper", translation: [0, 0.5, 0], children: [2] }, { name: "B", translation: [0, 0.5, 0] }, { name: "C" }, { name: "Body", mesh: 0, skin: 0 }, { name: "D" }, { name: "Hat", mesh: 0, skin: 1 }];
     expect(skeletonOfGltf(skinned({ skins: [{ joints: [0, 2] }, { joints: [3, 5] }], nodes }, onlyB)).skeleton.bones).toEqual([B]);
     // weights it can't read (an accessor past its buffer): every joint kept, and why
-    const broken = skeletonOfGltf(skinned({ accessors: [{ bufferView: 0, componentType: 5126, count: 4, type: "VEC3" }, { bufferView: 1, componentType: 5121, count: 4, type: "VEC4" }, { bufferView: 2, componentType: 5126, count: 40, type: "VEC4" }] }, onlyB));
-    expect([broken.nodes, broken.unread]).toEqual([[0, 2], "unreadable"]);
+    const doc = skinned({}, onlyB);
+    doc.json.accessors![2]!.count = 40;
+    expect([skeletonOfGltf(doc).nodes, skeletonOfGltf(doc).unread]).toEqual([[0, 2], "unreadable"]);
+  });
+  it("keeps a joint only another skin's mesh moves, a vertex weighted to nothing its first joint's, and every joint when no mesh is skinned", () => {
+    const A = { name: "A", parent: null, head: [0, 1, 0] }, B = { name: "B", parent: "A", head: [0, 2, 0] }, onlyA = [[0, 1], [0, 1], [0, 1], [0, 1]];
+    // the body moves A alone; B is the shoe's, a smaller skin's (three's bind counts a bone any skinned mesh moves)
+    expect(skeletonOfGltf(skinned(SHOE, onlyA, undefined, [{ P: [[0, -1.5, 3]], W: [[1, 0]], J: [0, 0] }])).skeleton.bones).toEqual([A, B]);
+    // weighted to nothing: three's loader gives the vertex's first joint (B) its whole weight
+    expect(skeletonOfGltf(skinned({}, [[0, 0], [0, 0], [0, 0], [0, 0]])).skeleton.bones).toEqual([{ ...B, parent: null }]);
+    // a skin no mesh node uses: nothing tells the controls from the bones, so every joint is kept
+    expect(skeletonOfGltf(skinned({ nodes: [...SHOE.nodes.slice(0, 4), { name: "Body", mesh: 0 }] }, onlyA)).skeleton.bones).toEqual([A, B]);
   });
   it("reads where a joint's mesh ends: of its vertices weighted half or more, the farthest across the ground, down to the lowest", () => {
     // B's vertices: the first (2 m up, 0.3 out), the second (1.1 m up) and the last (its weights summed to 1: 2/3 to B,
     // 5/3 m up, 0.5 out, the farthest); the third, 0.4 to B, is A's; the mesh node's 1 m along x ignored, as three's
     // bind matrix cancels it
-    const [b, a, c] = meshEnds(skinned(), [2, 0, 3]);
-    for (const [got, want] of [[b, [0, 1.1, 0.5]], [a, [0, 0.4, 2]]] as const) for (let k = 0; k < 3; k++) expect(got![k]).toBeCloseTo(want[k], 6);
-    expect([c, meshEnds(skinned({ extensionsRequired: ["KHR_draco_mesh_compression"] }), [2, 0])]).toEqual([null, [null, null]]);
+    const near = (got: (number[] | null)[], want: number[][]) => want.forEach((w, j) => w.forEach((x, k) => expect(got[j]![k], `${j} ${k}`).toBeCloseTo(x, 6)));
+    const { ends: [b, a, c], unread } = meshEnds(skinned(), [2, 0, 3]);
+    near([b!, a!], [[0, 1.1, 0.5], [0, 0.4, 2]]);
+    expect([c, unread]).toEqual([null, null]);
+    // exactly half to B counts (0.9 out, the farthest), 0.55 too (0.7 out), 0.45 not (1.2 out: A's); the lowest, B's alone
+    const half = skinned({}, [[0.5, 0.5], [0.55, 0.45], [1, 0], [0.45, 0.55]], [[0, 0, 0.9], [0, 0, 0.7], [0, -1, 0.3], [0, 0, 1.2]]);
+    near(meshEnds(half, [2, 0]).ends, [[0, 1, 0.9], [0, 1.45, 1.2]]);
+    // B's foot in a shoe a smaller skin skins (3 m out, 0.5 m up) is read with the body's: every mesh that skins B
+    near(meshEnds(skinned(SHOE, undefined, undefined, [{ P: [[0, -1.5, 3]], W: [[1, 0]], J: [0, 0] }]), [2]).ends, [[0, 0.5, 3]]);
+  });
+  it("reads no end, and says why, from a mesh it can't read: compressed, a position past its buffer, sparse", () => {
+    const past = skinned(), sparse = skinned();
+    past.json.accessors![0]!.count = 40;
+    Object.assign(sparse.json.accessors![0]!, { sparse: { count: 1, indices: { bufferView: 1, componentType: 5121 }, values: { bufferView: 0 } } });
+    expect([meshEnds(skinned({ extensionsRequired: ["KHR_draco_mesh_compression"] }), [2, 0]), meshEnds(past, [2]), meshEnds(sparse, [2])]).toEqual([
+      { ends: [null, null], unread: "KHR_draco_mesh_compression" },
+      { ends: [null], unread: "accessor 0 of 480 byte(s) runs past the end (128 bytes) (at byte 0)" },
+      { ends: [null], unread: "accessor 0 is sparse, which isn't read" },
+    ]);
+    // compressed, but no mesh skins the joint: nothing to read, nothing unread
+    expect(meshEnds(skinned({ extensionsRequired: ["KHR_draco_mesh_compression"] }), [3])).toEqual({ ends: [null], unread: null });
+  });
+  it("reads signed and unsigned bytes and shorts, normalized (signed ones clamped at -1) or not", () => {
+    const bin = new Uint8Array(32), dv = new DataView(bin.buffer);
+    [-128, -127, -1, 0, 127, 255].forEach((x, k) => dv.setInt8(k, x));
+    [-32768, -32767, -2, 1, 32767, 65535].forEach((x, k) => dv.setInt16(8 + 2 * k, x, true));
+    const doc = parseGlb(packGlb({ asset: { version: "2.0" }, bufferViews: [{ buffer: 0, byteLength: 6 }, { buffer: 0, byteOffset: 8, byteLength: 12 }], buffers: [{ byteLength: 32 }],
+      accessors: [5120, 5121, 5122, 5123].flatMap((componentType) => [false, true].map((normalized) => ({ bufferView: componentType < 5122 ? 0 : 1, componentType, normalized, count: 6, type: "SCALAR" }))) }, bin));
+    const got = [0, 1, 2, 3, 4, 5, 6, 7].map((i) => accessor(doc.json, doc.bin, i, "SCALAR"));
+    expect(got.filter((_, i) => i % 2 === 0)).toEqual([[-128, -127, -1, 0, 127, -1], [128, 129, 255, 0, 127, 255], [-32768, -32767, -2, 1, 32767, -1], [32768, 32769, 65534, 1, 32767, 65535]]);
+    expect(got.filter((_, i) => i % 2 === 1)).toEqual([[-1, -1, -1 / 127, 0, 1, -1 / 127], [128 / 255, 129 / 255, 1, 0, 127 / 255, 1], [-1, -1, -2 / 32767, 1 / 32767, 1, -1 / 32767], [32768 / 65535, 32769 / 65535, 65534 / 65535, 1 / 65535, 32767 / 65535, 1]]);
   });
   it("reads every generated character as generated: names, parents, heads, rest frames; unweighted leaves left out", () => {
     for (const seed of TEST_SEEDS) {

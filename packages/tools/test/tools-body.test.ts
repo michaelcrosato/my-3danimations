@@ -4,13 +4,14 @@
 // patch unmapping or swapping bones, a misspelt bone named with the closest, a file that is no character, a chain with
 // no humanoid and too many bones refused; the soles' end bones (D49) put Rigify, every generated character, one with
 // its mesh under its turned, moved and scaled armature (the mesh node's transform ignored, as three ignores it), and
-// the real rigs when fetched (KayKit's knight, G4's held-out orangejuice-male-base and talkinghead-mpfb) at three's
-// bind's rest points and hip height exactly; a foot whose last bone keeps a child gets none, as in three's bind; a
-// compressed mesh said; a VRM's humanoid, 1.0's or 0.x's, mapping bones no table names, a required bone it leaves out
-// said (V1).
+// the real rigs when fetched (KayKit's knight, G4's held-out orangejuice-male-base and talkinghead-mpfb, each skipped
+// visibly when not) and a quantized mesh (KHR_mesh_quantization's shorts) at three's bind's rest points and hip height
+// exactly; a foot whose last bone keeps a child gets none, as in three's bind; a compressed mesh said, and a mesh whose
+// positions io can't read (sparse), the hips then low; a VRM's humanoid, 1.0's or 0.x's, mapping bones no table names,
+// a required bone it leaves out said (V1).
 import { readFileSync, symlinkSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { recognize } from "@m3a/core";
+import { recognize, type Bound } from "@m3a/core";
 import { gltfToGlb, packGlb, parseGlb, parseGltf, skeletonOfGltf, type GltfSkeleton } from "@m3a/io";
 import { bind as threeBind } from "@m3a/three";
 import { describe, expect, it } from "vitest";
@@ -59,6 +60,42 @@ function underArmature(seed: number): Uint8Array {
   (J as { scenes: { nodes: number[] }[] }).scenes[0]!.nodes = [arm];
   return packGlb(J, doc.bin!.raw());
 }
+/** Generated character `seed` (one mesh, one skin) with its positions quantized to normalized shorts (KHR_mesh_quantization,
+ *  as gltf-transform's quantize writes them, 8 bytes a vertex), their scale folded into the inverse bind matrices; or
+ *  `sparse`, its positions said again for the first vertex by a sparse block (valid glTF, three reads it; io doesn't). */
+function repacked(seed: number, how: "short" | "sparse"): Uint8Array {
+  const doc = parseGlb(character(variant(seed)).glb), J = structuredClone(doc.json), raw = doc.bin!.raw(), acc = J.accessors!, views = J.bufferViews!, more: Uint8Array[] = [];
+  const floats = (i: number) => new Float32Array(raw.slice(views[acc[i]!.bufferView!]!.byteOffset ?? 0, (views[acc[i]!.bufferView!]!.byteOffset ?? 0) + views[acc[i]!.bufferView!]!.byteLength).buffer);
+  let at = raw.length;
+  const view = (bytes: Uint8Array, stride?: number) => {
+    views.push({ buffer: 0, byteOffset: at, byteLength: bytes.length, ...(stride ? { byteStride: stride } : {}) });
+    more.push(bytes);
+    at += bytes.length;
+    return views.length - 1;
+  };
+  const pos = J.meshes![0]!.primitives[0]!.attributes.POSITION!, P = floats(pos), n = P.length / 3;
+  if (how === "short") {
+    const S = P.reduce((m, x) => Math.max(m, Math.abs(x)), 0), q = new Int16Array(4 * n), ibm = J.skins![0]!.inverseBindMatrices!, M = floats(ibm);
+    for (let v = 0; v < n; v++) for (let k = 0; k < 3; k++) q[4 * v + k] = Math.round((P[3 * v + k]! / S) * 32767);
+    for (let m = 0; m < M.length; m += 16) for (let k = 0; k < 12; k++) M[m + k]! *= S;
+    const bound = (f: (...x: number[]) => number) => [0, 1, 2].map((k) => f(...Array.from({ length: n }, (_, v) => q[4 * v + k]!)));
+    acc[pos] = { bufferView: view(new Uint8Array(q.buffer), 8), componentType: 5122, normalized: true, count: n, type: "VEC3", min: bound(Math.min), max: bound(Math.max) } as (typeof acc)[number];
+    acc[ibm] = { ...acc[ibm]!, bufferView: view(new Uint8Array(M.buffer)) };
+    Object.assign(J, { extensionsUsed: ["KHR_mesh_quantization"], extensionsRequired: ["KHR_mesh_quantization"] });
+  } else acc[pos] = { ...acc[pos]!, sparse: { count: 1, indices: { bufferView: view(new Uint8Array(4)), componentType: 5121 }, values: { bufferView: view(new Uint8Array(P.slice(0, 3).buffer)) } } } as (typeof acc)[number];
+  const bin = new Uint8Array(at);
+  bin.set(raw);
+  more.reduce((o, b) => (bin.set(b, o), o + b.length), raw.length);
+  return packGlb(J, bin);
+}
+/** A bound body's end bones (D49's), by name. */
+const endsOf = (b: Bound) => b.skeleton.bones.filter((x) => x.name.endsWith("_end")).map((x) => x.name);
+/** characterOf's body beside three's bind's, on the same bytes: H0, how many end bones, and whether every rest point
+ *  is within 1e-3 mm of three's. */
+async function parity(glb: Uint8Array): Promise<[unknown[], unknown[]]> {
+  const c = (await characterOf(holding(glb), "c.glb")).bound!, t = threeBind((await loadGlb(glb, { textures: false })).scene).core;
+  return [[c.rest.H0, endsOf(c).length, Math.max(...c.restPts.map((v, i) => Math.abs(v - t.restPts[i]!))) < 1e-3], [t.rest.H0, endsOf(t).length, true]];
+}
 
 describe("a character's bytes (R6)", () => {
   it("reads a binary file under the working directory, refused out of it, through a link or missing; a host without bytes refuses", async () => {
@@ -97,21 +134,36 @@ describe("characters bound through core", () => {
     expect(c.bound!.restWorld).toEqual({ ...skeletonOfGltf(parseGltf(rigText(RIGIFY))).restWorld, "DEF-toe.L_end": [0, 0, 0, 1], "DEF-toe.R_end": [0, 0, 0, 1] });
   });
   it("stands each foot that ends with no child on an end bone where its mesh ends (D49), at three's bind's rest exactly", async () => {
-    const glbs: [string, Uint8Array | null][] = [["rigify", gltfToGlb(rigText(RIGIFY))], ...TEST_SEEDS.map((s): [string, Uint8Array] => [`seed ${s}`, character(variant(s)).glb]), ["seed 1 under its armature", underArmature(1)],
-      ["kaykit-knight", rigBytes("kaykit-knight")], ["orangejuice-male-base", heldOut("orangejuice-male-base", 1)], ["talkinghead-mpfb", heldOut("talkinghead-mpfb", 2)]];
-    // the real rigs not fetched are left out (npm run fixtures -- fetch); the rest always bind
-    for (const [id, glb] of glbs.filter((x): x is [string, Uint8Array] => x[1] !== null)) {
-      const c = (await characterOf(holding(glb), "c.glb")).bound!, t = threeBind((await loadGlb(glb, { textures: false })).scene).core;
-      const ends = (b: typeof c) => b.skeleton.bones.filter((x) => x.name.endsWith("_end")).map((x) => x.parent);
-      expect([c.rest.H0, ends(c).length, Math.max(...c.restPts.map((v, i) => Math.abs(v - t.restPts[i]!))) < 1e-3], id).toEqual([t.rest.H0, ends(t).length, true]);
+    const glbs: [string, Uint8Array][] = [["rigify", gltfToGlb(rigText(RIGIFY))], ...TEST_SEEDS.map((s): [string, Uint8Array] => [`seed ${s}`, character(variant(s)).glb]), ["seed 1 under its armature", underArmature(1)]];
+    for (const [id, glb] of glbs) {
+      const [got, want] = await parity(glb);
+      expect(got, id).toEqual(want);
     }
+  });
+  for (const [id, bytes] of [["kaykit-knight", () => rigBytes("kaykit-knight")], ["orangejuice-male-base", () => heldOut("orangejuice-male-base", 1)], ["talkinghead-mpfb", () => heldOut("talkinghead-mpfb", 2)]] as const) {
+    it(`stands ${id} on its soles' end bones at three's bind's rest exactly`, async (ctx) => {
+      const glb = bytes();
+      if (!glb) return ctx.skip(`${id} isn't fetched: npm run fixtures -- fetch`);
+      const [got, want] = await parity(glb);
+      expect(got).toEqual(want);
+    });
+  }
+  it("reads a quantized mesh's positions (KHR_mesh_quantization's normalized shorts) for its soles, as three's bind does", async () => {
+    const glb = repacked(1, "short"), [got, want] = await parity(glb);
+    expect([got, (await characterOf(holding(glb), "q.glb")).report.issues]).toEqual([want, []]);
+    expect(want[1]).toBe(2);
+  });
+  it("says when the soles' mesh can't be read (a sparse position): no end bones, the hips low", async () => {
+    const plain = (await characterOf(holding(character(variant(1)).glb), "c.glb")).bound!, c = await characterOf(holding(repacked(1, "sparse")), "s.glb");
+    expect([c.report.issues, endsOf(c.bound!), endsOf(plain).length]).toEqual([["sole end bones unread: accessor 0 is sparse, which isn't read; the hips may sit 10-40 mm low"], [], 2]);
+    expect([c.bound!.rest.H0, plain.rest.H0]).toEqual([1006.71, 1046.71]);
+    expect(c.report.text).toContain("issue: sole end bones unread: accessor 0 is sparse");
   });
   it("gives no end bone to a foot whose last bone keeps a child (its toes unmapped), as three's bind does", async () => {
     const glb = character(variant(0)).glb, mapping = { bones: { leftToes: null } };
     const c = (await characterOf(holding(glb), "c.glb", mapping)).bound!, t = threeBind((await loadGlb(glb, { textures: false })).scene, { mapping }).core;
-    const ends = (b: typeof c) => b.skeleton.bones.filter((x) => x.name.endsWith("_end")).map((x) => x.name);
-    expect([ends(c), c.rest.H0, Math.max(...c.restPts.map((v, i) => Math.abs(v - t.restPts[i]!))) < 1e-3]).toEqual([["rightToes_end"], t.rest.H0, true]);
-    expect(ends(t)).toEqual(ends(c));
+    expect([endsOf(c), c.rest.H0, Math.max(...c.restPts.map((v, i) => Math.abs(v - t.restPts[i]!))) < 1e-3]).toEqual([["rightToes_end"], t.rest.H0, true]);
+    expect(endsOf(t)).toEqual(endsOf(c));
   });
   it("says when a compressed mesh leaves its weights unread: every joint kept, no soles", async (ctx) => {
     const glb = rigBytes("quaternius-mannequin-m");

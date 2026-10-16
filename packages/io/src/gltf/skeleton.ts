@@ -8,12 +8,15 @@
 // metres, +y up. Names are the file's own (three.js would sanitize them); a bone with none, or one another bone took
 // first, is named for its node. `meshEnds` reads where a joint's part of the skinned mesh ends, on the sole: the end
 // bone D49 gives a foot with no child, as three's bind reads it (skinned by the joints alone: the skinned mesh node's
-// own transform is ignored, as glTF says and as three's bind matrix cancels it). Untrusted input: hierarchy() refuses
-// cycles, missing children and too many nodes; every accessor read is checked against the buffer.
-import type { SkeletonIn } from "@m3a/core";
+// own transform is ignored, as glTF says and as three's bind matrix cancels it), or why it read none. Lengths use core's
+// portable hypot (V8's bits in every engine). Untrusted input: hierarchy() refuses cycles, missing children and too
+// many nodes; every accessor read is checked against the buffer.
+import { math, type SkeletonIn } from "@m3a/core";
 import { IoError } from "../bytes.ts";
 import type { GltfDoc, GltfJson, GltfNode } from "./container.ts";
 import { accessor, hierarchy, mat, mul, restOf, xf } from "./read.ts";
+
+const { PORTABLE } = math;
 
 /** A glTF character's skeleton: the bones core binds, each bone's rest orientation in the scene's space ([x, y, z, w],
  *  by bone name, as core's bind takes `restWorld`), the node each bone is (`nodes[k]` for `skeleton.bones[k]`), and why
@@ -63,16 +66,17 @@ export function skeletonOfGltf(doc: GltfDoc): GltfSkeleton {
   };
   const restWorld: GltfSkeleton["restWorld"] = {};
   const bones = picked.map((i) => {
-    const w = restOf({ matrix: world[i]! }), q = w.r, l = Math.hypot(q[0]!, q[1]!, q[2]!, q[3]!) || 1;
+    const w = restOf({ matrix: world[i]! }), q = w.r, l = PORTABLE.hypot(q[0]!, q[1]!, q[2]!, q[3]!) || 1;
     restWorld[name.get(i)!] = [q[0]! / l, q[1]! / l, q[2]! / l, q[3]! / l];
     return { name: name.get(i)!, parent: above(i), head: [w.t[0]!, w.t[1]!, w.t[2]!] as [number, number, number] };
   });
   return { skeleton: { bones, up: [0, 1, 0] }, restWorld, nodes: picked, unread };
 }
 
-/** Of `skin`'s joints, those some vertex of a skinned mesh is weighted to, and every joint above one (as three's bind
- *  climbs: from its own skeleton's bones, through any skin's joints); null when none is, "unreadable" when the weights
- *  can't be read (a mesh compressed, or broken: the skeleton doesn't need them). */
+/** Of `skin`'s joints, those some vertex of a skinned mesh (of any skin) is weighted to, and every joint above one (as
+ *  three's bind climbs: from its own skeleton's bones, through any skin's joints); a vertex weighted to nothing counts
+ *  its first joint, as three's loader gives it all its weight. Null when none is (every joint is then kept),
+ *  "unreadable" when the weights can't be read (a mesh compressed, or broken: the skeleton doesn't need them). */
 function deforming(doc: GltfDoc, parent: readonly number[], skin: readonly number[]): Set<number> | "unreadable" | null {
   const G = doc.json, joint = new Set((G.skins ?? []).flatMap((s) => s.joints)), used = new Set<number>();
   if (compressed(G)) return "unreadable";
@@ -83,10 +87,13 @@ function deforming(doc: GltfDoc, parent: readonly number[], skin: readonly numbe
       for (const p of mesh.primitives) {
         if (p.attributes.JOINTS_0 === undefined || p.attributes.WEIGHTS_0 === undefined) continue;
         const js = accessor(G, doc.bin, p.attributes.JOINTS_0, "VEC4") as number[][], ws = accessor(G, doc.bin, p.attributes.WEIGHTS_0, "VEC4") as number[][];
-        js.forEach((row, v) => row.forEach((j, k) => {
-          const at = joints[j];
-          if (at !== undefined && (ws[v]?.[k] ?? 0) > 0) used.add(at);
-        }));
+        js.forEach((row, v) => {
+          const w = ws[v] ?? [], none = Math.abs(w[0] ?? 0) + Math.abs(w[1] ?? 0) + Math.abs(w[2] ?? 0) + Math.abs(w[3] ?? 0) === 0;
+          row.forEach((j, k) => {
+            const at = joints[j];
+            if (at !== undefined && (none ? k === 0 : (w[k] ?? 0) > 0)) used.add(at);
+          });
+        });
       }
     }
   } catch (err) {
@@ -98,24 +105,33 @@ function deforming(doc: GltfDoc, parent: readonly number[], skin: readonly numbe
   return keep.size ? keep : null;
 }
 
+/** Where each joint's part of the skinned mesh ends (`ends`, in the joints' order; null for a joint no vertex is
+ *  weighted to), and why the meshes went unread (`unread`: the compression the file requires, or what broke the read;
+ *  null when they were read), so that no end bone was found. */
+export interface MeshEnds {
+  ends: ([number, number, number] | null)[];
+  unread: string | null;
+}
+
 /**
  * Where each joint's part of the skinned mesh ends (D49: a foot that ends with no child gets an end bone there, on the
  * sole), as three's bind reads it: of the vertices weighted half or more to the joint, in every mesh a skin naming it
  * skins, at rest (skinned by their joints, the weights summed to 1; the skinned mesh node's own transform ignored, as
  * glTF says and three's bind matrix cancels it), the one farthest from the joint's head across the ground (+y up),
- * brought down to the lowest of them; in the scene's space, metres. Null for a joint no vertex is weighted to, and for
- * every joint when the meshes can't be read (compressed, or broken: the end is a refinement, never a reason to refuse
- * the character).
+ * brought down to the lowest of them; in the scene's space, metres. When a mesh that skins one of them can't be read
+ * (compressed, or an accessor io doesn't read or that is broken), no joint has an end and `unread` says why: the end
+ * is a refinement, never a reason to refuse the character.
  */
-export function meshEnds(doc: GltfDoc, joints: readonly number[]): ([number, number, number] | null)[] {
+export function meshEnds(doc: GltfDoc, joints: readonly number[]): MeshEnds {
   const G = doc.json, bin = doc.bin, nodes = G.nodes ?? [], { parent, order } = hierarchy(nodes, bin?.file), world = worlds(nodes, parent, order);
-  const best = joints.map(() => ({ at: null as number[] | null, far: -1, low: Infinity }));
-  if (compressed(G)) return joints.map(() => null);
+  const best = joints.map(() => ({ at: null as number[] | null, far: -1, low: Infinity })), packed = compressed(G);
+  const none = (unread: string): MeshEnds => ({ ends: joints.map(() => null), unread });
   try {
     for (const n of nodes) {
       const skin = n.skin === undefined ? undefined : G.skins?.[n.skin], mesh = n.mesh === undefined ? undefined : G.meshes?.[n.mesh];
       const which = skin ? joints.map((j) => skin.joints.indexOf(j)) : [];
       if (!skin || !mesh || which.every((i) => i < 0)) continue;
+      if (packed) return none(packed);
       const ibm = skin.inverseBindMatrices === undefined ? null : (accessor(G, bin, skin.inverseBindMatrices, "MAT4") as number[][]);
       const jm = skin.joints.map((j, k) => {
         if (!world[j]) throw new IoError("E_FORMAT", `a skin names joint ${j}, which doesn't exist`);
@@ -145,7 +161,7 @@ export function meshEnds(doc: GltfDoc, joints: readonly number[]): ([number, num
                 for (let k = 0; k < 3; k++) at[k]! += q[k]! * w[c]!;
               }
             }
-            const e = best[b]!, h = world[joints[b]!]!, flat = Math.hypot(at[0]! - h[12]!, at[2]! - h[14]!);
+            const e = best[b]!, h = world[joints[b]!]!, flat = PORTABLE.hypot(at[0]! - h[12]!, at[2]! - h[14]!);
             if (flat > e.far) [e.far, e.at] = [flat, at];
             e.low = Math.min(e.low, at[1]!);
           });
@@ -153,8 +169,9 @@ export function meshEnds(doc: GltfDoc, joints: readonly number[]): ([number, num
       }
     }
   } catch (err) {
-    if (err instanceof IoError) return joints.map(() => null);
+    // the file's name dropped: the caller reports it for that file
+    if (err instanceof IoError) return none(err.file ? err.message.slice(err.file.length + 2) : err.message);
     throw err;
   }
-  return best.map((e) => (e.at ? [e.at[0]!, e.low, e.at[2]!] : null));
+  return { ends: best.map((e) => (e.at ? [e.at[0]!, e.low, e.at[2]!] : null)), unread: null };
 }

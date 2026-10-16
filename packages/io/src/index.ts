@@ -51,7 +51,10 @@ export const posedOf = guard(posed.posedOf, docFile);
 export type { GltfSkeleton } from "./gltf/skeleton.ts";
 /** A glTF character's skeleton (its biggest skin's joints, else every node) for core's bind, read from nodes alone. */
 export const skeletonOfGltf = guard(skel.skeletonOfGltf, docFile);
-/** Where each joint's part of a glTF's skinned mesh ends, on the sole (D49's end bone for a foot with no child). */
+/** Where a glTF's skinned mesh ends under each joint (meshEnds' result), and why the mesh went unread. */
+export type { MeshEnds } from "./gltf/skeleton.ts";
+/** Where each joint's part of a glTF's skinned mesh ends, on the sole (D49's end bone for a foot with no child), or why
+ *  the mesh went unread. */
 export const meshEnds = guard(skel.meshEnds, docFile);
 /** CMU's Acclaim skeleton and takes: their types. */
 export { type Asf, type AsfBone, type CmuPick, type CmuLibrary } from "./acclaim/read.ts";

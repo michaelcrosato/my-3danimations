@@ -110,27 +110,36 @@ const pct = (arr: number[], p: number): number => {
 };
 
 const SIZE: Readonly<Record<string, number>> = { SCALAR: 1, VEC2: 2, VEC3: 3, VEC4: 4, MAT4: 16 };
-const BYTES: Readonly<Record<number, number>> = { 5126: 4, 5125: 4, 5123: 2, 5121: 1 };
+const BYTES: Readonly<Record<number, number>> = { 5126: 4, 5125: 4, 5123: 2, 5122: 2, 5121: 1, 5120: 1 };
+/** A normalized integer's largest value (signed ones clamped at -1, as glTF and three.js read them). */
+const UNIT: Readonly<Record<number, number>> = { 5123: 65535, 5122: 32767, 5121: 255, 5120: 127 };
 
-/** An accessor's values (a number, or a row per element), each read checked against the buffer; `want` its type. */
+/** An accessor's values (a number, or a row per element), each read checked against the buffer; `want` its type. Signed
+ *  and unsigned bytes and shorts are read (a quantized mesh's, KHR_mesh_quantization), normalized or not; a sparse
+ *  accessor is refused, never read as its base values. */
 export function accessor(json: GltfJson, bin: Bytes | null, i: number, want?: string): (number | number[])[] {
   const file = bin?.file, a = json.accessors?.[i];
   if (!a) throw new IoError("E_FORMAT", `no accessor ${i}`, { file });
   if (want && a.type !== want) throw new IoError("E_FORMAT", `accessor ${i} is a ${a.type}; it is read as a ${want}`, { file });
   if (a.bufferView === undefined) throw new IoError("E_FORMAT", `accessor ${i} has no bufferView (sparse accessors aren't read)`, { file });
+  if ("sparse" in a) throw new IoError("E_FORMAT", `accessor ${i} is sparse, which isn't read`, { file });
   const bv = json.bufferViews?.[a.bufferView], n = SIZE[a.type], bytes = BYTES[a.componentType];
   if (!bv) throw new IoError("E_FORMAT", `accessor ${i}'s bufferView ${a.bufferView} doesn't exist`, { file });
   if (bv.buffer !== 0 || !bin) throw new IoError("E_MISSING", `accessor ${i} reads buffer ${bv.buffer}, which the file doesn't hold`, { file });
   if (!n) throw new IoError("E_FORMAT", `accessor ${i}'s type "${a.type}" isn't read`, { file });
-  if (!bytes) throw new IoError("E_FORMAT", `accessor ${i}'s componentType ${a.componentType} isn't read (float, uint8, uint16, uint32)`, { file });
+  if (!bytes) throw new IoError("E_FORMAT", `accessor ${i}'s componentType ${a.componentType} isn't read (float, int8, uint8, int16, uint16, uint32)`, { file });
   if (!Number.isInteger(a.count) || a.count < 0 || a.count * n > LIMITS.values) throw new IoError("E_LIMIT", `accessor ${i} holds ${a.count} × ${n} values, over the limit`, { file });
-  const read = a.componentType === 5126 ? (o: number) => bin.f32(o) : a.componentType === 5125 ? (o: number) => bin.u32(o) : a.componentType === 5123 ? (o: number) => bin.u16(o) : (o: number) => bin.u8(o);
-  const norm = a.normalized ? ({ 5123: 65535, 5121: 255 } as Record<number, number>)[a.componentType] || 1 : 1;
+  const t = a.componentType, read = t === 5126 ? (o: number) => bin.f32(o) : t === 5125 ? (o: number) => bin.u32(o) : t === 5123 ? (o: number) => bin.u16(o)
+    : t === 5122 ? (o: number) => (bin.u16(o) << 16) >> 16 : t === 5121 ? (o: number) => bin.u8(o) : (o: number) => (bin.u8(o) << 24) >> 24;
+  const unit = a.normalized ? UNIT[t] : undefined;
   const base = (bv.byteOffset || 0) + (a.byteOffset || 0), stride = bv.byteStride || n * bytes, out = new Array<number | number[]>(a.count);
   if (a.count > 0) bin.check(base, (a.count - 1) * stride + n * bytes, `accessor ${i}`);
   for (let k = 0; k < a.count; k++) {
     const row = new Array<number>(n);
-    for (let c = 0; c < n; c++) row[c] = read(base + k * stride + c * bytes) / norm;
+    for (let c = 0; c < n; c++) {
+      const v = read(base + k * stride + c * bytes);
+      row[c] = unit ? Math.max(v / unit, -1) : v;
+    }
     out[k] = n === 1 ? row[0]! : row;
   }
   return out;
