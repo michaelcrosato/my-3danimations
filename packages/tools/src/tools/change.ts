@@ -14,7 +14,9 @@ import { applied, back, commit, mayCopy, readTarget, replay, targetName, targetR
 
 const SAVE_AS: Schema = { type: "string", description: "WORKSHOP/Name" };
 /** What edit's own ops take: meta sets the clip's name, tags and desc; slice (first only) cuts the clip it starts from. */
-const OWN: Readonly<Record<string, readonly string[]>> = { meta: ["name", "tags", "desc"], slice: ["from", "to", "loop"] };
+const OWN: Readonly<Record<string, readonly string[]>> = { slice: ["from", "to", "loop"], meta: ["name", "tags", "desc"] };
+/** The ops edit takes: its own, then the recipe's that change the step before (clip, sequence, blend and layer compose). */
+const OPS = [...Object.keys(OWN), ...Object.keys(recipe.OPS).filter((k) => recipe.OPS[k]!.reads.join() === "in")];
 /** The most steps an in-place edit's recipe chain keeps; an edit past it compiles from the file as it is. */
 const CHAIN = 32;
 
@@ -53,12 +55,15 @@ export const fix = defineTool<{ clip: string; ops?: fixes.FixName[]; save_as?: s
     const head = `fix ${ref.id}: ${b!.verdict.toUpperCase()} -> ${f!.verdict.toUpperCase()} (${b!.findings} -> ${count(f!.findings, "finding")})`, fails = f!.verdict === "fail";
     const data = { clip: ref.id, saved: null as string | null, path: null as string | null, before: b, after: f, steps, ...stacks(t?.history ?? null) };
     const out = { data, lines: r.text.split("\n").slice(1), findings: fails };
-    if (!t || !steps.some((s) => s.changes)) {
-      const next = !t ? `fix ${ref.id} without dry_run saves it to the workshop` : fails ? `lint ${ref.id} names what is left; edit reshapes it` : `nothing to fix: sheet ${ref.id} shows it`;
-      return { ...out, verdict: `${head}; ${t ? "nothing changed" : "dry run"}, nothing saved`, next };
+    const changes = steps.some((s) => s.changes);
+    if (!t || !changes) {
+      const next = changes ? `fix ${ref.id} without dry_run saves it to the workshop` : fails ? `lint ${ref.id} names what is left; edit reshapes it` : `nothing to fix: sheet ${ref.id} shows it`;
+      return { ...out, verdict: `${head}; ${changes ? "dry run" : "nothing changed"}, nothing saved`, next };
     }
+    // the fixed clip is no longer a recipe's output (its lineage stays in orig), nor the motion a review saw
     const from = originOf(ref), c = r.clip, { review: _, ...kept } = c;
-    const provenance = { ...c.provenance, orig: from, method: "edited" as const, producer: { tool: "m3a-tools", version: VERSION }, ai: "humanEdits" as const };
+    const { recipe: _made, ...was } = c.provenance as Clip["provenance"] & { recipe?: unknown };
+    const provenance = { ...was, orig: from, method: "edited" as const, producer: { tool: "m3a-tools", version: VERSION }, ai: "humanEdits" as const };
     const text = serialize({ ...kept, id: t.id, provenance, quality: { fit: c.quality.fit, qa: "unchecked", qaVersion: "none" } });
     const h = applied(t, text, { from, rest: ref.rest, recipe: null }), undo = `take it back: edit ${t.id} --action undo`;
     const next = fails ? `lint ${t.id} names what is left; ${undo}` : `see it: sheet ${t.id}; ${undo}`;
@@ -113,7 +118,12 @@ export const edit = defineTool<{ clip: string; ops?: Record<string, unknown>[]; 
     const chain = here && h?.recipe && lib(h.from) && ops[0]!.op !== "slice" && h.recipe.steps.length + ops.length <= CHAIN ? h.recipe : null;
     const r: recipe.Recipe = chain ? structuredClone(chain) : { format: "2.0", id: t.id, steps: [{ op: "clip", id: ref.id }] }, at: number[] = [];
     for (const [i, { op, ...f }] of ops.entries()) {
-      const own = typeof op === "string" && Object.hasOwn(OWN, op) ? OWN[op]! : undefined, odd = own && Object.keys(f).find((k) => !own.includes(k));
+      if (typeof op !== "string" || !OPS.includes(op)) {
+        const composes = typeof op === "string" && Object.hasOwn(recipe.OPS, op), near = typeof op === "string" && !composes ? didYouMean(op, OPS) : "";
+        const why = composes ? `${op} names or composes clips (a recipe's job); edit changes one` : op === undefined ? "missing" : `no operation ${quote(op)}`;
+        throw new ToolError("E_ARGS", `ops[${i}].op: ${why}${near || `; one of ${OPS.join(", ")}`}`, true);
+      }
+      const own = Object.hasOwn(OWN, op) ? OWN[op]! : undefined, odd = own && Object.keys(f).find((k) => !own.includes(k));
       const wrong = odd
         ? `${op} has no field ${quote(odd)}${didYouMean(odd, own!)}`
         : op === "slice" && i > 0
@@ -122,9 +132,10 @@ export const edit = defineTool<{ clip: string; ops?: Record<string, unknown>[]; 
             ? "leave out in and as: each step reads the one before"
             : null;
       if (wrong) throw new ToolError("E_ARGS", `ops[${i}]: ${wrong}`, true);
-      if (own) Object.assign(op === "meta" ? r : r.steps[0]!, f);
-      else at[r.steps.push({ ...f, op: op as string, in: `s${r.steps.length}` })] = i;
-      if (op === "slice") at[1] = i;
+      if (own) {
+        Object.assign(op === "meta" ? r : r.steps[0]!, f);
+        at[op === "meta" ? 0 : 1] = i; // where() reads the recipe's own fields as step 0, the clip step as 1
+      } else at[r.steps.push({ ...f, op, in: `s${r.steps.length}` })] = i;
     }
     const mine = ref.where === "library" ? undefined : { clip: ref.clip, rest: ref.rest, contentId: recipe.sha256(ref.text!) };
     let made: recipe.Compiled;
@@ -132,7 +143,7 @@ export const edit = defineTool<{ clip: string; ops?: Record<string, unknown>[]; 
       made = recipe.compile(r, Object.assign((id: string) => (mine && id === ref.id ? mine : lib(id)), { ids: lib.ids }));
     } catch (err) {
       if (!(err instanceof recipe.RecipeError)) throw err;
-      const where = (s?: number) => (s === undefined ? "ops" : at[s] === undefined ? `step ${s}` : `ops[${at[s]}]`);
+      const where = (s = 0) => (at[s] === undefined ? (s ? `step ${s}` : "ops") : `ops[${at[s]}]`);
       throw new ToolError("E_ARGS", err.issues.slice(0, 3).map((x) => `${where(x.step)}${x.field ? `.${x.field}` : ""}: ${x.message}${x.fix ? `; ${x.fix}` : ""}`).join("; "), true);
     }
     const clip = withFacts({ ...made.clip, provenance: { ...made.clip.provenance, orig: from } }, made.rest), text = serialize(clip), m = metrics(clip, made.rest);
@@ -141,11 +152,11 @@ export const edit = defineTool<{ clip: string; ops?: Record<string, unknown>[]; 
     const strike = b.strike ?? n.strike ? `, strike ${s(b.strike)} -> ${s(n.strike)}` : "";
     const found = capped(m.findings, 3), tags = capped(tagConflicts(clip, clip.facts as unknown as ClipFacts, made.rest), 3);
     const lines = [
-      ...ops.map((o, i) => cut(`ops[${i}] ${JSON.stringify(o)}`)),
       ...found.rows.map((x) => cut(`${x.level} ${x.metric} at ${sec(x.t0)}: ${x.message}`)),
       ...more(found.more, "finding", `(metrics ${t.id} lists them)`),
       ...tags.rows.map((x) => cut(`tag ${x.tag}: ${x.message}`)),
       ...more(tags.more, "tag", `not borne out (lint ${t.id} lists them)`),
+      ...ops.map((o, i) => cut(`ops[${i}] ${JSON.stringify(o)}`)),
     ];
     return commit(ctx, "edit", t, hist, a, {
       verdict: `edit ${t.id}: ${count(ops.length, "op")} applied: ${sec(b.dur)} -> ${sec(n.dur)}${strike}, ${n.keys} keys, sensors ${n.verdict} (${count(n.findings, "finding")}); revision ${hist.head}`,
