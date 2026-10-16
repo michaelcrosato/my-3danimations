@@ -4,28 +4,15 @@
 // outputSchema) and the console handle; and the
 // CLI's and MCP's text each the API reply as render() writes it. Four calls an example, where WP-7.1's sweep makes
 // eight: its own suite proves the verbose rendering.
-import { cpSync, mkdtempSync, rmSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
 import { Ajv2020 } from "ajv/dist/2020.js";
 import { expect, it } from "vitest";
 import { commandLine, help, runCli } from "../../src/cli.ts";
 import { mcpName, mcpServer, mcpTool } from "../../src/mcp.ts";
 import { nodeHost } from "../../src/node.ts";
 import { consoleHandle, describeTool, EXIT, memoryStore, Registry, render, replySchema, type Reply, type Tool } from "../../src/registry/index.ts";
+import { exampleCwd } from "./cwd.ts";
 
-/** The repository's root. */
-export const ROOT = join(import.meta.dirname, "../../../..");
-
-/** The files examples may name, copied into each example's working directory (about 220 kB). */
-export const SEED: readonly string[] = ["spec/recipes", "spec/graphs", "spec/sims", ...["rig.gltf", "rigify.gltf", "rig-catalog.json", "rigify-expected.json"].map((f) => `spec/vectors/tier1b/${f}`), "library/sets/QUATERNIUS_3D2DGE/A_TPose.json"];
-
-/** A fresh working directory under the OS's temp directory, seeded with SEED (none with `seed` false); `rm` deletes it. */
-export function exampleCwd(seed = true): { cwd: string; rm(): void } {
-  const cwd = mkdtempSync(join(tmpdir(), "m3a-ex-"));
-  if (seed) for (const f of SEED) cpSync(join(ROOT, f), join(cwd, f), { recursive: true });
-  return { cwd, rm: () => rmSync(cwd, { recursive: true, force: true }) };
-}
+export { exampleCwd, ROOT, SEED } from "./cwd.ts";
 
 const META = { "io.modelcontextprotocol/protocolVersion": "2026-07-28", "io.modelcontextprotocol/clientCapabilities": {} };
 const ajv = new Ajv2020({ strict: false });
