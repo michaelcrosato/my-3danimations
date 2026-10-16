@@ -35,15 +35,29 @@ export interface ClipRef {
   text: string | null;
 }
 
+/** A clip read for its own data alone (readClip): a ClipRef whose rest is null when no set has it. */
+export type ClipData = Omit<ClipRef, "rest"> & { rest: Rest | null };
+
+/** Whether `path` is absolute (a reply never echoes one). */
+export const absolute = (path: string): boolean => /^([A-Za-z]:)?[\\/]/.test(path);
+
 /**
- * Loads the clip `ref` names: its JSON (starting with "{"), a .json path, WORKSHOP/<Name>, or a library id at the game's
- * tiers. Refusals: E_NO_CLIP, E_NO_SET and E_TIER (usage); E_CLIP (usage for JSON given inline, an error for a file);
- * E_REST when no set has its rest; E_TAMPERED (an error). Only a library id is held to the game's tiers: a file, JSON
- * or workshop copy is the user's and loads whatever set it came from, its `tier` saying which (a tool that ships or
- * licenses clips checks that tier against the game's).
+ * Loads the clip `ref` names: its JSON (starting with "{"), a .json path, WORKSHOP/<Name> (or its file's path, read as
+ * that id so its history applies), or a library id at the game's tiers. Refusals: E_NO_CLIP, E_NO_SET and E_TIER
+ * (usage); E_CLIP (usage for JSON given inline, an error for a file); E_REST when no set has its rest; E_TAMPERED (an
+ * error). Only a library id is held to the game's tiers: a file, JSON or workshop copy is the user's and loads whatever
+ * set it came from, its `tier` saying which (a tool that ships or licenses clips checks that tier against the game's).
  */
 export async function loadClip(ctx: ToolContext, ref: string): Promise<ClipRef> {
-  const lib = ctx.library(), id = ref.trim();
+  const r = await readClip(ctx, ref);
+  if (r.rest) return { ...r, rest: r.rest };
+  throw new ToolError("E_REST", `${r.path === null ? "the clip JSON" : quote(r.path)} names rest ${quote(r.clip.restSrc)}, which no set's manifest has; make it on a library rest (each set's _set.json lists its sources)`, r.where === "text");
+}
+
+/** As loadClip, for a tool that needs only the clip's own data (license.check): a clip whose rest no set has (and no
+ *  history kept) loads too, its rest null. */
+export async function readClip(ctx: ToolContext, ref: string): Promise<ClipData> {
+  const lib = ctx.library(), id = ref.trim().replace(/^(?:\.\/)?workshop\/([A-Za-z][A-Za-z0-9_]*)\.json$/, `${WORKSHOP}/$1`);
   if (id.startsWith("{")) return fromText(lib, id, "text", null);
   if (/\.json$/i.test(id)) return fromText(lib, await ctx.read(id), "file", id);
   const [set, name, more] = id.split("/");
@@ -61,7 +75,7 @@ export async function loadClip(ctx: ToolContext, ref: string): Promise<ClipRef> 
 }
 
 /** A clip from its text: parsed and checked with core's validator (read mode), its rest from `rest` or a manifest. */
-function fromText(lib: LibraryAccess, text: string, where: "workshop" | "file" | "text", path: string | null, origin?: string, rest?: Rest): ClipRef {
+function fromText(lib: LibraryAccess, text: string, where: "workshop" | "file" | "text", path: string | null, origin?: string, rest?: Rest): ClipData {
   const what = path === null ? "the clip JSON" : quote(path), inline = where === "text";
   let data: unknown;
   try {
@@ -72,9 +86,8 @@ function fromText(lib: LibraryAccess, text: string, where: "workshop" | "file" |
   const r = validate(data, { mode: "read" });
   if (!r.ok) throw new ToolError("E_CLIP", `${what} is not a valid clip (${count(r.errors.length, "error")}): ${validation.formatIssue(r.errors[0]!).replace(/\s*\n\s*/g, "; ")}`, inline);
   const clip = data as Clip, set = clip.id.split("/")[0]!, own = origin ?? set, found = restFor(lib, clip, own);
-  if (!found && !rest) throw new ToolError("E_REST", `${what} names rest ${quote(clip.restSrc)}, which no set's manifest has; make it on a library rest (each set's _set.json lists its sources)`, inline);
   const tier = lib.source.sets().includes(own) ? lib.library.about(own).tier : null;
-  return { id: clip.id, clip, rest: rest ?? found!.rest, set, tier, source: found?.source ?? null, where, path, text };
+  return { id: clip.id, clip, rest: rest ?? found?.rest ?? null, set, tier, source: found?.source ?? null, where, path, text };
 }
 
 /** A library clip, its refusal turned into a tool's. */
