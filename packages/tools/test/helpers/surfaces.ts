@@ -45,14 +45,21 @@ export function words(line: string): string[] {
   return out;
 }
 
-/** Each call `next` names, in backticks: its tool and the arguments the m3a command parses from it, or why not. */
-export function hintedCalls(next: string): { call: string; tool?: string; args?: Record<string, unknown>; problem?: string }[] {
+/** Each call `next` (or a refusal's text) names, in backticks: its tool and the arguments the m3a command parses from
+ *  it, or why not. A flag alone (`--if_revision X`) is set on the call just `made`, added or in place of its own. */
+export function hintedCalls(next: string, made?: { tool: string; args: Record<string, unknown> }): { call: string; tool?: string; args?: Record<string, unknown>; problem?: string }[] {
   return [...next.matchAll(/`([^`]+)`/g)].map(([, c]) => {
-    const [name = "", ...argv] = words(c!), t = tools.get(name);
+    const [name = "", ...argv] = c!.startsWith("--") && made ? set(made, words(c!)) : words(c!), t = tools.get(name);
     if (!t) return { call: c!, problem: `no tool ${JSON.stringify(name)}` };
     const args = parseCall(t, argv), problem = typeof args === "string" ? args : check(args, t.schema);
     return { call: c!, tool: t.name, ...(typeof args === "string" ? {} : { args }), ...(problem ? { problem } : {}) };
   });
+}
+
+/** The command line of the call `made`, with the flags `flags` set on it (in place of its own). */
+function set(made: { tool: string; args: Record<string, unknown> }, flags: string[]): string[] {
+  const own = new Set(flags.filter((w) => w.startsWith("--")).map((w) => w.slice(2).split("=")[0]!.replace(/-/g, "_")));
+  return [...commandLine(tools.get(made.tool)!, Object.fromEntries(Object.entries(made.args).filter(([k]) => !own.has(k)))), ...flags];
 }
 
 /** Registers the group's tests: every tool described the same on every surface, then one test per example. */
@@ -77,7 +84,7 @@ export function runExamples(group: readonly Tool[]): void {
           const reg = new Registry(group, { ...memoryStore(), durable: true }), host = nodeHost(cwd), verbose = args.verbose === true;
           const api = await reg.call(t.name, args, { host });
           expect(api.status, api.verdict).toBe(ex.expect ?? "ok");
-          expect(hintedCalls(api.next).filter((h) => h.problem), api.next).toEqual([]); // each runs as written
+          expect(hintedCalls(api.next, { tool: t.name, args }).filter((h) => h.problem), api.next).toEqual([]); // each runs as written
           let report = "null", text = "";
           const code = await runCli(reg, [...commandLine(t, args), "--json"], { print: (x) => void (text += x), write: (_p, x) => void (report = x), host });
           expect([JSON.parse(report), code]).toEqual([api, EXIT[api.status]]);

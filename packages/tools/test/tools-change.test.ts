@@ -15,7 +15,7 @@ import { memoryStore, Registry, ToolError, type Reply, type RequestStore } from 
 import type { Tier } from "@m3a/library";
 import { CHANGE, CHECK, FIND } from "../src/tools/index.ts";
 import { revisionOf, type History } from "../src/tools/workshop.ts";
-import { exampleCwd, ROOT, runExamples } from "./helpers/surfaces.ts";
+import { exampleCwd, hintedCalls, ROOT, runExamples } from "./helpers/surfaces.ts";
 
 const BIN = join(import.meta.dirname, "../src/node.ts"), CLIP = "workshop/Punch_Left.json";
 const PUNCH = { clip: "MESH2MOTION/Punch_Cross", save_as: "WORKSHOP/Punch_Left", ops: [{ op: "retime", speed: 1.3 }, { op: "mirror" }] };
@@ -129,8 +129,10 @@ describe("the Change tools", () => {
         const r = await w.call("edit", { clip: "WORKSHOP/Punch_Left", ops: [{ op: "mirror" }], if_revision: stale });
         expect([...refused(r), r.revision]).toEqual(["error", "E_CONFLICT", `the target is at revision ${first.revision}, not "${stale}"; nothing was changed`, first.revision]);
       }
-      const exists = await w.call("edit", PUNCH), how = `change it in place (the clip \`WORKSHOP/Punch_Left\`), give another \`--save_as\`, or replace it with \`--if_revision ${first.revision}\``;
+      const exists = await w.call("edit", PUNCH), how = `change it in place (the same call on WORKSHOP/Punch_Left), give another \`--save_as WORKSHOP/<Name>\`, or replace it with \`--if_revision ${first.revision}\``;
       expect([...refused(exists), exists.revision]).toEqual(["error", "E_EXISTS", `WORKSHOP/Punch_Left exists at revision ${first.revision}; ${how}`, first.revision]);
+      // each flag it names is one to set on the call just made, and runs as written
+      expect(hintedCalls(exists.error!.message, { tool: "edit", args: PUNCH }).map((h) => h.problem ?? [h.args!.save_as, h.args!.if_revision])).toEqual([["WORKSHOP/<Name>", undefined], ["WORKSHOP/Punch_Left", first.revision]]);
       expect([w.file(CLIP), w.history().undo.length]).toEqual([text, 1]);
       const next = await w.call("edit", { clip: "WORKSHOP/Punch_Left", ops: [{ op: "mirror" }], if_revision: first.revision });
       const steps = [{ op: "clip", id: "MESH2MOTION/Punch_Cross" }, { op: "retime", speed: 1.3, in: "s1" }, { op: "mirror", in: "s2" }];
@@ -355,6 +357,7 @@ describe("two edits of one clip in one process", () => {
         const reg = new Registry(CHANGE), [a, b] = await Promise.all([1.01, 0.99].map((speed) => reg.call("edit", { clip: "WORKSHOP/C", ops: [{ op: "retime", speed }] }, { host: { ...host, tryRead } })));
         const [won, lost] = a!.status === "ok" ? [a!, b!] : [b!, a!], h = w.history("C");
         expect([won.status, ...refused(lost), lost.revision, lost.next]).toEqual(["ok", "error", "E_CONFLICT", `WORKSHOP/C moved to revision ${won.revision} during the edit; nothing was changed`, won.revision, `read it again, then retry with \`--if_revision ${won.revision}\``]);
+        expect(hintedCalls(lost.next, { tool: "edit", args: { clip: "WORKSHOP/C", ops: [] } }).map((h) => h.problem ?? h.args!.if_revision)).toEqual([won.revision]);
         expect([revisionOf(w.file("workshop/C.json")), h.head, h.undo.map((e) => e.revision)]).toEqual([won.revision, won.revision, kept]); // nothing lost
         kept.push(won.revision!);
       }

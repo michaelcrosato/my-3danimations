@@ -179,7 +179,7 @@ export const targetRevision =
  *  its revision. */
 export function mayCopy(t: Target, inPlace: boolean, a: Record<string, unknown>): void {
   if (inPlace || t.text === null || a.if_revision !== undefined) return;
-  const how = `change it in place (the clip \`${t.id}\`), give another \`--save_as\`, or replace it with \`--if_revision ${t.revision}\``;
+  const how = `change it in place (the same call on ${t.id}), give another \`--save_as WORKSHOP/<Name>\`, or replace it with \`--if_revision ${t.revision}\``;
   throw new ToolError("E_EXISTS", `${t.id} exists at revision ${t.revision}; ${how}`, false, { revision: t.revision });
 }
 

@@ -63,7 +63,8 @@ export const arg = (v: string): string => (/^[\w./:=@,+-]*(<[A-Za-z' ]+>)?[\w./:
  * names are the arguments: `show X --from 0.733` is show {clip: "X", from: 0.733}. A part in angle brackets (`<the
  * clip's JSON>`, `WORKSHOP/<Name>`, `<seconds>`) is the caller's to fill. Positionals come as written (a clip as
  * clips.ts's naming gives it). A flag alone in backticks (`--if_revision 3f2a...`, `--save_as WORKSHOP/<Name>`) is one
- * to add to the call just made, in the same form; a refusal names a parameter it asks for that way too.
+ * to set on the call just made, added or in place of its own, in the same form; a refusal names a parameter it asks
+ * for that way too.
  */
 export function call(tool: string, positionals: readonly string[] = [], flags: Record<string, unknown> = {}): string {
   const rest = Object.entries(flags).filter(([, v]) => v !== undefined);
