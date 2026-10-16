@@ -1,17 +1,18 @@
-// Exchange (PLAN.md WP-7.2b): import and export on every surface (import listed to MCP as no read-only tool), then their
-// failing inputs (a catalog off its shape too); an imported set that the library opens as a local set (openLibrary on
-// imports/), which license.check fails for a shipped game and passes for one that stays on the machine (D10), its rest
-// take held a frame, imported again in place under a credited license (the host's library opened again; every clip file
-// it doesn't write removed, so the set verifies), a broken imported set left out with a warning, breaking no other, and
-// one named as a library set left out, import refusing the name; and a clip exported as VRMA (read back byte for byte),
-// .glb (onto Rigify's turned and scaled armature too; off, findings, under an uneven scale) and BVH, each read back
-// through io within 1 mm, the VRMA then imported again, and the BVH jittered, from an absolute path, past the fit
-// limits.
+// Exchange (PLAN.md WP-7.2b): import and export on every surface (import listed to MCP as no read-only tool), then
+// their failing inputs (a catalog off its shape too); an imported set that the library opens as a local set
+// (openLibrary on imports/), which license.check fails for a shipped game and passes for one that stays on the machine
+// (D10), its rest take held a frame, imported again in place under a credited license (the host's library opened again,
+// at most MAX_OPEN kept; every clip file it doesn't write removed, so the set verifies), a broken imported set left out
+// with a warning, breaking no other, and one named as a library set left out, import refusing the name; and a clip
+// exported as VRMA (read back byte for byte), .glb (onto Rigify's turned and scaled armature too; off, findings, under
+// an uneven scale) and BVH, each read back through io within 1 mm, the VRMA then imported again, and the BVH jittered,
+// from an absolute path, past the fit limits.
 import { cpSync, mkdirSync, readdirSync, readFileSync, symlinkSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { openLibrary } from "@m3a/library/node";
 import { describe, expect, it } from "vitest";
 import { mcpTool } from "../src/mcp.ts";
+import { libraryAccess, MAX_OPEN, openCount } from "../src/node/library.ts";
 import { nodeHost } from "../src/node.ts";
 import { Registry, type Host, type Reply } from "../src/registry/index.ts";
 import { exportClip, importMotion } from "../src/tools/exchange.ts";
@@ -97,6 +98,14 @@ describe("exchange", () => {
         expect(readdirSync(join(cwd, "imports", set)).sort()).toEqual([...kept, "_set.json", "catalog.tsv"]);
       }
       openLibrary({ dir: join(cwd, "imports"), tiers: ["local"] }).verify();
+      // each working directory with imported sets opens its own library; the host keeps at most MAX_OPEN of them, and
+      // one dropped opens again (a long-lived MCP server isn't grown by each directory it serves)
+      const dirs = Array.from({ length: MAX_OPEN + 2 }, (_, i) => join(cwd, `w${i}`));
+      for (const d of [...dirs, dirs[0]!]) {
+        cpSync(join(cwd, "imports/RIG"), join(d, "imports/RIG"), { recursive: true });
+        expect(libraryAccess(d, ["local"]).library.catalog().map((c) => c.id)).toEqual(["RIG/A_TPose", "RIG/Wave_Loop"]);
+      }
+      expect(openCount()).toBe(MAX_OPEN);
       // a broken imported set is left out, warned on every call, and breaks no other: a manifest that isn't JSON, one that
       // says it ships (tier cc0), a set reached through a link out of the working directory, and one named as a library
       // set (the library's wins), which import refuses to write

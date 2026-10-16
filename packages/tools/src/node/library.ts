@@ -1,11 +1,12 @@
 // The library as the Node host opens it for a tool call (PLAN.md WP-7.2, D10 and D53): at the tiers game.json in the
 // working directory opts in to (read on every call: an agent may edit it while the MCP server runs), else CC0 alone;
-// opened once per set of tiers for the process, since verifying a set hashes all of it the first time; each call's
-// warnings (a deprecated id) collected for that call alone. The sets `m3a import` wrote under imports/ join it (D93:
-// local sets, seen only by a game that opts in to local, which never ships), each read confined to the working
+// opened once per set of tiers for the process, since verifying a set hashes all of it the first time, and at most
+// MAX_OPEN libraries kept (the least lately used dropped), so a long-lived server isn't grown by each directory; each
+// call's warnings (a deprecated id) collected for that call alone. The sets `m3a import` wrote under imports/ join it
+// (D93: local sets, seen only by a game that opts in to local, which never ships), each read confined to the working
 // directory, and the library opened again when one of their manifests or catalogs changes. An imported set that can't
-// be read inside the working directory, or whose manifest isn't an imported set's, is left out with a warning on every
-// call, so it breaks no other set.
+// be read inside the working directory, whose manifest isn't an imported set's, or named as a library set (the
+// library's wins) is left out with a warning on every call, so it breaks no other set.
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { TIERS, type Library, type LibrarySource, type Tier } from "@m3a/library";
@@ -42,8 +43,12 @@ export function gameTiers(cwd: string): Tier[] {
 }
 
 /** One opened library per directory and tiers (and working directory, when it has imported sets), the stamp of the
- *  imported sets it holds, and the call its warnings go to while one of its methods runs. */
+ *  imported sets it holds, and the call its warnings go to while one of its methods runs; the least lately used first. */
 const opened = new Map<string, { lib: Library; stamp: string; to: { warnings?: string[] } }>();
+/** The most libraries the host keeps open: each working directory with imported sets opens its own. */
+export const MAX_OPEN = 8;
+/** How many libraries the host keeps open now (at most MAX_OPEN). */
+export const openCount = (): number => opened.size;
 
 /** Whether `path` is under the working directory `cwd`, through no link out of it. */
 const within = (cwd: string, path: string): boolean => {
@@ -130,8 +135,11 @@ export function libraryAccess(cwd: string, tiers?: readonly Tier[], dir: string 
   if (o?.stamp !== stamp) {
     // opened again when an imported set's manifest or catalog changed (the lock, beside the default sets, has none)
     const to: { warnings?: string[] } = {};
-    opened.set(key, (o = { lib: openLibrary({ dir, source, tiers: want, warn: (m) => to.warnings?.push(m) }), stamp, to }));
+    o = { lib: openLibrary({ dir, source, tiers: want, warn: (m) => to.warnings?.push(m) }), stamp, to };
   }
+  opened.delete(key);
+  opened.set(key, o);
+  if (opened.size > MAX_OPEN) opened.delete(opened.keys().next().value!);
   const warnings: string[] = [...left];
   return { library: routed(o.lib, warnings, o.to), source, licenseText: licenseText(dir), tiers: want, warnings };
 }
