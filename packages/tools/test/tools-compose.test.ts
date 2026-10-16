@@ -130,7 +130,7 @@ describe("compose and wire", () => {
       ]);
       const typo = await call("graph.sim", { graph: L, script: JSON.stringify({ format: "2.0", id: "SIMS/Bad", dur: 2, input: [{ t: 0.5, trigger: "jumpp" }] }) });
       expect([typo.status, typo.verdict, issues(typo), typo.data!.trace]).toEqual(["findings", "graph.sim SIMS/Bad (the script's JSON) on tiny: FAIL, 1 issue; not run", ["S-E003 input.0.trigger: jump, punch"], null]);
-      expect((await call("graph.sim", { graph: L, script: SHORT, character: "gen-x" })).error).toEqual({ code: "E_ARGS", message: '"gen-x" is not a character: give a .glb, .gltf or .vrm file, or "tiny"' });
+      expect((await call("graph.sim", { graph: L, script: SHORT, character: "gen-x" })).error).toEqual({ code: "E_ARGS", message: 'gen-x is not a character: give a .glb, .gltf or .vrm file, or "tiny"' });
       writeFileSync(join(cwd, "bad.gltf"), '{"asset":{"version":"2.0"}}');
       expect((await call("graph.sim", { graph: L, script: SHORT, character: join(cwd, "bad.gltf") })).error!.message).toMatch(/^<the character's file>: [^/]*$/);
       const long = JSON.stringify({ format: "2.0", id: "SIMS/Long", dur: 600, rate: 240, input: [] });

@@ -82,8 +82,8 @@ describe("the retarget tools", () => {
     expect(runs(swapped.next).map((h) => h.tool)).toEqual(["retarget.inspect", "retarget.apply"]);
     // the rig's root taken for its hips: below the ground, under half the legs; a foot, above it but as low
     const low = await call("retarget.inspect", { character: RIGIFY, mapping: ROOT_HIPS }), foot = await call("retarget.inspect", { character: RIGIFY, mapping: { bones: { hips: "DEF-foot.L" } } });
-    expect([low.status, low.data!.issues, low.images.length, (foot.data!.issues as string[]).at(-1)]).toEqual(["findings", ["patched by hand", "hips (root) only -20 mm up, under half the legs' 850 mm: likely the wrong bone"], 1,
-      "hips (DEF-foot.L) only 60 mm up, under half the legs' 850 mm: likely the wrong bone"]);
+    expect([low.status, low.data!.issues, low.images.length, (foot.data!.issues as string[]).at(-1)]).toEqual(["findings", ["patched by hand", "hips (root) likely the wrong bone: only -20 mm up, under half the legs' 850 mm"], 1,
+      "hips (DEF-foot.L) likely the wrong bone: only 60 mm up, under half the legs' 850 mm"]);
     const shaped = await call("retarget.inspect", { character: "renamed.gltf" }), hairy = await call("retarget.inspect", { character: "hair.gltf", mapping: { bones: { leftUpperLeg: null } } });
     // its hips' name, 100 characters, cut in its issue to a row's 90
     expect([shaped.status, shaped.verdict, shaped.data!.issues, shaped.images.length]).toEqual(["findings", "retarget.inspect renamed.gltf: 31 bones by topology, confidence 0.85, 15 of 15 required, rest T, hip height 930 mm",
@@ -112,7 +112,7 @@ describe("the retarget tools", () => {
     expect(runs(swapped.next)).toEqual([{ tool: "retarget.inspect", args: { character: RIGIFY, mapping: SWAP } }]);
     // the rig's root taken for its hips: a jab fails as the body adds it, and inspect's standing issue is the call to make
     const low = await call("retarget.apply", { character: RIGIFY, clips: ["QUATERNIUS_3D2DGE/Punch_Cross"], mapping: ROOT_HIPS });
-    expect([low.status, low.lines[0], low.next.split(":")[0], runs(low.next)]).toEqual(["findings", expect.stringMatching(/^warning: retarget\.inspect finds 1 issue on it: hips \(root\) only -20 mm up/),
+    expect([low.status, low.lines[0], low.next.split(":")[0], runs(low.next)]).toEqual(["findings", expect.stringMatching(/^warning: retarget\.inspect finds 1 issue on it: hips \(root\) likely the wrong bone: only -20 mm up/),
       "QUATERNIUS_3D2DGE/Punch_Cross fails while retarget.inspect's issue stands", [{ tool: "retarget.inspect", args: { character: RIGIFY, mapping: ROOT_HIPS } }]]);
     // nine reasons on its row: two shown and three metrics, the rest counted
     const [jab] = low.data!.clips as { why: string[]; worse: Row[]; more: Row }[];
