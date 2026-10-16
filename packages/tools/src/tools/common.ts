@@ -29,6 +29,10 @@ export const mm = (v: number): string => `${round(v)} mm`;
 /** A time in seconds with 3 decimals: "1.533 s". */
 export const sec = (v: number): string => `${round(v, 3).toFixed(3)} s`;
 
+/** A value as a hint writes it for a shell: as is when the shell keeps it whole, else single-quoted; a placeholder in
+ *  angle brackets (`<the clip's JSON>`) as is, for the caller to fill. */
+export const arg = (v: string): string => (/^[\w./:=@,+-]*$/.test(v) || /^<[^<>]*>$/.test(v) ? v : `'${v.replace(/'/g, "'\\''")}'`);
+
 /** `text` cut to `n` characters (a row's 90 by default), "..." ending a cut. */
 export const cut = (text: string, n = ROW_CHARS): string => (text.length > n ? `${text.slice(0, n - 3)}...` : text);
 

@@ -4,7 +4,7 @@
 // sharing one history (workshop.ts). An edit in place recompiles the recipe since the copy from the library clip, so
 // chained edits don't pile up the key fit's error; a slice, a chain past 32 steps, or a library clip changed since the
 // copy compiles from the file as it is.
-import { parseClip, recipe, serialize, VERSION, type Clip, type Rest } from "@m3a/core";
+import { format, parseClip, recipe, serialize, VERSION, type Clip, type Rest } from "@m3a/core";
 import { tagConflicts, withFacts, type ClipFacts } from "@m3a/library";
 import { fix as repair, fixes, metrics, type Report } from "@m3a/sensors";
 import { defineTool, ToolError, type ToolContext, type ToolOutput } from "../registry/registry.ts";
@@ -98,6 +98,19 @@ function restored(t: Target, h: History, way: "undo" | "redo"): ToolOutput {
   };
 }
 
+/** Refuses (usage E_ARGS) a recipe whose running length passes the most a clip may last (format.LIMITS.dur, M2-E010)
+ *  at any step, naming the step: compile builds each step's track in full, so slow retimes in a row would run out of
+ *  memory long before the result's own check. `input` is the clip its first step names; `at` maps a step to its op. */
+function bounded(r: recipe.Recipe, input: Clip | undefined, at: readonly number[]): void {
+  const first = r.steps[0] as { from?: number; to?: number }, most = format.LIMITS.dur;
+  let dur = input ? (first.to ?? input.dur) - (first.from ?? 0) : 0;
+  for (const [k, step] of r.steps.entries()) {
+    if (step.op === "retime") dur = typeof step.speed === "number" ? dur / step.speed : typeof step.dur === "number" ? step.dur : dur;
+    const where = at[k + 1] === undefined ? `step ${k + 1}` : `ops[${at[k + 1]}]`;
+    if (dur > most) throw new ToolError("E_ARGS", `${where}: retime makes the clip ${Math.round(dur)} s long, past the ${most} s a clip may last (M2-E010); retime it less slowly, or slice it first`, true);
+  }
+}
+
 /** `m3a edit`: recipe steps applied to a clip into a WORKSHOP copy, or the copy's last change undone or redone. */
 export const edit = defineTool<{ clip: string; ops?: Record<string, unknown>[]; action: "apply" | "undo" | "redo"; save_as?: string }, unknown>({
   name: "edit",
@@ -154,6 +167,8 @@ export const edit = defineTool<{ clip: string; ops?: Record<string, unknown>[]; 
       } else at[r.steps.push({ ...f, op, in: `s${r.steps.length}` })] = i;
     }
     const mine = ref.where === "library" ? undefined : { clip: ref.clip, rest: ref.rest, contentId: recipe.sha256(ref.text!) };
+    const named = (r.steps[0] as { id?: string }).id;
+    bounded(r, mine && named === ref.id ? mine.clip : named === undefined ? undefined : lib(named)?.clip, at);
     let made: recipe.Compiled;
     try {
       made = recipe.compile(r, Object.assign((id: string) => (mine && id === ref.id ? mine : lib(id)), { ids: lib.ids }));

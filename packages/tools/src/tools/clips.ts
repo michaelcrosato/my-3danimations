@@ -4,10 +4,10 @@
 // set's manifest. A refusal names the closest id, or the game.json line that opts in to a tier. And a recipe resolver
 // over the library and the workshop.
 import { recipe, validate, validation, type Clip, type Rest } from "@m3a/core";
-import { LibraryError, type SourceAbout, type Tier } from "@m3a/library";
+import { LibraryError, tierOf, type SourceAbout, type Tier } from "@m3a/library";
 import { ToolError, type LibraryAccess, type ToolContext } from "../registry/registry.ts";
 import { closest, quote } from "../registry/schema.ts";
-import { count } from "./common.ts";
+import { arg, count } from "./common.ts";
 import { readTarget, WORKSHOP, workshopName } from "./workshop.ts";
 
 /** Where a clip's rest comes from: the set and key (the clip's restSrc) of a manifest's source, with that source. */
@@ -37,23 +37,72 @@ export interface ClipRef {
 /** A clip read for its own data alone (readClip): a ClipRef whose rest is null when no set has it. */
 export type ClipData = Omit<ClipRef, "rest"> & { rest: Rest | null };
 
+/** The set a clip id names: its part before the "/". */
+const setOf = (id: string): string => id.split("/")[0]!;
+
 /** Whether `path` is absolute (a reply never echoes one). */
 export const absolute = (path: string): boolean => /^([A-Za-z]:|[\\/])/.test(path);
+
+/**
+ * How replies name a loaded clip: `as`, the way a next hint gives it to be called again (its library id, WORKSHOP/<Name>
+ * for a workshop copy however it was given, so its history applies, or its path as given, single-quoted where the
+ * shell would split it), or `<whose JSON>` / `<whose file>` for clip JSON, an absolute path or a path with a control
+ * character, which no reply echoes; and `title`, the way a verdict names it: `as`, or for those its id with "(whose
+ * JSON)" or "(whose file)". `whose` tells two clips apart (diff's "a's" and "b's").
+ */
+export function naming(ref: Pick<ClipRef, "id" | "where" | "path" | "name">, whose = "the clip's"): { as: string; title: string } {
+  if (ref.where === "library") return { as: ref.id, title: ref.id };
+  if (ref.where === "workshop") return { as: `${WORKSHOP}/${ref.name}`, title: `${WORKSHOP}/${ref.name}` };
+  const hidden = ref.where === "text" ? "JSON" : absolute(ref.path!) || /\p{Cc}/u.test(ref.path!) ? "file" : null;
+  return hidden ? { as: `<${whose} ${hidden}>`, title: `${ref.id} (${whose} ${hidden})` } : { as: arg(ref.path!), title: arg(ref.path!) };
+}
+
+/** A license's parts: a composed clip carries each of its inputs' licenses, joined with " AND " (D10). */
+export const parts = (license: string): string[] => license.split(" AND ").map((p) => p.trim());
+/** Whether a game at `tiers` may use what `tier` holds: that tier is among them, or local, which holds anything. */
+export const fits = (tier: Tier, tiers: readonly Tier[]): boolean => tiers.includes(tier) || tiers.includes("local");
+/** What a clip's provenance names: its `orig` and its recipe's inputs. */
+export const namedBy = (clip: Clip): unknown[] => [clip.provenance.orig, ...Object.keys((clip.provenance as { recipe?: { inputs?: object } }).recipe?.inputs ?? {})];
+/** The library clips among `xs`, each once. */
+export function libraryClips(lib: LibraryAccess, xs: readonly unknown[]): string[] {
+  const is = (x: unknown): x is string => {
+    const [set = "", name] = typeof x === "string" ? x.split("/") : [];
+    return lib.source.sets().includes(set) && lib.source.files(set).includes(`${name}.json`);
+  };
+  return [...new Set(xs.filter(is))];
+}
+
+/**
+ * What shipping `ref` needs that the game's tiers lack (D93: a file, JSON or workshop clip loads whatever its tier, so
+ * it is flagged rather than refused; a library id is held to the tiers before it loads): the tiers of the set it
+ * belongs to and of the library clips it names (its workshop origin, its provenance's orig and recipe inputs), and of
+ * each part of its license, as license.check would fail it. The warning's text (naming the game.json line to add), or
+ * null when the game may ship it.
+ */
+export function tierWarning(lib: LibraryAccess, ref: ClipData): string | null {
+  if (ref.where === "library") return null;
+  const license = ref.clip.provenance.license, sets = [...new Set([...(ref.tier ? [ref.home] : []), ...libraryClips(lib, [ref.origin, ...namedBy(ref.clip)]).map(setOf)])];
+  const out = sets.map((s) => [s, lib.library.about(s).tier] as const).filter(([, t]) => !lib.tiers.includes(t)), title = naming(ref).title;
+  const missing = [...new Set([...out.map(([, t]) => t), ...parts(license).map(tierOf).filter((t) => !fits(t, lib.tiers))])];
+  if (missing.includes("local")) return `${title}: its license (${license}) fits no tier a shipped game opts in to (D10)`;
+  const why = `${out.map(([s, t]) => `${s} is a ${t} set, `).join("")}its license is ${license}`;
+  return missing.length ? `add ${missing.map((t) => `"${t}"`).join(" and ")} to "tiers" in game.json before shipping ${title}: ${why}` : null;
+}
 
 /**
  * Loads the clip `ref` names: its JSON (starting with "{"), a .json path, WORKSHOP/<Name> (or its file's path, read as
  * that id so its history applies), or a library id at the game's tiers. Refusals: E_NO_CLIP, E_NO_SET and E_TIER
  * (usage); E_CLIP (usage for JSON given inline, an error for a file); E_REST when no set has its rest; E_TAMPERED (an
  * error). Only a library id is held to the game's tiers: a file, JSON or workshop copy is the user's and loads whatever
- * set it came from, its `tier` saying which (a tool that ships or licenses clips checks that tier against the game's).
+ * set it came from, its `tier` saying which; when the game couldn't ship it, the call's warnings say so (tierWarning),
+ * which the registry puts first among the reply's lines, for every tool that loads a clip.
  */
 export async function loadClip(ctx: ToolContext, ref: string): Promise<ClipRef> {
-  const r = await readClip(ctx, ref);
+  const r = await readClip(ctx, ref), lib = ctx.library(), warn = tierWarning(lib, r);
+  if (warn && !lib.warnings.includes(warn)) lib.warnings.push(warn); // the call's warnings, first among its lines
   if (r.rest) return { ...r, rest: r.rest };
   throw new ToolError("E_REST", `${r.path === null ? "the clip JSON" : quote(r.path)} names rest ${quote(r.clip.restSrc)}, which no set's manifest has; make it on a library rest (each set's _set.json lists its sources)`, r.where === "text");
 }
-
-const setOf = (id: string): string => id.split("/")[0]!;
 
 /** As loadClip, for a tool that needs only the clip's own data (license.check): a clip whose rest no set has (and no
  *  history kept) loads too, its rest null. A workshop copy's history counts only as the edit tools read it (workshop.ts

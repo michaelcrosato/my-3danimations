@@ -1,17 +1,16 @@
 // Find and read (PLAN.md WP-7.2a): `search` the library for a game moment in words and filters, `show` a clip's keys
 // as text with its source, license, fit, speed and strike (the format's legend on request), and `describe` it as a
-// short timeline. Each opens the library at the game's tiers; show flags a file, JSON or workshop clip whose set, the
-// library clips its provenance names, or license need a tier the game hasn't opted in to (or that is from no library
-// set), by license.check's rule, since that is what would ship.
+// short timeline. Each opens the library at the game's tiers; a file, JSON or workshop clip whose set, the library clips
+// it names, or license need a tier the game hasn't opted in to is flagged by the loader (clips.ts tierWarning), and
+// show also flags one from no library set, its license the user's to check.
 import { format } from "@m3a/core";
-import { mps, type Tier } from "@m3a/library";
+import { credited, mps, tierOf } from "@m3a/library";
 import { describe as timeline } from "@m3a/sensors";
 import { defineTool, ToolError } from "../registry/registry.ts";
 import { MAX_LINES } from "../registry/reply.ts";
 import { quote } from "../registry/schema.ts";
-import { absolute, loadClip, type ClipRef } from "./clips.ts";
+import { absolute, libraryClips, loadClip, namedBy, parts, tierWarning, type ClipRef } from "./clips.ts";
 import { capped, CLIP, count, cut, sec } from "./common.ts";
-import { credited, fits, libraryClips, namedBy, parts, tierOf } from "./ship.ts";
 
 /** The library's opt-in as game.json takes it: `opt in with tiers: [..., "x"]` becomes `add "x" to "tiers" in game.json`. */
 export const optIn = (next: string): string => next.replace(/opt in with tiers: \[(?:"[^"]*", )*"([^"]*)"\]/g, 'add "$1" to "tiers" in game.json');
@@ -54,21 +53,6 @@ export function nameOf(ref: ClipRef): string | null {
   return /[\s\p{Cc}]/u.test(ref.path!) ? JSON.stringify(ref.path) : ref.path;
 }
 
-/** A warning line when shipping `ref` (a file, JSON or workshop clip: a library id is held to the tiers before) needs
- *  tiers `tiers` lacks, by the set it came from, the sets of the library clips its provenance names (`named`, [set,
- *  tier] each) and each part of its license; else, when it is from no library set, that its license is the user's to
- *  check; null when the game may ship it. */
-export function tierWarning(ref: ClipRef, tiers: readonly Tier[], named: readonly (readonly [string, Tier])[] = []): string | null {
-  if (ref.where === "library") return null;
-  const license = ref.clip.provenance.license;
-  const out = [...(ref.tier ? [[ref.home, ref.tier] as const] : []), ...named].filter(([, t]) => !tiers.includes(t));
-  const missing = [...new Set([...out.map(([, t]) => t), ...parts(license).map(tierOf).filter((t) => !fits(t, tiers))])];
-  if (missing.includes("local")) return `warning: its license (${license}) fits no tier a shipped game opts in to (D10)`;
-  const why = `${[...new Set(out.map(([s, t]) => `${s} is a ${t} set, `))].join("")}its license is ${license}`;
-  if (missing.length) return `warning: add ${missing.map((t) => `"${t}"`).join(" and ")} to "tiers" in game.json before shipping it (${why})`;
-  return ref.tier === null && !named.length ? `warning: ${quote(ref.id)} is from no library set: its license (${license}) is for you to check` : null;
-}
-
 /** `show`: a clip's keys from `from` as the format writes them, a page at a time, with what it is and where it came from. */
 export const show = defineTool<{ clip: string; from: number; legend: boolean }, unknown>({
   name: "show",
@@ -92,8 +76,9 @@ export const show = defineTool<{ clip: string; from: number; legend: boolean }, 
       `qa ${c.quality.qa}`,
       `${p.src}${src ? ` (${src.label})` : ""}, ${p.method}, ${p.license}, ${credit ? `credit owed: ${credit}` : owed ? "credit owed, none given" : "no credit owed"}`,
     ].join("; ");
-    const named = libraryClips(lib, [ref.origin, ...namedBy(c)]).map((id) => [id.split("/")[0]!, lib.library.about(id.split("/")[0]!).tier] as const);
-    const warn = tierWarning(ref, lib.tiers, named), head = [...(a.legend ? [] : [summary]), ...(warn ? [warn] : [])];
+    // a tier the game hasn't opted in to is the call's warning (clips.ts tierWarning); one from no library set is show's
+    const stray = ref.where !== "library" && ref.tier === null && !libraryClips(lib, [ref.origin, ...namedBy(c)]).length && !tierWarning(lib, ref);
+    const head = [...(a.legend ? [] : [summary]), ...(stray ? [`warning: ${quote(ref.id)} is from no library set: its license (${p.license}) is for you to check`] : [])];
     // a page is what the text shows whole on every surface, beside the verdict, the head, the library's warnings (a
     // deprecated id), report.json's line and next's; the reply holds that page alone, so it stays small on every page
     const keys = c.keys.slice(first).map((k) => format.keyLines({ ...k }, format.GROUPS_2, "").replace("\n", "")), size = (k: string) => k.split("\n").length;

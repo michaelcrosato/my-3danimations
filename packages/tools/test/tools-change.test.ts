@@ -5,7 +5,7 @@
 // (the history's last), and after a crash at the history's write (nothing written) or the clip's (the history stepping
 // back).
 import { spawn, spawnSync, type ChildProcess } from "node:child_process";
-import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { describe, expect, it } from "vitest";
@@ -47,6 +47,10 @@ describe("the Change tools", () => {
       expect(await ops({ op: "blend", a: "s1" })).toMatch(/^ops\[0\]\.op: blend names or composes clips \(a recipe's job\); edit changes one; one of slice, meta, mirror, retime,/);
       expect(await ops({ op: "mirror" }, { op: "meta", name: 7 })).toBe('ops[1].name: name is text; "name": "…"');
       expect(await ops()).toMatch(/^ops takes 1 to 16 recipe steps, not 0/);
+      // slow retimes in a row multiply the length: refused before compiling past the 600 s a clip may last, not out of memory
+      const slow = Array.from({ length: 4 }, () => ({ op: "retime", speed: 0.05 })), past = (at: string, s: number) => `${at}: retime makes the clip ${s} s long, past the 600 s a clip may last (M2-E010); retime it less slowly, or slice it first`;
+      expect(refused(await w.call("edit", { clip: "QUATERNIUS_3D2DGE/Walk_Loop", save_as: "WORKSHOP/Slow", ops: slow }))).toEqual(["usage", "E_ARGS", past("ops[2]", 10664)]);
+      expect(await ops({ op: "slice", from: 0.1, to: 0.6 }, { op: "retime", dur: 599 }, { op: "retime", speed: 0.99 })).toBe(past("ops[2]", 605));
       expect(refused(await w.call("edit", { clip: "WORKSHOP/Punch_Left", action: "undo" }))).toEqual(["error", "E_HISTORY", "nothing to undo for WORKSHOP/Punch_Left"]);
       expect(refused(await w.call("edit", { clip: "WORKSHOP/Punch_Left", action: "undo", ops: [] }))).toEqual(["usage", "E_ARGS", "undo takes no ops: it restores the clip as it was"]);
       expect(w.file(CLIP)).toBeNull();
@@ -77,6 +81,27 @@ describe("the Change tools", () => {
       await w.call("edit", { clip: "QUATERNIUS_3D2DGE/Walk_Loop", save_as: "WORKSHOP/Slow", ops: [{ op: "retime", speed: 1.2 }] });
       expect([(await w.call("fix", { clip: "WORKSHOP/Slow" })).status, JSON.parse(w.file("workshop/Slow.json")!).provenance]).toEqual(["ok", expect.not.objectContaining({ recipe: expect.anything() })]);
       expect(JSON.parse(w.file("workshop/Slow.json")!).provenance).toMatchObject({ orig: "QUATERNIUS_3D2DGE/Walk_Loop", method: "edited" });
+    } finally {
+      w.rm();
+    }
+  });
+
+  it("warn, as show and metrics do, when a file or workshop clip needs a tier the game hasn't opted in to (D93)", async () => {
+    const w = workshop(), reg = new Registry([...CHANGE, ...CHECK, ...FIND]), call = (tool: string, args: object) => reg.call(tool, args, { host: w.host });
+    const ANGRY = "CMU_CURATED/Angry_Quarrel", vendor = "vendor/Angry_Quarrel.json", first = async (tool: string, args: object) => (await call(tool, args)).lines[0];
+    const warned = (title: string, tier: string, set: string, license: string) => `warning: add "${tier}" to "tiers" in game.json before shipping ${title}: ${set} is a ${tier} set, its license is ${license}`;
+    try {
+      mkdirSync(join(w.cwd, "vendor"));
+      writeFileSync(join(w.cwd, vendor), readFileSync(join(ROOT, `library/sets/${ANGRY}.json`), "utf8"));
+      expect((await call("show", { clip: ANGRY })).error?.code).toBe("E_TIER"); // a library id is refused; its copy loads, flagged
+      const cmu = (title: string) => warned(title, "cmu", "CMU_CURATED", "LicenseRef-CMU-Mocap");
+      for (const tool of ["show", "metrics", "lint"]) expect(await first(tool, { clip: vendor }), tool).toBe(cmu(vendor));
+      expect(await first("edit", { clip: vendor, save_as: "WORKSHOP/Q", ops: [{ op: "retime", speed: 1.1 }] })).toBe(cmu(vendor));
+      for (const tool of ["fix", "metrics"]) expect(await first(tool, { clip: "WORKSHOP/Q", ...(tool === "fix" && { dry_run: true }) }), tool).toBe(cmu("WORKSHOP/Q"));
+      writeFileSync(join(w.cwd, "game.json"), '{"tiers": ["cc0", "cc-by"]}');
+      expect(await first("edit", { clip: "STYLE100/Akimbo_Walk", save_as: "WORKSHOP/Ak", ops: [{ op: "mirror" }] })).not.toMatch(/^warning/);
+      writeFileSync(join(w.cwd, "game.json"), '{"tiers": ["cc0"]}'); // the game drops cc-by: its workshop copy is flagged
+      expect(await first("edit", { clip: "WORKSHOP/Ak", ops: [{ op: "mirror" }] })).toBe(warned("WORKSHOP/Ak", "cc-by", "STYLE100", "CC-BY-4.0"));
     } finally {
       w.rm();
     }

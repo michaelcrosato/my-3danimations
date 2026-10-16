@@ -7,31 +7,12 @@
 // with none left to give fails. One from no library clip is an open question, its terms for the game to check; one that
 // won't load is a finding, so one check reports every problem.
 import type { Clip } from "@m3a/core";
-import { checkGame, checkSets, creditsBlock, TIERS, type Credit, type LicenseFinding, type LicenseReport, type Tier } from "@m3a/library";
-import { defineTool, ToolError, type LibraryAccess, type ToolContext } from "../registry/registry.ts";
+import { checkGame, checkSets, credited, creditsBlock, tierOf, TIERS, type Credit, type LicenseFinding, type LicenseReport, type Tier } from "@m3a/library";
+import { defineTool, ToolError, type ToolContext } from "../registry/registry.ts";
 import { didYouMean, quote } from "../registry/schema.ts";
-import { absolute, readClip, suggestId } from "./clips.ts";
+import { absolute, fits, libraryClips, namedBy, parts, readClip, suggestId } from "./clips.ts";
 import { capped, count } from "./common.ts";
 
-/** The tier a license fits, by the library's rule (D10): CC0-1.0 cc0, CC-BY-x.y cc-by, LicenseRef-CMU-Mocap cmu (both
- *  credited), any other only local, which never ships. */
-export const tierOf = (license: string): Tier => (license === "CC0-1.0" ? "cc0" : /^CC-BY-\d\.\d$/.test(license) ? "cc-by" : license === "LicenseRef-CMU-Mocap" ? "cmu" : "local");
-/** A license's parts: a composed clip carries each of its inputs' licenses, joined with " AND " (D10). */
-export const parts = (license: string): string[] => license.split(" AND ").map((p) => p.trim());
-/** Whether a game at `tiers` may use what `tier` holds: that tier is among them, or local, which holds anything. */
-export const fits = (tier: Tier, tiers: readonly Tier[]): boolean => tiers.includes(tier) || tiers.includes("local");
-/** Whether a tier's clips must be credited where they are used: cc-by and cmu. */
-export const credited = (t: Tier): boolean => t === "cc-by" || t === "cmu";
-/** What a clip's provenance names: its `orig` and its recipe's inputs. */
-export const namedBy = (clip: Clip): unknown[] => [clip.provenance.orig, ...Object.keys((clip.provenance as { recipe?: { inputs?: object } }).recipe?.inputs ?? {})];
-/** The library clips among `xs`, each once. */
-export function libraryClips(lib: LibraryAccess, xs: readonly unknown[]): string[] {
-  const is = (x: unknown): x is string => {
-    const [set = "", name] = typeof x === "string" ? x.split("/") : [];
-    return lib.source.sets().includes(set) && lib.source.files(set).includes(`${name}.json`);
-  };
-  return [...new Set(xs.filter(is))];
-}
 /** A clips list as license.check takes one: a clip or more, none blank. */
 const listed = (c: unknown): boolean => Array.isArray(c) && c.length > 0 && c.every((x) => typeof x === "string" && x.trim() !== "");
 

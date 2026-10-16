@@ -57,27 +57,27 @@ describe("find and read", () => {
     inCwd(async (call, cwd) => {
       writeFileSync(join(cwd, "akimbo.json"), clipText("STYLE100/Akimbo_Walk"));
       workshopClip(cwd, "Proud", JSON.stringify({ ...clipOf("STYLE100/Akimbo_Walk"), id: "WORKSHOP/Proud" }), "STYLE100/Akimbo_Walk");
-      const flagged = await call("show", { clip: "akimbo.json" }), akimbo = 'warning: add "cc-by" to "tiers" in game.json before shipping it (STYLE100 is a cc-by set, its license is CC-BY-4.0)';
-      expect([flagged.data, flagged.lines[0], flagged.lines[1], flagged.next]).toEqual([expect.objectContaining({ tier: "cc-by", credit: "100STYLE, Mason, Starke and Komura (CC BY 4.0)" }), expect.stringMatching(/, CC-BY-4.0, credit owed: 100STYLE, Mason, Starke and Komura \(CC BY 4.0\)$/), akimbo, expect.stringMatching(/^show akimbo.json from: /)]);
+      const flagged = await call("show", { clip: "akimbo.json" }), akimbo = (title: string) => `warning: add "cc-by" to "tiers" in game.json before shipping ${title}: STYLE100 is a cc-by set, its license is CC-BY-4.0`;
+      expect([flagged.data, flagged.lines[0], flagged.lines[1], flagged.next]).toEqual([expect.objectContaining({ tier: "cc-by", credit: "100STYLE, Mason, Starke and Komura (CC BY 4.0)" }), akimbo("akimbo.json"), expect.stringMatching(/, CC-BY-4.0, credit owed: 100STYLE, Mason, Starke and Komura \(CC BY 4.0\)$/), expect.stringMatching(/^show akimbo.json from: /)]);
       const text = render(flagged, { report: "check-output/show/report.json" }); // the warning costs no key: 5, whole, in 20 lines
       expect([keysIn(text), text.split("\n").length, text]).toEqual([5, 20, expect.not.stringMatching(/more lines?:/)]);
-      for (const clip of ["WORKSHOP/Proud", "workshop/Proud.json"]) expect([(await call("show", { clip })).lines[1], (await call("describe", { clip })).next]).toEqual([akimbo, expect.stringMatching(/^show WORKSHOP\/Proud reads/)]);
+      for (const clip of ["WORKSHOP/Proud", "workshop/Proud.json"]) expect([(await call("show", { clip })).lines[0], (await call("describe", { clip })).next]).toEqual([akimbo("WORKSHOP/Proud"), expect.stringMatching(/^show WORKSHOP\/Proud reads/)]);
       // a composed clip: its set and each part of its license need a tier, and it owes the credit it carries (not its rest's source's)
       const mixed = clipOf("STYLE100/Neutral_Walk"), credit = "100STYLE (CC BY 4.0); CMU Graphics Lab Motion Capture Database", license = "CC-BY-4.0 AND LicenseRef-CMU-Mocap";
       const both = await call("show", { clip: JSON.stringify({ ...mixed, id: "STYLE100/Mixed", provenance: { ...mixed.provenance, license, credit } }) });
-      expect([both.lines[0], both.lines[1], both.next]).toEqual([expect.stringContaining(`credit owed: ${credit}`), `warning: add "cc-by" and "cmu" to "tiers" in game.json before shipping it (STYLE100 is a cc-by set, its license is ${license})`, expect.stringMatching(/^show with the same clip from: /)]);
+      expect([both.lines[0], both.lines[1], both.next]).toEqual([`warning: add "cc-by" and "cmu" to "tiers" in game.json before shipping STYLE100/Mixed (the clip's JSON): STYLE100 is a cc-by set, its license is ${license}`, expect.stringContaining(`credit owed: ${credit}`), expect.stringMatching(/^show with the same clip from: /)]);
       const pose = clipOf("QUATERNIUS_3D2DGE/A_TPose"), mine = await call("show", { clip: JSON.stringify({ ...pose, id: "MINE/Pose", provenance: { ...pose.provenance, credit: "Someone" } }) });
       expect(mine.lines.slice(0, 2)).toEqual([expect.stringMatching(/, CC0-1.0, no credit owed$/), 'warning: "MINE/Pose" is from no library set: its license (CC0-1.0) is for you to check']); // a CC0 clip owes none
       const mit = JSON.stringify({ ...pose, id: "MINE/Mit", provenance: { ...pose.provenance, license: "MIT" } });
-      expect((await call("show", { clip: mit })).lines[1]).toBe("warning: its license (MIT) fits no tier a shipped game opts in to (D10)");
+      expect((await call("show", { clip: mit })).lines.slice(0, 3)).toEqual(["warning: MINE/Mit (the clip's JSON): its license (MIT) fits no tier a shipped game opts in to (D10)", expect.stringMatching(/, MIT, no credit owed$/), expect.stringMatching(/^\{"t":0,/)]);
       expect((await call("show", { clip: join(cwd, "akimbo.json") })).next).toMatch(/^show with the same clip from: /); // never an absolute path
       // credit owed by a CMU clip's own line, or owed with none given; a clip named by its orig needs its set's tier, as license.check says
       const own = (provenance: object) => JSON.stringify({ ...pose, id: "MINE/Pose", provenance: { ...pose.provenance, ...provenance } });
-      expect((await call("show", { clip: own({ license: "LicenseRef-CMU-Mocap", credit: "CMU Graphics Lab" }) })).lines[0]).toMatch(/, LicenseRef-CMU-Mocap, credit owed: CMU Graphics Lab$/);
-      expect((await call("show", { clip: own({ license: "CC0-1.0 AND CC-BY-4.0" }) })).lines[0]).toMatch(/, CC0-1.0 AND CC-BY-4.0, credit owed, none given$/);
+      expect((await call("show", { clip: own({ license: "LicenseRef-CMU-Mocap", credit: "CMU Graphics Lab" }) })).lines[1]).toMatch(/, LicenseRef-CMU-Mocap, credit owed: CMU Graphics Lab$/); // after its tier's warning
+      expect((await call("show", { clip: own({ license: "CC0-1.0 AND CC-BY-4.0" }) })).lines[1]).toMatch(/, CC0-1.0 AND CC-BY-4.0, credit owed, none given$/);
       writeFileSync(join(cwd, "my orig.json"), own({ orig: "STYLE100/Neutral_Walk" }));
       const orig = await call("show", { clip: "my orig.json" });
-      expect([orig.lines[1], orig.next]).toEqual(['warning: add "cc-by" to "tiers" in game.json before shipping it (STYLE100 is a cc-by set, its license is CC0-1.0)', expect.stringMatching(/^describe "my orig.json" for its timeline/)]);
+      expect([orig.lines[0], orig.next]).toEqual(['warning: add "cc-by" to "tiers" in game.json before shipping \'my orig.json\': STYLE100 is a cc-by set, its license is CC0-1.0', expect.stringMatching(/^describe "my orig.json" for its timeline/)]);
       expect(refused(await call("show", { clip: JSON.stringify({ ...pose, restSrc: "MYRIG" }) }))).toEqual(["usage", "E_REST", expect.stringMatching(/^the clip JSON names rest "MYRIG", which no set's manifest has/)]);
       writeFileSync(join(cwd, "game.json"), '{"tiers": ["cc0", "cc-by"]}');
       for (const clip of ["akimbo.json", "my orig.json"]) expect((await call("show", { clip })).lines[1]).toMatch(/^\{"t":0,/); // no warning once opted in

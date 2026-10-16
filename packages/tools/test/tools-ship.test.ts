@@ -3,8 +3,10 @@
 // library clip it names and by its own license, its credit owed.
 import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { credited, tierOf, TIERS } from "@m3a/library";
 import { describe, expect, it } from "vitest";
 import { nodeHost } from "../src/node.ts";
+import { libraryAccess } from "../src/node/library.ts";
 import { Registry, type Reply } from "../src/registry/index.ts";
 import { SHIP } from "../src/tools/index.ts";
 import { exampleCwd, ROOT, runExamples } from "./helpers/surfaces.ts";
@@ -27,6 +29,17 @@ async function inCwd(body: (call: (args: object) => Promise<Reply>, cwd: string)
 
 describe("ship", () => {
   runExamples(SHIP);
+
+  it("takes D10's tier rule from the library: every set's sources fit its tier by it, as checkSets holds them", () => {
+    const lib = libraryAccess(ROOT, TIERS), sets = lib.source.sets();
+    for (const set of sets) {
+      const { tier, sources } = lib.library.about(set);
+      for (const s of Object.values(sources)) if (tier !== "local") expect(tierOf(s.license), `${set}: ${s.license}`).toBe(tier);
+    }
+    expect([...new Set(sets.map((s) => lib.library.about(s).tier))].sort()).toEqual(["cc-by", "cc0", "cmu"]); // a set of each shipped tier
+    expect(["CC0-1.0", "CC-BY-3.0", "LicenseRef-CMU-Mocap", "CC-BY-SA-4.0", "MIT"].map(tierOf)).toEqual(["cc0", "cc-by", "cmu", "local", "local"]);
+    expect(TIERS.map(credited)).toEqual([false, true, true, false]);
+  });
 
   it("fails a clip, a set or game.json the tiers don't cover, a clip that isn't there and local content shipped, and refuses a wrong call", () =>
     inCwd(async (call, cwd) => {
