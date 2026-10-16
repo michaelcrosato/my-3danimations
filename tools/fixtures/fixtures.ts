@@ -144,32 +144,52 @@ export function usedSeeds(base = join(ROOT, "bench/results"), but?: string, test
   return out;
 }
 
+/** A gate's latest held-out run as `freshHeldout` checked it: the run, its problems (one line each), its rigs' ids (null
+ *  where it has no rig.json: its variants use generator seeds only), each variant's seed checked against the seeds
+ *  already used (`usedSeeds`), and how many those are. */
+export interface Heldout {
+  run: string | null;
+  problems: string[];
+  rigs: string[] | null;
+  seeds: { brief: string; seed: number; used: boolean }[];
+  used: number;
+}
 /**
  * Whether a gate's latest held-out run (bench/results/heldout/<gate>/run-<n>/) is fit for a gate run (PLAN.md §7,
  * §9.3, D57): no recorded gate run used it (bench/results/gates/<gate>-run-<n>/); its rig manifest (G4's sweep reads
  * one; another gate's run may have one) lints and pins each license file's SHA-256, each rig in the cache and
  * verified; each brief's variant has its brief and character, and a seed no test grades on and no other run used.
- * Returns the run and its problems, one line each.
  */
-export function freshHeldout(gate: string, base = join(ROOT, "bench/results"), dir = CACHE, tests?: string[]): { run: string | null; problems: string[] } {
+export function freshHeldout(gate: string, base = join(ROOT, "bench/results"), dir = CACHE, tests?: string[]): Heldout {
   const runs = join(base, "heldout", gate), all = existsSync(runs) ? readdirSync(runs).filter((d) => /^run-\d+$/.test(d)) : [];
   const run = all.sort((a, b) => Number(a.slice(4)) - Number(b.slice(4))).pop() ?? null;
-  if (!run) return { run, problems: [`no held-out run for ${gate}: a fresh subagent writes bench/results/heldout/${gate}/run-<n>/ first (PLAN.md §7)`] };
+  if (!run) return { run, problems: [`no held-out run for ${gate}: a fresh subagent writes bench/results/heldout/${gate}/run-<n>/ first (PLAN.md §7)`], rigs: null, seeds: [], used: 0 };
   const problems: string[] = [], at = join(runs, run);
+  let rigs: string[] | null = null;
   if (existsSync(join(base, "gates", `${gate}-${run}`))) problems.push(`${run} was used by a gate run already (bench/results/gates/${gate}-${run}/): a rerun writes fresh variants into run-${Number(run.slice(4)) + 1}`);
   if (!existsSync(join(at, "rig.json"))) {
     if (RIG_GATES.has(gate)) problems.push(`${run} has no rig.json`);
   } else {
     const m = JSON.parse(readFileSync(join(at, "rig.json"), "utf8")) as Manifest;
+    rigs = m.rigs.map((r) => r.id);
     problems.push(...lintManifest(m));
     for (const r of m.rigs) if (r.licenseSha256 === undefined) problems.push(`${r.id}: its license file's SHA-256 isn't pinned (licenseSha256)`);
     for (const st of checkRigs(m, dir)) if (!st.ok) problems.push(`${st.id}: ${st.why}`);
   }
-  const used = usedSeeds(base, at, tests);
+  const used = usedSeeds(base, at, tests), seeds: Heldout["seeds"] = [];
   for (const brief of readdirSync(at).filter((d) => /^B\d+$/.test(d))) {
     for (const f of ["brief.md", "character.json"]) if (!existsSync(join(at, brief, f))) problems.push(`${run}/${brief} has no ${f}`);
     const f = join(at, brief, "character.json"), c = existsSync(f) ? (JSON.parse(readFileSync(f, "utf8")) as { seed?: number }) : {};
-    if (typeof c.seed === "number" && used.has(c.seed)) problems.push(`${run}/${brief}: seed ${c.seed} is WP-4.2's, a test's or another run's: a variant takes a character none used (PLAN.md §7)`);
+    if (typeof c.seed !== "number") continue;
+    seeds.push({ brief, seed: c.seed, used: used.has(c.seed) });
+    if (used.has(c.seed)) problems.push(`${run}/${brief}: seed ${c.seed} is WP-4.2's, a test's or another run's: a variant takes a character none used (PLAN.md §7)`);
   }
-  return { run, problems };
+  return { run, problems, rigs, seeds, used: used.size };
+}
+/** What `npm run fixtures -- heldout` says of a held-out run: fresh, with its rigs or "no rig: seeds only", and each
+ *  variant's seed against the seeds already used (D91); or its problems. */
+export function heldoutStep(h: Heldout): { summary: string; detail: string[] } {
+  if (h.problems.length) return { summary: `${h.problems.length} problem(s) with ${h.run ?? "the held-out run"}`, detail: h.problems };
+  const seeds = h.seeds.length ? `; seeds ${h.seeds.map((s) => `${s.brief} ${s.seed}`).join(", ")}, none of the ${h.used} used (WP-4.2's, the tests', other runs')` : "";
+  return { summary: `${h.run} is fresh: no gate run used it; ${h.rigs ? `its rigs pinned and cached (${h.rigs.join(", ")})` : "no rig: seeds only"}${seeds}`, detail: h.seeds.map((s) => `${s.brief}: seed ${s.seed}, not among the ${h.used} used`) };
 }

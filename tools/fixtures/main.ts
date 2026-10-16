@@ -2,11 +2,12 @@
 // WP-4.2): the real CC0 rigs, fetched by SHA-256 into .cache/fixtures/ with their license files, never committed.
 // `fetch` downloads what the cache lacks (--check then checks the cache); `check` reads the cache alone. --manifest names
 // another manifest (a gate's held-out rig, a benchmark variant's), fetched and verified the same way. `heldout G4` says
-// whether the gate's latest held-out run is fit for a gate run (D57): unused, its license pinned, its rig cached.
+// whether the gate's latest held-out run is fit for a gate run (D57): unused, its license pinned, its rig cached; for a
+// run with no rig (seeds only, as G6's), each variant's seed checked against the seeds already used (D91).
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { closest, finish, fmtMs, parseArgs, usage, type Report, type Step } from "../run/cli.ts";
-import { checkRigs, fetchRigs, freshHeldout, lintManifest, MANIFEST, type Manifest } from "./fixtures.ts";
+import { checkRigs, fetchRigs, freshHeldout, heldoutStep, lintManifest, MANIFEST, type Manifest } from "./fixtures.ts";
 
 if (import.meta.main) {
   const specs = [
@@ -24,7 +25,7 @@ if (import.meta.main) {
   }
   if (parsed.positionals[0] === "heldout") {
     const gate = parsed.positionals[1] ?? "", t0 = performance.now(), h = freshHeldout(gate), ok = h.problems.length === 0, ms = performance.now() - t0;
-    finish({ tool: "fixtures", ok, verdict: `fixtures heldout ${gate}: ${ok ? "PASS" : "FAIL"} in ${fmtMs(ms)}`, steps: [{ name: "heldout", ok, ms, summary: ok ? `${h.run} is fresh: no gate run used it, its rigs pinned and cached` : `${h.problems.length} problem(s) with ${h.run ?? "the held-out run"}`, detail: h.problems }], warnings: [], ms, next: ok ? `npm run gate -- ${gate}` : "a fresh subagent writes the next held-out run (PLAN.md §7); fetch its rig, then rerun" }, parsed);
+    finish({ tool: "fixtures", ok, verdict: `fixtures heldout ${gate}: ${ok ? "PASS" : "FAIL"} in ${fmtMs(ms)}`, steps: [{ name: "heldout", ok, ms, ...heldoutStep(h) }], warnings: [], ms, next: ok ? `npm run gate -- ${gate}` : "a fresh subagent writes the next held-out run (PLAN.md §7); fetch its rig, then rerun" }, parsed);
   }
   const path = typeof parsed.flags.manifest === "string" ? resolve(parsed.flags.manifest) : MANIFEST;
   const m = JSON.parse(readFileSync(path, "utf8")) as Manifest, t0 = performance.now(), steps: Step[] = [];
