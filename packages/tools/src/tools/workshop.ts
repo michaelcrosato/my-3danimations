@@ -1,48 +1,51 @@
 // The workshop (PLAN.md WP-7.2a §3, carried from shardfall's revisioned edits): an edited clip lives in
 // workshop/<Name>.json (id WORKSHOP/<Name>), its history in .m3a/history/<Name>.json: the library clip it came from and
-// that clip's rest, the revision it last wrote, the recipe since the copy, undo and redo stacks of whole file texts (at
-// most 32 each), and the last request it applied. A revision is the first 12 hex digits of the file's SHA-256, or
-// "absent". A file whose revision isn't its history's head was changed outside m3a: undo refuses, the next edit starts
-// a new history. Writes go history first, then the clip (a failed clip write puts the history back), after the target's
-// revision is read again; the history's `last` closes the crash window between the write and the registry's record.
+// that clip's rest, the revision and text it last wrote, the recipe since the copy, undo and redo stacks of whole file
+// texts (32 entries in all), and the last request it applied. A revision is the first 12 hex digits of the file's
+// SHA-256, or "absent". Writes go history first, then the clip (a failed clip write puts the history back), after the
+// target's revision is read again. A file a step from the history's head is a write cut short between the two: the
+// history steps back to it. Any other file the history doesn't know was changed outside m3a: undo refuses, the next
+// edit starts a new history. The history's `last` closes the crash window between the write and the registry's record.
 import { recipe, type Rest } from "@m3a/core";
 import { ToolError, type ToolContext, type ToolOutput } from "../registry/registry.ts";
 import { quote } from "../registry/schema.ts";
 import { historyFile, WORKSHOP, WORKSHOP_NAME, workshopFile } from "./clips.ts";
 
-/** The most entries each of a clip's undo and redo stacks keeps (shardfall's HISTORY_LIMIT). */
+/** The most entries a clip's undo and redo stacks keep between them (shardfall's HISTORY_LIMIT): an apply drops the
+ *  oldest past it, and undo and redo only move entries from one stack to the other. */
 export const HISTORY_LIMIT = 32;
 
 /** One state of a workshop clip: its revision, its file's text (null when there was no file), and its origin, rest and
  *  recipe as its history held them. */
-export interface Entry extends Pick<History, "from" | "rest" | "recipe"> {
+export interface Entry {
+  from: string;
+  rest: Rest;
+  recipe: recipe.Recipe | null;
   revision: string;
   text: string | null;
 }
 
-/** The request a history's last write applied: its id, its arguments (canonical JSON), the revision it was applied at
- *  and what it replied, so a retry whose record was lost replies it again instead of applying twice. */
+/** The request a history's last write applied: its tool and id, its arguments (canonical JSON), the revision it was
+ *  applied at and what it replied, so a retry whose record was lost replies it again instead of applying twice. */
 export interface LastRequest {
+  tool: string;
   request_id: string;
   args: string;
   before: string;
   out: ToolOutput;
 }
 
-/** A workshop clip's history: the library clip it came from and its rest (clips.ts reads both), the revision it last
- *  wrote, the recipe since the copy (null once a fix or a clip from outside the library breaks the chain), the stacks. */
-export interface History {
-  from: string;
-  rest: Rest;
+/** A workshop clip's history: the state it last wrote (clips.ts reads its `from` and `rest`; `head` is its revision;
+ *  `recipe` is null once a fix or a clip from outside the library breaks the chain), the stacks, the last request. */
+export interface History extends Omit<Entry, "revision"> {
   head: string;
-  recipe: recipe.Recipe | null;
   undo: Entry[];
   redo: Entry[];
   last?: LastRequest;
 }
 
 /** A workshop clip as it stands: its id, name and file, the file's text and revision, and its history (null when
- *  none, or `stale`: the head of a history the file has changed under outside m3a). */
+ *  none, or `stale`: why the history was set aside, the file changed outside m3a or the history unreadable). */
 export interface Target {
   id: string;
   name: string;
@@ -61,74 +64,108 @@ export const revisionOf = (text: string | null): string => (text === null ? "abs
 export function targetName(clip: string, saveAs?: string): string {
   const id = saveAs ?? (/^\s*\{/.test(clip) ? "" : `${WORKSHOP}/${clip.trim().replace(/\.json$/i, "").split("/").pop()}`);
   const name = id.startsWith(`${WORKSHOP}/`) ? id.slice(WORKSHOP.length + 1) : "";
-  if (!WORKSHOP_NAME.test(name)) throw new ToolError("E_ARGS", `${saveAs === undefined ? "the clip names no workshop copy" : `save_as is ${quote(saveAs)}`}: give save_as "WORKSHOP/<Name>" (a letter, then letters, digits or _); the library changes only through its writer`, true);
+  const what = saveAs === undefined ? "the clip names no workshop copy" : `save_as is ${quote(saveAs)}`;
+  if (!WORKSHOP_NAME.test(name)) throw new ToolError("E_ARGS", `${what}: give save_as "WORKSHOP/<Name>" (a letter, then letters, digits or _); the library changes only through its writer`, true);
   return name;
 }
 
-/** Reads workshop clip `name`: its file, revision and history (an unreadable history counts as none). */
-export async function readTarget(ctx: ToolContext, name: string): Promise<Target> {
-  const path = workshopFile(name), text = await ctx.tryRead(path), revision = revisionOf(text);
-  let h: History | null;
+const isText = (v: unknown) => v === null || typeof v === "string";
+const entry = (e: Partial<Entry> | null) => Boolean(e) && typeof e!.from === "string" && typeof e!.rest === "object" && typeof e!.recipe === "object" && isText(e!.text);
+/** `raw` as a history, or undefined when it isn't one (not JSON, or not its shape). */
+function parsed(raw: string): History | undefined {
   try {
-    h = JSON.parse((await ctx.tryRead(historyFile(name))) ?? "null") as History | null;
+    const h = JSON.parse(raw) as History, l = h.last;
+    const stacks = [h.undo, h.redo].every((s) => Array.isArray(s) && s.every((e) => entry(e) && typeof e.revision === "string"));
+    const last = l === undefined || (typeof l.tool === "string" && typeof l.request_id === "string" && typeof l.args === "string" && typeof l.out?.verdict === "string" && typeof l.out.next === "string");
+    return entry(h) && typeof h.head === "string" && stacks && last ? h : undefined;
   } catch {
-    h = null;
+    return undefined;
   }
-  const stale = h && h.head !== revision ? h.head : null;
-  return { id: `${WORKSHOP}/${name}`, name, path, text, revision, history: stale ? null : h, stale };
+}
+
+/** The history one undo (or redo) on: the entry on top of that stack is the state now, the state before pushed onto
+ *  the other stack. */
+function step(h: History, way: "undo" | "redo"): History {
+  const { revision, ...e } = h[way].at(-1)!, other = way === "undo" ? "redo" : "undo";
+  const now: Entry = { from: h.from, rest: h.rest, recipe: h.recipe, revision: h.head, text: h.text };
+  return { ...h, ...e, head: revision, [way]: h[way].slice(0, -1), [other]: [...h[other], now] } as History;
+}
+
+/** Reads workshop clip `name`: its file, revision and history (set aside as `stale` when unreadable, or when the file
+ *  changed outside m3a; stepped back, its request forgotten, when a write was cut short after the history). */
+export async function readTarget(ctx: ToolContext, name: string): Promise<Target> {
+  const path = workshopFile(name), text = await ctx.tryRead(path), revision = revisionOf(text), raw = await ctx.tryRead(historyFile(name));
+  let h = raw === null ? null : parsed(raw), stale = h === undefined ? `has an unreadable history (${historyFile(name)})` : null;
+  if (h && h.head !== revision) {
+    const way = h.undo.at(-1)?.revision === revision ? "undo" : h.redo.at(-1)?.revision === revision ? "redo" : null;
+    if (way) h = { ...step(h, way), last: undefined };
+    else [stale, h] = [`changed outside m3a (revision ${revision}, history at ${h.head})`, null];
+  }
+  return { id: `${WORKSHOP}/${name}`, name, path, text, revision, history: h ?? null, stale };
 }
 
 const argsOf = (a: Record<string, unknown>) => recipe.canonical({ ...a, request_id: undefined });
 
-/** The request the target's last write applied, when `a` retries it (the same request_id and arguments) and the file
- *  is still what that write left. */
-export function replay(t: Target, a: Record<string, unknown>): LastRequest | undefined {
-  const last = t.history?.last;
-  return last && last.request_id === a.request_id && last.args === argsOf(a) ? last : undefined;
+/**
+ * The request the target's last write applied, when `tool` retries it with `a` (the same request_id and arguments)
+ * and the file is still what that write left. The same request_id with other arguments is usage E_REQUEST_ID, as the
+ * registry says it.
+ */
+export function replay(t: Target, tool: string, a: Record<string, unknown>): LastRequest | undefined {
+  const last = t.history?.last, args = argsOf(a);
+  if (!last || last.tool !== tool || last.request_id !== a.request_id) return undefined;
+  if (last.args === args) return last;
+  const [was, now] = [last.args, args].map((x) => JSON.parse(x) as Record<string, unknown>);
+  const differ = Object.keys({ ...was, ...now }).filter((k) => recipe.canonical(was![k]) !== recipe.canonical(now![k]));
+  const fix = "a retry repeats them exactly, a new edit takes a new request_id";
+  throw new ToolError("E_REQUEST_ID", `request_id ${quote(a.request_id)} was first used with other arguments (they differ in ${differ.join(", ")}); ${fix}`, true);
 }
 
-/** The edit tools' revision hook: the target's revision, or, for a retry of the request that wrote it, the revision
+/** Edit tool `tool`'s revision hook: the target's revision, or, for a retry of the request that wrote it, the revision
  *  that request was applied at (so its if_revision still holds and run() replies the first result). */
-export async function targetRevision(a: { clip: string; save_as?: string }, ctx: ToolContext): Promise<string> {
-  const t = await readTarget(ctx, targetName(a.clip, a.save_as));
-  return replay(t, a as Record<string, unknown>)?.before ?? t.revision;
-}
+export const targetRevision =
+  (tool: string) =>
+  async (a: { clip: string; save_as?: string }, ctx: ToolContext): Promise<string> => {
+    const t = await readTarget(ctx, targetName(a.clip, a.save_as));
+    return replay(t, tool, a as Record<string, unknown>)?.before ?? t.revision;
+  };
 
 /** Refuses (E_EXISTS) to write a copy over a workshop clip that is there, unless the call names its revision. */
 export function mayCopy(t: Target, inPlace: boolean, a: Record<string, unknown>): void {
-  if (!inPlace && t.text !== null && a.if_revision === undefined) throw new ToolError("E_EXISTS", `${t.id} exists at revision ${t.revision}; change it in place (clip "${t.id}"), give another save_as, or replace it with if_revision "${t.revision}"`);
+  if (inPlace || t.text === null || a.if_revision !== undefined) return;
+  throw new ToolError("E_EXISTS", `${t.id} exists at revision ${t.revision}; change it in place (clip "${t.id}"), give another save_as, or replace it with if_revision "${t.revision}"`);
 }
 
 /** The history after an edit writes `text` over `t`: the state before pushed onto undo (the oldest past the limit
  *  dropped), redo cleared; a stale history starts again from the state before. */
 export function applied(t: Target, text: string, base: Pick<History, "from" | "rest" | "recipe">): History {
   const h = t.history, now: Entry = { from: h?.from ?? base.from, rest: h?.rest ?? base.rest, recipe: h?.recipe ?? null, revision: t.revision, text: t.text };
-  return { ...base, head: revisionOf(text), undo: [...(h?.undo ?? []), now].slice(-HISTORY_LIMIT), redo: [] };
+  return { ...base, head: revisionOf(text), text, undo: [...(h?.undo ?? []), now].slice(-HISTORY_LIMIT), redo: [] };
 }
 
-/** Undo (or redo): the entry popped from that stack is the text to write back, byte for byte (null removes the file),
- *  and the state now is pushed onto the other. E_HISTORY when the stack is empty or the file changed outside m3a. */
-export function back(t: Target, way: "undo" | "redo"): { text: string | null; history: History } {
-  const h = t.history, e = h?.[way].at(-1), other = way === "undo" ? "redo" : "undo";
-  if (t.stale) throw new ToolError("E_HISTORY", `${t.id} changed outside m3a (revision ${t.revision}, history at ${t.stale}); the next edit starts its history again`);
-  if (!h || !e) throw new ToolError("E_HISTORY", `nothing to ${way} for ${t.id}`);
-  const now: Entry = { from: h.from, rest: h.rest, recipe: h.recipe, revision: t.revision, text: t.text }, { revision, text, ...state } = e;
-  return { text, history: { ...h, ...state, head: revision, [way]: h[way].slice(0, -1), [other]: [...h[other], now].slice(-HISTORY_LIMIT) } };
+/** Undo (or redo): the history with the entry on top of that stack as the state now, its text the bytes to write back
+ *  (null removes the file). E_HISTORY when the stack is empty or the history was set aside. */
+export function back(t: Target, way: "undo" | "redo"): History {
+  if (t.stale) throw new ToolError("E_HISTORY", `${t.id} ${t.stale}; the next edit starts its history again`);
+  if (!t.history?.[way].length) throw new ToolError("E_HISTORY", `nothing to ${way} for ${t.id}`);
+  return step(t.history, way);
 }
 
 /**
- * Writes `text` (null removes the file) and its history for target `t`, read before the edit was worked out: the
- * revision read again (moved: E_CONFLICT, nothing written), the history (with `last` when the call has a request_id),
- * then the clip, the history put back if that fails. Returns `out`.
+ * Writes history `h` and its text (null removes the file) for target `t`, read before `tool` worked out the edit:
+ * the revision read again (moved since, or not the call's if_revision: E_CONFLICT, nothing written), the history (with
+ * `last` when the call has a request_id), then the clip, the history put back if that fails. Returns `out`.
  */
-export async function commit(ctx: ToolContext, t: Target, text: string | null, h: History, a: Record<string, unknown>, out: ToolOutput): Promise<ToolOutput> {
+export async function commit(ctx: ToolContext, tool: string, t: Target, h: History, a: Record<string, unknown>, out: ToolOutput): Promise<ToolOutput> {
   const now = revisionOf(await ctx.tryRead(t.path)), file = historyFile(t.name), was = await ctx.tryRead(file);
-  if (now !== t.revision) throw new ToolError("E_CONFLICT", `${t.id} moved to revision ${now} during the edit; nothing was changed`);
-  const last = typeof a.request_id === "string" ? { request_id: a.request_id, args: argsOf(a), before: t.revision, out } : undefined;
+  if (now !== t.revision || (typeof a.if_revision === "string" && a.if_revision !== now)) {
+    throw new ToolError("E_CONFLICT", `${t.id} moved to revision ${now} during the edit; nothing was changed (read it again, then retry with if_revision "${now}")`);
+  }
+  const last = typeof a.request_id === "string" ? { tool, request_id: a.request_id, args: argsOf(a), before: t.revision, out } : undefined;
   ctx.write(file, `${JSON.stringify({ ...h, last })}\n`);
   try {
-    if (text === null) ctx.remove(t.path);
-    else ctx.write(t.path, text);
+    if (h.text === null) ctx.remove(t.path);
+    else ctx.write(t.path, h.text);
   } catch (err) {
     if (was === null) ctx.remove(file);
     else ctx.write(file, was);
