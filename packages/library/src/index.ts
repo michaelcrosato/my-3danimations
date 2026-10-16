@@ -33,6 +33,9 @@ export type { LoadedClip } from "./load/index.ts";
 export type { SetAbout } from "./load/index.ts";
 /** A set's source: label, origin, license, terms, url, credit and rest. */
 export type { SourceAbout } from "./load/index.ts";
+/** The set writer: a set's files (its clips, catalog.tsv, and _set.json with its content id) from its manifest and
+ *  clips; a manifest's text, a catalog row within its token budget, and a token count to give it. */
+export { setFiles, setText, catalogRow, ROW_BUDGET, type Tokens } from "./write/sets.ts";
 /** License compliance: sets checked against their tiers and texts, or a game's clips against the tiers it opts into. */
 export { checkSets, checkGame, creditsBlock } from "./license/index.ts";
 /** D10's tier rule: the tier a license fits, and whether a tier's clips are credited. */

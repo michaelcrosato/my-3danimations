@@ -1,13 +1,13 @@
 // Builds the migrated library in memory (WP-1.5): every seed set's clips as format-2 files written by core's
 // `serialize`, each with its facts and contacts measured (@m3a/library's `withFacts`, WP-5.4) and its QA verdict
-// (tools/qa/verdict.ts, WP-5.8), with `_set.json` (sources, rests, tier, content id), `catalog.tsv` and
-// `_baseline.json` (the validator's warnings, accepted per clip with a reason). Deterministic: the same pins give the
-// same bytes and content ids.
+// (tools/qa/verdict.ts, WP-5.8), with `_set.json` (sources, rests, tier, content id), `catalog.tsv` (both by
+// @m3a/library's set writer, which moved there from here, D93) and `_baseline.json` (the validator's warnings, accepted
+// per clip with a reason). Deterministic: the same pins give the same bytes and content ids.
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { format, serialize, validate, type Clip, type Rest } from "@m3a/core";
-import { withFacts } from "@m3a/library";
+import { format, validate, type Clip, type Rest } from "@m3a/core";
+import { catalogRow as libraryRow, contentId as libraryContentId, setFiles, setText, withFacts } from "@m3a/library";
 
 const { fromFormat1, slugs } = format;
 type Clip1 = format.Clip1;
@@ -33,51 +33,17 @@ export function legendLines(root: string): string[] {
   return readFileSync(join(root, "spec/LEGEND.md"), "utf8").split("\n").filter((l, i) => !(i === 0 && l.startsWith("#")) && l.trim() !== "");
 }
 
-/** A set manifest as text: one field per line, each source on a line of its own, the legend one line per line. */
-export function setText(m: Record<string, unknown>): string {
-  const lines: string[] = [];
-  for (const [k, v] of Object.entries(m)) {
-    if (k === "sources") {
-      const s = Object.entries(v as Record<string, unknown>).map(([id, src]) => `  ${JSON.stringify(id)}: ${JSON.stringify(src)}`);
-      lines.push(`"sources": {\n${s.join(",\n")}\n}`);
-    } else if (k === "legend") {
-      const l = v as { version: string; text: string[] };
-      lines.push(`"legend": {"version": ${JSON.stringify(l.version)}, "text": [\n${l.text.map((t) => `  ${JSON.stringify(t)}`).join(",\n")}\n]}`);
-    } else lines.push(`${JSON.stringify(k)}: ${JSON.stringify(v)}`);
-  }
-  return `{\n${lines.join(",\n")}\n}\n`;
-}
+/** cl100k tokens of a text, as the doctrine's budgets count them. */
+const cl100k = (t: string): number => tokens(t).length;
 
-/** A catalog row's token budget (DOCTRINE.md principle 1). */
-export const ROW_BUDGET = 40;
+/** A set manifest as text: @m3a/library's writer (moved there, D93). */
+export { setText };
 
-/** A description cut to fit `room` tokens: its first sentence, then the last clause that fits, then whole words and "…". */
-export function shorten(what: string, room: number): string {
-  const fits = (t: string) => tokens(t).length <= room;
-  if (fits(what)) return what;
-  const first = what.split(/(?<=\.) /)[0]!.replace(/\.$/, "");
-  if (fits(first)) return first;
-  const cuts = [...first.matchAll(/[,:;]/g)].map((m) => m.index!).reverse();
-  for (const i of cuts) if (fits(first.slice(0, i))) return first.slice(0, i);
-  const words = first.split(" ");
-  while (words.length > 1 && !fits(words.join(" ") + "…")) words.pop();
-  return words.join(" ") + "…";
-}
+/** One catalog row (spec/MOTION.md §9.3) within its 40 cl100k tokens: @m3a/library's writer, given the tokenizer. */
+export const catalogRow = (c: Clip): string => libraryRow(c, cl100k);
 
-/** One catalog row: id, seconds, loop or once, speed, tags, what the body does, source (spec/MOTION.md §9.3), within 40 tokens. */
-export function catalogRow(c: Clip): string {
-  const speed = c.facts && typeof c.facts.speed === "number" ? String(c.facts.speed) : "";
-  const cols = [c.id, String(c.dur), c.loop ? "loop" : "once", speed, c.tags.join(" "), "", c.provenance.src];
-  const room = ROW_BUDGET - tokens(cols.join("\t")).length;
-  cols[5] = shorten(c.desc || c.name.replace(/_/g, " "), room);
-  return cols.join("\t");
-}
-
-/** The SHA-256 content id of a set's clip files (spec/MOTION.md §9.2). */
-export function contentId(files: Map<string, string>): string {
-  const names = [...files.keys()].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
-  return sha256(names.map((n) => `${n}\n${sha256(files.get(n)!)}\n`).join(""));
-}
+/** The SHA-256 content id of a set's clip files (spec/MOTION.md §9.2), from their texts. */
+export const contentId = (files: Map<string, string>): string => libraryContentId(Object.fromEntries([...files].map(([n, t]) => [n, sha256(t)])), sha256);
 
 /** What the migration found besides the files: per set, clip counts, warnings and unresolved references. */
 export interface MigrationReport {
@@ -102,8 +68,7 @@ export function migrate(root: string): { files: Map<string, string>; report: Mig
     const names = Object.keys(data.clips);
     const slugList = slugs(names);
     const ids = Object.keys(data.sources);
-    const clipFiles = new Map<string, string>();
-    const rows: string[] = [];
+    const made: Clip[] = [];
     const baseline: Record<string, { code: string; at: string; reason: string }[]> = {};
     const errors: string[] = [];
     const unresolved: string[] = [];
@@ -128,9 +93,7 @@ export function migrate(root: string): { files: Map<string, string>; report: Mig
         warnings += r.warnings.length;
         baseline[slugList[i]!] = r.warnings.map((w) => ({ code: w.code, at: `${w.key !== undefined ? `key ${w.key} (t ${w.t}) ` : ""}${w.field ?? ""}${w.index !== undefined ? `[${w.index}]` : ""}`, reason: baselineReason(w, r.warnings, clip.keys as unknown as Record<string, unknown>[]) }));
       }
-      const text = serialize(clip);
-      clipFiles.set(`${slugList[i]}.json`, text);
-      rows.push(catalogRow(clip));
+      made.push(clip);
       all.set(clip.id, { source: c1, clip });
     });
     const srcRecords: Record<string, unknown> = {};
@@ -144,19 +107,18 @@ export function migrate(root: string): { files: Map<string, string>; report: Mig
       title: spec.title,
       format: "2.0",
       tier: spec.tier,
-      content: { edition: spec.edition, importer: `${MIGRATOR.tool} ${MIGRATOR.version}, from format 1 (${spec.from.repo} ${spec.from.file})`, sha256: contentId(clipFiles) },
+      content: { edition: spec.edition, importer: `${MIGRATOR.tool} ${MIGRATOR.version}, from format 1 (${spec.from.repo} ${spec.from.file})` },
       credit: spec.credit,
       producer: MIGRATOR,
       sources: srcRecords,
       ...(data.body ? { body: data.body } : {}),
       legend: { version: "2.0", text: legend },
     };
-    const v = validate(manifest, { kind: "set" });
+    // the clips, catalog.tsv and _set.json (its content id filled in) as @m3a/library's writer writes them
+    const dir = spec.set, out = setFiles(manifest as typeof manifest & { content: Record<string, unknown> }, made, { sha256, tokens: cl100k });
+    const v = validate(JSON.parse(out.get("_set.json")!), { kind: "set" });
     for (const e of v.errors) errors.push(`_set.json: ${e.code} ${e.message}`);
-    const dir = spec.set;
-    for (const [f, t] of clipFiles) files.set(`${dir}/${f}`, t);
-    files.set(`${dir}/_set.json`, setText(manifest));
-    files.set(`${dir}/catalog.tsv`, rows.join("\n") + "\n");
+    for (const [f, t] of out) files.set(`${dir}/${f}`, t);
     files.set(`${dir}/_baseline.json`, JSON.stringify({ about: "Validator warnings accepted per clip at migration, each with its reason (WP-1.5). A new warning, or one gone, fails library/migrated's test.", clips: baseline }, null, 1) + "\n");
     report.sets.push({ set: spec.set, clips: names.length, warnings, errors, unresolvedOrig: unresolved });
   }

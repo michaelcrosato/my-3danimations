@@ -10,10 +10,10 @@ readers exported here let nothing else out. No dependencies beyond `@m3a/core`; 
 | Format | Read | Write | Notes |
 |---|---|---|---|
 | glTF / GLB, Rigify or Unreal rig | `readGltf` | `packGlb` | Bit for bit like my-3d2dge's `anim-import.mjs` (conformance tier 1b: the tiny rig, and a Rigify rig with a skinned mesh); the mesh gives the tips and the mannequin's look |
-| glTF / GLB, any rig a bone map knows | `readGltfPosed` | | MotionBuilder names (Mixamo), Unreal, Rigify, VRM, 100STYLE, Bandai Namco |
+| glTF / GLB, any rig a bone map knows | `readGltfPosed` | `gltfAnimOf`, `addAnimation` | MotionBuilder names (Mixamo), Unreal, Rigify, VRM, 100STYLE, Bandai Namco; a clip played on a character bound through core is added to its own document as an animation of its own nodes (any node between bones kept at rest, scale too), and `glbGap` reads it back (WP-7.2b) |
 | ASF/AMC (CMU) | `readAsf`, `readAmc`, `readCmu` | | Bit for bit like `asf-amc.mjs` (tier 1b): picks, loops cut at their best cycle and closed |
-| BVH | `parseBvh`, `rigBvh`, `readBvh` | | shardfall's reader as reference: units from the legs, the rest that stands straightest |
-| VRMA (VRM Animation 1.0) | `decodeVrma`, `readVrma` | `vrmaOf`, `encodeVrma`, `writeVrma` | A clip played on a bound skeleton, as a VRM player plays it: the humanoid bones, the root's travel in the hips; written, read and written again byte for byte; id, loop, events, contacts and facts in the animation's `extras`, as three's bake writes them |
+| BVH | `parseBvh`, `rigBvh`, `readBvh` | `writeBvh` | shardfall's reader as reference: units from the legs, the rest that stands straightest; written in centimetres, the zero pose the skeleton's rest, ZXY turns, and `bvhGap` reads it back (WP-7.2b) |
+| VRMA (VRM Animation 1.0) | `decodeVrma`, `readVrma` | `vrmaOf`, `encodeVrma`, `writeVrma` | A clip played on a bound skeleton, as a VRM player plays it: the humanoid bones, the root's travel in the hips; written, read and written again byte for byte; id, loop, events, contacts, facts and license in the animation's `extras`, as three's bake writes them, and the credit (else the license) as the asset's copyright |
 
 A reader gives captured body points (`Capture`: the format's 36 points every frame, mm, in the rig's frame). `importSet`
 fits them into clips as a hand-written catalog says (`$sources`, `$pick`, `$skip` with reasons, and each clip's tags,

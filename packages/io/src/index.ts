@@ -76,6 +76,11 @@ export const readBvh = guard(bvh.readBvh);
 export { cutPicks, restCapture, type Pick, type Take, type Facing, type Find, type Way } from "./takes.ts";
 /** VRM animations: a clip played on a bound skeleton written as .vrma, and its types. */
 export { vrmaOf, encodeVrma, writeVrma, type Vrma, type VrmaNode, type VrmaTrack, type VrmaExtras } from "./vrma/vrma.ts";
+/** glTF animations on a character's own nodes: an animation, the document with it added (.glb), a bound skeleton's own
+ *  document (a character with no file), and how far a written .glb's bones land from where the Animator puts them. */
+export { gltfAnimOf, addAnimation, skeletonDoc, glbGap, type GltfAnim } from "./gltf/anim.ts";
+/** A clip played on a bound skeleton as a .bvh's text, and how far a written .bvh's joints land from the Animator's. */
+export { writeBvh, bvhGap } from "./bvh/write.ts";
 /** A .vrma read back exactly. */
 export const decodeVrma = guard(vrma.decodeVrma, nth(1));
 /** A .vrma's animations read as clips on the VRM bone map. */

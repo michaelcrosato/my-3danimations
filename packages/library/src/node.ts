@@ -25,12 +25,13 @@ export function directory(dir: string): LibrarySource {
 
 /**
  * Opens the library in `dir` (the default sets) with its lock (`sets.lock.json` beside the sets) and Node's SHA-256:
- * the CC0 default pack unless `tiers` opts in to more (D10). Warnings go to stderr unless `warn` takes them.
+ * the CC0 default pack unless `tiers` opts in to more (D10). Warnings go to stderr unless `warn` takes them. `source`
+ * reads the sets from elsewhere (more sets beside dir's: a project's imported ones), the lock still dir's.
  */
-export function openLibrary(opts: LibraryOptions & { dir?: string } = {}): Library {
+export function openLibrary(opts: LibraryOptions & { dir?: string; source?: LibrarySource } = {}): Library {
   const dir = opts.dir ?? defaultSets(), lockFile = join(dirname(dir), "sets.lock.json");
   const lock = opts.lock ?? (existsSync(lockFile) ? (JSON.parse(readFileSync(lockFile, "utf8")) as LibraryLock) : undefined);
-  return new Library(directory(dir), { sha256, warn: (m) => process.stderr.write(`${m}\n`), ...opts, ...(lock ? { lock } : {}) });
+  return new Library(opts.source ?? directory(dir), { sha256, warn: (m) => process.stderr.write(`${m}\n`), ...opts, ...(lock ? { lock } : {}) });
 }
 
 /** The lock for the sets in `dir`: each set's content id and each clip file's SHA-256 (aliases kept from `previous`). */
