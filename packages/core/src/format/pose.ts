@@ -323,29 +323,48 @@ export function decodePose(R: Rest, k: KeyLike, out: Float32Array | number[]): F
       put(out, I.index, add(fistPt, mul(acr, 20)));
       put(out, I.pinky, add(fistPt, mul(acr, -20)));
     }
-    const hip = tq.hip(s);
-    const l = arr(k, F.leg)!;
-    const ln = norm(l);
-    const aT = limbEnd(hip, RP, ln, s, reachOf(l[3] || 0, R.thigh, R.shin));
-    const ld = norm(sub(aT, hip));
-    const [kn, an] = ik3(hip, aT, R.thigh, R.shin, poleHint(ld, hintFor("leg", SG[s], RP, [ln[0], ln[1] * SG[s], ln[2]]), l[4] || 0));
-    put(out, I.hip, hip);
-    put(out, I.knee, kn);
-    put(out, I.ankle, an);
-    const ft = arr(k, F.foot) || [0, 0, 0];
-    const pa = (ft[0]! + R.abPitch) * DG;
-    const pb = (ft[0]! + R.btPitch - (ft[2] || 0)) * DG;
-    const yw = ft[1]! * DG;
-    // (each cosine and sine taken once: the same numbers)
-    const cy = PM.cos(yw), sy = PM.sin(yw);
-    const dir = (q: number) => {
-      const cq = PM.cos(q);
-      return wld(RP, [cq * cy, SG[s] * cq * sy, -PM.sin(q)]);
-    };
-    const ball = add(an, mul(dir(pa), R.ab));
-    put(out, I.ball, ball);
-    put(out, I.toe, add(ball, mul(dir(pb), R.bt)));
+    legInto(R, k, tq.hip(s), RP, s, out);
   }
+  return out;
+}
+
+/** Leg s's points (hip, knee, ankle, ball, toe) of key k into `out`, from its hip and the pelvis's frame RP: decodePose's
+ *  own steps for them (it decodes each leg with this). */
+function legInto(R: Rest, k: KeyLike, hip: V3, RP: Frame, s: Side, out: Float32Array | number[]): void {
+  const I = SIDE_AT[s], F = NAMES[s];
+  const l = arr(k, F.leg)!;
+  const ln = norm(l);
+  const aT = limbEnd(hip, RP, ln, s, reachOf(l[3] || 0, R.thigh, R.shin));
+  const ld = norm(sub(aT, hip));
+  const [kn, an] = ik3(hip, aT, R.thigh, R.shin, poleHint(ld, hintFor("leg", SG[s], RP, [ln[0], ln[1] * SG[s], ln[2]]), l[4] || 0));
+  put(out, I.hip, hip);
+  put(out, I.knee, kn);
+  put(out, I.ankle, an);
+  const ft = arr(k, F.foot) || [0, 0, 0];
+  const pa = (ft[0]! + R.abPitch) * DG;
+  const pb = (ft[0]! + R.btPitch - (ft[2] || 0)) * DG;
+  const yw = ft[1]! * DG;
+  // (each cosine and sine taken once: the same numbers)
+  const cy = PM.cos(yw), sy = PM.sin(yw);
+  const dir = (q: number) => {
+    const cq = PM.cos(q);
+    return wld(RP, [cq * cy, SG[s] * cq * sy, -PM.sin(q)]);
+  };
+  const ball = add(an, mul(dir(pa), R.ab));
+  put(out, I.ball, ball);
+  put(out, I.toe, add(ball, mul(dir(pb), R.bt)));
+}
+
+/**
+ * The pelvis's and the legs' points of key k (pelvis; hip, knee, ankle, ball and toe each side) into `out`, as
+ * decodePose puts them, bit for bit (the pelvis's place and frame as torso finds them, each leg by decodePose's own
+ * steps); the other points are left as they were. For a reader of the feet alone: the root a clip's planted feet
+ * imply (contactRoot) reads nothing else.
+ */
+export function decodeLegs(R: Rest, k: KeyLike, out: Float32Array | number[]): Float32Array | number[] {
+  const p = mul(k.hips!, R.H0 / 100), RP = fromEuler(k.body!);
+  put(out, AT.pelvis, p);
+  for (const s of SIDES) legInto(R, k, add(p, wld(RP, R.hip[s])), RP, s, out);
   return out;
 }
 

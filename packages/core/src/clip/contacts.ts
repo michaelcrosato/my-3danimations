@@ -5,7 +5,8 @@
 // gaps up to `mergeTime` closed; a loop's contact that runs through the seam becomes one interval past dur (§7.1).
 import { PORTABLE } from "../math/portable.ts";
 import { IDX, P, type Rest } from "../format/body.ts";
-import { decodePose } from "../format/pose.ts";
+import { decodeLegs, decodePose } from "../format/pose.ts";
+import { keyAt } from "../format/sample.ts";
 import { CONTACT_ENDS, type Contacts } from "../format/types.ts";
 import { sample, type Playable } from "./sample.ts";
 
@@ -56,11 +57,20 @@ export interface Sampled {
 
 /** The clip sampled at about `fps` over its whole duration, both ends included. */
 export function sampleAll(clip: Playable, R: Rest, fps = 60): Sampled {
+  return sampledBy(clip, fps, (t) => sample(clip, t, R, new Float32Array(P * 3)));
+}
+/** sampleAll's samples with the pelvis's and the legs' points alone (decodeLegs: as decodePose puts them; the others 0),
+ *  for a reader of the feet alone (contactRoot). */
+export function sampleLegs(clip: Playable, R: Rest, fps = 60): Sampled {
+  return sampledBy(clip, fps, (t) => decodeLegs(R, keyAt(clip, t), new Float32Array(P * 3)) as Float32Array);
+}
+/** The clip's sample times at about `fps` over its whole duration, both ends included, each posed by `pose`. */
+function sampledBy(clip: Playable, fps: number, pose: (t: number) => Float32Array): Sampled {
   const n = Math.max(1, Math.ceil(clip.dur * fps)), dt = clip.dur / n;
   const frames: Float32Array[] = [];
   // a loop's last sample is its cycle's end (the last key held or in-between), not the wrap back to its start
   const at = (i: number) => (clip.loop && i === n ? clip.dur * (1 - 1e-12) : i * dt);
-  for (let i = 0; i <= n; i++) frames.push(sample(clip, at(i), R, new Float32Array(P * 3)));
+  for (let i = 0; i <= n; i++) frames.push(pose(at(i)));
   return { frames, dt };
 }
 
