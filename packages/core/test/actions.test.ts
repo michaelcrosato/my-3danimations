@@ -138,7 +138,8 @@ describe("an action on another body", () => {
       interrupts: [{ t: 0.5, to: ["PROCEDURAL/Walk"], why: "both feet down" }],
     };
     for (const seed of [0, 1, 2, 3]) {
-      const rest = bind((await loadGlb(character(variant(seed)).glb, { textures: false })).scene).core.rest, fit = PR.fitGait(run, rest);
+      // each ready-made gait fitted to this body once (fitGait is a function of the gait and the rest alone), read below
+      const rest = bind((await loadGlb(character(variant(seed)).glb, { textures: false })).scene).core.rest, fitted = new Map(PR.GAITS.map((x) => [x, PR.fitGait(x, rest)])), fit = fitted.get(run)!;
       expect([seed, fit.speed < run.speed]).toEqual([seed, true]);
       expect(() => PR.gaitClip(run, rest, { restSrc: `GEN${seed}` })).toThrow(/its feet reach .* past 72%/);
       // the library's clips on this body, as a host's resolver gives them
@@ -148,9 +149,9 @@ describe("an action on another body", () => {
       expect([seed, validate(c.clip).errors, c.clip.dur, Math.abs(speed - fit.speed) <= 2]).toEqual([seed, [], 1, true]);
       // each ready-made gait this body's legs don't take is the fitted one's clip, going its speed (one they take is
       // played as it is: the Mesh2Motion pin above)
-      for (const g of PR.GAITS.filter((x) => PR.fitGait(x, rest) !== x)) {
-        const part = c.resolve(`PROCEDURAL/${g.name.charAt(0).toUpperCase()}${g.name.slice(1)}`)!, own = PR.gaitClip(PR.fitGait(g, rest), rest, { restSrc: c.clip.restSrc, id: part.clip.id });
-        expect([seed, g.name, validate(part.clip).errors, part.contentId, Math.abs(C.rootAt(part.clip, part.clip.dur).forward - PR.fitGait(g, rest).speed * part.clip.dur) <= 0.5]).toEqual([seed, g.name, [], sha256(serialize(own)), true]);
+      for (const g of PR.GAITS.filter((x) => fitted.get(x) !== x)) {
+        const part = c.resolve(`PROCEDURAL/${g.name.charAt(0).toUpperCase()}${g.name.slice(1)}`)!, own = PR.gaitClip(fitted.get(g)!, rest, { restSrc: c.clip.restSrc, id: part.clip.id });
+        expect([seed, g.name, validate(part.clip).errors, part.contentId, Math.abs(C.rootAt(part.clip, part.clip.dur).forward - fitted.get(g)!.speed * part.clip.dur) <= 0.5]).toEqual([seed, g.name, [], sha256(serialize(own)), true]);
       }
     }
   }, 30_000);

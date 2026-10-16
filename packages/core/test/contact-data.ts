@@ -29,16 +29,20 @@ export function motionOf(clip: Playable, R: Rest, contacts: Contacts): Motion & 
 }
 /** The lowest sole point of foot s: heel (below the ankle), ball or toe. */
 export const lowest = (X: ArrayLike<number>, s: string, R: Rest) => ["ankle", "ball", "toe"].map((p) => ({ p, z: P(X, p + s)[2] - (p === "ankle" ? R.ankleZ : 0) })).reduce((a, b) => (b.z < a.z ? b : a));
-/** The worst slide per contact: the path the contact point (each step's lowest sole point) takes in the world. */
+/**
+ * The worst slide per contact: the path the contact point (each step's lowest sole point) takes in the world. `X` is a
+ * function of the time alone (planting is stateless: plant.ts), so each step's end, the next step's start, is taken once.
+ */
 export function worstSlide(m: Motion, X: (t: number) => ArrayLike<number>, cycles = 2): number {
   let worst = 0;
   for (const s of ["L", "R"]) {
     for (const [a0, b0] of m.contacts[`foot${s}` as "footL"] ?? []) {
       for (let k = 0; k < cycles; k++) {
         const a = a0 + k * m.dur, b = b0 + k * m.dur;
-        let len = 0;
+        let len = 0, last: { t: number; X: ArrayLike<number> } | null = null;
         for (let t = a; t < b - 1e-9; t += 1 / 60) {
-          const t1 = Math.min(b, t + 1 / 60), X0 = X(t), X1 = X(t1), low = lowest(X0, s, m.rest).p;
+          const t1 = Math.min(b, t + 1 / 60), X0 = last?.t === t ? last.X : X(t), X1 = X(t1), low = lowest(X0, s, m.rest).p;
+          last = { t: t1, X: X1 };
           const w0 = toWorld(m.root(t), P(X0, low + s)), w1 = toWorld(m.root(t1), P(X1, low + s));
           len += Math.hypot(w1[0] - w0[0], w1[1] - w0[1]);
         }
