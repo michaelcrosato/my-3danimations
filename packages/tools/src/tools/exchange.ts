@@ -255,7 +255,7 @@ export const exportClip = defineTool<{ clip: string; character: string; format: 
         `license: ${p.license} (${tier}); ${credit ? `credit owed: ${credit}` : owed ? "credit owed, none given" : "no credit owed"}`,
         ...(tier === "cmu" ? ["CMU's terms: no reselling the data, even converted (D10)"] : []),
         ...issues.rows.map((i) => `character: ${i}`),
-        ...more(issues.more, "character issue", `${call("retarget.inspect", [who])} lists them`),
+        ...more(issues.more, "character issue", `${call("retarget.inspect", [who], { mapping: a.mapping })} lists them`),
         `${sec(clip.dur)} ${clip.loop ? "loop" : "once"}, ${count(b.order.length, "joint")} (${Object.keys(b.bones).length} humanoid)`,
       ],
       findings: off || unchecked,

@@ -150,6 +150,13 @@ describe("exchange", () => {
       writeFileSync(join(cwd, "skew rig.gltf"), JSON.stringify(skew));
       const [status, check, gap, , next] = await out({ format: "glb", character: "skew rig.gltf" });
       expect([status, check, gap! > 1, next]).toEqual(["findings", expect.stringMatching(/^read back, its joints within \d+\.\d+ mm$/), true, `it reads back off: a node above its bones may scale unevenly, which no glTF animation follows (else report it: a bug); \`export ${WALK} --character 'skew rig.gltf' --format bvh\` writes one that reads back`]);
+      // a VRM humanoid giving only the hips: each required bone found by name is a character issue, cut at 3 with a more
+      // line whose retarget.inspect call carries the mapping the export was given
+      const vrm = JSON.parse(readFileSync(join(cwd, RIG), "utf8")) as { nodes: { name: string }[]; extensions?: object };
+      vrm.extensions = { VRMC_vrm: { humanoid: { humanBones: { hips: { node: vrm.nodes.findIndex((n) => n.name === "pelvis") } } } } };
+      writeFileSync(join(cwd, "vrm.gltf"), JSON.stringify(vrm));
+      const many = await call("export", { clip: WALK, character: "vrm.gltf", mapping: { bones: { hips: "pelvis" } } });
+      expect(many.lines.find((l) => l.startsWith("more:"))).toBe(`more: 12 character issues (\`retarget.inspect vrm.gltf --mapping '{"bones":{"hips":"pelvis"}}'\` lists them)`);
       // what export wrote reads as motion again: the VRMA by its humanoid, the BVH (below) by Unreal's names
       const vr = await call("import", { path: `${OUT}.vrma`, set: "VBACK", license: "CC0-1.0" });
       expect([vr.status, (vr.data as Data).rig, (vr.data as Data).clips.map((c) => c.id)]).toEqual(["ok", "gltf:vrm", ["VBACK/QUATERNIUS_3D2DGE_Walk_Loop"]]);
