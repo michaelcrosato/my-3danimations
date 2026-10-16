@@ -3,9 +3,11 @@
 // tools come from its own file; WP-7.2b adds RETARGET, COMPOSE and EXCHANGE.
 import { Registry, type Tool } from "../registry/registry.ts";
 import { validate, version } from "./base.ts";
+import { describe, search, show } from "./find.ts";
+import { licenseCheck } from "./ship.ts";
 
 /** Find and read (find.ts): search, show, describe. */
-export const FIND: readonly Tool[] = [];
+export const FIND: readonly Tool[] = [search, show, describe];
 
 /** Check (check.ts): metrics, sheet, film, diff, lint. */
 export const CHECK: readonly Tool[] = [];
@@ -14,7 +16,7 @@ export const CHECK: readonly Tool[] = [];
 export const CHANGE: readonly Tool[] = [];
 
 /** Ship (ship.ts): license.check. */
-export const SHIP: readonly Tool[] = [];
+export const SHIP: readonly Tool[] = [licenseCheck];
 
 /** Kept from WP-7.1 (base.ts): version, validate. */
 export const BASE: readonly Tool[] = [version, validate];
