@@ -4,6 +4,31 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.46.0 · 2026-10-16
+
+### Tools
+- The tool registry (WP-7.1, D92): a tool defined once with `defineTool` is served four ways: the API
+  (`tools.call(name, args)`), the `m3a` command (`m3a <tool> [args] [--json] [--verbose]`, `m3a help [tool]`), an MCP
+  stdio server (`m3a mcp`) and the console handle `__M3A_TOOLS__` (`installConsole`).
+- One reply, `m3a.reply/1` (verdict, lines, data, images, revision, error, next), shared by `report.json`, MCP's
+  `structuredContent` and the API; the verdict is one line and the text fits 20 lines unless `--verbose` or
+  `verbose: true` asks for all; `m3a help` lists every tool. Exit codes 0 ok, 1 findings or a failed tool, 2 usage;
+  on MCP a failed tool or a wrong call is an `isError` result.
+- Wrong calls name the closest valid choice (an unknown tool, flag, argument, help argument or nested field); every
+  reply ends with a `next` hint. Parameter names are ones every surface can pass.
+- Edits' `request_id` and `if_revision`, handled by the registry: a retry with the same id and arguments returns the
+  first reply, and an edit that applied never applies again; `m3a` refuses `--request-id` until it keeps retries
+  between runs (WP-7.2a).
+- The MCP server follows the 2026-07-28 revision and still answers the `initialize` handshake back to 2024-11-05;
+  tool names use `_` for `.`.
+- Images from tools go to `check-output/<tool>/`, with size and approximate token cost; MCP also sends them as image
+  content. The tools `version` and `validate`; the `@m3a/tools/node` entry and the `m3a` bin.
+- The manual's tools section: the `m3a` command, MCP and the console.
+
+### Repo
+- `@modelcontextprotocol/inspector` 2.9.0 (dev, pinned) and the e2e suite `mcp-smoke` (`npm run e2e -- mcp-smoke`).
+- PLAN.md: WP-7.2 split into 7.2a and 7.2b, each an L (D93).
+
 ## 0.45.2 · 2026-10-16
 
 ### Tools

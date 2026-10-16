@@ -3403,3 +3403,78 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   bodies no test grades on.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.45.1, v0.45.2, michaelcrosato/my-3danimations#12
+
+## D92 · 2026-10-16 · WP-7.1: one reply on four surfaces; what the registry adds, refuses and keeps
+
+- **Principle:** 2, 7, 8, 9 (WP-7.1, PLAN.md §5.6)
+- **Call:**
+  - **One reply everywhere.** `defineTool` and `Registry` (`packages/tools/src/registry/`) give every surface one
+    reply, `m3a.reply/1`: `{schema, tool, status, verdict, lines, data, images, revision, error, next}`. It is the
+    CLI's `report.json`, MCP's `structuredContent` (its `outputSchema` built from the tool's), what the API returns
+    and what the console handle `__M3A_TOOLS__` returns. `data` is a JSON object or null on every reply, and a tool's
+    declared output schema is checked on each one. The verdict is one line; each detail line is one line; every name
+    or value a refusal echoes is quoted and cut to 60 characters.
+  - **Exit codes:** ok 0; findings 1; error 1 (the tool could not finish, its verdict says so); usage 2. On MCP, a
+    failed tool or a wrong call is an `isError` result; findings are not.
+  - **What the registry adds and reserves:**
+    - `verbose` on every tool, for the details: the text fits 20 lines otherwise. MCP has no flags, so it reads the
+      same parameter. Past 10 images the text folds them into one line. `m3a help`'s tool list is exempt: it lists
+      every tool, one line each.
+    - `if_revision` and `request_id`, on edits only and reserved on every tool. An edit must read its target's
+      revision.
+    - The examples, in JSON Schema's `examples`.
+  - **Unknown names are refused** on every surface, naming the closest valid one. This covers tools, flags,
+    arguments (own properties only, so `constructor` or `__proto__` is unknown too), help's own arguments and fields
+    of nested objects. A parameter name is a letter, then letters, digits or `_`, so the CLI can spell every one.
+  - **request_id** is kept in the registry by tool and id, compared as canonical JSON (keys sorted, defaults filled).
+    The same id with other arguments is refused, naming what differs. Only applied replies are kept, and an edit that
+    applied is kept even when its output check then fails, so a retry never applies it twice. The store is in memory
+    (the API, the MCP server, the console). The `m3a` command refuses `--request-id` until WP-7.2a's durable store,
+    and `m3a help` marks it so: a promise the surface can't keep is refused, not ignored.
+  - **MCP** follows the 2026-07-28 revision (stateless requests with `_meta`, `server/discover`) and still answers the
+    `initialize` handshake of 2025-11-25 back to 2024-11-05, as current clients (the Inspector among them) open with
+    it. Tool names use `_` for `.`. An unknown tool is a JSON-RPC error; argument errors and tool failures are
+    `isError` results. Its text content is the verdict-first rendering, not the serialized JSON (a spec SHOULD);
+    `structuredContent` carries the whole reply.
+  - **Images** go to `check-output/<tool>/`, listed with size and approximate tokens; MCP also sends image content.
+    The Node host reads files under the working directory only.
+  - **Deviations in Owns and size:** `src/node.ts` (the Node host, the `./node` export and the `m3a` bin, WP-7.4's to
+    build for publishing), the shared `src/index.ts`, the e2e registry's `mcp-smoke` suite and a dev dependency, the
+    MCP Inspector 2.9.0 (pinned, its own commit). 1,323 new lines, past M's 1,200, from the verifiers' findings.
+  - **The verifiers,** four rounds (D83): round 1 found that MCP ignored `verbose` (blocking), prototype names
+    accepted and edits without a revision; round 2 an array in help's `data`, a failing tool untested on every surface
+    and parameter names the CLI couldn't reach; round 3 nits only. Each was fixed, with 44 targeted mutants killed.
+- **Why:** one registry keeps the surfaces from drifting (D11): the parity test compares descriptions, replies, exit
+  codes, `isError` and the text with and without `verbose`, on every example. A wrong call comes back naming the fix,
+  which shardfall's dry run asked for, and the official Inspector proves the server against a client not written here.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.46.0
+
+## D93 · 2026-10-16 · WP-7.2 split in two; the tools' tiers, writes and characters
+
+- **Principle:** 2, 4, 8, §8 (sizes), D10, D53
+- **Call:**
+  - **The split.** Scouting each tool against the packages put WP-7.2 at about 4,460 lines: the tools, their host
+    (library access, write roots, a durable request store, a workshop with undo) and what other packages lack (a
+    glTF skeleton reader, glTF animation and BVH writers, a set writer, the D80 judge moved out of the sweep). Over L,
+    so two Ls with a clean seam at binary input and characters: 7.2a (find, check, change, ship; about 2,430) and
+    7.2b (retarget, compose, exchange; about 2,030). Each runs as a foundation lane, then three tool lanes at once.
+  - **Tiers:** every tool opens the library at the game's tiers, `game.json`'s `tiers` in the working directory, else
+    cc0 (D10, D53). Only `license.check` takes tiers as an argument. Rejected: read-only tools seeing every tier, which
+    would let an agent build on clips it can't ship and learn it only at the end.
+  - **Writes:** the tools write only under `workshop/` (edited clips, id `WORKSHOP/<Name>`), `.m3a/` (edit history,
+    retry records), `imports/` (imported local sets, until WP-9.1's submit) and `check-output/`; never `library/`.
+  - **MCP's `outputSchema`** is left out of `tools/list`, about 5,100 tokens a listing; `structuredContent` is still
+    validated in the tests.
+  - **Characters bind through core** (`@m3a/io` reads the skeleton, core recognizes and binds it), not three.js's
+    loader, which fails in Node and renames bones; the tools take no generator seeds (the package boundary keeps the
+    test characters out).
+  - **Names:** `license.check` for the CLI's `license check`; one `character` parameter where export and the
+    simulation each named their own.
+  - **Plan corrections:** WP-7.2's carry pointed at the strike's measure (`clips.rs:496-550`), which `facts.strike`
+    already gives; the clip tool is `anim_tools.rs:750-800`. `npm test -- tools` also runs every repo `tools/**`
+    suite, so each half's Verify names its packages.
+- **Why:** sizes are counted, and a WP over L is split (§8); the seam leaves 7.2a's tools usable on their own, and the
+  policies keep an agent's view of the library the one its game ships.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.46.0

@@ -311,6 +311,53 @@ checks.measure(m).verdict;                         // slide, skate, pops, jitter
 
 A sheet costs about width × height / 750 tokens to look at; read the numbers first.
 
+## Tools: the m3a command, MCP and the console
+
+Every tool is defined once and served four ways:
+- `tools.call(name, args)` from `@m3a/tools`;
+- the `m3a` command;
+- an MCP server (`m3a mcp`);
+- `__M3A_TOOLS__` on a page.
+
+```sh
+npx m3a help                     # every tool, one line each
+npx m3a help validate            # its flags and examples (or: npx m3a validate -h)
+npx m3a validate library/sets/QUATERNIUS_3D2DGE/A_TPose.json
+npx m3a validate --text='{"format":"2.0","id":"DEMO/Bad","dur":0}' --json
+```
+
+- **Replies.** A reply starts with a one-line verdict and fits 20 lines; ask for the rest with `--verbose` (CLI) or
+  `verbose: true` (MCP and API). The one exception is `m3a help`'s list, which always shows every tool and says how
+  many. A reply always ends with `next:`.
+- **Exit codes:** 0 ok; 1 findings, or the tool failed (the verdict says which); 2 usage error. On MCP, a failed tool or
+  a wrong call comes back with `isError`; findings do not.
+- **Wrong calls.** An unknown tool, flag or argument is refused with the closest valid name, and so is an unknown field
+  inside an object argument: `unknown flag "--pth"; did you mean "--path"?`, or `m3a --version`: `did you mean
+  "version"?`.
+- **Flags:**
+  - Flags take two dashes and are given once; only an array flag repeats (`--tags a,b` or `--tags a --tags b`).
+  - A value that starts with `--` is written `--flag=--value`.
+  - Paths are read under the working directory only; for a file elsewhere, pass its text.
+  - `m3a help` takes one tool name, `--verbose` and `--json`; a tool's own flags follow its name.
+- **report.json.** `--json` also writes `check-output/<tool>/report.json`, with the fields `{schema: "m3a.reply/1",
+  tool, status, verdict, lines, data, images, revision, error, next}`. `data` is a JSON object or null (`m3a help` gives
+  `{tools: [...]}`). It is the same object MCP returns as `structuredContent` and `tools.call` resolves to.
+- **Images** go to `check-output/<tool>/`, each listed with its size and approximate token cost; past 10, the text gives
+  one line for them all unless verbose. MCP also sends them as image content.
+- **Edits** take two extra arguments, which no tool may declare for itself:
+  - `if_revision`: refused, with the current revision, when the target has moved on.
+  - `request_id`: a retry with the same id and arguments returns the first result, and an edit that applied is never
+    applied again; the same id with other arguments is an error. Retries are recognised within one MCP session, page or
+    program using the API.
+  - The `m3a` command refuses `--request-id` for now, because it does not yet keep retries between runs; `m3a help
+    <tool>` marks it "MCP and the API only".
+- **MCP.** Have the client run `m3a mcp` over stdio, for example in `.mcp.json`: `{"mcpServers": {"m3a": {"command":
+  "npx", "args": ["m3a", "mcp"]}}}`.
+  - Tool names use `_` for `.` (`retarget_inspect`).
+  - A wrong argument comes back as a result with `isError`, which says the fix.
+- **In a page:** `import { installConsole, tools } from "@m3a/tools"; installConsole(tools);`, then `await
+  __M3A_TOOLS__.validate({ text })`.
+
 ## Rules and common mistakes
 
 - Clips are data: never edit `clip.keys` by hand to fix motion; use `fix`, or make a new clip with a recipe.

@@ -735,7 +735,7 @@ G1 → 2.1 → 2.2 → 2.3 ; {2.2, 1.4} → 2.4 ; {2.3, 2.4} → 2.5 ; {2.3, 2.5
 G2 → 4.1 → 4.2 → 4.3 → 4.4 → {4.5, 4.6} ; 3.3 → 4.5 ; {4.6, G3} → 4.7 ; {4.5, 4.7} → G4 (M1)
 1.5 → 5.1 → {5.2, 5.7} ; 5.2 → 5.6 → 5.3 ; {5.3, 3.3} → 5.4 → 5.5 ; {5.4, G3} → 5.8 ; {5.5, 5.7, 5.8} → G5
 {G2, 3.3} → 6.1 → {6.2, 6.3, 6.4} ; 6.4 → 6.5 ; {4.7, 6.5} → 6.6 ; {6.2, 6.3, 6.6} → G6
-G4 → 7.1 ; {7.1, 5.5, 5.7, G6} → 7.2 → 7.3 → 7.4 → G7 (M2)
+G4 → 7.1 ; {7.1, 5.5, 5.7, G6} → 7.2a → 7.2b → 7.3 → 7.4 → G7 (M2)
 {4.6, 7.2} → 8.1 → 8.3 ; {8.1, 5.8} → 8.2 ; {8.2, 8.3} → G8
 {G5, G7, 8.2} → 9.1 → {9.2, 9.3} → 9.4 → G9 (M3)
 G7 → {10.1, 10.2} ; {G5, 10.1, 10.2} → G10 (M4)
@@ -1816,9 +1816,10 @@ Split in two (D76): 6.6a the wiring briefs and the runner for any brief, 6.6b th
 ### Phase 7: The datalink (lane I)
 
 #### WP-7.1 The tool registry
-- **Owns:** `packages/tools/src/registry/*`, `packages/tools/src/cli.ts`, `packages/tools/src/mcp.ts`
+- **Owns:** `packages/tools/src/registry/*`, `packages/tools/src/cli.ts`, `packages/tools/src/mcp.ts`, and (D92)
+  `packages/tools/src/node.ts` with the package's `./node` export and `m3a` bin (WP-7.4 builds them for publishing)
 - **Needs:** G4
-- **Size:** M
+- **Size:** M (it came to 1,323 lines, past M, from its verifiers' findings: D92)
 - **Carry:**
   - from my-3d2dge-2:
     - `src/agent/registry.ts` (`defineTool`, `schemaOf`, `validateArgs`, `callTool`);
@@ -1839,29 +1840,57 @@ Split in two (D76): 6.6a the wiring briefs and the runner for any brief, 6.6b th
   an inspector smoke test.
 - **Verify:** `npm test -- registry && npm run e2e -- mcp-smoke`
 
-#### WP-7.2 The tools
-- **Owns:** `packages/tools/src/tools/*`
+#### WP-7.2a The tools: find, check, change, ship
+WP-7.2 is split in two, each an L (D93): its tools, their host and the writers they need come to about 4,500 lines.
+- **Owns:** `packages/tools/src/tools/{index,base,common,clips,workshop,find,check,change,ship}.ts`,
+  `packages/tools/src/node/*`, `packages/tools/test/tools-*.test.ts`, `packages/tools/test/helpers/*`; and (D93) the
+  host's additions in `packages/tools/src/registry/registry.ts`, `src/node.ts` and `src/mcp.ts`, `Library#about` and
+  the export of search's speed conversion in `@m3a/library`, the fix tables' export in `@m3a/sensors`, a strip from
+  `src/sim/film.ts`
 - **Needs:** 7.1, 5.5, 5.7, G6
 - **Size:** L
-- **Carry:** from shardfall: the clip tool (`crates/pav_core/src/clips.rs:496-550`), which returns legend, text, fit,
-  strike time and license, and revisioned edits (`crates/pav_tools/src/anim_tools.rs:749-820`,
-  `docs/ANIMATION_STUDIO.md:185-189`).
-- **Build:** each tool returns short JSON rows, with limits and `next` hints.
+- **Carry:** from shardfall: the clip tool's `name=` branch (`crates/pav_tools/src/anim_tools.rs:750-800`), which
+  returns legend, text, fit, strike time and license (`crates/pav_core/src/clips.rs:496-550` is the strike's
+  measure, which `facts.strike` already gives); revisioned edits (`crates/pav_tools/src/animation_tools.rs:20`,
+  `188-205`, `276-333`, `363-498`; `crates/pav_core/src/animation_edit.rs:208-216`; `docs/ANIMATION_STUDIO.md:185-189`).
+- **Build:** each tool returns short JSON rows, with limits and `next` hints; every tool opens the library at the
+  game's tiers (`game.json`, else cc0, D93).
+  - **The host:** `ctx.library()`, writes only under `workshop/`, `.m3a/`, `imports/` and `check-output/`, and a
+    durable request store, so a retried edit applies once across `m3a` runs.
   - **Find and read:** `search`; `show` (the legend, the clip as text, its provenance); `describe`.
   - **Check:** `metrics`, `sheet`, `film`, `diff`, `lint`.
-  - **Change:** `fix`; `edit` (with revision checks, retry ids and undo).
-  - **Retarget:** `retarget.inspect`, `retarget.apply`.
-  - **Compose and wire:** `recipe.compile`, `graph.validate`, `graph.sim`.
-  - **Exchange:** `import`; `export` (glTF, VRMA, BVH).
+  - **Change:** `fix`; `edit` (with revision checks, retry ids and undo, into `workshop/`).
   - **Ship:** `license.check`. `library.submit` comes with the intake pipeline (WP-9.1, after G5).
-- **Done when:** each tool has a runnable example and a failing-input test, the whole list costs at most 3,000 tokens
-  to describe to a model, and a retried `edit` with the same `request_id` applies once.
-- **Verify:** `npm test -- tools`
+  - `version` and `validate` move under `tools/`.
+- **Done when:** these tools each have a runnable example that replies the same on the four surfaces and a
+  failing-input test; they cost at most 1,900 tokens to describe to a model; a retried `edit` with the same
+  `request_id` applies once (across two `m3a` processes, within one MCP server, and after a crash between the write
+  and the record); a stale `if_revision` is refused with the file unchanged, undo and redo restore the exact bytes,
+  and a file edited outside m3a resets the history.
+- **Verify:** `npm test -- packages/tools && npm run check && npm run doctrine`
+
+#### WP-7.2b The tools: retarget, compose, exchange
+- **Owns:** `packages/tools/src/tools/{body,judge,retarget,compose,exchange}.ts` and their tests; and (D93) a
+  character's bytes in the host, `@m3a/io`'s glTF skeleton reader and its glTF animation and BVH writers (new),
+  `@m3a/io`'s import and VRMA fixes, `@m3a/library`'s set writer (moved from `tools/migrate`), the bind's patch names
+  in `@m3a/three`, and the D80 judge moved from `tools/sweep` (which imports it back)
+- **Needs:** 7.2a
+- **Size:** L
+- **Build:**
+  - **Retarget:** `retarget.inspect`, `retarget.apply`, on a character bound through core (no three.js loader).
+  - **Compose and wire:** `recipe.compile`, `graph.validate`, `graph.sim` (a default body, the conformance rig).
+  - **Exchange:** `import` (into `imports/<SET>/`, a local set); `export` (glTF, VRMA, BVH).
+- **Done when:** these tools each have a runnable example on the four surfaces and a failing-input test; all the
+  tools together cost at most 3,000 tokens to describe; an exported VRMA reads back byte for byte, a .glb re-reads
+  through io to the same joints within 1 mm and a BVH round-trips within 1 mm; an imported set opens as a local set
+  and `license.check` fails it for a shipping game; the sweep's T1 sample gives the same rows after its judge moves;
+  `retarget.inspect` on the tier-1b rigify vector matches its expected mapping.
+- **Verify:** `npm test -- packages/tools packages/io packages/library tools/sweep && npm run doctrine`
 
 #### WP-7.3 The manual and the skill
 - **Owns:** `packages/tools/MANUAL.md`, `.claude/skills/m3a/SKILL.md`, `skills/m3a/` (agentskills.io-compatible),
   `llms.txt`
-- **Needs:** 7.2
+- **Needs:** 7.2b
 - **Size:** M
 - **Build:**
   - **The manual** (at most 8,000 tokens):
@@ -1908,7 +1937,7 @@ Split in two (D76): 6.6a the wiring briefs and the runner for any brief, 6.6b th
 
 #### WP-8.1 The gallery
 - **Owns:** `apps/gallery/**`
-- **Needs:** 4.6, 7.2
+- **Needs:** 4.6, 7.2b
 - **Size:** L
 - **Build:**
   - Browse and search the sets.
@@ -2280,8 +2309,9 @@ version, commit, date and a note with the numbers. Gates are rows too.
 | 6.6a Briefs B2, B3, B7, the wire sections | done | 0.42.5 | 6cdf2e1, 8a53245, e9c0c52, (this commit) | 2026-10-12 | `npm test -- bench/graders`: the B2, B3 and B7 graders each pass their known-good solution and fail every planted bad one (8, 9 and 6), naming the check, on gen-1 (T1 every other planted one) and gen-37 (T2's full step, all); `npm run bench -- B2,B3,B7 --trials 1 --fake` runs them through packed packages in 12.5 s; the manual's wire sections (graphs, events and hit timing, reactions, root motion and stride warping, the simulation), 3,916 of 8,000 tokens (D76); the verifier's round 1 in 0.42.3 (D77): graders reading every body point from the bones, B2's strike, B3 on chest-less characters, B7's fall, wrong solutions that passed now planted bad ones; the known-good B2, B3 and B7 pass on all 40 of gen-20 to 59; round 2 in 0.42.4 (D77): B2's strike shared with its check, B3's knockdown bounded (and core's root motion no longer flings a one-shot that ends off its feet), B4 and B3 judging a standing foot by the lower foot's speed, B7's windows, the starters loading real rigs; the known-goods pass on 40 more seeds each (B4 on 35 VRM seeds); round 3 found it done, its should-fix in 0.42.5: B3's body staying where it lies, B2's damage window and reach |
 | 6.6b Briefs B4, B5, B6, the make sections | done | 0.42.5 | a56a96c, 8a53245, e9c0c52, (this commit) | 2026-10-12 | `npm test -- bench/graders`: the B4, B5 and B6 graders each pass their known-good solution and fail every planted bad one (7, 5 and 4), naming the check, on the default character (gen-40 for B4, a VRM-named chibi; gen-1) in T1 (B4 every other planted one) and on a second seed (gen-44; gen-37) in T2's full step; `npm run bench -- B4,B5,B6 --trials 1 --fake` in 13.3 s; `library.resolver()`; the manual's make sections (recipes, edits, and in 0.42.1 actions), 5,564 of 8,000 tokens; T1 88.6 s, B1's second seed and describe's token count sampled as D74's sweeps (D77); the verifier's round 1 in 0.42.3 (D77): B4 grading steps and a standing foot, the manual's examples no longer the briefs' answers (5,620 tokens), `--variant` for one brief, B4's naming checked; the known-good B4, B5 and B6 pass on all 40 of gen-20 to 59; round 2 in 0.42.4 (D77): B2's strike shared with its check, B3's knockdown bounded (and core's root motion no longer flings a one-shot that ends off its feet), B4 and B3 judging a standing foot by the lower foot's speed, B7's windows, the starters loading real rigs; the known-goods pass on 40 more seeds each (B4 on 35 VRM seeds); round 3 found it done, its should-fix in 0.42.5: B3's body staying where it lies, B2's damage window and reach |
 | **G6** | passed, run 1 | 0.45.1 | a9731b1 | 2026-10-15 | 20 of 20 in 17.2 min (D91, `bench/results/gates/G6-run-1/`): B2, B3, B5, B6 and B7 each 5/5 fresh agents and 5/5 on their held-out variants (seeds 722, 808, 765, 871, 809; each known-good first), 50/50 trials at isolation 1 with a private /tmp, five at a time, $7.15; check 10.6 s, test 76.0 s, doctrine, vectors, the moves; composed clips QA 18.1 s; graphs deterministic 5.7 s; T2 128.8 s; the verifiers' findings fixed in 0.45.2 (every worktree hidden from the agents, a PID namespace, the audit; the records' byte copies) |
-| 7.1 The tool registry | todo | | | | |
-| 7.2 The tools | todo | | | | |
+| 7.1 The tool registry | done | 0.46.0 | 8ee7cb3, a3921f9, 4ae8505, 31a3567, 61b251b | 2026-10-16 | `npm test -- registry` (39 tests) and `npm run e2e -- mcp-smoke` (the MCP Inspector 2.9.0's `tools/list --strict` and `tools/call` on every example, the console handle in Chromium): one `defineTool`, four surfaces (the API, `m3a`, MCP stdio at 2026-07-28 and the legacy handshake, `__M3A_TOOLS__`), one reply `m3a.reply/1`; a parity test on every example, a failing one included; unknown names refused with the closest; request_id kept per tool, an applied edit never twice, the CLI refusing it until 7.2a's durable store; four verifier rounds, 44 targeted mutants killed; 1,323 lines, past M (D92) |
+| 7.2a The tools: find, check, change, ship | todo | | | | |
+| 7.2b The tools: retarget, compose, exchange | todo | | | | |
 | 7.3 The manual and the skill | todo | | | | |
 | 7.4 Packaging | todo | | | | |
 | **G7 = M2** | todo | | | | |
