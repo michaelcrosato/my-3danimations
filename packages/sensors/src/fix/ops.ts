@@ -265,10 +265,18 @@ const ease = (u: number) => (u <= 0 ? 0 : u >= 1 ? 1 : u * u * (3 - 2 * u));
 /** A clip as core's planting reads it: its keys, points, measured contacts, and its root's place (no turn: D41). */
 function plantable(c: Clip, R: Rest, m: Motion, contacts: Clip["contacts"]): contact.Motion {
   const own = (c.keys[0] as K).root !== undefined, belt = !own && m.dur > 0 ? [m.root.at(-1)!.forward / m.dur, m.root.at(-1)!.right / m.dur] : [0, 0];
+  // the points cached by time, as core's planting asks of a host: it follows a held foot along a fixed grid from the
+  // contact's start at every time it plants, and reads the points it is handed without changing them (c is this
+  // motion's own copy, never edited)
+  const memo = new Map<number, Float64Array>();
   return {
     rest: R, dur: c.dur, loop: c.loop, contacts: contacts ?? { by: "detected" },
     key: (t) => format.keyAt(c, t),
-    points: (t) => Float64Array.from(format.pose(R, c, c.loop && t >= c.dur && t < c.dur * 1.000001 ? c.dur * (1 - 1e-12) : t)),
+    points: (t) => {
+      let X = memo.get(t);
+      if (!X) memo.set(t, (X = Float64Array.from(format.pose(R, c, c.loop && t >= c.dur && t < c.dur * 1.000001 ? c.dur * (1 - 1e-12) : t))));
+      return X;
+    },
     root: (t) => {
       if (!own) return { forward: belt[0]! * t, right: belt[1]! * t, yaw: 0 };
       const r = clipNs.rootAt(c, t);

@@ -22,7 +22,10 @@ export interface Root {
 }
 
 type V = [number, number, number];
-const at = (X: ArrayLike<number>, n: string): V => [X[IDX[n]! * 3]!, X[IDX[n]! * 3 + 1]!, X[IDX[n]! * 3 + 2]!];
+const at = (X: ArrayLike<number>, n: string): V => {
+  const i = IDX[n]! * 3;
+  return [X[i]!, X[i + 1]!, X[i + 2]!];
+};
 const lerp = (a: V, b: V, t: number): V => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
 const add = (a: V, b: V, k = 1): V => [a[0] + b[0] * k, a[1] + b[1] * k, a[2] + b[2] * k];
 const sub = (a: V, b: V): V => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];

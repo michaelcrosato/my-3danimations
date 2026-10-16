@@ -9,7 +9,7 @@
 // world while the leg re-solves, released over a few frames.
 import { derived, IDX, ik3, type Rest } from "../format/body.ts";
 import type { V3 } from "../format/math.ts";
-import { limbPoles, type KeyLike } from "../format/pose.ts";
+import { legPoleOf, limbPoles, type KeyLike } from "../format/pose.ts";
 import type { Contacts } from "../format/types.ts";
 import type { RootPose } from "../clip/sample.ts";
 import { PORTABLE } from "../math/portable.ts";
@@ -81,17 +81,26 @@ const BRIDGE = 0.1;
 /** The format's own floor. */
 const FLAT: Ground = () => 0;
 const smooth = (u: number) => (u <= 0 ? 0 : u >= 1 ? 1 : u * u * (3 - 2 * u));
-const get = (X: ArrayLike<number>, n: string): V3 => [X[IDX[n]! * 3]!, X[IDX[n]! * 3 + 1]!, X[IDX[n]! * 3 + 2]!];
-const put = (X: Float64Array, n: string, v: readonly number[]) => {
-  const i = IDX[n]! * 3;
+/** Each side's body points' offsets (index × 3), by the point's name without its side: looked up as `OFF[s][p]`, not by
+ *  a name built per call (`p + s`), whose lookup hashes it every time. */
+const OFF = Object.fromEntries((["L", "R"] as const).map((s) => [s, Object.fromEntries(["clav", "sh", "elbow", "wrist", "index", "knuck", "pinky", "fist", "hip", "knee", "ankle", "ball", "toe"].map((p) => [p, IDX[p + s]! * 3]))])) as Record<"L" | "R", Record<string, number>>;
+/** Point p of side s (p without its side: "ankle"), as a vector. */
+const get = (X: ArrayLike<number>, p: string, s: "L" | "R"): V3 => {
+  const i = OFF[s][p]!;
+  return [X[i]!, X[i + 1]!, X[i + 2]!];
+};
+/** Point p of side s set to v. */
+const put = (X: Float64Array, p: string, s: "L" | "R", v: readonly number[]) => {
+  const i = OFF[s][p]!;
   X[i] = v[0]!;
   X[i + 1] = v[1]!;
   X[i + 2] = v[2]!;
 };
+/** A pose-frame point in the world, by the root whose heading's cosine and sine are c and sn. */
+const worldBy = (root: RootPose, c: number, sn: number, p: readonly number[]): V3 => [root.forward + p[0]! * c - p[1]! * sn, root.right + p[0]! * sn + p[1]! * c, p[2]!];
 /** A pose-frame point in the world, by the root. */
 export function toWorld(root: RootPose, p: readonly number[]): V3 {
-  const c = PORTABLE.cos(root.yaw * DEG), s = PORTABLE.sin(root.yaw * DEG);
-  return [root.forward + p[0]! * c - p[1]! * s, root.right + p[0]! * s + p[1]! * c, p[2]!];
+  return worldBy(root, PORTABLE.cos(root.yaw * DEG), PORTABLE.sin(root.yaw * DEG), p);
 }
 /** A world point in the pose's frame, by the root. */
 export function toPose(root: RootPose, w: readonly number[]): V3 {
@@ -134,18 +143,22 @@ function bridged(c: Contacts, dur: number, loop: boolean): Contacts {
 /** The contact of `end` that `t` falls in or just after (within `tail` seconds), as absolute times [a, b], or null. */
 function contactAt(m: Motion, end: keyof Contacts & string, t: number, tail: number): [number, number] | null {
   const iv = (m.contacts as unknown as Record<string, [number, number][] | undefined>)[end] ?? [];
-  const loop = m.loop && m.dur > 0, cycles = loop ? [Math.floor(t / m.dur) - 1, Math.floor(t / m.dur)] : [0];
+  const loop = m.loop && m.dur > 0, kf = loop ? Math.floor(t / m.dur) : 0, cycles = loop ? 2 : 1;
   // in a loop, a contact running to the cycle's end and another starting at its start are one contact through the
   // seam (one contact the whole cycle long stays one a cycle)
   const last = loop ? iv.find(([a, b]) => b >= m.dur - 1e-6 && a > 1e-6) : undefined, first = last ? iv.find(([a]) => a <= 1e-6) : undefined;
-  // the latest one: at a loop's seam, t is both the end of a cycle's contact and the start of the next's
-  let best: [number, number] | null = null;
-  for (const k of cycles) for (const iv0 of iv) {
-    if (iv0 === first) continue;
-    const [a0, b0] = iv0, a = a0 + k * m.dur, b = (iv0 === last && first ? m.dur + first[1] : b0) + k * m.dur;
-    if (t >= a && t <= b + tail && (!best || a > best[0])) best = [a, b];
+  // the latest one: at a loop's seam, t is both the end of a cycle's contact and the start of the next's (the cycle
+  // before t's and t's own in a loop, in that order; held as two numbers, not an array a candidate)
+  let found = false, ba = 0, bb = 0;
+  for (let c = 0; c < cycles; c++) {
+    const k = loop ? (c === 0 ? kf - 1 : kf) : 0;
+    for (const iv0 of iv) {
+      if (iv0 === first) continue;
+      const a0 = iv0[0], b0 = iv0[1], a = a0 + k * m.dur, b = (iv0 === last && first ? m.dur + first[1] : b0) + k * m.dur;
+      if (t >= a && t <= b + tail && (!found || a > ba)) [found, ba, bb] = [true, a, b];
+    }
   }
-  return best;
+  return found ? [ba, bb] : null;
 }
 
 /** How fully `end` is held at t: 1 in a contact, easing out over `ease` seconds after it and in over `ease` before the next. */
@@ -159,11 +172,15 @@ function held(m: Motion, end: keyof Contacts & string, t: number, ease: number):
 /** The start of end's next contact within `within` seconds after t (a loop's next cycle included), or null. */
 function startAhead(m: Motion, end: keyof Contacts & string, t: number, within: number): number | null {
   const iv = (m.contacts as unknown as Record<string, [number, number][] | undefined>)[end] ?? [];
-  const loop = m.loop && m.dur > 0, cycles = loop ? [Math.floor(t / m.dur), Math.floor(t / m.dur) + 1] : [0];
+  const loop = m.loop && m.dur > 0, kf = loop ? Math.floor(t / m.dur) : 0, cycles = loop ? 2 : 1;
   let best: number | null = null;
-  for (const k of cycles) for (const [a0] of iv) {
-    const a = a0 + k * m.dur;
-    if (a > t && a <= t + within && (best === null || a < best)) best = a;
+  // (t's cycle and the next in a loop, in that order)
+  for (let c = 0; c < cycles; c++) {
+    const k = loop ? (c === 0 ? kf : kf + 1) : 0;
+    for (const iv0 of iv) {
+      const a = iv0[0] + k * m.dur;
+      if (a > t && a <= t + within && (best === null || a < best)) best = a;
+    }
   }
   return best;
 }
@@ -180,7 +197,7 @@ export function plant(m0: Motion, t: number, opts: PlantOptions = {}): Float64Ar
   const m: Motion = { ...m0, contacts: bridged(m0.contacts, m0.dur, m0.loop) }, R = m.rest, blend = opts.blend ?? 0.05, ground = opts.ground, surface = ground ?? FLAT, settle = opts.settle ?? true;
   const settleBlend = Math.max(blend, opts.settleBlend ?? 0.2), release = Math.max(blend, opts.release ?? 0.2), settleSmooth = opts.settleSmooth ?? 0.1;
   const X = Float64Array.from(m.points(t));
-  const k = m.key(t), poles = limbPoles(R, k), root = m.root(t);
+  const k = m.key(t), root = m.root(t);
   const clipLegs = { L: legOf(X, "L"), R: legOf(X, "R") };
   const shift = (dz: number) => {
     for (let i = 2; i < X.length; i += 3) X[i] = X[i]! + dz;
@@ -195,7 +212,7 @@ export function plant(m0: Motion, t: number, opts: PlantOptions = {}): Float64Ar
     // hold the contact point still in the world: undo the world drift of the foot's lowest sole point since the foot
     // landed (whichever point is lowest at each step: the heel at strike, the ball and toes at push-off)
     const foot = FOOT.map((p) => {
-      const v = get(X, p + s);
+      const v = get(X, p, s);
       return [v[0] - h[0], v[1] - h[1], v[2]] as V3;
     });
     const planted = c !== null && t <= c[1];
@@ -311,7 +328,7 @@ export function plant(m0: Motion, t: number, opts: PlantOptions = {}): Float64Ar
   // averaged above, with `settle`, falls short of it: a foot landing on a step up, a long stride), and a free foot goes
   // down with the body, kept out of the surface
   let more = 0;
-  for (const s of ["L", "R"] as const) if (targets[s].on > 0) more = Math.max(more, targets[s].on * reachDrop(R, get(X, "hip" + s), targets[s].foot[0]!));
+  for (const s of ["L", "R"] as const) if (targets[s].on > 0) more = Math.max(more, targets[s].on * reachDrop(R, get(X, "hip", s), targets[s].foot[0]!));
   if (more > 0) {
     shift(-more);
     for (const s of ["L", "R"] as const) {
@@ -320,9 +337,9 @@ export function plant(m0: Motion, t: number, opts: PlantOptions = {}): Float64Ar
       targets[s].foot = onGround(lowered, R, root, surface, false);
     }
   }
-  for (const s of ["L", "R"] as const) FOOT.forEach((p, i) => put(X, p + s, targets[s].foot[i]!));
+  for (const s of ["L", "R"] as const) FOOT.forEach((p, i) => put(X, p, s, targets[s].foot[i]!));
   solveLegs(X, R, k, clipLegs);
-  reachAll(X, R, root, opts.hands, poles);
+  reachAll(X, R, root, opts.hands, () => limbPoles(R, k));
   return X;
 }
 
@@ -330,18 +347,20 @@ export function plant(m0: Motion, t: number, opts: PlantOptions = {}): Float64Ar
  *  its shape on the ankle the leg reaches. */
 function solveLegs(X: Float64Array, R: Rest, k: KeyLike, clipLegs: Record<"L" | "R", { d: V3; o: V3 }>): void {
   for (const s of ["L", "R"] as const) {
-    const foot = FOOT.map((p) => get(X, p + s)), hip = get(X, "hip" + s);
+    const foot = FOOT.map((p) => get(X, p, s)), hip = get(X, "hip", s);
     const [kn, an] = ik3(hip, foot[0]!, R.thigh, R.shin, legPole(clipLegs[s], R, k, s, hip, foot[0]!));
     const d = [an[0] - foot[0]![0], an[1] - foot[0]![1], an[2] - foot[0]![2]];
-    put(X, "knee" + s, kn);
-    FOOT.forEach((p, i) => put(X, p + s, foot[i]!.map((x, j) => x + d[j]!)));
+    put(X, "knee", s, kn);
+    FOOT.forEach((p, i) => put(X, p, s, foot[i]!.map((x, j) => x + d[j]!)));
   }
 }
 /** The hands drawn to their targets, if any. */
-function reachAll(X: Float64Array, R: Rest, root: RootPose, hands: PlantOptions["hands"], poles: ReturnType<typeof limbPoles>): void {
+function reachAll(X: Float64Array, R: Rest, root: RootPose, hands: PlantOptions["hands"], polesOf: () => ReturnType<typeof limbPoles>): void {
+  // the arms' poles found only for a hand that reaches (the key's own: a pure function of it, so when is no matter)
+  let poles: ReturnType<typeof limbPoles> | undefined;
   for (const s of ["L", "R"] as const) {
     const h = hands?.[s];
-    if (h && h.weight > 0) reach(X, R, s, toPose(root, h.at), Math.min(1, h.weight), poles[`arm${s}`]);
+    if (h && h.weight > 0) reach(X, R, s, toPose(root, h.at), Math.min(1, h.weight), (poles ??= polesOf())[`arm${s}`]);
   }
 }
 
@@ -365,7 +384,7 @@ export function plantMix(parts: readonly PlantPart[], X: ArrayLike<number>, k: K
     for (let i = 0; i < out.length; i++) out[i] = out[i]! + (planted[i]! - own[i]!) * w;
   }
   solveLegs(out, R, k, clipLegs);
-  reachAll(out, R, root, opts.hands, limbPoles(R, k));
+  reachAll(out, R, root, opts.hands, () => limbPoles(R, k));
   return out;
 }
 
@@ -377,8 +396,8 @@ function gapOf(foot: V3[], R: Rest, root: RootPose, surface: Ground): number {
 /** How far the body is moved onto the ground: onto the lower foot's ground under a probe, so both legs reach theirs. */
 function groundShift(X: ArrayLike<number>, root: RootPose, ground: Ground | undefined): number {
   if (!ground) return 0;
-  const g = ["L", "R"].map((s) => {
-    const w = toWorld(root, get(X, "ankle" + s));
+  const g = (["L", "R"] as const).map((s) => {
+    const w = toWorld(root, get(X, "ankle", s));
     return ground(w[0], w[1]);
   });
   return Math.min(g[0]!, g[1]!);
@@ -392,7 +411,7 @@ function groundShift(X: ArrayLike<number>, root: RootPose, ground: Ground | unde
 function floatAt(m: Motion, s: "L" | "R", at: number, a: number, ground: Ground | undefined): number {
   const X = m.points(at), root = m.root(at), drift = ground && at > a ? slide(m, s, a, at, ground) : [0, 0];
   const foot = FOOT.map((p) => {
-    const v = get(X, p + s);
+    const v = get(X, p, s);
     return [v[0] - drift[0]!, v[1] - drift[1]!, v[2]] as V3;
   });
   return gapOf(foot, m.rest, root, ground ?? FLAT);
@@ -421,7 +440,7 @@ function dropAt(m: Motion, u: number, up: number, settled: number, g: Record<"L"
   for (const s of ["L", "R"] as const) {
     const w = held(m, `foot${s}`, u, ease);
     if (!(w > 0)) continue;
-    const hip = get(X, "hip" + s), an = get(X, "ankle" + s), h = hold(u, s);
+    const hip = get(X, "hip", s), an = get(X, "ankle", s), h = hold(u, s);
     out = Math.max(out, w * reachDrop(m.rest, [hip[0], hip[1], hip[2] + up], [an[0] - h[0], an[1] - h[1], an[2] + up + Math.max(0, -(g[s] + settled))]));
   }
   return out;
@@ -433,14 +452,14 @@ function dropAt(m: Motion, u: number, up: number, settled: number, g: Record<"L"
 function floatHeld(m: Motion, s: "L" | "R", u: number, off: readonly [number, number], ground: Ground | undefined): number {
   const X = m.points(u), root = m.root(u);
   return gapOf(FOOT.map((p) => {
-    const v = get(X, p + s);
+    const v = get(X, p, s);
     return [v[0] - off[0], v[1] - off[1], v[2]] as V3;
   }), m.rest, root, ground ?? FLAT);
 }
 
 /** Leg s as the clip has it, before planting: the hip-to-ankle vector and the knee's offset from that line. */
 function legOf(X: ArrayLike<number>, s: "L" | "R"): { d: V3; o: V3 } {
-  const hip = get(X, "hip" + s), d = sub(get(X, "ankle" + s), hip), kn = sub(get(X, "knee" + s), hip);
+  const hip = get(X, "hip", s), d = sub(get(X, "ankle", s), hip), kn = sub(get(X, "knee", s), hip);
   const dd = dot(d, d), along = dd > 1e-18 ? dot(kn, d) / dd : 0;
   return { d, o: [kn[0] - d[0] * along, kn[1] - d[1] * along, kn[2] - d[2] * along] };
 }
@@ -454,7 +473,7 @@ function legOf(X: ArrayLike<number>, s: "L" | "R"): { d: V3; o: V3 } {
  */
 function legPole(clip: { d: V3; o: V3 }, R: Rest, k: KeyLike, s: "L" | "R", hip: V3, ankle: V3): V3 {
   const leg = k[`leg${s}`] as number[] | undefined;
-  const natural = limbPoles(R, { ...k, [`leg${s}`]: leg ? [leg[0]!, leg[1]!, leg[2]!, leg[3] ?? 0, 0] : leg } as KeyLike)[`leg${s}`];
+  const natural = legPoleOf(R, { ...k, [`leg${s}`]: leg ? [leg[0]!, leg[1]!, leg[2]!, leg[3] ?? 0, 0] : leg } as KeyLike, s);
   const ol = Math.sqrt(dot(clip.o, clip.o)), dist = Math.sqrt(dot(sub(ankle, hip), sub(ankle, hip)));
   // the knee's offset the solve gives at this reach (ik3's), clamped to the leg's
   const r = Math.min(R.thigh + R.shin, Math.max(Math.abs(R.thigh - R.shin), dist)), x = r > 1e-9 ? (R.thigh * R.thigh - R.shin * R.shin + r * r) / (2 * r) : 0;
@@ -475,14 +494,20 @@ const dot = (a: readonly number[], b: readonly number[]) => a[0]! * b[0]! + a[1]
 /** Steps per second when following a planted foot's drift. */
 const STEPS = 60;
 /** The world move (forward, right; mm) of foot s's lowest sole point (lowest at t0, against the ground) from t0 to t1. */
-function step(m: Motion, s: string, t0: number, t1: number, ground?: Ground): [number, number] {
-  const X0 = m.points(t0), r0 = m.root(t0), X1 = m.points(t1), r1 = m.root(t1);
+function step(m: Motion, s: "L" | "R", t0: number, t1: number, ground?: Ground): [number, number] {
+  const X0 = m.points(t0), r0 = m.root(t0), X1 = m.points(t1), r1 = m.root(t1), c0 = PORTABLE.cos(r0.yaw * DEG), s0 = PORTABLE.sin(r0.yaw * DEG);
   let low = "ankle", lz = Infinity;
-  for (const p of ["ankle", "ball", "toe"]) {
-    const q = get(X0, p + s), w = toWorld(r0, q), z = (p === "ankle" ? q[2] - m.rest.ankleZ : q[2]) - (ground ? ground(w[0], w[1]) : 0);
+  for (const p of FOOT) {
+    const q = get(X0, p, s);
+    let z = p === "ankle" ? q[2] - m.rest.ankleZ : q[2];
+    // the point in the world only to read the ground under it (flat: z − 0 is z)
+    if (ground) {
+      const w = worldBy(r0, c0, s0, q);
+      z -= ground(w[0], w[1]);
+    }
     if (z < lz) [low, lz] = [p, z];
   }
-  const w0 = toWorld(r0, get(X0, low + s)), w1 = toWorld(r1, get(X1, low + s));
+  const w0 = worldBy(r0, c0, s0, get(X0, low, s)), w1 = toWorld(r1, get(X1, low, s));
   return [w1[0] - w0[0], w1[1] - w0[1]];
 }
 /** The world drift (mm) to turn into the frame the pose has at t. */
@@ -496,7 +521,7 @@ function inFrame(m: Motion, t: number, d: readonly [number, number]): [number, n
  * a fixed grid from a (whole 1/STEPS steps, then the part to t), so a host that caches poses by time decodes each
  * step once however often it plants.
  */
-function slide(m: Motion, s: string, a: number, t: number, ground?: Ground): [number, number] {
+function slide(m: Motion, s: "L" | "R", a: number, t: number, ground?: Ground): [number, number] {
   let df = 0, dr = 0, t0 = a;
   for (let i = 1; a + i / STEPS < t - 1e-9; i++) {
     const d = step(m, s, t0, a + i / STEPS, ground);
@@ -517,11 +542,11 @@ type Hold = (u: number, s: "L" | "R") => [number, number];
  * their own hold at the cost of one.
  */
 function holds(m: Motion, release: number, ground: Ground | undefined): Hold {
-  const paths = new Map<string, [number, number][]>();
-  /** The world drift from a to x along the grid from a, the sums kept. */
+  const paths = { L: new Map<number, [number, number][]>(), R: new Map<number, [number, number][]>() };
+  /** The world drift from a to x along the grid from a, the sums kept (by side, then by a). */
   const drift = (s: "L" | "R", a: number, x: number): [number, number] => {
-    let sums = paths.get(s + a);
-    if (!sums) paths.set(s + a, (sums = [[0, 0]]));
+    let sums = paths[s].get(a);
+    if (!sums) paths[s].set(a, (sums = [[0, 0]]));
     const k = Math.max(0, Math.ceil((x - a) * STEPS - 1e-6) - 1);
     while (sums.length <= k) {
       const i = sums.length - 1, d = step(m, s, a + i / STEPS, a + (i + 1) / STEPS, ground);
@@ -581,18 +606,18 @@ function onGround(foot: V3[], R: Rest, root: RootPose, ground: Ground, planted: 
 
 /** Draws arm s toward a target (pose frame) by weight w: the arm solved to reach it, blended with the pose's. */
 function reach(X: Float64Array, R: Rest, s: "L" | "R", target: V3, w: number, pole: V3): void {
-  const D = derived(R), sh = get(X, "sh" + s);
+  const D = derived(R), sh = get(X, "sh", s);
   const [el, fist] = ik3(sh, target, R.up, D.lower, pole);
   const fd = [fist[0] - el[0], fist[1] - el[1], fist[2] - el[2]], l = PORTABLE.hypot(fd[0]!, fd[1]!, fd[2]!) || 1;
   const solved: Record<string, V3> = { elbow: el, fist, wrist: [el[0] + (fd[0]! / l) * R.fore, el[1] + (fd[1]! / l) * R.fore, el[2] + (fd[2]! / l) * R.fore] };
   solved.knuck = [solved.wrist![0] + (fd[0]! / l) * R.knuck, solved.wrist![1] + (fd[1]! / l) * R.knuck, solved.wrist![2] + (fd[2]! / l) * R.knuck];
   const shift = (n: string) => {
-    const v = get(X, n + s), to = solved[n]!;
-    put(X, n + s, v.map((x, i) => x + (to[i]! - x) * w));
+    const v = get(X, n, s), to = solved[n]!;
+    put(X, n, s, v.map((x, i) => x + (to[i]! - x) * w));
   };
   // index and pinky move with the fist
-  const f0 = get(X, "fist" + s);
+  const f0 = get(X, "fist", s);
   for (const n of ["elbow", "wrist", "knuck", "fist"]) shift(n);
-  const f1 = get(X, "fist" + s);
-  for (const n of ["index", "pinky"]) put(X, n + s, get(X, n + s).map((x, i) => x + f1[i]! - f0[i]!));
+  const f1 = get(X, "fist", s);
+  for (const n of ["index", "pinky"]) put(X, n, s, get(X, n, s).map((x, i) => x + f1[i]! - f0[i]!));
 }

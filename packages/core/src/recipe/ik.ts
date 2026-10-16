@@ -11,7 +11,10 @@ import { build, envelope } from "./steps.ts";
 import { poseAt, rootAt } from "./track.ts";
 import type { Track } from "./types.ts";
 
-const pt = (X: ArrayLike<number>, n: string): V3 => [X[IDX[n]! * 3]!, X[IDX[n]! * 3 + 1]!, X[IDX[n]! * 3 + 2]!];
+const pt = (X: ArrayLike<number>, n: string): V3 => {
+  const i = IDX[n]! * 3;
+  return [X[i]!, X[i + 1]!, X[i + 2]!];
+};
 const put = (X: Float32Array, n: string, v: readonly number[]) => X.set(v, IDX[n]! * 3);
 /** The rotation taking direction a to direction b the shortest way (a half turn about any perpendicular for opposites). */
 function between(a: V3, b: V3): Quat {

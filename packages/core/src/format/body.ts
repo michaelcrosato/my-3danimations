@@ -103,11 +103,20 @@ export const unwrap = (v: number, prev: number | undefined): number => (prev ===
 const REST = { arm: (s: number): V3 => [0.5, s * 0.5, -0.7], leg: (_s: number): V3 => [0.3, 0, -1] };
 const BEND = { arm: (s: number): V3 => [-1, s * 0.5, -0.3], leg: (s: number): V3 => [1, s * 0.1, 0] };
 const across = (h: V3, d: V3): V3 => norm(sub(h, mul(d, dot(h, d))));
+const START = { arm: new Map<number, [V3, V3]>(), leg: new Map<number, [V3, V3]>() };
+/** A limb's rest direction r and the bend across it n0 for side sign s: the same for every pose, so found once. */
+function startOf(limb: "arm" | "leg", s: number): [V3, V3] {
+  let v = START[limb].get(s);
+  if (!v) {
+    const r = norm(REST[limb](s));
+    START[limb].set(s, (v = [r, across(norm(BEND[limb](s)), r)]));
+  }
+  return v;
+}
 /** The twist reference for a limb pointing `dLocal` (in frame M), in M's parent coordinates. */
 export function hintFor(limb: "arm" | "leg", s: number, M: Frame, dLocal: V3): V3 {
   const d = norm(dLocal);
-  const r = norm(REST[limb](s));
-  const n0 = across(norm(BEND[limb](s)), r);
+  const [r, n0] = startOf(limb, s);
   const ax = cross(r, d);
   const sn = len(ax);
   const cs = dot(r, d);

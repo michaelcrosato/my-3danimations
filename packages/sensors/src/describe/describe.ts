@@ -204,8 +204,8 @@ export function describe(clip: MetricClip, R: Rest, opts: DescribeOptions = {}):
     const what = next.name === "lie" ? `on the ${next.detail.replace(/^on the /, "")}` : next.name === "sit" ? "seated" : `on the ${f[0] <= f[1] ? "left" : "right"} foot`;
     moments.push({ name: "land", t: next.t0, text: `lands ${what} at ${fmt(next.t0)} s` });
   });
-  // strikes: the fastest end at each strike the facts measured
-  const facts = measureFacts(clip as Clip, R);
+  // strikes: the fastest end at each strike the facts measured (on the motion's samples: the clip's at 60 a second)
+  const facts = measureFacts(clip as Clip, R, {}, { frames: m.frames, dt: m.dt });
   for (const t of facts.strike ?? []) {
     const i = Math.max(1, Math.min(m.frames.length - 1, Math.round(t / m.dt)));
     let best = "", speed = 0;

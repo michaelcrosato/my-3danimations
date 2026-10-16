@@ -8,7 +8,7 @@ import { PORTABLE } from "../math/portable.ts";
 import { IDX, type Rest } from "../format/body.ts";
 import type { Contacts } from "../format/types.ts";
 import { rootAt, type Playable, type RootPose } from "../clip/sample.ts";
-import { sampleAll } from "../clip/contacts.ts";
+import { sampleLegs } from "../clip/contacts.ts";
 
 /** Gravity, mm/s². */
 const G = 9810;
@@ -28,7 +28,8 @@ export function contactRoot(clip: Playable, R: Rest, contacts: Contacts, fps = 6
       return { forward: r.forward * k, right: r.right * k, yaw: r.yaw };
     }, speed: clip.dur > 0 ? (PORTABLE.hypot(end.forward, end.right) * k) / clip.dur : 0 };
   }
-  const { frames, dt } = sampleAll(clip, R, fps);
+  // (the feet and the pelvis are all it reads: sampleAll's points for them, the rest of the body left undecoded)
+  const { frames, dt } = sampleLegs(clip, R, fps);
   const n = frames.length - 1, dur = clip.dur;
   const planted = (end: "footL" | "footR", t: number) => (contacts[end] ?? []).some(([a, b]) => (t >= a && t <= b) || (clip.loop && b > dur && t <= b - dur));
   const vel: (number[] | null)[] = [];

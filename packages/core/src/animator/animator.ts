@@ -195,6 +195,20 @@ function between(a: RootPose, b: RootPose): RootPose {
   const c = PORTABLE.cos(a.yaw * DEG), s = PORTABLE.sin(a.yaw * DEG), f = b.forward - a.forward, r = b.right - a.right;
   return { forward: f * c + r * s, right: -f * s + r * c, yaw: b.yaw - a.yaw };
 }
+/**
+ * A planting motion's root at time t: the clip's path from `now`, anchored where the root stands (`at`). Planting asks
+ * the same times again and again within one pose (each foot's hold, float and drop over the settle's window), and the
+ * answer is the same each time (neither the anchor nor the path moves while it poses), so each time's is found once,
+ * read and never changed.
+ */
+function rootFrom(at: RootPose, now: RootPose, path: ContactRoot): (t: number) => RootPose {
+  const memo = new Map<number, RootPose>();
+  return (t) => {
+    let r = memo.get(t);
+    if (!r) memo.set(t, (r = compose(at, between(now, path.root(t)))));
+    return r;
+  };
+}
 const finite = (x: unknown): x is number => typeof x === "number" && Number.isFinite(x);
 /** x with −0 made +0: JSON writes −0 as 0, so state keeps no −0 and a restored Animator hashes the same. */
 const z = (x: number): number => x + 0;
@@ -480,7 +494,7 @@ export class Animator {
       // a cross-fade or blend: each layer plants its own clip, and their corrections blend by their shares of the legs
       const at = this.#root, parts: PlantPart[] = shares.map(({ L, w }) => {
         const c = L.src!, path = this.#path(c), now = path.root(L.time);
-        return { w, t: L.time, m: { rest: b.rest, dur: c.dur, loop: c.loop, contacts: c.contacts ?? NONE, key: (t) => this.#keyOf(c, t), points: (t) => this.#decoded(c, t), root: (t) => compose(at, between(now, path.root(t))) } };
+        return { w, t: L.time, m: { rest: b.rest, dur: c.dur, loop: c.loop, contacts: c.contacts ?? NONE, key: (t) => this.#keyOf(c, t), points: (t) => this.#decoded(c, t), root: rootFrom(at, now, path) } };
       });
       s = solve(k, b, { points: plantMix(parts, decodeOn(b, k, source), k, at, plantOpts), ...(source ? { source } : {}) });
     } else {
@@ -491,7 +505,7 @@ export class Animator {
         rest: b.rest, dur: c.dur, loop: c.loop, contacts: c.contacts ?? NONE,
         key: (t) => (t === tL ? k : this.#keyOf(c, t)),
         points: (t) => (t === tL ? X : this.#decoded(c, t)),
-        root: (t) => compose(at, between(now, path.root(t))),
+        root: rootFrom(at, now, path),
       };
       s = solve(k, b, { points: plant(m, tL, plantOpts), ...(source ? { source } : {}) });
     }

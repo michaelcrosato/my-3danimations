@@ -136,13 +136,16 @@ describe("step", () => {
 });
 
 describe("pose", () => {
+  /** The script run posing every step, and at alternating detail: run once, on first use, and read by both tests below. */
+  let posed: { every: ReturnType<typeof runScript>; lod: ReturnType<typeof runScript> } | undefined;
+  const runs = () => (posed ??= { every: runScript(core, data, { poses: "every" }), lod: runScript(core, data, { poses: "lod" }) });
   it("never changes the hashes or events, taken every step or at alternating detail", () => {
-    expect(runScript(core, data, { poses: "every" })).toEqual(straight);
-    expect(runScript(core, data, { poses: "lod" })).toEqual(straight);
+    expect(runs().every).toEqual(straight);
+    expect(runs().lod).toEqual(straight);
   });
   it("gives an exact pose bit for bit, however presentation was posed (or not) before it", () => {
     expect(Object.keys(straight.exact).map(Number)).toEqual(EXACT);
-    const every = runScript(core, data, { poses: "every" }).exact, lod = runScript(core, data, { poses: "lod" }).exact;
+    const every = runs().every.exact, lod = runs().lod.exact;
     expect(every).toEqual(straight.exact);
     expect(lod).toEqual(straight.exact);
   });
