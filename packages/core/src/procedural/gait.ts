@@ -217,13 +217,17 @@ function ankleAt(R: Rest, hip: V3, RP: Frame, l: readonly number[], s: Side, rea
 /** A limb's numbers (an arm's or a leg's) rounded as a key holds them (quantize's for the field): the direction scaled to
  *  100, each number within its range and whole. */
 function roundLimb(x: readonly number[]): number[] {
-  const l = Math.sqrt(x[0]! * x[0]! + x[1]! * x[1]! + x[2]! * x[2]!), v = l > 1e-9 ? [x[0]! * (100 / l), x[1]! * (100 / l), x[2]! * (100 / l), ...x.slice(3)] : x;
-  return v.map((n, i) => {
-    const r = LIMB.ranges[i], c = r ? Math.min(r[1], Math.max(r[0], n)) : n;
-    return Math.round(c) + 0;
-  });
+  const l = Math.sqrt(x[0]! * x[0]! + x[1]! * x[1]! + x[2]! * x[2]!), k = 100 / l, out: number[] = [];
+  // (a loop, not a map over a copy: snapLegs rounds 81 candidates a leg with it)
+  for (let i = 0; i < x.length; i++) {
+    const n = l > 1e-9 && i < 3 ? x[i]! * k : x[i]!, r = LIMB.ranges[i], c = r ? Math.min(r[1], Math.max(r[0], n)) : n;
+    out.push(Math.round(c) + 0);
+  }
+  return out;
 }
 const LIMB = KEY_FIELDS.legL!;
+/** Each of a leg's four placing numbers' place in snapLegs's 81 candidates (base 3). */
+const POW3 = [1, 3, 9, 27];
 
 /**
  * A pose rounded as a key is (quantize), its legs' numbers each chosen from the whole numbers about their roundings to
@@ -252,7 +256,7 @@ export function snapLegs(R: Rest, p: Pose, X: Float32Array, goals: Partial<Recor
     // (each as a key holds it: quantize scales a direction to 100 again, so a candidate is judged as it will be written)
     const r = raw.map((x) => Math.round(x)), c = [0, 0, 0, 0, base[4]!];
     for (let m = 0; m < 81; m++) {
-      for (let i = 0; i < 4; i++) c[i] = r[i]! + (Math.floor(m / [1, 3, 9, 27][i]!) % 3) - 1;
+      for (let i = 0; i < 4; i++) c[i] = r[i]! + (Math.floor(m / POW3[i]!) % 3) - 1;
       const v = roundLimb(c), e = miss(v);
       if (e < err) [best, err] = [v, e];
     }

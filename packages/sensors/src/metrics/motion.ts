@@ -58,7 +58,8 @@ export interface Motion {
 /** A clip sampled for the metrics on rest R, at `rate` samples a second. */
 export function motionOf(clip: MetricClip, R: Rest, rate = 60): Motion {
   const sampled = clipNs.sampleAll(clip as Clip, R, rate);
-  const facts = measureFacts(clip as Clip, R, { fps: rate });
+  // the facts read the same samples (measureFacts would sample the clip again at this rate, to the same points)
+  const facts = measureFacts(clip as Clip, R, { fps: rate }, sampled);
   const dt = sampled.dt, times = sampled.frames.map((_, i) => i * dt);
   const own = (clip.keys[0] as { root?: unknown }).root !== undefined, k = R.H0 / 100;
   // the treadmill an in-place loop runs on: its measured travel per cycle, in mm per second. Only a loop that steps
@@ -153,10 +154,13 @@ export function stance(m: Motion, heights = false): NonNullable<Clip["contacts"]
   for (const end of ["footL", "footR", "handL", "handR"] as const) {
     const on: boolean[] = [];
     let down = false;
+    // each sample's end points found once (each is read as a sample's own and as its neighbours'), read, never changed
+    const pts: ReturnType<typeof endPoints>[] = [], ends = (j: number) => (pts[j] ??= endPoints(m, m.frames[j]!, end));
     for (let i = 0; i <= n; i++) {
-      const lo = lowest(m, i, end), h = Math.abs(lo.p[2]);
+      // (lowest's reading, on the points found)
+      const lo = ends(i).reduce((a, b) => (b.p[2] < a.p[2] ? b : a)), h = Math.abs(lo.p[2]);
       // the world speed of the lowest point, across the samples either side
-      const i0 = Math.max(0, i - 1), i1 = Math.min(n, i + 1), find = (j: number) => endPoints(m, m.frames[j]!, end).find((x) => x.name === lo.name)!.p;
+      const i0 = Math.max(0, i - 1), i1 = Math.min(n, i + 1), find = (j: number) => ends(j).find((x) => x.name === lo.name)!.p;
       const w0 = world(m, i0, find(i0)), w1 = world(m, i1, find(i1)), v = i1 > i0 ? PORTABLE.hypot(w1[0] - w0[0], w1[1] - w0[1]) / ((i1 - i0) * m.dt) : 0;
       // and its speed against the pelvis: a foot carried along with the body (a glide, a dragged foot) stands however fast
       const p0 = world(m, i0, at(m.frames[i0]!, "pelvis")), p1 = world(m, i1, at(m.frames[i1]!, "pelvis"));

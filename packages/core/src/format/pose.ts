@@ -3,7 +3,7 @@
 // bit (tiers 1a and 2). Format 2's optional fields (hand, fingers, spine) take separate branches that a key without
 // them never enters.
 import { bendOf, derived, hintFor, IDX, ik3, limbEnd, P, poleHint, poleOf, pt, reachOf, SG, unwrap, type Rest, type Side } from "./body.ts";
-import { add, compose, cross, dot, DG, euler, frameFR, frameUF, fromEuler, len, loc, mul, norm, qFromTo, qrot, qslerp, rel, sub, wld, type Frame, type V3 } from "./math.ts";
+import { add, compose, cross, dot, DG, euler, frameFR, frameUF, fromEuler, len, loc, mul, norm, qconj, qmul, quatOf, qrot, qslerp, rel, sub, wld, type Frame, type Quat, type V3 } from "./math.ts";
 import type { Key } from "./types.ts";
 import { PORTABLE as PM } from "../math/portable.ts";
 
@@ -17,6 +17,45 @@ const STEADY_BEND = 25;
 const STEADY_JUMP = 45;
 const SIDES: Side[] = ["L", "R"];
 const arr = (k: KeyLike, f: string) => k[f] as number[] | undefined;
+/** Each side's key fields, named once: a name built per call ("arm" + s) costs a lookup by its hash every time. */
+const NAMES = {
+  L: { arm: "armL", leg: "legL", foot: "footL", hand: "handL", fingers: "fingersL", sh: "shL" },
+  R: { arm: "armR", leg: "legR", foot: "footR", hand: "handR", fingers: "fingersR", sh: "shR" },
+} as const;
+/** A body point's offset in a body-point array (its index × 3). */
+const at = (n: string) => IDX[n]! * 3;
+/** Each side's body points' offsets, found once. */
+const SIDE_AT = Object.fromEntries(SIDES.map((s) => [s, Object.fromEntries(["clav", "sh", "elbow", "wrist", "knuck", "fist", "index", "pinky", "hip", "knee", "ankle", "ball", "toe"].map((n) => [n, at(n + s)]))])) as Record<Side, Record<string, number>>;
+const AT = { pelvis: at("pelvis"), pelvisF: at("pelvisF"), spine1: at("spine1"), spine2: at("spine2"), chest: at("chest"), chestF: at("chestF"), neck: at("neck"), head: at("head"), headTop: at("headTop"), faceF: at("faceF") };
+/** Point v written into a body-point array at offset i. */
+const put = (out: Float32Array | number[], i: number, v: readonly number[]) => {
+  out[i] = v[0]!;
+  out[i + 1] = v[1]!;
+  out[i + 2] = v[2]!;
+};
+
+/** What a rest alone decides in `torso`, found once for each of its frames and its shoulders (by the objects the rest
+ *  holds, which a rest copied with spread shares, as the solver's are), as `derived` is: a rest is read, never edited
+ *  in place. The same operations on the same numbers as on every call: the same bits. */
+const CONJ = new WeakMap<Frame, Quat>(), SHOULDERS = new WeakMap<Rest["cv"], Record<Side, { L: number; az: number; el: number }>>();
+/** A rest frame's quaternion's conjugate (qFromTo's right-hand factor). */
+function conjOf(F: Frame): Quat {
+  let q = CONJ.get(F);
+  if (!q) CONJ.set(F, (q = qconj(quatOf(F))));
+  return q;
+}
+/** Each shoulder's rest swing: its length, azimuth and elevation (none for a body measured without shoulder bones). */
+function shouldersOf(cv: Rest["cv"]): Record<Side, { L: number; az: number; el: number }> {
+  let c = SHOULDERS.get(cv);
+  if (!c) {
+    const one = (s: Side) => {
+      const v0 = cv[s], L = len(v0);
+      return L === 0 ? { L, az: 0, el: 0 } : { L, az: PM.atan2(v0[0], v0[1] * SG[s]), el: PM.asin(v0[2] / L) };
+    };
+    SHOULDERS.set(cv, (c = { L: one("L"), R: one("R") }));
+  }
+  return c;
+}
 
 /** The torso and head frames and the joints placed from them (shared by encode and decode, so rounding never drifts). */
 export function torso(R: Rest, k: KeyLike) {
@@ -24,9 +63,10 @@ export function torso(R: Rest, k: KeyLike) {
   const RP = fromEuler(k.body!);
   const RC = compose(RP, fromEuler(k.chest!));
   const RH = compose(RC, fromEuler(k.head!));
-  const qP = qFromTo(R.Pr, RP);
-  const qC = qFromTo(R.Cr, RC);
-  const qH = qFromTo(R.Hr, RH);
+  // qFromTo(R.Pr, RP) and so on: quatOf(RP) times the rest frame's conjugate, which the rest alone decides
+  const qP = qmul(quatOf(RP), conjOf(R.Pr));
+  const qC = qmul(quatOf(RC), conjOf(R.Cr));
+  const qH = qmul(quatOf(RH), conjOf(R.Hr));
   const sp: V3[] = [p];
   const spine = k.spine;
   R.spineW.forEach((w0, i) => {
@@ -36,14 +76,14 @@ export function torso(R: Rest, k: KeyLike) {
   const neck = sp[4]!;
   const head = add(neck, qrot(qslerp(qC, qH, R.neckW), R.neckSeg));
   const sh = (s: Side): V3 => {
-    const sv = arr(k, "sh" + s) || [0, 0];
-    const v0 = R.cv[s];
-    const L = len(v0);
+    const sv = arr(k, NAMES[s].sh) || [0, 0];
+    const { L, az: az0, el: el0 } = shouldersOf(R.cv)[s];
     // a body measured without shoulder bones has its upper arm at the clavicle point: nothing to swing
     if (L === 0) return add(neck, wld(RC, R.clav[s]));
-    const az = PM.atan2(v0[0], v0[1] * SG[s]) + sv[0]! * DG;
-    const el = PM.asin(v0[2] / L) + sv[1]! * DG;
-    return add(add(neck, wld(RC, R.clav[s])), wld(RC, [L * PM.cos(el) * PM.sin(az), SG[s] * L * PM.cos(el) * PM.cos(az), L * PM.sin(el)]));
+    const az = az0 + sv[0]! * DG;
+    const el = el0 + sv[1]! * DG;
+    const ce = PM.cos(el);
+    return add(add(neck, wld(RC, R.clav[s])), wld(RC, [L * ce * PM.sin(az), SG[s] * L * ce * PM.cos(az), L * PM.sin(el)]));
   };
   return { p, RP, RC, RH, spine1: sp[1]!, spine2: sp[2]!, chest: sp[3]!, neck, head, sh, hip: (s: Side) => add(p, wld(RP, R.hip[s])) };
 }
@@ -64,6 +104,11 @@ export function encodePose(R: Rest, X: ArrayLike<number>, prev: KeyLike | null, 
   const D = derived(R);
   const r0 = opts.round === false ? (v: number) => v : round;
   const p = (n: string) => pt(X, n);
+  // a side's point by its name without the side (an offset found once, not a name built per call)
+  const ps = (n: string, s: Side): V3 => {
+    const i = SIDE_AT[s][n]!;
+    return [X[i]!, X[i + 1]!, X[i + 2]!];
+  };
   const k: KeyLike = {};
   const pr: KeyLike = prev || {};
   const uw = (a: number[], b: number[] | undefined) => a.map((v, i) => r0(unwrap(v, b ? b[i] : undefined)));
@@ -84,51 +129,51 @@ export function encodePose(R: Rest, X: ArrayLike<number>, prev: KeyLike | null, 
   const RC = compose(fromEuler(k.body), fromEuler(k.chest));
   k.head = ue(euler(rel(RC, RHx)), arr(pr, "head"));
   for (const s of SIDES) {
-    const v = loc(RC, sub(p("sh" + s), p("clav" + s)));
+    const v = loc(RC, sub(ps("sh", s), ps("clav", s)));
     const v0 = R.cv[s];
     // a body measured without shoulder bones has nothing to swing (as torso's sh decodes it): no reach, no shrug, where
     // its elevation was 0 / 0
     if (len(v0) === 0) {
-      k["sh" + s] = [0, 0];
+      k[NAMES[s].sh] = [0, 0];
       continue;
     }
     const az = (a: V3) => PM.atan2(a[0], a[1] * SG[s]) / DG;
     const el = (a: V3) => PM.asin(Math.max(-1, Math.min(1, a[2] / len(a)))) / DG;
-    k["sh" + s] = [r0(az(v) - az(v0)), r0(el(v) - el(v0))];
+    k[NAMES[s].sh] = [r0(az(v) - az(v0)), r0(el(v) - el(v0))];
   }
   // format 2's spine curl, before anything hangs off the chest: each share fitted in turn to the captured spine points
   if (opts.spine) k.spine = fitSpine(R, k, X);
   const tq = torso(R, k);
   for (const s of SIDES) {
-    const limbs: [string, V3, Frame, string, string, number, number][] = [
-      ["arm", tq.sh(s), tq.RC, "fist", "elbow", R.up, D.lower],
-      ["leg", tq.hip(s), tq.RP, "ankle", "knee", R.thigh, R.shin],
+    const limbs: [string, V3, Frame, string, string, number, number, string][] = [
+      ["arm", tq.sh(s), tq.RC, "fist", "elbow", R.up, D.lower, NAMES[s].arm],
+      ["leg", tq.hip(s), tq.RP, "ankle", "knee", R.thigh, R.shin, NAMES[s].leg],
     ];
-    for (const [limb, root, M, end, mid, L1, L2] of limbs) {
+    for (const [limb, root, M, end, mid, L1, L2, field] of limbs) {
       // with hands, the arm aims at the virtual fist: where a straight hand's fist would be (spec/MOTION.md §5.3)
-      const endPt = opts.hands && limb === "arm" ? add(p("wrist" + s), mul(norm(sub(p("wrist" + s), p("elbow" + s))), R.fist)) : p(end + s);
+      const endPt = opts.hands && limb === "arm" ? add(ps("wrist", s), mul(norm(sub(ps("wrist", s), ps("elbow", s))), R.fist)) : ps(end, s);
       let v = loc(M, sub(endPt, root));
       // a fist curled in past the shoulder: point the fully bent limb away from the elbow instead
-      if (len(v) < Math.abs(L1 - L2) + 10) v = mul(norm(loc(M, sub(p(mid + s), root))), -Math.abs(L1 - L2));
+      if (len(v) < Math.abs(L1 - L2) + 10) v = mul(norm(loc(M, sub(ps(mid, s), root))), -Math.abs(L1 - L2));
       const dir = norm([v[0], v[1] * SG[s], v[2]]).map((x) => r0(x * 100));
       const bend = r0(bendOf(len(v), L1, L2));
       const target = limbEnd(root, M, norm(dir), s, reachOf(bend, L1, L2));
       const dd = norm(sub(target, root));
-      const tw = poleOf(dd, hintFor(limb as "arm" | "leg", SG[s], M, [dir[0]!, dir[1]! * SG[s], dir[2]!]), sub(p(mid + s), root));
-      const before = arr(pr, limb + s);
+      const tw = poleOf(dd, hintFor(limb as "arm" | "leg", SG[s], M, [dir[0]!, dir[1]! * SG[s], dir[2]!]), sub(ps(mid, s), root));
+      const before = arr(pr, field);
       const prevT = before ? before[4] : undefined;
       // a nearly straight limb's twist barely shows and capture noise winds it: `steadyTwist` keeps the key before's
       // when it would jump 45° or more (small drifts are followed, so a loop's ends still meet)
       const twist = unwrap(tw, prevT);
-      k[limb + s] = [...dir, bend, opts.steadyTwist && prevT !== undefined && bend < STEADY_BEND && Math.abs(twist - prevT) >= STEADY_JUMP ? prevT : r0(twist)];
+      k[field] = [...dir, bend, opts.steadyTwist && prevT !== undefined && bend < STEADY_BEND && Math.abs(twist - prevT) >= STEADY_JUMP ? prevT : r0(twist)];
     }
-    const fd = loc(tq.RP, norm(sub(p("ball" + s), p("ankle" + s))));
-    const td = loc(tq.RP, norm(sub(p("toe" + s), p("ball" + s))));
-    const pf = arr(pr, "foot" + s);
+    const fd = loc(tq.RP, norm(sub(ps("ball", s), ps("ankle", s))));
+    const td = loc(tq.RP, norm(sub(ps("toe", s), ps("ball", s))));
+    const pf = arr(pr, NAMES[s].foot);
     const down = PM.asin(Math.max(-1, Math.min(1, -fd[2]))) / DG;
-    k["foot" + s] = [r0(down - R.abPitch), r0(unwrap(PM.atan2(fd[1] * SG[s], fd[0]) / DG, pf ? pf[1] : undefined)), r0(down - PM.asin(Math.max(-1, Math.min(1, -td[2]))) / DG - (R.abPitch - R.btPitch))];
+    k[NAMES[s].foot] = [r0(down - R.abPitch), r0(unwrap(PM.atan2(fd[1] * SG[s], fd[0]) / DG, pf ? pf[1] : undefined)), r0(down - PM.asin(Math.max(-1, Math.min(1, -td[2]))) / DG - (R.abPitch - R.btPitch))];
   }
-  if (opts.hands) for (const s of SIDES) encodeHand(R, X, k, tq, s, arr(pr, "hand" + s), r0);
+  if (opts.hands) for (const s of SIDES) encodeHand(R, X, k, tq, s, arr(pr, NAMES[s].hand), r0);
   return k;
 }
 
@@ -179,7 +224,7 @@ function arm(R: Rest, k: KeyLike, tq: ReturnType<typeof torso>, s: Side) {
   const D = derived(R);
   const RC = tq.RC;
   const sh = tq.sh(s);
-  const a = arr(k, "arm" + s)!;
+  const a = arr(k, NAMES[s].arm)!;
   const aN = norm(a);
   const fT = limbEnd(sh, RC, aN, s, reachOf(a[3] || 0, R.up, D.lower));
   const ad = norm(sub(fT, sh));
@@ -195,12 +240,25 @@ export function limbPoles(R: Rest, k: KeyLike): Record<"armL" | "armR" | "legL" 
   for (const s of SIDES) {
     out[`arm${s}`] = arm(R, k, tq, s).pole;
     const hip = tq.hip(s);
-    const l = arr(k, "leg" + s)!;
+    const l = arr(k, NAMES[s].leg)!;
     const ln = norm(l);
     const ld = norm(sub(limbEnd(hip, tq.RP, ln, s, reachOf(l[3] || 0, R.thigh, R.shin)), hip));
     out[`leg${s}`] = poleHint(ld, hintFor("leg", SG[s], tq.RP, [ln[0], ln[1] * SG[s], ln[2]]), l[4] || 0);
   }
   return out;
+}
+
+/**
+ * The pole leg s bends toward in key k on rest R: `limbPoles(R, k)["leg" + s]`, the same operations on the same numbers,
+ * from the pelvis alone (the hip it hangs from is the pelvis's place and frame: torso's `p`, `RP` and `hip`), for a
+ * caller that needs one leg's pole (core's planting re-solves each leg toward its own).
+ */
+export function legPoleOf(R: Rest, k: KeyLike, s: Side): V3 {
+  const p = mul(k.hips!, R.H0 / 100), RP = fromEuler(k.body!), hip = add(p, wld(RP, R.hip[s]));
+  const l = arr(k, NAMES[s].leg)!;
+  const ln = norm(l);
+  const ld = norm(sub(limbEnd(hip, RP, ln, s, reachOf(l[3] || 0, R.thigh, R.shin)), hip));
+  return poleHint(ld, hintFor("leg", SG[s], RP, [ln[0], ln[1] * SG[s], ln[2]]), l[4] || 0);
 }
 
 /** The hand frame at the wrist (spec/MOTION.md §5.3): forearm a, palm side m′, thumb side l′, after roll ρ. */
@@ -215,41 +273,36 @@ function handFrame(el: V3, wr: V3, pole: V3, s: Side, rollDeg: number) {
 /** Every body point rebuilt from one key pose, on the rest body's proportions, into `out` (mm). */
 export function decodePose(R: Rest, k: KeyLike, out: Float32Array | number[]): Float32Array | number[] {
   const tq = torso(R, k);
-  const set = (n: string, v: readonly number[]) => {
-    const i = IDX[n]! * 3;
-    out[i] = v[0]!;
-    out[i + 1] = v[1]!;
-    out[i + 2] = v[2]!;
-  };
   const { p, RP, RC, RH, neck, head } = tq;
-  set("pelvis", p);
-  set("pelvisF", add(p, mul(RP[0], 120)));
-  set("spine1", tq.spine1);
-  set("spine2", tq.spine2);
-  set("chest", tq.chest);
-  set("chestF", add(tq.chest, mul(RC[0], 120)));
-  set("neck", neck);
-  set("head", head);
-  set("headTop", add(head, wld(RH, R.topH)));
-  set("faceF", add(head, wld(RH, R.faceH)));
+  put(out, AT.pelvis, p);
+  put(out, AT.pelvisF, add(p, mul(RP[0], 120)));
+  put(out, AT.spine1, tq.spine1);
+  put(out, AT.spine2, tq.spine2);
+  put(out, AT.chest, tq.chest);
+  put(out, AT.chestF, add(tq.chest, mul(RC[0], 120)));
+  put(out, AT.neck, neck);
+  put(out, AT.head, head);
+  put(out, AT.headTop, add(head, wld(RH, R.topH)));
+  put(out, AT.faceF, add(head, wld(RH, R.faceH)));
   const bladeK = arr(k, "blade");
   const blade = bladeK ? norm(wld(RC, bladeK)) : null;
   for (const s of SIDES) {
+    const I = SIDE_AT[s], F = NAMES[s];
     const { sh, el, fist, pole } = arm(R, k, tq, s);
     const fd = norm(sub(fist, el));
     const wr = add(el, mul(fd, R.fore));
-    set("clav" + s, add(neck, wld(RC, R.clav[s])));
-    set("sh" + s, sh);
-    set("elbow" + s, el);
-    set("wrist" + s, wr);
-    const hand = arr(k, "hand" + s);
-    const fingers = arr(k, "fingers" + s);
+    put(out, I.clav, add(neck, wld(RC, R.clav[s])));
+    put(out, I.sh, sh);
+    put(out, I.elbow, el);
+    put(out, I.wrist, wr);
+    const hand = arr(k, F.hand);
+    const fingers = arr(k, F.fingers);
     if (!hand && !fingers) {
-      set("knuck" + s, add(wr, mul(fd, R.knuck)));
-      set("fist" + s, fist);
+      put(out, I.knuck, add(wr, mul(fd, R.knuck)));
+      put(out, I.fist, fist);
       const acr = s === "R" && blade ? blade : RC[1];
-      set("index" + s, add(fist, mul(acr, 20)));
-      set("pinky" + s, add(fist, mul(acr, -20)));
+      put(out, I.index, add(fist, mul(acr, 20)));
+      put(out, I.pinky, add(fist, mul(acr, -20)));
     } else {
       const [flex, side, roll] = hand ?? [0, 0, 0];
       const f = handFrame(el, wr, pole, s, roll!);
@@ -264,29 +317,34 @@ export function decodePose(R: Rest, k: KeyLike, out: Float32Array | number[]): F
         const th = 0.9 * fingers[2]! * DG;
         fistPt = add(knuck, mul(add(mul(h, PM.cos(th)), mul(n, PM.sin(th))), R.fist - R.knuck));
       }
-      set("knuck" + s, knuck);
-      set("fist" + s, fistPt);
+      put(out, I.knuck, knuck);
+      put(out, I.fist, fistPt);
       const acr = s === "R" && blade ? blade : norm(sub(f.l, mul(h, dot(f.l, h))));
-      set("index" + s, add(fistPt, mul(acr, 20)));
-      set("pinky" + s, add(fistPt, mul(acr, -20)));
+      put(out, I.index, add(fistPt, mul(acr, 20)));
+      put(out, I.pinky, add(fistPt, mul(acr, -20)));
     }
     const hip = tq.hip(s);
-    const l = arr(k, "leg" + s)!;
+    const l = arr(k, F.leg)!;
     const ln = norm(l);
     const aT = limbEnd(hip, RP, ln, s, reachOf(l[3] || 0, R.thigh, R.shin));
     const ld = norm(sub(aT, hip));
     const [kn, an] = ik3(hip, aT, R.thigh, R.shin, poleHint(ld, hintFor("leg", SG[s], RP, [ln[0], ln[1] * SG[s], ln[2]]), l[4] || 0));
-    set("hip" + s, hip);
-    set("knee" + s, kn);
-    set("ankle" + s, an);
-    const ft = arr(k, "foot" + s) || [0, 0, 0];
+    put(out, I.hip, hip);
+    put(out, I.knee, kn);
+    put(out, I.ankle, an);
+    const ft = arr(k, F.foot) || [0, 0, 0];
     const pa = (ft[0]! + R.abPitch) * DG;
     const pb = (ft[0]! + R.btPitch - (ft[2] || 0)) * DG;
     const yw = ft[1]! * DG;
-    const dir = (q: number) => wld(RP, [PM.cos(q) * PM.cos(yw), SG[s] * PM.cos(q) * PM.sin(yw), -PM.sin(q)]);
+    // (each cosine and sine taken once: the same numbers)
+    const cy = PM.cos(yw), sy = PM.sin(yw);
+    const dir = (q: number) => {
+      const cq = PM.cos(q);
+      return wld(RP, [cq * cy, SG[s] * cq * sy, -PM.sin(q)]);
+    };
     const ball = add(an, mul(dir(pa), R.ab));
-    set("ball" + s, ball);
-    set("toe" + s, add(ball, mul(dir(pb), R.bt)));
+    put(out, I.ball, ball);
+    put(out, I.toe, add(ball, mul(dir(pb), R.bt)));
   }
   return out;
 }

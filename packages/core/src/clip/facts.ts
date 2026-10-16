@@ -14,7 +14,7 @@ import { IDX, type Rest } from "../format/body.ts";
 import type { Clip, Contacts } from "../format/types.ts";
 import { PORTABLE } from "../math/portable.ts";
 import { VERSION } from "../version.ts";
-import { detectContacts, END_POINTS, sampleAll, type DetectOptions, type End } from "./contacts.ts";
+import { detectContacts, END_POINTS, sampleAll, type DetectOptions, type End, type Sampled } from "./contacts.ts";
 import { rootAt, type Playable } from "./sample.ts";
 
 /** What measureFacts returns: every fact it could measure, and which tool measured them. */
@@ -43,10 +43,11 @@ const pt = (o: Float32Array, name: string): [number, number, number] => {
 /**
  * Every fact of `clip` on rest R. Contacts a source labelled are taken as given; contacts a tool detected (a library
  * clip carries them, WP-5.4) are detected again, so the facts read from them are the same with or without them.
+ * `sampled`, when given, is the clip as `sampleAll(clip, R, opts.fps)` samples it (a caller that sampled it already, as
+ * the sensors do), read rather than sampled again.
  */
-export function measureFacts(clip: Measurable, R: Rest, opts: DetectOptions = {}): Facts {
+export function measureFacts(clip: Measurable, R: Rest, opts: DetectOptions = {}, sampled: Sampled = sampleAll(clip, R, opts.fps ?? 60)): Facts {
   if (clip.contacts && clip.contacts.by !== "labelled") clip = { ...clip, contacts: undefined };
-  const sampled = sampleAll(clip, R, opts.fps ?? 60);
   const { frames, dt } = sampled;
   const n = frames.length - 1;
   const facts: Facts = { by: `m3a-core@${VERSION}`, dur: clip.dur, height: [0, 0], contacts: clip.contacts ?? detectContacts(clip, R, opts, sampled) };

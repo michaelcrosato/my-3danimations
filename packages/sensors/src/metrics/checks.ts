@@ -3,7 +3,7 @@
 // finding's level comes from the thresholds; its message says what is wrong and how to repair it.
 import { format, math, ops } from "@m3a/core";
 import { capsules } from "../raster/mannequin.ts";
-import { at, lowest, sole, world, type Motion } from "./motion.ts";
+import { at, sole, world, type Motion } from "./motion.ts";
 import { REFERENCE_H0, THRESHOLDS, type MetricName } from "./thresholds.ts";
 
 const { PORTABLE } = math;
@@ -118,8 +118,12 @@ export function slide(m: Motion): Measured & { skate: Measured; skateMean: numbe
       let df = 0, dr = 0, far = 0, dur = 0;
       for (const [p, q] of parts) {
         const i0 = Math.ceil(p / m.dt - 1e-9), i1 = Math.floor(q / m.dt + 1e-9);
+        // each sample's sole found once: a step's end is the next step's start (lowest's reading of it, on that sole)
+        let soles: { at: number; pts: ReturnType<typeof sole> } | null = null;
         for (let i = i0; i < i1 && i + 1 < m.frames.length; i++) {
-          const low = lowest(m, i, `foot${s}`), next = sole(m, m.frames[i + 1]!, s).find((x) => x.name === low.name)!;
+          const here = soles?.at === i ? soles.pts : sole(m, m.frames[i]!, s), after = sole(m, m.frames[i + 1]!, s);
+          soles = { at: i + 1, pts: after };
+          const low = here.reduce((x, y) => (y.p[2] < x.p[2] ? y : x)), next = after.find((x) => x.name === low.name)!;
           const w0 = world(m, i, low.p), w1 = world(m, i + 1, next.p);
           df += w1[0] - w0[0];
           dr += w1[1] - w0[1];
