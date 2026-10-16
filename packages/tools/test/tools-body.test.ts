@@ -205,7 +205,7 @@ describe("characters bound through core", () => {
     const doc = parseGlb(character(variant(1)).glb), w = doc.json.meshes![0]!.primitives[0]!.attributes.WEIGHTS_0!;
     const as = (json: object) => characterOf(holding(packGlb({ ...doc.json, ...json }, doc.bin!.raw())), "m.glb");
     const packed = await as({ extensionsRequired: ["EXT_meshopt_compression"] }), broken = await as({ accessors: doc.json.accessors!.map((a, i) => (i === w ? { ...a, count: 2 * a.count } : a)) });
-    expect([packed.report.issues, endsOf(packed.bound!)]).toEqual([["mesh compressed (EXT_meshopt_compression): weights unread, every joint kept, no sole end bones"], []]);
+    expect([packed.report.issues, endsOf(packed.bound!)]).toEqual([["mesh compressed (EXT_meshopt_compression): weights and soles unread; every joint kept"], []]);
     expect([broken.report.issues.map((i) => i.split(":")[0]), endsOf(broken.bound!)]).toEqual([["mesh unreadable", "sole end bones unread"], []]);
   });
   it("gives no end bone to a foot whose last bone keeps a child (its toes unmapped), as three's bind does", async () => {
@@ -218,7 +218,7 @@ describe("characters bound through core", () => {
     const glb = rigBytes("quaternius-mannequin-m");
     if (!glb) return ctx.skip("quaternius-mannequin-m isn't fetched: npm run fixtures -- fetch");
     const c = await characterOf(holding(glb), "m.glb");
-    expect([c.report.issues[0], c.report.bones, c.bound!.skeleton.bones.length]).toEqual(["mesh compressed (EXT_meshopt_compression): weights unread, every joint kept, no sole end bones", 65, 65]);
+    expect([c.report.issues[0], c.report.bones, c.bound!.skeleton.bones.length]).toEqual(["mesh compressed (EXT_meshopt_compression): weights and soles unread; every joint kept", 65, 65]);
     expect(c.report.text).toContain("issue: mesh compressed (EXT_meshopt_compression)");
   });
   it("takes a patch: a bone unmapped leaves it unbound (bodyOf refuses, naming it); swapped arms bind, the issue named", async () => {

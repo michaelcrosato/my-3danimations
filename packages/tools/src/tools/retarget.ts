@@ -2,45 +2,50 @@
 // binds it, never three.js's loader) and shown (retarget.inspect: how its bones were recognized, how sure, what is
 // missing or odd, its rest, hip height and limb lengths, and the patch to edit and pass back; findings, with a rest
 // turntable when it binds, while an issue stands: a required bone missing, only the bones' shape naming them, a
-// hierarchy the mapping breaks, a mesh io can't read), and clips played on it (retarget.apply: each judged on this body
-// as G4's sweep judges a skeleton, D80, judge.ts: it passes unless the body adds a fail finding or a joint misses its
-// point). Rows are capped with the shared more line, the character and clips are named as clips.ts names a file, and
-// each reply's next names the call after it.
+// hierarchy the mapping breaks, hips under half the legs, a mesh io can't read), and clips played on it (retarget.apply:
+// each judged on this body as G4's sweep judges a skeleton, D80, judge.ts: it passes unless the body adds a fail finding
+// or a joint misses its point; frames of the first clip the body adds a fail to; an issue inspect finds a warning).
+// Rows are capped with the shared more line, the character and clips are named as clips.ts names a file, and each
+// reply's next names the call after it.
 import { skeleton } from "@m3a/core";
 import { turntable } from "@m3a/sensors";
 import { defineTool, ToolError } from "../registry/registry.ts";
+import { strip } from "../sim/film.ts";
 import { bodyOf, CHARACTER, characterName, characterOf, MAPPING, type MappingPatch } from "./body.ts";
 import { loadClip, naming } from "./clips.ts";
-import { arg, call, capped, count, cut, mm, more, output, round } from "./common.ts";
-import { onBody } from "./judge.ts";
+import { arg, call, capped, count, cut, imageName, mm, more, output, round } from "./common.ts";
+import { onBody, type Played } from "./judge.ts";
 
 /** The most clips retarget.apply plays in one call. */
 const MAX_CLIPS = 20;
 /** The clip a next hint offers to play first: the library's core walk (cc0). */
 const WALK = "QUATERNIUS_3D2DGE/Walk_Loop";
 
+/** The issues that stand: all but the patch itself. */
+const standing = (issues: readonly string[]) => issues.filter((i) => i !== "patched by hand");
 /** Up to three clips by their titles, and how many more: a next hint stays short. */
 const some = (xs: readonly { title: string }[]): string => `${xs.slice(0, 3).map((x) => x.title).join(", ")}${xs.length > 3 ? ` and ${xs.length - 3} more` : ""}`;
 
 /** `retarget.inspect`: a character bound and its report, as data and lines; findings while an issue other than the patch
- *  itself stands: a required bone missing, topology alone naming the bones (until a patch confirms them; a VRM's
- *  humanoid names its own), a hierarchy the mapping breaks, or a mesh io can't read. */
+ *  itself stands: a required bone missing (its likely source bones named), topology alone naming the bones (until a
+ *  patch confirms them; a VRM's humanoid names its own), a hierarchy the mapping breaks, hips under half the legs, or a
+ *  mesh io can't read. */
 export const inspect = defineTool<{ character: string; mapping?: MappingPatch }, unknown>({
   name: "retarget.inspect",
   description: "Bind a character: bones recognized, confidence, missing, rest, limb lengths and a mapping patch to edit.",
   params: { type: "object", properties: { character: CHARACTER, mapping: MAPPING }, required: ["character"] },
   output: output({
-    character: "string", bones: "integer", method: "string", table: "string?", vrm: "boolean", confidence: "number", required: "object", missing: "array", unmapped: "array",
+    character: "string", bones: "integer", method: "string", table: "string?", vrm: "boolean", confidence: "number", required: "object", missing: "array", candidates: "object", unmapped: "array",
     issues: "array", rest: "object", H0: "number?", lengths: "object", patch: "object",
   }),
   positionals: ["character"],
   examples: [{ args: { character: "spec/vectors/tier1b/rigify.gltf" } }],
   async run(a, ctx) {
     const c = await characterOf(ctx, a.character, a.mapping), r = c.report, as = characterName(a.character), of = skeleton.REQUIRED_BONES.length;
-    const unsure = r.issues.some((i) => i !== "patched by hand"); // a required bone missing is one too
+    const unsure = standing(r.issues).length > 0; // a required bone missing is one too
     const un = capped(r.unmapped, 10), is = capped(r.issues, 5), cuts = { ...(un.more ? { unmapped: un.more } : {}), ...(is.more ? { issues: is.more } : {}) };
     // a wrong mapping shows as bent limbs at rest: four sides of it, ~137 tokens
-    if (unsure && c.bound) ctx.image("rest", turntable(c.bound.restPts, { n: 4, size: 160 }));
+    if (unsure && c.bound) ctx.image(imageName(as), turntable(c.bound.restPts, { n: 4, size: 160 }));
     const how = r.vrm ? "by its VRM humanoid" : r.method === "table" ? `by name (${r.table})` : r.method === "topology" ? "by topology" : "not at all";
     const H0 = c.bound ? round(c.bound.rest.H0) : null, play = call("retarget.apply", [as], { clips: [WALK], mapping: a.mapping });
     const fill = { bones: { ...a.mapping?.bones, ...Object.fromEntries(r.missing.map((b) => [b, "<its bone>"])) } };
@@ -49,12 +54,12 @@ export const inspect = defineTool<{ character: string; mapping?: MappingPatch },
         `, rest ${r.rest.kind}${H0 === null ? "" : `, hip height ${mm(H0)}`}`,
       data: {
         character: as, bones: r.bones, method: r.method, table: r.table, vrm: r.vrm, confidence: r.confidence, required: { mapped: of - r.missing.length, of }, missing: r.missing,
-        unmapped: un.rows, issues: is.rows, ...(un.more || is.more ? { more: cuts } : {}), rest: { kind: r.rest.kind, armDrop: round(r.rest.armDrop) }, H0, lengths: r.lengths, patch: r.patch,
+        candidates: r.candidates, unmapped: un.rows, issues: is.rows.map((i) => cut(i)), ...(un.more || is.more ? { more: cuts } : {}), rest: { kind: r.rest.kind, armDrop: round(r.rest.armDrop) }, H0, lengths: r.lengths, patch: r.patch,
       },
       lines: r.text.split("\n").slice(1).map((l) => l.replace(/^\.\.\. (\d+) more issues$/, (_, n: string) => more(Number(n), "issue")[0]!)),
       findings: unsure,
       next: r.missing.length
-        ? `give each missing bone its source bone (data.unmapped lists them): ${call("retarget.inspect", [as], { mapping: fill })}`
+        ? `give each missing bone its source bone (data.candidates names the likely ones): ${call("retarget.inspect", [as], { mapping: fill })}`
         : unsure ? `check data.issues: fix data.patch and pass it back with ${call("retarget.inspect", [as], { mapping: "<the patch>" })}, or play clips on it: ${play}`
         : `${play} plays clips on it`,
     };
@@ -62,7 +67,8 @@ export const inspect = defineTool<{ character: string; mapping?: MappingPatch },
 });
 
 /** `retarget.apply`: clips played on a bound character, each judged as the sweep judges a skeleton (D80); findings
- *  when one fails. A clip that won't load refuses the call before any plays. */
+ *  when one fails, with frames of the first the body adds a fail to as it played there. A clip that won't load refuses
+ *  the call before any plays; an issue retarget.inspect finds is the reply's first line, a warning. */
 export const apply = defineTool<{ character: string; clips: string[]; mapping?: MappingPatch }, unknown>({
   name: "retarget.apply",
   description: "Play clips on a character: each passes or fails against its own body, with joint reach and metrics made worse.",
@@ -74,19 +80,31 @@ export const apply = defineTool<{ character: string; clips: string[]; mapping?: 
     if (!a.clips.length || a.clips.length > MAX_CLIPS) throw new ToolError("E_ARGS", `clips lists ${count(a.clips.length, "clip")}; give 1 to ${MAX_CLIPS}, and call again for more`, true);
     const loaded = [];
     for (const ref of a.clips) loaded.push(await loadClip(ctx, ref));
-    const c = await bodyOf(ctx, a.character, a.mapping), as = characterName(a.character), H0 = round(c.bound.rest.H0);
-    const rows = loaded.map((k) => ({ ...naming(k), j: onBody(k.clip, k.rest, c.bound, as) })), failed = rows.filter((x) => !x.j.ok);
-    const lines = rows.flatMap(({ title, j }) => {
+    const c = await bodyOf(ctx, a.character, a.mapping), as = characterName(a.character), H0 = round(c.bound.rest.H0), see = call("retarget.inspect", [as], { mapping: a.mapping });
+    // the first clip the body adds a fail to, as it played there (the frames the metric read), to draw
+    const drawn: { p: Played; dur: number; clip: string }[] = [];
+    const rows = loaded.map((k) => {
+      const seen: { p?: Played } = {}, j = onBody(k.clip, k.rest, c.bound, as, (p) => (seen.p = p));
+      if (!drawn.length && seen.p && j.worse.some((w) => w.level === "fail")) drawn.push({ p: seen.p, dur: k.clip.dur, clip: j.clip });
+      return { ...naming(k), j };
+    }), failed = rows.filter((x) => !x.j.ok), stand = standing(c.report.issues);
+    for (const { p, dur, clip } of drawn) {
+      const n = p.frames.length, at = [...new Set(Array.from({ length: 8 }, (_, i) => Math.round((i * (n - 1)) / 7)))];
+      ctx.image(imageName(`${clip}-on-${as}`), strip(at.map((i) => p.frames[i]!), at.map((i) => p.root[i]), at.map((i) => `${((i * dur) / (n - 1)).toFixed(2)} S`), 125));
+    }
+    // a fail first, so the 20-line cut keeps it
+    const lines = [...rows].sort((x, y) => Number(x.j.ok) - Number(y.j.ok)).flatMap(({ title, j }) => {
       const why = capped(j.why, 2);
       const warned = j.worse.filter((w) => w.level === "warn").map((w) => w.metric);
       return j.ok ? [`PASS ${title}: own ${j.own}, played ${j.played}, reach ${mm(j.reach)}${warned.length ? `; this body adds a warn: ${warned.join(", ")}` : ""}`]
         : [`FAIL ${title}: ${why.rows.map((w) => cut(w)).join("; ")}`, ...more(why.more, "reason")];
     });
-    const missed = failed.filter((x) => x.j.why.some((w) => /^a joint |^the solve /.test(w)));
+    // a joint off its point, or a play that threw: the body's bones, not the clip
+    const off = failed.filter((x) => x.j.why.some((w) => /^a joint |^the solve |^threw: /.test(w)));
     return {
       verdict: `retarget.apply ${as}: ${rows.length - failed.length} of ${count(rows.length, "clip")} ${rows.length - failed.length === 1 ? "passes" : "pass"} on it (hip height ${mm(H0)})`,
       data: {
-        character: as, H0, mapped: a.mapping ? "patched" : c.report.vrm ? "humanoid" : "recognized", passed: rows.length - failed.length, failed: failed.length,
+        character: as, H0, mapped: a.mapping ? "patched" : c.report.vrm ? "humanoid" : c.report.method, passed: rows.length - failed.length, failed: failed.length,
         clips: rows.map(({ j }) => {
           const why = capped(j.why, 2), worse = capped(j.worse, 3), cuts = { ...(why.more ? { why: why.more } : {}), ...(worse.more ? { worse: worse.more } : {}) };
           return {
@@ -95,10 +113,11 @@ export const apply = defineTool<{ character: string; clips: string[]; mapping?: 
           };
         }),
       },
-      lines,
+      lines: [...(stand.length ? [`warning: retarget.inspect finds ${count(stand.length, "issue")} on it: ${cut(stand[0]!, 60)}; ${see} shows ${stand.length === 1 ? "it" : "them"}`] : []), ...lines],
       findings: failed.length > 0,
-      next: missed.length
-        ? `a joint missed its point on ${some(missed)}: the mapping is wrong there; ${call("retarget.inspect", [as], { mapping: a.mapping })} shows it`
+      next: off.length
+        ? `a joint missed its point, or the play threw, on ${some(off)}: the mapping is likely wrong there; ${see} shows it`
+        : failed.length && stand.length ? `${some(failed)} ${failed.length === 1 ? "fails" : "fail"} while retarget.inspect's issue stands: fix the mapping first; ${see} shows it`
         : failed.length ? `this body takes ${some(failed)} past a fail level its own body doesn't (D80): ${call("search", [arg(failed[0]!.j.clip.split("/").pop()!.replace(/_/g, " "))])} finds others like it`
         : `they play on it; ${call("license.check", [], { clips: rows.map((x) => x.as) })} checks the game may ship them`,
     };

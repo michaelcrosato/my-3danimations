@@ -6,14 +6,16 @@
 // read, gives none: every joint is kept and the report says so; so does a mesh whose positions io can't read, which
 // leaves the hips low). `tiny` is the 34-bone conformance rig, graph.sim's default body. The report says how the bones
 // were recognized, how sure, what is missing or odd, the rest pose, limb lengths and a patch to edit back, in at most
-// 20 lines; retarget.inspect shows it, and a tool that needs the body bound refuses with it (bodyOf). Replies name the
-// character as clips.ts names a file: never by an absolute path.
+// 20 lines, with each missing bone's likely source bones, and hips under half the legs' length as an issue (a wrong
+// bone for them, such as the rig's root, which no other check sees); retarget.inspect shows it, and a tool that needs
+// the body bound refuses with it (bodyOf). Replies name the character as clips.ts names a file: never by an absolute
+// path.
 import { bind, skeleton, type Bound, type SkeletonIn } from "@m3a/core";
 import { IoError, meshEnds, parseGlb, parseGltf, skeletonOfGltf, type GltfDoc, type GltfJson, type GltfSkeleton } from "@m3a/io";
 import { ToolError, type ToolContext } from "../registry/registry.ts";
 import { didYouMean, quote, type Schema } from "../registry/schema.ts";
 import { naming } from "./clips.ts";
-import { call, count } from "./common.ts";
+import { call, count, cut } from "./common.ts";
 
 /** The character parameter: a character file under the working directory, or the tiny rig. */
 export const CHARACTER: Schema = { type: "string", description: ".glb .gltf .vrm file, or tiny" };
@@ -29,7 +31,8 @@ export interface MappingPatch {
   bones: Record<string, string | null>;
 }
 /** What binding found: the source bones, how they were recognized (a VRM by its own humanoid), how sure, what is missing
- *  or odd, the rest pose, lengths in mm (the spine, hips to neck; each limb bone to the next), the patch, the text. */
+ *  (with each missing bone's likely source bones, `candidates`) or odd, the rest pose, lengths in mm (the spine, hips to
+ *  neck; each limb bone to the next), the patch, the text. */
 export interface CharacterReport {
   bones: number;
   method: "table" | "topology" | "none";
@@ -37,6 +40,7 @@ export interface CharacterReport {
   vrm: boolean;
   confidence: number;
   missing: string[];
+  candidates: Record<string, string[]>;
   unmapped: string[];
   issues: string[];
   rest: { kind: "T" | "A" | "relaxed"; armDrop: number };
@@ -161,7 +165,8 @@ function checkPatch(sk: SkeletonIn, m: MappingPatch): void {
 /**
  * A character bound for the tools: `ref` (a .glb, .gltf or .vrm file, or "tiny") read, its bones recognized (a VRM's by
  * its humanoid), `mapping` patched over them, and bound through core. A required bone still missing leaves it unbound,
- * the report saying which; no humanoid bone recognized at all is E_RIG (an error).
+ * the report saying which; no humanoid bone recognized at all is E_RIG (an error). Hips bound under half the legs'
+ * length are an issue: a wrong bone for them.
  */
 export async function characterOf(ctx: ToolContext, ref: string, mapping?: MappingPatch | null): Promise<Character> {
   const read = await skeletonOf(ctx, ref), { sk, vrm } = read, name = characterName(ref);
@@ -182,17 +187,22 @@ export async function characterOf(ctx: ToolContext, ref: string, mapping?: Mappi
   // the weights unread (every joint kept; a compressed mesh gives no soles), and the soles' mesh unread if it was
   // another reason: said first, for retarget.inspect to show
   const body = rec.missing.length ? null : withSoles(read, rec), unread = read.file?.g.unread ?? null, said: string[] = [];
-  if (unread) said.push(unread === "unreadable" ? "mesh unreadable: weights unread, every joint kept" : `mesh compressed (${unread}): weights unread, every joint kept, no sole end bones`);
+  if (unread) said.push(unread === "unreadable" ? "mesh unreadable: weights unread, every joint kept" : `mesh compressed (${unread}): weights and soles unread; every joint kept`);
   if (body?.unread && body.unread !== unread) said.push(`sole end bones unread: ${body.unread}; the hips may sit 10-40 mm low`);
   if (said.length) rec = { ...rec, issues: [...said, ...rec.issues] };
-  const report = reportOf(name, sk, rec, byVrm);
   let bound: Bound | null = null;
   try {
     if (body) bound = bind(body.sk, { recognition: rec, ...(body.restWorld ? { restWorld: body.restWorld } : {}) });
   } catch (err) {
     throw new ToolError("E_RIG", `${name}: can't bind it (${err instanceof Error ? err.message : String(err)}); ${call("retarget.inspect", [name], { mapping: mapping ?? undefined })} shows its mapping`);
   }
-  return { bound, recognition: rec, report };
+  // hips under half the legs' length (the rig's root taken for them, say: an ancestor of every bone, so nothing else
+  // flags it, and every clip played on it fails)
+  const legs = bound ? bound.rest.thigh + bound.rest.shin : 0;
+  if (bound && !(bound.rest.H0 >= legs / 2)) {
+    rec = { ...rec, issues: [...rec.issues, `hips (${rec.bones.hips}) only ${Math.round(bound.rest.H0)} mm up, under half the legs' ${Math.round(legs)} mm: likely the wrong bone`] };
+  }
+  return { bound, recognition: rec, report: reportOf(name, sk, rec, byVrm) };
 }
 
 /** A character bound, or E_RIG (an error) naming the required bones it lacks and how to patch them, its next the
@@ -213,8 +223,33 @@ const SEGMENTS: Readonly<Record<string, readonly [string, readonly string[]]>> =
   }))),
 };
 
-/** The report (at most 20 lines): how the bones were read, how sure, what is missing or odd, the lengths, the patch;
- *  `name` the character as replies name it (characterName). */
+/** Each missing bone's likely source bones (at most 3, the likeliest first): the unmapped bones on the chains from its
+ *  nearest mapped humanoid ancestor's source down to its nearest mapped humanoid descendants' (for a missing thigh, the
+ *  bone between the hips and the shin), from the one as far down as it is below that ancestor; or, with none of those
+ *  mapped, the unmapped bones just under that ancestor's. */
+function candidatesOf(sk: SkeletonIn, rec: skeleton.Recognition): Record<string, string[]> {
+  const parent = new Map(sk.bones.map((b) => [b.name, b.parent ?? null])), free = new Set(rec.unmapped), P = skeleton.HUMANOID_PARENT;
+  const above = (h: string): string | null => {
+    for (let p = P[h]; p; p = P[p]) if (rec.bones[p]) return rec.bones[p];
+    return null;
+  };
+  const below = (h: string): string[] => skeleton.HUMANOID_BONES.filter((x) => P[x] === h).flatMap((x) => (rec.bones[x] ? [rec.bones[x]] : below(x)));
+  return Object.fromEntries(rec.missing.map((h) => {
+    const top = above(h), ends = below(h), got: string[] = [];
+    for (const e of ends) {
+      const chain: string[] = [];
+      for (let p = parent.get(e) ?? null; p !== null && p !== top; p = parent.get(p) ?? null) if (free.has(p)) chain.unshift(p);
+      got.push(...chain.filter((b) => !got.includes(b)));
+    }
+    if (!ends.length) got.push(...sk.bones.filter((b) => (b.parent ?? null) === top && free.has(b.name)).map((b) => b.name));
+    let k = 0; // the humanoid bones missing between it and that ancestor: a shin under a missing thigh is the second
+    for (let p = P[h]; p && !rec.bones[p]; p = P[p]) k++;
+    return [h, [...got.slice(k), ...got.slice(0, k)].slice(0, 3)];
+  }));
+}
+
+/** The report (at most 20 lines): how the bones were read, how sure, what is missing (and what may stand in for it) or
+ *  odd, the lengths, the patch; `name` the character as replies name it (characterName). */
 function reportOf(name: string, sk: SkeletonIn, rec: skeleton.Recognition, vrm: boolean): CharacterReport {
   const frame = skeleton.restFrame(sk, rec), head = new Map(sk.bones.map((b) => [b.name, b.head!])), lengths: Record<string, number> = {};
   for (const [h, [a, b]] of Object.entries(SEGMENTS)) {
@@ -224,17 +259,20 @@ function reportOf(name: string, sk: SkeletonIn, rec: skeleton.Recognition, vrm: 
     lengths[h] = Math.round(Math.hypot(q[0] - p[0], q[1] - p[1], q[2] - p[2]) * 1000);
   }
   const patch: MappingPatch = { bones: { ...rec.bones, ...Object.fromEntries(rec.missing.map((b) => [b, null])) } };
-  const L = (s: string) => `${lengths[`left${s}`] ?? "?"}/${lengths[`right${s}`] ?? "?"}`, un = rec.unmapped;
+  const L = (s: string) => `${lengths[`left${s}`] ?? "?"}/${lengths[`right${s}`] ?? "?"}`, un = rec.unmapped, candidates = candidatesOf(sk, rec);
   const how = vrm ? "by its VRM humanoid" : rec.method === "table" ? `by name (${rec.table})` : rec.method === "topology" ? "by topology (names matched no table)" : "not at all";
   const lines = [
     `${name}: ${count(sk.bones.length, "bone")}, recognized ${how}, confidence ${rec.confidence.toFixed(2)}`,
     `rest: ${frame.kind}, the arms ${Math.round(frame.armDrop)}° below level`,
-    `mapped: ${count(Object.keys(rec.bones).length, "humanoid bone")}, ${skeleton.REQUIRED_BONES.length - rec.missing.length} of the ${skeleton.REQUIRED_BONES.length} required; ${count(un.length, "source bone")} unmapped${un.length ? ` (${un.slice(0, 6).join(", ")}${un.length > 6 ? ", ..." : ""})` : ""}`,
-    `missing: ${rec.missing.length ? rec.missing.join(", ") : "none"}`,
-    ...rec.issues.slice(0, 5).map((x) => `issue: ${x}`),
+    `mapped: ${count(Object.keys(rec.bones).length, "humanoid bone")}, ${skeleton.REQUIRED_BONES.length - rec.missing.length} of the ${skeleton.REQUIRED_BONES.length} required; ${count(un.length, "source bone")} unmapped`,
+    ...(un.length ? [cut(`unmapped: ${un.slice(0, 6).join(", ")}${un.length > 6 ? ", ..." : ""}`)] : []),
+    cut(`missing: ${rec.missing.length ? rec.missing.map((h) => (candidates[h]![0] ? `${h} (${candidates[h]![0]}?)` : h)).join(", ") : "none"}`),
+    ...rec.issues.slice(0, 5).map((x) => `issue: ${cut(x)}`),
     ...(rec.issues.length > 5 ? [`... ${rec.issues.length - 5} more issues`] : []),
     `lengths (mm, left/right): upper arm ${L("UpperArm")}, forearm ${L("LowerArm")}, thigh ${L("UpperLeg")}, shin ${L("LowerLeg")}`,
-    rec.missing.length ? `patch: write each missing bone's source bone into "bones" (now null) and pass it back as mapping` : `patch: none needed; to change a bone, pass mapping {bones: {humanoidBone: "sourceBone"}}`,
+    rec.missing.length ? `patch: write each missing bone's source bone into "bones" (now null) and pass it back as mapping`
+      : rec.issues.some((i) => i !== "patched by hand") ? "patch: check the issues above; edit the patch and pass it back as mapping"
+      : `patch: none needed; to change a bone, pass mapping {bones: {humanoidBone: "sourceBone"}}`,
   ];
-  return { bones: sk.bones.length, method: rec.method, table: rec.table, vrm, confidence: rec.confidence, missing: rec.missing, unmapped: un, issues: rec.issues, rest: { kind: frame.kind, armDrop: frame.armDrop }, lengths, patch, text: lines.join("\n") };
+  return { bones: sk.bones.length, method: rec.method, table: rec.table, vrm, confidence: rec.confidence, missing: rec.missing, candidates, unmapped: un, issues: rec.issues, rest: { kind: frame.kind, armDrop: frame.armDrop }, lengths, patch, text: lines.join("\n") };
 }

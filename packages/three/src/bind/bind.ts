@@ -145,8 +145,10 @@ export function bind(root: Object3D, opts: BindOptions = {}): ThreeBound {
     const byNode = new Map(bones.map((b) => [b as Object3D, b.name]));
     rec = skeleton.patchMapping(sk, rec, Object.fromEntries(Object.entries(vrm).filter(([h]) => skeleton.HUMANOID_BONES.includes(h) && byNode.has(vrm[h]!)).map(([h, n]) => [h, byNode.get(n)!])));
   }
-  // a source bone the skeleton lacks is taken as the file names it, sanitized as three's loader sanitizes node names
-  const named = (src: string | null) => (typeof src !== "string" || sk.bones.some((b) => b.name === src) ? src : PropertyBinding.sanitizeNodeName(src));
+  // a source bone the skeleton lacks is taken as the file names it, sanitized as three's loader sanitizes node names;
+  // one it lacks either way is refused as given
+  const has = (n: string) => sk.bones.some((b) => b.name === n);
+  const named = (src: string | null) => (typeof src === "string" && !has(src) && has(PropertyBinding.sanitizeNodeName(src)) ? PropertyBinding.sanitizeNodeName(src) : src);
   if (opts.mapping) rec = skeleton.patchMapping(sk, rec, Object.fromEntries(Object.entries(opts.mapping.bones).map(([h, src]) => [h, named(src)])));
   const frame = skeleton.restFrame(sk, rec);
   const head = new Map(sk.bones.map((b) => [b.name, b.head!]));

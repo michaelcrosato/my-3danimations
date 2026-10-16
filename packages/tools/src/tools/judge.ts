@@ -100,8 +100,9 @@ export function contactsFor(clip: Clip, R: Rest): Contacts {
 const level = (m: checks.Motion, k: checks.MetricName, v: number) => (v >= checks.levels(m, k).fail ? 2 : v >= checks.levels(m, k).warn ? 1 : 0);
 const num = (v: number) => (Math.abs(v) >= 100 ? String(Math.round(v)) : v.toFixed(1));
 
-/** Plays one clip (on its own rest R) on bound body b, named `rig` in the row, and judges what the body added (D80). */
-export function onBody(clip: Clip, R: Rest, b: Bound, rig: string): OnBody {
+/** Plays one clip (on its own rest R) on bound body b, named `rig` in the row, and judges what the body added (D80);
+ *  `seen` is given what it played, when it played (retarget.apply draws it). */
+export function onBody(clip: Clip, R: Rest, b: Bound, rig: string, seen?: (p: Played) => void): OnBody {
   const why: string[] = [], warns: string[] = [], worse: OnBody["worse"] = [];
   let ownVerdict = "none", playedVerdict = "none", reach = 0;
   try {
@@ -110,7 +111,9 @@ export function onBody(clip: Clip, R: Rest, b: Bound, rig: string): OnBody {
       const opts = { loop: clip.loop, id: clip.id, tags: clip.tags ?? [], parts: true };
       const own = ownFrames(clip, R), mo = checks.motionOfFrames(own.frames, R, { ...opts, root: own.root }), verdict = checks.measure(mo).verdict;
       // played with its contacts, detected on its own body where it carries none (as WP-5.4 writes them into clips)
-      const p = played({ ...clip, contacts: contactsFor(clip, R), shares: R }, b), mp = checks.motionOfFrames(p.frames, b.rest, { ...opts, root: p.root }), rp = checks.measure(mp);
+      const p = played({ ...clip, contacts: contactsFor(clip, R), shares: R }, b);
+      seen?.(p);
+      const mp = checks.motionOfFrames(p.frames, b.rest, { ...opts, root: p.root }), rp = checks.measure(mp);
       // slide and skate like for like: on the clip's own body over the stretches the played body stands on, where its
       // foot is down too (by height: a foot the clip drags along the floor too fast to read as standing still slides
       // there, and that slide is the clip's)
