@@ -1,11 +1,13 @@
 // Characters for the tools (PLAN.md WP-7.2b, D93): a character file (.glb, .gltf or .vrm) read through @m3a/io's
 // skeleton reader and bound through core (recognize, an agent's mapping patch, bind), never three.js's loader, which
 // fails in Node and renames bones, so a patch names the file's own bones. A VRM's humanoid (1.0's or 0.x's) maps its
-// bones before any patch. `tiny` is the 34-bone conformance rig, graph.sim's default body. The report says how the
-// bones were recognized, how sure, what is missing or odd, the rest pose, limb lengths and a patch to edit back, in at
-// most 20 lines; retarget.inspect shows it, and a tool that needs the body bound refuses with it (bodyOf).
+// bones before any patch. A foot that ends with no child gets an end bone where its mesh ends, on the sole (D49), as
+// three's bind gives it, so the body bound here stands as the game's does. `tiny` is the 34-bone conformance rig,
+// graph.sim's default body. The report says how the bones were recognized, how sure, what is missing or odd, the rest
+// pose, limb lengths and a patch to edit back, in at most 20 lines; retarget.inspect shows it, and a tool that needs
+// the body bound refuses with it (bodyOf).
 import { bind, skeleton, type Bound, type SkeletonIn } from "@m3a/core";
-import { IoError, parseGlb, parseGltf, skeletonOfGltf, type GltfJson, type GltfSkeleton } from "@m3a/io";
+import { IoError, meshEnds, parseGlb, parseGltf, skeletonOfGltf, type GltfDoc, type GltfJson, type GltfSkeleton } from "@m3a/io";
 import { ToolError, type ToolContext } from "../registry/registry.ts";
 import { didYouMean, quote, type Schema } from "../registry/schema.ts";
 import { count } from "./common.ts";
@@ -36,7 +38,8 @@ export interface CharacterReport {
   text: string;
 }
 /** A character for the tools: bound (null while a required bone is missing; the report names it), the recognition the
- *  binding used, and the report. */
+ *  binding used, and the report. The bound skeleton may hold end bones the file doesn't (`<foot's last bone>_end`, on
+ *  the sole, D49); they have no node. */
 export interface Character {
   bound: Bound | null;
   recognition: skeleton.Recognition;
@@ -44,7 +47,8 @@ export interface Character {
 }
 
 /** The tiny rig (tier 1b's rig.gltf; conformance tier 3's skeleton, spec/conformance/runner/skeleton.ts rigSkeleton()):
- *  34 bones, Unreal's names, metres, +y up, facing +z, each head its parent's plus the node's translation. */
+ *  34 bones, Unreal's names, metres, +y up, facing +z, each head its parent's plus the node's translation. Frozen, deep:
+ *  every character bound from it shares it. */
 export const TINY: SkeletonIn = (() => {
   const bones: skeleton.BoneIn[] = [], at = new Map<string, [number, number, number]>();
   const bone = (name: string, parent: string | null, t: readonly [number, number, number]) => {
@@ -75,7 +79,9 @@ export const TINY: SkeletonIn = (() => {
     bone(n("ball"), n("foot"), [0, -0.06, 0.13]);
     bone(n("ball_leaf"), n("ball"), [0, 0, 0.06]);
   }
-  return { bones, up: [0, 1, 0] };
+  const sk: SkeletonIn = { bones, up: [0, 1, 0] };
+  for (const x of [...bones.flatMap((b) => [b.head, b]), bones, sk.up, sk]) Object.freeze(x);
+  return sk;
 })();
 
 // VRM 0.x's thumb names in VRM 1.0's (0.x's proximal is 1.0's metacarpal, its intermediate 1.0's proximal)
@@ -94,19 +100,45 @@ export function vrmMapping(json: GltfJson, g: GltfSkeleton): Record<string, stri
   return out;
 }
 
+/** A character read: its skeleton, and for a file its document and glTF skeleton (the soles are read from its mesh). */
+interface Read {
+  sk: SkeletonIn;
+  file: { doc: GltfDoc; g: GltfSkeleton } | null;
+  vrm: Record<string, string> | null;
+}
 /** A character's skeleton: the tiny rig, or a .glb, .gltf or .vrm file read through io (E_ARGS for anything else; an
  *  unreadable file is an error with io's code). */
-async function skeletonOf(ctx: ToolContext, ref: string): Promise<{ sk: SkeletonIn; restWorld?: GltfSkeleton["restWorld"]; vrm: Record<string, string> | null }> {
-  if (ref === "tiny") return { sk: TINY, vrm: null };
+async function skeletonOf(ctx: ToolContext, ref: string): Promise<Read> {
+  if (ref === "tiny") return { sk: TINY, file: null, vrm: null };
   const ext = /\.(glb|gltf|vrm)$/i.exec(ref)?.[1]!.toLowerCase();
   if (!ext) throw new ToolError("E_ARGS", `${quote(ref)} is not a character: give a .glb, .gltf or .vrm file, or "tiny"`, true);
   try {
     const doc = ext === "gltf" ? parseGltf(await ctx.read(ref), ref) : parseGlb(await ctx.bytes(ref), ref), g = skeletonOfGltf(doc);
-    return { sk: g.skeleton, restWorld: g.restWorld, vrm: vrmMapping(doc.json, g) };
+    return { sk: g.skeleton, file: { doc, g }, vrm: vrmMapping(doc.json, g) };
   } catch (err) {
     throw err instanceof IoError ? new ToolError(err.code, err.file ? err.message : `${ref}: ${err.message}`) : err;
   }
 }
+
+/** The skeleton bound, with D49's end bones (as three's bind adds them): each foot's last bone (its toes, else the foot)
+ *  that has no child ends where its mesh does, on the sole, so its toe and the ground under it are the foot's real tip;
+ *  the tiny rig, and a foot no vertex is weighted to, as they are. */
+function withSoles({ sk, file }: Read, rec: skeleton.Recognition): { sk: SkeletonIn; restWorld?: GltfSkeleton["restWorld"] } {
+  if (!file) return { sk };
+  const lasts = [...new Set(["left", "right"].map((s) => rec.bones[`${s}Toes`] ?? rec.bones[`${s}Foot`]))].filter((b): b is string => !!b && !sk.bones.some((x) => x.parent === b));
+  const at = meshEnds(file.doc, lasts.map((b) => file.g.nodes[sk.bones.findIndex((x) => x.name === b)]!)), bones = [...sk.bones], restWorld = { ...file.g.restWorld };
+  lasts.forEach((b, k) => {
+    if (!at[k]) return;
+    let name = `${b}_end`;
+    while (bones.some((x) => x.name === name)) name += "_";
+    bones.push({ name, parent: b, head: at[k] });
+    restWorld[name] = [0, 0, 0, 1];
+  });
+  return { sk: { ...sk, bones }, restWorld };
+}
+
+/** The most bones a character may have (recognition by shape is quadratic in them, and deep chains recurse). */
+const MAX_BONES = 4096;
 
 /** Refuses (E_ARGS, with the closest name) a patch naming a bone that isn't humanoid, or one the character lacks. */
 function checkPatch(sk: SkeletonIn, m: MappingPatch): void {
@@ -123,23 +155,28 @@ function checkPatch(sk: SkeletonIn, m: MappingPatch): void {
  * the report saying which; no humanoid bone recognized at all is E_RIG (an error).
  */
 export async function characterOf(ctx: ToolContext, ref: string, mapping?: MappingPatch | null): Promise<Character> {
-  const { sk, restWorld, vrm } = await skeletonOf(ctx, ref);
-  let rec = skeleton.recognize(sk);
-  const byVrm = vrm !== null && Object.keys(vrm).length > 0;
-  if (byVrm) {
-    // a VRM's humanoid is the file's own word, not a hand patch
-    const r = skeleton.patchMapping(sk, rec, vrm);
-    rec = { ...r, issues: r.issues.filter((i) => i !== "patched by hand") };
-  }
+  const read = await skeletonOf(ctx, ref), { sk, vrm } = read;
+  if (sk.bones.length > MAX_BONES) throw new ToolError("E_LIMIT", `${ref}: ${sk.bones.length} bones; a character may have at most ${MAX_BONES}`);
+  const named = skeleton.recognize(sk), byVrm = vrm !== null && Object.keys(vrm).length > 0;
+  let rec = byVrm ? skeleton.patchMapping(sk, named, vrm) : named;
   if (mapping) {
     checkPatch(sk, mapping);
     rec = skeleton.patchMapping(sk, rec, mapping.bones);
   }
+  if (byVrm) {
+    // a VRM's humanoid is the file's own word, not a hand patch; a required bone it doesn't give is said, with how it was found
+    const given = (h: string) => h in vrm || (mapping ? h in mapping.bones : false), how = named.method === "table" ? `by name (${named.table})` : "by topology";
+    const own = skeleton.REQUIRED_BONES.filter((h) => rec.bones[h] && !given(h)).map((h) => `${h}: not in its VRM humanoid; found ${how}`);
+    rec = { ...rec, issues: [...own, ...rec.issues.filter((i) => mapping || i !== "patched by hand")] };
+  }
   if (!Object.keys(rec.bones).length) throw new ToolError("E_RIG", `${ref}: no humanoid bone recognized among its ${sk.bones.length} bones, by name or by shape; give each bone in mapping {bones: {hips: "<its bone>", ...}}`);
   const report = reportOf(ref, sk, rec, byVrm);
-  let bound: Bound | null;
+  let bound: Bound | null = null;
   try {
-    bound = rec.missing.length ? null : bind(sk, { recognition: rec, ...(restWorld ? { restWorld } : {}) });
+    if (!rec.missing.length) {
+      const body = withSoles(read, rec);
+      bound = bind(body.sk, { recognition: rec, ...(body.restWorld ? { restWorld: body.restWorld } : {}) });
+    }
   } catch (err) {
     throw new ToolError("E_RIG", `${ref}: can't bind it (${err instanceof Error ? err.message : String(err)}); retarget.inspect shows its mapping`);
   }

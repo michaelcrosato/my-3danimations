@@ -87,7 +87,8 @@ export const mul = (a: M4, b: M4): M4 => {
   for (let c = 0; c < 4; c++) for (let r = 0; r < 4; r++) o[c * 4 + r] = a[r]! * b[c * 4]! + a[4 + r]! * b[c * 4 + 1]! + a[8 + r]! * b[c * 4 + 2]! + a[12 + r]! * b[c * 4 + 3]!;
   return o;
 };
-const xf = (m: M4, p: number[]): V3 => [m[0]! * p[0]! + m[4]! * p[1]! + m[8]! * p[2]! + m[12]!, m[1]! * p[0]! + m[5]! * p[1]! + m[9]! * p[2]! + m[13]!, m[2]! * p[0]! + m[6]! * p[1]! + m[10]! * p[2]! + m[14]!];
+/** A point `p` carried by the column-major 4x4 matrix `m`. */
+export const xf = (m: M4, p: number[]): V3 => [m[0]! * p[0]! + m[4]! * p[1]! + m[8]! * p[2]! + m[12]!, m[1]! * p[0]! + m[5]! * p[1]! + m[9]! * p[2]! + m[13]!, m[2]! * p[0]! + m[6]! * p[1]! + m[10]! * p[2]! + m[14]!];
 /** Spherical in-between of two quaternions, the shorter way (nearly equal ones in-betweened linearly), as the original. */
 export const slerp = (a: number[], b: number[], t: number): number[] => {
   let d = a[0]! * b[0]! + a[1]! * b[1]! + a[2]! * b[2]! + a[3]! * b[3]!, s = 1;

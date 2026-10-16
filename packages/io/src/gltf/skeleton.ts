@@ -6,11 +6,13 @@
 // (tier 1b's rig.gltf). Each has its parent (the nearest ancestor that is a bone), its rest head and its rest
 // orientation in the scene's space (every node above it applied: an armature's rotation and scale too), in the file's
 // metres, +y up. Names are the file's own (three.js would sanitize them); a bone with none, or one another bone took
-// first, is named for its node. Untrusted input: hierarchy() refuses cycles, missing children and too many nodes.
+// first, is named for its node. `meshEnds` reads where a joint's part of the skinned mesh ends, on the sole: the end
+// bone D49 gives a foot with no child, as three's bind reads it. Untrusted input: hierarchy() refuses cycles, missing
+// children and too many nodes; every accessor read is checked against the buffer.
 import type { SkeletonIn } from "@m3a/core";
 import { IoError } from "../bytes.ts";
-import type { GltfDoc } from "./container.ts";
-import { accessor, hierarchy, mat, mul, restOf } from "./read.ts";
+import type { GltfDoc, GltfJson, GltfNode } from "./container.ts";
+import { accessor, hierarchy, mat, mul, restOf, xf } from "./read.ts";
 
 /** A glTF character's skeleton: the bones core binds, each bone's rest orientation in the scene's space ([x, y, z, w],
  *  by bone name, as core's bind takes `restWorld`), and the node each bone is (`nodes[k]` for `skeleton.bones[k]`). */
@@ -19,6 +21,19 @@ export interface GltfSkeleton {
   restWorld: Record<string, [number, number, number, number]>;
   nodes: number[];
 }
+
+/** Each node's world matrix at rest, parents first. */
+function worlds(nodes: readonly GltfNode[], parent: readonly number[], order: readonly number[]): number[][] {
+  const world = new Array<number[]>(nodes.length);
+  for (const i of order) {
+    const r = restOf(nodes[i]!), local = nodes[i]!.matrix ?? mat(r.t, r.r, r.s);
+    world[i] = parent[i]! < 0 ? local : mul(world[parent[i]!]!, local);
+  }
+  return world;
+}
+
+/** Whether the file's meshes are compressed (meshopt or Draco required), so their weights and positions can't be read. */
+const compressed = (G: GltfJson): boolean => !!G.extensionsRequired?.some((e) => /^(EXT|KHR)_meshopt_compression$|^KHR_draco_mesh_compression$/.test(e));
 
 /** A glTF document's skeleton: its biggest skin's joints (those that deform, and above), or every node without a skin.
  *  Fails with E_RIG when it has no bones, E_FORMAT when a skin names a node that isn't there. */
@@ -29,13 +44,7 @@ export function skeletonOfGltf(doc: GltfDoc): GltfSkeleton {
   const vrm = doc.json.extensions?.VRMC_vrm !== undefined || doc.json.extensions?.VRM !== undefined, keep = skin && !vrm ? deforming(doc, parent) : null;
   const picked = skin ? [...new Set(skin)].filter((j) => !keep || keep.has(j)) : nodes.map((_, i) => i);
   if (!picked.length) throw new IoError("E_RIG", "no bones: a character's skeleton is its skin's joints, or its nodes", { file });
-  // each node's world matrix, parents first
-  const world = new Array<number[]>(nodes.length);
-  for (const i of order) {
-    const r = restOf(nodes[i]!), local = nodes[i]!.matrix ?? mat(r.t, r.r, r.s);
-    world[i] = parent[i]! < 0 ? local : mul(world[parent[i]!]!, local);
-  }
-  const used = new Set<string>(), name = new Map<number, string>();
+  const world = worlds(nodes, parent, order), used = new Set<string>(), name = new Map<number, string>();
   for (const i of picked) {
     let n = nodes[i]!.name || `node${i}`;
     while (used.has(n)) n = `${n}_node${i}`;
@@ -59,7 +68,7 @@ export function skeletonOfGltf(doc: GltfDoc): GltfSkeleton {
  *  weights can't be read (a mesh compressed, or broken: the skeleton doesn't need it). */
 function deforming(doc: GltfDoc, parent: readonly number[]): Set<number> | null {
   const G = doc.json, joint = new Set((G.skins ?? []).flatMap((s) => s.joints)), used = new Set<number>();
-  if (G.extensionsRequired?.length) return null;
+  if (compressed(G)) return null;
   try {
     for (const n of G.nodes ?? []) {
       const joints = n.skin === undefined ? undefined : G.skins?.[n.skin]?.joints, mesh = n.mesh === undefined ? undefined : G.meshes?.[n.mesh];
@@ -80,4 +89,64 @@ function deforming(doc: GltfDoc, parent: readonly number[]): Set<number> | null 
   const keep = new Set<number>();
   for (const j of used) for (let p = j; p >= 0 && joint.has(p) && !keep.has(p); p = parent[p]!) keep.add(p);
   return keep.size ? keep : null;
+}
+
+/**
+ * Where each joint's part of the skinned mesh ends (D49: a foot that ends with no child gets an end bone there, on the
+ * sole), as three's bind reads it: of the vertices weighted half or more to the joint, in every mesh a skin naming it
+ * skins, at rest (skinned by their joints, the weights summed to 1 and the mesh node's own transform applied after, as
+ * three renders them), the one farthest from the joint's head across the ground (+y up), brought down to the lowest of
+ * them; in the scene's space, metres. Null for a joint no vertex is weighted to, and for every joint when the meshes
+ * can't be read (compressed, or broken: the end is a refinement, never a reason to refuse the character).
+ */
+export function meshEnds(doc: GltfDoc, joints: readonly number[]): ([number, number, number] | null)[] {
+  const G = doc.json, bin = doc.bin, nodes = G.nodes ?? [], { parent, order } = hierarchy(nodes, bin?.file), world = worlds(nodes, parent, order);
+  const best = joints.map(() => ({ at: null as number[] | null, far: -1, low: Infinity }));
+  if (compressed(G)) return joints.map(() => null);
+  try {
+    nodes.forEach((n, m) => {
+      const skin = n.skin === undefined ? undefined : G.skins?.[n.skin], mesh = n.mesh === undefined ? undefined : G.meshes?.[n.mesh];
+      const which = skin ? joints.map((j) => skin.joints.indexOf(j)) : [];
+      if (!skin || !mesh || which.every((i) => i < 0)) return;
+      const ibm = skin.inverseBindMatrices === undefined ? null : (accessor(G, bin, skin.inverseBindMatrices, "MAT4") as number[][]);
+      const jm = skin.joints.map((j, k) => {
+        if (!world[j]) throw new IoError("E_FORMAT", `a skin names joint ${j}, which doesn't exist`);
+        return mul(world[m]!, ibm?.[k] ? mul(world[j]!, ibm[k]!) : world[j]!);
+      });
+      for (const p of mesh.primitives) {
+        const a = p.attributes;
+        if (a.POSITION === undefined || a.JOINTS_0 === undefined || a.WEIGHTS_0 === undefined) continue;
+        const P = accessor(G, bin, a.POSITION, "VEC3") as number[][], J = accessor(G, bin, a.JOINTS_0, "VEC4") as number[][], W = accessor(G, bin, a.WEIGHTS_0, "VEC4") as number[][];
+        P.forEach((pos, v) => {
+          const js = J[v], w0 = W[v];
+          if (!js || !w0) return;
+          // three sums a vertex's weights to 1 (all zero: the first joint's alone)
+          const sum = Math.abs(w0[0]!) + Math.abs(w0[1]!) + Math.abs(w0[2]!) + Math.abs(w0[3]!), w = sum ? w0.map((x) => x / sum) : [1, 0, 0, 0];
+          let at: number[] | null = null;
+          which.forEach((i, b) => {
+            let mine = 0;
+            for (let c = 0; c < 4 && i >= 0; c++) if (js[c] === i) mine += w[c]!;
+            if (mine < 0.5) return;
+            if (!at) {
+              at = [0, 0, 0];
+              for (let c = 0; c < 4; c++) {
+                if (w[c] === 0) continue;
+                const M = jm[js[c]!];
+                if (!M) throw new IoError("E_FORMAT", `vertex ${v} names joint ${js[c]}, which the skin doesn't list`);
+                const q = xf(M, pos);
+                for (let k = 0; k < 3; k++) at[k]! += q[k]! * w[c]!;
+              }
+            }
+            const e = best[b]!, h = world[joints[b]!]!, flat = Math.hypot(at[0]! - h[12]!, at[2]! - h[14]!);
+            if (flat > e.far) [e.far, e.at] = [flat, at];
+            e.low = Math.min(e.low, at[1]!);
+          });
+        });
+      }
+    });
+  } catch (err) {
+    if (err instanceof IoError) return joints.map(() => null);
+    throw err;
+  }
+  return best.map((e) => (e.at ? [e.at[0]!, e.low, e.at[2]!] : null));
 }

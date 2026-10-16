@@ -41,7 +41,8 @@ export interface ToolContext {
   read(path: string): Promise<string>;
   /** Reads a text file as `read` does, or null when it doesn't exist. */
   tryRead(path: string): Promise<string | null>;
-  /** Reads a binary file (a .glb, .vrm or .vrma), relative to the working directory and confined as `read` is. */
+  /** Reads any file as bytes (a character's .glb or .vrm, a motion's .vrma), relative to the working directory and
+   *  confined as `read` is; the tool that asks checks what the file is. */
   bytes(path: string): Promise<Uint8Array>;
   /** Writes a file atomically under the write roots (workshop/, .m3a/, imports/, check-output/); returns its path. */
   write(path: string, data: string | Uint8Array): string;

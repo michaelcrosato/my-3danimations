@@ -1,17 +1,22 @@
 // Characters for the tools (WP-7.2b b0): a character's bytes read by the Node host as text is, confined to the working
-// directory (R6); the tiny rig equal to the conformance skeleton (B1); a character bound through io and core, never
-// three.js: .gltf text and .glb bytes alike, tiny as tier 1b's rig.gltf, a patch unmapping or swapping bones, a misspelt
-// bone named with the closest, a file that is no character and a chain with no humanoid refused; a VRM's humanoid,
-// 1.0's or 0.x's, mapping bones no table names (V1).
+// directory (R6); the tiny rig equal to the conformance skeleton (B1), frozen; a character bound through io and core,
+// never three.js: .gltf text and .glb bytes alike, tiny as tier 1b's rig.gltf, each bone's rest orientation as read, a
+// patch unmapping or swapping bones, a misspelt bone named with the closest, a file that is no character, a chain with
+// no humanoid and too many bones refused; the soles' end bones (D49) put Rigify, every generated character and KayKit's
+// knight (when fetched) at three's bind's rest points and hip height exactly; a VRM's humanoid, 1.0's or 0.x's, mapping
+// bones no table names, a required bone it leaves out said (V1).
 import { readFileSync, symlinkSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { recognize } from "@m3a/core";
-import { gltfToGlb, type GltfSkeleton } from "@m3a/io";
+import { gltfToGlb, parseGltf, skeletonOfGltf, type GltfSkeleton } from "@m3a/io";
+import { bind as threeBind } from "@m3a/three";
 import { describe, expect, it } from "vitest";
 import { nodeHost } from "../src/node.ts";
-import { defineTool, Registry, type Host } from "../src/registry/index.ts";
+import { defineTool, Registry, type Host, type ToolContext } from "../src/registry/index.ts";
 import { bodyOf, CHARACTER, characterOf, MAPPING, TINY, vrmMapping, type MappingPatch } from "../src/tools/body.ts";
 import { rigSkeleton } from "../../../spec/conformance/runner/skeleton.ts";
+import { rigBytes } from "../../../tools/fixtures/fixtures.ts";
+import { character, loadGlb, TEST_SEEDS, variant } from "../../three/test-characters/index.ts";
 import { exampleCwd } from "./helpers/surfaces.ts";
 
 /** demo.body: a character bound (bodyOf with `bound`), its report and rest as data; findings while it is unbound. */
@@ -38,6 +43,8 @@ async function bodies(files: Record<string, string | Uint8Array>, calls: object[
   }
 }
 const rigText = (f: string) => readFileSync(join(import.meta.dirname, "../../..", f), "utf8");
+/** A context that reads one character file, whatever its name. */
+const holding = (glb: Uint8Array, text = "") => ({ bytes: async () => glb, read: async () => text }) as unknown as ToolContext;
 
 describe("a character's bytes (R6)", () => {
   it("reads a binary file under the working directory, refused out of it, through a link or missing; a host without bytes refuses", async () => {
@@ -58,8 +65,9 @@ describe("a character's bytes (R6)", () => {
 });
 
 describe("characters bound through core", () => {
-  it("has the tiny rig as the conformance skeleton, bound as tier 1b's rig.gltf is", async () => {
+  it("has the tiny rig as the conformance skeleton, frozen, bound as tier 1b's rig.gltf is", async () => {
     expect(TINY).toEqual(rigSkeleton());
+    expect([TINY, TINY.bones, TINY.up, ...TINY.bones.flatMap((b) => [b, b.head])].every((x) => Object.isFrozen(x))).toBe(true);
     const [tiny, rig] = await bodies({}, [{ character: "tiny" }, { character: RIG }]);
     expect([tiny!.status, tiny!.data]).toEqual(["ok", rig!.data]);
     expect(tiny!.data).toMatchObject({ bones: 34, table: "unreal4", confidence: 1, missing: [], unmapped: ["root", "head_leaf", "ball_leaf_l", "ball_leaf_r"], rest: { kind: "T", armDrop: 0 } });
@@ -67,9 +75,20 @@ describe("characters bound through core", () => {
   it("binds the Rigify rig from .gltf text and .glb bytes alike: by name, sure, at rest T, its limbs measured", async () => {
     const [gltf, glb] = await bodies({ "rigify.glb": gltfToGlb(rigText(RIGIFY)) }, [{ character: RIGIFY }, { character: "rigify.glb" }]);
     expect([glb!.status, glb!.data, glb!.lines.slice(1)]).toEqual(["ok", gltf!.data, gltf!.lines.slice(1)]);
-    expect(glb!.data).toMatchObject({ bones: 31, method: "table", table: "rigify", vrm: false, confidence: 1, missing: [], unmapped: ["root"], issues: [], rest: { kind: "T", armDrop: 2 }, H0: 930 });
+    expect(glb!.data).toMatchObject({ bones: 31, method: "table", table: "rigify", vrm: false, confidence: 1, missing: [], unmapped: ["root"], issues: [], rest: { kind: "T", armDrop: 2 }, H0: 930.35 });
     expect(glb!.verdict).toBe("rigify.glb: 31 bones, recognized by name (rigify), confidence 1.00");
     expect(glb!.lines).toContain("lengths (mm, left/right): upper arm 280/280, forearm 250/250, thigh 430/430, shin 420/420");
+    // each bone's rest orientation as io read it; the soles' end bones unturned
+    const c = await characterOf(holding(new Uint8Array(), rigText(RIGIFY)), RIGIFY);
+    expect(c.bound!.restWorld).toEqual({ ...skeletonOfGltf(parseGltf(rigText(RIGIFY))).restWorld, "DEF-toe.L_end": [0, 0, 0, 1], "DEF-toe.R_end": [0, 0, 0, 1] });
+  });
+  it("stands each foot that ends with no child on an end bone where its mesh ends (D49), at three's bind's rest exactly", async () => {
+    const knight = rigBytes("kaykit-knight"), glbs: [string, Uint8Array][] = [["rigify", gltfToGlb(rigText(RIGIFY))], ...TEST_SEEDS.map((s): [string, Uint8Array] => [`seed ${s}`, character(variant(s)).glb])];
+    for (const [id, glb] of knight ? [...glbs, ["kaykit-knight", knight] as [string, Uint8Array]] : glbs) {
+      const c = (await characterOf(holding(glb), "c.glb")).bound!, t = threeBind((await loadGlb(glb, { textures: false })).scene).core;
+      const ends = (b: typeof c) => b.skeleton.bones.filter((x) => x.name.endsWith("_end")).map((x) => x.parent);
+      expect([c.rest.H0, ends(c).length, Math.max(...c.restPts.map((v, i) => Math.abs(v - t.restPts[i]!))) < 1e-3], id).toEqual([t.rest.H0, ends(t).length, true]);
+    }
   });
   it("takes a patch: a bone unmapped leaves it unbound (bodyOf refuses, naming it); swapped arms bind, the issue named", async () => {
     const swap = { leftUpperArm: "DEF-forearm.L", leftLowerArm: "DEF-upper_arm.L" }, [plain, gone, need, swapped] = await bodies({}, [
@@ -83,32 +102,38 @@ describe("characters bound through core", () => {
     expect((back!.data as { restPts: number[] }).restPts).toEqual((plain!.data as { restPts: number[] }).restPts);
   });
   it("refuses a misspelt bone with the closest name, a file that is no character or no glTF, and a chain with no humanoid", async () => {
-    const chain = JSON.stringify({ asset: { version: "2.0" }, nodes: [{ name: "a", children: [1] }, { name: "b", children: [2] }, { name: "c" }] });
-    const got = await bodies({ "chain.gltf": chain, "junk.glb": "this is no binary glTF, only text" }, [{ character: RIGIFY, mapping: { bones: { leftUpperLegg: "x" } } }, { character: RIGIFY, mapping: { bones: { leftHand: "DEF-hand.l" } } },
-      { character: "spec/vectors/tier1b/rig-catalog.json" }, { character: "junk.glb" }, { character: "chain.gltf" }]);
+    const chain = (n: number) => JSON.stringify({ asset: { version: "2.0" }, nodes: Array.from({ length: n }, (_, i) => ({ name: `b${i}`, ...(i < n - 1 ? { children: [i + 1] } : {}) })) });
+    const got = await bodies({ "chain.gltf": chain(3), "long.gltf": chain(4097), "junk.glb": "this is no binary glTF, only text" }, [{ character: RIGIFY, mapping: { bones: { leftUpperLegg: "x" } } }, { character: RIGIFY, mapping: { bones: { leftHand: "DEF-hand.l" } } },
+      { character: "spec/vectors/tier1b/rig-catalog.json" }, { character: "junk.glb" }, { character: "chain.gltf" }, { character: "long.gltf" }]);
     expect(got.map((r) => [r.status, r.error?.code, r.error?.message])).toEqual([
       ["usage", "E_ARGS", 'mapping: "leftUpperLegg" is not a VRM 1.0 humanoid bone; did you mean "leftUpperLeg"?'],
       ["usage", "E_ARGS", 'mapping: leftHand: the character has no bone "DEF-hand.l"; did you mean "DEF-hand.L"?'],
       ["usage", "E_ARGS", '"spec/vectors/tier1b/rig-catalog.json" is not a character: give a .glb, .gltf or .vrm file, or "tiny"'],
       ["error", "E_FORMAT", "junk.glb: not a binary glTF (.glb): its first 4 bytes aren't 'glTF' (at byte 0)"],
       ["error", "E_RIG", 'chain.gltf: no humanoid bone recognized among its 3 bones, by name or by shape; give each bone in mapping {bones: {hips: "<its bone>", ...}}'],
+      ["error", "E_LIMIT", "long.gltf: 4097 bones; a character may have at most 4096"],
     ]);
   });
 });
 
 describe("a VRM's humanoid (V1)", () => {
-  it("maps bones no table names by the file's own humanoid, before a patch, as the file's word rather than a hand patch", async () => {
+  it("maps bones no table names by the file's own humanoid, before a patch, as the file's word; a required bone it leaves out said", async () => {
     // tier 1b's rig, its bones renamed past every table, and its humanoid said in VRMC_vrm
     const json = JSON.parse(rigText(RIG)) as { nodes: { name: string }[]; extensions?: object }, names = json.nodes.map((n) => n.name);
     const humanBones = Object.fromEntries(Object.entries(recognize(TINY).bones).map(([h, n]) => [h, { node: names.indexOf(n) }]));
     json.nodes.forEach((n, i) => (n.name = `J_${i}`));
     const plain = gltfToGlb(JSON.stringify(json));
     json.extensions = { VRMC_vrm: { specVersion: "1.0", humanoid: { humanBones } } };
-    const [tiny, vrm, patched, notVrm] = await bodies({ "char.vrm": gltfToGlb(JSON.stringify(json)), "plain.glb": plain }, [{ character: "tiny" }, { character: "char.vrm" }, { character: "char.vrm", mapping: { bones: { leftHand: null } } }, { character: "plain.glb" }]);
+    const vrmFile = gltfToGlb(JSON.stringify(json)), { leftHand: _, ...noHand } = humanBones;
+    json.extensions = { VRMC_vrm: { specVersion: "1.0", humanoid: { humanBones: noHand } } };
+    const [tiny, vrm, patched, notVrm, handless, handGiven] = await bodies({ "char.vrm": vrmFile, "plain.glb": plain, "handless.vrm": gltfToGlb(JSON.stringify(json)) }, [{ character: "tiny" }, { character: "char.vrm" },
+      { character: "char.vrm", mapping: { bones: { leftHand: null } } }, { character: "plain.glb" }, { character: "handless.vrm" }, { character: "handless.vrm", mapping: { bones: { leftHand: "J_11" } } }]);
     expect(vrm!.data).toMatchObject({ vrm: true, confidence: 1, missing: [], issues: [], patch: { bones: Object.fromEntries(Object.entries(humanBones).map(([h, b]) => [h, `J_${b.node}`])) } });
     expect([vrm!.verdict, (vrm!.data as { restPts: number[] }).restPts]).toEqual(["char.vrm: 34 bones, recognized by its VRM humanoid, confidence 1.00", (tiny!.data as { restPts: number[] }).restPts]);
     expect(patched!.data).toMatchObject({ vrm: true, missing: ["leftHand"], issues: ["patched by hand", expect.stringMatching(/^required bones not found: leftHand/)] });
     expect(notVrm!.data).toMatchObject({ vrm: false, method: "topology" });
+    // a humanoid without the left hand: bound, the hand found by topology and said so, unless a patch gives it
+    expect([handless!.status, (handless!.data as { issues: string[] }).issues, (handGiven!.data as { issues: string[] }).issues]).toEqual(["ok", ["leftHand: not in its VRM humanoid; found by topology"], ["patched by hand"]]);
   });
   it("reads VRM 0.x's humanoid, its thumbs renamed as 1.0 names them, leaving out what is no humanoid bone or no bone", () => {
     const g = { skeleton: { bones: ["a", "b", "c"].map((name) => ({ name })) }, nodes: [4, 5, 6], restWorld: {} } as GltfSkeleton;
