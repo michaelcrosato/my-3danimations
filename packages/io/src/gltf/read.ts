@@ -75,12 +75,14 @@ function bonesFor(rig: string): [string, string, Where][] {
 }
 
 /* ---- column-major 4x4 matrices, quaternions [x, y, z, w] (the original's order of operations) ---- */
-const mat = (t: number[] = [0, 0, 0], q: number[] = [0, 0, 0, 1], s: number[] = [1, 1, 1]): M4 => {
+/** A transform as a column-major 4x4 matrix: translation `t`, rotation `q`, scale `s`. */
+export const mat = (t: number[] = [0, 0, 0], q: number[] = [0, 0, 0, 1], s: number[] = [1, 1, 1]): M4 => {
   const [x, y, z, w] = q as [number, number, number, number], xx = x * x, yy = y * y, zz = z * z, xy = x * y, xz = x * z, yz = y * z, wx = w * x, wy = w * y, wz = w * z;
   return [(1 - 2 * (yy + zz)) * s[0]!, 2 * (xy + wz) * s[0]!, 2 * (xz - wy) * s[0]!, 0, 2 * (xy - wz) * s[1]!, (1 - 2 * (xx + zz)) * s[1]!, 2 * (yz + wx) * s[1]!, 0,
     2 * (xz + wy) * s[2]!, 2 * (yz - wx) * s[2]!, (1 - 2 * (xx + yy)) * s[2]!, 0, t[0]!, t[1]!, t[2]!, 1];
 };
-const mul = (a: M4, b: M4): M4 => {
+/** The product of two column-major 4x4 matrices, `a` applied after `b`. */
+export const mul = (a: M4, b: M4): M4 => {
   const o = new Array<number>(16);
   for (let c = 0; c < 4; c++) for (let r = 0; r < 4; r++) o[c * 4 + r] = a[r]! * b[c * 4]! + a[4 + r]! * b[c * 4 + 1]! + a[8 + r]! * b[c * 4 + 2]! + a[12 + r]! * b[c * 4 + 3]!;
   return o;

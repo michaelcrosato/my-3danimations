@@ -1,11 +1,12 @@
 #!/usr/bin/env node
 // @m3a/tools/node: the tools' Node entry (PLAN.md §5.1), with src/node/ the only modules here that import Node
-// built-ins, and the `m3a` bin. It supplies the Node host: files read under the working directory and written only under
-// its write roots (workshop/, .m3a/, imports/, check-output/: never library/), atomically, a link out of either refused
-// (./node/files.ts); the library at game.json's tiers; images written as PNG under check-output/<tool>/ by the same
-// rules, as are report.json and the request records. It runs the CLI on process.argv, and serves MCP over stdio with
-// `m3a mcp`: one JSON-RPC message per line each way, nothing else on stdout, and an exit when stdin ends. Both keep an
-// edit's request_id results in .m3a/requests/, so a retry in another process applies once.
+// built-ins, and the `m3a` bin. It supplies the Node host: files read (as text, or a character's bytes) under the
+// working directory and written only under its write roots (workshop/, .m3a/, imports/, check-output/: never library/),
+// atomically, a link out of either refused (./node/files.ts); the library at game.json's tiers; images written as PNG
+// under check-output/<tool>/ by the same rules, as are report.json and the request records. It runs the CLI on
+// process.argv, and serves MCP over stdio with `m3a mcp`: one JSON-RPC message per line each way, nothing else on
+// stdout, and an exit when stdin ends. Both keep an edit's request_id results in .m3a/requests/, so a retry in another
+// process applies once.
 import { readFileSync, unlinkSync } from "node:fs";
 import { relative, resolve, sep } from "node:path";
 import { createInterface } from "node:readline";
@@ -20,8 +21,8 @@ import { Registry, ToolError, type Host, type Tool } from "./registry/registry.t
 import { quote } from "./registry/schema.ts";
 import { TOOLS } from "./tools/index.ts";
 
-/** The Node host, relative to `cwd`: text files read (a missing one null to tryRead), files written atomically and
- *  removed under the write roots, the library at game.json's tiers, and images written as PNG. */
+/** The Node host, relative to `cwd`: files read as text (a missing one null to tryRead) or bytes, files written
+ *  atomically and removed under the write roots, the library at game.json's tiers, and images written as PNG. */
 export function nodeHost(cwd: string = process.cwd()): Host {
   const base = resolve(cwd), toRead = "give a file under the working directory, or pass its text";
   const put = (path: string, data: string | Uint8Array) => {
@@ -33,18 +34,21 @@ export function nodeHost(cwd: string = process.cwd()): Host {
     }
     return relative(base, p).split(sep).join("/");
   };
-  const read = (path: string, missing: boolean) => {
-    const p = under(base, path, toRead);
+  // a file under the working directory read as `how` reads it: null for a missing one when `missing` allows it
+  const read = <T>(path: string, missing: boolean, how: (p: string) => T, to = toRead): T | null => {
+    const p = under(base, path, to);
     try {
-      return readFileSync(p, "utf8");
+      return how(p);
     } catch (err) {
       if (missing && (errno(err) === "ENOENT" || errno(err) === "ENOTDIR")) return null;
       throw new ToolError("E_PATH", `can't read ${quote(path)} (${errno(err)}); paths are relative to ${cwd}`, true);
     }
   };
+  const text = (p: string) => readFileSync(p, "utf8");
   return {
-    read: async (path) => read(path, false)!,
-    tryRead: async (path) => read(path, true),
+    read: async (path) => read(path, false, text)!,
+    tryRead: async (path) => read(path, true, text),
+    bytes: async (path) => read(path, false, (p) => new Uint8Array(readFileSync(p)), "give a file under the working directory")!,
     write: put,
     remove(path) {
       const p = writable(base, path);

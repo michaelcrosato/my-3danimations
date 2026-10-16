@@ -9,6 +9,7 @@ import * as bvh from "./bvh/read.ts";
 import * as container from "./gltf/container.ts";
 import * as posed from "./gltf/posed.ts";
 import * as gltf from "./gltf/read.ts";
+import * as skel from "./gltf/skeleton.ts";
 import * as imp from "./import.ts";
 import * as vrmaRead from "./vrma/read.ts";
 import * as vrma from "./vrma/vrma.ts";
@@ -46,6 +47,10 @@ export { type PosedLibrary } from "./gltf/posed.ts";
 export const readGltfPosed = guard(posed.readGltfPosed, docFile);
 /** One glTF animation as joints posed frame by frame (the BVH reader's form). */
 export const posedOf = guard(posed.posedOf, docFile);
+/** A glTF character's skeleton as core binds it: its skin's joints (or every node), heads, parents, rest orientations. */
+export type { GltfSkeleton } from "./gltf/skeleton.ts";
+/** A glTF character's skeleton (its biggest skin's joints, else every node) for core's bind, read from nodes alone. */
+export const skeletonOfGltf = guard(skel.skeletonOfGltf, docFile);
 /** CMU's Acclaim skeleton and takes: their types. */
 export { type Asf, type AsfBone, type CmuPick, type CmuLibrary } from "./acclaim/read.ts";
 /** An .asf skeleton. */
