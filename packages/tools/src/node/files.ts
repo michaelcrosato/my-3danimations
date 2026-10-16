@@ -3,9 +3,9 @@
 // by its real path, so no link leads out; every write atomic; and lock files, taken exclusively, so two m3a processes
 // never write one clip at once. The host's own files (images, report.json, request records) go through the same checks
 // as a tool's. A refusal names the working directory, never its absolute path, nor an absolute path it was given.
-import { lstatSync, mkdirSync, readFileSync, realpathSync, renameSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { lstatSync, mkdirSync, readdirSync, readFileSync, realpathSync, renameSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { hostname } from "node:os";
-import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
+import { basename, dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { ToolError } from "../registry/registry.ts";
 import { quote } from "../registry/schema.ts";
 import { absolute } from "../tools/common.ts";
@@ -61,10 +61,12 @@ export function writable(cwd: string, path: string): string {
 
 /** Writes a file atomically: its directory made, the data written to a new temporary file beside it (whatever sat at
  *  that name removed first, a link itself rather than its target, and the file created exclusively, so no link there
- *  is followed), then renamed over it. */
+ *  is followed), then renamed over it. A write killed before its rename leaves its temporary file: this file's are
+ *  swept here once their process is gone (an edit's, under its clip's lock). */
 export function writeAtomic(path: string, data: string | Uint8Array): void {
   mkdirSync(dirname(path), { recursive: true });
   const tmp = `${path}.${process.pid}.tmp`;
+  sweep(path);
   try {
     rmSync(tmp, { force: true });
     writeFileSync(tmp, data, { flag: "wx" });
@@ -72,6 +74,20 @@ export function writeAtomic(path: string, data: string | Uint8Array): void {
   } catch (err) {
     rmSync(tmp, { force: true });
     throw err;
+  }
+}
+
+/** Removes `path`'s temporary files (`<name>.<pid>.tmp`) whose process on this machine is gone. Housekeeping: a failure
+ *  leaves them for the next write. */
+function sweep(path: string): void {
+  const dir = dirname(path), mine = `${basename(path)}.`;
+  try {
+    for (const n of readdirSync(dir)) {
+      const pid = n.startsWith(mine) ? Number(/^(\d+)\.tmp$/.exec(n.slice(mine.length))?.[1]) : 0;
+      if (pid && pid !== process.pid && !alive(pid)) rmSync(join(dir, n), { force: true });
+    }
+  } catch {
+    // swept at the next write
   }
 }
 

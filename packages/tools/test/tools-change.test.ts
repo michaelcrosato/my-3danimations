@@ -436,7 +436,11 @@ describe("a retried edit applies once", () => {
       // killed at the history's write (the clip is written after it, so it is untouched), then at the clip's write
       for (at of [".m3a/history/", "workshop/"]) expect([(await call(retime, { ...base, write })).status, w.file(CLIP)]).toEqual(["error", text]);
       expect(refused(await call({ action: "redo" }))[1]).toBe("E_HISTORY"); // the cut-short apply is not offered to redo
+      // a process killed before its rename leaves its temporary file: the clip's next write sweeps it, under its lock
+      const gone = spawnSync(process.execPath, ["-e", ""]).pid!, left = [`${CLIP}.${gone}.tmp`, `.m3a/history/Punch_Left.json.${gone}.tmp`];
+      for (const f of left) writeFileSync(join(w.cwd, f), "x");
       expect((await call(retime)).data).toMatchObject({ history_reset: false, undo: 3, redo: 0, after: { dur: 0.481 } }); // the retry applies once
+      expect(left.filter((f) => existsSync(join(w.cwd, f)))).toEqual([]);
       const retimed = w.file(CLIP);
       expect([(await call({ action: "undo" }, { ...base, write })).status, w.file(CLIP)]).toEqual(["error", retimed]);
       expect([(await call({ action: "undo" })).data, w.file(CLIP)]).toMatchObject([{ undo: 2, redo: 1 }, text]);

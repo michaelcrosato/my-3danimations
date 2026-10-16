@@ -72,6 +72,11 @@ describe("the Node host", () => {
       expect(readdirSync(join(cwd, "workshop"))).toEqual(["a.txt"]); // the temporary file renamed over it
       linkSync(join(cwd, "workshop/a.txt"), join(cwd, "workshop/a.lnk")); // a rename replaces the name; an in-place write would change both
       expect([host.write!("workshop/a.txt", "b"), ...["a.txt", "a.lnk"].map((f) => readFileSync(join(cwd, "workshop", f), "utf8"))]).toEqual(["workshop/a.txt", "b", "a"]);
+      // a write killed before its rename leaves <file>.<pid>.tmp: the file's next write sweeps it once its process is gone
+      const gone = spawnSync(process.execPath, ["-e", ""]).pid!, live = process.ppid, left = [`a.txt.${live}.tmp`, `b.txt.${gone}.tmp`];
+      for (const n of [`a.txt.${gone}.tmp`, ...left]) writeFileSync(join(cwd, "workshop", n), "x");
+      host.write!("workshop/a.txt", "b");
+      expect(readdirSync(join(cwd, "workshop")).sort()).toEqual(["a.lnk", "a.txt", ...left].sort());
       for (const path of ["library/sets/x.json", "../x", join(tmpdir(), "x.json"), "workshop", "game.json", "check-output/../x"]) expect((await call({ path, text: "x" })).error?.code, path).toBe("E_PATH");
       mkdirSync(join(cwd, "elsewhere"));
       symlinkSync(join(cwd, "elsewhere/via-tmp.txt"), join(cwd, `workshop/t.txt.${process.pid}.tmp`)); // a link planted at the temporary name
