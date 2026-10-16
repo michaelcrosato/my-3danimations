@@ -347,10 +347,9 @@ npx m3a validate --text='{"format":"2.0","id":"DEMO/Bad","dur":0}' --json
 - **Edits** take two extra arguments, which no tool may declare for itself:
   - `if_revision`: refused, with the current revision, when the target has moved on.
   - `request_id`: a retry with the same id and arguments returns the first result, and an edit that applied is never
-    applied again; the same id with other arguments is an error. Retries are recognised within one MCP session, page or
-    program using the API.
-  - The `m3a` command refuses `--request-id` for now, because it does not yet keep retries between runs; `m3a help
-    <tool>` marks it "MCP and the API only".
+    applied again; the same id with other arguments is an error. The `m3a` command and `m3a mcp` keep retries in
+    `.m3a/requests/` in the working directory, so a retry from another m3a process, a later command or a restarted
+    server, is recognised too; a page or program using the API keeps them in memory, for as long as it runs.
 - **MCP.** Have the client run `m3a mcp` over stdio, for example in `.mcp.json`: `{"mcpServers": {"m3a": {"command":
   "npx", "args": ["m3a", "mcp"]}}}`.
   - Tool names use `_` for `.` (`retarget_inspect`).
