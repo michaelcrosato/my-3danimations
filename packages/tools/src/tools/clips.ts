@@ -36,14 +36,14 @@ export interface ClipRef {
 }
 
 /**
- * Loads the clip `ref` names: its JSON (starting with "{"), a .json path, WORKSHOP/<Name>, or a library id at the game's
- * tiers. Refusals: E_NO_CLIP, E_NO_SET and E_TIER (usage); E_CLIP (usage for JSON given inline, an error for a file);
- * E_REST when no set has its rest; E_TAMPERED (an error). Only a library id is held to the game's tiers: a file, JSON
- * or workshop copy is the user's and loads whatever set it came from, its `tier` saying which (a tool that ships or
- * licenses clips checks that tier against the game's).
+ * Loads the clip `ref` names: its JSON (starting with "{"), a .json path, WORKSHOP/<Name> (or its file's path, read as
+ * that id so its history applies), or a library id at the game's tiers. Refusals: E_NO_CLIP, E_NO_SET and E_TIER
+ * (usage); E_CLIP (usage for JSON given inline, an error for a file); E_REST when no set has its rest; E_TAMPERED (an
+ * error). Only a library id is held to the game's tiers: a file, JSON or workshop copy is the user's and loads whatever
+ * set it came from, its `tier` saying which (a tool that ships or licenses clips checks that tier against the game's).
  */
 export async function loadClip(ctx: ToolContext, ref: string): Promise<ClipRef> {
-  const lib = ctx.library(), id = ref.trim();
+  const lib = ctx.library(), id = ref.trim().replace(/^(?:\.\/)?workshop\/([A-Za-z][A-Za-z0-9_]*)\.json$/, `${WORKSHOP}/$1`);
   if (id.startsWith("{")) return fromText(lib, id, "text", null);
   if (/\.json$/i.test(id)) return fromText(lib, await ctx.read(id), "file", id);
   const [set, name, more] = id.split("/");
