@@ -41,6 +41,9 @@ export interface ToolContext {
   read(path: string): Promise<string>;
   /** Reads a text file as `read` does, or null when it doesn't exist. */
   tryRead(path: string): Promise<string | null>;
+  /** Reads any file as bytes (a character's .glb or .vrm, a motion's .vrma), relative to the working directory and
+   *  confined as `read` is; the tool that asks checks what the file is. */
+  bytes(path: string): Promise<Uint8Array>;
   /** Writes a file atomically under the write roots (workshop/, .m3a/, imports/, check-output/); returns its path. */
   write(path: string, data: string | Uint8Array): string;
   /** Deletes a file under the write roots; one that isn't there is no error. */
@@ -51,11 +54,12 @@ export interface ToolContext {
   image(name: string, img: Image): string;
 }
 
-/** What a platform supplies, each part optional: files read, written and removed (ToolContext says how), the library,
- *  and image storage returning the path and PNG bytes it wrote. */
+/** What a platform supplies, each part optional: files read (as text or bytes), written and removed (ToolContext says
+ *  how), the library, and image storage returning the path and PNG bytes it wrote. */
 export interface Host {
   read?(path: string): Promise<string>;
   tryRead?(path: string): Promise<string | null>;
+  bytes?(path: string): Promise<Uint8Array>;
   write?(path: string, data: string | Uint8Array): string;
   remove?(path: string): void;
   library?(tiers?: readonly Tier[]): LibraryAccess;
@@ -231,6 +235,7 @@ export class Registry {
     const ctx: ToolContext = {
       read: (p) => (host.read ? host.read(p) : Promise.reject(lacks("reads no files", p))),
       tryRead: (p) => (host.tryRead ? host.tryRead(p) : Promise.reject(lacks("reads no files", p))),
+      bytes: (p) => (host.bytes ? host.bytes(p) : Promise.reject(lacks("opens no binary files", p))),
       write(p, d) {
         if (!host.write) throw lacks("writes no files", p);
         return host.write(p, d);
