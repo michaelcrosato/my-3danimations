@@ -2,8 +2,8 @@
 // copy (WORKSHOP/Name: workshop/Name.json, its origin and rest kept in its history while that history is the file's), a
 // .json path, or the clip's JSON. A file or JSON clip is checked with @m3a/core's validator and takes its rest from a
 // set's manifest. A refusal names the closest id, or the game.json line that opts in to a tier. And a recipe resolver
-// over the library and the workshop.
-import { recipe, validate, validation, type Clip, type Rest } from "@m3a/core";
+// over the library and the workshop, with the bound on a recipe's running length that compiling it needs.
+import { format, recipe, validate, validation, type Clip, type Rest } from "@m3a/core";
 import { LibraryError, tierOf, type SourceAbout, type Tier } from "@m3a/library";
 import { ToolError, type LibraryAccess, type ToolContext } from "../registry/registry.ts";
 import { closest, quote } from "../registry/schema.ts";
@@ -190,6 +190,30 @@ export function refusal(err: LibraryError, id: string, lib?: LibraryAccess): Too
   if (!id.includes("/")) return new ToolError("E_NO_CLIP", `${quote(id)} is no clip id: give SET/Name (search finds them), a .json path or the clip's JSON${hint}`, true);
   if (/names rest/.test(said)) return new ToolError("E_REST", said);
   return new ToolError(err.code, `no ${err.code === "E_NO_SET" ? `set ${quote(id.split("/")[0])}` : `clip ${quote(id)}`}${hint}`, true);
+}
+
+/**
+ * Refuses (usage E_ARGS) a recipe one of whose steps runs past the most a clip may last (format.LIMITS.dur, M2-E010),
+ * naming the step (`where`): compile builds each step's track in full, so slow retimes or a long sequence would run out
+ * of memory long before the result's own check. A step's length: a clip's span of the clip `clipOf` gives (none: 0, for
+ * compile to name), a sequence its items' sum, a blend its longer input, a layer its base, a retime its input over its
+ * speed (or its dur), any other step its input's.
+ */
+export function bounded(r: recipe.Recipe, clipOf: (id: string) => Clip | undefined, where = (step: number) => `step ${step}`): void {
+  const most = format.LIMITS.dur, named = new Map<string, number>(), len = (n: unknown) => named.get(n as string) ?? 0;
+  for (const [k, s] of r.steps.entries()) {
+    const c = s.op === "clip" ? clipOf(String(s.id)) : undefined, num = (v: unknown, or: number) => (typeof v === "number" ? v : or);
+    const dur = s.op === "clip" ? (c ? num(s.to, c.dur) - num(s.from, 0) : 0)
+      : s.op === "sequence" ? (Array.isArray(s.items) ? s.items : []).reduce((t: number, n) => t + len(n), 0)
+      : s.op === "blend" ? Math.max(len(s.a), len(s.b))
+      : s.op === "layer" ? len(s.base)
+      : s.op === "retime" ? (typeof s.speed === "number" ? len(s.in) / s.speed : num(s.dur, len(s.in)))
+      : len(s.in);
+    named.set(`s${k + 1}`, dur);
+    if (typeof s.as === "string") named.set(s.as, dur);
+    const why = s.op === "retime" ? "retime it less slowly, or slice it first" : "use fewer or shorter clips";
+    if (dur > most) throw new ToolError("E_ARGS", `${where(k + 1)}: ${s.op} makes the clip ${Math.round(dur)} s long, past the ${most} s a clip may last (M2-E010); ${why}`, true);
+  }
 }
 
 /** A recipe resolver over the library (at the game's tiers) and the workshop. A resolver answers at once, so the

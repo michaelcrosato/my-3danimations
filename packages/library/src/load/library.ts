@@ -181,7 +181,9 @@ export class Library {
 
   /**
    * The library as a recipe's resolver (`recipe.compile(r, library.resolver())`): each visible clip by id, with its rest
-   * and its content id (its file's SHA-256, given one; "" without); undefined for an id it doesn't have.
+   * and its content id (its file's SHA-256, given one; "" without); undefined for an id it doesn't have. A clip of a
+   * tier the game hasn't opted in to is there, not missing: its E_TIER passes through, naming the opt-in, where
+   * undefined would make it compile's "no clip in the library" (R-E008).
    */
   resolver(): recipe.Resolver {
     const sha = this.#opts.sha256;
@@ -190,7 +192,8 @@ export class Library {
         let got: LoadedClip;
         try {
           got = this.clip(id);
-        } catch {
+        } catch (err) {
+          if (err instanceof LibraryError && err.code === "E_TIER") throw err;
           return undefined;
         }
         // (a deprecated id's successor's file)

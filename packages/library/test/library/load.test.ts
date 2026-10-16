@@ -79,9 +79,11 @@ describe("the library loader", () => {
     const lib = openLibrary({ dir: DIR }), resolve = lib.resolver(), got = resolve("QUATERNIUS_3D2DGE/Walk_Loop")!;
     const text = readFileSync(join(DIR, "QUATERNIUS_3D2DGE/Walk_Loop.json"), "utf8");
     expect([got.clip.id, got.rest.H0, got.contentId]).toEqual(["QUATERNIUS_3D2DGE/Walk_Loop", 916.7, createHash("sha256").update(text).digest("hex")]);
-    // a clip of a tier it hasn't opted into, and one it doesn't have, aren't there
-    const cmu = openLibrary({ dir: DIR, tiers: TIERS }).catalog().find((r) => r.id.startsWith("CMU"))!.id;
-    expect([openLibrary({ dir: DIR, tiers: TIERS }).resolver()(cmu)?.clip.id, resolve(cmu), resolve("QUATERNIUS_3D2DGE/Nope")]).toEqual([cmu, undefined, undefined]);
+    // one it doesn't have isn't there; one of a tier it hasn't opted into is refused with the opt-in, through compile too
+    const cmu = openLibrary({ dir: DIR, tiers: TIERS }).catalog().find((r) => r.id.startsWith("CMU"))!.id, tier = expect.objectContaining({ code: "E_TIER", message: expect.stringContaining("opt in with") });
+    expect([openLibrary({ dir: DIR, tiers: TIERS }).resolver()(cmu)?.clip.id, resolve("QUATERNIUS_3D2DGE/Nope"), resolve("NOPE/Walk")]).toEqual([cmu, undefined, undefined]);
+    expect(() => resolve(cmu)).toThrow(tier);
+    expect(() => R.compile({ format: "2.0", id: "RECIPES/Mine", steps: [{ op: "clip", id: cmu }] } as R.Recipe, resolve)).toThrow(tier);
     expect(resolve.ids!().length).toBe(lib.catalog().length);
     // and a recipe compiles with it, naming its input's content id
     const out = R.compile({ format: "2.0", id: "RECIPES/Fast_Walk", steps: [{ op: "clip", id: "QUATERNIUS_3D2DGE/Walk_Loop", as: "w" }, { op: "retime", in: "w", speed: 1.3 }] } as R.Recipe, resolve);
