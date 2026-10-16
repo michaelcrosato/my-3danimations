@@ -25,8 +25,8 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 
 ## Next
 
-- WP-7.2b: its foundation b0 is merged (characters bound through core, D49's soles); retarget, compose and exchange
-  run at once next, then its verifier; then WP-7.3 (the manual and the skill) and WP-7.4 (packaging), then G7.
+- **Paused at a usage limit: read [`docs/HANDOFF.md`](HANDOFF.md) first.** WP-7.2b's lanes are merged untested (3
+  tools tests fail); fix them, run 7.2b's verifier and records, then WP-7.3, WP-7.4, G7.
 
 ## Blocked on the owner
 
