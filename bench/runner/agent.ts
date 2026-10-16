@@ -22,8 +22,9 @@
 // capabilities too; each trial records which (`capsDropped`, `uid`, `unprivileged`), and the audit below lists any
 // path outside.
 // The transcript (stream-json) is kept; the run records its time, tokens, cost and turns, and the audit lists every
-// path it touched outside the workspace (and its own /tmp's scratch files apart) and every file it read past the
-// manual (the packages' code in node_modules), a shell command's relative paths resolved as its shell would (D88).
+// path it touched outside the workspace (and its own /tmp's, /var/tmp's and /dev/shm's scratch files apart) and every
+// file it read past the manual (the packages' code in node_modules), a shell command's relative paths resolved as its
+// shell would (D88).
 // The audit's known limits (D88, D91):
 // - over-reports: a grep pattern or a here-string naming a package path counts as a read; so does a path in a script
 //   a command runs as it is given (`node -e`, a heredoc fed to `node` or `python3`), whether or not the script reads it;
@@ -66,7 +67,8 @@ export interface AgentRun {
   costUsd: number;
   /** Paths it touched outside its workspace (an isolation breach to read about in the transcript). */
   outside: string[];
-  /** Paths in its own /tmp outside its workspace: its scratch files, which no other agent sees (D84). */
+  /** Paths in its own /tmp, /var/tmp and /dev/shm outside its workspace: its scratch files, which no other agent sees
+   *  (D84). */
   scratch: string[];
   /** Files it read inside the workspace past the manual and the starter: the packages' own code and data. */
   pastManual: string[];
@@ -326,17 +328,30 @@ export function pathsOf(tool: string, input: Record<string, unknown>, at?: Where
   if (at) at.cwd = cwd !== null && within(cwd, ws) ? cwd : ws;
   return out;
 }
+/** The directories an agent with a namespace of its own has to itself, where its scratch files go: /tmp (D84), and
+ *  /var/tmp and /dev/shm where each is a directory, not a link, as `privateTmp` covers them with a tmpfs of its own. */
+export function ownScratch(): string[] {
+  return ["/tmp", ...["/var/tmp", "/dev/shm"].filter((d) => {
+    try {
+      return lstatSync(d).isDirectory();
+    } catch {
+      return false;
+    }
+  })];
+}
 /**
  * The audit of a transcript's tool calls: paths outside the workspace (system and tool paths a shell names as a matter
- * of course, like /usr/bin or /tmp, aside; with a /tmp of its own, the paths in it are its `scratch`, but never the
- * repository's or the Claude home's, wherever they live; another process's entries in /proc, its root, cwd,
+ * of course, like /usr/bin, /tmp or /dev/shm, aside; with a namespace of its own, the paths in its own /tmp, /var/tmp
+ * and /dev/shm (`ownScratch`) are its `scratch`, but never the repository's or the Claude home's, wherever they live,
+ * and without one they are outside, since other agents share them; another process's entries in /proc, its root, cwd,
  * environment or files, by PID, glob or shell variable (`OTHER_PROC`), are outside, and /proc/self/root/<p> is /<p>,
  * D91), and files read past the manual (under node_modules/@m3a/, other than the manual itself; a listing isn't a
  * read, nor a path named in a file it writes).
  */
 export function audit(lines: readonly string[], workspace: string, privateTmp = false): { outside: string[]; scratch: string[]; pastManual: string[] } {
   const outside = new Set<string>(), scratch = new Set<string>(), past = new Set<string>(), ws = resolve(workspace);
-  const ordinary = /^\/(usr|bin|sbin|lib|lib64|etc|proc|dev|sys|opt\/node|tmp\/?$|var\/tmp\/?$)/, hide = hidden();
+  const ordinary = /^\/(usr|bin|sbin|lib|lib64|etc|proc|dev(?!\/shm\/.)|sys|opt\/node|tmp\/?$|var\/tmp\/?$)/, hide = hidden();
+  const own = privateTmp ? ownScratch() : [];
   const at: Where = { workspace: ws, cwd: ws, exists: (p) => existsSync(p) || (privateTmp && p.startsWith("/tmp/") && existsSync(`${ws}-tmp${p.slice(4)}`)) };
   for (const line of lines) {
     let j: { type?: string; message?: { content?: { type: string; name?: string; input?: Record<string, unknown> }[] } };
@@ -351,7 +366,7 @@ export function audit(lines: readonly string[], workspace: string, privateTmp = 
       for (const n of pathsOf(c.name, c.input, at)) {
         const path = n.path.replace(/^\/proc\/(self|thread-self|\$\$)\/root(?=\/.)/, ""), rel = path.slice(ws.length + 1);
         if (!within(path, ws)) {
-          if (privateTmp && path.startsWith("/tmp/") && !hide.some((d) => within(path, d))) scratch.add(path);
+          if (own.some((d) => path.startsWith(`${d}/`)) && !hide.some((d) => within(path, d))) scratch.add(path);
           else if (OTHER_PROC.test(path) || !ordinary.test(path)) outside.add(path);
         } else if (!n.lists && !n.names && /^node_modules\/@m3a(\/|$)/.test(rel) && rel !== "node_modules/@m3a/tools/MANUAL.md") past.add(rel);
       }

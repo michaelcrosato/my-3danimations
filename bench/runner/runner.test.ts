@@ -12,7 +12,7 @@ import { chmodSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync,
 import { homedir, tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, describe, expect, it } from "vitest";
-import { agentUser, audit, capsDropped, CLOUD_CREDENTIALS, hidden, namespace, pathsOf, runAgent } from "./agent.ts";
+import { agentUser, audit, capsDropped, CLOUD_CREDENTIALS, hidden, namespace, ownScratch, pathsOf, runAgent } from "./agent.ts";
 import { commitOf, lanes, latestVariant, pool, runB1, variantOf } from "./main.ts";
 import { pack } from "./pack.ts";
 import { answersIn, QUIZ, quizPrompt, score } from "./quiz.ts";
@@ -46,6 +46,13 @@ describe("the agent's audit", () => {
     const scratch = [call("Write", { file_path: "/tmp/cat.mjs", content: "" }), call("Bash", { command: `node /tmp/cat.mjs && cat ${ROOT}/PLAN.md` })];
     expect(audit(scratch, ws, true)).toEqual({ outside: [`${ROOT}/PLAN.md`], scratch: ["/tmp/cat.mjs"], pastManual: [] });
     expect(audit(scratch, ws).outside).toEqual([`${ROOT}/PLAN.md`, "/tmp/cat.mjs"].sort());
+    // so are its files in /var/tmp and /dev/shm, each its own where its namespace covers it (a directory, not a link),
+    // and outside where it has none (other agents share them); the directories themselves, and /dev/null, are ordinary
+    const shared = [call("Bash", { command: "ls /var/tmp /dev/shm > /dev/null && echo x > /var/tmp/v.mjs" }), call("Write", { file_path: "/dev/shm/s.mjs", content: "" })];
+    const own = ownScratch().filter((d) => d !== "/tmp"), files = ["/dev/shm/s.mjs", "/var/tmp/v.mjs"];
+    expect(own).toEqual(["/var/tmp", "/dev/shm"].filter((d) => existsSync(d) && lstatSync(d).isDirectory()));
+    expect(audit(shared, ws, true)).toEqual({ outside: files.filter((f) => !own.some((d) => f.startsWith(`${d}/`))), scratch: files.filter((f) => own.some((d) => f.startsWith(`${d}/`))), pastManual: [] });
+    expect(audit(shared, ws)).toEqual({ outside: files, scratch: [], pastManual: [] });
     const paths = (command: string) => pathsOf("Bash", { command }).map((n) => n.path);
     expect(pathsOf("Bash", { command: "ls -la /root && cat '/etc/hosts' x=/home/me" })).toEqual([{ path: "/root", lists: true }, { path: "/etc/hosts", lists: false }, { path: "/home/me", lists: false }]);
     // a glob over the root, a bare root, a regex in a script and a word whose first directory isn't here are not paths
