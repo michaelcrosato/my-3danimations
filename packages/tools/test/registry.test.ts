@@ -1,8 +1,8 @@
 // The tool registry (WP-7.1): definitions refused with their fix, arguments checked with "did you mean" (own names
 // only), defaults filled, edits' request_id (a retry applies once, even when its data then fails the checks; the same id
 // with other arguments is refused) and if_revision, nested objects closed, output schemas enforced, failures as replies,
-// the one-line verdict and 20-line text (many images folded), and the CLI's parsing, help (the index uncut), exit codes
-// and --request-id refusal.
+// the one-line verdict and 20-line text (many images folded), and the CLI's parsing, help (the index uncut, every
+// example, though a schema carries only the first), exit codes and --request-id refusal.
 import { describe, expect, it } from "vitest";
 import { commandLine, parseCall, runCli } from "../src/cli.ts";
 import { CONSOLE_KEY, defineTool, EXIT, imageTokens, installConsole, memoryStore, Registry, render, reply, ToolError } from "../src/registry/index.ts";
@@ -201,7 +201,7 @@ describe("the CLI", () => {
     expect([(await run("--verbose")).code, (await run("help", "--help")).code]).toEqual([0, 0]);
     expect((await run("help", "--verbos")).text).toMatch(/^help: usage error: unknown flag "--verbos"; did you mean "--verbose"\?/);
     expect((await run("help", "demo.set", "bogus")).text).toMatch(/^help: usage error: "bogus" is one argument too many/);
-    expect((await run("demo.set", "2", "--request-id", "x")).text).toMatch(/^demo.set: usage error: --request-id is not kept between m3a commands yet/);
+    expect((await run("demo.set", "2", "--request-id", "x")).text).toMatch(/^demo.set: usage error: --request-id is not kept between commands by this CLI/);
   });
   it("help lists every tool uncut, names a tool for a stray flag, and marks --request-id until m3a keeps it", async () => {
     const many = cliOf(new Registry([...Array.from({ length: 24 }, (_, i) => tool({ name: `demo.t${i}` })), tool({ name: "version" })]));
@@ -209,10 +209,15 @@ describe("the CLI", () => {
     expect([list.code, list.text.trimEnd().split("\n").length, list.text]).toEqual([0, 27, expect.stringMatching(/^m3a .*: 25 tools;/)]);
     expect((await many("--version")).text).toMatch(/^help: usage error: unknown flag "--version"; did you mean "version"\?/);
     expect((await many("-v")).text).toMatch(/^help: usage error: unknown flag "-v"; did you mean "--verbose"\?/);
-    const mark = "--request-id <string>  retry key: the same id and arguments return the first result (MCP and the API only: ";
+    const mark = "--request-id <string>  retry key (MCP and the API only: ";
     const durable = new Registry([counter().edit], { ...memoryStore(), durable: true });
     const helpOf = async (reg: Registry) => (await cliOf(reg)("help", "demo.set")).text;
     expect([await helpOf(counter().reg), await helpOf(durable)]).toEqual([expect.stringContaining(mark), expect.not.stringContaining(mark)]);
+  });
+  it("puts only a tool's first example in its schema, and help lists them all", async () => {
+    const two = tool({ params: { type: "object", properties: { n: { type: "integer" } } }, examples: [{ args: { n: 1 } }, { args: { n: 2 } }] });
+    expect(two.schema.examples).toEqual([{ n: 1 }]);
+    expect((await cliOf(new Registry([two]))("help", "demo")).text).toContain("\nexamples:\n  m3a demo --n=1\n  m3a demo --n=2\n");
   });
 });
 

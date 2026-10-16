@@ -1,41 +1,63 @@
 #!/usr/bin/env node
-// @m3a/tools/node: the tools' Node entry (PLAN.md §5.1), the only module here that imports Node built-ins, and the `m3a`
-// bin. It supplies the Node host (files read under the working directory, never outside it, images written as PNG under
-// check-output/<tool>/), runs the CLI on process.argv, and serves MCP over stdio with `m3a mcp`: one JSON-RPC message
-// per line each way, nothing else on stdout, and an exit when stdin ends.
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { dirname, isAbsolute, relative, resolve, sep } from "node:path";
+// @m3a/tools/node: the tools' Node entry (PLAN.md §5.1), with src/node/ the only modules here that import Node
+// built-ins, and the `m3a` bin. It supplies the Node host: files read under the working directory and written only under
+// its write roots (workshop/, .m3a/, imports/, check-output/: never library/), atomically, a link out of either refused
+// (./node/files.ts); the library at game.json's tiers; images written as PNG under check-output/<tool>/ by the same
+// rules, as are report.json and the request records. It runs the CLI on process.argv, and serves MCP over stdio with
+// `m3a mcp`: one JSON-RPC message per line each way, nothing else on stdout, and an exit when stdin ends. Both keep an
+// edit's request_id results in .m3a/requests/, so a retry in another process applies once.
+import { readFileSync, unlinkSync } from "node:fs";
+import { relative, resolve, sep } from "node:path";
 import { createInterface } from "node:readline";
 import type { Readable, Writable } from "node:stream";
 import { png } from "@m3a/sensors/node";
 import { runCli } from "./cli.ts";
 import { mcpServer, type McpServer } from "./mcp.ts";
-import { ToolError, type Host, type Registry } from "./registry/registry.ts";
+import { errno, under, writable, writeAtomic } from "./node/files.ts";
+import { libraryAccess } from "./node/library.ts";
+import { fileStore } from "./node/store.ts";
+import { Registry, ToolError, type Host, type Tool } from "./registry/registry.ts";
 import { quote } from "./registry/schema.ts";
-import { tools } from "./registry/tools.ts";
+import { TOOLS } from "./tools/index.ts";
 
-function write(cwd: string, path: string, data: string | Uint8Array): void {
-  const p = resolve(cwd, path);
-  mkdirSync(dirname(p), { recursive: true });
-  writeFileSync(p, data);
-}
-
-/** The Node host: reads text files and writes images as PNG, both relative to `cwd`; a path outside it is refused. */
+/** The Node host, relative to `cwd`: text files read (a missing one null to tryRead), files written atomically and
+ *  removed under the write roots, the library at game.json's tiers, and images written as PNG. */
 export function nodeHost(cwd: string = process.cwd()): Host {
+  const base = resolve(cwd), toRead = "give a file under the working directory, or pass its text";
+  const put = (path: string, data: string | Uint8Array) => {
+    const p = writable(base, path);
+    try {
+      writeAtomic(p, data);
+    } catch (err) {
+      throw new ToolError("E_WRITE", `can't write ${quote(path)} (${errno(err)})`);
+    }
+    return relative(base, p).split(sep).join("/");
+  };
+  const read = (path: string, missing: boolean) => {
+    const p = under(base, path, toRead);
+    try {
+      return readFileSync(p, "utf8");
+    } catch (err) {
+      if (missing && (errno(err) === "ENOENT" || errno(err) === "ENOTDIR")) return null;
+      throw new ToolError("E_PATH", `can't read ${quote(path)} (${errno(err)}); paths are relative to ${cwd}`, true);
+    }
+  };
   return {
-    async read(path) {
-      const p = resolve(cwd, path), up = relative(cwd, p);
-      if (!path.trim() || up === ".." || up.startsWith(`..${sep}`) || isAbsolute(up)) throw new ToolError("E_PATH", `${path.trim() ? `${quote(path)} is outside ${cwd}` : "the path is empty"}; give a file under the working directory, or pass its text`, true);
+    read: async (path) => read(path, false)!,
+    tryRead: async (path) => read(path, true),
+    write: put,
+    remove(path) {
+      const p = writable(base, path);
       try {
-        return readFileSync(p, "utf8");
+        unlinkSync(p);
       } catch (err) {
-        throw new ToolError("E_PATH", `can't read ${quote(path)} (${(err as NodeJS.ErrnoException).code ?? "unreadable"}); paths are relative to ${cwd}`, true);
+        if (errno(err) !== "ENOENT") throw new ToolError("E_WRITE", `can't remove ${quote(path)} (${errno(err)})`);
       }
     },
+    library: (tiers) => libraryAccess(base, tiers),
     image(tool, name, img) {
-      const path = `check-output/${tool}/${name}.png`, bytes = png(img);
-      write(cwd, path, bytes);
-      return { path, png: bytes };
+      const bytes = png(img);
+      return { path: put(`check-output/${tool}/${name}.png`, bytes), png: bytes };
     },
   };
 }
@@ -57,10 +79,12 @@ export async function serveStdio(server: McpServer, input: Readable = process.st
   }
 }
 
-/** The m3a command: `m3a mcp` serves MCP over stdio; anything else is the CLI. Resolves to the exit code. */
-export async function main(argv: readonly string[], registry: Registry = tools, cwd: string = process.cwd()): Promise<number> {
-  const host = nodeHost(cwd);
-  if (argv[0] !== "mcp") return runCli(registry, argv, { print: (t) => process.stdout.write(t), write: (p, t) => write(cwd, p, t), host });
+/** The m3a command: `m3a mcp` serves MCP over stdio; anything else is the CLI. Resolves to the exit code. Its registry
+ *  holds `tools` (the m3a tools) with their request_id results kept in `cwd`'s .m3a/requests/; report.json is written
+ *  as a tool's files are. */
+export async function main(argv: readonly string[], tools: readonly Tool[] = TOOLS, cwd: string = process.cwd()): Promise<number> {
+  const host = nodeHost(cwd), registry = new Registry(tools, fileStore(cwd));
+  if (argv[0] !== "mcp") return runCli(registry, argv, { print: (t) => process.stdout.write(t), write: (p, t) => void host.write!(p, t), host });
   if (argv.length > 1) {
     process.stdout.write(`m3a mcp: usage error: it takes no arguments, not ${quote(argv.slice(1).join(" "))}\nnext: have the MCP client run "m3a mcp" (stdio)\n`);
     return 2;

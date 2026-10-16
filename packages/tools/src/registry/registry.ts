@@ -1,12 +1,14 @@
 // The tool registry (PLAN.md §5.6, WP-7.1): `defineTool` checks one definition and a Registry calls it the same way for
 // every surface (the TypeScript API, the m3a CLI, the MCP server, the console handle): arguments checked against the
 // schema, edits' if_revision and request_id, images recorded with their size and token cost, one Reply. Platform-neutral:
-// what a platform supplies (reading files, writing images) comes in as a Host; the Node entry has one.
+// what a platform supplies (files read and written, the library, images) comes in as a Host; the Node entry has one.
+import type { Library, LibrarySource, Tier } from "@m3a/library";
 import type { Image } from "@m3a/sensors";
 import { REPLY_ID, imageTokens, type ImageRef, type Reply, type Status } from "./reply.ts";
 import { check, closed, didYouMean, quote, type Schema } from "./schema.ts";
 
-/** One example call. It runs in the tests on every surface; `expect` is the status it replies with (ok by default). */
+/** One example call. It runs in the tests on every surface; `expect` is the status it replies with (ok by default). Only
+ *  a tool's first example goes into its schema (a good call: ok or findings); `m3a help` lists them all. */
 export interface Example {
   args: Record<string, unknown>;
   expect?: "ok" | "findings" | "error";
@@ -23,17 +25,40 @@ export interface ToolOutput<D = unknown> {
   revision?: string;
 }
 
-/** What a tool may ask of the surface running it. */
+/** The library as a host opens it for one call: the library at its tiers, its files' source (every set, any tier), each
+ *  license's text, the tiers, and the warnings it gave (a deprecated id), which the registry adds to the reply's lines. */
+export interface LibraryAccess {
+  library: Library;
+  source: LibrarySource;
+  licenseText(id: string): string | null;
+  tiers: readonly Tier[];
+  warnings: string[];
+}
+
+/** What a tool may ask of the surface running it; a surface without files or a library refuses with E_HOST (usage). */
 export interface ToolContext {
-  /** Reads a text file, relative to the working directory; a surface without files refuses with E_HOST. */
+  /** Reads a text file, relative to the working directory. */
   read(path: string): Promise<string>;
+  /** Reads a text file as `read` does, or null when it doesn't exist. */
+  tryRead(path: string): Promise<string | null>;
+  /** Writes a file atomically under the write roots (workshop/, .m3a/, imports/, check-output/); returns its path. */
+  write(path: string, data: string | Uint8Array): string;
+  /** Deletes a file under the write roots; one that isn't there is no error. */
+  remove(path: string): void;
+  /** The library at the game's tiers (game.json in the working directory, else cc0), or at `tiers`; once per call. */
+  library(tiers?: readonly Tier[]): LibraryAccess;
   /** Attaches an image to the reply (a PNG under check-output/<tool>/ in Node); returns its path or `image:<name>`. */
   image(name: string, img: Image): string;
 }
 
-/** What a platform supplies: file reading, and image storage returning the path and PNG bytes it wrote. */
+/** What a platform supplies, each part optional: files read, written and removed (ToolContext says how), the library,
+ *  and image storage returning the path and PNG bytes it wrote. */
 export interface Host {
   read?(path: string): Promise<string>;
+  tryRead?(path: string): Promise<string | null>;
+  write?(path: string, data: string | Uint8Array): string;
+  remove?(path: string): void;
+  library?(tiers?: readonly Tier[]): LibraryAccess;
   image?(tool: string, name: string, img: Image): { path: string | null; png: Uint8Array | null };
 }
 
@@ -52,7 +77,7 @@ export interface ToolDef<A extends object = Record<string, unknown>, D = unknown
   run(args: A, ctx: ToolContext): ToolOutput<D> | Promise<ToolOutput<D>>;
 }
 
-/** A defined tool: its definition, and the schema every surface shows (reserved parameters and examples added). */
+/** A defined tool: its definition, and the schema every surface shows (reserved parameters and its first example added). */
 export interface Tool extends ToolDef {
   schema: Schema;
 }
@@ -72,10 +97,11 @@ export class ToolError extends Error {
 /** Names kept for the surfaces: `m3a help`, `m3a mcp`, and the console handle's list, help and call. */
 export const RESERVED: readonly string[] = ["help", "list", "call", "mcp"];
 const NAME = /^[a-z][a-z0-9-]*(\.[a-z][a-z0-9-]*)*$/, PARAM = /^[a-z][a-z0-9_]*$/i;
-const VERBOSE: Schema = { type: "boolean", description: "every detail line, not only the first 20" };
+// Short descriptions: every tool carries them, and a model reads each word (the budget of PLAN.md WP-7.2)
+const VERBOSE: Schema = { type: "boolean", description: "all lines" };
 const EDIT: Record<string, Schema> = {
-  if_revision: { type: "string", description: "apply only if the target is still at this revision" },
-  request_id: { type: "string", description: "retry key: the same id and arguments return the first result" },
+  if_revision: { type: "string", description: "expected revision" },
+  request_id: { type: "string", description: "retry key" },
 };
 
 /** Checks a definition and returns the tool; throws, naming the fix, when it is malformed. */
@@ -96,7 +122,7 @@ export function defineTool<A extends object, D>(def: ToolDef<A, D>): Tool {
   }
   for (const k of Object.keys(own)) if (!PARAM.test(k)) fail(`parameter ${quote(k)} is out of the CLI's reach: a name is a letter, then letters, digits or "_" (rename it ${quote(k.replace(/\W/g, "_"))}, which the CLI spells --${k.replace(/[\W_]/g, "-")})`);
   for (const p of def.positionals ?? []) if (!Object.hasOwn(own, p)) fail(`positional "${p}" is not one of its parameters`);
-  const schema = closed({ ...def.params, properties: { ...own, ...(def.edit ? EDIT : {}), verbose: VERBOSE }, additionalProperties: false, examples: def.examples.map((e) => e.args) });
+  const schema = closed({ ...def.params, properties: { ...own, ...(def.edit ? EDIT : {}), verbose: VERBOSE }, additionalProperties: false, examples: [def.examples[0]!.args] });
   return { ...(def as unknown as ToolDef), schema };
 }
 
@@ -114,7 +140,8 @@ export function describeTool(t: Tool): Description {
 }
 
 /** Where an edit's request_id results are kept: the first reply per tool and id, with the arguments it came from.
- *  `durable` says it outlives the process (a file); the CLI, one process per command, takes --request-id only then. */
+ *  `durable` says it outlives the process (a file); the CLI, one process per command, takes --request-id only then.
+ *  A `set` that throws (a file it can't write) costs only the retry: the registry replies, with a warning line. */
 export interface RequestStore {
   get(key: string): { args: string; reply: Reply } | undefined;
   set(key: string, entry: { args: string; reply: Reply }): void;
@@ -199,9 +226,28 @@ export class Registry {
     const a: Record<string, unknown> = { ...(args as Record<string, unknown>) };
     delete a.verbose;
     for (const [k, s] of Object.entries(tool.schema.properties ?? {})) if ((!Object.hasOwn(a, k) || a[k] === undefined) && s.default !== undefined) a[k] = structuredClone(s.default);
-    const images: ImageRef[] = [], host = opts.host ?? {};
+    const images: ImageRef[] = [], host = opts.host ?? {}, libs = new Map<string, LibraryAccess>();
+    const lacks = (what: string, p?: string) => new ToolError("E_HOST", `this surface ${what}${p === undefined ? "" : ` (${quote(p)})`}; ${what.startsWith("reads") ? "pass the text instead" : "run it through m3a (the CLI or MCP) or the API with a Node host"}`, true);
     const ctx: ToolContext = {
-      read: (p) => (host.read ? host.read(p) : Promise.reject(new ToolError("E_HOST", `this surface reads no files (${quote(p)}); pass the text instead`, true))),
+      read: (p) => (host.read ? host.read(p) : Promise.reject(lacks("reads no files", p))),
+      tryRead: (p) => (host.tryRead ? host.tryRead(p) : Promise.reject(lacks("reads no files", p))),
+      write(p, d) {
+        if (!host.write) throw lacks("writes no files", p);
+        return host.write(p, d);
+      },
+      remove(p) {
+        if (!host.remove) throw lacks("writes no files", p);
+        host.remove(p);
+      },
+      library(tiers) {
+        const k = tiers ? `=${tiers.join(",")}` : "game.json";
+        let l = libs.get(k);
+        if (!l) {
+          if (!host.library) throw lacks("opens no library");
+          libs.set(k, (l = host.library(tiers)));
+        }
+        return l;
+      },
       image(n, img) {
         const safe = n.replace(/[^\w.-]/g, "_"), kept = host.image?.(tool.name, safe, img) ?? { path: null, png: null };
         if (kept.png) opts.pngs?.set(safe, kept.png);
@@ -210,6 +256,18 @@ export class Registry {
       },
     };
     let key: string | undefined, sent: string | undefined;
+    // the call's library warnings (a deprecated id), first among the lines so the 20-line cut keeps them
+    const warned = () => [...new Set([...libs.values()].flatMap((l) => l.warnings))].map((w) => `warning: ${w}`);
+    // an applied edit's reply kept for its retries; a store that can't keep it leaves the reply standing, warned
+    const keep = (r: Reply): Reply => {
+      try {
+        this.requests.set(key!, { args: sent!, reply: structuredClone(r) });
+        return r;
+      } catch (err) {
+        const why = (err instanceof Error ? err.message : String(err)).replace(/\s*\n\s*/g, " ");
+        return { ...r, lines: [`warning: request_id ${quote(a.request_id)} was not kept (${why}); a retry would apply it again`, ...r.lines] };
+      }
+    };
     if (tool.edit && typeof a.request_id === "string") {
       const { request_id: _id, ...rest } = a;
       [key, sent] = [`${tool.name} ${a.request_id}`, canonical(rest)];
@@ -230,20 +288,18 @@ export class Registry {
         }
       }
       out = await tool.run(a, ctx);
-      const r = reply(tool.name, out.findings ? "findings" : "ok", out, images);
+      const r = reply(tool.name, out.findings ? "findings" : "ok", { ...out, lines: [...warned(), ...(out.lines ?? [])] }, images);
       if (typeof r.data !== "object" || Array.isArray(r.data)) throw new Error(`${tool.name} replied with data that is not a JSON object`);
       const off = r.data !== null && tool.output ? check(r.data, tool.output, "data") : undefined;
       if (off) throw new Error(`${tool.name} replied with data off its output schema (${off})`);
-      if (key) this.requests.set(key, { args: sent!, reply: structuredClone(r) });
-      return r;
+      return key ? keep(r) : r;
     } catch (err) {
       const e = err instanceof ToolError ? err : new ToolError("E_RUN", err instanceof Error ? err.message : String(err));
       const next = e.usage ? fixArgs : e.code === "E_RUN" ? "if the arguments are right, this is a bug in the tool: report the call and this message" : "fix what the message names, then call again";
-      if (e.usage) return usage(tool.name, e.code, e.message, next);
-      const r = reply(tool.name, "error", { verdict: `${tool.name}: error: ${e.message}`, next, revision: out?.revision }, images, { code: e.code, message: e.message });
+      if (e.usage) return { ...usage(tool.name, e.code, e.message, next), lines: warned() };
+      const r = reply(tool.name, "error", { verdict: `${tool.name}: error: ${e.message}`, next, revision: out?.revision, lines: warned() }, images, { code: e.code, message: e.message });
       // run() returned, so an edit applied though its data failed the checks: kept, so a retry does not apply it again
-      if (key && out) this.requests.set(key, { args: sent!, reply: structuredClone(r) });
-      return r;
+      return key && out ? keep(r) : r;
     }
   }
 }

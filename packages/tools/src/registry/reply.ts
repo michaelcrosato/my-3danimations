@@ -39,8 +39,8 @@ export interface Reply<D = unknown> {
 
 const str: Schema = { type: "string" }, int: Schema = { type: "integer" }, orNull = (s: Schema): Schema => ({ anyOf: [s, { type: "null" }] });
 
-/** The JSON Schema of a reply whose `data` (a JSON object) follows `data`: MCP's outputSchema. Nullable fields are
- *  anyOf with null, each branch of one type, the most portable spelling (the MCP Inspector's --strict). */
+/** The JSON Schema of a reply whose `data` (a JSON object) follows `data`, as MCP's structuredContent does. Nullable
+ *  fields are anyOf with null, each branch of one type, the most portable spelling (the MCP Inspector's --strict). */
 export function replySchema(data: Schema = { type: "object", additionalProperties: true }): Schema {
   const image: Schema = { type: "object", properties: { name: str, width: int, height: int, tokens: int, bytes: orNull(int), path: orNull(str) }, required: ["name", "width", "height", "tokens", "bytes", "path"] };
   const error = orNull({ type: "object", properties: { code: str, message: str }, required: ["code", "message"] });

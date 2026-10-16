@@ -57,6 +57,27 @@ export interface LoadedClip {
   set: string;
   tier: Tier;
 }
+/** A set's source as its manifest gives it: label, origin, SPDX license, terms (null where the manifest gives none),
+ *  url, credit line (null where none is owed) and the rest its clips were made on. */
+export interface SourceAbout {
+  label: string;
+  origin: string;
+  license: string;
+  terms: string | null;
+  url: string;
+  credit: string | null;
+  rest: Rest;
+}
+/** A set as its manifest describes it, whatever its tier: title, tier, credit, the format legend's lines and its
+ *  sources by key (a clip's restSrc). */
+export interface SetAbout {
+  set: string;
+  title: string;
+  tier: Tier;
+  credit: string;
+  legend: string[];
+  sources: Record<string, SourceAbout>;
+}
 /** Why the library refused: no such clip or set, a tier not opted in, or a file that isn't what the lock says. */
 export class LibraryError extends Error {
   readonly code: "E_NO_CLIP" | "E_NO_SET" | "E_TIER" | "E_TAMPERED";
@@ -75,7 +96,8 @@ interface SetManifest {
   tier: Tier;
   credit: string;
   content: { sha256: string };
-  sources: Record<string, { rest: Rest }>;
+  legend?: { text?: string[] };
+  sources: Record<string, Omit<SourceAbout, "credit" | "terms"> & { credit?: string; terms?: string }>;
 }
 
 /** The content id of a set's clip files (spec/MOTION.md §9.2): each name, a newline, its SHA-256, a newline, by name. */
@@ -145,6 +167,16 @@ export class Library {
     const clip = parseClip(this.#src.read(set, file)), source = m.sources[clip.restSrc];
     if (!source) throw new LibraryError("E_NO_CLIP", `library: clip "${id}" names rest "${clip.restSrc}", which ${set}'s manifest doesn't have`, id);
     return { clip, rest: source.rest, set, tier: m.tier };
+  }
+
+  /**
+   * A set's manifest, whatever its tier (reading it uses no clip, so it needs no opt-in): its legend and its sources, each
+   * with its license, terms, credit and rest. E_NO_SET for a set the library hasn't.
+   */
+  about(set: string): SetAbout {
+    const m = this.#manifest(set);
+    const sources = Object.fromEntries(Object.entries(m.sources).map(([k, s]) => [k, { label: s.label, origin: s.origin, license: s.license, terms: s.terms ?? null, url: s.url, credit: s.credit ?? null, rest: s.rest }]));
+    return { set: m.set, title: m.title, tier: m.tier, credit: m.credit, legend: [...(m.legend?.text ?? [])], sources };
   }
 
   /**

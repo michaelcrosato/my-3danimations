@@ -6,12 +6,13 @@
 // A tool's name is its registry name with "_" for "." (clients such as the Claude API take only [a-zA-Z0-9_-]), and its
 // title the registry name. Unknown tools are JSON-RPC errors; wrong arguments and failing tools are results with
 // isError, so a model can correct itself. Each result's text is the reply verdict first (every line with `verbose: true`)
-// and structuredContent the whole Reply (outputSchema m3a.reply/1); images come as image content and as files under
-// check-output/.
+// and structuredContent the whole Reply (m3a.reply/1, replySchema); tools/list leaves outputSchema out, which MCP makes
+// optional: it would cost a model about 250 tokens a tool (PLAN.md WP-7.2). Images come as image content and as files
+// under check-output/.
 import { VERSION } from "@m3a/core";
 import { didYouMean, quote } from "./registry/schema.ts";
 import type { Host, Registry, Tool } from "./registry/registry.ts";
-import { render, replySchema } from "./registry/reply.ts";
+import { render } from "./registry/reply.ts";
 
 /** The protocol revisions served per request (the stateless era). */
 export const MODERN: readonly string[] = ["2026-07-28"];
@@ -25,10 +26,10 @@ const TOOLS_TTL_MS = 3_600_000;
 /** A tool's MCP name: its registry name with "_" for ".". */
 export const mcpName = (name: string) => name.replace(/\./g, "_");
 
-/** A tool as MCP's tools/list shows it. */
+/** A tool as MCP's tools/list shows it: no outputSchema, though structuredContent follows replySchema(t.output). */
 export function mcpTool(t: Tool) {
   const name = mcpName(t.name);
-  return { name, title: t.name, description: t.description, inputSchema: t.schema, outputSchema: replySchema(t.output), annotations: { readOnlyHint: !t.edit, openWorldHint: false } };
+  return { name, title: t.name, description: t.description, inputSchema: t.schema, annotations: { readOnlyHint: !t.edit, openWorldHint: false } };
 }
 
 /** A JSON-RPC response. */

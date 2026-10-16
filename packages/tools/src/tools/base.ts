@@ -1,7 +1,7 @@
-// The tools WP-7.1 registers to prove the four surfaces: `version`, and `validate`, a clip through @m3a/core's
-// validator. WP-7.2 adds the rest of PLAN.md's list (search, show, describe, metrics, sheet, ...) to `tools`.
+// The tools WP-7.1 registered to prove the four surfaces, moved here by WP-7.2: `version`, and `validate`, a clip
+// through @m3a/core's validator.
 import { VERSION, format, validate as validateData, validation, type Issue } from "@m3a/core";
-import { defineTool, Registry, ToolError } from "./registry.ts";
+import { defineTool, ToolError } from "../registry/registry.ts";
 
 /** `m3a version`: the package version and the clip format it reads and writes. */
 export const version = defineTool({
@@ -26,7 +26,7 @@ export const validate = defineTool<{ path?: string; text?: string; mode: "read" 
     },
   },
   positionals: ["path"],
-  examples: [{ args: { path: "library/sets/QUATERNIUS_3D2DGE/A_TPose.json" } }, { args: { text: '{"format":"2.0","id":"DEMO/Bad","dur":0}' }, expect: "findings" }],
+  examples: [{ args: { path: "library/sets/QUATERNIUS_3D2DGE/A_TPose.json" } }],
   async run(a, ctx) {
     if ((a.path === undefined) === (a.text === undefined)) throw new ToolError("E_ARGS", "give a path or a text, one of the two", true);
     const text = a.text ?? (await ctx.read(a.path!)), what = a.path ?? "the text";
@@ -47,6 +47,3 @@ export const validate = defineTool<{ path?: string; text?: string; mode: "read" 
     };
   },
 });
-
-/** The m3a tools: what the m3a CLI, the MCP server and the console handle serve. */
-export const tools = new Registry([version, validate]);
