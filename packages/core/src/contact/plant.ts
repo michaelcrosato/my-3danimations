@@ -143,18 +143,22 @@ function bridged(c: Contacts, dur: number, loop: boolean): Contacts {
 /** The contact of `end` that `t` falls in or just after (within `tail` seconds), as absolute times [a, b], or null. */
 function contactAt(m: Motion, end: keyof Contacts & string, t: number, tail: number): [number, number] | null {
   const iv = (m.contacts as unknown as Record<string, [number, number][] | undefined>)[end] ?? [];
-  const loop = m.loop && m.dur > 0, cycles = loop ? [Math.floor(t / m.dur) - 1, Math.floor(t / m.dur)] : [0];
+  const loop = m.loop && m.dur > 0, kf = loop ? Math.floor(t / m.dur) : 0, cycles = loop ? 2 : 1;
   // in a loop, a contact running to the cycle's end and another starting at its start are one contact through the
   // seam (one contact the whole cycle long stays one a cycle)
   const last = loop ? iv.find(([a, b]) => b >= m.dur - 1e-6 && a > 1e-6) : undefined, first = last ? iv.find(([a]) => a <= 1e-6) : undefined;
-  // the latest one: at a loop's seam, t is both the end of a cycle's contact and the start of the next's
-  let best: [number, number] | null = null;
-  for (const k of cycles) for (const iv0 of iv) {
-    if (iv0 === first) continue;
-    const [a0, b0] = iv0, a = a0 + k * m.dur, b = (iv0 === last && first ? m.dur + first[1] : b0) + k * m.dur;
-    if (t >= a && t <= b + tail && (!best || a > best[0])) best = [a, b];
+  // the latest one: at a loop's seam, t is both the end of a cycle's contact and the start of the next's (the cycle
+  // before t's and t's own in a loop, in that order; held as two numbers, not an array a candidate)
+  let found = false, ba = 0, bb = 0;
+  for (let c = 0; c < cycles; c++) {
+    const k = loop ? (c === 0 ? kf - 1 : kf) : 0;
+    for (const iv0 of iv) {
+      if (iv0 === first) continue;
+      const a0 = iv0[0], b0 = iv0[1], a = a0 + k * m.dur, b = (iv0 === last && first ? m.dur + first[1] : b0) + k * m.dur;
+      if (t >= a && t <= b + tail && (!found || a > ba)) [found, ba, bb] = [true, a, b];
+    }
   }
-  return best;
+  return found ? [ba, bb] : null;
 }
 
 /** How fully `end` is held at t: 1 in a contact, easing out over `ease` seconds after it and in over `ease` before the next. */
@@ -168,11 +172,15 @@ function held(m: Motion, end: keyof Contacts & string, t: number, ease: number):
 /** The start of end's next contact within `within` seconds after t (a loop's next cycle included), or null. */
 function startAhead(m: Motion, end: keyof Contacts & string, t: number, within: number): number | null {
   const iv = (m.contacts as unknown as Record<string, [number, number][] | undefined>)[end] ?? [];
-  const loop = m.loop && m.dur > 0, cycles = loop ? [Math.floor(t / m.dur), Math.floor(t / m.dur) + 1] : [0];
+  const loop = m.loop && m.dur > 0, kf = loop ? Math.floor(t / m.dur) : 0, cycles = loop ? 2 : 1;
   let best: number | null = null;
-  for (const k of cycles) for (const [a0] of iv) {
-    const a = a0 + k * m.dur;
-    if (a > t && a <= t + within && (best === null || a < best)) best = a;
+  // (t's cycle and the next in a loop, in that order)
+  for (let c = 0; c < cycles; c++) {
+    const k = loop ? (c === 0 ? kf : kf + 1) : 0;
+    for (const iv0 of iv) {
+      const a = iv0[0] + k * m.dur;
+      if (a > t && a <= t + within && (best === null || a < best)) best = a;
+    }
   }
   return best;
 }
