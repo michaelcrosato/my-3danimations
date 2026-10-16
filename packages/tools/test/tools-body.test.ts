@@ -226,7 +226,7 @@ describe("characters bound through core", () => {
       { character: RIGIFY }, { character: RIGIFY, mapping: { bones: { leftUpperLeg: null } } }, { character: RIGIFY, mapping: { bones: { leftUpperLeg: null } }, bound: true }, { character: RIGIFY, mapping: { bones: swap } }]);
     expect([gone!.status, gone!.data]).toMatchObject(["findings", { missing: ["leftUpperLeg"], patch: { bones: { leftUpperLeg: null } }, H0: null }]);
     expect(gone!.lines).toContain('patch: write each missing bone\'s source bone into "bones" (now null) and pass it back as mapping');
-    expect(need!.error).toEqual({ code: "E_RIG", message: `${RIGIFY}: leftUpperLeg not mapped; retarget.inspect ${RIGIFY} shows the mapping: write each into its patch and pass it as mapping` });
+    expect(need!.error).toEqual({ code: "E_RIG", message: `${RIGIFY}: leftUpperLeg not mapped; \`retarget.inspect ${RIGIFY} --mapping '{"bones":{"leftUpperLeg":null}}'\` gives the patch: write each into it and pass it as mapping` });
     expect([swapped!.status, (swapped!.data as { issues: string[] }).issues]).toEqual(["ok", ["patched by hand", "leftLowerArm (DEF-upper_arm.L) does not descend from leftUpperArm (DEF-forearm.L)"]]);
     // the report's patch passed back binds as recognized
     const [back] = await bodies({}, [{ character: RIGIFY, mapping: (plain!.data as { patch: MappingPatch }).patch }]);
@@ -239,7 +239,7 @@ describe("characters bound through core", () => {
     expect(got.map((r) => [r.status, r.error?.code, r.error?.message])).toEqual([
       ["usage", "E_ARGS", 'mapping: "leftUpperLegg" is not a VRM 1.0 humanoid bone; did you mean "leftUpperLeg"?'],
       ["usage", "E_ARGS", 'mapping: leftHand: the character has no bone "DEF-hand.l"; did you mean "DEF-hand.L"?'],
-      ["usage", "E_ARGS", '"spec/vectors/tier1b/rig-catalog.json" is not a character: give a .glb, .gltf or .vrm file, or "tiny"'],
+      ["usage", "E_ARGS", 'spec/vectors/tier1b/rig-catalog.json is not a character: give a .glb, .gltf or .vrm file, or "tiny"'],
       ["error", "E_FORMAT", "junk.glb: not a binary glTF (.glb): its first 4 bytes aren't 'glTF' (at byte 0)"],
       ["error", "E_RIG", 'chain.gltf: no humanoid bone recognized among its 3 bones, by name or by shape; give each bone in mapping {bones: {hips: "<its bone>", ...}}'],
       ["error", "E_LIMIT", "long.gltf: 4097 bones; a character may have at most 4096"],

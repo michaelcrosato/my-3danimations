@@ -4,14 +4,15 @@
 // rest frame, the body measured from the bones), measure each humanoid bone's length, and say how sure it is in a
 // report of at most 20 lines with a patch an agent can edit and pass back.
 import type { Bone, Object3D, SkinnedMesh } from "three";
-import { Matrix4, Quaternion, Vector3 } from "three";
+import { Matrix4, PropertyBinding, Quaternion, Vector3 } from "three";
 import { bind as bindSkeleton, recognize, skeleton, type Bound, type SkeletonIn } from "@m3a/core";
 
 /** A mapping an agent writes: each humanoid bone's source bone, or null to unmap it (the report's `patch`). */
 export interface MappingPatch {
   bones: Record<string, string | null>;
 }
-/** How to bind: a mapping patch (or the file's parsed JSON) applied over what recognition found. */
+/** How to bind: a mapping patch (or the file's parsed JSON) applied over what recognition found; its bones named as
+ *  three names them or as the file does (the tools' patch: 'DEF-thigh.L' for three's 'DEF-thighL'). */
 export interface BindOptions {
   mapping?: MappingPatch;
 }
@@ -144,7 +145,9 @@ export function bind(root: Object3D, opts: BindOptions = {}): ThreeBound {
     const byNode = new Map(bones.map((b) => [b as Object3D, b.name]));
     rec = skeleton.patchMapping(sk, rec, Object.fromEntries(Object.entries(vrm).filter(([h]) => skeleton.HUMANOID_BONES.includes(h) && byNode.has(vrm[h]!)).map(([h, n]) => [h, byNode.get(n)!])));
   }
-  if (opts.mapping) rec = skeleton.patchMapping(sk, rec, opts.mapping.bones);
+  // a source bone the skeleton lacks is taken as the file names it, sanitized as three's loader sanitizes node names
+  const named = (src: string | null) => (typeof src !== "string" || sk.bones.some((b) => b.name === src) ? src : PropertyBinding.sanitizeNodeName(src));
+  if (opts.mapping) rec = skeleton.patchMapping(sk, rec, Object.fromEntries(Object.entries(opts.mapping.bones).map(([h, src]) => [h, named(src)])));
   const frame = skeleton.restFrame(sk, rec);
   const head = new Map(sk.bones.map((b) => [b.name, b.head!]));
   const lengths: Record<string, number> = {};

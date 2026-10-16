@@ -3,13 +3,15 @@
 // its confidence stated; a character placed anywhere binds the same; a missing bone fails with a report that says how
 // to patch it, and the patch binds it; control bones that deform nothing are left out; the real rigs map each limb to
 // its own bones; the report reads in 20 lines or fewer. The soles are read from every mesh that skins the feet: rigs
-// whose feet one mesh skins bind exactly as before, and KayKit's knight (its feet in its leg meshes) stands on them.
+// whose feet one mesh skins bind exactly as before, and KayKit's knight (its feet in its leg meshes) stands on them. A
+// patch names a bone as three does or as the file does (the tools' patch, H1).
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { Bone, Group, Matrix4, Vector3, type SkinnedMesh } from "three";
 import { describe, expect, it } from "vitest";
 import { Animator, playable } from "@m3a/core";
+import { gltfToGlb } from "@m3a/io";
 import { rigBytes, type Manifest } from "../../../tools/fixtures/fixtures.ts";
 import { libraryClips } from "../../../tools/qa/qa.ts";
 import { attach, bind } from "../src/index.ts";
@@ -69,6 +71,11 @@ describe("binding the test characters", () => {
     const file = JSON.parse(JSON.stringify({ bones: { ...b.report.patch.bones, leftHand: hand } }));
     expect(bind(loaded.scene, { mapping: file }).report.missing).toEqual([]);
     expect(() => bind(loaded.scene, { mapping: { bones: { leftHand: "no_such_bone" } } })).toThrow(/the skeleton has no bone "no_such_bone"/);
+  });
+  it("takes a patch naming bones as the file does (the tools' patch) as it takes three's names: Rigify's DEF-forearm.L is three's DEF-forearmL (H1)", async () => {
+    const { scene } = await loadGlb(gltfToGlb(readFileSync(join(import.meta.dirname, "../../../spec/vectors/tier1b/rigify.gltf"), "utf8")));
+    const arms = (up: string, low: string) => bind(scene, { mapping: { bones: { leftUpperArm: up, leftLowerArm: low } } }).core.bones;
+    expect(arms("DEF-forearm.L", "DEF-upper_arm.L")).toEqual({ ...arms("DEF-forearmL", "DEF-upper_armL"), leftUpperArm: "DEF-forearmL", leftLowerArm: "DEF-upper_armL" });
   });
 });
 
