@@ -7,8 +7,10 @@
 // read again, so of two edits from one state the second is refused (E_CONFLICT) and none is lost. A file a step from
 // the history's head is a write cut short between the two: the history steps back to it (a cut-short apply's result is
 // dropped, never offered to redo). Any other file the history doesn't know was changed outside m3a: undo refuses, every
-// tool reads the file as any clip file (clips.ts), and the next edit starts a new history. The history keeps the
-// requests of its last 8 writes, which closes the crash window between a write and the registry's record for each.
+// tool reads the file as any clip file (clips.ts), and the next edit starts a new history. While the history is the
+// file's, its rest is the one the clip was made on, kept as is should a manifest change later (.m3a/ is m3a's own state:
+// a history is checked for its shape, not against the manifests). The history keeps the requests of its last 8 writes,
+// which closes the crash window between a write and the registry's record for each.
 import { recipe, type Rest } from "@m3a/core";
 import { ToolError, type ToolContext, type ToolOutput } from "../registry/registry.ts";
 import { quote } from "../registry/schema.ts";
