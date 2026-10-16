@@ -49,6 +49,9 @@ export interface ToolContext {
   library(tiers?: readonly Tier[]): LibraryAccess;
   /** Attaches an image to the reply (a PNG under check-output/<tool>/ in Node); returns its path or `image:<name>`. */
   image(name: string, img: Image): string;
+  /** Takes the lock file `path` (under the write roots) against every other caller, other processes too, waiting while
+   *  one holds it; resolves to its release. A host without locks gives a release that does nothing (one writer). */
+  lock(path: string): Promise<() => void>;
 }
 
 /** What a platform supplies, each part optional: files read, written and removed (ToolContext says how), the library,
@@ -60,6 +63,8 @@ export interface Host {
   remove?(path: string): void;
   library?(tiers?: readonly Tier[]): LibraryAccess;
   image?(tool: string, name: string, img: Image): { path: string | null; png: Uint8Array | null };
+  /** ToolContext's lock, across processes; without it, edits assume one writer. */
+  lock?(path: string): Promise<() => void>;
 }
 
 /** One tool, defined once (PLAN.md §5.6). Parameter names are a letter, then letters, digits or "_"; `output` is its
@@ -82,15 +87,20 @@ export interface Tool extends ToolDef {
   schema: Schema;
 }
 
-/** A tool's refusal: a code (E_...), a message in the API's words that says the fix, and whether the call was wrong
- *  (usage, exit 2) or the work failed (error, exit 1). */
+/** A tool's refusal: a code (E_...), a message in the API's words that says the fix, whether the call was wrong (usage,
+ *  exit 2) or the work failed (error, exit 1), and optionally the reply's `next` (the registry's own otherwise) and the
+ *  target's current revision (an edit's E_CONFLICT). */
 export class ToolError extends Error {
   readonly code: string;
   readonly usage: boolean;
-  constructor(code: string, message: string, usage = false) {
+  readonly next?: string;
+  readonly revision?: string;
+  constructor(code: string, message: string, usage = false, more: { next?: string; revision?: string } = {}) {
     super(message);
     this.code = code;
     this.usage = usage;
+    if (more.next !== undefined) this.next = more.next;
+    if (more.revision !== undefined) this.revision = more.revision;
   }
 }
 
@@ -254,6 +264,7 @@ export class Registry {
         images.push({ name: safe, width: img.width, height: img.height, tokens: imageTokens(img.width, img.height), bytes: kept.png?.length ?? null, path: kept.path });
         return kept.path ?? `image:${safe}`;
       },
+      lock: (p) => (host.lock ? host.lock(p) : Promise.resolve(() => {})),
     };
     let key: string | undefined, sent: string | undefined;
     // the call's library warnings (a deprecated id), first among the lines so the 20-line cut keeps them
@@ -295,9 +306,9 @@ export class Registry {
       return key ? keep(r) : r;
     } catch (err) {
       const e = err instanceof ToolError ? err : new ToolError("E_RUN", err instanceof Error ? err.message : String(err));
-      const next = e.usage ? fixArgs : e.code === "E_RUN" ? "if the arguments are right, this is a bug in the tool: report the call and this message" : "fix what the message names, then call again";
+      const next = e.next ?? (e.usage ? fixArgs : e.code === "E_RUN" ? "if the arguments are right, this is a bug in the tool: report the call and this message" : "fix what the message names, then call again");
       if (e.usage) return { ...usage(tool.name, e.code, e.message, next), lines: warned() };
-      const r = reply(tool.name, "error", { verdict: `${tool.name}: error: ${e.message}`, next, revision: out?.revision, lines: warned() }, images, { code: e.code, message: e.message });
+      const r = reply(tool.name, "error", { verdict: `${tool.name}: error: ${e.message}`, next, revision: e.revision ?? out?.revision, lines: warned() }, images, { code: e.code, message: e.message });
       // run() returned, so an edit applied though its data failed the checks: kept, so a retry does not apply it again
       return key && out ? keep(r) : r;
     }

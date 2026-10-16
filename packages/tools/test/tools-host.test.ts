@@ -3,12 +3,13 @@
 // library at game.json's tiers, each call with its own warnings; and the clip loader's forms and refusals.
 import { spawnSync } from "node:child_process";
 import { existsSync, linkSync, mkdirSync, readdirSync, readFileSync, rmSync, symlinkSync, utimesSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { hostname, tmpdir } from "node:os";
 import { join } from "node:path";
 import type { LibraryError } from "@m3a/library";
 import { describe, expect, it } from "vitest";
 import { runCli } from "../src/cli.ts";
 import { nodeHost } from "../src/node.ts";
+import { lockFile } from "../src/node/files.ts";
 import { libraryAccess } from "../src/node/library.ts";
 import { fileStore } from "../src/node/store.ts";
 import { defineTool, Registry, reply } from "../src/registry/index.ts";
@@ -75,6 +76,37 @@ describe("the Node host", () => {
       expect((await call({ path: "workshop/a.txt" })).data).toEqual({ wrote: null, now: null });
       expect((await call({ path: "workshop/a.txt" })).status).toBe("ok"); // removing what isn't there is no error
       expect((await reg.call("demo.put", { path: "workshop/a.txt", text: "a" })).error).toMatchObject({ code: "E_HOST", message: expect.stringMatching(/^this surface writes no files/) });
+    } finally {
+      rm();
+    }
+  });
+
+  it("takes a lock file for one caller at a time, waits while it is held, and breaks a stale one", async () => {
+    const { cwd, rm } = exampleCwd(false), L = ".m3a/locks/X.lock", file = join(cwd, L), order: string[] = [];
+    try {
+      const first = await lockFile(cwd, L), second = lockFile(cwd, L).then((release) => (order.push("second"), release));
+      order.push("first");
+      first();
+      (await second)();
+      expect([order, existsSync(file)]).toEqual([["first", "second"], false]);
+      const held = await lockFile(cwd, L); // held by a live process (this one), and not let go in time
+      await expect(lockFile(cwd, L, 0)).rejects.toMatchObject({ code: "E_LOCKED", message: '".m3a/locks/X.lock" is held by another m3a process; nothing was changed', next: "call again when that edit is done" });
+      held();
+      // stale: its process gone, or older than the limit; another machine's process can't be asked, so only its age counts
+      const gone = spawnSync(process.execPath, ["-e", ""]).pid;
+      for (const [text, old] of [[`${hostname()} ${gone} 1`, false], [`${hostname()} ${process.pid} 1`, true], [`elsewhere ${gone} 1`, true]] as const) {
+        writeFileSync(file, text);
+        if (old) utimesSync(file, 1, 1);
+        (await lockFile(cwd, L, 0))();
+      }
+      writeFileSync(file, `elsewhere ${gone} 1`);
+      await expect(lockFile(cwd, L, 0)).rejects.toMatchObject({ code: "E_LOCKED" });
+      rmSync(file);
+      const mine = await lockFile(cwd, L); // released only while it is still this caller's
+      writeFileSync(file, "another");
+      mine();
+      expect(readFileSync(file, "utf8")).toBe("another");
+      await expect(lockFile(cwd, "locks/X.lock")).rejects.toMatchObject({ code: "E_PATH" }); // under the write roots only
     } finally {
       rm();
     }

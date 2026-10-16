@@ -2,11 +2,13 @@
 // workshop/<Name>.json (id WORKSHOP/<Name>), its history in .m3a/history/<Name>.json: the library clip it came from and
 // that clip's rest, the revision and text it last wrote, the recipe since the copy, undo and redo stacks of whole file
 // texts (32 entries in all), and the last request it applied. A revision is the first 12 hex digits of the file's
-// SHA-256, or "absent". Writes go history first, then the clip (a failed clip write puts the history back), after the
-// target's revision is read again. A file a step from the history's head is a write cut short between the two: the
-// history steps back to it (a cut-short apply's result is dropped, never offered to redo). Any other file the history
-// doesn't know was changed outside m3a: undo refuses, the next edit starts a new history. The history's `last` closes
-// the crash window between the write and the registry's record.
+// SHA-256, or "absent". Writes go history first, then the clip (a failed clip write puts the history back), under the
+// clip's lock (.m3a/locks/<Name>.lock, held across m3a processes) once the target's revision and history are read
+// again, so of two edits from one state the second is refused (E_CONFLICT) and none is lost. A file a step from the
+// history's head is a write cut short between the two: the history steps back to it (a cut-short apply's result is
+// dropped, never offered to redo). Any other file the history doesn't know was changed outside m3a: undo refuses, the
+// next edit starts a new history. The history's `last` closes the crash window between the write and the registry's
+// record.
 import { recipe, type Rest } from "@m3a/core";
 import { ToolError, type ToolContext, type ToolOutput } from "../registry/registry.ts";
 import { quote } from "../registry/schema.ts";
@@ -47,8 +49,9 @@ export interface History extends Omit<Entry, "revision"> {
   wrote?: "apply" | "undo" | "redo";
 }
 
-/** A workshop clip as it stands: its id, name and file, the file's text and revision, and its history (null when
- *  none, or `stale`: why the history was set aside, the file changed outside m3a or the history unreadable). */
+/** A workshop clip as it stands: its id, name and file, the file's text and revision, its history (null when none,
+ *  or `stale`: why the history was set aside, the file changed outside m3a or the history unreadable) and that
+ *  history's text as read (null when there is no file). */
 export interface Target {
   id: string;
   name: string;
@@ -57,6 +60,7 @@ export interface Target {
   revision: string;
   history: History | null;
   stale: string | null;
+  raw: string | null;
 }
 
 /** A file's revision: the first 12 hex digits of its text's SHA-256, or "absent" when there is no file. */
@@ -105,7 +109,7 @@ export async function readTarget(ctx: ToolContext, name: string): Promise<Target
     if (s) h = { ...s, redo: h.wrote === "apply" ? [] : s.redo, last: undefined };
     else [stale, h] = [`changed outside m3a (revision ${revision}, history at ${h.head})`, null];
   }
-  return { id: `${WORKSHOP}/${name}`, name, path, text, revision, history: h ?? null, stale };
+  return { id: `${WORKSHOP}/${name}`, name, path, text, revision, history: h ?? null, stale, raw };
 }
 
 const argsOf = (a: Record<string, unknown>) => recipe.canonical({ ...a, request_id: undefined });
@@ -170,25 +174,35 @@ export function back(t: Target, way: "undo" | "redo"): History {
   return step(t.history, way);
 }
 
+/** The lock file an edit of workshop clip `name` holds while it writes. */
+export const lockOf = (name: string): string => `.m3a/locks/${name}.lock`;
+
 /**
- * Writes history `h` and its text (null removes the file) for target `t`, read before `tool` worked out the edit:
- * the revision read again (moved since, or not the call's if_revision: E_CONFLICT, nothing written), the history (with
- * `last` when the call has a request_id), then the clip, the history put back if that fails. Returns `out`.
+ * Writes history `h` and its text (null removes the file) for target `t`, read before `tool` worked out the edit, under
+ * the clip's lock: the revision and the history read again (either moved since, or the revision not the call's
+ * if_revision: E_CONFLICT with the revision now, nothing written), the history (with `last` when the call has a
+ * request_id), then the clip, the history put back if that fails. Returns `out`.
  */
 export async function commit(ctx: ToolContext, tool: string, t: Target, h: History, a: Record<string, unknown>, out: ToolOutput): Promise<ToolOutput> {
-  const now = revisionOf(await ctx.tryRead(t.path)), file = historyFile(t.name), was = await ctx.tryRead(file);
-  if (now !== t.revision || (typeof a.if_revision === "string" && a.if_revision !== now)) {
-    throw new ToolError("E_CONFLICT", `${t.id} moved to revision ${now} during the edit; nothing was changed (read it again, then retry with if_revision "${now}")`);
-  }
-  const last = typeof a.request_id === "string" ? { tool, request_id: a.request_id, args: argsOf(a), before: t.revision, out } : undefined;
-  ctx.write(file, `${JSON.stringify({ ...h, last })}\n`);
+  const release = await ctx.lock(lockOf(t.name));
   try {
-    if (h.text === null) ctx.remove(t.path);
-    else ctx.write(t.path, h.text);
-  } catch (err) {
-    if (was === null) ctx.remove(file);
-    else ctx.write(file, was);
-    throw err;
+    const now = revisionOf(await ctx.tryRead(t.path)), file = historyFile(t.name), was = await ctx.tryRead(file);
+    if (now !== t.revision || was !== t.raw || (typeof a.if_revision === "string" && a.if_revision !== now)) {
+      const how = now === t.revision && was !== t.raw ? `'s history moved during the edit (another edit, at revision ${now})` : ` moved to revision ${now} during the edit`;
+      throw new ToolError("E_CONFLICT", `${t.id}${how}; nothing was changed`, false, { revision: now, next: `read it again, then retry with --if_revision ${now}` });
+    }
+    const last = typeof a.request_id === "string" ? { tool, request_id: a.request_id, args: argsOf(a), before: t.revision, out } : undefined;
+    ctx.write(file, `${JSON.stringify({ ...h, last })}\n`);
+    try {
+      if (h.text === null) ctx.remove(t.path);
+      else ctx.write(t.path, h.text);
+    } catch (err) {
+      if (was === null) ctx.remove(file);
+      else ctx.write(file, was);
+      throw err;
+    }
+    return out;
+  } finally {
+    release();
   }
-  return out;
 }

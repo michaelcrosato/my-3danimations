@@ -13,7 +13,7 @@ import type { Readable, Writable } from "node:stream";
 import { png } from "@m3a/sensors/node";
 import { runCli } from "./cli.ts";
 import { mcpServer, type McpServer } from "./mcp.ts";
-import { errno, under, writable, writeAtomic } from "./node/files.ts";
+import { errno, lockFile, under, writable, writeAtomic } from "./node/files.ts";
 import { libraryAccess } from "./node/library.ts";
 import { fileStore } from "./node/store.ts";
 import { Registry, ToolError, type Host, type Tool } from "./registry/registry.ts";
@@ -39,7 +39,7 @@ export function nodeHost(cwd: string = process.cwd()): Host {
       return readFileSync(p, "utf8");
     } catch (err) {
       if (missing && (errno(err) === "ENOENT" || errno(err) === "ENOTDIR")) return null;
-      throw new ToolError("E_PATH", `can't read ${quote(path)} (${errno(err)}); paths are relative to ${cwd}`, true);
+      throw new ToolError("E_PATH", `can't read ${quote(path)} (${errno(err)}); paths are relative to the working directory`, true);
     }
   };
   return {
@@ -55,6 +55,7 @@ export function nodeHost(cwd: string = process.cwd()): Host {
       }
     },
     library: (tiers) => libraryAccess(base, tiers),
+    lock: (path) => lockFile(base, path), // an edit's, across m3a processes (./node/files.ts)
     image(tool, name, img) {
       const bytes = png(img);
       return { path: put(`check-output/${tool}/${name}.png`, bytes), png: bytes };

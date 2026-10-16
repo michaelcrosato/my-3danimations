@@ -4,9 +4,10 @@
 // across two m3a processes (the durable store), within one MCP server, after a crash between the write and the record
 // (the history's last), and after a crash at the history's write (nothing written) or the clip's (the history stepping
 // back).
-import { spawnSync } from "node:child_process";
+import { spawn, spawnSync, type ChildProcess } from "node:child_process";
 import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { pathToFileURL } from "node:url";
 import { describe, expect, it } from "vitest";
 import { mcpServer } from "../src/mcp.ts";
 import { nodeHost } from "../src/node.ts";
@@ -117,18 +118,26 @@ describe("the Change tools", () => {
   });
 
   it("write nothing when the target moves while the edit runs, and put the history back when the clip can't be written", async () => {
-    const w = workshop(), base = nodeHost(w.cwd), moved = (to: string) => `WORKSHOP/Punch_Left moved to revision ${revisionOf(to)} during the edit; nothing was changed (read it again, then retry with if_revision "${revisionOf(to)}")`;
-    // another writer puts `to` in the clip's file just before its `at`th read in a call
-    const race = async (at: number, to: string, args: object) => {
+    const w = workshop(), base = nodeHost(w.cwd), HISTORY = ".m3a/history/Punch_Left.json";
+    // the reply's status, code, message, revision and next when the target moved to `to` (or only its history did)
+    const moved = (to: string, how = ` moved to revision ${revisionOf(to)} during the edit`) => ["error", "E_CONFLICT", `WORKSHOP/Punch_Left${how}; nothing was changed`, revisionOf(to), `read it again, then retry with --if_revision ${revisionOf(to)}`];
+    // another writer puts `to` in `file` just before the `at`th read of the clip's file in a call (at 0: just before
+    // the call takes the clip's lock to write)
+    const race = async (at: number, to: string, args: object, file = CLIP) => {
       let reads = 0;
-      const tryRead = (p: string) => (p === CLIP && ++reads === at && base.write!(CLIP, to), base.tryRead!(p));
-      return refused(await new Registry(CHANGE).call("edit", args, { host: { ...base, tryRead } }));
+      const tryRead = (p: string) => (p === CLIP && ++reads === at && base.write!(file, to), base.tryRead!(p));
+      const lock = (p: string) => (at === 0 && base.write!(file, to), base.lock!(p));
+      const r = await new Registry(CHANGE).call("edit", args, { host: { ...base, tryRead, lock } });
+      return [...refused(r), r.revision, r.next];
     };
     try {
-      expect([await race(2, "{}\n", PUNCH), w.file(CLIP), w.file(".m3a/history/Punch_Left.json")]).toEqual([["error", "E_CONFLICT", moved("{}\n")], "{}\n", null]);
+      expect([await race(2, "{}\n", PUNCH), w.file(CLIP), w.file(HISTORY)]).toEqual([moved("{}\n"), "{}\n", null]);
       // after the registry's if_revision check: the run reads the other writer's file, the call's if_revision is stale
       const replace = { clip: "QUATERNIUS_3D2DGE/Walk_Loop", save_as: "WORKSHOP/Punch_Left", ops: [{ op: "mirror" }], if_revision: revisionOf("{}\n") };
-      expect([await race(2, "[]\n", replace), w.file(CLIP), w.file(".m3a/history/Punch_Left.json")]).toEqual([["error", "E_CONFLICT", moved("[]\n")], "[]\n", null]);
+      expect([await race(2, "[]\n", replace), w.file(CLIP), w.file(HISTORY)]).toEqual([moved("[]\n"), "[]\n", null]);
+      // another edit that leaves the same bytes moves only the history: refused too, so its undo entry isn't lost
+      expect([await race(0, "{}\n", { ...replace, if_revision: revisionOf("[]\n") }, HISTORY), w.file(CLIP), w.file(HISTORY)]).toEqual([moved("[]\n", `'s history moved during the edit (another edit, at revision ${revisionOf("[]\n")})`), "[]\n", "{}\n"]);
+      rmSync(join(w.cwd, HISTORY));
       await w.call("edit", { ...PUNCH, save_as: "WORKSHOP/Punch_Right" });
       const [text, history] = ["workshop/Punch_Right.json", ".m3a/history/Punch_Right.json"].map(w.file);
       const full = {
@@ -224,6 +233,36 @@ describe("an edit in place", () => {
       expect(r.data).toMatchObject({ recipe: null, after: { dur: 0.962 } });
     } finally {
       w.rm();
+    }
+  });
+});
+
+/** Resolves when `p` has said `word` on stderr. */
+const said = (p: ChildProcess, word: string) => new Promise<void>((ok) => p.stderr!.on("data", (d: Buffer) => d.toString().includes(word) && ok()));
+/** Resolves to `p`'s exit code and stdout once it exits. */
+function exited(p: ChildProcess): Promise<{ code: number | null; out: string }> {
+  let out = "";
+  p.stdout!.on("data", (d: Buffer) => void (out += d.toString()));
+  return new Promise((ok) => p.on("close", (code) => ok({ code, out })));
+}
+
+describe("two m3a processes editing one clip", () => {
+  it("never both apply: the second to write waits for the first's lock, then is refused (E_CONFLICT)", { timeout: 60_000 }, async () => {
+    const { cwd, rm } = exampleCwd(false), race = pathToFileURL(join(import.meta.dirname, "helpers/race.ts")).href;
+    const m3a = (speed: number, how: string) => spawn(process.execPath, ["--import", race, BIN, "edit", "WORKSHOP/C", "--ops", `[{"op":"retime","speed":${speed}}]`], { cwd, env: { ...process.env, M3A_RACE: how } });
+    const read = (p: string) => readFileSync(join(cwd, p), "utf8");
+    try {
+      expect(spawnSync(process.execPath, [BIN, "edit", "QUATERNIUS_3D2DGE/Walk_Loop", "--save-as", "WORKSHOP/C", "--ops", '[{"op":"retime","speed":1.1}]'], { cwd }).status).toBe(0);
+      const copy = revisionOf(read("workshop/C.json")), a = m3a(1.01, "pause"), aDone = exited(a);
+      await said(a, "paused"); // a has written its history and holds back its clip's write
+      const b = m3a(0.99, "wait"), bDone = exited(b);
+      await Promise.race([said(b, "waiting"), bDone]); // b waits for a's lock (without one, it writes over a)
+      writeFileSync(join(cwd, "m3a-race-go"), "");
+      const [ra, rb] = await Promise.all([aDone, bDone]), text = read("workshop/C.json"), h = JSON.parse(read(".m3a/history/C.json")) as History;
+      expect([ra.code, rb.code, rb.out]).toEqual([0, 1, expect.stringMatching(/^edit: error: WORKSHOP\/C moved to revision [0-9a-f]{12} during the edit; nothing was changed\n/)]);
+      expect([ra.out, h.head, h.undo.map((e) => e.revision)]).toEqual([expect.stringContaining(`revision ${revisionOf(text)}`), revisionOf(text), ["absent", copy]]); // nothing lost
+    } finally {
+      rm();
     }
   });
 });
