@@ -9,11 +9,13 @@ import { describe as timeline } from "@m3a/sensors";
 import { defineTool, ToolError } from "../registry/registry.ts";
 import { MAX_LINES } from "../registry/reply.ts";
 import { quote } from "../registry/schema.ts";
-import { absolute, libraryClips, loadClip, namedBy, parts, tierWarning, type ClipRef } from "./clips.ts";
-import { capped, CLIP, count, cut, sec } from "./common.ts";
+import { libraryClips, loadClip, namedBy, naming, parts, tierWarning } from "./clips.ts";
+import { arg, call, capped, CLIP, count, cut, sec } from "./common.ts";
 
-/** The library's opt-in as game.json takes it: `opt in with tiers: [..., "x"]` becomes `add "x" to "tiers" in game.json`. */
-export const optIn = (next: string): string => next.replace(/opt in with tiers: \[(?:"[^"]*", )*"([^"]*)"\]/g, 'add "$1" to "tiers" in game.json');
+/** The library search's notes as this tool's hints: its opt-in (`opt in with tiers: [..., "x"]`) as the line to add to
+ *  game.json, and its "raise limit" as the call that does (`again`). */
+export const optIn = (next: string, again = "raise limit"): string =>
+  next.replace(/opt in with tiers: \[(?:"[^"]*", )*"([^"]*)"\]/g, 'add "$1" to "tiers" in game.json').replace(/raise limit \(at most 40\)/, again);
 
 /** `search`: the library's rows for a query at the game's tiers, best first, the core clips first among equals. */
 export const search = defineTool<{ query: string; limit: number }, unknown>({
@@ -23,12 +25,13 @@ export const search = defineTool<{ query: string; limit: number }, unknown>({
   positionals: ["query"],
   examples: [{ args: { query: "drinks a potion" } }],
   run(a, ctx) {
-    const lib = ctx.library(), r = lib.library.search(a.query, { limit: a.limit }), top = r.rows[0]?.id, notes = r.next && optIn(r.next);
+    const lib = ctx.library(), r = lib.library.search(a.query, { limit: a.limit }), top = r.rows[0]?.id;
+    const notes = r.next && optIn(r.next, `${call("search", [arg(a.query)], { limit: Math.min(40, r.total) })} lists ${r.total > 40 ? "40" : "them all"}`);
     return {
       verdict: `search ${quote(a.query)}: ${r.rows.length} of ${count(r.total, "clip")} (tiers ${lib.tiers.join(", ")})`,
       data: { tiers: lib.tiers, total: r.total, rows: r.rows, ...(r.total > r.rows.length ? { more: r.total - r.rows.length } : {}) },
       lines: r.rows.map((h) => `${h.id} ${sec(h.dur)} ${h.loop ? "loop" : "once"}${h.speed === null ? "" : `, ${h.speed} m/s`} [${h.tags.join(" ")}] ${h.desc}${h.core ? " (core)" : ""}`),
-      next: top ? `describe ${top} or show ${top}${notes ? `; ${notes}` : ""}` : `${notes || "no clip matches"}; search again`,
+      next: top ? `${call("describe", [top])} or ${call("show", [top])}${notes ? `; ${notes}` : ""}` : `${notes || "no clip matches"}; search again`,
     };
   },
 });
@@ -44,15 +47,6 @@ function legendLines(text: readonly string[]): string[] {
   return out;
 }
 
-/** How a next hint names `ref`: its id (WORKSHOP/<Name> for a workshop copy, so its history applies), or its path as
- *  given (JSON-quoted when it holds a space or control character); null for clip JSON or an absolute path, which a
- *  reply doesn't echo. */
-export function nameOf(ref: ClipRef): string | null {
-  if (ref.where === "workshop") return `WORKSHOP/${ref.name}`;
-  if (ref.where !== "file" || absolute(ref.path!)) return ref.where === "library" ? ref.id : null;
-  return /[\s\p{Cc}]/u.test(ref.path!) ? JSON.stringify(ref.path) : ref.path;
-}
-
 /** `show`: a clip's keys from `from` as the format writes them, a page at a time, with what it is and where it came from. */
 export const show = defineTool<{ clip: string; from: number; legend: boolean }, unknown>({
   name: "show",
@@ -61,7 +55,7 @@ export const show = defineTool<{ clip: string; from: number; legend: boolean }, 
   positionals: ["clip"],
   examples: [{ args: { clip: "QUATERNIUS_3D2DGE/Sword_Attack", from: 0.4 } }],
   async run(a, ctx) {
-    const ref = await loadClip(ctx, a.clip), lib = ctx.library(), c = ref.clip, p = c.provenance, src = ref.source, name = nameOf(ref) ?? "with the same clip";
+    const ref = await loadClip(ctx, a.clip), lib = ctx.library(), c = ref.clip, p = c.provenance, src = ref.source, { as, title } = naming(ref);
     const first = c.keys.findIndex((k) => k.t >= a.from - 1e-6), n = c.keys.length;
     if (first < 0) throw new ToolError("E_ARGS", `from is ${a.from}, past the last key (${sec(c.keys[n - 1]!.t)})`, true);
     const f = (c.facts ?? {}) as { speed?: number; strike?: number[]; height?: [number, number] }, speed = mps(f.speed ?? null);
@@ -87,7 +81,7 @@ export const show = defineTool<{ clip: string; from: number; legend: boolean }, 
     for (let used = 0; shown < keys.length && (!shown || used + size(keys[shown]!) <= room); shown++) used += size(keys[shown]!);
     const after = c.keys[first + shown], legend = a.legend ? lib.library.about(src?.set ?? lib.source.sets().sort()[0]!).legend : null;
     return {
-      verdict: `show ${ref.id}: ${legend ? "the legend of its keys' numbers" : `${sec(c.dur)} ${c.loop ? "loop" : "once"}, ${c.fps} fps, keys ${first + 1}-${first + shown} of ${n} from ${sec(c.keys[first]!.t)}`}`,
+      verdict: `show ${title}: ${legend ? "the legend of its keys' numbers" : `${sec(c.dur)} ${c.loop ? "loop" : "once"}, ${c.fps} fps, keys ${first + 1}-${first + shown} of ${n} from ${sec(c.keys[first]!.t)}`}`,
       data: {
         id: ref.id, set: ref.set, tier: ref.tier, dur: c.dur, loop: c.loop, fps: c.fps, keys: n, from: c.keys[first]!.t, first: first + 1, tags: c.tags, desc: c.desc,
         facts: c.facts ?? null, speed, fit: c.quality.fit, qa: c.quality.qa, credit, legend: legend && { version: c.legend, text: legend },
@@ -95,7 +89,9 @@ export const show = defineTool<{ clip: string; from: number; legend: boolean }, 
         text: legend ? null : format.keyLens({ ...c, keys: c.keys.slice(first, first + shown).map((k) => ({ ...k })) }),
       },
       lines: [...head, ...(legend ? legendLines(legend) : keys.slice(0, shown))],
-      next: a.legend ? `show ${name} from: ${c.keys[first]!.t} for the keys` : after ? `show ${name} from: ${after.t} continues (keys ${first + shown + 1}-${n} of ${n}); describe ${name} for its timeline` : `describe ${name} for its timeline; sheet ${name} draws it`,
+      next: a.legend
+        ? `${call("show", [as], { from: c.keys[first]!.t })} for the keys`
+        : after ? `${call("show", [as], { from: after.t })} continues (keys ${first + shown + 1}-${n} of ${n}); ${call("describe", [as])} for its timeline` : `${call("describe", [as])} for its timeline; ${call("sheet", [as])} draws it`,
     };
   },
 });
@@ -108,15 +104,15 @@ export const describe = defineTool<{ clip: string; detail: boolean }, unknown>({
   positionals: ["clip"],
   examples: [{ args: { clip: "QUATERNIUS_3D2DGE/Jump_Land" } }],
   async run(a, ctx) {
-    const ref = await loadClip(ctx, a.clip), d = timeline(ref.clip, ref.rest, { detail: a.detail }), name = nameOf(ref) ?? "with the same clip";
+    const ref = await loadClip(ctx, a.clip), d = timeline(ref.clip, ref.rest, { detail: a.detail }), { as, title } = naming(ref);
     const phases = capped(d.phases, 20), moments = capped(d.moments, 20), more = (phases.more ?? 0) + (moments.more ?? 0);
     const at = d.moments.find((m) => m.name === "strike" || m.name === "land"), key = at && ref.clip.keys.findLast((k) => k.t <= at.t + 1e-6);
     return {
-      verdict: `describe ${ref.id}: ${d.text}`,
+      verdict: `describe ${title}: ${d.text}`,
       data: { ...d, phases: phases.rows, moments: moments.rows, ...(more ? { more } : {}) },
       // each time as the tools write one (3 decimals): a moment's text without the sensors' own " at 0.42 s"
       lines: a.detail ? [...phases.rows.map((p) => `${p.t0.toFixed(3)}-${sec(p.t1)} ${p.name}${p.detail ? `: ${p.detail}` : ""}`), ...moments.rows.map((m) => `${sec(m.t)} ${m.text.replace(/ at [\d.]+ s$/, "")}`), ...(more ? [`more: ${more}`] : [])] : [],
-      next: `show ${name}${at && key ? ` from: ${key.t} reads the keys at its ${at.name}` : " reads its keys"}; sheet ${name} draws it`,
+      next: `${call("show", [as], at && key ? { from: key.t } : {})} reads ${at && key ? `the keys at its ${at.name}` : "its keys"}; ${call("sheet", [as])} draws it`,
     };
   },
 });

@@ -11,7 +11,7 @@ import { checkGame, checkSets, credited, creditsBlock, tierOf, TIERS, type Credi
 import { defineTool, ToolError, type ToolContext } from "../registry/registry.ts";
 import { didYouMean, quote } from "../registry/schema.ts";
 import { absolute, fits, libraryClips, namedBy, parts, readClip, suggestId } from "./clips.ts";
-import { capped, count } from "./common.ts";
+import { call, capped, count, ROW_CHARS } from "./common.ts";
 
 /** A clips list as license.check takes one: a clip or more, none blank. */
 const listed = (c: unknown): boolean => Array.isArray(c) && c.length > 0 && c.every((x) => typeof x === "string" && x.trim() !== "");
@@ -116,6 +116,8 @@ export const licenseCheck = defineTool<{ clips?: string[]; tiers?: Tier[]; ships
       const l = labels.get(f.where)?.shift(), near = /^no clip /.test(f.message) ? suggestId(lib, f.where) : undefined;
       return { ...f, where: l?.label ?? f.where, message: near ? `${f.message}; did you mean ${quote(near)}?` : f.message, i: l?.i ?? end };
     })].sort((x, y) => x.i - y.i).map(({ i: _, ...f }) => f);
+    // the same call, to make again (one past a row's length, as JSON clips make it, is named so)
+    const same = call("license.check", [], { clips: a.clips, tiers: a.tiers, ships: a.ships, set: a.set }), again = same.length > ROW_CHARS ? "the same license.check" : same;
     const fails = all.filter((f) => f.level === "fail").length, warns = all.length - fails, ok = fails === 0, shown = capped(all, 20), credits = [...r.credits, ...mine];
     // "CC0 clips" only when every clip checked is (none from the library when one is from no library clip)
     const block = !credits.length && [...seen].some((t) => t !== "cc0") ? "Motion: no credit is owed." : stray ? creditsBlock(credits).replace(" from the m3a library", "") : creditsBlock(credits);
@@ -124,7 +126,7 @@ export const licenseCheck = defineTool<{ clips?: string[]; tiers?: Tier[]; ships
       data: { ok, fails, warns, findings: shown.rows, ...(shown.more ? { more: shown.more } : {}), credits, block },
       lines: [...shown.rows.map((f) => `${f.level} ${f.where}: ${f.message}`), ...(shown.more ? [`more: ${shown.more}`] : []), ...block.split("\n")],
       findings: !ok,
-      next: ok ? "put the credits block in the game's credits; license.check again when its clips change" : "fix each failing line as it says (each names its fix), then license.check again",
+      next: ok ? `put the credits block in the game's credits; ${again} again when its clips change` : `fix each failing line as it says (each names its fix), then ${again} again`,
     };
   },
 });

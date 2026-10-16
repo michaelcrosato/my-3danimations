@@ -9,8 +9,8 @@ import { tagConflicts, withFacts, type ClipFacts } from "@m3a/library";
 import { fix as repair, fixes, metrics, type Report } from "@m3a/sensors";
 import { defineTool, ToolError, type ToolContext, type ToolOutput } from "../registry/registry.ts";
 import { didYouMean, quote, type Schema } from "../registry/schema.ts";
-import { loadClip, type ClipRef } from "./clips.ts";
-import { capped, CLIP, count, cut, sec } from "./common.ts";
+import { loadClip, naming, type ClipRef } from "./clips.ts";
+import { call, capped, CLIP, count, cut, sec } from "./common.ts";
 import { applied, back, commit, mayCopy, readTarget, replay, targetName, targetRevision, WORKSHOP, type Entry, type History, type Target } from "./workshop.ts";
 
 const SAVE_AS: Schema = { type: "string", description: "WORKSHOP/Name" };
@@ -65,13 +65,15 @@ export const fix = defineTool<{ clip: string; ops?: fixes.FixName[]; save_as?: s
     if (t) mayCopy(t, inPlace(ref, t), a);
     const r = repair(ref.clip, ref.rest, { ops: a.ops, maxKeys: a.max_keys }), [b, f] = [r.before, r.after].map((m) => ({ verdict: m.verdict, findings: m.findings.length }));
     const steps = r.steps.map((s) => ({ op: s.op, changes: s.changes.length, why: s.skipped ?? (s.rejected ? cut(`would make worse: ${s.rejected.join("; ")}`) : null) }));
-    const head = `fix ${ref.id}: ${b!.verdict.toUpperCase()} -> ${f!.verdict.toUpperCase()} (${b!.findings} -> ${count(f!.findings, "finding")})`, fails = f!.verdict === "fail";
+    // its hints name the clip as the caller gave it (their file, not the library clip inside it) until it is saved
+    const { as, title } = naming(ref), fails = f!.verdict === "fail";
+    const head = `fix ${title}: ${b!.verdict.toUpperCase()} -> ${f!.verdict.toUpperCase()} (${b!.findings} -> ${count(f!.findings, "finding")})`;
     const data = { clip: ref.id, saved: null as string | null, path: null as string | null, before: b, after: f, steps, ...stacks(t?.history ?? null) };
     const out = { data, lines: r.text.split("\n").slice(1).map((l) => cut(l.replace(/→/g, "->"))), findings: fails };
     const changes = steps.some((s) => s.changes);
     if (!t || a.dry_run || !changes) {
-      const save = t ? `fix without dry_run saves it as ${t.id}` : `fix with save_as "WORKSHOP/<Name>", without dry_run, saves it`;
-      const next = changes ? save : fails ? `lint ${ref.id} names what is left; edit reshapes it` : `nothing to fix: sheet ${ref.id} shows it`;
+      const again = call("fix", [as], { ops: a.ops, save_as: a.save_as ?? (t ? undefined : "WORKSHOP/<Name>"), max_keys: a.max_keys });
+      const next = changes ? `${again} saves it${t ? ` as ${t.id}` : ""}` : fails ? `${call("lint", [as])} names what is left; edit reshapes it` : `nothing to fix: ${call("sheet", [as])} shows it`;
       return { ...out, verdict: `${head}; ${changes ? "dry run" : "nothing changed"}, nothing saved`, next };
     }
     // the fixed clip is no longer a recipe's output (its lineage stays in orig), nor the motion a review saw
@@ -79,8 +81,8 @@ export const fix = defineTool<{ clip: string; ops?: fixes.FixName[]; save_as?: s
     const { recipe: _made, ...was } = c.provenance as Clip["provenance"] & { recipe?: unknown };
     const provenance = { ...was, orig: from, method: "edited" as const, producer: { tool: "m3a-tools", version: VERSION }, ai: "humanEdits" as const };
     const text = serialize({ ...kept, id: t.id, provenance, quality: { fit: c.quality.fit, qa: "unchecked", qaVersion: "none" } });
-    const h = applied(t, text, { from, rest: ref.rest, recipe: null }, await ownState(ctx, t)), undo = `take it back: edit ${t.id} --action undo`;
-    const next = fails ? `lint ${t.id} names what is left; ${undo}` : `see it: sheet ${t.id}; ${undo}`;
+    const h = applied(t, text, { from, rest: ref.rest, recipe: null }, await ownState(ctx, t)), undo = `take it back: ${call("edit", [t.id], { action: "undo" })}`;
+    const next = fails ? `${call("lint", [t.id])} names what is left; ${undo}` : `see it: ${call("sheet", [t.id])}; ${undo}`;
     return commit(ctx, "fix", t, h, a, { ...out, data: { ...data, saved: t.id, path: t.path, ...stacks(h) }, verdict: `${head}; saved ${t.id} at ${h.head}`, next, revision: h.head });
   },
 });
@@ -93,7 +95,7 @@ function restored(t: Target, h: History, way: "undo" | "redo"): ToolOutput {
   return {
     verdict: `edit ${t.id}: ${way === "undo" ? "undone" : "redone"}, now at revision ${h.head} (${h.undo.length} to undo, ${h.redo.length} to redo)`,
     data: { ...data, ...stacks(h), history_reset: false, recipe: h.recipe },
-    next: `${now ? `see it: sheet ${t.id}` : "the copy is gone"}; edit ${t.id} --action ${way === "undo" ? "redo" : "undo"} reverses this`,
+    next: `${now ? `see it: ${call("sheet", [t.id])}` : "the copy is gone"}; ${call("edit", [t.id], { action: way === "undo" ? "redo" : "undo" })} reverses this`,
     revision: h.head,
   };
 }
@@ -182,6 +184,8 @@ export const edit = defineTool<{ clip: string; ops?: Record<string, unknown>[]; 
     const [b, n] = [summary(ref.clip, metrics(ref.clip, ref.rest)), summary(clip, m)], s = (x: number | null) => (x === null ? "none" : sec(x));
     const strike = b.strike ?? n.strike ? `, strike ${s(b.strike)} -> ${s(n.strike)}` : "";
     const found = capped(m.findings, 3), tags = capped(tagConflicts(clip, clip.facts as unknown as ClipFacts, made.rest), 3);
+    // the clip to compare the copy with: its library clip while the game sees it, else the file it was made from
+    const was = lib(from) ? from : ref.where === "file" ? naming(ref).as : null;
     const lines = [
       ...found.rows.map((x) => cut(`${x.level} ${x.metric} at ${sec(x.t0)}: ${x.message}`)),
       ...more(found.more, "finding", `(metrics ${t.id} lists them)`),
@@ -194,7 +198,7 @@ export const edit = defineTool<{ clip: string; ops?: Record<string, unknown>[]; 
       data: { clip: t.id, path: t.path, action: "apply", changed: text !== t.text, from, before: b, after: n, license: license(clip), ...stacks(hist), history_reset: t.stale !== null, recipe: hist.recipe },
       lines,
       findings: n.verdict === "fail",
-      next: `see it: sheet ${t.id}; compare: diff ${from} ${t.id}; take it back: edit ${t.id} --action undo`,
+      next: `see it: ${call("sheet", [t.id])}; ${was ? `compare: ${call("diff", [was, t.id])}; ` : ""}take it back: ${call("edit", [t.id], { action: "undo" })}`,
       revision: hist.head,
     });
   },

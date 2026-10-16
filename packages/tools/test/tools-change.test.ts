@@ -60,14 +60,18 @@ describe("the Change tools", () => {
       expect(w.file("workshop/Walk_Loop.json")).toBe(text);
       for (const dry_run of [true, false]) {
         const idle = await w.call("fix", { clip: "QUATERNIUS_3D2DGE/Idle_Loop", dry_run }); // a fix that changes nothing saves nothing
-        expect([idle.verdict, idle.data, idle.revision, idle.next]).toEqual([expect.stringMatching(/; nothing changed, nothing saved$/), expect.objectContaining({ saved: null }), null, "nothing to fix: sheet QUATERNIUS_3D2DGE/Idle_Loop shows it"]);
+        expect([idle.verdict, idle.data, idle.revision, idle.next]).toEqual([expect.stringMatching(/; nothing changed, nothing saved$/), expect.objectContaining({ saved: null }), null, "nothing to fix: `sheet QUATERNIUS_3D2DGE/Idle_Loop` shows it"]);
       }
       expect(w.file("workshop/Idle_Loop.json")).toBeNull();
       const stamped = { provenance: { orig: "QUATERNIUS_3D2DGE/Walk_Loop", method: "edited", producer: { tool: "m3a-tools" }, ai: "humanEdits" }, quality: { qa: "unchecked", qaVersion: "none" } };
       expect(JSON.parse(text!)).toMatchObject(stamped);
       const reviewed = { ...JSON.parse(readFileSync(join(ROOT, "library/sets/QUATERNIUS_3D2DGE/Walk_Loop.json"), "utf8")), review: { state: "approved", by: "me", date: "2026-10-16", motion: "0".repeat(64) } };
       const dry = async (a: object) => (await w.call("fix", { clip: JSON.stringify(reviewed), dry_run: true, ...a })).next; // clip JSON names no copy
-      expect([await dry({}), await dry({ save_as: "WORKSHOP/J" })]).toEqual(['fix with save_as "WORKSHOP/<Name>", without dry_run, saves it', "fix without dry_run saves it as WORKSHOP/J"]);
+      expect([await dry({}), await dry({ save_as: "WORKSHOP/J" })]).toEqual(["`fix <the clip's JSON> --save_as WORKSHOP/<Name>` saves it", "`fix <the clip's JSON> --save_as WORKSHOP/J` saves it as WORKSHOP/J"]);
+      // its hints name the caller's file, not the library clip inside it
+      writeFileSync(join(w.cwd, "walk.json"), readFileSync(join(ROOT, "library/sets/QUATERNIUS_3D2DGE/Walk_Loop.json"), "utf8"));
+      const given = await w.call("fix", { clip: "walk.json", ops: ["refit"], dry_run: true });
+      expect([given.verdict, given.next]).toEqual([expect.stringMatching(/^fix walk.json: FAIL -> FAIL .*; nothing changed, nothing saved$/), "`lint walk.json` names what is left; edit reshapes it"]);
       writeFileSync(join(w.cwd, "rev.json"), JSON.stringify(reviewed)); // a review of the motion before the fix is dropped
       expect([(await w.call("fix", { clip: "rev.json" })).data, "review" in JSON.parse(w.file("workshop/rev.json")!)]).toMatchObject([{ saved: "WORKSHOP/rev" }, false]);
       // a workshop file is edited in place by its path, whatever id it holds; a file copy of it keeps its library origin

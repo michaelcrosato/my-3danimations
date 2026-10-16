@@ -1,17 +1,17 @@
 // The check tools (PLAN.md WP-7.2a §1): a clip measured by the sensors (metrics), drawn as a contact sheet with its
 // findings in red (sheet) or as frames moving through space around a moment (film), two clips compared (diff: where
 // their poses part, travel, both verdicts and a picture of what moved; findings when b is worse), and the repairs a
-// clip needs (lint). Rows are capped, each reply's `next` names the tool to call after it and the clip as given, and
-// images go through ctx.image with cells at most 125 px wide (film's 160), so their cost stays near the plan's: sheet
-// 8 frames ~331 tokens, film 8 ~346, diff 6 ~614.
+// clip needs (lint). Rows are capped, each reply's `next` names the call to make after it (common.ts call) with the
+// clip as given (clips.ts naming), and images go through ctx.image with cells at most 125 px wide (film's 160), so
+// their cost stays near the plan's: sheet 8 frames ~331 tokens, film 8 ~346, diff 6 ~614.
 import { clip as clipNs, format, measureFacts, type Clip, type Rest } from "@m3a/core";
 import { measureClipFacts, tagConflicts } from "@m3a/library";
 import { checks, fixes, metrics as measure, raster, sheets, type Report } from "@m3a/sensors";
 import { defineTool, ToolError, type ToolContext } from "../registry/registry.ts";
 import { imageTokens } from "../registry/reply.ts";
 import { strip } from "../sim/film.ts";
-import { loadClip } from "./clips.ts";
-import { capped, CLIP, count, cut, mm, round, sec } from "./common.ts";
+import { loadClip, naming } from "./clips.ts";
+import { call, capped, CLIP, count, cut, mm, round, sec } from "./common.ts";
 
 const RANK = { pass: 0, warn: 1, fail: 2 } as const;
 /** Seconds either side of film's moment. */
@@ -43,14 +43,11 @@ export function drawn<T>(draw: () => T): T {
     throw err;
   }
 }
-/** A clip loaded for a reply: `as`, how a hint names it (the id, WORKSHOP id or relative path given, a path JSON-quoted
- *  when it holds a space or control character; `<whose JSON>` or `<whose file>` for JSON given inline or an absolute
- *  path, which no reply echoes), and `title`, how a verdict does (those two with their clip's id). */
+/** A clip loaded for a reply, with how a hint (`as`) and a verdict (`title`) name it (clips.ts naming; `whose` tells
+ *  diff's two clips apart). */
 async function load(ctx: ToolContext, ref: string, whose = "the clip's") {
-  const c = await loadClip(ctx, ref), given = ref.trim();
-  const hidden = c.where === "text" ? "JSON" : c.where === "file" && /^([/\\]|[A-Za-z]:)/.test(given) ? "file" : null;
-  const as = hidden ? `<${whose} ${hidden}>` : c.where === "library" ? c.id : /[\s\p{Cc}]/u.test(given) ? JSON.stringify(given) : given;
-  return { ...c, as, title: hidden ? `${c.id} (${whose} ${hidden})` : as };
+  const c = await loadClip(ctx, ref);
+  return { ...c, ...naming(c, whose) };
 }
 /** The clip's pose at t on R, a loop's end its cycle's last pose. */
 const poseAt = (c: Clip, t: number, R: Rest, out?: Float32Array) => clipNs.sample(c, c.loop && t >= c.dur ? c.dur * (1 - 1e-12) : t, R, out);
@@ -107,9 +104,9 @@ export const metrics = defineTool<{ clip: string; limit: number }, unknown>({
       lines: [...shown.rows.map((f) => `${f.level.toUpperCase()} ${f.metric}: ${f.message}`), ...more(shown.more, a.limit), `recorded: ${q.qa} with ${q.qaVersion}${held}`],
       findings: r.verdict === "fail",
       next: !r.findings.length
-        ? `the clip measures clean; sheet ${c.as} to look at it`
+        ? `the clip measures clean; ${call("sheet", [c.as])} to look at it`
         : open.length === new Set(r.findings.map((f) => f.metric)).size ? `no repair answers ${open.join(", ")}: search for another clip, or edit its keys`
-        : `lint ${c.as} names the repairs; sheet ${c.as} shows the findings in red`,
+        : `${call("lint", [c.as])} names the repairs; ${call("sheet", [c.as])} shows the findings in red`,
     };
   },
 });
@@ -136,7 +133,7 @@ export const sheet = defineTool<{ clip: string; frames: number; view: raster.Vie
         flagged: red.rows.map((f) => ({ metric: f.metric, level: f.level, t0: round(f.t0, 3), t1: round(f.t1, 3) })), ...(red.more ? { more: red.more } : {}),
       },
       lines: [...red.rows.map((f) => `red: ${f.metric}${f.where ? ` ${f.where}` : ""} ${span(f.t0, f.t1)} (${f.level})`), ...more(red.more, 10)],
-      next: `open the image: red cells are the findings; metrics ${c.as} gives the numbers, film ${c.as} shows it moving`,
+      next: `open the image: red cells are the findings; ${call("metrics", [c.as])} gives the numbers, ${call("film", [c.as])} shows it moving`,
     };
   },
 });
@@ -176,8 +173,8 @@ export const film = defineTool<{ clip: string; frames: number; around?: number }
       },
       lines: [`frames at ${at3.join(", ")} s`, `travels ${mm(went[0]!)} forward, ${mm(went[1]!)} right over ${sec(clip.dur)}`],
       next: at === null
-        ? `film ${c.as} with around (seconds) zooms on a moment; sheet ${c.as} shows contacts and findings`
-        : `sheet ${c.as} shows the whole clip with its findings; metrics ${c.as} measures it`,
+        ? `${call("film", [c.as], { around: "<seconds>" })} zooms on a moment; ${call("sheet", [c.as])} shows contacts and findings`
+        : `${call("sheet", [c.as])} shows the whole clip with its findings; ${call("metrics", [c.as])} measures it`,
     };
   },
 });
@@ -221,7 +218,7 @@ export const diff = defineTool<{ a: string; b: string; frames: number }, unknown
         ...([...went.a, ...went.b].some((v) => v !== 0) ? [`travel ${went.a.map(mm).join(", ")} → ${went.b.map(mm).join(", ")} (forward, right)`] : []),
       ],
       findings: worse.length > 0,
-      next: worse.length ? `b is worse: keep a, or lint ${B.as} names its repairs` : `open the image: magenta marks what moved; metrics ${B.as} gives b's findings`,
+      next: worse.length ? `b is worse: keep a, or ${call("lint", [B.as])} names its repairs` : `open the image: magenta marks what moved; ${call("metrics", [B.as])} gives b's findings`,
     };
   },
 });
@@ -251,9 +248,9 @@ export const lint = defineTool<{ clip: string }, unknown>({
       lines: [...l.text.split("\n").slice(1).map((s) => s.replace(/^ {2}\.\.\. (\d+) more$/, "  more: $1")), ...tags.map((t) => `tag ${t.tag}: ${t.message}`)],
       findings: ops.length + tags.length > 0,
       next: ops.length
-        ? `fix ${c.as} applies ${ops.join(", ")}, keeping only steps that don't make it worse; diff it with the fixed copy`
-        : tags.length ? `edit ${c.as} with meta tags to drop ${tags.map((t) => t.tag).join(", ")}, or search for another clip`
-        : open.length ? `no repair answers ${open.join(", ")}: search for another clip, or edit its keys` : `nothing to fix; metrics ${c.as} gives the values`,
+        ? `${call("fix", [c.as])} applies ${ops.join(", ")}, keeping only steps that don't make it worse; diff it with the fixed copy`
+        : tags.length ? `${call("edit", [c.as], { ...(c.where === "text" && { save_as: "WORKSHOP/<Name>" }), ops: [{ op: "meta", tags: c.clip.tags.filter((t) => !tags.some((x) => x.tag === t)) }] })} drops ${tags.map((t) => t.tag).join(", ")}; or search for another clip`
+        : open.length ? `no repair answers ${open.join(", ")}: search for another clip, or edit its keys` : `nothing to fix; ${call("metrics", [c.as])} gives the values`,
     };
   },
 });

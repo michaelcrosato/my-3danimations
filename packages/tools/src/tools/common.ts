@@ -1,5 +1,6 @@
 // What the m3a tools share (PLAN.md WP-7.2): the clip parameter, capped rows, counts, the fixed units (mm with no
-// decimals, seconds with 3), strings cut for rows, and "a file or JSON" arguments read one way everywhere.
+// decimals, seconds with 3), strings cut for rows, the one form a next hint writes a call in (`call`), and "a file or
+// JSON" arguments read one way everywhere.
 import { ToolError, type ToolContext } from "../registry/registry.ts";
 import { quote, type Schema } from "../registry/schema.ts";
 
@@ -29,9 +30,24 @@ export const mm = (v: number): string => `${round(v)} mm`;
 /** A time in seconds with 3 decimals: "1.533 s". */
 export const sec = (v: number): string => `${round(v, 3).toFixed(3)} s`;
 
-/** A value as a hint writes it for a shell: as is when the shell keeps it whole, else single-quoted; a placeholder in
- *  angle brackets (`<the clip's JSON>`) as is, for the caller to fill. */
-export const arg = (v: string): string => (/^[\w./:=@,+-]*$/.test(v) || /^<[^<>]*>$/.test(v) ? v : `'${v.replace(/'/g, "'\\''")}'`);
+/** A value as a hint writes it for a shell: as is when the shell keeps it whole, else single-quoted ('' when empty);
+ *  one holding a placeholder in angle brackets (`<the clip's JSON>`, `WORKSHOP/<Name>`) as is, for the caller to fill. */
+export const arg = (v: string): string => (/^[\w./:=@,+-]*(<[A-Za-z' ]+>)?[\w./:=@,+-]*$/.test(v) && v !== "" ? v : `'${v.replace(/'/g, "'\\''")}'`);
+
+/**
+ * A call as a reply's `next` (or a line pointing at one) writes it, one form for every surface: in backticks, as the
+ * m3a command takes it after "m3a": the tool, its positionals, then `--<parameter> <value>` with the parameter's own
+ * name (the CLI also spells it with "-"), a value the shell would split single-quoted (`arg`), an array or object as
+ * JSON, a boolean as the bare flag or `--<parameter>=false`, an undefined one left out. On MCP and in the API the same
+ * names are the arguments: `show X --from 0.733` is show {clip: "X", from: 0.733}. A part in angle brackets (`<the
+ * clip's JSON>`, `WORKSHOP/<Name>`, `<seconds>`) is the caller's to fill. Positionals come as written (a clip as
+ * clips.ts's naming gives it).
+ */
+export function call(tool: string, positionals: readonly string[] = [], flags: Record<string, unknown> = {}): string {
+  const rest = Object.entries(flags).filter(([, v]) => v !== undefined);
+  const flag = ([k, v]: [string, unknown]) => (typeof v === "boolean" ? [v ? `--${k}` : `--${k}=false`] : [`--${k}`, arg(typeof v === "string" ? v : JSON.stringify(v))]);
+  return `\`${[tool, ...positionals, ...rest.flatMap(flag)].join(" ")}\``;
+}
 
 /** `text` cut to `n` characters (a row's 90 by default), "..." ending a cut. */
 export const cut = (text: string, n = ROW_CHARS): string => (text.length > n ? `${text.slice(0, n - 3)}...` : text);
