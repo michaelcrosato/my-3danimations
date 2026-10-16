@@ -3665,3 +3665,60 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   - One hint form lets a hint be run as written on every surface.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.47.0
+
+## D96 · 2026-10-16 · WP-7.2b: the retarget, compose and exchange tools; lane b0's foundation rebuilt; every crossing
+
+- **Principle:** 2, 7, 8, 9, §8 (sizes), D10, D49, D80, D92, D93, D95 (WP-7.2b, PLAN.md §5.6)
+- **Status:** written while 7.2b's last review round and its verifier run (2026-10-16); completed in the commit that
+  marks the ledger row done.
+- **Call:**
+  - **Lane b0, the foundation** (3f8cf6c, in 0.47.0's tree; its own decision text was lost at the pause and is rebuilt
+    here from ba24948, a37eafe, 2c128f2, c356c5e and fe6594a, four review rounds):
+    - **R6, a character's bytes:** `ctx.bytes(path)` in the registry (E_HOST "opens no binary files" without one) and
+      the Node host, confined to the working directory as text reads are (a path or link out, or a missing file, is
+      E_PATH).
+    - **I1, io's glTF skeleton reader:** `skeletonOfGltf(doc)` gives the skeleton, its rest in the scene's space and
+      its nodes: the biggest skin a mesh node uses (as three's bind takes the skinned mesh with the most bones), else
+      every node; parents the nearest joint above through any helper node. Joints no vertex is weighted to are left out
+      with every joint above a weighted one kept, as three's bind does (20 of KayKit's knight's 41 joints: IK targets,
+      poles and hand slots that misled recognition by shape); a VRM, or weights it can't read, keeps them all.
+      `meshEnds` gives D49's sole end bone where a foot's mesh ends, from the vertices weighted half or more to the
+      foot's last bone, skinned by the joints alone (glTF ignores the mesh node's transform), and says when it can't
+      read them (`unread`: compressed, sparse or broken accessors). io's accessors read signed bytes and shorts
+      (KHR_mesh_quantization) and refuse sparse ones. Rigify, the 20 generated characters and the knight bind at three's
+      bind's rest points within 1e-3 mm.
+    - **V1, characters through core:** body.ts's `characterOf(ctx, ref, mapping)` binds through io and core
+      (recognize, patchMapping, bind; no three.js). A VRM's humanoid maps its bones as the file's word; a patch is
+      checked with did-you-mean; no humanoid bone at all is E_RIG; over 4,096 bones is E_LIMIT. `TINY`, the 34-bone
+      conformance rig, is the default body (deep-frozen; end bones go on a copy).
+  - **The tools** (one lane each, merged at 89a9e55, 7df2f63 and 0d45a6f):
+    - **Retarget:** `retarget.inspect` binds a character and returns its report (findings while an issue other than
+      the patch stands, with a rest turntable); hips bound under half the legs' length are an issue, its conclusion
+      first ("hips (root) likely the wrong bone: only -20 mm up, ..."), so it survives apply's 60-character warning;
+      each missing bone's likely source bones, at most 3. `retarget.apply` plays 1 to 20 clips, each judged as the sweep
+      judges a skeleton (D80), findings when one fails. **W1:** the judge moved from `tools/sweep` into
+      `@m3a/tools/judge.ts`, which the sweep imports back. **H1:** three's bind sanitizes a patch's source bone as
+      three's loader sanitizes node names, so the tools' patch binds in three too.
+    - **Compose and wire:** `recipe.compile` (bounded before it compiles by `bounded()`, shared with edit),
+      `graph.validate`, `graph.sim` (tiny by default; a run past 36,000 steps refused). **L3:**
+      `Library.resolver()` rethrows E_TIER, so a recipe naming an out-of-tier clip names the opt-in, not R-E008.
+    - **Exchange:** `import` fits a .gltf, .glb, .bvh or .vrma file's animations into a local set under
+      `imports/<SET>/` (D10's local tier, a per-set lock; the host reopens it by its stamp); `export` writes .vrma (read
+      back byte for byte), .glb (the character's own document, its animation added) or .bvh, each read back through io
+      within 1 mm. The registry's `writes` flag lists import to MCP as writing (readOnlyHint false, destructiveHint
+      true). **I2-I5:** io's BVH writer and gap, the glTF animation writer and gap, a one-frame take held a frame, a
+      VRMA's license in extras and its credit as `asset.copyright`. `@m3a/library` gains the set writer, moved from
+      `tools/migrate` (migrate --check byte for byte).
+  - **The pause** (D97 records the speed lane merged with these): the lanes were merged at a usage limit with three
+    tests stale and retarget's round-2 fix half applied (9da0d53). The tests took the code's wording (4a505d2).
+  - **Crossings of 7.2b's Owns:**
+    - The registry and host: `registry/registry.ts` (bytes; the `writes` flag), `src/node.ts` (bytes), `src/mcp.ts`
+      (the annotations), `src/node/library.ts` (imported sets as local sets).
+    - 7.2a's files: `tools/index.ts` (the RETARGET, COMPOSE and EXCHANGE groups), `tools/change.ts` and
+      `tools/clips.ts` (`bounded()`), `test/tools-budget.test.ts`, `test/helpers/surfaces.ts`,
+      `test/registry-surfaces.test.ts`.
+    - io: `src/gltf/read.ts` (signed accessors; mat and mul exported), `src/import.ts`, `src/vrma/vrma.ts`, the
+      README's BVH note, `src/index.ts` (the shared export list).
+    - library: `src/load/library.ts` (E_TIER), `src/node.ts`, `src/index.ts`; `tools/migrate/migrate.ts`.
+    - three: `src/bind/bind.ts` and its test.
+    - `tools/sweep/sweep.ts` (imports the judge).
