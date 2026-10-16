@@ -12,7 +12,7 @@ import { addAnimation, bvhGap, decodeVrma, describeGltf, encodeVrma, glbGap, glt
 import { setFiles, tierOf, withFacts } from "@m3a/library";
 import { defineTool, ToolError, type LibraryAccess, type ToolContext } from "../registry/registry.ts";
 import { quote } from "../registry/schema.ts";
-import { bodyOf, CHARACTER, MAPPING, type MappingPatch } from "./body.ts";
+import { bodyOf, CHARACTER, characterName, MAPPING, type MappingPatch } from "./body.ts";
 import { loadClip, naming, parts } from "./clips.ts";
 import { ARROW, call, capped, CLIP, count, cut, fileOrJson, imageName, mm, more, output, round, sec } from "./common.ts";
 
@@ -30,6 +30,9 @@ const SPDX = /^(LicenseRef-[A-Za-z0-9.-]+|[A-Za-z0-9][A-Za-z0-9.+-]*)$/;
 /** A path as a reply names it (clips.ts's naming): as given, quoted where a shell would split it, or `<whose file>` for
  *  an absolute path or one with a control character. */
 const named = (path: string, whose = "the"): string => naming({ id: path, where: "file", path, name: null }, whose).as;
+/** What a hint's flag passes for an argument replies name `as` (call quotes it): `as` where it is hidden, else the
+ *  argument as given. */
+const given = (as: string, value: string): string => (as.startsWith("<") ? as : value);
 /** Whether a license owes a credit where its clips are used: any but CC0's (CC BY's, CMU's, a share-alike's or a
  *  non-commercial one's, MIT's notice), each part of a composed clip's. */
 const owes = (license: string): boolean => parts(license).some((x) => x !== "CC0-1.0");
@@ -117,13 +120,14 @@ export const importMotion = defineTool<{ path: string; set: string; license?: st
   writes: true,
   async run(a, ctx) {
     const kind = /\.(\w+)$/.exec(a.path)?.[1]!.toLowerCase() ?? "", file = named(a.path), dir = `imports/${a.set}`;
-    if (!KINDS.includes(kind)) throw new ToolError("E_ARGS", `${quote(file)} is no motion file: give a .gltf, .glb, .bvh or .vrma${kind === "fbx" ? " (convert FBX to .glb first)" : ""}`, true);
+    if (!KINDS.includes(kind)) throw new ToolError("E_ARGS", `${file} is no motion file: give a .gltf, .glb, .bvh or .vrma${kind === "fbx" ? " (convert FBX to .glb first)" : ""}`, true);
     if (!/^[A-Z][A-Z0-9_]*$/.test(a.set) || a.set === "WORKSHOP") throw new ToolError("E_ARGS", `set is the new set's name, A-Z, 0-9 and _ (as IMPORT), not ${quote(a.set)}`, true);
     if (!a.list && a.license === undefined) throw new ToolError("E_ARGS", "license is the file's SPDX id (CC0-1.0, CC-BY-4.0, ...), which each clip carries; list needs none", true);
     if (a.license !== undefined && !SPDX.test(a.license)) throw new ToolError("E_ARGS", `license ${quote(a.license)} is no SPDX id: CC0-1.0, CC-BY-4.0, ..., or LicenseRef-<name> for other terms`, true);
     const lib = ctx.library();
-    // an imported set (its manifest under imports/) is imported again in place; a library set's name is the library's
-    if (lib.source.sets().includes(a.set) && (await ctx.tryRead(`${dir}/_set.json`)) === null) throw new ToolError("E_ARGS", `set ${a.set} is the library's: name the new set another way`, true);
+    // an imported set (the manifest the library reads is the one under imports/) is imported again in place; a library
+    // set's name is the library's, even where imports/ holds a set so named (the library's wins: it would go unseen)
+    if (lib.source.sets().includes(a.set) && lib.source.read(a.set, "_set.json") !== (await ctx.tryRead(`${dir}/_set.json`))) throw new ToolError("E_ARGS", `set ${a.set} is the library's: name the new set another way`, true);
     const got = a.catalog === undefined ? null : await fileOrJson(ctx, a.catalog, "catalog");
     const cat = got && catalogOf(got.data, got.path === null), m = await motionOf(ctx, a.path, kind, cat), at = [file];
     if (a.list) {
@@ -134,7 +138,7 @@ export const importMotion = defineTool<{ path: string; set: string; license?: st
         lines: [...shown.rows, ...more(shown.more, "animation", `${call("import", at, { list: true, from: from + 50 })} lists them`)],
         next: m.names.length
           ? `${call("import", at, { set: a.set === "IMPORT" ? undefined : a.set, license: "<license>" })} fits them into ${dir}/`
-          : `it holds no animation to import${glTF ? `; ${call("export", ["QUATERNIUS_3D2DGE/Walk_Loop"], { character: file })} plays a library clip on it, if it is a character` : ""}`,
+          : `it holds no animation to import${glTF ? `; ${call("export", ["QUATERNIUS_3D2DGE/Walk_Loop"], { character: given(file, a.path) })} plays a library clip on it, if it is a character` : ""}`,
       };
     }
     // the catalog's first source names the library (its record kept); else the set does
@@ -163,11 +167,14 @@ export const importMotion = defineTool<{ path: string; set: string; license?: st
       ...(out.set.body ? { body: out.set.body } : {}),
       legend: { version: "2.0", text: legendOf(lib) },
     };
-    // one import of a set at a time: a clip the last import wrote, and this one doesn't, goes; the manifest last, once
-    // its clips are there
+    // one import of a set at a time: every clip file the set holds that this import doesn't write goes, since the set's
+    // content id covers them all (its directory as the library lists it; else, a set the library leaves out, the names
+    // its catalog lists, whatever set they say: one copied under another name); the manifest last, once its clips are
+    // there
     const files = setFiles(manifest, made), release = await ctx.lock(`.m3a/locks/import-${a.set}.lock`);
     try {
-      for (const id of ((await ctx.tryRead(`${dir}/catalog.tsv`)) ?? "").split("\n").map((l) => l.split("\t")[0]!)) if (/^[A-Z0-9_]+\/[A-Za-z0-9_-]+$/.test(id) && !files.has(`${id.split("/")[1]}.json`)) ctx.remove(`${dir}/${id.split("/")[1]}.json`);
+      const listed = ((await ctx.tryRead(`${dir}/catalog.tsv`)) ?? "").split("\n").flatMap((l) => /^[A-Z0-9_]+\/([A-Za-z0-9_-]+)$/.exec(l.split("\t")[0]!)?.[1] ?? []).map((n) => `${n}.json`);
+      for (const f of lib.source.sets().includes(a.set) ? lib.source.files(a.set) : listed) if (f.endsWith(".json") && !f.startsWith("_") && !files.has(f)) ctx.remove(`${dir}/${f}`);
       for (const [f, t] of [...files].sort(([x], [y]) => Number(x === "_set.json") - Number(y === "_set.json"))) ctx.write(`${dir}/${f}`, t);
     } finally {
       release();
@@ -190,7 +197,7 @@ export const importMotion = defineTool<{ path: string; set: string; license?: st
       ],
       findings,
       next: findings
-        ? `cut a take with the catalog's "$pick", or leave a clip out with "$skip" and its reason, then ${call("import", at, { set: a.set, license, catalog: a.catalog ?? "<catalog>" })}`
+        ? `cut a take with the catalog's "$pick", or leave a clip out with "$skip" and its reason, then ${call("import", at, { set: a.set, license, catalog: got === null ? "<catalog>" : got.path === null ? "<the catalog's JSON>" : given(named(got.path, "the catalog's"), got.path) })}`
         : `${call("license.check", [], { set: a.set })} fails it for a shipped game (D10: local); to use it here, set "tiers" to include "local" and "ships": false in game.json, then ${call("metrics", [worst.id])}`,
     };
   },
@@ -218,7 +225,7 @@ export const exportClip = defineTool<{ clip: string; character: string; format: 
   positionals: ["clip"],
   examples: [{ args: { clip: "QUATERNIUS_3D2DGE/Walk_Loop", character: "spec/vectors/tier1b/rig.gltf" } }],
   async run(a, ctx) {
-    const ref = await loadClip(ctx, a.clip), { as, title } = naming(ref), who = named(a.character, "the character's"), { bound: b, report } = await bodyOf(ctx, a.character, a.mapping);
+    const ref = await loadClip(ctx, a.clip), { as, title } = naming(ref), who = characterName(a.character), { bound: b, report } = await bodyOf(ctx, a.character, a.mapping);
     const clip = playable(ref.clip, ref.rest), fps = 30, frames = Math.max(1, Math.ceil(clip.dur * fps)) + 1;
     let bytes: Uint8Array, back: { mm: number | null; check: string };
     if (a.format === "vrma") {
@@ -254,11 +261,11 @@ export const exportClip = defineTool<{ clip: string; character: string; format: 
       findings: off || unchecked,
       next: off
         ? a.format === "glb"
-          ? `it reads back off: a node above its bones may scale unevenly, which no glTF animation follows (else report it: a bug); ${call("export", [as], { character: who, format: "bvh", mapping: a.mapping })} writes one that reads back`
+          ? `it reads back off: a node above its bones may scale unevenly, which no glTF animation follows (else report it: a bug); ${call("export", [as], { character: given(who, a.character), format: "bvh", mapping: a.mapping })} writes one that reads back`
           : `it reads back off: a bug in the ${a.format} writer; report the clip, the character and this reply`
         : unchecked
-          ? `check it in a glTF viewer by eye; ${call("export", [as], { character: who, format: "bvh", mapping: a.mapping })} writes one io reads back`
-          : `open it in a ${a.format === "vrma" ? "VRM" : a.format === "glb" ? "glTF" : "BVH"} viewer; ${call("license.check", [], { clips: [as] })} before shipping it`,
+          ? `check it in a glTF viewer by eye; ${call("export", [as], { character: given(who, a.character), format: "bvh", mapping: a.mapping })} writes one io reads back`
+          : `open it in a ${a.format === "vrma" ? "VRM" : a.format === "glb" ? "glTF" : "BVH"} viewer; ${call("license.check", [], { clips: [ref.where === "file" ? given(as, ref.path!) : as] })} before shipping it`,
     };
   },
 });

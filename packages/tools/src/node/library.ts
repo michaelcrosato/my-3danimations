@@ -78,7 +78,11 @@ function withImports(own: LibrarySource, cwd: string): { source: LibrarySource; 
       return [];
     }
   })();
-  for (const set of names.filter((s) => /^[A-Z][A-Z0-9_]*$/.test(s) && !lib.has(s) && existsSync(join(cwd, "imports", s, "_set.json"))).sort()) {
+  for (const set of names.filter((s) => /^[A-Z][A-Z0-9_]*$/.test(s) && existsSync(join(cwd, "imports", s, "_set.json"))).sort()) {
+    if (lib.has(set)) {
+      warnings.push(`imports/${set}/ is left out: the library has a set ${set}; import it again under another name, or remove it`);
+      continue;
+    }
     let why: string;
     try {
       const text = read(set, "_set.json");

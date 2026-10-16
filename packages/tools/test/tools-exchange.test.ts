@@ -1,10 +1,12 @@
 // Exchange (PLAN.md WP-7.2b): import and export on every surface (import listed to MCP as no read-only tool), then their
 // failing inputs (a catalog off its shape too); an imported set that the library opens as a local set (openLibrary on
 // imports/), which license.check fails for a shipped game and passes for one that stays on the machine (D10), its rest
-// take held a frame, imported again in place under a credited license (the host's library opened again), and a broken
-// imported set left out with a warning, breaking no other; and a clip exported as VRMA (read back byte for byte), .glb
-// (onto Rigify's turned and scaled armature too; off, findings, under an uneven scale) and BVH, each read back through
-// io within 1 mm, the VRMA then imported again, and the BVH jittered, from an absolute path, past the fit limits.
+// take held a frame, imported again in place under a credited license (the host's library opened again; every clip file
+// it doesn't write removed, so the set verifies), a broken imported set left out with a warning, breaking no other, and
+// one named as a library set left out, import refusing the name; and a clip exported as VRMA (read back byte for byte),
+// .glb (onto Rigify's turned and scaled armature too; off, findings, under an uneven scale) and BVH, each read back
+// through io within 1 mm, the VRMA then imported again, and the BVH jittered, from an absolute path, past the fit
+// limits.
 import { cpSync, mkdirSync, readdirSync, readFileSync, symlinkSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { openLibrary } from "@m3a/library/node";
@@ -42,7 +44,7 @@ describe("exchange", () => {
       writeFileSync(join(cwd, "cut.bvh"), "HIERARCHY\nROOT root\n{\n  OFFSET 0 0 0\n  CHANNELS 6 Xposition Yposition Zposition Zrotation Xrotation Yrotation\n  JOINT pelvis\n  {\n    OFFSET 0 95");
       writeFileSync(join(cwd, "tags.json"), JSON.stringify({ Wave_Loop: [3, "waves"] }));
       const bad = (set: string) => ["usage", "E_ARGS", `set is the new set's name, A-Z, 0-9 and _ (as IMPORT), not "${set}"`];
-      expect(refused(await call("import", { path: "spec/vectors/tier1b/rig-catalog.json", license: "CC0-1.0" }))).toEqual(["usage", "E_ARGS", '"spec/vectors/tier1b/rig-catalog.json" is no motion file: give a .gltf, .glb, .bvh or .vrma']);
+      expect(refused(await call("import", { path: "spec/vectors/tier1b/rig-catalog.json", license: "CC0-1.0" }))).toEqual(["usage", "E_ARGS", "spec/vectors/tier1b/rig-catalog.json is no motion file: give a .gltf, .glb, .bvh or .vrma"]);
       expect(refused(await call("import", { path: RIG }))).toEqual(["usage", "E_ARGS", expect.stringMatching(/^license is the file's SPDX id/)]);
       expect(refused(await call("import", { path: RIG, license: "CC0 1.0" }))).toEqual(["usage", "E_ARGS", expect.stringMatching(/^license "CC0 1.0" is no SPDX id/)]);
       expect(refused(await call("import", { path: "../outside.bvh", license: "CC0-1.0" }))).toEqual(["usage", "E_PATH", expect.stringMatching(/outside the working directory/)]);
@@ -56,11 +58,11 @@ describe("exchange", () => {
 
   it("imports a set the library opens as local, which license.check fails for a shipped game (D10); lists; imports in place; leaves a broken set out", () =>
     inCwd(async (call, cwd, host) => {
-      writeFileSync(join(cwd, "chain.gltf"), JSON.stringify({ asset: { version: "2.0" }, nodes: [0, 1, 2].map((i) => ({ name: `b${i}`, ...(i < 2 ? { children: [i + 1] } : {}) })) }));
-      const list = await call("import", { path: RIG, list: true }), none = await call("import", { path: "chain.gltf", list: true });
+      writeFileSync(join(cwd, "my chain.gltf"), JSON.stringify({ asset: { version: "2.0" }, nodes: [0, 1, 2].map((i) => ({ name: `b${i}`, ...(i < 2 ? { children: [i + 1] } : {}) })) }));
+      const list = await call("import", { path: RIG, list: true }), none = await call("import", { path: "my chain.gltf", list: true });
       expect([list.verdict, list.data, list.next]).toEqual([`import ${RIG}: 3 animations, rig gltf:unreal; nothing written`, expect.objectContaining({ clips: [{ name: "A_TPose" }, { name: "Wave_Loop" }, { name: "Step_RM" }], set: null }), `\`import ${RIG} --license <license>\` fits them into imports/IMPORT/`]);
       expect([(await call("import", { path: RIG, list: true, from: 1 })).data]).toEqual([expect.objectContaining({ clips: [{ name: "Wave_Loop" }, { name: "Step_RM" }] })]);
-      expect([none.verdict, none.next]).toEqual(["import chain.gltf: 0 animations, rig unknown by name (import may refuse it); nothing written", "it holds no animation to import; `export QUATERNIUS_3D2DGE/Walk_Loop --character chain.gltf` plays a library clip on it, if it is a character"]);
+      expect([none.verdict, none.next]).toEqual(["import 'my chain.gltf': 0 animations, rig unknown by name (import may refuse it); nothing written", "it holds no animation to import; `export QUATERNIUS_3D2DGE/Walk_Loop --character 'my chain.gltf'` plays a library clip on it, if it is a character"]);
       const r = await call("import", { path: RIG, set: "RIG", license: "CC0-1.0", catalog: "spec/vectors/tier1b/rig-catalog.json" }), d = r.data as Data;
       expect([r.status, r.verdict]).toEqual(["ok", "import spec/vectors/tier1b/rig.gltf: 3 clips into imports/RIG/ (gltf:unreal, tier local), fit 0.7 mm mean, worst 38 mm (RIG/Wave_Loop)"]);
       // the rest take (one frame) held a frame (I4): a clip, not M2-E014's dur 0
@@ -85,8 +87,21 @@ describe("exchange", () => {
       const now = openLibrary({ dir: join(cwd, "imports"), tiers: ["local"] });
       expect([now.catalog().map((c) => c.id), now.clip("RIG/Wave_Loop").clip.provenance.credit, source().license, source().credit]).toEqual([["RIG/A_TPose", "RIG/Wave_Loop"], credit, "CC-BY-SA-4.0", credit]);
       expect((await call("license.check", { clips: ["RIG/Step_RM"], tiers: ["local"], ships: false })).data).toMatchObject({ findings: [{ message: expect.stringMatching(/^no clip "RIG\/Step_RM"/) }] });
+      // every clip file an import doesn't write goes, so the set verifies: one its catalog doesn't list (an import cut
+      // short), and in a set copied under another name, those its catalog lists under the old set's name
+      cpSync(join(cwd, "imports/RIG"), join(cwd, "imports/MINE"), { recursive: true });
+      cpSync(join(cwd, "imports/RIG/Wave_Loop.json"), join(cwd, "imports/RIG/Extra.json"));
+      writeFileSync(join(cwd, "cat2.json"), JSON.stringify({ ...cat, $skip: { Step_RM: "a slide", Wave_Loop: "not now" } }));
+      for (const [set, catalog, kept] of [["RIG", "cat.json", ["A_TPose.json", "Wave_Loop.json"]], ["MINE", "cat2.json", ["A_TPose.json"]]] as const) {
+        expect((await call("import", { path: RIG, set, license: "CC0-1.0", catalog })).status).toBe("ok");
+        expect(readdirSync(join(cwd, "imports", set)).sort()).toEqual([...kept, "_set.json", "catalog.tsv"]);
+      }
+      openLibrary({ dir: join(cwd, "imports"), tiers: ["local"] }).verify();
       // a broken imported set is left out, warned on every call, and breaks no other: a manifest that isn't JSON, one that
-      // says it ships (tier cc0), and a set reached through a link out of the working directory
+      // says it ships (tier cc0), a set reached through a link out of the working directory, and one named as a library
+      // set (the library's wins), which import refuses to write
+      cpSync(join(cwd, "imports/RIG"), join(cwd, `imports/${WALK.split("/")[0]}`), { recursive: true });
+      expect(refused(await call("import", { path: RIG, license: "CC0-1.0", set: "QUATERNIUS_3D2DGE" }))).toEqual(["usage", "E_ARGS", "set QUATERNIUS_3D2DGE is the library's: name the new set another way"]);
       mkdirSync(join(cwd, "imports/BAD"));
       writeFileSync(join(cwd, "imports/BAD/_set.json"), "{bad");
       cpSync(join(cwd, "imports/RIG"), join(cwd, "imports/SHIPS"), { recursive: true });
@@ -96,7 +111,9 @@ describe("exchange", () => {
         cpSync(join(cwd, "imports/RIG"), join(out, "OUT"), { recursive: true });
         symlinkSync(join(out, "OUT"), join(cwd, "imports/OUT"));
         const ok = await call("license.check", { clips: [WALK] }), left = (set: string, why: string) => `warning: imports/${set}/ is left out: ${why}; import it again, or remove it`;
-        expect([ok.status, ok.lines.filter((l) => l.startsWith("warning:"))]).toEqual(["ok", [left("BAD", "its _set.json isn't JSON"), left("OUT", "it leads out of the working directory"), left("SHIPS", "its _set.json isn't an imported set's manifest")]]);
+        expect([ok.status, ok.lines.filter((l) => l.startsWith("warning:"))]).toEqual(["ok", [
+          left("BAD", "its _set.json isn't JSON"), left("OUT", "it leads out of the working directory"), "warning: imports/QUATERNIUS_3D2DGE/ is left out: the library has a set QUATERNIUS_3D2DGE; import it again under another name, or remove it", left("SHIPS", "its _set.json isn't an imported set's manifest"),
+        ]]);
         expect(refused(await call("license.check", { set: "OUT" }))).toEqual(["usage", "E_ARGS", expect.stringMatching(/^no set "OUT"/)]);
       } finally {
         rm();
@@ -121,20 +138,21 @@ describe("exchange", () => {
       // a node above the bones scaled unevenly shears them as they turn, which no glTF animation follows: findings
       const skew = JSON.parse(readFileSync(join(cwd, RIG), "utf8")) as { nodes: { scale?: number[] }[] };
       skew.nodes[0]!.scale = [1, 1.2, 1];
-      writeFileSync(join(cwd, "skew.gltf"), JSON.stringify(skew));
-      const [status, check, gap, , next] = await out({ format: "glb", character: "skew.gltf" });
-      expect([status, check, gap! > 1, next]).toEqual(["findings", expect.stringMatching(/^read back, its joints within \d+\.\d+ mm$/), true, `it reads back off: a node above its bones may scale unevenly, which no glTF animation follows (else report it: a bug); \`export ${WALK} --character skew.gltf --format bvh\` writes one that reads back`]);
+      writeFileSync(join(cwd, "skew rig.gltf"), JSON.stringify(skew));
+      const [status, check, gap, , next] = await out({ format: "glb", character: "skew rig.gltf" });
+      expect([status, check, gap! > 1, next]).toEqual(["findings", expect.stringMatching(/^read back, its joints within \d+\.\d+ mm$/), true, `it reads back off: a node above its bones may scale unevenly, which no glTF animation follows (else report it: a bug); \`export ${WALK} --character 'skew rig.gltf' --format bvh\` writes one that reads back`]);
       // what export wrote reads as motion again: the VRMA by its humanoid, the BVH (below) by Unreal's names
       const vr = await call("import", { path: `${OUT}.vrma`, set: "VBACK", license: "CC0-1.0" });
       expect([vr.status, (vr.data as Data).rig, (vr.data as Data).clips.map((c) => c.id)]).toEqual(["ok", "gltf:vrm", ["VBACK/QUATERNIUS_3D2DGE_Walk_Loop"]]);
-      // the BVH jittered (turns by up to 75°, places by up to 7.5 cm), from an absolute path: past the fit limits, so
-      // findings; the manifest names the file by its own name alone
+      // the BVH jittered (turns by up to 75°, places by up to 7.5 cm), from an absolute path, its catalog from one:
+      // past the fit limits, so findings; the manifest names the file by its own name alone, the hint neither path
       let seed = 7;
       const rnd = () => (seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648 - 0.5, [head, motion] = readFileSync(join(cwd, `${OUT}.bvh`), "utf8").split("MOTION\n");
       const jitter = motion!.split("\n").map((l, i) => (i < 2 || !l.trim() ? l : l.split(" ").map((x, k) => (Number(x) + (k < 3 ? 15 : 150) * rnd()).toFixed(4)).join(" ")));
       writeFileSync(join(cwd, "jitter.bvh"), `${head}MOTION\n${jitter.join("\n")}`);
-      const jit = await call("import", { path: join(cwd, "jitter.bvh"), set: "JIT", license: "CC0-1.0" }), m = JSON.parse(readFileSync(join(cwd, "imports/JIT/_set.json"), "utf8")) as { title: string; credit: string; sources: { JIT: { file: string; origin: string } } };
-      expect([jit.status, (jit.data as Data).rig, jit.verdict, jit.lines.at(-1), jit.next]).toEqual(["findings", "bvh:unreal", expect.stringMatching(/^import <the file>: 1 clip into imports\/JIT\/ .*; 1 past the fit limits$/), expect.stringMatching(/^JIT\/jitter .* \(past 40\/300 mm\)$/), 'cut a take with the catalog\'s "$pick", or leave a clip out with "$skip" and its reason, then `import <the file> --set JIT --license CC0-1.0 --catalog <catalog>`']);
+      writeFileSync(join(cwd, "none.json"), "{}");
+      const jit = await call("import", { path: join(cwd, "jitter.bvh"), set: "JIT", license: "CC0-1.0", catalog: join(cwd, "none.json") }), m = JSON.parse(readFileSync(join(cwd, "imports/JIT/_set.json"), "utf8")) as { title: string; credit: string; sources: { JIT: { file: string; origin: string } } };
+      expect([jit.status, (jit.data as Data).rig, jit.verdict, jit.lines.at(-1), jit.next]).toEqual(["findings", "bvh:unreal", expect.stringMatching(/^import <the file>: 1 clip into imports\/JIT\/ .*; 1 past the fit limits$/), expect.stringMatching(/^JIT\/jitter .* \(past 40\/300 mm\)$/), 'cut a take with the catalog\'s "$pick", or leave a clip out with "$skip" and its reason, then `import <the file> --set JIT --license CC0-1.0 --catalog <the catalog\'s file>`']);
       expect([m.title, m.credit, m.sources.JIT.file, m.sources.JIT.origin]).toEqual(["jitter.bvh, imported", "jitter.bvh, CC0-1.0", "jitter.bvh", "jitter.bvh, imported by m3a import"]);
     }));
 
