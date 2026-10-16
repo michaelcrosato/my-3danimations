@@ -1,83 +1,110 @@
-# Handoff: paused at a usage limit (2026-10-16)
+# Handoff: resumed after a usage-limit pause (2026-10-16)
 
-The session working on PR #13 (branch `claude/cool-goldberg-qgyu06`, Phase 7 toward G7 = M2) stopped on the owner's
-word when the account hit its weekly usage limit (subagents failed with "weekly limit, resets Oct 21 12:00 UTC").
-Everything was committed and pushed as it stood, **tested or not**. This file is what the next session needs.
+The session working on PR #13 (branch `claude/cool-goldberg-qgyu06`, Phase 7 toward G7 = M2) stopped at a usage limit
+on 2026-10-16 and committed everything as it stood, tested or not. A new session audited that state the same evening
+with 15 read-only agents, checking each claim the pause left here. This file is the audited state; where the first
+version of this file and the audit disagreed, the audit stands. Keep it current until the project is done.
 
-## The standing goal (the owner's, unchanged)
+## The standing goal (the owner's)
 
-Continue my-3danimations to completion: the ledger (PLAN.md §14) through Phases 7–10 and G7–G10, in ultracode mode
-(PLAN.md §11, D83: implementers in worktree lanes, the main session integrates shared files, DECISIONS and merges).
-Push every 30–60 minutes, keep PROGRESS's Next current. Run gates in the main checkout (worktrees lack `.cache/` pins
-and rigs, D57). After each gate's squash merge (CI green), restart the branch from `origin/main` and open the next
-draft PR; list merged branches for the owner to delete. Done is every ledger row done, deferred with its reason, or
-blocked-owner with its ask on the PR (G8–G10 have owner steps; §8.5: such a gate still merges). Trials run `claude -p`
-in a clean environment: check first with `npm run bench -- quiz --trials 1`. The owner paused Vercel until the project
-is complete (D85): its "Deployment was blocked" status is expected.
+Finish my-3danimations: every ledger row (PLAN.md §14) through G10 done, deferred with its reason, or blocked-owner
+with its ask on the PR; CI green on the final head. Ultracode mode (PLAN.md §11, D83): implementers in worktree lanes
+(`.claude/worktrees/lane-*`, each with its own `.cache` symlinking only `src` and `fixtures`), the main session
+integrates shared files, DECISIONS and merges, and runs every gate in the main checkout. Push every 30-60 minutes, at
+most 3 lanes at once, none during trial batches. After each gate's squash merge (CI green), restart the branch from
+`origin/main` and open the next draft PR. G8-G10 have owner steps; such a gate still merges (§8.5).
 
-Items 1–4 of the goal (D82's private /tmp, G4 run 2's preparation and run, WP-6.2's verifier rounds, G6) are done and
-merged in earlier PRs (#10–#12); see DECISIONS D82–D91 and the ledger.
+## The state at the pause, audited
 
-## State at the pause
+Last green, recorded commit: **1bf5252** (0.47.0: WP-7.2a done, D95). Merged on top of it, without records:
 
-Last green, recorded commit: **1bf5252** (0.47.0: WP-7.2a done, D95). CI was green on it (T0/T1, T2, three r186).
-
-Merged on top of it in this handoff, **untested beyond one run of the tools package**:
-
-| Lane (branch, kept locally only) | What | Review state |
+| Lane (merge) | What | Audited state |
 |---|---|---|
-| `lane/tools-retarget` | `retarget.inspect`, `retarget.apply`; the D80 judge moved into `@m3a/tools` (`judge.ts`); three's bind takes the file's bone names; `tools/sweep/sweep.ts` uses the moved judge | round 1 sound (should-fixes fixed in 448791a); its round-2 fix and round-3 review never ran; one uncommitted edit to `body.ts` committed as WIP |
-| `lane/tools-compose` | `recipe.compile`, `graph.validate`, `graph.sim`; the library's resolver passes E_TIER through | round 1 blocking, fixed in 26836b7 (running length bounded before compile via a helper shared with edit; graph.sim refuses past 36,000 steps; hint naming); round-2 review never ran |
-| `lane/tools-exchange` | `import` (into `imports/<SET>/`), `export` (VRMA, .glb, BVH); registry gains a `writes` flag (MCP `readOnlyHint:false`) | round 1 fixed in d04d1ff (9 should-fixes); round-2 review never ran. Notes: exchange is 388 of its 400-token cap; all tools ≈2,424 tokens in tools/list |
-| `lane/t1-speed` | bit-identical speedups (decoding, planting, snapping, sensors; tests sharing identical work) to bring T1 (84.8 s, budget 90 s) down | never reviewed; last edit to `packages/core/src/animator/animator.ts` committed as WIP. The review must prove every assertion is as strict as before and outputs bit-identical |
+| b0 (3f8cf6c, in 0.47.0's tree) | a character's bytes (`ctx.bytes`), io's glTF skeleton reader, characters bound through core with D49's soles, TINY | its decision text was lost; rebuild it from ba24948, a37eafe, 2c128f2, c356c5e, fe6594a and the diff `3f8cf6c^1..3f8cf6c` (+955). 0.47.0's changelog left it out |
+| `lane/tools-retarget` (89a9e55) | `retarget.inspect`, `retarget.apply`; the D80 judge moved into `@m3a/tools`; three's bind takes the file's bone names | round 1 fixed (448791a). A round 2 ran and its fix was half applied (WIP 9da0d53, `body.ts` only): `meshIssue` is exported but `retarget.ts` never uses it, so a compressed or unreadable mesh still counts as a mapping issue (inspect's `next` says "fix data.patch" while the patch line says no patch clears it). Round 2's findings were not recorded |
+| `lane/tools-compose` (7df2f63) | `recipe.compile`, `graph.validate`, `graph.sim`; the resolver passes E_TIER through | round 1 fixed (26836b7); rounds 2-3 owed |
+| `lane/tools-exchange` (0d45a6f) | `import`, `export` (VRMA, .glb, BVH); the registry's `writes` flag (MCP readOnlyHint false, destructiveHint true) | round 1 fixed (d04d1ff); round 2 owed |
+| `lane/t1-speed` (261e78c) | bit-identical speedups in core and sensors; tests sharing identical work | **proven sound by the audit** (below); only its records are owed |
 
-Merge conflicts resolved by hand: `packages/tools/src/tools/index.ts` (groups FIND, CHECK, CHANGE, RETARGET, COMPOSE,
-SHIP, EXCHANGE, BASE, in that help order) and `packages/tools/test/tools-budget.test.ts` (7.2a ≤ 1,900 tokens, compose
-≤ 420, exchange ≤ 400, all ≤ 3,000, one tool ≤ 240; the 20 tool names pinned in help order).
+No lane branch or worktree survives: the lane commits exist only as merge parents.
 
-`npx vitest run packages/tools` after the merges: **143 of 146 pass, 3 fail**:
-- `tools-retarget.test.ts`: "retarget.inspect finds a bone unmapped…" and "retarget.apply judges clips as the sweep
-  does (D80)…": the replies' `next`/hint lines differ from the expected (likely the WIP `body.ts` edit, or the
-  retarget lane's round-2 fix left half done).
-- `tools-compose.test.ts`: "graph.sim: a hit window…": an E_ARGS message differs from the expected (likely exchange's
-  or retarget's naming change of character files, `<the character's file>`, meeting compose's expectation).
-
-On the merged head (6a4ce83), run once more after the handoff:
-- **T0** (`npm run check`): every check passes (typecheck, lint, headers, version, doctrine); it failed only on time,
-  23.0 s against the 22.5 s hard limit, on a loaded machine. Rerun it on an idle machine first.
-- **T1** (`npm test`): fails at vitest after 72.6 s, on the retarget failure above ("retarget.apply judges clips as
-  the sweep does": a `next` line expected to match a pattern). The log printed only that first failure, so assume
-  the other two failures stand as well.
-- **T2** was not run. Expect CI to show these failures.
+What the audit found, against the first version of this file:
+- **T2 did run and passed**: CI's pull_request run 38916316563 on 4080135 (99.4 s: Playwright 20/20 with mcp-smoke,
+  library QA, sweeps 14 files / 57 tests), and locally (148 s). three r186 is green. T0 passes on CI (12.9 s); the
+  local 23.0 s was load. The only red is CI's "T0 check and T1 test" job: 3 tools tests (T1 61.9 s on CI, about 82 s
+  in this 4-CPU container).
+- **The 3 failures are stale tests; the code is right.** `tools-retarget.test.ts:85-86, :115`: WIP 9da0d53 reworded
+  body.ts:206 to "hips (X) likely the wrong bone: only N mm up, ..." so the conclusion survives retarget.apply's
+  60-character cut (retarget.ts:116); the failure is in `lines[0]`, not `next`. `tools-compose.test.ts:133`:
+  retarget's 7c31eb9 made body.ts:128 name the character unquoted (`characterName`, D95's one naming) and compose's
+  test still expects `"gen-x"`; exchange is not involved. With only those expectations changed, packages/tools gives
+  146/146, the never-run assertions after them included.
+- **t1-speed**: 11 A/B hash parts over the whole library are bit-identical between 1bf5252 and 4080135 (decode
+  0df74cdf79b8eb1b, decodeOther b142c4cd5f306f62, encode 39c519df430bcb6a, facts b79e2b4b00f55d73, root
+  2eda1300ba89c3a5, plant e2168daba6a8d2fe, sensors 95fbaf80facceaec, fix caf56a18d4679a48, procedural
+  cd89bf81f1fe5bbf, animator 8b409beb3b160667, solve 290de4e3eae475cf); cross-engine passes (Animator
+  144560999a518f7d unchanged); CI's Node = Chromium hashes are unchanged; vectors byte for byte; expect and it counts
+  unchanged, nothing skipped. WIP 65ea4a6 (rootFrom memo) is complete. Owed: a D-entry, changelog lines (measureFacts
+  gained an optional, unchecked 4th parameter `sampled`: a feature-level change) and an exactness test holding
+  `legPoleOf` (pose.ts:256), `decodeLegs` (pose.ts:364) and `sampleLegs` (contacts.ts:64) to the functions they copy.
+  The harness is kept as `tools/exact/ab.mjs` (on demand).
+- **The sweep after the judge move** gives byte-identical rows (gen-0 and gen-7, `--sample 60`, 120 rows, 1bf5252 vs
+  4080135); a committed check is owed.
+- **WP-7.2b's size** is about 3,027 lines (b0 955 + 546 + 470 + 1,056), past L before its fixes.
+- The usage limit was not in force when the audit ran: a real quiz trial passed (10/10, $0.026, claude-sonnet-5-5,
+  uid 65534 under D94's isolation).
 
 ## Next, in order
 
-1. Fix the 3 failing tests (decide per case whether the test or the code is right; the lanes' round-1 reports are
-   summarized above). Run T0, T1 (watch the 90 s budget; t1-speed should help), T2 (`mcp-smoke` checks every example
-   through the MCP Inspector and the API).
-2. Review rounds the limit cut short: retarget round 2–3, compose round 2–3, exchange round 2, t1-speed round 1
-   (proving equal strength). Then WP-7.2b's verifier (two lenses, contract and adversarial, as 7.2a had, D95).
-3. 7.2b's records: a D-entry (D96: its calls, every crossing of 7.2b's Owns, size; lane b0's decision text was in the
-   session's scratch and is lost; reconstruct it from commit 3f8cf6c's message and diff), the ledger row, CHANGELOG
-   0.48.0, PROGRESS. Push; CI green.
-4. WP-7.3, the manual and the skill (PLAN.md): the manual ≤ 8,000 tokens (it is 6,712 now) with one complete example
-   (walk, attack with a hit event, react) and the 7.2b tools; `.claude/skills/m3a/SKILL.md`, `skills/m3a/`,
-   `llms.txt`. Fold in G6's reads past the manual (bench/results/gates/G6-run-1/README.md): Animator.layer weights
-   and masks, contactRoot, three's attach, the recipe pose step's arms, simulate()'s result shape, B7's travel note.
-   Done when B1 and B5 rerun with the final manual pass ≥ 4 of 5.
-5. WP-7.4, packaging (the `m3a` bin needs a JS build; the single-file bundle; dry-run packs; publishing waits on O2).
-6. G7 = M2: B1–B7 and fresh held-out variants through the packaged CLI, skill and MCP. The held-out writer is a fresh
-   subagent barred from the manual's examples and from D76/D77-like entries (D91); each known-good passes on its
-   variant (`--fake --heldout`) first. Benchmark agents run as `nobody` (D94; posted on PR #13 for the owner's review).
-7. Phases 8–10, G8–G10.
+1. **WP-7.2b**: fix the 3 expectations; finish 9da0d53 (retarget.ts uses `meshIssue`; tests for it, the bind-failure
+   E_RIG text and candidatesOf's corrected orders; "re-export uncompressed" is wrong for "mesh unreadable"); one
+   naming in compose.ts:213-216 (use `characterName`, drop the redundant catch) and exchange.ts:120 (no `quote()`
+   around clips.ts names); commit the sweep-rows check; reviews retarget r3, compose r2-3, exchange r2; t1-speed's
+   record and exactness test; the two-lens verifier with this checklist: retarget.apply has no total-cost bound;
+   import's stale-clip removal ignores the catalog id's set prefix (exchange.ts:170); bvhGap/glbGap skip joints missing
+   from the read-back file; the host library cache `opened` grows per working directory; ctx.bytes reads whole files
+   before io's limit; Library.resolver now throws E_TIER, which bench/starters B5/B6 check.ts don't catch. Records:
+   D96 (7.2b's calls, b0 rebuilt, every crossing, the size), D97 (t1-speed), CHANGELOG 0.48.0 with b0's io and tools
+   items, the ledger, PROGRESS, PR #13's body (stale at 0.46.0; decisions without an answer D92-D96), the budget
+   test's header (exchange ≤ 400).
+2. **WP-7.3**: the manual (packages/tools/MANUAL.md, 6,722 of 8,000 tokens, still a draft: only `help` and `validate`
+   documented, @m3a/io missing, the opt-in tiers line false); a generated, checked tool list (PLAN §6 docs drift);
+   D91's fold-ins (DECISIONS.md, G6's reads past the manual); a complete walk, attack-with-hit, react example that
+   does not echo the B1-B3 known-goods (D77); a test running every code block (`npm test -- manual` matches nothing
+   today); `.claude/skills/m3a/SKILL.md`, `skills/m3a/`, `llms.txt`, `.mcp.json`; the runner wiring below; B1 and B5
+   at 4 of 5 or better.
+3. **Runner wiring** (verified by probe, as nobody): bench/runner/agent.ts:528-529 adds `Skill` to `--tools` and
+   `Skill,mcp__m3a__*` to `--allowedTools`, `--setting-sources project`, and `--mcp-config` running `node
+   node_modules/@m3a/tools/dist/node.js mcp` (keep `--strict-mcp-config`); workspace.ts copies the skill as real
+   files, not symlinks; a trial fails when the init event's `mcp_servers` status is not `connected` (a dead server is
+   otherwise silent).
+4. **WP-7.4**: `npm run pack [-- --check]` replacing bench/runner/pack.ts, whose bin keeps `./src/node.ts`, which is
+   not shipped (the packed `m3a` never ran); bin → `./dist/node.js`; opt-in cc-by and cmu packs; the single file.
+   Escalate O2 once; the default is publish nothing (npm is not authenticated here anyway).
+5. **G7**: gate.ts has only G0-G6, so add G7's set; a fresh held-out writer under D91's read bar (B4's seed 0 mod 4;
+   B4 has never run live); each known-good passes `--fake --heldout G7` first; `npm run bench -- quiz --trials 1`
+   before spending. 12 Claude models are reachable; the default gates at 4 of 5 per brief and variant, while
+   opus-5-5, haiku-5-5 and fable-5-1 are recorded at 1 trial per brief, not gating (a D-entry). Then the record, two
+   verifier lenses, the squash merge of #13, the branch restarted from origin/main, a new draft PR.
+6. **Phases 8-10** in lanes. WP-8.1 may be built once 7.2b is done but merges only after G7, rebased, on Phase 8's PR
+   (PLAN.md:741's graph line still says {4.6, 7.2}). Split 8.2 if it passes L. 10.1 and 10.2 run after G7, alongside
+   8 and 9. Every gate set, script and e2e suite the WPs name (G8-G10, library-pr, pack, intake, index, conformance;
+   gallery, review, previews, consumer-ts) has to be created.
 
-## Housekeeping
+## Rules learned the hard way
 
-- Integration checkout used: a separate worktree on `claude/cool-goldberg-qgyu06`; lanes in
-  `.claude/worktrees/lane-*` with their own `.cache` (only `src` and `fixtures` symlinked; never symlink the whole
-  `.cache`: shared tsc build info gave false-green typechecks). Never hide files with `.git/info/exclude` (shared by
-  all worktrees; it hid G6's record copies once).
-- Lane branches (`lane/*`) were never pushed; their commits are all in this branch's history via the merges.
-- No remote branch other than `main` and this one exists, so there is nothing for the owner to delete.
-- The session's raw chat transcript is not committed: it was not scanned for credentials (D94's work handled the
-  session's credential files), so publishing it was not safe. This file and DECISIONS D82–D95 carry its substance.
+- Decision text and review findings go into tracked files at once, never the scratchpad: the pause lost b0's
+  decision and retarget's round-2 findings that way. On the first usage-limit error: WIP-commit and merge every lane,
+  push, update this file, stop.
+- GitHub: `gh pr` and GraphQL return 403 here; use the GitHub MCP tools or `gh api` REST. git push works. The repo
+  allows squash merges only and deletes the head branch on merge; main is unprotected, so "merge only when green" is
+  ours to keep. Writes now act as the owner's login (michaelcrosato), not michaelcrosatoDM: every session comment
+  opens with `<!-- m3a-session -->`, owner evidence (phone notes, approvals, adoptions) is never authored by the
+  session, no review is ever approved by it, and a gate merge under this token is noted in its D-entry.
+- Vercel project prj_G6lMChE61OFf2aXCRijeSQWkAAEq is linked and paused (D85), with SSO protection on: "Deployment was
+  blocked" is expected. Supabase: the connector works, but no project for m3a exists; never create one without the
+  owner's explicit yes. The Actions API is blocked (403), so no secrets can be set. No Docker here: the supabase
+  backend can be tested against local Postgres 16 (`/usr/lib/postgresql/16/bin`) with a stubbed `auth.uid()`.
+- `npm run bench` writes into the tracked `bench/results/`: commit gate records on purpose, delete stray probes.
+- Time T0 and T1 with no lane testing; 4 CPUs make local timings load-sensitive.
+- Never push to my-3dge or shardfall (O9); never publish (O2); Claude models only (O10).

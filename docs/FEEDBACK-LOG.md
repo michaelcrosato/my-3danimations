@@ -22,7 +22,7 @@ do act on goes into a WP (`PLAN.md`) or a decision (`docs/DECISIONS.md`) and the
 | Provenance of measured facts | deferred | F1 | WP-2.2 recomputes facts with core's own tools |
 | Proof coverage of the migration | watch | F1 | A set is re-imported (WP-5.3) |
 | What core reads and validates | no / deferred | F1 | WP-3.3 (a baseline writer besides the migrator), WP-4.3 (VRM) |
-| WP sizes | watch | F1 | A WP runs past its size by more than a fifth |
+| WP sizes | **reached** (F1, F4) | F1, F4 | Now: WP-7.2b's records weigh splitting, and 8.2 and 9.1 are measured before they start |
 | Roll where the format's reference is undefined | deferred | F2 | WP-3.5 lints twist and heading jumps at straight limbs |
 | What the tier-3 bodies cover | deferred | F2 | WP-4.2's test characters (real rigs, other topologies) |
 | Forearm twist on rigs without twist bones | deferred | F2 | WP-4.3 binds real skeletons |
@@ -78,3 +78,24 @@ These were not acted on:
   landed.
 - **F3.2** (no) `maxSteps` and the ground are not in the save. They are the host's settings, like the dt it passes,
   and D38 says so.
+
+### F4 · 2026-10-16 · The audit of the state a usage limit left (15 read-only agents, the same model family)
+
+The pause left WP-7.2b's lanes merged with no records. What the audit found is acted on in WP-7.2b's fixes and D96/D97;
+these points were not:
+
+- **F4.1** (WP sizes, reached) WP-7.1 ran about 10% past its size and WP-7.2a 23%; WP-7.2b is about 3,027 lines, past
+  L's 3,000, before its fixes. The theme reaches two sources here (F1.5, F4): 7.2b's D-entry weighs the overrun, and
+  8.2 and 9.1 are measured before they start (a split as D93's if past L).
+- **F4.2** (no) The t1-speed lane's caches (rest conjugates, shoulders, hint starts, `points()` and `rootFrom` memos)
+  assume a rest and the arrays core returns are never edited in place. No code in the repository does; it is the same
+  pattern as the existing `DERIVED` map. State it in the API docs if hosts are found to mutate rests.
+- **F4.3** (watch) `animator.test`'s second pose test reuses the first test's runs: one fewer independent re-run per
+  mode, so a repeat-run slip would show only against `straight`. Cross-engine and Node = Chromium still re-run the
+  whole script.
+- **F4.4** (no) bind.test.ts's `libraryClip()` copies tools/qa's rest lookup; the two could drift. Both read the same
+  library layout, which the loader's tests pin.
+- **F4.5** (deferred) `tools/doctrine/doctrine.test.ts` leaves about 38 `/tmp/m3a-doctrine-*` directories per T1 run
+  (1.2 MB). Take it up when a test-hygiene pass touches the doctrine tests.
+- **F4.6** (watch) Vectors use 9.78 of the 10 MB committed budget; WP-10.2's conformance kit must generate rather than
+  commit where it can.

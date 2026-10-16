@@ -25,8 +25,9 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 
 ## Next
 
-- **Paused at a usage limit: read [`docs/HANDOFF.md`](HANDOFF.md) first.** WP-7.2b's lanes are merged untested (3
-  tools tests fail); fix them, run 7.2b's verifier and records, then WP-7.3, WP-7.4, G7.
+- **Resumed after a usage-limit pause; the audited state is [`docs/HANDOFF.md`](HANDOFF.md).** WP-7.2b's lanes are
+  merged; 3 tools tests are stale (the code is right), retarget's round-2 fix is half applied, reviews and records are
+  owed; t1-speed is proven bit-identical. Then WP-7.3, WP-7.4, G7, Phases 8-10.
 
 ## Blocked on the owner
 
