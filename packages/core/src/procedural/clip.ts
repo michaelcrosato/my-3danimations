@@ -36,7 +36,10 @@ export const PROCEDURAL_PRODUCER = { tool: "m3a-procedural", version: VERSION };
 /** Where the moves' numbers come from, as a generated clip credits them. */
 const CREDIT = "m3a procedural sources, after the move model of my-3d2dge and shardfall (MIT)";
 
-const pt = (X: ArrayLike<number>, n: string): V3 => [X[IDX[n]! * 3]!, X[IDX[n]! * 3 + 1]!, X[IDX[n]! * 3 + 2]!];
+const pt = (X: ArrayLike<number>, n: string): V3 => {
+  const i = IDX[n]! * 3;
+  return [X[i]!, X[i + 1]!, X[i + 2]!];
+};
 const put = (X: Float32Array, n: string, v: readonly number[]) => X.set(v, IDX[n]! * 3);
 const mid = (a: V3, b: V3): V3 => mul(add(a, b), 0.5);
 const turn = (axis: V3, a: number): Quat => [axis[0] * PM.sin(a / 2), axis[1] * PM.sin(a / 2), axis[2] * PM.sin(a / 2), PM.cos(a / 2)];

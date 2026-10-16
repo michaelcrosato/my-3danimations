@@ -83,7 +83,10 @@ function standingFoot(R: Rest) {
   }
   return s;
 }
-const pt3 = (X: ArrayLike<number>, n: string): [number, number, number] => [X[IDX[n]! * 3]!, X[IDX[n]! * 3 + 1]!, X[IDX[n]! * 3 + 2]!];
+const pt3 = (X: ArrayLike<number>, n: string): [number, number, number] => {
+  const i = IDX[n]! * 3;
+  return [X[i]!, X[i + 1]!, X[i + 2]!];
+};
 /** v turned by the rotation that takes unit a to unit b (about their common perpendicular). */
 function turn(v: readonly number[], a: readonly number[], b: readonly number[]): [number, number, number] {
   const ax = [a[1]! * b[2]! - a[2]! * b[1]!, a[2]! * b[0]! - a[0]! * b[2]!, a[0]! * b[1]! - a[1]! * b[0]!], s = PORTABLE.hypot(ax[0]!, ax[1]!, ax[2]!), c = a[0]! * b[0]! + a[1]! * b[1]! + a[2]! * b[2]!;

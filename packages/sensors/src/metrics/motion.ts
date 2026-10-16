@@ -99,7 +99,10 @@ export function motionOfFrames(frames: readonly ArrayLike<number>[], R: Rest, op
 }
 
 /** Body point n of a frame. */
-export const at = (X: ArrayLike<number>, n: string): [number, number, number] => [X[format.IDX[n]! * 3]!, X[format.IDX[n]! * 3 + 1]!, X[format.IDX[n]! * 3 + 2]!];
+export const at = (X: ArrayLike<number>, n: string): [number, number, number] => {
+  const i = format.IDX[n]! * 3;
+  return [X[i]!, X[i + 1]!, X[i + 2]!];
+};
 /**
  * A root-frame point in the world. The root's place is added, not its heading: decoding in clip space already turns the
  * body by its `body` turn, the heading included (spec/MOTION.md §5.3: a host turns the character by `yaw` and plays
