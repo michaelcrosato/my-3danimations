@@ -25,8 +25,8 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 
 ## Next
 
-- WP-7.2a's tool lanes (find and ship, check, change) run at once on the merged foundation a0; then 7.2b. Benchmark
-  agents now run as `nobody` with no capabilities (D94), closing D91's limits before G7.
+- WP-7.2a's 11 tools merged (find, check, change, ship; 1,770 of 1,900 tokens; T1 829 tests, T2 green); its verifier
+  runs, then its records. WP-7.2b's foundation b0 runs beside it, then retarget, compose and exchange at once.
 
 ## Blocked on the owner
 
