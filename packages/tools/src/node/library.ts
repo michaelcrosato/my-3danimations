@@ -3,21 +3,23 @@
 // opened once per set of tiers for the process, since verifying a set hashes all of it the first time; each call's
 // warnings (a deprecated id) collected for that call alone.
 import { readFileSync } from "node:fs";
-import { join } from "node:path";
+import { resolve } from "node:path";
 import { TIERS, type Library, type Tier } from "@m3a/library";
 import { defaultSets, directory, licenseText, openLibrary } from "@m3a/library/node";
 import { ToolError, type LibraryAccess } from "../registry/registry.ts";
 import { didYouMean, quote } from "../registry/schema.ts";
+import { errno, under } from "./files.ts";
 
 /** The tiers game.json in `cwd` opts in to, in TIERS' order; ["cc0"] without the file or its "tiers". E_GAME (usage)
- *  for a file that isn't JSON or names a tier there is not. */
+ *  for a file that isn't JSON, names a tier there is not, or is a link out of the working directory. */
 export function gameTiers(cwd: string): Tier[] {
   let text: string;
   try {
-    text = readFileSync(join(cwd, "game.json"), "utf8");
+    text = readFileSync(under(resolve(cwd), "game.json", "keep game.json in the working directory"), "utf8");
   } catch (err) {
-    if ((err as NodeJS.ErrnoException).code === "ENOENT") return ["cc0"];
-    throw new ToolError("E_GAME", `can't read game.json (${(err as NodeJS.ErrnoException).code ?? "unreadable"})`, true);
+    if (err instanceof ToolError) throw new ToolError("E_GAME", err.message, true);
+    if (errno(err) === "ENOENT") return ["cc0"];
+    throw new ToolError("E_GAME", `can't read game.json (${errno(err)})`, true);
   }
   let game: { tiers?: unknown };
   try {

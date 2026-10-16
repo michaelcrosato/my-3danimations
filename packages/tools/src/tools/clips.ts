@@ -119,7 +119,7 @@ export function refusal(err: LibraryError, id: string, lib?: LibraryAccess): Too
   const hint = near ? `; did you mean ${quote(near)}?` : "";
   if (err.code === "E_TAMPERED") return new ToolError(err.code, said);
   if (err.code === "E_TIER") {
-    const tier = /, a (\S+) set/.exec(said)?.[1];
+    const tier = /(?:,| is) a (\S+) set/.exec(said)?.[1]; // a clip's ("X" is in SET, a cmu set) or a set's (SET is a cmu set)
     return new ToolError(err.code, tier ? said.replace(/opt in with \{ tiers: \[[^\]]*\] \}/, `add "${tier}" to "tiers" in game.json`) : said, true);
   }
   if (!id.includes("/")) return new ToolError("E_NO_CLIP", `${quote(id)} is no clip id: give SET/Name (search finds them), a .json path or the clip's JSON${hint}`, true);

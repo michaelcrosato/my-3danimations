@@ -1,8 +1,8 @@
 // The tool registry (WP-7.1): definitions refused with their fix, arguments checked with "did you mean" (own names
 // only), defaults filled, edits' request_id (a retry applies once, even when its data then fails the checks; the same id
 // with other arguments is refused) and if_revision, nested objects closed, output schemas enforced, failures as replies,
-// the one-line verdict and 20-line text (many images folded), and the CLI's parsing, help (the index uncut), exit codes
-// and --request-id refusal.
+// the one-line verdict and 20-line text (many images folded), and the CLI's parsing, help (the index uncut, every
+// example, though a schema carries only the first), exit codes and --request-id refusal.
 import { describe, expect, it } from "vitest";
 import { commandLine, parseCall, runCli } from "../src/cli.ts";
 import { CONSOLE_KEY, defineTool, EXIT, imageTokens, installConsole, memoryStore, Registry, render, reply, ToolError } from "../src/registry/index.ts";
@@ -213,6 +213,11 @@ describe("the CLI", () => {
     const durable = new Registry([counter().edit], { ...memoryStore(), durable: true });
     const helpOf = async (reg: Registry) => (await cliOf(reg)("help", "demo.set")).text;
     expect([await helpOf(counter().reg), await helpOf(durable)]).toEqual([expect.stringContaining(mark), expect.not.stringContaining(mark)]);
+  });
+  it("puts only a tool's first example in its schema, and help lists them all", async () => {
+    const two = tool({ params: { type: "object", properties: { n: { type: "integer" } } }, examples: [{ args: { n: 1 } }, { args: { n: 2 } }] });
+    expect(two.schema.examples).toEqual([{ n: 1 }]);
+    expect((await cliOf(new Registry([two]))("help", "demo")).text).toContain("\nexamples:\n  m3a demo --n=1\n  m3a demo --n=2\n");
   });
 });
 

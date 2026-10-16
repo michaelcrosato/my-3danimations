@@ -57,13 +57,13 @@ export interface LoadedClip {
   set: string;
   tier: Tier;
 }
-/** A set's source as its manifest gives it: label, origin, SPDX license, terms, url, credit line (null where none is
- *  owed) and the rest its clips were made on. */
+/** A set's source as its manifest gives it: label, origin, SPDX license, terms (null where the manifest gives none),
+ *  url, credit line (null where none is owed) and the rest its clips were made on. */
 export interface SourceAbout {
   label: string;
   origin: string;
   license: string;
-  terms: string;
+  terms: string | null;
   url: string;
   credit: string | null;
   rest: Rest;
@@ -97,7 +97,7 @@ interface SetManifest {
   credit: string;
   content: { sha256: string };
   legend?: { text?: string[] };
-  sources: Record<string, Omit<SourceAbout, "credit"> & { credit?: string }>;
+  sources: Record<string, Omit<SourceAbout, "credit" | "terms"> & { credit?: string; terms?: string }>;
 }
 
 /** The content id of a set's clip files (spec/MOTION.md §9.2): each name, a newline, its SHA-256, a newline, by name. */
@@ -175,7 +175,7 @@ export class Library {
    */
   about(set: string): SetAbout {
     const m = this.#manifest(set);
-    const sources = Object.fromEntries(Object.entries(m.sources).map(([k, s]) => [k, { label: s.label, origin: s.origin, license: s.license, terms: s.terms, url: s.url, credit: s.credit ?? null, rest: s.rest }]));
+    const sources = Object.fromEntries(Object.entries(m.sources).map(([k, s]) => [k, { label: s.label, origin: s.origin, license: s.license, terms: s.terms ?? null, url: s.url, credit: s.credit ?? null, rest: s.rest }]));
     return { set: m.set, title: m.title, tier: m.tier, credit: m.credit, legend: [...(m.legend?.text ?? [])], sources };
   }
 

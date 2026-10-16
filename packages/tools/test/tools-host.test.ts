@@ -2,16 +2,17 @@
 // only under its write roots, atomically and through no link out; the durable store, across two m3a processes too; the
 // library at game.json's tiers, each call with its own warnings; and the clip loader's forms and refusals.
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdirSync, readdirSync, readFileSync, symlinkSync, utimesSync, writeFileSync } from "node:fs";
+import { existsSync, linkSync, mkdirSync, readdirSync, readFileSync, rmSync, symlinkSync, utimesSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import type { LibraryError } from "@m3a/library";
 import { describe, expect, it } from "vitest";
 import { runCli } from "../src/cli.ts";
 import { nodeHost } from "../src/node.ts";
 import { libraryAccess } from "../src/node/library.ts";
 import { fileStore } from "../src/node/store.ts";
 import { defineTool, Registry, reply } from "../src/registry/index.ts";
-import { clipResolver, loadClip } from "../src/tools/clips.ts";
+import { clipResolver, loadClip, refusal } from "../src/tools/clips.ts";
 import { CLIP } from "../src/tools/common.ts";
 import { BASE } from "../src/tools/index.ts";
 import { exampleCwd, ROOT, runExamples } from "./helpers/surfaces.ts";
@@ -55,12 +56,16 @@ describe("the Node host", () => {
     try {
       expect((await call({ path: "workshop/a.txt", text: "a" })).data).toEqual({ wrote: "workshop/a.txt", now: "a" });
       expect(readdirSync(join(cwd, "workshop"))).toEqual(["a.txt"]); // the temporary file renamed over it
+      linkSync(join(cwd, "workshop/a.txt"), join(cwd, "workshop/a.lnk")); // a rename replaces the name; an in-place write would change both
+      expect([host.write!("workshop/a.txt", "b"), ...["a.txt", "a.lnk"].map((f) => readFileSync(join(cwd, "workshop", f), "utf8"))]).toEqual(["workshop/a.txt", "b", "a"]);
       for (const path of ["library/sets/x.json", "../x", join(tmpdir(), "x.json"), "workshop", "game.json", "check-output/../x"]) expect((await call({ path, text: "x" })).error?.code, path).toBe("E_PATH");
       mkdirSync(join(cwd, "elsewhere"));
+      symlinkSync(join(cwd, "elsewhere/via-tmp.txt"), join(cwd, `workshop/t.txt.${process.pid}.tmp`)); // a link planted at the temporary name
+      expect([host.write!("workshop/t.txt", "t"), readFileSync(join(cwd, "workshop/t.txt"), "utf8"), existsSync(join(cwd, "elsewhere/via-tmp.txt"))]).toEqual(["workshop/t.txt", "t", false]);
       symlinkSync(join(cwd, "elsewhere"), join(cwd, "imports"));
       symlinkSync(ROOT, join(cwd, "repo"));
       expect((await call({ path: "imports/A/x.json", text: "x" })).error?.message).toMatch(/^"imports\/A\/x.json" leads out of imports\/ through a link/);
-      expect((await reg.call("validate", { path: "repo/library/sets/QUATERNIUS_3D2DGE/A_TPose.json" }, { host })).error?.message).toMatch(/leads outside .* through a link/);
+      expect((await reg.call("validate", { path: "repo/library/sets/QUATERNIUS_3D2DGE/A_TPose.json" }, { host })).error?.message).toMatch(/^"repo\/library\/sets\/QUATERNIUS_3D2DGE\/A_TPose.json" leads out of the working directory through a link/);
       symlinkSync(".", join(cwd, ".m3a")); // a root linked to the working directory itself: nothing new lands beside game.json
       for (const path of [".m3a/evil.json", ".m3a/new/evil.json"]) expect((await call({ path, text: "x" })).error?.message, path).toMatch(/leads out of .m3a\/ through a link/);
       expect(() => fileStore(cwd).set("k", { args: "{}", reply: reply("demo", "ok", { verdict: "v", next: "n" }) })).toThrow(/leads out of .m3a\//);
@@ -93,7 +98,7 @@ describe("the Node host", () => {
     try {
       for (const f of [".m3a", "check-output"]) writeFileSync(join(cwd, f), "a file, not a directory");
       const r = await new Registry([tally], fileStore(cwd)).call("demo.tally", { request_id: "q" }, { host });
-      expect([r.status, r.lines, readFileSync(join(cwd, "workshop/tally.txt"), "utf8")]).toEqual(["ok", [expect.stringMatching(/^warning: request_id "q" was not kept \(ENOTDIR.*\); a retry would apply it again$/)], "1"]);
+      expect([r.status, r.lines, readFileSync(join(cwd, "workshop/tally.txt"), "utf8")]).toEqual(["ok", [expect.stringMatching(/^warning: request_id "q" was not kept \(can't write ".m3a\/requests\/[0-9a-f]{32}.json" \(ENOTDIR\)\); a retry would apply it again$/)], "1"]);
       let text = "";
       const code = await runCli(new Registry([tally]), ["demo.tally", "--json"], { print: (x) => void (text += x), write: (p, t) => void host.write!(p, t), host });
       expect([code, text]).toEqual([0, expect.stringMatching(/^tally 2\nwarning: check-output\/demo.tally\/report.json was not written \(can't write /)]);
@@ -104,7 +109,7 @@ describe("the Node host", () => {
   });
 
   it("keeps request records durable: atomic, one a key, a corrupt or colliding one missing, the oldest pruned past max", () => {
-    const { cwd, rm } = exampleCwd(false), store = fileStore(cwd, 3), dir = join(cwd, ".m3a/requests");
+    const { cwd, rm } = exampleCwd(false), other = exampleCwd(false), store = fileStore(cwd, 3), dir = join(cwd, ".m3a/requests");
     const rec = (n: number) => ({ args: `{"n":${n}}`, reply: reply("demo", "ok", { verdict: `v${n}`, next: "again" }) });
     try {
       expect([store.durable, store.get("a")]).toEqual([true, undefined]);
@@ -115,31 +120,47 @@ describe("the Node host", () => {
         writeFileSync(join(dir, file!), text);
         expect(store.get("a")).toBeUndefined();
       }
+      linkSync(join(dir, file!), join(cwd, "a.lnk")); // replaced by a rename, so the old record stays under its other name
       store.set("a", rec(2));
+      expect([store.get("a"), JSON.parse(readFileSync(join(cwd, "a.lnk"), "utf8"))]).toEqual([rec(2), { key: "b", ...rec(1) }]);
       for (const k of ["b", "c"]) store.set(k, rec(3));
       utimesSync(join(dir, file!), 1, 1); // "a" the oldest
       store.set("d", rec(4));
       expect([store.get("a"), store.get("d"), readdirSync(dir).length]).toEqual([undefined, rec(4), 3]);
+      symlinkSync(join(cwd, ".m3a"), join(other.cwd, ".m3a")); // records reached through a link out read as missing
+      expect(fileStore(other.cwd).get("d")).toBeUndefined();
     } finally {
-      rm();
+      [rm, other.rm].forEach((f) => f());
     }
   });
 });
 
 describe("the library and the clip loader", () => {
   it("opens the library at game.json's tiers, CC0 without it, and refuses a game.json it can't read", async () => {
-    const { cwd, rm } = exampleCwd(false), reg = new Registry([peek]), host = nodeHost(cwd), call = (clip: string) => reg.call("demo.clip", { clip }, { host });
+    const { cwd, rm } = exampleCwd(false), other = exampleCwd(false), reg = new Registry([peek]), host = nodeHost(cwd), call = (clip: string) => reg.call("demo.clip", { clip }, { host });
     try {
       expect((await call("QUATERNIUS_3D2DGE/Walk_Loop")).data).toEqual({ id: "QUATERNIUS_3D2DGE/Walk_Loop", set: "QUATERNIUS_3D2DGE", tier: "cc0", where: "library", H0: 916.7, source: "Quaternius Universal Animation Library 1", tiers: ["cc0"], resolved: "QUATERNIUS_3D2DGE/Walk_Loop" });
       expect((await call("CMU_CURATED/Drink_Soda")).error).toMatchObject({ code: "E_TIER", message: expect.stringMatching(/a cmu set, and this game sees only cc0: add "cmu" to "tiers" in game.json/) });
+      const lib = libraryAccess(cwd); // a set's refusal too
+      let set: unknown;
+      try {
+        lib.library.catalog("CMU_CURATED");
+      } catch (err) {
+        set = err;
+      }
+      expect(refusal(set as LibraryError, "CMU_CURATED", lib).message).toMatch(/^CMU_CURATED is a cmu set, and this game sees only cc0: add "cmu" to "tiers" in game.json/);
       writeFileSync(join(cwd, "game.json"), '{ "game": "Demo", "tiers": ["cmu", "cc0"] }');
       expect((await call("CMU_CURATED/Drink_Soda")).data).toMatchObject({ tier: "cmu", tiers: ["cc0", "cmu"] });
       for (const [text, why] of [['{"tiers": ["cc0", "cmuu"]}', /tier "cmuu", which there is not; did you mean "cmu"\?/], ["{oops", /^game.json is not JSON/], ['{"tiers": "cc0"}', /lists tiers/], ["[]", /is a JSON object/]] as const) {
         writeFileSync(join(cwd, "game.json"), text);
         expect((await call("QUATERNIUS_3D2DGE/Walk_Loop")).error).toMatchObject({ code: "E_GAME", message: expect.stringMatching(why) });
       }
+      writeFileSync(join(other.cwd, "game.json"), '{"tiers": ["cmu"]}');
+      rmSync(join(cwd, "game.json"));
+      symlinkSync(join(other.cwd, "game.json"), join(cwd, "game.json"));
+      expect((await call("QUATERNIUS_3D2DGE/Walk_Loop")).error).toMatchObject({ code: "E_GAME", message: expect.stringMatching(/^"game.json" leads out of the working directory through a link/) });
     } finally {
-      rm();
+      [rm, other.rm].forEach((f) => f());
     }
   });
 

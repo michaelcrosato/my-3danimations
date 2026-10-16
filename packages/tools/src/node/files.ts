@@ -36,7 +36,7 @@ function real(p: string, path: string): string {
 export function under(cwd: string, path: string, to: string): string {
   const p = resolve(cwd, path);
   if (!path.trim() || !inside(cwd, p)) throw new ToolError("E_PATH", `${path.trim() ? `${quote(path)} is outside ${cwd}` : "the path is empty"}; ${to}`, true);
-  if (!inside(realpathSync(cwd), real(p, path))) throw new ToolError("E_PATH", `${quote(path)} leads outside ${cwd} through a link; ${to}`, true);
+  if (!inside(realpathSync(cwd), real(p, path))) throw new ToolError("E_PATH", `${quote(path)} leads out of the working directory through a link; ${to}`, true);
   return p;
 }
 
@@ -52,12 +52,15 @@ export function writable(cwd: string, path: string): string {
   return p;
 }
 
-/** Writes a file atomically: its directory made, the data written to a temporary file beside it, then renamed over it. */
+/** Writes a file atomically: its directory made, the data written to a new temporary file beside it (whatever sat at
+ *  that name removed first, a link itself rather than its target, and the file created exclusively, so no link there
+ *  is followed), then renamed over it. */
 export function writeAtomic(path: string, data: string | Uint8Array): void {
   mkdirSync(dirname(path), { recursive: true });
   const tmp = `${path}.${process.pid}.tmp`;
   try {
-    writeFileSync(tmp, data);
+    rmSync(tmp, { force: true });
+    writeFileSync(tmp, data, { flag: "wx" });
     renameSync(tmp, path);
   } catch (err) {
     rmSync(tmp, { force: true });
