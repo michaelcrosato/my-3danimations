@@ -1,7 +1,8 @@
 // Find and read (PLAN.md WP-7.2a): `search` the library for a game moment in words and filters, `show` a clip's keys
 // as text with its source, license, fit, speed and strike (the format's legend on request), and `describe` it as a
-// short timeline. Each opens the library at the game's tiers; show flags a file, JSON or workshop clip whose set or
-// license needs a tier the game hasn't opted in to (or that is no library set's), since that license is what would ship.
+// short timeline. Each opens the library at the game's tiers; show flags a file, JSON or workshop clip whose set, the
+// library clips its provenance names, or license need a tier the game hasn't opted in to (or that is from no library
+// set), by license.check's rule, since that is what would ship.
 import { format } from "@m3a/core";
 import { mps, type Tier } from "@m3a/library";
 import { describe as timeline } from "@m3a/sensors";
@@ -10,7 +11,7 @@ import { MAX_LINES } from "../registry/reply.ts";
 import { quote } from "../registry/schema.ts";
 import { absolute, loadClip, WORKSHOP, type ClipRef } from "./clips.ts";
 import { capped, CLIP, count, cut, sec } from "./common.ts";
-import { credited, fits, parts, tierOf } from "./ship.ts";
+import { credited, fits, libraryClips, namedBy, parts, tierOf } from "./ship.ts";
 
 /** The library's opt-in as game.json takes it: `opt in with tiers: [..., "x"]` becomes `add "x" to "tiers" in game.json`. */
 export const optIn = (next: string): string => next.replace(/opt in with tiers: \[(?:"[^"]*", )*"([^"]*)"\]/g, 'add "$1" to "tiers" in game.json');
@@ -45,23 +46,27 @@ function legendLines(text: readonly string[]): string[] {
 }
 
 /** How a next hint names `ref`: its id (WORKSHOP/<Name> for a workshop copy, so its history applies), or its path as
- *  given; null for clip JSON or an absolute path, which a reply doesn't echo. */
+ *  given (JSON-quoted when it holds a space or control character); null for clip JSON or an absolute path, which a
+ *  reply doesn't echo. */
 export function nameOf(ref: ClipRef): string | null {
   if (ref.where === "workshop") return `${WORKSHOP}/${ref.path!.replace(/^workshop\/|\.json$/g, "")}`;
-  return ref.where === "library" ? ref.id : ref.where === "file" && !absolute(ref.path!) ? ref.path : null;
+  if (ref.where !== "file" || absolute(ref.path!)) return ref.where === "library" ? ref.id : null;
+  return /[\s\p{Cc}]/u.test(ref.path!) ? JSON.stringify(ref.path) : ref.path;
 }
 
 /** A warning line when shipping `ref` (a file, JSON or workshop clip: a library id is held to the tiers before) needs
- *  tiers `tiers` lacks, by the set it came from and by each part of its license; else, when it is from no library set,
- *  that its license is the user's to check; null when the game may ship it. */
-export function tierWarning(ref: ClipRef, tiers: readonly Tier[]): string | null {
+ *  tiers `tiers` lacks, by the set it came from, the sets of the library clips its provenance names (`named`, [set,
+ *  tier] each) and each part of its license; else, when it is from no library set, that its license is the user's to
+ *  check; null when the game may ship it. */
+export function tierWarning(ref: ClipRef, tiers: readonly Tier[], named: readonly (readonly [string, Tier])[] = []): string | null {
   if (ref.where === "library") return null;
-  const license = ref.clip.provenance.license, set = ref.tier && !tiers.includes(ref.tier) ? ref.tier : null;
-  const missing = [...new Set([...(set ? [set] : []), ...parts(license).map(tierOf).filter((t) => !fits(t, tiers))])];
+  const license = ref.clip.provenance.license, home = ref.where === "workshop" ? (ref.source?.set ?? ref.set) : ref.set;
+  const out = [...(ref.tier ? [[home, ref.tier] as const] : []), ...named].filter(([, t]) => !tiers.includes(t));
+  const missing = [...new Set([...out.map(([, t]) => t), ...parts(license).map(tierOf).filter((t) => !fits(t, tiers))])];
   if (missing.includes("local")) return `warning: its license (${license}) fits no tier a shipped game opts in to (D10)`;
-  const why = `${set ? `${ref.where === "workshop" ? (ref.source?.set ?? ref.set) : ref.set} is a ${set} set, ` : ""}its license is ${license}`;
+  const why = `${[...new Set(out.map(([s, t]) => `${s} is a ${t} set, `))].join("")}its license is ${license}`;
   if (missing.length) return `warning: add ${missing.map((t) => `"${t}"`).join(" and ")} to "tiers" in game.json before shipping it (${why})`;
-  return ref.tier === null ? `warning: ${quote(ref.id)} is from no library set: its license (${license}) is for you to check` : null;
+  return ref.tier === null && !named.length ? `warning: ${quote(ref.id)} is from no library set: its license (${license}) is for you to check` : null;
 }
 
 /** `show`: a clip's keys from `from` as the format writes them, a page at a time, with what it is and where it came from. */
@@ -76,7 +81,8 @@ export const show = defineTool<{ clip: string; from: number; legend: boolean }, 
     const first = c.keys.findIndex((k) => k.t >= a.from - 1e-6), n = c.keys.length;
     if (first < 0) throw new ToolError("E_ARGS", `from is ${a.from}, past the last key (${sec(c.keys[n - 1]!.t)})`, true);
     const f = (c.facts ?? {}) as { speed?: number; strike?: number[]; height?: [number, number] }, speed = mps(f.speed ?? null);
-    const owed = parts(p.license).some((x) => credited(tierOf(x))), credit = owed ? (p.credit ?? src?.credit ?? null) : null;
+    // the credit owed: a library clip's set's line, as license.check's credits block gives it; else the clip's own
+    const owed = parts(p.license).some((x) => credited(tierOf(x))), credit = owed ? (ref.where === "library" ? lib.library.about(ref.set).credit : p.credit)?.trim() || null : null;
     const summary = [
       `"${cut(c.desc)}" [${c.tags.join(" ")}]`,
       ...(f.strike?.length ? [`strike ${f.strike.map(sec).join(", ")}`] : []),
@@ -84,9 +90,10 @@ export const show = defineTool<{ clip: string; from: number; legend: boolean }, 
       ...(f.height ? [`hips ${f.height[0]}-${f.height[1]}%`] : []),
       `fit ${c.quality.fit[0]}/${c.quality.fit[1]} mm`,
       `qa ${c.quality.qa}`,
-      `${p.src}${src ? ` (${src.label})` : ""}, ${p.method}, ${p.license}, ${credit ? `credit owed: ${credit}` : "no credit owed"}`,
+      `${p.src}${src ? ` (${src.label})` : ""}, ${p.method}, ${p.license}, ${credit ? `credit owed: ${credit}` : owed ? "credit owed, none given" : "no credit owed"}`,
     ].join("; ");
-    const warn = tierWarning(ref, lib.tiers), head = [...(a.legend ? [] : [summary]), ...(warn ? [warn] : [])];
+    const named = libraryClips(lib, namedBy(c)).map((id) => [id.split("/")[0]!, lib.library.about(id.split("/")[0]!).tier] as const);
+    const warn = tierWarning(ref, lib.tiers, named), head = [...(a.legend ? [] : [summary]), ...(warn ? [warn] : [])];
     // a page is what the text shows whole on every surface, beside the verdict, the head, the library's warnings (a
     // deprecated id), report.json's line and next's; the reply holds that page alone, so it stays small on every page
     const keys = c.keys.slice(first).map((k) => format.keyLines({ ...k }, format.GROUPS_2, "").replace("\n", "")), size = (k: string) => k.split("\n").length;
@@ -95,12 +102,12 @@ export const show = defineTool<{ clip: string; from: number; legend: boolean }, 
     for (let used = 0; shown < keys.length && (!shown || used + size(keys[shown]!) <= room); shown++) used += size(keys[shown]!);
     const after = c.keys[first + shown], legend = a.legend ? lib.library.about(src?.set ?? lib.source.sets().sort()[0]!).legend : null;
     return {
-      verdict: `show ${ref.id}: ${sec(c.dur)} ${c.loop ? "loop" : "once"}, ${c.fps} fps, keys ${first + 1}-${first + shown} of ${n} from ${sec(c.keys[first]!.t)}`,
+      verdict: `show ${ref.id}: ${legend ? "the legend of its keys' numbers" : `${sec(c.dur)} ${c.loop ? "loop" : "once"}, ${c.fps} fps, keys ${first + 1}-${first + shown} of ${n} from ${sec(c.keys[first]!.t)}`}`,
       data: {
         id: ref.id, set: ref.set, tier: ref.tier, dur: c.dur, loop: c.loop, fps: c.fps, keys: n, from: c.keys[first]!.t, first: first + 1, tags: c.tags, desc: c.desc,
         facts: c.facts ?? null, speed, fit: c.quality.fit, qa: c.quality.qa, credit, legend: legend && { version: c.legend, text: legend },
         source: { src: p.src, label: src?.label ?? null, origin: src?.origin ?? null, license: p.license, url: src?.url ?? null, method: p.method, ...(p.take ? { take: p.take } : {}) },
-        text: format.keyLens({ ...c, keys: c.keys.slice(first, first + shown).map((k) => ({ ...k })) }),
+        text: legend ? null : format.keyLens({ ...c, keys: c.keys.slice(first, first + shown).map((k) => ({ ...k })) }),
       },
       lines: [...head, ...(legend ? legendLines(legend) : keys.slice(0, shown))],
       next: a.legend ? `show ${name} from: ${c.keys[first]!.t} for the keys` : after ? `show ${name} from: ${after.t} continues (keys ${first + shown + 1}-${n} of ${n}); describe ${name} for its timeline` : `describe ${name} for its timeline; sheet ${name} draws it`,

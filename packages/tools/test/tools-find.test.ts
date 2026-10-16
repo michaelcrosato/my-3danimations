@@ -31,7 +31,8 @@ describe("find and read", () => {
       expect(await call("search", { query: "wlak" })).toMatchObject({ status: "ok", data: { total: 0, rows: [] }, next: expect.stringMatching(/nearest tags: walk.*; search again$/) });
       const proud = await call("search", { query: "walks proudly", limit: 2 });
       expect([proud.verdict, proud.data, proud.next]).toEqual(['search "walks proudly": 2 of 26 clips (tiers cc0)', expect.objectContaining({ tiers: ["cc0"], total: 26, more: 24 }), expect.stringMatching(/^describe MESH2MOTION\/\S+ or show .*STYLE100\/Proud_Walk .*; add "cc-by" to "tiers" in game.json; 24 more/)]);
-      expect(((await call("search", { query: "" })).data as { rows: { core?: true }[] }).rows.every((r) => r.core)).toBe(true); // "" lists the core clips first
+      const core = (await call("search", { query: "" })).data as { rows: { core?: true }[] };
+      expect([core.rows.length, core.rows.every((r) => r.core)]).toEqual([10, true]); // "" lists the core clips first
       writeFileSync(join(cwd, "game.json"), '{"tiers": ["cc0", "cc-by"]}');
       expect((await call("search", { query: "walks proudly", limit: 1 })).data).toMatchObject({ tiers: ["cc0", "cc-by"], rows: [{ id: "STYLE100/Proud_Walk", tier: "cc-by" }] });
     }));
@@ -45,7 +46,7 @@ describe("find and read", () => {
       expect((await call("show", { clip: "QUATERNIUS_3D2DGE/Sword_Attack", from: 0.733 })).data).toMatchObject({ first: 17 });
       const legend = await call("show", { clip: "QUATERNIUS_3D2DGE/Walk_Loop", legend: true });
       expect([legend.lines.length, (legend.data as { legend: { text: string[] } }).legend.text.length, render(legend, { report: "r" })]).toEqual([16, 26, expect.not.stringMatching(/more lines?:/)]);
-      expect(legend.next).toBe("show QUATERNIUS_3D2DGE/Walk_Loop from: 0 for the keys");
+      expect([legend.verdict, (legend.data as { text: null }).text, legend.next]).toEqual(["show QUATERNIUS_3D2DGE/Walk_Loop: the legend of its keys' numbers", null, "show QUATERNIUS_3D2DGE/Walk_Loop from: 0 for the keys"]);
       expect(refused(await call("show", { clip: "QUATERNIUS_3D2DGE/Walk" }))).toEqual(["usage", "E_NO_CLIP", 'no clip "QUATERNIUS_3D2DGE/Walk"; did you mean "QUATERNIUS_3D2DGE/Walk_Loop"?']);
       expect(refused(await call("show", { clip: "../x.json" }))).toEqual(["usage", "E_PATH", expect.stringMatching(/^"..\/x.json" is outside/)]);
       expect(refused(await call("show", { clip: "QUATERNIUS_3D2DGE/Sword_Attack", from: 2 }))).toEqual(["usage", "E_ARGS", "from is 2, past the last key (1.533 s)"]);
@@ -71,9 +72,17 @@ describe("find and read", () => {
       const mit = JSON.stringify({ ...pose, id: "MINE/Mit", provenance: { ...pose.provenance, license: "MIT" } });
       expect((await call("show", { clip: mit })).lines[1]).toBe("warning: its license (MIT) fits no tier a shipped game opts in to (D10)");
       expect((await call("show", { clip: join(cwd, "akimbo.json") })).next).toMatch(/^show with the same clip from: /); // never an absolute path
+      // credit owed by a CMU clip's own line, or owed with none given; a clip named by its orig needs its set's tier, as license.check says
+      const own = (provenance: object) => JSON.stringify({ ...pose, id: "MINE/Pose", provenance: { ...pose.provenance, ...provenance } });
+      expect((await call("show", { clip: own({ license: "LicenseRef-CMU-Mocap", credit: "CMU Graphics Lab" }) })).lines[0]).toMatch(/, LicenseRef-CMU-Mocap, credit owed: CMU Graphics Lab$/);
+      expect((await call("show", { clip: own({ license: "CC0-1.0 AND CC-BY-4.0" }) })).lines[0]).toMatch(/, CC0-1.0 AND CC-BY-4.0, credit owed, none given$/);
+      writeFileSync(join(cwd, "my orig.json"), own({ orig: "STYLE100/Neutral_Walk" }));
+      const orig = await call("show", { clip: "my orig.json" });
+      expect([orig.lines[1], orig.next]).toEqual(['warning: add "cc-by" to "tiers" in game.json before shipping it (STYLE100 is a cc-by set, its license is CC0-1.0)', expect.stringMatching(/^describe "my orig.json" for its timeline/)]);
       expect(refused(await call("show", { clip: JSON.stringify({ ...pose, restSrc: "MYRIG" }) }))).toEqual(["usage", "E_REST", expect.stringMatching(/^the clip JSON names rest "MYRIG", which no set's manifest has/)]);
       writeFileSync(join(cwd, "game.json"), '{"tiers": ["cc0", "cc-by"]}');
-      expect((await call("show", { clip: "akimbo.json" })).lines[1]).toMatch(/^\{"t":0,/);
+      for (const clip of ["akimbo.json", "my orig.json"]) expect((await call("show", { clip })).lines[1]).toMatch(/^\{"t":0,/); // no warning once opted in
+      expect((await call("show", { clip: "STYLE100/Akimbo_Walk" })).lines[0]).toMatch(/credit owed: 100STYLE by Ian Mason, Sebastian Starke and Taku Komura, CC BY 4.0\.$/); // the set's line, as license.check's block
     }));
 
   it("describe gives each phase and moment with detail, and refuses a tier not opted in to or a clip file that isn't valid", () =>

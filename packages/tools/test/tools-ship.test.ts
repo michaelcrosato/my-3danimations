@@ -41,10 +41,11 @@ describe("ship", () => {
       expect((await call({ set: "QUATERNIUS_3D2DGE", clips: [AKIMBO] })).error).toMatchObject({ code: "E_ARGS", message: expect.stringMatching(/^give clips or set, not both/) });
       expect((await call({ set: "QUATERNIUS_3D2DE" })).error).toMatchObject({ code: "E_ARGS", message: expect.stringMatching(/^no set "QUATERNIUS_3D2DE"; did you mean "QUATERNIUS_3D2DGE"\?/) });
       expect(found(await call({ set: "QUATERNIUS_3D2DGE", tiers: ["cc0", "local"] }))).toEqual(["findings", ["tiers: a shipped game opts into local: local content never ships (D10)"]]);
+      expect((await call({ set: "QUATERNIUS_3D2DGE", tiers: ["cc0", "local"], ships: false })).status).toBe("ok");
       expect(await call({ set: "library" })).toMatchObject({ verdict: "license.check the library (every tier): PASS, 8 credits owed", data: { ok: true, credits: { length: 8 } } });
-      expect((await call({ set: "library", tiers: ["cc0"] })).error).toMatchObject({ code: "E_ARGS", message: expect.stringMatching(/^set "library" audits every set with no tier gate/) });
+      for (const args of [{ tiers: ["cc0"] }, { ships: true }]) expect((await call({ set: "library", ...args })).error).toMatchObject({ code: "E_ARGS", message: expect.stringMatching(/^set "library" audits every set with no tier gate/) });
       expect((await call({ clips: ["../x.json"] })).error).toMatchObject({ code: "E_PATH" }); // a path out of the working directory is still refused
-      expect((await call({ clips: [] })).error).toMatchObject({ code: "E_ARGS", message: 'clips lists at least one clip, as ["SET/Name"]' });
+      for (const clips of [[], [" "]]) expect((await call({ clips })).error).toMatchObject({ code: "E_ARGS", message: 'clips lists one clip or more, as ["SET/Name"], none blank' });
       expect((await call({})).verdict).toBe("license.check every set (tiers cc0): PASS, 0 credits owed");
       writeFileSync(join(cwd, "game.json"), JSON.stringify({ tiers: ["cc0", "cc-by"], clips: [AKIMBO] }));
       expect(await call({})).toMatchObject({ status: "ok", verdict: "license.check game.json's 1 clip (tiers cc0, cc-by): PASS, 1 credit owed" });
@@ -52,11 +53,12 @@ describe("ship", () => {
         writeFileSync(join(cwd, "game.json"), JSON.stringify({ tiers: ["cc0", "local"], ships }));
         expect((await call({})).status).toBe(ships === false ? "ok" : "findings"); // game.json's ships: false is honoured
       }
-      writeFileSync(join(cwd, "game.json"), JSON.stringify({ clips: ["WORKSHOP/Gone", "QUATERNIUS_3D2DGE/Walk_Lop"] })); // one that won't load is a finding too
-      expect(found(await call({}))).toEqual(["findings", [expect.stringMatching(/^WORKSHOP\/Gone: no workshop clip "WORKSHOP\/Gone"/), expect.stringMatching(/^QUATERNIUS_3D2DGE\/Walk_Lop: no clip .*; did you mean/)]]);
-      for (const game of [{ clips: AKIMBO }, { ships: "no" }]) {
+      writeFileSync(join(cwd, "bad.json"), "{}"); // one that won't load is a finding too, an absolute path named as the clip file
+      writeFileSync(join(cwd, "game.json"), JSON.stringify({ clips: ["WORKSHOP/Gone", "nope.json", join(cwd, "bad.json"), "QUATERNIUS_3D2DGE/Walk_Lop"] }));
+      expect(found(await call({}))).toEqual(["findings", [expect.stringMatching(/^WORKSHOP\/Gone: no workshop clip "WORKSHOP\/Gone"/), "nope.json: no such file: give a path under the working directory, or a clip id", expect.stringMatching(/^the clip file: it is not a valid clip/), expect.stringMatching(/^QUATERNIUS_3D2DGE\/Walk_Lop: no clip .*; did you mean/)]]);
+      for (const game of [{ clips: AKIMBO }, { ships: "no" }, { clips: [] }]) {
         writeFileSync(join(cwd, "game.json"), JSON.stringify(game));
-        expect((await call({})).error).toMatchObject({ code: "E_GAME", message: expect.stringMatching(/"clips" lists clip ids/) });
+        expect((await call({})).error).toMatchObject({ code: "E_GAME", message: expect.stringMatching(/"clips" lists one clip id or more/) });
       }
     }));
 
@@ -87,8 +89,8 @@ describe("ship", () => {
       ]]);
       const ok = await call({ clips, tiers: ["cc0", "cc-by"] }); // credited: the set, and each clip's own credit where no set answers for it
       expect([ok.status, ok.verdict, (ok.data as { block: string }).block.split("\n").slice(2)]).toEqual(["ok", "license.check 7 clips (tiers cc0, cc-by): PASS, 4 credits owed, 2 open questions", [`- Lost (CC-BY-4.0): ${STYLE}`, "- Walk_Loop (CC-BY-4.0): Somebody (CC BY 4.0)", "- Blend (CC-BY-4.0): Jane Doe, My Walk (CC BY 4.0)"]]);
-      const twice = await call({ clips: ["ccby.json", JSON.stringify({ ...pose, provenance: { ...pose.provenance, ...somebody } })], tiers: ["cc0", "cc-by"] }); // one credit line, one entry
-      expect((twice.data as { credits: object[] }).credits).toEqual([expect.objectContaining({ title: "Walk_Loop, A_TPose", credit: "Somebody (CC BY 4.0)", clips: 2 })]);
+      const twice = await call({ clips: ["ccby.json", JSON.stringify({ ...pose, provenance: { ...pose.provenance, ...somebody, license: "CC-BY-3.0" } })], tiers: ["cc0", "cc-by"] }); // one credit line, one entry
+      expect((twice.data as { credits: object[] }).credits).toEqual([expect.objectContaining({ title: "Walk_Loop, A_TPose", credit: "Somebody (CC BY 4.0)", licenses: ["CC-BY-3.0", "CC-BY-4.0"], clips: 2 })]);
       // a file renamed into a cc-by set, one named only by its orig, one on a rest no set has, one whose license only
       // local holds, and an absolute path (named by its id)
       writeFileSync(join(cwd, "renamed.json"), JSON.stringify({ ...neutral, id: "STYLE100/My_Walk", provenance: { ...neutral.provenance, license: "CC0-1.0", credit: undefined } }));
@@ -102,10 +104,17 @@ describe("ship", () => {
         `WORKSHOP/Odd: STYLE100 is a cc-by set and ${NOT_CC0}`,
         `orig.json (from STYLE100/Neutral_Walk): STYLE100 is a cc-by set and ${NOT_CC0}`,
         "ownrest.json: from no library clip (license CC0-1.0): check its terms yourself",
-        `MINE/Mit: its license MIT needs the local tier and ${NOT_CC0}`,
+        "MINE/Mit: its license MIT fits no tier a shipped game may opt into (D10): replace the clip, or set ships: false",
         `${AKIMBO}: STYLE100 is a cc-by set and ${NOT_CC0}`,
       ]]);
       expect((await call({ clips: [mit, "ccby.json"], tiers: ["cc0", "local"], ships: false })).verdict).toBe("license.check 2 clips (tiers cc0, local): PASS, 1 credit owed, 1 open question"); // local holds any license
       expect((await call({ clips: ["ownrest.json"] })).lines.at(-1)).toBe("Motion: CC0 clips; no credit is owed.");
+      expect((await call({ clips: [mit], tiers: ["cc0", "local"], ships: false })).lines.at(-1)).toBe("Motion: no credit is owed."); // not "CC0 clips"
+      // D10's tiers: a CC-BY-SA clip fits only local, a CMU clip's own credit is owed, and a credited part with no credit fails
+      const own = (id: string, provenance: object) => JSON.stringify({ ...loop, id: `MINE/${id}`, name: id, provenance: { ...loop.provenance, ...provenance } });
+      const sa = own("Sa", { license: "CC-BY-SA-4.0", credit: "Sam (CC BY-SA 4.0)" }), cmu = own("Cmu", { license: "LicenseRef-CMU-Mocap", credit: "CMU Graphics Lab Motion Capture Database" });
+      const bare = own("Bare", { orig: "QUATERNIUS_3D2DGE/Walk_Loop", license: "CC0-1.0 AND CC-BY-4.0", credit: " " }); // escapes core's credit check (M2-E018)
+      expect(found(await call({ clips: [sa, bare], tiers: ["cc0", "cc-by"] }))).toEqual(["findings", ["MINE/Sa: its license CC-BY-SA-4.0 fits no tier a shipped game may opt into (D10): replace the clip, or set ships: false", "MINE/Bare: its license CC-BY-4.0 needs a credit line (provenance.credit): add the attribution"]]);
+      expect((await call({ clips: [cmu], tiers: ["cc0", "cmu"] })).lines.slice(1)).toEqual(["Motion credits:", "- Cmu (LicenseRef-CMU-Mocap): CMU Graphics Lab Motion Capture Database"]);
     }));
 });
