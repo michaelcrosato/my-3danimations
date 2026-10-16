@@ -243,8 +243,8 @@ export function parseQuery(query: string): { words: string[]; filters: Filter[] 
   return { words: words.filter((w) => !AFTER.has(w)), filters };
 }
 
-/** m/s on the reference body (0.95 m hips) from a catalog speed (% of the hip height a second). */
-const mps = (speed: number | null) => (speed === null ? null : Math.round(speed * 0.95) / 100);
+/** m/s on the reference body (0.95 m hips) from a catalog speed (% of the hip height a second), to 2 decimals. */
+export const mps = (speed: number | null) => (speed === null ? null : Math.round(speed * 0.95) / 100);
 const passes = (it: SearchItem, f: Filter): boolean => {
   if (f.kind === "loop") return it.loop === f.loop;
   if (f.kind === "field") return f.key === "set" ? it.id.split("/")[0]!.toLowerCase() === f.value.toLowerCase() : f.key === "tier" ? it.tier === f.value : it.tags.includes(f.value);

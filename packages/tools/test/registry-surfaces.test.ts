@@ -1,7 +1,8 @@
 // The four surfaces of one registry (WP-7.1's Done-when): every tool shows the same name, description and schema, and
 // every example (each one a test) gives the same reply through the TypeScript API, the m3a CLI (report.json and its exit
-// code), the MCP server (structuredContent, valid against its outputSchema; isError for a failed tool only) and the
-// console handle, and the same text on the CLI and MCP with and without verbose. Then MCP itself: both eras, its errors
+// code), the MCP server (structuredContent, valid against replySchema; isError for a failed tool only) and the
+// console handle, and the same text on the CLI and MCP with and without verbose. It sweeps the WP-7.1 tools and demo
+// tools; the m3a tools of WP-7.2 run on the cheaper runner of test/helpers/surfaces.ts. Then MCP itself: both eras, its errors
 // against tool errors, images as image content; the Node host's paths; and the bin, as a process, on the CLI and stdio.
 import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
@@ -12,7 +13,8 @@ import { describe, expect, it } from "vitest";
 import { commandLine, runCli } from "../src/cli.ts";
 import { base64, mcpServer, mcpTool } from "../src/mcp.ts";
 import { nodeHost } from "../src/node.ts";
-import { consoleHandle, defineTool, describeTool, EXIT, memoryStore, Registry, replySchema, tools, type Reply } from "../src/registry/index.ts";
+import { consoleHandle, defineTool, describeTool, EXIT, memoryStore, Registry, replySchema, type Reply } from "../src/registry/index.ts";
+import { validate, version } from "../src/tools/base.ts";
 
 const ROOT = join(import.meta.dirname, "../../.."), BIN = join(ROOT, "packages/tools/src/node.ts"), host = nodeHost(ROOT);
 const META = { "io.modelcontextprotocol/protocolVersion": "2026-07-28", "io.modelcontextprotocol/clientCapabilities": {} };
@@ -28,7 +30,7 @@ const note = defineTool({ name: "demo.note", description: "Count a note.", param
 const long = defineTool({ name: "demo.long", description: "Many lines.", params: { type: "object", properties: { n: { type: "integer", minimum: 0, default: 30 } } }, examples: [{ args: {} }, { args: { n: 2, verbose: true } }], run: (a: { n: number }) => ({ verdict: `${a.n} lines`, data: {}, lines: Array.from({ length: a.n }, (_, i) => `line ${i + 1}`), next: "read them" }) });
 const boom = defineTool({ name: "demo.boom", description: "Fail.", params: { type: "object", properties: {} }, examples: [{ args: {}, expect: "error" }], run: () => Promise.reject(new Error("no disk")) });
 // runCli runs in this process here, so the store outlives each command, as WP-7.2's file will.
-const reg = new Registry([...tools.list(), swatch, note, long, boom], { ...memoryStore(), durable: true });
+const reg = new Registry([version, validate, swatch, note, long, boom], { ...memoryStore(), durable: true });
 const mcp = mcpServer(reg, { host }), handle = consoleHandle(reg, host);
 const rpc = async (method: string, params: Record<string, unknown> = {}, meta: object | null = META) => (await mcp.handle({ jsonrpc: "2.0", id: 1, method, params: meta ? { ...params, _meta: meta } : params })) as { result?: Record<string, unknown>; error?: { code: number; message: string; data?: unknown } };
 const ajv = new Ajv2020({ strict: false });

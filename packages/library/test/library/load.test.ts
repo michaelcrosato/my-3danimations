@@ -65,6 +65,12 @@ describe("the library loader", () => {
     expect(() => lib.clip("NOPE/Walk")).toThrow(/no set "NOPE"/);
     expect(() => lib.clip("Walk_Loop")).toThrow(/isn't a clip id/);
   });
+  it("describes any set, whatever the game's tiers: its legend and each source's license, credit and rest", () => {
+    const lib = openLibrary({ dir: DIR }), style = lib.about("STYLE100"), q = lib.about("QUATERNIUS_3D2DGE");
+    expect([style.tier, style.legend[0], Object.values(style.sources)[0]]).toMatchObject(["cc-by", expect.stringMatching(/^m3a motion format 2\.0/), { license: "CC-BY-4.0", credit: expect.stringContaining("100STYLE") }]);
+    expect([q.sources.UAL1!.license, q.sources.UAL1!.credit, q.sources.UAL1!.rest]).toEqual(["CC0-1.0", null, lib.clip("QUATERNIUS_3D2DGE/Walk_Loop").rest]);
+    expect(() => lib.about("NOPE")).toThrow(/no set "NOPE"/);
+  });
   it("reads catalog rows as their fields", () => {
     const row = openLibrary({ dir: DIR }).catalog("QUATERNIUS_3D2DGE").find((r) => r.id === "QUATERNIUS_3D2DGE/Walk_Loop")!;
     expect(row).toMatchObject({ dur: 1.333, loop: true, tags: ["walk"], src: "UAL1" });

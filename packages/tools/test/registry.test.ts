@@ -209,7 +209,7 @@ describe("the CLI", () => {
     expect([list.code, list.text.trimEnd().split("\n").length, list.text]).toEqual([0, 27, expect.stringMatching(/^m3a .*: 25 tools;/)]);
     expect((await many("--version")).text).toMatch(/^help: usage error: unknown flag "--version"; did you mean "version"\?/);
     expect((await many("-v")).text).toMatch(/^help: usage error: unknown flag "-v"; did you mean "--verbose"\?/);
-    const mark = "--request-id <string>  retry key: the same id and arguments return the first result (MCP and the API only: ";
+    const mark = "--request-id <string>  retry key (MCP and the API only: ";
     const durable = new Registry([counter().edit], { ...memoryStore(), durable: true });
     const helpOf = async (reg: Registry) => (await cliOf(reg)("help", "demo.set")).text;
     expect([await helpOf(counter().reg), await helpOf(durable)]).toEqual([expect.stringContaining(mark), expect.not.stringContaining(mark)]);
