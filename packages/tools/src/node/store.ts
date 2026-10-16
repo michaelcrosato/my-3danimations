@@ -1,25 +1,14 @@
 // The durable RequestStore (PLAN.md WP-7.2): an edit's request_id results kept as files under .m3a/requests/ in the
 // working directory, one per tool and id, so a retry from another m3a process (the CLI is one process a command; an MCP
 // server restarts) replies the first result instead of applying again. Synchronous, as the registry calls it; every
-// record written atomically; past `max` records the oldest go (housekeeping: no reply depends on it).
+// record written atomically, as the host writes (a .m3a/ linked out of the working directory refused); past `max` records
+// the oldest go (housekeeping: no reply depends on it). A record it can't write throws; the registry then replies anyway.
 import { createHash } from "node:crypto";
-import { mkdirSync, readdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { readdirSync, readFileSync, rmSync, statSync } from "node:fs";
+import { join, resolve } from "node:path";
 import type { RequestStore } from "../registry/registry.ts";
 import type { Reply } from "../registry/reply.ts";
-
-/** Writes a file atomically: its directory made, the data written to a temporary file beside it, then renamed over it. */
-export function writeAtomic(path: string, data: string | Uint8Array): void {
-  mkdirSync(dirname(path), { recursive: true });
-  const tmp = `${path}.${process.pid}.tmp`;
-  try {
-    writeFileSync(tmp, data);
-    renameSync(tmp, path);
-  } catch (err) {
-    rmSync(tmp, { force: true });
-    throw err;
-  }
-}
+import { writable, writeAtomic } from "./files.ts";
 
 /**
  * A RequestStore in files under `<cwd>/.m3a/requests/`: each record `{key, args, reply}` named by the first 32 hex
@@ -27,12 +16,12 @@ export function writeAtomic(path: string, data: string | Uint8Array): void {
  * another key, reads as missing and is overwritten.
  */
 export function fileStore(cwd: string, max = 256): RequestStore {
-  const dir = join(cwd, ".m3a", "requests"), file = (key: string) => join(dir, `${createHash("sha256").update(key).digest("hex").slice(0, 32)}.json`);
+  const base = resolve(cwd), dir = join(base, ".m3a", "requests"), name = (key: string) => `${createHash("sha256").update(key).digest("hex").slice(0, 32)}.json`;
   return {
     durable: true,
     get(key) {
       try {
-        const r = JSON.parse(readFileSync(file(key), "utf8")) as { key?: unknown; args?: unknown; reply?: unknown };
+        const r = JSON.parse(readFileSync(join(dir, name(key)), "utf8")) as { key?: unknown; args?: unknown; reply?: unknown };
         if (r.key === key && typeof r.args === "string" && typeof r.reply === "object" && r.reply !== null) return { args: r.args, reply: r.reply as Reply };
       } catch {
         // missing or unreadable: no record
@@ -40,7 +29,7 @@ export function fileStore(cwd: string, max = 256): RequestStore {
       return undefined;
     },
     set(key, entry) {
-      const f = file(key);
+      const f = writable(base, `.m3a/requests/${name(key)}`);
       writeAtomic(f, `${JSON.stringify({ key, args: entry.args, reply: entry.reply })}\n`);
       const names = readdirSync(dir).filter((n) => n.endsWith(".json"));
       if (names.length <= max) return;

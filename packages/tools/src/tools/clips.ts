@@ -38,7 +38,9 @@ export interface ClipRef {
 /**
  * Loads the clip `ref` names: its JSON (starting with "{"), a .json path, WORKSHOP/<Name>, or a library id at the game's
  * tiers. Refusals: E_NO_CLIP, E_NO_SET and E_TIER (usage); E_CLIP (usage for JSON given inline, an error for a file);
- * E_REST when no set has its rest; E_TAMPERED (an error).
+ * E_REST when no set has its rest; E_TAMPERED (an error). Only a library id is held to the game's tiers: a file, JSON
+ * or workshop copy is the user's and loads whatever set it came from, its `tier` saying which (a tool that ships or
+ * licenses clips checks that tier against the game's).
  */
 export async function loadClip(ctx: ToolContext, ref: string): Promise<ClipRef> {
   const lib = ctx.library(), id = ref.trim();

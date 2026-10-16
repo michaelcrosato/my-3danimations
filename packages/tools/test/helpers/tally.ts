@@ -1,9 +1,8 @@
 // An edit-shaped demo tool for the durable store's tests (PLAN.md WP-7.2a), until `edit` lands: demo.tally adds to
 // workshop/tally.txt, revisioned (its revision the count, "absent" before) and retry-safe. Run as a script, it is the
-// m3a bin with this one tool: main() with the store in the working directory's .m3a/requests/, as `m3a` keeps it.
+// m3a bin with this one tool: main() itself, so its store in the working directory's .m3a/requests/ is the bin's own.
 import { main } from "../../src/node.ts";
-import { fileStore } from "../../src/node/store.ts";
-import { defineTool, Registry } from "../../src/registry/registry.ts";
+import { defineTool } from "../../src/registry/registry.ts";
 
 const FILE = "workshop/tally.txt";
 
@@ -20,4 +19,4 @@ export const tally = defineTool({
   },
 });
 
-if (import.meta.main) process.exitCode = await main(process.argv.slice(2), new Registry([tally], fileStore(process.cwd())));
+if (import.meta.main) process.exitCode = await main(process.argv.slice(2), [tally]);

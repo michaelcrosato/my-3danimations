@@ -2,10 +2,10 @@
 // (or -h), parsed against the tool's schema. Flags are its parameter names (`--if-revision` or `--if_revision`,
 // `--flag=value` or `--flag value`; a value starting with "--" takes the `=` form), given once unless an array; its
 // positionals fill the parameters it names in order. An unknown flag, tool or help argument is a usage error naming the
-// closest one; so is --request-id until the registry's store outlives a command (WP-7.2), and help says so. The text is
-// the reply, verdict first; `m3a help`, the index, lists every tool uncut. --json also writes
-// check-output/<tool>/report.json (the Reply, schema m3a.reply/1). Exit 0 ok, 1 findings or a failed tool, 2 usage
-// error. The Node entry (./node.ts) supplies the IO.
+// closest one; so is --request-id while the registry's store is in memory (the m3a bin's is a file), and help says so.
+// The text is the reply, verdict first; `m3a help`, the index, lists every tool uncut. --json also writes
+// check-output/<tool>/report.json (the Reply, schema m3a.reply/1; a report it can't write is a warning line). Exit 0 ok,
+// 1 findings or a failed tool, 2 usage error. The Node entry (./node.ts) supplies the IO.
 import { VERSION } from "@m3a/core";
 import { describeTool, reply, usage, type Host, type Registry, type Tool } from "./registry/registry.ts";
 import { EXIT, render, type Reply } from "./registry/reply.ts";
@@ -82,7 +82,7 @@ export function parseCall(tool: Tool, argv: readonly string[]): Record<string, u
 
 /** `m3a help` (every tool, one line each) or `m3a help <tool>` (its usage, parameters and examples) as a reply; `data`
  *  is `{ tools: Description[] }` or the tool's Description. --request-id is marked MCP and API only while the
- *  registry's store does not outlive a command. */
+ *  registry's store is in memory. */
 export function help(registry: Registry, name?: string): Reply {
   if (name === undefined) {
     const list = registry.list(), w = Math.max(...list.map((t) => t.name.length));
@@ -95,7 +95,7 @@ export function help(registry: Registry, name?: string): Reply {
   const lines = [`usage: m3a ${t.name}${(t.positionals ?? []).map((p) => ` [${p}]`).join("")} [flags]`];
   for (const [k, s] of props) {
     const notes = [s.enum && s.enum.join(" | "), s.default !== undefined && `default ${JSON.stringify(s.default)}`, req.has(k) && "required"];
-    if (k === "request_id" && !registry.requests.durable) notes.push("MCP and the API only: m3a keeps no retries between commands yet");
+    if (k === "request_id" && !registry.requests.durable) notes.push("MCP and the API only: this CLI keeps no retries between commands");
     lines.push(`  ${flag(k)}${s.type === "boolean" ? "" : ` <${s.type ?? "json"}>`}  ${s.description ?? ""}${notes.map((n) => (n ? ` (${n})` : "")).join("")}`.trimEnd());
   }
   lines.push("examples:", ...t.examples.map((e) => `  m3a ${shell(commandLine(t, e.args))}`));
@@ -130,11 +130,16 @@ export async function runCli(registry: Registry, argv: readonly string[], io: Cl
     const tool = registry.get(first)!, args = parseCall(tool, more);
     verbose = typeof args !== "string" && args.verbose === true; // the parsed flag, as MCP's argument
     if (typeof args === "string") r = usage(tool.name, "E_ARGS", args, `m3a help ${tool.name} shows its arguments and examples`);
-    else if (Object.hasOwn(args, "request_id") && !registry.requests.durable) r = usage(tool.name, "E_REQUEST_ID", "--request-id is not kept between m3a commands yet, so a retried edit would apply twice", "leave it out, or retry through the MCP server or the API, which keep it");
+    else if (Object.hasOwn(args, "request_id") && !registry.requests.durable) r = usage(tool.name, "E_REQUEST_ID", "--request-id is not kept between commands by this CLI, so a retried edit would apply twice", "leave it out, or retry through the MCP server or the API, which keep it");
     else r = await registry.call(tool.name, args, { host: io.host });
   }
-  const report = json ? `check-output/${r.tool}/report.json` : undefined;
-  if (report) io.write(report, `${JSON.stringify(r, null, 2)}\n`);
+  let report = json ? `check-output/${r.tool}/report.json` : undefined;
+  try {
+    if (report) io.write(report, `${JSON.stringify(r, null, 2)}\n`);
+  } catch (err) {
+    r = { ...r, lines: [`warning: ${report} was not written (${err instanceof Error ? err.message : String(err)})`, ...r.lines] };
+    report = undefined;
+  }
   io.print(`${render(r, { verbose, more: "rerun with --verbose", report })}\n`);
   return EXIT[r.status];
 }

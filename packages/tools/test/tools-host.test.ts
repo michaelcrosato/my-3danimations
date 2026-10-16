@@ -2,10 +2,11 @@
 // only under its write roots, atomically and through no link out; the durable store, across two m3a processes too; the
 // library at game.json's tiers, each call with its own warnings; and the clip loader's forms and refusals.
 import { spawnSync } from "node:child_process";
-import { mkdirSync, readdirSync, readFileSync, symlinkSync, utimesSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, symlinkSync, utimesSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { runCli } from "../src/cli.ts";
 import { nodeHost } from "../src/node.ts";
 import { libraryAccess } from "../src/node/library.ts";
 import { fileStore } from "../src/node/store.ts";
@@ -35,7 +36,7 @@ const peek = defineTool({
   examples: [{ args: { clip: "QUATERNIUS_3D2DGE/Walk_Loop" } }],
   async run(a: { clip: string }, ctx) {
     const r = await loadClip(ctx, a.clip), resolved = (await clipResolver(ctx, [a.clip]))(a.clip)?.clip.id ?? null;
-    return { verdict: r.id, data: { id: r.id, set: r.set, tier: r.tier, where: r.where, H0: r.rest.H0, source: r.source?.label ?? null, tiers: ctx.library().tiers, resolved }, next: "use it" };
+    return { verdict: r.id, data: { id: r.id, set: r.set, tier: r.tier, where: r.where, H0: r.rest.H0, source: r.source?.label ?? null, tiers: ctx.library().tiers, resolved }, lines: ["loaded"], next: "use it" };
   },
 });
 
@@ -60,6 +61,12 @@ describe("the Node host", () => {
       symlinkSync(ROOT, join(cwd, "repo"));
       expect((await call({ path: "imports/A/x.json", text: "x" })).error?.message).toMatch(/^"imports\/A\/x.json" leads out of imports\/ through a link/);
       expect((await reg.call("validate", { path: "repo/library/sets/QUATERNIUS_3D2DGE/A_TPose.json" }, { host })).error?.message).toMatch(/leads outside .* through a link/);
+      symlinkSync(".", join(cwd, ".m3a")); // a root linked to the working directory itself: nothing new lands beside game.json
+      for (const path of [".m3a/evil.json", ".m3a/new/evil.json"]) expect((await call({ path, text: "x" })).error?.message, path).toMatch(/leads out of .m3a\/ through a link/);
+      expect(() => fileStore(cwd).set("k", { args: "{}", reply: reply("demo", "ok", { verdict: "v", next: "n" }) })).toThrow(/leads out of .m3a\//);
+      symlinkSync(join(cwd, "elsewhere"), join(cwd, "check-output")); // the host's own files too
+      expect(() => host.image!("demo", "x", { width: 1, height: 1, data: new Uint8ClampedArray(4) })).toThrow(/leads out of check-output\//);
+      expect(["evil.json", "new", "requests", "elsewhere/demo"].filter((f) => existsSync(join(cwd, f)))).toEqual([]);
       expect((await call({ path: "workshop/a.txt" })).data).toEqual({ wrote: null, now: null });
       expect((await call({ path: "workshop/a.txt" })).status).toBe("ok"); // removing what isn't there is no error
       expect((await reg.call("demo.put", { path: "workshop/a.txt", text: "a" })).error).toMatchObject({ code: "E_HOST", message: expect.stringMatching(/^this surface writes no files/) });
@@ -76,6 +83,21 @@ describe("the Node host", () => {
       expect(JSON.parse(readFileSync(join(cwd, "check-output/demo.tally/report.json"), "utf8"))).toMatchObject({ status: "ok", data: { n: 1 }, revision: "1" });
       const other = run("--by", "2", "--request-id", "r-1");
       expect([other.status, other.stdout, readFileSync(join(cwd, "workshop/tally.txt"), "utf8")]).toEqual([2, expect.stringContaining("was first used with other arguments (they differ in by)"), "1"]);
+    } finally {
+      rm();
+    }
+  });
+
+  it("replies an applied edit whose record can't be kept, and a CLI reply whose report can't be written, each warned", async () => {
+    const { cwd, rm } = exampleCwd(false), host = nodeHost(cwd);
+    try {
+      for (const f of [".m3a", "check-output"]) writeFileSync(join(cwd, f), "a file, not a directory");
+      const r = await new Registry([tally], fileStore(cwd)).call("demo.tally", { request_id: "q" }, { host });
+      expect([r.status, r.lines, readFileSync(join(cwd, "workshop/tally.txt"), "utf8")]).toEqual(["ok", [expect.stringMatching(/^warning: request_id "q" was not kept \(ENOTDIR.*\); a retry would apply it again$/)], "1"]);
+      let text = "";
+      const code = await runCli(new Registry([tally]), ["demo.tally", "--json"], { print: (x) => void (text += x), write: (p, t) => void host.write!(p, t), host });
+      expect([code, text]).toEqual([0, expect.stringMatching(/^tally 2\nwarning: check-output\/demo.tally\/report.json was not written \(can't write /)]);
+      expect(text).not.toMatch(/report:/);
     } finally {
       rm();
     }
@@ -133,7 +155,7 @@ describe("the library and the clip loader", () => {
       expect(a.library.resolver()("OLD/Walk")?.clip.id).toBe("QUATERNIUS_3D2DGE/Walk_Loop");
       expect([a.warnings, b.warnings]).toEqual([[said], [said]]);
       const r = await new Registry([peek]).call("demo.clip", { clip: "OLD/Walk" }, { host: { ...nodeHost(cwd), library: (t) => libraryAccess(cwd, t, dir) } });
-      expect([r.data, r.lines]).toEqual([expect.objectContaining({ id: "QUATERNIUS_3D2DGE/Walk_Loop" }), [`warning: ${said}`]]);
+      expect([r.data, r.lines]).toEqual([expect.objectContaining({ id: "QUATERNIUS_3D2DGE/Walk_Loop" }), [`warning: ${said}`, "loaded"]]); // first, so no cut hides it
     } finally {
       rm();
     }

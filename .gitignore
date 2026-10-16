@@ -3,9 +3,9 @@ node_modules/
 library/local/*
 !library/local/README.md
 check-output/
-workshop/
-.m3a/
-imports/
+/workshop/
+/.m3a/
+/imports/
 dist/
 *.tsbuildinfo
 .claude/worktrees/

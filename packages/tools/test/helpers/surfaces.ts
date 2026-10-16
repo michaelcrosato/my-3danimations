@@ -1,6 +1,7 @@
 // The surface runner for the m3a tools (PLAN.md WP-7.2): each example of a group, in a fresh working directory seeded
 // with the files examples name, through four surfaces of one registry, all equal: the API, the CLI in-process (its
-// report.json and exit code), MCP (structuredContent valid against replySchema, isError) and the console handle; and the
+// report.json and exit code), MCP (structuredContent valid against replySchema, isError; tools/list without
+// outputSchema) and the console handle; and the
 // CLI's and MCP's text each the API reply as render() writes it. Four calls an example, where WP-7.1's sweep makes
 // eight: its own suite proves the verbose rendering.
 import { cpSync, mkdtempSync, rmSync } from "node:fs";
@@ -37,6 +38,7 @@ export function runExamples(group: readonly Tool[]): void {
       const api = describeTool(t), m = mcpTool(t);
       expect({ name: m.title, description: m.description, params: m.inputSchema, edit: !m.annotations.readOnlyHint }).toEqual(api);
       expect([m.name, help(reg, t.name).data, handle.help(t.name)]).toEqual([mcpName(t.name), api, api]);
+      expect(Object.keys(m).sort(), "tools/list sends no outputSchema (decision §8.2)").toEqual(["annotations", "description", "inputSchema", "name", "title"]);
     }
   });
   for (const t of group) {

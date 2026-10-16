@@ -140,7 +140,8 @@ export function describeTool(t: Tool): Description {
 }
 
 /** Where an edit's request_id results are kept: the first reply per tool and id, with the arguments it came from.
- *  `durable` says it outlives the process (a file); the CLI, one process per command, takes --request-id only then. */
+ *  `durable` says it outlives the process (a file); the CLI, one process per command, takes --request-id only then.
+ *  A `set` that throws (a file it can't write) costs only the retry: the registry replies, with a warning line. */
 export interface RequestStore {
   get(key: string): { args: string; reply: Reply } | undefined;
   set(key: string, entry: { args: string; reply: Reply }): void;
@@ -255,6 +256,18 @@ export class Registry {
       },
     };
     let key: string | undefined, sent: string | undefined;
+    // the call's library warnings (a deprecated id), first among the lines so the 20-line cut keeps them
+    const warned = () => [...new Set([...libs.values()].flatMap((l) => l.warnings))].map((w) => `warning: ${w}`);
+    // an applied edit's reply kept for its retries; a store that can't keep it leaves the reply standing, warned
+    const keep = (r: Reply): Reply => {
+      try {
+        this.requests.set(key!, { args: sent!, reply: structuredClone(r) });
+        return r;
+      } catch (err) {
+        const why = (err instanceof Error ? err.message : String(err)).replace(/\s*\n\s*/g, " ");
+        return { ...r, lines: [`warning: request_id ${quote(a.request_id)} was not kept (${why}); a retry would apply it again`, ...r.lines] };
+      }
+    };
     if (tool.edit && typeof a.request_id === "string") {
       const { request_id: _id, ...rest } = a;
       [key, sent] = [`${tool.name} ${a.request_id}`, canonical(rest)];
@@ -275,21 +288,18 @@ export class Registry {
         }
       }
       out = await tool.run(a, ctx);
-      const warned = [...new Set([...libs.values()].flatMap((l) => l.warnings))].map((w) => `warning: ${w}`);
-      const r = reply(tool.name, out.findings ? "findings" : "ok", warned.length ? { ...out, lines: [...(out.lines ?? []), ...warned] } : out, images);
+      const r = reply(tool.name, out.findings ? "findings" : "ok", { ...out, lines: [...warned(), ...(out.lines ?? [])] }, images);
       if (typeof r.data !== "object" || Array.isArray(r.data)) throw new Error(`${tool.name} replied with data that is not a JSON object`);
       const off = r.data !== null && tool.output ? check(r.data, tool.output, "data") : undefined;
       if (off) throw new Error(`${tool.name} replied with data off its output schema (${off})`);
-      if (key) this.requests.set(key, { args: sent!, reply: structuredClone(r) });
-      return r;
+      return key ? keep(r) : r;
     } catch (err) {
       const e = err instanceof ToolError ? err : new ToolError("E_RUN", err instanceof Error ? err.message : String(err));
       const next = e.usage ? fixArgs : e.code === "E_RUN" ? "if the arguments are right, this is a bug in the tool: report the call and this message" : "fix what the message names, then call again";
-      if (e.usage) return usage(tool.name, e.code, e.message, next);
-      const r = reply(tool.name, "error", { verdict: `${tool.name}: error: ${e.message}`, next, revision: out?.revision }, images, { code: e.code, message: e.message });
+      if (e.usage) return { ...usage(tool.name, e.code, e.message, next), lines: warned() };
+      const r = reply(tool.name, "error", { verdict: `${tool.name}: error: ${e.message}`, next, revision: out?.revision, lines: warned() }, images, { code: e.code, message: e.message });
       // run() returned, so an edit applied though its data failed the checks: kept, so a retry does not apply it again
-      if (key && out) this.requests.set(key, { args: sent!, reply: structuredClone(r) });
-      return r;
+      return key && out ? keep(r) : r;
     }
   }
 }

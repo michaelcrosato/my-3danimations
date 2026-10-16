@@ -201,7 +201,7 @@ describe("the CLI", () => {
     expect([(await run("--verbose")).code, (await run("help", "--help")).code]).toEqual([0, 0]);
     expect((await run("help", "--verbos")).text).toMatch(/^help: usage error: unknown flag "--verbos"; did you mean "--verbose"\?/);
     expect((await run("help", "demo.set", "bogus")).text).toMatch(/^help: usage error: "bogus" is one argument too many/);
-    expect((await run("demo.set", "2", "--request-id", "x")).text).toMatch(/^demo.set: usage error: --request-id is not kept between m3a commands yet/);
+    expect((await run("demo.set", "2", "--request-id", "x")).text).toMatch(/^demo.set: usage error: --request-id is not kept between commands by this CLI/);
   });
   it("help lists every tool uncut, names a tool for a stray flag, and marks --request-id until m3a keeps it", async () => {
     const many = cliOf(new Registry([...Array.from({ length: 24 }, (_, i) => tool({ name: `demo.t${i}` })), tool({ name: "version" })]));
