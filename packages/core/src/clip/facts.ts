@@ -43,10 +43,18 @@ const pt = (o: Float32Array, name: string): [number, number, number] => {
 /**
  * Every fact of `clip` on rest R. Contacts a source labelled are taken as given; contacts a tool detected (a library
  * clip carries them, WP-5.4) are detected again, so the facts read from them are the same with or without them.
- * `sampled`, when given, is the clip as `sampleAll(clip, R, opts.fps)` samples it (a caller that sampled it already, as
- * the sensors do), read rather than sampled again.
+ * `sampled` is for a caller that sampled the clip already (the sensors' motionOf): it must be `sampleAll(clip, R,
+ * opts.fps ?? 60)`, this clip on this rest, and is read as given. Only its count and step are checked (an error names
+ * sampleAll's); samples with the same count and step of another rest or clip, or sampleLegs's, give wrong facts
+ * without an error.
  */
-export function measureFacts(clip: Measurable, R: Rest, opts: DetectOptions = {}, sampled: Sampled = sampleAll(clip, R, opts.fps ?? 60)): Facts {
+export function measureFacts(clip: Measurable, R: Rest, opts: DetectOptions = {}, sampled?: Sampled): Facts {
+  const fps = opts.fps ?? 60;
+  if (sampled) {
+    // sampleAll's count and step (sampledBy's, a NaN duration none), two numbers compared, not the samples
+    const m = Math.max(1, Math.ceil(clip.dur * fps)), step = clip.dur / m, got = sampled.frames.length;
+    if (got !== (m > 0 ? m + 1 : 0) || !Object.is(sampled.dt, step)) throw new Error(`measureFacts: ${got} samples ${+sampled.dt.toFixed(4)} s apart, not sampleAll(clip, R, ${fps})'s ${m + 1} ${+step.toFixed(4)} s apart for this clip: pass sampleAll(clip, R, opts.fps) of this clip on this rest, or leave sampled out`);
+  } else sampled = sampleAll(clip, R, fps);
   if (clip.contacts && clip.contacts.by !== "labelled") clip = { ...clip, contacts: undefined };
   const { frames, dt } = sampled;
   const n = frames.length - 1;

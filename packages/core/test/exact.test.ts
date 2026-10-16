@@ -1,10 +1,11 @@
 // The speed lane's copies held to the functions they copy, bit for bit (D89's way, for t1-speed's D97): legPoleOf to
 // limbPoles's legs, decodeLegs to decodePose's pelvis and legs, sampleLegs to sampleAll's; on library clips (keys and
-// in-betweens) on their own rests, the tier-3 bodies' rests and rests without shoulders, and on seeded legs.
+// in-betweens) on their own rests, the tier-3 bodies' rests and rests without shoulders, and on seeded legs. And
+// measureFacts's `sampled`: read as given, its count and step checked.
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { parseClip, type Clip, type Rest } from "../src/index.ts";
+import { measureFacts, parseClip, type Clip, type Rest } from "../src/index.ts";
 import { P, POINTS } from "../src/format/body.ts";
 import { decodeLegs, decodePose, legPoleOf, limbPoles, type KeyLike } from "../src/format/pose.ts";
 import { keyAt } from "../src/format/sample.ts";
@@ -94,3 +95,18 @@ describe("the speed lane's copies, to the bit", () => {
   });
 });
 
+describe("measureFacts's samples", () => {
+  const { clip, R } = CLIPS.find((c) => c.clip.loop)!;
+  it("reads sampleAll's samples as given: the same facts as sampling them itself", () => {
+    for (const fps of [30, 60, 75]) expect(measureFacts(clip, R, { fps }, sampleAll(clip, R, fps))).toEqual(measureFacts(clip, R, { fps }));
+    expect(measureFacts(clip, R, {}, sampleAll(clip, R))).toEqual(measureFacts(clip, R));
+  });
+  it("refuses samples at another rate, or of a clip as many samples long at another step, naming sampleAll's", () => {
+    expect(() => measureFacts(clip, R, {}, sampleAll(clip, R, 30))).toThrow(/^measureFacts: \d+ samples [\d.]+ s apart, not sampleAll\(clip, R, 60\)'s \d+ [\d.]+ s apart for this clip: /);
+    expect(() => measureFacts(clip, R, { fps: 75 }, sampleAll(clip, R))).toThrow(/^measureFacts: .* not sampleAll\(clip, R, 75\)'s /);
+    // 0.99 s and 1 s at 60 a second: 61 samples each, 1/60 s and 0.0165 s apart
+    const one = { ...clip, dur: 1 }, near = { ...clip, dur: 0.99 };
+    expect(sampleAll(near, R).frames.length).toBe(sampleAll(one, R).frames.length);
+    expect(() => measureFacts(one, R, {}, sampleAll(near, R))).toThrow(/^measureFacts: 61 samples 0\.0165 s apart, not sampleAll\(clip, R, 60\)'s 61 0\.0167 s apart for this clip: /);
+  });
+});
