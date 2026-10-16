@@ -49,8 +49,9 @@ export interface ToolContext {
   library(tiers?: readonly Tier[]): LibraryAccess;
   /** Attaches an image to the reply (a PNG under check-output/<tool>/ in Node); returns its path or `image:<name>`. */
   image(name: string, img: Image): string;
-  /** Takes the lock file `path` (under the write roots) against every other caller, other processes too, waiting while
-   *  one holds it; resolves to its release. A host without locks gives a release that does nothing (one writer). */
+  /** Takes the lock file `path` (under the write roots) against every other caller, waiting while one holds it;
+   *  resolves to its release. Callers in one process take it one at a time whatever the host (the registry's own lock,
+   *  by path); the host's lock, when it has one, keeps other processes out too. */
   lock(path: string): Promise<() => void>;
 }
 
@@ -63,7 +64,8 @@ export interface Host {
   remove?(path: string): void;
   library?(tiers?: readonly Tier[]): LibraryAccess;
   image?(tool: string, name: string, img: Image): { path: string | null; png: Uint8Array | null };
-  /** ToolContext's lock, across processes; without it, edits assume one writer. */
+  /** ToolContext's lock across processes (a lock file in Node), taken after the registry's own in this process; without
+   *  it, edits from two processes may race. */
   lock?(path: string): Promise<() => void>;
 }
 
@@ -102,6 +104,42 @@ export class ToolError extends Error {
     if (more.next !== undefined) this.next = more.next;
     if (more.revision !== undefined) this.revision = more.revision;
   }
+}
+
+/** The lock paths taken in this process, each to the promise its latest taker's release resolves; a taker waits for the
+ *  one before it, so callers in one process hold a path one at a time, whatever their host (two hosts on one working
+ *  directory too: the path alone is the key). */
+const held = new Map<string, Promise<void>>();
+
+/** Takes lock `path` in this process (once its taker before lets go), then the host's (other processes) when it has
+ *  one; resolves to the release of both, which does nothing a second time. */
+async function locked(path: string, host: Host): Promise<() => void> {
+  const before = held.get(path) ?? Promise.resolve();
+  let free!: () => void;
+  const mine = new Promise<void>((ok) => (free = ok)), tail = before.then(() => mine);
+  held.set(path, tail);
+  const done = () => {
+    free();
+    if (held.get(path) === tail) held.delete(path);
+  };
+  await before;
+  let outer: () => void;
+  try {
+    outer = host.lock ? await host.lock(path) : () => {};
+  } catch (err) {
+    done();
+    throw err;
+  }
+  let once = false;
+  return () => {
+    if (once) return;
+    once = true;
+    try {
+      outer();
+    } finally {
+      done();
+    }
+  };
 }
 
 /** Names kept for the surfaces: `m3a help`, `m3a mcp`, and the console handle's list, help and call. */
@@ -264,7 +302,7 @@ export class Registry {
         images.push({ name: safe, width: img.width, height: img.height, tokens: imageTokens(img.width, img.height), bytes: kept.png?.length ?? null, path: kept.path });
         return kept.path ?? `image:${safe}`;
       },
-      lock: (p) => (host.lock ? host.lock(p) : Promise.resolve(() => {})),
+      lock: (p) => locked(p, host),
     };
     let key: string | undefined, sent: string | undefined;
     // the call's library warnings (a deprecated id), first among the lines so the 20-line cut keeps them

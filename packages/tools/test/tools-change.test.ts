@@ -1,9 +1,9 @@
 // The Change tools (PLAN.md WP-7.2a's Done-when): fix and edit on every surface; their wrong calls refused naming the
 // fix; a stale if_revision refused with the file unchanged; undo and redo restoring the exact bytes through one history
-// for both tools; a file edited outside m3a resetting it; an in-place slice and chain; and a retried edit applied once,
-// across two m3a processes (the durable store), within one MCP server, after a crash between the write and the record
-// (the history's last), and after a crash at the history's write (nothing written) or the clip's (the history stepping
-// back).
+// for both tools; a file edited outside m3a resetting it; an in-place slice and chain; two edits of one clip, in two m3a
+// processes or in one, never both applied; and a retried edit applied once, across two m3a processes (the durable
+// store), within one MCP server, after a crash between the write and the record (the history's last), and after a crash
+// at the history's write (nothing written) or the clip's (the history stepping back).
 import { spawn, spawnSync, type ChildProcess } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -330,6 +330,32 @@ describe("two m3a processes editing one clip", () => {
       expect([ra.out, h.head, h.undo.map((e) => e.revision)]).toEqual([expect.stringContaining(`revision ${revisionOf(text)}`), revisionOf(text), ["absent", copy]]); // nothing lost
     } finally {
       rm();
+    }
+  });
+});
+
+describe("two edits of one clip in one process", () => {
+  it("never both apply, whatever the host: the registry keeps them apart, and the second is refused (E_CONFLICT)", async () => {
+    const w = workshop(), { lock: _, ...lockless } = w.host, HISTORY = ".m3a/history/C.json";
+    try {
+      await w.call("edit", { clip: "QUATERNIUS_3D2DGE/Walk_Loop", save_as: "WORKSHOP/C", ops: [{ op: "retime", speed: 1.1 }] });
+      const kept = ["absent", revisionOf(w.file("workshop/C.json"))];
+      for (const host of [lockless, w.host]) {
+        let reads = 0, go!: () => void; // both calls read the clip's history before either goes on to write
+        const both = new Promise<void>((ok) => (go = ok)), tryRead = async (p: string) => {
+          const text = await w.host.tryRead!(p);
+          if (p === HISTORY && ++reads === 2) go();
+          if (p === HISTORY) await both;
+          return text;
+        };
+        const reg = new Registry(CHANGE), [a, b] = await Promise.all([1.01, 0.99].map((speed) => reg.call("edit", { clip: "WORKSHOP/C", ops: [{ op: "retime", speed }] }, { host: { ...host, tryRead } })));
+        const [won, lost] = a!.status === "ok" ? [a!, b!] : [b!, a!], h = w.history("C");
+        expect([won.status, ...refused(lost), lost.revision, lost.next]).toEqual(["ok", "error", "E_CONFLICT", `WORKSHOP/C moved to revision ${won.revision} during the edit; nothing was changed`, won.revision, `read it again, then retry with --if_revision ${won.revision}`]);
+        expect([revisionOf(w.file("workshop/C.json")), h.head, h.undo.map((e) => e.revision)]).toEqual([won.revision, won.revision, kept]); // nothing lost
+        kept.push(won.revision!);
+      }
+    } finally {
+      w.rm();
     }
   });
 });
