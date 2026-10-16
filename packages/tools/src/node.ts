@@ -1,16 +1,17 @@
 #!/usr/bin/env node
 // @m3a/tools/node: the tools' Node entry (PLAN.md §5.1), with src/node/ the only modules here that import Node
-// built-ins, and the `m3a` bin. It supplies the Node host: files read (as text, or a character's bytes) under the
-// working directory and written only under its write roots (workshop/, .m3a/, imports/, check-output/: never library/),
-// atomically, a link out of either refused (./node/files.ts); the library at game.json's tiers; images written as PNG
-// under check-output/<tool>/ by the same rules, as are report.json and the request records. It runs the CLI on
-// process.argv, and serves MCP over stdio with `m3a mcp`: one JSON-RPC message per line each way, nothing else on
-// stdout, and an exit when stdin ends. Both keep an edit's request_id results in .m3a/requests/, so a retry in another
-// process applies once.
-import { readFileSync, unlinkSync } from "node:fs";
+// built-ins, and the `m3a` bin. It supplies the Node host: files read (as text, or a character's bytes, a file past
+// io's size limit refused before it is read) under the working directory and written only under its write roots
+// (workshop/, .m3a/, imports/, check-output/: never library/), atomically, a link out of either refused
+// (./node/files.ts); the library at game.json's tiers; images written as PNG under check-output/<tool>/ by the same
+// rules, as are report.json and the request records. It runs the CLI on process.argv, and serves MCP over stdio with
+// `m3a mcp`: one JSON-RPC message per line each way, nothing else on stdout, and an exit when stdin ends. Both keep an
+// edit's request_id results in .m3a/requests/, so a retry in another process applies once.
+import { readFileSync, statSync, unlinkSync } from "node:fs";
 import { relative, resolve, sep } from "node:path";
 import { createInterface } from "node:readline";
 import type { Readable, Writable } from "node:stream";
+import { LIMITS } from "@m3a/io";
 import { png } from "@m3a/sensors/node";
 import { runCli } from "./cli.ts";
 import { mcpServer, type McpServer } from "./mcp.ts";
@@ -40,15 +41,22 @@ export function nodeHost(cwd: string = process.cwd()): Host {
     try {
       return how(p);
     } catch (err) {
+      if (err instanceof ToolError) throw err;
       if (missing && (errno(err) === "ENOENT" || errno(err) === "ENOTDIR")) return null;
       throw new ToolError("E_PATH", `can't read ${shown(path)} (${errno(err)}); paths are relative to the working directory`, true);
     }
   };
   const text = (p: string) => readFileSync(p, "utf8");
+  // a file's bytes, refused unread (E_LIMIT, as io would refuse them read) past the most io takes in one file
+  const bytes = (p: string, path: string) => {
+    const n = statSync(p).size;
+    if (n > LIMITS.file) throw new ToolError("E_LIMIT", `${shown(path)}: ${n} bytes, over the ${LIMITS.file}-byte limit`);
+    return new Uint8Array(readFileSync(p));
+  };
   return {
     read: async (path) => read(path, false, text)!,
     tryRead: async (path) => read(path, true, text),
-    bytes: async (path) => read(path, false, (p) => new Uint8Array(readFileSync(p)), "give a file under the working directory")!,
+    bytes: async (path) => read(path, false, (p) => bytes(p, path), "give a file under the working directory")!,
     write: put,
     remove(path) {
       const p = writable(base, path);

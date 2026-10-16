@@ -1,13 +1,15 @@
 // The retarget tools (PLAN.md WP-7.2b): each example the same on every surface; retarget.inspect on tier 1b's Rigify
-// vector giving its expected mapping (the rig's table, its limb lengths, and every proportion the mapping decides as the
-// origin's importer measured them); findings for a bone unmapped (no body, its likely bone named though the unmapped
-// bones' cap cuts it, a fill-in call next), swapped arms (bent at rest, its turntable attached), hips on the rig's root
-// and bones named by their shape alone; its refusals, and no absolute path echoed. retarget.apply judging clips as the
-// sweep does (D80): swapped arms miss their points (inspect's issue a warning), hips on the root (that issue the next
-// call; a row's reasons capped), a body that adds a fail finding (its frames drawn, its line first), a warn it adds
-// listed, a VRM's humanoid, the tiny rig, clips as a path and as JSON named as given; its refusals (too many clips or
-// none, misspelt clips before any plays, a character missing a bone). Every next and every refusal's call runs as
-// written. One working directory for the file: the tools only read, and write images.
+// vector giving its expected mapping (the rig's table, its limb lengths, and every proportion the mapping decides as
+// the origin's importer measured them); findings for a bone unmapped (no body, its likely bone named though the
+// unmapped bones' cap cuts it, a fill-in call next), swapped arms (bent at rest, its turntable attached), hips on the
+// rig's root and bones named by their shape alone; its refusals, and no absolute path echoed. retarget.apply judging
+// clips as the sweep does (D80): swapped arms miss their points (inspect's issue a warning), hips on the root (that
+// issue the next call; a row's reasons capped), a body that adds a fail finding (its frames drawn, its line first), a
+// warn it adds listed, a VRM's humanoid, the tiny rig, clips as a path and as JSON named as given; its refusals (too
+// many clips or none, misspelt clips before any plays, clips past 600 s in all, a character missing a bone). A
+// compressed mesh is said by both, but is no mapping issue (meshIssue): no finding, turntable, patch hint or warning of
+// its own. Every next and every refusal's call runs as written. One working directory for the file: the tools only
+// read, and write images.
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { turntable } from "@m3a/sensors";
@@ -25,9 +27,10 @@ const text = (f: string) => readFileSync(join(ROOT, f), "utf8"), { cwd, rm } = e
 afterAll(rm);
 /** Tier 1b's Rigify bound through core, patched with `m`. */
 const rigifyBody = async (m?: MappingPatch) => characterOf({ read: async () => text(RIGIFY) } as unknown as ToolContext, RIGIFY, m);
-// Rigify with every node renamed past the name tables (its hips' name 100 characters long), and with its humanoid said
-// in VRMC_vrm; tier 1b's rig with 12 hair bones under its head, ahead of the legs (nodes 7 to 18); a chain of 3; a clip
-// file
+// Rigify with every node renamed past the name tables (its hips' name 100 characters long), with its humanoid said in
+// VRMC_vrm, and its mesh said to be compressed; tier 1b's rig with 12 hair bones under its head, ahead of the legs
+// (nodes 7 to 18); a chain of 3; a clip file, and the walk slowed to 600 s (each clip within M2-E010)
+const MESHOPT = "EXT_meshopt_compression", walk = JSON.parse(text("library/sets/QUATERNIUS_3D2DGE/Walk_Loop.json")) as { keys: { t: number }[] };
 const rigify = JSON.parse(text(RIGIFY)) as { nodes: { name: string }[] }, rig = JSON.parse(text("spec/vectors/tier1b/rig.gltf")) as { nodes: { name: string; children?: number[] }[] };
 const human = Object.fromEntries(Object.entries((await rigifyBody()).recognition.bones).map(([h, b]) => [h, { node: rigify.nodes.findIndex((n) => n.name === b) }]));
 const hair: typeof rig.nodes = [...rig.nodes.slice(0, 7), ...Array.from({ length: 12 }, (_, i) => ({ name: `hair${i}` })), ...rig.nodes.slice(7)];
@@ -35,6 +38,7 @@ for (const n of hair) if (n.children) n.children = n.children.map((i) => (i < 7 
 hair[6]!.children!.unshift(...Array.from({ length: 12 }, (_, i) => 7 + i));
 for (const [f, data] of Object.entries({
   "renamed.gltf": { ...rigify, nodes: rigify.nodes.map((n, i) => ({ ...n, name: i === 1 ? HIPS : `n${i}` })) }, "rigify-vrm.gltf": { ...rigify, extensions: { VRMC_vrm: { specVersion: "1.0", humanoid: { humanBones: human } } } },
+  "packed.gltf": { ...rigify, extensionsUsed: [MESHOPT], extensionsRequired: [MESHOPT] }, "long.json": { ...walk, dur: 600, keys: walk.keys.map((k) => ({ ...k, t: Math.round(k.t * 450_000) / 1000 })) },
   "hair.gltf": { ...rig, nodes: hair, animations: undefined }, "chain.gltf": { asset: { version: "2.0" }, nodes: [{ name: "a", children: [1] }, { name: "b", children: [2] }, { name: "c" }] },
   "punch.json": JSON.parse(text("library/sets/QUATERNIUS_3D2DGE/Punch_Jab.json")) as object,
 })) writeFileSync(join(cwd, f), JSON.stringify(data));
@@ -130,13 +134,28 @@ describe("the retarget tools", () => {
     expect(runs(tiny.next)).toEqual([{ tool: "license.check", args: { clips: ["punch.json", "<the clip's JSON>"] } }]);
   });
 
-  it("retarget.apply refuses too many clips or none, misspelt clips before any plays (20 taken), and a character missing a bone (E_RIG, its call to make)", async () => {
+  it("says a compressed mesh in both tools, as no mapping issue: inspect ok with no turntable, its patch line's advice, the next plays clips; apply notes it, no warning", async () => {
+    const said = `mesh compressed (${MESHOPT}): weights and soles unread; every joint kept`, play = { tool: "retarget.apply", args: { character: "packed.gltf", clips: [WALK] } };
+    const [seen, low, played, jab] = [await call("retarget.inspect", { character: "packed.gltf" }), await call("retarget.inspect", { character: "packed.gltf", mapping: ROOT_HIPS }),
+      await call("retarget.apply", { character: "packed.gltf", clips: [WALK, "MESH2MOTION/Pushup"] }), await call("retarget.apply", { character: "packed.gltf", clips: ["QUATERNIUS_3D2DGE/Punch_Cross"], mapping: ROOT_HIPS })];
+    expect([seen.status, seen.images, seen.data!.issues, seen.lines.at(-1), runs(seen.next)]).toEqual(["ok", [], [said], "patch: none clears the mesh's issue; re-export it uncompressed for exact soles", [play]]);
+    // a mapping issue beside it still finds, and is the one the patch line and the next speak of
+    expect([low.status, low.images.length, low.lines.at(-1), low.next.split(":")[0]]).toEqual(["findings", 1, "patch: check the issues above; edit the patch and pass it back as mapping", "check data.issues"]);
+    // a clip the body fails, with no mapping issue: the fail is the body's (D80), not the mapping's to fix first
+    expect([played.status, played.lines[0], played.lines.at(-1), runs(played.next)]).toEqual(["findings", `note: ${said}`, `PASS ${WALK}: own warn, played pass, reach 0 mm`, [{ tool: "search", args: { query: "Pushup" } }]]);
+    expect([jab.status, jab.lines[0], jab.lines[1], jab.next.split(":")[0]]).toEqual(["findings", expect.stringMatching(/^warning: retarget\.inspect finds 1 issue on it: hips \(root\) likely the wrong bone/), `note: ${said}`,
+      "QUATERNIUS_3D2DGE/Punch_Cross fails while retarget.inspect's issue stands"]);
+  });
+
+  it("retarget.apply refuses too many clips or none, misspelt clips before any plays (20 taken), clips past 600 s in all, and a character missing a bone (E_RIG, its call to make)", async () => {
     const got = [await call("retarget.apply", { character: RIGIFY, clips: Array(21).fill(WALK) }), await call("retarget.apply", { character: RIGIFY, clips: [] }), await call("retarget.apply", { character: RIGIFY, clips: [WALK, "QUATERNIUS_3D2DGE/Walk_Lop"] }),
-      await call("retarget.apply", { character: RIGIFY, clips: [WALK], mapping: { bones: { leftUpperLeg: null } } }), await call("retarget.apply", { character: RIGIFY, clips: Array(20).fill("QUATERNIUS_3D2DGE/Walk_Lop") })];
+      await call("retarget.apply", { character: RIGIFY, clips: [WALK], mapping: { bones: { leftUpperLeg: null } } }), await call("retarget.apply", { character: RIGIFY, clips: Array(20).fill("QUATERNIUS_3D2DGE/Walk_Lop") }),
+      await call("retarget.apply", { character: RIGIFY, clips: [WALK, "long.json"] })];
     const lop = { code: "E_NO_CLIP", message: 'no clip "QUATERNIUS_3D2DGE/Walk_Lop"; did you mean "QUATERNIUS_3D2DGE/Walk_Loop"?' };
     expect(got.map((r) => [r.status, r.error])).toEqual([
       ["usage", { code: "E_ARGS", message: "clips lists 21 clips; give 1 to 20, and call again for more" }], ["usage", { code: "E_ARGS", message: "clips lists 0 clips; give 1 to 20, and call again for more" }], ["usage", lop],
       ["error", { code: "E_RIG", message: `${RIGIFY}: leftUpperLeg not mapped; \`retarget.inspect ${RIGIFY} --mapping '{"bones":{"leftUpperLeg":null}}'\` gives the patch: write each into it and pass it as mapping` }], ["usage", lop],
+      ["usage", { code: "E_ARGS", message: "clips last 601.3 s in all, past the 600 s one call plays; give fewer or shorter clips, and call again for the rest" }],
     ]);
     for (const hint of [got[3]!.error!.message, got[3]!.next]) expect(runs(hint)).toEqual([{ tool: "retarget.inspect", args: { character: RIGIFY, mapping: { bones: { leftUpperLeg: null } } } }]);
   });

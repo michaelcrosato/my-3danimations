@@ -42,7 +42,7 @@ export interface ToolContext {
   /** Reads a text file as `read` does, or null when it doesn't exist. */
   tryRead(path: string): Promise<string | null>;
   /** Reads any file as bytes (a character's .glb or .vrm, a motion's .vrma), relative to the working directory and
-   *  confined as `read` is; the tool that asks checks what the file is. */
+   *  confined as `read` is, one past io's size limit refused unread (E_LIMIT); the tool that asks checks what it is. */
   bytes(path: string): Promise<Uint8Array>;
   /** Writes a file atomically under the write roots (workshop/, .m3a/, imports/, check-output/); returns its path. */
   write(path: string, data: string | Uint8Array): string;
