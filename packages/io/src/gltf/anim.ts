@@ -6,7 +6,7 @@
 // `skeletonDoc` makes a document of a bound skeleton's own bones, for a character with no file. `glbGap` reads a written
 // file back through io (`posedOf`; a compressed mesh no bar, since it reads only the nodes and the animation added),
 // places each node as a viewer does (every node's matrix, its scale uneven too) and measures how far each bone's node
-// lands from where the Animator put the bone.
+// lands from where the Animator put the bone; a bone's node the file lacks is E_MISSING.
 import { math, VERSION, type AnimClip, type Bound } from "@m3a/core";
 import { IoError } from "../bytes.ts";
 import { extrasOf, restNodes, sampleNodes, worldAt, type VrmaExtras, type VrmaTrack } from "../vrma/vrma.ts";
@@ -130,7 +130,8 @@ const apply = (m: readonly number[], v: readonly number[]): V3 => [0, 1, 2].map(
  * turn and its scale, uneven too) applied to its children: the most at any sample. A node between two bones that
  * scales unevenly shears its children as they turn, which no animation of turns can follow, so it reads back off. The
  * extensions a file requires (a mesh's compression, meshopt's or Draco's) are no bar: it reads only the nodes and that
- * animation, whose accessors are plain. E_FORMAT or E_LIMIT (from the reader) for a file it can't read back.
+ * animation, whose accessors are plain. E_FORMAT or E_LIMIT (from the reader) for a file it can't read back; E_MISSING
+ * for a bone's node (in `nodes`) the file lacks, never skipped. A bone with no node (D49's end bones) rides its parent.
  */
 export function glbGap(bytes: Uint8Array, clip: AnimClip, b: Bound, nodes: Readonly<Record<string, number>>, opts: { fps?: number } = {}): number {
   const s = sampleNodes(clip, b, opts), doc = parseGlb(bytes), n = s.times.length - 1, all = doc.json.nodes ?? [];
@@ -145,8 +146,10 @@ export function glbGap(bytes: Uint8Array, clip: AnimClip, b: Bound, nodes: Reado
       [L[k], P[k]] = up === null || up === undefined ? [m, [t[0]!, t[1]!, t[2]!]] : [mat(L[up]!, m), each(P[up]!, apply(L[up]!, t), (a, x) => a + x)];
     });
     b.order.forEach((o, k) => {
-      const j = at.get(nodes[o.name] ?? -1);
-      if (j !== undefined) worst = Math.max(worst, PORTABLE.hypot(P[j]![0] - w.p[k]![0], P[j]![1] - w.p[k]![1], P[j]![2] - w.p[k]![2]));
+      if (nodes[o.name] === undefined) return;
+      const j = at.get(nodes[o.name]!);
+      if (j === undefined) throw new IoError("E_MISSING", `bone ${o.name}'s node ${nodes[o.name]} isn't in the file read back`);
+      worst = Math.max(worst, PORTABLE.hypot(P[j]![0] - w.p[k]![0], P[j]![1] - w.p[k]![1], P[j]![2] - w.p[k]![2]));
     });
   }
   return worst / b.scale;

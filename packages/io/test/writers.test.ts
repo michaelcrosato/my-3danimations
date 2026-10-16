@@ -1,10 +1,10 @@
 // The writers (WP-7.2b, D93): a clip played on a bound skeleton written as BVH (each joint named its own) and as a glTF
 // animation on a character's own nodes, each read back through io's readers to the joints the Animator put there,
-// within 1 mm: the BVH through parseBvh and readBvh (Unreal's names, its travel), the .glb through posedOf and
-// readGltf, the exact reader, with the file's own animations and buffer kept, on Rigify's turned and scaled armature,
-// and with a mesh's compression required; off under an uneven scale, which no animation of turns follows; a VRMA
-// carrying its clip's license and credit, read back byte for byte (I5); and a one-frame take imported as a clip that
-// lasts a frame (I4).
+// within 1 mm (a joint missing from the file read back refused, never skipped): the BVH through parseBvh and readBvh
+// (Unreal's names, its travel), the .glb through posedOf and readGltf, the exact reader, with the file's own animations
+// and buffer kept, on Rigify's turned and scaled armature, and with a mesh's compression required; off under an uneven
+// scale, which no animation of turns follows; a VRMA carrying its clip's license and credit, read back byte for byte
+// (I5); and a one-frame take imported as a clip that lasts a frame (I4).
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { Animator, bind, parseClip, playable, solver, validate, format, type AnimClip, type Bound, type Rest } from "@m3a/core";
@@ -46,6 +46,7 @@ describe("writers", () => {
     expect(text.slice(0, 120)).toMatch(/^HIERARCHY\nROOT root\n\{\n {2}OFFSET 0\.0000 0\.0000 0\.0000\n {2}CHANNELS 6 Xposition Yposition Zposition Zrotation/);
     expect(worst(knock, rig.b, (i, name) => bvhPose(back, i)[j.get(name)!]![1].map((x) => x * 0.01))).toBeLessThan(1);
     expect(bvhGap(text, knock, rig.b)).toBeLessThan(0.01);
+    expect(() => bvhGap(text.replace("JOINT pelvis\n", "JOINT gone\n"), knock, rig.b)).toThrow("joint pelvis (bone pelvis) isn't in the file read back"); // never skipped
     const take = readBvh(() => text, ["knock"]);
     expect([take.rig, Math.round(take.clips.knock!.dur * 1000) / 1000, take.clips.knock!.move !== null]).toEqual(["bvh:unreal", knock.dur, true]);
     // two bones whose names write the same ("x y" and "x_y") stay two joints
@@ -60,6 +61,7 @@ describe("writers", () => {
     const back = posedOf(doc, 3, 30 * (Math.ceil(knock.dur * 30) / (knock.dur * 30))), byName = new Map(back.names.map((x, k) => [x, k]));
     expect(worst(knock, rig.b, (i, name) => (byName.has(name) ? bvhPose(back, i)[byName.get(name)!]![1] : null))).toBeLessThan(1);
     expect(Object.keys(readGltf(doc).clips)).toEqual(["A_TPose", "Wave_Loop", "Step_RM", KNOCK]); // the exact reader reads it
+    expect(() => glbGap(bytes, knock, rig.b, { ...rig.nodes, pelvis: 999 })).toThrow("bone pelvis's node 999 isn't in the file read back"); // never skipped
     const rigify = character(tier1bText("rigify.gltf"));
     expect(glbGap(addAnimation(rigify.doc, gltfAnimOf(knock, rigify.b, rigify.doc, rigify.nodes)), knock, rigify.b, rigify.nodes)).toBeLessThan(0.01);
     // a mesh's compression required (meshopt's) is no bar: only the nodes and the animation added are read back

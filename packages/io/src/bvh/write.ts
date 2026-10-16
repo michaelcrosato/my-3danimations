@@ -6,8 +6,9 @@
 // replacing their offsets, as the reader reads them. Units are the file's (centimetres unless `units` says, in metres a
 // unit); a name's spaces and braces, which would split it, become "_" (a name taken then gets "_" more), and a leaf
 // ends in an end site a quarter of its bone on. `bvhGap` reads a written file back (`parseBvh`, `bvhPose`) and
-// measures how far each joint lands from where the Animator put its bone.
+// measures how far each joint lands from where the Animator put its bone; a joint the file lacks is E_MISSING.
 import { math, type AnimClip, type Bound } from "@m3a/core";
+import { IoError } from "../bytes.ts";
 import { sampleNodes, worldAt } from "../vrma/vrma.ts";
 import { bvhPose, parseBvh } from "./read.ts";
 
@@ -77,7 +78,8 @@ export function writeBvh(clip: AnimClip, b: Bound, opts: { fps?: number; units?:
 }
 
 /** How far (mm) the joints of a .bvh that `writeBvh` wrote land from where the Animator puts their bones, read back
- *  through io (`parseBvh`, `bvhPose`): the most at any sample. */
+ *  through io (`parseBvh`, `bvhPose`): the most at any sample. A bone's joint missing from the file is E_MISSING, never
+ *  skipped: it lands nowhere. */
 export function bvhGap(text: string, clip: AnimClip, b: Bound, opts: { fps?: number; units?: number } = {}): number {
   const s = sampleNodes(clip, b, opts), back = parseBvh(text), units = opts.units ?? 0.01, at = new Map(back.names.map((n, j) => [n, j])), names = jointNames(b);
   let worst = 0;
@@ -85,7 +87,8 @@ export function bvhGap(text: string, clip: AnimClip, b: Bound, opts: { fps?: num
     const w = worldAt(s, i), pose = bvhPose(back, i);
     b.order.forEach((o, k) => {
       const j = at.get(names[k]!), p = j === undefined ? null : pose[j]![1];
-      if (p) worst = Math.max(worst, PORTABLE.hypot(p[0]! * units - w.p[k]![0], p[1]! * units - w.p[k]![1], p[2]! * units - w.p[k]![2]));
+      if (!p) throw new IoError("E_MISSING", `joint ${names[k]} (bone ${o.name}) isn't in the file read back`);
+      worst = Math.max(worst, PORTABLE.hypot(p[0]! * units - w.p[k]![0], p[1]! * units - w.p[k]![1], p[2]! * units - w.p[k]![2]));
     });
   }
   return worst / b.scale;
