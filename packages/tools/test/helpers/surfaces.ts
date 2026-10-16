@@ -1,5 +1,6 @@
 // The surface runner for the m3a tools (PLAN.md WP-7.2): each example of a group, in a fresh working directory seeded
-// with the files examples name, through four surfaces of one registry, all equal: the API, the CLI in-process (its
+// with the files examples name, through four surfaces of one registry (an edit's four calls sharing a request_id), all
+// equal: the API, the CLI in-process (its
 // report.json and exit code), MCP (structuredContent valid against replySchema, isError; tools/list without
 // outputSchema) and the console handle; and the
 // CLI's and MCP's text each the API reply as render() writes it; and each call its next names (in backticks, the one
@@ -70,19 +71,22 @@ export function runExamples(group: readonly Tool[]): void {
       it(`${t.name} example ${i + 1} replies the same on every surface`, async () => {
         const { cwd, rm } = exampleCwd();
         try {
-          const reg = new Registry(group, { ...memoryStore(), durable: true }), host = nodeHost(cwd), verbose = ex.args.verbose === true;
-          const api = await reg.call(t.name, ex.args, { host });
+          // an edit's surfaces share a request_id (its schema example has none, so no agent copies a fixed key): the first
+          // applies, the others reply the same
+          const args = t.edit && ex.args.request_id === undefined ? { ...ex.args, request_id: `example-${t.name}-${i}` } : ex.args;
+          const reg = new Registry(group, { ...memoryStore(), durable: true }), host = nodeHost(cwd), verbose = args.verbose === true;
+          const api = await reg.call(t.name, args, { host });
           expect(api.status, api.verdict).toBe(ex.expect ?? "ok");
           expect(hintedCalls(api.next).filter((h) => h.problem), api.next).toEqual([]); // each runs as written
           let report = "null", text = "";
-          const code = await runCli(reg, [...commandLine(t, ex.args), "--json"], { print: (x) => void (text += x), write: (_p, x) => void (report = x), host });
+          const code = await runCli(reg, [...commandLine(t, args), "--json"], { print: (x) => void (text += x), write: (_p, x) => void (report = x), host });
           expect([JSON.parse(report), code]).toEqual([api, EXIT[api.status]]);
           expect(text).toBe(`${render(api, { verbose, more: "rerun with --verbose", report: `check-output/${t.name}/report.json` })}\n`);
-          const m = ((await mcpServer(reg, { host }).handle({ jsonrpc: "2.0", id: 1, method: "tools/call", params: { name: mcpName(t.name), arguments: ex.args, _meta: META } })) as { result: Record<string, unknown> }).result;
+          const m = ((await mcpServer(reg, { host }).handle({ jsonrpc: "2.0", id: 1, method: "tools/call", params: { name: mcpName(t.name), arguments: args, _meta: META } })) as { result: Record<string, unknown> }).result;
           expect([m.structuredContent, m.isError]).toEqual([api, api.status === "usage" || api.status === "error"]);
           expect(ajv.validate(replySchema(t.output), m.structuredContent), ajv.errorsText()).toBe(true);
           expect((m.content as { text: string }[])[0]!.text).toBe(render(api, { verbose, more: "call again with verbose: true" }));
-          expect(await (consoleHandle(reg, host)[t.name] as (a: object) => Promise<Reply>)(ex.args)).toEqual(api);
+          expect(await (consoleHandle(reg, host)[t.name] as (a: object) => Promise<Reply>)(args)).toEqual(api);
         } finally {
           rm();
         }

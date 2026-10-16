@@ -49,6 +49,13 @@ describe("the base tools, and an edit, on every surface", () => {
     const reg = new Registry(BASE);
     expect(await reg.call("validate", { text: '{"format":"2.0","id":"DEMO/Bad","dur":0}' })).toMatchObject({ status: "findings", data: { ok: false } });
     expect((await reg.call("validate", { pth: "x" })).error).toMatchObject({ code: "E_ARGS", message: expect.stringMatching(/did you mean "path"/) });
+    const { cwd, rm } = exampleCwd(); // an absolute path is named "the file": no reply echoes one
+    try {
+      const abs = await reg.call("validate", { path: join(cwd, "library/sets/QUATERNIUS_3D2DGE/A_TPose.json") }, { host: nodeHost(cwd) });
+      expect([abs.verdict, JSON.stringify(abs).includes(cwd)]).toEqual(["validate the file: PASS, 0 errors, 0 warnings", false]);
+    } finally {
+      rm();
+    }
   });
 });
 
@@ -160,6 +167,10 @@ describe("the Node host", () => {
       utimesSync(join(dir, file!), 1, 1); // "a" the oldest
       store.set("d", rec(4));
       expect([store.get("a"), store.get("d"), readdirSync(dir).length]).toEqual([undefined, rec(4), 3]);
+      const gone = spawnSync(process.execPath, ["-e", ""]).pid; // a killed write's temporary file is swept once its process is gone
+      for (const pid of [gone, process.pid]) writeFileSync(join(dir, `x.json.${pid}.tmp`), "{");
+      store.set("e", rec(5));
+      expect(readdirSync(dir).filter((f) => f.endsWith(".tmp"))).toEqual([`x.json.${process.pid}.tmp`]);
       symlinkSync(join(cwd, ".m3a"), join(other.cwd, ".m3a")); // records reached through a link out read as missing
       expect(fileStore(other.cwd).get("d")).toBeUndefined();
     } finally {

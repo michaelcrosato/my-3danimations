@@ -11,8 +11,11 @@ import { checkGame, checkSets, credited, creditsBlock, tierOf, TIERS, type Credi
 import { defineTool, ToolError, type ToolContext } from "../registry/registry.ts";
 import { didYouMean, quote } from "../registry/schema.ts";
 import { absolute, fits, libraryClips, namedBy, parts, readClip, suggestId } from "./clips.ts";
-import { call, capped, count, ROW_CHARS } from "./common.ts";
+import { call, capped, count, more, output, ROW_CHARS } from "./common.ts";
 
+/** A given name as a finding echoes it (D92): as given when it is a plain id or path of at most 60 characters, else
+ *  JSON-quoted and cut to 60, so no control character in it starts a line of its own. */
+const echo = (x: string): string => (/^[\w./-]{1,60}$/.test(x) ? x : quote(x));
 /** A clips list as license.check takes one: a clip or more, none blank. */
 const listed = (c: unknown): boolean => Array.isArray(c) && c.length > 0 && c.every((x) => typeof x === "string" && x.trim() !== "");
 
@@ -22,9 +25,9 @@ const listed = (c: unknown): boolean => Array.isArray(c) && c.length > 0 && c.ev
  *  (clips.ts's `home`), with that set's tier (null when it is no library set). */
 async function originsOf(ctx: ToolContext, given: string): Promise<{ label: string; ids: string[]; clip: Clip | null; set: string; tier: Tier | null }> {
   const id = given.trim();
-  if (!id.startsWith("{") && !/\.json$/i.test(id) && !id.startsWith("WORKSHOP/")) return { label: id, ids: [id], clip: null, set: id, tier: null };
+  if (!id.startsWith("{") && !/\.json$/i.test(id) && !id.startsWith("WORKSHOP/")) return { label: echo(id), ids: [id], clip: null, set: id, tier: null };
   const r = await readClip(ctx, id), ids = libraryClips(ctx.library(), [r.origin, ...namedBy(r.clip), r.clip.id]);
-  return { label: id.startsWith("{") || absolute(id) ? r.clip.id : id, ids, clip: r.clip, set: r.home, tier: r.tier };
+  return { label: echo(id.startsWith("{") || absolute(id) ? r.clip.id : id), ids, clip: r.clip, set: r.home, tier: r.tier };
 }
 
 /** game.json's clips and ships, and whether there is one (the host reads its tiers, and refuses a file that isn't a JSON
@@ -50,6 +53,7 @@ export const licenseCheck = defineTool<{ clips?: string[]; tiers?: Tier[]; ships
       set: { type: "string", description: 'or "library"' },
     },
   },
+  output: output({ ok: "boolean", fails: "integer", warns: "integer", findings: "array", credits: "array", block: "string" }),
   examples: [{ args: { clips: ["STYLE100/Akimbo_Walk"], tiers: ["cc0", "cc-by"] } }],
   async run(a, ctx) {
     if (a.set !== undefined && a.clips) throw new ToolError("E_ARGS", "give clips or set, not both: license.check one, then the other", true);
@@ -70,7 +74,7 @@ export const licenseCheck = defineTool<{ clips?: string[]; tiers?: Tier[]; ships
       for (const s of a.set === "library" ? src.sets() : [a.set]) seen.add(lib.library.about(s).tier);
       [r, what] = [checkSets(src, a.set === "library" ? src.sets().sort() : [a.set], lib.licenseText), a.set === "library" ? "the library" : `set ${a.set}`];
     } else {
-      const ids: string[] = [], creditOf = (id: string) => (JSON.parse(src.read(id.split("/")[0]!, `${id.split("/")[1]}.json`)) as Clip).provenance.credit;
+      const ids: string[] = [], made = (id: string) => (JSON.parse(src.read(id.split("/")[0]!, `${id.split("/")[1]}.json`)) as Clip).provenance;
       for (const [i, raw] of (clips ?? []).entries()) {
         const given = raw.trim(), file = !given.startsWith("{") && /\.json$/i.test(given), hide = file && absolute(given);
         let o: Awaited<ReturnType<typeof originsOf>>;
@@ -80,10 +84,10 @@ export const licenseCheck = defineTool<{ clips?: string[]; tiers?: Tier[]; ships
         } catch (err) {
           // one that won't load is a finding, so one check reports every problem; a path out of the working directory is refused
           if (!(err instanceof ToolError) || err.code === "E_PATH") throw err;
-          fail(given.startsWith("{") ? "the clip JSON" : hide ? "the clip file" : given, hide ? err.message.replaceAll(quote(given), "it") : err.message, i);
+          fail(given.startsWith("{") ? "the clip JSON" : hide ? "the clip file" : echo(given), hide ? err.message.replaceAll(quote(given), "it") : err.message, i);
           continue;
         }
-        for (const id of o.ids) labels.set(id, [...(labels.get(id) ?? []), { label: o.label === id ? id : `${o.label} (from ${id})`, i }]);
+        for (const id of o.ids) labels.set(id, [...(labels.get(id) ?? []), { label: o.label === echo(id) ? o.label : `${o.label} (from ${echo(id)})`, i }]);
         ids.push(...o.ids);
         const named = new Set(o.ids.map((id) => id.split("/")[0]!).filter((s) => src.sets().includes(s)).map((s) => lib.library.about(s).tier));
         for (const t of named) seen.add(t);
@@ -97,10 +101,10 @@ export const licenseCheck = defineTool<{ clips?: string[]; tiers?: Tier[]; ships
           fail(o.label, tierOf(x) === "local" && ships ? `its license ${x} fits no tier a shipped game may opt into (D10): replace the clip, or set ships: false` : `its license ${x} needs the ${tierOf(x)} tier and ${at}: opt in, or use a clip from those tiers`, i);
         }
         // its credit line's parts (compile joins its inputs' with "; ") that no library clip it names carries are its own to
-        // credit; a credited part no named library clip's set answers for, with no such credit, fails
-        const owed = [...new Set(parts(p.license).filter((x) => credited(tierOf(x))))].sort(), theirs = new Set(o.ids.map(creditOf));
+        // credit; a credited license part that no named library clip carries, with no such credit, fails
+        const owed = [...new Set(parts(p.license).filter((x) => credited(tierOf(x))))].sort(), theirs = new Set(o.ids.map((id) => made(id).credit));
         const credit = owed.length ? (p.credit ?? "").split("; ").filter((c) => c.trim() && !theirs.has(c)).join("; ") : "", had = mine.find((c) => c.credit === credit);
-        const bare = owed.filter((x) => !named.has(tierOf(x)));
+        const carried = new Set(o.ids.flatMap((id) => parts(made(id).license))), bare = owed.filter((x) => !carried.has(x));
         if (!credit && bare.length) fail(o.label, `its license ${bare.join(" and ")} needs a credit line (provenance.credit): add the attribution`, i);
         if (credit && had) Object.assign(had, { title: `${had.title}, ${o.clip.name}`, licenses: [...new Set([...had.licenses, ...owed])].sort(), clips: had.clips + 1 });
         else if (credit) mine.push({ set: o.label, title: o.clip.name, tier: tierOf(owed[0]!), licenses: owed, credit, clips: 1 });
@@ -113,8 +117,9 @@ export const licenseCheck = defineTool<{ clips?: string[]; tiers?: Tier[]; ships
     }
     // each clip's findings named as it was given, with the library clip it stands for, in the order given
     const all = [...own, ...r.findings.map((f) => {
-      const l = labels.get(f.where)?.shift(), near = /^no clip /.test(f.message) ? suggestId(lib, f.where) : undefined;
-      return { ...f, where: l?.label ?? f.where, message: near ? `${f.message}; did you mean ${quote(near)}?` : f.message, i: l?.i ?? end };
+      // the library writes a given id as it was, in quotes: quoted again as a finding echoes it
+      const l = labels.get(f.where)?.shift(), near = /^no clip /.test(f.message) ? suggestId(lib, f.where) : undefined, message = f.message.split(`"${f.where}"`).join(quote(f.where));
+      return { ...f, where: l?.label ?? echo(f.where), message: near ? `${message}; did you mean ${quote(near)}?` : message, i: l?.i ?? end };
     })].sort((x, y) => x.i - y.i).map(({ i: _, ...f }) => f);
     // the same call, to make again (one past a row's length, as JSON clips make it, is named so)
     const same = call("license.check", [], { clips: a.clips, tiers: a.tiers, ships: a.ships, set: a.set }), again = same.length > ROW_CHARS ? "the same license.check" : same;
@@ -124,7 +129,7 @@ export const licenseCheck = defineTool<{ clips?: string[]; tiers?: Tier[]; ships
     return {
       verdict: `license.check ${what} (${a.set === "library" ? "every tier" : `tiers ${tiers.join(", ")}`}): ${ok ? `PASS, ${count(credits.length, "credit")} owed` : `FAIL, ${fails} failing`}${warns ? `, ${count(warns, "open question")}` : ""}`,
       data: { ok, fails, warns, findings: shown.rows, ...(shown.more ? { more: shown.more } : {}), credits, block },
-      lines: [...shown.rows.map((f) => `${f.level} ${f.where}: ${f.message}`), ...(shown.more ? [`more: ${shown.more}`] : []), ...block.split("\n")],
+      lines: [...shown.rows.map((f) => `${f.level} ${f.where}: ${f.message}`), ...more(shown.more, "finding"), ...block.split("\n")],
       findings: !ok,
       next: ok ? `put the credits block in the game's credits; ${again} again when its clips change` : `fix each failing line as it says (each names its fix), then ${again} again`,
     };

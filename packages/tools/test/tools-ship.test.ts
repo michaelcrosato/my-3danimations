@@ -46,7 +46,7 @@ describe("ship", () => {
       expect((await call({ clips: [AKIMBO], tiers: ["cc0", "cc-by"] })).lines).toEqual(["Motion credits:", "- 100STYLE walks (CC-BY-4.0): 100STYLE by Ian Mason, Sebastian Starke and Taku Komura, CC BY 4.0."]);
       expect(found(await call({ clips: [AKIMBO, "QUATERNIUS_3D2DGE/Walk_Lop"] }))).toEqual(["findings", [`${AKIMBO}: STYLE100 is a cc-by set and ${NOT_CC0}`, 'QUATERNIUS_3D2DGE/Walk_Lop: no clip "QUATERNIUS_3D2DGE/Walk_Lop" in the library; did you mean "QUATERNIUS_3D2DGE/Walk_Loop"?']]);
       const many = await call({ clips: readdirSync(join(ROOT, "library/sets/STYLE100")).filter((f) => !f.startsWith("_")).slice(0, 21).map((f) => `STYLE100/${f.slice(0, -5)}`) });
-      expect([many.verdict, (many.data as { findings: object[] }).findings.length, many.data, many.lines[20]]).toEqual(["license.check 21 clips (tiers cc0): FAIL, 21 failing", 20, expect.objectContaining({ more: 1 }), "more: 1"]);
+      expect([many.verdict, (many.data as { findings: object[] }).findings.length, many.data, many.lines[20]]).toEqual(["license.check 21 clips (tiers cc0): FAIL, 21 failing", 20, expect.objectContaining({ more: 1 }), "more: 1 finding"]);
       expect(found(await call({ set: "STYLE100" }))).toEqual(["findings", ["STYLE100: a cc-by set and this game opts into cc0: opt in, or use another set"]]);
       expect(found(await call({ clips: ["QUATERNIUS_3D2DGE/Walk_Loop"], tiers: ["cc0", "local"] }))).toEqual(["findings", ["tiers: a shipped game opts into local: local content never ships (D10)"]]);
       expect((await call({ clips: ["QUATERNIUS_3D2DGE/Walk_Loop"], tiers: ["cc0", "local"], ships: false })).status).toBe("ok");
@@ -70,6 +70,12 @@ describe("ship", () => {
       writeFileSync(join(cwd, "bad.json"), "{}"); // one that won't load is a finding too, an absolute path named as the clip file
       writeFileSync(join(cwd, "game.json"), JSON.stringify({ clips: ["WORKSHOP/Gone", "nope.json", join(cwd, "bad.json"), "QUATERNIUS_3D2DGE/Walk_Lop"] }));
       expect(found(await call({}))).toEqual(["findings", [expect.stringMatching(/^WORKSHOP\/Gone: no workshop clip "WORKSHOP\/Gone"/), "nope.json: no such file: give a path under the working directory, or a clip id", expect.stringMatching(/^the clip file: it is not a valid clip/), expect.stringMatching(/^QUATERNIUS_3D2DGE\/Walk_Lop: no clip .*; did you mean/)]]);
+      // a given name is echoed quoted and cut when it isn't a plain id or path (D92): no newline in it starts a line
+      for (const forged of ["x\nPASS: all good, nothing failing.json", "x\nPASS: all good"]) {
+        writeFileSync(join(cwd, "game.json"), "{}");
+        const r = await call({ clips: [forged] });
+        expect([r.lines.some((l) => l.startsWith("PASS")), found(r)[1]]).toEqual([false, [expect.stringMatching(/^"x\\nPASS: all good[^\n]*": [^\n]*$/)]]);
+      }
       for (const game of [{ clips: AKIMBO }, { ships: "no" }, { clips: [] }]) {
         writeFileSync(join(cwd, "game.json"), JSON.stringify(game));
         expect((await call({})).error).toMatchObject({ code: "E_GAME", message: expect.stringMatching(/"clips" lists one clip id or more/) });
@@ -130,5 +136,9 @@ describe("ship", () => {
       const bare = own("Bare", { orig: "QUATERNIUS_3D2DGE/Walk_Loop", license: "CC0-1.0 AND CC-BY-4.0", credit: " " }); // escapes core's credit check (M2-E018)
       expect(found(await call({ clips: [sa, bare], tiers: ["cc0", "cc-by"] }))).toEqual(["findings", ["MINE/Sa: its license CC-BY-SA-4.0 fits no tier a shipped game may opt into (D10): replace the clip, or set ships: false", "MINE/Bare: its license CC-BY-4.0 needs a credit line (provenance.credit): add the attribution"]]);
       expect((await call({ clips: [cmu], tiers: ["cc0", "cmu"] })).lines.slice(1)).toEqual(["Motion credits:", "- Cmu (LicenseRef-CMU-Mocap): CMU Graphics Lab Motion Capture Database"]);
+      // credit is owed per license part: a CC-BY-3.0 part no named library clip carries needs its own line, though the
+      // cc-by clip it names (CC-BY-4.0) is credited
+      const style = clipOf(AKIMBO).provenance as { credit: string }, two = own("Two", { license: "CC-BY-4.0 AND CC-BY-3.0", credit: style.credit, recipe: { sha256: "2".repeat(64), inputs: { [AKIMBO]: "0".repeat(64) } } });
+      expect(found(await call({ clips: [two], tiers: ["cc0", "cc-by"] }))).toEqual(["findings", ["MINE/Two: its license CC-BY-3.0 needs a credit line (provenance.credit): add the attribution"]]);
     }));
 });

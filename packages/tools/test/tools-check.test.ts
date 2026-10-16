@@ -61,7 +61,7 @@ describe("the check tools", () => {
     expect(hintedCalls(spaced.next)).toEqual(["lint", "sheet"].map((tool) => ({ call: `${tool} 'my walk.json'`, tool, args: { clip: "my walk.json" } })));
     expect((await call("metrics", { clip: `${Q}Walk_Lop` })).error).toEqual({ code: "E_NO_CLIP", message: `no clip "${Q}Walk_Lop"; did you mean "${Q}Walk_Loop"?` });
     const r = await call("metrics", { clip: `${Q}Walk_Loop`, limit: 1 });
-    expect([r.status, (r.data!.findings as unknown[]).length, r.data!.more, r.lines.filter((l) => l.startsWith("more: 3"))]).toEqual(["findings", 1, 3, ["more: 3 (the first 1 shown)"]]);
+    expect([r.status, (r.data!.findings as unknown[]).length, r.data!.more, r.lines.filter((l) => l.startsWith("more: 3"))]).toEqual(["findings", 1, 3, [`more: 3 findings (\`metrics ${Q}Walk_Loop --limit 4\` lists them)`]]);
     expect((await call("metrics", { clip: `${Q}Walk_Loop`, limit: 0 })).error).toEqual({ code: "E_ARGS", message: "limit is 0, below its minimum 1" });
   });
 
@@ -131,15 +131,18 @@ describe("the check tools", () => {
     expect((await call("diff", { a: JSON.stringify({ ...death, loop: true }), b: `${Q}Death01` })).verdict).toMatch(/^diff QUATERNIUS_3D2DGE\/Death01 \(a's JSON\) → QUATERNIUS_3D2DGE\/Death01: the same poses;/);
     // the head turned 10° on every other key: ten intervals over 5 mm, five shown
     const walk = clipFile("Walk_Loop"), nod = { ...walk, keys: walk.keys.map((k, i) => (i % 2 ? { ...k, head: [k.head![0]! + 10, k.head![1]!, k.head![2]!] } : k)) };
-    expect(await call("diff", { a: `${Q}Walk_Loop`, b: JSON.stringify(nod) })).toMatchObject({ data: { pose: { over: { length: 5 }, more: 5 } }, lines: expect.arrayContaining(["more: 5 (the first 5 shown)"]) });
+    expect(await call("diff", { a: `${Q}Walk_Loop`, b: JSON.stringify(nod) })).toMatchObject({ data: { pose: { over: { length: 5 }, more: 5 } }, lines: expect.arrayContaining(["more: 5 intervals"]) });
     const better = await call("diff", { a: `${Q}Walk_Loop`, b: serialize(fix(walk, loaded(walk.id).rest).clip) });
     expect([better.status, (better.data!.metrics as { verdict: string[] }).verdict, better.verdict, better.next]).toEqual(["ok", ["fail", "pass"], expect.stringMatching(/^diff QUATERNIUS_3D2DGE\/Walk_Loop → QUATERNIUS_3D2DGE\/Walk_Loop \(b's JSON\): poses differ up to 162 mm/), "open the image: magenta marks what moved; `metrics <b's JSON>` gives b's findings"]);
     expect((await call("diff", { a: `${Q}Walk_Loop`, b: `${Q}Walk_Lop` })).error).toMatchObject({ code: "E_NO_CLIP", message: expect.stringContaining(`did you mean "${Q}Walk_Loop"`) });
+    // two long ids still name an image the file system takes
+    const long = (n: string) => JSON.stringify({ ...walk, id: `MINE/${n.repeat(200)}` }), both = await call("diff", { a: long("A"), b: long("B") });
+    expect([both.status, both.images[0]!.name]).toEqual(["ok", expect.stringMatching(/^MINE_A{75}-[0-9a-f]{12}$/)]);
   });
 
   it("lint: repairs with 3 reasons each, a tag conflict alone, an unanswered metric, refit; nothing to fix; an invalid clip refused", async () => {
     const walk = await call("lint", { clip: `${Q}Walk_Loop` }), repairs = walk.data!.repairs as { op: string; reasons: number; why: string[] }[];
-    expect([walk.status, repairs.map((r) => [r.op, r.reasons, r.why.length]), repairs[0]!.why.every((w) => w.length <= 90), walk.lines.at(-1)]).toEqual(["findings", [["twistFlips", 4, 3]], true, "  more: 1"]);
+    expect([walk.status, repairs.map((r) => [r.op, r.reasons, r.why.length]), repairs[0]!.why.every((w) => w.length <= 90), walk.lines.at(-1)]).toEqual(["findings", [["twistFlips", 4, 3]], true, "  more: 1 reason"]);
     expect(await call("lint", { clip: JSON.stringify({ ...clipFile("Idle_Loop"), tags: ["run"] }) })).toMatchObject({ status: "findings", verdict: `lint ${Q}Idle_Loop (the clip's JSON): tag run doesn't hold`, data: { repairs: [], tags: [{ tag: "run" }] }, next: "`edit <the clip's JSON> --save_as WORKSHOP/<Name> --ops '[{\"op\":\"meta\",\"tags\":[]}]'` drops run; or search for another clip" });
     expect(await call("lint", { clip: TEAPOT }, { tiers: ["cc0", "cc-by"] })).toMatchObject({ status: "ok", verdict: `lint ${TEAPOT}: no repair answers intersection`, data: { repairs: [], unanswered: ["intersection"] }, next: expect.stringMatching(/^no repair answers intersection: search/) });
     expect(await call("lint", { clip: `${Q}Idle_Loop` })).toMatchObject({ status: "ok", verdict: `lint ${Q}Idle_Loop: nothing to fix`, data: { repairs: [], tags: [], unanswered: [] } });
@@ -152,7 +155,7 @@ describe("the check tools", () => {
   it("a clip some of whose findings a repair answers: metrics sends it to lint, lint counts those, sheet flags 10 of 23", async () => {
     const RUSHED = "STYLE100/Rushed_Walk", o = { tiers: ["cc0", "cc-by"] }, [m, l, s] = [await call("metrics", { clip: RUSHED }, o), await call("lint", { clip: RUSHED }, o), await call("sheet", { clip: RUSHED }, o)];
     expect([m.next, l.verdict]).toEqual([`\`lint ${RUSHED}\` names the repairs; \`sheet ${RUSHED}\` shows the findings in red`, `lint ${RUSHED}: fix twistFlips, jitter, penetration, footLocks (17 findings); no repair answers intersection, fit, jointLimit`]);
-    expect([(s.data!.flagged as unknown[]).length, s.data!.more, s.lines.length, s.lines.at(-1)]).toEqual([10, 13, 11, "more: 13 (the first 10 shown)"]);
+    expect([(s.data!.flagged as unknown[]).length, s.data!.more, s.lines.length, s.lines.at(-1)]).toEqual([10, 13, 11, `more: 13 findings (\`metrics ${RUSHED} --limit 23\` lists them)`]);
   });
 
   it("a drawing with no body is E_BLANK, naming the times; other errors pass", () => {

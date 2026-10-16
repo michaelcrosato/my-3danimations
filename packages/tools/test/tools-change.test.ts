@@ -38,6 +38,12 @@ describe("the Change tools", () => {
       expect(refused(await w.call("fix", { clip: "QUATERNIUS_3D2DGE/Walk_Loop", ops: ["jiter"] }))).toEqual(["usage", "E_ARGS", expect.stringMatching(/ops\[0\] is "jiter", not one of .*; did you mean "jitter"\?/)]);
       for (const dry_run of [false, true]) expect(refused(await w.call("fix", { clip: "QUATERNIUS_3D2DGE/Walk_Loop", save_as: "MESH2MOTION/X", dry_run }))).toEqual(["usage", "E_ARGS", expect.stringMatching(/^save_as is "MESH2MOTION\/X": give save_as "WORKSHOP\/<Name>"/)]);
       expect(refused(await w.call("edit", { clip: '{"format":"2.0"}', ops: [{ op: "mirror" }] }))).toEqual(["usage", "E_ARGS", expect.stringMatching(/^the clip names no workshop copy: give save_as/)]);
+      // a name past 100 characters is refused as a wrong call, before any file is written
+      for (const n of [101, 245]) {
+        expect(refused(await w.call("edit", { clip: "QUATERNIUS_3D2DGE/Walk_Loop", save_as: `WORKSHOP/${"A".repeat(n)}`, ops: [{ op: "mirror" }] }))).toEqual(["usage", "E_ARGS", expect.stringMatching(/at most 100 in all\); the library changes only through its writer$/)]);
+        expect(refused(await w.call("edit", { clip: `WORKSHOP/${"A".repeat(n)}`, action: "undo" }))).toEqual(["usage", "E_ARGS", expect.stringMatching(/^"WORKSHOP\/A+\.\.\. is no workshop name: give save_as .*at most 100 in all\)/)]);
+        expect(refused(await w.call("fix", { clip: "QUATERNIUS_3D2DGE/Walk_Loop", save_as: `WORKSHOP/${"A".repeat(n)}`, dry_run: true })).slice(0, 2)).toEqual(["usage", "E_ARGS"]);
+      }
       const ops = async (...list: object[]) => (await w.call("edit", { ...PUNCH, ops: list })).error?.message;
       expect(await ops({ op: "retme", speed: 1.3 })).toBe('ops[0].op: no operation "retme"; did you mean "retime"?');
       expect(await ops({ op: "retime", sped: 1.3 })).toMatch(/; ops\[0\]\.sped: retime has no field "sped"; did you mean "speed"\?$/);
@@ -55,7 +61,7 @@ describe("the Change tools", () => {
       expect(refused(await w.call("edit", { clip: "WORKSHOP/Punch_Left", action: "undo", ops: [] }))).toEqual(["usage", "E_ARGS", "undo takes no ops: it restores the clip as it was"]);
       expect(w.file(CLIP)).toBeNull();
       const saved = await w.call("fix", { clip: "QUATERNIUS_3D2DGE/Walk_Loop" }), text = w.file("workshop/Walk_Loop.json");
-      expect([saved.status, saved.data, saved.lines.filter((l) => l.length > 90 || l.includes("→"))]).toEqual(["ok", expect.objectContaining({ saved: "WORKSHOP/Walk_Loop", after: { verdict: "pass", findings: 0 }, undo: 1 }), []]);
+      expect([saved.status, saved.data, saved.lines.filter((l) => l.length > 90 || l.includes("->"))]).toEqual(["ok", expect.objectContaining({ saved: "WORKSHOP/Walk_Loop", after: { verdict: "pass", findings: 0 }, undo: 1 }), []]); // one arrow, →
       for (const dry_run of [false, true]) expect(refused(await w.call("fix", { clip: "QUATERNIUS_3D2DGE/Walk_Loop", dry_run }))).toEqual(["error", "E_EXISTS", expect.stringMatching(/^WORKSHOP\/Walk_Loop exists at revision [0-9a-f]{12}; change it in place/)]);
       expect(w.file("workshop/Walk_Loop.json")).toBe(text);
       for (const dry_run of [true, false]) {
@@ -71,7 +77,7 @@ describe("the Change tools", () => {
       // its hints name the caller's file, not the library clip inside it
       writeFileSync(join(w.cwd, "walk.json"), readFileSync(join(ROOT, "library/sets/QUATERNIUS_3D2DGE/Walk_Loop.json"), "utf8"));
       const given = await w.call("fix", { clip: "walk.json", ops: ["refit"], dry_run: true });
-      expect([given.verdict, given.next]).toEqual([expect.stringMatching(/^fix walk.json: FAIL -> FAIL .*; nothing changed, nothing saved$/), "`lint walk.json` names what is left; edit reshapes it"]);
+      expect([given.verdict, given.next]).toEqual([expect.stringMatching(/^fix walk.json: FAIL → FAIL .*; nothing changed, nothing saved$/), "`lint walk.json` names what is left; edit reshapes it"]);
       writeFileSync(join(w.cwd, "rev.json"), JSON.stringify(reviewed)); // a review of the motion before the fix is dropped
       expect([(await w.call("fix", { clip: "rev.json" })).data, "review" in JSON.parse(w.file("workshop/rev.json")!)]).toMatchObject([{ saved: "WORKSHOP/rev" }, false]);
       // a workshop file is edited in place by its path, whatever id it holds; a file copy of it keeps its library origin
@@ -80,7 +86,7 @@ describe("the Change tools", () => {
       expect([odd.status, odd.data, mine.data]).toMatchObject(["ok", { from: "QUATERNIUS_3D2DGE/Walk_Loop" }, { clip: "WORKSHOP/mine", from: "QUATERNIUS_3D2DGE/Walk_Loop" }]);
       expect((await w.call("edit", { clip: "./workshop/Odd.json", ops: [{ op: "mirror" }] })).data).toMatchObject({ clip: "WORKSHOP/Odd", undo: 2 });
       const sprint = await w.call("edit", { clip: "QUATERNIUS_3D2DGE/Sprint_Loop", ops: [{ op: "mirror" }] }); // 8 findings, 3 shown
-      expect([sprint.status, sprint.lines.slice(3)]).toEqual(["findings", ["more: 5 findings (metrics WORKSHOP/Sprint_Loop lists them)", 'ops[0] {"op":"mirror"}']]);
+      expect([sprint.status, sprint.lines.slice(3)]).toEqual(["findings", ["more: 5 findings (`metrics WORKSHOP/Sprint_Loop --limit 8` lists them)", 'ops[0] {"op":"mirror"}']]);
       // a fixed clip is no longer its recipe's output: the recipe's hash goes, the origin stays
       await w.call("edit", { clip: "QUATERNIUS_3D2DGE/Walk_Loop", save_as: "WORKSHOP/Slow", ops: [{ op: "retime", speed: 1.2 }] });
       expect([(await w.call("fix", { clip: "WORKSHOP/Slow" })).status, JSON.parse(w.file("workshop/Slow.json")!).provenance]).toEqual(["ok", expect.not.objectContaining({ recipe: expect.anything() })]);
@@ -377,6 +383,9 @@ describe("a retried edit applies once", () => {
         const r = await new Registry(CHANGE).call("edit", other, { host: w.host });
         expect([...refused(r).slice(0, 2), w.file(CLIP)]).toEqual(["usage", "E_REQUEST_ID", text]);
       }
+      // the history keeps its last writes' requests: a retry whose record was lost, after another edit, replies the first
+      const later = await w.call("edit", { clip: "WORKSHOP/Punch_Left", ops: [{ op: "mirror" }], request_id: "c-2" }), first = await new Registry(CHANGE).call("edit", args, { host: w.host });
+      expect([later.status, first.verdict, w.history().undo.length]).toEqual(["ok", expect.stringMatching(/^edit WORKSHOP\/Punch_Left: 2 ops applied: /), 2]);
       await twice("fix", { clip: "QUATERNIUS_3D2DGE/Walk_Loop", request_id: "f-1" });
       await twice("edit", { clip: "WORKSHOP/Walk_Loop", action: "undo", request_id: "f-1" }); // another tool's request_id
       expect([w.file("workshop/Walk_Loop.json"), w.history("Walk_Loop").redo.length]).toEqual([null, 1]);

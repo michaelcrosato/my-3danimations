@@ -10,7 +10,7 @@ import { defineTool, ToolError } from "../registry/registry.ts";
 import { MAX_LINES } from "../registry/reply.ts";
 import { quote } from "../registry/schema.ts";
 import { libraryClips, loadClip, namedBy, naming, parts, tierWarning } from "./clips.ts";
-import { arg, call, capped, CLIP, count, cut, sec } from "./common.ts";
+import { arg, call, capped, CLIP, count, cut, more, output, sec } from "./common.ts";
 
 /** The library search's notes as this tool's hints: its opt-in (`opt in with tiers: [..., "x"]`) as the line to add to
  *  game.json, and its "raise limit" as the call that does (`again`). */
@@ -22,6 +22,7 @@ export const search = defineTool<{ query: string; limit: number }, unknown>({
   name: "search",
   description: "Library clips for a game moment in words and filters (loop, once, dur<2, speed>1.5, tag:x, set:X), best first.",
   params: { type: "object", properties: { query: { type: "string", description: '"" lists the core clips' }, limit: { type: "integer", minimum: 1, maximum: 40, default: 10 } }, required: ["query"] },
+  output: output({ tiers: "array", total: "integer", rows: "array" }),
   positionals: ["query"],
   examples: [{ args: { query: "drinks a potion" } }],
   run(a, ctx) {
@@ -52,6 +53,10 @@ export const show = defineTool<{ clip: string; from: number; legend: boolean }, 
   name: "show",
   description: "A clip's keys as text from time `from` (5 per reply), with source, license, fit, speed and strike; legend: true explains the numbers.",
   params: { type: "object", properties: { clip: CLIP, from: { type: "number", minimum: 0, default: 0 }, legend: { type: "boolean", default: false } }, required: ["clip"] },
+  output: output({
+    clip: "string", set: "string", tier: "string?", dur: "number", loop: "boolean", fps: "number", keys: "integer", from: "number", first: "integer", tags: "array", desc: "string",
+    facts: "object?", speed: "number?", fit: "array", qa: "string", credit: "string?", legend: "object?", source: "object", text: "string?",
+  }),
   positionals: ["clip"],
   examples: [{ args: { clip: "QUATERNIUS_3D2DGE/Sword_Attack", from: 0.4 } }],
   async run(a, ctx) {
@@ -83,7 +88,7 @@ export const show = defineTool<{ clip: string; from: number; legend: boolean }, 
     return {
       verdict: `show ${title}: ${legend ? "the legend of its keys' numbers" : `${sec(c.dur)} ${c.loop ? "loop" : "once"}, ${c.fps} fps, keys ${first + 1}-${first + shown} of ${n} from ${sec(c.keys[first]!.t)}`}`,
       data: {
-        id: ref.id, set: ref.set, tier: ref.tier, dur: c.dur, loop: c.loop, fps: c.fps, keys: n, from: c.keys[first]!.t, first: first + 1, tags: c.tags, desc: c.desc,
+        clip: ref.id, set: ref.set, tier: ref.tier, dur: c.dur, loop: c.loop, fps: c.fps, keys: n, from: c.keys[first]!.t, first: first + 1, tags: c.tags, desc: c.desc,
         facts: c.facts ?? null, speed, fit: c.quality.fit, qa: c.quality.qa, credit, legend: legend && { version: c.legend, text: legend },
         source: { src: p.src, label: src?.label ?? null, origin: src?.origin ?? null, license: p.license, url: src?.url ?? null, method: p.method, ...(p.take ? { take: p.take } : {}) },
         text: legend ? null : format.keyLens({ ...c, keys: c.keys.slice(first, first + shown).map((k) => ({ ...k })) }),
@@ -101,17 +106,18 @@ export const describe = defineTool<{ clip: string; detail: boolean }, unknown>({
   name: "describe",
   description: "A clip as a short timeline: phases (stand, walk, run, crouch, sit, lie, air), landings, strikes, travel.",
   params: { type: "object", properties: { clip: CLIP, detail: { type: "boolean", default: false } }, required: ["clip"] },
+  output: output({ clip: "string", phases: "array", moments: "array", travel: "array", text: "string" }),
   positionals: ["clip"],
   examples: [{ args: { clip: "QUATERNIUS_3D2DGE/Jump_Land" } }],
   async run(a, ctx) {
     const ref = await loadClip(ctx, a.clip), d = timeline(ref.clip, ref.rest, { detail: a.detail }), { as, title } = naming(ref);
-    const phases = capped(d.phases, 20), moments = capped(d.moments, 20), more = (phases.more ?? 0) + (moments.more ?? 0);
+    const phases = capped(d.phases, 20), moments = capped(d.moments, 20), left = (phases.more ?? 0) + (moments.more ?? 0);
     const at = d.moments.find((m) => m.name === "strike" || m.name === "land"), key = at && ref.clip.keys.findLast((k) => k.t <= at.t + 1e-6);
     return {
       verdict: `describe ${title}: ${d.text}`,
-      data: { ...d, phases: phases.rows, moments: moments.rows, ...(more ? { more } : {}) },
+      data: { ...d, phases: phases.rows, moments: moments.rows, ...(left ? { more: left } : {}) },
       // each time as the tools write one (3 decimals): a moment's text without the sensors' own " at 0.42 s"
-      lines: a.detail ? [...phases.rows.map((p) => `${p.t0.toFixed(3)}-${sec(p.t1)} ${p.name}${p.detail ? `: ${p.detail}` : ""}`), ...moments.rows.map((m) => `${sec(m.t)} ${m.text.replace(/ at [\d.]+ s$/, "")}`), ...(more ? [`more: ${more}`] : [])] : [],
+      lines: a.detail ? [...phases.rows.map((p) => `${p.t0.toFixed(3)}-${sec(p.t1)} ${p.name}${p.detail ? `: ${p.detail}` : ""}`), ...moments.rows.map((m) => `${sec(m.t)} ${m.text.replace(/ at [\d.]+ s$/, "")}`), ...more(left, "phase or moment", undefined, "phases and moments")] : [],
       next: `${call("show", [as], at && key ? { from: key.t } : {})} reads ${at && key ? `the keys at its ${at.name}` : "its keys"}; ${call("sheet", [as])} draws it`,
     };
   },

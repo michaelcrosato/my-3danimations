@@ -11,7 +11,7 @@ import { defineTool, ToolError, type ToolContext } from "../registry/registry.ts
 import { imageTokens } from "../registry/reply.ts";
 import { strip } from "../sim/film.ts";
 import { loadClip, naming } from "./clips.ts";
-import { call, capped, CLIP, count, cut, mm, round, sec } from "./common.ts";
+import { ARROW, call, capped, CLIP, count, cut, imageName, mm, more, output, round, sec } from "./common.ts";
 
 const RANK = { pass: 0, warn: 1, fail: 2 } as const;
 /** Seconds either side of film's moment. */
@@ -21,8 +21,6 @@ const OVER = 5;
 
 /** A time span with 3 decimals: "0.367–0.433 s". */
 const span = (t0: number, t1: number) => `${round(t0, 3).toFixed(3)}–${sec(t1)}`;
-/** "more: n" for a capped list, naming its cap. */
-const more = (n: number | undefined, cap: number): string[] => (n ? [`more: ${n} (the first ${cap} shown)`] : []);
 /** A finding as a row: its times to 3 decimals, its value with its unit, its message cut to a row's 90 characters. */
 const row = (f: checks.Finding) => ({
   metric: f.metric, level: f.level, t0: round(f.t0, 3), t1: round(f.t1, 3), value: round(f.value, 2), unit: f.unit, where: f.where ?? null, message: cut(f.message),
@@ -88,6 +86,7 @@ export const metrics = defineTool<{ clip: string; limit: number }, unknown>({
   name: "metrics",
   description: "Measure a clip with the sensors: pass, warn or fail, each finding with its time, body part and repair.",
   params: { type: "object", properties: { clip: CLIP, limit: { type: "integer", minimum: 1, maximum: 50, default: 10 } }, required: ["clip"] },
+  output: output({ clip: "string", tier: "string?", verdict: "string", dur: "number", loop: "boolean", profiles: "array", off: "array", values: "object", findings: "array", total: "integer", recorded: "object" }),
   positionals: ["clip"],
   examples: [{ args: { clip: "QUATERNIUS_3D2DGE/Walk_Loop" }, expect: "findings" }],
   async run(a, ctx) {
@@ -101,7 +100,7 @@ export const metrics = defineTool<{ clip: string; limit: number }, unknown>({
         clip: c.id, tier: c.tier, verdict: r.verdict, dur: r.dur, loop: r.loop, profiles: r.profiles, off: r.off, values,
         findings: shown.rows.map(row), ...(shown.more ? { more: shown.more } : {}), total: r.findings.length, recorded: { qa: q.qa, qaVersion: q.qaVersion, current, agrees },
       },
-      lines: [...shown.rows.map((f) => `${f.level.toUpperCase()} ${f.metric}: ${f.message}`), ...more(shown.more, a.limit), `recorded: ${q.qa} with ${q.qaVersion}${held}`],
+      lines: [...shown.rows.map((f) => `${f.level.toUpperCase()} ${f.metric}: ${f.message}`), ...more(shown.more, "finding", `${call("metrics", [c.as], { limit: Math.min(50, r.findings.length) })} lists them`), `recorded: ${q.qa} with ${q.qaVersion}${held}`],
       findings: r.verdict === "fail",
       next: !r.findings.length
         ? `the clip measures clean; ${call("sheet", [c.as])} to look at it`
@@ -120,19 +119,20 @@ export const sheet = defineTool<{ clip: string; frames: number; view: raster.Vie
     properties: { clip: CLIP, frames: { type: "integer", minimum: 1, maximum: 64, default: 8 }, view: { type: "string", enum: Object.keys(raster.VIEWS), default: "three-quarter" } },
     required: ["clip"],
   },
+  output: output({ clip: "string", view: "string", frames: "integer", from: "number", to: "number", width: "integer", height: "integer", tokens: "integer", image: "string", flagged: "array" }),
   positionals: ["clip"],
   examples: [{ args: { clip: "QUATERNIUS_3D2DGE/Walk_Loop", frames: 8 } }],
   async run(a, ctx) {
     const c = await load(ctx, a.clip), r = measure(c.clip, c.rest);
     const s = drawn(() => sheets.sheet(c.clip, c.rest, { frames: a.frames, view: a.view, width: cells(a.frames), flags: r.findings.map((f) => ({ t0: f.t0, t1: f.t1, label: f.metric })) }));
-    const image = ctx.image(c.id, s.image), tokens = imageTokens(s.width, s.height), red = capped(r.findings, 10);
+    const image = ctx.image(imageName(c.id), s.image), tokens = imageTokens(s.width, s.height), red = capped(r.findings, 10);
     return {
       verdict: `sheet ${c.title}: ${count(s.times.length, "frame")} ${span(s.times[0]!, s.times.at(-1)!)}, ${s.width}x${s.height}, ~${tokens} tokens, ${count(r.findings.length, "finding")} in red`,
       data: {
         clip: c.id, view: a.view, frames: s.times.length, from: round(s.times[0]!, 3), to: round(s.times.at(-1)!, 3), width: s.width, height: s.height, tokens, image,
         flagged: red.rows.map((f) => ({ metric: f.metric, level: f.level, t0: round(f.t0, 3), t1: round(f.t1, 3) })), ...(red.more ? { more: red.more } : {}),
       },
-      lines: [...red.rows.map((f) => `red: ${f.metric}${f.where ? ` ${f.where}` : ""} ${span(f.t0, f.t1)} (${f.level})`), ...more(red.more, 10)],
+      lines: [...red.rows.map((f) => `red: ${f.metric}${f.where ? ` ${f.where}` : ""} ${span(f.t0, f.t1)} (${f.level})`), ...more(red.more, "finding", `${call("metrics", [c.as], { limit: Math.min(50, r.findings.length) })} lists them`)],
       next: `open the image: red cells are the findings; ${call("metrics", [c.as])} gives the numbers, ${call("film", [c.as])} shows it moving`,
     };
   },
@@ -147,6 +147,7 @@ export const film = defineTool<{ clip: string; frames: number; around?: number }
     properties: { clip: CLIP, frames: { type: "integer", minimum: 1, maximum: 16, default: 8 }, around: { type: "number", minimum: 0, description: "seconds" } },
     required: ["clip"],
   },
+  output: output({ clip: "string", frames: "integer", times: "array", strike: "number?", marks: "array", travel: "array", width: "integer", height: "integer", tokens: "integer", image: "string" }),
   positionals: ["clip"],
   examples: [{ args: { clip: "QUATERNIUS_3D2DGE/Punch_Jab", around: 0.147 } }],
   async run(a, ctx) {
@@ -162,7 +163,7 @@ export const film = defineTool<{ clip: string; frames: number; around?: number }
       .map((m) => ({ t: round(m.t, 3), name: m.name, frame: nearest(m.t) }));
     const named = (i: number) => marks.filter((m) => m.frame === i).map((m) => m.name), labels = times.map((t, i) => [`${t.toFixed(2)} S`, ...named(i)].join(" ").toUpperCase());
     const img = strip(times.map((t) => poseAt(clip, t, rest)), times.map((t) => rootMm(clip, t, rest)), labels, Math.min(160, Math.floor((1568 - 2 * (n - 1)) / n)));
-    const image = ctx.image(c.id, img), tokens = imageTokens(img.width, img.height), went = travel(clip, rest);
+    const image = ctx.image(imageName(c.id), img), tokens = imageTokens(img.width, img.height), went = travel(clip, rest);
     const at3 = times.map((t, i) => `${round(t, 3).toFixed(3)}${named(i).length ? ` (${named(i).join(", ")})` : ""}`);
     return {
       verdict: `film ${c.title}: ${count(times.length, "frame")} ${span(times[0]!, times.at(-1)!)}${strike === null ? "" : `, strike at ${sec(strike)}`}, ` +
@@ -186,21 +187,22 @@ export const diff = defineTool<{ a: string; b: string; frames: number }, unknown
   name: "diff",
   description: "Compare two clips: pose distance, travel, both verdicts and a PNG of what moved; findings when b is worse.",
   params: { type: "object", properties: { a: CLIP, b: CLIP, frames: { type: "integer", minimum: 1, maximum: 32, default: 6 } }, required: ["a", "b"] },
+  output: output({ a: "string", b: "string", rest: "string", dur: "array", pose: "object", travel: "object", metrics: "object", worse: "array", pixels: "object", image: "string" }),
   positionals: ["a", "b"],
   examples: [{ args: { a: "QUATERNIUS_3D2DGE/Punch_Jab", b: "QUATERNIUS_3D2DGE/Punch_Cross" } }],
   async run(x, ctx) {
     const A = await load(ctx, x.a, "a's"), B = await load(ctx, x.b, "b's"), R = A.rest, mb = checks.motionOf(B.clip, B.rest), ra = measure(A.clip, A.rest), rb = checks.measure(mb);
     const pose = poseDiff(A.clip, B.clip, R), d = drawn(() => sheets.compareClips(A.clip, B.clip, R, { frames: x.frames, width: cells(x.frames) }));
-    const image = ctx.image(`${A.id}-vs-${B.id}`, d.image), over = capped(pose.over, 5), [va, vb] = [ra.verdict, rb.verdict];
-    const worse = RANK[vb] > RANK[va] || rb.findings.length > ra.findings.length ? [...(RANK[vb] > RANK[va] ? [`verdict ${va} → ${vb}`] : []), ...fixes.worse(mb, ra, rb)] : [];
+    const image = ctx.image(imageName(`${A.id}-vs-${B.id}`), d.image), over = capped(pose.over, 5), [va, vb] = [ra.verdict, rb.verdict];
+    const worse = RANK[vb] > RANK[va] || rb.findings.length > ra.findings.length ? [...(RANK[vb] > RANK[va] ? [`verdict ${va} ${ARROW} ${vb}`] : []), ...fixes.worse(mb, ra, rb)] : [];
     const keys = checks.METRICS.filter((k) => !ra.off.includes(k) && !rb.off.includes(k) && round(ra.values[k], 1) !== round(rb.values[k], 1));
     const by = (k: checks.MetricName) => Math.abs(rb.values[k] - ra.values[k]) / checks.THRESHOLDS[k].fail;
     const moved = capped(keys.map((k) => ({ metric: k, a: round(ra.values[k], 1), b: round(rb.values[k], 1), by: by(k) })).sort((p, q) => q.by - p.by), 8);
     const same = pose.max === 0 && d.changed === 0, went = { a: travel(A.clip, A.rest), b: travel(B.clip, B.rest) }, shorter = sec(Math.min(A.clip.dur, B.clip.dur));
     const parted = same ? "no difference" : pose.max ? `poses differ up to ${mm(pose.max)} (${pose.point} at ${sec(pose.at)})` : "the same poses";
-    const verdicts = `${va.toUpperCase()} → ${vb.toUpperCase()} (${ra.findings.length} → ${count(rb.findings.length, "finding")})`;
+    const verdicts = `${va.toUpperCase()} ${ARROW} ${vb.toUpperCase()} (${ra.findings.length} ${ARROW} ${count(rb.findings.length, "finding")})`;
     return {
-      verdict: `diff ${A.title} → ${B.title}: ${parted}; ${verdicts}${worse.length ? "; b is worse" : ""}`,
+      verdict: `diff ${A.title} ${ARROW} ${B.title}: ${parted}; ${verdicts}${worse.length ? "; b is worse" : ""}`,
       data: {
         a: A.id, b: B.id, rest: `${A.clip.restSrc} (a's)`, dur: [A.clip.dur, B.clip.dur], pose: { ...pose, over: over.rows, ...(over.more ? { more: over.more } : {}) }, travel: went,
         metrics: { verdict: [va, vb], findings: [ra.findings.length, rb.findings.length], changed: moved.rows.map(({ by: _, ...m }) => m), ...(moved.more ? { more: moved.more } : {}) },
@@ -212,10 +214,10 @@ export const diff = defineTool<{ a: string; b: string; frames: number }, unknown
         ...(A.clip.dur === B.clip.dur
           ? []
           : [`the image compares by phase (frame i of n at i/n of each clip) with two cameras, so pixels.changed counts the floor too; the poses by time over the shorter ${shorter}`]),
-        ...(over.rows.length ? [`poses over ${OVER} mm apart: ${over.rows.map(([p, q]) => span(p, q)).join(", ")}`, ...more(over.more, 5)] : []),
-        ...moved.rows.map((m) => `${m.metric} ${m.a} → ${m.b}`),
-        ...more(moved.more, 8),
-        ...([...went.a, ...went.b].some((v) => v !== 0) ? [`travel ${went.a.map(mm).join(", ")} → ${went.b.map(mm).join(", ")} (forward, right)`] : []),
+        ...(over.rows.length ? [`poses over ${OVER} mm apart: ${over.rows.map(([p, q]) => span(p, q)).join(", ")}`, ...more(over.more, "interval")] : []),
+        ...moved.rows.map((m) => `${m.metric} ${m.a} ${ARROW} ${m.b}`),
+        ...more(moved.more, "metric"),
+        ...([...went.a, ...went.b].some((v) => v !== 0) ? [`travel ${went.a.map(mm).join(", ")} ${ARROW} ${went.b.map(mm).join(", ")} (forward, right)`] : []),
       ],
       findings: worse.length > 0,
       next: worse.length ? `b is worse: keep a, or ${call("lint", [B.as])} names its repairs` : `open the image: magenta marks what moved; ${call("metrics", [B.as])} gives b's findings`,
@@ -229,6 +231,7 @@ export const lint = defineTool<{ clip: string }, unknown>({
   name: "lint",
   description: "The repairs a clip needs (fix's operators) and the tags its motion doesn't bear out.",
   params: { type: "object", properties: { clip: CLIP }, required: ["clip"] },
+  output: output({ clip: "string", verdict: "string", repairs: "array", tags: "array", unanswered: "array" }),
   positionals: ["clip"],
   examples: [{ args: { clip: "QUATERNIUS_3D2DGE/Walk_Loop" }, expect: "findings" }],
   async run(a, ctx) {
@@ -245,7 +248,7 @@ export const lint = defineTool<{ clip: string }, unknown>({
         clip: c.id, verdict: r.verdict, repairs: l.items.map((i) => ({ op: i.op, reasons: i.why.length, why: i.why.slice(0, 3).map((w) => cut(w)) })),
         tags: tags.map((t) => ({ ...t, message: cut(t.message) })), unanswered: open,
       },
-      lines: [...l.text.split("\n").slice(1).map((s) => s.replace(/^ {2}\.\.\. (\d+) more$/, "  more: $1")), ...tags.map((t) => `tag ${t.tag}: ${t.message}`)],
+      lines: [...l.text.split("\n").slice(1).map((s) => s.replace(/^ {2}\.\.\. (\d+) more$/, (_, n: string) => `  ${more(Number(n), "reason")[0]}`)), ...tags.map((t) => `tag ${t.tag}: ${t.message}`)],
       findings: ops.length + tags.length > 0,
       next: ops.length
         ? `${call("fix", [c.as])} applies ${ops.join(", ")}, keeping only steps that don't make it worse; diff it with the fixed copy`

@@ -41,7 +41,7 @@ describe("find and read", () => {
   it("show pages a clip's keys so each surface shows the page whole, explains the numbers, and refuses a wrong clip", () =>
     inCwd(async (call) => {
       const page = await call("show", { clip: "QUATERNIUS_3D2DGE/Sword_Attack", from: 0.4 });
-      expect([page.verdict, page.data, page.next]).toEqual([expect.stringMatching(/keys 12-16 of 32 from 0.400 s$/), expect.objectContaining({ first: 12, keys: 32, credit: null, legend: null }), expect.stringMatching(/^`show QUATERNIUS_3D2DGE\/Sword_Attack --from 0.733` continues \(keys 17-32 of 32\)/)]);
+      expect([page.verdict, page.data, page.next]).toEqual([expect.stringMatching(/keys 12-16 of 32 from 0.400 s$/), expect.objectContaining({ clip: "QUATERNIUS_3D2DGE/Sword_Attack", first: 12, keys: 32, credit: null, legend: null }), expect.stringMatching(/^`show QUATERNIUS_3D2DGE\/Sword_Attack --from 0.733` continues \(keys 17-32 of 32\)/)]);
       expect([keysIn((page.data as { text: string }).text), page.lines.length, page.lines[0]]).toEqual([5, 16, expect.stringMatching(/; UAL1 \(.*\), keyed, CC0-1.0, no credit owed$/)]); // the page alone, not the keys after it
       expect(render(page, { report: "check-output/show/report.json" })).toMatch(/"t":0\.633,[^\n]*\n[^\n]*\n "legL"[^\n]*"footR":\[2,34,1\]\}\n/); // the fifth key whole, with a report line too
       expect((await call("show", { clip: "QUATERNIUS_3D2DGE/Sword_Attack", from: 0.733 })).data).toMatchObject({ first: 17 });
@@ -90,10 +90,10 @@ describe("find and read", () => {
       expect([sword.lines, sword.next]).toEqual([["0.000-0.333 s stand", "0.350-0.933 s crouch: hips 63%", "0.950-1.533 s stand", "0.417 s strikes with the right fist"], expect.stringMatching(/^`show QUATERNIUS_3D2DGE\/Sword_Attack --from 0.4` reads the keys at its strike;/)]);
       expect((await call("describe", { clip: "MESH2MOTION/Roll" })).next).toMatch(/^`show MESH2MOTION\/Roll --from 0.533` reads the keys at its land;/);
       const ticks = Array.from({ length: 21 }, (_, i) => ({ t: i * 0.05, name: "tick" })), many = await call("describe", { clip: JSON.stringify({ ...clipOf("QUATERNIUS_3D2DGE/Sword_Attack"), events: ticks }), detail: true });
-      expect([(many.data as { moments: object[] }).moments.length, many.data, many.lines.at(-1)]).toEqual([20, expect.objectContaining({ more: 2 }), "more: 2"]); // 21 events and a strike
+      expect([(many.data as { moments: object[] }).moments.length, many.data, many.lines.at(-1)]).toEqual([20, expect.objectContaining({ more: 2 }), "more: 2 phases and moments"]); // 21 events and a strike
       const kneel = clipOf("CMU_CURATED/Get_Up_Sit_Kneel"), keys = [0, 1, 2, 3, 4].flatMap((j) => kneel.keys.map((k) => ({ ...k, t: Math.round((k.t + j * 9.4) * 1000) / 1000 })));
       const long = await call("describe", { clip: JSON.stringify({ ...kneel, dur: 46.9, keys, events: [], facts: undefined }), detail: true }); // its 6 phases 5 times
-      expect([(long.data as { phases: object[] }).phases.length, long.lines.at(-1)]).toEqual([20, "more: 2"]);
+      expect([(long.data as { phases: object[] }).phases.length, long.lines.at(-1)]).toEqual([20, "more: 2 phases and moments"]);
       expect(refused(await call("describe", { clip: "CMU_CURATED/Drink_Soda" }))).toEqual(["usage", "E_TIER", expect.stringMatching(/a cmu set, and this game sees only cc0: add "cmu" to "tiers" in game.json/)]);
       writeFileSync(join(cwd, "bad.json"), '{"format":"2.0","id":"DEMO/Bad","dur":0}');
       expect(refused(await call("describe", { clip: "bad.json" }))).toEqual(["error", "E_CLIP", expect.stringMatching(/^"bad.json" is not a valid clip/)]);

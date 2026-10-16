@@ -10,7 +10,7 @@ import { fix as repair, fixes, metrics, type Report } from "@m3a/sensors";
 import { defineTool, ToolError, type ToolContext, type ToolOutput } from "../registry/registry.ts";
 import { didYouMean, quote, type Schema } from "../registry/schema.ts";
 import { loadClip, naming, type ClipRef } from "./clips.ts";
-import { call, capped, CLIP, count, cut, sec } from "./common.ts";
+import { ARROW, call, capped, CLIP, count, cut, more, output, sec } from "./common.ts";
 import { applied, back, commit, mayCopy, readTarget, replay, targetName, targetRevision, WORKSHOP, type Entry, type History, type Target } from "./workshop.ts";
 
 const SAVE_AS: Schema = { type: "string", description: "WORKSHOP/Name" };
@@ -41,8 +41,6 @@ async function ownState(ctx: ToolContext, t: Target): Promise<Pick<Entry, "from"
 /** Whether `ref` is the target's own file, whatever id it holds. */
 const inPlace = (ref: ClipRef, t: Target) => ref.where === "workshop" && ref.path === t.path;
 const stacks = (h: History | null) => ({ undo: h?.undo.length ?? 0, redo: h?.redo.length ?? 0 });
-/** A capped list's "more" line, when it cut some: how many of `what`, and where the rest are. */
-const more = (n: number | undefined, what: string, rest: string) => (n ? [`more: ${count(n, what)} ${rest}`] : []);
 
 /** `m3a fix`: the repairs lint names (or `ops`), each kept only if it makes nothing worse, saved as a WORKSHOP copy. */
 export const fix = defineTool<{ clip: string; ops?: fixes.FixName[]; save_as?: string; max_keys?: number; dry_run?: boolean }, unknown>({
@@ -53,6 +51,7 @@ export const fix = defineTool<{ clip: string; ops?: fixes.FixName[]; save_as?: s
     properties: { clip: CLIP, ops: { type: "array", items: { type: "string", enum: fixes.FIXES } }, save_as: SAVE_AS, max_keys: { type: "integer", minimum: 2 }, dry_run: { type: "boolean" } },
     required: ["clip"],
   },
+  output: output({ clip: "string", saved: "string?", path: "string?", before: "object", after: "object", steps: "array", undo: "integer", redo: "integer" }),
   positionals: ["clip"],
   examples: [{ args: { clip: "QUATERNIUS_3D2DGE/Walk_Loop", dry_run: true } }],
   edit: { revision: targetRevision("fix") },
@@ -67,9 +66,9 @@ export const fix = defineTool<{ clip: string; ops?: fixes.FixName[]; save_as?: s
     const steps = r.steps.map((s) => ({ op: s.op, changes: s.changes.length, why: s.skipped ?? (s.rejected ? cut(`would make worse: ${s.rejected.join("; ")}`) : null) }));
     // its hints name the clip as the caller gave it (their file, not the library clip inside it) until it is saved
     const { as, title } = naming(ref), fails = f!.verdict === "fail";
-    const head = `fix ${title}: ${b!.verdict.toUpperCase()} -> ${f!.verdict.toUpperCase()} (${b!.findings} -> ${count(f!.findings, "finding")})`;
+    const head = `fix ${title}: ${b!.verdict.toUpperCase()} ${ARROW} ${f!.verdict.toUpperCase()} (${b!.findings} ${ARROW} ${count(f!.findings, "finding")})`;
     const data = { clip: ref.id, saved: null as string | null, path: null as string | null, before: b, after: f, steps, ...stacks(t?.history ?? null) };
-    const out = { data, lines: r.text.split("\n").slice(1).map((l) => cut(l.replace(/→/g, "->"))), findings: fails };
+    const out = { data, lines: r.text.split("\n").slice(1).map((l) => cut(l)), findings: fails };
     const changes = steps.some((s) => s.changes);
     if (!t || a.dry_run || !changes) {
       const again = call("fix", [as], { ops: a.ops, save_as: a.save_as ?? (t ? undefined : "WORKSHOP/<Name>"), max_keys: a.max_keys });
@@ -127,8 +126,9 @@ export const edit = defineTool<{ clip: string; ops?: Record<string, unknown>[]; 
     },
     required: ["clip"],
   },
+  output: output({ clip: "string", path: "string", action: "string", changed: "boolean", from: "string", before: "object?", after: "object?", license: "object?", undo: "integer", redo: "integer", history_reset: "boolean", recipe: "object?" }),
   positionals: ["clip"],
-  examples: [{ args: { clip: "MESH2MOTION/Punch_Cross", save_as: "WORKSHOP/Punch_Left", ops: [{ op: "retime", speed: 1.3 }, { op: "mirror" }], request_id: "ex-1" } }],
+  examples: [{ args: { clip: "MESH2MOTION/Punch_Cross", save_as: "WORKSHOP/Punch_Left", ops: [{ op: "retime", speed: 1.3 }, { op: "mirror" }] } }],
   edit: { revision: targetRevision("edit") },
   async run(a, ctx) {
     const t = await readTarget(ctx, targetName(a.clip, a.save_as)), again = replay(t, "edit", a);
@@ -182,19 +182,19 @@ export const edit = defineTool<{ clip: string; ops?: Record<string, unknown>[]; 
     const clip = withFacts({ ...made.clip, provenance: { ...made.clip.provenance, orig: from } }, made.rest), text = serialize(clip), m = metrics(clip, made.rest);
     const hist = applied(t, text, { from, rest: made.rest, recipe: chain || ref.where === "library" ? r : null }, await ownState(ctx, t));
     const [b, n] = [summary(ref.clip, metrics(ref.clip, ref.rest)), summary(clip, m)], s = (x: number | null) => (x === null ? "none" : sec(x));
-    const strike = b.strike ?? n.strike ? `, strike ${s(b.strike)} -> ${s(n.strike)}` : "";
+    const strike = b.strike ?? n.strike ? `, strike ${s(b.strike)} ${ARROW} ${s(n.strike)}` : "";
     const found = capped(m.findings, 3), tags = capped(tagConflicts(clip, clip.facts as unknown as ClipFacts, made.rest), 3);
     // the clip to compare the copy with: its library clip while the game sees it, else the file it was made from
     const was = lib(from) ? from : ref.where === "file" ? naming(ref).as : null;
     const lines = [
       ...found.rows.map((x) => cut(`${x.level} ${x.metric} at ${sec(x.t0)}: ${x.message}`)),
-      ...more(found.more, "finding", `(metrics ${t.id} lists them)`),
+      ...more(found.more, "finding", `${call("metrics", [t.id], { limit: Math.min(50, m.findings.length) })} lists them`),
       ...tags.rows.map((x) => cut(`tag ${x.tag}: ${x.message}`)),
-      ...more(tags.more, "tag", `not borne out (lint ${t.id} lists them)`),
+      ...more(tags.more, "tag", `${call("lint", [t.id])} lists them`),
       ...ops.map((o, i) => cut(`ops[${i}] ${JSON.stringify(o)}`)),
     ];
     return commit(ctx, "edit", t, hist, a, {
-      verdict: `edit ${t.id}: ${count(ops.length, "op")} applied: ${sec(b.dur)} -> ${sec(n.dur)}${strike}, ${n.keys} keys, sensors ${n.verdict} (${count(n.findings, "finding")}); revision ${hist.head}`,
+      verdict: `edit ${t.id}: ${count(ops.length, "op")} applied: ${sec(b.dur)} ${ARROW} ${sec(n.dur)}${strike}, ${n.keys} keys, sensors ${n.verdict} (${count(n.findings, "finding")}); revision ${hist.head}`,
       data: { clip: t.id, path: t.path, action: "apply", changed: text !== t.text, from, before: b, after: n, license: license(clip), ...stacks(hist), history_reset: t.stale !== null, recipe: hist.recipe },
       lines,
       findings: n.verdict === "fail",

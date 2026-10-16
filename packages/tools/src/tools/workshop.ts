@@ -1,22 +1,25 @@
 // The workshop (PLAN.md WP-7.2a §3, carried from shardfall's revisioned edits): an edited clip lives in
 // workshop/<Name>.json (id WORKSHOP/<Name>), its history in .m3a/history/<Name>.json: the library clip it came from and
 // that clip's rest, the revision and text it last wrote, the recipe since the copy, undo and redo stacks of whole file
-// texts (32 entries in all), and the last request it applied. A revision is the first 12 hex digits of the file's
+// texts (32 entries in all), and the requests its last writes applied. A revision is the first 12 hex digits of the file's
 // SHA-256, or "absent". Writes go history first, then the clip (a failed clip write puts the history back), under the
 // clip's lock (.m3a/locks/<Name>.lock, held across m3a processes) once the target's revision and history are read
 // again, so of two edits from one state the second is refused (E_CONFLICT) and none is lost. A file a step from the
 // history's head is a write cut short between the two: the history steps back to it (a cut-short apply's result is
 // dropped, never offered to redo). Any other file the history doesn't know was changed outside m3a: undo refuses, the
-// next edit starts a new history. The history's `last` closes the crash window between the write and the registry's
-// record.
+// next edit starts a new history. The history keeps the requests of its last 8 writes, which closes the crash window
+// between a write and the registry's record for each of them.
 import { recipe, type Rest } from "@m3a/core";
 import { ToolError, type ToolContext, type ToolOutput } from "../registry/registry.ts";
 import { quote } from "../registry/schema.ts";
 
 /** The workshop's set name: WORKSHOP/<Name> is the edited clip in workshop/<Name>.json. */
 export const WORKSHOP = "WORKSHOP";
-/** A workshop clip's name: a letter, then letters, digits or "_". */
-export const WORKSHOP_NAME = /^[A-Za-z][A-Za-z0-9_]*$/;
+/** A workshop clip's name: a letter, then letters, digits or "_", at most 100 in all (a file name any file system takes,
+ *  with its history's beside it). */
+export const WORKSHOP_NAME = /^[A-Za-z][A-Za-z0-9_]{0,99}$/;
+/** WORKSHOP_NAME in words, for a refusal. */
+export const NAME_RULE = 'a letter, then letters, digits or "_", at most 100 in all';
 /** The file a workshop clip lives in. */
 export const workshopFile = (name: string): string => `workshop/${name}.json`;
 /** The file a workshop clip's history lives in. */
@@ -28,7 +31,7 @@ export function workshopName(given: string): string | null {
   const id = given.trim().replace(/^(?:\.\/)?workshop\/([A-Za-z][A-Za-z0-9_]*)\.json$/, `${WORKSHOP}/$1`);
   if (!id.startsWith(`${WORKSHOP}/`)) return null;
   const name = id.slice(WORKSHOP.length + 1);
-  if (!WORKSHOP_NAME.test(name)) throw new ToolError("E_NO_CLIP", `${quote(id)} is no workshop id: WORKSHOP/<Name>, the name a letter, then letters, digits or "_"`, true);
+  if (!WORKSHOP_NAME.test(name)) throw new ToolError("E_NO_CLIP", `${quote(id)} is no workshop id: WORKSHOP/<Name>, the name ${NAME_RULE}`, true);
   return name;
 }
 
@@ -46,8 +49,8 @@ export interface Entry {
   text: string | null;
 }
 
-/** The request a history's last write applied: its tool and id, its arguments (canonical JSON), the revision it was
- *  applied at and what it replied, so a retry whose record was lost replies it again instead of applying twice. */
+/** A request a history's write applied: its tool and id, its arguments (canonical JSON), the revision it was applied at
+ *  and what it replied, so a retry whose record was lost replies it again instead of applying twice. */
 export interface LastRequest {
   tool: string;
   request_id: string;
@@ -57,15 +60,21 @@ export interface LastRequest {
 }
 
 /** A workshop clip's history: the state it last wrote (clips.ts reads its `from` and `rest`; `head` is its revision;
- *  `recipe` is null once a fix or a clip from outside the library breaks the chain), the stacks, the last request, and
- *  what wrote it (an apply, an undo or a redo). */
+ *  `recipe` is null once a fix or a clip from outside the library breaks the chain), the stacks, the request its last
+ *  write applied (`last`) and those of the writes before it (`earlier`, oldest first, REQUESTS_KEPT in all), and what
+ *  wrote it (an apply, an undo or a redo). */
 export interface History extends Omit<Entry, "revision"> {
   head: string;
   undo: Entry[];
   redo: Entry[];
   last?: LastRequest;
+  earlier?: LastRequest[];
   wrote?: "apply" | "undo" | "redo";
 }
+
+/** How many requests a history keeps for their retries (its last write's and those before it): a retry whose record
+ *  the store lost is replied, not applied again, while it is among them. */
+export const REQUESTS_KEPT = 8;
 
 /** A workshop clip as it stands: its id, name and file, the file's text and revision, its history (null when none,
  *  or `stale`: why the history was set aside, the file changed outside m3a or the history unreadable) and that
@@ -89,8 +98,8 @@ export const revisionOf = (text: string | null): string => (text === null ? "abs
 export function targetName(clip: string, saveAs?: string): string {
   const id = saveAs ?? (/^\s*\{/.test(clip) ? "" : `${WORKSHOP}/${clip.trim().replace(/\.json$/i, "").split("/").pop()}`);
   const name = id.startsWith(`${WORKSHOP}/`) ? id.slice(WORKSHOP.length + 1) : "";
-  const what = saveAs === undefined ? "the clip names no workshop copy" : `save_as is ${quote(saveAs)}`;
-  if (!WORKSHOP_NAME.test(name)) throw new ToolError("E_ARGS", `${what}: give save_as "WORKSHOP/<Name>" (a letter, then letters, digits or _); the library changes only through its writer`, true);
+  const what = saveAs !== undefined ? `save_as is ${quote(saveAs)}` : id.startsWith(`${WORKSHOP}/`) ? `${quote(id)} is no workshop name` : "the clip names no workshop copy";
+  if (!WORKSHOP_NAME.test(name)) throw new ToolError("E_ARGS", `${what}: give save_as "WORKSHOP/<Name>" (${NAME_RULE}); the library changes only through its writer`, true);
   return name;
 }
 
@@ -107,10 +116,10 @@ const entry = (e: Partial<Entry> | null) => Boolean(e) && typeof e!.from === "st
 /** `raw` as a history, or undefined when it isn't one (not JSON, or not its shape). */
 function parsed(raw: string): History | undefined {
   try {
-    const h = JSON.parse(raw) as History, l = h.last;
+    const h = JSON.parse(raw) as History, request = (l: LastRequest) => typeof l?.tool === "string" && typeof l.request_id === "string" && typeof l.args === "string" && typeof l.before === "string" && typeof l.out?.verdict === "string" && typeof l.out.next === "string";
     const stacks = [h.undo, h.redo].every((s) => Array.isArray(s) && s.every((e) => entry(e) && typeof e.revision === "string"));
-    const last = l === undefined || (typeof l.tool === "string" && typeof l.request_id === "string" && typeof l.args === "string" && typeof l.out?.verdict === "string" && typeof l.out.next === "string");
-    return entry(h) && typeof h.head === "string" && stacks && last ? h : undefined;
+    const requests = (h.last === undefined || request(h.last)) && (h.earlier === undefined || (Array.isArray(h.earlier) && h.earlier.every(request)));
+    return entry(h) && typeof h.head === "string" && stacks && requests ? h : undefined;
   } catch {
     return undefined;
   }
@@ -141,13 +150,13 @@ export async function readTarget(ctx: ToolContext, name: string): Promise<Target
 const argsOf = (a: Record<string, unknown>) => recipe.canonical({ ...a, request_id: undefined });
 
 /**
- * The request the target's last write applied, when `tool` retries it with `a` (the same request_id and arguments)
- * and the file is still what that write left. The same request_id with other arguments is usage E_REQUEST_ID, as the
+ * The request one of the target's last writes applied (its history keeps REQUESTS_KEPT), when `tool` retries it with
+ * `a` (the same request_id and arguments). The same request_id with other arguments is usage E_REQUEST_ID, as the
  * registry says it.
  */
 export function replay(t: Target, tool: string, a: Record<string, unknown>): LastRequest | undefined {
-  const last = t.history?.last, args = argsOf(a);
-  if (!last || last.tool !== tool || last.request_id !== a.request_id) return undefined;
+  const h = t.history, args = argsOf(a), last = [...(h?.earlier ?? []), ...(h?.last ? [h.last] : [])].reverse().find((l) => l.tool === tool && l.request_id === a.request_id);
+  if (!last) return undefined;
   if (last.args === args) return last;
   const [was, now] = [last.args, args].map((x) => JSON.parse(x) as Record<string, unknown>);
   const differ = Object.keys({ ...was, ...now }).filter((k) => recipe.canonical(was![k]) !== recipe.canonical(now![k]));
@@ -192,7 +201,8 @@ export const lockOf = (name: string): string => `.m3a/locks/${name}.lock`;
  * Writes history `h` and its text (null removes the file) for target `t`, read before `tool` worked out the edit, under
  * the clip's lock: the revision and the history read again (either moved since, or the revision not the call's
  * if_revision: E_CONFLICT with the revision now, nothing written), the history (with `last` when the call has a
- * request_id), then the clip, the history put back if that fails. Returns `out`.
+ * request_id, the requests before it kept in `earlier`), then the clip, the history put back if that fails. Returns
+ * `out`.
  */
 export async function commit(ctx: ToolContext, tool: string, t: Target, h: History, a: Record<string, unknown>, out: ToolOutput): Promise<ToolOutput> {
   const release = await ctx.lock(lockOf(t.name));
@@ -203,7 +213,8 @@ export async function commit(ctx: ToolContext, tool: string, t: Target, h: Histo
       throw new ToolError("E_CONFLICT", `${t.id}${how}; nothing was changed`, false, { revision: now, next: `read it again, then retry with --if_revision ${now}` });
     }
     const last = typeof a.request_id === "string" ? { tool, request_id: a.request_id, args: argsOf(a), before: t.revision, out } : undefined;
-    ctx.write(file, `${JSON.stringify({ ...h, last })}\n`);
+    const earlier = [...(t.history?.earlier ?? []), ...(t.history?.last ? [t.history.last] : [])].slice(1 - REQUESTS_KEPT);
+    ctx.write(file, `${JSON.stringify({ ...h, last, earlier })}\n`);
     try {
       if (h.text === null) ctx.remove(t.path);
       else ctx.write(t.path, h.text);

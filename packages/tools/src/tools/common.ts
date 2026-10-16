@@ -1,8 +1,11 @@
-// What the m3a tools share (PLAN.md WP-7.2): the clip parameter, capped rows, counts, the fixed units (mm with no
-// decimals, seconds with 3), strings cut for rows, the one form a next hint writes a call in (`call`), and "a file or
-// JSON" arguments read one way everywhere.
+// What the m3a tools share (PLAN.md WP-7.2): the clip parameter, capped rows and the one line that says what a cap
+// cut, counts, the fixed units (mm with no decimals, seconds with 3), the one arrow from before to after, strings cut
+// for rows, image names a file system takes, the one form a next hint writes a call in (`call`), each tool's minimal
+// output schema, and "a file or JSON" arguments read one way everywhere. Every tool names the clip in its data
+// `clip`.
+import { recipe } from "@m3a/core";
 import { ToolError, type ToolContext } from "../registry/registry.ts";
-import { quote, type Schema } from "../registry/schema.ts";
+import { quote, type Schema, type SchemaType } from "../registry/schema.ts";
 
 /** The clip parameter of every clip tool. A WORKSHOP/<Name> id and the clip's JSON are taken too (clips.ts). */
 export const CLIP: Schema = { type: "string", description: "SET/Name or a .json path" };
@@ -17,6 +20,24 @@ export function capped<T>(rows: readonly T[], n: number): { rows: T[]; more?: nu
 
 /** A count and its word, plural unless one: "1 clip", "3 clips". */
 export const count = (n: number, word: string, plural = `${word}s`): string => `${n} ${n === 1 ? word : plural}`;
+
+/** The one line a capped list ends with when its cap cut some: "more: 3 findings", and in brackets how to see them
+ *  (`rest`, a call) when one does; none when nothing was cut. */
+export const more = (n: number | undefined, what: string, rest?: string, plural?: string): string[] => (n ? [`more: ${count(n, what, plural)}${rest ? ` (${rest})` : ""}`] : []);
+
+/** The one arrow replies write from a value before to one after ("FAIL → PASS"), as the sensors' text does. */
+export const ARROW = "→";
+
+/** An image's name for a clip id or two (diff's "a-vs-b"): as is up to 100 characters, else its first 80 and 12 hex
+ *  digits of its SHA-256, so a long id still makes a file name the file system takes. */
+export const imageName = (name: string): string => (name.length <= 100 ? name : `${name.slice(0, 80)}-${recipe.sha256(name).slice(0, 12)}`);
+
+/** A tool's minimal output schema: its data's top-level fields, each there on every reply, with its JSON type ("?"
+ *  after it when it may be null); the registry checks each reply's data against it. */
+export function output(fields: Record<string, SchemaType | `${SchemaType}?`>): Schema {
+  const one = (t: string): Schema => (t.endsWith("?") ? { anyOf: [{ type: t.slice(0, -1) as SchemaType }, { type: "null" }] } : { type: t as SchemaType });
+  return { type: "object", properties: Object.fromEntries(Object.entries(fields).map(([k, t]) => [k, one(t)])), required: Object.keys(fields) };
+}
 
 /** `v` rounded to `d` decimals, never -0. */
 export function round(v: number, d = 0): number {
