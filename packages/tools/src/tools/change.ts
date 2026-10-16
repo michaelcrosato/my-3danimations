@@ -5,7 +5,7 @@
 // chained edits don't pile up the key fit's error; a slice, a chain past 32 steps, or a library clip changed since the
 // copy compiles from the file as it is.
 import { format, parseClip, recipe, serialize, VERSION, type Clip, type Rest } from "@m3a/core";
-import { tagConflicts, withFacts, type ClipFacts } from "@m3a/library";
+import { LibraryError, tagConflicts, withFacts, type ClipFacts } from "@m3a/library";
 import { fix as repair, fixes, metrics, type Report } from "@m3a/sensors";
 import { defineTool, ToolError, type ToolContext, type ToolOutput } from "../registry/registry.ts";
 import { didYouMean, quote, type Schema } from "../registry/schema.ts";
@@ -153,7 +153,17 @@ export const edit = defineTool<{ clip: string; ops?: Record<string, unknown>[]; 
     }
     const ops = a.ops ?? [];
     if (ops.length < 1 || ops.length > 16) throw new ToolError("E_ARGS", `ops takes 1 to 16 recipe steps, not ${ops.length} (spec/RECIPE.md lists them: retime, mirror, pose, ...)`, true);
-    const ref = await loadClip(ctx, a.clip), from = originOf(ref), lib = ctx.library().library.resolver(), h = t.history, here = inPlace(ref, t);
+    // the library clips the game sees: one out of its tiers (the resolver refuses it, E_TIER) read as none, so a copy whose
+    // origin the game no longer sees compiles from its file
+    const all = ctx.library().library.resolver(), lib = Object.assign((id: string) => {
+      try {
+        return all(id);
+      } catch (err) {
+        if (err instanceof LibraryError && err.code === "E_TIER") return undefined;
+        throw err;
+      }
+    }, { ids: all.ids });
+    const ref = await loadClip(ctx, a.clip), from = originOf(ref), h = t.history, here = inPlace(ref, t);
     mayCopy(t, here, a);
     // the recipe since the copy, when this edits it in place, its library clip is still the one the file was made from
     // (visible, and the content its provenance names) and the chain stays within CHAIN steps; a slice cuts the clip as

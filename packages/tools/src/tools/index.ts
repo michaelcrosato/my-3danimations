@@ -5,6 +5,7 @@ import { Registry, type Tool } from "../registry/registry.ts";
 import { validate, version } from "./base.ts";
 import { edit, fix } from "./change.ts";
 import { diff, film, lint, metrics, sheet } from "./check.ts";
+import { graphSim, graphValidate, recipeCompile } from "./compose.ts";
 import { describe, search, show } from "./find.ts";
 import { licenseCheck } from "./ship.ts";
 
@@ -17,6 +18,9 @@ export const CHECK: readonly Tool[] = [metrics, sheet, film, diff, lint];
 /** Change (change.ts), the edit tools: fix, edit. */
 export const CHANGE: readonly Tool[] = [fix, edit];
 
+/** Compose and wire (compose.ts): recipe.compile, graph.validate, graph.sim. */
+export const COMPOSE: readonly Tool[] = [recipeCompile, graphValidate, graphSim];
+
 /** Ship (ship.ts): license.check. */
 export const SHIP: readonly Tool[] = [licenseCheck];
 
@@ -24,7 +28,7 @@ export const SHIP: readonly Tool[] = [licenseCheck];
 export const BASE: readonly Tool[] = [version, validate];
 
 /** Every m3a tool in help order: the workflow's groups, then version and validate. */
-export const TOOLS: readonly Tool[] = [...FIND, ...CHECK, ...CHANGE, ...SHIP, ...BASE];
+export const TOOLS: readonly Tool[] = [...FIND, ...CHECK, ...CHANGE, ...COMPOSE, ...SHIP, ...BASE];
 
 /** The m3a tools as one registry, request_id results kept in memory: what the API and the console handle serve. */
 export const tools = new Registry(TOOLS);
