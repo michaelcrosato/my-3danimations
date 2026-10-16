@@ -4,15 +4,36 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { format, recipe as R, validate } from "@m3a/core";
+import { LibraryError } from "@m3a/library";
 import { openLibrary } from "@m3a/library/node";
 import { checks, describe, metrics } from "@m3a/sensors";
 
-const recipe = JSON.parse(readFileSync(join(import.meta.dirname, "emote.json"), "utf8")) as R.Recipe, issues = R.validateRecipe(recipe);
-if (issues.length) {
+/** Prints each issue (its code, field, what is wrong and the fix) and stops. */
+function stop(issues: readonly R.RecipeIssue[]): never {
   for (const i of issues) console.log(`${i.code} ${i.field ?? ""}: ${i.message}${i.fix ? ` (fix: ${i.fix})` : ""}`);
   process.exit(1);
 }
-const { clip, rest } = R.compile(recipe, openLibrary().resolver()), m = metrics(clip, rest);
+const recipe = JSON.parse(readFileSync(join(import.meta.dirname, "emote.json"), "utf8")) as R.Recipe, issues = R.validateRecipe(recipe);
+if (issues.length) stop(issues);
+// the CC0 library, as the grader compiles against it: a clip of a tier past CC0 is one it lacks (R-E008)
+const library = openLibrary(), all = library.resolver(), cc0: R.Resolver = Object.assign((id: string) => {
+  try {
+    return all(id);
+  } catch (err) {
+    if (err instanceof LibraryError && err.code === "E_TIER") return undefined;
+    throw err;
+  }
+}, { ids: all.ids });
+/** The recipe compiled, or its issues printed. */
+function compiled(): ReturnType<typeof R.compile> {
+  try {
+    return R.compile(recipe, cc0);
+  } catch (err) {
+    if (err instanceof R.RecipeError) stop(err.issues);
+    throw err;
+  }
+}
+const { clip, rest } = compiled(), m = metrics(clip, rest);
 console.log(`${clip.id}: ${clip.dur} s, ${clip.loop ? "a loop" : "not a loop"}; ${validate(clip).errors.length} validation errors`);
 console.log(`sensors: ${m.text}`);
 console.log(`describe: ${describe(clip, rest).text}`);
