@@ -3311,3 +3311,95 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   stops the rounds. The one class past 0.90 by 1.1 points is named rather than chased.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.45.0, v0.45.1, michaelcrosato/my-3danimations#12
+
+## D91 · 2026-10-15 · G6 passed on run 1, 20 of 20: every brief and its held-out variant 5 of 5
+
+- **Principle:** 1, 9, G6 (§7, D78, D84)
+- **Call:**
+  - **Run 1 passed**, 20 of 20, at a9731b1 (0.45.1) on 2026-10-15 in 17.2 min, in the main checkout (D83) with the
+    pinned sources and the rigs fetched first. The commit was fixed first (committed 22:04:27; T0, T1 and T2 passed
+    locally and CI went green at 22:07). A fresh subagent then wrote the held-out run, 22:10 to 22:11 UTC; it read
+    neither the manual nor a known-good solution (but two decision entries, below), and its file list is kept. An independent check found that each
+    variant keeps its brief's job, contract and pass rule, describes its character as the seed generates it, and uses
+    a fresh seed. Each brief's known-good passed on its variant at 22:17 to 22:18, and the gate ran from 22:19 to 22:36.
+    The record is `bench/results/gates/G6-run-1/`.
+  - **Its commands:**
+    - check 10.6 s; test 76.0 s; doctrine 8 of 8; the pinned sources and `library/moves.json` as they give it;
+      vectors byte for byte;
+    - composed clips passing QA (the example recipes, the procedural sources, the actions and their cuts) 18.1 s; graph
+      simulations deterministic (the expected traces exactly, a run the same twice, save and restore) 5.7 s;
+    - T2 in 128.8 s (the graphs in Node and Chromium, library QA, the sweeps in full); the held-out run fresh;
+    - B2, B3, B5, B6 and B7: each 5 of 5 fresh agents, and 5 of 5 on its held-out variant (seeds 722, 808, 765, 871 and
+      809: a bulky ue5 body, a child, a chibi with twist bones, a heroic rigify body with twist bones and a tall one).
+      50 of 50 trials, isolation 1 with each agent's own `/tmp`, five at a time, 17 to 149 s and 5 to 22 turns each,
+      $7.15 in all.
+  - **What the agents read:** nothing outside their workspaces and their own `/tmp`. The verifier read all fifty
+    transcripts (379 tool calls), and the records' audit matches them except one over-report. Twenty trials kept
+    scratch files in their own `/tmp`. Some read past the manual into the installed packages' types, one README and
+    some built JS: all five of B3's variant trials, three of B6's and two of B7's across brief and variant. That shows
+    what the manual leaves to the types: `Animator.layer`'s weights and masks, `contactRoot`, `@m3a/three`'s attach,
+    the recipe pose step's arm fields and signs, and `simulate()`'s result shape. It is WP-7.3's input.
+  - **The held-out check's three nits,** recorded and not changed (the writer's text):
+    - B2's title names a tavern its scene doesn't have.
+    - B6 calls the draw-back a "wind-up", the word D77 gives a manual example.
+    - B6 reuses more of its original's wording than the others.
+  - **The gate's verifiers** (two lenses, D83): one on the records and the gate's line, one on the agents' isolation
+    and the audit. They recounted the numbers, regraded four trials from copies (all pass) and checked that the
+    grader's inputs were untouched. Their findings, each fixed or answered:
+    - **The record's byte copies were not committed.** The local exclude that kept the gate checkout's untracked
+      files out of `git status` is shared by every worktree, so the first record commit silently skipped
+      `bench/results/2026-10-15-default-*.json`, which the README said it held. They were committed in 76c54ce, and
+      the exclude is gone.
+    - **The writer read D76 and D77,** which describe the known-good solutions and name the manual's examples. It
+      read neither the manual nor a known-good solution. Diffing every variant against its original, the one trace
+      found is B6's "wind-up"; B6 passed 5/5 on its original too. Recorded, not rerun. From G7, a held-out writer
+      reads §7, D78, the briefs, the starters, the graders and the generator, and no decision entry that describes a
+      solution or a manual example; the checker reviews the read list against that bar.
+    - **D84 hid only the checkout the runner ran from.** The integration worktree, holding the graders, the
+      known-good solutions and the held-out originals, stayed readable, and with no PID namespace `/proc/<pid>/root`
+      reaches the outer mount view. No trial came near either: no call names `/home`, `/root`, `/proc` or another
+      worktree. So G6's isolation rests here on the transcripts, not the machine. Fixed below.
+    - **The audit's blind spots:** Write and Edit content wasn't scanned; `/proc` counted as an ordinary path; a path
+      named only in a heredoc counted as a read (B7-2 on the variant, `@m3a/library`'s Node entry). Fixed below.
+    - **Nits:** the README's costs rounded and model named; the quiz's time and commit; the cuts on all six characters
+      proved by T2's full sweep, not the composed-clips step; the gate report records its commit; the freshness log
+      on a run with seeds only; B7's brief names the grader's check before the jump; B3's check finds the hips with
+      `bind()` (on rigify the name regex printed NaN).
+  - **Fixed after the gate** (063c0a3, 7ae691e, each reviewed; the gate not rerun, since no trial came near what
+    they close):
+    - **Isolation.** `bench/runner/agent.ts` covers every checkout `git worktree list` gives, the git directory and
+      the Claude home (`hidden`), and binds `/dev/null` over `~/.claude.json`. Each agent runs in a PID namespace with
+      a `/proc` of its own (`unshare --pid --fork --mount-proc --kill-child`), and the timeout kills the whole
+      namespace. Where `setpriv` works it starts without CAP_SYS_ADMIN, so it can't unmount the covers or mount
+      anything, even through a nested user namespace. Each trial and results file records `ownPids` and
+      `capsDropped`, and each falls back cleanly where the machine refuses it. A stand-in agent saw 102 entries of
+      the other checkouts, 86 processes and the repository through the runner's `/proc` entry; now it sees 0, 4 and
+      nothing, and an unmount is refused. D84's test asserts all of it. `claude --version` still starts inside, and
+      node and curl still reach the proxy.
+    - **Why hide, not allow:** every copy of the graders outside `/tmp` lies in a worktree. Hiding keeps D84's
+      mechanism, which is tested as root and through a user namespace on CI. A fresh root holding only what an agent
+      needs would have to carry everything the CLI reaches for, and a miss would show only as failed trials at a
+      gate.
+    - **Known limits:** the agent still runs as root, so it could read a raw disk under `/dev`, and `/root`'s other
+      files (`.ssh`, `.aws`, `.gitconfig`) stay readable. No G6 trial named any of them, and the audit would list
+      them. They are closed before G7's trials (running agents as an unprivileged user).
+    - **The audit** now scans a Write's content, an Edit's new string and a heredoc that `cat` or `tee` writes,
+      taking relative paths from the written file's directory, and catches paths in template literals. What these
+      name counts for `outside` and `scratch`, not as a read past the manual. Another process's `/proc` entry is
+      outside, by PID, glob or shell variable; `/proc/self` and `/proc/$$` are the agent's own. Its header lists what
+      it still over- and under-reports. Re-run over the 50 kept transcripts, unchanged by SHA-256, one field changes:
+      B7-2's `pastManual` on the variant becomes empty. `outside` stays empty in all 50.
+    - **The rest:**
+      - `npm run gate` records the commit it ran at and whether the tree differed from it.
+      - `fixtures heldout` says "no rig: seeds only" and lists each variant's seed against the 27 already used.
+      - B7's brief names the check before the jump.
+      - B3's starter check finds the hips with `bind()`; B3's known-good is graded on a rigify character (gen-7) in
+        T1.
+  - **Worktree lanes' `.cache` (D83):** a lane linked the main checkout's whole `.cache`, so T0's TypeScript build
+    information was shared, and a typecheck could pass on a newer build info another checkout wrote (found by the fix
+    lane). From here, a lane's `.cache` is its own directory, linking only the pinned sources and the rigs, as the
+    integration checkout's does.
+- **Why:** G6's line, command by command; the held-out variants stand in for briefs the agents have never seen, on
+  bodies no test grades on.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.45.1, v0.45.2, michaelcrosato/my-3danimations#12

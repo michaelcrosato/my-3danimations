@@ -4,6 +4,26 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.45.2 · 2026-10-16
+
+### Tools
+- `npm run gate` records the commit it ran at and whether the tracked tree differed from it, in the report and at the
+  end of its verdict (D91).
+- `npm run fixtures -- heldout` says "no rig: seeds only" for a held-out run without a rig.json, and lists each
+  variant's seed against the seeds already used (D91).
+
+### Repo
+- G6 passed on run 1, 20 of 20: B2, B3, B5, B6 and B7 and their held-out variants 5 of 5 each
+  (`bench/results/gates/G6-run-1/`, D91).
+- The benchmark hides every checkout of the repository (`git worktree list`), its git directory, the Claude home and
+  `~/.claude.json` from each agent; the agent runs in a PID namespace of its own and, where `setpriv` works, without
+  CAP_SYS_ADMIN (`ownPids` and `capsDropped` recorded per trial); a timeout ends the whole namespace (D91).
+- The benchmark's audit scans what a Write, an Edit or a heredoc written to a file names (for outside and scratch, not
+  as reads past the manual), paths in template literals, and another process's `/proc` entry by PID, glob or variable
+  (D91).
+- B7's brief names the check before the jump; B3's starter check finds the hips with `bind()` (it printed NaN on
+  rigify characters), and B3's known-good is graded on a rigify character in T1 (D91).
+
 ## 0.45.1 · 2026-10-15
 
 ### Core
