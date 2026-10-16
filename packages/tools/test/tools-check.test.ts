@@ -1,9 +1,10 @@
 // The check tools (PLAN.md WP-7.2a): each example the same on every surface; then each tool's failing input refused
 // with its code and fix, and what each tool is for, pinned on library clips: metrics' status, values, caps and recorded
-// verdict (a fail, a warn and a warn no repair answers, a stale one), the sheet's flags, view and sizes, the film's
-// frames centred on the strike with the strike and events named, and its picture (poses and root) and travel, the
-// diff's pose numbers, travel, picture, sizes, regression gate both ways and its order, lint's repairs, tag conflicts
-// and unanswered metrics; and every hint naming the clip as given (an id, a path, JSON).
+// verdict (a fail, a warn and a warn no repair answers, a stale one), the sheet's flags, view, sizes and cap, the film's
+// frames centred on the strike with the strike and events named, and its picture (poses and root, forward, sideways and
+// turning) and travel, the diff's pose numbers, travel (each clip's own), picture, sizes, regression gate both ways and
+// its order, lint's repairs, tag conflicts and unanswered metrics, apart and mixed; and every hint naming the clip as
+// given (an id, a path, quoted when it must be, <the clip's JSON> or <the clip's file> for an absolute path).
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { clip as clipNs, serialize, type Clip } from "@m3a/core";
@@ -18,15 +19,15 @@ import { drawn } from "../src/tools/check.ts";
 import { CHECK } from "../src/tools/index.ts";
 import { exampleCwd, ROOT, runExamples } from "./helpers/surfaces.ts";
 
-const Q = "QUATERNIUS_3D2DGE/", TEAPOT = "STYLE100_SIDE/Teapot_SideLeft", SWORD = "QUATERNIUS_SHARDFALL/Sword_Heavy_Combo_RM";
+const Q = "QUATERNIUS_3D2DGE/", TEAPOT = "STYLE100_SIDE/Teapot_SideLeft", SWORD = "QUATERNIUS_SHARDFALL/Sword_Heavy_Combo_RM", TURN = "MESH2MOTION/Sword_Regular_C_RM";
 type Row = Record<string, unknown>;
 /** Calls a check tool on the Node host in a fresh working directory holding `files` and game.json's `tiers` when given;
- *  its PNGs go to `pngs`. */
-async function call(tool: string, args: object, o: { tiers?: string[]; pngs?: Map<string, Uint8Array>; files?: Record<string, string> } = {}): Promise<Reply<Row>> {
+ *  its PNGs go to `pngs`. `args` may be made from the working directory's path. */
+async function call(tool: string, args: object | ((cwd: string) => object), o: { tiers?: string[]; pngs?: Map<string, Uint8Array>; files?: Record<string, string> } = {}): Promise<Reply<Row>> {
   const { cwd, rm } = exampleCwd(false);
   try {
     for (const [f, text] of Object.entries({ ...o.files, ...(o.tiers ? { "game.json": JSON.stringify({ tiers: o.tiers }) } : {}) })) writeFileSync(join(cwd, f), text);
-    return (await new Registry(CHECK).call(tool, args, { host: nodeHost(cwd), pngs: o.pngs })) as Reply<Row>;
+    return (await new Registry(CHECK).call(tool, typeof args === "function" ? args(cwd) : args, { host: nodeHost(cwd), pngs: o.pngs })) as Reply<Row>;
   } finally {
     rm();
   }
@@ -50,6 +51,11 @@ describe("the check tools", () => {
     const file = clipFile("Walk_Loop"), stale = await call("metrics", { clip: JSON.stringify({ ...file, quality: { ...file.quality, qaVersion: "m3a-sensors@0" } }) });
     expect([stale.verdict, stale.data!.recorded, stale.lines.at(-1), stale.next]).toEqual([`metrics ${Q}Walk_Loop (the clip's JSON): FAIL (2 fail, 2 warn), 1.333 s loop`, { qa: "baselined", qaVersion: "m3a-sensors@0", current: false, agrees: false }, "recorded: baselined with m3a-sensors@0, not the current m3a-sensors@1", "lint <the clip's JSON> names the repairs; sheet <the clip's JSON> shows the findings in red"]);
     expect(await call("metrics", { clip: "walk.json" }, { files: { "walk.json": JSON.stringify(file) } })).toMatchObject({ verdict: expect.stringMatching(/^metrics walk.json: FAIL/), data: { clip: `${Q}Walk_Loop` }, next: "lint walk.json names the repairs; sheet walk.json shows the findings in red" });
+    // a path with a space or a control character JSON-quoted; an absolute one, like JSON, never echoed
+    const abs = await call("metrics", (cwd) => ({ clip: join(cwd, "walk.json") }), { files: { "walk.json": JSON.stringify(file) } });
+    expect([abs.verdict, abs.next, JSON.stringify(abs).includes("walk.json")]).toEqual([`metrics ${Q}Walk_Loop (the clip's file): FAIL (2 fail, 2 warn), 1.333 s loop`, "lint <the clip's file> names the repairs; sheet <the clip's file> shows the findings in red", false]);
+    const odd = await call("diff", { a: "my walk.json", b: "a\nb.json" }, { files: { "my walk.json": JSON.stringify(file), "a\nb.json": JSON.stringify(file) } });
+    expect([odd.verdict, odd.next]).toEqual(['diff "my walk.json" → "a\\nb.json": no difference; FAIL → FAIL (4 → 4 findings)', 'open the image: magenta marks what moved; metrics "a\\nb.json" gives b\'s findings']);
     expect((await call("metrics", { clip: `${Q}Walk_Lop` })).error).toEqual({ code: "E_NO_CLIP", message: `no clip "${Q}Walk_Lop"; did you mean "${Q}Walk_Loop"?` });
     const r = await call("metrics", { clip: `${Q}Walk_Loop`, limit: 1 });
     expect([r.status, (r.data!.findings as unknown[]).length, r.data!.more, r.lines.filter((l) => l.startsWith("more: 3"))]).toEqual(["findings", 1, 3, ["more: 3 (the first 1 shown)"]]);
@@ -81,16 +87,24 @@ describe("the check tools", () => {
     expect([named!.equals(evented!), named!.equals(plain!)]).toEqual([false, false]);
     const long = await call("film", { clip: JSON.stringify({ ...clipFile("Punch_Jab"), events: [{ t: 0.2, name: "x".repeat(200) }] }) });
     expect([(long.data!.marks as { name: string }[])[1]!.name.length, long.lines[0]!.includes("x".repeat(200))]).toEqual([90, true]);
-    // a clip that travels and turns (61 → 939 mm, -37° → -255° over these frames): each frame its pose and its root in
-    // mm at its time, labelled with the time
-    const pngs = new Map<string, Uint8Array>(), TURN = "MESH2MOTION/Sword_Regular_C_RM", turn = await call("film", { clip: TURN, around: 0.3 }, { pngs });
-    const { clip: c, rest: R } = loaded(TURN), [t0, t1] = [0.3 - 0.2, 0.3 + 0.2], ts = Array.from({ length: 8 }, (_, i) => t0 + ((t1 - t0) * i) / 7);
-    const root = (t: number) => ((p) => ({ forward: (p.forward * R.H0) / 100, right: (p.right * R.H0) / 100, yaw: p.yaw }))(clipNs.rootAt(c, t));
-    expect(only(pngs).equals(Buffer.from(png(strip(ts.map((t) => clipNs.sample(c, t, R)), ts.map(root), ts.map((t) => `${t.toFixed(2)} S`)))))).toBe(true);
+    // each frame its pose and its root in mm at its time, labelled with the time: on a clip that travels and turns (61 →
+    // 939 mm, -37° → -255° over these frames), and on one that moves sideways (550 → 1907 mm right)
+    const filmed = async (id: string, around: number) => {
+      const pngs = new Map<string, Uint8Array>(), r = await call("film", { clip: id, around }, { pngs }), { clip: c, rest: R } = loaded(id);
+      const [t0, t1] = [around - 0.2, around + 0.2], ts = Array.from({ length: 8 }, (_, i) => t0 + ((t1 - t0) * i) / 7);
+      const root = (t: number) => ((p) => ({ forward: (p.forward * R.H0) / 100, right: (p.right * R.H0) / 100, yaw: p.yaw }))(clipNs.rootAt(c, t));
+      expect(only(pngs).equals(Buffer.from(png(strip(ts.map((t) => clipNs.sample(c, t, R)), ts.map(root), ts.map((t) => `${t.toFixed(2)} S`)))))).toBe(true);
+      return r;
+    };
+    const [turn, dodge] = [await filmed(TURN, 0.3), await filmed("MESH2MOTION/Dodge_right_RM", 0.4)];
     expect([turn.data!.travel, turn.lines[1], turn.next]).toEqual([[1491, 0], "travels 1491 mm forward, 0 mm right over 1.667 s", `sheet ${TURN} shows the whole clip with its findings; metrics ${TURN} measures it`]);
+    expect([dodge.data!.travel, dodge.lines[1]]).toEqual([[0, 1962], "travels 0 mm forward, 1962 mm right over 0.833 s"]);
     expect((await call("film", { clip: `${Q}Punch_Jab`, around: 0.5 })).data).toMatchObject({ times: [0.3, 0.357, 0.414, 0.471, 0.529, 0.586, 0.643, 0.7], marks: [] });
     expect((await call("film", { clip: `${Q}Punch_Jab`, frames: 1, around: 0.3 })).data).toMatchObject({ times: [0.3], marks: [] });
     expect(await call("film", { clip: `${Q}Walk_Loop`, frames: 16 })).toMatchObject({ data: { strike: null, width: 1566, frames: 16, times: expect.arrayContaining([0, 1.25]) }, next: `film ${Q}Walk_Loop with around (seconds) zooms on a moment; sheet ${Q}Walk_Loop shows contacts and findings` });
+    // past the last frame (1.25 s, a step 0.083 s) an event is named within half a step, not beyond
+    const late = await call("film", { clip: JSON.stringify({ ...clipFile("Walk_Loop"), events: [{ t: 1.28, name: "late" }, { t: 1.3, name: "past" }] }), frames: 16 });
+    expect(late.data!.marks).toEqual([{ t: 1.28, name: "late", frame: 15 }]);
     expect(await call("film", { clip: `${Q}Punch_Jab`, around: 5 })).toMatchObject({ status: "usage", error: { code: "E_ARGS", message: "around is 5 s, past the clip's end (0.867 s)" } });
   });
 
@@ -105,6 +119,9 @@ describe("the check tools", () => {
     expect(back.next).toMatch(/^b is worse: keep a, or lint /);
     const far = await call("diff", { a: `${Q}Walk_Loop`, b: SWORD });
     expect([far.lines[5], (far.data!.metrics as { changed: unknown[] }).changed.length, (far.data!.metrics as { more: number }).more, far.data!.travel, far.lines.at(-1)]).toEqual(["b drawn on a's rest (UAL1): a clip's keys are rest-relative", 8, 1, { a: [0, 0], b: [5326, 0] }, "travel 0 mm, 0 mm → 5326 mm, 0 mm (forward, right)"]);
+    // each clip's travel on its own rest, as film gives it (b's would be 1558 mm on a's): a's sideways, b's forward
+    const side = await call("diff", { a: "MESH2MOTION/Dodge_left_RM", b: TURN });
+    expect([side.data!.travel, side.lines.at(-1)]).toEqual([{ a: [0, -1962], b: [1491, 0] }, "travel 0 mm, -1962 mm → 1491 mm, 0 mm (forward, right)"]);
     expect(await call("diff", { a: `${Q}Walk_Loop`, b: `${Q}Walk_Loop` })).toMatchObject({ status: "ok", lines: [], verdict: expect.stringContaining(": no difference;"), data: { pose: { max: 0, point: null, at: 0, mean: 0, over: [] }, pixels: { changed: 0, box: null }, worse: [] } });
     // a loop's last pose is its cycle's end, not its first: an open loop matches its one-shot
     const death = clipFile("Death01");
@@ -127,6 +144,12 @@ describe("the check tools", () => {
     const open = await call("lint", { clip: JSON.stringify({ ...clipFile("Death01"), loop: true, tags: ["loop", "run"] }) }), tags = open.data!.tags as { tag: string; message: string }[];
     expect([open.status, tags.map((t) => [t.tag, t.message.length]), open.lines.filter((l) => l.startsWith("tag ")).map((l) => l.length), open.next]).toEqual(["findings", [["loop", 70], ["run", 90]], [80, 101], "fix <the clip's JSON> applies twistFlips, jitter, seam, keeping only steps that don't make it worse; diff it with the fixed copy"]);
     expect(await call("lint", { clip: '{"format":"2.0","id":"DEMO/Bad","dur":0}' })).toMatchObject({ status: "usage", error: { code: "E_CLIP", message: expect.stringMatching(/^the clip JSON is not a valid clip/) } });
+  });
+
+  it("a clip some of whose findings a repair answers: metrics sends it to lint, lint counts those, sheet flags 10 of 23", async () => {
+    const RUSHED = "STYLE100/Rushed_Walk", o = { tiers: ["cc0", "cc-by"] }, [m, l, s] = [await call("metrics", { clip: RUSHED }, o), await call("lint", { clip: RUSHED }, o), await call("sheet", { clip: RUSHED }, o)];
+    expect([m.next, l.verdict]).toEqual([`lint ${RUSHED} names the repairs; sheet ${RUSHED} shows the findings in red`, `lint ${RUSHED}: fix twistFlips, jitter, penetration, footLocks (17 findings); no repair answers intersection, fit, jointLimit`]);
+    expect([(s.data!.flagged as unknown[]).length, s.data!.more, s.lines.length, s.lines.at(-1)]).toEqual([10, 13, 11, "more: 13 (the first 10 shown)"]);
   });
 
   it("a drawing with no body is E_BLANK, naming the times; other errors pass", () => {
