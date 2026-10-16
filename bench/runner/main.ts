@@ -9,10 +9,12 @@
 //   --heldout G4 takes the gate's latest held-out run's (bench/results/heldout/G4/run-<n>/B1/).
 //   --parallel N runs N agents at once, each in its own workspace and home with a /tmp of its own (agents write scratch
 //   files to /tmp by name); where the machine can't give them one, they run one at a time (D84, superseding D54's).
+//   Each runs as an unprivileged user with no capabilities where the machine allows it (bench/runner/agent.ts).
 // - quiz: the legend quiz (bench/runner/quiz.ts), at least 9 of 10.
 // --fake plays the known-good solution (or the quiz's answers) instead of an agent, to check the pipeline for free.
 // Results go to bench/results/<date>-<model>-<brief>.json (-2, -3... for later runs that day), with the commit, whether
-// the tree differed from it, the models the agents ran and a variant's directory; the pass mark is 4 of 5 (PLAN.md §7).
+// the tree differed from it, the models the agents ran, how they were isolated (privateTmp, ownPids, capsDropped, uid,
+// unprivileged) and a variant's directory; the pass mark is 4 of 5 (PLAN.md §7).
 import { execFileSync } from "node:child_process";
 import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
@@ -24,7 +26,7 @@ import { gradeB5 } from "../graders/B5/grade.ts";
 import { gradeB6 } from "../graders/B6/grade.ts";
 import { gradeB7 } from "../graders/B7/grade.ts";
 import { closest, finish, fmtMs, parseArgs, usage, type Report, type Step } from "../../tools/run/cli.ts";
-import { capsDropped, namespace, ownPids, runAgent, type AgentRun } from "./agent.ts";
+import { agentUser, capsDropped, namespace, ownPids, runAgent, type AgentRun } from "./agent.ts";
 import { pack } from "./pack.ts";
 import { answersIn, QUIZ, quizPrompt, score } from "./quiz.ts";
 import { variant } from "@m3a/three/test-characters";
@@ -200,7 +202,7 @@ if (import.meta.main) {
   const f = parsed.flags, names = parsed.positionals[0]!.split(","), trials = Number(f.trials ?? 5), t0 = performance.now(), steps: Step[] = [];
   const stamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19), base = join("/tmp/m3a-bench", stamp), model = typeof f.model === "string" ? f.model : undefined, fake = f.fake === true;
   mkdirSync(base, { recursive: true });
-  const results: Record<string, unknown> = { about: "npm run bench: fresh agents on the briefs (PLAN.md §7); isolation 1 is the claude CLI in a clean workspace", date: stamp, ...commitOf(), model: model ?? "the CLI's default", fake, parallel: lanes(Number(f.parallel ?? 1), fake), privateTmp: namespace() !== null, ownPids: ownPids(), capsDropped: capsDropped() };
+  const results: Record<string, unknown> = { about: "npm run bench: fresh agents on the briefs (PLAN.md §7); isolation 1 is the claude CLI in a clean workspace", date: stamp, ...commitOf(), model: model ?? "the CLI's default", fake, parallel: lanes(Number(f.parallel ?? 1), fake), privateTmp: namespace() !== null, ownPids: ownPids(), capsDropped: capsDropped(), uid: agentUser().uid, unprivileged: agentUser().unprivileged };
   if (typeof f.variant === "string") results.variant = { dir: relative(ROOT, resolve(f.variant)), character: variantOf(resolve(f.variant)).character };
   const briefs = names.filter((n) => n !== "quiz"), packs = briefs.length ? pack(join(base, "packs")) : {}, models = new Set<string>();
   for (const name of briefs) {

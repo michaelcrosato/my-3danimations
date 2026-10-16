@@ -10,10 +10,16 @@
 // Why hide, not allow: every copy of the graders outside /tmp on this machine lies in a worktree (`find /`, 2026-10-15),
 // and covering directories keeps D84's mechanism, tested as root and through a user namespace on CI; a fresh root
 // holding only what an agent needs would have to carry everything the CLI reaches for (the node installs, the resolver's
-// files, the proxy's CA), and a miss would show only as failed trials at a gate. The agent runs as root in its
-// namespace: where util-linux's `setpriv` works, it starts without CAP_SYS_ADMIN (out of its bounding and inheritable
-// sets, so nothing it runs gets it back), so it can neither unmount what covers the repository nor mount anything
-// (D91); elsewhere it could, and the audit below lists any path outside.
+// files, the proxy's CA), and a miss would show only as failed trials at a gate. Where util-linux's `setpriv` works,
+// the agent starts with no capabilities (none in its bounding or inheritable sets, and no new privileges, so nothing it
+// runs gets one back, a setuid `mount` among them): it can neither unmount what covers the repository nor mount
+// anything (D91). Where the runner is root, it runs as an unprivileged user too (`nobody`), its workspace, home and
+// /tmp handed to it, the proxy's CA copied into its home and the CLI's credentials (a cloud session's, which only root
+// reads) into a tmpfs of its namespace's own, so /root, the raw disks under /dev, other users' unreadable files and the
+// covers (mode 0700) refuse it; where the runner isn't root (CI), it runs as the runner, already unprivileged.
+// Where the machine refuses the switch, the agent runs as the runner (root), and where it refuses `setpriv`, with its
+// capabilities too; each trial records which (`capsDropped`, `uid`, `unprivileged`), and the audit below lists any
+// path outside.
 // The transcript (stream-json) is kept; the run records its time, tokens, cost and turns, and the audit lists every
 // path it touched outside the workspace (and its own /tmp's scratch files apart) and every file it read past the
 // manual (the packages' code in node_modules), a shell command's relative paths resolved as its shell would (D88).
@@ -32,7 +38,7 @@
 //   line it wrote, and replaced it before running anything); relative paths in such a file are taken only as `./` or
 //   `../` strings, from its directory, and only when they exist.
 import { execFileSync, spawn } from "node:child_process";
-import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { copyFileSync, existsSync, lchownSync, mkdirSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, isAbsolute, join, normalize, resolve } from "node:path";
 
@@ -43,8 +49,14 @@ export interface AgentRun {
   privateTmp: boolean;
   /** Whether its processes ran in a PID namespace of their own, /proc showing only them (D91). */
   ownPids: boolean;
-  /** Whether it started without CAP_SYS_ADMIN, so it could neither unmount what hides the repository nor mount (D91). */
+  /** Whether it started with no capabilities (CAP_SYS_ADMIN among them), so it could neither unmount what hides the
+   *  repository nor mount (D91). */
   capsDropped: boolean;
+  /** The user it ran as, as the machine counts users (the runner's own where it didn't switch: in a user namespace it
+   *  is root only there). */
+  uid: number;
+  /** Whether that user is unprivileged on the machine: `nobody` where the runner is root, or the runner where it isn't. */
+  unprivileged: boolean;
   ok: boolean;
   ms: number;
   model: string;
@@ -73,6 +85,12 @@ export interface AgentOptions {
 
 /** The variables a trial keeps from this process: the network's proxy and certificates, a PATH; nothing else. */
 const KEEP = ["PATH", "ANTHROPIC_BASE_URL", "HTTPS_PROXY", "https_proxy", "HTTP_PROXY", "http_proxy", "NO_PROXY", "no_proxy", "NODE_EXTRA_CA_CERTS", "SSL_CERT_FILE", "LANG"];
+/** The variables among them naming a certificate file: each file is copied into the trial's home, which its user can
+ *  read (the session keeps the proxy's under /root, which `nobody` can't). */
+const CERTS = ["NODE_EXTRA_CA_CERTS", "SSL_CERT_FILE"];
+/** Where a cloud session keeps the `claude` CLI's credentials, readable by root alone: the CLI reads them from there
+ *  whoever it runs as (its fresh home has none), so an agent that isn't root gets a copy of its own (`privateTmp`). */
+export const CLOUD_CREDENTIALS = "/home/claude/.claude/remote";
 
 /** The repository the runner runs from. */
 const REPO = join(import.meta.dirname, "../..");
@@ -370,19 +388,19 @@ export function namespace(): string[] | null {
 export function ownPids(): boolean {
   return namespace()?.includes("--pid") ?? false;
 }
-/** util-linux's `setpriv`, starting a program without CAP_SYS_ADMIN: out of its bounding set and its inheritable one, so
- *  nothing it runs gets it back over its namespace (a setuid `mount` among them), and a user namespace it makes holds
- *  the covers locked (D91). */
-const DROP = ["setpriv", "--bounding-set", "-sys_admin", "--inh-caps", "-sys_admin", "--"];
+/** util-linux's `setpriv` arguments starting a program with no capabilities: none in its bounding set or its
+ *  inheritable one, and no new privileges, so nothing it runs gets one back over its namespace (a setuid `mount`
+ *  among them), and a user namespace it makes holds the covers locked (D91). */
+const NOCAPS = ["--bounding-set", "-all", "--inh-caps", "-all", "--no-new-privs"];
 let dropping: boolean | undefined;
 /**
- * Whether the agents start without CAP_SYS_ADMIN (`DROP`), so they can neither unmount what hides the repository nor
+ * Whether the agents start with no capabilities (`NOCAPS`), so they can neither unmount what hides the repository nor
  * mount anything (D91): probed once in the namespace, where `setpriv` must start a program and a bind mount through it
  * must fail. False where no namespace can be made or `setpriv` is missing or refused.
  */
 export function capsDropped(): boolean {
   if (dropping !== undefined) return dropping;
-  const ns = namespace(), drop = DROP.join(" ");
+  const ns = namespace(), drop = ["setpriv", ...NOCAPS, "--"].join(" ");
   if (!ns) return (dropping = false);
   const dir = mkdtempSync("/tmp/m3a-caps-");
   try {
@@ -394,34 +412,85 @@ export function capsDropped(): boolean {
   rmSync(dir, { recursive: true, force: true });
   return dropping;
 }
+
+/** Who the agents run as. */
+export interface AgentUser {
+  /** Its user and group, as the machine counts them. */
+  uid: number;
+  gid: number;
+  /** Whether `setpriv` switches to it in the namespace: `nobody`, where the runner is root. */
+  switched: boolean;
+  /** Whether it is unprivileged on the machine: `nobody`, or the runner where the runner isn't root. */
+  unprivileged: boolean;
+}
+let user: AgentUser | undefined;
+/**
+ * Who the agents run as (D91's known limits): where the runner is root and the agents start with no capabilities,
+ * `nobody` (as the passwd file has it: the CLI asks for its user's name), probed once in the namespace, where `setpriv`
+ * must start a program as it; so /root, the raw disks and other users' files refuse them. Else the runner itself:
+ * unprivileged where it isn't root (CI's runner user, root only in its user namespace), root where the machine refuses.
+ */
+export function agentUser(): AgentUser {
+  if (user) return user;
+  const self = process.getuid?.() ?? 0, ns = namespace();
+  user = { uid: self, gid: process.getgid?.() ?? 0, switched: false, unprivileged: self !== 0 };
+  if (self !== 0 || !ns || !capsDropped()) return user;
+  try {
+    const [uid, gid] = execFileSync("getent", ["passwd", "nobody"], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).split(":").slice(2, 4).map(Number);
+    if (!uid || !gid) return user;
+    const to = { uid, gid, switched: true, unprivileged: true };
+    execFileSync("unshare", [...ns, "--propagation", "private", ...dropTo(to), "sh", "-c", 'test "$(id -u):$(id -g)" = "$0"', `${uid}:${gid}`], { stdio: "ignore", timeout: 10_000 });
+    user = to;
+  } catch {
+    // no `nobody`, or `setpriv` can't switch to it: the runner (root) it is, recorded
+  }
+  return user;
+}
+/** The `setpriv` command starting a program as `u` with no capabilities (its supplementary groups cleared). */
+function dropTo(u: AgentUser): string[] {
+  return ["setpriv", ...(u.switched ? ["--reuid", String(u.uid), "--regid", String(u.gid), "--clear-groups"] : []), ...NOCAPS, "--"];
+}
+/** Hands `dirs` and everything in them to `u` (symbolic links themselves, never followed). */
+function handTo(u: AgentUser, dirs: readonly string[]): void {
+  for (const d of dirs) for (const p of [d, ...readdirSync(d, { recursive: true, encoding: "utf8" }).map((f) => join(d, f))]) lchownSync(p, u.uid, u.gid);
+}
 /**
  * The command that starts `cmd args` in `workspace` with a /tmp of its own, `tmp` (a directory outside the workspace):
  * in a mount namespace, the workspace and `home` are bound into `tmp` at their own paths, `tmp` is bound over /tmp,
  * every checkout of the repository, its git directory and this session's Claude home (`hidden`) are covered by empty
- * directories, and the CLI's account file beside that home (~/.claude.json), where there is one, by /dev/null; in a
- * PID namespace where the machine allows one (`pids`); without CAP_SYS_ADMIN where `setpriv` works (`caps`). Null where
- * no namespace can be made (the agent then shares the machine's /tmp).
+ * directories only root may open, and the CLI's account file beside that home (~/.claude.json), where there is one, by
+ * /dev/null; in a PID namespace where the machine allows one (`pids`); with no capabilities where `setpriv` works
+ * (`caps`), as `agentUser()` (who must own the workspace, `home` and `tmp`). Where that user isn't the runner, the CLI's
+ * credentials in a cloud session (`CLOUD_CREDENTIALS`, root's alone) are copied into a tmpfs of the namespace's own,
+ * made its user's and bound over their directory: the CLI reads them where it did as root, they never land on disk, and
+ * the session's own files stay as they are. Null where no namespace can be made (the agent then shares the machine's
+ * /tmp).
  */
 export function privateTmp(workspace: string, home: string, tmp: string, cmd: string, args: readonly string[]): { cmd: string; args: string[]; pids: boolean; caps: boolean } | null {
   const ns = namespace();
   if (!ns) return null;
   const binds = [workspace, home].filter((d) => d.startsWith("/tmp/"));
   for (const d of binds) mkdirSync(join(tmp, d.slice(4)), { recursive: true });
-  const hide = hidden().filter((d) => existsSync(d) && !d.startsWith("/tmp/") && !workspace.startsWith(d)), caps = capsDropped();
+  const hide = hidden().filter((d) => existsSync(d) && !d.startsWith("/tmp/") && !workspace.startsWith(d)), caps = capsDropped(), u = agentUser();
+  const creds = u.switched && existsSync(CLOUD_CREDENTIALS) ? CLOUD_CREDENTIALS : "";
   // $1 the workspace, $2 the private /tmp, $3 the binds and $4 the hidden directories (each joined by newlines), $5 the
-  // CLI's account file
+  // CLI's account file, $6 the CLI's credentials to hand to its user (or none), $7 that user's uid and $8 its gid
   const script = [
     "set -e",
     "IFS='\n'",
     'for d in $3; do mount --bind "$d" "$2${d#/tmp}"; done',
     'mount --rbind "$2" /tmp',
-    'for d in $4; do mount -t tmpfs -o size=64k,mode=0755 m3a-hidden "$d"; done',
+    'for d in $4; do mount -t tmpfs -o size=64k,mode=0700 m3a-hidden "$d"; done',
     'if [ -e "$5" ]; then mount --bind /dev/null "$5"; fi',
+    'if [ -n "$6" ]; then',
+    '  c=/tmp/.m3a-credentials; mkdir "$c"; mount -t tmpfs -o "size=64k,mode=0700,uid=$7,gid=$8" m3a-credentials "$c"',
+    '  cp -R "$6/." "$c"; chown -R "$7:$8" "$c"; mount --bind "$c" "$6"; umount "$c"; rmdir "$c"',
+    "fi",
     'cd "$1"',
-    "shift 5",
-    `exec ${caps ? `${DROP.join(" ")} ` : ""}"$@"`,
+    "shift 8",
+    `exec ${caps ? `${dropTo(u).join(" ")} ` : ""}"$@"`,
   ].join("\n");
-  return { cmd: "unshare", args: [...ns, "--propagation", "private", "sh", "-c", script, "sh", workspace, tmp, binds.join("\n"), hide.join("\n"), join(homedir(), ".claude.json"), cmd, ...args], pids: ownPids(), caps };
+  return { cmd: "unshare", args: [...ns, "--propagation", "private", "sh", "-c", script, "sh", workspace, tmp, binds.join("\n"), hide.join("\n"), join(homedir(), ".claude.json"), creds, String(u.uid), String(u.gid), cmd, ...args], pids: ownPids(), caps };
 }
 
 /** Runs a fresh agent in `workspace` on `prompt`; the transcript goes to `transcript`. */
@@ -431,10 +500,21 @@ export function runAgent(workspace: string, prompt: string, transcript: string, 
   mkdirSync(tmp, { recursive: true });
   const tools = opts.tools ?? "Bash,Read,Write,Edit,Glob,Grep";
   const args = ["-p", prompt, "--output-format", "stream-json", "--verbose", "--max-turns", String(opts.maxTurns ?? 80), "--tools", tools, "--allowedTools", tools, "--strict-mcp-config", ...(opts.model ? ["--model", opts.model] : [])];
+  const env: Record<string, string> = { HOME: home }, who = agentUser();
+  for (const k of KEEP) if (process.env[k]) env[k] = process.env[k]!;
+  // the certificates the proxy needs, copied into its home: wherever they live, its user reads them there
+  for (const k of CERTS.filter((c) => env[c] && existsSync(env[c]))) {
+    mkdirSync(join(home, ".ca"), { recursive: true });
+    copyFileSync(env[k]!, join(home, ".ca", `${k}.pem`));
+    env[k] = join(home, ".ca", `${k}.pem`);
+  }
+  // its workspace, home and /tmp are its own (made by the runner, they are root's): the /tmp directories that lead to
+  // its workspace and home stay root's, so beside them it writes nothing
+  if (who.switched) handTo(who, [workspace, home, tmp]);
   // its own /tmp where a namespace can be made (D84); else its own temporary directory for the tools that ask for one
   // (an agent may still name /tmp itself: the audit lists it)
-  const own = privateTmp(workspace, home, tmp, "claude", args), env: Record<string, string> = { HOME: home, TMPDIR: own ? "/tmp" : tmp };
-  for (const k of KEEP) if (process.env[k]) env[k] = process.env[k]!;
+  const own = privateTmp(workspace, home, tmp, "claude", args);
+  env.TMPDIR = own ? "/tmp" : tmp;
   return new Promise((done) => {
     const child = spawn(own?.cmd ?? "claude", own?.args ?? args, { cwd: workspace, env, stdio: ["ignore", "pipe", "pipe"] }), out: string[] = [];
     let buf = "", err = "";
@@ -460,7 +540,7 @@ export function runAgent(workspace: string, prompt: string, transcript: string, 
       }).findLast((j) => j.type === "result") as { subtype?: string; num_turns?: number; total_cost_usd?: number; usage?: Record<string, number>; modelUsage?: Record<string, unknown>; is_error?: boolean; result?: string } | undefined;
       const u = result?.usage ?? {}, a = audit(out, workspace, own !== null);
       done({
-        isolation: 1, privateTmp: own !== null, ownPids: own?.pids ?? false, capsDropped: own?.caps ?? false, ok: code === 0 && result?.subtype === "success", ms: performance.now() - t0, model: Object.keys(result?.modelUsage ?? {})[0] ?? opts.model ?? "default",
+        isolation: 1, privateTmp: own !== null, ownPids: own?.pids ?? false, capsDropped: own?.caps ?? false, uid: who.uid, unprivileged: who.unprivileged, ok: code === 0 && result?.subtype === "success", ms: performance.now() - t0, model: Object.keys(result?.modelUsage ?? {})[0] ?? opts.model ?? "default",
         turns: result?.num_turns ?? 0, tokens: { input: u.input_tokens ?? 0, output: u.output_tokens ?? 0, cacheRead: u.cache_read_input_tokens ?? 0, cacheWrite: u.cache_creation_input_tokens ?? 0 },
         costUsd: result?.total_cost_usd ?? 0, outside: a.outside, scratch: a.scratch, pastManual: a.pastManual, transcript, reply: result?.result ?? "",
         ...(code === 0 && result?.subtype === "success" ? {} : { error: (result?.subtype ?? `exit ${code}`) + (err ? `: ${err.trim().split("\n").slice(-1)[0]}` : "") }),
