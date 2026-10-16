@@ -54,6 +54,8 @@ describe("the check tools", () => {
     expect(await call("metrics", { clip: "walk.json" }, { files: { "walk.json": JSON.stringify(file) } })).toMatchObject({ verdict: expect.stringMatching(/^metrics walk.json: FAIL/), data: { clip: `${Q}Walk_Loop` }, next: "`lint walk.json` names the repairs; `sheet walk.json` shows the findings in red" });
     // a path with a space or a control character JSON-quoted; an absolute one, like JSON, never echoed
     const abs = await call("metrics", (cwd) => ({ clip: join(cwd, "walk.json") }), { files: { "walk.json": JSON.stringify(file) } });
+    const bad = await call("metrics", (cwd) => ({ clip: join(cwd, "bad.json") }), { files: { "bad.json": "{}" } }); // nor in a refusal
+    expect([bad.status, bad.error?.message, JSON.stringify(bad).includes("bad.json")]).toEqual(["error", expect.stringMatching(/^the clip file is not a valid clip/), false]);
     expect([abs.verdict, abs.next, JSON.stringify(abs).includes("walk.json")]).toEqual([`metrics ${Q}Walk_Loop (the clip's file): FAIL (2 fail, 2 warn), 1.333 s loop`, "`lint <the clip's file>` names the repairs; `sheet <the clip's file>` shows the findings in red", false]);
     const odd = await call("diff", { a: "my walk.json", b: "a\nb.json" }, { files: { "my walk.json": JSON.stringify(file), "a\nb.json": JSON.stringify(file) } });
     expect([odd.verdict, odd.next]).toEqual([`diff 'my walk.json' → ${Q}Walk_Loop (b's file): no difference; FAIL → FAIL (4 → 4 findings)`, "open the image: magenta marks what moved; `metrics <b's file>` gives b's findings"]); // a control character: not echoed

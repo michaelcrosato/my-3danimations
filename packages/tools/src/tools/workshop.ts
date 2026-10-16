@@ -1,14 +1,14 @@
 // The workshop (PLAN.md WP-7.2a §3, carried from shardfall's revisioned edits): an edited clip lives in
 // workshop/<Name>.json (id WORKSHOP/<Name>), its history in .m3a/history/<Name>.json: the library clip it came from and
 // that clip's rest, the revision and text it last wrote, the recipe since the copy, undo and redo stacks of whole file
-// texts (32 entries in all), and the requests its last writes applied. A revision is the first 12 hex digits of the file's
-// SHA-256, or "absent". Writes go history first, then the clip (a failed clip write puts the history back), under the
-// clip's lock (.m3a/locks/<Name>.lock, held across m3a processes) once the target's revision and history are read
-// again, so of two edits from one state the second is refused (E_CONFLICT) and none is lost. A file a step from the
-// history's head is a write cut short between the two: the history steps back to it (a cut-short apply's result is
-// dropped, never offered to redo). Any other file the history doesn't know was changed outside m3a: undo refuses, the
-// next edit starts a new history. The history keeps the requests of its last 8 writes, which closes the crash window
-// between a write and the registry's record for each of them.
+// texts (32 entries in all), and the requests its last writes applied. A revision is the first 12 hex digits of the
+// file's SHA-256, or "absent". Writes go history first, then the clip (a failed clip write puts the history back),
+// under the clip's lock (.m3a/locks/<Name>.lock, held across m3a processes) once the target's revision and history are
+// read again, so of two edits from one state the second is refused (E_CONFLICT) and none is lost. A file a step from
+// the history's head is a write cut short between the two: the history steps back to it (a cut-short apply's result is
+// dropped, never offered to redo). Any other file the history doesn't know was changed outside m3a: undo refuses, every
+// tool reads the file as any clip file (clips.ts), and the next edit starts a new history. The history keeps the
+// requests of its last 8 writes, which closes the crash window between a write and the registry's record for each.
 import { recipe, type Rest } from "@m3a/core";
 import { ToolError, type ToolContext, type ToolOutput } from "../registry/registry.ts";
 import { quote } from "../registry/schema.ts";
@@ -77,8 +77,8 @@ export interface History extends Omit<Entry, "revision"> {
 export const REQUESTS_KEPT = 8;
 
 /** A workshop clip as it stands: its id, name and file, the file's text and revision, its history (null when none,
- *  or `stale`: why the history was set aside, the file changed outside m3a or the history unreadable) and that
- *  history's text as read (null when there is no file). */
+ *  or `stale`: why the history was set aside, the file changed outside m3a or the history unreadable) and the history
+ *  file's text as read (`raw`; null when there is none), which a write compares before it writes. */
 export interface Target {
   id: string;
   name: string;

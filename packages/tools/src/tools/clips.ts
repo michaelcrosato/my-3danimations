@@ -101,7 +101,7 @@ export async function loadClip(ctx: ToolContext, ref: string): Promise<ClipRef> 
   const r = await readClip(ctx, ref), lib = ctx.library(), warn = tierWarning(lib, r);
   if (warn && !lib.warnings.includes(warn)) lib.warnings.push(warn); // the call's warnings, first among its lines
   if (r.rest) return { ...r, rest: r.rest };
-  throw new ToolError("E_REST", `${r.path === null ? "the clip JSON" : quote(r.path)} names rest ${quote(r.clip.restSrc)}, which no set's manifest has; make it on a library rest (each set's _set.json lists its sources)`, r.where === "text");
+  throw new ToolError("E_REST", `${r.path === null ? "the clip JSON" : absolute(r.path) ? "the clip file" : quote(r.path)} names rest ${quote(r.clip.restSrc)}, which no set's manifest has; make it on a library rest (each set's _set.json lists its sources)`, r.where === "text");
 }
 
 /** As loadClip, for a tool that needs only the clip's own data (license.check): a clip whose rest no set has (and no
@@ -123,7 +123,7 @@ export async function readClip(ctx: ToolContext, ref: string): Promise<ClipData>
 /** A clip from its text: parsed and checked with core's validator (read mode), its rest from its history (`kept`) or a
  *  manifest. */
 function fromText(lib: LibraryAccess, text: string, where: "workshop" | "file" | "text", path: string | null, name: string | null, kept?: { origin: string; rest: Rest } | null): ClipData {
-  const what = path === null ? "the clip JSON" : quote(path), inline = where === "text";
+  const what = path === null ? "the clip JSON" : absolute(path) ? "the clip file" : quote(path), inline = where === "text";
   let data: unknown;
   try {
     data = JSON.parse(text);

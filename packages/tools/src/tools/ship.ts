@@ -84,7 +84,7 @@ export const licenseCheck = defineTool<{ clips?: string[]; tiers?: Tier[]; ships
         } catch (err) {
           // one that won't load is a finding, so one check reports every problem; a path out of the working directory is refused
           if (!(err instanceof ToolError) || err.code === "E_PATH") throw err;
-          fail(given.startsWith("{") ? "the clip JSON" : hide ? "the clip file" : echo(given), hide ? err.message.replaceAll(quote(given), "it") : err.message, i);
+          fail(given.startsWith("{") ? "the clip JSON" : hide ? "the clip file" : echo(given), hide ? err.message.replaceAll(quote(given), "it").replace(/^the clip file /, "it ") : err.message, i);
           continue;
         }
         for (const id of o.ids) labels.set(id, [...(labels.get(id) ?? []), { label: o.label === echo(id) ? o.label : `${o.label} (from ${echo(id)})`, i }]);
