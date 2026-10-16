@@ -2,14 +2,15 @@
 // exactly; its Rigify rig (a skin, its root rotated and scaled) binds by name at its hip height, its soles' end bones
 // (D49) included; every generated test character reads as generated, an armature's 0.01 scale and each bone's rest
 // frame included, the leaves no vertex is weighted to left out (a VRM, 1.0 or 0.x, keeps them, as do weights it can't
-// read, which it says, but not another required extension); the biggest skin is read, a bone's parent the nearest
-// joint above it; a joint no vertex is weighted to is kept only above one of the skin's own, through joints (not a
-// helper node, nor from another skin's joint), one only another skin's mesh moves kept, a vertex weighted to nothing
-// counting its first joint (three's loader's), every joint kept when no mesh is skinned; where a joint's mesh ends,
-// exactly (half its weight or more, summed to 1, in every mesh a skin naming it skins, farthest across the ground,
-// down to the lowest, the skinned mesh node's own transform ignored), or why it read none; signed and unsigned bytes
-// and shorts read, normalized or not, a sparse accessor refused; the real CC0 rigs, when fetched, map each limb to its
-// own bones, KayKit's IK and roll controls left out; names are unique; no bones, or a joint past the nodes, refused.
+// read, which it says, but not another required extension); the biggest skin a mesh uses is read (a bigger one no mesh
+// uses passed over), a bone's parent the nearest joint above it; a joint no vertex is weighted to is kept only above
+// one of the skin's own, through joints (not a helper node, nor from another skin's joint), one only another skin's
+// mesh moves kept, a vertex weighted to nothing counting its first joint (three's loader's), every joint kept when no
+// mesh is skinned; where a joint's mesh ends, exactly (half its weight or more, summed to 1, a vertex weighted to
+// nothing its first joint's, in every mesh a skin naming it skins, farthest across the ground, down to the lowest, the
+// skinned mesh node's own transform ignored), or why it read none; signed and unsigned bytes and shorts read,
+// normalized or not, a sparse accessor refused; the real CC0 rigs, when fetched, map each limb to its own bones,
+// KayKit's IK and roll controls left out; names are unique; no bones, or a joint past the nodes, refused.
 import { bind, math, recognize } from "@m3a/core";
 import { describe, expect, it } from "vitest";
 import { IoError, meshEnds, packGlb, parseGlb, parseGltf, skeletonOfGltf } from "../src/index.ts";
@@ -74,9 +75,13 @@ describe("skeletonOfGltf", () => {
     const soles = { ...s.skeleton, bones: [...s.skeleton.bones, ...toes.map((t, k) => ({ name: `${t}_end`, parent: t, head: ends[k]! }))] };
     expect([bind(s.skeleton, { recognition: rec, restWorld: s.restWorld }).rest.H0, bind(soles, { recognition: rec, restWorld: s.restWorld }).rest.H0]).toEqual([930, 930.35]);
   });
-  it("reads the biggest skin's joints, each bone's parent the nearest joint above it (a helper node between left out)", () => {
-    const s = skeletonOfGltf(skinned());
-    expect([s.skeleton.bones, s.nodes, s.unread]).toEqual([[{ name: "A", parent: null, head: [0, 1, 0] }, { name: "B", parent: "A", head: [0, 2, 0] }], [0, 2], null]);
+  it("reads the joints of the biggest skin a mesh uses, each bone's parent the nearest joint above it (a helper node between left out)", () => {
+    const s = skeletonOfGltf(skinned()), AB = [{ name: "A", parent: null, head: [0, 1, 0] }, { name: "B", parent: "A", head: [0, 2, 0] }];
+    expect([s.skeleton.bones, s.nodes, s.unread]).toEqual([AB, [0, 2], null]);
+    // a bigger skin (C, D, E) no mesh uses (D, meshless, names it) is passed over, as three's bind takes the skinned
+    // mesh with the most bones
+    const nodes = [...SHOE.nodes.slice(0, 5), { name: "D", skin: 2 }, { name: "E" }];
+    expect(skeletonOfGltf(skinned({ skins: [{ joints: [3] }, { joints: [0, 2] }, { joints: [3, 5, 6] }], nodes })).skeleton.bones).toEqual(AB);
   });
   it("keeps a joint no vertex is weighted to only above one of its skin's own, through joints, as three's bind climbs", () => {
     // every vertex B's: A, above B through the helper node, stays out
@@ -112,6 +117,10 @@ describe("skeletonOfGltf", () => {
     near(meshEnds(half, [2, 0]).ends, [[0, 1, 0.9], [0, 1.45, 1.2]]);
     // B's foot in a shoe a smaller skin skins (3 m out, 0.5 m up) is read with the body's: every mesh that skins B
     near(meshEnds(skinned(SHOE, undefined, undefined, [{ P: [[0, -1.5, 3]], W: [[1, 0]], J: [0, 0] }]), [2]).ends, [[0, 0.5, 3]]);
+    // every vertex weighted to nothing: its first joint's (B's) alone, as three's loader gives it; A has none
+    const zero = meshEnds(skinned({}, [[0, 0], [0, 0], [0, 0], [0, 0]]), [2, 0]).ends;
+    near([zero[0]!], [[0, 1, 2]]);
+    expect(zero[1]).toBeNull();
   });
   it("reads no end, and says why, from a mesh it can't read: compressed, a position past its buffer, sparse", () => {
     const past = skinned(), sparse = skinned();

@@ -173,10 +173,12 @@ export async function characterOf(ctx: ToolContext, ref: string, mapping?: Mappi
     rec = { ...rec, issues: [...own, ...rec.issues.filter((i) => mapping || i !== "patched by hand")] };
   }
   if (!Object.keys(rec.bones).length) throw new ToolError("E_RIG", `${ref}: no humanoid bone recognized among its ${sk.bones.length} bones, by name or by shape; give each bone in mapping {bones: {hips: "<its bone>", ...}}`);
-  // the weights unread (every joint kept, no soles), or else the soles' mesh: said first, for retarget.inspect to show
-  const body = rec.missing.length ? null : withSoles(read, rec), unread = read.file?.g.unread;
-  if (unread) rec = { ...rec, issues: [`mesh ${unread === "unreadable" ? "unreadable" : `compressed (${unread})`}: weights unread, every joint kept, no sole end bones`, ...rec.issues] };
-  else if (body?.unread) rec = { ...rec, issues: [`sole end bones unread: ${body.unread}; the hips may sit 10-40 mm low`, ...rec.issues] };
+  // the weights unread (every joint kept; a compressed mesh gives no soles), and the soles' mesh unread if it was
+  // another reason: said first, for retarget.inspect to show
+  const body = rec.missing.length ? null : withSoles(read, rec), unread = read.file?.g.unread ?? null, said: string[] = [];
+  if (unread) said.push(unread === "unreadable" ? "mesh unreadable: weights unread, every joint kept" : `mesh compressed (${unread}): weights unread, every joint kept, no sole end bones`);
+  if (body?.unread && body.unread !== unread) said.push(`sole end bones unread: ${body.unread}; the hips may sit 10-40 mm low`);
+  if (said.length) rec = { ...rec, issues: [...said, ...rec.issues] };
   const report = reportOf(ref, sk, rec, byVrm);
   let bound: Bound | null = null;
   try {

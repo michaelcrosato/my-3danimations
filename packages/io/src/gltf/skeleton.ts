@@ -1,16 +1,17 @@
 // A glTF character's skeleton as core binds it (PLAN.md WP-7.2b, D93: characters bind through core, not three.js's
-// loader). The bones are the joints of its skin with the most (a skinned mesh's skeleton, as three's bind takes it),
-// kept to those some vertex is weighted to and every joint above one, so a rig's IK and roll controls, which move
-// nothing, don't mislead recognition (three's bind leaves them out the same way); a VRM keeps every joint, its humanoid
-// naming them; weights that can't be read (a compressed mesh) keep them all, and say why. Without a skin, every node is
-// a bone (tier 1b's rig.gltf). Each has its parent (the nearest ancestor that is a bone), its rest head and its rest
-// orientation in the scene's space (every node above it applied: an armature's rotation and scale too), in the file's
-// metres, +y up. Names are the file's own (three.js would sanitize them); a bone with none, or one another bone took
-// first, is named for its node. `meshEnds` reads where a joint's part of the skinned mesh ends, on the sole: the end
-// bone D49 gives a foot with no child, as three's bind reads it (skinned by the joints alone: the skinned mesh node's
-// own transform is ignored, as glTF says and as three's bind matrix cancels it), or why it read none. Lengths use core's
-// portable hypot (V8's bits in every engine). Untrusted input: hierarchy() refuses cycles, missing children and too
-// many nodes; every accessor read is checked against the buffer.
+// loader). The bones are the joints of the biggest skin a mesh node uses (a skinned mesh's skeleton, as three's bind
+// takes it; with none, the biggest skin), kept to those some vertex is weighted to and every joint above one, so a
+// rig's IK and roll controls, which move nothing, don't mislead recognition (three's bind leaves them out the same
+// way); a VRM keeps every joint, its humanoid naming them; weights that can't be read (a compressed mesh) keep them
+// all, and say why. Without a skin, every node is a bone (tier 1b's rig.gltf). Each has its parent (the nearest
+// ancestor that is a bone, through any helper node between; three's bind makes such a bone a root), its rest head and
+// its rest orientation in the scene's space (every node above it applied: an armature's rotation and scale too), in
+// the file's metres, +y up. Names are the file's own (three.js would sanitize them); a bone with none, or one another
+// bone took first, is named for its node. `meshEnds` reads where a joint's part of the skinned mesh ends, on the sole:
+// the end bone D49 gives a foot with no child, as three's bind reads it (skinned by the joints alone: the skinned mesh
+// node's own transform is ignored, as glTF says and as three's bind matrix cancels it), or why it read none. Lengths
+// use core's portable hypot (V8's bits in every engine). Untrusted input: hierarchy() refuses cycles, missing children
+// and too many nodes; every accessor read is checked against the buffer.
 import { math, type SkeletonIn } from "@m3a/core";
 import { IoError } from "../bytes.ts";
 import type { GltfDoc, GltfJson, GltfNode } from "./container.ts";
@@ -20,8 +21,9 @@ const { PORTABLE } = math;
 
 /** A glTF character's skeleton: the bones core binds, each bone's rest orientation in the scene's space ([x, y, z, w],
  *  by bone name, as core's bind takes `restWorld`), the node each bone is (`nodes[k]` for `skeleton.bones[k]`), and why
- *  its skin's weights went unread, so that every joint was kept and `meshEnds` knows no end: the compression the file
- *  requires (e.g. EXT_meshopt_compression), or "unreadable" (broken); null otherwise. */
+ *  the skinned meshes' weights went unread, so that every joint was kept: the compression the file requires (e.g.
+ *  EXT_meshopt_compression; `meshEnds` then reads no end either), or "unreadable" (some mesh's broken, maybe one that
+ *  skins no foot); null otherwise. */
 export interface GltfSkeleton {
   skeleton: SkeletonIn;
   restWorld: Record<string, [number, number, number, number]>;
@@ -43,11 +45,17 @@ function worlds(nodes: readonly GltfNode[], parent: readonly number[], order: re
  *  else undefined. */
 const compressed = (G: GltfJson): string | undefined => G.extensionsRequired?.find((e) => /^(EXT|KHR)_meshopt_compression$|^KHR_draco_mesh_compression$/.test(e));
 
-/** A glTF document's skeleton: its biggest skin's joints (those that deform, and above), or every node without a skin.
- *  Fails with E_RIG when it has no bones, E_FORMAT when a skin names a node that isn't there. */
+/** The joints of the skin with the most of them (the first, on a tie), of those `skins` whose index `ok` passes. */
+const biggest = (skins: GltfJson["skins"], ok: (k: number) => boolean): number[] | null =>
+  (skins ?? []).reduce<number[] | null>((best, s, k) => (ok(k) && (!best || s.joints.length > best.length) ? s.joints : best), null);
+
+/** A glTF document's skeleton: the joints (those that deform, and above) of the biggest skin a mesh node uses (as three's
+ *  bind takes the skinned mesh with the most bones), else of the biggest skin, or every node without a skin. Fails with
+ *  E_RIG when it has no bones, E_FORMAT when a skin names a node that isn't there. */
 export function skeletonOfGltf(doc: GltfDoc): GltfSkeleton {
   const file = doc.bin?.file, nodes = doc.json.nodes ?? [], { parent, order } = hierarchy(nodes, file);
-  const skin = (doc.json.skins ?? []).reduce<number[] | null>((best, s) => (!best || s.joints.length > best.length ? s.joints : best), null);
+  const skinning = new Set(nodes.flatMap((n) => (n.mesh !== undefined && n.skin !== undefined ? [n.skin] : [])));
+  const skin = biggest(doc.json.skins, (k) => skinning.has(k)) ?? biggest(doc.json.skins, () => true);
   for (const j of skin ?? []) if (j >= nodes.length) throw new IoError("E_FORMAT", `a skin names joint ${j}, which doesn't exist`, { file });
   const vrm = doc.json.extensions?.VRMC_vrm !== undefined || doc.json.extensions?.VRM !== undefined, keep = skin && !vrm ? deforming(doc, parent, skin) : null;
   const moving = keep instanceof Set ? keep : null, picked = skin ? [...new Set(skin)].filter((j) => !moving || moving.has(j)) : nodes.map((_, i) => i);
