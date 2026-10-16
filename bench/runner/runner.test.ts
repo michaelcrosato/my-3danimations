@@ -3,14 +3,16 @@
 // quiz's prompt and scoring, a fake trial through the packed packages installed in a workspace outside the repository,
 // agents run a few at once, each `claude` started in its workspace with a /tmp of its own, every checkout of the
 // repository hidden, the CLI's account file empty, its processes alone in /proc and unable to unmount what hides the
-// repository (D84, D91), and a held-out variant given by path, whose known-good solution runs first. Every temporary
-// directory a test makes is removed after it.
+// repository (D84, D91), as an unprivileged user with no capabilities whom /root, the raw disks and the covers refuse,
+// its workspace and home its own (a link in them handed, never what it leads to), /var/tmp and /dev/shm its own too,
+// and the proxy's CA copied into that home; and a held-out variant given by path, whose known-good solution runs first.
+// Every temporary directory a test makes is removed after it.
 import { execFileSync } from "node:child_process";
-import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, symlinkSync, writeFileSync } from "node:fs";
 import { homedir, tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, describe, expect, it } from "vitest";
-import { audit, capsDropped, hidden, namespace, pathsOf, runAgent } from "./agent.ts";
+import { agentUser, audit, capsDropped, CLOUD_CREDENTIALS, hidden, namespace, ownScratch, pathsOf, runAgent } from "./agent.ts";
 import { commitOf, lanes, latestVariant, pool, runB1, variantOf } from "./main.ts";
 import { pack } from "./pack.ts";
 import { answersIn, QUIZ, quizPrompt, score } from "./quiz.ts";
@@ -44,6 +46,13 @@ describe("the agent's audit", () => {
     const scratch = [call("Write", { file_path: "/tmp/cat.mjs", content: "" }), call("Bash", { command: `node /tmp/cat.mjs && cat ${ROOT}/PLAN.md` })];
     expect(audit(scratch, ws, true)).toEqual({ outside: [`${ROOT}/PLAN.md`], scratch: ["/tmp/cat.mjs"], pastManual: [] });
     expect(audit(scratch, ws).outside).toEqual([`${ROOT}/PLAN.md`, "/tmp/cat.mjs"].sort());
+    // so are its files in /var/tmp and /dev/shm, each its own where its namespace covers it (a directory, not a link),
+    // and outside where it has none (other agents share them); the directories themselves, and /dev/null, are ordinary
+    const shared = [call("Bash", { command: "ls /var/tmp /dev/shm > /dev/null && echo x > /var/tmp/v.mjs" }), call("Write", { file_path: "/dev/shm/s.mjs", content: "" })];
+    const own = ownScratch().filter((d) => d !== "/tmp"), files = ["/dev/shm/s.mjs", "/var/tmp/v.mjs"];
+    expect(own).toEqual(["/var/tmp", "/dev/shm"].filter((d) => existsSync(d) && lstatSync(d).isDirectory()));
+    expect(audit(shared, ws, true)).toEqual({ outside: files.filter((f) => !own.some((d) => f.startsWith(`${d}/`))), scratch: files.filter((f) => own.some((d) => f.startsWith(`${d}/`))), pastManual: [] });
+    expect(audit(shared, ws)).toEqual({ outside: files, scratch: [], pastManual: [] });
     const paths = (command: string) => pathsOf("Bash", { command }).map((n) => n.path);
     expect(pathsOf("Bash", { command: "ls -la /root && cat '/etc/hosts' x=/home/me" })).toEqual([{ path: "/root", lists: true }, { path: "/etc/hosts", lists: false }, { path: "/home/me", lists: false }]);
     // a glob over the root, a bare root, a regex in a script and a word whose first directory isn't here are not paths
@@ -148,28 +157,42 @@ describe("an agent's own /tmp (D84)", () => {
   // the CLI's account file beside the Claude home, and what covers the repository
   const conf = join(homedir(), ".claude.json"), cover = hidden().find((d) => ROOT === d || ROOT.startsWith(`${d}/`))!;
   // a stand-in for `claude`, first on the PATH the agent keeps: it says where it started, what its /tmp holds, how much
-  // of the repository and of its other checkouts it sees, and what /proc shows (how many processes, whether PID 1 is
-  // itself, whether the test's own process and PID 1's view of the repository can be reached), how much of the CLI's
-  // account file it reads and whether it can unmount what covers the repository, and writes a scratch file to /tmp by
-  // name, as agents do
+  // of the repository and of its other checkouts it sees and how many of them open, and what /proc shows (how many
+  // processes, whether PID 1 is itself, whether the test's own process and PID 1's view of the repository can be
+  // reached), how much of the CLI's account file it reads, whether it can unmount what covers the repository, who it is
+  // and with what capabilities, whether /root and the raw disks open, whether it can write its workspace and home,
+  // where its CA is and whose the CLI's credentials are (a cloud session's: it doesn't read them); and writes a scratch
+  // file to /tmp, /var/tmp and /dev/shm by name, as agents do, after saying what the last two held. It replies
+  // name=value pairs.
   const stand = (home: string) => {
     mkdirSync(join(home, "bin"), { recursive: true });
-    const sh = join(home, "bin", "claude");
-    writeFileSync(sh, [
-      "#!/bin/sh",
+    const sh = join(home, "bin", "claude"), all = checkouts.map((d) => `'${d}'`).join(" ");
+    const lines = [
       "before=$(ls -A /tmp | tr '\\n' ' ')",
       'echo "$PWD" > /tmp/cat.mjs',
+      "cat=$(cat /tmp/cat.mjs)",
+      "shared=$(ls -A /var/tmp /dev/shm 2>/dev/null | grep -v ':$' | grep -c .)",
+      'echo "$PWD" > /var/tmp/cat.mjs; echo "$PWD" > /dev/shm/cat.mjs',
+      "vcat=$(cat /var/tmp/cat.mjs /dev/shm/cat.mjs | sort -u)",
       `repo=$(ls -A '${ROOT}' 2>/dev/null | wc -l)`,
-      `others=$(for d in ${checkouts.map((d) => `'${d}'`).join(" ")}; do ls -A "$d" 2>/dev/null; done | wc -l)`,
+      `others=$(for d in ${all}; do ls -A "$d" 2>/dev/null; done | wc -l)`,
+      `opened=$(for d in ${all}; do ls -A "$d" >/dev/null 2>&1 && echo "$d"; done | wc -l)`,
       "pids=$(ls /proc | grep -c '^[0-9]')",
       "one=$(tr '\\0' '\\n' < /proc/1/cmdline | grep -c '/bin/claude$')",
       `host=$(ls -A /proc/${process.pid}/root/ 2>/dev/null | wc -l)`,
-      `root=$(ls -A '/proc/1/root${ROOT}' 2>/dev/null | wc -l)`,
-      `conf=$(if [ -e '${conf}' ]; then wc -c < '${conf}'; else echo none; fi)`,
+      `viaPid1=$(ls -A '/proc/1/root${ROOT}' 2>/dev/null | wc -l)`,
+      `conf=$(cat '${conf}' 2>/dev/null | wc -c)`,
       `um=$(umount '${cover}' 2>/dev/null && echo unmounted || echo refused)`,
-      `printf '{"type":"result","subtype":"success","num_turns":1,"result":"%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s"}\\n' "$PWD" "$TMPDIR" "$before" "$(cat /tmp/cat.mjs)" "$repo" "$others" "$pids" "$one" "$host" "$root" "$conf" "$um"`,
-      "",
-    ].join("\n"));
+      "uid=$(id -u)",
+      "caps=$(sed -n 's/^CapEff:[[:space:]]*//p' /proc/self/status)",
+      "rootHome=$(ls -A /root >/dev/null 2>&1 && echo read || echo refused)",
+      'disks=$(for d in /dev/[hsv]d[a-z] /dev/xvd[a-z] /dev/nvme[0-9]n[0-9]; do [ -b "$d" ] && head -c 1 "$d" >/dev/null 2>&1 && echo "$d"; done | wc -l)',
+      'wrote=$(touch "$PWD/written" "$HOME/written" && echo yes || echo no)',
+      'ca=$(if [ -z "$NODE_EXTRA_CA_CERTS" ]; then echo unset; elif [ -r "$NODE_EXTRA_CA_CERTS" ]; then echo "$NODE_EXTRA_CA_CERTS"; else echo unreadable; fi)',
+      `creds=$(if [ -d '${CLOUD_CREDENTIALS}' ]; then [ -O '${CLOUD_CREDENTIALS}' ] && echo own || echo other; else echo none; fi)`,
+    ];
+    const names = ["pwd=$PWD", "tmp=$TMPDIR", ...lines.filter((l) => /^\w+=\$\(/.test(l)).map((l) => l.split("=")[0]!).map((n) => `${n}=$${n}`)];
+    writeFileSync(sh, ["#!/bin/sh", ...lines, `printf '{"type":"result","subtype":"success","num_turns":1,"result":"%s"}\\n' "${names.join("|")}"`, ""].join("\n"));
     chmodSync(sh, 0o755);
     return join(home, "bin");
   };
@@ -184,7 +207,7 @@ describe("an agent's own /tmp (D84)", () => {
     expect([hidden(main), hidden(join(base, "sibling")), hidden(join(main, ".claude/worktrees/lane"))]).toEqual([want, want, want]);
     expect(hidden(temp("m3a-nogit-"))).toContain(join(homedir(), ".claude"));
   });
-  it("starts claude in its workspace with a /tmp of its own: two at once write /tmp/cat.mjs and never meet", async () => {
+  it("starts claude in its workspace with a /tmp of its own, as an unprivileged user: two at once write /tmp/cat.mjs and never meet", async () => {
     expect(namespace(), "this machine can't make a mount namespace (unshare), so agents would share /tmp").not.toBeNull();
     const base = temp("m3a-own-tmp-"), path = process.env.PATH;
     const wss = ["A-1", "A-2"].map((n) => {
@@ -192,28 +215,51 @@ describe("an agent's own /tmp (D84)", () => {
       return join(base, n);
     });
     process.env.PATH = `${wss.map((ws) => stand(`${ws}-home`)).join(":")}:${path}`;
+    // a directory link in each workspace to a directory outside it, the runner's: handing the workspace to its user
+    // hands the link alone, never what it leads to nor anything through it
+    const outside = join(base, "outside"), me = process.getuid?.() ?? 0;
+    mkdirSync(join(outside, "sub"), { recursive: true });
+    writeFileSync(join(outside, "sub", "kept"), "");
+    for (const ws of wss) symlinkSync("../outside", join(ws, "link"));
     try {
       const runs = await pool(wss, 2, (ws) => runAgent(ws, "hello", `${ws}.jsonl`));
       for (const [i, r] of runs.entries()) {
-        const ws = wss[i]!, [pwd, tmp, before, cat, repo, others, pids, one, host, root, confBytes, um] = r.reply.split("|").map((x) => x.trim());
-        expect([r.ok, r.privateTmp, pwd, tmp, cat], r.error).toEqual([true, true, ws, "/tmp", ws]);
+        const ws = wss[i]!, s = Object.fromEntries(r.reply.split("|").map((x) => [x.split("=")[0]!, x.slice(x.indexOf("=") + 1).trim()]));
+        expect([r.ok, r.privateTmp, s.pwd, s.tmp, s.cat], r.error).toEqual([true, true, ws, "/tmp", ws]);
         // its /tmp held only the way to its own workspace and home, and the repository and its other checkouts showed
         // empty (D91)
-        expect(before).toBe(base.split("/")[2]);
-        expect([repo, others]).toEqual(["0", "0"]);
+        expect(s.before).toBe(base.split("/")[2]);
+        expect([s.repo, s.others]).toEqual(["0", "0"]);
         // alone in /proc: PID 1 is itself, a handful of processes, the test's own process and PID 1's view of the
         // repository out of reach (D91)
         expect(r.ownPids, "this machine can't make a PID namespace (unshare --pid), so /proc would show its processes").toBe(true);
-        expect([one, host, root, Number(pids) < 10]).toEqual(["1", "0", "0", true]);
-        // the CLI's account file reads empty where there is one, and where setpriv works it starts without CAP_SYS_ADMIN,
-        // so what covers the repository stays (D91)
-        expect(confBytes).toBe(existsSync(conf) ? "0" : "none");
+        expect([s.one, s.host, s.viaPid1, Number(s.pids) < 10]).toEqual(["1", "0", "0", true]);
+        // the CLI's account file reads empty (covered, or out of its reach), and where setpriv works it starts with no
+        // capabilities, so what covers the repository stays (D91)
+        expect(s.conf).toBe("0");
         expect(r.capsDropped).toBe(capsDropped());
-        if (r.capsDropped) expect(um).toBe("refused");
-        // its scratch file landed in its own /tmp, beside its workspace
+        if (r.capsDropped) expect([s.caps, s.um]).toEqual(["0000000000000000", "refused"]);
+        // an unprivileged user: nobody where the runner is root (every checkout refuses it, not just shows empty), the
+        // runner where it isn't (root only in its user namespace); /root and the raw disks refuse it either way
+        const u = agentUser();
+        expect([r.uid, r.unprivileged], "this machine can't start agents as an unprivileged user (setpriv, nobody), so /root and the raw disks would be open to them").toEqual([u.uid, true]);
+        expect([s.uid, s.rootHome, s.disks]).toEqual([u.switched ? String(u.uid) : "0", "refused", "0"]);
+        if (u.switched) expect(s.opened).toBe("0");
+        // it wrote its workspace and its home, and read the proxy's CA from a copy in that home
+        expect([s.wrote, existsSync(join(ws, "written")), existsSync(`${ws}-home/written`)]).toEqual(["yes", true, true]);
+        expect(s.ca).toBe(process.env.NODE_EXTRA_CA_CERTS ? `${ws}-home/.ca/NODE_EXTRA_CA_CERTS.pem` : "unset");
+        // in a cloud session, the CLI's credentials are its own user's in its namespace, a copy: the session's stay root's
+        // (a runner that isn't root can't read them, nor hand them on)
+        expect(s.creds).toBe(!existsSync(CLOUD_CREDENTIALS) ? "none" : process.getuid?.() === 0 ? "own" : "other");
+        if (existsSync(CLOUD_CREDENTIALS)) expect(statSync(CLOUD_CREDENTIALS).uid).toBe(0);
+        // the link in its workspace is its user's; what the link leads to, and what lies through it, stayed the runner's
+        expect([lstatSync(join(ws, "link")).uid, ...["", "sub", "sub/kept"].map((f) => statSync(join(outside, f)).uid)]).toEqual([r.uid, me, me, me]);
+        // its scratch file landed in its own /tmp, beside its workspace, which the runner reads after it; /var/tmp and
+        // /dev/shm were empty and its own too (two at once never meet there), gone with its namespace
         expect(readFileSync(`${ws}-tmp/cat.mjs`, "utf8").trim()).toBe(ws);
+        expect([s.shared, s.vcat]).toEqual(["0", ws]);
       }
-      expect(existsSync("/tmp/cat.mjs") && readFileSync("/tmp/cat.mjs", "utf8").trim().startsWith(base)).toBe(false);
+      for (const f of ["/tmp/cat.mjs", "/var/tmp/cat.mjs", "/dev/shm/cat.mjs"]) expect(existsSync(f) && readFileSync(f, "utf8").trim().startsWith(base), f).toBe(false);
     } finally {
       process.env.PATH = path;
     }
