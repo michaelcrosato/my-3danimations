@@ -2,7 +2,7 @@
 
 m3a plays humanoid motion clips on any humanoid character, in a game or headless. Clips, recipes and graphs are JSON;
 the runtime is deterministic; the sensors measure motion as numbers (and draw it as PNGs) without a display. Every
-capability is also a tool, called as `m3a <tool>` or over MCP (Tools, below).
+capability is also a tool, called as `m3a <tool>` or over MCP (Tools).
 
 ## The packages
 
@@ -99,7 +99,7 @@ let damage = 0;
 animator.on("hit", () => (damage += 25));                        // on the blade's strike, not a timer
 
 for (let frame = 0; frame < 210; frame++) {                      // 3.5 s at 60 fps
-  animator.set("walk", frame < 72 ? 1 : 0);                      // read from the next step
+  animator.set("walk", Math.min(1, Math.max(0, (84 - frame) / 12)));  // 1, eased to 0 over 1.2–1.4 s
   if (frame === 84) animator.trigger("attack");
   if (frame === 144) animator.trigger("hurt");                   // an enemy's blow lands
   player.update(1 / 60);                                         // steps, fires events, poses, writes the bones
@@ -140,15 +140,15 @@ const hits = library.search("sword slash", { limit: 5 }).rows;  // ranked: { id,
 const { clip, rest } = library.clip("MESH2MOTION/Walk_Large");  // and its set and tier
 ```
 
-Pick clips by their rows (ids, tags, descriptions), and check what one does with `m3a describe <id>` before using it:
-sets differ (one set's knockback gets back up). Ids are `SET/Name`; an `_RM` clip carries its own root travel.
+Pick clips by their rows (ids, tags, descriptions), and check what one does with `m3a describe <id>` first: sets
+differ (one set's knockback gets back up). Ids are `SET/Name`; an `_RM` clip carries its own root travel.
 
 **Tiers.** A game sees the CC0 default pack unless it opts in, in two places: `"tiers"` in `game.json` (the m3a
 tools read it) and `openLibrary({ tiers: ["cc0", "cc-by"] })` in code. The installed `@m3a/library` holds the CC0
-sets only: another tier plays where its sets are installed (this repository's `library/sets/`). There, a clip past
-the game's tiers throws `LibraryError` `E_TIER`, naming the opt-in (elsewhere `E_NO_SET`). Credit each `cc-by` clip;
-`cmu` clips can't be resold, even converted; `local` (what `m3a import` made) never ships, and code opens it as a
-library of its own (Ship).
+sets only; the others are packs beside it (`npm install @m3a/library-cc-by` or `@m3a/library-cmu`). With its pack, a
+clip past the game's tiers throws `LibraryError` `E_TIER`, naming the opt-in (without, `E_NO_SET`). Credit each
+`cc-by` clip; `cmu` clips can't be resold, even converted; `local` (what `m3a import` made) never ships, and code
+opens it as a library of its own (Ship).
 
 ## Fit: bind the character
 
@@ -252,10 +252,11 @@ writeFileSync("walk_weary.json", serialize(made.clip));    // as the library wri
 ```
 
 `recipe.compile` and `actions.compileAction` read clips through `library.resolver()`: a clip of a set the game hasn't
-opted in to throws `LibraryError` `E_TIER` naming the opt-in (only for a clip that set holds); any other unknown id
-throws `RecipeError` `R-E008` with the nearest id. Edits: faster, `retime` (`speed: 1.5`); the other side, `mirror`;
-more anticipation, a `pose` the other way before the key moment; bigger, `exaggerate` (1.25). `m3a edit <clip> --ops
-<json> --save-as WORKSHOP/<Name>` applies steps to a copy, with undo.
+opted in to throws `LibraryError` (`@m3a/library`, `.code` `E_TIER`) naming the opt-in (only for a clip that set
+holds); any other unknown id `recipe.RecipeError`, whose `.issues` hold `R-E008` (with the nearest id when there is
+one). Edits: faster, `retime` (`speed: 1.5`); the other side, `mirror`; more anticipation, a `pose` the other way
+before the key moment; bigger, `exaggerate` (1.25). `m3a edit <clip> --ops <json> --save-as WORKSHOP/<Name>` applies
+steps to a copy, with undo.
 
 ## Make: actions
 
@@ -313,8 +314,8 @@ strike with no hit event). Script rows: `{ t, set, over, trigger, move }`; `root
 `m3a license.check` checks `game.json` (`tiers`, `clips`, `ships`) or `--clips`, and prints the credits block.
 `m3a export` writes a clip played on a character as .vrma, .glb or .bvh. `m3a import <file> --license <SPDX id>` fits
 a motion file's animations into a `local` set, `imports/<SET>/` (`--set`, default `IMPORT`), which the tools read when
-game.json has `"local"` in its tiers and, as local never ships, `"ships": false`. A catalog (`--catalog`) says what to
-take:
+game.json's `"tiers"` holds `"local"`; `license.check` passes it only with `"ships": false`. A catalog (`--catalog`)
+says what to take:
 
 ```json catalog.json
 {
@@ -406,5 +407,6 @@ npx m3a validate check-output/recipe.compile/Slash_Hit.clip.json --json
 - Move the character by `player.travel`, or match the playback speed to the speed you move it at.
 - Don't move or scale the bones: `bind` reads them once and `attach` writes their rotations.
 - Act on events, not timers; fade one-shots in; cut, don't blend, between two lying poses.
-- `set` and `trigger` are read from the next step; a trigger waits until used or its `buffer` runs out.
+- `set` and `trigger` are read from the next step. Parameters aren't smoothed: ease a blend's over 0.2 s, or the
+  body pops. A trigger waits until used or its `buffer` runs out.
 - Errors say what to do: read them before reading the source.

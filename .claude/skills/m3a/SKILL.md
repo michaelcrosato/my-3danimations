@@ -10,19 +10,21 @@ wire, make, check, ship). Read it before the packages' source, as an agent with 
 format is `spec/MOTION.md`, read with `spec/LEGEND.md`; each set's catalog is `library/sets/<SET>/catalog.tsv`, one
 clip a row.
 
-Here the tools run from source (`npx m3a` is `packages/tools/src/node.ts`). The five that matter most, each a
-registry example:
+Here the tools run from source: `node packages/tools/src/node.ts` is the `m3a` command, as `.mcp.json` runs it. Not
+`npx m3a`: the workspace links no `m3a` bin (the package's is built when packed), so npx would fetch whatever npm
+holds under that name. The five that matter most, each a registry example:
 
 | Job | Command |
 |---|---|
-| Find | `npx m3a search 'drinks a potion'` |
-| Read | `npx m3a describe QUATERNIUS_3D2DGE/Jump_Land` |
-| Fit | `npx m3a retarget.inspect spec/vectors/tier1b/rigify.gltf` |
-| Make | `npx m3a recipe.compile spec/recipes/Jab_Left.json` |
-| Check | `npx m3a metrics QUATERNIUS_3D2DGE/Walk_Loop` |
+| Find | `node packages/tools/src/node.ts search 'drinks a potion'` |
+| Read | `node packages/tools/src/node.ts describe QUATERNIUS_3D2DGE/Roll` |
+| Fit | `node packages/tools/src/node.ts retarget.inspect spec/vectors/tier1b/rigify.gltf` |
+| Make | `node packages/tools/src/node.ts recipe.compile spec/recipes/Jab_Left.json` |
+| Check | `node packages/tools/src/node.ts metrics QUATERNIUS_3D2DGE/Walk_Loop` |
 
 Check's example replies FAIL on purpose (the registry's example shows findings): the clip's twist flips, recorded as its
 baseline. On the command line a reply starts with its verdict, fits in 20 lines (`--verbose` gives the rest) and ends
-with a `next:` hint; `--json` also writes a report.json. `npx m3a help` lists every tool, `npx m3a help <tool>` gives
-its flags and examples. `.mcp.json` serves the same tools over MCP (`npx m3a mcp`). The skill an installed package will
-ship is `skills/m3a/SKILL.md`, and `llms.txt` indexes the docs.
+with a `next:` hint; `--json` also writes a report.json. `node packages/tools/src/node.ts help` lists every tool,
+`node packages/tools/src/node.ts help <tool>` gives its flags and examples. `.mcp.json` serves the same tools over MCP
+(`node packages/tools/src/node.ts mcp`). The skill an installed package will ship is `skills/m3a/SKILL.md`, and
+`llms.txt` indexes the docs.

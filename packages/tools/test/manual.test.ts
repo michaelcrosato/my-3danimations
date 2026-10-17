@@ -3,30 +3,37 @@
 // counted here and kept to NORUN. Its json blocks parse; one named as a file (```json knight.json) is written into a
 // scratch working directory, and each is checked as what it is: a recipe, graph, action or simulation script against
 // its schema in spec/schemas/ and core's (or sim's) own check, game.json through the tools' reader (its tiers),
-// .mcp.json as serving `m3a mcp`; the import catalog is checked by the import its sh block runs. Its ts blocks run, in
-// order, as one Node program in that directory (their imports merged at the top, each block in a scope of its own but
-// the complete example's, whose names the later blocks use: `library`, `clips`, `bound`, `player`, ...), the example's
-// outcome checked (one hit, its damage, the states it went through, the distance walked). What the blocks document is
-// held as they run: a line reading a member alone (`a.layers;`) must not read undefined, and the fields its comment
-// lists (`// bottom first: { name, clip, ... }`, on a declaration's value too) must be on the value (an array's first
-// element), as must the quoted values it gives (`// "local"`). Its sh blocks' lines are m3a calls, run meanwhile in
-// that directory through the m3a command in process, each to exit 0; a ts block below an sh block waits for it (the
+// .mcp.json as the installed package's `npx m3a mcp` (the bin its files carry); the import catalog by the import its
+// sh block runs, and found in what that wrote (import passes over a "$" key or a source's field it doesn't read: its
+// sources' records, its clips' tags and words). Its ts blocks run, in order, as one Node program in that directory
+// (their imports merged at the top, each block in a scope of its own but the complete example's, whose names the later
+// blocks use: `library`, `clips`, `bound`, `player`, ...), and the same program without the test's checks type-checks
+// under the repository's strict options (an option misspelled runs, ignored, but doesn't compile). The example's
+// outcome is checked (one hit, its damage, the states it went through, the distance walked; its game loop's frames and
+// its simulation measured by the sensors, nothing failing: a parameter snapped pops the body). What the blocks
+// document is held as they run: a line reading a member alone (`a.layers;`) must not read undefined, and the fields its
+// comment lists (`// bottom first: { name, clip, ... }`, on a declaration's value too) must be on the value (an array's
+// first element), as must the quoted values it gives (`// "local"`). Its sh blocks' lines are m3a calls, run meanwhile
+// in that directory through the m3a command in process, each to exit 0; a ts block below an sh block waits for it (the
 // program reads a line on stdin per sh block run). A hit event a recipe adds sits at its clip's measured strike. The
 // directory holds what the manual says a game has: character.glb (a generated test character), mocap.gltf (tier 1b's
 // rig and its three animations). And the manual's tool list is the registry's (tools/manual/toollist.ts), its clip ids
-// are the library's and the tools it names are tools (its token budget is `npm run doctrine`'s).
+// are the library's, the tools it names are tools and its prose's calls parse as the m3a command parses them (each
+// giving its tool's required arguments), its masks name core's groups and fields, and neither it nor a tool's example
+// (which `m3a help` and MCP show a trial agent) names a clip a bench known-good picks for its job (D77; B1's and B7's
+// loops aside). Its token budget is `npm run doctrine`'s.
 import { spawn } from "node:child_process";
-import { cpSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { cpSync, mkdtempSync, readdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { Writable } from "node:stream";
 import { Ajv2020 } from "ajv/dist/2020.js";
 import { afterAll, describe, expect, it } from "vitest";
-import { actions, graph, recipe } from "@m3a/core";
+import { actions, graph, ops, recipe } from "@m3a/core";
 import { openLibrary } from "@m3a/library/node";
 import { character, variant } from "@m3a/three/test-characters";
-import { withToolList } from "../../../tools/manual/toollist.ts";
-import { runCli } from "../src/cli.ts";
+import { BEGIN, END, withToolList } from "../../../tools/manual/toollist.ts";
+import { parseCall, runCli } from "../src/cli.ts";
 import { nodeHost } from "../src/node.ts";
 import { gameTiers } from "../src/node/library.ts";
 import { fileStore } from "../src/node/store.ts";
@@ -82,6 +89,50 @@ symlinkSync(join(ROOT, "node_modules"), join(CWD, "node_modules"), "dir");
 writeFileSync(join(CWD, "character.glb"), character(variant(1)).glb);
 cpSync(join(ROOT, "spec/vectors/tier1b/rig.gltf"), join(CWD, "mocap.gltf"));
 for (const b of RUN) if (b.lang === "json" && file(b)) writeFileSync(join(CWD, file(b)!), b.code);
+
+/** Whether a text names a clip id whole (`SET/Walk` not inside `SET/Walk_Fast`). */
+const mentions = (text: string, id: string) => new RegExp(`(?<![\\w/])${id}(?!\\w)`).test(text);
+
+/** The bench jobs whose known-goods (bench/graders/<B>/known-good) the manual and the tools' examples keep clear of. */
+const BRIEFS = ["B1", "B2", "B3", "B4", "B5", "B6", "B7"];
+
+/**
+ * The library clips bench/graders' known-good solutions pick for their jobs (B2's punch, B3's reactions, B4's sneak,
+ * B5's emote, B6's punch, B7's jump start and landing), which neither the manual nor a tool's example (`m3a help
+ * <tool>`, MCP's tools/list, both in a trial) may name: they would hand a fresh agent the answer (D77). An id counts
+ * written whole or as its set and its name apart (`${SET}/${id}` with "Hit_Head"). Only the loops B1 and B7 are built
+ * from (their catalog rows' `loop`: the idle, walk, run and air loops) are left out: any search finds them, and those
+ * jobs' answers are their wiring.
+ */
+function benchAnswers(rows: readonly { id: string; loop: boolean }[]): Set<string> {
+  const picked = (brief: string) => {
+    const dir = join(ROOT, "bench/graders", brief, "known-good");
+    const text = readdirSync(dir, { recursive: true, withFileTypes: true }).filter((f) => f.isFile()).map((f) => readFileSync(join(f.parentPath, f.name), "utf8")).join("\n");
+    return rows.filter(({ id }) => {
+      const [set, name] = id.split("/") as [string, string];
+      return mentions(text, id) || (text.includes(`${set}/`) && [`"${name}"`, `'${name}'`].some((q) => text.includes(q)));
+    });
+  };
+  const loops = new Set(["B1", "B7"].flatMap(picked).filter((r) => r.loop).map((r) => r.id));
+  return new Set(BRIEFS.flatMap(picked).map((r) => r.id).filter((id) => !loops.has(id)));
+}
+
+/** An inline call's arguments as a shell splits them, a `<placeholder>` one word (`--license <SPDX id>`). */
+function spanWords(text: string): string[] {
+  return [...text.matchAll(/'([^']*)'|"([^"]*)"|(<[^>]*>)|(\S+)/g)].map((m) => m[1] ?? m[2] ?? m[3] ?? m[4]!);
+}
+
+/** Why an MCP config's server isn't the installed `m3a mcp` ("" when it is): `npx` with @m3a/tools's bin name and
+ *  `mcp`, and that bin's file in what the package ships (its "files"). */
+function mcpLaunch(server: { command: string; args: string[] }): string {
+  const pkg = JSON.parse(readFileSync(join(ROOT, "packages/tools/package.json"), "utf8")) as { bin?: Record<string, string>; files?: string[] };
+  const [name, file] = Object.entries(pkg.bin ?? {})[0] ?? [];
+  if (!name || !file) return "@m3a/tools has no bin";
+  const top = file.replace(/^\.\//, "").split("/")[0]!;
+  if (!(pkg.files ?? []).includes(top)) return `the bin ${file} isn't in @m3a/tools's files (${(pkg.files ?? []).join(", ")})`;
+  const want = ["npx", [name, "mcp"]];
+  return JSON.stringify([server.command, server.args]) === JSON.stringify(want) ? "" : `runs ${JSON.stringify([server.command, server.args])}, not ${JSON.stringify(want)}`;
+}
 
 /** A shell line without its comment (a `#` after a space, outside quotes). */
 function uncommented(line: string): string {
@@ -212,14 +263,32 @@ async function __sh(n, at) {
     if (__shEnd) throw new Error(at + ": the sh blocks before it didn't all run");
     await new Promise((ok) => __shWait.push(ok));
   }
+}
+const __frames = [], __roots = [];
+function __track(p) { __frames.push(Float32Array.from(p.pose.points)); __roots.push({ ...p.root }); }
+function __motion(rest) {
+  const r = checks.measure(checks.motionOfFrames(__frames, rest, { root: __roots }));
+  return { frames: __frames.length, verdict: r.verdict, fails: r.findings.filter((f) => f.level === "fail").map((f) => f.metric + " " + (f.where ?? "") + " at " + f.t0.toFixed(2) + " s") };
 }`;
 
+/** The example's code with the body points and root its player posed recorded after each `player.update(...)` (the
+ *  game loop's frames, which the test measures with the sensors). */
+function tracked(code: string): string {
+  return code.split("\n").map((line) => {
+    const [text, comment] = splitComment(line), m = /^(\s*player\.update\([^;]*\);)$/.exec(text);
+    return m ? `${m[1]} __track(player);${comment === null ? "" : ` //${comment}`}` : line;
+  }).join("\n");
+}
+
 /** The ts blocks as one program, in the manual's order: imports merged at the top (single-line named imports only),
- *  the example's blocks at the top level and every other block in a scope of its own, each after the sh blocks above
- *  it have run (`__sh`), each documented read checked (`checked`); after the example a line printing its outcome, and
- *  at the end one printing the checks that ran. Returns the program and the checks it holds. */
-function program(blocks: readonly Block[]): { text: string; checks: number } {
-  const imports = new Map<string, Set<string>>(), body: string[] = [];
+ *  the example's blocks at the top level and every other block in a scope of its own. To run, each block waits for the
+ *  sh blocks above it (`__sh`) and each documented read is checked (`checked`), a line after the example prints its
+ *  outcome and one at the end the checks that ran; `raw`, it is the blocks alone, as a reader's compiler sees them.
+ *  Returns the program, the checks it holds and each line's place in the manual (null for the test's own lines). */
+function program(blocks: readonly Block[], raw = false): { text: string; checks: number; at: (string | null)[] } {
+  // the sensors, for what the example's loop played (`__motion`)
+  const imports = new Map<string, Set<string>>(raw ? [] : [["@m3a/sensors", new Set(["checks"])]]), body: { line: string; at: string | null }[] = [];
+  const add = (text: string) => body.push(...text.split("\n").map((line) => ({ line, at: null })));
   let example = false, sh = 0, checks = 0;
   for (const b of blocks) {
     if (b.lang === "sh") sh++;
@@ -231,18 +300,21 @@ function program(blocks: readonly Block[]): { text: string; checks: number } {
       return "\n"; // a line kept, so each line keeps its number
     });
     expect(merged, `${where(b)}: an import the test can't merge (one line, named imports)`).not.toMatch(/^\s*import\b/m);
-    if (example && !EXAMPLE.test(b.section)) {
-      body.push(`console.log("M3A-EXAMPLE " + JSON.stringify({ damage, hits: run.trace.hits.length, states: run.trace.states.map((s) => s.layer + ":" + s.state), walked: bound.root.position.length() }));`);
-      example = false;
-    }
-    if (EXAMPLE.test(b.section)) example = true;
-    const c = checked({ ...b, code: merged });
+    const inExample = EXAMPLE.test(b.section);
+    if (example && !inExample && !raw) add(`console.log("M3A-EXAMPLE " + JSON.stringify({ damage, hits: run.trace.hits.length, states: run.trace.states.map((s) => s.layer + ":" + s.state), walked: bound.root.position.length(), motion: __motion(bound.core.rest), sim: run.sensors?.verdict ?? null }));`);
+    example = inExample;
+    const c = raw ? { code: merged, checks: 0 } : checked({ ...b, code: inExample ? tracked(merged) : merged });
     checks += c.checks;
-    const gate = sh ? `await __sh(${sh}, ${JSON.stringify(where(b))});\n` : "";
-    body.push(`// ${where(b)}`, EXAMPLE.test(b.section) ? gate + c.code : `{\n${gate}${c.code}}`);
+    add(`// ${where(b)}`);
+    if (!inExample) add("{");
+    if (sh && !raw) add(`await __sh(${sh}, ${JSON.stringify(where(b))});`);
+    // the block's lines, one for one (checked and tracked add to a line, never a line)
+    body.push(...c.code.replace(/\n$/, "").split("\n").map((line, i) => ({ line, at: `MANUAL.md:${b.line + 1 + i}` })));
+    if (!inExample) add("}");
   }
-  body.push(`console.log("M3A-SEEN " + JSON.stringify(__seen));`);
-  return { text: [...[...imports].map(([from, names]) => `import { ${[...names].join(", ")} } from "${from}";`), PRELUDE, ...body].join("\n"), checks };
+  if (!raw) add(`console.log("M3A-SEEN " + JSON.stringify(__seen));`);
+  const head = [...[...imports].map(([from, names]) => `import { ${[...names].join(", ")} } from "${from}";`), ...(raw ? [] : PRELUDE.split("\n"))];
+  return { text: [...head, ...body.map((l) => l.line)].join("\n"), checks, at: [...head.map(() => null), ...body.map((l) => l.at)] };
 }
 
 /** Runs a Node program in the scratch directory: its stdin (the sh blocks run, a line each) and its exit code and
@@ -273,6 +345,59 @@ function hitsAtStrike(r: { steps: { op: string; id?: string; as?: string; in?: s
   });
 }
 
+/** The keys of an import catalog that import reads (packages/tools/src/tools/exchange.ts, catalogOf). */
+const CATALOG_KEYS = ["$sources", "$pick", "$skip"];
+/** The fields of a catalog's source record the manual gives, each read from the set's _set.json as import keeps it:
+ *  the license as its `terms` when `--license` differs, the credit as the set's. */
+const SOURCE_FIELDS: Record<string, (kept: Record<string, unknown>, set: Record<string, unknown>) => unknown> = {
+  label: (k) => k.label,
+  license: (k) => k.terms ?? k.license,
+  credit: (_k, s) => s.credit,
+  url: (k) => k.url,
+  origin: (k) => k.origin,
+};
+
+/** Checks that what an import wrote into `imports/<set>/` is what its catalog says: each "$" key is one import reads
+ *  (it passes over any other), each source's record keeps each field the catalog gives it (import passes over a field
+ *  it doesn't read, too), and each clip's entry gave that clip its tags, its words and whether it loops. */
+function expectCatalogKept(catalog: Record<string, unknown>, set: string, at: string): void {
+  expect(Object.keys(catalog).filter((k) => k.startsWith("$") && !CATALOG_KEYS.includes(k)), `${at}: keys import doesn't read`).toEqual([]);
+  const manifest = JSON.parse(readFileSync(join(CWD, "imports", set, "_set.json"), "utf8")) as { sources: Record<string, Record<string, unknown>> };
+  for (const [name, given] of Object.entries((catalog.$sources ?? {}) as Record<string, Record<string, unknown>>)) {
+    const kept = manifest.sources[name];
+    expect(kept, `${at}: $sources ${name} in ${set}'s _set.json`).toBeDefined();
+    const read = (field: string) => (Object.hasOwn(SOURCE_FIELDS, field) ? SOURCE_FIELDS[field]!(kept!, manifest) : `(not a field the manual gives: ${Object.keys(SOURCE_FIELDS).join(", ")})`);
+    expect(Object.fromEntries(Object.keys(given).map((f) => [f, read(f)])), `${at}: $sources ${name}`).toEqual(given);
+  }
+  const lib = openLibrary({ dir: join(CWD, "imports"), tiers: ["local"] });
+  for (const [name, [tags, desc]] of Object.entries(catalog).filter(([k]) => !k.startsWith("$")) as [string, [string, string]][]) {
+    const words = tags.split(" ").filter(Boolean), { clip } = lib.clip(`${set}/${name}`);
+    const loop = words.includes("loop") ? true : words.includes("once") ? false : expect.any(Boolean);
+    expect({ tags: clip.tags, desc: clip.desc, loop: clip.loop }, `${at}: ${name}`).toEqual({ tags: expect.arrayContaining(words.filter((w) => w !== "loop" && w !== "once")), desc, loop });
+  }
+}
+
+/** Type-checks the program in tsconfig.json's one file (in a child, as tsc reads that file): the file's own syntactic
+ *  and semantic diagnostics, and the config's and the options', as a JSON line `M3A-TYPES [{ line, code, text }]`. */
+const TYPECHECK = `import ts from "typescript";
+const sys = { ...ts.sys, onUnRecoverableConfigFileDiagnostic: (d) => { throw new Error(ts.flattenDiagnosticMessageText(d.messageText, " ")); } };
+const config = ts.getParsedCommandLineOfConfigFile("tsconfig.json", {}, sys);
+const program = ts.createProgram({ rootNames: config.fileNames, options: config.options, configFileParsingDiagnostics: config.errors });
+const file = config.fileNames.length === 1 ? program.getSourceFile(config.fileNames[0]) : undefined;
+if (!file) throw new Error("tsconfig.json names one file, in the program: " + config.fileNames.join(", "));
+const found = [...config.errors, ...program.getOptionsDiagnostics(), ...program.getGlobalDiagnostics(), ...program.getSyntacticDiagnostics(file), ...program.getSemanticDiagnostics(file)];
+console.log("M3A-TYPES " + JSON.stringify(found.map((d) => ({ line: d.file === file && d.start !== undefined ? file.getLineAndCharacterOfPosition(d.start).line + 1 : null, code: d.code, text: ts.flattenDiagnosticMessageText(d.messageText, " ") }))));`;
+
+/** The ts blocks as a reader's compiler sees them, type-checked in the scratch directory as an ES module under the
+ *  repository's strict options (tsconfig.base.json, Node's types), started now so it runs beside the tests. */
+const TYPED = program(RUN, true);
+writeFileSync(join(CWD, "package.json"), JSON.stringify({ type: "module" }));
+writeFileSync(join(CWD, "manual.typed.ts"), TYPED.text);
+writeFileSync(join(CWD, "tsconfig.json"), JSON.stringify({ extends: join(ROOT, "tsconfig.base.json"), compilerOptions: { composite: false, declaration: false, emitDeclarationOnly: false, noEmit: true, types: ["node"] }, files: ["manual.typed.ts"] }));
+writeFileSync(join(CWD, "typecheck.mjs"), TYPECHECK);
+const TYPECHECKED = node(join(CWD, "typecheck.mjs"));
+TYPECHECKED.stdin.end();
+
 describe("packages/tools/MANUAL.md", () => {
   it("lists the registry's tools as tools/manual/main.ts writes them", () => {
     expect(withToolList(TEXT, TOOLS), "the tool list differs from the registry: node tools/manual/main.ts rewrites it").toBe(TEXT);
@@ -295,6 +420,38 @@ describe("packages/tools/MANUAL.md", () => {
     const calls = [...TEXT.matchAll(/`(?:npx )?m3a ([a-z][a-z.-]*[a-z])/g)].map((m) => m[1]!);
     expect(calls.length).toBeGreaterThanOrEqual(30);
     expect(calls.filter((n) => !tools.has(n))).toEqual([]);
+    // and the prose's calls with arguments (outside the generated list) parse as the m3a command parses them, a
+    // `<placeholder>` a value, each giving the tool's required arguments
+    const prose = TEXT.slice(0, TEXT.indexOf(BEGIN)) + TEXT.slice(TEXT.indexOf(END));
+    const given = [...prose.matchAll(/`(?:npx )?m3a ([a-z][a-z.-]*[a-z])\s+([^`]+)`/g)].map((m) => ({ tool: m[1]!, argv: spanWords(m[2]!) }));
+    expect(given.length).toBeGreaterThanOrEqual(6);
+    for (const c of given) {
+      const t = TOOLS.find((x) => x.name === c.tool), call = `m3a ${c.tool} ${c.argv.join(" ")}`;
+      expect(t, call).toBeDefined();
+      const args = parseCall(t!, c.argv);
+      expect(typeof args === "string" ? args : "", call).toBe("");
+      expect((t!.schema.required ?? []).filter((r) => !Object.hasOwn(args as object, r)), call).toEqual([]);
+    }
+  });
+
+  it("hands no bench job its answer: neither the manual nor a tool's example names a clip a known-good picks", () => {
+    const answers = benchAnswers(openLibrary({ tiers: ["cc0", "cc-by", "cmu"] }).catalog());
+    // read from the known-goods, each way they name a clip, B7's one-shots among them; B1's and B7's loops left out
+    expect([...answers]).toEqual(expect.arrayContaining(["QUATERNIUS_3D2DGE/Punch_Jab", "QUATERNIUS_3D2DGE/Hit_Head", "MESH2MOTION/Crouch_Walk", "MESH2MOTION/Victory", "MESH2MOTION/Punch_Cross", "QUATERNIUS_3D2DGE/Jump_Start", "QUATERNIUS_3D2DGE/Jump_Land"]));
+    expect([...answers].filter((id) => /^QUATERNIUS_3D2DGE\/(Idle|Walk|Jog_Fwd|Jump)_Loop$/.test(id))).toEqual([]);
+    const examples = TOOLS.flatMap((t) => t.examples.map((e) => [`m3a help ${t.name}`, JSON.stringify(e.args)] as const));
+    const named = [["MANUAL.md", TEXT] as const, ...examples].flatMap(([at, text]) => [...answers].filter((id) => mentions(text, id)).map((id) => `${at}: ${id}`));
+    expect(named).toEqual([]);
+  });
+
+  it("masks only by core's groups and fields (an unknown field weighs 0, silently)", () => {
+    const fields = new Set(Object.values(ops.GROUPS).flat()), masks: string[] = [];
+    for (const b of RUN.filter((x) => x.lang === "ts" || x.lang === "json")) {
+      for (const m of b.code.matchAll(/"?mask"?: \{([^}]*)\}/g)) masks.push(...[...m[1]!.matchAll(/"?([A-Za-z_]\w*)"?\s*:/g)].map((k) => `${where(b)} field ${k[1]}`));
+      for (const m of b.code.matchAll(/"?mask"?: "(\w+)"/g)) masks.push(`${where(b)} group ${m[1]}`);
+    }
+    expect(masks.length).toBeGreaterThanOrEqual(4);
+    expect(masks.filter((m) => !(m.includes(" field ") ? fields : new Set(Object.keys(ops.GROUPS))).has(m.split(" ").at(-1)!))).toEqual([]);
   });
 
   it("parses every json block and checks each as what it is", () => {
@@ -313,7 +470,8 @@ describe("packages/tools/MANUAL.md", () => {
       if (kind === "action") expect(actions.validateAction(data as never), where(b)).toEqual([]);
       if (kind === "graph") expect(graph.validateGraph(data as never), where(b)).toEqual([]);
       if (kind === "game") expect(gameTiers(CWD)).toEqual((data as { tiers: string[] }).tiers);
-      if (kind === "mcp") expect((data as { mcpServers: { m3a: { args: string[] } } }).mcpServers.m3a.args.slice(-2)).toEqual(["m3a", "mcp"]);
+      // .mcp.json runs the installed package's bin (npx finds it in node_modules/.bin), which its files carry
+      if (kind === "mcp") expect(mcpLaunch((data as { mcpServers: { m3a: { command: string; args: string[] } } }).mcpServers.m3a), where(b)).toBe("");
       // a catalog is checked by the import that reads it (an sh block), so it must be named there
       if (kind === "catalog") expect(TEXT, where(b)).toContain(`--catalog ${name}`);
     }
@@ -338,7 +496,7 @@ describe("packages/tools/MANUAL.md", () => {
     const ran = node(join(CWD, "manual.ts"));
     // meanwhile, the m3a calls in order, as the m3a command makes them (its retries kept in .m3a/requests/), the
     // program told after each sh block so a ts block below one runs after it
-    const registry = new Registry(TOOLS, fileStore(CWD)), host = nodeHost(CWD), calls: string[] = [];
+    const registry = new Registry(TOOLS, fileStore(CWD)), host = nodeHost(CWD), calls: string[] = [], imports: { at: string; argv: string[] }[] = [];
     try {
       for (const b of RUN.filter((x) => x.lang === "sh")) {
         for (const line of b.code.split("\n").map(uncommented).filter(Boolean)) {
@@ -349,6 +507,7 @@ describe("packages/tools/MANUAL.md", () => {
           const code = await runCli(registry, argv.slice(1), { print: (t) => (out += t), write: (p, t) => void host.write!(p, t), host });
           expect(code, `MANUAL.md:${b.line}: ${line}\n${out}`).toBe(0);
           calls.push(argv[1]!);
+          if (argv[1] === "import") imports.push({ at: `MANUAL.md:${b.line}: ${line}`, argv: argv.slice(2) });
         }
         ran.stdin.write("ran\n");
       }
@@ -356,14 +515,23 @@ describe("packages/tools/MANUAL.md", () => {
       ran.stdin.end();
     }
     expect(calls.length).toBeGreaterThanOrEqual(8);
+    // each catalog an import read is found in what it wrote (in import's default set when --set is left out)
+    const importTool = TOOLS.find((t) => t.name === "import")!, withCatalog = imports.map((c) => ({ ...c, args: parseCall(importTool, c.argv) as { catalog?: string; set?: string } })).filter((c) => c.args.catalog);
+    expect(withCatalog.length).toBeGreaterThanOrEqual(1);
+    for (const c of withCatalog) expectCatalogKept(JSON.parse(readFileSync(join(CWD, c.args.catalog!), "utf8")) as Record<string, unknown>, c.args.set ?? (importTool.schema.properties?.set as { default: string }).default, c.at);
     const { code, out } = await ran.done;
     expect(code, out).toBe(0);
-    const ex = JSON.parse(/^M3A-EXAMPLE (.*)$/m.exec(out)?.[1] ?? "null") as { damage: number; hits: number; states: string[]; walked: number } | null;
+    const ex = JSON.parse(/^M3A-EXAMPLE (.*)$/m.exec(out)?.[1] ?? "null") as { damage: number; hits: number; states: string[]; walked: number; motion: { frames: number; verdict: string; fails: string[] }; sim: string | null } | null;
     expect(ex, out).not.toBeNull();
     // the knight's one slash dealt its damage once, the simulation saw its one hit window, it flinched and walked
     expect([ex!.damage, ex!.hits]).toEqual([25, 1]);
     expect(ex!.states).toEqual(["base:move", "react:none", "base:slash", "react:flinch", "react:none", "base:move"]);
     expect(ex!.walked).toBeGreaterThan(0.5);
+    // and the game loop, as written, moves the body without a failing finding (a parameter snapped pops it): every
+    // frame it posed, measured by the sensors; so does the simulation of its input
+    expect(ex!.motion.frames).toBeGreaterThanOrEqual(60);
+    expect([ex!.motion.verdict, ex!.motion.fails]).toEqual([expect.not.stringMatching(/^fail$/), []]);
+    expect(ex!.sim).toMatch(/^(pass|warn)$/);
     // every documented read ran and held: the fields its comment lists (an array's first element), its values
     const seen = JSON.parse(/^M3A-SEEN (.*)$/m.exec(out)?.[1] ?? "null") as { reads: number; shapes: number; empty: number } | null;
     expect(seen?.reads, out).toBe(prog.checks);
@@ -371,5 +539,15 @@ describe("packages/tools/MANUAL.md", () => {
     expect(seen!.shapes).toBeGreaterThanOrEqual(10);
     // a shape read on an empty array checks nothing: only the valid recipe's issues ([]) may be one
     expect(seen!.empty, "documented shapes read on an empty array").toBeLessThanOrEqual(1);
+  }, 60_000);
+
+  it("type-checks the ts blocks as that one program, strict, as a reader's compiler would", async () => {
+    // a misspelled option runs (ignored) but doesn't compile: `sheet(..., { framez: 8 })` is TS2561
+    const { code, out } = await TYPECHECKED.done;
+    expect(code, out).toBe(0);
+    const found = JSON.parse(/^M3A-TYPES (.*)$/m.exec(out)?.[1] ?? "null") as { line: number | null; code: number; text: string }[] | null;
+    expect(found, out).not.toBeNull();
+    expect(found!.map((d) => `${(d.line && TYPED.at[d.line - 1]) || `manual.typed.ts:${d.line}`}: TS${d.code} ${d.text}`)).toEqual([]);
+    expect(TYPED.at.filter(Boolean).length, "the ts blocks' lines in the program").toBe(RUN.filter((b) => b.lang === "ts").reduce((n, b) => n + b.code.split("\n").length - 1, 0));
   }, 60_000);
 });

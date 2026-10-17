@@ -6,15 +6,17 @@
 
 Start with the manual: the whole API by job (find, fit, wire, make, check, ship) in at most 8,000 tokens, with one
 worked example. Pick clips from the catalogs' rows (id, length, loop or once, speed, tags, what it does, source), never
-by reading motion data. `npx m3a help` lists every tool, one line each, and `npx m3a mcp` serves them over MCP (stdio).
-Only the CC0 sets ship by default; the CC BY and CMU sets are opt-in.
+by reading motion data. Every tool is a command of `m3a`: `npx m3a` where `@m3a/tools` is installed; in this
+repository, which links no `m3a` bin (npx would fetch a package of that name from npm),
+`node packages/tools/src/node.ts`. Its `help` lists every tool, one line each, and its `mcp` serves them over MCP
+(stdio). Only the CC0 sets ship by default; the CC BY and CMU sets are opt-in.
 
 ## Docs
 
 - [The manual](packages/tools/MANUAL.md): the mental model, one worked example, the API by job, the rules and common mistakes
 - [The skill](skills/m3a/SKILL.md): when to reach for m3a, and the five commands that matter most
 - [The tool list](packages/tools/src/tools/index.ts): every tool in `m3a help`'s order, each group's tools in its own file
-- [The MCP config](.mcp.json): `m3a mcp` run from source, for an agent working in this repository
+- [The MCP config](.mcp.json): `node packages/tools/src/node.ts mcp`, for an agent working in this repository
 
 ## Library catalogs
 
