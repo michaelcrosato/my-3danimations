@@ -47,11 +47,17 @@ It runs as `example.ts` in the scratch project (Node strips the types), then on 
 from `./m3a.js`. On m3a.js it may import `@m3a/core`, `sensors`, `io`, `library`, `tools`, and `openLibrary` and
 `licenseText` from `@m3a/library/node`; anything else (`three`, `@m3a/three`, another Node entry) is refused, named. A
 manual without the marker fails the check. `--example tools/bundle/standin.ts` runs the stand-in instead: a walk, a jab
-with a hit event and a flinch, on core alone.
+with a hit event and a flinch, headless on core, the library and the tools (no three).
 
 ## Publishing, when O2 is answered
 
-Nothing here publishes. When it does, every release is published from CI with npm provenance (Sigstore). The
-workflow gets `permissions: id-token: write`, the staged package.json files get `"publishConfig": { "provenance":
-true, "access": "public" }` with `"private"` dropped in the staged copy only, and the job runs `npm publish --provenance`
-for each tarball in dependency order (`core`, `sensors`, `io`, `library`, the opt-in packs, `three`, `tools`).
+Nothing here publishes. When O2 allows it, every release is published from CI with npm provenance (Sigstore), from
+the first version on:
+- The workflow runs on a release tag with `permissions: { contents: read, id-token: write }` and `actions/setup-node`
+  with `registry-url: https://registry.npmjs.org`. It uses npm's trusted publishing (OIDC, no long-lived token), or else
+  an automation token in `NODE_AUTH_TOKEN`.
+- The staged package.json drops `"private"` in the staged copy only. It gains `"publishConfig": { "access": "public",
+  "provenance": true }` and `"repository": { "type": "git", "url": "git+https://github.com/michaelcrosato/my-3danimations.git",
+  "directory": "packages/<name>" }`, since provenance is checked against the repository that built it.
+- The job runs `npm run pack -- --check`, then `npm publish --provenance <tarball>` for each pack in dependency order:
+  `core`, `sensors`, `io`, `library` and its opt-in packs, `three`, `tools`.
