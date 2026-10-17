@@ -199,10 +199,10 @@ function checkShared(rec: skeleton.Recognition, m: MappingPatch): void {
 /**
  * A character bound for the tools: `ref` (a .glb, .gltf or .vrm file, or "tiny") read, its bones recognized (a VRM's by
  * its humanoid), `mapping` patched over them (refused when it leaves two humanoid bones on one source bone), and bound
- * through core. A required bone still missing leaves it unbound,
- * the report saying which; no humanoid bone recognized at all, or bones of no usable length (their rest points not
- * finite, or the legs' length none), is E_RIG (an error), and too many bones or too long a chain E_LIMIT. Hips bound
- * under half the legs' length are an issue: a wrong bone for them.
+ * through core. A required bone still missing leaves it unbound, the report saying which; no humanoid bone recognized
+ * at all, or bones of no usable length (their rest points not finite, or the legs' length none), is E_RIG (an error),
+ * and too many bones or too long a chain E_LIMIT. Hips bound under half the legs' length are an issue: a wrong bone for
+ * them.
  */
 export async function characterOf(ctx: ToolContext, ref: string, mapping?: MappingPatch | null): Promise<Character> {
   const read = await skeletonOf(ctx, ref), { sk, vrm } = read, name = prose(characterName(ref));

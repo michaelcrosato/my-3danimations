@@ -40,8 +40,8 @@ const KNOWN = ["CC0-1.0", "CC-BY-4.0", "LicenseRef-CMU-Mocap"];
 const knownAs = (id: string): string | undefined => (/^cc-by-\d\.\d$/i.test(id) ? `CC-BY-${id.slice(6)}` : KNOWN.find((k) => k.toLowerCase() === id.toLowerCase()));
 /**
  * The longest take (s) one import fits; a longer one is skipped, to be cut with the catalog's "$pick". Core's fit is
- * about quadratic in a take's length: measured here, 30, 60 and 120 s takes took 2.3, 6.5 and 21 s; 600 s took more
- * than 300 s (and failed M2-E010 only after its fit).
+ * about quadratic in a take's length: measured here, 30, 60 and 120 s takes took 2.3, 6.5 and 21 s (re-measured: 120 s,
+ * 20.5 s, start-up included); 600 s took more than 300 s (and failed M2-E010 only after its fit).
  */
 const MAX_TAKE = 120;
 /** The most take time (s) one import fits in all: two takes at MAX_TAKE, about 42 s of fitting here. */
@@ -145,14 +145,15 @@ async function motionOf(ctx: ToolContext, path: string, kind: string, cat: Catal
   return { rig: d.rig && `gltf:${d.rig}`, names: d.clips, doc, posed: !d.rig, read: as(() => readGltfPosed(doc, picks ? { picks } : {}), "_rest") };
 }
 
-/** The bone map a glTF's first animation is placed on by its names (io's BVH reader's, as readGltfPosed places it), or
- *  null when none knows them (io's E_RIG). */
-function posedRig(doc: GltfDoc, label: string): string | null {
+/** The bone map a glTF's first animation is placed on by its names (io's BVH reader's, as readGltfPosed places it); null
+ *  when none takes them (io's E_RIG, by its code: no map matches, or the one that does lacks a joint), undefined when
+ *  the animation can't be read to tell (list then says no more than before; import refuses it with io's reason). */
+function posedRig(doc: GltfDoc, label: string): string | null | undefined {
   try {
     return io(() => rigBvh(posedOf(doc, 0, 30), { units: 1, file: label })).map;
   } catch (err) {
-    if (err instanceof ToolError && err.code === "E_RIG") return null;
-    throw err;
+    if (!(err instanceof ToolError)) throw err;
+    return err.code === "E_RIG" ? null : undefined;
   }
 }
 

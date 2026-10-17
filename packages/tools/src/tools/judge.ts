@@ -153,7 +153,7 @@ export function onBody(clip: Clip, R: Rest, b: Bound, rig: string, seen?: (p: Pl
  * The longest a foot may hold the ground (s), in one stretch as core's planter holds it (heldStretches), in a clip one
  * call plays (retarget.apply, export, graph.sim). The planter (contact/plant.ts) is superlinear in a stretch's length
  * and can't be made linear bit for bit (K5, deferred), so a clip holding a foot longer is refused before anything plays.
- * Measured on this container (4 CPUs), each call's start-up (about 1 s) included: retarget.apply on tiny, of
+ * Measured on this container (4 CPUs), each call's start-up included: retarget.apply on tiny, of
  * QUATERNIUS_3D2DGE/Idle_Loop retimed so both feet hold throughout: 12 s took 1.8 s; 17 s took 2.6 s (3.1 s with the
  * contact off the 1/60 grid); 24 s took 23.7 s; 30 s took 44.6 s; 60 s took 233.7 s. export (bvh): 17 s took 2.0 s;
  * 24 s took 21.9 s. The jump past about 17 s is the Animator's pose cache, which clears at 1,024 poses (animator.ts:692).

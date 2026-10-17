@@ -269,7 +269,7 @@ describe("exchange", () => {
       expect(refused(await call("import", { path: "motions/bad.glb", list: true }))).toEqual(["error", "E_FORMAT", expect.stringMatching(/^motions\/bad\.glb: not a binary glTF/)]);
       // a glTF whose bones' names no bone map knows (tier 1b's rig, every name reversed): list says import refuses it,
       // and import does (E_RIG, by io's code), each offering the calls that take it by its shape
-      const rev = JSON.parse(readFileSync(join(cwd, RIG), "utf8")) as { nodes: { name: string }[] };
+      const rev = JSON.parse(readFileSync(join(cwd, RIG), "utf8")) as { nodes: { name: string }[]; animations: unknown[] };
       for (const n of rev.nodes) n.name = `b_${[...n.name].reverse().join("")}`;
       writeFileSync(join(cwd, "odd rig.gltf"), JSON.stringify(rev));
       const shape = "`retarget.inspect 'odd rig.gltf'` binds it by its shape, if it is a character; `export QUATERNIUS_3D2DGE/Walk_Loop --character 'odd rig.gltf'` plays a library clip on it";
@@ -277,6 +277,11 @@ describe("exchange", () => {
       expect([listed.status, listed.verdict, listed.data, listed.next]).toEqual(["ok", "import 'odd rig.gltf': 3 animations, rig: none import knows by its bone names; import refuses it; nothing written", expect.objectContaining({ rig: null }), shape]);
       expect([...refused(odd), odd.next]).toEqual(["error", "E_RIG", "'odd rig.gltf': its bones' names match none import knows (MotionBuilder's and Mixamo's Hips, Spine, LeftUpLeg ..., Unreal's, Rigify's, 100STYLE's, Bandai Namco's); import reads a file by its bone names only", shape]);
       expect([...hintedCalls(listed.next), ...hintedCalls(odd.next)].filter((h) => h.problem)).toEqual([]);
+      // its first animation unreadable (CUBICSPLINE in-betweens): list can't tell, and says no more than that
+      const spline = JSON.parse(JSON.stringify(rev)) as { animations: { samplers: { interpolation?: string }[] }[] };
+      spline.animations[0]!.samplers[0]!.interpolation = "CUBICSPLINE";
+      writeFileSync(join(cwd, "spline.gltf"), JSON.stringify(spline));
+      expect((await call("import", { path: "spline.gltf", list: true })).verdict).toBe("import spline.gltf: 3 animations, rig unknown by name (import may refuse it); nothing written");
       // one whose names a bone map knows though no table does (MotionBuilder's): list places it as import would read it
       const mb: Record<string, string> = { pelvis: "Hips", spine_01: "Spine", spine_02: "Spine1", spine_03: "Spine2", neck_01: "Neck", head_leaf: "HeadTop_End" };
       for (const [s, S] of [["l", "Left"], ["r", "Right"]]) {
