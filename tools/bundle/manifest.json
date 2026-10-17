@@ -44,6 +44,10 @@
   "QUATERNIUS_3D2DGE/Yes",
   "QUATERNIUS_3D2DGE/Dance_Loop",
   "MESH2MOTION/Climb_Ladder",
-  "QUATERNIUS_3D2DGE/Swim_Fwd_Loop"
+  "QUATERNIUS_3D2DGE/Swim_Fwd_Loop",
+  "MESH2MOTION/Idle_Sword",
+  "MESH2MOTION/Walk_Large",
+  "MESH2MOTION/Sword_Attack",
+  "QUATERNIUS_SHARDFALL/Hit_Chest"
  ]
 }
