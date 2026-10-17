@@ -10,7 +10,7 @@ import { IoError, LIMITS, spend } from "../bytes.ts";
 import { bvhPoints, bvhPose, rigBvh, type Bvh, type RiggedBvh } from "../bvh/read.ts";
 import { cutPicks, restCapture, type Pick, type V3 } from "../takes.ts";
 import { plainOnly, type GltfDoc } from "./container.ts";
-import { accessor, hierarchy, restOf, segment, slerp, type Capture } from "./read.ts";
+import { accessor, animationNames, hierarchy, restOf, segment, slerp, type Capture } from "./read.ts";
 
 const { PORTABLE } = math;
 type M3 = number[];
@@ -82,13 +82,14 @@ export interface PosedLibrary {
 }
 
 /**
- * Reads every animation of a glTF document (or `picks` of them, by animation name) as clips on the bone map its nodes
- * match, in metres unless `units` says otherwise. `name(i)` renames nodes (a VRMA's humanoid bones).
+ * Reads every animation of a glTF document (or `picks` of them, by animation name: `animationNames`, so two that share
+ * a name are two takes) as clips on the bone map its nodes match, in metres unless `units` says otherwise. `name(i)`
+ * renames nodes (a VRMA's humanoid bones).
  */
 export function readGltfPosed(doc: GltfDoc, opts: { fps?: number; picks?: Pick[]; units?: number; name?: (i: number) => string } = {}): PosedLibrary {
   const fps = opts.fps ?? 30, anims = doc.json.animations ?? [], file = doc.bin?.file, nodes = (doc.json.nodes ?? []).length;
   if (!anims.length) throw new IoError("E_MISSING", "no animations", { file });
-  const byName = new Map(anims.map((a, i) => [a.name ?? `animation${i}`, i]));
+  const byName = new Map(animationNames(doc.json).map((name, i) => [name, i]));
   let frames = 0;
   const taken = new Map<string, Bvh>(), takeBvh = (take: string) => {
     let b = taken.get(take);

@@ -10,12 +10,15 @@ readers exported here let nothing else out. No dependencies beyond `@m3a/core`; 
 | Format | Read | Write | Notes |
 |---|---|---|---|
 | glTF / GLB, Rigify or Unreal rig | `readGltf` | `packGlb` | Bit for bit like my-3d2dge's `anim-import.mjs` (conformance tier 1b: the tiny rig, and a Rigify rig with a skinned mesh); the mesh gives the tips and the mannequin's look |
-| glTF / GLB, any rig a bone map knows | `readGltfPosed` | `gltfAnimOf`, `addAnimation` | MotionBuilder names (Mixamo), Unreal, Rigify, VRM, 100STYLE, Bandai Namco; a clip played on a character bound through core is added to its own document as an animation of its own nodes (any node between bones kept at rest, scale too), and `glbGap` reads it back, placing each node as a viewer does (a node scaled unevenly above turning bones shears them: off) (WP-7.2b) |
+| glTF / GLB, any rig a bone map knows | `readGltfPosed` | `gltfAnimOf`, `addAnimation` | MotionBuilder names (Mixamo), Unreal, Rigify, VRM, 100STYLE, Bandai Namco; a clip played on a character bound through core is added to its own document as an animation of its own nodes (any node between bones kept at rest, scale too), the clip's license and credit in its `extras`, and `glbGap` reads it back, placing each node as a viewer does (a node scaled unevenly above turning bones shears them: off) (WP-7.2b) |
 | ASF/AMC (CMU) | `readAsf`, `readAmc`, `readCmu` | | Bit for bit like `asf-amc.mjs` (tier 1b): picks, loops cut at their best cycle and closed |
-| BVH | `parseBvh`, `rigBvh`, `readBvh` | `writeBvh` | shardfall's reader as reference: units from the legs, the rest that stands straightest; written in centimetres, the zero pose the skeleton's rest, ZXY turns; a joint that moves (the root, the hips under it) has position channels that replace its OFFSET, as io's reader reads them (a reader that adds the two misplaces the hips); `bvhGap` reads it back (WP-7.2b) |
+| BVH | `parseBvh`, `rigBvh`, `readBvh` | `writeBvh` | shardfall's reader as reference: units from the legs, the rest that stands straightest, a Frame Time above 0 and at most 1 s; written in centimetres, the zero pose the skeleton's rest, ZXY turns; a joint that moves (the root, the hips under it) has position channels that replace its OFFSET, as io's reader reads them (a reader that adds the two misplaces the hips); `bvhGap` reads it back (WP-7.2b) |
 | VRMA (VRM Animation 1.0) | `decodeVrma`, `readVrma` | `vrmaOf`, `encodeVrma`, `writeVrma` | A clip played on a bound skeleton, as a VRM player plays it: the humanoid bones, the root's travel in the hips; written, read and written again byte for byte; id, loop, events, contacts, facts and license in the animation's `extras`, as three's bake writes them, and the credit (else the license) as the asset's copyright |
 
-A reader gives captured body points (`Capture`: the format's 36 points every frame, mm, in the rig's frame). `importSet`
+A reader gives captured body points (`Capture`: the format's 36 points every frame, mm, in the rig's frame). Each glTF
+animation is a clip of its own, named alike by `describeGltf` and every glTF reader (VRMA's too): its own name,
+`animation<i>` without one, and `_2`, `_3` ... after a name an earlier animation took (Mixamo names every export's
+animation 'Armature|mixamo.com|Layer0'), passing over a suffix another animation has as its name. `importSet`
 fits them into clips as a hand-written catalog says (`$sources`, `$pick`, `$skip` with reasons, and each clip's tags,
 description and `orig`), with a fit report per clip; WP-5.3 runs it over the library's sources. The catalog's
 `$sources.CMU` stands for every subject (`CMU_NN`), and `picksOf(catalog, fps, ledger)` plays a pick that names only its
@@ -34,4 +37,5 @@ this repository.
 - **ufbx** (a single-file C library that reads FBX) where Blender isn't available: a converter built on it that
   writes .glb is yours to write; none exists here.
 
-Either way every action becomes its own animation; `readGltf` or `readGltfPosed` then reads it like any other library.
+Either way every action becomes its own animation; `readGltf` or `readGltfPosed` then reads it like any other library,
+each animation a clip, whatever their names.

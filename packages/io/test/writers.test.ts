@@ -4,7 +4,7 @@
 // (Unreal's names, its travel), the .glb through posedOf and readGltf, the exact reader, with the file's own animations
 // and buffer kept, on Rigify's turned and scaled armature, and with a mesh's compression required; off under an uneven
 // scale, which no animation of turns follows; a VRMA carrying its clip's license and credit, read back byte for byte
-// (I5); and a one-frame take imported as a clip that lasts a frame (I4).
+// (I5), and a .glb's animation both in its extras; and a one-frame take imported as a clip that lasts a frame (I4).
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { Animator, bind, parseClip, playable, solver, validate, format, type AnimClip, type Bound, type Rest } from "@m3a/core";
@@ -79,6 +79,12 @@ describe("writers", () => {
     expect([v.copyright, v.extras.license, (parseGlb(bytes).json.asset as { copyright?: string }).copyright]).toEqual(["Someone, CC BY 4.0", "CC-BY-4.0", "Someone, CC BY 4.0"]);
     expect(encodeVrma(v)).toEqual(bytes);
     expect(decodeVrma(writeVrma(knock, rig.b)).copyright).toBe("CC0-1.0"); // no credit owed: the license itself
+    // a .glb's animation carries the credit beside the license in its extras; a .vrma's extras don't (decodeVrma keeps
+    // its known fields alone, so one more would break its read back byte for byte)
+    const extras = (clip: AnimClip) => (parseGlb(addAnimation(rig.doc, gltfAnimOf(clip, rig.b, rig.doc, rig.nodes))).json.animations!.at(-1) as unknown as { extras: Record<string, unknown> }).extras;
+    expect([extras(owed).license, extras(owed).credit, "credit" in (parseGlb(bytes).json.animations![0] as unknown as { extras: object }).extras]).toEqual(["CC-BY-4.0", "Someone, CC BY 4.0", false]);
+    const blank = { ...owed, provenance: { ...(owed as unknown as { provenance: object }).provenance, credit: " " } } as AnimClip;
+    expect(["credit" in extras(knock), "credit" in extras(blank), extras(blank).license]).toEqual([false, false, "CC-BY-4.0"]); // none given, none carried
   });
   it("imports a one-frame take as a clip that lasts a frame, its one key the fit's (I4)", () => {
     const lib = readGltf(parseGlb(tier1bRigGlb())), out = importSet([{ id: "RIG", file: "rig.glb", ...lib }], {}, { name: "RIG", credit: "the tiny rig" }), pose = out.set.clips.A_TPose!;

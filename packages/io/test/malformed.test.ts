@@ -1,8 +1,9 @@
 // Untrusted input (WP-5.2): every reader refuses a malformed file with a clear error that names its cause and, for
-// binary input, the offset: glTF containers, accessors and rigs; ASF/AMC skeletons, takes and picks; BVH hierarchies
-// and frames; VRM animations. None of them throws anything but an IoError.
+// binary input, the offset: glTF containers, accessors and rigs; ASF/AMC skeletons, takes and picks; BVH hierarchies,
+// frame times and frames, and a skeleton (a .bvh's or a glTF's nodes) no bone map knows, in words for both; VRM
+// animations. None of them throws anything but an IoError.
 import { describe, expect, it } from "vitest";
-import { decodeVrma, gltfToGlb, IoError, packGlb, parseBvh, parseGlb, parseGltf, readAmc, readAsf, readBvh, readCmu, readGltf, rigBvh } from "../src/index.ts";
+import { decodeVrma, gltfToGlb, IoError, packGlb, parseBvh, parseGlb, parseGltf, readAmc, readAsf, readBvh, readCmu, readGltf, readGltfPosed, rigBvh } from "../src/index.ts";
 import { tier1bRigGlb, tier1bText } from "../../../spec/conformance/runner/vectors.ts";
 import { tinyBvh } from "./fixtures.ts";
 
@@ -84,8 +85,19 @@ describe("BVH, refused clearly", () => {
     expect(refusal(() => parseBvh(`${tinyBvh(1).trimEnd()} oops\n`))).toMatchObject({ code: "E_FORMAT", message: expect.stringMatching(/a frame value isn't a number \("oops"\)/) });
     expect(refusal(() => parseBvh(tinyBvh(0)))).toMatchObject({ code: "E_FORMAT", message: expect.stringMatching(/no frames/) });
   });
+  it("refuses a Frame Time that isn't above 0 and at most 1 s, naming it, where a take would read at a rate it hasn't", () => {
+    const bad = (ft: string) => ({ code: "E_FORMAT", message: expect.stringMatching(new RegExp(`^line \\d+: Frame Time ${ft} s: a frame time is above 0 and at most 1 s$`)) });
+    for (const [ft, shown] of [[0, "0"], [-0.5, "-0\\.5"], [1e6, "1000000"]] as const) expect(refusal(() => parseBvh(tinyBvh(2, ft)))).toMatchObject(bad(shown));
+    expect(refusal(() => parseBvh(tinyBvh(2, NaN)))).toMatchObject({ code: "E_FORMAT", message: expect.stringMatching(/^line \d+: the frame time isn't a number \("NaN"\)$/) });
+    // 26 frames 1e6 s apart, refused rather than read at 120 fps as 0.2 s; 1 s a frame is read
+    expect(refusal(() => readBvh(() => tinyBvh(26, 1e6), ["t"]))).toMatchObject({ code: "E_FORMAT", message: expect.stringMatching(/^t\.bvh: line \d+: Frame Time 1000000 s/) });
+    expect(readBvh(() => tinyBvh(26, 1), ["t"]).clips.t!.dur).toBe(25);
+  });
   it("names a skeleton no bone map knows, with its joints, and the joints a map lacks", () => {
-    expect(refusal(() => rigBvh(parseBvh(tinyBvh().replace(/LeftUpLeg/g, "LeftThigh"))))).toMatchObject({ code: "E_RIG", message: expect.stringMatching(/isn't one the BVH reader knows .*its joints: Hips, Spine/) });
+    expect(refusal(() => rigBvh(parseBvh(tinyBvh().replace(/LeftUpLeg/g, "LeftThigh"))))).toMatchObject({ code: "E_RIG", message: expect.stringMatching(/^its joint names match none of the bone maps the reader knows \(.*\); its joints: Hips, Spine/) });
+    // the same words for a glTF's nodes, read on any rig (no BVH named)
+    const glb = editedRig((j) => j.nodes.forEach((n) => (n.name = n.name.replace("spine_01", "torso"))));
+    expect(refusal(() => readGltfPosed(parseGlb(glb)))).toMatchObject({ code: "E_RIG", message: expect.stringMatching(/^its joint names match none of the bone maps the reader knows \([^)]*VRM's humanoid bones\); its joints: root, pelvis, torso/) });
     expect(refusal(() => rigBvh(parseBvh(tinyBvh().replace(/RightHand/g, "RightPaw"))))).toMatchObject({ code: "E_RIG", message: expect.stringMatching(/the motionbuilder map needs joints the file lacks: RightHand/) });
     expect(refusal(() => readBvh((t) => (t === "a" ? tinyBvh() : tinyBvh().replace(/LeftToeBase/g, "LeftToe")), ["a", "b"]))).toMatchObject({ code: "E_RIG", message: expect.stringMatching(/its joints differ from the library's first take's/) });
   });
