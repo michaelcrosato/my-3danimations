@@ -39,7 +39,8 @@
     "import": "node tools/import/main.ts",
     "facts": "node tools/facts/main.ts",
     "moves": "node tools/procedural/carry.ts",
-    "sim": "node tools/sim/main.ts"
+    "sim": "node tools/sim/main.ts",
+    "pack": "node tools/bundle/main.ts"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
