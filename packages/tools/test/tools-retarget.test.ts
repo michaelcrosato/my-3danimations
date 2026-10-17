@@ -10,7 +10,9 @@
 // leaving two humanoid bones on one source bone; a metric that is no finite number written so, and null in data). A
 // compressed mesh is said by both, but is no mapping issue (meshIssue): no finding, turntable, patch hint or warning of
 // its own. A clip holding a foot past MAX_HOLD (15 s) refused before it plays, by retarget.apply, export and graph.sim,
-// its contacts bridged as core's planter bridges them (a 12 s hold, and one of 15 s, pass). Every next and every
+// its contacts bridged as core's planter bridges them (a 12 s hold, and one of 15 s, pass); and one whose feet's holds
+// the planter rereads past MAX_REREAD (16 s) at a step (feet held 15 s and 13.4 s from starts 2 s apart), by each of
+// them, while feet held from one start, and 8 s and 6.4 s from starts 2 s apart, pass. Every next and every
 // refusal's call runs as written. One working directory for the file: the tools only read, and write images (and
 // recipe.compile its clip file).
 import { readFileSync, writeFileSync } from "node:fs";
@@ -22,7 +24,7 @@ import { nodeHost } from "../src/node.ts";
 import { Registry, type Reply, type ToolContext } from "../src/registry/index.ts";
 import { characterOf, type MappingPatch } from "../src/tools/body.ts";
 import { COMPOSE, EXCHANGE, RETARGET } from "../src/tools/index.ts";
-import { boundHolds, heldStretches, MAX_HOLD, valueData, valueText } from "../src/tools/judge.ts";
+import { boundHolds, heldStretches, MAX_HOLD, MAX_REREAD, reread, valueData, valueText } from "../src/tools/judge.ts";
 import { exampleCwd, hintedCalls, ROOT, runExamples } from "./helpers/surfaces.ts";
 
 type Row = Record<string, unknown>;
@@ -173,7 +175,7 @@ describe("the retarget tools", () => {
     expect([NaN, Infinity, -Infinity, 61.234, 483.4].map((v) => [valueText(v), valueData(v)])).toEqual([["not finite", null], ["not finite", null], ["not finite", null], ["61.2", 61.234], ["483", 483.4]]);
   });
 
-  it("refuses a clip holding a foot past 15 s before it plays (retarget.apply, export, graph.sim), its contacts bridged as core's planter bridges them", async () => {
+  it("refuses a clip holding a foot past 15 s, or feet whose holds the planter rereads past 16 s at a step, before it plays (retarget.apply, export, graph.sim), its contacts bridged as core's planter bridges them", async () => {
     // Idle_Loop retimed to 20 s: both feet hold throughout, one stretch each
     const all = new Registry([...RETARGET, ...COMPOSE, ...EXCHANGE]), on = (tool: string, args: object) => all.call(tool, args, { host }) as Promise<Reply<Row>>;
     const made = await on("recipe.compile", { recipe: JSON.stringify({ format: "2.0", id: "RECIPES/Idle_20", steps: [{ op: "clip", id: "QUATERNIUS_3D2DGE/Idle_Loop" }, { op: "retime", in: "s1", dur: 20 }] }) }), file = made.data!.path as string;
@@ -191,7 +193,19 @@ describe("the retarget tools", () => {
     expect(at(heldStretches({ dur: 20, loop: true, contacts: { by: "labelled", footL: [[0, 5], [5.2, 19.95]] } }))).toEqual([["footL", 5.2, 25]]);
     expect(at(heldStretches({ dur: 20, loop: true, contacts: { by: "labelled", footL: [[0, 20]] } }))).toEqual([["footL", 0, 20]]);
     expect(() => boundHolds({ dur: 20, loop: true, contacts: { by: "labelled", footL: [[0, 5], [5.2, 19.95]] } }, "X")).toThrow(/^X: its left foot holds the ground 19\.800 s \(5\.200–25\.000 s, on through its loop's seam\)/);
-    // a 12 s hold passes, and one of exactly the limit
-    for (const t of [12, MAX_HOLD]) expect(() => boundHolds({ ...once, contacts: { by: "labelled", footL: [[0, t]], footR: [[2, 2 + t]] } }, "X"), String(t)).not.toThrow();
+    // a 12 s hold passes, and one of exactly the limit, both feet from the same start (the same poses reread)
+    for (const t of [12, MAX_HOLD]) expect(() => boundHolds({ ...once, contacts: { by: "labelled", footL: [[0, t]], footR: [[0, t]] } }, "X"), String(t)).not.toThrow();
+    // what the planter rereads at a step (reread): a stretch from its start to the settle's reach (0.1 s on), one ended
+    // within 0.3 s, a loop's last cycle's after its seam; once when both feet start it together, each foot's own in `each`
+    const r15 = reread({ dur: 15, loop: true, contacts: { by: "labelled", footL: [[0, 15]], footR: [[0, 15]] } });
+    expect([r15.held, r15.each, r15.at].map((x) => Math.round(x * 1000) / 1000)).toEqual([15.4, 30.8, 0.3]);
+    // feet holding from different starts are reread together: 8 s and 6.4 s at once pass; 15 s and 13.4 s, one held clip
+    // whose pose cache would clear every step (MAX_REREAD), are refused, by every tool that plays a clip
+    expect(() => boundHolds({ ...once, contacts: { by: "labelled", footL: [[0, 8]], footR: [[2, 10]] } }, "X")).not.toThrow();
+    const stagger = { ...clip, contacts: { by: "labelled", footL: [[0, 15]], footR: [[2, 17]] } };
+    writeFileSync(join(cwd, "stagger.json"), JSON.stringify(stagger));
+    const rereads = (title: string) => ({ code: "E_ARGS", message: `${title}: at 15.300 s the planter rereads 28.400 s of its feet's holds (left 15.000 s from 0.000 s, right 13.400 s from 2.000 s), past the ${MAX_REREAD} s one call rereads at a step; cut it into clips whose feet's holds add up to under ${MAX_REREAD} s at any time (a recipe's or edit's slice), and call again` });
+    const staggered = [await on("retarget.apply", { character: "tiny", clips: ["stagger.json"] }), await on("export", { clip: "stagger.json", character: "tiny", format: "bvh" }), await on("graph.sim", { graph, script: JSON.stringify({ format: "2.0", id: "SIMS/Stand", dur: 1, input: [] }), clips: ["stagger.json"] })];
+    expect(staggered.map((r) => [r.status, r.error])).toEqual([["usage", rereads("stagger.json")], ["usage", rereads("stagger.json")], ["usage", rereads("RECIPES/Idle_20")]]);
   });
 });

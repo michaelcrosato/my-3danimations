@@ -365,7 +365,7 @@ export const exportClip = defineTool<{ clip: string; character: string; format: 
   async run(a, ctx) {
     const ref = await loadClip(ctx, a.clip), { as, title } = naming(ref), who = characterName(a.character), { bound: b, report } = await bodyOf(ctx, a.character, a.mapping);
     const clip = playable(ref.clip, ref.rest), fps = 30, frames = Math.max(1, Math.ceil(clip.dur * fps)) + 1;
-    boundHolds(clip, title); // no foot held past MAX_HOLD, before it plays
+    boundHolds(clip, title); // no foot held past MAX_HOLD, nor feet's holds reread past MAX_REREAD, before it plays
     let bytes: Uint8Array, back: { mm: number | null; check: string };
     if (a.format === "vrma") {
       const v = io(() => writeVrma(clip, b, { fps })), again = io(() => encodeVrma(decodeVrma(v)));

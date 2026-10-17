@@ -2,8 +2,8 @@
 // copy (WORKSHOP/Name: workshop/Name.json, its origin and rest kept in its history while that history is the file's), a
 // .json path, or the clip's JSON. A file or JSON clip is checked with @m3a/core's validator and takes its rest from a
 // set's manifest. A refusal names the closest id, or the game.json line that opts in to a tier. And a recipe resolver
-// over the library and the workshop, with the bounds on a recipe (its running length, steps and samples) that
-// compiling it needs.
+// over the library and the workshop, with the bounds on a recipe (its running length, steps, samples, and the list
+// points its steps read at each sample) that compiling it needs.
 import { format, recipe, validate, validation, type Clip, type Rest } from "@m3a/core";
 import { LibraryError, tierOf, type SourceAbout, type Tier } from "@m3a/library";
 import { ToolError, type LibraryAccess, type ToolContext } from "../registry/registry.ts";
@@ -217,20 +217,37 @@ export const MAX_RECIPE_STEPS = 64;
  * on a 13 s track) takes about 60 s here; spec/recipes/* and the bench starters' recipes build a few thousand.
  */
 export const MAX_STEP_SAMPLES = 100_000;
+/**
+ * The most list points a recipe's steps read in one call: each list core reads through again at every sample of its
+ * step (a pin's path and a blend's weight curve, point by point to the sample's time; a sequence's items, to the one
+ * playing), its length times the step's samples (its length times the recipe's fps), summed over the steps. Nothing
+ * else bounds those lists but io's 64 MB text: the verifier's pin of 600,000 points on 400 s at 120 fps took 128 s, and
+ * near that limit one would take 10 to 15 minutes. A read costs about 4 to 6 ns here (a pin of 100,000 points packed
+ * at its start, every sample reading them all, on 3,000 samples: 1.6 s more than one of 2), so this limit adds at most
+ * about 0.6 s; spec/recipes/* and the bench starters' recipes read a few thousand.
+ */
+export const MAX_LIST_READS = 100_000_000;
+/** The list a recipe step reads through at each of its samples (MAX_LIST_READS), as the reply names it, or none. */
+function listOf(s: recipe.Step): { points: number; what: string; fix: string } | undefined {
+  const of = (v: unknown, what: string, fix: string) => (Array.isArray(v) ? { points: v.length, what, fix } : undefined);
+  return s.op === "pin" ? of(s.path, "its N-point path", "fewer path points") : s.op === "blend" ? of(s.w, "its N-point weight curve", "fewer curve points") : s.op === "sequence" ? of(s.items, "its N items", "fewer, longer items") : undefined;
+}
 
 /**
  * Refuses (usage E_ARGS) a recipe one of whose steps runs past the most a clip may last (format.LIMITS.dur, M2-E010),
  * naming the step (`where`): compile builds each step's track in full, so slow retimes or a long sequence would run out
  * of memory long before the result's own check. And one of more than MAX_RECIPE_STEPS steps, or whose steps build more
- * than MAX_STEP_SAMPLES samples in all (each step's length times the recipe's fps), naming the total: its cost. A step's
- * length: a clip's span of the clip `clipOf` gives (none: 0, for compile to name), a sequence its items' sum, a blend
- * its longer input, a layer its base, a retime its input over its speed (or its dur), any other step its input's.
+ * than MAX_STEP_SAMPLES samples in all (each step's length times the recipe's fps), naming the total: its cost; or read
+ * more than MAX_LIST_READS list points (a pin's path, a blend's weight curve, a sequence's items, each at every sample
+ * of its step), naming the step that reads most. A step's length: a clip's span of the clip `clipOf` gives (none: 0,
+ * for compile to name), a sequence its items' sum, a blend its longer input, a layer its base, a retime its input over
+ * its speed (or its dur), any other step its input's.
  */
 export function bounded(r: recipe.Recipe, clipOf: (id: string) => Clip | undefined, where = (step: number) => `step ${step}`): void {
   const most = format.LIMITS.dur, named = new Map<string, number>(), len = (n: unknown) => named.get(n as string) ?? 0;
   if (r.steps.length > MAX_RECIPE_STEPS) throw new ToolError("E_ARGS", `the recipe has ${r.steps.length} steps, past the ${MAX_RECIPE_STEPS} one call compiles; use fewer steps`, true);
   const fps = typeof r.fps === "number" ? r.fps : 30;
-  let samples = 0;
+  let samples = 0, reads = 0, worst: { step: number; op: string; reads: number; samples: number; list: NonNullable<ReturnType<typeof listOf>> } | null = null;
   for (const [k, s] of r.steps.entries()) {
     const c = s.op === "clip" ? clipOf(String(s.id)) : undefined, num = (v: unknown, or: number) => (typeof v === "number" ? v : or);
     const dur = s.op === "clip" ? (c ? num(s.to, c.dur) - num(s.from, 0) : 0)
@@ -244,8 +261,15 @@ export function bounded(r: recipe.Recipe, clipOf: (id: string) => Clip | undefin
     const why = s.op === "retime" ? "retime it less slowly, or slice it first" : "use fewer or shorter clips";
     if (dur > most) throw new ToolError("E_ARGS", `${where(k + 1)}: ${s.op} makes the clip ${Math.round(dur)} s long, past the ${most} s a clip may last (M2-E010); ${why}`, true);
     samples += Math.max(0, dur) * fps;
+    const list = listOf(s), at = Math.ceil(Math.max(0, dur) * fps), read = (list?.points ?? 0) * at;
+    reads += read;
+    if (list && (!worst || read > worst.reads)) worst = { step: k + 1, op: String(s.op), reads: read, samples: at, list };
   }
   if (samples > MAX_STEP_SAMPLES) throw new ToolError("E_ARGS", `the recipe's ${count(r.steps.length, "step")} build ${Math.ceil(samples)} samples in all (each step's length times ${fps} fps), past the ${MAX_STEP_SAMPLES} one call compiles; use fewer steps, or a lower fps`, true);
+  if (worst && reads > MAX_LIST_READS) {
+    const w = worst, all = reads > w.reads ? `; the recipe's steps read ${reads} in all` : "";
+    throw new ToolError("E_ARGS", `${where(w.step)}: ${w.op} reads ${w.list.what.replace("N", String(w.list.points))} at each of its ${w.samples} samples, ${w.reads} list points${all}, past the ${MAX_LIST_READS} one call compiles; use ${w.list.fix}, or a lower fps`, true);
+  }
 }
 
 /** A recipe resolver over the library (at the game's tiers) and the workshop. A resolver answers at once, so the

@@ -1,32 +1,40 @@
 // Compose and wire (PLAN.md WP-7.2b): recipe.compile, graph.validate and graph.sim on every surface; then each one's
-// failing input with its code and fix. A recipe: a misspelt operation or clip (R-E002, R-E008 with did you mean, no file
-// written), a missing file (E_PATH), one too long to build (E_ARGS, at once), a clip of a tier the game hasn't opted in
-// to (E_TIER through the library's resolver, naming the game.json line) and, opted in, the credit it owes. A graph: a
-// recipe of more than 64 steps or more than 100,000 step samples (the verifier's ten smooths on 600 s at 120 fps), each
-// at once, while every recipe the repository ships passes. A graph: a
-// misspelt clip and state (G-E009 with did you mean, G-E003), a cc-by clip (the game.json line), a recipe state (the
-// file to pass), which checks once its compiled file is given, named in hints as given (a path) or as `<the clip's
-// JSON>`; a WORKSHOP copy found, a missing one the copy to make; 64 clips taken, 65 refused. A script: the example trace
-// matched byte for byte, a strike with no hit event alone making findings, a hit window from a clip's own event on a
-// character file, a trace that differs with hints that run it again as given (a script, character and clip file whose
-// names the shell would split passed as given), an unknown trigger (S-E003, not run), an unknown character (E_ARGS), a
-// character file's absolute path never echoed (a run's hint names it and its script by placeholders), nor a script's
-// that is no JSON (E_JSON), a run too costly refused, by what its graph and script hold at once (its steps; 501 layers
-// on 60 s; a blend of 1,000 points, and one of 64 on 60 s; 20,000 transitions, one of 200,000 conditions, and one from
-// 10,000 states, each on 60 s; 1,001 parameters on 60 s, and 1,000 with a number eased in) and by what its fades play
-// out after a run without poses (a state left for another every step), while the shipped graphs pass at the longest
-// script; a character whose bones' names miss a required bone refused
-// (E_RIG), then run with the patch its retarget.inspect call gives (mapping), the run's hints keeping it; and
-// writes only under check-output/recipe.compile/ and check-output/graph.sim/.
+// failing input with its code and fix. A recipe: a misspelt operation or clip (R-E002, R-E008 with did you mean, no
+// file written), a missing file (E_PATH), one too long to build (E_ARGS, at once), a clip of a tier the game hasn't
+// opted in to (E_TIER through the library's resolver, naming the game.json line) and, opted in, the credit it owes. A
+// graph: a recipe of more than 64 steps or more than 100,000 step samples (the verifier's ten smooths on 600 s at 120
+// fps), or reading more than 100,000,000 list points at its samples (the verifier's pin of 600,000 points on 400 s at
+// 120 fps; a weight curve, a sequence's items, two pins together), each at once, while every recipe the repository
+// ships passes. A graph: a misspelt clip and state (G-E009 with did you mean, G-E003), a cc-by clip (the game.json
+// line), a recipe state (the file to pass), which checks once its compiled file is given, named in hints as given (a
+// path) or as `<the clip's JSON>`; a WORKSHOP copy found, a missing one the copy to make; 64 clips taken, 65 refused. A
+// script: the example trace matched byte for byte, a strike with no hit event alone making findings, a hit window from
+// a clip's own event on a character file, a trace that differs with hints that run it again as given (a script,
+// character and clip file whose names the shell would split passed as given), an unknown trigger (S-E003, not run), an
+// unknown character (E_ARGS), a character file's absolute path never echoed (a run's hint names it and its script by
+// placeholders), nor a script's that is no JSON (E_JSON), a run too costly refused, by what its graph and script hold
+// at once (its steps; 501 layers on 60 s; a blend of 1,000 points, and a 2D one of 64 on 60 s, while a 1D one of 64
+// passes a minute and one of 5 with an upper layer the longest script; 20,000 transitions, one of 200,000 conditions,
+// and one from 10,000 states, each on 60 s; 1,001 parameters on 60 s, and 1,000 with a number eased in) and, after a
+// run without poses, by what its fades play out (a state left for another every step) and by a held clip played at
+// several times at once (Idle_Loop retimed to 15 s in two states left for each other every step, fades cut, on 480 s
+// and on 20 s; in two layers that plant it, on 60 s; not over the upper body alone; over 10 uncut fades but not 30),
+// while the shipped graphs pass at the longest script, Locomotion through its run without poses with 120 transitions; a
+// character whose bones' names miss a required bone refused (E_RIG), then run with the patch its retarget.inspect call
+// gives (mapping), the run's hints keeping it; and writes only under check-output/recipe.compile/ and
+// check-output/graph.sim/.
 import { cpSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { openLibrary } from "@m3a/library/node";
 import { join } from "node:path";
-import { graph as G, recipe } from "@m3a/core";
+import { bind, graph as G, playable, recipe, type AnimClip } from "@m3a/core";
 import { describe, expect, it } from "vitest";
 import { nodeHost } from "../src/node.ts";
 import { Registry, type Reply } from "../src/registry/index.ts";
-import { bounded, MAX_RECIPE_STEPS, MAX_STEP_SAMPLES } from "../src/tools/clips.ts";
-import { runCost } from "../src/tools/compose.ts";
+import { bounded, MAX_LIST_READS, MAX_RECIPE_STEPS, MAX_STEP_SAMPLES } from "../src/tools/clips.ts";
+import { simulate, type SimScript } from "../src/sim/index.ts";
+import { TINY } from "../src/tools/body.ts";
+import { faded, runCost } from "../src/tools/compose.ts";
+import { boundHolds, type Reread } from "../src/tools/judge.ts";
 import { COMPOSE, RETARGET } from "../src/tools/index.ts";
 import { exampleCwd, hintedCalls, ROOT, runExamples } from "./helpers/surfaces.ts";
 
@@ -73,10 +81,21 @@ describe("compose and wire", () => {
       const verifier = await call("recipe.compile", { recipe: JSON.stringify({ format: "2.0", id: "RECIPES/Many", fps: 120, steps: [...stride, { op: "retime", in: "s1", dur: 600 }, ...smooths(10)] }) });
       expect([verifier.status, verifier.error]).toEqual(["usage", { code: "E_ARGS", message: "the recipe's 12 steps build 792160 samples in all (each step's length times 120 fps), past the 100000 one call compiles; use fewer steps, or a lower fps" }]);
       expect((await bad([...stride, { op: "retime", in: "s1", dur: 2 }, ...smooths(63, 0.1)])).error).toEqual({ code: "E_ARGS", message: `the recipe has 65 steps, past the ${MAX_RECIPE_STEPS} one call compiles; use fewer steps` });
-      // every recipe the repository ships passes, far under the bound
+      // and the list points its steps read at each sample (a pin's path, a blend's weight curve, a sequence's items), the
+      // verifier's pin of 600,000 points on 400 s at 120 fps (128 s unbounded) refused at once; a curve, a sequence, and
+      // two pins each under the bound but past it together (the step reading most named)
+      const reads = (step: string, n: number, read: number, fix: string, all = "") => ({ code: "E_ARGS", message: `${step} at each of its ${n} samples, ${read} list points${all}, past the ${MAX_LIST_READS} one call compiles; use ${fix}, or a lower fps` });
+      const pin = (n: number, dur: number, at = "s2") => ({ op: "pin", in: at, end: "handL", path: Array.from({ length: n }, (_, i) => [(i * dur) / n, 300, 200, 900]) });
+      const longPin = JSON.stringify({ format: "2.0", id: "RECIPES/Pin", fps: 120, steps: [...stride, { op: "retime", in: "s1", dur: 400 }, pin(600_000, 400)] }), t0 = performance.now(), far = await call("recipe.compile", { recipe: longPin });
+      expect([far.status, far.error, performance.now() - t0 < 2000]).toEqual(["usage", reads("step 3: pin reads its 600000-point path", 48_000, 28_800_000_000, "fewer path points"), true]);
+      const punch = { op: "clip", id: "MESH2MOTION/Fighting_Right_Jab" }, minutes = (k: number) => ({ op: "retime", in: `s${k}`, dur: 100 }), curve = Array.from({ length: 100_000 }, (_, i) => [i / 1000, 0.5]);
+      expect((await bad([...stride, minutes(1), punch, minutes(3), { op: "blend", a: "s2", b: "s4", warp: false, w: curve }])).error).toEqual(reads("step 5: blend reads its 100000-point weight curve", 3000, 300_000_000, "fewer curve points"));
+      expect((await bad([{ ...punch, from: 0, to: 1 / 64 }, { op: "sequence", items: Array.from({ length: 19_200 }, () => "s1"), fade: 0 }])).error).toEqual(reads("step 2: sequence reads its 19200 items", 9000, 172_800_000, "fewer, longer items"));
+      expect((await bad([...stride, minutes(1), pin(20_000, 100), pin(20_000, 100, "s3")])).error).toEqual(reads("step 3: pin reads its 20000-point path", 3000, 60_000_000, "fewer path points", "; the recipe's steps read 120000000 in all"));
+      // every recipe the repository ships passes, far under the bounds
       const lib = openLibrary({ tiers: ["cc0", "cc-by", "cmu"] }), shipped = [...readdirSync(join(ROOT, "spec/recipes")).map((f) => `spec/recipes/${f}`), "bench/starters/B5/emote.json", "bench/starters/B6/punch.json"];
       for (const f of shipped) expect(() => bounded(JSON.parse(text(f)) as recipe.Recipe, (id) => lib.clip(id).clip), f).not.toThrow();
-      expect(MAX_STEP_SAMPLES).toBe(100_000);
+      expect([MAX_STEP_SAMPLES, MAX_LIST_READS]).toEqual([100_000, 100_000_000]);
       expect((await call("recipe.compile", { recipe: "spec/recipes/Nope.json" })).error).toEqual({ code: "E_PATH", message: "can't read spec/recipes/Nope.json (ENOENT); paths are relative to the working directory" });
       // a library clip of a tier the game hasn't opted in to is refused naming the opt-in, not compile's "no clip" (L3)
       const walk = { recipe: "spec/recipes/Walk_Into_Run.json" };
@@ -180,9 +199,15 @@ describe("compose and wire", () => {
       });
       const costs = async (g: string, script = minute) => (await call("graph.sim", { graph: g, script })).error;
       const per = (what: string, cut: string) => ({ code: "E_ARGS", message: `${what}: ${cut}, or shorten dur or lower rate` });
-      expect(await costs(graph(500, 1))).toEqual(per("the run plays 1001 clips at once (each layer's widest state: a blend's points) × 3600 steps, past the 144000 clip steps graph.sim takes (4 clips × 36000 steps)", "use fewer layers or blend points"));
+      expect(await costs(graph(500, 1))).toEqual(per("the run plays 1001 clips at once (each layer's widest state: a 2D blend's points, a 1D blend's 2 and 1 for each 64) × 3600 steps, past the 144000 clip steps graph.sim takes (4 clips × 36000 steps)", "use fewer layers or blend points"));
       expect(await costs(graph(0, 1, { base: blend(1000) }))).toEqual({ code: "E_ARGS", message: "states.idle.blend has 1000 points, past the 64 one blend graph.sim plays takes: use fewer points" });
-      expect(await costs(graph(0, 1, { base: blend(64) }))).toEqual(per("the run plays 64 clips at once (each layer's widest state: a blend's points) × 3600 steps, past the 144000 clip steps graph.sim takes (4 clips × 36000 steps)", "use fewer layers or blend points"));
+      // a 2D blend weighs every point (64: 64 clips at once); a 1D blend two at most, its others' keys still read (2, and 1
+      // for each 64: 64 points, 3), so 64 of them pass on a minute, and 5 with an upper layer on the longest script
+      const blend2 = (n: number) => ({ blend: { params: ["speed", "p0"], points: Array.from({ length: n }, (_, i) => ({ at: [i, i % 2], clip: i % 2 ? `${Q}Jog_Fwd_Loop` : `${Q}Walk_Loop` })) } });
+      expect(await costs(graph(0, 1, { base: blend2(64), params: 2 }))).toEqual(per("the run plays 64 clips at once (each layer's widest state: a 2D blend's points, a 1D blend's 2 and 1 for each 64) × 3600 steps, past the 144000 clip steps graph.sim takes (4 clips × 36000 steps)", "use fewer layers or blend points"));
+      const longest = { format: "2.0", id: "SIMS/Longest", dur: 600, input: [] } as unknown as Parameters<typeof runCost>[2], upper = [{ name: "upper", start: "a", mask: "upper", states: { a: idle }, transitions: [] }];
+      const cost = (g: G.Graph, n: number) => runCost(G.layersOf(g), Object.keys(g.parameters ?? {}).length, longest, n);
+      expect([cost(JSON.parse(graph(0, 1, { base: blend(64) })) as G.Graph, 3600), cost({ ...JSON.parse(graph(0, 1, { base: blend(5) })), layers: upper } as G.Graph, 36_000)]).toEqual([undefined, undefined]);
       const tests = (n: number) => `the run tests ${n} transition terms (each transition 1, and its conditions and the states it is from) × 3600 steps, past the 36000000 graph.sim takes (1000 terms × 36000 steps)`;
       expect(await costs(graph(0, 20_000))).toEqual(per(tests(40_000), "use fewer transitions or conditions"));
       expect(await costs(graph(0, 1, { when: 200_000 }))).toEqual(per(tests(200_001), "use fewer transitions or conditions"));
@@ -190,18 +215,53 @@ describe("compose and wire", () => {
       const reads = (k: number, n: number) => per(`the run reads ${k} parameters ${n} times (each step, and each number the script eases in), past the 3600000 parameter reads graph.sim takes (100 parameters × 36000 steps)`, "use fewer parameters");
       const eased = JSON.stringify({ format: "2.0", id: "SIMS/Eased", dur: 60, film: 0, input: [{ t: 1, set: { speed: 2 }, over: 1 }] });
       expect([await costs(graph(0, 1, { params: 1001 })), await costs(graph(0, 1, { params: 1000 }), eased)]).toEqual([reads(1001, 3600), reads(1000, 3601)]);
-      // what its fades play out, by a run without poses first: a state left for another every step, each fade cut (a
-      // 32-point blend: 32 clips at once, 4 states fading out with it), on a 20 s script
-      const fades = JSON.stringify({ format: "2.0", id: "GRAPHS/Fades", name: "Fades", parameters: { speed: { type: "number", value: 0.5 } }, start: "a", states: { a: blend(32), b: blend(32) }, transitions: [{ from: "a", to: "b", fade: 10, interruptible: true }, { from: "b", to: "a", fade: 10, interruptible: true }] });
-      expect(await costs(fades, JSON.stringify({ format: "2.0", id: "SIMS/Third", dur: 20, film: 0, input: [] }))).toEqual(per("the run plays 38400 clip steps, and its fades (1200 transitions taken) up to 153600 more, past the 144000 clip steps graph.sim takes (4 clips × 36000 steps)", "take fewer transitions, or shorter fades"));
-      // while the shipped graphs pass at the longest script (Locomotion's 4 clips at once at the limit), and Sword_Combo
-      // runs a combo through its fades
-      const longest = { format: "2.0", id: "SIMS/Longest", dur: 600, input: [] } as unknown as Parameters<typeof runCost>[2];
-      for (const f of ["spec/graphs/Locomotion.json", "spec/graphs/Sword_Combo.json"]) expect(((g: G.Graph) => runCost(G.layersOf(g), Object.keys(g.parameters ?? {}).length, longest, 36_000))(JSON.parse(text(f)) as G.Graph)).toBeUndefined();
+      // what its fades play out, by a run without poses first, charged apart from its steady clips: a state left for
+      // another every step, each fade cut (a 32-point 2D blend: 32 clips at once, 4 states fading out with it), on 20 s
+      const fades = JSON.stringify({ format: "2.0", id: "GRAPHS/Fades", name: "Fades", parameters: { speed: { type: "number", value: 0.5 }, p0: { type: "number", value: 0.5 } }, start: "a", states: { a: blend2(32), b: blend2(32) }, transitions: [{ from: "a", to: "b", fade: 10, interruptible: true }, { from: "b", to: "a", fade: 10, interruptible: true }] });
+      expect(await costs(fades, JSON.stringify({ format: "2.0", id: "SIMS/Third", dur: 20, film: 0, input: [] }))).toEqual(per("the run's fades (1200 transitions taken) play up to 153600 clip steps more than its steady ones, past the 36000 graph.sim takes beyond them (1 clip × 36000 steps)", "take fewer transitions, or shorter fades"));
+      // while the shipped graphs pass at the longest script (Locomotion's 4 clips at once at the limit; graph.sim's fade
+      // bound on it in the next test), and Sword_Combo runs a combo through its fades
+      for (const f of ["spec/graphs/Locomotion.json", "spec/graphs/Sword_Combo.json"]) expect(cost(JSON.parse(text(f)) as G.Graph, 36_000)).toBeUndefined();
       const combo = JSON.stringify({ format: "2.0", id: "SIMS/Combo", dur: 3, film: 0, input: [0.2, 0.6, 1.0].map((t) => ({ t, trigger: "attack" })) });
       expect(await call("graph.sim", { graph: "spec/graphs/Sword_Combo.json", script: combo })).toMatchObject({ status: "findings", data: { steps: 180, states: [{ state: "a" }, { state: "b" }, { state: "c" }] } });
       for (const bad of ["[1]", '{"script":"SIMS/Short","states":[]}']) expect((await call("graph.sim", { graph: L, script: SHORT, expect: bad })).error).toEqual({ code: "E_JSON", message: "the expected trace is not one: give a trace.json graph.sim wrote (spec/SIM.md §2)" });
       expect([readdirSync(join(cwd, "check-output")), readdirSync(join(cwd, "check-output/graph.sim"))]).toEqual([["graph.sim"], ["Combo.trace.json", "Short.trace.json", "Sprint.trace.json"]]);
+    }));
+
+  it("graph.sim: a held clip played at several times at once charged by the poses it decodes again, refused after a run without poses; Locomotion's longest run takes its transitions", () =>
+    inCwd(async (call) => {
+      // Idle_Loop retimed to 15 s (both feet held throughout: 15.4 s reread at its most, 30.8 s each foot's own) in two
+      // states left for each other every step, fades cut: up to 5 times at once, its pose cache cleared every step (about
+      // 19 minutes on a 480 s script unbounded), refused at once after a run without poses
+      const made = await call("recipe.compile", { recipe: JSON.stringify({ format: "2.0", id: "RECIPES/Idle_15", steps: [{ op: "clip", id: `${Q}Idle_Loop` }, { op: "retime", in: "s1", dur: 15 }] }) });
+      const idle = { clip: "RECIPES/Idle_15" }, held = (graph: object, dur: number) => call("graph.sim", { graph: JSON.stringify({ format: "2.0", id: "GRAPHS/Held", name: "Held", parameters: {}, start: "a", ...graph }), script: JSON.stringify({ format: "2.0", id: "SIMS/Held", dur, film: 0, input: [] }), clips: [made.data!.path as string] });
+      const again = (k: number, layers: string, steps: number, cost: number) => ({ code: "E_ARGS", message: `the run may play RECIPES/Idle_15 at ${k} times at once (in ${layers}), their holds ${(k * 15.4).toFixed(3)} s reread a step, past the 16 s one clip's poses keep: over ${steps} steps its poses decoded again cost ${cost} clip steps, past the 36000 graph.sim takes beyond its steady ones: give those states clips whose feet hold less (or each its own copy, under another id), or take fewer transitions between them, or shorten dur or lower rate` });
+      const cutting = { states: { a: idle, b: idle }, transitions: [{ from: "a", to: "b", interruptible: true }, { from: "b", to: "a", interruptible: true }] };
+      const t0 = performance.now(), cut = await held(cutting, 480);
+      expect([cut.status, cut.error, performance.now() - t0 < 3000]).toEqual(["usage", again(5, "base", 28_800, 8_316_000), true]);
+      // on 20 s, where its fades alone (4,800 clip steps) pass: about 90 s unbounded
+      expect((await held(cutting, 20)).error).toEqual(again(5, "base", 1200, 346_500));
+      // two layers that plant it (a full-body one over the base): twice at once at every step
+      const over = (L: object) => ({ states: { a: idle }, transitions: [], layers: [{ name: "l1", start: "x", weight: 0.5, states: { x: { ...idle, at: 7.5 } }, transitions: [], ...L }] });
+      expect((await held(over({}), 60)).error).toEqual(again(2, "base and l1", 3600, 415_800));
+      // charged by what graph.sim's run without poses gives: none for a layer over the upper body alone (no feet planted);
+      // two states sharing it with uncut fades twice at once over their fade steps (12 a transition taken), so 10
+      // transitions pass and 30 don't
+      const r15 = { held: 15.4, each: 30.8, at: 0.3, stretches: [] }, layers = (g: object) => G.layersOf({ format: "2.0", id: "GRAPHS/Held", parameters: {}, start: "a", ...g } as G.Graph);
+      const taken = (k: number) => Array.from({ length: k }, (_, i) => ({ layer: "base", from: i % 2 ? "b" : "a" }));
+      expect(() => faded(layers(over({ mask: "upper" })), [], 3600, 60, () => r15)).not.toThrow();
+      const uncut = layers({ states: { a: idle, b: idle }, transitions: [{ from: "a", to: "b" }, { from: "b", to: "a" }] });
+      expect(() => faded(uncut, taken(10), 3600, 60, () => r15)).not.toThrow();
+      expect(() => faded(uncut, taken(30), 3600, 60, () => r15)).toThrow(/^the run may play RECIPES\/Idle_15 at 2 times at once \(in base\), their holds 30\.800 s reread a step, .*: over 360 steps its poses decoded again cost 41580 clip steps/);
+      // Locomotion on the longest script, its 4 clips at once at MAX_CLIP_STEPS, walking, jogging and stopping every 10 s
+      // (120 transitions): graph.sim's bounds as it takes them (what its graph holds, then by its run without poses what
+      // its fades and its clips at several times at once add) pass
+      const g = JSON.parse(text(L)) as G.Graph, Ls = G.layersOf(g), lib = openLibrary({ tiers: ["cc0"] }), seen = new Map<string, AnimClip>(), rereads = new Map<string, Reread>();
+      const clips = (id: string) => seen.get(id) ?? seen.set(id, ((c) => playable(c.clip, c.rest))(lib.clip(id))).get(id);
+      for (const id of new Set(Ls.flatMap((x) => Object.values(x.states).flatMap(G.clipsOf)))) rereads.set(id, boundHolds(clips(id)!, id));
+      const walks = { format: "2.0", id: "SIMS/Walks", dur: 600, root: "in-place", warp: "warp", input: Array.from({ length: 60 }, (_, i) => [{ t: i * 10 + 0.3, set: { speed: 1.4 }, move: 1, over: 0.5 }, { t: i * 10 + 3, set: { speed: 3.2 }, move: 3, over: 1 }, { t: i * 10 + 5.5, set: { speed: 0 }, move: 0, over: 0.5 }]).flat() } as SimScript;
+      const entered = simulate({ graph: g, script: walks, body: bind(TINY), clips, poses: false }).trace.states;
+      expect([runCost(Ls, Object.keys(g.parameters ?? {}).length, walks, 36_000), entered.filter((e) => e.from !== null).length, faded(Ls, entered, 36_000, 60, (id) => rereads.get(id))]).toEqual([undefined, 120, undefined]);
     }));
 
   it("graph.sim: a character whose bones' names no table knows refused (E_RIG), then run with the patch its retarget.inspect call gives, the hints keeping the mapping", () =>

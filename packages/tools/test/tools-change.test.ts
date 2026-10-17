@@ -1,9 +1,10 @@
 // The Change tools (PLAN.md WP-7.2a's Done-when): fix and edit on every surface; their wrong calls refused naming the
-// fix; a stale if_revision refused with the file unchanged; undo and redo restoring the exact bytes through one history
-// for both tools; a file edited outside m3a resetting it; an in-place slice and chain; two edits of one clip, in two m3a
-// processes or in one, never both applied; and a retried edit applied once, across two m3a processes (the durable
-// store), within one MCP server, after a crash between the write and the record (the history's last), and after a crash
-// at the history's write (nothing written) or the clip's (the history stepping back).
+// fix (slow retimes and a pin's long path before compiling, naming the op); a stale if_revision refused with the file
+// unchanged; undo and redo restoring the exact bytes through one history for both tools; a file edited outside m3a
+// resetting it; an in-place slice and chain; two edits of one clip, in two m3a processes or in one, never both applied;
+// and a retried edit applied once, across two m3a processes (the durable store), within one MCP server, after a crash
+// between the write and the record (the history's last), and after a crash at the history's write (nothing written) or
+// the clip's (the history stepping back).
 import { spawn, spawnSync, type ChildProcess } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -57,6 +58,9 @@ describe("the Change tools", () => {
       const slow = Array.from({ length: 4 }, () => ({ op: "retime", speed: 0.05 })), past = (at: string, s: number) => `${at}: retime makes the clip ${s} s long, past the 600 s a clip may last (M2-E010); retime it less slowly, or slice it first`;
       expect(refused(await w.call("edit", { clip: "QUATERNIUS_3D2DGE/Walk_Loop", save_as: "WORKSHOP/Slow", ops: slow }))).toEqual(["usage", "E_ARGS", past("ops[2]", 10664)]);
       expect(await ops({ op: "slice", from: 0.1, to: 0.6 }, { op: "retime", dur: 599 }, { op: "retime", speed: 0.99 })).toBe(past("ops[2]", 605));
+      // a pin's path read at each of its samples: past 100,000,000 list points refused before compiling, naming the op
+      const path = Array.from({ length: 40_000 }, (_, i) => [i / 400, 300, 200, 900]);
+      expect(await ops({ op: "retime", dur: 100 }, { op: "pin", end: "handL", path })).toBe("ops[1]: pin reads its 40000-point path at each of its 3000 samples, 120000000 list points, past the 100000000 one call compiles; use fewer path points, or a lower fps");
       expect(refused(await w.call("edit", { clip: "WORKSHOP/Punch_Left", action: "undo" }))).toEqual(["error", "E_HISTORY", "nothing to undo for WORKSHOP/Punch_Left"]);
       expect(refused(await w.call("edit", { clip: "WORKSHOP/Punch_Left", action: "undo", ops: [] }))).toEqual(["usage", "E_ARGS", "undo takes no ops: it restores the clip as it was"]);
       expect(w.file(CLIP)).toBeNull();
