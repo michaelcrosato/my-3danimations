@@ -149,7 +149,7 @@ export const film = defineTool<{ clip: string; frames: number; around?: number }
   },
   output: output({ clip: "string", frames: "integer", times: "array", strike: "number?", marks: "array", travel: "array", width: "integer", height: "integer", tokens: "integer", image: "string" }),
   positionals: ["clip"],
-  examples: [{ args: { clip: "QUATERNIUS_3D2DGE/Punch_Jab", around: 0.147 } }],
+  examples: [{ args: { clip: "QUATERNIUS_3D2DGE/Sword_Regular_C", around: 0.65 } }],
   async run(a, ctx) {
     const c = await load(ctx, a.clip), { clip, rest } = c, n = a.frames;
     if (a.around !== undefined && a.around > clip.dur) throw new ToolError("E_ARGS", `around is ${a.around} s, past the clip's end (${sec(clip.dur)})`, true);
@@ -189,7 +189,7 @@ export const diff = defineTool<{ a: string; b: string; frames: number }, unknown
   params: { type: "object", properties: { a: CLIP, b: CLIP, frames: { type: "integer", minimum: 1, maximum: 32, default: 6 } }, required: ["a", "b"] },
   output: output({ a: "string", b: "string", rest: "string", dur: "array", pose: "object", travel: "object", metrics: "object", worse: "array", pixels: "object", image: "string" }),
   positionals: ["a", "b"],
-  examples: [{ args: { a: "QUATERNIUS_3D2DGE/Punch_Jab", b: "QUATERNIUS_3D2DGE/Punch_Cross" } }],
+  examples: [{ args: { a: "QUATERNIUS_3D2DGE/Sword_Regular_A", b: "QUATERNIUS_3D2DGE/Sword_Regular_B" } }],
   async run(x, ctx) {
     const A = await load(ctx, x.a, "a's"), B = await load(ctx, x.b, "b's"), R = A.rest, mb = checks.motionOf(B.clip, B.rest), ra = measure(A.clip, A.rest), rb = checks.measure(mb);
     const pose = poseDiff(A.clip, B.clip, R), d = drawn(() => sheets.compareClips(A.clip, B.clip, R, { frames: x.frames, width: cells(x.frames) }));

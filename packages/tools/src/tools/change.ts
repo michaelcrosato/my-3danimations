@@ -135,7 +135,7 @@ export const edit = defineTool<{ clip: string; ops?: Record<string, unknown>[]; 
   },
   output: output({ clip: "string", path: "string", action: "string", changed: "boolean", from: "string", before: "object?", after: "object?", license: "object?", undo: "integer", redo: "integer", history_reset: "boolean", recipe: "object?" }),
   positionals: ["clip"],
-  examples: [{ args: { clip: "MESH2MOTION/Punch_Cross", save_as: "WORKSHOP/Punch_Left", ops: [{ op: "retime", speed: 1.3 }, { op: "mirror" }] } }],
+  examples: [{ args: { clip: "QUATERNIUS_3D2DGE/OverhandThrow", save_as: "WORKSHOP/Throw_Heavy", ops: [{ op: "retime", speed: 0.8 }, { op: "exaggerate", amount: 1.25 }] } }],
   edit: { revision: targetRevision("edit") },
   async run(a, ctx) {
     const t = await readTarget(ctx, targetName(a.clip, a.save_as)), again = replay(t, "edit", a);
