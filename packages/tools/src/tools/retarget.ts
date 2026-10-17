@@ -2,34 +2,39 @@
 // binds it, never three.js's loader) and shown (retarget.inspect: how its bones were recognized, how sure, what is
 // missing or odd, its rest, hip height and limb lengths, and the patch to edit and pass back; findings, with a rest
 // turntable when it binds, while an issue stands: a required bone missing, only the bones' shape naming them, a
-// hierarchy the mapping breaks, hips under half the legs, a mesh io can't read), and clips played on it (retarget.apply:
-// each judged on this body as G4's sweep judges a skeleton, D80, judge.ts: it passes unless the body adds a fail finding
-// or a joint misses its point; frames of the first clip the body adds a fail to; an issue inspect finds a warning).
+// hierarchy the mapping breaks, hips under half the legs; a mesh io can't read is said, but no patch clears it, so it
+// is no finding, meshIssue), and clips played on it (retarget.apply: each judged on this body as G4's sweep judges a
+// skeleton, D80, judge.ts: it passes unless the body adds a fail finding or a joint misses its point; frames of the
+// first clip the body adds a fail to; an issue inspect finds a warning, the mesh's a note; at most 600 s of clips).
 // Rows are capped with the shared more line, the character and clips are named as clips.ts names a file, and each
 // reply's next names the call after it.
-import { skeleton } from "@m3a/core";
+import { format, skeleton } from "@m3a/core";
 import { turntable } from "@m3a/sensors";
 import { defineTool, ToolError } from "../registry/registry.ts";
 import { strip } from "../sim/film.ts";
-import { bodyOf, CHARACTER, characterName, characterOf, MAPPING, type MappingPatch } from "./body.ts";
+import { bodyOf, CHARACTER, characterName, characterOf, MAPPING, meshIssue, type MappingPatch } from "./body.ts";
 import { loadClip, naming } from "./clips.ts";
 import { arg, call, capped, count, cut, imageName, mm, more, output, round } from "./common.ts";
 import { onBody, type Played } from "./judge.ts";
 
 /** The most clips retarget.apply plays in one call. */
 const MAX_CLIPS = 20;
+/** The most clip time (s) retarget.apply plays in one call: as long as one clip may last (M2-E010), 36,000 samples at
+ *  the judge's 60 a second, the most steps graph.sim runs. It bounds clip time, not cost: core's planter is superlinear
+ *  in a contact's length (contact/plant.ts), so a 600 s clip holding a foot down throughout may take hours. */
+const MAX_DUR = format.LIMITS.dur;
 /** The clip a next hint offers to play first: the library's core walk (cc0). */
 const WALK = "QUATERNIUS_3D2DGE/Walk_Loop";
 
-/** The issues that stand: all but the patch itself. */
-const standing = (issues: readonly string[]) => issues.filter((i) => i !== "patched by hand");
+/** The issues standing against the mapping: all but the patch itself and the mesh's (meshIssue: no patch clears it). */
+const standing = (issues: readonly string[]) => issues.filter((i) => i !== "patched by hand" && !meshIssue(i));
 /** Up to three clips by their titles, and how many more: a next hint stays short. */
 const some = (xs: readonly { title: string }[]): string => `${xs.slice(0, 3).map((x) => x.title).join(", ")}${xs.length > 3 ? ` and ${xs.length - 3} more` : ""}`;
 
 /** `retarget.inspect`: a character bound and its report, as data and lines; findings while an issue other than the patch
- *  itself stands: a required bone missing (its likely source bones named), topology alone naming the bones (until a
- *  patch confirms them; a VRM's humanoid names its own), a hierarchy the mapping breaks, hips under half the legs, or a
- *  mesh io can't read. */
+ *  itself or the mesh's stands: a required bone missing (its likely source bones named), topology alone naming the bones
+ *  (until a patch confirms them; a VRM's humanoid names its own), a hierarchy the mapping breaks, or hips under half the
+ *  legs. A mesh io can't read is an issue no patch clears: said, with what re-exporting mends, and the next plays clips. */
 export const inspect = defineTool<{ character: string; mapping?: MappingPatch }, unknown>({
   name: "retarget.inspect",
   description: "Bind a character: bones recognized, confidence, missing, rest, limb lengths and a mapping patch to edit.",
@@ -67,8 +72,9 @@ export const inspect = defineTool<{ character: string; mapping?: MappingPatch },
 });
 
 /** `retarget.apply`: clips played on a bound character, each judged as the sweep judges a skeleton (D80); findings
- *  when one fails, with frames of the first the body adds a fail to as it played there. A clip that won't load refuses
- *  the call before any plays; an issue retarget.inspect finds is the reply's first line, a warning. */
+ *  when one fails, with frames of the first the body adds a fail to as it played there. A clip that won't load, or clips
+ *  lasting past MAX_DUR in all, refuse the call before any plays; an issue retarget.inspect finds against the mapping is
+ *  the reply's first line, a warning, and the mesh's a note. */
 export const apply = defineTool<{ character: string; clips: string[]; mapping?: MappingPatch }, unknown>({
   name: "retarget.apply",
   description: "Play clips on a character: each passes or fails against its own body, with joint reach and metrics made worse.",
@@ -80,6 +86,9 @@ export const apply = defineTool<{ character: string; clips: string[]; mapping?: 
     if (!a.clips.length || a.clips.length > MAX_CLIPS) throw new ToolError("E_ARGS", `clips lists ${count(a.clips.length, "clip")}; give 1 to ${MAX_CLIPS}, and call again for more`, true);
     const loaded = [];
     for (const ref of a.clips) loaded.push(await loadClip(ctx, ref));
+    const dur = loaded.reduce((t, k) => t + k.clip.dur, 0);
+    // rounded up, so the total said is past the limit too
+    if (dur > MAX_DUR) throw new ToolError("E_ARGS", `clips last ${Math.ceil(dur * 10) / 10} s in all, past the ${MAX_DUR} s one call plays; give fewer or shorter clips, and call again for the rest`, true);
     const c = await bodyOf(ctx, a.character, a.mapping), as = characterName(a.character), H0 = round(c.bound.rest.H0), see = call("retarget.inspect", [as], { mapping: a.mapping });
     // the first clip the body adds a fail to, as it played there (the frames the metric read), to draw
     const drawn: { p: Played; dur: number; clip: string }[] = [];
@@ -87,7 +96,7 @@ export const apply = defineTool<{ character: string; clips: string[]; mapping?: 
       const seen: { p?: Played } = {}, j = onBody(k.clip, k.rest, c.bound, as, (p) => (seen.p = p));
       if (!drawn.length && seen.p && j.worse.some((w) => w.level === "fail")) drawn.push({ p: seen.p, dur: k.clip.dur, clip: j.clip });
       return { ...naming(k), j };
-    }), failed = rows.filter((x) => !x.j.ok), stand = standing(c.report.issues);
+    }), failed = rows.filter((x) => !x.j.ok), stand = standing(c.report.issues), mesh = c.report.issues.filter(meshIssue);
     for (const { p, dur, clip } of drawn) {
       const n = p.frames.length, at = [...new Set(Array.from({ length: 8 }, (_, i) => Math.round((i * (n - 1)) / 7)))];
       ctx.image(imageName(`${clip}-on-${as}`), strip(at.map((i) => p.frames[i]!), at.map((i) => p.root[i]), at.map((i) => `${((i * dur) / (n - 1)).toFixed(2)} S`), 125));
@@ -113,7 +122,7 @@ export const apply = defineTool<{ character: string; clips: string[]; mapping?: 
           };
         }),
       },
-      lines: [...(stand.length ? [`warning: retarget.inspect finds ${count(stand.length, "issue")} on it: ${cut(stand[0]!, 60)}; ${see} shows ${stand.length === 1 ? "it" : "them"}`] : []), ...lines],
+      lines: [...(stand.length ? [`warning: retarget.inspect finds ${count(stand.length, "issue")} on it: ${cut(stand[0]!, 60)}; ${see} shows ${stand.length === 1 ? "it" : "them"}`] : []), ...mesh.map((i) => `note: ${cut(i)}`), ...lines],
       findings: failed.length > 0,
       next: off.length
         ? `a joint missed its point, or the play threw, on ${some(off)}: the mapping is likely wrong there; ${see} shows it`

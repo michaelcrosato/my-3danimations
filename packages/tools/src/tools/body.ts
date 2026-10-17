@@ -28,6 +28,10 @@ export const characterName = (ref: string): string => naming({ id: ref, where: "
 
 /** Whether a report's issue is its mesh's (compressed, unreadable, or its soles unread): no mapping patch clears it. */
 export const meshIssue = (issue: string): boolean => /^mesh (compressed|unreadable)|^sole end bones unread/.test(issue);
+/** What the report's patch line says of mesh issue `i`: a compressed mesh re-exported uncompressed, or one io can't
+ *  read re-exported so it can, gives exact soles; weights io can't read, re-exported so it can (as is, every joint is
+ *  kept: a broken weights accessor, three's loader refuses the whole file). */
+const mend = (i: string): string => (/^mesh compressed/.test(i) ? "re-export it uncompressed for exact soles" : /^mesh unreadable/.test(i) ? "re-export it so io can read its weights (as is, every joint is kept)" : "re-export it so io can read it, for exact soles");
 
 /** A mapping an agent writes: each humanoid bone's source bone (the file's own name), or null to unmap it. */
 export interface MappingPatch {
@@ -153,8 +157,20 @@ function withSoles({ sk, file }: Read, rec: skeleton.Recognition): { sk: Skeleto
   return { sk: { ...sk, bones }, restWorld, unread };
 }
 
-/** The most bones a character may have (recognition by shape is quadratic in them, and deep chains recurse). */
-const MAX_BONES = 4096;
+/** The most bones a character may have (recognition by shape is quadratic in them), and the most on one chain (core's
+ *  recognition by shape recurses down it: about 3,000 deep runs out of stack). */
+const MAX_BONES = 4096, MAX_DEPTH = 1024;
+
+/** The most bones on one chain of `sk`, root to leaf (io's bones form a tree; a parent the skeleton lacks is none). */
+function deepest(sk: SkeletonIn): number {
+  const parent = new Map(sk.bones.map((b) => [b.name, b.parent ?? null])), depth = new Map<string, number>();
+  for (const b of sk.bones) {
+    const up: string[] = [];
+    for (let p: string | null = b.name; p !== null && parent.has(p) && !depth.has(p); p = parent.get(p)!) up.push(p);
+    for (const n of up.reverse()) depth.set(n, (depth.get(parent.get(n)!) ?? 0) + 1);
+  }
+  return Math.max(0, ...depth.values());
+}
 
 /** Refuses (E_ARGS, with the closest name) a patch naming a bone that isn't humanoid, or one the character lacks. */
 function checkPatch(sk: SkeletonIn, m: MappingPatch): void {
@@ -168,12 +184,15 @@ function checkPatch(sk: SkeletonIn, m: MappingPatch): void {
 /**
  * A character bound for the tools: `ref` (a .glb, .gltf or .vrm file, or "tiny") read, its bones recognized (a VRM's by
  * its humanoid), `mapping` patched over them, and bound through core. A required bone still missing leaves it unbound,
- * the report saying which; no humanoid bone recognized at all is E_RIG (an error). Hips bound under half the legs'
- * length are an issue: a wrong bone for them.
+ * the report saying which; no humanoid bone recognized at all, or bones of no usable length (their rest points not
+ * finite, or the legs' length none), is E_RIG (an error), and too many bones or too long a chain E_LIMIT. Hips bound
+ * under half the legs' length are an issue: a wrong bone for them.
  */
 export async function characterOf(ctx: ToolContext, ref: string, mapping?: MappingPatch | null): Promise<Character> {
   const read = await skeletonOf(ctx, ref), { sk, vrm } = read, name = characterName(ref);
   if (sk.bones.length > MAX_BONES) throw new ToolError("E_LIMIT", `${name}: ${sk.bones.length} bones; a character may have at most ${MAX_BONES}`);
+  const deep = deepest(sk);
+  if (deep > MAX_DEPTH) throw new ToolError("E_LIMIT", `${name}: a chain of ${deep} bones; a character's chains may be at most ${MAX_DEPTH} bones long`);
   const named = skeleton.recognize(sk), byVrm = vrm !== null && Object.keys(vrm).length > 0;
   let rec = byVrm ? skeleton.patchMapping(sk, named, vrm) : named;
   if (mapping) {
@@ -199,9 +218,11 @@ export async function characterOf(ctx: ToolContext, ref: string, mapping?: Mappi
   } catch (err) {
     throw new ToolError("E_RIG", `${name}: can't bind it (${err instanceof Error ? err.message : String(err)}): give each humanoid bone its source bone in mapping {bones: {hips: "<its bone>", ...}}`);
   }
+  // no body to play clips on, nor numbers a reply holds: the file's nodes at one point, or scaled to 0 or out of range
+  const legs = bound ? bound.rest.thigh + bound.rest.shin : 0;
+  if (bound && !(legs > 0 && bound.restPts.every(Number.isFinite))) throw new ToolError("E_RIG", `${name}: can't bind it: bones of no usable length (every node at one point, or scaled to 0 or out of range); check the file's node transforms`);
   // hips under half the legs' length (the rig's root taken for them, say: an ancestor of every bone, so nothing else
   // flags it, and every clip played on it fails)
-  const legs = bound ? bound.rest.thigh + bound.rest.shin : 0;
   if (bound && !(bound.rest.H0 >= legs / 2)) {
     rec = { ...rec, issues: [...rec.issues, `hips (${rec.bones.hips}) likely the wrong bone: only ${Math.round(bound.rest.H0)} mm up, under half the legs' ${Math.round(legs)} mm`] };
   }
@@ -289,7 +310,7 @@ function reportOf(name: string, sk: SkeletonIn, rec: skeleton.Recognition, vrm: 
     `lengths (mm, left/right): upper arm ${L("UpperArm")}, forearm ${L("LowerArm")}, thigh ${L("UpperLeg")}, shin ${L("LowerLeg")}`,
     rec.missing.length ? `patch: write each missing bone's source bone into "bones" (now null) and pass it back as mapping`
       : rec.issues.some((i) => i !== "patched by hand" && !meshIssue(i)) ? "patch: check the issues above; edit the patch and pass it back as mapping"
-      : rec.issues.some(meshIssue) ? "patch: none clears the mesh's issue; re-export the mesh uncompressed for exact soles"
+      : rec.issues.some(meshIssue) ? `patch: none clears the mesh's ${rec.issues.filter(meshIssue).length > 1 ? "issues" : "issue"}; ${[...new Set(rec.issues.filter(meshIssue).map(mend))].join("; ")}`
       : `patch: none needed; to change a bone, pass mapping {bones: {humanoidBone: "sourceBone"}}`,
   ];
   return { bones: sk.bones.length, method: rec.method, table: rec.table, vrm, confidence: rec.confidence, missing: rec.missing, candidates, unmapped: un, issues: rec.issues, rest: { kind: frame.kind, armDrop: frame.armDrop }, lengths, patch, text: lines.join("\n") };

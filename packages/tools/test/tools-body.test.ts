@@ -1,20 +1,24 @@
 // Characters for the tools (WP-7.2b b0): a character's bytes read by the Node host as text is, confined to the working
-// directory (R6); the tiny rig equal to the conformance skeleton (B1), frozen; a character bound through io and core,
-// never three.js: .gltf text and .glb bytes alike, tiny as tier 1b's rig.gltf, each bone's rest orientation as read, a
-// patch unmapping or swapping bones, a misspelt bone named with the closest, a file that is no character, a chain with
-// no humanoid and too many bones refused; the soles' end bones (D49) put Rigify, every generated character, one with
-// its mesh under its turned, moved and scaled armature (the mesh node's transform ignored, as three ignores it), one
-// beside a bigger skin no mesh uses, a skinned VRM (three given its humanoid), the real rigs when fetched (KayKit's
-// knight, G4's held-out orangejuice-male-base and talkinghead-mpfb, each skipped visibly when not) and a quantized mesh
-// (KHR_mesh_quantization's shorts) at three's bind's rest points, hip height and end bones exactly; an end bone's name
-// the file already has made unique; a foot whose last bone keeps a child gets none, as in three's bind; a mesh io can't
-// read said: compressed (no soles), the soles' positions (sparse, the hips then low), or weights broken (in a hat that
-// skins no foot, the soles still read; in the body, both said); a VRM's humanoid, 1.0's or 0.x's, mapping bones no
-// table names, a required bone it leaves out said with how it was found (V1).
-import { readFileSync, symlinkSync, writeFileSync } from "node:fs";
+// directory (R6), a file past io's size limit refused unread; the tiny rig equal to the conformance skeleton (B1),
+// frozen; a character bound through io and core, never three.js: .gltf text and .glb bytes alike, tiny as tier 1b's
+// rig.gltf, each bone's rest orientation as read, a patch unmapping or swapping bones, a misspelt bone named with the
+// closest, a file that is no character, a chain with no humanoid, too many bones and too long a chain refused; the
+// soles' end bones (D49) put Rigify, every generated character, one with its mesh under its turned, moved and scaled
+// armature (the mesh node's transform ignored, as three ignores it), one beside a bigger skin no mesh uses, a skinned
+// VRM (three given its humanoid), the real rigs when fetched (KayKit's knight, G4's held-out orangejuice-male-base and
+// talkinghead-mpfb, each skipped visibly when not) and a quantized mesh (KHR_mesh_quantization's shorts) at three's
+// bind's rest points, hip height and end bones exactly; an end bone's name the file already has made unique; a foot
+// whose last bone keeps a child gets none, as in three's bind; a mesh io can't read said: compressed (no soles), the
+// soles' positions (sparse, the hips then low), or weights broken (in a hat that skins no foot, the soles still read;
+// in the body, both said), the patch line saying what re-exporting mends in each; bones of no usable length (all at
+// one point, scaled to 0 or past a double) refused, not taken for wrong hips; each missing bone's likely source
+// bones in their order (the hips' own bone before the root, the head's before the neck's, a clavicle-less rig's upper
+// arm before its forearm); a VRM's humanoid, 1.0's or 0.x's, mapping bones no table names, a required bone it leaves
+// out said with how it was found (V1).
+import { readFileSync, symlinkSync, truncateSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { recognize, type Bound } from "@m3a/core";
-import { gltfToGlb, packGlb, parseGlb, parseGltf, skeletonOfGltf, type GltfSkeleton } from "@m3a/io";
+import { gltfToGlb, LIMITS, packGlb, parseGlb, parseGltf, skeletonOfGltf, type GltfSkeleton } from "@m3a/io";
 import { bind as threeBind } from "@m3a/three";
 import { describe, expect, it } from "vitest";
 import { nodeHost } from "../src/node.ts";
@@ -135,6 +139,10 @@ describe("a character's bytes (R6)", () => {
       symlinkSync(join(out.cwd, "x.glb"), join(cwd, "link.glb"));
       expect(await host.bytes!("rigify.glb")).toEqual(glb);
       for (const bad of ["../x.glb", join(out.cwd, "x.glb"), "link.glb", "nope.glb"]) await expect(host.bytes!(bad), bad).rejects.toMatchObject({ code: "E_PATH", usage: true });
+      // a file a byte past io's limit (sparse: nothing written) refused before it is read, as io would refuse it read
+      writeFileSync(join(cwd, "huge.glb"), "");
+      truncateSync(join(cwd, "huge.glb"), LIMITS.file + 1);
+      await expect(host.bytes!("huge.glb")).rejects.toMatchObject({ code: "E_LIMIT", usage: false, message: `"huge.glb": ${LIMITS.file + 1} bytes, over the ${LIMITS.file}-byte limit` });
     } finally {
       rm();
       out.rm();
@@ -207,6 +215,16 @@ describe("characters bound through core", () => {
     const packed = await as({ extensionsRequired: ["EXT_meshopt_compression"] }), broken = await as({ accessors: doc.json.accessors!.map((a, i) => (i === w ? { ...a, count: 2 * a.count } : a)) });
     expect([packed.report.issues, endsOf(packed.bound!)]).toEqual([["mesh compressed (EXT_meshopt_compression): weights and soles unread; every joint kept"], []]);
     expect([broken.report.issues.map((i) => i.split(":")[0]), endsOf(broken.bound!)]).toEqual([["mesh unreadable", "sole end bones unread"], []]);
+    // the patch line: no patch clears a mesh's issue, and what re-exporting the mesh mends for each
+    const patchLine = (x: { report: { text: string } }) => x.report.text.split("\n").at(-1), mend = "patch: none clears the mesh's issue; ", weights = "re-export it so io can read its weights (as is, every joint is kept)";
+    expect([c, hat, packed, broken].map(patchLine)).toEqual([`${mend}re-export it so io can read it, for exact soles`, `${mend}${weights}`, `${mend}re-export it uncompressed for exact soles`,
+      `patch: none clears the mesh's issues; ${weights}; re-export it so io can read it, for exact soles`]);
+  });
+  it("refuses bones of no usable length (all at one point, scaled to 0 or past a double), not taking them for wrong hips", async () => {
+    const rig = JSON.parse(rigText(RIG)) as { nodes: { name: string; translation?: number[] }[] }, scaled = (s: number, at = /^root$/) => rig.nodes.map((n) => (at.test(n.name) ? { ...n, scale: [s, s, s] } : n));
+    const of = (nodes: object[]) => characterOf(holding(new Uint8Array(), JSON.stringify({ ...rig, animations: undefined, nodes })), "c.gltf").catch((e: unknown) => e);
+    const said = { code: "E_RIG", message: "c.gltf: can't bind it: bones of no usable length (every node at one point, or scaled to 0 or out of range); check the file's node transforms" };
+    expect(await Promise.all([of(rig.nodes.map(({ translation: _, ...n }) => n)), of(scaled(0)), of(scaled(1e300)), of(scaled(1e300, /^(lowerarm|hand)_l$/))])).toMatchObject([said, said, said, said]);
   });
   it("gives no end bone to a foot whose last bone keeps a child (its toes unmapped), as three's bind does", async () => {
     const glb = character(variant(0)).glb, mapping = { bones: { leftToes: null } };
@@ -232,10 +250,21 @@ describe("characters bound through core", () => {
     const [back] = await bodies({}, [{ character: RIGIFY, mapping: (plain!.data as { patch: MappingPatch }).patch }]);
     expect((back!.data as { restPts: number[] }).restPts).toEqual((plain!.data as { restPts: number[] }).restPts);
   });
-  it("refuses a misspelt bone with the closest name, a file that is no character or no glTF, and a chain with no humanoid", async () => {
+  it("names each missing bone's likely source bones, the likeliest first: the hips' own bone, the head's, a clavicle-less rig's upper arm", async () => {
+    // tier 1b's rig without its clavicles (each upper arm under spine_03): no shoulder stands between its arm and chest
+    const rig = JSON.parse(rigText(RIG)) as { nodes: { name: string; children?: number[] }[] }, clav = (i: number) => rig.nodes[i]!.name.startsWith("clavicle");
+    const keep = rig.nodes.flatMap((_, i) => (clav(i) ? [] : [i])), at = new Map(keep.map((i, k) => [i, k]));
+    const bare = { ...rig, animations: undefined, nodes: keep.map((i) => ({ ...rig.nodes[i]!, ...(rig.nodes[i]!.children ? { children: rig.nodes[i]!.children!.flatMap((c) => (clav(c) ? rig.nodes[c]!.children! : [c])).map((c) => at.get(c)!) } : {}) })) };
+    const of = async (text: string, bones: MappingPatch["bones"]) => (await characterOf(holding(new Uint8Array(), text), "c.gltf", { bones })).report.candidates;
+    expect(await Promise.all([of(rigText(RIGIFY), { hips: null }), of(rigText(RIG), { hips: null }), of(rigText(RIG), { neck: null, head: null }), of(JSON.stringify(bare), { leftUpperArm: null, leftLowerArm: null })])).toEqual([
+      { hips: ["DEF-hips", "root"] }, { hips: ["pelvis", "root"] }, { head: ["Head", "neck_01", "head_leaf"] }, { leftUpperArm: ["upperarm_l", "lowerarm_l"], leftLowerArm: ["lowerarm_l", "upperarm_l"] },
+    ]);
+  });
+  it("refuses a misspelt bone with the closest name, a file that is no character or no glTF, a chain with no humanoid, too many bones or too long a chain", async () => {
     const chain = (n: number) => JSON.stringify({ asset: { version: "2.0" }, nodes: Array.from({ length: n }, (_, i) => ({ name: `b${i}`, ...(i < n - 1 ? { children: [i + 1] } : {}) })) });
-    const got = await bodies({ "chain.gltf": chain(3), "long.gltf": chain(4097), "junk.glb": "this is no binary glTF, only text" }, [{ character: RIGIFY, mapping: { bones: { leftUpperLegg: "x" } } }, { character: RIGIFY, mapping: { bones: { leftHand: "DEF-hand.l" } } },
-      { character: "spec/vectors/tier1b/rig-catalog.json" }, { character: "junk.glb" }, { character: "chain.gltf" }, { character: "long.gltf" }]);
+    // a chain of 4,096 bones, as many as a character may have: core's recognition by shape runs out of stack down it
+    const got = await bodies({ "chain.gltf": chain(3), "long.gltf": chain(4097), "deep.gltf": chain(4096), "junk.glb": "this is no binary glTF, only text" }, [{ character: RIGIFY, mapping: { bones: { leftUpperLegg: "x" } } },
+      { character: RIGIFY, mapping: { bones: { leftHand: "DEF-hand.l" } } }, { character: "spec/vectors/tier1b/rig-catalog.json" }, { character: "junk.glb" }, { character: "chain.gltf" }, { character: "long.gltf" }, { character: "deep.gltf" }]);
     expect(got.map((r) => [r.status, r.error?.code, r.error?.message])).toEqual([
       ["usage", "E_ARGS", 'mapping: "leftUpperLegg" is not a VRM 1.0 humanoid bone; did you mean "leftUpperLeg"?'],
       ["usage", "E_ARGS", 'mapping: leftHand: the character has no bone "DEF-hand.l"; did you mean "DEF-hand.L"?'],
@@ -243,6 +272,7 @@ describe("characters bound through core", () => {
       ["error", "E_FORMAT", "junk.glb: not a binary glTF (.glb): its first 4 bytes aren't 'glTF' (at byte 0)"],
       ["error", "E_RIG", 'chain.gltf: no humanoid bone recognized among its 3 bones, by name or by shape; give each bone in mapping {bones: {hips: "<its bone>", ...}}'],
       ["error", "E_LIMIT", "long.gltf: 4097 bones; a character may have at most 4096"],
+      ["error", "E_LIMIT", "deep.gltf: a chain of 4096 bones; a character's chains may be at most 1024 bones long"],
     ]);
   });
 });
