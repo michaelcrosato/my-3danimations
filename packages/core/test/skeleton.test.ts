@@ -1,11 +1,15 @@
 // Tests for the skeleton profile (WP-1.4): recognition is exact on a fixture for every mapping table (namespaces and
 // case stripped); the topology fallback maps renamed skeletons (long clavicles, no neck, twist bones, no head-top leaf)
-// and reports its confidence; measure reproduces tier
-// 1a's rests bit for bit; restPoints places the tiny rig's body points where the importer did.
+// and reports its confidence; every skeleton these tests use, and a few with a name used twice or chains as long as each
+// other, is recognized, patched and framed as before, to the hash (K6), chains of thousands of bones and bones with
+// 130,000 children are walked without recursion or spreading, and parents in a loop refused by shape; measure
+// reproduces tier 1a's rests bit for bit; restPoints places the tiny rig's body points where the importer did.
 import { describe, expect, it } from "vitest";
 import { HUMANOID_BONES, HUMANOID_PARENT, measure, patchMapping, recognize, REQUIRED_BONES, restFrame, restPoints, TABLES, type Capture, type SkeletonIn } from "./all.ts";
-import { firstDiff, loadTier1a, VECTORS } from "../../../spec/conformance/runner/vectors.ts";
+import { firstDiff, loadTier1a, loadTier3, VECTORS } from "../../../spec/conformance/runner/vectors.ts";
+import { rigSkeleton } from "../../../spec/conformance/runner/skeleton.ts";
 import { IDX } from "../src/format/body.ts";
+import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
@@ -164,6 +168,154 @@ describe("recognize: by topology", () => {
     const rec = recognize({ bones: [{ name: "a" }, { name: "b", parent: "a" }] });
     expect(rec.confidence).toBe(0);
     expect(rec.missing).toHaveLength(15);
+  });
+  // K6: the topology fallback walks the tree without recursion. These hashes were taken before that change, on the
+  // skeletons these tests and solve's main cases recognize (not solve's arms-down or restWorld ones, nor the animator's
+  // rig scaled 1.2 times) and on a few with a name used twice or chains as long as each other (`repeated`), and on each
+  // again with every bone renamed (its shape alone to go on)
+  it("gives every skeleton the tests use the recognition, patch and rest frame it gave before, to the hash", () => {
+    type Bone = { name: string; parent: string | null; head: V };
+    type Case = [SkeletonIn, { table?: string }?];
+    const mixamo = TABLES.find((t) => t.name === "mixamo")!, vrm = TABLES.find((t) => t.name === "vrm")!;
+    const elbow = skeleton(tableNames(mixamo, (n) => n));
+    elbow.bones.find((b) => b.name === "LeftForeArm")!.name = "LeftElbowTwist";
+    elbow.bones.find((b) => b.parent === "LeftForeArm")!.parent = "LeftElbowTwist";
+    const gltf = JSON.parse(readFileSync(join(VECTORS, "tier1b/rig.gltf"), "utf8")) as { nodes: { name: string; translation: number[]; children?: number[] }[] };
+    const parent: Record<number, number> = {};
+    gltf.nodes.forEach((n, i) => n.children?.forEach((c) => (parent[c] = i)));
+    const world = (i: number): V => (parent[i] === undefined ? (gltf.nodes[i]!.translation as V) : (world(parent[i]!).map((x, j) => x + gltf.nodes[i]!.translation[j]!) as V));
+    const tiny = (name: (i: number) => string): SkeletonIn => ({ bones: gltf.nodes.map((n, i) => ({ name: name(i), parent: parent[i] === undefined ? null : name(parent[i]!), head: world(i) })) });
+    const place = (b: Bone[], name: string, head: V) => (b.find((x) => x.name === name)!.head = head);
+    const insert = (b: Bone[], before: string, bone: Bone, child?: string) => (b.splice(b.findIndex((x) => x.name === before), 0, bone), child && (b.find((x) => x.name === child)!.parent = bone.name));
+    const EDITS: ((b: Bone[]) => unknown)[] = [
+      () => {},
+      (b) => (place(b, "leftUpperArm", [0.25, 1.41, 0]), place(b, "rightUpperArm", [-0.25, 1.41, 0])),
+      (b) => (b.splice(b.findIndex((x) => x.name === "neck"), 1), (b.find((x) => x.name === "head")!.parent = "upperChest")),
+      (b) => insert(b, "leftHand", { name: "leftForeArmTwist", parent: "leftLowerArm", head: [0.585, 1.41, 0] }),
+      (b) => insert(b, "head", { name: "neck2", parent: "neck", head: [0, 1.5, 0] }, "head"),
+      (b) => insert(b, "leftLowerLeg", { name: "leftThighTwist", parent: "leftUpperLeg", head: [0.1, 0.71, 0] }, "leftLowerLeg"),
+      (b) => insert(b, "leftLowerArm", { name: "leftArmTwist", parent: "leftUpperArm", head: [0.32, 1.41, 0] }, "leftLowerArm"),
+    ];
+    const rig = (edit: (b: Bone[]) => unknown): SkeletonIn => {
+      const bones = skeleton(Object.fromEntries(BODY.map((b) => [b, b])), false).bones as Bone[];
+      edit(bones);
+      const to = new Map(bones.map((b, i) => [b.name, `n${(i * 7) % 97}`]));
+      return { bones: bones.map((b) => ({ name: to.get(b.name)!, parent: b.parent ? to.get(b.parent)! : null, head: b.head })) };
+    };
+    // a name used twice, and chains as long as each other, where the walks' order shows (found by an A/B fuzz): a stray
+    // root bone named as the chest, listed before or after the real one, over hips two bones below a root (a name's
+    // level is its first bone's); a cape as deep as the upper body off the chest (of equal chains the spine takes the
+    // first listed), alone or with a leaf on the left toes, listed first, named as the chest (the left leg's longest
+    // chain then runs through the chest's children, sorting a copy of them, not the list the spine reads)
+    const stray = (last: boolean) => (b: Bone[]) => {
+      b.find((x) => x.name === "hips")!.parent = "r2";
+      b.unshift({ name: "r1", parent: null, head: [0, 0, 0] }, { name: "r2", parent: "r1", head: [0, 0.5, 0] });
+      b.splice(last ? b.length : 0, 0, { name: "chest", parent: null, head: [0, 0, -0.3] });
+    };
+    const cape = (toe: boolean) => (b: Bone[]) => {
+      b.push(...Array.from({ length: 5 }, (_, i): Bone => ({ name: `cape${i}`, parent: i ? `cape${i - 1}` : "chest", head: [0, 1.15 - 0.15 * i, -0.15] })));
+      if (toe) b.unshift({ name: "chest", parent: "leftToes", head: [0.1, 0, 0.2] });
+    };
+    const tilted = (drop: number) => {
+      const names = tableNames(vrm, (n) => n), sk = skeleton(names), a = (drop * Math.PI) / 180;
+      for (const [s, x] of [["left", 1], ["right", -1]] as const) sk.bones.find((b) => b.name === names[`${s}LowerArm`])!.head = [REST[`${s}UpperArm`]![0] + x * 0.28 * Math.cos(a), REST[`${s}UpperArm`]![1] - 0.28 * Math.sin(a), 0];
+      return sk;
+    };
+    const conf = rigSkeleton(), drop = new Set(["neck_01", "clavicle_l", "clavicle_r", "ball_l", "ball_r", "ball_leaf_l", "ball_leaf_r", ...["index_01", "middle_01", "middle_02", "pinky_01"].flatMap((f) => [`${f}_l`, `${f}_r`])]);
+    const parentOf = new Map(conf.bones.map((x) => [x.name, x.parent])), up = (n: string | null | undefined): string | null => (n && drop.has(n) ? up(parentOf.get(n)) : (n ?? null));
+    const twist = rigSkeleton(), ua = twist.bones.find((x) => x.name === "upperarm_l")!, la = twist.bones.find((x) => x.name === "lowerarm_l")!;
+    twist.bones.push({ name: "upperarm_twist_01_l", parent: "upperarm_l", head: [(ua.head![0] + la.head![0]) / 2, ua.head![1], ua.head![2]] });
+    const ue = TABLES.find((t) => t.name === "unreal4")!, rename = new Map<string, string>();
+    for (const [h, names] of Object.entries(ue.bones)) for (const n of names) if (conf.bones.some((x) => x.name === n) && mixamo.bones[h]) rename.set(n, `mixamorig:${mixamo.bones[h]![0]}`);
+    const GROUPS: Record<string, Case[]> = {
+      tables: TABLES.flatMap((t) => DECORATIONS.map(([, d]): Case => [skeleton(tableNames(t, d))])),
+      renamed: [
+        [elbow, { table: "mixamo" }], [elbow], [skeleton(Object.fromEntries(Object.keys(tableNames(mixamo, (n) => n)).map((b, i) => [b, `bone_${(i * 37) % 101}`])))],
+        [tiny((i) => `n${i}`)], [tiny((i) => gltf.nodes[i]!.name)], ...EDITS.map((e): Case => [rig(e)]), [{ bones: [{ name: "a" }, { name: "b", parent: "a" }] }],
+      ],
+      rest: [[skeleton(tableNames(vrm, (n) => n))], [tilted(45)], [tilted(80)], [skeleton(Object.fromEntries(HUMANOID_BONES.filter((b) => REST[b] && b !== "chest" && b !== "upperChest").map((b) => [b, tableNames(vrm, (n) => n)[b] ?? b])))]],
+      conformance: [
+        ...Object.values(loadTier3().bodies).filter((b) => b.proportions).map((b): Case => [rigSkeleton(b.proportions)]),
+        [{ ...conf, bones: conf.bones.filter((x) => !drop.has(x.name)).map((x) => ({ ...x, parent: up(x.parent) })) }], [twist],
+        [{ ...conf, bones: conf.bones.map((x) => ({ ...x, name: rename.get(x.name) ?? x.name, parent: x.parent ? (rename.get(x.parent) ?? x.parent) : null })) }],
+      ],
+      repeated: [stray(false), stray(true), cape(false), cape(true)].map((e): Case => [rig(e)]),
+    };
+    /** Every bone renamed by its place, so that only the skeleton's shape is left to go on. */
+    const shapeOnly = (sk: SkeletonIn): SkeletonIn => {
+      const to = new Map(sk.bones.map((b, i) => [b.name, `s${i}`]));
+      return { ...sk, bones: sk.bones.map((b) => ({ ...b, name: to.get(b.name)!, parent: b.parent ? to.get(b.parent)! : b.parent })) };
+    };
+    // JSON with -0, NaN and the infinities kept apart from 0 and null
+    const exact = (_: string, v: unknown) => (typeof v === "number" && (Object.is(v, -0) || !Number.isFinite(v)) ? (Object.is(v, -0) ? "-0" : String(v)) : v);
+    const hash = (cases: Case[]) => {
+      const h = createHash("sha256");
+      for (const [sk, opts] of cases) {
+        let out: unknown;
+        try {
+          const rec = recognize(sk, opts);
+          out = [rec, patchMapping(sk, rec, { leftToes: null, ...(rec.bones.hips ? { hips: rec.bones.hips } : {}) }), restFrame(sk, rec)];
+        } catch (e) {
+          out = String(e);
+        }
+        h.update(JSON.stringify(out, exact) + "\n");
+      }
+      return `${cases.length} ${h.digest("hex").slice(0, 16)}`;
+    };
+    const got = Object.fromEntries(Object.entries(GROUPS).flatMap(([g, cases]) => [[g, hash(cases)], [`${g}, by shape`, hash(cases.map(([sk, o]): Case => [shapeOnly(sk), o]))]]));
+    expect(got).toEqual({
+      tables: "32 7b256335089e5ecd",
+      "tables, by shape": "32 ad11d60f2d8aaa20",
+      renamed: "13 c4518a12a8822e3e",
+      "renamed, by shape": "13 7db9d7b0722916aa",
+      rest: "4 3508de8d197be18a",
+      "rest, by shape": "4 649f106df22d05df",
+      conformance: "10 f84a7e152612c495",
+      "conformance, by shape": "10 2ec50498d49c2eb5",
+      repeated: "4 070b1f3487ccb4d8",
+      "repeated, by shape": "4 e8256ec92c6a4ad7",
+    });
+  });
+  it("maps a humanoid 5,000 and 20,000 bones down a chain, one with a 5,000- or 130,000-bone chain off a toe, and one with 130,000 leaves on a thigh (K6: no RangeError)", () => {
+    const plain = renamedRig();
+    // the body's bones named so that no table knows them, with a chain hung above the hips or below the left toes
+    const body = () => skeleton(Object.fromEntries(BODY.map((b) => [b, `x_${b}`])), false).bones as { name: string; parent: string | null; head: V }[];
+    const chain = (n: number, parent: string | null, head: (i: number) => V) => Array.from({ length: n }, (_, i) => ({ name: `c${i}`, parent: i ? `c${i - 1}` : parent, head: head(i) }));
+    // behind the body, the hips n levels down (20,000 passes the hips' level walk too, which took about 10,000 to
+    // overflow); then on along the floor from the toes, 5,000 bones past the foot
+    const under = (n: number) => {
+      const b = body();
+      b.find((x) => x.name === "x_hips")!.parent = `c${n - 1}`;
+      return [...chain(n, null, (i) => [0, 0.95, -0.5 - 0.001 * (n - i)]), ...b];
+    };
+    // and past the about 125,000 arguments one call takes: 130,000 bones down from the toes, or 130,000 leaves on the
+    // left thigh (daaf91c ran out of stack on both; spreading a branch's bones into Math.min and Math.max would too)
+    const toes = (n: number) => [...body(), ...chain(n, "x_leftToes", (i) => [0.1, 0, 0.13 + 0.001 * (i + 1)])];
+    const thigh = [...body(), ...Array.from({ length: 130000 }, (_, i) => ({ name: `l${i}`, parent: "x_leftUpperLeg", head: REST.leftUpperLeg! }))];
+    for (const bones of [under(5000), under(20000), toes(5000), toes(130000), thigh]) {
+      const rec = recognize({ bones });
+      expect([rec.method, rec.missing, rec.confidence]).toEqual(["topology", [], plain.rec.confidence]);
+      expect(Object.fromEntries(Object.entries(rec.bones).map(([h, n]) => [h, n.slice(2)]))).toEqual(plain.got);
+    }
+    // about 2 s alone (1 s the 130,000-bone toe chain, 0.6 s the thigh's leaves); a loaded T1 run took it past Vitest's
+    // default 5 s
+  }, 30_000);
+  it("recognizes a root with 130,000 children as before, listed before or after them (K6: no RangeError)", () => {
+    // no walk spreads a bone's children into one call's arguments, which about 125,000 overflow; daaf91c never took a
+    // root's depth, so it answered (under a parent, as on the thigh above, its depth spread them and ran out of stack)
+    const leaves = Array.from({ length: 130000 }, (_, i) => ({ name: `l${i}`, parent: "n", head: [i * 1e-4, 0, 0] as V }));
+    const root = { name: "n", parent: null, head: [0, 0, 0] as V };
+    const missing = [...REQUIRED_BONES], issues = [`required bones not found: ${missing.join(", ")}; add them to "bones" by hand`];
+    for (const bones of [[root, ...leaves], [...leaves, root]]) {
+      expect(recognize({ bones })).toEqual({ method: "table", table: "vrm", confidence: 0, bones: {}, missing, unmapped: bones.map((b) => b.name), issues });
+    }
+    // about 0.7 to 1.2 s alone; the same headroom as the chain test's
+  }, 30_000);
+  // by shape: bones a table knows by name, in a loop, still hang finish's walk up the parents, as on daaf91c (not K6's)
+  it("refuses parents in a loop, by shape, with a RangeError that names a bone in it, rather than running out of stack (K6)", () => {
+    const at: V = [0, 1, 0];
+    expect(() => recognize({ bones: [{ name: "a", parent: "b", head: at }, { name: "b", parent: "a", head: at }] })).toThrow(new RangeError(`the skeleton's parents loop through "a"`));
+    expect(() => recognize({ bones: [{ name: "r", head: at }, { name: "a", parent: "a", head: at }] })).toThrow(new RangeError(`the skeleton's parents loop through "a"`));
   });
 });
 
