@@ -52,7 +52,8 @@ describe("the host's imported sets", () => {
     try {
       const walk = await call("export", { clip: WALK, character: RIG, format: "bvh" });
       expect(walk.status, walk.error?.message).not.toBe("error");
-      cpSync(join(cwd, "check-output/export/QUATERNIUS_3D2DGE_Walk_Loop.bvh"), join(cwd, "walk.bvh"));
+      // the file the reply names, whatever export calls it
+      cpSync(join(cwd, (walk.data as { file: string }).file), join(cwd, "walk.bvh"));
       expect(existsSync(join(cwd, "imports"))).toBe(false);
       // both open their library before either writes: neither sees imports/ there
       const both = await Promise.all([RIG, "walk.bvh"].map((path) => call("import", { path, set: "CC", license: "CC0-1.0" })));

@@ -150,15 +150,21 @@ export function accessor(json: GltfJson, bin: Bytes | null, i: number, want?: st
  * Each animation's clip name, one each, as every reader and `describeGltf` give it: animation i's own name, or
  * `animation${i}` when it has none (or an empty one); a later animation whose name another took gets `_2`, `_3` ... (the
  * first keeps it), passing over a suffix another animation has as its own name or one given already. Mixamo names every
- * export's animation 'Armature|mixamo.com|Layer0': a file of three reads as three clips, not one.
+ * export's animation 'Armature|mixamo.com|Layer0': a file of three reads as three clips, not one. Linear in the
+ * animations: each name's search resumes past the suffix it gave last, since every suffix below that stays taken (a
+ * file of 50,000 sharing one name would otherwise ask for minutes).
  */
 export function animationNames(json: GltfJson): string[] {
   const own = (json.animations ?? []).map((a, i) => (typeof a.name === "string" && a.name !== "" ? a.name : `animation${i}`));
-  const theirs = new Set(own), given = new Set<string>();
+  const theirs = new Set(own), given = new Set<string>(), next = new Map<string, number>();
   return own.map((name) => {
-    let k = 2;
-    if (given.has(name)) while (given.has(`${name}_${k}`) || theirs.has(`${name}_${k}`)) k++;
-    const n = given.has(name) ? `${name}_${k}` : name;
+    let n = name;
+    if (given.has(name)) {
+      let k = next.get(name) ?? 2;
+      while (given.has(`${name}_${k}`) || theirs.has(`${name}_${k}`)) k++;
+      next.set(name, k + 1);
+      n = `${name}_${k}`;
+    }
     given.add(n);
     return n;
   });

@@ -87,7 +87,7 @@ describe("BVH, refused clearly", () => {
   });
   it("refuses a Frame Time that isn't above 0 and at most 1 s, naming it, where a take would read at a rate it hasn't", () => {
     const bad = (ft: string) => ({ code: "E_FORMAT", message: expect.stringMatching(new RegExp(`^line \\d+: Frame Time ${ft} s: a frame time is above 0 and at most 1 s$`)) });
-    for (const [ft, shown] of [[0, "0"], [-0.5, "-0\\.5"], [1e6, "1000000"]] as const) expect(refusal(() => parseBvh(tinyBvh(2, ft)))).toMatchObject(bad(shown));
+    for (const [ft, shown] of [[0, "0"], [-0.5, "-0\\.5"], [1.5, "1\\.5"], [1e6, "1000000"]] as const) expect(refusal(() => parseBvh(tinyBvh(2, ft)))).toMatchObject(bad(shown));
     expect(refusal(() => parseBvh(tinyBvh(2, NaN)))).toMatchObject({ code: "E_FORMAT", message: expect.stringMatching(/^line \d+: the frame time isn't a number \("NaN"\)$/) });
     // 26 frames 1e6 s apart, refused rather than read at 120 fps as 0.2 s; 1 s a frame is read
     expect(refusal(() => readBvh(() => tinyBvh(26, 1e6), ["t"]))).toMatchObject({ code: "E_FORMAT", message: expect.stringMatching(/^t\.bvh: line \d+: Frame Time 1000000 s/) });

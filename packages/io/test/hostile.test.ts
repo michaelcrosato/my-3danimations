@@ -4,7 +4,7 @@
 // found, and random corruptions of real files.
 import { bind, playable, type AnimClip } from "@m3a/core";
 import { describe, expect, it } from "vitest";
-import { decodeVrma, IoError, LIMITS, packGlb, parseBvh, parseGlb, parseGltf, readAsf, readCmu, readGltf, readGltfPosed, readVrma, writeVrma } from "../src/index.ts";
+import { decodeVrma, describeGltf, IoError, LIMITS, packGlb, parseBvh, parseGlb, parseGltf, readAsf, readCmu, readGltf, readGltfPosed, readVrma, writeVrma } from "../src/index.ts";
 import { tier1bRigGlb, tier1bText } from "../../../spec/conformance/runner/vectors.ts";
 import { rigSkeleton } from "../../../spec/conformance/runner/skeleton.ts";
 import { libraryClips } from "../../../tools/qa/qa.ts";
@@ -73,6 +73,14 @@ describe("a file's work is budgeted", () => {
     expect(r).toMatchObject({ code: "E_LIMIT", message: expect.stringMatching(/30001 frames of 99000 nodes/) });
     // a second's animation is within budget: the chain matches no bone map
     expect(refusal(() => readGltfPosed(parseGltf(gltfOf({ nodes, ...short.json }, short.floats))))).toMatchObject({ code: "E_RIG" });
+  });
+  it("names 50,000 animations that share a name, or take another's suffix, in moments, each its own", () => {
+    // 25,000 called X, then 25,000 that own X_2 to X_25001: each X after the first passes over those and the ones given
+    const N = 25_000, animations = [...Array.from({ length: N }, () => ({ name: "X" })), ...Array.from({ length: N }, (_, i) => ({ name: `X_${i + 2}` }))];
+    const text = JSON.stringify({ asset: { version: "2.0" }, animations: animations.map((a) => ({ ...a, channels: [], samplers: [] })) });
+    let clips: string[] = [];
+    expect(timed(() => (clips = describeGltf(parseGltf(text)).clips))).toBeLessThan(2);
+    expect([clips.length, new Set(clips).size, clips[0], clips[1], clips[N - 1], clips[N], clips[2 * N - 1]]).toEqual([2 * N, 2 * N, "X", `X_${N + 2}`, `X_${2 * N}`, "X_2", `X_${N + 1}`]);
   });
   it("reads a 30,000-bone ASF chain in moments, each bone after its parent", () => {
     const N = 30_000, bones = Array.from({ length: N }, (_, i) => `begin\nname b${i}\ndirection 0 1 0\nlength 1\naxis 0 0 0 XYZ\ndof rx ry rz\nend`).join("\n");
