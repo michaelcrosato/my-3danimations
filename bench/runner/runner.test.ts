@@ -6,18 +6,42 @@
 // repository (D84, D91), as an unprivileged user with no capabilities whom /root, the raw disks and the covers refuse,
 // its workspace and home its own (a link in them handed, never what it leads to), /var/tmp and /dev/shm its own too,
 // and the proxy's CA copied into that home; and a held-out variant given by path, whose known-good solution runs first.
+// m3a's wiring (WP-7.3): the agent's flags (the Skill tool, project settings, m3a's MCP server from the installed
+// package, its tools allowed), the skill in a trial's workspace as a regular file naming what the installed package
+// holds, the packed m3a bin and MCP server answering there, an init event showing the server failed stopping the agent
+// and failing its trial though its workspace grades, and the manual, the skill and llms.txt not counted as reads past
+// the manual. No test spends: a stand-in `claude` plays the agent.
 // Every temporary directory a test makes is removed after it.
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import { chmodSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, symlinkSync, writeFileSync } from "node:fs";
 import { homedir, tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, describe, expect, it } from "vitest";
-import { agentUser, audit, capsDropped, CLOUD_CREDENTIALS, hidden, namespace, ownScratch, pathsOf, runAgent } from "./agent.ts";
-import { commitOf, lanes, latestVariant, pool, runB1, variantOf } from "./main.ts";
+import { TOOLS } from "@m3a/tools";
+import { agentArgs, agentUser, audit, capsDropped, CLOUD_CREDENTIALS, hidden, M3A_MCP, namespace, ownScratch, pathsOf, runAgent, unwired, wiringOf } from "./agent.ts";
+import { commitOf, knownGood, lanes, latestVariant, pool, runB1, variantOf } from "./main.ts";
 import { pack } from "./pack.ts";
 import { answersIn, QUIZ, quizPrompt, score } from "./quiz.ts";
+import { SKILL } from "./workspace.ts";
 
 const ROOT = join(import.meta.dirname, "../..");
+/** The init event that opens a stream-json transcript, as the CLI writes it (claude 2.1.302), m3a's server `status`. */
+const init = (status: string, skills = ["m3a"]) => JSON.stringify({ type: "system", subtype: "init", tools: ["Bash", "Skill"], mcp_servers: [{ name: "m3a", status, source: "dynamic" }], skills });
+/** A stand-in `claude` in `home`'s bin/ (the agent's user reads it there), running `script`; returns that directory. */
+const standIn = (home: string, script: readonly string[]) => {
+  mkdirSync(join(home, "bin"), { recursive: true });
+  writeFileSync(join(home, "bin", "claude"), ["#!/bin/sh", ...script, ""].join("\n"));
+  chmodSync(join(home, "bin", "claude"), 0o755);
+  return join(home, "bin");
+};
+/** The tools an MCP server lists, started as `config` gives it in `cwd`, after the legacy handshake, and its result for
+ *  one tool call (`call`); it ends with its input. */
+function mcpTools(config: { command: string; args: readonly string[] }, cwd: string, call: { name: string; arguments: object }): { status: number | null; stderr: string; tools: string[]; called: { isError?: boolean; content?: { text?: string }[] } } {
+  const messages = [{ jsonrpc: "2.0", id: 1, method: "initialize", params: { protocolVersion: "2025-11-25", capabilities: {}, clientInfo: { name: "runner.test", version: "0" } } }, { jsonrpc: "2.0", method: "notifications/initialized" }, { jsonrpc: "2.0", id: 2, method: "tools/list" }, { jsonrpc: "2.0", id: 3, method: "tools/call", params: call }];
+  const r = spawnSync(config.command === "node" ? process.execPath : config.command, config.args, { cwd, input: messages.map((m) => `${JSON.stringify(m)}\n`).join(""), encoding: "utf8", timeout: 60_000 });
+  const replies = r.stdout.trim().split("\n").map((l) => JSON.parse(l) as { id?: number; result?: { tools?: { name: string }[]; isError?: boolean; content?: { text?: string }[] } });
+  return { status: r.status, stderr: r.stderr, tools: replies.find((m) => m.id === 2)?.result?.tools?.map((t) => t.name) ?? [], called: replies.find((m) => m.id === 3)?.result ?? {} };
+}
 /** A temporary directory, removed after this file's tests (they filled the disk when kept). */
 const made: string[] = [];
 const temp = (prefix: string) => {
@@ -115,6 +139,61 @@ describe("the agent's audit", () => {
     ];
     expect(audit(proc, ws, true).outside).toEqual(["/proc/$p/root/home", "/proc/$pid/cmdline", "/proc/*/environ", "/proc/1/root/home", "/proc/42/environ", `${ROOT}/AGENTS.md`, `${ROOT}/PLAN.md`].sort());
   });
+  it("counts reading the manual, the skill and llms.txt as reading the manual, not past it (WP-7.3)", () => {
+    const ws = "/tmp/m3a-bench/run/B1-1", read = (file_path: string) => JSON.stringify({ type: "assistant", message: { content: [{ type: "tool_use", name: "Read", input: { file_path } }] } });
+    const lines = [
+      // the skill the runner copies into the workspace, and the Skill tool loading it (no path)
+      read(`${ws}/.claude/skills/m3a/SKILL.md`),
+      JSON.stringify({ type: "assistant", message: { content: [{ type: "tool_use", name: "Skill", input: { skill: "m3a" } }] } }),
+      // the manual, and the skill and llms.txt where a package ships them
+      ...["tools/MANUAL.md", "tools/llms.txt", "tools/skills/m3a/SKILL.md", "core/llms.txt"].map((f) => read(`${ws}/node_modules/@m3a/${f}`)),
+      // past it: the packages' code, and a file of the same name elsewhere in one
+      ...["tools/dist/node.js", "tools/dist/llms.txt", "core/MANUAL.md"].map((f) => read(`${ws}/node_modules/@m3a/${f}`)),
+    ];
+    expect(audit(lines, ws)).toEqual({ outside: [], scratch: [], pastManual: ["core/MANUAL.md", "tools/dist/llms.txt", "tools/dist/node.js"].map((f) => `node_modules/@m3a/${f}`) });
+  });
+});
+
+describe("m3a's wiring (WP-7.3)", () => {
+  const value = (args: string[], flag: string) => args[args.indexOf(flag) + 1];
+  it("gives the agent the Skill tool, settings from its workspace alone and m3a's MCP server from the installed package", () => {
+    const args = agentArgs("hello");
+    expect([value(args, "--tools"), value(args, "--allowedTools"), value(args, "--setting-sources")]).toEqual(["Bash,Read,Write,Edit,Glob,Grep,Skill", "Bash,Read,Write,Edit,Glob,Grep,Skill,mcp__m3a__*", "project"]);
+    expect(JSON.parse(value(args, "--mcp-config")!)).toEqual({ mcpServers: { m3a: { command: "node", args: ["node_modules/@m3a/tools/dist/node.js", "mcp"] } } });
+    expect(JSON.parse(value(args, "--mcp-config")!)).toEqual(M3A_MCP);
+    expect(args).toContain("--strict-mcp-config");
+    // turned off (the legend quiz, no tools and no package): no Skill, no server, still no server but those given
+    const quiz = agentArgs("q", { tools: "", m3a: false });
+    expect([value(quiz, "--tools"), value(quiz, "--allowedTools"), quiz.includes("--mcp-config"), quiz.includes("--strict-mcp-config")]).toEqual(["", "", false, true]);
+    expect(value(agentArgs("q", { tools: "" }), "--tools")).toBe("Skill");
+  });
+  it("reads the init event: the server connected and the skill loaded, or why not", () => {
+    expect(wiringOf(["not json", JSON.stringify({ type: "system", subtype: "hook_started" }), init("connected")])).toEqual({ server: "connected", skill: true });
+    expect(unwired(wiringOf([init("connected")]))).toBeNull();
+    expect(unwired(wiringOf([init("failed")]))).toMatch(/^m3a's wiring failed: its MCP server is failed, not connected/);
+    expect(unwired(wiringOf([init("pending", [])]))).toMatch(/its MCP server is pending, not connected; its skill isn't loaded/);
+    expect(unwired(wiringOf([JSON.stringify({ type: "system", subtype: "init", mcp_servers: [], skills: ["m3a"] })]))).toMatch(/its MCP server is missing/);
+    expect([wiringOf([]), unwired(null)]).toEqual([null, "m3a's wiring went unchecked: the stream had no init event"]);
+  });
+  it("runs an agent whose server connected to the end, and stops one whose server failed at its init event", async () => {
+    const base = temp("m3a-wiring-"), path = process.env.PATH, wss = ["W-1", "W-2"].map((n) => join(base, n));
+    for (const ws of wss) mkdirSync(ws);
+    // the first connects; the second's server failed, and it would wait for ever if it weren't stopped
+    const bins = [
+      standIn(`${wss[0]}-home`, [`printf '%s\\n' '${init("connected")}'`, `printf '%s\\n' '{"type":"result","subtype":"success","num_turns":1,"result":"done"}'`]),
+      standIn(`${wss[1]}-home`, [`printf '%s\\n' '${init("failed")}'`, "exec tail -f /dev/null"]),
+    ];
+    process.env.PATH = `${bins.join(":")}:${path}`;
+    try {
+      const [ok, dead] = await pool(wss, 2, (ws) => runAgent(ws, "hello", `${ws}.jsonl`, { timeoutMs: 120_000 }));
+      expect([ok!.ok, ok!.m3a, ok!.unwired, ok!.error, ok!.reply]).toEqual([true, { server: "connected", skill: true }, undefined, undefined, "done"]);
+      expect([dead!.ok, dead!.m3a, dead!.unwired, dead!.error]).toEqual([false, { server: "failed", skill: true }, unwired({ server: "failed", skill: true }), unwired({ server: "failed", skill: true })]);
+      // stopped at its init event: its transcript holds that alone
+      expect(readFileSync(`${wss[1]}.jsonl`, "utf8").trim().split("\n")).toEqual([init("failed")]);
+    } finally {
+      process.env.PATH = path;
+    }
+  }, 60_000);
 });
 
 describe("the legend quiz", () => {
@@ -162,8 +241,8 @@ describe("an agent's own /tmp (D84)", () => {
   // reached), how much of the CLI's account file it reads, whether it can unmount what covers the repository, who it is
   // and with what capabilities, whether /root and the raw disks open, whether it can write its workspace and home,
   // where its CA is and whose the CLI's credentials are (a cloud session's: it doesn't read them); and writes a scratch
-  // file to /tmp, /var/tmp and /dev/shm by name, as agents do, after saying what the last two held. It replies
-  // name=value pairs.
+  // file to /tmp, /var/tmp and /dev/shm by name, as agents do, after saying what the last two held. Its stream opens
+  // with an init event showing m3a's wiring held (WP-7.3), and it replies name=value pairs.
   const stand = (home: string) => {
     mkdirSync(join(home, "bin"), { recursive: true });
     const sh = join(home, "bin", "claude"), all = checkouts.map((d) => `'${d}'`).join(" ");
@@ -192,7 +271,7 @@ describe("an agent's own /tmp (D84)", () => {
       `creds=$(if [ -d '${CLOUD_CREDENTIALS}' ]; then [ -O '${CLOUD_CREDENTIALS}' ] && echo own || echo other; else echo none; fi)`,
     ];
     const names = ["pwd=$PWD", "tmp=$TMPDIR", ...lines.filter((l) => /^\w+=\$\(/.test(l)).map((l) => l.split("=")[0]!).map((n) => `${n}=$${n}`)];
-    writeFileSync(sh, ["#!/bin/sh", ...lines, `printf '{"type":"result","subtype":"success","num_turns":1,"result":"%s"}\\n' "${names.join("|")}"`, ""].join("\n"));
+    writeFileSync(sh, ["#!/bin/sh", `printf '%s\\n' '${init("connected")}'`, ...lines, `printf '{"type":"result","subtype":"success","num_turns":1,"result":"%s"}\\n' "${names.join("|")}"`, ""].join("\n"));
     chmodSync(sh, 0o755);
     return join(home, "bin");
   };
@@ -285,16 +364,45 @@ describe("trials", () => {
   it("installs the packed packages outside the repository, and grades the known-good solution there (a fake trial)", async () => {
     const r = await runB1({ trials: 1, discovery: 0, base, packs, fake: true });
     expect(r.trials.map((t) => [t.trial, t.pass, t.failed])).toEqual([["B1-1", true, []]]);
+    // the skill the package ships, as regular files where Claude Code reads a project's skills: a link would lead into
+    // the repository, which the agent can't see (WP-7.3)
+    const ws = join(base, "B1-1"), skill = join(ws, SKILL.to, "SKILL.md");
+    for (const d of [".claude", ".claude/skills", SKILL.to]) expect(lstatSync(join(ws, d)).isDirectory(), d).toBe(true);
+    expect([lstatSync(skill).isFile(), readFileSync(skill, "utf8")]).toEqual([true, readFileSync(join(ROOT, "skills/m3a/SKILL.md"), "utf8")]);
+    // every installed file it names is there
+    const named = [...readFileSync(skill, "utf8").matchAll(/node_modules\/@m3a\/[\w./-]+/g)].map((m) => m[0]);
+    expect(named).toContain("node_modules/@m3a/tools/MANUAL.md");
+    for (const f of named) expect(existsSync(join(ws, f)), f).toBe(true);
+    // the packed m3a runs there: its bin from dist/ (the skill's `npx m3a` commands), and its MCP server as the agent's
+    // --mcp-config starts it, listing every tool
+    expect(JSON.parse(readFileSync(join(ws, "node_modules/@m3a/tools/package.json"), "utf8")).bin).toEqual({ m3a: "./dist/node.js" });
+    expect(execFileSync(join(ws, "node_modules/.bin/m3a"), ["version"], { cwd: ws, encoding: "utf8" })).toMatch(/^m3a \d+\.\d+\.\d+, clip format/);
+    const mcp = mcpTools(M3A_MCP.mcpServers.m3a, ws, { name: "search", arguments: { query: "walk", limit: 1 } });
+    expect([mcp.status, mcp.stderr, mcp.tools]).toEqual([0, "", TOOLS.map((t) => t.name.replace(/\./g, "_"))]);
+    // and its tools work on the installed library, the CC0 default pack: a search finds a clip there
+    expect([mcp.called.isError, mcp.called.content?.[0]?.text]).toEqual([false, expect.stringMatching(/^search "walk": 1 of \d+ clips \(tiers cc0\)\n(QUATERNIUS_3D2DGE|QUATERNIUS_SHARDFALL|MESH2MOTION)\//)]);
   }, 300_000);
-  it("runs a variant given by path, its known-good solution first: on a character from a seed outside the test set", async () => {
+  it("runs a variant given by path, its known-good solution first: on a character from a seed outside the test set; there a trial whose agent's MCP server failed fails, though it grades", async () => {
     const dir = join(base, "variant");
     mkdirSync(dir, { recursive: true });
     writeFileSync(join(dir, "brief.md"), "# B1, reworded\nMake the character idle, walk and run by speed (see the starter).\n");
     writeFileSync(join(dir, "character.json"), JSON.stringify({ seed: 41 }));
     expect(variantOf(dir).character).toEqual({ seed: 41 });
-    const r = await runB1({ trials: 1, discovery: 0, base: join(base, "v"), packs, fake: true, variant: dir });
+    // the trial's agent (no fake): a stand-in that writes the known-good solution, then shows m3a's MCP server failed at
+    // its init event, and would wait for ever after if it weren't stopped
+    const path = process.env.PATH, write = Object.entries(knownGood("B1")).flatMap(([f, text]) => [`mkdir -p "$(dirname '${f}')"`, `cat > '${f}' <<'M3A_EOF'`, text.replace(/\n$/, ""), "M3A_EOF"]);
+    process.env.PATH = `${standIn(join(base, "v", "B1-1-home"), [...write, `printf '%s\\n' '${init("failed")}'`, "exec tail -f /dev/null"])}:${path}`;
+    let r: Awaited<ReturnType<typeof runB1>>;
+    try {
+      r = await runB1({ trials: 1, discovery: 0, base: join(base, "v"), packs, variant: dir });
+    } finally {
+      process.env.PATH = path;
+    }
     expect(r.check?.pass, r.check?.failed.join("\n")).toBe(true);
-    expect(r.trials[0]!.pass).toBe(true);
+    // its workspace grades (the known-good solution), and the trial fails on the wiring alone, saying so
+    const t = r.trials[0]!;
+    expect([t.pass, t.failed]).toEqual([false, [unwired({ server: "failed", skill: true })]]);
+    expect(t.agent).toMatchObject({ ok: false, m3a: { server: "failed", skill: true }, unwired: t.failed[0] });
     // a variant whose rig isn't fetched stops before any trial, naming how to fetch it
     writeFileSync(join(dir, "character.json"), JSON.stringify({ manifest: "rigs.json", rig: "nowhere" }));
     writeFileSync(join(dir, "rigs.json"), JSON.stringify({ rigs: [] }));
