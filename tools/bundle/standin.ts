@@ -1,9 +1,10 @@
-// The stand-in for the manual's complete example (WP-7.4), until WP-7.3 marks the manual's own (```ts example): a
-// fighter walks up, jabs with a `hit` event at the jab's measured strike, and a second character flinches when the
-// hit lands, both headless on @m3a/core's binding of a small skeleton, with the library's CC0 clips. It checks what
-// it claims (one hit, the flinch played, every pose finite, the jab with its event valid through the tools' API) and
-// prints the two Animators' hashes, so a run on the installed packages and one on m3a.js can be compared bit for bit.
-// `npm run pack -- --check --example tools/bundle/standin.ts` runs it.
+// The headless example (WP-7.4) m3a.js runs, and the installed packages beside it, while the manual marks none of its
+// own (```ts m3a.js): a fighter walks up, jabs with a `hit` event at the jab's measured strike, and a second character
+// flinches when the hit lands, both headless on @m3a/core's binding of a small skeleton, with the library's CC0 clips.
+// It checks what it claims (one hit, the flinch played, every pose finite, the jab with its event valid through the
+// tools' API) and prints the two Animators' hashes, so a run on the installed packages and one on m3a.js can be
+// compared bit for bit. `npm run pack -- --check` runs it; `--example tools/bundle/standin.ts` runs it as the complete
+// example too.
 import { Animator, bind, measureFacts, playable, serialize, type SkeletonIn } from "@m3a/core";
 import { openLibrary } from "@m3a/library/node";
 import { tools } from "@m3a/tools";

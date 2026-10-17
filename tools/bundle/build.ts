@@ -2,9 +2,10 @@
 // with Node's own type stripping (the sources use erasable syntax only, so dist/x.js keeps src/x.ts's lines and
 // columns: a stack trace points at the source line), relative `.ts` imports pointed at `.js`, the declarations from
 // `tsc -b` beside them, staged under .cache/pack/stage/ with the package.json it is published with (exports to dist/,
-// "private" kept until O2 is answered) and packed by `npm pack`. The library's default pack holds the CC0 sets alone;
-// each other tier that ships (cc-by, cmu) is a pack of its own, `@m3a/library-<tier>`, found by the library's loader
-// when installed beside it (D10). Nothing here publishes.
+// "private" kept until O2 is answered, unless `publishable` stages a copy ready for it) and packed by `npm pack`. Every
+// pack carries the version (one for all, tools/version.ts) and the repository's CHANGELOG.md, which has its section.
+// The library's default pack holds the CC0 sets alone; each other tier that ships (cc-by, cmu) is a pack of its own,
+// `@m3a/library-<tier>`, found by the library's loader when installed beside it (D10). Nothing here publishes.
 import { execFileSync } from "node:child_process";
 import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { stripTypeScriptTypes } from "node:module";
@@ -19,6 +20,8 @@ export const PACKAGES = ["core", "sensors", "io", "library", "three", "tools"] a
 export const OUT = join(ROOT, ".cache/pack");
 /** The library's sets. */
 const SETS = join(ROOT, "library/sets");
+/** The repository the packs are built from, which npm provenance checks a published pack against. */
+export const REPOSITORY = "git+https://github.com/michaelcrosato/my-3danimations.git";
 
 /** A package packed: its tarball, the files in it (as `npm pack` lists them), its size and where it was staged. */
 export interface Packed {
@@ -47,10 +50,28 @@ export function publishedExports(map: Record<string, string>): Record<string, { 
   }));
 }
 
-/** The package.json a package is published with: its own, exports pointed at dist/, without devDependencies or the
- *  workspace note ("//"). "private" stays: publishing waits for O2 (PLAN.md §13). */
+/** The package.json a package is published with: its own, exports pointed at dist/, "files" with CHANGELOG.md, without
+ *  devDependencies or the workspace note ("//"); each peer whose types the package's declarations import (`@types/X`
+ *  among its devDependencies, X a peer: three's) an optional peer at that version, so a strict TypeScript consumer
+ *  knows to install it. "private" stays: publishing waits for O2 (PLAN.md §13; `publishable` drops it in the staged
+ *  copy alone). */
 export function publishedManifest(pkg: Record<string, unknown>): Record<string, unknown> {
-  return Object.fromEntries(Object.entries(pkg).filter(([k]) => k !== "devDependencies" && k !== "//").map(([k, v]) => [k, k === "exports" ? publishedExports(v as Record<string, string>) : v]));
+  const dev = (pkg.devDependencies ?? {}) as Record<string, string>, peers = (pkg.peerDependencies ?? {}) as Record<string, string>;
+  const typed = Object.keys(peers).filter((p) => dev[`@types/${p}`]).map((p) => `@types/${p}`);
+  const out = Object.fromEntries(Object.entries(pkg).filter(([k]) => k !== "devDependencies" && k !== "//").map(([k, v]) => [k, k === "exports" ? publishedExports(v as Record<string, string>) : k === "files" ? [...new Set([...(v as string[]), "CHANGELOG.md"])] : v]));
+  if (typed.length) {
+    out.peerDependencies = { ...peers, ...Object.fromEntries(typed.map((t) => [t, dev[t]!])) };
+    out.peerDependenciesMeta = { ...(pkg.peerDependenciesMeta as object | undefined), ...Object.fromEntries(typed.map((t) => [t, { optional: true }])) };
+  }
+  return out;
+}
+
+/** A staged package.json made ready to publish once O2 allows it (`npm run pack -- --publishable`; nothing here
+ *  publishes): "private" dropped, `publishConfig` public with npm provenance, and the repository with the directory it
+ *  is built from (`packages/<name>`, or `library` for an opt-in pack of its sets), which provenance is checked against. */
+export function publishable(pkg: Record<string, unknown>, directory: string): Record<string, unknown> {
+  const rest = Object.fromEntries(Object.entries(pkg).filter(([k]) => k !== "private"));
+  return { ...rest, publishConfig: { access: "public", provenance: true }, repository: { type: "git", url: REPOSITORY, directory } };
 }
 
 /** Each set's tier, from its manifest. */
@@ -80,9 +101,10 @@ function stageSets(dir: string, sets: readonly string[]): void {
   for (const l of licensesOf(sets)) cpSync(join(ROOT, "library/LICENSES", `${l}.txt`), join(dir, "LICENSES", `${l}.txt`));
 }
 
-/** Stages one package: dist/ (JavaScript and declarations), its published package.json, the repository's LICENSE and
- *  what its "files" name beyond dist/ (the library's CC0 sets, the tools' manual). */
-function stagePackage(name: (typeof PACKAGES)[number], dir: string, sets: readonly string[]): void {
+/** Stages one package: dist/ (JavaScript and declarations), its published package.json (`publishable` with `ready`),
+ *  the repository's LICENSE and CHANGELOG.md, and what its "files" name beyond dist/ (the library's CC0 sets, the
+ *  tools' manual). */
+function stagePackage(name: (typeof PACKAGES)[number], dir: string, sets: readonly string[], ready: boolean): void {
   const src = join(ROOT, "packages", name), pkg = JSON.parse(readFileSync(join(src, "package.json"), "utf8")) as Record<string, unknown>;
   const exports = pkg.exports as Record<string, string>;
   // src/ into dist/, and any other directory an export names (three's test-characters) into dist/<it>/
@@ -103,20 +125,24 @@ function stagePackage(name: (typeof PACKAGES)[number], dir: string, sets: readon
   if (name === "library") stageSets(dir, sets);
   if (name === "tools") cpSync(join(src, "MANUAL.md"), join(dir, "MANUAL.md"));
   if (existsSync(join(src, "README.md"))) cpSync(join(src, "README.md"), join(dir, "README.md"));
-  writeFileSync(join(dir, "package.json"), `${JSON.stringify(publishedManifest(pkg), null, 2)}\n`);
+  const published = publishedManifest(pkg);
+  writeFileSync(join(dir, "package.json"), `${JSON.stringify(ready ? publishable(published, `packages/${name}`) : published, null, 2)}\n`);
   cpSync(join(ROOT, "LICENSE"), join(dir, "LICENSE"));
+  cpSync(join(ROOT, "CHANGELOG.md"), join(dir, "CHANGELOG.md"));
 }
 
 /** Stages an opt-in pack (`@m3a/library-cc-by`, `@m3a/library-cmu`): its tier's sets, their lock and license texts, a
- *  README with how to opt in and the credits a game owes, and a package.json that needs the library at this version. */
-function stageOptIn(name: string, tier: Tier, dir: string, sets: readonly string[]): void {
+ *  README with how to opt in and the credits a game owes, CHANGELOG.md, and a package.json that needs the library at
+ *  this version (`publishable` with `ready`). */
+function stageOptIn(name: string, tier: Tier, dir: string, sets: readonly string[], ready: boolean): void {
   const version = (JSON.parse(readFileSync(join(ROOT, "packages/library/package.json"), "utf8")) as { version: string }).version, ids = licensesOf(sets);
   stageSets(dir, sets);
   const credits = creditsBlock(checkSets(directory(SETS), sets, licenseText(SETS, [])).credits);
   writeFileSync(join(dir, "README.md"), [`# ${name}`, "", `The ${tier} sets of the m3a library (${sets.length}: ${sets.join(", ")}), opt-in (D10): the default pack, @m3a/library, holds the CC0 sets alone.`, "", "```sh", `npm install ${name}`, "```", "", `Then opt in: \`openLibrary({ tiers: ["cc0", "${tier}"] })\` from \`@m3a/library/node\`, or \`"tiers": ["cc0", "${tier}"]\` in game.json for the m3a tools. Show the credits where the game credits its assets:`, "", "```", credits, "```", "", `Terms: ${ids.map((l) => `LICENSES/${l}.txt`).join(", ")}.`, ""].join("\n"));
   const license = ids.some((l) => l.startsWith("LicenseRef-")) ? `SEE LICENSE IN ${ids.map((l) => `LICENSES/${l}.txt`).join(", ")}` : ids.join(" AND ");
-  const pkg = { name, version, private: true, description: `The ${tier} sets of the m3a library, opt-in (D10): install beside @m3a/library and opt in to "${tier}".`, license, exports: { "./package.json": "./package.json" }, files: ["sets", "sets.lock.json", "LICENSES", "README.md"], peerDependencies: { "@m3a/library": version } };
-  writeFileSync(join(dir, "package.json"), `${JSON.stringify(pkg, null, 2)}\n`);
+  const pkg = { name, version, private: true, description: `The ${tier} sets of the m3a library, opt-in (D10): install beside @m3a/library and opt in to "${tier}".`, license, exports: { "./package.json": "./package.json" }, files: ["sets", "sets.lock.json", "LICENSES", "README.md", "CHANGELOG.md"], peerDependencies: { "@m3a/library": version } };
+  writeFileSync(join(dir, "package.json"), `${JSON.stringify(ready ? publishable(pkg, "library") : pkg, null, 2)}\n`);
+  cpSync(join(ROOT, "CHANGELOG.md"), join(dir, "CHANGELOG.md"));
 }
 
 /** `npm pack` in a staged directory, into `out`: the tarball, its files and its size. */
@@ -127,22 +153,23 @@ function npmPack(stage: string, out: string): Packed {
 
 /**
  * Builds and packs every package into `out` (after `tsc -b`, which writes the declarations), and with `optIn` (the
- * default) the library's opt-in packs; returns each pack by name (`core` ... `tools`, `library-cc-by`, `library-cmu`).
+ * default) the library's opt-in packs; with `publishable`, each staged package.json is made ready to publish (O2; it is
+ * not published). Returns each pack by name (`core` ... `tools`, `library-cc-by`, `library-cmu`).
  */
-export function build(out = OUT, opts: { optIn?: boolean } = {}): Record<string, Packed> {
+export function build(out = OUT, opts: { optIn?: boolean; publishable?: boolean } = {}): Record<string, Packed> {
   execFileSync(join(ROOT, "node_modules/.bin/tsc"), ["-b"], { cwd: ROOT, stdio: "inherit" });
   rmSync(out, { recursive: true, force: true });
   mkdirSync(out, { recursive: true });
   const sets = packSets(tiersOf()), packs: Record<string, Packed> = {};
   for (const name of PACKAGES) {
     const stage = join(out, "stage", name);
-    stagePackage(name, stage, sets.library!);
+    stagePackage(name, stage, sets.library!, opts.publishable ?? false);
     packs[name] = npmPack(stage, out);
   }
   if (opts.optIn ?? true) {
     for (const [tier, full] of Object.entries(OPT_IN)) {
       const name = full.replace("@m3a/", ""), stage = join(out, "stage", name);
-      stageOptIn(full, tier as Tier, stage, sets[name]!);
+      stageOptIn(full, tier as Tier, stage, sets[name]!, opts.publishable ?? false);
       packs[name] = npmPack(stage, out);
     }
   }

@@ -34,17 +34,19 @@ export function bundled(data: BundleData): { openLibrary: (opts?: LibraryOptions
     for (const t of (opts.tiers ?? []).filter((x) => !held.has(x))) warn(`m3a.js carries CC0 clips alone (tools/bundle/manifest.json), no ${t} set: ${t === "local" ? "local sets never ship (D10)" : `the packages carry them (npm install @m3a/library @m3a/library-${t})`}`);
     return new Library(source, { sha256: recipe.sha256, lock: data.lock, ...opts, warn });
   };
-  // one library per set of tiers, verified once; a call's warnings (a deprecated id) go to that call
-  const opened = new Map<string, { lib: Library; to: string[] }>();
+  // one library per set of tiers, verified once; what opening it warned (a tier m3a.js doesn't carry) goes to every
+  // call it serves, and a call's own warnings (a deprecated id) to that call
+  const opened = new Map<string, { lib: Library; built: string[]; to: string[] }>();
   const host: registry.Host = {
     library(tiers) {
-      const want = [...(tiers ?? ["cc0"])], key = want.join(","), warnings: string[] = [];
+      const want = [...(tiers ?? ["cc0"])], key = want.join(",");
       let o = opened.get(key);
       if (!o) {
-        const box = { lib: null as unknown as Library, to: warnings };
+        const built: string[] = [], box = { lib: null as unknown as Library, built, to: built };
         box.lib = openLibrary({ tiers: want, warn: (m) => box.to.push(m) });
         opened.set(key, (o = box));
       }
+      const warnings = [...o.built];
       o.to = warnings;
       return { library: o.lib, source, licenseText, tiers: want, warnings };
     },

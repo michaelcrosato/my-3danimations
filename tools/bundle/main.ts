@@ -1,30 +1,39 @@
-// `npm run pack [-- --check] [--example <file>]` (PLAN.md WP-7.4): every @m3a package built (ES modules with their
-// declarations) and packed, the library's opt-in packs beside its CC0 default (D10), and the single file m3a.js, into
-// .cache/pack/ (./build.ts, ./single.ts). --check also proves them, failing on any of: the default library pack holds a
-// set that isn't cc0, or an opt-in pack another tier's; the m3a bin isn't dist/node.js with its shebang; m3a.js lacks
-// the credits block or a license text of its tiers; `npm run license -- check tools/bundle/manifest.json` fails; a clip
-// m3a.js carries neither passes the sensors (WP-3.3) nor carries its WP-5.8 baseline (library/baselines/qa.json), or
-// the sensors read it differently there; a scratch project outside the repository that installs the tarballs can't run
-// the manual's complete example (./example.ts: the ```ts example block, or --example's file), `npx m3a help`,
+// `npm run pack [-- --check] [--example <file>] [--publishable]` (PLAN.md WP-7.4): every @m3a package built (ES modules
+// with their declarations) and packed, the library's opt-in packs beside its CC0 default (D10), and the single file
+// m3a.js, into .cache/pack/ (./build.ts, ./single.ts). --check also proves them, failing on any of: the default library
+// pack holds a set that isn't cc0, or an opt-in pack another tier's; the m3a bin isn't dist/node.js with its shebang;
+// the version rule fails (`node tools/version.ts --check`), a pack isn't at the version, or lacks CHANGELOG.md; a staged
+// package.json drops "private" (or, with --publishable, keeps it or lacks provenance); m3a.js lacks the credits block or
+// a license text of its tiers; `npm run license -- check tools/bundle/manifest.json` fails; a clip m3a.js carries
+// neither passes the sensors (WP-3.3) nor carries its WP-5.8 baseline (library/baselines/qa.json), or the sensors read
+// it differently there; a scratch project outside the repository that installs the tarballs can't run the manual's
+// complete example (./example.ts: its section's files, ts blocks and m3a calls, or --example's), `npx m3a help`,
 // `npx m3a version`, or `m3a mcp` answering tools/list with every tool, or its openLibrary({ tiers }) doesn't find the
-// installed opt-in packs; m3a.js can't run the same example, or prints anything else. Nothing is published (O2).
+// installed opt-in packs; the headless example (the manual's ```ts m3a.js block, else ./standin.ts) fails on the
+// packages or on m3a.js, or prints otherwise on the two. The manual's complete example binds a three.js character and
+// writes a PNG through Node, which m3a.js leaves out (./single.ts), so m3a.js runs the headless one. Nothing is
+// published (O2).
 import { spawn, spawnSync } from "node:child_process";
 import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { basename, join, resolve } from "node:path";
+import { basename, join, relative, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { TOOLS } from "../../packages/tools/src/index.ts";
 import { checkVerdicts } from "../qa/library.ts";
 import { qa, type LibraryClip } from "../qa/qa.ts";
 import { finish, fmtMs, parseArgs, ROOT, usage, type Report, type Step } from "../run/cli.ts";
-import { build, OUT, type Packed } from "./build.ts";
-import { exampleOf, forSingle } from "./example.ts";
+import { check as versionCheck } from "../version.ts";
+import { build, OUT, REPOSITORY, type Packed } from "./build.ts";
+import { completeExample, forSingle, headlessOf, SECTION, type Example } from "./example.ts";
 import { buildSingle, bundleData, readManifest } from "./single.ts";
 
 const FLAGS = [
-  { name: "check", help: "also prove the packs: a scratch install runs the manual's example and the m3a bin, m3a.js runs it too, the sensors, tiers and licenses hold" },
-  { name: "example", takesValue: true, help: "run this file as the complete example instead of MANUAL.md's ```ts example block (tools/bundle/standin.ts)" },
+  { name: "check", help: "also prove the packs: a scratch install runs the manual's complete example and the m3a bin, the headless example runs there and on m3a.js, the sensors, tiers, version and licenses hold" },
+  { name: "example", takesValue: true, help: "a manual (.md) whose complete example (and ```ts m3a.js block) to run instead of packages/tools/MANUAL.md's, or a program (.ts) to run as the complete example (tools/bundle/standin.ts)" },
+  { name: "publishable", help: "stage each package.json ready for O2: \"private\" dropped, publishConfig with provenance, the repository (nothing is published)" },
 ];
+/** The headless example m3a.js runs when the manual marks none. */
+const STANDIN = join(import.meta.dirname, "standin.ts");
 
 /** Runs a command, returning its exit status and output; the scratch projects' commands run outside the repository. */
 function run(cmd: string, args: readonly string[], cwd: string, input?: string): { ok: boolean; out: string } {
@@ -79,7 +88,7 @@ if (import.meta.main) {
   } catch (err) {
     usage("pack", err, FLAGS);
   }
-  const t0 = performance.now(), steps: Step[] = [], check = Boolean(parsed.flags.check), state: { packs?: Record<string, Packed>; single?: Awaited<ReturnType<typeof buildSingle>>; example?: string; scratch?: string; printed?: string } = {};
+  const t0 = performance.now(), steps: Step[] = [], check = Boolean(parsed.flags.check), state: { packs?: Record<string, Packed>; single?: Awaited<ReturnType<typeof buildSingle>>; example?: Example; headless?: { code: string; where: string }; scratch?: string; printed?: string } = {};
   const step = async (name: string, fn: () => string | Promise<string>, needs: (keyof typeof state)[] = []) => {
     const s = performance.now(), missing = needs.filter((k) => state[k] === undefined);
     try {
@@ -91,8 +100,9 @@ if (import.meta.main) {
       steps.push({ name, ok: false, ms: performance.now() - s, summary: lines[0], detail: lines.slice(1, 30) });
     }
   };
+  const ready = Boolean(parsed.flags.publishable);
   await step("build and pack", () => {
-    state.packs = build(OUT);
+    state.packs = build(OUT, { publishable: ready });
     return Object.entries(state.packs).map(([k, p]) => `${k} ${(p.bytes / 1024).toFixed(0)} KB`).join(", ");
   });
   await step("single file", async () => {
@@ -118,6 +128,27 @@ if (import.meta.main) {
       if (!readFileSync(join(p.stage, "dist/node.js"), "utf8").startsWith("#!/usr/bin/env node\n")) throw new Error("dist/node.js doesn't open with #!/usr/bin/env node");
       return "m3a → dist/node.js, with its shebang";
     }, ["packs"]);
+    await step("version", () => {
+      const problems = versionCheck(), v = (JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8")) as { version: string }).version;
+      for (const [k, p] of Object.entries(packs())) {
+        const pkg = JSON.parse(readFileSync(join(p.stage, "package.json"), "utf8")) as { version: string; dependencies?: Record<string, string>; peerDependencies?: Record<string, string> };
+        if (pkg.version !== v) problems.push(`${k}: version ${pkg.version}, want ${v}`);
+        for (const [d, x] of Object.entries({ ...pkg.dependencies, ...pkg.peerDependencies }).filter(([d]) => d.startsWith("@m3a/"))) if (x !== v) problems.push(`${k}: ${d}@${x}, want ${v}`);
+        if (!p.files.includes("CHANGELOG.md")) problems.push(`${k}: the tarball lacks CHANGELOG.md`);
+      }
+      if (problems.length) throw new Error(problems.join("\n"));
+      return `every pack at ${v}, its @m3a packages too, each with CHANGELOG.md (its ${v} section there: node tools/version.ts --check)`;
+    }, ["packs"]);
+    await step("private", () => {
+      const bad: string[] = [];
+      for (const [k, p] of Object.entries(packs())) {
+        const pkg = JSON.parse(readFileSync(join(p.stage, "package.json"), "utf8")) as { private?: boolean; publishConfig?: { provenance?: boolean }; repository?: { url?: string } };
+        if (!ready && pkg.private !== true) bad.push(`${k} drops "private": publishing waits for O2`);
+        if (ready && (pkg.private !== undefined || pkg.publishConfig?.provenance !== true || pkg.repository?.url !== REPOSITORY)) bad.push(`${k} isn't publishable: "private" dropped, publishConfig.provenance true and the repository ${REPOSITORY} wanted`);
+      }
+      if (bad.length) throw new Error(bad.join("\n"));
+      return ready ? "every staged package.json publishable (no \"private\", provenance, the repository); none published" : "every staged package.json keeps \"private\": true (O2)";
+    }, ["packs"]);
     await step("single file's licenses", () => {
       const text = readFileSync(state.single!.file, "utf8"), data = bundleData(readManifest());
       const want = [["the credits block", data.credits], ...Object.entries(data.licenses).map(([id, t]) => [`${id}'s text`, t.trimEnd()]), ["the code's MIT license", readFileSync(join(ROOT, "LICENSE"), "utf8").trimEnd()]];
@@ -139,10 +170,14 @@ if (import.meta.main) {
       const pass = rows.filter((r) => r.verdict === "pass").length;
       return `${clips.length} clips: ${pass} pass, ${clips.length - pass} carry their baseline; m3a.js's sensors read each as the packages' do`;
     }, ["single"]);
-    await step("example source", () => {
-      const file = parsed.flags.example;
-      state.example = typeof file === "string" ? readFileSync(resolve(file), "utf8") : exampleOf(readFileSync(join(ROOT, "packages/tools/MANUAL.md"), "utf8"));
-      return typeof file === "string" ? `${file} (--example)` : "MANUAL.md's ```ts example block";
+    await step("examples", () => {
+      // --example: a manual read as packages/tools/MANUAL.md is, or a program run alone as the complete example
+      const file = typeof parsed.flags.example === "string" ? resolve(parsed.flags.example) : null, program = file !== null && !file.endsWith(".md");
+      const md = file !== null && !program ? file : join(ROOT, "packages/tools/MANUAL.md"), where = relative(ROOT, md).startsWith("..") ? md : relative(ROOT, md);
+      const manual = readFileSync(md, "utf8"), marked = headlessOf(manual, where);
+      state.headless = marked === null ? { code: readFileSync(STANDIN, "utf8"), where: "tools/bundle/standin.ts" } : { code: marked, where: `${where}'s \`\`\`ts m3a.js block` };
+      state.example = program ? { files: {}, program: readFileSync(file, "utf8"), sh: [], blocks: 1 } : completeExample(manual, where);
+      return `the complete example: ${program ? `${parsed.flags.example} (--example)` : `${where}'s "${SECTION}" section`}; the headless one: ${state.headless.where}`;
     });
     await step("scratch install", () => {
       // three at the release @m3a/three takes as its peer (the pin)
@@ -158,13 +193,27 @@ if (import.meta.main) {
       if (!r.ok) throw new Error(`npm install failed in ${dir}:\n${r.out}`);
       return `${Object.keys(deps).length} packages installed in ${dir}`;
     }, ["packs"]);
-    await step("example on the packages", () => {
-      writeFileSync(join(state.scratch!, "example.ts"), state.example!);
-      const r = run(process.execPath, ["example.ts"], state.scratch!);
-      if (!r.ok) throw new Error(`node example.ts failed in ${state.scratch}:\n${r.out}`);
+    await step("example on the packages", async () => {
+      // what the manual says a game has beside the example's own files: a character (a generated test character)
+      const ex = state.example!, dir = state.scratch!, { character, variant } = await import("../../packages/three/test-characters/index.ts");
+      writeFileSync(join(dir, "character.glb"), character(variant(1)).glb);
+      for (const [f, text] of Object.entries(ex.files)) writeFileSync(join(dir, f), text);
+      writeFileSync(join(dir, "example.ts"), ex.program);
+      const r = run(process.execPath, ["example.ts"], dir);
+      if (!r.ok) throw new Error(`node example.ts failed in ${dir}:\n${r.out}`);
+      for (const line of ex.sh) {
+        const c = run("sh", ["-c", line.replace(/^(npx\s+)?m3a\s/, "npx --no m3a ")], dir);
+        if (!c.ok) throw new Error(`${line} failed in ${dir}:\n${c.out}`);
+      }
+      return `${ex.blocks} ts block${ex.blocks === 1 ? "" : "s"} as one program, with ${[...Object.keys(ex.files), "character.glb"].join(", ")}; ${ex.sh.length} m3a call${ex.sh.length === 1 ? "" : "s"}, each exiting 0`;
+    }, ["scratch", "example"]);
+    await step("headless example on the packages", () => {
+      writeFileSync(join(state.scratch!, "headless.ts"), state.headless!.code);
+      const r = run(process.execPath, ["headless.ts"], state.scratch!);
+      if (!r.ok) throw new Error(`node headless.ts (${state.headless!.where}) failed in ${state.scratch}:\n${r.out}`);
       state.printed = r.out;
       return r.out.trim().split("\n").pop()?.slice(0, 100) ?? "ran, printing nothing";
-    }, ["scratch", "example"]);
+    }, ["scratch", "headless"]);
     await step("npx m3a", () => {
       const help = run("npx", ["--no", "m3a", "help"], state.scratch!), version = run("npx", ["--no", "m3a", "version"], state.scratch!);
       const v = (JSON.parse(readFileSync(join(ROOT, "packages/tools/package.json"), "utf8")) as { version: string }).version;
@@ -185,20 +234,21 @@ if (import.meta.main) {
       if (!got || got.alone.join() !== "cc0" || got.all.sort().join() !== "cc-by,cc0,cmu") throw new Error(`openLibrary with the opt-in packs installed: ${r.out}`);
       return `openLibrary() sees cc0 alone; opted in, ${got.sets} sets of cc0, cc-by and cmu, verified`;
     }, ["scratch"]);
-    await step("example on m3a.js", () => {
+    await step("headless example on m3a.js", () => {
       const dir = mkdtempSync(join(tmpdir(), "m3a-single-"));
       try {
         cpSync(state.single!.file, join(dir, "m3a.js"));
         writeFileSync(join(dir, "package.json"), '{ "type": "module" }\n');
-        writeFileSync(join(dir, "example.ts"), forSingle(state.example!, state.single!.exports));
-        const r = run(process.execPath, ["example.ts"], dir);
-        if (!r.ok) throw new Error(`node example.ts on m3a.js failed:\n${r.out}`);
+        for (const [f, text] of Object.entries(state.example?.files ?? {})) writeFileSync(join(dir, f), text);
+        writeFileSync(join(dir, "headless.ts"), forSingle(state.headless!.code, state.single!.exports));
+        const r = run(process.execPath, ["headless.ts"], dir);
+        if (!r.ok) throw new Error(`node headless.ts (${state.headless!.where}) on m3a.js failed:\n${r.out}`);
         if (state.printed !== undefined && r.out !== state.printed) throw new Error(`it prints otherwise than on the packages:\n${r.out}\n-- on the packages:\n${state.printed}`);
-        return `the same output${state.printed === undefined ? "" : " as on the packages"}`;
+        return `${state.headless!.where}: the same output${state.printed === undefined ? "" : " as on the packages"}`;
       } finally {
         rmSync(dir, { recursive: true, force: true });
       }
-    }, ["single", "example"]);
+    }, ["single", "headless"]);
     if (state.scratch && steps.every((s) => s.ok)) rmSync(state.scratch, { recursive: true, force: true });
   }
   const ms = performance.now() - t0, ok = steps.every((s) => s.ok), failed = steps.filter((s) => !s.ok).map((s) => s.name);
