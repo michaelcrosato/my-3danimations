@@ -14,7 +14,7 @@ import { IDX, type Rest } from "../format/body.ts";
 import type { Clip, Contacts } from "../format/types.ts";
 import { PORTABLE } from "../math/portable.ts";
 import { VERSION } from "../version.ts";
-import { detectContacts, END_POINTS, sampleAll, type DetectOptions, type End, type Sampled } from "./contacts.ts";
+import { detectContacts, END_POINTS, sampleAll, sampleGrid, type DetectOptions, type End, type Sampled } from "./contacts.ts";
 import { rootAt, type Playable } from "./sample.ts";
 
 /** What measureFacts returns: every fact it could measure, and which tool measured them. */
@@ -51,9 +51,9 @@ const pt = (o: Float32Array, name: string): [number, number, number] => {
 export function measureFacts(clip: Measurable, R: Rest, opts: DetectOptions = {}, sampled?: Sampled): Facts {
   const fps = opts.fps ?? 60;
   if (sampled) {
-    // sampleAll's count and step (sampledBy's, a NaN duration none), two numbers compared, not the samples
-    const m = Math.max(1, Math.ceil(clip.dur * fps)), step = clip.dur / m, got = sampled.frames.length;
-    if (got !== (m > 0 ? m + 1 : 0) || !Object.is(sampled.dt, step)) throw new Error(`measureFacts: ${got} samples ${+sampled.dt.toFixed(4)} s apart, not sampleAll(clip, R, ${fps})'s ${m + 1} ${+step.toFixed(4)} s apart for this clip: pass sampleAll(clip, R, opts.fps) of this clip on this rest, or leave sampled out`);
+    // sampleAll's count and step (its grid's, a NaN duration none), two numbers compared, not the samples
+    const { n: m, dt: step } = sampleGrid(clip.dur, fps), got = sampled.frames.length;
+    if (got !== (m > 0 ? m + 1 : 0) || !Object.is(sampled.dt, step)) throw new Error(`measureFacts: ${got} samples ${+sampled.dt.toFixed(4)} s apart, not sampleAll(clip, R, ${fps})'s ${m + 1} samples ${+step.toFixed(4)} s apart for this clip: pass sampleAll(clip, R, opts.fps) of this clip on this rest, or leave sampled out`);
   } else sampled = sampleAll(clip, R, fps);
   if (clip.contacts && clip.contacts.by !== "labelled") clip = { ...clip, contacts: undefined };
   const { frames, dt } = sampled;

@@ -102,11 +102,11 @@ describe("measureFacts's samples", () => {
     expect(measureFacts(clip, R, {}, sampleAll(clip, R))).toEqual(measureFacts(clip, R));
   });
   it("refuses samples at another rate, or of a clip as many samples long at another step, naming sampleAll's", () => {
-    expect(() => measureFacts(clip, R, {}, sampleAll(clip, R, 30))).toThrow(/^measureFacts: \d+ samples [\d.]+ s apart, not sampleAll\(clip, R, 60\)'s \d+ [\d.]+ s apart for this clip: /);
-    expect(() => measureFacts(clip, R, { fps: 75 }, sampleAll(clip, R))).toThrow(/^measureFacts: .* not sampleAll\(clip, R, 75\)'s /);
+    expect(() => measureFacts(clip, R, {}, sampleAll(clip, R, 30))).toThrow(/^measureFacts: \d+ samples [\d.]+ s apart, not sampleAll\(clip, R, 60\)'s \d+ samples [\d.]+ s apart for this clip: /);
+    expect(() => measureFacts(clip, R, { fps: 75 }, sampleAll(clip, R))).toThrow(/^measureFacts: .* not sampleAll\(clip, R, 75\)'s \d+ samples /);
     // 0.99 s and 1 s at 60 a second: 61 samples each, 1/60 s and 0.0165 s apart
     const one = { ...clip, dur: 1 }, near = { ...clip, dur: 0.99 };
     expect(sampleAll(near, R).frames.length).toBe(sampleAll(one, R).frames.length);
-    expect(() => measureFacts(one, R, {}, sampleAll(near, R))).toThrow(/^measureFacts: 61 samples 0\.0165 s apart, not sampleAll\(clip, R, 60\)'s 61 0\.0167 s apart for this clip: /);
+    expect(() => measureFacts(one, R, {}, sampleAll(near, R))).toThrow(/^measureFacts: 61 samples 0\.0165 s apart, not sampleAll\(clip, R, 60\)'s 61 samples 0\.0167 s apart for this clip: /);
   });
 });

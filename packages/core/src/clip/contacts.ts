@@ -64,9 +64,15 @@ export function sampleAll(clip: Playable, R: Rest, fps = 60): Sampled {
 export function sampleLegs(clip: Playable, R: Rest, fps = 60): Sampled {
   return sampledBy(clip, fps, (t) => decodeLegs(R, keyAt(clip, t), new Float32Array(P * 3)) as Float32Array);
 }
+/** sampleAll's and sampleLegs's grid at about `fps` over `dur`: n + 1 sample times, dt apart (n at least 1; NaN for
+ *  a NaN duration: no samples). */
+export function sampleGrid(dur: number, fps: number): { n: number; dt: number } {
+  const n = Math.max(1, Math.ceil(dur * fps));
+  return { n, dt: dur / n };
+}
 /** The clip's sample times at about `fps` over its whole duration, both ends included, each posed by `pose`. */
 function sampledBy(clip: Playable, fps: number, pose: (t: number) => Float32Array): Sampled {
-  const n = Math.max(1, Math.ceil(clip.dur * fps)), dt = clip.dur / n;
+  const { n, dt } = sampleGrid(clip.dur, fps);
   const frames: Float32Array[] = [];
   // a loop's last sample is its cycle's end (the last key held or in-between), not the wrap back to its start
   const at = (i: number) => (clip.loop && i === n ? clip.dur * (1 - 1e-12) : i * dt);
