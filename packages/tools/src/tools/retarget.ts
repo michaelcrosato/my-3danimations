@@ -5,7 +5,8 @@
 // hierarchy the mapping breaks, hips under half the legs; a mesh io can't read is said, but no patch clears it, so it
 // is no finding, meshIssue), and clips played on it (retarget.apply: each judged on this body as G4's sweep judges a
 // skeleton, D80, judge.ts: it passes unless the body adds a fail finding or a joint misses its point; frames of the
-// first clip the body adds a fail to; an issue inspect finds a warning, the mesh's a note; at most 600 s of clips).
+// first clip the body adds a fail to; an issue inspect finds a warning, the mesh's a note; at most 600 s of clips, no
+// foot held past MAX_HOLD).
 // Rows are capped with the shared more line, the character and clips are named as clips.ts names a file, and each
 // reply's next names the call after it.
 import { format, skeleton } from "@m3a/core";
@@ -15,13 +16,14 @@ import { strip } from "../sim/film.ts";
 import { bodyOf, CHARACTER, characterName, characterOf, MAPPING, meshIssue, type MappingPatch } from "./body.ts";
 import { given, loadClip, naming, prose } from "./clips.ts";
 import { arg, call, capped, count, cut, imageName, mm, more, output, round } from "./common.ts";
-import { onBody, type Played } from "./judge.ts";
+import { boundHolds, contactsFor, onBody, type Played } from "./judge.ts";
 
 /** The most clips retarget.apply plays in one call. */
 const MAX_CLIPS = 20;
 /** The most clip time (s) retarget.apply plays in one call: as long as one clip may last (M2-E010), 36,000 samples at
- *  the judge's 60 a second, the most steps graph.sim runs. It bounds clip time, not cost: core's planter is superlinear
- *  in a contact's length (contact/plant.ts), so a 600 s clip holding a foot down throughout may take hours. */
+ *  the judge's 60 a second, the most steps graph.sim runs. It bounds clip time; the cost is bounded by MAX_HOLD
+ *  (judge.ts), as core's planter is superlinear in a held foot's stretch (contact/plant.ts): no clip plays a foot held
+ *  past 15 s, which takes about 2 s here. */
 const MAX_DUR = format.LIMITS.dur;
 /** The clip a next hint offers to play first: the library's core walk (cc0). */
 const WALK = "QUATERNIUS_3D2DGE/Walk_Loop";
@@ -72,9 +74,9 @@ export const inspect = defineTool<{ character: string; mapping?: MappingPatch },
 });
 
 /** `retarget.apply`: clips played on a bound character, each judged as the sweep judges a skeleton (D80); findings
- *  when one fails, with frames of the first the body adds a fail to as it played there. A clip that won't load, or clips
- *  lasting past MAX_DUR in all, refuse the call before any plays; an issue retarget.inspect finds against the mapping is
- *  the reply's first line, a warning, and the mesh's a note. */
+ *  when one fails, with frames of the first the body adds a fail to as it played there. A clip that won't load, clips
+ *  lasting past MAX_DUR in all, or one holding a foot past MAX_HOLD (judge.ts) refuse the call before any plays; an
+ *  issue retarget.inspect finds against the mapping is the reply's first line, a warning, and the mesh's a note. */
 export const apply = defineTool<{ character: string; clips: string[]; mapping?: MappingPatch }, unknown>({
   name: "retarget.apply",
   description: "Play clips on a character: each passes or fails against its own body, with joint reach and metrics made worse.",
@@ -89,6 +91,8 @@ export const apply = defineTool<{ character: string; clips: string[]; mapping?: 
     const dur = loaded.reduce((t, k) => t + k.clip.dur, 0);
     // rounded up, so the total said is past the limit too
     if (dur > MAX_DUR) throw new ToolError("E_ARGS", `clips last ${Math.ceil(dur * 10) / 10} s in all, past the ${MAX_DUR} s one call plays; give fewer or shorter clips, and call again for the rest`, true);
+    // no foot held past MAX_HOLD, as each clip plays (onBody plays it with these contacts)
+    for (const k of loaded) boundHolds({ ...k.clip, contacts: contactsFor(k.clip, k.rest) }, naming(k).title);
     const c = await bodyOf(ctx, a.character, a.mapping), as = characterName(a.character), said = prose(as), H0 = round(c.bound.rest.H0), see = call("retarget.inspect", [as], { mapping: a.mapping });
     // the first clip the body adds a fail to, as it played there (the frames the metric read), to draw
     const drawn: { p: Played; dur: number; clip: string }[] = [];
@@ -119,7 +123,7 @@ export const apply = defineTool<{ character: string; clips: string[]; mapping?: 
           const why = capped(j.why, 2), worse = capped(j.worse, 3), cuts = { ...(why.more ? { why: why.more } : {}), ...(worse.more ? { worse: worse.more } : {}) };
           return {
             clip: j.clip, ok: j.ok, own: j.own, played: j.played, reach: round(j.reach), why: why.rows.map((w) => cut(w)),
-            worse: worse.rows.map((w) => ({ metric: w.metric, level: w.level, own: round(w.own, 1), played: round(w.played, 1) })), ...(why.more || worse.more ? { more: cuts } : {}),
+            worse: worse.rows.map((w) => ({ metric: w.metric, level: w.level, own: w.own === null ? null : round(w.own, 1), played: w.played === null ? null : round(w.played, 1) })), ...(why.more || worse.more ? { more: cuts } : {}),
           };
         }),
       },

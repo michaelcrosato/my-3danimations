@@ -15,6 +15,7 @@ import { defineTool, ToolError, type LibraryAccess, type ToolContext } from "../
 import { quote, type Schema } from "../registry/schema.ts";
 import { compareTraces, filmstrip, simulate, traceText, validateScript, type SimScript, type Trace } from "../sim/index.ts";
 import { bodyOf, CHARACTER, characterName } from "./body.ts";
+import { boundHolds } from "./judge.ts";
 import { bounded, clipResolver, fits, given, loadClip, naming, prose, refusal, suggestId, type ClipRef } from "./clips.ts";
 import { call, capped, count, cut, fileOrJson, mm, more, output, round, sec } from "./common.ts";
 import { WORKSHOP } from "./workshop.ts";
@@ -197,7 +198,7 @@ export const graphValidate = defineTool<{ graph: string; clips?: string[] }, unk
 });
 
 /** `graph.sim`: a script of game input run on a graph and a character; its trace written, compared with an expected one;
- *  a run too long to take refused. */
+ *  a run too long to take, or a clip its states name holding a foot past MAX_HOLD (judge.ts), refused. */
 export const graphSim = defineTool<{ graph: string; script: string; character: string; expect?: string; clips?: string[] }, unknown>({
   name: "graph.sim",
   description: "Run a script of game input on a graph: states, events, hit windows, travel, sensors, a filmstrip; diffs an expected trace.",
@@ -215,13 +216,15 @@ export const graphSim = defineTool<{ graph: string; script: string; character: s
     const at = isObj(script) && typeof script.rate === "number" ? script.rate : 60, n = isObj(script) && typeof script.dur === "number" ? Math.round(script.dur * at) : 0;
     if (n > MAX_STEPS) throw new ToolError("E_ARGS", `the script runs ${n} steps (dur ${script.dur} s at rate ${at}), past the ${MAX_STEPS} graph.sim takes: shorten dur or lower rate`, s.path === null);
     const again = (expect = want?.flag) => call("graph.sim", [g.as], { script: s.flag, character: a.character === "tiny" ? undefined : given(character, a.character), clips: g.clips, expect });
-    const issues = [...g.issues, ...validateScript(script, g.issues.length ? undefined : g.graph)], x = issued(issues);
-    const none = { script: s.id, graph: g.id, character: who, steps: 0, states: [], events: 0, hits: [], went: null, rate: null, sensors: null, findings: [], warnings: [], trace: null, matches: null, diff: null };
-    if (issues.length) return { verdict: `graph.sim ${s.title} on ${who}: FAIL, ${count(issues.length, "issue")}; not run`, data: { ...none, issues: x.rows, ...cuts({ issues: x }) }, lines: x.lines, findings: true, next: `fix each issue as its fix says, then ${again()} again` };
     const cache = new Map<string, AnimClip | undefined>(), clips = (id: string) => {
       if (!cache.has(id)) cache.set(id, ((c) => c && playable(c.clip, c.rest))(g.find(id)));
       return cache.get(id);
     };
+    // no clip a state names holds a foot past MAX_HOLD as it plays (once the graph checks: its clips are then found)
+    if (!g.issues.length) for (const id of new Set(G.layersOf(g.graph).flatMap((L) => Object.values(L.states).flatMap(G.clipsOf)))) ((c) => c && boundHolds(c, id))(clips(id));
+    const issues = [...g.issues, ...validateScript(script, g.issues.length ? undefined : g.graph)], x = issued(issues);
+    const none = { script: s.id, graph: g.id, character: who, steps: 0, states: [], events: 0, hits: [], went: null, rate: null, sensors: null, findings: [], warnings: [], trace: null, matches: null, diff: null };
+    if (issues.length) return { verdict: `graph.sim ${s.title} on ${who}: FAIL, ${count(issues.length, "issue")}; not run`, data: { ...none, issues: x.rows, ...cuts({ issues: x }) }, lines: x.lines, findings: true, next: `fix each issue as its fix says, then ${again()} again` };
     const run = simulate({ graph: g.graph, script, body: body.bound, clips }), tr = run.trace, name = tr.script.split("/")[1]!, frames = script.film ?? 8;
     const written = ctx.write(`check-output/graph.sim/${name}.trace.json`, traceText(tr)), film = frames > 0 && run.frames.length > 0;
     if (film) ctx.image(name, filmstrip(run, frames));

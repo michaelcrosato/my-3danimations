@@ -6,10 +6,13 @@
 // clips as the sweep does (D80): swapped arms miss their points (inspect's issue a warning), hips on the root (that
 // issue the next call; a row's reasons capped), a body that adds a fail finding (its frames drawn, its line first), a
 // warn it adds listed, a VRM's humanoid, the tiny rig, clips as a path and as JSON named as given; its refusals (too
-// many clips or none, misspelt clips before any plays, clips past 600 s in all, a character missing a bone). A
+// many clips or none, misspelt clips before any plays, clips past 600 s in all, a character missing a bone, a patch
+// leaving two humanoid bones on one source bone; a metric that is no finite number written so, and null in data). A
 // compressed mesh is said by both, but is no mapping issue (meshIssue): no finding, turntable, patch hint or warning of
-// its own. Every next and every refusal's call runs as written. One working directory for the file: the tools only
-// read, and write images.
+// its own. A clip holding a foot past MAX_HOLD (15 s) refused before it plays, by retarget.apply, export and graph.sim,
+// its contacts bridged as core's planter bridges them (a 12 s hold, and one of 15 s, pass). Every next and every
+// refusal's call runs as written. One working directory for the file: the tools only read, and write images (and
+// recipe.compile its clip file).
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { turntable } from "@m3a/sensors";
@@ -18,7 +21,8 @@ import { afterAll, describe, expect, it } from "vitest";
 import { nodeHost } from "../src/node.ts";
 import { Registry, type Reply, type ToolContext } from "../src/registry/index.ts";
 import { characterOf, type MappingPatch } from "../src/tools/body.ts";
-import { RETARGET } from "../src/tools/index.ts";
+import { COMPOSE, EXCHANGE, RETARGET } from "../src/tools/index.ts";
+import { boundHolds, heldStretches, MAX_HOLD, valueData, valueText } from "../src/tools/judge.ts";
 import { exampleCwd, hintedCalls, ROOT, runExamples } from "./helpers/surfaces.ts";
 
 type Row = Record<string, unknown>;
@@ -85,10 +89,11 @@ describe("the retarget tools", () => {
     const bent = (await rigifyBody(SWAP)).bound!;
     expect(Buffer.from([...pngs.values()][0]!).equals(Buffer.from(png(turntable(bent.restPts, { n: 4, size: 160 }))))).toBe(true);
     expect(runs(swapped.next).map((h) => h.tool)).toEqual(["retarget.inspect", "retarget.apply"]);
-    // the rig's root taken for its hips: below the ground, under half the legs; a foot, above it but as low
-    const low = await call("retarget.inspect", { character: RIGIFY, mapping: ROOT_HIPS }), foot = await call("retarget.inspect", { character: RIGIFY, mapping: { bones: { hips: "DEF-foot.L" } } });
+    // the rig's root taken for its hips: below the ground, under half the legs; a foot, above it but as low (the left
+    // foot's row given its toe, as no two humanoid bones may name one source bone)
+    const low = await call("retarget.inspect", { character: RIGIFY, mapping: ROOT_HIPS }), foot = await call("retarget.inspect", { character: RIGIFY, mapping: { bones: { hips: "DEF-foot.L", leftFoot: "DEF-toe.L", leftToes: null } } });
     expect([low.status, low.data!.issues, low.images.length, (foot.data!.issues as string[]).at(-1)]).toEqual(["findings", ["patched by hand", "hips (root) likely the wrong bone: only -20 mm up, under half the legs' 850 mm"], 1,
-      "hips (DEF-foot.L) likely the wrong bone: only 60 mm up, under half the legs' 850 mm"]);
+      "hips (DEF-foot.L) likely the wrong bone: only 60 mm up, under half the legs' 925 mm"]);
     const shaped = await call("retarget.inspect", { character: "renamed.gltf" }), hairy = await call("retarget.inspect", { character: "hair.gltf", mapping: { bones: { leftUpperLeg: null } } });
     // its hips' name, 100 characters, cut in its issue to a row's 90
     expect([shaped.status, shaped.verdict, shaped.data!.issues, shaped.images.length]).toEqual(["findings", "retarget.inspect renamed.gltf: 31 bones by topology, confidence 0.85, 15 of 15 required, rest T, hip height 930 mm",
@@ -160,5 +165,33 @@ describe("the retarget tools", () => {
       ["usage", { code: "E_ARGS", message: "clips last 600.1 s in all, past the 600 s one call plays; give fewer or shorter clips, and call again for the rest" }],
     ]);
     for (const hint of [got[3]!.error!.message, got[3]!.next]) expect(runs(hint)).toEqual([{ tool: "retarget.inspect", args: { character: RIGIFY, mapping: { bones: { leftUpperLeg: null } } } }]);
+    // a patch leaving two humanoid bones on one source bone, one of them the patch's: their rows would contradict
+    const shared = (who: string, bone: string) => ["usage", { code: "E_ARGS", message: `mapping: ${who} both name "${bone}"; a source bone stands for one humanoid bone: give one another, or null to unmap it` }];
+    const twice = [await call("retarget.apply", { character: "tiny", clips: [WALK], mapping: { bones: { spine: "pelvis" } } }), await call("retarget.apply", { character: "tiny", clips: [WALK], mapping: { bones: { hips: "root", leftUpperLeg: "root" } } })];
+    expect(twice.map((r) => [r.status, r.error])).toEqual([shared("hips and spine", "pelvis"), shared("hips and leftUpperLeg", "root")]);
+    // a metric's value that is no finite number: "not finite" in a row's text, null in its worse[] (JSON has none)
+    expect([NaN, Infinity, -Infinity, 61.234, 483.4].map((v) => [valueText(v), valueData(v)])).toEqual([["not finite", null], ["not finite", null], ["not finite", null], ["61.2", 61.234], ["483", 483.4]]);
+  });
+
+  it("refuses a clip holding a foot past 15 s before it plays (retarget.apply, export, graph.sim), its contacts bridged as core's planter bridges them", async () => {
+    // Idle_Loop retimed to 20 s: both feet hold throughout, one stretch each
+    const all = new Registry([...RETARGET, ...COMPOSE, ...EXCHANGE]), on = (tool: string, args: object) => all.call(tool, args, { host }) as Promise<Reply<Row>>;
+    const made = await on("recipe.compile", { recipe: JSON.stringify({ format: "2.0", id: "RECIPES/Idle_20", steps: [{ op: "clip", id: "QUATERNIUS_3D2DGE/Idle_Loop" }, { op: "retime", in: "s1", dur: 20 }] }) }), file = made.data!.path as string;
+    const held = (title: string, foot = "left") => ({ code: "E_ARGS", message: `${title}: its ${foot} foot holds the ground 20.000 s (0.000–20.000 s), past the 15 s one call plays a held foot for; cut it into clips whose feet hold under 15 s (a recipe's or edit's slice), and call again` });
+    const graph = JSON.stringify({ format: "2.0", id: "GRAPHS/Still", name: "Still", parameters: {}, start: "idle", states: { idle: { clip: "RECIPES/Idle_20" } }, transitions: [] });
+    const got = [await on("retarget.apply", { character: "tiny", clips: [file] }), await on("export", { clip: file, character: "tiny", format: "bvh" }), await on("graph.sim", { graph, script: JSON.stringify({ format: "2.0", id: "SIMS/Stand", dur: 1, input: [] }), clips: [file] })];
+    expect(got.map((r) => [r.status, r.error])).toEqual([["usage", held(file)], ["usage", held(file)], ["usage", held("RECIPES/Idle_20")]]);
+    // two contacts 0.05 s apart are one stretch, as the planter bridges them (under 0.1 s); 0.15 s apart, two
+    const clip = JSON.parse(readFileSync(join(cwd, file), "utf8")) as { contacts: object };
+    writeFileSync(join(cwd, "two holds.json"), JSON.stringify({ ...clip, contacts: { by: "labelled", footR: [[0, 10], [10.05, 20]] } }));
+    expect((await call("retarget.apply", { character: "tiny", clips: ["two holds.json"] })).error).toEqual(held("'two holds.json'", "right"));
+    const once = { dur: 20, loop: false }, at = (h: { foot: string; from: number; to: number }[]) => h.map((x) => [x.foot, x.from, x.to]);
+    expect(at(heldStretches({ ...once, contacts: { by: "labelled", footL: [[10.15, 20], [0, 10]], footR: [[0, 10], [10.05, 20]] } }))).toEqual([["footR", 0, 20], ["footL", 0, 10], ["footL", 10.15, 20]]);
+    // a loop's seam closed when its gap is under 0.1 s (with more than one stretch), the last running on into the next cycle
+    expect(at(heldStretches({ dur: 20, loop: true, contacts: { by: "labelled", footL: [[0, 5], [5.2, 19.95]] } }))).toEqual([["footL", 5.2, 25]]);
+    expect(at(heldStretches({ dur: 20, loop: true, contacts: { by: "labelled", footL: [[0, 20]] } }))).toEqual([["footL", 0, 20]]);
+    expect(() => boundHolds({ dur: 20, loop: true, contacts: { by: "labelled", footL: [[0, 5], [5.2, 19.95]] } }, "X")).toThrow(/^X: its left foot holds the ground 19\.800 s \(5\.200–25\.000 s, on through its loop's seam\)/);
+    // a 12 s hold passes, and one of exactly the limit
+    for (const t of [12, MAX_HOLD]) expect(() => boundHolds({ ...once, contacts: { by: "labelled", footL: [[0, t]], footR: [[2, 2 + t]] } }, "X"), String(t)).not.toThrow();
   });
 });

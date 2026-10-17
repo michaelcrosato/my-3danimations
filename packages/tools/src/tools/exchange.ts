@@ -14,6 +14,7 @@ import { setFiles, tierOf, withFacts } from "@m3a/library";
 import { defineTool, ToolError, type LibraryAccess, type ToolContext } from "../registry/registry.ts";
 import { quote } from "../registry/schema.ts";
 import { bodyOf, CHARACTER, characterName, MAPPING, type MappingPatch } from "./body.ts";
+import { boundHolds } from "./judge.ts";
 import { given, loadClip, naming, parts, prose } from "./clips.ts";
 import { ARROW, call, capped, CLIP, count, cut, fileOrJson, imageName, mm, more, output, round, sec } from "./common.ts";
 
@@ -258,6 +259,7 @@ export const exportClip = defineTool<{ clip: string; character: string; format: 
   async run(a, ctx) {
     const ref = await loadClip(ctx, a.clip), { as, title } = naming(ref), who = characterName(a.character), { bound: b, report } = await bodyOf(ctx, a.character, a.mapping);
     const clip = playable(ref.clip, ref.rest), fps = 30, frames = Math.max(1, Math.ceil(clip.dur * fps)) + 1;
+    boundHolds(clip, title); // no foot held past MAX_HOLD, before it plays
     let bytes: Uint8Array, back: { mm: number | null; check: string };
     if (a.format === "vrma") {
       const v = io(() => writeVrma(clip, b, { fps })), again = io(() => encodeVrma(decodeVrma(v)));

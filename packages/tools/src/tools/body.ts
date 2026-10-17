@@ -183,9 +183,23 @@ function checkPatch(sk: SkeletonIn, m: MappingPatch): void {
   }
 }
 
+/** Refuses (E_ARGS) a patch that leaves two humanoid bones or more naming one source bone, one of them by the patch
+ *  (hips and spine both "pelvis"): their rows would contradict each other. Ones the file's names or a VRM's humanoid
+ *  gave alike are left to the report. */
+function checkShared(rec: skeleton.Recognition, m: MappingPatch): void {
+  const by = new Map<string, string[]>();
+  for (const h of skeleton.HUMANOID_BONES) if (rec.bones[h]) by.set(rec.bones[h], [...(by.get(rec.bones[h]) ?? []), h]);
+  for (const [src, hs] of by) {
+    if (hs.length < 2 || !hs.some((h) => typeof m.bones[h] === "string")) continue;
+    const who = hs.length === 2 ? `${hs[0]} and ${hs[1]} both name` : `${hs.slice(0, -1).join(", ")} and ${hs.at(-1)} all name`;
+    throw new ToolError("E_ARGS", `mapping: ${who} ${quote(src)}; a source bone stands for one humanoid bone: give one another, or null to unmap it`, true);
+  }
+}
+
 /**
  * A character bound for the tools: `ref` (a .glb, .gltf or .vrm file, or "tiny") read, its bones recognized (a VRM's by
- * its humanoid), `mapping` patched over them, and bound through core. A required bone still missing leaves it unbound,
+ * its humanoid), `mapping` patched over them (refused when it leaves two humanoid bones on one source bone), and bound
+ * through core. A required bone still missing leaves it unbound,
  * the report saying which; no humanoid bone recognized at all, or bones of no usable length (their rest points not
  * finite, or the legs' length none), is E_RIG (an error), and too many bones or too long a chain E_LIMIT. Hips bound
  * under half the legs' length are an issue: a wrong bone for them.
@@ -200,6 +214,7 @@ export async function characterOf(ctx: ToolContext, ref: string, mapping?: Mappi
   if (mapping) {
     checkPatch(sk, mapping);
     rec = skeleton.patchMapping(sk, rec, mapping.bones);
+    checkShared(rec, mapping);
   }
   if (byVrm) {
     // a VRM's humanoid is the file's own word, not a hand patch; a required bone it doesn't give is said, with how it was found

@@ -77,7 +77,7 @@ describe("the sweep", () => {
     for (const id of ["QUATERNIUS_3D2DGE/Walk_Loop", "MESH2MOTION/Walk_Large", "STYLE100/Neutral_Walk"]) {
       const c = lib.find((x) => x.clip.id === id)!, r = sweepOne(c.clip, c.rest, b, "gen-7");
       expect(r.why.filter((w) => /^seam /.test(w)), id).toEqual([]);
-      for (const w of r.worse) expect(w.played / w.playedLevels[0], `${id} ${w.metric}`).toBeGreaterThanOrEqual(1);
+      for (const w of r.worse) expect((w.played ?? NaN) / w.playedLevels[0], `${id} ${w.metric}`).toBeGreaterThanOrEqual(1);
     }
   }, 120_000);
   it("reads the clip's own slide over the stretches the played body stands on, where its own foot is down too", () => {
