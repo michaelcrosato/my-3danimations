@@ -13,6 +13,7 @@ import { TIERS, type Library, type LibrarySource, type Tier } from "@m3a/library
 import { defaultSets, directory, licenseText, openLibrary } from "@m3a/library/node";
 import { ToolError, type LibraryAccess } from "../registry/registry.ts";
 import { didYouMean, quote } from "../registry/schema.ts";
+import { oneLine } from "../tools/common.ts";
 import { errno, under } from "./files.ts";
 
 /** The tiers game.json in `cwd` opts in to, in TIERS' order; ["cc0"] without the file or its "tiers". E_GAME (usage)
@@ -30,7 +31,7 @@ export function gameTiers(cwd: string): Tier[] {
   try {
     game = JSON.parse(text) as typeof game;
   } catch (err) {
-    throw new ToolError("E_GAME", `game.json is not JSON (${(err as Error).message}); fix it, or remove it for the CC0 default`, true);
+    throw new ToolError("E_GAME", `game.json is not JSON (${oneLine(err)}); fix it, or remove it for the CC0 default`, true);
   }
   const fix = `"tiers" in game.json lists tiers, of ${TIERS.join(", ")}, as { "tiers": ["cc0", "cc-by"] }`;
   if (typeof game !== "object" || game === null || Array.isArray(game)) throw new ToolError("E_GAME", `game.json is a JSON object: ${fix}`, true);

@@ -7,7 +7,7 @@ import { format, recipe, validate, validation, type Clip, type Rest } from "@m3a
 import { LibraryError, tierOf, type SourceAbout, type Tier } from "@m3a/library";
 import { ToolError, type LibraryAccess, type ToolContext } from "../registry/registry.ts";
 import { closest, quote } from "../registry/schema.ts";
-import { absolute, arg, count } from "./common.ts";
+import { absolute, arg, count, oneLine } from "./common.ts";
 import { readTarget, WORKSHOP, workshopName } from "./workshop.ts";
 
 /** Where a clip's rest comes from: the set and key (the clip's restSrc) of a manifest's source, with that source. */
@@ -136,7 +136,7 @@ export function fromText(lib: LibraryAccess, text: string, where: "workshop" | "
   try {
     data = JSON.parse(text);
   } catch (err) {
-    throw new ToolError("E_CLIP", `${what} is not JSON: ${(err as Error).message}`, inline);
+    throw new ToolError("E_CLIP", `${what} is not JSON: ${oneLine(err)}`, inline);
   }
   const r = validate(data, { mode: "read" });
   if (!r.ok) throw new ToolError("E_CLIP", `${what} is not a valid clip (${count(r.errors.length, "error")}): ${validation.formatIssue(r.errors[0]!).replace(/\s*\n\s*/g, "; ")}`, inline);

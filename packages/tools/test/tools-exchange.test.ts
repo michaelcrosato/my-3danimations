@@ -1,14 +1,16 @@
 // Exchange (PLAN.md WP-7.2b): import and export on every surface (import listed to MCP as no read-only tool), then
-// their failing inputs (a catalog off its shape or no JSON, every take skipped); an imported set that the library opens
-// as a local set (openLibrary on imports/), which license.check fails for a shipped game and passes for one that stays
-// on the machine (D10), its rest take held a frame, imported again in place under a credited license (the host's
-// library opened again, at most MAX_OPEN kept, the least lately used dropped; every clip file it doesn't write removed,
-// so the set verifies), a broken imported set left out with a warning, breaking no other, and one named as a library
-// set left out, import refusing the name (its manifest the library's own too); and a clip exported as VRMA (read back
-// byte for byte), .glb (onto Rigify's turned and scaled armature too; off, findings, under an uneven scale) and BVH,
-// each read back through io within 1 mm, the VRMA then imported again, and the BVH jittered, from an absolute path,
-// past the fit limits, its hint naming the catalog as given.
-import { cpSync, mkdirSync, readdirSync, readFileSync, symlinkSync, writeFileSync } from "node:fs";
+// their failing inputs (a catalog off its shape or no JSON, every take skipped, a game.json that isn't JSON: each
+// refusal one line); an imported set that the library opens as a local set (openLibrary on imports/), which
+// license.check fails for a shipped game and passes for one that stays on the machine (D10), its rest take held a frame,
+// imported again in place under a credited license (the host's library opened again, at most MAX_OPEN kept, the least
+// lately used dropped; every clip file an import wrote that it doesn't write removed and named, so the set verifies, a
+// first import's cut short too; any other .json there refusing it, nothing changed), a broken imported set left out
+// with a warning, breaking no other, and one named as a library set left out, import refusing the name (its manifest
+// the library's own too); and a clip exported as VRMA (read back byte for byte), .glb (onto Rigify's turned and scaled
+// armature too; off, findings, under an uneven scale) and BVH, each read back through io within 1 mm, the VRMA then
+// imported again, and the BVH jittered, from an absolute path, past the fit limits, its hint naming the catalog as given
+// (a name the shell would split too), as export's names a clip file.
+import { cpSync, mkdirSync, readdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { openLibrary } from "@m3a/library/node";
 import { describe, expect, it } from "vitest";
@@ -18,7 +20,7 @@ import { nodeHost } from "../src/node.ts";
 import { Registry, type Host, type Reply } from "../src/registry/index.ts";
 import { exportClip, importMotion } from "../src/tools/exchange.ts";
 import { EXCHANGE, SHIP } from "../src/tools/index.ts";
-import { exampleCwd, runExamples } from "./helpers/surfaces.ts";
+import { exampleCwd, hintedCalls, runExamples } from "./helpers/surfaces.ts";
 
 const RIG = "spec/vectors/tier1b/rig.gltf", RIGIFY = "spec/vectors/tier1b/rigify.gltf", WALK = "QUATERNIUS_3D2DGE/Walk_Loop", OUT = "check-output/export/QUATERNIUS_3D2DGE_Walk_Loop";
 const refused = (r: Reply) => [r.status, r.error?.code, r.error?.message];
@@ -55,8 +57,9 @@ describe("exchange", () => {
       // a catalog off its shape names the entry: usage given inline, an error in a file
       expect(refused(await call("import", { path: RIG, license: "CC0-1.0", catalog: '{"$pick": {"Wave": {"from": "Wave_Loop"}}}' }))).toEqual(["usage", "E_ARGS", 'catalog: "$pick" "Wave" is [take, from s, to s, shortest cycle s], not {"from":"Wave_Loop"}']);
       expect(refused(await call("import", { path: RIG, license: "CC0-1.0", catalog: "tags.json" }))).toEqual(["error", "E_ARGS", 'catalog: "Wave_Loop" is ["tags", "what it does"], not [3,"waves"]']);
-      // a catalog that is no JSON named as clips.ts names a file: "file" for an absolute path, else as given
-      for (const [catalog, named] of [[join(cwd, "cut.bvh"), /^the catalog file is not JSON: [^/]*$/], ["cut.bvh", /^the catalog cut\.bvh is not JSON: /]] as const) expect(refused(await call("import", { path: RIG, license: "CC0-1.0", catalog }))).toEqual(["error", "E_JSON", expect.stringMatching(named)]);
+      // a catalog that is no JSON named as clips.ts names a file: "file" for an absolute path, else as given; the parser's
+      // message (V8's quotes the file's first line, its line break too) on one line
+      for (const [catalog, named] of [[join(cwd, "cut.bvh"), /^the catalog file is not JSON: [^/\p{Cc}]*$/u], ["cut.bvh", /^the catalog cut\.bvh is not JSON: Unexpected token 'H', "HIERARCHY "\.\.\. is not valid JSON$/u]] as const) expect(refused(await call("import", { path: RIG, license: "CC0-1.0", catalog }))).toEqual(["error", "E_JSON", expect.stringMatching(named)]);
       expect(refused(await call("import", { path: "cut.bvh", license: "CC0-1.0" }))).toEqual(["error", "E_FORMAT", expect.stringMatching(/^cut\.bvh: /)]);
       // every take skipped: E_NO_CLIP names 20 with their reasons and counts the rest, as a reply caps its skipped rows
       const takes = JSON.parse(readFileSync(join(cwd, RIG), "utf8")) as { animations: { name: string }[] }, names = Array.from({ length: 22 }, (_, i) => `Take${i}`);
@@ -64,6 +67,8 @@ describe("exchange", () => {
       writeFileSync(join(cwd, "takes.gltf"), JSON.stringify(takes));
       const skip = JSON.stringify({ $skip: Object.fromEntries(names.map((n) => [n, "not now"])) });
       expect(refused(await call("import", { path: "takes.gltf", license: "CC0-1.0", catalog: skip }))).toEqual(["error", "E_NO_CLIP", `no clip came out of takes.gltf: ${names.slice(0, 20).map((n) => `${n}: not now`).join("; ")}; and 2 more skipped`]);
+      writeFileSync(join(cwd, "game.json"), "x\ny");
+      expect(refused(await call("import", { path: RIG, license: "CC0-1.0" }))).toEqual(["usage", "E_GAME", `game.json is not JSON (Unexpected token 'x', "x y" is not valid JSON); fix it, or remove it for the CC0 default`]);
     }));
 
   it("imports a set the library opens as local, which license.check fails for a shipped game (D10); lists; imports in place; leaves a broken set out", () =>
@@ -93,7 +98,8 @@ describe("exchange", () => {
       writeFileSync(join(cwd, "cat.json"), JSON.stringify({ ...cat, $sources: { RIG: { ...cat.$sources.RIG, credit } }, $skip: { Step_RM: "a slide, not a step" } }));
       const again = await call("import", { path: RIG, set: "RIG", license: "CC-BY-SA-4.0", catalog: "cat.json" });
       expect([again.status, (again.data as Data).skipped, (again.data as { notes: string[] }).notes[0], readdirSync(join(cwd, "imports/RIG")).sort()]).toEqual(["ok", [{ name: "Step_RM", why: "a slide, not a step" }], "CC-BY-SA-4.0's text isn't in library/LICENSES/: license.check fails the set", ["A_TPose.json", "Wave_Loop.json", "_set.json", "catalog.tsv"]]);
-      expect(again.lines[0]).toBe("note: CC-BY-SA-4.0's text isn't in library/LICENSES/: license.check fails the set");
+      const removed = (r: Reply) => [r.lines.filter((l) => l.startsWith("removed ")), (r.data as { removed?: number }).removed];
+      expect([again.lines[0], ...removed(again)]).toEqual(["note: CC-BY-SA-4.0's text isn't in library/LICENSES/: license.check fails the set", ["removed 1 clip file this import doesn't make: Step_RM.json"], 1]);
       const now = openLibrary({ dir: join(cwd, "imports"), tiers: ["local"] });
       expect([now.catalog().map((c) => c.id), now.clip("RIG/Wave_Loop").clip.provenance.credit, source().license, source().credit]).toEqual([["RIG/A_TPose", "RIG/Wave_Loop"], credit, "CC-BY-SA-4.0", credit]);
       expect((await call("license.check", { clips: ["RIG/Step_RM"], tiers: ["local"], ships: false })).data).toMatchObject({ findings: [{ message: expect.stringMatching(/^no clip "RIG\/Step_RM"/) }] });
@@ -106,6 +112,20 @@ describe("exchange", () => {
         expect((await call("import", { path: RIG, set, license: "CC0-1.0", catalog })).status).toBe("ok");
         expect(readdirSync(join(cwd, "imports", set)).sort()).toEqual([...kept, "_set.json", "catalog.tsv"]);
       }
+      // a .json there that no import wrote (a catalog kept in the set's directory) is never removed: the import is
+      // refused, nothing changed, in a set imported before and in a first import (no _set.json yet); a clip an import
+      // wrote that a first import cut short left there goes, named
+      mkdirSync(join(cwd, "imports/CUT"));
+      cpSync(join(cwd, "imports/RIG/Wave_Loop.json"), join(cwd, "imports/CUT/Orphan.json"));
+      for (const set of ["MINE", "CUT"]) {
+        cpSync(join(cwd, "spec/vectors/tier1b/rig-catalog.json"), join(cwd, `imports/${set}/catalog.json`));
+        const was = readdirSync(join(cwd, "imports", set)).sort();
+        expect(refused(await call("import", { path: RIG, set, license: "CC0-1.0", catalog: `imports/${set}/catalog.json` }))).toEqual(["error", "E_EXISTS", `imports/${set}/catalog.json is no clip m3a import wrote: move it out of imports/${set}/, where the library reads each .json as one of the set's clips; nothing was changed`]);
+        expect(readdirSync(join(cwd, "imports", set)).sort()).toEqual(was);
+        rmSync(join(cwd, `imports/${set}/catalog.json`));
+      }
+      const cut = await call("import", { path: RIG, set: "CUT", license: "CC0-1.0", catalog: "cat.json" });
+      expect([cut.status, ...removed(cut), readdirSync(join(cwd, "imports/CUT")).sort()]).toEqual(["ok", ["removed 1 clip file this import doesn't make: Orphan.json"], 1, ["A_TPose.json", "Wave_Loop.json", "_set.json", "catalog.tsv"]]);
       openLibrary({ dir: join(cwd, "imports"), tiers: ["local"] }).verify();
       // each working directory with imported sets opens its own library; the host keeps at most MAX_OPEN of them, the
       // least lately used dropped: this one's, used between the others, is never opened again, and one dropped is (a
@@ -152,6 +172,10 @@ describe("exchange", () => {
       const vrma = await out({});
       expect(vrma.slice(0, 3)).toEqual(["ok", "reads back byte for byte", null]);
       expect(vrma[3]).toMatchObject({ file: `${OUT}.vrma`, license: { spdx: "CC0-1.0", tier: "cc0", credit: null } });
+      // a clip file whose name the shell would split: license.check's clips take it as given
+      cpSync(join(cwd, "library/sets/QUATERNIUS_3D2DGE/A_TPose.json"), join(cwd, "my pose.json"));
+      const pose = await call("export", { clip: "my pose.json", character: RIG });
+      expect([pose.status, hintedCalls(pose.next).map((h) => h.args)]).toEqual(["ok", [{ clips: ["my pose.json"] }]]);
       // Rigify's .gltf (its soles' end bones have no node), the tiny rig (no file: its own document), BVH on rig.gltf
       for (const [args, ext] of [[{ format: "glb", character: RIGIFY }, "glb"], [{ format: "glb", character: "tiny" }, "glb"], [{ format: "bvh" }, "bvh"]] as const) {
         const [status, check, gap, data] = await out(args);
@@ -180,21 +204,23 @@ describe("exchange", () => {
       const rnd = () => (seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648 - 0.5, [head, motion] = readFileSync(join(cwd, `${OUT}.bvh`), "utf8").split("MOTION\n");
       const jitter = motion!.split("\n").map((l, i) => (i < 2 || !l.trim() ? l : l.split(" ").map((x, k) => (Number(x) + (k < 3 ? 15 : 150) * rnd()).toFixed(4)).join(" ")));
       writeFileSync(join(cwd, "jitter.bvh"), `${head}MOTION\n${jitter.join("\n")}`);
-      writeFileSync(join(cwd, "none.json"), "{}");
+      for (const f of ["none.json", "my cat.json"]) writeFileSync(join(cwd, f), "{}");
       const jit = await call("import", { path: join(cwd, "jitter.bvh"), set: "JIT", license: "CC0-1.0", catalog: join(cwd, "none.json") }), m = JSON.parse(readFileSync(join(cwd, "imports/JIT/_set.json"), "utf8")) as { title: string; credit: string; sources: { JIT: { file: string; origin: string } } };
       expect([jit.status, (jit.data as Data).rig, jit.verdict, jit.lines.at(-1), jit.next]).toEqual(["findings", "bvh:unreal", expect.stringMatching(/^import <the file>: 1 clip into imports\/JIT\/ .*; 1 past the fit limits$/), expect.stringMatching(/^JIT\/jitter .* \(past 40\/300 mm\)$/), 'cut a take with the catalog\'s "$pick", or leave a clip out with "$skip" and its reason, then `import <the file> --set JIT --license CC0-1.0 --catalog <the catalog\'s file>`']);
       expect([m.title, m.credit, m.sources.JIT.file, m.sources.JIT.origin]).toEqual(["jitter.bvh, imported", "jitter.bvh, CC0-1.0", "jitter.bvh", "jitter.bvh, imported by m3a import"]);
-      // the hint's catalog with none given, one given inline, and one by a relative path
-      for (const [catalog, as] of [[undefined, "<catalog>"], ["{}", "<the catalog's JSON>"], ["none.json", "none.json"]]) {
+      // the hint's catalog with none given, one given inline, and one by a relative path (one the shell would split)
+      for (const [catalog, as] of [[undefined, "<catalog>"], ["{}", "<the catalog's JSON>"], ["none.json", "none.json"], ["my cat.json", "'my cat.json'"]]) {
         const r = await call("import", { path: "jitter.bvh", set: "JIT", license: "CC0-1.0", ...(catalog === undefined ? {} : { catalog }) });
         expect([r.status, r.next.split("then ")[1]]).toEqual(["findings", `\`import jitter.bvh --set JIT --license CC0-1.0 --catalog ${as}\``]);
       }
     }));
 
-  it("export refuses a clip that isn't there, a format it doesn't write, and a character with no humanoid", () =>
+  it("export refuses a clip that isn't there or is no JSON (on one line), a format it doesn't write, and a character with no humanoid", () =>
     inCwd(async (call, cwd) => {
       writeFileSync(join(cwd, "chain.gltf"), JSON.stringify({ asset: { version: "2.0" }, nodes: [0, 1, 2].map((i) => ({ name: `b${i}`, ...(i < 2 ? { children: [i + 1] } : {}) })) }));
       expect(refused(await call("export", { clip: "QUATERNIUS_3D2DGE/Walk_Lop", character: RIG }))).toEqual(["usage", "E_NO_CLIP", expect.stringMatching(/did you mean "QUATERNIUS_3D2DGE\/Walk_Loop"\?$/)]);
+      writeFileSync(join(cwd, "cut.json"), "HIERARCHY\nROOT root");
+      expect(refused(await call("export", { clip: "cut.json", character: RIG }))).toEqual(["error", "E_CLIP", expect.stringMatching(/is not JSON: Unexpected token 'H', "HIERARCHY ROOT root" is not valid JSON$/)]);
       expect(refused(await call("export", { clip: WALK, character: RIG, format: "fbx" }))).toEqual(["usage", "E_ARGS", expect.stringMatching(/^format is "fbx", not one of vrma, glb, bvh/)]);
       expect(refused(await call("export", { clip: WALK, character: "chain.gltf" }))).toEqual(["error", "E_RIG", expect.stringMatching(/^chain\.gltf: no humanoid bone recognized/)]);
       expect(refused(await call("export", { clip: WALK, character: "spec/vectors/tier1b/rig-catalog.json" }))).toEqual(["usage", "E_ARGS", expect.stringMatching(/is not a character/)]);

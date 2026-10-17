@@ -2,8 +2,9 @@
 // imports/<SET>/, a clip each with its fit (core's fit, as the library's re-import encodes it), its clips, catalog and
 // manifest written as the library writes its own (@m3a/library's set writer), so the library opens it as a local set:
 // seen by a game that opts in to local, never shipped (D10); `list` names what the file holds and writes nothing. It
-// writes and removes what the user keeps, so MCP lists it as no read-only tool. The manifest names the file by its own
-// name (never a path); replies name it as clips.ts does. `export` plays a clip on a character (bound through core) and
+// writes and removes what the user keeps, so MCP lists it as no read-only tool; it removes only a clip an import wrote,
+// naming it, and refuses a set whose directory holds any other .json. The manifest names the file by its own name
+// (never a path); replies name it as clips.ts does. `export` plays a clip on a character (bound through core) and
 // writes it as .vrma, .glb (the character's own document with the animation added) or .bvh under check-output/export/,
 // read back through io: the VRMA byte for byte, the others joint for joint (within 1 mm, else findings, as is a file
 // that couldn't be read back); with the clip's license and the credit it owes (any license but CC0's owes one).
@@ -39,6 +40,26 @@ function io<T>(f: () => T): T {
     return f();
   } catch (err) {
     throw err instanceof IoError ? new ToolError(err.code, err.message) : err;
+  }
+}
+
+/** The files imports/<SET>/ holds as the host lists them (a set the library leaves out too: a first import cut short),
+ *  none when there is no such directory; one leading out of the working directory refused (the host's E_PATH). */
+function held(lib: LibraryAccess, set: string): string[] {
+  try {
+    return lib.source.files(set);
+  } catch (err) {
+    if ((err as { code?: unknown } | null)?.code === "ENOENT") return [];
+    throw err;
+  }
+}
+
+/** Whether `text` is a clip `m3a import` wrote (its producer's), which a later import of its set may remove. */
+function byImport(text: string | null): boolean {
+  try {
+    return (JSON.parse(text ?? "") as { provenance?: { producer?: { tool?: unknown } } } | null)?.provenance?.producer?.tool === PRODUCER.tool;
+  } catch {
+    return false;
   }
 }
 
@@ -167,14 +188,16 @@ export const importMotion = defineTool<{ path: string; set: string; license?: st
       ...(out.set.body ? { body: out.set.body } : {}),
       legend: { version: "2.0", text: legendOf(lib) },
     };
-    // one import of a set at a time: every clip file the set holds that this import doesn't write goes, since the set's
-    // content id covers them all (its directory as the library lists it; else, a set the library leaves out, the names
-    // its catalog lists, whatever set they say: one copied under another name); the manifest last, once its clips are
-    // there
-    const files = setFiles(manifest, made), release = await ctx.lock(`.m3a/locks/import-${a.set}.lock`);
+    // one import of a set at a time. The set's content id covers each .json its directory holds, so each this import
+    // doesn't write goes: a clip an import wrote (whatever set it names: one copied under another name); any other (a
+    // catalog kept there) refuses the import before anything changes. The manifest last, once its clips are there
+    const files = setFiles(manifest, made), release = await ctx.lock(`.m3a/locks/import-${a.set}.lock`), gone: string[] = [];
     try {
-      const listed = ((await ctx.tryRead(`${dir}/catalog.tsv`)) ?? "").split("\n").flatMap((l) => /^[A-Z0-9_]+\/([A-Za-z0-9_-]+)$/.exec(l.split("\t")[0]!)?.[1] ?? []).map((n) => `${n}.json`);
-      for (const f of lib.source.sets().includes(a.set) ? lib.source.files(a.set) : listed) if (f.endsWith(".json") && !f.startsWith("_") && !files.has(f)) ctx.remove(`${dir}/${f}`);
+      for (const f of held(lib, a.set).filter((f) => f.endsWith(".json") && !f.startsWith("_") && !files.has(f)).sort()) {
+        if (!byImport(await ctx.tryRead(`${dir}/${f}`))) throw new ToolError("E_EXISTS", `${named(`${dir}/${f}`)} is no clip m3a import wrote: move it out of ${dir}/, where the library reads each .json as one of the set's clips; nothing was changed`);
+        gone.push(f);
+      }
+      for (const f of gone) ctx.remove(`${dir}/${f}`);
       for (const [f, t] of [...files].sort(([x], [y]) => Number(x === "_set.json") - Number(y === "_set.json"))) ctx.write(`${dir}/${f}`, t);
     } finally {
       release();
@@ -186,10 +209,11 @@ export const importMotion = defineTool<{ path: string; set: string; license?: st
     const shown = capped(rows, 50), findings = bad || over > 0;
     return {
       verdict: `import ${file}: ${count(made.length, "clip")} into ${dir}/ (${input.rig}, tier local), fit ${mean} mm mean, worst ${mm(worst.fit[1]!)} (${worst.id})${skipped.length ? `; ${skipped.length} skipped` : ""}${over ? `; ${over} past the fit limits` : ""}`,
-      data: { file, kind, rig: input.rig, set: a.set, dir: `${dir}/`, license, tier: "local", clips: shown.rows, ...(shown.more ? { more: shown.more } : {}), skipped: cutSkips.rows, notes: noted.rows, mean_fit: mean, worst: { id: worst.id, mm: worst.fit[1] } },
+      data: { file, kind, rig: input.rig, set: a.set, dir: `${dir}/`, license, tier: "local", clips: shown.rows, ...(shown.more ? { more: shown.more } : {}), skipped: cutSkips.rows, notes: noted.rows, mean_fit: mean, worst: { id: worst.id, mm: worst.fit[1] }, ...(gone.length ? { removed: gone.length } : {}) },
       lines: [
         ...noted.rows.map((w) => `note: ${w}`),
         ...more(noted.more, "note"),
+        ...(gone.length ? [`removed ${count(gone.length, "clip file")} this import doesn't make: ${cut(gone.map(fileName).join(", "), 50)}`] : []),
         ...shown.rows.map((r) => `${r.id} ${sec(r.dur)} ${r.loop ? "loop" : "once"}, ${count(r.keys, "key")}, fit ${r.fit[0]}/${r.fit[1]} mm${r.over ? ` (past ${LIMITS.mean}/${LIMITS.worst} mm)` : ""}`),
         ...more(shown.more, "clip"),
         ...cutSkips.rows.map((s) => `skipped ${s.name}: ${s.why}`),
