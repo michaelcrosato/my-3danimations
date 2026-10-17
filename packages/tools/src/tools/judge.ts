@@ -158,8 +158,11 @@ export function onBody(clip: Clip, R: Rest, b: Bound, rig: string, seen?: (p: Pl
  * contact off the 1/60 grid); 24 s took 23.7 s; 30 s took 44.6 s; 60 s took 233.7 s. export (bvh): 17 s took 2.0 s;
  * 24 s took 21.9 s. The jump past about 17 s is the Animator's pose cache, which clears at 1,024 poses (animator.ts:692).
  * At the limit, re-measured: 15 s took 2.1 s in retarget.apply (1.9 s at 14.99 s, off the grid), 1.8 s in export (bvh;
- * vrma 1.1 s, glb 1.7 s) and 1.8 s in graph.sim. The library's longest bridged stretch is 12.1 s
- * (CMU_CURATED/Drink_Soda).
+ * vrma 1.1 s, glb 1.7 s) and 1.8 s in graph.sim on a short script. Over a long one such a clip costs graph.sim about
+ * twice a walk's (37.5 s on one layer over 600 s, a walk 18.4 s; 118 s on 4 layers), which compose.ts's MAX_CLIP_STEPS
+ * is measured with; one held clip playing at several times at once (a fade between states sharing it) shares the cache
+ * between them, so there it thrashes below this limit (compose.ts says by how much). The library's longest bridged
+ * stretch is 12.1 s (CMU_CURATED/Drink_Soda).
  */
 export const MAX_HOLD = 15;
 /** Seconds: a foot off the floor for less than this between two of its contacts stays planted (core's planter's BRIDGE,

@@ -147,8 +147,9 @@ describe("a character's bytes (R6)", () => {
       rm();
       out.rm();
     }
-    const [r] = await bodies({ "rigify.glb": glb }, [{ character: "rigify.glb" }], (h) => ({ read: h.read }));
-    expect(r!.error).toEqual({ code: "E_HOST", message: 'this surface opens no binary files ("rigify.glb"); run it through m3a (the CLI or MCP) or the API with a Node host' });
+    // the path named as prose names a file: as given, quoted where a shell would split it, an absolute one "the file"
+    const hostless = await bodies({ "rigify.glb": glb }, ["rigify.glb", "my rig.glb", "/abs/rig.glb"].map((character) => ({ character })), (h) => ({ read: h.read }));
+    expect(hostless.map((r) => r.error)).toEqual(["(rigify.glb)", "('my rig.glb')", "(the file)"].map((p) => ({ code: "E_HOST", message: `this surface opens no binary files ${p}; run it through m3a (the CLI or MCP) or the API with a Node host` })));
   });
 });
 

@@ -224,6 +224,11 @@ function canonical(v: unknown): string {
   return JSON.stringify(v);
 }
 
+/** A path as E_HOST names it, as the tools' prose names a file (tools/common.ts `arg` and `absolute`, written here as
+ *  the registry imports no tool module): as given, single-quoted where a shell would split it, or "the file" when it is
+ *  absolute or holds a control character, which no reply echoes. */
+const pathNamed = (p: string): string => (/^([A-Za-z]:|[\\/])/.test(p) || /\p{Cc}/u.test(p) ? "the file" : /^[\w./:=@,+-]+$/.test(p) ? p : `'${p.replace(/'/g, "'\\''")}'`);
+
 /** A reply from its parts; `error` is set for usage and error replies. The verdict is kept to one line (newlines in it
  *  become spaces) and each detail to one line (split at newlines), so the 20-line count holds. */
 export function reply(tool: string, status: Status, out: ToolOutput<unknown> | { verdict: string; next: string }, images: ImageRef[] = [], error: { code: string; message: string } | null = null): Reply {
@@ -282,7 +287,7 @@ export class Registry {
     delete a.verbose;
     for (const [k, s] of Object.entries(tool.schema.properties ?? {})) if ((!Object.hasOwn(a, k) || a[k] === undefined) && s.default !== undefined) a[k] = structuredClone(s.default);
     const images: ImageRef[] = [], host = opts.host ?? {}, libs = new Map<string, LibraryAccess>();
-    const lacks = (what: string, p?: string) => new ToolError("E_HOST", `this surface ${what}${p === undefined ? "" : ` (${quote(p)})`}; ${what.startsWith("reads") ? "pass the text instead" : "run it through m3a (the CLI or MCP) or the API with a Node host"}`, true);
+    const lacks = (what: string, p?: string) => new ToolError("E_HOST", `this surface ${what}${p === undefined ? "" : ` (${pathNamed(p)})`}; ${what.startsWith("reads") ? "pass the text instead" : "run it through m3a (the CLI or MCP) or the API with a Node host"}`, true);
     const ctx: ToolContext = {
       read: (p) => (host.read ? host.read(p) : Promise.reject(lacks("reads no files", p))),
       tryRead: (p) => (host.tryRead ? host.tryRead(p) : Promise.reject(lacks("reads no files", p))),

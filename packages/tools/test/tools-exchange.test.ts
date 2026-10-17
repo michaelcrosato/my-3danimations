@@ -13,7 +13,8 @@
 // (a name the shell would split too), as export's names a clip file, and an absolute character path by its placeholder.
 // What one import fits, bounded before it fits (a 130 s take skipped, 501 picks and 300 s of picks refused); io's
 // refusals naming the file by its path; a glTF whose bones' names no map knows said by list and refused by import
-// (E_RIG), each with the calls that take it by its shape; the license and credit a VRMA m3a wrote carries (a
+// (E_RIG), each with the calls that take it by its shape, and one whose names follow a map but lack its joints said and
+// refused naming them (io's reason); the license and credit a VRMA m3a wrote carries (a
 // contradicting --license refused, a known id in another case too, its credit kept); export's file named by the clip
 // and the character, a .bvh's license line; a second import into a set saying it replaced the first's clips.
 import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
@@ -275,7 +276,7 @@ describe("exchange", () => {
       const shape = "`retarget.inspect 'odd rig.gltf'` binds it by its shape, if it is a character; `export QUATERNIUS_3D2DGE/Walk_Loop --character 'odd rig.gltf'` plays a library clip on it";
       const [listed, odd] = [await call("import", { path: "odd rig.gltf", list: true }), await call("import", { path: "odd rig.gltf", license: "CC0-1.0" })];
       expect([listed.status, listed.verdict, listed.data, listed.next]).toEqual(["ok", "import 'odd rig.gltf': 3 animations, rig: none import knows by its bone names; import refuses it; nothing written", expect.objectContaining({ rig: null }), shape]);
-      expect([...refused(odd), odd.next]).toEqual(["error", "E_RIG", "'odd rig.gltf': its bones' names match none import knows (MotionBuilder's and Mixamo's Hips, Spine, LeftUpLeg ..., Unreal's, Rigify's, 100STYLE's, Bandai Namco's); import reads a file by its bone names only", shape]);
+      expect([...refused(odd), odd.next]).toEqual(["error", "E_RIG", "'odd rig.gltf': its bones' names match none import knows (MotionBuilder's and Mixamo's Hips, Spine, LeftUpLeg ..., Unreal's, Rigify's, 100STYLE's, Bandai Namco's, VRM's); import reads a file by its bone names only", shape]);
       expect([...hintedCalls(listed.next), ...hintedCalls(odd.next)].filter((h) => h.problem)).toEqual([]);
       // its first animation unreadable (CUBICSPLINE in-betweens): list can't tell, and says no more than that
       const spline = JSON.parse(JSON.stringify(rev)) as { animations: { samplers: { interpolation?: string }[] }[] };
@@ -292,6 +293,17 @@ describe("exchange", () => {
       writeFileSync(join(cwd, "placed.gltf"), JSON.stringify(placed));
       const known = await call("import", { path: "placed.gltf", list: true });
       expect([known.verdict, known.next]).toEqual(["import placed.gltf: 3 animations, rig gltf:motionbuilder; nothing written", "`import placed.gltf --license <license>` fits them into imports/IMPORT/"]);
+      // its names following MotionBuilder's but lacking a joint that map needs (LeftToeBase renamed; then both toes):
+      // list and import name the joints, as io does, each offering the calls that take it by its shape
+      const toes = (...sides: string[]) => JSON.stringify({ ...placed, nodes: placed.nodes.map((n) => (sides.some((S) => n.name === `${S}ToeBase`) ? { ...n, name: n.name.replace("ToeBase", "Toe_Base") } : n)) });
+      writeFileSync(join(cwd, "near.gltf"), toes("Left"));
+      writeFileSync(join(cwd, "nearer.gltf"), toes("Left", "Right"));
+      const near = (f: string) => `\`retarget.inspect ${f}\` binds it by its shape, if it is a character; \`export QUATERNIUS_3D2DGE/Walk_Loop --character ${f}\` plays a library clip on it`;
+      const [nearList, nearOne, nearTwo] = [await call("import", { path: "near.gltf", list: true }), await call("import", { path: "near.gltf", license: "CC0-1.0" }), await call("import", { path: "nearer.gltf", license: "CC0-1.0" })];
+      expect([nearList.status, nearList.verdict, nearList.data, nearList.next]).toEqual(["ok", "import near.gltf: 3 animations, rig gltf:motionbuilder lacks LeftToeBase; import refuses it; nothing written", expect.objectContaining({ rig: null }), near("near.gltf")]);
+      expect([...refused(nearOne), nearOne.next]).toEqual(["error", "E_RIG", "near.gltf: its bones follow MotionBuilder's (Mixamo's) names but lack LeftToeBase, which import needs: give the file's bone for it that name (import reads a file by its bone names only)", near("near.gltf")]);
+      expect(refused(nearTwo)).toEqual(["error", "E_RIG", "nearer.gltf: its bones follow MotionBuilder's (Mixamo's) names but lack LeftToeBase, RightToeBase, which import needs: give the file's bones for them those names (import reads a file by its bone names only)"]);
+      expect(existsSync(join(cwd, "imports/IMPORT"))).toBe(false);
     }));
 
   it("reads the license and credit a VRMA m3a wrote carries; names export's file by the clip and the character, a .bvh's license line; says an import replaced another's clips", () =>

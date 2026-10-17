@@ -2,7 +2,8 @@
 // imports/<SET>/, a clip each with its fit (core's fit, as the library's re-import encodes it), its clips, catalog and
 // manifest written as the library writes its own (@m3a/library's set writer), so the library opens it as a local set:
 // seen by a game that opts in to local, never shipped (D10); `list` names what the file holds and writes nothing, and
-// says when import refuses a glTF whose bones' names no bone map knows. What one import fits is bounded before it fits:
+// says when import refuses a glTF whose bones' names no bone map knows, or that lacks a joint the map its names follow
+// needs (naming it, as io does). What one import fits is bounded before it fits:
 // a take past MAX_TAKE is skipped, and takes past MAX_FIT in all, or past MAX_IMPORT_CLIPS, are refused. The license
 // and credit a glTF-family file carries (each animation's extras, the asset's copyright) are used: a --license that
 // contradicts them, or a known license id in another case, is refused. It writes and removes what the user keeps, so
@@ -46,10 +47,19 @@ const knownAs = (id: string): string | undefined => (/^cc-by-\d\.\d$/i.test(id) 
 const MAX_TAKE = 120;
 /** The most take time (s) one import fits in all: two takes at MAX_TAKE, about 42 s of fitting here. */
 const MAX_FIT = 240;
-/** The most takes one import fits: above the library's largest set (STYLE100_SIDE, 196 clips). */
+/** The most takes one import fits: above the library's largest set (STYLE100_SIDE, 194 clips). */
 const MAX_IMPORT_CLIPS = 500;
 /** The bone maps import reads a file's names by (io's BVH reader's), as its refusal names them. */
-const MAPS = "MotionBuilder's and Mixamo's Hips, Spine, LeftUpLeg ..., Unreal's, Rigify's, 100STYLE's, Bandai Namco's";
+const MAPS = "MotionBuilder's and Mixamo's Hips, Spine, LeftUpLeg ..., Unreal's, Rigify's, 100STYLE's, Bandai Namco's, VRM's";
+/** Each of io's bone maps by its id (io's E_RIG names it so), as a refusal names its bones' names. */
+const MAP_NAMES: Record<string, string> = { motionbuilder: "MotionBuilder's (Mixamo's)", unreal: "Unreal's", rigify: "Rigify's", "100style": "100STYLE's", "bandai-namco": "Bandai Namco's", vrm: "VRM's" };
+/** What io's E_RIG says of a file whose bones' names one bone map follows but that lacks joints the map needs (its
+ *  message's words: "the <map> map needs joints the file lacks: <joints>"): the map's id and the joints, comma-separated;
+ *  null for any other E_RIG (no map's names match). */
+function lacking(err: ToolError): { map: string; joints: string } | null {
+  const m = /\bthe ([\w-]+) map needs joints the file lacks: (.+)$/.exec(err.message);
+  return m ? { map: m[1]!, joints: m[2]! } : null;
+}
 
 /** A path as a hint names it (clips.ts's naming): as given, quoted where a shell would split it, or `<whose file>` for
  *  an absolute path or one with a control character; prose (a refusal, a verdict, data) writes it without the brackets
@@ -145,15 +155,16 @@ async function motionOf(ctx: ToolContext, path: string, kind: string, cat: Catal
   return { rig: d.rig && `gltf:${d.rig}`, names: d.clips, doc, posed: !d.rig, read: as(() => readGltfPosed(doc, picks ? { picks } : {}), "_rest") };
 }
 
-/** The bone map a glTF's first animation is placed on by its names (io's BVH reader's, as readGltfPosed places it); null
- *  when none takes them (io's E_RIG, by its code: no map matches, or the one that does lacks a joint), undefined when
- *  the animation can't be read to tell (list then says no more than before; import refuses it with io's reason). */
-function posedRig(doc: GltfDoc, label: string): string | null | undefined {
+/** The bone map a glTF's first animation is placed on by its names (io's BVH reader's, as readGltfPosed places it); when
+ *  none takes them (io's E_RIG, by its code), the map its names follow and the joints it lacks (`lacking`), or null when
+ *  no map's names match; undefined when the animation can't be read to tell (list then says no more than before; import
+ *  refuses it with io's reason). */
+function posedRig(doc: GltfDoc, label: string): string | { map: string; joints: string } | null | undefined {
   try {
     return io(() => rigBvh(posedOf(doc, 0, 30), { units: 1, file: label })).map;
   } catch (err) {
     if (!(err instanceof ToolError)) throw err;
-    return err.code === "E_RIG" ? null : undefined;
+    return err.code === "E_RIG" ? lacking(err) : undefined;
   }
 }
 
@@ -210,16 +221,20 @@ export const importMotion = defineTool<{ path: string; set: string; license?: st
     if (theirs) throw new ToolError("E_ARGS", `set ${a.set} is the library's: name the new set another way`, true);
     const got = a.catalog === undefined ? null : await fileOrJson(ctx, a.catalog, "the catalog");
     const cat = got && catalogOf(got.data, got.path === null), m = await motionOf(ctx, a.path, kind, cat), at = [file], glTF = kind === "gltf" || kind === "glb";
-    // a glTF whose bones' names no bone map knows: retarget.inspect binds it by its shape, export plays clips on it
+    // a glTF import can't read by its bones' names (no bone map knows them, or it lacks a joint the map they follow
+    // needs): retarget.inspect binds it by its shape, export plays clips on it
     const byShape = `${call("retarget.inspect", [file])} binds it by its shape, if it is a character; ${call("export", ["QUATERNIUS_3D2DGE/Walk_Loop"], { character: given(file, a.path) })} plays a library clip on it`;
     if (a.list) {
-      // a glTF no table names is placed on io's bone maps by its names, as import would read it, or refused
-      const from = a.from ?? 0, shown = capped(m.names.slice(from), 50), placed = m.posed && m.names.length ? posedRig(m.doc!, it) : undefined, rig = m.rig ?? (placed ? `gltf:${placed}` : null);
+      // a glTF no table names is placed on io's bone maps by its names, as import would read it, or refused: its names
+      // following none, or one whose joints it lacks (data's rig null: import reads it as no rig)
+      const from = a.from ?? 0, shown = capped(m.names.slice(from), 50), placed = m.posed && m.names.length ? posedRig(m.doc!, it) : undefined, refused = placed === null || typeof placed === "object";
+      const rig = m.rig ?? (typeof placed === "string" ? `gltf:${placed}` : null);
+      const rigLine = placed === null ? "rig: none import knows by its bone names; import refuses it" : typeof placed === "object" ? `rig gltf:${placed.map} lacks ${placed.joints}; import refuses it` : `rig ${rig ?? "unknown by name (import may refuse it)"}`;
       return {
-        verdict: `import ${it}: ${count(m.names.length, "animation")}, ${placed === null ? "rig: none import knows by its bone names; import refuses it" : `rig ${rig ?? "unknown by name (import may refuse it)"}`}; nothing written`,
+        verdict: `import ${it}: ${count(m.names.length, "animation")}, ${rigLine}; nothing written`,
         data: { file: it, kind, rig, set: null, license: null, clips: shown.rows.map((name) => ({ name })), ...(shown.more ? { more: shown.more } : {}), skipped: [], notes: [], mean_fit: null, worst: null },
         lines: [...shown.rows, ...more(shown.more, "animation", `${call("import", at, { list: true, from: from + 50 })} lists them`)],
-        next: placed === null ? byShape
+        next: refused ? byShape
           : m.names.length ? `${call("import", at, { set: a.set === "IMPORT" ? undefined : a.set, license: "<license>" })} fits them into ${dir}/`
           : `it holds no animation to import${glTF ? `; ${call("export", ["QUATERNIUS_3D2DGE/Walk_Loop"], { character: given(file, a.path) })} plays a library clip on it, if it is a character` : ""}`,
       };
@@ -231,14 +246,18 @@ export const importMotion = defineTool<{ path: string; set: string; license?: st
       throw new ToolError("E_ARGS", `the file says its animations are ${says} (each animation's extras.license); --license ${license} contradicts it: ${fix}`, true);
     }
     // the catalog's first source names the library (its record kept); else the set does. A glTF read by its bones' names
-    // that no bone map knows is refused by io's code, with the calls that take it by its shape
+    // that no bone map knows, or that lacks a joint the map its names follow needs (io's reason kept: the joints to
+    // name), is refused by io's code, with the calls that take it by its shape
     const src = Object.keys(cat?.$sources ?? {})[0] ?? a.set;
     let read: ReturnType<typeof m.read>;
     try {
       read = m.read(src);
     } catch (err) {
-      if (m.posed && err instanceof ToolError && err.code === "E_RIG") throw new ToolError("E_RIG", `${it}: its bones' names match none import knows (${MAPS}); import reads a file by its bone names only`, false, { next: byShape });
-      throw err;
+      if (!(m.posed && err instanceof ToolError && err.code === "E_RIG")) throw err;
+      const lacks = lacking(err), them = lacks?.joints.includes(",") ? ["bones", "them those names"] : ["bone", "it that name"];
+      throw new ToolError("E_RIG", lacks
+        ? `${it}: its bones follow ${MAP_NAMES[lacks.map] ?? `the ${lacks.map} map's`} names but lack ${lacks.joints}, which import needs: give the file's ${them[0]} for ${them[1]} (import reads a file by its bone names only)`
+        : `${it}: its bones' names match none import knows (${MAPS}); import reads a file by its bone names only`, false, { next: byShape });
     }
     // what one import fits, bounded before it fits (the fit is about quadratic in a take's length): a take past MAX_TAKE
     // skipped, the takes left past MAX_FIT in all or MAX_IMPORT_CLIPS in number refused; a reader's rest ("_") and the

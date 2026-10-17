@@ -7,9 +7,10 @@
 // and the first difference from an expected trace. Recipes, graphs, scripts, traces and clips are each a file or JSON,
 // named in replies as clips are (clips.ts naming); a clip the graph names that no one has gets a fix naming the closest
 // id, the game.json line that opts in to its tier, the file to pass or the copy to make. A recipe or a script too long
-// to build, a run of too many layers or transitions, and a clip holding a foot too long (judge.ts MAX_HOLD) are
-// refused before they run. Issues come as rows (code, where, message, fix), at most 20; every capped list's
-// cut is counted in the data's `more` ({issues: 5}) and in a more line.
+// to build, a run costing too much (by what its graph holds: the clips its layers play at once, a blend's points, what
+// its transitions test, its parameters; and, by a run without poses first, what its fades play out), and a clip
+// holding a foot too long (judge.ts MAX_HOLD) are refused before they run. Issues come as rows (code, where, message,
+// fix), at most 20; every capped list's cut is counted in the data's `more` ({issues: 5}) and in a more line.
 import { graph as G, playable, recipe, serialize, type AnimClip, type Clip, type Rest } from "@m3a/core";
 import { LibraryError, withFacts } from "@m3a/library";
 import { metrics } from "@m3a/sensors";
@@ -31,19 +32,46 @@ const MAX_CLIPS = 64;
 /** The most steps graph.sim runs: the longest script (600 s) at the default 60 steps a second. */
 const MAX_STEPS = 36_000;
 /**
- * The most layer steps graph.sim runs (the graph's layers, its base among them, times the steps): 4 layers for the
- * longest script. Measured here, a step cost about 0.25 ms plus 0.33 ms a layer (on tiny, blend layers; start-up
- * included): the base alone 3,600 steps 2.7 s, 36,000 steps 20.8 s; 9 layers 3,600 steps 12.7 s, 17 layers 21.4 s;
- * the verifier's 51 layers on a 60 s script took 35 s. At this limit, 58.5 s (4 layers, 36,000 steps).
+ * The most points one blend space graph.sim plays takes. A blend of two parameters weighs each point against every
+ * other (core's weights2D) several times a step, so its cost grows with the square of its points; unbounded, the
+ * verifier's 1D blend of 1,000 points took 16.8 s for 3,600 steps and one of 100,000 ran past 10 minutes (each point is
+ * also a clip played, MAX_CLIP_STEPS). 25 points make an 8-way, 3-speed space with its idle.
  */
-const MAX_LAYER_STEPS = 4 * MAX_STEPS;
+const MAX_BLEND_POINTS = 64;
 /**
- * The most transition steps graph.sim runs (the graph's transitions, every layer's, times the steps): 1,000 transitions
- * for the longest script. Each is read every step its layer is in its state: 20,000 transitions never taken added
- * 3.6 s to a 3,600-step run (about 0.05 µs each a step), so a graph near io's 64 MB text limit (some 700,000) on a
- * 600 s script would take about 20 minutes. At this limit, about 2 s (more with longer conditions).
+ * The most clip steps graph.sim poses: each layer the clips its widest state plays at once (a blend's points, every one
+ * of which may weigh in a blend of two parameters; 1 at least), times the steps, and the states its fades play out
+ * (`faded`): 4 clips at once for the longest script, as Locomotion's 3-point blend and its upper layer. Each clip a
+ * step is posed, its feet planted, and costs most with a clip holding both feet 15 s (judge.ts MAX_HOLD's most:
+ * QUATERNIUS_3D2DGE/Idle_Loop retimed), about twice a walk's. Measured here at this limit (on tiny, 36,000 steps, the
+ * run without poses and start-up included, other lanes' tests running): 45.5 s with walks and jogs (two layers of a
+ * walk-jog blend, both weighed), 136 s with 4 such held clips (a 2D blend of Idle_Loop retimed to 12 to 15 s, every
+ * point weighed; the verifier's 4 layers of one, 118 s). Past it only where one held clip plays at several times at
+ * once (a state left every step for one sharing its clip, each fade cut): the Animator's pose cache clears at 1,024
+ * poses a clip (animator.ts:692), so each step decodes its holds again, about 6 times the cost (40 ms a step for one
+ * clip at once against 1.1), reported to core.
+ */
+const MAX_CLIP_STEPS = 4 * MAX_STEPS;
+/**
+ * How many states a layer's fade plays out at once when its fades may be cut (an interruptible transition): core's
+ * MAX_OUT (graph/run.ts); one when they may not, its fade played out first.
+ */
+const FADING = 4;
+/**
+ * The most transition terms graph.sim tests (each transition 1, plus each of its conditions and each state its `from`
+ * lists: every layer's transitions are read each step, each term in turn), times the steps: 1,000 terms for the longest
+ * script. Measured here, 20,000 transitions never taken added 3.6 s to a 3,600-step run (about 0.05 µs each a step),
+ * and one of 200,001 conditions 12 s (about 0.017 µs a condition), so a graph near io's 64 MB text limit on a 600 s
+ * script would take about 20 minutes. At this limit, about 2 s.
  */
 const MAX_TRANSITION_STEPS = 1000 * MAX_STEPS;
+/**
+ * The most parameter reads graph.sim makes: each step every parameter (stride warping reads its parameter through the
+ * Animator's `graph`, which copies them all; triggers set age each step), and each again for every number the script
+ * eases in (a row's `over`): 100 parameters for the longest script. Measured here, 200,000 parameters on a warped
+ * script took 100 ms a step (0.5 µs a parameter); at this limit, about 2 s.
+ */
+const MAX_PARAM_READS = 100 * MAX_STEPS;
 
 /** An issue of a recipe, graph or script: its code, where, what is wrong and the fix. */
 type Issue = recipe.RecipeIssue;
@@ -86,6 +114,53 @@ function libraryClip(lib: LibraryAccess, id: string): { clip: Clip; rest: Rest }
     if (err.code === "E_TAMPERED") throw refusal(err, id);
     return undefined;
   }
+}
+
+/** The clips a layer's widest state plays at once: a blend's points, a clip state's one; 1 at least (a layer of pass
+ *  states still steps). */
+const widest = (L: G.GraphLayer): number => Object.values(L.states).reduce((w, s) => Math.max(w, G.clipsOf(s).length), 1);
+/** What a transition costs each step its layer reads it: 1, each condition, each state its `from` lists. */
+const terms = (t: G.GraphTransition): number => 1 + (t.when?.length ?? 0) + (Array.isArray(t.from) ? t.from.length : 0);
+/** A refusal of a run too costly: usage (the document's to change), saying what to cut. */
+const costly = (what: string, cut: string) => new ToolError("E_ARGS", `${what}: ${cut}, or shorten dur or lower rate`, true);
+
+/**
+ * What a run of `n` steps costs graph.sim by what its graph (checked) and script hold, refused (E_ARGS) at the first
+ * past its bound, before anything runs: a blend of more than MAX_BLEND_POINTS points, the clips its layers play at once
+ * (MAX_CLIP_STEPS, fades aside), the transition terms it tests (MAX_TRANSITION_STEPS), its parameter reads
+ * (MAX_PARAM_READS). Each refusal names the numbers it multiplies.
+ */
+export function runCost(layers: readonly G.GraphLayer[], params: number, script: SimScript, n: number): void {
+  for (const [i, L] of layers.entries()) {
+    for (const [name, s] of Object.entries(L.states)) {
+      const points = s.blend?.points.length ?? 0;
+      if (points > MAX_BLEND_POINTS) throw new ToolError("E_ARGS", `${i ? `layers.${i - 1}.` : ""}states.${name}.blend has ${points} points, past the ${MAX_BLEND_POINTS} one blend graph.sim plays takes: use fewer points`, true);
+    }
+  }
+  const clips = layers.reduce((c, L) => c + widest(L), 0), tests = layers.reduce((c, L) => c + L.transitions.reduce((t, x) => t + terms(x), 0), 0);
+  if (clips * n > MAX_CLIP_STEPS) throw costly(`the run plays ${clips} clips at once (each layer's widest state: a blend's points) × ${n} steps, past the ${MAX_CLIP_STEPS} clip steps graph.sim takes (${MAX_CLIP_STEPS / MAX_STEPS} clips × ${MAX_STEPS} steps)`, "use fewer layers or blend points");
+  if (tests * n > MAX_TRANSITION_STEPS) throw costly(`the run tests ${tests} transition terms (each transition 1, and its conditions and the states it is from) × ${n} steps, past the ${MAX_TRANSITION_STEPS} graph.sim takes (${MAX_TRANSITION_STEPS / MAX_STEPS} terms × ${MAX_STEPS} steps)`, "use fewer transitions or conditions");
+  const eased = (isObj(script) && Array.isArray(script.input) ? script.input : []).reduce((e, r) => e + (isObj(r) && typeof r.over === "number" && r.over > 0 && isObj(r.set) ? Object.values(r.set).filter((v) => typeof v === "number").length : 0), 0);
+  if (params * (n + eased) > MAX_PARAM_READS) throw costly(`the run reads ${params} parameters ${n + eased} times (each step, and each number the script eases in), past the ${MAX_PARAM_READS} parameter reads graph.sim takes (${MAX_PARAM_READS / MAX_STEPS} parameters × ${MAX_STEPS} steps)`, "use fewer parameters");
+}
+
+/**
+ * The clip steps a run's fades add, by a run without poses (its states entered, each layer's at most every step): a
+ * layer's fade plays out up to FADING states (1 when no transition of it may cut a fade) of its widest, for each step
+ * within its longest fade (core's 0.2 s when a transition gives none) of a state entered. Refused (E_ARGS) when they
+ * and the clips its layers play pass MAX_CLIP_STEPS.
+ */
+function faded(layers: readonly G.GraphLayer[], entered: readonly { layer: string; from: string | null }[], n: number, rate: number): void {
+  const by = new Map<string, number>();
+  for (const e of entered) if (e.from !== null) by.set(e.layer, (by.get(e.layer) ?? 0) + 1);
+  let steady = 0, extra = 0;
+  for (const L of layers) {
+    const fade = L.transitions.reduce((f, t) => Math.max(f, Math.ceil((t.fade ?? 0.2) * rate)), 0), out = L.transitions.some((t) => t.interruptible === true) ? FADING : 1;
+    steady += widest(L) * n;
+    extra += widest(L) * out * Math.min(n, (by.get(L.name) ?? 0) * fade);
+  }
+  const takes = entered.filter((e) => e.from !== null).length;
+  if (steady + extra > MAX_CLIP_STEPS) throw costly(`the run plays ${steady} clip steps, and its fades (${takes} transitions taken) up to ${extra} more, past the ${MAX_CLIP_STEPS} clip steps graph.sim takes (${MAX_CLIP_STEPS / MAX_STEPS} clips × ${MAX_STEPS} steps)`, "take fewer transitions, or shorter fades");
 }
 
 /** A G-E009 (a clip neither the library at the game's tiers, the workshop nor the clips given have) with the fix that
@@ -232,10 +307,9 @@ export const graphSim = defineTool<{ graph: string; script: string; character: s
     const character = characterName(a.character), who = prose(character), script = s.data as SimScript, body = await bodyOf(ctx, a.character, a.mapping);
     const at = isObj(script) && typeof script.rate === "number" ? script.rate : 60, n = isObj(script) && typeof script.dur === "number" ? Math.round(script.dur * at) : 0;
     if (n > MAX_STEPS) throw new ToolError("E_ARGS", `the script runs ${n} steps (dur ${script.dur} s at rate ${at}), past the ${MAX_STEPS} graph.sim takes: shorten dur or lower rate`, s.path === null);
-    // the run's cost, once the graph checks: its layers, and its transitions, each read every step
-    const Ls = g.issues.length ? [] : G.layersOf(g.graph), layers = Ls.length, transitions = Ls.reduce((t, L) => t + L.transitions.length, 0);
-    if (layers * n > MAX_LAYER_STEPS) throw new ToolError("E_ARGS", `the run takes ${layers} layers × ${n} steps, past the ${MAX_LAYER_STEPS} layer steps graph.sim takes (${MAX_LAYER_STEPS / MAX_STEPS} layers × ${MAX_STEPS} steps): use fewer layers, or shorten dur or lower rate`, true);
-    if (transitions * n > MAX_TRANSITION_STEPS) throw new ToolError("E_ARGS", `the run takes ${transitions} transitions × ${n} steps, past the ${MAX_TRANSITION_STEPS} transition steps graph.sim takes (${MAX_TRANSITION_STEPS / MAX_STEPS} transitions × ${MAX_STEPS} steps): use fewer transitions, or shorten dur or lower rate`, true);
+    // the run's cost, once the graph checks: what its graph and script hold (runCost), each read every step
+    const Ls = g.issues.length ? [] : G.layersOf(g.graph);
+    if (Ls.length) runCost(Ls, Object.keys(g.graph.parameters ?? {}).length, script, n);
     const again = (expect = want?.flag) => call("graph.sim", [g.as], { script: s.flag, character: a.character === "tiny" ? undefined : given(character, a.character), mapping: a.mapping, clips: g.clips, expect });
     const cache = new Map<string, AnimClip | undefined>(), clips = (id: string) => {
       if (!cache.has(id)) cache.set(id, ((c) => c && playable(c.clip, c.rest))(g.find(id)));
@@ -246,6 +320,9 @@ export const graphSim = defineTool<{ graph: string; script: string; character: s
     const issues = [...g.issues, ...validateScript(script, g.issues.length ? undefined : g.graph)], x = issued(issues);
     const none = { script: s.id, graph: g.id, character: who, steps: 0, states: [], events: 0, hits: [], went: null, rate: null, sensors: null, findings: [], warnings: [], trace: null, matches: null, diff: null };
     if (issues.length) return { verdict: `graph.sim ${s.title} on ${who}: FAIL, ${count(issues.length, "issue")}; not run`, data: { ...none, issues: x.rows, ...cuts({ issues: x }) }, lines: x.lines, findings: true, next: `fix each issue as its fix says, then ${again()} again` };
+    // the states it enters, by a run without poses (a few percent of one with them: the same steps and transitions),
+    // bound what its fades play out before the run that poses every step
+    faded(Ls, simulate({ graph: g.graph, script, body: body.bound, clips, poses: false }).trace.states, n, at);
     const run = simulate({ graph: g.graph, script, body: body.bound, clips }), tr = run.trace, name = tr.script.split("/")[1]!, frames = script.film ?? 8;
     const written = ctx.write(`check-output/graph.sim/${name}.trace.json`, traceText(tr)), film = frames > 0 && run.frames.length > 0;
     if (film) ctx.image(name, filmstrip(run, frames));

@@ -185,7 +185,7 @@ describe("the Node host", () => {
     try {
       for (const f of [".m3a", "check-output"]) writeFileSync(join(cwd, f), "a file, not a directory");
       const r = await new Registry([tally], fileStore(cwd)).call("demo.tally", { request_id: "q" }, { host });
-      expect([r.status, r.lines, readFileSync(join(cwd, "workshop/tally.txt"), "utf8")]).toEqual(["ok", [expect.stringMatching(/^warning: request_id "q" was not kept \(can't write ".m3a\/requests\/[0-9a-f]{32}.json" \(ENOTDIR\)\); a retry would apply it again$/)], "1"]);
+      expect([r.status, r.lines, readFileSync(join(cwd, "workshop/tally.txt"), "utf8")]).toEqual(["ok", [expect.stringMatching(/^warning: request_id "q" was not kept \(can't write \.m3a\/requests\/[0-9a-f]{32}\.json \(ENOTDIR\)\); a retry would apply it again$/)], "1"]);
       let text = "";
       const code = await runCli(new Registry([tally]), ["demo.tally", "--json"], { print: (x) => void (text += x), write: (p, t) => void host.write!(p, t), host });
       expect([code, text]).toEqual([0, expect.stringMatching(/^tally 2\nwarning: check-output\/demo.tally\/report.json was not written \(can't write /)]);

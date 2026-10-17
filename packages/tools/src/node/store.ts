@@ -4,14 +4,13 @@
 // record read and written only where the host may write (a .m3a/ linked out of the working directory refused), and
 // written atomically; past `max` records the oldest go, and a killed write's temporary file once its process is gone
 // (housekeeping: no reply depends on it, so a failure there is ignored). A record it can't write throws, naming it by
-// its relative path; the registry then replies anyway.
+// its relative path as every E_WRITE does (files.ts shown); the registry then replies anyway.
 import { createHash } from "node:crypto";
 import { readdirSync, readFileSync, rmSync, statSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { ToolError, type RequestStore } from "../registry/registry.ts";
 import type { Reply } from "../registry/reply.ts";
-import { quote } from "../registry/schema.ts";
-import { alive, errno, writable, writeAtomic } from "./files.ts";
+import { alive, errno, shown, writable, writeAtomic } from "./files.ts";
 
 /**
  * A RequestStore in files under `<cwd>/.m3a/requests/`: each record `{key, args, reply}` named by the first 32 hex
@@ -36,7 +35,7 @@ export function fileStore(cwd: string, max = 256): RequestStore {
       try {
         writeAtomic(f, `${JSON.stringify({ key, args: entry.args, reply: entry.reply })}\n`);
       } catch (err) {
-        throw new ToolError("E_WRITE", `can't write ${quote(name(key))} (${errno(err)})`);
+        throw new ToolError("E_WRITE", `can't write ${shown(name(key))} (${errno(err)})`);
       }
       try {
         // a write killed before its rename leaves <record>.<pid>.tmp: swept once its process is gone

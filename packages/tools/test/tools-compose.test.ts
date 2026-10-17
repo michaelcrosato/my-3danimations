@@ -11,18 +11,22 @@
 // character file, a trace that differs with hints that run it again as given (a script, character and clip file whose
 // names the shell would split passed as given), an unknown trigger (S-E003, not run), an unknown character (E_ARGS), a
 // character file's absolute path never echoed (a run's hint names it and its script by placeholders), nor a script's
-// that is no JSON (E_JSON), a run too long refused (its steps; 501 layers on 60 s, 20,000 transitions on 60 s); a
-// character whose bones' names miss a required bone refused
+// that is no JSON (E_JSON), a run too costly refused, by what its graph and script hold at once (its steps; 501 layers
+// on 60 s; a blend of 1,000 points, and one of 64 on 60 s; 20,000 transitions, one of 200,000 conditions, and one from
+// 10,000 states, each on 60 s; 1,001 parameters on 60 s, and 1,000 with a number eased in) and by what its fades play
+// out after a run without poses (a state left for another every step), while the shipped graphs pass at the longest
+// script; a character whose bones' names miss a required bone refused
 // (E_RIG), then run with the patch its retarget.inspect call gives (mapping), the run's hints keeping it; and
 // writes only under check-output/recipe.compile/ and check-output/graph.sim/.
 import { cpSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { openLibrary } from "@m3a/library/node";
 import { join } from "node:path";
-import { recipe } from "@m3a/core";
+import { graph as G, recipe } from "@m3a/core";
 import { describe, expect, it } from "vitest";
 import { nodeHost } from "../src/node.ts";
 import { Registry, type Reply } from "../src/registry/index.ts";
 import { bounded, MAX_RECIPE_STEPS, MAX_STEP_SAMPLES } from "../src/tools/clips.ts";
+import { runCost } from "../src/tools/compose.ts";
 import { COMPOSE, RETARGET } from "../src/tools/index.ts";
 import { exampleCwd, hintedCalls, ROOT, runExamples } from "./helpers/surfaces.ts";
 
@@ -162,15 +166,42 @@ describe("compose and wire", () => {
       for (const [script, named] of [[join(cwd, "bad one.json"), /^the script's file is not JSON: [^/]*$/], ["bad one.json", /^the script 'bad one\.json' is not JSON: /]] as const) expect((await call("graph.sim", { graph: L, script })).error).toEqual({ code: "E_JSON", message: expect.stringMatching(named) });
       const long = JSON.stringify({ format: "2.0", id: "SIMS/Long", dur: 600, rate: 240, input: [] });
       expect((await call("graph.sim", { graph: L, script: long })).error).toEqual({ code: "E_ARGS", message: "the script runs 144000 steps (dur 600 s at rate 240), past the 36000 graph.sim takes: shorten dur or lower rate" });
-      // its cost bounded at once: 501 layers (the base and 500) on a 60 s script, and 20,000 transitions on one
+      // its cost bounded at once, by what the graph and script hold: 501 layers (the base and 500, a 2-point blend each)
+      // on a 60 s script; a blend of 1,000 points (past the most one blend takes), and one of 64 (the clips it plays at
+      // once, each a step); 20,000 transitions, one of 200,000 conditions, and one from a list of 10,000 states (each
+      // read every step); 1,001 parameters (each read every step), and 1,000 with one number the script eases in
       const minute = JSON.stringify({ format: "2.0", id: "SIMS/Minute", dur: 60, film: 0, input: [] }), idle = { clip: `${Q}Idle_Loop` };
-      const layer = (i: number) => ({ name: `l${i}`, start: "a", states: { a: { blend: { param: "speed", points: [{ at: 0, clip: `${Q}Walk_Loop` }, { at: 3, clip: `${Q}Jog_Fwd_Loop` }] } } }, transitions: [], weight: 0.5 });
-      const graph = (layers: number, transitions: number) => JSON.stringify({ format: "2.0", id: "GRAPHS/Big", name: "Big", parameters: { speed: { type: "number", value: 1 } }, start: "idle", states: { idle, idle2: idle },
-        transitions: Array.from({ length: transitions }, (_, i) => ({ from: "idle", to: "idle2", when: [{ param: "speed", op: ">", value: 100 + i }] })), layers: Array.from({ length: layers }, (_, i) => layer(i)) });
-      expect((await call("graph.sim", { graph: graph(500, 1), script: minute })).error).toEqual({ code: "E_ARGS", message: "the run takes 501 layers × 3600 steps, past the 144000 layer steps graph.sim takes (4 layers × 36000 steps): use fewer layers, or shorten dur or lower rate" });
-      expect((await call("graph.sim", { graph: graph(0, 20_000), script: minute })).error).toEqual({ code: "E_ARGS", message: "the run takes 20000 transitions × 3600 steps, past the 36000000 transition steps graph.sim takes (1000 transitions × 36000 steps): use fewer transitions, or shorten dur or lower rate" });
+      const blend = (n: number) => ({ blend: { param: "speed", points: Array.from({ length: n }, (_, i) => ({ at: i, clip: i % 2 ? `${Q}Jog_Fwd_Loop` : `${Q}Walk_Loop` })) } });
+      const layer = (i: number) => ({ name: `l${i}`, start: "a", states: { a: blend(2) }, transitions: [], weight: 0.5 });
+      const graph = (layers: number, transitions: number, more: { when?: number; from?: number; base?: object; params?: number } = {}) => JSON.stringify({
+        format: "2.0", id: "GRAPHS/Big", name: "Big", parameters: Object.fromEntries([["speed", { type: "number", value: 1 }], ...Array.from({ length: (more.params ?? 1) - 1 }, (_, i) => [`p${i}`, { type: "number" }])]), start: "idle", states: { idle: more.base ?? idle, idle2: idle },
+        transitions: Array.from({ length: transitions }, (_, i) => ({ from: more.from ? Array.from({ length: more.from }, () => "idle") : "idle", to: "idle2", when: Array.from({ length: more.when ?? 1 }, () => ({ param: "speed", op: ">", value: 100 + i })) })),
+        layers: Array.from({ length: layers }, (_, i) => layer(i)),
+      });
+      const costs = async (g: string, script = minute) => (await call("graph.sim", { graph: g, script })).error;
+      const per = (what: string, cut: string) => ({ code: "E_ARGS", message: `${what}: ${cut}, or shorten dur or lower rate` });
+      expect(await costs(graph(500, 1))).toEqual(per("the run plays 1001 clips at once (each layer's widest state: a blend's points) × 3600 steps, past the 144000 clip steps graph.sim takes (4 clips × 36000 steps)", "use fewer layers or blend points"));
+      expect(await costs(graph(0, 1, { base: blend(1000) }))).toEqual({ code: "E_ARGS", message: "states.idle.blend has 1000 points, past the 64 one blend graph.sim plays takes: use fewer points" });
+      expect(await costs(graph(0, 1, { base: blend(64) }))).toEqual(per("the run plays 64 clips at once (each layer's widest state: a blend's points) × 3600 steps, past the 144000 clip steps graph.sim takes (4 clips × 36000 steps)", "use fewer layers or blend points"));
+      const tests = (n: number) => `the run tests ${n} transition terms (each transition 1, and its conditions and the states it is from) × 3600 steps, past the 36000000 graph.sim takes (1000 terms × 36000 steps)`;
+      expect(await costs(graph(0, 20_000))).toEqual(per(tests(40_000), "use fewer transitions or conditions"));
+      expect(await costs(graph(0, 1, { when: 200_000 }))).toEqual(per(tests(200_001), "use fewer transitions or conditions"));
+      expect(await costs(graph(0, 1, { from: 10_000 }))).toEqual(per(tests(10_002), "use fewer transitions or conditions"));
+      const reads = (k: number, n: number) => per(`the run reads ${k} parameters ${n} times (each step, and each number the script eases in), past the 3600000 parameter reads graph.sim takes (100 parameters × 36000 steps)`, "use fewer parameters");
+      const eased = JSON.stringify({ format: "2.0", id: "SIMS/Eased", dur: 60, film: 0, input: [{ t: 1, set: { speed: 2 }, over: 1 }] });
+      expect([await costs(graph(0, 1, { params: 1001 })), await costs(graph(0, 1, { params: 1000 }), eased)]).toEqual([reads(1001, 3600), reads(1000, 3601)]);
+      // what its fades play out, by a run without poses first: a state left for another every step, each fade cut (a
+      // 32-point blend: 32 clips at once, 4 states fading out with it), on a 20 s script
+      const fades = JSON.stringify({ format: "2.0", id: "GRAPHS/Fades", name: "Fades", parameters: { speed: { type: "number", value: 0.5 } }, start: "a", states: { a: blend(32), b: blend(32) }, transitions: [{ from: "a", to: "b", fade: 10, interruptible: true }, { from: "b", to: "a", fade: 10, interruptible: true }] });
+      expect(await costs(fades, JSON.stringify({ format: "2.0", id: "SIMS/Third", dur: 20, film: 0, input: [] }))).toEqual(per("the run plays 38400 clip steps, and its fades (1200 transitions taken) up to 153600 more, past the 144000 clip steps graph.sim takes (4 clips × 36000 steps)", "take fewer transitions, or shorter fades"));
+      // while the shipped graphs pass at the longest script (Locomotion's 4 clips at once at the limit), and Sword_Combo
+      // runs a combo through its fades
+      const longest = { format: "2.0", id: "SIMS/Longest", dur: 600, input: [] } as unknown as Parameters<typeof runCost>[2];
+      for (const f of ["spec/graphs/Locomotion.json", "spec/graphs/Sword_Combo.json"]) expect(((g: G.Graph) => runCost(G.layersOf(g), Object.keys(g.parameters ?? {}).length, longest, 36_000))(JSON.parse(text(f)) as G.Graph)).toBeUndefined();
+      const combo = JSON.stringify({ format: "2.0", id: "SIMS/Combo", dur: 3, film: 0, input: [0.2, 0.6, 1.0].map((t) => ({ t, trigger: "attack" })) });
+      expect(await call("graph.sim", { graph: "spec/graphs/Sword_Combo.json", script: combo })).toMatchObject({ status: "findings", data: { steps: 180, states: [{ state: "a" }, { state: "b" }, { state: "c" }] } });
       for (const bad of ["[1]", '{"script":"SIMS/Short","states":[]}']) expect((await call("graph.sim", { graph: L, script: SHORT, expect: bad })).error).toEqual({ code: "E_JSON", message: "the expected trace is not one: give a trace.json graph.sim wrote (spec/SIM.md §2)" });
-      expect([readdirSync(join(cwd, "check-output")), readdirSync(join(cwd, "check-output/graph.sim"))]).toEqual([["graph.sim"], ["Short.trace.json", "Sprint.trace.json"]]);
+      expect([readdirSync(join(cwd, "check-output")), readdirSync(join(cwd, "check-output/graph.sim"))]).toEqual([["graph.sim"], ["Combo.trace.json", "Short.trace.json", "Sprint.trace.json"]]);
     }));
 
   it("graph.sim: a character whose bones' names no table knows refused (E_RIG), then run with the patch its retarget.inspect call gives, the hints keeping the mapping", () =>
