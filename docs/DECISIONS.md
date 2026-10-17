@@ -3907,3 +3907,61 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
 - **Why:** publishing can't be taken back, and for publishing the default is always "don't" (AGENTS.md).
 - **Answered:** no: the default taken after the escalation's 15 minutes, to review.
 - **Landed in:** v0.50.0 (WP-7.4's version)
+
+## D101 · 2026-10-17 · WP-7.4: the packs, the single file and `npm run pack -- --check`; nothing published
+
+- **Principle:** 2, 6, 7, D10, D59, D99 (WP-7.4, O2)
+- **Call:**
+  - **The packs** (`tools/bundle/build.ts`): each `@m3a` package built as ES modules with declarations, by Node's own
+    type stripping file for file (so `dist/x.js` keeps `src/x.ts`'s lines), relative `.ts` imports pointed at `.js`,
+    the `.d.ts` from `tsc -b`, staged in `.cache/pack/stage/` with its published `package.json` (exports, types and
+    bins pointed at `dist/`; devDependencies dropped; `private` kept, D99) and packed. The workspace's own bin and
+    types stay on the sources, so `npm ci` links `m3a` to `src/node.ts`; only the staged copy points at `dist/`.
+  - **Tiers as packs (D10):** the default `@m3a/library` holds the cc0 sets alone, its lock and license texts narrowed
+    to them; `@m3a/library-cc-by` and `@m3a/library-cmu` hold their tiers' sets with the opt-in and credits block,
+    peer-depending on the library. `openLibrary` finds an installed pack (a crossing into `@m3a/library`'s loader),
+    and every m3a and MCP reply warns when a game opts into a tier whose pack isn't installed (a crossing into
+    `@m3a/tools`).
+  - **The single file** `m3a.js` (Vite, carried from riftlight's bundle.mjs): every name of core, sensors, io, library
+    and tools once (a new collision fails the build), 47 CC0 clips listed in `tools/bundle/manifest.json` (a
+    GameManifest; the license check passes; each clip passes the sensors or carries its WP-5.8 baseline), the credits
+    block and the license texts verbatim, 1.16 MB, not minified. three.js and `@m3a/three` are left out: the file is
+    for agents that can't install packages, who can't install three either, and a second three beside a game's would
+    break `instanceof`. **How "the single file runs the same example" is read:** m3a.js runs the manual's complete
+    example program itself (its ts blocks, JSON files and m3a calls), with only the imports it leaves out (three and
+    `@m3a/three`) served headless, and prints what the packages print for that headless form.
+  - **`npm run pack [-- --check]`** (`tools/bundle/main.ts`, about 18 s): the packs and m3a.js; `--check` fails on a
+    set in the wrong pack, a bin that isn't `dist/node.js` with its shebang or can't start, m3a.js's credits or texts,
+    the manifest's license check, a bundled clip's QA, a scratch project that installs the tarballs and can't run the
+    manual's complete example, `npx m3a help` and `version`, `m3a mcp`'s tools/list, the opt-in packs, or m3a.js
+    printing anything else. It is in G7's set (D98); T2 doesn't run it (the integrator's call: 18 to 30 s, and G7
+    runs it).
+  - **The runner** packs through `tools/bundle` (a crossing into WP-4.7's `bench/runner/pack.ts`); the known-goods'
+    `--fake` runs pass, on G7's held-out variants too.
+  - **Provenance** (npm, through Sigstore) is written down in `tools/bundle/README.md` for the first published version,
+    not enabled (D99).
+  - **Reviews:** four rounds. Blocking findings fixed: the workspace's bin moved to `dist/` (which `npm ci` never
+    builds, so `npx m3a` would have reached the registry), and m3a.js running a stand-in rather than the manual's
+    example. Should-fixes: the deviation unrecorded (here now), a bin that can't start passing the check.
+  - **Size:** about 1,720 lines (tools/bundle, the library's loader, the packaging fields), past M's 1,200.
+- **Why:** an agent installs the packages or drops in one file; both must run the manual's example, carry their
+  licenses and keep tiers opt-in, and nothing is published before the owner answers O2.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.50.0
+
+## D102 · 2026-10-17 · T1 trimmed by sharing identical work: 89.8 s to about 78 s, no test, input or assertion less
+
+- **Principle:** process, D74, D89
+- **Call:**
+  - With WP-7.3's runner tests T1 reached 89.8 s of its 90 s here (CI's runner is faster). Eight files that took most
+    of it (the sensors' and core's procedural tests, the runner's, the sweep's, the actions sweep, the B1 and B3
+    graders and tools-change) now share identical work: a fixture built once per file, a pure result reused (each
+    reuse's purity argued in 0ea84f2), and their Node child processes share a compile cache (`tools/run/compile-cache.ts`).
+  - Per file the it( and expect( counts are unchanged and no input, threshold or case changed; an independent review
+    confirmed it, mutating a key assertion in each to show it still fails.
+  - Measured: T1 78.0 s on the merged head (974 tests).
+  - Left: the procedural files are bound by core's gait code; cutting further needs source changes with byte-identity
+    proofs (as D89).
+- **Why:** a slow T1 is fixed by removing cost, never coverage.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.49.0
