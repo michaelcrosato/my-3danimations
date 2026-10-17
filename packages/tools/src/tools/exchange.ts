@@ -180,10 +180,11 @@ function posedRig(doc: GltfDoc, label: string): string | { map: string; joints: 
 /** What a glTF-family file says of its animations' terms: the licenses in the extras of those an import takes (its
  *  picks' takes, else every animation; those $skip leaves out not), and the credit to default to: an animation's
  *  extras.credit, else the asset's copyright (a .vrma's is its clip's; a .gltf's or .glb's may be a character's, so it
- *  comes last). */
-function termsOf(doc: GltfDoc, cat: Catalog | null): { licenses: string[]; credit: string | undefined } {
+ *  comes last). Animation i is named as io's readers name it, `names[i]` (describeGltf's: two sharing a name are X and
+ *  X_2), `animation<i>` when that gives none. */
+function termsOf(doc: GltfDoc, names: readonly string[], cat: Catalog | null): { licenses: string[]; credit: string | undefined } {
   const takes = cat?.$pick ? new Set(Object.values(cat.$pick).map((p) => p[0])) : null, text = (v: unknown) => (typeof v === "string" && v.trim() ? v : undefined);
-  const anims = (doc.json.animations ?? []).map((an, i) => ({ name: an.name ?? `animation${i}`, extras: (an as { extras?: { license?: unknown; credit?: unknown } }).extras }))
+  const anims = (doc.json.animations ?? []).map((an, i) => ({ name: names[i] || `animation${i}`, extras: (an as { extras?: { license?: unknown; credit?: unknown } }).extras }))
     .filter((an) => (takes ? takes.has(an.name) : !cat?.$skip?.[an.name]));
   const licenses = [...new Set(anims.flatMap((an) => (text(an.extras?.license) ? [an.extras!.license as string] : [])))];
   const copyright = text((doc.json.asset as { copyright?: unknown } | undefined)?.copyright);
@@ -252,7 +253,7 @@ export const importMotion = defineTool<{ path: string; set: string; license?: st
     // call's: the ids each names compared as sets (idsOf), so a composed clip's and one in another case are the file's;
     // the fix passes the file's ids as the library spells them, quoted as a shell takes them (arg). One that names no
     // SPDX id can't be compared: a note says the clips carry the call's
-    const license = a.license!, terms = m.doc ? termsOf(m.doc, cat) : { licenses: [], credit: undefined }, ids = terms.licenses.filter((l) => isLicense(spelt(l)));
+    const license = a.license!, terms = m.doc ? termsOf(m.doc, m.names, cat) : { licenses: [], credit: undefined }, ids = terms.licenses.filter((l) => isLicense(spelt(l)));
     const stated = [...new Map(ids.map((l) => [idsOf(l), l])).values()], unread = terms.licenses.filter((l) => !ids.includes(l));
     if (stated.some((l) => idsOf(l) !== idsOf(license))) {
       const says = stated.join(" and "), fix = stated.length === 1 ? `pass \`--license ${arg(spelt(stated[0]!))}\`` : 'import the animations of each license apart, "$skip" leaving out the others';
