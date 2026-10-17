@@ -357,6 +357,14 @@ describe("exchange", () => {
       writeFileSync(join(cwd, "free.vrma"), licensed(readFileSync(join(cwd, composed)), "CC BY 4.0"));
       const free = await call("import", { path: "free.vrma", set: "FREE", license: "CC-BY-4.0" });
       expect([free.error, (free.data as { notes: string[] }).notes]).toEqual([null, ['the file\'s extras.license "CC BY 4.0" is no SPDX id: its clips carry CC-BY-4.0']]);
+      // two animations sharing a name are io's X and X_2 (describeGltf, as its readers name them): the license of the one
+      // "$skip" leaves out, by that name, isn't the file's
+      const twice = JSON.parse(readFileSync(join(cwd, RIG), "utf8")) as { animations: { name: string; extras?: object }[] };
+      twice.animations[1]!.extras = { license: "CC0-1.0" };
+      Object.assign(twice.animations[2]!, { name: twice.animations[1]!.name, extras: { license: "CC-BY-4.0" } });
+      writeFileSync(join(cwd, "twice.gltf"), JSON.stringify(twice));
+      const one2 = await call("import", { path: "twice.gltf", set: "TWICE", license: "CC0-1.0", catalog: JSON.stringify({ $skip: { Wave_Loop_2: "the CC-BY take" } }) });
+      expect([one2.error, (one2.data as { clips: { id: string }[] }).clips.map((c) => c.id)]).toEqual([null, ["TWICE/A_TPose", "TWICE/Wave_Loop"]]);
       // a composed license with a part whose text the library doesn't keep: that part named, and the one-id note
       writeFileSync(join(cwd, "mine.vrma"), licensed(readFileSync(join(cwd, composed)), "LicenseRef-Mine AND CC-BY-4.0"));
       const mine = await call("import", { path: "mine.vrma", set: "MINE", license: "CC-BY-4.0 AND LicenseRef-Mine" });
