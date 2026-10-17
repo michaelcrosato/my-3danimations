@@ -9,9 +9,12 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { ROOT } from "../run/cli.ts";
 import { fix } from "@m3a/sensors";
-import { BASELINE, baselineOf, CAPTURE, compare, distributions, fixAll, libraryClips, qa, worse } from "./qa.ts";
+import { BASELINE, baselineOf, CAPTURE, compare, distributions, fixAll, libraryClips, qa, worse, type LibraryClip } from "./qa.ts";
 
-const pick = (ids: string[]) => libraryClips().filter((c) => ids.includes(c.clip.id));
+/** The library, read once for this file (on first use); each test picks copies of its clips, as a read of its own gave. */
+let library: LibraryClip[] | undefined;
+const all = () => (library ??= libraryClips());
+const pick = (ids: string[]) => structuredClone(all().filter((c) => ids.includes(c.clip.id)));
 
 describe("the QA rows and distributions", () => {
   it("carry each clip's verdict text and findings with times and repairs", () => {
@@ -39,7 +42,7 @@ describe("the committed baseline", () => {
     delete moved["STYLE100/Neutral_Walk"];
     expect(compare(moved, rows, true)).toEqual([expect.stringMatching(/^QUATERNIUS_3D2DGE\/Walk_Loop: pass → (warn|fail)$/), expect.stringMatching(/^QUATERNIUS_3D2DGE\/Walk_Loop: slide 999 → [\d.]+$/), "STYLE100/Neutral_Walk: not in the baseline"]);
     const committed = JSON.parse(readFileSync(join(ROOT, BASELINE), "utf8")) as { clips: Record<string, unknown> };
-    expect(Object.keys(committed.clips)).toHaveLength(libraryClips().length);
+    expect(Object.keys(committed.clips)).toHaveLength(all().length);
   });
 });
 

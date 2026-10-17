@@ -4,6 +4,165 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.50.0 · 2026-10-17
+
+### Repo
+- `npm run pack [-- --check]` (WP-7.4, D101): every `@m3a` package built as ES modules with declarations and packed
+  (the workspace's bin runs the source, the packed one `dist/node.js`); a scratch project installs the tarballs and runs
+  the manual's complete example, `npx m3a` and `m3a mcp`; nothing is published (D99), every package stays private.
+- `m3a.js`, one self-contained ES module with 47 CC0 clips (`tools/bundle/manifest.json`), the credits block and the
+  license texts; it runs the manual's complete example headless (no three.js).
+- The benchmark packs through `tools/bundle`.
+
+### Library
+- The default `@m3a/library` pack holds the cc0 sets; `@m3a/library-cc-by` and `@m3a/library-cmu` are opt-in packs
+  that `openLibrary` finds when installed (D10).
+
+### Tools
+- Every reply warns when a game opts into a tier whose pack isn't installed.
+
+## 0.49.0 · 2026-10-17
+
+### Tools
+- The manual (WP-7.3, D100): one complete example (a knight that walks, slashes with a hit event and staggers its
+  target), the API by job, the 20 tools as `m3a` and MCP calls in a list generated from the registry, the reads G6's
+  agents made past it, matching a loop's speed and moving by `player.travel`, the import catalog; every code block runs
+  in `npm test -- manual`. Within 8,000 tokens.
+- The registry's examples for edit, film, diff and describe name clips no benchmark brief asks for.
+
+### Docs
+- `skills/m3a/SKILL.md` (agentskills.io) and this repository's `.claude/skills/m3a/SKILL.md`; `llms.txt`; `.mcp.json`.
+
+### Repo
+- Benchmark trials get the skill, the `Skill` tool and the packed `m3a mcp` server; a trial whose server didn't
+  connect fails; the shipped skill and `llms.txt` count as the manual.
+- T1 shares identical work in its eight slowest files (89.8 s to about 78 s here), every test and assertion kept (D102).
+
+## 0.48.0 · 2026-10-17
+
+### Tools
+- WP-7.2b's tools (D93, D96), each on the API, `m3a`, MCP and the console: `retarget.inspect` (a character's
+  mapping, its issues and a rest turntable; hips bound on a wrong bone and each missing bone's likely sources named) and
+  `retarget.apply` (up to 20 clips played on it, each judged as the sweep judges a skeleton, D80); `recipe.compile`,
+  `graph.validate` and `graph.sim` (a script on a character, tiny by default, its trace diffed against an expected
+  one; a mapping taken as retarget takes it); `import` (a .gltf, .glb, .bvh or .vrma file's animations fitted into a
+  local set under `imports/<SET>/`) and `export` (a clip on a character as .vrma, .glb or .bvh, each read back within
+  1 mm). 20 tools in all, within 3,000 tokens to describe.
+- A character is bound through `@m3a/io` and core, with no three.js (lane b0, in 0.47.0's tree): `ctx.bytes`, a VRM's
+  humanoid taken as the file's word, `TINY` the default body. A mesh io can't read (compressed, weights unreadable,
+  soles unread) is said, with what re-exporting mends, and is no mapping issue.
+- One naming rule (D96): a hint names a given file with its placeholder or the path as given, quoted for the shell;
+  refusals, verdicts and data use the same words without brackets, never an absolute path or a JSON-quoted one. Every
+  hint runs as written; parser messages fit one line.
+- Bounds on what one call costs, each refused up front naming the remedy: a held foot past what the planter replays
+  cheaply (retarget.apply, export, graph.sim), graph.sim's clip and fade steps, a recipe's steps, samples, list reads
+  and the samples its keys are fitted to (3,600; edit too, which keeps its chain only within them), import's 120 s take,
+  240 s and 500 clips. The host stats a file before reading it (512 MiB binary, 64 MiB text).
+- import: the license and credit a file carries are used (a contradicting `--license` refused, ids compared as sets,
+  a composed license taken); it removes only clip files an import wrote and names them; a set whose directory holds
+  another .json, or a library set's name, is refused; a glTF no bone map knows is refused with calls that work. MCP
+  lists it as writing (readOnlyHint false, destructiveHint true).
+- The host keeps at most 8 libraries open and reads an imported set under `imports/` at call time.
+
+### IO
+- `skeletonOfGltf` (a glTF's skeleton as three's bind takes it, unweighted joints left out) and `meshEnds` (D49's sole
+  end bones from the mesh), signed and quantized accessors read, sparse ones refused (lane b0).
+- The BVH writer and `bvhGap`, the glTF animation writer and `glbGap` (a joint missing from the read-back file is
+  E_MISSING); a VRMA carries its license in extras and its credit as the copyright, a .glb's animation both; a
+  one-frame take held a frame.
+- `animationNames`: each glTF animation its own name (`X`, `X_2`, `animation<i>` for none) in every reader, in linear
+  time; a BVH frame time must be above 0 and at most 1 s; rigBvh's E_RIG reads for a .bvh and a glTF alike.
+
+### Library
+- The set writer (`setFiles`, `setText`, `catalogRow`), moved from `tools/migrate`; `openLibrary` takes a source.
+- `Library.resolver()` throws E_TIER for a clip an out-of-tier set holds, so a recipe names the opt-in; any other id
+  is R-E008 with its did-you-mean.
+
+### Core
+- Bit-identical speedups (D97): decoding and encoding by offsets found once, rest conjugates, shoulders and hint
+  starts found once per rest, contactRoot decoding the legs alone, planting without per-call arrays. CI's T1 74.4 s
+  to 61.9 s with 38 more tests.
+- `measureFacts` takes samples a caller already took (an optional fourth argument, `sampled`), checked for count and
+  step against sampleAll's.
+- Recognition by shape walks the skeleton without recursion: chains of 130,000 bones recognize; parents in a loop
+  throw a RangeError naming a bone. Every output as before (pinned by hash).
+
+### Three
+- The bind sanitizes a patch's source bone as three's loader sanitizes node names, so the tools' patch binds in three.
+
+### Repo
+- The D80 judge lives in `@m3a/tools` (`judge.ts`); the sweep imports it, its rows pinned by hash (the same before
+  the move). `tools/exact/ab.mjs`, the bit-identity harness, kept on demand. B5's and B6's starter check names a clip
+  past CC0 as R-E008. eslint leaves the lane worktrees out.
+
+## 0.47.0 · 2026-10-16
+
+### Tools
+- WP-7.2a's tools (D93, D95), each on the API, `m3a`, MCP and the console, opening the library at the game's tiers
+  (`game.json`, else cc0): `search` (a game moment in words and filters, best first, naming a closer clip in another
+  tier); `show` (a clip's keys as text, its provenance, license and the credit owed); `describe` (a short timeline);
+  `metrics`, `sheet`, `film`, `diff`, `lint` (the sensors' verdicts, findings and pictures, each image with its size
+  and token cost); `fix` and `edit` (into `workshop/<Name>.json`, revisioned, retry-safe, with undo and redo in one
+  history); `license.check` (clips, a set or the game against licenses and tiers, with the credits block).
+- The host: a tool reads, writes and removes files only under `workshop/`, `.m3a/`, `imports/` and `check-output/`,
+  atomically and never through a link out; `m3a` keeps retries in `.m3a/requests/`, so `--request-id` works on the
+  CLI; two edits of one clip never both apply (a per-clip lock, E_CONFLICT with the current revision); a clip edited
+  outside m3a resets its history for every tool; slow retimes past 600 s are refused before they compile.
+- A clip given by path, JSON or from the workshop that the game's tiers couldn't ship gets a warning line in every
+  tool; a library id outside them is refused.
+- Every next hint writes its calls as the `m3a` command takes them, and they run as written; replies name a clip one
+  way and never an absolute path; every tool declares an output schema; MCP's `tools/list` leaves out
+  `outputSchema` (about 250 tokens a tool). The 13 tools cost 1,763 tokens to describe.
+
+### Library
+- `Library#about(set)` (a set's legend and sources, whatever the game's tiers); search's `mps`; D10's tier rule
+  (`tierOf`, `credited`).
+
+### Sensors
+- `fixes.worse` and `fixes.ANSWERS` are exported.
+
+### Docs
+- The manual's two request_id sentences match the durable store.
+
+### Repo
+- e2e `mcp-smoke` runs each example through the Inspector and the API in working directories of their own, seeded
+  alike, so an example that writes doesn't meet the other's file.
+
+## 0.46.1 · 2026-10-16
+
+### Repo
+- Benchmark agents run as `nobody` with no capabilities and no new privileges where the runner is root (as itself
+  where it isn't: CI), so `/root`, the raw disks and every checkout (covers now mode 0700) refuse them; their
+  workspace, home and own `/tmp` are handed to them walking real directories only, the proxy's CA copied into the home,
+  and in a cloud session the CLI's credentials copied into a tmpfs of the namespace's own (D94).
+- In an agent's namespace `/var/tmp` and `/dev/shm` are an empty tmpfs of its own; the audit counts its files there as
+  its scratch. Trials and results record `uid` and `unprivileged`; `capsDropped` means no capabilities at all (D94).
+
+## 0.46.0 · 2026-10-16
+
+### Tools
+- The tool registry (WP-7.1, D92): a tool defined once with `defineTool` is served four ways: the API
+  (`tools.call(name, args)`), the `m3a` command (`m3a <tool> [args] [--json] [--verbose]`, `m3a help [tool]`), an MCP
+  stdio server (`m3a mcp`) and the console handle `__M3A_TOOLS__` (`installConsole`).
+- One reply, `m3a.reply/1` (verdict, lines, data, images, revision, error, next), shared by `report.json`, MCP's
+  `structuredContent` and the API; the verdict is one line and the text fits 20 lines unless `--verbose` or
+  `verbose: true` asks for all; `m3a help` lists every tool. Exit codes 0 ok, 1 findings or a failed tool, 2 usage;
+  on MCP a failed tool or a wrong call is an `isError` result.
+- Wrong calls name the closest valid choice (an unknown tool, flag, argument, help argument or nested field); every
+  reply ends with a `next` hint. Parameter names are ones every surface can pass.
+- Edits' `request_id` and `if_revision`, handled by the registry: a retry with the same id and arguments returns the
+  first reply, and an edit that applied never applies again; `m3a` refuses `--request-id` until it keeps retries
+  between runs (WP-7.2a).
+- The MCP server follows the 2026-07-28 revision and still answers the `initialize` handshake back to 2024-11-05;
+  tool names use `_` for `.`.
+- Images from tools go to `check-output/<tool>/`, with size and approximate token cost; MCP also sends them as image
+  content. The tools `version` and `validate`; the `@m3a/tools/node` entry and the `m3a` bin.
+- The manual's tools section: the `m3a` command, MCP and the console.
+
+### Repo
+- `@modelcontextprotocol/inspector` 2.9.0 (dev, pinned) and the e2e suite `mcp-smoke` (`npm run e2e -- mcp-smoke`).
+- PLAN.md: WP-7.2 split into 7.2a and 7.2b, each an L (D93).
+
 ## 0.45.2 · 2026-10-16
 
 ### Tools

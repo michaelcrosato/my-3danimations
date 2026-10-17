@@ -1,12 +1,17 @@
 {
   "name": "@m3a/core",
-  "version": "0.45.2",
+  "version": "0.50.0",
   "private": true,
   "description": "Format codec, profiles, sampler, pose ops, solver, contacts, recipes, graphs and sources. Imports nothing.",
   "license": "MIT",
   "type": "module",
+  "//": "The workspace runs src/ directly (Node 24 strips the types); npm run pack (tools/bundle) stages this package with its exports and types pointed at dist/, where its JavaScript and declarations are: every path here names a source file.",
   "exports": {
     ".": "./src/index.ts"
   },
+  "types": "./src/index.ts",
+  "files": [
+    "dist"
+  ],
   "dependencies": {}
 }

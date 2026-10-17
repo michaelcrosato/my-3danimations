@@ -6,8 +6,9 @@
 // or a point 12 cm in front of it (`fwd`). The skinned mesh, when there is one, also gives the mannequin's look: each
 // segment's radii and where a joint-ring material sits. Arithmetic follows the original's order, with core's portable
 // math, so every engine reads the same bits. Beyond the original: a node's `matrix` is read as its transform, a skin
-// without inverse bind matrices has identity ones (as the spec says), and a file's clips together are held to a budget
-// of frames and joint transforms, so a small hostile file can't ask for hours of work.
+// without inverse bind matrices has identity ones (as the spec says), a file's clips together are held to a budget
+// of frames and joint transforms, so a small hostile file can't ask for hours of work, and each animation is a clip of
+// its own, those sharing a name or having none too (`animationNames`, which every glTF reader names them by).
 import { format, math } from "@m3a/core";
 import { Bytes, IoError, LIMITS, spend } from "../bytes.ts";
 import { plainOnly, type GltfDoc, type GltfJson, type GltfNode } from "./container.ts";
@@ -75,17 +76,20 @@ function bonesFor(rig: string): [string, string, Where][] {
 }
 
 /* ---- column-major 4x4 matrices, quaternions [x, y, z, w] (the original's order of operations) ---- */
-const mat = (t: number[] = [0, 0, 0], q: number[] = [0, 0, 0, 1], s: number[] = [1, 1, 1]): M4 => {
+/** A transform as a column-major 4x4 matrix: translation `t`, rotation `q`, scale `s`. */
+export const mat = (t: number[] = [0, 0, 0], q: number[] = [0, 0, 0, 1], s: number[] = [1, 1, 1]): M4 => {
   const [x, y, z, w] = q as [number, number, number, number], xx = x * x, yy = y * y, zz = z * z, xy = x * y, xz = x * z, yz = y * z, wx = w * x, wy = w * y, wz = w * z;
   return [(1 - 2 * (yy + zz)) * s[0]!, 2 * (xy + wz) * s[0]!, 2 * (xz - wy) * s[0]!, 0, 2 * (xy - wz) * s[1]!, (1 - 2 * (xx + zz)) * s[1]!, 2 * (yz + wx) * s[1]!, 0,
     2 * (xz + wy) * s[2]!, 2 * (yz - wx) * s[2]!, (1 - 2 * (xx + yy)) * s[2]!, 0, t[0]!, t[1]!, t[2]!, 1];
 };
-const mul = (a: M4, b: M4): M4 => {
+/** The product of two column-major 4x4 matrices, `a` applied after `b`. */
+export const mul = (a: M4, b: M4): M4 => {
   const o = new Array<number>(16);
   for (let c = 0; c < 4; c++) for (let r = 0; r < 4; r++) o[c * 4 + r] = a[r]! * b[c * 4]! + a[4 + r]! * b[c * 4 + 1]! + a[8 + r]! * b[c * 4 + 2]! + a[12 + r]! * b[c * 4 + 3]!;
   return o;
 };
-const xf = (m: M4, p: number[]): V3 => [m[0]! * p[0]! + m[4]! * p[1]! + m[8]! * p[2]! + m[12]!, m[1]! * p[0]! + m[5]! * p[1]! + m[9]! * p[2]! + m[13]!, m[2]! * p[0]! + m[6]! * p[1]! + m[10]! * p[2]! + m[14]!];
+/** A point `p` carried by the column-major 4x4 matrix `m`. */
+export const xf = (m: M4, p: number[]): V3 => [m[0]! * p[0]! + m[4]! * p[1]! + m[8]! * p[2]! + m[12]!, m[1]! * p[0]! + m[5]! * p[1]! + m[9]! * p[2]! + m[13]!, m[2]! * p[0]! + m[6]! * p[1]! + m[10]! * p[2]! + m[14]!];
 /** Spherical in-between of two quaternions, the shorter way (nearly equal ones in-betweened linearly), as the original. */
 export const slerp = (a: number[], b: number[], t: number): number[] => {
   let d = a[0]! * b[0]! + a[1]! * b[1]! + a[2]! * b[2]! + a[3]! * b[3]!, s = 1;
@@ -107,36 +111,69 @@ const pct = (arr: number[], p: number): number => {
 };
 
 const SIZE: Readonly<Record<string, number>> = { SCALAR: 1, VEC2: 2, VEC3: 3, VEC4: 4, MAT4: 16 };
-const BYTES: Readonly<Record<number, number>> = { 5126: 4, 5125: 4, 5123: 2, 5121: 1 };
+const BYTES: Readonly<Record<number, number>> = { 5126: 4, 5125: 4, 5123: 2, 5122: 2, 5121: 1, 5120: 1 };
+/** A normalized integer's largest value (signed ones clamped at -1, as glTF and three.js read them). */
+const UNIT: Readonly<Record<number, number>> = { 5123: 65535, 5122: 32767, 5121: 255, 5120: 127 };
 
-/** An accessor's values (a number, or a row per element), each read checked against the buffer; `want` its type. */
+/** An accessor's values (a number, or a row per element), each read checked against the buffer; `want` its type. Signed
+ *  and unsigned bytes and shorts are read (a quantized mesh's, KHR_mesh_quantization), normalized or not; a sparse
+ *  accessor is refused, never read as its base values. */
 export function accessor(json: GltfJson, bin: Bytes | null, i: number, want?: string): (number | number[])[] {
   const file = bin?.file, a = json.accessors?.[i];
   if (!a) throw new IoError("E_FORMAT", `no accessor ${i}`, { file });
   if (want && a.type !== want) throw new IoError("E_FORMAT", `accessor ${i} is a ${a.type}; it is read as a ${want}`, { file });
   if (a.bufferView === undefined) throw new IoError("E_FORMAT", `accessor ${i} has no bufferView (sparse accessors aren't read)`, { file });
+  if ("sparse" in a) throw new IoError("E_FORMAT", `accessor ${i} is sparse, which isn't read`, { file });
   const bv = json.bufferViews?.[a.bufferView], n = SIZE[a.type], bytes = BYTES[a.componentType];
   if (!bv) throw new IoError("E_FORMAT", `accessor ${i}'s bufferView ${a.bufferView} doesn't exist`, { file });
   if (bv.buffer !== 0 || !bin) throw new IoError("E_MISSING", `accessor ${i} reads buffer ${bv.buffer}, which the file doesn't hold`, { file });
   if (!n) throw new IoError("E_FORMAT", `accessor ${i}'s type "${a.type}" isn't read`, { file });
-  if (!bytes) throw new IoError("E_FORMAT", `accessor ${i}'s componentType ${a.componentType} isn't read (float, uint8, uint16, uint32)`, { file });
+  if (!bytes) throw new IoError("E_FORMAT", `accessor ${i}'s componentType ${a.componentType} isn't read (float, int8, uint8, int16, uint16, uint32)`, { file });
   if (!Number.isInteger(a.count) || a.count < 0 || a.count * n > LIMITS.values) throw new IoError("E_LIMIT", `accessor ${i} holds ${a.count} × ${n} values, over the limit`, { file });
-  const read = a.componentType === 5126 ? (o: number) => bin.f32(o) : a.componentType === 5125 ? (o: number) => bin.u32(o) : a.componentType === 5123 ? (o: number) => bin.u16(o) : (o: number) => bin.u8(o);
-  const norm = a.normalized ? ({ 5123: 65535, 5121: 255 } as Record<number, number>)[a.componentType] || 1 : 1;
+  const t = a.componentType, read = t === 5126 ? (o: number) => bin.f32(o) : t === 5125 ? (o: number) => bin.u32(o) : t === 5123 ? (o: number) => bin.u16(o)
+    : t === 5122 ? (o: number) => (bin.u16(o) << 16) >> 16 : t === 5121 ? (o: number) => bin.u8(o) : (o: number) => (bin.u8(o) << 24) >> 24;
+  const unit = a.normalized ? UNIT[t] : undefined;
   const base = (bv.byteOffset || 0) + (a.byteOffset || 0), stride = bv.byteStride || n * bytes, out = new Array<number | number[]>(a.count);
   if (a.count > 0) bin.check(base, (a.count - 1) * stride + n * bytes, `accessor ${i}`);
   for (let k = 0; k < a.count; k++) {
     const row = new Array<number>(n);
-    for (let c = 0; c < n; c++) row[c] = read(base + k * stride + c * bytes) / norm;
+    for (let c = 0; c < n; c++) {
+      const v = read(base + k * stride + c * bytes);
+      row[c] = unit ? Math.max(v / unit, -1) : v;
+    }
     out[k] = n === 1 ? row[0]! : row;
   }
   return out;
 }
 
-/** What a library holds, without reading its clips: the rig it uses (or null), its clips and its bones. */
+/**
+ * Each animation's clip name, one each, as every reader and `describeGltf` give it: animation i's own name, or
+ * `animation${i}` when it has none (or an empty one); a later animation whose name another took gets `_2`, `_3` ... (the
+ * first keeps it), passing over a suffix another animation has as its own name or one given already. Mixamo names every
+ * export's animation 'Armature|mixamo.com|Layer0': a file of three reads as three clips, not one. Linear in the
+ * animations: each name's search resumes past the suffix it gave last, since every suffix below that stays taken (a
+ * file of 50,000 sharing one name would otherwise ask for minutes).
+ */
+export function animationNames(json: GltfJson): string[] {
+  const own = (json.animations ?? []).map((a, i) => (typeof a.name === "string" && a.name !== "" ? a.name : `animation${i}`));
+  const theirs = new Set(own), given = new Set<string>(), next = new Map<string, number>();
+  return own.map((name) => {
+    let n = name;
+    if (given.has(name)) {
+      let k = next.get(name) ?? 2;
+      while (given.has(`${name}_${k}`) || theirs.has(`${name}_${k}`)) k++;
+      next.set(name, k + 1);
+      n = `${name}_${k}`;
+    }
+    given.add(n);
+    return n;
+  });
+}
+
+/** What a library holds, without reading its clips: the rig it uses (or null), its clips (`animationNames`), its bones. */
 export function describeGltf(doc: GltfDoc): { rig: string | null; clips: string[]; bones: string[] } {
   const nodes = doc.json.nodes ?? [], byName = names(doc.json);
-  return { rig: Object.keys(RIGS).find((r) => byName.has(RIGS[r]!.test)) ?? null, clips: (doc.json.animations ?? []).map((a) => a.name ?? ""), bones: nodes.map((n) => n.name ?? "") };
+  return { rig: Object.keys(RIGS).find((r) => byName.has(RIGS[r]!.test)) ?? null, clips: animationNames(doc.json), bones: nodes.map((n) => n.name ?? "") };
 }
 
 /** The mannequin's look: its height, each segment's radii (mm, thirds along it) and its joint rings. */
@@ -224,7 +261,8 @@ function names(json: GltfJson): { get(k: string): number | undefined; has(k: str
 
 /**
  * Reads a glTF library (a .glb or .gltf already parsed) as body points: every clip sampled at `fps` (30), on the rig
- * it recognizes. Fails with E_RIG when the rig isn't one it knows or lacks a bone its map needs.
+ * it recognizes, each named as `animationNames` names it. Fails with E_RIG when the rig isn't one it knows or lacks a
+ * bone its map needs.
  */
 export function readGltf(doc: GltfDoc, opts: { fps?: number } = {}): GltfLibrary {
   const FPS = opts.fps ?? 30, G = doc.json, bin = doc.bin, file = bin?.file, warnings: string[] = [];
@@ -341,10 +379,10 @@ export function readGltf(doc: GltfDoc, opts: { fps?: number } = {}): GltfLibrary
   }
 
   // every clip, sampled and turned into body points
-  const clips: Record<string, Capture> = {}, rootNode = byName.get(RIGS[rig]!.root) ?? order[0]!, P = format.P;
+  const clips: Record<string, Capture> = {}, rootNode = byName.get(RIGS[rig]!.root) ?? order[0]!, P = format.P, clipNames = animationNames(G);
   let frames = 0;
-  for (const an of G.animations ?? []) {
-    const name = an.name ?? "", tracks = an.channels.map((c) => {
+  for (const [ai, an] of (G.animations ?? []).entries()) {
+    const name = clipNames[ai]!, tracks = an.channels.map((c) => {
       const s = an.samplers[c.sampler];
       if (!s) throw new IoError("E_FORMAT", `clip "${name}" names sampler ${c.sampler}, which it doesn't have`, { file });
       if (s.interpolation === "CUBICSPLINE") throw new IoError("E_FORMAT", `clip "${name}" uses CUBICSPLINE in-betweens, which aren't read (bake it LINEAR)`, { file });
@@ -384,7 +422,9 @@ export function readGltf(doc: GltfDoc, opts: { fps?: number } = {}): GltfLibrary
         data[(f * P + i) * 3 + 2] = p[2]! * MM;
       });
     }
-    clips[name] = { name, n, dur, loop: /_Loop$/.test(name) || /(^|_)Idle$/.test(name), fps: FPS, data, move: moved ? move : null };
+    // a loop by the animation's own name (a later one of the same name loops as the first does)
+    const own = an.name ?? "";
+    clips[name] = { name, n, dur, loop: /_Loop$/.test(own) || /(^|_)Idle$/.test(own), fps: FPS, data, move: moved ? move : null };
   }
   return { rig, clips, body, warnings };
 }

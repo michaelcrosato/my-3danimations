@@ -15,13 +15,16 @@ import { quantize } from "../src/recipe/compile.ts";
 
 const ROOT = join(import.meta.dirname, "../../.."), LIB = join(ROOT, "library/sets");
 const MOVES = JSON.parse(readFileSync(join(ROOT, "library/moves.json"), "utf8")) as { about: string; moves: PR.Move[] };
+/** Each set's manifest, read once for the file: one rest object for each library body, as a game holds one, so what core
+ *  keeps by body (a gait's seam readings, gait.ts's SEAMS) serves every test that makes a gait on it (D89). */
+const manifests = new Map<string, { sources: Record<string, { rest: Rest }> }>();
+const manifest = (set: string) => manifests.get(set) ?? (manifests.set(set, JSON.parse(readFileSync(join(LIB, set, "_set.json"), "utf8")) as { sources: Record<string, { rest: Rest }> }), manifests.get(set)!);
 function load(id: string): { clip: Clip; rest: Rest } {
   const [set, slug] = id.split("/") as [string, string], clip = parseClip(readFileSync(join(LIB, set, `${slug}.json`), "utf8"));
-  const manifest = JSON.parse(readFileSync(join(LIB, set, "_set.json"), "utf8")) as { sources: Record<string, { rest: Rest }> };
-  return { clip, rest: manifest.sources[clip.restSrc]!.rest };
+  return { clip, rest: manifest(set).sources[clip.restSrc]!.rest };
 }
 /** A library source's rest by its set and source. */
-const sourceRest = (set: string, src: string): Rest => (JSON.parse(readFileSync(join(LIB, set, "_set.json"), "utf8")) as { sources: Record<string, { rest: Rest }> }).sources[src]!.rest;
+const sourceRest = (set: string, src: string): Rest => manifest(set).sources[src]!.rest;
 /** The points of a key (or pose) on a rest. */
 function points(rest: Rest, k: object): Float32Array {
   const X = new Float32Array(P * 3);
@@ -112,6 +115,14 @@ describe("the move model", () => {
 describe("a move as a clip", () => {
   const idle = load("MESH2MOTION/Idle_A"), style = load("STYLE100/Neutral_Walk");
   const { t: _t, root: _r, yaw: _y, ...idleStart } = idle.clip.keys[0] as unknown as Record<string, unknown>;
+  /** Each move as a clip on the idle's rest from its standing pose: made once, on first use, and read (never changed)
+   *  by every test below that reads it. */
+  const made = new Map<PR.Move, Clip>();
+  const onIdle = (m: PR.Move) => {
+    let c = made.get(m);
+    if (!c) made.set(m, (c = PR.moveClip(m, idle.rest, { restSrc: idle.clip.restSrc })));
+    return c;
+  };
   it("begins at the start pose it is given, and ends there, whichever it is", () => {
     for (const [rest, src, start] of [[idle.rest, idle.clip.restSrc, PR.standingOn(idle.rest)], [idle.rest, idle.clip.restSrc, idleStart], [style.rest, style.clip.restSrc, PR.standingOn(style.rest)]] as const) {
       const S = points(rest, quantize(start as never));
@@ -168,7 +179,7 @@ describe("a move as a clip", () => {
     // each fist's distance from the line from the pelvis to the shoulders' centre, between their heights, in half
     // shoulder widths (the hands are pushed out to 1.3 of them as the wind comes in; the IK and fitting lose a little)
     for (const m of MOVES.moves) {
-      const c = PR.moveClip(m, idle.rest, { restSrc: idle.clip.restSrc });
+      const c = onIdle(m);
       let low = Infinity;
       for (let t = PR.MIN_PHASE.wind; t <= c.dur; t += 1 / 30) {
         const X = points(idle.rest, keyAt(c, t) as never), pel = at(X, "pelvis"), shL = at(X, "shL"), shR = at(X, "shR");
@@ -184,7 +195,7 @@ describe("a move as a clip", () => {
   it("holds a kick's arms out for balance as it lands", () => {
     // the fists apart at the hit, against the shoulders apart: out to the sides at half an arm each
     for (const m of MOVES.moves.filter((x) => x.hand === "kick")) {
-      const c = PR.moveClip(m, idle.rest, { restSrc: idle.clip.restSrc }), X = points(idle.rest, keyAt(c, c.events![0]!.t) as never);
+      const c = onIdle(m), X = points(idle.rest, keyAt(c, c.events![0]!.t) as never);
       const apart = (a: string, b: string) => Math.hypot(...at(X, a).map((v, i) => v - at(X, b)[i]!));
       expect([m.name, apart("fistL", "fistR") / apart("shL", "shR") > 2.3]).toEqual([m.name, true]);
     }
@@ -192,7 +203,7 @@ describe("a move as a clip", () => {
   it("leans the torso in as it crouches through the wind", () => {
     // the shoulders' centre ahead of the pelvis at the wind's end, in degrees from upright, over the crouching moves
     const crouching = MOVES.moves.filter((m) => m.crouch >= 0.3), lean = crouching.map((m) => {
-      const c = PR.moveClip(m, idle.rest, { restSrc: idle.clip.restSrc }), X = points(idle.rest, keyAt(c, PR.MIN_PHASE.wind) as never), p = at(X, "pelvis");
+      const c = onIdle(m), X = points(idle.rest, keyAt(c, PR.MIN_PHASE.wind) as never), p = at(X, "pelvis");
       const sh = [0, 1, 2].map((i) => (at(X, "shL")[i]! + at(X, "shR")[i]!) / 2);
       return (Math.atan2(sh[0]! - p[0], sh[2]! - p[2]) * 180) / Math.PI;
     });
@@ -200,13 +211,13 @@ describe("a move as a clip", () => {
   });
   it("turns the root a full turn left in a spin, as the source turns the body (−2π), and not otherwise", () => {
     for (const m of MOVES.moves.filter((x) => x.spin || x.name === "slash")) {
-      const c = PR.moveClip(m, idle.rest, { restSrc: idle.clip.restSrc }), yaw = [0.25, 0.5, 1].map((f) => Math.round(rootAt(c, f * c.dur).yaw));
+      const c = onIdle(m), yaw = [0.25, 0.5, 1].map((f) => Math.round(rootAt(c, f * c.dur).yaw));
       if (m.spin) expect([m.name, yaw[0]! <= 0 && yaw[1]! < yaw[0]! && yaw[2]! < yaw[1]!, yaw[2]]).toEqual([m.name, true, -360]);
       else expect([m.name, yaw]).toEqual([m.name, [0, 0, 0]]);
     }
   });
   it("is procedural and CC0 in its provenance, named and described from the move", () => {
-    const c = PR.moveClip(MOVES.moves[0]!, idle.rest, { restSrc: idle.clip.restSrc });
+    const c = onIdle(MOVES.moves[0]!);
     expect([c.id, c.name, c.loop, c.provenance.method, c.provenance.license, c.provenance.ai]).toEqual(["PROCEDURAL/Slash", "Slash", false, "procedural", "CC0-1.0", "algorithmicMedia"]);
     expect(c.desc).toBe(MOVES.moves[0]!.about.charAt(0).toUpperCase() + MOVES.moves[0]!.about.slice(1));
     expect(PR.moveClip(MOVES.moves[0]!, idle.rest, { restSrc: idle.clip.restSrc, id: "MINE/Cut" }).id).toBe("MINE/Cut");

@@ -1,7 +1,8 @@
 // B5's grader (WP-6.6's Done-when): it passes the known-good recipe and fails each planted bad one, naming the check it
 // broke, on the default character (gen-1) and, in T2, on gen-37 (the made clip is graded on its own rest and played on
 // the character). The planted recipes are the known-good one edited: no hop, one hand, 2 s, not looping, a clip the
-// CC0 library doesn't have.
+// CC0 library doesn't have, a cc-by clip (which the starter's check names as R-E008).
+import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -21,6 +22,7 @@ const BAD: Record<string, { recipe: string; fails: string }> = {
   "2 s": { recipe: planted('"dur": 1.5', '"dur": 2'), fails: "1.5 s, looping" },
   "not looping": { recipe: planted('"id": "MESH2MOTION/Victory", "loop": 0.2,', '"id": "MESH2MOTION/Victory",'), fails: "1.5 s, looping" },
   "a clip not in the CC0 library": { recipe: planted('"id": "MESH2MOTION/Help_Two_Arms"', '"id": "MESH2MOTION/Help_Both_Arms"'), fails: "it compiles" },
+  "a cc-by clip": { recipe: planted('"id": "MESH2MOTION/Help_Two_Arms"', '"id": "STYLE100/Neutral_Walk"'), fails: "it compiles" },
 };
 /** Grades a recipe in a workspace inside the repository. */
 async function grade(name: string, recipe: string, character: CharacterSpec): Promise<Grade> {
@@ -42,6 +44,9 @@ describe("B5's grader", () => {
         expect(b.pass, `${name}\n${text(b)}`).toBe(false);
         expect(b.checks.filter((c) => !c.ok).some((c) => c.name.startsWith(bad.fails)), `${name}\n${text(b)}`).toBe(true);
       }
+      // the starter's `npm run check` names a clip past CC0 as one the CC0 library lacks (R-E008), not a crash (E_TIER)
+      const out = spawnSync(process.execPath, ["check.ts"], { cwd: join(ROOT, `.cache/bench/test-ws/B5-a-cc-by-clip-${who.slice(4)}`), encoding: "utf8" });
+      expect([out.status, out.stdout, out.stderr]).toEqual([1, "R-E008 id: no clip STYLE100/Neutral_Walk in the library (fix: search the library for the clip's id)\n", ""]);
     }, 120_000);
   }
 });

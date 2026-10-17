@@ -9,7 +9,7 @@
 import { measureFacts, type Clip, type Rest } from "@m3a/core";
 import { levels, type Finding } from "../metrics/checks.ts";
 import { motionOf, type Motion } from "../metrics/motion.ts";
-import { metrics, type Report } from "../metrics/report.ts";
+import { measure, metrics, type Report } from "../metrics/report.ts";
 import { METRICS } from "../metrics/thresholds.ts";
 import { FIXES, OPERATORS, type FixName, type FixOptions, type Operator } from "./ops.ts";
 
@@ -47,7 +47,7 @@ export interface FixReport {
 }
 
 /** Which metrics' findings each operator answers. */
-const ANSWERS: Readonly<Record<FixName, readonly string[]>> = {
+export const ANSWERS: Readonly<Record<FixName, readonly string[]>> = {
   twistFlips: ["twistFlip"], jitter: ["jitter", "pop"], penetration: ["penetration"], footLocks: ["slide", "skate"], seam: ["seam", "seamVelocity"], refit: [],
 };
 /** Keys a second past which re-fitting is suggested: the library's 30 fps grid. */
@@ -121,7 +121,8 @@ export function fix(clip: Clip, R: Rest, opts: FixOptions & { ops?: readonly (Fi
       throw new Error(`fix: no operator "${x}"; did you mean "${near}"? The operators are ${FIXES.join(", ")}`);
     }
   }
-  const first = metrics(clip, R), m = motionOf(clip, R);
+  // the clip's motion read once: its report (metrics' own: measure over motionOf at 60 a second) and its levels
+  const m = motionOf(clip, R), first = measure(m);
   const named = opts.ops ?? lint(clip, R, first).items.map((i) => i.op);
   const ops = [...FIXES.filter((n) => named.includes(n)), ...named.filter((x): x is Operator => typeof x !== "string")];
   let c = clip, report = first;

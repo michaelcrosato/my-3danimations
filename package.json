@@ -1,6 +1,6 @@
 {
   "name": "my-3danimations",
-  "version": "0.45.2",
+  "version": "0.50.0",
   "private": true,
   "description": "An open animation package for AI coding agents: spec, runtime, sensors, library and tools.",
   "license": "MIT",
@@ -39,10 +39,12 @@
     "import": "node tools/import/main.ts",
     "facts": "node tools/facts/main.ts",
     "moves": "node tools/procedural/carry.ts",
-    "sim": "node tools/sim/main.ts"
+    "sim": "node tools/sim/main.ts",
+    "pack": "node tools/bundle/main.ts"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
+    "@modelcontextprotocol/inspector": "2.9.0",
     "@playwright/test": "1.56.1",
     "@types/node": "24.19.2",
     "ajv": "8.20.0",
@@ -55,6 +57,7 @@
     "vitest": "4.1.11"
   },
   "allowScripts": {
-    "esbuild": false
+    "esbuild": false,
+    "@modelcontextprotocol/inspector": false
   }
 }

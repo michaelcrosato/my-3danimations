@@ -75,6 +75,11 @@ describe("solve on the reference body", () => {
 describe("rests, missing bones, twist bones, names", () => {
   const T = bind(rigSkeleton());
   it("solves A and relaxed rests to the same joints and the same rotations as a T", () => {
+    // the T's solve of each pose, the same for both rests: solved once
+    const onT = [...poses(7)].map(({ k }) => {
+      const sT = solve(k, T);
+      return { k, sT, a: joints(T, sT) };
+    });
     for (const [deg, kind] of [[45, "A"], [80, "relaxed"]] as const) {
       const b = bind(armsDown(rigSkeleton(), deg));
       expect(b.frame.kind).toBe(kind);
@@ -84,8 +89,8 @@ describe("rests, missing bones, twist bones, names", () => {
         return [0, 0, Math.sin(a / 2), Math.cos(a / 2)];
       };
       let worst = 0, turn = 0;
-      for (const { k } of poses(7)) {
-        const sT = solve(k, T), sB = solve(k, b), a = joints(T, sT), z = joints(b, sB);
+      for (const { k, sT, a } of onT) {
+        const sB = solve(k, b), z = joints(b, sB);
         for (const pt of Object.keys(a)) worst = Math.max(worst, dist(a[pt]!, z[pt]!));
         for (const n of Object.keys(sT.world)) {
           const arm = /^(upperarm|lowerarm|hand|index_01|middle_01|middle_02|pinky_01)_([lr])$/.exec(n);

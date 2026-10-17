@@ -9,6 +9,7 @@ import * as bvh from "./bvh/read.ts";
 import * as container from "./gltf/container.ts";
 import * as posed from "./gltf/posed.ts";
 import * as gltf from "./gltf/read.ts";
+import * as skel from "./gltf/skeleton.ts";
 import * as imp from "./import.ts";
 import * as vrmaRead from "./vrma/read.ts";
 import * as vrma from "./vrma/vrma.ts";
@@ -46,6 +47,15 @@ export { type PosedLibrary } from "./gltf/posed.ts";
 export const readGltfPosed = guard(posed.readGltfPosed, docFile);
 /** One glTF animation as joints posed frame by frame (the BVH reader's form). */
 export const posedOf = guard(posed.posedOf, docFile);
+/** A glTF character's skeleton as core binds it: its skin's joints (or every node), heads, parents, rest orientations. */
+export type { GltfSkeleton } from "./gltf/skeleton.ts";
+/** A glTF character's skeleton (its biggest skin's joints, else every node) for core's bind, read from nodes alone. */
+export const skeletonOfGltf = guard(skel.skeletonOfGltf, docFile);
+/** Where a glTF's skinned mesh ends under each joint (meshEnds' result), and why the mesh went unread. */
+export type { MeshEnds } from "./gltf/skeleton.ts";
+/** Where each joint's part of a glTF's skinned mesh ends, on the sole (D49's end bone for a foot with no child), or why
+ *  the mesh went unread. */
+export const meshEnds = guard(skel.meshEnds, docFile);
 /** CMU's Acclaim skeleton and takes: their types. */
 export { type Asf, type AsfBone, type CmuPick, type CmuLibrary } from "./acclaim/read.ts";
 /** An .asf skeleton. */
@@ -66,6 +76,11 @@ export const readBvh = guard(bvh.readBvh);
 export { cutPicks, restCapture, type Pick, type Take, type Facing, type Find, type Way } from "./takes.ts";
 /** VRM animations: a clip played on a bound skeleton written as .vrma, and its types. */
 export { vrmaOf, encodeVrma, writeVrma, type Vrma, type VrmaNode, type VrmaTrack, type VrmaExtras } from "./vrma/vrma.ts";
+/** glTF animations on a character's own nodes: an animation, the document with it added (.glb), a bound skeleton's own
+ *  document (a character with no file), and how far a written .glb's bones land from where the Animator puts them. */
+export { gltfAnimOf, addAnimation, skeletonDoc, glbGap, type GltfAnim } from "./gltf/anim.ts";
+/** A clip played on a bound skeleton as a .bvh's text, and how far a written .bvh's joints land from the Animator's. */
+export { writeBvh, bvhGap } from "./bvh/write.ts";
 /** A .vrma read back exactly. */
 export const decodeVrma = guard(vrma.decodeVrma, nth(1));
 /** A .vrma's animations read as clips on the VRM bone map. */

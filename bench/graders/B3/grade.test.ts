@@ -11,6 +11,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { prepareWorkspace, type CharacterSpec } from "../../runner/workspace.ts";
 import type { Grade } from "../B1/grade.ts";
+import { cacheChildren } from "../../../tools/run/compile-cache.ts";
 import { gradeB3 } from "./grade.ts";
 
 const ROOT = join(import.meta.dirname, "../../.."), good = readFileSync(join(import.meta.dirname, "known-good/src/reactor.ts"), "utf8");
@@ -42,6 +43,8 @@ async function grade(name: string, reactor: string, character: CharacterSpec): P
   await prepareWorkspace(dir, { starter: join(ROOT, "bench/starters/B3"), character, files: { "src/reactor.ts": reactor } });
   return gradeB3(dir);
 }
+// the starter's check compiles through one cache (tools/run/compile-cache.ts)
+cacheChildren();
 const text = (g: Grade) => g.checks.map((c) => `${c.ok ? "ok  " : "FAIL"} ${c.name}: ${c.detail}`).join("\n");
 
 describe("B3's grader", () => {

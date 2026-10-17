@@ -7,20 +7,57 @@
 // with their library's shares, and four that failed before D55 pass; a pair fails on a fail finding the skeleton adds,
 // and one it adds a warn to passes with the warn listed (D80); a gate's record, derived from the raw results by
 // `npm run sweep -- --record`, lists every failing pair with its reasons and the warns the skeleton added, and every
-// passing pair it warned (D88). How many clips pass is not checked here: that is gate G4's bar (95% over its six
-// skeletons and the whole library, PLAN.md §9.3).
+// passing pair it warned (D88); and a fixed sample's rows are 1bf5252's byte for byte, its judge still its own (WP-7.2b
+// moved it to @m3a/tools). How many clips pass is not checked here: that is gate G4's bar (95% over its six skeletons
+// and the whole library, PLAN.md §9.3).
 import { execFileSync, spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import type { Clip, Key } from "@m3a/core";
+import type { Clip, Key, Rest } from "@m3a/core";
+import type { ThreeBound } from "@m3a/three";
 import { ROOT } from "../run/cli.ts";
-import { libraryClips, sample } from "../qa/qa.ts";
+import { cacheChildren } from "../run/compile-cache.ts";
+import { libraryClips, sample, type LibraryClip } from "../qa/qa.ts";
 import { sweepRecord, type SweepResults } from "./record.ts";
 import { heldout, likeFor, rigOf, sweepOne, type SweepRow } from "./sweep.ts";
 
 const RIGS = ["gen-0", "gen-7"];
+/**
+ * The pinned rows' clips, fixed ids (not sample(), so a library growing elsewhere doesn't move them): a pass, a fail on
+ * one skeleton, a fail on both past the clip's own level, a warn only gen-0 adds, a side run and a 0.17 s aim.
+ */
+const PINNED = ["CMU_CURATED/Backflip", "CMU_CURATED/Run_Jump_Over", "MESH2MOTION/Slide_Exit", "QUATERNIUS_3D2DGE/Hit_Knockback", "QUATERNIUS_SHARDFALL/Pistol_Aim_Up", "STYLE100_SIDERUN/BentForward_SideRunLeft"];
+// What these tests share, each made once for the file (D89: the same inputs, the same results, less cost): the library's
+// clips as libraryClips reads them, each skeleton as rigOf binds it, the broken walk, and each clip's row on each
+// skeleton. sweepOne reads its clip, rest and bound skeleton and changes none of them (the judge plays copies), so a row
+// played once is the row any test would play; the last test's hash pins the rows it reads, some first played earlier.
+// The `npm run sweep` processes compile through one cache (tools/run/compile-cache.ts).
+cacheChildren();
+let library: LibraryClip[] | undefined, brokenWalk: LibraryClip | undefined;
+const lib = () => (library ??= libraryClips());
+/** A library clip by id, on its source's rest. */
+const load = (id: string): LibraryClip => lib().find((c) => c.clip.id === id)!;
+/** A walk with one key's pelvis not a number. */
+const broken = (): LibraryClip => {
+  if (!brokenWalk) {
+    const walk = load("QUATERNIUS_3D2DGE/Walk_Loop");
+    brokenWalk = { ...walk, clip: { ...walk.clip, id: "BROKEN/Walk_Loop", keys: walk.clip.keys.map((k, i) => (i === 2 ? { ...k, hips: [Number.NaN, 0, 0] } : k)) as Key[] } as Clip };
+  }
+  return brokenWalk;
+};
+const rigs = new Map<string, Promise<ThreeBound>>(), rows = new WeakMap<{ clip: Clip; rest: Rest }, Map<string, SweepRow>>();
+/** A skeleton, bound once. */
+const rig = (id: string): Promise<ThreeBound> => rigs.get(id) ?? (rigs.set(id, rigOf(id)), rigs.get(id)!);
+/** A clip's row on a skeleton, played once. */
+async function row(c: { clip: Clip; rest: Rest }, id: string): Promise<SweepRow> {
+  const by = rows.get(c) ?? new Map<string, SweepRow>();
+  rows.set(c, by);
+  if (!by.has(id)) by.set(id, sweepOne(c.clip, c.rest, await rig(id), id));
+  return by.get(id)!;
+}
 
 /**
  * Raw results by hand: on gen-0 a pair failing with a warn added, one failing without and one passing with one; on the
@@ -36,14 +73,11 @@ function rawResults(): SweepResults {
 
 describe("the sweep", () => {
   it("plays each clip on each skeleton, and lists a broken clip as a failure with its reason", async () => {
-    const clips = sample(libraryClips(), 8), rows: SweepRow[] = [];
-    // a walk with one key's pelvis not a number
-    const walk = libraryClips().find((c) => c.clip.id === "QUATERNIUS_3D2DGE/Walk_Loop")!;
-    const broken = { ...walk.clip, id: "BROKEN/Walk_Loop", keys: walk.clip.keys.map((k, i) => (i === 2 ? { ...k, hips: [Number.NaN, 0, 0] } : k)) as Key[] } as Clip;
+    const clips = sample(lib(), 8), rows: SweepRow[] = [];
+    // and the broken walk, one key's pelvis not a number
     for (const rig of RIGS) {
-      const b = await rigOf(rig);
-      for (const c of clips) rows.push(sweepOne(c.clip, c.rest, b, rig));
-      rows.push(sweepOne(broken, walk.rest, b, rig));
+      for (const c of clips) rows.push(await row(c, rig));
+      rows.push(await row(broken(), rig));
     }
     // one row for each clip on each skeleton, in order
     expect(rows.map((r) => `${r.rig} ${r.clip}`)).toEqual(RIGS.flatMap((rig) => [...clips.map((c) => `${rig} ${c.clip.id}`), `${rig} BROKEN/Walk_Loop`]));
@@ -61,11 +95,10 @@ describe("the sweep", () => {
     }
   }, 120_000);
   it("reads a loop's seam on the body and its feet in the world: a walk's travel is no seam (D51)", async () => {
-    const b = await rigOf("gen-7"), lib = libraryClips();
     for (const id of ["QUATERNIUS_3D2DGE/Walk_Loop", "MESH2MOTION/Walk_Large", "STYLE100/Neutral_Walk"]) {
-      const c = lib.find((x) => x.clip.id === id)!, r = sweepOne(c.clip, c.rest, b, "gen-7");
+      const r = await row(load(id), "gen-7");
       expect(r.why.filter((w) => /^seam /.test(w)), id).toEqual([]);
-      for (const w of r.worse) expect(w.played / w.playedLevels[0], `${id} ${w.metric}`).toBeGreaterThanOrEqual(1);
+      for (const w of r.worse) expect((w.played ?? NaN) / w.playedLevels[0], `${id} ${w.metric}`).toBeGreaterThanOrEqual(1);
     }
   }, 120_000);
   it("reads the clip's own slide over the stretches the played body stands on, where its own foot is down too", () => {
@@ -76,19 +109,14 @@ describe("the sweep", () => {
   it("plays clips with their library's shares and their soles settled smoothly: four that failed before D55 pass", async () => {
     // a sprint's toe dipping between keys bobbed the hips (pops); a hurt walk's and a dive roll's torsos lost their
     // library's lean, and the arms went into the hips (D55)
-    const rigs: Record<string, Awaited<ReturnType<typeof rigOf>>> = {}, lib = libraryClips();
     for (const [id, rig] of [["MESH2MOTION/Sprint", "gen-0"], ["CMU_CURATED/Wounded_Walk_Loop", "gen-3"], ["MESH2MOTION/Zombie_Yell", "gen-3"], ["CMU_CURATED/Dive_Roll", "gen-0"]] as const) {
-      const c = lib.find((x) => x.clip.id === id)!, r = sweepOne(c.clip, c.rest, (rigs[rig] ??= await rigOf(rig)), rig);
+      const r = await row(load(id), rig);
       expect(r.why, `${id} on ${rig}`).toEqual([]);
     }
   }, 120_000);
   it("fails a pair on a fail finding the skeleton adds, and passes one with a warn it adds, listed (D80)", async () => {
     // on gen-0, a running jump's landing pops past its warn level (none on its own body) and a backflip's past its fail
-    const b = await rigOf("gen-0"), lib = libraryClips(), row = (id: string) => {
-      const c = lib.find((x) => x.clip.id === id)!;
-      return sweepOne(c.clip, c.rest, b, "gen-0");
-    };
-    const jump = row("CMU_CURATED/Run_Jump_Over"), flip = row("CMU_CURATED/Backflip");
+    const jump = await row(load("CMU_CURATED/Run_Jump_Over"), "gen-0"), flip = await row(load("CMU_CURATED/Backflip"), "gen-0");
     expect([jump.ok, jump.why, jump.worse.map((w) => [w.metric, w.level])]).toEqual([true, [], [["pop", "warn"]]]);
     expect(jump.warns).toEqual([expect.stringMatching(/^pop 0\.0 on its own body → \d+ played on this one, past its warn level$/)]);
     expect([flip.ok, flip.warns, flip.worse.map((w) => [w.metric, w.level])]).toEqual([false, [], [["pop", "fail"]]]);
@@ -140,4 +168,16 @@ describe("the sweep", () => {
     expect(res.warned).toEqual(res.rows.filter((r) => r.ok && r.warns.length).map((r) => ({ clip: r.clip, rig: r.rig, warns: r.warns })));
     for (const r of res.rows) expect(Object.keys(r).sort()).toEqual(["clip", "ok", "own", "played", "reach", "rig", "warns", "why", "worse"]);
   }, 120_000);
+  it("gives 1bf5252's rows, byte for byte, on a fixed sample (the judge moved to @m3a/tools)", async () => {
+    // a deliberate change to the rows re-pins the hash, saying why
+    const clips = [...PINNED.map(load), broken()];
+    const rows: SweepRow[] = [];
+    for (const rig of RIGS) for (const c of clips) rows.push(await row(c, rig));
+    // the verdicts, readable (a pair: pass or fail, its reasons and warns counted), then every byte
+    expect(rows.map((r) => `${r.rig} ${r.clip.split("/")[1]} ${r.ok ? "pass" : "fail"} ${r.why.length} ${r.warns.length}`).join(", ")).toBe(
+      "gen-0 Backflip fail 1 0, gen-0 Run_Jump_Over pass 0 1, gen-0 Slide_Exit pass 0 0, gen-0 Hit_Knockback fail 1 0, gen-0 Pistol_Aim_Up pass 0 0, gen-0 BentForward_SideRunLeft pass 0 0, gen-0 Walk_Loop fail 1 0, " +
+        "gen-7 Backflip fail 1 0, gen-7 Run_Jump_Over pass 0 0, gen-7 Slide_Exit pass 0 0, gen-7 Hit_Knockback pass 0 0, gen-7 Pistol_Aim_Up pass 0 0, gen-7 BentForward_SideRunLeft pass 0 0, gen-7 Walk_Loop fail 1 0",
+    );
+    expect(createHash("sha256").update(JSON.stringify(rows)).digest("hex").slice(0, 16), JSON.stringify(rows)).toBe("b4f51cf5d8276a36");
+  }, 60_000);
 });

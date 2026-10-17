@@ -32,7 +32,8 @@ export interface Bvh {
   poses?: { bind: [M3, V3][]; count: number; at(frame: number): [M3, V3][] };
 }
 
-/** A .bvh file's text. */
+/** A .bvh file's text; E_FORMAT, naming the line, for one that breaks the format or whose Frame Time isn't above 0 and
+ *  at most 1 s. */
 export function parseBvh(text: string, file?: string): Bvh {
   checkText(text, file);
   const re = /\S+/g, line = (at: number) => text.slice(0, at).split("\n").length;
@@ -92,6 +93,8 @@ export function parseBvh(text: string, file?: string): Bvh {
     else if (t === "Frame") {
       next();
       b.frameTime = num(next(), "the frame time");
+      // a frame time of 0 or less, or past 1 s (under 1 fps), is no rate a take is read at
+      if (!(b.frameTime > 0 && b.frameTime <= 1)) throw fail(`Frame Time ${b.frameTime} s: a frame time is above 0 and at most 1 s`);
       motion = true;
       break;
     } else throw fail(`unexpected "${t}" in the hierarchy`);
@@ -113,7 +116,7 @@ export function parseBvh(text: string, file?: string): Bvh {
   spend(Math.floor(vals.length / b.width), LIMITS.frames, `${Math.floor(vals.length / b.width)} frames`, file);
   spend(Math.floor(vals.length / b.width) * b.names.length, LIMITS.work, `${Math.floor(vals.length / b.width)} frames of ${b.names.length} joints`, file);
   const values = Float64Array.from(vals.slice(0, Math.floor(vals.length / b.width) * b.width));
-  return { ...b, frameTime: b.frameTime > 0 ? b.frameTime : 1 / 30, values };
+  return { ...b, values };
 }
 
 /* ---- 3x3 matrices, row major ---- */
@@ -247,7 +250,8 @@ export interface RiggedBvh {
 /** Places the 36 body points on a parsed file (`units`: metres a file unit; found from the legs when not given). */
 export function rigBvh(b: Bvh, opts: { units?: number; file?: string } = {}): RiggedBvh {
   const map = MAPS.find((m) => m.test.every((t) => find(b, t) !== null));
-  if (!map) throw new IoError("E_RIG", `the skeleton isn't one the BVH reader knows (100STYLE's, MotionBuilder's: Hips, Spine, LeftUpLeg ..., Bandai Namco's, Unreal's, Rigify's); its joints: ${b.names.slice(0, 40).join(", ")}`, { file: opts.file });
+  // worded for both callers: a .bvh's skeleton, and a glTF's nodes (readGltfPosed)
+  if (!map) throw new IoError("E_RIG", `its joint names match none of the bone maps the reader knows (100STYLE's, MotionBuilder's: Hips, Spine, LeftUpLeg ..., Bandai Namco's, Unreal's, Rigify's, VRM's humanoid bones); its joints: ${b.names.slice(0, 40).join(", ")}`, { file: opts.file });
   const placed: [number, Place][] = [], missing: string[] = [];
   format.POINTS.forEach((p, i) => {
     const alts = i < 10 ? map.points[i]! : map.points[10 + ((i - 10) % 13)]!, s = i < 10 ? "" : map.sides[p.endsWith("L") ? 0 : 1];

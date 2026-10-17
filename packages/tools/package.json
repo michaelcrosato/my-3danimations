@@ -1,18 +1,31 @@
 {
   "name": "@m3a/tools",
-  "version": "0.45.2",
+  "version": "0.50.0",
   "private": true,
   "description": "The tool registry, the m3a CLI and the MCP server.",
   "license": "MIT",
   "type": "module",
+  "//": "The workspace runs src/ directly (Node 24 strips the types); npm run pack (tools/bundle) stages this package with its exports, types and the m3a bin pointed at dist/, where its JavaScript and declarations are: every path here names a source file.",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./node": "./src/node.ts"
+  },
+  "types": "./src/index.ts",
+  "files": [
+    "dist",
+    "MANUAL.md"
+  ],
+  "bin": {
+    "m3a": "./src/node.ts"
+  },
+  "engines": {
+    "node": ">=24.2"
   },
   "dependencies": {
-    "@m3a/core": "0.45.2",
-    "@m3a/io": "0.45.2",
-    "@m3a/library": "0.45.2",
-    "@m3a/sensors": "0.45.2",
-    "@m3a/three": "0.45.2"
+    "@m3a/core": "0.50.0",
+    "@m3a/io": "0.50.0",
+    "@m3a/library": "0.50.0",
+    "@m3a/sensors": "0.50.0",
+    "@m3a/three": "0.50.0"
   }
 }

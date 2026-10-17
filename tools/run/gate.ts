@@ -2,9 +2,16 @@
 // runs even after a failure, so the report lists everything that failed. The report records the commit it ran at and
 // whether the tracked tree differed from it, read before the first command (D91, as the bench's records do). With
 // --json the report lands in check-output/gate/report.json; the gate report for docs/PROGRESS.md and the PR is built
-// from it.
+// from it. A step named "recorded: ..." runs and is reported but doesn't gate (G7's other models, D98).
 import { commitOf } from "../../bench/runner/main.ts";
 import { closest, finish, fmtMs, parseArgs, runStep, usage, type Report, type Step } from "./cli.ts";
+
+/** The prefix of a step that is reported, not gating: its outcome is in the report, and the gate's verdict leaves it out. */
+export const RECORDED = "recorded: ";
+/** The briefs G7 runs (PLAN.md §7, §9.3). */
+const G7_BRIEFS = ["B1", "B2", "B3", "B4", "B5", "B6", "B7"] as const;
+/** The models G7 records besides the CLI's default, one trial a brief, not gating (D98; O10: Claude models only). */
+export const G7_MODELS = ["claude-opus-5-5", "claude-haiku-5-5", "claude-fable-5-1"] as const;
 
 /** A gate's commands as [name, npm script, ...args]. A WP that reaches a gate's phase fills its set. */
 export const GATES: Record<string, [string, string, ...string[]][]> = {
@@ -87,16 +94,32 @@ export const GATES: Record<string, [string, string, ...string[]][]> = {
       [`${b}'s held-out variant: at least 4 of 5 fresh agents`, "bench", b, "--trials", "5", "--parallel", "5", "--heldout", "G6"],
     ]),
   ],
+  G7: [
+    ["check", "check"],
+    ["test", "test"],
+    ["doctrine: the manual within its 8,000 tokens, the tools within 3,000", "doctrine"],
+    ["vectors --check", "vectors", "--check"],
+    ["every tool example passes; the CLI, MCP, API and console reply the same", "test", "packages/tools"],
+    ["the manual's code runs", "test", "manual"],
+    ["the packaged CLI, MCP server and single file run the manual's example; licenses and QA of the bundle", "pack", "--check"],
+    ["licenses: the single file's manifest", "license", "check", "tools/bundle/manifest.json"],
+    ["T2: browser checks, the MCP Inspector on every example, library QA and the sweeps in full", "e2e"],
+    ["the held-out run is fresh: no gate run used it, each variant's character one no test or run used", "fixtures", "heldout", "G7"],
+    ["B1: at least 4 of 5 fresh agents; 2 discovery trials, reported (§7)", "bench", "B1", "--trials", "5", "--parallel", "5", "--discovery", "2"],
+    ...G7_BRIEFS.filter((b) => b !== "B1").map((b): [string, string, ...string[]] => [`${b}: at least 4 of 5 fresh agents (§7)`, "bench", b, "--trials", "5", "--parallel", "5"]),
+    ...G7_BRIEFS.map((b): [string, string, ...string[]] => [`${b}'s held-out variant: at least 4 of 5 fresh agents`, "bench", b, "--trials", "5", "--parallel", "5", "--heldout", "G7"]),
+    ...G7_MODELS.map((m): [string, string, ...string[]] => [`${RECORDED}B1 to B7 on ${m}, one trial each`, "bench", G7_BRIEFS.join(","), "--trials", "1", "--parallel", "5", "--model", m]),
+  ],
 };
 
 /** A gate's report from its steps' outcomes: its verdict, with the commit it ran at and whether the tracked tree
  *  differed from it (`commitOf`, read before the first command), recorded beside the steps (D91). */
 export function gateReport(gate: string, steps: Step[], ms: number, at: ReturnType<typeof commitOf>): Report & ReturnType<typeof commitOf> {
-  const ok = steps.every((s) => s.ok);
+  const gating = steps.filter((s) => !s.name.startsWith(RECORDED)), ok = gating.every((s) => s.ok);
   return {
     tool: "gate",
     ok,
-    verdict: `gate ${gate}: ${ok ? "PASS" : "FAIL"} in ${fmtMs(ms)} (${steps.filter((s) => s.ok).length}/${steps.length} commands) at ${at.commit.slice(0, 7)}${at.dirty ? ", the tree differing from it" : ""}`,
+    verdict: `gate ${gate}: ${ok ? "PASS" : "FAIL"} in ${fmtMs(ms)} (${gating.filter((s) => s.ok).length}/${gating.length} commands${gating.length < steps.length ? `, ${steps.length - gating.length} recorded` : ""}) at ${at.commit.slice(0, 7)}${at.dirty ? ", the tree differing from it" : ""}`,
     steps,
     warnings: [],
     ms,

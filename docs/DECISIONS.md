@@ -3319,10 +3319,10 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   - **Run 1 passed**, 20 of 20, at a9731b1 (0.45.1) on 2026-10-15 in 17.2 min, in the main checkout (D83) with the
     pinned sources and the rigs fetched first. The commit was fixed first (committed 22:04:27; T0, T1 and T2 passed
     locally and CI went green at 22:07). A fresh subagent then wrote the held-out run, 22:10 to 22:11 UTC; it read
-    neither the manual nor a known-good solution (but two decision entries, below), and its file list is kept. An independent check found that each
-    variant keeps its brief's job, contract and pass rule, describes its character as the seed generates it, and uses
-    a fresh seed. Each brief's known-good passed on its variant at 22:17 to 22:18, and the gate ran from 22:19 to 22:36.
-    The record is `bench/results/gates/G6-run-1/`.
+    neither the manual nor a known-good solution (but two decision entries, below), and its file list is kept. An
+    independent check found that each variant keeps its brief's job, contract and pass rule, describes its character as
+    the seed generates it, and uses a fresh seed. Each brief's known-good passed on its variant at 22:17 to 22:18, and
+    the gate ran from 22:19 to 22:36. The record is `bench/results/gates/G6-run-1/`.
   - **Its commands:**
     - check 10.6 s; test 76.0 s; doctrine 8 of 8; the pinned sources and `library/moves.json` as they give it;
       vectors byte for byte;
@@ -3403,3 +3403,623 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   bodies no test grades on.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.45.1, v0.45.2, michaelcrosato/my-3danimations#12
+
+## D92 · 2026-10-16 · WP-7.1: one reply on four surfaces; what the registry adds, refuses and keeps
+
+- **Principle:** 2, 7, 8, 9 (WP-7.1, PLAN.md §5.6)
+- **Call:**
+  - **One reply everywhere.** `defineTool` and `Registry` (`packages/tools/src/registry/`) give every surface one
+    reply, `m3a.reply/1`: `{schema, tool, status, verdict, lines, data, images, revision, error, next}`. It is the
+    CLI's `report.json`, MCP's `structuredContent` (its `outputSchema` built from the tool's), what the API returns
+    and what the console handle `__M3A_TOOLS__` returns. `data` is a JSON object or null on every reply, and a tool's
+    declared output schema is checked on each one. The verdict is one line; each detail line is one line; every name
+    or value a refusal echoes is quoted and cut to 60 characters.
+  - **Exit codes:** ok 0; findings 1; error 1 (the tool could not finish, its verdict says so); usage 2. On MCP, a
+    failed tool or a wrong call is an `isError` result; findings are not.
+  - **What the registry adds and reserves:**
+    - `verbose` on every tool, for the details: the text fits 20 lines otherwise. MCP has no flags, so it reads the
+      same parameter. Past 10 images the text folds them into one line. `m3a help`'s tool list is exempt: it lists
+      every tool, one line each.
+    - `if_revision` and `request_id`, on edits only and reserved on every tool. An edit must read its target's
+      revision.
+    - The examples, in JSON Schema's `examples`.
+  - **Unknown names are refused** on every surface, naming the closest valid one. This covers tools, flags,
+    arguments (own properties only, so `constructor` or `__proto__` is unknown too), help's own arguments and fields
+    of nested objects. A parameter name is a letter, then letters, digits or `_`, so the CLI can spell every one.
+  - **request_id** is kept in the registry by tool and id, compared as canonical JSON (keys sorted, defaults filled).
+    The same id with other arguments is refused, naming what differs. Only applied replies are kept, and an edit that
+    applied is kept even when its output check then fails, so a retry never applies it twice. The store is in memory
+    (the API, the MCP server, the console). The `m3a` command refuses `--request-id` until WP-7.2a's durable store,
+    and `m3a help` marks it so: a promise the surface can't keep is refused, not ignored.
+  - **MCP** follows the 2026-07-28 revision (stateless requests with `_meta`, `server/discover`) and still answers the
+    `initialize` handshake of 2025-11-25 back to 2024-11-05, as current clients (the Inspector among them) open with
+    it. Tool names use `_` for `.`. An unknown tool is a JSON-RPC error; argument errors and tool failures are
+    `isError` results. Its text content is the verdict-first rendering, not the serialized JSON (a spec SHOULD);
+    `structuredContent` carries the whole reply.
+  - **Images** go to `check-output/<tool>/`, listed with size and approximate tokens; MCP also sends image content.
+    The Node host reads files under the working directory only.
+  - **Deviations in Owns and size:** `src/node.ts` (the Node host, the `./node` export and the `m3a` bin, WP-7.4's to
+    build for publishing), the shared `src/index.ts`, the e2e registry's `mcp-smoke` suite and a dev dependency, the
+    MCP Inspector 2.9.0 (pinned, its own commit). 1,323 new lines, past M's 1,200, from the verifiers' findings.
+  - **The verifiers,** four rounds (D83): round 1 found that MCP ignored `verbose` (blocking), prototype names
+    accepted and edits without a revision; round 2 an array in help's `data`, a failing tool untested on every surface
+    and parameter names the CLI couldn't reach; round 3 nits only. Each was fixed, with 44 targeted mutants killed.
+- **Why:** one registry keeps the surfaces from drifting (D11): the parity test compares descriptions, replies, exit
+  codes, `isError` and the text with and without `verbose`, on every example. A wrong call comes back naming the fix,
+  which shardfall's dry run asked for, and the official Inspector proves the server against a client not written here.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.46.0
+
+## D93 · 2026-10-16 · WP-7.2 split in two; the tools' tiers, writes and characters
+
+- **Principle:** 2, 4, 8, §8 (sizes), D10, D53
+- **Call:**
+  - **The split.** Scouting each tool against the packages put WP-7.2 at about 4,460 lines: the tools, their host
+    (library access, write roots, a durable request store, a workshop with undo) and what other packages lack (a
+    glTF skeleton reader, glTF animation and BVH writers, a set writer, the D80 judge moved out of the sweep). Over L,
+    so two Ls with a clean seam at binary input and characters: 7.2a (find, check, change, ship; about 2,430) and
+    7.2b (retarget, compose, exchange; about 2,030). Each runs as a foundation lane, then three tool lanes at once.
+  - **Tiers:** every tool opens the library at the game's tiers, `game.json`'s `tiers` in the working directory, else
+    cc0 (D10, D53). Only `license.check` takes tiers as an argument. Rejected: read-only tools seeing every tier, which
+    would let an agent build on clips it can't ship and learn it only at the end.
+  - **Writes:** the tools write only under `workshop/` (edited clips, id `WORKSHOP/<Name>`), `.m3a/` (edit history,
+    retry records), `imports/` (imported local sets, until WP-9.1's submit) and `check-output/`; never `library/`.
+  - **MCP's `outputSchema`** is left out of `tools/list`, about 5,100 tokens a listing; `structuredContent` is still
+    validated in the tests.
+  - **Characters bind through core** (`@m3a/io` reads the skeleton, core recognizes and binds it), not three.js's
+    loader, which fails in Node and renames bones; the tools take no generator seeds (the package boundary keeps the
+    test characters out).
+  - **Names:** `license.check` for the CLI's `license check`; one `character` parameter where export and the
+    simulation each named their own.
+  - **Plan corrections:** WP-7.2's carry pointed at the strike's measure (`clips.rs:496-550`), which `facts.strike`
+    already gives; the clip tool is `anim_tools.rs:750-800`. `npm test -- tools` also runs every repo `tools/**`
+    suite, so each half's Verify names its packages.
+- **Why:** sizes are counted, and a WP over L is split (§8); the seam leaves 7.2a's tools usable on their own, and the
+  policies keep an agent's view of the library the one its game ships.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.46.0
+
+## D94 · 2026-10-16 · Benchmark agents run as nobody with no capabilities; the CLI's credentials are handed to them
+(D84, D91)
+
+- **Principle:** 3, §7 (isolation level 1), D84, D91
+- **Call:**
+  - **Who the agent runs as.** Where the runner is root, `bench/runner/agent.ts` starts each trial's `claude` in its
+    mount and PID namespaces as `nobody` (the passwd entry, 65534). Its supplementary groups are cleared, and it gets no
+    capabilities and no new privileges (`setpriv --reuid --regid --clear-groups --bounding-set -all --inh-caps -all
+    --no-new-privs`). The switch is probed once in the namespace (`agentUser`).
+  - **What refuses it.** `/root` (`.ssh`, `.aws`, `.gitconfig`, `.boto`, the proxy's CA), the raw disks under `/dev` and
+    other users' unreadable files. The covers over every checkout, the git directory and the Claude home are mode 0700,
+    so it is refused rather than shown an empty directory. Neither `umount`, `mount` nor a nested `unshare -r -m` can
+    lift them.
+  - **What it is handed.**
+    - Its workspace, home and `<trial>-tmp` become its user's. The walk lchowns real directories only: a link is handed
+      itself, never what it leads to, and is never walked through.
+    - The /tmp directories leading to them stay root's, so it writes nothing beside them.
+    - The files that NODE_EXTRA_CA_CERTS and SSL_CERT_FILE name are copied into `<home>/.ca/`, and both variables point
+      there.
+  - **What it shares with other agents.** Nothing: /tmp (D84), /var/tmp and /dev/shm are each its own in its namespace.
+    The last two are an empty tmpfs, mode 1777 as before. Agents run at once, all `nobody` now, meet in none of them.
+  - **The audit.** The audit counts a file in any of those three as the agent's `scratch` (`ownScratch()`: /var/tmp and
+    /dev/shm where each is a directory, not a link, as the namespace covers them). Without a namespace, it counts such a
+    file as `outside`. Before this, a file in /var/tmp read as `outside` and a file in /dev/shm was not reported at all.
+  - **Credentials.** The CLI does not get its credentials from the proxy, as §7 implied. In a cloud session it reads
+    `/home/claude/.claude/remote/` (root's alone), whoever it runs as; as `nobody` it said "Not logged in". The
+    namespace script copies that directory into a tmpfs of the namespace's own, owned by the agent's user, binds it over
+    the directory and drops the scratch mount.
+    - The CLI reads the credentials where it did as root.
+    - The copy never lands on disk and ends with the namespace. The session's files stay root's (the test checks this).
+    - The agent's tools can read the copy, as they could read the original as root, so its reach is no wider than
+      before.
+  - **Where the machine refuses.** A runner that isn't root (CI) runs agents as itself, already unprivileged, with all
+    capabilities dropped in its user namespace. Where the switch is refused, the agent runs as root. Where `setpriv` is
+    refused, it runs as root with its capabilities.
+  - **Records.** Each trial and each results file record `uid` (as the machine counts users) and `unprivileged`, beside
+    `privateTmp`, `ownPids` and `capsDropped`. `capsDropped` now means no capabilities at all. The audit's and the
+    transcripts' formats are unchanged, and the grader reads the workspace as root, as before.
+  - **The test.** D84's test now asserts:
+    - the user, and zero capabilities;
+    - `/root`, the raw disks and every checkout refused to `nobody`;
+    - the workspace and home writable, and the CA read from the home's copy;
+    - the credentials' copy owned by the agent's user, while the session's stay root's;
+    - a directory link in the workspace handed alone, with what it leads to still the runner's;
+    - /var/tmp and /dev/shm empty and private between two agents run at once;
+    - the audit's scratch and outside for /var/tmp and /dev/shm, with and without a namespace.
+
+    It passes as root here and as a non-root user through a user namespace. Two reviews caught real faults, and each
+    fails on its version:
+    - the link assertion fails on the first walk (a recursive readdir with lchown, which went through links to
+      directories);
+    - the audit assertion fails on the old classification.
+  - **Proof.**
+    - Zero-cost probes as `nobody` in the namespace: `id`; `/root`, `/dev/vda`, `/home/user/*` and the hidden checkouts
+      refused; /var/tmp and /dev/shm its own; the workspace writable; `node`, `npm` and `npm run check` run in it; curl
+      and node reach the API, the registry and the proxy; `claude --version` starts.
+    - The quiz, one real trial on a clean tree: 10 of 10 in 4.0 s, $0.026, uid 65534.
+    - B2 `--fake` passes.
+- **Why:** to close D91's known limits before G7's trials. As root with CAP_DAC_OVERRIDE, the agent could read the raw
+  disks and `/root`'s other files. Now the machine prevents it, rather than the audit only reporting it.
+- **Known limits:**
+  - **World-readable files stay readable, as for any user.** This covers the system's files, the two names in
+    `/home/user`, `/home/claude`'s world-readable files and a sibling repository in a session with several. Covering
+    `/home/claude` except `remote/` is left open, because the CLI reads its cloud-session state there. The audit lists
+    any such path.
+  - **The CA is copied at each trial's start.**
+- **Answered:** no: made without a response, to review; the credentials hand-off is flagged for the owner on
+  michaelcrosato/my-3danimations#13.
+- **Landed in:** v0.46.1
+
+## D95 · 2026-10-16 · WP-7.2a's verifier fixes, and every crossing of its Owns
+
+- **Principle:** 2, 7, 8, 9, §8 (sizes), D10, D92, D93 (WP-7.2a, PLAN.md §5.6)
+- **Call:**
+  - **Concurrent edits are locked.** An edit writes under its clip's lock, `.m3a/locks/<Name>.lock`.
+    - Within one process (the API, one MCP server), two edits take turns, whatever the host. The registry keeps its own
+      lock per path (`locked`: a chain of promises, platform-neutral).
+    - The host's lock keeps out other processes. The Node host creates the lock file exclusively (`lockFile` in
+      `src/node/files.ts`).
+    - The lock is held across the revision's re-check, the history's write and the clip's write. The re-check compares
+      the history's text as well as the file's revision. So of two edits from one state, the second is refused with
+      E_CONFLICT, and nothing is lost.
+    - A lock is stale when its process on this machine is gone, or when it is older than 30 s.
+    - One waiter at a time breaks a stale lock, under `<lock>.break` (taken the same way). It removes the lock only
+      while it still holds what was judged stale, so no waiter removes a lock another just took in its place.
+    - A `.break` file left by a waiter killed while breaking is stale by the same rule. A lock still held after 10 s
+      gives E_LOCKED.
+    - A host without `lock` is safe within one process. Across processes, only a host's lock keeps writers apart.
+    - E_CONFLICT carries the current revision and a next hint naming the retry, through ToolError's optional `next` and
+      `revision`.
+    - This replaces plan §3's "no lock files". A two-process race disproved it (both processes replied applied), and so
+      did an in-process race on a host without a lock.
+  - **An outside edit resets the history for every tool.** readClip reads a workshop clip the way the edit tools do
+    (readTarget).
+    - Its history counts only while it is the file's, or when it steps back from a write cut short.
+    - Otherwise the file is read like any clip file, on the manifests' rest, found by its own id or by the library clip
+      its provenance names.
+    - A history whose rest doesn't have core's Rest shape is unreadable.
+    - While a history is the file's, its rest is the one the clip was made on, kept as is if a manifest changes later.
+      .m3a/ is m3a's own state, so it is checked for its shape, not against the manifests. Checking against the
+      manifests would reset every copy's undo whenever a library update re-measures a rest.
+  - **Tiers for the user's own clips (D93).** A library id outside the game's tiers is still refused.
+    - A file, JSON or workshop clip that needs such a tier gets a warning line naming the game.json line to add.
+    - This applies in every tool that loads a clip, and on an edit's undo and redo.
+    - The check covers the clip's own set, the library clips it names, and each part of its license.
+  - **Bounded edits.** A recipe whose running length passes 600 s (M2-E010) at any step is refused as usage, naming the
+    step, before it compiles.
+  - **One naming, one hint form.**
+    - Replies name a clip one way (`clips.ts` naming): its id, `WORKSHOP/<Name>`, or the path as given. Clip JSON, an
+      absolute path or a path with a control character becomes `<the clip's JSON>` / `<the clip's file>`.
+    - A hint writes each call in backticks as the m3a command takes it, `--<parameter> <value>` with the parameter's own
+      name. The CLI parses it as written, and on MCP it reads as the arguments.
+    - A flag alone in backticks (`--if_revision X`, `--save_as WORKSHOP/<Name>`) is one to set on the call just made,
+      added or in place of its own. Both E_CONFLICTs, E_EXISTS, the save_as refusal and E_NO_CLIP name a parameter that
+      way.
+    - E_EXISTS carries the revision, and names changing in place as "the same call on WORKSHOP/<Name>", with no clip id
+      in backticks.
+    - The tests parse every example's next, and the E_EXISTS and E_CONFLICT texts, each flag alone set on the call just
+      made.
+  - **No absolute path in a reply.** E_PATH, E_WRITE and E_LOCKED call an absolute path they were given "the file"
+    (`files.ts` shown, `common.ts` absolute). They never name the working directory's absolute path. E_CLIP, E_REST and
+    validate do the same.
+  - **Leftovers.** A write killed before its rename leaves `<file>.<pid>.tmp`. The file's next write sweeps it once its
+    process is gone. The request store also sweeps its own.
+  - **Retries.** A history keeps the requests of its last 8 writes, not only the last one.
+  - **D10's tier rule** is exported from @m3a/library (`tierOf`, `credited`) and used by the tools. license.check owes
+    credit per license part.
+  - **Crossings of WP-7.2a's Owns, all lanes (a0, a-find, a-check, a-change, a-fix):**
+    - WP-7.1's files:
+      - `packages/tools/src/registry/registry.ts`:
+        - Host and ToolContext gain tryRead, write, remove, library and lock; LibraryAccess.
+        - Only examples[0] in the schema, and shorter reserved descriptions.
+        - ToolError's next and revision.
+        - The registry's own lock per path within one process, and the pre-run E_CONFLICT's next in the hint form.
+      - `registry/index.ts`: exports; it no longer lists tools.
+      - `registry/reply.ts`: replySchema's doc.
+      - `registry/tools.ts`: deleted, moved to `tools/base.ts`.
+      - `src/mcp.ts`: tools/list without outputSchema.
+      - `src/cli.ts`: the report-write warning; help's --request-id note.
+      - `src/node.ts`: the Node host's library, writes, durable store and lock; E_PATH and E_WRITE without the absolute
+        working directory or an absolute path given.
+      - `src/node/{files,library,store}.ts`: new.
+      - `src/index.ts`: the shared export list.
+      - `test/registry-surfaces.test.ts`: built from the demo tools; one line pins the E_PATH words.
+      - `test/registry.test.ts`: the E_CONFLICT next.
+    - The library (WP-5.1, 5.5, 5.7):
+      - `packages/library/src/load/library.ts` and `load/index.ts`: Library#about, SetAbout, SourceAbout.
+      - `src/search/index.ts`: `mps`.
+      - `src/license/index.ts`: `tierOf`, `credited`.
+      - `src/index.ts`: the shared export list.
+      - `test/library/load.test.ts`.
+    - The sensors (D44): `packages/sensors/src/fix/fix.ts` and `fix/index.ts` export `worse` and `ANSWERS`.
+    - WP-6.5: `packages/tools/src/sim/film.ts` (`strip` extracted).
+    - WP-7.3: `packages/tools/MANUAL.md`, its two request_id sentences only.
+    - The e2e registry: `tests/e2e/mcp-smoke.e2e.ts` runs each example in a fresh seeded working directory (acdeeb1).
+    - Test helpers beyond `surfaces.ts`: `packages/tools/test/helpers/{cwd,tally,race,workshop}.ts`.
+    - `.gitignore`: workshop/, .m3a/, imports/.
+    - WP-7.2b's foundation lane (b0) also touches `registry.ts` and `node.ts` (bytes), in its own decision. This lane
+      merges onto the integration head with b0 (3f8cf6c) without conflict.
+  - **Owns edited to match:**
+    - WP-7.2a's Owns becomes `packages/tools/src/tools/*`, `packages/tools/src/node/*`,
+      `packages/tools/test/tools-*.test.ts` and `packages/tools/test/helpers/*`.
+    - Everything else above stays a logged crossing, also listed under "Also touches".
+  - **Size:** about 3,688 new lines: 2,659 across the four lane merges, plus 1,029 from the verifier fixes and their two
+    reviews. That is past L's 3,000, because of the verifiers' findings.
+  - **The verifiers:** two lenses, then two reviews of the fixes.
+    - Contract: should-fixes on naming, the hint form and the records. Nits on conventions, the tier rule, `last`,
+      output schemas and refusals.
+    - Adversarial: two blocking findings (concurrent edits lost; the outside-edit reset only partial). Should-fixes on
+      slow retimes and out-of-tier files. Nits on paths, quoting, credit parts, the example's request_id, .tmp files and
+      long names.
+    - The first review of the fixes:
+      - One should-fix: two in-process edits on a host without a lock.
+      - Nits: an echoed absolute path, the conflict hints' form, the workshop's .tmp files, undo's tier warning, and the
+        history's rest. The last is answered above.
+    - The second review: sound. Its nits were E_EXISTS's hint form, a stale lock broken by two waiters at once, and an
+      out-of-date note about lane b0's merge.
+    - Each is fixed, with a test that fails without the fix where one could be written.
+- **Why:**
+  - An edit tool that can report applied while the edit is lost breaks the plan's contract (§3, §5.6), on any surface.
+  - A history that every tool reads one way keeps each measurement on the clip's own rest.
+  - Flagging rather than refusing the user's own copies keeps D93's promise that an agent learns early what it can't
+    ship.
+  - One hint form lets a hint be run as written on every surface.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.47.0
+
+## D96 · 2026-10-16 · WP-7.2b: the retarget, compose and exchange tools; lane b0's foundation rebuilt; every crossing
+
+- **Principle:** 2, 7, 8, 9, §8 (sizes), D10, D49, D80, D92, D93, D95 (WP-7.2b, PLAN.md §5.6)
+- **Call:**
+  - **Lane b0, the foundation** (3f8cf6c, in 0.47.0's tree; its own decision text was lost at the pause and is rebuilt
+    here from ba24948, a37eafe, 2c128f2, c356c5e and fe6594a, four review rounds):
+    - **R6, a character's bytes:** `ctx.bytes(path)` in the registry (E_HOST "opens no binary files" without one) and
+      the Node host, confined to the working directory as text reads are (a path or link out, or a missing file, is
+      E_PATH).
+    - **I1, io's glTF skeleton reader:** `skeletonOfGltf(doc)` gives the skeleton, its rest in the scene's space and
+      its nodes: the biggest skin a mesh node uses (as three's bind takes the skinned mesh with the most bones), else
+      every node; parents the nearest joint above through any helper node. Joints no vertex is weighted to are left out
+      with every joint above a weighted one kept, as three's bind does (20 of KayKit's knight's 41 joints: IK targets,
+      poles and hand slots that misled recognition by shape); a VRM, or weights it can't read, keeps them all.
+      `meshEnds` gives D49's sole end bone where a foot's mesh ends, from the vertices weighted half or more to the
+      foot's last bone, skinned by the joints alone (glTF ignores the mesh node's transform), and says when it can't
+      read them (`unread`: compressed, sparse or broken accessors). io's accessors read signed bytes and shorts
+      (KHR_mesh_quantization) and refuse sparse ones. Rigify, the 20 generated characters and the knight bind at three's
+      bind's rest points within 1e-3 mm.
+    - **V1, characters through core:** body.ts's `characterOf(ctx, ref, mapping)` binds through io and core
+      (recognize, patchMapping, bind; no three.js). A VRM's humanoid maps its bones as the file's word; a patch is
+      checked with did-you-mean; no humanoid bone at all is E_RIG; over 4,096 bones is E_LIMIT. `TINY`, the 34-bone
+      conformance rig, is the default body (deep-frozen; end bones go on a copy).
+  - **The tools** (one lane each, merged at 89a9e55, 7df2f63 and 0d45a6f):
+    - **Retarget:** `retarget.inspect` binds a character and returns its report (findings while an issue other than
+      the patch stands, with a rest turntable); hips bound under half the legs' length are an issue, its conclusion
+      first ("hips (root) likely the wrong bone: only -20 mm up, ..."), so it survives apply's 60-character warning;
+      each missing bone's likely source bones, at most 3. `retarget.apply` plays 1 to 20 clips, each judged as the sweep
+      judges a skeleton (D80), findings when one fails. **W1:** the judge moved from `tools/sweep` into
+      `@m3a/tools/judge.ts`, which the sweep imports back. **H1:** three's bind sanitizes a patch's source bone as
+      three's loader sanitizes node names, so the tools' patch binds in three too.
+    - **Compose and wire:** `recipe.compile` (bounded before it compiles by `bounded()`, shared with edit),
+      `graph.validate`, `graph.sim` (tiny by default; a run past 36,000 steps refused). **L3:**
+      `Library.resolver()` rethrows E_TIER, so a recipe naming an out-of-tier clip names the opt-in, not R-E008.
+    - **Exchange:** `import` fits a .gltf, .glb, .bvh or .vrma file's animations into a local set under
+      `imports/<SET>/` (D10's local tier, a per-set lock; the host reopens it by its stamp); `export` writes .vrma (read
+      back byte for byte), .glb (the character's own document, its animation added) or .bvh, each read back through io
+      within 1 mm. The registry's `writes` flag lists import to MCP as writing (readOnlyHint false, destructiveHint
+      true). **I2-I5:** io's BVH writer and gap, the glTF animation writer and gap, a one-frame take held a frame, a
+      VRMA's license in extras and its credit as `asset.copyright`. `@m3a/library` gains the set writer, moved from
+      `tools/migrate` (migrate --check byte for byte).
+  - **The pause** (D97 records the speed lane merged with these): the lanes were merged at a usage limit with three
+    tests stale and retarget's round-2 fix half applied (9da0d53). The tests took the code's wording (4a505d2).
+  - **Crossings of 7.2b's Owns:**
+    - The registry and host: `registry/registry.ts` (bytes; the `writes` flag), `src/node.ts` (bytes), `src/mcp.ts`
+      (the annotations), `src/node/library.ts` (imported sets as local sets).
+    - 7.2a's files: `tools/index.ts` (the RETARGET, COMPOSE and EXCHANGE groups), `tools/change.ts` and
+      `tools/clips.ts` (`bounded()`), `test/tools-budget.test.ts`, `test/helpers/surfaces.ts`,
+      `test/registry-surfaces.test.ts`.
+    - io: `src/gltf/read.ts` (signed accessors; mat and mul exported), `src/import.ts`, `src/vrma/vrma.ts`, the
+      README's BVH note, `src/index.ts` (the shared export list).
+    - library: `src/load/library.ts` (E_TIER), `src/node.ts`, `src/index.ts`; `tools/migrate/migrate.ts`.
+    - three: `src/bind/bind.ts` and its test.
+    - `tools/sweep/sweep.ts` (imports the judge).
+  - **Round 2 and 3 of the tool lanes** (after the pause, lanes retarget, wire and t1rec, merged at 9c6af0b, bb43fa6
+    and 68a6bae; each round's findings and dispositions are in its commit messages):
+    - **Retarget:** a mesh io can't read (compressed, weights unreadable, soles unread) is no mapping issue
+      (`meshIssue`): with no other issue inspect replies ok, the issue in its lines and data, and the patch line says
+      what re-exporting mends; apply says it as a `note:` line and keeps its mapping warning and next for mapping
+      issues. The bind-failure E_RIG stays a defensive catch no file reaches (core's bind throws only for a missing
+      required bone, which characterOf never binds). A chain past 1,024 bones (MAX_DEPTH) and bones of no usable length
+      (every node at one point, a scale of 0 or out of range) are refused before recognition. apply refuses clips
+      lasting over 600 s in all. The Node host's `ctx.bytes` stats a file and refuses one past io's 512 MiB limit
+      without reading it.
+    - **Compose and exchange:** graph.sim and export name the character by `characterName`; one helper, `given(as,
+      value)` in clips.ts, passes a name the shell would split as given in hints; import removes only clip files an
+      import wrote, names what it removed, and refuses a set whose directory holds any other .json or a library set's
+      copied manifest (E_EXISTS, nothing changed); parser messages (E_JSON, E_CLIP, E_GAME) on one line (`oneLine`);
+      export's read-back checks refuse a joint missing from the file (io's E_MISSING); the host keeps at most 8
+      libraries open, the least lately used dropped; B5's and B6's starter check names a clip past CC0 as R-E008 again.
+    - **t1rec:** see D97; and the sweep's rows pinned by hash in `tools/sweep/sweep.test.ts` (b4f51cf5d8276a36 at
+      1bf5252, before the judge moved, and after), which proves the Done-when "the sweep's T1 sample gives the same
+      rows after its judge moves".
+  - **The verifier** (two lenses at daaf91c, then three lanes, each re-reviewed until sound):
+    - Contract: every Done-when proved and the Verify command passing (28 files, 239 tests; doctrine 8/8); should-fixes
+      on a closing hint that didn't run as written (retarget.apply's license.check with a clip file whose name has a
+      space) and on cost (below); nits on hints, naming and these records.
+    - Adversarial: blocking findings on glTF animations sharing a name (collapsed into one clip), two racing first
+      imports into one set (both replied success, the set tampered), and calls that run for hours inside their bounds;
+      should-fixes on the file's own license ignored on import, graph.sim's E_RIG asking for a mapping it took no
+      parameter for, glTF rigs import can't read, the host's text reads, and recipe and graph costs.
+    - **Lane 2, io, library and the host** (07fef25): `animationNames` gives each glTF animation its own name
+      (`X`, `X_2`, ...; `animation<i>` for none), in describeGltf, the exact reader and readGltfPosed alike, in linear
+      time; a BVH Frame Time must be above 0 and at most 1 s; rigBvh's E_RIG reads for a .bvh and a glTF alike, VRM's
+      humanoid bones listed; a .glb's animation carries the clip's credit beside its license; the resolver throws
+      E_TIER only for a clip the out-of-tier set holds (else R-E008 with its did-you-mean); the host reads an imported
+      set under `imports/` at call time, so racing first imports end with a set that verifies.
+    - **Lane 3, core** (071cbc1): recognition by shape (`topology()` in recognize.ts) walks the tree without recursion
+      or spreading a list that grows with the skeleton: chains of 130,000 bones recognize, parents in a loop throw a
+      RangeError naming a bone. Bit for bit: 118 recognitions pinned by hash before the change, the 12 parts of
+      `tools/exact/ab.mjs` equal, vectors byte for byte, cross-engine equal; an A/B fuzz of 40,000 skeletons identical.
+      Left: parents in a loop among bones a table knows by name still hang finish()'s ancestor walk, before and after.
+  - **Deferred, with their numbers (a core follow-up, proposed here; PLAN.md has no WP for it yet):**
+    - **K5, the planter's cost:** core's planter re-sums a held foot's drift from the start of its stretch at every
+      pose (contact/plant.ts holds), and the Animator's pose cache clears at 1,024 poses (about 17 s), so cost is
+      superlinear in how long a foot is held: retarget.apply on tiny with an idle held throughout, 12 s 1.8 s, 17 s 2.6
+      s, 24 s 23.7 s, 30 s 44.6 s, 60 s 233.7 s. Carrying the sums across poses can't be bit for bit (each pose's root
+      is anchored afresh at the Animator's world root, animator.ts rootFrom), so a linear planter needs its own decision
+      to re-baseline the vectors and the A/B hashes. Meanwhile the tools refuse a held foot past a measured bound.
+    - **The key fit's cost** grows with samples times the keys it adds (import: 30, 60 and 120 s takes 2.3, 6.5 and 21
+      s; recipe.compile at MAX_FIT_SAMPLES: QUATERNIUS_3D2DGE/Walk_Loop sequenced to 120 s at 30 fps 22.8 s,
+      Jog_Fwd_Loop to 30 s at 120 fps 55.3 s, the densest found, QUATERNIUS_SHARDFALL/NinjaJump_Start to 120 s at 30
+      fps with 3,410 keys, 117 s). One call can still spend about 2 minutes fitting, about 3 with its steps' build at
+      every bound together; library clips (at most 12.1 s), spec/recipes and the starters compile in under a second.
+      A fit linear in its keys is core's follow-up, with K5's.
+    - **A composed license in the library:** import now takes a composed clip's license (D10's ids joined with
+      " AND "), but `@m3a/library`'s checkSets reads a source's license as one id with one text file, so license.check
+      fails such a set for good; import's note says so. Each part checked and credited is the library's follow-up.
+    - **K7:** io's skeletonOfGltf can return heads that aren't finite when node transforms overflow; every tool path
+      refuses it (bones of no usable length); io's own callers get the numbers. **K8:** the manual's lines on
+      `openLibrary().resolver()` (MANUAL.md:241, :285) predate L3's E_TIER: WP-7.3 rewrites them. The import catalog
+      (`$sources`, `$pick`, `$skip`) stays io's input format, not a spec schema (spec/schemas is frozen and the catalog
+      is the pinned sources' format since WP-5.2): the tool checks its shape and WP-7.3's manual documents it.
+      Importing a glTF whose bones no map knows by shape or a given mapping is a feature, not a fix: import refuses it
+      with a working remedy (retarget.inspect and export).
+    - **Lane 1, the tools** (merged at the head after 07fef25 and 071cbc1; ten commits, each listing its findings;
+      four re-review rounds, the third cut by a session limit and finished after it):
+      - **One naming rule, replacing D95's two forms.** Inside backticks a hint names a given file or JSON with its
+        placeholder (`<the character's file>`, `<the clip's JSON>`, `<the motion file>`) or the path as given, quoted
+        for the shell where it would split (`arg`); a refusal, verdict, line or data field uses the same words without
+        brackets ("the character's file") or the path as given, never JSON-quoted, never absolute. `prose(as)` in
+        clips.ts; the host's `shown()` is `arg(path)`, or "the file" for an absolute path or one with a control
+        character (E_PATH, E_WRITE, E_LOCKED, E_LIMIT). A test reads an absolute path and one with a control character
+        through four tools and the host: the working directory appears nowhere.
+      - **Hints that run as written:** retarget.apply's closing license.check passes a clip file's path as given;
+        the missing workshop copy's hint is one whole call (`fix <a library clip> --save_as WORKSHOP/<Name>`), in
+        E_NO_CLIP and G-E009 alike; license.check on a local set says to set `"ships": false` in game.json.
+      - **The host's text reads** stat a file and refuse past io's 64 MiB text limit before reading it (E_LIMIT).
+      - **Bounds on one call's cost** (the integrator's scope rule after round 3: these and no more; any slow path
+        left inside them is recorded above with its numbers): a held foot past MAX_HOLD, or a clip whose planter
+        rereads pass MAX_REREAD (16 s), refused by retarget.apply, export and graph.sim (judge.ts `boundHolds`; no
+        library clip is refused); graph.sim charges its run's clip steps (MAX_CLIP_STEPS) and what fades and a held clip
+        played at several times at once add (MAX_FADE_STEPS); a recipe's steps, samples, list reads (a pin's path, a
+        weight curve, a sequence's items: MAX_LIST_READS) and the samples its output's keys are fitted to
+        (MAX_FIT_SAMPLES = 3,600: 120 s at 30 fps, 30 s at 120), shared with edit, which keeps its chain only while the
+        chain passes them and otherwise compiles the file as it is; import fits a take of at most 120 s (MAX_TAKE),
+        240 s in all (MAX_FIT) and 500 clips (MAX_IMPORT_CLIPS), each refusal naming the step, the length and the
+        remedy. Every bound carries its measurements in its doc comment.
+      - **Import:** the license and credit a glTF-family file carries are used (each animation's extras, the asset's
+        copyright); a --license whose ids aren't the file's is refused, ids compared as sets, case aside, and a
+        composed license (" AND ") is taken; a glTF whose bones no map knows by name is refused with calls that work
+        (retarget.inspect binds by shape, export plays a clip on it), and list says so first; io's refusals name the
+        file as given; the verdict says what an import replaced.
+      - **graph.sim takes a mapping**, as retarget and export do, so its E_RIG can be followed; a mapping that gives two
+        humanoid bones one source bone is refused; export names its file by the clip and the character
+        (`<clip>-on-<character>.<format>`), so two characters don't overwrite each other.
+      - **No test reads the clock:** three wall-clock assertions removed (the refusals asserted instead); T1 adds about
+        6 s for the whole of the verifier's fixes.
+  - **Crossings of 7.2b's Owns, added after the pause:** WP-7.2a's files `tools/common.ts` (oneLine, fileOrJson's
+    naming), `tools/clips.ts` (given, prose, the E_CLIP, E_REST and E_NO_CLIP words, bounded's budgets),
+    `tools/change.ts` (edit's chain under the bounds), `tools/base.ts` (validate's naming), `tools/ship.ts` (the local
+    set's line), `src/node.ts` (bytes and text stat first), `src/node/files.ts` (shown), `src/node/library.ts` (the
+    cache, imported sets read at call time), `registry/registry.ts` (bytes' doc) and their tests (tools-host,
+    tools-change, tools-ship, tools-find, tools-check, registry-surfaces, sim, tools-budget, helpers/surfaces); io's
+    `gltf/read.ts` (animationNames), `gltf/posed.ts`, `gltf/anim.ts` (credit), `bvh/read.ts` (frame time, E_RIG),
+    `bvh/write.ts` and their tests; library's `load/library.ts` (the resolver's E_TIER); core's
+    `skeleton/recognize.ts` (iterative), `clip/facts.ts` and `clip/contacts.ts` (D97), `contact/plant.ts` (contactAt);
+    `bench/starters/B5` and `B6` `check.ts` and their graders' tests; `packages/three/test/play.test.ts`;
+    `tools/sweep/sweep.test.ts` (the pinned rows); `eslint.config.js` (the lane worktrees left out).
+  - **Owns edited to match:** WP-7.2b's entry gains "Also touches" listing the crossings above, as 7.2a's did.
+  - **Size:** about 4,950 new lines: lane b0's 955, the three tool lanes' 2,072 at the pause, and about 1,920 after
+    it (rounds 2 and 3 and the verifier's three lanes), the t1-speed lane and its records (D97) left out. That is 65%
+    past L's 3,000: the WP should have been split again (D93 split 7.2 in two; each half was still an L). The WP-sizes
+    theme reached its threshold (FEEDBACK-LOG F4.1): 8.2 and 9.1 are measured before they start.
+- **Why:**
+  - A retarget, compose or exchange tool that answers wrongly, or whose hint fails as written, costs an agent more than
+    one that refuses with a working remedy (§5.6, D92).
+  - One naming rule for every surface keeps a path out of replies and lets every hint run as written.
+  - A tool an agent calls must not run for hours on a valid input: the bounds refuse such calls up front, and the
+    causes in core are recorded with their numbers rather than chased in the tools.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.48.0
+
+## D97 · 2026-10-16 · The t1-speed lane: T1 cut by bit-identical speedups, proved and recorded after the pause
+
+- **Principle:** 5 (determinism), process, D33, D74, D89
+- **Call:**
+  - **What it did** (0ac8205..65ea4a6, merged at 261e78c, no WP: T1 stood at 84.8 s of its 90 s locally): decodePose
+    and encodePose take each side's fields and points by names and offsets found once; a rest frame's conjugate, each
+    shoulder's rest swing and hintFor's rest direction are found once per rest (WeakMaps, like `derived()`); planting
+    takes points by side and offset, a leg's pole from the pelvis alone (`legPoleOf`) and finds a foot's contact
+    without an array a call; contactRoot decodes the legs alone (`decodeLegs`, `sampleLegs`, sharing decodePose's leg
+    steps); measureFacts reads samples a caller already took (an optional fourth argument, `sampled`); the sensors
+    read their samples once; tests share identical work (every input, threshold, case and expect() count unchanged).
+    The last edit, the Animator's `rootFrom` memo (65ea4a6), was committed as WIP at the pause; it is complete.
+  - **The proof, after the pause** (the lane's own 17-part harness was lost with its scratch): `tools/exact/ab.mjs`
+    (kept, on demand) gives the same hashes at 1bf5252 and after the lane on all 11 parts (decode 0df74cdf79b8eb1b,
+    decodeOther b142c4cd5f306f62, encode 39c519df430bcb6a, facts b79e2b4b00f55d73, root 2eda1300ba89c3a5, plant
+    23cdf3509243e694, sensors 95fbaf80facceaec, fix caf56a18d4679a48, procedural cd89bf81f1fe5bbf, animator
+    8b409beb3b160667, solve 290de4e3eae475cf; a twelfth, limbPoles d6301fd29f5c9bbb, added since); cross-engine equal
+    (the Animator 144560999a518f7d); CI's Node = Chromium hashes unchanged; vectors byte for byte.
+  - **Made durable** (lane t1rec): `packages/core/test/exact.test.ts` holds `legPoleOf`, `decodeLegs` and `sampleLegs`
+    to the functions they copy, bit for bit, as D89's ankleOf test does; measureFacts's `sampled` is documented as
+    trusted and checked for its count and step against sampleAll's (`sampleGrid`, shared with sampledBy), throwing on
+    a mismatch; contactAt holds a better contact by plain assignments.
+  - **Measured:** CI's T1 74.4 s at 1bf5252, 61.9 s after the lane with 38 more tests; locally about 82 s.
+- **Why:** a slow T1 is fixed by removing cost, never by sampling or skipping tests (D89); a speedup with no proof
+  breaks principle 5, so the proof is committed where it can run again.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.48.0
+
+
+## D98 · 2026-10-17 · G7's command set: the default model gates, three others are recorded one trial a brief
+
+- **Principle:** §7 (the benchmark, per model), §9.3 (G7), O10 (Claude models only)
+- **Call:**
+  - **Which models.** PLAN.md §7 says the benchmark runs "on the Claude models the session can reach", and G7 records
+    B1 to B7 "per available model". On 2026-10-16 twelve Claude models answered one turn as the benchmark's `nobody`
+    agent (sonnet-5-5, the CLI's default; opus-5-5, haiku-5-5, fable-5-1, fable-5, opus-5, opus-4-8, opus-4-7, opus-4-6,
+    sonnet-5, sonnet-4-6, haiku-4-5). Read literally, G7 is about 900 trials. Every gate so far ran the default alone.
+  - **The rule:** the CLI's default model gates G7, as at G1 to G6: each brief and each held-out variant at least 4 of
+    5. The current generation's other three, `claude-opus-5-5`, `claude-haiku-5-5` and `claude-fable-5-1`, are
+    recorded: B1 to B7 once each, in the gate's report and records, not gating. The older generations are left out.
+  - **Recorded steps:** `tools/run/gate.ts` reports a step named `recorded: ...` but leaves it out of the gate's
+    verdict (`RECORDED`; the verdict counts them apart).
+  - **G7's set:** check, test, doctrine (the manual's and the tools' budgets), vectors, the tool examples on four
+    surfaces, the manual's code, `pack --check` (the packaged CLI, MCP server and single file running the manual's
+    example; the bundle's licenses and QA), the single file's license check, T2 (the MCP Inspector on every example),
+    a fresh held-out run, B1 with 2 discovery trials (reported, §7), B2 to B7, each brief's held-out variant, then the
+    three recorded models.
+- **Why:** the gate measures whether agents can use the package; one model held to the pass mark keeps that bar
+  comparable with G4 and G6, and three others show how far it carries, at a fraction of the cost of twelve (about $300
+  at list prices, all from the session's own account).
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.49.0 (WP-7.3's version)
+
+## D99 · 2026-10-17 · O2 taken at its default: build and dry-run pack everything, publish nothing
+
+- **Principle:** §3 (hard to undo), AGENTS.md "Deviating", §13 O2
+- **Call:**
+  - WP-7.4 reached O2 (package names and publishing). It was escalated on michaelcrosato/my-3danimations#13 at 14:59 UTC
+    (principle, three options, a recommendation) and a 15-minute check armed. No answer came by 15:15 UTC.
+  - **The default stands:** the packages are built, packed and checked (`npm run pack -- --check`, dry-run packs per
+    package, a scratch install, the single file) under the working names `@m3a/*` and `m3a`; every source
+    `package.json` stays `private: true`; nothing is published to npm or as a release asset. npm provenance (Sigstore)
+    is prepared for the first published version but not enabled.
+  - When the owner answers O2, the names and the publishing step change in a commit of their own; WP-9.4's release
+    workflow follows the same rule.
+- **Why:** publishing can't be taken back, and for publishing the default is always "don't" (AGENTS.md).
+- **Answered:** no: the default taken after the escalation's 15 minutes, to review.
+- **Landed in:** v0.50.0 (WP-7.4's version)
+
+## D100 · 2026-10-17 · WP-7.3: the manual, its test and tool list, the skills, llms.txt, .mcp.json and the runner's wiring
+
+- **Principle:** 2, 3, 9, D77, D91, D96 (K8) (WP-7.3)
+- **Call:**
+  - **The manual** (`packages/tools/MANUAL.md`, 7,998 of 8,000 tokens): the mental model; one complete example (a
+    knight that walks, slashes with a hit event and staggers its target), unlike the B1 to B3 known-goods in clips,
+    structure and wording (D77, checked by the reviews); the API by job (find, fit, wire, make, check, ship); the 20
+    tools as `m3a` and MCP calls in a list generated from the registry between markers and checked so it can't drift
+    (`tools/manual/toollist.ts`); D91's reads past the manual folded in (layer weights and masks, contactRoot's
+    return, three's attach, the pose step's arm fields, simulate()'s result); K8's E_TIER; the import catalog; the
+    rules and common mistakes.
+  - **Every code block runs** (`packages/tools/test/manual.test.ts`, `npm test -- manual`): the ts blocks type-check
+    and run as one program, JSON blocks are checked as what they are, `m3a` calls run and inline ones parse with their
+    flags, the `.mcp.json` block names the published bin.
+  - **The skills:** `skills/m3a/SKILL.md` (agentskills.io: name, a description under 1,024 characters, the five
+    commands, where an installed package keeps the manual) and this repository's `.claude/skills/m3a/SKILL.md` (the
+    CLI run from source, so a fresh `npm ci` never sends `npx m3a` to the registry); `llms.txt`; `.mcp.json`; a test
+    of their format, commands and paths (`tools/skill/skill.test.ts`).
+  - **The runner** (a crossing into WP-4.7's `bench/runner`): each trial gets the skill as real files, the `Skill` tool,
+    `--setting-sources project` and an `--mcp-config` running the packed `m3a mcp` (the CLI's own bundled skills off);
+    a trial whose init event shows the server not connected fails; reading the shipped skill or `llms.txt` isn't past
+    the manual.
+  - **No example gives a bench job away:** the registry's examples for edit, film, diff and describe no longer name a
+    brief's clips or edits (they reach every trial through MCP's tools/list).
+  - **The Verify:** `npm run doctrine` and `npm test -- manual` pass. B5 5 of 5. B1 1 of 5 with the first rewrite: it
+    dropped the old manual's speed matching (play a loop at `(v * 1000) / own`, move by `player.travel`), and three
+    agents shipped `MESH2MOTION/Run_Female`, whose own speed reads 0 because the library holds no foot contacts for
+    it. Restored (2cfb004), B1 3 of 5: one agent still shipped Run_Female, one slid at a fade. **B1's 4 of 5 is a
+    deferred proof, to G7**, after the library fix the next session makes first: 30 loops have no detected contacts,
+    among them CC0's Run_Female, Run_Anime and Run_Stealth. K2 (B1 under 3 of 5 after the second revision) did not
+    fire.
+  - **Reviews:** two rounds a lane, then a close-out round. Blocking findings fixed: the repository skill's `npx m3a`
+    reaching the registry; should-fixes: the registry examples above, the example's loop snapping a blend parameter
+    (it pops; the loop eases it now, as its script does).
+  - **Crossings:** `bench/runner/{agent,workspace,main}.ts` and their tests; the registry examples in
+    `packages/tools/src/tools/{change,check,find}.ts`; `tools/skill/`, `tools/manual/`.
+  - **Size:** about 1,500 lines (the test and the skills' test most of it), past M's 1,200.
+- **Why:** the manual is where an agent starts (§7); what it says must run, and what it leaves out must not trip the
+  briefs.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.49.0
+
+## D101 · 2026-10-17 · WP-7.4: the packs, the single file and `npm run pack -- --check`; nothing published
+
+- **Principle:** 2, 6, 7, D10, D59, D99 (WP-7.4, O2)
+- **Call:**
+  - **The packs** (`tools/bundle/build.ts`): each `@m3a` package built as ES modules with declarations, by Node's own
+    type stripping file for file (so `dist/x.js` keeps `src/x.ts`'s lines), relative `.ts` imports pointed at `.js`,
+    the `.d.ts` from `tsc -b`, staged in `.cache/pack/stage/` with its published `package.json` (exports, types and
+    bins pointed at `dist/`; devDependencies dropped; `private` kept, D99) and packed. The workspace's own bin and
+    types stay on the sources, so `npm ci` links `m3a` to `src/node.ts`; only the staged copy points at `dist/`.
+  - **Tiers as packs (D10):** the default `@m3a/library` holds the cc0 sets alone, its lock and license texts narrowed
+    to them; `@m3a/library-cc-by` and `@m3a/library-cmu` hold their tiers' sets with the opt-in and credits block,
+    peer-depending on the library. `openLibrary` finds an installed pack (a crossing into `@m3a/library`'s loader),
+    and every m3a and MCP reply warns when a game opts into a tier whose pack isn't installed (a crossing into
+    `@m3a/tools`).
+  - **The single file** `m3a.js` (Vite, carried from riftlight's bundle.mjs): every name of core, sensors, io, library
+    and tools once (a new collision fails the build), 47 CC0 clips listed in `tools/bundle/manifest.json` (a
+    GameManifest; the license check passes; each clip passes the sensors or carries its WP-5.8 baseline), the credits
+    block and the license texts verbatim, 1.16 MB, not minified. three.js and `@m3a/three` are left out: the file is
+    for agents that can't install packages, who can't install three either, and a second three beside a game's would
+    break `instanceof`. **How "the single file runs the same example" is read:** m3a.js runs the manual's complete
+    example program itself (its ts blocks, JSON files and m3a calls), with only the imports it leaves out (three and
+    `@m3a/three`) served headless, and prints what the packages print for that headless form.
+  - **`npm run pack [-- --check]`** (`tools/bundle/main.ts`, about 18 s): the packs and m3a.js; `--check` fails on a
+    set in the wrong pack, a bin that isn't `dist/node.js` with its shebang or can't start, m3a.js's credits or texts,
+    the manifest's license check, a bundled clip's QA, a scratch project that installs the tarballs and can't run the
+    manual's complete example, `npx m3a help` and `version`, `m3a mcp`'s tools/list, the opt-in packs, or m3a.js
+    printing anything else. It is in G7's set (D98); T2 doesn't run it (the integrator's call: 18 to 30 s, and G7
+    runs it).
+  - **The runner** packs through `tools/bundle` (a crossing into WP-4.7's `bench/runner/pack.ts`); the known-goods'
+    `--fake` runs pass, on G7's held-out variants too.
+  - **Provenance** (npm, through Sigstore) is written down in `tools/bundle/README.md` for the first published version,
+    not enabled (D99).
+  - **Reviews:** four rounds. Blocking findings fixed: the workspace's bin moved to `dist/` (which `npm ci` never
+    builds, so `npx m3a` would have reached the registry), and m3a.js running a stand-in rather than the manual's
+    example. Should-fixes: the deviation unrecorded (here now), a bin that can't start passing the check.
+  - **Size:** about 1,720 lines (tools/bundle, the library's loader, the packaging fields), past M's 1,200.
+- **Why:** an agent installs the packages or drops in one file; both must run the manual's example, carry their
+  licenses and keep tiers opt-in, and nothing is published before the owner answers O2.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.50.0
+
+## D102 · 2026-10-17 · T1 trimmed by sharing identical work: 89.8 s to about 78 s, no test, input or assertion less
+
+- **Principle:** process, D74, D89
+- **Call:**
+  - With WP-7.3's runner tests T1 reached 89.8 s of its 90 s here (CI's runner is faster). Eight files that took most
+    of it (the sensors' and core's procedural tests, the runner's, the sweep's, the actions sweep, the B1 and B3
+    graders and tools-change) now share identical work: a fixture built once per file, a pure result reused (each
+    reuse's purity argued in 0ea84f2), and their Node child processes share a compile cache (`tools/run/compile-cache.ts`).
+  - Per file the it( and expect( counts are unchanged and no input, threshold or case changed; an independent review
+    confirmed it, mutating a key assertion in each to show it still fails.
+  - Measured: T1 78.0 s on the merged head (974 tests).
+  - Left: the procedural files are bound by core's gait code; cutting further needs source changes with byte-identity
+    proofs (as D89).
+- **Why:** a slow T1 is fixed by removing cost, never coverage.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.49.0
+
+## D103 · 2026-10-17 · Phase 7's pull request merged before G7, at the owner's request
+
+- **Principle:** §8.5 (a gate merges its phase), process
+- **Call:**
+  - On 2026-10-17 the owner asked to finish the active work packages (WP-7.3, WP-7.4), start no new one, prepare the
+    repository for a handoff and merge. michaelcrosato/my-3danimations#13 is squash-merged with CI green, holding
+    WP-7.1 to WP-7.4, G7's command set (D98) and its held-out run 1 (checked, unused). G7 itself has not run.
+  - **So `main` holds Phase 7's packages without its gate.** The next session opens a fresh draft pull request for
+    G7 (and Phase 7's remaining fix: the library's 30 contact-less loops, D100), runs `npm run gate -- G7` there, and
+    merges it as G7's.
+  - The merge is made by the session under the owner's GitHub login, as the request asked; no review was approved.
+- **Why:** the owner's call; §8.5's rule (main holds the last gate that passed) bends once, recorded here.
+- **Answered:** yes: the owner's request, 2026-10-17.
+- **Landed in:** michaelcrosato/my-3danimations#13
+

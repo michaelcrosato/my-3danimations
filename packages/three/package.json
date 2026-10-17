@@ -1,17 +1,22 @@
 {
   "name": "@m3a/three",
-  "version": "0.45.2",
+  "version": "0.50.0",
   "private": true,
   "description": "The three.js adapter: binding, playback, baking and capture.",
   "license": "MIT",
   "type": "module",
+  "//": "The workspace runs src/ directly (Node 24 strips the types); npm run pack (tools/bundle) stages this package with its exports and types pointed at dist/, where its JavaScript and declarations are: every path here names a source file.",
   "exports": {
     ".": "./src/index.ts",
     "./capture": "./src/capture/index.ts",
     "./test-characters": "./test-characters/index.ts"
   },
+  "types": "./src/index.ts",
+  "files": [
+    "dist"
+  ],
   "dependencies": {
-    "@m3a/core": "0.45.2"
+    "@m3a/core": "0.50.0"
   },
   "peerDependencies": {
     "three": "0.182.0"

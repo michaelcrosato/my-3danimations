@@ -86,7 +86,8 @@ describe("the census", () => {
     expect([c.same["NEAR/Other_Name"], c.same[a.clip.id]!.as]).toEqual([undefined, "NEAR/Other_Name"]);
   });
   it("finds a re-export without an orig by pose at its own rate, and counts two held poses once whatever their lengths", () => {
-    const all = libraryClips(), [o, other] = ["QUATERNIUS_SHARDFALL/Death01", "QUATERNIUS_SHARDFALL/Hit_Head"].map((id) => all.find((c) => c.clip.id === id)!) as [LibraryClip, LibraryClip];
+    // (copies of the file's library read, as a read of its own gave them: their rest shared, as their set's)
+    const [o, other] = structuredClone(["QUATERNIUS_SHARDFALL/Death01", "QUATERNIUS_SHARDFALL/Hit_Head"].map((id) => all.find((c) => c.clip.id === id)!)) as [LibraryClip, LibraryClip];
     // the original played at 0.8 of its speed: 25% longer, keys stretched, under the re-export source's name
     const slowed: LibraryClip = { ...o, set: "MESH2MOTION", clip: { ...o.clip, id: "MESH2MOTION/Slowed", dur: Math.round(o.clip.dur * 1250) / 1000, provenance: { ...o.clip.provenance, src: "M2M_QUATERNIUS" }, keys: o.clip.keys.map((k) => ({ ...k, t: Math.round(k.t * 1250) / 1000 })) } };
     const c = census([o, other, slowed], new Set(["QUATERNIUS_SHARDFALL", "MESH2MOTION"]));

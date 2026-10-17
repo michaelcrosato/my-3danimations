@@ -4,8 +4,9 @@
 // plays, the humanoid bones alone: each bone's rotation relative to its parent as the player sees the parent (a
 // non-humanoid node stays at rest), and the hips' place with the root's travel and turn in it, so every bone lands
 // where the Animator put it. The clip's id, loop, length, events, contacts and facts ride in the animation's `extras`,
-// as three's bake writes them. `encodeVrma` writes it, `decodeVrma` reads it back to the same structure, so a file
-// written, read and written again is byte for byte the same.
+// as three's bake writes them, with its license (and its copyright line, its credit where it owes one, in the asset).
+// `encodeVrma` writes it, `decodeVrma` reads it back to the same structure, so a file written, read and written again
+// is byte for byte the same. The sampling (`sampleNodes`, `worldAt`) is the glTF and BVH writers' too.
 import { Animator, math, solver, VERSION, type AnimClip, type Bound } from "@m3a/core";
 import { IoError, LIMITS } from "../bytes.ts";
 import { packGlb, parseGlb, plainOnly, type GltfJson } from "../gltf/container.ts";
@@ -28,7 +29,8 @@ export interface VrmaTrack {
   path: "rotation" | "translation";
   values: Float32Array;
 }
-/** What a clip carries that glTF has no place for (the animation's `extras`, as three's bake writes them). */
+/** What a clip carries that glTF has no place for (the animation's `extras`, as three's bake writes them), and its
+ *  license (an SPDX id, as its provenance gives it). */
 export interface VrmaExtras {
   id?: string;
   loop: boolean;
@@ -36,10 +38,13 @@ export interface VrmaExtras {
   events: unknown[];
   contacts: unknown;
   facts: unknown;
+  license?: string;
 }
-/** A VRM animation: the skeleton, which node plays each humanoid bone, the sample times and tracks, and the extras. */
+/** A VRM animation: the skeleton, which node plays each humanoid bone, the sample times and tracks, the extras, and the
+ *  asset's copyright line (the clip's credit, else its license). */
 export interface Vrma {
   generator: string;
+  copyright?: string;
   name: string;
   nodes: VrmaNode[];
   humanBones: Record<string, number>;
@@ -72,19 +77,45 @@ export function humanBonesOf(json: GltfJson, file?: string): Record<string, numb
   return out;
 }
 
-/**
- * A clip played on bound skeleton `b` as a VRM animation: every bone of the skeleton a node at rest, sampled every
- * 1/`fps` s or so (whole steps over the clip; a loop's last sample its cycle's end), feet planted.
- */
-export function vrmaOf(clip: AnimClip, b: Bound, opts: { fps?: number } = {}): Vrma {
-  const fps = opts.fps ?? 30, n = Math.max(1, Math.ceil(clip.dur * fps)), h = clip.dur / n;
-  if (n + 1 > LIMITS.frames) throw new IoError("E_LIMIT", `${n + 1} samples, over the limit`);
-  const order = b.order, index = new Map(order.map((o, i) => [o.name, i])), restW = (name: string) => q(b.restWorld[name] ?? [0, 0, 0, 1]);
-  const nodes: VrmaNode[] = order.map((o) => {
+/** A clip played on a bound skeleton, sampled for a writer: every bone a node at rest (its place and turn relative to
+ *  its parent), the sample times, each node's rotation relative to its parent at each sample, the places of the nodes
+ *  that move (the roots, the root's travel and turn in them, and the hips), the hips' node, and each humanoid bone's. */
+export interface Sampled {
+  nodes: VrmaNode[];
+  times: Float32Array;
+  rot: Float32Array[];
+  pos: Map<number, Float32Array>;
+  hips: number;
+  humanBones: Record<string, number>;
+}
+
+/** Bound skeleton `b`'s bones as nodes at rest, in its order: each one's place and turn relative to its parent. */
+export function restNodes(b: Bound): VrmaNode[] {
+  const order = b.order, restW = (name: string) => q(b.restWorld[name] ?? [0, 0, 0, 1]);
+  return order.map((o) => {
     if (o.parent < 0) return { name: o.name, parent: -1, translation: [...o.head], rotation: [...restW(o.name)] };
     const p = order[o.parent]!;
     return { name: o.name, parent: o.parent, translation: rotate(conj(restW(p.name)), [o.head[0] - p.head[0], o.head[1] - p.head[1], o.head[2] - p.head[2]]), rotation: qmul(conj(restW(p.name)), restW(o.name)) };
   });
+}
+
+/** What a clip carries that glTF has no place for, as the writers put it in an animation's extras (its license, an
+ *  SPDX id, last), and the copyright line its provenance gives: its credit, else its license. */
+export function extrasOf(clip: AnimClip): { extras: VrmaExtras; copyright?: string } {
+  const made = (clip as { provenance?: { license?: unknown; credit?: unknown } }).provenance, license = typeof made?.license === "string" ? made.license : undefined;
+  const copyright = typeof made?.credit === "string" && made.credit.trim() ? made.credit : license;
+  const extras: VrmaExtras = { ...(clip.id ? { id: clip.id } : {}), loop: clip.loop, dur: clip.dur, events: clip.events ?? [], contacts: clip.contacts ?? null, facts: (clip as { facts?: unknown }).facts ?? null, ...(license ? { license } : {}) };
+  return { extras, ...(copyright ? { copyright } : {}) };
+}
+
+/**
+ * A clip played on bound skeleton `b` (core's Animator: feet planted, the root's travel and turn), sampled every 1/`fps`
+ * s or so (whole steps over the clip; a loop's last sample its cycle's end): every bone of the skeleton a node.
+ */
+export function sampleNodes(clip: AnimClip, b: Bound, opts: { fps?: number } = {}): Sampled {
+  const fps = opts.fps ?? 30, n = Math.max(1, Math.ceil(clip.dur * fps)), h = clip.dur / n;
+  if (n + 1 > LIMITS.frames) throw new IoError("E_LIMIT", `${n + 1} samples, over the limit`);
+  const order = b.order, index = new Map(order.map((o, i) => [o.name, i])), restW = (name: string) => q(b.restWorld[name] ?? [0, 0, 0, 1]), nodes = restNodes(b);
   const humanBones: Record<string, number> = {};
   for (const [vrm, src] of Object.entries(b.bones)) if (index.has(src)) humanBones[vrm] = index.get(src)!;
   const hips = b.bones.hips!, hipsAt = index.get(hips)!;
@@ -120,16 +151,33 @@ export function vrmaOf(clip: AnimClip, b: Bound, opts: { fps?: number } = {}): V
     }
     if (i < n) a.step(h);
   }
+  return { nodes, times, rot, pos, hips: hipsAt, humanBones };
+}
+
+/** Every node's world rotation and place at sample `i` (its tracks where it has them, else its rest). */
+export function worldAt(s: Sampled, i: number): { r: Q[]; p: V3[] } {
+  const r: Q[] = [], p: V3[] = [];
+  s.nodes.forEach((nd, k) => {
+    const rk = q(s.rot[k]!.subarray(i * 4, i * 4 + 4)), t = s.pos.has(k) ? s.pos.get(k)!.subarray(i * 3, i * 3 + 3) : nd.translation, P = nd.parent;
+    r[k] = P < 0 ? rk : qmul(r[P]!, rk);
+    p[k] = P < 0 ? [t[0]!, t[1]!, t[2]!] : plus(p[P]!, rotate(r[P]!, t));
+  });
+  return { r, p };
+}
+
+/**
+ * A clip played on bound skeleton `b` as a VRM animation (`sampleNodes`): every bone of the skeleton a node at rest, the
+ * humanoid bones turned and the hips moved as a VRM player plays them; its license and credit from its provenance.
+ */
+export function vrmaOf(clip: AnimClip, b: Bound, opts: { fps?: number } = {}): Vrma {
+  const s = sampleNodes(clip, b, opts), { nodes, times, humanBones } = s, hipsAt = s.hips, n = times.length - 1;
   // what a player plays: each humanoid bone against its parent as the player sees it (a non-humanoid node at rest), the
   // hips' place with the root's travel and turn in it
   const human = new Set(Object.values(humanBones)), hRot = new Map([...human].map((k) => [k, new Float32Array((n + 1) * 4)])), hipsPos = new Float32Array((n + 1) * 3);
   for (let i = 0; i <= n; i++) {
-    const Wr: Q[] = [], Wp: V3[] = [], Er: Q[] = [], Ep: V3[] = [];
-    order.forEach((o, k) => {
-      const r = q(rot[k]!.subarray(i * 4, i * 4 + 4)), t = pos.has(k) ? pos.get(k)!.subarray(i * 3, i * 3 + 3) : nodes[k]!.translation, P = o.parent;
-      Wr[k] = P < 0 ? r : qmul(Wr[P]!, r);
-      Wp[k] = P < 0 ? [t[0]!, t[1]!, t[2]!] : plus(Wp[P]!, rotate(Wr[P]!, t));
-      const pr: Q = P < 0 ? [0, 0, 0, 1] : Er[P]!, pp: V3 = P < 0 ? [0, 0, 0] : Ep[P]!;
+    const { r: Wr, p: Wp } = worldAt(s, i), Er: Q[] = [], Ep: V3[] = [];
+    nodes.forEach((o, k) => {
+      const P = o.parent, pr: Q = P < 0 ? [0, 0, 0, 1] : Er[P]!, pp: V3 = P < 0 ? [0, 0, 0] : Ep[P]!;
       if (human.has(k)) {
         hRot.get(k)!.set(qmul(conj(pr), Wr[k]!), i * 4);
         Er[k] = Wr[k]!;
@@ -142,8 +190,8 @@ export function vrmaOf(clip: AnimClip, b: Bound, opts: { fps?: number } = {}): V
     });
   }
   const tracks: VrmaTrack[] = [...[...human].sort((x, y) => x - y).map((k): VrmaTrack => ({ node: k, path: "rotation", values: hRot.get(k)! })), { node: hipsAt, path: "translation", values: hipsPos }];
-  const extras: VrmaExtras = { ...(clip.id ? { id: clip.id } : {}), loop: clip.loop, dur: clip.dur, events: clip.events ?? [], contacts: clip.contacts ?? null, facts: (clip as { facts?: unknown }).facts ?? null };
-  return { generator: `@m3a/io ${VERSION}`, name: clip.id ?? "clip", nodes, humanBones, times, tracks, extras };
+  const { extras, copyright } = extrasOf(clip);
+  return { generator: `@m3a/io ${VERSION}`, ...(copyright ? { copyright } : {}), name: clip.id ?? "clip", nodes, humanBones, times, tracks, extras };
 }
 
 /** A VRM animation as a .vrma (binary glTF): one time accessor, one per track, the bones' map in the extension. */
@@ -182,7 +230,7 @@ export function encodeVrma(v: Vrma): Uint8Array {
   const kids = v.nodes.map(() => [] as number[]);
   v.nodes.forEach((nd, i) => nd.parent >= 0 && kids[nd.parent]!.push(i));
   const json = {
-    asset: { version: "2.0", generator: v.generator },
+    asset: { version: "2.0", generator: v.generator, ...(v.copyright !== undefined ? { copyright: v.copyright } : {}) },
     extensionsUsed: [EXT],
     extensions: { [EXT]: { specVersion: "1.0", humanoid: { humanBones: Object.fromEntries(Object.entries(v.humanBones).map(([k, i]) => [k, { node: i }])) } } },
     scene: 0,
@@ -222,9 +270,11 @@ export function decodeVrma(bytes: Uint8Array, file?: string): Vrma {
     if (values.length !== times.length * (c.target.path === "rotation" ? 4 : 3)) throw new IoError("E_FORMAT", `node ${c.target.node}'s ${c.target.path} track has ${values.length} values for ${times.length} times`, { file });
     return { node: c.target.node, path: c.target.path, values };
   });
-  const ex = (an as { extras?: Partial<VrmaExtras> }).extras ?? {}, extras: VrmaExtras = { ...(typeof ex.id === "string" ? { id: ex.id } : {}), loop: ex.loop === true, dur: typeof ex.dur === "number" ? ex.dur : times.length ? times[times.length - 1]! : 0, events: Array.isArray(ex.events) ? ex.events : [], contacts: ex.contacts ?? null, facts: ex.facts ?? null };
+  const ex = (an as { extras?: Partial<VrmaExtras> }).extras ?? {}, extras: VrmaExtras = { ...(typeof ex.id === "string" ? { id: ex.id } : {}), loop: ex.loop === true, dur: typeof ex.dur === "number" ? ex.dur : times.length ? times[times.length - 1]! : 0, events: Array.isArray(ex.events) ? ex.events : [], contacts: ex.contacts ?? null, facts: ex.facts ?? null, ...(typeof ex.license === "string" ? { license: ex.license } : {}) };
+  const copyright = (G.asset as { copyright?: unknown } | undefined)?.copyright;
   return {
     generator: G.asset?.version ? ((G.asset as { generator?: string }).generator ?? "") : "",
+    ...(typeof copyright === "string" ? { copyright } : {}),
     name: an.name ?? "",
     nodes: nodes.map((nd, i) => ({ name: nd.name ?? `node${i}`, parent: parent[i]!, translation: nd.translation ?? [0, 0, 0], rotation: nd.rotation ?? [0, 0, 0, 1] })),
     humanBones,

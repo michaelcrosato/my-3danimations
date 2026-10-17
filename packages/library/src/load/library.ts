@@ -57,6 +57,27 @@ export interface LoadedClip {
   set: string;
   tier: Tier;
 }
+/** A set's source as its manifest gives it: label, origin, SPDX license, terms (null where the manifest gives none),
+ *  url, credit line (null where none is owed) and the rest its clips were made on. */
+export interface SourceAbout {
+  label: string;
+  origin: string;
+  license: string;
+  terms: string | null;
+  url: string;
+  credit: string | null;
+  rest: Rest;
+}
+/** A set as its manifest describes it, whatever its tier: title, tier, credit, the format legend's lines and its
+ *  sources by key (a clip's restSrc). */
+export interface SetAbout {
+  set: string;
+  title: string;
+  tier: Tier;
+  credit: string;
+  legend: string[];
+  sources: Record<string, SourceAbout>;
+}
 /** Why the library refused: no such clip or set, a tier not opted in, or a file that isn't what the lock says. */
 export class LibraryError extends Error {
   readonly code: "E_NO_CLIP" | "E_NO_SET" | "E_TIER" | "E_TAMPERED";
@@ -75,7 +96,8 @@ interface SetManifest {
   tier: Tier;
   credit: string;
   content: { sha256: string };
-  sources: Record<string, { rest: Rest }>;
+  legend?: { text?: string[] };
+  sources: Record<string, Omit<SourceAbout, "credit" | "terms"> & { credit?: string; terms?: string }>;
 }
 
 /** The content id of a set's clip files (spec/MOTION.md §9.2): each name, a newline, its SHA-256, a newline, by name. */
@@ -148,8 +170,22 @@ export class Library {
   }
 
   /**
+   * A set's manifest, whatever its tier (reading it uses no clip, so it needs no opt-in): its legend and its sources, each
+   * with its license, terms, credit and rest. E_NO_SET for a set the library hasn't.
+   */
+  about(set: string): SetAbout {
+    const m = this.#manifest(set);
+    const sources = Object.fromEntries(Object.entries(m.sources).map(([k, s]) => [k, { label: s.label, origin: s.origin, license: s.license, terms: s.terms ?? null, url: s.url, credit: s.credit ?? null, rest: s.rest }]));
+    return { set: m.set, title: m.title, tier: m.tier, credit: m.credit, legend: [...(m.legend?.text ?? [])], sources };
+  }
+
+  /**
    * The library as a recipe's resolver (`recipe.compile(r, library.resolver())`): each visible clip by id, with its rest
-   * and its content id (its file's SHA-256, given one; "" without); undefined for an id it doesn't have.
+   * and its content id (its file's SHA-256, given one; "" without); undefined for an id it doesn't have. A clip of a
+   * tier the game hasn't opted in to is there, not missing: its E_TIER passes through, naming the opt-in, where
+   * undefined would make it compile's "no clip in the library" (R-E008). A clip such a set doesn't hold is missing, not
+   * refused (the tier is checked before the clip is looked for): undefined, so compile names it with its did-you-mean,
+   * rather than an opt-in after which the same recipe fails.
    */
   resolver(): recipe.Resolver {
     const sha = this.#opts.sha256;
@@ -158,7 +194,8 @@ export class Library {
         let got: LoadedClip;
         try {
           got = this.clip(id);
-        } catch {
+        } catch (err) {
+          if (err instanceof LibraryError && err.code === "E_TIER" && this.#holds(err.clip ?? id)) throw err;
           return undefined;
         }
         // (a deprecated id's successor's file)
@@ -207,5 +244,15 @@ export class Library {
   }
   #clipFiles(set: string): string[] {
     return this.#src.files(set).filter((f) => f.endsWith(".json") && !f.startsWith("_")).sort();
+  }
+  /** Whether clip `id`'s set holds its file, read through the source whatever the set's tier (a set it can't list
+   *  holds none). */
+  #holds(id: string): boolean {
+    const [set, name] = id.split("/");
+    try {
+      return Boolean(set && name) && this.#clipFiles(set!).includes(`${name}.json`);
+    } catch {
+      return false;
+    }
   }
 }

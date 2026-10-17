@@ -14,7 +14,8 @@ import { libraryClips } from "../../../tools/qa/qa.ts";
 import { attach, bake, bakeError, bind, type Attached, type BakedData } from "../src/index.ts";
 import { character, loadGlb, variant } from "../test-characters/index.ts";
 
-const lib = new Map(libraryClips().map((c) => [c.clip.id, c.clip]));
+// the library, read once for this file
+const all = libraryClips(), lib = new Map(all.map((c) => [c.clip.id, c.clip]));
 const clip = (id: string) => lib.get(id)! as Clip;
 const boundOf = async (seed: number) => bind((await loadGlb(character(variant(seed)).glb)).scene);
 const quat = (b: Bone) => b.quaternion.toArray() as number[];
@@ -91,7 +92,8 @@ describe("an attached Animator", () => {
   });
   it("hands the game its move along the way the character faces (`travel`): a model facing +X walks along +X, its standing foot still", async () => {
     // G4's held-out rig faces +X (its armature turned a quarter about Y): moved along +Z by `moved`, it crabbed sideways
-    const { clip: walk0, rest } = libraryClips().find((c) => c.clip.id === "QUATERNIUS_3D2DGE/Walk_Loop")!, walk = playable(walk0, rest);
+    // (a copy of the file's read, as a read of its own gave it)
+    const { clip: walk0, rest } = structuredClone(all.find((c) => c.clip.id === "QUATERNIUS_3D2DGE/Walk_Loop")!), walk = playable(walk0, rest);
     const run = async (turn: (scene: Group) => void, move: (scene: Group, att: Attached) => void) => {
       const scene = (await loadGlb(character(variant(2)).glb)).scene as Group;
       turn(scene);

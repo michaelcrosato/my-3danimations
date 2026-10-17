@@ -7,7 +7,7 @@ import { describe, expect, it } from "vitest";
 import { bump, check, write } from "../version.ts";
 import { select } from "./changed.ts";
 import { budget, closest, distance, parseArgs, UsageError } from "./cli.ts";
-import { gateReport } from "./gate.ts";
+import { GATES, G7_MODELS, gateReport, RECORDED } from "./gate.ts";
 import { hasHeader, undocumentedExports } from "./headers.ts";
 
 describe("the output contract", () => {
@@ -36,6 +36,12 @@ describe("a gate's report", () => {
     const steps = [{ name: "check", ok: true, ms: 10 }, { name: "test", ok: false, ms: 20 }], commit = "a9731b1".padEnd(40, "0");
     expect(gateReport("G6", steps.slice(0, 1), 1500, { commit, dirty: false })).toMatchObject({ ok: true, verdict: "gate G6: PASS in 1.5 s (1/1 commands) at a9731b1", commit, dirty: false });
     expect(gateReport("G6", steps, 1500, { commit, dirty: true })).toMatchObject({ ok: false, verdict: "gate G6: FAIL in 1.5 s (1/2 commands) at a9731b1, the tree differing from it", commit, dirty: true });
+  });
+  it("reports a recorded step without gating on it (D98)", () => {
+    const steps = [{ name: "check", ok: true, ms: 10 }, { name: `${RECORDED}B1 to B7 on a model`, ok: false, ms: 20 }], commit = "a9731b1".padEnd(40, "0");
+    expect(gateReport("G7", steps, 1500, { commit, dirty: false })).toMatchObject({ ok: true, verdict: "gate G7: PASS in 1.5 s (1/1 commands, 1 recorded) at a9731b1", steps });
+    expect(gateReport("G7", [{ ...steps[0]!, ok: false }, steps[1]!], 1500, { commit, dirty: false }).ok).toBe(false);
+    expect(GATES.G7!.filter(([name]) => name.startsWith(RECORDED)).map(([, , , ...args]) => args.at(-1))).toEqual([...G7_MODELS]);
   });
 });
 

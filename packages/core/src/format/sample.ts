@@ -44,7 +44,13 @@ export function keyAt(clip: Timed, t: number): KeyLike {
     const av = a[f] as number[] | undefined;
     if (av) {
       const bv = (b[f] as number[] | undefined) || av;
-      k[f] = av.map((v, j) => v + (bv[j]! - v) * u);
+      if (!Array.isArray(av)) k[f] = (av as number[]).map((v, j) => v + (bv[j]! - v) * u);
+      else {
+        // v + (bv − v) u for each number, as the map above gives it, in a loop (no closure per field)
+        const v: number[] = [];
+        for (let j = 0; j < av.length; j++) v.push(av[j]! + (bv[j]! - av[j]!) * u);
+        k[f] = v;
+      }
     }
   }
   if (typeof a.yaw === "number") k.yaw = a.yaw + ((typeof b.yaw === "number" ? b.yaw : a.yaw) - a.yaw) * u;

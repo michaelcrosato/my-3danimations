@@ -1,7 +1,8 @@
 // B6's grader (WP-6.6's Done-when): it passes the known-good recipe and fails each planted bad one, naming the check it
 // broke, on the default character (gen-1) and, in T2, on gen-37 (the edit is graded on its own rest and played on the
 // character). The planted recipes are the known-good one edited: not faster, no wind-up, not mirrored, a different
-// punch (the jab).
+// punch (the jab), a cc-by clip (which the starter's check names as R-E008).
+import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -20,6 +21,7 @@ const BAD: Record<string, { recipe: string; fails: string }> = {
   "no wind-up": { recipe: planted('"chest": { "turn": 25 }', '"chest": { "turn": 0 }'), fails: "more anticipation" },
   "not mirrored": { recipe: planted(',\n  { "op": "mirror", "in": "fast" }', ""), fails: "the left fist strikes" },
   "the jab": { recipe: planted('"id": "MESH2MOTION/Punch_Cross"', '"id": "MESH2MOTION/Fighting_Right_Jab"'), fails: "mirrored back, it strikes where" },
+  "a cc-by clip": { recipe: planted('"id": "MESH2MOTION/Punch_Cross"', '"id": "STYLE100/Neutral_Walk"'), fails: "it compiles" },
 };
 /** Grades a recipe in a workspace inside the repository. */
 async function grade(name: string, recipe: string, character: CharacterSpec): Promise<Grade> {
@@ -41,6 +43,9 @@ describe("B6's grader", () => {
         expect(b.pass, `${name}\n${text(b)}`).toBe(false);
         expect(b.checks.filter((c) => !c.ok).some((c) => c.name.startsWith(bad.fails)), `${name}\n${text(b)}`).toBe(true);
       }
+      // the starter's `npm run check` names a clip past CC0 as one the CC0 library lacks (R-E008), not a crash (E_TIER)
+      const out = spawnSync(process.execPath, ["check.ts"], { cwd: join(ROOT, `.cache/bench/test-ws/B6-a-cc-by-clip-${who.slice(4)}`), encoding: "utf8" });
+      expect([out.status, out.stdout, out.stderr]).toEqual([1, "R-E008 id: no clip STYLE100/Neutral_Walk in the library (fix: search the library for the clip's id)\n", ""]);
     }, 120_000);
   }
 });

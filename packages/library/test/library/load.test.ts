@@ -1,7 +1,7 @@
 // The library loader (WP-5.1): every migrated set loads with its content id and every clip file as locked; a tampered
 // file fails with its clip named; a game that hasn't opted in sees only the CC0 sets, and a clip in another tier is
 // refused with how to opt in; a deprecated id resolves with a warning naming its successor; the library resolves a
-// recipe's clips.
+// recipe's clips, an out-of-tier one refused with the opt-in and one an out-of-tier set doesn't hold missing.
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -65,6 +65,12 @@ describe("the library loader", () => {
     expect(() => lib.clip("NOPE/Walk")).toThrow(/no set "NOPE"/);
     expect(() => lib.clip("Walk_Loop")).toThrow(/isn't a clip id/);
   });
+  it("describes any set, whatever the game's tiers: its legend and each source's license, credit and rest", () => {
+    const lib = openLibrary({ dir: DIR }), style = lib.about("STYLE100"), q = lib.about("QUATERNIUS_3D2DGE");
+    expect([style.tier, style.legend[0], Object.values(style.sources)[0]]).toMatchObject(["cc-by", expect.stringMatching(/^m3a motion format 2\.0/), { license: "CC-BY-4.0", credit: expect.stringContaining("100STYLE") }]);
+    expect([q.sources.UAL1!.license, q.sources.UAL1!.credit, q.sources.UAL1!.rest]).toEqual(["CC0-1.0", null, lib.clip("QUATERNIUS_3D2DGE/Walk_Loop").rest]);
+    expect(() => lib.about("NOPE")).toThrow(/no set "NOPE"/);
+  });
   it("reads catalog rows as their fields", () => {
     const row = openLibrary({ dir: DIR }).catalog("QUATERNIUS_3D2DGE").find((r) => r.id === "QUATERNIUS_3D2DGE/Walk_Loop")!;
     expect(row).toMatchObject({ dur: 1.333, loop: true, tags: ["walk"], src: "UAL1" });
@@ -73,9 +79,14 @@ describe("the library loader", () => {
     const lib = openLibrary({ dir: DIR }), resolve = lib.resolver(), got = resolve("QUATERNIUS_3D2DGE/Walk_Loop")!;
     const text = readFileSync(join(DIR, "QUATERNIUS_3D2DGE/Walk_Loop.json"), "utf8");
     expect([got.clip.id, got.rest.H0, got.contentId]).toEqual(["QUATERNIUS_3D2DGE/Walk_Loop", 916.7, createHash("sha256").update(text).digest("hex")]);
-    // a clip of a tier it hasn't opted into, and one it doesn't have, aren't there
-    const cmu = openLibrary({ dir: DIR, tiers: TIERS }).catalog().find((r) => r.id.startsWith("CMU"))!.id;
-    expect([openLibrary({ dir: DIR, tiers: TIERS }).resolver()(cmu)?.clip.id, resolve(cmu), resolve("QUATERNIUS_3D2DGE/Nope")]).toEqual([cmu, undefined, undefined]);
+    // one it doesn't have isn't there; one of a tier it hasn't opted into is refused with the opt-in, through compile too
+    const cmu = openLibrary({ dir: DIR, tiers: TIERS }).catalog().find((r) => r.id.startsWith("CMU"))!.id, tier = expect.objectContaining({ code: "E_TIER", message: expect.stringContaining("opt in with") });
+    expect([openLibrary({ dir: DIR, tiers: TIERS }).resolver()(cmu)?.clip.id, resolve("QUATERNIUS_3D2DGE/Nope"), resolve("NOPE/Walk")]).toEqual([cmu, undefined, undefined]);
+    expect(() => resolve(cmu)).toThrow(tier);
+    expect(() => R.compile({ format: "2.0", id: "RECIPES/Mine", steps: [{ op: "clip", id: cmu }] } as R.Recipe, resolve)).toThrow(tier);
+    // one such a set doesn't hold is missing, not refused: compile names it (R-E008), where an opt-in wouldn't help
+    expect(resolve("CMU_CURATED/Nope")).toBeUndefined();
+    expect(() => R.compile({ format: "2.0", id: "RECIPES/Mine", steps: [{ op: "clip", id: "CMU_CURATED/Nope" }] } as R.Recipe, resolve)).toThrow(expect.objectContaining({ issues: [expect.objectContaining({ code: "R-E008" })] }));
     expect(resolve.ids!().length).toBe(lib.catalog().length);
     // and a recipe compiles with it, naming its input's content id
     const out = R.compile({ format: "2.0", id: "RECIPES/Fast_Walk", steps: [{ op: "clip", id: "QUATERNIUS_3D2DGE/Walk_Loop", as: "w" }, { op: "retime", in: "w", speed: 1.3 }] } as R.Recipe, resolve);

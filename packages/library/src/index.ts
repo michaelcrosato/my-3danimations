@@ -29,8 +29,17 @@ export type { SetInfo } from "./load/index.ts";
 export type { CatalogRow } from "./load/index.ts";
 /** A clip loaded with its rest, set and tier. */
 export type { LoadedClip } from "./load/index.ts";
+/** A set as its manifest describes it, whatever its tier (`Library#about`): legend and sources. */
+export type { SetAbout } from "./load/index.ts";
+/** A set's source: label, origin, license, terms, url, credit and rest. */
+export type { SourceAbout } from "./load/index.ts";
+/** The set writer: a set's files (its clips, catalog.tsv, and _set.json with its content id) from its manifest and
+ *  clips; a manifest's text, a catalog row within its token budget, and a token count to give it. */
+export { setFiles, setText, catalogRow, ROW_BUDGET, type Tokens } from "./write/sets.ts";
 /** License compliance: sets checked against their tiers and texts, or a game's clips against the tiers it opts into. */
 export { checkSets, checkGame, creditsBlock } from "./license/index.ts";
+/** D10's tier rule: the tier a license fits, and whether a tier's clips are credited. */
+export { tierOf, credited } from "./license/index.ts";
 /** What a game uses: its tiers, its clips, whether it ships. */
 export type { GameManifest } from "./license/index.ts";
 /** A license check's outcome, one problem, and a credit owed. */
@@ -53,6 +62,8 @@ export type { TagConflict } from "./facts/index.ts";
 
 /** Searches catalog rows for a game moment in words and filters (`Library.search` does it over the library). */
 export { search } from "./search/index.ts";
+/** m/s on the reference body (0.95 m hips) from a catalog speed (% of the hip height a second), as search rows give it. */
+export { mps } from "./search/index.ts";
 /** The core list: the CC0 clips a game usually needs, read first. */
 export { CORE } from "./search/index.ts";
 /** The search's vocabulary as synonyms: a word as a game moment says it, and the words the library says it with. */
