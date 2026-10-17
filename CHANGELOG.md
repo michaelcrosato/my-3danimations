@@ -4,6 +4,63 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.48.0 · 2026-10-17
+
+### Tools
+- WP-7.2b's tools (D93, D96), each on the API, `m3a`, MCP and the console: `retarget.inspect` (a character's
+  mapping, its issues and a rest turntable; hips bound on a wrong bone and each missing bone's likely sources named) and
+  `retarget.apply` (up to 20 clips played on it, each judged as the sweep judges a skeleton, D80); `recipe.compile`,
+  `graph.validate` and `graph.sim` (a script on a character, tiny by default, its trace diffed against an expected
+  one; a mapping taken as retarget takes it); `import` (a .gltf, .glb, .bvh or .vrma file's animations fitted into a
+  local set under `imports/<SET>/`) and `export` (a clip on a character as .vrma, .glb or .bvh, each read back within
+  1 mm). 20 tools in all, within 3,000 tokens to describe.
+- A character is bound through `@m3a/io` and core, with no three.js (lane b0, in 0.47.0's tree): `ctx.bytes`, a VRM's
+  humanoid taken as the file's word, `TINY` the default body. A mesh io can't read (compressed, weights unreadable,
+  soles unread) is said, with what re-exporting mends, and is no mapping issue.
+- One naming rule (D96): a hint names a given file with its placeholder or the path as given, quoted for the shell;
+  refusals, verdicts and data use the same words without brackets, never an absolute path or a JSON-quoted one. Every
+  hint runs as written; parser messages fit one line.
+- Bounds on what one call costs, each refused up front naming the remedy: a held foot past what the planter replays
+  cheaply (retarget.apply, export, graph.sim), graph.sim's clip and fade steps, a recipe's steps, samples, list reads
+  and the samples its keys are fitted to (3,600; edit too, which keeps its chain only within them), import's 120 s take,
+  240 s and 500 clips. The host stats a file before reading it (512 MiB binary, 64 MiB text).
+- import: the license and credit a file carries are used (a contradicting `--license` refused, ids compared as sets,
+  a composed license taken); it removes only clip files an import wrote and names them; a set whose directory holds
+  another .json, or a library set's name, is refused; a glTF no bone map knows is refused with calls that work. MCP
+  lists it as writing (readOnlyHint false, destructiveHint true).
+- The host keeps at most 8 libraries open and reads an imported set under `imports/` at call time.
+
+### IO
+- `skeletonOfGltf` (a glTF's skeleton as three's bind takes it, unweighted joints left out) and `meshEnds` (D49's sole
+  end bones from the mesh), signed and quantized accessors read, sparse ones refused (lane b0).
+- The BVH writer and `bvhGap`, the glTF animation writer and `glbGap` (a joint missing from the read-back file is
+  E_MISSING); a VRMA carries its license in extras and its credit as the copyright, a .glb's animation both; a
+  one-frame take held a frame.
+- `animationNames`: each glTF animation its own name (`X`, `X_2`, `animation<i>` for none) in every reader, in linear
+  time; a BVH frame time must be above 0 and at most 1 s; rigBvh's E_RIG reads for a .bvh and a glTF alike.
+
+### Library
+- The set writer (`setFiles`, `setText`, `catalogRow`), moved from `tools/migrate`; `openLibrary` takes a source.
+- `Library.resolver()` throws E_TIER for a clip an out-of-tier set holds, so a recipe names the opt-in; any other id
+  is R-E008 with its did-you-mean.
+
+### Core
+- Bit-identical speedups (D97): decoding and encoding by offsets found once, rest conjugates, shoulders and hint
+  starts found once per rest, contactRoot decoding the legs alone, planting without per-call arrays. CI's T1 74.4 s
+  to 61.9 s with 38 more tests.
+- `measureFacts` takes samples a caller already took (an optional fourth argument, `sampled`), checked for count and
+  step against sampleAll's.
+- Recognition by shape walks the skeleton without recursion: chains of 130,000 bones recognize; parents in a loop
+  throw a RangeError naming a bone. Every output as before (pinned by hash).
+
+### Three
+- The bind sanitizes a patch's source bone as three's loader sanitizes node names, so the tools' patch binds in three.
+
+### Repo
+- The D80 judge lives in `@m3a/tools` (`judge.ts`); the sweep imports it, its rows pinned by hash (the same before
+  the move). `tools/exact/ab.mjs`, the bit-identity harness, kept on demand. B5's and B6's starter check names a clip
+  past CC0 as R-E008. eslint leaves the lane worktrees out.
+
 ## 0.47.0 · 2026-10-16
 
 ### Tools

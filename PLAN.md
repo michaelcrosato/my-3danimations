@@ -738,7 +738,7 @@ G2 → 4.1 → 4.2 → 4.3 → 4.4 → {4.5, 4.6} ; 3.3 → 4.5 ; {4.6, G3} → 
 1.5 → 5.1 → {5.2, 5.7} ; 5.2 → 5.6 → 5.3 ; {5.3, 3.3} → 5.4 → 5.5 ; {5.4, G3} → 5.8 ; {5.5, 5.7, 5.8} → G5
 {G2, 3.3} → 6.1 → {6.2, 6.3, 6.4} ; 6.4 → 6.5 ; {4.7, 6.5} → 6.6 ; {6.2, 6.3, 6.6} → G6
 G4 → 7.1 ; {7.1, 5.5, 5.7, G6} → 7.2a → 7.2b → 7.3 → 7.4 → G7 (M2)
-{4.6, 7.2} → 8.1 → 8.3 ; {8.1, 5.8} → 8.2 ; {8.2, 8.3} → G8
+{4.6, 7.2b} → 8.1 → 8.3 ; {8.1, 5.8} → 8.2 ; {8.2, 8.3} → G8
 {G5, G7, 8.2} → 9.1 → {9.2, 9.3} → 9.4 → G9 (M3)
 G7 → {10.1, 10.2} ; {G5, 10.1, 10.2} → G10 (M4)
 ```
@@ -1877,8 +1877,12 @@ WP-7.2 is split in two, each an L (D93): its tools, their host and the writers t
   character's bytes in the host, `@m3a/io`'s glTF skeleton reader and its glTF animation and BVH writers (new),
   `@m3a/io`'s import and VRMA fixes, `@m3a/library`'s set writer (moved from `tools/migrate`), the bind's patch names
   in `@m3a/three`, and the D80 judge moved from `tools/sweep` (which imports it back)
+- **Also touches** (logged crossings, D96): the registry and the Node host (`registry/registry.ts`, `src/node.ts`,
+  `src/mcp.ts`, `src/node/{files,library}.ts`), 7.2a's `tools/{index,common,clips,change,base,ship}.ts` and their tests,
+  io's glTF and BVH readers, library's resolver, core's recognition by shape, the B5 and B6 starters' check, and
+  `eslint.config.js`
 - **Needs:** 7.2a
-- **Size:** L
+- **Size:** L (it came to about 4,950 lines, past L, from its verifiers' findings: D96)
 - **Build:**
   - **Retarget:** `retarget.inspect`, `retarget.apply`, on a character bound through core (no three.js loader).
   - **Compose and wire:** `recipe.compile`, `graph.validate`, `graph.sim` (a default body, the conformance rig).
@@ -2314,7 +2318,7 @@ version, commit, date and a note with the numbers. Gates are rows too.
 | **G6** | passed, run 1 | 0.45.1 | a9731b1 | 2026-10-15 | 20 of 20 in 17.2 min (D91, `bench/results/gates/G6-run-1/`): B2, B3, B5, B6 and B7 each 5/5 fresh agents and 5/5 on their held-out variants (seeds 722, 808, 765, 871, 809; each known-good first), 50/50 trials at isolation 1 with a private /tmp, five at a time, $7.15; check 10.6 s, test 76.0 s, doctrine, vectors, the moves; composed clips QA 18.1 s; graphs deterministic 5.7 s; T2 128.8 s; the verifiers' findings fixed in 0.45.2 (every worktree hidden from the agents, a PID namespace, the audit; the records' byte copies) |
 | 7.1 The tool registry | done | 0.46.0 | 8ee7cb3, a3921f9, 4ae8505, 31a3567, 61b251b | 2026-10-16 | `npm test -- registry` (39 tests) and `npm run e2e -- mcp-smoke` (the MCP Inspector 2.9.0's `tools/list --strict` and `tools/call` on every example, the console handle in Chromium): one `defineTool`, four surfaces (the API, `m3a`, MCP stdio at 2026-07-28 and the legacy handshake, `__M3A_TOOLS__`), one reply `m3a.reply/1`; a parity test on every example, a failing one included; unknown names refused with the closest; request_id kept per tool, an applied edit never twice, the CLI refusing it until 7.2a's durable store; four verifier rounds, 44 targeted mutants killed; 1,323 lines, past M (D92) |
 | 7.2a The tools: find, check, change, ship | done | 0.47.0 | the lanes a0, find, check, change and a-fix (merges e32c159, daefab3, ce649e8, 294f0eb, 55ccf65) | 2026-10-16 | `npm test -- packages/tools` (193 tests with io and library; T1 829+): 11 tools and version and validate, each example the same on the API, `m3a`, MCP and the console and a failing-input test; 1,763 of 1,900 tokens (edit 222 the largest); the durable store (a retried edit applies once across two processes, in one MCP server, after a crash), concurrent edits locked (E_CONFLICT, never lost), undo and redo byte-exact, an outside edit resetting every tool's history; writes only under workshop/, .m3a/, imports/, check-output/; every lane reviewed up to three rounds, the WP verified on two lenses (two blocking findings fixed, D95); about 3,688 lines, past L (D95) |
-| 7.2b The tools: retarget, compose, exchange | todo | | | | |
+| 7.2b The tools: retarget, compose, exchange | done | 0.48.0 | lanes b0, retarget, compose, exchange (3f8cf6c, 89a9e55, 7df2f63, 0d45a6f), rounds 2-3 (9c6af0b, bb43fa6, 68a6bae), the verifier's lanes (07fef25, 071cbc1, and lane 1's merge), (this commit) | 2026-10-17 | `npm test -- packages/tools packages/io packages/library tools/sweep && npm run doctrine`: 7 tools (20 in all, within 3,000 tokens) on four surfaces, each with failing inputs; VRMA byte for byte, .glb and BVH within 1 mm; an imported set local and refused for shipping; the sweep's rows pinned (b4f51cf5d8276a36, before and after the judge moved); rigify's mapping as expected. Two-lens verifier, three fix lanes, each re-reviewed until sound (D96); T1 77.8 s (923 tests), T2 131 s. ~4,950 lines, past L |
 | 7.3 The manual and the skill | todo | | | | |
 | 7.4 Packaging | todo | | | | |
 | **G7 = M2** | todo | | | | |

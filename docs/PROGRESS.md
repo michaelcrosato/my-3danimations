@@ -3,7 +3,7 @@
 The current state on one screen (at most 40 lines; `npm run doctrine` checks it from WP-0.3). The ledger is
 `PLAN.md` §14; decisions are in `docs/DECISIONS.md`.
 
-**Phase:** 7 The datalink (6 done: G6 passed). **Next gate:** G7 = M2. **Version:** 0.47.0.
+**Phase:** 7 The datalink (6 done: G6 passed). **Next gate:** G7 = M2. **Version:** 0.48.0.
 **Mode:** ultracode (D83): implementers in worktrees, the main session integrates; #12 merged (G6), a fresh draft PR.
 
 ## Done
@@ -21,13 +21,14 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
   corpora (D62); the re-import (D63); facts (D64); search (D65); library QA, 1,199 unique motions (D66–D69).
 - Phase 6 (G6 passed, michaelcrosato/my-3danimations#12): recipes (D70); procedural moves, gaits and idles (D71, the
   margin rule D90); actions (D72); graphs (D73); simulation (D75); briefs B2–B7, the wire and make sections (D76, D77).
-- Phase 7 so far: the tool registry, one `defineTool` on four surfaces (D92); WP-7.2 split (D93); 7.2a's 11 tools (D95).
+- Phase 7 so far: the registry on four surfaces (D92); WP-7.2 split (D93); 7.2a's 11 tools (D95); 7.2b's retarget,
+  compose and exchange, 20 tools, one naming rule, bounds on a call's cost (D96); T1's speedups proved (D97).
 
 ## Next
 
-- **Resumed after a usage-limit pause; the audited state is [`docs/HANDOFF.md`](HANDOFF.md).** WP-7.2b's lanes are
-  merged; 3 tools tests are stale (the code is right), retarget's round-2 fix is half applied, reviews and records are
-  owed; t1-speed is proven bit-identical. Then WP-7.3, WP-7.4, G7, Phases 8-10.
+- WP-7.3: the manual (a generated tool list, D91's fold-ins, a complete example), a test running its code, the skill,
+  `llms.txt`, `.mcp.json`, the runner's skill and MCP wiring; B1 and B5 at 4 of 5. Then WP-7.4, G7, Phases 8-10
+  (state and rules: [`docs/HANDOFF.md`](HANDOFF.md)).
 
 ## Blocked on the owner
 

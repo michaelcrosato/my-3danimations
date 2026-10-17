@@ -3669,8 +3669,6 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
 ## D96 · 2026-10-16 · WP-7.2b: the retarget, compose and exchange tools; lane b0's foundation rebuilt; every crossing
 
 - **Principle:** 2, 7, 8, 9, §8 (sizes), D10, D49, D80, D92, D93, D95 (WP-7.2b, PLAN.md §5.6)
-- **Status:** written while 7.2b's last review round and its verifier run (2026-10-16); completed in the commit that
-  marks the ledger row done.
 - **Call:**
   - **Lane b0, the foundation** (3f8cf6c, in 0.47.0's tree; its own decision text was lost at the pause and is rebuilt
     here from ba24948, a37eafe, 2c128f2, c356c5e and fe6594a, four review rounds):
@@ -3767,8 +3765,15 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
       s, 24 s 23.7 s, 30 s 44.6 s, 60 s 233.7 s. Carrying the sums across poses can't be bit for bit (each pose's root
       is anchored afresh at the Animator's world root, animator.ts rootFrom), so a linear planter needs its own decision
       to re-baseline the vectors and the A/B hashes. Meanwhile the tools refuse a held foot past a measured bound.
-    - **The key fit's cost** is about quadratic in a track's samples (import: 30, 60 and 120 s takes 2.3, 6.5 and 21
-      s); import and recipe.compile bound what one call fits.
+    - **The key fit's cost** grows with samples times the keys it adds (import: 30, 60 and 120 s takes 2.3, 6.5 and 21
+      s; recipe.compile at MAX_FIT_SAMPLES: QUATERNIUS_3D2DGE/Walk_Loop sequenced to 120 s at 30 fps 22.8 s,
+      Jog_Fwd_Loop to 30 s at 120 fps 55.3 s, the densest found, QUATERNIUS_SHARDFALL/NinjaJump_Start to 120 s at 30
+      fps with 3,410 keys, 117 s). One call can still spend about 2 minutes fitting, about 3 with its steps' build at
+      every bound together; library clips (at most 12.1 s), spec/recipes and the starters compile in under a second.
+      A fit linear in its keys is core's follow-up, with K5's.
+    - **A composed license in the library:** import now takes a composed clip's license (D10's ids joined with
+      " AND "), but `@m3a/library`'s checkSets reads a source's license as one id with one text file, so license.check
+      fails such a set for good; import's note says so. Each part checked and credited is the library's follow-up.
     - **K7:** io's skeletonOfGltf can return heads that aren't finite when node transforms overflow; every tool path
       refuses it (bones of no usable length); io's own callers get the numbers. **K8:** the manual's lines on
       `openLibrary().resolver()` (MANUAL.md:241, :285) predate L3's E_TIER: WP-7.3 rewrites them. The import catalog
@@ -3776,6 +3781,63 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
       is the pinned sources' format since WP-5.2): the tool checks its shape and WP-7.3's manual documents it.
       Importing a glTF whose bones no map knows by shape or a given mapping is a feature, not a fix: import refuses it
       with a working remedy (retarget.inspect and export).
+    - **Lane 1, the tools** (merged at the head after 07fef25 and 071cbc1; ten commits, each listing its findings;
+      four re-review rounds, the third cut by a session limit and finished after it):
+      - **One naming rule, replacing D95's two forms.** Inside backticks a hint names a given file or JSON with its
+        placeholder (`<the character's file>`, `<the clip's JSON>`, `<the motion file>`) or the path as given, quoted
+        for the shell where it would split (`arg`); a refusal, verdict, line or data field uses the same words without
+        brackets ("the character's file") or the path as given, never JSON-quoted, never absolute. `prose(as)` in
+        clips.ts; the host's `shown()` is `arg(path)`, or "the file" for an absolute path or one with a control
+        character (E_PATH, E_WRITE, E_LOCKED, E_LIMIT). A test reads an absolute path and one with a control character
+        through four tools and the host: the working directory appears nowhere.
+      - **Hints that run as written:** retarget.apply's closing license.check passes a clip file's path as given;
+        the missing workshop copy's hint is one whole call (`fix <a library clip> --save_as WORKSHOP/<Name>`), in
+        E_NO_CLIP and G-E009 alike; license.check on a local set says to set `"ships": false` in game.json.
+      - **The host's text reads** stat a file and refuse past io's 64 MiB text limit before reading it (E_LIMIT).
+      - **Bounds on one call's cost** (the integrator's scope rule after round 3: these and no more; any slow path
+        left inside them is recorded above with its numbers): a held foot past MAX_HOLD, or a clip whose planter
+        rereads pass MAX_REREAD (16 s), refused by retarget.apply, export and graph.sim (judge.ts `boundHolds`; no
+        library clip is refused); graph.sim charges its run's clip steps (MAX_CLIP_STEPS) and what fades and a held clip
+        played at several times at once add (MAX_FADE_STEPS); a recipe's steps, samples, list reads (a pin's path, a
+        weight curve, a sequence's items: MAX_LIST_READS) and the samples its output's keys are fitted to
+        (MAX_FIT_SAMPLES = 3,600: 120 s at 30 fps, 30 s at 120), shared with edit, which keeps its chain only while the
+        chain passes them and otherwise compiles the file as it is; import fits a take of at most 120 s (MAX_TAKE),
+        240 s in all (MAX_FIT) and 500 clips (MAX_IMPORT_CLIPS), each refusal naming the step, the length and the
+        remedy. Every bound carries its measurements in its doc comment.
+      - **Import:** the license and credit a glTF-family file carries are used (each animation's extras, the asset's
+        copyright); a --license whose ids aren't the file's is refused, ids compared as sets, case aside, and a
+        composed license (" AND ") is taken; a glTF whose bones no map knows by name is refused with calls that work
+        (retarget.inspect binds by shape, export plays a clip on it), and list says so first; io's refusals name the
+        file as given; the verdict says what an import replaced.
+      - **graph.sim takes a mapping**, as retarget and export do, so its E_RIG can be followed; a mapping that gives two
+        humanoid bones one source bone is refused; export names its file by the clip and the character
+        (`<clip>-on-<character>.<format>`), so two characters don't overwrite each other.
+      - **No test reads the clock:** three wall-clock assertions removed (the refusals asserted instead); T1 adds about
+        6 s for the whole of the verifier's fixes.
+  - **Crossings of 7.2b's Owns, added after the pause:** WP-7.2a's files `tools/common.ts` (oneLine, fileOrJson's
+    naming), `tools/clips.ts` (given, prose, the E_CLIP, E_REST and E_NO_CLIP words, bounded's budgets),
+    `tools/change.ts` (edit's chain under the bounds), `tools/base.ts` (validate's naming), `tools/ship.ts` (the local
+    set's line), `src/node.ts` (bytes and text stat first), `src/node/files.ts` (shown), `src/node/library.ts` (the
+    cache, imported sets read at call time), `registry/registry.ts` (bytes' doc) and their tests (tools-host,
+    tools-change, tools-ship, tools-find, tools-check, registry-surfaces, sim, tools-budget, helpers/surfaces); io's
+    `gltf/read.ts` (animationNames), `gltf/posed.ts`, `gltf/anim.ts` (credit), `bvh/read.ts` (frame time, E_RIG),
+    `bvh/write.ts` and their tests; library's `load/library.ts` (the resolver's E_TIER); core's
+    `skeleton/recognize.ts` (iterative), `clip/facts.ts` and `clip/contacts.ts` (D97), `contact/plant.ts` (contactAt);
+    `bench/starters/B5` and `B6` `check.ts` and their graders' tests; `packages/three/test/play.test.ts`;
+    `tools/sweep/sweep.test.ts` (the pinned rows); `eslint.config.js` (the lane worktrees left out).
+  - **Owns edited to match:** WP-7.2b's entry gains "Also touches" listing the crossings above, as 7.2a's did.
+  - **Size:** about 4,950 new lines: lane b0's 955, the three tool lanes' 2,072 at the pause, and about 1,920 after
+    it (rounds 2 and 3 and the verifier's three lanes), the t1-speed lane and its records (D97) left out. That is 65%
+    past L's 3,000: the WP should have been split again (D93 split 7.2 in two; each half was still an L). The WP-sizes
+    theme reached its threshold (FEEDBACK-LOG F4.1): 8.2 and 9.1 are measured before they start.
+- **Why:**
+  - A retarget, compose or exchange tool that answers wrongly, or whose hint fails as written, costs an agent more than
+    one that refuses with a working remedy (§5.6, D92).
+  - One naming rule for every surface keeps a path out of replies and lets every hint run as written.
+  - A tool an agent calls must not run for hours on a valid input: the bounds refuse such calls up front, and the
+    causes in core are recorded with their numbers rather than chased in the tools.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.48.0
 
 ## D97 · 2026-10-16 · The t1-speed lane: T1 cut by bit-identical speedups, proved and recorded after the pause
 

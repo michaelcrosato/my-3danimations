@@ -57,17 +57,11 @@ What the audit found, against the first version of this file:
 
 ## Next, in order
 
-1. **WP-7.2b**: fix the 3 expectations; finish 9da0d53 (retarget.ts uses `meshIssue`; tests for it, the bind-failure
-   E_RIG text and candidatesOf's corrected orders; "re-export uncompressed" is wrong for "mesh unreadable"); one
-   naming in compose.ts:213-216 (use `characterName`, drop the redundant catch) and exchange.ts:120 (no `quote()`
-   around clips.ts names); commit the sweep-rows check; reviews retarget r3, compose r2-3, exchange r2; t1-speed's
-   record and exactness test; the two-lens verifier with this checklist: retarget.apply has no total-cost bound;
-   import's stale-clip removal ignores the catalog id's set prefix (exchange.ts:170); bvhGap/glbGap skip joints missing
-   from the read-back file; the host library cache `opened` grows per working directory; ctx.bytes reads whole files
-   before io's limit; Library.resolver now throws E_TIER, which bench/starters B5/B6 check.ts don't catch. Records:
-   D96 (7.2b's calls, b0 rebuilt, every crossing, the size), D97 (t1-speed), CHANGELOG 0.48.0 with b0's io and tools
-   items, the ledger, PROGRESS, PR #13's body (stale at 0.46.0; decisions without an answer D92-D96), the budget
-   test's header (exchange ≤ 400).
+1. **WP-7.2b: done** (0.48.0, D96, D97). Its follow-ups, recorded in D96 and not owned by any WP yet: core's planter
+   (K5) and key fit grow faster than linearly (the tools bound them); the library reads a composed source license as
+   one id; io returns non-finite heads on overflowing transforms; parents in a loop among named bones hang
+   recognition's ancestor walk. K8: the manual's lines on `openLibrary().resolver()` (MANUAL.md:241, :285) predate
+   E_TIER; the import catalog's format goes in the manual.
 2. **WP-7.3**: the manual (packages/tools/MANUAL.md, 6,722 of 8,000 tokens, still a draft: only `help` and `validate`
    documented, @m3a/io missing, the opt-in tiers line false); a generated, checked tool list (PLAN §6 docs drift);
    D91's fold-ins (DECISIONS.md, G6's reads past the manual); a complete walk, attack-with-hit, react example that
