@@ -10,7 +10,7 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { TIERS, type Library, type LibrarySource, type Tier } from "@m3a/library";
-import { defaultSets, directory, licenseText, openLibrary } from "@m3a/library/node";
+import { defaultSets, licenseText, openLibrary, withPacks } from "@m3a/library/node";
 import { ToolError, type LibraryAccess } from "../registry/registry.ts";
 import { didYouMean, quote } from "../registry/schema.ts";
 import { oneLine } from "../tools/common.ts";
@@ -129,9 +129,10 @@ function routed(lib: Library, into: string[], to: { warnings?: string[] }): Libr
   return new Proxy(lib, { get: (t, k) => ((v) => (typeof v === "function" ? wrap(v as (...a: unknown[]) => unknown, t) : v))(Reflect.get(t, k, t)) });
 }
 
-/** The library for one call at `tiers` (game.json's in `cwd` without them), read from `dir` (the default sets). */
+/** The library for one call at `tiers` (game.json's in `cwd` without them), read from `dir` (the default sets) and the
+ *  opt-in packs installed beside it (D10). */
 export function libraryAccess(cwd: string, tiers?: readonly Tier[], dir: string = defaultSets()): LibraryAccess {
-  const want = TIERS.filter((t) => (tiers ?? gameTiers(cwd)).includes(t)), base = resolve(cwd), { source, stamp, warnings: left } = withImports(directory(dir), base);
+  const want = TIERS.filter((t) => (tiers ?? gameTiers(cwd)).includes(t)), base = resolve(cwd), { source, stamp, warnings: left } = withImports(withPacks(dir), base);
   // one library for every working directory without imported sets; one for each with them
   const key = `${dir}\n${want.join(",")}${stamp ? `\n${base}` : ""}`;
   let o = opened.get(key);
