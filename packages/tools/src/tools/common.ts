@@ -83,15 +83,16 @@ export const cut = (text: string, n = ROW_CHARS): string => (text.length > n ? `
 
 /**
  * A "file or JSON" argument: JSON text (starting with { or [) as given, else the file it names, read and parsed; `what`
- * names it in a refusal (E_JSON: usage for text given inline, an error for a file), a file after it as clips.ts names
- * one: its path as given (`arg`), or "file" for an absolute path or one with a control character ("the script file").
+ * names it in a refusal (E_JSON: usage for text given inline, an error for a file) as prose names one (clips.ts prose):
+ * text given inline by its noun alone ("the graph"), a file by its path as given after it (`arg`: "the script
+ * 'bad one.json'"), or as "<what>'s file" for an absolute path or one with a control character ("the script's file").
  */
 export async function fileOrJson(ctx: ToolContext, value: string, what: string): Promise<{ data: unknown; text: string; path: string | null }> {
   const inline = /^\s*[[{]/.test(value), text = inline ? value : await ctx.read(value);
   try {
     return { data: JSON.parse(text) as unknown, text, path: inline ? null : value };
   } catch (err) {
-    const file = absolute(value) || /\p{Cc}/u.test(value) ? "file" : arg(value);
-    throw new ToolError("E_JSON", `${inline ? what : `${what} ${file}`} is not JSON: ${oneLine(err)}`, inline);
+    const file = absolute(value) || /\p{Cc}/u.test(value) ? `${what}'s file` : `${what} ${arg(value)}`;
+    throw new ToolError("E_JSON", `${inline ? what : file} is not JSON: ${oneLine(err)}`, inline);
   }
 }

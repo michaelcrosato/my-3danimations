@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // @m3a/tools/node: the tools' Node entry (PLAN.md §5.1), with src/node/ the only modules here that import Node
 // built-ins, and the `m3a` bin. It supplies the Node host: files read (as text, or a character's bytes, a file past
-// io's size limit refused before it is read) under the working directory and written only under its write roots
+// io's size limit for either refused before it is read) under the working directory and written only under its write roots
 // (workshop/, .m3a/, imports/, check-output/: never library/), atomically, a link out of either refused
 // (./node/files.ts); the library at game.json's tiers; images written as PNG under check-output/<tool>/ by the same
 // rules, as are report.json and the request records. It runs the CLI on process.argv, and serves MCP over stdio with
@@ -25,7 +25,7 @@ import { TOOLS } from "./tools/index.ts";
 /** The Node host, relative to `cwd`: files read as text (a missing one null to tryRead) or bytes, files written
  *  atomically and removed under the write roots, the library at game.json's tiers, and images written as PNG. */
 export function nodeHost(cwd: string = process.cwd()): Host {
-  const base = resolve(cwd), toRead = "give a file under the working directory, or pass its text";
+  const base = resolve(cwd), toRead = "give a file under the working directory";
   const put = (path: string, data: string | Uint8Array) => {
     const p = writable(base, path);
     try {
@@ -36,8 +36,8 @@ export function nodeHost(cwd: string = process.cwd()): Host {
     return relative(base, p).split(sep).join("/");
   };
   // a file under the working directory read as `how` reads it: null for a missing one when `missing` allows it
-  const read = <T>(path: string, missing: boolean, how: (p: string) => T, to = toRead): T | null => {
-    const p = under(base, path, to);
+  const read = <T>(path: string, missing: boolean, how: (p: string) => T): T | null => {
+    const p = under(base, path, toRead);
     try {
       return how(p);
     } catch (err) {
@@ -46,7 +46,13 @@ export function nodeHost(cwd: string = process.cwd()): Host {
       throw new ToolError("E_PATH", `can't read ${shown(path)} (${errno(err)}); paths are relative to the working directory`, true);
     }
   };
-  const text = (p: string) => readFileSync(p, "utf8");
+  // a file's text, refused unread (E_LIMIT, as io would refuse it read) past the most io takes as text: read whole, a
+  // 300 MB file would be decoded before io refused it, and one past V8's longest string would read as unreadable
+  const text = (p: string, path: string) => {
+    const n = statSync(p).size;
+    if (n > LIMITS.text) throw new ToolError("E_LIMIT", `${shown(path)}: ${n} bytes, over the ${LIMITS.text}-byte limit for a text file`);
+    return readFileSync(p, "utf8");
+  };
   // a file's bytes, refused unread (E_LIMIT, as io would refuse them read) past the most io takes in one file
   const bytes = (p: string, path: string) => {
     const n = statSync(p).size;
@@ -54,9 +60,9 @@ export function nodeHost(cwd: string = process.cwd()): Host {
     return new Uint8Array(readFileSync(p));
   };
   return {
-    read: async (path) => read(path, false, text)!,
-    tryRead: async (path) => read(path, true, text),
-    bytes: async (path) => read(path, false, (p) => bytes(p, path), "give a file under the working directory")!,
+    read: async (path) => read(path, false, (p) => text(p, path))!,
+    tryRead: async (path) => read(path, true, (p) => text(p, path)),
+    bytes: async (path) => read(path, false, (p) => bytes(p, path))!,
     write: put,
     remove(path) {
       const p = writable(base, path);

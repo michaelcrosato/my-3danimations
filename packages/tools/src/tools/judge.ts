@@ -3,9 +3,14 @@
 // plays. It passes on that body when the body adds no fail finding: its data is sound (no non-number, events in order),
 // the sensors find no metric past its fail level that was under it on the clip's own body, read the same way (the
 // clip's own defects are the clip's, not the body's), and the bones reach every mapped joint's point within 5 mm. A
-// metric the body takes past its warn level only is listed with the row. retarget.apply judges each clip so.
+// metric the body takes past its warn level only is listed with the row; a value that is no finite number is written
+// "not finite" in the text and null in the data. retarget.apply judges each clip so. And the bound on what one call
+// plays: a foot held past MAX_HOLD, as core's planter holds it (heldStretches), or feet whose holds the planter would
+// reread past MAX_REREAD at a step (reread), is refused before anything plays (retarget.apply, export, graph.sim).
 import { Animator, format, measureFacts, solver, type AnimatorPose, type AnimClip, type Bound, type Clip, type Rest } from "@m3a/core";
 import { checks, metrics } from "@m3a/sensors";
+import { ToolError } from "../registry/registry.ts";
+import { sec } from "./common.ts";
 
 /** How far a bone's joint may be from its body point, in mm. */
 export const REACH = 5;
@@ -27,8 +32,9 @@ export interface OnBody {
   played: string;
   /** The farthest a mapped joint was from its body point (mm). */
   reach: number;
-  /** Each metric past a level it was under on the clip's own body: the level, its value and levels there and here. */
-  worse: { metric: string; level: "warn" | "fail"; own: number; ownLevels: [number, number]; played: number; playedLevels: [number, number] }[];
+  /** Each metric past a level it was under on the clip's own body: the level, its value and levels there and here (a
+   *  value that is no finite number null, as the text says "not finite"). */
+  worse: { metric: string; level: "warn" | "fail"; own: number | null; ownLevels: [number, number]; played: number | null; playedLevels: [number, number] }[];
 }
 
 /** Body points every 1/60 s on the root (its heading is in the pose already, D41), and where the root stands. */
@@ -98,7 +104,12 @@ export function contactsFor(clip: Clip, R: Rest): Contacts {
 }
 
 const level = (m: checks.Motion, k: checks.MetricName, v: number) => (v >= checks.levels(m, k).fail ? 2 : v >= checks.levels(m, k).warn ? 1 : 0);
-const num = (v: number) => (Math.abs(v) >= 100 ? String(Math.round(v)) : v.toFixed(1));
+/** A metric's value as a row's text (why, warns) writes it: "not finite" for NaN or an infinity, as worse[] holds null
+ *  for one (valueData). */
+export const valueText = (v: number): string => (!Number.isFinite(v) ? "not finite" : Math.abs(v) >= 100 ? String(Math.round(v)) : v.toFixed(1));
+/** A metric's value as worse[] holds it: to 3 decimals, null when it is no finite number (JSON has none), so the text
+ *  and the data agree. */
+export const valueData = (x: number): number | null => (Number.isFinite(x) ? Math.round(x * 1000) / 1000 : null);
 
 /** Plays one clip (on its own rest R) on bound body b, named `rig` in the row, and judges what the body added (D80);
  *  `seen` is given what it played, when it played (retarget.apply draws it). */
@@ -125,15 +136,153 @@ export function onBody(clip: Clip, R: Rest, b: Bound, rig: string, seen?: (p: Pl
         const was = level(mo, k, ro.values[k]), now = level(mp, k, rp.values[k]);
         if (now > was) {
           // an added fail fails the pair; an added warn is listed with it (D80)
-          (now === 2 ? why : warns).push(`${k} ${num(ro.values[k])} on its own body → ${num(rp.values[k])} played on this one, past its ${now === 2 ? "fail" : "warn"} level`);
-          const lo = checks.levels(mo, k), lp = checks.levels(mp, k), r3 = (x: number) => Math.round(x * 1000) / 1000;
-          worse.push({ metric: k, level: now === 2 ? "fail" : "warn", own: r3(ro.values[k]), ownLevels: [r3(lo.warn), r3(lo.fail)], played: r3(rp.values[k]), playedLevels: [r3(lp.warn), r3(lp.fail)] });
+          (now === 2 ? why : warns).push(`${k} ${valueText(ro.values[k])} on its own body → ${valueText(rp.values[k])} played on this one, past its ${now === 2 ? "fail" : "warn"} level`);
+          const lo = checks.levels(mo, k), lp = checks.levels(mp, k), lv = (x: number) => Math.round(x * 1000) / 1000;
+          worse.push({ metric: k, level: now === 2 ? "fail" : "warn", own: valueData(ro.values[k]), ownLevels: [lv(lo.warn), lv(lo.fail)], played: valueData(rp.values[k]), playedLevels: [lv(lp.warn), lv(lp.fail)] });
         }
       }
-      if (!(p.reach <= REACH)) why.push(Number.isNaN(p.reach) ? `the solve isn't a number at ${p.at.toFixed(2)} s` : `a joint ${num(p.reach)} mm from its point at ${p.at.toFixed(2)} s (at most ${REACH})`);
+      if (!(p.reach <= REACH)) why.push(Number.isNaN(p.reach) ? `the solve isn't a number at ${p.at.toFixed(2)} s` : `a joint ${valueText(p.reach)} mm from its point at ${p.at.toFixed(2)} s (at most ${REACH})`);
     }
   } catch (err) {
     why.push(`threw: ${String((err as Error).message).split("\n")[0]}`);
   }
   return { clip: clip.id, rig, ok: why.length === 0, why, warns, own: ownVerdict, played: playedVerdict, reach: Math.round(reach * 1000) / 1000, worse };
 }
+
+/**
+ * The longest a foot may hold the ground (s), in one stretch as core's planter holds it (heldStretches), in a clip one
+ * call plays (retarget.apply, export, graph.sim). The planter (contact/plant.ts) is superlinear in a stretch's length
+ * and can't be made linear bit for bit (K5, deferred), so a clip holding a foot longer is refused before anything plays.
+ * Measured on this container (4 CPUs), each call's start-up included: retarget.apply on tiny, of
+ * QUATERNIUS_3D2DGE/Idle_Loop retimed so both feet hold throughout: 12 s took 1.8 s; 17 s took 2.6 s (3.1 s with the
+ * contact off the 1/60 grid); 24 s took 23.7 s; 30 s took 44.6 s; 60 s took 233.7 s. export (bvh): 17 s took 2.0 s;
+ * 24 s took 21.9 s. The jump past about 17 s is the Animator's pose cache, which clears at 1,024 poses (animator.ts:692).
+ * At the limit, re-measured: 15 s took 2.1 s in retarget.apply (1.9 s at 14.99 s, off the grid), 1.8 s in export (bvh;
+ * vrma 1.1 s, glb 1.7 s) and 1.8 s in graph.sim on a short script. Over a long one such a clip costs graph.sim about
+ * twice a walk's (37.5 s on one layer over 600 s, a walk 18.4 s; 118 s on 4 layers), which compose.ts's MAX_CLIP_STEPS
+ * is measured with. A foot's stretch alone is not all the cache keeps: both feet's, from different starts, are read at
+ * once (MAX_REREAD), and so is one clip played at several times at once (compose.ts charges that). The library's
+ * longest bridged stretch is 12.1 s (CMU_CURATED/Drink_Soda).
+ */
+export const MAX_HOLD = 15;
+/**
+ * The most held ground (s) one call has core's planter reread from one clip at a step (reread), in a clip one call
+ * plays. The planter reads every stretch a step's settle touches (a foot's stretch now, one ended within its release,
+ * one starting within the settle) again from the stretch's start, at 60 poses a second, from the Animator's cache of
+ * that clip, which clears at 1,024 poses (animator.ts:692); past about 1,000 a step it clears every step and decodes
+ * every pose again (about 22 µs each here). MAX_HOLD bounds one stretch; this bounds them together, a stretch counted
+ * once when both feet start it together (the same poses). 16 s is 960 poses plus at most about 30 of the settle's own.
+ * Measured on tiny (retarget.apply, a 60 s clip of QUATERNIUS_3D2DGE/Idle_Loop's keys): its feet held 14.9 s each
+ * from starts 7.6 s apart off the 1/60 grid (22.9 s reread at once) took 33.9 s against 4.7 to 5.2 s with the feet's
+ * stretches starting together (15.2 s), the cache cleared 1,518 times against 5; at this limit (both feet 7.8 s from
+ * starts 0.013 s apart, 16.0 s) 4.6 s, 8 clears. Starts on one 1/60 grid share some poses, which this doesn't count
+ * (their feet 15 s from starts 2 s apart reread 28.4 s and took 4.7 s): it errs on the safe side. Idle_Loop retimed to
+ * 15 s rereads 15.4 s (its last cycle's stretch in the 0.3 s after the seam); the library's most is 12.1 s
+ * (CMU_CURATED/Drink_Soda).
+ */
+export const MAX_REREAD = 16;
+/** Seconds either side of a step the planter's settle reads (contact/plant.ts settleSmooth), and how long after a
+ *  stretch ends its hold is still read (its release, and the settle's blend). */
+const SETTLE = 0.1, RELEASE = 0.2;
+/** Seconds: a foot off the floor for less than this between two of its contacts stays planted (core's planter's BRIDGE,
+ *  contact/plant.ts). */
+const BRIDGE = 0.1;
+
+/** A stretch a foot holds the ground, as core's planter holds it: which foot, from and to (s; past the clip's end when it
+ *  runs on through a loop's seam). */
+export interface Held {
+  foot: "footL" | "footR";
+  from: number;
+  to: number;
+}
+
+/**
+ * Each foot's stretches on the ground as core's planter holds them (contact/plant.ts `bridged`): its contacts sorted,
+ * a gap under BRIDGE closed; in a loop with more than one stretch for a foot, the seam closed when its gap is under
+ * BRIDGE, the last stretch then running on to the first one's end a cycle later. Longest first (ties: the left foot's,
+ * then the earlier).
+ */
+export function heldStretches(clip: Pick<AnimClip, "contacts" | "dur" | "loop">): Held[] {
+  const out: Held[] = [];
+  for (const foot of ["footL", "footR"] as const) {
+    const iv = [...(clip.contacts?.[foot] ?? [])].sort((p, q) => p[0] - q[0]);
+    if (!iv.length) continue;
+    const kept: [number, number][] = [[iv[0]![0], iv[0]![1]]];
+    for (const [a, b] of iv.slice(1)) {
+      const last = kept[kept.length - 1]!;
+      if (a - last[1] < BRIDGE) last[1] = Math.max(last[1], b);
+      else kept.push([a, b]);
+    }
+    if (clip.loop && clip.dur > 0 && kept.length > 1) {
+      const first = kept[0]!, last = kept[kept.length - 1]!;
+      if (first[0] + clip.dur - last[1] < BRIDGE) {
+        last[1] = Math.max(last[1], first[1] + clip.dur);
+        kept.shift();
+      }
+    }
+    for (const [from, to] of kept) out.push({ foot, from, to });
+  }
+  return out.sort((x, y) => y.to - y.from - (x.to - x.from));
+}
+
+/** What one play of a clip has core's planter reread at a step (s of held ground, 60 poses a second), at its most. */
+export interface Reread {
+  /** The most it rereads at one step, a stretch once when both feet start it together: what the clip's pose cache must
+   *  keep. */
+  held: number;
+  /** When (s, the clip's own time), and each stretch read then: its foot, its start (the clip's own time) and how much
+   *  of it is read. */
+  at: number;
+  stretches: { foot: Held["foot"]; from: number; span: number }[];
+  /** The most it reads at one step with each foot's stretches counted on their own (s): what it decodes again at a step
+   *  when its cache can't keep them. */
+  each: number;
+}
+
+/**
+ * What one play of a clip (its contacts the ones the planter takes) has core's planter reread at a step, at its most
+ * (contact/plant.ts: `holds` sums each stretch's drift from its start on a 1/60 grid, for the step and for each
+ * settle sample within SETTLE of it). A stretch is read at playhead t while some sample u within SETTLE of t is in it
+ * or within RELEASE after it, from its start to the latest such u (or its end); a loop's stretches a cycle either side
+ * too, a once clip's samples within it. Between the times a stretch stops being read the sum only grows, so its most
+ * is just before one of those times, or at the end.
+ */
+export function reread(clip: Pick<AnimClip, "contacts" | "dur" | "loop">): Reread {
+  const loop = clip.loop && clip.dur > 0, end = clip.dur;
+  const all = heldStretches(clip).flatMap((h) => (loop ? [-2, -1, 0, 1] : [0]).map((k) => ({ foot: h.foot, from: h.from + k * clip.dur, to: h.to + k * clip.dur })));
+  const read = (t: number): Reread => {
+    const lo = loop ? t - SETTLE : Math.max(0, t - SETTLE), hi = loop ? t + SETTLE : Math.min(end, t + SETTLE);
+    const on = all.filter((h) => h.from <= hi && h.to + RELEASE >= lo).map((h) => ({ foot: h.foot, from: h.from, span: Math.min(hi, h.to) - h.from }));
+    const starts = new Map<number, number>();
+    for (const s of on) starts.set(s.from, Math.max(starts.get(s.from) ?? 0, s.span));
+    return { held: [...starts.values()].reduce((a, b) => a + b, 0), at: t, stretches: on, each: on.reduce((a, s) => a + s.span, 0) };
+  };
+  let best = read(0), each = best.each;
+  for (const t of [...all.map((h) => h.to + RELEASE + SETTLE - 1e-9), loop ? end - 1e-9 : end]) {
+    if (!(t >= 0 && t <= end)) continue;
+    const r = read(t);
+    if (r.held > best.held) best = r;
+    each = Math.max(each, r.each);
+  }
+  // a loop's stretch from the cycle before (or after) named by its start in the clip's own time
+  const own = (x: number) => (loop ? ((x % end) + end) % end : x);
+  return { ...best, stretches: best.stretches.map((s) => ({ ...s, from: own(s.from) })), each };
+}
+
+/** Refuses (usage E_ARGS) clip `title` as played (its contacts the ones the planter takes) when a foot of it holds the
+ *  ground past MAX_HOLD in one stretch, naming the foot, the stretch and the limit, and how to cut it; or when the
+ *  planter would reread past MAX_REREAD of it at a step (reread), naming when and the stretches read then. Gives what
+ *  the clip has the planter reread (graph.sim charges a clip played at several times at once by it). */
+export function boundHolds(clip: Pick<AnimClip, "contacts" | "dur" | "loop">, title: string): Reread {
+  const [h] = heldStretches(clip), side = (f: Held["foot"]) => (f === "footL" ? "left" : "right");
+  if (h && h.to - h.from > MAX_HOLD) {
+    const seam = h.to > clip.dur ? ", on through its loop's seam" : "";
+    throw new ToolError("E_ARGS", `${title}: its ${side(h.foot)} foot holds the ground ${sec(h.to - h.from)} (${round3(h.from)}–${sec(h.to)}${seam}), past the ${MAX_HOLD} s one call plays a held foot for; cut it into clips whose feet hold under ${MAX_HOLD} s (a recipe's or edit's slice), and call again`, true);
+  }
+  const r = reread(clip);
+  if (!(r.held > MAX_REREAD)) return r;
+  const read = r.stretches.filter((s) => s.span > 0).sort((x, y) => y.span - x.span).slice(0, 3).map((s) => `${side(s.foot)} ${sec(s.span)} from ${round3(s.from)} s`);
+  throw new ToolError("E_ARGS", `${title}: at ${sec(r.at)} the planter rereads ${sec(r.held)} of its feet's holds (${read.join(", ")}), past the ${MAX_REREAD} s one call rereads at a step; cut it into clips whose feet's holds add up to under ${MAX_REREAD} s at any time (a recipe's or edit's slice), and call again`, true);
+}
+/** A time with 3 decimals and no unit. */
+const round3 = (t: number): string => sec(t).slice(0, -2);

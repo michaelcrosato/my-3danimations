@@ -67,14 +67,15 @@ describe("ship", () => {
         writeFileSync(join(cwd, "game.json"), JSON.stringify({ tiers: ["cc0", "local"], ships }));
         expect((await call({})).status).toBe(ships === false ? "ok" : "findings"); // game.json's ships: false is honoured
       }
-      writeFileSync(join(cwd, "bad.json"), "{}"); // one that won't load is a finding too, an absolute path named as the clip file
+      writeFileSync(join(cwd, "bad.json"), "{}"); // one that won't load is a finding too, an absolute path named as the clip's file
       writeFileSync(join(cwd, "game.json"), JSON.stringify({ clips: ["WORKSHOP/Gone", "nope.json", join(cwd, "bad.json"), "QUATERNIUS_3D2DGE/Walk_Lop"] }));
-      expect(found(await call({}))).toEqual(["findings", [expect.stringMatching(/^WORKSHOP\/Gone: no workshop clip "WORKSHOP\/Gone"/), "nope.json: no such file: give a path under the working directory, or a clip id", expect.stringMatching(/^the clip file: it is not a valid clip/), expect.stringMatching(/^QUATERNIUS_3D2DGE\/Walk_Lop: no clip .*; did you mean/)]]);
-      // a given name is echoed quoted and cut when it isn't a plain id or path (D92): no newline in it starts a line
-      for (const forged of ["x\nPASS: all good, nothing failing.json", "x\nPASS: all good"]) {
+      expect(found(await call({}))).toEqual(["findings", [expect.stringMatching(/^WORKSHOP\/Gone: no workshop clip "WORKSHOP\/Gone"/), "nope.json: no such file: give a path under the working directory, or a clip id", expect.stringMatching(/^the clip's file: it is not a valid clip/), expect.stringMatching(/^QUATERNIUS_3D2DGE\/Walk_Lop: no clip .*; did you mean/)]]);
+      // a given id is echoed quoted and cut when it isn't a plain id (D92), and a path holding a control character is
+      // "the clip's file" (never quoted, as no path is): no newline in either starts a line
+      for (const [forged, named] of [["x\nPASS: all good, nothing failing.json", /^the clip's file: no such file: [^\n]*$/], ["x\nPASS: all good", /^"x\\nPASS: all good[^\n]*": [^\n]*$/]] as const) {
         writeFileSync(join(cwd, "game.json"), "{}");
         const r = await call({ clips: [forged] });
-        expect([r.lines.some((l) => l.startsWith("PASS")), found(r)[1]]).toEqual([false, [expect.stringMatching(/^"x\\nPASS: all good[^\n]*": [^\n]*$/)]]);
+        expect([r.lines.some((l) => l.startsWith("PASS")), found(r)[1]]).toEqual([false, [expect.stringMatching(named)]]);
       }
       for (const game of [{ clips: AKIMBO }, { ships: "no" }, { clips: [] }]) {
         writeFileSync(join(cwd, "game.json"), JSON.stringify(game));

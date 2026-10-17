@@ -11,15 +11,19 @@ import { checkGame, checkSets, credited, creditsBlock, tierOf, TIERS, type Credi
 import { defineTool, ToolError, type ToolContext } from "../registry/registry.ts";
 import { didYouMean, quote } from "../registry/schema.ts";
 import { fits, libraryClips, namedBy, parts, readClip, suggestId } from "./clips.ts";
-import { absolute, call, capped, count, more, output, ROW_CHARS } from "./common.ts";
+import { absolute, arg, call, capped, count, more, output, ROW_CHARS } from "./common.ts";
 
-/** A given name as a finding echoes it (D92): as given when it is a plain id or path of at most 60 characters, else
- *  JSON-quoted and cut to 60, so no control character in it starts a line of its own. */
+/** A given id as a finding echoes it (D92): as given when it is a plain id of at most 60 characters, else JSON-quoted
+ *  and cut to 60, so no control character in it starts a line of its own. */
 const echo = (x: string): string => (/^[\w./-]{1,60}$/.test(x) ? x : quote(x));
+/** A clip file's path as a finding names it (clips.ts prose): as given, single-quoted where a shell would split it
+ *  (`arg`), never JSON-quoted as an id is; null for one no reply echoes (absolute, or holding a control character). */
+const pathOf = (x: string): string | null => (absolute(x) || /\p{Cc}/u.test(x) ? null : arg(x));
 /** A clips list as license.check takes one: a clip or more, none blank. */
 const listed = (c: unknown): boolean => Array.isArray(c) && c.length > 0 && c.every((x) => typeof x === "string" && x.trim() !== "");
 
-/** A clip as license.check sees it: what a finding calls it (as given; a JSON clip or absolute path by its id), the
+/** A clip as license.check sees it: what a finding calls it (as given; a JSON clip, or a path no reply echoes, by its
+ *  id), the
  *  library clips it names, and its own data unless it is a library id: the library clip its workshop history names,
  *  its provenance's `orig` and recipe inputs, and its own id, each that is a library clip; and the set it belongs to
  *  (clips.ts's `home`), with that set's tier (null when it is no library set). */
@@ -27,7 +31,8 @@ async function originsOf(ctx: ToolContext, given: string): Promise<{ label: stri
   const id = given.trim();
   if (!id.startsWith("{") && !/\.json$/i.test(id) && !id.startsWith("WORKSHOP/")) return { label: echo(id), ids: [id], clip: null, set: id, tier: null };
   const r = await readClip(ctx, id), ids = libraryClips(ctx.library(), [r.origin, ...namedBy(r.clip), r.clip.id]);
-  return { label: echo(id.startsWith("{") || absolute(id) ? r.clip.id : id), ids, clip: r.clip, set: r.home, tier: r.tier };
+  const path = id.startsWith("{") || !/\.json$/i.test(id) ? null : pathOf(id);
+  return { label: path ?? echo(id.startsWith("{") || /\.json$/i.test(id) ? r.clip.id : id), ids, clip: r.clip, set: r.home, tier: r.tier };
 }
 
 /** game.json's clips and ships, and whether there is one (the host reads its tiers, and refuses a file that isn't a JSON
@@ -69,14 +74,14 @@ export const licenseCheck = defineTool<{ clips?: string[]; tiers?: Tier[]; ships
       if (a.set !== "library" && !src.sets().includes(a.set)) throw new ToolError("E_ARGS", `no set ${quote(a.set)}${didYouMean(a.set, src.sets())} ("library" checks every set)`, true);
       const tier = a.set === "library" ? null : lib.library.about(a.set).tier;
       if (tier && !tiers.includes(tier)) fail(a.set, `a ${tier} set and ${at}: opt in, or use another set`, 0);
-      if (tier === "local" && ships) fail(a.set, "local content never ships (D10): drop it, or mark the manifest ships: false for a game that stays on this machine", 0);
+      if (tier === "local" && ships) fail(a.set, 'local content never ships (D10): drop it, or set "ships": false in game.json for a game that stays on this machine', 0);
       if (tier && ships && tiers.includes("local")) fail("tiers", "a shipped game opts into local: local content never ships (D10)", 0);
       for (const s of a.set === "library" ? src.sets() : [a.set]) seen.add(lib.library.about(s).tier);
       [r, what] = [checkSets(src, a.set === "library" ? src.sets().sort() : [a.set], lib.licenseText), a.set === "library" ? "the library" : `set ${a.set}`];
     } else {
       const ids: string[] = [], made = (id: string) => (JSON.parse(src.read(id.split("/")[0]!, `${id.split("/")[1]}.json`)) as Clip).provenance;
       for (const [i, raw] of (clips ?? []).entries()) {
-        const given = raw.trim(), file = !given.startsWith("{") && /\.json$/i.test(given), hide = file && absolute(given);
+        const given = raw.trim(), file = !given.startsWith("{") && /\.json$/i.test(given), hide = file && pathOf(given) === null;
         let o: Awaited<ReturnType<typeof originsOf>>;
         try {
           if (file && (await ctx.tryRead(given)) === null) throw new ToolError("E_NO_CLIP", "no such file: give a path under the working directory, or a clip id", true);
@@ -84,7 +89,7 @@ export const licenseCheck = defineTool<{ clips?: string[]; tiers?: Tier[]; ships
         } catch (err) {
           // one that won't load is a finding, so one check reports every problem; a path out of the working directory is refused
           if (!(err instanceof ToolError) || err.code === "E_PATH") throw err;
-          fail(given.startsWith("{") ? "the clip JSON" : hide ? "the clip file" : echo(given), hide ? err.message.replaceAll(quote(given), "it").replace(/^the clip file /, "it ") : err.message, i);
+          fail(given.startsWith("{") ? "the clip's JSON" : hide ? "the clip's file" : file ? arg(given) : echo(given), hide ? err.message.replace(/^the clip's file /, "it ") : err.message, i);
           continue;
         }
         for (const id of o.ids) labels.set(id, [...(labels.get(id) ?? []), { label: o.label === echo(id) ? o.label : `${o.label} (from ${echo(id)})`, i }]);

@@ -6,10 +6,15 @@
 // clips as the sweep does (D80): swapped arms miss their points (inspect's issue a warning), hips on the root (that
 // issue the next call; a row's reasons capped), a body that adds a fail finding (its frames drawn, its line first), a
 // warn it adds listed, a VRM's humanoid, the tiny rig, clips as a path and as JSON named as given; its refusals (too
-// many clips or none, misspelt clips before any plays, clips past 600 s in all, a character missing a bone). A
+// many clips or none, misspelt clips before any plays, clips past 600 s in all, a character missing a bone, a patch
+// leaving two humanoid bones on one source bone; a metric that is no finite number written so, and null in data). A
 // compressed mesh is said by both, but is no mapping issue (meshIssue): no finding, turntable, patch hint or warning of
-// its own. Every next and every refusal's call runs as written. One working directory for the file: the tools only
-// read, and write images.
+// its own. A clip holding a foot past MAX_HOLD (15 s) refused before it plays, by retarget.apply, export and graph.sim,
+// its contacts bridged as core's planter bridges them (a 12 s hold, and one of 15 s, pass); and one whose feet's holds
+// the planter rereads past MAX_REREAD (16 s) at a step (feet held 15 s and 13.4 s from starts 2 s apart), by each of
+// them, while feet held from one start, and 8 s and 6.4 s from starts 2 s apart, pass. Every next and every
+// refusal's call runs as written. One working directory for the file: the tools only read, and write images (and
+// recipe.compile its clip file).
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { turntable } from "@m3a/sensors";
@@ -18,7 +23,8 @@ import { afterAll, describe, expect, it } from "vitest";
 import { nodeHost } from "../src/node.ts";
 import { Registry, type Reply, type ToolContext } from "../src/registry/index.ts";
 import { characterOf, type MappingPatch } from "../src/tools/body.ts";
-import { RETARGET } from "../src/tools/index.ts";
+import { COMPOSE, EXCHANGE, RETARGET } from "../src/tools/index.ts";
+import { boundHolds, heldStretches, MAX_HOLD, MAX_REREAD, reread, valueData, valueText } from "../src/tools/judge.ts";
 import { exampleCwd, hintedCalls, ROOT, runExamples } from "./helpers/surfaces.ts";
 
 type Row = Record<string, unknown>;
@@ -41,7 +47,7 @@ for (const [f, data] of Object.entries({
   "renamed.gltf": { ...rigify, nodes: rigify.nodes.map((n, i) => ({ ...n, name: i === 1 ? HIPS : `n${i}` })) }, "rigify-vrm.gltf": { ...rigify, extensions: { VRMC_vrm: { specVersion: "1.0", humanoid: { humanBones: human } } } },
   "packed.gltf": { ...rigify, extensionsUsed: [MESHOPT], extensionsRequired: [MESHOPT] }, "long.json": { ...walk, dur: 598.7, keys: walk.keys.map((k) => ({ ...k, t: Math.round((k.t * 598_700) / 1.333) / 1000 })) },
   "hair.gltf": { ...rig, nodes: hair, animations: undefined }, "chain.gltf": { asset: { version: "2.0" }, nodes: [{ name: "a", children: [1] }, { name: "b", children: [2] }, { name: "c" }] },
-  "punch.json": JSON.parse(text("library/sets/QUATERNIUS_3D2DGE/Punch_Jab.json")) as object,
+  "my punch.json": JSON.parse(text("library/sets/QUATERNIUS_3D2DGE/Punch_Jab.json")) as object,
 })) writeFileSync(join(cwd, f), JSON.stringify(data));
 /** Calls a retarget tool on the Node host in the file's working directory; its PNGs go to `pngs`. */
 const call = async (tool: string, args: object, pngs?: Map<string, Uint8Array>) => (await reg.call(tool, args, { host, pngs })) as Reply<Row>;
@@ -85,10 +91,11 @@ describe("the retarget tools", () => {
     const bent = (await rigifyBody(SWAP)).bound!;
     expect(Buffer.from([...pngs.values()][0]!).equals(Buffer.from(png(turntable(bent.restPts, { n: 4, size: 160 }))))).toBe(true);
     expect(runs(swapped.next).map((h) => h.tool)).toEqual(["retarget.inspect", "retarget.apply"]);
-    // the rig's root taken for its hips: below the ground, under half the legs; a foot, above it but as low
-    const low = await call("retarget.inspect", { character: RIGIFY, mapping: ROOT_HIPS }), foot = await call("retarget.inspect", { character: RIGIFY, mapping: { bones: { hips: "DEF-foot.L" } } });
+    // the rig's root taken for its hips: below the ground, under half the legs; a foot, above it but as low (the left
+    // foot's row given its toe, as no two humanoid bones may name one source bone)
+    const low = await call("retarget.inspect", { character: RIGIFY, mapping: ROOT_HIPS }), foot = await call("retarget.inspect", { character: RIGIFY, mapping: { bones: { hips: "DEF-foot.L", leftFoot: "DEF-toe.L", leftToes: null } } });
     expect([low.status, low.data!.issues, low.images.length, (foot.data!.issues as string[]).at(-1)]).toEqual(["findings", ["patched by hand", "hips (root) likely the wrong bone: only -20 mm up, under half the legs' 850 mm"], 1,
-      "hips (DEF-foot.L) likely the wrong bone: only 60 mm up, under half the legs' 850 mm"]);
+      "hips (DEF-foot.L) likely the wrong bone: only 60 mm up, under half the legs' 925 mm"]);
     const shaped = await call("retarget.inspect", { character: "renamed.gltf" }), hairy = await call("retarget.inspect", { character: "hair.gltf", mapping: { bones: { leftUpperLeg: null } } });
     // its hips' name, 100 characters, cut in its issue to a row's 90
     expect([shaped.status, shaped.verdict, shaped.data!.issues, shaped.images.length]).toEqual(["findings", "retarget.inspect renamed.gltf: 31 bones by topology, confidence 0.85, 15 of 15 required, rest T, hip height 930 mm",
@@ -103,11 +110,11 @@ describe("the retarget tools", () => {
 
   it("retarget.inspect refuses a misspelt humanoid bone and a chain with no humanoid, and never echoes an absolute path", async () => {
     const [bad, chain, abs, json] = [await call("retarget.inspect", { character: RIGIFY, mapping: { bones: { leftUpperLegg: "DEF-thigh.L" } } }), await call("retarget.inspect", { character: "chain.gltf" }),
-      await call("retarget.inspect", { character: join(cwd, RIGIFY) }), await call("retarget.inspect", { character: join(cwd, "punch.json") })];
+      await call("retarget.inspect", { character: join(cwd, RIGIFY) }), await call("retarget.inspect", { character: join(cwd, "my punch.json") })];
     expect([bad.status, bad.error]).toEqual(["usage", { code: "E_ARGS", message: 'mapping: "leftUpperLegg" is not a VRM 1.0 humanoid bone; did you mean "leftUpperLeg"?' }]);
     expect([chain.status, chain.error]).toEqual(["error", { code: "E_RIG", message: 'chain.gltf: no humanoid bone recognized among its 3 bones, by name or by shape; give each bone in mapping {bones: {hips: "<its bone>", ...}}' }]);
-    expect([abs.verdict, abs.lines[0], abs.next]).toEqual([expect.stringMatching(/^retarget.inspect <the character's file>: 31 bones/), "rest: T, the arms 2° below level", expect.stringMatching(/^`retarget.apply <the character's file> --clips /)]);
-    expect([json.error, [abs, json].map((r) => JSON.stringify(r).includes(cwd))]).toEqual([{ code: "E_ARGS", message: `<the character's file> is not a character: give a .glb, .gltf or .vrm file, or "tiny"` }, [false, false]]);
+    expect([abs.verdict, abs.lines[0], abs.next]).toEqual([expect.stringMatching(/^retarget.inspect the character's file: 31 bones/), "rest: T, the arms 2° below level", expect.stringMatching(/^`retarget.apply <the character's file> --clips /)]);
+    expect([json.error, [abs, json].map((r) => JSON.stringify(r).includes(cwd))]).toEqual([{ code: "E_ARGS", message: `the character's file is not a character: give a .glb, .gltf or .vrm file, or "tiny"` }, [false, false]]);
   });
 
   it("retarget.apply judges clips as the sweep does (D80): swapped arms miss their points; a body adding a fail, or a warn; clips named as given", async () => {
@@ -129,10 +136,11 @@ describe("the retarget tools", () => {
     expect(body.data!.clips).toMatchObject([{ ok: true, why: [], worse: [{ metric: "jitter", level: "warn" }] }, { ok: false, why: [expect.stringMatching(/^bodyPenetration 0\.0 on its own body → 61\.2 played on this one/)], worse: [{ metric: "bodyPenetration", level: "fail", own: 0, played: 61.2 }] }]);
     expect([body.lines[0]!.split(":")[0], body.lines[1], runs(body.next)]).toEqual(["FAIL MESH2MOTION/Kneeling_Tired", "PASS QUATERNIUS_3D2DGE/Punch_Cross: own pass, played warn, reach 0 mm; this body adds a warn: jitter", [{ tool: "search", args: { query: "Kneeling Tired" } }]]);
     expect(body.images.map((i) => [i.name, i.width, i.height, i.tokens])).toEqual([["MESH2MOTION_Kneeling_Tired-on-rigify-vrm.gltf", 1014, 156, 211]]);
-    // the tiny rig plays a clip file and a clip's JSON; the next names them as given
-    const tiny = await call("retarget.apply", { character: "tiny", clips: ["punch.json", text("library/sets/QUATERNIUS_3D2DGE/Walk_Loop.json")] });
-    expect([tiny.status, tiny.verdict, tiny.data!.mapped, tiny.lines.map((l) => l.split(":")[0])]).toEqual(["ok", "retarget.apply tiny: 2 of 2 clips pass on it (hip height 950 mm)", "table", ["PASS punch.json", `PASS ${WALK} (the clip's JSON)`]]);
-    expect(runs(tiny.next)).toEqual([{ tool: "license.check", args: { clips: ["punch.json", "<the clip's JSON>"] } }]);
+    // the tiny rig plays a clip file (a name the shell would split) and a clip's JSON; the next passes them as given, the
+    // file's path once (as export's does), not the name a line quotes for the shell
+    const tiny = await call("retarget.apply", { character: "tiny", clips: ["my punch.json", text("library/sets/QUATERNIUS_3D2DGE/Walk_Loop.json")] });
+    expect([tiny.status, tiny.verdict, tiny.data!.mapped, tiny.lines.map((l) => l.split(":")[0])]).toEqual(["ok", "retarget.apply tiny: 2 of 2 clips pass on it (hip height 950 mm)", "table", ["PASS 'my punch.json'", `PASS ${WALK} (the clip's JSON)`]]);
+    expect(runs(tiny.next)).toEqual([{ tool: "license.check", args: { clips: ["my punch.json", "<the clip's JSON>"] } }]);
   });
 
   it("says a compressed mesh in both tools, as no mapping issue: inspect ok with no turntable, its patch line's advice, the next plays clips; apply notes it, no warning", async () => {
@@ -159,5 +167,45 @@ describe("the retarget tools", () => {
       ["usage", { code: "E_ARGS", message: "clips last 600.1 s in all, past the 600 s one call plays; give fewer or shorter clips, and call again for the rest" }],
     ]);
     for (const hint of [got[3]!.error!.message, got[3]!.next]) expect(runs(hint)).toEqual([{ tool: "retarget.inspect", args: { character: RIGIFY, mapping: { bones: { leftUpperLeg: null } } } }]);
+    // a patch leaving two humanoid bones on one source bone, one of them the patch's: their rows would contradict
+    const shared = (who: string, bone: string) => ["usage", { code: "E_ARGS", message: `mapping: ${who} both name "${bone}"; a source bone stands for one humanoid bone: give one another, or null to unmap it` }];
+    const twice = [await call("retarget.apply", { character: "tiny", clips: [WALK], mapping: { bones: { spine: "pelvis" } } }), await call("retarget.apply", { character: "tiny", clips: [WALK], mapping: { bones: { hips: "root", leftUpperLeg: "root" } } })];
+    expect(twice.map((r) => [r.status, r.error])).toEqual([shared("hips and spine", "pelvis"), shared("hips and leftUpperLeg", "root")]);
+    // a metric's value that is no finite number: "not finite" in a row's text, null in its worse[] (JSON has none)
+    expect([NaN, Infinity, -Infinity, 61.234, 483.4].map((v) => [valueText(v), valueData(v)])).toEqual([["not finite", null], ["not finite", null], ["not finite", null], ["61.2", 61.234], ["483", 483.4]]);
+  });
+
+  it("refuses a clip holding a foot past 15 s, or feet whose holds the planter rereads past 16 s at a step, before it plays (retarget.apply, export, graph.sim), its contacts bridged as core's planter bridges them", async () => {
+    // Idle_Loop retimed to 20 s: both feet hold throughout, one stretch each
+    const all = new Registry([...RETARGET, ...COMPOSE, ...EXCHANGE]), on = (tool: string, args: object) => all.call(tool, args, { host }) as Promise<Reply<Row>>;
+    const made = await on("recipe.compile", { recipe: JSON.stringify({ format: "2.0", id: "RECIPES/Idle_20", steps: [{ op: "clip", id: "QUATERNIUS_3D2DGE/Idle_Loop" }, { op: "retime", in: "s1", dur: 20 }] }) }), file = made.data!.path as string;
+    const held = (title: string, foot = "left") => ({ code: "E_ARGS", message: `${title}: its ${foot} foot holds the ground 20.000 s (0.000–20.000 s), past the 15 s one call plays a held foot for; cut it into clips whose feet hold under 15 s (a recipe's or edit's slice), and call again` });
+    const graph = JSON.stringify({ format: "2.0", id: "GRAPHS/Still", name: "Still", parameters: {}, start: "idle", states: { idle: { clip: "RECIPES/Idle_20" } }, transitions: [] });
+    const got = [await on("retarget.apply", { character: "tiny", clips: [file] }), await on("export", { clip: file, character: "tiny", format: "bvh" }), await on("graph.sim", { graph, script: JSON.stringify({ format: "2.0", id: "SIMS/Stand", dur: 1, input: [] }), clips: [file] })];
+    expect(got.map((r) => [r.status, r.error])).toEqual([["usage", held(file)], ["usage", held(file)], ["usage", held("RECIPES/Idle_20")]]);
+    // two contacts 0.05 s apart are one stretch, as the planter bridges them (under 0.1 s); 0.15 s apart, two
+    const clip = JSON.parse(readFileSync(join(cwd, file), "utf8")) as { contacts: object };
+    writeFileSync(join(cwd, "two holds.json"), JSON.stringify({ ...clip, contacts: { by: "labelled", footR: [[0, 10], [10.05, 20]] } }));
+    expect((await call("retarget.apply", { character: "tiny", clips: ["two holds.json"] })).error).toEqual(held("'two holds.json'", "right"));
+    const once = { dur: 20, loop: false }, at = (h: { foot: string; from: number; to: number }[]) => h.map((x) => [x.foot, x.from, x.to]);
+    expect(at(heldStretches({ ...once, contacts: { by: "labelled", footL: [[10.15, 20], [0, 10]], footR: [[0, 10], [10.05, 20]] } }))).toEqual([["footR", 0, 20], ["footL", 0, 10], ["footL", 10.15, 20]]);
+    // a loop's seam closed when its gap is under 0.1 s (with more than one stretch), the last running on into the next cycle
+    expect(at(heldStretches({ dur: 20, loop: true, contacts: { by: "labelled", footL: [[0, 5], [5.2, 19.95]] } }))).toEqual([["footL", 5.2, 25]]);
+    expect(at(heldStretches({ dur: 20, loop: true, contacts: { by: "labelled", footL: [[0, 20]] } }))).toEqual([["footL", 0, 20]]);
+    expect(() => boundHolds({ dur: 20, loop: true, contacts: { by: "labelled", footL: [[0, 5], [5.2, 19.95]] } }, "X")).toThrow(/^X: its left foot holds the ground 19\.800 s \(5\.200–25\.000 s, on through its loop's seam\)/);
+    // a 12 s hold passes, and one of exactly the limit, both feet from the same start (the same poses reread)
+    for (const t of [12, MAX_HOLD]) expect(() => boundHolds({ ...once, contacts: { by: "labelled", footL: [[0, t]], footR: [[0, t]] } }, "X"), String(t)).not.toThrow();
+    // what the planter rereads at a step (reread): a stretch from its start to the settle's reach (0.1 s on), one ended
+    // within 0.3 s, a loop's last cycle's after its seam; once when both feet start it together, each foot's own in `each`
+    const r15 = reread({ dur: 15, loop: true, contacts: { by: "labelled", footL: [[0, 15]], footR: [[0, 15]] } });
+    expect([r15.held, r15.each, r15.at].map((x) => Math.round(x * 1000) / 1000)).toEqual([15.4, 30.8, 0.3]);
+    // feet holding from different starts are reread together: 8 s and 6.4 s at once pass; 15 s and 13.4 s, one held clip
+    // whose pose cache would clear every step (MAX_REREAD), are refused, by every tool that plays a clip
+    expect(() => boundHolds({ ...once, contacts: { by: "labelled", footL: [[0, 8]], footR: [[2, 10]] } }, "X")).not.toThrow();
+    const stagger = { ...clip, contacts: { by: "labelled", footL: [[0, 15]], footR: [[2, 17]] } };
+    writeFileSync(join(cwd, "stagger.json"), JSON.stringify(stagger));
+    const rereads = (title: string) => ({ code: "E_ARGS", message: `${title}: at 15.300 s the planter rereads 28.400 s of its feet's holds (left 15.000 s from 0.000 s, right 13.400 s from 2.000 s), past the ${MAX_REREAD} s one call rereads at a step; cut it into clips whose feet's holds add up to under ${MAX_REREAD} s at any time (a recipe's or edit's slice), and call again` });
+    const staggered = [await on("retarget.apply", { character: "tiny", clips: ["stagger.json"] }), await on("export", { clip: "stagger.json", character: "tiny", format: "bvh" }), await on("graph.sim", { graph, script: JSON.stringify({ format: "2.0", id: "SIMS/Stand", dur: 1, input: [] }), clips: ["stagger.json"] })];
+    expect(staggered.map((r) => [r.status, r.error])).toEqual([["usage", rereads("stagger.json")], ["usage", rereads("stagger.json")], ["usage", rereads("RECIPES/Idle_20")]]);
   });
 });

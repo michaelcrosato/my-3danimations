@@ -5,7 +5,8 @@
 // hierarchy the mapping breaks, hips under half the legs; a mesh io can't read is said, but no patch clears it, so it
 // is no finding, meshIssue), and clips played on it (retarget.apply: each judged on this body as G4's sweep judges a
 // skeleton, D80, judge.ts: it passes unless the body adds a fail finding or a joint misses its point; frames of the
-// first clip the body adds a fail to; an issue inspect finds a warning, the mesh's a note; at most 600 s of clips).
+// first clip the body adds a fail to; an issue inspect finds a warning, the mesh's a note; at most 600 s of clips, no
+// foot held past MAX_HOLD, no feet's holds reread past MAX_REREAD).
 // Rows are capped with the shared more line, the character and clips are named as clips.ts names a file, and each
 // reply's next names the call after it.
 import { format, skeleton } from "@m3a/core";
@@ -13,15 +14,17 @@ import { turntable } from "@m3a/sensors";
 import { defineTool, ToolError } from "../registry/registry.ts";
 import { strip } from "../sim/film.ts";
 import { bodyOf, CHARACTER, characterName, characterOf, MAPPING, meshIssue, type MappingPatch } from "./body.ts";
-import { loadClip, naming } from "./clips.ts";
+import { given, loadClip, naming, prose } from "./clips.ts";
 import { arg, call, capped, count, cut, imageName, mm, more, output, round } from "./common.ts";
-import { onBody, type Played } from "./judge.ts";
+import { boundHolds, contactsFor, onBody, type Played } from "./judge.ts";
 
 /** The most clips retarget.apply plays in one call. */
 const MAX_CLIPS = 20;
 /** The most clip time (s) retarget.apply plays in one call: as long as one clip may last (M2-E010), 36,000 samples at
- *  the judge's 60 a second, the most steps graph.sim runs. It bounds clip time, not cost: core's planter is superlinear
- *  in a contact's length (contact/plant.ts), so a 600 s clip holding a foot down throughout may take hours. */
+ *  the judge's 60 a second, the most steps graph.sim runs. It bounds clip time; the cost is bounded by MAX_HOLD and
+ *  MAX_REREAD (judge.ts), as core's planter is superlinear in a held foot's stretch (contact/plant.ts): no clip plays a
+ *  foot held past 15 s, which takes about 2 s here, nor feet whose holds it rereads past 16 s at a step (60 s of such a
+ *  clip at that limit took 4.6 s). */
 const MAX_DUR = format.LIMITS.dur;
 /** The clip a next hint offers to play first: the library's core walk (cc0). */
 const WALK = "QUATERNIUS_3D2DGE/Walk_Loop";
@@ -46,7 +49,7 @@ export const inspect = defineTool<{ character: string; mapping?: MappingPatch },
   positionals: ["character"],
   examples: [{ args: { character: "spec/vectors/tier1b/rigify.gltf" } }],
   async run(a, ctx) {
-    const c = await characterOf(ctx, a.character, a.mapping), r = c.report, as = characterName(a.character), of = skeleton.REQUIRED_BONES.length;
+    const c = await characterOf(ctx, a.character, a.mapping), r = c.report, as = characterName(a.character), said = prose(as), of = skeleton.REQUIRED_BONES.length;
     const unsure = standing(r.issues).length > 0; // a required bone missing is one too
     const un = capped(r.unmapped, 10), is = capped(r.issues, 5), cuts = { ...(un.more ? { unmapped: un.more } : {}), ...(is.more ? { issues: is.more } : {}) };
     // a wrong mapping shows as bent limbs at rest: four sides of it, ~137 tokens
@@ -55,10 +58,10 @@ export const inspect = defineTool<{ character: string; mapping?: MappingPatch },
     const H0 = c.bound ? round(c.bound.rest.H0) : null, play = call("retarget.apply", [as], { clips: [WALK], mapping: a.mapping });
     const fill = { bones: { ...a.mapping?.bones, ...Object.fromEntries(r.missing.map((b) => [b, "<its bone>"])) } };
     return {
-      verdict: `retarget.inspect ${as}: ${count(r.bones, "bone")} ${how}, confidence ${r.confidence.toFixed(2)}, ${of - r.missing.length} of ${of} required` +
+      verdict: `retarget.inspect ${said}: ${count(r.bones, "bone")} ${how}, confidence ${r.confidence.toFixed(2)}, ${of - r.missing.length} of ${of} required` +
         `, rest ${r.rest.kind}${H0 === null ? "" : `, hip height ${mm(H0)}`}`,
       data: {
-        character: as, bones: r.bones, method: r.method, table: r.table, vrm: r.vrm, confidence: r.confidence, required: { mapped: of - r.missing.length, of }, missing: r.missing,
+        character: said, bones: r.bones, method: r.method, table: r.table, vrm: r.vrm, confidence: r.confidence, required: { mapped: of - r.missing.length, of }, missing: r.missing,
         candidates: r.candidates, unmapped: un.rows, issues: is.rows.map((i) => cut(i)), ...(un.more || is.more ? { more: cuts } : {}), rest: { kind: r.rest.kind, armDrop: round(r.rest.armDrop) }, H0, lengths: r.lengths, patch: r.patch,
       },
       lines: r.text.split("\n").slice(1).map((l) => l.replace(/^\.\.\. (\d+) more issues$/, (_, n: string) => more(Number(n), "issue")[0]!)),
@@ -72,9 +75,10 @@ export const inspect = defineTool<{ character: string; mapping?: MappingPatch },
 });
 
 /** `retarget.apply`: clips played on a bound character, each judged as the sweep judges a skeleton (D80); findings
- *  when one fails, with frames of the first the body adds a fail to as it played there. A clip that won't load, or clips
- *  lasting past MAX_DUR in all, refuse the call before any plays; an issue retarget.inspect finds against the mapping is
- *  the reply's first line, a warning, and the mesh's a note. */
+ *  when one fails, with frames of the first the body adds a fail to as it played there. A clip that won't load, clips
+ *  lasting past MAX_DUR in all, or one holding its feet past MAX_HOLD or MAX_REREAD (judge.ts) refuse the call before
+ *  any plays; an issue retarget.inspect finds against the mapping is the reply's first line, a warning, and the mesh's a
+ *  note. */
 export const apply = defineTool<{ character: string; clips: string[]; mapping?: MappingPatch }, unknown>({
   name: "retarget.apply",
   description: "Play clips on a character: each passes or fails against its own body, with joint reach and metrics made worse.",
@@ -89,13 +93,17 @@ export const apply = defineTool<{ character: string; clips: string[]; mapping?: 
     const dur = loaded.reduce((t, k) => t + k.clip.dur, 0);
     // rounded up, so the total said is past the limit too
     if (dur > MAX_DUR) throw new ToolError("E_ARGS", `clips last ${Math.ceil(dur * 10) / 10} s in all, past the ${MAX_DUR} s one call plays; give fewer or shorter clips, and call again for the rest`, true);
-    const c = await bodyOf(ctx, a.character, a.mapping), as = characterName(a.character), H0 = round(c.bound.rest.H0), see = call("retarget.inspect", [as], { mapping: a.mapping });
+    // no foot held past MAX_HOLD, nor feet's holds reread past MAX_REREAD, as each clip plays (onBody plays it with these
+    // contacts)
+    for (const k of loaded) boundHolds({ ...k.clip, contacts: contactsFor(k.clip, k.rest) }, naming(k).title);
+    const c = await bodyOf(ctx, a.character, a.mapping), as = characterName(a.character), said = prose(as), H0 = round(c.bound.rest.H0), see = call("retarget.inspect", [as], { mapping: a.mapping });
     // the first clip the body adds a fail to, as it played there (the frames the metric read), to draw
     const drawn: { p: Played; dur: number; clip: string }[] = [];
     const rows = loaded.map((k) => {
-      const seen: { p?: Played } = {}, j = onBody(k.clip, k.rest, c.bound, as, (p) => (seen.p = p));
+      const seen: { p?: Played } = {}, j = onBody(k.clip, k.rest, c.bound, said, (p) => (seen.p = p));
       if (!drawn.length && seen.p && j.worse.some((w) => w.level === "fail")) drawn.push({ p: seen.p, dur: k.clip.dur, clip: j.clip });
-      return { ...naming(k), j };
+      // where and path kept: a hint passes a clip file's path as given (given), not the name naming quoted for a shell
+      return { ...naming(k), where: k.where, path: k.path, j };
     }), failed = rows.filter((x) => !x.j.ok), stand = standing(c.report.issues), mesh = c.report.issues.filter(meshIssue);
     for (const { p, dur, clip } of drawn) {
       const n = p.frames.length, at = [...new Set(Array.from({ length: 8 }, (_, i) => Math.round((i * (n - 1)) / 7)))];
@@ -111,14 +119,14 @@ export const apply = defineTool<{ character: string; clips: string[]; mapping?: 
     // a joint off its point, or a play that threw: the body's bones, not the clip
     const off = failed.filter((x) => x.j.why.some((w) => /^a joint |^the solve |^threw: /.test(w)));
     return {
-      verdict: `retarget.apply ${as}: ${rows.length - failed.length} of ${count(rows.length, "clip")} ${rows.length - failed.length === 1 ? "passes" : "pass"} on it (hip height ${mm(H0)})`,
+      verdict: `retarget.apply ${said}: ${rows.length - failed.length} of ${count(rows.length, "clip")} ${rows.length - failed.length === 1 ? "passes" : "pass"} on it (hip height ${mm(H0)})`,
       data: {
-        character: as, H0, mapped: a.mapping ? "patched" : c.report.vrm ? "humanoid" : c.report.method, passed: rows.length - failed.length, failed: failed.length,
+        character: said, H0, mapped: a.mapping ? "patched" : c.report.vrm ? "humanoid" : c.report.method, passed: rows.length - failed.length, failed: failed.length,
         clips: rows.map(({ j }) => {
           const why = capped(j.why, 2), worse = capped(j.worse, 3), cuts = { ...(why.more ? { why: why.more } : {}), ...(worse.more ? { worse: worse.more } : {}) };
           return {
             clip: j.clip, ok: j.ok, own: j.own, played: j.played, reach: round(j.reach), why: why.rows.map((w) => cut(w)),
-            worse: worse.rows.map((w) => ({ metric: w.metric, level: w.level, own: round(w.own, 1), played: round(w.played, 1) })), ...(why.more || worse.more ? { more: cuts } : {}),
+            worse: worse.rows.map((w) => ({ metric: w.metric, level: w.level, own: w.own === null ? null : round(w.own, 1), played: w.played === null ? null : round(w.played, 1) })), ...(why.more || worse.more ? { more: cuts } : {}),
           };
         }),
       },
@@ -128,7 +136,7 @@ export const apply = defineTool<{ character: string; clips: string[]; mapping?: 
         ? `a joint missed its point, or the play threw, on ${some(off)}: the mapping is likely wrong there; ${see} shows it`
         : failed.length && stand.length ? `${some(failed)} ${failed.length === 1 ? "fails" : "fail"} while retarget.inspect's issue stands: fix the mapping first; ${see} shows it`
         : failed.length ? `this body takes ${some(failed)} past a fail level its own body doesn't (D80): ${call("search", [arg(failed[0]!.j.clip.split("/").pop()!.replace(/_/g, " "))])} finds others like it`
-        : `they play on it; ${call("license.check", [], { clips: rows.map((x) => x.as) })} checks the game may ship them`,
+        : `they play on it; ${call("license.check", [], { clips: rows.map((x) => given(x.as, x.where === "file" ? x.path! : x.as)) })} checks the game may ship them`,
     };
   },
 });

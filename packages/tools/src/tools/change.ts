@@ -2,14 +2,14 @@
 // it with recipe steps compiled by @m3a/core, and undoes and redoes. Both write a WORKSHOP copy (never the library),
 // revisioned (if_revision), retry-safe (request_id, through the registry's store and the history's last request) and
 // sharing one history (workshop.ts). An edit in place recompiles the recipe since the copy from the library clip, so
-// chained edits don't pile up the key fit's error; a slice, a chain past 32 steps, or a library clip changed since the
-// copy compiles from the file as it is.
+// chained edits don't pile up the key fit's error; a slice, a chain past 32 steps or past what one call compiles
+// (clips.ts bounded), or a library clip changed since the copy compiles from the file as it is.
 import { parseClip, recipe, serialize, VERSION, type Clip, type Rest } from "@m3a/core";
 import { LibraryError, tagConflicts, withFacts, type ClipFacts } from "@m3a/library";
 import { fix as repair, fixes, metrics, type Report } from "@m3a/sensors";
 import { defineTool, ToolError, type ToolContext, type ToolOutput } from "../registry/registry.ts";
 import { didYouMean, quote, type Schema } from "../registry/schema.ts";
-import { bounded, flagTier, fromText, loadClip, naming, type ClipRef } from "./clips.ts";
+import { bounded, flagTier, fromText, loadClip, MAX_FIT_SAMPLES, naming, type Asked, type ClipRef } from "./clips.ts";
 import { ARROW, call, capped, CLIP, count, cut, more, output, sec } from "./common.ts";
 import { applied, back, commit, mayCopy, readTarget, replay, targetName, targetRevision, WORKSHOP, type Entry, type History, type Target } from "./workshop.ts";
 
@@ -20,6 +20,14 @@ const OWN: Readonly<Record<string, readonly string[]>> = { slice: ["from", "to",
 const OPS = [...Object.keys(OWN), ...Object.keys(recipe.OPS).filter((k) => recipe.OPS[k]!.reads.join() === "in")];
 /** The most steps an in-place edit's recipe chain keeps; an edit past it compiles from the file as it is. */
 const CHAIN = 32;
+/** How bounded's refusals name an edit compiled from its clip as it is: the clip and the call's ops, which its caller
+ *  changes (an edit's recipe has no fps: 30 a second), and a slice as its first op to make the clip shorter. */
+const asked = (ops: number): Asked => ({
+  all: () => `the clip and the edit's ${count(ops, "op")}`,
+  fewer: "use fewer ops, or apply them in more than one edit",
+  lower: "",
+  shorter: `slice it first (ops[0] {"op": "slice", "from": 0, "to": ${MAX_FIT_SAMPLES / 30}} keeps its first ${MAX_FIT_SAMPLES / 30} s), or retime it less slowly`,
+});
 
 /** A clip as a reply sums it up: dur, keys, first strike, the sensors' verdict and findings. */
 const summary = (c: Clip, m: Report) => ({ dur: c.dur, keys: c.keys.length, strike: (c.facts?.strike as number[] | undefined)?.[0] ?? null, verdict: m.verdict, findings: m.findings.length });
@@ -156,30 +164,46 @@ export const edit = defineTool<{ clip: string; ops?: Record<string, unknown>[]; 
     // (visible, and the content its provenance names) and the chain stays within CHAIN steps; a slice cuts the clip as
     // it is now, so it compiles from the file
     const input = (ref.clip.provenance as { recipe?: { inputs: Record<string, string> } }).recipe?.inputs[h?.from ?? ""];
-    const chain = here && h?.recipe && input !== undefined && lib(h.from)?.contentId === input && ops[0]!.op !== "slice" && h.recipe.steps.length + ops.length <= CHAIN ? h.recipe : null;
-    const r: recipe.Recipe = chain ? structuredClone(chain) : { format: "2.0", id: t.id, steps: [{ op: "clip", id: ref.id }] }, at: number[] = [];
-    for (const [i, { op, ...f }] of ops.entries()) {
-      if (typeof op !== "string" || !OPS.includes(op)) {
-        const composes = typeof op === "string" && Object.hasOwn(recipe.OPS, op), near = typeof op === "string" && !composes ? didYouMean(op, OPS) : "";
-        const why = composes ? `${op} names or composes clips (a recipe's job); edit changes one` : op === undefined ? "missing" : `no operation ${quote(op)}`;
-        throw new ToolError("E_ARGS", `ops[${i}].op: ${why}${near || `; one of ${OPS.join(", ")}`}`, true);
+    const kept = here && h?.recipe && input !== undefined && lib(h.from)?.contentId === input && ops[0]!.op !== "slice" && h.recipe.steps.length + ops.length <= CHAIN ? h.recipe : null;
+    // the ops onto that chain, or onto the clip as it is (a recipe of its one clip step); `at` gives each op's step
+    const onto = (base: recipe.Recipe | null) => {
+      const r: recipe.Recipe = base ? structuredClone(base) : { format: "2.0", id: t.id, steps: [{ op: "clip", id: ref.id }] }, at: number[] = [];
+      for (const [i, { op, ...f }] of ops.entries()) {
+        if (typeof op !== "string" || !OPS.includes(op)) {
+          const composes = typeof op === "string" && Object.hasOwn(recipe.OPS, op), near = typeof op === "string" && !composes ? didYouMean(op, OPS) : "";
+          const why = composes ? `${op} names or composes clips (a recipe's job); edit changes one` : op === undefined ? "missing" : `no operation ${quote(op)}`;
+          throw new ToolError("E_ARGS", `ops[${i}].op: ${why}${near || `; one of ${OPS.join(", ")}`}`, true);
+        }
+        const own = Object.hasOwn(OWN, op) ? OWN[op]! : undefined, odd = own && Object.keys(f).find((k) => !own.includes(k));
+        const wrong = odd
+          ? `${op} has no field ${quote(odd)}${didYouMean(odd, own!)}`
+          : op === "slice" && i > 0
+            ? "slice comes first"
+            : !own && ("in" in f || "as" in f)
+              ? "leave out in and as: each step reads the one before"
+              : null;
+        if (wrong) throw new ToolError("E_ARGS", `ops[${i}]: ${wrong}`, true);
+        if (own) {
+          Object.assign(op === "meta" ? r : r.steps[0]!, f);
+          at[op === "meta" ? 0 : 1] = i; // where() reads the recipe's own fields as step 0, the clip step as 1
+        } else at[r.steps.push({ ...f, op, in: `s${r.steps.length}` })] = i;
       }
-      const own = Object.hasOwn(OWN, op) ? OWN[op]! : undefined, odd = own && Object.keys(f).find((k) => !own.includes(k));
-      const wrong = odd
-        ? `${op} has no field ${quote(odd)}${didYouMean(odd, own!)}`
-        : op === "slice" && i > 0
-          ? "slice comes first"
-          : !own && ("in" in f || "as" in f)
-            ? "leave out in and as: each step reads the one before"
-            : null;
-      if (wrong) throw new ToolError("E_ARGS", `ops[${i}]: ${wrong}`, true);
-      if (own) {
-        Object.assign(op === "meta" ? r : r.steps[0]!, f);
-        at[op === "meta" ? 0 : 1] = i; // where() reads the recipe's own fields as step 0, the clip step as 1
-      } else at[r.steps.push({ ...f, op, in: `s${r.steps.length}` })] = i;
-    }
+      return { r, at };
+    };
     const mine = ref.where === "library" ? undefined : { clip: ref.clip, rest: ref.rest, contentId: recipe.sha256(ref.text!) };
-    bounded(r, (id) => (mine && id === ref.id ? mine.clip : lib(id)?.clip), (s) => (at[s] === undefined ? `step ${s}` : `ops[${at[s]}]`));
+    const clipOf = (id: string) => (mine && id === ref.id ? mine.clip : lib(id)?.clip), where = (at: number[]) => (s: number) => (at[s] === undefined ? `step ${s}` : `ops[${at[s]}]`);
+    // the chain is kept only while it stays within what one call compiles (bounded), as within CHAIN: past that, the
+    // clip as it is takes the ops, and only those can be refused, named as the call's own
+    let chain = kept, { r, at } = onto(chain);
+    if (chain) {
+      try {
+        bounded(r, clipOf, where(at));
+      } catch (err) {
+        if (!(err instanceof ToolError)) throw err;
+        [chain, { r, at }] = [null, onto(null)];
+      }
+    }
+    if (!chain) bounded(r, clipOf, where(at), asked(ops.length));
     let made: recipe.Compiled;
     try {
       made = recipe.compile(r, Object.assign((id: string) => (mine && id === ref.id ? mine : lib(id)), { ids: lib.ids }));
