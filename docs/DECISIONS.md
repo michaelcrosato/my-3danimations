@@ -3908,6 +3908,48 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
 - **Answered:** no: the default taken after the escalation's 15 minutes, to review.
 - **Landed in:** v0.50.0 (WP-7.4's version)
 
+## D100 · 2026-10-17 · WP-7.3: the manual, its test and tool list, the skills, llms.txt, .mcp.json and the runner's wiring
+
+- **Principle:** 2, 3, 9, D77, D91, D96 (K8) (WP-7.3)
+- **Call:**
+  - **The manual** (`packages/tools/MANUAL.md`, 7,998 of 8,000 tokens): the mental model; one complete example (a
+    knight that walks, slashes with a hit event and staggers its target), unlike the B1 to B3 known-goods in clips,
+    structure and wording (D77, checked by the reviews); the API by job (find, fit, wire, make, check, ship); the 20
+    tools as `m3a` and MCP calls in a list generated from the registry between markers and checked so it can't drift
+    (`tools/manual/toollist.ts`); D91's reads past the manual folded in (layer weights and masks, contactRoot's
+    return, three's attach, the pose step's arm fields, simulate()'s result); K8's E_TIER; the import catalog; the
+    rules and common mistakes.
+  - **Every code block runs** (`packages/tools/test/manual.test.ts`, `npm test -- manual`): the ts blocks type-check
+    and run as one program, JSON blocks are checked as what they are, `m3a` calls run and inline ones parse with their
+    flags, the `.mcp.json` block names the published bin.
+  - **The skills:** `skills/m3a/SKILL.md` (agentskills.io: name, a description under 1,024 characters, the five
+    commands, where an installed package keeps the manual) and this repository's `.claude/skills/m3a/SKILL.md` (the
+    CLI run from source, so a fresh `npm ci` never sends `npx m3a` to the registry); `llms.txt`; `.mcp.json`; a test
+    of their format, commands and paths (`tools/skill/skill.test.ts`).
+  - **The runner** (a crossing into WP-4.7's `bench/runner`): each trial gets the skill as real files, the `Skill` tool,
+    `--setting-sources project` and an `--mcp-config` running the packed `m3a mcp` (the CLI's own bundled skills off);
+    a trial whose init event shows the server not connected fails; reading the shipped skill or `llms.txt` isn't past
+    the manual.
+  - **No example gives a bench job away:** the registry's examples for edit, film, diff and describe no longer name a
+    brief's clips or edits (they reach every trial through MCP's tools/list).
+  - **The Verify:** `npm run doctrine` and `npm test -- manual` pass. B5 5 of 5. B1 1 of 5 with the first rewrite: it
+    dropped the old manual's speed matching (play a loop at `(v * 1000) / own`, move by `player.travel`), and three
+    agents shipped `MESH2MOTION/Run_Female`, whose own speed reads 0 because the library holds no foot contacts for
+    it. Restored (2cfb004), B1 3 of 5: one agent still shipped Run_Female, one slid at a fade. **B1's 4 of 5 is a
+    deferred proof, to G7**, after the library fix the next session makes first: 30 loops have no detected contacts,
+    among them CC0's Run_Female, Run_Anime and Run_Stealth. K2 (B1 under 3 of 5 after the second revision) did not
+    fire.
+  - **Reviews:** two rounds a lane, then a close-out round. Blocking findings fixed: the repository skill's `npx m3a`
+    reaching the registry; should-fixes: the registry examples above, the example's loop snapping a blend parameter
+    (it pops; the loop eases it now, as its script does).
+  - **Crossings:** `bench/runner/{agent,workspace,main}.ts` and their tests; the registry examples in
+    `packages/tools/src/tools/{change,check,find}.ts`; `tools/skill/`, `tools/manual/`.
+  - **Size:** about 1,500 lines (the test and the skills' test most of it), past M's 1,200.
+- **Why:** the manual is where an agent starts (§7); what it says must run, and what it leaves out must not trip the
+  briefs.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.49.0
+
 ## D101 · 2026-10-17 · WP-7.4: the packs, the single file and `npm run pack -- --check`; nothing published
 
 - **Principle:** 2, 6, 7, D10, D59, D99 (WP-7.4, O2)
@@ -3965,3 +4007,19 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
 - **Why:** a slow T1 is fixed by removing cost, never coverage.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.49.0
+
+## D103 · 2026-10-17 · Phase 7's pull request merged before G7, at the owner's request
+
+- **Principle:** §8.5 (a gate merges its phase), process
+- **Call:**
+  - On 2026-10-17 the owner asked to finish the active work packages (WP-7.3, WP-7.4), start no new one, prepare the
+    repository for a handoff and merge. michaelcrosato/my-3danimations#13 is squash-merged with CI green, holding
+    WP-7.1 to WP-7.4, G7's command set (D98) and its held-out run 1 (checked, unused). G7 itself has not run.
+  - **So `main` holds Phase 7's packages without its gate.** The next session opens a fresh draft pull request for
+    G7 (and Phase 7's remaining fix: the library's 30 contact-less loops, D100), runs `npm run gate -- G7` there, and
+    merges it as G7's.
+  - The merge is made by the session under the owner's GitHub login, as the request asked; no review was approved.
+- **Why:** the owner's call; §8.5's rule (main holds the last gate that passed) bends once, recorded here.
+- **Answered:** yes: the owner's request, 2026-10-17.
+- **Landed in:** michaelcrosato/my-3danimations#13
+

@@ -1897,8 +1897,10 @@ WP-7.2 is split in two, each an L (D93): its tools, their host and the writers t
 #### WP-7.3 The manual and the skill
 - **Owns:** `packages/tools/MANUAL.md`, `.claude/skills/m3a/SKILL.md`, `skills/m3a/` (agentskills.io-compatible),
   `llms.txt`
+- **Also touches** (logged crossings, D100): `packages/tools/test/manual.test.ts`, `tools/manual/`, `tools/skill/`,
+  `.mcp.json`, the runner's wiring in `bench/runner/`, the registry's examples in `packages/tools/src/tools/`
 - **Needs:** 7.2b
-- **Size:** M
+- **Size:** M (it came to about 1,500 lines, past M, mostly its tests: D100)
 - **Build:**
   - **The manual** (at most 8,000 tokens):
     - the mental model;
@@ -2319,7 +2321,7 @@ version, commit, date and a note with the numbers. Gates are rows too.
 | 7.1 The tool registry | done | 0.46.0 | 8ee7cb3, a3921f9, 4ae8505, 31a3567, 61b251b | 2026-10-16 | `npm test -- registry` (39 tests) and `npm run e2e -- mcp-smoke` (the MCP Inspector 2.9.0's `tools/list --strict` and `tools/call` on every example, the console handle in Chromium): one `defineTool`, four surfaces (the API, `m3a`, MCP stdio at 2026-07-28 and the legacy handshake, `__M3A_TOOLS__`), one reply `m3a.reply/1`; a parity test on every example, a failing one included; unknown names refused with the closest; request_id kept per tool, an applied edit never twice, the CLI refusing it until 7.2a's durable store; four verifier rounds, 44 targeted mutants killed; 1,323 lines, past M (D92) |
 | 7.2a The tools: find, check, change, ship | done | 0.47.0 | the lanes a0, find, check, change and a-fix (merges e32c159, daefab3, ce649e8, 294f0eb, 55ccf65) | 2026-10-16 | `npm test -- packages/tools` (193 tests with io and library; T1 829+): 11 tools and version and validate, each example the same on the API, `m3a`, MCP and the console and a failing-input test; 1,763 of 1,900 tokens (edit 222 the largest); the durable store (a retried edit applies once across two processes, in one MCP server, after a crash), concurrent edits locked (E_CONFLICT, never lost), undo and redo byte-exact, an outside edit resetting every tool's history; writes only under workshop/, .m3a/, imports/, check-output/; every lane reviewed up to three rounds, the WP verified on two lenses (two blocking findings fixed, D95); about 3,688 lines, past L (D95) |
 | 7.2b The tools: retarget, compose, exchange | done | 0.48.0 | lanes b0, retarget, compose, exchange (3f8cf6c, 89a9e55, 7df2f63, 0d45a6f), rounds 2-3 (9c6af0b, bb43fa6, 68a6bae), the verifier's lanes (07fef25, 071cbc1, and lane 1's merge), (this commit) | 2026-10-17 | `npm test -- packages/tools packages/io packages/library tools/sweep && npm run doctrine`: 7 tools (20 in all, within 3,000 tokens) on four surfaces, each with failing inputs; VRMA byte for byte, .glb and BVH within 1 mm; an imported set local and refused for shipping; the sweep's rows pinned (b4f51cf5d8276a36, before and after the judge moved); rigify's mapping as expected. Two-lens verifier, three fix lanes, each re-reviewed until sound (D96); T1 77.8 s (923 tests), T2 131 s. ~4,950 lines, past L |
-| 7.3 The manual and the skill | todo | | | | |
+| 7.3 The manual and the skill | done | 0.49.0 | de005f4, 6ef97e2, 5254594, 4a40f8a, 79c6b5b, c51072b, 0b99f56, 2cfb004, (this commit) | 2026-10-17 | `npm run doctrine && npm test -- manual` pass: the manual 7,998 of 8,000 tokens, every block run, its tool list generated and checked; skills, llms.txt, .mcp.json, the runner's wiring. `npm run bench -- B1,B5 --trials 5`: B5 5/5; B1 1/5, then 3/5 after the speed fix (*deferred proof: G7*, after the library's 30 contact-less loops are fixed, D100); K2 not fired |
 | 7.4 Packaging | todo | | | | |
 | **G7 = M2** | todo | | | | |
 | 8.1 The gallery | todo | | | | |

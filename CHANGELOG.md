@@ -4,6 +4,23 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.49.0 · 2026-10-17
+
+### Tools
+- The manual (WP-7.3, D100): one complete example (a knight that walks, slashes with a hit event and staggers its
+  target), the API by job, the 20 tools as `m3a` and MCP calls in a list generated from the registry, the reads G6's
+  agents made past it, matching a loop's speed and moving by `player.travel`, the import catalog; every code block runs
+  in `npm test -- manual`. Within 8,000 tokens.
+- The registry's examples for edit, film, diff and describe name clips no benchmark brief asks for.
+
+### Docs
+- `skills/m3a/SKILL.md` (agentskills.io) and this repository's `.claude/skills/m3a/SKILL.md`; `llms.txt`; `.mcp.json`.
+
+### Repo
+- Benchmark trials get the skill, the `Skill` tool and the packed `m3a mcp` server; a trial whose server didn't
+  connect fails; the shipped skill and `llms.txt` count as the manual.
+- T1 shares identical work in its eight slowest files (89.8 s to about 78 s here), every test and assertion kept (D102).
+
 ## 0.48.0 · 2026-10-17
 
 ### Tools
