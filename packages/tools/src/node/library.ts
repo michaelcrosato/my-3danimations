@@ -44,8 +44,9 @@ export function gameTiers(cwd: string): Tier[] {
 }
 
 /** One opened library per directory and tiers (and working directory, when it has imported sets), the stamp of the
- *  imported sets it holds, and the call its warnings go to while one of its methods runs; the least lately used first. */
-const opened = new Map<string, { lib: Library; stamp: string; to: { warnings?: string[] } }>();
+ *  imported sets it holds, the warnings opening it raised (an opted-in tier whose pack isn't installed), which every
+ *  call it serves repeats, and the call its warnings go to while one of its methods runs; the least lately used first. */
+const opened = new Map<string, { lib: Library; stamp: string; built: string[]; to: { warnings?: string[] } }>();
 /** The most libraries the host keeps open: each working directory with imported sets opens its own. */
 export const MAX_OPEN = 8;
 /** How many libraries the host has opened, each verifying its sets the first time it is used (one dropped opens again). */
@@ -138,13 +139,14 @@ export function libraryAccess(cwd: string, tiers?: readonly Tier[], dir: string 
   let o = opened.get(key);
   if (o?.stamp !== stamp) {
     // opened again when an imported set's manifest or catalog changed (the lock, beside the default sets, has none)
-    const to: { warnings?: string[] } = {};
-    o = { lib: openLibrary({ dir, source, tiers: want, warn: (m) => to.warnings?.push(m) }), stamp, to };
+    const built: string[] = [], to: { warnings?: string[] } = { warnings: built };
+    o = { lib: openLibrary({ dir, source, tiers: want, warn: (m) => to.warnings?.push(m) }), stamp, built, to };
+    to.warnings = undefined;
     opens++;
   }
   opened.delete(key);
   opened.set(key, o);
   if (opened.size > MAX_OPEN) opened.delete(opened.keys().next().value!);
-  const warnings: string[] = [...left];
+  const warnings: string[] = [...left, ...o.built];
   return { library: routed(o.lib, warnings, o.to), source, licenseText: licenseText(dir), tiers: want, warnings };
 }
