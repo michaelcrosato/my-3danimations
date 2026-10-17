@@ -1919,8 +1919,10 @@ WP-7.2 is split in two, each an L (D93): its tools, their host and the writers t
 
 #### WP-7.4 Packaging
 - **Owns:** packaging fields in `packages/*/package.json`, `tools/bundle/*`
+- **Also touches** (logged crossings, D101): `@m3a/library`'s loader (installed opt-in packs), the tools' missing-pack
+  warning, `bench/runner/pack.ts`, `package-lock.json`'s bin
 - **Needs:** 7.3
-- **Size:** M
+- **Size:** M (it came to about 1,720 lines, past M: D101)
 - **Carry:** from riftlight: `scripts/bundle.mjs`, which builds one self-contained ES module, `pixel-engine.js`.
 - **Build:**
   - ESM builds with types for every package.
@@ -2322,7 +2324,7 @@ version, commit, date and a note with the numbers. Gates are rows too.
 | 7.2a The tools: find, check, change, ship | done | 0.47.0 | the lanes a0, find, check, change and a-fix (merges e32c159, daefab3, ce649e8, 294f0eb, 55ccf65) | 2026-10-16 | `npm test -- packages/tools` (193 tests with io and library; T1 829+): 11 tools and version and validate, each example the same on the API, `m3a`, MCP and the console and a failing-input test; 1,763 of 1,900 tokens (edit 222 the largest); the durable store (a retried edit applies once across two processes, in one MCP server, after a crash), concurrent edits locked (E_CONFLICT, never lost), undo and redo byte-exact, an outside edit resetting every tool's history; writes only under workshop/, .m3a/, imports/, check-output/; every lane reviewed up to three rounds, the WP verified on two lenses (two blocking findings fixed, D95); about 3,688 lines, past L (D95) |
 | 7.2b The tools: retarget, compose, exchange | done | 0.48.0 | lanes b0, retarget, compose, exchange (3f8cf6c, 89a9e55, 7df2f63, 0d45a6f), rounds 2-3 (9c6af0b, bb43fa6, 68a6bae), the verifier's lanes (07fef25, 071cbc1, and lane 1's merge), (this commit) | 2026-10-17 | `npm test -- packages/tools packages/io packages/library tools/sweep && npm run doctrine`: 7 tools (20 in all, within 3,000 tokens) on four surfaces, each with failing inputs; VRMA byte for byte, .glb and BVH within 1 mm; an imported set local and refused for shipping; the sweep's rows pinned (b4f51cf5d8276a36, before and after the judge moved); rigify's mapping as expected. Two-lens verifier, three fix lanes, each re-reviewed until sound (D96); T1 77.8 s (923 tests), T2 131 s. ~4,950 lines, past L |
 | 7.3 The manual and the skill | done | 0.49.0 | de005f4, 6ef97e2, 5254594, 4a40f8a, 79c6b5b, c51072b, 0b99f56, 2cfb004, (this commit) | 2026-10-17 | `npm run doctrine && npm test -- manual` pass: the manual 7,998 of 8,000 tokens, every block run, its tool list generated and checked; skills, llms.txt, .mcp.json, the runner's wiring. `npm run bench -- B1,B5 --trials 5`: B5 5/5; B1 1/5, then 3/5 after the speed fix (*deferred proof: G7*, after the library's 30 contact-less loops are fixed, D100); K2 not fired |
-| 7.4 Packaging | todo | | | | |
+| 7.4 Packaging | done | 0.50.0 | 909c4f9, 50fbcc1, b66bfad, a8c0c74, 9573f90, 7ccb915, c0b5d72, a4eae5f, 8800bfa, 1df7072, dadac3a, (this commit) | 2026-10-17 | `npm run pack -- --check && npm run license -- check tools/bundle/manifest.json`: PASS in 17.7 s: a scratch install runs the manual's complete example, `npx m3a` (20 tools) and `m3a mcp`; m3a.js (1.16 MB, 47 CC0 clips, credits and texts) runs it headless; every bundled clip passes or is baselined; the default pack cc0 only, opt-in packs found; nothing published (D99). Four review rounds |
 | **G7 = M2** | todo | | | | |
 | 8.1 The gallery | todo | | | | |
 | 8.2 The review queue | todo | | | | |

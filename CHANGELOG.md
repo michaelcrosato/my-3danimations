@@ -4,6 +4,23 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.50.0 · 2026-10-17
+
+### Repo
+- `npm run pack [-- --check]` (WP-7.4, D101): every `@m3a` package built as ES modules with declarations and packed
+  (the workspace's bin runs the source, the packed one `dist/node.js`); a scratch project installs the tarballs and runs
+  the manual's complete example, `npx m3a` and `m3a mcp`; nothing is published (D99), every package stays private.
+- `m3a.js`, one self-contained ES module with 47 CC0 clips (`tools/bundle/manifest.json`), the credits block and the
+  license texts; it runs the manual's complete example headless (no three.js).
+- The benchmark packs through `tools/bundle`.
+
+### Library
+- The default `@m3a/library` pack holds the cc0 sets; `@m3a/library-cc-by` and `@m3a/library-cmu` are opt-in packs
+  that `openLibrary` finds when installed (D10).
+
+### Tools
+- Every reply warns when a game opts into a tier whose pack isn't installed.
+
 ## 0.49.0 · 2026-10-17
 
 ### Tools
