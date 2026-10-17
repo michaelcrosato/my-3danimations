@@ -1,6 +1,7 @@
 // A fresh agent on a benchmark workspace (PLAN.md §7, WP-4.7). Isolation level 1: the `claude` CLI in print mode,
 // started in the workspace with a clean environment (the proxy and its certificates, nothing of this session's: no
-// tokens, no repository) and a fresh home (no settings, skills or memory), its tools limited to files and a shell.
+// tokens, no repository) and a fresh home (no settings, skills or memory), its tools limited to files and a shell, plus
+// m3a's Skill tool, skill and MCP server (see below).
 // Where the machine allows a mount namespace (`unshare`), each agent gets a /tmp of its own, holding only its workspace
 // and home, and every checkout of the repository (each worktree, with the graders, the known-good solutions and the
 // held-out originals), its git directory and this session's Claude home are hidden from it, and the CLI's account file
@@ -21,10 +22,21 @@
 // Where the machine refuses the switch, the agent runs as the runner (root), and where it refuses `setpriv`, with its
 // capabilities too; each trial records which (`capsDropped`, `uid`, `unprivileged`), and the audit below lists any
 // path outside.
+// m3a's wiring (WP-7.3): besides files and a shell, the agent gets the Skill tool and the skill its workspace holds
+// (.claude/skills/m3a/, copied there by workspace.ts, read as a project setting: `--setting-sources project`), and m3a's
+// MCP server from the package installed in its workspace (`--mcp-config`, `M3A_MCP`, its tools allowed; still no server
+// but that one, `--strict-mcp-config`). A dead server is otherwise silent (the agent works on without its tools), so the
+// stream's init event is read as it comes: where it shows the server not "connected" or the skill not loaded, the agent
+// is stopped there (in a PID namespace, its first process killed, which ends the namespace) and the run fails, saying
+// why (`unwired`; main.ts fails the trial), as a stream with no init event does. Only an explicit option turns the
+// wiring off (`m3a: false`: the legend quiz, whose workspace installs nothing). The Skill tool would also offer the
+// CLI's own skills (claude 2.1.302 listed 18 past m3a's, each in the agent's prompt, which G6's agents never had, D91),
+// so `--settings` turns them off (`ONLY_M3A`), and each run records the init event's whole list (`Wiring.skills`): one a
+// later CLI adds shows there.
 // The transcript (stream-json) is kept; the run records its time, tokens, cost and turns, and the audit lists every
 // path it touched outside the workspace (and its own /tmp's, /var/tmp's and /dev/shm's scratch files apart) and every
-// file it read past the manual (the packages' code in node_modules), a shell command's relative paths resolved as its
-// shell would (D88).
+// file it read past the manual (the packages' code in node_modules; the manual and the skill and llms.txt that point at
+// it aren't, where a package will ship them), a shell command's relative paths resolved as its shell would (D88).
 // The audit's known limits (D88, D91):
 // - over-reports: a grep pattern or a here-string naming a package path counts as a read; so does a path in a script
 //   a command runs as it is given (`node -e`, a heredoc fed to `node` or `python3`), whether or not the script reads it;
@@ -40,7 +52,7 @@
 //   line it wrote, and replaced it before running anything); relative paths in such a file are taken only as `./` or
 //   `../` strings, from its directory, and only when they exist.
 import { execFileSync, spawn } from "node:child_process";
-import { copyFileSync, existsSync, lchownSync, lstatSync, mkdirSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import { copyFileSync, existsSync, lchownSync, lstatSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, isAbsolute, join, normalize, resolve } from "node:path";
 
@@ -72,6 +84,11 @@ export interface AgentRun {
   scratch: string[];
   /** Files it read inside the workspace past the manual and the starter: the packages' own code and data. */
   pastManual: string[];
+  /** m3a's wiring as the stream's init event showed it, where the agent had it (WP-7.3): null with no init event. */
+  m3a?: Wiring | null;
+  /** Why m3a's wiring failed, where it did (the agent stopped at the init event that showed it, or none came): its trial
+   *  fails (main.ts). */
+  unwired?: string;
   transcript: string;
   /** Its last message's text. */
   reply: string;
@@ -82,8 +99,67 @@ export interface AgentOptions {
   model?: string;
   maxTurns?: number;
   timeoutMs?: number;
-  /** The tools it may use. */
+  /** The built-in tools it may use (files and a shell by default; the Skill tool is added with m3a's wiring). */
   tools?: string;
+  /** m3a's wiring (WP-7.3): the Skill tool and the workspace's skill, m3a's MCP server from the installed package, and a
+   *  run that fails when the init event shows either missing. On by default; off only for a workspace with no package
+   *  installed (the legend quiz). */
+  m3a?: boolean;
+}
+
+/** The MCP server a trial's agent gets: m3a's, from the package installed in its workspace, started there (WP-7.3). */
+export const M3A_MCP = { mcpServers: { m3a: { command: "node", args: ["node_modules/@m3a/tools/dist/node.js", "mcp"] } } } as const;
+/** The built-in tools an agent gets by default: files and a shell. */
+const TOOLS = "Bash,Read,Write,Edit,Glob,Grep";
+/** The settings (`--settings`) that leave m3a's the only skill an agent is offered: the CLI's bundled skills off
+ *  (`disableBundledSkills`, which leaves a workspace's .claude/skills/ alone) and the three claude 2.1.302 lists past
+ *  them turned off by name (checked on its init event, 2026-10-17). */
+export const ONLY_M3A = { disableBundledSkills: true, skillOverrides: { design: "off", doctor: "off", "plugin-authoring": "off" } } as const;
+
+/**
+ * The `claude` arguments for an agent on `prompt`: print mode with a stream-json transcript, its turns, its built-in tools
+ * (`opts.tools`) and only those allowed, settings from its workspace alone (`--setting-sources project`: its home is
+ * fresh anyway) and the CLI's own skills off (`ONLY_M3A`), and no MCP server but those given (`--strict-mcp-config`).
+ * With m3a's wiring (`opts.m3a`, on by default) the Skill tool too, and m3a's MCP server (`M3A_MCP`) with its tools
+ * allowed (`mcp__m3a__*`).
+ */
+export function agentArgs(prompt: string, opts: AgentOptions = {}): string[] {
+  const m3a = opts.m3a ?? true, own = opts.tools ?? TOOLS, tools = m3a ? [own, "Skill"].filter(Boolean).join(",") : own;
+  return [
+    "-p", prompt, "--output-format", "stream-json", "--verbose", "--max-turns", String(opts.maxTurns ?? 80),
+    "--tools", tools, "--allowedTools", m3a ? `${tools},mcp__m3a__*` : tools, "--setting-sources", "project", "--settings", JSON.stringify(ONLY_M3A),
+    ...(m3a ? ["--mcp-config", JSON.stringify(M3A_MCP)] : []), "--strict-mcp-config", ...(opts.model ? ["--model", opts.model] : []),
+  ];
+}
+
+/** m3a's wiring as a stream's init event shows it: its MCP server's status ("connected", "failed", "pending", ...; null
+ *  where the event doesn't list the server), whether the skill was loaded, and every skill the event lists (WP-7.3). */
+export interface Wiring {
+  server: string | null;
+  skill: boolean;
+  /** The init event's whole list of skills, each offered in the agent's prompt: m3a's alone, unless a CLI lists one
+   *  `ONLY_M3A` doesn't turn off. */
+  skills: string[];
+}
+/** m3a's wiring as the first init event in a stream-json transcript's lines shows it; null where there is none yet. */
+export function wiringOf(lines: readonly string[]): Wiring | null {
+  for (const line of lines) {
+    let j: { type?: string; subtype?: string; mcp_servers?: { name?: string; status?: string }[]; skills?: string[] };
+    try {
+      j = JSON.parse(line);
+    } catch {
+      continue;
+    }
+    if (j.type === "system" && j.subtype === "init") return { server: j.mcp_servers?.find((m) => m.name === "m3a")?.status ?? null, skill: j.skills?.includes("m3a") ?? false, skills: j.skills ?? [] };
+  }
+  return null;
+}
+/** Why m3a's wiring failed, or null where it held: its MCP server not connected (a dead server is otherwise silent), the
+ *  skill not loaded, or no init event to show either. */
+export function unwired(w: Wiring | null): string | null {
+  if (!w) return "m3a's wiring went unchecked: the stream had no init event";
+  const why = [...(w.server === "connected" ? [] : [`its MCP server is ${w.server ?? "missing"}, not connected`]), ...(w.skill ? [] : ["its skill isn't loaded"])];
+  return why.length ? `m3a's wiring failed: ${why.join("; ")} (the init event's mcp_servers and skills)` : null;
 }
 
 /** The variables a trial keeps from this process: the network's proxy and certificates, a PATH; nothing else. */
@@ -138,6 +214,11 @@ export interface Where {
   cwd: string;
   exists?: (path: string) => boolean;
 }
+/** What an agent may read in its installed packages without reading past the manual: the manual, and the skill and
+ *  llms.txt that point at it wherever a package will ship them (WP-7.3; no tarball holds them until WP-7.4 packs them).
+ *  The skill the runner copies into a workspace, .claude/skills/m3a/, lies outside node_modules and is never a read past
+ *  it. */
+const MANUAL = /^node_modules\/@m3a\/(tools\/MANUAL\.md|[\w-]+\/llms\.txt|[\w-]+\/skills\/m3a\/SKILL\.md)$/;
 /** Commands that name paths without reading them: what they list, enter, make or remove is touched, not read (as Glob). */
 const LISTS = new Set(["ls", "cd", "find", "tree", "du", "stat", "mkdir", "rmdir", "rm", "touch", "echo", "printf", "test", "[", "realpath", "readlink", "dirname", "basename", "for"]);
 /** Words that open a command without being it. */
@@ -345,8 +426,8 @@ export function ownScratch(): string[] {
  * and /dev/shm (`ownScratch`) are its `scratch`, but never the repository's or the Claude home's, wherever they live,
  * and without one they are outside, since other agents share them; another process's entries in /proc, its root, cwd,
  * environment or files, by PID, glob or shell variable (`OTHER_PROC`), are outside, and /proc/self/root/<p> is /<p>,
- * D91), and files read past the manual (under node_modules/@m3a/, other than the manual itself; a listing isn't a
- * read, nor a path named in a file it writes).
+ * D91), and files read past the manual (under node_modules/@m3a/, other than the manual and the skill and llms.txt that
+ * point at it, `MANUAL`; a listing isn't a read, nor a path named in a file it writes).
  */
 export function audit(lines: readonly string[], workspace: string, privateTmp = false): { outside: string[]; scratch: string[]; pastManual: string[] } {
   const outside = new Set<string>(), scratch = new Set<string>(), past = new Set<string>(), ws = resolve(workspace);
@@ -368,7 +449,7 @@ export function audit(lines: readonly string[], workspace: string, privateTmp = 
         if (!within(path, ws)) {
           if (own.some((d) => path.startsWith(`${d}/`)) && !hide.some((d) => within(path, d))) scratch.add(path);
           else if (OTHER_PROC.test(path) || !ordinary.test(path)) outside.add(path);
-        } else if (!n.lists && !n.names && /^node_modules\/@m3a(\/|$)/.test(rel) && rel !== "node_modules/@m3a/tools/MANUAL.md") past.add(rel);
+        } else if (!n.lists && !n.names && /^node_modules\/@m3a(\/|$)/.test(rel) && !MANUAL.test(rel)) past.add(rel);
       }
     }
   }
@@ -520,13 +601,29 @@ export function privateTmp(workspace: string, home: string, tmp: string, cmd: st
   return { cmd: "unshare", args: [...ns, "--propagation", "private", "sh", "-c", script, "sh", workspace, tmp, binds.join("\n"), hide.join("\n"), join(homedir(), ".claude.json"), creds, String(u.uid), String(u.gid), cmd, ...args], pids: ownPids(), caps };
 }
 
-/** Runs a fresh agent in `workspace` on `prompt`; the transcript goes to `transcript`. */
+/** The processes whose parent is `pid`, as Linux's /proc gives them (its children file, or each process's stat). */
+function childrenOf(pid: number): number[] {
+  try {
+    return readFileSync(`/proc/${pid}/task/${pid}/children`, "utf8").split(" ").filter((p) => p.trim()).map(Number);
+  } catch {
+    // a kernel without the children file: each process's parent, the second field after its name in its stat
+    return readdirSync("/proc").filter((d) => {
+      try {
+        return /^\d+$/.test(d) && readFileSync(`/proc/${d}/stat`, "utf8").replace(/^.*\) /s, "").split(" ")[1] === String(pid);
+      } catch {
+        return false;
+      }
+    }).map(Number);
+  }
+}
+
+/** Runs a fresh agent in `workspace` on `prompt`; the transcript goes to `transcript`. With m3a's wiring (`opts.m3a`, on
+ *  by default), an init event showing it failed stops the agent there and fails the run (`unwired`). */
 export function runAgent(workspace: string, prompt: string, transcript: string, opts: AgentOptions = {}): Promise<AgentRun> {
   const name = workspace.split("/").pop(), home = join(workspace, "..", `${name}-home`), tmp = join(workspace, "..", `${name}-tmp`), t0 = performance.now();
   mkdirSync(home, { recursive: true });
   mkdirSync(tmp, { recursive: true });
-  const tools = opts.tools ?? "Bash,Read,Write,Edit,Glob,Grep";
-  const args = ["-p", prompt, "--output-format", "stream-json", "--verbose", "--max-turns", String(opts.maxTurns ?? 80), "--tools", tools, "--allowedTools", tools, "--strict-mcp-config", ...(opts.model ? ["--model", opts.model] : [])];
+  const args = agentArgs(prompt, opts), wired = opts.m3a ?? true;
   const env: Record<string, string> = { HOME: home }, who = agentUser();
   for (const k of KEEP) if (process.env[k]) env[k] = process.env[k]!;
   // the certificates the proxy needs, copied into its home: wherever they live, its user reads them there
@@ -544,16 +641,41 @@ export function runAgent(workspace: string, prompt: string, transcript: string, 
   env.TMPDIR = own ? "/tmp" : tmp;
   return new Promise((done) => {
     const child = spawn(own?.cmd ?? "claude", own?.args ?? args, { cwd: workspace, env, stdio: ["ignore", "pipe", "pipe"] }), out: string[] = [];
-    let buf = "", err = "";
+    // stopping it (its wiring failed, or its time ran out): in a PID namespace of its own, its first process (unshare's
+    // child) is killed itself, which ends every process in the namespace. Killing unshare alone (it holds SIGTERM back)
+    // left an agent switched to its user running: the switch clears the parent-death signal --kill-child gives it
+    const stop = () => {
+      if (own?.pids && child.pid) {
+        for (const pid of childrenOf(child.pid)) {
+          try {
+            process.kill(pid, "SIGKILL");
+          } catch {
+            // gone already
+          }
+        }
+      }
+      child.kill(own?.pids ? "SIGKILL" : "SIGTERM");
+    };
+    let buf = "", err = "", checked = !wired, stopped = false;
     child.stdout.on("data", (d: Buffer) => {
       buf += d.toString();
       const parts = buf.split("\n");
       buf = parts.pop()!;
-      out.push(...parts.filter((l) => l.trim()));
+      const lines = parts.filter((l) => l.trim());
+      out.push(...lines);
+      // m3a's wiring, from the init event that opens the stream (a whole line, so among one chunk's lines): failed, the
+      // agent stops before it spends a turn
+      const w = checked ? null : wiringOf(lines);
+      if (w) {
+        checked = true;
+        if (unwired(w)) {
+          stopped = true;
+          stop();
+        }
+      }
     });
     child.stderr.on("data", (d: Buffer) => (err += d.toString()));
-    // unshare --fork holds SIGTERM back; killed, it takes every process in the agent's PID namespace with it
-    const timer = setTimeout(() => child.kill(own?.pids ? "SIGKILL" : "SIGTERM"), opts.timeoutMs ?? 30 * 60_000);
+    const timer = setTimeout(stop, opts.timeoutMs ?? 30 * 60_000);
     child.on("close", (code) => {
       clearTimeout(timer);
       if (buf.trim()) out.push(buf);
@@ -565,12 +687,15 @@ export function runAgent(workspace: string, prompt: string, transcript: string, 
           return {};
         }
       }).findLast((j) => j.type === "result") as { subtype?: string; num_turns?: number; total_cost_usd?: number; usage?: Record<string, number>; modelUsage?: Record<string, unknown>; is_error?: boolean; result?: string } | undefined;
-      const u = result?.usage ?? {}, a = audit(out, workspace, own !== null);
+      const u = result?.usage ?? {}, a = audit(out, workspace, own !== null), success = code === 0 && result?.subtype === "success";
+      const wiring = wired ? wiringOf(out) : null, fault = wired ? unwired(wiring) : null;
+      // the CLI's own failure, unless it is the stop the wiring's failure made
+      const failed = success || stopped ? [] : [(result?.subtype ?? `exit ${code}`) + (err ? `: ${err.trim().split("\n").slice(-1)[0]}` : "")];
       done({
-        isolation: 1, privateTmp: own !== null, ownPids: own?.pids ?? false, capsDropped: own?.caps ?? false, uid: who.uid, unprivileged: who.unprivileged, ok: code === 0 && result?.subtype === "success", ms: performance.now() - t0, model: Object.keys(result?.modelUsage ?? {})[0] ?? opts.model ?? "default",
+        isolation: 1, privateTmp: own !== null, ownPids: own?.pids ?? false, capsDropped: own?.caps ?? false, uid: who.uid, unprivileged: who.unprivileged, ok: success && !fault, ms: performance.now() - t0, model: Object.keys(result?.modelUsage ?? {})[0] ?? opts.model ?? "default",
         turns: result?.num_turns ?? 0, tokens: { input: u.input_tokens ?? 0, output: u.output_tokens ?? 0, cacheRead: u.cache_read_input_tokens ?? 0, cacheWrite: u.cache_creation_input_tokens ?? 0 },
-        costUsd: result?.total_cost_usd ?? 0, outside: a.outside, scratch: a.scratch, pastManual: a.pastManual, transcript, reply: result?.result ?? "",
-        ...(code === 0 && result?.subtype === "success" ? {} : { error: (result?.subtype ?? `exit ${code}`) + (err ? `: ${err.trim().split("\n").slice(-1)[0]}` : "") }),
+        costUsd: result?.total_cost_usd ?? 0, outside: a.outside, scratch: a.scratch, pastManual: a.pastManual, ...(wired ? { m3a: wiring } : {}), ...(fault ? { unwired: fault } : {}), transcript, reply: result?.result ?? "",
+        ...(failed.length || fault ? { error: [...failed, ...(fault ? [fault] : [])].join("; ") } : {}),
       });
     });
   });

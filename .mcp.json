@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "m3a": {
+      "command": "node",
+      "args": ["packages/tools/src/node.ts", "mcp"]
+    }
+  }
+}

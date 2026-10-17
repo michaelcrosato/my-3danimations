@@ -1,7 +1,9 @@
 // The benchmark's packages (PLAN.md §7, WP-4.7): each @m3a package packed as an agent installs it, into
 // .cache/bench/packs/. Each package's TypeScript is stripped to JavaScript file by file (the sources use erasable syntax
 // only), its relative `.ts` imports pointed at `.js`, its declarations taken from `tsc -b`'s output, and `npm pack`
-// run on the result. @m3a/library ships the CC0 default pack and its lock and licenses; @m3a/tools ships the manual.
+// run on the result, its exports and its bin pointed at that JavaScript (the sources aren't shipped: a bin at
+// ./src/node.ts would dangle, and the skill names `npx m3a` commands). @m3a/library ships the CC0 default pack and its
+// lock and licenses; @m3a/tools ships the manual.
 // WP-7.4 replaces this with the real packaging.
 import { execFileSync } from "node:child_process";
 import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
@@ -29,6 +31,11 @@ function exportsOf(map: Record<string, string>): Record<string, { types?: string
     const fromSrc = v.startsWith("./src/"), base = (fromSrc ? v.replace(/^\.\/src\//, "./dist/") : v.replace(/^\.\//, "./dist/")).replace(/\.ts$/, "");
     return [k, fromSrc ? { types: `${base}.d.ts`, default: `${base}.js` } : { default: `${base}.js` }];
   }));
+}
+
+/** The package's bin with each source pointed at its JavaScript, as its exports are (`./src/node.ts` → `./dist/node.js`). */
+function binOf(bin: Record<string, string>): Record<string, string> {
+  return Object.fromEntries(Object.entries(bin).map(([k, v]) => [k, exportsOf({ [k]: v })[k]!.default]));
 }
 
 /** Packs every package (after `tsc -b`, which writes the declarations); returns each tarball's path by package. */
@@ -69,7 +76,7 @@ export function pack(out = PACKS): Record<string, string> {
       files.push("MANUAL.md");
     }
     const { private: _private, devDependencies: _dev, ...rest } = pkg;
-    writeFileSync(join(dir, "package.json"), `${JSON.stringify({ ...rest, exports: exportsOf(pkg.exports), files }, null, 2)}\n`);
+    writeFileSync(join(dir, "package.json"), `${JSON.stringify({ ...rest, exports: exportsOf(pkg.exports), ...(pkg.bin ? { bin: binOf(pkg.bin) } : {}), files }, null, 2)}\n`);
     cpSync(join(ROOT, "LICENSE"), join(dir, "LICENSE"));
     const file = execFileSync("npm", ["pack", "--pack-destination", out, "--silent"], { cwd: dir, encoding: "utf8" }).trim().split("\n").pop()!;
     tarballs[name] = join(out, file);
