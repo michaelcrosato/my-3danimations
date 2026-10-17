@@ -1,22 +1,28 @@
-// The packaging's cheap parts (WP-7.4), in T1: the bundle's manifest (a CC0 game manifest whose clips the library has),
-// the tier filter that keeps cc-by and cmu sets out of the default library pack, the published package.json (exports
-// to dist/, the m3a bin at dist/node.js with its shebang, CHANGELOG.md, three's types an optional peer, "private" kept
-// unless made publishable), the subset m3a.js carries and the library it opens, the manual's complete example as the
-// extractor reads it, the headless example's marker, its rewrite for m3a.js, and how the check's `m3a mcp` step fails
-// (a bin missing, unable to start, exiting, writing what isn't JSON-RPC, never answering: each a failure, not a crash
-// or a hang; fake bins, the timeout on fake timers). The end-to-end
-// `npm run pack -- --check` (a build, npm pack, a scratch install, m3a.js run) is slow, and runs in the gate (G7), not
-// here.
-import { chmodSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+// The packaging's cheap parts (WP-7.4), in T1: the bundle's manifest (a CC0 game manifest whose clips the library has,
+// every clip the manual's complete example names among them), the tier filter that keeps cc-by and cmu sets out of the
+// default library pack, the workspace's package.json files (every path one names is a file the workspace has, so a
+// fresh install links the m3a bin) and the published ones (exports, types and the m3a bin pointed at dist/, the bin
+// with its shebang, CHANGELOG.md, three's types an optional peer, the library's license naming its clips', "private"
+// kept unless made publishable), the subset m3a.js carries and the library it opens, the manual's complete example as
+// the extractor reads it, its headless form and the stand-ins it imports (binding and playing as @m3a/three does, bit
+// for bit), its rewrite for m3a.js, and how the check's `m3a mcp` step fails (a bin missing, unable to start, exiting,
+// writing what isn't JSON-RPC, never answering: each a failure, not a crash or a hang; fake bins, the timeout on fake
+// timers). The end-to-end `npm run pack -- --check` (a build, npm pack, a scratch install, m3a.js run) is slow, and runs
+// in the gate (G7), not here.
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { stripTypeScriptTypes } from "node:module";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it, vi } from "vitest";
+import { Animator, playable } from "../../packages/core/src/index.ts";
 import { checkGame } from "../../packages/library/src/index.ts";
-import { directory, licenseText } from "../../packages/library/src/node.ts";
+import { directory, licenseText, openLibrary } from "../../packages/library/src/node.ts";
+import { attach, bind } from "../../packages/three/src/index.ts";
+import { character, loadGlb, variant } from "../../packages/three/test-characters/index.ts";
 import { ROOT } from "../run/cli.ts";
-import { jsSpecifiers, PACKAGES, packSets, publishable, publishedExports, publishedManifest, REPOSITORY, tiersOf } from "./build.ts";
-import { completeExample, forSingle, HEADLESS, headlessOf, importsOf, SECTION } from "./example.ts";
+import { jsSpecifiers, PACKAGES, packSets, publishable, publishedExports, publishedManifest, REPOSITORY, stagedManifest, tiersOf, withDataLicenses } from "./build.ts";
+import { completeExample, forSingle, HEADLESS, headlessForm, importsOf, SECTION, STANDINS } from "./example.ts";
+import * as headless from "./headless.ts";
 import { MCP_TIMEOUT_MS, mcpTools } from "./mcp.ts";
 import { bundled } from "./runtime.ts";
 import { bundleData, ENTRIES, namesOf, OWN, readManifest } from "./single.ts";
@@ -34,6 +40,12 @@ describe("the bundle's manifest", () => {
     const tiers = tiersOf();
     expect(m.clips!.filter((id) => tiers[id.split("/")[0]!] !== "cc0")).toEqual([]);
     expect(checkGame(directory(SETS), m, licenseText(SETS, []))).toMatchObject({ ok: true, findings: [] });
+  });
+  it("carries every library clip the manual's complete example names, so m3a.js runs it", () => {
+    const ex = completeExample(readFileSync(join(ROOT, "packages/tools/MANUAL.md"), "utf8")), tiers = tiersOf();
+    const named = [...new Set([...Object.values(ex.files), ex.program].flatMap((t) => [...t.matchAll(/"([A-Z][A-Z0-9_]*\/\w+)"/g)].map((m) => m[1]!)))].filter((id) => tiers[id.split("/")[0]!]);
+    expect(named.length).toBeGreaterThan(0);
+    expect(named.filter((id) => !readManifest().clips!.includes(id))).toEqual([]);
   });
 });
 
@@ -56,7 +68,7 @@ describe("the published package.json", () => {
     });
     for (const p of PACKAGES) {
       const src = pkgOf(p), out = publishedManifest(src);
-      expect([p, src.private, out.private, src.types, (src.files as string[])[0]]).toEqual([p, true, true, "./dist/index.d.ts", "dist"]);
+      expect([p, src.private, out.private, src.types, out.types, (src.files as string[])[0]]).toEqual([p, true, true, "./src/index.ts", "./dist/index.d.ts", "dist"]);
       expect(Object.keys(out)).not.toContain("devDependencies");
       expect(Object.keys(out.exports as object)).toEqual(Object.keys(src.exports as object));
       expect([p, out.files]).toEqual([p, [...(src.files as string[]), "CHANGELOG.md"]]);
@@ -68,15 +80,29 @@ describe("the published package.json", () => {
     expect([out.peerDependencies, out.peerDependenciesMeta]).toEqual([{ three: (three.peerDependencies as Record<string, string>).three, "@types/three": types }, { "@types/three": { optional: true } }]);
     expect(Object.keys(publishedManifest(pkgOf("core")))).not.toContain("peerDependenciesMeta");
   });
+  it("declares the library's clips' licenses beside the code's: the default pack ships CC0 data", () => {
+    expect(withDataLicenses("MIT", ["CC0-1.0"])).toBe("MIT AND CC0-1.0");
+    expect(withDataLicenses("MIT", ["MIT", "CC-BY-4.0"])).toBe("MIT AND CC-BY-4.0");
+    expect([stagedManifest("library", packSets(tiersOf()).library!).license, stagedManifest("core", []).license]).toEqual(["MIT AND CC0-1.0", "MIT"]);
+  });
   it("makes a staged copy publishable only when asked (O2): no \"private\", provenance, the repository it is built from", () => {
     const out = publishable(publishedManifest(pkgOf("core")), "packages/core");
     expect([out.private, out.publishConfig, out.repository]).toEqual([undefined, { access: "public", provenance: true }, { type: "git", url: REPOSITORY, directory: "packages/core" }]);
     expect(pkgOf("core").private).toBe(true);
   });
-  it("runs the m3a bin from dist/node.js, the published ./node entry, with its shebang kept", () => {
-    const tools = pkgOf("tools");
-    expect(tools.bin).toEqual({ m3a: "./dist/node.js" });
-    expect((publishedManifest(tools).exports as Record<string, { default: string }>)["./node"]!.default).toBe("./dist/node.js");
+  it("names only files the workspace has, in every workspace package.json: a fresh install links the m3a bin", () => {
+    // a path to what only npm run pack builds (dist/) links no bin after `npm ci`, and `npx m3a` then asks the registry
+    for (const p of PACKAGES) {
+      const src = pkgOf(p), paths = [...Object.values(src.exports as Record<string, string>), src.types as string, ...Object.values((src.bin ?? {}) as Record<string, string>)];
+      expect([p, paths.filter((f) => !existsSync(join(ROOT, "packages", p, f)))]).toEqual([p, []]);
+    }
+    const lock = JSON.parse(readFileSync(join(ROOT, "package-lock.json"), "utf8")) as { packages: Record<string, { bin?: Record<string, string> }> };
+    expect(lock.packages["packages/tools"]!.bin).toEqual({ m3a: "src/node.ts" });
+  });
+  it("runs the workspace's m3a bin from src/node.ts and the published one from dist/node.js, the ./node entry, its shebang kept", () => {
+    const tools = pkgOf("tools"), out = publishedManifest(tools);
+    expect([tools.bin, out.bin]).toEqual([{ m3a: "./src/node.ts" }, { m3a: "./dist/node.js" }]);
+    expect((out.exports as Record<string, { default: string }>)["./node"]!.default).toBe("./dist/node.js");
     expect(stripTypeScriptTypes(readFileSync(join(ROOT, "packages/tools/src/node.ts"), "utf8"), { mode: "strip" }).startsWith("#!/usr/bin/env node\n")).toBe(true);
     expect(jsSpecifiers(`import { a } from "./x.ts";\nexport * from "../y/z.ts";\nawait import("./w.ts");\nimport "./v.ts";\nimport t from "three";`)).toBe(`import { a } from "./x.js";\nexport * from "../y/z.js";\nawait import("./w.js");\nimport "./v.js";\nimport t from "three";`);
   });
@@ -109,6 +135,8 @@ describe("the subset m3a.js carries", () => {
     expect(new Set(all).size).toBe(all.length);
     expect(names["@m3a/core"]).toContain("VERSION");
     expect(["Animator", "metrics", "readGltf", "Library", "tools"].every((n) => all.includes(n))).toBe(true);
+    // the stand-ins the complete example's headless form imports run on it too
+    expect(() => forSingle(readFileSync(join(import.meta.dirname, "headless.ts"), "utf8"), all)).not.toThrow();
   });
 });
 
@@ -142,8 +170,25 @@ describe("the complete example", () => {
     if (today.split("\n").some((l) => l.startsWith(SECTION))) expect(completeExample(today).blocks).toBeGreaterThan(0);
     else expect(() => completeExample(today)).toThrow(none);
   });
-  it(`takes the headless example m3a.js runs from the manual's first \`\`\`${HEADLESS} block, if it has one`, () => {
-    expect([headlessOf(manual), headlessOf(manual.replace("ts m3a.js", "ts"))]).toEqual(["const h = 1;\n", null]);
+  it("runs headless as the same program, three.js's binding and Node's PNG writer taken from the stand-ins, what they saw printed", () => {
+    const code = 'import { Animator } from "@m3a/core";\nimport { attach, bind } from "@m3a/three";\nimport { readFileSync } from "node:fs";\nimport { loadGlb } from "@m3a/three/test-characters";\nconst a = 1;\nimport { writePng } from "@m3a/sensors/node";\nwritePng("x.png", a);\n';
+    expect(headlessForm(code)).toBe(['import { Animator } from "@m3a/core";', `import { attach, bind, loadGlb, writePng, headlessReport } from "${STANDINS}";`, 'import { readFileSync } from "node:fs";', "const a = 1;", 'writePng("x.png", a);\n', "console.log(headlessReport());\n"].join("\n"));
+    expect(Object.keys(headless).sort()).toEqual([...Object.values(HEADLESS).flat(), "headlessReport"].sort());
+    expect(() => headlessForm('import { bind, bake } from "@m3a/three";\nimport * as T from "@m3a/three/test-characters";\n')).toThrow(/can't run headless: it imports bake from "@m3a\/three" \(tools\/bundle\/headless\.ts stands in for bind and attach alone\); the namespace from "@m3a\/three\/test-characters"/);
+  });
+  it("binds and plays headless as @m3a/three does: the same Animator, every step, bit for bit, and the same travel", async () => {
+    const glb = character(variant(1)).glb, library = openLibrary(), { clip, rest } = library.clip("QUATERNIUS_3D2DGE/Walk_Loop");
+    const three = bind((await loadGlb(glb, { textures: false })).scene), alone = headless.bind((await headless.loadGlb(glb)).scene);
+    const a = new Animator(three.core).layer("base", { clip: playable(clip, rest) }), b = new Animator(alone.core).layer("base", { clip: playable(clip, rest) });
+    const pa = attach(a, three), pb = headless.attach(b, alone);
+    for (let i = 0; i < 20; i++) {
+      pa.update(1 / 60);
+      pb.update(1 / 60);
+      expect([i, b.hash(), pb.travel.x, pb.travel.y, pb.travel.z]).toEqual([i, a.hash(), pa.travel.x, pa.travel.y, pa.travel.z]);
+    }
+    expect(JSON.parse(headless.headlessReport())).toMatchObject({ updates: 20, hashes: [a.hash()] });
+    const scene = (await headless.loadGlb(glb)).scene;
+    expect(() => headless.bind(scene, { mapping: { bones: {} } })).toThrow(/stands in for bind\(scene\) alone/);
   });
   it("runs on m3a.js with its @m3a imports from ./m3a.js, and refuses what m3a.js leaves out, naming it", () => {
     const code = `import { Animator, type Clip } from "@m3a/core";\nimport type { Tier } from "@m3a/library";\nimport { openLibrary } from "@m3a/library/node";\nimport { writeFileSync } from "node:fs";\nconst t = await import("@m3a/tools");\n`;

@@ -1,10 +1,11 @@
 // The packages built and packed (PLAN.md WP-7.4): each @m3a package's TypeScript stripped to ES modules file by file
 // with Node's own type stripping (the sources use erasable syntax only, so dist/x.js keeps src/x.ts's lines and
 // columns: a stack trace points at the source line), relative `.ts` imports pointed at `.js`, the declarations from
-// `tsc -b` beside them, staged under .cache/pack/stage/ with the package.json it is published with (exports to dist/,
-// "private" kept until O2 is answered, unless `publishable` stages a copy ready for it) and packed by `npm pack`. Every
-// pack carries the version (one for all, tools/version.ts) and the repository's CHANGELOG.md, which has its section.
-// The library's default pack holds the CC0 sets alone; each other tier that ships (cc-by, cmu) is a pack of its own,
+// `tsc -b` beside them, staged under .cache/pack/stage/ with the package.json it is published with (exports, "types"
+// and the m3a bin pointed from the workspace's source files to dist/, "private" kept until O2 is answered, unless
+// `publishable` stages a copy ready for it) and packed by `npm pack`. Every pack carries the version (one for all,
+// tools/version.ts) and the repository's CHANGELOG.md, which has its section. The library's default pack holds the CC0
+// sets alone (its license the code's and theirs); each other tier that ships (cc-by, cmu) is a pack of its own,
 // `@m3a/library-<tier>`, found by the library's loader when installed beside it (D10). Nothing here publishes.
 import { execFileSync } from "node:child_process";
 import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
@@ -41,24 +42,31 @@ function walk(dir: string): string[] {
   return readdirSync(dir).flatMap((f) => (statSync(join(dir, f)).isDirectory() ? walk(join(dir, f)).map((x) => join(f, x)) : [f]));
 }
 
-/** The exports map a package is published with: each source entry (`./src/x.ts`, or another directory's, three's
- *  `./test-characters/index.ts`) pointed at its JavaScript and declarations under dist/. */
+/** A source file (`./src/x.ts`, or another directory's, three's `./test-characters/index.ts`) as published under dist/,
+ *  its extension dropped. */
+const distBase = (v: string) => v.replace(/^\.\/src\//, "./dist/").replace(/^\.\/(?!dist\/)/, "./dist/").replace(/\.ts$/, "");
+
+/** The exports map a package is published with: each source entry pointed at its JavaScript and declarations under
+ *  dist/. */
 export function publishedExports(map: Record<string, string>): Record<string, { types: string; default: string }> {
-  return Object.fromEntries(Object.entries(map).map(([k, v]) => {
-    const base = v.replace(/^\.\/src\//, "./dist/").replace(/^\.\/(?!dist\/)/, "./dist/").replace(/\.ts$/, "");
-    return [k, { types: `${base}.d.ts`, default: `${base}.js` }];
-  }));
+  return Object.fromEntries(Object.entries(map).map(([k, v]) => [k, { types: `${distBase(v)}.d.ts`, default: `${distBase(v)}.js` }]));
 }
 
-/** The package.json a package is published with: its own, exports pointed at dist/, "files" with CHANGELOG.md, without
- *  devDependencies or the workspace note ("//"); each peer whose types the package's declarations import (`@types/X`
- *  among its devDependencies, X a peer: three's) an optional peer at that version, so a strict TypeScript consumer
- *  knows to install it. "private" stays: publishing waits for O2 (PLAN.md §13; `publishable` drops it in the staged
- *  copy alone). */
+/** The package.json a package is published with: its own, its exports, "types" and bins pointed from the source files
+ *  the workspace runs to dist/ (each bin's JavaScript, shebang kept), "files" with CHANGELOG.md, without devDependencies
+ *  or the workspace note ("//"); each peer whose types the package's declarations import (`@types/X` among its
+ *  devDependencies, X a peer: three's) an optional peer at that version, so a strict TypeScript consumer knows to
+ *  install it. "private" stays: publishing waits for O2 (PLAN.md §13; `publishable` drops it in the staged copy alone). */
 export function publishedManifest(pkg: Record<string, unknown>): Record<string, unknown> {
   const dev = (pkg.devDependencies ?? {}) as Record<string, string>, peers = (pkg.peerDependencies ?? {}) as Record<string, string>;
   const typed = Object.keys(peers).filter((p) => dev[`@types/${p}`]).map((p) => `@types/${p}`);
-  const out = Object.fromEntries(Object.entries(pkg).filter(([k]) => k !== "devDependencies" && k !== "//").map(([k, v]) => [k, k === "exports" ? publishedExports(v as Record<string, string>) : k === "files" ? [...new Set([...(v as string[]), "CHANGELOG.md"])] : v]));
+  const field = (k: string, v: unknown): unknown =>
+    k === "exports" ? publishedExports(v as Record<string, string>)
+    : k === "types" ? `${distBase(v as string)}.d.ts`
+    : k === "bin" ? Object.fromEntries(Object.entries(v as Record<string, string>).map(([n, f]) => [n, `${distBase(f)}.js`]))
+    : k === "files" ? [...new Set([...(v as string[]), "CHANGELOG.md"])]
+    : v;
+  const out = Object.fromEntries(Object.entries(pkg).filter(([k]) => k !== "devDependencies" && k !== "//").map(([k, v]) => [k, field(k, v)]));
   if (typed.length) {
     out.peerDependencies = { ...peers, ...Object.fromEntries(typed.map((t) => [t, dev[t]!])) };
     out.peerDependenciesMeta = { ...(pkg.peerDependenciesMeta as object | undefined), ...Object.fromEntries(typed.map((t) => [t, { optional: true }])) };
@@ -91,6 +99,12 @@ function licensesOf(sets: readonly string[]): string[] {
   return [...new Set(sets.flatMap((s) => Object.values((JSON.parse(readFileSync(join(SETS, s, "_set.json"), "utf8")) as { sources: Record<string, { license: string }> }).sources).map((x) => x.license)))].sort();
 }
 
+/** A package's license with the data it ships beside the code (the library's CC0 clips): an SPDX expression, the
+ *  code's license AND each data license id. */
+export function withDataLicenses(code: string, data: readonly string[]): string {
+  return [...new Set([code, ...data])].join(" AND ");
+}
+
 /** Copies sets into a pack, with the lock narrowed to them (aliases to them kept) and their license texts. */
 function stageSets(dir: string, sets: readonly string[]): void {
   const lock = JSON.parse(readFileSync(join(ROOT, "library/sets.lock.json"), "utf8")) as LibraryLock, held = new Set(sets);
@@ -101,7 +115,15 @@ function stageSets(dir: string, sets: readonly string[]): void {
   for (const l of licensesOf(sets)) cpSync(join(ROOT, "library/LICENSES", `${l}.txt`), join(dir, "LICENSES", `${l}.txt`));
 }
 
-/** Stages one package: dist/ (JavaScript and declarations), its published package.json (`publishable` with `ready`),
+/** The package.json a package is staged with (publishedManifest's), the library's license naming its sets' (`sets`,
+ *  those its default pack holds) beside the code's. */
+export function stagedManifest(name: (typeof PACKAGES)[number], sets: readonly string[]): Record<string, unknown> {
+  const out = publishedManifest(JSON.parse(readFileSync(join(ROOT, "packages", name, "package.json"), "utf8")) as Record<string, unknown>);
+  if (name === "library") out.license = withDataLicenses(out.license as string, licensesOf(sets));
+  return out;
+}
+
+/** Stages one package: dist/ (JavaScript and declarations), its staged package.json (`publishable` with `ready`),
  *  the repository's LICENSE and CHANGELOG.md, and what its "files" name beyond dist/ (the library's CC0 sets, the
  *  tools' manual). */
 function stagePackage(name: (typeof PACKAGES)[number], dir: string, sets: readonly string[], ready: boolean): void {
@@ -125,7 +147,7 @@ function stagePackage(name: (typeof PACKAGES)[number], dir: string, sets: readon
   if (name === "library") stageSets(dir, sets);
   if (name === "tools") cpSync(join(src, "MANUAL.md"), join(dir, "MANUAL.md"));
   if (existsSync(join(src, "README.md"))) cpSync(join(src, "README.md"), join(dir, "README.md"));
-  const published = publishedManifest(pkg);
+  const published = stagedManifest(name, sets);
   writeFileSync(join(dir, "package.json"), `${JSON.stringify(ready ? publishable(published, `packages/${name}`) : published, null, 2)}\n`);
   cpSync(join(ROOT, "LICENSE"), join(dir, "LICENSE"));
   cpSync(join(ROOT, "CHANGELOG.md"), join(dir, "CHANGELOG.md"));

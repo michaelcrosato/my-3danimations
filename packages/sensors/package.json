@@ -5,12 +5,12 @@
   "description": "Motion metrics, describe, lint and fix, a software raster, sheets, films and diffs.",
   "license": "MIT",
   "type": "module",
-  "//": "The workspace runs src/ directly (Node 24 strips the types); npm run pack (tools/bundle) stages this package with its exports pointed at dist/, where its types are.",
+  "//": "The workspace runs src/ directly (Node 24 strips the types); npm run pack (tools/bundle) stages this package with its exports and types pointed at dist/, where its JavaScript and declarations are: every path here names a source file.",
   "exports": {
     ".": "./src/index.ts",
     "./node": "./src/node.ts"
   },
-  "types": "./dist/index.d.ts",
+  "types": "./src/index.ts",
   "files": [
     "dist"
   ],

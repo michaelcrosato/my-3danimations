@@ -10,9 +10,10 @@
 // complete example (./example.ts: its section's files, ts blocks and m3a calls, or --example's), `npx m3a help`,
 // `npx m3a version`, or `m3a mcp` answering tools/list with every tool (./mcp.ts: a bin that can't start or never
 // answers fails the step, the report still printed), or its openLibrary({ tiers }) doesn't find the installed opt-in
-// packs; the headless example (the manual's ```ts m3a.js block, else ./standin.ts) fails on the packages or on m3a.js,
-// or prints otherwise on the two. The manual's complete example binds a three.js character and writes a PNG through
-// Node, which m3a.js leaves out (./single.ts), so m3a.js runs the headless one. Nothing is published (O2).
+// packs; the complete example's headless form fails on the packages or on m3a.js, or prints otherwise on the two. That
+// form is the same program, its imports of three.js's binding (bind, attach, loadGlb) and Node's PNG writer, which
+// m3a.js leaves out by design (./single.ts), served by ./headless.ts, which binds and plays as @m3a/three does; it prints
+// what those saw, every pose's fingerprint and each Animator's hash. Nothing is published (O2).
 import { spawnSync } from "node:child_process";
 import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -24,22 +25,29 @@ import { qa, type LibraryClip } from "../qa/qa.ts";
 import { finish, fmtMs, parseArgs, ROOT, usage, type Report, type Step } from "../run/cli.ts";
 import { check as versionCheck } from "../version.ts";
 import { build, OUT, REPOSITORY, type Packed } from "./build.ts";
-import { completeExample, forSingle, headlessOf, SECTION, type Example } from "./example.ts";
+import { completeExample, forSingle, headlessForm, SECTION, STANDINS, type Example } from "./example.ts";
 import { mcpTools } from "./mcp.ts";
 import { buildSingle, bundleData, readManifest } from "./single.ts";
 
 const FLAGS = [
-  { name: "check", help: "also prove the packs: a scratch install runs the manual's complete example and the m3a bin, the headless example runs there and on m3a.js, the sensors, tiers, version and licenses hold" },
-  { name: "example", takesValue: true, help: "a manual (.md) whose complete example (and ```ts m3a.js block) to run instead of packages/tools/MANUAL.md's, or a program (.ts) to run as the complete example (tools/bundle/standin.ts)" },
+  { name: "check", help: "also prove the packs: a scratch install runs the manual's complete example and the m3a bin, its headless form runs there and on m3a.js, the sensors, tiers, version and licenses hold" },
+  { name: "example", takesValue: true, help: "a manual (.md) whose complete example to run instead of packages/tools/MANUAL.md's, or a program (.ts) to run as the complete example" },
   { name: "publishable", help: "stage each package.json ready for O2: \"private\" dropped, publishConfig with provenance, the repository (nothing is published)" },
 ];
-/** The headless example m3a.js runs when the manual marks none. */
-const STANDIN = join(import.meta.dirname, "standin.ts");
+/** The stand-ins for what m3a.js leaves out, which the complete example's headless form imports. */
+const HEADLESS_TS = readFileSync(join(import.meta.dirname, "headless.ts"), "utf8");
 
 /** Runs a command, returning its exit status and output; the scratch projects' commands run outside the repository. */
 function run(cmd: string, args: readonly string[], cwd: string, input?: string): { ok: boolean; out: string } {
   const r = spawnSync(cmd, args, { cwd, input, encoding: "utf8", timeout: 300_000, env: { ...process.env, FORCE_COLOR: "0", NO_COLOR: "1" }, maxBuffer: 64 * 1024 * 1024 });
   return { ok: r.status === 0, out: `${r.stdout ?? ""}${r.stderr ?? ""}${r.error ? String(r.error) : ""}` };
+}
+
+/** Writes what the example reads into a project: its named json files, and character.glb (a generated test character,
+ *  what the manual says a game has). */
+function gameFiles(dir: string, ex: Example & { glb: Uint8Array }): void {
+  for (const [f, text] of Object.entries(ex.files)) writeFileSync(join(dir, f), text);
+  writeFileSync(join(dir, "character.glb"), ex.glb);
 }
 
 /** The tiers of the sets a pack's files hold (`sets/<SET>/...`), read from its staged manifests. */
@@ -56,7 +64,7 @@ if (import.meta.main) {
   } catch (err) {
     usage("pack", err, FLAGS);
   }
-  const t0 = performance.now(), steps: Step[] = [], check = Boolean(parsed.flags.check), state: { packs?: Record<string, Packed>; single?: Awaited<ReturnType<typeof buildSingle>>; example?: Example; headless?: { code: string; where: string }; scratch?: string; printed?: string } = {};
+  const t0 = performance.now(), steps: Step[] = [], check = Boolean(parsed.flags.check), state: { packs?: Record<string, Packed>; single?: Awaited<ReturnType<typeof buildSingle>>; example?: Example & { where: string; glb: Uint8Array }; scratch?: string; printed?: string } = {};
   const step = async (name: string, fn: () => string | Promise<string>, needs: (keyof typeof state)[] = []) => {
     const s = performance.now(), missing = needs.filter((k) => state[k] === undefined);
     try {
@@ -138,14 +146,15 @@ if (import.meta.main) {
       const pass = rows.filter((r) => r.verdict === "pass").length;
       return `${clips.length} clips: ${pass} pass, ${clips.length - pass} carry their baseline; m3a.js's sensors read each as the packages' do`;
     }, ["single"]);
-    await step("examples", () => {
-      // --example: a manual read as packages/tools/MANUAL.md is, or a program run alone as the complete example
+    await step("examples", async () => {
+      // --example: a manual read as packages/tools/MANUAL.md is, or a program run alone as the complete example; with
+      // it, what the manual says a game has beside the example's own files: a character (a generated test character)
       const file = typeof parsed.flags.example === "string" ? resolve(parsed.flags.example) : null, program = file !== null && !file.endsWith(".md");
-      const md = file !== null && !program ? file : join(ROOT, "packages/tools/MANUAL.md"), where = relative(ROOT, md).startsWith("..") ? md : relative(ROOT, md);
-      const manual = readFileSync(md, "utf8"), marked = headlessOf(manual, where);
-      state.headless = marked === null ? { code: readFileSync(STANDIN, "utf8"), where: "tools/bundle/standin.ts" } : { code: marked, where: `${where}'s \`\`\`ts m3a.js block` };
-      state.example = program ? { files: {}, program: readFileSync(file, "utf8"), sh: [], blocks: 1 } : completeExample(manual, where);
-      return `the complete example: ${program ? `${parsed.flags.example} (--example)` : `${where}'s "${SECTION}" section`}; the headless one: ${state.headless.where}`;
+      const md = file !== null && !program ? file : join(ROOT, "packages/tools/MANUAL.md"), shown = (f: string) => (relative(ROOT, f).startsWith("..") ? f : relative(ROOT, f));
+      const ex = program ? { files: {}, program: readFileSync(file, "utf8"), sh: [], blocks: 1 } : completeExample(readFileSync(md, "utf8"), shown(md));
+      const { character, variant } = await import("../../packages/three/test-characters/index.ts");
+      state.example = { ...ex, where: program ? shown(file) : `${shown(md)}'s "${SECTION}" section`, glb: character(variant(1)).glb };
+      return `the complete example: ${state.example.where}${program ? " (--example)" : ""}`;
     });
     await step("scratch install", () => {
       // three at the release @m3a/three takes as its peer (the pin)
@@ -161,11 +170,9 @@ if (import.meta.main) {
       if (!r.ok) throw new Error(`npm install failed in ${dir}:\n${r.out}`);
       return `${Object.keys(deps).length} packages installed in ${dir}`;
     }, ["packs"]);
-    await step("example on the packages", async () => {
-      // what the manual says a game has beside the example's own files: a character (a generated test character)
-      const ex = state.example!, dir = state.scratch!, { character, variant } = await import("../../packages/three/test-characters/index.ts");
-      writeFileSync(join(dir, "character.glb"), character(variant(1)).glb);
-      for (const [f, text] of Object.entries(ex.files)) writeFileSync(join(dir, f), text);
+    await step("example on the packages", () => {
+      const ex = state.example!, dir = state.scratch!;
+      gameFiles(dir, ex);
       writeFileSync(join(dir, "example.ts"), ex.program);
       const r = run(process.execPath, ["example.ts"], dir);
       if (!r.ok) throw new Error(`node example.ts failed in ${dir}:\n${r.out}`);
@@ -176,12 +183,15 @@ if (import.meta.main) {
       return `${ex.blocks} ts block${ex.blocks === 1 ? "" : "s"} as one program, with ${[...Object.keys(ex.files), "character.glb"].join(", ")}; ${ex.sh.length} m3a call${ex.sh.length === 1 ? "" : "s"}, each exiting 0`;
     }, ["scratch", "example"]);
     await step("headless example on the packages", () => {
-      writeFileSync(join(state.scratch!, "headless.ts"), state.headless!.code);
-      const r = run(process.execPath, ["headless.ts"], state.scratch!);
-      if (!r.ok) throw new Error(`node headless.ts (${state.headless!.where}) failed in ${state.scratch}:\n${r.out}`);
+      const ex = state.example!, dir = state.scratch!;
+      gameFiles(dir, ex);
+      writeFileSync(join(dir, STANDINS), HEADLESS_TS);
+      writeFileSync(join(dir, "headless-example.ts"), headlessForm(ex.program));
+      const r = run(process.execPath, ["headless-example.ts"], dir);
+      if (!r.ok) throw new Error(`node headless-example.ts (${ex.where}, headless) failed in ${dir}:\n${r.out}`);
       state.printed = r.out;
       return r.out.trim().split("\n").pop()?.slice(0, 100) ?? "ran, printing nothing";
-    }, ["scratch", "headless"]);
+    }, ["scratch", "example"]);
     await step("npx m3a", () => {
       const help = run("npx", ["--no", "m3a", "help"], state.scratch!), version = run("npx", ["--no", "m3a", "version"], state.scratch!);
       const v = (JSON.parse(readFileSync(join(ROOT, "packages/tools/package.json"), "utf8")) as { version: string }).version;
@@ -203,20 +213,21 @@ if (import.meta.main) {
       return `openLibrary() sees cc0 alone; opted in, ${got.sets} sets of cc0, cc-by and cmu, verified`;
     }, ["scratch"]);
     await step("headless example on m3a.js", () => {
-      const dir = mkdtempSync(join(tmpdir(), "m3a-single-"));
+      const ex = state.example!, dir = mkdtempSync(join(tmpdir(), "m3a-single-"));
       try {
         cpSync(state.single!.file, join(dir, "m3a.js"));
         writeFileSync(join(dir, "package.json"), '{ "type": "module" }\n');
-        for (const [f, text] of Object.entries(state.example?.files ?? {})) writeFileSync(join(dir, f), text);
-        writeFileSync(join(dir, "headless.ts"), forSingle(state.headless!.code, state.single!.exports));
-        const r = run(process.execPath, ["headless.ts"], dir);
-        if (!r.ok) throw new Error(`node headless.ts (${state.headless!.where}) on m3a.js failed:\n${r.out}`);
+        gameFiles(dir, ex);
+        writeFileSync(join(dir, STANDINS), forSingle(HEADLESS_TS, state.single!.exports));
+        writeFileSync(join(dir, "headless-example.ts"), forSingle(headlessForm(ex.program), state.single!.exports));
+        const r = run(process.execPath, ["headless-example.ts"], dir);
+        if (!r.ok) throw new Error(`node headless-example.ts (${ex.where}, headless) on m3a.js failed:\n${r.out}`);
         if (state.printed !== undefined && r.out !== state.printed) throw new Error(`it prints otherwise than on the packages:\n${r.out}\n-- on the packages:\n${state.printed}`);
-        return `${state.headless!.where}: the same output${state.printed === undefined ? "" : " as on the packages"}`;
+        return `${ex.where}, headless: ${state.printed === undefined ? "ran" : "the same output as on the packages, bit for bit"}`;
       } finally {
         rmSync(dir, { recursive: true, force: true });
       }
-    }, ["single", "headless"]);
+    }, ["single", "example"]);
     if (state.scratch && steps.every((s) => s.ok)) rmSync(state.scratch, { recursive: true, force: true });
   }
   const ms = performance.now() - t0, ok = steps.every((s) => s.ok), failed = steps.filter((s) => !s.ok).map((s) => s.name);

@@ -3,17 +3,20 @@
 // json blocks named as files (```json knight.json) are written into the scratch project, its ts blocks (but `norun`
 // ones) run in order as one Node program, their imports merged at the top and their names shared, and its sh lines are
 // m3a calls, run there through the installed bin. A manual without that section, or one with no ts block in it,
-// fails, naming the heading. The headless example: the manual's first block whose info string is `ts m3a.js` (a
-// program of its own, binding a body through @m3a/core, with no three.js and no Node entry m3a.js can't stand in
-// for), else tools/bundle/standin.ts; it runs on the packages and on m3a.js, each printing the same. On m3a.js its
-// @m3a imports come from ./m3a.js; one m3a.js can't serve (three, @m3a/three, a Node entry beyond what m3a.js stands
-// in for) is refused before it runs, naming it.
+// fails, naming the heading. Its headless form (`headlessForm`) is the same program with its imports of three.js's
+// binding and Node's PNG writer, which m3a.js leaves out by design, taken from ./headless.ts, and what those saw printed
+// at the end; it runs on the packages and on m3a.js, each printing the same. On m3a.js its @m3a imports come from
+// ./m3a.js; one m3a.js can't serve (three, a name of @m3a/three that ./headless.ts doesn't stand in for, a Node entry
+// beyond what m3a.js stands in for) is refused before it runs, naming it.
 import { ENTRIES, STANDS_IN } from "./single.ts";
 
 /** The heading that opens the manual's complete example (a `## ` heading starting with these words). */
 export const SECTION = "## A complete example";
-/** The info string that marks the manual's headless example, the one m3a.js runs. */
-export const HEADLESS = "ts m3a.js";
+/** What ./headless.ts stands in for, by module: the names of three.js's binding and Node's PNG writer an example may
+ *  import when it runs headless (m3a.js leaves those modules out by design: ./single.ts). */
+export const HEADLESS: Readonly<Record<string, readonly string[]>> = { "@m3a/three": ["bind", "attach"], "@m3a/three/test-characters": ["loadGlb"], "@m3a/sensors/node": ["writePng"] };
+/** Where the headless form imports ./headless.ts from, beside it. */
+export const STANDINS = "./headless.ts";
 
 /** A fenced block of a manual: its language, the rest of its info string (a file name, `norun`), its code, the line
  *  its fence opens on and the `## ` heading it sits under. */
@@ -92,10 +95,6 @@ export function completeExample(manual: string, where = "packages/tools/MANUAL.m
   return { files, program: program(ts.map((b) => b.code)), sh, blocks: ts.length };
 }
 
-/** The code of a manual's headless example (its first ```ts m3a.js block), or null when it has none. */
-export function headlessOf(manual: string, where = "packages/tools/MANUAL.md"): string | null {
-  return blocksOf(manual, where).find((b) => `${b.lang} ${b.info.join(" ")}`.trim() === HEADLESS)?.code ?? null;
-}
 
 /** One import of an example: its module and the names it takes ("default", or "*" for a namespace); type-only ones
  *  (which Node strips) are left out. */
@@ -118,6 +117,21 @@ export function importsOf(code: string): ExampleImport[] {
   }
   for (const m of code.matchAll(/(?:^|[\n;])\s*import\s*["']([^"']+)["']|\bimport\s*\(\s*["']([^"']+)["']\s*\)/g)) out.push({ from: (m[1] ?? m[2])!, names: m[2] ? ["*"] : [] });
   return out;
+}
+
+/** An example's headless form: the same program, its imports of what ./headless.ts stands in for (HEADLESS) taken from
+ *  it, and `headlessReport()` printed at the end, so a run on the packages and one on m3a.js can be compared bit for
+ *  bit. Throws, naming each, on a name of those modules that ./headless.ts doesn't stand in for. */
+export function headlessForm(code: string): string {
+  const refused: string[] = [];
+  for (const { from, names } of importsOf(code)) {
+    const served = HEADLESS[from];
+    for (const n of served ? names.filter((x) => !served.includes(x)) : []) refused.push(`${n === "*" ? "the namespace" : n} from "${from}" (tools/bundle/headless.ts stands in for ${served!.join(" and ")} alone)`);
+  }
+  if (refused.length) throw new Error(`the example can't run headless: it imports ${refused.join("; ")}`);
+  const modules = Object.keys(HEADLESS).map((m) => m.replace(/[.]/g, "\\.")).join("|");
+  const rewritten = code.replace(new RegExp(`((?:\\bfrom|\\bimport)\\s*\\(?\\s*)(["'])(?:${modules})\\2`, "g"), `$1"${STANDINS}"`);
+  return program([rewritten, `import { headlessReport } from "${STANDINS}";\nconsole.log(headlessReport());\n`]);
 }
 
 /** The example as it runs on m3a.js, every @m3a import taken from ./m3a.js. Throws, naming each, on an import m3a.js
