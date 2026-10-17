@@ -7,20 +7,32 @@
 // with their library's shares, and four that failed before D55 pass; a pair fails on a fail finding the skeleton adds,
 // and one it adds a warn to passes with the warn listed (D80); a gate's record, derived from the raw results by
 // `npm run sweep -- --record`, lists every failing pair with its reasons and the warns the skeleton added, and every
-// passing pair it warned (D88). How many clips pass is not checked here: that is gate G4's bar (95% over its six
-// skeletons and the whole library, PLAN.md §9.3).
+// passing pair it warned (D88); and a fixed sample's rows are 1bf5252's byte for byte, its judge still its own (WP-7.2b
+// moved it to @m3a/tools). How many clips pass is not checked here: that is gate G4's bar (95% over its six skeletons
+// and the whole library, PLAN.md §9.3).
 import { execFileSync, spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import type { Clip, Key } from "@m3a/core";
+import { parseClip, type Clip, type Key, type Rest } from "@m3a/core";
 import { ROOT } from "../run/cli.ts";
 import { libraryClips, sample } from "../qa/qa.ts";
 import { sweepRecord, type SweepResults } from "./record.ts";
 import { heldout, likeFor, rigOf, sweepOne, type SweepRow } from "./sweep.ts";
 
 const RIGS = ["gen-0", "gen-7"];
+/**
+ * The pinned rows' clips, fixed ids (not sample(), so a library growing elsewhere doesn't move them): a pass, a fail on
+ * one skeleton, a fail on both past the clip's own level, a warn only gen-0 adds, a side run and a 0.17 s aim.
+ */
+const PINNED = ["CMU_CURATED/Backflip", "CMU_CURATED/Run_Jump_Over", "MESH2MOTION/Slide_Exit", "QUATERNIUS_3D2DGE/Hit_Knockback", "QUATERNIUS_SHARDFALL/Pistol_Aim_Up", "STYLE100_SIDERUN/BentForward_SideRunLeft"];
+/** A library clip by id, on its source's rest. */
+function load(id: string): { clip: Clip; rest: Rest } {
+  const [set, name] = id.split("/") as [string, string], dir = join(ROOT, "library/sets", set), clip = parseClip(readFileSync(join(dir, `${name}.json`), "utf8"));
+  return { clip, rest: (JSON.parse(readFileSync(join(dir, "_set.json"), "utf8")) as { sources: Record<string, { rest: Rest }> }).sources[clip.restSrc]!.rest };
+}
 
 /**
  * Raw results by hand: on gen-0 a pair failing with a warn added, one failing without and one passing with one; on the
@@ -140,4 +152,20 @@ describe("the sweep", () => {
     expect(res.warned).toEqual(res.rows.filter((r) => r.ok && r.warns.length).map((r) => ({ clip: r.clip, rig: r.rig, warns: r.warns })));
     for (const r of res.rows) expect(Object.keys(r).sort()).toEqual(["clip", "ok", "own", "played", "reach", "rig", "warns", "why", "worse"]);
   }, 120_000);
+  it("gives 1bf5252's rows, byte for byte, on a fixed sample (the judge moved to @m3a/tools)", async () => {
+    // a deliberate change to the rows re-pins the hash, saying why
+    const walk = load("QUATERNIUS_3D2DGE/Walk_Loop");
+    const clips = [...PINNED.map(load), { clip: { ...walk.clip, id: "BROKEN/Walk_Loop", keys: walk.clip.keys.map((k, i) => (i === 2 ? { ...k, hips: [Number.NaN, 0, 0] } : k)) as Key[] } as Clip, rest: walk.rest }];
+    const rows: SweepRow[] = [];
+    for (const rig of RIGS) {
+      const b = await rigOf(rig);
+      for (const c of clips) rows.push(sweepOne(c.clip, c.rest, b, rig));
+    }
+    // the verdicts, readable (a pair: pass or fail, its reasons and warns counted), then every byte
+    expect(rows.map((r) => `${r.rig} ${r.clip.split("/")[1]} ${r.ok ? "pass" : "fail"} ${r.why.length} ${r.warns.length}`).join(", ")).toBe(
+      "gen-0 Backflip fail 1 0, gen-0 Run_Jump_Over pass 0 1, gen-0 Slide_Exit pass 0 0, gen-0 Hit_Knockback fail 1 0, gen-0 Pistol_Aim_Up pass 0 0, gen-0 BentForward_SideRunLeft pass 0 0, gen-0 Walk_Loop fail 1 0, " +
+        "gen-7 Backflip fail 1 0, gen-7 Run_Jump_Over pass 0 0, gen-7 Slide_Exit pass 0 0, gen-7 Hit_Knockback pass 0 0, gen-7 Pistol_Aim_Up pass 0 0, gen-7 BentForward_SideRunLeft pass 0 0, gen-7 Walk_Loop fail 1 0",
+    );
+    expect(createHash("sha256").update(JSON.stringify(rows)).digest("hex").slice(0, 16), JSON.stringify(rows)).toBe("b4f51cf5d8276a36");
+  }, 60_000);
 });

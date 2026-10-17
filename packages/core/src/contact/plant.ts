@@ -155,7 +155,11 @@ function contactAt(m: Motion, end: keyof Contacts & string, t: number, tail: num
     for (const iv0 of iv) {
       if (iv0 === first) continue;
       const a0 = iv0[0], b0 = iv0[1], a = a0 + k * m.dur, b = (iv0 === last && first ? m.dur + first[1] : b0) + k * m.dur;
-      if (t >= a && t <= b + tail && (!found || a > ba)) [found, ba, bb] = [true, a, b];
+      if (t >= a && t <= b + tail && (!found || a > ba)) {
+        found = true;
+        ba = a;
+        bb = b;
+      }
     }
   }
   return found ? [ba, bb] : null;
