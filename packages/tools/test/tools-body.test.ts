@@ -142,7 +142,7 @@ describe("a character's bytes (R6)", () => {
       // a file a byte past io's limit (sparse: nothing written) refused before it is read, as io would refuse it read
       writeFileSync(join(cwd, "huge.glb"), "");
       truncateSync(join(cwd, "huge.glb"), LIMITS.file + 1);
-      await expect(host.bytes!("huge.glb")).rejects.toMatchObject({ code: "E_LIMIT", usage: false, message: `"huge.glb": ${LIMITS.file + 1} bytes, over the ${LIMITS.file}-byte limit` });
+      await expect(host.bytes!("huge.glb")).rejects.toMatchObject({ code: "E_LIMIT", usage: false, message: `huge.glb: ${LIMITS.file + 1} bytes, over the ${LIMITS.file}-byte limit` });
     } finally {
       rm();
       out.rm();

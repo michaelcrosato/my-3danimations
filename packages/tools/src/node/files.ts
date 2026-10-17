@@ -7,8 +7,7 @@ import { lstatSync, mkdirSync, readdirSync, readFileSync, realpathSync, renameSy
 import { hostname } from "node:os";
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { ToolError } from "../registry/registry.ts";
-import { quote } from "../registry/schema.ts";
-import { absolute } from "../tools/common.ts";
+import { absolute, arg } from "../tools/common.ts";
 
 /** Where m3a writes in a project, under the working directory: its edited clips, its own state, imported sets and its
  *  check output. Nothing else, and never library/. */
@@ -19,9 +18,10 @@ const inside = (base: string, p: string) => {
   return up !== ".." && !up.startsWith(`..${sep}`) && !isAbsolute(up);
 };
 
-/** How a refusal names a path it was given: quoted (and cut) as given, or "the file" when absolute, which no reply
- *  echoes. */
-export const shown = (path: string): string => (absolute(path) ? "the file" : quote(path));
+/** How a refusal names a path it was given (E_PATH, E_WRITE, E_LOCKED, E_LIMIT), as prose names a file (clips.ts
+ *  prose): as given, single-quoted where a shell would split it (`arg`), or "the file" when it is absolute or holds a
+ *  control character, which no reply echoes. The host doesn't know the file's role, so it says "the file". */
+export const shown = (path: string): string => (absolute(path) || /\p{Cc}/u.test(path) ? "the file" : arg(path));
 
 /** A filesystem error's code (ENOENT, EACCES ...), or "unreadable". */
 export const errno = (err: unknown): string => (err as NodeJS.ErrnoException).code ?? "unreadable";

@@ -58,9 +58,9 @@ describe("exchange", () => {
       // a catalog off its shape names the entry: usage given inline, an error in a file
       expect(refused(await call("import", { path: RIG, license: "CC0-1.0", catalog: '{"$pick": {"Wave": {"from": "Wave_Loop"}}}' }))).toEqual(["usage", "E_ARGS", 'catalog: "$pick" "Wave" is [take, from s, to s, shortest cycle s], not {"from":"Wave_Loop"}']);
       expect(refused(await call("import", { path: RIG, license: "CC0-1.0", catalog: "tags.json" }))).toEqual(["error", "E_ARGS", 'catalog: "Wave_Loop" is ["tags", "what it does"], not [3,"waves"]']);
-      // a catalog that is no JSON named as clips.ts names a file: "file" for an absolute path, else as given; the parser's
-      // message (V8's quotes the file's first line, its line break too) on one line
-      for (const [catalog, named] of [[join(cwd, "cut.bvh"), /^the catalog file is not JSON: [^/\p{Cc}]*$/u], ["cut.bvh", /^the catalog cut\.bvh is not JSON: Unexpected token 'H', "HIERARCHY "\.\.\. is not valid JSON$/u]] as const) expect(refused(await call("import", { path: RIG, license: "CC0-1.0", catalog }))).toEqual(["error", "E_JSON", expect.stringMatching(named)]);
+      // a catalog that is no JSON named as clips.ts's prose names a file: "the catalog's file" for an absolute path, else
+      // as given; the parser's message (V8's quotes the file's first line, its line break too) on one line
+      for (const [catalog, named] of [[join(cwd, "cut.bvh"), /^the catalog's file is not JSON: [^/\p{Cc}]*$/u], ["cut.bvh", /^the catalog cut\.bvh is not JSON: Unexpected token 'H', "HIERARCHY "\.\.\. is not valid JSON$/u]] as const) expect(refused(await call("import", { path: RIG, license: "CC0-1.0", catalog }))).toEqual(["error", "E_JSON", expect.stringMatching(named)]);
       expect(refused(await call("import", { path: "cut.bvh", license: "CC0-1.0" }))).toEqual(["error", "E_FORMAT", expect.stringMatching(/^cut\.bvh: /)]);
       // every take skipped: E_NO_CLIP names 20 with their reasons and counts the rest, as a reply caps its skipped rows
       const takes = JSON.parse(readFileSync(join(cwd, RIG), "utf8")) as { animations: { name: string }[] }, names = Array.from({ length: 22 }, (_, i) => `Take${i}`);
@@ -88,7 +88,7 @@ describe("exchange", () => {
       expect([lib.sets().map((s) => [s.set, s.tier, s.clips]), wave.clip.provenance.license, wave.clip.provenance.credit, wave.clip.tags, lib.about("RIG").sources.RIG!.terms]).toEqual([[["RIG", "local", 3]], "CC0-1.0", undefined, ["gesture"], "CC0 1.0"]);
       expect(r.next).toBe('`license.check --set RIG` fails it for a shipped game (D10: local); to use it here, set "tiers" to include "local" and "ships": false in game.json, then `metrics RIG/Wave_Loop`');
       // license.check sees it through the host: a shipped game fails it, one on this machine alone (ships: false) takes it
-      expect((await call("license.check", { set: "RIG" })).data).toMatchObject({ ok: false, findings: [{ where: "RIG", message: expect.stringMatching(/^a local set and this game opts into cc0/) }, { where: "RIG", message: expect.stringMatching(/^local content never ships \(D10\)/) }] });
+      expect((await call("license.check", { set: "RIG" })).data).toMatchObject({ ok: false, findings: [{ where: "RIG", message: expect.stringMatching(/^a local set and this game opts into cc0/) }, { where: "RIG", message: 'local content never ships (D10): drop it, or set "ships": false in game.json for a game that stays on this machine' }] });
       expect((await call("license.check", { clips: ["RIG/Wave_Loop"], tiers: ["cc0", "local"] })).status).toBe("findings");
       expect((await call("license.check", { clips: ["RIG/Wave_Loop"], tiers: ["cc0", "local"], ships: false })).status).toBe("ok");
       // imported again in place, under a license that owes a credit, which every clip then carries: a clip it no longer
@@ -131,7 +131,7 @@ describe("exchange", () => {
       // a file where the set's directory goes: the host's write refuses it, naming the path as given, never the cwd
       writeFileSync(join(cwd, "imports/FILE"), "");
       const squat = await call("import", { path: RIG, set: "FILE", license: "CC0-1.0" });
-      expect([...refused(squat), JSON.stringify(squat).includes(cwd)]).toEqual(["error", "E_WRITE", 'can\'t write "imports/FILE/A_TPose.json" (EEXIST)', false]);
+      expect([...refused(squat), JSON.stringify(squat).includes(cwd)]).toEqual(["error", "E_WRITE", "can't write imports/FILE/A_TPose.json (EEXIST)", false]);
       // each working directory with imported sets opens its own library; the host keeps at most MAX_OPEN of them, the
       // least lately used dropped: this one's, used between the others, is never opened again, and one dropped is (a
       // long-lived MCP server isn't grown by each directory it serves)
@@ -214,7 +214,7 @@ describe("exchange", () => {
       writeFileSync(join(cwd, "jitter.bvh"), `${head}MOTION\n${jitter.join("\n")}`);
       for (const f of ["none.json", "my cat.json"]) writeFileSync(join(cwd, f), "{}");
       const jit = await call("import", { path: join(cwd, "jitter.bvh"), set: "JIT", license: "CC0-1.0", catalog: join(cwd, "none.json") }), m = JSON.parse(readFileSync(join(cwd, "imports/JIT/_set.json"), "utf8")) as { title: string; credit: string; sources: { JIT: { file: string; origin: string } } };
-      expect([jit.status, (jit.data as Data).rig, jit.verdict, jit.lines.at(-1), jit.next]).toEqual(["findings", "bvh:unreal", expect.stringMatching(/^import <the file>: 1 clip into imports\/JIT\/ .*; 1 past the fit limits$/), expect.stringMatching(/^JIT\/jitter .* \(past 40\/300 mm\)$/), 'cut a take with the catalog\'s "$pick", or leave a clip out with "$skip" and its reason, then `import <the file> --set JIT --license CC0-1.0 --catalog <the catalog\'s file>`']);
+      expect([jit.status, (jit.data as Data).rig, jit.verdict, jit.lines.at(-1), jit.next]).toEqual(["findings", "bvh:unreal", expect.stringMatching(/^import the motion file: 1 clip into imports\/JIT\/ .*; 1 past the fit limits$/), expect.stringMatching(/^JIT\/jitter .* \(past 40\/300 mm\)$/), 'cut a take with the catalog\'s "$pick", or leave a clip out with "$skip" and its reason, then `import <the motion file> --set JIT --license CC0-1.0 --catalog <the catalog\'s file>`']);
       expect([m.title, m.credit, m.sources.JIT.file, m.sources.JIT.origin]).toEqual(["jitter.bvh, imported", "jitter.bvh, CC0-1.0", "jitter.bvh", "jitter.bvh, imported by m3a import"]);
       // the hint's catalog with none given, one given inline, and one by a relative path (one the shell would split)
       for (const [catalog, as] of [[undefined, "<catalog>"], ["{}", "<the catalog's JSON>"], ["none.json", "none.json"], ["my cat.json", "'my cat.json'"]]) {

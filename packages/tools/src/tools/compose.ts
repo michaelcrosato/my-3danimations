@@ -15,7 +15,7 @@ import { defineTool, ToolError, type LibraryAccess, type ToolContext } from "../
 import { quote, type Schema } from "../registry/schema.ts";
 import { compareTraces, filmstrip, simulate, traceText, validateScript, type SimScript, type Trace } from "../sim/index.ts";
 import { bodyOf, CHARACTER, characterName } from "./body.ts";
-import { bounded, clipResolver, fits, given, loadClip, naming, refusal, suggestId, type ClipRef } from "./clips.ts";
+import { bounded, clipResolver, fits, given, loadClip, naming, prose, refusal, suggestId, type ClipRef } from "./clips.ts";
 import { call, capped, count, cut, fileOrJson, mm, more, output, round, sec } from "./common.ts";
 import { WORKSHOP } from "./workshop.ts";
 
@@ -52,11 +52,12 @@ function cuts(lists: Record<string, { more?: number }>): { more?: Record<string,
 const workshopIds = (v: unknown): string[] => (typeof v === "string" ? (v.startsWith(`${WORKSHOP}/`) ? [v] : []) : v && typeof v === "object" ? Object.values(v).flatMap(workshopIds) : []);
 
 /** A document given as a file or JSON (common.ts fileOrJson), with its id (null when it has none) and how replies name
- *  it (clips.ts naming): `as` as a hint's positional, `flag` as its flag, `title` in a verdict (`as` without an id). */
+ *  it (clips.ts naming): `as` as a hint's positional, `flag` as its flag, `title` in a verdict (without an id, `as` in
+ *  prose: "the graph's JSON", "the script's file", or the path as given). */
 async function docOf(ctx: ToolContext, value: string, what: string) {
   const d = await fileOrJson(ctx, value, `the ${what}`), id = isObj(d.data) && typeof d.data.id === "string" ? d.data.id : null;
   const n = naming({ id: id ?? "", where: d.path === null ? "text" : "file", path: d.path, name: null }, `the ${what}'s`);
-  return { ...d, id, as: n.as, flag: given(n.as, value), title: id === null ? n.as : n.title };
+  return { ...d, id, as: n.as, flag: given(n.as, value), title: id === null ? prose(n.as) : n.title };
 }
 
 /** A library clip the game sees (a deprecated id's successor, warned), or undefined; a tampered set refused (an error). */
@@ -75,7 +76,7 @@ function libraryClip(lib: LibraryAccess, id: string): { clip: Clip; rest: Rest }
  *  game.json line for its tier (a clip the set has that the game doesn't see), or the closest id. */
 function missing(lib: LibraryAccess, i: Issue): Issue {
   const id = /^clip (\S+) is not/.exec(i.message)?.[1] ?? "", [set = "", name = ""] = id.split("/");
-  if (set === WORKSHOP) return { ...i, fix: `no such copy: fix or edit a clip with --save_as ${id} to make it` };
+  if (set === WORKSHOP) return { ...i, fix: `no such copy: \`fix <a library clip> --save_as ${id}\` makes it` };
   if (!lib.source.sets().includes(set)) return { ...i, fix: "pass its clip file in clips (recipe.compile writes a recipe's)" };
   const tier = lib.library.about(set).tier;
   if (lib.source.files(set).includes(`${name}.json`) && !fits(tier, lib.tiers)) return { ...i, fix: `add "${tier}" to "tiers" in game.json (${set} is a ${tier} set; this game sees ${lib.tiers.join(", ")})` };
@@ -209,14 +210,14 @@ export const graphSim = defineTool<{ graph: string; script: string; character: s
     const g = await graphOf(ctx, a.graph, a.clips), s = await docOf(ctx, a.script, "script"), want = a.expect === undefined ? null : await docOf(ctx, a.expect, "expected trace");
     const trace = (t: unknown): t is Trace => isObj(t) && ["states", "events", "hits"].every((k) => Array.isArray(t[k]));
     if (want && !trace(want.data)) throw new ToolError("E_JSON", "the expected trace is not one: give a trace.json graph.sim wrote (spec/SIM.md §2)", want.path === null);
-    // the character as replies name it, and body.ts's refusals (characterName)
-    const character = characterName(a.character), script = s.data as SimScript, body = await bodyOf(ctx, a.character);
+    // the character as a hint names it (characterName) and as prose does (`who`: the verdict, data), and body.ts's refusals
+    const character = characterName(a.character), who = prose(character), script = s.data as SimScript, body = await bodyOf(ctx, a.character);
     const at = isObj(script) && typeof script.rate === "number" ? script.rate : 60, n = isObj(script) && typeof script.dur === "number" ? Math.round(script.dur * at) : 0;
     if (n > MAX_STEPS) throw new ToolError("E_ARGS", `the script runs ${n} steps (dur ${script.dur} s at rate ${at}), past the ${MAX_STEPS} graph.sim takes: shorten dur or lower rate`, s.path === null);
     const again = (expect = want?.flag) => call("graph.sim", [g.as], { script: s.flag, character: a.character === "tiny" ? undefined : given(character, a.character), clips: g.clips, expect });
     const issues = [...g.issues, ...validateScript(script, g.issues.length ? undefined : g.graph)], x = issued(issues);
-    const none = { script: s.id, graph: g.id, character, steps: 0, states: [], events: 0, hits: [], went: null, rate: null, sensors: null, findings: [], warnings: [], trace: null, matches: null, diff: null };
-    if (issues.length) return { verdict: `graph.sim ${s.title} on ${character}: FAIL, ${count(issues.length, "issue")}; not run`, data: { ...none, issues: x.rows, ...cuts({ issues: x }) }, lines: x.lines, findings: true, next: `fix each issue as its fix says, then ${again()} again` };
+    const none = { script: s.id, graph: g.id, character: who, steps: 0, states: [], events: 0, hits: [], went: null, rate: null, sensors: null, findings: [], warnings: [], trace: null, matches: null, diff: null };
+    if (issues.length) return { verdict: `graph.sim ${s.title} on ${who}: FAIL, ${count(issues.length, "issue")}; not run`, data: { ...none, issues: x.rows, ...cuts({ issues: x }) }, lines: x.lines, findings: true, next: `fix each issue as its fix says, then ${again()} again` };
     const cache = new Map<string, AnimClip | undefined>(), clips = (id: string) => {
       if (!cache.has(id)) cache.set(id, ((c) => c && playable(c.clip, c.rest))(g.find(id)));
       return cache.get(id);
@@ -233,7 +234,7 @@ export const graphSim = defineTool<{ graph: string; script: string; character: s
     // the one way to hold later runs to this trace: a copy out of check-output/, which the next run overwrites
     const keep = `copy ${written} out of check-output/ (the next run overwrites it) and pass the copy: ${again("<copy>")}`, seen = film ? " (the filmstrip shows it)" : "";
     return {
-      verdict: `graph.sim ${s.title} on ${character}: ${tr.steps} steps, ${cut(path.join(" > "), 60)}; ${count(tr.events.length, "event")}, ${count(tr.hits.length, "hit window")}; ${said}; went ${mm(last.forward)}${want ? `; trace ${diff === null ? "matches" : "differs"}` : ""}`,
+      verdict: `graph.sim ${s.title} on ${who}: ${tr.steps} steps, ${cut(path.join(" > "), 60)}; ${count(tr.events.length, "event")}, ${count(tr.hits.length, "hit window")}; ${said}; went ${mm(last.forward)}${want ? `; trace ${diff === null ? "matches" : "differs"}` : ""}`,
       data: {
         ...none, steps: tr.steps, events: tr.events.length, trace: written, matches: want ? diff === null : null, diff, issues: [],
         states: states.rows.map((e) => ({ t: round(e.t, 3), layer: e.layer, state: e.state, from: e.from })), hits: hits.rows.map((h) => ({ t0: round(h.t0, 3), t1: round(h.t1, 3), layer: h.layer, state: h.state, clip: h.clip })),

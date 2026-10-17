@@ -1,8 +1,9 @@
 // The tools WP-7.1 registered to prove the four surfaces, moved here by WP-7.2: `version`, and `validate`, a clip
-// through @m3a/core's validator (an absolute path named "the file", as no reply echoes one).
+// through @m3a/core's validator (a path named as given, or "the file" for an absolute one or one with a control
+// character, as no reply echoes one; a parser's message on one line).
 import { VERSION, format, validate as validateData, validation, type Issue } from "@m3a/core";
 import { defineTool, ToolError } from "../registry/registry.ts";
-import { absolute, output } from "./common.ts";
+import { absolute, arg, oneLine, output } from "./common.ts";
 
 /** `m3a version`: the package version and the clip format it reads and writes. */
 export const version = defineTool({
@@ -31,13 +32,13 @@ export const validate = defineTool<{ path?: string; text?: string; mode: "read" 
   examples: [{ args: { path: "library/sets/QUATERNIUS_3D2DGE/A_TPose.json" } }],
   async run(a, ctx) {
     if ((a.path === undefined) === (a.text === undefined)) throw new ToolError("E_ARGS", "give a path or a text, one of the two", true);
-    // an absolute path is named "the file": no reply echoes one
-    const text = a.text ?? (await ctx.read(a.path!)), what = a.path === undefined ? "the text" : absolute(a.path) ? "the file" : a.path;
+    // an absolute path, or one with a control character, is named "the file": no reply echoes one
+    const text = a.text ?? (await ctx.read(a.path!)), what = a.path === undefined ? "the text" : absolute(a.path) || /\p{Cc}/u.test(a.path) ? "the file" : arg(a.path);
     let data: unknown;
     try {
       data = JSON.parse(text);
     } catch (err) {
-      const message = `not JSON: ${(err as Error).message}`;
+      const message = `not JSON: ${oneLine(err)}`;
       return { verdict: `validate ${what}: FAIL, ${message}`, data: { ok: false, errors: [{ code: "E_JSON", severity: "error", message }], warnings: [] }, findings: true, next: "write the clip as JSON (spec/MOTION.md), then validate again" };
     }
     const r = validateData(data, { mode: a.mode }), count = (n: number, w: string) => `${n} ${w}${n === 1 ? "" : "s"}`;

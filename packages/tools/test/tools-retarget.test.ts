@@ -41,7 +41,7 @@ for (const [f, data] of Object.entries({
   "renamed.gltf": { ...rigify, nodes: rigify.nodes.map((n, i) => ({ ...n, name: i === 1 ? HIPS : `n${i}` })) }, "rigify-vrm.gltf": { ...rigify, extensions: { VRMC_vrm: { specVersion: "1.0", humanoid: { humanBones: human } } } },
   "packed.gltf": { ...rigify, extensionsUsed: [MESHOPT], extensionsRequired: [MESHOPT] }, "long.json": { ...walk, dur: 598.7, keys: walk.keys.map((k) => ({ ...k, t: Math.round((k.t * 598_700) / 1.333) / 1000 })) },
   "hair.gltf": { ...rig, nodes: hair, animations: undefined }, "chain.gltf": { asset: { version: "2.0" }, nodes: [{ name: "a", children: [1] }, { name: "b", children: [2] }, { name: "c" }] },
-  "punch.json": JSON.parse(text("library/sets/QUATERNIUS_3D2DGE/Punch_Jab.json")) as object,
+  "my punch.json": JSON.parse(text("library/sets/QUATERNIUS_3D2DGE/Punch_Jab.json")) as object,
 })) writeFileSync(join(cwd, f), JSON.stringify(data));
 /** Calls a retarget tool on the Node host in the file's working directory; its PNGs go to `pngs`. */
 const call = async (tool: string, args: object, pngs?: Map<string, Uint8Array>) => (await reg.call(tool, args, { host, pngs })) as Reply<Row>;
@@ -103,11 +103,11 @@ describe("the retarget tools", () => {
 
   it("retarget.inspect refuses a misspelt humanoid bone and a chain with no humanoid, and never echoes an absolute path", async () => {
     const [bad, chain, abs, json] = [await call("retarget.inspect", { character: RIGIFY, mapping: { bones: { leftUpperLegg: "DEF-thigh.L" } } }), await call("retarget.inspect", { character: "chain.gltf" }),
-      await call("retarget.inspect", { character: join(cwd, RIGIFY) }), await call("retarget.inspect", { character: join(cwd, "punch.json") })];
+      await call("retarget.inspect", { character: join(cwd, RIGIFY) }), await call("retarget.inspect", { character: join(cwd, "my punch.json") })];
     expect([bad.status, bad.error]).toEqual(["usage", { code: "E_ARGS", message: 'mapping: "leftUpperLegg" is not a VRM 1.0 humanoid bone; did you mean "leftUpperLeg"?' }]);
     expect([chain.status, chain.error]).toEqual(["error", { code: "E_RIG", message: 'chain.gltf: no humanoid bone recognized among its 3 bones, by name or by shape; give each bone in mapping {bones: {hips: "<its bone>", ...}}' }]);
-    expect([abs.verdict, abs.lines[0], abs.next]).toEqual([expect.stringMatching(/^retarget.inspect <the character's file>: 31 bones/), "rest: T, the arms 2° below level", expect.stringMatching(/^`retarget.apply <the character's file> --clips /)]);
-    expect([json.error, [abs, json].map((r) => JSON.stringify(r).includes(cwd))]).toEqual([{ code: "E_ARGS", message: `<the character's file> is not a character: give a .glb, .gltf or .vrm file, or "tiny"` }, [false, false]]);
+    expect([abs.verdict, abs.lines[0], abs.next]).toEqual([expect.stringMatching(/^retarget.inspect the character's file: 31 bones/), "rest: T, the arms 2° below level", expect.stringMatching(/^`retarget.apply <the character's file> --clips /)]);
+    expect([json.error, [abs, json].map((r) => JSON.stringify(r).includes(cwd))]).toEqual([{ code: "E_ARGS", message: `the character's file is not a character: give a .glb, .gltf or .vrm file, or "tiny"` }, [false, false]]);
   });
 
   it("retarget.apply judges clips as the sweep does (D80): swapped arms miss their points; a body adding a fail, or a warn; clips named as given", async () => {
@@ -129,10 +129,11 @@ describe("the retarget tools", () => {
     expect(body.data!.clips).toMatchObject([{ ok: true, why: [], worse: [{ metric: "jitter", level: "warn" }] }, { ok: false, why: [expect.stringMatching(/^bodyPenetration 0\.0 on its own body → 61\.2 played on this one/)], worse: [{ metric: "bodyPenetration", level: "fail", own: 0, played: 61.2 }] }]);
     expect([body.lines[0]!.split(":")[0], body.lines[1], runs(body.next)]).toEqual(["FAIL MESH2MOTION/Kneeling_Tired", "PASS QUATERNIUS_3D2DGE/Punch_Cross: own pass, played warn, reach 0 mm; this body adds a warn: jitter", [{ tool: "search", args: { query: "Kneeling Tired" } }]]);
     expect(body.images.map((i) => [i.name, i.width, i.height, i.tokens])).toEqual([["MESH2MOTION_Kneeling_Tired-on-rigify-vrm.gltf", 1014, 156, 211]]);
-    // the tiny rig plays a clip file and a clip's JSON; the next names them as given
-    const tiny = await call("retarget.apply", { character: "tiny", clips: ["punch.json", text("library/sets/QUATERNIUS_3D2DGE/Walk_Loop.json")] });
-    expect([tiny.status, tiny.verdict, tiny.data!.mapped, tiny.lines.map((l) => l.split(":")[0])]).toEqual(["ok", "retarget.apply tiny: 2 of 2 clips pass on it (hip height 950 mm)", "table", ["PASS punch.json", `PASS ${WALK} (the clip's JSON)`]]);
-    expect(runs(tiny.next)).toEqual([{ tool: "license.check", args: { clips: ["punch.json", "<the clip's JSON>"] } }]);
+    // the tiny rig plays a clip file (a name the shell would split) and a clip's JSON; the next passes them as given, the
+    // file's path once (as export's does), not the name a line quotes for the shell
+    const tiny = await call("retarget.apply", { character: "tiny", clips: ["my punch.json", text("library/sets/QUATERNIUS_3D2DGE/Walk_Loop.json")] });
+    expect([tiny.status, tiny.verdict, tiny.data!.mapped, tiny.lines.map((l) => l.split(":")[0])]).toEqual(["ok", "retarget.apply tiny: 2 of 2 clips pass on it (hip height 950 mm)", "table", ["PASS 'my punch.json'", `PASS ${WALK} (the clip's JSON)`]]);
+    expect(runs(tiny.next)).toEqual([{ tool: "license.check", args: { clips: ["my punch.json", "<the clip's JSON>"] } }]);
   });
 
   it("says a compressed mesh in both tools, as no mapping issue: inspect ok with no turntable, its patch line's advice, the next plays clips; apply notes it, no warning", async () => {

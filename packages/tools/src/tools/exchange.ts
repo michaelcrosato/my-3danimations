@@ -14,7 +14,7 @@ import { setFiles, tierOf, withFacts } from "@m3a/library";
 import { defineTool, ToolError, type LibraryAccess, type ToolContext } from "../registry/registry.ts";
 import { quote } from "../registry/schema.ts";
 import { bodyOf, CHARACTER, characterName, MAPPING, type MappingPatch } from "./body.ts";
-import { given, loadClip, naming, parts } from "./clips.ts";
+import { given, loadClip, naming, parts, prose } from "./clips.ts";
 import { ARROW, call, capped, CLIP, count, cut, fileOrJson, imageName, mm, more, output, round, sec } from "./common.ts";
 
 /** The motion files import reads, by extension. */
@@ -28,9 +28,12 @@ const PRODUCER = { tool: "m3a import", version: VERSION };
 /** An SPDX license id, or a LicenseRef- for terms SPDX doesn't list (the library's rule). */
 const SPDX = /^(LicenseRef-[A-Za-z0-9.-]+|[A-Za-z0-9][A-Za-z0-9.+-]*)$/;
 
-/** A path as a reply names it (clips.ts's naming): as given, quoted where a shell would split it, or `<whose file>` for
- *  an absolute path or one with a control character. */
-const named = (path: string, whose = "the"): string => naming({ id: path, where: "file", path, name: null }, whose).as;
+/** A path as a hint names it (clips.ts's naming): as given, quoted where a shell would split it, or `<whose file>` for
+ *  an absolute path or one with a control character; prose (a refusal, a verdict, data) writes it without the brackets
+ *  (`said`: "the motion file"). import's own path is "the motion"'s. */
+const named = (path: string, whose: string): string => naming({ id: path, where: "file", path, name: null }, whose).as;
+/** A path as prose names it: named's words without the brackets (clips.ts prose). */
+const said = (path: string, whose: string): string => prose(named(path, whose));
 /** Whether a license owes a credit where its clips are used: any but CC0's (CC BY's, CMU's, a share-alike's or a
  *  non-commercial one's, MIT's notice), each part of a composed clip's. */
 const owes = (license: string): boolean => parts(license).some((x) => x !== "CC0-1.0");
@@ -64,8 +67,9 @@ function byImport(text: string | null): boolean {
   }
 }
 
-/** A file's own name (no directory; a control character as "_"), as a reader names it in a refusal and the set's
- *  manifest records it: never a path. */
+/** A file's own name (no directory; a control character as "_"), as the set's manifest records it (and a BVH take is
+ *  named): never a path. A reader's refusal names the file as prose does (`said`), so two files of one name in two
+ *  directories read apart. */
 const fileName = (path: string): string => path.replace(/^.*[\\/]/, "").replace(/\p{Cc}/gu, "_");
 
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
@@ -86,10 +90,10 @@ function catalogOf(data: unknown, inline: boolean): Catalog {
   return data as Catalog;
 }
 
-/** A glTF-family file read into its document (a .gltf as text, the rest as bytes). */
-async function docAt(ctx: ToolContext, path: string): Promise<{ doc: GltfDoc; raw: string | Uint8Array }> {
+/** A glTF-family file read into its document (a .gltf as text, the rest as bytes), io's refusals naming it `label`. */
+async function docAt(ctx: ToolContext, path: string, label: string): Promise<{ doc: GltfDoc; raw: string | Uint8Array }> {
   const raw = /\.gltf$/i.test(path) ? await ctx.read(path) : await ctx.bytes(path);
-  return { doc: io(() => (typeof raw === "string" ? parseGltf(raw, fileName(path)) : parseGlb(raw, fileName(path)))), raw };
+  return { doc: io(() => (typeof raw === "string" ? parseGltf(raw, label) : parseGlb(raw, label))), raw };
 }
 
 /** What a reader gave, as the library importSet fits (named `id`), and the reader's notes. */
@@ -98,18 +102,19 @@ type Read = { rig: string; clips: LibraryIn["clips"]; body?: LibraryIn["body"]; 
 /** A motion file read: its rig (null when no bone map knows it by name alone), its animations' names, and the library
  *  importSet fits, with the reader's notes (the catalog's picks when it has them, else every animation whole). */
 async function motionOf(ctx: ToolContext, path: string, kind: string, cat: Catalog | null): Promise<{ rig: string | null; names: string[]; read(id: string): { lib: LibraryIn; log: string[] } }> {
-  const picks = cat?.$pick ? io(() => picksOf(cat)) : undefined, file = fileName(path);
+  // the file as the manifest records it (and a BVH take is named), and as io's refusals name it
+  const picks = cat?.$pick ? io(() => picksOf(cat)) : undefined, file = fileName(path), label = said(path, "the motion");
   // the rest of a reader that cuts takes as captures is its "_rest"; the exact glTF reader finds the file's rest clip
   const as = (read: () => Read, rest: string | undefined, rig?: string) => (id: string) => {
     const r = io(read);
     return { lib: { id, file, rig: rig ?? r.rig, clips: r.clips, body: r.body ?? null, ...(rest ? { rest } : {}) }, log: r.log ?? r.warnings ?? [] };
   };
   if (kind === "bvh") {
-    const text = await ctx.read(path), take = file.replace(/\.bvh$/i, ""), rig = io(() => rigBvh(parseBvh(text, file), { file })).map;
+    const text = await ctx.read(path), take = file.replace(/\.bvh$/i, ""), rig = io(() => rigBvh(parseBvh(text, label), { file: label })).map;
     return { rig: `bvh:${rig}`, names: picks?.map((p) => p.name) ?? [take], read: as(() => readBvh(() => text, picks ?? [take]), "_rest") };
   }
-  const { doc, raw } = await docAt(ctx, path), d = io(() => describeGltf(doc));
-  if (kind === "vrma") return { rig: "gltf:vrm", names: d.clips, read: as(() => readVrma(raw as Uint8Array, { file, ...(picks ? { picks } : {}) }), "_rest") };
+  const { doc, raw } = await docAt(ctx, path, label), d = io(() => describeGltf(doc));
+  if (kind === "vrma") return { rig: "gltf:vrm", names: d.clips, read: as(() => readVrma(raw as Uint8Array, { file: label, ...(picks ? { picks } : {}) }), "_rest") };
   // a rig the exact reader knows (Rigify's, Unreal's) is read as the library's re-import reads it, unless picks cut it
   if (d.rig && !picks) return { rig: `gltf:${d.rig}`, names: d.clips, read: as(() => readGltf(doc), undefined, `gltf:${d.rig}`) };
   return { rig: d.rig && `gltf:${d.rig}`, names: d.clips, read: as(() => readGltfPosed(doc, picks ? { picks } : {}), "_rest") };
@@ -138,8 +143,9 @@ export const importMotion = defineTool<{ path: string; set: string; license?: st
   examples: [{ args: { path: "spec/vectors/tier1b/rig.gltf", license: "CC0-1.0" } }],
   writes: true,
   async run(a, ctx) {
-    const kind = /\.(\w+)$/.exec(a.path)?.[1]!.toLowerCase() ?? "", file = named(a.path), dir = `imports/${a.set}`;
-    if (!KINDS.includes(kind)) throw new ToolError("E_ARGS", `${file} is no motion file: give a .gltf, .glb, .bvh or .vrma${kind === "fbx" ? " (convert FBX to .glb first)" : ""}`, true);
+    // the file as a hint names it (`file`: <the motion file> for an absolute path) and as prose does (`it`)
+    const kind = /\.(\w+)$/.exec(a.path)?.[1]!.toLowerCase() ?? "", file = named(a.path, "the motion"), it = prose(file), dir = `imports/${a.set}`;
+    if (!KINDS.includes(kind)) throw new ToolError("E_ARGS", `${it} is no motion file: give a .gltf, .glb, .bvh or .vrma${kind === "fbx" ? " (convert FBX to .glb first)" : ""}`, true);
     if (!/^[A-Z][A-Z0-9_]*$/.test(a.set) || a.set === "WORKSHOP") throw new ToolError("E_ARGS", `set is the new set's name, A-Z, 0-9 and _ (as IMPORT), not ${quote(a.set)}`, true);
     if (!a.list && a.license === undefined) throw new ToolError("E_ARGS", "license is the file's SPDX id (CC0-1.0, CC-BY-4.0, ...), which each clip carries; list needs none", true);
     if (a.license !== undefined && !SPDX.test(a.license)) throw new ToolError("E_ARGS", `license ${quote(a.license)} is no SPDX id: CC0-1.0, CC-BY-4.0, ..., or LicenseRef-<name> for other terms`, true);
@@ -154,8 +160,8 @@ export const importMotion = defineTool<{ path: string; set: string; license?: st
     if (a.list) {
       const from = a.from ?? 0, shown = capped(m.names.slice(from), 50), glTF = kind === "gltf" || kind === "glb";
       return {
-        verdict: `import ${file}: ${count(m.names.length, "animation")}, rig ${m.rig ?? "unknown by name (import may refuse it)"}; nothing written`,
-        data: { file, kind, rig: m.rig, set: null, license: null, clips: shown.rows.map((name) => ({ name })), ...(shown.more ? { more: shown.more } : {}), skipped: [], notes: [], mean_fit: null, worst: null },
+        verdict: `import ${it}: ${count(m.names.length, "animation")}, rig ${m.rig ?? "unknown by name (import may refuse it)"}; nothing written`,
+        data: { file: it, kind, rig: m.rig, set: null, license: null, clips: shown.rows.map((name) => ({ name })), ...(shown.more ? { more: shown.more } : {}), skipped: [], notes: [], mean_fit: null, worst: null },
         lines: [...shown.rows, ...more(shown.more, "animation", `${call("import", at, { list: true, from: from + 50 })} lists them`)],
         next: m.names.length
           ? `${call("import", at, { set: a.set === "IMPORT" ? undefined : a.set, license: "<license>" })} fits them into ${dir}/`
@@ -176,7 +182,7 @@ export const importMotion = defineTool<{ path: string; set: string; license?: st
       skipped.push({ name, why: cut(validation.formatIssue(r.errors[0]!).replace(/\s*\n\s*/g, "; ")) });
     });
     const cutSkips = capped(skipped, 20), also = cutSkips.more ? `; and ${cutSkips.more} more skipped` : "";
-    if (!made.length) throw new ToolError("E_NO_CLIP", `no clip came out of ${file}${skipped.length ? `: ${cutSkips.rows.map((s) => `${s.name}: ${s.why}`).join("; ")}${also}` : ""}`);
+    if (!made.length) throw new ToolError("E_NO_CLIP", `no clip came out of ${it}${skipped.length ? `: ${cutSkips.rows.map((s) => `${s.name}: ${s.why}`).join("; ")}${also}` : ""}`);
     const manifest = {
       set: a.set,
       title: `${base}, imported`,
@@ -195,7 +201,7 @@ export const importMotion = defineTool<{ path: string; set: string; license?: st
     const files = setFiles(manifest, made), release = await ctx.lock(`.m3a/locks/import-${a.set}.lock`), gone: string[] = [];
     try {
       for (const f of held(lib, a.set).filter((f) => f.endsWith(".json") && !f.startsWith("_") && !files.has(f)).sort()) {
-        if (!byImport(await ctx.tryRead(`${dir}/${f}`))) throw new ToolError("E_EXISTS", `${named(`${dir}/${f}`)} is no clip m3a import wrote: move it out of ${dir}/, where the library reads each .json as one of the set's clips; nothing was changed`);
+        if (!byImport(await ctx.tryRead(`${dir}/${f}`))) throw new ToolError("E_EXISTS", `${said(`${dir}/${f}`, "the")} is no clip m3a import wrote: move it out of ${dir}/, where the library reads each .json as one of the set's clips; nothing was changed`);
         gone.push(f);
       }
       for (const f of gone) ctx.remove(`${dir}/${f}`);
@@ -209,8 +215,8 @@ export const importMotion = defineTool<{ path: string; set: string; license?: st
     const kept = lib.licenseText(license) !== null, noted = capped([...(kept ? [] : [`${license}'s text isn't in library/LICENSES/: license.check fails the set`]), ...out.report.warnings, ...log].map((w) => cut(w)), 5);
     const shown = capped(rows, 50), findings = bad || over > 0;
     return {
-      verdict: `import ${file}: ${count(made.length, "clip")} into ${dir}/ (${input.rig}, tier local), fit ${mean} mm mean, worst ${mm(worst.fit[1]!)} (${worst.id})${skipped.length ? `; ${skipped.length} skipped` : ""}${over ? `; ${over} past the fit limits` : ""}`,
-      data: { file, kind, rig: input.rig, set: a.set, dir: `${dir}/`, license, tier: "local", clips: shown.rows, ...(shown.more ? { more: shown.more } : {}), skipped: cutSkips.rows, notes: noted.rows, mean_fit: mean, worst: { id: worst.id, mm: worst.fit[1] }, ...(gone.length ? { removed: gone.length } : {}) },
+      verdict: `import ${it}: ${count(made.length, "clip")} into ${dir}/ (${input.rig}, tier local), fit ${mean} mm mean, worst ${mm(worst.fit[1]!)} (${worst.id})${skipped.length ? `; ${skipped.length} skipped` : ""}${over ? `; ${over} past the fit limits` : ""}`,
+      data: { file: it, kind, rig: input.rig, set: a.set, dir: `${dir}/`, license, tier: "local", clips: shown.rows, ...(shown.more ? { more: shown.more } : {}), skipped: cutSkips.rows, notes: noted.rows, mean_fit: mean, worst: { id: worst.id, mm: worst.fit[1] }, ...(gone.length ? { removed: gone.length } : {}) },
       lines: [
         ...noted.rows.map((w) => `note: ${w}`),
         ...more(noted.more, "note"),
@@ -259,7 +265,7 @@ export const exportClip = defineTool<{ clip: string; character: string; format: 
     } else if (a.format === "glb") {
       // the character's own document, each bone's node by its name (skeletonOfGltf's, as body.ts bound it)
       const { doc, nodes } = a.character === "tiny" ? skeletonDoc(b) : await (async () => {
-        const { doc } = await docAt(ctx, a.character), g = io(() => skeletonOfGltf(doc));
+        const { doc } = await docAt(ctx, a.character, prose(who)), g = io(() => skeletonOfGltf(doc));
         return { doc, nodes: Object.fromEntries(g.skeleton.bones.map((x, k) => [x.name, g.nodes[k]!])) };
       })();
       const glb = io(() => addAnimation(doc, gltfAnimOf(clip, b, doc, nodes, { fps })));
@@ -274,8 +280,8 @@ export const exportClip = defineTool<{ clip: string; character: string; format: 
     const credit = owed ? (ref.where === "library" ? ctx.library().library.about(ref.set).credit : p.credit)?.trim() || null : null;
     const off = back.check === "reads back changed" || (back.mm ?? 0) > 1, unchecked = a.format !== "vrma" && back.mm === null, issues = capped(report.issues, 3);
     return {
-      verdict: `export ${title} on ${who} ${ARROW} ${file}: ${round(bytes.length / 1000, 1)} kB, ${frames} frames at ${fps} fps; ${back.check}; ${p.license}${credit ? ", credit owed" : ""}`,
-      data: { clip: ref.id, character: who, file, format: a.format, bytes: bytes.length, frames, fps, dur: clip.dur, loop: clip.loop, bones: { joints: b.order.length, humanoid: Object.keys(b.bones).length }, check: back.check, roundtrip_mm: back.mm, license: { spdx: p.license, tier, credit } },
+      verdict: `export ${title} on ${prose(who)} ${ARROW} ${file}: ${round(bytes.length / 1000, 1)} kB, ${frames} frames at ${fps} fps; ${back.check}; ${p.license}${credit ? ", credit owed" : ""}`,
+      data: { clip: ref.id, character: prose(who), file, format: a.format, bytes: bytes.length, frames, fps, dur: clip.dur, loop: clip.loop, bones: { joints: b.order.length, humanoid: Object.keys(b.bones).length }, check: back.check, roundtrip_mm: back.mm, license: { spdx: p.license, tier, credit } },
       lines: [
         `license: ${p.license} (${tier}); ${credit ? `credit owed: ${credit}` : owed ? "credit owed, none given" : "no credit owed"}`,
         ...(tier === "cmu" ? ["CMU's terms: no reselling the data, even converted (D10)"] : []),

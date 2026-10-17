@@ -55,7 +55,7 @@ describe("the check tools", () => {
     // a path with a space or a control character JSON-quoted; an absolute one, like JSON, never echoed
     const abs = await call("metrics", (cwd) => ({ clip: join(cwd, "walk.json") }), { files: { "walk.json": JSON.stringify(file) } });
     const bad = await call("metrics", (cwd) => ({ clip: join(cwd, "bad.json") }), { files: { "bad.json": "{}" } }); // nor in a refusal
-    expect([bad.status, bad.error?.message, JSON.stringify(bad).includes("bad.json")]).toEqual(["error", expect.stringMatching(/^the clip file is not a valid clip/), false]);
+    expect([bad.status, bad.error?.message, JSON.stringify(bad).includes("bad.json")]).toEqual(["error", expect.stringMatching(/^the clip's file is not a valid clip/), false]);
     expect([abs.verdict, abs.next, JSON.stringify(abs).includes("walk.json")]).toEqual([`metrics ${Q}Walk_Loop (the clip's file): FAIL (2 fail, 2 warn), 1.333 s loop`, "`lint <the clip's file>` names the repairs; `sheet <the clip's file>` shows the findings in red", false]);
     const odd = await call("diff", { a: "my walk.json", b: "a\nb.json" }, { files: { "my walk.json": JSON.stringify(file), "a\nb.json": JSON.stringify(file) } });
     expect([odd.verdict, odd.next]).toEqual([`diff 'my walk.json' → ${Q}Walk_Loop (b's file): no difference; FAIL → FAIL (4 → 4 findings)`, "open the image: magenta marks what moved; `metrics <b's file>` gives b's findings"]); // a control character: not echoed
@@ -151,7 +151,7 @@ describe("the check tools", () => {
     expect(await call("lint", { clip: "MESH2MOTION/Angry" })).toMatchObject({ status: "findings", verdict: "lint MESH2MOTION/Angry: fix refit", data: { repairs: [{ op: "refit", reasons: 1 }] } });
     const open = await call("lint", { clip: JSON.stringify({ ...clipFile("Death01"), loop: true, tags: ["loop", "run"] }) }), tags = open.data!.tags as { tag: string; message: string }[];
     expect([open.status, tags.map((t) => [t.tag, t.message.length]), open.lines.filter((l) => l.startsWith("tag ")).map((l) => l.length), open.next]).toEqual(["findings", [["loop", 70], ["run", 90]], [80, 101], "`fix <the clip's JSON>` applies twistFlips, jitter, seam, keeping only steps that don't make it worse; diff it with the fixed copy"]);
-    expect(await call("lint", { clip: '{"format":"2.0","id":"DEMO/Bad","dur":0}' })).toMatchObject({ status: "usage", error: { code: "E_CLIP", message: expect.stringMatching(/^the clip JSON is not a valid clip/) } });
+    expect(await call("lint", { clip: '{"format":"2.0","id":"DEMO/Bad","dur":0}' })).toMatchObject({ status: "usage", error: { code: "E_CLIP", message: expect.stringMatching(/^the clip's JSON is not a valid clip/) } });
   });
 
   it("a clip some of whose findings a repair answers: metrics sends it to lint, lint counts those, sheet flags 10 of 23", async () => {

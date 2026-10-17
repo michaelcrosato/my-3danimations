@@ -58,7 +58,7 @@ describe("compose and wire", () => {
         const t = performance.now(), r = await bad([{ op: "clip", id: "MESH2MOTION/Fighting_Right_Jab" }, ...steps]);
         expect([r.status, r.error!.code, r.error!.message.split(",")[0], performance.now() - t < 500]).toEqual(["usage", "E_ARGS", `${at}`, true]);
       }
-      expect((await call("recipe.compile", { recipe: "spec/recipes/Nope.json" })).error).toEqual({ code: "E_PATH", message: 'can\'t read "spec/recipes/Nope.json" (ENOENT); paths are relative to the working directory' });
+      expect((await call("recipe.compile", { recipe: "spec/recipes/Nope.json" })).error).toEqual({ code: "E_PATH", message: "can't read spec/recipes/Nope.json (ENOENT); paths are relative to the working directory" });
       // a library clip of a tier the game hasn't opted in to is refused naming the opt-in, not compile's "no clip" (L3)
       const walk = { recipe: "spec/recipes/Walk_Into_Run.json" };
       expect(await call("recipe.compile", walk)).toMatchObject({ status: "usage", error: { code: "E_TIER", message: expect.stringMatching(/^"STYLE100\/Neutral_Walk" is in STYLE100, a cc-by set, and this game sees only cc0: add "cc-by" to "tiers" in game.json/) } });
@@ -76,7 +76,7 @@ describe("compose and wire", () => {
       expect([r.status, r.verdict, r.data!.layers, r.next]).toEqual(["findings", "graph.validate GRAPHS/Locomotion (the graph's JSON): FAIL, 5 issues", [], "fix each issue as its fix says, then `graph.validate <the graph's JSON>` again"]);
       expect(issues(r)).toEqual([
         `G-E009 states.idle: did you mean "${Q}Idle_Loop"? or pass its clip file in clips`,
-        "G-E009 states.air: no such copy: fix or edit a clip with --save_as WORKSHOP/Nope to make it",
+        "G-E009 states.air: no such copy: `fix <a library clip> --save_as WORKSHOP/Nope` makes it",
         'G-E009 states.land: add "cc-by" to "tiers" in game.json (STYLE100 is a cc-by set; this game sees cc0)',
         "G-E003 transitions.1.to: one of idle, move, jump, air, land",
         "G-E009 layers.0.states.jab: pass its clip file in clips (recipe.compile writes a recipe's)",
@@ -140,10 +140,11 @@ describe("compose and wire", () => {
       expect([typo.status, typo.verdict, issues(typo), typo.data!.trace]).toEqual(["findings", "graph.sim SIMS/Bad (the script's JSON) on tiny: FAIL, 1 issue; not run", ["S-E003 input.0.trigger: jump, punch"], null]);
       expect((await call("graph.sim", { graph: L, script: SHORT, character: "gen-x" })).error).toEqual({ code: "E_ARGS", message: 'gen-x is not a character: give a .glb, .gltf or .vrm file, or "tiny"' });
       writeFileSync(join(cwd, "bad.gltf"), '{"asset":{"version":"2.0"}}');
-      expect((await call("graph.sim", { graph: L, script: SHORT, character: join(cwd, "bad.gltf") })).error!.message).toMatch(/^<the character's file>: [^/]*$/);
-      // a script file that is no JSON named as clips.ts names a file: "file" for an absolute path, else as given
+      expect((await call("graph.sim", { graph: L, script: SHORT, character: join(cwd, "bad.gltf") })).error!.message).toMatch(/^the character's file: [^/<>]*$/);
+      // a script file that is no JSON named as clips.ts's prose names a file: "the script's file" for an absolute path,
+      // else as given
       writeFileSync(join(cwd, "bad one.json"), "{nope");
-      for (const [script, named] of [[join(cwd, "bad one.json"), /^the script file is not JSON: [^/]*$/], ["bad one.json", /^the script 'bad one\.json' is not JSON: /]] as const) expect((await call("graph.sim", { graph: L, script })).error).toEqual({ code: "E_JSON", message: expect.stringMatching(named) });
+      for (const [script, named] of [[join(cwd, "bad one.json"), /^the script's file is not JSON: [^/]*$/], ["bad one.json", /^the script 'bad one\.json' is not JSON: /]] as const) expect((await call("graph.sim", { graph: L, script })).error).toEqual({ code: "E_JSON", message: expect.stringMatching(named) });
       const long = JSON.stringify({ format: "2.0", id: "SIMS/Long", dur: 600, rate: 240, input: [] });
       expect((await call("graph.sim", { graph: L, script: long })).error).toEqual({ code: "E_ARGS", message: "the script runs 144000 steps (dur 600 s at rate 240), past the 36000 graph.sim takes: shorten dur or lower rate" });
       for (const bad of ["[1]", '{"script":"SIMS/Short","states":[]}']) expect((await call("graph.sim", { graph: L, script: SHORT, expect: bad })).error).toEqual({ code: "E_JSON", message: "the expected trace is not one: give a trace.json graph.sim wrote (spec/SIM.md §2)" });

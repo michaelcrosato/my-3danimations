@@ -58,6 +58,15 @@ export function naming(ref: Pick<ClipRef, "id" | "where" | "path" | "name">, who
  *  JSON>`, `<the clip's file>`), else the argument as given. */
 export const given = (as: string, value: string): string => (as.startsWith("<") ? as : value);
 
+/** How prose names what a hint names `as` (naming's `as`, characterName): the same words without the angle brackets,
+ *  outside backticks (a refusal, a verdict, a line or a data field): "the clip's file", "the character's JSON", or the
+ *  path as given (`arg`). A hint keeps `as` itself. */
+export const prose = (as: string): string => (as.startsWith("<") && as.endsWith(">") ? as.slice(1, -1) : as);
+
+/** How prose names a clip given as a file or JSON (null `path`): "the clip's JSON", "the clip's file" (an absolute path
+ *  or one with a control character, which no reply echoes), else its path as given (`arg`). */
+const saidOf = (path: string | null): string => prose(naming({ id: "", where: path === null ? "text" : "file", path, name: null }).as);
+
 /** A license's parts: a composed clip carries each of its inputs' licenses, joined with " AND " (D10). */
 export const parts = (license: string): string[] => license.split(" AND ").map((p) => p.trim());
 /** Whether a game at `tiers` may use what `tier` holds: that tier is among them, or local, which holds anything. */
@@ -109,7 +118,7 @@ export async function loadClip(ctx: ToolContext, ref: string): Promise<ClipRef> 
   const r = await readClip(ctx, ref);
   flagTier(ctx.library(), r);
   if (r.rest) return { ...r, rest: r.rest };
-  throw new ToolError("E_REST", `${r.path === null ? "the clip JSON" : absolute(r.path) ? "the clip file" : quote(r.path)} names rest ${quote(r.clip.restSrc)}, which no set's manifest has; make it on a library rest (each set's _set.json lists its sources)`, r.where === "text");
+  throw new ToolError("E_REST", `${saidOf(r.path)} names rest ${quote(r.clip.restSrc)}, which no set's manifest has; make it on a library rest (each set's _set.json lists its sources)`, r.where === "text");
 }
 
 /** As loadClip, for a tool that needs only the clip's own data (license.check): a clip whose rest no set has (and no
@@ -120,7 +129,7 @@ export async function readClip(ctx: ToolContext, ref: string): Promise<ClipData>
   const lib = ctx.library(), given = ref.trim(), name = workshopName(given);
   if (name !== null) {
     const t = await readTarget(ctx, name), h = t.history;
-    if (t.text === null) throw new ToolError("E_NO_CLIP", `no workshop clip ${quote(t.id)} (${t.path}); fix or edit a library clip with \`--save_as ${t.id}\` to make one`, true);
+    if (t.text === null) throw new ToolError("E_NO_CLIP", `no workshop clip ${quote(t.id)} (${t.path}); \`fix <a library clip> --save_as ${t.id}\` makes one (edit takes --save_as the same way)`, true);
     return fromText(lib, t.text, "workshop", t.path, name, h && { origin: h.from, rest: h.rest });
   }
   if (given.startsWith("{")) return fromText(lib, given, "text", null, null);
@@ -131,7 +140,7 @@ export async function readClip(ctx: ToolContext, ref: string): Promise<ClipData>
 /** A clip from its text: parsed and checked with core's validator (read mode), its rest from its history (`kept`) or a
  *  manifest. E_CLIP when it is no clip (usage for JSON given inline). */
 export function fromText(lib: LibraryAccess, text: string, where: "workshop" | "file" | "text", path: string | null, name: string | null, kept?: { origin: string; rest: Rest } | null): ClipData {
-  const what = path === null ? "the clip JSON" : absolute(path) ? "the clip file" : quote(path), inline = where === "text";
+  const what = saidOf(path), inline = where === "text";
   let data: unknown;
   try {
     data = JSON.parse(text);

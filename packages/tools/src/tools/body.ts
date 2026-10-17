@@ -9,12 +9,13 @@
 // 20 lines, with each missing bone's likely source bones, and hips under half the legs' length as an issue (a wrong
 // bone for them, such as the rig's root, which no other check sees; a mesh's issue no patch clears, meshIssue);
 // retarget.inspect shows it, and a tool that needs the body bound refuses with it (bodyOf). Replies name the character
-// as clips.ts names a file: never by an absolute path.
+// as clips.ts names a file, never by an absolute path: in a hint `<the character's file>` (characterName), elsewhere
+// the same words without the brackets (clips.ts prose: a refusal, the report, io's messages).
 import { bind, skeleton, type Bound, type SkeletonIn } from "@m3a/core";
 import { IoError, meshEnds, parseGlb, parseGltf, skeletonOfGltf, type GltfDoc, type GltfJson, type GltfSkeleton } from "@m3a/io";
 import { ToolError, type ToolContext } from "../registry/registry.ts";
 import { didYouMean, quote, type Schema } from "../registry/schema.ts";
-import { naming } from "./clips.ts";
+import { naming, prose } from "./clips.ts";
 import { call, count, cut } from "./common.ts";
 
 /** The character parameter: a character file under the working directory, or the tiny rig. */
@@ -22,8 +23,9 @@ export const CHARACTER: Schema = { type: "string", description: ".glb .gltf .vrm
 /** The mapping parameter: retarget.inspect's patch, edited ({bones: {humanoid bone: file's bone, or null to unmap}}). */
 export const MAPPING: Schema = { type: "object", description: "patch: {bones: {hips: \"pelvis\"}}", properties: { bones: { type: "object" } }, required: ["bones"] };
 
-/** How replies name character `ref` (clips.ts naming): as given, single-quoted where a shell would split it, or `<the
- *  character's file>` for an absolute path or one with a control character, which no reply echoes (D95). */
+/** How a hint names character `ref` (clips.ts naming): as given, single-quoted where a shell would split it, or `<the
+ *  character's file>` for an absolute path or one with a control character, which no reply echoes (D95); prose (a
+ *  refusal, a verdict, a line, a data field) writes it without the brackets (clips.ts prose: "the character's file"). */
 export const characterName = (ref: string): string => naming({ id: ref, where: "file", path: ref, name: null }, "the character's").as;
 
 /** Whether a report's issue is its mesh's (compressed, unreadable, or its soles unread): no mapping patch clears it. */
@@ -128,7 +130,7 @@ interface Read {
  *  unreadable file is an error with io's code). */
 async function skeletonOf(ctx: ToolContext, ref: string): Promise<Read> {
   if (ref === "tiny") return { sk: TINY, file: null, vrm: null };
-  const ext = /\.(glb|gltf|vrm)$/i.exec(ref)?.[1]!.toLowerCase(), name = characterName(ref);
+  const ext = /\.(glb|gltf|vrm)$/i.exec(ref)?.[1]!.toLowerCase(), name = prose(characterName(ref));
   if (!ext) throw new ToolError("E_ARGS", `${name} is not a character: give a .glb, .gltf or .vrm file, or "tiny"`, true);
   try {
     const doc = ext === "gltf" ? parseGltf(await ctx.read(ref), name) : parseGlb(await ctx.bytes(ref), name), g = skeletonOfGltf(doc);
@@ -189,7 +191,7 @@ function checkPatch(sk: SkeletonIn, m: MappingPatch): void {
  * under half the legs' length are an issue: a wrong bone for them.
  */
 export async function characterOf(ctx: ToolContext, ref: string, mapping?: MappingPatch | null): Promise<Character> {
-  const read = await skeletonOf(ctx, ref), { sk, vrm } = read, name = characterName(ref);
+  const read = await skeletonOf(ctx, ref), { sk, vrm } = read, name = prose(characterName(ref));
   if (sk.bones.length > MAX_BONES) throw new ToolError("E_LIMIT", `${name}: ${sk.bones.length} bones; a character may have at most ${MAX_BONES}`);
   const deep = deepest(sk);
   if (deep > MAX_DEPTH) throw new ToolError("E_LIMIT", `${name}: a chain of ${deep} bones; a character's chains may be at most ${MAX_DEPTH} bones long`);
@@ -234,7 +236,7 @@ export async function characterOf(ctx: ToolContext, ref: string, mapping?: Mappi
 export async function bodyOf(ctx: ToolContext, ref: string, mapping?: MappingPatch | null): Promise<Character & { bound: Bound }> {
   const c = await characterOf(ctx, ref, mapping);
   const name = characterName(ref), see = call("retarget.inspect", [name], { mapping: mapping ?? undefined });
-  if (!c.bound) throw new ToolError("E_RIG", `${name}: ${c.report.missing.join(", ")} not mapped; ${see} gives the patch: write each into it and pass it as mapping`, false, { next: `${see} gives the patch to fill in` });
+  if (!c.bound) throw new ToolError("E_RIG", `${prose(name)}: ${c.report.missing.join(", ")} not mapped; ${see} gives the patch: write each into it and pass it as mapping`, false, { next: `${see} gives the patch to fill in` });
   return c as Character & { bound: Bound };
 }
 
@@ -286,8 +288,8 @@ function candidatesOf(sk: SkeletonIn, rec: skeleton.Recognition, had: ReadonlySe
 }
 
 /** The report (at most 20 lines): how the bones were read, how sure, what is missing (and what may stand in for it) or
- *  odd, the lengths, the patch; `name` the character as replies name it (characterName); `had` the humanoid bones its
- *  names gave before any patch (candidatesOf). */
+ *  odd, the lengths, the patch; `name` the character as prose names it (clips.ts prose of characterName); `had` the
+ *  humanoid bones its names gave before any patch (candidatesOf). */
 function reportOf(name: string, sk: SkeletonIn, rec: skeleton.Recognition, vrm: boolean, had: ReadonlySet<string>): CharacterReport {
   const frame = skeleton.restFrame(sk, rec), head = new Map(sk.bones.map((b) => [b.name, b.head!])), lengths: Record<string, number> = {};
   for (const [h, [a, b]] of Object.entries(SEGMENTS)) {

@@ -1,10 +1,13 @@
 // The tools' foundation (PLAN.md WP-7.2a): the base tools and an edit-shaped demo on every surface; the Node host writing
 // only under its write roots, atomically and through no link out; the durable store, across two m3a processes too; the
-// library at game.json's tiers, each call with its own warnings; and the clip loader's forms and refusals.
+// library at game.json's tiers, each call with its own warnings; the clip loader's forms and refusals; and one naming
+// (D96): a file no reply echoes (an absolute path, or one holding a control character) is a placeholder inside a
+// hint's backticks and the same words without brackets outside them, in each tool's reply and the host's refusals.
 import { spawnSync } from "node:child_process";
-import { existsSync, linkSync, mkdirSync, readdirSync, readFileSync, rmSync, symlinkSync, utimesSync, writeFileSync } from "node:fs";
+import { cpSync, existsSync, linkSync, mkdirSync, readdirSync, readFileSync, rmSync, symlinkSync, truncateSync, utimesSync, writeFileSync } from "node:fs";
 import { hostname, tmpdir } from "node:os";
 import { join } from "node:path";
+import { LIMITS } from "@m3a/io";
 import type { LibraryError } from "@m3a/library";
 import { describe, expect, it } from "vitest";
 import { runCli } from "../src/cli.ts";
@@ -12,10 +15,10 @@ import { nodeHost } from "../src/node.ts";
 import { lockFile } from "../src/node/files.ts";
 import { libraryAccess } from "../src/node/library.ts";
 import { fileStore } from "../src/node/store.ts";
-import { defineTool, Registry, reply } from "../src/registry/index.ts";
+import { defineTool, Registry, reply, type Reply } from "../src/registry/index.ts";
 import { clipResolver, loadClip, refusal } from "../src/tools/clips.ts";
 import { CLIP } from "../src/tools/common.ts";
-import { BASE } from "../src/tools/index.ts";
+import { BASE, COMPOSE, EXCHANGE, RETARGET } from "../src/tools/index.ts";
 import { exampleCwd, ROOT, runExamples } from "./helpers/surfaces.ts";
 import { tally } from "./helpers/tally.ts";
 import { workshopClip } from "./helpers/workshop.ts";
@@ -53,7 +56,11 @@ describe("the base tools, and an edit, on every surface", () => {
     try {
       const abs = await reg.call("validate", { path: join(cwd, "library/sets/QUATERNIUS_3D2DGE/A_TPose.json") }, { host: nodeHost(cwd) });
       expect([abs.verdict, JSON.stringify(abs).includes(cwd)]).toEqual(["validate the file: PASS, 0 errors, 0 warnings", false]);
-      const refused = [[join(cwd, "nothere.json"), "can't read the file (ENOENT); paths are relative to the working directory"], [join(tmpdir(), "x.json"), "the file is outside the working directory; give a file under the working directory, or pass its text"]];
+      // JSON broken across a line break: the parser's message (V8's quotes the text, its line break too) on one line
+      writeFileSync(join(cwd, "broken.json"), '{"id":\n}');
+      const broken = await reg.call("validate", { path: "broken.json" }, { host: nodeHost(cwd) }), said = `not JSON: Unexpected token '}', "{"id": }" is not valid JSON`;
+      expect([broken.status, broken.verdict, (broken.data as { errors: { message: string }[] }).errors[0]!.message]).toEqual(["findings", `validate broken.json: FAIL, ${said}`, said]);
+      const refused = [[join(cwd, "nothere.json"), "can't read the file (ENOENT); paths are relative to the working directory"], [join(tmpdir(), "x.json"), "the file is outside the working directory; give a file under the working directory"]];
       for (const [path, message] of refused) {
         const r = await reg.call("validate", { path }, { host: nodeHost(cwd) });
         expect([r.error?.message, JSON.stringify(r).includes(tmpdir())], path).toEqual([message, false]);
@@ -83,8 +90,8 @@ describe("the Node host", () => {
       expect([host.write!("workshop/t.txt", "t"), readFileSync(join(cwd, "workshop/t.txt"), "utf8"), existsSync(join(cwd, "elsewhere/via-tmp.txt"))]).toEqual(["workshop/t.txt", "t", false]);
       symlinkSync(join(cwd, "elsewhere"), join(cwd, "imports"));
       symlinkSync(ROOT, join(cwd, "repo"));
-      expect((await call({ path: "imports/A/x.json", text: "x" })).error?.message).toMatch(/^"imports\/A\/x.json" leads out of imports\/ through a link/);
-      expect((await reg.call("validate", { path: "repo/library/sets/QUATERNIUS_3D2DGE/A_TPose.json" }, { host })).error?.message).toMatch(/^"repo\/library\/sets\/QUATERNIUS_3D2DGE\/A_TPose.json" leads out of the working directory through a link/);
+      expect((await call({ path: "imports/A/x.json", text: "x" })).error?.message).toMatch(/^imports\/A\/x.json leads out of imports\/ through a link/);
+      expect((await reg.call("validate", { path: "repo/library/sets/QUATERNIUS_3D2DGE/A_TPose.json" }, { host })).error?.message).toMatch(/^repo\/library\/sets\/QUATERNIUS_3D2DGE\/A_TPose.json leads out of the working directory through a link/);
       symlinkSync(".", join(cwd, ".m3a")); // a root linked to the working directory itself: nothing new lands beside game.json
       for (const path of [".m3a/evil.json", ".m3a/new/evil.json"]) expect((await call({ path, text: "x" })).error?.message, path).toMatch(/leads out of .m3a\/ through a link/);
       expect(() => fileStore(cwd).set("k", { args: "{}", reply: reply("demo", "ok", { verdict: "v", next: "n" }) })).toThrow(/leads out of .m3a\//);
@@ -99,6 +106,27 @@ describe("the Node host", () => {
     }
   });
 
+  it("refuses a text file past io's text limit before reading it (E_LIMIT naming its size), in every tool; a missing one is still null to tryRead", async () => {
+    const { cwd, rm } = exampleCwd(false), host = nodeHost(cwd), reg = new Registry([...RETARGET, ...COMPOSE, ...EXCHANGE]), n = LIMITS.text + 1;
+    try {
+      // sparse files a byte past the limit: nothing written, so none is read (a read of 700 MB was E_PATH's
+      // ERR_STRING_TOO_LONG, and one of 300 MB was decoded whole before io refused it)
+      for (const f of ["huge.bvh", "huge.json", "huge.gltf"]) {
+        writeFileSync(join(cwd, f), "");
+        truncateSync(join(cwd, f), n);
+      }
+      const said = (f: string) => ({ code: "E_LIMIT", message: `${f}: ${n} bytes, over the ${LIMITS.text}-byte limit for a text file` });
+      const got = [await reg.call("import", { path: "huge.bvh", list: true }, { host }), await reg.call("recipe.compile", { recipe: "huge.json" }, { host }), await reg.call("retarget.inspect", { character: "huge.gltf" }, { host })];
+      expect(got.map((r) => [r.status, r.error])).toEqual([["error", said("huge.bvh")], ["error", said("huge.json")], ["error", said("huge.gltf")]]);
+      await expect(host.tryRead!("huge.json")).rejects.toMatchObject(said("huge.json"));
+      expect([await host.tryRead!("nope.json"), await host.tryRead!("nope/x.json")]).toEqual([null, null]);
+      truncateSync(join(cwd, "huge.json"), LIMITS.text); // at the limit: read
+      expect((await host.read!("huge.json")).length).toBe(LIMITS.text);
+    } finally {
+      rm();
+    }
+  });
+
   it("takes a lock file for one caller at a time, waits while it is held, and breaks a stale one, one breaker at a time", async () => {
     const { cwd, rm } = exampleCwd(false), L = ".m3a/locks/X.lock", file = join(cwd, L), order: string[] = [];
     try {
@@ -108,7 +136,7 @@ describe("the Node host", () => {
       (await second)();
       expect([order, existsSync(file)]).toEqual([["first", "second"], false]);
       const held = await lockFile(cwd, L); // held by a live process (this one), and not let go in time
-      await expect(lockFile(cwd, L, 0)).rejects.toMatchObject({ code: "E_LOCKED", message: '".m3a/locks/X.lock" is held by another m3a process; nothing was changed', next: "call again when that edit is done" });
+      await expect(lockFile(cwd, L, 0)).rejects.toMatchObject({ code: "E_LOCKED", message: ".m3a/locks/X.lock is held by another m3a process; nothing was changed", next: "call again when that edit is done" });
       held();
       // stale: its process gone, or older than the limit; another machine's process can't be asked, so only its age counts
       const gone = spawnSync(process.execPath, ["-e", ""]).pid;
@@ -221,7 +249,7 @@ describe("the library and the clip loader", () => {
       writeFileSync(join(other.cwd, "game.json"), '{"tiers": ["cmu"]}');
       rmSync(join(cwd, "game.json"));
       symlinkSync(join(other.cwd, "game.json"), join(cwd, "game.json"));
-      expect((await call("QUATERNIUS_3D2DGE/Walk_Loop")).error).toMatchObject({ code: "E_GAME", message: expect.stringMatching(/^"game.json" leads out of the working directory through a link/) });
+      expect((await call("QUATERNIUS_3D2DGE/Walk_Loop")).error).toMatchObject({ code: "E_GAME", message: expect.stringMatching(/^game.json leads out of the working directory through a link/) });
     } finally {
       [rm, other.rm].forEach((f) => f());
     }
@@ -254,10 +282,11 @@ describe("the library and the clip loader", () => {
       expect(await refused("QUATERNIUS_3D2DGE/Walk_Lop")).toEqual(["usage", "E_NO_CLIP", 'no clip "QUATERNIUS_3D2DGE/Walk_Lop"; did you mean "QUATERNIUS_3D2DGE/Walk_Loop"?']);
       expect(await refused("QUATERNIUS_3D2DGE/Walk")).toEqual(["usage", "E_NO_CLIP", 'no clip "QUATERNIUS_3D2DGE/Walk"; did you mean "QUATERNIUS_3D2DGE/Walk_Loop"?']);
       expect(await refused("QUATERNIUS_3D2D/Walk_Loop")).toEqual(["usage", "E_NO_SET", 'no set "QUATERNIUS_3D2D"; did you mean "QUATERNIUS_3D2DGE/Walk_Loop"?']);
-      expect(await refused('{"format":"2.0","id":"DEMO/Bad","dur":0}')).toEqual(["usage", "E_CLIP", expect.stringMatching(/^the clip JSON is not a valid clip \(\d+ errors?\): /)]);
+      expect(await refused('{"format":"2.0","id":"DEMO/Bad","dur":0}')).toEqual(["usage", "E_CLIP", expect.stringMatching(/^the clip's JSON is not a valid clip \(\d+ errors?\): /)]);
       writeFileSync(join(cwd, "bad.json"), "{");
-      expect(await refused("bad.json")).toEqual(["error", "E_CLIP", expect.stringMatching(/^"bad.json" is not JSON/)]);
-      expect(await refused("WORKSHOP/Pose")).toEqual(["usage", "E_NO_CLIP", expect.stringMatching(/^no workshop clip "WORKSHOP\/Pose" \(workshop\/Pose.json\)/)]);
+      expect(await refused("bad.json")).toEqual(["error", "E_CLIP", expect.stringMatching(/^bad.json is not JSON/)]);
+      // the call that makes one, as a whole call: fix takes --save_as (edit too), on a library clip
+      expect(await refused("WORKSHOP/Pose")).toEqual(["usage", "E_NO_CLIP", 'no workshop clip "WORKSHOP/Pose" (workshop/Pose.json); `fix <a library clip> --save_as WORKSHOP/Pose` makes one (edit takes --save_as the same way)']);
       host.write!("workshop/Pose.json", JSON.stringify({ ...pose, id: "WORKSHOP/Pose" }));
       expect((await call("WORKSHOP/Pose")).data).toMatchObject({ id: "WORKSHOP/Pose", set: "WORKSHOP", tier: null, where: "workshop", H0: 916.7, resolved: "WORKSHOP/Pose" });
       // its rest and tier from its history while the history is the file's; a history set aside counts for nothing
@@ -268,6 +297,40 @@ describe("the library and the clip loader", () => {
       expect((await call("WORKSHOP/Pose")).data).toMatchObject({ tier: null, H0: 916.7 });
       workshopClip(cwd, "Pose", text, "QUATERNIUS_3D2DGE/A_TPose", { ...rest, H0: 900, spine: [] as unknown as typeof rest.spine }); // a rest broken by hand
       expect((await call("WORKSHOP/Pose")).data).toMatchObject({ tier: null, H0: 916.7 });
+    } finally {
+      rm();
+    }
+  });
+});
+
+describe("one naming (D96)", () => {
+  it("names an absolute path, or one with a control character, by its placeholder in a hint and in prose elsewhere, never echoing it", async () => {
+    const { cwd, rm } = exampleCwd(), reg = new Registry([...RETARGET, ...COMPOSE, ...EXCHANGE, ...BASE]), host = nodeHost(cwd);
+    /** A reply's words outside its hints' backticks, and inside them. */
+    const split = (r: Reply) => {
+      const text = [r.verdict, ...r.lines, r.error?.message ?? "", r.next].join("\n");
+      return { outside: text.replace(/`[^`]*`/g, "``"), inside: [...text.matchAll(/`([^`]*)`/g)].map((m) => m[1]).join("\n") };
+    };
+    try {
+      const odd = (f: string) => f.replace(/^my /, "my\t"); // a tab: a control character, kept out of every reply as an absolute path is
+      for (const f of ["my rig.gltf", "my recipe.json"]) cpSync(join(cwd, f === "my rig.gltf" ? "spec/vectors/tier1b/rig.gltf" : "spec/recipes/Jab_Left.json"), join(cwd, odd(f)));
+      writeFileSync(join(cwd, "my recipe.json"), JSON.stringify({ format: "2.0", id: "RECIPES/Bad", steps: [{ op: "mirorr" }] })); // findings: a hint to run again
+      cpSync(join(cwd, "my recipe.json"), join(cwd, odd("my recipe.json")));
+      cpSync(join(cwd, "spec/vectors/tier1b/rig.gltf"), join(cwd, "my rig.gltf"));
+      for (const [path, hidden] of [[(f: string) => join(cwd, f), "absolute"], [odd, "a control character"]] as const) {
+        const rig = path("my rig.gltf"), recipe = path("my recipe.json");
+        const cases: [string, Reply, string, string | null][] = [
+          ["retarget.inspect", await reg.call("retarget.inspect", { character: rig }, { host }), "the character's file", "<the character's file>"],
+          ["import --list", await reg.call("import", { path: rig, list: true }, { host }), "the motion file", "<the motion file>"],
+          ["recipe.compile", await reg.call("recipe.compile", { recipe }, { host }), "RECIPES/Bad (the recipe's file)", "<the recipe's file>"],
+          ["E_PATH", await reg.call("validate", { path: path("my nothere.json") }, { host }), "can't read the file (ENOENT)", null],
+        ];
+        for (const [what, r, prose, hint] of cases) {
+          const { outside, inside } = split(r), at = `${what}, ${hidden}`;
+          expect([outside.includes(prose), outside.includes("<"), hint === null || inside.includes(hint)], at).toEqual([true, false, true]);
+          expect([JSON.stringify(r).includes(cwd), JSON.stringify(r).includes("my\\t")], at).toEqual([false, false]);
+        }
+      }
     } finally {
       rm();
     }

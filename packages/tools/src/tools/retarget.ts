@@ -13,7 +13,7 @@ import { turntable } from "@m3a/sensors";
 import { defineTool, ToolError } from "../registry/registry.ts";
 import { strip } from "../sim/film.ts";
 import { bodyOf, CHARACTER, characterName, characterOf, MAPPING, meshIssue, type MappingPatch } from "./body.ts";
-import { loadClip, naming } from "./clips.ts";
+import { given, loadClip, naming, prose } from "./clips.ts";
 import { arg, call, capped, count, cut, imageName, mm, more, output, round } from "./common.ts";
 import { onBody, type Played } from "./judge.ts";
 
@@ -46,7 +46,7 @@ export const inspect = defineTool<{ character: string; mapping?: MappingPatch },
   positionals: ["character"],
   examples: [{ args: { character: "spec/vectors/tier1b/rigify.gltf" } }],
   async run(a, ctx) {
-    const c = await characterOf(ctx, a.character, a.mapping), r = c.report, as = characterName(a.character), of = skeleton.REQUIRED_BONES.length;
+    const c = await characterOf(ctx, a.character, a.mapping), r = c.report, as = characterName(a.character), said = prose(as), of = skeleton.REQUIRED_BONES.length;
     const unsure = standing(r.issues).length > 0; // a required bone missing is one too
     const un = capped(r.unmapped, 10), is = capped(r.issues, 5), cuts = { ...(un.more ? { unmapped: un.more } : {}), ...(is.more ? { issues: is.more } : {}) };
     // a wrong mapping shows as bent limbs at rest: four sides of it, ~137 tokens
@@ -55,10 +55,10 @@ export const inspect = defineTool<{ character: string; mapping?: MappingPatch },
     const H0 = c.bound ? round(c.bound.rest.H0) : null, play = call("retarget.apply", [as], { clips: [WALK], mapping: a.mapping });
     const fill = { bones: { ...a.mapping?.bones, ...Object.fromEntries(r.missing.map((b) => [b, "<its bone>"])) } };
     return {
-      verdict: `retarget.inspect ${as}: ${count(r.bones, "bone")} ${how}, confidence ${r.confidence.toFixed(2)}, ${of - r.missing.length} of ${of} required` +
+      verdict: `retarget.inspect ${said}: ${count(r.bones, "bone")} ${how}, confidence ${r.confidence.toFixed(2)}, ${of - r.missing.length} of ${of} required` +
         `, rest ${r.rest.kind}${H0 === null ? "" : `, hip height ${mm(H0)}`}`,
       data: {
-        character: as, bones: r.bones, method: r.method, table: r.table, vrm: r.vrm, confidence: r.confidence, required: { mapped: of - r.missing.length, of }, missing: r.missing,
+        character: said, bones: r.bones, method: r.method, table: r.table, vrm: r.vrm, confidence: r.confidence, required: { mapped: of - r.missing.length, of }, missing: r.missing,
         candidates: r.candidates, unmapped: un.rows, issues: is.rows.map((i) => cut(i)), ...(un.more || is.more ? { more: cuts } : {}), rest: { kind: r.rest.kind, armDrop: round(r.rest.armDrop) }, H0, lengths: r.lengths, patch: r.patch,
       },
       lines: r.text.split("\n").slice(1).map((l) => l.replace(/^\.\.\. (\d+) more issues$/, (_, n: string) => more(Number(n), "issue")[0]!)),
@@ -89,13 +89,14 @@ export const apply = defineTool<{ character: string; clips: string[]; mapping?: 
     const dur = loaded.reduce((t, k) => t + k.clip.dur, 0);
     // rounded up, so the total said is past the limit too
     if (dur > MAX_DUR) throw new ToolError("E_ARGS", `clips last ${Math.ceil(dur * 10) / 10} s in all, past the ${MAX_DUR} s one call plays; give fewer or shorter clips, and call again for the rest`, true);
-    const c = await bodyOf(ctx, a.character, a.mapping), as = characterName(a.character), H0 = round(c.bound.rest.H0), see = call("retarget.inspect", [as], { mapping: a.mapping });
+    const c = await bodyOf(ctx, a.character, a.mapping), as = characterName(a.character), said = prose(as), H0 = round(c.bound.rest.H0), see = call("retarget.inspect", [as], { mapping: a.mapping });
     // the first clip the body adds a fail to, as it played there (the frames the metric read), to draw
     const drawn: { p: Played; dur: number; clip: string }[] = [];
     const rows = loaded.map((k) => {
-      const seen: { p?: Played } = {}, j = onBody(k.clip, k.rest, c.bound, as, (p) => (seen.p = p));
+      const seen: { p?: Played } = {}, j = onBody(k.clip, k.rest, c.bound, said, (p) => (seen.p = p));
       if (!drawn.length && seen.p && j.worse.some((w) => w.level === "fail")) drawn.push({ p: seen.p, dur: k.clip.dur, clip: j.clip });
-      return { ...naming(k), j };
+      // where and path kept: a hint passes a clip file's path as given (given), not the name naming quoted for a shell
+      return { ...naming(k), where: k.where, path: k.path, j };
     }), failed = rows.filter((x) => !x.j.ok), stand = standing(c.report.issues), mesh = c.report.issues.filter(meshIssue);
     for (const { p, dur, clip } of drawn) {
       const n = p.frames.length, at = [...new Set(Array.from({ length: 8 }, (_, i) => Math.round((i * (n - 1)) / 7)))];
@@ -111,9 +112,9 @@ export const apply = defineTool<{ character: string; clips: string[]; mapping?: 
     // a joint off its point, or a play that threw: the body's bones, not the clip
     const off = failed.filter((x) => x.j.why.some((w) => /^a joint |^the solve |^threw: /.test(w)));
     return {
-      verdict: `retarget.apply ${as}: ${rows.length - failed.length} of ${count(rows.length, "clip")} ${rows.length - failed.length === 1 ? "passes" : "pass"} on it (hip height ${mm(H0)})`,
+      verdict: `retarget.apply ${said}: ${rows.length - failed.length} of ${count(rows.length, "clip")} ${rows.length - failed.length === 1 ? "passes" : "pass"} on it (hip height ${mm(H0)})`,
       data: {
-        character: as, H0, mapped: a.mapping ? "patched" : c.report.vrm ? "humanoid" : c.report.method, passed: rows.length - failed.length, failed: failed.length,
+        character: said, H0, mapped: a.mapping ? "patched" : c.report.vrm ? "humanoid" : c.report.method, passed: rows.length - failed.length, failed: failed.length,
         clips: rows.map(({ j }) => {
           const why = capped(j.why, 2), worse = capped(j.worse, 3), cuts = { ...(why.more ? { why: why.more } : {}), ...(worse.more ? { worse: worse.more } : {}) };
           return {
@@ -128,7 +129,7 @@ export const apply = defineTool<{ character: string; clips: string[]; mapping?: 
         ? `a joint missed its point, or the play threw, on ${some(off)}: the mapping is likely wrong there; ${see} shows it`
         : failed.length && stand.length ? `${some(failed)} ${failed.length === 1 ? "fails" : "fail"} while retarget.inspect's issue stands: fix the mapping first; ${see} shows it`
         : failed.length ? `this body takes ${some(failed)} past a fail level its own body doesn't (D80): ${call("search", [arg(failed[0]!.j.clip.split("/").pop()!.replace(/_/g, " "))])} finds others like it`
-        : `they play on it; ${call("license.check", [], { clips: rows.map((x) => x.as) })} checks the game may ship them`,
+        : `they play on it; ${call("license.check", [], { clips: rows.map((x) => given(x.as, x.where === "file" ? x.path! : x.as)) })} checks the game may ship them`,
     };
   },
 });
