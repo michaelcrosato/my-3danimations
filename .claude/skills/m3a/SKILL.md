@@ -17,7 +17,7 @@ holds under that name. The five that matter most, each a registry example:
 | Job | Command |
 |---|---|
 | Find | `node packages/tools/src/node.ts search 'drinks a potion'` |
-| Read | `node packages/tools/src/node.ts describe QUATERNIUS_3D2DGE/Jump_Land` |
+| Read | `node packages/tools/src/node.ts describe QUATERNIUS_3D2DGE/Roll` |
 | Fit | `node packages/tools/src/node.ts retarget.inspect spec/vectors/tier1b/rigify.gltf` |
 | Make | `node packages/tools/src/node.ts recipe.compile spec/recipes/Jab_Left.json` |
 | Check | `node packages/tools/src/node.ts metrics QUATERNIUS_3D2DGE/Walk_Loop` |

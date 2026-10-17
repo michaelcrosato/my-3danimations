@@ -108,7 +108,7 @@ export const describe = defineTool<{ clip: string; detail: boolean }, unknown>({
   params: { type: "object", properties: { clip: CLIP, detail: { type: "boolean", default: false } }, required: ["clip"] },
   output: output({ clip: "string", phases: "array", moments: "array", travel: "array", text: "string" }),
   positionals: ["clip"],
-  examples: [{ args: { clip: "QUATERNIUS_3D2DGE/Jump_Land" } }],
+  examples: [{ args: { clip: "QUATERNIUS_3D2DGE/Roll" } }],
   async run(a, ctx) {
     const ref = await loadClip(ctx, a.clip), d = timeline(ref.clip, ref.rest, { detail: a.detail }), { as, title } = naming(ref);
     const phases = capped(d.phases, 20), moments = capped(d.moments, 20), left = (phases.more ?? 0) + (moments.more ?? 0);
