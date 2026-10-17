@@ -41,12 +41,13 @@ What the audit found, against the first version of this file:
   146/146, the never-run assertions after them included.
 - **t1-speed**: 11 A/B hash parts over the whole library are bit-identical between 1bf5252 and 4080135 (decode
   0df74cdf79b8eb1b, decodeOther b142c4cd5f306f62, encode 39c519df430bcb6a, facts b79e2b4b00f55d73, root
-  2eda1300ba89c3a5, plant e2168daba6a8d2fe, sensors 95fbaf80facceaec, fix caf56a18d4679a48, procedural
+  2eda1300ba89c3a5, plant 23cdf3509243e694 (the kept harness; the audit's first version of that part gave
+  e2168daba6a8d2fe on both trees), sensors 95fbaf80facceaec, fix caf56a18d4679a48, procedural
   cd89bf81f1fe5bbf, animator 8b409beb3b160667, solve 290de4e3eae475cf); cross-engine passes (Animator
   144560999a518f7d unchanged); CI's Node = Chromium hashes are unchanged; vectors byte for byte; expect and it counts
-  unchanged, nothing skipped. WIP 65ea4a6 (rootFrom memo) is complete. Owed: a D-entry, changelog lines (measureFacts
-  gained an optional, unchecked 4th parameter `sampled`: a feature-level change) and an exactness test holding
-  `legPoleOf` (pose.ts:256), `decodeLegs` (pose.ts:364) and `sampleLegs` (contacts.ts:64) to the functions they copy.
+  unchanged, nothing skipped. WIP 65ea4a6 (rootFrom memo) is complete. Owed: a D-entry and changelog lines (measureFacts
+  gained an optional 4th parameter `sampled`: a feature-level change). Since done in lane t1rec: the exactness test
+  (packages/core/test/exact.test.ts), `sampled` checked for count and step, the sweep's rows pinned by hash.
   The harness is kept as `tools/exact/ab.mjs` (on demand).
 - **The sweep after the judge move** gives byte-identical rows (gen-0 and gen-7, `--sample 60`, 120 rows, 1bf5252 vs
   4080135); a committed check is owed.

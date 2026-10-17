@@ -10,7 +10,7 @@ import tseslint from "typescript-eslint";
 const TRANSCENDENTAL = ["sin", "cos", "tan", "asin", "acos", "atan", "atan2", "sinh", "cosh", "tanh", "asinh", "acosh", "atanh", "exp", "expm1", "log", "log1p", "log2", "log10", "pow", "hypot", "cbrt"];
 
 export default defineConfig(
-  { ignores: ["**/dist/**", "node_modules/**", ".cache/**", "check-output/**"] },
+  { ignores: ["**/dist/**", "node_modules/**", ".cache/**", "check-output/**", ".claude/worktrees/**"] },
   js.configs.recommended,
   tseslint.configs.recommended,
   {
