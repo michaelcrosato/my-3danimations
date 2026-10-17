@@ -22,6 +22,9 @@ most 3 lanes at once, none during trial batches. After each gate's squash merge 
   before G7). T2, the reviews' last rounds, the records (0.49.0 for 7.3, 0.50.0 for 7.4; D98, D99 are written) and the
   root `pack` script are owed. Then B1 and B5 at 5 trials (7.3's Verify), the known-goods `--fake --heldout G7` again
   (they passed before the packaging change), and G7. G7's held-out run 1 is committed and checked.
+- During the pause: T2 passed on b46cc8c (134.3 s), CI green there; the known-goods pass `--fake --heldout G7` on the
+  new packaging. T1's slowest files (one profiled run): sensors procedural 18.0 s, core procedural 17.2 s, bench
+  runner 16.3 s (grew with the skill lane), sweep 13.9 s, B1 grader 12.5 s, tools-change 12.1 s, B3 grader 10.9 s.
 
 ## The state at the pause, audited
 
