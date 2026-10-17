@@ -14,17 +14,21 @@ import { CHAIN, legsOf, POP_FAIL, SEAM_FAIL, SEAM_RATE } from "../../core/src/pr
 
 const ROOT = join(import.meta.dirname, "../../.."), LIB = join(ROOT, "library/sets");
 const MOVES = (JSON.parse(readFileSync(join(ROOT, "library/moves.json"), "utf8")) as { moves: PR.Move[] }).moves;
+/** Each set's manifest and each test character's rest, read once for the file: one rest object for each body, as a game
+ *  holds one, so what core keeps by body (a gait's seam readings, gait.ts's SEAMS) serves every test that makes a gait
+ *  on it (D89). */
+const manifests = new Map<string, { sources: Record<string, { rest: Rest }> }>(), characters = new Map<number, Promise<Rest>>();
+const manifest = (set: string) => manifests.get(set) ?? (manifests.set(set, JSON.parse(readFileSync(join(LIB, set, "_set.json"), "utf8")) as { sources: Record<string, { rest: Rest }> }), manifests.get(set)!);
 /** A library clip's rest and its source entry. */
 function restOf(id: string): { rest: Rest; restSrc: string } {
   const [set, slug] = id.split("/") as [string, string], clip = parseClip(readFileSync(join(LIB, set, `${slug}.json`), "utf8"));
-  const manifest = JSON.parse(readFileSync(join(LIB, set, "_set.json"), "utf8")) as { sources: Record<string, { rest: Rest }> };
-  return { rest: manifest.sources[clip.restSrc]!.rest, restSrc: clip.restSrc };
+  return { rest: manifest(set).sources[clip.restSrc]!.rest, restSrc: clip.restSrc };
 }
 const RESTS = ["MESH2MOTION/Idle_A", "STYLE100/Neutral_Walk", "CMU_CURATED/Walk_Loop"].map((id) => [id, restOf(id)] as const);
 /** A library source's rest by its set and source. */
-const sourceRest = (set: string, src: string): Rest => (JSON.parse(readFileSync(join(LIB, set, "_set.json"), "utf8")) as { sources: Record<string, { rest: Rest }> }).sources[src]!.rest;
+const sourceRest = (set: string, src: string): Rest => manifest(set).sources[src]!.rest;
 /** A test character's rest. */
-const characterRest = async (n: number) => bind((await loadGlb(character(variant(n)).glb, { textures: false })).scene).core.rest;
+const characterRest = (n: number): Promise<Rest> => characters.get(n) ?? (characters.set(n, loadGlb(character(variant(n)).glb, { textures: false }).then((g) => bind(g.scene).core.rest)), characters.get(n)!);
 /** A rest's standing points. */
 const standing = (rest: Rest) => format.decodePose(rest, PR.standingOn(rest) as never, new Float32Array(format.P * 3)) as Float32Array;
 /** The legs' and torso's points gaitClip reads its seam at (seamOf's), and the hands'. */
