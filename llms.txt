@@ -1,0 +1,45 @@
+# m3a
+
+> Humanoid character animation for AI coding agents: motion clips as readable JSON, a deterministic TypeScript runtime
+> that plays them on any humanoid rig, a three.js adapter, sensors that check motion as numbers without a display, a
+> licensed clip library, and one tool registry served as an API, the `m3a` command and an MCP server.
+
+Start with the manual: the whole API by job (find, fit, wire, make, check, ship) in at most 8,000 tokens, with one
+worked example. Pick clips from the catalogs' rows (id, length, loop or once, speed, tags, what it does, source), never
+by reading motion data. `npx m3a help` lists every tool, one line each, and `npx m3a mcp` serves them over MCP (stdio).
+Only the CC0 sets ship by default; the CC BY and CMU sets are opt-in.
+
+## Docs
+
+- [The manual](packages/tools/MANUAL.md): the mental model, one worked example, the API by job, the rules and common mistakes
+- [The skill](skills/m3a/SKILL.md): when to reach for m3a, and the five commands that matter most
+- [The tool list](packages/tools/src/tools/index.ts): every tool in `m3a help`'s order, each group's tools in its own file
+- [The MCP config](.mcp.json): `m3a mcp` run from source, for an agent working in this repository
+
+## Library catalogs
+
+- [QUATERNIUS_3D2DGE](library/sets/QUATERNIUS_3D2DGE/catalog.tsv): CC0, Quaternius' Universal Animation Library
+- [QUATERNIUS_SHARDFALL](library/sets/QUATERNIUS_SHARDFALL/catalog.tsv): CC0, Quaternius' Universal Animation Library
+- [MESH2MOTION](library/sets/MESH2MOTION/catalog.tsv): CC0, Mesh2Motion's human animations
+- [STYLE100](library/sets/STYLE100/catalog.tsv): CC BY 4.0 (opt-in), 100STYLE's walks in a hundred styles
+- [STYLE100_BACK](library/sets/STYLE100_BACK/catalog.tsv): CC BY 4.0 (opt-in), 100STYLE walking backwards
+- [STYLE100_BACKRUN](library/sets/STYLE100_BACKRUN/catalog.tsv): CC BY 4.0 (opt-in), 100STYLE running backwards
+- [STYLE100_IDLE](library/sets/STYLE100_IDLE/catalog.tsv): CC BY 4.0 (opt-in), 100STYLE's idles
+- [STYLE100_RUN](library/sets/STYLE100_RUN/catalog.tsv): CC BY 4.0 (opt-in), 100STYLE's runs
+- [STYLE100_SIDE](library/sets/STYLE100_SIDE/catalog.tsv): CC BY 4.0 (opt-in), 100STYLE's sidesteps
+- [STYLE100_SIDERUN](library/sets/STYLE100_SIDERUN/catalog.tsv): CC BY 4.0 (opt-in), 100STYLE's side runs
+- [CMU_CURATED](library/sets/CMU_CURATED/catalog.tsv): CMU's motion capture, curated (opt-in; not for resale, even converted)
+
+## Spec
+
+- [The motion format](spec/MOTION.md): a clip's fields, keys and versioning
+- [The legend](spec/LEGEND.md): how to read a clip's numbers, with one worked key
+- [The skeleton profile](spec/SKELETON.md): the humanoid bones a character binds to
+
+## Optional
+
+- [Recipes](spec/RECIPE.md): making a clip from clips, step by step
+- [Graphs](spec/GRAPH.md): states, transitions, layers and events a game drives
+- [Actions](spec/ACTION.md): one motion made of several beats
+- [Simulation](spec/SIM.md): a graph run on scripted game input, and its trace
+- [The library](docs/LIBRARY.md): every set's tier, license, fit and QA verdicts
