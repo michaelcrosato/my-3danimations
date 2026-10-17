@@ -14,6 +14,15 @@ integrates shared files, DECISIONS and merges, and runs every gate in the main c
 most 3 lanes at once, none during trial batches. After each gate's squash merge (CI green), restart the branch from
 `origin/main` and open the next draft PR. G8-G10 have owner steps; such a gate still merges (§8.5).
 
+## Paused for usage (2026-10-17 16:45 UTC), resuming 18:59 UTC
+
+- WP-7.3 (lanes manual and skill) and WP-7.4 (lane spare) were stopped mid-review and merged as they stood, each with its
+  work committed: skill passed its review (nits applied); manual's round-1 fixes are in, round 2 never ran; WP-7.4's
+  round-2 fixes are in, round 3 never ran. pack.ts took WP-7.4's side. T0 7.4 s, T1 89.8 s (at its 90 s budget: trim
+  before G7). T2, the reviews' last rounds, the records (0.49.0 for 7.3, 0.50.0 for 7.4; D98, D99 are written) and the
+  root `pack` script are owed. Then B1 and B5 at 5 trials (7.3's Verify), the known-goods `--fake --heldout G7` again
+  (they passed before the packaging change), and G7. G7's held-out run 1 is committed and checked.
+
 ## The state at the pause, audited
 
 Last green, recorded commit: **1bf5252** (0.47.0: WP-7.2a done, D95). Merged on top of it, without records:
