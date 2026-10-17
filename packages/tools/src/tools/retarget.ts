@@ -20,7 +20,8 @@ import { onBody, type Played } from "./judge.ts";
 /** The most clips retarget.apply plays in one call. */
 const MAX_CLIPS = 20;
 /** The most clip time (s) retarget.apply plays in one call: as long as one clip may last (M2-E010), 36,000 samples at
- *  the judge's 60 a second, the most steps graph.sim runs. */
+ *  the judge's 60 a second, the most steps graph.sim runs. It bounds clip time, not cost: core's planter is superlinear
+ *  in a contact's length (contact/plant.ts), so a 600 s clip holding a foot down throughout may take hours. */
 const MAX_DUR = format.LIMITS.dur;
 /** The clip a next hint offers to play first: the library's core walk (cc0). */
 const WALK = "QUATERNIUS_3D2DGE/Walk_Loop";
@@ -86,7 +87,8 @@ export const apply = defineTool<{ character: string; clips: string[]; mapping?: 
     const loaded = [];
     for (const ref of a.clips) loaded.push(await loadClip(ctx, ref));
     const dur = loaded.reduce((t, k) => t + k.clip.dur, 0);
-    if (dur > MAX_DUR) throw new ToolError("E_ARGS", `clips last ${round(dur, 1)} s in all, past the ${MAX_DUR} s one call plays; give fewer or shorter clips, and call again for the rest`, true);
+    // rounded up, so the total said is past the limit too
+    if (dur > MAX_DUR) throw new ToolError("E_ARGS", `clips last ${Math.ceil(dur * 10) / 10} s in all, past the ${MAX_DUR} s one call plays; give fewer or shorter clips, and call again for the rest`, true);
     const c = await bodyOf(ctx, a.character, a.mapping), as = characterName(a.character), H0 = round(c.bound.rest.H0), see = call("retarget.inspect", [as], { mapping: a.mapping });
     // the first clip the body adds a fail to, as it played there (the frames the metric read), to draw
     const drawn: { p: Played; dur: number; clip: string }[] = [];

@@ -10,7 +10,8 @@
 // bind's rest points, hip height and end bones exactly; an end bone's name the file already has made unique; a foot
 // whose last bone keeps a child gets none, as in three's bind; a mesh io can't read said: compressed (no soles), the
 // soles' positions (sparse, the hips then low), or weights broken (in a hat that skins no foot, the soles still read;
-// in the body, both said), the patch line saying what re-exporting mends in each; each missing bone's likely source
+// in the body, both said), the patch line saying what re-exporting mends in each; bones of no usable length (all at
+// one point, scaled to 0 or past a double) refused, not taken for wrong hips; each missing bone's likely source
 // bones in their order (the hips' own bone before the root, the head's before the neck's, a clavicle-less rig's upper
 // arm before its forearm); a VRM's humanoid, 1.0's or 0.x's, mapping bones no table names, a required bone it leaves
 // out said with how it was found (V1).
@@ -215,9 +216,15 @@ describe("characters bound through core", () => {
     expect([packed.report.issues, endsOf(packed.bound!)]).toEqual([["mesh compressed (EXT_meshopt_compression): weights and soles unread; every joint kept"], []]);
     expect([broken.report.issues.map((i) => i.split(":")[0]), endsOf(broken.bound!)]).toEqual([["mesh unreadable", "sole end bones unread"], []]);
     // the patch line: no patch clears a mesh's issue, and what re-exporting the mesh mends for each
-    const patchLine = (x: { report: { text: string } }) => x.report.text.split("\n").at(-1), mend = "patch: none clears the mesh's issue; ";
-    expect([c, hat, packed, broken].map(patchLine)).toEqual([`${mend}re-export it so io can read it, for exact soles`, `${mend}it binds with every joint kept`, `${mend}re-export it uncompressed for exact soles`,
-      `${mend}it binds with every joint kept; re-export it so io can read it, for exact soles`]);
+    const patchLine = (x: { report: { text: string } }) => x.report.text.split("\n").at(-1), mend = "patch: none clears the mesh's issue; ", weights = "re-export it so io can read its weights (as is, every joint is kept)";
+    expect([c, hat, packed, broken].map(patchLine)).toEqual([`${mend}re-export it so io can read it, for exact soles`, `${mend}${weights}`, `${mend}re-export it uncompressed for exact soles`,
+      `patch: none clears the mesh's issues; ${weights}; re-export it so io can read it, for exact soles`]);
+  });
+  it("refuses bones of no usable length (all at one point, scaled to 0 or past a double), not taking them for wrong hips", async () => {
+    const rig = JSON.parse(rigText(RIG)) as { nodes: { name: string; translation?: number[] }[] }, scaled = (s: number, at = /^root$/) => rig.nodes.map((n) => (at.test(n.name) ? { ...n, scale: [s, s, s] } : n));
+    const of = (nodes: object[]) => characterOf(holding(new Uint8Array(), JSON.stringify({ ...rig, animations: undefined, nodes })), "c.gltf").catch((e: unknown) => e);
+    const said = { code: "E_RIG", message: "c.gltf: can't bind it: bones of no usable length (every node at one point, or scaled to 0 or out of range); check the file's node transforms" };
+    expect(await Promise.all([of(rig.nodes.map(({ translation: _, ...n }) => n)), of(scaled(0)), of(scaled(1e300)), of(scaled(1e300, /^(lowerarm|hand)_l$/))])).toMatchObject([said, said, said, said]);
   });
   it("gives no end bone to a foot whose last bone keeps a child (its toes unmapped), as three's bind does", async () => {
     const glb = character(variant(0)).glb, mapping = { bones: { leftToes: null } };
@@ -265,7 +272,7 @@ describe("characters bound through core", () => {
       ["error", "E_FORMAT", "junk.glb: not a binary glTF (.glb): its first 4 bytes aren't 'glTF' (at byte 0)"],
       ["error", "E_RIG", 'chain.gltf: no humanoid bone recognized among its 3 bones, by name or by shape; give each bone in mapping {bones: {hips: "<its bone>", ...}}'],
       ["error", "E_LIMIT", "long.gltf: 4097 bones; a character may have at most 4096"],
-      ["error", "E_LIMIT", "deep.gltf: a chain of 4096 bones; a character's chains may be at most 1024 long"],
+      ["error", "E_LIMIT", "deep.gltf: a chain of 4096 bones; a character's chains may be at most 1024 bones long"],
     ]);
   });
 });

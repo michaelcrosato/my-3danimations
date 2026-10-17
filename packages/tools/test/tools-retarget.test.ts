@@ -29,7 +29,8 @@ afterAll(rm);
 const rigifyBody = async (m?: MappingPatch) => characterOf({ read: async () => text(RIGIFY) } as unknown as ToolContext, RIGIFY, m);
 // Rigify with every node renamed past the name tables (its hips' name 100 characters long), with its humanoid said in
 // VRMC_vrm, and its mesh said to be compressed; tier 1b's rig with 12 hair bones under its head, ahead of the legs
-// (nodes 7 to 18); a chain of 3; a clip file, and the walk slowed to 600 s (each clip within M2-E010)
+// (nodes 7 to 18); a chain of 3; a clip file, and the walk slowed to 598.7 s (each clip within M2-E010; with the walk,
+// 33 ms past 600 s)
 const MESHOPT = "EXT_meshopt_compression", walk = JSON.parse(text("library/sets/QUATERNIUS_3D2DGE/Walk_Loop.json")) as { keys: { t: number }[] };
 const rigify = JSON.parse(text(RIGIFY)) as { nodes: { name: string }[] }, rig = JSON.parse(text("spec/vectors/tier1b/rig.gltf")) as { nodes: { name: string; children?: number[] }[] };
 const human = Object.fromEntries(Object.entries((await rigifyBody()).recognition.bones).map(([h, b]) => [h, { node: rigify.nodes.findIndex((n) => n.name === b) }]));
@@ -38,7 +39,7 @@ for (const n of hair) if (n.children) n.children = n.children.map((i) => (i < 7 
 hair[6]!.children!.unshift(...Array.from({ length: 12 }, (_, i) => 7 + i));
 for (const [f, data] of Object.entries({
   "renamed.gltf": { ...rigify, nodes: rigify.nodes.map((n, i) => ({ ...n, name: i === 1 ? HIPS : `n${i}` })) }, "rigify-vrm.gltf": { ...rigify, extensions: { VRMC_vrm: { specVersion: "1.0", humanoid: { humanBones: human } } } },
-  "packed.gltf": { ...rigify, extensionsUsed: [MESHOPT], extensionsRequired: [MESHOPT] }, "long.json": { ...walk, dur: 600, keys: walk.keys.map((k) => ({ ...k, t: Math.round(k.t * 450_000) / 1000 })) },
+  "packed.gltf": { ...rigify, extensionsUsed: [MESHOPT], extensionsRequired: [MESHOPT] }, "long.json": { ...walk, dur: 598.7, keys: walk.keys.map((k) => ({ ...k, t: Math.round((k.t * 598_700) / 1.333) / 1000 })) },
   "hair.gltf": { ...rig, nodes: hair, animations: undefined }, "chain.gltf": { asset: { version: "2.0" }, nodes: [{ name: "a", children: [1] }, { name: "b", children: [2] }, { name: "c" }] },
   "punch.json": JSON.parse(text("library/sets/QUATERNIUS_3D2DGE/Punch_Jab.json")) as object,
 })) writeFileSync(join(cwd, f), JSON.stringify(data));
@@ -155,7 +156,7 @@ describe("the retarget tools", () => {
     expect(got.map((r) => [r.status, r.error])).toEqual([
       ["usage", { code: "E_ARGS", message: "clips lists 21 clips; give 1 to 20, and call again for more" }], ["usage", { code: "E_ARGS", message: "clips lists 0 clips; give 1 to 20, and call again for more" }], ["usage", lop],
       ["error", { code: "E_RIG", message: `${RIGIFY}: leftUpperLeg not mapped; \`retarget.inspect ${RIGIFY} --mapping '{"bones":{"leftUpperLeg":null}}'\` gives the patch: write each into it and pass it as mapping` }], ["usage", lop],
-      ["usage", { code: "E_ARGS", message: "clips last 601.3 s in all, past the 600 s one call plays; give fewer or shorter clips, and call again for the rest" }],
+      ["usage", { code: "E_ARGS", message: "clips last 600.1 s in all, past the 600 s one call plays; give fewer or shorter clips, and call again for the rest" }],
     ]);
     for (const hint of [got[3]!.error!.message, got[3]!.next]) expect(runs(hint)).toEqual([{ tool: "retarget.inspect", args: { character: RIGIFY, mapping: { bones: { leftUpperLeg: null } } } }]);
   });
