@@ -21,7 +21,8 @@ registry example:
 | Make | `npx m3a recipe.compile spec/recipes/Jab_Left.json` |
 | Check | `npx m3a metrics QUATERNIUS_3D2DGE/Walk_Loop` |
 
-A reply starts with its verdict, fits in 20 lines (`--verbose` gives the rest) and ends with a `next:` hint; `--json`
-also writes a report.json. `npx m3a help` lists every tool, `npx m3a help <tool>` gives its flags and examples.
-`.mcp.json` serves the same tools over MCP (`npx m3a mcp`). The skill an installed package ships is
-`skills/m3a/SKILL.md`, and `llms.txt` indexes the docs.
+Check's example replies FAIL on purpose (the registry's example shows findings): the clip's twist flips, recorded as its
+baseline. On the command line a reply starts with its verdict, fits in 20 lines (`--verbose` gives the rest) and ends
+with a `next:` hint; `--json` also writes a report.json. `npx m3a help` lists every tool, `npx m3a help <tool>` gives
+its flags and examples. `.mcp.json` serves the same tools over MCP (`npx m3a mcp`). The skill an installed package will
+ship is `skills/m3a/SKILL.md`, and `llms.txt` indexes the docs.

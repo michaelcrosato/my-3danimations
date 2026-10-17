@@ -6,9 +6,9 @@
 // repository (D84, D91), as an unprivileged user with no capabilities whom /root, the raw disks and the covers refuse,
 // its workspace and home its own (a link in them handed, never what it leads to), /var/tmp and /dev/shm its own too,
 // and the proxy's CA copied into that home; and a held-out variant given by path, whose known-good solution runs first.
-// m3a's wiring (WP-7.3): the agent's flags (the Skill tool, project settings, m3a's MCP server from the installed
-// package, its tools allowed), the skill in a trial's workspace as a regular file naming what the installed package
-// holds, the packed m3a bin and MCP server answering there, an init event showing the server failed stopping the agent
+// m3a's wiring (WP-7.3): the agent's flags (the Skill tool, project settings, the CLI's own skills off, m3a's MCP server
+// from the installed package, its tools allowed), the init event's skills each recorded, the skill in a trial's
+// workspace as a regular file naming what the installed package holds, the packed m3a bin and MCP server answering there, an init event showing the server failed stopping the agent
 // and failing its trial though its workspace grades, and the manual, the skill and llms.txt not counted as reads past
 // the manual. No test spends: a stand-in `claude` plays the agent.
 // Every temporary directory a test makes is removed after it.
@@ -18,7 +18,7 @@ import { homedir, tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, describe, expect, it } from "vitest";
 import { TOOLS } from "@m3a/tools";
-import { agentArgs, agentUser, audit, capsDropped, CLOUD_CREDENTIALS, hidden, M3A_MCP, namespace, ownScratch, pathsOf, runAgent, unwired, wiringOf } from "./agent.ts";
+import { agentArgs, agentUser, audit, capsDropped, CLOUD_CREDENTIALS, hidden, M3A_MCP, namespace, ONLY_M3A, ownScratch, pathsOf, runAgent, unwired, wiringOf } from "./agent.ts";
 import { commitOf, knownGood, lanes, latestVariant, pool, runB1, variantOf } from "./main.ts";
 import { pack } from "./pack.ts";
 import { answersIn, QUIZ, quizPrompt, score } from "./quiz.ts";
@@ -145,7 +145,7 @@ describe("the agent's audit", () => {
       // the skill the runner copies into the workspace, and the Skill tool loading it (no path)
       read(`${ws}/.claude/skills/m3a/SKILL.md`),
       JSON.stringify({ type: "assistant", message: { content: [{ type: "tool_use", name: "Skill", input: { skill: "m3a" } }] } }),
-      // the manual, and the skill and llms.txt where a package ships them
+      // the manual, and the skill and llms.txt where a package will ship them
       ...["tools/MANUAL.md", "tools/llms.txt", "tools/skills/m3a/SKILL.md", "core/llms.txt"].map((f) => read(`${ws}/node_modules/@m3a/${f}`)),
       // past it: the packages' code, and a file of the same name elsewhere in one
       ...["tools/dist/node.js", "tools/dist/llms.txt", "core/MANUAL.md"].map((f) => read(`${ws}/node_modules/@m3a/${f}`)),
@@ -156,19 +156,25 @@ describe("the agent's audit", () => {
 
 describe("m3a's wiring (WP-7.3)", () => {
   const value = (args: string[], flag: string) => args[args.indexOf(flag) + 1];
-  it("gives the agent the Skill tool, settings from its workspace alone and m3a's MCP server from the installed package", () => {
+  it("gives the agent the Skill tool, settings from its workspace alone, no skill but m3a's and m3a's MCP server from the installed package", () => {
     const args = agentArgs("hello");
     expect([value(args, "--tools"), value(args, "--allowedTools"), value(args, "--setting-sources")]).toEqual(["Bash,Read,Write,Edit,Glob,Grep,Skill", "Bash,Read,Write,Edit,Glob,Grep,Skill,mcp__m3a__*", "project"]);
     expect(JSON.parse(value(args, "--mcp-config")!)).toEqual({ mcpServers: { m3a: { command: "node", args: ["node_modules/@m3a/tools/dist/node.js", "mcp"] } } });
     expect(JSON.parse(value(args, "--mcp-config")!)).toEqual(M3A_MCP);
     expect(args).toContain("--strict-mcp-config");
+    // the CLI's own skills off, so m3a's is the only one offered: its bundled ones, and those claude 2.1.302 lists past
+    expect(JSON.parse(value(args, "--settings")!)).toEqual({ disableBundledSkills: true, skillOverrides: { design: "off", doctor: "off", "plugin-authoring": "off" } });
+    expect(JSON.parse(value(args, "--settings")!)).toEqual(ONLY_M3A);
     // turned off (the legend quiz, no tools and no package): no Skill, no server, still no server but those given
     const quiz = agentArgs("q", { tools: "", m3a: false });
     expect([value(quiz, "--tools"), value(quiz, "--allowedTools"), quiz.includes("--mcp-config"), quiz.includes("--strict-mcp-config")]).toEqual(["", "", false, true]);
     expect(value(agentArgs("q", { tools: "" }), "--tools")).toBe("Skill");
   });
   it("reads the init event: the server connected and the skill loaded, or why not", () => {
-    expect(wiringOf(["not json", JSON.stringify({ type: "system", subtype: "hook_started" }), init("connected")])).toEqual({ server: "connected", skill: true });
+    expect(wiringOf(["not json", JSON.stringify({ type: "system", subtype: "hook_started" }), init("connected")])).toEqual({ server: "connected", skill: true, skills: ["m3a"] });
+    // every skill the event lists is kept: one a later CLI adds past ONLY_M3A shows in the run, though the wiring holds
+    expect(wiringOf([init("connected", ["m3a", "deep-research"])])).toEqual({ server: "connected", skill: true, skills: ["m3a", "deep-research"] });
+    expect(unwired(wiringOf([init("connected", ["m3a", "deep-research"])]))).toBeNull();
     expect(unwired(wiringOf([init("connected")]))).toBeNull();
     expect(unwired(wiringOf([init("failed")]))).toMatch(/^m3a's wiring failed: its MCP server is failed, not connected/);
     expect(unwired(wiringOf([init("pending", [])]))).toMatch(/its MCP server is pending, not connected; its skill isn't loaded/);
@@ -186,8 +192,9 @@ describe("m3a's wiring (WP-7.3)", () => {
     process.env.PATH = `${bins.join(":")}:${path}`;
     try {
       const [ok, dead] = await pool(wss, 2, (ws) => runAgent(ws, "hello", `${ws}.jsonl`, { timeoutMs: 120_000 }));
-      expect([ok!.ok, ok!.m3a, ok!.unwired, ok!.error, ok!.reply]).toEqual([true, { server: "connected", skill: true }, undefined, undefined, "done"]);
-      expect([dead!.ok, dead!.m3a, dead!.unwired, dead!.error]).toEqual([false, { server: "failed", skill: true }, unwired({ server: "failed", skill: true }), unwired({ server: "failed", skill: true })]);
+      const failed = { server: "failed", skill: true, skills: ["m3a"] };
+      expect([ok!.ok, ok!.m3a, ok!.unwired, ok!.error, ok!.reply]).toEqual([true, { server: "connected", skill: true, skills: ["m3a"] }, undefined, undefined, "done"]);
+      expect([dead!.ok, dead!.m3a, dead!.unwired, dead!.error]).toEqual([false, failed, unwired(failed), unwired(failed)]);
       // stopped at its init event: its transcript holds that alone
       expect(readFileSync(`${wss[1]}.jsonl`, "utf8").trim().split("\n")).toEqual([init("failed")]);
     } finally {
@@ -364,7 +371,7 @@ describe("trials", () => {
   it("installs the packed packages outside the repository, and grades the known-good solution there (a fake trial)", async () => {
     const r = await runB1({ trials: 1, discovery: 0, base, packs, fake: true });
     expect(r.trials.map((t) => [t.trial, t.pass, t.failed])).toEqual([["B1-1", true, []]]);
-    // the skill the package ships, as regular files where Claude Code reads a project's skills: a link would lead into
+    // the skill the package will ship, as regular files where Claude Code reads a project's skills: a link would lead into
     // the repository, which the agent can't see (WP-7.3)
     const ws = join(base, "B1-1"), skill = join(ws, SKILL.to, "SKILL.md");
     for (const d of [".claude", ".claude/skills", SKILL.to]) expect(lstatSync(join(ws, d)).isDirectory(), d).toBe(true);
@@ -401,8 +408,9 @@ describe("trials", () => {
     expect(r.check?.pass, r.check?.failed.join("\n")).toBe(true);
     // its workspace grades (the known-good solution), and the trial fails on the wiring alone, saying so
     const t = r.trials[0]!;
-    expect([t.pass, t.failed]).toEqual([false, [unwired({ server: "failed", skill: true })]]);
-    expect(t.agent).toMatchObject({ ok: false, m3a: { server: "failed", skill: true }, unwired: t.failed[0] });
+    const failed = { server: "failed", skill: true, skills: ["m3a"] };
+    expect([t.pass, t.failed]).toEqual([false, [unwired(failed)]]);
+    expect(t.agent).toMatchObject({ ok: false, m3a: failed, unwired: t.failed[0] });
     // a variant whose rig isn't fetched stops before any trial, naming how to fetch it
     writeFileSync(join(dir, "character.json"), JSON.stringify({ manifest: "rigs.json", rig: "nowhere" }));
     writeFileSync(join(dir, "rigs.json"), JSON.stringify({ rigs: [] }));

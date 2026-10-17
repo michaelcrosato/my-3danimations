@@ -1,6 +1,7 @@
 // A fresh agent on a benchmark workspace (PLAN.md §7, WP-4.7). Isolation level 1: the `claude` CLI in print mode,
 // started in the workspace with a clean environment (the proxy and its certificates, nothing of this session's: no
-// tokens, no repository) and a fresh home (no settings, skills or memory), its tools limited to files and a shell.
+// tokens, no repository) and a fresh home (no settings, skills or memory), its tools limited to files and a shell, plus
+// m3a's Skill tool, skill and MCP server (see below).
 // Where the machine allows a mount namespace (`unshare`), each agent gets a /tmp of its own, holding only its workspace
 // and home, and every checkout of the repository (each worktree, with the graders, the known-good solutions and the
 // held-out originals), its git directory and this session's Claude home are hidden from it, and the CLI's account file
@@ -28,11 +29,14 @@
 // stream's init event is read as it comes: where it shows the server not "connected" or the skill not loaded, the agent
 // is stopped there (in a PID namespace, its first process killed, which ends the namespace) and the run fails, saying
 // why (`unwired`; main.ts fails the trial), as a stream with no init event does. Only an explicit option turns the
-// wiring off (`m3a: false`: the legend quiz, whose workspace installs nothing).
+// wiring off (`m3a: false`: the legend quiz, whose workspace installs nothing). The Skill tool would also offer the
+// CLI's own skills (claude 2.1.302 listed 18 past m3a's, each in the agent's prompt, which G6's agents never had, D91),
+// so `--settings` turns them off (`ONLY_M3A`), and each run records the init event's whole list (`Wiring.skills`): one a
+// later CLI adds shows there.
 // The transcript (stream-json) is kept; the run records its time, tokens, cost and turns, and the audit lists every
 // path it touched outside the workspace (and its own /tmp's, /var/tmp's and /dev/shm's scratch files apart) and every
 // file it read past the manual (the packages' code in node_modules; the manual and the skill and llms.txt that point at
-// it aren't), a shell command's relative paths resolved as its shell would (D88).
+// it aren't, where a package will ship them), a shell command's relative paths resolved as its shell would (D88).
 // The audit's known limits (D88, D91):
 // - over-reports: a grep pattern or a here-string naming a package path counts as a read; so does a path in a script
 //   a command runs as it is given (`node -e`, a heredoc fed to `node` or `python3`), whether or not the script reads it;
@@ -107,27 +111,35 @@ export interface AgentOptions {
 export const M3A_MCP = { mcpServers: { m3a: { command: "node", args: ["node_modules/@m3a/tools/dist/node.js", "mcp"] } } } as const;
 /** The built-in tools an agent gets by default: files and a shell. */
 const TOOLS = "Bash,Read,Write,Edit,Glob,Grep";
+/** The settings (`--settings`) that leave m3a's the only skill an agent is offered: the CLI's bundled skills off
+ *  (`disableBundledSkills`, which leaves a workspace's .claude/skills/ alone) and the three claude 2.1.302 lists past
+ *  them turned off by name (checked on its init event, 2026-10-17). */
+export const ONLY_M3A = { disableBundledSkills: true, skillOverrides: { design: "off", doctor: "off", "plugin-authoring": "off" } } as const;
 
 /**
  * The `claude` arguments for an agent on `prompt`: print mode with a stream-json transcript, its turns, its built-in tools
  * (`opts.tools`) and only those allowed, settings from its workspace alone (`--setting-sources project`: its home is
- * fresh anyway), and no MCP server but those given (`--strict-mcp-config`). With m3a's wiring (`opts.m3a`, on by
- * default) the Skill tool too, and m3a's MCP server (`M3A_MCP`) with its tools allowed (`mcp__m3a__*`).
+ * fresh anyway) and the CLI's own skills off (`ONLY_M3A`), and no MCP server but those given (`--strict-mcp-config`).
+ * With m3a's wiring (`opts.m3a`, on by default) the Skill tool too, and m3a's MCP server (`M3A_MCP`) with its tools
+ * allowed (`mcp__m3a__*`).
  */
 export function agentArgs(prompt: string, opts: AgentOptions = {}): string[] {
   const m3a = opts.m3a ?? true, own = opts.tools ?? TOOLS, tools = m3a ? [own, "Skill"].filter(Boolean).join(",") : own;
   return [
     "-p", prompt, "--output-format", "stream-json", "--verbose", "--max-turns", String(opts.maxTurns ?? 80),
-    "--tools", tools, "--allowedTools", m3a ? `${tools},mcp__m3a__*` : tools, "--setting-sources", "project",
+    "--tools", tools, "--allowedTools", m3a ? `${tools},mcp__m3a__*` : tools, "--setting-sources", "project", "--settings", JSON.stringify(ONLY_M3A),
     ...(m3a ? ["--mcp-config", JSON.stringify(M3A_MCP)] : []), "--strict-mcp-config", ...(opts.model ? ["--model", opts.model] : []),
   ];
 }
 
 /** m3a's wiring as a stream's init event shows it: its MCP server's status ("connected", "failed", "pending", ...; null
- *  where the event doesn't list the server) and whether the skill was loaded (WP-7.3). */
+ *  where the event doesn't list the server), whether the skill was loaded, and every skill the event lists (WP-7.3). */
 export interface Wiring {
   server: string | null;
   skill: boolean;
+  /** The init event's whole list of skills, each offered in the agent's prompt: m3a's alone, unless a CLI lists one
+   *  `ONLY_M3A` doesn't turn off. */
+  skills: string[];
 }
 /** m3a's wiring as the first init event in a stream-json transcript's lines shows it; null where there is none yet. */
 export function wiringOf(lines: readonly string[]): Wiring | null {
@@ -138,7 +150,7 @@ export function wiringOf(lines: readonly string[]): Wiring | null {
     } catch {
       continue;
     }
-    if (j.type === "system" && j.subtype === "init") return { server: j.mcp_servers?.find((m) => m.name === "m3a")?.status ?? null, skill: j.skills?.includes("m3a") ?? false };
+    if (j.type === "system" && j.subtype === "init") return { server: j.mcp_servers?.find((m) => m.name === "m3a")?.status ?? null, skill: j.skills?.includes("m3a") ?? false, skills: j.skills ?? [] };
   }
   return null;
 }
@@ -203,8 +215,9 @@ export interface Where {
   exists?: (path: string) => boolean;
 }
 /** What an agent may read in its installed packages without reading past the manual: the manual, and the skill and
- *  llms.txt that point at it wherever a package ships them (WP-7.3). The skill the runner copies into a workspace,
- *  .claude/skills/m3a/, lies outside node_modules and is never a read past it. */
+ *  llms.txt that point at it wherever a package will ship them (WP-7.3; no tarball holds them until WP-7.4 packs them).
+ *  The skill the runner copies into a workspace, .claude/skills/m3a/, lies outside node_modules and is never a read past
+ *  it. */
 const MANUAL = /^node_modules\/@m3a\/(tools\/MANUAL\.md|[\w-]+\/llms\.txt|[\w-]+\/skills\/m3a\/SKILL\.md)$/;
 /** Commands that name paths without reading them: what they list, enter, make or remove is touched, not read (as Glob). */
 const LISTS = new Set(["ls", "cd", "find", "tree", "du", "stat", "mkdir", "rmdir", "rm", "touch", "echo", "printf", "test", "[", "realpath", "readlink", "dirname", "basename", "for"]);

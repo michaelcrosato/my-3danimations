@@ -24,7 +24,7 @@ say, never by reading motion data.
 | Make | `npx m3a recipe.compile <recipe.json>` | a clip file and its metrics, or each issue with its fix |
 | Check | `npx m3a metrics <SET/Name or clip.json>` | pass, warn or fail, each finding with its repair |
 
-A reply starts with its verdict, fits in 20 lines (`--verbose` gives the rest) and ends with a `next:` hint; `--json`
-also writes a report.json. `npx m3a help` lists every tool and `npx m3a help <tool>` gives its flags and examples. The
-same tools are MCP tools (`npx m3a mcp`, over stdio, `.` written `_`: `retarget_inspect`) and `tools.call(name, args)`
-from `@m3a/tools`.
+On the command line a reply starts with its verdict, fits in 20 lines (`--verbose` gives the rest) and ends with a
+`next:` hint; `--json` also writes a report.json. `npx m3a help` lists every tool and `npx m3a help <tool>` gives its
+flags and examples. The same tools are MCP tools (`npx m3a mcp`, over stdio, `.` written `_`: `retarget_inspect`) and
+`tools.call(name, args)` from `@m3a/tools`.

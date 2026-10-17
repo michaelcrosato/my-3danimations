@@ -2,8 +2,9 @@
 // speeds the grader asks of it (speeds.json), and
 // either the packed packages installed (a trial, outside the repository) or nothing installed (a grader test inside
 // the repository, where the packages resolve to their sources). A trial's workspace also holds the skill the package
-// ships (skills/m3a/) where Claude Code reads a project's skills, as real files (WP-7.3). The character is a parameter:
-// a generator seed, or a real rig from a fixtures manifest, fetched by its SHA-256.
+// will ship (skills/m3a/, copied from the repository until WP-7.4 packs it) where Claude Code reads a project's skills,
+// as real files (WP-7.3). The character is a parameter: a generator seed, or a real rig from a fixtures manifest,
+// fetched by its SHA-256.
 import { execFileSync } from "node:child_process";
 import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { basename, join, relative } from "node:path";
@@ -19,8 +20,8 @@ export type CharacterSpec = { seed: number } | { manifest: string; rig: string }
 /** The default B1 character: a generated test character from WP-4.2's set. */
 export const DEFAULT_CHARACTER: CharacterSpec = { seed: 1 };
 
-/** The skill a trial's workspace holds (WP-7.3): the one the package ships (`from`), where Claude Code reads a project's
- *  skills (`to`, in the workspace). */
+/** The skill a trial's workspace holds (WP-7.3): the one the package will ship (`from`, copied from the repository until
+ *  WP-7.4 packs it), where Claude Code reads a project's skills (`to`, in the workspace). */
 export const SKILL = { from: join(ROOT, "skills/m3a"), to: ".claude/skills/m3a" } as const;
 
 /** The GLB bytes of a starter character. */
