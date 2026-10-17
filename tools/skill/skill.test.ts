@@ -11,6 +11,7 @@
 // workspace holds the file @m3a/tools's bin names, else npx fetches whatever npm holds as `m3a`). llms.txt in
 // llmstxt.org's format (an H1, a blockquote, then H2 sections of links), every link there, every catalog linked; and
 // .mcp.json's command serving the registry's tools over MCP.
+import { publishedManifest } from "../bundle/build.ts";
 import { spawnSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { basename, dirname, join } from "node:path";
@@ -37,8 +38,12 @@ const BIN = (TOOLS_PKG.bin?.m3a ?? "").replace(/^\.\//, "");
 /** Why `npx m3a` doesn't run the CLI in this repository (null when it does): npm links a workspace's bin only to a file
  *  there, and without the link npx asks the registry for a package named m3a. */
 const NPX_HERE = BIN && exists(`packages/tools/${BIN}`) ? null : `the workspace links no m3a bin (@m3a/tools's is ${BIN || "missing"}, built only when packed), so npx would fetch "m3a" from npm: run node packages/tools/src/node.ts`;
-/** Why `npx m3a` doesn't run the CLI where @m3a/tools is installed (null when it does): the bin's file in its files. */
-const NPX_INSTALLED = BIN && (TOOLS_PKG.files ?? []).includes(BIN.split("/")[0]!) ? null : `@m3a/tools's bin (${BIN || "missing"}) isn't in its files`;
+/** @m3a/tools as it is published (WP-7.4's publishedManifest: its bin pointed from the source to dist/). */
+const PUBLISHED = publishedManifest(TOOLS_PKG as unknown as Record<string, unknown>) as { bin?: Record<string, string>; files?: string[] };
+const PUBLISHED_BIN = (PUBLISHED.bin?.m3a ?? "").replace(/^\.\//, "");
+/** Why `npx m3a` doesn't run the CLI where @m3a/tools is installed (null when it does): the published bin's file in its
+ *  files. */
+const NPX_INSTALLED = PUBLISHED_BIN && (PUBLISHED.files ?? []).includes(PUBLISHED_BIN.split("/")[0]!) ? null : `@m3a/tools's published bin (${PUBLISHED_BIN || "missing"}) isn't in its files`;
 
 /**
  * A SKILL.md's frontmatter, in the subset of YAML these files use: one `key: value` line a field, each value plain or

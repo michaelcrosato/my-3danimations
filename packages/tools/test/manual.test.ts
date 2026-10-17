@@ -32,6 +32,7 @@ import { afterAll, describe, expect, it } from "vitest";
 import { actions, graph, ops, recipe } from "@m3a/core";
 import { openLibrary } from "@m3a/library/node";
 import { character, variant } from "@m3a/three/test-characters";
+import { publishedManifest } from "../../../tools/bundle/build.ts";
 import { BEGIN, END, withToolList } from "../../../tools/manual/toollist.ts";
 import { parseCall, runCli } from "../src/cli.ts";
 import { nodeHost } from "../src/node.ts";
@@ -123,9 +124,10 @@ function spanWords(text: string): string[] {
 }
 
 /** Why an MCP config's server isn't the installed `m3a mcp` ("" when it is): `npx` with @m3a/tools's bin name and
- *  `mcp`, and that bin's file in what the package ships (its "files"). */
+ *  `mcp`, and that bin's file in what the package ships (its "files"), read from the package as it is published
+ *  (WP-7.4's publishedManifest: the workspace's bin runs the source, the published one dist/). */
 function mcpLaunch(server: { command: string; args: string[] }): string {
-  const pkg = JSON.parse(readFileSync(join(ROOT, "packages/tools/package.json"), "utf8")) as { bin?: Record<string, string>; files?: string[] };
+  const pkg = publishedManifest(JSON.parse(readFileSync(join(ROOT, "packages/tools/package.json"), "utf8")) as Record<string, unknown>) as { bin?: Record<string, string>; files?: string[] };
   const [name, file] = Object.entries(pkg.bin ?? {})[0] ?? [];
   if (!name || !file) return "@m3a/tools has no bin";
   const top = file.replace(/^\.\//, "").split("/")[0]!;
