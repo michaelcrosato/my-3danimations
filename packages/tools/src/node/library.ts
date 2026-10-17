@@ -72,12 +72,17 @@ const imported = (m: unknown, set: string): boolean =>
 /** `own` (the library's sets) with the sets under `cwd`'s imports/ that `m3a import` wrote (each a directory named as a
  *  set, with a _set.json; a name the library has stays the library's), every read confined to the working directory; a
  *  stamp of their manifests and catalogs, empty when there are none; and a warning for each set left out (one that
- *  leads out of the working directory, can't be read, or whose manifest isn't an imported set's). */
+ *  leads out of the working directory, can't be read, or whose manifest isn't an imported set's). A set that isn't the
+ *  library's is listed and read under imports/<SET>/ when asked, not as imports/ stood when the call opened its
+ *  library: an import that opened it before another import made imports/ still sees what that one wrote, so it
+ *  replaces it (a set imports/ doesn't hold is ENOENT, which import reads as none; one through a link out is refused). */
 function withImports(own: LibrarySource, cwd: string): { source: LibrarySource; stamp: string; warnings: string[] } {
-  const none = { source: own, stamp: "", warnings: [] };
+  const lib = new Set(own.sets()), read = (set: string, file: string) => readFileSync(under(cwd, `imports/${set}/${file}`, "keep an imported set's files in it"), "utf8");
+  const files = (set: string) => readdirSync(under(cwd, `imports/${set}`, "keep an imported set in imports/"));
+  const sourceOf = (sets: readonly string[]): LibrarySource => ({ sets: () => [...lib, ...sets], files: (set) => (lib.has(set) ? own.files(set) : files(set)), read: (set, file) => (lib.has(set) ? own.read(set, file) : read(set, file)) });
+  const none = { source: sourceOf([]), stamp: "", warnings: [] };
   if (!existsSync(join(cwd, "imports"))) return none;
   if (!within(cwd, "imports")) return { ...none, warnings: ["imports/ is left out: it leads out of the working directory"] };
-  const lib = new Set(own.sets()), read = (set: string, file: string) => readFileSync(under(cwd, `imports/${set}/${file}`, "keep an imported set's files in it"), "utf8");
   const sets: string[] = [], stamp: string[] = [], warnings: string[] = [], names = (() => {
     try {
       return readdirSync(join(cwd, "imports"));
@@ -105,12 +110,7 @@ function withImports(own: LibrarySource, cwd: string): { source: LibrarySource; 
     }
     warnings.push(`imports/${set}/ is left out: ${why}; import it again, or remove it`);
   }
-  const files = (set: string) => readdirSync(under(cwd, `imports/${set}`, "keep an imported set in imports/"));
-  return {
-    source: { sets: () => [...lib, ...sets], files: (set) => (lib.has(set) ? own.files(set) : files(set)), read: (set, file) => (lib.has(set) ? own.read(set, file) : read(set, file)) },
-    stamp: stamp.join("\n"),
-    warnings,
-  };
+  return { source: sourceOf(sets), stamp: stamp.join("\n"), warnings };
 }
 
 /** `lib` whose warnings go to `into` while each of its methods runs, and while a function one returns (the resolver) does:

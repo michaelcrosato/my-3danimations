@@ -6,8 +6,9 @@
 // or a point 12 cm in front of it (`fwd`). The skinned mesh, when there is one, also gives the mannequin's look: each
 // segment's radii and where a joint-ring material sits. Arithmetic follows the original's order, with core's portable
 // math, so every engine reads the same bits. Beyond the original: a node's `matrix` is read as its transform, a skin
-// without inverse bind matrices has identity ones (as the spec says), and a file's clips together are held to a budget
-// of frames and joint transforms, so a small hostile file can't ask for hours of work.
+// without inverse bind matrices has identity ones (as the spec says), a file's clips together are held to a budget
+// of frames and joint transforms, so a small hostile file can't ask for hours of work, and each animation is a clip of
+// its own, those sharing a name or having none too (`animationNames`, which every glTF reader names them by).
 import { format, math } from "@m3a/core";
 import { Bytes, IoError, LIMITS, spend } from "../bytes.ts";
 import { plainOnly, type GltfDoc, type GltfJson, type GltfNode } from "./container.ts";
@@ -145,10 +146,34 @@ export function accessor(json: GltfJson, bin: Bytes | null, i: number, want?: st
   return out;
 }
 
-/** What a library holds, without reading its clips: the rig it uses (or null), its clips and its bones. */
+/**
+ * Each animation's clip name, one each, as every reader and `describeGltf` give it: animation i's own name, or
+ * `animation${i}` when it has none (or an empty one); a later animation whose name another took gets `_2`, `_3` ... (the
+ * first keeps it), passing over a suffix another animation has as its own name or one given already. Mixamo names every
+ * export's animation 'Armature|mixamo.com|Layer0': a file of three reads as three clips, not one. Linear in the
+ * animations: each name's search resumes past the suffix it gave last, since every suffix below that stays taken (a
+ * file of 50,000 sharing one name would otherwise ask for minutes).
+ */
+export function animationNames(json: GltfJson): string[] {
+  const own = (json.animations ?? []).map((a, i) => (typeof a.name === "string" && a.name !== "" ? a.name : `animation${i}`));
+  const theirs = new Set(own), given = new Set<string>(), next = new Map<string, number>();
+  return own.map((name) => {
+    let n = name;
+    if (given.has(name)) {
+      let k = next.get(name) ?? 2;
+      while (given.has(`${name}_${k}`) || theirs.has(`${name}_${k}`)) k++;
+      next.set(name, k + 1);
+      n = `${name}_${k}`;
+    }
+    given.add(n);
+    return n;
+  });
+}
+
+/** What a library holds, without reading its clips: the rig it uses (or null), its clips (`animationNames`), its bones. */
 export function describeGltf(doc: GltfDoc): { rig: string | null; clips: string[]; bones: string[] } {
   const nodes = doc.json.nodes ?? [], byName = names(doc.json);
-  return { rig: Object.keys(RIGS).find((r) => byName.has(RIGS[r]!.test)) ?? null, clips: (doc.json.animations ?? []).map((a) => a.name ?? ""), bones: nodes.map((n) => n.name ?? "") };
+  return { rig: Object.keys(RIGS).find((r) => byName.has(RIGS[r]!.test)) ?? null, clips: animationNames(doc.json), bones: nodes.map((n) => n.name ?? "") };
 }
 
 /** The mannequin's look: its height, each segment's radii (mm, thirds along it) and its joint rings. */
@@ -236,7 +261,8 @@ function names(json: GltfJson): { get(k: string): number | undefined; has(k: str
 
 /**
  * Reads a glTF library (a .glb or .gltf already parsed) as body points: every clip sampled at `fps` (30), on the rig
- * it recognizes. Fails with E_RIG when the rig isn't one it knows or lacks a bone its map needs.
+ * it recognizes, each named as `animationNames` names it. Fails with E_RIG when the rig isn't one it knows or lacks a
+ * bone its map needs.
  */
 export function readGltf(doc: GltfDoc, opts: { fps?: number } = {}): GltfLibrary {
   const FPS = opts.fps ?? 30, G = doc.json, bin = doc.bin, file = bin?.file, warnings: string[] = [];
@@ -353,10 +379,10 @@ export function readGltf(doc: GltfDoc, opts: { fps?: number } = {}): GltfLibrary
   }
 
   // every clip, sampled and turned into body points
-  const clips: Record<string, Capture> = {}, rootNode = byName.get(RIGS[rig]!.root) ?? order[0]!, P = format.P;
+  const clips: Record<string, Capture> = {}, rootNode = byName.get(RIGS[rig]!.root) ?? order[0]!, P = format.P, clipNames = animationNames(G);
   let frames = 0;
-  for (const an of G.animations ?? []) {
-    const name = an.name ?? "", tracks = an.channels.map((c) => {
+  for (const [ai, an] of (G.animations ?? []).entries()) {
+    const name = clipNames[ai]!, tracks = an.channels.map((c) => {
       const s = an.samplers[c.sampler];
       if (!s) throw new IoError("E_FORMAT", `clip "${name}" names sampler ${c.sampler}, which it doesn't have`, { file });
       if (s.interpolation === "CUBICSPLINE") throw new IoError("E_FORMAT", `clip "${name}" uses CUBICSPLINE in-betweens, which aren't read (bake it LINEAR)`, { file });
@@ -396,7 +422,9 @@ export function readGltf(doc: GltfDoc, opts: { fps?: number } = {}): GltfLibrary
         data[(f * P + i) * 3 + 2] = p[2]! * MM;
       });
     }
-    clips[name] = { name, n, dur, loop: /_Loop$/.test(name) || /(^|_)Idle$/.test(name), fps: FPS, data, move: moved ? move : null };
+    // a loop by the animation's own name (a later one of the same name loops as the first does)
+    const own = an.name ?? "";
+    clips[name] = { name, n, dur, loop: /_Loop$/.test(own) || /(^|_)Idle$/.test(own), fps: FPS, data, move: moved ? move : null };
   }
   return { rig, clips, body, warnings };
 }

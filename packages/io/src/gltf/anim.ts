@@ -1,7 +1,8 @@
 // glTF animations on a character's own nodes (PLAN.md WP-7.2b, D93): a clip played on the character bound through core,
 // sampled as the VRMA writer samples it (`sampleNodes`), each bone's node turned, and the roots' and the hips' moved,
 // relative to its own parent in the file as that parent stands then, so a node between two bones (a helper, an
-// armature with its turn and scale) keeps its rest. D49's end bones have no node and ride on their parents.
+// armature with its turn and scale) keeps its rest. D49's end bones have no node and ride on their parents. Its extras
+// are the clip's, as a VRMA's are, with the credit it owes (`credit`) beside its license.
 // `addAnimation` adds the animation to the character's document, its accessors appended to the buffer, packed as .glb;
 // `skeletonDoc` makes a document of a bound skeleton's own bones, for a character with no file. `glbGap` reads a written
 // file back through io (`posedOf`; a compressed mesh no bar, since it reads only the nodes and the animation added),
@@ -27,12 +28,12 @@ const rotate = (a: ArrayLike<number>, v: ArrayLike<number>): V3 => {
 const each = (a: ArrayLike<number>, b: ArrayLike<number>, f: (x: number, y: number) => number): V3 => [f(a[0]!, b[0]!), f(a[1]!, b[1]!), f(a[2]!, b[2]!)];
 
 /** A glTF animation: its name, its sample times, each track (a node's rotation or translation at every time), and the
- *  clip's extras (its license among them). */
+ *  clip's extras (its license among them, and the credit it owes, `credit`, when its provenance gives one). */
 export interface GltfAnim {
   name: string;
   times: Float32Array;
   tracks: VrmaTrack[];
-  extras: VrmaExtras;
+  extras: VrmaExtras & { credit?: string };
 }
 
 /** Each node's world scale at rest (scale isn't animated), by node. */
@@ -46,7 +47,8 @@ function scales(doc: GltfDoc): V3[] {
  * A clip played on bound skeleton `b` as an animation of a character's document `doc`: `nodes` names each bone's node
  * (skeletonOfGltf's), and a bone with none (an end bone) rides on its parent. Each bone's node is turned relative to its
  * parent in the file as that parent stands (a bone's node as played, any other node at rest, its scale kept); the
- * roots' and the hips' nodes are moved too. E_FORMAT when a bone names a node that isn't there, or one another took.
+ * roots' and the hips' nodes are moved too. Its extras are a VRMA's, with the clip's credit (its provenance's, when it
+ * is a non-empty string) as `credit`. E_FORMAT when a bone names a node that isn't there, or one another took.
  */
 export function gltfAnimOf(clip: AnimClip, b: Bound, doc: GltfDoc, nodes: Readonly<Record<string, number>>, opts: { fps?: number } = {}): GltfAnim {
   const s = sampleNodes(clip, b, opts), all = doc.json.nodes ?? [], file = doc.bin?.file, { parent, order } = hierarchy(all, file), rest = all.map(restOf), S = scales(doc);
@@ -76,7 +78,9 @@ export function gltfAnimOf(clip: AnimClip, b: Bound, doc: GltfDoc, nodes: Readon
     }
   }
   const tracks = [...bone.keys()].sort((x, y) => x - y).flatMap((n): VrmaTrack[] => [{ node: n, path: "rotation", values: rot.get(n)! }, ...(pos.has(n) ? [{ node: n, path: "translation" as const, values: pos.get(n)! }] : [])]);
-  return { name: clip.id ?? "clip", times: s.times, tracks, extras: extrasOf(clip).extras };
+  // the credit beside the license (a .vrma carries it as its asset's copyright; its extras keep VrmaExtras' fields alone)
+  const credit = (clip as { provenance?: { credit?: unknown } }).provenance?.credit;
+  return { name: clip.id ?? "clip", times: s.times, tracks, extras: { ...extrasOf(clip).extras, ...(typeof credit === "string" && credit.trim() ? { credit } : {}) } };
 }
 
 /** `doc` with `anim` added as its last animation (its times and tracks appended to the buffer, LINEAR), as a .glb. */

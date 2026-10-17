@@ -1,6 +1,7 @@
 // The readers and writers (WP-5.2): BVH read as shardfall's reader reads it (the bone map, the units, the facing, the
 // rest that stands straightest, a take of other proportions rigged on its own); a glTF rig read by its bone map the
-// way the exact reader reads it, a node's matrix as its transform and an unknown chunk skipped; a clip written as a
+// way the exact reader reads it, a node's matrix as its transform and an unknown chunk skipped; animations that share a
+// name (Mixamo's) or have none each a clip of their own, named alike by describeGltf and every reader; a clip written as a
 // VRM animation and read back byte for byte, its loop, events, contacts and facts in extras, every humanoid bone where
 // the Animator put it, root motion and all; and a catalog import whose fits are tier 1a's, bit for bit, with its
 // skips, each CMU subject's record and the ledger's stretches, and a smaller set picked from it.
@@ -8,7 +9,7 @@ import { Animator, bind, format, math, playable, solver, type AnimClip } from "@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { bvhPoints, bvhPose, decodeVrma, encodeVrma, importSet, IoError, packGlb, parseBvh, parseGlb, parseGltf, picksOf, readBvh, readCmu, readGltf, readGltfPosed, readVrma, rigBvh, subset, writeVrma, type Capture, type Catalog, type Vrma } from "../src/index.ts";
+import { bvhPoints, bvhPose, decodeVrma, describeGltf, encodeVrma, importSet, IoError, packGlb, parseBvh, parseGlb, parseGltf, picksOf, readBvh, readCmu, readGltf, readGltfPosed, readVrma, rigBvh, subset, writeVrma, type Capture, type Catalog, type Vrma } from "../src/index.ts";
 import { loadTier1a, tier1bRigGlb, tier1bText, VECTORS } from "../../../spec/conformance/runner/vectors.ts";
 import { rigSkeleton } from "../../../spec/conformance/runner/skeleton.ts";
 import { libraryClips } from "../../../tools/qa/qa.ts";
@@ -130,6 +131,36 @@ describe("glTF on any rig", () => {
     withChunk.set(glb.subarray(jsonEnd), jsonEnd + 16);
     new DataView(withChunk.buffer).setUint32(8, withChunk.length, true);
     expect(Array.from(readGltf(parseGlb(withChunk)).clips.Wave_Loop!.data)).toEqual(Array.from(want.data));
+  });
+});
+
+describe("glTF animations' names", () => {
+  // the tiny rig's three animations (A_TPose, Wave_Loop, Step_RM) renamed: `name(i)` is animation i's, none if undefined
+  const X = "Armature|mixamo.com|Layer0", text = tier1bText("rig.gltf");
+  const renamed = (name: (i: number) => string | undefined) => {
+    const j = JSON.parse(text) as { animations: { name?: string }[] };
+    j.animations.forEach((a, i) => {
+      const n = name(i);
+      if (n === undefined) delete a.name;
+      else a.name = n;
+    });
+    return parseGltf(JSON.stringify(j));
+  };
+  const keys = (doc: ReturnType<typeof parseGltf>) => [describeGltf(doc).clips, Object.keys(readGltf(doc).clips), Object.keys(readGltfPosed(doc).clips)];
+  it("gives animations that share a name (Mixamo's) a clip each, the first keeping it, the rest _2, _3 ..., alike in every reader", () => {
+    const doc = renamed(() => X), names = [X, `${X}_2`, `${X}_3`], exact = readGltf(doc), posed = readGltfPosed(doc);
+    expect(keys(doc)).toEqual([names, names, [...names, "_rest"]]);
+    // each its own animation: the second is the rig's Wave_Loop, bit for bit, in either reader, and picked by its name
+    const was = parseGltf(text), wave = readGltfPosed(was).clips.Wave_Loop!;
+    expect(Array.from(exact.clips[`${X}_2`]!.data)).toEqual(Array.from(readGltf(was).clips.Wave_Loop!.data));
+    expect([Array.from(posed.clips[`${X}_2`]!.data), Array.from(readGltfPosed(doc, { picks: [{ name: "W", take: `${X}_2`, loop: false }] }).clips.W!.data)]).toEqual([Array.from(wave.data), Array.from(wave.data)]);
+    // a suffix another animation has as its own name is passed over; the exact reader loops each by its own name
+    expect(keys(renamed((i) => (i === 2 ? `${X}_2` : X)))).toEqual([[X, `${X}_3`, `${X}_2`], [X, `${X}_3`, `${X}_2`], [X, `${X}_3`, `${X}_2`, "_rest"]]);
+    expect(Object.values(readGltf(renamed(() => "Walk_Loop")).clips).map((c) => [c.name, c.loop])).toEqual([["Walk_Loop", true], ["Walk_Loop_2", true], ["Walk_Loop_3", true]]);
+  });
+  it("names an animation without a name, or with an empty one, animation<i>", () => {
+    const names = ["animation0", "animation1", "animation2"];
+    expect(keys(renamed((i) => (i === 1 ? "" : undefined)))).toEqual([names, names, [...names, "_rest"]]);
   });
 });
 

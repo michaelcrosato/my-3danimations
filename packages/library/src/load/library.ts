@@ -183,7 +183,9 @@ export class Library {
    * The library as a recipe's resolver (`recipe.compile(r, library.resolver())`): each visible clip by id, with its rest
    * and its content id (its file's SHA-256, given one; "" without); undefined for an id it doesn't have. A clip of a
    * tier the game hasn't opted in to is there, not missing: its E_TIER passes through, naming the opt-in, where
-   * undefined would make it compile's "no clip in the library" (R-E008).
+   * undefined would make it compile's "no clip in the library" (R-E008). A clip such a set doesn't hold is missing, not
+   * refused (the tier is checked before the clip is looked for): undefined, so compile names it with its did-you-mean,
+   * rather than an opt-in after which the same recipe fails.
    */
   resolver(): recipe.Resolver {
     const sha = this.#opts.sha256;
@@ -193,7 +195,7 @@ export class Library {
         try {
           got = this.clip(id);
         } catch (err) {
-          if (err instanceof LibraryError && err.code === "E_TIER") throw err;
+          if (err instanceof LibraryError && err.code === "E_TIER" && this.#holds(err.clip ?? id)) throw err;
           return undefined;
         }
         // (a deprecated id's successor's file)
@@ -242,5 +244,15 @@ export class Library {
   }
   #clipFiles(set: string): string[] {
     return this.#src.files(set).filter((f) => f.endsWith(".json") && !f.startsWith("_")).sort();
+  }
+  /** Whether clip `id`'s set holds its file, read through the source whatever the set's tier (a set it can't list
+   *  holds none). */
+  #holds(id: string): boolean {
+    const [set, name] = id.split("/");
+    try {
+      return Boolean(set && name) && this.#clipFiles(set!).includes(`${name}.json`);
+    } catch {
+      return false;
+    }
   }
 }
