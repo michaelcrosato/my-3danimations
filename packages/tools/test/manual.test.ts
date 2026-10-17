@@ -6,15 +6,20 @@
 // .mcp.json as serving `m3a mcp`; the import catalog is checked by the import its sh block runs. Its ts blocks run, in
 // order, as one Node program in that directory (their imports merged at the top, each block in a scope of its own but
 // the complete example's, whose names the later blocks use: `library`, `clips`, `bound`, `player`, ...), the example's
-// outcome checked (one hit, its damage, the states it went through, the distance walked). Its sh blocks' lines are m3a
-// calls, run in that directory through the m3a command in process, each to exit 0. The directory holds what the manual
-// says a game has: character.glb (a generated test character), mocap.gltf (tier 1b's rig and its three animations).
-// And the manual's tool list is the registry's (tools/manual/toollist.ts), its clip ids are the library's and the tools
-// it names are tools (its token budget is `npm run doctrine`'s).
+// outcome checked (one hit, its damage, the states it went through, the distance walked). What the blocks document is
+// held as they run: a line reading a member alone (`a.layers;`) must not read undefined, and the fields its comment
+// lists (`// bottom first: { name, clip, ... }`, on a declaration's value too) must be on the value (an array's first
+// element), as must the quoted values it gives (`// "local"`). Its sh blocks' lines are m3a calls, run meanwhile in
+// that directory through the m3a command in process, each to exit 0; a ts block below an sh block waits for it (the
+// program reads a line on stdin per sh block run). A hit event a recipe adds sits at its clip's measured strike. The
+// directory holds what the manual says a game has: character.glb (a generated test character), mocap.gltf (tier 1b's
+// rig and its three animations). And the manual's tool list is the registry's (tools/manual/toollist.ts), its clip ids
+// are the library's and the tools it names are tools (its token budget is `npm run doctrine`'s).
 import { spawn } from "node:child_process";
 import { cpSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import type { Writable } from "node:stream";
 import { Ajv2020 } from "ajv/dist/2020.js";
 import { afterAll, describe, expect, it } from "vitest";
 import { actions, graph, recipe } from "@m3a/core";
@@ -90,37 +95,181 @@ function uncommented(line: string): string {
   return line.trimEnd();
 }
 
-/** The ts blocks as one program: imports merged at the top (single-line named imports only), the example's blocks at
- *  the top level and every other block in a scope of its own, and after the example a line printing its outcome. */
-function program(blocks: readonly Block[]): string {
+/** A ts line's code and its trailing `//` comment (null without one), a `//` inside a string left in the code. */
+function splitComment(line: string): [string, string | null] {
+  let q: string | null = null;
+  for (let i = 0; i < line.length - 1; i++) {
+    const ch = line[i]!;
+    if (q) {
+      if (ch === "\\") i++;
+      else if (ch === q) q = null;
+    } else if (ch === '"' || ch === "'" || ch === "`") q = ch;
+    else if (ch === "/" && line[i + 1] === "/") return [line.slice(0, i).trimEnd(), line.slice(i + 2)];
+  }
+  return [line.trimEnd(), null];
+}
+
+/** The fields a comment documents, `{ a, b: [{ c }], d (a note) }`: each key, with the shape of its value (or of its
+ *  first element) when it lists one. */
+type Shape = { [key: string]: Shape | null };
+
+/** The shape a comment opens with, `{ ... }` alone or after a label (`ranked: { ... }`), or null without one (a brace
+ *  later in it is prose: `bind(scene, { mapping })`); throws on a field that isn't a name. */
+function shapeOf(text: string, at: string): Shape | null {
+  const a = /^\s*(?:[^{}:"]*:\s*)?\{/.exec(text)?.[0].length ?? 0;
+  if (!a) return null;
+  return fieldsOf(text, a - 1, at);
+}
+
+/** The fields of the braces opening at `a`. */
+function fieldsOf(text: string, a: number, at: string): Shape {
+  const parts: string[] = [];
+  let depth = 0, from = a + 1;
+  for (let i = a; i < text.length; i++) {
+    const ch = text[i]!;
+    if ("([{".includes(ch)) depth++;
+    else if (")]}".includes(ch)) depth--;
+    if ((ch === "," && depth === 1) || depth === 0) {
+      parts.push(text.slice(from, i));
+      from = i + 1;
+    }
+    if (depth === 0) break;
+  }
+  if (depth) throw new Error(`${at}: a "{" left open in the comment`);
+  const shape: Shape = {};
+  for (const p of parts) {
+    const key = /^\s*([A-Za-z_$][\w$]*)/.exec(p)?.[1];
+    if (!key) throw new Error(`${at}: "${p.trim()}" in the comment's { ... } isn't a field name`);
+    shape[key] = /^\s*[\w$]+\s*:\s*\[?\s*\{/.test(p) ? fieldsOf(p, p.indexOf("{"), at) : null;
+  }
+  return shape;
+}
+
+/** What a comment says of the value its line reads: its fields (`{ ... }`) and, for a comment opening with quoted
+ *  strings (`"pass" | "warn"`), the values it may have. Null when it says neither. */
+function said(comment: string | null, at: string): { shape: Shape | null; oneOf: string[] | null } | null {
+  if (comment === null) return null;
+  const quoted = /^\s*("[^"]*"(?:\s*\|\s*"[^"]*")*)/.exec(comment)?.[1];
+  const shape = shapeOf(comment, at), oneOf = quoted ? quoted.split("|").map((s) => JSON.parse(s.trim()) as string) : null;
+  return shape || oneOf ? { shape, oneOf } : null;
+}
+
+/** A call's arguments, parentheses nested three deep. */
+const ARGS = String.raw`\((?:[^()]|\((?:[^()]|\([^()]*\))*\))*\)`;
+/** A member chain: a name, then `.x`, `(args)` or `!` in any order. */
+const CHAIN = String.raw`[A-Za-z_$][\w$]*(?:\.[\w$]+|${ARGS}|!)*`;
+/** A statement that is a chain alone (`bound.report.text;`), or a declaration (`const hits = ...rows;`). */
+const BARE = new RegExp(String.raw`^(\s*)(${CHAIN});$`), DECL = /^(\s*)(const|let) ([A-Za-z_$][\w$]*) = (.+);$/;
+/** The chain ends in a member read, whose value the manual documents and which must therefore be there. */
+const READ = new RegExp(String.raw`^${CHAIN}$`), MEMBER = /\.[\w$]+$/;
+
+/** A ts block's code with each documented read checked as the program runs (`__see`, below): a statement reading a
+ *  member alone (`a.layers;`) is refused undefined, and the fields or values its comment (or, after a declaration, the
+ *  next line's comment) lists are checked on the value (an array's first element). Returns the code and the checks. */
+function checked(b: Block): { code: string; checks: number } {
+  let checks = 0, last: string | null = null;
+  const see = (expr: string, at: string, defined: boolean, s: ReturnType<typeof said>) => {
+    checks++;
+    return `__see((${expr}), ${JSON.stringify(at)}, ${JSON.stringify(expr)}, ${defined}, ${JSON.stringify(s?.shape ?? null)}, ${JSON.stringify(s?.oneOf ?? null)});`;
+  };
+  const code = b.code.split("\n").map((line, i) => {
+    const at = `MANUAL.md:${b.line + 1 + i}`, [text, comment] = splitComment(line), tail = comment === null ? "" : ` //${comment}`, s = said(comment, at);
+    const bare = BARE.exec(text), decl = DECL.exec(text), prev = last;
+    last = decl ? decl[3]! : text.trim() === "" && comment !== null ? last : null;
+    if (bare && (MEMBER.test(bare[2]!) || s)) return `${bare[1]}${see(bare[2]!, at, MEMBER.test(bare[2]!), s)}${tail}`;
+    const read = decl !== null && READ.test(decl[4]!) && MEMBER.test(decl[4]!);
+    if (decl && (read || s)) return `${decl[1]}${decl[2]} ${decl[3]} = ${decl[4]}; ${see(decl[3]!, at, read, s)}${tail}`;
+    if (text.trim() === "" && s && prev) return `${line.slice(0, line.indexOf("//"))}${see(prev, at, false, s)}${tail}`;
+    return line;
+  });
+  return { code: code.join("\n"), checks };
+}
+
+/** The program's helpers: `__see` checks a documented read (counted in `__seen`), and `__sh(n)` waits until the
+ *  test has run the manual's first n sh blocks (it writes a line to stdin after each, and ends stdin after the last). */
+const PRELUDE = `const __seen = { reads: 0, shapes: 0, empty: 0 };
+function __shape(v, shape, at, path) {
+  if (Array.isArray(v)) { if (!v.length) { __seen.empty++; return; } v = v[0]; path += "[0]"; }
+  if (v === null || (typeof v !== "object" && typeof v !== "function")) throw new Error(at + ": " + path + " is " + (v === null ? "null" : typeof v) + ", not { " + Object.keys(shape).join(", ") + " }");
+  for (const k of Object.keys(shape)) {
+    if (!(k in v)) throw new Error(at + ": " + path + " has no " + k + " (it has " + Object.keys(v).join(", ") + ")");
+    if (shape[k]) __shape(v[k], shape[k], at, path + "." + k);
+  }
+  __seen.shapes++;
+}
+function __see(v, at, expr, defined, shape, oneOf) {
+  if (defined && v === undefined) throw new Error(at + ": " + expr + " is undefined");
+  if (shape) __shape(v, shape, at, expr);
+  if (oneOf && !oneOf.includes(v)) throw new Error(at + ": " + expr + " is " + JSON.stringify(v) + ", not " + oneOf.join(" | "));
+  __seen.reads++;
+}
+let __shDone = 0, __shEnd = false;
+const __shWait = [];
+const __wake = () => { for (const f of __shWait.splice(0)) f(); };
+process.stdin.setEncoding("utf8").on("data", (d) => { __shDone += d.split("\\n").filter(Boolean).length; __wake(); }).on("end", () => { __shEnd = true; __wake(); });
+async function __sh(n, at) {
+  while (__shDone < n) {
+    if (__shEnd) throw new Error(at + ": the sh blocks before it didn't all run");
+    await new Promise((ok) => __shWait.push(ok));
+  }
+}`;
+
+/** The ts blocks as one program, in the manual's order: imports merged at the top (single-line named imports only),
+ *  the example's blocks at the top level and every other block in a scope of its own, each after the sh blocks above
+ *  it have run (`__sh`), each documented read checked (`checked`); after the example a line printing its outcome, and
+ *  at the end one printing the checks that ran. Returns the program and the checks it holds. */
+function program(blocks: readonly Block[]): { text: string; checks: number } {
   const imports = new Map<string, Set<string>>(), body: string[] = [];
-  let example = false;
+  let example = false, sh = 0, checks = 0;
   for (const b of blocks) {
-    const code = b.code.replace(/^import \{([^}]*)\} from "([^"]+)";\n/gm, (_, names: string, from: string) => {
+    if (b.lang === "sh") sh++;
+    if (b.lang !== "ts") continue;
+    const merged = b.code.replace(/^import \{([^}]*)\} from "([^"]+)";\n/gm, (_, names: string, from: string) => {
       const set = imports.get(from) ?? new Set<string>();
       for (const n of names.split(",").map((s) => s.trim()).filter(Boolean)) set.add(n);
       imports.set(from, set);
-      return "";
+      return "\n"; // a line kept, so each line keeps its number
     });
-    expect(code, `${where(b)}: an import the test can't merge (one line, named imports)`).not.toMatch(/^\s*import\b/m);
+    expect(merged, `${where(b)}: an import the test can't merge (one line, named imports)`).not.toMatch(/^\s*import\b/m);
     if (example && !EXAMPLE.test(b.section)) {
       body.push(`console.log("M3A-EXAMPLE " + JSON.stringify({ damage, hits: run.trace.hits.length, states: run.trace.states.map((s) => s.layer + ":" + s.state), walked: bound.root.position.length() }));`);
       example = false;
     }
     if (EXAMPLE.test(b.section)) example = true;
-    body.push(`// ${where(b)}`, EXAMPLE.test(b.section) ? code : `{\n${code}}`);
+    const c = checked({ ...b, code: merged });
+    checks += c.checks;
+    const gate = sh ? `await __sh(${sh}, ${JSON.stringify(where(b))});\n` : "";
+    body.push(`// ${where(b)}`, EXAMPLE.test(b.section) ? gate + c.code : `{\n${gate}${c.code}}`);
   }
-  return [...[...imports].map(([from, names]) => `import { ${[...names].join(", ")} } from "${from}";`), ...body].join("\n");
+  body.push(`console.log("M3A-SEEN " + JSON.stringify(__seen));`);
+  return { text: [...[...imports].map(([from, names]) => `import { ${[...names].join(", ")} } from "${from}";`), PRELUDE, ...body].join("\n"), checks };
 }
 
-/** Runs a Node program in the scratch directory; resolves to its exit code and output. */
-function node(path: string): Promise<{ code: number | null; out: string }> {
-  return new Promise((ok) => {
-    const p = spawn(process.execPath, ["--no-warnings", path], { cwd: CWD });
-    let out = "";
-    p.stdout.on("data", (d: Buffer) => (out += d));
-    p.stderr.on("data", (d: Buffer) => (out += d));
-    p.on("close", (code) => ok({ code, out }));
+/** Runs a Node program in the scratch directory: its stdin (the sh blocks run, a line each) and its exit code and
+ *  output once it ends. */
+function node(path: string): { stdin: Writable; done: Promise<{ code: number | null; out: string }> } {
+  const p = spawn(process.execPath, ["--no-warnings", path], { cwd: CWD });
+  p.stdin.on("error", () => {}); // the program may have failed and ended before the test's last line
+  return {
+    stdin: p.stdin,
+    done: new Promise((ok) => {
+      let out = "";
+      p.stdout.on("data", (d: Buffer) => (out += d));
+      p.stderr.on("data", (d: Buffer) => (out += d));
+      p.on("close", (code) => ok({ code, out }));
+    }),
+  };
+}
+
+/** Each `hit` event a recipe's events step adds to a library clip (a clip step's result), with that clip's first
+ *  measured strike (`clip.facts.strike[0]`), which the manual says the event sits at. */
+function hitsAtStrike(r: { steps: { op: string; id?: string; as?: string; in?: string; add?: { t: number; name: string }[] }[] }, at: string): { at: string; t: number; strike: number | undefined }[] {
+  const lib = openLibrary();
+  return r.steps.flatMap((s) => {
+    const from = r.steps.find((c) => c.op === "clip" && c.as === s.in);
+    if (s.op !== "events" || !from) return [];
+    const strike = (lib.clip(from.id!).clip.facts as { strike?: number[] } | undefined)?.strike?.[0];
+    return (s.add ?? []).filter((e) => e.name === "hit").map((e) => ({ at: `${at}: ${from.id}'s hit`, t: e.t, strike }));
   });
 }
 
@@ -153,13 +302,14 @@ describe("packages/tools/MANUAL.md", () => {
     const r = schema("recipe");
     ajv.addSchema(r); // an action's schema refers to the recipe's
     const checks = { recipe: ajv.getSchema(r.$id)!, graph: ajv.compile(schema("graph")), action: ajv.compile(schema("action")), sim: ajv.compile(schema("sim")) };
-    const kinds: string[] = [];
+    const kinds: string[] = [], strikes: ReturnType<typeof hitsAtStrike> = [];
     for (const b of RUN.filter((x) => x.lang === "json")) {
       const name = file(b), data = JSON.parse(b.code) as Record<string, unknown>;
       const kind = name === "game.json" ? "game" : name === ".mcp.json" ? "mcp" : Object.keys(data).some((k) => k.startsWith("$")) ? "catalog" : "beats" in data ? "action" : "states" in data ? "graph" : "input" in data ? "sim" : "steps" in data ? "recipe" : "unknown";
       kinds.push(kind);
       if (kind === "recipe" || kind === "graph" || kind === "action" || kind === "sim") expect(checks[kind](data) || checks[kind].errors, where(b)).toBe(true);
       if (kind === "recipe") expect(recipe.validateRecipe(data as never), where(b)).toEqual([]);
+      if (kind === "recipe") strikes.push(...hitsAtStrike(data as never, where(b)));
       if (kind === "action") expect(actions.validateAction(data as never), where(b)).toEqual([]);
       if (kind === "graph") expect(graph.validateGraph(data as never), where(b)).toEqual([]);
       if (kind === "game") expect(gameTiers(CWD)).toEqual((data as { tiers: string[] }).tiers);
@@ -168,6 +318,12 @@ describe("packages/tools/MANUAL.md", () => {
       if (kind === "catalog") expect(TEXT, where(b)).toContain(`--catalog ${name}`);
     }
     expect(kinds, "a json block the test can't check").not.toContain("unknown");
+    // a hit event a recipe adds sits at its clip's measured strike, the time the prose gives
+    expect(strikes.length).toBeGreaterThanOrEqual(1);
+    for (const s of strikes) {
+      expect(s.t, s.at).toBe(s.strike);
+      expect(TEXT, s.at).toContain(`${s.strike} s is`);
+    }
     // each script names the graph it was written for, which a json block holds
     for (const b of RUN.filter((x) => x.lang === "json" && "input" in JSON.parse(x.code))) {
       const script = JSON.parse(b.code) as { graph: string }, g = RUN.map((x) => (x.lang === "json" ? (JSON.parse(x.code) as { id?: string }) : {})).find((x) => x.id === script.graph);
@@ -177,24 +333,30 @@ describe("packages/tools/MANUAL.md", () => {
   });
 
   it("runs the ts blocks as one program and the sh blocks' m3a calls, each exiting 0", async () => {
-    const ts = RUN.filter((b) => b.lang === "ts");
-    writeFileSync(join(CWD, "manual.ts"), program(ts));
+    const prog = program(RUN);
+    writeFileSync(join(CWD, "manual.ts"), prog.text);
     const ran = node(join(CWD, "manual.ts"));
-    // meanwhile, the m3a calls in order, as the m3a command makes them (its retries kept in .m3a/requests/)
+    // meanwhile, the m3a calls in order, as the m3a command makes them (its retries kept in .m3a/requests/), the
+    // program told after each sh block so a ts block below one runs after it
     const registry = new Registry(TOOLS, fileStore(CWD)), host = nodeHost(CWD), calls: string[] = [];
-    for (const b of RUN.filter((x) => x.lang === "sh")) {
-      for (const line of b.code.split("\n").map(uncommented).filter(Boolean)) {
-        const argv = words(line);
-        if (argv[0] === "npx") argv.shift();
-        expect(argv[0], `MANUAL.md:${b.line}: ${line}`).toBe("m3a");
-        let out = "";
-        const code = await runCli(registry, argv.slice(1), { print: (t) => (out += t), write: (p, t) => void host.write!(p, t), host });
-        expect(code, `MANUAL.md:${b.line}: ${line}\n${out}`).toBe(0);
-        calls.push(argv[1]!);
+    try {
+      for (const b of RUN.filter((x) => x.lang === "sh")) {
+        for (const line of b.code.split("\n").map(uncommented).filter(Boolean)) {
+          const argv = words(line);
+          if (argv[0] === "npx") argv.shift();
+          expect(argv[0], `MANUAL.md:${b.line}: ${line}`).toBe("m3a");
+          let out = "";
+          const code = await runCli(registry, argv.slice(1), { print: (t) => (out += t), write: (p, t) => void host.write!(p, t), host });
+          expect(code, `MANUAL.md:${b.line}: ${line}\n${out}`).toBe(0);
+          calls.push(argv[1]!);
+        }
+        ran.stdin.write("ran\n");
       }
+    } finally {
+      ran.stdin.end();
     }
     expect(calls.length).toBeGreaterThanOrEqual(8);
-    const { code, out } = await ran;
+    const { code, out } = await ran.done;
     expect(code, out).toBe(0);
     const ex = JSON.parse(/^M3A-EXAMPLE (.*)$/m.exec(out)?.[1] ?? "null") as { damage: number; hits: number; states: string[]; walked: number } | null;
     expect(ex, out).not.toBeNull();
@@ -202,5 +364,12 @@ describe("packages/tools/MANUAL.md", () => {
     expect([ex!.damage, ex!.hits]).toEqual([25, 1]);
     expect(ex!.states).toEqual(["base:move", "react:none", "base:slash", "react:flinch", "react:none", "base:move"]);
     expect(ex!.walked).toBeGreaterThan(0.5);
+    // every documented read ran and held: the fields its comment lists (an array's first element), its values
+    const seen = JSON.parse(/^M3A-SEEN (.*)$/m.exec(out)?.[1] ?? "null") as { reads: number; shapes: number; empty: number } | null;
+    expect(seen?.reads, out).toBe(prog.checks);
+    expect(prog.checks).toBeGreaterThanOrEqual(20);
+    expect(seen!.shapes).toBeGreaterThanOrEqual(10);
+    // a shape read on an empty array checks nothing: only the valid recipe's issues ([]) may be one
+    expect(seen!.empty, "documented shapes read on an empty array").toBeLessThanOrEqual(1);
   }, 60_000);
 });

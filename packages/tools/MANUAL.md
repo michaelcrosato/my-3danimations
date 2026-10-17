@@ -147,7 +147,8 @@ sets differ (one set's knockback gets back up). Ids are `SET/Name`; an `_RM` cli
 tools read it) and `openLibrary({ tiers: ["cc0", "cc-by"] })` in code. The installed `@m3a/library` holds the CC0
 sets only: another tier plays where its sets are installed (this repository's `library/sets/`). There, a clip past
 the game's tiers throws `LibraryError` `E_TIER`, naming the opt-in (elsewhere `E_NO_SET`). Credit each `cc-by` clip;
-`cmu` clips can't be resold, even converted; `local` (what `m3a import` made) never ships.
+`cmu` clips can't be resold, even converted; `local` (what `m3a import` made) never ships, and code opens it as a
+library of its own (Ship).
 
 ## Fit: bind the character
 
@@ -165,10 +166,10 @@ missing required bone. `m3a retarget.inspect <file>` says the same of a .glb, .g
 
 ```ts
 const flinch = clips("QUATERNIUS_SHARDFALL/Hit_Chest");
-const a = new Animator(bound.core).layer("base", { clip: clips("MESH2MOTION/Walk_Large") });
+const a = new Animator(bound.core).layer("base", { clip: clips("KNIGHT/Slash_Hit") });
 a.layer("hurt", { clip: flinch, weight: 0.8, mask: "upper", time: 0 });   // options left out stay as they were
 a.layer("hurt", { mask: { chest: 1, head: 1, armL: 0.5 } });              // weights by field; unlisted ones weigh 0
-const step = a.step(1 / 60);          // { steps, events: [{ name, layer, clip, t, cycle, at, event }], root }
+const step = a.step(0.5);             // { steps, events: [{ name, layer, clip, t, cycle, at, event }], root }
 a.layers;                             // bottom first: { name, clip, weight, mask, additive, speed, time, cycle, held }
 a.remove("hurt");
 ```
@@ -275,7 +276,7 @@ and its `interrupts` (where it may be cut):
 import { actions } from "@m3a/core";
 
 const c = actions.compileAction(read("climb.json"), library.resolver());  // c.clip: an event at each beat and interrupt
-actions.actionRootAt(c, 0.3);           // { forward, right, yaw, up } (% of the hip height): move and raise the character
+actions.actionRootAt(c, 0.3);           // { forward, right, up (% of the hip height), yaw (°) }: move and raise it
 const cut = actions.interruptAt(c, 0.3);  // the next cut from then: { t, to, why }
 actions.interruptInto(c, cut!, "PROCEDURAL/Walk").clip;   // cut there, faded into a walk on the ledge
 ```
@@ -311,8 +312,9 @@ strike with no hit event). Script rows: `{ t, set, over, trigger, move }`; `root
 
 `m3a license.check` checks `game.json` (`tiers`, `clips`, `ships`) or `--clips`, and prints the credits block.
 `m3a export` writes a clip played on a character as .vrma, .glb or .bvh. `m3a import <file> --license <SPDX id>` fits
-a motion file's animations into a `local` set, `imports/<SET>/` (`--set`, default `IMPORT`), which a game sees with
-`"local"` in its tiers and `"ships": false`. A catalog (`--catalog`) says what to take:
+a motion file's animations into a `local` set, `imports/<SET>/` (`--set`, default `IMPORT`), which the tools read when
+game.json has `"local"` in its tiers and, as local never ships, `"ships": false`. A catalog (`--catalog`) says what to
+take:
 
 ```json catalog.json
 {
@@ -336,6 +338,11 @@ npx m3a import mocap.gltf --license CC0-1.0 --catalog catalog.json --set MOCAP
 npx m3a describe MOCAP/Wave_Short
 npx m3a license.check
 npx m3a export MESH2MOTION/Walk_Large --character character.glb --format glb
+```
+
+```ts
+const mine = openLibrary({ dir: "imports", tiers: ["local"] });  // in code, the imported sets
+mine.clip("MOCAP/Wave_Short").tier;                               // "local"
 ```
 
 ## Tools: the m3a command, MCP and the console
@@ -362,8 +369,8 @@ the MCP name.
 - `m3a graph.validate <graph> [--clips]` · `graph_validate`: Check a graph
 - `m3a graph.sim <graph> --script <script> [--character] [--mapping] [--expect] [--clips]` · `graph_sim`: Run a game-input script on a graph
 - `m3a license.check [--clips] [--tiers] [--ships] [--set]` · `license_check`: Check clips, a set or game.json against licenses and tiers
-- `m3a import <path> [--set] [--license] [--catalog] [--list] [--from]` · `import` (writes files): Fit a motion file's animations into imports/<SET>/, a local set, each with its fit
-- `m3a export <clip> --character <character> [--format] [--mapping]` · `export`: Play a clip on a character and write it as .vrma, .glb or .bvh in check-output/export/, read back to check it
+- `m3a import <path> [--set] [--license] [--catalog] [--list] [--from]` · `import` (writes files): Fit a motion file's animations into `imports/<SET>/`, a local set, each with its fit
+- `m3a export <clip> --character <character> [--format] [--mapping]` · `export`: Play a clip on a character and write it as .vrma, .glb or .bvh in `check-output/export/`, read back to check it
 - `m3a version` · `version`: The m3a version and the clip format it reads and writes
 - `m3a validate <path> [--text] [--mode]` · `validate`: Validate a clip by path or as text
 <!-- /tools -->

@@ -17,9 +17,11 @@ const COMMON = new Set(["verbose", "if_revision", "request_id"]);
 /** A flag as the CLI spells it in `m3a help` (`save_as` is `--save-as`; the CLI takes either). */
 const flag = (param: string): string => `--${param.replace(/_/g, "-")}`;
 
-/** What a tool is for, in a few words: its description up to the first ":" or ";", without parentheses or full stop. */
+/** What a tool is for, in a few words: its description up to the first ":" or ";", without parentheses or full stop,
+ *  a path or placeholder outside backticks put in them (`imports/<SET>/`: markdown would drop `<SET>` as a tag). */
 export function purpose(description: string): string {
-  return description.replace(/\s*\([^)]*\)/g, "").split(/[:;]\s/)[0]!.trim().replace(/\.$/, "");
+  const text = description.replace(/\s*\([^)]*\)/g, "").split(/[:;]\s/)[0]!.trim().replace(/\.$/, "");
+  return text.split("`").map((part, i) => (i % 2 ? part : part.replace(/[\w.<>/-]*[/<][\w.<>/-]*/g, (p) => `\`${p}\``))).join("`");
 }
 
 /** A tool's line: `m3a <name> <positionals> --required <x> [--optional]`, its MCP name, its purpose, and whether it
