@@ -1,9 +1,9 @@
 // Tests for the skeleton profile (WP-1.4): recognition is exact on a fixture for every mapping table (namespaces and
 // case stripped); the topology fallback maps renamed skeletons (long clavicles, no neck, twist bones, no head-top leaf)
-// and reports its confidence; every skeleton these tests use is recognized, patched and framed as before, to the hash
-// (K6), chains of thousands of bones and bones with 130,000 children are walked without recursion or spreading, and
-// parents in a loop refused by shape; measure reproduces tier 1a's rests bit for bit; restPoints places the tiny rig's
-// body points where the importer did.
+// and reports its confidence; every skeleton these tests use, and a few with a name used twice or chains as long as each
+// other, is recognized, patched and framed as before, to the hash (K6), chains of thousands of bones and bones with
+// 130,000 children are walked without recursion or spreading, and parents in a loop refused by shape; measure
+// reproduces tier 1a's rests bit for bit; restPoints places the tiny rig's body points where the importer did.
 import { describe, expect, it } from "vitest";
 import { HUMANOID_BONES, HUMANOID_PARENT, measure, patchMapping, recognize, REQUIRED_BONES, restFrame, restPoints, TABLES, type Capture, type SkeletonIn } from "./all.ts";
 import { firstDiff, loadTier1a, loadTier3, VECTORS } from "../../../spec/conformance/runner/vectors.ts";
@@ -171,7 +171,8 @@ describe("recognize: by topology", () => {
   });
   // K6: the topology fallback walks the tree without recursion. These hashes were taken before that change, on the
   // skeletons these tests and solve's main cases recognize (not solve's arms-down or restWorld ones, nor the animator's
-  // rig scaled 1.2 times), and on each again with every bone renamed (its shape alone to go on)
+  // rig scaled 1.2 times) and on a few with a name used twice or chains as long as each other (`repeated`), and on each
+  // again with every bone renamed (its shape alone to go on)
   it("gives every skeleton the tests use the recognition, patch and rest frame it gave before, to the hash", () => {
     type Bone = { name: string; parent: string | null; head: V };
     type Case = [SkeletonIn, { table?: string }?];
@@ -201,6 +202,20 @@ describe("recognize: by topology", () => {
       const to = new Map(bones.map((b, i) => [b.name, `n${(i * 7) % 97}`]));
       return { bones: bones.map((b) => ({ name: to.get(b.name)!, parent: b.parent ? to.get(b.parent)! : null, head: b.head })) };
     };
+    // a name used twice, and chains as long as each other, where the walks' order shows (found by an A/B fuzz): a stray
+    // root bone named as the chest, listed before or after the real one, over hips two bones below a root (a name's
+    // level is its first bone's); a cape as deep as the upper body off the chest (of equal chains the spine takes the
+    // first listed), alone or with a leaf on the left toes, listed first, named as the chest (the left leg's longest
+    // chain then runs through the chest's children, sorting a copy of them, not the list the spine reads)
+    const stray = (last: boolean) => (b: Bone[]) => {
+      b.find((x) => x.name === "hips")!.parent = "r2";
+      b.unshift({ name: "r1", parent: null, head: [0, 0, 0] }, { name: "r2", parent: "r1", head: [0, 0.5, 0] });
+      b.splice(last ? b.length : 0, 0, { name: "chest", parent: null, head: [0, 0, -0.3] });
+    };
+    const cape = (toe: boolean) => (b: Bone[]) => {
+      b.push(...Array.from({ length: 5 }, (_, i): Bone => ({ name: `cape${i}`, parent: i ? `cape${i - 1}` : "chest", head: [0, 1.15 - 0.15 * i, -0.15] })));
+      if (toe) b.unshift({ name: "chest", parent: "leftToes", head: [0.1, 0, 0.2] });
+    };
     const tilted = (drop: number) => {
       const names = tableNames(vrm, (n) => n), sk = skeleton(names), a = (drop * Math.PI) / 180;
       for (const [s, x] of [["left", 1], ["right", -1]] as const) sk.bones.find((b) => b.name === names[`${s}LowerArm`])!.head = [REST[`${s}UpperArm`]![0] + x * 0.28 * Math.cos(a), REST[`${s}UpperArm`]![1] - 0.28 * Math.sin(a), 0];
@@ -224,6 +239,7 @@ describe("recognize: by topology", () => {
         [{ ...conf, bones: conf.bones.filter((x) => !drop.has(x.name)).map((x) => ({ ...x, parent: up(x.parent) })) }], [twist],
         [{ ...conf, bones: conf.bones.map((x) => ({ ...x, name: rename.get(x.name) ?? x.name, parent: x.parent ? (rename.get(x.parent) ?? x.parent) : null })) }],
       ],
+      repeated: [stray(false), stray(true), cape(false), cape(true)].map((e): Case => [rig(e)]),
     };
     /** Every bone renamed by its place, so that only the skeleton's shape is left to go on. */
     const shapeOnly = (sk: SkeletonIn): SkeletonIn => {
@@ -256,6 +272,8 @@ describe("recognize: by topology", () => {
       "rest, by shape": "4 649f106df22d05df",
       conformance: "10 f84a7e152612c495",
       "conformance, by shape": "10 2ec50498d49c2eb5",
+      repeated: "4 070b1f3487ccb4d8",
+      "repeated, by shape": "4 e8256ec92c6a4ad7",
     });
   });
   it("maps a humanoid 5,000 and 20,000 bones down a chain, one with a 5,000- or 130,000-bone chain off a toe, and one with 130,000 leaves on a thigh (K6: no RangeError)", () => {
@@ -279,7 +297,9 @@ describe("recognize: by topology", () => {
       expect([rec.method, rec.missing, rec.confidence]).toEqual(["topology", [], plain.rec.confidence]);
       expect(Object.fromEntries(Object.entries(rec.bones).map(([h, n]) => [h, n.slice(2)]))).toEqual(plain.got);
     }
-  });
+    // about 2 s alone (1 s the 130,000-bone toe chain, 0.6 s the thigh's leaves); a loaded T1 run took it past Vitest's
+    // default 5 s
+  }, 30_000);
   it("recognizes a root with 130,000 children as before, listed before or after them (K6: no RangeError)", () => {
     // no walk spreads a bone's children into one call's arguments, which about 125,000 overflow; daaf91c never took a
     // root's depth, so it answered (under a parent, as on the thigh above, its depth spread them and ran out of stack)
@@ -289,7 +309,8 @@ describe("recognize: by topology", () => {
     for (const bones of [[root, ...leaves], [...leaves, root]]) {
       expect(recognize({ bones })).toEqual({ method: "table", table: "vrm", confidence: 0, bones: {}, missing, unmapped: bones.map((b) => b.name), issues });
     }
-  });
+    // about 0.7 to 1.2 s alone; the same headroom as the chain test's
+  }, 30_000);
   // by shape: bones a table knows by name, in a loop, still hang finish's walk up the parents, as on daaf91c (not K6's)
   it("refuses parents in a loop, by shape, with a RangeError that names a bone in it, rather than running out of stack (K6)", () => {
     const at: V = [0, 1, 0];
