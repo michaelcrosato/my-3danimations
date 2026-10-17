@@ -44,12 +44,13 @@ function io<T>(f: () => T): T {
 }
 
 /** The files imports/<SET>/ holds as the host lists them (a set the library leaves out too: a first import cut short),
- *  none when there is no such directory; one leading out of the working directory refused (the host's E_PATH). */
+ *  none when there is no such directory (a file in its place too, as the host's tryRead: its write then refuses it,
+ *  naming the path as given); one leading out of the working directory refused (the host's E_PATH). */
 function held(lib: LibraryAccess, set: string): string[] {
   try {
     return lib.source.files(set);
   } catch (err) {
-    if ((err as { code?: unknown } | null)?.code === "ENOENT") return [];
+    if (["ENOENT", "ENOTDIR"].includes((err as { code?: unknown } | null)?.code as string)) return [];
     throw err;
   }
 }

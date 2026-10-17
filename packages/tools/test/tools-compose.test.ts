@@ -8,7 +8,8 @@
 // matched byte for byte, a strike with no hit event alone making findings, a hit window from a clip's own event on a
 // character file, a trace that differs with hints that run it again as given (a script, character and clip file whose
 // names the shell would split passed as given), an unknown trigger (S-E003, not run), an unknown character (E_ARGS), a
-// character file's absolute path never echoed, nor a script's that is no JSON (E_JSON), a run too long refused; and
+// character file's absolute path never echoed (a run's hint names it and its script by placeholders), nor a script's
+// that is no JSON (E_JSON), a run too long refused; and
 // writes only under check-output/recipe.compile/ and check-output/graph.sim/.
 import { cpSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -126,6 +127,9 @@ describe("compose and wire", () => {
       // a strike with no hit event alone makes findings (the sensors warn), its hint the same call again
       const jab = await call("graph.sim", { graph: L, script: "short one.json" });
       expect([jab.status, (jab.data!.sensors as Row).verdict, (jab.data!.warnings as string[]).length, hintedCalls(jab.next).map((h) => h.args)]).toEqual(["findings", "warn", 1, [{ graph: L, script: "short one.json" }]]);
+      // a script and character by absolute paths: the hint names each by its placeholder, the working directory nowhere
+      const abs = await call("graph.sim", { graph: L, script: join(cwd, "short one.json"), character: join(cwd, "my rig.gltf") });
+      expect([abs.status, abs.next.match(/`[^`]+`/g), JSON.stringify(abs).includes(cwd)]).toEqual(["findings", [`\`graph.sim ${L} --script <the script's file> --character <the character's file>\``], false]);
       // a sprint from standing fails the sensors on tiny (its pops): the findings' cut counted, no filmstrip named
       writeFileSync(join(cwd, "sprint.json"), JSON.stringify({ format: "2.0", id: "SIMS/Sprint", dur: 1, film: 0, input: [{ t: 0.1, set: { speed: 6 } }] }));
       const fast = await call("graph.sim", { graph: L, script: "sprint.json" });

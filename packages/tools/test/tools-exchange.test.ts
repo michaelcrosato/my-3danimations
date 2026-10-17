@@ -4,12 +4,13 @@
 // license.check fails for a shipped game and passes for one that stays on the machine (D10), its rest take held a frame,
 // imported again in place under a credited license (the host's library opened again, at most MAX_OPEN kept, the least
 // lately used dropped; every clip file an import wrote that it doesn't write removed and named, so the set verifies, a
-// first import's cut short too; any other .json there refusing it, nothing changed), a broken imported set left out
+// first import's cut short too; any other .json there refusing it, nothing changed; a file where its directory goes
+// refused by the host's write, named as given), a broken imported set left out
 // with a warning, breaking no other, and one named as a library set left out, import refusing the name (its manifest
 // the library's own too); and a clip exported as VRMA (read back byte for byte), .glb (onto Rigify's turned and scaled
 // armature too; off, findings, under an uneven scale) and BVH, each read back through io within 1 mm, the VRMA then
 // imported again, and the BVH jittered, from an absolute path, past the fit limits, its hint naming the catalog as given
-// (a name the shell would split too), as export's names a clip file.
+// (a name the shell would split too), as export's names a clip file, and an absolute character path by its placeholder.
 import { cpSync, mkdirSync, readdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { openLibrary } from "@m3a/library/node";
@@ -127,6 +128,10 @@ describe("exchange", () => {
       const cut = await call("import", { path: RIG, set: "CUT", license: "CC0-1.0", catalog: "cat.json" });
       expect([cut.status, ...removed(cut), readdirSync(join(cwd, "imports/CUT")).sort()]).toEqual(["ok", ["removed 1 clip file this import doesn't make: Orphan.json"], 1, ["A_TPose.json", "Wave_Loop.json", "_set.json", "catalog.tsv"]]);
       openLibrary({ dir: join(cwd, "imports"), tiers: ["local"] }).verify();
+      // a file where the set's directory goes: the host's write refuses it, naming the path as given, never the cwd
+      writeFileSync(join(cwd, "imports/FILE"), "");
+      const squat = await call("import", { path: RIG, set: "FILE", license: "CC0-1.0" });
+      expect([...refused(squat), JSON.stringify(squat).includes(cwd)]).toEqual(["error", "E_WRITE", 'can\'t write "imports/FILE/A_TPose.json" (EEXIST)', false]);
       // each working directory with imported sets opens its own library; the host keeps at most MAX_OPEN of them, the
       // least lately used dropped: this one's, used between the others, is never opened again, and one dropped is (a
       // long-lived MCP server isn't grown by each directory it serves)
@@ -188,6 +193,9 @@ describe("exchange", () => {
       writeFileSync(join(cwd, "skew rig.gltf"), JSON.stringify(skew));
       const [status, check, gap, , next] = await out({ format: "glb", character: "skew rig.gltf" });
       expect([status, check, gap! > 1, next]).toEqual(["findings", expect.stringMatching(/^read back, its joints within \d+\.\d+ mm$/), true, `it reads back off: a node above its bones may scale unevenly, which no glTF animation follows (else report it: a bug); \`export ${WALK} --character 'skew rig.gltf' --format bvh\` writes one that reads back`]);
+      // by an absolute path: the verdict and the hint name it by its placeholder, the working directory nowhere
+      const abs = await call("export", { clip: WALK, character: join(cwd, "skew rig.gltf"), format: "glb" });
+      expect([abs.status, abs.next.match(/`[^`]+`/g), JSON.stringify(abs).includes(cwd)]).toEqual(["findings", [`\`export ${WALK} --character <the character's file> --format bvh\``], false]);
       // a VRM humanoid giving only the hips: each required bone found by name is a character issue, cut at 3 with a more
       // line whose retarget.inspect call carries the mapping the export was given
       const vrm = JSON.parse(readFileSync(join(cwd, RIG), "utf8")) as { nodes: { name: string }[]; extensions?: object };
