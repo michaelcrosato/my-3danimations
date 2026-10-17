@@ -21,8 +21,10 @@ const META = { "io.modelcontextprotocol/protocolVersion": "2026-07-28", "io.mode
 const ajv = new Ajv2020({ strict: false });
 
 /** A command line's words as a POSIX shell splits them: '...' kept whole, "..." with \\ and \" escapes, \ escaping
- *  outside quotes. */
+ *  outside quotes. A quote left open throws, as a shell would refuse the line (a placeholder holding an apostrophe,
+ *  `<the script's JSON>`, is the caller's to fill, not a word). */
 export function words(line: string): string[] {
+  const open = (q: string) => new Error(`an unclosed ${q} in ${JSON.stringify(line)}`);
   const out: string[] = [];
   let w: string | null = null;
   for (let i = 0; i < line.length; i++) {
@@ -35,10 +37,14 @@ export function words(line: string): string[] {
     w ??= "";
     if (ch === "'") {
       const end = line.indexOf("'", i + 1);
+      if (end < 0) throw open("'");
       w += line.slice(i + 1, end);
       i = end;
     } else if (ch === '"') {
-      for (i++; line[i] !== '"'; i++) w += line[i] === "\\" && /["\\]/.test(line[i + 1]!) ? line[++i] : line[i];
+      for (i++; line[i] !== '"'; i++) {
+        if (i >= line.length) throw open('"');
+        w += line[i] === "\\" && /["\\]/.test(line[i + 1]!) ? line[++i] : line[i];
+      }
     } else w += ch === "\\" ? line[++i] : ch;
   }
   if (w !== null) out.push(w);
@@ -49,7 +55,13 @@ export function words(line: string): string[] {
  *  it, or why not. A flag alone (`--if_revision X`) is set on the call just `made`, added or in place of its own. */
 export function hintedCalls(next: string, made?: { tool: string; args: Record<string, unknown> }): { call: string; tool?: string; args?: Record<string, unknown>; problem?: string }[] {
   return [...next.matchAll(/`([^`]+)`/g)].map(([, c]) => {
-    const [name = "", ...argv] = c!.startsWith("--") && made ? set(made, words(c!)) : words(c!), t = tools.get(name);
+    let said: string[];
+    try {
+      said = c!.startsWith("--") && made ? set(made, words(c!)) : words(c!);
+    } catch (err) {
+      return { call: c!, problem: (err as Error).message };
+    }
+    const [name = "", ...argv] = said, t = tools.get(name);
     if (!t) return { call: c!, problem: `no tool ${JSON.stringify(name)}` };
     const args = parseCall(t, argv), problem = typeof args === "string" ? args : check(args, t.schema);
     return { call: c!, tool: t.name, ...(typeof args === "string" ? {} : { args }), ...(problem ? { problem } : {}) };

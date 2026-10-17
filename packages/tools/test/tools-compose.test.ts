@@ -2,6 +2,8 @@
 // failing input with its code and fix. A recipe: a misspelt operation or clip (R-E002, R-E008 with did you mean, no file
 // written), a missing file (E_PATH), one too long to build (E_ARGS, at once), a clip of a tier the game hasn't opted in
 // to (E_TIER through the library's resolver, naming the game.json line) and, opted in, the credit it owes. A graph: a
+// recipe of more than 64 steps or more than 100,000 step samples (the verifier's ten smooths on 600 s at 120 fps), each
+// at once, while every recipe the repository ships passes. A graph: a
 // misspelt clip and state (G-E009 with did you mean, G-E003), a cc-by clip (the game.json line), a recipe state (the
 // file to pass), which checks once its compiled file is given, named in hints as given (a path) or as `<the clip's
 // JSON>`; a WORKSHOP copy found, a missing one the copy to make; 64 clips taken, 65 refused. A script: the example trace
@@ -9,15 +11,19 @@
 // character file, a trace that differs with hints that run it again as given (a script, character and clip file whose
 // names the shell would split passed as given), an unknown trigger (S-E003, not run), an unknown character (E_ARGS), a
 // character file's absolute path never echoed (a run's hint names it and its script by placeholders), nor a script's
-// that is no JSON (E_JSON), a run too long refused; and
+// that is no JSON (E_JSON), a run too long refused (its steps; 501 layers on 60 s, 20,000 transitions on 60 s); a
+// character whose bones' names miss a required bone refused
+// (E_RIG), then run with the patch its retarget.inspect call gives (mapping), the run's hints keeping it; and
 // writes only under check-output/recipe.compile/ and check-output/graph.sim/.
 import { cpSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { openLibrary } from "@m3a/library/node";
 import { join } from "node:path";
 import { recipe } from "@m3a/core";
 import { describe, expect, it } from "vitest";
 import { nodeHost } from "../src/node.ts";
 import { Registry, type Reply } from "../src/registry/index.ts";
-import { COMPOSE } from "../src/tools/index.ts";
+import { bounded, MAX_RECIPE_STEPS, MAX_STEP_SAMPLES } from "../src/tools/clips.ts";
+import { COMPOSE, RETARGET } from "../src/tools/index.ts";
 import { exampleCwd, hintedCalls, ROOT, runExamples } from "./helpers/surfaces.ts";
 
 type Row = Record<string, unknown>;
@@ -58,6 +64,15 @@ describe("compose and wire", () => {
         const t = performance.now(), r = await bad([{ op: "clip", id: "MESH2MOTION/Fighting_Right_Jab" }, ...steps]);
         expect([r.status, r.error!.code, r.error!.message.split(",")[0], performance.now() - t < 500]).toEqual(["usage", "E_ARGS", `${at}`, true]);
       }
+      // its cost bounded at once: more than 64 steps, or more than 100,000 samples built (each step's length times its fps)
+      const smooths = (k: number, window = 5) => Array.from({ length: k }, (_, i) => ({ op: "smooth", in: `s${i + 2}`, window })), stride = [{ op: "clip", id: `${Q}Walk_Loop` }];
+      const verifier = await call("recipe.compile", { recipe: JSON.stringify({ format: "2.0", id: "RECIPES/Many", fps: 120, steps: [...stride, { op: "retime", in: "s1", dur: 600 }, ...smooths(10)] }) });
+      expect([verifier.status, verifier.error]).toEqual(["usage", { code: "E_ARGS", message: "the recipe's 12 steps build 792160 samples in all (each step's length times 120 fps), past the 100000 one call compiles; use fewer steps, or a lower fps" }]);
+      expect((await bad([...stride, { op: "retime", in: "s1", dur: 2 }, ...smooths(63, 0.1)])).error).toEqual({ code: "E_ARGS", message: `the recipe has 65 steps, past the ${MAX_RECIPE_STEPS} one call compiles; use fewer steps` });
+      // every recipe the repository ships passes, far under the bound
+      const lib = openLibrary({ tiers: ["cc0", "cc-by", "cmu"] }), shipped = [...readdirSync(join(ROOT, "spec/recipes")).map((f) => `spec/recipes/${f}`), "bench/starters/B5/emote.json", "bench/starters/B6/punch.json"];
+      for (const f of shipped) expect(() => bounded(JSON.parse(text(f)) as recipe.Recipe, (id) => lib.clip(id).clip), f).not.toThrow();
+      expect(MAX_STEP_SAMPLES).toBe(100_000);
       expect((await call("recipe.compile", { recipe: "spec/recipes/Nope.json" })).error).toEqual({ code: "E_PATH", message: "can't read spec/recipes/Nope.json (ENOENT); paths are relative to the working directory" });
       // a library clip of a tier the game hasn't opted in to is refused naming the opt-in, not compile's "no clip" (L3)
       const walk = { recipe: "spec/recipes/Walk_Into_Run.json" };
@@ -147,7 +162,36 @@ describe("compose and wire", () => {
       for (const [script, named] of [[join(cwd, "bad one.json"), /^the script's file is not JSON: [^/]*$/], ["bad one.json", /^the script 'bad one\.json' is not JSON: /]] as const) expect((await call("graph.sim", { graph: L, script })).error).toEqual({ code: "E_JSON", message: expect.stringMatching(named) });
       const long = JSON.stringify({ format: "2.0", id: "SIMS/Long", dur: 600, rate: 240, input: [] });
       expect((await call("graph.sim", { graph: L, script: long })).error).toEqual({ code: "E_ARGS", message: "the script runs 144000 steps (dur 600 s at rate 240), past the 36000 graph.sim takes: shorten dur or lower rate" });
+      // its cost bounded at once: 501 layers (the base and 500) on a 60 s script, and 20,000 transitions on one
+      const minute = JSON.stringify({ format: "2.0", id: "SIMS/Minute", dur: 60, film: 0, input: [] }), idle = { clip: `${Q}Idle_Loop` };
+      const layer = (i: number) => ({ name: `l${i}`, start: "a", states: { a: { blend: { param: "speed", points: [{ at: 0, clip: `${Q}Walk_Loop` }, { at: 3, clip: `${Q}Jog_Fwd_Loop` }] } } }, transitions: [], weight: 0.5 });
+      const graph = (layers: number, transitions: number) => JSON.stringify({ format: "2.0", id: "GRAPHS/Big", name: "Big", parameters: { speed: { type: "number", value: 1 } }, start: "idle", states: { idle, idle2: idle },
+        transitions: Array.from({ length: transitions }, (_, i) => ({ from: "idle", to: "idle2", when: [{ param: "speed", op: ">", value: 100 + i }] })), layers: Array.from({ length: layers }, (_, i) => layer(i)) });
+      expect((await call("graph.sim", { graph: graph(500, 1), script: minute })).error).toEqual({ code: "E_ARGS", message: "the run takes 501 layers × 3600 steps, past the 144000 layer steps graph.sim takes (4 layers × 36000 steps): use fewer layers, or shorten dur or lower rate" });
+      expect((await call("graph.sim", { graph: graph(0, 20_000), script: minute })).error).toEqual({ code: "E_ARGS", message: "the run takes 20000 transitions × 3600 steps, past the 36000000 transition steps graph.sim takes (1000 transitions × 36000 steps): use fewer transitions, or shorten dur or lower rate" });
       for (const bad of ["[1]", '{"script":"SIMS/Short","states":[]}']) expect((await call("graph.sim", { graph: L, script: SHORT, expect: bad })).error).toEqual({ code: "E_JSON", message: "the expected trace is not one: give a trace.json graph.sim wrote (spec/SIM.md §2)" });
       expect([readdirSync(join(cwd, "check-output")), readdirSync(join(cwd, "check-output/graph.sim"))]).toEqual([["graph.sim"], ["Short.trace.json", "Sprint.trace.json"]]);
+    }));
+
+  it("graph.sim: a character whose bones' names no table knows refused (E_RIG), then run with the patch its retarget.inspect call gives, the hints keeping the mapping", () =>
+    inCwd(async (_call, cwd) => {
+      // tier 1b's rig with every name reversed ("pelvis" "b_sivlep") and its right leg off the pelvis: its shape names
+      // only some required bones
+      const rig = JSON.parse(text("spec/vectors/tier1b/rig.gltf")) as { nodes: { name: string; children?: number[] }[] }, reg = new Registry([...COMPOSE, ...RETARGET]), host = nodeHost(cwd);
+      const rev = (b: string) => `b_${[...b].reverse().join("")}`, on = (tool: string, args: object) => reg.call(tool, args, { host }) as Promise<Reply<Row>>;
+      for (const n of rig.nodes) n.name = rev(n.name);
+      rig.nodes[1]!.children = rig.nodes[1]!.children!.filter((k) => rig.nodes[k]!.name !== "b_r_hgiht");
+      writeFileSync(join(cwd, "my rig.gltf"), JSON.stringify(rig));
+      writeFileSync(join(cwd, "short one.json"), SHORT);
+      const sim = (mapping?: object) => on("graph.sim", { graph: L, script: "short one.json", character: "my rig.gltf", ...(mapping ? { mapping } : {}) });
+      const refused = await sim();
+      expect([refused.status, refused.error?.code, refused.error?.message]).toEqual(["error", "E_RIG", expect.stringMatching(/^'my rig\.gltf': head, leftUpperArm, .* not mapped; `retarget\.inspect 'my rig\.gltf'` gives the patch: /)]);
+      // the call it names gives the patch, each bone to fill in; filled with each bone's own (the unreversed rig's), the
+      // run takes it as mapping, and its hint runs it again with it
+      const [see] = hintedCalls(refused.error!.message), given = (await on(see!.tool!, see!.args!)).data!.patch as { bones: Record<string, string | null> };
+      const own = ((await on("retarget.inspect", { character: "spec/vectors/tier1b/rig.gltf" })).data!.patch as { bones: Record<string, string> }).bones;
+      const patch = { bones: Object.fromEntries(Object.keys(given.bones).map((h) => [h, rev(own[h]!)])) };
+      const ran = await sim(patch);
+      expect([ran.status, ran.data!.character, ran.data!.steps, hintedCalls(ran.next).map((h) => h.args)]).toEqual(["findings", "'my rig.gltf'", 36, [{ graph: L, script: "short one.json", character: "my rig.gltf", mapping: patch }]]);
     }));
 });

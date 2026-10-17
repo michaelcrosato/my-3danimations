@@ -1,12 +1,14 @@
 // Compose and wire (PLAN.md WP-7.2b §1, D93): a recipe compiled into a clip file under check-output/recipe.compile/ (its
 // keys, fit, license and the sensors' verdict, or its coded issues), a graph checked against the clips the game sees
 // (the library at its tiers, the user's WORKSHOP copies, and clips given: a compiled recipe's file, the user's own), and
-// a script of game input run on a graph on a character (the tiny conformance rig by default): its trace under
+// a script of game input run on a graph on a character (the tiny conformance rig by default; a mapping patch as
+// retarget.inspect gives it, D93's one character parameter with it): its trace under
 // check-output/graph.sim/, the states it went through, hit windows, travel, the sensors' read of the run, a filmstrip
 // and the first difference from an expected trace. Recipes, graphs, scripts, traces and clips are each a file or JSON,
 // named in replies as clips are (clips.ts naming); a clip the graph names that no one has gets a fix naming the closest
 // id, the game.json line that opts in to its tier, the file to pass or the copy to make. A recipe or a script too long
-// to build is refused before it runs. Issues come as rows (code, where, message, fix), at most 20; every capped list's
+// to build, a run of too many layers or transitions, and a clip holding a foot too long (judge.ts MAX_HOLD) are
+// refused before they run. Issues come as rows (code, where, message, fix), at most 20; every capped list's
 // cut is counted in the data's `more` ({issues: 5}) and in a more line.
 import { graph as G, playable, recipe, serialize, type AnimClip, type Clip, type Rest } from "@m3a/core";
 import { LibraryError, withFacts } from "@m3a/library";
@@ -14,7 +16,7 @@ import { metrics } from "@m3a/sensors";
 import { defineTool, ToolError, type LibraryAccess, type ToolContext } from "../registry/registry.ts";
 import { quote, type Schema } from "../registry/schema.ts";
 import { compareTraces, filmstrip, simulate, traceText, validateScript, type SimScript, type Trace } from "../sim/index.ts";
-import { bodyOf, CHARACTER, characterName } from "./body.ts";
+import { bodyOf, CHARACTER, characterName, MAPPING, type MappingPatch } from "./body.ts";
 import { boundHolds } from "./judge.ts";
 import { bounded, clipResolver, fits, given, loadClip, naming, prose, refusal, suggestId, type ClipRef } from "./clips.ts";
 import { call, capped, count, cut, fileOrJson, mm, more, output, round, sec } from "./common.ts";
@@ -28,6 +30,20 @@ const CLIPS: Schema = { type: "array", items: { type: "string" }, description: "
 const MAX_CLIPS = 64;
 /** The most steps graph.sim runs: the longest script (600 s) at the default 60 steps a second. */
 const MAX_STEPS = 36_000;
+/**
+ * The most layer steps graph.sim runs (the graph's layers, its base among them, times the steps): 4 layers for the
+ * longest script. Measured here, a step cost about 0.25 ms plus 0.33 ms a layer (on tiny, blend layers; start-up
+ * included): the base alone 3,600 steps 2.7 s, 36,000 steps 20.8 s; 9 layers 3,600 steps 12.7 s, 17 layers 21.4 s;
+ * the verifier's 51 layers on a 60 s script took 35 s. At this limit, 58.5 s (4 layers, 36,000 steps).
+ */
+const MAX_LAYER_STEPS = 4 * MAX_STEPS;
+/**
+ * The most transition steps graph.sim runs (the graph's transitions, every layer's, times the steps): 1,000 transitions
+ * for the longest script. Each is read every step its layer is in its state: 20,000 transitions never taken added
+ * 3.6 s to a 3,600-step run (about 0.05 µs each a step), so a graph near io's 64 MB text limit (some 700,000) on a
+ * 600 s script would take about 20 minutes. At this limit, about 2 s (more with longer conditions).
+ */
+const MAX_TRANSITION_STEPS = 1000 * MAX_STEPS;
 
 /** An issue of a recipe, graph or script: its code, where, what is wrong and the fix. */
 type Issue = recipe.RecipeIssue;
@@ -113,7 +129,7 @@ async function graphOf(ctx: ToolContext, value: string, clips: readonly string[]
  *  build refused. */
 export const recipeCompile = defineTool<{ recipe: string }, unknown>({
   name: "recipe.compile",
-  description: "Compile a recipe (file or JSON) into a clip file: its keys, fit, license and metrics, or coded issues with fixes.",
+  description: "Compile a recipe (file or JSON) into a clip file: keys, fit, license, metrics; or coded issues with fixes.",
   params: { type: "object", properties: { recipe: DOC }, required: ["recipe"] },
   output: output({ id: "string?", path: "string?", line: "string?", dur: "number?", loop: "boolean?", fps: "number?", keys: "integer?", fit: "array?", license: "string?", credit: "string?", sources: "array", sha256: "string?", events: "integer?", contacts: "integer?", metrics: "object?", issues: "array" }),
   positionals: ["recipe"],
@@ -198,11 +214,12 @@ export const graphValidate = defineTool<{ graph: string; clips?: string[] }, unk
 });
 
 /** `graph.sim`: a script of game input run on a graph and a character; its trace written, compared with an expected one;
- *  a run too long to take, or a clip its states name holding a foot past MAX_HOLD (judge.ts), refused. */
-export const graphSim = defineTool<{ graph: string; script: string; character: string; expect?: string; clips?: string[] }, unknown>({
+ *  a run too long to take (its steps, layer steps or transition steps), or a clip its states name holding a foot past
+ *  MAX_HOLD (judge.ts), refused. */
+export const graphSim = defineTool<{ graph: string; script: string; character: string; expect?: string; clips?: string[]; mapping?: MappingPatch }, unknown>({
   name: "graph.sim",
-  description: "Run a script of game input on a graph: states, events, hit windows, travel, sensors, a filmstrip; diffs an expected trace.",
-  params: { type: "object", properties: { graph: DOC, script: DOC, character: { ...CHARACTER, default: "tiny" }, expect: { type: "string", description: "expected trace file" }, clips: CLIPS }, required: ["graph", "script"] },
+  description: "Run a game-input script on a graph: states, events, hit windows, travel, sensors, filmstrip; diffs an expected trace.",
+  params: { type: "object", properties: { graph: DOC, script: DOC, character: { ...CHARACTER, default: "tiny" }, mapping: MAPPING, expect: { type: "string", description: "expected trace file" }, clips: CLIPS }, required: ["graph", "script"] },
   output: output({ script: "string?", graph: "string?", character: "string", steps: "integer", states: "array", events: "integer", hits: "array", went: "object?", rate: "array?", sensors: "object?", findings: "array", warnings: "array", trace: "string?", matches: "boolean?", diff: "string?", issues: "array" }),
   positionals: ["graph"],
   examples: [{ args: { graph: "spec/graphs/Locomotion.json", script: "spec/sims/Walk_In_Place.json" }, expect: "findings" }],
@@ -212,16 +229,20 @@ export const graphSim = defineTool<{ graph: string; script: string; character: s
     const trace = (t: unknown): t is Trace => isObj(t) && ["states", "events", "hits"].every((k) => Array.isArray(t[k]));
     if (want && !trace(want.data)) throw new ToolError("E_JSON", "the expected trace is not one: give a trace.json graph.sim wrote (spec/SIM.md §2)", want.path === null);
     // the character as a hint names it (characterName) and as prose does (`who`: the verdict, data), and body.ts's refusals
-    const character = characterName(a.character), who = prose(character), script = s.data as SimScript, body = await bodyOf(ctx, a.character);
+    const character = characterName(a.character), who = prose(character), script = s.data as SimScript, body = await bodyOf(ctx, a.character, a.mapping);
     const at = isObj(script) && typeof script.rate === "number" ? script.rate : 60, n = isObj(script) && typeof script.dur === "number" ? Math.round(script.dur * at) : 0;
     if (n > MAX_STEPS) throw new ToolError("E_ARGS", `the script runs ${n} steps (dur ${script.dur} s at rate ${at}), past the ${MAX_STEPS} graph.sim takes: shorten dur or lower rate`, s.path === null);
-    const again = (expect = want?.flag) => call("graph.sim", [g.as], { script: s.flag, character: a.character === "tiny" ? undefined : given(character, a.character), clips: g.clips, expect });
+    // the run's cost, once the graph checks: its layers, and its transitions, each read every step
+    const Ls = g.issues.length ? [] : G.layersOf(g.graph), layers = Ls.length, transitions = Ls.reduce((t, L) => t + L.transitions.length, 0);
+    if (layers * n > MAX_LAYER_STEPS) throw new ToolError("E_ARGS", `the run takes ${layers} layers × ${n} steps, past the ${MAX_LAYER_STEPS} layer steps graph.sim takes (${MAX_LAYER_STEPS / MAX_STEPS} layers × ${MAX_STEPS} steps): use fewer layers, or shorten dur or lower rate`, true);
+    if (transitions * n > MAX_TRANSITION_STEPS) throw new ToolError("E_ARGS", `the run takes ${transitions} transitions × ${n} steps, past the ${MAX_TRANSITION_STEPS} transition steps graph.sim takes (${MAX_TRANSITION_STEPS / MAX_STEPS} transitions × ${MAX_STEPS} steps): use fewer transitions, or shorten dur or lower rate`, true);
+    const again = (expect = want?.flag) => call("graph.sim", [g.as], { script: s.flag, character: a.character === "tiny" ? undefined : given(character, a.character), mapping: a.mapping, clips: g.clips, expect });
     const cache = new Map<string, AnimClip | undefined>(), clips = (id: string) => {
       if (!cache.has(id)) cache.set(id, ((c) => c && playable(c.clip, c.rest))(g.find(id)));
       return cache.get(id);
     };
     // no clip a state names holds a foot past MAX_HOLD as it plays (once the graph checks: its clips are then found)
-    if (!g.issues.length) for (const id of new Set(G.layersOf(g.graph).flatMap((L) => Object.values(L.states).flatMap(G.clipsOf)))) ((c) => c && boundHolds(c, id))(clips(id));
+    for (const id of new Set(Ls.flatMap((L) => Object.values(L.states).flatMap(G.clipsOf)))) ((c) => c && boundHolds(c, id))(clips(id));
     const issues = [...g.issues, ...validateScript(script, g.issues.length ? undefined : g.graph)], x = issued(issues);
     const none = { script: s.id, graph: g.id, character: who, steps: 0, states: [], events: 0, hits: [], went: null, rate: null, sensors: null, findings: [], warnings: [], trace: null, matches: null, diff: null };
     if (issues.length) return { verdict: `graph.sim ${s.title} on ${who}: FAIL, ${count(issues.length, "issue")}; not run`, data: { ...none, issues: x.rows, ...cuts({ issues: x }) }, lines: x.lines, findings: true, next: `fix each issue as its fix says, then ${again()} again` };

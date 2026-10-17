@@ -1,9 +1,9 @@
 // What the m3a tools cost a model to see (PLAN.md WP-7.2's Done-when): every tool's name, description and input schema
 // as MCP's tools/list sends them (the registry's verbose, if_revision, request_id and first example included), counted
 // in cl100k tokens with the repository's pinned gpt-tokenizer. WP-7.2a's tools (find, check, change, ship, version and
-// validate) take at most 1,900, leaving 1,100 for 7.2b's groups (compose at most 420); all of them at most 3,000; one
-// tool at most 240. The table is printed, with the whole tools/list (annotations and titles too) for comparison,
-// unasserted. The registered names are pinned, in help order.
+// validate) take at most 1,900, leaving 1,100 for 7.2b's groups (compose at most 420, exchange at most 400); all of
+// them at most 3,000; one tool at most 240. The table is printed, with the whole tools/list (annotations and titles
+// too) for comparison, unasserted. The registered names are pinned, in help order.
 import { encode } from "gpt-tokenizer/encoding/cl100k_base";
 import { describe, expect, it } from "vitest";
 import { mcpName, mcpTool } from "../src/mcp.ts";

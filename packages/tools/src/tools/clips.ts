@@ -2,7 +2,8 @@
 // copy (WORKSHOP/Name: workshop/Name.json, its origin and rest kept in its history while that history is the file's), a
 // .json path, or the clip's JSON. A file or JSON clip is checked with @m3a/core's validator and takes its rest from a
 // set's manifest. A refusal names the closest id, or the game.json line that opts in to a tier. And a recipe resolver
-// over the library and the workshop, with the bound on a recipe's running length that compiling it needs.
+// over the library and the workshop, with the bounds on a recipe (its running length, steps and samples) that
+// compiling it needs.
 import { format, recipe, validate, validation, type Clip, type Rest } from "@m3a/core";
 import { LibraryError, tierOf, type SourceAbout, type Tier } from "@m3a/library";
 import { ToolError, type LibraryAccess, type ToolContext } from "../registry/registry.ts";
@@ -205,15 +206,31 @@ export function refusal(err: LibraryError, id: string, lib?: LibraryAccess): Too
   return new ToolError(err.code, `no ${err.code === "E_NO_SET" ? `set ${quote(id.split("/")[0])}` : `clip ${quote(id)}`}${hint}`, true);
 }
 
+/** The most steps a recipe (or an edit's chain) compiles in one call. */
+export const MAX_RECIPE_STEPS = 64;
+/**
+ * The most samples a recipe's steps build in one call: the sum over its steps of each one's running length times the
+ * recipe's fps (30 by default). Compile builds every step's track in full, and its heaviest operation, smooth over its
+ * widest window (5 s), costs about 0.57 ms a sample at 120 fps here (on a 60 s track at 120 fps: 4.1 s a step; look
+ * 0.05 ms a sample, stiffen 0.04, the others under 0.004); the verifier's 600 s track at 120 fps took about 37 s a
+ * smooth step, ten of them 371 s. At this limit the heaviest recipe (64 steps, nearly all smooths over 5 s at 120 fps,
+ * on a 13 s track) takes about 60 s here; spec/recipes/* and the bench starters' recipes build a few thousand.
+ */
+export const MAX_STEP_SAMPLES = 100_000;
+
 /**
  * Refuses (usage E_ARGS) a recipe one of whose steps runs past the most a clip may last (format.LIMITS.dur, M2-E010),
  * naming the step (`where`): compile builds each step's track in full, so slow retimes or a long sequence would run out
- * of memory long before the result's own check. A step's length: a clip's span of the clip `clipOf` gives (none: 0, for
- * compile to name), a sequence its items' sum, a blend its longer input, a layer its base, a retime its input over its
- * speed (or its dur), any other step its input's.
+ * of memory long before the result's own check. And one of more than MAX_RECIPE_STEPS steps, or whose steps build more
+ * than MAX_STEP_SAMPLES samples in all (each step's length times the recipe's fps), naming the total: its cost. A step's
+ * length: a clip's span of the clip `clipOf` gives (none: 0, for compile to name), a sequence its items' sum, a blend
+ * its longer input, a layer its base, a retime its input over its speed (or its dur), any other step its input's.
  */
 export function bounded(r: recipe.Recipe, clipOf: (id: string) => Clip | undefined, where = (step: number) => `step ${step}`): void {
   const most = format.LIMITS.dur, named = new Map<string, number>(), len = (n: unknown) => named.get(n as string) ?? 0;
+  if (r.steps.length > MAX_RECIPE_STEPS) throw new ToolError("E_ARGS", `the recipe has ${r.steps.length} steps, past the ${MAX_RECIPE_STEPS} one call compiles; use fewer steps`, true);
+  const fps = typeof r.fps === "number" ? r.fps : 30;
+  let samples = 0;
   for (const [k, s] of r.steps.entries()) {
     const c = s.op === "clip" ? clipOf(String(s.id)) : undefined, num = (v: unknown, or: number) => (typeof v === "number" ? v : or);
     const dur = s.op === "clip" ? (c ? num(s.to, c.dur) - num(s.from, 0) : 0)
@@ -226,7 +243,9 @@ export function bounded(r: recipe.Recipe, clipOf: (id: string) => Clip | undefin
     if (typeof s.as === "string") named.set(s.as, dur);
     const why = s.op === "retime" ? "retime it less slowly, or slice it first" : "use fewer or shorter clips";
     if (dur > most) throw new ToolError("E_ARGS", `${where(k + 1)}: ${s.op} makes the clip ${Math.round(dur)} s long, past the ${most} s a clip may last (M2-E010); ${why}`, true);
+    samples += Math.max(0, dur) * fps;
   }
+  if (samples > MAX_STEP_SAMPLES) throw new ToolError("E_ARGS", `the recipe's ${count(r.steps.length, "step")} build ${Math.ceil(samples)} samples in all (each step's length times ${fps} fps), past the ${MAX_STEP_SAMPLES} one call compiles; use fewer steps, or a lower fps`, true);
 }
 
 /** A recipe resolver over the library (at the game's tiers) and the workshop. A resolver answers at once, so the
