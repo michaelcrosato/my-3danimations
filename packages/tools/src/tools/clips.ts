@@ -7,7 +7,7 @@ import { format, recipe, validate, validation, type Clip, type Rest } from "@m3a
 import { LibraryError, tierOf, type SourceAbout, type Tier } from "@m3a/library";
 import { ToolError, type LibraryAccess, type ToolContext } from "../registry/registry.ts";
 import { closest, quote } from "../registry/schema.ts";
-import { absolute, arg, count } from "./common.ts";
+import { absolute, arg, count, oneLine } from "./common.ts";
 import { readTarget, WORKSHOP, workshopName } from "./workshop.ts";
 
 /** Where a clip's rest comes from: the set and key (the clip's restSrc) of a manifest's source, with that source. */
@@ -53,6 +53,10 @@ export function naming(ref: Pick<ClipRef, "id" | "where" | "path" | "name">, who
   const hidden = ref.where === "text" ? "JSON" : absolute(ref.path!) || /\p{Cc}/u.test(ref.path!) ? "file" : null;
   return hidden ? { as: `<${whose} ${hidden}>`, title: `${ref.id} (${whose} ${hidden})` } : { as: arg(ref.path!), title: arg(ref.path!) };
 }
+
+/** What a hint's flag passes for an argument replies name `as` (call quotes it): `as` where naming hid it (`<the clip's
+ *  JSON>`, `<the clip's file>`), else the argument as given. */
+export const given = (as: string, value: string): string => (as.startsWith("<") ? as : value);
 
 /** A license's parts: a composed clip carries each of its inputs' licenses, joined with " AND " (D10). */
 export const parts = (license: string): string[] => license.split(" AND ").map((p) => p.trim());
@@ -132,7 +136,7 @@ export function fromText(lib: LibraryAccess, text: string, where: "workshop" | "
   try {
     data = JSON.parse(text);
   } catch (err) {
-    throw new ToolError("E_CLIP", `${what} is not JSON: ${(err as Error).message}`, inline);
+    throw new ToolError("E_CLIP", `${what} is not JSON: ${oneLine(err)}`, inline);
   }
   const r = validate(data, { mode: "read" });
   if (!r.ok) throw new ToolError("E_CLIP", `${what} is not a valid clip (${count(r.errors.length, "error")}): ${validation.formatIssue(r.errors[0]!).replace(/\s*\n\s*/g, "; ")}`, inline);

@@ -14,9 +14,9 @@ import { metrics } from "@m3a/sensors";
 import { defineTool, ToolError, type LibraryAccess, type ToolContext } from "../registry/registry.ts";
 import { quote, type Schema } from "../registry/schema.ts";
 import { compareTraces, filmstrip, simulate, traceText, validateScript, type SimScript, type Trace } from "../sim/index.ts";
-import { bodyOf, CHARACTER } from "./body.ts";
-import { bounded, clipResolver, fits, loadClip, naming, refusal, suggestId, type ClipRef } from "./clips.ts";
-import { absolute, call, capped, count, cut, fileOrJson, mm, more, output, round, sec } from "./common.ts";
+import { bodyOf, CHARACTER, characterName } from "./body.ts";
+import { bounded, clipResolver, fits, given, loadClip, naming, refusal, suggestId, type ClipRef } from "./clips.ts";
+import { call, capped, count, cut, fileOrJson, mm, more, output, round, sec } from "./common.ts";
 import { WORKSHOP } from "./workshop.ts";
 
 /** A recipe, graph or script parameter. */
@@ -51,12 +51,12 @@ function cuts(lists: Record<string, { more?: number }>): { more?: Record<string,
 /** The WORKSHOP ids among a document's strings (the user's copies a graph's states name, wherever its shape has them). */
 const workshopIds = (v: unknown): string[] => (typeof v === "string" ? (v.startsWith(`${WORKSHOP}/`) ? [v] : []) : v && typeof v === "object" ? Object.values(v).flatMap(workshopIds) : []);
 
-/** A document given as a file or JSON (common.ts fileOrJson), with its id (null when it has none) and how replies name it
- *  (clips.ts naming): `as` in a hint, `title` in a verdict (`as` when it has no id). */
+/** A document given as a file or JSON (common.ts fileOrJson), with its id (null when it has none) and how replies name
+ *  it (clips.ts naming): `as` as a hint's positional, `flag` as its flag, `title` in a verdict (`as` without an id). */
 async function docOf(ctx: ToolContext, value: string, what: string) {
   const d = await fileOrJson(ctx, value, `the ${what}`), id = isObj(d.data) && typeof d.data.id === "string" ? d.data.id : null;
   const n = naming({ id: id ?? "", where: d.path === null ? "text" : "file", path: d.path, name: null }, `the ${what}'s`);
-  return { ...d, id, as: n.as, title: id === null ? n.as : n.title };
+  return { ...d, id, as: n.as, flag: given(n.as, value), title: id === null ? n.as : n.title };
 }
 
 /** A library clip the game sees (a deprecated id's successor, warned), or undefined; a tampered set refused (an error). */
@@ -209,14 +209,11 @@ export const graphSim = defineTool<{ graph: string; script: string; character: s
     const g = await graphOf(ctx, a.graph, a.clips), s = await docOf(ctx, a.script, "script"), want = a.expect === undefined ? null : await docOf(ctx, a.expect, "expected trace");
     const trace = (t: unknown): t is Trace => isObj(t) && ["states", "events", "hits"].every((k) => Array.isArray(t[k]));
     if (want && !trace(want.data)) throw new ToolError("E_JSON", "the expected trace is not one: give a trace.json graph.sim wrote (spec/SIM.md §2)", want.path === null);
-    // the character as replies name it: no absolute path, its refusals' text included
-    const character = absolute(a.character) ? "<the character's file>" : a.character, script = s.data as SimScript;
-    const body = await bodyOf(ctx, a.character).catch((err: unknown) => {
-      throw err instanceof ToolError && character !== a.character ? new ToolError(err.code, err.message.split(a.character).join(character), err.usage, err) : err;
-    });
+    // the character as replies name it, and body.ts's refusals (characterName)
+    const character = characterName(a.character), script = s.data as SimScript, body = await bodyOf(ctx, a.character);
     const at = isObj(script) && typeof script.rate === "number" ? script.rate : 60, n = isObj(script) && typeof script.dur === "number" ? Math.round(script.dur * at) : 0;
     if (n > MAX_STEPS) throw new ToolError("E_ARGS", `the script runs ${n} steps (dur ${script.dur} s at rate ${at}), past the ${MAX_STEPS} graph.sim takes: shorten dur or lower rate`, s.path === null);
-    const again = (expect = want?.as) => call("graph.sim", [g.as], { script: s.as, character: a.character === "tiny" ? undefined : character, clips: g.clips, expect });
+    const again = (expect = want?.flag) => call("graph.sim", [g.as], { script: s.flag, character: a.character === "tiny" ? undefined : given(character, a.character), clips: g.clips, expect });
     const issues = [...g.issues, ...validateScript(script, g.issues.length ? undefined : g.graph)], x = issued(issues);
     const none = { script: s.id, graph: g.id, character, steps: 0, states: [], events: 0, hits: [], went: null, rate: null, sensors: null, findings: [], warnings: [], trace: null, matches: null, diff: null };
     if (issues.length) return { verdict: `graph.sim ${s.title} on ${character}: FAIL, ${count(issues.length, "issue")}; not run`, data: { ...none, issues: x.rows, ...cuts({ issues: x }) }, lines: x.lines, findings: true, next: `fix each issue as its fix says, then ${again()} again` };

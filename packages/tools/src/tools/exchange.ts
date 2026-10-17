@@ -2,8 +2,9 @@
 // imports/<SET>/, a clip each with its fit (core's fit, as the library's re-import encodes it), its clips, catalog and
 // manifest written as the library writes its own (@m3a/library's set writer), so the library opens it as a local set:
 // seen by a game that opts in to local, never shipped (D10); `list` names what the file holds and writes nothing. It
-// writes and removes what the user keeps, so MCP lists it as no read-only tool. The manifest names the file by its own
-// name (never a path); replies name it as clips.ts does. `export` plays a clip on a character (bound through core) and
+// writes and removes what the user keeps, so MCP lists it as no read-only tool; it removes only a clip an import wrote,
+// naming it, and refuses a set whose directory holds any other .json. The manifest names the file by its own name
+// (never a path); replies name it as clips.ts does. `export` plays a clip on a character (bound through core) and
 // writes it as .vrma, .glb (the character's own document with the animation added) or .bvh under check-output/export/,
 // read back through io: the VRMA byte for byte, the others joint for joint (within 1 mm, else findings, as is a file
 // that couldn't be read back); with the clip's license and the credit it owes (any license but CC0's owes one).
@@ -12,8 +13,8 @@ import { addAnimation, bvhGap, decodeVrma, describeGltf, encodeVrma, glbGap, glt
 import { setFiles, tierOf, withFacts } from "@m3a/library";
 import { defineTool, ToolError, type LibraryAccess, type ToolContext } from "../registry/registry.ts";
 import { quote } from "../registry/schema.ts";
-import { bodyOf, CHARACTER, MAPPING, type MappingPatch } from "./body.ts";
-import { loadClip, naming, parts } from "./clips.ts";
+import { bodyOf, CHARACTER, characterName, MAPPING, type MappingPatch } from "./body.ts";
+import { given, loadClip, naming, parts } from "./clips.ts";
 import { ARROW, call, capped, CLIP, count, cut, fileOrJson, imageName, mm, more, output, round, sec } from "./common.ts";
 
 /** The motion files import reads, by extension. */
@@ -39,6 +40,27 @@ function io<T>(f: () => T): T {
     return f();
   } catch (err) {
     throw err instanceof IoError ? new ToolError(err.code, err.message) : err;
+  }
+}
+
+/** The files imports/<SET>/ holds as the host lists them (a set the library leaves out too: a first import cut short),
+ *  none when there is no such directory (a file in its place too, as the host's tryRead: its write then refuses it,
+ *  naming the path as given); one leading out of the working directory refused (the host's E_PATH). */
+function held(lib: LibraryAccess, set: string): string[] {
+  try {
+    return lib.source.files(set);
+  } catch (err) {
+    if (["ENOENT", "ENOTDIR"].includes((err as { code?: unknown } | null)?.code as string)) return [];
+    throw err;
+  }
+}
+
+/** Whether `text` is a clip `m3a import` wrote (its producer's), which a later import of its set may remove. */
+function byImport(text: string | null): boolean {
+  try {
+    return (JSON.parse(text ?? "") as { provenance?: { producer?: { tool?: unknown } } } | null)?.provenance?.producer?.tool === PRODUCER.tool;
+  } catch {
+    return false;
   }
 }
 
@@ -117,14 +139,17 @@ export const importMotion = defineTool<{ path: string; set: string; license?: st
   writes: true,
   async run(a, ctx) {
     const kind = /\.(\w+)$/.exec(a.path)?.[1]!.toLowerCase() ?? "", file = named(a.path), dir = `imports/${a.set}`;
-    if (!KINDS.includes(kind)) throw new ToolError("E_ARGS", `${quote(file)} is no motion file: give a .gltf, .glb, .bvh or .vrma${kind === "fbx" ? " (convert FBX to .glb first)" : ""}`, true);
+    if (!KINDS.includes(kind)) throw new ToolError("E_ARGS", `${file} is no motion file: give a .gltf, .glb, .bvh or .vrma${kind === "fbx" ? " (convert FBX to .glb first)" : ""}`, true);
     if (!/^[A-Z][A-Z0-9_]*$/.test(a.set) || a.set === "WORKSHOP") throw new ToolError("E_ARGS", `set is the new set's name, A-Z, 0-9 and _ (as IMPORT), not ${quote(a.set)}`, true);
     if (!a.list && a.license === undefined) throw new ToolError("E_ARGS", "license is the file's SPDX id (CC0-1.0, CC-BY-4.0, ...), which each clip carries; list needs none", true);
     if (a.license !== undefined && !SPDX.test(a.license)) throw new ToolError("E_ARGS", `license ${quote(a.license)} is no SPDX id: CC0-1.0, CC-BY-4.0, ..., or LicenseRef-<name> for other terms`, true);
     const lib = ctx.library();
-    // an imported set (its manifest under imports/) is imported again in place; a library set's name is the library's
-    if (lib.source.sets().includes(a.set) && (await ctx.tryRead(`${dir}/_set.json`)) === null) throw new ToolError("E_ARGS", `set ${a.set} is the library's: name the new set another way`, true);
-    const got = a.catalog === undefined ? null : await fileOrJson(ctx, a.catalog, "catalog");
+    // an imported set (tier local, the manifest the library reads the one under imports/) is imported again in place; a
+    // library set's name is the library's, even where imports/ holds a set so named, its manifest copied too (the
+    // library's wins: it would go unseen)
+    const theirs = lib.source.sets().includes(a.set) && (lib.library.about(a.set).tier !== "local" || lib.source.read(a.set, "_set.json") !== (await ctx.tryRead(`${dir}/_set.json`)));
+    if (theirs) throw new ToolError("E_ARGS", `set ${a.set} is the library's: name the new set another way`, true);
+    const got = a.catalog === undefined ? null : await fileOrJson(ctx, a.catalog, "the catalog");
     const cat = got && catalogOf(got.data, got.path === null), m = await motionOf(ctx, a.path, kind, cat), at = [file];
     if (a.list) {
       const from = a.from ?? 0, shown = capped(m.names.slice(from), 50), glTF = kind === "gltf" || kind === "glb";
@@ -134,7 +159,7 @@ export const importMotion = defineTool<{ path: string; set: string; license?: st
         lines: [...shown.rows, ...more(shown.more, "animation", `${call("import", at, { list: true, from: from + 50 })} lists them`)],
         next: m.names.length
           ? `${call("import", at, { set: a.set === "IMPORT" ? undefined : a.set, license: "<license>" })} fits them into ${dir}/`
-          : `it holds no animation to import${glTF ? `; ${call("export", ["QUATERNIUS_3D2DGE/Walk_Loop"], { character: file })} plays a library clip on it, if it is a character` : ""}`,
+          : `it holds no animation to import${glTF ? `; ${call("export", ["QUATERNIUS_3D2DGE/Walk_Loop"], { character: given(file, a.path) })} plays a library clip on it, if it is a character` : ""}`,
       };
     }
     // the catalog's first source names the library (its record kept); else the set does
@@ -150,7 +175,8 @@ export const importMotion = defineTool<{ path: string; set: string; license?: st
       bad = true;
       skipped.push({ name, why: cut(validation.formatIssue(r.errors[0]!).replace(/\s*\n\s*/g, "; ")) });
     });
-    if (!made.length) throw new ToolError("E_NO_CLIP", `no clip came out of ${file}${skipped.length ? `: ${skipped.map((s) => `${s.name}: ${s.why}`).join("; ")}` : ""}`);
+    const cutSkips = capped(skipped, 20), also = cutSkips.more ? `; and ${cutSkips.more} more skipped` : "";
+    if (!made.length) throw new ToolError("E_NO_CLIP", `no clip came out of ${file}${skipped.length ? `: ${cutSkips.rows.map((s) => `${s.name}: ${s.why}`).join("; ")}${also}` : ""}`);
     const manifest = {
       set: a.set,
       title: `${base}, imported`,
@@ -163,11 +189,16 @@ export const importMotion = defineTool<{ path: string; set: string; license?: st
       ...(out.set.body ? { body: out.set.body } : {}),
       legend: { version: "2.0", text: legendOf(lib) },
     };
-    // one import of a set at a time: a clip the last import wrote, and this one doesn't, goes; the manifest last, once
-    // its clips are there
-    const files = setFiles(manifest, made), release = await ctx.lock(`.m3a/locks/import-${a.set}.lock`);
+    // one import of a set at a time. The set's content id covers each .json its directory holds, so each this import
+    // doesn't write goes: a clip an import wrote (whatever set it names: one copied under another name); any other (a
+    // catalog kept there) refuses the import before anything changes. The manifest last, once its clips are there
+    const files = setFiles(manifest, made), release = await ctx.lock(`.m3a/locks/import-${a.set}.lock`), gone: string[] = [];
     try {
-      for (const id of ((await ctx.tryRead(`${dir}/catalog.tsv`)) ?? "").split("\n").map((l) => l.split("\t")[0]!)) if (/^[A-Z0-9_]+\/[A-Za-z0-9_-]+$/.test(id) && !files.has(`${id.split("/")[1]}.json`)) ctx.remove(`${dir}/${id.split("/")[1]}.json`);
+      for (const f of held(lib, a.set).filter((f) => f.endsWith(".json") && !f.startsWith("_") && !files.has(f)).sort()) {
+        if (!byImport(await ctx.tryRead(`${dir}/${f}`))) throw new ToolError("E_EXISTS", `${named(`${dir}/${f}`)} is no clip m3a import wrote: move it out of ${dir}/, where the library reads each .json as one of the set's clips; nothing was changed`);
+        gone.push(f);
+      }
+      for (const f of gone) ctx.remove(`${dir}/${f}`);
       for (const [f, t] of [...files].sort(([x], [y]) => Number(x === "_set.json") - Number(y === "_set.json"))) ctx.write(`${dir}/${f}`, t);
     } finally {
       release();
@@ -176,13 +207,14 @@ export const importMotion = defineTool<{ path: string; set: string; license?: st
     const worst = rows.reduce((w, r) => (r.fit[1]! > w.fit[1]! ? r : w)), mean = round(rows.reduce((s, r) => s + r.fit[0]!, 0) / rows.length, 1), over = rows.filter((r) => r.over).length;
     // the reader's and the fit's notes first, with the license's text the library doesn't keep (license.check needs it)
     const kept = lib.licenseText(license) !== null, noted = capped([...(kept ? [] : [`${license}'s text isn't in library/LICENSES/: license.check fails the set`]), ...out.report.warnings, ...log].map((w) => cut(w)), 5);
-    const shown = capped(rows, 50), cutSkips = capped(skipped, 20), findings = bad || over > 0;
+    const shown = capped(rows, 50), findings = bad || over > 0;
     return {
       verdict: `import ${file}: ${count(made.length, "clip")} into ${dir}/ (${input.rig}, tier local), fit ${mean} mm mean, worst ${mm(worst.fit[1]!)} (${worst.id})${skipped.length ? `; ${skipped.length} skipped` : ""}${over ? `; ${over} past the fit limits` : ""}`,
-      data: { file, kind, rig: input.rig, set: a.set, dir: `${dir}/`, license, tier: "local", clips: shown.rows, ...(shown.more ? { more: shown.more } : {}), skipped: cutSkips.rows, notes: noted.rows, mean_fit: mean, worst: { id: worst.id, mm: worst.fit[1] } },
+      data: { file, kind, rig: input.rig, set: a.set, dir: `${dir}/`, license, tier: "local", clips: shown.rows, ...(shown.more ? { more: shown.more } : {}), skipped: cutSkips.rows, notes: noted.rows, mean_fit: mean, worst: { id: worst.id, mm: worst.fit[1] }, ...(gone.length ? { removed: gone.length } : {}) },
       lines: [
         ...noted.rows.map((w) => `note: ${w}`),
         ...more(noted.more, "note"),
+        ...(gone.length ? [`removed ${count(gone.length, "clip file")} this import doesn't make: ${cut(gone.map(fileName).join(", "), 50)}`] : []),
         ...shown.rows.map((r) => `${r.id} ${sec(r.dur)} ${r.loop ? "loop" : "once"}, ${count(r.keys, "key")}, fit ${r.fit[0]}/${r.fit[1]} mm${r.over ? ` (past ${LIMITS.mean}/${LIMITS.worst} mm)` : ""}`),
         ...more(shown.more, "clip"),
         ...cutSkips.rows.map((s) => `skipped ${s.name}: ${s.why}`),
@@ -190,7 +222,7 @@ export const importMotion = defineTool<{ path: string; set: string; license?: st
       ],
       findings,
       next: findings
-        ? `cut a take with the catalog's "$pick", or leave a clip out with "$skip" and its reason, then ${call("import", at, { set: a.set, license, catalog: a.catalog ?? "<catalog>" })}`
+        ? `cut a take with the catalog's "$pick", or leave a clip out with "$skip" and its reason, then ${call("import", at, { set: a.set, license, catalog: got === null ? "<catalog>" : got.path === null ? "<the catalog's JSON>" : given(named(got.path, "the catalog's"), got.path) })}`
         : `${call("license.check", [], { set: a.set })} fails it for a shipped game (D10: local); to use it here, set "tiers" to include "local" and "ships": false in game.json, then ${call("metrics", [worst.id])}`,
     };
   },
@@ -218,7 +250,7 @@ export const exportClip = defineTool<{ clip: string; character: string; format: 
   positionals: ["clip"],
   examples: [{ args: { clip: "QUATERNIUS_3D2DGE/Walk_Loop", character: "spec/vectors/tier1b/rig.gltf" } }],
   async run(a, ctx) {
-    const ref = await loadClip(ctx, a.clip), { as, title } = naming(ref), who = named(a.character, "the character's"), { bound: b, report } = await bodyOf(ctx, a.character, a.mapping);
+    const ref = await loadClip(ctx, a.clip), { as, title } = naming(ref), who = characterName(a.character), { bound: b, report } = await bodyOf(ctx, a.character, a.mapping);
     const clip = playable(ref.clip, ref.rest), fps = 30, frames = Math.max(1, Math.ceil(clip.dur * fps)) + 1;
     let bytes: Uint8Array, back: { mm: number | null; check: string };
     if (a.format === "vrma") {
@@ -248,17 +280,17 @@ export const exportClip = defineTool<{ clip: string; character: string; format: 
         `license: ${p.license} (${tier}); ${credit ? `credit owed: ${credit}` : owed ? "credit owed, none given" : "no credit owed"}`,
         ...(tier === "cmu" ? ["CMU's terms: no reselling the data, even converted (D10)"] : []),
         ...issues.rows.map((i) => `character: ${i}`),
-        ...more(issues.more, "character issue", `${call("retarget.inspect", [who])} lists them`),
+        ...more(issues.more, "character issue", `${call("retarget.inspect", [who], { mapping: a.mapping })} lists them`),
         `${sec(clip.dur)} ${clip.loop ? "loop" : "once"}, ${count(b.order.length, "joint")} (${Object.keys(b.bones).length} humanoid)`,
       ],
       findings: off || unchecked,
       next: off
         ? a.format === "glb"
-          ? `it reads back off: a node above its bones may scale unevenly, which no glTF animation follows (else report it: a bug); ${call("export", [as], { character: who, format: "bvh", mapping: a.mapping })} writes one that reads back`
+          ? `it reads back off: a node above its bones may scale unevenly, which no glTF animation follows (else report it: a bug); ${call("export", [as], { character: given(who, a.character), format: "bvh", mapping: a.mapping })} writes one that reads back`
           : `it reads back off: a bug in the ${a.format} writer; report the clip, the character and this reply`
         : unchecked
-          ? `check it in a glTF viewer by eye; ${call("export", [as], { character: who, format: "bvh", mapping: a.mapping })} writes one io reads back`
-          : `open it in a ${a.format === "vrma" ? "VRM" : a.format === "glb" ? "glTF" : "BVH"} viewer; ${call("license.check", [], { clips: [as] })} before shipping it`,
+          ? `check it in a glTF viewer by eye; ${call("export", [as], { character: given(who, a.character), format: "bvh", mapping: a.mapping })} writes one io reads back`
+          : `open it in a ${a.format === "vrma" ? "VRM" : a.format === "glb" ? "glTF" : "BVH"} viewer; ${call("license.check", [], { clips: [ref.where === "file" ? given(as, ref.path!) : as] })} before shipping it`,
     };
   },
 });

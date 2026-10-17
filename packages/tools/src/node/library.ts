@@ -1,17 +1,19 @@
 // The library as the Node host opens it for a tool call (PLAN.md WP-7.2, D10 and D53): at the tiers game.json in the
 // working directory opts in to (read on every call: an agent may edit it while the MCP server runs), else CC0 alone;
-// opened once per set of tiers for the process, since verifying a set hashes all of it the first time; each call's
-// warnings (a deprecated id) collected for that call alone. The sets `m3a import` wrote under imports/ join it (D93:
-// local sets, seen only by a game that opts in to local, which never ships), each read confined to the working
+// opened once per set of tiers for the process, since verifying a set hashes all of it the first time, and at most
+// MAX_OPEN libraries kept (the least lately used dropped), so a long-lived server isn't grown by each directory; each
+// call's warnings (a deprecated id) collected for that call alone. The sets `m3a import` wrote under imports/ join it
+// (D93: local sets, seen only by a game that opts in to local, which never ships), each read confined to the working
 // directory, and the library opened again when one of their manifests or catalogs changes. An imported set that can't
-// be read inside the working directory, or whose manifest isn't an imported set's, is left out with a warning on every
-// call, so it breaks no other set.
+// be read inside the working directory, whose manifest isn't an imported set's, or named as a library set (the
+// library's wins) is left out with a warning on every call, so it breaks no other set.
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { TIERS, type Library, type LibrarySource, type Tier } from "@m3a/library";
 import { defaultSets, directory, licenseText, openLibrary } from "@m3a/library/node";
 import { ToolError, type LibraryAccess } from "../registry/registry.ts";
 import { didYouMean, quote } from "../registry/schema.ts";
+import { oneLine } from "../tools/common.ts";
 import { errno, under } from "./files.ts";
 
 /** The tiers game.json in `cwd` opts in to, in TIERS' order; ["cc0"] without the file or its "tiers". E_GAME (usage)
@@ -29,7 +31,7 @@ export function gameTiers(cwd: string): Tier[] {
   try {
     game = JSON.parse(text) as typeof game;
   } catch (err) {
-    throw new ToolError("E_GAME", `game.json is not JSON (${(err as Error).message}); fix it, or remove it for the CC0 default`, true);
+    throw new ToolError("E_GAME", `game.json is not JSON (${oneLine(err)}); fix it, or remove it for the CC0 default`, true);
   }
   const fix = `"tiers" in game.json lists tiers, of ${TIERS.join(", ")}, as { "tiers": ["cc0", "cc-by"] }`;
   if (typeof game !== "object" || game === null || Array.isArray(game)) throw new ToolError("E_GAME", `game.json is a JSON object: ${fix}`, true);
@@ -42,8 +44,14 @@ export function gameTiers(cwd: string): Tier[] {
 }
 
 /** One opened library per directory and tiers (and working directory, when it has imported sets), the stamp of the
- *  imported sets it holds, and the call its warnings go to while one of its methods runs. */
+ *  imported sets it holds, and the call its warnings go to while one of its methods runs; the least lately used first. */
 const opened = new Map<string, { lib: Library; stamp: string; to: { warnings?: string[] } }>();
+/** The most libraries the host keeps open: each working directory with imported sets opens its own. */
+export const MAX_OPEN = 8;
+/** How many libraries the host has opened, each verifying its sets the first time it is used (one dropped opens again). */
+let opens = 0;
+/** How many libraries the host keeps open now (at most MAX_OPEN), and has opened in all. */
+export const openCount = (): { open: number; opens: number } => ({ open: opened.size, opens });
 
 /** Whether `path` is under the working directory `cwd`, through no link out of it. */
 const within = (cwd: string, path: string): boolean => {
@@ -78,7 +86,11 @@ function withImports(own: LibrarySource, cwd: string): { source: LibrarySource; 
       return [];
     }
   })();
-  for (const set of names.filter((s) => /^[A-Z][A-Z0-9_]*$/.test(s) && !lib.has(s) && existsSync(join(cwd, "imports", s, "_set.json"))).sort()) {
+  for (const set of names.filter((s) => /^[A-Z][A-Z0-9_]*$/.test(s) && existsSync(join(cwd, "imports", s, "_set.json"))).sort()) {
+    if (lib.has(set)) {
+      warnings.push(`imports/${set}/ is left out: the library has a set ${set}; import it again under another name, or remove it`);
+      continue;
+    }
     let why: string;
     try {
       const text = read(set, "_set.json");
@@ -126,8 +138,12 @@ export function libraryAccess(cwd: string, tiers?: readonly Tier[], dir: string 
   if (o?.stamp !== stamp) {
     // opened again when an imported set's manifest or catalog changed (the lock, beside the default sets, has none)
     const to: { warnings?: string[] } = {};
-    opened.set(key, (o = { lib: openLibrary({ dir, source, tiers: want, warn: (m) => to.warnings?.push(m) }), stamp, to }));
+    o = { lib: openLibrary({ dir, source, tiers: want, warn: (m) => to.warnings?.push(m) }), stamp, to };
+    opens++;
   }
+  opened.delete(key);
+  opened.set(key, o);
+  if (opened.size > MAX_OPEN) opened.delete(opened.keys().next().value!);
   const warnings: string[] = [...left];
   return { library: routed(o.lib, warnings, o.to), source, licenseText: licenseText(dir), tiers: want, warnings };
 }

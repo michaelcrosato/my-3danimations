@@ -1,11 +1,11 @@
 // What the m3a tools share (PLAN.md WP-7.2): the clip parameter, capped rows and the one line that says what a cap
 // cut, counts, the fixed units (mm with no decimals, seconds with 3), the one arrow from before to after, strings cut
 // for rows, image names a file system takes, the one form a next hint writes a call in (`call`), each tool's minimal
-// output schema, "a file or JSON" arguments read one way everywhere, and the absolute paths no reply echoes. Every tool
-// names the clip in its data `clip`.
+// output schema, "a file or JSON" arguments read one way everywhere, a parser's message on one line, and the absolute
+// paths no reply echoes. Every tool names the clip in its data `clip`.
 import { recipe } from "@m3a/core";
 import { ToolError, type ToolContext } from "../registry/registry.ts";
-import { quote, type Schema, type SchemaType } from "../registry/schema.ts";
+import type { Schema, SchemaType } from "../registry/schema.ts";
 
 /** The clip parameter of every clip tool. A WORKSHOP/<Name> id and the clip's JSON are taken too (clips.ts). */
 export const CLIP: Schema = { type: "string", description: "SET/Name or a .json path" };
@@ -75,18 +75,23 @@ export function call(tool: string, positionals: readonly string[] = [], flags: R
 /** Whether `path` is absolute (a reply never echoes one: it is "the file", or `<the clip's file>` in a hint). */
 export const absolute = (path: string): boolean => /^([A-Za-z]:|[\\/])/.test(path);
 
+/** A parser's message on one line, as every refusal is: V8's JSON.parse quotes the text it stopped at, line breaks too. */
+export const oneLine = (err: unknown): string => String((err as Error).message).replace(/\p{Cc}+/gu, " ");
+
 /** `text` cut to `n` characters (a row's 90 by default), "..." ending a cut. */
 export const cut = (text: string, n = ROW_CHARS): string => (text.length > n ? `${text.slice(0, n - 3)}...` : text);
 
 /**
  * A "file or JSON" argument: JSON text (starting with { or [) as given, else the file it names, read and parsed; `what`
- * names it in a refusal (E_JSON: usage for text given inline, an error for a file).
+ * names it in a refusal (E_JSON: usage for text given inline, an error for a file), a file after it as clips.ts names
+ * one: its path as given (`arg`), or "file" for an absolute path or one with a control character ("the script file").
  */
 export async function fileOrJson(ctx: ToolContext, value: string, what: string): Promise<{ data: unknown; text: string; path: string | null }> {
   const inline = /^\s*[[{]/.test(value), text = inline ? value : await ctx.read(value);
   try {
     return { data: JSON.parse(text) as unknown, text, path: inline ? null : value };
   } catch (err) {
-    throw new ToolError("E_JSON", `${inline ? what : `${what} ${quote(value)}`} is not JSON: ${(err as Error).message}`, inline);
+    const file = absolute(value) || /\p{Cc}/u.test(value) ? "file" : arg(value);
+    throw new ToolError("E_JSON", `${inline ? what : `${what} ${file}`} is not JSON: ${oneLine(err)}`, inline);
   }
 }
