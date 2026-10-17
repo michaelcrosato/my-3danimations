@@ -1,8 +1,9 @@
 // Tests for the skeleton profile (WP-1.4): recognition is exact on a fixture for every mapping table (namespaces and
 // case stripped); the topology fallback maps renamed skeletons (long clavicles, no neck, twist bones, no head-top leaf)
 // and reports its confidence; every skeleton these tests use is recognized, patched and framed as before, to the hash
-// (K6), chains of thousands of bones are walked without recursion and parents in a loop refused; measure reproduces
-// tier 1a's rests bit for bit; restPoints places the tiny rig's body points where the importer did.
+// (K6), chains of thousands of bones and bones with 130,000 children are walked without recursion or spreading, and
+// parents in a loop refused by shape; measure reproduces tier 1a's rests bit for bit; restPoints places the tiny rig's
+// body points where the importer did.
 import { describe, expect, it } from "vitest";
 import { HUMANOID_BONES, HUMANOID_PARENT, measure, patchMapping, recognize, REQUIRED_BONES, restFrame, restPoints, TABLES, type Capture, type SkeletonIn } from "./all.ts";
 import { firstDiff, loadTier1a, loadTier3, VECTORS } from "../../../spec/conformance/runner/vectors.ts";
@@ -168,8 +169,9 @@ describe("recognize: by topology", () => {
     expect(rec.confidence).toBe(0);
     expect(rec.missing).toHaveLength(15);
   });
-  // K6: the topology fallback walks the tree without recursion. These hashes were taken before that change, on every
-  // skeleton these tests and solve's recognize, and on each again with every bone renamed (its shape alone to go on)
+  // K6: the topology fallback walks the tree without recursion. These hashes were taken before that change, on the
+  // skeletons these tests and solve's main cases recognize (not solve's arms-down or restWorld ones, nor the animator's
+  // rig scaled 1.2 times), and on each again with every bone renamed (its shape alone to go on)
   it("gives every skeleton the tests use the recognition, patch and rest frame it gave before, to the hash", () => {
     type Bone = { name: string; parent: string | null; head: V };
     type Case = [SkeletonIn, { table?: string }?];
@@ -256,7 +258,7 @@ describe("recognize: by topology", () => {
       "conformance, by shape": "10 2ec50498d49c2eb5",
     });
   });
-  it("maps a humanoid 5,000 and 20,000 bones down a chain, and one with a 5,000-bone chain off a toe (K6: no RangeError)", () => {
+  it("maps a humanoid 5,000 and 20,000 bones down a chain, one with a 5,000- or 130,000-bone chain off a toe, and one with 130,000 leaves on a thigh (K6: no RangeError)", () => {
     const plain = renamedRig();
     // the body's bones named so that no table knows them, with a chain hung above the hips or below the left toes
     const body = () => skeleton(Object.fromEntries(BODY.map((b) => [b, `x_${b}`])), false).bones as { name: string; parent: string | null; head: V }[];
@@ -268,13 +270,28 @@ describe("recognize: by topology", () => {
       b.find((x) => x.name === "x_hips")!.parent = `c${n - 1}`;
       return [...chain(n, null, (i) => [0, 0.95, -0.5 - 0.001 * (n - i)]), ...b];
     };
-    for (const bones of [under(5000), under(20000), [...body(), ...chain(5000, "x_leftToes", (i) => [0.1, 0, 0.13 + 0.001 * (i + 1)])]]) {
+    // and past the about 125,000 arguments one call takes: 130,000 bones down from the toes, or 130,000 leaves on the
+    // left thigh (daaf91c ran out of stack on both; spreading a branch's bones into Math.min and Math.max would too)
+    const toes = (n: number) => [...body(), ...chain(n, "x_leftToes", (i) => [0.1, 0, 0.13 + 0.001 * (i + 1)])];
+    const thigh = [...body(), ...Array.from({ length: 130000 }, (_, i) => ({ name: `l${i}`, parent: "x_leftUpperLeg", head: REST.leftUpperLeg! }))];
+    for (const bones of [under(5000), under(20000), toes(5000), toes(130000), thigh]) {
       const rec = recognize({ bones });
       expect([rec.method, rec.missing, rec.confidence]).toEqual(["topology", [], plain.rec.confidence]);
       expect(Object.fromEntries(Object.entries(rec.bones).map(([h, n]) => [h, n.slice(2)]))).toEqual(plain.got);
     }
   });
-  it("refuses parents in a loop with a RangeError that names a bone in it, rather than running out of stack (K6)", () => {
+  it("recognizes a root with 130,000 children as before, listed before or after them (K6: no RangeError)", () => {
+    // no walk spreads a bone's children into one call's arguments, which about 125,000 overflow; daaf91c never took a
+    // root's depth, so it answered (under a parent, as on the thigh above, its depth spread them and ran out of stack)
+    const leaves = Array.from({ length: 130000 }, (_, i) => ({ name: `l${i}`, parent: "n", head: [i * 1e-4, 0, 0] as V }));
+    const root = { name: "n", parent: null, head: [0, 0, 0] as V };
+    const missing = [...REQUIRED_BONES], issues = [`required bones not found: ${missing.join(", ")}; add them to "bones" by hand`];
+    for (const bones of [[root, ...leaves], [...leaves, root]]) {
+      expect(recognize({ bones })).toEqual({ method: "table", table: "vrm", confidence: 0, bones: {}, missing, unmapped: bones.map((b) => b.name), issues });
+    }
+  });
+  // by shape: bones a table knows by name, in a loop, still hang finish's walk up the parents, as on daaf91c (not K6's)
+  it("refuses parents in a loop, by shape, with a RangeError that names a bone in it, rather than running out of stack (K6)", () => {
     const at: V = [0, 1, 0];
     expect(() => recognize({ bones: [{ name: "a", parent: "b", head: at }, { name: "b", parent: "a", head: at }] })).toThrow(new RangeError(`the skeleton's parents loop through "a"`));
     expect(() => recognize({ bones: [{ name: "r", head: at }, { name: "a", parent: "a", head: at }] })).toThrow(new RangeError(`the skeleton's parents loop through "a"`));
