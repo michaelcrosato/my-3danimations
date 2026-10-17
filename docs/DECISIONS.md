@@ -3722,3 +3722,86 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
     - library: `src/load/library.ts` (E_TIER), `src/node.ts`, `src/index.ts`; `tools/migrate/migrate.ts`.
     - three: `src/bind/bind.ts` and its test.
     - `tools/sweep/sweep.ts` (imports the judge).
+  - **Round 2 and 3 of the tool lanes** (after the pause, lanes retarget, wire and t1rec, merged at 9c6af0b, bb43fa6
+    and 68a6bae; each round's findings and dispositions are in its commit messages):
+    - **Retarget:** a mesh io can't read (compressed, weights unreadable, soles unread) is no mapping issue
+      (`meshIssue`): with no other issue inspect replies ok, the issue in its lines and data, and the patch line says
+      what re-exporting mends; apply says it as a `note:` line and keeps its mapping warning and next for mapping
+      issues. The bind-failure E_RIG stays a defensive catch no file reaches (core's bind throws only for a missing
+      required bone, which characterOf never binds). A chain past 1,024 bones (MAX_DEPTH) and bones of no usable length
+      (every node at one point, a scale of 0 or out of range) are refused before recognition. apply refuses clips
+      lasting over 600 s in all. The Node host's `ctx.bytes` stats a file and refuses one past io's 512 MiB limit
+      without reading it.
+    - **Compose and exchange:** graph.sim and export name the character by `characterName`; one helper, `given(as,
+      value)` in clips.ts, passes a name the shell would split as given in hints; import removes only clip files an
+      import wrote, names what it removed, and refuses a set whose directory holds any other .json or a library set's
+      copied manifest (E_EXISTS, nothing changed); parser messages (E_JSON, E_CLIP, E_GAME) on one line (`oneLine`);
+      export's read-back checks refuse a joint missing from the file (io's E_MISSING); the host keeps at most 8
+      libraries open, the least lately used dropped; B5's and B6's starter check names a clip past CC0 as R-E008 again.
+    - **t1rec:** see D97; and the sweep's rows pinned by hash in `tools/sweep/sweep.test.ts` (b4f51cf5d8276a36 at
+      1bf5252, before the judge moved, and after), which proves the Done-when "the sweep's T1 sample gives the same
+      rows after its judge moves".
+  - **The verifier** (two lenses at daaf91c, then three lanes, each re-reviewed until sound):
+    - Contract: every Done-when proved and the Verify command passing (28 files, 239 tests; doctrine 8/8); should-fixes
+      on a closing hint that didn't run as written (retarget.apply's license.check with a clip file whose name has a
+      space) and on cost (below); nits on hints, naming and these records.
+    - Adversarial: blocking findings on glTF animations sharing a name (collapsed into one clip), two racing first
+      imports into one set (both replied success, the set tampered), and calls that run for hours inside their bounds;
+      should-fixes on the file's own license ignored on import, graph.sim's E_RIG asking for a mapping it took no
+      parameter for, glTF rigs import can't read, the host's text reads, and recipe and graph costs.
+    - **Lane 2, io, library and the host** (07fef25): `animationNames` gives each glTF animation its own name
+      (`X`, `X_2`, ...; `animation<i>` for none), in describeGltf, the exact reader and readGltfPosed alike, in linear
+      time; a BVH Frame Time must be above 0 and at most 1 s; rigBvh's E_RIG reads for a .bvh and a glTF alike, VRM's
+      humanoid bones listed; a .glb's animation carries the clip's credit beside its license; the resolver throws
+      E_TIER only for a clip the out-of-tier set holds (else R-E008 with its did-you-mean); the host reads an imported
+      set under `imports/` at call time, so racing first imports end with a set that verifies.
+    - **Lane 3, core** (071cbc1): recognition by shape (`topology()` in recognize.ts) walks the tree without recursion
+      or spreading a list that grows with the skeleton: chains of 130,000 bones recognize, parents in a loop throw a
+      RangeError naming a bone. Bit for bit: 118 recognitions pinned by hash before the change, the 12 parts of
+      `tools/exact/ab.mjs` equal, vectors byte for byte, cross-engine equal; an A/B fuzz of 40,000 skeletons identical.
+      Left: parents in a loop among bones a table knows by name still hang finish()'s ancestor walk, before and after.
+  - **Deferred, with their numbers (a core follow-up, proposed here; PLAN.md has no WP for it yet):**
+    - **K5, the planter's cost:** core's planter re-sums a held foot's drift from the start of its stretch at every
+      pose (contact/plant.ts holds), and the Animator's pose cache clears at 1,024 poses (about 17 s), so cost is
+      superlinear in how long a foot is held: retarget.apply on tiny with an idle held throughout, 12 s 1.8 s, 17 s 2.6
+      s, 24 s 23.7 s, 30 s 44.6 s, 60 s 233.7 s. Carrying the sums across poses can't be bit for bit (each pose's root
+      is anchored afresh at the Animator's world root, animator.ts rootFrom), so a linear planter needs its own decision
+      to re-baseline the vectors and the A/B hashes. Meanwhile the tools refuse a held foot past a measured bound.
+    - **The key fit's cost** is about quadratic in a track's samples (import: 30, 60 and 120 s takes 2.3, 6.5 and 21
+      s); import and recipe.compile bound what one call fits.
+    - **K7:** io's skeletonOfGltf can return heads that aren't finite when node transforms overflow; every tool path
+      refuses it (bones of no usable length); io's own callers get the numbers. **K8:** the manual's lines on
+      `openLibrary().resolver()` (MANUAL.md:241, :285) predate L3's E_TIER: WP-7.3 rewrites them. The import catalog
+      (`$sources`, `$pick`, `$skip`) stays io's input format, not a spec schema (spec/schemas is frozen and the catalog
+      is the pinned sources' format since WP-5.2): the tool checks its shape and WP-7.3's manual documents it.
+      Importing a glTF whose bones no map knows by shape or a given mapping is a feature, not a fix: import refuses it
+      with a working remedy (retarget.inspect and export).
+
+## D97 · 2026-10-16 · The t1-speed lane: T1 cut by bit-identical speedups, proved and recorded after the pause
+
+- **Principle:** 5 (determinism), process, D33, D74, D89
+- **Call:**
+  - **What it did** (0ac8205..65ea4a6, merged at 261e78c, no WP: T1 stood at 84.8 s of its 90 s locally): decodePose
+    and encodePose take each side's fields and points by names and offsets found once; a rest frame's conjugate, each
+    shoulder's rest swing and hintFor's rest direction are found once per rest (WeakMaps, like `derived()`); planting
+    takes points by side and offset, a leg's pole from the pelvis alone (`legPoleOf`) and finds a foot's contact
+    without an array a call; contactRoot decodes the legs alone (`decodeLegs`, `sampleLegs`, sharing decodePose's leg
+    steps); measureFacts reads samples a caller already took (an optional fourth argument, `sampled`); the sensors
+    read their samples once; tests share identical work (every input, threshold, case and expect() count unchanged).
+    The last edit, the Animator's `rootFrom` memo (65ea4a6), was committed as WIP at the pause; it is complete.
+  - **The proof, after the pause** (the lane's own 17-part harness was lost with its scratch): `tools/exact/ab.mjs`
+    (kept, on demand) gives the same hashes at 1bf5252 and after the lane on all 11 parts (decode 0df74cdf79b8eb1b,
+    decodeOther b142c4cd5f306f62, encode 39c519df430bcb6a, facts b79e2b4b00f55d73, root 2eda1300ba89c3a5, plant
+    23cdf3509243e694, sensors 95fbaf80facceaec, fix caf56a18d4679a48, procedural cd89bf81f1fe5bbf, animator
+    8b409beb3b160667, solve 290de4e3eae475cf; a twelfth, limbPoles d6301fd29f5c9bbb, added since); cross-engine equal
+    (the Animator 144560999a518f7d); CI's Node = Chromium hashes unchanged; vectors byte for byte.
+  - **Made durable** (lane t1rec): `packages/core/test/exact.test.ts` holds `legPoleOf`, `decodeLegs` and `sampleLegs`
+    to the functions they copy, bit for bit, as D89's ankleOf test does; measureFacts's `sampled` is documented as
+    trusted and checked for its count and step against sampleAll's (`sampleGrid`, shared with sampledBy), throwing on
+    a mismatch; contactAt holds a better contact by plain assignments.
+  - **Measured:** CI's T1 74.4 s at 1bf5252, 61.9 s after the lane with 38 more tests; locally about 82 s.
+- **Why:** a slow T1 is fixed by removing cost, never by sampling or skipping tests (D89); a speedup with no proof
+  breaks principle 5, so the proof is committed where it can run again.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.48.0
+
