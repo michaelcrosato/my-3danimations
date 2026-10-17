@@ -1,6 +1,7 @@
 // The Change tools (PLAN.md WP-7.2a's Done-when): fix and edit on every surface; their wrong calls refused naming the
 // fix (slow retimes, a pin's long path, a clip too long to fit and steps building too many samples, before compiling,
-// naming the op or the edit's ops); a stale if_revision refused with the file
+// naming the op or the edit's ops, or the clip when a file's own length is too long to fit); a stale if_revision
+// refused with the file
 // unchanged; undo and redo restoring the exact bytes through one history for both tools; a file edited outside m3a
 // resetting it; an in-place slice and chain, the chain kept only while one call compiles it (a copy's one-op edits
 // going on from its file); two edits of one clip, in two m3a processes or in one, never both applied;
@@ -67,6 +68,13 @@ describe("the Change tools", () => {
       // a clip longer than its keys are fitted to in one call (120 s at an edit's 30 fps), naming the op and the slice
       // that cuts it; the samples its steps build, naming the edit's ops (each remedy one an edit can follow)
       expect(await ops({ op: "mirror" }, { op: "retime", dur: 300 })).toBe('ops[1]: retime makes the clip 300 s long, 9000 samples at 30 fps, past the 3600 one call fits keys to (120 s at 30 fps); slice it first (ops[0] {"op": "slice", "from": 0, "to": 120} keeps its first 120 s), or retime it less slowly');
+      // a file whose own length is past it (a 300 s clip): "the clip is", not the op that keeps its length (mirror) nor
+      // a step the edit's caller never wrote (a meta-only edit's clip step)
+      const walk = JSON.parse(readFileSync(join(ROOT, "library/sets/QUATERNIUS_3D2DGE/Walk_Loop.json"), "utf8")) as { dur: number; keys: { t: number }[] }, k = 300 / walk.dur;
+      writeFileSync(join(w.cwd, "long.json"), JSON.stringify({ ...walk, dur: 300, loop: false, contacts: undefined, facts: undefined, keys: walk.keys.map((x) => ({ ...x, t: Math.round(x.t * k * 1000) / 1000 })) }));
+      const long = async (op: object) => (await w.call("edit", { clip: "long.json", save_as: "WORKSHOP/Long", ops: [op] })).error?.message;
+      const own = 'the clip is 300 s long, 9000 samples at 30 fps, past the 3600 one call fits keys to (120 s at 30 fps); slice it first (ops[0] {"op": "slice", "from": 0, "to": 120} keeps its first 120 s), or retime it less slowly';
+      expect([await long({ op: "mirror" }), await long({ op: "meta", desc: "x" })]).toEqual([own, own]);
       const wide = [{ op: "retime", dur: 600 }, ...Array.from({ length: 14 }, () => ({ op: "mirror" })), { op: "retime", dur: 100 }];
       expect(await ops(...wide)).toBe("the clip and the edit's 16 ops build 273038 samples in all (each step's length times 30 fps), past the 100000 one call compiles; use fewer ops, or apply them in more than one edit");
       expect(refused(await w.call("edit", { clip: "WORKSHOP/Punch_Left", action: "undo" }))).toEqual(["error", "E_HISTORY", "nothing to undo for WORKSHOP/Punch_Left"]);

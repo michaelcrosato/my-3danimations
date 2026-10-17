@@ -5,12 +5,13 @@
 // graph: a recipe of more than 64 steps or more than 100,000 step samples (the verifier's ten smooths on 600 s at 120
 // fps), or reading more than 100,000,000 list points at its samples (a pin's path just past it on 400 s at 120 fps, as
 // the verifier's of 600,000 points; a weight curve, a sequence's items, two pins together), or making a clip of more
-// than 3,600 samples for its key fit (the verifier's walk sequenced to 598.5 s, at 30 and at 120 fps), each before
-// compiling, while every recipe the repository ships passes, and a clip of 3,600 samples (120 s at 30 fps, 30 s at
-// 120) is taken. A graph: a misspelt clip and state (G-E009 with did you mean, G-E003), a cc-by clip (the game.json
-// line), a recipe state (the file to pass), which checks once its compiled file is given, named in hints as given (a
-// path) or as `<the clip's JSON>`; a WORKSHOP copy found, a missing one the copy to make; 64 clips taken, 65 refused. A
-// script: the example trace matched byte for byte, a strike with no hit event alone making findings, a hit window from
+// than 3,600 samples for its key fit (the verifier's walk sequenced to 598.5 s, at 30 and at 120 fps; naming the step
+// that last changed the length, or the clip), each before compiling, while every recipe the repository ships passes,
+// and a clip of 3,600 samples (120 s at 30 fps, 30 s at 120) is taken. A graph: a misspelt clip and state (G-E009
+// with did you mean, G-E003), a cc-by clip (the game.json line), a recipe state (the file to pass), which checks once
+// its compiled file is given, named in hints as given (a path) or as `<the clip's JSON>`; a WORKSHOP copy found, a
+// missing one the copy to make; 64 clips taken, 65 refused. A script:
+// the example trace matched byte for byte, a strike with no hit event alone making findings, a hit window from
 // a clip's own event on a character file, a trace that differs with hints that run it again as given (a script,
 // character and clip file whose names the shell would split passed as given), an unknown trigger (S-E003, not run), an
 // unknown character (E_ARGS), a character file's absolute path never echoed (a run's hint names it and its script by
@@ -105,6 +106,13 @@ describe("compose and wire", () => {
         expect(slowly(fps, dur), `${dur} s at ${fps}`).not.toThrow();
         expect(slowly(fps, dur + 1 / fps), `${dur} s and a sample at ${fps}`).toThrow(`step 2: retime makes the clip ${dur} s long, ${MAX_FIT_SAMPLES + 1} samples at ${fps} fps, past the ${MAX_FIT_SAMPLES} one call fits keys to`);
       }
+      // the refusal names the step that last changed the length, not a later one that keeps it (a mirror, a blend of
+      // the longer input), and "the clip" when a clip step's own span is the cause (a 300 s clip, mirrored)
+      const walkOf = (dur?: number) => (id: string) => ({ ...lib.clip(id).clip, ...(dur ? { dur } : {}) });
+      const fitOf = (steps: object[], dur?: number) => () => bounded({ format: "2.0", id: "RECIPES/Long", steps: [{ op: "clip", id: `${Q}Walk_Loop` }, ...steps] } as recipe.Recipe, walkOf(dur));
+      const past = "past the 3600 one call fits keys to (120 s at 30 fps); make it shorter (a graph plays parts in turn), or at a lower fps";
+      expect(fitOf([{ op: "sequence", items: Array.from({ length: 100 }, () => "s1"), fade: 0 }, { op: "mirror", in: "s2" }, { op: "blend", a: "s1", b: "s3" }])).toThrow(`step 2: sequence makes the clip 133.3 s long, 3999 samples at 30 fps, ${past}`);
+      expect(fitOf([{ op: "mirror", in: "s1" }], 300)).toThrow(`the clip is 300 s long, 9000 samples at 30 fps, ${past}`);
       // and the samples its clip's keys are fitted to (its last step's length times its fps), which cost about their
       // square: the verifier's walk sequenced 449 times (598.5 s: past 13 CPU-minutes at 30 fps unbounded, about 3.4 h at
       // 120), refused at once at either rate, naming the step that makes it

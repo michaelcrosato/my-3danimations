@@ -17,7 +17,8 @@
 // refused naming them (io's reason); the license and credit a VRMA m3a wrote carries (a
 // contradicting --license refused, a known id in another case too, its credit kept), a composed clip's too (its ids
 // joined with " AND ": refused under one of them, its fix quoted, running as written; its ids compared as sets, case
-// aside; a free-text license noted, not compared); export's file named by the clip and the character, a .bvh's
+// aside; a free-text license noted, not compared; its note license.check's real reason, one part's missing text by
+// that part); export's file named by the clip and the character, a .bvh's
 // license line; a second import into a set saying it replaced the first's clips.
 import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -339,9 +340,10 @@ describe("exchange", () => {
       const mix = { path: composed, set: "MIXED", license: "CC-BY-4.0" }, one = await call("import", mix);
       expect([mixed.license, refused(one)]).toEqual([both, ["usage", "E_ARGS", `the file says its animations are ${both} (each animation's extras.license); --license CC-BY-4.0 contradicts it: pass \`--license '${both}'\``]]);
       const [fix] = hintedCalls(one.error!.message, { tool: "import", args: mix }), taken = await call(fix!.tool!, fix!.args!);
-      // (its note: license.check, which reads a source's license as one id, fails the set; the library's to change)
-      const got = taken.data as { license: string; clips: { id: string }[]; notes: string[] };
-      expect([fix!.args!.license, taken.error, got.license, got.notes, openLibrary({ dir: join(cwd, "imports"), tiers: ["local"] }).clip(got.clips[0]!.id).clip.provenance]).toEqual([both, null, both, [expect.stringMatching(/^CC-BY-4\.0 AND LicenseRef-CMU-Mocap's text isn't in library\/LICENSES\/: license\.check/)], expect.objectContaining({ license: both, credit: mixed.credit })]);
+      // its note gives license.check's real reason: it reads a source's license as one id, so it fails the set (the
+      // library's to change), though each part's text is kept (not "...'s text isn't in library/LICENSES/")
+      const got = taken.data as { license: string; clips: { id: string }[]; notes: string[] }, oneId = "license.check reads a set's license as one id, so it fails this set (a library follow-up)";
+      expect([fix!.args!.license, taken.error, got.license, got.notes, openLibrary({ dir: join(cwd, "imports"), tiers: ["local"] }).clip(got.clips[0]!.id).clip.provenance]).toEqual([both, null, both, [oneId], expect.objectContaining({ license: both, credit: mixed.credit })]);
       // its ids compared as sets, case aside: the file's in another order and case taken as the call spells them (a fix
       // spelling them as the library does), and a composed --license in another case refused naming its spelling
       writeFileSync(join(cwd, "lower.vrma"), licensed(readFileSync(join(cwd, composed)), "licenseref-cmu-mocap AND cc-by-4.0"));
@@ -355,6 +357,10 @@ describe("exchange", () => {
       writeFileSync(join(cwd, "free.vrma"), licensed(readFileSync(join(cwd, composed)), "CC BY 4.0"));
       const free = await call("import", { path: "free.vrma", set: "FREE", license: "CC-BY-4.0" });
       expect([free.error, (free.data as { notes: string[] }).notes]).toEqual([null, ['the file\'s extras.license "CC BY 4.0" is no SPDX id: its clips carry CC-BY-4.0']]);
+      // a composed license with a part whose text the library doesn't keep: that part named, and the one-id note
+      writeFileSync(join(cwd, "mine.vrma"), licensed(readFileSync(join(cwd, composed)), "LicenseRef-Mine AND CC-BY-4.0"));
+      const mine = await call("import", { path: "mine.vrma", set: "MINE", license: "CC-BY-4.0 AND LicenseRef-Mine" });
+      expect([mine.error, (mine.data as { notes: string[] }).notes]).toEqual([null, ["LicenseRef-Mine's text isn't in library/LICENSES/: license.check fails the set", oneId]]);
       // one clip on two characters: two files; a .bvh says it carries no license or credit
       const [onRig, onTiny] = [await call("export", { clip: WALK, character: RIG, format: "bvh" }), await call("export", { clip: WALK, character: "tiny", format: "bvh" })];
       const files = [onRig, onTiny].map((r) => (r.data as { file: string }).file);
