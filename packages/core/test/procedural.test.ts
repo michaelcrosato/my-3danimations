@@ -15,13 +15,16 @@ import { quantize } from "../src/recipe/compile.ts";
 
 const ROOT = join(import.meta.dirname, "../../.."), LIB = join(ROOT, "library/sets");
 const MOVES = JSON.parse(readFileSync(join(ROOT, "library/moves.json"), "utf8")) as { about: string; moves: PR.Move[] };
+/** Each set's manifest, read once for the file: one rest object for each library body, as a game holds one, so what core
+ *  keeps by body (a gait's seam readings, gait.ts's SEAMS) serves every test that makes a gait on it (D89). */
+const manifests = new Map<string, { sources: Record<string, { rest: Rest }> }>();
+const manifest = (set: string) => manifests.get(set) ?? (manifests.set(set, JSON.parse(readFileSync(join(LIB, set, "_set.json"), "utf8")) as { sources: Record<string, { rest: Rest }> }), manifests.get(set)!);
 function load(id: string): { clip: Clip; rest: Rest } {
   const [set, slug] = id.split("/") as [string, string], clip = parseClip(readFileSync(join(LIB, set, `${slug}.json`), "utf8"));
-  const manifest = JSON.parse(readFileSync(join(LIB, set, "_set.json"), "utf8")) as { sources: Record<string, { rest: Rest }> };
-  return { clip, rest: manifest.sources[clip.restSrc]!.rest };
+  return { clip, rest: manifest(set).sources[clip.restSrc]!.rest };
 }
 /** A library source's rest by its set and source. */
-const sourceRest = (set: string, src: string): Rest => (JSON.parse(readFileSync(join(LIB, set, "_set.json"), "utf8")) as { sources: Record<string, { rest: Rest }> }).sources[src]!.rest;
+const sourceRest = (set: string, src: string): Rest => manifest(set).sources[src]!.rest;
 /** The points of a key (or pose) on a rest. */
 function points(rest: Rest, k: object): Float32Array {
   const X = new Float32Array(P * 3);

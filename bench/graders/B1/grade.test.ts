@@ -16,6 +16,7 @@ import { bind } from "@m3a/three";
 import { loadGlb } from "@m3a/three/test-characters";
 import { CACHE, rigBytes, type Manifest } from "../../../tools/fixtures/fixtures.ts";
 import { prepareWorkspace, type CharacterSpec } from "../../runner/workspace.ts";
+import { cacheChildren } from "../../../tools/run/compile-cache.ts";
 import { gradeB1, type Grade } from "./grade.ts";
 
 const ROOT = join(import.meta.dirname, "../../.."), GOOD = join(import.meta.dirname, "known-good/src"), FULL = process.env.M3A_FULL === "1";
@@ -44,6 +45,8 @@ async function grade(name: string, files: typeof good, character: CharacterSpec)
   await prepareWorkspace(dir, { starter: join(ROOT, "bench/starters/B1"), character, files: { "src/player.ts": files.player, "src/sheet.ts": files.sheet } });
   return gradeB1(dir);
 }
+// each grade's `npm run sheet` compiles through one cache (tools/run/compile-cache.ts)
+cacheChildren();
 const text = (g: Grade) => g.checks.map((c) => `${c.ok ? "ok  " : "FAIL"} ${c.name}: ${c.detail}`).join("\n");
 const who = (c: CharacterSpec) => ("seed" in c ? `gen-${c.seed}` : c.rig);
 
@@ -56,14 +59,19 @@ describe("B1's grader", () => {
     expect(g.checks.find((c) => c.name.startsWith("plays walk at"))!.name).toBe("plays walk at 0.53 m/s");
   }, 120_000);
   it("has both starters load every real rig on hand as the grader reads it: meshopt-compressed, textured, off the floor", async () => {
-    // G4's starters read none of the mannequins (meshopt) nor the knight (its texture: Node has no image decoder)
+    // G4's starters read none of the mannequins (meshopt) nor the knight (its texture: Node has no image decoder). The
+    // grader's reading of each rig (its bytes checked against its manifest first) is the same for both starters: read once
+    const ours = new Map<string, ReturnType<typeof bind>["core"]>();
     for (const starter of ["B1", "B1-discovery"]) {
       const { loadCharacter } = (await import(join(ROOT, "bench/starters", starter, "src/character.ts"))) as { loadCharacter(path: string): Promise<Parameters<typeof bind>[0]> };
       for (const [id, manifest] of Object.entries(RIGS)) {
-        const bytes = rigBytes(id, JSON.parse(readFileSync(join(ROOT, manifest), "utf8")) as Manifest);
-        if (!bytes) throw new Error(`${id} isn't fetched: npm run fixtures -- fetch --manifest ${manifest}`);
-        const theirs = bind(await loadCharacter(join(CACHE, `${id}.glb`))).core, ours = bind((await loadGlb(bytes, { textures: false })).scene).core;
-        expect([theirs.rest.H0, [...theirs.restPts]], `${starter} on ${id}`).toEqual([ours.rest.H0, [...ours.restPts]]);
+        if (!ours.has(id)) {
+          const bytes = rigBytes(id, JSON.parse(readFileSync(join(ROOT, manifest), "utf8")) as Manifest);
+          if (!bytes) throw new Error(`${id} isn't fetched: npm run fixtures -- fetch --manifest ${manifest}`);
+          ours.set(id, bind((await loadGlb(bytes, { textures: false })).scene).core);
+        }
+        const theirs = bind(await loadCharacter(join(CACHE, `${id}.glb`))).core, our = ours.get(id)!;
+        expect([theirs.rest.H0, [...theirs.restPts]], `${starter} on ${id}`).toEqual([our.rest.H0, [...our.restPts]]);
       }
     }
   }, 60_000);

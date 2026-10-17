@@ -20,7 +20,10 @@ import type { Tier } from "@m3a/library";
 import { CHANGE, CHECK, FIND } from "../src/tools/index.ts";
 import { revisionOf, type History } from "../src/tools/workshop.ts";
 import { exampleCwd, hintedCalls, ROOT, runExamples } from "./helpers/surfaces.ts";
+import { cacheChildren } from "../../../tools/run/compile-cache.ts";
 
+// the m3a processes these tests start compile through one cache (tools/run/compile-cache.ts)
+cacheChildren();
 const BIN = join(import.meta.dirname, "../src/node.ts"), CLIP = "workshop/Punch_Left.json";
 const PUNCH = { clip: "MESH2MOTION/Punch_Cross", save_as: "WORKSHOP/Punch_Left", ops: [{ op: "retime", speed: 1.3 }, { op: "mirror" }] };
 
