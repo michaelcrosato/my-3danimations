@@ -143,12 +143,12 @@ const { clip, rest } = library.clip("MESH2MOTION/Walk_Large");  // and its set a
 Pick clips by their rows (ids, tags, descriptions), and check what one does with `m3a describe <id>` first: sets
 differ (one set's knockback gets back up). Ids are `SET/Name`; an `_RM` clip carries its own root travel.
 
-**Tiers.** A game sees the CC0 default pack unless it opts in, in two places: `"tiers"` in `game.json` (the m3a
-tools read it) and `openLibrary({ tiers: ["cc0", "cc-by"] })` in code. The installed `@m3a/library` holds the CC0
-sets only; the others are packs beside it (`npm install @m3a/library-cc-by` or `@m3a/library-cmu`). With its pack, a
-clip past the game's tiers throws `LibraryError` `E_TIER`, naming the opt-in (without, `E_NO_SET`). Credit each
-`cc-by` clip; `cmu` clips can't be resold, even converted; `local` (what `m3a import` made) never ships, and code
-opens it as a library of its own (Ship).
+**Tiers.** A game sees the CC0 default pack unless it opts in twice: `"tiers"` in `game.json` (the m3a tools read
+it) and `openLibrary({ tiers: ["cc0", "cc-by"] })` in code. The installed `@m3a/library` holds the CC0 sets only; the
+others are packs beside it (`npm install @m3a/library-cc-by` or `@m3a/library-cmu`). With its pack, a clip past the
+game's tiers throws `LibraryError` `E_TIER`, naming the opt-in (without, `E_NO_SET`). Credit each `cc-by` clip; `cmu`
+clips can't be resold, even converted; `local` (what `m3a import` made) never ships, and code opens it as a library of
+its own (Ship).
 
 ## Fit: bind the character
 
@@ -186,12 +186,15 @@ a.remove("hurt");
   the lowest one: in `step(dt).events`, `player.update(dt).events`, `animator.on(name, fn)` (`"*"`: all). Act on
   them, not on timers. `clip.facts.strike` (or `measureFacts(clip, rest).strike`) lists an attack's strike times.
 - **Root motion**: `player.travel` (a three `Vector3`, metres, the way the model faces: not always +Z) is the last
-  update's move; `player.moved` the same in the character's frame (`forward`, `right` mm, `yaw` degrees);
-  `player.root` where it stands; `player.pose` the last pose (`points`, `joints`, `hips`, `local`).
-- **In place** (the game moves the character): play a moving loop at the ground speed over its own, or the feet
-  slide. `contact.contactRoot(c, rest, c.contacts)` is a playable clip's path on a body, `{ root(t), speed }`
-  (`root(t)`: `{ forward, right, yaw }`, mm and degrees; `speed`: mean mm/s). For v m/s play it at `(v * 1000) / own`,
-  `own` its speed on `bound.core.rest` (keep 0.5 to 2). In a graph, `"rate": "<param>"` (stride warping).
+  update's move: add it to the character's position and planted feet stay put. `player.moved` the same in the
+  character's frame (`forward`, `right` mm, `yaw` degrees); `player.root` where it stands; `player.pose` the last pose
+  (`points`, `joints`, `hips`, `local`).
+- **Matching speed**: `contact.contactRoot(c, rest, c.contacts)` is a playable clip's path on a body,
+  `{ root(t), speed }` (`root(t)`: `{ forward, right, yaw }`, mm and degrees; `speed`: mean mm/s, 0 if no foot plants:
+  pick another clip). For v m/s play a loop at `speed: (v * 1000) / own`, `own` its speed on `bound.core.rest` (0.5 to
+  2, else pick a clip nearer v), and move the character by `player.travel`. **In place** (the game moves it at v), any
+  other rate, clamped too, slides the feet: they step at one speed while it moves at another. In a graph,
+  `"rate": "<param>"` (stride warping).
 - **Determinism**: the same calls give the same `animator.hash()` in Node and a browser; `save()` and
   `restore(data, clips, graph?)` round-trip through JSON; `update(dt)` takes any dt (fixed steps, the rest carried).
 
@@ -251,12 +254,11 @@ describe(made.clip, made.rest).text;                   // a timeline: "a 1.42 s 
 writeFileSync("walk_weary.json", serialize(made.clip));    // as the library writes clips
 ```
 
-`recipe.compile` and `actions.compileAction` read clips through `library.resolver()`: a clip of a set the game hasn't
-opted in to throws `LibraryError` (`@m3a/library`, `.code` `E_TIER`) naming the opt-in (only for a clip that set
-holds); any other unknown id `recipe.RecipeError`, whose `.issues` hold `R-E008` (with the nearest id when there is
-one). Edits: faster, `retime` (`speed: 1.5`); the other side, `mirror`; more anticipation, a `pose` the other way
-before the key moment; bigger, `exaggerate` (1.25). `m3a edit <clip> --ops <json> --save-as WORKSHOP/<Name>` applies
-steps to a copy, with undo.
+`recipe.compile` and `actions.compileAction` read clips through `library.resolver()`: a clip past the game's tiers
+throws `LibraryError` `E_TIER` naming the opt-in (if its set holds it); any other unknown id `recipe.RecipeError`, whose
+`.issues` hold `R-E008` (with the nearest id when there is one). Edits: faster, `retime` (`speed: 1.5`); the other side,
+`mirror`; more anticipation, a `pose` the other way before the key moment; bigger, `exaggerate` (1.25).
+`m3a edit <clip> --ops <json> --save-as WORKSHOP/<Name>` applies steps to a copy, with undo.
 
 ## Make: actions
 
@@ -312,10 +314,9 @@ strike with no hit event). Script rows: `{ t, set, over, trigger, move }`; `root
 ## Ship: licenses, import, export
 
 `m3a license.check` checks `game.json` (`tiers`, `clips`, `ships`) or `--clips`, and prints the credits block.
-`m3a export` writes a clip played on a character as .vrma, .glb or .bvh. `m3a import <file> --license <SPDX id>` fits
-a motion file's animations into a `local` set, `imports/<SET>/` (`--set`, default `IMPORT`), which the tools read when
-game.json's `"tiers"` holds `"local"`; `license.check` passes it only with `"ships": false`. A catalog (`--catalog`)
-says what to take:
+`m3a import <file> --license <SPDX id>` fits a motion file's animations into a `local` set, `imports/<SET>/` (`--set`,
+default `IMPORT`), which the tools read when game.json's `"tiers"` holds `"local"`; `license.check` passes it only with
+`"ships": false`. A catalog (`--catalog`) says what to take:
 
 ```json catalog.json
 {
@@ -404,9 +405,9 @@ npx m3a validate check-output/recipe.compile/Slash_Hit.clip.json --json
 - Clips are data: never edit `clip.keys` by hand; `fix` repairs, a recipe or `m3a edit` makes a new clip.
 - Measure a clip on its own `rest`; play library clips through `playable(clip, rest)`, or the feet slide.
 - A catalog `speed` is % of its own body's hip height a second; on yours, `contactRoot(...).speed` (mm/s).
-- Move the character by `player.travel`, or match the playback speed to the speed you move it at.
+- Move the character by `player.travel` at a matched rate; moved by the game, its feet slide at any other rate.
 - Don't move or scale the bones: `bind` reads them once and `attach` writes their rotations.
 - Act on events, not timers; fade one-shots in; cut, don't blend, between two lying poses.
 - `set` and `trigger` are read from the next step. Parameters aren't smoothed: ease a blend's over 0.2 s, or the
-  body pops. A trigger waits until used or its `buffer` runs out.
+  body pops.
 - Errors say what to do: read them before reading the source.
