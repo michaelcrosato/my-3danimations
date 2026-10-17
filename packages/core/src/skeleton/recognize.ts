@@ -116,22 +116,57 @@ function topology(sk: SkeletonIn): Recognition | null {
   const head = new Map(sk.bones.map((b) => [b.name, b.head as V]));
   const kids = new Map<string, string[]>(sk.bones.map((b) => [b.name, []]));
   for (const b of sk.bones) if (b.parent && kids.has(b.parent)) kids.get(b.parent)!.push(b.name);
-  const depth = (n: string): number => 1 + Math.max(0, ...kids.get(n)!.map(depth));
-  const sub_ = (n: string): string[] => [n, ...kids.get(n)!.flatMap(sub_)];
+  // the walks keep stacks of their own, not the call stack, which a chain of a few thousand bones overflowed (K6).
+  // `below` visits n and each bone under it after the bone's children, skipping those `done`; parents in a loop throw
+  const below = (n: string, done: (x: string) => boolean, visit: (x: string) => void) => {
+    const stack = [n], open = new Set<string>();
+    while (stack.length) {
+      const x = stack[stack.length - 1]!, todo = kids.get(x)!.filter((c) => !done(c));
+      if (!todo.length) {
+        if (!done(x)) visit(x);
+        stack.pop();
+      } else if (open.has(x)) throw new RangeError(`the skeleton's parents loop through "${x}"`);
+      else {
+        open.add(x);
+        stack.push(...todo);
+      }
+    }
+  };
+  // each bone's depth: the bones on the longest chain down from it, its own included
+  const deep = new Map<string, number>();
+  for (const b of sk.bones) below(b.name, (x) => deep.has(x), (x) => deep.set(x, 1 + Math.max(0, ...kids.get(x)!.map((c) => deep.get(c)!))));
+  const depth = (n: string) => deep.get(n)!;
+  // n and every bone under it, each before its children, children in order
+  const sub_ = (n: string): string[] => {
+    const out: string[] = [], stack = [n];
+    while (stack.length) {
+      const x = stack.pop()!;
+      out.push(x);
+      stack.push(...[...kids.get(x)!].reverse());
+    }
+    return out;
+  };
   const h = (n: string) => dot(head.get(n)!, up);
   const blen = (a: string, b: string) => len(sub(head.get(b)!, head.get(a)!));
   // the longest chain down from n; of chains as long, the one whose first bone is farther from n (the hand, not a twist
-  // leaf halfway along the forearm; the head's top, not the jaw)
+  // leaf halfway along the forearm; the head's top, not the jaw). `chain` keeps each bone's length and next bone.
+  const chain = new Map<string, [number, string | undefined]>();
   const longest = (n: string): string[] => {
-    const ks = kids.get(n)!;
-    if (!ks.length) return [n];
-    return [n, ...ks.map(longest).sort((a, b) => b.length - a.length || blen(n, b[0]!) - blen(n, a[0]!))[0]!];
+    below(n, (x) => chain.has(x), (x) => {
+      const next = [...kids.get(x)!].sort((a, b) => chain.get(b)![0] - chain.get(a)![0] || blen(x, b) - blen(x, a))[0];
+      chain.set(x, [next === undefined ? 1 : 1 + chain.get(next)![0], next]);
+    });
+    const out = [n];
+    for (let x = chain.get(n)![1]; x !== undefined; x = chain.get(x)![1]) out.push(x);
+    return out;
   };
 
   // hips: the shallowest bone where three chains of at least two bones meet
+  const first = new Map(sk.bones.map((b) => [b.name, b] as const).reverse());
   const level = (n: string): number => {
-    const p = sk.bones.find((b) => b.name === n)!.parent;
-    return p ? 1 + level(p) : 0;
+    let k = 0;
+    for (let p = first.get(n)!.parent; p; p = first.get(p)!.parent) k++;
+    return k;
   };
   const hipsCand = sk.bones.map((b) => b.name).filter((n) => kids.get(n)!.filter((c) => depth(c) >= 2).length >= 3).sort((a, b) => level(a) - level(b));
   const hips = hipsCand[0];

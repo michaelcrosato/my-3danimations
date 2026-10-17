@@ -1,8 +1,8 @@
 // Tests for the skeleton profile (WP-1.4): recognition is exact on a fixture for every mapping table (namespaces and
 // case stripped); the topology fallback maps renamed skeletons (long clavicles, no neck, twist bones, no head-top leaf)
 // and reports its confidence; every skeleton these tests use is recognized, patched and framed as before, to the hash
-// (K6); measure reproduces tier 1a's rests bit for bit; restPoints places the tiny rig's body points where the importer
-// did.
+// (K6), chains of thousands of bones are walked without recursion and parents in a loop refused; measure reproduces
+// tier 1a's rests bit for bit; restPoints places the tiny rig's body points where the importer did.
 import { describe, expect, it } from "vitest";
 import { HUMANOID_BONES, HUMANOID_PARENT, measure, patchMapping, recognize, REQUIRED_BONES, restFrame, restPoints, TABLES, type Capture, type SkeletonIn } from "./all.ts";
 import { firstDiff, loadTier1a, loadTier3, VECTORS } from "../../../spec/conformance/runner/vectors.ts";
@@ -255,6 +255,29 @@ describe("recognize: by topology", () => {
       conformance: "10 f84a7e152612c495",
       "conformance, by shape": "10 2ec50498d49c2eb5",
     });
+  });
+  it("maps a humanoid 5,000 and 20,000 bones down a chain, and one with a 5,000-bone chain off a toe (K6: no RangeError)", () => {
+    const plain = renamedRig();
+    // the body's bones named so that no table knows them, with a chain hung above the hips or below the left toes
+    const body = () => skeleton(Object.fromEntries(BODY.map((b) => [b, `x_${b}`])), false).bones as { name: string; parent: string | null; head: V }[];
+    const chain = (n: number, parent: string | null, head: (i: number) => V) => Array.from({ length: n }, (_, i) => ({ name: `c${i}`, parent: i ? `c${i - 1}` : parent, head: head(i) }));
+    // behind the body, the hips n levels down (20,000 passes the hips' level walk too, which took about 10,000 to
+    // overflow); then on along the floor from the toes, 5,000 bones past the foot
+    const under = (n: number) => {
+      const b = body();
+      b.find((x) => x.name === "x_hips")!.parent = `c${n - 1}`;
+      return [...chain(n, null, (i) => [0, 0.95, -0.5 - 0.001 * (n - i)]), ...b];
+    };
+    for (const bones of [under(5000), under(20000), [...body(), ...chain(5000, "x_leftToes", (i) => [0.1, 0, 0.13 + 0.001 * (i + 1)])]]) {
+      const rec = recognize({ bones });
+      expect([rec.method, rec.missing, rec.confidence]).toEqual(["topology", [], plain.rec.confidence]);
+      expect(Object.fromEntries(Object.entries(rec.bones).map(([h, n]) => [h, n.slice(2)]))).toEqual(plain.got);
+    }
+  });
+  it("refuses parents in a loop with a RangeError that names a bone in it, rather than running out of stack (K6)", () => {
+    const at: V = [0, 1, 0];
+    expect(() => recognize({ bones: [{ name: "a", parent: "b", head: at }, { name: "b", parent: "a", head: at }] })).toThrow(new RangeError(`the skeleton's parents loop through "a"`));
+    expect(() => recognize({ bones: [{ name: "r", head: at }, { name: "a", parent: "a", head: at }] })).toThrow(new RangeError(`the skeleton's parents loop through "a"`));
   });
 });
 
