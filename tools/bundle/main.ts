@@ -8,12 +8,12 @@
 // neither passes the sensors (WP-3.3) nor carries its WP-5.8 baseline (library/baselines/qa.json), or the sensors read
 // it differently there; a scratch project outside the repository that installs the tarballs can't run the manual's
 // complete example (./example.ts: its section's files, ts blocks and m3a calls, or --example's), `npx m3a help`,
-// `npx m3a version`, or `m3a mcp` answering tools/list with every tool, or its openLibrary({ tiers }) doesn't find the
-// installed opt-in packs; the headless example (the manual's ```ts m3a.js block, else ./standin.ts) fails on the
-// packages or on m3a.js, or prints otherwise on the two. The manual's complete example binds a three.js character and
-// writes a PNG through Node, which m3a.js leaves out (./single.ts), so m3a.js runs the headless one. Nothing is
-// published (O2).
-import { spawn, spawnSync } from "node:child_process";
+// `npx m3a version`, or `m3a mcp` answering tools/list with every tool (./mcp.ts: a bin that can't start or never
+// answers fails the step, the report still printed), or its openLibrary({ tiers }) doesn't find the installed opt-in
+// packs; the headless example (the manual's ```ts m3a.js block, else ./standin.ts) fails on the packages or on m3a.js,
+// or prints otherwise on the two. The manual's complete example binds a three.js character and writes a PNG through
+// Node, which m3a.js leaves out (./single.ts), so m3a.js runs the headless one. Nothing is published (O2).
+import { spawnSync } from "node:child_process";
 import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, join, relative, resolve } from "node:path";
@@ -25,6 +25,7 @@ import { finish, fmtMs, parseArgs, ROOT, usage, type Report, type Step } from ".
 import { check as versionCheck } from "../version.ts";
 import { build, OUT, REPOSITORY, type Packed } from "./build.ts";
 import { completeExample, forSingle, headlessOf, SECTION, type Example } from "./example.ts";
+import { mcpTools } from "./mcp.ts";
 import { buildSingle, bundleData, readManifest } from "./single.ts";
 
 const FLAGS = [
@@ -39,39 +40,6 @@ const STANDIN = join(import.meta.dirname, "standin.ts");
 function run(cmd: string, args: readonly string[], cwd: string, input?: string): { ok: boolean; out: string } {
   const r = spawnSync(cmd, args, { cwd, input, encoding: "utf8", timeout: 300_000, env: { ...process.env, FORCE_COLOR: "0", NO_COLOR: "1" }, maxBuffer: 64 * 1024 * 1024 });
   return { ok: r.status === 0, out: `${r.stdout ?? ""}${r.stderr ?? ""}${r.error ? String(r.error) : ""}` };
-}
-
-/** `m3a mcp` in `cwd` asked to initialize and list its tools: the tool names it answers with. */
-async function mcpTools(cwd: string): Promise<string[]> {
-  const child = spawn(join(cwd, "node_modules/.bin/m3a"), ["mcp"], { cwd, stdio: ["pipe", "pipe", "pipe"] });
-  let buf = "", err = "";
-  child.stderr.on("data", (d) => (err += String(d)));
-  const listed = new Promise<string[]>((ok, fail) => {
-    child.stdout.on("data", (d) => {
-      const lines = (buf + String(d)).split("\n");
-      buf = lines.pop()!;
-      for (const line of lines) {
-        let m: { id?: number; result?: { tools?: { name: string }[] } };
-        try {
-          m = JSON.parse(line) as typeof m;
-        } catch {
-          return fail(new Error(`m3a mcp wrote a line that isn't JSON-RPC: ${line}`));
-        }
-        if (m.id === 2) return m.result?.tools ? ok(m.result.tools.map((t) => t.name)) : fail(new Error(`tools/list answered ${line}`));
-      }
-    });
-    child.on("exit", (code) => fail(new Error(`m3a mcp exited (${code}) before answering tools/list${err ? `: ${err.trim()}` : ""}`)));
-  });
-  const send = (m: unknown) => child.stdin.write(`${JSON.stringify(m)}\n`);
-  send({ jsonrpc: "2.0", id: 1, method: "initialize", params: { protocolVersion: "2025-06-18", capabilities: {}, clientInfo: { name: "m3a-pack", version: "1" } } });
-  send({ jsonrpc: "2.0", method: "notifications/initialized" });
-  send({ jsonrpc: "2.0", id: 2, method: "tools/list" });
-  try {
-    return await listed;
-  } finally {
-    child.stdin.end();
-    child.kill();
-  }
 }
 
 /** The tiers of the sets a pack's files hold (`sets/<SET>/...`), read from its staged manifests. */

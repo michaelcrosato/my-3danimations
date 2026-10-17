@@ -41,6 +41,10 @@ exists) builds into `.cache/pack/` (git-ignored; nothing built is committed, and
   help`, `npx m3a version`, `m3a mcp`'s `tools/list` and `openLibrary` over the opt-in packs;
 - the headless example, run there and on m3a.js, failing on either or printing otherwise on the two.
 
+A step that fails says why and the rest still run, so the report always prints. `m3a mcp` (`mcp.ts`) fails its step
+when npm linked no bin (a `"bin"` naming a file the tarball lacks), the server can't start, exits or writes what isn't
+JSON-RPC first, or doesn't answer `tools/list` within 30 s; it is stopped either way, so the gate never hangs on it.
+
 ## The complete example's marker
 
 The complete example is the section of `packages/tools/MANUAL.md` whose heading starts with `## A complete example`,

@@ -22,12 +22,15 @@ export function defaultSets(): string {
 export const PACKS: Readonly<Partial<Record<Tier, string>>> = { "cc-by": "@m3a/library-cc-by", cmu: "@m3a/library-cmu" };
 
 /** The directory of sets of each opt-in pack installed where Node finds packages from `from` (this module by default),
- *  by tier: `npm install @m3a/library-cc-by` beside @m3a/library is how a game gets the cc-by sets. */
+ *  by tier: `npm install @m3a/library-cc-by` beside @m3a/library is how a game gets the cc-by sets. Read afresh on each
+ *  call, so a long-lived process (`m3a mcp`) sees a pack installed or removed while it runs: Node remembers where it
+ *  found a package, so a pack whose sets are gone is left out. */
 export function installedPacks(from: string = import.meta.url): Partial<Record<Tier, string>> {
   const require = createRequire(from), out: Partial<Record<Tier, string>> = {};
   for (const [tier, name] of Object.entries(PACKS) as [Tier, string][]) {
     try {
-      out[tier] = join(dirname(require.resolve(`${name}/package.json`)), "sets");
+      const sets = join(dirname(require.resolve(`${name}/package.json`)), "sets");
+      if (existsSync(sets)) out[tier] = sets;
     } catch {
       // not installed
     }

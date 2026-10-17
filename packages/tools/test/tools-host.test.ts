@@ -288,6 +288,25 @@ describe("the library and the clip loader", () => {
     }
   });
 
+  it("sees an opt-in pack installed while it runs: the next call opens the library again with the pack's sets, unwarned", () => {
+    const { cwd, rm } = exampleCwd(false), dir = join(cwd, "sets"), pack = join(cwd, "node_modules/@m3a/library-cc-by/sets");
+    try {
+      mkdirSync(dir);
+      symlinkSync(join(ROOT, "library/sets/QUATERNIUS_3D2DGE"), join(dir, "QUATERNIUS_3D2DGE"));
+      writeFileSync(join(cwd, "game.json"), '{ "game": "Demo", "tiers": ["cc0", "cc-by"] }');
+      const said = "library: no cc-by set is installed: the cc-by sets ship apart from the CC0 default pack (D10); npm install @m3a/library-cc-by";
+      const call = (packs: Partial<Record<Tier, string>>) => ((a) => [a.warnings, a.library.sets().map((s) => s.set), a.source.sets().sort()])(libraryAccess(cwd, undefined, dir, packs));
+      expect(call({})).toEqual([[said], ["QUATERNIUS_3D2DGE"], ["QUATERNIUS_3D2DGE"]]);
+      mkdirSync(pack, { recursive: true }); // `npm install @m3a/library-cc-by` while the server runs
+      symlinkSync(join(ROOT, "library/sets/STYLE100_IDLE"), join(pack, "STYLE100_IDLE"));
+      const both = ["QUATERNIUS_3D2DGE", "STYLE100_IDLE"];
+      expect(call({ "cc-by": pack })).toEqual([[], both, both]); // the library and the source agree
+      expect(call({})).toEqual([[said], ["QUATERNIUS_3D2DGE"], ["QUATERNIUS_3D2DGE"]]); // and removed, it leaves
+    } finally {
+      rm();
+    }
+  });
+
   it("loads a clip by library id, workshop id, path or JSON, and refuses naming the closest id", async () => {
     const { cwd, rm } = exampleCwd(), reg = new Registry([peek]), host = nodeHost(cwd), call = (clip: string) => reg.call("demo.clip", { clip }, { host });
     const pose = JSON.parse(readFileSync(join(cwd, "library/sets/QUATERNIUS_3D2DGE/A_TPose.json"), "utf8")) as { id: string; restSrc: string };

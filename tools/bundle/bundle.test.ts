@@ -2,18 +2,22 @@
 // the tier filter that keeps cc-by and cmu sets out of the default library pack, the published package.json (exports
 // to dist/, the m3a bin at dist/node.js with its shebang, CHANGELOG.md, three's types an optional peer, "private" kept
 // unless made publishable), the subset m3a.js carries and the library it opens, the manual's complete example as the
-// extractor reads it, the headless example's marker, and its rewrite for m3a.js. The end-to-end
+// extractor reads it, the headless example's marker, its rewrite for m3a.js, and how the check's `m3a mcp` step fails
+// (a bin missing, unable to start, exiting, writing what isn't JSON-RPC, never answering: each a failure, not a crash
+// or a hang; fake bins, the timeout on fake timers). The end-to-end
 // `npm run pack -- --check` (a build, npm pack, a scratch install, m3a.js run) is slow, and runs in the gate (G7), not
 // here.
-import { readFileSync } from "node:fs";
+import { chmodSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { stripTypeScriptTypes } from "node:module";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { checkGame } from "../../packages/library/src/index.ts";
 import { directory, licenseText } from "../../packages/library/src/node.ts";
 import { ROOT } from "../run/cli.ts";
 import { jsSpecifiers, PACKAGES, packSets, publishable, publishedExports, publishedManifest, REPOSITORY, tiersOf } from "./build.ts";
 import { completeExample, forSingle, HEADLESS, headlessOf, importsOf, SECTION } from "./example.ts";
+import { MCP_TIMEOUT_MS, mcpTools } from "./mcp.ts";
 import { bundled } from "./runtime.ts";
 import { bundleData, ENTRIES, namesOf, OWN, readManifest } from "./single.ts";
 
@@ -148,5 +152,52 @@ describe("the complete example", () => {
     expect(() => forSingle(`import { bind } from "@m3a/three";\nimport * as THREE from "three";\n`, [])).toThrow(/imports "@m3a\/three" \(m3a\.js leaves it out.*; "three"/);
     expect(() => forSingle(`import { writePng } from "@m3a/sensors/node";\n`, [])).toThrow(/"@m3a\/sensors\/node"/);
     expect(() => forSingle(`import { Animator, Nope } from "@m3a/core";\n`, ["Animator"])).toThrow(/Nope from "@m3a\/core" \(m3a\.js doesn't export it\)/);
+  });
+});
+
+describe("the check's m3a mcp step", () => {
+  /** A scratch project whose node_modules/.bin/m3a is `script` (a shell script; not executable when `exec` is false). */
+  const project = (script: string | null, exec = true) => {
+    const dir = mkdtempSync(join(tmpdir(), "m3a-mcp-")), bin = join(dir, "node_modules/.bin/m3a");
+    mkdirSync(join(dir, "node_modules/.bin"), { recursive: true });
+    if (script !== null) writeFileSync(bin, `#!/bin/sh\n${script}\n`);
+    if (script !== null && exec) chmodSync(bin, 0o755);
+    return { dir, rm: () => rmSync(dir, { recursive: true, force: true }) };
+  };
+  const answer = '{"jsonrpc":"2.0","id":2,"result":{"tools":[{"name":"search"},{"name":"recipe_compile"}]}}';
+  it("gives the names tools/list answers with", async () => {
+    const { dir, rm } = project(`read a; read b; read c; echo '{"jsonrpc":"2.0","id":1,"result":{}}'; echo '${answer}'`);
+    try {
+      expect(await mcpTools(dir)).toEqual(["search", "recipe_compile"]);
+    } finally {
+      rm();
+    }
+  });
+  it("fails, naming why, when the bin is missing, can't start, exits first or writes what isn't JSON-RPC: never a crash", async () => {
+    for (const [script, exec, why] of [
+      [null, true, /m3a mcp could not start: .*node_modules\/\.bin\/m3a isn't there, or leads to no file/], // a "bin" naming a file the tarball lacks: npm links none
+      ["exit 0", false, /m3a mcp could not start: spawn .* EACCES/],
+      ["echo no such file >&2; exit 3", true, /m3a mcp exited \(3\) before answering tools\/list: no such file/],
+      ["echo hello; cat >/dev/null", true, /m3a mcp wrote a line that isn't JSON-RPC: hello/],
+    ] as const) {
+      const { dir, rm } = project(script, exec);
+      try {
+        await expect(mcpTools(dir)).rejects.toThrow(why);
+      } finally {
+        rm();
+      }
+    }
+  });
+  it(`stops a server that never answers after ${MCP_TIMEOUT_MS / 1000} s, failing (on fake timers: no test waits on the clock)`, async () => {
+    const { dir, rm } = project("exec cat >/dev/null");
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    try {
+      const listed = mcpTools(dir);
+      vi.advanceTimersByTime(MCP_TIMEOUT_MS);
+      await expect(listed).rejects.toThrow(`m3a mcp didn't answer tools/list within ${MCP_TIMEOUT_MS / 1000} s`);
+    } finally {
+      vi.useRealTimers();
+      rm();
+    }
   });
 });
