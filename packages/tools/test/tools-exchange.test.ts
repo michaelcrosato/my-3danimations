@@ -11,7 +11,12 @@
 // armature too; off, findings, under an uneven scale) and BVH, each read back through io within 1 mm, the VRMA then
 // imported again, and the BVH jittered, from an absolute path, past the fit limits, its hint naming the catalog as given
 // (a name the shell would split too), as export's names a clip file, and an absolute character path by its placeholder.
-import { cpSync, mkdirSync, readdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+// What one import fits, bounded before it fits (a 130 s take skipped, 501 picks and 300 s of picks refused); io's
+// refusals naming the file by its path; a glTF whose bones' names no map knows said by list and refused by import
+// (E_RIG), each with the calls that take it by its shape; the license and credit a VRMA m3a wrote carries (a
+// contradicting --license refused, a known id in another case too, its credit kept); export's file named by the clip
+// and the character, a .bvh's license line; a second import into a set saying it replaced the first's clips.
+import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { openLibrary } from "@m3a/library/node";
 import { describe, expect, it } from "vitest";
@@ -26,6 +31,19 @@ import { exampleCwd, hintedCalls, runExamples } from "./helpers/surfaces.ts";
 const RIG = "spec/vectors/tier1b/rig.gltf", RIGIFY = "spec/vectors/tier1b/rigify.gltf", WALK = "QUATERNIUS_3D2DGE/Walk_Loop", OUT = "check-output/export/QUATERNIUS_3D2DGE_Walk_Loop";
 const refused = (r: Reply) => [r.status, r.error?.code, r.error?.message];
 type Data = Record<string, unknown> & { clips: { id: string; dur: number; keys: number; fit: number[] }[] };
+
+/** Tier 1b's rig as text with Wave_Loop's last key at `t` s (its first sampler's time accessor: the last value and max). */
+function longWave(text: string, t: number): string {
+  type Doc = { animations: { name: string; samplers: { input: number }[] }[]; accessors: { bufferView: number; byteOffset?: number; count: number; max?: number[] }[]; bufferViews: { byteOffset?: number }[]; buffers: { uri: string }[] };
+  const j = JSON.parse(text) as Doc, buf = Buffer.from(j.buffers[0]!.uri.split(",")[1]!, "base64"), an = j.animations.find((x) => x.name === "Wave_Loop")!;
+  const acc = j.accessors[an.samplers[0]!.input]!, at = (j.bufferViews[acc.bufferView]!.byteOffset ?? 0) + (acc.byteOffset ?? 0) + 4 * (acc.count - 1);
+  buf.writeFloatLE(t, at);
+  acc.max = [t];
+  j.buffers[0]!.uri = `data:application/octet-stream;base64,${buf.toString("base64")}`;
+  return JSON.stringify(j);
+}
+/** A .glb's (or .vrma's) JSON chunk. */
+const glbJson = (b: Buffer) => JSON.parse(b.subarray(20, 20 + b.readUInt32LE(12)).toString("utf8")) as { asset: { copyright?: string } };
 
 /** Runs `body` with calls into one fresh working directory (seeded), its host too, deleted after. */
 async function inCwd(body: (call: (tool: string, args: object) => Promise<Reply>, cwd: string, host: Host) => Promise<void>): Promise<void> {
@@ -176,15 +194,15 @@ describe("exchange", () => {
       };
       const vrma = await out({});
       expect(vrma.slice(0, 3)).toEqual(["ok", "reads back byte for byte", null]);
-      expect(vrma[3]).toMatchObject({ file: `${OUT}.vrma`, license: { spdx: "CC0-1.0", tier: "cc0", credit: null } });
+      expect(vrma[3]).toMatchObject({ file: `${OUT}-on-rig.vrma`, license: { spdx: "CC0-1.0", tier: "cc0", credit: null } });
       // a clip file whose name the shell would split: license.check's clips take it as given
       cpSync(join(cwd, "library/sets/QUATERNIUS_3D2DGE/A_TPose.json"), join(cwd, "my pose.json"));
       const pose = await call("export", { clip: "my pose.json", character: RIG });
       expect([pose.status, hintedCalls(pose.next).map((h) => h.args)]).toEqual(["ok", [{ clips: ["my pose.json"] }]]);
       // Rigify's .gltf (its soles' end bones have no node), the tiny rig (no file: its own document), BVH on rig.gltf
-      for (const [args, ext] of [[{ format: "glb", character: RIGIFY }, "glb"], [{ format: "glb", character: "tiny" }, "glb"], [{ format: "bvh" }, "bvh"]] as const) {
+      for (const [args, ext] of [[{ format: "glb", character: RIGIFY }, "on-rigify.glb"], [{ format: "glb", character: "tiny" }, "on-tiny.glb"], [{ format: "bvh" }, "on-rig.bvh"]] as const) {
         const [status, check, gap, data] = await out(args);
-        expect([status, data.file, check]).toEqual(["ok", `${OUT}.${ext}`, expect.stringMatching(/^read back, its joints within 0\.0\d\d mm$/)]);
+        expect([status, data.file, check]).toEqual(["ok", `${OUT}-${ext}`, expect.stringMatching(/^read back, its joints within 0\.0\d\d mm$/)]);
         expect(gap).toBeLessThan(1);
       }
       // a node above the bones scaled unevenly shears them as they turn, which no glTF animation follows: findings
@@ -204,12 +222,12 @@ describe("exchange", () => {
       const many = await call("export", { clip: WALK, character: "vrm.gltf", mapping: { bones: { hips: "pelvis" } } });
       expect(many.lines.find((l) => l.startsWith("more:"))).toBe(`more: 12 character issues (\`retarget.inspect vrm.gltf --mapping '{"bones":{"hips":"pelvis"}}'\` lists them)`);
       // what export wrote reads as motion again: the VRMA by its humanoid, the BVH (below) by Unreal's names
-      const vr = await call("import", { path: `${OUT}.vrma`, set: "VBACK", license: "CC0-1.0" });
+      const vr = await call("import", { path: `${OUT}-on-rig.vrma`, set: "VBACK", license: "CC0-1.0" });
       expect([vr.status, (vr.data as Data).rig, (vr.data as Data).clips.map((c) => c.id)]).toEqual(["ok", "gltf:vrm", ["VBACK/QUATERNIUS_3D2DGE_Walk_Loop"]]);
       // the BVH jittered (turns by up to 75°, places by up to 7.5 cm), from an absolute path, its catalog from one:
       // past the fit limits, so findings; the manifest names the file by its own name alone, the hint neither path
       let seed = 7;
-      const rnd = () => (seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648 - 0.5, [head, motion] = readFileSync(join(cwd, `${OUT}.bvh`), "utf8").split("MOTION\n");
+      const rnd = () => (seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648 - 0.5, [head, motion] = readFileSync(join(cwd, `${OUT}-on-rig.bvh`), "utf8").split("MOTION\n");
       const jitter = motion!.split("\n").map((l, i) => (i < 2 || !l.trim() ? l : l.split(" ").map((x, k) => (Number(x) + (k < 3 ? 15 : 150) * rnd()).toFixed(4)).join(" ")));
       writeFileSync(join(cwd, "jitter.bvh"), `${head}MOTION\n${jitter.join("\n")}`);
       for (const f of ["none.json", "my cat.json"]) writeFileSync(join(cwd, f), "{}");
@@ -232,5 +250,65 @@ describe("exchange", () => {
       expect(refused(await call("export", { clip: WALK, character: RIG, format: "fbx" }))).toEqual(["usage", "E_ARGS", expect.stringMatching(/^format is "fbx", not one of vrma, glb, bvh/)]);
       expect(refused(await call("export", { clip: WALK, character: "chain.gltf" }))).toEqual(["error", "E_RIG", expect.stringMatching(/^chain\.gltf: no humanoid bone recognized/)]);
       expect(refused(await call("export", { clip: WALK, character: "spec/vectors/tier1b/rig-catalog.json" }))).toEqual(["usage", "E_ARGS", expect.stringMatching(/is not a character/)]);
+    }));
+
+  it("bounds what one import fits before fitting; names io's refusals by the path; says and refuses a glTF whose bones' names no map knows", () =>
+    inCwd(async (call, cwd) => {
+      // a take past 120 s skipped (findings: the reply says how to cut it), the others imported
+      writeFileSync(join(cwd, "long wave.gltf"), longWave(readFileSync(join(cwd, RIG), "utf8"), 130));
+      const long = await call("import", { path: "long wave.gltf", set: "LONG", license: "CC0-1.0" }), d = long.data as Data & { skipped: object[] };
+      expect([long.status, d.clips.map((c) => c.id), d.skipped]).toEqual(["findings", ["LONG/A_TPose", "LONG/Step_RM"], [{ name: "Wave_Loop", why: `130 s long, past the 120 s one import fits; cut it with the catalog's "$pick" [take, from s, to s]` }]]);
+      expect([long.verdict, long.next.split(",")[0]]).toEqual([expect.stringMatching(/; 1 skipped$/), 'cut a take with the catalog\'s "$pick"']);
+      // 501 picks of a frame each refused for their count, three of 100 s for their total, before any fit
+      const picks = (n: number, len: number) => JSON.stringify({ $pick: Object.fromEntries(Array.from({ length: n }, (_, i) => [`P${i}`, ["Wave_Loop", (i % 10) * 0.1, (i % 10) * 0.1 + len]])) });
+      expect(refused(await call("import", { path: "long wave.gltf", set: "LONG", license: "CC0-1.0", catalog: picks(501, 1 / 30) }))).toEqual(["usage", "E_ARGS", "501 takes to fit, past the 500 one import fits; $skip some, or import them in parts into other sets"]);
+      expect(refused(await call("import", { path: "long wave.gltf", set: "LONG", license: "CC0-1.0", catalog: picks(3, 100) }))).toEqual(["usage", "E_ARGS", expect.stringMatching(/^the takes to fit last 300(\.\d)? s in all, past the 240 s one import fits; \$skip some, or import them in parts into other sets$/)]);
+      // io's refusals name the file by its path as given: two files of one name in two directories read apart
+      mkdirSync(join(cwd, "motions"));
+      writeFileSync(join(cwd, "motions/bad.glb"), "this is no binary glTF, only text");
+      expect(refused(await call("import", { path: "motions/bad.glb", list: true }))).toEqual(["error", "E_FORMAT", expect.stringMatching(/^motions\/bad\.glb: not a binary glTF/)]);
+      // a glTF whose bones' names no bone map knows (tier 1b's rig, every name reversed): list says import refuses it,
+      // and import does (E_RIG, by io's code), each offering the calls that take it by its shape
+      const rev = JSON.parse(readFileSync(join(cwd, RIG), "utf8")) as { nodes: { name: string }[] };
+      for (const n of rev.nodes) n.name = `b_${[...n.name].reverse().join("")}`;
+      writeFileSync(join(cwd, "odd rig.gltf"), JSON.stringify(rev));
+      const shape = "`retarget.inspect 'odd rig.gltf'` binds it by its shape, if it is a character; `export QUATERNIUS_3D2DGE/Walk_Loop --character 'odd rig.gltf'` plays a library clip on it";
+      const [listed, odd] = [await call("import", { path: "odd rig.gltf", list: true }), await call("import", { path: "odd rig.gltf", license: "CC0-1.0" })];
+      expect([listed.status, listed.verdict, listed.data, listed.next]).toEqual(["ok", "import 'odd rig.gltf': 3 animations, rig: none import knows by its bone names; import refuses it; nothing written", expect.objectContaining({ rig: null }), shape]);
+      expect([...refused(odd), odd.next]).toEqual(["error", "E_RIG", "'odd rig.gltf': its bones' names match none import knows (MotionBuilder's and Mixamo's Hips, Spine, LeftUpLeg ..., Unreal's, Rigify's, 100STYLE's, Bandai Namco's); import reads a file by its bone names only", shape]);
+      expect([...hintedCalls(listed.next), ...hintedCalls(odd.next)].filter((h) => h.problem)).toEqual([]);
+      // one whose names a bone map knows though no table does (MotionBuilder's): list places it as import would read it
+      const mb: Record<string, string> = { pelvis: "Hips", spine_01: "Spine", spine_02: "Spine1", spine_03: "Spine2", neck_01: "Neck", head_leaf: "HeadTop_End" };
+      for (const [s, S] of [["l", "Left"], ["r", "Right"]]) {
+        Object.assign(mb, Object.fromEntries(Object.entries({ clavicle: "Shoulder", upperarm: "Arm", lowerarm: "ForeArm", hand: "Hand", index_01: "HandIndex1", middle_01: "HandMiddle1", middle_02: "HandMiddle2", pinky_01: "HandPinky1", thigh: "UpLeg", calf: "Leg", foot: "Foot", ball: "ToeBase", ball_leaf: "Toe_End" }).map(([u, m]) => [`${u}_${s}`, `${S}${m}`])));
+      }
+      const placed = JSON.parse(readFileSync(join(cwd, RIG), "utf8")) as { nodes: { name: string }[] };
+      for (const n of placed.nodes) n.name = mb[n.name] ?? n.name;
+      writeFileSync(join(cwd, "placed.gltf"), JSON.stringify(placed));
+      const known = await call("import", { path: "placed.gltf", list: true });
+      expect([known.verdict, known.next]).toEqual(["import placed.gltf: 3 animations, rig gltf:motionbuilder; nothing written", "`import placed.gltf --license <license>` fits them into imports/IMPORT/"]);
+    }));
+
+  it("reads the license and credit a VRMA m3a wrote carries; names export's file by the clip and the character, a .bvh's license line; says an import replaced another's clips", () =>
+    inCwd(async (call, cwd) => {
+      // a CC-BY clip exported as VRMA carries its license (each animation's extras) and its credit (the asset's copyright)
+      writeFileSync(join(cwd, "game.json"), JSON.stringify({ tiers: ["cc0", "cc-by"] }));
+      const vrma = ((await call("export", { clip: "STYLE100/Akimbo_Walk", character: RIG })).data as { file: string }).file, copyright = glbJson(readFileSync(join(cwd, vrma))).asset.copyright;
+      expect([vrma, copyright]).toEqual(["check-output/export/STYLE100_Akimbo_Walk-on-rig.vrma", "100STYLE, Mason, Starke and Komura (CC BY 4.0)"]);
+      // a --license that contradicts it refused, its fix a flag to set on the same call; a known id in another case too
+      const args = { path: vrma, set: "AKIMBO", license: "CC0-1.0" }, wrong = await call("import", args), lower = await call("import", { ...args, license: "cc0-1.0" });
+      expect(refused(wrong)).toEqual(["usage", "E_ARGS", "the file says its animations are CC-BY-4.0 (each animation's extras.license); --license CC0-1.0 contradicts it: pass `--license CC-BY-4.0`"]);
+      expect(refused(lower)).toEqual(["usage", "E_ARGS", 'license "cc0-1.0" is CC0-1.0 in another case, and the library reads an id exactly: did you mean `--license CC0-1.0`?']);
+      expect([wrong, lower].map((r) => hintedCalls(r.error!.message, { tool: "import", args }).map((h) => h.args?.license))).toEqual([["CC-BY-4.0"], ["CC0-1.0"]]);
+      // under its own license, its credit is the file's, so the authors are kept
+      const back = await call("import", { ...args, license: "CC-BY-4.0" }), m = JSON.parse(readFileSync(join(cwd, "imports/AKIMBO/_set.json"), "utf8")) as { credit: string; sources: { AKIMBO: { credit: string } } };
+      expect([back.error, m.credit, m.sources.AKIMBO.credit]).toEqual([null, copyright, copyright]);
+      // one clip on two characters: two files; a .bvh says it carries no license or credit
+      const [onRig, onTiny] = [await call("export", { clip: WALK, character: RIG, format: "bvh" }), await call("export", { clip: WALK, character: "tiny", format: "bvh" })];
+      const files = [onRig, onTiny].map((r) => (r.data as { file: string }).file);
+      expect([files, files.map((f) => existsSync(join(cwd, f))), onRig.lines[1]]).toEqual([[`${OUT}-on-rig.bvh`, `${OUT}-on-tiny.bvh`], [true, true], "the .bvh carries no license or credit: keep this reply's license line with it"]);
+      // a second file imported into IMPORT replaces the first's clips: the verdict says so, as its line and data do
+      const [first, second] = [await call("import", { path: files[0]!, license: "CC0-1.0" }), await call("import", { path: RIG, license: "CC0-1.0" })];
+      expect([first.verdict.includes("replaced"), second.verdict, (second.data as { removed?: number }).removed]).toEqual([false, expect.stringMatching(/; replaced 1 clip file an earlier import wrote$/), 1]);
     }));
 });

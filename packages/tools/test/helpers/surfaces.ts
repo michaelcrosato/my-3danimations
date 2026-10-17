@@ -74,6 +74,10 @@ function set(made: { tool: string; args: Record<string, unknown> }, flags: strin
   return [...commandLine(tools.get(made.tool)!, Object.fromEntries(Object.entries(made.args).filter(([k]) => !own.has(k)))), ...flags];
 }
 
+/** How long one example's test may take (ms): its four surfaces each run the tool (graph.sim's example takes about
+ *  2.2 s alone here, and went past Vitest's 5 s default under T1's parallel load). CPU work, never a wait. */
+const EXAMPLE_MS = 30_000;
+
 /** Registers the group's tests: every tool described the same on every surface, then one test per example. */
 export function runExamples(group: readonly Tool[]): void {
   it(`${group.map((t) => t.name).join(", ")}: the same name, description and schema on every surface`, () => {
@@ -109,7 +113,7 @@ export function runExamples(group: readonly Tool[]): void {
         } finally {
           rm();
         }
-      });
+      }, EXAMPLE_MS);
     }
   }
 }
