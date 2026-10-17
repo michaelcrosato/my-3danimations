@@ -99,3 +99,17 @@ these points were not:
   (1.2 MB). Take it up when a test-hygiene pass touches the doctrine tests.
 - **F4.6** (watch) Vectors use 9.78 of the 10 MB committed budget; WP-10.2's conformance kit must generate rather than
   commit where it can.
+
+### F5 · 2026-10-17 · WP-7.3's and WP-7.4's reviews, and B1's rerun (the same model family)
+
+Acted on in D100 and D101; these points were not:
+
+- **F5.1** (WP sizes, reached) WP-7.3 came to about 1,500 lines and WP-7.4 to about 1,720, both past M's 1,200,
+  mostly tests. A third source for the theme (F1, F4, F5): 8.2 and 9.1 are measured before they start.
+- **F5.2** (deferred) The manual doesn't say which package exports `LibraryError` or that its code is on `.code`; at
+  7,998 of 8,000 tokens it has no room. Take it up with the next manual change, cutting first.
+- **F5.3** (deferred) T2 doesn't run `npm run pack -- --check` or load `m3a.js` in Chromium; G7's set runs pack
+  --check. Take it up if a packaging change slips between gates.
+- **F5.4** (deferred) 30 library loops have no detected foot contacts; agents that pick one can't match its speed
+  (B1). The next session fixes them before G7 (HANDOFF).
+
