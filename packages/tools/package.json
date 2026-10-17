@@ -5,12 +5,21 @@
   "description": "The tool registry, the m3a CLI and the MCP server.",
   "license": "MIT",
   "type": "module",
+  "//": "The workspace runs src/ directly (Node 24 strips the types); npm run pack (tools/bundle) stages this package with its exports pointed at dist/, where its types and the m3a bin are.",
   "exports": {
     ".": "./src/index.ts",
     "./node": "./src/node.ts"
   },
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "MANUAL.md"
+  ],
   "bin": {
-    "m3a": "./src/node.ts"
+    "m3a": "./dist/node.js"
+  },
+  "engines": {
+    "node": ">=24.2"
   },
   "dependencies": {
     "@m3a/core": "0.48.0",
