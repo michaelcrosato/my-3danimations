@@ -2,8 +2,8 @@
 // copy (WORKSHOP/Name: workshop/Name.json, its origin and rest kept in its history while that history is the file's), a
 // .json path, or the clip's JSON. A file or JSON clip is checked with @m3a/core's validator and takes its rest from a
 // set's manifest. A refusal names the closest id, or the game.json line that opts in to a tier. And a recipe resolver
-// over the library and the workshop, with the bounds on a recipe (its running length, steps, samples, and the list
-// points its steps read at each sample) that compiling it needs.
+// over the library and the workshop, with the bounds on a recipe (its running length, steps, samples, the samples its
+// clip's keys are fitted to, and the list points its steps read at each sample) that compiling it needs.
 import { format, recipe, validate, validation, type Clip, type Rest } from "@m3a/core";
 import { LibraryError, tierOf, type SourceAbout, type Tier } from "@m3a/library";
 import { ToolError, type LibraryAccess, type ToolContext } from "../registry/registry.ts";
@@ -214,7 +214,8 @@ export const MAX_RECIPE_STEPS = 64;
  * widest window (5 s), costs about 0.57 ms a sample at 120 fps here (on a 60 s track at 120 fps: 4.1 s a step; look
  * 0.05 ms a sample, stiffen 0.04, the others under 0.004); the verifier's 600 s track at 120 fps took about 37 s a
  * smooth step, ten of them 371 s. At this limit the heaviest recipe (64 steps, nearly all smooths over 5 s at 120 fps,
- * on a 13 s track) takes about 60 s here; spec/recipes/* and the bench starters' recipes build a few thousand.
+ * on a 13 s track) takes about 60 s here to build its steps, its key fit apart (MAX_FIT_SAMPLES); spec/recipes/* and
+ * the bench starters' recipes build a few thousand.
  */
 export const MAX_STEP_SAMPLES = 100_000;
 /**
@@ -227,6 +228,40 @@ export const MAX_STEP_SAMPLES = 100_000;
  * about 0.6 s; spec/recipes/* and the bench starters' recipes read a few thousand.
  */
 export const MAX_LIST_READS = 100_000_000;
+/**
+ * The most samples one call fits a clip's keys to: the recipe's last step's length times its fps. Core's key fit
+ * (compile.ts keysOf) measures every frame again each time it adds a key, so its cost grows with the samples times the
+ * keys it adds, about with the square of the samples where a motion's keys can't meet the 30 mm budget. Measured here
+ * through core's compile, sequences of one clip's copies, fade 0: QUATERNIUS_3D2DGE/Walk_Loop 30, 60, 90 and 120 s at
+ * 30 fps took 1.1, 5.5, 14.0 and 22.8 s; QUATERNIUS_3D2DGE/Jog_Fwd_Loop 120 s at 30 fps 31.6 s, and 30 s at 120 fps
+ * (3,583 samples) 52.9 s. Every library clip so sequenced to about 30 s at 30 fps (1,389 clips, about 900 samples) took
+ * 6.8 s at most (QUATERNIUS_SHARDFALL/NinjaJump_Start, 712 keys of 899 samples), and to about 5 s at 120 fps (1,253;
+ * those whose turns pass the format's yaw left out) 0.24 s. That densest one at this limit, 120 s at 30 fps (3,410 keys
+ * of 3,597 samples), took 111.9 s (60 s: 21.4 s): keys can't outnumber samples, so about 2 minutes is the most one call
+ * fits here (a fit linear in its keys is core's to make). At this limit a recipe at 30 fps makes a clip of at most 2
+ * minutes, as long as the longest take one import fits (exchange.ts MAX_TAKE), and one at 120 fps half a minute;
+ * spec/recipes/* and the bench starters' recipes make a few seconds.
+ */
+export const MAX_FIT_SAMPLES = 3_600;
+/** How bounded's refusals name what the call asked for, and what its caller can change: a recipe's steps and fps
+ *  (recipe.compile), or an edit's ops on its clip (change.ts). */
+export interface Asked {
+  /** What built the samples, given the recipe's steps ("the recipe's 12 steps"), or not ("the recipe's steps"). */
+  all(steps?: number): string;
+  /** How to build fewer samples in all. */
+  fewer: string;
+  /** What else reads fewer list points (", or a lower fps"), or "". */
+  lower: string;
+  /** How to make a clip short enough for its keys to be fitted in one call. */
+  shorter: string;
+}
+/** A recipe's words (recipe.compile): its steps and its fps. */
+export const RECIPE_ASKED: Asked = {
+  all: (steps) => `the recipe's ${steps === undefined ? "steps" : count(steps, "step")}`,
+  fewer: "use fewer steps, or a lower fps",
+  lower: ", or a lower fps",
+  shorter: "make it shorter (a graph plays parts in turn), or at a lower fps",
+};
 /** The list a recipe step reads through at each of its samples (MAX_LIST_READS), as the reply names it, or none. */
 function listOf(s: recipe.Step): { points: number; what: string; fix: string } | undefined {
   const of = (v: unknown, what: string, fix: string) => (Array.isArray(v) ? { points: v.length, what, fix } : undefined);
@@ -236,18 +271,20 @@ function listOf(s: recipe.Step): { points: number; what: string; fix: string } |
 /**
  * Refuses (usage E_ARGS) a recipe one of whose steps runs past the most a clip may last (format.LIMITS.dur, M2-E010),
  * naming the step (`where`): compile builds each step's track in full, so slow retimes or a long sequence would run out
- * of memory long before the result's own check. And one of more than MAX_RECIPE_STEPS steps, or whose steps build more
- * than MAX_STEP_SAMPLES samples in all (each step's length times the recipe's fps), naming the total: its cost; or read
- * more than MAX_LIST_READS list points (a pin's path, a blend's weight curve, a sequence's items, each at every sample
- * of its step), naming the step that reads most. A step's length: a clip's span of the clip `clipOf` gives (none: 0,
- * for compile to name), a sequence its items' sum, a blend its longer input, a layer its base, a retime its input over
- * its speed (or its dur), any other step its input's.
+ * of memory long before the result's own check. And one of more than MAX_RECIPE_STEPS steps; or whose steps build more
+ * than MAX_STEP_SAMPLES samples in all (each step's length times the recipe's fps), naming the total; or read more than
+ * MAX_LIST_READS list points (a pin's path, a blend's weight curve, a sequence's items, each at every sample of its
+ * step), naming the step that reads most; or whose clip, its last step, is longer than MAX_FIT_SAMPLES samples (its
+ * length times the fps), naming that step: its key fit's cost. Each names what the call can change as `asked` words it
+ * (a recipe's steps and fps by default). A step's length: a clip's span of the clip `clipOf` gives (none: 0, for
+ * compile to name), a sequence its items' sum, a blend its longer input, a layer its base, a retime its input over its
+ * speed (or its dur), any other step its input's.
  */
-export function bounded(r: recipe.Recipe, clipOf: (id: string) => Clip | undefined, where = (step: number) => `step ${step}`): void {
+export function bounded(r: recipe.Recipe, clipOf: (id: string) => Clip | undefined, where = (step: number) => `step ${step}`, asked: Asked = RECIPE_ASKED): void {
   const most = format.LIMITS.dur, named = new Map<string, number>(), len = (n: unknown) => named.get(n as string) ?? 0;
   if (r.steps.length > MAX_RECIPE_STEPS) throw new ToolError("E_ARGS", `the recipe has ${r.steps.length} steps, past the ${MAX_RECIPE_STEPS} one call compiles; use fewer steps`, true);
   const fps = typeof r.fps === "number" ? r.fps : 30;
-  let samples = 0, reads = 0, worst: { step: number; op: string; reads: number; samples: number; list: NonNullable<ReturnType<typeof listOf>> } | null = null;
+  let samples = 0, reads = 0, last = 0, worst: { step: number; op: string; reads: number; samples: number; list: NonNullable<ReturnType<typeof listOf>> } | null = null;
   for (const [k, s] of r.steps.entries()) {
     const c = s.op === "clip" ? clipOf(String(s.id)) : undefined, num = (v: unknown, or: number) => (typeof v === "number" ? v : or);
     const dur = s.op === "clip" ? (c ? num(s.to, c.dur) - num(s.from, 0) : 0)
@@ -261,15 +298,21 @@ export function bounded(r: recipe.Recipe, clipOf: (id: string) => Clip | undefin
     const why = s.op === "retime" ? "retime it less slowly, or slice it first" : "use fewer or shorter clips";
     if (dur > most) throw new ToolError("E_ARGS", `${where(k + 1)}: ${s.op} makes the clip ${Math.round(dur)} s long, past the ${most} s a clip may last (M2-E010); ${why}`, true);
     samples += Math.max(0, dur) * fps;
+    last = dur;
     const list = listOf(s), at = Math.ceil(Math.max(0, dur) * fps), read = (list?.points ?? 0) * at;
     reads += read;
     if (list && (!worst || read > worst.reads)) worst = { step: k + 1, op: String(s.op), reads: read, samples: at, list };
   }
-  if (samples > MAX_STEP_SAMPLES) throw new ToolError("E_ARGS", `the recipe's ${count(r.steps.length, "step")} build ${Math.ceil(samples)} samples in all (each step's length times ${fps} fps), past the ${MAX_STEP_SAMPLES} one call compiles; use fewer steps, or a lower fps`, true);
+  const n = r.steps.length;
+  if (samples > MAX_STEP_SAMPLES) throw new ToolError("E_ARGS", `${asked.all(n)} build ${Math.ceil(samples)} samples in all (each step's length times ${fps} fps), past the ${MAX_STEP_SAMPLES} one call compiles; ${asked.fewer}`, true);
   if (worst && reads > MAX_LIST_READS) {
-    const w = worst, all = reads > w.reads ? `; the recipe's steps read ${reads} in all` : "";
-    throw new ToolError("E_ARGS", `${where(w.step)}: ${w.op} reads ${w.list.what.replace("N", String(w.list.points))} at each of its ${w.samples} samples, ${w.reads} list points${all}, past the ${MAX_LIST_READS} one call compiles; use ${w.list.fix}, or a lower fps`, true);
+    const w = worst, all = reads > w.reads ? `; ${asked.all()} read ${reads} in all` : "";
+    throw new ToolError("E_ARGS", `${where(w.step)}: ${w.op} reads ${w.list.what.replace("N", String(w.list.points))} at each of its ${w.samples} samples, ${w.reads} list points${all}, past the ${MAX_LIST_READS} one call compiles; use ${w.list.fix}${asked.lower}`, true);
   }
+  // the clip compile writes is its last step's track, its keys fitted to each of its samples (a float's error aside: a
+  // span from 0.3 to 120.3 s at 30 fps is 3,600)
+  const fitted = Math.ceil(Math.max(0, last) * fps - 1e-6);
+  if (fitted > MAX_FIT_SAMPLES) throw new ToolError("E_ARGS", `${where(n)}: ${r.steps[n - 1]!.op} makes the clip ${Math.round(last * 10) / 10} s long, ${fitted} samples at ${fps} fps, past the ${MAX_FIT_SAMPLES} one call fits keys to (${Math.round((MAX_FIT_SAMPLES / fps) * 10) / 10} s at ${fps} fps); ${asked.shorter}`, true);
 }
 
 /** A recipe resolver over the library (at the game's tiers) and the workshop. A resolver answers at once, so the

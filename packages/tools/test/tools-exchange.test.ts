@@ -15,8 +15,10 @@
 // refusals naming the file by its path; a glTF whose bones' names no map knows said by list and refused by import
 // (E_RIG), each with the calls that take it by its shape, and one whose names follow a map but lack its joints said and
 // refused naming them (io's reason); the license and credit a VRMA m3a wrote carries (a
-// contradicting --license refused, a known id in another case too, its credit kept); export's file named by the clip
-// and the character, a .bvh's license line; a second import into a set saying it replaced the first's clips.
+// contradicting --license refused, a known id in another case too, its credit kept), a composed clip's too (its ids
+// joined with " AND ": refused under one of them, its fix quoted, running as written; its ids compared as sets, case
+// aside; a free-text license noted, not compared); export's file named by the clip and the character, a .bvh's
+// license line; a second import into a set saying it replaced the first's clips.
 import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { openLibrary } from "@m3a/library/node";
@@ -26,7 +28,7 @@ import { libraryAccess, MAX_OPEN, openCount } from "../src/node/library.ts";
 import { nodeHost } from "../src/node.ts";
 import { Registry, type Host, type Reply } from "../src/registry/index.ts";
 import { exportClip, importMotion } from "../src/tools/exchange.ts";
-import { EXCHANGE, SHIP } from "../src/tools/index.ts";
+import { COMPOSE, EXCHANGE, SHIP } from "../src/tools/index.ts";
 import { exampleCwd, hintedCalls, runExamples } from "./helpers/surfaces.ts";
 
 const RIG = "spec/vectors/tier1b/rig.gltf", RIGIFY = "spec/vectors/tier1b/rigify.gltf", WALK = "QUATERNIUS_3D2DGE/Walk_Loop", OUT = "check-output/export/QUATERNIUS_3D2DGE_Walk_Loop";
@@ -45,10 +47,19 @@ function longWave(text: string, t: number): string {
 }
 /** A .glb's (or .vrma's) JSON chunk. */
 const glbJson = (b: Buffer) => JSON.parse(b.subarray(20, 20 + b.readUInt32LE(12)).toString("utf8")) as { asset: { copyright?: string } };
+/** A .glb (or .vrma) with each animation's extras.license set to `license`: its JSON chunk written again, padded with
+ *  spaces to 4 bytes, the header's lengths with it. */
+function licensed(b: Buffer, license: string): Buffer {
+  const j = glbJson(b) as unknown as { animations: { extras: { license?: string } }[] }, rest = b.subarray(20 + b.readUInt32LE(12)), head = Buffer.alloc(20);
+  for (const an of j.animations) an.extras.license = license;
+  const text = Buffer.from(JSON.stringify(j)), json = Buffer.concat([text, Buffer.alloc((4 - (text.length % 4)) % 4, 0x20)]);
+  [[0x46546c67, 0], [2, 4], [20 + json.length + rest.length, 8], [json.length, 12], [0x4e4f534a, 16]].forEach(([v, at]) => head.writeUInt32LE(v!, at));
+  return Buffer.concat([head, json, rest]);
+}
 
 /** Runs `body` with calls into one fresh working directory (seeded), its host too, deleted after. */
 async function inCwd(body: (call: (tool: string, args: object) => Promise<Reply>, cwd: string, host: Host) => Promise<void>): Promise<void> {
-  const { cwd, rm } = exampleCwd(), reg = new Registry([...EXCHANGE, ...SHIP]), host = nodeHost(cwd);
+  const { cwd, rm } = exampleCwd(), reg = new Registry([...EXCHANGE, ...SHIP, ...COMPOSE]), host = nodeHost(cwd);
   try {
     await body((tool, args) => reg.call(tool, args, { host }), cwd, host);
   } finally {
@@ -276,7 +287,7 @@ describe("exchange", () => {
       const shape = "`retarget.inspect 'odd rig.gltf'` binds it by its shape, if it is a character; `export QUATERNIUS_3D2DGE/Walk_Loop --character 'odd rig.gltf'` plays a library clip on it";
       const [listed, odd] = [await call("import", { path: "odd rig.gltf", list: true }), await call("import", { path: "odd rig.gltf", license: "CC0-1.0" })];
       expect([listed.status, listed.verdict, listed.data, listed.next]).toEqual(["ok", "import 'odd rig.gltf': 3 animations, rig: none import knows by its bone names; import refuses it; nothing written", expect.objectContaining({ rig: null }), shape]);
-      expect([...refused(odd), odd.next]).toEqual(["error", "E_RIG", "'odd rig.gltf': its bones' names match none import knows (MotionBuilder's and Mixamo's Hips, Spine, LeftUpLeg ..., Unreal's, Rigify's, 100STYLE's, Bandai Namco's, VRM's); import reads a file by its bone names only", shape]);
+      expect([...refused(odd), odd.next]).toEqual(["error", "E_RIG", "'odd rig.gltf': its bones' names match none import knows (MotionBuilder's and Mixamo's Hips, Spine, LeftUpLeg ..., Unreal's, Rigify's, 100STYLE's, Bandai Namco's, VRM's humanoid bones); import reads a file by its bone names only", shape]);
       expect([...hintedCalls(listed.next), ...hintedCalls(odd.next)].filter((h) => h.problem)).toEqual([]);
       // its first animation unreadable (CUBICSPLINE in-betweens): list can't tell, and says no more than that
       const spline = JSON.parse(JSON.stringify(rev)) as { animations: { samplers: { interpolation?: string }[] }[] };
@@ -320,6 +331,30 @@ describe("exchange", () => {
       // under its own license, its credit is the file's, so the authors are kept
       const back = await call("import", { ...args, license: "CC-BY-4.0" }), m = JSON.parse(readFileSync(join(cwd, "imports/AKIMBO/_set.json"), "utf8")) as { credit: string; sources: { AKIMBO: { credit: string } } };
       expect([back.error, m.credit, m.sources.AKIMBO.credit]).toEqual([null, copyright, copyright]);
+      // a composed clip's license (D10: its inputs' ids joined with " AND "), as m3a's export writes it: refused under one
+      // of its ids, the fix a flag quoted for the shell, which runs as written and imports it, its ids and credit kept
+      writeFileSync(join(cwd, "game.json"), JSON.stringify({ tiers: ["cc0", "cc-by", "cmu"] }));
+      const mixed = (await call("recipe.compile", { recipe: JSON.stringify({ format: "2.0", id: "RECIPES/Mixed", steps: [{ op: "clip", id: "STYLE100/Akimbo_Walk", to: 0.6 }, { op: "clip", id: "CMU_CURATED/Answer_Phone", to: 0.6 }, { op: "sequence", items: ["s1", "s2"] }] }) })).data as { path: string; license: string; credit: string };
+      const both = "CC-BY-4.0 AND LicenseRef-CMU-Mocap", composed = ((await call("export", { clip: mixed.path, character: RIG })).data as { file: string }).file;
+      const mix = { path: composed, set: "MIXED", license: "CC-BY-4.0" }, one = await call("import", mix);
+      expect([mixed.license, refused(one)]).toEqual([both, ["usage", "E_ARGS", `the file says its animations are ${both} (each animation's extras.license); --license CC-BY-4.0 contradicts it: pass \`--license '${both}'\``]]);
+      const [fix] = hintedCalls(one.error!.message, { tool: "import", args: mix }), taken = await call(fix!.tool!, fix!.args!);
+      // (its note: license.check, which reads a source's license as one id, fails the set; the library's to change)
+      const got = taken.data as { license: string; clips: { id: string }[]; notes: string[] };
+      expect([fix!.args!.license, taken.error, got.license, got.notes, openLibrary({ dir: join(cwd, "imports"), tiers: ["local"] }).clip(got.clips[0]!.id).clip.provenance]).toEqual([both, null, both, [expect.stringMatching(/^CC-BY-4\.0 AND LicenseRef-CMU-Mocap's text isn't in library\/LICENSES\/: license\.check/)], expect.objectContaining({ license: both, credit: mixed.credit })]);
+      // its ids compared as sets, case aside: the file's in another order and case taken as the call spells them (a fix
+      // spelling them as the library does), and a composed --license in another case refused naming its spelling
+      writeFileSync(join(cwd, "lower.vrma"), licensed(readFileSync(join(cwd, composed)), "licenseref-cmu-mocap AND cc-by-4.0"));
+      const low = { path: "lower.vrma", set: "LOWER", license: both }, wrong2 = await call("import", { ...low, license: "CC0-1.0" }), cased = await call("import", { ...low, license: "cc-by-4.0 AND LicenseRef-CMU-Mocap" });
+      expect([refused(wrong2)[2], refused(cased)[2], (await call("import", low)).error]).toEqual([
+        "the file says its animations are licenseref-cmu-mocap AND cc-by-4.0 (each animation's extras.license); --license CC0-1.0 contradicts it: pass `--license 'LicenseRef-CMU-Mocap AND CC-BY-4.0'`",
+        `license "cc-by-4.0 AND LicenseRef-CMU-Mocap" is ${both} in another case, and the library reads an id exactly: did you mean \`--license '${both}'\`?`, null]);
+      expect([wrong2, cased].map((r) => hintedCalls(r.error!.message, { tool: "import", args: low }).map((h) => [h.args?.license, h.problem]))).toEqual([[["LicenseRef-CMU-Mocap AND CC-BY-4.0", undefined]], [[both, undefined]]]);
+      // ids each SPDX's: a stray " AND " refused; a file's license that is no SPDX id can't contradict, and is noted
+      expect(refused(await call("import", { ...low, license: `${both} AND ` }))).toEqual(["usage", "E_ARGS", `license "${both} AND " is no SPDX id: CC0-1.0, CC-BY-4.0, ..., or LicenseRef-<name> for other terms; a composed clip's joins its ids with " AND "`]);
+      writeFileSync(join(cwd, "free.vrma"), licensed(readFileSync(join(cwd, composed)), "CC BY 4.0"));
+      const free = await call("import", { path: "free.vrma", set: "FREE", license: "CC-BY-4.0" });
+      expect([free.error, (free.data as { notes: string[] }).notes]).toEqual([null, ['the file\'s extras.license "CC BY 4.0" is no SPDX id: its clips carry CC-BY-4.0']]);
       // one clip on two characters: two files; a .bvh says it carries no license or credit
       const [onRig, onTiny] = [await call("export", { clip: WALK, character: RIG, format: "bvh" }), await call("export", { clip: WALK, character: "tiny", format: "bvh" })];
       const files = [onRig, onTiny].map((r) => (r.data as { file: string }).file);

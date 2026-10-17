@@ -3,13 +3,14 @@
 // manifest written as the library writes its own (@m3a/library's set writer), so the library opens it as a local set:
 // seen by a game that opts in to local, never shipped (D10); `list` names what the file holds and writes nothing, and
 // says when import refuses a glTF whose bones' names no bone map knows, or that lacks a joint the map its names follow
-// needs (naming it, as io does). What one import fits is bounded before it fits:
-// a take past MAX_TAKE is skipped, and takes past MAX_FIT in all, or past MAX_IMPORT_CLIPS, are refused. The license
-// and credit a glTF-family file carries (each animation's extras, the asset's copyright) are used: a --license that
-// contradicts them, or a known license id in another case, is refused. It writes and removes what the user keeps, so
-// MCP lists it as no read-only tool; it removes only a clip an import wrote, naming it (and saying so in its verdict),
-// and refuses a set whose directory holds any other .json. The manifest names the file by its own name (never a
-// path); replies name it as clips.ts does. `export` plays a clip on a character (bound through core) and writes it as
+// needs (naming it, as io does). What one import fits is bounded before it fits: a take past MAX_TAKE is skipped, and
+// takes past MAX_FIT in all, or past MAX_IMPORT_CLIPS, are refused. --license is an SPDX id, or a composed clip's ids
+// joined with " AND " (D10). The license and credit a glTF-family file carries (each animation's extras, the asset's
+// copyright) are used: a --license whose ids aren't the file's is refused, its fix the flag that takes them (ids
+// compared as sets, case aside), and so is a known license id in another case. It writes and removes what the user
+// keeps, so MCP lists it as no read-only tool; it removes only a clip an import wrote, naming it (and saying so in its
+// verdict), and refuses a set whose directory holds any other .json. The manifest names the file by its own name (never
+// a path); replies name it as clips.ts does. `export` plays a clip on a character (bound through core) and writes it as
 // .vrma, .glb (the character's own document with the animation added) or .bvh under check-output/export/, named by the
 // clip and the character, read back through io: the VRMA byte for byte, the others joint for joint (within 1 mm, else
 // findings, as is a file that couldn't be read back); with the clip's license and the credit it owes (any license but
@@ -22,7 +23,7 @@ import { quote } from "../registry/schema.ts";
 import { bodyOf, CHARACTER, characterName, MAPPING, type MappingPatch } from "./body.ts";
 import { boundHolds } from "./judge.ts";
 import { given, loadClip, naming, parts, prose } from "./clips.ts";
-import { ARROW, call, capped, CLIP, count, cut, fileOrJson, imageName, mm, more, output, round, sec } from "./common.ts";
+import { ARROW, arg, call, capped, CLIP, count, cut, fileOrJson, imageName, mm, more, output, round, sec } from "./common.ts";
 
 /** The motion files import reads, by extension. */
 const KINDS = ["gltf", "glb", "bvh", "vrma"];
@@ -34,11 +35,19 @@ const LIMITS = { mean: 40, worst: 300 } as const;
 const PRODUCER = { tool: "m3a import", version: VERSION };
 /** An SPDX license id, or a LicenseRef- for terms SPDX doesn't list (the library's rule). */
 const SPDX = /^(LicenseRef-[A-Za-z0-9.-]+|[A-Za-z0-9][A-Za-z0-9.+-]*)$/;
+/** Whether `license` is one SPDX id, or a composed clip's: ids joined with " AND " (D10, as recipe.compile and edit
+ *  write it, and m3a's exports carry it), each part an id (no other spacing). */
+const isLicense = (license: string): boolean => license.split(" AND ").every((p) => SPDX.test(p));
 /** The license ids the library knows: those D10's tier rule recognizes (tierOf: CC0-1.0, CC-BY-x.y,
  *  LicenseRef-CMU-Mocap) and those library/LICENSES/ keeps the text of (CC0-1.0, CC-BY-4.0, LicenseRef-CMU-Mocap). */
 const KNOWN = ["CC0-1.0", "CC-BY-4.0", "LicenseRef-CMU-Mocap"];
 /** The known license id `id` names in another case ("cc0-1.0": CC0-1.0), or undefined. */
 const knownAs = (id: string): string | undefined => (/^cc-by-\d\.\d$/i.test(id) ? `CC-BY-${id.slice(6)}` : KNOWN.find((k) => k.toLowerCase() === id.toLowerCase()));
+/** A license with each id as the library spells it (knownAs; any other as given), its parts joined as D10 joins them. */
+const spelt = (license: string): string => parts(license).map((p) => knownAs(p) ?? p).join(" AND ");
+/** A license's ids as a set (spelt, sorted, each once), so two that name the same ids compare equal: "CMU AND CC-BY"
+ *  is "CC-BY AND CMU", and case alone never tells two apart. */
+const idsOf = (license: string): string => [...new Set(parts(spelt(license)))].sort().join(" AND ");
 /**
  * The longest take (s) one import fits; a longer one is skipped, to be cut with the catalog's "$pick". Core's fit is
  * about quadratic in a take's length: measured here, 30, 60 and 120 s takes took 2.3, 6.5 and 21 s (re-measured: 120 s,
@@ -49,8 +58,8 @@ const MAX_TAKE = 120;
 const MAX_FIT = 240;
 /** The most takes one import fits: above the library's largest set (STYLE100_SIDE, 194 clips). */
 const MAX_IMPORT_CLIPS = 500;
-/** The bone maps import reads a file's names by (io's BVH reader's), as its refusal names them. */
-const MAPS = "MotionBuilder's and Mixamo's Hips, Spine, LeftUpLeg ..., Unreal's, Rigify's, 100STYLE's, Bandai Namco's, VRM's";
+/** The bone maps import reads a file's names by (io's BVH reader's), as its refusal names them (and io's E_RIG). */
+const MAPS = "MotionBuilder's and Mixamo's Hips, Spine, LeftUpLeg ..., Unreal's, Rigify's, 100STYLE's, Bandai Namco's, VRM's humanoid bones";
 /** Each of io's bone maps by its id (io's E_RIG names it so), as a refusal names its bones' names. */
 const MAP_NAMES: Record<string, string> = { motionbuilder: "MotionBuilder's (Mixamo's)", unreal: "Unreal's", rigify: "Rigify's", "100style": "100STYLE's", "bandai-namco": "Bandai Namco's", vrm: "VRM's" };
 /** What io's E_RIG says of a file whose bones' names one bone map follows but that lacks joints the map needs (its
@@ -209,10 +218,10 @@ export const importMotion = defineTool<{ path: string; set: string; license?: st
     if (!KINDS.includes(kind)) throw new ToolError("E_ARGS", `${it} is no motion file: give a .gltf, .glb, .bvh or .vrma${kind === "fbx" ? " (convert FBX to .glb first)" : ""}`, true);
     if (!/^[A-Z][A-Z0-9_]*$/.test(a.set) || a.set === "WORKSHOP") throw new ToolError("E_ARGS", `set is the new set's name, A-Z, 0-9 and _ (as IMPORT), not ${quote(a.set)}`, true);
     if (!a.list && a.license === undefined) throw new ToolError("E_ARGS", "license is the file's SPDX id (CC0-1.0, CC-BY-4.0, ...), which each clip carries; list needs none", true);
-    if (a.license !== undefined && !SPDX.test(a.license)) throw new ToolError("E_ARGS", `license ${quote(a.license)} is no SPDX id: CC0-1.0, CC-BY-4.0, ..., or LicenseRef-<name> for other terms`, true);
+    if (a.license !== undefined && !isLicense(a.license)) throw new ToolError("E_ARGS", `license ${quote(a.license)} is no SPDX id: CC0-1.0, CC-BY-4.0, ..., or LicenseRef-<name> for other terms; a composed clip's joins its ids with " AND "`, true);
     // a known id in another case: the library's tiers read an id exactly, so it would fall to local
-    const known = a.license === undefined ? undefined : knownAs(a.license);
-    if (known !== undefined && known !== a.license) throw new ToolError("E_ARGS", `license ${quote(a.license)} is ${known} in another case, and the library reads an id exactly: did you mean \`--license ${known}\`?`, true);
+    const known = a.license === undefined ? undefined : spelt(a.license);
+    if (known !== undefined && known !== a.license) throw new ToolError("E_ARGS", `license ${quote(a.license)} is ${known} in another case, and the library reads an id exactly: did you mean \`--license ${arg(known)}\`?`, true);
     const lib = ctx.library();
     // an imported set (tier local, the manifest the library reads the one under imports/) is imported again in place; a
     // library set's name is the library's, even where imports/ holds a set so named, its manifest copied too (the
@@ -239,10 +248,14 @@ export const importMotion = defineTool<{ path: string; set: string; license?: st
           : `it holds no animation to import${glTF ? `; ${call("export", ["QUATERNIUS_3D2DGE/Walk_Loop"], { character: given(file, a.path) })} plays a library clip on it, if it is a character` : ""}`,
       };
     }
-    // the license the file carries (each animation's extras, as m3a's VRMA and .glb exports write it) holds over the call's
-    const license = a.license!, terms = m.doc ? termsOf(m.doc, cat) : { licenses: [], credit: undefined };
-    if (terms.licenses.some((l) => l !== license)) {
-      const says = terms.licenses.join(" and "), fix = terms.licenses.length === 1 ? `pass \`--license ${says}\`` : 'import the animations of each license apart, "$skip" leaving out the others';
+    // the license the file carries (each animation's extras, as m3a's VRMA and .glb exports write it) holds over the
+    // call's: the ids each names compared as sets (idsOf), so a composed clip's and one in another case are the file's;
+    // the fix passes the file's ids as the library spells them, quoted as a shell takes them (arg). One that names no
+    // SPDX id can't be compared: a note says the clips carry the call's
+    const license = a.license!, terms = m.doc ? termsOf(m.doc, cat) : { licenses: [], credit: undefined }, ids = terms.licenses.filter((l) => isLicense(spelt(l)));
+    const stated = [...new Map(ids.map((l) => [idsOf(l), l])).values()], unread = terms.licenses.filter((l) => !ids.includes(l));
+    if (stated.some((l) => idsOf(l) !== idsOf(license))) {
+      const says = stated.join(" and "), fix = stated.length === 1 ? `pass \`--license ${arg(spelt(stated[0]!))}\`` : 'import the animations of each license apart, "$skip" leaving out the others';
       throw new ToolError("E_ARGS", `the file says its animations are ${says} (each animation's extras.license); --license ${license} contradicts it: ${fix}`, true);
     }
     // the catalog's first source names the library (its record kept); else the set does. A glTF read by its bones' names
@@ -318,7 +331,8 @@ export const importMotion = defineTool<{ path: string; set: string; license?: st
     const rows = made.map((c) => ({ id: c.id, dur: c.dur, loop: c.loop, keys: c.keys.length, fit: c.quality.fit, over: c.quality.fit[0]! > LIMITS.mean || c.quality.fit[1]! > LIMITS.worst }));
     const worst = rows.reduce((w, r) => (r.fit[1]! > w.fit[1]! ? r : w)), mean = round(rows.reduce((s, r) => s + r.fit[0]!, 0) / rows.length, 1), over = rows.filter((r) => r.over).length;
     // the reader's and the fit's notes first, with the license's text the library doesn't keep (license.check needs it)
-    const kept = lib.licenseText(license) !== null, noted = capped([...(kept ? [] : [`${license}'s text isn't in library/LICENSES/: license.check fails the set`]), ...out.report.warnings, ...log].map((w) => cut(w)), 5);
+    const kept = lib.licenseText(license) !== null, free = unread.map((l) => `the file's extras.license ${quote(l)} is no SPDX id: its clips carry ${license}`);
+    const noted = capped([...(kept ? [] : [`${license}'s text isn't in library/LICENSES/: license.check fails the set`]), ...free, ...out.report.warnings, ...log].map((w) => cut(w)), 5);
     const shown = capped(rows, 50), findings = bad || over > 0 || long.size > 0;
     return {
       verdict: `import ${it}: ${count(made.length, "clip")} into ${dir}/ (${input.rig}, tier local), fit ${mean} mm mean, worst ${mm(worst.fit[1]!)} (${worst.id})${skipped.length ? `; ${skipped.length} skipped` : ""}${over ? `; ${over} past the fit limits` : ""}${gone.length ? `; replaced ${count(gone.length, "clip file")} an earlier import wrote` : ""}`,
