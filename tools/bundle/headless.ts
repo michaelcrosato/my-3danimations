@@ -4,7 +4,8 @@
 // `headlessForm`). `loadGlb` reads the character's skeleton from its glTF nodes (@m3a/io), `bind` binds it with core's
 // solver as three's binding does, `attach` steps and poses the Animator as three's player does and hands back the root's
 // travel, and `writePng` keeps a fingerprint of the image instead of a file. Each records what it saw, every pose
-// bit for bit, so `headlessReport()`, printed at the end, tells the two runs apart if they differ in any bit. No clock.
+// bit for bit, so `headlessReport()`, printed at the end, tells the two runs apart if they differ in any bit. `record`
+// is that record, which ./recorded.ts also keeps of @m3a/three's own player, so the real run is held to it too. No clock.
 import { bind as bindBody, recognize, type Animator, type AnimatorPose, type Bound, type PoseOptions, type StepResult } from "@m3a/core";
 import { meshEnds, parseGlb, skeletonOfGltf, type GltfDoc, type GltfSkeleton } from "@m3a/io";
 import type { Image } from "@m3a/sensors";
@@ -16,8 +17,31 @@ function fnv(bytes: Uint8Array, h = 0x811c9dc5): number {
 }
 const f64 = (xs: readonly number[] | Float64Array) => new Uint8Array(Float64Array.from(xs).buffer);
 
-/** What the stand-ins saw: updates run, the events they fired, every pose's fingerprint, the travel, the images. */
-const seen = { updates: 0, events: [] as string[], poses: 0x811c9dc5, travel: [0, 0, 0], images: [] as string[], animators: [] as Animator[] };
+/** A record of what players saw (`attached`, `updated`) and images written (`wrote`), as `report()` prints it: the
+ *  updates run, the events they fired, every pose's fingerprint (`poses`: its joints' points and its bones' local
+ *  rotations by name; `points`: its joints' points alone), the travel summed, the images, each Animator's hash. */
+export function record(): { attached(animator: Animator): void; updated(r: StepResult, pose: AnimatorPose, travel: { x: number; y: number; z: number }): void; wrote(file: string, img: Image): void; report(): string } {
+  const seen = { updates: 0, events: [] as string[], poses: 0x811c9dc5, points: 0x811c9dc5, travel: [0, 0, 0], images: [] as string[], animators: [] as Animator[] };
+  return {
+    attached: (animator) => void seen.animators.push(animator),
+    updated(r, pose, travel) {
+      const quats = Object.keys(pose.local).sort().flatMap((b) => pose.local[b]!);
+      if (![...pose.points, ...quats].every(Number.isFinite)) throw new Error(`a pose isn't finite at update ${seen.updates}`);
+      seen.poses = fnv(f64(quats), fnv(f64(pose.points), seen.poses));
+      seen.points = fnv(f64(pose.points), seen.points);
+      seen.updates++;
+      seen.travel = seen.travel.map((x, i) => x + [travel.x, travel.y, travel.z][i]!);
+      for (const e of r.events) seen.events.push(`${seen.updates}:${e.layer}:${e.name}`);
+    },
+    wrote: (file, img) => void seen.images.push(`${file} ${img.width}x${img.height} ${fnv(new Uint8Array(img.data.buffer, img.data.byteOffset, img.data.byteLength)).toString(16)}`),
+    report() {
+      const { animators, poses, points, ...rest } = seen;
+      return JSON.stringify({ ...rest, poses: poses.toString(16), points: points.toString(16), hashes: animators.map((a) => a.hash()) });
+    },
+  };
+}
+/** What the stand-ins saw. */
+const seen = record();
 
 /** A position root motion moves (three's `Vector3.add`). */
 interface Position {
@@ -60,19 +84,14 @@ export function attach(animator: Animator, bound: { core: Bound }): { readonly t
   if (animator.bound !== bound.core) throw new Error("attach: the Animator poses another skeleton; make it with new Animator(bound.core)");
   const { forward: F, right: R } = bound.core.frame, k = bound.core.scale, travel = { x: 0, y: 0, z: 0 };
   let pose: AnimatorPose | undefined;
-  seen.animators.push(animator);
+  seen.attached(animator);
   return {
     travel,
     update(dt, opts) {
       const was = animator.root, r = animator.step(dt), now = animator.root, fw = (now.forward - was.forward) * k, rt = (now.right - was.right) * k;
       [travel.x, travel.y, travel.z] = [F[0] * fw + R[0] * rt, F[1] * fw + R[1] * rt, F[2] * fw + R[2] * rt];
       pose = animator.pose(pose, opts);
-      const quats = Object.keys(pose.local).sort().flatMap((b) => pose!.local[b]!);
-      if (![...pose.points, ...quats].every(Number.isFinite)) throw new Error(`a pose isn't finite at update ${seen.updates}`);
-      seen.poses = fnv(f64(quats), fnv(f64(pose.points), seen.poses));
-      seen.updates++;
-      seen.travel = seen.travel.map((x, i) => x + [travel.x, travel.y, travel.z][i]!);
-      for (const e of r.events) seen.events.push(`${seen.updates}:${e.layer}:${e.name}`);
+      seen.updated(r, pose, travel);
       return r;
     },
   };
@@ -81,12 +100,11 @@ export function attach(animator: Animator, bound: { core: Bound }): { readonly t
 /** @m3a/sensors/node's writePng, headless: the image's size and its pixels' fingerprint kept, no file written (a PNG
  *  needs node:zlib); returns the pixels' size in bytes. */
 export function writePng(file: string, img: Image): number {
-  seen.images.push(`${file} ${img.width}x${img.height} ${fnv(new Uint8Array(img.data.buffer, img.data.byteOffset, img.data.byteLength)).toString(16)}`);
+  seen.wrote(file, img);
   return img.data.byteLength;
 }
 
 /** What the stand-ins saw, as one line of JSON: the run's outcome, each Animator's hash, every pose's fingerprint. */
 export function headlessReport(): string {
-  const { animators, poses, ...rest } = seen;
-  return JSON.stringify({ ...rest, poses: poses.toString(16), hashes: animators.map((a) => a.hash()) });
+  return seen.report();
 }

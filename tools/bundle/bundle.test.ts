@@ -3,12 +3,14 @@
 // default library pack, the workspace's package.json files (every path one names is a file the workspace has, so a
 // fresh install links the m3a bin) and the published ones (exports, types and the m3a bin pointed at dist/, the bin
 // with its shebang, CHANGELOG.md, three's types an optional peer, the library's license naming its clips', "private"
-// kept unless made publishable), the subset m3a.js carries and the library it opens, the manual's complete example as
-// the extractor reads it, its headless form and the stand-ins it imports (binding and playing as @m3a/three does, bit
-// for bit), its rewrite for m3a.js, and how the check's `m3a mcp` step fails (a bin missing, unable to start, exiting,
-// writing what isn't JSON-RPC, never answering: each a failure, not a crash or a hang; fake bins, the timeout on fake
-// timers). The end-to-end `npm run pack -- --check` (a build, npm pack, a scratch install, m3a.js run) is slow, and runs
-// in the gate (G7), not here.
+// kept unless made publishable), the subset m3a.js carries, the library it opens and its runCli running m3a calls on
+// the example's files given as text, the manual's complete example as the extractor reads it, its recorded form (the
+// program on @m3a/three, its player recorded), its headless form and the stand-ins it imports (binding and playing as
+// @m3a/three does, bit for bit, the two records equal), its rewrite for m3a.js, its sh lines read as sh reads them, and
+// how the check's `m3a mcp` step fails (a bin missing, unable to start, exiting, writing what isn't JSON-RPC, never
+// answering: each a failure, not a crash or a hang; fake bins, the timeout on fake timers). The end-to-end `npm run pack
+// -- --check` (a build, npm pack, a scratch install, m3a.js run) is slow, and runs in the gate (G7), not here.
+import { spawnSync } from "node:child_process";
 import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { stripTypeScriptTypes } from "node:module";
 import { tmpdir } from "node:os";
@@ -17,13 +19,15 @@ import { describe, expect, it, vi } from "vitest";
 import { Animator, playable } from "../../packages/core/src/index.ts";
 import { checkGame } from "../../packages/library/src/index.ts";
 import { directory, licenseText, openLibrary } from "../../packages/library/src/node.ts";
-import { attach, bind } from "../../packages/three/src/index.ts";
+import * as threeApi from "../../packages/three/src/index.ts";
 import { character, loadGlb, variant } from "../../packages/three/test-characters/index.ts";
+import { runCli, tools } from "../../packages/tools/src/index.ts";
 import { ROOT } from "../run/cli.ts";
 import { jsSpecifiers, PACKAGES, packSets, publishable, publishedExports, publishedManifest, REPOSITORY, stagedManifest, tiersOf, withDataLicenses } from "./build.ts";
-import { completeExample, forSingle, HEADLESS, headlessForm, importsOf, SECTION, STANDINS } from "./example.ts";
+import { argvOf, callsOnSingle, completeExample, forSingle, HEADLESS, headlessForm, importsOf, PLAYED, RECORDED, recordedForm, sameRun, SECTION, STANDINS } from "./example.ts";
 import * as headless from "./headless.ts";
 import { MCP_TIMEOUT_MS, mcpTools } from "./mcp.ts";
+import * as recorded from "./recorded.ts";
 import { bundled } from "./runtime.ts";
 import { bundleData, ENTRIES, namesOf, OWN, readManifest } from "./single.ts";
 
@@ -129,6 +133,16 @@ describe("the subset m3a.js carries", () => {
     // what opening it warned goes to every call it serves, not the first alone
     expect([host.library!(["cc0", "cc-by"]).warnings, host.library!(["cc0", "cc-by"]).warnings, host.library!().warnings]).toEqual([said, said, []]);
   });
+  it("runs m3a calls through its runCli as the bin does, the files given as text, each call's writes kept for the next", async () => {
+    const { host } = bundled(data), m3a = { runCli, tools, host };
+    const files = { "jab.json": '{ "format": "2.0", "id": "KNIGHT/Jab", "steps": [{ "op": "clip", "id": "QUATERNIUS_3D2DGE/Punch_Jab", "as": "jab" }] }', "g.json": '{ "format": "2.0", "id": "GRAPHS/Jab", "start": "jab", "states": { "jab": { "clip": "KNIGHT/Jab" } }, "transitions": [] }' };
+    // its host alone reads no files: a tool given a path answers E_HOST
+    expect((await tools.call("recipe.compile", { recipe: "jab.json" }, { host })).error).toMatchObject({ code: "E_HOST", message: expect.stringMatching(/reads no files \(jab\.json\); pass the text instead/) });
+    const said = await callsOnSingle(m3a, ["npx m3a recipe.compile jab.json      # writes check-output/recipe.compile/Jab.clip.json", "m3a graph.validate ./g.json --clips check-output/recipe.compile/Jab.clip.json"], files);
+    expect(said.map((l) => l.split(":")[0])).toEqual(["recipe.compile jab.json", "graph.validate ./g.json"]);
+    await expect(callsOnSingle(m3a, ["m3a graph.validate g.json"], files)).rejects.toThrow(/^m3a graph\.validate g\.json exits 1 on m3a\.js:\n[^]*G-E009 states\.jab: clip KNIGHT\/Jab is not among the clips given/);
+    await expect(callsOnSingle(m3a, ["m3a recipe.compile nope.json"], files)).rejects.toThrow(/^m3a recipe\.compile nope\.json exits 1 on m3a\.js:\n[^]*no file nope\.json: the example has none, and no call before this one wrote it/);
+  });
   it("gives every entry's names once: VERSION core's, PACKAGE m3a.js's own", async () => {
     const names = await namesOf(), all = [...OWN, ...Object.values(names).flat()];
     expect(Object.keys(names)).toEqual([...ENTRIES]);
@@ -173,22 +187,50 @@ describe("the complete example", () => {
   it("runs headless as the same program, three.js's binding and Node's PNG writer taken from the stand-ins, what they saw printed", () => {
     const code = 'import { Animator } from "@m3a/core";\nimport { attach, bind } from "@m3a/three";\nimport { readFileSync } from "node:fs";\nimport { loadGlb } from "@m3a/three/test-characters";\nconst a = 1;\nimport { writePng } from "@m3a/sensors/node";\nwritePng("x.png", a);\n';
     expect(headlessForm(code)).toBe(['import { Animator } from "@m3a/core";', `import { attach, bind, loadGlb, writePng, headlessReport } from "${STANDINS}";`, 'import { readFileSync } from "node:fs";', "const a = 1;", 'writePng("x.png", a);\n', "console.log(headlessReport());\n"].join("\n"));
-    expect(Object.keys(headless).sort()).toEqual([...Object.values(HEADLESS).flat(), "headlessReport"].sort());
+    // the stand-ins, what they saw, and that record (which ./recorded.ts keeps of three's own player)
+    expect(Object.keys(headless).sort()).toEqual([...Object.values(HEADLESS).flat(), "headlessReport", "record"].sort());
     expect(() => headlessForm('import { bind, bake } from "@m3a/three";\nimport * as T from "@m3a/three/test-characters";\n')).toThrow(/can't run headless: it imports bake from "@m3a\/three" \(tools\/bundle\/headless\.ts stands in for bind and attach alone\); the namespace from "@m3a\/three\/test-characters"/);
+  });
+  it("runs on the packages as written, @m3a/three's names from ./recorded.ts, what its players saw printed", () => {
+    const code = 'import { attach, bind } from "@m3a/three";\nimport { loadGlb } from "@m3a/three/test-characters";\nconst t = await import("@m3a/three");\nbind(1);\n';
+    expect(recordedForm(code)).toBe([`import { attach, bind, recordedReport } from "${RECORDED}";`, 'import { loadGlb } from "@m3a/three/test-characters";', `const t = await import("${RECORDED}");`, "bind(1);\n", "console.log(recordedReport());\n"].join("\n"));
+    // every name @m3a/three gives, attach its own recorded
+    expect(Object.keys(recorded).sort()).toEqual([...Object.keys(threeApi), "recordedReport"].sort());
+    expect(recorded.attach).not.toBe(threeApi.attach);
   });
   it("binds and plays headless as @m3a/three does: the same Animator, every step, bit for bit, and the same travel", async () => {
     const glb = character(variant(1)).glb, library = openLibrary(), { clip, rest } = library.clip("QUATERNIUS_3D2DGE/Walk_Loop");
-    const three = bind((await loadGlb(glb, { textures: false })).scene), alone = headless.bind((await headless.loadGlb(glb)).scene);
+    const three = threeApi.bind((await loadGlb(glb, { textures: false })).scene), alone = headless.bind((await headless.loadGlb(glb)).scene);
     const a = new Animator(three.core).layer("base", { clip: playable(clip, rest) }), b = new Animator(alone.core).layer("base", { clip: playable(clip, rest) });
-    const pa = attach(a, three), pb = headless.attach(b, alone);
+    const pa = recorded.attach(a, three), pb = headless.attach(b, alone);
+    expect([pa.animator, pa.bound, typeof pa.apply]).toEqual([a, three, "function"]); // three's own player
     for (let i = 0; i < 20; i++) {
       pa.update(1 / 60);
       pb.update(1 / 60);
       expect([i, b.hash(), pb.travel.x, pb.travel.y, pb.travel.z]).toEqual([i, a.hash(), pa.travel.x, pa.travel.y, pa.travel.z]);
     }
     expect(JSON.parse(headless.headlessReport())).toMatchObject({ updates: 20, hashes: [a.hash()] });
+    // the record of three's player is the stand-ins' record, bit for bit: what pack --check holds the example's runs to
+    const real = recorded.recordedReport();
+    expect([JSON.parse(real), sameRun(real, headless.headlessReport())]).toMatchObject([{ updates: 20, hashes: [a.hash()] }, []]);
+    expect(PLAYED.every((k) => k in JSON.parse(real))).toBe(true);
+    const off = JSON.stringify({ ...JSON.parse(real), hashes: ["0"], images: ["x.png 1x1 0"] });
+    expect(sameRun(real, off)).toEqual([`hashes: ${JSON.stringify([a.hash()])} on @m3a/three, ["0"] headless`]);
     const scene = (await headless.loadGlb(glb)).scene;
     expect(() => headless.bind(scene, { mapping: { bones: {} } })).toThrow(/stands in for bind\(scene\) alone/);
+  });
+  it("reads an m3a call's words as sh does, and refuses what only a shell makes something of, naming the line", () => {
+    const line = `npx m3a graph.sim k.json --mapping='{"bones": {"hips": "x"}}' --note="a \\"b\\" \\c" x\\ y #  a comment`;
+    const words = argvOf(line);
+    expect(words).toEqual(["graph.sim", "k.json", '--mapping={"bones": {"hips": "x"}}', '--note=a "b" \\c', "x y"]);
+    const sh = spawnSync("sh", ["-c", `printf '%s\\0' ${line.replace(/^npx m3a /, "")}`], { encoding: "utf8" });
+    expect(sh.stdout.split("\0").slice(0, -1)).toEqual(words);
+    expect(argvOf("m3a search jab")).toEqual(["search", "jab"]);
+    for (const [bad, what] of [["m3a search jab > out.txt", '">"'], ['m3a search "$HOME"', '"\\$"'], ["m3a lint *.json", '"\\*"'], ["m3a search a; rm x", '";"']]) {
+      expect(() => argvOf(bad!)).toThrow(new RegExp(`^"${bad!.replace(/[.*$;]/g, "\\$&")}" can't run on m3a\\.js: ${what} needs a shell`));
+    }
+    expect(() => argvOf("m3a search 'open")).toThrow(/^"m3a search 'open" can't run on m3a\.js: a ' quote is left open$/);
+    expect(() => argvOf("node x.js")).toThrow(/"node x\.js" isn't an m3a call/);
   });
   it("runs on m3a.js with its @m3a imports from ./m3a.js, and refuses what m3a.js leaves out, naming it", () => {
     const code = `import { Animator, type Clip } from "@m3a/core";\nimport type { Tier } from "@m3a/library";\nimport { openLibrary } from "@m3a/library/node";\nimport { writeFileSync } from "node:fs";\nconst t = await import("@m3a/tools");\n`;

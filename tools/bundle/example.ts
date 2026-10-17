@@ -3,11 +3,14 @@
 // json blocks named as files (```json knight.json) are written into the scratch project, its ts blocks (but `norun`
 // ones) run in order as one Node program, their imports merged at the top and their names shared, and its sh lines are
 // m3a calls, run there through the installed bin. A manual without that section, or one with no ts block in it,
-// fails, naming the heading. Its headless form (`headlessForm`) is the same program with its imports of three.js's
-// binding and Node's PNG writer, which m3a.js leaves out by design, taken from ./headless.ts, and what those saw printed
-// at the end; it runs on the packages and on m3a.js, each printing the same. On m3a.js its @m3a imports come from
-// ./m3a.js; one m3a.js can't serve (three, a name of @m3a/three that ./headless.ts doesn't stand in for, a Node entry
-// beyond what m3a.js stands in for) is refused before it runs, naming it.
+// fails, naming the heading. On the packages the program runs in its recorded form (`recordedForm`): its @m3a/three
+// imports from ./recorded.ts, three's own player recorded. Its headless form (`headlessForm`) is the same program with
+// its imports of three.js's binding and Node's PNG writer, which m3a.js leaves out by design, taken from ./headless.ts,
+// and what those saw printed at the end; it runs on the packages and on m3a.js, each printing the same, and plays as
+// the recorded form did (`sameRun`). On m3a.js its @m3a imports come from ./m3a.js; one m3a.js can't serve (three, a
+// name of @m3a/three that ./headless.ts doesn't stand in for, a Node entry beyond what m3a.js stands in for) is
+// refused before it runs, naming it. Its m3a calls run on m3a.js too, through m3a.js's own runCli (`callsOnSingle`).
+import type { registry, runCli } from "@m3a/tools";
 import { ENTRIES, STANDS_IN } from "./single.ts";
 
 /** The heading that opens the manual's complete example (a `## ` heading starting with these words). */
@@ -17,6 +20,14 @@ export const SECTION = "## A complete example";
 export const HEADLESS: Readonly<Record<string, readonly string[]>> = { "@m3a/three": ["bind", "attach"], "@m3a/three/test-characters": ["loadGlb"], "@m3a/sensors/node": ["writePng"] };
 /** Where the headless form imports ./headless.ts from, beside it. */
 export const STANDINS = "./headless.ts";
+/** Where the recorded form imports ./recorded.ts from, beside it. */
+export const RECORDED = "./recorded.ts";
+/** The parts of a run's report (./headless.ts `record`) that the run on @m3a/three and the headless form both record,
+ *  and must agree on, bit for bit: the updates, the events, every pose's joints (`points`), the travel and each
+ *  Animator's hash. Not `poses`: three's loader names the bones its own way ("mixamorig:Hips" is "mixamorigHips") and
+ *  its bind reads their rest orientations through three's matrices, so their local rotations may differ in the last
+ *  bit; nor the images, as the real writePng writes its file. */
+export const PLAYED = ["updates", "events", "points", "travel", "hashes"] as const;
 
 /** A fenced block of a manual: its language, the rest of its info string (a file name, `norun`), its code, the line
  *  its fence opens on and the `## ` heading it sits under. */
@@ -146,4 +157,102 @@ export function forSingle(code: string, exported: readonly string[]): string {
   }
   if (refused.length) throw new Error(`the example can't run on m3a.js: it imports ${refused.join("; ")}`);
   return code.replace(/((?:\bfrom|\bimport)\s*\(?\s*)(["'])@m3a\/[^"']+\2/g, '$1"./m3a.js"');
+}
+
+/** An example's recorded form, as it runs on the packages: the same program, its imports of @m3a/three taken from
+ *  ./recorded.ts (every name three gives, its player recorded) and `recordedReport()` printed at the end. */
+export function recordedForm(code: string): string {
+  const rewritten = code.replace(/((?:\bfrom|\bimport)\s*\(?\s*)(["'])@m3a\/three\2/g, `$1"${RECORDED}"`);
+  return program([rewritten, `import { recordedReport } from "${RECORDED}";\nconsole.log(recordedReport());\n`]);
+}
+
+/** Where the run on @m3a/three (`real`, the recorded form's last line) and the headless form (`headless`, its last
+ *  line) play otherwise: each part of PLAYED that differs, with both values; none when they agree, bit for bit. */
+export function sameRun(real: string, headless: string): string[] {
+  const a = JSON.parse(real) as Record<string, unknown>, b = JSON.parse(headless) as Record<string, unknown>;
+  return PLAYED.filter((k) => JSON.stringify(a[k]) !== JSON.stringify(b[k])).map((k) => `${k}: ${JSON.stringify(a[k])} on @m3a/three, ${JSON.stringify(b[k])} headless`);
+}
+
+/** An m3a call's words as sh reads its line, `m3a` or `npx m3a` dropped: split at blanks, '...' and "..." quoting, a
+ *  backslash escaping the next character, a word opening with # ending the line. Throws, naming the line, on what only
+ *  a shell makes something of (an expansion, a redirection, a pipe or list, a glob), and on a line that isn't an m3a
+ *  call. */
+export function argvOf(line: string): string[] {
+  const refuse = (why: string) => new Error(`"${line}" can't run on m3a.js: ${why}`), shell = (c: string) => refuse(`"${c}" needs a shell, and m3a.js runs the call's words through its runCli`);
+  const words: string[] = [];
+  let w: string | null = null;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i]!;
+    if (/\s/.test(c)) {
+      if (w !== null) words.push(w);
+      w = null;
+    } else if (c === "#" && w === null) break;
+    else if (c === "'") {
+      const j = line.indexOf("'", i + 1);
+      if (j < 0) throw refuse("a ' quote is left open");
+      w = (w ?? "") + line.slice(i + 1, j);
+      i = j;
+    } else if (c === '"') {
+      let j = i + 1, t = "";
+      for (; j < line.length && line[j] !== '"'; j++) {
+        if (line[j] === "$" || line[j] === "`") throw shell(line[j]!);
+        t += line[j] === "\\" && /[$`"\\]/.test(line[j + 1] ?? "") ? line[++j] : line[j];
+      }
+      if (j >= line.length) throw refuse('a " quote is left open');
+      w = (w ?? "") + t;
+      i = j;
+    } else if (c === "\\") w = (w ?? "") + (line[++i] ?? "");
+    else if (/[$`|;&<>()*?[]/.test(c) || (c === "~" && w === null)) throw shell(c);
+    else w = (w ?? "") + c;
+  }
+  if (w !== null) words.push(w);
+  const at = words[0] === "npx" ? 1 : 0;
+  if (words[at] !== "m3a") throw new Error(`"${line}" isn't an m3a call`);
+  return words.slice(at + 1);
+}
+
+/** What running the example's m3a calls on m3a.js takes from it: its runCli, the registry it serves (`tools`) and its
+ *  host (the library it carries; no files). */
+export interface SingleCli {
+  runCli: typeof runCli;
+  tools: Parameters<typeof runCli>[0];
+  host: registry.Host;
+}
+
+/** The example's m3a calls (its sh lines) run on m3a.js in order, as the bin runs them on the packages: each line's
+ *  words (argvOf) through m3a.js's runCli, its host serving `files` (the example's, by name: m3a.js reads no files,
+ *  and a tool given a path answers E_HOST without one) and keeping what each call writes for the calls after it.
+ *  Throws on the first call that exits otherwise than 0, with what it printed; returns each call's verdict. */
+export async function callsOnSingle(m3a: SingleCli, sh: readonly string[], files: Readonly<Record<string, string | Uint8Array>>): Promise<string[]> {
+  const key = (p: string) => {
+    const out: string[] = [];
+    if (p.startsWith("/")) throw new Error(`${p}: the example's calls name files by relative paths`);
+    for (const s of p.split("/").filter((x) => x && x !== ".")) {
+      if (s !== "..") out.push(s);
+      else if (out.pop() === undefined) throw new Error(`${p} is outside the example's files`);
+    }
+    return out.join("/");
+  };
+  const held = new Map(Object.entries(files).map(([p, f]) => [key(p), f]));
+  const got = (p: string) => {
+    const f = held.get(key(p));
+    if (f === undefined) throw new Error(`no file ${p}: the example has none, and no call before this one wrote it`);
+    return f;
+  };
+  const host: registry.Host = {
+    ...m3a.host,
+    read: async (p) => ((f) => (typeof f === "string" ? f : new TextDecoder().decode(f)))(got(p)),
+    tryRead: async (p) => (held.has(key(p)) ? host.read!(p) : null),
+    bytes: async (p) => ((f) => (typeof f === "string" ? new TextEncoder().encode(f) : f))(got(p)),
+    write: (p, d) => (held.set(key(p), d), key(p)),
+    remove: (p) => void held.delete(key(p)),
+  };
+  const said: string[] = [];
+  for (const line of sh) {
+    let out = "";
+    const exit = await m3a.runCli(m3a.tools, argvOf(line), { print: (t) => void (out += t), write: (p, t) => void held.set(key(p), t), host });
+    if (exit !== 0) throw new Error(`${line} exits ${exit} on m3a.js:\n${out}`);
+    said.push(out.split("\n")[0]!);
+  }
+  return said;
 }
