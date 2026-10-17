@@ -3867,3 +3867,27 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.48.0
 
+
+## D98 · 2026-10-17 · G7's command set: the default model gates, three others are recorded one trial a brief
+
+- **Principle:** §7 (the benchmark, per model), §9.3 (G7), O10 (Claude models only)
+- **Call:**
+  - **Which models.** PLAN.md §7 says the benchmark runs "on the Claude models the session can reach", and G7 records
+    B1 to B7 "per available model". On 2026-10-16 twelve Claude models answered one turn as the benchmark's `nobody`
+    agent (sonnet-5-5, the CLI's default; opus-5-5, haiku-5-5, fable-5-1, fable-5, opus-5, opus-4-8, opus-4-7, opus-4-6,
+    sonnet-5, sonnet-4-6, haiku-4-5). Read literally, G7 is about 900 trials. Every gate so far ran the default alone.
+  - **The rule:** the CLI's default model gates G7, as at G1 to G6: each brief and each held-out variant at least 4 of
+    5. The current generation's other three, `claude-opus-5-5`, `claude-haiku-5-5` and `claude-fable-5-1`, are
+    recorded: B1 to B7 once each, in the gate's report and records, not gating. The older generations are left out.
+  - **Recorded steps:** `tools/run/gate.ts` reports a step named `recorded: ...` but leaves it out of the gate's
+    verdict (`RECORDED`; the verdict counts them apart).
+  - **G7's set:** check, test, doctrine (the manual's and the tools' budgets), vectors, the tool examples on four
+    surfaces, the manual's code, `pack --check` (the packaged CLI, MCP server and single file running the manual's
+    example; the bundle's licenses and QA), the single file's license check, T2 (the MCP Inspector on every example),
+    a fresh held-out run, B1 with 2 discovery trials (reported, §7), B2 to B7, each brief's held-out variant, then the
+    three recorded models.
+- **Why:** the gate measures whether agents can use the package; one model held to the pass mark keeps that bar
+  comparable with G4 and G6, and three others show how far it carries, at a fraction of the cost of twelve (about $300
+  at list prices, all from the session's own account).
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.49.0 (WP-7.3's version)
