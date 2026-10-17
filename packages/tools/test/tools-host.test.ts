@@ -8,7 +8,7 @@ import { cpSync, existsSync, linkSync, mkdirSync, readdirSync, readFileSync, rmS
 import { hostname, tmpdir } from "node:os";
 import { join } from "node:path";
 import { LIMITS } from "@m3a/io";
-import type { LibraryError } from "@m3a/library";
+import type { LibraryError, Tier } from "@m3a/library";
 import { describe, expect, it } from "vitest";
 import { runCli } from "../src/cli.ts";
 import { nodeHost } from "../src/node.ts";
@@ -268,6 +268,40 @@ describe("the library and the clip loader", () => {
       expect([a.warnings, b.warnings]).toEqual([[said], [said]]);
       const r = await new Registry([peek]).call("demo.clip", { clip: "OLD/Walk" }, { host: { ...nodeHost(cwd), library: (t) => libraryAccess(cwd, t, dir) } });
       expect([r.data, r.lines]).toEqual([expect.objectContaining({ id: "QUATERNIUS_3D2DGE/Walk_Loop" }), [`warning: ${said}`, "loaded"]]); // first, so no cut hides it
+    } finally {
+      rm();
+    }
+  });
+
+  it("says in every call's reply that a tier game.json opts in to has no pack installed, with the install that brings it", async () => {
+    const { cwd, rm } = exampleCwd(false), dir = join(cwd, "sets"); // the default pack alone: CC0 sets, no opt-in pack beside it
+    try {
+      mkdirSync(dir);
+      symlinkSync(join(ROOT, "library/sets/QUATERNIUS_3D2DGE"), join(dir, "QUATERNIUS_3D2DGE"));
+      writeFileSync(join(cwd, "game.json"), '{ "game": "Demo", "tiers": ["cc0", "cc-by"] }');
+      const said = "library: no cc-by set is installed: the cc-by sets ship apart from the CC0 default pack (D10); npm install @m3a/library-cc-by";
+      expect([libraryAccess(cwd, undefined, dir).warnings, libraryAccess(cwd, undefined, dir).warnings]).toEqual([[said], [said]]); // opened once, said each time
+      const reg = new Registry([peek]), host = { ...nodeHost(cwd), library: (t?: readonly Tier[]) => libraryAccess(cwd, t, dir) };
+      for (let i = 0; i < 2; i++) expect((await reg.call("demo.clip", { clip: "QUATERNIUS_3D2DGE/Walk_Loop" }, { host })).lines).toEqual([`warning: ${said}`, "loaded"]);
+    } finally {
+      rm();
+    }
+  });
+
+  it("sees an opt-in pack installed while it runs: the next call opens the library again with the pack's sets, unwarned", () => {
+    const { cwd, rm } = exampleCwd(false), dir = join(cwd, "sets"), pack = join(cwd, "node_modules/@m3a/library-cc-by/sets");
+    try {
+      mkdirSync(dir);
+      symlinkSync(join(ROOT, "library/sets/QUATERNIUS_3D2DGE"), join(dir, "QUATERNIUS_3D2DGE"));
+      writeFileSync(join(cwd, "game.json"), '{ "game": "Demo", "tiers": ["cc0", "cc-by"] }');
+      const said = "library: no cc-by set is installed: the cc-by sets ship apart from the CC0 default pack (D10); npm install @m3a/library-cc-by";
+      const call = (packs: Partial<Record<Tier, string>>) => ((a) => [a.warnings, a.library.sets().map((s) => s.set), a.source.sets().sort()])(libraryAccess(cwd, undefined, dir, packs));
+      expect(call({})).toEqual([[said], ["QUATERNIUS_3D2DGE"], ["QUATERNIUS_3D2DGE"]]);
+      mkdirSync(pack, { recursive: true }); // `npm install @m3a/library-cc-by` while the server runs
+      symlinkSync(join(ROOT, "library/sets/STYLE100_IDLE"), join(pack, "STYLE100_IDLE"));
+      const both = ["QUATERNIUS_3D2DGE", "STYLE100_IDLE"];
+      expect(call({ "cc-by": pack })).toEqual([[], both, both]); // the library and the source agree
+      expect(call({})).toEqual([[said], ["QUATERNIUS_3D2DGE"], ["QUATERNIUS_3D2DGE"]]); // and removed, it leaves
     } finally {
       rm();
     }

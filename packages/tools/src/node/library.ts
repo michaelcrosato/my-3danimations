@@ -1,7 +1,8 @@
 // The library as the Node host opens it for a tool call (PLAN.md WP-7.2, D10 and D53): at the tiers game.json in the
 // working directory opts in to (read on every call: an agent may edit it while the MCP server runs), else CC0 alone;
-// opened once per set of tiers for the process, since verifying a set hashes all of it the first time, and at most
-// MAX_OPEN libraries kept (the least lately used dropped), so a long-lived server isn't grown by each directory; each
+// with the opt-in packs installed beside @m3a/library (D10, WP-7.4: looked up on every call too, so one installed while
+// the server runs joins the next call); opened once per set of tiers and packs for the process, since verifying a set
+// hashes all of it the first time, and at most MAX_OPEN libraries kept (the least lately used dropped), so a long-lived server isn't grown by each directory; each
 // call's warnings (a deprecated id) collected for that call alone. The sets `m3a import` wrote under imports/ join it
 // (D93: local sets, seen only by a game that opts in to local, which never ships), each read confined to the working
 // directory, and the library opened again when one of their manifests or catalogs changes. An imported set that can't
@@ -10,7 +11,7 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { TIERS, type Library, type LibrarySource, type Tier } from "@m3a/library";
-import { defaultSets, directory, licenseText, openLibrary } from "@m3a/library/node";
+import { defaultSets, installedPacks, licenseText, openLibrary, withPacks } from "@m3a/library/node";
 import { ToolError, type LibraryAccess } from "../registry/registry.ts";
 import { didYouMean, quote } from "../registry/schema.ts";
 import { oneLine } from "../tools/common.ts";
@@ -44,8 +45,10 @@ export function gameTiers(cwd: string): Tier[] {
 }
 
 /** One opened library per directory and tiers (and working directory, when it has imported sets), the stamp of the
- *  imported sets it holds, and the call its warnings go to while one of its methods runs; the least lately used first. */
-const opened = new Map<string, { lib: Library; stamp: string; to: { warnings?: string[] } }>();
+ *  opt-in packs and imported sets it holds, the warnings opening it raised (an opted-in tier whose pack isn't
+ *  installed), which every call it serves repeats, and the call its warnings go to while one of its methods runs; the
+ *  least lately used first. */
+const opened = new Map<string, { lib: Library; stamp: string; built: string[]; to: { warnings?: string[] } }>();
 /** The most libraries the host keeps open: each working directory with imported sets opens its own. */
 export const MAX_OPEN = 8;
 /** How many libraries the host has opened, each verifying its sets the first time it is used (one dropped opens again). */
@@ -129,21 +132,26 @@ function routed(lib: Library, into: string[], to: { warnings?: string[] }): Libr
   return new Proxy(lib, { get: (t, k) => ((v) => (typeof v === "function" ? wrap(v as (...a: unknown[]) => unknown, t) : v))(Reflect.get(t, k, t)) });
 }
 
-/** The library for one call at `tiers` (game.json's in `cwd` without them), read from `dir` (the default sets). */
-export function libraryAccess(cwd: string, tiers?: readonly Tier[], dir: string = defaultSets()): LibraryAccess {
-  const want = TIERS.filter((t) => (tiers ?? gameTiers(cwd)).includes(t)), base = resolve(cwd), { source, stamp, warnings: left } = withImports(directory(dir), base);
+/** The library for one call at `tiers` (game.json's in `cwd` without them), read from `dir` (the default sets) and the
+ *  opt-in packs' directories `packs` by tier (D10: those installed beside @m3a/library, looked up on every call, so a
+ *  pack `npm install`ed while `m3a mcp` runs joins the next call, as the missing-pack warning promises). */
+export function libraryAccess(cwd: string, tiers?: readonly Tier[], dir: string = defaultSets(), packs: Partial<Record<Tier, string>> = installedPacks()): LibraryAccess {
+  const want = TIERS.filter((t) => (tiers ?? gameTiers(cwd)).includes(t)), base = resolve(cwd), dirs = Object.values(packs);
+  const { source, stamp: imports, warnings: left } = withImports(withPacks(dir, dirs), base);
   // one library for every working directory without imported sets; one for each with them
-  const key = `${dir}\n${want.join(",")}${stamp ? `\n${base}` : ""}`;
+  const key = `${dir}\n${want.join(",")}${imports ? `\n${base}` : ""}`, stamp = `${dirs.join("\n")}\0${imports}`;
   let o = opened.get(key);
   if (o?.stamp !== stamp) {
-    // opened again when an imported set's manifest or catalog changed (the lock, beside the default sets, has none)
-    const to: { warnings?: string[] } = {};
-    o = { lib: openLibrary({ dir, source, tiers: want, warn: (m) => to.warnings?.push(m) }), stamp, to };
+    // opened again when an opt-in pack is installed or removed (its sets and lock join or leave), or an imported set's
+    // manifest or catalog changed (no lock covers an imported set)
+    const built: string[] = [], to: { warnings?: string[] } = { warnings: built };
+    o = { lib: openLibrary({ dir, source, packs, tiers: want, warn: (m) => to.warnings?.push(m) }), stamp, built, to };
+    to.warnings = undefined;
     opens++;
   }
   opened.delete(key);
   opened.set(key, o);
   if (opened.size > MAX_OPEN) opened.delete(opened.keys().next().value!);
-  const warnings: string[] = [...left];
-  return { library: routed(o.lib, warnings, o.to), source, licenseText: licenseText(dir), tiers: want, warnings };
+  const warnings: string[] = [...left, ...o.built];
+  return { library: routed(o.lib, warnings, o.to), source, licenseText: licenseText(dir, dirs), tiers: want, warnings };
 }
