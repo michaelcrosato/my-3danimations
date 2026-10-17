@@ -3891,3 +3891,19 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   at list prices, all from the session's own account).
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.49.0 (WP-7.3's version)
+
+## D99 · 2026-10-17 · O2 taken at its default: build and dry-run pack everything, publish nothing
+
+- **Principle:** §3 (hard to undo), AGENTS.md "Deviating", §13 O2
+- **Call:**
+  - WP-7.4 reached O2 (package names and publishing). It was escalated on michaelcrosato/my-3danimations#13 at 14:59 UTC
+    (principle, three options, a recommendation) and a 15-minute check armed. No answer came by 15:15 UTC.
+  - **The default stands:** the packages are built, packed and checked (`npm run pack -- --check`, dry-run packs per
+    package, a scratch install, the single file) under the working names `@m3a/*` and `m3a`; every source
+    `package.json` stays `private: true`; nothing is published to npm or as a release asset. npm provenance (Sigstore)
+    is prepared for the first published version but not enabled.
+  - When the owner answers O2, the names and the publishing step change in a commit of their own; WP-9.4's release
+    workflow follows the same rule.
+- **Why:** publishing can't be taken back, and for publishing the default is always "don't" (AGENTS.md).
+- **Answered:** no: the default taken after the escalation's 15 minutes, to review.
+- **Landed in:** v0.50.0 (WP-7.4's version)
