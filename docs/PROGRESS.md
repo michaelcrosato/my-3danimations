@@ -27,8 +27,8 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 
 ## Next
 
-- Fix the library's 30 contact-less loops (B1 3/5 after the manual's fix; D100), then G7 on a fresh draft PR, then
-  Phases 8-10. Details and rules: [`docs/HANDOFF.md`](HANDOFF.md).
+- Fix the library's 30 contact-less loops (11 on their feet to detect, 19 off them to mark; B1 3/5 after the
+  manual's fix; D100), then G7 on a fresh draft PR, then Phases 8-10. Details: [`docs/HANDOFF.md`](HANDOFF.md).
 
 ## Blocked on the owner
 

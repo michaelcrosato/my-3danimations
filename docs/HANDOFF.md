@@ -23,6 +23,11 @@ most 3 lanes, none during trial batches. After each gate's squash merge (CI gree
   on its variant (`--fake --heldout G7`) with the new packaging.
 - **Last measured (this machine, 4 CPUs):** T0 about 2-11 s, T1 78.0 s (974 tests), T2 113-134 s,
   `npm run pack -- --check` 17.7 s, all passing; CI green on the merged head.
+- **Checked 2026-10-18 in a fresh container** (branch = `main` = 71848bb, no open PR or issue): the hook's `npm ci`,
+  rigs and pins pass; Node 24.21.0, Chromium 1194, Bun, `claude` 2.1.303 (a one-call probe answers, $0.004), the
+  benchmark's credentials in `/home/claude/.claude/remote`, Postgres 16; the m3a MCP server answers (0.50.0). T0 first
+  run 23.2 s, a FAIL on time alone (typecheck 12.5 s and lint 9.4 s cold), then 2.0 s; T1 81.8 s (974 tests); T2
+  128.5 s (20 browser tests, library QA 1,013 / 230 / 155 as baselined, the sweeps); `vectors --check` 16 files.
 - **Owner items:** D94 (benchmark credentials) for review, not blocking. O2 taken at its default (D99: publish
   nothing). No other open ask.
 
@@ -34,6 +39,12 @@ most 3 lanes, none during trial batches. After each gate's squash merge (CI gree
    after the manual's speed fix, with agents shipping Run_Female. Detect their contacts (or mark and rank them so
    search doesn't offer them as runs), through the canonical writer, with the library QA baseline updated by a logged
    decision. Then rerun `npm run bench -- B1 --trials 5 --parallel 5`: WP-7.3's B1 proof (4 of 5) is deferred to G7.
+   **The 30 split in two** (counted 2026-10-18): 11 stand on their feet and need their contacts detected (CC0's
+   MESH2MOTION `Run_Female`, `Run_Anime`, `Run_Stealth`; `CMU_CURATED/Boxing_Guard_Loop`; STYLE100's `WideLegs_Walk`,
+   `Drunk_RunBack`, `Waving_RunBack`, `OnHeels_Idle`, `OnHeels_Run`, `OnHeels_SideLeft`, `OnHeels_SideRight`); 19 are
+   off their feet (fly, glide, swim, jump in the air, climb, hang, levitate, meditate, sleep: Mesh2Motion and both
+   Quaternius sets) and should say so rather than be given contacts. Search scores `Run_Female` 9.9 beside the core
+   jogs, its row reading 3.76 m/s while its own ground speed reads 0.
 2. **G7** on a fresh draft PR: `npm run bench -- quiz --trials 1` first, then `npm run gate -- G7 --json` in the main
    checkout; record `bench/results/gates/G7-run-1/` as G6's record was (D91); two verifier lenses; the D-entry, ledger
    row, PROGRESS and the PR report; squash-merge with CI green.
@@ -65,7 +76,9 @@ most 3 lanes, none during trial batches. After each gate's squash merge (CI gree
   (`/usr/lib/postgresql/16/bin`) with a stubbed `auth.uid()`.
 - `npm run bench` writes into the tracked `bench/results/`: commit gate and Verify records on purpose, move stray
   probes out by name (a glob once moved committed files: restore with `git checkout -- bench/results/`).
-- Time T0 and T1 with no lane testing; 4 CPUs make local timings load-sensitive.
+- Time T0 and T1 with no lane testing; 4 CPUs make local timings load-sensitive. A fresh container's first
+  `npm run check` can fail T0 on time alone (cold type-check and lint caches): run it again before calling it a
+  regression.
 - Two lanes can meet at a merge (the bin moved to `dist/` in one, the skill calling `npx m3a` in another): run T1 on
   the merged head before pushing.
 - Never push to my-3dge or shardfall (O9); never publish (O2, D99); Claude models only (O10).
