@@ -4691,6 +4691,11 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
     planter and key fit (item 8: it changes the frozen vectors other implementations certify against, G10's route);
     contacts for the six unplanted loops (item 9: D108 answered them, and B1 grades the clips they'd change); the
     proof's digest and the census's mirrors (items 11, 12: the owner's, on #16 and D67).
+  - **How they landed:** `gen-<seed>` takes a whole number without leading zeros (one name a seed) and no negative
+    seed, unlike the sweep's and the gallery's parse; the tools' descriptions now cost 3,189 of their 3,200 tokens;
+    the registry tells an argument off every form what is wrong in the one form of its type; first-flight drops
+    hello's deep-link test (the lab's UI, not the package) and requires G4's held-out rig; the census's later counts
+    take about 0.13 s, from 0.8 s; T1's graders run one planted case each (22 s of T1, from 34.5), T2 all.
 - **Why:** what needs nothing from the owner is done rather than listed; what changes graded, frozen or decided ground
   waits with its reason written down.
 - **Answered:** no: made without a response, to review.

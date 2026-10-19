@@ -4,6 +4,43 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.54.0 · 2026-10-19
+
+The audit's large items (D119): six built, the rest deferred with their reasons in docs/HANDOFF.md; `AUDIT.md` retired.
+
+### Spec
+- A clip's `provenance.intake` requires `by` (who or what made it) whenever the record is present (clip.schema.json,
+  MOTION.md §7.4); a source's stated terms that differ from the served ones keep its clips out of the intake. Refrozen
+  under D119.
+
+### Core
+- The validator refuses `provenance.intake` without `by` (M2-E003 at `provenance.intake.by`).
+
+### Three
+- `@m3a/three/test-characters/generate`: the test characters as GLB bytes without three or its loaders, for code that
+  reads them as files (a test pins that its imports reach only `@m3a/core`).
+
+### Tools
+- A character can be `gen-<seed>` (a generated test character, one name a seed: `gen-7`, never `gen-007`) wherever a
+  tool takes one: retarget.inspect, retarget.apply, graph.sim, export (its .glb too), on every surface and in m3a.js.
+- `sheet` draws any orbit: `view` is a named view or `{yaw, pitch}` in degrees (`--view 30,10` on the command line),
+  pitch within -90 to 90, each wrong form refused with what is wrong.
+- An argument that fits none of its forms is told what is wrong in the one form of its type: `{yaw: 30}` reads
+  "view.pitch is required" on every surface.
+- `@m3a/tools` ships the agentskills.io skill as `skills/m3a/SKILL.md`; `pack --check` asserts it, and the benchmark
+  runner copies it from the installed package (the repository's when none is installed).
+- `deliver` refuses a clip whose source states terms other than those it served; `m3a library submit` refuses a
+  clip with no `--by` and no recorded `by`, and `--by` fills a record the clip's file carries without one.
+- The intake checker samples the library once and then only new submissions (the census's later counts about 0.13 s,
+  from 0.8 s), with the same result as the whole census.
+
+### Repo
+- e2e `first-flight`: G4's demo set and session (idle, walk, run, jump, attack with its hit) on the six skeletons and
+  the held-out rig, sensors green, page = Node hash for hash, on the public API; `apps/lab/hello`, its e2e,
+  `tools/run/hello.ts` and `npm run hello` retired.
+- T1 runs one planted case each of B1, B3, B4 and B7's graders and T2 all of them (the graders' T1 time 22 s, from 34.5).
+- doctrine: `@m3a/tools` may reach `@m3a/three` only through `test-characters/generate`.
+
 ## 0.53.1 · 2026-10-19
 
 The post-G10 audit (D118): every easy finding fixed, two duplicates retired, the large items listed in `AUDIT.md`.

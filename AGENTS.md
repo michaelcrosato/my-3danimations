@@ -53,7 +53,6 @@ why. This file is how.
 | `npm run license -- check <library \| SET \| game.json>` | | licenses against their tiers, the texts kept, a game's credits (WP-5.7) | |
 | `npm run sweep -- <rig ids> [--heldout G<n>] [--min-total P] ...` | | every clip on each skeleton and the pass rates (WP-4.5) | |
 | `npm run sim -- <graph> --input <script> [--expect <trace>] [--write]` | | a game's input script on a graph: trace, travel, sensors, filmstrip (WP-6.5) | |
-| `npm run hello [-- build \| preview]` | | the first-flight demo, `apps/lab/hello` (WP-4.6) | |
 | `npm run pack [-- --check] [--publishable]` | | the packs and `m3a.js` into `.cache/pack/`; `--check` proves them (WP-7.4) | |
 | `npm run intake -- check \| adopt --dry-run \| gates` | | the intake's checker, the adopt bot's dry run, the library's PR gates (WP-9.1) | |
 | `npm run index [-- --check] \| verify <SET> <dir> \| admit ...` | | `library/index.json`, the registry index; a release's or a pack's files checked (WP-9.4) | |

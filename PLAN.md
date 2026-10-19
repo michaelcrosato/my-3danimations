@@ -784,7 +784,8 @@ G5 gates M3 (through WP-9.1) and M4 (G10). Clips change in sequence (§8.4), so 
     attack set plays on it with the sensors green, and its sweep results are reported separately;
   - sheets are produced headless;
   - B1 and its held-out variant each pass at least 4 of 5 trials with fresh agents;
-  - the demo runs in CI's e2e with its sheets attached as artifacts, and has a public link once O3 is linked.
+  - the demo runs in CI's e2e with its sheets attached as artifacts, and has a public link once O3 is linked (since
+    D119 the demo's set and session run as T2's `first-flight` suite, its sheets in `check-output/first-flight/`).
 - **G5 The payload:**
   - **at least 1,000 unique motions,** counted after a minimal dedup in WP-5.8 (re-exports and near-duplicates count
     once);
@@ -1497,7 +1498,8 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
 - **Verify:** `npm run e2e -- capture && npm test -- sweep`
 
 #### WP-4.6 The first-flight demo
-- **Owns:** `apps/lab/hello/*`, `vercel.json`, `tools/run/hello.ts` (`npm run hello`, D52)
+- **Owns:** `apps/lab/hello/*`, `vercel.json`, `tools/run/hello.ts` (`npm run hello`, D52); graduated after G10 into
+  `tests/e2e/first-flight.e2e.ts` and `tests/e2e/first-flight/` on the public API, the lab deleted (D119)
 - **Needs:** 4.4
 - **Size:** M
 - **Build:**
@@ -1512,7 +1514,7 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
     linked);
   - the console handle drives it headless;
   - the sensors run on what it plays.
-- **Verify:** `npm run e2e -- hello`
+- **Verify:** `npm run e2e -- hello` (since D119: `npm run e2e -- first-flight`)
 
 #### WP-4.7 The benchmark harness and B1
 - **Owns:** `bench/runner/**`, `bench/starters/**`, `bench/briefs/B1.md`, `bench/briefs/B1-discovery.md`,
@@ -2314,7 +2316,7 @@ commits named here are on their PR branches (`refs/pull/<n>/head`).
 | 4.3 Binding a skeleton | done | 0.22.0 | 4197608, 56855f6 | 2026-10-11 | 20 test characters + a held-out seed + the real rigs bind with no hand mapping, lengths as generated to the mm; a fully renamed rig binds through topology at 0.85; renamed, 22 of 24 map as by name, 2 flagged at 0.55; report ≤ 20 lines with a patch that binds; topology fixes in core (D47, D28); 0.23.1: control bones left out, the Knight mapped bone by bone |
 | 4.4 Playback and baking | done | 0.23.0 | 570b92d | 2026-10-11 | baked clips within 0.5 mm of the live solve on Mixamo, UE5 and Rigify characters (4 clips each, ≤1 mm through AnimationMixer); loop, events, contacts, facts in userData and GLTFExporter's extras; masked layers and crossfades through attach; the write allocates 0 bytes a frame, a whole update ≈7 KB and 0.16 ms (D48) |
 | 4.5 Headless capture | done | 0.24.0 | e7d7456, 5b85094 | 2026-10-12 | capture: 2 generated + 2 real rigs drawn headless on WebGL 2 in CI, every frame drawn, pose hashes = Node's; blank and wrong-renderer frames fail by code; sweep over 2 test characters lists the broken clip with its reason; library sweep 80–91% on 5 generated, 86–88% on the Quaternius mannequins, 62% on the Knight (G4 asks 95%); planting and toeless-rig fixes (D49) |
-| 4.6 The first-flight demo | done | 0.25.0 | 8fff7be | 2026-10-12 | lab `apps/lab/hello`: idle, walk, run by speed, jump, attack with its hit; deep links, `__m3a`, phone layout, stamp; `vercel.json`; e2e: a 13 s session headless on WebGL 2, hashes = Node's after every part, the sensors on what it played WARN with no fail, screenshots and a sheet as T2's artifact (D52); cross-fade planting fixed on the way (D51) |
+| 4.6 The first-flight demo | done | 0.25.0 | 8fff7be | 2026-10-12 | lab `apps/lab/hello`: idle, walk, run by speed, jump, attack with its hit; deep links, `__m3a`, phone layout, stamp; `vercel.json`; e2e: a 13 s session headless on WebGL 2, hashes = Node's after every part, the sensors on what it played WARN with no fail, screenshots and a sheet as T2's artifact (D52); cross-fade planting fixed on the way (D51); graduated into the package tier's e2e `first-flight`, the lab deleted (D119) |
 | 4.7 The benchmark harness and B1 | done | 0.27.0 | a7cc153, f4f039d | 2026-10-12 | isolation 1 (`claude -p`, clean env and home): B1 4/5 (the fifth skates at 54.5 cm/s running), 0.6–1.7 min, 7–18 turns, $0.11–0.24 a trial; discovery 2/2 found and used the package, both pass; quiz 10/10 in 3 trials; the grader fails 4 planted bad solutions and passes the known-good on seeds 1, 37 and held-out 41; a variant runs by path, its known-good first; manual draft shipped in @m3a/tools (D54) |
 | **G4 = M1** | done (passed, run 2) | 0.43.1 | adf77ee | 2026-10-14 | run 2, 9 of 9 in 41.8 min (D88, `bench/results/gates/G4-run-2/`): the sweep under D80's reading 8,148 of 8,388 pairs on the six skeletons together (97.14%; the Knight 92.3% alone; held-out rig 98.4% apart); test (702), T2 (the set on seven bodies, no fail finding, every one warns), B1 5/5 and its held-out variant 5/5. Run 1, 5 of 8 in 19.7 min (D57, `bench/results/gates/G4-run-1/`): sweep 89.1% of 3,150 (bar 95%; held-out rig 90.9%); B1's variant a grader failure (seed 935, fixed in D56); vectors without the pins in the worktree; check, test (469), doctrine, T2 (the set on six skeletons and the held-out rig, no fail finding), B1 5/5 passed |
 | 5.1 Library layout and loader | done | 0.26.0 | c6d1235 | 2026-10-12 | ahead of the ledger for WP-4.7 (D53): 5 sets, 525 clips load with their content ids and every file as locked; a tampered file fails with its clip named; a game that hasn't opted in sees the 3 CC0 sets (367 clips); CC0, CC BY and CMU texts in library/LICENSES/ |

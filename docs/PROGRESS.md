@@ -4,7 +4,7 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 `PLAN.md` §14; decisions are in `docs/DECISIONS.md`.
 
 **Phase:** all eleven built (10 done: G10's commands passed; its confirmation blocked-owner). **Next gate:** none (M4).
-**Version:** 0.53.1. **Mode:** ultracode (D83). **Last change:** the post-G10 audit (D118, `AUDIT.md`).
+**Version:** 0.54.0. **Mode:** ultracode (D83). **Last change:** the post-G10 audit (D118) and its large items (D119).
 
 ## Done
 
@@ -20,11 +20,11 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 - Phase 9 (G9's commands passed on run 2, #16): the intake, its gates, the adopt bot, B8, B8-ten (WP-9.1); sources
   (9.2); dedup, lineage (9.3); the registry index (9.4) (D112); the verifiers' fixes (D113, D114).
 - Phase 10 (G10's commands passed, #17): the consumer proof and MIGRATING.md (10.1), the conformance kit (10.2) (D116).
-- The audit (D118): stale docs corrected, the frozen spec's errata, D96's follow-ups, T2 loads m3a.js.
+- The audit (D118, D119): docs, the spec's errata, D96's follow-ups; gen-<seed>, first-flight, the shipped skill.
 
 ## Next
 
-- The owner's steps below; the large items in `AUDIT.md` and the follow-ups in docs/HANDOFF.md, owned by no WP.
+- The owner's steps below; the follow-ups in docs/HANDOFF.md, each deferred with its reason, owned by no WP.
 
 ## Blocked on the owner
 

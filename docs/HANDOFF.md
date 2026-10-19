@@ -4,7 +4,8 @@ Phase 7 merged before its gate (michaelcrosato/my-3danimations#13, D103); G7 pas
 michaelcrosato/my-3danimations#14 (D107); Phase 8 merged on michaelcrosato/my-3danimations#15 (G8's commands, D111);
 Phase 9 on michaelcrosato/my-3danimations#16 (G9's commands passed on run 2, D115); Phase 10 on
 michaelcrosato/my-3danimations#17 (G10's commands passed on run 1, D117). After it, an audit of the whole repository
-(D118) fixed its easy findings; its large items were built or deferred with their reasons (D119). This file is what the next session needs.
+(D118) fixed its easy findings; its large items were built or deferred with their reasons (D119). This file is
+what the next session needs.
 
 ## The standing goal (the owner's)
 
@@ -16,7 +17,7 @@ none during trial batches.
 
 ## Where things stand
 
-- **Version 0.53.1.** Every WP through 10.2 is done; G0-G7 passed; G8, G9 and G10's command sets passed and each
+- **Version 0.54.0.** Every WP through 10.2 is done; G0-G7 passed; G8, G9 and G10's command sets passed and each
   waits on the owner (blocked-owner, its ask on its PR):
   - **G8** (#15): the phone review of `bench/results/gates/G8-run-1/queue.json`.
   - **G9** (#16): the contract suite against O8's project; an adoption through a merged PR; the owner's approval of

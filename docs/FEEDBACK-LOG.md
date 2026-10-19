@@ -26,10 +26,10 @@ do act on goes into a WP (`PLAN.md`) or a decision (`docs/DECISIONS.md`) and the
 | Roll where the format's reference is undefined | **Taken up in v0.18.0** | F2 | WP-3.5 repairs twist flips; WP-5.3's `steadyTwist` (v0.32.0) holds a straight limb's twist |
 | What the tier-3 bodies cover | **Taken up in v0.21.0** | F2 | WP-4.2's test characters and the fetched CC0 rigs (D46) |
 | Forearm twist on rigs without twist bones | deferred | F2 | A consumer's rig without twist bones candy-wraps (WP-4.3 passed without it) |
-| The manual's budget | watch | F5, F6 | A third source, or the next manual change (`AUDIT.md` item 4) |
-| What the tools can name | deferred | F6 | A game or the gallery needs a generated character or an orbit from the CLI (`AUDIT.md` item 2) |
-| How strict the intake is | deferred | F6 | The importers' regenerations go through the adopt bot (`AUDIT.md` items 5, 10) |
-| The intake's cost | deferred | F6 | A checker run blocks a runner or the bot for more than a tick (`AUDIT.md` item 6) |
+| The manual's budget | watch | F5, F6 | A third source, or the next manual change (docs/HANDOFF.md's follow-ups) |
+| What the tools can name | **Taken up in v0.54.0** | F6 | `gen-<seed>` and an orbit on every surface (D119) |
+| How strict the intake is | deferred | F6 | The importers' regenerations go through the adopt bot (the terms and `intake.by`: taken up in v0.54.0, D119) |
+| The intake's cost | **Taken up in v0.54.0** | F6 | The checker samples the library once and only new submissions after (D119) |
 
 ## Sources
 
@@ -119,20 +119,21 @@ Acted on in D100 and D101; these points were not:
   Chromium.
 - **F5.4** (deferred) 30 library loops have no detected foot contacts; agents that pick one can't match its speed
   (B1). The next session fixes them before G7 (HANDOFF). **Taken up in v0.50.1** (D104; narrowed in
-  v0.50.2, D108; the 6 left are `AUDIT.md` item 9).
+  v0.50.2, D108; the 6 left wait in docs/HANDOFF.md's follow-ups, D119).
 
 ### F6 · 2026-10-19 · Phases 8 to 10's verifier reviews and the post-G10 audit (the same model family)
 
 The reviews' fixes landed in D109, D113, D116 and D117, the audit's easy findings in D118; these points were not
-acted on (each is an item in `AUDIT.md`):
+acted on (D119 took up or deferred each):
 
 - **F6.1** (what the tools can name, deferred) The CLI and MCP can't name a generated `gen-<seed>` character, which the
-  gallery plays, nor an orbit other than the named views (D109).
+  gallery plays, nor an orbit other than the named views (D109). **Taken up in v0.54.0** (D119).
 - **F6.2** (how strict the intake is, deferred) library-gates holds a clip added outside the intake to the intake's
   gates but passes a clean one (D113); `deliver` allows differing stated and served terms when both are allowlisted,
-  and the format leaves `intake.by` optional.
+  and the format leaves `intake.by` optional. The terms and `intake.by` **taken up in v0.54.0** (D119); the
+  adopt bot's monopoly waits for the importers (docs/HANDOFF.md).
 - **F6.3** (the intake's cost, deferred) Each checker run rebuilds the census over the whole library, about 1 s on the
-  runner's event loop (WP-9.1b's review).
+  runner's event loop (WP-9.1b's review). **Taken up in v0.54.0** (D119): later runs sample only what is new.
 - **F6.4** (the manual's budget, watch) The manual, at 7,999 of 8,000 tokens, can't teach the names the consumer lab
   uses beyond it (D116, MIGRATING gap 10).
 - **F6.5** (WP sizes, reached) WP-8.2 came to 3,023 lines and was split, 9.1 to about 2,800 (split), 9.4 to 683 (past

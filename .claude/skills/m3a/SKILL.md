@@ -26,4 +26,4 @@ baseline. On the command line a reply starts with its verdict, fits in 20 lines 
 with a `next:` hint; `--json` also writes a report.json. `node packages/tools/src/node.ts help` lists every tool,
 `node packages/tools/src/node.ts help <tool>` gives its flags and examples. `.mcp.json` serves the same tools over MCP
 (`node packages/tools/src/node.ts mcp`). The skill for a project that installs the package is `skills/m3a/SKILL.md`
-(agentskills.io's layout, taken from this repository: no tarball carries it, D118), and `llms.txt` indexes the docs.
+(agentskills.io's layout; `@m3a/tools` ships it, D119), and `llms.txt` indexes the docs.
