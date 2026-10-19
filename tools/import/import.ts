@@ -10,15 +10,20 @@
 // mm and its worst at most 300 mm. WP-5.8: a re-import the sensors flag is repaired by their fix where that makes it
 // better within CLOSE mm of its source on average and WORST mm at its worst point, a re-import the sensors judge better
 // is kept over its migrated version within the same, and every clip records its QA verdict (tools/qa/verdict.ts).
+// WP-9.1: a clip the owner adopted from the intake queue is kept over the version its source gives, on the rest it was
+// made on, its record saying so (`kept: "adopted"`, the source's measures kept beside it), and a clip's review is
+// carried over the rewrite while its motion hash matches (tools/migrate/adopted.ts); `withAdoption` writes the record
+// as the adopt bot leaves it, so the next import finds what it would write.
 import { format, math, serialize, validate, type Clip, type Rest } from "@m3a/core";
 
 const { fromFormat1 } = format, { PORTABLE } = math;
 import { importSet, type Catalog } from "@m3a/io";
 import { withFacts } from "@m3a/library";
 import { fix, metrics } from "@m3a/sensors";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { catalogRow, contentId, legendLines, migrate, setText } from "../migrate/migrate.ts";
+import { adoptedWhy, adoptionOf, baselineOn, carryReview, onDisk, type Adoption } from "../migrate/adopted.ts";
 import { baselineReason } from "../migrate/sets.ts";
 import { readReasons, withQuality, type QaReasons } from "../qa/verdict.ts";
 import { ROOT } from "../run/cli.ts";
@@ -37,7 +42,7 @@ export const CLOSE = 2, WORST = 30;
 
 /** What happened to one clip: which version it keeps and why, the two fits, the two QA verdicts, the metrics that moved. */
 export interface ClipChoice {
-  kept: "import" | "migrated" | "new";
+  kept: "import" | "migrated" | "new" | "adopted";
   why: string;
   fit: { import: [number, number]; migrated?: [number, number] };
   qa: { import: string; migrated?: string };
@@ -161,7 +166,24 @@ function measured(clip: Clip, rest: Rest): { verdict: string; values: Record<str
 /** Re-imports the sets (all of IMPORTS by default). The migrated library is rebuilt once to compare against. */
 export function importLibrary(specs: readonly ImportSpec[] = IMPORTS, root = ROOT): SetImport[] {
   const mig = migrate(root), legend = legendLines(root), reasons = readReasons();
-  return specs.map((spec) => importOne(spec, mig, legend, reasons));
+  return specs.map((spec) => importOne(spec, mig, legend, reasons, join(root, "library/sets", spec.set)));
+}
+
+/** The importer's line in a set's manifest (`content.importer`), with how many clips it keeps as migrated. */
+export const importerLine = (migrated: number): string => `${IMPORTER.tool} ${IMPORTER.version}, from the sources (WP-5.3)${migrated ? `; ${migrated} clip(s) kept as m3a-migrate 1 made them (_import.json says why)` : ""}`;
+
+/** A set's mean fit (mm): the mean of its clips' recorded mean fits. */
+export const meanFit = (fits: readonly number[]): number => (fits.length ? fits.reduce((a, x) => a + x, 0) / fits.length : 0);
+
+/** A re-imported set's record (its `_import.json` text) and manifest line with its clip `slug` adopted (`a`), as the
+ *  next `npm run import` writes them: the clip's choice kept as adopted with why, its source's measures as they were;
+ *  the mean over `fits`, the set's clips' recorded mean fits as written. */
+export function withAdoption(text: string, slug: string, a: Adoption, fits: readonly number[]): { record: string; importer: string } {
+  const r = JSON.parse(text) as { mean: number; clips: Record<string, ClipChoice> };
+  if (!r.clips[slug]) throw new Error(`${slug} has no choice in its set's _import.json: only a clip the import made is adopted over it`);
+  r.clips[slug] = { ...r.clips[slug], kept: "adopted", why: adoptedWhy(a) };
+  r.mean = Number(meanFit(fits).toFixed(1));
+  return { record: `${JSON.stringify(r, null, 1)}\n`, importer: importerLine(Object.values(r.clips).filter((c) => c.kept === "migrated").length) };
 }
 
 /** The keys a JSON text gives twice in one object (JSON.parse keeps the last and says nothing), each as its path. */
@@ -188,8 +210,9 @@ export function duplicateKeys(text: string): string[] {
   return out;
 }
 
-/** One set's re-import against its migrated version (`mig`, the migrator's output; empty for a new set). */
-function importOne(spec: ImportSpec, mig: ReturnType<typeof migrate>, legend: string[], reasons: QaReasons): SetImport {
+/** One set's re-import against its migrated version (`mig`, the migrator's output; empty for a new set) and its files on
+ *  disk in `dir` (adopted clips kept, reviews carried). */
+function importOne(spec: ImportSpec, mig: ReturnType<typeof migrate>, legend: string[], reasons: QaReasons, dir: string): SetImport {
   const text = readFileSync(join(CATALOGS, spec.catalog), "utf8"), twice = duplicateKeys(text);
   if (twice.length) throw new Error(`library/catalogs/${spec.catalog} names ${twice.join(", ")} twice: JSON keeps only the last`);
   const cat = JSON.parse(text) as Catalog, libs = spec.read(cat);
@@ -228,7 +251,8 @@ function importOne(spec: ImportSpec, mig: ReturnType<typeof migrate>, legend: st
     srcRecords[id] = { label, origin, license: rule.license, terms: rule.terms ?? (s as { license?: string }).license, url, ...(rule.credit ? { credit: rule.credit } : {}), file, rig, rest };
   }
   const clipFiles = new Map<string, string>(), rows: string[] = [], baseline: Record<string, { code: string; at: string; reason: string }[]> = {};
-  let sum = 0;
+  const fits: number[] = [], candidate = new Map<string, ClipChoice["kept"]>(), onBase = baselineOn(dir);
+  const diskSources = existsSync(join(dir, "_set.json")) ? (JSON.parse(readFileSync(join(dir, "_set.json"), "utf8")) as { sources: Record<string, Record<string, unknown>> }).sources : {};
   for (const name of names) {
     const c1 = out.set.clips[name]!, slug = slugOf.get(name)!, src = c1.src, rule = spec.sources(src), rest = out.set.sources[src]!.rest, cap = capOf(name)!;
     const before = migClips.get(name), orig = before?.provenance.orig ?? c1.orig;
@@ -252,11 +276,21 @@ function importOne(spec: ImportSpec, mig: ReturnType<typeof migrate>, legend: st
       choice.why = why;
     }
     choices[slug] = choice;
-    let chosen = kept === "migrated" ? before! : clip;
+    candidate.set(slug, kept);
+    // a clip the owner adopted is kept as adopted, on the rest it was made on, its source's measures beside it
+    const was = onDisk(dir, slug), adoption = was && adoptionOf(was);
+    if (adoption) [choice.kept, choice.why] = ["adopted", adoptedWhy(adoption)];
+    let chosen = adoption ? was! : kept === "migrated" ? before! : clip;
+    if (adoption) {
+      const own = diskSources[chosen.restSrc];
+      if (!own) errors.push(`${slug}: adopted on the rest ${chosen.restSrc}, which its set's manifest hasn't`);
+      else if (!srcRecords[chosen.restSrc]) srcRecords[chosen.restSrc] = own;
+      else if (canon(srcRecords[chosen.restSrc]!.rest) !== canon(own.rest)) errors.push(`${slug}: adopted on ${chosen.restSrc}'s rest as its set had it, which the re-import measures anew: the owner adopts it again on the new rest`);
+    }
     // a migrated clip kept decodes on the rest it was made on; the re-import measures its source's rest anew (another
     // pick from the same performer moves the spine's shares), so where they differ the old rest stays as a record of
     // its own (`<source>_MIGRATED`) and the clip names it
-    if (kept === "migrated" && canon(migManifest!.sources[before!.restSrc]!.rest) !== canon(srcRecords[before!.restSrc]?.rest)) {
+    if (!adoption && kept === "migrated" && canon(migManifest!.sources[before!.restSrc]!.rest) !== canon(srcRecords[before!.restSrc]?.rest)) {
       const own = srcRecords[before!.restSrc];
       if (!own) errors.push(`${slug}: kept as migrated, but its source ${before!.restSrc} is gone from the re-import`);
       else {
@@ -266,15 +300,18 @@ function importOne(spec: ImportSpec, mig: ReturnType<typeof migrate>, legend: st
         choice.why += `; on the rest it was made on (${id}: the re-import measures ${before!.restSrc}'s anew)`;
       }
     }
-    const f = kept === "migrated" ? before!.quality.fit : fit;
-    sum += f[0]!;
+    const f = chosen.quality.fit;
+    fits.push(f[0]!);
     if (f[0]! > LIMITS.clipMean || f[1]! > LIMITS.clipWorst) errors.push(`${slug}: fits its source within ${f[0]} mm on average, ${f[1]} mm at worst (limits ${LIMITS.clipMean} and ${LIMITS.clipWorst}): leave it out with a reason ($skip), or fix it`);
     // its QA verdict, with why the clip is kept so when the sensors flag it (WP-5.8)
-    const decodes = kept === "migrated" ? (srcRecords[chosen.restSrc]?.rest as Rest | undefined) ?? migManifest!.sources[chosen.restSrc]!.rest : rest;
-    chosen = withQuality(chosen, decodes, reasons, kept === "migrated" ? { migrated: choice.why.split(";")[0]! } : { repaired: repairs, ...(unrepaired ? { unrepaired } : {}) });
+    const decodes = adoption ? ((srcRecords[chosen.restSrc]?.rest ?? diskSources[chosen.restSrc]?.rest ?? rest) as Rest) : kept === "migrated" ? ((srcRecords[chosen.restSrc]?.rest as Rest | undefined) ?? migManifest!.sources[chosen.restSrc]!.rest) : rest;
+    chosen = withQuality(chosen, decodes, reasons, adoption ? {} : kept === "migrated" ? { migrated: choice.why.split(";")[0]! } : { repaired: repairs, ...(unrepaired ? { unrepaired } : {}) });
+    if (!adoption) chosen = carryReview(chosen, was);
     const r = validate(chosen, { mode: "read" });
     for (const e of r.errors) errors.push(`${slug}: ${e.code} ${e.message}`);
-    if (kept === "migrated") {
+    if (adoption) {
+      if (onBase[slug]) baseline[slug] = onBase[slug]!;
+    } else if (kept === "migrated") {
       if (migBaseline[slug]) baseline[slug] = migBaseline[slug]!;
     } else if (r.warnings.length) {
       try {
@@ -286,11 +323,12 @@ function importOne(spec: ImportSpec, mig: ReturnType<typeof migrate>, legend: st
     clipFiles.set(`${slug}.json`, serialize(chosen));
     rows.push(catalogRow(chosen));
   }
-  const mean = names.length ? sum / names.length : 0;
+  const mean = meanFit(fits);
   // the hands on clips that hold a prop: before (migrated) and after (as kept)
   const withProps = names.map((n) => ({ n, c: choices[slugOf.get(n)!]!, clip: out.set.clips[n]! })).filter(({ n, c, clip }) => c.hands.length === 2 && holdsProp(n, clip.tags ?? [], clip.desc));
   const avg = (xs: number[]) => Math.round((xs.reduce((a, x) => a + x, 0) / Math.max(1, xs.length)) * 10) / 10;
-  const props = withProps.length ? { clips: withProps.length, migrated: avg(withProps.map(({ c }) => c.hands[0]!)), import: avg(withProps.map(({ c }) => (c.kept === "migrated" ? c.hands[0]! : c.hands[1]!))) } : null;
+  // (an adopted clip counted as the version its source gives: the record measures the sources)
+  const props = withProps.length ? { clips: withProps.length, migrated: avg(withProps.map(({ c }) => c.hands[0]!)), import: avg(withProps.map(({ n, c }) => (candidate.get(slugOf.get(n)!) === "migrated" ? c.hands[0]! : c.hands[1]!))) } : null;
   if (mean > LIMITS.setMean) errors.push(`the set fits its sources within ${mean.toFixed(1)} mm on average (limit ${LIMITS.setMean})`);
   const dropped = [...migClips.values()].map((c) => c.id.slice(prefix.length)).filter((s) => !clipFiles.has(`${s}.json`));
   const kept = Object.values(choices), migratedKept = kept.filter((c) => c.kept === "migrated").length;
@@ -299,7 +337,7 @@ function importOne(spec: ImportSpec, mig: ReturnType<typeof migrate>, legend: st
     title: spec.title,
     format: "2.0",
     tier: spec.tier,
-    content: { edition: spec.edition, importer: `${IMPORTER.tool} ${IMPORTER.version}, from the sources (WP-5.3)${migratedKept ? `; ${migratedKept} clip(s) kept as m3a-migrate 1 made them (_import.json says why)` : ""}`, sha256: contentId(clipFiles) },
+    content: { edition: spec.edition, importer: importerLine(migratedKept), sha256: contentId(clipFiles) },
     credit: spec.credit,
     producer: IMPORTER,
     sources: srcRecords,

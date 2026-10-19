@@ -3,7 +3,8 @@
 // kept in whichever version is better against its migrated one, with the reason in the set's `_import.json`. With no
 // flag it writes library/sets/<SET>/ and locks the library (library/sets.lock.json); --check rebuilds in memory and fails
 // on any byte that differs or any stale file. Either way it fails on a clip or set past the fit limits, a validator
-// error, or a warning no baseline reason covers.
+// error, or a warning no baseline reason covers. A clip the owner adopted from the intake queue is kept as adopted, and
+// a clip's review carried while its motion hash matches (tools/migrate/adopted.ts).
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { lockLibrary } from "../../packages/library/src/node.ts";
@@ -32,7 +33,7 @@ if (import.meta.main) {
   for (const s of sets) {
     const c = Object.values(s.choices), n = (k: string) => c.filter((x) => x.kept === k).length;
     warnings.push(...s.warnings.map((w) => `${s.set}: ${w}`));
-    steps.push({ name: s.set, ok: s.errors.length === 0, ms: 0, summary: `${c.length} clips (${n("import")} re-imported, ${n("migrated")} kept as migrated, ${n("new")} new), ${s.mean.toFixed(1)} mm on average${s.props ? `; hands on the ${s.props.clips} clips that hold a prop ${s.props.migrated} → ${s.props.import} mm` : ""}; ${s.skipped.length} skipped${s.dropped.length ? `, ${s.dropped.length} gone: ${s.dropped.join(", ")}` : ""}`, detail: s.errors });
+    steps.push({ name: s.set, ok: s.errors.length === 0, ms: 0, summary: `${c.length} clips (${n("import")} re-imported, ${n("migrated")} kept as migrated, ${n("new")} new${n("adopted") ? `, ${n("adopted")} kept as the owner adopted them` : ""}), ${s.mean.toFixed(1)} mm on average${s.props ? `; hands on the ${s.props.clips} clips that hold a prop ${s.props.migrated} → ${s.props.import} mm` : ""}; ${s.skipped.length} skipped${s.dropped.length ? `, ${s.dropped.length} gone: ${s.dropped.join(", ")}` : ""}`, detail: s.errors });
   }
   const ok = steps.every((s) => s.ok);
   if (parsed.flags.check) {
