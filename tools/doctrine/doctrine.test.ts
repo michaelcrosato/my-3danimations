@@ -1,9 +1,10 @@
-// Tests for the doctrine checks: each check has a passing and a failing fixture, built in a temporary folder.
+// Tests for the doctrine checks: each check has a passing and a failing fixture, built in a temporary folder that the
+// file removes when it is done.
 import { execFileSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
-import { describe, expect, it } from "vitest";
+import { afterAll, describe, expect, it } from "vitest";
 import { BANNED, checkBanned, checkPin } from "./banned.ts";
 import { checkBinaries } from "./binaries.ts";
 import { API_MAX, checkBoundaries, publicApi, specifiers } from "./boundaries.ts";
@@ -14,9 +15,16 @@ import { checkLocal } from "./local.ts";
 import { checkPins, sha256File } from "./pins.ts";
 import { checkFrozen } from "./frozen.ts";
 
+/** The fixtures' folders, removed after the last test. */
+const roots: string[] = [];
+afterAll(() => {
+  for (const r of roots) rmSync(r, { recursive: true, force: true });
+});
+
 /** A context over a fresh folder holding `files` (path -> text or bytes); `main` is the decisions log on main. */
 function fixture(files: Record<string, string | Uint8Array>, main: Record<string, string> = {}): Ctx {
   const root = mkdtempSync(join(tmpdir(), "m3a-doctrine-"));
+  roots.push(root);
   for (const [p, content] of Object.entries(files)) {
     mkdirSync(dirname(join(root, p)), { recursive: true });
     writeFileSync(join(root, p), content);
@@ -42,16 +50,20 @@ describe("binaries", () => {
 });
 
 describe("budgets", () => {
+  /** Every budgeted file, each within its budget. */
+  const within = { "packages/tools/MANUAL.md": "w\n", "spec/LEGEND.md": "w\n", "library/sets/X/catalog.tsv": "ok\t1\n", "docs/PROGRESS.md": "a\nb\n" };
   it("passes within budget and fails each kind over it", () => {
-    expect(checkBudgets(fixture({ "docs/PROGRESS.md": "a\nb\n" })).findings).toEqual([]);
+    expect(checkBudgets(fixture(within)).findings).toEqual([]);
     const long = Array.from({ length: 41 }, (_, i) => `line ${i}`).join("\n");
     const row = "Walk_Loop\t1.2\tloop\t1.4\t" + "very long tag ".repeat(20);
     const r = checkBudgets(fixture({ "docs/PROGRESS.md": long, "spec/LEGEND.md": "word ".repeat(900), "library/sets/X/catalog.tsv": `ok\t1\n${row}\n`, "packages/tools/MANUAL.md": "w ".repeat(8100) }));
     expect(r.findings.map((f) => f.message.split(" ")[0])).toEqual(["packages/tools/MANUAL.md", "spec/LEGEND.md", "library/sets/X/catalog.tsv", "docs/PROGRESS.md"]);
     expect(r.findings[2]!.message).toMatch(/row 2/);
   });
-  it("reports a file not written yet as pending", () => {
-    expect(checkBudgets(fixture({})).lines[0]).toMatch(/pending/);
+  it("fails a budgeted file that is gone: moved or deleted, it would go unmeasured", () => {
+    expect(checkBudgets(fixture({})).findings.map((f) => f.message.split(":")[0])).toEqual(["the manual", "the legend with one worked key", "catalog rows", "the progress page"]);
+    const { "spec/LEGEND.md": _, ...rest } = within;
+    expect(checkBudgets(fixture(rest)).findings.map((f) => f.message)).toEqual(["the legend with one worked key: no file matches /^spec\\/LEGEND\\.md$/: it was moved or deleted"]);
   });
 });
 
@@ -148,7 +160,10 @@ describe("pins", () => {
   const pkg = (deps: Record<string, string>) => JSON.stringify({ version: "0.1.0", devDependencies: deps });
   const lock = (deps: Record<string, string>) => JSON.stringify({ packages: Object.fromEntries(Object.entries(deps).map(([n, v]) => [`node_modules/${n}`, { version: v }])) });
   it("passes exact pins that the lockfile installs", () => {
-    expect(checkPins(fixture({ "package.json": pkg({ vitest: "4.1.11" }), "package-lock.json": lock({ vitest: "4.1.11" }) })).findings).toEqual([]);
+    expect(checkPins(fixture({ "package.json": pkg({ vitest: "4.1.11" }), "package-lock.json": lock({ vitest: "4.1.11" }), "tools/pins.json": JSON.stringify({ repos: {} }) })).findings).toEqual([]);
+  });
+  it("fails a missing tools/pins.json: the pinned sources and frozen fixtures would go unchecked", () => {
+    expect(checkPins(fixture({ "package.json": pkg({}) })).findings.map((f) => f.message)).toEqual([expect.stringMatching(/^tools\/pins\.json is missing/)]);
   });
   it("fails a range, a lockfile mismatch, a short SHA and a frozen fixture that changed", () => {
     const pins = { repos: { a: { url: "https://github.com/x/a", sha: "abc123" } }, frozen: [{ path: "spec/vectors/frozen/core.json", sha256: "0".repeat(64), from: "x" }] };

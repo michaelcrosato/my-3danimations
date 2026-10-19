@@ -1,6 +1,6 @@
 // Search (WP-5.5): for 40 game moments put in words, a fitting clip is in the top 5 for at least 32, and for 10 held-out
 // queries (a verifier subagent's, written without the synonym table or the 40) for at least 8, every tier opted in; the
-// CC0-only scores are reported. A game that hasn't opted in sees only CC0 rows and is told of a closer match elsewhere;
+// CC0-only scores are reported. Round 1's held-out queries, kept as a record (D65), are all still answered. A game that hasn't opted in sees only CC0 rows and is told of a closer match elsewhere;
 // no match is zero rows and the nearest tags; filters, the limit, the core list and the ledger's takes.
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -28,6 +28,11 @@ describe("search", () => {
     expect(qs).toHaveLength(10);
     expect(every.hits, every.missed.join("; ")).toBeGreaterThanOrEqual(8);
     console.info(`search, held out: ${every.hits}/10 every tier opted in, ${free.hits}/10 CC0 alone`);
+  });
+  it("still answers round 1's held-out queries, all 10 (D65: a record, no longer held out)", () => {
+    const qs = queries("heldout-round1.json"), every = score(all, qs);
+    expect(qs).toHaveLength(10);
+    expect(every.hits, every.missed.join("; ")).toBe(10);
   });
   it("returns only the tiers a game opted into, and names a closer match in one it hasn't", () => {
     const r = cc0.search("walks proudly");

@@ -13,12 +13,13 @@ fi
 cd "${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "$0")/../.." && pwd)}"
 
 # Node: the container's default may be older than the toolchain's (D22: Node 24, CI's 24.21.0) and keeps others as
-# /opt/node<major>. The lowest major that qualifies (nearest CI's) goes first on PATH, here and for the session.
-major() { "$1" -p 'process.versions.node.split(".")[0]' 2>/dev/null || echo 0; }
-need=$(node -p 'parseInt(((require("./package.json").engines || {}).node || "0").replace(/^\D+/, ""), 10) || 0' 2>/dev/null || echo 0)
-if [ "$(major node)" -lt "$need" ]; then
+# /opt/node<major>. The lowest that qualifies (nearest CI's) goes first on PATH, here and for the session. Versions
+# compare as major*1000+minor, since the minor counts: every repo CLI runs under `import.meta.main`, new in Node 24.2.
+version() { "$1" -p 'const [a, b] = process.versions.node.split("."); a * 1000 + +b' 2>/dev/null || echo 0; }
+need=$(node -p 'const m = /(\d+)(?:\.(\d+))?/.exec((require("./package.json").engines || {}).node || "") || [0, 0, 0]; m[1] * 1000 + +(m[2] || 0)' 2>/dev/null || echo 0)
+if [ "$(version node)" -lt "$need" ]; then
   while read -r candidate; do
-    if [ -x "$candidate" ] && [ "$(major "$candidate")" -ge "$need" ]; then
+    if [ -x "$candidate" ] && [ "$(version "$candidate")" -ge "$need" ]; then
       bin=$(dirname "$candidate")
       export PATH="$bin:$PATH"
       if [ -n "${CLAUDE_ENV_FILE:-}" ]; then
@@ -28,8 +29,8 @@ if [ "$(major node)" -lt "$need" ]; then
     fi
   done < <(printf '%s\n' /opt/node*/bin/node | sort -V)
 fi
-if [ "$(major node)" -lt "$need" ]; then
-  echo "session-start: warning: node $(node --version) is older than package.json's engines (>=$need) and no newer one was found"
+if [ "$(version node)" -lt "$need" ]; then
+  echo "session-start: warning: node $(node --version) is older than package.json's engines (>=$((need / 1000)).$((need % 1000))) and no newer one was found: the repo's CLIs run under import.meta.main, which needs Node 24.2, and do nothing without it"
 fi
 
 npm ci --no-audit --no-fund --loglevel=error

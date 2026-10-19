@@ -1,9 +1,10 @@
 // The output contract for repo tools (PLAN.md §5.6): parse flags strictly, print the verdict first in at most
-// 20 lines, write `report.json` under check-output/<tool>/ with --json, exit 0 ok / 1 findings / 2 usage error,
-// and end every reply with a `next` hint. Also runs commands with timing, for the tier and gate runners.
+// 20 lines, write `report.json` under check-output/<tool>/ with --json (under $M3A_CHECK_OUTPUT/<tool>/ when that is
+// set, so a test's run leaves the reports a person made alone), exit 0 ok / 1 findings / 2 usage error, and end every
+// reply with a `next` hint. Also runs commands with timing, for the tier and gate runners.
 import { spawnSync } from "node:child_process";
 import { mkdirSync, writeFileSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { isAbsolute, join, relative, resolve } from "node:path";
 
 /** The repository root (tools/run/ is two levels down). */
 export const ROOT = resolve(import.meta.dirname, "../..");
@@ -130,10 +131,10 @@ export function finish(report: Report, parsed: Parsed, exitCode?: number): never
     if (s.log) lines.push(`     full log: ${s.log}`);
   }
   if (parsed.flags.json) {
-    const dir = join(ROOT, "check-output", report.tool);
+    const dir = resolve(process.env.M3A_CHECK_OUTPUT || join(ROOT, "check-output"), report.tool), file = join(dir, "report.json"), rel = relative(ROOT, file);
     mkdirSync(dir, { recursive: true });
-    writeFileSync(join(dir, "report.json"), JSON.stringify(report, null, 2) + "\n");
-    lines.push(`report: check-output/${report.tool}/report.json`);
+    writeFileSync(file, JSON.stringify(report, null, 2) + "\n");
+    lines.push(`report: ${rel.startsWith("..") || isAbsolute(rel) ? file : rel}`);
   }
   lines.push(`next: ${report.next}`);
   process.stdout.write(lines.join("\n") + "\n");

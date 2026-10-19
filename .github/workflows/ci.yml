@@ -1,6 +1,8 @@
 # CI (PLAN.md §6, WP-0.5): T0 and T1 on every push, T2 on pull requests (and the other three.js candidate's pin test),
-# a gate's command set by manual dispatch, and, dispatched with the gate `intake-contract`, the intake store's contract
-# suite against O8's linked project (G9's hosted proof): the secret M3A_INTAKE_SUPABASE reaches that one step alone.
+# a gate's command set by manual dispatch (the gates that run no benchmark agent: G4, G6, G7 and G9 run theirs through
+# the claude CLI, in a session), and, dispatched with the gate `intake-contract`, the intake store's contract suite
+# against O8's linked project (G9's hosted proof): the secret M3A_INTAKE_SUPABASE reaches that one step alone. Each
+# dispatched gate has a concurrency group of its own, so dispatching one never cancels another's run.
 # Actions are pinned by commit SHA (principle 9); the comment names the release.
 name: ci
 
@@ -10,7 +12,7 @@ on:
   workflow_dispatch:
     inputs:
       gate:
-        description: "The gate to run (G0, G1, ...)"
+        description: "The gate to run: G0-G3, G5, G8, G10 or library-pr; intake-contract for the hosted store's contract. G4, G6, G7 and G9 run benchmark agents through the claude CLI, so they run in a session, not here"
         required: true
         default: G0
 
@@ -18,7 +20,8 @@ permissions:
   contents: read
 
 concurrency:
-  group: ci-${{ github.event_name }}-${{ github.ref }}
+  # inputs.gate is empty on a push or a pull request, so those groups keep their meaning
+  group: ci-${{ github.event_name }}-${{ github.ref }}-${{ inputs.gate }}
   cancel-in-progress: true
 
 env:
@@ -143,6 +146,9 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - run: npm run pins -- fetch
       - run: npm run fixtures -- fetch
+      # each gate's held-out rigs (PLAN.md §9.3), as T1 and T2 fetch them: T2's demo plays on them and G4's freshness
+      # check reads them, so a cold or partial .cache doesn't fail the gate
+      - run: for m in bench/results/heldout/*/run-*/rig.json; do npm run fixtures -- fetch --manifest "$m"; done
       - run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0 || true
       - run: npm run gate -- "$GATE" --json
         env:

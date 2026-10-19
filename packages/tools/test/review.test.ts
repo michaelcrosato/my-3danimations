@@ -4,7 +4,8 @@
 // right states and files (the store, the clip's review field through the writer, its set's content id and lock, the
 // feedback log by theme, the proposals list) and leaves catalog.tsv alone; applying it twice changes no byte; a
 // decision on a clip or submission that changed since it was queued is refused as stale with nothing written; and
-// each wrong call is refused naming the fix.
+// each wrong call is refused naming the fix. The log is the repository's own, copied: the sources a review adds are
+// numbered on from its last, and a theme's row is matched by its Sources cell, so the log can grow as its rules say.
 import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { Ajv2020 } from "ajv/dist/2020.js";
 import { join } from "node:path";
@@ -26,7 +27,8 @@ const schema = (name: string) => new Ajv2020({ strict: false }).compile(JSON.par
 describe("review on every surface", () => runExamples(REVIEW));
 
 describe("a review in a scratch checkout", () => {
-  let co: Checkout, sub: string, other: string;
+  /** `n`: the source number the review's notes get, one past the copied log's last `### F<n>`. */
+  let co: Checkout, sub: string, other: string, n: number;
   const reg = new Registry(REVIEW), call = (args: object, host = co.host) => reg.call("review", args, { host });
   const files = () => Object.fromEntries([...["library/sets.lock.json", "docs/FEEDBACK-LOG.md"], ...readdirSync(join(co.cwd, "library/sets", SET)).map((f) => `library/sets/${SET}/${f}`), ...readdirSync(join(co.cwd, ".cache/intake")).filter((f) => f.endsWith(".json")).map((f) => `.cache/intake/${f}`)].map((f) => [f, co.file(f)]));
   /** Walk_Loop with its head turned `deg` more at every key: an improvement's motion. */
@@ -34,6 +36,7 @@ describe("a review in a scratch checkout", () => {
 
   beforeAll(async () => {
     co = checkout();
+    n = Math.max(0, ...[...co.file("docs/FEEDBACK-LOG.md").matchAll(/^### F(\d+) /gm)].map((m) => Number(m[1]))) + 1;
     const alice = co.store("contributor", "alice"), checker = co.store("checker");
     for (const [i, c] of [walk(2), { ...walk(0), desc: "walks, kept as it is" }].entries()) {
       const s = await alice.submit({ kind: "clip", text: serialize(c), improves: `${SET}/Walk_Loop` });
@@ -81,7 +84,7 @@ describe("a review in a scratch checkout", () => {
     const valid = schema("review.schema.json");
     expect([valid(review), valid({ ...review, decisions: [{ ...review.decisions[0]!, as: "approve" }] }), valid({ ...review, by: "owner\nx" })], JSON.stringify(valid.errors)).toEqual([true, false, false]); // the schema reads as parseReview does
     const r = await call({ do: "ingest", on: "review.json" });
-    expect([r.status, r.verdict]).toEqual(["ok", "review ingest: 4 decisions, 4 applied, 0 already, 0 stale, 0 refused; 3 notes in docs/FEEDBACK-LOG.md (F6), 2 proposals in docs/REVIEW-PROPOSALS.md"]);
+    expect([r.status, r.verdict]).toEqual(["ok", `review ingest: 4 decisions, 4 applied, 0 already, 0 stale, 0 refused; 3 notes in docs/FEEDBACK-LOG.md (F${n}), 2 proposals in docs/REVIEW-PROPOSALS.md`]);
     const owner = co.store("owner");
     expect([(await owner.get(sub))!.state, (await owner.get(sub))!.decision, (await owner.get(other))!.state]).toEqual(["adopted", { as: "adopt", hash: q.submissions.find((x) => x.id === sub)!.hash, note: "foot contact: the head turn reads better", by: "owner", date: TODAY }, "rejected"]);
     const clip = (id: string) => JSON.parse(co.file(`library/sets/${id}.json`)) as Clip;
@@ -90,9 +93,10 @@ describe("a review in a scratch checkout", () => {
     expect([co.file(`library/sets/${SET}/catalog.tsv`) === catalog, co.file("library/sets.lock.json") === lock0]).toEqual([true, false]);
     expect(() => openLibrary({ dir: join(co.cwd, "library/sets"), tiers: TIERS, packs: {}, warn: () => {} }).verify()).not.toThrow(); // content id and lock agree
     const log = co.file("docs/FEEDBACK-LOG.md").replace(/\n {2}/g, " ");
-    expect(log).toMatch(/\n### F6 · 2026-10-19 · A review from the ground station \(owner\)\n\n- \*\*F6\.1\*\* \(foot contact, watch\) `s-[0-9a-f]{16}@[0-9a-f]{12}` adopted: the head turn reads better\n/);
-    expect(log).toMatch(/\n\| WP sizes \| \*\*reached\*\* \(F1, F4\) \| F1, F4, F6 \|/);
-    expect(log).toMatch(/\n\| Foot contact \| watch \| F6 \| When it reaches three sources/);
+    expect(log).toMatch(new RegExp(`\n### F${n} · 2026-10-19 · A review from the ground station \\(owner\\)\n\n- \\*\\*F${n}\\.1\\*\\* \\(foot contact, watch\\) \`s-[0-9a-f]{16}@[0-9a-f]{12}\` adopted: the head turn reads better\n`));
+    // an existing theme gains the source at the end of its Sources cell; a new one starts its row with it
+    expect(log).toMatch(new RegExp(`\n\\| WP sizes \\| [^|\n]+ \\| [^|\n]*, F${n} \\|`));
+    expect(log).toMatch(new RegExp(`\n\\| Foot contact \\| watch \\| F${n} \\| When it reaches three sources`));
     expect(log).toContain(`(review notes, watch) \`${c1!.ref}\` approved: clean`);
     const proposals = co.file("docs/REVIEW-PROPOSALS.md").replace(/\n {2}/g, " ");
     expect(proposals).toContain(`- 2026-10-19 · threshold · \`${c2!.ref}\`: its jitter passes but reads`);
@@ -107,7 +111,7 @@ describe("a review in a scratch checkout", () => {
     const moved = { ...libraryClip(c3!.id), keys: walk(5).keys.slice(0, 2).map((k, i) => ({ ...k, t: i * 0.1 })), dur: 0.2 } as Clip;
     host.writeClips(SET, [moved]); // c3 changes after it was queued, through the writer
     const was = co.file(`library/sets/${c3!.id}.json`), r = await call({ do: "approve", on: `${c3!.ref},${c4!.ref}`, note: "batch" });
-    expect([r.status, r.verdict]).toEqual(["findings", "review approve: 2 decisions, 1 applied, 0 already, 1 stale, 0 refused; 1 note in docs/FEEDBACK-LOG.md (F7)"]);
+    expect([r.status, r.verdict]).toEqual(["findings", `review approve: 2 decisions, 1 applied, 0 already, 1 stale, 0 refused; 1 note in docs/FEEDBACK-LOG.md (F${n + 1})`]);
     expect(r.lines[0]).toMatch(new RegExp(`^stale: approve ${c3!.id}: ${c3!.id}'s motion changed since it was queued \\(made on ${c3!.hash.slice(0, 12)}, it is [0-9a-f]{12} now\\)`));
     expect([co.file(`library/sets/${c3!.id}.json`), (JSON.parse(co.file(`library/sets/${c4!.id}.json`)) as Clip).review?.state]).toEqual([was, "approved"]);
     // a submission whose stored text changed since it was checked: its content hash no longer holds

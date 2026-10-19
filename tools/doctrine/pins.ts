@@ -2,8 +2,8 @@
 // - Every dependency in every package.json is an exact version (no ^, ~, *, ranges or tags); @m3a ones equal the
 //   repository version.
 // - package-lock.json installs exactly the root's pinned versions.
-// - tools/pins.json (WP-0.4), when present: each repo has an https URL and a full 40-hex SHA; each frozen fixture
-//   matches its SHA-256; each fetched file that is in the cache matches its SHA-256.
+// - tools/pins.json (WP-0.4), which must be there: each repo has an https URL and a full 40-hex SHA; each frozen
+//   fixture matches its SHA-256; each fetched file that is in the cache matches its SHA-256.
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -67,6 +67,6 @@ export function checkPins(ctx: Ctx): { findings: Finding[]; lines: string[] } {
       if (sha256File(p) !== fe.sha256) fail(`fetched file ${fe.path} does not match its SHA-256: delete it and fetch again`);
     }
     lines.push(`${Object.keys(pins.repos ?? {}).length} repos, ${(pins.frozen ?? []).length} frozen fixtures, ${cached}/${(pins.fetched ?? []).length} fetched files cached`);
-  } else lines.push("tools/pins.json pending (WP-0.4)");
+  } else fail("tools/pins.json is missing: the pinned sources and frozen fixtures go unchecked");
   return { findings, lines };
 }

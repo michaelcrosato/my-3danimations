@@ -5,13 +5,15 @@
 // token reaches only the adopt bot.
 // library-gates.yml runs every set's license check, then `npm run gate -- library-pr`, on every pull request that
 // touches library/sets/. ci.yml's intake-contract job, by manual dispatch alone, runs the contract suite against O8's
-// project, its secret on that step.
+// project, its secret on that step; its gate job fetches the held-out rigs as T1 and T2 do, each dispatched gate has a
+// concurrency group of its own, and the dispatch input names the gates that run there (none that runs benchmark agents).
 import { spawnSync } from "node:child_process";
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { ROOT } from "../run/cli.ts";
+import { GATES } from "../run/gate.ts";
 
 const workflow = (name: string) => readFileSync(join(ROOT, ".github/workflows", name), "utf8");
 /** A workflow's steps, each its own text, from `steps:` on. */
@@ -68,5 +70,35 @@ describe("ci.yml's hosted contract", () => {
     expect(secret[0]).toMatch(/\[ -n "\$M3A_INTAKE_SUPABASE" \] \|\| \{ echo "::error::[^"]+"; exit 1; \}/);
     expect([all.find((s) => s.includes("actions/checkout@"))!, all.some((s) => /run: npm ci --ignore-scripts\n/.test(`${s}\n`))]).toEqual([expect.stringMatching(/\n {10}persist-credentials: false/), true]);
     expect(text.slice(0, text.indexOf("\njobs:"))).not.toMatch(/secrets\./);
+  });
+});
+
+describe("ci.yml's jobs", () => {
+  const text = workflow("ci.yml");
+  /** A job's text, from its key to the next job's. */
+  const job = (name: string) => {
+    const from = text.indexOf(`\n  ${name}:\n`), rest = text.slice(from + 1), end = rest.slice(1).search(/\n {2}[\w-]+:\n/);
+    return end < 0 ? rest : rest.slice(0, end + 1);
+  };
+  it("gives each dispatched gate a concurrency group of its own: a dispatch never cancels another gate's run", () => {
+    expect(text).toMatch(/\nconcurrency:\n(?: {2}#.*\n)* {2}group: ci-\$\{\{ github\.event_name \}\}-\$\{\{ github\.ref \}\}-\$\{\{ inputs\.gate \}\}\n {2}cancel-in-progress: true\n/);
+  });
+  it("fetches the held-out rigs before T1, T2 and a gate run, so a cold cache fails none of them", () => {
+    const fetch = 'run: for m in bench/results/heldout/*/run-*/rig.json; do npm run fixtures -- fetch --manifest "$m"; done';
+    for (const [name, runs] of [["t0-t1", "npm test"], ["t2", "npm run e2e"], ["gate", "npm run gate"]]) {
+      const all = steps(job(name!)), at = all.findIndex((s) => s.includes(fetch));
+      expect([name, at >= 0 && at < all.findIndex((s) => s.includes(`run: ${runs!} --`))]).toEqual([name, true]);
+    }
+  });
+  it("names in its dispatch input the gates that run there: every one that runs no benchmark agent (the claude CLI isn't on a runner)", () => {
+    const description = /\n {8}description: "([^"]+)"\n/.exec(text)![1]!, [here, elsewhere] = description.split(". ");
+    const named = (words: string) => (words.match(/G\d+(?:-G\d+)?|library-pr/g) ?? []).flatMap((n) => {
+      const [a, b] = n.split("-G").map((x) => +x.replace(/^G/, ""));
+      return n === "library-pr" ? [n] : Array.from({ length: (b ?? a!) - a! + 1 }, (_, i) => `G${a! + i}`);
+    });
+    const bench = (g: string) => GATES[g]!.some(([, script]) => script === "bench");
+    expect(named(here!).sort()).toEqual(Object.keys(GATES).filter((g) => !bench(g)).sort());
+    expect(named(elsewhere!).sort()).toEqual(Object.keys(GATES).filter(bench).sort());
+    expect(here).toMatch(/intake-contract/);
   });
 });

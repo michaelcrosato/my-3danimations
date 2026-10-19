@@ -1,9 +1,13 @@
 // `npm run test:changed [-- --which]`: T0, then only the test suites that cover files changed against main
 // (committed, staged, unstaged and untracked), saying why each suite ran. --which shows the choice without running.
-// A change to the toolchain (package.json, the lockfile, tsconfig, the test configs, tools/run/) runs every suite.
+// A change to the toolchain (package.json, the lockfile, tsconfig, the test configs, tools/run/) runs every suite. A
+// changed source file runs every suite whose tests import it, directly or through other files; a changed package runs
+// its own tests, its dependents' and every suite that imports any of them; data a suite reads (the library, the
+// benchmark's briefs and starters, the intake service, the workflows, the skills, the feedback log) has a rule each.
 import { execFileSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
-import { join } from "node:path";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
+import { dirname, join, relative, resolve } from "node:path";
+import { specifiers } from "../doctrine/boundaries.ts";
 import { bin, finish, fmtMs, parseArgs, ROOT, runStep, usage, type Report, type Step } from "./cli.ts";
 import { sourceFiles } from "./headers.ts";
 import { t0Steps, vitestSummary } from "./tiers.ts";
@@ -37,17 +41,73 @@ export function changedFiles(): string[] {
   return [...files].sort();
 }
 
-/** The workspaces that depend on `pkg` (by their package.json dependencies). */
+const WORKSPACES = ["core", "sensors", "io", "library", "three", "tools"];
+/** A package's own code, not its tests or test characters: a change there is a change to the package. */
+const PACKAGE_CODE = /^packages\/([^/]+)\/(?!test)/;
+
+/** The workspaces that depend on `pkg` (by their package.json dependencies), directly or through another. */
 function dependents(pkg: string): string[] {
   const out: string[] = [];
-  for (const dir of ["core", "sensors", "io", "library", "three", "tools"]) {
-    const p = join(ROOT, "packages", dir, "package.json");
-    if (!existsSync(p)) continue;
-    const deps = (JSON.parse(readFileSync(p, "utf8")) as { dependencies?: Record<string, string> }).dependencies ?? {};
-    if (`@m3a/${pkg}` in deps) out.push(dir);
+  for (let todo = [pkg], p = todo.pop(); p; p = todo.pop()) {
+    for (const dir of WORKSPACES) {
+      const file = join(ROOT, "packages", dir, "package.json");
+      if (out.includes(dir) || dir === pkg || !existsSync(file)) continue;
+      const deps = (JSON.parse(readFileSync(file, "utf8")) as { dependencies?: Record<string, string> }).dependencies ?? {};
+      if (`@m3a/${p}` in deps) {
+        out.push(dir);
+        todo.push(dir);
+      }
+    }
   }
   return out;
 }
+
+/** Every suite a changed source file can reach: each package's tests, each tool's, the benchmark runner's, each
+ *  grader's, and the spec's. */
+function suites(): string[] {
+  const dirs = (d: string) => (existsSync(join(ROOT, d)) ? readdirSync(join(ROOT, d), { withFileTypes: true }).filter((e) => e.isDirectory()).map((e) => `${d}/${e.name}`) : []);
+  return [...WORKSPACES.map((p) => `packages/${p}/test`), ...dirs("tools"), "bench/runner", ...dirs("bench/graders"), "spec"];
+}
+
+const reached = new Map<string, { files: Set<string>; packages: Set<string> }>();
+
+/** What a suite's tests import (repository-relative files, and @m3a packages), following relative imports wherever
+ *  they go; a package's own code counts as that package, and the walk stops there. */
+function reach(suite: string): { files: Set<string>; packages: Set<string> } {
+  const known = reached.get(suite);
+  if (known) return known;
+  const files = new Set<string>(), packages = new Set<string>(), todo = sourceFiles(join(ROOT, suite)).filter((f) => f.endsWith(".test.ts"));
+  for (let file = todo.pop(); file; file = todo.pop()) {
+    const rel = relative(ROOT, file);
+    // (a specifier that names no file, as a string in a test's fixture may, is skipped)
+    if (files.has(rel) || !existsSync(file) || !statSync(file).isFile()) continue;
+    files.add(rel);
+    const pkg = PACKAGE_CODE.exec(rel)?.[1];
+    if (pkg) {
+      packages.add(pkg);
+      continue;
+    }
+    for (const s of specifiers(readFileSync(file, "utf8"))) {
+      const m3a = /^@m3a\/([^/]+)/.exec(s)?.[1];
+      if (m3a) packages.add(m3a);
+      else if (s.startsWith(".")) todo.push(resolve(dirname(file), s));
+    }
+  }
+  const r = { files, packages };
+  reached.set(suite, r);
+  return r;
+}
+
+/** Data a suite reads rather than imports: the changed paths it covers, the suites, and why they cover it. */
+const READS: [RegExp, (m: RegExpExecArray) => string[], string][] = [
+  [/^bench\/(briefs|quiz)\//, () => ["bench/runner"], "the runner's tests read the briefs and the quiz"],
+  [/^bench\/starters\/(B\d+)/, (m) => [`bench/graders/${m[1]}`], "its grader's tests grade the starter"],
+  [/^services\/intake\//, () => ["packages/tools/test"], "the intake tests run its function, its SQL and its schemas"],
+  [/^\.github\/workflows\//, () => ["tools/intake", "tools/release"], "their tests read the workflows"],
+  [/^(skills\/|\.claude\/skills\/|llms\.txt$)/, () => ["tools/skill"], "the skill tests read the skills and llms.txt"],
+  [/^library\//, () => ["packages/library/test", "tools/qa"], "the library's and QA's tests read the clips"],
+  [/^docs\/FEEDBACK-LOG\.md$/, () => ["packages/tools/test/review.test.ts"], "the review queue's test appends to a copy of it"],
+];
 
 /** Map changed files to suites, each with its reason. An empty list means only T0 runs. */
 export function select(files: readonly string[]): Choice[] | "all" {
@@ -57,25 +117,35 @@ export function select(files: readonly string[]): Choice[] | "all" {
   };
   for (const f of files) {
     if (TOOLCHAIN.test(f)) return "all";
-    const pkg = /^packages\/([^/]+)\//.exec(f)?.[1];
+    const pkg = PACKAGE_CODE.exec(f)?.[1];
     if (pkg) {
+      // its tests, its dependents', and every suite that imports one of them
+      const touched = [pkg, ...dependents(pkg)];
       add(`packages/${pkg}/test`, `${f} changed`);
-      for (const d of dependents(pkg)) add(`packages/${d}/test`, `@m3a/${d} depends on @m3a/${pkg} (${f})`);
+      for (const d of touched.slice(1)) add(`packages/${d}/test`, `@m3a/${d} depends on @m3a/${pkg} (${f})`);
+      for (const s of suites()) {
+        const p = touched.find((t) => reach(s).packages.has(t));
+        if (p) add(s, `its tests import @m3a/${p}${p === pkg ? "" : `, which depends on @m3a/${pkg}`} (${f})`);
+      }
       continue;
     }
-    const tool = /^tools\/([^/]+)\//.exec(f)?.[1];
-    if (tool) {
-      add(`tools/${tool}`, `${f} changed`);
-      continue;
-    }
-    if (f.startsWith("spec/")) {
+    // a suite's own folder: a package's tests (or its test characters), a tool's, the benchmark runner's, a grader's
+    const own = /^(packages\/[^/]+\/test|(?:tools\/[^/]+|bench\/runner|bench\/graders\/B\d+)(?=\/))/.exec(f)?.[1];
+    if (own) add(own, `${f} changed`);
+    else if (f.startsWith("spec/")) {
       add("spec", `${f} changed`);
       add("packages/core/test", `the core is checked against the spec (${f})`);
-      continue;
+    }
+    for (const [re, to, why] of READS) {
+      const m = re.exec(f);
+      if (m) for (const s of to(m)) add(s, `${why} (${f})`);
     }
     if (/\.test\.ts$/.test(f)) add(f, `${f} changed`);
+    for (const s of suites()) if (reach(s).files.has(f)) add(s, `its tests import ${f}`);
   }
-  return [...picks].map(([suite, why]) => ({ suite, why })).filter((c) => existsSync(join(ROOT, c.suite)) && sourceFiles(join(ROOT, c.suite)).some((s) => s.endsWith(".test.ts")) || c.suite.endsWith(".test.ts"));
+  const chosen = [...picks].map(([suite, why]) => ({ suite, why }));
+  // a test file runs on its own only when no chosen folder holds it
+  return chosen.filter((c) => existsSync(join(ROOT, c.suite)) && (c.suite.endsWith(".test.ts") ? !chosen.some((d) => c.suite.startsWith(`${d.suite}/`)) : sourceFiles(join(ROOT, c.suite)).some((s) => s.endsWith(".test.ts"))));
 }
 
 if (import.meta.main) {
