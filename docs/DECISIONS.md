@@ -4620,6 +4620,11 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
     the owner's confirmation. The session acts in no other repository (O9): docs/MIGRATING.md proposes my-3dge's
     switch and spec/conformance/CERTIFYING.md shardfall's certification; asked on the pull request, blocked-owner, and
     the gate merges with it open (§8.5).
+  - **After the gate, the review bot's four findings** (#17): the wire writes -0 as raw JSON (no sentinel string), the
+    certification's `-dirty` covers what the run executed (with `--impl ts`, packages/core and io), and the lab keeps
+    a J press until a step takes it and lerps between the last two states after a multi-step frame. Re-checked on the
+    fixed head: the kit's 55 tests, the TypeScript certification (3,662 cases), the consumer proof's e2e (5 of 5) and
+    T1 (1,187 tests); the gate's record stands at its commit.
   - **Every §14 row through G10** is done or blocked-owner with its ask on its pull request: G8's phone review (#15),
     G9's hosted run, adoption and approval (#16), G10's confirmation (#17).
 - **Why:** the last gate's machine-provable clauses run, and what only the owner can give asked for rather than done.

@@ -24,7 +24,7 @@ lanes, none during trial batches. G8-G10 have owner steps; such a gate still mer
   - **G10** (#17): another repository consumes the package or certifies against the vectors, and the owner confirms
     it (O9: proposed in docs/MIGRATING.md and spec/conformance/CERTIFYING.md, never acted on there).
   - O3 (the Vercel previews, paused) and O8 (the Supabase project) are the owner's; the session creates neither.
-- **Review bots:** every finding on #14, #15 and #16 is fixed or answered on its thread (D115); one, binding a
+- **Review bots:** every finding on #14, #15, #16 and #17 is fixed or answered on its thread (D115, D117); one, binding a
   community pack's `verify` to the admission-time proof hash, is left open on #16 for the owner.
 - **Last measured (4 CPUs):** T0 about 3 s, T1 77 s in CI (about 105 s here), T2 about 350 s with the full sweeps,
   `pack --check` about 21 s, the TypeScript certification about 8 s.
