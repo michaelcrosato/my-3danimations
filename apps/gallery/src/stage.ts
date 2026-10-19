@@ -54,6 +54,8 @@ export class Stage {
   /** The character's height at rest (scene units). */
   #height = 1.8;
   #axes = { f: new Vector3(0, 0, 1), r: new Vector3(-1, 0, 0), u: new Vector3(0, 1, 0), turn: -1 };
+  /** The characters asked for so far, so only the latest is put on the stage. */
+  #asked = 0;
 
   private constructor(renderer: WebGPURenderer) {
     this.renderer = renderer;
@@ -92,12 +94,20 @@ export class Stage {
     this.camera.updateProjectionMatrix();
   }
 
-  /** Puts character `id` on the stage (the one there already stays), bound; throws naming the ids when there is none. */
-  async setCharacter(id: string): Promise<ThreeBound> {
+  /** Puts character `id` on the stage (the one there already stays), bound; throws naming the ids when there is none.
+   *  Null when a newer call came while this one loaded: that one puts its character there. */
+  async setCharacter(id: string): Promise<ThreeBound | null> {
+    const mine = ++this.#asked;
     if (this.bound && this.char === id) return this.bound;
     const bytes = await characterBytes(id);
+    if (mine !== this.#asked) return null;
     if (!bytes) throw new Error(`no character "${id}": gen-<seed> (any whole number), or a rig npm run fixtures -- fetch put in .cache/fixtures/`);
-    const bound = bind((await loadGlb(bytes)).scene);
+    const loaded = (await loadGlb(bytes)).scene;
+    if (mine !== this.#asked) {
+      dispose(loaded);
+      return null;
+    }
+    const bound = bind(loaded);
     if (this.bound) {
       this.carrier.remove(this.bound.root);
       dispose(this.bound.root);
@@ -140,6 +150,13 @@ export class Stage {
     this.controls.enabled = view === "orbit";
     this.controls.target.copy(at);
     if (view === "orbit") this.controls.update();
+  }
+
+  /** The view and where the camera looks from, measured from the camera itself: the azimuth (0 in front, 90 at the
+   *  body's right, 0 to 360) and the elevation, degrees to 0.1 (a fixed view's are the sensors' raster.VIEWS). */
+  look(): { view: View; azimuth: number; elevation: number } {
+    const d = this.camera.position.clone().sub(this.controls.target).normalize(), { f, r, u } = this.#axes, r1 = (x: number) => Math.round(x * 10) / 10 + 0;
+    return { view: this.view, azimuth: (r1(Math.atan2(d.dot(r), d.dot(f)) / DEG) + 360) % 360, elevation: r1(Math.asin(Math.min(1, Math.max(-1, d.dot(u)))) / DEG) };
   }
 
   /** Draws a frame, the camera following the character. */

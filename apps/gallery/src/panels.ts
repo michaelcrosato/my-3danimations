@@ -1,5 +1,5 @@
 // The panels under the stage (PLAN.md WP-8.1): browse and search the sets (every tier, each set's and row's tier
-// shown), a clip's timeline and what it is (describe, show), its metrics (the verdict, and each finding with its times,
+// shown; links to the review queue, the contributor page and the labs index), a clip's timeline and what it is (describe, show), its metrics (the verdict, and each finding with its times,
 // a tap away from its moment), its contact sheet (the sensors' software raster, drawn to a canvas), the example recipes
 // (compiled and played) and graphs (their layers and states, each state's clips playable, and the scripted
 // simulation's trace and filmstrip). Every number and picture here is a registry tool's reply.
@@ -34,7 +34,7 @@ function canvasOf(img: Image | undefined, label: string): HTMLElement {
 }
 
 /** A list of buttons, each opening what its `data-*` attribute names. */
-const list = (items: HTMLElement[]) => h("ul", { class: "list" }, ...items.map((b) => h("li", {}, b)));
+const list = (items: HTMLElement[], attrs: Record<string, string> = {}) => h("ul", { class: "list", ...attrs }, ...items.map((b) => h("li", {}, b)));
 const button = (attr: string, value: string, ...text: (Node | string)[]) => h("button", { type: "button", [attr]: value }, ...text);
 const tier = (t: string) => h("span", { class: `tier tier-${t}` }, t);
 
@@ -54,9 +54,10 @@ export async function renderPanel(g: Gallery): Promise<void> {
     out.push(form);
     if (r.q) {
       const reply = await ask("search", { query: r.q, limit: 40 }, () => false), rows = ((reply.data as { rows?: { id: string; tier: string; dur: number; loop: boolean; desc: string }[] } | null)?.rows ?? []);
-      out.push(list(rows.map((x) => button("data-clip", x.id, x.id, " ", tier(x.tier), ` ${x.dur.toFixed(2)} s ${x.loop ? "loop" : "once"}: ${x.desc}`))));
+      out.push(list(rows.map((x) => button("data-clip", x.id, x.id, " ", tier(x.tier), ` ${x.dur.toFixed(2)} s ${x.loop ? "loop" : "once"}: ${x.desc}`)), { id: "results" }));
     }
-    out.push(h("p", { class: "note" }, h("a", { href: "./src/review/" }, "Review queue"), " · ", h("a", { href: "./src/contributors/" }, "Contributors")));
+    // (the preview site serves the labs index at ./labs/; the gallery's own server doesn't)
+    out.push(h("p", { class: "note" }, h("a", { href: "./src/review/" }, "Review queue"), " · ", h("a", { href: "./src/contributors/" }, "Contributors"), " · ", h("a", { href: "./labs/" }, "Labs")));
     out.push(h("h3", {}, "Sets"), list(lib.sets().map((s) => button("data-set", s.set, s.set, " ", tier(s.tier), ` ${s.clips} clips: ${s.title}`))));
     if (r.set && lib.sets().some((s) => s.set === r.set)) {
       const about = lib.about(r.set);

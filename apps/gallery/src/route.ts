@@ -80,7 +80,8 @@ export function formatRoute(r: Route): string {
   put("graph", r.graph);
   put("char", r.char, DEFAULT_CHAR);
   put("view", r.view, "three-quarter");
-  put("t", r.t === null ? null : String(Math.round(r.t * 1000) / 1000));
+  // to the microsecond, as the gallery holds a moment, so the link reopens the pose shown
+  put("t", r.t === null ? null : String(Math.round(r.t * 1e6) / 1e6));
   put("rate", String(r.rate), "1");
   put("panel", r.panel, panelOf(r));
   put("q", r.q);

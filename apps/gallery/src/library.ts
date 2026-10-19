@@ -73,8 +73,8 @@ export function docs(kind: "recipes" | "graphs" | "sims"): { name: string; path:
 }
 
 /** The script that drives a graph: the longest in spec/sims/ written for it (the first by name among equals), else one
- *  the gallery writes, pressing each of its triggers every 0.45 s from 0.5 s for 4 s (deterministic: the same graph
- *  gives the same script). */
+ *  the gallery writes: a 4 s script pressing all its triggers together four times, 0.45 s apart from 0.5 s (at 0.5,
+ *  0.95, 1.4 and 1.85 s; none for a graph without triggers). Deterministic: the same graph gives the same script. */
 export function scriptFor(graphPath: string): { path: string | null; text: string } {
   const g = JSON.parse(SPEC[graphPath]!) as { id: string; name?: string; parameters?: Record<string, { type: string }> };
   const read = (path: string) => JSON.parse(SPEC[path]!) as { graph?: string; dur?: number };
@@ -83,5 +83,5 @@ export function scriptFor(graphPath: string): { path: string | null; text: strin
   const triggers = Object.entries(g.parameters ?? {}).filter(([, p]) => p.type === "trigger").map(([k]) => k);
   const input = triggers.length ? [0.5, 0.95, 1.4, 1.85].map((t) => ({ t, trigger: triggers.length === 1 ? triggers[0] : triggers })) : [];
   const name = g.id.split("/")[1] ?? "Graph";
-  return { path: null, text: JSON.stringify({ format: "2.0", id: `SIMS/${name}_Gallery`, desc: "the gallery's script: each trigger pressed every 0.45 s", graph: g.id, dur: 4, input }) };
+  return { path: null, text: JSON.stringify({ format: "2.0", id: `SIMS/${name}_Gallery`, desc: "the gallery's script: its triggers pressed together four times, 0.45 s apart from 0.5 s", graph: g.id, dur: 4, input }) };
 }
