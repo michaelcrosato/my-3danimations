@@ -1,6 +1,8 @@
 // Tests for the repo runners: the output contract's parsing and budgets, the header lint, versioning, the
-// test:changed selection, a gate's report (the commit it ran at, D91) and the e2e runner's filters.
-import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+// test:changed selection, a gate's report (the commit it ran at, D91), the e2e runner's filters and the preview site's
+// guard on the directory it empties.
+import { spawnSync } from "node:child_process";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -112,4 +114,20 @@ describe("the e2e runner's filters", () => {
     const re = new RegExp(anchor("animator"), "i");
     expect([re.test("/x/lane-animator/tests/e2e/animator-parity.e2e.ts"), re.test("/x/lane-animator/tests/e2e/hello.e2e.ts")]).toEqual([true, false]);
   });
+});
+
+describe("the preview site's builder", () => {
+  it("refuses an --out directory that holds files and no marker of its own, a labs/index.html there notwithstanding", () => {
+    const dir = mkdtempSync(join(tmpdir(), "m3a-site-"));
+    mkdirSync(join(dir, "labs"));
+    writeFileSync(join(dir, "labs/index.html"), "<p>another site's page</p>\n");
+    writeFileSync(join(dir, "keep.txt"), "someone's file\n");
+    try {
+      const r = spawnSync(process.execPath, [join(ROOT, "tools/run/site.ts"), "--out", dir], { cwd: ROOT, encoding: "utf8", timeout: 110_000 });
+      expect([r.status, r.stdout.split("\n")[0]]).toEqual([2, `site: usage error: ${dir} holds files that aren't a site this tool wrote; name a new directory with --out`]);
+      expect(readFileSync(join(dir, "keep.txt"), "utf8")).toBe("someone's file\n");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }, 120_000);
 });

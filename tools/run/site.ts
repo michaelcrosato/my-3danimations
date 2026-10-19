@@ -3,10 +3,12 @@
 // (apps/lab/<name>/index.html) at /labs/<name>/, each built by its own Vite config (Vite's defaults for a lab without
 // one, given `__COMMIT__`), so every page can carry its build stamp (core's version; the commit from
 // VERCEL_GIT_COMMIT_SHA, else GITHUB_SHA, else git: tools/run/stamp.ts). M3A_REVIEW_QUEUE is dropped before the builds:
-// the preview site never bundles a review queue (a queue holds submissions' text). It writes a marker (.m3a-site)
-// first, so it rebuilds into a directory an earlier run of its own left behind, a failed one included. The directory defaults to vercel.json's outputDirectory. The rigs fetched into .cache/fixtures/ are left
-// out of the gallery, as on Vercel, where there are none: they are fetched by hash, never committed or shipped (D9),
-// and the build fails if a .glb reaches the site.
+// the preview site never bundles a review queue (a queue holds submissions' text). It writes a marker (.m3a-site) once
+// the gallery is built, and empties only an empty directory or one holding that marker, which an earlier run of its
+// own left (one that failed past the gallery included); another site's pages are no marker. The directory defaults to
+// vercel.json's outputDirectory. The rigs fetched into .cache/fixtures/ are left out of the gallery, as on Vercel,
+// where there are none: they are fetched by hash, never committed or shipped (D9), and the build fails if a .glb
+// reaches the site.
 import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
 import { build, type InlineConfig, type Plugin } from "vite";
@@ -47,7 +49,7 @@ const show = (p: string) => (relative(ROOT, p).startsWith("..") ? p : relative(R
 const out = resolve(ROOT, String(parsed.flags.out ?? vercel.outputDirectory)), rel = show(out);
 // the gallery's build empties the directory: refuse one holding anything but a site this tool wrote (its marker)
 const MARK = ".m3a-site";
-if (existsSync(out) && readdirSync(out).length && !existsSync(join(out, MARK)) && !existsSync(join(out, "labs/index.html"))) {
+if (existsSync(out) && readdirSync(out).length && !existsSync(join(out, MARK))) {
   usage("site", new Error(`${rel} holds files that aren't a site this tool wrote; name a new directory with --out`), FLAGS);
 }
 // the preview site never bundles a review queue, whatever the environment asks of the gallery's own builds
