@@ -43,7 +43,7 @@ why. This file is how.
 | `npm run bench -- B<n> --trials 5` | | the fresh-agent benchmark | |
 | `npm run gallery [-- build \| preview]` | | the gallery (WP-8.1): every set and clip played, measured and linked, the review queue's and contributor pages (WP-8.2) | |
 | `npm run site [-- --out <dir>]` | | the preview site as Vercel builds every branch (WP-8.3): the gallery, the labs index, every lab, each page stamped with its commit | |
-| `m3a review [export \| ingest <file> \| adopt \| ...]` | | the owner's review queue (WP-8.2a): submissions and sampled clips, decided with the hash they were made on | |
+| `npx m3a review [export \| ingest <file> \| adopt \| ...]` (or `npm run m3a -- review ...`) | | the owner's review queue (WP-8.2a): submissions and sampled clips, decided with the hash they were made on | |
 
 A tool warns when a tier runs over budget and fails it at 1.5×. Never skip a test to get green; a test that waits on
 wall-clock time is a bug. In cloud sessions the SessionStart hook puts Node 24 first on `PATH` when the default is

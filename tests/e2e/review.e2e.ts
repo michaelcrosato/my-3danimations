@@ -6,9 +6,9 @@
 // share sheet (and as a download, the same bytes). `m3a review ingest` applies the file to the scratch store and the
 // scratch copy of the clips: the right states and files change; again, no byte changes; a queued clip edited through
 // the writer, then ingested: refused as stale, no byte changes. A build bundles a queue only when M3A_REVIEW_QUEUE
-// asks, and its page opens that one at load. The contributor page says the hosted store isn't
-// linked, reaches no other origin and carries no secret; built linked to a stub project, it signs in, adds a key's
-// SHA-256 and revokes it. Screenshots go to check-output/review/, never committed.
+// asks, and its page opens that one at load. The contributor page says the hosted store isn't linked, reaches no other
+// origin and carries no secret, and a build given a secret key fails; built linked to a stub project, it signs in,
+// adds a key's SHA-256 and revokes it. Screenshots go to check-output/review/, never committed.
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { extname, join, normalize } from "node:path";
@@ -217,6 +217,17 @@ test("contributors: unlinked, it says so, reaches no other origin and carries no
   const secrets = Object.entries(process.env).filter(([k, v]) => /SECRET|SERVICE_ROLE|TOKEN|PASSWORD|_KEY$/.test(k) && (v ?? "").length >= 12).map(([, v]) => v!);
   const text = readdirSync(SITE, { recursive: true }).map(String).filter((f) => /\.(js|html)$/.test(f)).map((f) => readFileSync(join(SITE, f), "utf8")).join("\n");
   expect([/sb_secret_\w+/.exec(text)?.[0], /eyJ[\w-]{8,}\.eyJ[\w-]{8,}\.[\w-]+/.exec(text)?.[0], secrets.filter((v) => text.includes(v)).length]).toEqual([undefined, undefined, 0]);
+
+  // a build given a secret key fails, before any page could carry it: Supabase's sb_secret_ keys and service_role JWTs
+  const jwt = (role: string) => ["e30", Buffer.from(JSON.stringify({ role })).toString("base64url"), "sig"].join(".");
+  for (const key of ["sb_secret_PROBEVALUE0123456789", jwt("service_role")]) {
+    process.env.VITE_M3A_INTAKE_KEY = key;
+    try {
+      await expect(build({ configFile: join(ROOT, "apps/gallery/vite.config.ts"), build: { outDir: join(ROOT, ".cache/review-site-secret"), emptyOutDir: true }, logLevel: "silent" })).rejects.toThrow(/VITE_M3A_INTAKE_KEY is a secret key/);
+    } finally {
+      delete process.env.VITE_M3A_INTAKE_KEY;
+    }
+  }
 
   // built linked: sign in (the stub's GitHub sign-in sends a token back in the link, as Supabase Auth's redirect does), add a key's SHA-256, revoke it
   process.env.VITE_M3A_INTAKE_URL = `${ORIGIN}/stub`;

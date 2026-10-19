@@ -2,10 +2,11 @@
 // free port (TCP on 127.0.0.1 only), Supabase's auth, roles and storage stubbed (services/intake/test/stub.sql), the
 // migrations applied, and the row-level security cases run through psql as each role with its JWT claims, as
 // PostgREST would set them: anonymous gets nothing; a contributor reads only its own rows; editing its own
-// user_metadata gains nothing; only the checker's service role moves states up to awaiting review; only the owner
-// decides, on the hash. The trigger's ids and hashes are checked against hash.ts's. Skips, saying why, when Postgres
+// user_metadata gains nothing; only the checker's service role moves states up to awaiting review, and a setting it sets
+// moves nothing to a verdict; only the owner decides, on the hash; a contributor's 21st submission in 24 hours is
+// refused, two sessions sending at once. The trigger's ids and hashes are checked against hash.ts's. Skips, saying why, when Postgres
 // 16 isn't installed (M3A_PG_BIN names another bin directory). Run alone: `npm test -- intake-sql`.
-import { execFileSync, spawnSync } from "node:child_process";
+import { execFileSync, spawn, spawnSync } from "node:child_process";
 import { chownSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync } from "node:fs";
 import { createServer } from "node:net";
 import { join } from "node:path";
@@ -22,7 +23,7 @@ const pgUser = (() => {
 })();
 const why = !existsSync(join(BIN, "initdb")) ? `no Postgres 16 at ${BIN} (set M3A_PG_BIN)` : root && !pgUser ? "run as root with no postgres user to own the cluster" : null;
 const ROOT = join(import.meta.dirname, "../../.."), SQL = join(ROOT, "services/intake"), DIR = join(ROOT, ".cache/intake-sql", String(process.pid));
-const [A, B, OWNER] = ["6f1c2a7e-3b9d-4c2e-9a51-0d4e8b7f1a23", "1d2e3f40-5a6b-4c7d-8e9f-a0b1c2d3e4f5", "9e8d7c6b-5a49-4382-a1b0-c9d8e7f6a5b4"];
+const [A, B, OWNER, C] = ["6f1c2a7e-3b9d-4c2e-9a51-0d4e8b7f1a23", "1d2e3f40-5a6b-4c7d-8e9f-a0b1c2d3e4f5", "9e8d7c6b-5a49-4382-a1b0-c9d8e7f6a5b4", "3c4d5e6f-7a8b-4c9d-8e0f-1a2b3c4d5e6f"];
 let port = 0;
 
 /** A Postgres program, as the postgres user when this runs as root (initdb and the server refuse root). */
@@ -37,6 +38,17 @@ function sql(text: string, as?: { role: string; sub?: string; meta?: object }): 
   const input = as ? `begin;\nset local role ${as.role};\nselect set_config('request.jwt.claims', $c$${claims}$c$, true) \\g /dev/null\n${text}\ncommit;\n` : text;
   const r = spawnSync(join(BIN, "psql"), ["-X", "-q", "-At", "-v", "ON_ERROR_STOP=1", "-h", "127.0.0.1", "-p", String(port), "-U", "postgres", "-d", "postgres", "-f", "-"], { input, encoding: "utf8" });
   return { out: r.stdout.trim(), err: r.status === 0 ? "" : r.stderr.replace(/^psql:[^:]*:\d+: (ERROR|FATAL): +/, "").split("\n")[0]! };
+}
+/** Runs `text` through psql as the checker's service role in its own session, going on past errors, while others
+ *  run: the statements' errors, one a line. */
+function checkerSession(text: string): Promise<string> {
+  return new Promise((done) => {
+    const p = spawn(join(BIN, "psql"), ["-X", "-q", "-At", "-h", "127.0.0.1", "-p", String(port), "-U", "postgres", "-d", "postgres", "-f", "-"]);
+    let err = "";
+    p.stderr.on("data", (d) => (err += String(d)));
+    p.on("close", () => done(err));
+    p.stdin.end(`set role service_role;\n${text}\n`);
+  });
 }
 const anon = { role: "anon" }, alice = { role: "authenticated", sub: A }, bob = { role: "authenticated", sub: B }, owner = { role: "authenticated", sub: OWNER }, checker = { role: "service_role" };
 const text = (tag: string) => `{"format":"2.0","id":"INTAKE/Walk","desc":"walks (${tag})","keys":[]}`;
@@ -61,7 +73,7 @@ describe.skipIf(why !== null)(`the hosted intake schema on Postgres 16${why ? ` 
       const r = sql(readFileSync(f, "utf8"));
       if (r.err) throw new Error(`${f}: ${r.err}`);
     }
-    expect(sql(`insert into auth.users (id) values ('${A}'), ('${B}'), ('${OWNER}'); insert into public.intake_settings (owner) values ('${OWNER}');`).err).toBe("");
+    expect(sql(`insert into auth.users (id) values ('${A}'), ('${B}'), ('${OWNER}'), ('${C}'); insert into public.intake_settings (owner) values ('${OWNER}');`).err).toBe("");
     for (const r of [a1, a2, b1]) expect(insert(r).err).toBe("");
     expect(sql(`insert into storage.objects (bucket_id, name) values ('intake', '${A}/${a1.id}/sheet.png'), ('intake', '${B}/${b1.id}/sheet.png');`, checker).err).toBe("");
   }, 60_000);
@@ -78,6 +90,7 @@ describe.skipIf(why !== null)(`the hosted intake schema on Postgres 16${why ? ` 
     expect(sql(`select count(*) from storage.objects where bucket_id = 'intake';`, anon)).toEqual({ out: "0", err: "" });
     expect(decide(a1.id, "adopt", "0".repeat(64), anon).err).toMatch(/^permission denied for function decide/);
     expect(sql("select intake.owner();", anon).err).toMatch(/^permission denied for schema intake/);
+    for (const who of [anon, alice]) expect(sql("select nextval('public.decisions_id_seq');", who).err).toMatch(/^permission denied for sequence decisions_id_seq/);
   });
 
   it("lets a contributor read only its own rows, decisions, keys and objects", () => {
@@ -108,6 +121,8 @@ describe.skipIf(why !== null)(`the hosted intake schema on Postgres 16${why ? ` 
     expect(sql(`insert into public.submissions (id, contributor, kind, body, content) values ('s-0000000000000000', '${A}', 'clip', '{}', '${"0".repeat(64)}');`, checker).err).toMatch(/^E_INPUT: content is the SHA-256 of the body/);
     expect(sql(`insert into public.decisions (submission, verdict, hash, decided_by, decided_on) values ('${a1.id}', 'adopt', '${contentHash(text("a1"))}', '${OWNER}', '2026-10-19');`, checker).err).toMatch(/^permission denied for table decisions/);
     expect(decide(a1.id, "adopt", contentHash(text("a1")), checker).err).toMatch(/^permission denied for function decide/);
+    // the setting decide uses is one any session can set: the checker setting it still moves nothing to a verdict
+    expect(sql(`select set_config('intake.deciding', '${a1.id}', true) \\g /dev/null\nupdate public.submissions set state = 'adopted' where id = '${a1.id}';`, checker).err).toMatch(/^E_STATE: .* is awaiting review; the checker does not move it to adopted/);
   });
 
   it("lets only the owner decide, on the content hash, once; the contributor reads the decision", () => {
@@ -122,6 +137,13 @@ describe.skipIf(why !== null)(`the hosted intake schema on Postgres 16${why ? ` 
     expect(sql("select count(*) from public.decisions;", bob).out).toBe("0");
     expect(move(a1.id, "awaiting review").err).toMatch(/^E_INPUT/); // the adopt bot's return says why
     expect(move(a1.id, "awaiting review", "library gates failed").err).toBe("");
+  });
+
+  it("holds a contributor to 20 submissions in 24 hours in the database, two sessions sending at once", async () => {
+    const batch = (from: number) => Array.from({ length: 12 }, (_, i) => `insert into public.submissions (id, contributor, kind, body, content) values ${row(C, `c${from + i}`).sql};`).join("\n");
+    const errs = await Promise.all([checkerSession(batch(0)), checkerSession(batch(100))]);
+    expect(sql(`select count(*) from public.submissions where contributor = '${C}';`).out).toBe("20");
+    expect(errs.join("").match(/E_RATE: 20 submissions in the last 24 hours/g)).toHaveLength(4);
   });
 
   it("keeps contributor keys hashed, each contributor's own: added, revoked for good, never another's", () => {

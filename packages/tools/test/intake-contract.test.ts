@@ -2,7 +2,10 @@
 // over a store opened once per role (anonymous, two contributors, one whose name claims the owner's, the checker and
 // the owner). It runs on the `local` backend here, on files under a scratch .cache/intake/ (atomic writes, the lock).
 // On `supabase` it is a deferred proof (G9, once O8's project is linked): set M3A_INTAKE_SUPABASE to the project's
-// JSON ({ url, apikey, service, owner, a, b, impostor }, each role a { token, key?, id? }) in Actions and it runs there.
+// JSON ({ url, apikey, service, owner, a, b, impostor }, each role a { token, key?, id? }) in Actions and it runs there,
+// again on every run: its texts carry the run's nonce (GITHUB_RUN_ID and GITHUB_RUN_ATTEMPT, else the clock), since a
+// text sent again is the submission already there, decided or bounced by the run before. There `agent` submits with
+// `a`'s contributor key alone, no token, as an agent does (§5.9).
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -17,6 +20,8 @@ interface Stores {
   a: IntakeStore;
   b: IntakeStore;
   impostor: IntakeStore;
+  /** What an agent holds: `a`'s contributor key and no token (on local, `a` itself). */
+  agent: IntakeStore;
   checker: IntakeStore;
   owner: IntakeStore;
   ids: { a: string; b: string };
@@ -30,7 +35,7 @@ function local(): Stores {
   const dir = mkdtempSync(join(tmpdir(), "m3a-intake-")), files = intakeFiles(dir), today = () => "2026-10-19";
   dirs.push(dir);
   const as = (role: "anon" | "contributor" | "checker" | "owner", id?: string) => localStore({ files, role, ...(id ? { id } : {}), today });
-  return { anon: as("anon"), a: as("contributor", "alice"), b: as("contributor", "bob"), impostor: as("contributor", "owner"), checker: as("checker"), owner: as("owner"), ids: { a: "alice", b: "bob" } };
+  return { anon: as("anon"), a: as("contributor", "alice"), b: as("contributor", "bob"), impostor: as("contributor", "owner"), agent: as("contributor", "alice"), checker: as("checker"), owner: as("owner"), ids: { a: "alice", b: "bob" } };
 }
 
 /** The hosted backend from M3A_INTAKE_SUPABASE, or null (the deferred proof). */
@@ -40,12 +45,14 @@ function hosted(): (() => Stores) | null {
   type R = { token?: string; key?: string; id?: string };
   const c = JSON.parse(env) as { url: string; apikey: string; service: string; owner: R; a: R; b: R; impostor: R };
   const as = (r: R = {}) => supabaseStore({ url: c.url, apikey: c.apikey, ...r });
-  return () => ({ anon: as(), a: as(c.a), b: as(c.b), impostor: as(c.impostor), checker: as({ token: c.service }), owner: as(c.owner), ids: { a: c.a.id!, b: c.b.id! } });
+  return () => ({ anon: as(), a: as(c.a), b: as(c.b), impostor: as(c.impostor), agent: as({ key: c.a.key }), checker: as({ token: c.service }), owner: as(c.owner), ids: { a: c.a.id!, b: c.b.id! } });
 }
 
-/** A library clip's text with its description `tag`ged, so each case sends new text of the same motion. */
+/** A library clip's text with its description `tag`ged, so each case sends new text of the same motion; on the hosted
+ *  store with the run's nonce too, so each run sends new text. */
 const WALK = JSON.parse(readFileSync(join(import.meta.dirname, "../../../library/sets/QUATERNIUS_3D2DGE/Walk_Loop.json"), "utf8")) as Clip;
-const clipText = (tag: string): string => serialize({ ...WALK, desc: `walks (${tag})` });
+const NONCE = process.env.M3A_INTAKE_SUPABASE ? ` ${process.env.GITHUB_RUN_ID ? `${process.env.GITHUB_RUN_ID}.${process.env.GITHUB_RUN_ATTEMPT ?? 1}` : Date.now()}` : "";
+const clipText = (tag: string): string => serialize({ ...WALK, desc: `walks (${tag}${NONCE})` });
 const refusal = async (p: Promise<unknown>): Promise<string> => p.then(() => "resolved", (e: unknown) => (e instanceof IntakeError ? e.code : `not an IntakeError: ${String(e)}`));
 
 /** The contract's cases on the stores `open` gives. */
@@ -65,6 +72,12 @@ function contract(name: string, open: () => Stores): void {
       expect(x.id).toBe(submissionId(s.ids.a, x.content));
       expect((await s.a.submit({ kind: "clip", text, improves: "QUATERNIUS_3D2DGE/Walk_Loop" })).id).toBe(x.id);
       expect((await s.owner.list()).filter((y) => y.id === x.id)).toHaveLength(1);
+    });
+
+    it("takes an agent's submission on its contributor key alone, as its contributor's", async () => {
+      const x = await s.agent.submit({ kind: "clip", text: clipText("an agent's") });
+      expect([x.state, x.contributor]).toEqual(["submitted", s.ids.a]);
+      expect((await s.a.get(x.id))?.id).toBe(x.id);
     });
 
     it("gives anonymous nothing", async () => {

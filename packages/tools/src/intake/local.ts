@@ -105,7 +105,7 @@ export function localStore(o: LocalOptions): IntakeStore {
     async advance(id, to: State, more = {}) {
       only("checker", "moves a submission's state");
       return change(id, (s) => {
-        if (!CHECKER_MOVES[s.state].includes(to)) throw new IntakeError("E_STATE", `${id} is ${s.state}; the checker moves it only to ${CHECKER_MOVES[s.state].join(" or ") || "nothing (it is decided)"}`);
+        if (!CHECKER_MOVES[s.state].includes(to)) throw new IntakeError("E_STATE", `${id} is ${s.state}; the checker moves it only to ${CHECKER_MOVES[s.state].join(" or ") || (s.state === "bounced" ? "nothing (it is bounced: its contributor sends it again as a new submission)" : "nothing (it is decided)")}`);
         if ((to === "bounced" || s.state === "adopted") && !more.reason) throw new IntakeError("E_INPUT", `moving ${id} to ${to} gives the contributor a reason`);
         if (more.motion !== undefined && !isHash(more.motion)) throw new IntakeError("E_INPUT", "motion is the clip's motion hash, 64 lower-case hex digits");
         const next: Submission = { ...s, state: to, reason: more.reason ?? null, report: more.report === undefined ? s.report : more.report, motion: more.motion ?? s.motion };

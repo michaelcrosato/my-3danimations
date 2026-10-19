@@ -6,9 +6,11 @@
 -- keys, adds and revokes its own keys, and writes nothing else; editing its own user_metadata gains nothing, since no
 -- policy reads metadata. Only the checker's service role (service_role, the key in the repository's Actions secrets)
 -- inserts submissions (through the submit function) and moves states up to `awaiting review` (the guard trigger holds
--- it to the checker's moves). Only the owner decides: public.decide checks auth.uid() against the one UUID in
--- public.intake_settings, set once when the project is linked, never against metadata. A decision applies only while
--- the hash it was made on is the submission's content hash, recomputed from its body.
+-- it to the checker's moves), at most 20 a contributor in 24 hours (the rate trigger, under a lock). Only the owner
+-- decides: public.decide checks auth.uid() against the one UUID in public.intake_settings, set once when the project
+-- is linked, never against metadata, and only decide moves a state to a verdict (the guard reads the role it runs as
+-- and the decision it has just written, not a setting a session could set). A decision applies only while the hash it
+-- was made on is the submission's content hash, recomputed from its body.
 --
 -- Mirrors packages/tools/src/intake/ (types.ts's states and moves, hash.ts's ids); packages/tools/test/intake-sql.test.ts
 -- runs this file and its cases on a local Postgres with Supabase's auth stubbed (services/intake/test/stub.sql).
@@ -87,12 +89,14 @@ create table public.decisions (
 );
 alter table public.decisions enable row level security;
 revoke all on table public.decisions from anon, authenticated, service_role;
+revoke all on sequence public.decisions_id_seq from anon, authenticated, service_role;
 grant select on table public.decisions to authenticated, service_role;
 create policy decisions_read on public.decisions for select to authenticated
   using (auth.uid() = intake.owner() or exists (select 1 from public.submissions s where s.id = submission and s.contributor = auth.uid()));
 
 -- The guard: a submission starts `submitted` with its content hash and id made from its body; its text and identity
--- never change; its state moves only by the checker's moves (the service role) or the owner's decision (decide).
+-- never change; its state moves only by the checker's moves (the service role) or the owner's decision: decide runs as
+-- its owner, never a client role, and has just written the decision the new state follows.
 create function intake.guard() returns trigger language plpgsql set search_path = '' as $$
 begin
   if tg_op = 'INSERT' then
@@ -110,9 +114,13 @@ begin
     raise exception 'E_STATE: a submission''s text and identity never change; send a new one';
   end if;
   if new.state is distinct from old.state then
-    if current_setting('intake.deciding', true) = old.id then
+    if current_setting('intake.deciding', true) = old.id and current_user not in ('anon', 'authenticated', 'service_role') then
       if old.state <> 'awaiting review' or new.state not in ('adopted', 'archived', 'rejected') then
         raise exception 'E_STATE: % is %, not awaiting review', old.id, old.state;
+      end if;
+      if not exists (select 1 from public.decisions d where d.id = (select max(id) from public.decisions where submission = old.id)
+          and d.hash = old.content and new.state = case d.verdict when 'adopt' then 'adopted' when 'archive' then 'archived' else 'rejected' end) then
+        raise exception 'E_STATE: % moves to % only by the owner''s decision on its content hash', old.id, new.state;
       end if;
     elsif current_user = 'service_role' then
       if (old.state, new.state) not in (('submitted', 'checking'), ('checking', 'bounced'), ('checking', 'awaiting review'), ('awaiting review', 'checking'), ('adopted', 'awaiting review')) then
@@ -129,6 +137,22 @@ begin
   return new;
 end $$;
 create trigger submissions_guard before insert or update on public.submissions for each row execute function intake.guard();
+
+-- The rate: at most 20 submissions a contributor in 24 hours (PER_DAY in services/intake/functions/submit/handler.ts),
+-- held here, since the function's own count and insert are two requests that parallel ones all pass; a contributor's
+-- inserts wait on one lock, so each counts the ones before it.
+create function intake.rate() returns trigger language plpgsql security definer set search_path = '' as $$
+declare
+  n integer;
+begin
+  perform pg_advisory_xact_lock(hashtextextended('intake.rate ' || new.contributor::text, 0));
+  select count(*) into n from public.submissions where contributor = new.contributor and created_at > now() - interval '24 hours';
+  if n >= 20 then
+    raise exception 'E_RATE: % submissions in the last 24 hours, the most a contributor sends; send again tomorrow', n;
+  end if;
+  return new;
+end $$;
+create trigger submissions_rate before insert on public.submissions for each row execute function intake.rate();
 
 -- The owner's decision: true when applied, false when the same verdict on the same hash holds already.
 create function public.decide(p_id text, p_as text, p_hash text, p_note text default '', p_date date default current_date)
@@ -169,6 +193,7 @@ end $$;
 revoke all on function public.decide(text, text, text, text, date) from public, anon, service_role;
 grant execute on function public.decide(text, text, text, text, date) to authenticated;
 revoke all on function intake.guard() from public, anon, authenticated;
+revoke all on function intake.rate() from public, anon, authenticated;
 
 -- The bucket: the checker's preview sheets and reports, under <contributor id>/<submission id>/; private, written by
 -- the service role alone (no insert, update or delete policy), read by their contributor and the owner.

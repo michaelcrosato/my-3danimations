@@ -1,9 +1,10 @@
 // The submit function's handler (PLAN.md §5.9, WP-8.2a), a Supabase Edge Function in plain fetch-API TypeScript
 // (Deno runs it; Node's tests call it): POST a submission `{ kind, text, improves?, motion? }` with a contributor key
 // in `x-m3a-key`. It looks the key up by its SHA-256 (keys are stored hashed; a revoked one is refused), refuses a
-// body over the size limit (413) and a contributor past its rate (429, a day's count), then inserts the submission as
-// `submitted` with its content hash and id (packages/tools/src/intake/hash.ts makes the same) and answers 201, or 200
-// with the one already there for the same text. `motion` is the client's motion hash, which the checker recomputes.
+// body over the size limit (413) and a contributor past its rate (429, a day's count; the database's rate trigger holds
+// it against requests that race past the count), then inserts the submission as `submitted` with its content hash and
+// id (packages/tools/src/intake/hash.ts makes the same) and answers 201, or 200 with the one already there for the same
+// text. `motion` is the client's motion hash, which the checker recomputes.
 // The store is injected: the deployed function's talks to PostgREST with the service role key (restStore); tests
 // give one in memory. Errors answer `{ error: "E_CODE: message" }`, as the IntakeStore reads them.
 
@@ -86,7 +87,15 @@ async function answer(req: Request, deps: SubmitDeps): Promise<Response> {
   if (sent >= perDay) return refuse(429, "E_RATE", `${sent} submissions in the last 24 hours, the most a contributor sends; send again tomorrow`);
   const content = await sha256(text), id = `s-${(await sha256(`${uid}\n${content}`)).slice(0, 16)}`;
   const row: SubmissionRow = { id, contributor: uid, kind, body: text, improves: improves as string | null, content, motion: motion as string | null, state: "submitted", submitted_on: now.toISOString().slice(0, 10) };
-  const done = await deps.store.insert(row);
+  let done;
+  try {
+    done = await deps.store.insert(row);
+  } catch (err) {
+    // the database holds the rate too (its rate trigger, under a lock): a request racing past the count lands here
+    const rate = /E_RATE: ([^"\\]*)/.exec(String((err as Error).message));
+    if (rate) return refuse(429, "E_RATE", rate[1]!);
+    throw err;
+  }
   return json(done.created ? 201 : 200, { submission: done.row });
 }
 

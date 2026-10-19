@@ -1,9 +1,11 @@
 // e2e `previews` (WP-8.3): the preview site built as Vercel builds a branch (vercel.json's buildCommand, run by a shell
 // with Vercel's environment and a fake VERCEL_GIT_COMMIT_SHA) and its outputDirectory served to headless Chromium as
-// Vercel serves it (a directory's index.html; trailingSlash adds the slash to a directory's path). Every page shows
-// core's version and that commit in its build stamp, loading with no failed request; the labs index lists every lab in
-// apps/lab/ with its date and question as its README states them and links each lab's page and the gallery, every
-// link resolving; no fetched rig (.glb) ships. Run it by file name in a worktree (`npm run e2e -- previews.e2e`).
+// Vercel serves it (a directory's index.html; trailingSlash adds the slash to a directory's path). Every page the site
+// holds (the gallery, the review queue's and contributor pages, the labs index, each lab) shows core's version and that
+// commit in its build stamp, loading with no failed request; the review page carries no queue, though the build's
+// environment asked for one (M3A_REVIEW_QUEUE); the labs index lists every lab in apps/lab/ with its date and question
+// as its README states them and links each lab's page and the gallery, every link resolving; no fetched rig (.glb)
+// ships. Run it by file name in a worktree (`npm run e2e -- previews.e2e`).
 import { spawnSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { createServer, type Server } from "node:http";
@@ -31,7 +33,8 @@ test.describe.configure({ mode: "serial" });
 test.beforeAll(async () => {
   // three Vite builds (the gallery, the labs index, hello): about 12 s here
   test.setTimeout(300_000);
-  const env: NodeJS.ProcessEnv = { ...process.env, VERCEL: "1", CI: "1", VERCEL_ENV: "preview", VERCEL_GIT_COMMIT_SHA: SHA };
+  // M3A_REVIEW_QUEUE set as a local shell might have it: the site must drop it (no queue, no submissions' text ships)
+  const env: NodeJS.ProcessEnv = { ...process.env, VERCEL: "1", CI: "1", VERCEL_ENV: "preview", VERCEL_GIT_COMMIT_SHA: SHA, M3A_REVIEW_QUEUE: "1" };
   delete env.GITHUB_SHA;
   const r = spawnSync(VERCEL.buildCommand, { shell: true, cwd: ROOT, env, encoding: "utf8" });
   expect(r.status, `${r.stdout}${r.stderr}`).toBe(0);
@@ -70,7 +73,10 @@ test("previews: every page resolves with no failed request and shows the branch'
   // the gallery and each lab opened on SwiftShader: about 15 s here
   test.setTimeout(180_000);
   await page.goto(`${ORIGIN}/labs/`);
-  const links = [`${ORIGIN}/labs/`, ...(await page.$$eval("a[href]", (as) => as.map((a) => (a as HTMLAnchorElement).href)))];
+  // every page the site holds (each index.html), the review queue's and the contributor page among them
+  const pages = files(SITE).filter((f) => f.endsWith("index.html")).map((f) => `${ORIGIN}/${f.slice(SITE.length + 1).replace(/index\.html$/, "")}`);
+  const links = [...new Set([`${ORIGIN}/labs/`, ...(await page.$$eval("a[href]", (as) => as.map((a) => (a as HTMLAnchorElement).href))), ...pages])].sort();
+  expect(pages.length, pages.join(" ")).toBeGreaterThanOrEqual(5);
   const failed: string[] = [];
   page.on("response", (r) => void (r.status() >= 400 && failed.push(`${r.status()} ${r.url()}`)));
   // a request cut off by the next visit isn't a failure; a 4xx or 5xx is
@@ -83,4 +89,8 @@ test("previews: every page resolves with no failed request and shows the branch'
   }
   expect(failed).toEqual([]);
   expect(files(SITE).filter((f) => f.endsWith(".glb"))).toEqual([]);
+  // the review page opens with no queue bundled: the site dropped M3A_REVIEW_QUEUE
+  await page.goto(`${ORIGIN}/src/review/`);
+  await page.waitForFunction(() => (window as unknown as { __m3a?: { ready?: boolean } }).__m3a?.ready, undefined, { timeout: 60_000 });
+  expect(await page.evaluate(() => (window as unknown as { __m3a: { state(): { source: string } } }).__m3a.state().source)).toBe("");
 });
