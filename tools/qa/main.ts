@@ -1,7 +1,7 @@
 // `npm run qa [-- --sample N] [--set S] [--clip ID] [--dist] [--strict] [--fix]` (PLAN.md WP-3.3): the sensors over
 // the migrated library, each clip on its own rest. It prints the verdicts' counts and the metrics that fail most; --dist
 // also prints each metric's distribution in real capture and in all (p50 / p90 / p95 / p99 / max of each clip's worst
-// value), which the thresholds are read from, and writes every set's. Writes check-output/qa/clips.json: every clip's
+// value), which the thresholds are read from, and writes every set's. Writes check-output/qa/clips.json ($M3A_CHECK_OUTPUT/qa/ when set): every clip's
 // verdict and its text, values, and findings with their times and repairs (--json writes the run's own report.json
 // beside it). --baseline writes the committed baseline (packages/sensors/fixtures/baseline.json: every clip's verdict,
 // values and finding counts, numbers only); --check fails on any clip that differs from it, naming each difference
@@ -14,7 +14,7 @@
 // compares instead, along with the committed baseline.
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { finish, fmtMs, parseArgs, ROOT, usage, type Report, type Step } from "../run/cli.ts";
+import { finish, fmtMs, outputDir, parseArgs, ROOT, usage, type Report, type Step } from "../run/cli.ts";
 import { census } from "./census.ts";
 import { againstRecord, checkFloats, checkVerdicts, DISTRIBUTIONS, floorsMissed, LIBRARY_DOC, libraryDoc, offFeetStep, readRecord, recordOf, recordText, setInfo } from "./library.ts";
 import { BASELINE, baselineOf, compare, distributions, fixAll, libraryClips, qa, sample, worse, type BaselineRow } from "./qa.ts";
@@ -85,7 +85,7 @@ if (import.meta.main) {
       steps.push({ name: "docs/LIBRARY.md", ok: true, ms: 0, summary: "written" });
     }
   }
-  const out = join(ROOT, "check-output/qa"), dist = f.dist ? distributions(rows) : null;
+  const out = outputDir("qa"), dist = f.dist ? distributions(rows) : null;
   mkdirSync(out, { recursive: true });
   let fixSummary = "";
   if (f.fix) {

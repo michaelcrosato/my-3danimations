@@ -161,9 +161,11 @@ describe("the sweep", () => {
     expect([bad.status, bad.stdout]).toEqual([2, expect.stringContaining("--record needs --commit <sha>")]);
   });
   it("npm run sweep writes the clip-by-skeleton results", () => {
-    const out = execFileSync(process.execPath, [join(ROOT, "tools/sweep/main.ts"), ...RIGS, "--sample", "4"], { cwd: ROOT, encoding: "utf8" });
+    // to a scratch file: check-output/sweep/results.json may hold a person's sweep a gate's --record reads (D118)
+    const file = join(mkdtempSync(join(tmpdir(), "m3a-sweep-")), "results.json");
+    const out = execFileSync(process.execPath, [join(ROOT, "tools/sweep/main.ts"), ...RIGS, "--sample", "4", "--out", file], { cwd: ROOT, encoding: "utf8" });
     expect(out).toMatch(/^sweep: (PASS|FAIL), \d+ of 8 clip-skeleton pairs pass/m);
-    const res = JSON.parse(readFileSync(join(ROOT, "check-output/sweep/results.json"), "utf8")) as { rigs: string[]; clips: number; warned: unknown[]; rows: SweepRow[] };
+    const res = JSON.parse(readFileSync(file, "utf8")) as { rigs: string[]; clips: number; warned: unknown[]; rows: SweepRow[] };
     expect([res.rigs, res.clips, res.rows.length]).toEqual([RIGS, 4, 8]);
     expect(res.warned).toEqual(res.rows.filter((r) => r.ok && r.warns.length).map((r) => ({ clip: r.clip, rig: r.rig, warns: r.warns })));
     for (const r of res.rows) expect(Object.keys(r).sort()).toEqual(["clip", "ok", "own", "played", "reach", "rig", "spans", "warns", "why", "worse"]);

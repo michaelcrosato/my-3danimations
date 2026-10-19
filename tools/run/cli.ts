@@ -131,7 +131,7 @@ export function finish(report: Report, parsed: Parsed, exitCode?: number): never
     if (s.log) lines.push(`     full log: ${s.log}`);
   }
   if (parsed.flags.json) {
-    const dir = resolve(process.env.M3A_CHECK_OUTPUT || join(ROOT, "check-output"), report.tool), file = join(dir, "report.json"), rel = relative(ROOT, file);
+    const dir = outputDir(report.tool), file = join(dir, "report.json"), rel = relative(ROOT, file);
     mkdirSync(dir, { recursive: true });
     writeFileSync(file, JSON.stringify(report, null, 2) + "\n");
     lines.push(`report: ${rel.startsWith("..") || isAbsolute(rel) ? file : rel}`);
@@ -154,6 +154,11 @@ export function usage(tool: string, err: unknown, specs: readonly FlagSpec[]): n
 /** Format milliseconds as seconds with one decimal. */
 export function fmtMs(ms: number): string {
   return `${(ms / 1000).toFixed(1)} s`;
+}
+
+/** Where a tool writes its files: check-output/<tool>/, or $M3A_CHECK_OUTPUT/<tool>/ when that is set (a test's run). */
+export function outputDir(tool: string): string {
+  return resolve(process.env.M3A_CHECK_OUTPUT || join(ROOT, "check-output"), tool);
 }
 
 /** Run a command (no shell), capturing output to check-output/<tool>/<name>.log; stream it with --verbose. */

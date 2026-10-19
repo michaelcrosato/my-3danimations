@@ -42,7 +42,9 @@ The post-G10 audit (D118): every easy finding fixed, two duplicates retired, the
   it, a package change also runs the tools' and benchmark's suites that import it, and the benchmark, the intake
   service, the workflows, the skills and llms.txt, the library and the feedback log each run the suites that read them.
 - A repo tool's `--json` report goes under `$M3A_CHECK_OUTPUT/<tool>/` when set; T1's conformance CLI test writes
-  there, so `npm test` no longer overwrites a certification's report.
+  there, so `npm test` no longer overwrites a certification's report; `qa` writes its clips.json there too, and
+  T1's QA and sweep runs write to scratch, leaving a person's `check-output/qa/` and the sweep results a gate's
+  `--record` reads as they were.
 - `npm run doctrine` fails a budgeted file or tools/pins.json that no longer exists, where it reported it pending;
   the doctrine tests remove their /tmp fixtures (F4.5); `npm run gate` names the gates when given one it lacks.
 - e2e `single`: `m3a.js`, built as `npm run pack` builds it, runs in Chromium and replies as on Node (F5.3).
