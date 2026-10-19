@@ -19,12 +19,11 @@ most 3 lanes, none during trial batches. After each gate's squash merge (CI gree
 - **Version 0.51.0.** Done: Phases 0-8. G7 = M2 passed on run 2 (D107, D108). **G8's command set passed** (run 1,
   D111, `bench/results/gates/G8-run-1/`); its open item is the owner's phone review of the 20-clip batch there
   (`queue.json`), blocked-owner, asked on michaelcrosato/my-3danimations#15 with O8's and O3's steps.
-- **Phase 9 lanes** (branches, worktrees in `.claude/worktrees/`, D83): `lane/submit` WP-9.1a done (5 commits; its
-  shared-file patch in the session's scratchpad, `wp-9.1a-integrator.patch`: the `intake` script, the `library-pr` gate
-  set with `--fixture`, the registry's `contributor()`, the `library` tool's group; the tools reach 3,130 of 3,000
-  tokens and the manual 8,016 of 8,000 with its line, both a logged change for Phase 9); `lane/dedup` WP-9.3 done (2
-  commits; its exports and the checker's wiring listed in its report: `DedupIndex.check`, `Lineage.byContent`);
-  `lane/sources` WP-9.2 building. Still to write: WP-9.1b (B8, the manual's grow section), WP-9.4 (the index).
+- **Phase 9** on michaelcrosato/my-3danimations#16 (draft, 0.52.0): WP-9.1a, 9.2, 9.3, 9.4 and the adoption path
+  are integrated (D112); G9's command set is in `tools/run/gate.ts`. Still to land: WP-9.1b (`lane/grow`: B8, its
+  grader and starter, the manual's grow section and the `library` tool's line in the manual's tool list, whose absence
+  is the one red test at the PR's head). Then: G9's held-out run 1 for B8 (a fresh subagent under D91's read bar, an
+  independent check), the Phase 9 verifier review's fixes, `npm run gate -- G9 --json` (no lanes during its trials).
 - **Phase 10 lanes:** `lane/conformance` (WP-10.1's kit, `npm run conformance`) and `lane/consumer` (WP-10.2, the
   consumer-ts lab and docs/MIGRATING.md) are built on 5d1ec8f, to merge with Phase 10.
 - **Last measured (4 CPUs, lanes beside it):** T0 about 5-8 s, T1 90-104 s (the budget 90, fail at 135), T2 about
