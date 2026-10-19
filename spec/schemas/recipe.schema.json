@@ -58,7 +58,8 @@
        },
        "id": {
         "type": "string",
-        "pattern": "^[A-Z0-9_]+/[A-Za-z0-9_]+$"
+        "pattern": "^[A-Z0-9_]+/[A-Za-z0-9_-]+$",
+        "description": "the clip's id, SET/Slug, as the format writes it (its slug may have a hyphen)"
        },
        "from": {
         "$ref": "#/$defs/time"

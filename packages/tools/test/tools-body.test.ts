@@ -11,10 +11,10 @@
 // whose last bone keeps a child gets none, as in three's bind; a mesh io can't read said: compressed (no soles), the
 // soles' positions (sparse, the hips then low), or weights broken (in a hat that skins no foot, the soles still read;
 // in the body, both said), the patch line saying what re-exporting mends in each; bones of no usable length (all at
-// one point, scaled to 0 or past a double) refused, not taken for wrong hips; each missing bone's likely source
-// bones in their order (the hips' own bone before the root, the head's before the neck's, a clavicle-less rig's upper
-// arm before its forearm); a VRM's humanoid, 1.0's or 0.x's, mapping bones no table names, a required bone it leaves
-// out said with how it was found (V1).
+// one point, scaled to 0 or past a double, io naming a bone whose head overflows) refused, not taken for wrong hips;
+// each missing bone's likely source bones in their order (the hips' own bone before the root, the head's before the
+// neck's, a clavicle-less rig's upper arm before its forearm); a VRM's humanoid, 1.0's or 0.x's, mapping bones no table
+// names, a required bone it leaves out said with how it was found (V1).
 import { readFileSync, symlinkSync, truncateSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { recognize, type Bound } from "@m3a/core";
@@ -225,7 +225,10 @@ describe("characters bound through core", () => {
     const rig = JSON.parse(rigText(RIG)) as { nodes: { name: string; translation?: number[] }[] }, scaled = (s: number, at = /^root$/) => rig.nodes.map((n) => (at.test(n.name) ? { ...n, scale: [s, s, s] } : n));
     const of = (nodes: object[]) => characterOf(holding(new Uint8Array(), JSON.stringify({ ...rig, animations: undefined, nodes })), "c.gltf").catch((e: unknown) => e);
     const said = { code: "E_RIG", message: "c.gltf: can't bind it: bones of no usable length (every node at one point, or scaled to 0 or out of range); check the file's node transforms" };
-    expect(await Promise.all([of(rig.nodes.map(({ translation: _, ...n }) => n)), of(scaled(0)), of(scaled(1e300)), of(scaled(1e300, /^(lowerarm|hand)_l$/))])).toMatchObject([said, said, said, said]);
+    // a head past a double (a forearm and a hand each scaled 1e300: a finger 1e600 times its offset away) is io's
+    // refusal, naming the bone
+    const over = { code: "E_RIG", message: "c.gltf: bone index_01_l's rest head isn't finite: the node transforms down to it overflow" };
+    expect(await Promise.all([of(rig.nodes.map(({ translation: _, ...n }) => n)), of(scaled(0)), of(scaled(1e300)), of(scaled(1e300, /^(lowerarm|hand)_l$/))])).toMatchObject([said, said, said, over]);
   });
   it("gives no end bone to a foot whose last bone keeps a child (its toes unmapped), as three's bind does", async () => {
     const glb = character(variant(0)).glb, mapping = { bones: { leftToes: null } };

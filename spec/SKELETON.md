@@ -129,7 +129,9 @@ written. Once ratified:
 - the reference pose, when declared, replaces `restFrame`'s measurement;
 - this profile's bone names are aligned with the extension's (a minor version, adding names; nothing removed).
 
-The spec watch (risk R7, `PLAN.md` §12) rechecks at every gate.
+The spec watch (risk R7, `PLAN.md` §12) rechecks Khronos's extension registry before this profile's next version and
+records what it found in `docs/DECISIONS.md` (last: D118, 2026-10-19: neither extension listed, ratified or in
+progress).
 
 ## 8. Known limits
 

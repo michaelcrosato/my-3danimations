@@ -1,8 +1,9 @@
 // License compliance (PLAN.md WP-5.7): the library's sets, or what a game uses, checked against their terms. A set's
 // sources each carry an SPDX id (or `LicenseRef-CMU-Mocap`) that fits its tier (D10), whose text is kept verbatim in
-// `library/LICENSES/`, and a set that must be credited says how. A game manifest names its tiers (CC0 alone by default)
-// and the clips it uses: each must come from a tier it opted into, `local` content never ships, and the credits it
-// owes (CC BY, CMU) come out as a block it can show. Reads through the loader's source, so it runs anywhere.
+// `library/LICENSES/`, or a composed clip's ids joined with " AND ", each checked so (a CC0-1.0 part, which asks
+// nothing, fits any tier), and a set that must be credited says how. A game manifest names its tiers (CC0 alone by
+// default) and the clips it uses: each must come from a tier it opted into, `local` content never ships, and the credits
+// it owes (CC BY, CMU) come out as a block it can show. Reads through the loader's source, so it runs anywhere.
 import { TIERS, type LibrarySource, type Tier } from "../load/index.ts";
 
 /** What a game uses: the tiers it opts into, the clips it plays (`SET/name`), and whether it ships. */
@@ -67,14 +68,19 @@ const CREDITED: readonly Tier[] = ["cc-by", "cmu"];
  *  " AND "; each part has its tier. */
 export const tierOf = (license: string): Tier => (["cc0", "cc-by", "cmu"] as const).find((t) => FITS[t](license)) ?? "local";
 
+/** A source license's parts: a composed clip's ids joined with " AND " (D10, as recipe.compile writes them), else the
+ *  one id. */
+const partsOf = (license: string): string[] => license.split(" AND ");
+
 /** Whether a tier's clips must be credited where they are used (cc-by and cmu, D10). */
 export const credited = (tier: Tier): boolean => CREDITED.includes(tier);
 
 const manifestOf = (src: LibrarySource, set: string) => JSON.parse(src.read(set, "_set.json")) as SetManifest;
 
 /**
- * Checks sets (each one's sources against its tier, its license texts, its credit). `text(id)` gives a license's kept
- * text, or null when `library/LICENSES/<id>.txt` is missing.
+ * Checks sets (each one's sources against its tier, its license texts, its credit; a composed license part by part, the
+ * credit listing each part). `text(id)` gives a license's kept text, or null when `library/LICENSES/<id>.txt` is
+ * missing.
  */
 export function checkSets(src: LibrarySource, sets: readonly string[], text: (id: string) => string | null): LicenseReport {
   const findings: LicenseFinding[] = [], credits: Credit[] = [];
@@ -91,11 +97,16 @@ export function checkSets(src: LibrarySource, sets: readonly string[], text: (id
         findings.push({ level: "fail", where, message: "no SPDX license id (license)" });
         continue;
       }
-      if (!SPDX.test(s.license)) findings.push({ level: "fail", where, message: `"${s.license}" isn't an SPDX id (or a LicenseRef-)` });
-      else if (FITS[m.tier] && !FITS[m.tier](s.license)) findings.push({ level: "fail", where, message: `${s.license} doesn't fit the ${m.tier} tier (D10): move the set, or the source` });
-      if (text(s.license) === null) findings.push({ level: "fail", where, message: `${s.license}'s text isn't kept in library/LICENSES/${s.license}.txt` });
+      // each part of a composed license on its own: an SPDX id whose text is kept, fitting the tier; a CC0-1.0 part,
+      // which asks nothing, fits any (a composed clip of a CC0 clip and a CC BY one is a cc-by clip)
+      const parts = partsOf(s.license);
+      for (const part of parts) {
+        if (!SPDX.test(part)) findings.push({ level: "fail", where, message: `"${part}" isn't an SPDX id (or a LicenseRef-)` });
+        else if (FITS[m.tier] && !FITS[m.tier](part) && !(parts.length > 1 && part === "CC0-1.0")) findings.push({ level: "fail", where, message: `${part} doesn't fit the ${m.tier} tier (D10): move the set, or the source` });
+        if (text(part) === null) findings.push({ level: "fail", where, message: `${part}'s text isn't kept in library/LICENSES/${part}.txt` });
+        licenses.add(part);
+      }
       if (s.audit) findings.push({ level: "warn", where, message: `an open license question: ${s.audit}` });
-      licenses.add(s.license);
     }
     if (!Object.keys(m.sources ?? {}).length) findings.push({ level: "fail", where: set, message: "no sources, so no license" });
     if (CREDITED.includes(m.tier) && !m.credit?.trim()) findings.push({ level: "fail", where: set, message: `a ${m.tier} set must say how to credit it (credit)` });

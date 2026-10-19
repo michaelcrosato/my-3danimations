@@ -3,13 +3,13 @@
 An implementation of the motion format (the TypeScript reference in `@m3a/core`, or a port in another language)
 certifies against the vectors in `spec/vectors/` (written by `npm run vectors` from the JavaScript originals at the
 pinned commits; see `spec/vectors/README.md`). Each tier has its inputs, what is compared and its tolerance. The
-runner in `spec/conformance/runner/` reads the vectors for TypeScript; WP-10.2 turns it into a kit with a JSON
-protocol for other languages.
+runner in `spec/conformance/runner/` reads the vectors for TypeScript; the kit (`spec/conformance/kit/`, `npm run
+conformance`) asks any implementation over the JSON protocol in `PROTOCOL.md` (WP-10.2).
 
 | Tier | Proves | Inputs | Compared | Tolerance |
 |---|---|---|---|---|
 | **1a** encode and fit | The codec, with no reader involved | `tier1a/*.json`: each clip's captured body points (`capture.data`, float32 values) and the measured `rest` | `reduce` (key frames), `fit` (the clip's keys, `max`, `mean`) and `text` | Bit for bit: every number equal as a double, every string byte for byte |
-| **1b** readers | glTF and ASF/AMC readers | `tier1b/rig.gltf` (packed as .glb; its SHA-256 is `tier1a/rig.json` `glbSha256`) and `tier1b/cmu/` | The captured body points and `rest` of tier 1a | Bit for bit |
+| **1b** readers | glTF and ASF/AMC readers | `tier1b/rig.gltf` and `tier1b/rigify.gltf` (each packed as .glb; the tiny rig's SHA-256 is `tier1a/rig.json` `glbSha256`) and `tier1b/cmu/` | The captured body points and `rest` of tier 1a; for the Rigify rig, `tier1b/rigify-expected.json` (body points, rest and the mannequin look) | Bit for bit |
 | **2** decode | Decoding readable key poses onto a reference body | `tier2/<SET>.json`: `bodies` and, per clip, its input `clip` (the origin's clip object, keys included) | Body points at every key time and at the three in-between times (`between`) | Within 0.001 mm per coordinate (vectors hold whole micrometres, so 0.0005 mm of that is rounding) |
 | **2** mirror and text | Mirroring and the text lens | The same clips | `mirrorSha256` of the mirrored keys; mirroring twice equals the clip; `parse(text(clip))` equals the clip | Exact; zero's sign ignored after two mirrors |
 | **3** other bodies | Retargeting onto bodies of other proportions | `tier3/bodies.json`: seven generated rigs and the sets' own bodies | Every limb's direction on the target against the source clip | Within 9° per limb; 14° on a curled spine (WP-2.4) |

@@ -10,7 +10,8 @@
 // nothing its first joint's, in every mesh a skin naming it skins, farthest across the ground, down to the lowest, the
 // skinned mesh node's own transform ignored), or why it read none; signed and unsigned bytes and shorts read,
 // normalized or not, a sparse accessor refused; the real CC0 rigs, when fetched, map each limb to its own bones,
-// KayKit's IK and roll controls left out; names are unique; no bones, or a joint past the nodes, refused.
+// KayKit's IK and roll controls left out; names are unique; no bones, a joint past the nodes, or a bone whose rest head
+// the node transforms overflow, refused.
 import { bind, math, recognize } from "@m3a/core";
 import { describe, expect, it } from "vitest";
 import { IoError, meshEnds, packGlb, parseGlb, parseGltf, skeletonOfGltf } from "../src/index.ts";
@@ -171,7 +172,7 @@ describe("skeletonOfGltf", () => {
     expect(kept({ extensionsRequired: ["EXT_meshopt_compression"] })).toEqual([bones.length, "EXT_meshopt_compression"]);
     expect(kept({ extensionsRequired: ["KHR_materials_variants"] })[0]).toBeLessThan(bones.length);
   });
-  it("names a bone with no name, or a name taken, for its node; refuses no bones and a joint past the nodes", () => {
+  it("names a bone with no name, or a name taken, for its node; refuses no bones, a joint past the nodes and a head the transforms overflow", () => {
     const s = skeletonOfGltf(gltf({ nodes: [{ name: "a", children: [1, 2] }, { name: "a" }, { translation: [0, 2, 0] }] }));
     expect(s.skeleton.bones).toEqual([{ name: "a", parent: null, head: [0, 0, 0] }, { name: "a_node1", parent: "a", head: [0, 0, 0] }, { name: "node2", parent: "a", head: [0, 2, 0] }]);
     const refusal = (f: () => unknown): unknown => {
@@ -183,6 +184,9 @@ describe("skeletonOfGltf", () => {
     };
     expect(refusal(() => skeletonOfGltf(gltf({ nodes: [] })))).toEqual(["E_RIG", "no bones: a character's skeleton is its skin's joints, or its nodes"]);
     expect(refusal(() => skeletonOfGltf(gltf({ nodes: [{ name: "a" }], skins: [{ joints: [0, 3] }] })))).toEqual(["E_FORMAT", "a skin names joint 3, which doesn't exist"]);
+    // each node's transform finite, their product not: Hips is 1e200 up, Spine (1e400 times its 1 m) past a double
+    const big = [1e200, 1e200, 1e200], over = [{ name: "Root", scale: big, children: [1] }, { name: "Hips", scale: big, translation: [0, 1, 0], children: [2] }, { name: "Spine", translation: [0, 1, 0] }];
+    expect(refusal(() => skeletonOfGltf(gltf({ nodes: over })))).toEqual(["E_RIG", "bone Spine's rest head isn't finite: the node transforms down to it overflow"]);
   });
 });
 

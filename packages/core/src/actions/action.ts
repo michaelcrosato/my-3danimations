@@ -55,7 +55,9 @@ export const ACTION_RULES: Readonly<Record<string, string>> = {
 };
 
 const isNum = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v);
-const NAME = /^[a-z][a-z0-9_-]*$/, ID = /^[A-Z0-9_]+\/[A-Za-z0-9_]+$/;
+// a paired action's own id is SET/Slug as a recipe's; a clip an interrupt goes on into may have a hyphen in its slug,
+// as the library's do (spec/MOTION.md §11: MESH2MOTION/Two-hand_Blast)
+const NAME = /^[a-z][a-z0-9_-]*$/, ID = /^[A-Z0-9_]+\/[A-Za-z0-9_]+$/, CLIP_ID = /^[A-Z0-9_]+\/[A-Za-z0-9_-]+$/;
 /** The recipe an action is, without its own fields. */
 export function recipeOf(a: Action): Recipe {
   const { floor: _f, beats: _b, interrupts: _i, ...r } = a;
@@ -80,7 +82,7 @@ export function validateAction(a: unknown): RecipeIssue[] {
     (o.interrupts as unknown[]).forEach((x, i) => {
       const it = x as Partial<Interrupt> | null, last = i ? (o.interrupts as Interrupt[])[i - 1] : undefined;
       if (!it || !isNum(it.t) || it.t < 0) return void out.push({ code: "A-E003", field: `interrupts.${i}`, message: "an interrupt has a time", fix: '"t": 1.2' });
-      if (!Array.isArray(it.to) || !it.to.length || !it.to.every((id) => typeof id === "string" && ID.test(id))) out.push({ code: "A-E003", field: `interrupts.${i}.to`, message: "an interrupt names the clips it may go on into (SET/Slug)", fix: '"to": ["PROCEDURAL/Walk", "PROCEDURAL/Breathe"]' });
+      if (!Array.isArray(it.to) || !it.to.length || !it.to.every((id) => typeof id === "string" && CLIP_ID.test(id))) out.push({ code: "A-E003", field: `interrupts.${i}.to`, message: "an interrupt names the clips it may go on into (SET/Slug)", fix: '"to": ["PROCEDURAL/Walk", "PROCEDURAL/Breathe"]' });
       if (typeof it.why !== "string" || !it.why) out.push({ code: "A-E003", field: `interrupts.${i}.why`, message: "an interrupt says why it may be cut there", fix: '"why": "both feet down"' });
       if (last && isNum(last.t) && it.t <= last.t) out.push({ code: "A-E003", field: `interrupts.${i}`, message: "interrupts are in time order", fix: `a time after ${last.t}` });
     });

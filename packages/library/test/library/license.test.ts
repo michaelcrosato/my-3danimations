@@ -1,7 +1,8 @@
 // License compliance (WP-5.7): every set passes, with its open questions listed; a fixture for each failure fails
 // with its reason (a source without an SPDX id, a license that doesn't fit its tier, a text not kept, a credited set
 // without its credit, a clip from a tier the game didn't opt into, an unknown clip, local content in a shipped game);
-// a game is credited only for the credited sets it uses, and the block says so.
+// a composed clip's license is checked part by part, a CC0-1.0 part fitting any tier, and credited with each part; a
+// game is credited only for the credited sets it uses, and the block says so.
 import { readdirSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -56,6 +57,23 @@ describe("license compliance", () => {
     expect(by("UNCREDITED")).toEqual(["a cc-by set must say how to credit it (credit)"]);
     expect(by("NOSOURCE")).toEqual(["no sources, so no license"]);
     expect(checkSets(lib, ["NOPE"], kept).findings[0]!.message).toMatch(/^no set "NOPE" in the library/);
+  });
+  it("checks a composed clip's license part by part: each an SPDX id with its text kept, fitting the tier (CC0-1.0 any)", () => {
+    const lib = fake({
+      MIXED: { tier: "cc-by", credit: "someone", sources: { a: { license: "CC0-1.0 AND CC-BY-4.0" } }, clips: ["x"] },
+      ODD: { tier: "cc-by", credit: "someone", sources: { a: { license: "CC0-1.0 AND LicenseRef-X" } }, clips: ["x"] },
+      SPACED: { tier: "cc-by", credit: "someone", sources: { a: { license: "CC-BY-4.0 AND CC0 1.0" } }, clips: ["x"] },
+      ALONE: { tier: "cc-by", credit: "someone", sources: { a: { license: "CC0-1.0" } }, clips: ["x"] },
+    });
+    const by = (set: string) => checkSets(lib, [set], kept).findings.filter((f) => f.level === "fail").map((f) => f.message);
+    // both texts kept, each part fits: it passes, credited with each part
+    const mixed = checkSets(lib, ["MIXED"], kept);
+    expect([mixed.findings, mixed.credits.map((c) => c.licenses), mixed.block]).toEqual([[], [["CC-BY-4.0", "CC0-1.0"]], "Motion credits:\n- MIXED title (CC-BY-4.0, CC0-1.0): someone"]);
+    // a part that doesn't fit, or isn't an id, fails alone
+    expect(by("ODD")).toEqual(["LicenseRef-X doesn't fit the cc-by tier (D10): move the set, or the source", "LicenseRef-X's text isn't kept in library/LICENSES/LicenseRef-X.txt"]);
+    expect(by("SPACED")).toEqual(['"CC0 1.0" isn\'t an SPDX id (or a LicenseRef-)', "CC0 1.0's text isn't kept in library/LICENSES/CC0 1.0.txt"]);
+    // a CC0 source alone is a cc0 set's, as before
+    expect(by("ALONE")).toEqual(["CC0-1.0 doesn't fit the cc-by tier (D10): move the set, or the source"]);
   });
   it("checks a game: its clips from the tiers it opted into, no local content shipped, credits for what it uses", () => {
     const lib = fake({

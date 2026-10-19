@@ -183,7 +183,7 @@ The pose at time `t` (`keyAt`, `readable.js:265-271`):
 So a loop holds its last key until `dur` and then starts again from its first: a seamless loop's last key equals its
 first. A one-shot holds its first key before 0 and its last after `dur`.
 
-**Keys past `dur`.** 52 of MESH2MOTION's 177 clips end with a key 8 to 17 ms after `dur` (the capture's last frame).
+**Keys past `dur`.** 52 of MESH2MOTION's 176 clips end with a key 8 to 17 ms after `dur` (the capture's last frame).
 Sampling never reaches past `dur`, so such a key only shapes the last in-between. It is allowed (at most one key past
 `dur`, within 50 ms), and tools that copy or edit a clip keep it rather than cut it off.
 
@@ -253,6 +253,7 @@ recompute is checked against the motion by QA.
 | `ai` | The IPTC digital source type (`http://cv.iptc.org/newscodes/digitalsourcetype/`): `digitalCapture` (captured), `digitalCreation` (keyed), `algorithmicMedia` (procedural), `composite` (composed), `humanEdits` (edited), `trainedAlgorithmicMedia` (generated) |
 | `intake` | A contributed clip's record from the intake queue (D112, D113), each part optional in the format (the intake requires `by` of every submission): `by` (who or what made it), `prompt` (a SHA-256 of the prompt), `manifest` (a generator's training-data manifest, `{ url, sha256 }`, an https URL), `improves` (`{ id, sha256 }` of the clip it improves), `submission` (`s-<16 hex>@<content SHA-256>`, the one it was adopted from) and `report` (`{ sensors, findings, qaVersion }`, the local report its submit measured) (optional) |
 | `source` | The motion source that made it (D112, D113): `{ name, license, version, stated, seed, prompt }`, the source's name (a lower-case word), the license and version of the terms it was served under, `stated` (`{ license, version }`, the terms the source states, only when they differ: both decide where it may go), the seed (0 to 4294967295) and a SHA-256 of the intent (optional) |
+| `recipe` | A compiled recipe's record (`RECIPE.md`): `{ sha256, inputs }`, the SHA-256 of the recipe as canonical JSON and each input clip's content id by its id (optional) |
 
 A clip's license is its set's tier's (D10): a clip derived from a CC BY or CMU clip keeps that license.
 
@@ -385,5 +386,6 @@ byte for byte.
 - Faces, fingers beyond curls, cloth and hair are out of scope (`PLAN.md` §2). Non-humanoid body plans are reserved.
 - The hand's roll reference comes from the elbow's pole: an arm held perfectly straight keeps the pole the twist sets.
 - A clip decodes on its set's reference body; across sets of very different rests, `fit` is not comparable.
-- Format 1's twist pop (twist jumping more than 120° while the bend is over 140°) survives in some migrated clips; the
-  validator warns on it (WP-1.2) and re-import fixes it (WP-5.3).
+- Format 1's twist pop (twist jumping more than 120° while the bend is over 140°) survives in the Quaternius sets'
+  migrated clips; the validator warns on it (WP-1.2), and re-importing those sets from their source files fixes it once
+  the files come (WP-5.3 kept them migrated, D63).

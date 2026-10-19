@@ -8,9 +8,9 @@
 // joined with " AND " (D10). The license and credit a glTF-family file carries (each animation's extras, the asset's
 // copyright) are used: a --license whose ids aren't the file's is refused, its fix the flag that takes them (ids
 // compared as sets, case aside), and so is a known license id in another case; a note names each id whose text the
-// library doesn't keep, and says license.check reads a composed license as one id (a library follow-up). It writes and
-// removes what the user keeps, so MCP lists it as no read-only tool; it removes only a clip an import wrote, naming it
-// (and saying so in its verdict), and refuses a set whose directory holds any other .json. The manifest names the file by its own name (never
+// library doesn't keep (license.check checks a composed license part by part). It writes and removes what the user
+// keeps, so MCP lists it as no read-only tool; it removes only a clip an import wrote, naming it (and saying so in its
+// verdict), and refuses a set whose directory holds any other .json. The manifest names the file by its own name (never
 // a path); replies name it as clips.ts does. `export` plays a clip on a character (bound through core) and writes it as
 // .vrma, .glb (the character's own document with the animation added) or .bvh under check-output/export/, named by the
 // clip and the character, read back through io: the VRMA byte for byte, the others joint for joint (within 1 mm, else
@@ -333,10 +333,9 @@ export const importMotion = defineTool<{ path: string; set: string; license?: st
     const rows = made.map((c) => ({ id: c.id, dur: c.dur, loop: c.loop, keys: c.keys.length, fit: c.quality.fit, over: c.quality.fit[0]! > LIMITS.mean || c.quality.fit[1]! > LIMITS.worst }));
     const worst = rows.reduce((w, r) => (r.fit[1]! > w.fit[1]! ? r : w)), mean = round(rows.reduce((s, r) => s + r.fit[0]!, 0) / rows.length, 1), over = rows.filter((r) => r.over).length;
     // the reader's and the fit's notes first, with the license ids whose text the library doesn't keep (license.check
-    // needs each), and a composed license's: @m3a/library's checkSets reads a source's license as one id (and its text as
-    // one file), so it fails such a set whatever its parts (a library follow-up, D96)
-    const each = parts(license), unkept = each.filter((id) => lib.licenseText(id) === null), free = unread.map((l) => `the file's extras.license ${quote(l)} is no SPDX id: its clips carry ${license}`);
-    const why = [...unkept.map((id) => `${id}'s text isn't in library/LICENSES/: license.check fails the set`), ...(each.length > 1 ? ["license.check reads a set's license as one id, so it fails this set (a library follow-up)"] : [])];
+    // needs each, a composed license's part by part)
+    const unkept = parts(license).filter((id) => lib.licenseText(id) === null), free = unread.map((l) => `the file's extras.license ${quote(l)} is no SPDX id: its clips carry ${license}`);
+    const why = unkept.map((id) => `${id}'s text isn't in library/LICENSES/: license.check fails the set`);
     const noted = capped([...why, ...free, ...out.report.warnings, ...log].map((w) => cut(w)), 5);
     const shown = capped(rows, 50), findings = bad || over > 0 || long.size > 0;
     return {
