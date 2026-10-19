@@ -1995,6 +1995,10 @@ WP-7.2 is split in two, each an L (D93): its tools, their host and the writers t
   - a review made at a phone viewport changes the right states and files, applying it twice is idempotent, and a
     decision on a clip that changed since it was queued is refused as stale.
 - **Verify:** `npm run e2e -- review && npm test -- review intake`
+- **Split** (D109, as D93 split WP-7.2; 3,023 lines, past L): **8.2a** the store, its backends, the migrations, the
+  submit function, the contract suite and `m3a review` (`packages/tools/src/intake/*`, `tools/review.ts`,
+  `services/intake/**`); **8.2b** the review queue's page and the contributor page (`apps/gallery/src/review/*`,
+  `apps/gallery/src/contributors/*`), with their e2e.
 
 #### WP-8.3 Previews
 - **Owns:** `vercel.json`, `apps/lab/index/*`
