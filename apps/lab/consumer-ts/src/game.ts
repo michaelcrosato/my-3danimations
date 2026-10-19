@@ -137,13 +137,22 @@ export function intents(script: Script): Intent[] {
   return out;
 }
 
-/** What a session played: the hash every `every` steps and at its end, the hits, the events, how far the hero went (m),
- *  and whether every place (and every pose the view took) stayed finite. */
+/** Where a fighter stood after a step: x and z (m), heading (radians), and its hp. */
+export interface Place {
+  x: number;
+  z: number;
+  heading: number;
+  hp: number;
+}
+/** What a session played: the hash every `every` steps and at its end, the hits, the events, each fighter's place
+ *  after every step (by id), how far the hero went (m), and whether every place (and every pose the view took) stayed
+ *  finite. */
 export interface Played {
   steps: number;
   hashes: string[];
   hits: Hit[];
   events: DuelEvent[];
+  places: Record<string, Place>[];
   travel: number;
   finite: boolean;
 }
@@ -151,9 +160,10 @@ export interface Played {
  *  posing) and returns false when it met a number that isn't finite. Hashes every `every` steps (60) and at the end. */
 export function play(duel: Duel, list: readonly Intent[], opts: { every?: number; view?: (d: Duel) => boolean } = {}): Played {
   const every = opts.every ?? HZ, hero = duel.get("hero"), x0 = hero.x, z0 = hero.z, hits0 = duel.hits.length;
-  const out: Played = { steps: list.length, hashes: [], hits: [], events: [], travel: 0, finite: true };
+  const out: Played = { steps: list.length, hashes: [], hits: [], events: [], places: [], travel: 0, finite: true };
   list.forEach((intent, i) => {
     out.events.push(...duel.step(intent));
+    out.places.push(Object.fromEntries(duel.fighters.map((f) => [f.id, { x: f.x, z: f.z, heading: f.heading, hp: f.hp }])));
     if (opts.view && !opts.view(duel)) out.finite = false;
     if (!duel.fighters.every((f) => Number.isFinite(f.x + f.z + f.heading))) out.finite = false;
     if ((i + 1) % every === 0 || i === list.length - 1) out.hashes.push(duel.hash());

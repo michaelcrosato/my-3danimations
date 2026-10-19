@@ -4,7 +4,7 @@
 // two places by the clock's alpha. W or ↑ walks, Shift jogs, J slashes; ?paused=1 starts paused. The stamp names core's
 // version and the build's commit, as every page's does.
 // `window.__m3a` drives it headless: ready, state(), hash(), step(n, intent), session() (the scripted session, from
-// the start), pause(on).
+// the start), pause(on) (resuming starts the frame clock afresh: the paused time is never owed).
 import { Color, DirectionalLight, GridHelper, HemisphereLight, Mesh, MeshStandardMaterial, PerspectiveCamera, PlaneGeometry, Scene, WebGPURenderer } from "three/webgpu";
 import { VERSION } from "@m3a/core";
 import { Library, type LibrarySource } from "@m3a/library";
@@ -108,7 +108,7 @@ async function main(): Promise<void> {
     wasAttack = attack;
     return { speed: k("KeyW", "ArrowUp") ? (k("ShiftLeft", "ShiftRight") ? 3.5 : 1) : 0, ...(pressed ? { attack: true } : {}) };
   };
-  const clock = createClock();
+  let clock = createClock();
   const frame = (now: number) => {
     const f = clock.advance(now), dt = (now - (last || now)) / 1000;
     last = now;
@@ -137,7 +137,12 @@ async function main(): Promise<void> {
       fresh();
       return play(duel, intents(script), { view: () => view() });
     },
-    pause: (on = true) => void (paused = on),
+    /** Pauses the frame loop, or resumes it on a fresh frame clock: its first frame sets the origin, so T ms on owe
+     *  floor(T × 60 / 1000) steps whatever came before. */
+    pause(on = true) {
+      if (paused && !on) clock = createClock();
+      paused = on;
+    },
   };
   view();
   requestAnimationFrame(frame);
