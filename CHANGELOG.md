@@ -25,7 +25,11 @@ features, patch for fixes. One line per change, under the part it touched (**Spe
   shape; text aimed at agents, self-promotion and other languages bounced; `provenance.source` read by kind;
   `intake.by` may describe the agent and its model; a contribution tagged `emote` or `idle` that walks, runs or
   travels a quarter of its hip height, as `describe` reads it, is a lint finding (D114).
-- `m3a review` regenerates the registry index after a decision, putting every file back if that refuses.
+- `m3a review` regenerates the registry index after a decision, putting every file back if that refuses;
+  `m3a review ingest` refuses a reviewer's name with a line break and a `proposals` that isn't a list (E_REVIEW).
+- The submit function reads a body sent without a length as a counted stream and refuses it past the limit (413),
+  never buffering it whole; a retry of an accepted text answers its row (200) at the rate's limit, in the function and
+  the database's rate trigger (michaelcrosato/my-3danimations#15's review).
 
 ### Repo
 - The intake's checker: an improvement keeps its previous version's tier, license and credit (an improved CC BY or
@@ -38,6 +42,7 @@ features, patch for fixes. One line per change, under the part it touched (**Spe
   adoption, each caught alone; an adoption the importers and the migrator keep is the bot's own record.
 - The registry index binds the fields it records to the files and fails on an unreadable `--since` ref; a community
   pack's version carries a digest over all its files, its proof's hash and the license its files give.
+- `npm run site` empties an `--out` directory only when its `.m3a-site` marker is there.
 - Workflows: `intake.yml` and `release.yml` give their secret and token only to the steps that use them, keep no
   checkout credentials and install without scripts; `release.yml` checks the triggering actor; `library-gates.yml`
   fires on the lock, the index and the registry too.
