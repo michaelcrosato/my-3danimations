@@ -4539,6 +4539,14 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
     secrets, Actions allowed to open pull requests); the owner's approval of at least 70% of a sampled batch
     (`queue.json` in the run's record: B8-ten's ten submissions). §8.5 merges the gate with them open, as G8's phone
     review.
+  - **The review bot's findings on #14 and #15** (posted after they merged, found before this pull request's merge):
+    the submit function reads a body without a length as a counted stream (413 past the cap), a retry of an accepted
+    text answers its row at the rate's limit (the function and the rate trigger, the migration edited in place while
+    O8's project is unlinked), the review file's `by` is one line and its `proposals` a list, the site empties only a
+    directory with its marker, the retarget judge's torso allowance covers only a real span's joints (no judged pair of
+    6,990 moved; the sweep's pin re-pinned for reach and spans alone), and QA's off-feet answers sit in their own field.
+    The submit function stays without CORS: no browser calls it (the contributor page reaches Auth and PostgREST
+    alone), and §5.9 keeps the contributor key out of pages.
   - **T1 at the gate was 108 s on this machine** (CI 77 s on the same tree): over its 90 s budget, under its fail
     mark; Phase 9's heavy proofs run in T2's full step (ba75cff).
 - **Why:** the gate's machine-provable clauses, each run in its command set, and the owner's left as the owner's.
