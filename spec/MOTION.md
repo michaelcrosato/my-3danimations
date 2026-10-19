@@ -251,8 +251,8 @@ recompute is checked against the motion by QA.
 | `license` | An SPDX identifier (`CC0-1.0`, `CC-BY-4.0`) or `LicenseRef-CMU-Mocap` for CMU's terms |
 | `credit` | The attribution line a game shows (required for `CC-BY-4.0` and CMU) |
 | `ai` | The IPTC digital source type (`http://cv.iptc.org/newscodes/digitalsourcetype/`): `digitalCapture` (captured), `digitalCreation` (keyed), `algorithmicMedia` (procedural), `composite` (composed), `humanEdits` (edited), `trainedAlgorithmicMedia` (generated) |
-| `intake` | A contributed clip's record from the intake queue (D112): `by` (who or what made it), `prompt` (a SHA-256 of the prompt), `manifest` (a generator's training-data manifest, `{ url, sha256 }`), `improves` (`{ id, sha256 }` of the clip it improves), `submission` and the checker's `report` (optional) |
-| `source` | The motion source that made it (D112): `{ name, license, version, seed, prompt }`, the source's terms and their version as served, the seed, a SHA-256 of the intent (optional) |
+| `intake` | A contributed clip's record from the intake queue (D112, D113), each part optional in the format (the intake requires `by` of every submission): `by` (who or what made it), `prompt` (a SHA-256 of the prompt), `manifest` (a generator's training-data manifest, `{ url, sha256 }`, an https URL), `improves` (`{ id, sha256 }` of the clip it improves), `submission` (`s-<16 hex>@<content SHA-256>`, the one it was adopted from) and `report` (`{ sensors, findings, qaVersion }`, the local report its submit measured) (optional) |
+| `source` | The motion source that made it (D112, D113): `{ name, license, version, stated, seed, prompt }`, the source's name (a lower-case word), the license and version of the terms it was served under, `stated` (`{ license, version }`, the terms the source states, only when they differ: both decide where it may go), the seed (0 to 4294967295) and a SHA-256 of the intent (optional) |
 
 A clip's license is its set's tier's (D10): a clip derived from a CC BY or CMU clip keeps that license.
 

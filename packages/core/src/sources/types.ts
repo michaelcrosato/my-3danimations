@@ -1,8 +1,9 @@
 // The motion-source socket's shapes (PLAN.md WP-9.2): what a source is asked for (an intent, constraints, the body
 // to make the clip on, a duration and a seed), the constraints (key poses and root waypoints at times: the input shape
 // of NVIDIA Kimodo's constraint-based generation), the terms a source's output comes under and their version, what a
-// source gives back, and what the socket gives: the clip with the source's record in its provenance, its license claim
-// and its warnings. A source returns data and nothing else: it is handed no writer (WP-9.2: its clips go to the intake
+// source gives back, and what the socket gives: the clip with the source's record in its provenance (the source's
+// name, a lower-case word, and both terms when a clip was served under others than its source states), its license
+// claim and its warnings. A source returns data and nothing else: it is handed no writer (WP-9.2: its clips go to the intake
 // queue, or to library/local/ when its terms aren't on the allowlist).
 import type { Rest } from "../format/body.ts";
 import type { Clip } from "../format/types.ts";
@@ -62,7 +63,10 @@ export interface SourceOutput {
   warnings?: string[];
 }
 
-/** A motion source: its name (a word), its terms, and how it makes a clip for a request. */
+/** A source's name as its record holds it: a lower-case word (letters, digits and -, a letter first). */
+export const SOURCE_NAME = /^[a-z][a-z0-9-]*$/;
+
+/** A motion source: its name (SOURCE_NAME), its terms, and how it makes a clip for a request. */
 export interface MotionSource {
   readonly name: string;
   readonly terms: SourceTerms;
@@ -70,11 +74,14 @@ export interface MotionSource {
 }
 
 /** The record the socket writes into each clip's provenance as `source`: the source's name, the license and version
- *  of the terms it was served under, the seed, and the SHA-256 of the intent (the prompt's hash). */
+ *  of the terms it was served under, the terms the source states (`stated`: its own `terms`, recorded only when the
+ *  clip was served under others, as a vendor's reply may say), the seed, and the SHA-256 of the intent (the prompt's
+ *  hash). Where a clip may go reads both terms (D113): a vendor's reply never decides it alone. */
 export interface SourceRecord {
   name: string;
   license: string;
   version: string;
+  stated?: { license: string; version: string };
   seed: number;
   prompt: string;
 }
@@ -90,8 +97,9 @@ export interface Sourced {
 }
 
 /** The socket's refusal: `code` says why (E_REQUEST a malformed request, E_NO_MATCH nothing fits the intent,
- *  E_INVALID a clip that doesn't validate, E_DISABLED a source that is off, E_TRANSPORT and E_REPLY a remote
- *  source's failure, E_SOURCE anything else a source threw), the message names the fix. */
+ *  E_INVALID a clip that doesn't validate or terms served that aren't { license, version }, E_DISABLED a source that is
+ *  off, E_TRANSPORT and E_REPLY a remote source's failure, E_SOURCE a source whose name or terms are malformed, or
+ *  anything else a source threw), the message names the fix. */
 export class SourceError extends Error {
   readonly code: string;
   constructor(code: string, message: string) {

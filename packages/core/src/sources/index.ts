@@ -6,4 +6,4 @@ export { sourceClip, checkRequest, POSE_TOLERANCE, ROOT_TOLERANCE, ROOT_TURN, MA
 export { proceduralSource, type ProceduralBook } from "./procedural.ts";
 export { recipeSource, type RecipeBook } from "./recipe.ts";
 export { pick, words, type Candidate } from "./match.ts";
-export { SourceError, type MotionSource, type SourceRequest, type SourceSkeleton, type SourceTerms, type SourceOutput, type SourceRecord, type Sourced, type Constraint, type PoseConstraint, type RootConstraint } from "./types.ts";
+export { SOURCE_NAME, SourceError, type MotionSource, type SourceRequest, type SourceSkeleton, type SourceTerms, type SourceOutput, type SourceRecord, type Sourced, type Constraint, type PoseConstraint, type RootConstraint } from "./types.ts";

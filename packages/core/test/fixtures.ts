@@ -56,3 +56,41 @@ export function baseSet(): J {
     producer: { tool: "test", version: "0.2.0" },
   };
 }
+
+const H = (c: string) => c.repeat(64);
+/** Provenance's two records in full (spec/MOTION.md §7.4): the intake's (a contributed clip adopted from the queue)
+ *  and the motion source's (served under other terms than it states). */
+export function records(): { intake: J; source: J } {
+  return {
+    intake: { by: "a test agent and its human", prompt: H("a"), manifest: { url: "https://example.org/manifest.json", sha256: H("b") }, improves: { id: "TEST/Walk", sha256: H("c") }, submission: `s-0123456789abcdef@${H("d")}`, report: { sensors: "pass", findings: 0, qaVersion: "m3a-sensors@1" } },
+    source: { name: "kimodo", license: "CC0-1.0", version: "2026-10-01", stated: { license: "CC0-1.0", version: "2026-01-01" }, seed: 7, prompt: H("e") },
+  };
+}
+
+/** The base clip carrying both records, with `f` over them. */
+export function withRecords(f: (r: { intake: J; source: J }) => void = () => {}): J {
+  const c = baseClip(), r = records();
+  f(r);
+  c.provenance = { ...c.provenance, ...r };
+  return c;
+}
+
+/** Records of an unknown shape, each with the code the validator raises and the field it names. */
+export const BAD_RECORDS: [string, string, (r: { intake: J; source: J }) => void][] = [
+  ["M2-E004", "provenance.intake", (r) => (r.intake = "garbage" as unknown as J)],
+  ["M2-E004", "provenance.intake.by", (r) => (r.intake.by = 5)],
+  ["M2-E017", "provenance.intake.prompt", (r) => (r.intake.prompt = "abc")],
+  ["M2-E004", "provenance.intake.manifest", (r) => (r.intake.manifest = `https://example.org/m#sha256=${H("b")}`)],
+  ["M2-E017", "provenance.intake.manifest.url", (r) => (r.intake.manifest.url = "http://example.org/manifest.json")],
+  ["M2-E003", "provenance.intake.improves.sha256", (r) => delete r.intake.improves.sha256],
+  ["M2-E017", "provenance.intake.improves.id", (r) => (r.intake.improves.id = "a walk")],
+  ["M2-E017", "provenance.intake.submission", (r) => (r.intake.submission = "s-1")],
+  ["M2-E014", "provenance.intake.report.findings", (r) => (r.intake.report.findings = -1)],
+  ["M2-E004", "provenance.source", (r) => (r.source = "kimodo" as unknown as J)],
+  ["M2-E003", "provenance.source.license", (r) => delete r.source.license],
+  ["M2-E017", "provenance.source.name", (r) => (r.source.name = "../../sets/MESH2MOTION")],
+  ["M2-E004", "provenance.source.seed", (r) => (r.source.seed = "not a number")],
+  ["M2-E014", "provenance.source.seed", (r) => (r.source.seed = 2 ** 32)],
+  ["M2-E004", "provenance.source.prompt", (r) => (r.source.prompt = 7)],
+  ["M2-E003", "provenance.source.stated.version", (r) => delete r.source.stated.version],
+];

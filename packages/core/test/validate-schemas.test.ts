@@ -5,7 +5,7 @@ import { readFileSync } from "node:fs";
 import { Ajv2020 } from "ajv/dist/2020.js";
 import { describe, expect, it } from "vitest";
 import { validate } from "../src/validate/index.ts";
-import { baseClip, baseSet } from "./fixtures.ts";
+import { BAD_RECORDS, baseClip, baseSet, withRecords } from "./fixtures.ts";
 
 const schema = (name: string) => JSON.parse(readFileSync(new URL(`../../../spec/schemas/${name}.schema.json`, import.meta.url), "utf8")) as object;
 const ajv = new Ajv2020({ allErrors: true, strict: false });
@@ -40,6 +40,16 @@ describe("the JSON Schemas", () => {
     ["M2-E018", () => mut((c) => (c.provenance.license = "CC-BY-4.0"))],
     ["M2-E019", () => mut((c) => (c.keys[0].armR = [0, 0, 0, 10, 0]))],
   ];
+  it("accept provenance's two records in full, and a partial intake record", () => {
+    for (const c of [withRecords(), withRecords((r) => ((r.intake = {}), delete r.source.stated))]) expect(clipSchema(c), JSON.stringify(clipSchema.errors)).toBe(true);
+  });
+  for (const [code, field, f] of BAD_RECORDS) {
+    it(`reject a record the validator refuses: ${code} at ${field}`, () => {
+      const c = withRecords(f);
+      expect(validate(c).errors.map((i) => i.code)).toContain(code);
+      expect(clipSchema(c)).toBe(false);
+    });
+  }
   for (const [code, make] of structural) {
     it(`reject what the validator calls ${code}`, () => {
       const c = make();
