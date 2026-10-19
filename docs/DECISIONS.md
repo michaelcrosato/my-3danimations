@@ -4104,3 +4104,34 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   costs trials, and the fix is the true sentence, not a weaker grader.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.50.1
+
+## D106 · 2026-10-19 · G7 run 1 failed on B1's held-out variant (3 of 5); the manual's speed rule fixed forward
+
+- **Principle:** 1, §8.5 (a failed gate is fixed forward), §7, K2 (not fired)
+- **Call:**
+  - **Run 1** at 1623b78, 84.0 min: 23 of 24 gating commands passed. Every brief 5 of 5 but B6 (4 of 5), every
+    held-out variant 5 of 5 but B7 (4 of 5) and **B1's, 3 of 5**; the three recorded models 7 of 7 each. The record is
+    `bench/results/gates/G7-run-1/`.
+  - **Why B1's variant failed** (seed 1287, a bulky Rigify body): the agents picked the CC0 run nearest the asked
+    3.5 m/s, `MESH2MOTION/Run_Female` (3.76 m/s) or `MESH2MOTION/Jog`, over the core `QUATERNIUS_3D2DGE/Jog_Fwd_Loop`
+    (6.16 m/s, played at about 0.57). Both are keyed and land with the foot held low and still against the pelvis
+    while the root carries on, which the sensors read as a dragged foot. On this body, at the rate the agents choose,
+    the B1 known-good with Run_Female in place of its jog skates at 82 cm/s, with `MESH2MOTION/Jog` at 50 (the fail
+    level is 42); with the core jog it passes. Neither the library's QA (on the clip's own rest) nor the sweep (rate
+    1) catches it: it depends on the body and the rate. Two agents also moved the character at v themselves.
+  - **The fix, in the manual** (8,000 of 8,000 tokens): the mental model says root motion moves the character, never
+    a speed of one's own; the speed rule says "0.5 to 2, else pick a clip nearer v; in range a `core` row beats a
+    nearer one", and that moved at v, feet slide in fades and where a keyed stance drifts. Probes on the working tree
+    (`bench/results/2026-10-19-default-B1-{5,6}.json`, `-B1-variant-{2,3,4}.json`, on run 1's variant, now used):
+    with the travel rule alone 4 of 5 on the variant; with a "core first" line in Find 4 of 5 on B1 and 1 of 5 on the
+    variant (four shipped Run_Female, moved by the travel, and skated); with the speed rule 5 of 5 on the variant and
+    4 of 5 on B1 (the fifth trial's agent hung for 10 minutes with no output and was ended: an outage, not a grade).
+  - **Left for later** (follow-up, owned by no WP yet): a check that plays each locomotion loop with its root motion
+    at the rates a game asks (0.5 to 2) on the test bodies, as B1's grader reads it, so a keyed run that skims is
+    flagged in the library rather than found by fresh agents.
+  - **Run 2** fixes the commit first, then a fresh subagent writes `bench/results/heldout/G7/run-2/` under D91's read
+    bar and an independent check reviews it; each known-good passes on its variant; then the gate runs again.
+- **Why:** the gate failed on a manual line that steered agents to the nearest speed over the curated clip; the fix
+  is the manual's rule, not the grader. K2 (B1 under 3 of 5 after the manual's second revision) didn't fire.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.50.1

@@ -26,8 +26,8 @@ heights a second" scale with a body's hip height `H0`, so one clip fits every bo
   `Animator` plays on.
 - An **Animator** plays clips on named **layers** at a fixed 1/60 s step: `step(dt)` moves the playheads, fires events
   and moves the root; `pose()` solves the mix onto the bones; `attach(animator, bound).update(dt)` does both.
-- **Contacts** (when a foot stands) plant the feet and move the root as they push (root motion): `playable(clip,
-  rest)` measures them; play library clips through it.
+- **Contacts** (when a foot stands) plant the feet and move the root as they push (root motion: move the character
+  by it, never at a speed of your own): `playable(clip, rest)` measures them; play library clips through it.
 - A **graph** (JSON): states, transitions on parameters the game sets, blend spaces and layers, run inside the
   Animator's step. A **recipe** (JSON) makes a clip from clips; an **action** is a recipe with ground, beats and cuts.
 - The **sensors** judge motion from the bones (slide, skate, pops, jitter, penetration, NaN), a clip or a whole
@@ -140,15 +140,15 @@ const hits = library.search("sword slash", { limit: 5 }).rows;  // ranked: { id,
 const { clip, rest } = library.clip("MESH2MOTION/Walk_Large");  // and its set and tier
 ```
 
-Pick clips by their rows (ids, tags, descriptions), and check what one does with `m3a describe <id>` first: sets
-differ (one set's knockback gets back up). Ids are `SET/Name`; an `_RM` clip carries its own root travel.
+Pick clips by their rows; check what one does with `m3a describe <id>` first: sets differ (one set's knockback
+gets back up). Ids are `SET/Name`; an `_RM` clip carries its own root travel.
 
-**Tiers.** A game sees the CC0 default pack unless it opts in twice: `"tiers"` in `game.json` (the m3a tools read
-it) and `openLibrary({ tiers: ["cc0", "cc-by"] })` in code. The installed `@m3a/library` holds the CC0 sets only; the
-others are packs beside it (`npm install @m3a/library-cc-by` or `@m3a/library-cmu`). With its pack, a clip past the
+**Tiers.** A game sees the CC0 default pack unless it opts in twice: `"tiers"` in `game.json` (for the tools) and
+`openLibrary({ tiers: ["cc0", "cc-by"] })` in code. The installed `@m3a/library` holds the CC0 sets only; the others
+are packs beside it (`npm install @m3a/library-cc-by` or `@m3a/library-cmu`). With its pack, a clip past the
 game's tiers throws `LibraryError` `E_TIER`, naming the opt-in (without, `E_NO_SET`). Credit each `cc-by` clip; `cmu`
-clips can't be resold, even converted; `local` (what `m3a import` made) never ships, and code opens it as a library of
-its own (Ship).
+clips can't be resold, even converted; `local` (what `m3a import` made) never ships; code opens it as a library of its
+own (Ship).
 
 ## Fit: bind the character
 
@@ -182,7 +182,7 @@ a.remove("hurt");
   one-shot finished.
 - **Cross-fade** by hand: the new clip on a top layer at weight 0, in step (`time: mb.time(ma.phase(t))`, `ma`, `mb`
   the clips' `ops.phaseMap(c, c.contacts)`, `t` the old one's time), raised over 0.25 s, then set on the base at its
-  `time`, the top layer removed. Fade one-shots in over 0.1 s or more: snapped in, the body jumps.
+  `time`, the top layer removed. Fade one-shots in over 0.1 s or more, or the body jumps.
 - **Events** (`clip.events`: `{ t, name }`) fire on the step a playhead passes them, from a layer above weight 0 or
   the lowest one: in `step(dt).events`, `player.update(dt).events`, `animator.on(name, fn)` (`"*"`: all). Act on
   them, not on timers. `clip.facts.strike` (or `measureFacts(clip, rest).strike`) lists an attack's strike times.
@@ -193,8 +193,9 @@ a.remove("hurt");
 - **Matching speed**: `contact.contactRoot(c, rest, c.contacts)` is a playable clip's path on a body,
   `{ root(t), speed }` (`root(t)`: `{ forward, right, yaw }`, mm and degrees; `speed`: mean mm/s, 0 if no foot plants:
   pick another clip). For v m/s play a loop at `speed: (v * 1000) / own`, `own` its speed on `bound.core.rest` (0.5 to
-  2, else pick a clip nearer v), and move the character by `player.travel`: moved at v by the game, feet slide at any
-  other rate, and where a stance drifts (keyed runs) at any. In a graph, `"rate": "<param>"` (stride warping).
+  2, else pick a clip nearer v; in range a `core` row beats a nearer one), and move the character by `player.travel`,
+  which then covers v: moved at v yourself, feet slide in fades and where a keyed stance drifts. In a graph,
+  `"rate": "<param>"` (stride warping).
 - **Determinism**: the same calls give the same `animator.hash()` in Node and a browser; `save()` and
   `restore(data, clips, graph?)` round-trip through JSON; `update(dt)` takes any dt (fixed steps, the rest carried).
 
@@ -255,14 +256,14 @@ writeFileSync("walk_weary.json", serialize(made.clip));    // as the library wri
 ```
 
 `recipe.compile` and `actions.compileAction` read clips through `library.resolver()`: a clip past the game's tiers
-throws `LibraryError` `E_TIER` naming the opt-in (if its set holds it); any other unknown id `recipe.RecipeError`, whose
-`.issues` hold `R-E008` (with the nearest id when there is one). Edits: faster, `retime` (`speed: 1.5`); the other side,
+throws `LibraryError` `E_TIER` naming the opt-in (if its set has it); any other unknown id `recipe.RecipeError`, whose
+`.issues` hold `R-E008` (with the nearest id). Edits: faster, `retime` (`speed: 1.5`); the other side,
 `mirror`; more anticipation, a `pose` the other way before the key moment; bigger, `exaggerate` (1.25).
 `m3a edit <clip> --ops <json> --save-as WORKSHOP/<Name>` applies steps to a copy, with undo.
 
 ## Make: actions
 
-An action is a recipe with `desc`, the ground it ends on (`floor`, % of the hip height above its start), its `beats`
+An action is a recipe with `desc`, the floor it ends on (`floor`, % of the hip height above its start), its `beats`
 and its `interrupts` (where it may be cut):
 
 ```json climb.json
@@ -409,4 +410,4 @@ npx m3a validate check-output/recipe.compile/Slash_Hit.clip.json --json
 - Act on events, not timers; fade one-shots in; cut, don't blend, between two lying poses.
 - `set` and `trigger` are read from the next step. Parameters aren't smoothed: ease a blend's over 0.2 s, or the
   body pops.
-- Errors say what to do: read them before the source.
+- Errors say what to do: read them first.

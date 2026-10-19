@@ -1,0 +1,230 @@
+{
+ "about": "npm run bench: fresh agents on the briefs (PLAN.md §7); isolation 1 is the claude CLI in a clean workspace",
+ "date": "2026-10-19T01-14-54",
+ "commit": "1623b78129c377e2ae8d2ab12ba7993884d106c9",
+ "dirty": false,
+ "model": "the CLI's default",
+ "fake": false,
+ "parallel": 5,
+ "privateTmp": true,
+ "ownPids": true,
+ "capsDropped": true,
+ "uid": 65534,
+ "unprivileged": true,
+ "variant": {
+  "dir": "bench/results/heldout/G7/run-1/B7",
+  "character": {
+   "seed": 1537
+  }
+ },
+ "B7": {
+  "trials": [
+   {
+    "trial": "B7-1",
+    "pass": true,
+    "failed": [],
+    "agent": {
+     "isolation": 1,
+     "privateTmp": true,
+     "ownPids": true,
+     "capsDropped": true,
+     "uid": 65534,
+     "unprivileged": true,
+     "ok": true,
+     "ms": 45582.835951,
+     "model": "claude-sonnet-5-5",
+     "turns": 11,
+     "tokens": {
+      "input": 14,
+      "output": 4572,
+      "cacheRead": 175120,
+      "cacheWrite": 27347
+     },
+     "costUsd": 0.172648,
+     "outside": [],
+     "scratch": [
+      "/tmp/p.ts"
+     ],
+     "pastManual": [],
+     "m3a": {
+      "server": "connected",
+      "skill": true,
+      "skills": [
+       "m3a"
+      ]
+     }
+    }
+   },
+   {
+    "trial": "B7-2",
+    "pass": true,
+    "failed": [],
+    "agent": {
+     "isolation": 1,
+     "privateTmp": true,
+     "ownPids": true,
+     "capsDropped": true,
+     "uid": 65534,
+     "unprivileged": true,
+     "ok": true,
+     "ms": 61696.162605,
+     "model": "claude-sonnet-5-5",
+     "turns": 15,
+     "tokens": {
+      "input": 24,
+      "output": 6041,
+      "cacheRead": 282097,
+      "cacheWrite": 20583
+     },
+     "costUsd": 0.1709997,
+     "outside": [],
+     "scratch": [
+      "/tmp/m3a-bench/2026-10-19T01-14-54/probe_b7.ts",
+      "/tmp/probe.ts"
+     ],
+     "pastManual": [],
+     "m3a": {
+      "server": "connected",
+      "skill": true,
+      "skills": [
+       "m3a"
+      ]
+     }
+    }
+   },
+   {
+    "trial": "B7-3",
+    "pass": false,
+    "failed": [
+     "the jump leaves the ground: both feet 0.8 cm off the ground at most while jumping (more than 5.4)"
+    ],
+    "agent": {
+     "isolation": 1,
+     "privateTmp": true,
+     "ownPids": true,
+     "capsDropped": true,
+     "uid": 65534,
+     "unprivileged": true,
+     "ok": true,
+     "ms": 69813.554103,
+     "model": "claude-sonnet-5-5",
+     "turns": 15,
+     "tokens": {
+      "input": 26,
+      "output": 6229,
+      "cacheRead": 314053,
+      "cacheWrite": 22027
+     },
+     "costUsd": 0.1818553,
+     "outside": [],
+     "scratch": [
+      "/tmp/t.ts"
+     ],
+     "pastManual": [
+      "node_modules/@m3a/core",
+      "node_modules/@m3a/core/dist/*.d.ts"
+     ],
+     "m3a": {
+      "server": "connected",
+      "skill": true,
+      "skills": [
+       "m3a"
+      ]
+     }
+    }
+   },
+   {
+    "trial": "B7-4",
+    "pass": true,
+    "failed": [],
+    "agent": {
+     "isolation": 1,
+     "privateTmp": true,
+     "ownPids": true,
+     "capsDropped": true,
+     "uid": 65534,
+     "unprivileged": true,
+     "ok": true,
+     "ms": 115450.696073,
+     "model": "claude-sonnet-5-5",
+     "turns": 20,
+     "tokens": {
+      "input": 36,
+      "output": 8773,
+      "cacheRead": 520258,
+      "cacheWrite": 28011
+     },
+     "costUsd": 0.25187180000000003,
+     "outside": [],
+     "scratch": [
+      "/tmp/s",
+      "/tmp/s/p.ts",
+      "/tmp/s/q.ts"
+     ],
+     "pastManual": [
+      "node_modules/@m3a/*",
+      "node_modules/@m3a/core/*.md",
+      "node_modules/@m3a/core/dist/*.d.ts",
+      "node_modules/@m3a/core/dist/*/*.js",
+      "node_modules/@m3a/core/dist/skeleton/*.js",
+      "node_modules/@m3a/core/dist/skeleton/measure.js"
+     ],
+     "m3a": {
+      "server": "connected",
+      "skill": true,
+      "skills": [
+       "m3a"
+      ]
+     }
+    }
+   },
+   {
+    "trial": "B7-5",
+    "pass": true,
+    "failed": [],
+    "agent": {
+     "isolation": 1,
+     "privateTmp": true,
+     "ownPids": true,
+     "capsDropped": true,
+     "uid": 65534,
+     "unprivileged": true,
+     "ok": true,
+     "ms": 36571.337671999994,
+     "model": "claude-sonnet-5-5",
+     "turns": 9,
+     "tokens": {
+      "input": 14,
+      "output": 3488,
+      "cacheRead": 136320,
+      "cacheWrite": 17417
+     },
+     "costUsd": 0.11820800000000001,
+     "outside": [],
+     "scratch": [],
+     "pastManual": [],
+     "m3a": {
+      "server": "connected",
+      "skill": true,
+      "skills": [
+       "m3a"
+      ]
+     }
+    }
+   }
+  ],
+  "discovery": [],
+  "check": {
+   "trial": "known-good",
+   "pass": true,
+   "failed": [],
+   "agent": {
+    "fake": true
+   }
+  }
+ },
+ "models": [
+  "claude-sonnet-5-5"
+ ],
+ "ms": 132301
+}

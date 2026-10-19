@@ -1,0 +1,200 @@
+{
+ "about": "npm run bench: fresh agents on the briefs (PLAN.md §7); isolation 1 is the claude CLI in a clean workspace",
+ "date": "2026-10-19T01-04-07",
+ "commit": "1623b78129c377e2ae8d2ab12ba7993884d106c9",
+ "dirty": false,
+ "model": "the CLI's default",
+ "fake": false,
+ "parallel": 5,
+ "privateTmp": true,
+ "ownPids": true,
+ "capsDropped": true,
+ "uid": 65534,
+ "unprivileged": true,
+ "B5": {
+  "trials": [
+   {
+    "trial": "B5-1",
+    "pass": true,
+    "failed": [],
+    "agent": {
+     "isolation": 1,
+     "privateTmp": true,
+     "ownPids": true,
+     "capsDropped": true,
+     "uid": 65534,
+     "unprivileged": true,
+     "ok": true,
+     "ms": 39686.632936,
+     "model": "claude-sonnet-5-5",
+     "turns": 10,
+     "tokens": {
+      "input": 20,
+      "output": 3314,
+      "cacheRead": 251891,
+      "cacheWrite": 23046
+     },
+     "costUsd": 0.1505531,
+     "outside": [],
+     "scratch": [],
+     "pastManual": [],
+     "m3a": {
+      "server": "connected",
+      "skill": true,
+      "skills": [
+       "m3a"
+      ]
+     }
+    }
+   },
+   {
+    "trial": "B5-2",
+    "pass": true,
+    "failed": [],
+    "agent": {
+     "isolation": 1,
+     "privateTmp": true,
+     "ownPids": true,
+     "capsDropped": true,
+     "uid": 65534,
+     "unprivileged": true,
+     "ok": true,
+     "ms": 49507.653482,
+     "model": "claude-sonnet-5-5",
+     "turns": 14,
+     "tokens": {
+      "input": 28,
+      "output": 3940,
+      "cacheRead": 388010,
+      "cacheWrite": 27520
+     },
+     "costUsd": 0.188337,
+     "outside": [],
+     "scratch": [
+      "/tmp/e.bak"
+     ],
+     "pastManual": [],
+     "m3a": {
+      "server": "connected",
+      "skill": true,
+      "skills": [
+       "m3a"
+      ]
+     }
+    }
+   },
+   {
+    "trial": "B5-3",
+    "pass": true,
+    "failed": [],
+    "agent": {
+     "isolation": 1,
+     "privateTmp": true,
+     "ownPids": true,
+     "capsDropped": true,
+     "uid": 65534,
+     "unprivileged": true,
+     "ok": true,
+     "ms": 33420.920076,
+     "model": "claude-sonnet-5-5",
+     "turns": 10,
+     "tokens": {
+      "input": 20,
+      "output": 2377,
+      "cacheRead": 243715,
+      "cacheWrite": 20720
+     },
+     "costUsd": 0.1310615,
+     "outside": [],
+     "scratch": [
+      "/tmp/jump2.json"
+     ],
+     "pastManual": [],
+     "m3a": {
+      "server": "connected",
+      "skill": true,
+      "skills": [
+       "m3a"
+      ]
+     }
+    }
+   },
+   {
+    "trial": "B5-4",
+    "pass": true,
+    "failed": [],
+    "agent": {
+     "isolation": 1,
+     "privateTmp": true,
+     "ownPids": true,
+     "capsDropped": true,
+     "uid": 65534,
+     "unprivileged": true,
+     "ok": true,
+     "ms": 49966.9201,
+     "model": "claude-sonnet-5-5",
+     "turns": 14,
+     "tokens": {
+      "input": 28,
+      "output": 4000,
+      "cacheRead": 386244,
+      "cacheWrite": 25196
+     },
+     "costUsd": 0.17946440000000002,
+     "outside": [],
+     "scratch": [
+      "/tmp/e_Jump_2.json",
+      "/tmp/e_Jump_2_RM.json"
+     ],
+     "pastManual": [],
+     "m3a": {
+      "server": "connected",
+      "skill": true,
+      "skills": [
+       "m3a"
+      ]
+     }
+    }
+   },
+   {
+    "trial": "B5-5",
+    "pass": true,
+    "failed": [],
+    "agent": {
+     "isolation": 1,
+     "privateTmp": true,
+     "ownPids": true,
+     "capsDropped": true,
+     "uid": 65534,
+     "unprivileged": true,
+     "ok": true,
+     "ms": 17183.231989,
+     "model": "claude-sonnet-5-5",
+     "turns": 5,
+     "tokens": {
+      "input": 10,
+      "output": 1154,
+      "cacheRead": 92761,
+      "cacheWrite": 17088
+     },
+     "costUsd": 0.08918809999999999,
+     "outside": [],
+     "scratch": [],
+     "pastManual": [],
+     "m3a": {
+      "server": "connected",
+      "skill": true,
+      "skills": [
+       "m3a"
+      ]
+     }
+    }
+   }
+  ],
+  "discovery": []
+ },
+ "models": [
+  "claude-sonnet-5-5"
+ ],
+ "ms": 61857
+}

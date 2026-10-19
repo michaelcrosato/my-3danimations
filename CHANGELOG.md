@@ -19,8 +19,9 @@ features, patch for fixes. One line per change, under the part it touched (**Spe
 
 ### Tools
 - `npm run qa -- library` checks that every loop with no contact is tagged off its feet and answered (`offFeet`).
-- The manual (D105): move the character by `player.travel` (moved at v, a keyed run's feet slide at any rate), and
-  cross-fade in step with `ops.phaseMap`; 8,000 of 8,000 tokens.
+- The manual (D105, D106): root motion moves the character (moved at v, feet slide in fades and where a keyed stance
+  drifts); cross-fade in step with `ops.phaseMap`; in the speed rule's range a `core` clip beats a nearer one;
+  8,000 of 8,000 tokens.
 
 ## 0.50.0 · 2026-10-17
 

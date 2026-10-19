@@ -54,6 +54,9 @@ most 3 lanes, none during trial batches. After each gate's squash merge (CI gree
 
 ## Follow-ups recorded, owned by no WP yet
 
+- Sensors: a check that plays each locomotion loop with its root motion at the rates a game asks (0.5 to 2) on the
+  test bodies, as B1's grader reads it: keyed runs (`MESH2MOTION/Run_Female`, `Jog`) skim on some bodies (D106).
+
 - Core: the planter (K5) and the key fit grow faster than linearly; the tools bound them (D96). Parents in a loop
   among bones a table knows by name hang recognition's ancestor walk (D96).
 - Library: a composed source license (" AND ") is read as one id by license.check (D96).

@@ -27,8 +27,8 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 
 ## Next
 
-- The library's 30 contact-less loops fixed (D104, 0.50.1): 11 carry contacts (Run_Female's ground speed 4.09 H0/s,
-  it read 0), 19 marked off their feet. Next: B1 rerun, then G7, then Phases 8-10 ([`docs/HANDOFF.md`](HANDOFF.md)).
+- D104 (0.50.1): 11 contact-less loops given contacts, 19 marked off their feet; D105, D106: the manual's root
+  motion and speed rule. G7 run 1 failed on B1's variant, 3/5 (23 of 24); run 2 next, then Phases 8-10.
 
 ## Blocked on the owner
 

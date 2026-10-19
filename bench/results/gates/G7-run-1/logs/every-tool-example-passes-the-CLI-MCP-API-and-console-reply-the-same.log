@@ -1,0 +1,3 @@
+test: PASS (T1) in 17.8 s, budget 90.0 s
+  ok   vitest 17.8 s: files 16 passed; tests 170 passed
+next: npm run e2e before pushing
