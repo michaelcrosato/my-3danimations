@@ -16,8 +16,9 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { finish, fmtMs, parseArgs, ROOT, usage, type Report, type Step } from "../run/cli.ts";
 import { census } from "./census.ts";
-import { againstRecord, checkFloats, checkVerdicts, DISTRIBUTIONS, floorsMissed, LIBRARY_DOC, libraryDoc, readRecord, recordOf, recordText, setInfo } from "./library.ts";
+import { againstRecord, checkFloats, checkOffFeet, checkVerdicts, DISTRIBUTIONS, floorsMissed, LIBRARY_DOC, libraryDoc, readRecord, recordOf, recordText, setInfo } from "./library.ts";
 import { BASELINE, baselineOf, compare, distributions, fixAll, libraryClips, qa, sample, worse, type BaselineRow } from "./qa.ts";
+import { readReasons } from "./verdict.ts";
 
 if (import.meta.main) {
   const specs = [
@@ -72,6 +73,8 @@ if (import.meta.main) {
     steps.push({ name: "verdicts", ok: v.problems.length === 0 && v.gone.length === 0, ms: 0, summary: v.problems.length || v.gone.length ? `${v.problems.length} clips' recorded verdicts aren't the sensors' (npm run import, npm run migrate); ${v.gone.length} reasons whose finding is gone` : `${lib.length} clips carry the sensors' verdict, each flagged one baselined with its reason`, detail: [...v.problems, ...v.gone.map((g) => `library/baselines/qa.json: ${g}${g.endsWith(")") ? "" : " is no longer past its level"}`)] });
     const fl = checkFloats(lib);
     steps.push({ name: "floats", ok: fl.problems.length === 0 && fl.gone.length === 0, ms: 0, summary: fl.problems.length || fl.gone.length ? `${fl.problems.length} clips stand off the floor with no answer; ${fl.gone.length} answers whose clip floats no longer` : "no clip stands off the floor but the ones library/baselines/qa.json answers", detail: [...fl.problems, ...fl.gone.map((g) => `library/baselines/qa.json floats: ${g}`)] });
+    const off = checkOffFeet(lib);
+    steps.push({ name: "off feet", ok: off.problems.length === 0 && off.gone.length === 0, ms: 0, summary: off.problems.length || off.gone.length ? `${off.problems.length} loops with no contact unanswered; ${off.gone.length} answers whose loop has contacts now` : `every loop with no contact is off its feet, answered in library/baselines/qa.json offFeet (${Object.keys(readReasons().offFeet ?? {}).length})`, detail: [...off.problems, ...off.gone.map((g) => `library/baselines/qa.json offFeet: ${g}`)] });
     steps.push({ name: "census", ok: short.length === 0, ms: 0, summary: `${c.unique} unique motions of ${c.clips} clips (CC0 pack ${c.cc0}); ${short.length ? `short: ${short.join("; ")}` : "every G5 floor met"}`, detail: Object.entries(c.categories).map(([k, x]) => `${k}: ${x.unique} unique of ${x.clips} clips (floor ${x.floor}), ${x.cc0} with a CC0 clip`) });
     if (f.baseline) {
       writeFileSync(DISTRIBUTIONS, recordText(now));

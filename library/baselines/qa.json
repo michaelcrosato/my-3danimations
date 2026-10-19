@@ -13,5 +13,26 @@
   "CMU_CURATED/Ballet_Pirouette": "it turns in relevé, risen onto the balls of its feet: the hips rise 20–30 mm over their standing height with the heels",
   "CMU_CURATED/Shoot_Bow": "its source take (CMU 79_86) holds the left heel 60–70 mm up throughout and the hips 40–70 mm over where the subject's other takes stand them (966–984 mm), while the right foot's toes touch down at 3.5 s: a floor under the heels would sink those toes 40 mm, so it keeps the one its toes show (D69)",
   "CMU_CURATED/Stretch_Yawn": "it rises onto its toes as it reaches up: the hips rise 40 mm over their standing height with the heels"
+ },
+ "offFeet": {
+  "MESH2MOTION/Climb_Wall": "it climbs a sheer wall in place, hands and feet on the wall: no foot stands on the floor",
+  "MESH2MOTION/Flying_Forward": "it flies, body level, legs trailing: its feet never come near the floor",
+  "MESH2MOTION/Flying_Forward_Super": "it flies like a superhero, arms ahead: its feet never come near the floor",
+  "MESH2MOTION/Glide": "it glides in the air, arms raised in a V: its feet never come near the floor",
+  "MESH2MOTION/Jump_air": "it is a jump's airborne pose, held while rising or falling: no foot is on the floor",
+  "MESH2MOTION/Ladder_Idle": "it holds on to a ladder, hands and feet on the rungs: it stands on the rungs, not the floor",
+  "MESH2MOTION/Ledge_Hang": "it hangs from a ledge by both hands, legs dangling: no foot is on the floor",
+  "MESH2MOTION/Levitate_Idle": "it floats in the air, knees drawn up: its feet never come near the floor",
+  "MESH2MOTION/Meditate": "it sits cross-legged on the floor: it rests on its seat and shins, not standing on its feet",
+  "MESH2MOTION/NinjaJump_Idle": "it is a ninja jump's airborne pose, held: no foot is on the floor",
+  "MESH2MOTION/Pipe_Climb": "it shins up a pole in place, hands and knees gripping: its feet are on the pole, not the floor",
+  "MESH2MOTION/Sleeping": "it lies on its back asleep: it rests on its back, not on its feet",
+  "MESH2MOTION/Swim_Fwd": "it swims, body flat: it is in water, its feet never on a floor",
+  "QUATERNIUS_3D2DGE/Jump_Loop": "it is a jump's airborne pose, held while rising or falling: no foot is on the floor",
+  "QUATERNIUS_3D2DGE/NinjaJump_Idle_Loop": "it is a ninja jump's airborne pose, held: no foot is on the floor",
+  "QUATERNIUS_3D2DGE/Swim_Fwd_Loop": "it swims, body flat: it is in water, its feet never on a floor",
+  "QUATERNIUS_SHARDFALL/Jump_Loop": "it is a jump's airborne pose, held while rising or falling: no foot is on the floor",
+  "QUATERNIUS_SHARDFALL/NinjaJump_Idle_Loop": "it is a ninja jump's airborne pose, held: no foot is on the floor",
+  "QUATERNIUS_SHARDFALL/Swim_Fwd_Loop": "it swims, body flat: it is in water, its feet never on a floor"
  }
 }

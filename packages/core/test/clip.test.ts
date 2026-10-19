@@ -4,7 +4,7 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { contactsAt, events, keyAt, measureFacts, parseClip, rootAt, rootDelta, sample, type Clip, type ClipEvent, type Key, type Rest } from "./all.ts";
+import { contactRoot, contactsAt, detectContacts, events, keyAt, measureFacts, OFF_FEET, parseClip, rootAt, rootDelta, sample, type Clip, type ClipEvent, type Key, type Rest } from "./all.ts";
 import { loadTier2, tier2Sets } from "../../../spec/conformance/runner/vectors.ts";
 
 const LIB = join(import.meta.dirname, "../../../library/sets");
@@ -122,6 +122,36 @@ describe("contacts", () => {
     expect(c.by).toBe("detected");
     expect([c.footL?.length, c.footR?.length, c.handL, c.handR]).toEqual([1, 1, undefined, undefined]);
     for (const [a, b] of [...c.footL!, ...c.footR!]) expect(b - a).toBeGreaterThan(0.4 * clip.dur);
+  });
+  // D104: the 30 library loops that had no contact. A keyed run in place whose planted foot drifts too fast for the
+  // world refinement keeps a contact a step (read with still at half the body's speed), so its own ground speed is its
+  // speed; a body on its heels is read by its whole sole; a clip tagged off its feet keeps the strict reading.
+  it("a keyed run in place keeps a contact a step, its ground speed within 5% of its measured speed", () => {
+    const { clip, R } = libClip("MESH2MOTION/Run_Female");
+    const f = measureFacts(clip, R), c = f.contacts;
+    expect([c.footL?.length, c.footR?.length]).toEqual([1, 1]);
+    for (const [a, b] of [...c.footL!, ...c.footR!]) expect(b - a).toBeLessThan(0.25 * clip.dur);
+    const own = (contactRoot(clip, R, c).speed * 100) / R.H0;
+    expect(Math.abs(own / f.speed! - 1)).toBeLessThan(0.05);
+  });
+  it("a run on the spot keeps its height pass's contacts, and reads no ground speed", () => {
+    const { clip, R } = libClip("MESH2MOTION/Run_Anime");
+    const c = measureFacts(clip, R).contacts;
+    expect([c.footL?.length, c.footR?.length]).toEqual([1, 1]);
+    expect(contactRoot(clip, R, c).speed).toBeLessThan(0.01 * R.H0);
+  });
+  it("a body standing on its heels, toes raised, is read by its whole sole", () => {
+    const { clip, R } = libClip("STYLE100_IDLE/OnHeels_Idle");
+    expect(detectContacts(clip, R)).toEqual({ by: "detected" });
+    const c = measureFacts(clip, R).contacts;
+    expect((c.footL?.length ?? 0) + (c.footR?.length ?? 0)).toBeGreaterThan(0);
+  });
+  it("a clip its tags put off its feet keeps the strict reading: none for a run tagged as flying", () => {
+    const { clip, R } = libClip("MESH2MOTION/Run_Female");
+    expect(measureFacts({ ...clip, tags: ["fly"] }, R).contacts).toEqual({ by: "detected" });
+    const fly = libClip("MESH2MOTION/Flying_Forward");
+    expect(measureFacts(fly.clip, fly.R).contacts).toEqual({ by: "detected" });
+    expect(OFF_FEET).toEqual(["air", "fly", "swim", "climb", "lie", "sit"]);
   });
 });
 

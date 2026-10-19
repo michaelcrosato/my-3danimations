@@ -4023,3 +4023,58 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
 - **Answered:** yes: the owner's request, 2026-10-17.
 - **Landed in:** michaelcrosato/my-3danimations#13
 
+
+## D104 · 2026-10-19 · The library's 30 contact-less loops: 11 given contacts by two fallbacks in core, 19 marked off their feet
+
+- **Principle:** 3, 8, 10, D34, D64, D69, D100 (G7's open fix)
+- **Call:**
+  - **What was wrong** (D100): 30 loops (and 23 one-shots) carried `contacts: {"by": "detected"}` with nothing in it.
+    Of the loops, 11 stand on their feet: CC0's MESH2MOTION `Run_Female`, `Run_Anime`, `Run_Stealth`,
+    `CMU_CURATED/Boxing_Guard_Loop` and seven STYLE100 clips. Two causes, both in `measureFacts`:
+    - **the world refinement erased every contact** (8 loops): the height pass found each foot down once a step, but a
+      planted foot must also be still in the world, slower than 0.3 H0/s and half the body's speed. A keyed run in
+      place drifts 0.6 to 1.3 H0/s while planted (Run_Female runs at 3.95 H0/s, its swinging foot at 5 to 14), a run on
+      the spot (Run_Anime, Run_Stealth: the body's speed 0) is held to 0.05 H0/s, and STYLE100's retargeted run-backs
+      skate. With no contact the Animator's `contactRoot` reads a ground speed of 0, so B1's agents, told to match a
+      loop's playback to its own speed, couldn't, and shipped Run_Female anyway;
+    - **the feet were read by ankle, ball and toe** (3 loops): STYLE100's `OnHeels_*` stand on their heels with the
+      toes raised, the ankle 4 to 6% of H0 up, past the 4% a foot plants within.
+  - **Two fallbacks in core's `measureFacts`, for a clip no tag puts off its feet** (`OFF_FEET`: air, fly, swim, climb,
+    lie, sit, a new export of the clip namespace):
+    1. **the refinement never erases every contact** the height pass found (`reread`): it reads again with "still"
+       meaning slower than half the body's own speed (the swinging foot moves at about twice it; never under the
+       default 0.3 H0/s), first with the body's velocity the planted feet give, then, in place, with the one the lower
+       foot gives (STYLE100's run-backs keep the swinging foot inside the 7% height band, so the height pass holds both
+       feet down all loop, their median velocity near 0, while the lower foot's gives 1.20 H0/s against the source's
+       captured 1.23); failing both, the height pass's contacts stand, and the sensors judge how far they slide;
+    2. **a clip with no contact by ankle, ball and toe is read by its whole sole** (`DetectOptions.sole`: the heel
+       `sole()` gives, as the sensors read a foot).
+    The default reading is unchanged: no clip that had a contact changes, so no other clip, hash, trace or sweep moves.
+    A first version kept the height pass right after one retry; it held the run-backs' both feet down all loop, and
+    the planter (WP-2.5's sweep) slid them 162 to 167 mm a contact: the lower foot's reading plants every one of the
+    eleven at 0.0 mm.
+  - **What changed in the library** (written by `npm run import`, `npm run migrate` and their canonical writers): the
+    11 loops and 18 one-shots (attacks, slides, jump starts, a knockback; every one stands at some point) carry
+    contacts; three clips' facts gain the travel their new contacts give (`OnHeels_Idle`, `OnHeels_SideLeft`,
+    `OnHeels_SideRight`), no other fact moves (the travel reads the height pass, as before). Run_Female's ground speed
+    now reads 4.09 H0/s against its measured 3.95 (3%); Run_Anime's and Run_Stealth's 0: each carries a root of its own that
+    stands still (`inplace`), which `contactRoot` reads first (the manual: 0 means pick another clip).
+  - **The 19 off their feet are marked** in `library/baselines/qa.json` `offFeet` (where each is instead: flying,
+    swimming, on a wall or a pole, hanging, lying, sitting, a jump's held pose), and `npm run qa -- library` gains the
+    off-feet check (T2): a loop with no contact must carry an `OFF_FEET` tag and an answer, and an answer whose loop has
+    contacts is named. None is given contacts.
+  - **QA:** the sensors read a stance of their own, so the verdicts barely move: 1,014 pass, 230 warn, 154 fail (1,013
+    / 230 / 155 before: `STYLE100_SIDE/OnHeels_SideLeft` fail → pass; `OnHeels_SideRight` and `OnHeels_Idle` slide a
+    little more, below warn). `packages/sensors/fixtures/baseline.json` rewritten for those three; the distributions
+    recorded again (`library/baselines/distributions.json`): fails 155 → 154, skate p95 22.6 → 22.5, skateMean p95
+    20.2 → 19.6, and two p50s worse in their last digit, slide 38.3 → 38.4 mm and skate 5.29 → 5.31 cm/s, which a rule
+    that "may only improve" admits only by a logged decision: this one (29 clips measured at all are worth more than
+    the p50s' last digit); `npm run facts --
+    --check` 1,398 clips, none stale; `npm run import` and `npm run migrate` wrote the 29 clips, their manifests, the
+    import records' `moved` readings and the lock.
+- **Why:** a loop that stands on its feet must say where its feet are, or nothing that reads them (root motion, speed
+  matching, the slide sensors) can; a loop off its feet must say so, so its empty contacts read as a fact, not a gap.
+  The fallbacks touch only clips the default reading left with nothing, so the library's measured contacts elsewhere
+  keep their D64 truth; a broader change (the heel in every reading) would move every clip and is not needed.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.50.1

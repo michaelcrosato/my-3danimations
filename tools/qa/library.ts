@@ -119,6 +119,24 @@ export function checkFloats(lib: readonly LibraryClip[], reasons: QaReasons = re
   return { problems, gone: Object.keys(answers).filter((id) => !floating.has(id)).map((id) => `${id} (floats no longer)`) };
 }
 
+/**
+ * The off-feet check (D104): a loop with no contact at all must be off its feet, and say so. Its tags put it there (core's
+ * OFF_FEET: in the air, in water, on a wall, lying or sitting) and the reasons' `offFeet` answers where it is; a loop
+ * standing on its feet has its contacts detected (core's measureFacts), so an agent matching a run's speed to its own
+ * planted feet never reads 0 from a clip that has none.
+ */
+export function checkOffFeet(lib: readonly LibraryClip[], reasons: QaReasons = readReasons()): VerdictCheck {
+  const problems: string[] = [], none = new Set<string>(), answers = reasons.offFeet ?? {};
+  for (const { clip } of lib) {
+    if (!clip.loop || (Object.keys(C.END_POINTS) as C.End[]).some((e) => (clip.contacts?.[e]?.length ?? 0) > 0)) continue;
+    none.add(clip.id);
+    const off = clip.tags.filter((t) => (C.OFF_FEET as readonly string[]).includes(t));
+    if (!off.length) problems.push(`${clip.id}: a loop with no contact, and none of its tags (${clip.tags.join(", ")}) puts it off its feet (${C.OFF_FEET.join(", ")}): detect its contacts, or tag where it is`);
+    else if (!answers[clip.id]) problems.push(`${clip.id}: a loop with no contact (${off.join(", ")}), with no answer in library/baselines/qa.json offFeet`);
+  }
+  return { problems, gone: Object.keys(answers).filter((id) => !none.has(id)).map((id) => `${id} (has contacts now)`) };
+}
+
 /** One metric's recorded spread: p50, p95 and the most of each clip's worst value. */
 type Spread = { p50: number; p95: number; max: number };
 /** The recorded distributions: the sensors' verdicts' counts and each metric's spread over the library. */

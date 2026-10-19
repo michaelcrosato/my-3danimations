@@ -10,7 +10,7 @@
 "desc": "hit hard and thrown back onto the back, travelling backward",
 "skeleton": "humanoid",
 "restSrc": "M2M_QUATERNIUS",
-"contacts": {"by":"detected"},
+"contacts": {"by":"detected","footR":[[0,0.049]]},
 "facts": {"by":"m3a-facts@1","height":[5,95],"travel":[-336.5,0]},
 "provenance": {"src":"M2M_QUATERNIUS","orig":"QUATERNIUS_SHARDFALL/Hit_Knockback_RM","method":"keyed","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
 "quality": {"fit":[9,44],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"warn on jitter, pop: short of every fail level the sensors apply (thresholds.ts); not measured for its tags: bodyPenetration, intersection, skate, slide"},

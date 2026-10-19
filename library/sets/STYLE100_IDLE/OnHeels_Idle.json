@@ -10,8 +10,8 @@
 "desc": "Standing, on heels style: walk on heels with toes raised",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"contacts": {"by":"detected"},
-"facts": {"by":"m3a-facts@1","height":[101,102],"seam":0},
+"contacts": {"by":"detected","footL":[[0.116,0.797],[0.979,1.477],[1.776,2.622],[2.887,3.435]],"footR":[[0.797,0.979],[1.477,3.186],[3.452,3.767]]},
+"facts": {"by":"m3a-facts@1","height":[101,102],"seam":0,"speed":2.4,"travel":[4.7,7.9]},
 "provenance": {"src":"100STYLE","take":"OnHeels_ID 19.08-22.83","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[8,34],"qa":"pass","qaVersion":"m3a-sensors@1"},
 "keys": [

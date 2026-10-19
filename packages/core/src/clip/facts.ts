@@ -9,13 +9,23 @@
 // - height: [min, max] of the hips' up over the keys (% of H0); in-betweening is linear, so the keys hold the extremes.
 // - strike: for a clip tagged attack (or kick), when the end that moves fastest relative to the pelvis peaks: the fists,
 //   a blade's tip when the key holds one (along the knuckle line, one H0 long), and the toes for a kick.
-// - contacts: the clip's own when labelled, else detected with hysteresis (contacts.ts).
+// - contacts: the clip's own when labelled, else detected with hysteresis (contacts.ts), then refined by the world:
+//   a planted foot is still. The refinement may shorten or split contacts but never erase them all: a take whose feet
+//   reach the floor but never hold still there (a keyed run in place, a retargeted one whose swinging foot skims the
+//   floor) is read again (`reread`), else keeps the height pass's, and the sensors judge the slide. A clip with no contact at all is read again by the whole sole, the
+//   heel too (a body standing on its heels, toes raised). Neither applies to a clip its tags put off its feet (OFF_FEET).
 import { IDX, type Rest } from "../format/body.ts";
-import type { Clip, Contacts } from "../format/types.ts";
+import { CONTACT_ENDS, type Clip, type Contacts } from "../format/types.ts";
 import { PORTABLE } from "../math/portable.ts";
 import { VERSION } from "../version.ts";
-import { detectContacts, END_POINTS, sampleAll, sampleGrid, type DetectOptions, type End, type Sampled } from "./contacts.ts";
+import { detectContacts, endLow as endLowOf, END_POINTS, sampleAll, sampleGrid, type DetectOptions, type End, type Sampled } from "./contacts.ts";
 import { rootAt, type Playable } from "./sample.ts";
+
+/** Tags that put a clip off its feet (in the air, in water, on a wall, lying or sitting): its detected contacts are
+ *  what the strict reading finds, none when its feet never stand (measureFacts' fallbacks skip it). */
+export const OFF_FEET = ["air", "fly", "swim", "climb", "lie", "sit"] as const;
+/** Whether any end has a contact. */
+const anyContact = (c: Contacts) => CONTACT_ENDS.some((e) => (c[e]?.length ?? 0) > 0);
 
 /** What measureFacts returns: every fact it could measure, and which tool measured them. */
 export interface Facts {
@@ -59,12 +69,18 @@ export function measureFacts(clip: Measurable, R: Rest, opts: DetectOptions = {}
   const { frames, dt } = sampled;
   const n = frames.length - 1;
   const facts: Facts = { by: `m3a-core@${VERSION}`, dur: clip.dur, height: [0, 0], contacts: clip.contacts ?? detectContacts(clip, R, opts, sampled) };
-  // detected contacts, refined: a planted foot is still in the world. The root's velocity is the clip's own (root
-  // travel) or, in place, the body's as its planted feet show it; detect again with it, and read the speed again.
   const hasRoot = (clip.keys[0] as { root?: unknown }).root !== undefined;
-  const firstPass = facts.contacts;
+  let firstPass = facts.contacts;
   if (!clip.contacts) {
-    const v = hasRoot ? null : plantedVelocity(clip, sampled, facts.contacts);
+    const onFeet = !(clip.tags ?? []).some((t) => (OFF_FEET as readonly string[]).includes(t));
+    // nothing planted by ankle, ball and toe: read the feet by their whole sole
+    if (onFeet && !anyContact(firstPass)) {
+      const bySole = detectContacts(clip, R, { ...opts, sole: true }, sampled);
+      if (anyContact(bySole)) [opts, firstPass, facts.contacts] = [{ ...opts, sole: true }, bySole, bySole];
+    }
+    // detected contacts, refined: a planted foot is still in the world. The root's velocity is the clip's own (root
+    // travel) or, in place, the body's as its planted feet show it; detect again with it, and read the speed again.
+    const v = hasRoot ? null : plantedVelocity(clip, sampled, firstPass);
     const rootV = hasRoot
       ? (i: number): [number, number] => {
           const a = rootAt(clip, Math.max(0, i - 1) * dt), b = rootAt(clip, Math.min(frames.length - 1, i + 1) * dt), k = (R.H0 / 100) / ((Math.min(frames.length - 1, i + 1) - Math.max(0, i - 1)) * dt);
@@ -73,7 +89,11 @@ export function measureFacts(clip: Measurable, R: Rest, opts: DetectOptions = {}
       : v
         ? (): [number, number] => [-v[0], -v[1]]
         : undefined;
-    if (rootV) facts.contacts = detectContacts(clip, R, opts, sampled, rootV);
+    if (rootV) {
+      const refined = detectContacts(clip, R, opts, sampled, rootV);
+      // the refinement never erases every contact the height pass found on a body that stands
+      facts.contacts = onFeet && !anyContact(refined) ? reread(clip, R, opts, sampled, rootV, hasRoot, firstPass) : refined;
+    }
   }
   // the hips' height range
   const ups = clip.keys.map((k) => k.hips[2]!);
@@ -99,6 +119,44 @@ export function measureFacts(clip: Measurable, R: Rest, opts: DetectOptions = {}
   const tags = clip.tags ?? [];
   if (tags.includes("attack") || tags.includes("kick")) facts.strike = [round(strikeTime(clip, R, sampled, tags.includes("kick")), 3)];
   return facts;
+}
+
+/**
+ * The refinement read again, for a body that stands, when it erased every contact the height pass found: a keyed take's
+ * planted foot drifts, so "still" means slower than half the body's speed (at least `opts.still`), with the body's
+ * velocity the planted feet give, then, in place, the one the lower foot gives (a run whose swinging foot never lifts
+ * past the height band shows both feet planted throughout, their median velocity near 0); the first reading that finds
+ * a contact, else the height pass's.
+ */
+function reread(clip: Playable, R: Rest, opts: DetectOptions, sampled: Sampled, rootV: (i: number) => [number, number], hasRoot: boolean, firstPass: Contacts): Contacts {
+  const n = sampled.frames.length, base = opts.still ?? 0.3, w = hasRoot ? null : lowerFootVelocity(sampled);
+  const tries: [(i: number) => [number, number], boolean][] = [[rootV, false]];
+  if (w) tries.push([(): [number, number] => [-w[0], -w[1]], true]);
+  for (const [v, fresh] of tries) {
+    let sum = 0;
+    for (let i = 0; i < n; i++) sum += PORTABLE.hypot(...v(i));
+    const half = (0.5 * sum) / n / R.H0;
+    // the planted feet's velocity at the default "still" is the reading that erased them
+    if (!fresh && half <= base) continue;
+    const c = detectContacts(clip, R, { ...opts, still: Math.max(base, half) }, sampled, v);
+    if (anyContact(c)) return c;
+  }
+  return firstPass;
+}
+
+/** The lower foot's velocity in the pose frame (mm/s, forward and right): at each sample its lowest point's, the
+ *  median over the samples; null with fewer than three samples. */
+function lowerFootVelocity({ frames, dt }: Sampled): [number, number] | null {
+  const n = frames.length - 1, vf: number[] = [], vr: number[] = [];
+  for (let i = 1; i < n; i++) {
+    const X = frames[i]!, end: End = endLowOf(X, "footL") <= endLowOf(X, "footR") ? "footL" : "footR";
+    let low = END_POINTS[end][0]!, z = Infinity;
+    for (const p of END_POINTS[end]) if (X[IDX[p]! * 3 + 2]! < z) [low, z] = [p, X[IDX[p]! * 3 + 2]!];
+    const a = pt(frames[i - 1]!, low), b = pt(frames[i + 1]!, low);
+    vf.push((b[0] - a[0]) / (2 * dt));
+    vr.push((b[1] - a[1]) / (2 * dt));
+  }
+  return vf.length ? [median(vf), median(vr)] : null;
 }
 
 /**

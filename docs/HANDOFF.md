@@ -33,7 +33,7 @@ most 3 lanes, none during trial batches. After each gate's squash merge (CI gree
 
 ## Next, in order
 
-1. **Fix the library's contact-less loops first** (D100): 30 loops have `contacts: {"by": "detected"}` with no foot
+1. **Done (D104, 0.50.1): fix the library's contact-less loops** (D100): 30 loops have `contacts: {"by": "detected"}` with no foot
    contact, among them CC0's `MESH2MOTION/Run_Female`, `Run_Anime` and `Run_Stealth`. Their own ground speed reads 0
    (`contact.contactRoot`), so an agent that matches its playback speed to it can't: B1 fell to 1 of 5, then 3 of 5
    after the manual's speed fix, with agents shipping Run_Female. Detect their contacts (or mark and rank them so

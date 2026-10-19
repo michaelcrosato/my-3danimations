@@ -3,7 +3,7 @@
 "title": "Quaternius UAL 1 and 2, v2 (shardfall's import)",
 "format": "2.0",
 "tier": "cc0",
-"content": {"edition":"Universal Animation Library 1 and 2 Standard, version 2 (June 2026), Unreal-rig exports with their _RM root-motion twins, as shardfall@a9ca003 imported them","importer":"m3a-migrate 1, from format 1 (shardfall anim/quaternius.json)","sha256":"23d3a8e62291903f8fd0b4938cf50a6479f5604a7669520a1a84f50987d62d19"},
+"content": {"edition":"Universal Animation Library 1 and 2 Standard, version 2 (June 2026), Unreal-rig exports with their _RM root-motion twins, as shardfall@a9ca003 imported them","importer":"m3a-migrate 1, from format 1 (shardfall anim/quaternius.json)","sha256":"4a15db49075c45d8f7f7f2b336a26733627adf211ae8bf86355db1830b438d40"},
 "credit": "Universal Animation Library 1 and 2 by Quaternius (quaternius.com), CC0 1.0.",
 "producer": {"tool":"m3a-migrate","version":"1"},
 "sources": {

@@ -4,6 +4,22 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.50.1 · 2026-10-19
+
+### Core
+- `measureFacts` (D104): the world refinement never erases every contact the height pass found on a body that stands:
+  it reads again with "still" at half the body's speed, else keeps the height pass's; a clip with no contact by ankle,
+  ball and toe is read by its whole sole (`DetectOptions.sole`, the heel included). Neither applies to a clip tagged off
+  its feet (`clip.OFF_FEET`: air, fly, swim, climb, lie, sit). A clip that had a contact reads the same.
+
+### Library
+- 11 loops that stand on their feet (CC0's `MESH2MOTION/Run_Female`, `Run_Anime`, `Run_Stealth` among them) and 18
+  one-shots carry contacts; `Run_Female`'s ground speed reads 4.09 H0/s against its measured 3.95 (it read 0). The 19
+  loops off their feet are answered in `library/baselines/qa.json` `offFeet`. QA 1,014 pass, 230 warn, 154 fail.
+
+### Tools
+- `npm run qa -- library` checks that every loop with no contact is tagged off its feet and answered (`offFeet`).
+
 ## 0.50.0 · 2026-10-17
 
 ### Repo

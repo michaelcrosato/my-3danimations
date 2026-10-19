@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "m3a library QA reasons (library/baselines/qa.json)",
-  "description": "Why the library keeps the clips the sensors flag (PLAN.md WP-5.8, D66): the warn level's reason, a reason per set for its fails, a reason per clip and metric, and a reason per clip that stands off the floor. tools/qa/verdict.ts reads it (reasonsProblems checks this shape) and the writers record the reasons in each clip's quality.baseline.",
+  "description": "Why the library keeps the clips the sensors flag (PLAN.md WP-5.8, D66): the warn level's reason, a reason per set for its fails, a reason per clip and metric, a reason per clip that stands off the floor, and where each loop with no contact is instead of on its feet. tools/qa/verdict.ts reads it (reasonsProblems checks this shape) and the writers record the reasons in each clip's quality.baseline.",
   "type": "object",
   "required": ["warn", "sets", "clips"],
   "additionalProperties": false,
@@ -20,6 +20,12 @@
       "propertyNames": { "pattern": "^[A-Z0-9_]+/[A-Za-z0-9_]+$" },
       "additionalProperties": { "type": "string", "minLength": 1 },
       "description": "per clip id, why it stands off the floor where the float check (tools/qa/library.ts, D69) finds it"
+    },
+    "offFeet": {
+      "type": "object",
+      "propertyNames": { "pattern": "^[A-Z0-9_]+/[A-Za-z0-9_]+$" },
+      "additionalProperties": { "type": "string", "minLength": 1 },
+      "description": "per loop with no contact at all, where it is instead of on its feet (the off-feet check, tools/qa/library.ts, D104)"
     }
   }
 }

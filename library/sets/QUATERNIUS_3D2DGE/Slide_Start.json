@@ -10,7 +10,7 @@
 "desc": "drops from a run into a feet-first slide on the back",
 "skeleton": "humanoid",
 "restSrc": "UAL2",
-"contacts": {"by":"detected"},
+"contacts": {"by":"detected","footL":[[0.333,0.383]],"handL":[[0.45,0.566]]},
 "facts": {"by":"m3a-facts@1","height":[5,90]},
 "provenance": {"src":"UAL2","method":"keyed","producer":{"tool":"m3a-migrate","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
 "quality": {"fit":[20,86],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"fail on twistFlip: as migrated from Quaternius's Universal Animation Library, with no source frames to measure a repair against: its keys stay the source's (WP-1.5) until the re-import can fetch its files (D63); not measured for its tags: bodyPenetration, intersection, skate, slide"},

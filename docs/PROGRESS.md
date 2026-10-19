@@ -3,8 +3,8 @@
 The current state on one screen (at most 40 lines; `npm run doctrine` checks it from WP-0.3). The ledger is
 `PLAN.md` §14; decisions are in `docs/DECISIONS.md`.
 
-**Phase:** 7 The datalink (6 done: G6 passed). **Next gate:** G7 = M2. **Version:** 0.50.0.
-**Mode:** ultracode (D83). #13 merged Phase 7 before G7, at the owner's request (D103); G7 opens a fresh PR.
+**Phase:** 7 The datalink (6 done: G6 passed). **Next gate:** G7 = M2. **Version:** 0.50.1.
+**Mode:** ultracode (D83). #13 merged Phase 7 before G7 (D103); G7 runs on michaelcrosato/my-3danimations#14.
 
 ## Done
 
@@ -27,8 +27,8 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 
 ## Next
 
-- Fix the library's 30 contact-less loops (11 on their feet to detect, 19 off them to mark; B1 3/5 after the
-  manual's fix; D100), then G7 on a fresh draft PR, then Phases 8-10. Details: [`docs/HANDOFF.md`](HANDOFF.md).
+- The library's 30 contact-less loops fixed (D104, 0.50.1): 11 carry contacts (Run_Female's ground speed 4.09 H0/s,
+  it read 0), 19 marked off their feet. Next: B1 rerun, then G7, then Phases 8-10 ([`docs/HANDOFF.md`](HANDOFF.md)).
 
 ## Blocked on the owner
 

@@ -2,4 +2,4 @@
 export { sample, rootAt, rootDelta, type Playable, type RootPose } from "./sample.ts";
 export { events, type Fired } from "./events.ts";
 export { contactsAt, detectContacts, sampleAll, endLow, sole, END_POINTS, type End, type DetectOptions, type Sampled } from "./contacts.ts";
-export { measureFacts, type Facts, type Measurable } from "./facts.ts";
+export { measureFacts, OFF_FEET, type Facts, type Measurable } from "./facts.ts";
