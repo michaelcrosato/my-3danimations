@@ -1,0 +1,36 @@
+<!doctype html>
+<!-- The labs index (PLAN.md WP-8.3): every lab in apps/lab/ with its date and the question it answers, a link to the
+     gallery and the build stamp, all written at build time by vite.config.ts's plugin (no script). The preview site
+     (tools/run/site.ts) puts it at /labs/, each lab at /labs/<name>/ and the gallery at the root. -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>m3a labs</title>
+    <link rel="icon" href="data:," />
+    <style>
+      :root { --bg: #f4f2ec; --fg: #26231e; --soft: #6b655b; --line: #d8d3c8; --card: #fffdf8; }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.45 system-ui, sans-serif; }
+      main { max-width: 720px; margin: 0 auto; padding: max(16px, env(safe-area-inset-top)) 16px 48px; }
+      h1 { font-size: 22px; margin: 0 0 4px; }
+      a { color: inherit; }
+      .lead { color: var(--soft); margin: 0 0 16px; }
+      .labs { list-style: none; margin: 0; padding: 0; }
+      .labs li { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; margin: 0 0 10px; }
+      .labs h2 { font-size: 17px; margin: 0; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+      .labs a { display: inline-block; min-height: 32px; }
+      .date, .title { color: var(--soft); font-size: 13px; font-weight: 400; }
+      .labs p { margin: 4px 0 0; overflow-wrap: anywhere; }
+      #stamp { position: fixed; right: 8px; bottom: max(4px, env(safe-area-inset-bottom)); font-size: 11px; color: var(--soft); background: #f4f2eccc; padding: 1px 6px; border-radius: 6px; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>m3a labs</h1>
+      <p class="lead">Each lab answers one question, then graduates into the package or is deleted. <a id="gallery" href="../">The gallery</a> holds the library.</p>
+      <!--m3a:labs-->
+    </main>
+    <div id="stamp"><!--m3a:stamp--></div>
+  </body>
+</html>
