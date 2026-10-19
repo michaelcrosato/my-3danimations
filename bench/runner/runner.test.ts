@@ -19,7 +19,7 @@ import { join } from "node:path";
 import { afterAll, describe, expect, it } from "vitest";
 import { TOOLS } from "@m3a/tools";
 import { agentArgs, agentUser, audit, capsDropped, CLOUD_CREDENTIALS, hidden, M3A_MCP, namespace, ONLY_M3A, ownScratch, pathsOf, runAgent, unwired, wiringOf } from "./agent.ts";
-import { commitOf, knownGood, lanes, latestVariant, pool, runB1, variantOf } from "./main.ts";
+import { commitOf, knownGood, lanes, latestVariant, passMark, pool, runB1, variantOf } from "./main.ts";
 import { pack } from "./pack.ts";
 import { answersIn, QUIZ, quizPrompt, score } from "./quiz.ts";
 import { SKILL } from "./workspace.ts";
@@ -51,6 +51,13 @@ const temp = (prefix: string) => {
 };
 afterAll(() => {
   for (const d of made) rmSync(d, { recursive: true, force: true });
+});
+
+describe("the pass mark", () => {
+  it("is 4 of 5 (80%, rounded up), or the trials a gate's clause needs", () => {
+    expect([passMark(5), passMark(10), passMark(1), passMark(10, "10"), passMark(5, 3)]).toEqual([4, 8, 1, 10, 3]);
+    for (const bad of ["11", 0, "x", 2.5]) expect(() => passMark(10, bad)).toThrow(/^--need is a count of trials, 1 to 10$/);
+  });
 });
 
 describe("the agent's audit", () => {

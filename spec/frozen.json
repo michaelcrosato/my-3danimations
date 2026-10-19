@@ -1,9 +1,9 @@
 {
   "about": "Spec 2.0-rc, frozen at gate G1. A frozen file changes only with a logged decision and a rerun of node tools/doctrine/freeze.ts <decision> in the same commit; npm run doctrine checks it.",
   "version": "2.0-rc",
-  "decision": "D73",
+  "decision": "D112",
   "files": {
-    "spec/MOTION.md": "9e9998a05275e8c7eabfd7c5dc9638d0582861583ee4618ca7a58315856a52fc",
+    "spec/MOTION.md": "0123408e7447589585951eebf09456d9d720fea2f21f948d1535cad9509428d3",
     "spec/SKELETON.md": "4b2eb7caec140850f14253e01fa21be4c354d538492c02099bb3513dd6318e90",
     "spec/LEGEND.md": "54cf21fac7493c6c5b3057fefcc6306f9e4d6919466582345b2e0b9678e0c15a",
     "spec/conformance/tiers.md": "407c024b6ba2db82cb7fa40132083235d41551fa0001f3e9546e6fbd54ad3151",

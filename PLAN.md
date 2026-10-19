@@ -2070,6 +2070,10 @@ WP-7.2 is split in two, each an L (D93): its tools, their host and the writers t
   - B8's grader passes a known-good solution on the default character and on a generator seed outside WP-4.2's test
     set, and the manual's grow example runs within the manual's budget.
 - **Verify:** `npm test -- intake bench/graders/B8 manual && npm run doctrine && npm run intake -- check --fixture all && npm run gate -- library-pr --fixture all`
+- **Split** (D112, as D93 split WP-7.2): **9.1a** the pipeline (the `library` tool, `do: submit | status`; the
+  checker, the adopt bot, the library gates, `intake.yml`, `library-gates.yml`); **9.1b** B8, its grader and starter,
+  the manual's grow section. The tools' description budget is 3,200 tokens from 9.1a on (D112). WP-9.2 and WP-9.3
+  were built beside 9.1a, neither needing its code (D112).
 
 #### WP-9.2 The motion-source socket
 - **Owns:** `packages/core/src/sources/*`, `packages/tools/src/sources/*`

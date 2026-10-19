@@ -4351,3 +4351,43 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
 - **Why:** G8's machine part proves the way to the owner's review end to end; the review itself is the owner's.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.51.0
+
+## D112 · 2026-10-19 · Phase 9 in lanes: 9.1 split, 9.2 and 9.3 beside 9.1a, one `library` tool, the tools' budget 3,200
+
+- **Principle:** 1 (budgets), 10, 11, D83, D93, §5.9
+- **Call:**
+  - **WP-9.1 split as D93 split WP-7.2:** 9.1a, the intake pipeline (the `library` tool, the checker, the adopt bot,
+    the library gates, `intake.yml` and `library-gates.yml`; about 1,790 lines with tests), and 9.1b (brief B8, its
+    grader and starter, the manual's grow section).
+  - **WP-9.2 and WP-9.3 were built beside 9.1a,** though their Needs is 9.1: neither needs 9.1's code. 9.3 is a
+    library module the checker calls: the integrator wired its index (`DedupIndex.check`, time-warped and mirror-aware)
+    into the dedup gate, the clip a submission improves and that clip's census copies aside; a library jog mirrored
+    and retimed is bounced, which the census's pose match lets through. 9.2's clips enter through the store's own
+    submit, the door `library submit` sends through after its local gates; the checker runs every gate on what
+    arrives, and `deliver` runs the source's gate first.
+  - **One tool, `library` (`do: submit | status`), not two:** the CLI's form is `m3a <tool>`, as `review` is; 135
+    tokens. The tools' descriptions come to 3,130 of 3,000, so **the budget becomes 3,200 tokens**: the intake's tool is
+    §5.9's way in for every contributor, and cutting 130 tokens from the other 21 tools' descriptions would drop words
+    G7's agents read; G7's record at 3,000 stands as measured.
+  - **9.1a's other calls:** a clip that fails a local gate isn't sent (the checker reruns every gate on what arrives); a
+    recipe is sent as written (it has no field for `by`, `prompt`, `manifest` or `improves`); an improvement is
+    adopted as a new version of the same id, the old file's SHA-256 in its provenance; in a pull request, a clip that
+    didn't come through the intake is judged against the library's own baselines, its retarget left to T2's sweep (two
+    maintenance changes on main failed otherwise); the retarget runs last, once every other gate passes. `intake.yml`
+    reads `M3A_SUPABASE_URL` and `M3A_SUPABASE_SERVICE_ROLE_KEY` and does nothing, saying so, without them.
+  - **9.3's calls:** one motion under 12 mm a point plus 2% of how much the stiller clip moves (`NEAR`, `SHARE`: very
+    fast clips can't be refitted closer); a light edit is a 1° chest lean, 50 ms of smoothing or a 5% trim; copies
+    across rigs are lineage's (`orig`), not the motion distance's. Planted copies: 87 of 87 found in T1, 501 of 501 in
+    full; none of 293 named distinct pairs merged (the nearest 23.0 mm against 12.4); every clip's lineage resolves, the
+    28 composed ones to 21 sources.
+  - **9.2's calls:** a clip's `provenance.source` records the source, its terms' license and version as served, the
+    seed and a SHA-256 of the intent; the HTTP adapter template lives in tools (a network adapter), off by default,
+    its transport always injected, sending Kimodo's constraint shape; core's public API reaches 44 of 44 with
+    `sources`.
+  - **The spec documents the two provenance records the intake and the sources write** (`intake`, `source`, both
+    optional; spec/MOTION.md §7.4, re-frozen by this decision): readers and the schema accepted them already.
+  - **The bench's `--need N`:** a gate's clause can need more than 4 of 5 (G9's ten clips through review, every one).
+- **Why:** the plan's Phase 9 in the lanes D83 allows, each WP's Done-when proved by its Verify; the budget change keeps
+  the tools whole for agents rather than trimming words they use.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.52.0

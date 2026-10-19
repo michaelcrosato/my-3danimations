@@ -24,7 +24,7 @@ describe("the tools' token budget", () => {
     expect(cost(a)).toBeLessThanOrEqual(1900);
     expect(cost(COMPOSE)).toBeLessThanOrEqual(420);
     expect(cost(EXCHANGE)).toBeLessThanOrEqual(400);
-    expect(cost(all)).toBeLessThanOrEqual(3135); // 3,000 with 8.2a's review; 9.1a's library (135) by the integrator's decision
+    expect(cost(all)).toBeLessThanOrEqual(3200); // 3,000 to 8.2a's review; 3,200 from 9.1a's library (135 tokens), D112
     for (const t of all) expect(cost([t]), t.name).toBeLessThanOrEqual(240);
   });
   it("registers exactly the tools PLAN.md names, in help order", () => {

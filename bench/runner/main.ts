@@ -1,4 +1,4 @@
-// `npm run bench -- <B1 to B7 | quiz>[,...] [--trials N] [--discovery N] [--parallel N] [--variant <dir>] [--model <m>] [--fake]`
+// `npm run bench -- <B1 to B8 | quiz>[,...] [--trials N] [--discovery N] [--parallel N] [--variant <dir>] [--model <m>] [--need N] [--fake]`
 // (PLAN.md §7, WP-4.7): each brief given to fresh agents in workspaces outside the repository, graded headless.
 // - B1: the packages packed (bench/runner/pack.ts); per trial a workspace in /tmp/m3a-bench/<run>/ with the tarballs
 //   installed, the brief, the starter and its character; a fresh agent (isolation level 1, bench/runner/agent.ts)
@@ -15,7 +15,7 @@
 // --fake plays the known-good solution (or the quiz's answers) instead of an agent, to check the pipeline for free.
 // Results go to bench/results/<date>-<model>-<brief>.json (-2, -3... for later runs that day), with the commit, whether
 // the tree differed from it, the models the agents ran, how they were isolated (privateTmp, ownPids, capsDropped, uid,
-// unprivileged) and a variant's directory; the pass mark is 4 of 5 (PLAN.md §7).
+// unprivileged) and a variant's directory; the pass mark is 4 of 5 (PLAN.md §7), or --need N trials (a gate's clause).
 import { execFileSync } from "node:child_process";
 import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
@@ -130,6 +130,14 @@ export async function pool<T, R>(items: readonly T[], n: number, work: (item: T)
 export function runB1(opts: Omit<Parameters<typeof runBrief>[1], "discovery"> & { discovery: number }): ReturnType<typeof runBrief> {
   return runBrief("B1", opts);
 }
+/** The trials of `trials` that must pass: 4 of 5 (80%, rounded up, PLAN.md §7), or `need` when a gate's clause asks
+ *  for more (G9: ten clips, every one through); an error names a count out of range. */
+export function passMark(trials: number, need?: unknown): number {
+  const n = need === undefined ? Math.ceil(0.8 * trials) : Number(need);
+  if (!(Number.isInteger(n) && n >= 1 && n <= trials)) throw new Error(`--need is a count of trials, 1 to ${trials}`);
+  return n;
+}
+
 /** How many agents may run at once: `asked`, where each gets a /tmp of its own (or none run: fakes); else one (D84). */
 export function lanes(asked: number, fake = false): number {
   return fake || namespace() ? Math.max(1, asked) : 1;
@@ -189,6 +197,7 @@ if (import.meta.main) {
     { name: "variant", takesValue: true, help: "a held-out variant's directory (brief.md, character.json)" },
     { name: "heldout", takesValue: true, help: "the variant of a gate's latest held-out run (G4)" },
     { name: "model", takesValue: true, help: "the model the agents run (the CLI's default)" },
+    { name: "need", takesValue: true, help: "trials that must pass (4 of 5 by default: 80%, rounded up)" },
     { name: "fake", help: "play the known-good solution instead of an agent (checks the pipeline)" },
   ];
   let parsed;
@@ -203,6 +212,12 @@ if (import.meta.main) {
     usage("bench", err, specs);
   }
   const f = parsed.flags, names = parsed.positionals[0]!.split(","), trials = Number(f.trials ?? 5), t0 = performance.now(), steps: Step[] = [];
+  let need = 0;
+  try {
+    need = passMark(trials, f.need);
+  } catch (err) {
+    usage("bench", err, specs);
+  }
   const stamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19), base = join("/tmp/m3a-bench", stamp), model = typeof f.model === "string" ? f.model : undefined, fake = f.fake === true;
   mkdirSync(base, { recursive: true });
   const results: Record<string, unknown> = { about: "npm run bench: fresh agents on the briefs (PLAN.md §7); isolation 1 is the claude CLI in a clean workspace", date: stamp, ...commitOf(), model: model ?? "the CLI's default", fake, parallel: lanes(Number(f.parallel ?? 1), fake), privateTmp: namespace() !== null, ownPids: ownPids(), capsDropped: capsDropped(), uid: agentUser().uid, unprivileged: agentUser().unprivileged };
@@ -216,7 +231,7 @@ if (import.meta.main) {
     if (r.check && !r.check.pass) steps.push({ name: `${name} known-good on the variant`, ok: false, ms: performance.now() - s0, summary: "the brief's known-good solution fails: a package or grader failure, not the agents'", detail: r.check.failed });
     else {
       const passed = r.trials.filter((t) => t.pass).length;
-      steps.push({ name, ok: passed >= Math.ceil(0.8 * trials), ms: performance.now() - s0, summary: `${passed} of ${trials} trials pass${r.discovery.length ? `; discovery: ${r.discovery.filter((t) => t.usedPackage).length} of ${r.discovery.length} used the package, ${r.discovery.filter((t) => t.pass).length} passed` : ""}`, detail: r.trials.filter((t) => !t.pass).map((t) => `${t.trial}: ${t.failed.join("; ")}`) });
+      steps.push({ name, ok: passed >= need, ms: performance.now() - s0, summary: `${passed} of ${trials} trials pass${need !== passMark(trials) ? ` (${need} needed)` : ""}${r.discovery.length ? `; discovery: ${r.discovery.filter((t) => t.usedPackage).length} of ${r.discovery.length} used the package, ${r.discovery.filter((t) => t.pass).length} passed` : ""}`, detail: r.trials.filter((t) => !t.pass).map((t) => `${t.trial}: ${t.failed.join("; ")}`) });
     }
   }
   if (briefs.length) results.models = [...models];
