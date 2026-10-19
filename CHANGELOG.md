@@ -7,6 +7,7 @@ features, patch for fixes. One line per change, under the part it touched (**Spe
 ## 0.54.0 · 2026-10-19
 
 The audit's large items (D119): six built, the rest deferred with their reasons in docs/HANDOFF.md; `AUDIT.md` retired.
+The owner's answers on D94, #16's proof thread and the stray artifact recorded (D120).
 
 ### Spec
 - A clip's `provenance.intake` requires `by` (who or what made it) whenever the record is present (clip.schema.json,

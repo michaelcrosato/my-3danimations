@@ -4703,3 +4703,19 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   waits with its reason written down.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.54.0
+
+## D120 · 2026-10-19 · The owner's answers: #18 merges, D94 stands, the #16 proof thread stays as is, the stray artifact goes
+
+- **Principle:** 11, O2, the owner's review of calls made without an answer
+- **Call:** asked in the session after #18's CI went green, the owner answered four questions:
+  - **D94 stands:** benchmark agents keep running as an unprivileged user with no capabilities and are handed the
+    CLI's credentials so they can call the model. D94 is answered yes.
+  - **#16's proof thread, as is:** a community pack's `verify` keeps checking the pack's content id against the live
+    proof; it is not bound to the proof hash recorded at admission (D115's call kept). The thread is answered and
+    resolved.
+  - **The stray artifact is deleted:** the private copy of spec/conformance/CERTIFYING.md a lane published by mistake
+    (D116's lane) no longer exists; the repository's file is unchanged.
+  - **#18 is squash-merged** once its head is green with this record (0.54.0).
+- **Why:** each was the owner's to decide; the record keeps D94's and D115's answers next to the calls they settle.
+- **Answered:** yes, the owner, 2026-10-19.
+- **Landed in:** v0.54.0

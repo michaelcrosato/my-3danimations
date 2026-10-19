@@ -29,11 +29,9 @@ none during trial batches.
     it (O9: proposed in docs/MIGRATING.md and spec/conformance/CERTIFYING.md, never acted on there).
   - O3 (the Vercel previews, paused, D85) and O2 (publishing: release.yml waits for the repository variable
     `M3A_O2_RELEASE_ASSETS=yes`) are the owner's; the session creates no Supabase or Vercel resource.
-  - **D94** (#13): the CLI's credentials handed to benchmark agents, flagged for the owner's review.
-- **Review bots:** every finding on #14 to #17 is fixed or answered on its thread (D115, D117); one, binding a
-  community pack's `verify` to the admission-time proof hash, is left open on #16 for the owner.
-- **A stray private artifact** of spec/conformance/CERTIFYING.md (https://claude.ai/artifact/5AP4qvDZDN6w7nEGxG5Tzn),
-  made by a lane's mistaken edit, waits for the owner's word to delete it.
+- **Review bots:** every finding on #14 to #18 is fixed or answered on its thread (D115, D117, D120).
+- **The owner answered (D120):** D94 stands; #16's proof thread stays as is (`verify` checks the content id against
+  the live proof); the stray artifact of CERTIFYING.md is deleted; #18 merged.
 - **Last measured (4 CPUs):** T0 about 3 s, T1 77 s in CI (about 105 s here), T2 about 350 s with the full sweeps,
   `pack --check` about 21 s, the TypeScript certification about 8 s.
 
@@ -65,7 +63,7 @@ The audit's large items that need nothing from the owner were built (D119); thes
   captured speed (`WideLegs_Walk` reads 0.94 of it). D108 answered them as they are, and B1 grades the clips this
   rewrites: a WP of its own, through the writer.
 - Index: each regeneration before a commit mints a version (D113 accepts it); a namespace's proof vouches by content
-  id, not digest, beside the owner's open thread on #16 (D115).
+  id, not digest, and the owner kept it so (D120).
 - Library: the census counts a motion and its mirror apart by design (D67: a game needs each side), while WP-9.3's
   dedup reads Mesh2Motion's `Dodge_left`/`Dodge_right` as one motion mirrored; counting them once reverses D67, the
   owner's call.
