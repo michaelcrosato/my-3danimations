@@ -2,7 +2,8 @@
 // the command line: a clip sent with the intake's provenance and its local report (who or what made it; a model's
 // prompt as its SHA-256 alone; a generator's training-data manifest; the clip it improves with its file's SHA-256), a
 // recipe sent as written, the same text again no second submission; what a gate fails not sent, each line saying the
-// fix; PER_DAY a day; status listing the contributor's own; and what the tool costs a model to see.
+// fix; PER_DAY a day; status listing the contributor's own; the contributor the Node entry opens (the local store with
+// no hosted setting, the hosted one with all three, E_KEY when half linked); and what the tool costs a model to see.
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { encode } from "gpt-tokenizer/encoding/cl100k_base";
@@ -11,6 +12,7 @@ import { procedural, recipe, serialize, type Clip, type Rest } from "@m3a/core";
 import { runCli } from "../src/cli.ts";
 import { contentHash, type IntakeStore } from "../src/intake/index.ts";
 import { mcpName } from "../src/mcp.ts";
+import { nodeContributor } from "../src/node/intake.ts";
 import { Registry, type Reply } from "../src/registry/index.ts";
 import { tools } from "../src/tools/index.ts";
 import { libraryTool, PER_DAY } from "../src/tools/library-submit.ts";
@@ -103,6 +105,23 @@ describe("library submit", () => {
     text = "";
     expect(await runCli(reg, ["library", "status", other], io)).toBe(2);
     expect(text).toMatch(new RegExp(`^library: usage error: no submission "${other}" of yours in the local store\\n[^]*next: \`library status\` lists yours`));
+  });
+});
+
+describe("the contributor the Node entry opens", () => {
+  it("is the local store with no hosted setting, the hosted one with all three, and E_KEY when half linked, nothing sent", async () => {
+    const H = { M3A_SUPABASE_URL: "https://x.supabase.co", M3A_SUPABASE_ANON_KEY: "anon", M3A_CONTRIBUTOR_KEY: "a-key" };
+    expect([nodeContributor(co.cwd, {}).store.backend, nodeContributor(co.cwd, { M3A_CONTRIBUTOR: "carol", M3A_CONTRIBUTOR_KEY: " " }).store.backend, nodeContributor(co.cwd, H).store.backend]).toEqual(["local", "local", "supabase"]);
+    // one setting missing or blank, one alone, or a token with none: refused, naming what is missing
+    const { M3A_CONTRIBUTOR_KEY: _, ...noKey } = H;
+    for (const [env, missing] of [[noKey, "M3A_CONTRIBUTOR_KEY"], [{ ...H, M3A_SUPABASE_ANON_KEY: "  " }, "M3A_SUPABASE_ANON_KEY"], [{ M3A_CONTRIBUTOR_KEY: "a-key" }, "M3A_SUPABASE_URL, M3A_SUPABASE_ANON_KEY"], [{ M3A_CONTRIBUTOR_TOKEN: "t" }, "M3A_SUPABASE_URL, M3A_SUPABASE_ANON_KEY, M3A_CONTRIBUTOR_KEY"]] as const) {
+      expect(() => nodeContributor(co.cwd, env), missing).toThrow(expect.objectContaining({ code: "E_KEY", message: expect.stringMatching(new RegExp(`^the hosted store is half linked: ${missing} missing; set `)) }));
+    }
+    // m3a library submit says so, and sends nothing to the local queue
+    put("saunter.json", gait({ ...STROLL, name: "saunter", speed: 100 }));
+    const dave = co.store("contributor", "local"), before = (await dave.list()).length;
+    const r = await new Registry([libraryTool(() => nodeContributor(co.cwd, noKey))]).call("library", { do: "submit", on: "saunter.json", by: "dave" }, { host: co.host });
+    expect([r.status, r.error?.code, (await dave.list()).length]).toEqual(["error", "E_KEY", before]);
   });
 });
 

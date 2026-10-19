@@ -45,13 +45,20 @@ export function intakeFiles(dir: string): StoreFiles {
   };
 }
 
+/** The settings that link `m3a library` to the hosted store (CONTRIBUTING.md): the project's URL and public key and the
+ *  contributor key, each needed; M3A_CONTRIBUTOR_TOKEN, which reads the contributor's rows, is optional but hosted too. */
+const CONTRIBUTOR_ENV = ["M3A_SUPABASE_URL", "M3A_SUPABASE_ANON_KEY", "M3A_CONTRIBUTOR_KEY"] as const;
+
 /** The contributor `m3a library` submits as (WP-9.1a), with the clock its days are counted by: the hosted store when
  *  `env` links it (M3A_SUPABASE_URL and M3A_SUPABASE_ANON_KEY, and the contributor key M3A_CONTRIBUTOR_KEY its human got by
- *  signing in on the gallery; M3A_CONTRIBUTOR_TOKEN reads its rows), else the local store under .cache/intake/ as
- *  M3A_CONTRIBUTOR, the accountable identity ("local" by default). */
+ *  signing in on the gallery; M3A_CONTRIBUTOR_TOKEN reads its rows), else, when none of them is set, the local store under
+ *  .cache/intake/ as M3A_CONTRIBUTOR, the accountable identity ("local" by default). Some set but not all of
+ *  CONTRIBUTOR_ENV is E_KEY naming what is missing, so a half-linked agent never sends to the local queue unnoticed. */
 export function nodeContributor(cwd: string, env: NodeJS.ProcessEnv = process.env, today: () => string = () => new Date().toISOString().slice(0, 10)): { store: IntakeStore; today(): string } {
   const url = env.M3A_SUPABASE_URL?.trim(), apikey = env.M3A_SUPABASE_ANON_KEY?.trim(), key = env.M3A_CONTRIBUTOR_KEY?.trim(), token = env.M3A_CONTRIBUTOR_TOKEN?.trim();
   if (url && apikey && key) return { store: supabaseStore({ url, apikey, key, ...(token ? { token } : {}) }), today };
+  const missing = CONTRIBUTOR_ENV.filter((k) => !env[k]?.trim());
+  if (token || missing.length < CONTRIBUTOR_ENV.length) throw new IntakeError("E_KEY", `the hosted store is half linked: ${missing.join(", ")} missing; set ${CONTRIBUTOR_ENV.join(", ")} to send to the hosted queue (CONTRIBUTING.md, "Where the queue is"), or unset the hosted settings to use the local one`);
   const dir = under(resolve(cwd), INTAKE_DIR, "keep .cache/intake/ in the working directory");
   return { store: localStore({ files: intakeFiles(dir), role: "contributor", id: env.M3A_CONTRIBUTOR?.trim() || "local", today }), today };
 }
