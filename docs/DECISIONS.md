@@ -4254,3 +4254,59 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   why, so nothing that reads contacts (root motion, speed matching, the slide sensors) is told a wrong answer.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.50.2, michaelcrosato/my-3danimations#14
+
+## D109 · 2026-10-19 · Phase 8 built in lanes: the gallery, the review queue split in two (8.2a, 8.2b), previews
+
+- **Principle:** 2, 5, 11, D83 (lanes), D93 (a WP past L is split), §5.9
+- **Call:**
+  - **WP-8.1, the gallery** (1,537 lines, L): `apps/gallery`, a Vite page on `@m3a/three` and the tool registry
+    running on a browser host, so `__M3A_TOOLS__` and the page's own calls are the same calls; every set and clip
+    opens by link (`?set ?clip ?recipe ?graph ?char ?view ?t ?rate ?panel ?q`), plays at any view, 0.1× to 2× or a
+    frame at a time, with metrics, describe, sheets, the example recipes and graphs; `src/actions.ts` names the tool or
+    command that does each action, which the e2e holds to the registry (nothing only in the gallery).
+  - **WP-8.2 measured 3,023 lines, past L, so it was split as D93 split WP-7.2:** 8.2a (2,104 lines: the intake store
+    of §5.9 with its `local` and `supabase` backends, the migrations with row-level security on every table and the
+    bucket, the submit function, the contract suite, `m3a review`) and 8.2b (919 lines: the review queue's page and
+    the contributor page, with their e2e).
+  - **Crossings of Owns, logged:** 8.2a shortened WP-7.3's generated tool list in the manual (an MCP name only where it
+    differs from the tool's, in its own commit, reversible: the manual went from 8,000 to 7,948 tokens, 7,974 with
+    `review`'s line); the registry's Host and ToolContext gained `intake` (E_HOST without one); the tool descriptions
+    reached 2,995 of 3,000 tokens. 8.2b edited four of WP-8.1's files (vite.config.ts builds its two pages,
+    `REVIEW_ACTIONS`, the browse panel's links, the README), in a commit of its own; its pages are served at `/src/…`
+    because its Owns put them under `src/`.
+  - **WP-8.3, previews** (285 lines, S): `vercel.json` builds the whole preview site (`npm run site`: the gallery at
+    the root, the labs index at `/labs/`, every lab at `/labs/<name>/`), every page stamped with core's version and
+    the branch's commit; a .glb in the site fails the build (D9). The preview URL itself waits on O3 (D85).
+  - **The integrator's changes:** G8's gate set (below); the `site` and `m3a` scripts; `m3a review` samples 20
+    library clips, G8's batch (a list shows 8); the review page bundles a queue only when `M3A_REVIEW_QUEUE` asks
+    (8.2b's open question: a queue holds submissions' text, so no build carries one by accident and the preview site
+    never does), with an e2e; `@m3a/tools/node` exports `INTAKE_DIR` and `intakeFiles` (8.2b's ask, for a contributor
+    on the local store until WP-9.1).
+  - **G8's command set:** check, test, doctrine, vectors, the intake and review tests, T2 (the gallery, the review queue
+    and previews suites among its browser checks), the preview site built, and the owner's 20-clip batch exported. The
+    owner's phone review of that batch is theirs: blocked-owner until it comes (§8.5), the notes it brings back
+    applied with `m3a review ingest`.
+- **Why:** the plan's Phase 8, each WP's Done-when proved by its Verify; the split keeps each lane within L.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.51.0
+
+## D110 · 2026-10-19 · O8: Supabase's free tier, its limits and its pause, checked
+
+- **Principle:** O8, D20, WP-8.2 ("check the free tier's limits, including whether idle projects pause")
+- **Call:**
+  - **The limits** (checked 2026-10-19 on supabase.com/pricing): a 500 MB database (shared CPU, 500 MB RAM), 1 GB of
+    file storage, 5 GB egress and 5 GB cached egress, 50,000 monthly active users, 500,000 Edge Function invocations,
+    two active projects. At the submit function's limits (a submission's text at most 256 KiB, 20 a contributor a
+    day) the bucket holds at least 4,000 submissions at the size limit, and many times that at a clip's usual tens of
+    kilobytes; the intake is far inside every limit.
+  - **The pause** (supabase.com/docs/guides/platform/free-project-pausing): "Free projects are paused after 1 week of
+    inactivity", too little database activity over a week; "a few user requests to the database each day" keeps one
+    awake, and a paused project can be restored "for up to 1 year after it was paused", its data and configuration as
+    they were. Once linked, WP-9.1's checker runs every 15 minutes against it, which is that activity; until then
+    nothing is hosted, so nothing pauses.
+  - **Nothing is created:** linking the project (creating it, its keys in the repository's Actions secrets, the
+    setting that lets Actions open pull requests) reaches outside the repository and is the owner's (O8): asked once
+    on Phase 8's pull request, built meanwhile on the local store.
+- **Why:** WP-8.2 asks for the limits in the log before the hosted store is relied on; none of them binds the intake.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.51.0
