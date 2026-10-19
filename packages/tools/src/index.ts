@@ -24,3 +24,6 @@ export { runCli } from "./cli.ts";
 export { mcpServer } from "./mcp.ts";
 /** The intake queue (PLAN.md §5.9): IntakeStore, its backends, the hashes, the queue and review formats, applyReview. */
 export * as intake from "./intake/index.ts";
+/** Motion sources (PLAN.md WP-9.2): the library source, the HTTP adapter (off by default), the gate, the allowlist,
+ *  and the way to the intake queue or library/local/. */
+export * as sources from "./sources/index.ts";

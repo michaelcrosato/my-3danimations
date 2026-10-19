@@ -3,8 +3,9 @@
 // lint, the source's record and the generator's model in the provenance, the sensors' verdict), then reads the
 // license allowlist (`allowlisted`: CC0, or a library clip's tier kept by what derives from it, D10, and only from a
 // source whose terms are on it): an allowlisted clip goes to the intake queue through `Submit` (`intakeSubmit`, the
-// store's own submit until WP-9.1a's `library.submit`), any other is written only under library/local/, as a local
-// set (tier local: never committed, never shipped), through a LocalLane that refuses any other path.
+// store's own submit, the door `library submit` sends through after its local gates; the checker runs every gate on
+// what arrives, and `deliver` runs the source's gate first: D112), any other is written only under library/local/, as
+// a local set (tier local: never committed, never shipped), through a LocalLane that refuses any other path.
 import { parseClip, serialize, validate, validation, VERSION, type Clip, type Rest } from "@m3a/core";
 import { setFiles, tierOf } from "@m3a/library";
 import { metrics } from "@m3a/sensors";
@@ -13,8 +14,8 @@ import { fail, type SourceRecord, type Sourced } from "./types.ts";
 
 /** How a clip enters the intake queue: its text in, the submission's id and state out. */
 export type Submit = (input: { kind: "clip"; text: string }) => Promise<{ id: string; state: string }>;
-/** The intake queue's door for a source's clips: the store's own submit (WP-8.2a's IntakeStore, as its contributor).
- *  The one function the integrator points at WP-9.1a's `library.submit` when it lands. */
+/** The intake queue's door for a source's clips: the store's own submit (WP-8.2a's IntakeStore, as its contributor),
+ *  as `library submit`'s is; the checker gates what arrives (D112). */
 export const intakeSubmit = (store: IntakeStore): Submit => async (input) => {
   const s = await store.submit(input);
   return { id: s.id, state: s.state };
