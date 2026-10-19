@@ -3,8 +3,13 @@
 **Lab, 2026-10-19** (PLAN.md WP-10.1). **The question:** can a game shaped like my-3dge (three.js r182, a fixed
 60 Hz sim stepped as its engine steps, a sim hash that never depends on posing) drive graph-driven humanoids with hit
 events and root motion through the package's public API alone, the same in Node and in a browser? The answer and
-the migration it argues for are in `docs/MIGRATING.md`. It reaches past the manual in one place: the page reads the
-library from files its Vite config bundles with `@m3a/library/node`'s `defaultSets` and `directory` (gap 1 there).
+the migration it argues for are in `docs/MIGRATING.md`. It never reaches past the public API (`npm run doctrine` lists
+no reach-past here), but it goes past the manual, which is at its budget, in these declared names (gaps 1 and 10
+there): the page reads the library from files its Vite config bundles with `@m3a/library/node`'s `defaultSets` and
+`directory`, wrapped in `@m3a/library`'s `new Library(source)` (a `LibrarySource`); from `@m3a/core`, `VERSION`,
+`math.PORTABLE` and `math.hashValue`, `graph.layersOf` and `graph.clipsOf`, the Animator's `step` option, and the
+`graph.Graph`, `AnimClip` and `Bound` types; from `@m3a/three`, the `Attached` and `ThreeBound` types; from
+`@m3a/three/test-characters`, `character` and `variant`, and `loadGlb` in a browser (the manual says Node).
 
 - **What plays:** a hero and a training dummy (generated test characters, seeds 1 and 2, 6 m apart) on one graph,
   `data/duel.graph.json`: stand, walk and jog by `speed` (a blend kept in step), a slash
@@ -14,7 +19,10 @@ library from files its Vite config bundles with `@m3a/library/node`'s `defaultSe
 - **The session:** `data/session.sim.json`, the hero's input in m3a's sim format (spec/SIM.md), so `m3a graph.sim`
   and `sim.simulate` read it too; `intents()` turns it into one intent a step.
 - **Serve it:** `node_modules/.bin/vite --config apps/lab/consumer-ts/vite.config.ts` (W or ↑ walks, Shift jogs, J
-  slashes; `?renderer=webgl2`, `?paused=1`). **Check it:** `npm run e2e -- consumer-ts`, whose screenshots and
+  slashes; `?renderer=webgl2`, `?paused=1`). **Check it:** `npm run e2e -- consumer-ts`: the page plays the session
+  as Node does, step by step (events, hits, places, hp, hashes), the hero stands on `sim.simulate`'s root at every
+  step, and the page's own frame loop on a held clock takes floor(T × 60 / 1000) steps in T ms; its screenshots and
   `session.json` go to `check-output/consumer-ts/`.
 - **Console:** `__m3a.state()`, `__m3a.hash()`, `__m3a.step(n, { speed, attack })`, `__m3a.session()` (the scripted
-  session from a fresh duel, posed every step), `__m3a.pause(on)`.
+  session from a fresh duel, posed every step, with each fighter's place after every step), `__m3a.pause(on)`
+  (resuming starts the frame clock afresh).
