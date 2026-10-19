@@ -1,13 +1,13 @@
 // The registry index (WP-9.4): library/index.json regenerates byte for byte and every core set verifies from its files;
 // on fixture sets, a changed set gets a new version and the old one stands, a deleted set or a rewritten version is
-// refused, a yank is recorded, and a version whose record isn't what its files give is refused field by field, by the
-// rebuild and by a consumer's verify; `--since` fails on a ref git can't read; a community pack whose files miss its
-// content id, don't name its license alone, or whose namespace's proof doesn't vouch for it is refused, and an admitted
-// one records its digest and proof, is vouched for again offline on every rebuild and verifies, every file of it bound;
-// release.yml, read as YAML, runs only by hand, fails closed until O2 unless the owner started the run and the attempt,
-// gives its write token to the upload step alone, uploads to a draft release alone (its step run on a stub gh: a
-// published release refused) and takes each set's license texts from its own files;
-// library-gates.yml runs on index changes.
+// refused, a yank is recorded, a serial edited by hand fails the history check, and a version whose record isn't what
+// its files give is refused field by field, by the rebuild and by a consumer's verify; `--since` fails on a ref git
+// can't read; a community pack whose files miss its content id, don't name its license alone, or whose namespace's
+// proof doesn't vouch for it is refused, and an admitted one records its digest and proof, is vouched for again offline
+// on every rebuild and verifies, every file of it bound; release.yml, read as YAML, runs only by hand, fails closed
+// until O2 unless the owner started the run and the attempt, gives its write token to the upload step alone, uploads to
+// a draft release alone (its step run on a stub gh: a published release refused) and takes each set's license texts
+// from its own files; library-gates.yml runs on index changes.
 import { spawnSync } from "node:child_process";
 import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -58,9 +58,24 @@ describe("the core", () => {
     expect(verifySet(v2, "FIX", { ...two, "extra.txt": "x" }, sha256).join()).toMatch(/digest .* is missing or is extra/);
     expect(() => buildIndex(source({}), sha256, none, v2)).toThrow(/FIX is gone from the index's core: a set is yanked, never deleted/);
     expect(() => buildIndex(source({ FIX: two }), sha256, { yanked: { "FIX@3": "x" }, community: {} }, v2)).toThrow(/yanks FIX@3, which the index doesn't hold/);
-    const rewritten = { ...v2, core: { FIX: { versions: [{ ...v2.core.FIX!.versions[0]!, clips: 9 }, v2.core.FIX!.versions[1]!] } } };
+    const rewritten = { ...v2, serial: 3, core: { FIX: { versions: [{ ...v2.core.FIX!.versions[0]!, clips: 9 }, v2.core.FIX!.versions[1]!] } } };
     expect(history(v2, rewritten)).toEqual(["FIX v1 changed: versions are immutable; a change is a new version"]);
     expect(() => buildIndex(source({ FIX: { ...two, "_set.json": one["_set.json"]! } }), sha256, none)).toThrow(/clip files give content id .* its _set.json says/);
+  });
+  it("holds the serial to the trusted index's: one edited by hand passes --check alone, and fails the history check", () => {
+    const one = setFiles({ A: "pass" }), two = setFiles({ A: "fail" }), main = buildIndex(source({ FIX: one }), sha256, none);
+    // only the serial edited: the rebuild seeds it from the file, so --check alone passes byte for byte
+    const raised = buildIndex(source({ FIX: one }), sha256, none, { ...main, serial: 41 });
+    expect([raised.serial, indexText(raised) === indexText({ ...main, serial: 41 })]).toEqual([41, true]);
+    expect(history(main, raised)).toEqual(["the index's serial is 41, the previous index's 1, and nothing else changed: it stays 1 (npm run index sets it; restore library/index.json as it wrote it)"]);
+    // a change, then the serial edited back: --check passes alone, and main's serial doesn't grow
+    const changed = buildIndex(source({ FIX: two }), sha256, none, main), lowered = buildIndex(source({ FIX: two }), sha256, none, { ...changed, serial: 1 });
+    expect([changed.serial, lowered.serial, history(main, changed)]).toEqual([2, 1, []]);
+    expect(history(main, lowered)).toEqual(["the index's serial is 1, the previous index's 1, and the index changed: it grows past 1 (npm run index sets it; restore library/index.json as it wrote it)"]);
+    // two regenerations before a commit (as versions may skip): it grows by more than one, and stands
+    const again = buildIndex(source({ FIX: one }), sha256, none, changed);
+    expect([again.serial, history(main, again)]).toEqual([3, []]);
+    expect(history(main, buildIndex(source({ FIX: one }), sha256, none, main))).toEqual([]);
   });
   it("refuses a latest version whose record isn't what its files give, whatever field was edited", () => {
     const one = setFiles({ A: "pass", B: "baselined" }), v1 = buildIndex(source({ FIX: one }), sha256, none), at = v1.core.FIX!.versions[0]!;

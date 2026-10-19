@@ -130,10 +130,16 @@ function licensesIn(files: Files): { licenses: string[]; problems: string[] } {
   return { licenses: [...found].sort(), problems };
 }
 
-/** Every way `next` rewrites `previous`'s history: a set or pack gone (they are yanked, never deleted), or a version
- *  gone or changed (versions are immutable; only a yank may change). */
+/** Every way `next` rewrites `previous`'s history: a set or pack gone (they are yanked, never deleted), a version gone
+ *  or changed (versions are immutable; only a yank may change), or a serial that doesn't follow: it grows when the
+ *  index changes (by one a regeneration, so by one or more since `previous`, as version numbers may skip) and stays
+ *  when nothing else does, so a serial edited by hand fails against a trusted `previous` (main's, `--since`). */
 export function history(previous: RegistryIndex | undefined, next: RegistryIndex): string[] {
   const out: string[] = [], bare = ({ yanked: _y, ...v }: { v: number; yanked?: string }) => canon(v);
+  if (previous) {
+    const same = indexText({ ...previous, serial: 0 }) === indexText({ ...next, serial: 0 });
+    if (same ? next.serial !== previous.serial : !(next.serial > previous.serial)) out.push(`the index's serial is ${next.serial}, the previous index's ${previous.serial}, and ${same ? `nothing else changed: it stays ${previous.serial}` : `the index changed: it grows past ${previous.serial}`} (npm run index sets it; restore library/index.json as it wrote it)`);
+  }
   for (const tier of ["core", "community"] as const) {
     for (const [name, was] of Object.entries(previous?.[tier] ?? {})) {
       const now: { v: number }[] | undefined = next[tier][name]?.versions;
@@ -170,9 +176,9 @@ export function buildIndex(src: LibrarySource, sha: Sha, registry: Registry, pre
     community[key] = { namespace: p.namespace, set: p.set, proof: proofUrl(p.namespace) ?? "", versions: p.versions.map((v) => ({ v: v.v, content: v.content, digest: v.digest, url: v.url, license: v.license, tier: v.tier, proofSha256: v.proofSha256, ...(v.yanked ? { yanked: v.yanked } : {}) })) };
   }
   const next: RegistryIndex = { about: ABOUT, format: "1", serial: previous?.serial ?? 1, core, community };
+  if (previous && indexText(next) !== indexText(previous)) next.serial = previous.serial + 1;
   bad.push(...history(previous, next));
   if (bad.length) throw new Error(`index: ${bad.join("; ")}`);
-  if (previous && indexText(next) !== indexText(previous)) next.serial = previous.serial + 1;
   return next;
 }
 
