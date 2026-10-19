@@ -6,11 +6,13 @@
 // Vercel or GitHub Actions, else git. Three pages: the gallery (index.html), the review queue (src/review/) and the
 // contributor page (src/contributors/), WP-8.2b's. The review page bundles a queue only when asked: M3A_REVIEW_QUEUE=1
 // bundles the check-output/review/queue.json `m3a review export` wrote, any other value names the file (a queue holds
-// submissions' text, so no build carries one by accident: the preview site never does).
-import { execSync } from "node:child_process";
+// submissions' text, so no build carries one by accident: the preview site never does). A build given a secret intake
+// key fails (the contributor page's keys.ts).
 import { existsSync, readdirSync, readFileSync, realpathSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { defineConfig, type Plugin } from "vite";
+import { buildCommit } from "../../tools/run/stamp.ts";
+import { secretKey } from "./src/contributors/keys.ts";
 
 const ROOT = join(import.meta.dirname, "../.."), SETS = join(ROOT, "library/sets"), RIGS = join(ROOT, ".cache/fixtures");
 const LIBRARY = "virtual:m3a-library", SET = "virtual:m3a-set/";
@@ -24,14 +26,16 @@ function reviewQueue(): string | null {
   return readFileSync(file, "utf8");
 }
 
-function commit(): string {
-  const env = process.env.VERCEL_GIT_COMMIT_SHA ?? process.env.GITHUB_SHA;
-  if (env) return env.slice(0, 7);
-  try {
-    return execSync("git rev-parse --short HEAD", { cwd: ROOT }).toString().trim();
-  } catch {
-    return "unknown";
-  }
+
+/** Fails the build given a secret intake key: Vite inlines VITE_M3A_INTAKE_KEY into the contributor page's bundle,
+ *  so the page refusing it at run time would be too late (keys.ts). */
+function noSecret(): Plugin {
+  return {
+    name: "m3a-no-secret",
+    configResolved(config) {
+      if (secretKey(String(config.env.VITE_M3A_INTAKE_KEY ?? ""))) throw new Error("VITE_M3A_INTAKE_KEY is a secret key (sb_secret_..., or a service_role JWT): build with the project's publishable key; a secret never goes into a page");
+    },
+  };
 }
 
 /** The library's sets as modules: the index (manifests, catalogs, file names, the lock, the rigs) and one per set. */
@@ -66,8 +70,8 @@ function library(): Plugin {
 export default defineConfig({
   root: import.meta.dirname,
   base: "./",
-  define: { __COMMIT__: JSON.stringify(commit()), __REVIEW_QUEUE__: JSON.stringify(reviewQueue()) },
-  plugins: [library()],
+  define: { __COMMIT__: JSON.stringify(buildCommit(ROOT)), __REVIEW_QUEUE__: JSON.stringify(reviewQueue()) },
+  plugins: [noSecret(), library()],
   // the fixtures may be a link to another checkout's cache
   server: { fs: { allow: [ROOT, ...(existsSync(RIGS) ? [realpathSync(RIGS)] : [])] } },
   build: {

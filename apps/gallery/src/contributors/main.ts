@@ -3,9 +3,11 @@
 // VITE_M3A_INTAKE_KEY, public by design as Supabase's anon key is) and the page signs in with GitHub through Supabase
 // Auth, lists the signed-in contributor's keys (row-level security shows only theirs), adds the SHA-256 of a key their
 // agent made (the key itself never leaves the agent's environment) and revokes one for good. Until then it says the
-// hosted store isn't linked and how agents submit to the local store. No secret is ever in the page: a secret key given
-// to the build is refused unused, and the session's token is kept in memory alone, taken out of the link at once.
+// hosted store isn't linked and how agents submit to the local store. No secret is ever in the page: a build given a
+// secret key fails (vite.config.ts, keys.ts), the page refuses one unused all the same, and the session's token is kept
+// in memory alone, taken out of the link at once.
 import { VERSION } from "@m3a/core";
+import { secretKey } from "./keys.ts";
 
 const env = import.meta.env as Record<string, string | undefined>, URL0 = (env.VITE_M3A_INTAKE_URL ?? "").replace(/\/+$/, ""), KEY = env.VITE_M3A_INTAKE_KEY ?? "";
 const $ = (id: string) => document.getElementById(id)!;
@@ -16,17 +18,7 @@ const el = (tag: string, attrs: Record<string, string> = {}, ...kids: (Node | st
   return e;
 };
 
-/** Whether a key is a secret one (Supabase's sb_secret_ keys, or a legacy JWT whose role is service_role). */
-function secret(key: string): boolean {
-  if (key.startsWith("sb_secret_")) return true;
-  try {
-    return (JSON.parse(atob(key.split(".")[1]!.replace(/-/g, "+").replace(/_/g, "/"))) as { role?: string }).role === "service_role";
-  } catch {
-    return false;
-  }
-}
-
-const refused = KEY !== "" && secret(KEY), linked = URL0 !== "" && KEY !== "" && !refused;
+const refused = KEY !== "" && secretKey(KEY), linked = URL0 !== "" && KEY !== "" && !refused;
 const back = new URLSearchParams(location.hash.slice(1)), token = linked ? back.get("access_token") : null;
 if (location.hash) history.replaceState(null, "", location.pathname + location.search);
 let user: { id: string; login: string } | null = null, said = back.get("error_description") ?? "";

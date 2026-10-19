@@ -1,5 +1,6 @@
 // `npm run hello [-- build | preview]` (WP-4.6): the first-flight demo (apps/lab/hello) served by Vite with live
-// reload, built into apps/lab/hello/dist (what vercel.json deploys), or that build served.
+// reload, built into apps/lab/hello/dist, or that build served; the preview site (`npm run site`) serves it at
+// /labs/hello/.
 import { spawnSync } from "node:child_process";
 import { join } from "node:path";
 import { ROOT } from "./cli.ts";
