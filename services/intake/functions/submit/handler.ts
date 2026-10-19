@@ -1,10 +1,11 @@
 // The submit function's handler (PLAN.md §5.9, WP-8.2a), a Supabase Edge Function in plain fetch-API TypeScript
 // (Deno runs it; Node's tests call it): POST a submission `{ kind, text, improves?, motion? }` with a contributor key
 // in `x-m3a-key`. It looks the key up by its SHA-256 (keys are stored hashed; a revoked one is refused), refuses a
-// body over the size limit (413) and a contributor past its rate (429, a day's count; the database's rate trigger holds
-// it against requests that race past the count), then inserts the submission as `submitted` with its content hash and
-// id (packages/tools/src/intake/hash.ts makes the same) and answers 201, or 200 with the one already there for the same
-// text. `motion` is the client's motion hash, which the checker recomputes.
+// body over the size limit (413; read as a stream and counted, never buffered past it) and a contributor past its rate
+// (429, a day's count; the database's rate trigger holds it against requests that race past the count), then inserts
+// the submission as `submitted` with its content hash and id (packages/tools/src/intake/hash.ts makes the same) and
+// answers 201, or 200 with the one already there for the same text. `motion` is the client's motion hash, which the
+// checker recomputes.
 // The store is injected: the deployed function's talks to PostgREST with the service role key (restStore); tests
 // give one in memory. Errors answer `{ error: "E_CODE: message" }`, as the IntakeStore reads them.
 
@@ -51,6 +52,23 @@ const json = (status: number, body: unknown) => new Response(JSON.stringify(body
 const refuse = (status: number, code: string, message: string) => json(status, { error: `${code}: ${message}` });
 const HEX64 = /^[0-9a-f]{64}$/, CLIP_ID = /^[A-Z][A-Z0-9_]*\/[A-Za-z0-9_-]+$/;
 
+/** The request's body as text, read as a stream and counted, so a body that declares no length (or a false one) is
+ *  never buffered whole: null once it passes `cap` bytes, the rest left unread. */
+async function cappedBody(req: Request, cap: number): Promise<string | null> {
+  if (!req.body) return "";
+  const reader = req.body.getReader(), utf8 = new TextDecoder();
+  let n = 0, text = "";
+  for (let r = await reader.read(); !r.done; r = await reader.read()) {
+    n += r.value.byteLength;
+    if (n > cap) {
+      await reader.cancel();
+      return null;
+    }
+    text += utf8.decode(r.value, { stream: true });
+  }
+  return text + utf8.decode();
+}
+
 /** Answers one request; a store that fails answers 500 (E_STORE), naming no secret. */
 export async function handle(req: Request, deps: SubmitDeps): Promise<Response> {
   try {
@@ -65,9 +83,10 @@ async function answer(req: Request, deps: SubmitDeps): Promise<Response> {
   if (req.method !== "POST") return refuse(405, "E_INPUT", "POST a submission as JSON: { kind, text, improves?, motion? }");
   const key = req.headers.get("x-m3a-key");
   if (!key) return refuse(401, "E_KEY", "send the contributor key in x-m3a-key; sign in once on the gallery's contributor page to get one");
-  const declared = Number(req.headers.get("content-length") ?? 0);
-  if (declared > bytes * 2 + 4096) return refuse(413, "E_SIZE", `the request is ${declared} bytes; a submission's text takes at most ${bytes}`);
-  const raw = await req.text();
+  const cap = bytes * 2 + 4096, declared = Number(req.headers.get("content-length") ?? 0);
+  if (declared > cap) return refuse(413, "E_SIZE", `the request is ${declared} bytes; a submission's text takes at most ${bytes}`);
+  const raw = await cappedBody(req, cap);
+  if (raw === null) return refuse(413, "E_SIZE", `the request is over ${cap} bytes; a submission's text takes at most ${bytes}`);
   let body: { kind?: unknown; text?: unknown; improves?: unknown; motion?: unknown };
   try {
     body = JSON.parse(raw) as typeof body;

@@ -64,6 +64,24 @@ describe("the submit function", () => {
     expect(await answer(await handle(post(ok), { store: broken, now: () => NOW }))).toEqual([500, { error: "E_STORE: the store failed (connection reset); send it again later" }]);
   });
 
+  it("reads a body that declares no length as a stream, refusing it once past the limit (413) with no more of it read", async () => {
+    // 4 MiB sent chunked (no Content-Length), counted as the handler pulls it
+    const chunk = new Uint8Array(65_536).fill(0x20);
+    let pulled = 0;
+    const body = new ReadableStream<Uint8Array>({
+      pull(c) {
+        if (pulled >= 64 * chunk.length) return c.close();
+        pulled += chunk.length;
+        c.enqueue(chunk);
+      },
+    });
+    const req = new Request("https://x.supabase.co/functions/v1/submit", { method: "POST", headers: { "x-m3a-key": KEY }, body, duplex: "half" } as RequestInit);
+    expect(req.headers.get("content-length")).toBeNull();
+    const [status, out] = await answer(await handle(req, { store: (await memory()).store, now: () => NOW }));
+    expect([status, out.error]).toEqual([413, `E_SIZE: the request is over ${2 * MAX_BYTES + 4096} bytes; a submission's text takes at most ${MAX_BYTES}`]);
+    expect(pulled).toBeLessThan(4 * MAX_BYTES); // the limit and a chunk or two, not the 4 MiB
+  });
+
   it("runs on the deployed store against PostgREST: the key looked up live, the day counted, the database's rate kept", async () => {
     // a fake PostgREST over one table each, answering only the filters restStore sends (a revoked key is filtered out)
     const keys = [{ hash: await sha256(KEY), uid: UID, revoked_at: null }, { hash: await sha256(OLD), uid: UID, revoked_at: "2026-10-18T00:00:00Z" }];
