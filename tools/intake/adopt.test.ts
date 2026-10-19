@@ -4,26 +4,32 @@
 // version of its clip, its lineage kept), an adoption already in the library not committed twice; an adoption not
 // recorded by the owner's identity refused; a pull request whose gates fail closed, its files restored and its
 // submission returned to review; and library-gates failing a planted bad clip. Submissions are put in review by hand:
-// the checker's own suite (check.test.ts) proves how they get there.
+// the checker's own suite (check.test.ts) proves how they get there. The derived files' regeneration is stubbed here (a
+// library-only checkout; adopt.full.test.ts runs the repository's commands in a whole one, under M3A_FULL), its worse
+// distributions named in the pull request; and an improved migrated set stays as npm run migrate writes it, the
+// adopted clip kept byte for byte and a review carried while its motion hash matches.
 import { appendFileSync, existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { procedural, serialize, type Clip } from "@m3a/core";
+import { parseClip, procedural, serialize, type Clip } from "@m3a/core";
 import { contentHash, localStore, motionHash, type IntakeStore } from "../../packages/tools/src/intake/index.ts";
 import { intakeFiles } from "../../packages/tools/src/node/intake.ts";
-import { adopt, dryRun } from "./adopt.ts";
+import { ROOT } from "../run/cli.ts";
+import { migrate } from "../migrate/migrate.ts";
+import { adopt, dryRun, type Regenerated } from "./adopt.ts";
 import { bindRigs, type Rig } from "./check.ts";
 import { fixtures } from "./fixtures.ts";
 import { clipsOf, plantedGates, runGates } from "./gates.ts";
 import { LOCAL_OWNER, libraryAt } from "./host.ts";
-import { scratchCheckout } from "./write.ts";
+import { scratchCheckout, writeClip } from "./write.ts";
 
 const TODAY = "2026-10-19", today = () => TODAY;
 let D: string, rigs: Rig[];
 const printed: string[] = [], prs = dryRun((t) => void printed.push(t)), sent = new Map<string, string>();
 const store = (role: "contributor" | "checker" | "owner", id?: string): IntakeStore => localStore({ files: intakeFiles(join(D, ".cache/intake")), role, ...(id ? { id } : {}), today });
 const file = (p: string) => readFileSync(join(D, p), "utf8");
-const bot = () => adopt({ store: store("checker"), owner: LOCAL_OWNER, checkout: D, prs, today, rigs });
+const regenerate = async (): Promise<Regenerated> => ({ steps: [], files: ["docs/LIBRARY.md"], worse: ["p95 of a metric 1.2 → 1.4 (the test's)"], restore: () => {} });
+const bot = () => adopt({ store: store("checker"), owner: LOCAL_OWNER, checkout: D, prs, today, rigs, regenerate });
 /** Sends `text` and puts it in review (the checker's moves), returning its id. */
 async function inReview(name: string, text: string, improves: string | null = null): Promise<string> {
   const s = await store("contributor", "fixtures").submit({ kind: "clip", text, improves });
@@ -60,10 +66,21 @@ describe("the adopt bot, in a dry run against a scratch checkout", () => {
     const now = JSON.parse(file("library/sets/QUATERNIUS_3D2DGE/Walk_Loop.json")) as Clip & { provenance: { intake: { improves: { sha256: string } } } };
     expect([now.provenance.intake.improves.sha256, now.review?.state, now.desc, file("library/sets/QUATERNIUS_3D2DGE/Walk_Loop.json") === was]).toEqual([contentHash(was), "approved", "Walks at an easy pace, looking a little to the right", false]);
     expect(() => libraryAt(join(D, "library/sets")).library.verify()).not.toThrow();
-    expect(printed.join("\n")).toMatch(/^would open pull request #1 against main from intake\/s-[0-9a-f]{16}: Adopt [A-Za-z0-9_/]+ from the intake queue \(s-[0-9a-f]{16}\)\n {2}Adopts s-[^]*\n {2}files: library\/sets[^]*\nwould merge #1: the library gates pass\n/);
+    expect(printed.join("\n")).toMatch(/^would open pull request #1 against main from intake\/s-[0-9a-f]{16}: Adopt [A-Za-z0-9_/]+ from the intake queue \(s-[0-9a-f]{16}\)\n {2}Adopts s-[^]*\n {2}- worse than recorded, recorded with this adoption [^\n]*: p95 of a metric 1\.2 → 1\.4 \(the test's\)\n[^]*\n {2}files: docs\/LIBRARY\.md, library\/sets[^]*\nwould merge #1: the library gates pass\n/);
     // committed once: the library records what was adopted, so the next run leaves both alone
     expect(await bot()).toEqual([]);
   }, 60_000);
+  it("leaves an improved migrated set as npm run migrate writes it: the adopted clip kept, a review carried while its motion hash matches", () => {
+    const sets = join(D, "library/sets"), set = "QUATERNIUS_3D2DGE", run = () => migrate(ROOT, { sets: [set], disk: { dir: sets, sets: [set] } });
+    const differ = (m: ReturnType<typeof run>) => [...m.files].filter(([p, t]) => t !== file(`library/sets/${p}`)).map(([p]) => p), m = run();
+    expect([m.report.sets[0]!.adopted.map((a) => a.id), differ(m)]).toEqual([[`${set}/Walk_Loop`], []]);
+    const idle = parseClip(file(`library/sets/${set}/Idle_Loop.json`)), roll = parseClip(file(`library/sets/${set}/Roll.json`));
+    writeClip(D, { ...idle, review: { state: "approved", by: LOCAL_OWNER, date: TODAY, motion: motionHash(idle) } });
+    writeClip(D, { ...roll, review: { state: "flagged", by: LOCAL_OWNER, date: TODAY, motion: "0".repeat(64), note: "on another motion" } });
+    const again = run();
+    expect([parseClip(again.files.get(`${set}/Idle_Loop.json`)!).review?.state, parseClip(again.files.get(`${set}/Roll.json`)!).review, differ(again)]).toEqual(["approved", undefined, [`${set}/Roll.json`, `${set}/_set.json`]]);
+    writeClip(D, roll);
+  }, 30_000);
   it("refuses an adoption not recorded by the owner's identity: nothing written, the submission back in review", async () => {
     await decide(sent.get("brisk")!, "mallory");
     const [o] = await bot();

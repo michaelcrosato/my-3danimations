@@ -2,15 +2,21 @@
 // then setFiles: the clip file, catalog.tsv's row and _set.json's content id), the set's entry in sets.lock.json
 // written (that set's alone), and every file it changed kept, so a closed pull request's files are restored as they
 // were. A tier's intake set is made on its first clip: its manifest (the tier, the source whose rest the clip decodes
-// on, the legend the other sets carry) and an empty warnings baseline. And a scratch checkout: the library copied under
-// the OS's temp directory, which a dry run writes into instead of the repository.
-import { cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+// on, the legend the other sets carry) and an empty warnings baseline. A clip written into a set its writer
+// regenerates (npm run import, npm run migrate) is written as that writer would keep it (WP-9.1): the set's catalog in
+// its order, the clip's accepted warnings those it still has, and in a re-imported set its `_import.json` choice and
+// the manifest's importer line as the import records an adopted clip. And scratch checkouts under the OS's temp
+// directory, which a dry run writes into instead of the repository: the library alone, or the whole repository.
+import { spawnSync } from "node:child_process";
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { encode } from "gpt-tokenizer/encoding/cl100k_base";
-import { parseClip, type Clip } from "@m3a/core";
+import { parseClip, validate, type Clip } from "@m3a/core";
 import { setFiles, type LibraryLock } from "@m3a/library";
 import { INTAKE_SETS } from "../../packages/tools/src/tools/library-submit.ts";
+import { withAdoption } from "../import/import.ts";
+import { adoptionOf, baselineOn } from "../migrate/adopted.ts";
 import { ROOT } from "../run/cli.ts";
 import { sha256 } from "./host.ts";
 
@@ -62,12 +68,26 @@ export function writeClip(root: string, clip: Clip): Written {
   } else {
     manifest = JSON.parse(readFileSync(join(dir, "_set.json"), "utf8")) as typeof manifest;
     if (!manifest.sources[clip.restSrc]) manifest.sources = { ...manifest.sources, [clip.restSrc]: sourceSet(sets, clip.restSrc).sources[clip.restSrc] };
-    const names = readdirSync(dir).filter((f) => f.endsWith(".json") && !f.startsWith("_"));
-    clips = [...new Set([...names, `${name}.json`])].sort().map((f) => (f === `${name}.json` ? clip : parseClip(readFileSync(join(dir, f), "utf8"))));
+    // the clips in the catalog's order (a set's writer keeps its own), a new one sorted in
+    const names = readdirSync(dir).filter((f) => f.endsWith(".json") && !f.startsWith("_")), listed = readFileSync(join(dir, "catalog.tsv"), "utf8").split("\n").map((r) => `${r.split("\t")[0]!.slice(set.length + 1)}.json`).filter((f) => names.includes(f));
+    const order = [...new Set([...listed, ...names.sort()])];
+    clips = (order.includes(`${name}.json`) ? order : [...order, `${name}.json`].sort()).map((f) => (f === `${name}.json` ? clip : parseClip(readFileSync(join(dir, f), "utf8"))));
   }
   mkdirSync(dir, { recursive: true });
+  // a re-imported set records the clip kept as adopted, and its manifest says how many are kept as migrated
+  const a = adoptionOf(clip), imp = join(dir, "_import.json"), record = !made && a && existsSync(imp) ? withAdoption(readFileSync(imp, "utf8"), name, a, clips.map((c) => c.quality.fit[0]!)) : null;
+  if (record) manifest.content = { ...manifest.content, importer: record.importer };
   const out = setFiles(manifest, clips, { sha256, tokens: (t) => encode(t).length });
+  if (record) out.set("_import.json", record.record);
   if (made) out.set("_baseline.json", `${JSON.stringify({ about: "Validator warnings accepted per clip, each with its reason: an adopted clip carries none (the intake's lint gate).", clips: {} }, null, 1)}\n`);
+  else if (existsSync(join(dir, "_baseline.json"))) {
+    // the warnings its set accepted for the clip that it still has, in its order (the lint gate takes no new one)
+    const b = JSON.parse(readFileSync(join(dir, "_baseline.json"), "utf8")) as { clips: Record<string, unknown> }, had = baselineOn(dir)[name] ?? [];
+    const still = validate(clip, { mode: "read" }).warnings.map((w) => had.find((h) => h.code === w.code && h.at === `${w.key !== undefined ? `key ${w.key} (t ${w.t}) ` : ""}${w.field ?? ""}${w.index !== undefined ? `[${w.index}]` : ""}`)).filter((h) => h !== undefined);
+    if (still.length) b.clips[name] = still;
+    else delete b.clips[name];
+    out.set("_baseline.json", `${JSON.stringify(b, null, 1)}\n`);
+  }
   for (const [f, text] of out) {
     const p = join(dir, f);
     if (existsSync(p) && readFileSync(p, "utf8") === text) continue;
@@ -87,6 +107,26 @@ export function writeClip(root: string, clip: Clip): Written {
       if (made) rmSync(dir, { recursive: true, force: true });
     },
   };
+}
+
+/** A scratch copy of the whole repository at `root` under the OS's temp directory: the files git tracks or would (its
+ *  working tree, never what it ignores), the dependencies and the fetched caches linked (each of node_modules' entries
+ *  and .cache's but its own store and build caches, the workspace packages linked to the copy's own); the adopt bot
+ *  regenerates the library's derived files in it with the repository's commands. Returns its root. */
+export function scratchRepo(root: string = ROOT): string {
+  const to = mkdtempSync(join(tmpdir(), "m3a-adopt-repo-")), r = spawnSync("git", ["ls-files", "-z", "--cached", "--others", "--exclude-standard"], { cwd: root, encoding: "utf8", maxBuffer: 1 << 26 });
+  if (r.status !== 0) throw new Error(`git ls-files failed in ${root}: ${(r.stderr || "").trim().split("\n")[0]}`);
+  for (const f of r.stdout.split("\0").filter((x) => x && existsSync(join(root, x)))) cpSync(join(root, f), join(to, f), { recursive: true });
+  for (const d of ["node_modules", ".cache"]) {
+    if (!existsSync(join(root, d))) continue;
+    mkdirSync(join(to, d));
+    for (const e of readdirSync(join(root, d)).filter((x) => !["intake", "@m3a", "eslint", "tsc", "vite", ".vite", ".vite-temp", ".cache"].includes(x))) symlinkSync(join(root, d, e), join(to, d, e));
+  }
+  if (existsSync(join(root, "node_modules/@m3a"))) {
+    mkdirSync(join(to, "node_modules/@m3a"));
+    for (const p of readdirSync(join(root, "node_modules/@m3a"))) symlinkSync(`../../packages/${p}`, join(to, "node_modules/@m3a", p));
+  }
+  return to;
 }
 
 /** A scratch checkout: the repository's library (its sets, lock, licenses and baselines; never library/local/) copied

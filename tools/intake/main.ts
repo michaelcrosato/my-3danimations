@@ -2,7 +2,7 @@
 // [--fixture all]` (PLAN.md §5.9, WP-9.1a): the checker over the store's new submissions (the local store under
 // .cache/intake/, or the hosted one when its environment links it), or over the fixtures in a scratch store, each
 // expected outcome held; the adopt bot over the owner's adoptions (the real pull request is G9's deferred proof, so
-// only a dry run against a scratch checkout runs here); and the library's gates on the clips a pull request adds or
+// only a dry run against a scratch copy of the repository runs here, the derived files regenerated in it); and the library's gates on the clips a pull request adds or
 // changes (library-gates.yml, `npm run gate -- library-pr`), or on a scratch copy with the fixtures' clips planted, the
 // bad ones expected to fail. Prints verdict first, exits 0 ok, 1 findings, 2 usage.
 import { mkdtempSync, rmSync } from "node:fs";
@@ -19,7 +19,7 @@ import { check, openChecker, type Checked } from "./check.ts";
 import { fixtures, type Fixture } from "./fixtures.ts";
 import { libraryGates, plantedGates } from "./gates.ts";
 import { checkerStore, hostedEnv, today } from "./host.ts";
-import { scratchCheckout } from "./write.ts";
+import { scratchRepo } from "./write.ts";
 
 /** The fixtures' contributor in a scratch store. */
 export const FIXTURE_CONTRIBUTOR = "fixtures";
@@ -57,7 +57,7 @@ if (import.meta.main) {
   const specs = [
     { name: "fixture", takesValue: true, help: "check, gates: the fixtures (all, or one by name) in a scratch store or library copy" },
     { name: "dry-run", help: "adopt: write into a scratch checkout and print the pull request it would open" },
-    { name: "checkout", takesValue: true, help: "adopt --dry-run: the scratch checkout to write into (a copy of the library under /tmp by default)" },
+    { name: "checkout", takesValue: true, help: "adopt --dry-run: the scratch checkout to write into, a whole one (a copy of the repository under /tmp by default)" },
     { name: "base", takesValue: true, help: "gates: the ref the pull request is compared with (origin/main)" },
   ];
   const verbs = ["check", "adopt", "gates"];
@@ -87,7 +87,7 @@ if (import.meta.main) {
     } else if (verb === "adopt") {
       // the real pull requests take the hosted store and the workflow's token (intake.yml once O8 is linked: G9)
       if (!f["dry-run"] && !(hostedEnv() && process.env.GH_TOKEN)) throw new Error("the adopt bot opens real pull requests only in intake.yml, with O8's store linked and the workflow's token (G9's deferred proof): run it here with --dry-run");
-      const made = f["dry-run"] && typeof f.checkout !== "string", dir = f["dry-run"] ? (made ? scratchCheckout() : (f.checkout as string)) : ROOT, o = checkerStore({ cwd: ROOT });
+      const made = f["dry-run"] && typeof f.checkout !== "string", dir = f["dry-run"] ? (made ? scratchRepo() : (f.checkout as string)) : ROOT, o = checkerStore({ cwd: ROOT });
       const done = await adopt({ store: o.store, owner: await o.owner(), checkout: dir, prs: f["dry-run"] ? dryRun((t: string) => void lines.push(t)) : github(ROOT), today });
       for (const d of done) steps.push({ name: d.id, ok: d.outcome !== "refused", ms: 0, summary: `${d.outcome}${d.why ? `: ${d.why.slice(0, 120)}` : ""}` });
       if (!done.length) steps.push({ name: "adopt", ok: true, ms: performance.now() - t0, summary: "no adoption by the owner to commit; nothing written" });

@@ -3,18 +3,24 @@
 // name a record carries), one at a time: it rechecks the submission's content hash against the decision's, writes the
 // clip through @m3a/library's writer into its set (its tier's intake set, or with `improves` over the clip it improves,
 // a new version of it) with its catalog row, facts, quality and provenance (the intake's, with the submission it came
-// from) and the owner's approval with its motion hash, opens a pull request against `main`, runs the library's gates on
-// it (a pull request opened with a workflow's own token starts no other workflow) and merges it if they pass; if they
-// fail it closes it, restores what it wrote, and returns the submission to `awaiting review` with the reason. The pull
+// from) and the owner's approval with its motion hash, regenerates in that checkout the library's derived files with
+// the repository's own commands (the lock, the sensors' baseline, the distributions, docs/LIBRARY.md: WP-9.1, so the
+// pull request is whole and the library's checks pass on what it merges), naming in its body each distribution now
+// worse than recorded (they may only improve: the owner's adoption is the logged decision), opens a pull request
+// against `main`, runs the library's gates on it (a pull request opened with a workflow's own token starts no other
+// workflow) and merges it if they and the regeneration pass; if not it closes it, restores what it wrote, and returns
+// the submission to `awaiting review` with the reason. The pull
 // requests are behind `PullRequests`: a dry run prints the one it would open; GitHub's (gh, with the workflow's token)
 // is G9's deferred proof and nothing here calls it.
 import { spawnSync } from "node:child_process";
+import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { format, type Clip } from "@m3a/core";
 import { withFacts } from "@m3a/library";
 import { contentHash, motionHash, type IntakeStore, type Submission } from "../../packages/tools/src/intake/index.ts";
 import { restFor } from "../../packages/tools/src/tools/clips.ts";
 import { clipOf, INTAKE_SETS, licenseRule, lineage, type IntakeProvenance } from "../../packages/tools/src/tools/library-submit.ts";
+import { againstRecord, readRecord } from "../qa/library.ts";
 import { libraryClips } from "../qa/qa.ts";
 import { qualityOf, readReasons } from "../qa/verdict.ts";
 import type { Step } from "../run/cli.ts";
@@ -89,9 +95,44 @@ export function github(cwd: string): PullRequests {
   };
 }
 
+/** The library's derived files an adoption changes, relative to the checkout, and the repository's commands that
+ *  regenerate them (`npm run library -- lock`; `npm run qa -- library --baseline`: the sensors' baseline, the
+ *  distributions and docs/LIBRARY.md). */
+export const DERIVED = { files: ["library/sets.lock.json", "packages/sensors/fixtures/baseline.json", "library/baselines/distributions.json", "docs/LIBRARY.md"], commands: [["tools/library/main.ts", "lock"], ["tools/qa/main.ts", "library", "--baseline"]] } as const;
+
+/** What regenerating the derived files did: one step a command, the files it changed, each distribution now worse
+ *  than was recorded, and `restore`, which puts each file back as it was. */
+export interface Regenerated {
+  steps: Step[];
+  files: string[];
+  worse: string[];
+  restore(): void;
+}
+
+/** Regenerates the derived files in the whole checkout at `root` with the repository's own commands (DERIVED), and
+ *  names each distribution worse than library/baselines/distributions.json recorded before. */
+export async function regenerate(root: string): Promise<Regenerated> {
+  const at = (f: string) => join(root, f), was = new Map(DERIVED.files.map((f) => [f, existsSync(at(f)) ? readFileSync(at(f), "utf8") : null]));
+  const record = readRecord(at("library/baselines/distributions.json")), steps: Step[] = [];
+  for (const [script, ...args] of DERIVED.commands) {
+    const t = performance.now(), r = existsSync(at(script)) ? spawnSync(process.execPath, [script, ...args], { cwd: root, encoding: "utf8", maxBuffer: 1 << 26 }) : null;
+    const said = (r?.stdout ?? "").split("\n").find((l) => / (PASS|FAIL)\b/.test(l)) ?? "";
+    steps.push({ name: `npm run ${script.split("/")[1]} -- ${args.join(" ")}`, ok: r?.status === 0, ms: performance.now() - t, summary: r ? (r.status === 0 ? said : `${said || (r.stderr || "").trim().split("\n")[0]}`.slice(0, 200)) : `${root} is no whole checkout (no ${script}): the derived files are regenerated with the repository's commands` });
+  }
+  const now = readRecord(at("library/baselines/distributions.json")), worse = record && now ? againstRecord(record, now).worse : [];
+  return {
+    steps, worse, files: DERIVED.files.filter((f) => (existsSync(at(f)) ? readFileSync(at(f), "utf8") : null) !== was.get(f)),
+    restore() {
+      for (const [f, t] of was) if (t === null) rmSync(at(f), { force: true });
+      else writeFileSync(at(f), t);
+    },
+  };
+}
+
 /** How the adopt bot runs: the store (as the checker, which may return an adoption to review), the owner's fixed
  *  identity there, the checkout it writes into, its pull requests, the clock, the branch it merges into, the gates
- *  (the library's, by default) and the reference rigs they retarget onto, bound once (bound per run otherwise). */
+ *  (the library's, by default) and the reference rigs they retarget onto, bound once (bound per run otherwise), and
+ *  how the derived files are regenerated (`regenerate`, the repository's commands, by default). */
 export interface AdoptOptions {
   store: IntakeStore;
   owner: string;
@@ -101,6 +142,7 @@ export interface AdoptOptions {
   base?: string;
   gates?: (root: string, changed: readonly Changed[]) => Promise<Step[]>;
   rigs?: readonly Rig[];
+  regenerate?: (root: string) => Promise<Regenerated>;
 }
 
 /** What became of one adoption: merged; closed (its gates failed: back to review); refused (not the owner's); returned
@@ -142,11 +184,12 @@ export function adoptedClip(s: Submission, owner: string, checkout: string): Cli
   return { ...out, review: { state: "approved", by: owner, date: d.date, motion: motionHash(out), note: `adopted from ${s.id}@${s.content.slice(0, 12)}${d.note.trim() ? `: ${d.note.replace(/\s+/g, " ").trim()}` : ""}` } };
 }
 
-/** The pull request an adoption opens. */
-function draft(s: Submission, clip: Clip, w: Written, base: string): Draft {
+/** The pull request an adoption opens: the clip's files and the derived ones regenerated (`g`), each distribution worse
+ *  than recorded named. */
+export function draft(s: Submission, clip: Clip, w: Pick<Written, "set" | "files">, base: string, g: Pick<Regenerated, "files" | "worse">): Draft {
   const d = s.decision!, gates = (s.report as { gates?: { ok: boolean }[] } | null)?.gates ?? [];
   return {
-    branch: `intake/${s.id}`, base, files: w.files,
+    branch: `intake/${s.id}`, base, files: [...new Set([...w.files, ...g.files])].sort(),
     title: `Adopt ${clip.id} from the intake queue (${s.id})`,
     body: [
       `Adopts ${s.id} as ${clip.id}: ${s.improves ? `a new version of ${s.improves}` : `a new clip in ${w.set}`}, written through @m3a/library's writer.`,
@@ -154,7 +197,9 @@ function draft(s: Submission, clip: Clip, w: Written, base: string): Draft {
       `- content hash: ${s.content}`,
       `- adopted by the owner (${d.by}) on ${d.date}, on that hash`,
       `- motion hash: ${clip.review?.motion ?? motionHash(clip)}`,
-      `- the checker: ${gates.filter((g) => g.ok).length} of ${gates.length} gates green`,
+      `- the checker: ${gates.filter((x) => x.ok).length} of ${gates.length} gates green`,
+      `- regenerated with the repository's commands (${DERIVED.commands.map(([f, ...a]) => `npm run ${f.split("/")[1]} -- ${a.join(" ")}`).join("; ")}): ${g.files.length ? g.files.join(", ") : "nothing changed"}`,
+      g.worse.length ? `- worse than recorded, recorded with this adoption (the distributions may only improve: the owner's adoption is the logged decision): ${g.worse.join("; ")}` : "- the distributions: none worse than recorded",
       "The owner's adoption is the approval (O7); this pull request merges when the library gates pass on it.",
     ].join("\n"),
   };
@@ -185,15 +230,16 @@ export async function adopt(o: AdoptOptions): Promise<Adopted[]> {
       await back("returned", `it changed since the owner adopted it (adopted on ${d.hash.slice(0, 12)}, it is ${now.slice(0, 12)} now): review it again`);
       continue;
     }
-    let clip: Clip;
+    let clip: Clip, w: Written;
     try {
       clip = adoptedClip(s, o.owner, o.checkout);
+      w = writeClip(o.checkout, clip);
     } catch (err) {
       await back("returned", `its clip can't be written: ${(err as Error).message.slice(0, 200)}`);
       continue;
     }
-    const w = writeClip(o.checkout, clip), pr = await o.prs.open(draft(s, clip, w, base));
-    const failed = (await (o.gates ?? ((r, ch) => runGates(r, ch, o.rigs)))(o.checkout, [{ id: clip.id, added: !s.improves }])).filter((x) => !x.ok);
+    const g = await (o.regenerate ?? regenerate)(o.checkout), pr = await o.prs.open(draft(s, clip, w, base, g));
+    const failed = [...g.steps, ...(await (o.gates ?? ((r, ch) => runGates(r, ch, o.rigs)))(o.checkout, [{ id: clip.id, added: !s.improves }]))].filter((x) => !x.ok);
     if (!failed.length) {
       await o.prs.merge(pr.number);
       out.push({ id: s.id, outcome: "merged", clip: clip.id, pr: pr.number, why: null });
@@ -201,6 +247,7 @@ export async function adopt(o: AdoptOptions): Promise<Adopted[]> {
     }
     const why = `its pull request #${pr.number} failed the library gates: ${failed.map((f) => `${f.name}: ${f.summary ?? "failed"}`).join("; ").slice(0, 300)}`;
     await o.prs.close(pr.number, why);
+    g.restore();
     w.restore();
     await back("closed", why, { clip: clip.id, pr: pr.number });
   }
