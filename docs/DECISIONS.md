@@ -4286,6 +4286,27 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
     and previews suites among its browser checks), the preview site built, and the owner's 20-clip batch exported. The
     owner's phone review of that batch is theirs: blocked-owner until it comes (§8.5), the notes it brings back
     applied with `m3a review ingest`.
+  - **8.3's crossing:** `tools/run/site.ts`, the preview site's builder `vercel.json` runs, outside its Owns.
+  - **The verifier review** (three lenses, fresh subagents, each lens's findings checked by a skeptic: all held but one,
+    G8's set, which the skeptic found sound). Fixed:
+    - **8.2:** a secret intake key given to the build was inlined into the contributor page (the build now fails); the
+      guard trusted a setting any session can set, so the checker's role could move a submission to a verdict (now
+      only decide does, as the decision it has just written says); the rate limit was a count then an insert that
+      parallel requests all passed (a database trigger holds it under a per-contributor lock); anon kept the decisions
+      sequence; the deployed store, a revoked key and an agent's key-only submit were untested (tested; the function
+      deploys with `--no-verify-jwt`, the key its check); the hosted contract leg could pass once per project (its texts
+      carry the run's nonce).
+    - **8.1:** the e2e passed with the view, rate, search, sheet and clip panel broken (it fails on each now, nine
+      breaks proved); overlapping opens left the stage on the first clip (a generation guard); a frame-stepped link
+      reopened another pose (`t` to the microsecond, steps on whole frames); the stage copied graph.sim's stepping loop
+      (one `sim.SimStepper` now, its outputs byte for byte); `npm run e2e -- <name>` ran every suite in a checkout
+      whose path held the name (a bare name is its suite).
+    - **8.3:** the e2e opened 3 of the site's 5 pages (it opens every page now); nothing stopped `M3A_REVIEW_QUEUE`
+      reaching the site (site.ts drops it, tested); no link from the gallery to the labs; three copies of the stamp's
+      commit helper (one, `tools/run/stamp.ts`).
+    - Answered: the CLI and MCP can't name a `gen-<seed>` character or an arbitrary orbit (the gallery's actions list
+      says which API call does it; a resolver for `gen-<seed>` is a follow-up); G8's ingest clause is read off the
+      owner's `m3a review ingest` line when the review comes, as the gate's comment says.
 - **Why:** the plan's Phase 8, each WP's Done-when proved by its Verify; the split keeps each lane within L.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.51.0

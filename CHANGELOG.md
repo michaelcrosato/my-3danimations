@@ -14,6 +14,10 @@ features, patch for fixes. One line per change, under the part it touched (**Spe
 - The intake store (`intake`, WP-8.2a): §5.9's contract, its `local` backend (`@m3a/tools/node`'s `INTAKE_DIR`,
   `intakeFiles`) and `supabase` backend, the review's two formats (m3a.review-queue/1, m3a.review/1) with schemas.
 - The manual's generated tool list names an MCP name only where it differs from the tool's (7,971 of 8,000 tokens).
+- `sim.SimStepper`: graph.sim's stepping loop, exported, which `simulate` and the gallery's stage both run (its outputs
+  byte for byte).
+- The intake store's hosted schema: only `decide` moves a submission to a verdict, the rate (20 a contributor a day)
+  is held in the database under a lock, a build given a secret intake key fails (D109).
 
 ### Repo
 - The gallery (`npm run gallery`, WP-8.1): every set and clip played, measured and linked at a phone viewport, the
