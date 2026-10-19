@@ -33,6 +33,7 @@
     "fixtures": "node tools/fixtures/main.ts",
     "sweep": "node tools/sweep/main.ts",
     "hello": "node tools/run/hello.ts",
+    "gallery": "node tools/run/gallery.ts",
     "library": "node tools/library/main.ts",
     "license": "node tools/license/main.ts",
     "corpora": "node tools/corpora/main.ts",

@@ -22,3 +22,5 @@ export { installConsole } from "./registry/index.ts";
 export { runCli } from "./cli.ts";
 /** The MCP server, platform-neutral: one JSON-RPC message in, its response out (`m3a mcp` carries it over stdio). */
 export { mcpServer } from "./mcp.ts";
+/** The intake queue (PLAN.md §5.9): IntakeStore, its backends, the hashes, the queue and review formats, applyReview. */
+export * as intake from "./intake/index.ts";
