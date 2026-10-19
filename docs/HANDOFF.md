@@ -1,42 +1,40 @@
-# Handoff: G9's commands passed; Phase 10 next (2026-10-19)
+# Handoff: every phase built; G10's commands passed; the owner's steps open (2026-10-19)
 
-Phase 7 merged before its gate (michaelcrosato/my-3danimations#13, D103); G7 ran on michaelcrosato/my-3danimations#14
-and passed on run 2 (D107); Phase 8 merged on michaelcrosato/my-3danimations#15 with G8's commands passed (D111);
-Phase 9 on michaelcrosato/my-3danimations#16, where G9's commands passed on run 2 (D115). This file is what the next
-session needs.
+Phase 7 merged before its gate (michaelcrosato/my-3danimations#13, D103); G7 passed on run 2 on
+michaelcrosato/my-3danimations#14 (D107); Phase 8 merged on michaelcrosato/my-3danimations#15 (G8's commands, D111);
+Phase 9 on michaelcrosato/my-3danimations#16 (G9's commands passed on run 2, D115); Phase 10 on
+michaelcrosato/my-3danimations#17 (G10's commands passed on run 1, D117). This file is what the next session needs.
 
 ## The standing goal (the owner's)
 
 Finish my-3danimations: every ledger row (PLAN.md §14) through G10 done, deferred with its reason, or blocked-owner
 with its ask on the PR; CI green on the final head. Ultracode mode (PLAN.md §11, D83): implementers in worktree lanes
 (`.claude/worktrees/lane-*`, each with its own `.cache` symlinking `fixtures`, `src`, `100style`, `cmu`, `sources`),
-the main session integrates shared files, DECISIONS and merges, and runs every gate in the main checkout. Push every
-30-60 minutes, at most 3 lanes, none during trial batches. After each gate's squash merge (CI green), restart the
-branch from `origin/main` and open the next draft PR. G8-G10 have owner steps; such a gate still merges (§8.5).
+the main session integrates shared files, DECISIONS and merges, and runs every gate in the main checkout. At most 3
+lanes, none during trial batches. G8-G10 have owner steps; such a gate still merges (§8.5).
 
 ## Where things stand
 
-- **Version 0.52.1.** Done: Phases 0-9. G9 = M3's command set passed on run 2 (D115,
-  `bench/results/gates/G9-run-2/`); run 1 failed on B8-ten, 9 of 10, fixed forward in the intake's lint (D114). Its
-  open items, blocked-owner and asked on #16: the intake contract suite in Actions against O8's project, an adoption
-  through a merged PR, the owner's approval of 70% of `G9-run-2/queue.json`. G8's phone review is still open (#15).
-- **Phase 10** is built, reviewed by fresh verifiers (each finding checked by a skeptic) and fixed in lanes, staged on
-  the local branch `p10-try` (on 644e06b; worktree /tmp/p10try): the conformance kit (spec/conformance, `npm run
-  conformance`, 1eb77dd..99517af after the review), the consumer proof (apps/lab/consumer-ts, docs/MIGRATING.md,
-  e5f5886..5815981), the `conformance` script and G10's set (f671077, e11925e with `pack --check`). D116's text is in
-  the scratchpad's d116.md, to log with it. Its branch commits are local only: cherry-pick them onto the fresh branch
-  first (f702308, b4dc705, f2a617f, e367143 on integrate/p10 are the lanes' originals).
-- **Last measured (4 CPUs):** T0 about 3-8 s, T1 77 s in CI (108 s here at the gate), T2 about 320 s with the full
-  sweeps (Phase 9's heavy proofs moved there), `pack --check` about 20 s.
+- **Version 0.53.0.** Every WP through 10.2 is done; G0-G7 passed; G8, G9 and G10's command sets passed and each
+  waits on the owner (blocked-owner, its ask on its PR):
+  - **G8** (#15): the phone review of `bench/results/gates/G8-run-1/queue.json`.
+  - **G9** (#16): the contract suite against O8's project (`ci` dispatched with the gate `intake-contract`, the secret
+    `M3A_INTAKE_SUPABASE`), an adoption through a merged PR (intake.yml with O8's secrets), the owner's approval of 70%
+    of `bench/results/gates/G9-run-2/queue.json`.
+  - **G10** (#17): another repository consumes the package or certifies against the vectors, and the owner confirms
+    it (O9: proposed in docs/MIGRATING.md and spec/conformance/CERTIFYING.md, never acted on there).
+  - O3 (the Vercel previews, paused) and O8 (the Supabase project) are the owner's; the session creates neither.
+- **Review bots:** every finding on #14, #15, #16 and #17 is fixed or answered on its thread (D115, D117); one, binding a
+  community pack's `verify` to the admission-time proof hash, is left open on #16 for the owner.
+- **Last measured (4 CPUs):** T0 about 3 s, T1 77 s in CI (about 105 s here), T2 about 350 s with the full sweeps,
+  `pack --check` about 21 s, the TypeScript certification about 8 s.
 
 ## Next, in order
 
-1. **Merge #16** (CI green on its head), then a fresh draft PR from `origin/main` for Phase 10: cherry-pick p10-try's
-   commits past 644e06b, bump to 0.53.0 with its changelog, log D116, the ledger rows 10.1 and 10.2, PROGRESS.
-2. **G10:** `npm run gate -- G10 --json` (no trials: check, test, doctrine, vectors, `conformance -- --impl ts`,
-   `e2e -- consumer-ts`, `pack --check`, T2), its record, the report on the PR with G10's owner step (another
-   repository consuming the package or certifying against the vectors, and the owner's confirmation: O9, propose to
-   my-3dge and shardfall, never act there) as blocked-owner; CI green; merge.
+1. Whatever the owner sends back: a review file (`npx m3a review ingest <file>`, its notes into
+   docs/FEEDBACK-LOG.md and a threshold or task proposal into docs/REVIEW-PROPOSALS.md), O8 linked (the contract run,
+   the first adoption by the bot), another repository's use confirmed (G10).
+2. The follow-ups below, each a WP of its own when the owner picks it.
 
 ## Follow-ups recorded, owned by no WP yet
 
@@ -70,6 +68,9 @@ branch from `origin/main` and open the next draft PR. G8-G10 have owner steps; s
   measure, which knows the captured speed, not core's.
 - T2 could load `m3a.js` in Chromium (F5.3); G7 and G10 run pack --check.
 - shardfall's tier 1b waits on its glTF reader's Rigify look (CERTIFYING.md, D116; O9: a proposal).
+- Repo: T1's conformance CLI test runs `main.ts --json` with the broken sidecar, so it rewrites
+  check-output/conformance/report.json; a certification's report is kept by copying it at once (G10's is in its
+  record).
 - A stray private artifact of spec/conformance/CERTIFYING.md (https://claude.ai/artifact/5AP4qvDZDN6w7nEGxG5Tzn), made
   by a lane's mistaken edit, waits for the owner's word to delete it.
 

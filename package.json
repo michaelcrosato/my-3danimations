@@ -1,6 +1,6 @@
 {
   "name": "my-3danimations",
-  "version": "0.52.1",
+  "version": "0.53.0",
   "private": true,
   "description": "An open animation package for AI coding agents: spec, runtime, sensors, library and tools.",
   "license": "MIT",
@@ -39,6 +39,7 @@
     "m3a": "node packages/tools/src/node.ts",
     "intake": "node tools/intake/main.ts",
     "index": "node tools/release/main.ts",
+    "conformance": "node tools/conformance/main.ts",
     "library": "node tools/library/main.ts",
     "license": "node tools/license/main.ts",
     "corpora": "node tools/corpora/main.ts",

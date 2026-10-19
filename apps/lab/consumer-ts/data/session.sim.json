@@ -1,0 +1,10 @@
+{
+  "format": "2.0", "id": "SIMS/Consumer_Duel", "graph": "GRAPHS/Consumer_Duel", "dur": 5.5,
+  "desc": "The lab's scripted session, the hero's input: stands, walks, jogs, slows to a stop before the dummy and slashes; the root follows the animation",
+  "input": [
+    { "t": 0.5, "set": { "speed": 1 }, "over": 0.3 },
+    { "t": 1.5, "set": { "speed": 3.5 }, "over": 0.5 },
+    { "t": 2.4, "set": { "speed": 0 }, "over": 0.5 },
+    { "t": 3.2, "trigger": "attack" }
+  ]
+}

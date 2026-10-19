@@ -1,11 +1,33 @@
-// Tests for the conformance runner: the vectors match their manifest, every tier loads with its expected shape, and
-// tier 1b's glTF packs to the very .glb the oracle read (its SHA-256 is recorded in tier 1a).
+// Tests for the conformance runner: the vectors match their manifest, and the check names a file edited, missing or not
+// listed; every tier loads with its expected shape, and tier 1b's glTF packs to the very .glb the oracle read (its
+// SHA-256 is recorded in tier 1a).
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { firstDiff, loadTier1a, loadTier2, loadTier3, sha256, tier1bRigGlb, tier1bText, tier2Sets, verifyManifest } from "./vectors.ts";
 
 describe("the conformance vectors", () => {
   it("match their manifest", () => {
     expect(verifyManifest()).toEqual([]);
+  });
+  it("fail the manifest check when a file is edited, missing, or in a tier's folder unlisted (tier 2 reads its folder)", () => {
+    const dir = mkdtempSync(join(tmpdir(), "m3a-vectors-"));
+    try {
+      const put = (p: string, text: string) => {
+        mkdirSync(join(dir, p, ".."), { recursive: true });
+        writeFileSync(join(dir, p), text);
+      };
+      const entry = (text: string) => ({ bytes: Buffer.byteLength(text), sha256: sha256(text) });
+      put("tier2/A.json", "{}");
+      put("tier1a/B.json", "{} ");
+      put("tier2/EXTRA.json", "{}");
+      put("README.md", "not a tier's");
+      put("manifest.json", JSON.stringify({ files: { "tier2/A.json": entry("{}"), "tier1a/B.json": entry("{}"), "tier3/C.json": entry("{}") } }));
+      expect(verifyManifest(dir)).toEqual(["tier1a/B.json does not match the manifest", "tier2/EXTRA.json is not in the manifest", "tier3/C.json is missing"]);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
   it("tier 1a holds captures of 36 body points and the oracle's fits", () => {
     for (const name of ["rig", "cmu-09_02"] as const) {

@@ -52,6 +52,9 @@ describe("a gate's report", () => {
     expect(GATES.G8!.map(([, script]) => script)).toEqual(["check", "test", "doctrine", "vectors", "test", "e2e", "site", "m3a"]);
     expect(GATES.G9!.filter(([, script]) => script === "bench").map(([, , ...args]) => args.join(" "))).toEqual(["B8 --trials 5 --parallel 5", "B8-ten --trials 1", "B8 --trials 5 --parallel 5 --heldout G9"]);
   });
+  it("certifies the TypeScript implementation in full and plays the consumer proof at G10", () => {
+    expect(GATES.G10!.filter(([, script]) => script === "conformance" || script === "e2e").map(([, script, ...args]) => [script, ...args].join(" "))).toEqual(["conformance --impl ts", "e2e consumer-ts", "e2e"]);
+  });
 });
 
 describe("the header lint", () => {

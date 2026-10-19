@@ -4561,3 +4561,72 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
 - **Why:** the gate's machine-provable clauses, each run in its command set, and the owner's left as the owner's.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.52.1
+
+## D116 · 2026-10-19 · Phase 10: the conformance kit's protocol, the consumer proof, G10's command set and its review
+
+- **Principle:** 3, 5, 7, 12, O9, D83
+- **Call:**
+  - **WP-10.2, the kit's protocol (m3a-conformance/1, spec/conformance/PROTOCOL.md):** an implementation is a sidecar,
+    a command reading newline-delimited JSON requests on stdin and answering one line each on stdout, the pattern
+    shardfall's Rust tools use for SpawnForge; `hello` names the ops and format versions it answers; eleven ops cover
+    tiers 1a, 1b, 2 and 3, each compared at its tier's tolerance (1a and 1b bit for bit, 2 within 0.001 mm and by the
+    vectors' SHA-256s, 3 by the bodies' limbs within 9°, the chest within 9 (14 curled), lengths kept, soles on the
+    floor); a tier whose ops an implementation doesn't answer is "not claimed", failing only when `--tier` names it;
+    `frozen/` is core's own check, not asked. Every answer, hello's too, is checked against protocol.schema.json
+    before it is compared; a request unanswered past its deadline (60 s, `--timeout`) fails with its op named; the
+    vectors are verified against their manifest first, and a certification names the protocol, the manifest's
+    SHA-256 and the commit.
+  - **The CLI lives in tools/conformance/** (`npm run conformance -- --impl ts|"<command>"`), beside the other repo
+    tools, though WP-10.2's Owns names spec/conformance/* alone; the kit, the adapters and the protocol are there.
+  - **The broken implementation** (adapters/broken.ts) takes its defects by name, comma-separated, so one process
+    serves several cases: a rounded fit, swapped wrists, NaN or strings where the reference is zero, longer legs with
+    their bones hidden, sunk soles, an echo, a bare hello, a null line, a hang. Each fails naming its vector.
+  - **shardfall's Rust codec certifies tiers 1a and 2 now** (CERTIFYING.md, read against its pin a9ca003): its glTF
+    reader gives no mannequin look and calls its warnings `notes`, so tier 1b waits on that port; written here only,
+    as a proposal (O9).
+  - **WP-10.1, the consumer proof (apps/lab/consumer-ts):** a my-3dge-shaped duel (three.js r182, a fixed 60 Hz sim
+    on my-3dge's frame clock, two humanoids on one graph, a slash whose `hit` event lands through the sim's rules,
+    root motion) on the public API alone; its e2e plays the scripted session in the browser and in Node and compares
+    them step by step (events, hits, places, hp, hashes), holds the hero to `sim.simulate`'s root path at every step,
+    and runs the page's own frame loop on a held clock. The lab reaches past the manual twice, both public names: the
+    library's files bundled by its Vite config (`defaultSets`, `directory`) and the names its README lists; the manual
+    stays at 7,999 of 8,000 tokens.
+  - **docs/MIGRATING.md** maps my-3dge's WPs 3.4–3.7 (ADR-0009) and 8.1–8.10 (ADR-0010), at its pin 652ea6b, as
+    replaced, wrapped or kept, and names the others the package replaces (WP-10.8's Library Lab in part); every API
+    call it writes runs as written. Proposing the switch in my-3dge is O9: the guide proposes, it changes nothing
+    there.
+  - **G10's command set:** check, test, doctrine, vectors, the full TypeScript certification, the consumer proof's
+    e2e, `pack --check` (the packages as another repository installs them) and T2. G10's clause, another repository
+    consuming the package or certifying against the vectors and the owner's confirmation, is the owner's (O9):
+    blocked-owner, asked on the pull request.
+  - **The review:** a fresh verifier per WP, each finding checked by a skeptic. The kit certified a retarget that
+    hid its bones and NaN answers where the reference was zero, crashed on a wrong-shaped answer or a null line, hung
+    on a silent sidecar and didn't enforce its own schema; T2 was red on the lab's stamp, and the e2e passed a lab
+    without root motion or a broken hash. Every finding is fixed with a test that fails without it (the e2e against
+    six mutants of the lab).
+- **Why:** the plan's Phase 10, each WP's Done-when proved by its Verify, and what only the owner can give asked for
+  rather than done (O9).
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.53.0
+
+## D117 · 2026-10-19 · G10 = M4's command set passed on run 1; another repository's use and the owner's confirmation blocked-owner
+
+- **Principle:** O9, PLAN.md §8.5, §9.3, D116
+- **Call:**
+  - **Run 1** at 95af62d (0.53.0, `bench/results/gates/G10-run-1/`) passed 8 of 8 in 537.5 s: check, T1 (109.1 s
+    here), doctrine, vectors, the full TypeScript certification (tiers 1a, 1b, 2 and 3, 3,662 cases), the consumer
+    proof's e2e, `pack --check` and T2 (352.4 s); the certification's report is kept beside it.
+  - **G10's clause is the owner's:** another repository consuming the package or certifying against the vectors, and
+    the owner's confirmation. The session acts in no other repository (O9): docs/MIGRATING.md proposes my-3dge's
+    switch and spec/conformance/CERTIFYING.md shardfall's certification; asked on the pull request, blocked-owner, and
+    the gate merges with it open (§8.5).
+  - **After the gate, the review bot's four findings** (#17): the wire writes -0 as raw JSON (no sentinel string), the
+    certification's `-dirty` covers what the run executed (with `--impl ts`, packages/core and io), and the lab keeps
+    a J press until a step takes it and lerps between the last two states after a multi-step frame. Re-checked on the
+    fixed head: the kit's 55 tests, the TypeScript certification (3,662 cases), the consumer proof's e2e (5 of 5) and
+    T1 (1,187 tests); the gate's record stands at its commit.
+  - **Every §14 row through G10** is done or blocked-owner with its ask on its pull request: G8's phone review (#15),
+    G9's hosted run, adoption and approval (#16), G10's confirmation (#17).
+- **Why:** the last gate's machine-provable clauses run, and what only the owner can give asked for rather than done.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.53.0

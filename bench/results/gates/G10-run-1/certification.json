@@ -1,0 +1,210 @@
+{
+  "tool": "conformance",
+  "warnings": [],
+  "ms": 7977.398741999999,
+  "ok": true,
+  "verdict": "conformance: @m3a/core 0.53.0 certifies tiers 1a, 1b, 2, 3 (m3a-conformance/1, vectors 9c92061b49d3), 3662 cases in 8.0 s",
+  "steps": [
+    {
+      "name": "tier 1a",
+      "ok": true,
+      "ms": 69.29320500000006,
+      "summary": "15 of 15 cases pass in 2 vector files",
+      "detail": []
+    },
+    {
+      "name": "tier 1b",
+      "ok": true,
+      "ms": 89.83409400000005,
+      "summary": "6 of 6 cases pass in 3 vector files",
+      "detail": []
+    },
+    {
+      "name": "tier 2",
+      "ok": true,
+      "ms": 2258.665959,
+      "summary": "1324 of 1324 cases pass in 4 vector files, worst decodeUm 0.500",
+      "detail": []
+    },
+    {
+      "name": "tier 3",
+      "ok": true,
+      "ms": 5116.628167999999,
+      "summary": "2317 of 2317 cases pass in 7 vector files, worst limbDeg 0.000408, worst chestDeg 0.00189, worst curledDeg 0.00189, worst lengthMm 7.67e-13, worst soleMm 5.04e-13",
+      "detail": []
+    }
+  ],
+  "next": "keep the --json report with the release it certifies",
+  "certification": {
+    "kit": {
+      "protocol": "m3a-conformance/1",
+      "manifestSha256": "9c92061b49d3898f8cfd8cbe431958a5dc3a2d1ffb1e755e7f86d858d85cc471",
+      "version": "0.53.0",
+      "commit": "95af62d30efb79e272f23bfee5ac2c56b6830794"
+    },
+    "impl": {
+      "implementation": "@m3a/core",
+      "version": "0.53.0",
+      "protocol": "m3a-conformance/1",
+      "ops": [
+        "hello",
+        "reduce",
+        "fit",
+        "text",
+        "parse",
+        "mirror",
+        "decode",
+        "readGltf",
+        "readCmu",
+        "measure",
+        "retarget"
+      ],
+      "formats": [
+        1,
+        2
+      ]
+    },
+    "tiers": [
+      {
+        "tier": "1a",
+        "claimed": true,
+        "ok": true,
+        "ms": 69.29320500000006,
+        "cases": 15,
+        "failed": 0,
+        "vectors": [
+          {
+            "vector": "tier1a/rig.json",
+            "cases": 9,
+            "failed": 0
+          },
+          {
+            "vector": "tier1a/cmu-09_02.json",
+            "cases": 6,
+            "failed": 0
+          }
+        ],
+        "worst": {},
+        "missing": [],
+        "skipped": []
+      },
+      {
+        "tier": "1b",
+        "claimed": true,
+        "ok": true,
+        "ms": 89.83409400000005,
+        "cases": 6,
+        "failed": 0,
+        "vectors": [
+          {
+            "vector": "tier1b/rig.gltf",
+            "cases": 2,
+            "failed": 0
+          },
+          {
+            "vector": "tier1b/rigify.gltf",
+            "cases": 2,
+            "failed": 0
+          },
+          {
+            "vector": "tier1b/cmu/",
+            "cases": 2,
+            "failed": 0
+          }
+        ],
+        "worst": {},
+        "missing": [],
+        "skipped": []
+      },
+      {
+        "tier": "2",
+        "claimed": true,
+        "ok": true,
+        "ms": 2258.665959,
+        "cases": 1324,
+        "failed": 0,
+        "vectors": [
+          {
+            "vector": "tier2/CMU.json",
+            "cases": 240,
+            "failed": 0
+          },
+          {
+            "vector": "tier2/FORMAT2.json",
+            "cases": 24,
+            "failed": 0
+          },
+          {
+            "vector": "tier2/MESH2MOTION.json",
+            "cases": 708,
+            "failed": 0
+          },
+          {
+            "vector": "tier2/QUATERNIUS.json",
+            "cases": 352,
+            "failed": 0
+          }
+        ],
+        "worst": {
+          "decodeUm": 0.5
+        },
+        "missing": [],
+        "skipped": []
+      },
+      {
+        "tier": "3",
+        "claimed": true,
+        "ok": true,
+        "ms": 5116.628167999999,
+        "cases": 2317,
+        "failed": 0,
+        "vectors": [
+          {
+            "vector": "tier3/bodies.json: rig",
+            "cases": 331,
+            "failed": 0
+          },
+          {
+            "vector": "tier3/bodies.json: long-legs",
+            "cases": 331,
+            "failed": 0
+          },
+          {
+            "vector": "tier3/bodies.json: short-arms",
+            "cases": 331,
+            "failed": 0
+          },
+          {
+            "vector": "tier3/bodies.json: long-torso",
+            "cases": 331,
+            "failed": 0
+          },
+          {
+            "vector": "tier3/bodies.json: child",
+            "cases": 331,
+            "failed": 0
+          },
+          {
+            "vector": "tier3/bodies.json: broad",
+            "cases": 331,
+            "failed": 0
+          },
+          {
+            "vector": "tier3/bodies.json: stocky",
+            "cases": 331,
+            "failed": 0
+          }
+        ],
+        "worst": {
+          "limbDeg": 0.0004084510588805911,
+          "chestDeg": 0.0018852308100060198,
+          "curledDeg": 0.0018911334879499226,
+          "lengthMm": 7.673861546209082e-13,
+          "soleMm": 5.044853423896711e-13
+        },
+        "missing": [],
+        "skipped": []
+      }
+    ]
+  }
+}

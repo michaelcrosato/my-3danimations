@@ -1,0 +1,22 @@
+pack --check: PASS in 21.4 s; the packs in .cache/pack/
+  ok   build and pack 5.8 s: core 302 KB, sensors 101 KB, io 94 KB, library 441 KB, three 50 KB, tools 230 KB, library-cc-by 942 KB, library-cmu 630 KB
+  ok   single file 2.6 s: m3a.js 1262 KB: 47 CC0 clips, 130 exports
+  ok   tiers 0.0 s: library: 3 cc0 sets; library-cc-by: 7 cc-by sets; library-cmu: 1 cmu set
+  ok   bin 0.0 s: m3a → dist/node.js, with its shebang
+  ok   version 0.0 s: every pack at 0.53.0, its @m3a packages too, each with CHANGELOG.md (its 0.53.0 section there: node tools/version.ts --check)
+  ok   no benchmark text 0.0 s: no packed text file names the benchmark's graders, known-goods or held-out runs (the changelog as packedChangelog ships it)
+  ok   private 0.0 s: every staged package.json keeps "private": true (O2)
+  ok   single file's licenses 0.0 s: the credits block, CC0-1.0 and MIT, verbatim
+  ok   license check 0.3 s: license check tools/bundle/manifest.json: PASS in 0.0 s
+  ok   sensors 0.9 s: 47 clips: 23 pass, 24 carry their baseline; m3a.js's sensors read each as the packages' do
+  ok   examples 0.1 s: the complete example: packages/tools/MANUAL.md's "## A complete example" section
+  ok   scratch install 2.5 s: 9 packages installed in /tmp/m3a-pack-BpHB46
+  ok   example on the packages 3.2 s: 2 ts blocks as one program, with slash.json, knight.json, knight-sim.json, character.glb (Animator 61d1e931914618f2); 2 m3a calls, each exiting 0
+  ok   headless example on the packages 1.5 s: plays as on @m3a/three, bit for bit (updates, events, points, travel, hashes): {"updates":210,"events":["85:base:enter","113:@base/2/0:hit","145:react:enter","165:react:enter","18
+  ok   npx m3a 1.1 s: m3a 0.53.0: 22 tools; m3a 0.53.0, clip format 2.0
+  ok   m3a mcp 0.2 s: tools/list answers 22 tools
+  ok   opt-in packs 0.2 s: openLibrary() sees cc0 alone; opted in, 11 sets of cc0, cc-by and cmu, verified
+  ok   headless example on m3a.js 2.9 s: packages/tools/MANUAL.md's "## A complete example" section, headless: the same output as on the packages, bit for bit; 2 m3a calls through m3a.js's runCli, each exiting 0
+next: nothing is published (O2): the tarballs and m3a.js are in .cache/pack/
+(node:3336) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)

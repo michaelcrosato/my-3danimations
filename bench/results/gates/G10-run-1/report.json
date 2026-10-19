@@ -1,0 +1,76 @@
+{
+  "tool": "gate",
+  "ok": true,
+  "verdict": "gate G10: PASS in 537.5 s (8/8 commands) at 95af62d",
+  "steps": [
+    {
+      "name": "check",
+      "ok": true,
+      "ms": 2710.119885,
+      "detail": [],
+      "log": "check-output/gate/check.log",
+      "summary": "check: PASS (T0) in 2.5 s, budget 15.0 s"
+    },
+    {
+      "name": "test (the conformance kit's own tests: the broken implementation fails, naming its vector)",
+      "ok": true,
+      "ms": 109366.64644,
+      "detail": [],
+      "log": "check-output/gate/test-the-conformance-kit-s-own-tests-the-broken-implementation-fails-naming-its-vector-.log",
+      "summary": "test: PASS (T1) in 109.1 s, budget 90.0 s"
+    },
+    {
+      "name": "doctrine",
+      "ok": true,
+      "ms": 858.7033269999956,
+      "detail": [],
+      "log": "check-output/gate/doctrine.log",
+      "summary": "doctrine: PASS in 0.5 s (8 checks)"
+    },
+    {
+      "name": "vectors --check",
+      "ok": true,
+      "ms": 2033.5639589999919,
+      "detail": [],
+      "log": "check-output/gate/vectors-check.log",
+      "summary": "vectors: PASS (--check) in 1.6 s"
+    },
+    {
+      "name": "the TypeScript implementation certifies through the kit's own runner, every tier in full (WP-10.2)",
+      "ok": true,
+      "ms": 8233.506239999988,
+      "detail": [],
+      "log": "check-output/gate/the-TypeScript-implementation-certifies-through-the-kit-s-own-runner-every-tier-in-full-WP-10-2-.log",
+      "summary": "conformance: @m3a/core 0.53.0 certifies tiers 1a, 1b, 2, 3 (m3a-conformance/1, vectors 9c92061b49d3), 3662 cases in 7.9 s"
+    },
+    {
+      "name": "the TypeScript consumer proof: a my-3dge-shaped duel on the public API, the same in Node and the browser (WP-10.1)",
+      "ok": true,
+      "ms": 39415.213603,
+      "detail": [],
+      "log": "check-output/gate/the-TypeScript-consumer-proof-a-my-3dge-shaped-duel-on-the-public-API-the-same-in-Node-and-the-browser-WP-10-1-.log",
+      "summary": "e2e: PASS (T2) in 39.2 s, budget 480.0 s"
+    },
+    {
+      "name": "the packages as another repository installs them: the packed CLI, MCP server and single file run the manual's example outside this one",
+      "ok": true,
+      "ms": 22241.212025999994,
+      "detail": [],
+      "log": "check-output/gate/the-packages-as-another-repository-installs-them-the-packed-CLI-MCP-server-and-single-file-run-the-manual-s-example-outside-this-one.log",
+      "summary": "pack --check: PASS in 21.4 s; the packs in .cache/pack/"
+    },
+    {
+      "name": "T2: browser checks, library QA and the sweeps in full",
+      "ok": true,
+      "ms": 352658.818724,
+      "detail": [],
+      "log": "check-output/gate/T2-browser-checks-library-QA-and-the-sweeps-in-full.log",
+      "summary": "e2e: PASS (T2) in 352.4 s, budget 480.0 s"
+    }
+  ],
+  "warnings": [],
+  "ms": 537542.107447,
+  "next": "write the G10 report in docs/PROGRESS.md and on the PR, then merge (PLAN.md §8.5)",
+  "commit": "95af62d30efb79e272f23bfee5ac2c56b6830794",
+  "dirty": false
+}

@@ -1,0 +1,8 @@
+{
+  "format": "2.0", "id": "CONSUMER/Slash_Hit",
+  "desc": "The duel's slash: MESH2MOTION/Sword_Attack with a hit event at its measured strike, 0.479 s (m3a show MESH2MOTION/Sword_Attack)",
+  "steps": [
+    { "op": "clip", "id": "MESH2MOTION/Sword_Attack", "as": "slash" },
+    { "op": "events", "in": "slash", "add": [{ "t": 0.479, "name": "hit" }] }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "format": "2.0", "id": "GRAPHS/Consumer_Duel", "name": "Consumer duel",
+  "desc": "A fighter of the TypeScript consumer lab (apps/lab/consumer-ts): stands, walks and jogs by speed (m/s, a blend kept in step), slashes on attack with a hit event at the blade's strike, and flinches from the waist up on hurt while the legs go on",
+  "tags": ["locomotion", "combat"],
+  "parameters": { "speed": { "type": "number", "value": 0 }, "attack": { "type": "trigger", "buffer": 0.25 }, "hurt": { "type": "trigger" } },
+  "start": "move",
+  "states": {
+    "move": { "blend": { "param": "speed", "sync": true, "points": [
+      { "at": 0, "clip": "MESH2MOTION/Idle_Sword" },
+      { "at": 1, "clip": "MESH2MOTION/Walk_Large" },
+      { "at": 3.5, "clip": "MESH2MOTION/Jog" }] } },
+    "slash": { "recipe": "CONSUMER/Slash_Hit" }
+  },
+  "transitions": [
+    { "from": "move", "to": "slash", "when": [{ "param": "attack" }], "fade": 0.15 },
+    { "from": "slash", "to": "move", "exit": 0.9, "fade": 0.3 }
+  ],
+  "layers": [{
+    "name": "react", "mask": "upper", "start": "none",
+    "states": { "none": { "pass": true }, "flinch": { "clip": "MESH2MOTION/Hit_Head" } },
+    "transitions": [
+      { "from": "none", "to": "flinch", "when": [{ "param": "hurt" }], "fade": 0.05 },
+      { "from": "flinch", "to": "none", "exit": 1, "fade": 0.2 }
+    ]
+  }]
+}
