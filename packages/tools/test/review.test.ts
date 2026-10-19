@@ -47,7 +47,7 @@ describe("a review in a scratch checkout", () => {
 
   it("lists each submission awaiting review with its numbers and its diff against the clip it improves, and the sampled clips", async () => {
     const r = await call({});
-    expect([r.status, r.verdict]).toEqual(["ok", "review: 2 submissions awaiting review, 8 sampled clips (local store)"]);
+    expect([r.status, r.verdict]).toEqual(["ok", "review: 2 submissions awaiting review, 20 sampled clips (local store)"]);
     const d = r.data as { submissions: Queue["submissions"]; clips: Queue["clips"] }, s = d.submissions.find((x) => x.id === sub)!;
     expect(s).toMatchObject({ kind: "clip", contributor: "alice", improves: `${SET}/Walk_Loop`, report: { gates: "pass" }, numbers: { verdict: expect.any(String), keys: 20 }, diff: { against: `${SET}/Walk_Loop`, hash: motionHash(libraryClip(`${SET}/Walk_Loop`)) } });
     expect(s.diff!.max).toBeGreaterThan(0);
@@ -60,7 +60,7 @@ describe("a review in a scratch checkout", () => {
   it("exports the queue as the gallery's input, with each submission's text", async () => {
     const r = await call({ do: "export" }), q = JSON.parse(co.file(QUEUE_FILE)) as Queue;
     expect([r.status, (r.data as { path: string }).path]).toEqual(["ok", QUEUE_FILE]);
-    expect([q.schema, q.store, q.date, q.submissions.length, q.clips.length]).toEqual(["m3a.review-queue/1", "local", TODAY, 2, 8]);
+    expect([q.schema, q.store, q.date, q.submissions.length, q.clips.length]).toEqual(["m3a.review-queue/1", "local", TODAY, 2, 20]);
     expect(JSON.parse(q.submissions.find((x) => x.id === sub)!.text!)).toEqual(walk(2));
     const valid = schema("queue.schema.json");
     expect(valid(q), JSON.stringify(valid.errors)).toBe(true);

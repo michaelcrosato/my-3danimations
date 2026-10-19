@@ -5,7 +5,8 @@
 // the page; decisions are made by touch (one by one, a batch, a toggle), kept across a reload, and exported through the
 // share sheet (and as a download, the same bytes). `m3a review ingest` applies the file to the scratch store and the
 // scratch copy of the clips: the right states and files change; again, no byte changes; a queued clip edited through
-// the writer, then ingested: refused as stale, no byte changes. The contributor page says the hosted store isn't
+// the writer, then ingested: refused as stale, no byte changes. A build bundles a queue only when M3A_REVIEW_QUEUE
+// asks, and its page opens that one at load. The contributor page says the hosted store isn't
 // linked, reaches no other origin and carries no secret; built linked to a stub project, it signs in, adds a key's
 // SHA-256 and revokes it. Screenshots go to check-output/review/, never committed.
 import { createHash } from "node:crypto";
@@ -82,7 +83,7 @@ test.beforeAll(async () => {
   }
   expect((await review({ do: "export" })).status).toBe("ok");
   q = JSON.parse(co.file(QUEUE_FILE)) as Queue;
-  expect([q.submissions.length, q.clips.length, q.submissions.map((s) => s.contributor)]).toEqual([3, 8, expect.arrayContaining(["alice", "alice", "bob"])]);
+  expect([q.submissions.length, q.clips.length, q.submissions.map((s) => s.contributor)]).toEqual([3, 20, expect.arrayContaining(["alice", "alice", "bob"])]);
   await build({ configFile: join(ROOT, "apps/gallery/vite.config.ts"), build: { outDir: SITE, emptyOutDir: true }, logLevel: "error" });
 });
 test.afterAll(() => co?.rm());
@@ -95,11 +96,11 @@ test("review: a review made by touch at a phone viewport changes the right state
   const log = await visit(page, PAGE), queueFile = join(co.cwd, QUEUE_FILE);
   await page.setInputFiles("#file", queueFile);
   await page.waitForFunction(() => (window as unknown as Win).__m3a.state().source === "queue.json");
-  expect(await page.evaluate(() => (window as unknown as Win).__m3a.drawn()), log.join("\n")).toBe(11);
+  expect(await page.evaluate(() => (window as unknown as Win).__m3a.drawn()), log.join("\n")).toBe(23);
   const s0 = await state(page);
-  expect([s0.error, s0.submissions.length, s0.clips.length, s0.pictures]).toEqual([null, 3, 8, 13]); // 3 sheets, 2 diffs, 8 sheets
+  expect([s0.error, s0.submissions.length, s0.clips.length, s0.pictures]).toEqual([null, 3, 20, 25]); // 3 sheets, 2 diffs, 20 sheets (G8's batch)
   const captions = await page.locator("figcaption").allTextContents();
-  expect(captions.filter((c) => c.startsWith("preview sheet: sheet "))).toHaveLength(11);
+  expect(captions.filter((c) => c.startsWith("preview sheet: sheet "))).toHaveLength(23);
   expect(captions.filter((c) => c.startsWith(`against ${SET}/Walk_Loop: diff `))).toHaveLength(2);
   expect(await page.evaluate(() => { // the first sheet is drawn: many pixels unlike its corner
     const c = document.querySelector("canvas")!, d = c.getContext("2d")!.getImageData(0, 0, c.width, c.height).data;
@@ -122,7 +123,7 @@ test("review: a review made by touch at a phone viewport changes the right state
   await page.locator('[data-batch="archive"]').tap();
   await page.locator('[data-all="clip"]').tap();
   await card(page, flagged.id).locator("[data-select]").tap();
-  expect((await state(page)).selected).toHaveLength(7);
+  expect((await state(page)).selected).toHaveLength(19);
   await page.locator('[data-batch-note="clip"]').fill("clean");
   await page.locator('[data-batch="approve"]').tap();
   await card(page, flagged.id).locator('[data-as="flag"]').tap();
@@ -131,17 +132,17 @@ test("review: a review made by touch at a phone viewport changes the right state
   expect((await state(page)).clips[7]!.as).toBeNull();
   await card(page, q.clips[7]!.id).locator('[data-as="approve"]').tap();
   const s1 = await state(page), by = (id: string) => [...s1.submissions, ...s1.clips].find((r) => r.id === id)!;
-  expect([s1.decided, s1.selected, by(sub.id).as, by(other.id).as, by(rec.id).as, by(flagged.id).as, by(q.clips[0]!.id)]).toEqual([11, [], "adopt", "reject", "archive", "flag", { id: q.clips[0]!.id, ref: q.clips[0]!.ref, as: "approve", note: "clean" }]);
+  expect([s1.decided, s1.selected, by(sub.id).as, by(other.id).as, by(rec.id).as, by(flagged.id).as, by(q.clips[0]!.id)]).toEqual([23, [], "adopt", "reject", "archive", "flag", { id: q.clips[0]!.id, ref: q.clips[0]!.ref, as: "approve", note: "clean" }]);
 
   // exported through the share sheet, and as a download: the same bytes
   await page.locator("#export").tap();
   await page.waitForFunction(() => (window as unknown as Win).__m3a.state().said !== "");
-  expect((await state(page)).said).toMatch(/^review-\d{4}-\d{2}-\d{2}\.json shared: 11 decisions; apply it with m3a review ingest /);
+  expect((await state(page)).said).toMatch(/^review-\d{4}-\d{2}-\d{2}\.json shared: 23 decisions; apply it with m3a review ingest /);
   const shared = (await page.evaluate(() => (window as unknown as Win).__shared))!, got = JSON.parse(shared.text) as ReviewFile;
   await page.evaluate(() => ((window as unknown as { __share: boolean }).__share = false));
   const [download] = await Promise.all([page.waitForEvent("download"), page.locator("#export").tap()]);
   expect(readFileSync((await download.path())!, "utf8")).toBe(shared.text);
-  expect([got.schema, shared.name, got.decisions.length]).toEqual(["m3a.review/1", `review-${got.date}.json`, 11]);
+  expect([got.schema, shared.name, got.decisions.length]).toEqual(["m3a.review/1", `review-${got.date}.json`, 23]);
   for (const d of got.decisions) expect(d.hash).toBe([...q.submissions, ...q.clips].find((r) => r.id === d.id)!.hash);
   const commands = await page.evaluate(() => (window as unknown as Win).__m3a.commands());
   expect(commands).toContain(`m3a review approve ${q.clips.filter((c) => c.id !== flagged.id).map((c) => c.ref).join(",")} --note clean`);
@@ -160,7 +161,7 @@ test("review: a review made by touch at a phone viewport changes the right state
   // ingested: the right states and files change
   writeFileSync(join(co.cwd, "review.json"), shared.text);
   const catalog = co.file(`library/sets/${SET}/catalog.tsv`), lock0 = co.file("library/sets.lock.json"), r1 = await review({ do: "ingest", on: "review.json" });
-  expect(r1.verdict).toMatch(/^review ingest: 11 decisions, 11 applied, 0 already, 0 stale, 0 refused; \d+ notes in docs\/FEEDBACK-LOG\.md \(F\d+\), 2 proposals in docs\/REVIEW-PROPOSALS\.md$/);
+  expect(r1.verdict).toMatch(/^review ingest: 23 decisions, 23 applied, 0 already, 0 stale, 0 refused; \d+ notes in docs\/FEEDBACK-LOG\.md \(F\d+\), 2 proposals in docs\/REVIEW-PROPOSALS\.md$/);
   const owner = co.store("owner"), now = async (id: string) => (await owner.get(id))!;
   expect([(await now(sub.id)).state, (await now(sub.id)).decision, (await now(other.id)).state, (await now(rec.id)).state]).toEqual(["adopted", { as: "adopt", hash: sub.hash, note: "foot contact: the head turn reads better", by: "owner", date: got.date }, "rejected", "archived"]);
   const clip = (id: string) => (JSON.parse(co.file(`library/sets/${id}.json`)) as Clip).review;
@@ -171,15 +172,35 @@ test("review: a review made by touch at a phone viewport changes the right state
 
   // again: nothing changes
   const before = files(), r2 = await review({ do: "ingest", on: "review.json" });
-  expect([r2.verdict, files()]).toEqual(["review ingest: 11 decisions, 0 applied, 11 already, 0 stale, 0 refused", before]);
+  expect([r2.verdict, files()]).toEqual(["review ingest: 23 decisions, 0 applied, 23 already, 0 stale, 0 refused", before]);
 
   // a queued clip edited (through the writer), then the review ingested: refused as stale, nothing written
   const host = nodeReviewHost(co.cwd, { today: () => TODAY }), edited = JSON.parse(co.file(`library/sets/${q.clips[0]!.id}.json`)) as Clip;
   host.writeClips(SET, [{ ...edited, keys: walk(5).keys.slice(0, 2).map((k, i) => ({ ...k, t: i * 0.1 })), dur: 0.2 } as Clip]);
   const changed = files(), r3 = await review({ do: "ingest", on: "review.json" }), o = (r3.data as { outcomes: { id: string; outcome: string; why?: string }[] }).outcomes;
-  expect([r3.status, r3.verdict, files()]).toEqual(["findings", "review ingest: 11 decisions, 0 applied, 10 already, 1 stale, 0 refused", changed]);
+  expect([r3.status, r3.verdict, files()]).toEqual(["findings", "review ingest: 23 decisions, 0 applied, 22 already, 1 stale, 0 refused", changed]);
   expect(o.find((x) => x.outcome === "stale")).toEqual({ id: q.clips[0]!.id, as: "approve", outcome: "stale", why: expect.stringMatching(/'s motion changed since it was queued \(made on [0-9a-f]{12}, it is [0-9a-f]{12} now\)/) });
   expect(log.filter((l) => /error/i.test(l))).toEqual([]);
+});
+
+test("bundled: a build carries a queue only when M3A_REVIEW_QUEUE asks, and the page opens that one at load", async ({ page }) => {
+  test.setTimeout(120_000);
+  await serve(page, SITE);
+  await visit(page, PAGE);
+  expect((await state(page)).source).toBe(""); // built without asking: no queue in it
+  const bundled = join(ROOT, ".cache/review-site-bundled");
+  process.env.M3A_REVIEW_QUEUE = join(co.cwd, QUEUE_FILE);
+  try {
+    await build({ configFile: join(ROOT, "apps/gallery/vite.config.ts"), build: { outDir: bundled, emptyOutDir: true }, logLevel: "error" });
+  } finally {
+    delete process.env.M3A_REVIEW_QUEUE;
+  }
+  await page.unrouteAll();
+  await serve(page, bundled);
+  await visit(page, PAGE);
+  await page.waitForFunction(() => (window as unknown as Win).__m3a.state().source !== "");
+  const s = await state(page);
+  expect([s.source, s.error, s.submissions.length, s.clips.length]).toEqual(["bundled at build time", null, 3, 20]);
 });
 
 test("contributors: unlinked, it says so, reaches no other origin and carries no secret; linked to a stub, a key is added and revoked", async ({ page }) => {

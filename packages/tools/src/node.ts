@@ -24,6 +24,10 @@ import { Registry, ToolError, type Host, type Tool } from "./registry/registry.t
 import { quote } from "./registry/schema.ts";
 import { TOOLS } from "./tools/index.ts";
 
+/** The local intake store's record files under .cache/intake/ (INTAKE_DIR), for a contributor's `intake.localStore`
+ *  until WP-9.1's `m3a library submit`. */
+export { INTAKE_DIR, intakeFiles } from "./node/intake.ts";
+
 /** The Node host, relative to `cwd`: files read as text (a missing one null to tryRead) or bytes, files written
  *  atomically and removed under the write roots, the library at game.json's tiers, and images written as PNG. */
 export function nodeHost(cwd: string = process.cwd()): Host {

@@ -5,7 +5,7 @@ import type { Action } from "../actions.ts";
 
 /** Every action the review queue's page and the contributor page offer, in the order they show them. */
 export const REVIEW_ACTIONS: readonly Action[] = [
-  { action: "open the review queue (bundled at build time, or a file given)", tool: "review", call: "m3a review export (writes check-output/review/queue.json); m3a review lists the same rows" },
+  { action: "open the review queue (bundled at build time when M3A_REVIEW_QUEUE asks, or a file given)", tool: "review", call: "m3a review export (writes check-output/review/queue.json); m3a review lists the same rows" },
   { action: "see a submission's or sampled clip's preview sheet", tool: "sheet", call: "m3a sheet <the submission's clip file | SET/Name> --frames 8" },
   { action: "read a row's numbers and the checker's report", tool: "review", call: "m3a review (each row's verdict and findings); check-output/review/queue.json has its metrics and report" },
   { action: "see how a submission parts from the clip it improves", tool: "diff", call: "m3a diff <SET/Name it improves> <the submission's clip file>" },

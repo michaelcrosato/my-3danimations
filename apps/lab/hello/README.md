@@ -4,9 +4,10 @@
 and attacks on screen through the package alone, with every move checked by the sensors and drivable without a
 display? It reaches past `@m3a/three`'s entry for the generated test characters, which are fixtures, not API.
 
-- `npm run hello` serves it; `npm run hello -- build` writes `dist/`, which `vercel.json` deploys once the owner links
-  the project (O3). Until then the demo runs locally and in CI's e2e (`npm run e2e -- hello`), whose frames and
-  contact sheet are kept in the `check-output-t2` artifact.
+- `npm run hello` serves it; `npm run hello -- build` writes `dist/`. The preview site (`npm run site`, which
+  `vercel.json` builds for every branch once the owner links the project, O3; WP-8.3) serves it at `/labs/hello/`.
+  Until then the demo runs locally and in CI's e2e (`npm run e2e -- hello`), whose frames and contact sheet are kept
+  in the `check-output-t2` artifact.
 - **Keys:** WASD or the arrows move, Shift runs, Space jumps, J attacks. Phones get a stick and buttons.
 - **Deep links:** `?char=gen-<seed>` (any generated character), `?clip=SET/Name` (one clip alone, looping),
   `?t=<seconds>` (paused there), `?view=front|side|back|top|three-quarter`, `?renderer=webgl2`.

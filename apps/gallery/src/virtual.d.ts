@@ -11,3 +11,5 @@ declare module "virtual:m3a-library" {
 }
 /** The commit the build was made from (vite.config.ts). */
 declare const __COMMIT__: string;
+/** The review queue's JSON text the build bundled (M3A_REVIEW_QUEUE), or null. */
+declare const __REVIEW_QUEUE__: string | null;

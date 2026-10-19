@@ -1,8 +1,8 @@
 // The review queue's page (PLAN.md WP-8.2b): it opens a queue (m3a.review-queue/1) bundled at build time (the
-// check-output/review/queue.json `m3a review export` last wrote, when there is one) or a file given (the picker), keeps
-// the owner's decisions on the page (and in this browser's storage, by the queue's refs, so a reload keeps them), and
-// exports the review (m3a.review/1) for `m3a review ingest <file>`: through the share sheet on a phone (navigator.share
-// with a file), as a download on a desk. It puts `window.__m3a` (the page's handle: state, open, decide, clear,
+// check-output/review/queue.json `m3a review export` wrote, when the build is asked to: M3A_REVIEW_QUEUE) or a file
+// given (the picker), keeps the owner's decisions on the page (and in this browser's storage, by the queue's refs, so a
+// reload keeps them), and exports the review (m3a.review/1) for `m3a review ingest <file>`: through the share sheet on
+// a phone (navigator.share with a file), as a download on a desk. It puts `window.__m3a` (the page's handle: state, open, decide, clear,
 // review, commands, export, drawn, actions) and `window.__M3A_TOOLS__` (every m3a tool, on the gallery's host) on it.
 import { VERSION } from "@m3a/core";
 import { installConsole, type intake } from "@m3a/tools";
@@ -12,7 +12,7 @@ import { REVIEW_ACTIONS } from "./actions.ts";
 import { Decisions, readQueue, sectionOf, type Saved, type Section } from "./queue.ts";
 import { drawPictures, render, sync } from "./view.ts";
 
-const BUNDLED = Object.values(import.meta.glob<string>("../../../../check-output/review/queue.json", { query: "?raw", import: "default", eager: true }))[0];
+const BUNDLED = __REVIEW_QUEUE__;
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 const reg = new GalleryRegistry(galleryHost()), tools = installConsole(reg, reg.host), stamp = `m3a ${VERSION} · ${__COMMIT__}`;
 const selected = new Set<string>();

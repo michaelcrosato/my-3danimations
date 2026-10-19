@@ -14,8 +14,8 @@ import { defineTool, ToolError, type ToolContext, type ToolOutput } from "../reg
 import { poseDiff } from "./check.ts";
 import { call, capped, count, cut, fileOrJson, more, output, round } from "./common.ts";
 
-/** How many library clips a queue samples. */
-export const SAMPLE = 8;
+/** How many library clips a queue samples: G8's batch for the owner's phone review (PLAN.md §9.3); a list shows 8. */
+export const SAMPLE = 20;
 /** Where `m3a review export` writes the queue. */
 export const QUEUE_FILE = "check-output/review/queue.json";
 
