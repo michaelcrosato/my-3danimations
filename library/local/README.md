@@ -21,8 +21,9 @@ Import a library into a set of its own here with `@m3a/io`, the way any library 
 - Bandai Namco and LaFAN1 ship BVH: `readBvh` (their bone maps are `bandai-namco` and `motionbuilder`);
 - Mixamo ships FBX: convert to .glb first (`packages/io/README.md`, "FBX"), then `readGltfPosed`.
 
-Then `importSet` with a catalog fits the clips, and the migrator writes them as a set, its `_set.json` with
-`"tier": "local"` and the library's own terms in each source. Open it on this machine alone:
+Then `npx m3a import <file> --set <SET> --license <id>` fits them into a local set under `imports/<SET>/` (move it
+here), or, in code, `importSet` with a catalog and `localLane()` from `@m3a/tools/node`, which writes
+`library/local/<SET>/`: its `_set.json` with `"tier": "local"` and the library's own terms in each source. Open it on this machine alone:
 
 ```ts
 import { openLibrary } from "@m3a/library/node";

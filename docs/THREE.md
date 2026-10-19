@@ -48,8 +48,8 @@ browser or a release fixes it shows up there.
 
 ## The banned APIs
 
-WebGL-era APIs that agents write from habit and that `WebGPURenderer` cannot run. Each is banned in every source and
-Markdown file outside `docs/`, `PLAN.md` and the doctrine checks; the finding names the replacement.
+WebGL-era APIs that agents write from habit and that `WebGPURenderer` cannot run. Each is banned in every source, HTML and
+Markdown file outside `docs/`, `PLAN.md`, `research_notes/`, `reports/` and the doctrine checks; the finding names the replacement.
 
 | Banned | Use instead |
 |---|---|

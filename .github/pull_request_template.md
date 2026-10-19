@@ -12,4 +12,5 @@
 
 ## Version
 
-<!-- The version after this change (node tools/version.ts) and the changelog section. -->
+<!-- The version after this change (set with `node tools/version.ts minor | patch`, checked with
+`node tools/version.ts --check`) and the changelog section. -->

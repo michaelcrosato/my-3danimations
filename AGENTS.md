@@ -34,15 +34,30 @@ why. This file is how.
 | `npm run test:cross-engine` | | the portable math, a quaternion chain, the helpers and the Animator's script in V8 and JavaScriptCore (Bun), bit for bit, with each function's cost | |
 | `npm run qa [-- --sample N] [--dist] [--check] [--fix]` | | the sensors over the migrated library: verdicts, the metrics that fail most, the distributions the thresholds come from; `--check` against the committed baseline (`--baseline` rewrites it, in a commit that says why); `--fix` lints and fixes every clip, failing on any that comes out worse or invalid | |
 | `npm run qa -- library [--check] [--baseline]` | | the library as a whole (WP-5.8): every clip's recorded verdict and reason, reasons whose finding is gone, clips that stand off the floor unanswered (D69), loops with no contact unanswered (off their feet, or no foot that holds still: D104, D108), the census against G5's floors, the distributions against `library/baselines/distributions.json` (they may only improve; `--baseline` records them), `docs/LIBRARY.md` (`--check` compares it); T2 runs it | |
-| `npm run fixtures -- fetch \| check [--manifest <file>]` | | the real CC0 rigs (`tools/fixtures/rigs.json`) fetched by SHA-256 into `.cache/fixtures/`, their licenses read; `check` reads the cache alone | |
+| `npm run fixtures -- fetch \| check [--manifest <file>] \| heldout G<n>` | | the real CC0 rigs (`tools/fixtures/rigs.json`) fetched by SHA-256 into `.cache/fixtures/`, their licenses read; `check` reads the cache alone; `heldout` says whether a gate's latest held-out run is fresh (D57, D91) | |
 | `npm run plant [-- --check]` | | plant ten kinds of defect into 100 clean library clips, with the times the sensors must find them (`--check`: the fixtures rebuild byte for byte) | |
-| `npm run gate -- G<n>` | Gate | the gate's fixed command set (`PLAN.md` §9.3), with its time | none |
-| `npm run doctrine` | | binaries, token budgets, import boundaries, banned APIs, pins, decisions log, local lane | |
+| `npm run gate -- G<n>` | Gate | the gate's fixed command set (`PLAN.md` §9.3), with its time; `-- library-pr` is the library's gates on a pull request's clips (library-gates.yml) | none |
+| `npm run doctrine` | | binaries, token budgets, import boundaries, banned APIs, pins, decisions log, local lane, the frozen spec | |
 | `npm run vectors [-- --check]` | | regenerate the conformance vectors from the pinned originals, or check them byte for byte | |
 | `npm run pins -- fetch` | | shallow-fetch the pinned source repositories into `.cache/src/` | |
 | `npm run bench -- B<n> --trials 5` | | the fresh-agent benchmark | |
 | `npm run gallery [-- build \| preview]` | | the gallery (WP-8.1): every set and clip played, measured and linked, the review queue's and contributor pages (WP-8.2) | |
 | `npm run site [-- --out <dir>]` | | the preview site as Vercel builds every branch (WP-8.3): the gallery, the labs index, every lab, each page stamped with its commit | |
+| `npm run test:full -- <file or filter>...` | | tests that need the whole library or the pinned sources (`M3A_FULL=1`, D74), as a gate step names them | |
+| `npm run migrate [-- --check]` | | the seed sets in format 2 from the pinned sources (WP-1.5); `--check` rebuilds them byte for byte | |
+| `npm run import [-- --set NAME] [--check]` | | the sets `tools/import/sets.ts` names, re-imported from their sources (WP-5.3) | |
+| `npm run facts [-- --check]` | | every clip's facts and contacts measured afresh, and the tags its facts don't bear out (WP-5.4) | |
+| `npm run moves [-- --check]` | | `library/moves.json` from the pinned sources (WP-6.2, D71) | |
+| `npm run corpora -- cmu \| 100style ...` | | the large corpora on demand into `.cache/`, never committed (WP-5.6) | |
+| `npm run library -- lock \| check [--since <ref>] \| list [--tiers ...]` | | the library's lock and ids, and the sets a game sees (WP-5.1) | |
+| `npm run license -- check <library \| SET \| game.json>` | | licenses against their tiers, the texts kept, a game's credits (WP-5.7) | |
+| `npm run sweep -- <rig ids> [--heldout G<n>] [--min-total P] ...` | | every clip on each skeleton and the pass rates (WP-4.5) | |
+| `npm run sim -- <graph> --input <script> [--expect <trace>] [--write]` | | a game's input script on a graph: trace, travel, sensors, filmstrip (WP-6.5) | |
+| `npm run hello [-- build \| preview]` | | the first-flight demo, `apps/lab/hello` (WP-4.6) | |
+| `npm run pack [-- --check] [--publishable]` | | the packs and `m3a.js` into `.cache/pack/`; `--check` proves them (WP-7.4) | |
+| `npm run intake -- check \| adopt --dry-run \| gates` | | the intake's checker, the adopt bot's dry run, the library's PR gates (WP-9.1) | |
+| `npm run index [-- --check] \| verify <SET> <dir> \| admit ...` | | `library/index.json`, the registry index; a release's or a pack's files checked (WP-9.4) | |
+| `npm run conformance -- --impl ts\|"<command>" [--tier 1a,1b,2,3]` | | an implementation certified against the vectors over the kit's protocol (WP-10.2) | |
 | `npx m3a review [export \| ingest <file> \| adopt \| ...]` (or `npm run m3a -- review ...`) | | the owner's review queue (WP-8.2a): submissions and sampled clips, decided with the hash they were made on | |
 
 A tool warns when a tier runs over budget and fails it at 1.5×. Never skip a test to get green; a test that waits on
@@ -74,7 +89,9 @@ older, runs `npm ci`, exports `CHROMIUM_PATH` and fetches the rigs and the pinne
   `packages/*/src/index.ts`, `CHANGELOG.md` and the version fields, the e2e suite registry in `tests/e2e/`,
   `.mcp.json`, `docs/PROGRESS.md` and the ledger.
 - **Clip files change in sequence**, never from two WPs at once, and only through the canonical serializer (core's
-  `serialize`, then `@m3a/library`'s writer).
+  `serialize`, then `@m3a/library`'s writer). New and improved clips enter through the intake queue and the adopt bot
+  (WP-9.1), one pull request at a time; the importers' and procedural sets' regenerations still land by pull request,
+  held to the intake's gates by library-gates.yml (`PLAN.md` §8.4, D113).
 - **Gates:** run `npm run gate -- G<n>`, write the report (numbers, what works, links, what failed, how long) in
   `docs/PROGRESS.md` and on the phase's pull request, then merge that pull request into `main` and start the next phase
   on a fresh draft pull request. A failed gate is fixed forward; one that fails twice is checked against the kill

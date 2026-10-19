@@ -116,22 +116,21 @@ A principle without a check drifts.
 
 ## In this repository
 
-How each principle is held here. "Check" names the command that fails when it drifts; checks marked *(WP-n.m)* land in
-that work package and are listed here so the gap is visible until then. `npm run doctrine` (WP-0.3) runs the static
-ones.
+How each principle is held here. "Check" names the command that fails when it drifts; *(WP-n.m)* names the work
+package that built it (every one is done). `npm run doctrine` (WP-0.3) runs the static ones.
 
 | Principle | Rule here | Check |
 |---|---|---|
 | 1 Agent-readable | The manual is at most 8,000 cl100k tokens; the legend with one worked key at most 800; a catalog row at most 40; `docs/PROGRESS.md` at most 40 lines. Every source file opens with a header comment saying what it holds | `npm run doctrine` token budgets; the header lint in `npm run check` |
 | 2 Agent-operable | Every capability is one `defineTool` entry, surfaced as API, `m3a` command, MCP tool and console handle; a GUI never holds the only way in | registry tests: every example runs, CLI and MCP agree *(WP-7.1, 7.2)* |
 | 3 Verifiable without a display | Sensors measure skeleton data; sheets and films are drawn by the software raster; images go to `check-output/` and are never committed | planted-defect suite at 100% recall *(WP-3.6)*; non-blank image check *(WP-3.1)* |
-| 4 Text is the source of truth | No binaries outside the approved list (empty at adoption); test characters are generated in code, real rigs fetched by SHA-256 into `.cache/` | `npm run doctrine` binaries; `npm run pins -- check` |
+| 4 Text is the source of truth | No binaries outside the approved list (empty at adoption; now the two generated rigs of D23 and D61); test characters are generated in code, real rigs fetched by SHA-256 into `.cache/` | `npm run doctrine` binaries; `npm run pins -- check` |
 | 5 Deterministic by construction | Hashed paths use the package's portable math; no `Math.random`, wall clock or iteration-order dependence in core | determinism hash in Node and Chromium; V8 vs JavaScriptCore bit parity *(WP-2.1, 2.6)* |
 | 6 A core that never touches a renderer | `@m3a/core` imports nothing outside itself: no DOM, no `node:`, no three; other packages keep Node built-ins in a `/node` entry | `npm run doctrine` import boundaries; core's lint and tsconfig (no DOM, Node or clock) |
 | 7 Common ground | TypeScript, JSON, JSON Schema, glTF, VRM bone names, three.js; no house idiom where a standard exists | review against this table (§8.3 item 5) |
 | 8 Quality under the hood | Errors use the API's words and suggest the fix; anything that reaches past the API is listed | `npm run doctrine` lists labs' reach-pasts; error-message tests per tool *(WP-7.1)* |
-| 9 Pin what agents know | Exact versions in `package.json`; three.js r182 by default with r186 also tested; stale APIs banned | `npm run doctrine` pins and banned APIs (the list fills in WP-4.1) |
-| 10 Provenance on everything | Every clip carries source, SPDX license, method, producer, lineage and measured quality; a credits tool exists | validator: provenance required *(WP-1.2)*; `npm run license -- check` *(WP-5.7)* |
+| 9 Pin what agents know | Exact versions in `package.json`; three.js r182 by default with r186 also tested; stale APIs banned | `npm run doctrine` pins and banned APIs (`tools/doctrine/banned.ts`, `banned-three.json`) |
+| 10 Provenance on everything | Every clip carries source, SPDX license, method, producer, lineage and measured quality; a credits tool exists | validator: provenance required *(WP-1.2)*; `npm run license -- check library` *(WP-5.7)* |
 | 11 The library grows through gates | One intake queue; the same automated checks for every contributor; the owner adopts every clip (O7) | intake contract suite *(WP-9.1)*; planted bad submissions bounced *(G9)* |
-| 12 Discovery first, except the contract | Linux, Node 24 and headless Chromium only; the spec, vectors and format versioning are versioned from day one | `npm run vectors -- --check`; conformance tiers *(WP-1.3 on)* |
+| 12 Discovery first, except the contract | Linux, Node 24 and headless Chromium only; the spec, vectors and format versioning are versioned from day one | `npm run vectors -- --check`; `npm run doctrine` frozen spec (G1); conformance tiers *(WP-1.3 on)*; `npm run conformance -- --impl ts` *(WP-10.2)* |
 | Process | The decisions log is append-only; nothing under `library/local/` but its README is committed | `npm run doctrine` decisions log and local lane |
