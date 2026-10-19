@@ -374,6 +374,7 @@ the MCP name where it differs.
 - `m3a license.check [--clips] [--tiers] [--ships] [--set]` · `license_check`: Check clips, a set or game.json against licenses and tiers
 - `m3a import <path> [--set] [--license] [--catalog] [--list] [--from]` (writes files): Fit a motion file's animations into `imports/<SET>/`, a local set, each with its fit
 - `m3a export <clip> --character <character> [--format] [--mapping]`: Play a clip on a character and write it as .vrma, .glb or .bvh in `check-output/export/`, read back to check it
+- `m3a review <do> <on> [--note]` (writes files): The owner's review queue
 - `m3a version`: The m3a version and the clip format it reads and writes
 - `m3a validate <path> [--text] [--mode]`: Validate a clip by path or as text
 <!-- /tools -->

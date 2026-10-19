@@ -4,6 +4,7 @@
 // what a platform supplies (files read and written, the library, images) comes in as a Host; the Node entry has one.
 import type { Library, LibrarySource, Tier } from "@m3a/library";
 import type { Image } from "@m3a/sensors";
+import type { ReviewHost } from "../intake/review.ts";
 import { REPLY_ID, imageTokens, type ImageRef, type Reply, type Status } from "./reply.ts";
 import { check, closed, didYouMean, quote, type Schema } from "./schema.ts";
 
@@ -56,6 +57,9 @@ export interface ToolContext {
    *  resolves to its release. Callers in one process take it one at a time whatever the host (the registry's own lock,
    *  by path); the host's lock, when it has one, keeps other processes out too. */
   lock(path: string): Promise<() => void>;
+  /** The review queue's host (WP-8.2a): the intake store as the owner, the library at every tier, the checkout's
+   *  writer and docs, the clock; once per call. */
+  intake(): ReviewHost;
 }
 
 /** What a platform supplies, each part optional: files read (as text or bytes), written and removed (ToolContext says
@@ -71,6 +75,8 @@ export interface Host {
   /** ToolContext's lock across processes (a lock file in Node), taken after the registry's own in this process; without
    *  it, edits from two processes may race. */
   lock?(path: string): Promise<() => void>;
+  /** ToolContext's intake (the Node entry's: .cache/intake/ and the checkout, node/intake.ts). */
+  intake?(): ReviewHost;
 }
 
 /** One tool, defined once (PLAN.md §5.6). Parameter names are a letter, then letters, digits or "_"; `output` is its
@@ -287,6 +293,7 @@ export class Registry {
     delete a.verbose;
     for (const [k, s] of Object.entries(tool.schema.properties ?? {})) if ((!Object.hasOwn(a, k) || a[k] === undefined) && s.default !== undefined) a[k] = structuredClone(s.default);
     const images: ImageRef[] = [], host = opts.host ?? {}, libs = new Map<string, LibraryAccess>();
+    let review: ReviewHost | undefined;
     const lacks = (what: string, p?: string) => new ToolError("E_HOST", `this surface ${what}${p === undefined ? "" : ` (${pathNamed(p)})`}; ${what.startsWith("reads") ? "pass the text instead" : "run it through m3a (the CLI or MCP) or the API with a Node host"}`, true);
     const ctx: ToolContext = {
       read: (p) => (host.read ? host.read(p) : Promise.reject(lacks("reads no files", p))),
@@ -316,6 +323,10 @@ export class Registry {
         return kept.path ?? `image:${safe}`;
       },
       lock: (p) => locked(p, host),
+      intake() {
+        if (!host.intake) throw lacks("keeps no intake store");
+        return (review ??= host.intake());
+      },
     };
     let key: string | undefined, sent: string | undefined;
     // the call's library warnings (a deprecated id), first among the lines so the 20-line cut keeps them

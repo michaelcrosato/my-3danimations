@@ -6,7 +6,8 @@
 // (./node/files.ts); the library at game.json's tiers; images written as PNG under check-output/<tool>/ by the same
 // rules, as are report.json and the request records. It runs the CLI on process.argv, and serves MCP over stdio with
 // `m3a mcp`: one JSON-RPC message per line each way, nothing else on stdout, and an exit when stdin ends. Both keep an
-// edit's request_id results in .m3a/requests/, so a retry in another process applies once.
+// edit's request_id results in .m3a/requests/, so a retry in another process applies once. `m3a review` gets its intake
+// store under .cache/intake/ and the checkout's writer from ./node/intake.ts (WP-8.2a).
 import { readFileSync, statSync, unlinkSync } from "node:fs";
 import { relative, resolve, sep } from "node:path";
 import { createInterface } from "node:readline";
@@ -16,6 +17,7 @@ import { png } from "@m3a/sensors/node";
 import { runCli } from "./cli.ts";
 import { mcpServer, type McpServer } from "./mcp.ts";
 import { errno, lockFile, shown, under, writable, writeAtomic } from "./node/files.ts";
+import { nodeReviewHost } from "./node/intake.ts";
 import { libraryAccess } from "./node/library.ts";
 import { fileStore } from "./node/store.ts";
 import { Registry, ToolError, type Host, type Tool } from "./registry/registry.ts";
@@ -74,6 +76,7 @@ export function nodeHost(cwd: string = process.cwd()): Host {
     },
     library: (tiers) => libraryAccess(base, tiers),
     lock: (path) => lockFile(base, path), // an edit's, across m3a processes (./node/files.ts)
+    intake: () => nodeReviewHost(base), // m3a review's store under .cache/intake/ and the checkout (./node/intake.ts)
     image(tool, name, img) {
       const bytes = png(img);
       return { path: put(`check-output/${tool}/${name}.png`, bytes), png: bytes };
