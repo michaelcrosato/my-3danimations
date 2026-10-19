@@ -1,0 +1,87 @@
+# The intake (PLAN.md §5.9, WP-9.1a): the checker over the hosted store's new submissions every 15 minutes and on
+# demand, then the adopt bot over the owner's adoptions (it opens, gates and merges or closes their pull requests with
+# this workflow's token, so it runs the library's gates itself: such a pull request starts no other workflow). It reads
+# the project from the repository's Actions secrets M3A_SUPABASE_URL (the project's URL) and
+# M3A_SUPABASE_SERVICE_ROLE_KEY (the checker's service role key); until O8's project is linked, with either unset, it
+# does nothing and says so, so it never fails on main every 15 minutes. The key reaches only the steps that use it (the
+# store's check, the checker, the adopt bot; never the install or the fetch), the checkout keeps no token, the install
+# runs no package's scripts, and the workflow's token reaches only the adopt bot (§5.9: the checker reads untrusted
+# submissions). Actions are pinned by commit SHA (principle 9); the comment names the release.
+name: intake
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write # the adopt bot pushes each adoption's branch
+  pull-requests: write # and opens, merges or closes its pull request
+
+concurrency:
+  group: intake
+  cancel-in-progress: false
+
+env:
+  FORCE_COLOR: "0"
+
+jobs:
+  intake:
+    name: Check new submissions, then commit the owner's adoptions
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: The hosted store (O8)
+        id: store
+        env:
+          M3A_SUPABASE_URL: ${{ secrets.M3A_SUPABASE_URL }}
+          M3A_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.M3A_SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          unset_=""
+          [ -n "$M3A_SUPABASE_URL" ] || unset_="M3A_SUPABASE_URL"
+          [ -n "$M3A_SUPABASE_SERVICE_ROLE_KEY" ] || unset_="${unset_:+$unset_ and }M3A_SUPABASE_SERVICE_ROLE_KEY"
+          if [ -n "$unset_" ]; then
+            echo "linked=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=intake::No hosted store is linked (O8: $unset_ unset among the repository's Actions secrets): nothing to check or adopt. The local store is each checkout's own: npm run intake -- check."
+          else
+            echo "linked=true" >> "$GITHUB_OUTPUT"
+          fi
+      - if: steps.store.outputs.linked == 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - if: steps.store.outputs.linked == 'true'
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24.21.0
+          cache: npm
+      - if: steps.store.outputs.linked == 'true'
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .cache
+          key: m3a-cache-${{ runner.os }}-${{ hashFiles('tools/pins.json', 'tools/fixtures/rigs.json', 'bench/results/heldout/*/run-*/rig.json', 'package-lock.json') }}
+          restore-keys: m3a-cache-${{ runner.os }}-
+      - if: steps.store.outputs.linked == 'true'
+        run: npm ci --ignore-scripts
+      # the reference rigs the checker retargets onto (tools/intake/check.ts), by hash
+      - if: steps.store.outputs.linked == 'true'
+        run: npm run fixtures -- fetch
+      - if: steps.store.outputs.linked == 'true'
+        run: npm run intake -- check --json
+        env:
+          M3A_SUPABASE_URL: ${{ secrets.M3A_SUPABASE_URL }}
+          M3A_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.M3A_SUPABASE_SERVICE_ROLE_KEY }}
+      # git pushes the adoption's branch with the workflow's token, through gh (the checkout kept none)
+      - if: steps.store.outputs.linked == 'true'
+        run: gh auth setup-git && npm run intake -- adopt --json
+        env:
+          GH_TOKEN: ${{ github.token }}
+          M3A_SUPABASE_URL: ${{ secrets.M3A_SUPABASE_URL }}
+          M3A_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.M3A_SUPABASE_SERVICE_ROLE_KEY }}
+      - if: always() && steps.store.outputs.linked == 'true'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: intake
+          path: check-output/
+          if-no-files-found: ignore

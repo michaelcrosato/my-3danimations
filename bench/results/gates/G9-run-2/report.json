@@ -1,0 +1,140 @@
+{
+  "tool": "gate",
+  "ok": true,
+  "verdict": "gate G9: PASS in 1641.9 s (16/16 commands) at 9d4342d",
+  "steps": [
+    {
+      "name": "check",
+      "ok": true,
+      "ms": 3035.3624419999996,
+      "detail": [],
+      "log": "check-output/gate/check.log",
+      "summary": "check: PASS (T0) in 2.8 s, budget 15.0 s"
+    },
+    {
+      "name": "test",
+      "ok": true,
+      "ms": 108590.57442100001,
+      "detail": [],
+      "log": "check-output/gate/test.log",
+      "summary": "test: PASS (T1) in 108.3 s, budget 90.0 s"
+    },
+    {
+      "name": "doctrine: the manual within its 8,000 tokens (the tools within 3,200: T1's tools-budget test, D112)",
+      "ok": true,
+      "ms": 751.5757400000002,
+      "detail": [],
+      "log": "check-output/gate/doctrine-the-manual-within-its-8-000-tokens-the-tools-within-3-200-T1-s-tools-budget-test-D112-.log",
+      "summary": "doctrine: PASS in 0.4 s (8 checks)"
+    },
+    {
+      "name": "vectors --check",
+      "ok": true,
+      "ms": 1968.5151659999974,
+      "detail": [],
+      "log": "check-output/gate/vectors-check.log",
+      "summary": "vectors: PASS (--check) in 1.6 s"
+    },
+    {
+      "name": "the intake: the clean submission waits for review, every planted bad one bounced with its reason",
+      "ok": true,
+      "ms": 7065.186237999995,
+      "detail": [],
+      "log": "check-output/gate/the-intake-the-clean-submission-waits-for-review-every-planted-bad-one-bounced-with-its-reason.log",
+      "summary": "library status: 18 submissions (14 bounced, 4 awaiting review) (local store)"
+    },
+    {
+      "name": "a pull request with a planted bad clip fails the library gates, the clean ones pass",
+      "ok": true,
+      "ms": 65464.285114,
+      "detail": [],
+      "log": "check-output/gate/a-pull-request-with-a-planted-bad-clip-fails-the-library-gates-the-clean-ones-pass.log",
+      "summary": "intake gates --fixture all: PASS in 64.7 s (28/28)"
+    },
+    {
+      "name": "the adopt bot, dry run: an adoption lands in its set, a failed one goes back to review, one not the owner's refused",
+      "ok": true,
+      "ms": 9019.361188999988,
+      "detail": [],
+      "log": "check-output/gate/the-adopt-bot-dry-run-an-adoption-lands-in-its-set-a-failed-one-goes-back-to-review-one-not-the-owner-s-refused.log",
+      "summary": "test: PASS (T1) in 8.8 s, budget 90.0 s"
+    },
+    {
+      "name": "the adopt bot's whole proof: adopted improvements kept by import and migrate, the derived files regenerated, every check passing on the result",
+      "ok": true,
+      "ms": 156288.893864,
+      "detail": [],
+      "log": "check-output/gate/the-adopt-bot-s-whole-proof-adopted-improvements-kept-by-import-and-migrate-the-derived-files-regenerated-every-check-passing-on-the-result.log",
+      "summary": "RUN  v4.1.11 /home/user/my-3danimations"
+    },
+    {
+      "name": "the library as locked, every id resolving (dedup and lineage, WP-9.3: the planted copies are T1's and T2's)",
+      "ok": true,
+      "ms": 476.59022700000787,
+      "detail": [],
+      "log": "check-output/gate/the-library-as-locked-every-id-resolving-dedup-and-lineage-WP-9-3-the-planted-copies-are-T1-s-and-T2-s-.log",
+      "summary": "library check: PASS in 0.1 s"
+    },
+    {
+      "name": "the registry index regenerates byte for byte",
+      "ok": true,
+      "ms": 666.1731560000335,
+      "detail": [],
+      "log": "check-output/gate/the-registry-index-regenerates-byte-for-byte.log",
+      "summary": "index check: PASS in 0.2 s"
+    },
+    {
+      "name": "the registry index verifies every set",
+      "ok": true,
+      "ms": 660.6552209999645,
+      "detail": [],
+      "log": "check-output/gate/the-registry-index-verifies-every-set.log",
+      "summary": "index verify: PASS in 0.2 s"
+    },
+    {
+      "name": "T2: browser checks, library QA and the sweeps in full",
+      "ok": true,
+      "ms": 327771.807921,
+      "detail": [],
+      "log": "check-output/gate/T2-browser-checks-library-QA-and-the-sweeps-in-full.log",
+      "summary": "e2e: PASS (T2) in 327.5 s, budget 480.0 s"
+    },
+    {
+      "name": "the held-out run is fresh: no gate run used it, each variant's character one no test or run used",
+      "ok": true,
+      "ms": 269.54948699998204,
+      "detail": [],
+      "log": "check-output/gate/the-held-out-run-is-fresh-no-gate-run-used-it-each-variant-s-character-one-no-test-or-run-used.log",
+      "summary": "fixtures heldout G9: PASS in 0.0 s"
+    },
+    {
+      "name": "B8: at least 4 of 5 fresh agents' clips reach review through the intake, every check green",
+      "ok": true,
+      "ms": 101787.65148900007,
+      "detail": [],
+      "log": "check-output/gate/B8-at-least-4-of-5-fresh-agents-clips-reach-review-through-the-intake-every-check-green.log",
+      "summary": "bench B8: PASS in 101.0 s"
+    },
+    {
+      "name": "B8-ten: a fresh agent submits ten clips through the intake, and all ten reach review with every check green",
+      "ok": true,
+      "ms": 427554.93648199993,
+      "detail": [],
+      "log": "check-output/gate/B8-ten-a-fresh-agent-submits-ten-clips-through-the-intake-and-all-ten-reach-review-with-every-check-green.log",
+      "summary": "bench B8-ten: PASS in 426.7 s"
+    },
+    {
+      "name": "B8's held-out variant: at least 4 of 5 fresh agents",
+      "ok": true,
+      "ms": 430489.366068,
+      "detail": [],
+      "log": "check-output/gate/B8-s-held-out-variant-at-least-4-of-5-fresh-agents.log",
+      "summary": "bench B8: PASS in 429.6 s"
+    }
+  ],
+  "warnings": [],
+  "ms": 1641897.848243,
+  "next": "write the G9 report in docs/PROGRESS.md and on the PR, then merge (PLAN.md §8.5)",
+  "commit": "9d4342d9d00437785e8b0115559682badd1d59fd",
+  "dirty": false
+}

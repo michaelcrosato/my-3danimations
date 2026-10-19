@@ -1,0 +1,30 @@
+intake gates --fixture all: PASS in 61.7 s (28/28)
+  ok   clean (INTAKE_CC0/Stroll) 1.7 s: passed as it must
+  ok   improvement (QUATERNIUS_3D2DGE/Walk_Loop) 0.5 s: passed as it must
+  ok   improvement-cc-by (STYLE100/Neutral_Walk) 0.5 s: passed as it must
+  ok   improvement-of-a-twin (MESH2MOTION/Dodge_left) 0.5 s: passed as it must
+  ok   bad-license (INTAKE_CC0/Stroll) 2.4 s: failed as it must: license: provenance.license "CC-BY-NC-4.0" isn't on the intake's allowlist: dedicate it to the public domain (
+  ok   bad-license, outside the intake (QUATERNIUS_3D2DGE/Stroll) 2.5 s: failed as it must: license: its license CC-BY-NC-4.0 doesn't fit its set's tier, cc0 (D10)
+  ok   duplicate (INTAKE_CC0/My_Walk) 3.0 s: failed as it must: dedup: a near-duplicate of QUATERNIUS_3D2DGE/Walk_Loop and QUATERNIUS_SHARDFALL/Walk_Loop and 1 more (within 0
+  ok   duplicate, outside the intake (QUATERNIUS_3D2DGE/My_Walk) 2.8 s: failed as it must: dedup: a near-duplicate of QUATERNIUS_3D2DGE/Walk_Loop and QUATERNIUS_SHARDFALL/Walk_Loop and 1 more (within 0
+  ok   defect (INTAKE_CC0/Stroll) 2.4 s: failed as it must: sensors: the sensors fail it: penetration: footL 0.63–1.20 s: its sole goes 157 mm under the floor (fail at 11
+  ok   defect, outside the intake (QUATERNIUS_3D2DGE/Stroll) 2.2 s: failed as it must: sensors: the sensors fail it: penetration: footL 0.63–1.20 s: its sole goes 157 mm under the floor (fail at 11
+  ok   missing-provenance (INTAKE_CC0/Stroll) 2.4 s: failed as it must: provenance: provenance.intake.by is missing: say who or what made it (a person, or the agent and the human beh
+  ok   generator-no-manifest (INTAKE_CC0/Stroll) 2.3 s: failed as it must: provenance: a generator (a learned motion model) needs its training-data manifest: --manifest <https URL>#sha2
+  ok   generator-no-manifest, outside the intake (QUATERNIUS_3D2DGE/Stroll) 2.4 s: failed as it must: provenance: a generator (a learned motion model) needs its training-data manifest: --manifest <https URL>#sha2
+  ok   hidden-instruction (INTAKE_CC0/Stroll) 2.0 s: failed as it must: text: desc holds characters a reader can't see (zero-width, bidirectional or control characters): write it in 
+  ok   hidden-instruction, outside the intake (QUATERNIUS_3D2DGE/Stroll) 2.2 s: failed as it must: text: desc holds characters a reader can't see (zero-width, bidirectional or control characters): write it in 
+  ok   dropped-credit (STYLE100/Neutral_Walk) 0.2 s: failed as it must: license: it derives from STYLE100/Neutral_Walk (cc-by), whose license asks for its credit: keep each one's pro
+  ok   twin-own-id (INTAKE_CC0/Bow) 2.2 s: failed as it must: dedup: a near-duplicate of MESH2MOTION/Bow mirrored, 0.7 mm a point from it on average (one motion under 14.3)
+  ok   source-terms (INTAKE_CC0/Stroll) 2.8 s: failed as it must: license: provenance.source records a motion source whose terms aren't on the allowlist (CC0-1.0, or a library 
+  ok   source-terms, outside the intake (QUATERNIUS_3D2DGE/Stroll) 2.1 s: failed as it must: license: provenance.source records a motion source whose terms aren't on the allowlist (CC0-1.0, or a library 
+  ok   aimed-at-agents (INTAKE_CC0/Stroll) 2.7 s: failed as it must: text: desc speaks to agents or models, which models read in catalog lines: describe only the motion (and 1 mor
+  ok   aimed-at-agents, outside the intake (QUATERNIUS_3D2DGE/Stroll) 2.7 s: failed as it must: text: desc speaks to agents or models, which models read in catalog lines: describe only the motion (and 1 mor
+  ok   legend-text (INTAKE_CC0/Stroll) 2.2 s: failed as it must: text: legend isn't the legend's version, "2.0": the field holds no prose, so write only the value it takes
+  ok   legend-text, outside the intake (QUATERNIUS_3D2DGE/Stroll) 2.3 s: failed as it must: text: legend isn't the legend's version, "2.0": the field holds no prose, so write only the value it takes
+  ok   recipe-text (INTAKE_CC0/Stroll) 2.3 s: failed as it must: text: provenance.recipe.note is text the intake doesn't take: describe the motion in desc, and leave other fie
+  ok   recipe-text, outside the intake (QUATERNIUS_3D2DGE/Stroll) 2.5 s: failed as it must: text: provenance.recipe.note is text the intake doesn't take: describe the motion in desc, and leave other fie
+  ok   forged-review (INTAKE_CC0/Stroll) 2.3 s: failed as it must: provenance: its review was made on another motion than its own (review.motion isn't its motion hash): a review
+  ok   forged-review, outside the intake (QUATERNIUS_3D2DGE/Stroll) 2.2 s: failed as it must: provenance: a clip added outside the intake carries a review: the owner reviews a library clip once it is in (
+  ok   forged-adoption (INTAKE_CC0/Stroll) 2.5 s: failed as it must: provenance: it records an adoption from the intake queue (provenance.intake.submission) that main hasn't: only
+next: library-gates fails a pull request with a planted bad clip, and passes the clean one

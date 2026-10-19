@@ -7,7 +7,7 @@
 // are PLAN.md's; the record of the distributions may only improve, and a floor short is named; the summary lists them;
 // the float check finds an upright body off the floor for a second or more, unless its tags put it in the air or the
 // reasons answer it; the off-feet check names a loop with no contact that its tags don't put off its feet or the
-// reasons don't answer (D104).
+// reasons don't answer (D104), and an answer whose loop has contacts or sits in the field its loop doesn't need (D108).
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { Ajv2020 } from "ajv/dist/2020.js";
@@ -163,8 +163,17 @@ describe("the off-feet check", () => {
     expect(checkOffFeet([run], { ...reasons, unplanted: { [run.clip.id]: "x" } }).gone).toEqual(["unplanted: MESH2MOTION/Run_Female (has contacts now)"]);
     expect(checkOffFeet([bare(run, ["run", "fly"])], answered).problems).toEqual([]);
     const step = offFeetStep([bare(run)], none);
-    expect([step.ok, step.summary, step.detail?.length]).toEqual([false, "1 loops with no contact unanswered; 0 answers whose loop has contacts now", 1]);
+    expect([step.ok, step.summary, step.detail?.length]).toEqual([false, "1 loops with no contact unanswered; 0 answers whose loop has contacts now or belongs in the other field", 1]);
     expect(offFeetStep([fly, run], answered)).toMatchObject({ ok: false, detail: ["library/baselines/qa.json offFeet: MESH2MOTION/Run_Female (has contacts now)"] });
+  });
+  it("names an answer left in the field its loop doesn't need: offFeet for one on its feet, unplanted for one off them (D108)", () => {
+    // each loop answered in both fields: the one its tags give it holds, the other is a reason whose finding is gone
+    const both: QaReasons = { ...reasons, offFeet: { [fly.clip.id]: "it flies", [run.clip.id]: "it runs" }, unplanted: { [fly.clip.id]: "its feet sweep the air", [run.clip.id]: "its feet sweep the floor" } };
+    const gone = ["offFeet: MESH2MOTION/Run_Female (none of its tags puts it off its feet: unplanted answers it)", "unplanted: MESH2MOTION/Flying_Forward (its tags put it off its feet: offFeet answers it)"];
+    expect(checkOffFeet([fly, bare(run)], both)).toEqual({ problems: [], gone });
+    expect(offFeetStep([fly, bare(run)], both)).toMatchObject({ ok: false, summary: "0 loops with no contact unanswered; 2 answers whose loop has contacts now or belongs in the other field", detail: gone.map((g) => `library/baselines/qa.json ${g}`) });
+    // an answer in the wrong field alone: its loop unanswered, and the answer named
+    expect(checkOffFeet([fly], { ...reasons, offFeet: {}, unplanted: { [fly.clip.id]: "x" } })).toEqual({ problems: ["MESH2MOTION/Flying_Forward: a loop with no contact (fly, air), with no answer in library/baselines/qa.json offFeet"], gone: [gone[1]] });
   });
   it("reads the answers against the reasons' schema", () => {
     expect(reasonsProblems({ ...reasons, offFeet: { "A/B": "" } })).toEqual(["offFeet maps a clip id to where it is instead of on its feet, a text"]);

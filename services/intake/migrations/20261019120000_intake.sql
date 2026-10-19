@@ -140,12 +140,16 @@ create trigger submissions_guard before insert or update on public.submissions f
 
 -- The rate: at most 20 submissions a contributor in 24 hours (PER_DAY in services/intake/functions/submit/handler.ts),
 -- held here, since the function's own count and insert are two requests that parallel ones all pass; a contributor's
--- inserts wait on one lock, so each counts the ones before it.
+-- inserts wait on one lock, so each counts the ones before it. The same text again (its id is there) is no new row: it
+-- passes, and the function's insert (on conflict do nothing) keeps the row there.
 create function intake.rate() returns trigger language plpgsql security definer set search_path = '' as $$
 declare
   n integer;
 begin
   perform pg_advisory_xact_lock(hashtextextended('intake.rate ' || new.contributor::text, 0));
+  if exists (select 1 from public.submissions where id = new.id) then
+    return new;
+  end if;
   select count(*) into n from public.submissions where contributor = new.contributor and created_at > now() - interval '24 hours';
   if n >= 20 then
     raise exception 'E_RATE: % submissions in the last 24 hours, the most a contributor sends; send again tomorrow', n;

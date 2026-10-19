@@ -95,7 +95,7 @@ for (const b of RUN) if (b.lang === "json" && file(b)) writeFileSync(join(CWD, f
 const mentions = (text: string, id: string) => new RegExp(`(?<![\\w/])${id}(?!\\w)`).test(text);
 
 /** The bench jobs whose known-goods (bench/graders/<B>/known-good) the manual and the tools' examples keep clear of. */
-const BRIEFS = ["B1", "B2", "B3", "B4", "B5", "B6", "B7"];
+const BRIEFS = ["B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8"];
 
 /**
  * The library clips bench/graders' known-good solutions pick for their jobs (B2's punch, B3's reactions, B4's sneak,

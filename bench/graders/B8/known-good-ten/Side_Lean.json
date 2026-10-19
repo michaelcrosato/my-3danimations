@@ -1,0 +1,11 @@
+{
+ "format": "2.0",
+ "id": "EMOTES/Side_Lean",
+ "name": "Side_Lean",
+ "desc": "leans to the left, the right arm swung out for balance",
+ "tags": ["emote", "gesture"],
+ "steps": [
+  { "op": "clip", "id": "QUATERNIUS_3D2DGE/Idle_Loop", "to": 2, "as": "idle" },
+  { "op": "pose", "in": "idle", "chest": { "tilt": -20 }, "head": { "tilt": -10 }, "armR": { "out": 50 }, "from": 0.3, "to": 1.7, "fade": 0.4 }
+ ]
+}

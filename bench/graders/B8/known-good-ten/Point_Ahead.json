@@ -1,0 +1,11 @@
+{
+ "format": "2.0",
+ "id": "EMOTES/Point_Ahead",
+ "name": "Point_Ahead",
+ "desc": "points straight ahead with the right arm, then lowers it",
+ "tags": ["emote", "gesture"],
+ "steps": [
+  { "op": "clip", "id": "QUATERNIUS_3D2DGE/Idle_Loop", "to": 2, "as": "idle" },
+  { "op": "pose", "in": "idle", "armR": { "forward": 100 }, "from": 0.3, "to": 1.7, "fade": 0.4 }
+ ]
+}

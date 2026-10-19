@@ -1,7 +1,9 @@
 // The library's sets (WP-1.5, WP-5.3), checked offline from the committed files: every clip validates with zero errors
 // and exactly its baselined warnings, is in canonical form, and (a clip still migrated, in the sets tier 2 covers)
 // decodes like its source within 0.001 mm; a re-imported set records every clip's choice and keeps the fit limits;
-// every set manifest validates, its content id matches its files, and its catalog has one valid row a clip.
+// every set manifest validates, its content id matches its files, and its catalog has one valid row a clip. A clip the
+// owner adopted from the intake queue (WP-9.1) is its own: kept as adopted, it decodes like no source, and the intake's
+// sets are the adopt bot's.
 import { createHash } from "node:crypto";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -11,6 +13,8 @@ const { pose } = format, { validateCatalogRow } = validation;
 import { Ajv2020 } from "ajv/dist/2020.js";
 import { describe, expect, it } from "vitest";
 import { loadTier2 } from "../../../spec/conformance/runner/vectors.ts";
+import { intakeTier } from "../../intake/write.ts";
+import { adoptionOf } from "../adopted.ts";
 import { CMU_NOTICE } from "../sets.ts";
 
 const baselineSchema = new Ajv2020({ strict: false }).compile(JSON.parse(readFileSync(join(import.meta.dirname, "../../../spec/schemas/baseline.schema.json"), "utf8")) as object);
@@ -27,7 +31,7 @@ const TIER2: Record<string, string> = { QUATERNIUS_3D2DGE: "QUATERNIUS", MESH2MO
 describe("the migrated library", () => {
   it("holds the five seed sets and 100STYLE's extras, with the clip counts WP-1.5, WP-5.3 and WP-5.8 leave them", () => {
     const count = (s: string) => readdirSync(join(LIB, s)).filter((f) => !f.startsWith("_") && f.endsWith(".json")).length;
-    expect(Object.fromEntries(sets.map((s) => [s, count(s)]))).toEqual({ CMU_CURATED: 158, MESH2MOTION: 176, QUATERNIUS_3D2DGE: 88, QUATERNIUS_SHARDFALL: 102, STYLE100: 95, STYLE100_BACK: 98, STYLE100_BACKRUN: 98, STYLE100_IDLE: 98, STYLE100_RUN: 98, STYLE100_SIDE: 194, STYLE100_SIDERUN: 193 });
+    expect(Object.fromEntries(sets.filter((s) => !intakeTier(s)).map((s) => [s, count(s)]))).toEqual({ CMU_CURATED: 158, MESH2MOTION: 176, QUATERNIUS_3D2DGE: 88, QUATERNIUS_SHARDFALL: 102, STYLE100: 95, STYLE100_BACK: 98, STYLE100_BACKRUN: 98, STYLE100_IDLE: 98, STYLE100_RUN: 98, STYLE100_SIDE: 194, STYLE100_SIDERUN: 193 });
   });
   for (const set of sets) {
     describe(set, () => {
@@ -42,7 +46,7 @@ describe("the migrated library", () => {
         expect(baselineSchema(JSON.parse(readFileSync(join(dir, "_baseline.json"), "utf8"))), JSON.stringify(baselineSchema.errors)).toBe(true);
         const id = sha(files.map((f) => `${f}\n${sha(readFileSync(join(dir, f), "utf8"))}\n`).join(""));
         expect(manifest.content.sha256).toBe(id);
-        expect(manifest.tier).toBe(set === "CMU_CURATED" ? "cmu" : set.startsWith("STYLE100") ? "cc-by" : "cc0");
+        expect(manifest.tier).toBe(intakeTier(set) ?? (set === "CMU_CURATED" ? "cmu" : set.startsWith("STYLE100") ? "cc-by" : "cc0"));
       });
       it("has every clip valid, canonical, and warned only as baselined (each with a reason)", () => {
         for (const f of files) {
@@ -87,7 +91,7 @@ describe("the migrated library", () => {
           for (const f of files) {
             const clip = parseClip(readFileSync(join(dir, f), "utf8"));
             // a re-imported clip decodes like its new source (npm run import -- --check), not the old one
-            if (clip.provenance.producer.tool !== "m3a-migrate") continue;
+            if (clip.provenance.producer.tool !== "m3a-migrate" || adoptionOf(clip)) continue;
             const vc = v.clips[clip.name]!;
             // a set re-imported measures its rests anew, so a clip it kept as migrated is read on the vector's own body
             // (the origin's: its keys untouched); a set still migrated, on its manifest's rest, so that is checked too
@@ -113,7 +117,8 @@ describe("the migrated library", () => {
       for (const [slug, c] of Object.entries(imp.clips)) {
         expect(c.why.length, `${set}/${slug}`).toBeGreaterThan(10);
         const clip = parseClip(readFileSync(join(LIB, set, `${slug}.json`), "utf8"));
-        expect(clip.provenance.producer.tool, `${set}/${slug}`).toBe(c.kept === "migrated" ? "m3a-migrate" : "m3a-import");
+        if (c.kept === "adopted") expect(adoptionOf(clip), `${set}/${slug}`).not.toBeNull();
+        else expect(clip.provenance.producer.tool, `${set}/${slug}`).toBe(c.kept === "migrated" ? "m3a-migrate" : "m3a-import");
         const [mean, worst] = clip.quality.fit;
         expect([mean! <= 40, worst! <= 300], `${set}/${slug} fit ${mean}/${worst}`).toEqual([true, true]);
       }

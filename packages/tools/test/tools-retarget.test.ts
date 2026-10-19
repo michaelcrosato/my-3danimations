@@ -5,7 +5,9 @@
 // rig's root and bones named by their shape alone; its refusals, and no absolute path echoed. retarget.apply judging
 // clips as the sweep does (D80): swapped arms miss their points (inspect's issue a warning), hips on the root (that
 // issue the next call; a row's reasons capped), a body that adds a fail finding (its frames drawn, its line first), a
-// warn it adds listed, a VRM's humanoid, the tiny rig, clips as a path and as JSON named as given; its refusals (too
+// warn it adds listed, a VRM's humanoid, the tiny rig, clips as a path and as JSON named as given; a rig without chest
+// bones read limb by limb, its torso the joints the spanning bone carries (D107), and one missing only its neck read
+// whole, a shoulder mapped to a helper bone failing as it does with the neck (no bone spans a point); its refusals (too
 // many clips or none, misspelt clips before any plays, clips past 600 s in all, a character missing a bone, a patch
 // leaving two humanoid bones on one source bone; a metric that is no finite number written so, and null in data). A
 // compressed mesh is said by both, but is no mapping issue (meshIssue): no finding, turntable, patch hint or warning of
@@ -129,8 +131,42 @@ describe("the retarget tools", () => {
     const swapped = await call("retarget.apply", { character: "gen-5.glb", clips: [WALK], mapping: { bones: { leftUpperArm: "mixamorig:LeftForeArm", leftLowerArm: "mixamorig:LeftArm" } } });
     const bad = (swapped.data!.clips as Row[])[0]!;
     expect([bad.ok, bad.reach > 50]).toEqual([false, true]);
+    // the torso is what the spanning bone carries, the neck and the shoulders; the head is read against the neck
+    const { torso, parent } = spannedSpine((await characterOf({ bytes: async () => readFileSync(join(cwd, "gen-5.glb")) } as unknown as ToolContext, "gen-5.glb")).bound!);
+    expect([[...torso].sort(), parent.get("head"), parent.get("leftUpperArm")]).toEqual([["leftShoulder", "neck", "rightShoulder"], "neck", "leftShoulder"]);
     // a rig with every spine bone reads every joint against its own point, as before
-    expect(spannedSpine({ jointPoint: { hips: "pelvis", spine: "spine1", chest: "spine2", upperChest: "chest", neck: "neck" }, bones: { hips: "h", spine: "s", chest: "c", upperChest: "u", neck: "n" }, order: [] })).toEqual({ torso: new Set(), parent: new Map() });
+    expect(spannedSpine({ jointPoint: { hips: "pelvis", spine: "spine1", chest: "spine2", upperChest: "chest", neck: "neck" }, bones: { hips: "h", spine: "s", chest: "c", upperChest: "u", neck: "n" }, order: [], restPts: new Float64Array(108) })).toEqual({ torso: new Set(), parent: new Map() });
+  });
+
+  it("retarget.apply reads a rig missing only its neck as a whole one: no bone spans a point, so a shoulder mapped wrong fails as with the neck", async () => {
+    // tier 1b's rig with a helper bone under its upper chest, off the arm's chain (as UE5's clavicle_pec_l), with and
+    // without its neck (the head on the upper chest where the neck held it): the format's neck point sits on the head's
+    // joint, so the upper chest's bone runs to it as the decoder's chest-to-neck segment does, and every joint reaches its
+    // point. The shoulder mapped to the helper can't shrug the arm: a walk's left arm misses by 13 mm, on both
+    const helper = (neck: boolean) => {
+      const own = JSON.parse(text("spec/vectors/tier1b/rig.gltf")) as { nodes: { name: string; translation?: number[]; children?: number[] }[] };
+      const nodes = own.nodes, at = (n: string) => nodes.findIndex((x) => x.name === n), chest = nodes[at("spine_03")]!;
+      chest.children!.push(nodes.length);
+      nodes.push({ name: "clavicle_pec_l", translation: [0.03, 0.09, 0.03] });
+      if (!neck) {
+        const k = at("neck_01"), head = nodes[at("Head")]!;
+        head.translation = head.translation!.map((x, i) => x + nodes[k]!.translation![i]!);
+        chest.children = chest.children!.map((c) => (c === k ? at("Head") : c));
+        nodes.splice(k, 1);
+        for (const n of nodes) if (n.children) n.children = n.children.map((c) => (c > k ? c - 1 : c));
+      }
+      return { ...own, nodes, animations: undefined };
+    };
+    writeFileSync(join(cwd, "helper.gltf"), JSON.stringify(helper(true)));
+    writeFileSync(join(cwd, "neckless.gltf"), JSON.stringify(helper(false)));
+    type Row = { ok: boolean; reach: number; spans: number; why: string[] };
+    const PEC = { bones: { leftShoulder: "clavicle_pec_l" } }, apply = async (character: string, mapping?: MappingPatch) => ((await call("retarget.apply", { character, clips: [WALK], ...(mapping ? { mapping } : {}) })).data!.clips as Row[])[0]!;
+    const neck = await apply("helper.gltf", PEC), none = await apply("neckless.gltf", PEC);
+    expect([neck.ok, neck.why]).toEqual([false, [expect.stringMatching(/^a joint 13\.\d mm from its point at /)]]);
+    expect([none.ok, none.spans, none.why]).toEqual([false, 0, neck.why]);
+    expect(await apply("neckless.gltf")).toMatchObject({ ok: true, reach: 0, spans: 0 });
+    const body = (await characterOf({ read: async () => readFileSync(join(cwd, "neckless.gltf"), "utf8") } as unknown as ToolContext, "neckless.gltf")).bound!;
+    expect([body.jointPoint.upperChest, body.jointPoint.neck, body.jointPoint.head, spannedSpine(body)]).toEqual(["chest", undefined, "head", { torso: new Set(), parent: new Map() }]);
   });
 
   it("retarget.apply judges clips as the sweep does (D80): swapped arms miss their points; a body adding a fail, or a warn; clips named as given", async () => {

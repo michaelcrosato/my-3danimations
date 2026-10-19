@@ -2,7 +2,7 @@
 // failing one that raises exactly its code; every message is at most two lines and names where the problem is.
 import { describe, expect, it } from "vitest";
 import { formatIssue, RULES, validate, type Issue } from "../src/validate/index.ts";
-import { baseClip, baseSet } from "./fixtures.ts";
+import { BAD_RECORDS, baseClip, baseSet, withRecords } from "./fixtures.ts";
 
 type J = Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
 
@@ -79,6 +79,29 @@ describe("validate: clips", () => {
   it("accepts the new optional fields within range", () => {
     const c = mut((x) => x.keys.forEach((k: J) => Object.assign(k, { handL: [20, -5, 90], handR: [0, 0, 0], fingersL: [0, 50, 100, 100, 100], fingersR: [0, 0, 0, 0, 0], spine: [20, 40, 80], yaw: 45, root: [0, 0] })));
     expect(validate(c, { mode: "lint" })).toEqual({ ok: true, errors: [], warnings: [] });
+  });
+});
+
+describe("validate: provenance's two records (intake, source)", () => {
+  it("passes both in full, and a partial intake record, in read and lint mode", () => {
+    for (const c of [withRecords(), withRecords((r) => ((r.intake = {}), delete r.source.stated))]) for (const mode of ["read", "lint"] as const) expect(validate(c, { mode })).toEqual({ ok: true, errors: [], warnings: [] });
+  });
+  for (const [code, field, f] of BAD_RECORDS) {
+    it(`refuses an unknown shape: ${code} at ${field}`, () => {
+      const r = validate(withRecords(f), { mode: "read" });
+      expect(r.ok).toBe(false);
+      expect(r.errors.map((i) => `${i.code} ${i.field}`)).toContain(`${code} ${field}`);
+    });
+  }
+  it("refuses the shapes a hand can write: an intake record as a word, a source record with its seed and prompt swapped", () => {
+    const c = withRecords((r) => ((r.intake = "garbage" as unknown as J), (r.source = { seed: "not a number", prompt: 7 })));
+    expect(codes(validate(c, { mode: "read" }).errors)).toEqual(["M2-E003", "M2-E004"]);
+    expect(validate(c).errors.map((i) => i.field)).toEqual(["provenance.intake", "provenance.source.name", "provenance.source.license", "provenance.source.version", "provenance.source.seed", "provenance.source.prompt"]);
+  });
+  it("M2-W001: lint flags a field neither record has, with the nearest name; read accepts it", () => {
+    const c = withRecords((r) => ((r.intake.bye = "x"), (r.source.sead = 1)));
+    expect(validate(c, { mode: "read" }).warnings).toEqual([]);
+    expect(validate(c, { mode: "lint" }).warnings.map((i) => `${i.code} ${i.field} ${i.fix}`)).toEqual(['M2-W001 provenance.intake.bye did you mean "by"?', 'M2-W001 provenance.source.sead did you mean "seed"?']);
   });
 });
 

@@ -1,0 +1,11 @@
+{
+ "format": "2.0",
+ "id": "EMOTES/Look_Up",
+ "name": "Look_Up",
+ "desc": "leans back and looks up at the sky, then straightens",
+ "tags": ["emote", "gesture"],
+ "steps": [
+  { "op": "clip", "id": "QUATERNIUS_3D2DGE/Idle_Loop", "to": 2, "as": "idle" },
+  { "op": "pose", "in": "idle", "chest": { "lean": -15 }, "head": { "lean": -35 }, "from": 0.3, "to": 1.7, "fade": 0.4 }
+ ]
+}

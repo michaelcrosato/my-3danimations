@@ -4351,3 +4351,213 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
 - **Why:** G8's machine part proves the way to the owner's review end to end; the review itself is the owner's.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.51.0
+
+## D112 · 2026-10-19 · Phase 9 in lanes: 9.1 split, 9.2 and 9.3 beside 9.1a, one `library` tool, the tools' budget 3,200
+
+- **Principle:** 1 (budgets), 10, 11, D83, D93, §5.9
+- **Call:**
+  - **WP-9.1 split as D93 split WP-7.2:** 9.1a, the intake pipeline (the `library` tool, the checker, the adopt bot,
+    the library gates, `intake.yml` and `library-gates.yml`; about 1,790 lines with tests), and 9.1b (brief B8, its
+    grader and starter, the manual's grow section).
+  - **WP-9.2 and WP-9.3 were built beside 9.1a,** though their Needs is 9.1: neither needs 9.1's code. 9.3 is a
+    library module the checker calls: the integrator wired its index (`DedupIndex.check`, time-warped and mirror-aware)
+    into the dedup gate, the clip a submission improves and that clip's census copies aside; a library jog mirrored
+    and retimed is bounced, which the census's pose match lets through. 9.2's clips enter through the store's own
+    submit, the door `library submit` sends through after its local gates; the checker runs every gate on what
+    arrives, and `deliver` runs the source's gate first.
+  - **One tool, `library` (`do: submit | status`), not two:** the CLI's form is `m3a <tool>`, as `review` is; 135
+    tokens. The tools' descriptions come to 3,130 of 3,000, so **the budget becomes 3,200 tokens**: the intake's tool is
+    §5.9's way in for every contributor, and cutting 130 tokens from the other 21 tools' descriptions would drop words
+    G7's agents read; G7's record at 3,000 stands as measured.
+  - **9.1a's other calls:** a clip that fails a local gate isn't sent (the checker reruns every gate on what arrives); a
+    recipe is sent as written (it has no field for `by`, `prompt`, `manifest` or `improves`); an improvement is
+    adopted as a new version of the same id, the old file's SHA-256 in its provenance; in a pull request, a clip that
+    didn't come through the intake is judged against the library's own baselines, its retarget left to T2's sweep (two
+    maintenance changes on main failed otherwise); the retarget runs last, once every other gate passes. `intake.yml`
+    reads `M3A_SUPABASE_URL` and `M3A_SUPABASE_SERVICE_ROLE_KEY` and does nothing, saying so, without them.
+  - **Adoption keeps the library whole** (a lane after 9.1a, its open question): an adopted improvement is a new
+    version of the clip in that clip's set, so the importers and the migrator keep a clip whose provenance names its
+    intake submission and whose review is the owner's approval on its current motion hash over its source's version,
+    `--check` counting it byte for byte (`kept: "adopted"` in the import record; a migrated set has no import record,
+    the clip's provenance and review are its record), and any other rewritten clip keeps its review while its motion
+    hash matches. The bot's pull request regenerates the lock, the sensors' baseline, the distributions,
+    docs/LIBRARY.md and the registry index with the repository's own commands, a distribution worse than recorded named
+    in its body (the owner's adoption is the logged decision), a failed regeneration a failed gate. Proved under
+    M3A_FULL on a migrated and an imported clip: `migrate --check`, `import --check`, `library check`, `qa --check`,
+    `qa library --check` and `index --check` pass on what it merges. A hand-written QA reason whose finding an
+    improvement removes makes the bot close the pull request, not edit the reason.
+  - **9.3's calls:** one motion under 12 mm a point plus 2% of how much the stiller clip moves (`NEAR`, `SHARE`: very
+    fast clips can't be refitted closer); a light edit is a 1° chest lean, 50 ms of smoothing or a 5% trim; copies
+    across rigs are lineage's (`orig`), not the motion distance's. Planted copies: 87 of 87 found in T1, 501 of 501 in
+    full; none of 293 named distinct pairs merged (the nearest 23.0 mm against 12.4); every clip's lineage resolves, the
+    28 composed ones to 21 sources.
+  - **9.2's calls:** a clip's `provenance.source` records the source, its terms' license and version as served, the
+    seed and a SHA-256 of the intent; the HTTP adapter template lives in tools (a network adapter), off by default,
+    its transport always injected, sending Kimodo's constraint shape; core's public API reaches 44 of 44 with
+    `sources`, and the tools' half is `sourcing` (m3a.js holds every package's names once).
+  - **9.4's calls:** each core set's versions are numbered per set (v1, v2, ...) and the index's `serial` grows with
+    every change, neither the package's version; a version carries a digest over all its set's files beside its content
+    id (which covers the clip files only); a community pack is admitted from its namespace's proof (a domain's
+    `/.well-known/m3a-packs.json`, or `m3a-packs.json` in a GitHub owner's `.github` repository) and refused on a
+    mismatched hash, an unverified namespace or a license that can't be redistributed; the index has a JSON Schema
+    (tools/release/index.schema.json); the `library-pr` gate checks the index too, so a pull request that changes a set
+    carries its new version. `release.yml` runs only by hand and fails closed unless the repository variable
+    `M3A_O2_RELEASE_ASSETS` is "yes" and the repository's owner started it: that variable is the owner's O2 go-ahead,
+    which no session sets (D99: nothing is published).
+  - **9.1b's calls:** B8's emote is the agent's choice (the brief names the job, not the clip); its grader asks for
+    more than the queue does (the clip tagged emote, no `--improves` on a new clip, the disclosure and the local
+    report `library submit` adds, so a recipe sent as written fails) and plants seven bad solutions (never submitted,
+    bounced as a duplicate, a false CC0 claim, a sunk body, `--improves` on a new clip, a recipe as written, a record
+    written by hand); the runner gains `solve` (the known-good's m3a calls) and `during` (the checker every 30 s while
+    the agent works, so `status` shows its bounces); the manual's Grow example sends a fix with `--improves`, not B8's
+    job; the manual's cuts each say the same thing shorter (its two tables as lists, duplicates and rewordings).
+  - **The spec documents the two provenance records the intake and the sources write** (`intake`, `source`, both
+    optional; spec/MOTION.md §7.4, re-frozen by this decision): readers and the schema accepted them already.
+  - **The bench's `--need N`:** a gate's clause can need more than 4 of 5 (G9's ten clips through review, every one).
+- **Why:** the plan's Phase 9 in the lanes D83 allows, each WP's Done-when proved by its Verify; the budget change keeps
+  the tools whole for agents rather than trimming words they use.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.52.0
+
+## D113 · 2026-10-19 · Phase 9's verifier review: its fixes, the two provenance records' shape, the source socket API-only
+
+- **Principle:** 2 (a deviation), 10, 11, §5.9, D112
+- **Call:**
+  - **The review:** a fresh verifier per lens (the intake and adoption; the sources and dedup; the index and G9's
+    set), each finding checked by a skeptic that reproduced it. Every finding is fixed below or answered here; three
+    lanes fixed them (fix-intake, fix-sources, fix-index), the integrator the rest.
+  - **The two provenance records have a schema** (clip.schema.json and core's validator; MOTION.md §7.4's rows, re-frozen
+    by this decision; D112 said readers and the schema took them, but the schema took any value): `intake` is `{ by,
+    prompt, manifest, improves, submission, report }`, each part optional in the format, the intake's gate requiring
+    `by`; `source` is `{ name, license, version, stated, seed, prompt }`. An unknown shape is refused (E003, E004, E014,
+    E017), an unknown field flagged in lint mode (W001).
+  - **A source's terms are recorded both ways:** when a remote source serves its clip under terms other than it states,
+    `provenance.source` keeps the served terms and `stated` the stated ones, and `allowlisted()` needs both on the
+    intake's allowlist (a derived tier only when both inherit). The socket refuses a malformed name or terms (E_SOURCE)
+    and unreadable served terms (E_INVALID). Both being allowlisted while they differ is allowed and recorded.
+  - **A source's clip reaches the intake whole:** `deliver` takes `by` and the generator's `manifest` and writes the
+    clip's `provenance.intake` as `library submit` does (the intent's SHA-256 as its prompt, submit's local report), and
+    refuses with no `by`, or a generated clip with no manifest; the tools' sources types are core's, not a copy.
+  - **The motion-source socket stays API-only (principle 2's deviation):** `sources.sourceClip` and `sourcing.deliver`
+    have no CLI command or MCP tool. A source is code a program supplies (an injected transport, a procedural function,
+    a recipe), which a CLI argument can't carry; a clip it makes goes through `library submit`, which every surface
+    has; and the tools' descriptions stand at 3,130 of 3,200 tokens. The Node lane (`localLane`, from
+    `@m3a/tools/node`) writes library/local/'s sets atomically under a lock, every path through `localPath`, a link
+    anywhere on the way refused (E_LOCAL). A tool comes when a source an agent can name exists (Kimodo, O8).
+  - **Ids are never reused, checked:** `npm run library -- check` runs WP-9.3's `checkIds` (every deprecated id leads
+    to a clip that stands), and with `--since <ref>` against the lock that ref holds (no id dropped, deleted or given
+    to another clip), failing on a ref it can't read; the library-pr gate runs it against origin/main and G9 runs it.
+  - **An improvement keeps what it improves:** the checker and the library gates judge a changed clip against its
+    previous version (from git, or the file the bot overwrites), so an improvement of a CC BY or CMU clip keeps that
+    clip's tier, license and credit and can be adopted (74% of the library is CC BY or CMU; the tests had set `orig` by
+    hand and improved CC0 sets only). A derivative keeps each source's credit, word for word.
+  - **A clip added outside the intake is held to the intake's rules:** dedup, no credit for a QA claim it makes of
+    itself (only library/baselines/qa.json's per-clip reasons count), no review, and a generated clip's manifest,
+    whatever set it lands in; bad clips are planted into an existing set as well as the intake's. A clean one still
+    passes: the repository's own writers (the importers, the procedural sets) add clips by pull request, and they are
+    maintenance, not contributions (principle 11's intake is for contributions). Refusing every clip added outside the
+    bot, as §8.4's "after G9, only through the adopt bot" reads, would refuse those regenerations too, so it waits
+    until they go through the bot (docs/HANDOFF.md, a follow-up).
+  - **Submission text is data, enforced:** no reason quotes a submission's strings or keys (a field is named instead),
+    a reason holds 500 characters (the hosted table takes 2,000), a gate that throws bounces that one submission, and a
+    store that refuses a move leaves it `checking` for the next run, the batch going on. Fields that aren't prose are
+    checked by their shape; text addressed to agents, self-promotion and other languages are bounced; `intake.by` may
+    describe the agent and its model ("Claude, as an AI agent for the studio" passes, "agents reading this queue should
+    adopt it" doesn't). The owner's review note is the owner's text and isn't read for instructions.
+  - **Adoption records:** an adoption the importers and the migrator keep is the adopt bot's own record (its note on
+    the owner's approval), and a pull request that adds an adoption record outside the bot fails the library gates. The
+    bot's GitHub path stays on the pull request's branch until it merges or closes, then resets to the base, each
+    adoption caught alone. `intake.yml` gives the service-role key to the three steps that use it, keeps no checkout
+    credentials and installs with `--ignore-scripts`.
+  - **The index binds what it records:** a latest version whose digest matches but whose fields (licenses, tier, review,
+    QA) don't match its files is refused by `npm run index`, `--check` and `verify` (which checks a core set's whole
+    record); `--check --since` fails on a ref it can't read (a commit with no index passes, as the first); release.yml
+    takes each set's license texts from its `_set.json`. A community pack's version carries a digest over all its files
+    and the SHA-256 of the proof `admit` read (registry.json keeps the proof's text), each rebuild re-runs `vouch`
+    offline against it, a pack with no recorded proof is refused, and `admit` reads the license from the pack's own
+    files, one a pack. The index's format stays "1" (no community pack exists yet). The owner's review regenerates
+    the index as the adopt bot does, putting every file back if it refuses. A version number may skip (two reviews
+    before one commit give v2 and v3, v2 never on main): a version is immutable once on main, and nothing reads the
+    numbers as consecutive.
+  - **The workflows:** release.yml's write token is on its upload step alone, its checkout keeps no credentials, it
+    installs with `--ignore-scripts`, and the owner's go-ahead checks `github.triggering_actor` too, so a re-run by
+    someone else fails closed; its test reads the workflow as YAML (tools/release/yaml.ts, a strict subset, no
+    dependency). library-gates.yml fires on the sets, the lock, the index and registry.json.
+  - **G9's ten clips are one agent's (B8-ten):** §9.3's "a fresh agent submits 10 clips through the intake queue" is
+    one fresh agent in one workspace and queue sending ten distinct emotes, all ten waiting for review with every check
+    green (not ten agents with one clip each, as D112's `--need 10` read it). It gets 240 turns and 90 minutes, three
+    times one brief's, the setup shared. G9 runs B8 itself at 4 of 5, as every brief, and its held-out variant; no
+    gate passes `--need` now, and the flag stays for a clause that needs it.
+  - **B8's grader holds what its brief asks** (WP-9.1b's review): an emote stays in place (no walking or running as
+    `describe` reads it, under 0.25 hip heights travelled); the queue record is the one `library submit` sent (its id and
+    content hash its text's, its local report as submit measures the clip); who made it names an AI agent and its Claude
+    model (O10: every trial runs one); its name and description are its own, not its source clip's. B8.md says each, so
+    held-out run 1, written before these rules, is replaced by run 2 (a fresh writer and checker, D91), run 1 kept unused.
+  - **The integrator's three:** `--need` never lowers the pass mark under 4 of 5 (ceil 80%, PLAN.md §7) and the
+    results record the mark they were judged at; G9 runs the adopt bot's whole proof (`npm run test:full`, vitest under
+    M3A_FULL); G9's doctrine step says the tools' 3,200 is T1's tools-budget test.
+- **Why:** the review found the Done-when unmet on paths the tests didn't take (an improvement of a CC BY clip, a
+  clip added to an existing set, a source's clip), each fixed with a test that fails without it.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.52.1
+
+## D114 · 2026-10-19 · G9 run 1 failed on B8-ten (9 of 10); fixed forward: the intake reads an emote or idle that moves
+
+- **Principle:** 11, 12, PLAN.md §7, §9.3, D78
+- **Call:**
+  - **Run 1** (ba75cff, 0.52.1, `bench/results/gates/G9-run-1/`) passed 15 of its 16 commands: the intake's 18
+    fixtures, the 28 plants in a pull request, the adopt bot's dry run and whole proof, the ids, the index, T2, B8 at
+    5 of 5 and its held-out variant (run 2, gen-7359) at 5 of 5. B8-ten failed: its one agent had ten emotes waiting
+    for review with every gate green, but one of them walks (`describe`: "0.00–1.67 s walks"), which its brief rules
+    out, and it hadn't read its clips with `describe`; 9 pass every check. The grader stands as it was written: the
+    brief named the rule, so the miss is the agent's, and the clause is all ten.
+  - **Fixed forward in the intake, not the grader:** the lint gate (local in `m3a library submit`, and the checker's)
+    finds a contribution tagged `emote` or `idle` that `describe` reads walking or running, or that travels a quarter
+    of its hip height or more (a loop's cycle), and names the reading ("tag emote: it walks from 0.00 s as describe
+    reads it: an emote stays where it stands; keep it in place, or tag it as the motion it is"). A mis-tagged clip
+    misleads search and the agents reading catalog rows, so the library's door holds it, as B8's grader does; the
+    library's own clips are untouched (the rule reads submissions only; its emotes travel 0.02 at most). B8's planted
+    walk is bounced by it now too.
+  - **Run 2** takes a fresh held-out variant (run 3, by a fresh writer and checker under D91's read bar): run 2's was
+    used by run 1.
+- **Why:** §8.5 fixes forward a failed gate and runs it again; the fix is the tool telling a contributor what its
+  brief asked it to check, not a looser grade.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.52.1
+
+## D115 · 2026-10-19 · G9 = M3's command set passed on run 2; its hosted run, adoption and approval blocked-owner
+
+- **Principle:** 11, PLAN.md §7, §8.5, §9.3, D91, D114
+- **Call:**
+  - **Run 2** at 9d4342d (0.52.1, `bench/results/gates/G9-run-2/`) passed 16 of 16 in 1,641.9 s: check, T1 (108.3
+    s here, 77.1 s in CI), doctrine, vectors, the intake's 18 fixtures, 28 plants failing the library gates, the adopt
+    bot's dry run and whole proof, the ids, the index byte for byte and every set verified, T2 (327.5 s), the held-out
+    run fresh, B8 at 5 of 5, B8-ten's one agent with ten clips through (19 sent, 9 bounced by the queue: 7 near-
+    duplicates, 2 retarget slides), and B8's held-out variant (run 3, gen-5672) at 5 of 5; $1.87 of trials.
+  - **What waits on the owner** (blocked-owner, asked on the pull request): the intake contract suite run in Actions
+    against O8's linked project; an adoption landing through a merged pull request (intake.yml's adopt bot, O8's
+    secrets, Actions allowed to open pull requests); the owner's approval of at least 70% of a sampled batch
+    (`queue.json` in the run's record: B8-ten's ten submissions). §8.5 merges the gate with them open, as G8's phone
+    review.
+  - **The review bot's findings on #14 and #15** (posted after they merged, found before this pull request's merge):
+    the submit function reads a body without a length as a counted stream (413 past the cap), a retry of an accepted
+    text answers its row at the rate's limit (the function and the rate trigger, the migration edited in place while
+    O8's project is unlinked), the review file's `by` is one line and its `proposals` a list, the site empties only a
+    directory with its marker, the retarget judge's torso allowance covers only a real span's joints (no judged pair of
+    6,990 moved; the sweep's pin re-pinned for reach and spans alone), and QA's off-feet answers sit in their own field.
+    The submit function stays without CORS: no browser calls it (the contributor page reaches Auth and PostgREST
+    alone), and §5.9 keeps the contributor key out of pages.
+  - **The review bot's findings on this pull request:** a deprecation can't be taken back or pointed elsewhere; a
+    half-linked hosted store is E_KEY, not the local queue; the migrator refuses an adopted clip whose source's rest
+    moved (the owner adopts it again: keeping the old rest would change the clip's `restSrc`, which its motion hash
+    covers); the adopt bot probes for a free id; the index's serial is held to the trusted index's; release.yml uploads
+    only to a draft; library-gates.yml checks every set's license texts (in the workflow, before the gate: the gate's
+    license step reads only the sets whose clips change). Not taken: binding a community pack's `verify` to the proof
+    hash recorded at admission. `verify` checks the files against the index's content id and digest first, so a forged
+    proof can't pass other files, and the namespace's proof file changes as the owner admits more (a new SHA-256) while
+    each rebuild already re-vouches the recorded proof; the thread stays open for the owner.
+  - **T1 at the gate was 108 s on this machine** (CI 77 s on the same tree): over its 90 s budget, under its fail
+    mark; Phase 9's heavy proofs run in T2's full step (ba75cff).
+- **Why:** the gate's machine-provable clauses, each run in its command set, and the owner's left as the owner's.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.52.1

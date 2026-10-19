@@ -1,0 +1,35 @@
+library status: 18 submissions (14 bounced, 4 awaiting review) (local store)
+s-0497e26467fefe87@9126957e357e clip, 2026-10-19: bounced: provenance: provenance.intake.by is missing: say who or what made it (a person, or the agent and the human behind it), with --by
+s-07660893f187f52f@e063056fb978 clip improving STYLE100/Neutral_Walk, 2026-10-19: bounced: license: it derives from STYLE100/Neutral_Walk (cc-by), whose license asks for its credit: keep each one's provenance.credit, word for word, in this clip's (add your own after it)
+s-0e9b2146b5a4af70@42c29baeb3df clip, 2026-10-19: bounced: text: desc holds characters a reader can't see (zero-width, bidirectional or control characters): write it in plain text (and 3 more problems: text)
+s-301740619beb0395@85b07bb3268b clip improving MESH2MOTION/Dodge_left, 2026-10-19: awaiting review
+s-743f7f91e8405419@235596c3deff clip, 2026-10-19: bounced: provenance: it carries a review: only the owner reviews a clip, at adoption; leave review out
+s-902f0edafc3f60a5@efb683cd8a69 clip improving QUATERNIUS_3D2DGE/Walk_Loop, 2026-10-19: awaiting review
+s-a121fb6c5d2d7c20@14dddb7616f1 clip, 2026-10-19: bounced: dedup: a near-duplicate of MESH2MOTION/Bow mirrored, 0.7 mm a point from it on average (one motion under 14.3); if it improves MESH2MOTION/Bow, submit it with --improves MESH2MOTION/Bow
+s-aa1f904d0fe15348@117158e0ade1 clip, 2026-10-19: bounced: sensors: the sensors fail it: penetration: footL 0.63–1.20 s: its sole goes 157 mm under the floor (fail at 116): lift the pose so the sole touches it (fix: lift penetration); seam: pelvis 1.20 s: jumps 83 mm from the loop's last pose to its first (fail at 58): close the seam, spreading the gap over the cycle (fix: close a loop seam) (m3a lint names the repairs, m3a fix applies them) (and 1 more problem: sensors, lint)
+s-b072d2bf90a20712@5aa1beaea704 clip, 2026-10-19: bounced: license: provenance.source records a motion source whose terms aren't on the allowlist (CC0-1.0, or a library clip's tier kept by what derives from it), a license claim its terms don't allow, or no whole record: such a source's clips stay in library/local/ (O5), and sources.allowlisted says why
+s-b60461fef4c67af4@1619718179fd clip, 2026-10-19: bounced: text: desc speaks to agents or models, which models read in catalog lines: describe only the motion (and 1 more problem: text)
+s-bf23b7477558ac46@bc0238093d9d clip, 2026-10-19: bounced: provenance: it carries a review: only the owner reviews a clip, at adoption; leave review out
+s-cec6ae4f3f962ceb@3fbe45eaca73 clip improving STYLE100/Neutral_Walk, 2026-10-19: awaiting review
+more: 6 submissions
+next: fix what a bounce's reason names, then `library submit <the fixed clip>` again
+intake check --fixture all: PASS in 6.3 s (18/18)
+  ok   clean 0.3 s: awaiting review
+  ok   improvement 0.3 s: awaiting review
+  ok   improvement-cc-by 0.3 s: awaiting review
+  ok   improvement-of-a-twin 0.3 s: awaiting review
+  ok   bad-license 0.3 s: bounced: license: provenance.license "CC-BY-NC-4.0" isn't on the intake's allowlist: dedicate it to the public domain (
+  ok   duplicate 0.3 s: bounced: dedup: a near-duplicate of QUATERNIUS_3D2DGE/Walk_Loop and QUATERNIUS_SHARDFALL/Walk_Loop and 1 more (within 0
+  ok   defect 0.3 s: bounced: sensors: the sensors fail it: penetration: footL 0.63–1.20 s: its sole goes 157 mm under the floor (fail at 11
+  ok   missing-provenance 0.3 s: bounced: provenance: provenance.intake.by is missing: say who or what made it (a person, or the agent and the human beh
+  ok   generator-no-manifest 0.3 s: bounced: provenance: a generator (a learned motion model) needs its training-data manifest: --manifest <https URL>#sha2
+  ok   hidden-instruction 0.3 s: bounced: text: desc holds characters a reader can't see (zero-width, bidirectional or control characters): write it in 
+  ok   dropped-credit 0.3 s: bounced: license: it derives from STYLE100/Neutral_Walk (cc-by), whose license asks for its credit: keep each one's pro
+  ok   twin-own-id 0.3 s: bounced: dedup: a near-duplicate of MESH2MOTION/Bow mirrored, 0.7 mm a point from it on average (one motion under 14.3)
+  ok   source-terms 0.3 s: bounced: license: provenance.source records a motion source whose terms aren't on the allowlist (CC0-1.0, or a library 
+  ok   aimed-at-agents 0.3 s: bounced: text: desc speaks to agents or models, which models read in catalog lines: describe only the motion (and 1 mor
+  ok   legend-text 0.3 s: bounced: text: legend isn't the legend's version, "2.0": the field holds no prose, so write only the value it takes
+  ok   recipe-text 0.3 s: bounced: text: provenance.recipe.note is text the intake doesn't take: describe the motion in desc, and leave other fie
+  ok   forged-review 0.3 s: bounced: provenance: it carries a review: only the owner reviews a clip, at adoption; leave review out
+  ok   forged-adoption 0.3 s: bounced: provenance: it carries a review: only the owner reviews a clip, at adoption; leave review out
+next: every fixture is bounced or passed as it must: npm run gate -- library-pr --fixture all

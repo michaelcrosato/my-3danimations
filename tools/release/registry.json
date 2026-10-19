@@ -1,0 +1,5 @@
+{
+ "about": "The registry index's hand-kept inputs (PLAN.md WP-9.4): yanked, a core set (\"SET\") or one of its versions (\"SET@2\") and the reason; community, the packs admitted by npm run index -- admit, each a set in a namespace verified to its owner, keyed namespace/SET, each version with its digest and the proof that admitted it (proofText as fetched, proofSha256), which every npm run index vouches with again: a pack is never written here by hand. npm run index writes library/index.json from these, the library and the previous index.",
+ "yanked": {},
+ "community": {}
+}

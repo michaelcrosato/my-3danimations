@@ -79,6 +79,47 @@
             "humanEdits",
             "trainedAlgorithmicMedia"
           ]
+        },
+        "intake": {
+          "description": "a contributed clip's record from the intake queue (spec/MOTION.md §7.4); the intake requires by of every submission",
+          "type": "object",
+          "properties": {
+            "by": {"type": "string", "pattern": "\\S"},
+            "prompt": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+            "manifest": {
+              "type": "object",
+              "required": ["url", "sha256"],
+              "properties": {"url": {"type": "string", "pattern": "^https://\\S+$"}, "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}
+            },
+            "improves": {
+              "type": "object",
+              "required": ["id", "sha256"],
+              "properties": {"id": {"type": "string", "pattern": "^[A-Z0-9_]+/[A-Za-z0-9_-]+$"}, "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}
+            },
+            "submission": {"type": "string", "pattern": "^s-[0-9a-f]{16}@[0-9a-f]{64}$"},
+            "report": {
+              "type": "object",
+              "required": ["sensors", "findings", "qaVersion"],
+              "properties": {"sensors": {"type": "string", "pattern": "\\S"}, "findings": {"type": "integer", "minimum": 0}, "qaVersion": {"type": "string"}}
+            }
+          }
+        },
+        "source": {
+          "description": "the motion source that made it (spec/MOTION.md §7.4): the terms it was served under, and stated, the source's own, when they differ",
+          "type": "object",
+          "required": ["name", "license", "version", "seed", "prompt"],
+          "properties": {
+            "name": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"},
+            "license": {"type": "string", "pattern": "\\S"},
+            "version": {"type": "string", "pattern": "\\S"},
+            "stated": {
+              "type": "object",
+              "required": ["license", "version"],
+              "properties": {"license": {"type": "string", "pattern": "\\S"}, "version": {"type": "string", "pattern": "\\S"}}
+            },
+            "seed": {"type": "integer", "minimum": 0, "maximum": 4294967295},
+            "prompt": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+          }
         }
       },
       "allOf": [

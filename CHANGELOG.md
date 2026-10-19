@@ -4,6 +4,116 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.52.1 · 2026-10-19
+
+### Spec
+- `provenance.intake` and `provenance.source` have a schema and validator rules: an unknown shape refused (E003, E004,
+  E014, E017), an unknown field flagged in lint mode (W001); `source.stated`, the terms a source states when it served
+  its clip under others (§7.4, D113).
+
+### Core
+- `sources`: the socket refuses a malformed source name or terms (E_SOURCE) and unreadable served terms (E_INVALID),
+  and records the stated terms beside the served ones.
+
+### Tools
+- `sourcing.deliver` writes the clip's `provenance.intake` (`by`, the intent's SHA-256, the manifest, the local report)
+  and refuses one with no `by`, or a generated clip with no manifest; `allowlisted` needs both terms on the allowlist;
+  the tools' source types are core's.
+- `localLane` (from `@m3a/tools/node`): library/local/'s sets written atomically under a lock, every path through
+  `localPath`, a link on the way refused (E_LOCAL).
+- `m3a library submit`'s gates: a derivative keeps each source's credit; fields that aren't prose checked by their
+  shape; text aimed at agents, self-promotion and other languages bounced; `provenance.source` read by kind;
+  `intake.by` may describe the agent and its model; a contribution tagged `emote` or `idle` that walks, runs or
+  travels a quarter of its hip height, as `describe` reads it, is a lint finding (D114).
+- `retarget.apply`'s reach gives the torso its allowance only where a spine bone spans a point the rig has no bone
+  for, and only to the joints that bone carries: a rig missing only its neck or upper chest is read joint by joint, so
+  a shoulder mapped wrong fails as it does with the bone (michaelcrosato/my-3danimations#14's review).
+- `m3a library` refuses a half-linked hosted store (some of M3A_SUPABASE_URL, M3A_SUPABASE_ANON_KEY,
+  M3A_CONTRIBUTOR_KEY, or the token alone) with E_KEY naming what is missing, instead of using the local queue
+  (michaelcrosato/my-3danimations#16's review).
+- `m3a review` regenerates the registry index after a decision, putting every file back if that refuses;
+  `m3a review ingest` refuses a reviewer's name with a line break and a `proposals` that isn't a list (E_REVIEW).
+- The submit function reads a body sent without a length as a counted stream and refuses it past the limit (413),
+  never buffering it whole; a retry of an accepted text answers its row (200) at the rate's limit, in the function and
+  the database's rate trigger (michaelcrosato/my-3danimations#15's review).
+
+### Library
+- `checkIds` names a deprecation taken back (`undeprecated`) or pointed at another clip (`retargeted`), so `npm run
+  library -- check --since` fails both (#16's review).
+
+### Repo
+- The registry index: `--check --since <ref>` holds the serial to that ref's index (it stays when nothing else
+  changed, grows when anything did); `release.yml` uploads only to a draft release, the one it drafts for a tag with
+  none; `library-gates.yml` fires on `library/LICENSES/**` and checks every set's license texts before the gate.
+- The migrator keeps an adopted clip only on the rest its set recorded, failing the set when the source measures it
+  otherwise (the owner adopts it again); the adopt bot probes `_2`, `_3`, ... until a new clip's id is free (#16's
+  review).
+- The intake's checker: an improvement keeps its previous version's tier, license and credit (an improved CC BY or
+  CMU clip can be adopted); dedup asks with the submission's own id and against earlier submissions; a reason quotes
+  no submission text and holds 500 characters; a submission whose gate throws is bounced alone, the batch going on.
+- The library gates: a clip added outside the intake goes through dedup, gets no credit for its own QA claim, carries
+  no review, and a generated one needs its manifest; `npm run library -- check --since <ref>` holds the lock's ids
+  against that ref's (none dropped, deleted or reused) and fails on a ref it can't read, in the library-pr gate and G9.
+- The adopt bot: its GitHub path gates the pull request's branch, not main, and returns to the base after each
+  adoption, each caught alone; an adoption the importers and the migrator keep is the bot's own record.
+- The registry index binds the fields it records to the files and fails on an unreadable `--since` ref; a community
+  pack's version carries a digest over all its files, its proof's hash and the license its files give.
+- `npm run site` empties an `--out` directory only when its `.m3a-site` marker is there; `npm run qa -- library`'s
+  off-feet check names an answer left in the field its loop doesn't need (michaelcrosato/my-3danimations#14's review).
+- Workflows: `intake.yml` and `release.yml` give their secret and token only to the steps that use them, keep no
+  checkout credentials and install without scripts; `release.yml` checks the triggering actor; `library-gates.yml`
+  fires on the lock, the index and the registry too.
+
+- The bench: B8's grader holds what its brief asks (an emote stays in place; its queue record is the one `library
+  submit` sent, its id, content hash and local report its text's; an AI agent and its Claude model named; a name and
+  description of its own), each with a planted case; `B8-ten`, one fresh agent sending ten distinct emotes through one
+  queue (its grader, a known-good of ten, 240 turns and 90 minutes); G9 runs B8 at 4 of 5 and B8-ten once; the checker
+  every 30 s logs a failure to `<workspace>.checker.log`.
+
+### Docs
+- The manual says a recipe's `name`, `desc` and `tags` become its clip's (7,999 of 8,000 tokens); CONTRIBUTING.md's
+  preview sheet is the local queue's.
+
+## 0.52.0 · 2026-10-19
+
+### Spec
+- `provenance.intake` (a contributed clip's record from the intake queue) and `provenance.source` (the motion source
+  that made it, its terms' license and version, the seed, a hash of the intent), both optional (§7.4, D112).
+
+### Core
+- `sources` (WP-9.2): `MotionSource` and `sourceClip`, the one interface every motion source runs through (the
+  request checked, the clip validated, its source record written, warnings on changed terms, missed constraints and
+  length), with the procedural and recipe sources; deterministic for a seed.
+
+### Library
+- Near-duplicates (WP-9.3): `DedupIndex` (time-warped, mirror-aware, a submission checked against the library in
+  milliseconds), `motionFeatures`, `motionDistance`; lineage: `Lineage` (from `orig`, recipe inputs and content ids,
+  resolved to source clips), `deprecate` and `checkIds` (ids never reused or removed).
+
+### Tools
+- `m3a library submit | status` (WP-9.1a): a clip or recipe sent to the intake queue with its provenance, after the
+  local gates, and a contributor's submissions with their states and bounce reasons; the tools' budget is 3,200
+  tokens (D112).
+- The manual's Grow section (WP-9.1b): `m3a library submit` and `status`, the queue's states, the license rule,
+  provenance and disclosure, a generator's training-data manifest, the owner's adoption; 7,997 of 8,000 tokens, its
+  tables made lists to make room.
+- `sourcing` (WP-9.2): the library source, an HTTP adapter template for external generators (off by default, its
+  transport injected, key poses as constraints), the source gate, the allowlist, and the way to the intake queue or,
+  for a source not on it, `library/local/` alone.
+
+### Repo
+- The intake (WP-9.1a): `npm run intake -- check` (schema, provenance, license, text, dedup, sensors, retarget,
+  budgets, lint; a preview sheet; bounced with a reason or waiting for review), the adopt bot (the owner's adoptions
+  alone, its pull request whole: the lock, baselines, docs/LIBRARY.md and the index regenerated), `intake.yml` and
+  `library-gates.yml`, `npm run gate -- library-pr`; the importers and the migrator keep an adopted version.
+- The registry index (WP-9.4): `library/index.json` (each set's immutable versions, community packs from verified
+  namespaces), `npm run index` (`--check`, `verify`, `verify --all`, `admit`), `release.yml` (by hand, closed until
+  the owner's O2 go-ahead).
+- Brief B8 (WP-9.1b): contribute an emote through `m3a library submit` to the workspace's local queue, reaching review
+  with every check green; its grader runs the intake's checker on the queue, seven planted bad solutions each failing
+  the check it names; `CONTRIBUTING.md`, the same rules for people and agents.
+- The bench's `--need N`; `npm run gate -- G9`.
+
 ## 0.51.0 · 2026-10-19
 
 ### Tools

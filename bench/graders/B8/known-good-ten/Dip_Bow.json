@@ -1,0 +1,11 @@
+{
+ "format": "2.0",
+ "id": "EMOTES/Dip_Bow",
+ "name": "Dip_Bow",
+ "desc": "dips at the hips and knees in a small bow, then rises",
+ "tags": ["emote", "gesture"],
+ "steps": [
+  { "op": "clip", "id": "QUATERNIUS_3D2DGE/Idle_Loop", "to": 2, "as": "idle" },
+  { "op": "pose", "in": "idle", "hips": { "up": -8 }, "chest": { "lean": 25 }, "legL": { "bend": 30 }, "legR": { "bend": 30 }, "from": 0.3, "to": 1.7, "fade": 0.4 }
+ ]
+}

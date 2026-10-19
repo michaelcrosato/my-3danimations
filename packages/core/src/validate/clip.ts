@@ -1,9 +1,11 @@
 // Validates a format-2 clip (spec/MOTION.md): structure, numbers and ranges, key times and limits, contacts, events,
-// provenance, quality and review (errors), then format 1's known motion faults (warnings). `read` mode accepts unknown
-// fields, as every reader must; `lint` mode flags them with the nearest known name.
+// provenance (with its two records, the intake's and the motion source's), quality and review (errors), then format 1's
+// known motion faults (warnings). `read` mode accepts unknown fields, as every reader must; `lint` mode flags them with
+// the nearest known name.
 import { ANGLE_MAX, ANGLE_WARN, CLIP_FIELDS, CONTACT_ENDS, FORMAT, IPTC, KEY_FIELDS, LIMITS, METHODS, QA_VERDICTS, REVIEW_STATES } from "../format/types.ts";
 import { Findings, nearest, type Result, type Where } from "./issues.ts";
 import { PORTABLE as PM } from "../math/portable.ts";
+import { SOURCE_NAME } from "../sources/types.ts";
 
 /** Validation options: `read` accepts unknown fields; `lint` flags them. */
 export interface ValidateOptions {
@@ -71,7 +73,7 @@ export function validateClip(data: unknown, opts: ValidateOptions = {}): Result 
     if (!Array.isArray(data.requires) || !data.requires.every((r) => typeof r === "string")) f.add("M2-E004", at({ field: "requires" }), "requires is a list of field names");
     else for (const r of data.requires as string[]) if (!KNOWN_REQUIRES.includes(r)) f.add("M2-E015", at({ field: "requires" }), `requires "${r}", which this reader (format ${FORMAT}) doesn't know`, "play it with a reader that knows the field; never play it without");
   }
-  provenance(f, at, data.provenance);
+  provenance(f, at, data.provenance, lint);
   quality(f, at, data.quality);
   if (data.review !== undefined) review(f, at, data.review);
   if (data.facts !== undefined && (!isObj(data.facts) || typeof data.facts.by !== "string")) f.add("M2-E004", at({ field: "facts" }), "facts is an object with \"by\": the tool that measured them", "facts are written by tools (spec/MOTION.md §7.3)");
@@ -171,7 +173,7 @@ export function validateClip(data: unknown, opts: ValidateOptions = {}): Result 
   return f.result();
 }
 
-function provenance(f: Findings, at: (w?: Where) => Where, p: unknown): void {
+function provenance(f: Findings, at: (w?: Where) => Where, p: unknown, lint: boolean): void {
   if (p === undefined) return void f.add("M2-E003", at({ field: "provenance" }), "\"provenance\" is missing", "every clip says where it came from (spec/MOTION.md §7.4)");
   if (!isObj(p)) return void f.add("M2-E004", at({ field: "provenance" }), "provenance is an object");
   for (const k of ["src", "method", "license", "ai"]) if (typeof p[k] !== "string" || !p[k]) f.add(p[k] === undefined ? "M2-E003" : "M2-E004", at({ field: `provenance.${k}` }), `provenance.${k} is ${p[k] === undefined ? "missing" : "not a word"}`);
@@ -180,6 +182,69 @@ function provenance(f: Findings, at: (w?: Where) => Where, p: unknown): void {
   const ai = Object.values(IPTC) as string[];
   if (typeof p.ai === "string" && !ai.includes(p.ai)) f.add("M2-E016", at({ field: "provenance.ai" }), `ai "${p.ai}" is not an IPTC digital source type this format uses`, `one of ${ai.join(", ")}`);
   if (typeof p.license === "string" && /^(CC-BY-|LicenseRef-CMU)/.test(p.license) && !(typeof p.credit === "string" && p.credit.trim())) f.add("M2-E018", at({ field: "provenance.credit" }), `license ${p.license} needs a credit line`, "add the attribution a game shows");
+  if (p.intake !== undefined) intake(f, at, p.intake, lint);
+  if (p.source !== undefined) source(f, at, p.source, lint);
+}
+
+// ---- provenance's two records (spec/MOTION.md §7.4): the intake's and the motion source's
+const SUBMISSION = /^s-[0-9a-f]{16}@[0-9a-f]{64}$/, HTTPS = /^https:\/\/\S+$/, HEX = "a SHA-256, 64 lower-case hex digits";
+
+/** How a record's field is checked: the code it fails with (E004 the wrong kind, E014 out of range, E017 malformed),
+ *  null when it holds. */
+type Check = (x: unknown) => "M2-E004" | "M2-E014" | "M2-E017" | null;
+/** Text: a string with a word in it, matching `re` when given. */
+const str = (re?: RegExp): Check => (x) => (typeof x !== "string" || !x.trim() ? "M2-E004" : re && !re.test(x) ? "M2-E017" : null);
+/** A whole number from `lo` to `hi`. */
+const int = (lo: number, hi: number): Check => (x) => (!Number.isInteger(x) ? "M2-E004" : (x as number) < lo || (x as number) > hi ? "M2-E014" : null);
+/** A record's fields, each [name, check, what it is, required]. */
+type Fields = readonly (readonly [string, Check, string, boolean])[];
+
+/** Checks record `v` at `base` (provenance.intake or .source): each of `fields` missing when required (E003) or failing
+ *  its check, each of `objects` ([name, what it is, its fields]) an object whose fields are checked the same way, and in
+ *  lint mode each field the record doesn't have (W001). */
+function record(f: Findings, at: (w?: Where) => Where, base: string, v: Record<string, unknown>, fields: Fields, objects: readonly (readonly [string, string, Fields])[], lint: boolean): void {
+  const each = (o: Record<string, unknown>, path: string, list: Fields) => {
+    for (const [k, check, what, required] of list) {
+      const x = o[k], code = x === undefined ? (required ? "M2-E003" : null) : check(x);
+      if (code) f.add(code, at({ field: `${path}.${k}` }), x === undefined ? `${path}.${k} is missing: give ${what}` : `${path}.${k} should be ${what}`);
+    }
+  };
+  each(v, base, fields);
+  for (const [k, what, list] of objects) {
+    const o = v[k];
+    if (o === undefined) continue;
+    if (!isObj(o)) f.add("M2-E004", at({ field: `${base}.${k}` }), `${base}.${k} is ${what}`);
+    else each(o, `${base}.${k}`, list);
+  }
+  const known = [...fields.map(([k]) => k), ...objects.map(([k]) => k)];
+  if (lint) for (const k of Object.keys(v)) if (!known.includes(k)) f.add("M2-W001", at({ field: `${base}.${k}` }), `unknown field "${k}" in ${base}`, nearest(k, known) ? `did you mean "${nearest(k, known)}"?` : `its fields are ${known.join(", ")}`);
+}
+
+/** provenance.intake: a contributed clip's record from the intake queue (library-submit.ts's IntakeProvenance), each
+ *  field of its kind when given; the intake's own gate requires `by` of every submission. */
+function intake(f: Findings, at: (w?: Where) => Where, v: unknown, lint: boolean): void {
+  if (!isObj(v)) return void f.add("M2-E004", at({ field: "provenance.intake" }), "provenance.intake is the intake's record: { by, prompt?, manifest?, improves?, submission?, report? }");
+  record(f, at, "provenance.intake", v, [
+    ["by", str(), "who or what made it, as text (a person, or the agent and the human behind it)", false],
+    ["prompt", str(HEX64), `the hash of a model's prompt, ${HEX}`, false],
+    ["submission", str(SUBMISSION), "the submission it was adopted from, s-<16 hex digits>@<its content's SHA-256>", false],
+  ], [
+    ["manifest", "a generator's training-data manifest: { url, sha256 }", [["url", str(HTTPS), "its https URL", true], ["sha256", str(HEX64), HEX, true]]],
+    ["improves", "the clip it improves: { id, sha256 }", [["id", str(ID), "that clip's id, SET/Slug", true], ["sha256", str(HEX64), `its file's ${HEX}`, true]]],
+    ["report", "the local report its submit measured: { sensors, findings, qaVersion }", [["sensors", str(), "the sensors' verdict", true], ["findings", int(0, Number.MAX_SAFE_INTEGER), "how many findings, a whole number", true], ["qaVersion", (x) => (typeof x === "string" ? null : "M2-E004"), "the QA version, a string", true]]],
+  ], lint);
+}
+
+/** provenance.source: the motion source's record (sources.SourceRecord), every field but `stated` required. */
+function source(f: Findings, at: (w?: Where) => Where, v: unknown, lint: boolean): void {
+  if (!isObj(v)) return void f.add("M2-E004", at({ field: "provenance.source" }), "provenance.source is the motion source's record: { name, license, version, stated?, seed, prompt }", "the socket writes it: sources.sourceClip");
+  record(f, at, "provenance.source", v, [
+    ["name", str(SOURCE_NAME), "the source's name, a lower-case word (letters, digits and -)", true],
+    ["license", str(), "the license of the terms it was served under", true],
+    ["version", str(), "those terms' version, as text", true],
+    ["seed", int(0, 0xffffffff), "the seed, a whole number from 0 to 4294967295", true],
+    ["prompt", str(HEX64), `the intent's hash, ${HEX}`, true],
+  ], [["stated", "the terms the source states: { license, version }", [["license", str(), "their license", true], ["version", str(), "their version, as text", true]]]], lint);
 }
 
 function quality(f: Findings, at: (w?: Where) => Where, q: unknown): void {

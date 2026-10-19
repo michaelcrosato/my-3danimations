@@ -1,0 +1,11 @@
+{
+ "format": "2.0",
+ "id": "EMOTES/Brow_Salute",
+ "name": "Brow_Salute",
+ "desc": "salutes with the right hand raised to the brow, then drops it",
+ "tags": ["emote", "gesture"],
+ "steps": [
+  { "op": "clip", "id": "QUATERNIUS_3D2DGE/Idle_Loop", "to": 2, "as": "idle" },
+  { "op": "pose", "in": "idle", "armR": { "up": 60, "forward": 30, "out": 30, "bend": 130 }, "from": 0.3, "to": 1.7, "fade": 0.4 }
+ ]
+}

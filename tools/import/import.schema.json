@@ -28,7 +28,7 @@
         "required": ["kept", "why", "fit", "qa", "hands"],
         "additionalProperties": false,
         "properties": {
-          "kept": { "enum": ["import", "migrated", "new"] },
+          "kept": { "enum": ["import", "migrated", "new", "adopted"], "description": "adopted: the owner adopted an improvement from the intake queue (WP-9.1), kept over the version its source gives; the measures beside it are its source's" },
           "why": { "type": "string", "minLength": 1 },
           "fit": {
             "type": "object",

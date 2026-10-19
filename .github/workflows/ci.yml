@@ -1,5 +1,6 @@
 # CI (PLAN.md §6, WP-0.5): T0 and T1 on every push, T2 on pull requests (and the other three.js candidate's pin test),
-# a gate's command set by manual dispatch.
+# a gate's command set by manual dispatch, and, dispatched with the gate `intake-contract`, the intake store's contract
+# suite against O8's linked project (G9's hosted proof): the secret M3A_INTAKE_SUPABASE reaches that one step alone.
 # Actions are pinned by commit SHA (principle 9); the comment names the release.
 name: ci
 
@@ -122,7 +123,7 @@ jobs:
 
   gate:
     name: Gate (manual dispatch)
-    if: github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'workflow_dispatch' && inputs.gate != 'intake-contract'
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
@@ -152,3 +153,25 @@ jobs:
           name: gate-${{ inputs.gate }}
           path: check-output/
           if-no-files-found: ignore
+
+  intake-contract:
+    name: The intake's contract on O8's project (manual dispatch)
+    if: github.event_name == 'workflow_dispatch' && inputs.gate == 'intake-contract'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24.21.0
+          cache: npm
+      - run: npm ci --ignore-scripts
+      # the project's JSON ({ url, apikey, service, owner, a, b, impostor }, packages/tools/test/intake-contract.test.ts):
+      # unset, the run fails rather than skip, since a dispatch asks for the hosted proof
+      - run: |
+          [ -n "$M3A_INTAKE_SUPABASE" ] || { echo "::error::the secret M3A_INTAKE_SUPABASE is unset: link O8's project first (PLAN.md §5.9)"; exit 1; }
+          npx vitest run packages/tools/test/intake-contract.test.ts
+        env:
+          M3A_INTAKE_SUPABASE: ${{ secrets.M3A_INTAKE_SUPABASE }}

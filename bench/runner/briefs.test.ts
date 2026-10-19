@@ -1,7 +1,8 @@
 // Every brief through the runner (WP-6.6), in T2 only (M3A_FULL=1, D74: it packs and installs the packages once per
 // brief): each brief's known-good solution graded in a workspace outside the repository with the packed packages
-// installed (a fake trial), B4's on its own avatar; and a B4 variant whose generator seed doesn't give a VRM avatar's
-// bone names refused before any trial. Its temporary directory is removed after.
+// installed (a fake trial; B8's sends its clip with the packed m3a), B4's on its own avatar; and a B4 variant whose
+// generator seed doesn't give a VRM avatar's bone names refused before any trial. Its temporary directory is removed
+// after.
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -17,7 +18,7 @@ describe.runIf(process.env.M3A_FULL === "1")("every brief through the runner", (
   }, 300_000);
   // the packs and six workspaces with their installs: removed after (kept, they filled the disk)
   afterAll(() => rmSync(base, { recursive: true, force: true }));
-  for (const name of ["B2", "B3", "B4", "B5", "B6", "B7"]) {
+  for (const name of ["B2", "B3", "B4", "B5", "B6", "B7", "B8"]) {
     it(`grades ${name}'s known-good solution through the packed packages (a fake trial)`, async () => {
       const r = await runBrief(name, { trials: 1, base: join(base, name), packs, fake: true });
       expect(r.trials[0]!.pass, r.trials[0]!.failed.join("\n")).toBe(true);

@@ -1,0 +1,11 @@
+{
+ "format": "2.0",
+ "id": "EMOTES/Arms_V",
+ "name": "Arms_V",
+ "desc": "raises both arms overhead in a V, holds them up and lowers them",
+ "tags": ["emote", "gesture"],
+ "steps": [
+  { "op": "clip", "id": "QUATERNIUS_3D2DGE/Idle_Loop", "to": 2, "as": "idle" },
+  { "op": "pose", "in": "idle", "armL": { "up": 100, "out": 40 }, "armR": { "up": 100, "out": 40 }, "from": 0.3, "to": 1.7, "fade": 0.4 }
+ ]
+}

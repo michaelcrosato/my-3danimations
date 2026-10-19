@@ -110,6 +110,34 @@ export const GATES: Record<string, [string, string, ...string[]][]> = {
     ...G7_BRIEFS.map((b): [string, string, ...string[]] => [`${b}'s held-out variant: at least 4 of 5 fresh agents`, "bench", b, "--trials", "5", "--parallel", "5", "--heldout", "G7"]),
     ...G7_MODELS.map((m): [string, string, ...string[]] => [`${RECORDED}B1 to B7 on ${m}, one trial each`, "bench", G7_BRIEFS.join(","), "--trials", "1", "--parallel", "5", "--model", m]),
   ],
+  // a pull request that touches library/sets/ (library-gates.yml, WP-9.1a): the clips it adds or changes through the
+  // intake's gates; with --fixture all, a scratch copy of the library with each fixture's clip planted on its own, the
+  // bad ones expected to fail (the step passes when they do, and the clean ones pass)
+  "library-pr": [
+    ["the library gates on the clips it adds or changes: the library as locked, its sets' licenses, the intake's gates", "intake", "gates", "--base", "origin/main"],
+    ["the registry index as the library gives it: a changed set a new version, none rewritten or deleted (WP-9.4)", "index", "--check", "--since", "origin/main"],
+    ["the lock's ids: every deprecated one leads to a clip, none of main's dropped, deleted or reused (WP-9.3)", "library", "check", "--since", "origin/main"],
+  ],
+  // G9 (§9.3): what a machine can prove of the library growing; the hosted run, the adoption by a merged pull request
+  // and the owner's approval of a sampled batch wait on O8 and the owner (blocked-owner, §8.5)
+  G9: [
+    ["check", "check"],
+    ["test", "test"],
+    ["doctrine: the manual within its 8,000 tokens (the tools within 3,200: T1's tools-budget test, D112)", "doctrine"],
+    ["vectors --check", "vectors", "--check"],
+    ["the intake: the clean submission waits for review, every planted bad one bounced with its reason", "intake", "check", "--fixture", "all"],
+    ["a pull request with a planted bad clip fails the library gates, the clean ones pass", "intake", "gates", "--fixture", "all"],
+    ["the adopt bot, dry run: an adoption lands in its set, a failed one goes back to review, one not the owner's refused", "test", "intake/adopt"],
+    ["the adopt bot's whole proof: adopted improvements kept by import and migrate, the derived files regenerated, every check passing on the result", "test:full", "tools/intake/adopt.full.test.ts"],
+    ["the library as locked, every id resolving (dedup and lineage, WP-9.3: the planted copies are T1's and T2's)", "library", "check"],
+    ["the registry index regenerates byte for byte", "index", "--check"],
+    ["the registry index verifies every set", "index", "verify", "--all"],
+    ["T2: browser checks, library QA and the sweeps in full", "e2e"],
+    ["the held-out run is fresh: no gate run used it, each variant's character one no test or run used", "fixtures", "heldout", "G9"],
+    ["B8: at least 4 of 5 fresh agents' clips reach review through the intake, every check green", "bench", "B8", "--trials", "5", "--parallel", "5"],
+    ["B8-ten: a fresh agent submits ten clips through the intake, and all ten reach review with every check green", "bench", "B8-ten", "--trials", "1"],
+    ["B8's held-out variant: at least 4 of 5 fresh agents", "bench", "B8", "--trials", "5", "--parallel", "5", "--heldout", "G9"],
+  ],
   // the owner's phone review of the batch is theirs (blocked-owner until it comes, §8.5): the gate proves the way
   // there; the notes and the threshold or task it brings back are read off its `m3a review ingest` line when it comes
   G8: [
@@ -143,17 +171,19 @@ export function gateReport(gate: string, steps: Step[], ms: number, at: ReturnTy
 if (import.meta.main) {
   let parsed;
   try {
-    parsed = parseArgs(process.argv.slice(2), []);
+    parsed = parseArgs(process.argv.slice(2), [{ name: "fixture", takesValue: true, help: "library-pr: the intake's fixtures (all, or one) planted in a scratch copy of the library" }]);
     const g = parsed.positionals[0];
     if (!g) throw new Error(`name a gate: ${Object.keys(GATES).join(", ")}`);
     if (!GATES[g]) throw new Error(`no gate ${g} yet; did you mean ${closest(g, Object.keys(GATES))}? (gates are filled in as their phase arrives)`);
+    if (parsed.flags.fixture !== undefined && g !== "library-pr") throw new Error("--fixture is library-pr's");
   } catch (err) {
     usage("gate", err, []);
   }
   const gate = parsed.positionals[0]!;
   const steps: Step[] = [];
   const t0 = performance.now(), at = commitOf();
-  for (const [name, script, ...args] of GATES[gate]!) {
+  for (const [name, script, ...given] of GATES[gate]!) {
+    const args = typeof parsed.flags.fixture === "string" && script === "intake" ? [given[0]!, "--fixture", parsed.flags.fixture] : given;
     const { output, ...r } = runStep("gate", name.replace(/\W+/g, "-"), "npm", ["run", "--silent", script, ...(args.length ? ["--", ...args] : [])], Boolean(parsed.flags.verbose));
     r.name = name;
     const firstLine = output.split("\n").find((l) => l.trim() !== "");
