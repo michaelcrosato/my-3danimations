@@ -2,12 +2,13 @@
 // `aliases`, which the loader follows with a warning naming the successor), its file kept, so its id still resolves and
 // its lineage stands; an id, once given, is never given to another clip. `checkIds` reads one lock against the next: an
 // id that is gone (neither a clip nor an alias), a deprecated clip whose file was deleted, a deprecated id whose file
-// came back as another clip, an alias to an id nothing holds, an alias chain that loops.
+// came back as another clip, a deprecation taken back or pointed at another successor (an alias, once given, stands as
+// it was: every consumer resolves the old id the same way), an alias to an id nothing holds, an alias chain that loops.
 import type { LibraryLock } from "../load/index.ts";
 
 /** Something wrong with a lock's ids, or with how they changed from one lock to the next. */
 export interface IdProblem {
-  code: "dropped" | "deleted" | "reused" | "dangling" | "cycle";
+  code: "dropped" | "deleted" | "reused" | "undeprecated" | "retargeted" | "dangling" | "cycle";
   id: string;
   message: string;
 }
@@ -64,6 +65,10 @@ export function checkIds(next: LibraryLock, previous?: LibraryLock): IdProblem[]
       if (!now.has(id) && !deprecated) out.push({ code: "dropped", id, message: `${id} is gone: neither a clip nor deprecated; an id stays resolvable, so keep its file and deprecate it for its successor (deprecate(lock, "${id}", successor))` });
       else if (!now.has(id) && was.has(id)) out.push({ code: "deleted", id, message: `${id} is deprecated and its file was deleted: deprecation keeps the clip, so its lineage stands; restore its file` });
       else if (now.has(id) && wasAliases[id] !== undefined && now.get(id) !== was.get(id)) out.push({ code: "reused", id, message: `${id} was deprecated for ${wasAliases[id]}, and its file now holds ${was.has(id) ? "another" : "a"} clip: an id is never given again; name the new clip anew` });
+      // an alias stands as it was given: taken back, the old id resolves to its own file again; pointed elsewhere, to
+      // another clip (a successor deprecated in its turn leads on through its own alias)
+      if (wasAliases[id] !== undefined && deprecated && aliases[id] !== wasAliases[id]) out.push({ code: "retargeted", id, message: `${id} was deprecated for ${wasAliases[id]}, and its alias now names ${aliases[id]}: an alias never changes, so the old id resolves as it did; put back ${wasAliases[id]} (deprecate ${wasAliases[id]} for its own successor to lead on)` });
+      else if (wasAliases[id] !== undefined && !deprecated && now.has(id)) out.push({ code: "undeprecated", id, message: `${id} was deprecated for ${wasAliases[id]}, and its alias is gone: a deprecation is never taken back, so the old id resolves as it did; put back its alias to ${wasAliases[id]}` });
     }
   }
   return out.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : a.code < b.code ? -1 : 1));

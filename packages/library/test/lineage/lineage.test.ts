@@ -2,7 +2,8 @@
 // composed clip resolves (the 20 example recipes in spec/recipes and the library's actions, compiled, and as written)
 // to the library clips and procedural parts its steps read, at the content the lock holds; what can't resolve is named
 // (a missing clip, a loop, an input changed since); and deprecation keeps the clip: its id resolves, marked, through
-// the lock's aliases as the loader reads them, and is never given to another clip.
+// the lock's aliases as the loader reads them, is never given to another clip, and its alias is never taken back or
+// pointed elsewhere.
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { actions as A, recipe as R, serialize, type Clip } from "@m3a/core";
@@ -108,6 +109,13 @@ describe("lineage", () => {
     expect(codes(without(next))).toEqual([["deleted", old]]);
     expect(codes(without(LOCK), LOCK)).toEqual([["dropped", old]]);
     expect(codes({ ...next, sets: { ...next.sets, [set]: { ...next.sets[set]!, files: { ...next.sets[set]!.files, [file]: "0".repeat(64) } } } })).toEqual([["reused", old]]);
+    // an alias stands as it was given: taken back (the old id resolving to its own clip again), or pointed at another
+    // clip; taken back with its file changed, both are named
+    const { [old]: _, ...undone } = next.aliases!;
+    expect(codes({ ...next, aliases: undone })).toEqual([["undeprecated", old]]);
+    expect(codes({ ...next, aliases: { ...next.aliases, [old]: "QUATERNIUS_3D2DGE/Walk_Loop" } })).toEqual([["retargeted", old]]);
+    expect(codes({ ...next, aliases: undone, sets: { ...next.sets, [set]: { ...next.sets[set]!, files: { ...next.sets[set]!.files, [file]: "0".repeat(64) } } } })).toEqual([["reused", old], ["undeprecated", old]]);
+    expect(codes(without({ ...next, aliases: undone }))).toEqual([["dropped", old]]);
     expect(codes({ ...next, aliases: { ...next.aliases, "MESH2MOTION/Nowhere": "MESH2MOTION/Nothing" } })).toEqual([["dangling", "MESH2MOTION/Nowhere"]]);
     expect(codes({ ...next, aliases: { ...next.aliases, [successor]: old } }).map(([c]) => c)).toEqual(["cycle", "cycle"]);
     // and what deprecate refuses
