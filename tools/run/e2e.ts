@@ -26,7 +26,7 @@ export function anchor(filter: string, root = ROOT): string {
 
 if (import.meta.main) {
   const argv = process.argv.slice(2), filters = argv.filter((a) => !a.startsWith("--"));
-  runTier(
+  await runTier(
     {
       tool: "e2e",
       label: "T2",

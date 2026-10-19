@@ -1,6 +1,6 @@
 // The test tiers (PLAN.md §6): what each runs and its budget. `check`, `test` and `e2e` are thin entries over
 // `runTier`, which times the steps, applies the budget (warn over, fail at 1.5x) and prints the verdict first.
-import { bin, budget, finish, fmtMs, parseArgs, runStep, usage, type FlagSpec, type Report, type Step } from "./cli.ts";
+import { bin, budget, finish, fmtMs, parseArgs, runStep, runStepAsync, usage, type FlagSpec, type Report, type Step } from "./cli.ts";
 
 /** A step in a tier: a command line, and how to summarize its output on success. */
 export interface TierStep {
@@ -9,6 +9,8 @@ export interface TierStep {
   args: string[];
   /** Variables added to the environment it runs in. */
   env?: Record<string, string>;
+  /** Runs at the same time as the step before it (neither reads what the other writes). */
+  together?: boolean;
   summarize?: (output: string) => string | undefined;
 }
 
@@ -38,16 +40,17 @@ export function playwrightSummary(output: string): string | undefined {
 export function t0Steps(): TierStep[] {
   return [
     { name: "typecheck", cmd: bin("tsc"), args: ["-b"] },
-    // the cache keys files by content, not mtime, so CI's fresh checkout reuses it; lint runs on every core (D118)
-    { name: "lint", cmd: bin("eslint"), args: [".", "--cache", "--cache-location", ".cache/eslint/", "--cache-strategy", "content", "--concurrency", "auto", "--max-warnings", "0"] },
+    // beside the typecheck; its cache keys files by content, not mtime, so CI's fresh checkout reuses it (D118)
+    { name: "lint", cmd: bin("eslint"), args: [".", "--cache", "--cache-location", ".cache/eslint/", "--cache-strategy", "content", "--max-warnings", "0"], together: true },
     { name: "headers", cmd: process.execPath, args: ["tools/run/headers.ts"] },
     { name: "version", cmd: process.execPath, args: ["tools/version.ts", "--check"] },
     { name: "doctrine", cmd: process.execPath, args: ["tools/doctrine/main.ts"] },
   ];
 }
 
-/** Run a tier's steps in order, stopping at the first failure, then report against its budget. */
-export function runTier(tier: Tier, argv: readonly string[], extra: readonly FlagSpec[] = []): never {
+/** Run a tier's steps in order (a `together` step beside the one before it), stopping after the first failure, then
+ *  report against its budget. */
+export async function runTier(tier: Tier, argv: readonly string[], extra: readonly FlagSpec[] = []): Promise<never> {
   let parsed;
   try {
     parsed = parseArgs(argv, extra);
@@ -57,12 +60,19 @@ export function runTier(tier: Tier, argv: readonly string[], extra: readonly Fla
   const verbose = Boolean(parsed.flags.verbose);
   const steps: Step[] = [];
   const t0 = performance.now();
-  for (const s of tier.steps) {
-    const r = runStep(tier.tool, s.name, s.cmd, s.args, verbose, s.env ? { ...process.env, ...s.env } : undefined);
-    const { output: _output, ...step } = r;
-    if (r.ok && s.summarize) step.summary = s.summarize(r.output);
-    steps.push(step);
-    if (!r.ok) break;
+  const envOf = (s: TierStep) => (s.env ? { ...process.env, ...s.env } : undefined);
+  for (let i = 0; i < tier.steps.length; ) {
+    let j = i + 1;
+    while (j < tier.steps.length && tier.steps[j]!.together) j++;
+    const batch = tier.steps.slice(i, j);
+    const done = batch.length === 1 ? [runStep(tier.tool, batch[0]!.name, batch[0]!.cmd, batch[0]!.args, verbose, envOf(batch[0]!))] : await Promise.all(batch.map((s) => runStepAsync(tier.tool, s.name, s.cmd, s.args, verbose, envOf(s))));
+    for (const [k, r] of done.entries()) {
+      const { output: _output, ...step } = r, s = batch[k]!;
+      if (r.ok && s.summarize) step.summary = s.summarize(r.output);
+      steps.push(step);
+    }
+    if (done.some((r) => !r.ok)) break;
+    i = j;
   }
   const ms = performance.now() - t0;
   const ran = steps.length === tier.steps.length;

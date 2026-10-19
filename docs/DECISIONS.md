@@ -4665,9 +4665,11 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   - **Small widenings, reversible:** `test:changed` follows imports (a core change selects nearly every suite, which
     is what covers it); `M3A_CHECK_OUTPUT` moves a tool's `--json` report (T1's conformance test uses it); doctrine
     fails a budgeted file or tools/pins.json that is gone, where Phase 0 reported it pending.
-  - **T0's lint caches by content and runs on every core:** CI's checkout gives every file a new mtime, so the
-    mtime-keyed cache never hit there and lint took 9 to 10 s; this pull request's first run, with a cold type-check
-    (core's types changed), failed T0 at 23.4 s, over its 22.5 s mark. Cold lint is now about 7.5 s, warm 1.4 s.
+  - **T0 runs its typecheck and lint side by side, and lint caches by content:** CI's checkout gives every file a
+    new mtime, so the mtime-keyed cache never hit there and lint took 9 to 10 s; with a cold type-check (core's types
+    changed) this pull request's runs failed T0 at 23.4 and 22.9 s, over the 22.5 s mark, every step passing. The two
+    steps share nothing, so they run at once: a cold T0 is about 16.7 s here, a warm one 2.3 s. Running lint on
+    every core as well was slower beside the type-check, so it stays single-threaded.
 - **Why:** documents that describe the plan as unbuilt, commands that no longer exist and doctrine checks that pass
   on a deleted file mislead the next session as surely as a failing test; the large items need their own WPs.
 - **Answered:** no: made without a response, to review.

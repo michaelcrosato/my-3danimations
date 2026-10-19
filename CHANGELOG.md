@@ -52,8 +52,9 @@ The post-G10 audit (D118): every easy finding fixed, two duplicates retired, the
   `intake-contract` no longer cancels a running gate; the dispatch input names the gates a runner can run.
 - The root `engines` asks for Node >=24.2 (every repo CLI runs under `import.meta.main`), and the SessionStart hook
   compares major and minor.
-- T0's lint keys its cache by content, not mtime, so CI's fresh checkout reuses it, and lints on every core: a cold
-  lint about 7.5 s here (was 10), a warm one 1.4 s; CI's T0 had failed at 23.4 s, over 1.5× its 15 s budget.
+- T0 runs its typecheck and lint side by side (a tier step can run `together` with the one before it), and lint keys
+  its cache by content, not mtime, so CI's fresh checkout reuses it: a cold T0 about 16.7 s here (was about 23), a
+  warm one 2.3 s; CI's T0 had failed at 23.4 s and 22.9 s, over 1.5× its 15 s budget, with every step passing.
 - T1 keeps search answering round 1's 10 held-out queries (D65); the review test numbers sources from the log it
   copies; AGENTS.md's command table is checked to name every package.json script.
 - Retired: tools/run/pending.ts (Phase 0's placeholder) and two loose bench results that were byte copies of

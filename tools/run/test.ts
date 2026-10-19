@@ -15,7 +15,7 @@ try {
 } catch {
   // runTier reports the usage error.
 }
-runTier(
+await runTier(
   { tool: "test", label: "T1", budgetMs: 90_000, steps: [{ name: "vitest", cmd: "node_modules/.bin/vitest", args: vitestArgs, summarize: vitestSummary }], next: "npm run e2e before pushing" },
   argv,
   flags,

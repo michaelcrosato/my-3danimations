@@ -2,7 +2,7 @@
 // 20 lines, write `report.json` under check-output/<tool>/ with --json (under $M3A_CHECK_OUTPUT/<tool>/ when that is
 // set, so a test's run leaves the reports a person made alone), exit 0 ok / 1 findings / 2 usage error, and end every
 // reply with a `next` hint. Also runs commands with timing, for the tier and gate runners.
-import { spawnSync } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { isAbsolute, join, relative, resolve } from "node:path";
 
@@ -171,13 +171,27 @@ export function runStep(tool: string, name: string, cmd: string, args: readonly 
     env: { ...process.env, FORCE_COLOR: "0", ...env },
     maxBuffer: 256 * 1024 * 1024,
   });
-  const ms = performance.now() - t0;
-  const output = `${r.stdout ?? ""}${r.stderr ?? ""}`;
+  return stepOf(tool, name, r.status === 0, `${r.stdout ?? ""}${r.stderr ?? ""}`, performance.now() - t0);
+}
+
+/** runStep, without blocking: steps that don't depend on each other run at the same time (a tier's `together`). */
+export function runStepAsync(tool: string, name: string, cmd: string, args: readonly string[], verbose: boolean, env?: NodeJS.ProcessEnv): Promise<Step & { output: string }> {
+  const t0 = performance.now();
+  return new Promise((done) => {
+    const child = spawn(cmd, args, { cwd: ROOT, stdio: verbose ? ["ignore", "inherit", "inherit"] : ["ignore", "pipe", "pipe"], env: { ...process.env, FORCE_COLOR: "0", ...env } });
+    const chunks: Buffer[] = [];
+    child.stdout?.on("data", (c: Buffer) => chunks.push(c));
+    child.stderr?.on("data", (c: Buffer) => chunks.push(c));
+    child.on("error", (err) => done(stepOf(tool, name, false, String(err), performance.now() - t0)));
+    child.on("close", (status) => done(stepOf(tool, name, status === 0, Buffer.concat(chunks).toString("utf8"), performance.now() - t0)));
+  });
+}
+
+/** A finished step: its output logged to check-output/<tool>/<name>.log, the last lines kept when it failed. */
+function stepOf(tool: string, name: string, ok: boolean, output: string, ms: number): Step & { output: string } {
   const dir = join(ROOT, "check-output", tool);
   mkdirSync(dir, { recursive: true });
-  const log = join(dir, `${name}.log`);
-  writeFileSync(log, output);
-  const ok = r.status === 0;
+  writeFileSync(join(dir, `${name}.log`), output);
   const detail = ok ? [] : output.split("\n").filter((l) => l.trim() !== "").slice(-40);
   return { name, ok, ms, detail, log: `check-output/${tool}/${name}.log`, output };
 }
