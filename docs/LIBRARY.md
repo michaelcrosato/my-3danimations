@@ -42,7 +42,7 @@ Every clip carries the sensors' verdict (m3a-sensors@1) in its `quality`: 1,014 
 | Metric | Warn | Fail | Unit | Capture p50 / p95 / most | Library p50 / p95 / most | Clips past fail |
 | --- | ---: | ---: | --- | --- | --- | ---: |
 | slide | 150 | 230 | mm per contact | 52.9 / 152 / 233 | 38.4 / 123 / 1370 | 17 |
-| skate | 18 | 38 | cm/s over a contact | 5.82 / 18.9 / 37.8 | 5.31 / 22.5 / 366 | 11 |
+| skate | 18 | 38 | cm/s over a contact | 5.82 / 18.9 / 37.8 | 5.3 / 22.5 / 366 | 11 |
 | penetration | 50 | 120 | mm under the floor | 16.7 / 74.8 / 181 | 5.93 / 49.2 / 660 | 17 |
 | bodyPenetration | 25 | 60 | mm under the floor | 0 / 0 / 158 | 0 / 0 / 158 | 1 |
 | intersection | 1 | 1.6 | of the thinner part's width | 0.162 / 0.766 / 1.93 | 0.084 / 0.645 / 1.93 | 1 |

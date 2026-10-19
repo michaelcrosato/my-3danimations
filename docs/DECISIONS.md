@@ -4135,3 +4135,111 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   is the manual's rule, not the grader. K2 (B1 under 3 of 5 after the manual's second revision) didn't fire.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.50.1
+
+## D107 · 2026-10-19 · G7 = M2 passed on run 2, 24 of 24: every brief and held-out variant at least 4 of 5
+
+- **Principle:** 1, 2, 9, G7 (§7, §9.3, D98)
+- **Call:**
+  - **Run 2 passed**, 24 of 24 gating commands, at 5d1ec8f (0.50.1) on 2026-10-19 in 93.0 min, in the main checkout.
+    The commit was fixed first (02:42, CI green 02:46); a fresh subagent then wrote `bench/results/heldout/G7/run-2/`
+    under D91's read bar (it read §7, D78, the briefs, the starters, the graders' grade.ts, the generator and
+    fixtures.ts; past the bar only directory names and one package.json line), and an independent subagent checked
+    it: pass, every stated fact of the seven characters generated and bound again, each contract word for word, nits
+    only (the variants keep 0.91 to 0.96 of their originals' 6-grams, the contracts copied verbatim; two bone-name
+    and hip-height wordings). Each known-good passed on its variant before the trials. The record is
+    `bench/results/gates/G7-run-2/`.
+  - **Its commands:** check 2.1 s; test 83.0 s (981 tests); doctrine (the manual 8,000 of 8,000 tokens, the tools
+    within 3,000); vectors byte for byte; every tool example on the API, `m3a`, MCP and the console 19.3 s; the
+    manual's code 6.4 s; `pack --check` 20.7 s (the packaged CLI, MCP server and single file run the manual's
+    example); the single file's licenses; T2 121.1 s; the held-out run fresh.
+  - **The benchmark** through the packaged CLI, the skill and the packed `m3a mcp` (each trial's record shows the
+    server connected and the skill present): B1 4/5 (discovery 2/2 used the package, both passed), B2 to B7 5/5 but
+    B6 4/5; every held-out variant 5/5 (seeds 2329, 3542, 4743, 5980, 6251, 7434, 8592: a tall Mixamo body without
+    an upper chest, a bulky UE5 one with twist bones and no toes, a Rigify child without shoulders, a VRM chibi with
+    twist bones and no neck, a chest-less heroic Rigify body, a tall UE5 one and a bulky VRM one). 68 of 70 trials,
+    $11.46. Recorded, one trial a brief, not gating: claude-opus-5-5 7/7 ($3.81), claude-haiku-5-5 7/7 ($0.55),
+    claude-fable-5-1 7/7 ($20.71).
+  - **What failed:** B1-4 slid a planted foot at 7.75–8.00 s (skate 87 cm/s, fail 42); B6-2's mirrored cross struck
+    57% of the hip height from where the original does.
+  - **WP-7.3's deferred proof** (B1 at least 4 of 5 with the manual) is this run's B1 step.
+  - **Lanes ran during the recorded models' trials** (WP-8.1, 8.2a, 8.3, 10.1, 10.2 in worktrees, D83): a deviation
+    from the handoff's "no lanes during trial batches", taken once every gating step had finished, so the load could
+    move only the three recorded, non-gating steps; they passed 21 of 21.
+  - **Verifiers:** two lenses, fresh subagents. **Lens B** (the run and its record against §7, D91, D98 and the 93
+    transcripts): pass, with four should-fixes: each pack shipped the repository's whole changelog, the benchmark's
+    lines in it (four trials grepped it; none gained) — packs now ship it without them and `pack --check` fails on
+    benchmark text; `retarget.apply`'s reach failed every rig without chest bones (B5's variant 6251: 11 to 19 mm on
+    ordinary clips, while its grader passed) — it reads such a rig limb by limb now; the record wasn't committed yet —
+    it is; and D106's "a `core` row beats a nearer one" changed no pick (9 of 10 B1 trials shipped `Run_Female`) —
+    answered: the manual's search rows didn't name `core` (lens A's finding too), they do now, and the skim check stays
+    a follow-up. Its four nits: a rate parameter's `"value": 1` (in the manual now), the known-goods' order and the
+    agents' tool use, and the audit's over-count (all three in the record's README). **Lens A** (D104 to D106 against
+    DOCTRINE.md and the done list, in four dimensions, each finding checked by two skeptics: all held but the mental model's wording, a nit one skeptic called no defect, cut anyway): one
+    blocking finding, contacts the planter couldn't hold, and the should-fixes (one-shots and a stance moved by
+    contacts, one foot's speeds, untested fallbacks, D104's and D106's misstatements, the manual's undefined `core`,
+    the stale handoff and ledger row), fixed in D108; its nits (the reread floor, R-E008's "if any", stale headers and
+    AGENTS.md's qa row, the off-feet step untested, the changelog's omissions, PROGRESS's run time) too.
+- **Why:** M2 is agents flying the package from its manual, tools and skill alone; at the pass mark on every brief and
+  every fresh variant, through the packaged surfaces, it is met.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.50.1, michaelcrosato/my-3danimations#14
+
+## D108 · 2026-10-19 · G7's verifiers: D104's fallbacks narrowed to the contacts the planter can hold, the rest answered
+
+- **Principle:** 3, 8, 10, D104, D107 (G7's verifier, lens A)
+- **Call:**
+  - **What was wrong** (lens A, blocking): D104's `reread` could give contacts the planter can't hold. Its last resort
+    kept the height pass's contacts, and on a clip with a root of its own its first try counted a foot "still" below
+    half the root's mean speed, so the planter held feet the motion moves away: the planted ankle pulled up to 148% of
+    H0 (`Run_Anime`), 125% (`Run_Stealth`), 180% (`QUATERNIUS_SHARDFALL/Slide_Start_RM`), 83% and 49 to 51% (the sword
+    and hook one-shots). The retarget judge went from pass to fail on 28 clip-and-skeleton pairs of the 29 clips × the
+    6 sweep skeletons (gen-0 to gen-3, the Quaternius mannequin, the KayKit knight). And the fallbacks reached one-shots, which the
+    Animator had played still: an in-place `Jump_Start` now moved 89% of H0 backward a play, a `Melee_Hook` 33%; a
+    guard stance (`CMU_CURATED/Boxing_Guard_Loop`, one 50 ms contact a cycle, which `contactRoot` stretches over the
+    loop) drifted 0.26 m/s; and four loops got one foot's contacts, their ground speed off by up to 3 times
+    (`WideLegs_Walk` 2.31 times its captured speed, the guard 3.07).
+  - **The fix, in core's `measureFacts`:** the fallbacks read a loop on its feet only; `reread` reads in place only (a
+    clip's own root is exact, so a looser "still" admits only sliding feet); a reread counts only when both feet plant
+    and a foot is down for a fifth of the loop or more (`stands`, plantedVelocity's bar); and nothing falls back to the
+    height pass: a loop no reading stands up keeps none. A contact the planter can't hold is worse than none: none
+    plays still and reads a ground speed of 0, which the manual answers with "pick another clip".
+  - **What it gives:** 5 of D104's 11 loops keep their contacts byte for byte (`MESH2MOTION/Run_Female`,
+    `STYLE100_BACKRUN/Waving_RunBack`, the three `OnHeels` stances), the planter holding each within 2.4 to 6.2% of H0
+    (a test bounds it at 10%); the other 6 and the 18 one-shots have none again, as before D104. The 6 stand on their
+    feet, so the off-feet check gains a second answer, `unplanted` in `library/baselines/qa.json` (why no foot holds
+    still; a schema and a validator rule): the two runs on the spot sweep the floor under a root that stands still, the
+    guard holds its right foot 50 ms a cycle and its left never, and three retargeted STYLE100 loops (`WideLegs_Walk`,
+    `Drunk_RunBack`, `OnHeels_Run`) have one foot that never reads still. The judge over the same 29 clips × 6
+    skeletons, against no contacts: 0 pass → fail, 7 fail → pass (the `OnHeels_Side*` stances).
+  - **QA:** verdicts unchanged (1,014 pass, 230 warn, 154 fail). `packages/sensors/fixtures/baseline.json` moves back to
+    its pre-D104 rows for three clips (`Boxing_Guard_Loop` slide 34 → 44.7 mm, skateMean 15.9 → 16.9;
+    `WideLegs_Walk` slide 129 → 145, skate 9.91 → 11.1; `Drunk_RunBack` slide 43.6 → 32.1, skate 12.5 → 0, skateMean
+    16.8 → 32.9). The distributions recorded again: skate p50 5.31 → 5.3, and skateMean p95 19.6 → 19.8, worse, which
+    "may only improve" admits by this decision (it gives back a third of what D104 took, 20.2 → 19.6, and still beats
+    the record before it). `npm run import` and `npm run migrate` wrote the 24 clips, their manifests and the lock;
+    `facts --check` 1,398 clips, none stale.
+  - **Tests** (lens A found seven mutants of the fallbacks that no named test killed): the lower-foot reread on a
+    run-back (both feet, its ground speed within 5% of its captured 123), the three sole-read stances' contacts and
+    travel as their files hold them, the planter's pull on every loop the fallbacks plant, none on a run on the spot,
+    a stance or a walk one foot of which holds still, none on three one-shots; the off-feet step is built by a tested
+    function (`offFeetStep`).
+  - **D104 corrected** (the log is append-only): the sensors' baseline was rewritten for eight clips, not three, the
+    contacts moving their slide and skate below warn: `Boxing_Guard_Loop` slide 44.7 → 34; `Run_Female` slide 0 → 103
+    and skateMean 0 → 124 cm/s (read on its contacts now); `WideLegs_Walk` slide 145 → 129, skate 11.1 → 9.91;
+    `Drunk_RunBack` slide 32.1 → 43.6, skate 0 → 12.5; `Waving_RunBack` slide 14.4 → 17.1; `OnHeels_Idle` slide 80.6
+    → 89.9, skate 2.14 → 2.39; `OnHeels_SideLeft` fail → pass (slide 287 → 57.7, skate 41.6 → 7.16); `OnHeels_SideRight`
+    slide 54.4 → 76.4, skate 0 → 11.5. Its "never under the default 0.3 H0/s" was not so: detectContacts bounds "still"
+    at half the body's speed and at least 0.05 H0/s, so the floor did nothing and is gone. 0.50.1 was a patch because
+    D104 fixed D100's data, the `OFF_FEET` export and `DetectOptions.sole` serving the fix; D108 is a fix too, 0.50.2.
+  - **D106 corrected:** the speed-rule probe's fifth trial wasn't an outage: it was graded, a slide (footL at 7.75 to
+    8.00 s, skate 87 cm/s against a fail level of 42, as `-B1-5.json`'s B1-1); a sixth agent hung for 10 minutes and its
+    work passed.
+  - **The gate's record stands at 5d1ec8f:** the fix returns 24 clips to their contacts before D104, which every gate
+    to G6 played, and leaves untouched the clips B1's agents ship (`Run_Female` and the core jogs keep theirs byte for
+    byte); every known-good passes again at the fixed head, on its brief and on run 2's held-out variant
+    (`bench/results/2026-10-19-default-B1-B2-B3-B4-B5-B6-B7-fake.json`, `-B<n>-fake-variant-3.json`); T0, T1 (987
+    tests, 81.4 s), T2 (126.0 s, the sweeps in full) and `pack --check` pass.
+- **Why:** the library says where a loop's feet are only where the planter can hold them there; where it can't, it says
+  why, so nothing that reads contacts (root motion, speed matching, the slide sensors) is told a wrong answer.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.50.2, michaelcrosato/my-3danimations#14

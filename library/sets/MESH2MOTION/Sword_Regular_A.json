@@ -10,7 +10,7 @@
 "desc": "the combo's first strike: crouches and thrusts forward, then rises back to standing",
 "skeleton": "humanoid",
 "restSrc": "M2M_QUATERNIUS",
-"contacts": {"by":"detected","footL":[[0,0.376]],"footR":[[0.18,0.36]]},
+"contacts": {"by":"detected"},
 "facts": {"by":"m3a-facts@1","height":[65,99],"strike":[0.229],"travel":[10.9,0]},
 "provenance": {"src":"M2M_QUATERNIUS","orig":"QUATERNIUS_SHARDFALL/Sword_Regular_A","method":"keyed","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
 "quality": {"fit":[16,244],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"fail on jitter, pop: as keyed in its source, fitted within 16 mm of it on average; the sensors' fix: jitter would take it 3 mm further from its source on average"},

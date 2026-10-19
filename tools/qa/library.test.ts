@@ -16,7 +16,7 @@ import { metrics, checks, type Report } from "@m3a/sensors";
 import type { Clip } from "@m3a/core";
 import { ROOT } from "../run/cli.ts";
 import { CATEGORIES, categoryOf, census, type Census } from "./census.ts";
-import { againstRecord, checkFloats, checkOffFeet, checkVerdicts, contextsOf, DISTRIBUTIONS, FLOAT, floatOf, floorsMissed, libraryDoc, recordOf, recordProblems, UNIQUE_FLOOR, type Recorded } from "./library.ts";
+import { againstRecord, checkFloats, checkOffFeet, checkVerdicts, contextsOf, DISTRIBUTIONS, FLOAT, floatOf, floorsMissed, libraryDoc, offFeetStep, recordOf, recordProblems, UNIQUE_FLOOR, type Recorded } from "./library.ts";
 import { libraryClips, qa, sample, type LibraryClip } from "./qa.ts";
 import { QA_REASONS, qualityOf, readReasons, reasonOf, reasonsProblems, type QaReasons } from "./verdict.ts";
 
@@ -149,20 +149,30 @@ describe("the float check", () => {
 describe("the off-feet check", () => {
   const fly = all.find((c) => c.clip.id === "MESH2MOTION/Flying_Forward")!, run = all.find((c) => c.clip.id === "MESH2MOTION/Run_Female")!;
   const bare = (c: LibraryClip, tags = c.clip.tags): LibraryClip => ({ ...c, clip: { ...c.clip, tags, contacts: { by: "detected" } } });
-  it("passes the library: every loop with no contact is off its feet and answered, every answer's loop still has none", () => {
+  it("passes the library: every loop with no contact is answered, every answer's loop still has none", () => {
     expect(checkOffFeet(all)).toEqual({ problems: [], gone: [] });
-    expect(Object.keys(readReasons().offFeet ?? {})).toHaveLength(19);
+    expect([Object.keys(readReasons().offFeet ?? {}).length, Object.keys(readReasons().unplanted ?? {}).length]).toEqual([19, 6]);
+    expect(offFeetStep(all)).toMatchObject({ name: "off feet", ok: true, summary: "every loop with no contact answered in library/baselines/qa.json: 19 off their feet, 6 with no foot that holds still" });
   });
   it("names a loop with no contact its tags keep on its feet, one with no answer, and an answer whose loop has contacts", () => {
     const none: QaReasons = { ...reasons, offFeet: {} }, answered: QaReasons = { ...reasons, offFeet: { [fly.clip.id]: "it flies", [run.clip.id]: "it runs" } };
-    expect(checkOffFeet([bare(run)], none).problems[0]).toMatch(/^MESH2MOTION\/Run_Female: a loop with no contact, and none of its tags \(run\) puts it off its feet/);
+    expect(checkOffFeet([bare(run)], none).problems[0]).toMatch(/^MESH2MOTION\/Run_Female: a loop with no contact, and none of its tags \(run\) puts it off its feet .*answer why no foot holds still in library\/baselines\/qa.json unplanted$/);
+    expect(checkOffFeet([bare(run)], { ...reasons, unplanted: { [run.clip.id]: "its feet sweep the floor" } })).toEqual({ problems: [], gone: [] });
     expect(checkOffFeet([fly], none).problems).toEqual(["MESH2MOTION/Flying_Forward: a loop with no contact (fly, air), with no answer in library/baselines/qa.json offFeet"]);
-    expect(checkOffFeet([fly, run], answered)).toEqual({ problems: [], gone: ["MESH2MOTION/Run_Female (has contacts now)"] });
+    expect(checkOffFeet([fly, run], answered)).toEqual({ problems: [], gone: ["offFeet: MESH2MOTION/Run_Female (has contacts now)"] });
+    expect(checkOffFeet([run], { ...reasons, unplanted: { [run.clip.id]: "x" } }).gone).toEqual(["unplanted: MESH2MOTION/Run_Female (has contacts now)"]);
     expect(checkOffFeet([bare(run, ["run", "fly"])], answered).problems).toEqual([]);
+    const step = offFeetStep([bare(run)], none);
+    expect([step.ok, step.summary, step.detail?.length]).toEqual([false, "1 loops with no contact unanswered; 0 answers whose loop has contacts now", 1]);
+    expect(offFeetStep([fly, run], answered).detail).toEqual(["library/baselines/qa.json offFeet: MESH2MOTION/Run_Female (has contacts now)"]);
   });
   it("reads the answers against the reasons' schema", () => {
     expect(reasonsProblems({ ...reasons, offFeet: { "A/B": "" } })).toEqual(["offFeet maps a clip id to where it is instead of on its feet, a text"]);
     expect(reasonsProblems({ ...reasons, offFeet: { nope: "x" } })).toEqual(['"nope" is not a clip id']);
     expect(schema("qa.schema.json")({ ...reasons, offFeet: { "A/B": "" } })).toBe(false);
+    expect(reasonsProblems({ ...reasons, unplanted: { "A/B": "" } })).toEqual(["unplanted maps a clip id to why no foot holds still on the floor, a text"]);
+    expect(reasonsProblems({ ...reasons, unplanted: { nope: "x" } })).toEqual(['"nope" is not a clip id']);
+    expect(schema("qa.schema.json")({ ...reasons, unplanted: { "A/B": "" } })).toBe(false);
+    expect(schema("qa.schema.json")({ ...reasons, unplanted: { "A/B": "its feet sweep the floor" } })).toBe(true);
   });
 });

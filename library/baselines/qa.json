@@ -34,5 +34,13 @@
   "QUATERNIUS_SHARDFALL/Jump_Loop": "it is a jump's airborne pose, held while rising or falling: no foot is on the floor",
   "QUATERNIUS_SHARDFALL/NinjaJump_Idle_Loop": "it is a ninja jump's airborne pose, held: no foot is on the floor",
   "QUATERNIUS_SHARDFALL/Swim_Fwd_Loop": "it swims, body flat: it is in water, its feet never on a floor"
+ },
+ "unplanted": {
+  "CMU_CURATED/Boxing_Guard_Loop": "a boxer's guard, stepping: the right foot holds still 50 ms a cycle and the left never, so a contact read from it would drift the stance 0.27 H0/s (D108)",
+  "MESH2MOTION/Run_Anime": "a run on the spot whose feet sweep the floor under a root that stands still: no foot holds still while down, and planting one would pull it up to 1.5 H0 (D108)",
+  "MESH2MOTION/Run_Stealth": "a stealthy run on the spot whose feet sweep the floor under a root that stands still: no foot holds still while down, and planting one would pull it up to 1.25 H0 (D108)",
+  "STYLE100/WideLegs_Walk": "a retargeted wide-legged walk whose left foot skims the floor: only the right foot reads still, a ground speed 2.3 times its captured one (D108)",
+  "STYLE100_BACKRUN/Drunk_RunBack": "a retargeted stumbling run backward whose right foot never reads still: one foot's contacts alone give a ground speed the run doesn't have (D108)",
+  "STYLE100_RUN/OnHeels_Run": "a retargeted run on the heels whose left foot never reads still: one foot's contacts alone give a ground speed the run doesn't have (D108)"
  }
 }

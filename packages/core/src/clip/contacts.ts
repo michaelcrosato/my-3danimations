@@ -3,6 +3,7 @@
 // the floor (z = 0): it plants when it comes within `enter` of it and lifts when it moves past `exit` (fractions of
 // H0; above or below), so a foot that skims the ground doesn't flicker. Contacts shorter than `minTime` are dropped and
 // gaps up to `mergeTime` closed; a loop's contact that runs through the seam becomes one interval past dur (§7.1).
+// `sole` reads a foot by its whole sole, the heel `sole()` gives too (a body on its heels, toes raised: D104).
 import { PORTABLE } from "../math/portable.ts";
 import { IDX, P, type Rest } from "../format/body.ts";
 import { decodeLegs, decodePose } from "../format/pose.ts";

@@ -1,7 +1,7 @@
 # m3a: character animation for agents
 
 m3a plays humanoid motion clips on any humanoid character, in a game or headless. Clips, recipes and graphs are JSON;
-the runtime is deterministic; the sensors measure motion as numbers (and draw it as PNGs) without a display. Every
+the runtime is deterministic; the sensors measure motion as numbers (and PNGs) without a display. Every
 capability is also a tool, called as `m3a <tool>` or over MCP (Tools).
 
 ## The packages
@@ -15,8 +15,8 @@ capability is also a tool, called as `m3a <tool>` or over MCP (Tools).
 | `@m3a/io` | glTF/GLB, VRMA, BVH, CMU ASF/AMC readers and writers (import, export) | `@m3a/io` |
 | `@m3a/tools` | the tools, the simulation (`sim`), the `m3a` command, MCP, this manual | `@m3a/tools`, `@m3a/tools/node` |
 
-Units: millimetres and degrees, metres in three.js (the adapter converts), seconds. "% of the hip height" and "hip
-heights a second" scale with a body's hip height `H0`, so one clip fits every body.
+Units: mm, degrees and seconds; metres in three.js (the adapter converts). "% of the hip height" and "hip
+heights a second" scale with a body's hip height `H0`: one clip fits every body.
 
 ## The mental model
 
@@ -27,7 +27,7 @@ heights a second" scale with a body's hip height `H0`, so one clip fits every bo
 - An **Animator** plays clips on named **layers** at a fixed 1/60 s step: `step(dt)` moves the playheads, fires events
   and moves the root; `pose()` solves the mix onto the bones; `attach(animator, bound).update(dt)` does both.
 - **Contacts** (when a foot stands) plant the feet and move the root as they push (root motion: move the character
-  by it, never at a speed of your own): `playable(clip, rest)` measures them; play library clips through it.
+  by it): `playable(clip, rest)` measures them; play library clips through it.
 - A **graph** (JSON): states, transitions on parameters the game sets, blend spaces and layers, run inside the
   Animator's step. A **recipe** (JSON) makes a clip from clips; an **action** is a recipe with ground, beats and cuts.
 - The **sensors** judge motion from the bones (slide, skate, pops, jitter, penetration, NaN), a clip or a whole
@@ -136,7 +136,7 @@ npx m3a graph.sim knight.json --script knight-sim.json --clips check-output/reci
 ```ts
 const walks = library.catalog().filter((r) => r.tags.includes("walk") && r.loop);
 // a row: { id, dur, loop, speed (% of the hip height a second, or null), tags, desc, src }
-const hits = library.search("sword slash", { limit: 5 }).rows;  // ranked: { id, tier, dur, loop, speed (m/s at 0.95 m hips), tags, desc, score }
+const hits = library.search("sword slash", { limit: 5 }).rows;  // ranked: { id, tier, dur, loop, speed (m/s at 0.95 m hips), tags, desc, score, core (true: a usual clip) }
 const { clip, rest } = library.clip("MESH2MOTION/Walk_Large");  // and its set and tier
 ```
 
@@ -195,7 +195,7 @@ a.remove("hurt");
   pick another clip). For v m/s play a loop at `speed: (v * 1000) / own`, `own` its speed on `bound.core.rest` (0.5 to
   2, else pick a clip nearer v; in range a `core` row beats a nearer one), and move the character by `player.travel`,
   which then covers v: moved at v yourself, feet slide in fades and where a keyed stance drifts. In a graph,
-  `"rate": "<param>"` (stride warping).
+  `"rate": "<param>"` (stride warping; its parameter needs `"value": 1`).
 - **Determinism**: the same calls give the same `animator.hash()` in Node and a browser; `save()` and
   `restore(data, clips, graph?)` round-trip through JSON; `update(dt)` takes any dt (fixed steps, the rest carried).
 
@@ -257,7 +257,7 @@ writeFileSync("walk_weary.json", serialize(made.clip));    // as the library wri
 
 `recipe.compile` and `actions.compileAction` read clips through `library.resolver()`: a clip past the game's tiers
 throws `LibraryError` `E_TIER` naming the opt-in (if its set has it); any other unknown id `recipe.RecipeError`, whose
-`.issues` hold `R-E008` (with the nearest id). Edits: faster, `retime` (`speed: 1.5`); the other side,
+`.issues` hold `R-E008` (the nearest id in its fix, if any). Edits: faster, `retime` (`speed: 1.5`); the other side,
 `mirror`; more anticipation, a `pose` the other way before the key moment; bigger, `exaggerate` (1.25).
 `m3a edit <clip> --ops <json> --save-as WORKSHOP/<Name>` applies steps to a copy, with undo.
 
@@ -304,13 +304,13 @@ for (let i = 0; i < 120; i++) { player.update(1 / 60); frames.push(Float32Array.
 checks.measure(checks.motionOfFrames(frames, bound.core.rest, { root: roots })).verdict;
 ```
 
-`sim.simulate({ graph, script, body, clips, poses })` returns `{ trace, path, rates, frames, root, sensors, warnings
-}`: `trace` (`states`, `events`, `hits`, `steps`, `rate`); `path`, the root every 0.25 s and at the end (`{ t,
-forward, right, yaw }`, mm, world): a state's travel is the distance between two rows over their time, / `H0` for hip
-heights a second; `rates`, stride warping's; `frames` and `root`, each step's body points and root; `warnings` (a
-strike with no hit event). Script rows: `{ t, set, over, trigger, move }`; `root: "in-place"` with `move` (m/s) and
-`warp: "<param>"` simulates a game moving the character. `sim.validateScript(script, graph)` checks a script;
-`sim.compareTraces(expected, actual)` names the first difference.
+`sim.simulate({ graph, script, body, clips, poses })` returns `{ trace, path, rates, frames, root, sensors, warnings }`:
+`trace` (`states`, `events`, `hits`, `steps`, `rate`); `path`, the root every 0.25 s and at the end (`{ t, forward,
+right, yaw }`, mm, world): a state's travel is the distance between two rows over their time; `rates`, stride warping's;
+`frames` and `root`, each step's body points and root; `warnings` (a strike with no hit event). Script rows: `{ t, set,
+over, trigger, move }`; `root: "in-place"` with `move` (m/s) and `warp: "<param>"` simulates a game moving the
+character. `sim.validateScript(script, graph)` checks a script; `sim.compareTraces(expected, actual)` names the first
+difference.
 
 ## Ship: licenses, import, export
 

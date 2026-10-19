@@ -10,7 +10,7 @@
 "desc": "a big lunging hook swing that carries low to the ground",
 "skeleton": "humanoid",
 "restSrc": "UAL2",
-"contacts": {"by":"detected","footL":[[0,0.467]],"footR":[[0,0.467]]},
+"contacts": {"by":"detected"},
 "facts": {"by":"m3a-facts@1","height":[50,82],"strike":[0.242]},
 "provenance": {"src":"UAL2","method":"keyed","producer":{"tool":"m3a-migrate","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
 "quality": {"fit":[22,117],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"fail on jitter: as migrated from Quaternius's Universal Animation Library, with no source frames to measure a repair against: its keys stay the source's (WP-1.5) until the re-import can fetch its files (D63)"},

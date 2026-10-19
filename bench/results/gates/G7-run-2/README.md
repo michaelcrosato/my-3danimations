@@ -40,3 +40,6 @@ cross struck where the original does (57% of the hip height from it). Both brief
 skill loaded; MCP tools were called in 10 of 70 gating trials, the Skill tool in none (one discovery trial invoked it),
 the rest through `npx m3a` and the API, as the briefs point agents to the manual. 20 of 70 read past the manual into
 the installed packages' types (B1 10 of 10, mostly a graph `rate` parameter's starting value after E_GRAPH G-E006).
+The audit's read-past lists over-count a little: a grep whose target the packs don't ship is listed as read (B1v-1's
+`node_modules/@m3a/core/README.md` and `tools/README.md`, B7-5's `core/README.md`), and system directories are exempt
+by design (a recorded haiku trial's `ls /usr/lib/node_modules`, empty).
