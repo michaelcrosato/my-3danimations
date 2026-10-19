@@ -3,8 +3,9 @@
 // so: its first step, run here with each unset, and every other step conditioned on it. The service role key reaches
 // only the steps that use it, the checkout keeps no token, the install runs no package's scripts, and the workflow's
 // token reaches only the adopt bot.
-// library-gates.yml runs `npm run gate -- library-pr` on every pull request that touches library/sets/. ci.yml's
-// intake-contract job, by manual dispatch alone, runs the contract suite against O8's project, its secret on that step.
+// library-gates.yml runs every set's license check, then `npm run gate -- library-pr`, on every pull request that
+// touches library/sets/. ci.yml's intake-contract job, by manual dispatch alone, runs the contract suite against O8's
+// project, its secret on that step.
 import { spawnSync } from "node:child_process";
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -50,10 +51,10 @@ describe("intake.yml", () => {
 });
 
 describe("library-gates.yml", () => {
-  it("runs the library-pr gate set on every pull request that touches library/sets/", () => {
+  it("runs every set's license check, then the library-pr gate set, on every pull request that touches library/sets/", () => {
     const text = workflow("library-gates.yml");
     expect(text).toMatch(/on:\n {2}pull_request:\n {4}paths:\n {6}- "library\/sets\/\*\*"\n/);
-    expect(steps(text).map((s) => /run: (.+)/.exec(s)?.[1]).filter(Boolean)).toEqual(["npm ci", "npm run fixtures -- fetch", "npm run gate -- library-pr --json"]);
+    expect(steps(text).map((s) => /run: (.+)/.exec(s)?.[1]).filter(Boolean)).toEqual(["npm ci", "npm run fixtures -- fetch", "npm run license -- check library --json", "npm run gate -- library-pr --json"]);
   });
 });
 

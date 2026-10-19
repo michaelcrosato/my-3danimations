@@ -7,9 +7,9 @@
 // on every rebuild and verifies, every file of it bound; release.yml, read as YAML, runs only by hand, fails closed
 // until O2 unless the owner started the run and the attempt, gives its write token to the upload step alone, uploads to
 // a draft release alone (its step run on a stub gh: a published release refused) and takes each set's license texts
-// from its own files; library-gates.yml runs on index changes.
+// from its own files; library-gates.yml runs on index and license text changes, and checks every set's license texts.
 import { spawnSync } from "node:child_process";
-import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { Ajv2020 } from "ajv/dist/2020.js";
@@ -275,9 +275,24 @@ describe("release.yml", () => {
 });
 
 describe("library-gates.yml", () => {
-  it("runs the library-pr gates (the index's history check among them) on pull requests that touch the sets, the index or the registry", () => {
-    const wf = workflow("library-gates.yml");
-    expect(wf.on).toEqual({ pull_request: { paths: ["library/sets/**", "library/sets.lock.json", "library/index.json", "tools/release/registry.json"] } });
-    expect(Object.values(wf.jobs).flatMap((j) => j.steps).map((s) => s.run).filter(Boolean)).toContain("npm run gate -- library-pr --json");
+  const wf = workflow("library-gates.yml"), runs = Object.values(wf.jobs).flatMap((j) => j.steps).map((s) => s.run).filter((r): r is string => r !== undefined);
+  it("runs the library-pr gates (the index's history check among them) on pull requests that touch the sets, the license texts, the index or the registry", () => {
+    expect(wf.on).toEqual({ pull_request: { paths: ["library/sets/**", "library/sets.lock.json", "library/LICENSES/**", "library/index.json", "tools/release/registry.json"] } });
+    expect(runs).toContain("npm run gate -- library-pr --json");
+  });
+  it("checks every set's license texts, as the release packages them, which the gate's license step reads only for the sets whose clips change", () => {
+    const step = runs.find((r) => r.startsWith("npm run license -- "))!;
+    expect([step, runs.indexOf(step) < runs.indexOf("npm run gate -- library-pr --json")]).toEqual(["npm run license -- check library --json", true]);
+    // the step's command in a scratch checkout: the library's sets, the license tool, and library/LICENSES/ with one
+    // text a pull request deleted
+    const dir = scratch("licenses");
+    for (const d of ["tools/license", "tools/run", "library/LICENSES"]) cpSync(join(ROOT, d), join(dir, d), { recursive: true });
+    for (const d of ["packages", "node_modules", "library/sets"]) symlinkSync(join(ROOT, d), join(dir, d));
+    cpSync(join(ROOT, "package.json"), join(dir, "package.json"));
+    const run = () => spawnSync("bash", ["-e", "-c", step], { cwd: dir, encoding: "utf8" });
+    expect(run().status).toBe(0);
+    rmSync(join(dir, "library/LICENSES/CC0-1.0.txt"));
+    const r = run();
+    expect([r.status, r.stdout]).toEqual([1, expect.stringMatching(/license check library: FAIL[\s\S]*CC0-1\.0's text isn't kept in library\/LICENSES\/CC0-1\.0\.txt/)]);
   });
 });
