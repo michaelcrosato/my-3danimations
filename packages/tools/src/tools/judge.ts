@@ -3,8 +3,8 @@
 // plays. It passes on that body when the body adds no fail finding: its data is sound (no non-number, events in order),
 // the sensors find no metric past its fail level that was under it on the clip's own body, read the same way (the
 // clip's own defects are the clip's, not the body's), and the bones reach every mapped joint's point within 5 mm (above
-// a spine bone that spans format points the rig has no bones for, read bone by bone against each one's mapped parent,
-// the torso's own miss reported: spannedSpine). A
+// a spine bone that spans format points the rig has no bones for, other than on a joint, read bone by bone against each
+// one's mapped parent, the joints that bone carries within TORSO of H0, their miss reported: spannedSpine). A
 // metric the body takes past its warn level only is listed with the row; a value that is no finite number is written
 // "not finite" in the text and null in the data. retarget.apply judges each clip so. And the bound on what one call
 // plays: a foot held past MAX_HOLD, as core's planter holds it (heldStretches), or feet whose holds the planter would
@@ -35,8 +35,8 @@ export interface OnBody {
   /** The farthest a mapped joint was from its body point (mm); above a spanned spine, from its point against its mapped
    *  parent's (spannedSpine). */
   reach: number;
-  /** The most a torso joint above a spanned spine missed its point (mm; 0 on a rig with every spine bone): what the
-   *  missing bones can't follow, allowed within TORSO of H0. */
+  /** The most a torso joint above a spanned spine (one the spanning bone carries) missed its point (mm; 0 on a rig whose
+   *  bones span no spine point): what the missing bones can't follow, allowed within TORSO of H0. */
   spans: number;
   /** Each metric past a level it was under on the clip's own body: the level, its value and levels there and here (a
    *  value that is no finite number null, as the text says "not finite"). */
@@ -103,23 +103,31 @@ export const TORSO = 0.05;
 /**
  * Where a bound rig's spine bones span format spine points it has no bones for (a rig without chest bones: its spine
  * bone reaches from spine1 to the neck), what reach reads above the lowest such span: the torso's own joints (each
- * whose nearest mapped parent bone is a spine bone), whose miss is the span's; and every other mapped bone there, with
- * its nearest mapped parent, against which it is read. Both empty on a rig with every spine bone.
+ * whose nearest mapped parent bone is a spanning one), whose miss is the span's; and every other mapped bone there, with
+ * its nearest mapped parent, against which it is read. A missing point the rig places on a mapped joint (the neck on
+ * the head's, the chest on the chest's: the body points' fallbacks) is no length a bone spans: the bone runs to it as
+ * the decoder's segment does, and every joint there reaches its point. Both empty on a rig with no span.
  */
-export function spannedSpine(c: Pick<Bound, "jointPoint" | "bones" | "order">): { torso: Set<string>; parent: Map<string, string> } {
+export function spannedSpine(c: Pick<Bound, "jointPoint" | "bones" | "order" | "restPts">): { torso: Set<string>; parent: Map<string, string> } {
   const chain = Object.entries(c.jointPoint).filter(([b, pt]) => SPINE_POINTS.includes(pt) && c.bones[b] !== undefined).sort((x, y) => SPINE_POINTS.indexOf(x[1]) - SPINE_POINTS.indexOf(y[1]));
-  const span = chain.findIndex(([, pt], i) => i > 0 && SPINE_POINTS.indexOf(pt) - SPINE_POINTS.indexOf(chain[i - 1]![1]) > 1);
+  // the rest points p and q at one place (to a µm)
+  const on = (p: string, q: string) => [0, 1, 2].every((k) => Math.abs(c.restPts[format.IDX[p]! * 3 + k]! - c.restPts[format.IDX[q]! * 3 + k]!) < 1e-3);
+  // each bone whose segment, to the next mapped spine point, holds a missing point off both its ends
+  const spans = chain.filter(([, pt], i) => {
+    const next = chain[i + 1]?.[1];
+    return next !== undefined && SPINE_POINTS.slice(SPINE_POINTS.indexOf(pt) + 1, SPINE_POINTS.indexOf(next)).some((m) => !on(m, pt) && !on(m, next));
+  });
   const torso = new Set<string>(), parent = new Map<string, string>();
-  if (span < 0) return { torso, parent };
-  const lowest = SPINE_POINTS.indexOf(chain[span - 1]![1]), legs = /^(hip|knee|ankle|ball|toe|heel)[LR]$/;
+  if (!spans.length) return { torso, parent };
+  const lowest = SPINE_POINTS.indexOf(spans[0]![1]), legs = /^(hip|knee|ankle|ball|toe|heel)[LR]$/;
   const index = new Map(c.order.map((b, i) => [b.name, i])), human = new Map(Object.entries(c.bones).filter(([h]) => c.jointPoint[h]).map(([h, src]) => [src, h]));
-  const spine = new Set(chain.map(([b]) => b));
+  const spanning = new Set(spans.map(([b]) => b));
   for (const [b, pt] of Object.entries(c.jointPoint)) {
     if (c.bones[b] === undefined || legs.test(pt) || (SPINE_POINTS.includes(pt) && SPINE_POINTS.indexOf(pt) <= lowest)) continue;
     // the nearest ancestor in the rig that a mapped humanoid bone sits on
     let i = c.order[index.get(c.bones[b]!) ?? -1]?.parent ?? -1, up: string | undefined;
     while (i >= 0 && !(up = human.get(c.order[i]!.name))) i = c.order[i]!.parent;
-    if (!up || spine.has(up)) torso.add(b);
+    if (!up || spanning.has(up)) torso.add(b);
     else parent.set(b, up);
   }
   return { torso, parent };

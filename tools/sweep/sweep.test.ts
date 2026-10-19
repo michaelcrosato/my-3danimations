@@ -180,7 +180,9 @@ describe("the sweep", () => {
     );
     // re-pinned (D107): the rows gain `spans`, and gen-7 (no upper chest: its chest bone spans the format's chest point)
     // reads its limbs against their mapped parents, Backflip's reach 0.051 → 0.042 mm; every verdict and other value as
-    // b4f51cf5d8276a36 had them
-    expect(createHash("sha256").update(JSON.stringify(rows)).digest("hex").slice(0, 16), JSON.stringify(rows)).toBe("89b3e4f02e736978");
+    // b4f51cf5d8276a36 had them. Re-pinned again (codex14): gen-7's chest point sits on its chest bone's joint, a point no
+    // bone spans, so it reads every joint against its own point again: Backflip's reach 0.042 → 0.051 mm (b4f51cf's), each
+    // gen-7 row's spans 0.017–0.051 → 0 mm; every verdict and other value as before
+    expect(createHash("sha256").update(JSON.stringify(rows)).digest("hex").slice(0, 16), JSON.stringify(rows)).toBe("79cec87b11973085");
   }, 60_000);
 });
