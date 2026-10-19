@@ -31,8 +31,13 @@ none during trial batches.
     `M3A_O2_RELEASE_ASSETS=yes`) are the owner's; the session creates no Supabase or Vercel resource.
 - **Review bots:** every finding on #14 to #18 is fixed or answered on its thread (D115, D117, D120).
 - **The owner answered (D120):** D94 stands; #16's proof thread stays as is (`verify` checks the content id against
-  the live proof); the stray artifact of CERTIFYING.md is deleted; #18 merged.
-- **Last measured (4 CPUs):** T0 about 3 s, T1 77 s in CI (about 105 s here), T2 about 350 s with the full sweeps,
+  the live proof); the stray artifact of CERTIFYING.md is deleted; #18 merged. Asked again on 2026-10-19: O3 stays
+  paused; O8's project, G10's other repository and the G8/G9 reviews wait for the owner (the weekly limit was near).
+- **Paused cleanly (2026-10-19):** nothing is in flight. `main` is the state (0.54.0, every check green on #18's
+  last head); no pull request is open, no lane, worktree or local branch but the session's, no pending check-in.
+  The next session starts from `main` with the owner's next answer, or a follow-up below the owner picks.
+- **Last measured (4 CPUs):** T0 about 3 s warm (16 s cold, typecheck and lint side by side), T1 77.7 s in CI (about
+  90 s here), T2 about 280 s with the full sweeps,
   `pack --check` about 21 s, the TypeScript certification about 8 s.
 
 ## Next, in order
