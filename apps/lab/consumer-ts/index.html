@@ -1,0 +1,25 @@
+<!doctype html>
+<!-- The TypeScript consumer lab (PLAN.md WP-10.1): two graph-driven humanoids duel on a fixed 60 Hz sim, drawn by three.js r182. -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>m3a consumer-ts</title>
+    <style>
+      html, body { margin: 0; height: 100%; background: #f4f2ec; color: #26231e; font: 14px/1.4 system-ui, sans-serif; overflow: hidden; }
+      canvas { display: block; width: 100%; height: 100%; }
+      #hud { position: fixed; top: 8px; left: 12px; right: 12px; pointer-events: none; }
+      #hit { position: fixed; top: 30%; left: 0; right: 0; text-align: center; font-size: 56px; font-weight: 800; color: #c2410c; opacity: 0; transition: opacity 0.35s; pointer-events: none; }
+      #hit.on { opacity: 1; transition: none; }
+      #stamp { position: fixed; right: 10px; bottom: 6px; font-size: 11px; opacity: 0.6; }
+      #help { position: fixed; left: 12px; bottom: 6px; font-size: 12px; opacity: 0.7; }
+    </style>
+  </head>
+  <body>
+    <div id="hud">loading</div>
+    <div id="hit">HIT</div>
+    <div id="help">W or ↑ to walk, Shift to jog, J to slash</div>
+    <div id="stamp"></div>
+    <script type="module" src="./src/main.ts"></script>
+  </body>
+</html>
