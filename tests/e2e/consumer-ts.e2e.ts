@@ -6,7 +6,9 @@
 // which flinches; m3a's own `sim.simulate` predicts the hero's states and events, and its root, step by step, is where
 // the game put the hero (to a micron), so the hero goes by root motion; nothing is NaN. The page's own frame loop, run
 // by requestAnimationFrame on a held clock with W down, takes floor(T × 60 / 1000) steps over T ms of frames and lands
-// on Node's hash for that many walking steps; in Node the frame clock does so however frames fall. docs/MIGRATING.md
+// on Node's hash for that many walking steps; in Node the frame clock does so however frames fall. On that clock a J
+// press in a frame that owes no step (the first after a resume) slashes at the next step, Node's hash again, and after
+// a frame of several steps the view draws each fighter between its last two places by alpha. docs/MIGRATING.md
 // names each of my-3dge's animator WPs (3.4–3.7) and library WPs (8.1–8.10) as replaced, wrapped or kept. Screenshots
 // go to check-output/consumer-ts/.
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -20,7 +22,7 @@ import { character, loadGlb, variant } from "@m3a/three/test-characters";
 import { sim } from "@m3a/tools";
 import { createClock } from "../../apps/lab/consumer-ts/src/clock.ts";
 import { duelClips } from "../../apps/lab/consumer-ts/src/clips.ts";
-import { Duel, intents, play, RULES, SETUP, type Intent, type Played } from "../../apps/lab/consumer-ts/src/game.ts";
+import { Duel, intents, play, RULES, SETUP, type DuelEvent, type Intent, type Played } from "../../apps/lab/consumer-ts/src/game.ts";
 
 const ROOT = join(import.meta.dirname, "../.."), LAB = join(ROOT, "apps/lab/consumer-ts"), SITE = join(ROOT, ".cache/consumer-ts-site");
 const OUT = join(ROOT, "check-output/consumer-ts"), ORIGIN = "http://localhost:4176", DEG = Math.PI / 180;
@@ -29,7 +31,16 @@ const read = (file: string) => JSON.parse(readFileSync(join(LAB, "data", file), 
 const graph = read("duel.graph.json"), script = read("session.sim.json"), text = { graph, recipes: [read("slash.recipe.json")] };
 /** After the session, a few steps driven one call each, as an agent at the console would. */
 const AFTER: { n: number; intent: Intent }[] = [{ n: 30, intent: { speed: 1 } }, { n: 1, intent: { speed: 0, attack: true } }, { n: 40, intent: { speed: 0 } }];
-type Handle = { ready: boolean; error?: string; hash(): string; session(): Played; step(n: number, intent: Intent): { name: string }[]; state(): ReturnType<Duel["state"]>; pause(on: boolean): void };
+type Handle = {
+  ready: boolean;
+  error?: string;
+  hash(): string;
+  session(): Played;
+  step(n: number, intent: Intent): { name: string }[];
+  state(): ReturnType<Duel["state"]>;
+  drawn(): Record<string, { x: number; z: number; heading: number }>;
+  pause(on: boolean): void;
+};
 
 test.use({ launchOptions: { ...(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {}), args: ["--use-angle=swiftshader", "--enable-unsafe-swiftshader"] } });
 test.describe.configure({ mode: "serial" });
@@ -166,6 +177,56 @@ test("consumer-ts: the page's own frame loop on a held clock takes floor(T × 60
   const n = await nodeDuel();
   for (let i = 0; i < due; i++) n.duel.step({ speed: 1 });
   expect(ran.hash).toBe(n.duel.hash());
+});
+
+test("consumer-ts: on a held clock a J press in a frame that owes no step still slashes, and after a frame of several steps the view draws between the last two places", async ({ page }) => {
+  // the page's requestAnimationFrame loop rendering 1.5 s of frames on SwiftShader: about 10 s here
+  test.setTimeout(180_000);
+  await page.clock.install();
+  await open(page);
+  for (const ms of [1000, 2000]) await page.clock.pauseAt((await page.evaluate(() => Date.now())) + ms);
+  await page.clock.runFor(50);
+  // resumed on a fresh frame clock, a recorder beside it; W and J go down before its first frame, the origin, which
+  // owes no step: the press lands in that frame and must wait for the next one's step
+  await page.evaluate(() => {
+    const w = window as unknown as { __m3a: Handle; frames: number[] };
+    w.frames = [];
+    const rec = (t: number) => {
+      w.frames.push(t);
+      requestAnimationFrame(rec);
+    };
+    requestAnimationFrame(rec);
+    w.__m3a.pause(false);
+  });
+  await page.keyboard.down("KeyW");
+  await page.keyboard.down("KeyJ");
+  await page.clock.runFor(1500);
+  // then one frame 70 ms on, owing several steps; the clock held, no frame runs after it until the view is read
+  await page.clock.fastForward(70);
+  const ran = await page.evaluate(() => {
+    const w = window as unknown as { __m3a: Handle; frames: number[] }, out = { frames: w.frames, steps: w.__m3a.state().steps, hash: w.__m3a.hash(), drawn: w.__m3a.drawn() };
+    w.__m3a.pause(true);
+    return out;
+  });
+  await page.keyboard.up("KeyJ");
+  await page.keyboard.up("KeyW");
+  // each frame's steps and alpha, as the page's frame clock took them from the same times
+  const clock = createClock(), owed = ran.frames.map((t) => clock.advance(t)), end = owed.at(-1)!, due = owed.reduce((s, f) => s + f.steps, 0);
+  expect([owed[0]!.steps, ran.steps], ran.frames.join(" ")).toEqual([0, due]);
+  expect(end.steps, ran.frames.slice(-3).join(" ")).toBeGreaterThanOrEqual(2);
+  // Node: the press on the first step, then walking, gives the page's hash; the hero slashed from that step
+  const n = await nodeDuel(), places: Record<string, [number, number, number]>[] = [], events: DuelEvent[] = [];
+  for (let i = 0; i < due; i++) {
+    events.push(...n.duel.step(i === 0 ? { speed: 1, attack: true } : { speed: 1 }));
+    places.push(Object.fromEntries(n.duel.fighters.map((f) => [f.id, [f.x, f.z, f.heading] as [number, number, number]])));
+  }
+  expect(events.find((e) => e.fighter === "hero" && e.state === "slash")?.step).toBe(0);
+  expect(ran.hash).toBe(n.duel.hash());
+  // the view drew each fighter between its place before the frame's last step and its last, by the frame's alpha,
+  // not from where the frame began (the hero walked between the two, so they differ)
+  const before = places.at(-2)!, now = places.at(-1)!, began = places.at(-1 - end.steps)!, lerp = (a: number, b: number) => a + (b - a) * end.alpha;
+  for (const id of ["dummy", "hero"]) expect(ran.drawn[id], id).toEqual({ x: lerp(before[id]![0], now[id]![0]), z: lerp(before[id]![1], now[id]![1]), heading: lerp(before[id]![2], now[id]![2]) });
+  expect(lerp(began.hero![1], now.hero![1])).not.toBe(ran.drawn.hero!.z);
 });
 
 test("consumer-ts: the frame clock gives floor(T × 60 / 1000) steps however frames fall, at most 6 a frame", () => {

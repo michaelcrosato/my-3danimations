@@ -19,10 +19,12 @@ there): the page reads the library from files its Vite config bundles with `@m3a
 - **The session:** `data/session.sim.json`, the hero's input in m3a's sim format (spec/SIM.md), so `m3a graph.sim`
   and `sim.simulate` read it too; `intents()` turns it into one intent a step.
 - **Serve it:** `node_modules/.bin/vite --config apps/lab/consumer-ts/vite.config.ts` (W or ↑ walks, Shift jogs, J
-  slashes; `?renderer=webgl2`, `?paused=1`). **Check it:** `npm run e2e -- consumer-ts`: the page plays the session
-  as Node does, step by step (events, hits, places, hp, hashes), the hero stands on `sim.simulate`'s root at every
-  step, and the page's own frame loop on a held clock takes floor(T × 60 / 1000) steps in T ms; its screenshots and
-  `session.json` go to `check-output/consumer-ts/`.
+  slashes, a press waiting for the next step; `?renderer=webgl2`, `?paused=1`). **Check it:**
+  `npm run e2e -- consumer-ts`: the page plays the session as Node does, step by step (events, hits, places, hp,
+  hashes), the hero stands on `sim.simulate`'s root at every step, and the page's own frame loop on a held clock takes
+  floor(T × 60 / 1000) steps in T ms, slashes on a J press in a frame that owes no step, and after a frame of several
+  steps draws each fighter between its last two places; its screenshots and `session.json` go to
+  `check-output/consumer-ts/`.
 - **Console:** `__m3a.state()`, `__m3a.hash()`, `__m3a.step(n, { speed, attack })`, `__m3a.session()` (the scripted
-  session from a fresh duel, posed every step, with each fighter's place after every step), `__m3a.pause(on)`
-  (resuming starts the frame clock afresh).
+  session from a fresh duel, posed every step, with each fighter's place after every step), `__m3a.drawn()` (where
+  the view drew each fighter), `__m3a.pause(on)` (resuming starts the frame clock afresh).
