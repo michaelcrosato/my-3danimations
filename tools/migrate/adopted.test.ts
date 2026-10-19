@@ -1,5 +1,5 @@
 // What the library's writers keep over a clip's source (WP-9.1, tools/migrate/adopted.ts): an adoption holds only while
-// the owner's approval is on the clip's motion as it is; a review is carried over a rewrite while its motion hash
+// the owner's approval is on the clip's motion as it is, and is the adopt bot's for the submission it names; a review is carried over a rewrite while its motion hash
 // matches, and dropped otherwise; and a re-imported set's record takes an adopted clip as the next import writes it
 // (its choice kept as adopted beside its source's measures, the mean and the manifest's importer line as the import
 // gives them).
@@ -14,7 +14,7 @@ import { adoptedWhy, adoptionOf, carryReview } from "./adopted.ts";
 
 const SET = join(ROOT, "library/sets/MESH2MOTION"), read = (f: string) => readFileSync(join(SET, f), "utf8");
 const walk = parseClip(readFileSync(join(ROOT, "library/sets/QUATERNIUS_3D2DGE/Walk_Loop.json"), "utf8"));
-const adopted = (c: Clip, motion = motionHash(c)): Clip => ({ ...c, provenance: { ...c.provenance, intake: { by: "a test", submission: `s-0123456789abcdef@${"ab".repeat(32)}` } } as Clip["provenance"], review: { state: "approved", by: "owner", date: "2026-10-19", motion } });
+const adopted = (c: Clip, motion = motionHash(c)): Clip => ({ ...c, provenance: { ...c.provenance, intake: { by: "a test", submission: `s-0123456789abcdef@${"ab".repeat(32)}` } } as Clip["provenance"], review: { state: "approved", by: "owner", date: "2026-10-19", motion, note: "adopted from s-0123456789abcdef@abababababab: reads well" } });
 
 describe("an adoption", () => {
   it("holds while the owner's approval is on the clip's motion as it is", () => {
@@ -22,6 +22,9 @@ describe("an adoption", () => {
     expect(adoptedWhy(adoptionOf(adopted(walk))!)).toBe(`adopted from the intake queue (s-0123456789abcdef@abababababab) by the owner (owner) on 2026-10-19: kept over its source's version while that approval holds for its motion (${motionHash(walk).slice(0, 12)})`);
     const moved = { ...walk, keys: walk.keys.map((k, i) => (i === 1 ? { ...k, head: (k as unknown as { head: number[] }).head.map((v, j) => (j ? v : v + 5)) } : k)) } as Clip;
     expect([adoptionOf(walk), adoptionOf({ ...adopted(walk), review: { ...adopted(walk).review!, state: "flagged" } }), adoptionOf(adopted(moved, motionHash(walk)))]).toEqual([null, null, null]);
+    // an approval written by hand on its motion, not the adopt bot's for that submission, is no adoption
+    const { note: _, ...bare } = adopted(walk).review!;
+    expect([adoptionOf({ ...adopted(walk), review: bare }), adoptionOf({ ...adopted(walk), review: { ...bare, note: "adopted from s-ffffffffffffffff@abababababab" } }), adoptionOf({ ...adopted(walk), review: { ...bare, note: "adopted from s-0123456789abcdef@abababababab" } })?.by]).toEqual([null, null, "owner"]);
   });
 });
 

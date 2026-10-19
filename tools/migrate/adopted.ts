@@ -1,9 +1,10 @@
 // What the library's writers keep of a clip on disk when they rewrite its set from its sources (PLAN.md §5.9,
 // WP-9.1): `npm run import` and `npm run migrate` give each clip as its source gives it, except a clip the owner
 // adopted from the intake queue (its provenance names the submission it came from, and its review is the owner's
-// approval, made on its motion as it is: as tools/intake/adopt.ts writes it), which they keep over its source's; and a
-// clip's review (WP-8.2), which they carry over the rewrite while its motion hash matches the rewritten clip's, and
-// drop otherwise (the clip back to unreviewed).
+// approval, made on its motion as it is and naming that submission: as tools/intake/adopt.ts writes it), which they
+// keep over its source's; and a clip's review (WP-8.2), which they carry over the rewrite while its motion hash matches
+// the rewritten clip's, and drop otherwise (the clip back to unreviewed). Only the adopt bot writes an adoption record:
+// the library's gates fail any other pull request that adds one (tools/intake/gates.ts), so a record here is the bot's.
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { parseClip, type Clip } from "@m3a/core";
@@ -17,10 +18,13 @@ export interface Adoption {
   motion: string;
 }
 
-/** The intake adoption `clip` records, or null: none, not approved, or approved on another motion than its own. */
+/** The intake adoption `clip` records, or null: none, not approved, approved on another motion than its own, or an
+ *  approval that isn't the adopt bot's for that submission (its note opens "adopted from <id>@<12 of its hash>"). */
 export function adoptionOf(clip: Clip): Adoption | null {
   const sub = (clip.provenance as { intake?: { submission?: unknown } }).intake?.submission, r = clip.review;
-  if (typeof sub !== "string" || !sub || r?.state !== "approved" || !r.by || r.motion !== motionHash(clip)) return null;
+  if (typeof sub !== "string" || !/^s-[0-9a-f]{16}@[0-9a-f]{64}$/.test(sub) || r?.state !== "approved" || !r.by || r.motion !== motionHash(clip)) return null;
+  const said = `adopted from ${sub.slice(0, 31)}`;
+  if (r.note !== said && !r.note?.startsWith(`${said}: `)) return null;
   return { submission: sub, by: r.by, date: r.date, motion: r.motion };
 }
 
