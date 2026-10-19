@@ -3,13 +3,13 @@
 // run: the platform-neutral ones of packages/tools/src/tools/library-submit.ts (schema, budgets, provenance, license,
 // text, lint, sensors), then dedup (its motion hash against every library clip's and every submission's the owner has
 // decided or is deciding, an archived or rejected one's kept so a resubmitted motion is recognized; near-duplicates of
-// library clips by pose, tools/qa/census.ts, the whole batch read at once; and time-warped and mirror-aware, WP-9.3's
-// DedupIndex, against the library's clips and against the submissions decided, being decided or passed earlier in the
-// run) and the retarget onto the reference rigs (the judge, packages/tools/src/tools/judge.ts: no fail finding the
-// body adds). A failure is bounced with its reason; a pass gets its preview sheet, drawn by the sensors' raster, and
-// waits for the owner (`awaiting review`). One submission's failure is its own: a gate that throws bounces it, a store
-// that refuses its move leaves it for the next run, and the batch goes on. Submission text is data: no reason quotes
-// it.
+// library clips by pose, tools/qa/census.ts, the whole batch read at once, each clip's poses sampled once a checker
+// (D119); and time-warped and mirror-aware, WP-9.3's DedupIndex, against the library's clips and against the
+// submissions decided, being decided or passed earlier in the run) and the retarget onto the reference rigs (the
+// judge, packages/tools/src/tools/judge.ts: no fail finding the body adds). A failure is bounced with its reason; a
+// pass gets its preview sheet, drawn by the sensors' raster, and waits for the owner (`awaiting review`). One
+// submission's failure is its own: a gate that throws bounces it, a store that refuses its move leaves it for the next
+// run, and the batch goes on. Submission text is data: no reason quotes it.
 import { createHash } from "node:crypto";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -22,7 +22,7 @@ import type { IntakeStore, Submission } from "../../packages/tools/src/intake/in
 import type { LibraryAccess } from "../../packages/tools/src/registry/registry.ts";
 import { onBody } from "../../packages/tools/src/tools/judge.ts";
 import { bounceReason, clipGates, clipOf, gateInput, INTAKE_SETS, licenseRule, type Gate, type GateInput } from "../../packages/tools/src/tools/library-submit.ts";
-import { census } from "../qa/census.ts";
+import { incremental, type Census } from "../qa/census.ts";
 import { libraryClips, type LibraryClip } from "../qa/qa.ts";
 import { rigOf } from "../sweep/sweep.ts";
 import { libraryAt, sha256 } from "./host.ts";
@@ -42,7 +42,8 @@ export const motionOf = (c: Clip): string => sha256(format.motionText(c));
 
 /** What the checker reads a checkout by: its library at every shipped tier, its clips, the library clips of each
  *  motion hash (hashed on first use), the library's near-duplicate index (WP-9.3, built on first use), its CC0 sets,
- *  and the reference rigs bound. */
+ *  the reference rigs bound, and the census of its clips and some more (tools/qa/census.ts' incremental: the library's
+ *  poses read on first use and kept, so a count reads only the clips it adds that it hasn't read). */
 export interface Checker {
   lib: LibraryAccess;
   pool: LibraryClip[];
@@ -50,6 +51,7 @@ export interface Checker {
   near(): DedupIndex;
   cc0: ReadonlySet<string>;
   rigs: { id: string; bound: Bound }[];
+  census(added: readonly LibraryClip[]): Census;
 }
 
 /** A reference rig bound, by id. */
@@ -74,7 +76,7 @@ export async function openChecker(sets: string, rigs?: readonly Rig[]): Promise<
   };
   let index: DedupIndex | undefined;
   const near = () => (index ??= DedupIndex.of(pool));
-  return { lib, pool, motions: hashed, near, cc0, rigs: rigs ? [...rigs] : await bindRigs() };
+  return { lib, pool, motions: hashed, near, cc0, rigs: rigs ? [...rigs] : await bindRigs(), census: incremental(pool, cc0) };
 }
 
 /** What the checker records of a submission: its gates (the retarget only when every other one passed), its motion
@@ -135,10 +137,30 @@ export function nearDuplicates(same: Record<string, { as: string; why: string }>
 
 /** The census's name for a submission's clip: in a set of its own, its lineage cut, so only its poses join it. */
 const pooled = (id: string, clip: Clip, rest: Rest): LibraryClip => ({ set: "INTAKE", clip: { ...clip, id: `INTAKE/${id}`, provenance: { ...clip.provenance, src: "INTAKE", orig: undefined } as Clip["provenance"] }, rest });
+/** Whether a submission read is a clip on a rest that the census and the index read. */
+const mine = (r: Read) => r.clip !== null && r.input?.rest != null && !r.problem;
+/** Each submission's census clip, by the checker's library (its pool) and what the submission is (its id, kind, the
+ *  clip it improves and its content hash): the same object run after run, so the census reads its poses once. */
+const kept = new WeakMap<readonly LibraryClip[], Map<string, LibraryClip>>();
+/** The census's clips of the submissions read `rs` that are clips on a rest, as `c`'s census counts them. The checker's
+ *  map grows with the submissions it reads, each kept (and its poses in the census's memo) as long as the checker is:
+ *  one run for the command line, the process for B8's grader, which opens one checker and checks its queue a tick at a
+ *  time. */
+function censusOf(rs: readonly Read[], c: Checker): LibraryClip[] {
+  const k = kept.get(c.pool) ?? kept.set(c.pool, new Map()).get(c.pool)!;
+  return rs.filter(mine).map((r) => {
+    const key = JSON.stringify([r.s.id, r.s.kind, r.s.improves, r.s.content]);
+    return k.get(key) ?? k.set(key, pooled(r.s.id, r.clip!, r.input!.rest!)).get(key)!;
+  });
+}
+
+/** The census's clips of submissions `subs` on checker `c`: each that reads as a clip on a rest, in a set of its own
+ *  (INTAKE/<id>), its lineage cut. */
+export const censusClips = (subs: readonly Submission[], c: Checker): LibraryClip[] => censusOf(subs.map((s) => read(s, c)), c);
 
 /** The near-duplicate index of the submissions the owner has decided or is deciding (`prior`), each by its id in the
  *  census's set (INTAKE/<id>), as the library's index holds the library's clips. */
-const submissionsIndex = (prior: readonly Read[], mine: (r: Read) => boolean): DedupIndex => DedupIndex.of(prior.filter(mine).map((r) => ({ clip: { ...r.clip!, id: `INTAKE/${r.s.id}` }, rest: r.input!.rest! })));
+const submissionsIndex = (prior: readonly Read[]): DedupIndex => DedupIndex.of(prior.filter(mine).map((r) => ({ clip: { ...r.clip!, id: `INTAKE/${r.s.id}` }, rest: r.input!.rest! })));
 
 /** The dedup gate (WP-9.1, WP-9.3) on a batch: `problems` gives a submission's (its motion among the library's or a
  *  prior submission's; its poses within a library clip's or a prior submission's, census, the clip it improves and its
@@ -146,21 +168,21 @@ const submissionsIndex = (prior: readonly Read[], mine: (r: Read) => boolean): D
  *  passed submissions, each queried by the submission's own id in the census's set, never the id its clip claims);
  *  `passed` adds one that waits for review to the submissions' index, so a later one in the run is held to it. */
 function dedup(batch: readonly Read[], prior: readonly Read[], c: Checker): { problems(r: Read): string[]; passed(r: Read): void } {
-  const mine = (r: Read) => r.clip !== null && r.input?.rest != null && !r.problem, pool = (rs: readonly Read[]) => [...c.pool, ...rs.filter(mine).map((r) => pooled(r.s.id, r.clip!, r.input!.rest!))];
-  // the census over the whole batch at once; if it can't be read so, each submission's own with the prior ones
-  let whole: ReturnType<typeof census>["same"] | null;
+  // the census over the library and the whole batch at once; if it can't be read so, each submission's own with the
+  // prior ones
+  let whole: Census["same"] | null;
   try {
-    whole = census(pool([...batch, ...prior]), c.cc0).same;
+    whole = c.census(censusOf([...batch, ...prior], c)).same;
   } catch {
     whole = null;
   }
   // the prior submissions by their census id (the census names those), and the run's own passed ones (the index does)
-  const state = new Map(prior.map((r) => [`INTAKE/${r.s.id}`, r.s.state])), passed = new Set<string>(), subs = submissionsIndex(prior, mine), improving = new Map(prior.map((r) => [`INTAKE/${r.s.id}`, r.s.improves]));
+  const state = new Map(prior.map((r) => [`INTAKE/${r.s.id}`, r.s.state])), passed = new Set<string>(), subs = submissionsIndex(prior), improving = new Map(prior.map((r) => [`INTAKE/${r.s.id}`, r.s.improves]));
   const named = (id: string) => (id.startsWith("INTAKE/") ? `${id.slice(7)} (${state.get(id) ?? (passed.has(id) ? "awaiting review" : "a submission")})` : id);
   return {
     problems(r) {
       if (!mine(r)) return [];
-      const same = whole ?? census(pool([r, ...prior]), c.cc0).same, rootOf = (id: string) => same[id]?.as ?? id;
+      const same = whole ?? c.census(censusOf([r, ...prior], c)).same, rootOf = (id: string) => same[id]?.as ?? id;
       const why: string[] = [], m = motionOf(r.clip!), libs = c.motions().get(m) ?? [], base = r.s.improves ? (r.input!.base?.id ?? r.s.improves) : null;
       for (const id of libs.filter((x) => x !== base).slice(0, 2)) why.push(`it is the motion of ${id}, which the library has already`);
       if (base && libs.includes(base)) {

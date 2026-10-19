@@ -40,8 +40,13 @@ describe("the JSON Schemas", () => {
     ["M2-E018", () => mut((c) => (c.provenance.license = "CC-BY-4.0"))],
     ["M2-E019", () => mut((c) => (c.keys[0].armR = [0, 0, 0, 10, 0]))],
   ];
-  it("accept provenance's two records in full, and a partial intake record", () => {
-    for (const c of [withRecords(), withRecords((r) => ((r.intake = {}), delete r.source.stated))]) expect(clipSchema(c), JSON.stringify(clipSchema.errors)).toBe(true);
+  it("accept provenance's two records in full, and a partial intake record (who made it alone)", () => {
+    for (const c of [withRecords(), withRecords((r) => ((r.intake = { by: "a person" }), delete r.source.stated))]) expect(clipSchema(c), JSON.stringify(clipSchema.errors)).toBe(true);
+  });
+  it("reject an intake record without who made it, as the validator does (M2-E003 at provenance.intake.by, D119)", () => {
+    const c = withRecords((r) => (r.intake = {}));
+    expect(validate(c).errors.map((i) => `${i.code} ${i.field}`)).toEqual(["M2-E003 provenance.intake.by"]);
+    expect([clipSchema(c), clipSchema.errors?.map((e) => `${e.instancePath} ${e.keyword} ${(e.params as { missingProperty?: string }).missingProperty}`)]).toEqual([false, ["/provenance/intake required by"]]);
   });
   for (const [code, field, f] of BAD_RECORDS) {
     it(`reject a record the validator refuses: ${code} at ${field}`, () => {

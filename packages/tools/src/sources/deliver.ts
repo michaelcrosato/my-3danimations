@@ -2,7 +2,7 @@
 // every source's output passes (sourceGate: the checks the intake checker runs that need no store: the schema and
 // lint, the source's record and the generator's model in the provenance, the sensors' verdict), then reads the
 // license allowlist (`allowlisted`: CC0, or a library clip's tier kept by what derives from it, D10, and only from a
-// source whose terms, both those it states and those it served the clip under, are on it): an allowlisted clip goes to
+// source whose terms are on it and served the clip under the terms it states, D119): an allowlisted clip goes to
 // the intake queue through `Submit` (`intakeSubmit`, the store's own submit, the door `library submit` sends through
 // after its local gates), given the intake's provenance as `library submit` gives it (who or what made it, the
 // prompt's hash, a generator's training-data manifest and the local report: the checker bounces a clip without them,
@@ -52,10 +52,10 @@ const isRecord = (r: SourceRecord | undefined): r is SourceRecord => isTerms(r) 
 /**
  * Whether a clip may enter the intake queue (§5.9, O5), and why: its source's terms on ALLOWED_TERMS, both those it
  * served the clip under (`provenance.source.license`) and those the source states (`provenance.source.stated`, recorded
- * when they differ: a vendor's reply never decides alone), and each part of its license claim (`provenance.license`,
- * parts joined by " AND ") CC0-1.0, or a CC BY or CMU tier (the license check's tierOf) only when both terms are
- * "inherit". The intake's checker reads the same fields with this, so a generator's clip sent to `library submit`
- * directly is bounced whatever it claims.
+ * when they differ), the two the same (a clip enters only under the terms its source states: a vendor's reply never
+ * decides alone, D119), and each part of its license claim (`provenance.license`, parts joined by " AND ") CC0-1.0, or
+ * a CC BY or CMU tier (the license check's tierOf) only when its terms are "inherit". The intake's checker reads the
+ * same fields with this, so a generator's clip sent to `library submit` directly is bounced whatever it claims.
  */
 export function allowlisted(clip: Clip): { ok: boolean; why: string } {
   const r = recordOf(clip), claim = clip.provenance.license;
@@ -63,9 +63,10 @@ export function allowlisted(clip: Clip): { ok: boolean; why: string } {
   const terms = [r, ...(r.stated ? [r.stated] : [])], both = r.stated ? ` (it states ${r.stated.license} (${r.stated.version}) and served this clip under ${r.license} (${r.version}): both must be on it)` : "";
   const off = terms.find((t) => !ALLOWED_TERMS.includes(t.license));
   if (off) return { ok: false, why: `the ${r.name} source's terms, ${off.license} (${off.version}), aren't on the allowlist (CC0-1.0, or a library clip's tier kept by what derives from it)${both}: its clips stay in ${LOCAL} (O5)` };
-  const inherit = terms.every((t) => t.license === "inherit"), bad = claim.split(" AND ").map((p) => p.trim()).filter((p) => tierOf(p) === "local" || (p !== "CC0-1.0" && !inherit));
+  if (r.stated && (r.stated.license !== r.license || r.stated.version !== r.version)) return { ok: false, why: `the ${r.name} source states ${r.stated.license} (${r.stated.version}) and served ${r.license} (${r.version}): a clip enters only under the terms its source states` };
+  const inherit = r.license === "inherit", bad = claim.split(" AND ").map((p) => p.trim()).filter((p) => tierOf(p) === "local" || (p !== "CC0-1.0" && !inherit));
   if (bad.length) return { ok: false, why: `its license claim ${claim} isn't on the allowlist: CC0-1.0, or a CC BY or CMU tier only as inherited from library clips (§5.9)` };
-  return { ok: true, why: `${claim}, from the ${r.name} source (${r.license}, ${r.version}${r.stated ? `; it states ${r.stated.license}, ${r.stated.version}` : ""})` };
+  return { ok: true, why: `${claim}, from the ${r.name} source (${r.license}, ${r.version}${r.stated ? ", as it states" : ""})` };
 }
 
 /** A gate: the reasons a clip on its rest fails, none when it passes. */

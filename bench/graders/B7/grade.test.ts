@@ -1,7 +1,8 @@
 // B7's grader (WP-6.6's Done-when): it passes the known-good graph and fails each planted bad one, naming the check it
-// broke, on the default character (gen-1, of WP-4.2's set) and on a generator seed outside it (gen-37). The planted
-// graphs are the known-good one edited: a jump from the air, a landing that waits for the jump to end, a clip that
-// isn't in the library, every state playing the idle, never running, the jump button kept for later.
+// broke, on the default character (gen-1, of WP-4.2's set) and on a generator seed outside it (gen-37); T1 grades the
+// first planted one, T2's full step (M3A_FULL=1, D74, D119) all of them. The planted graphs are the known-good one
+// edited: a jump from the air, a landing that waits for the jump to end, a clip that isn't in the library, every state
+// playing the idle, never running, the jump button kept for later.
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -9,7 +10,7 @@ import { prepareWorkspace, type CharacterSpec } from "../../runner/workspace.ts"
 import type { Grade } from "../B1/grade.ts";
 import { gradeB7 } from "./grade.ts";
 
-const ROOT = join(import.meta.dirname, "../../.."), good = readFileSync(join(import.meta.dirname, "known-good/graph.json"), "utf8");
+const ROOT = join(import.meta.dirname, "../../.."), good = readFileSync(join(import.meta.dirname, "known-good/graph.json"), "utf8"), FULL = process.env.M3A_FULL === "1";
 /** The known-good graph with one edit, which must take. */
 const planted = (from: string, to: string) => {
   if (!good.includes(from)) throw new Error(`the planted edit's text isn't in the known-good graph: ${from}`);
@@ -34,12 +35,13 @@ const text = (g: Grade) => g.checks.map((c) => `${c.ok ? "ok  " : "FAIL"} ${c.na
 
 describe("B7's grader", () => {
   // T1 grades on gen-1; T2 (M3A_FULL=1) on gen-37 too (D74)
-  for (const character of (process.env.M3A_FULL === "1" ? [{ seed: 1 }, { seed: 37 }] : [{ seed: 1 }]) as CharacterSpec[]) {
+  for (const character of (FULL ? [{ seed: 1 }, { seed: 37 }] : [{ seed: 1 }]) as CharacterSpec[]) {
     const who = "seed" in character ? `gen-${character.seed}` : character.rig;
     it(`passes the known-good graph on ${who}, and fails each planted bad one, naming the check it broke`, async () => {
       const g = await grade("good", good, character);
       expect(g.pass, text(g)).toBe(true);
-      for (const [name, bad] of Object.entries(BAD)) {
+      // T1 grades the first planted one; T2 (M3A_FULL=1) all of them (D74, D119: T1's margin)
+      for (const [name, bad] of Object.entries(BAD).filter((_, i) => FULL || i === 0)) {
         const b = await grade(name, bad.graph, character);
         expect(b.pass, `${name}\n${text(b)}`).toBe(false);
         expect(b.checks.filter((c) => !c.ok).some((c) => c.name.startsWith(bad.fails)), `${name}\n${text(b)}`).toBe(true);

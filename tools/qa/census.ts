@@ -6,7 +6,9 @@
 // an animation saved twice under two names), and two that hold still the same pose are one whatever their lengths. A
 // pose is the body's 36 points in the root's frame, centred on the pelvis over the floor and scaled to the reference hip
 // height, at SAMPLES times over the clip (two loops compared at every shift of their phase); a clip's mean pose bounds
-// the distance from below, so most pairs are never compared in full. The full dedup is WP-9.3.
+// the distance from below, so most pairs are never compared in full. The full dedup is WP-9.3. A census over a pool
+// that stays and a few clips more each time (the intake checker's library and each run's submissions, D119) keeps the
+// pool's poses and its re-exports' distances, so each count samples only the clips it hasn't read (`incremental`).
 import { format } from "@m3a/core";
 import type { LibraryClip } from "./qa.ts";
 
@@ -105,6 +107,14 @@ function rated(re: LibraryClip, o: LibraryClip, rate: number): number {
   return sum / SAMPLES;
 }
 
+/** What a census keeps of the clips it has read, by the clip read (the same object: a clip isn't changed in place):
+ *  its poses, and a re-export's distance from each original it was read against at each of its rates. */
+interface Kept {
+  poses: WeakMap<LibraryClip, Sampled>;
+  rated: WeakMap<LibraryClip, WeakMap<LibraryClip, number[]>>;
+}
+const kept = (): Kept => ({ poses: new WeakMap(), rated: new WeakMap() });
+
 /** The mean distance between two poses (mm a point). */
 function between(a: Float32Array, ao: number, b: Float32Array, bo: number): number {
   let s = 0;
@@ -142,6 +152,19 @@ export type Kind = "orig" | "export" | "pose";
 
 /** Counts a library's unique motions and its categories (`cc0`: the sets in the CC0 tier). */
 export function census(lib: readonly LibraryClip[], cc0: ReadonlySet<string>): Census {
+  return count(lib, cc0, kept());
+}
+
+/** The census of a pool that stays (the intake checker's library) with clips added to it in turn: each count is
+ *  census([...pool, ...added], cc0) exactly, the pool's poses read on the first and kept, and an added clip's while it
+ *  is the same object, so a count samples only the clips it hasn't read. */
+export function incremental(pool: readonly LibraryClip[], cc0: ReadonlySet<string>): (added: readonly LibraryClip[]) => Census {
+  const memo = kept();
+  return (added) => count([...pool, ...added], cc0, memo);
+}
+
+/** The census of `lib`, reading each clip's poses (and a re-export's distances) from `memo` when it has them. */
+function count(lib: readonly LibraryClip[], cc0: ReadonlySet<string>, memo: Kept): Census {
   const ids = lib.map((c) => c.clip.id), at = new Map(ids.map((id, i) => [id, i])), parent = ids.map((_, i) => i);
   const find = (i: number): number => (parent[i] === i ? i : (parent[i] = find(parent[i]!)));
   // each clip's links to others, by kind ("copied": another is its copy, which says nothing of its own)
@@ -168,7 +191,12 @@ export function census(lib: readonly LibraryClip[], cc0: ReadonlySet<string>): C
     if (j === undefined) exported.set(key, i);
     else join(i, j, "export", `the same animation of ${c.clip.provenance.src} as ${ids[j]}`, `the same animation of ${c.clip.provenance.src} as ${ids[i]}`);
   });
-  const s = lib.map(sampled);
+  // each clip's poses, and a re-export's distances from an original at each rate, read once and kept
+  const s = lib.map((c) => memo.poses.get(c) ?? memo.poses.set(c, sampled(c)).get(c)!);
+  const ratings = (c: LibraryClip, o: LibraryClip, rates: readonly number[]) => {
+    const by = memo.rated.get(c) ?? memo.rated.set(c, new WeakMap()).get(c)!;
+    return by.get(o) ?? by.set(o, rates.map((rate) => rated(c, o, rate))).get(o)!;
+  };
   // a re-export source's clips without an orig: their original by pose, read at the rate the re-export plays it
   lib.forEach((c, i) => {
     const re = REEXPORTS[c.clip.provenance.src];
@@ -176,10 +204,9 @@ export function census(lib: readonly LibraryClip[], cc0: ReadonlySet<string>): C
     let best = -1, d = REEXPORT_NEAR, at = 1;
     lib.forEach((o, j) => {
       if (!re.from.includes(o.clip.provenance.src) || o.clip.loop !== c.clip.loop || o.clip.skeleton !== c.clip.skeleton) return;
-      for (const rate of re.rates) {
-        const e = rated(c, o, rate);
-        if (e < d) [best, d, at] = [j, e, rate];
-      }
+      ratings(c, o, re.rates).forEach((e, r) => {
+        if (e < d) [best, d, at] = [j, e, re.rates[r]!];
+      });
     });
     if (best >= 0) join(i, best, "export", `re-exported from ${ids[best]} (within ${d.toFixed(0)} mm over its length, played at ${at} of its speed)`, `re-exported as ${ids[i]}`);
   });

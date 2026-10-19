@@ -3,10 +3,11 @@
 // review with its preview sheet; each planted bad one is bounced with its reason, which `library status` shows in the
 // API and on the command line); an improvement's diff in the review queue; a resubmitted archived motion recognized;
 // near-duplicates time-warped and mirrored, of library clips (an improvement of a clip with a mirrored twin still
-// waiting for review) and of submissions waiting or passed earlier in the run; one submission's failure its own (a
-// gate that throws, a store that refuses a move), no reason quoting what a submission says or past what the hosted
-// table holds; no library clip's text read as aimed at agents; the text gate on each kind of instruction and on the
-// fields that hold no prose; the hosted store linked only whole.
+// waiting for review) and of submissions waiting or passed earlier in the run; the census a run reads the whole
+// census's, its submissions' clips the same objects run after run (D119); one submission's failure its own (a gate
+// that throws, a store that refuses a move), no reason quoting what a submission says or past what the hosted table
+// holds; no library clip's text read as aimed at agents; the text gate on each kind of instruction and on the fields
+// that hold no prose; the hosted store linked only whole.
 import { readFileSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -20,7 +21,8 @@ import { Registry } from "../../packages/tools/src/registry/index.ts";
 import { REVIEW } from "../../packages/tools/src/tools/index.ts";
 import { bounceReason, GATES, lineage, libraryTool, REASON_CHARS, textProblems, type Gate } from "../../packages/tools/src/tools/library-submit.ts";
 import type { DedupIndex } from "@m3a/library";
-import { check, openChecker, type Checked, type Checker } from "./check.ts";
+import { census } from "../qa/census.ts";
+import { check, censusClips, openChecker, type Checked, type Checker } from "./check.ts";
 import { fixtures, type Fixture } from "./fixtures.ts";
 import { checkerStore, hostedEnv, LOCAL_OWNER } from "./host.ts";
 import { asExpected } from "./main.ts";
@@ -79,6 +81,12 @@ describe("the checker", () => {
     let text = "";
     expect(await runCli(status, ["library", "status", idOf("bad-license")], { print: (t) => void (text += t), write: () => {} })).toBe(1);
     expect(text).toMatch(/bounced: license: provenance.license "CC-BY-NC-4.0" isn't on the intake's allowlist/);
+  });
+  it("counts the census a run reads as the whole census does, its submissions' clips the same objects run after run (D119)", async () => {
+    // the fixtures' clips as the census reads them (each that is a clip on a rest), the same objects the run counted
+    const all = await store("checker").list(), added = censusClips(all, c), again = censusClips(all, c);
+    expect([added.length > 0, added.every((x, i) => x === again[i])]).toEqual([true, true]);
+    expect(c.census(added)).toEqual(census([...c.pool, ...added], c.cc0));
   });
   it("shows an improvement's diff against the clip it improves in the review queue", async () => {
     const r = await review({}), s = (r.data as { submissions: { id: string; diff: { against: string; max: number } | null }[] }).submissions;

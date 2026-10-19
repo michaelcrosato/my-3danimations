@@ -254,10 +254,11 @@ export async function gradeB8(workspace: string): Promise<Grade> {
 
 /** Runs the checker on the workspace's queue every `every` ms until the returned stop (which waits for a check under
  *  way; its `failed` lists the ticks whose check failed): the queue a brief's agent reads with `m3a library status`. A
- *  tick finding nothing new in the queue runs nothing (a run blocks the event loop for seconds); a check that fails is
- *  tried at the next tick, and its error written to `log` (beside the workspace, by its transcript: the agent's
- *  `status` would show its submissions waiting) and, the first time, to stderr. `open` opens the checker (the
- *  repository's, once a process). */
+ *  tick finding nothing new in the queue runs nothing (a run blocks the event loop while its gates and the retarget
+ *  onto the reference rigs run, and the process's first also while the census samples the library's poses, which the
+ *  checker keeps for the rest, D119); a check that fails is tried at the next tick, and its error written to `log`
+ *  (beside the workspace, by its transcript: the agent's `status` would show its submissions waiting) and, the first
+ *  time, to stderr. `open` opens the checker (the repository's, once a process). */
 export function checkEvery(workspace: string, every = CHECK_EVERY, log = `${workspace}.checker.log`, open: () => Promise<Checker> = checker): (() => Promise<void>) & { failed: readonly string[] } {
   let last: Promise<unknown> = Promise.resolve(), busy = false, tick = 0;
   const failed: string[] = [];
