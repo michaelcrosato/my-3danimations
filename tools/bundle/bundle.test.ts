@@ -23,7 +23,7 @@ import * as threeApi from "../../packages/three/src/index.ts";
 import { character, loadGlb, variant } from "../../packages/three/test-characters/index.ts";
 import { runCli, tools } from "../../packages/tools/src/index.ts";
 import { ROOT } from "../run/cli.ts";
-import { jsSpecifiers, PACKAGES, packSets, publishable, publishedExports, publishedManifest, REPOSITORY, stagedManifest, tiersOf, withDataLicenses } from "./build.ts";
+import { BENCH_WORDS, jsSpecifiers, PACKAGES, packedChangelog, packSets, publishable, publishedExports, publishedManifest, REPOSITORY, stagedManifest, tiersOf, withDataLicenses } from "./build.ts";
 import { argvOf, callsOnSingle, completeExample, forSingle, HEADLESS, headlessForm, importsOf, PLAYED, RECORDED, recordedForm, sameRun, SECTION, STANDINS } from "./example.ts";
 import * as headless from "./headless.ts";
 import { MCP_TIMEOUT_MS, mcpTools } from "./mcp.ts";
@@ -50,6 +50,22 @@ describe("the bundle's manifest", () => {
     const named = [...new Set([...Object.values(ex.files), ex.program].flatMap((t) => [...t.matchAll(/"([A-Z][A-Z0-9_]*\/\w+)"/g)].map((m) => m[1]!)))].filter((id) => tiers[id.split("/")[0]!]);
     expect(named.length).toBeGreaterThan(0);
     expect(named.filter((id) => !readManifest().clips!.includes(id))).toEqual([]);
+  });
+});
+
+describe("the changelog a pack ships", () => {
+  // D107: the packs carried the repository's whole changelog, whose Repo lines describe the briefs' graders and
+  // known-good solutions; a fresh agent grepping node_modules read it
+  const text = readFileSync(join(ROOT, "CHANGELOG.md"), "utf8"), packed = packedChangelog(text);
+  it("keeps every release heading and the parts a consumer reads, without the Repo sections or a benchmark line", () => {
+    expect(packed.match(/^## /gm)?.length).toBe(text.match(/^## /gm)?.length);
+    expect(packed).not.toMatch(/^### Repo$/m);
+    expect(BENCH_WORDS.test(packed)).toBe(false);
+    expect(packed).toContain("### Core");
+  });
+  it("drops a bullet whole, its continuation lines too, and a section it leaves empty", () => {
+    const t = "## 1.0.0 · 2026-01-01\n\n### Tools\n- a tool\n  that wraps\n- B1's known-good\n  moves\n\n### Repo\n- CI\n\n### Spec\n- a grader, shown\n";
+    expect(packedChangelog(t)).toBe("## 1.0.0 · 2026-01-01\n\n### Tools\n- a tool\n  that wraps\n\n");
   });
 });
 

@@ -2,7 +2,8 @@
 // with their declarations) and packed, the library's opt-in packs beside its CC0 default (D10), and the single file
 // m3a.js, into .cache/pack/ (./build.ts, ./single.ts). --check also proves them, failing on any of: the default library
 // pack holds a set that isn't cc0, or an opt-in pack another tier's; the m3a bin isn't dist/node.js with its shebang;
-// the version rule fails (`node tools/version.ts --check`), a pack isn't at the version, or lacks CHANGELOG.md; a staged
+// the version rule fails (`node tools/version.ts --check`), a pack isn't at the version, or lacks CHANGELOG.md; a packed
+// text file names the benchmark's graders, known-goods or held-out runs (D107); a staged
 // package.json drops "private" (or, with --publishable, keeps it or lacks provenance); m3a.js lacks the credits block or
 // a license text of its tiers; `npm run license -- check tools/bundle/manifest.json` fails; a clip m3a.js carries
 // neither passes the sensors (WP-3.3) nor carries its WP-5.8 baseline (library/baselines/qa.json), or the sensors read
@@ -27,7 +28,7 @@ import { checkVerdicts } from "../qa/library.ts";
 import { qa, type LibraryClip } from "../qa/qa.ts";
 import { finish, fmtMs, parseArgs, ROOT, usage, type Report, type Step } from "../run/cli.ts";
 import { check as versionCheck } from "../version.ts";
-import { build, OUT, REPOSITORY, type Packed } from "./build.ts";
+import { BENCH_WORDS, build, OUT, REPOSITORY, type Packed } from "./build.ts";
 import { callsOnSingle, completeExample, forSingle, headlessForm, PLAYED, RECORDED, recordedForm, sameRun, SECTION, STANDINS, type Example, type SingleCli } from "./example.ts";
 import { mcpTools } from "./mcp.ts";
 import { buildSingle, bundleData, readManifest } from "./single.ts";
@@ -120,6 +121,15 @@ if (import.meta.main) {
       }
       if (problems.length) throw new Error(problems.join("\n"));
       return `every pack at ${v}, its @m3a packages too, each with CHANGELOG.md (its ${v} section there: node tools/version.ts --check)`;
+    }, ["packs"]);
+    await step("no benchmark text", () => {
+      // a fresh agent reads the installed packages: none may name the benchmark's graders, known-goods or held-out runs
+      const bad: string[] = [];
+      for (const [k, p] of Object.entries(packs()))
+        for (const f of p.files.filter((x) => /\.(md|js|ts|json|txt)$/.test(x) || !x.includes(".")))
+          if (BENCH_WORDS.test(readFileSync(join(p.stage, f), "utf8"))) bad.push(`${k}/${f} names ${BENCH_WORDS.exec(readFileSync(join(p.stage, f), "utf8"))![0]}`);
+      if (bad.length) throw new Error(bad.join("\n"));
+      return "no packed text file names the benchmark's graders, known-goods or held-out runs (the changelog as packedChangelog ships it)";
     }, ["packs"]);
     await step("private", () => {
       const bad: string[] = [];

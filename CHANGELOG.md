@@ -19,6 +19,8 @@ features, patch for fixes. One line per change, under the part it touched (**Spe
 
 ### Tools
 - `npm run qa -- library` checks that every loop with no contact is tagged off its feet and answered (`offFeet`).
+- Each pack's CHANGELOG.md is the repository's without its Repo sections or a line about the benchmark, and
+  `pack --check` fails when a packed text file names the benchmark's graders, known-goods or held-out runs (D107).
 - The manual (D105, D106): root motion moves the character (moved at v, feet slide in fades and where a keyed stance
   drifts); cross-fade in step with `ops.phaseMap`; in the speed rule's range a `core` clip beats a nearer one;
   8,000 of 8,000 tokens.

@@ -4,7 +4,9 @@
 // `tsc -b` beside them, staged under .cache/pack/stage/ with the package.json it is published with (exports, "types"
 // and the m3a bin pointed from the workspace's source files to dist/, "private" kept until O2 is answered, unless
 // `publishable` stages a copy ready for it) and packed by `npm pack`. Every pack carries the version (one for all,
-// tools/version.ts) and the repository's CHANGELOG.md, which has its section. The library's default pack holds the CC0
+// tools/version.ts) and the repository's CHANGELOG.md, which has its section, as a consumer reads it (`packedChangelog`:
+// without the Repo sections and the lines about the benchmark, whose briefs a fresh agent must not see answered). The
+// library's default pack holds the CC0
 // sets alone (its license the code's and theirs); each other tier that ships (cc-by, cmu) is a pack of its own,
 // `@m3a/library-<tier>`, found by the library's loader when installed beside it (D10). Nothing here publishes.
 import { execFileSync } from "node:child_process";
@@ -14,6 +16,34 @@ import { dirname, join } from "node:path";
 import { checkSets, creditsBlock, type LibraryLock, type Tier } from "../../packages/library/src/index.ts";
 import { directory, licenseText, PACKS as OPT_IN } from "../../packages/library/src/node.ts";
 import { ROOT } from "../run/cli.ts";
+
+/** What a packed text file may not name: the benchmark's graders, known-good solutions and held-out runs (D107). */
+export const BENCH_WORDS = /known-good|bench\/graders|held-out|heldout/i;
+/**
+ * The changelog a pack ships: the repository's, its `### Repo` sections (the benchmark, CI, the repository's tools) left
+ * out, and any bullet that names the benchmark (a brief, a grader, a known-good, a held-out run, `bench/`) with its
+ * continuation lines; a release heading left with no section keeps its heading.
+ */
+export function packedChangelog(text: string): string {
+  // the text as blocks: a heading or a plain line on its own, a bullet with its continuation lines
+  const blocks: string[][] = [];
+  for (const line of text.split("\n")) {
+    if (line.startsWith("  ") && blocks.at(-1)?.[0]!.startsWith("- ")) blocks.at(-1)!.push(line);
+    else blocks.push([line]);
+  }
+  const out: string[] = [];
+  let repo = false;
+  for (const b of blocks) {
+    const head = b[0]!;
+    if (head.startsWith("#")) repo = head.trim() === "### Repo";
+    if (repo) continue;
+    if (head.startsWith("- ") && (BENCH_WORDS.test(b.join(" ")) || /\bbriefs?\b|\bgraders?\b|\bB[1-8]\b|\bbench(mark)?\b|bench\//i.test(b.join(" ")))) continue;
+    out.push(...b);
+  }
+  // a section left empty loses its heading: a `###` line whose next non-blank line is a heading, or none
+  const kept = out.filter((line, i) => !line.startsWith("### ") || !/^(#|$)/.test(out.slice(i + 1).find((l) => l.trim()) ?? ""));
+  return kept.join("\n").replace(/\n{3,}/g, "\n\n");
+}
 
 /** The packages, in dependency order. */
 export const PACKAGES = ["core", "sensors", "io", "library", "three", "tools"] as const;
@@ -150,7 +180,7 @@ function stagePackage(name: (typeof PACKAGES)[number], dir: string, sets: readon
   const published = stagedManifest(name, sets);
   writeFileSync(join(dir, "package.json"), `${JSON.stringify(ready ? publishable(published, `packages/${name}`) : published, null, 2)}\n`);
   cpSync(join(ROOT, "LICENSE"), join(dir, "LICENSE"));
-  cpSync(join(ROOT, "CHANGELOG.md"), join(dir, "CHANGELOG.md"));
+  writeFileSync(join(dir, "CHANGELOG.md"), packedChangelog(readFileSync(join(ROOT, "CHANGELOG.md"), "utf8")));
 }
 
 /** Stages an opt-in pack (`@m3a/library-cc-by`, `@m3a/library-cmu`): its tier's sets, their lock and license texts, a
@@ -164,7 +194,7 @@ function stageOptIn(name: string, tier: Tier, dir: string, sets: readonly string
   const license = ids.some((l) => l.startsWith("LicenseRef-")) ? `SEE LICENSE IN ${ids.map((l) => `LICENSES/${l}.txt`).join(", ")}` : ids.join(" AND ");
   const pkg = { name, version, private: true, description: `The ${tier} sets of the m3a library, opt-in (D10): install beside @m3a/library and opt in to "${tier}".`, license, exports: { "./package.json": "./package.json" }, files: ["sets", "sets.lock.json", "LICENSES", "README.md", "CHANGELOG.md"], peerDependencies: { "@m3a/library": version } };
   writeFileSync(join(dir, "package.json"), `${JSON.stringify(ready ? publishable(pkg, "library") : pkg, null, 2)}\n`);
-  cpSync(join(ROOT, "CHANGELOG.md"), join(dir, "CHANGELOG.md"));
+  writeFileSync(join(dir, "CHANGELOG.md"), packedChangelog(readFileSync(join(ROOT, "CHANGELOG.md"), "utf8")));
 }
 
 /** `npm pack` in a staged directory, into `out`: the tarball, its files and its size. */
