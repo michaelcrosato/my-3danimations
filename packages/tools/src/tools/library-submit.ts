@@ -6,14 +6,17 @@
 // store here, and sends what passes to the queue as the store's contributor (the local store's identity, or a
 // contributor key for the hosted one), at most PER_DAY a day; `status` lists the contributor's submissions with their
 // states and bounce reasons. The gates: schema, budgets, provenance, license (CC0, or the tier of the clip it derives
-// from), text (no instruction aimed at agents: models read catalog lines), lint and sensors; the checker adds dedup and
-// the retarget onto the reference rigs. Platform-neutral: the store comes from the surface (`libraryTool`'s opener).
-// Submission text is data, never instructions: a refusal quotes none of it.
+// from with its license and credit kept; a motion source's terms on the allowlist), text (no instruction aimed at
+// agents: models read catalog lines; a field that holds no prose held to its shape), lint and sensors; the checker adds
+// dedup and the retarget onto the reference rigs. Platform-neutral: the store comes from the surface (`libraryTool`'s
+// opener). Submission text is data, never instructions: a refusal quotes none of it, and a bounce's reason stays
+// within REASON_CHARS.
 import { format, recipe as recipes, serialize, validate, validation, type Clip, type Rest } from "@m3a/core";
 import { capturedSpeed, catalogRow, LibraryError, measureClipFacts, ROW_BUDGET, tagConflicts, tierOf, type Library, type Tier, type Tokens } from "@m3a/library";
 import { checks, metrics } from "@m3a/sensors";
 import { contentHash, IntakeError, MAX_BYTES, motionHash, type IntakeStore, type Kind, type Submission } from "../intake/index.ts";
 import { defineTool, ToolError, type LibraryAccess, type Tool, type ToolContext } from "../registry/registry.ts";
+import { allowlisted } from "../sources/deliver.ts";
 import { restFor } from "./clips.ts";
 import { call, capped, count, cut, fileOrJson, more, output } from "./common.ts";
 import { boundHolds } from "./judge.ts";
@@ -58,11 +61,14 @@ export interface Derived {
 }
 
 /** What the gates read: the clip as it would be adopted (a recipe's compiled clip), its rest, what it is, the clip it
- *  improves (its id, its file's SHA-256 now, the clip and its rest), the library clips it derives from, what it is to
- *  the library (`as`: a submission, its quality and review claims ignored and the intake's provenance required; a clip
- *  adopted from the queue, its provenance required, its recorded quality read; any other library clip), the validator
- *  warnings its set's _baseline.json accepts and the tags whose conflict library/baselines/tags.json explains (a library
- *  clip's), and the token count rows are cut with. */
+ *  improves or replaces (its id, its file's SHA-256 then, the clip and its rest: what it may keep of that clip's tag
+ *  conflicts and failing metrics), the library clips it derives from, what it is to the library (`as`: a submission,
+ *  its quality and review claims ignored and the intake's provenance required; a clip adopted from the queue, its
+ *  provenance required; any other library clip), whether a pull request adds it (`added`: a library clip added outside
+ *  the intake carries no review), which failing metrics are kept (`qa`: `recorded`, the clip's own QA reason, which
+ *  only a changed library clip's writers give; `byHand`, the metrics library/baselines/qa.json keeps for it by hand;
+ *  none by default), the validator warnings its set's _baseline.json accepts and the tags whose conflict
+ *  library/baselines/tags.json explains (a library clip's), and the token count rows are cut with. */
 export interface GateInput {
   clip: Clip;
   rest: Rest | null;
@@ -70,25 +76,81 @@ export interface GateInput {
   base: { id: string; sha256: string; clip: Clip; rest: Rest } | null;
   derived: readonly Derived[];
   as: "submission" | "adopted" | "library";
+  added?: boolean;
+  qa?: { recorded?: boolean; byHand?: readonly string[] };
   accepted?: readonly { code: string; at: string }[];
   acceptedTags?: readonly string[];
   tokens?: Tokens;
 }
 
 const HEX64 = /^[0-9a-f]{64}$/;
+/** A library clip's id as a reason may name it: SET/Clip, no prose. */
+const CLIP_ID = /^[A-Z][A-Z0-9_]*\/[A-Za-z0-9][A-Za-z0-9_-]{0,63}$/;
+/** An SPDX license expression (ids, LicenseRef-s, joined by AND, OR or WITH). */
+const SPDX = /^[A-Za-z0-9][A-Za-z0-9.+-]{0,63}( (AND|OR|WITH) [A-Za-z0-9][A-Za-z0-9.+-]{0,63}){0,7}$/;
+const NAME = /^[A-Za-z0-9][A-Za-z0-9_.-]{0,39}$/, REVISION = /^[a-z0-9][a-z0-9-]{0,39}@\d{1,6}$/, VERSION = /^[A-Za-z0-9][A-Za-z0-9._+-]{0,39}$/;
 const intakeOf = (c: Clip) => (c.provenance as { intake?: Partial<IntakeProvenance> }).intake;
 
 /** Text fields a model reads, by path, with what each may hold: plain words. */
 const PLAIN: Readonly<Record<string, number>> = { name: 60, desc: 200, "tags[]": 24, "events[].name": 32, "provenance.src": 40, "provenance.take": 80, "provenance.orig": 64, "provenance.credit": 200, "provenance.producer.tool": 60, "provenance.producer.version": 40, "provenance.producer.model": 80, "provenance.intake.by": 200, "quality.baseline": 600 };
-/** Fields that hold no prose (enums, hashes, numbers' names), or a URL where one belongs. */
-const NOT_PROSE = /^(format|id|legend|skeleton|restSrc|requires\[\]|contacts\.by|facts\.by|facts\.captured\[\]|provenance\.(method|license|ai|intake\.(prompt|manifest\.(url|sha256)|improves\.(id|sha256)|submission|report\..*)|recipe\..*)|quality\.(qa|qaVersion)|review\..*)$/;
+/** Fields that hold the owner's words, not a contributor's (m3a review writes a review's note; a submission carrying a
+ *  review is bounced): held only to characters a reader can see. */
+const OWNER: ReadonlySet<string> = new Set(["review.note"]);
+/** Fields that hold no prose, by path, each with the shape its value has (an enum, an id, a hash, a version, a URL
+ *  where one belongs) and its name: a value off its shape is refused, never read past as prose. A key a clip names
+ *  (a recipe's inputs) is `*`. Every other path is prose (PLAIN) or not taken. */
+const KINDS: Readonly<Record<string, readonly [RegExp, string]>> = {
+  format: [/^2\.\d{1,3}$/, "a format version"],
+  id: [CLIP_ID, "a clip id, SET/Clip"],
+  legend: [new RegExp(`^${format.LEGEND_VERSION.replace(/\./g, "\\.")}$`), `the legend's version, "${format.LEGEND_VERSION}"`],
+  skeleton: [NAME, "a body plan's name"],
+  restSrc: [/^[A-Za-z0-9][A-Za-z0-9_-]{0,39}$/, "a library source's key"],
+  "requires[]": [NAME, "a capability's name"],
+  "contacts.by": [/^(detected|labelled)$/, '"detected" or "labelled"'],
+  "facts.by": [REVISION, "a revision, tool@N"],
+  "facts.captured[]": [/^[a-z][A-Za-z]{0,31}$/, "a fact's name"],
+  "provenance.method": [new RegExp(`^(${Object.keys(format.IPTC).join("|")})$`), "a method"],
+  "provenance.license": [SPDX, "an SPDX license expression"],
+  "provenance.ai": [new RegExp(`^(${Object.values(format.IPTC).join("|")})$`), "an IPTC digital source type"],
+  "provenance.intake.prompt": [HEX64, "a SHA-256"],
+  "provenance.intake.manifest.url": [/^https:\/\/\S{1,200}$/, "an https URL"],
+  "provenance.intake.manifest.sha256": [HEX64, "a SHA-256"],
+  "provenance.intake.improves.id": [CLIP_ID, "a clip id, SET/Clip"],
+  "provenance.intake.improves.sha256": [HEX64, "a SHA-256"],
+  "provenance.intake.submission": [/^s-[0-9a-f]{16}@[0-9a-f]{64}$/, "a submission's id@content hash"],
+  "provenance.intake.report.sensors": [/^(pass|warn|fail)$/, "the sensors' verdict"],
+  "provenance.intake.report.qaVersion": [REVISION, "a revision, tool@N"],
+  // a compiled recipe's record: its hash and its inputs' content ids, nothing else
+  "provenance.recipe.sha256": [HEX64, "a SHA-256"],
+  "provenance.recipe.inputs.*": [/^([0-9a-f]{64})?$/, "a content id"],
+  // the motion source's record (WP-9.2): its name, its terms' license and version, the prompt's hash (the seed is a
+  // number); a record of the terms as served under it reads the same
+  "provenance.source.name": [NAME, "a source's name"],
+  "provenance.source.license": [/^(inherit|[A-Za-z0-9][A-Za-z0-9.+-]{0,63})$/, 'an SPDX license id, or "inherit"'],
+  "provenance.source.version": [VERSION, "a version"],
+  "provenance.source.prompt": [HEX64, "a SHA-256"],
+  "quality.qa": [/^(pass|baselined|fail|unchecked)$/, "a QA verdict"],
+  "quality.qaVersion": [/^(none|[a-z0-9][a-z0-9-]{0,39}@\d{1,6})$/, "a revision, tool@N"],
+  "review.state": [/^(approved|flagged)$/, "a review's state"],
+  "review.by": [/^[A-Za-z0-9][A-Za-z0-9_.@-]{0,63}$/, "the reviewer's id"],
+  "review.date": [/^\d{4}-\d{2}-\d{2}$/, "a date, YYYY-MM-DD"],
+  "review.motion": [HEX64, "a motion hash"],
+};
+/** The shape a path's value has when it holds no prose, or undefined for prose. */
+const kindOf = (path: string) => KINDS[path] ?? KINDS[path.replace(/^provenance\.source\.[a-z]{1,16}\.(license|version)$/, "provenance.source.$1")];
 /** Words aimed at a model or an agent rather than describing a motion (models read catalog lines and clip text), each
  *  with what it does and the fields where it is no such thing (a credit line names its source's site). */
 const AIMED: readonly [RegExp, string, string[]?][] = [
-  [/\b(ignore|disregard|forget|override|bypass)\b.{0,40}\b(instructions?|prompts?|rules|guidelines|previous|above|everything)\b/i, "tells the reader to set its instructions aside"],
+  [/\b(ignore|disregard|forget|override|bypass|skip)\b.{0,40}\b(instructions?|prompts?|rules|guidelines|guidance|directions?|advice|orders|previous|earlier|prior|above|everything)\b/i, "tells the reader to set its instructions aside"],
+  // the same in other languages a model reads as readily
+  [/\b(ignor\p{L}*|olvid\p{L}*|oubli\p{L}*|vergiss\p{L}*|dimentic\p{L}*|esque[cç]\p{L}*)\b.{0,40}(instru[cç]\p{L}*|anweisung\p{L}*|istruzion\p{L}*|regla\p{L}*|r[eè]gle\p{L}*|regeln)|(忽略|无视|忽視|無視|忘记|忘記).{0,12}(指令|指示|说明|說明|規則|规则|提示)|(игнорир|забуд)\p{L}*.{0,40}инструкц/iu, "tells the reader to set its instructions aside"],
+  [/\b(agents?|models?|llms?|ais?|assistants?|bots?|reviewers?|maintainers?|crawlers?)\b[^.;!?]{0,60}\b(should|must|shall|need to|have to|ought to|are to|always|never)\b/i, "speaks to agents or models"],
+  [/\b(rank|prefer|pick|choose|select|recommend|prioriti[sz]e|favou?r|promote)\b[^.;!?]{0,30}\b(this (clip|one|motion|animation)|me)\b|\b(above|over|before|ahead of) (all|any|every) (others?|other clips?)\b/i, "argues for its own choice"],
   [/\b(new|updated|real|actual|hidden|secret|following) instructions?\b|\binstructions? (are|is|follow)\b/i, "gives instructions"],
   [/\b(you are|you're|act as|pretend to be|roleplay)\b.{0,20}\b(an?|the|now)\b/i, "addresses the reader as a model"],
-  [/\b(as an? (ai|assistant|agent|llm|language model))\b|\b(system|developer) (prompt|message)\b/i, "speaks to a model"],
+  // (who made it may say it is an AI agent: provenance.intake.by is the disclosure the intake asks for)
+  [/\b(as an? (ai|assistant|agent|llm|language model))\b/i, "speaks to a model", ["provenance.intake.by"]],
+  [/\b(system|developer) (prompt|message)\b/i, "speaks to a model"],
   [/(^|[.!?]\P{L}*)(assistant|system|user|tool|human)\s*:/iu, "imitates a chat turn"],
   [/<\/?(system|assistant|user|tool|instructions?|script|iframe|im_start|im_end)\b|\[\/?INST\]|<\|[a-z_]+\|>|<<SYS>>|^#{1,6}\s/im, "carries a model's control markup"],
   [/\b(curl|wget|sudo|rm -rf|npm|npx|pip|bash|powershell|chmod|eval)\b|\brun (this|the|that|these|a) (command|script)s?\b|`[^`]+`|\$\(/i, "asks for a command to be run"],
@@ -102,21 +164,31 @@ const AIMED: readonly [RegExp, string, string[]?][] = [
  *  controls. */
 const HIDDEN = /[\u{ad}\u{61c}\u{180e}\u{200b}-\u{200f}\u{202a}-\u{202e}\u{2060}-\u{2064}\u{2066}-\u{206f}\u{feff}\u{e0000}-\u{e007f}]|\p{Cc}/u;
 
-/** Every string in a clip but its keys, with its path (array indexes as []). */
+/** A key a path names as it is: a field's name. Any other key (a clip's id, or text) is `*`, so a path quotes none. */
+const KEY = /^[A-Za-z_][A-Za-z0-9_]{0,31}$/;
+
+/** Every string in a clip but its keys, with its path (array indexes as [], a key that isn't a field's name as *). */
 function strings(v: unknown, path: string, out: [string, string][] = []): [string, string][] {
   if (typeof v === "string") out.push([path, v]);
   else if (Array.isArray(v)) for (const x of v) strings(x, `${path}[]`, out);
-  else if (v && typeof v === "object") for (const [k, x] of Object.entries(v)) if (!(path === "" && k === "keys")) strings(x, path ? `${path}.${k}` : k, out);
+  else if (v && typeof v === "object") for (const [k, x] of Object.entries(v)) if (!(path === "" && k === "keys")) strings(x, `${path ? `${path}.` : ""}${KEY.test(k) ? k : "*"}`, out);
   return out;
 }
 
 /** What in a clip's text reads as aimed at a model or an agent, or hides what it says: each field's problem, named by
- *  its path and never quoted (submission text is data). Empty for a clip whose text only describes a motion. */
+ *  its path and never quoted (submission text is data). A field that holds no prose (KINDS) is held to its shape;
+ *  every other is prose, taken only where PLAIN says, and read for words aimed at a reader. Empty for a clip whose
+ *  text only describes a motion. */
 export function textProblems(clip: Clip): string[] {
   const out: string[] = [];
   for (const [path, s] of strings(clip, "")) {
     if (HIDDEN.test(s)) out.push(`${path} holds characters a reader can't see (zero-width, bidirectional or control characters): write it in plain text`);
-    if (NOT_PROSE.test(path)) continue;
+    if (OWNER.has(path)) continue;
+    const kind = kindOf(path);
+    if (kind) {
+      if (!kind[0].test(s)) out.push(`${path} isn't ${kind[1]}: the field holds no prose, so write only the value it takes`);
+      continue;
+    }
     const max = PLAIN[path];
     if (max === undefined) out.push(`${path} is text the intake doesn't take: describe the motion in desc, and leave other fields out`);
     else if (s.length > max) out.push(`${path} is ${s.length} characters, past the ${max} it may take: say what the body does in a few plain words`);
@@ -136,38 +208,54 @@ export function lineage(clip: Clip, lib: Library, improves: string | null): { de
       const got = lib.clip(id);
       derived.push({ id: got.clip.id, tier: got.tier, license: got.clip.provenance.license, credit: got.clip.provenance.credit ?? null });
     } catch (err) {
-      problems.push(`${field} names ${id}, which the library hasn't (${err instanceof LibraryError ? err.code : "unreadable"}): name a library clip as SET/Clip`);
+      problems.push(`${field} names ${CLIP_ID.test(id) ? id : "a clip"}, which the library hasn't (${err instanceof LibraryError ? err.code : "unreadable"}): name a library clip as SET/Clip`);
     }
   }
   return { derived, problems };
 }
 
+/** A license claim as a reason may quote it: an SPDX expression, else what it isn't (submission text is data). */
+const claimed = (claim: string) => (SPDX.test(claim) ? JSON.stringify(claim) : "(no SPDX license expression)");
+
 /** The license rule (D10, §5.9): CC0 (a dedication), unless the clip derives from CC BY or CMU clips and keeps their
- *  license and credit; anything else is bounced. Gives the tier the clip joins, or the problem. */
+ *  license and their credit (each one's provenance.credit within its own); anything else is bounced. Gives the tier the
+ *  clip joins, or the problem. */
 export function licenseRule(clip: Clip, derived: readonly Derived[]): { tier: "cc0" | "cc-by" | "cmu" | null; problem: string | null } {
   const claim = clip.provenance.license, kept = [...new Set(derived.filter((d) => d.tier !== "cc0").map((d) => d.tier))];
   if (kept.length > 1) return { tier: null, problem: `it derives from clips of the ${kept.join(" and ")} tiers, which no intake set holds together: make it from one tier's clips` };
-  if (!kept.length) return claim === "CC0-1.0" ? { tier: "cc0", problem: null } : { tier: null, problem: `provenance.license ${JSON.stringify(cut(claim, 40))} isn't on the intake's allowlist: dedicate it to the public domain ("CC0-1.0"), or derive it from a CC BY or CMU library clip (provenance.orig or --improves) and keep that clip's license` };
-  const tier = kept[0] as "cc-by" | "cmu", owed = [...new Set(derived.filter((d) => d.tier === tier).map((d) => d.license))];
-  if (claim === "CC0-1.0" || !owed.every((l) => claim.split(" AND ").includes(l))) return { tier: null, problem: `it derives from ${derived.filter((d) => d.tier === tier).map((d) => d.id).join(", ")} (${tier}), so it keeps ${owed.join(" AND ")}: set provenance.license to it, with the clip's credit` };
-  if (tierOf(claim.split(" AND ").find((l) => l !== "CC0-1.0") ?? claim) !== tier) return { tier: null, problem: `provenance.license ${JSON.stringify(cut(claim, 40))} doesn't fit the ${tier} tier it derives from: use ${owed.join(" AND ")}` };
+  if (!kept.length) return claim === "CC0-1.0" ? { tier: "cc0", problem: null } : { tier: null, problem: `provenance.license ${claimed(claim)} isn't on the intake's allowlist: dedicate it to the public domain ("CC0-1.0"), or derive it from a CC BY or CMU library clip (provenance.orig or --improves) and keep that clip's license` };
+  const tier = kept[0] as "cc-by" | "cmu", from = derived.filter((d) => d.tier === tier), owed = [...new Set(from.map((d) => d.license))];
+  if (claim === "CC0-1.0" || !owed.every((l) => claim.split(" AND ").includes(l))) return { tier: null, problem: `it derives from ${from.map((d) => d.id).join(", ")} (${tier}), so it keeps ${owed.join(" AND ")}: set provenance.license to it, with the clip's credit` };
+  if (tierOf(claim.split(" AND ").find((l) => l !== "CC0-1.0") ?? claim) !== tier) return { tier: null, problem: `provenance.license ${claimed(claim)} doesn't fit the ${tier} tier it derives from: use ${owed.join(" AND ")}` };
+  const credit = clip.provenance.credit ?? "", unsaid = from.filter((d) => d.credit && !credit.includes(d.credit));
+  if (unsaid.length) return { tier: null, problem: `it derives from ${unsaid.map((d) => d.id).join(", ")} (${tier}), whose license asks for its credit: keep each one's provenance.credit, word for word, in this clip's (add your own after it)` };
   return { tier, problem: null };
+}
+
+/** The source-terms rule (§5.9, O5, WP-9.2): a clip that records the motion source that made it (provenance.source)
+ *  enters the queue only when `allowlisted` (packages/tools/src/sources/deliver.ts) admits it: the source's terms on
+ *  the allowlist, and the claim one they allow. Null for a clip with no source record, or one it admits. */
+export function sourceProblem(clip: Clip): string | null {
+  if ((clip.provenance as { source?: unknown }).source === undefined || allowlisted(clip).ok) return null;
+  return "provenance.source records a motion source whose terms aren't on the allowlist (CC0-1.0, or a library clip's tier kept by what derives from it), a license claim its terms don't allow, or no whole record: such a source's clips stay in library/local/ (O5), and sources.allowlisted says why";
 }
 
 /** The provenance a submission must give (§5.9, DOCTRINE principle 10): a method whose IPTC type it names; the tool and
  *  version that wrote it; the model and the prompt's SHA-256 when a model was used; a training-data manifest for a
- *  generator (a learned motion model; procedural code isn't one); who or what made it; the clip it improves as it is
- *  now; and no review, which only the owner gives. */
+ *  generator (a learned motion model; procedural code isn't one), whatever the clip is to the library; who or what
+ *  made it; the clip it improves as it is now; and no review, which only the owner gives: a library clip's review holds
+ *  for the motion it was made on, and a clip added outside the intake carries none. */
 export function provenanceProblems(i: GateInput): string[] {
-  const p = i.clip.provenance, out: string[] = [], intake = intakeOf(i.clip), model = p.producer?.model;
+  const p = i.clip.provenance, out: string[] = [], intake = intakeOf(i.clip), model = p.producer?.model, r = i.clip.review;
   if (p.method && p.ai && format.IPTC[p.method] !== p.ai) out.push(`provenance.ai is ${p.ai}, but a ${p.method} clip is ${format.IPTC[p.method]} (IPTC's digital source type for its method)`);
   if (!p.producer?.tool?.trim() || !p.producer?.version?.trim()) out.push("provenance.producer names the tool that wrote it and its version: { tool, version }");
-  if (i.as === "library") return out;
-  if (i.as === "submission" && i.clip.review) out.push("it carries a review: only the owner reviews a clip, at adoption; leave review out");
+  if (i.as === "submission" && r) out.push("it carries a review: only the owner reviews a clip, at adoption; leave review out");
+  else if (r && i.as === "library" && i.added) out.push("a clip added outside the intake carries a review: the owner reviews a library clip once it is in (m3a review); leave review out");
+  else if (r && r.motion !== motionHash(i.clip)) out.push("its review was made on another motion than its own (review.motion isn't its motion hash): a review holds only for the motion it was made on, so leave it out and the owner reviews it again");
   if (i.kind === "recipe") return out; // the compiler wrote its provenance: its steps and inputs say how it was made
-  if (!intake || typeof intake.by !== "string" || !intake.by.trim()) out.push("provenance.intake.by is missing: say who or what made it (a person, or the agent and the human behind it), with --by");
+  if (i.as !== "library" && (!intake || typeof intake.by !== "string" || !intake.by.trim())) out.push("provenance.intake.by is missing: say who or what made it (a person, or the agent and the human behind it), with --by");
   if (p.method === "generated" && (typeof model !== "string" || !model.trim())) out.push("a generated clip names its model and version in provenance.producer.model");
-  if (typeof model === "string" && model.trim() && !(typeof intake?.prompt === "string" && HEX64.test(intake.prompt))) out.push("a model made it, so provenance.intake.prompt is the SHA-256 of its prompt: give the prompt with --prompt (only its hash is sent)");
+  if (i.as !== "library" && typeof model === "string" && model.trim() && !(typeof intake?.prompt === "string" && HEX64.test(intake.prompt))) out.push("a model made it, so provenance.intake.prompt is the SHA-256 of its prompt: give the prompt with --prompt (only its hash is sent)");
   if (p.method === "generated") {
     const m = intake?.manifest;
     if (!m || typeof m.url !== "string" || !/^https:\/\/\S+$/.test(m.url) || !(typeof m.sha256 === "string" && HEX64.test(m.sha256))) out.push("a generator (a learned motion model) needs its training-data manifest: --manifest <https URL>#sha256=<its SHA-256> (procedural code is no generator: its method is procedural)");
@@ -183,9 +271,9 @@ export function provenanceProblems(i: GateInput): string[] {
 /** The gates that need no rig and no store (schema, budgets, provenance, license, text, lint, sensors), each run (the
  *  later ones only on a clip that validates); dedup and the retarget are the checker's. */
 export function clipGates(i: GateInput): Gate[] {
-  const c = i.clip, gate = (g: GateName, why: string[]): Gate => ({ gate: g, ok: why.length === 0, why });
+  const c = i.clip, gate = (g: GateName, why: string[]): Gate => ({ gate: g, ok: why.length === 0, why: why.map(unquoted) });
   const v = validate(c, { mode: "lint" }), schema = v.errors.map((e) => validation.formatIssue(e).replace(/\s*\n\s*/g, "; "));
-  if (!i.rest && v.ok) schema.push(`restSrc ${JSON.stringify(cut(String(c.restSrc), 40))} is no library source's rest: make it on a library rest (each set's _set.json lists its sources)`);
+  if (!i.rest && v.ok) schema.push(`restSrc ${KINDS.restSrc![0].test(String(c.restSrc)) ? JSON.stringify(c.restSrc) : "(no source key)"} is no library source's rest: make it on a library rest (each set's _set.json lists its sources)`);
   const out = [gate("schema", schema)];
   if (schema.length) return out;
   const R = i.rest!, budgets: string[] = [], bytes = new TextEncoder().encode(serialize(c)).length, row = catalogRow(c, i.tokens), n = (i.tokens ?? ((t: string) => Math.ceil(t.length / 2)))(row);
@@ -196,7 +284,7 @@ export function clipGates(i: GateInput): Gate[] {
   } catch (err) {
     budgets.push((err as Error).message);
   }
-  out.push(gate("budgets", budgets), gate("provenance", provenanceProblems(i)), gate("license", [licenseRule(c, i.derived).problem].filter((x): x is string => x !== null)), gate("text", textProblems(c)));
+  out.push(gate("budgets", budgets), gate("provenance", provenanceProblems(i)), gate("license", [licenseRule(c, i.derived).problem, sourceProblem(c)].filter((x): x is string => x !== null)), gate("text", textProblems(c)));
   // an improvement is held to the clip it improves: no tag conflict or failing metric that clip hasn't (it may keep
   // what it doesn't fix)
   // (a speed its source gave is a library clip's own fact; a submission's claim to one is measured instead)
@@ -204,18 +292,29 @@ export function clipGates(i: GateInput): Gate[] {
   const tags = tagConflicts(c, measureClipFacts(c, R, i.as === "submission" ? undefined : capturedSpeed(c)).facts, R).filter((t) => !had.includes(t.tag) && !i.acceptedTags?.includes(t.tag)).map((t) => `tag ${t.tag}: ${t.message}`);
   const warned = v.warnings.filter((w) => !i.accepted?.some((a) => a.code === w.code && a.at === `${w.key !== undefined ? `key ${w.key} (t ${w.t}) ` : ""}${w.field ?? ""}${w.index !== undefined ? `[${w.index}]` : ""}`));
   out.push(gate("lint", [...warned.map((w) => validation.formatIssue(w).replace(/\s*\n\s*/g, "; ")), ...tags]));
-  const was = new Set(i.base ? metrics(i.base.clip, i.base.rest).findings.filter((f) => f.level === "fail").map((f) => f.metric) : []);
-  const baselined = i.as !== "submission" && c.quality?.qa === "baselined" && Boolean(c.quality.baseline), fails = metrics(c, R).findings.filter((f) => f.level === "fail" && !was.has(f.metric));
+  // the failing metrics kept: the clip it improves or replaces had them, library/baselines/qa.json keeps them by hand,
+  // or (a changed library clip's) its writers' recorded reason does; a submission's or an added clip's own claim, never
+  const was = new Set<string>([...(i.base ? metrics(i.base.clip, i.base.rest).findings.filter((f) => f.level === "fail").map((f) => f.metric) : []), ...(i.qa?.byHand ?? [])]);
+  const baselined = i.qa?.recorded === true && c.quality?.qa === "baselined" && Boolean(c.quality.baseline), fails = metrics(c, R).findings.filter((f) => f.level === "fail" && !was.has(f.metric));
   out.push(gate("sensors", fails.length && !baselined ? [`the sensors fail it${i.base ? ` where ${i.base.id} passes` : ""}: ${fails.slice(0, 3).map((f) => `${f.metric}: ${f.message}`).join("; ")} (m3a lint names the repairs, m3a fix applies them)`] : []));
   return out;
 }
 
-/** A bounce's reason from the gates: the first failed gate's first problem, and how many more there are. */
+/** The most characters a bounce's reason takes (the hosted table holds 2,000): it says what is wrong and how to fix it,
+ *  never what the submission says. */
+export const REASON_CHARS = 500;
+
+/** A problem as a reason may say it: each quoted string that could be prose (a space in it, or past 64 characters)
+ *  elided, as a validator's message may quote a field's value (submission text is data). */
+export const unquoted = (s: string): string => s.replace(/"(?:[^"\\\n]|\\.)*"/g, (q) => (q.length > 66 || /\s/.test(q) ? '"…"' : q));
+
+/** A bounce's reason from the gates: the first failed gate's first problem, and how many more there are, within
+ *  REASON_CHARS. */
 export function bounceReason(gates: readonly Gate[]): string | null {
   const bad = gates.filter((g) => !g.ok).sort((a, b) => GATES.indexOf(a.gate) - GATES.indexOf(b.gate));
   if (!bad.length) return null;
-  const all = bad.reduce((a, g) => a + g.why.length, 0);
-  return `${bad[0]!.gate}: ${bad[0]!.why[0]}${all > 1 ? ` (and ${count(all - 1, "more problem")}: ${bad.map((g) => g.gate).join(", ")})` : ""}`;
+  const all = bad.reduce((a, g) => a + g.why.length, 0), more = all > 1 ? ` (and ${count(all - 1, "more problem")}: ${bad.map((g) => g.gate).join(", ")})` : "";
+  return `${bad[0]!.gate}: ${cut(unquoted(bad[0]!.why[0] ?? "it failed"), REASON_CHARS - bad[0]!.gate.length - 2 - more.length)}${more}`;
 }
 
 /** A submission's clip: a clip's text parsed, or a recipe compiled on `lib` (every shipped tier); refused (E_INPUT)

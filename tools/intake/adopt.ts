@@ -8,10 +8,13 @@
 // pull request is whole and the library's checks pass on what it merges), naming in its body each distribution now
 // worse than recorded (they may only improve: the owner's adoption is the logged decision), opens a pull request
 // against `main`, runs the library's gates on it (a pull request opened with a workflow's own token starts no other
-// workflow) and merges it if they and the regeneration pass; if not it closes it, restores what it wrote, and returns
-// the submission to `awaiting review` with the reason. The pull
-// requests are behind `PullRequests`: a dry run prints the one it would open; GitHub's (gh, with the workflow's token)
-// is G9's deferred proof and nothing here calls it.
+// workflow), on the pull request's own tree, and merges it if they and the regeneration pass; if not it closes it,
+// restores what it wrote, and returns the submission to `awaiting review` with the reason. One adoption's failure is
+// its own: its pull request closed if it was opened, its files restored, it goes back to review, and the next goes on.
+// The pull requests are behind `PullRequests`: a dry run prints the one it would open; GitHub's (git and gh, with the
+// workflow's token) leaves the checkout on the pull request's branch until it is merged or closed, then on the base
+// as the remote has it, so each adoption is made on the main the one before merged into; intake.yml uses it once O8
+// is linked (G9's deferred proof), and its test runs it against a local remote with a stand-in gh.
 import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -38,7 +41,8 @@ export interface Draft {
   files: string[];
 }
 
-/** Where the adopt bot's pull requests go: opened (its number and link), merged, or closed with the reason. */
+/** Where the adopt bot's pull requests go: opened (its number and link), merged, or closed with the reason. Between
+ *  `open` and `merge` or `close` the checkout holds the pull request's tree, which the gates read. */
 export interface PullRequests {
   readonly kind: "dry-run" | "github";
   open(d: Draft): Promise<{ number: number; url: string }>;
@@ -66,31 +70,55 @@ export function dryRun(print: (text: string) => void): PullRequests {
   };
 }
 
-/** GitHub's pull requests from the checkout `cwd` through git and the gh CLI, with the workflow's token (GH_TOKEN): the
- *  branch committed and pushed, the pull request opened, then merged (squashed) or closed, its branch deleted. For
- *  intake.yml once O8's store is linked (G9's deferred proof); WP-9.1a never calls it. */
-export function github(cwd: string): PullRequests {
+/** GitHub's pull requests from the checkout `cwd` through git and the gh CLI, with the workflow's token (GH_TOKEN, and
+ *  git's credentials from `gh auth setup-git`), in the environment `env`: the branch made from the base as it is,
+ *  committed and pushed (its own branch, so a run cut short is pushed again), the pull request opened, the checkout
+ *  left on that branch for the gates; then merged (squashed) or closed, its branch deleted, and the checkout back on
+ *  the base as the remote has it (the merge in it). For intake.yml once O8's store is linked (G9's deferred proof). */
+export function github(cwd: string, env: NodeJS.ProcessEnv = process.env): PullRequests {
+  let base: string | null = null;
   const run = (cmd: string, args: string[]) => {
-    const r = spawnSync(cmd, args, { cwd, encoding: "utf8" });
-    if (r.status !== 0) throw new Error(`${cmd} ${args[0]} failed: ${(r.stderr || r.stdout).trim().split("\n")[0]}`);
+    const r = spawnSync(cmd, args, { cwd, encoding: "utf8", env });
+    if (r.status !== 0) throw new Error(`${cmd} ${args[0]} failed: ${(r.stderr || r.stdout || r.error?.message || "").trim().split("\n")[0]}`);
     return r.stdout.trim();
+  };
+  // the base as the remote has it: what the next pull request is made on
+  const back = () => {
+    if (!base) return;
+    run("git", ["switch", "--force", base]);
+    run("git", ["fetch", "origin", base]);
+    run("git", ["reset", "--hard", `origin/${base}`]);
+    run("git", ["clean", "-fd", "--", "library"]);
   };
   return {
     kind: "github",
     async open(d) {
-      run("git", ["switch", "-c", d.branch]);
-      run("git", ["add", "--", ...d.files]);
-      run("git", ["-c", "user.name=m3a-adopt", "-c", "user.email=m3a-adopt@users.noreply.github.com", "commit", "-m", d.title]);
-      run("git", ["push", "origin", d.branch]);
-      const url = run("gh", ["pr", "create", "--base", d.base, "--head", d.branch, "--title", d.title, "--body", d.body]);
-      run("git", ["switch", d.base]);
-      return { number: Number(/\/pull\/(\d+)/.exec(url)?.[1] ?? 0), url };
+      base = d.base;
+      try {
+        run("git", ["switch", "-C", d.branch]);
+        run("git", ["add", "--", ...d.files]);
+        run("git", ["-c", "user.name=m3a-adopt", "-c", "user.email=m3a-adopt@users.noreply.github.com", "commit", "-m", d.title]);
+        run("git", ["push", "--force", "origin", d.branch]);
+        const url = run("gh", ["pr", "create", "--base", d.base, "--head", d.branch, "--title", d.title, "--body", d.body]);
+        return { number: Number(/\/pull\/(\d+)/.exec(url)?.[1] ?? 0), url };
+      } catch (err) {
+        back(); // no pull request: the checkout back on the base, nothing of it kept
+        throw err;
+      }
     },
     async merge(k) {
-      run("gh", ["pr", "merge", String(k), "--squash", "--delete-branch"]);
+      try {
+        run("gh", ["pr", "merge", String(k), "--squash", "--delete-branch"]);
+      } finally {
+        back();
+      }
     },
     async close(k, why) {
-      run("gh", ["pr", "close", String(k), "--comment", why, "--delete-branch"]);
+      try {
+        run("gh", ["pr", "close", String(k), "--comment", why, "--delete-branch"]);
+      } finally {
+        back();
+      }
     },
   };
 }
@@ -216,7 +244,8 @@ export function committed(checkout: string): Set<string> {
 }
 
 /** Commits every adoption the store holds that the checkout's library doesn't yet, one at a time, by id; returns what
- *  became of each. */
+ *  became of each. One that fails on the way (a writer's, a regeneration's or a pull request's error) is returned to
+ *  review with what failed, its pull request closed if one was opened and its files restored, and the next goes on. */
 export async function adopt(o: AdoptOptions): Promise<Adopted[]> {
   const out: Adopted[] = [], base = o.base ?? "main", done = committed(o.checkout);
   for (const s of (await o.store.list({ state: "adopted" })).filter((x) => !done.has(`${x.id}@${x.content}`))) {
@@ -234,26 +263,40 @@ export async function adopt(o: AdoptOptions): Promise<Adopted[]> {
       await back("returned", `it changed since the owner adopted it (adopted on ${d.hash.slice(0, 12)}, it is ${now.slice(0, 12)} now): review it again`);
       continue;
     }
-    let clip: Clip, w: Written;
+    let clip: Clip, w: Written, was: string | undefined;
     try {
       clip = adoptedClip(s, o.owner, o.checkout);
+      // the file it replaces, if any: the gates hold an improvement to the version it was made on
+      const file = join(o.checkout, "library/sets", `${clip.id}.json`);
+      was = existsSync(file) ? readFileSync(file, "utf8") : undefined;
       w = writeClip(o.checkout, clip);
     } catch (err) {
       await back("returned", `its clip can't be written: ${(err as Error).message.slice(0, 200)}`);
       continue;
     }
-    const g = await (o.regenerate ?? regenerate)(o.checkout), pr = await o.prs.open(draft(s, clip, w, base, g));
-    const failed = [...g.steps, ...(await (o.gates ?? ((r, ch) => runGates(r, ch, o.rigs)))(o.checkout, [{ id: clip.id, added: !s.improves }]))].filter((x) => !x.ok);
-    if (!failed.length) {
-      await o.prs.merge(pr.number);
-      out.push({ id: s.id, outcome: "merged", clip: clip.id, pr: pr.number, why: null });
-      continue;
+    let g: Regenerated | null = null, pr: { number: number; url: string } | null = null;
+    try {
+      g = await (o.regenerate ?? regenerate)(o.checkout);
+      pr = await o.prs.open(draft(s, clip, w, base, g));
+      const changed: Changed = { id: clip.id, added: was === undefined, ...(was === undefined ? {} : { was }) };
+      const failed = [...g.steps, ...(await (o.gates ?? ((r, ch) => runGates(r, ch, o.rigs, { by: "bot" })))(o.checkout, [changed]))].filter((x) => !x.ok);
+      if (!failed.length) {
+        await o.prs.merge(pr.number);
+        out.push({ id: s.id, outcome: "merged", clip: clip.id, pr: pr.number, why: null });
+        continue;
+      }
+      const why = `its pull request #${pr.number} failed the library gates: ${failed.map((f) => `${f.name}: ${f.summary ?? "failed"}`).join("; ").slice(0, 300)}`;
+      await o.prs.close(pr.number, why);
+      g.restore();
+      w.restore();
+      await back("closed", why, { clip: clip.id, pr: pr.number });
+    } catch (err) {
+      const why = `the adopt bot failed on it${pr ? ` (pull request #${pr.number}, closed)` : ""}: ${(err as Error).message.slice(0, 200)}`;
+      if (pr) await o.prs.close(pr.number, why).catch(() => {});
+      g?.restore();
+      w.restore();
+      await back("returned", why, { clip: clip.id, pr: pr?.number ?? null });
     }
-    const why = `its pull request #${pr.number} failed the library gates: ${failed.map((f) => `${f.name}: ${f.summary ?? "failed"}`).join("; ").slice(0, 300)}`;
-    await o.prs.close(pr.number, why);
-    g.restore();
-    w.restore();
-    await back("closed", why, { clip: clip.id, pr: pr.number });
   }
   return out;
 }
