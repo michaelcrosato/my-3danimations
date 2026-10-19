@@ -122,11 +122,12 @@ export const GATES: Record<string, [string, string, ...string[]][]> = {
   G9: [
     ["check", "check"],
     ["test", "test"],
-    ["doctrine: the manual within its 8,000 tokens, the tools within 3,200 (D112)", "doctrine"],
+    ["doctrine: the manual within its 8,000 tokens (the tools within 3,200: T1's tools-budget test, D112)", "doctrine"],
     ["vectors --check", "vectors", "--check"],
     ["the intake: the clean submission waits for review, every planted bad one bounced with its reason", "intake", "check", "--fixture", "all"],
     ["a pull request with a planted bad clip fails the library gates, the clean ones pass", "intake", "gates", "--fixture", "all"],
     ["the adopt bot, dry run: an adoption lands in its set, a failed one goes back to review, one not the owner's refused", "test", "intake/adopt"],
+    ["the adopt bot's whole proof: adopted improvements kept by import and migrate, the derived files regenerated, every check passing on the result", "test:full", "tools/intake/adopt.full.test.ts"],
     ["the registry index regenerates byte for byte", "index", "--check"],
     ["the registry index verifies every set", "index", "verify", "--all"],
     ["T2: browser checks, library QA and the sweeps in full", "e2e"],

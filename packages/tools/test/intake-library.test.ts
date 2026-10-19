@@ -98,9 +98,9 @@ describe("library submit", () => {
 });
 
 describe("what library costs a model to see", () => {
-  it("is its name, description and schema in cl100k tokens, as tools/list sends them (the integrator sets the budget)", () => {
+  it("is its name, description and schema in cl100k tokens, as tools/list sends them (the tools' budget is 3,200, D112)", () => {
     const t = libraryTool(() => ({ store: alice, today: () => TODAY })), cost = (list: readonly { name: string; description: string; schema: unknown }[]) => encode(JSON.stringify(list.map((x) => ({ name: mcpName(x.name), description: x.description, inputSchema: x.schema })))).length;
-    console.log(`library: ${cost([t])} tokens; with the registered tools ${cost([...tools.list(), t])} of 3,000`);
+    console.log(`library: ${cost([t])} tokens; with the registered tools ${cost([...tools.list(), t])} of 3,200 (D112)`);
     expect(cost([t])).toBeLessThanOrEqual(140);
   });
 });

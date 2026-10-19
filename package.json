@@ -22,6 +22,7 @@
     "e2e": "node tools/run/e2e.ts",
     "test:changed": "node tools/run/changed.ts",
     "test:cross-engine": "node tools/cross-engine/main.ts",
+    "test:full": "node tools/run/full.ts",
     "gate": "node tools/run/gate.ts",
     "doctrine": "node tools/doctrine/main.ts",
     "vectors": "node tools/vectors/main.ts",

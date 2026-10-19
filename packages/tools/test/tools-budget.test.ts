@@ -2,7 +2,8 @@
 // as MCP's tools/list sends them (the registry's verbose, if_revision, request_id and first example included), counted
 // in cl100k tokens with the repository's pinned gpt-tokenizer. WP-7.2a's tools (find, check, change, ship, version and
 // validate) take at most 1,900, leaving 1,100 for 7.2b's groups (compose at most 420, exchange at most 400); all of
-// them at most 3,000 with WP-8.2a's review (about 90); one tool at most 240. The table is printed, with the whole
+// them at most 3,000 with WP-8.2a's review (about 90), and 3,200 with WP-9.1a's library (about 135, D112); one tool
+// at most 240. The table is printed, with the whole
 // tools/list (annotations and titles too) for comparison, unasserted. The registered names are pinned, in help order.
 import { encode } from "gpt-tokenizer/encoding/cl100k_base";
 import { describe, expect, it } from "vitest";
@@ -16,7 +17,7 @@ const tokens = (v: unknown) => encode(JSON.stringify(v)).length;
 const cost = (list: readonly Tool[]) => tokens(list.map((t) => ({ name: mcpName(t.name), description: t.description, inputSchema: t.schema })));
 
 describe("the tools' token budget", () => {
-  it("describes WP-7.2a's tools in at most 1,900 tokens, compose in 420, exchange in 400, all in at most 3,000, none over 240", () => {
+  it("describes WP-7.2a's tools in at most 1,900 tokens, compose in 420, exchange in 400, all in at most 3,200, none over 240", () => {
     const all = tools.list(), a = [...FIND, ...CHECK, ...CHANGE, ...SHIP, ...BASE], b = [...RETARGET, ...COMPOSE, ...EXCHANGE];
     const rows = all.map((t) => `${t.name.padEnd(18)} ${String(cost([t])).padStart(5)}`), sum = (k: string, n: number) => `${k.padEnd(18)} ${String(n).padStart(5)}`;
     console.log([...rows, sum("7.2a", cost(a)), sum("7.2b", cost(b)), sum("8.2a", cost(REVIEW)), sum("all", cost(all)), sum("tools/list", tokens(all.map(mcpTool)))].join("\n"));

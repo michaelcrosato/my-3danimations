@@ -151,10 +151,10 @@ export function runB1(opts: Omit<Parameters<typeof runBrief>[1], "discovery"> & 
   return runBrief("B1", opts);
 }
 /** The trials of `trials` that must pass: 4 of 5 (80%, rounded up, PLAN.md §7), or `need` when a gate's clause asks
- *  for more (G9: ten clips, every one through); an error names a count out of range. */
+ *  for more (G9: ten clips, every one through), never fewer; an error names a count out of range. */
 export function passMark(trials: number, need?: unknown): number {
-  const n = need === undefined ? Math.ceil(0.8 * trials) : Number(need);
-  if (!(Number.isInteger(n) && n >= 1 && n <= trials)) throw new Error(`--need is a count of trials, 1 to ${trials}`);
+  const floor = Math.ceil(0.8 * trials), n = need === undefined ? floor : Number(need);
+  if (!(Number.isInteger(n) && n >= floor && n <= trials)) throw new Error(`--need is a count of trials, ${floor} (4 of 5, PLAN.md §7) to ${trials}`);
   return n;
 }
 
@@ -247,7 +247,7 @@ if (import.meta.main) {
   }
   const stamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19), base = join("/tmp/m3a-bench", stamp), model = typeof f.model === "string" ? f.model : undefined, fake = f.fake === true;
   mkdirSync(base, { recursive: true });
-  const results: Record<string, unknown> = { about: "npm run bench: fresh agents on the briefs (PLAN.md §7); isolation 1 is the claude CLI in a clean workspace", date: stamp, ...commitOf(), model: model ?? "the CLI's default", fake, parallel: lanes(Number(f.parallel ?? 1), fake), privateTmp: namespace() !== null, ownPids: ownPids(), capsDropped: capsDropped(), uid: agentUser().uid, unprivileged: agentUser().unprivileged };
+  const results: Record<string, unknown> = { about: "npm run bench: fresh agents on the briefs (PLAN.md §7); isolation 1 is the claude CLI in a clean workspace", date: stamp, ...commitOf(), model: model ?? "the CLI's default", fake, need, parallel: lanes(Number(f.parallel ?? 1), fake), privateTmp: namespace() !== null, ownPids: ownPids(), capsDropped: capsDropped(), uid: agentUser().uid, unprivileged: agentUser().unprivileged };
   if (typeof f.variant === "string") results.variant = { dir: relative(ROOT, resolve(f.variant)), character: variantOf(resolve(f.variant)).character };
   const briefs = names.filter((n) => n !== "quiz"), packs = briefs.length ? pack(join(base, "packs")) : {}, models = new Set<string>();
   for (const name of briefs) {

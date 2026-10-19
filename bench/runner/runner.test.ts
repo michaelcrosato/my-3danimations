@@ -54,9 +54,9 @@ afterAll(() => {
 });
 
 describe("the pass mark", () => {
-  it("is 4 of 5 (80%, rounded up), or the trials a gate's clause needs", () => {
-    expect([passMark(5), passMark(10), passMark(1), passMark(10, "10"), passMark(5, 3)]).toEqual([4, 8, 1, 10, 3]);
-    for (const bad of ["11", 0, "x", 2.5]) expect(() => passMark(10, bad)).toThrow(/^--need is a count of trials, 1 to 10$/);
+  it("is 4 of 5 (80%, rounded up), or more when a gate's clause needs it, never fewer", () => {
+    expect([passMark(5), passMark(10), passMark(1), passMark(10, "10"), passMark(5, 5)]).toEqual([4, 8, 1, 10, 5]);
+    for (const bad of ["11", 0, "x", 2.5, 7]) expect(() => passMark(10, bad)).toThrow(/^--need is a count of trials, 8 \(4 of 5, PLAN.md §7\) to 10$/);
   });
 });
 
