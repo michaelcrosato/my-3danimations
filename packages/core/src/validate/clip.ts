@@ -220,12 +220,13 @@ function record(f: Findings, at: (w?: Where) => Where, base: string, v: Record<s
   if (lint) for (const k of Object.keys(v)) if (!known.includes(k)) f.add("M2-W001", at({ field: `${base}.${k}` }), `unknown field "${k}" in ${base}`, nearest(k, known) ? `did you mean "${nearest(k, known)}"?` : `its fields are ${known.join(", ")}`);
 }
 
-/** provenance.intake: a contributed clip's record from the intake queue (library-submit.ts's IntakeProvenance), each
- *  field of its kind when given; the intake's own gate requires `by` of every submission. */
+/** provenance.intake: a contributed clip's record from the intake queue (library-submit.ts's IntakeProvenance): `by`,
+ *  who or what made it, required (the intake asks it of every submission, D119), each other field of its kind when
+ *  given. */
 function intake(f: Findings, at: (w?: Where) => Where, v: unknown, lint: boolean): void {
   if (!isObj(v)) return void f.add("M2-E004", at({ field: "provenance.intake" }), "provenance.intake is the intake's record: { by, prompt?, manifest?, improves?, submission?, report? }");
   record(f, at, "provenance.intake", v, [
-    ["by", str(), "who or what made it, as text (a person, or the agent and the human behind it)", false],
+    ["by", str(), "who or what made it, as text (a person, or the agent and the human behind it)", true],
     ["prompt", str(HEX64), `the hash of a model's prompt, ${HEX}`, false],
     ["submission", str(SUBMISSION), "the submission it was adopted from, s-<16 hex digits>@<its content's SHA-256>", false],
   ], [

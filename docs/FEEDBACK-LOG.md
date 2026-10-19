@@ -19,13 +19,17 @@ do act on goes into a WP (`PLAN.md`) or a decision (`docs/DECISIONS.md`) and the
 
 | Theme | Status | Sources | Take it up when |
 | --- | --- | --- | --- |
-| Provenance of measured facts | deferred | F1 | WP-2.2 recomputes facts with core's own tools |
+| Provenance of measured facts | **Taken up in v0.33.0** | F1 | Every clip's facts are core's (`by: m3a-facts@1`, WP-5.4, D64) |
 | Proof coverage of the migration | watch | F1 | A set is re-imported (WP-5.3) |
-| What core reads and validates | no / deferred | F1 | WP-3.3 (a baseline writer besides the migrator), WP-4.3 (VRM) |
-| WP sizes | **reached** (F1, F4) | F1, F4 | Now: WP-7.2b's records weigh splitting, and 8.2 and 9.1 are measured before they start |
-| Roll where the format's reference is undefined | deferred | F2 | WP-3.5 lints twist and heading jumps at straight limbs |
-| What the tier-3 bodies cover | deferred | F2 | WP-4.2's test characters (real rigs, other topologies) |
-| Forearm twist on rigs without twist bones | deferred | F2 | WP-4.3 binds real skeletons |
+| What core reads and validates | no | F1 | Answered in v0.53.1: every set's `_baseline.json`, whoever wrote it, is checked against its schema in T1 |
+| WP sizes | **reached** (F1, F4) | F1, F4, F5, F6 | Taken up in v0.51.0 and v0.52.0: 8.2 and 9.1 split (D109, D112); a WP is measured against its class before it starts |
+| Roll where the format's reference is undefined | **Taken up in v0.18.0** | F2 | WP-3.5 repairs twist flips; WP-5.3's `steadyTwist` (v0.32.0) holds a straight limb's twist |
+| What the tier-3 bodies cover | **Taken up in v0.21.0** | F2 | WP-4.2's test characters and the fetched CC0 rigs (D46) |
+| Forearm twist on rigs without twist bones | deferred | F2 | A consumer's rig without twist bones candy-wraps (WP-4.3 passed without it) |
+| The manual's budget | watch | F5, F6 | A third source, or the next manual change (docs/HANDOFF.md's follow-ups) |
+| What the tools can name | **Taken up in v0.54.0** | F6 | `gen-<seed>` and an orbit on every surface (D119) |
+| How strict the intake is | deferred | F6 | The importers' regenerations go through the adopt bot (the terms and `intake.by`: taken up in v0.54.0, D119) |
+| The intake's cost | **Taken up in v0.54.0** | F6 | The checker samples the library once and only new submissions after (D119) |
 
 ## Sources
 
@@ -34,12 +38,13 @@ do act on goes into a WP (`PLAN.md`) or a decision (`docs/DECISIONS.md`) and the
 Its seven failures were fixed before the merge (D32). Of its notes, these were not acted on:
 
 - **F1.1** (provenance of measured facts, deferred) `facts.by` says `m3a-migrate@1` for a `speed` that shardfall's
-  importer measured; the migrator copied it. WP-2.2 recomputes facts with core's tool, and `by` then names it.
+  importer measured; the migrator copied it. WP-2.2 recomputes facts with core's tool, and `by` then names it. **Taken up in v0.33.0** (D64).
 - **F1.2** (proof coverage, watch) Decoding within 1 µm is proven by decoding for three sets; QUATERNIUS_SHARDFALL and
   STYLE100 rely on equal keys and copied rests, which is valid by construction.
 - **F1.3** (what core reads, no) Reading VRM's `humanBones` extension isn't in core: it belongs to `@m3a/io` (WP-4.3).
 - **F1.4** (what core validates, deferred) `_baseline.json` has a schema but no validate kind in core; the migrated
-  library's test checks it against the schema. Take it up when a second tool writes baselines (WP-3.3).
+  library's test checks it against the schema. Take it up when a second tool writes baselines (WP-3.3). It came (the importer writes them); **no** in v0.53.1
+  (D118): every set's `_baseline.json`, whoever wrote it, is checked against the schema in T1 (`migrated.test.ts`).
 - **F1.5** (WP sizes, watch) WP-1.2 added 1,232 lines, just over M's 1,200.
 - **F1.6** (no) MESH2MOTION's `Death_D` and `Hit_Chest` have no `orig`: the origin has none to carry.
 
@@ -58,9 +63,9 @@ Its eight failures were fixed in v0.11.1 (D36). Of its notes, these were not act
 - **F2.4** (roll where the format's reference is undefined, deferred) Thigh and calf turn about their own axis where
   the data's twist jumps at a straight leg (Sprint_Loop: 177°, then 354°). A foot's roll does the same where its
   heading jumps pointing straight down. Joint positions are unaffected. Lint them (WP-3.5) and carry the twist through
-  straight limbs when re-importing (WP-5.3).
+  straight limbs when re-importing (WP-5.3). **Taken up in v0.18.0 and v0.32.0**.
 - **F2.5** (what the tier-3 bodies cover, deferred) The seven tier-3 bodies share one topology, a T rest and identity
-  rest frames, and the sets' own bodies are never targets. WP-4.2's test characters add real rigs.
+  rest frames, and the sets' own bodies are never targets. WP-4.2's test characters add real rigs. **Taken up in v0.21.0** (D46).
 
 ### F3 · 2026-10-11 · The G2 verifier's notes (a fresh agent, the same model family)
 
@@ -86,7 +91,7 @@ these points were not:
 
 - **F4.1** (WP sizes, reached) WP-7.1 ran about 10% past its size and WP-7.2a 23%; WP-7.2b is about 3,027 lines, past
   L's 3,000, before its fixes. The theme reaches two sources here (F1.5, F4): 7.2b's D-entry weighs the overrun, and
-  8.2 and 9.1 are measured before they start (a split as D93's if past L).
+  8.2 and 9.1 are measured before they start (a split as D93's if past L). **Taken up in v0.51.0 and v0.52.0** (D109, D112).
 - **F4.2** (no) The t1-speed lane's caches (rest conjugates, shoulders, hint starts, `points()` and `rootFrom` memos)
   assume a rest and the arrays core returns are never edited in place. No code in the repository does; it is the same
   pattern as the existing `DERIVED` map. State it in the API docs if hosts are found to mutate rests.
@@ -96,20 +101,41 @@ these points were not:
 - **F4.4** (no) bind.test.ts's `libraryClip()` copies tools/qa's rest lookup; the two could drift. Both read the same
   library layout, which the loader's tests pin.
 - **F4.5** (deferred) `tools/doctrine/doctrine.test.ts` leaves about 38 `/tmp/m3a-doctrine-*` directories per T1 run
-  (1.2 MB). Take it up when a test-hygiene pass touches the doctrine tests.
+  (1.2 MB). Take it up when a test-hygiene pass touches the doctrine tests. **Taken up in v0.53.1** (D118).
 - **F4.6** (watch) Vectors use 9.78 of the 10 MB committed budget; WP-10.2's conformance kit must generate rather than
-  commit where it can.
+  commit where it can. **Taken up in v0.53.0**: the kit commits no vectors.
 
 ### F5 · 2026-10-17 · WP-7.3's and WP-7.4's reviews, and B1's rerun (the same model family)
 
 Acted on in D100 and D101; these points were not:
 
 - **F5.1** (WP sizes, reached) WP-7.3 came to about 1,500 lines and WP-7.4 to about 1,720, both past M's 1,200,
-  mostly tests. A third source for the theme (F1, F4, F5): 8.2 and 9.1 are measured before they start.
+  mostly tests. A third source for the theme (F1, F4, F5): 8.2 and 9.1 are measured before they start. **Taken up in v0.51.0 and
+  v0.52.0** (D109, D112).
 - **F5.2** (deferred) The manual doesn't say which package exports `LibraryError` or that its code is on `.code`; at
   7,998 of 8,000 tokens it has no room. Take it up with the next manual change, cutting first.
 - **F5.3** (deferred) T2 doesn't run `npm run pack -- --check` or load `m3a.js` in Chromium; G7's set runs pack
-  --check. Take it up if a packaging change slips between gates.
+  --check. Take it up if a packaging change slips between gates. **Taken up in v0.53.1** (D118): T2 loads `m3a.js` in
+  Chromium.
 - **F5.4** (deferred) 30 library loops have no detected foot contacts; agents that pick one can't match its speed
-  (B1). The next session fixes them before G7 (HANDOFF).
+  (B1). The next session fixes them before G7 (HANDOFF). **Taken up in v0.50.1** (D104; narrowed in
+  v0.50.2, D108; the 6 left wait in docs/HANDOFF.md's follow-ups, D119).
+
+### F6 · 2026-10-19 · Phases 8 to 10's verifier reviews and the post-G10 audit (the same model family)
+
+The reviews' fixes landed in D109, D113, D116 and D117, the audit's easy findings in D118; these points were not
+acted on (D119 took up or deferred each):
+
+- **F6.1** (what the tools can name, deferred) The CLI and MCP can't name a generated `gen-<seed>` character, which the
+  gallery plays, nor an orbit other than the named views (D109). **Taken up in v0.54.0** (D119).
+- **F6.2** (how strict the intake is, deferred) library-gates holds a clip added outside the intake to the intake's
+  gates but passes a clean one (D113); `deliver` allows differing stated and served terms when both are allowlisted,
+  and the format leaves `intake.by` optional. The terms and `intake.by` **taken up in v0.54.0** (D119); the
+  adopt bot's monopoly waits for the importers (docs/HANDOFF.md).
+- **F6.3** (the intake's cost, deferred) Each checker run rebuilds the census over the whole library, about 1 s on the
+  runner's event loop (WP-9.1b's review). **Taken up in v0.54.0** (D119): later runs sample only what is new.
+- **F6.4** (the manual's budget, watch) The manual, at 7,999 of 8,000 tokens, can't teach the names the consumer lab
+  uses beyond it (D116, MIGRATING gap 10).
+- **F6.5** (WP sizes, reached) WP-8.2 came to 3,023 lines and was split, 9.1 to about 2,800 (split), 9.4 to 683 (past
+  S) and 10.2 to about 1,400 (past M).
 

@@ -11,25 +11,25 @@
     "sets": { "type": "object", "additionalProperties": { "type": "string", "minLength": 1 }, "description": "per set, why its clips' fails are kept" },
     "clips": {
       "type": "object",
-      "propertyNames": { "pattern": "^[A-Z0-9_]+/[A-Za-z0-9_]+$" },
+      "propertyNames": { "pattern": "^[A-Z0-9_]+/[A-Za-z0-9_-]+$" },
       "additionalProperties": { "type": "object", "minProperties": 1, "additionalProperties": { "type": "string", "minLength": 1 } },
       "description": "per clip id, per metric, why that finding is kept"
     },
     "floats": {
       "type": "object",
-      "propertyNames": { "pattern": "^[A-Z0-9_]+/[A-Za-z0-9_]+$" },
+      "propertyNames": { "pattern": "^[A-Z0-9_]+/[A-Za-z0-9_-]+$" },
       "additionalProperties": { "type": "string", "minLength": 1 },
       "description": "per clip id, why it stands off the floor where the float check (tools/qa/library.ts, D69) finds it"
     },
     "offFeet": {
       "type": "object",
-      "propertyNames": { "pattern": "^[A-Z0-9_]+/[A-Za-z0-9_]+$" },
+      "propertyNames": { "pattern": "^[A-Z0-9_]+/[A-Za-z0-9_-]+$" },
       "additionalProperties": { "type": "string", "minLength": 1 },
       "description": "per loop with no contact at all, where it is instead of on its feet (the off-feet check, tools/qa/library.ts, D104)"
     },
     "unplanted": {
       "type": "object",
-      "propertyNames": { "pattern": "^[A-Z0-9_]+/[A-Za-z0-9_]+$" },
+      "propertyNames": { "pattern": "^[A-Z0-9_]+/[A-Za-z0-9_-]+$" },
       "additionalProperties": { "type": "string", "minLength": 1 },
       "description": "per loop on its feet with no contact at all, why no foot holds still on the floor (the off-feet check, tools/qa/library.ts, D108)"
     }

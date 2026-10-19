@@ -35,8 +35,8 @@
 // later CLI adds shows there.
 // The transcript (stream-json) is kept; the run records its time, tokens, cost and turns, and the audit lists every
 // path it touched outside the workspace (and its own /tmp's, /var/tmp's and /dev/shm's scratch files apart) and every
-// file it read past the manual (the packages' code in node_modules; the manual and the skill and llms.txt that point at
-// it aren't, where a package will ship them), a shell command's relative paths resolved as its shell would (D88).
+// file it read past the manual (the packages' code in node_modules; the manual, the skill @m3a/tools ships beside it
+// and llms.txt, should a package ship one, aren't), a shell command's relative paths resolved as its shell would (D88).
 // The audit's known limits (D88, D91):
 // - over-reports: a grep pattern or a here-string naming a package path counts as a read; so does a path in a script
 //   a command runs as it is given (`node -e`, a heredoc fed to `node` or `python3`), whether or not the script reads it;
@@ -215,9 +215,9 @@ export interface Where {
   exists?: (path: string) => boolean;
 }
 /** What an agent may read in its installed packages without reading past the manual: the manual, and the skill and
- *  llms.txt that point at it wherever a package will ship them (WP-7.3; no tarball holds them until WP-7.4 packs them).
- *  The skill the runner copies into a workspace, .claude/skills/m3a/, lies outside node_modules and is never a read past
- *  it. */
+ *  llms.txt that point at it (WP-7.3: @m3a/tools ships skills/m3a/SKILL.md beside MANUAL.md, D119; no package ships an
+ *  llms.txt). The skill the runner copies into a workspace, .claude/skills/m3a/, lies outside node_modules and is never
+ *  a read past it. */
 const MANUAL = /^node_modules\/@m3a\/(tools\/MANUAL\.md|[\w-]+\/llms\.txt|[\w-]+\/skills\/m3a\/SKILL\.md)$/;
 /** Commands that name paths without reading them: what they list, enter, make or remove is touched, not read (as Glob). */
 const LISTS = new Set(["ls", "cd", "find", "tree", "du", "stat", "mkdir", "rmdir", "rm", "touch", "echo", "printf", "test", "[", "realpath", "readlink", "dirname", "basename", "for"]);

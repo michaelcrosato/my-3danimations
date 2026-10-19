@@ -164,7 +164,7 @@ export function interruptInto(c: CompiledAction, at: Interrupt, target: string, 
   if (!next) fail([{ code: "R-E008", field: "to", message: `no clip ${target} to go on into`, fix: "a library clip, a PROCEDURAL/<Name> part or a compiled action" }]);
   const k0 = next!.clip.keys[0] as unknown as { body?: number[]; yaw?: number }, root = trackRootAt(c.track, at.t);
   const turn = Math.round(short(facing(poseAt(c.track, at.t).body, root.yaw) - facing(k0.body, k0.yaw ?? 0))), up = Math.round(groundAt(c, at.t));
-  const [set, slug] = c.clip.id.split("/") as [string, string], into = target.split("/")[1]!;
+  const [set, slug] = c.clip.id.split("/") as [string, string], into = target.split("/")[1]!.replace(/-/g, "_"); // a clip slug may keep "-"; a recipe's own id may not
   const play = opts.play !== undefined ? Math.min(opts.play, next!.clip.dur) : undefined;
   const steps: Step[] = [{ as: "action", op: "clip", id: c.clip.id, to: at.t }, { as: "next", op: "clip", id: target, ...(play !== undefined && play < next!.clip.dur ? { to: play } : {}) }];
   if (turn || up) steps.push({ as: "placed", op: "pose", in: "next", ...(up ? { hips: { up } } : {}), ...(turn ? { yaw: turn } : {}) });

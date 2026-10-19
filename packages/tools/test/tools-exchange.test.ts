@@ -1,25 +1,26 @@
 // Exchange (PLAN.md WP-7.2b): import and export on every surface (import listed to MCP as no read-only tool), then
 // their failing inputs (a catalog off its shape or no JSON, every take skipped, a game.json that isn't JSON: each
 // refusal one line); an imported set that the library opens as a local set (openLibrary on imports/), which
-// license.check fails for a shipped game and passes for one that stays on the machine (D10), its rest take held a frame,
-// imported again in place under a credited license (the host's library opened again, at most MAX_OPEN kept, the least
-// lately used dropped; every clip file an import wrote that it doesn't write removed and named, so the set verifies, a
-// first import's cut short too; any other .json there refusing it, nothing changed; a file where its directory goes
-// refused by the host's write, named as given), a broken imported set left out
-// with a warning, breaking no other, and one named as a library set left out, import refusing the name (its manifest
-// the library's own too); and a clip exported as VRMA (read back byte for byte), .glb (onto Rigify's turned and scaled
-// armature too; off, findings, under an uneven scale) and BVH, each read back through io within 1 mm, the VRMA then
-// imported again, and the BVH jittered, from an absolute path, past the fit limits, its hint naming the catalog as given
-// (a name the shell would split too), as export's names a clip file, and an absolute character path by its placeholder.
-// What one import fits, bounded before it fits (a 130 s take skipped, 501 picks and 300 s of picks refused); io's
-// refusals naming the file by its path; a glTF whose bones' names no map knows said by list and refused by import
-// (E_RIG), each with the calls that take it by its shape, and one whose names follow a map but lack its joints said and
-// refused naming them (io's reason); the license and credit a VRMA m3a wrote carries (a
-// contradicting --license refused, a known id in another case too, its credit kept), a composed clip's too (its ids
-// joined with " AND ": refused under one of them, its fix quoted, running as written; its ids compared as sets, case
-// aside; a free-text license noted, not compared; its note license.check's real reason, one part's missing text by
-// that part); export's file named by the clip and the character, a .bvh's
-// license line; a second import into a set saying it replaced the first's clips.
+// license.check fails for a shipped game and passes for one that stays on the machine (D10), its rest take held a
+// frame, imported again in place under a credited license (the host's library opened again, at most MAX_OPEN kept, the
+// least lately used dropped; every clip file an import wrote that it doesn't write removed and named, so the set
+// verifies, a first import's cut short too; any other .json there refusing it, nothing changed; a file where its
+// directory goes refused by the host's write, named as given), a broken imported set left out with a warning, breaking
+// no other, and one named as a library set left out, import refusing the name (its manifest the library's own too); and
+// a clip exported as VRMA (read back byte for byte), .glb (onto Rigify's turned and scaled armature too; off, findings,
+// under an uneven scale) and BVH, each read back through io within 1 mm, onto a generated character (gen-<seed>, D119)
+// too, with no file, the .glb its own GLB with the clip added, the VRMA then imported again, and the BVH jittered, from
+// an absolute path, past the fit limits, its hint naming the catalog as given (a name the shell would split too), as
+// export's names a clip file, and an absolute character path by its placeholder. What one import fits, bounded before
+// it fits (a 130 s take skipped, 501 picks and 300 s of picks refused); io's refusals naming the file by its path; a
+// glTF whose bones' names no map knows said by list and refused by import (E_RIG), each with the calls that take it by
+// its shape, and one whose names follow a map but lack its joints said and refused naming them (io's reason); the
+// license and credit a VRMA m3a wrote carries (a contradicting --license refused, a known id in another case too, its
+// credit kept), a composed clip's too (its ids joined with " AND ": refused under one of them, its fix quoted, running
+// as written; its ids compared as sets, case aside; a free-text license noted, not compared; no note on it,
+// license.check passing it part by part, and one part's missing text named by import and license.check alike); export's
+// file named by the clip and the character, a .bvh's license line; a second import into a set saying it replaced the
+// first's clips.
 import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { openLibrary } from "@m3a/library/node";
@@ -29,6 +30,7 @@ import { libraryAccess, MAX_OPEN, openCount } from "../src/node/library.ts";
 import { nodeHost } from "../src/node.ts";
 import { Registry, type Host, type Reply } from "../src/registry/index.ts";
 import { exportClip, importMotion } from "../src/tools/exchange.ts";
+import { character, variant } from "../../three/test-characters/generate.ts";
 import { COMPOSE, EXCHANGE, SHIP } from "../src/tools/index.ts";
 import { exampleCwd, hintedCalls, runExamples } from "./helpers/surfaces.ts";
 
@@ -254,6 +256,21 @@ describe("exchange", () => {
       }
     }));
 
+  it("exports onto a generated character, gen-<seed>, with no file (D119): each format read back, the .glb its own GLB with the clip added", () =>
+    inCwd(async (call, cwd) => {
+      const got: Reply[] = [];
+      for (const format of ["vrma", "glb", "bvh"]) got.push(await call("export", { clip: WALK, character: "gen-3", format }));
+      expect(got.map((r) => [r.status, (r.data as { file: string }).file, (r.data as { check: string }).check])).toEqual([
+        ["ok", `${OUT}-on-gen-3.vrma`, "reads back byte for byte"],
+        ...["glb", "bvh"].map((ext) => ["ok", `${OUT}-on-gen-3.${ext}`, expect.stringMatching(/^read back, its joints within 0\.0\d\d mm$/)]),
+      ]);
+      // the .glb is character(variant(3))'s document, built in memory as body.ts bound it: its nodes and mesh as
+      // generated, with the walk the one animation added
+      type Doc = { nodes: object[]; meshes: object[]; animations?: { name: string }[] };
+      const gen = glbJson(Buffer.from(character(variant(3)).glb)) as unknown as Doc, out = glbJson(readFileSync(join(cwd, `${OUT}-on-gen-3.glb`))) as unknown as Doc;
+      expect([out.nodes, out.meshes, gen.animations, out.animations?.length]).toEqual([gen.nodes, gen.meshes, undefined, 1]);
+    }));
+
   it("export refuses a clip that isn't there or is no JSON (on one line), a format it doesn't write, and a character with no humanoid", () =>
     inCwd(async (call, cwd) => {
       writeFileSync(join(cwd, "chain.gltf"), JSON.stringify({ asset: { version: "2.0" }, nodes: [0, 1, 2].map((i) => ({ name: `b${i}`, ...(i < 2 ? { children: [i + 1] } : {}) })) }));
@@ -340,10 +357,10 @@ describe("exchange", () => {
       const mix = { path: composed, set: "MIXED", license: "CC-BY-4.0" }, one = await call("import", mix);
       expect([mixed.license, refused(one)]).toEqual([both, ["usage", "E_ARGS", `the file says its animations are ${both} (each animation's extras.license); --license CC-BY-4.0 contradicts it: pass \`--license '${both}'\``]]);
       const [fix] = hintedCalls(one.error!.message, { tool: "import", args: mix }), taken = await call(fix!.tool!, fix!.args!);
-      // its note gives license.check's real reason: it reads a source's license as one id, so it fails the set (the
-      // library's to change), though each part's text is kept (not "...'s text isn't in library/LICENSES/")
-      const got = taken.data as { license: string; clips: { id: string }[]; notes: string[] }, oneId = "license.check reads a set's license as one id, so it fails this set (a library follow-up)";
-      expect([fix!.args!.license, taken.error, got.license, got.notes, openLibrary({ dir: join(cwd, "imports"), tiers: ["local"] }).clip(got.clips[0]!.id).clip.provenance]).toEqual([both, null, both, [oneId], expect.objectContaining({ license: both, credit: mixed.credit })]);
+      // no note: each part's text is kept, and license.check reads the set's license part by part, so it passes
+      const got = taken.data as { license: string; clips: { id: string }[]; notes: string[] };
+      expect([fix!.args!.license, taken.error, got.license, got.notes, openLibrary({ dir: join(cwd, "imports"), tiers: ["local"] }).clip(got.clips[0]!.id).clip.provenance]).toEqual([both, null, both, [], expect.objectContaining({ license: both, credit: mixed.credit })]);
+      expect((await call("license.check", { set: "MIXED", tiers: ["local"], ships: false })).data).toMatchObject({ ok: true, fails: 0 });
       // its ids compared as sets, case aside: the file's in another order and case taken as the call spells them (a fix
       // spelling them as the library does), and a composed --license in another case refused naming its spelling
       writeFileSync(join(cwd, "lower.vrma"), licensed(readFileSync(join(cwd, composed)), "licenseref-cmu-mocap AND cc-by-4.0"));
@@ -365,10 +382,11 @@ describe("exchange", () => {
       writeFileSync(join(cwd, "twice.gltf"), JSON.stringify(twice));
       const one2 = await call("import", { path: "twice.gltf", set: "TWICE", license: "CC0-1.0", catalog: JSON.stringify({ $skip: { Wave_Loop_2: "the CC-BY take" } }) });
       expect([one2.error, (one2.data as { clips: { id: string }[] }).clips.map((c) => c.id)]).toEqual([null, ["TWICE/A_TPose", "TWICE/Wave_Loop"]]);
-      // a composed license with a part whose text the library doesn't keep: that part named, and the one-id note
+      // a composed license with a part whose text the library doesn't keep: that part named, by import and license.check
       writeFileSync(join(cwd, "mine.vrma"), licensed(readFileSync(join(cwd, composed)), "LicenseRef-Mine AND CC-BY-4.0"));
       const mine = await call("import", { path: "mine.vrma", set: "MINE", license: "CC-BY-4.0 AND LicenseRef-Mine" });
-      expect([mine.error, (mine.data as { notes: string[] }).notes]).toEqual([null, ["LicenseRef-Mine's text isn't in library/LICENSES/: license.check fails the set", oneId]]);
+      expect([mine.error, (mine.data as { notes: string[] }).notes]).toEqual([null, ["LicenseRef-Mine's text isn't in library/LICENSES/: license.check fails the set"]]);
+      expect((await call("license.check", { set: "MINE", tiers: ["local"], ships: false })).data).toMatchObject({ ok: false, fails: 1, findings: [{ where: '"MINE sources.MINE"', message: "LicenseRef-Mine's text isn't kept in library/LICENSES/LicenseRef-Mine.txt" }] });
       // one clip on two characters: two files; a .bvh says it carries no license or credit
       const [onRig, onTiny] = [await call("export", { clip: WALK, character: RIG, format: "bvh" }), await call("export", { clip: WALK, character: "tiny", format: "bvh" })];
       const files = [onRig, onTiny].map((r) => (r.data as { file: string }).file);

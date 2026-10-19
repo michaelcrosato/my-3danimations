@@ -19,7 +19,7 @@ import { phaseMap } from "../src/ops/sync.ts";
 import type { Root, Track } from "../src/recipe/types.ts";
 
 const LIB = join(import.meta.dirname, "../../../library/sets"), ROOT = join(import.meta.dirname, "../../..");
-const IDS = ["STYLE100/Neutral_Walk", "STYLE100/BigSteps_Walk", "STYLE100_RUN/Neutral_Run", "MESH2MOTION/Idle_A", "MESH2MOTION/Punch_Jab", "MESH2MOTION/Punch_Cross", "CMU_CURATED/Walk_Loop", "CMU_CURATED/Curtsey", "MESH2MOTION/Crawl_RM", "CMU_CURATED/Duck_Under"];
+const IDS = ["STYLE100/Neutral_Walk", "STYLE100/BigSteps_Walk", "STYLE100_RUN/Neutral_Run", "MESH2MOTION/Idle_A", "MESH2MOTION/Punch_Jab", "MESH2MOTION/Punch_Cross", "CMU_CURATED/Walk_Loop", "CMU_CURATED/Curtsey", "MESH2MOTION/Crawl_RM", "CMU_CURATED/Duck_Under", "MESH2MOTION/Two-hand_Blast"];
 const cache = new Map<string, { clip: Clip; rest: Rest }>();
 function load(id: string): { clip: Clip; rest: Rest } {
   if (!cache.has(id)) {
@@ -94,6 +94,14 @@ describe("a recipe's check", () => {
     const bad = R.validateRecipe({ format: "2.0", id: "RECIPES/Bad", fps: 0, tags: ["Big Walk"], name: 3, colour: "red", steps: [7, { as: "s1", op: "clip", id: "MESH2MOTION/Idle_A", zzz: 1 }, { as: "s1", op: "retime", in: "s1", speed: 2, dur: 1 }, { op: "pose", in: "s1", yaw: "left", chest: { lean: "far", zzz: 1 } }, { op: "mirror", in: "s1", qqqqqq: 1 }] });
     expect(bad.length).toBeGreaterThan(9);
     expect(bad.filter((i) => !i.fix)).toEqual([]);
+  });
+  it("reads a clip whose slug has a hyphen, as the format allows (MOTION.md §11); the recipe's own id has none", () => {
+    const blast = recipe([{ op: "clip", id: "MESH2MOTION/Two-hand_Blast" }], { id: "RECIPES/Blast_Twice" });
+    expect(R.validateRecipe(blast)).toEqual([]);
+    expect(new Ajv2020({ strict: false }).compile(JSON.parse(readFileSync(join(ROOT, "spec/schemas/recipe.schema.json"), "utf8")) as object)(blast)).toBe(true);
+    const c = R.compile(blast, resolve);
+    expect([c.clip.id, c.clip.dur, validate(c.clip).errors]).toEqual(["RECIPES/Blast_Twice", load("MESH2MOTION/Two-hand_Blast").clip.dur, []]);
+    expect(R.validateRecipe({ ...blast, id: "RECIPES/Blast-Twice" }).map((i) => [i.code, i.field])).toEqual([["R-E001", "id"]]);
   });
   it("adds, compiling, a clip the library doesn't have and a time outside its track", () => {
     expect(() => R.compile(recipe([{ op: "clip", id: "STYLE100/Neutral_Wlak" }]), resolve)).toThrow(/R-E008 step 1 id: no clip STYLE100\/Neutral_Wlak in the library\n {2}fix: did you mean STYLE100\/Neutral_Walk\?/);

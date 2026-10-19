@@ -81,8 +81,9 @@
           ]
         },
         "intake": {
-          "description": "a contributed clip's record from the intake queue (spec/MOTION.md §7.4); the intake requires by of every submission",
+          "description": "a contributed clip's record from the intake queue (spec/MOTION.md §7.4): by, who or what made it, required; each other field when given",
           "type": "object",
+          "required": ["by"],
           "properties": {
             "by": {"type": "string", "pattern": "\\S"},
             "prompt": {"type": "string", "pattern": "^[0-9a-f]{64}$"},

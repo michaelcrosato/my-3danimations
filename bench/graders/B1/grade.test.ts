@@ -8,7 +8,7 @@
 // ball, and the jog's swinging toe, curled straight down as the clip's is, rides the floor (both feet off it in 0% of
 // running frames; 10% needed); a toe read shorter passes, its boots' fronts 124 mm under the floor walking. The planted
 // solutions are the known-good one edited: never running, skating (moving at the asked speed with walk and run at
-// their own rate), a bone gone NaN, no sheet.
+// their own rate), a bone gone NaN, no sheet; T1 grades the first, T2's full step all of them (D119).
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -87,7 +87,8 @@ describe("B1's grader", () => {
       expect(g.pass, text(g)).toBe(true);
     }, 180_000);
     it(`fails each planted bad solution on ${who(character)}, naming the check it broke`, async () => {
-      for (const [name, bad] of Object.entries(BAD)) {
+      // T1 grades the first planted one; T2 (M3A_FULL=1) all of them (D74, D119: T1's margin)
+      for (const [name, bad] of Object.entries(BAD).filter((_, i) => FULL || i === 0)) {
         const g = await grade(name, bad.files, character);
         expect(g.pass, `${name}\n${text(g)}`).toBe(false);
         expect(g.checks.filter((c) => !c.ok).some((c) => c.name.startsWith(bad.fails)), `${name}\n${text(g)}`).toBe(true);

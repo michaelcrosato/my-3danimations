@@ -8,16 +8,17 @@
 // joined with " AND " (D10). The license and credit a glTF-family file carries (each animation's extras, the asset's
 // copyright) are used: a --license whose ids aren't the file's is refused, its fix the flag that takes them (ids
 // compared as sets, case aside), and so is a known license id in another case; a note names each id whose text the
-// library doesn't keep, and says license.check reads a composed license as one id (a library follow-up). It writes and
-// removes what the user keeps, so MCP lists it as no read-only tool; it removes only a clip an import wrote, naming it
-// (and saying so in its verdict), and refuses a set whose directory holds any other .json. The manifest names the file by its own name (never
+// library doesn't keep (license.check checks a composed license part by part). It writes and removes what the user
+// keeps, so MCP lists it as no read-only tool; it removes only a clip an import wrote, naming it (and saying so in its
+// verdict), and refuses a set whose directory holds any other .json. The manifest names the file by its own name (never
 // a path); replies name it as clips.ts does. `export` plays a clip on a character (bound through core) and writes it as
-// .vrma, .glb (the character's own document with the animation added) or .bvh under check-output/export/, named by the
-// clip and the character, read back through io: the VRMA byte for byte, the others joint for joint (within 1 mm, else
-// findings, as is a file that couldn't be read back); with the clip's license and the credit it owes (any license but
-// CC0's owes one), which a .bvh can't carry.
+// .vrma, .glb (the character's own document, as body.ts read it to bind it, with the animation added: a file's, or a
+// generated character's GLB for gen-<seed>, D119) or .bvh under check-output/export/, named by the clip and the
+// character, read back through io: the VRMA byte for byte, the others joint for joint (within 1 mm, else findings, as
+// is a file that couldn't be read back); with the clip's license and the credit it owes (any license but CC0's owes
+// one), which a .bvh can't carry.
 import { format, playable, validate, validation, VERSION, type Clip } from "@m3a/core";
-import { addAnimation, bvhGap, decodeVrma, describeGltf, encodeVrma, glbGap, gltfAnimOf, importSet, IoError, parseBvh, parseGlb, parseGltf, picksOf, posedOf, readBvh, readGltf, readGltfPosed, readVrma, rigBvh, skeletonDoc, skeletonOfGltf, writeBvh, writeVrma, type Catalog, type GltfDoc, type LibraryIn } from "@m3a/io";
+import { addAnimation, bvhGap, decodeVrma, describeGltf, encodeVrma, glbGap, gltfAnimOf, importSet, IoError, parseBvh, parseGlb, parseGltf, picksOf, posedOf, readBvh, readGltf, readGltfPosed, readVrma, rigBvh, skeletonDoc, writeBvh, writeVrma, type Catalog, type GltfDoc, type LibraryIn } from "@m3a/io";
 import { setFiles, tierOf, withFacts } from "@m3a/library";
 import { defineTool, ToolError, type LibraryAccess, type ToolContext } from "../registry/registry.ts";
 import { quote } from "../registry/schema.ts";
@@ -333,10 +334,9 @@ export const importMotion = defineTool<{ path: string; set: string; license?: st
     const rows = made.map((c) => ({ id: c.id, dur: c.dur, loop: c.loop, keys: c.keys.length, fit: c.quality.fit, over: c.quality.fit[0]! > LIMITS.mean || c.quality.fit[1]! > LIMITS.worst }));
     const worst = rows.reduce((w, r) => (r.fit[1]! > w.fit[1]! ? r : w)), mean = round(rows.reduce((s, r) => s + r.fit[0]!, 0) / rows.length, 1), over = rows.filter((r) => r.over).length;
     // the reader's and the fit's notes first, with the license ids whose text the library doesn't keep (license.check
-    // needs each), and a composed license's: @m3a/library's checkSets reads a source's license as one id (and its text as
-    // one file), so it fails such a set whatever its parts (a library follow-up, D96)
-    const each = parts(license), unkept = each.filter((id) => lib.licenseText(id) === null), free = unread.map((l) => `the file's extras.license ${quote(l)} is no SPDX id: its clips carry ${license}`);
-    const why = [...unkept.map((id) => `${id}'s text isn't in library/LICENSES/: license.check fails the set`), ...(each.length > 1 ? ["license.check reads a set's license as one id, so it fails this set (a library follow-up)"] : [])];
+    // needs each, a composed license's part by part)
+    const unkept = parts(license).filter((id) => lib.licenseText(id) === null), free = unread.map((l) => `the file's extras.license ${quote(l)} is no SPDX id: its clips carry ${license}`);
+    const why = unkept.map((id) => `${id}'s text isn't in library/LICENSES/: license.check fails the set`);
     const noted = capped([...why, ...free, ...out.report.warnings, ...log].map((w) => cut(w)), 5);
     const shown = capped(rows, 50), findings = bad || over > 0 || long.size > 0;
     return {
@@ -372,8 +372,8 @@ function readBack(gap: () => number): { mm: number | null; check: string } {
 }
 
 /** `export`: a clip played on a character, written as .vrma, .glb or .bvh under check-output/export/ and read back,
- *  named `<clip id>-on-<character>` (the clip's id as sheet names its image; the character "tiny" or its file's own name
- *  without its extension), so one clip exported onto two characters makes two files. */
+ *  named `<clip id>-on-<character>` (the clip's id as sheet names its image; the character "tiny", gen-<seed> or its
+ *  file's own name without its extension), so one clip exported onto two characters makes two files. */
 export const exportClip = defineTool<{ clip: string; character: string; format: "vrma" | "glb" | "bvh"; mapping?: MappingPatch }, unknown>({
   name: "export",
   description: "Play a clip on a character and write it as .vrma, .glb or .bvh in check-output/export/, read back to check it.",
@@ -382,7 +382,7 @@ export const exportClip = defineTool<{ clip: string; character: string; format: 
   positionals: ["clip"],
   examples: [{ args: { clip: "QUATERNIUS_3D2DGE/Walk_Loop", character: "spec/vectors/tier1b/rig.gltf" } }],
   async run(a, ctx) {
-    const ref = await loadClip(ctx, a.clip), { as, title } = naming(ref), who = characterName(a.character), { bound: b, report } = await bodyOf(ctx, a.character, a.mapping);
+    const ref = await loadClip(ctx, a.clip), { as, title } = naming(ref), who = characterName(a.character), { bound: b, report, file: own } = await bodyOf(ctx, a.character, a.mapping);
     const clip = playable(ref.clip, ref.rest), fps = 30, frames = Math.max(1, Math.ceil(clip.dur * fps)) + 1;
     boundHolds(clip, title); // no foot held past MAX_HOLD, nor feet's holds reread past MAX_REREAD, before it plays
     let bytes: Uint8Array, back: { mm: number | null; check: string };
@@ -390,11 +390,9 @@ export const exportClip = defineTool<{ clip: string; character: string; format: 
       const v = io(() => writeVrma(clip, b, { fps })), again = io(() => encodeVrma(decodeVrma(v)));
       [bytes, back] = [v, { mm: null, check: again.length === v.length && again.every((x, i) => x === v[i]) ? "reads back byte for byte" : "reads back changed" }];
     } else if (a.format === "glb") {
-      // the character's own document, each bone's node by its name (skeletonOfGltf's, as body.ts bound it)
-      const { doc, nodes } = a.character === "tiny" ? skeletonDoc(b) : await (async () => {
-        const { doc } = await docAt(ctx, a.character, prose(who)), g = io(() => skeletonOfGltf(doc));
-        return { doc, nodes: Object.fromEntries(g.skeleton.bones.map((x, k) => [x.name, g.nodes[k]!])) };
-      })();
+      // the character's own document as body.ts read and bound it (its file's, or a generated character's GLB), each
+      // bone's node by its name; the tiny rig, which has none, a document of its skeleton
+      const { doc, nodes } = own ? { doc: own.doc, nodes: Object.fromEntries(own.g.skeleton.bones.map((x, k) => [x.name, own.g.nodes[k]!])) } : skeletonDoc(b);
       const glb = io(() => addAnimation(doc, gltfAnimOf(clip, b, doc, nodes, { fps })));
       [bytes, back] = [glb, readBack(() => glbGap(glb, clip, b, nodes, { fps }))];
     } else {

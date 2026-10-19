@@ -11,7 +11,8 @@
 // the end bone D49 gives a foot with no child, as three's bind reads it (skinned by the joints alone: the skinned mesh
 // node's own transform is ignored, as glTF says and as three's bind matrix cancels it), or why it read none. Lengths
 // use core's portable hypot (V8's bits in every engine). Untrusted input: hierarchy() refuses cycles, missing children
-// and too many nodes; every accessor read is checked against the buffer.
+// and too many nodes; a bone whose rest head the node transforms overflow is refused; every accessor read is checked
+// against the buffer.
 import { math, type SkeletonIn } from "@m3a/core";
 import { IoError } from "../bytes.ts";
 import type { GltfDoc, GltfJson, GltfNode } from "./container.ts";
@@ -51,7 +52,8 @@ const biggest = (skins: GltfJson["skins"], ok: (k: number) => boolean): number[]
 
 /** A glTF document's skeleton: the joints (those that deform, and above) of the biggest skin a mesh node uses (as three's
  *  bind takes the skinned mesh with the most bones), else of the biggest skin, or every node without a skin. Fails with
- *  E_RIG when it has no bones, E_FORMAT when a skin names a node that isn't there. */
+ *  E_RIG when it has no bones or a bone's rest head isn't finite (the node transforms down to it overflow), E_FORMAT
+ *  when a skin names a node that isn't there. */
 export function skeletonOfGltf(doc: GltfDoc): GltfSkeleton {
   const file = doc.bin?.file, nodes = doc.json.nodes ?? [], { parent, order } = hierarchy(nodes, file);
   const skinning = new Set(nodes.flatMap((n) => (n.mesh !== undefined && n.skin !== undefined ? [n.skin] : [])));
@@ -78,6 +80,9 @@ export function skeletonOfGltf(doc: GltfDoc): GltfSkeleton {
     restWorld[name.get(i)!] = [q[0]! / l, q[1]! / l, q[2]! / l, q[3]! / l];
     return { name: name.get(i)!, parent: above(i), head: [w.t[0]!, w.t[1]!, w.t[2]!] as [number, number, number] };
   });
+  // each node's own transform is finite (container.ts checks), but their product down the hierarchy can overflow
+  const bad = bones.find((b) => !b.head.every(Number.isFinite));
+  if (bad) throw new IoError("E_RIG", `bone ${bad.name}'s rest head isn't finite: the node transforms down to it overflow`, { file });
   return { skeleton: { bones, up: [0, 1, 0] }, restWorld, nodes: picked, unread };
 }
 

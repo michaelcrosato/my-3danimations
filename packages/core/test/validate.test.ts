@@ -83,8 +83,15 @@ describe("validate: clips", () => {
 });
 
 describe("validate: provenance's two records (intake, source)", () => {
-  it("passes both in full, and a partial intake record, in read and lint mode", () => {
-    for (const c of [withRecords(), withRecords((r) => ((r.intake = {}), delete r.source.stated))]) for (const mode of ["read", "lint"] as const) expect(validate(c, { mode })).toEqual({ ok: true, errors: [], warnings: [] });
+  it("passes both in full, and a partial intake record (who made it alone), in read and lint mode", () => {
+    for (const c of [withRecords(), withRecords((r) => ((r.intake = { by: "a person" }), delete r.source.stated))]) for (const mode of ["read", "lint"] as const) expect(validate(c, { mode })).toEqual({ ok: true, errors: [], warnings: [] });
+  });
+  it("M2-E003: an intake record without who made it (provenance.intake.by, required since D119)", () => {
+    for (const mode of ["read", "lint"] as const) {
+      const r = validate(withRecords((x) => (x.intake = {})), { mode });
+      expect([r.ok, r.errors.map((i) => `${i.code} ${i.field}`)]).toEqual([false, ["M2-E003 provenance.intake.by"]]);
+    }
+    expect(formatIssue(validate(withRecords((x) => (x.intake = {}))).errors[0]!)).toMatch(/provenance\.intake\.by is missing: give who or what made it/);
   });
   for (const [code, field, f] of BAD_RECORDS) {
     it(`refuses an unknown shape: ${code} at ${field}`, () => {

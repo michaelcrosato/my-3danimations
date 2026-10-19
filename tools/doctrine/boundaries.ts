@@ -1,7 +1,9 @@
 // Doctrine check, principles 6 and 8: the import boundaries of PLAN.md §5.1.
 // - @m3a/core imports nothing outside its own src/: no packages, no `node:`, no relative path out.
 // - Other packages: Node built-ins only in their `/node` entry (src/node.ts or src/node/), only the packages in
-//   ALLOWED, never another package's internals; @supabase/supabase-js only in @m3a/tools' src/intake/.
+//   ALLOWED, never another package's internals; @supabase/supabase-js only in @m3a/tools' src/intake/. @m3a/tools
+//   reaches @m3a/three only through its three-free test-character generator, `@m3a/three/test-characters/generate`
+//   (gen-<seed>, D119), so the tools and m3a.js stay free of three.
 // - Apps and the benchmark reach packages only through their public entries: `@m3a/<name>` and the subpaths its
 //   exports map declares (`/node`, `/capture`); labs (apps/lab/) may reach past, and are listed instead of failed.
 //   Nothing imports from apps/ but a lab's own e2e test, its lab.
@@ -21,7 +23,7 @@ export const ALLOWED: Record<string, RegExp[]> = {
   io: [/^@m3a\/core$/],
   library: [/^@m3a\/core$/],
   three: [/^@m3a\/core$/, /^three(\/.*)?$/, /^@pixiv\/three-vrm(-animation)?$/],
-  tools: [/^@m3a\/(core|sensors|io|library|three)(\/node)?$/, /^@supabase\/supabase-js$/],
+  tools: [/^@m3a\/(core|sensors|io|library)(\/node)?$/, /^@m3a\/three\/test-characters\/generate$/, /^@supabase\/supabase-js$/],
 };
 
 /** The entries a package's exports map declares ("." and its subpaths), none when it has no package.json. */

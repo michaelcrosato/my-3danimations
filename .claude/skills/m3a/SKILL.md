@@ -6,13 +6,12 @@ description: "Use m3a's own tools from inside this repository, before reading th
 # m3a in this repository
 
 The package's manual is `packages/tools/MANUAL.md`: the mental model, one worked example and the API by job (find, fit,
-wire, make, check, ship). Read it before the packages' source, as an agent with the installed package does. A clip's
+wire, make, check, ship, grow). Read it before the packages' source, as an agent with the installed package does. A clip's
 format is `spec/MOTION.md`, read with `spec/LEGEND.md`; each set's catalog is `library/sets/<SET>/catalog.tsv`, one
 clip a row.
 
-Here the tools run from source: `node packages/tools/src/node.ts` is the `m3a` command, as `.mcp.json` runs it. Not
-`npx m3a`: the workspace links no `m3a` bin (the package's is built when packed), so npx would fetch whatever npm
-holds under that name. The five that matter most, each a registry example:
+Here the tools run from source: `node packages/tools/src/node.ts` is the `m3a` command, as `.mcp.json` runs it (the `m3a`
+bin `npm ci` links here runs the same file, D101). The five that matter most, each a registry example:
 
 | Job | Command |
 |---|---|
@@ -26,5 +25,5 @@ Check's example replies FAIL on purpose (the registry's example shows findings):
 baseline. On the command line a reply starts with its verdict, fits in 20 lines (`--verbose` gives the rest) and ends
 with a `next:` hint; `--json` also writes a report.json. `node packages/tools/src/node.ts help` lists every tool,
 `node packages/tools/src/node.ts help <tool>` gives its flags and examples. `.mcp.json` serves the same tools over MCP
-(`node packages/tools/src/node.ts mcp`). The skill an installed package will ship is `skills/m3a/SKILL.md`, and
-`llms.txt` indexes the docs.
+(`node packages/tools/src/node.ts mcp`). The skill for a project that installs the package is `skills/m3a/SKILL.md`
+(agentskills.io's layout; `@m3a/tools` ships it, D119), and `llms.txt` indexes the docs.

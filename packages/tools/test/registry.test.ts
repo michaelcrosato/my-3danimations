@@ -1,8 +1,9 @@
 // The tool registry (WP-7.1): definitions refused with their fix, arguments checked with "did you mean" (own names
-// only), defaults filled, edits' request_id (a retry applies once, even when its data then fails the checks; the same id
-// with other arguments is refused) and if_revision, nested objects closed, output schemas enforced, failures as replies,
-// the one-line verdict and 20-line text (many images folded), and the CLI's parsing, help (the index uncut, every
-// example, though a schema carries only the first), exit codes and --request-id refusal.
+// only), defaults filled, edits' request_id (a retry applies once, even when its data then fails the checks; the same
+// id with other arguments is refused) and if_revision, nested objects closed, a value off every form of an anyOf told
+// what is wrong within the one form of its type, output schemas enforced, failures as replies, the one-line verdict and
+// 20-line text (many images folded), and the CLI's parsing, help (the index uncut, every example, though a schema
+// carries only the first), exit codes and --request-id refusal.
 import { describe, expect, it } from "vitest";
 import { commandLine, parseCall, runCli } from "../src/cli.ts";
 import { CONSOLE_KEY, defineTool, EXIT, imageTokens, installConsole, memoryStore, Registry, render, reply, ToolError } from "../src/registry/index.ts";
@@ -100,10 +101,12 @@ describe("Registry.call", () => {
     const err = async (args: object) => (await reg.call("demo.opts", args)).error?.message;
     expect(await err({ opts: { fsp: 30 } })).toBe('unknown field in opts "fsp"; did you mean "fps"? (takes fps)');
     expect(await err({ keys: [{ t: 1 }, { tt: 1 }] })).toBe('unknown field in keys[1] "tt"; did you mean "t"? (takes t)');
-    expect([await err({ pick: { fsp: 1 } }), await err({ pick: { fps: 1 } })]).toEqual(["pick matches none of its 2 forms", undefined]);
+    // a value off every form: told what is wrong within the one form of its JSON type (a number's, an integer form: 1.5
+    // below), else that it matches none
+    expect([await err({ pick: { fsp: 1 } }), await err({ pick: { fps: 1 } }), await err({ pick: 1 })]).toEqual(['unknown field in pick "fsp"; did you mean "fps"? (takes fps)', undefined, "pick matches none of its 2 forms"]);
     expect(await err({ opts: { fps: 121 } })).toBe("opts.fps is 121, above its maximum 120");
     expect(await err({ open: { fsp: 1 }, n: null })).toBeUndefined();
-    expect(await err({ n: "1" })).toBe("n matches none of its 2 forms");
+    expect([await err({ n: "1" }), await err({ n: 1.5 })]).toEqual(["n matches none of its 2 forms", "n should be an integer, not number"]);
   });
 
   it("fills defaults, so a call without one is the call with it, also for a retried request_id", async () => {

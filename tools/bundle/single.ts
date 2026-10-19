@@ -4,9 +4,10 @@
 // library that tools/bundle/manifest.json lists (a game manifest: tiers ["cc0"] and its clips), opened by `openLibrary`
 // as @m3a/library/node's is (./runtime.ts), and a `host` for the tools. It carries the code's license (MIT), the
 // credits block and the license texts of every tier it includes, in its opening comment and as CREDITS and LICENSES.
-// three.js and @m3a/three are left out: the file is for agents that can't install packages, who can't install three
-// either; what they can use is headless (find, make, check, export, the tools), and bundling three would triple the
-// file and put a second copy of three beside a game's own, whose objects fail the other copy's instanceof checks.
+// three.js and @m3a/three's API are left out (only its three-free test-character generator is inside, for gen-<seed>,
+// D119): the file is for agents that can't install packages, who can't install three either; what they can use is
+// headless (find, make, check, export, the tools), and bundling three would triple the file and put a second copy of
+// three beside a game's own, whose objects fail the other copy's instanceof checks.
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { build as vite } from "vite";
@@ -83,7 +84,8 @@ function banner(version: string, data: BundleData): string {
   const texts = [["License of the code: MIT", readFileSync(join(ROOT, "LICENSE"), "utf8")], ...Object.entries(data.licenses).sort().map(([id, t]) => [`License of the clips: ${id} (also export LICENSES)`, t])];
   const text = [
     `/*! m3a.js ${version}: @m3a/core, sensors, io, library and tools' API in one ES module, with ${clips} CC0 clips of the m3a library`,
-    `(tools/bundle/manifest.json). Runs in Node and in a browser; three.js and @m3a/three are left out. import { openLibrary, Animator, metrics, tools, host } from "./m3a.js";`,
+    "(tools/bundle/manifest.json). Runs in Node and in a browser; three.js and @m3a/three's API are left out (only its three-free",
+    `test-character generator is inside, for gen-<seed>). import { openLibrary, Animator, metrics, tools, host } from "./m3a.js";`,
     "openLibrary() opens the clips carried here; tools.call(name, args, { host }) runs a tool on them. The manual is @m3a/tools' MANUAL.md.",
     "",
     "Credits (also export CREDITS):",

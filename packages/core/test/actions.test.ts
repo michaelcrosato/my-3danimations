@@ -99,6 +99,9 @@ describe("the library's actions", () => {
     const own = climb.resolve("PROCEDURAL/Walk")!.clip.keys.map((k) => k.hips![2]!), mean = own.reduce((x, y) => x + y, 0) / own.length;
     expect([Math.abs(last[2]! - (mean + A.actionRootAt(climb, cut.t).up)) < 4, A.actionRootAt(climb, cut.t).up > 100]).toEqual([true, true]);
     expect(codes(() => A.interruptInto(climb, climb.action.interrupts[0]!, "NOWHERE/Nothing"))).toEqual(["R-E008"]);
+    // a clip whose slug keeps "-" (MOTION.md §11) is a target too; the cut's own recipe id takes "_" for it (D118)
+    const blast = A.interruptInto(climb, cut, "MESH2MOTION/Two-hand_Blast", { play: 1 });
+    expect([validate(blast.clip).errors, blast.clip.id]).toEqual([[], "ACTIONS/Climb_Up_To_Two_hand_Blast"]);
     // played for 0.6 s, the target is cut there: the result ends that long after the crossfade begins (past its length,
     // all of it plays)
     const short = A.interruptInto(climb, cut, "PROCEDURAL/Walk", { play: 0.6 }), long = A.interruptInto(climb, cut, "PROCEDURAL/Walk", { play: 5 }), fade = Math.min(0.3, cut.t / 2);
@@ -184,6 +187,15 @@ describe("an action's checks", () => {
       expect(issues.every((i) => i.message.length > 0)).toBe(true);
     }
     expect(Object.keys(A.ACTION_RULES)).toEqual(["A-E001", "A-E002", "A-E003", "A-E004", "A-E005", "A-E006", "A-E007"]);
+  });
+  it("may name a clip whose slug has a hyphen to go on into, as the format allows (MOTION.md §11), the schema agreeing", () => {
+    const ajv = new Ajv2020({ strict: false });
+    ajv.addSchema(JSON.parse(readFileSync(join(ROOT, "spec/schemas/recipe.schema.json"), "utf8")) as object);
+    const schema = ajv.compile(JSON.parse(readFileSync(join(ROOT, "spec/schemas/action.schema.json"), "utf8")) as object);
+    const blast = edit((a) => (a.interrupts[0]!.to = ["MESH2MOTION/Two-hand_Blast"]));
+    expect([A.validateAction(blast), schema(blast)]).toEqual([[], true]);
+    // a paired action's own id is SET/Slug as a recipe's, without one
+    expect(A.validatePaired({ ...PAIRED[0]!, id: "ACTIONS/Jab-And_Flinch" }).map((i) => [i.code, i.field])).toEqual([["A-E001", "id"]]);
   });
   it("find on compiling a beat past the end and feet off the ground the floor gives", () => {
     expect(codes(() => A.compileAction(edit((a) => (a.beats[1]!.to = 5)), resolve))).toEqual(["A-E005"]);

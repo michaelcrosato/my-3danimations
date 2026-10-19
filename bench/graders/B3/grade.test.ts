@@ -1,10 +1,11 @@
-// B3's grader (WP-6.6's Done-when): it passes the known-good reactor and fails each planted bad one, naming the check it
-// broke, on the default character (gen-1, of WP-4.2's set) and on generator seeds outside it (gen-37; gen-29, a spine
-// without chest bones). The planted reactors are the known-good one edited: the light hit on the whole body, a heavy
-// hit that gets up at once, one that never gets up, the idle slid along for the walk, a light hit that does nothing,
-// a knockdown flung, the idle slid along after getting up, the body sliding as it lies, and the walk skating at half
-// its rate. On a rigify character (gen-7: DEF- bones, none named hips or pelvis) the known-good passes too, and the
-// starter's check finds the hips with bind() and prints their height (by name it printed NaN, D91).
+// B3's grader (WP-6.6's Done-when): it passes the known-good reactor and fails each planted bad one, naming the check
+// it broke, on the default character (gen-1, of WP-4.2's set) and on generator seeds outside it (gen-37; gen-29, a
+// spine without chest bones); T1 grades the first planted one, T2's full step (M3A_FULL=1, D74, D119) all of them. The
+// planted reactors are the known-good one edited: the light hit on the whole body, a heavy hit that gets up at once,
+// one that never gets up, the idle slid along for the walk, a light hit that does nothing, a knockdown flung, the idle
+// slid along after getting up, the body sliding as it lies, and the walk skating at half its rate. On a rigify
+// character (gen-7: DEF- bones, none named hips or pelvis) the known-good passes too, and the starter's check finds the
+// hips with bind() and prints their height (by name it printed NaN, D91).
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -14,7 +15,7 @@ import type { Grade } from "../B1/grade.ts";
 import { cacheChildren } from "../../../tools/run/compile-cache.ts";
 import { gradeB3 } from "./grade.ts";
 
-const ROOT = join(import.meta.dirname, "../../.."), good = readFileSync(join(import.meta.dirname, "known-good/src/reactor.ts"), "utf8");
+const ROOT = join(import.meta.dirname, "../../.."), good = readFileSync(join(import.meta.dirname, "known-good/src/reactor.ts"), "utf8"), FULL = process.env.M3A_FULL === "1";
 /** The known-good reactor with one edit, which must take. */
 const planted = (from: string, to: string) => {
   if (!good.includes(from)) throw new Error(`the planted edit's text isn't in the known-good reactor: ${from}`);
@@ -49,20 +50,21 @@ const text = (g: Grade) => g.checks.map((c) => `${c.ok ? "ok  " : "FAIL"} ${c.na
 
 describe("B3's grader", () => {
   // T1 grades on gen-1; T2 (M3A_FULL=1) on gen-37 and gen-29 (no chest bones: its spine one bone) too (D74)
-  for (const character of (process.env.M3A_FULL === "1" ? [{ seed: 1 }, { seed: 37 }, { seed: 29 }] : [{ seed: 1 }]) as CharacterSpec[]) {
+  for (const character of (FULL ? [{ seed: 1 }, { seed: 37 }, { seed: 29 }] : [{ seed: 1 }]) as CharacterSpec[]) {
     const who = "seed" in character ? `gen-${character.seed}` : character.rig;
     it(`passes the known-good reactor on ${who}, and fails each planted bad one, naming the check it broke`, async () => {
       const g = await grade("good", good, character);
       expect(g.pass, text(g)).toBe(true);
-      // T1 grades every other planted one; T2 (M3A_FULL=1) all of them (D74)
-      for (const [name, bad] of Object.entries(BAD).filter((_, i) => process.env.M3A_FULL === "1" || i % 2 === 0)) {
+      // T1 grades the first planted one; T2 (M3A_FULL=1) all of them (D74, D119: T1's margin)
+      for (const [name, bad] of Object.entries(BAD).filter((_, i) => FULL || i === 0)) {
         const b = await grade(name, bad.reactor, character);
         expect(b.pass, `${name}\n${text(b)}`).toBe(false);
         expect(b.checks.filter((c) => !c.ok).some((c) => c.name.startsWith(bad.fails)), `${name}\n${text(b)}`).toBe(true);
       }
     }, 300_000);
   }
-  it("passes the known-good reactor on a rigify character (gen-7), whose hips the starter's check finds as the grader does", async () => {
+  // T2's full step (M3A_FULL=1, D119: T1's margin)
+  it.runIf(FULL)("passes the known-good reactor on a rigify character (gen-7), whose hips the starter's check finds as the grader does", async () => {
     const g = await grade("good", good, { seed: 7 });
     expect(g.pass, text(g)).toBe(true);
     // the starter's `npm run check` in that workspace: the hips' height every half second, standing, down after the

@@ -1,16 +1,16 @@
 // `m3a library submit | status` (PLAN.md §5.9, WP-9.1a): the intake queue's door for contributors, and the gates every
 // submission passes, here so the tool, the checker (tools/intake/check.ts) and the library's pull-request gates
 // (tools/intake/gates.ts) read a clip one way. `submit` reads a clip or a recipe (a file or its JSON), adds the
-// intake's provenance (`provenance.intake`: who or what made it, the prompt's SHA-256, a generator's training-data
-// manifest, the clip it improves with its file's SHA-256, and the local report), runs the gates that need no rig or
-// store here, and sends what passes to the queue as the store's contributor (the local store's identity, or a
-// contributor key for the hosted one), at most PER_DAY a day; `status` lists the contributor's submissions with their
-// states and bounce reasons. The gates: schema, budgets, provenance, license (CC0, or the tier of the clip it derives
-// from with its license and credit kept; a motion source's terms on the allowlist), text (no instruction aimed at
-// agents: models read catalog lines; a field that holds no prose held to its shape), lint and sensors; the checker adds
-// dedup and the retarget onto the reference rigs. Platform-neutral: the store comes from the surface (`libraryTool`'s
-// opener). Submission text is data, never instructions: a refusal quotes none of it, and a bounce's reason stays
-// within REASON_CHARS.
+// intake's provenance (`provenance.intake`: who or what made it, which a clip is refused without, D119; the prompt's
+// SHA-256, a generator's training-data manifest, the clip it improves with its file's SHA-256, and the local report),
+// runs the gates that need no rig or store here, and sends what passes to the queue as the store's contributor (the
+// local store's identity, or a contributor key for the hosted one), at most PER_DAY a day; `status` lists the
+// contributor's submissions with their states and bounce reasons. The gates: schema, budgets, provenance, license (CC0,
+// or the tier of the clip it derives from with its license and credit kept; a motion source's terms on the allowlist),
+// text (no instruction aimed at agents: models read catalog lines; a field that holds no prose held to its shape), lint
+// and sensors; the checker adds dedup and the retarget onto the reference rigs. Platform-neutral: the store comes from
+// the surface (`libraryTool`'s opener). Submission text is data, never instructions: a refusal quotes none of it, and a
+// bounce's reason stays within REASON_CHARS.
 import { format, recipe as recipes, serialize, validate, validation, type Clip, type Rest } from "@m3a/core";
 import { capturedSpeed, catalogRow, LibraryError, measureClipFacts, ROW_BUDGET, tagConflicts, tierOf, type Library, type Tier, type Tokens } from "@m3a/library";
 import { checks, describe, metrics } from "@m3a/sensors";
@@ -175,6 +175,11 @@ function strings(v: unknown, path: string, out: [string, string][] = []): [strin
   return out;
 }
 
+/** A field holding characters a reader can't see, named by its path. */
+const hidden = (path: string) => `${path} holds characters a reader can't see (zero-width, bidirectional or control characters): write it in plain text`;
+/** What in one field's words is aimed at a model or an agent, named by its path. */
+const aimed = (path: string, s: string) => AIMED.filter(([re, , not]) => !not?.includes(path) && re.test(s)).map(([, what]) => `${path} ${what}, which models read in catalog lines: describe only the motion`);
+
 /** What in a clip's text reads as aimed at a model or an agent, or hides what it says: each field's problem, named by
  *  its path and never quoted (submission text is data). A field that holds no prose (KINDS) is held to its shape;
  *  every other is prose, taken only where PLAIN says, and read for words aimed at a reader. Empty for a clip whose
@@ -182,7 +187,7 @@ function strings(v: unknown, path: string, out: [string, string][] = []): [strin
 export function textProblems(clip: Clip): string[] {
   const out: string[] = [];
   for (const [path, s] of strings(clip, "")) {
-    if (HIDDEN.test(s)) out.push(`${path} holds characters a reader can't see (zero-width, bidirectional or control characters): write it in plain text`);
+    if (HIDDEN.test(s)) out.push(hidden(path));
     if (OWNER.has(path)) continue;
     const kind = kindOf(path);
     if (kind) {
@@ -192,9 +197,16 @@ export function textProblems(clip: Clip): string[] {
     const max = PLAIN[path];
     if (max === undefined) out.push(`${path} is text the intake doesn't take: describe the motion in desc, and leave other fields out`);
     else if (s.length > max) out.push(`${path} is ${s.length} characters, past the ${max} it may take: say what the body does in a few plain words`);
-    for (const [re, what, not] of AIMED) if (!not?.includes(path) && re.test(s)) out.push(`${path} ${what}, which models read in catalog lines: describe only the motion`);
+    out.push(...aimed(path, s));
   }
   return [...new Set(out)];
+}
+
+/** The same reading of one string outside a clip (a catalog row's column, say): what in it reads as aimed at a model
+ *  or an agent, or hides what it says, named by `path` and never quoted. Empty for words that only describe a
+ *  motion. */
+export function proseProblems(path: string, s: string): string[] {
+  return [...new Set([...(HIDDEN.test(s) ? [hidden(path)] : []), ...aimed(path, s)])];
 }
 
 /** The library clips a clip derives from (the clip it improves, its orig, a recipe's inputs), each with its tier and
@@ -234,10 +246,11 @@ export function licenseRule(clip: Clip, derived: readonly Derived[]): { tier: "c
 
 /** The source-terms rule (§5.9, O5, WP-9.2): a clip that records the motion source that made it (provenance.source)
  *  enters the queue only when `allowlisted` (packages/tools/src/sources/deliver.ts) admits it: the source's terms on
- *  the allowlist, and the claim one they allow. Null for a clip with no source record, or one it admits. */
+ *  the allowlist, the terms it served the clip under the ones it states (D119), and the claim one they allow. Null for
+ *  a clip with no source record, or one it admits. */
 export function sourceProblem(clip: Clip): string | null {
   if ((clip.provenance as { source?: unknown }).source === undefined || allowlisted(clip).ok) return null;
-  return "provenance.source records a motion source whose terms aren't on the allowlist (CC0-1.0, or a library clip's tier kept by what derives from it), a license claim its terms don't allow, or no whole record: such a source's clips stay in library/local/ (O5), and sources.allowlisted says why";
+  return "provenance.source records a motion source whose terms aren't on the allowlist (CC0-1.0, or a library clip's tier kept by what derives from it), terms it served that differ from those it states, a license claim its terms don't allow, or no whole record: such a source's clips stay in library/local/ (O5), and sources.allowlisted says why";
 }
 
 /** The provenance a submission must give (§5.9, DOCTRINE principle 10): a method whose IPTC type it names; the tool and
@@ -427,27 +440,39 @@ async function status(a: Args, c: Contributor) {
   };
 }
 
-/** `library submit <clip | recipe>`: the clip read and given the intake's provenance, the local gates run, and what
- *  passes sent. */
+/** A clip as submit reads it before it gives the clip the intake's provenance: an intake record it carries (an object)
+ *  set aside, since submit fills that record in (who or what made it from --by when the record lacks it) and the
+ *  schema gate reads it whole after; anything else as it is. */
+function intakeAside(c: Clip): Clip {
+  const p = (c as { provenance?: unknown } | null)?.provenance as (Clip["provenance"] & { intake?: unknown }) | undefined;
+  if (!p || typeof p !== "object" || !p.intake || typeof p.intake !== "object" || Array.isArray(p.intake)) return c;
+  const { intake: _, ...rest } = p;
+  return { ...c, provenance: rest as Clip["provenance"] };
+}
+
+/** `library submit <clip | recipe>`: the clip read (its intake record set aside) and given the intake's provenance, who
+ *  or what made it from --by or the record (refused with neither: the format requires it), the local gates run, and
+ *  what passes sent. */
 async function submit(a: Args, ctx: ToolContext, c: Contributor) {
   if (a.on === undefined) throw new ToolError("E_ARGS", "submit names the clip or recipe (on): a .json path or its JSON", true);
   const got = await fileOrJson(ctx, a.on, "the clip"), data = got.data as { steps?: unknown } | null, kind: Kind = data && typeof data === "object" && Array.isArray(data.steps) ? "recipe" : "clip";
   if (kind === "recipe") for (const k of ["improves", "by", "prompt", "manifest"] as const) if (a[k] !== undefined) throw new ToolError("E_ARGS", `a recipe's provenance is its steps, so it takes no ${k}: compile it (recipe.compile) and submit the clip`, true);
-  const lib = ctx.library(SHIPPED), clip0 = clipOf(kind, got.text, lib.library), v = validate(clip0, { mode: "read" });
+  const lib = ctx.library(SHIPPED), clip0 = clipOf(kind, got.text, lib.library), read = kind === "clip" ? intakeAside(clip0) : clip0, v = validate(read, { mode: "read" });
   if (!v.ok) throw new ToolError("E_CLIP", `the clip is not valid (${count(v.errors.length, "error")}): ${validation.formatIssue(v.errors[0]!).replace(/\s*\n\s*/g, "; ")}`, got.path === null);
   let clip = clip0, text = got.text;
   if (kind === "clip") {
-    const pre = gateInput(clip0, kind, a.improves ?? null, lib), was = intakeOf(clip0) ?? {}, r = pre.rest ? metrics(clip0, pre.rest) : null;
+    const pre = gateInput(read, kind, a.improves ?? null, lib), was = intakeOf(clip0) ?? {}, r = pre.rest ? metrics(read, pre.rest) : null;
     const m = a.manifest === undefined ? undefined : /^(https:\/\/\S+)#sha256=([0-9a-f]{64})$/.exec(a.manifest);
     if (a.manifest !== undefined && !m) throw new ToolError("E_ARGS", "manifest is the training-data manifest's https URL and its SHA-256: https://…#sha256=<64 hex digits>", true);
+    const by = a.by ?? was.by;
+    if (typeof by !== "string" || !by.trim()) throw new ToolError("E_ARGS", "say who or what made it with --by (a person, or the agent and the human behind it): the format requires provenance.intake.by", true);
     const intake: IntakeProvenance = {
-      ...was, by: a.by ?? was.by ?? "",
+      ...was, by,
       ...(a.prompt !== undefined ? { prompt: recipes.sha256(a.prompt) } : {}),
       ...(m ? { manifest: { url: m[1]!, sha256: m[2]! } } : {}),
       ...(pre.base ? { improves: { id: pre.base.id, sha256: pre.base.sha256 } } : {}),
       ...(r ? { report: { sensors: r.verdict, findings: r.findings.length, qaVersion: checks.QA_VERSION } } : {}),
     };
-    if (!intake.by) delete (intake as Partial<IntakeProvenance>).by;
     clip = { ...clip0, provenance: { ...clip0.provenance, intake } as Clip["provenance"] };
     text = serialize(clip);
   }

@@ -2,7 +2,7 @@
 name: m3a
 description: "Humanoid character animation for games, in code and text, with the @m3a packages. Use when a game, a three.js scene or a Node project needs a character to idle, walk, run, jump, attack, react or emote: to find motion clips in a CC0 library by words, play them on any humanoid rig (glTF, GLB, VRM), wire an animation graph with hit events and root motion, make or edit a clip from a recipe, retarget, import or export motion (VRMA, GLB, BVH), or check motion (foot sliding, pops) as numbers without a display. Also when a project depends on an @m3a package or mentions m3a."
 license: MIT
-compatibility: Node.js 24 or newer; three.js r182 as @m3a/three's peer.
+compatibility: Node.js 24.2+; three.js r182 as @m3a/three's peer.
 ---
 
 # m3a
@@ -11,7 +11,7 @@ m3a plays humanoid motion clips (JSON) on any humanoid character, in a game or h
 three.js character, and the sensors measure motion as numbers.
 
 **Start with the manual,** `node_modules/@m3a/tools/MANUAL.md`: the mental model, a worked example and the API by job.
-Read it before the packages' code. Pick clips by what `search` and the catalogs say, never by reading motion data.
+Read it before the code. Pick clips by what `search` and the catalogs say, never by reading motion data.
 
 ## The five commands
 

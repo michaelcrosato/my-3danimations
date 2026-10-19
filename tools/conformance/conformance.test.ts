@@ -2,12 +2,14 @@
 // the deadline in seconds), a value as the verdict shows it (anything at all, -0 as -0), the checkout it names (dirty
 // when a file the run executed differs: the kit's, and with --impl ts the reference's, every import inside); and the
 // CLI itself, which fails a broken implementation with the vector named, whatever shape its answers take, records in
-// report.json what the certification ran against, and ends a sidecar that stops answering at --timeout.
+// report.json what the certification ran against (written under a folder of the test's own, $M3A_CHECK_OUTPUT, so a
+// certification's check-output/conformance/report.json is left as it was), and ends a sidecar that stops answering at
+// --timeout.
 import { execFileSync, spawnSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, relative } from "node:path";
-import { describe, expect, it } from "vitest";
+import { afterAll, describe, expect, it } from "vitest";
 import { sha256, VECTORS } from "../../spec/conformance/runner/vectors.ts";
 import { PROTOCOL } from "../../spec/conformance/kit/wire.ts";
 import { ROOT, UsageError } from "../run/cli.ts";
@@ -91,14 +93,23 @@ function imports(entry: string): string[] {
 }
 
 describe("npm run conformance", () => {
+  // the reports go to a folder of the test's own; the root's report (a certification someone ran) is read before and after
+  const out = mkdtempSync(join(tmpdir(), "m3a-conformance-out-")), kept = join(ROOT, "check-output/conformance/report.json");
+  const state = () => (existsSync(kept) ? `${statSync(kept).mtimeMs} ${readFileSync(kept, "utf8")}` : "absent");
+  const before = state();
+  afterAll(() => {
+    rmSync(out, { recursive: true, force: true });
+    expect(state(), `${kept} is a certification's record: a test run leaves it alone`).toBe(before);
+  });
   // a bound of its own, so a kit that hangs fails the test rather than the run
-  const run = (...args: string[]) => spawnSync(process.execPath, [join(ROOT, "tools/conformance/main.ts"), ...args], { cwd: ROOT, encoding: "utf8", timeout: 25_000 });
+  const run = (...args: string[]) => spawnSync(process.execPath, [join(ROOT, "tools/conformance/main.ts"), ...args], { cwd: ROOT, encoding: "utf8", timeout: 25_000, env: { ...process.env, M3A_CHECK_OUTPUT: out } });
   it("fails answers of the wrong shape with the vector named, and report.json names the protocol, the vectors and the commit", () => {
     const r = run("--impl", "node spec/conformance/adapters/broken.ts echo", "--tier", "1a,3", "--sample", "1", "--json");
     expect([r.status, r.stderr]).toEqual([1, ""]);
     expect(r.stdout.split("\n")[0]).toMatch(/^conformance: @m3a\/core [\d.]+ fails tier 1a at tier1a\/rig\.json, A_TPose reduce: reduce: ours \{"capture":.*, want a value that must be array \(protocol\.schema\.json \$defs\/results\/reduce\)$/);
     expect(r.stdout).toMatch(/^ {5}tier3\/bodies\.json: rig: 4 of 4 fail; first CMU\/Walk_Loop: retarget: ours \{"skeleton":/m);
-    const { certification } = JSON.parse(readFileSync(join(ROOT, "check-output/conformance/report.json"), "utf8")) as { certification: { kit: unknown; tiers: unknown[] } };
+    expect(r.stdout).toContain(`report: ${join(out, "conformance/report.json")}`);
+    const { certification } = JSON.parse(readFileSync(join(out, "conformance/report.json"), "utf8")) as { certification: { kit: unknown; tiers: unknown[] } };
     expect(certification.kit).toEqual({ protocol: PROTOCOL, manifestSha256: sha256(readFileSync(join(VECTORS, "manifest.json"))), version, commit: expect.stringMatching(/^([0-9a-f]{40}(-dirty)?|unknown)$/) });
     expect(certification.tiers).toHaveLength(2);
   }, 30_000);

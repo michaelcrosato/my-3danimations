@@ -1,10 +1,11 @@
-// The first-flight game (PLAN.md WP-4.6), with no DOM and no renderer: a character that idles, walks and runs by speed,
-// jumps and attacks, driven by a stick and two buttons through core's Animator. The page (main.ts) draws it with three;
-// Node runs the same script for the e2e test, so the page's hashes can be checked against Node's.
+// The first-flight game (PLAN.md WP-4.6; apps/lab/hello's until it graduated, D119), with no DOM and no renderer: a
+// character that idles, walks and runs by speed, jumps and attacks, driven by a stick and two buttons through core's
+// Animator, on the packages' public entries alone. The page (./page.ts) draws it with three; Node runs the same session
+// in tests/e2e/first-flight.e2e.ts, so the page's hashes are checked against Node's.
 // Moves cross-fade on a second layer. Locomotion picks idle, walk or run by speed and plays it at the rate that speed
 // asks. The character travels by the clip's root motion, which its planted feet imply. The attack's `hit` event is put
 // at the strike time core measures, as a game would add it. Each clip is repaired at load by the sensors' fix, as a game
-// would until WP-5.8 writes the repairs back into the library.
+// would: WP-5.8 kept the migrated Quaternius clips' keys as their source gave them, baselined (D63).
 import { Animator, contact, math, measureFacts, playable, type AnimatorEvent, type Bound, type Clip, type Rest } from "@m3a/core";
 import { fix } from "@m3a/sensors";
 
@@ -16,8 +17,9 @@ export const MOVES = ["idle", "walk", "run", "jumpStart", "jumpAir", "jumpLand",
 export type MoveName = (typeof MOVES)[number];
 /**
  * The default clip for each move, all CC0: those that pass the sensors on their own body, or pass once `fix` has
- * repaired them (Walk_Loop's and Punch_Cross's twist flips; Mesh2Motion's jump through the floor). No run in the library
- * passes yet: the jog's twist flips are repaired and its seam's change of speed stays (WP-5.8 takes it up).
+ * repaired them (Walk_Loop's twist flips; Mesh2Motion's jump through the floor), but for two: the jog, whose twist
+ * flips are repaired and whose seam's change of speed stays (seamVelocity, baselined in WP-5.8, D63), and Punch_Jab,
+ * which fails on a pop at its left pinky at 0.13 s before and after `fix` (baselined, D63).
  */
 export const DEFAULT_CLIPS: Readonly<Record<MoveName, string>> = {
   idle: "QUATERNIUS_3D2DGE/Idle_Loop",
@@ -88,7 +90,7 @@ const clamp = (x: number, a: number, b: number) => Math.min(b, Math.max(a, x));
 const smooth = (u: number) => (u <= 0 ? 0 : u >= 1 ? 1 : u * u * (3 - 2 * u));
 
 /** The game: its Animator on a bound skeleton, the moves, and the state a stick drives. */
-export class Hello {
+export class Game {
   readonly animator: Animator;
   readonly moves: Readonly<Record<MoveName, Move>>;
   mode: MoveName = "idle";
@@ -104,8 +106,6 @@ export class Hello {
   #fade: { to: MoveName; t: number; dur: number } | null = null;
   #air = 0;
   #held: Input = { x: 0, y: 0 };
-  #forced: MoveName | null = null;
-  #viewing: string | null = null;
 
   constructor(bound: Bound, moves: Record<MoveName, Move>) {
     this.animator = new Animator(bound, { step: STEP });
@@ -113,29 +113,14 @@ export class Hello {
     this.animator.layer("base", { clip: this.moves.idle.clip });
   }
 
-  /** Plays a move from now (a console's `play`): locomotion moves stay until the stick moves; the others run once. */
-  play(name: MoveName): void {
-    this.#forced = name === "idle" || name === "walk" || name === "run" ? name : null;
-    this.#start(name, QUICK);
-  }
-
-  /** Plays one clip alone from clip time t, looping or held at its end, the input ignored (a deep link's `?clip=`). */
-  view(move: Move, t = 0): void {
-    this.#viewing = move.clip.id;
-    this.#fade = null;
-    this.animator.remove("fade").layer("base", { clip: move.clip, time: t, speed: 1, weight: 1 });
-  }
-
   /** Advances by dt seconds under the input; returns the events passed (the attack's `hit` among them). */
   step(dt: number, input: Input): AnimatorEvent[] {
-    if (this.#viewing) return this.animator.step(dt).events;
     const press = (k: "jump" | "attack") => input[k] === true && this.#held[k] !== true;
     const busy = this.mode === "jumpStart" || this.mode === "jumpAir" || this.mode === "jumpLand" || this.mode === "attack";
     if (!busy && press("jump")) this.#start("jumpStart", QUICK);
     else if (!busy && press("attack")) this.#start("attack", QUICK);
     this.#held = { ...input };
     const mag = Math.min(1, PORTABLE.hypot(input.x, input.y));
-    if (mag > 0.15) this.#forced = null;
     // the speed asked: walking at full stick, running with run held; it eases toward it
     const walk = this.moves.walk.speed, run = this.moves.run.speed, busyNow = this.#busy();
     const want = busyNow || mag <= 0.15 ? 0 : input.run ? run : walk * mag;
@@ -145,7 +130,7 @@ export class Hello {
       this.heading += clamp(d, -TURN * dt, TURN * dt);
     }
     if (!busyNow) {
-      const loco: MoveName = this.#forced ?? (this.speed < 0.25 * walk ? "idle" : this.speed < (walk + run) / 2 ? "walk" : "run");
+      const loco: MoveName = this.speed < 0.25 * walk ? "idle" : this.speed < (walk + run) / 2 ? "walk" : "run";
       if (loco !== this.#target()) this.#start(loco, FADE);
     }
     this.#rates();
@@ -178,11 +163,6 @@ export class Hello {
     const c = PORTABLE.cos(this.heading * DEG), sn = PORTABLE.sin(this.heading * DEG), out: number[] = [];
     for (let i = 0; i < points.length; i += 3) out.push(points[i]! * c - points[i + 1]! * sn, points[i]! * sn + points[i + 1]! * c, points[i + 2]! + this.z);
     return { points: out, root: { forward: this.y, right: this.x, yaw: 0 } };
-  }
-
-  /** The clip a deep link plays alone, if one does. */
-  get viewing(): string | null {
-    return this.#viewing;
   }
 
   /** The game's state as JSON. */

@@ -1,6 +1,7 @@
 // Tests for the repo runners: the output contract's parsing and budgets, the header lint, versioning, the
-// test:changed selection, a gate's report (the commit it ran at, D91), the e2e runner's filters and the preview site's
-// guard on the directory it empties.
+// test:changed selection (a rule for each kind of file a suite covers), a gate's report (the commit it ran at, D91),
+// AGENTS.md's command table naming every script, the e2e runner's filters and the preview site's guard on the
+// directory it empties.
 import { spawnSync } from "node:child_process";
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -106,6 +107,51 @@ describe("test:changed", () => {
   });
   it("runs nothing for docs alone", () => {
     expect(select(["docs/PROGRESS.md", "README.md"])).toEqual([]);
+  });
+  /** The suites `files` select, with no toolchain change among them. */
+  const suites = (...files: string[]) => (select(files) as { suite: string }[]).map((c) => c.suite);
+  it("runs the benchmark runner's suite for the runner, the briefs and the quiz", () => {
+    for (const f of ["bench/runner/agent.ts", "bench/briefs/B1.md", "bench/quiz/legend.json"]) expect(suites(f), f).toContain("bench/runner");
+  });
+  it("runs a brief's grader for its grader and its starters, the discovery variant's among them", () => {
+    expect(suites("bench/graders/B3/grade.ts")).toContain("bench/graders/B3");
+    expect(suites("bench/starters/B4/src/main.ts")).toContain("bench/graders/B4");
+    expect(suites("bench/starters/B1-discovery/src/main.ts")).toContain("bench/graders/B1");
+  });
+  it("runs every suite importing a shared file, through the files between", () => {
+    expect(suites("bench/graders/bones.ts")).toEqual(expect.arrayContaining(["bench/graders/B1", "bench/graders/B8", "bench/runner"]));
+    expect(suites("tools/doctrine/budgets.ts")).toEqual(expect.arrayContaining(["tools/doctrine", "tools/skill"]));
+  });
+  it("runs the intake's tests for the intake service: its function, its SQL, its schemas", () => {
+    for (const f of ["services/intake/functions/submit/handler.ts", "services/intake/migrations/20261019120000_intake.sql", "services/intake/schemas/queue.schema.json"]) expect(suites(f), f).toContain("packages/tools/test");
+  });
+  it("runs the workflow tests for a workflow", () => {
+    expect(suites(".github/workflows/ci.yml")).toEqual(["tools/intake", "tools/release"]);
+  });
+  it("runs the skill tests for either skill and llms.txt", () => {
+    for (const f of ["skills/m3a/SKILL.md", ".claude/skills/m3a/SKILL.md", "llms.txt"]) expect(suites(f), f).toEqual(["tools/skill"]);
+  });
+  it("runs the library's and QA's tests for a clip or a baseline", () => {
+    for (const f of ["library/sets/QUATERNIUS_3D2DGE/Walk_Loop.json", "library/baselines/qa.json"]) expect(suites(f), f).toEqual(["packages/library/test", "tools/qa"]);
+  });
+  it("runs the review queue's test for the feedback log", () => {
+    expect(suites("docs/FEEDBACK-LOG.md")).toEqual(["packages/tools/test/review.test.ts"]);
+  });
+  it("runs the tools' and the benchmark's suites that import a changed package, or a package depending on it", () => {
+    const sensors = select(["packages/sensors/src/index.ts"]) as { suite: string; why: string }[];
+    expect(sensors.map((c) => c.suite)).toEqual(expect.arrayContaining(["packages/sensors/test", "packages/tools/test", "tools/qa", "bench/graders/B1"]));
+    expect(sensors.find((c) => c.suite === "tools/qa")!.why).toMatch(/^its tests import @m3a\/(sensors|tools)\b/);
+    // a package's test characters are not the package: the suites importing them, through the files between
+    expect(suites("packages/three/test-characters/variants.ts")).toEqual(expect.arrayContaining(["packages/three/test", "packages/io/test", "bench/graders/B1"]));
+  });
+});
+
+describe("the command table", () => {
+  it("names every package.json script in AGENTS.md as npm run <name> (npm test as npm test)", () => {
+    const scripts = Object.keys((JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8")) as { scripts: Record<string, string> }).scripts);
+    const table = readFileSync(join(ROOT, "AGENTS.md"), "utf8").split("\n").filter((l) => l.startsWith("| `"));
+    const named = new Set(table.flatMap((l) => [...l.split(" | ")[0]!.matchAll(/`npm (?:run ([\w:-]+)|(test))\b/g)].map((m) => m[1] ?? m[2]!)));
+    expect(scripts.filter((s) => !named.has(s))).toEqual([]);
   });
 });
 

@@ -4,9 +4,10 @@
 // instead of over them; the verdicts line names the metrics that fail most; --fix lints and fixes clips (WP-3.5), none
 // coming out worse or invalid.
 import { execFileSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { describe, expect, it } from "vitest";
+import { afterAll, describe, expect, it } from "vitest";
 import { ROOT } from "../run/cli.ts";
 import { fix } from "@m3a/sensors";
 import { BASELINE, baselineOf, CAPTURE, compare, distributions, fixAll, libraryClips, qa, worse, type LibraryClip } from "./qa.ts";
@@ -76,15 +77,18 @@ describe("lint and fix over clips, caught out", () => {
 });
 
 describe("npm run qa", () => {
-  const run = (...args: string[]) => execFileSync(process.execPath, [join(ROOT, "tools/qa/main.ts"), ...args], { cwd: ROOT, encoding: "utf8" });
+  // the run writes into a scratch check-output, so a test never replaces the files a person's run left (D118)
+  const scratch = mkdtempSync(join(tmpdir(), "m3a-qa-"));
+  afterAll(() => rmSync(scratch, { recursive: true, force: true }));
+  const run = (...args: string[]) => execFileSync(process.execPath, [join(ROOT, "tools/qa/main.ts"), ...args], { cwd: ROOT, encoding: "utf8", env: { ...process.env, M3A_CHECK_OUTPUT: scratch } });
   it("prints the distributions with --dist, and --json keeps the clips' rows; names the metrics that fail most", () => {
     const out = run("--clip", "CMU_CURATED/Walk_Loop", "--dist", "--json");
     expect(out).toMatch(/^ {2}slide: capture [\d.]+ \/ [\d.]+ \/ [\d.]+ \/ [\d.]+ \/ [\d.]+ \(n 1\); all /m);
     expect(out).toMatch(/^ {2}skate: capture /m);
-    const clips = JSON.parse(readFileSync(join(ROOT, "check-output/qa/clips.json"), "utf8"));
+    const clips = JSON.parse(readFileSync(join(scratch, "qa/clips.json"), "utf8"));
     expect(clips.rows.map((r: { clip: string }) => r.clip)).toEqual(["CMU_CURATED/Walk_Loop"]);
     expect(clips.distributions.capture.slide.n).toBe(1);
-    expect(JSON.parse(readFileSync(join(ROOT, "check-output/qa/report.json"), "utf8")).tool).toBe("qa");
+    expect(JSON.parse(readFileSync(join(scratch, "qa/report.json"), "utf8")).tool).toBe("qa");
     // the verdicts line names the metrics that fail most
     expect(run("--clip", "CMU_CURATED/Backflip")).toMatch(/verdicts .*: 0 pass, 0 warn, 1 fail; failing most: \w+ 1/);
   });

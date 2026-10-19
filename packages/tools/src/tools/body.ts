@@ -4,22 +4,25 @@
 // bones before any patch. A foot that ends with no child gets an end bone where its mesh ends, on the sole (D49), as
 // three's bind gives it, so the body bound here stands as the game's does (a compressed mesh, whose weights io can't
 // read, gives none: every joint is kept and the report says so; so does a mesh whose positions io can't read, which
-// leaves the hips low). `tiny` is the 34-bone conformance rig, graph.sim's default body. The report says how the bones
-// were recognized, how sure, what is missing or odd, the rest pose, limb lengths and a patch to edit back, in at most
-// 20 lines, with each missing bone's likely source bones, and hips under half the legs' length as an issue (a wrong
-// bone for them, such as the rig's root, which no other check sees; a mesh's issue no patch clears, meshIssue);
+// leaves the hips low). `tiny` is the 34-bone conformance rig, graph.sim's default body; `gen-<seed>` a generated test
+// character (@m3a/three's, as the gallery and the sweep name it, built without three; one name a seed: gen-7, never
+// gen-007), read as its .glb would be, its document kept as a file's is for export's .glb (D119). The report says how
+// the bones were recognized, how sure, what is missing or odd, the rest pose, limb lengths and a patch to edit back, in
+// at most 20 lines, with each missing bone's likely source bones, and hips under half the legs' length as an issue (a
+// wrong bone for them, such as the rig's root, which no other check sees; a mesh's issue no patch clears, meshIssue);
 // retarget.inspect shows it, and a tool that needs the body bound refuses with it (bodyOf). Replies name the character
-// as clips.ts names a file, never by an absolute path: in a hint `<the character's file>` (characterName), elsewhere
-// the same words without the brackets (clips.ts prose: a refusal, the report, io's messages).
+// as clips.ts names a file, never by an absolute path: in a hint `<the character's file>` (characterName), elsewhere the
+// same words without the brackets (clips.ts prose: a refusal, the report, io's messages).
 import { bind, skeleton, type Bound, type SkeletonIn } from "@m3a/core";
 import { IoError, meshEnds, parseGlb, parseGltf, skeletonOfGltf, type GltfDoc, type GltfJson, type GltfSkeleton } from "@m3a/io";
+import { character, variant } from "@m3a/three/test-characters/generate";
 import { ToolError, type ToolContext } from "../registry/registry.ts";
 import { didYouMean, quote, type Schema } from "../registry/schema.ts";
 import { naming, prose } from "./clips.ts";
 import { call, count, cut } from "./common.ts";
 
-/** The character parameter: a character file under the working directory, or the tiny rig. */
-export const CHARACTER: Schema = { type: "string", description: ".glb .gltf .vrm file, or tiny" };
+/** The character parameter: a character file under the working directory, the tiny rig or a generated test character. */
+export const CHARACTER: Schema = { type: "string", description: ".glb .gltf .vrm file, tiny or gen-<seed>" };
 /** The mapping parameter: retarget.inspect's patch, edited ({bones: {humanoid bone: file's bone, or null to unmap}}). */
 export const MAPPING: Schema = { type: "object", description: "patch: {bones: {hips: \"pelvis\"}}", properties: { bones: { type: "object" } }, required: ["bones"] };
 
@@ -58,12 +61,14 @@ export interface CharacterReport {
   text: string;
 }
 /** A character for the tools: bound (null while a required bone is missing; the report names it), the recognition the
- *  binding used, and the report. The bound skeleton may hold end bones the file doesn't (`<foot's last bone>_end`, on
- *  the sole, D49); they have no node. */
+ *  binding used, the report, and the glTF document it was read from with its skeleton's nodes (a file's, or a generated
+ *  character's GLB; null for the tiny rig), which export's .glb adds its animation to. The bound skeleton may hold end
+ *  bones the file doesn't (`<foot's last bone>_end`, on the sole, D49); they have no node. */
 export interface Character {
   bound: Bound | null;
   recognition: skeleton.Recognition;
   report: CharacterReport;
+  file: { doc: GltfDoc; g: GltfSkeleton } | null;
 }
 
 /** The tiny rig (tier 1b's rig.gltf; conformance tier 3's skeleton, spec/conformance/runner/skeleton.ts rigSkeleton()):
@@ -120,20 +125,29 @@ export function vrmMapping(json: GltfJson, g: GltfSkeleton): Record<string, stri
   return out;
 }
 
-/** A character read: its skeleton, and for a file its document and glTF skeleton (the soles are read from its mesh). */
+/** A character read: its skeleton, and for a file (or gen-<seed>) its document and glTF skeleton (the soles are read
+ *  from its mesh). */
 interface Read {
   sk: SkeletonIn;
-  file: { doc: GltfDoc; g: GltfSkeleton } | null;
+  file: Character["file"];
   vrm: Record<string, string> | null;
 }
-/** A character's skeleton: the tiny rig, or a .glb, .gltf or .vrm file read through io (E_ARGS for anything else; an
- *  unreadable file is an error with io's code). */
+/** A character's skeleton: the tiny rig, or a generated test character's GLB (`gen-<seed>`, built in memory, no host
+ *  needed; one name a seed, so no leading zero) or a .glb, .gltf or .vrm file read through io (E_ARGS for anything
+ *  else, a `gen-` without a whole number told how to write one; an unreadable file is an error with io's code). */
 async function skeletonOf(ctx: ToolContext, ref: string): Promise<Read> {
   if (ref === "tiny") return { sk: TINY, file: null, vrm: null };
   const ext = /\.(glb|gltf|vrm)$/i.exec(ref)?.[1]!.toLowerCase(), name = prose(characterName(ref));
-  if (!ext) throw new ToolError("E_ARGS", `${name} is not a character: give a .glb, .gltf or .vrm file, or "tiny"`, true);
+  const digits = /^gen-(\d+)$/.exec(ref)?.[1], whole = digits !== undefined && Number.isSafeInteger(Number(digits));
+  const seed = whole && /^(0|[1-9]\d*)$/.test(digits) ? Number(digits) : null;
+  if (!ext && seed === null) {
+    // a seed written with leading zeros (gen-007) gets its one name
+    const fix = /^gen-/i.test(ref) ? `a generated one is gen-<seed>, its seed a whole number (gen-3)${whole ? `; did you mean "gen-${Number(digits)}"?` : ""}` : 'give a .glb, .gltf or .vrm file, "tiny" or gen-<seed>';
+    throw new ToolError("E_ARGS", `${name} is not a character: ${fix}`, true);
+  }
   try {
-    const doc = ext === "gltf" ? parseGltf(await ctx.read(ref), name) : parseGlb(await ctx.bytes(ref), name), g = skeletonOfGltf(doc);
+    // a generated character's GLB, built in memory (no three), read as the file would be
+    const doc = seed !== null ? parseGlb(character(variant(seed)).glb, name) : ext === "gltf" ? parseGltf(await ctx.read(ref), name) : parseGlb(await ctx.bytes(ref), name), g = skeletonOfGltf(doc);
     return { sk: g.skeleton, file: { doc, g }, vrm: vrmMapping(doc.json, g) };
   } catch (err) {
     throw err instanceof IoError ? new ToolError(err.code, err.file ? err.message : `${name}: ${err.message}`) : err;
@@ -197,12 +211,13 @@ function checkShared(rec: skeleton.Recognition, m: MappingPatch): void {
 }
 
 /**
- * A character bound for the tools: `ref` (a .glb, .gltf or .vrm file, or "tiny") read, its bones recognized (a VRM's by
- * its humanoid), `mapping` patched over them (refused when it leaves two humanoid bones on one source bone), and bound
- * through core. A required bone still missing leaves it unbound, the report saying which; no humanoid bone recognized
- * at all, or bones of no usable length (their rest points not finite, or the legs' length none), is E_RIG (an error),
- * and too many bones or too long a chain E_LIMIT. Hips bound under half the legs' length are an issue: a wrong bone for
- * them.
+ * A character bound for the tools: `ref` (a .glb, .gltf or .vrm file, "tiny" or gen-<seed>) read once, its bones
+ * recognized (a VRM's by its humanoid), `mapping` patched over them (refused when it leaves two humanoid bones on one
+ * source bone), and bound through core. A required bone still missing leaves it unbound, the report saying which; no
+ * humanoid bone recognized at all, or bones of no usable length (their rest points not finite, or the legs' length
+ * none), is E_RIG (an error), and too many bones or too long a chain E_LIMIT. Hips bound under half the legs' length are
+ * an issue: a wrong bone for them. The document read comes with it (`file`), so a tool that writes onto the character
+ * (export's .glb) reads nothing again.
  */
 export async function characterOf(ctx: ToolContext, ref: string, mapping?: MappingPatch | null): Promise<Character> {
   const read = await skeletonOf(ctx, ref), { sk, vrm } = read, name = prose(characterName(ref));
@@ -243,7 +258,7 @@ export async function characterOf(ctx: ToolContext, ref: string, mapping?: Mappi
   if (bound && !(bound.rest.H0 >= legs / 2)) {
     rec = { ...rec, issues: [...rec.issues, `hips (${rec.bones.hips}) likely the wrong bone: only ${Math.round(bound.rest.H0)} mm up, under half the legs' ${Math.round(legs)} mm`] };
   }
-  return { bound, recognition: rec, report: reportOf(name, sk, rec, byVrm, new Set([...Object.keys(named.bones), ...Object.keys(vrm ?? {})])) };
+  return { bound, recognition: rec, report: reportOf(name, sk, rec, byVrm, new Set([...Object.keys(named.bones), ...Object.keys(vrm ?? {})])), file: read.file };
 }
 
 /** A character bound, or E_RIG (an error) naming the required bones it lacks and how to patch them, its next the

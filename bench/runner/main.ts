@@ -17,9 +17,10 @@
 //   `during`), so the agent reads its bounces with `m3a library status`; its grader runs the checker there.
 // --fake plays the known-good solution (or the quiz's answers) instead of an agent, to check the pipeline for free: its
 // files, and the calls it makes past them (B8's m3a calls: the brief's `solve`).
-// Results go to bench/results/<date>-<model>-<brief>.json (-2, -3... for later runs that day), with the commit, whether
-// the tree differed from it, the models the agents ran, how they were isolated (privateTmp, ownPids, capsDropped, uid,
-// unprivileged) and a variant's directory; the pass mark is 4 of 5 (PLAN.md §7), or --need N trials (a gate's clause).
+// Results go to bench/results/<date>-<model>-<briefs>[-fake][-variant].json (-2, -3... for later runs that day), with
+// the commit, whether the tree differed from it, the models the agents ran, how they were isolated (privateTmp,
+// ownPids, capsDropped, uid, unprivileged) and a variant's directory; the pass mark is 4 of 5 (PLAN.md §7), or
+// --need N trials (a gate's clause).
 import { execFileSync } from "node:child_process";
 import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join, relative, resolve } from "node:path";

@@ -36,8 +36,14 @@ file against `sets.lock.json`, so a file changed outside the writer is named. `n
 set; `npm run library -- lock` writes the lock after the writer changes clips. A deprecated id resolves through the
 lock's `aliases`, with a warning naming its successor.
 
-Clips change only through the canonical serializer (core's `serialize`, then the library's writer), one work package
-at a time (PLAN.md §8.4).
+Clips change only through the canonical serializer (core's `serialize`, then the library's writer), one change at a
+time (PLAN.md §8.4). Contributions enter through the intake queue and the owner's review, and the adopt bot commits
+each in its own pull request (WP-9.1, `CONTRIBUTING.md`); a pull request that adds or changes clips any other way (the
+importers, the procedural sets) is held to the intake's gates by `.github/workflows/library-gates.yml` (D113).
+
+`index.json` (`npm run index`, WP-9.4) is the registry index: each set's immutable versions, and community packs from
+verified namespaces. `npm run index -- --check` regenerates it; `npm run index -- verify <SET> <dir>` checks a
+release's files against it.
 
 ## Licenses and credits (WP-5.7)
 

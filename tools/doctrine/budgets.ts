@@ -1,7 +1,7 @@
 // Doctrine check, principle 1: the token and line budgets. Tokens are cl100k, counted with the pinned gpt-tokenizer.
 // The manual (packages/tools/MANUAL.md) at most 8,000; the legend with one worked key (spec/LEGEND.md) at most 800;
-// every catalog row (library/sets/*/catalog.tsv) at most 40; docs/PROGRESS.md at most 40 lines. A file not written
-// yet is skipped and reported as pending.
+// every catalog row (library/sets/*/catalog.tsv) at most 40; docs/PROGRESS.md at most 40 lines. A budget that no file
+// matches is a finding: the file was moved or deleted, and would go unmeasured.
 import { encode } from "gpt-tokenizer/encoding/cl100k_base";
 import type { Ctx, Finding } from "./context.ts";
 
@@ -33,7 +33,7 @@ export function checkBudgets(ctx: Ctx, budgets: Budget[] = BUDGETS): { findings:
   for (const b of budgets) {
     const files = ctx.files.filter((f) => b.match.test(f));
     if (!files.length) {
-      lines.push(`${b.name}: pending (not written yet)`);
+      findings.push({ check: "budgets", message: `${b.name}: no file matches ${b.match}: it was moved or deleted` });
       continue;
     }
     let worst = 0;

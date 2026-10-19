@@ -13,7 +13,7 @@ const G7_BRIEFS = ["B1", "B2", "B3", "B4", "B5", "B6", "B7"] as const;
 /** The models G7 records besides the CLI's default, one trial a brief, not gating (D98; O10: Claude models only). */
 export const G7_MODELS = ["claude-opus-5-5", "claude-haiku-5-5", "claude-fable-5-1"] as const;
 
-/** A gate's commands as [name, npm script, ...args]. A WP that reaches a gate's phase fills its set. */
+/** A gate's commands as [name, npm script, ...args] (PLAN.md §9.3); library-pr is the library gates' set. */
 export const GATES: Record<string, [string, string, ...string[]][]> = {
   G0: [
     ["check", "check"],
@@ -60,7 +60,7 @@ export const GATES: Record<string, [string, string, ...string[]][]> = {
     ["vectors --check", "vectors", "--check"],
     ["the held-out run is fresh: no gate run used it, its rig's license pinned, the rig cached (D57)", "fixtures", "heldout", "G4"],
     ["the sweep: every library clip on the six skeletons, 95% together, no fail finding added (D80); the held-out rig apart", "sweep", "gen-0", "gen-1", "gen-2", "gen-3", "quaternius-mannequin-m", "kaykit-knight", "--min-total", "95", "--heldout", "G4"],
-    ["T2: the demo headless, its set on the six skeletons and the held-out rig, sheets", "e2e"],
+    ["T2: browser checks and library QA; first-flight headless, its set on the six skeletons and the held-out rig, sheets", "e2e"],
     ["B1: at least 4 of 5 fresh agents; 2 discovery trials, reported (§7)", "bench", "B1", "--trials", "5", "--discovery", "2"],
     ["B1's held-out variant: at least 4 of 5 fresh agents", "bench", "B1", "--trials", "5", "--heldout", "G4"],
   ],
@@ -186,7 +186,7 @@ if (import.meta.main) {
     parsed = parseArgs(process.argv.slice(2), [{ name: "fixture", takesValue: true, help: "library-pr: the intake's fixtures (all, or one) planted in a scratch copy of the library" }]);
     const g = parsed.positionals[0];
     if (!g) throw new Error(`name a gate: ${Object.keys(GATES).join(", ")}`);
-    if (!GATES[g]) throw new Error(`no gate ${g} yet; did you mean ${closest(g, Object.keys(GATES))}? (gates are filled in as their phase arrives)`);
+    if (!GATES[g]) throw new Error(`no gate ${g}; did you mean ${closest(g, Object.keys(GATES))}? (PLAN.md §9.3 names G0 to G10; library-pr is the library gates' set)`);
     if (parsed.flags.fixture !== undefined && g !== "library-pr") throw new Error("--fixture is library-pr's");
   } catch (err) {
     usage("gate", err, []);

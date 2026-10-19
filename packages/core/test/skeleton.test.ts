@@ -2,7 +2,7 @@
 // case stripped); the topology fallback maps renamed skeletons (long clavicles, no neck, twist bones, no head-top leaf)
 // and reports its confidence; every skeleton these tests use, and a few with a name used twice or chains as long as each
 // other, is recognized, patched and framed as before, to the hash (K6), chains of thousands of bones and bones with
-// 130,000 children are walked without recursion or spreading, and parents in a loop refused by shape; measure
+// 130,000 children are walked without recursion or spreading, and parents in a loop refused, by shape or by name; measure
 // reproduces tier 1a's rests bit for bit; restPoints places the tiny rig's body points where the importer did.
 import { describe, expect, it } from "vitest";
 import { HUMANOID_BONES, HUMANOID_PARENT, measure, patchMapping, recognize, REQUIRED_BONES, restFrame, restPoints, TABLES, type Capture, type SkeletonIn } from "./all.ts";
@@ -311,11 +311,13 @@ describe("recognize: by topology", () => {
     }
     // about 0.7 to 1.2 s alone; the same headroom as the chain test's
   }, 30_000);
-  // by shape: bones a table knows by name, in a loop, still hang finish's walk up the parents, as on daaf91c (not K6's)
-  it("refuses parents in a loop, by shape, with a RangeError that names a bone in it, rather than running out of stack (K6)", () => {
+  it("refuses parents in a loop, by shape or by name, with a RangeError that names a bone in it, rather than running out of stack or hanging (K6)", () => {
     const at: V = [0, 1, 0];
     expect(() => recognize({ bones: [{ name: "a", parent: "b", head: at }, { name: "b", parent: "a", head: at }] })).toThrow(new RangeError(`the skeleton's parents loop through "a"`));
     expect(() => recognize({ bones: [{ name: "r", head: at }, { name: "a", parent: "a", head: at }] })).toThrow(new RangeError(`the skeleton's parents loop through "a"`));
+    // bones a table knows by name: finish's walk up the parents, which hung on them, throws the same
+    expect(() => recognize({ bones: [{ name: "Hips", parent: "Spine", head: at }, { name: "Spine", parent: "Hips", head: at }] })).toThrow(new RangeError(`the skeleton's parents loop through "Hips"`));
+    expect(() => recognize({ bones: [{ name: "Hips", parent: "Hips" }, { name: "Spine", parent: "Hips" }] })).toThrow(new RangeError(`the skeleton's parents loop through "Hips"`));
   });
 });
 

@@ -4630,3 +4630,92 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
 - **Why:** the last gate's machine-provable clauses run, and what only the owner can give asked for rather than done.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.53.0
+
+## D118 · 2026-10-19 · The post-G10 audit: stale text corrected, two duplicates retired, small bugs fixed, the large items listed
+
+- **Principle:** 4 (text is the source of truth), 12 (the contract), AGENTS.md's definition of done and two tiers
+- **Call:**
+  - **An audit of the repository after G10** (eight read-only auditors and a completeness critic, 78 findings): every
+    easy finding is fixed in this change; every large one is listed in `AUDIT.md` (temporary) with its plan, and the
+    owner's are in docs/HANDOFF.md.
+  - **The frozen spec takes errata, refrozen under this decision:** a library clip named in a recipe's clip step or an
+    action's interrupt takes the clip id's slug with `-`, as MOTION.md §11, the clip schema and the graph schema
+    already do (no recipe could name `MESH2MOTION/Two-hand_Blast`); MOTION.md §6.1's count (176), §7.4's `recipe`
+    provenance row and §15's twist pop (Quaternius stays migrated, D63); tiers.md's 1b inputs (the Rigify vector) and
+    the kit (WP-10.2, done); SKELETON.md §7's watch says what is practised.
+  - **The Khronos watch (R7), run now:** the registry (KhronosGroup/glTF `extensions/README.md` on main, read
+    2026-10-19) lists neither `KHR_character_skeleton_mapping` nor `KHR_character_reference_pose`, ratified or in
+    progress; nothing to align.
+  - **The skill isn't in any tarball:** WP-7.4's Build never packed it, so the runner's copy from the repository is
+    the path, and the comments that said "until WP-7.4 packs it" now say so. Shipping it in `@m3a/tools` would be new
+    work (`AUDIT.md`).
+  - **apps/lab/hello stays,** answered at G4 (D88): its e2e is T2's standing G4 check (the set on G4's skeletons and
+    the held-out rig), which consumer-ts doesn't cover. Graduating that check into the package tier, then deleting
+    the lab, is listed in `AUDIT.md`.
+  - **Retired:** `tools/run/pending.ts` (the Phase 0 placeholder no script has used since d18e398) and two loose
+    bench results that are byte copies of G4-run-2's (`2026-10-14-default-B1-variant.json`,
+    `-fake-variant.json`); every other loose result is a gate's byte copy or backs a number a decision cites.
+  - **The census still counts a mirror twice by design** (D67, a game needs each side): HANDOFF's bullet that read it
+    as a defect is corrected, and joining them stays the owner's call.
+  - **D96's follow-ups closed here:** parents in a loop among named bones throw instead of hanging; io refuses a
+    non-finite rest head (K7); a composed source license is read part by part. A recipe's or action's clip step may
+    name a hyphenated slug, and `interruptInto` writes the cut's own id with `_` for it.
+  - **Two Quaternius baselines' reasons corrected** (140°, the re-import waiting on the source files): the sets'
+    files changed, so the registry index mints their v2 (serial 2), one regeneration in one commit (D113).
+  - **Small widenings, reversible:** `test:changed` follows imports (a core change selects nearly every suite, which
+    is what covers it); `M3A_CHECK_OUTPUT` moves a tool's `--json` report (T1's conformance test uses it); doctrine
+    fails a budgeted file or tools/pins.json that is gone, where Phase 0 reported it pending.
+  - **T0 runs its typecheck and lint side by side, and lint caches by content:** CI's checkout gives every file a
+    new mtime, so the mtime-keyed cache never hit there and lint took 9 to 10 s; with a cold type-check (core's types
+    changed) this pull request's runs failed T0 at 23.4 and 22.9 s, over the 22.5 s mark, every step passing. The two
+    steps share nothing, so they run at once: a cold T0 is about 16.7 s here, a warm one 2.3 s. Running lint on
+    every core as well was slower beside the type-check, so it stays single-threaded.
+- **Why:** documents that describe the plan as unbuilt, commands that no longer exist and doctrine checks that pass
+  on a deleted file mislead the next session as surely as a failing test; the large items need their own WPs.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.53.1
+
+## D119 · 2026-10-19 · The audit's large items: six built, the rest deferred with their reasons
+
+- **Principle:** 2 (agent-operable), 10 (provenance), 11 (the library grows through gates), AGENTS.md's two tiers
+- **Call:**
+  - **Built here** (`AUDIT.md` items 1, 2, 3, 6, 10, 13): hello's G4 check moves into the package tier and the lab is
+    deleted; the CLI and MCP name a generated character (`gen-<seed>`) and an orbit; `@m3a/tools` ships the
+    agentskills.io skill; the intake checker samples only what is new; `deliver` refuses a clip whose stated and
+    served terms differ, and the format requires `provenance.intake.by` (reversing two of D113's calls); T1's
+    heaviest benchmark cases run in full in T2, a sample in T1, as D74 did.
+  - **Deferred, each with its reason** (moved to docs/HANDOFF.md's follow-ups, `AUDIT.md` then deleted): the manual's
+    untaught names (item 4: the manual is graded by G7's quiz and briefs, so a cut reopens G7's evidence); only the
+    adopt bot adding clips (item 5: D113's call stands until the importers' regenerations go through the bot);
+    the locomotion rate sweep (item 7: D106's follow-up needs a decision on what fails before it can gate); a linear
+    planter and key fit (item 8: it changes the frozen vectors other implementations certify against, G10's route);
+    contacts for the six unplanted loops (item 9: D108 answered them, and B1 grades the clips they'd change); the
+    proof's digest and the census's mirrors (items 11, 12: the owner's, on #16 and D67).
+  - **How they landed:** `gen-<seed>` takes a whole number without leading zeros (one name a seed) and no negative
+    seed, unlike the sweep's and the gallery's parse; the tools' descriptions now cost 3,189 of their 3,200 tokens;
+    the registry tells an argument off every form what is wrong in the one form of its type; first-flight drops
+    hello's deep-link test (the lab's UI, not the package) and requires G4's held-out rig; the census's later counts
+    take about 0.13 s, from 0.8 s; T1's graders run one planted case each (22 s of T1, from 34.5), T2 all; after CI's T1 reached 138 s, the runner's
+    variant trial, the sweep's clip-by-skeleton sample, B3's Rigify known-good and two thirds of the token counts
+    move to T2's full step too, the census's equality proof with them, and T1 reads every ninth locomotion loop's planted
+    feet (every third before): T1's file time 250 s, from 287.
+- **Why:** what needs nothing from the owner is done rather than listed; what changes graded, frozen or decided ground
+  waits with its reason written down.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.54.0
+
+## D120 · 2026-10-19 · The owner's answers: #18 merges, D94 stands, the #16 proof thread stays as is, the stray artifact goes
+
+- **Principle:** 11, O2, the owner's review of calls made without an answer
+- **Call:** asked in the session after #18's CI went green, the owner answered four questions:
+  - **D94 stands:** benchmark agents keep running as an unprivileged user with no capabilities and are handed the
+    CLI's credentials so they can call the model. D94 is answered yes.
+  - **#16's proof thread, as is:** a community pack's `verify` keeps checking the pack's content id against the live
+    proof; it is not bound to the proof hash recorded at admission (D115's call kept). The thread is answered and
+    resolved.
+  - **The stray artifact is deleted:** the private copy of spec/conformance/CERTIFYING.md a lane published by mistake
+    (D116's lane) no longer exists; the repository's file is unchanged.
+  - **#18 is squash-merged** once its head is green with this record (0.54.0).
+- **Why:** each was the owner's to decide; the record keeps D94's and D115's answers next to the calls they settle.
+- **Answered:** yes, the owner, 2026-10-19.
+- **Landed in:** v0.54.0

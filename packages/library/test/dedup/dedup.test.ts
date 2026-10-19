@@ -40,14 +40,14 @@ const PLANTS: Record<string, (c: Clip) => R.Step[] | null> = {
 function planted(id: string, kind: string): { clip: Clip; rest: Rest } | null {
   const steps = PLANTS[kind]!(byId(id).clip);
   if (!steps) return null;
-  const c = R.compile({ format: "2.0", id: `PLANTED/${id.split("/")[1]}_${kind.replace(/ /g, "_")}`, steps: steps[0]!.op === "clip" ? steps : [{ as: "c", op: "clip", id }, ...steps] }, resolve);
+  // a recipe's own id is SET/Slug without the `-` a clip's slug may hold (spec/MOTION.md §11: MESH2MOTION/Two-hand_Blast)
+  const c = R.compile({ format: "2.0", id: `PLANTED/${id.split("/")[1]!.replace(/-/g, "_")}_${kind.replace(/ /g, "_")}`, steps: steps[0]!.op === "clip" ? steps : [{ as: "c", op: "clip", id }, ...steps] }, resolve);
   return { clip: c.clip, rest: c.rest };
 }
 
 describe("near-duplicate detection", () => {
   it(`finds copies planted into ${FULL ? "every 20th" : "every 360th"} clip: retimed, eased, trimmed, mirrored, lightly edited, and all at once`, () => {
-    // (a recipe names a clip as SET/Slug without the `-` a slug may hold, spec/MOTION.md §11: MESH2MOTION/Two-hand_Blast)
-    const originals = clips.filter((c, i) => i % (FULL ? 20 : 360) === 7 && /^[A-Z0-9_]+\/[A-Za-z0-9_]+$/.test(c.clip.id)).map((c) => c.clip.id), worst: Record<string, number> = {}, missed: string[] = [];
+    const originals = clips.filter((_, i) => i % (FULL ? 20 : 360) === 7).map((c) => c.clip.id), worst: Record<string, number> = {}, missed: string[] = [];
     let found = 0, total = 0;
     for (const id of originals)
       for (const kind of Object.keys(PLANTS)) {

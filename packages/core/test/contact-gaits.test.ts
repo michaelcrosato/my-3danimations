@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import { library, locomotionSlides, SAMPLE } from "./contact-data.ts";
 
 describe("planted feet don't slide", () => {
-  it("on every locomotion loop (every third in T1) of 100STYLE's runs, backward walks and backward runs: at most 10 mm per contact (unplanted, they slide up to tens of mm)", () => {
+  it("on every locomotion loop (every ninth in T1) of 100STYLE's runs, backward walks and backward runs: at most 10 mm per contact (unplanted, they slide up to tens of mm)", () => {
     const { clips, worst, at, worstFree } = locomotionSlides(library((set) => ["STYLE100_RUN", "STYLE100_BACK", "STYLE100_BACKRUN"].includes(set)), 1);
     expect(clips).toBeGreaterThan(250 / SAMPLE);
     expect(worst, at).toBeLessThanOrEqual(10);

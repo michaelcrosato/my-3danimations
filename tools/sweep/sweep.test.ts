@@ -10,6 +10,7 @@
 // passing pair it warned (D88); and a fixed sample's rows are 1bf5252's byte for byte, its judge still its own (WP-7.2b
 // moved it to @m3a/tools). How many clips pass is not checked here: that is gate G4's bar (95% over its six skeletons
 // and the whole library, PLAN.md §9.3).
+// The clip-by-skeleton sample plays in T2's full step (M3A_FULL=1, D119: T1's margin); T1 runs the CLI on four clips.
 import { execFileSync, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
@@ -24,7 +25,7 @@ import { libraryClips, sample, type LibraryClip } from "../qa/qa.ts";
 import { sweepRecord, type SweepResults } from "./record.ts";
 import { heldout, likeFor, rigOf, sweepOne, type SweepRow } from "./sweep.ts";
 
-const RIGS = ["gen-0", "gen-7"];
+const RIGS = ["gen-0", "gen-7"], FULL = process.env.M3A_FULL === "1";
 /**
  * The pinned rows' clips, fixed ids (not sample(), so a library growing elsewhere doesn't move them): a pass, a fail on
  * one skeleton, a fail on both past the clip's own level, a warn only gen-0 adds, a side run and a 0.17 s aim.
@@ -72,7 +73,8 @@ function rawResults(): SweepResults {
 }
 
 describe("the sweep", () => {
-  it("plays each clip on each skeleton, and lists a broken clip as a failure with its reason", async () => {
+  // T2's full step (M3A_FULL=1, D74, D119: T1's margin); T1 runs the sweep's CLI on four clips below
+  it.runIf(FULL)("plays each clip on each skeleton, and lists a broken clip as a failure with its reason", async () => {
     const clips = sample(lib(), 8), rows: SweepRow[] = [];
     // and the broken walk, one key's pelvis not a number
     for (const rig of RIGS) {
@@ -161,9 +163,11 @@ describe("the sweep", () => {
     expect([bad.status, bad.stdout]).toEqual([2, expect.stringContaining("--record needs --commit <sha>")]);
   });
   it("npm run sweep writes the clip-by-skeleton results", () => {
-    const out = execFileSync(process.execPath, [join(ROOT, "tools/sweep/main.ts"), ...RIGS, "--sample", "4"], { cwd: ROOT, encoding: "utf8" });
+    // to a scratch file: check-output/sweep/results.json may hold a person's sweep a gate's --record reads (D118)
+    const file = join(mkdtempSync(join(tmpdir(), "m3a-sweep-")), "results.json");
+    const out = execFileSync(process.execPath, [join(ROOT, "tools/sweep/main.ts"), ...RIGS, "--sample", "4", "--out", file], { cwd: ROOT, encoding: "utf8" });
     expect(out).toMatch(/^sweep: (PASS|FAIL), \d+ of 8 clip-skeleton pairs pass/m);
-    const res = JSON.parse(readFileSync(join(ROOT, "check-output/sweep/results.json"), "utf8")) as { rigs: string[]; clips: number; warned: unknown[]; rows: SweepRow[] };
+    const res = JSON.parse(readFileSync(file, "utf8")) as { rigs: string[]; clips: number; warned: unknown[]; rows: SweepRow[] };
     expect([res.rigs, res.clips, res.rows.length]).toEqual([RIGS, 4, 8]);
     expect(res.warned).toEqual(res.rows.filter((r) => r.ok && r.warns.length).map((r) => ({ clip: r.clip, rig: r.rig, warns: r.warns })));
     for (const r of res.rows) expect(Object.keys(r).sort()).toEqual(["clip", "ok", "own", "played", "reach", "rig", "spans", "warns", "why", "worse"]);

@@ -65,6 +65,9 @@ describe("a clip's recorded verdict", () => {
     expect(reasonsProblems({ sets: { S: 3 }, clips: { nope: { pop: "x" } } })).toEqual(["warn is the reason a warn is kept, a text", "sets maps a set to its reason, a text", '"nope" is not a clip id']);
     expect(qaSchema({ sets: {}, clips: {} })).toBe(false);
     expect(reasonsProblems({ warn: "w", sets: {}, clips: {}, floats: { "A/B": "" } })).toEqual(["floats maps a clip id to why it stands off the floor, a text"]);
+    // a clip whose slug has a hyphen, as the format allows (spec/MOTION.md §11), is a clip id in every field
+    const blast = "MESH2MOTION/Two-hand_Blast", hyphen = { ...reasons, clips: { [blast]: { slide: "r" } }, floats: { [blast]: "r" }, offFeet: { [blast]: "r" }, unplanted: { [blast]: "r" } };
+    expect([reasonsProblems(hyphen), qaSchema(hyphen)]).toEqual([[], true]);
     expect(recordProblems({ verdicts: { pass: 1, warn: -1, fail: 0 }, metrics: { slide: { p50: 1 } } })).toEqual(["verdicts counts pass, warn and fail", "metrics gives each metric's p50, p95 and max"]);
   });
 });

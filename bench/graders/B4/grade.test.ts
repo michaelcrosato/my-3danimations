@@ -1,8 +1,9 @@
-// B4's grader (WP-6.6's Done-when): it passes the known-good sneaker and fails each planted bad one, naming the check it
-// broke, on the default avatar (gen-40, a VRM-named chibi outside WP-4.2's set) and, in T2, on gen-44 (a tall one with
-// twist bones and no toes). The planted sneakers are the known-good one edited: an upright walk, a crouch that doesn't
-// travel, a sneak moved three times its root motion, a crouched idle slid along, one moved twice its root motion, the
-// library's stealth walk (its standing feet slide), a bone gone NaN.
+// B4's grader (WP-6.6's Done-when): it passes the known-good sneaker and fails each planted bad one, naming the check
+// it broke, on the default avatar (gen-40, a VRM-named chibi outside WP-4.2's set) and, in T2, on gen-44 (a tall one
+// with twist bones and no toes); T1 grades the first planted one, T2 all of them (D119). The planted sneakers are the
+// known-good one edited: an upright walk, a crouch that doesn't travel, a sneak moved three times its root motion, a
+// crouched idle slid along, one moved twice its root motion, the library's stealth walk (its standing feet slide), a
+// bone gone NaN.
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -10,7 +11,7 @@ import { prepareWorkspace, type CharacterSpec } from "../../runner/workspace.ts"
 import type { Grade } from "../B1/grade.ts";
 import { gradeB4 } from "./grade.ts";
 
-const ROOT = join(import.meta.dirname, "../../.."), good = readFileSync(join(import.meta.dirname, "known-good/src/sneak.ts"), "utf8");
+const ROOT = join(import.meta.dirname, "../../.."), good = readFileSync(join(import.meta.dirname, "known-good/src/sneak.ts"), "utf8"), FULL = process.env.M3A_FULL === "1";
 /** The known-good sneaker with one edit, which must take. */
 const planted = (from: string, to: string) => {
   if (!good.includes(from)) throw new Error(`the planted edit's text isn't in the known-good sneaker: ${from}`);
@@ -40,13 +41,13 @@ const text = (g: Grade) => g.checks.map((c) => `${c.ok ? "ok  " : "FAIL"} ${c.na
 
 describe("B4's grader", () => {
   // T1 grades on gen-40; T2 (M3A_FULL=1) on gen-44 too (D74)
-  for (const character of (process.env.M3A_FULL === "1" ? [{ seed: 40 }, { seed: 44 }] : [{ seed: 40 }]) as CharacterSpec[]) {
+  for (const character of (FULL ? [{ seed: 40 }, { seed: 44 }] : [{ seed: 40 }]) as CharacterSpec[]) {
     const who = "seed" in character ? `gen-${character.seed}` : character.rig;
     it(`passes the known-good sneaker on ${who}, and fails each planted bad one, naming the check it broke`, async () => {
       const g = await grade("good", good, character);
       expect(g.pass, text(g)).toBe(true);
-      // T1 grades every other planted one; T2 (M3A_FULL=1) all of them (D74)
-      for (const [name, bad] of Object.entries(BAD).filter((_, i) => process.env.M3A_FULL === "1" || i % 2 === 0)) {
+      // T1 grades the first planted one; T2 (M3A_FULL=1) all of them (D74, D119: T1's margin)
+      for (const [name, bad] of Object.entries(BAD).filter((_, i) => FULL || i === 0)) {
         const b = await grade(name, bad.sneak, character);
         expect(b.pass, `${name}\n${text(b)}`).toBe(false);
         expect(b.checks.filter((c) => !c.ok).some((c) => c.name.startsWith(bad.fails)), `${name}\n${text(b)}`).toBe(true);

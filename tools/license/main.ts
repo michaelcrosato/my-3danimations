@@ -1,4 +1,4 @@
-// `npm run license -- check <library | SET | game.json>` (PLAN.md WP-5.7; `m3a license check` once WP-7.1 lands):
+// `npm run license -- check <library | SET | game.json>` (PLAN.md WP-5.7; the CLI's `m3a license.check`):
 // every set, one set, or a game manifest checked against the library's terms (packages/library/src/license). It fails
 // on a source without an SPDX id, a license that doesn't fit its set's tier, a license text not kept in
 // library/LICENSES/, a credited set without its credit, a clip from a tier the game didn't opt into, and local content

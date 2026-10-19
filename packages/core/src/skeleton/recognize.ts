@@ -42,7 +42,8 @@ const unit = (a: V): V => {
 
 /**
  * Recognize a skeleton: the best name table, or the topology fallback when names leave required bones unmapped. With
- * `table`, only that table is tried and its result stands, gaps included.
+ * `table`, only that table is tried and its result stands, gaps included. Parents in a loop throw a RangeError naming a
+ * bone in it.
  */
 export function recognize(sk: SkeletonIn, opts: { table?: string } = {}): Recognition {
   const byName = new Map(sk.bones.map((b) => [normalizeName(b.name), b.name]));
@@ -75,11 +76,15 @@ function finish(sk: SkeletonIn, method: Recognition["method"], table: string | n
   const unmapped = sk.bones.map((b) => b.name).filter((n) => !used.has(n));
   const issues = [...extra];
   if (missing.length) issues.push(`required bones not found: ${missing.join(", ")}; add them to "bones" by hand`);
-  // the hierarchy must agree: each mapped bone descends from its humanoid parent's bone
+  // the hierarchy must agree: each mapped bone descends from its humanoid parent's bone; parents in a loop throw, as in
+  // topology's walks
   const parent = new Map(sk.bones.map((b) => [b.name, b.parent ?? null]));
   const ancestors = (n: string) => {
     const out = new Set<string>();
-    for (let p = parent.get(n); p; p = parent.get(p)) out.add(p);
+    for (let p = parent.get(n); p; p = parent.get(p)) {
+      if (out.has(p)) throw new RangeError(`the skeleton's parents loop through "${p}"`);
+      out.add(p);
+    }
     return out;
   };
   let broken = 0;

@@ -1,5 +1,5 @@
 {
-  "about": "The pinned three.js and the banned APIs (WP-4.1, docs/THREE.md, D45). npm run doctrine fails on a line in source or Markdown, outside docs/, PLAN.md and tools/doctrine/, that matches a pattern, and on packages/three/package.json or package-lock.json disagreeing with the pin. Each ban names its replacement; any WP may add one with its reason.",
+  "about": "The pinned three.js and the banned APIs (WP-4.1, docs/THREE.md, D45). npm run doctrine fails on a line in source, HTML or Markdown, outside docs/, PLAN.md, research_notes/, reports/ and tools/doctrine/, that matches a pattern, and on packages/three/package.json or package-lock.json disagreeing with the pin. Each ban names its replacement; any WP may add one with its reason.",
   "pin": { "three": "0.182.0" },
   "banned": [
     { "pattern": "\\b(Raw)?ShaderMaterial\\b", "use": "a node material (MeshStandardNodeMaterial and kin) with TSL nodes: WebGPURenderer compiles no GLSL" },

@@ -1,12 +1,13 @@
 # my-3danimations
 
-**Status:** `PLAN.md` is being executed, phase by phase; [`docs/PROGRESS.md`](docs/PROGRESS.md) shows where it stands.
+**Status:** built. Every phase of `PLAN.md` is done (0.53.x): G0 to G7 passed (M1, M2), and G8, G9 and G10's command
+sets passed and wait on the owner's steps (M3, M4); [`docs/PROGRESS.md`](docs/PROGRESS.md) shows where it stands.
 
-**Should we build the animation package for AI agents, and how?** This repository answers that question.
+**Should we build the animation package for AI agents, and how?** This repository answered that question, then built it.
 
-The package would do for character animation what three.js does for rendering and Rapier does for physics: one
-dependency that solves the problem. It would be built from the ground up for LLM coding agents, and only for them,
-with no legacy weight. The question it answers:
+The package does for character animation what three.js does for rendering and Rapier does for physics: one
+dependency that solves the problem. It is built from the ground up for LLM coding agents, and only for them, with no
+legacy weight. The question it answers:
 
 > How do I get high-quality animations into my game in a way that works easily with LLM agents?
 
@@ -50,31 +51,26 @@ and supply chain an agent needs. Plug models that generate motion into a socket 
 
 | Path | What it is |
 |---|---|
+| [`packages/tools/MANUAL.md`](packages/tools/MANUAL.md) | The manual: where an agent using the package starts (the API by job: find, fit, wire, make, check, ship, grow) |
+| [`llms.txt`](llms.txt) | The index for agents: the manual, the catalogs, the tool list |
+| `packages/` | The six `@m3a` packages: `core` (the format and a deterministic runtime), `sensors`, `io`, `library`, `three` (the three.js adapter) and `tools` (one registry as the API, the `m3a` CLI and MCP) |
+| `spec/` | The motion format, the legend, the skeleton profile, recipes, graphs, actions and sims, the conformance vectors and kit |
+| [`library/`](library/README.md) | 11 licensed sets of clips with their catalogs, licenses, baselines and the registry index |
+| `apps/` | The gallery (the owner's ground station) and the labs |
+| `services/intake/` | The hosted intake queue's store (Supabase) |
+| `tools/`, `bench/` | The repository's commands ([`AGENTS.md`](AGENTS.md) lists them) and the fresh-agent benchmark |
+| [`docs/MIGRATING.md`](docs/MIGRATING.md), [`spec/conformance/CERTIFYING.md`](spec/conformance/CERTIFYING.md) | For a repository adopting the package, or certifying its own implementation |
+| [`AGENTS.md`](AGENTS.md), [`CONTRIBUTING.md`](CONTRIBUTING.md), [`DOCTRINE.md`](DOCTRINE.md) | The rules for every change, how to contribute clips or code, what the package optimizes and why |
 | [`docs/FEASIBILITY.md`](docs/FEASIBILITY.md) | The analysis: the question, the cockpit-free design, the evidence, the landscape, feasibility by dimension, risks, owner decisions, the verdict |
 | [`PLAN.md`](PLAN.md) | The execution plan for an autonomous coding agent: the doctrine, the architecture and contracts, 11 phases, 56 work packages, 11 gates (G0 to G10), 4 milestones, the benchmark, the ledger |
 | [`reports/AI native game animation landscape.md`](reports/AI%20native%20game%20animation%20landscape.md) | The research synthesis, October 2026 |
 | [`research_notes/AI native game animation landscape/`](research_notes/AI%20native%20game%20animation%20landscape/) | Seven cited studies: AI motion technology, commercial tools, formats and runtimes, data and licensing, agent tooling, the origin repos, the adopter repos |
 
-## Run the plan
+## How it was built
 
-Start a Claude Code session on this repository with this prompt:
-
-```
-Execute PLAN.md in michaelcrosato/my-3danimations. Read docs/FEASIBILITY.md §0, then PLAN.md §0–§3 and §8, and adopt
-the doctrine in §3 as DOCTRINE.md (WP-0.1). Work the ledger (§14) in order: for each WP read only its entry and what it
-cites, meet every Done-when and prove it with Verify, apply the definition of done (§8.3), update the ledger and
-docs/PROGRESS.md, and commit per WP. Keep one draft PR per phase: run each gate's command set, post its report on the
-PR, and merge the PR into main when the gate passes (§8.5). Make reversible calls yourself and log them; escalate only
-hard-to-undo calls (§3), using the 15-minute timer and the defaults in §13. Reach G4 (M1, first flight) first, then
-continue phase by phase. When something needs the owner, mark it blocked-owner, say exactly what is needed on the PR,
-and carry on with the rest. Stop only for a kill criterion (§12), a finished ledger, or when all that is left is
-blocked-owner.
-```
-
-**Effort: ultracode** (recommended). The plan is built for parallel lanes: every work package owns its paths, and there
-are verifier and integrator roles (`PLAN.md` §11). The contract runs single-threaded and the lanes fan out after G2.
-**Max** is the single-agent fallback, and a good choice for the first session if you'd rather watch the contract form
-before paying for parallel lanes. `docs/FEASIBILITY.md` §9 gives the reasoning.
+Claude Code sessions ran the kickoff prompt in `docs/FEASIBILITY.md` §9 at effort ultracode (D83): the ledger
+(`PLAN.md` §14) in order, one draft pull request a phase (#4 to #17), each merged at its gate (§8.5).
+`docs/DECISIONS.md` logs every call made on the way.
 
 The milestones:
 - **M1 "first flight":** library clips on humanoid skeletons in three.js, verified headless: at least 95% of the

@@ -42,6 +42,9 @@ export interface QaContext {
 /** A clip's quality as its writer records it. */
 export type Quality = Clip["quality"];
 
+/** A clip id as the format writes it, SET/Slug, its slug perhaps with a hyphen (spec/MOTION.md §11). */
+const CLIP_ID = /^[A-Z0-9_]+\/[A-Za-z0-9_-]+$/;
+
 /** What is wrong with a reasons file's shape (tools/qa/qa.schema.json), none when it is right. */
 export function reasonsProblems(r: unknown): string[] {
   const out: string[] = [], text = (v: unknown) => typeof v === "string" && v.trim().length > 0, obj = (v: unknown): v is Record<string, unknown> => Boolean(v) && typeof v === "object" && !Array.isArray(v);
@@ -50,13 +53,13 @@ export function reasonsProblems(r: unknown): string[] {
   if (!text(r.warn)) out.push("warn is the reason a warn is kept, a text");
   if (!obj(r.sets) || !Object.values(r.sets).every(text)) out.push("sets maps a set to its reason, a text");
   if (!obj(r.clips) || !Object.values(r.clips).every((m) => obj(m) && Object.values(m).every(text))) out.push("clips maps a clip id to { metric: reason }");
-  else for (const id of Object.keys(r.clips)) if (!/^[A-Z0-9_]+\/[A-Za-z0-9_]+$/.test(id)) out.push(`"${id}" is not a clip id`);
+  else for (const id of Object.keys(r.clips)) if (!CLIP_ID.test(id)) out.push(`"${id}" is not a clip id`);
   if (r.floats !== undefined && (!obj(r.floats) || !Object.values(r.floats).every(text))) out.push("floats maps a clip id to why it stands off the floor, a text");
-  else for (const id of Object.keys(r.floats ?? {})) if (!/^[A-Z0-9_]+\/[A-Za-z0-9_]+$/.test(id)) out.push(`"${id}" is not a clip id`);
+  else for (const id of Object.keys(r.floats ?? {})) if (!CLIP_ID.test(id)) out.push(`"${id}" is not a clip id`);
   if (r.offFeet !== undefined && (!obj(r.offFeet) || !Object.values(r.offFeet).every(text))) out.push("offFeet maps a clip id to where it is instead of on its feet, a text");
-  else for (const id of Object.keys(r.offFeet ?? {})) if (!/^[A-Z0-9_]+\/[A-Za-z0-9_]+$/.test(id)) out.push(`"${id}" is not a clip id`);
+  else for (const id of Object.keys(r.offFeet ?? {})) if (!CLIP_ID.test(id)) out.push(`"${id}" is not a clip id`);
   if (r.unplanted !== undefined && (!obj(r.unplanted) || !Object.values(r.unplanted).every(text))) out.push("unplanted maps a clip id to why no foot holds still on the floor, a text");
-  else for (const id of Object.keys(r.unplanted ?? {})) if (!/^[A-Z0-9_]+\/[A-Za-z0-9_]+$/.test(id)) out.push(`"${id}" is not a clip id`);
+  else for (const id of Object.keys(r.unplanted ?? {})) if (!CLIP_ID.test(id)) out.push(`"${id}" is not a clip id`);
   return out;
 }
 /** The reasons (checked: a bad file throws, naming what is wrong), or none when there is no file yet. */

@@ -1,17 +1,20 @@
 // The check tools (PLAN.md WP-7.2a): each example the same on every surface; then each tool's failing input refused
 // with its code and fix, and what each tool is for, pinned on library clips: metrics' status, values, caps and recorded
-// verdict (a fail, a warn and a warn no repair answers, a stale one), the sheet's flags, view, sizes and cap, the film's
-// frames centred on the strike with the strike and events named, and its picture (poses and root, forward, sideways and
-// turning) and travel, the diff's pose numbers, travel (each clip's own), picture, sizes, regression gate both ways and
-// its order, lint's repairs, tag conflicts and unanswered metrics, apart and mixed; and every hint naming the clip as
-// given, in backticks (an id, a path, single-quoted when it must be, <the clip's JSON> or <the clip's file> for an
-// absolute path or one with a control character).
+// verdict (a fail, a warn and a warn no repair answers, a stale one), the sheet's flags, view (a name, or an orbit
+// given as an object, the CLI's yaw,pitch or JSON, D119; a bad orbit told what is wrong in it, an object too, by the
+// schema's one form of its type), sizes and cap, the film's frames centred on the strike with the strike and events
+// named, and its picture (poses and root, forward, sideways and turning) and travel, the diff's pose numbers, travel
+// (each clip's own), picture, sizes, regression gate both ways and its order, lint's repairs, tag conflicts and
+// unanswered metrics, apart and mixed; and every hint naming the clip as given, in backticks (an id, a path,
+// single-quoted when it must be, <the clip's JSON> or <the clip's file> for an absolute path or one with a control
+// character).
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { clip as clipNs, serialize, type Clip } from "@m3a/core";
 import { fix, metrics, sheets } from "@m3a/sensors";
 import { png } from "@m3a/sensors/node";
 import { describe, expect, it } from "vitest";
+import { parseCall } from "../src/cli.ts";
 import { nodeHost } from "../src/node.ts";
 import { libraryAccess } from "../src/node/library.ts";
 import { Registry, type Reply } from "../src/registry/index.ts";
@@ -75,7 +78,38 @@ describe("the check tools", () => {
     expect([eight.size, eight.flagged, eight.img.equals(want("three-quarter")), eight.img.equals(want("three-quarter", []))]).toEqual([[1000, 248, 331], expect.arrayContaining([{ metric: "twistFlip", level: "fail", t0: 0.367, t1: 0.433 }]), true, false]);
     expect((await at(8, "side")).img.equals(want("side"))).toBe(true);
     expect([(await at(16)).size, (await at(4)).size[0]]).toEqual([[1000, 404, 539], 500]);
-    expect((await call("sheet", { clip: `${Q}Walk_Loop`, view: "iso" })).error).toMatchObject({ code: "E_ARGS", message: expect.stringMatching(/^view is "iso", not one of front, side, back, top, three-quarter; did you mean/) });
+    expect((await call("sheet", { clip: `${Q}Walk_Loop`, view: "iso" })).error).toMatchObject({ code: "E_ARGS", message: expect.stringMatching(/^view is "iso", not one of front, side, back, top, three-quarter, nor yaw,pitch in degrees \(30,10\); did you mean/) });
+  });
+
+  it("sheet: an orbit {yaw, pitch} drawn as asked, unlike the front view; the CLI's yaw,pitch and JSON alike; a bad orbit refused, saying what is wrong", async () => {
+    const shot = async (view: unknown) => {
+      const pngs = new Map<string, Uint8Array>(), r = await call("sheet", { clip: `${Q}Walk_Loop`, frames: 4, view }, { pngs });
+      return { r, img: r.status === "ok" ? only(pngs) : null };
+    };
+    const { clip, rest } = loaded(`${Q}Walk_Loop`), flags = metrics(clip, rest).findings.map((f) => ({ t0: f.t0, t1: f.t1, label: f.metric }));
+    const orbit = await shot({ yaw: 30, pitch: 10 }), front = await shot("front"), want = Buffer.from(png(sheets.sheet(clip, rest, { frames: 4, width: 500, view: { yaw: 30, pitch: 10 }, flags }).image));
+    expect([orbit.r.status, orbit.r.data!.view, orbit.img!.equals(want), orbit.img!.equals(front.img!), front.r.data!.view]).toEqual(["ok", "30,10", true, false, "front"]);
+    // the CLI hands an orbit over as text (its schema has no one type): yaw,pitch and the orbit's JSON draw the same
+    const sheetTool = CHECK.find((t) => t.name === "sheet")!;
+    expect([parseCall(sheetTool, ["x", "--view", "30,10"]), parseCall(sheetTool, ["x", '--view={"yaw":30,"pitch":10}'])]).toEqual([{ clip: "x", view: "30,10" }, { clip: "x", view: '{"yaw":30,"pitch":10}' }]);
+    for (const text of ["30,10", " 30, 10 ", '{"yaw":30,"pitch":10}']) expect(((s) => [s.img!.equals(orbit.img!), s.r.data!.view])(await shot(text)), text).toEqual([true, "30,10"]);
+    const refused = async (view: unknown) => (await shot(view)).r.error;
+    expect(await Promise.all([{ yaw: 30, pitch: 100 }, "30,-95", '{"yaw":30}', '{"yaw":30,"pitch":10,"roll":5}', "{yaw", "30", { yaw: 30 }].map(refused))).toEqual([
+      { code: "E_ARGS", message: "view.pitch is 100, above its maximum 90" },
+      { code: "E_ARGS", message: "view.pitch is -95, below its minimum -90" },
+      { code: "E_ARGS", message: "view.pitch is required" },
+      { code: "E_ARGS", message: expect.stringMatching(/^unknown field in view "roll".*\(takes yaw, pitch\)$/) },
+      { code: "E_ARGS", message: 'view is "{yaw", which doesn\'t parse as JSON: give {"yaw":30,"pitch":10}, or 30,10' },
+      { code: "E_ARGS", message: 'view is "30", not one of front, side, back, top, three-quarter, nor yaw,pitch in degrees (30,10); did you mean "top"?' },
+      { code: "E_ARGS", message: "view.pitch is required" }, // the schema's, before the tool runs: what its object form lacks
+    ]);
+    // an object off the orbit's form on the API (and MCP) is told what is wrong within it, as the CLI's text is
+    expect(await Promise.all([{ yaw: 30, pitch: 10, roll: 5 }, { yaw: "30", pitch: 10 }, { yaw: 30, pitch: Infinity }, [30, 10]].map(refused))).toEqual([
+      { code: "E_ARGS", message: expect.stringMatching(/^unknown field in view "roll".*\(takes yaw, pitch\)$/) },
+      { code: "E_ARGS", message: 'view.yaw should be a number, not "30"' },
+      { code: "E_ARGS", message: "view.pitch is Infinity; give a finite number" },
+      { code: "E_ARGS", message: "view matches none of its 2 forms" }, // an array: no form of its type
+    ]);
   });
 
   it("film: frames ±0.2 s around the strike, the strike and events named; around moves them; its picture the poses and root at those times; a moment past the end refused", async () => {

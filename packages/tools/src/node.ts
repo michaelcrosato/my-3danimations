@@ -26,7 +26,7 @@ import { quote } from "./registry/schema.ts";
 import { TOOLS } from "./tools/index.ts";
 
 /** The local intake store's record files under .cache/intake/ (INTAKE_DIR), for a contributor's `intake.localStore`
- *  until WP-9.1's `m3a library submit`. */
+ *  (the files `m3a library submit` writes; B8's grader reads them). */
 export { INTAKE_DIR, intakeFiles } from "./node/intake.ts";
 
 /** The local lane on disk, for `sourcing.deliver`: library/local/'s sets, written atomically under its lock, no link

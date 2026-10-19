@@ -105,7 +105,7 @@ const STRAIGHT = 25;
  */
 export function baselineReason(w: Warned, warned: readonly Warned[], keys: readonly Record<string, unknown>[]): string {
   const field = w.field ?? "";
-  if (w.code === "M2-W002") return "format 1's twist pop: a limb turns while bent past 135 degrees, where its twist barely shows; re-import from the source fixes it (WP-5.3)";
+  if (w.code === "M2-W002") return "format 1's twist pop: a limb turns while bent past 140 degrees, where its twist barely shows; re-importing from the source files fixes it once they come (D63)";
   if (w.code === "M2-W003") return "the hips go below standing ground on purpose (the clip swims or rises from the ground); tag profiles refine the rule (WP-3.3)";
   if (w.code === "M2-W004") return "a limb swings round through its root between two keys; a refit or re-import adds the key between (WP-5.3)";
   if (w.code === "M2-W006") return "the origin's importer wrote this optional field in some keys only; re-import writes it in all (WP-5.3)";

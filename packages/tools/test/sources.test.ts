@@ -2,9 +2,10 @@
 // generator behind the HTTP adapter run through core's one `sourceClip`, each the same clip for the same seed and each
 // passing the same gate; the adapter off by default, sending Kimodo's constraint shape, recording the terms' version it
 // was served; and where each clip goes: an allowlisted source's to the intake queue (the local IntakeStore) with the
-// intake's provenance the intake's gates ask for, a source whose stated or served terms aren't allowlisted only into a
-// local set under library/local/ (in memory, and on disk through the Node lane, no link leading out), never into a
-// distributable set. The tools' socket types are core's, written once. No network: every transport is a mock.
+// intake's provenance the intake's gates ask for, a source whose stated or served terms aren't allowlisted, or that
+// served a clip under other terms than it states (D119), only into a local set under library/local/ (in memory, and on
+// disk through the Node lane, no link leading out), never into a distributable set. The tools' socket types are core's,
+// written once. No network: every transport is a mock.
 import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -140,7 +141,7 @@ describe("where a source's clip goes", () => {
     expect(await to(bow, { by: BY, manifest: { url: "http://generator.invalid/m.json", sha256: MANIFEST.sha256 } })).toEqual({ to: "refused", reasons: [expect.stringContaining("https URL")] });
     expect([await store.list(), mem.files.size]).toEqual([[], 0]);
   });
-  it("a remote generator's reply never decides its route alone: both the terms it states and those it served are read, and recorded", async () => {
+  it("a remote generator's reply never decides its route alone: the terms it states and those it served are read and recorded, and must be the same", async () => {
     const store = contributor(), mem = lane(), CC0 = { license: "CC0-1.0", version: "1" };
     const swapped = await sourceClip(kimodo({ served: { license: "CC0-1.0", version: "x" } }).source, ask("a bow", { constraints: KEYED }));
     expect(swapped.record).toMatchObject({ license: "CC0-1.0", version: "x", stated: { license: NVIDIA.license, version: NVIDIA.version } });
@@ -151,10 +152,18 @@ describe("where a source's clip goes", () => {
     for (const s of [swapped, served]) expect(await deliver(s, { submit: intakeSubmit(store), local: mem.lane, by: BY, manifest: MANIFEST })).toMatchObject({ to: "local", set: "LOCAL_KIMODO" });
     expect(await store.list()).toEqual([]);
     expect(JSON.parse(mem.files.get("library/local/LOCAL_KIMODO/_set.json")!).sources.M2M_QUATERNIUS.origin).toContain("; it states CC0-1.0 (1)");
-    // a new version of allowlisted terms is still allowlisted, both versions recorded
+    // allowlisted terms served in another version, or as other allowlisted terms: both recorded, and the clip refused
+    // (a clip enters only under the terms its source states, D119, reversing D113)
     const bumped = await sourceClip(kimodo({ terms: CC0, served: { license: "CC0-1.0", version: "2" } }).source, ask("a bow", { seed: 2, constraints: KEYED }));
-    expect([bumped.record.stated, allowlisted(bumped.clip).ok]).toEqual([CC0, true]);
-    expect(await deliver(bumped, { submit: intakeSubmit(store), local: mem.lane, by: BY, manifest: MANIFEST })).toMatchObject({ to: "intake" });
+    expect([bumped.record.stated, allowlisted(bumped.clip)]).toEqual([CC0, { ok: false, why: "the kimodo source states CC0-1.0 (1) and served CC0-1.0 (2): a clip enters only under the terms its source states" }]);
+    const inherits = await sourceClip(kimodo({ terms: CC0, served: { license: "inherit", version: "1" } }).source, ask("a bow", { seed: 3, constraints: KEYED }));
+    expect([inherits.record.stated, allowlisted(inherits.clip)]).toEqual([CC0, { ok: false, why: "the kimodo source states CC0-1.0 (1) and served inherit (1): a clip enters only under the terms its source states" }]);
+    for (const s of [bumped, inherits]) expect(await deliver(s, { submit: intakeSubmit(store), local: mem.lane, by: BY, manifest: MANIFEST })).toMatchObject({ to: "local", set: "LOCAL_KIMODO", why: expect.stringContaining("a clip enters only under the terms its source states") });
+    expect(await store.list()).toEqual([]);
+    // served under the terms it states: allowlisted, and sent
+    const same = await sourceClip(kimodo({ terms: CC0, served: CC0 }).source, ask("a bow", { seed: 4, constraints: KEYED }));
+    expect([same.record.stated, allowlisted(same.clip)]).toEqual([undefined, { ok: true, why: "CC0-1.0, from the kimodo source (CC0-1.0, 1)" }]);
+    expect(await deliver(same, { submit: intakeSubmit(store), local: mem.lane, by: BY, manifest: MANIFEST })).toMatchObject({ to: "intake" });
   });
   it("a source that isn't allowlisted writes only its local set under library/local/, whatever its clip claims", async () => {
     const store = contributor(), mem = lane(), k = kimodo();

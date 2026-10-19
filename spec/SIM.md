@@ -2,7 +2,7 @@
 
 **Status:** written in WP-6.5. **Schemas:** `spec/schemas/sim.schema.json` (a script), `spec/schemas/sim-trace.schema.json`
 (a trace). **Runtime:** `@m3a/tools`' `sim` namespace (`simulate`, `validateScript`, `compareTraces`, `traceText`,
-`filmstrip`); `npm run sim` (`m3a sim` once WP-7.1 lands). A simulation runs a graph (`GRAPH.md`) the way a game drives
+`filmstrip`); `npm run sim`, and the tool `graph.sim` (`m3a graph.sim <graph> --script <script>`, MCP `graph_sim`). A simulation runs a graph (`GRAPH.md`) the way a game drives
 it, from a script of the game's input, and says what happened: the states, the events and the hit windows at the steps
 they came in, where the root went, and what the sensors read of the body. The same script, graph and clips give the
 same trace on every run and, when the root follows the animation, on every body.

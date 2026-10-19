@@ -47,7 +47,10 @@ const isNum = (v: unknown): v is number => typeof v === "number" && Number.isFin
 const num = (min: number, max: number): Check => (v) => (isNum(v) && v >= min && v <= max ? null : `a number from ${min} to ${max}`);
 const word = (words: readonly string[]): Check => (v) => (typeof v === "string" && words.includes(v) ? null : `one of ${words.join(", ")}`);
 const bool: Check = (v) => (typeof v === "boolean" ? null : "true or false");
-const id: Check = (v) => (typeof v === "string" && /^[A-Z0-9_]+\/[A-Za-z0-9_]+$/.test(v) ? null : "a clip id, SET/Slug");
+// a recipe's own id is SET/Slug; a clip it reads may have a hyphen in its slug, as the library's do (spec/MOTION.md
+// §11: MESH2MOTION/Two-hand_Blast), as graph/validate.ts reads a state's clip
+const id: Check = (v) => (typeof v === "string" && /^[A-Z0-9_]+\/[A-Za-z0-9_]+$/.test(v) ? null : "a recipe id, SET/Slug");
+const clipId: Check = (v) => (typeof v === "string" && /^[A-Z0-9_]+\/[A-Za-z0-9_-]+$/.test(v) ? null : "a clip id, SET/Slug");
 const name: Check = (v) => (typeof v === "string" && /^[A-Za-z0-9_]+$/.test(v) ? null : "a step's name (letters, digits and _)");
 const names: Check = (v) => (Array.isArray(v) && v.length >= 2 && v.every((x) => name(x) === null) ? null : "a list of at least two step names");
 const vec3: Check = (v) => (Array.isArray(v) && v.length === 3 && v.every(isNum) ? null : "[forward, right, up] in mm");
@@ -80,7 +83,7 @@ interface OpSpec {
 const span = { from: time, to: time, fade: num(0, 10) };
 /** Every operation and its fields. */
 export const OPS: Readonly<Record<string, OpSpec>> = {
-  clip: { reads: [], needs: ["id"], fields: { id, from: time, to: time, loop: loopOrBlend } },
+  clip: { reads: [], needs: ["id"], fields: { id: clipId, from: time, to: time, loop: loopOrBlend } },
   sequence: { reads: ["items"], needs: ["items"], fields: { items: names, fade: num(0, 5), sync: word(["contacts"]) } },
   blend: { reads: ["a", "b"], needs: ["a", "b", "w"], fields: { a: name, b: name, w: weightCurve, warp: bool } },
   layer: { reads: ["base", "over"], needs: ["base", "over"], fields: { base: name, over: name, mask: maskOf, feather: num(0, 1), weight: num(0, 2), additive: bool } },

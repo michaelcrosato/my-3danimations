@@ -4,6 +4,113 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.54.0 · 2026-10-19
+
+The audit's large items (D119): six built, the rest deferred with their reasons in docs/HANDOFF.md; `AUDIT.md` retired.
+The owner's answers on D94, #16's proof thread and the stray artifact recorded (D120).
+
+### Spec
+- A clip's `provenance.intake` requires `by` (who or what made it) whenever the record is present (clip.schema.json,
+  MOTION.md §7.4); a source's stated terms that differ from the served ones keep its clips out of the intake. Refrozen
+  under D119.
+
+### Core
+- The validator refuses `provenance.intake` without `by` (M2-E003 at `provenance.intake.by`).
+
+### Three
+- `@m3a/three/test-characters/generate`: the test characters as GLB bytes without three or its loaders, for code that
+  reads them as files (a test pins that its imports reach only `@m3a/core`).
+
+### Tools
+- A character can be `gen-<seed>` (a generated test character, one name a seed: `gen-7`, never `gen-007`) wherever a
+  tool takes one: retarget.inspect, retarget.apply, graph.sim, export (its .glb too), on every surface and in m3a.js.
+- `sheet` draws any orbit: `view` is a named view or `{yaw, pitch}` in degrees (`--view 30,10` on the command line),
+  pitch within -90 to 90, each wrong form refused with what is wrong.
+- An argument that fits none of its forms is told what is wrong in the one form of its type: `{yaw: 30}` reads
+  "view.pitch is required" on every surface.
+- `@m3a/tools` ships the agentskills.io skill as `skills/m3a/SKILL.md`; `pack --check` asserts it, and the benchmark
+  runner copies it from the installed package (the repository's when none is installed).
+- `deliver` refuses a clip whose source states terms other than those it served; `m3a library submit` refuses a
+  clip with no `--by` and no recorded `by`, and `--by` fills a record the clip's file carries without one.
+- The intake checker samples the library once and then only new submissions (the census's later counts about 0.13 s,
+  from 0.8 s), with the same result as the whole census.
+
+### Repo
+- e2e `first-flight`: G4's demo set and session (idle, walk, run, jump, attack with its hit) on the six skeletons and
+  the held-out rig, sensors green, page = Node hash for hash, on the public API; `apps/lab/hello`, its e2e,
+  `tools/run/hello.ts` and `npm run hello` retired.
+- T1 samples and T2 runs in full (D74): one planted case each of B1, B3, B4 and B7's graders, B3's Rigify known-good,
+  the runner's variant trial, the sweep's clip-by-skeleton sample, the intake census's equality proof, every ninth
+  clip's token count and every ninth locomotion loop's planted feet (every third before): T1's work 250 s of file
+  time, from 287; CI's T1 had reached 138 s of its 135 s mark.
+- doctrine: `@m3a/tools` may reach `@m3a/three` only through `test-characters/generate`.
+
+## 0.53.1 · 2026-10-19
+
+The post-G10 audit (D118): every easy finding fixed, two duplicates retired, the large items listed in `AUDIT.md`.
+
+### Spec
+- A recipe's clip step and an action's interrupt targets take a library clip's id as the format writes it, its slug
+  perhaps with `-` (MOTION.md §11: `MESH2MOTION/Two-hand_Blast`), as the graph schema already did; a recipe's and a
+  paired action's own id keep SET/Slug without one. Refrozen under D118 with MOTION.md's errata (§6.1's 176 clips,
+  §7.4's `recipe` provenance row, §15's twist pop staying in Quaternius' migrated clips), tiers.md's tier 1b inputs
+  (the Rigify vector) and the kit, and SKELETON.md §7's Khronos watch (run: neither extension listed by Khronos).
+- spec/SIM.md names the tool `graph.sim`; the vectors' README says Mesh2Motion's CC0 was audited (D63).
+
+### Core
+- `validateRecipe` and `validateAction` take a clip id with `-` in its slug for a clip step and an interrupt's targets
+  (R-E004 and A-E003 refused `MESH2MOTION/Two-hand_Blast`); `interruptInto` writes the cut's own id with `_` for it.
+- `skeleton.recognize` throws a RangeError naming a bone in a loop of parents among bones a name table knows, as its
+  topology fallback did, instead of hanging (D96).
+
+### IO
+- `skeletonOfGltf` refuses a bone whose rest head isn't finite (node transforms whose product overflows) with E_RIG
+  naming the bone, instead of returning NaN heads (K7, D96).
+
+### Library
+- `checkSets` reads a composed source license (ids joined with " AND ") part by part: each an SPDX id with its text
+  kept, fitting the set's tier, and the credits list each part (D96).
+- The Quaternius sets' baselined twist pops give the validator's threshold, 140° (was 135°), and say the re-import
+  waits for the source files (D63); the registry index mints their v2 (serial 2).
+
+### Tools
+- `npm run index -- admit` holds a community pack's clip files and catalog rows to the intake's text gate, naming the
+  file and field without quoting them; library-submit exports `proseProblems`, the gate's reading of one string.
+- `license.check` passes a composed set whose parts fit and whose texts are kept; import no longer notes otherwise.
+
+### Repo
+- `npm run test:changed` picks the suites that cover what changed: a source file runs every suite whose tests import
+  it, a package change also runs the tools' and benchmark's suites that import it, and the benchmark, the intake
+  service, the workflows, the skills and llms.txt, the library and the feedback log each run the suites that read them.
+- A repo tool's `--json` report goes under `$M3A_CHECK_OUTPUT/<tool>/` when set; T1's conformance CLI test writes
+  there, so `npm test` no longer overwrites a certification's report; `qa` writes its clips.json there too, and
+  T1's QA and sweep runs write to scratch, leaving a person's `check-output/qa/` and the sweep results a gate's
+  `--record` reads as they were.
+- `npm run doctrine` fails a budgeted file or tools/pins.json that no longer exists, where it reported it pending;
+  the doctrine tests remove their /tmp fixtures (F4.5); `npm run gate` names the gates when given one it lacks.
+- e2e `single`: `m3a.js`, built as `npm run pack` builds it, runs in Chromium and replies as on Node (F5.3).
+- CI: the dispatched gate job fetches the held-out rigs; each dispatched gate has its own concurrency group, so
+  `intake-contract` no longer cancels a running gate; the dispatch input names the gates a runner can run.
+- The root `engines` asks for Node >=24.2 (every repo CLI runs under `import.meta.main`), and the SessionStart hook
+  compares major and minor.
+- T0 runs its typecheck and lint side by side (a tier step can run `together` with the one before it), and lint keys
+  its cache by content, not mtime, so CI's fresh checkout reuses it: a cold T0 about 16.7 s here (was about 23), a
+  warm one 2.3 s; CI's T0 had failed at 23.4 s and 22.9 s, over 1.5× its 15 s budget, with every step passing.
+- T1 keeps search answering round 1's 10 held-out queries (D65); the review test numbers sources from the log it
+  copies; AGENTS.md's command table is checked to name every package.json script.
+- Retired: tools/run/pending.ts (Phase 0's placeholder) and two loose bench results that were byte copies of
+  G4-run-2's. apps/lab/hello imports `@m3a/three/test-characters` (no lab reaches past the API) and records why it
+  stays (G4's standing check, D118).
+
+### Docs
+- README describes the built package; AGENTS.md lists every script and the adopt bot's rule; DOCTRINE.md's table,
+  PLAN.md's status, met deferred proofs, ledger commits, gate statuses and O3; llms.txt and the skills on the npm
+  bin and the seventh job; the library READMEs on intake and the index; FEEDBACK-LOG's taken-up points and F6;
+  HANDOFF rewritten; `AUDIT.md` (temporary) lists the large items.
+- services/intake/README.md: O8's runbook (the Supabase CLI's layout, the owner's row, GitHub sign-in, the Actions
+  secrets, Actions opening pull requests).
+- Stale comments on WP-7.1, 7.4 and 9.1 as future work corrected (the contributor page, the runner, the CLIs).
+
 ## 0.53.0 · 2026-10-19
 
 ### Spec

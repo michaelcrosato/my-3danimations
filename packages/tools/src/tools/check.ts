@@ -1,14 +1,16 @@
 // The check tools (PLAN.md WP-7.2a §1): a clip measured by the sensors (metrics), drawn as a contact sheet with its
-// findings in red (sheet) or as frames moving through space around a moment (film), two clips compared (diff: where
-// their poses part, travel, both verdicts and a picture of what moved; findings when b is worse), and the repairs a
-// clip needs (lint). Rows are capped, each reply's `next` names the call to make after it (common.ts call) with the
-// clip as given (clips.ts naming), and images go through ctx.image with cells at most 125 px wide (film's 160), so
-// their cost stays near the plan's: sheet 8 frames ~331 tokens, film 8 ~346, diff 6 ~614.
+// findings in red, in a named view or any orbit (sheet, D119), or as frames moving through space around a moment
+// (film), two clips compared (diff: where their poses part, travel, both verdicts and a picture of what moved; findings
+// when b is worse), and the repairs a clip needs (lint). Rows are capped, each reply's `next` names the call to make
+// after it (common.ts call) with the clip as given (clips.ts naming), and images go through ctx.image with cells at
+// most 125 px wide (film's 160), so their cost stays near the plan's: sheet 8 frames ~331 tokens, film 8 ~346, diff 6
+// ~614.
 import { clip as clipNs, format, measureFacts, type Clip, type Rest } from "@m3a/core";
 import { measureClipFacts, tagConflicts } from "@m3a/library";
 import { checks, fixes, metrics as measure, raster, sheets, type Report } from "@m3a/sensors";
 import { defineTool, ToolError, type ToolContext } from "../registry/registry.ts";
 import { imageTokens } from "../registry/reply.ts";
+import { check, closed, didYouMean, quote, type Schema } from "../registry/schema.ts";
 import { strip } from "../sim/film.ts";
 import { loadClip, naming } from "./clips.ts";
 import { ARROW, call, capped, CLIP, count, cut, imageName, mm, more, output, round, sec } from "./common.ts";
@@ -41,6 +43,34 @@ export function drawn<T>(draw: () => T): T {
     throw err;
   }
 }
+/** An orbit: the camera's azimuth (0 in front of the body, 90 at its right) and elevation (90 straight down), degrees.
+ *  The schema shows its shape; ORBIT, which viewArg checks, bounds the elevation too, so a refusal says which bound. */
+const YAW_PITCH = { type: "object", properties: { yaw: { type: "number" }, pitch: { type: "number" } }, required: ["yaw", "pitch"] } as const satisfies Schema;
+const ORBIT: Schema = closed({ ...YAW_PITCH, properties: { ...YAW_PITCH.properties, pitch: { type: "number", minimum: -90, maximum: 90 } } });
+/** sheet's view: a named view or an orbit; the CLI passes either as text ("30,10", or JSON), which viewArg reads. */
+const VIEW: Schema = { anyOf: [{ type: "string" }, YAW_PITCH], default: "three-quarter", description: `${Object.keys(raster.VIEWS).join(" ")}, or {yaw, pitch} degrees` };
+/** The view `v` names: a named view, an orbit, or the CLI's text of one ("yaw,pitch" in degrees, or the orbit's JSON);
+ *  E_ARGS for anything else, naming the closest view or what is wrong with the orbit. */
+function viewArg(v: string | raster.View): raster.ViewName | raster.View {
+  const names = Object.keys(raster.VIEWS);
+  if (typeof v === "string" && names.includes(v)) return v as raster.ViewName;
+  let o: unknown = v;
+  if (typeof v === "string") {
+    const text = v.replace(/\s/g, ""), pair = /^(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)$/.exec(text);
+    if (!pair && !text.startsWith("{")) throw new ToolError("E_ARGS", `view is ${quote(v)}, not one of ${names.join(", ")}, nor yaw,pitch in degrees (30,10)${didYouMean(v, names)}`, true);
+    try {
+      o = pair ? { yaw: Number(pair[1]), pitch: Number(pair[2]) } : JSON.parse(v);
+    } catch {
+      throw new ToolError("E_ARGS", `view is ${quote(v)}, which doesn't parse as JSON: give {"yaw":30,"pitch":10}, or 30,10`, true);
+    }
+  }
+  const problem = check(o, ORBIT, "view");
+  if (problem) throw new ToolError("E_ARGS", problem, true);
+  const { yaw, pitch } = o as raster.View;
+  return { yaw, pitch };
+}
+/** A view as a reply names it: its name, or an orbit as "yaw,pitch" (as the CLI takes it). */
+const viewName = (v: raster.ViewName | raster.View): string => (typeof v === "string" ? v : `${v.yaw},${v.pitch}`);
 /** A clip loaded for a reply, with how a hint (`as`) and a verdict (`title`) name it (clips.ts naming; `whose` tells
  *  diff's two clips apart). */
 async function load(ctx: ToolContext, ref: string, whose = "the clip's") {
@@ -110,26 +140,22 @@ export const metrics = defineTool<{ clip: string; limit: number }, unknown>({
   },
 });
 
-/** `sheet`: a clip's contact sheet, the metrics' findings flagged in red. */
-export const sheet = defineTool<{ clip: string; frames: number; view: raster.ViewName }, unknown>({
+/** `sheet`: a clip's contact sheet in a named view or an orbit, the metrics' findings flagged in red. */
+export const sheet = defineTool<{ clip: string; frames: number; view: string | raster.View }, unknown>({
   name: "sheet",
   description: "A clip as a contact-sheet PNG, the sensors' findings in red.",
-  params: {
-    type: "object",
-    properties: { clip: CLIP, frames: { type: "integer", minimum: 1, maximum: 64, default: 8 }, view: { type: "string", enum: Object.keys(raster.VIEWS), default: "three-quarter" } },
-    required: ["clip"],
-  },
+  params: { type: "object", properties: { clip: CLIP, frames: { type: "integer", minimum: 1, maximum: 64, default: 8 }, view: VIEW }, required: ["clip"] },
   output: output({ clip: "string", view: "string", frames: "integer", from: "number", to: "number", width: "integer", height: "integer", tokens: "integer", image: "string", flagged: "array" }),
   positionals: ["clip"],
-  examples: [{ args: { clip: "QUATERNIUS_3D2DGE/Walk_Loop", frames: 8 } }],
+  examples: [{ args: { clip: "QUATERNIUS_3D2DGE/Walk_Loop", frames: 8 } }, { args: { clip: "QUATERNIUS_3D2DGE/Walk_Loop", frames: 4, view: "30,10" } }],
   async run(a, ctx) {
-    const c = await load(ctx, a.clip), r = measure(c.clip, c.rest);
-    const s = drawn(() => sheets.sheet(c.clip, c.rest, { frames: a.frames, view: a.view, width: cells(a.frames), flags: r.findings.map((f) => ({ t0: f.t0, t1: f.t1, label: f.metric })) }));
+    const view = viewArg(a.view), c = await load(ctx, a.clip), r = measure(c.clip, c.rest);
+    const s = drawn(() => sheets.sheet(c.clip, c.rest, { frames: a.frames, view, width: cells(a.frames), flags: r.findings.map((f) => ({ t0: f.t0, t1: f.t1, label: f.metric })) }));
     const image = ctx.image(imageName(c.id), s.image), tokens = imageTokens(s.width, s.height), red = capped(r.findings, 10);
     return {
       verdict: `sheet ${c.title}: ${count(s.times.length, "frame")} ${span(s.times[0]!, s.times.at(-1)!)}, ${s.width}x${s.height}, ~${tokens} tokens, ${count(r.findings.length, "finding")} in red`,
       data: {
-        clip: c.id, view: a.view, frames: s.times.length, from: round(s.times[0]!, 3), to: round(s.times.at(-1)!, 3), width: s.width, height: s.height, tokens, image,
+        clip: c.id, view: viewName(view), frames: s.times.length, from: round(s.times[0]!, 3), to: round(s.times.at(-1)!, 3), width: s.width, height: s.height, tokens, image,
         flagged: red.rows.map((f) => ({ metric: f.metric, level: f.level, t0: round(f.t0, 3), t1: round(f.t1, 3) })), ...(red.more ? { more: red.more } : {}),
       },
       lines: [...red.rows.map((f) => `red: ${f.metric}${f.where ? ` ${f.where}` : ""} ${span(f.t0, f.t1)} (${f.level})`), ...more(red.more, "finding", `${call("metrics", [c.as], { limit: Math.min(50, r.findings.length) })} lists them`)],
