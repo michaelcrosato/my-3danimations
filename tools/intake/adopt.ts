@@ -188,8 +188,9 @@ export interface Adopted {
 }
 
 /** The clip an adoption writes: its set and id (over the clip it improves, as long as that clip is the version it was
- *  made on; else new in its tier's intake set, its name given a part of the submission's id if the set has one), its
- *  facts, quality and the intake's provenance, and the owner's approval with its motion hash. */
+ *  made on; else new in its tier's intake set under its own name, or when the set has that, the name with six hex
+ *  digits of the submission's id, then with _2, _3 ... after them, the first the set hasn't: a new clip never takes a
+ *  file another holds), its facts, quality and the intake's provenance, and the owner's approval with its motion hash. */
 export function adoptedClip(s: Submission, owner: string, checkout: string): Clip {
   const lib = libraryAt(join(checkout, "library/sets")), c = clipOf(s.kind, s.text, lib.library), d = s.decision!;
   let id: string;
@@ -203,8 +204,10 @@ export function adoptedClip(s: Submission, owner: string, checkout: string): Cli
   } else {
     const rule = licenseRule(c, lineage(c, lib.library, null).derived);
     if (!rule.tier) throw new Error(rule.problem ?? "its license fits no intake set");
-    const set = INTAKE_SETS[rule.tier], name = format.slug(c.id.split("/")[1] ?? c.name), taken = lib.source.sets().includes(set) && lib.source.files(set).includes(`${name}.json`);
-    id = `${set}/${taken ? `${name}_${s.id.slice(2, 8)}` : name}`;
+    const set = INTAKE_SETS[rule.tier], name = format.slug(c.id.split("/")[1] ?? c.name), files = new Set(lib.source.sets().includes(set) ? lib.source.files(set) : []);
+    let pick = files.has(`${name}.json`) ? `${name}_${s.id.slice(2, 8)}` : name;
+    for (let k = 2; files.has(`${pick}.json`); k++) pick = `${name}_${s.id.slice(2, 8)}_${k}`;
+    id = `${set}/${pick}`;
   }
   const rest = restFor(lib, c)?.rest;
   if (!rest) throw new Error(`no set has the rest ${c.restSrc} it decodes on`);

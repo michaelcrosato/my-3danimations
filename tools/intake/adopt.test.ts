@@ -2,34 +2,35 @@
 // copied under the OS's temp directory): the owner's adoptions committed in a dry run (the clip, its catalog row and
 // provenance written through the writer, the pull request printed, merged when the gates pass; an improvement a new
 // version of its clip, its lineage kept), an adoption already in the library not committed twice; an adoption not
-// recorded by the owner's identity refused; a pull request whose gates fail closed, its files restored and its
-// submission returned to review; an adoption that fails on the way returned to review, the next going on; GitHub's
-// pull requests (a local remote and a stand-in gh: nothing hosted is called) gated on their own tree and each made on
-// the main the last one merged into; and library-gates failing a planted bad clip, one a pull request adds outside the
-// intake too, and a forged adoption. Submissions are put in review by hand: the checker's own suite (check.test.ts)
-// proves how they get there. The derived files' regeneration is stubbed here (a library-only checkout;
-// adopt.full.test.ts runs the repository's commands in a whole one, under M3A_FULL), its worse distributions named in
-// the pull request; and an improved migrated set stays as npm run migrate writes it, the adopted clip kept byte for
-// byte and a review carried while its motion hash matches. An improvement of a CC BY clip, sent as `m3a library submit
-// --improves` sends it (no provenance.orig), is adopted with its license and credit.
+// recorded by the owner's identity refused; a new clip named with a name its set hasn't, never over a clip it holds; a
+// pull request whose gates fail closed, its files restored and its submission returned to review; an adoption that
+// fails on the way returned to review, the next going on; GitHub's pull requests (a local remote and a stand-in gh:
+// nothing hosted is called) gated on their own tree and each made on the main the last one merged into; and
+// library-gates failing a planted bad clip, one a pull request adds outside the intake too, and a forged adoption.
+// Submissions are put in review by hand: the checker's own suite (check.test.ts) proves how they get there. The derived
+// files' regeneration is stubbed here (a library-only checkout; adopt.full.test.ts runs the repository's commands in a
+// whole one, under M3A_FULL), its worse distributions named in the pull request; and an improved migrated set stays as
+// npm run migrate writes it, the adopted clip kept byte for byte and a review carried while its motion hash matches. An
+// improvement of a CC BY clip, sent as `m3a library submit --improves` sends it (no provenance.orig), is adopted with
+// its license and credit.
 import { spawnSync } from "node:child_process";
 import { appendFileSync, chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { parseClip, procedural, serialize, type Clip } from "@m3a/core";
+import { format, parseClip, procedural, serialize, type Clip } from "@m3a/core";
 import { DedupIndex } from "@m3a/library";
-import { contentHash, localStore, motionHash, type IntakeStore } from "../../packages/tools/src/intake/index.ts";
+import { contentHash, localStore, motionHash, type IntakeStore, type Submission } from "../../packages/tools/src/intake/index.ts";
 import { intakeFiles } from "../../packages/tools/src/node/intake.ts";
 import { libraryClips } from "../qa/qa.ts";
 import { ROOT } from "../run/cli.ts";
 import { migrate } from "../migrate/migrate.ts";
-import { adopt, dryRun, github, type PullRequests, type Regenerated } from "./adopt.ts";
+import { adopt, adoptedClip, dryRun, github, type PullRequests, type Regenerated } from "./adopt.ts";
 import { bindRigs, type Rig } from "./check.ts";
 import { BARE_SET, fixtures } from "./fixtures.ts";
 import { clipsOf, plantedGates, runGates, type Changed } from "./gates.ts";
 import { LOCAL_OWNER, libraryAt } from "./host.ts";
-import { scratchCheckout, writeClip } from "./write.ts";
+import { scratchCheckout, writeClip, type Written } from "./write.ts";
 
 // T1 runs the bot's cheap cases; T2's full step (M3A_FULL=1) the ones that write, gate and regenerate a set too
 const FULL = process.env.M3A_FULL === "1", TODAY = "2026-10-19", today = () => TODAY;
@@ -102,6 +103,19 @@ describe("the adopt bot, in a dry run against a scratch checkout", () => {
     const [o] = await bot();
     expect([o!.outcome, o!.why, o!.pr]).toEqual(["refused", expect.stringMatching(/recorded by "mallory", not by the owner's identity/), null]);
     expect([existsSync(join(D, "library/sets/INTAKE_CC0/Brisk.json")), (await store("checker").get(sent.get("brisk")!))!.state]).toEqual([false, "awaiting review"]);
+  });
+  it("names a new clip with a name its set hasn't (the submission's six hex digits, then _2, _3 ...), never over a clip the set holds", () => {
+    const text = fixtures(libraryAt(join(D, "library/sets")), "clean")[0]!.text, clip = parseClip(text), name = format.slug(clip.id.split("/")[1]!), ids: string[] = [], taken: Written[] = [];
+    const s: Submission = { id: "s-0123456789abcdef", contributor: "fixtures", kind: "clip", text, improves: null, content: contentHash(text), motion: null, state: "adopted", reason: null, report: null, decision: { as: "adopt", hash: contentHash(text), note: "", by: LOCAL_OWNER, date: TODAY }, date: TODAY };
+    try {
+      for (const n of [name, `${name}_012345`, `${name}_012345_2`]) {
+        taken.push(writeClip(D, { ...clip, id: `INTAKE_CC0/${n}` }));
+        ids.push(adoptedClip(s, LOCAL_OWNER, D).id);
+      }
+    } finally {
+      for (const w of taken.reverse()) w.restore();
+    }
+    expect(ids).toEqual([`INTAKE_CC0/${name}_012345`, `INTAKE_CC0/${name}_012345_2`, `INTAKE_CC0/${name}_012345_3`]);
   });
   it.runIf(FULL)("closes the pull request when the library gates fail on it, restores what it wrote, and returns the submission to review", async () => {
     const catalog = file("library/sets/INTAKE_CC0/catalog.tsv"), other = join(D, "library/sets/STYLE100_IDLE/Angry_Idle.json"), kept = readFileSync(other, "utf8");
