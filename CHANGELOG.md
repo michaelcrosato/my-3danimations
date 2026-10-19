@@ -28,13 +28,26 @@ features, patch for fixes. One line per change, under the part it touched (**Spe
 - `retarget.apply`'s reach gives the torso its allowance only where a spine bone spans a point the rig has no bone
   for, and only to the joints that bone carries: a rig missing only its neck or upper chest is read joint by joint, so
   a shoulder mapped wrong fails as it does with the bone (michaelcrosato/my-3danimations#14's review).
+- `m3a library` refuses a half-linked hosted store (some of M3A_SUPABASE_URL, M3A_SUPABASE_ANON_KEY,
+  M3A_CONTRIBUTOR_KEY, or the token alone) with E_KEY naming what is missing, instead of using the local queue
+  (michaelcrosato/my-3danimations#16's review).
 - `m3a review` regenerates the registry index after a decision, putting every file back if that refuses;
   `m3a review ingest` refuses a reviewer's name with a line break and a `proposals` that isn't a list (E_REVIEW).
 - The submit function reads a body sent without a length as a counted stream and refuses it past the limit (413),
   never buffering it whole; a retry of an accepted text answers its row (200) at the rate's limit, in the function and
   the database's rate trigger (michaelcrosato/my-3danimations#15's review).
 
+### Library
+- `checkIds` names a deprecation taken back (`undeprecated`) or pointed at another clip (`retargeted`), so `npm run
+  library -- check --since` fails both (#16's review).
+
 ### Repo
+- The registry index: `--check --since <ref>` holds the serial to that ref's index (it stays when nothing else
+  changed, grows when anything did); `release.yml` uploads only to a draft release, the one it drafts for a tag with
+  none; `library-gates.yml` fires on `library/LICENSES/**` and checks every set's license texts before the gate.
+- The migrator keeps an adopted clip only on the rest its set recorded, failing the set when the source measures it
+  otherwise (the owner adopts it again); the adopt bot probes `_2`, `_3`, ... until a new clip's id is free (#16's
+  review).
 - The intake's checker: an improvement keeps its previous version's tier, license and credit (an improved CC BY or
   CMU clip can be adopted); dedup asks with the submission's own id and against earlier submissions; a reason quotes
   no submission text and holds 500 characters; a submission whose gate throws is bounced alone, the batch going on.

@@ -4547,6 +4547,15 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
     6,990 moved; the sweep's pin re-pinned for reach and spans alone), and QA's off-feet answers sit in their own field.
     The submit function stays without CORS: no browser calls it (the contributor page reaches Auth and PostgREST
     alone), and §5.9 keeps the contributor key out of pages.
+  - **The review bot's findings on this pull request:** a deprecation can't be taken back or pointed elsewhere; a
+    half-linked hosted store is E_KEY, not the local queue; the migrator refuses an adopted clip whose source's rest
+    moved (the owner adopts it again: keeping the old rest would change the clip's `restSrc`, which its motion hash
+    covers); the adopt bot probes for a free id; the index's serial is held to the trusted index's; release.yml uploads
+    only to a draft; library-gates.yml checks every set's license texts (in the workflow, before the gate: the gate's
+    license step reads only the sets whose clips change). Not taken: binding a community pack's `verify` to the proof
+    hash recorded at admission. `verify` checks the files against the index's content id and digest first, so a forged
+    proof can't pass other files, and the namespace's proof file changes as the owner admits more (a new SHA-256) while
+    each rebuild already re-vouches the recorded proof; the thread stays open for the owner.
   - **T1 at the gate was 108 s on this machine** (CI 77 s on the same tree): over its 90 s budget, under its fail
     mark; Phase 9's heavy proofs run in T2's full step (ba75cff).
 - **Why:** the gate's machine-provable clauses, each run in its command set, and the owner's left as the owner's.
