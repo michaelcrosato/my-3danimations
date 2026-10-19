@@ -113,7 +113,7 @@ export const apply = defineTool<{ character: string; clips: string[]; mapping?: 
     const lines = [...rows].sort((x, y) => Number(x.j.ok) - Number(y.j.ok)).flatMap(({ title, j }) => {
       const why = capped(j.why, 2);
       const warned = j.worse.filter((w) => w.level === "warn").map((w) => w.metric);
-      return j.ok ? [`PASS ${title}: own ${j.own}, played ${j.played}, reach ${mm(j.reach)}${warned.length ? `; this body adds a warn: ${warned.join(", ")}` : ""}`]
+      return j.ok ? [`PASS ${title}: own ${j.own}, played ${j.played}, reach ${mm(j.reach)}${j.spans > 0.5 ? ` (its spine spans ${mm(j.spans)} the rig has no bones for)` : ""}${warned.length ? `; this body adds a warn: ${warned.join(", ")}` : ""}`]
         : [`FAIL ${title}: ${why.rows.map((w) => cut(w)).join("; ")}`, ...more(why.more, "reason")];
     });
     // a joint off its point, or a play that threw: the body's bones, not the clip
@@ -125,7 +125,7 @@ export const apply = defineTool<{ character: string; clips: string[]; mapping?: 
         clips: rows.map(({ j }) => {
           const why = capped(j.why, 2), worse = capped(j.worse, 3), cuts = { ...(why.more ? { why: why.more } : {}), ...(worse.more ? { worse: worse.more } : {}) };
           return {
-            clip: j.clip, ok: j.ok, own: j.own, played: j.played, reach: round(j.reach), why: why.rows.map((w) => cut(w)),
+            clip: j.clip, ok: j.ok, own: j.own, played: j.played, reach: round(j.reach), spans: round(j.spans), why: why.rows.map((w) => cut(w)),
             worse: worse.rows.map((w) => ({ metric: w.metric, level: w.level, own: w.own === null ? null : round(w.own, 1), played: w.played === null ? null : round(w.played, 1) })), ...(why.more || worse.more ? { more: cuts } : {}),
           };
         }),

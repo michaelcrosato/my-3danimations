@@ -64,7 +64,7 @@ async function row(c: { clip: Clip; rest: Rest }, id: string): Promise<SweepRow>
  * held-out rig one passing clean, one passing with two warns and one failing with a warn.
  */
 function rawResults(): SweepResults {
-  const row = (clip: string, rig: string, why: string[], warns: string[]): SweepRow => ({ clip, rig, ok: !why.length, why, warns, own: "pass", played: why.length ? "fail" : "pass", reach: 0.1, worse: [] });
+  const row = (clip: string, rig: string, why: string[], warns: string[]): SweepRow => ({ clip, rig, ok: !why.length, why, warns, own: "pass", played: why.length ? "fail" : "pass", reach: 0.1, spans: 0, worse: [] });
   const fail = (k: string) => `${k} 1.0 on its own body → 9.0 played on this one, past its fail level`, warn = (k: string) => `${k} 1.0 on its own body → 5.0 played on this one, past its warn level`;
   const rows = [row("S/A", "gen-0", [fail("skate")], [warn("slide")]), row("S/B", "gen-0", [fail("pop")], []), row("S/C", "gen-0", [], [warn("jitter")])];
   rows.push(row("S/A", "held", [], []), row("S/B", "held", [], [warn("pop"), warn("seam")]), row("S/C", "held", [fail("jitter")], [warn("skate")]));
@@ -166,7 +166,7 @@ describe("the sweep", () => {
     const res = JSON.parse(readFileSync(join(ROOT, "check-output/sweep/results.json"), "utf8")) as { rigs: string[]; clips: number; warned: unknown[]; rows: SweepRow[] };
     expect([res.rigs, res.clips, res.rows.length]).toEqual([RIGS, 4, 8]);
     expect(res.warned).toEqual(res.rows.filter((r) => r.ok && r.warns.length).map((r) => ({ clip: r.clip, rig: r.rig, warns: r.warns })));
-    for (const r of res.rows) expect(Object.keys(r).sort()).toEqual(["clip", "ok", "own", "played", "reach", "rig", "warns", "why", "worse"]);
+    for (const r of res.rows) expect(Object.keys(r).sort()).toEqual(["clip", "ok", "own", "played", "reach", "rig", "spans", "warns", "why", "worse"]);
   }, 120_000);
   it("gives 1bf5252's rows, byte for byte, on a fixed sample (the judge moved to @m3a/tools)", async () => {
     // a deliberate change to the rows re-pins the hash, saying why
@@ -178,6 +178,9 @@ describe("the sweep", () => {
       "gen-0 Backflip fail 1 0, gen-0 Run_Jump_Over pass 0 1, gen-0 Slide_Exit pass 0 0, gen-0 Hit_Knockback fail 1 0, gen-0 Pistol_Aim_Up pass 0 0, gen-0 BentForward_SideRunLeft pass 0 0, gen-0 Walk_Loop fail 1 0, " +
         "gen-7 Backflip fail 1 0, gen-7 Run_Jump_Over pass 0 0, gen-7 Slide_Exit pass 0 0, gen-7 Hit_Knockback pass 0 0, gen-7 Pistol_Aim_Up pass 0 0, gen-7 BentForward_SideRunLeft pass 0 0, gen-7 Walk_Loop fail 1 0",
     );
-    expect(createHash("sha256").update(JSON.stringify(rows)).digest("hex").slice(0, 16), JSON.stringify(rows)).toBe("b4f51cf5d8276a36");
+    // re-pinned (D107): the rows gain `spans`, and gen-7 (no upper chest: its chest bone spans the format's chest point)
+    // reads its limbs against their mapped parents, Backflip's reach 0.051 → 0.042 mm; every verdict and other value as
+    // b4f51cf5d8276a36 had them
+    expect(createHash("sha256").update(JSON.stringify(rows)).digest("hex").slice(0, 16), JSON.stringify(rows)).toBe("89b3e4f02e736978");
   }, 60_000);
 });
