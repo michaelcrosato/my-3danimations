@@ -3,7 +3,8 @@
 // so: its first step, run here with each unset, and every other step conditioned on it. The service role key reaches
 // only the steps that use it, the checkout keeps no token, the install runs no package's scripts, and the workflow's
 // token reaches only the adopt bot.
-// library-gates.yml runs `npm run gate -- library-pr` on every pull request that touches library/sets/.
+// library-gates.yml runs `npm run gate -- library-pr` on every pull request that touches library/sets/. ci.yml's
+// intake-contract job, by manual dispatch alone, runs the contract suite against O8's project, its secret on that step.
 import { spawnSync } from "node:child_process";
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -53,5 +54,18 @@ describe("library-gates.yml", () => {
     const text = workflow("library-gates.yml");
     expect(text).toMatch(/on:\n {2}pull_request:\n {4}paths:\n {6}- "library\/sets\/\*\*"\n/);
     expect(steps(text).map((s) => /run: (.+)/.exec(s)?.[1]).filter(Boolean)).toEqual(["npm ci", "npm run fixtures -- fetch", "npm run gate -- library-pr --json"]);
+  });
+});
+
+describe("ci.yml's hosted contract", () => {
+  const text = workflow("ci.yml"), job = text.slice(text.indexOf("\n  intake-contract:\n"));
+  it("runs only by manual dispatch with the gate intake-contract, failing unset, its secret on the step that runs the suite alone", () => {
+    expect(job).toMatch(/\n {4}if: github\.event_name == 'workflow_dispatch' && inputs\.gate == 'intake-contract'\n/);
+    expect(text).toMatch(/\n {4}if: github\.event_name == 'workflow_dispatch' && inputs\.gate != 'intake-contract'\n/);
+    const all = steps(job), secret = all.filter((s) => s.includes("secrets."));
+    expect([secret.length, secret[0]].map(String)).toEqual(["1", expect.stringContaining("npx vitest run packages/tools/test/intake-contract.test.ts")]);
+    expect(secret[0]).toMatch(/\[ -n "\$M3A_INTAKE_SUPABASE" \] \|\| \{ echo "::error::[^"]+"; exit 1; \}/);
+    expect([all.find((s) => s.includes("actions/checkout@"))!, all.some((s) => /run: npm ci --ignore-scripts\n/.test(`${s}\n`))]).toEqual([expect.stringMatching(/\n {10}persist-credentials: false/), true]);
+    expect(text.slice(0, text.indexOf("\njobs:"))).not.toMatch(/secrets\./);
   });
 });
