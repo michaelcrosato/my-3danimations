@@ -32,6 +32,10 @@ repository, which links no `m3a` bin (npx would fetch a package of that name fro
 - [STYLE100_SIDERUN](library/sets/STYLE100_SIDERUN/catalog.tsv): CC BY 4.0 (opt-in), 100STYLE's side runs
 - [CMU_CURATED](library/sets/CMU_CURATED/catalog.tsv): CMU's motion capture, curated (opt-in; not for resale, even converted)
 
+## Registry
+
+- [The registry index](library/index.json): every set's versions (content id, digest, tier, licenses, clips, bytes, QA and review counts), immutable and yanked never deleted, plus community packs from namespaces verified to their owners; `npm run index -- verify <SET> <dir>` checks a set's files against it
+
 ## Spec
 
 - [The motion format](spec/MOTION.md): a clip's fields, keys and versioning

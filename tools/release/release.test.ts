@@ -5,6 +5,7 @@
 import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import { Ajv2020 } from "ajv/dist/2020.js";
 import { describe, expect, it } from "vitest";
 import { contentId, type LibrarySource } from "../../packages/library/src/index.ts";
 import { directory, sha256 } from "../../packages/library/src/node.ts";
@@ -44,6 +45,20 @@ describe("the core", () => {
   });
 });
 
+/** The index's JSON Schema, compiled. */
+const valid = new Ajv2020({ strict: false }).compile(JSON.parse(readFileSync(join(import.meta.dirname, "index.schema.json"), "utf8")) as object);
+
+describe("the index's schema", () => {
+  it("holds the committed index, and refuses a version with no content id or a set deleted to nothing", () => {
+    const committed = JSON.parse(readFileSync(INDEX, "utf8")) as RegistryIndex;
+    expect(valid(committed), JSON.stringify(valid.errors)).toBe(true);
+    const [name, set] = Object.entries(committed.core)[0]!;
+    expect(valid({ ...committed, core: { ...committed.core, [name]: { versions: [{ ...set.versions[0]!, content: "x" }] } } })).toBe(false);
+    expect(valid({ ...committed, core: { ...committed.core, [name]: { versions: [] } } })).toBe(false);
+    expect(valid({ ...committed, format: "2" })).toBe(false);
+  });
+});
+
 describe("community packs", () => {
   const files = setFiles({ A: "pass" }), real = ids(files, sha256).content;
   const pack: Candidate = { namespace: "packs.example.org", set: "DANCES", license: "CC0-1.0", url: "https://packs.example.org/dances-v1.tar.gz", content: real };
@@ -53,6 +68,7 @@ describe("community packs", () => {
     expect(proofUrl("github.com/alice")).toBe("https://raw.githubusercontent.com/alice/.github/HEAD/m3a-packs.json");
     const reg = admit(none, pack, files, proof, sha256), index = buildIndex(source({}), sha256, reg);
     expect(index.community["packs.example.org/DANCES"]).toMatchObject({ proof: proof.url, versions: [{ v: 1, content: real, tier: "cc0" }] });
+    expect(valid(index), JSON.stringify(valid.errors)).toBe(true);
     expect(verifySet(index, "packs.example.org/DANCES", files, sha256, { proof })).toEqual([]);
     expect(verifySet(index, "packs.example.org/DANCES", setFiles({ A: "fail" }), sha256, { proof }).join()).toMatch(/content id/);
     expect(() => admit(reg, pack, files, proof, sha256)).toThrow(/holds that content id already/);

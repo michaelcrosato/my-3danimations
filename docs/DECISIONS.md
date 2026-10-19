@@ -4383,7 +4383,7 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   - **9.2's calls:** a clip's `provenance.source` records the source, its terms' license and version as served, the
     seed and a SHA-256 of the intent; the HTTP adapter template lives in tools (a network adapter), off by default,
     its transport always injected, sending Kimodo's constraint shape; core's public API reaches 44 of 44 with
-    `sources`.
+    `sources`, and the tools' half is `sourcing` (m3a.js holds every package's names once).
   - **The spec documents the two provenance records the intake and the sources write** (`intake`, `source`, both
     optional; spec/MOTION.md §7.4, re-frozen by this decision): readers and the schema accepted them already.
   - **The bench's `--need N`:** a gate's clause can need more than 4 of 5 (G9's ten clips through review, every one).
