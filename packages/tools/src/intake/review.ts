@@ -114,7 +114,8 @@ export interface ReviewHost {
   library: Library;
   checkout: boolean;
   /** Writes `clips` (each a clip of `set`, whole) through @m3a/library's writer: their files and the set's content id,
-   *  and the set's entry in the lock. */
+   *  the set's entry in the lock, and (in the repository's checkout) library/index.json regenerated, every file put
+   *  back if that refuses. */
   writeClips(set: string, clips: readonly Clip[]): void;
   /** One of DOCS' files, or null when it isn't there. */
   doc(path: (typeof DOCS)[keyof typeof DOCS]): string | null;

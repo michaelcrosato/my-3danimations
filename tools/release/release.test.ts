@@ -238,7 +238,7 @@ describe("release.yml", () => {
 describe("library-gates.yml", () => {
   it("runs the library-pr gates (the index's history check among them) on pull requests that touch the sets, the index or the registry", () => {
     const wf = workflow("library-gates.yml");
-    expect(wf.on).toEqual({ pull_request: { paths: ["library/sets/**", "library/index.json", "tools/release/registry.json"] } });
+    expect(wf.on).toEqual({ pull_request: { paths: ["library/sets/**", "library/sets.lock.json", "library/index.json", "tools/release/registry.json"] } });
     expect(Object.values(wf.jobs).flatMap((j) => j.steps).map((s) => s.run).filter(Boolean)).toContain("npm run gate -- library-pr --json");
   });
 });
