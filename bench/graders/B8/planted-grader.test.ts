@@ -1,13 +1,13 @@
 // B8's grader on the planted bad solutions only the grader fails (WP-9.1b's Done-when), each failing the check it
 // names, on gen-1: a fix of a library clip (not new), missing provenance (a recipe sent as it is), and a record
 // written into the queue by hand as awaiting review, which the grader checks again from its text (dedup). The rest:
-// planted.test.ts; the solutions: solutions.ts.
+// planted.test.ts; the solutions: solutions.ts. T1 plays one, T2's full step (M3A_FULL=1, D74) all three.
 import { describe, expect, it } from "vitest";
 import { PLANTED, play, text } from "./solutions.ts";
 
 describe("B8's grader", () => {
   it("fails each planted bad solution the checker passes or never sees, on gen-1, naming the check it broke", async () => {
-    for (const name of ["a fix of a library clip", "missing provenance", "a record written by hand"]) {
+    for (const name of (process.env.M3A_FULL === "1" ? ["a fix of a library clip", "missing provenance", "a record written by hand"] : ["missing provenance"])) {
       const bad = PLANTED[name]!, { g } = await play(name, bad, { seed: 1 });
       expect(g.pass, `${name}\n${text(g)}`).toBe(false);
       expect(g.checks.filter((c) => !c.ok).some((c) => c.name.startsWith(bad.fails)), `${name}\n${text(g)}`).toBe(true);

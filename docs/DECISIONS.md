@@ -4404,6 +4404,13 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
     carries its new version. `release.yml` runs only by hand and fails closed unless the repository variable
     `M3A_O2_RELEASE_ASSETS` is "yes" and the repository's owner started it: that variable is the owner's O2 go-ahead,
     which no session sets (D99: nothing is published).
+  - **9.1b's calls:** B8's emote is the agent's choice (the brief names the job, not the clip); its grader asks for
+    more than the queue does (the clip tagged emote, no `--improves` on a new clip, the disclosure and the local
+    report `library submit` adds, so a recipe sent as written fails) and plants seven bad solutions (never submitted,
+    bounced as a duplicate, a false CC0 claim, a sunk body, `--improves` on a new clip, a recipe as written, a record
+    written by hand); the runner gains `solve` (the known-good's m3a calls) and `during` (the checker every 30 s while
+    the agent works, so `status` shows its bounces); the manual's Grow example sends a fix with `--improves`, not B8's
+    job; the manual's cuts each say the same thing shorter (its two tables as lists, duplicates and rewordings).
   - **The spec documents the two provenance records the intake and the sources write** (`intake`, `source`, both
     optional; spec/MOTION.md §7.4, re-frozen by this decision): readers and the schema accepted them already.
   - **The bench's `--need N`:** a gate's clause can need more than 4 of 5 (G9's ten clips through review, every one).

@@ -24,6 +24,9 @@ features, patch for fixes. One line per change, under the part it touched (**Spe
 - `m3a library submit | status` (WP-9.1a): a clip or recipe sent to the intake queue with its provenance, after the
   local gates, and a contributor's submissions with their states and bounce reasons; the tools' budget is 3,200
   tokens (D112).
+- The manual's Grow section (WP-9.1b): `m3a library submit` and `status`, the queue's states, the license rule,
+  provenance and disclosure, a generator's training-data manifest, the owner's adoption; 7,997 of 8,000 tokens, its
+  tables made lists to make room.
 - `sourcing` (WP-9.2): the library source, an HTTP adapter template for external generators (off by default, its
   transport injected, key poses as constraints), the source gate, the allowlist, and the way to the intake queue or,
   for a source not on it, `library/local/` alone.
@@ -36,6 +39,9 @@ features, patch for fixes. One line per change, under the part it touched (**Spe
 - The registry index (WP-9.4): `library/index.json` (each set's immutable versions, community packs from verified
   namespaces), `npm run index` (`--check`, `verify`, `verify --all`, `admit`), `release.yml` (by hand, closed until
   the owner's O2 go-ahead).
+- Brief B8 (WP-9.1b): contribute an emote through `m3a library submit` to the workspace's local queue, reaching review
+  with every check green; its grader runs the intake's checker on the queue, seven planted bad solutions each failing
+  the check it names; `CONTRIBUTING.md`, the same rules for people and agents.
 - The bench's `--need N`; `npm run gate -- G9`.
 
 ## 0.51.0 · 2026-10-19

@@ -2,15 +2,17 @@
 // `m3a library submit`, by its own calls (each exiting 0), on the default character (gen-1) and on gen-53, a generator
 // seed outside WP-4.2's set (a Mixamo-named body without chest bones): the grader passes it, holds it to every gate the
 // checker ran, and leaves it waiting for review in the workspace's queue. On gen-53 the trial's checker moves it first
-// (`checkEvery`, its 30 s timer faked), so the grader checks it again from its text. The planted bad ones:
-// planted.test.ts and planted-grader.test.ts.
+// (`checkEvery`, its 30 s timer faked), so the grader checks it again from its text: T2's full step (M3A_FULL=1,
+// D74) runs both, T1 gen-1 alone. The planted bad ones: planted.test.ts and planted-grader.test.ts.
 import { describe, expect, it, vi } from "vitest";
 import type { CharacterSpec } from "../../runner/workspace.ts";
 import { B8_GATES, CHECK_EVERY, checkEvery, queue } from "./grade.ts";
 import { GOOD, play, text } from "./solutions.ts";
 
+const FULL = process.env.M3A_FULL === "1";
+
 describe("B8's grader", () => {
-  for (const character of [{ seed: 1 }, { seed: 53 }] as CharacterSpec[]) {
+  for (const character of (FULL ? [{ seed: 1 }, { seed: 53 }] : [{ seed: 1 }]) as CharacterSpec[]) {
     const who = "seed" in character ? `gen-${character.seed}` : character.rig, trial = who === "gen-53";
     it(`passes the known-good solution on ${who}: its emote waits for review with every gate green${trial ? ", moved there by the trial's checker" : ""}`, async () => {
       const moved: string[] = [];
