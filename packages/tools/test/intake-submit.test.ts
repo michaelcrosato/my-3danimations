@@ -16,6 +16,7 @@ async function memory(sentToday = 0) {
   const store: SubmitStore = {
     contributor: async (h) => (revoked.has(h) ? null : (keys.get(h) ?? null)),
     count: async (uid, since) => (seen.push(since), uid === UID ? sentToday : 0),
+    get: async (id) => rows.get(id) ?? null,
     async insert(row) {
       const was = rows.get(row.id);
       if (was) return { row: was, created: false };
@@ -82,6 +83,14 @@ describe("the submit function", () => {
     expect(pulled).toBeLessThan(4 * MAX_BYTES); // the limit and a chunk or two, not the 4 MiB
   });
 
+  it("answers a retry of a text already taken with its row (200) at the day's limit, and refuses only a new text (429)", async () => {
+    const m = await memory(PER_DAY), deps: SubmitDeps = { store: m.store, now: () => NOW }, id = submissionId(UID, contentHash(TEXT));
+    m.rows.set(id, { id, contributor: UID, kind: "clip", body: TEXT, improves: null, content: contentHash(TEXT), motion: null, state: "submitted", submitted_on: "2026-10-18" });
+    expect(await answer(await handle(post({ kind: "clip", text: TEXT }), deps))).toEqual([200, { submission: m.rows.get(id) }]);
+    expect(await answer(await handle(post({ kind: "clip", text: `${TEXT} ` }), deps))).toEqual([429, { error: expect.stringMatching(/^E_RATE: 20 submissions in the last 24 hours/) }]);
+    expect(m.rows.size).toBe(1);
+  });
+
   it("runs on the deployed store against PostgREST: the key looked up live, the day counted, the database's rate kept", async () => {
     // a fake PostgREST over one table each, answering only the filters restStore sends (a revoked key is filtered out)
     const keys = [{ hash: await sha256(KEY), uid: UID, revoked_at: null }, { hash: await sha256(OLD), uid: UID, revoked_at: "2026-10-18T00:00:00Z" }];
@@ -107,6 +116,11 @@ describe("the submit function", () => {
     expect((await answer(await handle(post(ok), deps)))[0]).toBe(200); // the same text: the row already there
     expect(await answer(await handle(post(ok, OLD), deps))).toEqual([401, { error: expect.stringMatching(/^E_KEY: no such contributor key, or it was revoked/) }]);
     expect(asked).toContain(`GET /rest/v1/submissions?contributor=eq.${UID}&created_at=gte.2026-10-18T12%3A00%3A00.000Z&select=id&limit=${PER_DAY + 1}`);
+    // at the day's limit: the same text again is still its row (200), a new one refused by the count (429)
+    for (let i = 1; i < PER_DAY; i++) rows.push({ ...rows[0]!, id: `s-${i.toString(16).padStart(16, "0")}` });
+    expect(await answer(await handle(post(ok), deps))).toEqual([200, { submission: expect.objectContaining({ id: submissionId(UID, contentHash(TEXT)) }) }]);
+    expect((await answer(await handle(post({ kind: "clip", text: `${TEXT}\n` }), deps)))[0]).toBe(429);
+    rows.splice(1);
     trigger = true;
     expect(await answer(await handle(post({ kind: "clip", text: `${TEXT} ` }), deps))).toEqual([429, { error: "E_RATE: 20 submissions in the last 24 hours, the most a contributor sends; send again tomorrow" }]);
     expect(rows).toHaveLength(1);

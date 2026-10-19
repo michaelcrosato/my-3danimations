@@ -4,8 +4,9 @@
 // PostgREST would set them: anonymous gets nothing; a contributor reads only its own rows; editing its own
 // user_metadata gains nothing; only the checker's service role moves states up to awaiting review, and a setting it sets
 // moves nothing to a verdict; only the owner decides, on the hash; a contributor's 21st submission in 24 hours is
-// refused, two sessions sending at once. The trigger's ids and hashes are checked against hash.ts's. Skips, saying why, when Postgres
-// 16 isn't installed (M3A_PG_BIN names another bin directory). Run alone: `npm test -- intake-sql`.
+// refused, two sessions sending at once, while the same text again passes as no new row. The trigger's ids and hashes
+// are checked against hash.ts's. Skips, saying why, when Postgres 16 isn't installed (M3A_PG_BIN names another bin
+// directory). Run alone: `npm test -- intake-sql`.
 import { execFileSync, spawn, spawnSync } from "node:child_process";
 import { chownSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync } from "node:fs";
 import { createServer } from "node:net";
@@ -144,6 +145,12 @@ describe.skipIf(why !== null)(`the hosted intake schema on Postgres 16${why ? ` 
     const errs = await Promise.all([checkerSession(batch(0)), checkerSession(batch(100))]);
     expect(sql(`select count(*) from public.submissions where contributor = '${C}';`).out).toBe("20");
     expect(errs.join("").match(/E_RATE: 20 submissions in the last 24 hours/g)).toHaveLength(4);
+    // the same text again is no new row: sent as the submit function sends it (PostgREST's on conflict do nothing), it
+    // passes the rate and changes nothing; a new text is still refused
+    const again = `insert into public.submissions (id, contributor, kind, body, content) select id, contributor, kind, body, content from public.submissions where contributor = '${C}' order by id limit 1 on conflict (id) do nothing;`;
+    expect(sql(again, checker)).toEqual({ out: "", err: "" });
+    expect(sql(`select count(*) from public.submissions where contributor = '${C}';`).out).toBe("20");
+    expect(insert(row(C, "c999")).err).toMatch(/^E_RATE: 20 submissions in the last 24 hours/);
   });
 
   it("keeps contributor keys hashed, each contributor's own: added, revoked for good, never another's", () => {

@@ -1,11 +1,11 @@
 // The submit function's handler (PLAN.md §5.9, WP-8.2a), a Supabase Edge Function in plain fetch-API TypeScript
 // (Deno runs it; Node's tests call it): POST a submission `{ kind, text, improves?, motion? }` with a contributor key
 // in `x-m3a-key`. It looks the key up by its SHA-256 (keys are stored hashed; a revoked one is refused), refuses a
-// body over the size limit (413; read as a stream and counted, never buffered past it) and a contributor past its rate
-// (429, a day's count; the database's rate trigger holds it against requests that race past the count), then inserts
-// the submission as `submitted` with its content hash and id (packages/tools/src/intake/hash.ts makes the same) and
-// answers 201, or 200 with the one already there for the same text. `motion` is the client's motion hash, which the
-// checker recomputes.
+// body over the size limit (413; read as a stream and counted, never buffered past it) and a new submission past the
+// contributor's rate (429, a day's count; the database's rate trigger holds it against requests that race past the
+// count), then inserts the submission as `submitted` with its content hash and id (packages/tools/src/intake/hash.ts
+// makes the same) and answers 201, or 200 with the one already there for the same text, at the rate's limit too (a
+// retry is no new submission). `motion` is the client's motion hash, which the checker recomputes.
 // The store is injected: the deployed function's talks to PostgREST with the service role key (restStore); tests
 // give one in memory. Errors answer `{ error: "E_CODE: message" }`, as the IntakeStore reads them.
 
@@ -28,10 +28,12 @@ export interface SubmissionRow {
 }
 
 /** What the function reads and writes: a key's contributor by the key's hash (null when none or revoked), how many
- *  submissions a contributor sent since a time, and an insert that keeps the row already there for the same id. */
+ *  submissions a contributor sent since a time, the row with an id (null when none), and an insert that keeps the row
+ *  already there for the same id. */
 export interface SubmitStore {
   contributor(keyHash: string): Promise<string | null>;
   count(uid: string, sinceIso: string): Promise<number>;
+  get(id: string): Promise<SubmissionRow | null>;
   insert(row: SubmissionRow): Promise<{ row: SubmissionRow; created: boolean }>;
 }
 
@@ -102,9 +104,13 @@ async function answer(req: Request, deps: SubmitDeps): Promise<Response> {
   if (motion !== null && !(typeof motion === "string" && HEX64.test(motion))) return refuse(400, "E_INPUT", "motion is the clip's motion hash, 64 lower-case hex digits");
   const uid = await deps.store.contributor(await sha256(key));
   if (!uid) return refuse(401, "E_KEY", "no such contributor key, or it was revoked; get a new one on the gallery's contributor page");
-  const now = deps.now(), sent = await deps.store.count(uid, new Date(now.getTime() - 86_400_000).toISOString());
-  if (sent >= perDay) return refuse(429, "E_RATE", `${sent} submissions in the last 24 hours, the most a contributor sends; send again tomorrow`);
   const content = await sha256(text), id = `s-${(await sha256(`${uid}\n${content}`)).slice(0, 16)}`;
+  const now = deps.now(), sent = await deps.store.count(uid, new Date(now.getTime() - 86_400_000).toISOString());
+  if (sent >= perDay) {
+    // the same text again is no new submission: its row, as an insert below would answer
+    const was = await deps.store.get(id);
+    return was ? json(200, { submission: was }) : refuse(429, "E_RATE", `${sent} submissions in the last 24 hours, the most a contributor sends; send again tomorrow`);
+  }
   const row: SubmissionRow = { id, contributor: uid, kind, body: text, improves: improves as string | null, content, motion: motion as string | null, state: "submitted", submitted_on: now.toISOString().slice(0, 10) };
   let done;
   try {
@@ -127,6 +133,7 @@ export function restStore(url: string, serviceKey: string, f: typeof fetch = fet
     if (!res.ok) throw new Error(`E_STORE: ${res.status} ${await res.text()}`);
     return (await res.json()) as T;
   };
+  const one = async (id: string) => (await get<SubmissionRow[]>(`/submissions?id=eq.${id}`))[0] ?? null;
   return {
     async contributor(hash) {
       const rows = await get<{ uid: string }[]>(`/contributor_keys?hash=eq.${hash}&revoked_at=is.null&select=uid`);
@@ -135,11 +142,12 @@ export function restStore(url: string, serviceKey: string, f: typeof fetch = fet
     async count(uid, since) {
       return (await get<unknown[]>(`/submissions?contributor=eq.${uid}&created_at=gte.${encodeURIComponent(since)}&select=id&limit=${PER_DAY + 1}`)).length;
     },
+    get: one,
     async insert(row) {
       const res = await f(`${base}/submissions?on_conflict=id`, { method: "POST", headers: { ...headers, prefer: "return=representation,resolution=ignore-duplicates" }, body: JSON.stringify(row) });
       if (!res.ok) throw new Error(`E_STORE: ${res.status} ${await res.text()}`);
       const made = (await res.json()) as SubmissionRow[];
-      return made.length ? { row: made[0]!, created: true } : { row: (await get<SubmissionRow[]>(`/submissions?id=eq.${row.id}`))[0]!, created: false };
+      return made.length ? { row: made[0]!, created: true } : { row: (await one(row.id))!, created: false };
     },
   };
 }
