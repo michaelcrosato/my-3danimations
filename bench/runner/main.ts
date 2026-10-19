@@ -54,6 +54,8 @@ export interface BriefSpec {
   solve?(workspace: string): void;
   /** What a workspace runs while its agent works, until the stop it returns (B8's: the checker on its queue). */
   during?(workspace: string): () => Promise<void>;
+  /** The agent's turns and wall time, when the job is bigger than one brief's (80 turns, 30 minutes by default). */
+  limits?: { maxTurns: number; minutes: number };
 }
 /** The briefs, by name. */
 export const SPECS: Record<string, BriefSpec> = {
@@ -67,7 +69,8 @@ export const SPECS: Record<string, BriefSpec> = {
   B8: { starter: "B8", grade: gradeB8, good: ["emote.json", "submit.sh"], solve: solveB8, during: checkEvery },
   // B8's job ten times over by one agent in one queue (G9); its known-good's files are bench/graders/B8/known-good-ten/,
   // which its solve copies in before its m3a calls
-  "B8-ten": { starter: "B8", grade: gradeB8Ten, good: [], solve: solveB8Ten, during: checkEvery },
+  // ten of B8's jobs in one workspace: three times B8's turns and time, the setup shared
+  "B8-ten": { starter: "B8", grade: gradeB8Ten, good: [], solve: solveB8Ten, during: checkEvery, limits: { maxTurns: 240, minutes: 90 } },
 };
 const BRIEFS = [...Object.keys(SPECS), "quiz"];
 /** What a trial is told: the brief does the rest. */
@@ -194,7 +197,7 @@ export async function runBrief(name: string, opts: { trials: number; discovery?:
     const unsolved = opts.fake && !j.discovery ? solved(spec, j.ws) : null, stop = opts.fake ? null : (spec.during?.(j.ws) ?? null);
     let agent: Trial["agent"];
     try {
-      agent = opts.fake ? ({ fake: true } as const) : summary(await runAgent(j.ws, PROMPT, join(opts.base, `${j.name}.jsonl`), { ...(opts.model ? { model: opts.model } : {}) }));
+      agent = opts.fake ? ({ fake: true } as const) : summary(await runAgent(j.ws, PROMPT, join(opts.base, `${j.name}.jsonl`), { ...(opts.model ? { model: opts.model } : {}), ...(spec.limits ? { maxTurns: spec.limits.maxTurns, timeoutMs: spec.limits.minutes * 60_000 } : {}) }));
     } finally {
       await stop?.();
     }

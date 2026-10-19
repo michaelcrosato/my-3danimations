@@ -19,7 +19,7 @@ import { join } from "node:path";
 import { afterAll, describe, expect, it } from "vitest";
 import { TOOLS } from "@m3a/tools";
 import { agentArgs, agentUser, audit, capsDropped, CLOUD_CREDENTIALS, hidden, M3A_MCP, namespace, ONLY_M3A, ownScratch, pathsOf, runAgent, unwired, wiringOf } from "./agent.ts";
-import { commitOf, knownGood, lanes, latestVariant, passMark, pool, runB1, variantOf } from "./main.ts";
+import { commitOf, knownGood, lanes, latestVariant, passMark, pool, runB1, SPECS, variantOf } from "./main.ts";
 import { pack } from "./pack.ts";
 import { answersIn, QUIZ, quizPrompt, score } from "./quiz.ts";
 import { SKILL } from "./workspace.ts";
@@ -57,6 +57,12 @@ describe("the pass mark", () => {
   it("is 4 of 5 (80%, rounded up), or more when a gate's clause needs it, never fewer", () => {
     expect([passMark(5), passMark(10), passMark(1), passMark(10, "10"), passMark(5, 5)]).toEqual([4, 8, 1, 10, 5]);
     for (const bad of ["11", 0, "x", 2.5, 7]) expect(() => passMark(10, bad)).toThrow(/^--need is a count of trials, 8 \(4 of 5, PLAN.md §7\) to 10$/);
+  });
+});
+
+describe("a brief's limits", () => {
+  it("are the agent's defaults but where the job is bigger: B8-ten's ten clips get three times B8's turns and time", () => {
+    expect(Object.entries(SPECS).filter(([, s]) => s.limits).map(([n, s]) => [n, s.limits])).toEqual([["B8-ten", { maxTurns: 240, minutes: 90 }]]);
   });
 });
 

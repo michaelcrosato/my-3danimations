@@ -41,6 +41,12 @@ features, patch for fixes. One line per change, under the part it touched (**Spe
   checkout credentials and install without scripts; `release.yml` checks the triggering actor; `library-gates.yml`
   fires on the lock, the index and the registry too.
 
+- The bench: B8's grader holds what its brief asks (an emote stays in place; its queue record is the one `library
+  submit` sent, its id, content hash and local report its text's; an AI agent and its Claude model named; a name and
+  description of its own), each with a planted case; `B8-ten`, one fresh agent sending ten distinct emotes through one
+  queue (its grader, a known-good of ten, 240 turns and 90 minutes); G9 runs B8 at 4 of 5 and B8-ten once; the checker
+  every 30 s logs a failure to `<workspace>.checker.log`.
+
 ### Docs
 - The manual says a recipe's `name`, `desc` and `tags` become its clip's (7,999 of 8,000 tokens); CONTRIBUTING.md's
   preview sheet is the local queue's.

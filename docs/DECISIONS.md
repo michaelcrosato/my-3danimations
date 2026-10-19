@@ -4483,6 +4483,16 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
     installs with `--ignore-scripts`, and the owner's go-ahead checks `github.triggering_actor` too, so a re-run by
     someone else fails closed; its test reads the workflow as YAML (tools/release/yaml.ts, a strict subset, no
     dependency). library-gates.yml fires on the sets, the lock, the index and registry.json.
+  - **G9's ten clips are one agent's (B8-ten):** §9.3's "a fresh agent submits 10 clips through the intake queue" is
+    one fresh agent in one workspace and queue sending ten distinct emotes, all ten waiting for review with every check
+    green (not ten agents with one clip each, as D112's `--need 10` read it). It gets 240 turns and 90 minutes, three
+    times one brief's, the setup shared. G9 runs B8 itself at 4 of 5, as every brief, and its held-out variant; no
+    gate passes `--need` now, and the flag stays for a clause that needs it.
+  - **B8's grader holds what its brief asks** (WP-9.1b's review): an emote stays in place (no walking or running as
+    `describe` reads it, under 0.25 hip heights travelled); the queue record is the one `library submit` sent (its id and
+    content hash its text's, its local report as submit measures the clip); who made it names an AI agent and its Claude
+    model (O10: every trial runs one); its name and description are its own, not its source clip's. B8.md says each, so
+    held-out run 1, written before these rules, is replaced by run 2 (a fresh writer and checker, D91), run 1 kept unused.
   - **The integrator's three:** `--need` never lowers the pass mark under 4 of 5 (ceil 80%, PLAN.md §7) and the
     results record the mark they were judged at; G9 runs the adopt bot's whole proof (`npm run test:full`, vitest under
     M3A_FULL); G9's doctrine step says the tools' 3,200 is T1's tools-budget test.
