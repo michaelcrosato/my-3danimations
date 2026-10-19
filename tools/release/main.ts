@@ -1,12 +1,13 @@
 // `npm run index [-- --check [--since <ref>]] | verify <SET | namespace/SET> <dir> [--v N] [--proof <file>] | verify
 // --all | admit <pack.json> <dir> --proof <file>` (PLAN.md WP-9.4): writes library/index.json from library/sets (every
 // file as locked), tools/release/registry.json and the index before it (./index.ts); `--check` regenerates it and fails
-// unless it is the committed file byte for byte, and with `--since` unless its history stands as committed at that ref.
+// unless it is the committed file byte for byte, and with `--since` unless its history stands as committed at that ref
+// (a ref git can't read fails the check; one that holds no index yet is the first index's).
 // `verify` checks a set's files (a directory, such as an unpacked release asset) against the index: a core set's
 // content id and digest, a community pack's content id and its namespace's proof, fetched from the URL the reply names;
 // `verify --all` checks every core set's files in library/sets/ so. `admit` adds a community pack to the registry when
 // its files and its proof hold, then rewrites the index.
-import { execFileSync } from "node:child_process";
+import { spawnSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { TIERS } from "../../packages/library/src/index.ts";
@@ -28,8 +29,24 @@ const FLAGS = [
 ];
 const read = <T>(file: string): T => JSON.parse(readFileSync(file, "utf8")) as T;
 const filesOf = (dir: string) => Object.fromEntries(readdirSync(dir).filter((f) => statSync(join(dir, f)).isFile()).sort().map((f) => [f, readFileSync(join(dir, f), "utf8")]));
-/** The index committed at a git ref, if one is. */
-const atRef = (ref: string) => { try { return JSON.parse(execFileSync("git", ["show", `${ref}:library/index.json`], { cwd: ROOT, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] })) as RegistryIndex; } catch { return undefined; } };
+/** The index committed at git ref `ref` in the repository at `root`: undefined when that commit holds no
+ *  library/index.json (the history starts with the first index); throws when git can't resolve the ref or read the
+ *  file, or the file isn't JSON, so a history check that can't read its ref fails rather than passes. */
+export function atRef(ref: string, root: string = ROOT): RegistryIndex | undefined {
+  const git = (...args: string[]) => spawnSync("git", args, { cwd: root, encoding: "utf8", maxBuffer: 1 << 26 }), cant = (why: string) => new Error(`--since ${ref}: ${why}, so the index's history can't be checked against it`);
+  const commit = git("rev-parse", "--verify", "--quiet", "--end-of-options", `${ref}^{commit}`), at = commit.stdout.trim();
+  if (commit.status !== 0 || !at) throw cant(`git can't resolve that ref here (fetch it first: git fetch origin main)`);
+  const listed = git("ls-tree", "--name-only", at, "--", "library/index.json");
+  if (listed.status !== 0) throw cant(`git ls-tree failed (${listed.stderr.trim().split("\n")[0]})`);
+  if (!listed.stdout.trim()) return undefined;
+  const shown = git("show", `${at}:library/index.json`);
+  if (shown.status !== 0) throw cant(`git show failed (${shown.stderr.trim().split("\n")[0]})`);
+  try {
+    return JSON.parse(shown.stdout) as RegistryIndex;
+  } catch {
+    throw cant("its library/index.json isn't JSON");
+  }
+}
 
 if (import.meta.main) {
   let parsed;
@@ -39,6 +56,7 @@ if (import.meta.main) {
     if (verb && verb !== "verify" && verb !== "admit") throw new Error(`expected verify, admit or nothing, got "${verb}"; did you mean ${closest(verb, ["verify", "admit"])}?`);
     if (parsed.flags.all && (verb !== "verify" || a)) throw new Error("--all is verify's, with no set: npm run index -- verify --all");
     if (verb && !parsed.flags.all && (!a || !b)) throw new Error(`${verb} takes ${verb === "verify" ? "a set (SET or namespace/SET)" : "a pack (.json)"} and the directory of its files`);
+    if (parsed.flags.v !== undefined && (verb !== "verify" || parsed.flags.all || !/^[1-9][0-9]*$/.test(String(parsed.flags.v)))) throw new Error("--v is verify's, on one set, and takes a version number (1, 2, ...)");
   } catch (err) {
     usage("index", err, FLAGS);
   }
@@ -55,10 +73,10 @@ if (import.meta.main) {
     } else if (verb === "verify") {
       const core = prev?.core[what!], pack = prev?.community[what!], url = pack ? proofUrl(pack.namespace)! : "", v = typeof f.v === "string" ? Number(f.v) : undefined;
       detail = verifySet(prev ?? { about: "", format: "1", serial: 0, core: {}, community: {} }, what!, filesOf(resolve(dir!)), sha256, { ...(v === undefined ? {} : { v }), ...(proofText === undefined ? {} : { proof: { url, text: proofText } }) });
-      const at = (core ?? pack)?.versions.find((x) => x.v === (v ?? (core ?? pack)!.versions.length)), yanked = core?.yanked ?? at?.yanked;
+      const held = (core ?? pack)?.versions ?? [], at = held.find((x) => x.v === (v ?? held.at(-1)?.v)), yanked = core?.yanked ?? at?.yanked;
       if (yanked) warnings.push(`${what} is yanked: ${yanked}`);
-      summary = !at ? `no ${what} in the index` : detail.length ? `${what} v${at.v}: ${detail.length} problem(s)` : `${what} v${at.v}: its files are the index's (content ${at.content.slice(0, 12)}…)`;
-      next = !at ? "name a set library/index.json holds" : detail.length ? (pack ? `fetch ${what}'s files again and its proof from ${url}` : `fetch ${what} again: its release asset, or library/sets/${what}`) : "use the set";
+      summary = !held.length ? `no ${what} in the index` : !at ? `${what} has no v${v} (versions: ${held.map((x) => x.v).join(", ")})` : detail.length ? `${what} v${at.v}: ${detail.length} problem(s)` : `${what} v${at.v}: its files are the index's (content ${at.content.slice(0, 12)}…)`;
+      next = !held.length ? "name a set library/index.json holds" : !at ? `name a version ${what} holds: --v ${held.at(-1)!.v}, or no --v for the latest` : detail.length ? (pack ? `fetch ${what}'s files again and its proof from ${url}` : `fetch ${what} again: its release asset, or library/sets/${what}`) : "use the set";
     } else if (verb === "admit") {
       const c = read<Candidate>(what!), reg = admit(registry, c, filesOf(resolve(dir!)), proofText === undefined ? undefined : { url: proofUrl(c.namespace) ?? "", text: proofText }, sha256);
       const built = buildIndex(directory(lib), sha256, reg, prev);

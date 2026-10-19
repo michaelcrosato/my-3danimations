@@ -1,12 +1,14 @@
 // The registry index (PLAN.md WP-9.4): library/index.json, the library's sets as static JSON in two tiers, as package
 // registries keep them. The curated core is this repository's library/sets: each set's versions, each with its content
-// id (spec/MOTION.md §9.2), a digest of all its files, its tier and licenses, its size and its QA and review counts.
-// Community packs are federated entries: a set in a namespace verified to its owner, its files kept elsewhere and held
-// to a content id. A pack is admitted only when the fetched files give that id and the namespace's proof, fetched from
-// where only its owner can write, vouches for it; it never enters the core, which grows only by adoption (WP-9.1).
-// Versions are immutable and sets are yanked, never deleted. Built from the library, the previous index and the
-// registry's hand-kept inputs (tools/release/registry.json), with no network and no clock: the same inputs give the
-// same bytes.
+// id (spec/MOTION.md §9.2), a digest of all its files, its tier and licenses, its size and its QA and review counts; the
+// latest version's record is what its files give, field by field, or the index isn't rebuilt. Community packs are
+// federated entries: a set in a namespace verified to its owner, its files kept elsewhere and held to a content id and a
+// digest of all its files. A pack is admitted only when the fetched files give that id, name one license of their own
+// (the license it claims), and the namespace's proof, fetched from where only its owner can write, vouches for it; the
+// registry keeps that proof's text and SHA-256, and every rebuild vouches with it again, offline. A pack never enters
+// the core, which grows only by adoption (WP-9.1). Versions are immutable and sets are yanked, never deleted. Built
+// from the library, the previous index and the registry's hand-kept inputs (tools/release/registry.json), with no
+// network and no clock: the same inputs give the same bytes.
 import { contentId, tierOf, type LibrarySource } from "../../packages/library/src/index.ts";
 
 /** SHA-256 of a text's UTF-8 bytes, in hex. */
@@ -16,18 +18,26 @@ export type Files = Record<string, string>;
 /** One version of a core set, immutable once indexed (only `yanked` may change): `content` is its clip files' content
  *  id (spec/MOTION.md §9.2, as its `_set.json` and the lock say), `digest` the same over all its files. */
 export interface SetVersion { v: number; content: string; digest: string; title: string; tier: string; licenses: string[]; clips: number; bytes: number; qa: Record<string, number>; review: Record<string, number>; yanked?: string }
-/** One version of a community pack: its content id, where its files are, its SPDX license and the tier that fits it. */
-export interface PackVersion { v: number; content: string; url: string; license: string; tier: string; yanked?: string }
-/** A community pack: a set in a namespace verified to its owner (`proof`: where its owner vouches for it). */
+/** One version of a community pack in the index: its content id (its clip files, spec/MOTION.md §9.2) and digest (all
+ *  its files), where its files are, its SPDX license (its files' own) and the tier that fits it, and `proofSha256`, the
+ *  SHA-256 of the namespace's proof that admitted it. */
+export interface PackVersion { v: number; content: string; digest: string; url: string; license: string; tier: string; proofSha256: string; yanked?: string }
+/** A community pack in the index: a set in a namespace verified to its owner (`proof`: where its owner vouches for it). */
 export interface CommunityPack { namespace: string; set: string; proof?: string; versions: PackVersion[] }
+/** A pack version as the registry keeps it: the index's record and `proofText`, the proof as fetched when it was
+ *  admitted, which every rebuild checks again offline (it must give `proofSha256` and vouch for the content id). */
+export interface AdmittedVersion extends PackVersion { proofText: string }
+/** A community pack as the registry keeps it: each version with the proof that admitted it. */
+export interface AdmittedPack { namespace: string; set: string; versions: AdmittedVersion[] }
 /** The index (library/index.json): its format, a serial that grows with every change, the core and the community. */
 export interface RegistryIndex { about: string; format: "1"; serial: number; core: Record<string, { yanked?: string; versions: SetVersion[] }>; community: Record<string, CommunityPack> }
 /** The registry's hand-kept inputs: yanks of core sets (`SET` or `SET@v`: the reason) and the admitted packs. */
-export interface Registry { about?: string; yanked: Record<string, string>; community: Record<string, CommunityPack> }
+export interface Registry { about?: string; yanked: Record<string, string>; community: Record<string, AdmittedPack> }
 /** A namespace's proof as fetched: where from, and its bytes as text. */
 export interface Proof { url: string; text: string }
-/** A pack offered for admission: its namespace, set, license, where its files are and their content id. */
-export type Candidate = Omit<PackVersion, "v" | "tier" | "yanked"> & { namespace: string; set: string };
+/** A pack offered for admission: its namespace, set, the license it claims (its files must name it, and no other), where
+ *  its files are and their content id. */
+export type Candidate = Pick<PackVersion, "content" | "url" | "license"> & { namespace: string; set: string };
 
 const ABOUT = "The registry index (PLAN.md WP-9.4), written by npm run index from library/sets, the previous index and tools/release/registry.json; npm run index -- --check regenerates it byte for byte. core: each set's versions (content: its clip files' content id, spec/MOTION.md §9.2; digest: the same over all its files), immutable, yanked never deleted. community: packs federated from namespaces verified to their owners, never uploads into the core. npm run index -- verify <SET> <dir> checks a set's files against it.";
 const isClip = (f: string) => f.endsWith(".json") && !f.startsWith("_");
@@ -35,6 +45,9 @@ const short = (h: string) => `${h.slice(0, 12)}…`;
 const ordered = <T>(o: Record<string, T>) => Object.fromEntries(Object.entries(o).sort(([a], [b]) => (a < b ? -1 : 1)));
 const canon = (x: unknown) => JSON.stringify(x, (_k, v: unknown) => (v && typeof v === "object" && !Array.isArray(v) ? ordered(v as Record<string, unknown>) : v));
 const json = (text: string): unknown => { try { return JSON.parse(text); } catch { return undefined; } };
+const HEX = /^[0-9a-f]{64}$/, hex = (x: unknown) => typeof x === "string" && HEX.test(x);
+/** The fields of `was` whose values aren't `now`'s (either's keys), by name. */
+const differing = (was: object, now: object) => [...new Set([...Object.keys(was), ...Object.keys(now)])].filter((k) => canon((was as Record<string, unknown>)[k]) !== canon((now as Record<string, unknown>)[k])).sort();
 
 /** The index's text: one-space JSON and a newline, as the lock is written. */
 export const indexText = (index: RegistryIndex): string => `${JSON.stringify(index, null, 1)}\n`;
@@ -78,14 +91,42 @@ export function vouch(namespace: string, set: string, content: string, proof: Pr
   return Array.isArray(listed) && listed.includes(content) ? [] : [`${namespace} is unverified for ${set} at ${short(content)}: its owner must list that content id under packs.${set} at ${where}`];
 }
 
-/** What is wrong with a community pack as the registry holds it (empty when nothing is). */
-function packProblems(key: string, p: CommunityPack): string[] {
+/** What is wrong with the shape of a community pack as the registry holds it (empty when nothing is). */
+function packShape(key: string, p: AdmittedPack): string[] {
   const out = proofUrl(p.namespace) ? [] : [`${key}: ${p.namespace} isn't a namespace`];
   if (key !== `${p.namespace}/${p.set}` || !/^[A-Z][A-Z0-9_]*$/.test(p.set)) out.push(`${key}: a pack is keyed namespace/SET, its set upper case`);
   p.versions.forEach((v, i) => {
-    if (v.v !== i + 1 || !/^[0-9a-f]{64}$/.test(v.content) || !v.url.startsWith("https://") || v.tier !== tierOf(v.license) || v.tier === "local") out.push(`${key} v${v.v}: versions count from 1, each a content id, an https url and a redistributable license with its tier`);
+    if (v.v !== i + 1 || !hex(v.content) || !hex(v.digest) || !/^https:\/\//.test(String(v.url)) || v.tier !== tierOf(String(v.license)) || v.tier === "local") out.push(`${key} v${v.v}: versions count from 1, each a content id and a digest, an https url and a redistributable license with its tier`);
   });
   return out;
+}
+
+/** Every recorded proof of a pack that doesn't hold, checked offline (empty when each does): each version must carry
+ *  the proof that admitted it, whose text gives its SHA-256 and vouches, as fetched from the namespace's proof URL, for
+ *  that version's content id. */
+function proofProblems(key: string, p: AdmittedPack, sha: Sha): string[] {
+  const where = proofUrl(p.namespace);
+  return where === null ? [] : p.versions.flatMap((v) => {
+    if (typeof v.proofText !== "string" || !hex(v.proofSha256)) return [`${key} v${v.v} has no recorded proof: a pack is admitted with its namespace's proof (npm run index -- admit <pack.json> <dir> --proof <file>), never written into tools/release/registry.json by hand`];
+    if (sha(v.proofText) !== v.proofSha256) return [`${key} v${v.v}: its recorded proof gives SHA-256 ${short(sha(v.proofText))}, the registry says ${short(v.proofSha256)}`];
+    return vouch(p.namespace, p.set, v.content, { url: where, text: v.proofText }).map((w) => `${key} v${v.v}'s recorded proof: ${w}`);
+  });
+}
+
+/** The licenses a pack's files name, sorted (its _set.json's sources' and each clip's `provenance.license`), and
+ *  where one is missing. */
+function licensesIn(files: Files): { licenses: string[]; problems: string[] } {
+  const found = new Set<string>(), m = json(files["_set.json"] ?? "") as { sources?: unknown } | undefined;
+  const sources = m?.sources && typeof m.sources === "object" ? Object.values(m.sources as Record<string, { license?: unknown } | null>) : [];
+  const problems = sources.length ? [] : ["its _set.json names no source, whose license is the pack's"];
+  for (const src of sources) if (typeof src?.license === "string") found.add(src.license); else problems.push("a source in its _set.json names no license");
+  const bare = Object.keys(files).filter(isClip).sort().filter((f) => {
+    const l = (json(files[f]!) as { provenance?: { license?: unknown } } | undefined)?.provenance?.license;
+    if (typeof l === "string") found.add(l);
+    return typeof l !== "string";
+  });
+  if (bare.length) problems.push(`${bare.length} clip(s) name no provenance.license (${bare.slice(0, 3).join(", ")}${bare.length > 3 ? ", ..." : ""})`);
+  return { licenses: [...found].sort(), problems };
 }
 
 /** Every way `next` rewrites `previous`'s history: a set or pack gone (they are yanked, never deleted), or a version
@@ -106,21 +147,26 @@ export function history(previous: RegistryIndex | undefined, next: RegistryIndex
 }
 
 /** The index from the library's sets, the registry's yanks and packs, and the previous index (whose versions stand: a
- *  set whose files changed gets a new version). Throws on a set whose manifest isn't its files, a malformed pack or
- *  yank, or a rewritten history. */
+ *  set whose files changed gets a new version, and the latest version of one whose files didn't must be what they give,
+ *  field by field). Throws on a set whose manifest isn't its files, a latest version whose record isn't, a malformed
+ *  pack or yank, a pack version whose recorded proof doesn't vouch for it, or a rewritten history. */
 export function buildIndex(src: LibrarySource, sha: Sha, registry: Registry, previous?: RegistryIndex): RegistryIndex {
-  const core: RegistryIndex["core"] = {}, community: RegistryIndex["community"] = {}, y = registry.yanked;
+  const core: RegistryIndex["core"] = {}, community: RegistryIndex["community"] = {}, y = registry.yanked, bad: string[] = [];
   for (const name of src.sets().sort()) {
     const files = Object.fromEntries(src.files(name).sort().map((f) => [f, src.read(name, f)])), now = describeSet(name, files, sha);
-    const was = previous?.core[name]?.versions ?? [], kept = was.at(-1)?.digest === now.digest ? was : [...was, { v: was.length + 1, ...now }];
-    const versions = kept.map(({ yanked: _y, ...v }) => (y[`${name}@${v.v}`] ? { ...v, yanked: y[`${name}@${v.v}`]! } : v));
+    const was = previous?.core[name]?.versions ?? [], last = was.at(-1), same = last?.digest === now.digest;
+    if (same) {
+      const { v, yanked: _y, ...recorded } = last!, off = differing(recorded, now);
+      if (off.length) bad.push(`${name} v${v}'s record isn't what its files give (${off.join(", ")}): restore library/index.json as npm run index wrote it (git checkout -- library/index.json); a version is its files, and immutable`);
+    }
+    const versions = (same ? was : [...was, { v: was.length + 1, ...now }]).map(({ yanked: _y, ...v }) => (y[`${name}@${v.v}`] ? { ...v, yanked: y[`${name}@${v.v}`]! } : v));
     core[name] = y[name] ? { yanked: y[name], versions } : { versions };
   }
   const held = (k: string) => core[k] !== undefined || Object.entries(core).some(([s, e]) => e.versions.some((v) => `${s}@${v.v}` === k));
-  const bad = Object.keys(y).filter((k) => !held(k)).map((k) => `tools/release/registry.json yanks ${k}, which the index doesn't hold`);
+  bad.push(...Object.keys(y).filter((k) => !held(k)).map((k) => `tools/release/registry.json yanks ${k}, which the index doesn't hold`));
   for (const [key, p] of Object.entries(ordered(registry.community))) {
-    bad.push(...packProblems(key, p));
-    community[key] = { namespace: p.namespace, set: p.set, proof: proofUrl(p.namespace) ?? "", versions: p.versions.map((v) => ({ v: v.v, content: v.content, url: v.url, license: v.license, tier: v.tier, ...(v.yanked ? { yanked: v.yanked } : {}) })) };
+    bad.push(...packShape(key, p), ...proofProblems(key, p, sha));
+    community[key] = { namespace: p.namespace, set: p.set, proof: proofUrl(p.namespace) ?? "", versions: p.versions.map((v) => ({ v: v.v, content: v.content, digest: v.digest, url: v.url, license: v.license, tier: v.tier, proofSha256: v.proofSha256, ...(v.yanked ? { yanked: v.yanked } : {}) })) };
   }
   const next: RegistryIndex = { about: ABOUT, format: "1", serial: previous?.serial ?? 1, core, community };
   bad.push(...history(previous, next));
@@ -131,24 +177,29 @@ export function buildIndex(src: LibrarySource, sha: Sha, registry: Registry, pre
 
 /**
  * Every way a set's files differ from what the index says of one of its versions (the latest unless `v` names one),
- * as sentences; empty when they are that version. A core set's files must give its content id and digest; a community
- * pack's its content id, and its namespace's proof (the bytes fetched, and where from) must vouch for it.
+ * as sentences; empty when they are that version. A set's files must give its content id and digest; a community
+ * pack's namespace's proof (the bytes fetched, and where from) must vouch for it too.
  */
 export function verifySet(index: RegistryIndex, name: string, files: Files, sha: Sha, opts: { v?: number; proof?: Proof } = {}): string[] {
-  const pack = index.community[name], versions: { v: number; content: string; digest?: string }[] = index.core[name]?.versions ?? pack?.versions ?? [];
+  const pack = index.community[name], versions: { v: number; content: string; digest: string }[] = index.core[name]?.versions ?? pack?.versions ?? [];
   const at = opts.v === undefined ? versions.at(-1) : versions.find((x) => x.v === opts.v), got = ids(files, sha), out: string[] = [];
-  if (!at) return [`the index holds no ${name}${opts.v === undefined ? "" : ` v${opts.v}`}: name a core set (${Object.keys(index.core).join(", ")}) or a community pack (namespace/SET)`];
+  if (!versions.length) return [`the index holds no ${name}: name a core set (${Object.keys(index.core).join(", ")}) or a community pack (namespace/SET)`];
+  if (!at) return [`${name} has no v${opts.v} (versions: ${versions.map((x) => x.v).join(", ")}): name a version it holds (--v ${versions.at(-1)!.v})`];
   if (got.content !== at.content) out.push(`${name} v${at.v}: its clip files give content id ${short(got.content)}, the index says ${short(at.content)}: a clip file differs (sets.lock.json names each clip's SHA-256)`);
-  if (at.digest !== undefined && got.digest !== at.digest) out.push(`${name} v${at.v}: its files give digest ${short(got.digest)}, the index says ${short(at.digest)}: a file differs, is missing or is extra`);
+  if (got.digest !== at.digest) out.push(`${name} v${at.v}: its files give digest ${short(got.digest)}, the index says ${short(at.digest)}: a file differs, is missing or is extra`);
   return pack ? [...out, ...vouch(pack.namespace, pack.set, at.content, opts.proof)] : out;
 }
 
-/** The registry with a candidate pack admitted as its next version; throws, naming each reason, when its files don't
- *  give its content id, its namespace's proof doesn't vouch for it, or it is malformed or indexed already. */
+/** The registry with a candidate pack admitted as its next version, its digest and the proof that vouched for it
+ *  recorded; throws, naming each reason, when its files don't give its content id or don't name its license alone, its
+ *  namespace's proof doesn't vouch for it, or it is malformed or indexed already. */
 export function admit(registry: Registry, c: Candidate, files: Files, proof: Proof | undefined, sha: Sha): Registry {
-  const key = `${c.namespace}/${c.set}`, was = registry.community[key]?.versions ?? [], got = ids(files, sha).content;
-  const pack: CommunityPack = { namespace: c.namespace, set: c.set, versions: [...was, { v: was.length + 1, content: c.content, url: c.url, license: c.license, tier: tierOf(c.license) }] };
-  const why = [...(got === c.content ? [] : [`its files give content id ${short(got)}, not ${short(c.content)}`]), ...vouch(c.namespace, c.set, c.content, proof), ...packProblems(key, pack)];
+  const key = `${c.namespace}/${c.set}`, was = registry.community[key]?.versions ?? [], got = ids(files, sha), named = licensesIn(files);
+  const version: AdmittedVersion = { v: was.length + 1, content: c.content, digest: got.digest, url: c.url, license: c.license, tier: tierOf(c.license), proofSha256: sha(proof?.text ?? ""), proofText: proof?.text ?? "" };
+  const pack: AdmittedPack = { namespace: c.namespace, set: c.set, versions: [...was, version] };
+  const why = [...(got.content === c.content ? [] : [`its files give content id ${short(got.content)}, not ${short(c.content)}`]), ...named.problems];
+  if (named.licenses.length !== 1 || named.licenses[0] !== c.license) why.push(`its files name ${named.licenses.join(", ") || "no license"}, and it claims ${c.license}: a pack's license is its files' own, one for the whole pack (its _set.json's sources and every clip's provenance.license)`);
+  why.push(...vouch(c.namespace, c.set, c.content, proof), ...packShape(key, pack));
   if (was.some((v) => v.content === c.content)) why.push(`${key} holds that content id already`);
   if (why.length) throw new Error(`index: ${key} refused: ${why.join("; ")}`);
   return { ...registry, community: ordered({ ...registry.community, [key]: pack }) };

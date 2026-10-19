@@ -29,14 +29,16 @@
     },
     "packVersion": {
       "type": "object",
-      "required": ["v", "content", "url", "license", "tier"],
+      "required": ["v", "content", "digest", "url", "license", "tier", "proofSha256"],
       "additionalProperties": false,
       "properties": {
         "v": { "type": "integer", "minimum": 1 },
         "content": { "$ref": "#/$defs/sha256" },
+        "digest": { "$ref": "#/$defs/sha256", "description": "the same as content, over all the pack's files" },
         "url": { "type": "string", "pattern": "^https://" },
-        "license": { "type": "string", "minLength": 1 },
+        "license": { "type": "string", "minLength": 1, "description": "the one license the pack's own files name" },
         "tier": { "enum": ["cc0", "cc-by", "cmu", "local"] },
+        "proofSha256": { "$ref": "#/$defs/sha256", "description": "the SHA-256 of the namespace's proof that admitted it, as fetched" },
         "yanked": { "$ref": "#/$defs/yanked" }
       }
     }
