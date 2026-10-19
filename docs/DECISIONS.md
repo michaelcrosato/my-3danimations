@@ -4657,6 +4657,14 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
     `-fake-variant.json`); every other loose result is a gate's byte copy or backs a number a decision cites.
   - **The census still counts a mirror twice by design** (D67, a game needs each side): HANDOFF's bullet that read it
     as a defect is corrected, and joining them stays the owner's call.
+  - **D96's follow-ups closed here:** parents in a loop among named bones throw instead of hanging; io refuses a
+    non-finite rest head (K7); a composed source license is read part by part. A recipe's or action's clip step may
+    name a hyphenated slug, and `interruptInto` writes the cut's own id with `_` for it.
+  - **Two Quaternius baselines' reasons corrected** (140°, the re-import waiting on the source files): the sets'
+    files changed, so the registry index mints their v2 (serial 2), one regeneration in one commit (D113).
+  - **Small widenings, reversible:** `test:changed` follows imports (a core change selects nearly every suite, which
+    is what covers it); `M3A_CHECK_OUTPUT` moves a tool's `--json` report (T1's conformance test uses it); doctrine
+    fails a budgeted file or tools/pins.json that is gone, where Phase 0 reported it pending.
 - **Why:** documents that describe the plan as unbuilt, commands that no longer exist and doctrine checks that pass
   on a deleted file mislead the next session as surely as a failing test; the large items need their own WPs.
 - **Answered:** no: made without a response, to review.

@@ -4,6 +4,67 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.53.1 · 2026-10-19
+
+The post-G10 audit (D118): every easy finding fixed, two duplicates retired, the large items listed in `AUDIT.md`.
+
+### Spec
+- A recipe's clip step and an action's interrupt targets take a library clip's id as the format writes it, its slug
+  perhaps with `-` (MOTION.md §11: `MESH2MOTION/Two-hand_Blast`), as the graph schema already did; a recipe's and a
+  paired action's own id keep SET/Slug without one. Refrozen under D118 with MOTION.md's errata (§6.1's 176 clips,
+  §7.4's `recipe` provenance row, §15's twist pop staying in Quaternius' migrated clips), tiers.md's tier 1b inputs
+  (the Rigify vector) and the kit, and SKELETON.md §7's Khronos watch (run: neither extension listed by Khronos).
+- spec/SIM.md names the tool `graph.sim`; the vectors' README says Mesh2Motion's CC0 was audited (D63).
+
+### Core
+- `validateRecipe` and `validateAction` take a clip id with `-` in its slug for a clip step and an interrupt's targets
+  (R-E004 and A-E003 refused `MESH2MOTION/Two-hand_Blast`); `interruptInto` writes the cut's own id with `_` for it.
+- `skeleton.recognize` throws a RangeError naming a bone in a loop of parents among bones a name table knows, as its
+  topology fallback did, instead of hanging (D96).
+
+### IO
+- `skeletonOfGltf` refuses a bone whose rest head isn't finite (node transforms whose product overflows) with E_RIG
+  naming the bone, instead of returning NaN heads (K7, D96).
+
+### Library
+- `checkSets` reads a composed source license (ids joined with " AND ") part by part: each an SPDX id with its text
+  kept, fitting the set's tier, and the credits list each part (D96).
+- The Quaternius sets' baselined twist pops give the validator's threshold, 140° (was 135°), and say the re-import
+  waits for the source files (D63); the registry index mints their v2 (serial 2).
+
+### Tools
+- `npm run index -- admit` holds a community pack's clip files and catalog rows to the intake's text gate, naming the
+  file and field without quoting them; library-submit exports `proseProblems`, the gate's reading of one string.
+- `license.check` passes a composed set whose parts fit and whose texts are kept; import no longer notes otherwise.
+
+### Repo
+- `npm run test:changed` picks the suites that cover what changed: a source file runs every suite whose tests import
+  it, a package change also runs the tools' and benchmark's suites that import it, and the benchmark, the intake
+  service, the workflows, the skills and llms.txt, the library and the feedback log each run the suites that read them.
+- A repo tool's `--json` report goes under `$M3A_CHECK_OUTPUT/<tool>/` when set; T1's conformance CLI test writes
+  there, so `npm test` no longer overwrites a certification's report.
+- `npm run doctrine` fails a budgeted file or tools/pins.json that no longer exists, where it reported it pending;
+  the doctrine tests remove their /tmp fixtures (F4.5); `npm run gate` names the gates when given one it lacks.
+- e2e `single`: `m3a.js`, built as `npm run pack` builds it, runs in Chromium and replies as on Node (F5.3).
+- CI: the dispatched gate job fetches the held-out rigs; each dispatched gate has its own concurrency group, so
+  `intake-contract` no longer cancels a running gate; the dispatch input names the gates a runner can run.
+- The root `engines` asks for Node >=24.2 (every repo CLI runs under `import.meta.main`), and the SessionStart hook
+  compares major and minor.
+- T1 keeps search answering round 1's 10 held-out queries (D65); the review test numbers sources from the log it
+  copies; AGENTS.md's command table is checked to name every package.json script.
+- Retired: tools/run/pending.ts (Phase 0's placeholder) and two loose bench results that were byte copies of
+  G4-run-2's. apps/lab/hello imports `@m3a/three/test-characters` (no lab reaches past the API) and records why it
+  stays (G4's standing check, D118).
+
+### Docs
+- README describes the built package; AGENTS.md lists every script and the adopt bot's rule; DOCTRINE.md's table,
+  PLAN.md's status, met deferred proofs, ledger commits, gate statuses and O3; llms.txt and the skills on the npm
+  bin and the seventh job; the library READMEs on intake and the index; FEEDBACK-LOG's taken-up points and F6;
+  HANDOFF rewritten; `AUDIT.md` (temporary) lists the large items.
+- services/intake/README.md: O8's runbook (the Supabase CLI's layout, the owner's row, GitHub sign-in, the Actions
+  secrets, Actions opening pull requests).
+- Stale comments on WP-7.1, 7.4 and 9.1 as future work corrected (the contributor page, the runner, the CLIs).
+
 ## 0.53.0 · 2026-10-19
 
 ### Spec
