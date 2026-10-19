@@ -113,7 +113,10 @@ export const GATES: Record<string, [string, string, ...string[]][]> = {
   // a pull request that touches library/sets/ (library-gates.yml, WP-9.1a): the clips it adds or changes through the
   // intake's gates; with --fixture all, a scratch copy of the library with each fixture's clip planted on its own, the
   // bad ones expected to fail (the step passes when they do, and the clean ones pass)
-  "library-pr": [["the library gates on the clips it adds or changes: the library as locked, its sets' licenses, the intake's gates", "intake", "gates", "--base", "origin/main"]],
+  "library-pr": [
+    ["the library gates on the clips it adds or changes: the library as locked, its sets' licenses, the intake's gates", "intake", "gates", "--base", "origin/main"],
+    ["the registry index as the library gives it: a changed set a new version, none rewritten or deleted (WP-9.4)", "index", "--check", "--since", "origin/main"],
+  ],
   // the owner's phone review of the batch is theirs (blocked-owner until it comes, §8.5): the gate proves the way
   // there; the notes and the threshold or task it brings back are read off its `m3a review ingest` line when it comes
   G8: [

@@ -4384,6 +4384,15 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
     seed and a SHA-256 of the intent; the HTTP adapter template lives in tools (a network adapter), off by default,
     its transport always injected, sending Kimodo's constraint shape; core's public API reaches 44 of 44 with
     `sources`, and the tools' half is `sourcing` (m3a.js holds every package's names once).
+  - **9.4's calls:** each core set's versions are numbered per set (v1, v2, ...) and the index's `serial` grows with
+    every change, neither the package's version; a version carries a digest over all its set's files beside its content
+    id (which covers the clip files only); a community pack is admitted from its namespace's proof (a domain's
+    `/.well-known/m3a-packs.json`, or `m3a-packs.json` in a GitHub owner's `.github` repository) and refused on a
+    mismatched hash, an unverified namespace or a license that can't be redistributed; the index has a JSON Schema
+    (tools/release/index.schema.json); the `library-pr` gate checks the index too, so a pull request that changes a set
+    carries its new version. `release.yml` runs only by hand and fails closed unless the repository variable
+    `M3A_O2_RELEASE_ASSETS` is "yes" and the repository's owner started it: that variable is the owner's O2 go-ahead,
+    which no session sets (D99: nothing is published).
   - **The spec documents the two provenance records the intake and the sources write** (`intake`, `source`, both
     optional; spec/MOTION.md §7.4, re-frozen by this decision): readers and the schema accepted them already.
   - **The bench's `--need N`:** a gate's clause can need more than 4 of 5 (G9's ten clips through review, every one).
