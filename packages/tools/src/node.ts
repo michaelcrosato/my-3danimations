@@ -7,7 +7,8 @@
 // rules, as are report.json and the request records. It runs the CLI on process.argv, and serves MCP over stdio with
 // `m3a mcp`: one JSON-RPC message per line each way, nothing else on stdout, and an exit when stdin ends. Both keep an
 // edit's request_id results in .m3a/requests/, so a retry in another process applies once. `m3a review` gets its intake
-// store under .cache/intake/ and the checkout's writer from ./node/intake.ts (WP-8.2a).
+// store under .cache/intake/ and the checkout's writer from ./node/intake.ts (WP-8.2a); a source's clips that may not
+// enter the intake are written under library/local/ by ./node/local-lane.ts (WP-9.2).
 import { readFileSync, statSync, unlinkSync } from "node:fs";
 import { relative, resolve, sep } from "node:path";
 import { createInterface } from "node:readline";
@@ -27,6 +28,10 @@ import { TOOLS } from "./tools/index.ts";
 /** The local intake store's record files under .cache/intake/ (INTAKE_DIR), for a contributor's `intake.localStore`
  *  until WP-9.1's `m3a library submit`. */
 export { INTAKE_DIR, intakeFiles } from "./node/intake.ts";
+
+/** The local lane on disk, for `sourcing.deliver`: library/local/'s sets, written atomically under its lock, no link
+ *  leading out (WP-9.2). */
+export { localLane } from "./node/local-lane.ts";
 
 /** The Node host, relative to `cwd`: files read as text (a missing one null to tryRead) or bytes, files written
  *  atomically and removed under the write roots, the library at game.json's tiers, and images written as PNG. */

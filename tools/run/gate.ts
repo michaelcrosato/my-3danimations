@@ -116,6 +116,7 @@ export const GATES: Record<string, [string, string, ...string[]][]> = {
   "library-pr": [
     ["the library gates on the clips it adds or changes: the library as locked, its sets' licenses, the intake's gates", "intake", "gates", "--base", "origin/main"],
     ["the registry index as the library gives it: a changed set a new version, none rewritten or deleted (WP-9.4)", "index", "--check", "--since", "origin/main"],
+    ["the lock's ids: every deprecated one leads to a clip, none of main's dropped, deleted or reused (WP-9.3)", "library", "check", "--since", "origin/main"],
   ],
   // G9 (§9.3): what a machine can prove of the library growing; the hosted run, the adoption by a merged pull request
   // and the owner's approval of a sampled batch wait on O8 and the owner (blocked-owner, §8.5)
@@ -128,6 +129,7 @@ export const GATES: Record<string, [string, string, ...string[]][]> = {
     ["a pull request with a planted bad clip fails the library gates, the clean ones pass", "intake", "gates", "--fixture", "all"],
     ["the adopt bot, dry run: an adoption lands in its set, a failed one goes back to review, one not the owner's refused", "test", "intake/adopt"],
     ["the adopt bot's whole proof: adopted improvements kept by import and migrate, the derived files regenerated, every check passing on the result", "test:full", "tools/intake/adopt.full.test.ts"],
+    ["the library as locked, every id resolving (dedup and lineage, WP-9.3: the planted copies are T1's and T2's)", "library", "check"],
     ["the registry index regenerates byte for byte", "index", "--check"],
     ["the registry index verifies every set", "index", "verify", "--all"],
     ["T2: browser checks, library QA and the sweeps in full", "e2e"],

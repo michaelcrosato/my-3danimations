@@ -4,7 +4,8 @@
 // repository's checkout (the installed library otherwise, read alone); a clip's review written through @m3a/library's
 // writer (each changed clip file and _set.json's content id, catalog.tsv kept, as a review is in no catalog row) with
 // the set's entry in library/sets.lock.json; docs/FEEDBACK-LOG.md and docs/REVIEW-PROPOSALS.md; and the clock (the
-// wall clock by default; tests give a fixed one). These are the only writes m3a makes outside its write roots.
+// wall clock by default; tests give a fixed one). These and the local lane's (./local-lane.ts, under library/local/)
+// are the only writes m3a makes outside its write roots.
 import { createHash } from "node:crypto";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";

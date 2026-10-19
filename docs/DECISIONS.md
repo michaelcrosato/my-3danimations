@@ -4418,3 +4418,39 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   the tools whole for agents rather than trimming words they use.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.52.0
+
+## D113 · 2026-10-19 · Phase 9's verifier review: its fixes, the two provenance records' shape, the source socket API-only
+
+- **Principle:** 2 (a deviation), 10, 11, §5.9, D112
+- **Call:**
+  - **The review:** a fresh verifier per lens (the intake and adoption; the sources and dedup; the index and G9's
+    set), each finding checked by a skeptic that reproduced it. Every finding is fixed below or answered here; three
+    lanes fixed them (fix-intake, fix-sources, fix-index), the integrator the rest.
+  - **The two provenance records have a schema** (clip.schema.json and core's validator; MOTION.md §7.4's rows, re-frozen
+    by this decision; D112 said readers and the schema took them, but the schema took any value): `intake` is `{ by,
+    prompt, manifest, improves, submission, report }`, each part optional in the format, the intake's gate requiring
+    `by`; `source` is `{ name, license, version, stated, seed, prompt }`. An unknown shape is refused (E003, E004, E014,
+    E017), an unknown field flagged in lint mode (W001).
+  - **A source's terms are recorded both ways:** when a remote source serves its clip under terms other than it states,
+    `provenance.source` keeps the served terms and `stated` the stated ones, and `allowlisted()` needs both on the
+    intake's allowlist (a derived tier only when both inherit). The socket refuses a malformed name or terms (E_SOURCE)
+    and unreadable served terms (E_INVALID). Both being allowlisted while they differ is allowed and recorded.
+  - **A source's clip reaches the intake whole:** `deliver` takes `by` and the generator's `manifest` and writes the
+    clip's `provenance.intake` as `library submit` does (the intent's SHA-256 as its prompt, submit's local report), and
+    refuses with no `by`, or a generated clip with no manifest; the tools' sources types are core's, not a copy.
+  - **The motion-source socket stays API-only (principle 2's deviation):** `sources.sourceClip` and `sourcing.deliver`
+    have no CLI command or MCP tool. A source is code a program supplies (an injected transport, a procedural function,
+    a recipe), which a CLI argument can't carry; a clip it makes goes through `library submit`, which every surface
+    has; and the tools' descriptions stand at 3,130 of 3,200 tokens. The Node lane (`localLane`, from
+    `@m3a/tools/node`) writes library/local/'s sets atomically under a lock, every path through `localPath`, a link
+    anywhere on the way refused (E_LOCAL). A tool comes when a source an agent can name exists (Kimodo, O8).
+  - **Ids are never reused, checked:** `npm run library -- check` runs WP-9.3's `checkIds` (every deprecated id leads
+    to a clip that stands), and with `--since <ref>` against the lock that ref holds (no id dropped, deleted or given
+    to another clip), failing on a ref it can't read; the library-pr gate runs it against origin/main and G9 runs it.
+  - **The integrator's three:** `--need` never lowers the pass mark under 4 of 5 (ceil 80%, PLAN.md §7) and the
+    results record the mark they were judged at; G9 runs the adopt bot's whole proof (`npm run test:full`, vitest under
+    M3A_FULL); G9's doctrine step says the tools' 3,200 is T1's tools-budget test.
+- **Why:** the review found the Done-when unmet on paths the tests didn't take (an improvement of a CC BY clip, a
+  clip added to an existing set, a source's clip), each fixed with a test that fails without it.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.52.1
