@@ -40,6 +40,13 @@ describe("the wire", () => {
     expect(text).toBe('{"a":-0,"b":[1.5,-0],"c":null,"d":0.30000000000000004,"s":"-0"}');
     expect(Object.is((JSON.parse(text) as { a: number }).a, -0)).toBe(true);
   });
+  it("writes every string as it is, whatever it holds: no string reads back as -0", () => {
+    // the string the wire once wrote for -0 before swapping it for the number, then any string a clip or a text holds
+    const strings = { desc: "~m3a-negative-zero~", quoted: '"~m3a-negative-zero~"', minus: "-0", text: 'line\n"-0"\t\\' };
+    const back = JSON.parse(line({ ...strings, keys: [strings.desc, -0] })) as typeof strings & { keys: unknown[] };
+    expect(back).toEqual({ ...strings, keys: [strings.desc, -0] });
+    expect(Object.is(back.keys[1], -0)).toBe(true);
+  });
   it("breaks off a sidecar that writes a line that isn't a response object, failing the case asked and every one after", async () => {
     const side = sidecar("broken.ts", "null"), [tier] = (await certify((op, f) => side.ask(op, f), ["1a"], 1)).tiers;
     side.close();

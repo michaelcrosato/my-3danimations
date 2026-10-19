@@ -17,15 +17,17 @@ export const TIMEOUT_S = 60;
 /** A response: the request's id, then the op's result, or an error saying why there is none. */
 export type Response = { id: number; ok: true; result: unknown } | { id: number | null; ok: false; error: string };
 
-const NEG0 = "~m3a-negative-zero~";
+/** -0 as JSON.stringify writes a value given as raw JSON text (`JSON.rawJSON`, in Node since 21; TypeScript's lib
+ *  doesn't declare it yet). A raw value, not a sentinel string: no string a message holds can turn into a number. */
+const NEG0 = (JSON as unknown as { rawJSON(text: string): object }).rawJSON("-0");
 
-/** One message as one line of JSON: typed arrays as arrays, -0 kept (JSON.stringify writes 0), non-finite as null. */
+/** One message as one line of JSON: typed arrays as arrays, -0 kept (JSON.stringify writes 0), non-finite as null,
+ *  every string as it is. */
 export function line(value: unknown): string {
-  const json = JSON.stringify(value, (_k, x: unknown) => {
+  return JSON.stringify(value, (_k, x: unknown) => {
     if (typeof x === "number") return Object.is(x, -0) ? NEG0 : Number.isFinite(x) ? x : null;
     return ArrayBuffer.isView(x) ? Array.from(x as unknown as ArrayLike<number>) : x;
   });
-  return json.replaceAll(`"${NEG0}"`, "-0");
 }
 
 /** An op's answer was an error, or the sidecar broke the protocol: the case fails with this message. */
