@@ -147,6 +147,7 @@ export const GATES: Record<string, [string, string, ...string[]][]> = {
     ["vectors --check", "vectors", "--check"],
     ["the TypeScript implementation certifies through the kit's own runner, every tier in full (WP-10.2)", "conformance", "--impl", "ts"],
     ["the TypeScript consumer proof: a my-3dge-shaped duel on the public API, the same in Node and the browser (WP-10.1)", "e2e", "consumer-ts"],
+    ["the packages as another repository installs them: the packed CLI, MCP server and single file run the manual's example outside this one", "pack", "--check"],
     ["T2: browser checks, library QA and the sweeps in full", "e2e"],
   ],
   // the owner's phone review of the batch is theirs (blocked-owner until it comes, §8.5): the gate proves the way
