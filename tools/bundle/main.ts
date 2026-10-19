@@ -2,6 +2,7 @@
 // with their declarations) and packed, the library's opt-in packs beside its CC0 default (D10), and the single file
 // m3a.js, into .cache/pack/ (./build.ts, ./single.ts). --check also proves them, failing on any of: the default library
 // pack holds a set that isn't cc0, or an opt-in pack another tier's; the m3a bin isn't dist/node.js with its shebang;
+// the tools' pack lacks m3a's skill (skills/m3a/SKILL.md, the repository's, D119);
 // the version rule fails (`node tools/version.ts --check`), a pack isn't at the version, or lacks CHANGELOG.md; a packed
 // text file names the benchmark's graders, known-goods or held-out runs (D107); a staged
 // package.json drops "private" (or, with --publishable, keeps it or lacks provenance); m3a.js lacks the credits block or
@@ -28,7 +29,7 @@ import { checkVerdicts } from "../qa/library.ts";
 import { qa, type LibraryClip } from "../qa/qa.ts";
 import { finish, fmtMs, parseArgs, ROOT, usage, type Report, type Step } from "../run/cli.ts";
 import { check as versionCheck } from "../version.ts";
-import { BENCH_WORDS, build, OUT, REPOSITORY, type Packed } from "./build.ts";
+import { BENCH_WORDS, build, OUT, REPOSITORY, TOOLS_FILES, type Packed } from "./build.ts";
 import { callsOnSingle, completeExample, forSingle, headlessForm, PLAYED, RECORDED, recordedForm, sameRun, SECTION, STANDINS, type Example, type SingleCli } from "./example.ts";
 import { mcpTools } from "./mcp.ts";
 import { buildSingle, bundleData, readManifest } from "./single.ts";
@@ -110,6 +111,13 @@ if (import.meta.main) {
       if (bin !== "./dist/node.js" || !p.files.includes("dist/node.js")) throw new Error(`the m3a bin is ${bin ?? "missing"}, and the tarball ${p.files.includes("dist/node.js") ? "has" : "lacks"} dist/node.js`);
       if (!readFileSync(join(p.stage, "dist/node.js"), "utf8").startsWith("#!/usr/bin/env node\n")) throw new Error("dist/node.js doesn't open with #!/usr/bin/env node");
       return "m3a → dist/node.js, with its shebang";
+    }, ["packs"]);
+    await step("skill", () => {
+      // an installed @m3a/tools gives an agent the skill beside the manual, the repository's as it is
+      const p = packs().tools!, f = "skills/m3a/SKILL.md", from = join(ROOT, TOOLS_FILES["skills/m3a"]!, "SKILL.md");
+      if (!p.files.includes(f)) throw new Error(`the @m3a/tools tarball lacks ${f}: an installed package would give an agent the manual but no skill`);
+      if (readFileSync(join(p.stage, f), "utf8") !== readFileSync(from, "utf8")) throw new Error(`${f} in the tarball differs from the repository's ${relative(ROOT, from)}`);
+      return `@m3a/tools ships ${f}, the repository's`;
     }, ["packs"]);
     await step("version", () => {
       const problems = versionCheck(), v = (JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8")) as { version: string }).version;

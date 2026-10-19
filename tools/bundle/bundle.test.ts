@@ -3,13 +3,14 @@
 // default library pack, the workspace's package.json files (every path one names is a file the workspace has, so a
 // fresh install links the m3a bin) and the published ones (exports, types and the m3a bin pointed at dist/, the bin
 // with its shebang, CHANGELOG.md, three's types an optional peer, the library's license naming its clips', "private"
-// kept unless made publishable), the subset m3a.js carries, the library it opens and its runCli running m3a calls on
-// the example's files given as text, the manual's complete example as the extractor reads it, its recorded form (the
-// program on @m3a/three, its player recorded), its headless form and the stand-ins it imports (binding and playing as
-// @m3a/three does, bit for bit, the two records equal), its rewrite for m3a.js, its sh lines read as sh reads them, and
-// how the check's `m3a mcp` step fails (a bin missing, unable to start, exiting, writing what isn't JSON-RPC, never
-// answering: each a failure, not a crash or a hang; fake bins, the timeout on fake timers). The end-to-end `npm run pack
-// -- --check` (a build, npm pack, a scratch install, m3a.js run) is slow, and runs in the gate (G7), not here.
+// kept unless made publishable; the tools' manual and m3a's skill, named by its "files"), the subset m3a.js carries,
+// the library it opens and its runCli running m3a calls on the example's files given as text, the manual's complete
+// example as the extractor reads it, its recorded form (the program on @m3a/three, its player recorded), its headless
+// form and the stand-ins it imports (binding and playing as @m3a/three does, bit for bit, the two records equal), its
+// rewrite for m3a.js, its sh lines read as sh reads them, and how the check's `m3a mcp` step fails (a bin missing,
+// unable to start, exiting, writing what isn't JSON-RPC, never answering: each a failure, not a crash or a hang; fake
+// bins, the timeout on fake timers). The end-to-end `npm run pack -- --check` (a build, npm pack, a scratch install,
+// m3a.js run) is slow, and runs in the gate (G7), not here.
 import { spawnSync } from "node:child_process";
 import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { stripTypeScriptTypes } from "node:module";
@@ -23,7 +24,7 @@ import * as threeApi from "../../packages/three/src/index.ts";
 import { character, loadGlb, variant } from "../../packages/three/test-characters/index.ts";
 import { runCli, tools } from "../../packages/tools/src/index.ts";
 import { ROOT } from "../run/cli.ts";
-import { BENCH_WORDS, jsSpecifiers, PACKAGES, packedChangelog, packSets, publishable, publishedExports, publishedManifest, REPOSITORY, stagedManifest, tiersOf, withDataLicenses } from "./build.ts";
+import { BENCH_WORDS, jsSpecifiers, PACKAGES, packedChangelog, packSets, publishable, publishedExports, publishedManifest, REPOSITORY, stagedManifest, tiersOf, TOOLS_FILES, withDataLicenses } from "./build.ts";
 import { argvOf, callsOnSingle, completeExample, forSingle, HEADLESS, headlessForm, importsOf, PLAYED, RECORDED, recordedForm, sameRun, SECTION, STANDINS } from "./example.ts";
 import * as headless from "./headless.ts";
 import { MCP_TIMEOUT_MS, mcpTools } from "./mcp.ts";
@@ -94,6 +95,14 @@ describe("the published package.json", () => {
       expect([p, out.files]).toEqual([p, [...(src.files as string[]), "CHANGELOG.md"]]);
       expect([p, out.version]).toEqual([p, pkgOf("core").version]);
     }
+  });
+  it("ships the manual and m3a's skill in @m3a/tools: each named by its \"files\", each source in the repository, the skill a clean one (D119)", () => {
+    const files = pkgOf("tools").files as string[];
+    expect(TOOLS_FILES).toEqual({ "MANUAL.md": "packages/tools/MANUAL.md", "skills/m3a": "skills/m3a" });
+    for (const [to, from] of Object.entries(TOOLS_FILES)) expect([to, files.includes(to.split("/")[0]!), existsSync(join(ROOT, from))]).toEqual([to, true, true]);
+    // pack --check holds a packed text file to naming no benchmark word: the skill passes that as written
+    const skill = readFileSync(join(ROOT, TOOLS_FILES["skills/m3a"]!, "SKILL.md"), "utf8");
+    expect([skill.startsWith("---\nname: m3a\n"), BENCH_WORDS.test(skill)]).toEqual([true, false]);
   });
   it("names three's types an optional peer of @m3a/three, at the version its declarations were written against", () => {
     const three = pkgOf("three"), out = publishedManifest(three), types = (three.devDependencies as Record<string, string>)["@types/three"];

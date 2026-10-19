@@ -1,0 +1,22 @@
+<!doctype html>
+<!-- The first-flight page (tests/e2e/first-flight.e2e.ts): a test character idling, walking, running, jumping and
+     attacking through the packages' public entries, drawn by three.js on WebGL 2 and driven by window.__m3a. -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>m3a first flight</title>
+    <link rel="icon" href="data:," />
+    <style>
+      html, body { margin: 0; height: 100%; background: #f4f2ec; color: #26231e; font: 14px/1.4 system-ui, sans-serif; overflow: hidden; }
+      canvas { display: block; width: 100%; height: 100%; }
+      #hud { position: fixed; top: 8px; left: 12px; display: flex; gap: 12px; pointer-events: none; }
+      #stamp { position: fixed; right: 10px; bottom: 6px; font-size: 11px; opacity: 0.6; }
+    </style>
+  </head>
+  <body>
+    <div id="hud"><b id="mode">loading</b><span id="hits"></span></div>
+    <div id="stamp"></div>
+    <script type="module" src="./page.ts"></script>
+  </body>
+</html>

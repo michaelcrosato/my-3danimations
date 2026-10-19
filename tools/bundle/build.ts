@@ -6,8 +6,8 @@
 // `publishable` stages a copy ready for it) and packed by `npm pack`. Every pack carries the version (one for all,
 // tools/version.ts) and the repository's CHANGELOG.md, which has its section, as a consumer reads it (`packedChangelog`:
 // without the Repo sections and the lines about the benchmark, whose briefs a fresh agent must not see answered). The
-// library's default pack holds the CC0
-// sets alone (its license the code's and theirs); each other tier that ships (cc-by, cmu) is a pack of its own,
+// tools' pack holds the manual and m3a's agentskills.io skill (skills/m3a/, D119). The library's default pack holds the
+// CC0 sets alone (its license the code's and theirs); each other tier that ships (cc-by, cmu) is a pack of its own,
 // `@m3a/library-<tier>`, found by the library's loader when installed beside it (D10). Nothing here publishes.
 import { execFileSync } from "node:child_process";
 import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
@@ -51,6 +51,10 @@ export const PACKAGES = ["core", "sensors", "io", "library", "three", "tools"] a
 export const OUT = join(ROOT, ".cache/pack");
 /** The library's sets. */
 const SETS = join(ROOT, "library/sets");
+/** What @m3a/tools ships beside dist/, by its path in the pack, from the repository's: the manual, and m3a's skill
+ *  (agentskills.io's format, WP-7.3), so an installed package holds node_modules/@m3a/tools/skills/m3a/SKILL.md (D119).
+ *  Each path's first segment is in the package's "files". */
+export const TOOLS_FILES: Readonly<Record<string, string>> = { "MANUAL.md": "packages/tools/MANUAL.md", "skills/m3a": "skills/m3a" };
 /** The repository the packs are built from, which npm provenance checks a published pack against. */
 export const REPOSITORY = "git+https://github.com/michaelcrosato/my-3danimations.git";
 
@@ -155,7 +159,7 @@ export function stagedManifest(name: (typeof PACKAGES)[number], sets: readonly s
 
 /** Stages one package: dist/ (JavaScript and declarations), its staged package.json (`publishable` with `ready`),
  *  the repository's LICENSE and CHANGELOG.md, and what its "files" name beyond dist/ (the library's CC0 sets, the
- *  tools' manual). */
+ *  tools' manual and skill, `TOOLS_FILES`). */
 function stagePackage(name: (typeof PACKAGES)[number], dir: string, sets: readonly string[], ready: boolean): void {
   const src = join(ROOT, "packages", name), pkg = JSON.parse(readFileSync(join(src, "package.json"), "utf8")) as Record<string, unknown>;
   const exports = pkg.exports as Record<string, string>;
@@ -175,7 +179,7 @@ function stagePackage(name: (typeof PACKAGES)[number], dir: string, sets: readon
     }
   }
   if (name === "library") stageSets(dir, sets);
-  if (name === "tools") cpSync(join(src, "MANUAL.md"), join(dir, "MANUAL.md"));
+  if (name === "tools") for (const [to, from] of Object.entries(TOOLS_FILES)) cpSync(join(ROOT, from), join(dir, to), { recursive: true });
   if (existsSync(join(src, "README.md"))) cpSync(join(src, "README.md"), join(dir, "README.md"));
   const published = stagedManifest(name, sets);
   writeFileSync(join(dir, "package.json"), `${JSON.stringify(ready ? publishable(published, `packages/${name}`) : published, null, 2)}\n`);

@@ -7,10 +7,12 @@
 // its workspace and home its own (a link in them handed, never what it leads to), /var/tmp and /dev/shm its own too,
 // and the proxy's CA copied into that home; and a held-out variant given by path, whose known-good solution runs first.
 // m3a's wiring (WP-7.3): the agent's flags (the Skill tool, project settings, the CLI's own skills off, m3a's MCP server
-// from the installed package, its tools allowed), the init event's skills each recorded, the skill in a trial's
-// workspace as a regular file naming what the installed package holds, the packed m3a bin and MCP server answering there, an init event showing the server failed stopping the agent
-// and failing its trial though its workspace grades, and the manual, the skill and llms.txt not counted as reads past
-// the manual. No test spends: a stand-in `claude` plays the agent.
+// from the installed package, its tools allowed), the init event's skills each recorded, the skill copied into a
+// trial's workspace from the installed package, which ships it, else from the repository (a marker line tells the two
+// apart), as a regular file naming what that package holds, the packed m3a bin and MCP server answering there, an init
+// event showing the server failed stopping the agent and failing its trial though its workspace grades, and the
+// manual, the skill and llms.txt not counted as reads past the manual. No test spends: a stand-in `claude` plays the
+// agent.
 // Every temporary directory a test makes is removed after it.
 import { execFileSync, spawnSync } from "node:child_process";
 import { chmodSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, symlinkSync, writeFileSync } from "node:fs";
@@ -22,7 +24,7 @@ import { agentArgs, agentUser, audit, capsDropped, CLOUD_CREDENTIALS, hidden, M3
 import { commitOf, knownGood, lanes, latestVariant, passMark, pool, runB1, SPECS, variantOf } from "./main.ts";
 import { pack } from "./pack.ts";
 import { answersIn, QUIZ, quizPrompt, score } from "./quiz.ts";
-import { SKILL } from "./workspace.ts";
+import { copySkill, SKILL } from "./workspace.ts";
 
 const ROOT = join(import.meta.dirname, "../..");
 /** The init event that opens a stream-json transcript, as the CLI writes it (claude 2.1.302), m3a's server `status`. */
@@ -158,7 +160,7 @@ describe("the agent's audit", () => {
       // the skill the runner copies into the workspace, and the Skill tool loading it (no path)
       read(`${ws}/.claude/skills/m3a/SKILL.md`),
       JSON.stringify({ type: "assistant", message: { content: [{ type: "tool_use", name: "Skill", input: { skill: "m3a" } }] } }),
-      // the manual, and the skill and llms.txt should a package ship them (none does: D118)
+      // the manual and the skill @m3a/tools ships beside it (D119), and llms.txt should a package ship one
       ...["tools/MANUAL.md", "tools/llms.txt", "tools/skills/m3a/SKILL.md", "core/llms.txt"].map((f) => read(`${ws}/node_modules/@m3a/${f}`)),
       // past it: the packages' code, and a file of the same name elsewhere in one
       ...["tools/dist/node.js", "tools/dist/llms.txt", "core/MANUAL.md"].map((f) => read(`${ws}/node_modules/@m3a/${f}`)),
@@ -193,6 +195,25 @@ describe("m3a's wiring (WP-7.3)", () => {
     expect(unwired(wiringOf([init("pending", [])]))).toMatch(/its MCP server is pending, not connected; its skill isn't loaded/);
     expect(unwired(wiringOf([JSON.stringify({ type: "system", subtype: "init", mcp_servers: [], skills: ["m3a"] })]))).toMatch(/its MCP server is missing/);
     expect([wiringOf([]), unwired(null)]).toEqual([null, "m3a's wiring went unchecked: the stream had no init event"]);
+  });
+  it("copies the skill into a trial's workspace from the installed @m3a/tools, which ships it (D119), else from the repository's skills/m3a/", () => {
+    const own = readFileSync(join(SKILL.from, "SKILL.md"), "utf8"), shipped = `${own}\n<!-- the installed @m3a/tools' copy -->\n`;
+    const skill = (ws: string) => {
+      const f = join(ws, SKILL.to, "SKILL.md");
+      return [lstatSync(f).isFile(), readFileSync(f, "utf8")];
+    };
+    // installed: the package's skill, told from the repository's by its marker line, is what the workspace gets
+    const ws = temp("m3a-skill-"), packed = join(ws, SKILL.packed);
+    mkdirSync(packed, { recursive: true });
+    writeFileSync(join(packed, "SKILL.md"), shipped);
+    expect(copySkill(ws)).toBe(packed);
+    expect(skill(ws)).toEqual([true, shipped]);
+    // packs built before it shipped (an installed @m3a/tools with its manual alone): the repository's
+    const old = temp("m3a-skill-");
+    mkdirSync(join(old, "node_modules/@m3a/tools"), { recursive: true });
+    writeFileSync(join(old, "node_modules/@m3a/tools/MANUAL.md"), "# m3a\n");
+    expect(copySkill(old)).toBe(SKILL.from);
+    expect(skill(old)).toEqual([true, own]);
   });
   it("runs an agent whose server connected to the end, and stops one whose server failed at its init event", async () => {
     const base = temp("m3a-wiring-"), path = process.env.PATH, wss = ["W-1", "W-2"].map((n) => join(base, n));
@@ -384,11 +405,12 @@ describe("trials", () => {
   it("installs the packed packages outside the repository, and grades the known-good solution there (a fake trial)", async () => {
     const r = await runB1({ trials: 1, discovery: 0, base, packs, fake: true });
     expect(r.trials.map((t) => [t.trial, t.pass, t.failed])).toEqual([["B1-1", true, []]]);
-    // m3a's skill (skills/m3a/, copied from the repository: no package ships it, D118), as regular files where Claude
-    // Code reads a project's skills: a link would lead into the repository, which the agent can't see (WP-7.3)
-    const ws = join(base, "B1-1"), skill = join(ws, SKILL.to, "SKILL.md");
+    // m3a's skill: the installed @m3a/tools ships it (skills/m3a/, D119), and the runner copies it from there, as
+    // regular files where Claude Code reads a project's skills: a link would lead where the agent can't see (WP-7.3)
+    const ws = join(base, "B1-1"), skill = join(ws, SKILL.to, "SKILL.md"), shipped = join(ws, SKILL.packed, "SKILL.md"), own = readFileSync(join(ROOT, "skills/m3a/SKILL.md"), "utf8");
+    expect([lstatSync(shipped).isFile(), readFileSync(shipped, "utf8")]).toEqual([true, own]);
     for (const d of [".claude", ".claude/skills", SKILL.to]) expect(lstatSync(join(ws, d)).isDirectory(), d).toBe(true);
-    expect([lstatSync(skill).isFile(), readFileSync(skill, "utf8")]).toEqual([true, readFileSync(join(ROOT, "skills/m3a/SKILL.md"), "utf8")]);
+    expect([lstatSync(skill).isFile(), readFileSync(skill, "utf8")]).toEqual([true, own]);
     // every installed file it names is there
     const named = [...readFileSync(skill, "utf8").matchAll(/node_modules\/@m3a\/[\w./-]+/g)].map((m) => m[0]);
     expect(named).toContain("node_modules/@m3a/tools/MANUAL.md");

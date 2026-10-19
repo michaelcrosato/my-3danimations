@@ -1,10 +1,10 @@
 // A benchmark workspace (PLAN.md §7, WP-4.7): a starter copied into a directory with its brief, its character and the
 // speeds the grader asks of it (speeds.json), and
 // either the packed packages installed (a trial, outside the repository) or nothing installed (a grader test inside
-// the repository, where the packages resolve to their sources). A trial's workspace also holds m3a's skill
-// (skills/m3a/: no package ships it, so the runner copies it from the repository, D118) where Claude Code reads a
-// project's skills, as real files (WP-7.3). The character is a parameter: a generator seed, or a real rig from a
-// fixtures manifest, fetched by its SHA-256.
+// the repository, where the packages resolve to their sources). A trial's workspace also holds m3a's skill where
+// Claude Code reads a project's skills, as real files (WP-7.3): copied from the installed @m3a/tools, which ships it
+// (skills/m3a/, D119), or from the repository's skills/m3a/ when the packs predate that. The character is a parameter:
+// a generator seed, or a real rig from a fixtures manifest, fetched by its SHA-256.
 import { execFileSync } from "node:child_process";
 import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { basename, join, relative } from "node:path";
@@ -20,9 +20,10 @@ export type CharacterSpec = { seed: number } | { manifest: string; rig: string }
 /** The default B1 character: a generated test character from WP-4.2's set. */
 export const DEFAULT_CHARACTER: CharacterSpec = { seed: 1 };
 
-/** The skill a trial's workspace holds (WP-7.3): the repository's skills/m3a/ (`from`: no package ships it, so the
- *  runner copies it, D118), where Claude Code reads a project's skills (`to`, in the workspace). */
-export const SKILL = { from: join(ROOT, "skills/m3a"), to: ".claude/skills/m3a" } as const;
+/** The skill a trial's workspace holds (WP-7.3), where Claude Code reads a project's skills (`to`, in the workspace):
+ *  the installed @m3a/tools' (`packed`, in the workspace: the tarball ships it, D119), else the repository's skills/m3a/
+ *  (`from`, for packs built before it shipped). */
+export const SKILL = { packed: "node_modules/@m3a/tools/skills/m3a", from: join(ROOT, "skills/m3a"), to: ".claude/skills/m3a" } as const;
 
 /** The GLB bytes of a starter character. */
 export function characterBytes(spec: CharacterSpec): Uint8Array {
@@ -70,10 +71,19 @@ export async function prepareWorkspace(dir: string, spec: WorkspaceSpec): Promis
     }
     writeFileSync(join(dir, "package.json"), `${JSON.stringify(pkg, null, 2)}\n`);
     execFileSync("npm", ["install", "--no-audit", "--no-fund", "--prefer-offline", "--loglevel=error"], { cwd: dir, stdio: "pipe", timeout: 300_000 });
-    // the skill, copied as real files: a link would lead into the repository, which the agent can't see (D84, D91)
-    cpSync(SKILL.from, join(dir, SKILL.to), { recursive: true, dereference: true });
+    copySkill(dir);
   }
   return dir;
+}
+
+/** Copies m3a's skill into a trial's workspace `dir` (installed first), where Claude Code reads a project's skills
+ *  (SKILL.to), as real files: a link to the repository would lead where the agent can't see (D84, D91). It comes
+ *  from the installed @m3a/tools when that ships skills/m3a/SKILL.md (D119), else from the repository's skills/m3a/.
+ *  Returns the directory it copied. */
+export function copySkill(dir: string): string {
+  const packed = join(dir, SKILL.packed), from = existsSync(join(packed, "SKILL.md")) ? packed : SKILL.from;
+  cpSync(from, join(dir, SKILL.to), { recursive: true, dereference: true });
+  return from;
 }
 
 /** Whether the workspace's installed packages hold the manual (a trial's starting point). */

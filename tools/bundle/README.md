@@ -9,9 +9,11 @@ is committed, and nothing is published: O2):
   the `m3a` bin is `dist/node.js` (shebang kept), and `"private": true` stays until O2. `@m3a/library`'s license
   names its clips' beside the code's (`MIT AND CC0-1.0`). `@m3a/three`'s declarations import three's types, so
   `@types/three` (the version they were written against) is an optional peer: a strict TypeScript consumer installs it.
-  The workspace's own package.json files name source files alone (exports, `"types"`, the bin `src/node.ts`), which
-  Node 24 runs directly, so a fresh `npm ci` links `npx m3a` to the source (`bundle.test.ts` fails on a path the
-  workspace lacks). Then `npm pack` writes `m3a-<name>-<version>.tgz`.
+  `@m3a/tools` ships the manual and m3a's agentskills.io skill beside `dist/` (`MANUAL.md`, `skills/m3a/SKILL.md`, the
+  repository's, D119), so an installed package gives an agent both. The workspace's own package.json files name source
+  files alone (exports, `"types"`, the bin `src/node.ts`), which Node 24 runs directly, so a fresh `npm ci` links
+  `npx m3a` to the source (`bundle.test.ts` fails on a path the workspace lacks). Then `npm pack` writes
+  `m3a-<name>-<version>.tgz`.
 - **The version and changelog rule**: one version for every package (`node tools/version.ts`), the opt-in packs taking
   the library's. Each tarball carries the repository's `CHANGELOG.md`, whose section for that version
   `node tools/version.ts --check` requires.
@@ -26,7 +28,8 @@ is committed, and nothing is published: O2):
   example names among them, which `bundle.test.ts` checks). `openLibrary()` opens those
   clips, verified with core's SHA-256, and `tools.call(name, args, { host })` runs a tool on them. Its opening comment
   carries the code's MIT license, the credits block and the license text of every tier it includes, which are also
-  exported as `CREDITS` and `LICENSES`. three.js and `@m3a/three` are left out. An agent that can't install packages
+  exported as `CREDITS` and `LICENSES`. three.js and `@m3a/three`'s API are left out (only its three-free test-character generator is inside, for
+  `gen-<seed>`). An agent that can't install packages
   can't install three either, and the API it can use is headless (find, make, check, export, the tools). A bundled
   three would also triple the file and sit beside a game's own copy, whose objects fail the other copy's `instanceof`.
   m3a.js has no Node built-in either (it runs in a browser), so `@m3a/sensors/node`'s `writePng` isn't in it.
@@ -34,6 +37,7 @@ is committed, and nothing is published: O2):
 `--check` also proves the build, failing on any of these:
 - a set in the wrong pack;
 - the bin;
+- the tools' tarball without `skills/m3a/SKILL.md`, or with one other than the repository's;
 - the version rule (`node tools/version.ts --check`), a pack at another version, or one without `CHANGELOG.md`;
 - a staged package.json without `"private": true` (with `--publishable`: one that keeps it, or lacks provenance);
 - m3a.js's credits or license texts;
