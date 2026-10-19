@@ -6,7 +6,8 @@ job in shardfall is acting in another repository (PLAN.md §13, O9): this file i
 
 ## The tiers that apply
 
-A codec claims tiers 1a, 1b and 2, all on format 1. Its `hello` answers `"formats": [1]`, which leaves
+A codec claims tiers 1a, 1b and 2, all on format 1 (1b once its glTF reader gives the Rigify look, below). Its `hello`
+answers `"formats": [1]`, which leaves
 `tier2/FORMAT2.json` (format 2's hand, fingers, spine and yaw) unclaimed. Tier 3 is retargeting, and a codec has no
 solver: leave `retarget` out of `ops`, and tier 3 reads "not claimed" (D.6, a Rust core, would add it).
 
