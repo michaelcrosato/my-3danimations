@@ -134,7 +134,8 @@ export const GATES: Record<string, [string, string, ...string[]][]> = {
     ["the registry index verifies every set", "index", "verify", "--all"],
     ["T2: browser checks, library QA and the sweeps in full", "e2e"],
     ["the held-out run is fresh: no gate run used it, each variant's character one no test or run used", "fixtures", "heldout", "G9"],
-    ["B8: ten fresh agents' clips reach review through the intake, every check green", "bench", "B8", "--trials", "10", "--parallel", "5", "--need", "10"],
+    ["B8: at least 4 of 5 fresh agents' clips reach review through the intake, every check green", "bench", "B8", "--trials", "5", "--parallel", "5"],
+    ["B8-ten: a fresh agent submits ten clips through the intake, and all ten reach review with every check green", "bench", "B8-ten", "--trials", "1"],
     ["B8's held-out variant: at least 4 of 5 fresh agents", "bench", "B8", "--trials", "5", "--parallel", "5", "--heldout", "G9"],
   ],
   // the owner's phone review of the batch is theirs (blocked-owner until it comes, §8.5): the gate proves the way

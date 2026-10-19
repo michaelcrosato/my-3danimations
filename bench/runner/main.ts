@@ -31,6 +31,7 @@ import { gradeB5 } from "../graders/B5/grade.ts";
 import { gradeB6 } from "../graders/B6/grade.ts";
 import { gradeB7 } from "../graders/B7/grade.ts";
 import { checkEvery, gradeB8, solveB8 } from "../graders/B8/grade.ts";
+import { gradeB8Ten, solveB8Ten } from "../graders/B8/ten.ts";
 import { closest, finish, fmtMs, parseArgs, usage, type Report, type Step } from "../../tools/run/cli.ts";
 import { agentUser, capsDropped, namespace, ownPids, runAgent, type AgentRun } from "./agent.ts";
 import { pack } from "./pack.ts";
@@ -64,6 +65,9 @@ export const SPECS: Record<string, BriefSpec> = {
   B6: { starter: "B6", grade: gradeB6, good: ["punch.json"] },
   B7: { starter: "B7", grade: gradeB7, good: ["graph.json"] },
   B8: { starter: "B8", grade: gradeB8, good: ["emote.json", "submit.sh"], solve: solveB8, during: checkEvery },
+  // B8's job ten times over by one agent in one queue (G9); its known-good's files are bench/graders/B8/known-good-ten/,
+  // which its solve copies in before its m3a calls
+  "B8-ten": { starter: "B8", grade: gradeB8Ten, good: [], solve: solveB8Ten, during: checkEvery },
 };
 const BRIEFS = [...Object.keys(SPECS), "quiz"];
 /** What a trial is told: the brief does the rest. */

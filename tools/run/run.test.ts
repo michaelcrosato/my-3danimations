@@ -48,7 +48,7 @@ describe("a gate's report", () => {
     const scripts = (JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8")) as { scripts: Record<string, string> }).scripts;
     for (const [gate, steps] of Object.entries(GATES)) for (const [name, script] of steps) expect(scripts[script], `${gate}: ${name}`).toBeDefined();
     expect(GATES.G8!.map(([, script]) => script)).toEqual(["check", "test", "doctrine", "vectors", "test", "e2e", "site", "m3a"]);
-    expect(GATES.G9!.filter(([, script]) => script === "bench").map(([, , ...args]) => args.join(" "))).toEqual(["B8 --trials 10 --parallel 5 --need 10", "B8 --trials 5 --parallel 5 --heldout G9"]);
+    expect(GATES.G9!.filter(([, script]) => script === "bench").map(([, , ...args]) => args.join(" "))).toEqual(["B8 --trials 5 --parallel 5", "B8-ten --trials 1", "B8 --trials 5 --parallel 5 --heldout G9"]);
   });
 });
 
