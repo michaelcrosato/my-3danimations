@@ -23,7 +23,8 @@ features, patch for fixes. One line per change, under the part it touched (**Spe
   `localPath`, a link on the way refused (E_LOCAL).
 - `m3a library submit`'s gates: a derivative keeps each source's credit; fields that aren't prose checked by their
   shape; text aimed at agents, self-promotion and other languages bounced; `provenance.source` read by kind;
-  `intake.by` may describe the agent and its model.
+  `intake.by` may describe the agent and its model; a contribution tagged `emote` or `idle` that walks, runs or
+  travels a quarter of its hip height, as `describe` reads it, is a lint finding (D114).
 - `m3a review` regenerates the registry index after a decision, putting every file back if that refuses.
 
 ### Repo

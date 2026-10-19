@@ -4500,3 +4500,27 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   clip added to an existing set, a source's clip), each fixed with a test that fails without it.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.52.1
+
+## D114 · 2026-10-19 · G9 run 1 failed on B8-ten (9 of 10); fixed forward: the intake reads an emote or idle that moves
+
+- **Principle:** 11, 12, PLAN.md §7, §9.3, D78
+- **Call:**
+  - **Run 1** (ba75cff, 0.52.1, `bench/results/gates/G9-run-1/`) passed 15 of its 16 commands: the intake's 18
+    fixtures, the 28 plants in a pull request, the adopt bot's dry run and whole proof, the ids, the index, T2, B8 at
+    5 of 5 and its held-out variant (run 2, gen-7359) at 5 of 5. B8-ten failed: its one agent had ten emotes waiting
+    for review with every gate green, but one of them walks (`describe`: "0.00–1.67 s walks"), which its brief rules
+    out, and it hadn't read its clips with `describe`; 9 pass every check. The grader stands as it was written: the
+    brief named the rule, so the miss is the agent's, and the clause is all ten.
+  - **Fixed forward in the intake, not the grader:** the lint gate (local in `m3a library submit`, and the checker's)
+    finds a contribution tagged `emote` or `idle` that `describe` reads walking or running, or that travels a quarter
+    of its hip height or more (a loop's cycle), and names the reading ("tag emote: it walks from 0.00 s as describe
+    reads it: an emote stays where it stands; keep it in place, or tag it as the motion it is"). A mis-tagged clip
+    misleads search and the agents reading catalog rows, so the library's door holds it, as B8's grader does; the
+    library's own clips are untouched (the rule reads submissions only; its emotes travel 0.02 at most). B8's planted
+    walk is bounced by it now too.
+  - **Run 2** takes a fresh held-out variant (run 3, by a fresh writer and checker under D91's read bar): run 2's was
+    used by run 1.
+- **Why:** §8.5 fixes forward a failed gate and runs it again; the fix is the tool telling a contributor what its
+  brief asked it to check, not a looser grade.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.52.1

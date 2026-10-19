@@ -1,0 +1,148 @@
+{
+  "tool": "gate",
+  "ok": false,
+  "verdict": "gate G9: FAIL in 1151.9 s (15/16 commands) at ba75cff",
+  "steps": [
+    {
+      "name": "check",
+      "ok": true,
+      "ms": 2952.317047,
+      "detail": [],
+      "log": "check-output/gate/check.log",
+      "summary": "check: PASS (T0) in 2.7 s, budget 15.0 s"
+    },
+    {
+      "name": "test",
+      "ok": true,
+      "ms": 107732.71396699999,
+      "detail": [],
+      "log": "check-output/gate/test.log",
+      "summary": "test: PASS (T1) in 107.5 s, budget 90.0 s"
+    },
+    {
+      "name": "doctrine: the manual within its 8,000 tokens (the tools within 3,200: T1's tools-budget test, D112)",
+      "ok": true,
+      "ms": 761.1763020000071,
+      "detail": [],
+      "log": "check-output/gate/doctrine-the-manual-within-its-8-000-tokens-the-tools-within-3-200-T1-s-tools-budget-test-D112-.log",
+      "summary": "doctrine: PASS in 0.4 s (8 checks)"
+    },
+    {
+      "name": "vectors --check",
+      "ok": true,
+      "ms": 2247.8067909999954,
+      "detail": [],
+      "log": "check-output/gate/vectors-check.log",
+      "summary": "vectors: PASS (--check) in 1.8 s"
+    },
+    {
+      "name": "the intake: the clean submission waits for review, every planted bad one bounced with its reason",
+      "ok": true,
+      "ms": 6836.383602999995,
+      "detail": [],
+      "log": "check-output/gate/the-intake-the-clean-submission-waits-for-review-every-planted-bad-one-bounced-with-its-reason.log",
+      "summary": "library status: 18 submissions (14 bounced, 4 awaiting review) (local store)"
+    },
+    {
+      "name": "a pull request with a planted bad clip fails the library gates, the clean ones pass",
+      "ok": true,
+      "ms": 62583.77988799999,
+      "detail": [],
+      "log": "check-output/gate/a-pull-request-with-a-planted-bad-clip-fails-the-library-gates-the-clean-ones-pass.log",
+      "summary": "intake gates --fixture all: PASS in 61.7 s (28/28)"
+    },
+    {
+      "name": "the adopt bot, dry run: an adoption lands in its set, a failed one goes back to review, one not the owner's refused",
+      "ok": true,
+      "ms": 8633.571519999998,
+      "detail": [],
+      "log": "check-output/gate/the-adopt-bot-dry-run-an-adoption-lands-in-its-set-a-failed-one-goes-back-to-review-one-not-the-owner-s-refused.log",
+      "summary": "test: PASS (T1) in 8.4 s, budget 90.0 s"
+    },
+    {
+      "name": "the adopt bot's whole proof: adopted improvements kept by import and migrate, the derived files regenerated, every check passing on the result",
+      "ok": true,
+      "ms": 144101.76840000003,
+      "detail": [],
+      "log": "check-output/gate/the-adopt-bot-s-whole-proof-adopted-improvements-kept-by-import-and-migrate-the-derived-files-regenerated-every-check-passing-on-the-result.log",
+      "summary": "RUN  v4.1.11 /home/user/my-3danimations"
+    },
+    {
+      "name": "the library as locked, every id resolving (dedup and lineage, WP-9.3: the planted copies are T1's and T2's)",
+      "ok": true,
+      "ms": 499.85862900002394,
+      "detail": [],
+      "log": "check-output/gate/the-library-as-locked-every-id-resolving-dedup-and-lineage-WP-9-3-the-planted-copies-are-T1-s-and-T2-s-.log",
+      "summary": "library check: PASS in 0.0 s"
+    },
+    {
+      "name": "the registry index regenerates byte for byte",
+      "ok": true,
+      "ms": 635.3518550000153,
+      "detail": [],
+      "log": "check-output/gate/the-registry-index-regenerates-byte-for-byte.log",
+      "summary": "index check: PASS in 0.2 s"
+    },
+    {
+      "name": "the registry index verifies every set",
+      "ok": true,
+      "ms": 705.4555490000057,
+      "detail": [],
+      "log": "check-output/gate/the-registry-index-verifies-every-set.log",
+      "summary": "index verify: PASS in 0.2 s"
+    },
+    {
+      "name": "T2: browser checks, library QA and the sweeps in full",
+      "ok": true,
+      "ms": 321559.337452,
+      "detail": [],
+      "log": "check-output/gate/T2-browser-checks-library-QA-and-the-sweeps-in-full.log",
+      "summary": "e2e: PASS (T2) in 321.3 s, budget 480.0 s"
+    },
+    {
+      "name": "the held-out run is fresh: no gate run used it, each variant's character one no test or run used",
+      "ok": true,
+      "ms": 242.52275700005703,
+      "detail": [],
+      "log": "check-output/gate/the-held-out-run-is-fresh-no-gate-run-used-it-each-variant-s-character-one-no-test-or-run-used.log",
+      "summary": "fixtures heldout G9: PASS in 0.0 s"
+    },
+    {
+      "name": "B8: at least 4 of 5 fresh agents' clips reach review through the intake, every check green",
+      "ok": true,
+      "ms": 142036.331335,
+      "detail": [],
+      "log": "check-output/gate/B8-at-least-4-of-5-fresh-agents-clips-reach-review-through-the-intake-every-check-green.log",
+      "summary": "bench B8: PASS in 141.2 s"
+    },
+    {
+      "name": "B8-ten: a fresh agent submits ten clips through the intake, and all ten reach review with every check green",
+      "ok": false,
+      "ms": 246892.277444,
+      "detail": [
+        "bench B8-ten: FAIL in 246.0 s",
+        "  FAIL B8-ten 242.0 s: 0 of 1 trials pass",
+        "  -- B8-ten:",
+        "     B8-ten-1: 10 of them pass every check: 9 of 14 pass every check; the 5 others: s-1e6743276e8db7ad (clip) fails it waits for review: bounced: dedup: a near-duplicate of MESH2MOTION/Dance_Reach_Hip mirrored, 4.7 mm a point from it on average (one motion under 16.4); if it improves MESH2MOTION/Dance_Reach_Hip, submit it with --improv; and the dedup gate is green, the retarget gate is green | s-2a697c8bdb9eed07 (clip) fails it waits for review: bounced: dedup: a near-duplicate of MESH2MOTION/Reject, 3.7 mm a point from it on average (one motion under 13.9); if it improves MESH2MOTION/Reject, submit it with --improves MESH2MOTION/Reject; and the dedup gate is green, the retarget gate is green | s-890e42c97335ec09 (clip) fails it waits for review: bounced: dedup: a near-duplicate of MESH2MOTION/Insult mirrored, 7.5 mm a point from it on average (one motion under 12.8); if it improves MESH2MOTION/Insult, submit it with --improves MESH2MOTION/Ins; and the dedup gate is green, the retarget gate is green | s-c1b57a9d143b9655 (clip) fails it waits for review: bounced: dedup: a near-duplicate of MESH2MOTION/Help_Two_Arms, 9.1 mm a point from it on average (one motion under 12.9); if it improves MESH2MOTION/Help_Two_Arms, submit it with --improves MESH2MOTIO; and the dedup gate is green, the retarget gate is green | s-ef55f6c2582f3e69 (clip) fails it stays in place: it walks from 0.00 s (describe: a 1.67 s loop; 0.00–1.67 s walks): an emote stays where it stands",
+        "next: results in bench/results/2026-10-19-default-B8-ten.json; workspaces and transcripts in /tmp/m3a-bench/2026-10-19T12-36-10",
+        "(node:12739) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time",
+        "(Use `node --trace-warnings ...` to show where the warning was created)"
+      ],
+      "log": "check-output/gate/B8-ten-a-fresh-agent-submits-ten-clips-through-the-intake-and-all-ten-reach-review-with-every-check-green.log",
+      "summary": "bench B8-ten: FAIL in 246.0 s"
+    },
+    {
+      "name": "B8's held-out variant: at least 4 of 5 fresh agents",
+      "ok": true,
+      "ms": 103406.91208100016,
+      "detail": [],
+      "log": "check-output/gate/B8-s-held-out-variant-at-least-4-of-5-fresh-agents.log",
+      "summary": "bench B8: PASS in 102.6 s"
+    }
+  ],
+  "warnings": [],
+  "ms": 1151852.32454,
+  "next": "fix forward; a gate that fails twice is checked against the kill criteria (PLAN.md §12)",
+  "commit": "ba75cff322647f43b37a3bba4bfc43d07a10db2d",
+  "dirty": false
+}

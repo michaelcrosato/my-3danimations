@@ -63,6 +63,15 @@ describe("library submit", () => {
     expect(r.lines).toEqual(expect.arrayContaining([expect.stringMatching(/^text: desc tells the reader to set its instructions aside, which models read in catalog lines: describe only the motion$/)]));
     expect(r.lines.join(" ")).not.toMatch(/Ignore the instructions/);
   });
+  it("sends no clip tagged emote or idle that walks or travels, naming what describe reads (D114); one that stays is sent", async () => {
+    put("strut.json", gait({ ...STROLL, name: "strut" }, (c) => ({ ...c, tags: ["emote", "gesture"] })));
+    const n = await sent(), r = await call({ do: "submit", on: "strut.json", by: "alice" });
+    expect([r.status, (r.data as { sent: boolean }).sent, r.lines, await sent()]).toEqual(["findings", false, [expect.stringMatching(/^lint: tag emote: it walks from 0\.00 s as describe reads it: an emote stays where it stands; keep it in place, or tag it as the motion it is$/)], n]);
+    const rest = (JSON.parse(readFileSync(join(ROOT, "library/sets/QUATERNIUS_3D2DGE/_set.json"), "utf8")) as { sources: Record<string, { rest: Rest }> }).sources.UAL1!.rest;
+    put("sway.json", { ...procedural.idleClip({ name: "sway", about: "a slow sway in place" }, rest, { restSrc: "UAL1", id: "MYGAME/Sway" }), tags: ["idle"] });
+    const ok = await call({ do: "submit", on: "sway.json", by: "alice" });
+    expect([ok.status, (ok.data as { sent: boolean }).sent]).toEqual(["ok", true]);
+  });
   it("records the clip it improves with that clip's file's SHA-256, the improvement held to that clip's own defects", async () => {
     const walk = libraryClip("QUATERNIUS_3D2DGE/Walk_Loop"), head = (k: Clip["keys"][number]) => ({ ...k, head: (k as unknown as { head: number[] }).head.map((v, i) => (i === 0 ? v + 2 : v)) });
     put("walk.json", { ...walk, desc: "Walks, glancing right", keys: walk.keys.map(head) as Clip["keys"], provenance: { ...walk.provenance, orig: walk.id, method: "edited", ai: "humanEdits", producer: { tool: "mygame-editor", version: "3" } } });

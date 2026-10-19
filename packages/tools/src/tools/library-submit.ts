@@ -13,7 +13,7 @@
 // within REASON_CHARS.
 import { format, recipe as recipes, serialize, validate, validation, type Clip, type Rest } from "@m3a/core";
 import { capturedSpeed, catalogRow, LibraryError, measureClipFacts, ROW_BUDGET, tagConflicts, tierOf, type Library, type Tier, type Tokens } from "@m3a/library";
-import { checks, metrics } from "@m3a/sensors";
+import { checks, describe, metrics } from "@m3a/sensors";
 import { contentHash, IntakeError, MAX_BYTES, motionHash, type IntakeStore, type Kind, type Submission } from "../intake/index.ts";
 import { defineTool, ToolError, type LibraryAccess, type Tool, type ToolContext } from "../registry/registry.ts";
 import { allowlisted } from "../sources/deliver.ts";
@@ -291,7 +291,7 @@ export function clipGates(i: GateInput): Gate[] {
   const had = i.base ? tagConflicts(i.base.clip, measureClipFacts(i.base.clip, i.base.rest, capturedSpeed(i.base.clip)).facts, i.base.rest).map((t) => t.tag) : [];
   const tags = tagConflicts(c, measureClipFacts(c, R, i.as === "submission" ? undefined : capturedSpeed(c)).facts, R).filter((t) => !had.includes(t.tag) && !i.acceptedTags?.includes(t.tag)).map((t) => `tag ${t.tag}: ${t.message}`);
   const warned = v.warnings.filter((w) => !i.accepted?.some((a) => a.code === w.code && a.at === `${w.key !== undefined ? `key ${w.key} (t ${w.t}) ` : ""}${w.field ?? ""}${w.index !== undefined ? `[${w.index}]` : ""}`));
-  out.push(gate("lint", [...warned.map((w) => validation.formatIssue(w).replace(/\s*\n\s*/g, "; ")), ...tags]));
+  out.push(gate("lint", [...warned.map((w) => validation.formatIssue(w).replace(/\s*\n\s*/g, "; ")), ...tags, ...(i.as === "submission" ? moves(c, R) : [])]));
   // the failing metrics kept: the clip it improves or replaces had them, library/baselines/qa.json keeps them by hand,
   // or (a changed library clip's) its writers' recorded reason does; a submission's or an added clip's own claim, never
   const was = new Set<string>([...(i.base ? metrics(i.base.clip, i.base.rest).findings.filter((f) => f.level === "fail").map((f) => f.metric) : []), ...(i.qa?.byHand ?? [])]);
@@ -303,6 +303,21 @@ export function clipGates(i: GateInput): Gate[] {
 /** The most characters a bounce's reason takes (the hosted table holds 2,000): it says what is wrong and how to fix it,
  *  never what the submission says. */
 export const REASON_CHARS = 500;
+
+/** The tags whose clip stays where it stands, and how far it may go: a contribution tagged so that `describe` reads a
+ *  walk or a run in, or that travels a quarter of its hip height or more (a loop's cycle), is mis-tagged (D114; B8's
+ *  grader holds an emote to the same, the library's emotes travel 0.02 at most). */
+export const STAYS: readonly string[] = ["emote", "idle"];
+const STAYS_WITHIN = 0.25;
+/** What the lint gate says of a submission tagged one of STAYS that doesn't stay: one line, or none. */
+function moves(c: Clip, R: Rest): string[] {
+  const tag = STAYS.find((t) => c.tags.includes(t));
+  if (!tag) return [];
+  const d = describe(c, R), gait = d.phases.find((p) => p.name === "walk" || p.name === "run"), far = Math.hypot(d.travel[0], d.travel[1]);
+  if (!gait && far < STAYS_WITHIN) return [];
+  const how = gait ? `it ${gait.name}s from ${gait.t0.toFixed(2)} s as describe reads it` : `it travels ${far.toFixed(2)} of its hip height${c.loop ? " a cycle" : ""}`;
+  return [`tag ${tag}: ${how}: an ${tag} stays where it stands; keep it in place, or tag it as the motion it is`];
+}
 
 /** A problem as a reason may say it: each quoted string that could be prose (a space in it, or past 64 characters)
  *  elided, as a validator's message may quote a field's value (submission text is data). */

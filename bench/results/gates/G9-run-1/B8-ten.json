@@ -1,0 +1,60 @@
+{
+ "about": "npm run bench: fresh agents on the briefs (PLAN.md §7); isolation 1 is the claude CLI in a clean workspace",
+ "date": "2026-10-19T12-36-10",
+ "commit": "ba75cff322647f43b37a3bba4bfc43d07a10db2d",
+ "dirty": false,
+ "model": "the CLI's default",
+ "fake": false,
+ "need": 1,
+ "parallel": 1,
+ "privateTmp": true,
+ "ownPids": true,
+ "capsDropped": true,
+ "uid": 65534,
+ "unprivileged": true,
+ "B8-ten": {
+  "trials": [
+   {
+    "trial": "B8-ten-1",
+    "pass": false,
+    "failed": [
+     "10 of them pass every check: 9 of 14 pass every check; the 5 others: s-1e6743276e8db7ad (clip) fails it waits for review: bounced: dedup: a near-duplicate of MESH2MOTION/Dance_Reach_Hip mirrored, 4.7 mm a point from it on average (one motion under 16.4); if it improves MESH2MOTION/Dance_Reach_Hip, submit it with --improv; and the dedup gate is green, the retarget gate is green | s-2a697c8bdb9eed07 (clip) fails it waits for review: bounced: dedup: a near-duplicate of MESH2MOTION/Reject, 3.7 mm a point from it on average (one motion under 13.9); if it improves MESH2MOTION/Reject, submit it with --improves MESH2MOTION/Reject; and the dedup gate is green, the retarget gate is green | s-890e42c97335ec09 (clip) fails it waits for review: bounced: dedup: a near-duplicate of MESH2MOTION/Insult mirrored, 7.5 mm a point from it on average (one motion under 12.8); if it improves MESH2MOTION/Insult, submit it with --improves MESH2MOTION/Ins; and the dedup gate is green, the retarget gate is green | s-c1b57a9d143b9655 (clip) fails it waits for review: bounced: dedup: a near-duplicate of MESH2MOTION/Help_Two_Arms, 9.1 mm a point from it on average (one motion under 12.9); if it improves MESH2MOTION/Help_Two_Arms, submit it with --improves MESH2MOTIO; and the dedup gate is green, the retarget gate is green | s-ef55f6c2582f3e69 (clip) fails it stays in place: it walks from 0.00 s (describe: a 1.67 s loop; 0.00–1.67 s walks): an emote stays where it stands"
+    ],
+    "agent": {
+     "isolation": 1,
+     "privateTmp": true,
+     "ownPids": true,
+     "capsDropped": true,
+     "uid": 65534,
+     "unprivileged": true,
+     "ok": true,
+     "ms": 211342.100658,
+     "model": "claude-sonnet-5-5",
+     "turns": 11,
+     "tokens": {
+      "input": 20,
+      "output": 6025,
+      "cacheRead": 276951,
+      "cacheWrite": 30646
+     },
+     "costUsd": 0.21056909999999998,
+     "outside": [],
+     "scratch": [],
+     "pastManual": [],
+     "m3a": {
+      "server": "connected",
+      "skill": true,
+      "skills": [
+       "m3a"
+      ]
+     }
+    }
+   }
+  ],
+  "discovery": []
+ },
+ "models": [
+  "claude-sonnet-5-5"
+ ],
+ "ms": 246007
+}

@@ -1,0 +1,5 @@
+e2e: PASS (T2) in 321.3 s, budget 480.0 s
+  ok   playwright 131.7 s: 28 passed
+  ok   library QA 13.6 s: PASS, 1398 clips measured: 1014 pass, 230 warn, 154 fail
+  ok   library sweeps in full 176.1 s: files 21 passed; tests 99 passed
+next: push

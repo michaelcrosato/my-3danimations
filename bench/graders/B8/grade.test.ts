@@ -21,7 +21,8 @@ import { gradeB8Ten, tally, TEN, type Tallied } from "./ten.ts";
 
 const ROOT = join(import.meta.dirname, "../../.."), FULL = process.env.M3A_FULL === "1";
 /** The planted solutions the verifier's probes found passing: each fails its check and nothing else. */
-const PROBES = ["a walk", "made by a person", "made by another vendor's model", "its source's name and description", "a report submit didn't measure", "a record edited by hand"];
+// (a walk tagged emote is bounced by the intake's lint too since D114, so it fails more than its own check)
+const PROBES = ["made by a person", "made by another vendor's model", "its source's name and description", "a report submit didn't measure", "a record edited by hand"];
 
 describe("B8's grader", () => {
   it.runIf(FULL)("passes the known-good solution on gen-1: its emote waits for review with every gate green", async () => {
@@ -57,6 +58,7 @@ describe("B8's grader", () => {
     expect(detail("a report submit didn't measure", "its provenance is complete")).toMatch(/report says \{"findings":0,"qaVersion":"m3a-sensors@0","sensors":"pass"\}, but submit measures \{"sensors":"pass","findings":0,"qaVersion":"m3a-sensors@1"\}/);
     expect(detail("its source's name and description", "its name and description are its own")).toBe("its name is QUATERNIUS_3D2DGE/Idle_Loop's; its description is QUATERNIUS_3D2DGE/Idle_Loop's: give it a name and a description that say what it does");
     expect(detail("a walk", "it stays in place")).toMatch(/^it walks from \d\.\d\d s; it travels \d\.\d\d hip heights a cycle, past 0\.25/);
+    expect(detail("a walk", "the lint gate is green")).toMatch(/^tag emote: it walks from \d\.\d\d s as describe reads it: an emote stays where it stands/);
   }, 120_000);
 });
 

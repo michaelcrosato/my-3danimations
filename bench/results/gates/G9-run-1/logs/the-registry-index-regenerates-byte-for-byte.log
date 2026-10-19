@@ -1,0 +1,3 @@
+index check: PASS in 0.2 s
+  ok   check 0.2 s: 11 core sets, 0 community packs, serial 1: byte for byte
+next: npm run index -- --check
