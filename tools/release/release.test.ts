@@ -5,7 +5,8 @@
 // content id, don't name its license alone, or whose namespace's proof doesn't vouch for it is refused, and an admitted
 // one records its digest and proof, is vouched for again offline on every rebuild and verifies, every file of it bound;
 // release.yml, read as YAML, runs only by hand, fails closed until O2 unless the owner started the run and the attempt,
-// gives its write token to the upload step alone and takes each set's license texts from its own files;
+// gives its write token to the upload step alone, uploads to a draft release alone (its step run on a stub gh: a
+// published release refused) and takes each set's license texts from its own files;
 // library-gates.yml runs on index changes.
 import { spawnSync } from "node:child_process";
 import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
@@ -218,6 +219,29 @@ describe("release.yml", () => {
     expect(run({ O2: "yes", ACTOR: "o", TRIGGER: "someone", OWNER: "o" })).toMatchObject({ status: 1, stdout: expect.stringMatching(/\(this attempt: someone\)/) }); // a re-run by someone else
     expect(run({ O2: "yes", ACTOR: "o", OWNER: "o" }).status).toBe(1);
     expect(run({ O2: "yes", ACTOR: "o", TRIGGER: "o", OWNER: "o" }).status).toBe(0);
+  });
+  it("uploads to a draft release alone: the one it drafts for a tag with none, never a published one or one whose state it can't read", () => {
+    const upload = assets.steps.at(-1)!, dir = scratch("gh"), bin = join(dir, "bin"), state = join(dir, "state"), log = join(dir, "log");
+    mkdirSync(bin);
+    // a stub gh on PATH: it logs each call; `release view` answers from the state file (none: the tag has no release;
+    // else its isDraft), and `release create` writes a draft
+    writeFileSync(join(bin, "gh"), ['#!/bin/sh', 'echo "$*" >> "$GH_LOG"', 'case "$1 $2" in', '"release view") [ -f "$GH_STATE" ] || { echo "release not found" >&2; exit 1; }; case "$*" in *"--json isDraft"*) cat "$GH_STATE" ;; esac ;;', '"release create") echo true > "$GH_STATE" ;;', "esac", ""].join("\n"), { mode: 0o755 });
+    const run = (isDraft: string | null) => {
+      rmSync(log, { force: true });
+      if (isDraft === null) rmSync(state, { force: true });
+      else writeFileSync(state, `${isDraft}\n`);
+      // GitHub runs a step's `run` with bash -e
+      const r = spawnSync("bash", ["-e", "-c", upload.run!], { cwd: dir, env: { PATH: `${bin}:${process.env.PATH!}`, TAG: "v9.9.9", GH_STATE: state, GH_LOG: log }, encoding: "utf8" });
+      return { status: r.status, said: r.stdout, calls: readFileSync(log, "utf8").trim().split("\n") };
+    };
+    const verbs = (calls: string[]) => calls.map((c) => c.split(" ").slice(0, 2).join(" "));
+    const published = run("false");
+    expect([published.status, published.said, verbs(published.calls)]).toEqual([1, expect.stringMatching(/^::error title=release::v9.9.9's release isn't a draft \(isDraft: false\): nothing is uploaded to a published release/), ["release view"]]);
+    expect([run("null").status, verbs(run("null").calls)]).toEqual([1, ["release view"]]);
+    const draft = run("true");
+    expect([draft.status, verbs(draft.calls)]).toEqual([0, ["release view", "release upload"]]);
+    const none = run(null);
+    expect([none.status, verbs(none.calls), none.calls[1]]).toEqual([0, ["release view", "release create", "release view", "release upload"], expect.stringMatching(/^release create v9\.9\.9 --draft --verify-tag /)]);
   });
   it("packages each set with the license texts its own _set.json's sources name, not the index's record of them", () => {
     const script = assets.steps.find((s) => s.name?.startsWith("Package each set"))!.run!, plan = script.slice(0, script.indexOf("\n", script.indexOf('> "$out/plan.txt"')) + 1);

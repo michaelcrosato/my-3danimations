@@ -1,11 +1,12 @@
 # The release (PLAN.md WP-9.4, subject to O2): each core set's latest version in library/index.json packaged as a
 # reproducible .tar.gz (SET-vN: its files and the texts of the licenses its _set.json's sources name), unpacked and
 # verified from the index, and uploaded with the index to the tag's draft release, never replacing an asset (versions
-# are immutable). It runs only by hand, and fails closed: its first job stops the run before anything is checked out,
-# built or uploaded unless the repository variable M3A_O2_RELEASE_ASSETS is "yes" (the owner's answer to O2; only an
-# admin sets one) and the repository's owner both started the run and started this attempt (a re-run by anyone else
-# stops). The write token reaches the upload step alone: the checkout keeps no credentials and npm ci runs no install
-# scripts. Actions are pinned by commit SHA (principle 9); the comment names the release.
+# are immutable) and never onto a published release (the upload step checks isDraft). It runs only by hand, and fails
+# closed: its first job stops the run before anything is checked out, built or uploaded unless the repository
+# variable M3A_O2_RELEASE_ASSETS is "yes" (the owner's answer to O2; only an admin sets one) and the repository's
+# owner both started the run and started this attempt (a re-run by anyone else stops). The write token reaches the
+# upload step alone: the checkout keeps no credentials and npm ci runs no install scripts. Actions are pinned by
+# commit SHA (principle 9); the comment names the release.
 name: release
 
 on:
@@ -81,5 +82,14 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release view "$TAG" > /dev/null 2>&1 || gh release create "$TAG" --draft --verify-tag --title "$TAG" --notes "The library's sets as release assets (PLAN.md WP-9.4): verify one with npm run index -- verify <SET> <dir>."
+          # a draft only: the tag's release is drafted when it has none, and a published one (or one whose state can't
+          # be read) takes nothing, since a published release is already out (O2)
+          if ! draft=$(gh release view "$TAG" --json isDraft --jq .isDraft); then
+            gh release create "$TAG" --draft --verify-tag --title "$TAG" --notes "The library's sets as release assets (PLAN.md WP-9.4): verify one with npm run index -- verify <SET> <dir>."
+            draft=$(gh release view "$TAG" --json isDraft --jq .isDraft)
+          fi
+          if [ "$draft" != "true" ]; then
+            echo "::error title=release::$TAG's release isn't a draft (isDraft: ${draft:-unread}): nothing is uploaded to a published release. Release the sets under a new tag, whose release this run drafts."
+            exit 1
+          fi
           gh release upload "$TAG" .cache/release/assets/*
