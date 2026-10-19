@@ -1,6 +1,7 @@
 // The conformance runner for TypeScript: reads the vectors in spec/vectors/ by tier, verifies them against their
 // manifest, packs tier 1b's glTF as the .glb a reader takes, and compares numbers bit for bit or within a tolerance.
-// Tests under spec/conformance/ and the packages use it; WP-10.2 turns it into a kit for other languages.
+// Tests under spec/conformance/ and the packages use it, and so does the kit (kit/, PROTOCOL.md) that asks other
+// implementations the same questions.
 import { createHash } from "node:crypto";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -83,8 +84,11 @@ export const loadTier3 = (): Tier3 => read<Tier3>("tier3/bodies.json");
 export const tier1bText = (rel: string): string => readFileSync(join(VECTORS, "tier1b", rel), "latin1");
 
 /** Tier 1b's rig as the binary glTF a reader takes: the .gltf's JSON (minus the buffer's uri) and its decoded buffer. */
-export function tier1bRigGlb(): Uint8Array {
-  const gltf = read<{ buffers: { byteLength: number; uri: string }[] } & Record<string, unknown>>("tier1b/rig.gltf");
+export const tier1bRigGlb = (): Uint8Array => tier1bGlb("tier1b/rig.gltf");
+
+/** A tier-1b .gltf (`tier1b/rig.gltf` or `tier1b/rigify.gltf`) packed as the .glb a reader takes. */
+export function tier1bGlb(rel: string): Uint8Array {
+  const gltf = read<{ buffers: { byteLength: number; uri: string }[] } & Record<string, unknown>>(rel);
   const bin = Buffer.from(gltf.buffers[0]!.uri.split(",")[1]!, "base64");
   const json = { ...gltf, buffers: [{ byteLength: gltf.buffers[0]!.byteLength }] };
   return packGlb(json, bin);
