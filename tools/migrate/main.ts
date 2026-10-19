@@ -2,8 +2,9 @@
 // (`npm run pins -- fetch` first). With no flag it writes them; --check rebuilds in memory and fails on any byte that
 // differs, a stale file, a validator error, or a migrated key that differs from its source. The sets WP-5.3 re-imports
 // (tools/import/sets.ts) are the import's: the migrator neither checks nor writes them. A clip the owner adopted from the
-// intake queue is kept as adopted (its keys its own, not its source's), and a clip's review is carried while its motion
-// hash matches (tools/migrate/adopted.ts).
+// intake queue is kept as adopted (its keys its own, not its source's, on the rest its set recorded: a source measured
+// otherwise since fails the set), and a clip's review is carried while its motion hash matches
+// (tools/migrate/adopted.ts).
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import { finish, fmtMs, parseArgs, ROOT, usage, type Report, type Step } from "../run/cli.ts";

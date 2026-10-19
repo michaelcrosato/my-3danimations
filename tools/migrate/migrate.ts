@@ -3,8 +3,10 @@
 // (tools/qa/verdict.ts, WP-5.8), with `_set.json` (sources, rests, tier, content id), `catalog.tsv` (both by
 // @m3a/library's set writer, which moved there from here, D93) and `_baseline.json` (the validator's warnings, accepted
 // per clip with a reason). Deterministic: the same pins give the same bytes and content ids. Read against the library on
-// disk (`disk`, as `npm run migrate` does), a clip the owner adopted is kept over its source's, its accepted warnings as
-// its set's baseline gives them, and a clip's review is carried while its motion hash matches (./adopted.ts).
+// disk (`disk`, as `npm run migrate` does), a clip the owner adopted is kept over its source's, on the rest its set
+// recorded (a source that measures that rest otherwise since is an error: the owner adopts it again on the new rest),
+// its accepted warnings as its set's baseline gives them, and a clip's review is carried while its motion hash matches
+// (./adopted.ts).
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -16,7 +18,7 @@ type Clip1 = format.Clip1;
 import { encode as tokens } from "gpt-tokenizer/encoding/cl100k_base";
 import { loadSet, type Set1 } from "../vectors/oracle.ts";
 import { readReasons, withQuality } from "../qa/verdict.ts";
-import { adoptedWhy, adoptionOf, baselineOn, carryReview, onDisk } from "./adopted.ts";
+import { adoptedWhy, adoptionOf, baselineOn, carryReview, onDisk, restOn, sameRest } from "./adopted.ts";
 import { baselineReason, SETS, type SetSpec } from "./sets.ts";
 
 /** The migrator's own revision: it goes in every file it writes, so a change to its output is a change to this. */
@@ -99,14 +101,19 @@ export function migrate(root: string, opts: MigrateOptions = {}): { files: Map<s
       // its facts and contacts measured on its rest (WP-5.4), the origin's speed kept as captured; its QA verdict (WP-5.8)
       const rest = (data.sources[src] as unknown as { rest: Rest }).rest;
       const fresh = withQuality(withFacts(fromFormat1({ ...c1, src, ...(orig ? { orig } : {}) }, { set: spec.set, slug: slugList[i]!, name, fps: (data.fps as number) ?? 30, restSrc: src, method: rule.method, license: rule.license, ...(rule.credit ? { credit: rule.credit } : {}), ...(fit ? { fit } : {}), producer: MIGRATOR, qaVersion: "none" }), rest), rest, reasons);
-      // an adopted clip kept as the owner adopted it, its verdict recorded on the rest it was made on
+      // an adopted clip kept as the owner adopted it, on the rest its set recorded then (the motion hash names the rest's
+      // source, not its numbers: a source measured otherwise since would play the approved keys on another body), its
+      // verdict recorded on that rest
       const was = onSets ? onDisk(onSets, slugList[i]!) : null, adoption = was && adoptionOf(was), on = was && (data.sources[was.restSrc] as unknown as { rest: Rest } | undefined)?.rest;
+      const had = adoption ? restOn(onSets!, was!.restSrc) : undefined, keep = !!(adoption && on && had && sameRest(on, had));
       if (adoption && !on) errors.push(`${name}: adopted on the rest ${was!.restSrc}, which its source no longer has`);
-      const clip = adoption && on ? withQuality(was!, on, reasons) : carryReview(fresh, was);
-      if (adoption && on) adopted.push({ id: clip.id, why: adoptedWhy(adoption) });
+      else if (adoption && !had) errors.push(`${name}: adopted on the rest ${was!.restSrc}, which its set's manifest hasn't`);
+      else if (adoption && !keep) errors.push(`${name}: adopted on ${was!.restSrc}'s rest as its set had it, which its source now measures otherwise: the owner adopts it again on the new rest`);
+      const clip = keep ? withQuality(was!, on!, reasons) : carryReview(fresh, was);
+      if (keep) adopted.push({ id: clip.id, why: adoptedWhy(adoption!) });
       const r = validate(clip, { mode: "read" });
       for (const e of r.errors) errors.push(`${name}: ${e.code} ${e.message}`);
-      if (adoption && on) {
+      if (keep) {
         if (onBase[slugList[i]!]) baseline[slugList[i]!] = onBase[slugList[i]!]!;
         warnings += r.warnings.length;
       } else if (r.warnings.length) {
