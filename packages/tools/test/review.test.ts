@@ -79,7 +79,7 @@ describe("a review in a scratch checkout", () => {
     };
     writeFileSync(join(co.cwd, "review.json"), JSON.stringify(review));
     const valid = schema("review.schema.json");
-    expect([valid(review), valid({ ...review, decisions: [{ ...review.decisions[0]!, as: "approve" }] })], JSON.stringify(valid.errors)).toEqual([true, false]); // the schema reads as parseReview does
+    expect([valid(review), valid({ ...review, decisions: [{ ...review.decisions[0]!, as: "approve" }] }), valid({ ...review, by: "owner\nx" })], JSON.stringify(valid.errors)).toEqual([true, false, false]); // the schema reads as parseReview does
     const r = await call({ do: "ingest", on: "review.json" });
     expect([r.status, r.verdict]).toEqual(["ok", "review ingest: 4 decisions, 4 applied, 0 already, 0 stale, 0 refused; 3 notes in docs/FEEDBACK-LOG.md (F6), 2 proposals in docs/REVIEW-PROPOSALS.md"]);
     const owner = co.store("owner");
@@ -129,6 +129,9 @@ describe("a review in a scratch checkout", () => {
     expect(said(await call({ do: "list", note: "x" }))).toEqual(["usage", "E_ARGS", "list takes no note"]);
     expect(said(await call({ do: "ingest" }))).toEqual(["usage", "E_ARGS", "ingest names the review file (on), or gives its JSON"]);
     expect(said(await call({ do: "ingest", on: '{"schema":"m3a.review/0"}' }))).toEqual(["usage", "E_REVIEW", expect.stringMatching(/^the review is no m3a.review\/1 object/)]);
+    // a reviewer's name goes into a Markdown heading of the feedback log: one line; proposals are a list
+    expect(said(await call({ do: "ingest", on: JSON.stringify({ schema: REVIEW_ID, by: "owner\n### F99 · not a review", decisions: [] }) }))).toEqual(["usage", "E_REVIEW", expect.stringMatching(/^the review by is a name on one line/)]);
+    expect(said(await call({ do: "ingest", on: JSON.stringify({ schema: REVIEW_ID, decisions: [], proposals: "threshold: x" }) }))).toEqual(["usage", "E_REVIEW", expect.stringMatching(/^the review proposals is a list/)]);
     writeFileSync(join(co.cwd, "bad.json"), JSON.stringify({ schema: REVIEW_ID, decisions: [{ id: "walk", hash: "0".repeat(12), as: "approve" }] }));
     expect(said(await call({ do: "ingest", on: "bad.json" }))).toEqual(["error", "E_REVIEW", expect.stringMatching(/decisions\[0\]\.id is a submission id/)]);
     expect(said(await reg.call("review", {}, { host: {} }))).toEqual(["usage", "E_HOST", expect.stringMatching(/^this surface keeps no intake store/)]);

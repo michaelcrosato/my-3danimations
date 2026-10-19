@@ -148,7 +148,8 @@ export function parseReview(data: unknown): ReviewFile {
   if (!r || typeof r !== "object" || r.schema !== REVIEW_ID) bad(`is no ${REVIEW_ID} object`);
   if (!Array.isArray(r!.decisions)) bad("has no decisions list");
   if (r!.date !== undefined && !(typeof r!.date === "string" && DATE.test(r!.date))) bad("date is YYYY-MM-DD");
-  if (r!.by !== undefined && typeof r!.by !== "string") bad("by is a name");
+  // the reviewer's name goes into a clip's review and a heading of the feedback log: one line, no control characters
+  if (r!.by !== undefined && (typeof r!.by !== "string" || /\p{Cc}/u.test(r!.by))) bad("by is a name on one line");
   r!.decisions!.forEach((d, i) => {
     const at = `decisions[${i}]`;
     if (!d || typeof d !== "object") bad(`${at} is no object`);
@@ -158,6 +159,7 @@ export function parseReview(data: unknown): ReviewFile {
     for (const k of ["note", "theme"] as const) if (d[k] !== undefined && typeof d[k] !== "string") bad(`${at}.${k} is text`);
     if (d.status !== undefined && !STATUS.includes(d.status)) bad(`${at}.status is ${STATUS.join(", ")}`);
   });
+  if (r!.proposals !== undefined && !Array.isArray(r!.proposals)) bad("proposals is a list of { kind, text }");
   for (const [i, p] of (r!.proposals ?? []).entries()) if (!p || (p.kind !== "threshold" && p.kind !== "task") || typeof p.text !== "string" || !p.text.trim()) bad(`proposals[${i}] is { kind: "threshold" | "task", text }`);
   return r as ReviewFile;
 }
