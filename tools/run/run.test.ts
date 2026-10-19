@@ -44,10 +44,11 @@ describe("a gate's report", () => {
     expect(gateReport("G7", [{ ...steps[0]!, ok: false }, steps[1]!], 1500, { commit, dirty: false }).ok).toBe(false);
     expect(GATES.G7!.filter(([name]) => name.startsWith(RECORDED)).map(([, , , ...args]) => args.at(-1))).toEqual([...G7_MODELS]);
   });
-  it("runs only the root package.json's scripts, G8's among them", () => {
+  it("runs only the root package.json's scripts, G8's and G9's among them", () => {
     const scripts = (JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8")) as { scripts: Record<string, string> }).scripts;
     for (const [gate, steps] of Object.entries(GATES)) for (const [name, script] of steps) expect(scripts[script], `${gate}: ${name}`).toBeDefined();
     expect(GATES.G8!.map(([, script]) => script)).toEqual(["check", "test", "doctrine", "vectors", "test", "e2e", "site", "m3a"]);
+    expect(GATES.G9!.filter(([, script]) => script === "bench").map(([, , ...args]) => args.join(" "))).toEqual(["B8 --trials 10 --parallel 5 --need 10", "B8 --trials 5 --parallel 5 --heldout G9"]);
   });
 });
 

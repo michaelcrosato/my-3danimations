@@ -1,10 +1,11 @@
-// `npm run index [-- --check [--since <ref>]] | verify <SET | namespace/SET> <dir> [--v N] [--proof <file>] | admit
-// <pack.json> <dir> --proof <file>` (PLAN.md WP-9.4): writes library/index.json from library/sets (every file as
-// locked), tools/release/registry.json and the index before it (./index.ts); `--check` regenerates it and fails unless
-// it is the committed file byte for byte, and with `--since` unless its history stands as committed at that ref.
+// `npm run index [-- --check [--since <ref>]] | verify <SET | namespace/SET> <dir> [--v N] [--proof <file>] | verify
+// --all | admit <pack.json> <dir> --proof <file>` (PLAN.md WP-9.4): writes library/index.json from library/sets (every
+// file as locked), tools/release/registry.json and the index before it (./index.ts); `--check` regenerates it and fails
+// unless it is the committed file byte for byte, and with `--since` unless its history stands as committed at that ref.
 // `verify` checks a set's files (a directory, such as an unpacked release asset) against the index: a core set's
-// content id and digest, a community pack's content id and its namespace's proof, fetched from the URL the reply names.
-// `admit` adds a community pack to the registry when its files and its proof hold, then rewrites the index.
+// content id and digest, a community pack's content id and its namespace's proof, fetched from the URL the reply names;
+// `verify --all` checks every core set's files in library/sets/ so. `admit` adds a community pack to the registry when
+// its files and its proof hold, then rewrites the index.
 import { execFileSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
@@ -22,6 +23,7 @@ const FLAGS = [
   { name: "check", help: "regenerate the index and fail unless it is library/index.json, byte for byte" },
   { name: "since", takesValue: true, help: "with --check, also fail on history rewritten since the index at this git ref (origin/main)" },
   { name: "v", takesValue: true, help: "verify against this version (the latest by default)" },
+  { name: "all", help: "with verify: every core set, its files in library/sets/<SET>" },
   { name: "proof", takesValue: true, help: "a community namespace's proof, as fetched from its proof URL" },
 ];
 const read = <T>(file: string): T => JSON.parse(readFileSync(file, "utf8")) as T;
@@ -35,7 +37,8 @@ if (import.meta.main) {
     parsed = parseArgs(process.argv.slice(2), FLAGS);
     const [verb, a, b] = parsed.positionals;
     if (verb && verb !== "verify" && verb !== "admit") throw new Error(`expected verify, admit or nothing, got "${verb}"; did you mean ${closest(verb, ["verify", "admit"])}?`);
-    if (verb && (!a || !b)) throw new Error(`${verb} takes ${verb === "verify" ? "a set (SET or namespace/SET)" : "a pack (.json)"} and the directory of its files`);
+    if (parsed.flags.all && (verb !== "verify" || a)) throw new Error("--all is verify's, with no set: npm run index -- verify --all");
+    if (verb && !parsed.flags.all && (!a || !b)) throw new Error(`${verb} takes ${verb === "verify" ? "a set (SET or namespace/SET)" : "a pack (.json)"} and the directory of its files`);
   } catch (err) {
     usage("index", err, FLAGS);
   }
@@ -43,7 +46,13 @@ if (import.meta.main) {
   const prev = existsSync(INDEX) ? read<RegistryIndex>(INDEX) : undefined, registry = read<Registry>(REGISTRY), proofText = typeof f.proof === "string" ? readFileSync(f.proof, "utf8") : undefined;
   let detail: string[] = [], summary = "", next = "npm run index -- --check";
   try {
-    if (verb === "verify") {
+    if (verb === "verify" && f.all) {
+      // every core set, as a consumer verifies one: its files against the index's latest version
+      const sets = Object.keys(prev?.core ?? {});
+      for (const set of sets) detail.push(...verifySet(prev!, set, filesOf(join(lib, set)), sha256).map((p) => `${set}: ${p}`));
+      summary = detail.length ? `${detail.length} problem(s) over ${sets.length} core sets` : `every core set's files are the index's (${sets.length} sets)`;
+      next = detail.length ? "npm run index writes library/index.json from the library" : "npm run index -- --check";
+    } else if (verb === "verify") {
       const core = prev?.core[what!], pack = prev?.community[what!], url = pack ? proofUrl(pack.namespace)! : "", v = typeof f.v === "string" ? Number(f.v) : undefined;
       detail = verifySet(prev ?? { about: "", format: "1", serial: 0, core: {}, community: {} }, what!, filesOf(resolve(dir!)), sha256, { ...(v === undefined ? {} : { v }), ...(proofText === undefined ? {} : { proof: { url, text: proofText } }) });
       const at = (core ?? pack)?.versions.find((x) => x.v === (v ?? (core ?? pack)!.versions.length)), yanked = core?.yanked ?? at?.yanked;
