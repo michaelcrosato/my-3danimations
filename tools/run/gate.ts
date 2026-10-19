@@ -138,6 +138,17 @@ export const GATES: Record<string, [string, string, ...string[]][]> = {
     ["B8-ten: a fresh agent submits ten clips through the intake, and all ten reach review with every check green", "bench", "B8-ten", "--trials", "1"],
     ["B8's held-out variant: at least 4 of 5 fresh agents", "bench", "B8", "--trials", "5", "--parallel", "5", "--heldout", "G9"],
   ],
+  // G10 (§9.3, M4): what a machine can prove of the standard in use; another repository consuming the package or
+  // certifying against the vectors, and the owner's confirmation, wait on O9 and the owner (blocked-owner, §8.5)
+  G10: [
+    ["check", "check"],
+    ["test (the conformance kit's own tests: the broken implementation fails, naming its vector)", "test"],
+    ["doctrine", "doctrine"],
+    ["vectors --check", "vectors", "--check"],
+    ["the TypeScript implementation certifies through the kit's own runner, every tier in full (WP-10.2)", "conformance", "--impl", "ts"],
+    ["the TypeScript consumer proof: a my-3dge-shaped duel on the public API, the same in Node and the browser (WP-10.1)", "e2e", "consumer-ts"],
+    ["T2: browser checks, library QA and the sweeps in full", "e2e"],
+  ],
   // the owner's phone review of the batch is theirs (blocked-owner until it comes, §8.5): the gate proves the way
   // there; the notes and the threshold or task it brings back are read off its `m3a review ingest` line when it comes
   G8: [
