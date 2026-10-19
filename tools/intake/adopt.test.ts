@@ -14,7 +14,7 @@ import { intakeFiles } from "../../packages/tools/src/node/intake.ts";
 import { adopt, dryRun } from "./adopt.ts";
 import { bindRigs, type Rig } from "./check.ts";
 import { fixtures } from "./fixtures.ts";
-import { plantedGates } from "./gates.ts";
+import { clipsOf, plantedGates, runGates } from "./gates.ts";
 import { LOCAL_OWNER, libraryAt } from "./host.ts";
 import { scratchCheckout } from "./write.ts";
 
@@ -86,7 +86,16 @@ describe("the adopt bot, in a dry run against a scratch checkout", () => {
   }, 60_000);
 });
 
-describe("library-gates on a pull request with a planted bad clip", () => {
+describe("library-gates on a pull request", () => {
+  it("reads the clips a pull request adds or changes, not a set's manifest, catalog or baselines", () => {
+    const diff = ["A\tlibrary/sets/INTAKE_CC0/Stroll.json", "M\tlibrary/sets/STYLE100/Neutral_Walk.json", "M\tlibrary/sets/STYLE100/_set.json", "A\tlibrary/sets/INTAKE_CC0/_baseline.json", "M\tlibrary/sets/STYLE100/catalog.tsv", "D\tlibrary/sets/STYLE100/Old_Walk.json", ""].join("\n");
+    expect(clipsOf(diff)).toEqual([{ id: "INTAKE_CC0/Stroll", added: true }, { id: "STYLE100/Neutral_Walk", added: false }]);
+  });
+  it("passes a library clip its own tools wrote with the library's baselines: its captured speed, its recorded QA reason", async () => {
+    const steps = await runGates(D, [{ id: "STYLE100_BACKRUN/Waving_RunBack", added: false }, { id: "MESH2MOTION/Run_Female", added: false }], rigs);
+    expect(steps.map((s) => [s.name, s.ok])).toEqual([["the library loads, every file as locked", true], ["licenses: the sets it touches", true], ["STYLE100_BACKRUN/Waving_RunBack", true], ["MESH2MOTION/Run_Female", true]]);
+  });
+
   it("fails the planted near-duplicate with its reason (npm run gate -- library-pr --fixture all plants each)", async () => {
     const r = await plantedGates("duplicate", undefined, rigs);
     expect(r.steps.map((s) => [s.name, s.ok, s.summary])).toEqual([["duplicate (INTAKE_CC0/My_Walk)", true, expect.stringMatching(/^failed as it must: dedup: a near-duplicate of QUATERNIUS_3D2DGE\/Walk_Loop/)]]);

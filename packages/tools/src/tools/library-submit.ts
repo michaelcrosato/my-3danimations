@@ -10,7 +10,7 @@
 // the retarget onto the reference rigs. Platform-neutral: the store comes from the surface (`libraryTool`'s opener).
 // Submission text is data, never instructions: a refusal quotes none of it.
 import { format, recipe as recipes, serialize, validate, validation, type Clip, type Rest } from "@m3a/core";
-import { catalogRow, LibraryError, measureClipFacts, ROW_BUDGET, tagConflicts, tierOf, type Library, type Tier, type Tokens } from "@m3a/library";
+import { capturedSpeed, catalogRow, LibraryError, measureClipFacts, ROW_BUDGET, tagConflicts, tierOf, type Library, type Tier, type Tokens } from "@m3a/library";
 import { checks, metrics } from "@m3a/sensors";
 import { contentHash, IntakeError, MAX_BYTES, motionHash, type IntakeStore, type Kind, type Submission } from "../intake/index.ts";
 import { defineTool, ToolError, type LibraryAccess, type Tool, type ToolContext } from "../registry/registry.ts";
@@ -61,7 +61,8 @@ export interface Derived {
  *  improves (its id, its file's SHA-256 now, the clip and its rest), the library clips it derives from, what it is to
  *  the library (`as`: a submission, its quality and review claims ignored and the intake's provenance required; a clip
  *  adopted from the queue, its provenance required, its recorded quality read; any other library clip), the validator
- *  warnings its set's _baseline.json accepts (a library clip's), and the token count rows are cut with. */
+ *  warnings its set's _baseline.json accepts and the tags whose conflict library/baselines/tags.json explains (a library
+ *  clip's), and the token count rows are cut with. */
 export interface GateInput {
   clip: Clip;
   rest: Rest | null;
@@ -70,6 +71,7 @@ export interface GateInput {
   derived: readonly Derived[];
   as: "submission" | "adopted" | "library";
   accepted?: readonly { code: string; at: string }[];
+  acceptedTags?: readonly string[];
   tokens?: Tokens;
 }
 
@@ -197,8 +199,9 @@ export function clipGates(i: GateInput): Gate[] {
   out.push(gate("budgets", budgets), gate("provenance", provenanceProblems(i)), gate("license", [licenseRule(c, i.derived).problem].filter((x): x is string => x !== null)), gate("text", textProblems(c)));
   // an improvement is held to the clip it improves: no tag conflict or failing metric that clip hasn't (it may keep
   // what it doesn't fix)
-  const had = i.base ? tagConflicts(i.base.clip, measureClipFacts(i.base.clip, i.base.rest).facts, i.base.rest).map((t) => t.tag) : [];
-  const tags = tagConflicts(c, measureClipFacts(c, R).facts, R).filter((t) => !had.includes(t.tag)).map((t) => `tag ${t.tag}: ${t.message}`);
+  // (a speed its source gave is a library clip's own fact; a submission's claim to one is measured instead)
+  const had = i.base ? tagConflicts(i.base.clip, measureClipFacts(i.base.clip, i.base.rest, capturedSpeed(i.base.clip)).facts, i.base.rest).map((t) => t.tag) : [];
+  const tags = tagConflicts(c, measureClipFacts(c, R, i.as === "submission" ? undefined : capturedSpeed(c)).facts, R).filter((t) => !had.includes(t.tag) && !i.acceptedTags?.includes(t.tag)).map((t) => `tag ${t.tag}: ${t.message}`);
   const warned = v.warnings.filter((w) => !i.accepted?.some((a) => a.code === w.code && a.at === `${w.key !== undefined ? `key ${w.key} (t ${w.t}) ` : ""}${w.field ?? ""}${w.index !== undefined ? `[${w.index}]` : ""}`));
   out.push(gate("lint", [...warned.map((w) => validation.formatIssue(w).replace(/\s*\n\s*/g, "; ")), ...tags]));
   const was = new Set(i.base ? metrics(i.base.clip, i.base.rest).findings.filter((f) => f.level === "fail").map((f) => f.metric) : []);
@@ -349,7 +352,7 @@ async function submit(a: Args, ctx: ToolContext, c: Contributor) {
   return {
     verdict: `library submit: ${id.id}@${id.content.slice(0, 12)} ${was ? `already sent (${id.state})` : "sent"} as ${cut(id.contributor, 40)}, ${kind}${id.improves ? ` improving ${id.improves}` : ""}${id.state === "submitted" ? "; the checker takes it next" : ""}`,
     data: { ...shown, contributor: id.contributor, submissions: [row(id)], sent: true },
-    lines: [`motion ${(kind === "clip" ? motionHash(clip) : "compiled at check").slice(0, 12)}, content ${id.content.slice(0, 12)}; ${gates.filter((g) => g.ok).length} local gates green (dedup and the retarget onto the reference rigs are the checker's)`],
+    lines: [`${kind === "clip" ? `motion ${motionHash(clip).slice(0, 12)}` : "its motion as compiled"}, content ${id.content.slice(0, 12)}; ${gates.filter((g) => g.ok).length} local gates green (dedup and the retarget onto the reference rigs are the checker's)`],
     next: `${call("library", ["status", id.id])} shows its state and any bounce reason`,
   };
 }

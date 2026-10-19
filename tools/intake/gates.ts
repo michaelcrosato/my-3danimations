@@ -1,17 +1,20 @@
 // The library's gates on a pull request (PLAN.md WP-9.1a, `.github/workflows/library-gates.yml`, `npm run gate --
 // library-pr`): on a checkout, the library loads with every file as locked, the sets it touches pass the license check,
 // and every clip it adds or changes under library/sets/ passes the intake's gates (packages/tools/src/tools/
-// library-submit.ts, with the checker's retarget onto the reference rigs): a clip of an intake set, or one carrying the
-// intake's provenance, as an adopted clip (its provenance whole, its license the tier's, no near-duplicate of another
-// clip if it is new); any other as a library clip (its recorded quality and baselined warnings read, its license its
-// set's tier). With `--fixture all`, on a scratch copy of the library: each fixture's clip planted on its own as a pull
-// request would add it (through the library's writer, the lock written), the bad ones expected to fail with the gate
-// their fixture names, the clean ones to pass.
+// library-submit.ts). A clip that came through the intake (in an intake set, or carrying the intake's provenance) passes
+// every one: its provenance whole, its license the tier's, no near-duplicate of another clip if it is new, and the
+// retarget onto the reference rigs. Any other clip, written by the library's own tools, is read with the library's
+// baselines (its set's accepted warnings, its tag exceptions and captured speed, its recorded QA reason), its retarget
+// left to T2's sweep (D80), which lists each failure with its reason: every library clip passes so. With `--fixture
+// all`, on a scratch copy of the library: each fixture's clip planted on its own as a pull request would add it (through
+// the library's writer, the lock written), the bad ones expected to fail with the gate their fixture names, the clean
+// ones to pass.
 import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import type { Clip } from "@m3a/core";
 import { checkSets, tierOf } from "@m3a/library";
+import { readTagsBaseline } from "../facts/facts.ts";
 import { census } from "../qa/census.ts";
 import { bounceReason, clipGates, INTAKE_SETS, lineage, licenseRule, type Gate } from "../../packages/tools/src/tools/library-submit.ts";
 import { onBody } from "../../packages/tools/src/tools/judge.ts";
@@ -26,12 +29,18 @@ export interface Changed {
   added: boolean;
 }
 
-/** The clip files under library/sets/ the checkout at `root` adds (A) or changes (M) against `base` (git's merge base
- *  with it); a deleted one is the library's own business (ids are never reused, WP-9.3). */
+/** The clips `git diff --name-status` lists as added (A) or changed (M) under library/sets/: clip files alone, not a
+ *  set's manifest, catalog or baselines (each `_`-named, or no .json); a deleted one is the library's own business (ids
+ *  are never reused, WP-9.3). */
+export function clipsOf(nameStatus: string): Changed[] {
+  return nameStatus.split("\n").map((l) => /^([AM])\tlibrary\/sets\/([A-Z][A-Z0-9_]*)\/([A-Za-z0-9][A-Za-z0-9_-]*)\.json$/.exec(l)).filter((m): m is RegExpExecArray => m !== null).map((m) => ({ id: `${m[2]}/${m[3]}`, added: m[1] === "A" }));
+}
+
+/** The clips the checkout at `root` adds or changes against `base` (git's merge base with it). */
 export function changedClips(root: string, base: string): Changed[] {
   const r = spawnSync("git", ["diff", "--name-status", "--no-renames", `${base}...HEAD`, "--", "library/sets"], { cwd: root, encoding: "utf8" });
   if (r.status !== 0) throw new Error(`git diff against ${base} failed (${(r.stderr || "").trim().split("\n")[0]}): fetch it (git fetch origin main), or name another --base`);
-  return r.stdout.split("\n").map((l) => /^([AM])\tlibrary\/sets\/([A-Z][A-Z0-9_]*)\/([A-Za-z0-9_-]+)\.json$/.exec(l)).filter((m): m is RegExpExecArray => m !== null).map((m) => ({ id: `${m[2]}/${m[3]}`, added: m[1] === "A" }));
+  return clipsOf(r.stdout);
 }
 
 /** Whether a clip came through the intake: in an intake set, or carrying the intake's provenance. */
@@ -43,10 +52,14 @@ function accepted(sets: string, set: string, name: string): { code: string; at: 
   return existsSync(f) ? ((JSON.parse(readFileSync(f, "utf8")) as { clips?: Record<string, { code: string; at: string }[]> }).clips?.[name] ?? []) : [];
 }
 
-/** One changed clip's gates on checker `c`; `twins` holds the near-duplicates census found for the new ones. */
+/** One changed clip's gates on checker `c`; `twins` holds the near-duplicates census found for the new ones. A clip
+ *  that came through the intake passes every gate; any other, written by the library's own tools, is read with the
+ *  library's baselines (its set's accepted warnings, its tag exceptions, its recorded QA reason), and its retarget is
+ *  T2's sweep's (D80: 95% of clips on every skeleton, each failure listed with its reason). */
 function gatesOf(x: Changed, c: Checker, sets: string, twins: Map<string, string[]>): Gate[] {
   const got = c.lib.library.clip(x.id), [set, name] = x.id.split("/") as [string, string], intake = fromIntake(set, got.clip), l = lineage(got.clip, c.lib.library, null);
-  const gates = clipGates({ clip: got.clip, rest: got.rest, kind: "clip", base: null, derived: l.derived, as: intake ? "adopted" : "library", accepted: accepted(sets, set, name), tokens: cl100k });
+  const tags = intake ? [] : Object.keys(readTagsBaseline(join(sets, "../baselines/tags.json")).conflicts[x.id] ?? {});
+  const gates = clipGates({ clip: got.clip, rest: got.rest, kind: "clip", base: null, derived: l.derived, as: intake ? "adopted" : "library", accepted: accepted(sets, set, name), acceptedTags: tags, tokens: cl100k });
   if (!gates[0]!.ok) return gates;
   // its license is its set's tier: by the intake's rule for a clip that came through it, by D10's for any other
   const lic = gates.find((g) => g.gate === "license")!, rule = licenseRule(got.clip, l.derived), parts = got.clip.provenance.license.split(" AND ");
@@ -54,7 +67,7 @@ function gatesOf(x: Changed, c: Checker, sets: string, twins: Map<string, string
   lic.ok = !lic.why.length;
   const others = (x.added && intake ? (c.motions().get(motionOf(got.clip)) ?? []) : []).filter((id) => id !== x.id), dup = x.added && intake ? [...others.map((id) => `it is the motion of ${id}, which the library has already`), ...(twins.get(x.id) ?? [])] : [];
   const all = [...gates, { gate: "dedup", ok: !dup.length, why: dup } as Gate];
-  if (!all.every((g) => g.ok)) return all; // the retarget, the costliest, only for a clip that passes the rest
+  if (!intake || !all.every((g) => g.ok)) return all; // the retarget, the costliest, only for a clip that passes the rest
   const rigs = c.rigs.map((g) => onBody(got.clip, got.rest, g.bound, g.id)).filter((r) => !r.ok);
   return [...all, { gate: "retarget", ok: !rigs.length, why: rigs.map((r) => `on ${r.rig}: ${r.why.join("; ")}`) }];
 }
