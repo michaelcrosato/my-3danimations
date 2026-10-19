@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/michaelcrosato/my-3danimations/blob/main/spec/conformance/protocol.schema.json",
+  "title": "m3a-conformance/1",
+  "description": "The conformance kit's messages (spec/conformance/PROTOCOL.md): one JSON object a line. A request carries an id, an op and the op's fields ($defs.ops); its response the same id and the op's result ($defs.results) or an error. Numbers are doubles written as the shortest round-trip decimal, -0 kept.",
+  "oneOf": [{ "$ref": "#/$defs/request" }, { "$ref": "#/$defs/response" }],
+  "$defs": {
+    "request": {
+      "type": "object",
+      "required": ["id", "op"],
+      "properties": {
+        "id": { "type": "integer", "description": "Fresh for each request; the response repeats it." },
+        "op": { "enum": ["hello", "reduce", "fit", "text", "parse", "mirror", "decode", "readGltf", "readCmu", "measure", "retarget"] }
+      },
+      "allOf": [
+        { "if": { "properties": { "op": { "const": "hello" } } }, "then": { "$ref": "#/$defs/ops/hello" } },
+        { "if": { "properties": { "op": { "const": "reduce" } } }, "then": { "$ref": "#/$defs/ops/reduce" } },
+        { "if": { "properties": { "op": { "const": "fit" } } }, "then": { "$ref": "#/$defs/ops/fit" } },
+        { "if": { "properties": { "op": { "const": "text" } } }, "then": { "$ref": "#/$defs/ops/text" } },
+        { "if": { "properties": { "op": { "const": "parse" } } }, "then": { "$ref": "#/$defs/ops/parse" } },
+        { "if": { "properties": { "op": { "const": "mirror" } } }, "then": { "$ref": "#/$defs/ops/mirror" } },
+        { "if": { "properties": { "op": { "const": "decode" } } }, "then": { "$ref": "#/$defs/ops/decode" } },
+        { "if": { "properties": { "op": { "const": "readGltf" } } }, "then": { "$ref": "#/$defs/ops/readGltf" } },
+        { "if": { "properties": { "op": { "const": "readCmu" } } }, "then": { "$ref": "#/$defs/ops/readCmu" } },
+        { "if": { "properties": { "op": { "const": "measure" } } }, "then": { "$ref": "#/$defs/ops/measure" } },
+        { "if": { "properties": { "op": { "const": "retarget" } } }, "then": { "$ref": "#/$defs/ops/retarget" } }
+      ]
+    },
+    "response": {
+      "oneOf": [
+        { "type": "object", "required": ["id", "ok", "result"], "properties": { "id": { "type": "integer" }, "ok": { "const": true }, "result": {} } },
+        { "type": "object", "required": ["id", "ok", "error"], "properties": { "id": { "type": ["integer", "null"] }, "ok": { "const": false }, "error": { "type": "string" } } }
+      ]
+    },
+    "ops": {
+      "hello": { "type": "object", "required": ["protocol"], "properties": { "protocol": { "const": "m3a-conformance/1" } } },
+      "reduce": { "type": "object", "required": ["capture", "tol"], "properties": { "capture": { "$ref": "#/$defs/capture" }, "tol": { "type": "number" } } },
+      "fit": { "type": "object", "required": ["rest", "capture", "tol", "extra"], "properties": { "rest": { "$ref": "#/$defs/rest" }, "capture": { "$ref": "#/$defs/capture" }, "tol": { "type": "number" }, "extra": { "type": "object", "description": "The importer's extras: blade, tags, desc." } } },
+      "text": { "type": "object", "required": ["clip", "format"], "properties": { "clip": { "$ref": "#/$defs/clip" }, "format": { "enum": [1, 2] } } },
+      "parse": { "type": "object", "required": ["text", "format"], "properties": { "text": { "type": "string" }, "format": { "enum": [1, 2] } } },
+      "mirror": { "type": "object", "required": ["clip"], "properties": { "clip": { "$ref": "#/$defs/clip" } } },
+      "decode": { "type": "object", "required": ["rest", "clip", "times"], "properties": { "rest": { "$ref": "#/$defs/rest" }, "clip": { "$ref": "#/$defs/clip" }, "times": { "type": "array", "items": { "type": "number" } } } },
+      "readGltf": { "type": "object", "required": ["glb", "fps"], "properties": { "glb": { "type": "string", "contentEncoding": "base64", "description": "The .glb file's bytes." }, "fps": { "type": "number" } } },
+      "readCmu": {
+        "type": "object",
+        "required": ["asf", "amc", "picks", "fps"],
+        "properties": {
+          "asf": { "type": "string" },
+          "amc": { "type": "object", "additionalProperties": { "type": "string" }, "description": "Each take's .amc text by take name." },
+          "picks": { "type": "array", "items": { "type": "object", "required": ["name", "take", "from", "to", "fps", "loop"], "properties": { "name": { "type": "string" }, "take": { "type": "string" }, "from": { "type": "number" }, "to": { "type": "number" }, "fps": { "type": "number" }, "loop": { "type": "boolean" } } } },
+          "fps": { "type": "number" }
+        }
+      },
+      "measure": { "type": "object", "required": ["clips", "restClip"], "properties": { "clips": { "$ref": "#/$defs/captures" }, "restClip": { "type": "string" } } },
+      "retarget": {
+        "type": "object",
+        "required": ["skeleton", "source", "clip", "times"],
+        "properties": {
+          "skeleton": { "type": "object", "required": ["bones", "up"], "properties": { "bones": { "type": "array", "items": { "type": "object", "required": ["name", "parent", "head"], "properties": { "name": { "type": "string" }, "parent": { "type": ["string", "null"] }, "head": { "$ref": "#/$defs/vec3" } } } }, "up": { "$ref": "#/$defs/vec3" } }, "description": "Heads in metres, parents first." },
+          "source": { "$ref": "#/$defs/rest" },
+          "clip": { "$ref": "#/$defs/clip" },
+          "times": { "type": "array", "items": { "type": "number" } }
+        }
+      }
+    },
+    "results": {
+      "hello": { "type": "object", "required": ["implementation", "version", "protocol", "ops"], "properties": { "implementation": { "type": "string" }, "version": { "type": "string" }, "protocol": { "const": "m3a-conformance/1" }, "ops": { "type": "array", "items": { "type": "string" } }, "formats": { "type": "array", "items": { "enum": [1, 2] }, "description": "The format versions it reads; [1, 2] when omitted." } } },
+      "reduce": { "type": "array", "items": { "type": "integer" }, "description": "The kept frames' indices." },
+      "fit": { "type": "object", "required": ["max", "mean", "clip"], "properties": { "max": { "type": "number" }, "mean": { "type": "number" }, "clip": { "$ref": "#/$defs/clip" } } },
+      "text": { "type": "string" },
+      "parse": { "type": "object", "required": ["keys"], "properties": { "keys": { "type": "array", "items": { "$ref": "#/$defs/key" } } } },
+      "mirror": { "$ref": "#/$defs/clip" },
+      "decode": { "type": "array", "items": { "$ref": "#/$defs/points" }, "description": "The body points at each time, in order." },
+      "readGltf": { "type": "object", "required": ["rig", "warnings", "body", "clips"], "properties": { "rig": { "type": "string" }, "warnings": { "type": "array", "items": { "type": "string" } }, "body": { "type": ["object", "null"] }, "clips": { "$ref": "#/$defs/captures" } } },
+      "readCmu": { "type": "object", "required": ["clips", "log"], "properties": { "clips": { "$ref": "#/$defs/captures" }, "log": { "type": "array", "items": { "type": "string" } } } },
+      "measure": { "$ref": "#/$defs/rest" },
+      "retarget": {
+        "type": "object",
+        "required": ["bones", "rest", "poses"],
+        "properties": {
+          "bones": { "type": "object", "additionalProperties": { "type": "string" }, "description": "Each humanoid bone (VRM's names, spec/SKELETON.md) to the skeleton's bone." },
+          "rest": { "$ref": "#/$defs/joints" },
+          "poses": { "type": "array", "items": { "$ref": "#/$defs/joints" }, "description": "One a time, in order." }
+        }
+      }
+    },
+    "vec3": { "type": "array", "items": { "type": "number" }, "minItems": 3, "maxItems": 3 },
+    "points": { "type": "array", "items": { "type": "number" }, "minItems": 108, "maxItems": 108, "description": "The 36 body points (forward, right, up; mm) in the format's POINTS order." },
+    "joints": { "type": "object", "additionalProperties": { "$ref": "#/$defs/vec3" }, "description": "Each humanoid bone's head in the format's frame (forward, right, up; mm)." },
+    "capture": {
+      "type": "object",
+      "required": ["name", "n", "dur", "loop", "fps", "move", "data"],
+      "properties": {
+        "name": { "type": "string" }, "n": { "type": "integer" }, "dur": { "type": "number" }, "loop": { "type": "boolean" }, "fps": { "type": "number" }, "take": { "type": "string" },
+        "move": { "type": ["array", "null"], "items": { "type": "number" }, "description": "The root's travel, two numbers a frame, or null." },
+        "data": { "type": "array", "items": { "$ref": "#/$defs/points" }, "description": "n frames of body points, each value a float32." }
+      }
+    },
+    "captures": { "type": "object", "additionalProperties": { "$ref": "#/$defs/capture" }, "description": "Captures by clip name, in the reader's order." },
+    "rest": { "type": "object", "required": ["H0", "Cr", "clav", "fist"], "properties": { "H0": { "type": "number" }, "Cr": { "type": "array", "items": { "$ref": "#/$defs/vec3" }, "minItems": 3, "maxItems": 3 }, "clav": { "type": "object", "required": ["L", "R"], "properties": { "L": { "$ref": "#/$defs/vec3" }, "R": { "$ref": "#/$defs/vec3" } } }, "fist": { "type": "number" } }, "description": "A rest body as tier 1a's `rest` holds it (spec/MOTION.md: mm and degrees)." },
+    "clip": { "type": "object", "required": ["keys"], "properties": { "keys": { "type": "array", "items": { "$ref": "#/$defs/key" } } }, "description": "A clip as the vectors hold it: its header fields and its key poses." },
+    "key": { "type": "object", "required": ["t"], "properties": { "t": { "type": "number" } }, "additionalProperties": { "type": ["number", "array"], "items": { "type": "number" } } }
+  }
+}
