@@ -1,0 +1,52 @@
+# The library's gates on every pull request that touches library/sets/ (PLAN.md WP-9.1a): `npm run gate --
+# library-pr`, the same gates the intake's checker runs (tools/intake/gates.ts): the library loads with every file as
+# locked, the sets it touches pass the license check, and every clip it adds or changes passes schema, provenance,
+# license, text, dedup, sensors, the retarget onto the reference rigs, budgets and lint. A pull request with a planted
+# bad clip fails it (`npm run gate -- library-pr --fixture all` proves that on a scratch copy). Actions are pinned by
+# commit SHA (principle 9); the comment names the release.
+name: library-gates
+
+on:
+  pull_request:
+    paths:
+      - "library/sets/**"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: library-gates-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FORCE_COLOR: "0"
+
+jobs:
+  library-pr:
+    name: The library gates on the clips it adds or changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      # the whole history, so the gates read what the pull request changes against origin/main
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24.21.0
+          cache: npm
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .cache
+          key: m3a-cache-${{ runner.os }}-${{ hashFiles('tools/pins.json', 'tools/fixtures/rigs.json', 'bench/results/heldout/*/run-*/rig.json', 'package-lock.json') }}
+          restore-keys: m3a-cache-${{ runner.os }}-
+      - run: npm ci
+      # the reference rigs the retarget gate plays each clip on, by hash
+      - run: npm run fixtures -- fetch
+      - run: npm run gate -- library-pr --json
+      - if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: library-gates
+          path: check-output/
+          if-no-files-found: ignore

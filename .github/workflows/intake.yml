@@ -1,0 +1,76 @@
+# The intake (PLAN.md §5.9, WP-9.1a): the checker over the hosted store's new submissions every 15 minutes and on
+# demand, then the adopt bot over the owner's adoptions (it opens, gates and merges or closes their pull requests with
+# this workflow's token, so it runs the library's gates itself: such a pull request starts no other workflow). Until
+# O8's project is linked (the M3A_INTAKE_* secrets unset) it does nothing and says so, so it never fails on main every
+# 15 minutes; half linked, the checker refuses, naming the secrets missing. Actions are pinned by commit SHA (principle
+# 9); the comment names the release.
+name: intake
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write # the adopt bot pushes each adoption's branch
+  pull-requests: write # and opens, merges or closes its pull request
+
+concurrency:
+  group: intake
+  cancel-in-progress: false
+
+env:
+  FORCE_COLOR: "0"
+
+jobs:
+  intake:
+    name: Check new submissions, then commit the owner's adoptions
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      M3A_INTAKE_URL: ${{ secrets.M3A_INTAKE_URL }}
+      M3A_INTAKE_ANON_KEY: ${{ secrets.M3A_INTAKE_ANON_KEY }}
+      M3A_INTAKE_SERVICE_KEY: ${{ secrets.M3A_INTAKE_SERVICE_KEY }}
+      M3A_INTAKE_OWNER: ${{ secrets.M3A_INTAKE_OWNER }}
+    steps:
+      - name: The hosted store (O8)
+        id: store
+        run: |
+          if [ -z "$M3A_INTAKE_URL$M3A_INTAKE_ANON_KEY$M3A_INTAKE_SERVICE_KEY$M3A_INTAKE_OWNER" ]; then
+            echo "linked=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=intake::No hosted store is linked (O8: the M3A_INTAKE_* secrets are unset): nothing to check or adopt. The local store is each checkout's own: npm run intake -- check."
+          else
+            echo "linked=true" >> "$GITHUB_OUTPUT"
+          fi
+      - if: steps.store.outputs.linked == 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - if: steps.store.outputs.linked == 'true'
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24.21.0
+          cache: npm
+      - if: steps.store.outputs.linked == 'true'
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .cache
+          key: m3a-cache-${{ runner.os }}-${{ hashFiles('tools/pins.json', 'tools/fixtures/rigs.json', 'bench/results/heldout/*/run-*/rig.json', 'package-lock.json') }}
+          restore-keys: m3a-cache-${{ runner.os }}-
+      - if: steps.store.outputs.linked == 'true'
+        run: npm ci
+      # the reference rigs the checker retargets onto (tools/intake/check.ts), by hash
+      - if: steps.store.outputs.linked == 'true'
+        run: npm run fixtures -- fetch
+      - if: steps.store.outputs.linked == 'true'
+        run: npm run intake -- check --json
+      - if: steps.store.outputs.linked == 'true'
+        run: npm run intake -- adopt --json
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - if: always() && steps.store.outputs.linked == 'true'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: intake
+          path: check-output/
+          if-no-files-found: ignore
