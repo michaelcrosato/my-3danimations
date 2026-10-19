@@ -1,9 +1,9 @@
 // The registry index (PLAN.md WP-9.4): library/index.json, the library's sets as static JSON in two tiers, as package
 // registries keep them. The curated core is this repository's library/sets: each set's versions, each with its content
-// id (spec/MOTION.md §9.2), a digest of all its files, its tier and licenses, its size and its QA and review counts; the
-// latest version's record is what its files give, field by field, or the index isn't rebuilt. Community packs are
-// federated entries: a set in a namespace verified to its owner, its files kept elsewhere and held to a content id and a
-// digest of all its files. A pack is admitted only when the fetched files give that id, name one license of their own
+// id (spec/MOTION.md §9.2), a digest of all its files, its tier and licenses, its size and its QA and review counts;
+// the latest version's record is what its files give, field by field, or the index isn't rebuilt. Community packs are
+// federated entries: a set in a namespace verified to its owner, its files kept elsewhere and held to a content id and
+// a digest of all its files. A pack is admitted only when the fetched files give that id, name one license of their own
 // (the license it claims), and the namespace's proof, fetched from where only its owner can write, vouches for it; the
 // registry keeps that proof's text and SHA-256, and every rebuild vouches with it again, offline. A pack never enters
 // the core, which grows only by adoption (WP-9.1). Versions are immutable and sets are yanked, never deleted. Built
@@ -22,7 +22,8 @@ export interface SetVersion { v: number; content: string; digest: string; title:
  *  its files), where its files are, its SPDX license (its files' own) and the tier that fits it, and `proofSha256`, the
  *  SHA-256 of the namespace's proof that admitted it. */
 export interface PackVersion { v: number; content: string; digest: string; url: string; license: string; tier: string; proofSha256: string; yanked?: string }
-/** A community pack in the index: a set in a namespace verified to its owner (`proof`: where its owner vouches for it). */
+/** A community pack in the index: a set in a namespace verified to its owner (`proof`: where its owner vouches for
+ *  it). */
 export interface CommunityPack { namespace: string; set: string; proof?: string; versions: PackVersion[] }
 /** A pack version as the registry keeps it: the index's record and `proofText`, the proof as fetched when it was
  *  admitted, which every rebuild checks again offline (it must give `proofSha256` and vouch for the content id). */
@@ -35,8 +36,8 @@ export interface RegistryIndex { about: string; format: "1"; serial: number; cor
 export interface Registry { about?: string; yanked: Record<string, string>; community: Record<string, AdmittedPack> }
 /** A namespace's proof as fetched: where from, and its bytes as text. */
 export interface Proof { url: string; text: string }
-/** A pack offered for admission: its namespace, set, the license it claims (its files must name it, and no other), where
- *  its files are and their content id. */
+/** A pack offered for admission: its namespace, set, the license it claims (its files must name it, and no other),
+ *  where its files are and their content id. */
 export type Candidate = Pick<PackVersion, "content" | "url" | "license"> & { namespace: string; set: string };
 
 const ABOUT = "The registry index (PLAN.md WP-9.4), written by npm run index from library/sets, the previous index and tools/release/registry.json; npm run index -- --check regenerates it byte for byte. core: each set's versions (content: its clip files' content id, spec/MOTION.md §9.2; digest: the same over all its files), immutable, yanked never deleted. community: packs federated from namespaces verified to their owners, never uploads into the core. npm run index -- verify <SET> <dir> checks a set's files against it.";
@@ -177,17 +178,27 @@ export function buildIndex(src: LibrarySource, sha: Sha, registry: Registry, pre
 
 /**
  * Every way a set's files differ from what the index says of one of its versions (the latest unless `v` names one),
- * as sentences; empty when they are that version. A set's files must give its content id and digest; a community
- * pack's namespace's proof (the bytes fetched, and where from) must vouch for it too.
+ * as sentences; empty when they are that version. A set's files must give its content id and digest, and a core set's
+ * the rest of its record too (its licenses, tier, counts: what a consumer reads); a community pack's namespace's proof
+ * (the bytes fetched, and where from) must vouch for it.
  */
 export function verifySet(index: RegistryIndex, name: string, files: Files, sha: Sha, opts: { v?: number; proof?: Proof } = {}): string[] {
-  const pack = index.community[name], versions: { v: number; content: string; digest: string }[] = index.core[name]?.versions ?? pack?.versions ?? [];
+  const pack = index.community[name], versions: (SetVersion | PackVersion)[] = index.core[name]?.versions ?? pack?.versions ?? [];
   const at = opts.v === undefined ? versions.at(-1) : versions.find((x) => x.v === opts.v), got = ids(files, sha), out: string[] = [];
   if (!versions.length) return [`the index holds no ${name}: name a core set (${Object.keys(index.core).join(", ")}) or a community pack (namespace/SET)`];
   if (!at) return [`${name} has no v${opts.v} (versions: ${versions.map((x) => x.v).join(", ")}): name a version it holds (--v ${versions.at(-1)!.v})`];
   if (got.content !== at.content) out.push(`${name} v${at.v}: its clip files give content id ${short(got.content)}, the index says ${short(at.content)}: a clip file differs (sets.lock.json names each clip's SHA-256)`);
   if (got.digest !== at.digest) out.push(`${name} v${at.v}: its files give digest ${short(got.digest)}, the index says ${short(at.digest)}: a file differs, is missing or is extra`);
-  return pack ? [...out, ...vouch(pack.namespace, pack.set, at.content, opts.proof)] : out;
+  if (pack) return [...out, ...vouch(pack.namespace, pack.set, at.content, opts.proof)];
+  if (out.length) return out;
+  const { v, yanked: _y, ...recorded } = at as SetVersion;
+  let off: string[];
+  try {
+    off = differing(recorded, describeSet(name, files, sha));
+  } catch (err) {
+    return [`${name} v${v}: ${(err as Error).message}`];
+  }
+  return off.length ? [`${name} v${v}: the index's record isn't what its files give (${off.join(", ")}): this index was edited; take library/index.json from the release or the repository again`] : [];
 }
 
 /** The registry with a candidate pack admitted as its next version, its digest and the proof that vouched for it

@@ -1,11 +1,12 @@
 // The registry index (WP-9.4): library/index.json regenerates byte for byte and every core set verifies from its files;
 // on fixture sets, a changed set gets a new version and the old one stands, a deleted set or a rewritten version is
-// refused, a yank is recorded, and a latest version whose record isn't what its files give is refused field by field;
-// `--since` fails on a ref git can't read; a community pack whose files miss its content id, don't name its license
-// alone, or whose namespace's proof doesn't vouch for it is refused, and an admitted one records its digest and proof,
-// is vouched for again offline on every rebuild and verifies, every file of it bound; release.yml, read as YAML, runs
-// only by hand, fails closed until O2 unless the owner started the run and the attempt, gives its write token to the
-// upload step alone and takes each set's license texts from its own files; library-gates.yml runs on index changes.
+// refused, a yank is recorded, and a version whose record isn't what its files give is refused field by field, by the
+// rebuild and by a consumer's verify; `--since` fails on a ref git can't read; a community pack whose files miss its
+// content id, don't name its license alone, or whose namespace's proof doesn't vouch for it is refused, and an admitted
+// one records its digest and proof, is vouched for again offline on every rebuild and verifies, every file of it bound;
+// release.yml, read as YAML, runs only by hand, fails closed until O2 unless the owner started the run and the attempt,
+// gives its write token to the upload step alone and takes each set's license texts from its own files;
+// library-gates.yml runs on index changes.
 import { spawnSync } from "node:child_process";
 import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -64,8 +65,9 @@ describe("the core", () => {
     const one = setFiles({ A: "pass", B: "baselined" }), v1 = buildIndex(source({ FIX: one }), sha256, none), at = v1.core.FIX!.versions[0]!;
     const edited = (fields: object): RegistryIndex => ({ ...v1, core: { FIX: { versions: [{ ...at, ...fields }] } } });
     expect(() => buildIndex(source({ FIX: one }), sha256, none, edited({ licenses: ["CC-BY-4.0"], tier: "cc-by" }))).toThrow(/FIX v1's record isn't what its files give \(licenses, tier\): restore library\/index.json/);
+    expect(verifySet(edited({ licenses: ["CC-BY-4.0"], tier: "cc-by" }), "FIX", one, sha256)).toEqual(["FIX v1: the index's record isn't what its files give (licenses, tier): this index was edited; take library/index.json from the release or the repository again"]);
     for (const f of [{ title: "x" }, { clips: 3 }, { bytes: 1 }, { qa: { pass: 2 } }, { review: { approved: 2, flagged: 0, unreviewed: 0 } }, { content: "0".repeat(64) }]) expect(() => buildIndex(source({ FIX: one }), sha256, none, edited(f)), JSON.stringify(f)).toThrow(new RegExp(`\\(${Object.keys(f)[0]}\\)`));
-    // the committed index, a version's licenses and review counts edited by hand: refused, where it was rebuilt as it stood
+    // the committed index with a version's licenses edited by hand: refused, where it was rebuilt as it stood
     const index = committed(), [name, set] = Object.entries(index.core)[0]!;
     set.versions.at(-1)!.licenses = ["CC0-1.0", "x"];
     expect(() => buildIndex(directory(join(ROOT, "library/sets")), sha256, none, index)).toThrow(new RegExp(`${name} v${set.versions.at(-1)!.v}'s record isn't what its files give \\(licenses\\)`));

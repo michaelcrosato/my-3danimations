@@ -1,9 +1,9 @@
 // A strict reader for the YAML that GitHub workflows are written in, so release.test.ts holds release.yml and
 // library-gates.yml by their parsed structure, not by patterns over their text (WP-9.4). It reads block mappings and
-// sequences, plain, single- and double-quoted scalars (quoted keys too), literal block scalars (`|`, `|-`) and comments,
-// every scalar as a string. It refuses, naming the line, what it doesn't hold (flow collections, anchors, aliases, tags,
-// folded scalars, several documents, tabs, a key given twice), so a workflow it can't read fails its test rather than
-// passing on a misreading.
+// sequences, plain, single- and double-quoted scalars (quoted keys too), literal block scalars (`|`, `|-`) and
+// comments, every scalar as a string. It refuses, naming the line, what it doesn't hold (flow collections, anchors,
+// aliases, tags, folded scalars, several documents, tabs, a key given twice), so a workflow it can't read fails its
+// test rather than passing on a misreading.
 
 /** A YAML node as read: a string, a list or a mapping. */
 export type Yaml = string | Yaml[] | { [key: string]: Yaml };
