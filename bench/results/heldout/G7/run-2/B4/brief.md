@@ -1,0 +1,28 @@
+# B4 · The mascot's sneak
+
+A streaming show has a stealth segment, and its mascot has to creep across the stage. The project in this directory
+has the avatar (`character.glb`: a skinned humanoid in metres, facing +Z, its bones named as a VRM 1.0 avatar's
+humanoid, with proportions unlike the people the library was captured from) and the m3a packages installed in
+`node_modules/@m3a/`. Start with their manual: `node_modules/@m3a/tools/MANUAL.md`.
+
+The mascot is a chibi: 1.06 m tall, a third of that its head, on short legs, its hips 0.45 m above its soles. It rests
+in an A-pose, the arms 40° below level. Its bones carry the VRM humanoid names: `hips`, `spine`, `chest`,
+`upperChest` and `head`, and on each side `leftShoulder`, `leftUpperArm`, `leftLowerArm`, `leftHand`, `leftUpperLeg`,
+`leftLowerLeg`, `leftFoot` and `leftToes` (and the `right` ones). Its neck bone is left out (`head` sits on
+`upperChest`), and it has twist bones, leaves hanging off the limbs: `leftUpperArmTwist`, `leftLowerArmTwist` and
+`leftUpperLegTwist` (and the `right` ones).
+
+**The job:** implement `createSneaker` in `src/sneak.ts` (its types are there). Each frame the game calls
+`sneaker.update(dt)`: the avatar sneaks forward with a crouched sneaking walk loop from the CC0 library, travelling the
+way its feet push it (move `character.position` by the root motion), its feet still on the ground while they stand.
+Check it with the m3a sensors before you're done.
+
+`npm run check` drives your sneaker as the grader will (6 s) and prints how low the hips go and how far the avatar
+travels; measure its feet with the sensors as the manual's "Check" shows.
+
+**How it's graded** (headless, from the avatar's bones): it sneaks (the hips at most 85% of their standing height on
+average after the first second, travelling forward at least 15% of the hip height a second); it steps (each foot lifts
+7% of the hip height and sets down again, three lifts or more between them in 5 s); the lower foot stands still at times
+(slower than the sensors' standing speed); a standing foot stays where it stands (the lower foot moves at a quarter of the
+avatar's travel speed or less at least 40% of the time) and the m3a sensors' slide and skate stay under their limits;
+nothing the sensors read of its bones fails; no transform is ever NaN. Work only in this directory.
