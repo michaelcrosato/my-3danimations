@@ -56,6 +56,7 @@ export async function renderPanel(g: Gallery): Promise<void> {
       const reply = await ask("search", { query: r.q, limit: 40 }, () => false), rows = ((reply.data as { rows?: { id: string; tier: string; dur: number; loop: boolean; desc: string }[] } | null)?.rows ?? []);
       out.push(list(rows.map((x) => button("data-clip", x.id, x.id, " ", tier(x.tier), ` ${x.dur.toFixed(2)} s ${x.loop ? "loop" : "once"}: ${x.desc}`))));
     }
+    out.push(h("p", { class: "note" }, h("a", { href: "./src/review/" }, "Review queue"), " · ", h("a", { href: "./src/contributors/" }, "Contributors")));
     out.push(h("h3", {}, "Sets"), list(lib.sets().map((s) => button("data-set", s.set, s.set, " ", tier(s.tier), ` ${s.clips} clips: ${s.title}`))));
     if (r.set && lib.sets().some((s) => s.set === r.set)) {
       const about = lib.about(r.set);

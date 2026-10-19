@@ -1,6 +1,8 @@
 // Nothing can be done only in the gallery (PLAN.md WP-8.1, DOCTRINE.md principle 2): every action the page offers, and
 // the m3a tool (the same name in the API, the CLI, MCP and the console handle) or the command that does the same
-// without a display. The e2e test checks that every tool named here is in the registry, on the page and in Node.
+// without a display. The e2e test checks that every tool named here is in the registry, on the page and in Node. The
+// review queue's and contributor page's actions come from review/actions.ts (WP-8.2b).
+import { REVIEW_ACTIONS } from "./review/actions.ts";
 
 /** One action: what the gallery does, the registry tool that does the same (null where a command does), and the call
  *  as an agent writes it (an m3a command, or the file or npm script). */
@@ -32,4 +34,5 @@ export const ACTIONS: readonly Action[] = [
   { action: "copy a deep link to what is on screen", tool: null, call: "the link is text: ?set= ?clip= ?recipe= ?graph= ?char= ?view= ?t= ?rate= ?panel= ?q= (apps/gallery/README.md)" },
   { action: "drive it all from a console", tool: null, call: "window.__m3a (state, open, play, pause, step, seek, hash) and window.__M3A_TOOLS__ (every tool)" },
   { action: "read the build stamp", tool: "version", call: "m3a version (the stamp's commit: git rev-parse --short HEAD)" },
+  ...REVIEW_ACTIONS,
 ];

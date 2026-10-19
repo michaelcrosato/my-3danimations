@@ -3,7 +3,8 @@
 // manifest, catalog and file names and the lock in the page (`virtual:m3a-library`), each set's clip files in a chunk
 // of its own (`virtual:m3a-set/<SET>`) loaded when one of its clips is first opened, and the real CC0 rigs that
 // `npm run fixtures -- fetch` put in .cache/fixtures/ (none when they aren't there). The build stamp's commit comes from
-// Vercel or GitHub Actions, else git.
+// Vercel or GitHub Actions, else git. Three pages: the gallery (index.html), the review queue (src/review/) and the
+// contributor page (src/contributors/), WP-8.2b's.
 import { execSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync, realpathSync } from "node:fs";
 import { join } from "node:path";
@@ -58,6 +59,9 @@ export default defineConfig({
   plugins: [library()],
   // the fixtures may be a link to another checkout's cache
   server: { fs: { allow: [ROOT, ...(existsSync(RIGS) ? [realpathSync(RIGS)] : [])] } },
-  build: { outDir: "dist", emptyOutDir: true, target: "es2023", chunkSizeWarningLimit: 8192, reportCompressedSize: false },
+  build: {
+    outDir: "dist", emptyOutDir: true, target: "es2023", chunkSizeWarningLimit: 8192, reportCompressedSize: false,
+    rollupOptions: { input: Object.fromEntries(["index.html", "src/review/index.html", "src/contributors/index.html"].map((p) => [p.split("/").at(-2) ?? "gallery", join(import.meta.dirname, p)])) },
+  },
   logLevel: "warn",
 });
