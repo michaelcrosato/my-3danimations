@@ -4,6 +4,40 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.52.0 · 2026-10-19
+
+### Spec
+- `provenance.intake` (a contributed clip's record from the intake queue) and `provenance.source` (the motion source
+  that made it, its terms' license and version, the seed, a hash of the intent), both optional (§7.4, D112).
+
+### Core
+- `sources` (WP-9.2): `MotionSource` and `sourceClip`, the one interface every motion source runs through (the
+  request checked, the clip validated, its source record written, warnings on changed terms, missed constraints and
+  length), with the procedural and recipe sources; deterministic for a seed.
+
+### Library
+- Near-duplicates (WP-9.3): `DedupIndex` (time-warped, mirror-aware, a submission checked against the library in
+  milliseconds), `motionFeatures`, `motionDistance`; lineage: `Lineage` (from `orig`, recipe inputs and content ids,
+  resolved to source clips), `deprecate` and `checkIds` (ids never reused or removed).
+
+### Tools
+- `m3a library submit | status` (WP-9.1a): a clip or recipe sent to the intake queue with its provenance, after the
+  local gates, and a contributor's submissions with their states and bounce reasons; the tools' budget is 3,200
+  tokens (D112).
+- `sourcing` (WP-9.2): the library source, an HTTP adapter template for external generators (off by default, its
+  transport injected, key poses as constraints), the source gate, the allowlist, and the way to the intake queue or,
+  for a source not on it, `library/local/` alone.
+
+### Repo
+- The intake (WP-9.1a): `npm run intake -- check` (schema, provenance, license, text, dedup, sensors, retarget,
+  budgets, lint; a preview sheet; bounced with a reason or waiting for review), the adopt bot (the owner's adoptions
+  alone, its pull request whole: the lock, baselines, docs/LIBRARY.md and the index regenerated), `intake.yml` and
+  `library-gates.yml`, `npm run gate -- library-pr`; the importers and the migrator keep an adopted version.
+- The registry index (WP-9.4): `library/index.json` (each set's immutable versions, community packs from verified
+  namespaces), `npm run index` (`--check`, `verify`, `verify --all`, `admit`), `release.yml` (by hand, closed until
+  the owner's O2 go-ahead).
+- The bench's `--need N`; `npm run gate -- G9`.
+
 ## 0.51.0 · 2026-10-19
 
 ### Tools
