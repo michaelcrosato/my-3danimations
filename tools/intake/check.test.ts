@@ -127,9 +127,8 @@ describe("the checker", () => {
   it("waits for review on a motion source's clip as deliver sends it: its source record read field by field, its terms on the allowlist", async () => {
     const rest = c.lib.library.about("QUATERNIUS_3D2DGE").sources.UAL1!.rest, saunter = { name: "saunter", about: "a saunter, the arms swinging easily", speed: 100, cycle: 1.6, stance: 0.66, swing: 28 };
     const made = await sources.sourceClip(sources.proceduralSource({ gaits: [saunter] }), { intent: "a saunter", skeleton: { rest, restSrc: "UAL1" }, duration: 1.6, seed: 0 });
-    // the contributor's record, as deliver writes it on lane fix-sources' side (this base's deliver sends the clip as it is)
-    const sent = { ...made, clip: { ...made.clip, provenance: { ...made.clip.provenance, intake: { by: "a test of the checker, through the procedural source (michaelcrosato)" } } as Clip["provenance"] } };
-    const d = await deliver(sent, { submit: intakeSubmit(store("contributor", "gail")), local: { read: () => null, write: () => expect.unreachable("nothing goes to library/local/"), list: () => [] } });
+    // deliver writes the contributor's record (provenance.intake) itself, as library submit does
+    const d = await deliver(made, { submit: intakeSubmit(store("contributor", "gail")), local: { read: () => null, write: () => expect.unreachable("nothing goes to library/local/"), list: () => [] }, by: "a test of the checker, through the procedural source (michaelcrosato)" });
     const r = (await check(store("checker"), c)).find((x) => x.id === (d as { id: string }).id);
     expect([d.to, r?.state, r?.reason]).toEqual(["intake", "awaiting review", null]);
   }, 30_000);

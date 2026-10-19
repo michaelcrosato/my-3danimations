@@ -124,11 +124,9 @@ describe("where a source's clip goes", () => {
       const sent = parseClip((await store.get((d as { id: string }).id))!.text), intake = (sent.provenance as unknown as { intake: IntakeProvenance }).intake;
       expect(intake).toEqual({ by: BY, prompt: s.record.prompt, ...(source.name === "kimodo" ? { manifest: MANIFEST } : {}), report: { sensors: expect.stringMatching(/^(pass|warn)$/), findings: expect.any(Number), qaVersion: expect.stringMatching(/^m3a-sensors@/) } });
       expect(serialize({ ...sent, provenance: { ...sent.provenance, intake: undefined } as Clip["provenance"] })).toBe(serialize(s.clip));
-      // every gate the intake runs with no rig or store passes it: the text gate's reading of provenance.source is the
-      // intake lane's (D113), so only its record's fields may be named there until that lands
+      // every gate the intake runs with no rig or store passes it, the text gate reading provenance.source by kind (D113)
       const gates = clipGates(gateInput(sent, "clip", null, access));
-      expect(gates.filter((g) => !g.ok && g.gate !== "text").map((g) => `${g.gate}: ${g.why.join("; ")}`), intent).toEqual([]);
-      expect(gates.find((g) => g.gate === "text")!.why.filter((w) => !w.startsWith("provenance.source.")), intent).toEqual([]);
+      expect(gates.filter((g) => !g.ok).map((g) => `${g.gate}: ${g.why.join("; ")}`), intent).toEqual([]);
     }
     expect((await store.list()).length).toBe(3);
     expect(mem.files.size).toBe(0);

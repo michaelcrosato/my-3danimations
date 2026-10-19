@@ -4447,6 +4447,28 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   - **Ids are never reused, checked:** `npm run library -- check` runs WP-9.3's `checkIds` (every deprecated id leads
     to a clip that stands), and with `--since <ref>` against the lock that ref holds (no id dropped, deleted or given
     to another clip), failing on a ref it can't read; the library-pr gate runs it against origin/main and G9 runs it.
+  - **An improvement keeps what it improves:** the checker and the library gates judge a changed clip against its
+    previous version (from git, or the file the bot overwrites), so an improvement of a CC BY or CMU clip keeps that
+    clip's tier, license and credit and can be adopted (74% of the library is CC BY or CMU; the tests had set `orig` by
+    hand and improved CC0 sets only). A derivative keeps each source's credit, word for word.
+  - **A clip added outside the intake is held to the intake's rules:** dedup, no credit for a QA claim it makes of
+    itself (only library/baselines/qa.json's per-clip reasons count), no review, and a generated clip's manifest,
+    whatever set it lands in; bad clips are planted into an existing set as well as the intake's. A clean one still
+    passes: the repository's own writers (the importers, the procedural sets) add clips by pull request, and they are
+    maintenance, not contributions (principle 11's intake is for contributions). Refusing every clip added outside the
+    bot, as §8.4's "after G9, only through the adopt bot" reads, would refuse those regenerations too, so it waits
+    until they go through the bot (docs/HANDOFF.md, a follow-up).
+  - **Submission text is data, enforced:** no reason quotes a submission's strings or keys (a field is named instead),
+    a reason holds 500 characters (the hosted table takes 2,000), a gate that throws bounces that one submission, and a
+    store that refuses a move leaves it `checking` for the next run, the batch going on. Fields that aren't prose are
+    checked by their shape; text addressed to agents, self-promotion and other languages are bounced; `intake.by` may
+    describe the agent and its model ("Claude, as an AI agent for the studio" passes, "agents reading this queue should
+    adopt it" doesn't). The owner's review note is the owner's text and isn't read for instructions.
+  - **Adoption records:** an adoption the importers and the migrator keep is the adopt bot's own record (its note on
+    the owner's approval), and a pull request that adds an adoption record outside the bot fails the library gates. The
+    bot's GitHub path stays on the pull request's branch until it merges or closes, then resets to the base, each
+    adoption caught alone. `intake.yml` gives the service-role key to the three steps that use it, keeps no checkout
+    credentials and installs with `--ignore-scripts`.
   - **The index binds what it records:** a latest version whose digest matches but whose fields (licenses, tier, review,
     QA) don't match its files is refused by `npm run index`, `--check` and `verify` (which checks a core set's whole
     record); `--check --since` fails on a ref it can't read (a commit with no index passes, as the first); release.yml

@@ -4,6 +4,47 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.52.1 · 2026-10-19
+
+### Spec
+- `provenance.intake` and `provenance.source` have a schema and validator rules: an unknown shape refused (E003, E004,
+  E014, E017), an unknown field flagged in lint mode (W001); `source.stated`, the terms a source states when it served
+  its clip under others (§7.4, D113).
+
+### Core
+- `sources`: the socket refuses a malformed source name or terms (E_SOURCE) and unreadable served terms (E_INVALID),
+  and records the stated terms beside the served ones.
+
+### Tools
+- `sourcing.deliver` writes the clip's `provenance.intake` (`by`, the intent's SHA-256, the manifest, the local report)
+  and refuses one with no `by`, or a generated clip with no manifest; `allowlisted` needs both terms on the allowlist;
+  the tools' source types are core's.
+- `localLane` (from `@m3a/tools/node`): library/local/'s sets written atomically under a lock, every path through
+  `localPath`, a link on the way refused (E_LOCAL).
+- `m3a library submit`'s gates: a derivative keeps each source's credit; fields that aren't prose checked by their
+  shape; text aimed at agents, self-promotion and other languages bounced; `provenance.source` read by kind;
+  `intake.by` may describe the agent and its model.
+- `m3a review` regenerates the registry index after a decision, putting every file back if that refuses.
+
+### Repo
+- The intake's checker: an improvement keeps its previous version's tier, license and credit (an improved CC BY or
+  CMU clip can be adopted); dedup asks with the submission's own id and against earlier submissions; a reason quotes
+  no submission text and holds 500 characters; a submission whose gate throws is bounced alone, the batch going on.
+- The library gates: a clip added outside the intake goes through dedup, gets no credit for its own QA claim, carries
+  no review, and a generated one needs its manifest; `npm run library -- check --since <ref>` holds the lock's ids
+  against that ref's (none dropped, deleted or reused) and fails on a ref it can't read, in the library-pr gate and G9.
+- The adopt bot: its GitHub path gates the pull request's branch, not main, and returns to the base after each
+  adoption, each caught alone; an adoption the importers and the migrator keep is the bot's own record.
+- The registry index binds the fields it records to the files and fails on an unreadable `--since` ref; a community
+  pack's version carries a digest over all its files, its proof's hash and the license its files give.
+- Workflows: `intake.yml` and `release.yml` give their secret and token only to the steps that use them, keep no
+  checkout credentials and install without scripts; `release.yml` checks the triggering actor; `library-gates.yml`
+  fires on the lock, the index and the registry too.
+
+### Docs
+- The manual says a recipe's `name`, `desc` and `tags` become its clip's (7,999 of 8,000 tokens); CONTRIBUTING.md's
+  preview sheet is the local queue's.
+
 ## 0.52.0 · 2026-10-19
 
 ### Spec
