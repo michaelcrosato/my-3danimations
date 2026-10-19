@@ -1,0 +1,66 @@
+<!doctype html>
+<!-- The review queue's page (PLAN.md WP-8.2b): the owner's decisions on the submissions awaiting review and the sampled
+     library clips, exported as a review for `m3a review ingest`. Phone first (390x844, touch); main.ts drives it. -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>m3a review queue</title>
+    <link rel="icon" href="data:," />
+    <style>
+      :root { --bg: #f4f2ec; --fg: #26231e; --soft: #6b655b; --line: #d8d3c8; --card: #fffdf8; --pass: #2f7d32; --warn: #a86a00; --fail: #b3261e; }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.4 system-ui, sans-serif; }
+      main { max-width: 760px; margin: 0 auto; padding: max(10px, env(safe-area-inset-top)) 12px 96px; }
+      h1 { font-size: 19px; margin: 0 0 4px; } h2 { font-size: 16px; margin: 18px 0 8px; }
+      nav a { color: inherit; }
+      button, input, textarea { font: inherit; color: inherit; }
+      button, .file { min-height: 44px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); padding: 0 12px; }
+      .file { display: inline-flex; align-items: center; margin: 6px 0; }
+      .file input { width: 0; height: 0; opacity: 0; }
+      .note { color: var(--soft); font-size: 13px; margin: 4px 0; overflow-wrap: anywhere; }
+      .pass { color: var(--pass); } .warn, .findings { color: var(--warn); } .fail, .error, .usage { color: var(--fail); }
+      .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 10px; margin: 0 0 12px; }
+      .card[data-decision="adopt"], .card[data-decision="approve"] { border-color: var(--pass); box-shadow: inset 4px 0 0 var(--pass); }
+      .card[data-decision="archive"] { border-color: var(--warn); box-shadow: inset 4px 0 0 var(--warn); }
+      .card[data-decision="reject"], .card[data-decision="flag"] { border-color: var(--fail); box-shadow: inset 4px 0 0 var(--fail); }
+      .pick { display: flex; gap: 8px; align-items: center; min-height: 44px; overflow-wrap: anywhere; }
+      .pick input { width: 24px; height: 24px; flex: 0 0 auto; }
+      .ref { font-size: 13px; font-family: ui-monospace, monospace; }
+      .pics figure { margin: 6px 0; } .pics figcaption { font-size: 12px; overflow-wrap: anywhere; }
+      .picture { display: block; width: 100%; height: auto; background: #fff; border: 1px solid var(--line); border-radius: 6px; }
+      .nums, .diff { margin: 6px 0; overflow-wrap: anywhere; }
+      details { margin: 4px 0; } summary { min-height: 32px; cursor: pointer; }
+      pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 12px; margin: 4px 0; max-height: 40vh; overflow-y: auto; }
+      .verdicts { display: flex; gap: 6px; margin: 8px 0; flex-wrap: wrap; }
+      .verdicts button { flex: 1 1 0; min-width: 88px; }
+      button[aria-pressed="true"].v-adopt, button[aria-pressed="true"].v-approve { background: var(--pass); color: #fff; }
+      button[aria-pressed="true"].v-archive { background: var(--warn); color: #fff; }
+      button[aria-pressed="true"].v-reject, button[aria-pressed="true"].v-flag { background: var(--fail); color: #fff; }
+      textarea, .batch input[type="text"] { width: 100%; min-height: 44px; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; background: #fff; }
+      .batch input[type="text"] { flex: 1 1 140px; width: auto; }
+      .batch { position: sticky; top: 0; z-index: 2; background: var(--bg); border-bottom: 1px solid var(--line); padding: 4px 0 2px; margin: 0 0 10px; display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; }
+      .batch .verdicts { flex: 1 1 100%; margin: 2px 0 4px; } .batch .verdicts button { min-height: 40px; }
+      #bar { position: fixed; left: 0; right: 0; bottom: 0; display: flex; gap: 10px; align-items: center; justify-content: space-between; padding: 8px 12px max(8px, env(safe-area-inset-bottom)); background: var(--fg); color: var(--bg); z-index: 5; }
+      #bar button { background: var(--bg); color: var(--fg); font-weight: 600; }
+      #bar button:disabled { opacity: 0.5; }
+      .verdict { font-weight: 600; overflow-wrap: anywhere; }
+      #stamp { text-align: right; font-size: 11px; color: var(--soft); margin: 16px 0 0; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Review queue</h1>
+        <nav class="note"><a href="../../">Gallery</a> · <a href="../contributors/">Contributors</a></nav>
+        <p id="source" class="note" role="status">loading</p>
+        <label class="file">Open a queue file<input id="file" type="file" accept=".json,application/json" /></label>
+      </header>
+      <div id="queue"></div>
+      <section id="out" aria-label="the exported review"></section>
+      <p id="stamp"></p>
+    </main>
+    <footer id="bar"><span id="summary"></span><button id="export" type="button" disabled>Export review</button></footer>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>
