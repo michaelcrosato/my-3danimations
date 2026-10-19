@@ -1,8 +1,8 @@
 // e2e `hello` (WP-4.6): the first-flight demo built by Vite and opened headless on WebGL 2. Its console handle drives
 // a scripted session (idle, walk, run, stop, jump, attack): the page's hashes equal Node's for the same script (the same
 // game.ts on the same character), the attack's hit fires and shows, the sensors run on every frame it played, and its
-// screenshots and a contact sheet of what it played go to check-output/hello/ (CI's T2 artifact: the G4 demo link until
-// O3 is linked). Deep links pick the character, a clip, a moment and a view. The same session in Node on G4's six
+// screenshots and a contact sheet of what it played go to check-output/hello/ (CI's T2 artifact: the G4 demo link while
+// O3's previews are paused, D85). Deep links pick the character, a clip, a moment and a view. The same session in Node on G4's six
 // skeletons (and its held-out rig, once recorded) plays with no fail finding (check-output/hello/set.json).
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { extname, join, normalize } from "node:path";

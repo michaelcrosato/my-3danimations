@@ -31,7 +31,7 @@ let server: Server, ORIGIN = "";
 
 test.describe.configure({ mode: "serial" });
 test.beforeAll(async () => {
-  // three Vite builds (the gallery, the labs index, hello): about 12 s here
+  // a Vite build for the gallery, the labs index and each lab (consumer-ts, hello)
   test.setTimeout(300_000);
   // M3A_REVIEW_QUEUE set as a local shell might have it: the site must drop it (no queue, no submissions' text ships)
   const env: NodeJS.ProcessEnv = { ...process.env, VERCEL: "1", CI: "1", VERCEL_ENV: "preview", VERCEL_GIT_COMMIT_SHA: SHA, M3A_REVIEW_QUEUE: "1" };

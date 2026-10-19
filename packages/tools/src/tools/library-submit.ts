@@ -175,6 +175,11 @@ function strings(v: unknown, path: string, out: [string, string][] = []): [strin
   return out;
 }
 
+/** A field holding characters a reader can't see, named by its path. */
+const hidden = (path: string) => `${path} holds characters a reader can't see (zero-width, bidirectional or control characters): write it in plain text`;
+/** What in one field's words is aimed at a model or an agent, named by its path. */
+const aimed = (path: string, s: string) => AIMED.filter(([re, , not]) => !not?.includes(path) && re.test(s)).map(([, what]) => `${path} ${what}, which models read in catalog lines: describe only the motion`);
+
 /** What in a clip's text reads as aimed at a model or an agent, or hides what it says: each field's problem, named by
  *  its path and never quoted (submission text is data). A field that holds no prose (KINDS) is held to its shape;
  *  every other is prose, taken only where PLAIN says, and read for words aimed at a reader. Empty for a clip whose
@@ -182,7 +187,7 @@ function strings(v: unknown, path: string, out: [string, string][] = []): [strin
 export function textProblems(clip: Clip): string[] {
   const out: string[] = [];
   for (const [path, s] of strings(clip, "")) {
-    if (HIDDEN.test(s)) out.push(`${path} holds characters a reader can't see (zero-width, bidirectional or control characters): write it in plain text`);
+    if (HIDDEN.test(s)) out.push(hidden(path));
     if (OWNER.has(path)) continue;
     const kind = kindOf(path);
     if (kind) {
@@ -192,9 +197,16 @@ export function textProblems(clip: Clip): string[] {
     const max = PLAIN[path];
     if (max === undefined) out.push(`${path} is text the intake doesn't take: describe the motion in desc, and leave other fields out`);
     else if (s.length > max) out.push(`${path} is ${s.length} characters, past the ${max} it may take: say what the body does in a few plain words`);
-    for (const [re, what, not] of AIMED) if (!not?.includes(path) && re.test(s)) out.push(`${path} ${what}, which models read in catalog lines: describe only the motion`);
+    out.push(...aimed(path, s));
   }
   return [...new Set(out)];
+}
+
+/** The same reading of one string outside a clip (a catalog row's column, say): what in it reads as aimed at a model
+ *  or an agent, or hides what it says, named by `path` and never quoted. Empty for words that only describe a
+ *  motion. */
+export function proseProblems(path: string, s: string): string[] {
+  return [...new Set([...(HIDDEN.test(s) ? [hidden(path)] : []), ...aimed(path, s)])];
 }
 
 /** The library clips a clip derives from (the clip it improves, its orig, a recipe's inputs), each with its tier and

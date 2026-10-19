@@ -199,7 +199,7 @@ describe("the skills", () => {
   it("this repository's skill names its five commands, each a registry example run from source, and the manual", async () => {
     const text = read(".claude/skills/m3a/SKILL.md"), five = named(text).commands.filter((c) => !BUILTINS.includes(c.tool));
     expect(five).toHaveLength(5);
-    // each runs the CLI's source, as .mcp.json does: the workspace links no m3a bin for npx to find
+    // each runs the CLI's source, as .mcp.json does
     const server = (JSON.parse(read(".mcp.json")) as { mcpServers: { m3a: { args: string[] } } }).mcpServers.m3a;
     expect([...new Set(named(text).commands.map((c) => c.via))]).toEqual([`node ${server.args[0]}`]);
     expect(named(text).paths).toContain("packages/tools/MANUAL.md");

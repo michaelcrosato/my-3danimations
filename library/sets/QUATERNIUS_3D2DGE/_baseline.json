@@ -5,14 +5,14 @@
    {
     "code": "M2-W002",
     "at": "key 18 (t 0.567) armL[4]",
-    "reason": "format 1's twist pop: a limb turns while bent past 135 degrees, where its twist barely shows; re-import from the source fixes it (WP-5.3)"
+    "reason": "format 1's twist pop: a limb turns while bent past 140 degrees, where its twist barely shows; re-importing from the source files fixes it once they come (D63)"
    }
   ],
   "Roll_RM": [
    {
     "code": "M2-W002",
     "at": "key 18 (t 0.567) armL[4]",
-    "reason": "format 1's twist pop: a limb turns while bent past 135 degrees, where its twist barely shows; re-import from the source fixes it (WP-5.3)"
+    "reason": "format 1's twist pop: a limb turns while bent past 140 degrees, where its twist barely shows; re-importing from the source files fixes it once they come (D63)"
    }
   ]
  }

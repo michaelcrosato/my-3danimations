@@ -1,6 +1,7 @@
 // Vite config for the first-flight demo (WP-4.6): `npm run hello` serves it, `npm run hello -- build` writes
-// apps/lab/hello/dist, and the preview site (`npm run site`, what vercel.json builds once O3 links the project) builds
-// it into /labs/hello/. The build stamp's commit comes from Vercel or GitHub Actions, else git (tools/run/stamp.ts).
+// apps/lab/hello/dist, and the preview site (`npm run site`, what vercel.json builds; the Vercel project is paused,
+// D85) builds it into /labs/hello/. The build stamp's commit comes from Vercel or GitHub Actions, else git
+// (tools/run/stamp.ts).
 import { join } from "node:path";
 import { defineConfig } from "vite";
 import { buildCommit } from "../../../tools/run/stamp.ts";

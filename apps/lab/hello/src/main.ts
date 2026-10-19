@@ -3,11 +3,11 @@
 // deep links pick the character (?char=gen-<seed>), a clip to play alone (?clip=SET/Name), a moment (?t=, seconds:
 // paused there) and a view (?view=front|side|back|top|three-quarter). `window.__m3a` drives it from a console or a
 // headless browser: state(), play(), step(n), hash(), points().
-// Lab (2026-10-12): it reaches past @m3a/three's entry for the test characters, which are test fixtures, not API.
+// Lab (2026-10-12): it reads the library's files by path (library.ts), not through @m3a/library.
 import { Box3, Color, DirectionalLight, GridHelper, HemisphereLight, Mesh, MeshStandardMaterial, PerspectiveCamera, PlaneGeometry, Scene, Vector3, WebGPURenderer } from "three/webgpu";
 import { VERSION, type AnimatorEvent } from "@m3a/core";
 import { attach, bind } from "@m3a/three";
-import { character, loadGlb, variant } from "../../../../packages/three/test-characters/index.ts";
+import { character, loadGlb, variant } from "@m3a/three/test-characters";
 import { DEFAULT_CLIPS, Hello, MOVES, prepare, type Input, type Move, type MoveName } from "./game.ts";
 import { loadClip } from "./library.ts";
 

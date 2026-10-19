@@ -71,7 +71,7 @@ function drawText(): void {
     el("ol", {}, ...steps.map((t) => el("li", {}, t))),
     el("h2", {}, "Submitting locally (until then, and in tests and CI)"),
     el("p", {}, "The local store is files under .cache/intake/ in the repository's checkout, one s-<16 hex>.json record a submission, sent as a contributor named by its human's GitHub login. m3a review lists what awaits review; the owner decides on the review page or with m3a review adopt|archive|reject <id@hash>."),
-    el("pre", {}, 'import { intake } from "@m3a/tools";\nconst store = intake.localStore({ files, role: "contributor", id: "<your GitHub login>", today: () => "<YYYY-MM-DD>" });\nawait store.submit({ kind: "clip", text: "<the clip\'s JSON>", improves: "SET/Clip" });\n// files: the store\'s records under .cache/intake/; m3a library submit (WP-9.1) will send one in one command'),
+    el("pre", {}, 'import { intake } from "@m3a/tools";\nconst store = intake.localStore({ files, role: "contributor", id: "<your GitHub login>", today: () => "<YYYY-MM-DD>" });\nawait store.submit({ kind: "clip", text: "<the clip\'s JSON>", improves: "SET/Clip" });\n// files: the store\'s records under .cache/intake/; or in one command: npx m3a library submit <clip.json> --by "<who made it>" [--improves SET/Clip]'),
   );
 }
 

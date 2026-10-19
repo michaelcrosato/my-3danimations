@@ -1,6 +1,7 @@
 -- The intake queue's hosted schema (PLAN.md §5.9, WP-8.2a), applied to O8's Supabase project once it is linked
--- (supabase db push): the owner's fixed identity, contributor keys (stored hashed), submissions, the owner's decisions
--- and the `intake` storage bucket, with row-level security on every table and the bucket.
+-- (supabase db push, services/intake/README.md): the owner's fixed identity, contributor keys (stored hashed),
+-- submissions, the owner's decisions and the `intake` storage bucket, with row-level security on every table and the
+-- bucket.
 --
 -- Roles: anonymous (anon) gets nothing: no grant, no policy. A contributor (authenticated) reads only its own rows and
 -- keys, adds and revokes its own keys, and writes nothing else; editing its own user_metadata gains nothing, since no

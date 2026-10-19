@@ -36,4 +36,4 @@ POINTS order (36 points, each forward, right, up), millimetres in tiers 1a and 3
 are CMU motion capture data: "This data is free for use in research projects. You may include this data in
 commercially-sold products, but you may not resell this data directly, even in converted form." (CMU Graphics Lab
 Motion Capture Database, mocap.cs.cmu.edu; created with funding from NSF EIA-0196217.) Tier 2's clips keep their sets'
-licenses: QUATERNIUS CC0 1.0, MESH2MOTION CC0 1.0 pending the audit in WP-5.3, CMU under the notice above.
+licenses: QUATERNIUS CC0 1.0, MESH2MOTION CC0 1.0 (audited in WP-5.3, D63), CMU under the notice above.

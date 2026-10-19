@@ -2,8 +2,8 @@
 // encode, facts, contactRoot, planting, the sensors, fix, procedural moves, the Animator, graphs and the solver over
 // the whole library. Run it on two checkouts and compare: `node tools/exact/ab.mjs <root> [parts...]` prints JSON
 // {part: {hash, n, ms}}; <root> holds packages/core, packages/sensors and their tests, and its library/ and spec/ are
-// read. Kept from the 2026-10-16 audit of the t1-speed lane (docs/HANDOFF.md, D97): 1bf5252 and 4080135 gave the
-// same 11 hashes. A full run takes about 2.5 min.
+// read. Kept from the 2026-10-16 audit of the t1-speed lane (D97): 1bf5252 and 4080135 gave the same 11 hashes. A full
+// run takes about 2.5 min.
 import { createHash } from "node:crypto";
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";

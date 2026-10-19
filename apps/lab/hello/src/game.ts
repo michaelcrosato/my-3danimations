@@ -4,7 +4,7 @@
 // Moves cross-fade on a second layer. Locomotion picks idle, walk or run by speed and plays it at the rate that speed
 // asks. The character travels by the clip's root motion, which its planted feet imply. The attack's `hit` event is put
 // at the strike time core measures, as a game would add it. Each clip is repaired at load by the sensors' fix, as a game
-// would until WP-5.8 writes the repairs back into the library.
+// would: WP-5.8 kept the migrated Quaternius clips' keys as their source gave them, baselined (D63).
 import { Animator, contact, math, measureFacts, playable, type AnimatorEvent, type Bound, type Clip, type Rest } from "@m3a/core";
 import { fix } from "@m3a/sensors";
 
@@ -16,8 +16,9 @@ export const MOVES = ["idle", "walk", "run", "jumpStart", "jumpAir", "jumpLand",
 export type MoveName = (typeof MOVES)[number];
 /**
  * The default clip for each move, all CC0: those that pass the sensors on their own body, or pass once `fix` has
- * repaired them (Walk_Loop's and Punch_Cross's twist flips; Mesh2Motion's jump through the floor). No run in the library
- * passes yet: the jog's twist flips are repaired and its seam's change of speed stays (WP-5.8 takes it up).
+ * repaired them (Walk_Loop's twist flips; Mesh2Motion's jump through the floor), but for two: the jog, whose twist
+ * flips are repaired and whose seam's change of speed stays (seamVelocity, baselined in WP-5.8, D63), and Punch_Jab,
+ * which fails on a pop at its left pinky at 0.13 s before and after `fix` (baselined, D63).
  */
 export const DEFAULT_CLIPS: Readonly<Record<MoveName, string>> = {
   idle: "QUATERNIUS_3D2DGE/Idle_Loop",

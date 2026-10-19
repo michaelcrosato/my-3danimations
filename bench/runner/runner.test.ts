@@ -158,7 +158,7 @@ describe("the agent's audit", () => {
       // the skill the runner copies into the workspace, and the Skill tool loading it (no path)
       read(`${ws}/.claude/skills/m3a/SKILL.md`),
       JSON.stringify({ type: "assistant", message: { content: [{ type: "tool_use", name: "Skill", input: { skill: "m3a" } }] } }),
-      // the manual, and the skill and llms.txt where a package will ship them
+      // the manual, and the skill and llms.txt should a package ship them (none does: D118)
       ...["tools/MANUAL.md", "tools/llms.txt", "tools/skills/m3a/SKILL.md", "core/llms.txt"].map((f) => read(`${ws}/node_modules/@m3a/${f}`)),
       // past it: the packages' code, and a file of the same name elsewhere in one
       ...["tools/dist/node.js", "tools/dist/llms.txt", "core/MANUAL.md"].map((f) => read(`${ws}/node_modules/@m3a/${f}`)),
@@ -384,8 +384,8 @@ describe("trials", () => {
   it("installs the packed packages outside the repository, and grades the known-good solution there (a fake trial)", async () => {
     const r = await runB1({ trials: 1, discovery: 0, base, packs, fake: true });
     expect(r.trials.map((t) => [t.trial, t.pass, t.failed])).toEqual([["B1-1", true, []]]);
-    // the skill the package will ship, as regular files where Claude Code reads a project's skills: a link would lead into
-    // the repository, which the agent can't see (WP-7.3)
+    // m3a's skill (skills/m3a/, copied from the repository: no package ships it, D118), as regular files where Claude
+    // Code reads a project's skills: a link would lead into the repository, which the agent can't see (WP-7.3)
     const ws = join(base, "B1-1"), skill = join(ws, SKILL.to, "SKILL.md");
     for (const d of [".claude", ".claude/skills", SKILL.to]) expect(lstatSync(join(ws, d)).isDirectory(), d).toBe(true);
     expect([lstatSync(skill).isFile(), readFileSync(skill, "utf8")]).toEqual([true, readFileSync(join(ROOT, "skills/m3a/SKILL.md"), "utf8")]);

@@ -4,12 +4,15 @@
 // the latest version's record is what its files give, field by field, or the index isn't rebuilt. Community packs are
 // federated entries: a set in a namespace verified to its owner, its files kept elsewhere and held to a content id and
 // a digest of all its files. A pack is admitted only when the fetched files give that id, name one license of their own
-// (the license it claims), and the namespace's proof, fetched from where only its owner can write, vouches for it; the
-// registry keeps that proof's text and SHA-256, and every rebuild vouches with it again, offline. A pack never enters
+// (the license it claims), hold no words aimed at a model or an agent (the intake's text gate, on its clips and its
+// catalog), and the namespace's proof, fetched from where only its owner can write, vouches for it; the registry keeps
+// that proof's text and SHA-256, and every rebuild vouches with it again, offline. A pack never enters
 // the core, which grows only by adoption (WP-9.1). Versions are immutable and sets are yanked, never deleted. Built
 // from the library, the previous index and the registry's hand-kept inputs (tools/release/registry.json), with no
 // network and no clock: the same inputs give the same bytes.
+import type { Clip } from "../../packages/core/src/index.ts";
 import { contentId, tierOf, type LibrarySource } from "../../packages/library/src/index.ts";
+import { proseProblems, textProblems } from "../../packages/tools/src/tools/library-submit.ts";
 
 /** SHA-256 of a text's UTF-8 bytes, in hex. */
 export type Sha = (text: string) => string;
@@ -42,6 +45,8 @@ export type Candidate = Pick<PackVersion, "content" | "url" | "license"> & { nam
 
 const ABOUT = "The registry index (PLAN.md WP-9.4), written by npm run index from library/sets, the previous index and tools/release/registry.json; npm run index -- --check regenerates it byte for byte. core: each set's versions (content: its clip files' content id, spec/MOTION.md §9.2; digest: the same over all its files), immutable, yanked never deleted. community: packs federated from namespaces verified to their owners, never uploads into the core. npm run index -- verify <SET> <dir> checks a set's files against it.";
 const isClip = (f: string) => f.endsWith(".json") && !f.startsWith("_");
+/** A catalog row's columns, by name (spec/MOTION.md §9.3). */
+const COLUMNS = ["id", "dur", "loop", "speed", "tags", "desc", "src"];
 const short = (h: string) => `${h.slice(0, 12)}…`;
 const ordered = <T>(o: Record<string, T>) => Object.fromEntries(Object.entries(o).sort(([a], [b]) => (a < b ? -1 : 1)));
 const canon = (x: unknown) => JSON.stringify(x, (_k, v: unknown) => (v && typeof v === "object" && !Array.isArray(v) ? ordered(v as Record<string, unknown>) : v));
@@ -130,6 +135,22 @@ function licensesIn(files: Files): { licenses: string[]; problems: string[] } {
   return { licenses: [...found].sort(), problems };
 }
 
+/** What in a pack's text reads as aimed at a model or an agent, or hides what it says, as the intake's text gate reads
+ *  a submission (packages/tools/src/tools/library-submit.ts): every clip file's fields, and every column of every
+ *  catalog.tsv row (models read catalog lines), each named by its file and field, or row and column, never quoted. */
+function textIn(files: Files): string[] {
+  const out: string[] = [];
+  for (const f of Object.keys(files).filter(isClip).sort()) {
+    const clip = json(files[f]!);
+    if (clip && typeof clip === "object") out.push(...textProblems(clip as Clip).map((p) => `${f}: ${p}`));
+  }
+  (files["catalog.tsv"] ?? "").split("\n").forEach((row, i) => {
+    const at = row.split("\t").flatMap((s, c) => proseProblems(COLUMNS[c] ?? `column ${c + 1}`, s));
+    out.push(...at.map((p) => `catalog.tsv row ${i + 1}: ${p}`));
+  });
+  return out;
+}
+
 /** Every way `next` rewrites `previous`'s history: a set or pack gone (they are yanked, never deleted), a version gone
  *  or changed (versions are immutable; only a yank may change), or a serial that doesn't follow: it grows when the
  *  index changes (by one a regeneration, so by one or more since `previous`, as version numbers may skip) and stays
@@ -208,15 +229,16 @@ export function verifySet(index: RegistryIndex, name: string, files: Files, sha:
 }
 
 /** The registry with a candidate pack admitted as its next version, its digest and the proof that vouched for it
- *  recorded; throws, naming each reason, when its files don't give its content id or don't name its license alone, its
- *  namespace's proof doesn't vouch for it, or it is malformed or indexed already. */
+ *  recorded; throws, naming each reason, when its files don't give its content id, don't name its license alone or
+ *  hold words aimed at a model or an agent (`textIn`), its namespace's proof doesn't vouch for it, or it is malformed
+ *  or indexed already. */
 export function admit(registry: Registry, c: Candidate, files: Files, proof: Proof | undefined, sha: Sha): Registry {
   const key = `${c.namespace}/${c.set}`, was = registry.community[key]?.versions ?? [], got = ids(files, sha), named = licensesIn(files);
   const version: AdmittedVersion = { v: was.length + 1, content: c.content, digest: got.digest, url: c.url, license: c.license, tier: tierOf(c.license), proofSha256: sha(proof?.text ?? ""), proofText: proof?.text ?? "" };
   const pack: AdmittedPack = { namespace: c.namespace, set: c.set, versions: [...was, version] };
   const why = [...(got.content === c.content ? [] : [`its files give content id ${short(got.content)}, not ${short(c.content)}`]), ...named.problems];
   if (named.licenses.length !== 1 || named.licenses[0] !== c.license) why.push(`its files name ${named.licenses.join(", ") || "no license"}, and it claims ${c.license}: a pack's license is its files' own, one for the whole pack (its _set.json's sources and every clip's provenance.license)`);
-  why.push(...vouch(c.namespace, c.set, c.content, proof), ...packShape(key, pack));
+  why.push(...textIn(files), ...vouch(c.namespace, c.set, c.content, proof), ...packShape(key, pack));
   if (was.some((v) => v.content === c.content)) why.push(`${key} holds that content id already`);
   if (why.length) throw new Error(`index: ${key} refused: ${why.join("; ")}`);
   return { ...registry, community: ordered({ ...registry.community, [key]: pack }) };

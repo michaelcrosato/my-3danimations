@@ -5,8 +5,8 @@
 // its serial too (a ref git can't read fails the check; one that holds no index yet is the first index's). `verify`
 // checks a set's files (a directory, such as an unpacked release asset) against the index: a core set's content id and
 // digest, a community pack's content id and its namespace's proof, fetched from the URL the reply names; `verify --all`
-// checks every core set's files in library/sets/ so. `admit` adds a community pack to the registry when its files and
-// its proof hold, then rewrites the index.
+// checks every core set's files in library/sets/ so. `admit` adds a community pack to the registry when its files
+// (their content id, license and text, held to the intake's text gate) and its proof hold, then rewrites the index.
 import { spawnSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";

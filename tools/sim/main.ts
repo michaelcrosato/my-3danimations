@@ -1,4 +1,4 @@
-// `npm run sim -- <graph> --input <script>` (PLAN.md WP-6.5, D75; spec/SIM.md; `m3a sim` once WP-7.1 lands): runs a
+// `npm run sim -- <graph> --input <script>` (PLAN.md WP-6.5, D75; spec/SIM.md; the CLI's `m3a graph.sim`): runs a
 // script of a game's input on a graph and writes, under check-output/sim/<script>/, the trace (trace.json), where the
 // root went, the stride warping's rate and the sensors' read (result.json), and a filmstrip (film.png). With --expect
 // it compares the trace with an expected one and fails on the first difference; --write saves the trace as expected.

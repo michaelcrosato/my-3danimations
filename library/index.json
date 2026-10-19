@@ -1,7 +1,7 @@
 {
  "about": "The registry index (PLAN.md WP-9.4), written by npm run index from library/sets, the previous index and tools/release/registry.json; npm run index -- --check regenerates it byte for byte. core: each set's versions (content: its clip files' content id, spec/MOTION.md §9.2; digest: the same over all its files), immutable, yanked never deleted. community: packs federated from namespaces verified to their owners, never uploads into the core. npm run index -- verify <SET> <dir> checks a set's files against it.",
  "format": "1",
- "serial": 1,
+ "serial": 2,
  "core": {
   "CMU_CURATED": {
    "versions": [
@@ -75,6 +75,27 @@
       "flagged": 0,
       "unreviewed": 88
      }
+    },
+    {
+     "v": 2,
+     "content": "761ca3ee77e82890ad132a24786e627ebc3b8f043fff18664571e0a05ebd523e",
+     "digest": "592e58786c3356c1c3a128a09d4c890e09a86e5486e6338abb8bf614ce26038e",
+     "title": "Quaternius UAL 1 and 2 (my-3d2dge's import)",
+     "tier": "cc0",
+     "licenses": [
+      "CC0-1.0"
+     ],
+     "clips": 88,
+     "bytes": 442439,
+     "qa": {
+      "baselined": 37,
+      "pass": 51
+     },
+     "review": {
+      "approved": 0,
+      "flagged": 0,
+      "unreviewed": 88
+     }
     }
    ]
   },
@@ -91,6 +112,27 @@
      ],
      "clips": 102,
      "bytes": 601693,
+     "qa": {
+      "baselined": 50,
+      "pass": 52
+     },
+     "review": {
+      "approved": 0,
+      "flagged": 0,
+      "unreviewed": 102
+     }
+    },
+    {
+     "v": 2,
+     "content": "23d3a8e62291903f8fd0b4938cf50a6479f5604a7669520a1a84f50987d62d19",
+     "digest": "07e61e4e73731a4d879e8579ee7052411b26a376660d670e35bfabd2eda8f7fc",
+     "title": "Quaternius UAL 1 and 2, v2 (shardfall's import)",
+     "tier": "cc0",
+     "licenses": [
+      "CC0-1.0"
+     ],
+     "clips": 102,
+     "bytes": 601735,
      "qa": {
       "baselined": 50,
       "pass": 52
