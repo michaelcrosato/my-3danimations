@@ -4375,6 +4375,17 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
     didn't come through the intake is judged against the library's own baselines, its retarget left to T2's sweep (two
     maintenance changes on main failed otherwise); the retarget runs last, once every other gate passes. `intake.yml`
     reads `M3A_SUPABASE_URL` and `M3A_SUPABASE_SERVICE_ROLE_KEY` and does nothing, saying so, without them.
+  - **Adoption keeps the library whole** (a lane after 9.1a, its open question): an adopted improvement is a new
+    version of the clip in that clip's set, so the importers and the migrator keep a clip whose provenance names its
+    intake submission and whose review is the owner's approval on its current motion hash over its source's version,
+    `--check` counting it byte for byte (`kept: "adopted"` in the import record; a migrated set has no import record,
+    the clip's provenance and review are its record), and any other rewritten clip keeps its review while its motion
+    hash matches. The bot's pull request regenerates the lock, the sensors' baseline, the distributions,
+    docs/LIBRARY.md and the registry index with the repository's own commands, a distribution worse than recorded named
+    in its body (the owner's adoption is the logged decision), a failed regeneration a failed gate. Proved under
+    M3A_FULL on a migrated and an imported clip: `migrate --check`, `import --check`, `library check`, `qa --check`,
+    `qa library --check` and `index --check` pass on what it merges. A hand-written QA reason whose finding an
+    improvement removes makes the bot close the pull request, not edit the reason.
   - **9.3's calls:** one motion under 12 mm a point plus 2% of how much the stiller clip moves (`NEAR`, `SHARE`: very
     fast clips can't be refitted closer); a light edit is a 1° chest lean, 50 ms of smoothing or a 5% trim; copies
     across rigs are lineage's (`orig`), not the motion distance's. Planted copies: 87 of 87 found in T1, 501 of 501 in

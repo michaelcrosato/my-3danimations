@@ -5,6 +5,7 @@
 // each, regenerates the derived files there with the repository's commands, prints its pull request and merges it on
 // the gates (a dry run); then the repository's own checks pass on the result: npm run migrate -- --check, npm run
 // import -- --check --set MESH2MOTION, npm run library -- check, npm run qa -- --check, npm run qa -- library --check,
+// npm run index -- --check (the registry index, each changed set a new version),
 // and the library's own test.
 import { spawnSync } from "node:child_process";
 import { mkdtempSync, rmSync } from "node:fs";
@@ -46,8 +47,8 @@ describe.runIf(FULL)("the adopt bot in a scratch copy of the whole repository", 
     const printed: string[] = [], out = await adopt({ store: store("checker"), owner: LOCAL_OWNER, checkout: R, prs: dryRun((t) => void printed.push(t)), today, rigs: await bindRigs() });
     process.stdout.write(`${printed.join("\n")}\n`);
     expect(out.map((o) => [o.outcome, o.clip, o.why])).toEqual(expect.arrayContaining(sent.map((x) => ["merged", x.improves, null])));
-    expect(printed.join("\n").match(/\n {2}- regenerated with the repository's commands \(npm run library -- lock; npm run qa -- library --baseline\): [^\n]+\n {2}- (the distributions: none worse than recorded|worse than recorded)/g)).toHaveLength(2);
-    const checks = [["migrate", "--check"], ["import", "--check", "--set", "MESH2MOTION"], ["library", "check"], ["qa", "--check"], ["qa", "library", "--check"], ["test", "tools/migrate/library"]];
+    expect(printed.join("\n").match(/\n {2}- regenerated with the repository's commands \(npm run library -- lock; npm run qa -- library --baseline; npm run index\): [^\n]+\n {2}- (the distributions: none worse than recorded|worse than recorded)/g)).toHaveLength(2);
+    const checks = [["migrate", "--check"], ["import", "--check", "--set", "MESH2MOTION"], ["library", "check"], ["qa", "--check"], ["qa", "library", "--check"], ["index", "--check"], ["test", "tools/migrate/library"]];
     const ran = checks.map(([script, ...args]) => {
       const r = spawnSync("npm", ["run", script!, "--", ...args], { cwd: R, encoding: "utf8", maxBuffer: 1 << 26 }), said = `${r.stdout}`.split("\n").find((l) => /^\S+.*: (PASS|FAIL)/.test(l)) ?? `${r.stdout}${r.stderr}`.trim().split("\n").slice(-3).join(" ");
       process.stdout.write(`npm run ${script} -- ${args.join(" ")}: exit ${r.status}: ${said}\n`);

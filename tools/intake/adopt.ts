@@ -96,9 +96,13 @@ export function github(cwd: string): PullRequests {
 }
 
 /** The library's derived files an adoption changes, relative to the checkout, and the repository's commands that
- *  regenerate them (`npm run library -- lock`; `npm run qa -- library --baseline`: the sensors' baseline, the
- *  distributions and docs/LIBRARY.md). */
-export const DERIVED = { files: ["library/sets.lock.json", "packages/sensors/fixtures/baseline.json", "library/baselines/distributions.json", "docs/LIBRARY.md"], commands: [["tools/library/main.ts", "lock"], ["tools/qa/main.ts", "library", "--baseline"]] } as const;
+ *  regenerate them, by npm script (`npm run library -- lock`; `npm run qa -- library --baseline`: the sensors'
+ *  baseline, the distributions and docs/LIBRARY.md; `npm run index`: the registry index, a changed set's new
+ *  version, WP-9.4). */
+export const DERIVED = {
+  files: ["library/sets.lock.json", "packages/sensors/fixtures/baseline.json", "library/baselines/distributions.json", "docs/LIBRARY.md", "library/index.json"],
+  commands: [["library", "tools/library/main.ts", "lock"], ["qa", "tools/qa/main.ts", "library", "--baseline"], ["index", "tools/release/main.ts"]],
+} as const;
 
 /** What regenerating the derived files did: one step a command, the files it changed, each distribution now worse
  *  than was recorded, and `restore`, which puts each file back as it was. */
@@ -114,10 +118,10 @@ export interface Regenerated {
 export async function regenerate(root: string): Promise<Regenerated> {
   const at = (f: string) => join(root, f), was = new Map(DERIVED.files.map((f) => [f, existsSync(at(f)) ? readFileSync(at(f), "utf8") : null]));
   const record = readRecord(at("library/baselines/distributions.json")), steps: Step[] = [];
-  for (const [script, ...args] of DERIVED.commands) {
+  for (const [npm, script, ...args] of DERIVED.commands) {
     const t = performance.now(), r = existsSync(at(script)) ? spawnSync(process.execPath, [script, ...args], { cwd: root, encoding: "utf8", maxBuffer: 1 << 26 }) : null;
     const said = (r?.stdout ?? "").split("\n").find((l) => / (PASS|FAIL)\b/.test(l)) ?? "";
-    steps.push({ name: `npm run ${script.split("/")[1]} -- ${args.join(" ")}`, ok: r?.status === 0, ms: performance.now() - t, summary: r ? (r.status === 0 ? said : `${said || (r.stderr || "").trim().split("\n")[0]}`.slice(0, 200)) : `${root} is no whole checkout (no ${script}): the derived files are regenerated with the repository's commands` });
+    steps.push({ name: `npm run ${npm}${args.length ? ` -- ${args.join(" ")}` : ""}`, ok: r?.status === 0, ms: performance.now() - t, summary: r ? (r.status === 0 ? said : `${said || (r.stderr || "").trim().split("\n")[0]}`.slice(0, 200)) : `${root} is no whole checkout (no ${script}): the derived files are regenerated with the repository's commands` });
   }
   const now = readRecord(at("library/baselines/distributions.json")), worse = record && now ? againstRecord(record, now).worse : [];
   return {
@@ -198,7 +202,7 @@ export function draft(s: Submission, clip: Clip, w: Pick<Written, "set" | "files
       `- adopted by the owner (${d.by}) on ${d.date}, on that hash`,
       `- motion hash: ${clip.review?.motion ?? motionHash(clip)}`,
       `- the checker: ${gates.filter((x) => x.ok).length} of ${gates.length} gates green`,
-      `- regenerated with the repository's commands (${DERIVED.commands.map(([f, ...a]) => `npm run ${f.split("/")[1]} -- ${a.join(" ")}`).join("; ")}): ${g.files.length ? g.files.join(", ") : "nothing changed"}`,
+      `- regenerated with the repository's commands (${DERIVED.commands.map(([npm, , ...a]) => `npm run ${npm}${a.length ? ` -- ${a.join(" ")}` : ""}`).join("; ")}): ${g.files.length ? g.files.join(", ") : "nothing changed"}`,
       g.worse.length ? `- worse than recorded, recorded with this adoption (the distributions may only improve: the owner's adoption is the logged decision): ${g.worse.join("; ")}` : "- the distributions: none worse than recorded",
       "The owner's adoption is the approval (O7); this pull request merges when the library gates pass on it.",
     ].join("\n"),
