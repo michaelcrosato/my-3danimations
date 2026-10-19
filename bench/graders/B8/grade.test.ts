@@ -1,5 +1,6 @@
-// B8's and B8-ten's graders in T1, from one file so the checker opens once (the rest is T2's full step, M3A_FULL=1,
-// D74: planted.test.ts, planted-grader.test.ts and ten.full.test.ts). B8's known-good solution (WP-9.1b's Done-when):
+// B8's and B8-ten's graders, from one file so the checker opens once: T1 runs the trial's checker and B8-ten's grader
+// on stubs; T2's full step (M3A_FULL=1, D74) the rest, here and in planted.test.ts, planted-grader.test.ts and
+// ten.full.test.ts. B8's known-good solution (WP-9.1b's Done-when):
 // its recipe compiled and the clip it makes sent with `m3a library submit`, by its own calls (each exiting 0), on the
 // default character (gen-1): the grader passes it, holds it to every gate the checker ran, and leaves it waiting for
 // review. Every planted bad solution that only writes into the queue (solutions.ts's STORED), played together in one
@@ -18,12 +19,12 @@ import { B8_GATES, CHECK_EVERY, checkEvery, gradeQueue, queue } from "./grade.ts
 import { GOOD, PLANTED, play, sent, STORED, text } from "./solutions.ts";
 import { gradeB8Ten, tally, TEN, type Tallied } from "./ten.ts";
 
-const ROOT = join(import.meta.dirname, "../../..");
+const ROOT = join(import.meta.dirname, "../../.."), FULL = process.env.M3A_FULL === "1";
 /** The planted solutions the verifier's probes found passing: each fails its check and nothing else. */
 const PROBES = ["a walk", "made by a person", "made by another vendor's model", "its source's name and description", "a report submit didn't measure", "a record edited by hand"];
 
 describe("B8's grader", () => {
-  it("passes the known-good solution on gen-1: its emote waits for review with every gate green", async () => {
+  it.runIf(FULL)("passes the known-good solution on gen-1: its emote waits for review with every gate green", async () => {
     const { g, ws, ran } = await play("good", { files: { "emote.json": GOOD.recipe }, calls: GOOD.calls }, { seed: 1 });
     expect(ran.map((r) => [r.line.split(" ").slice(0, 5).join(" "), r.code])).toEqual([["npx m3a recipe.compile emote.json", 0], ["npx m3a library submit check-output/recipe.compile/Bow_Deep.clip.json", 0], ["npx m3a library status", 0]]);
     expect(g.pass, text(g)).toBe(true);
@@ -33,7 +34,7 @@ describe("B8's grader", () => {
     expect(g.checks.filter((c) => c.name.endsWith(" gate is green")).length).toBe(B8_GATES.length);
   }, 120_000);
 
-  it("fails each planted bad solution that only writes into the queue, played together in one queue, on the check it names", async () => {
+  it.runIf(FULL)("fails each planted bad solution that only writes into the queue, played together in one queue, on the check it names", async () => {
     const ws = await prepareWorkspace(join(ROOT, ".cache/bench/test-ws/B8-stored-1"), { starter: join(ROOT, "bench/starters/B8"), character: { seed: 1 } }), whose = new Map<string, string>();
     for (const name of STORED) {
       const before = new Set((await queue(ws).list()).map((s) => s.id));

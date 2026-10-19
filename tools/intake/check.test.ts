@@ -26,7 +26,8 @@ import { checkerStore, hostedEnv, LOCAL_OWNER } from "./host.ts";
 import { asExpected } from "./main.ts";
 import { scratchCheckout } from "./write.ts";
 
-const TODAY = "2026-10-19", today = () => TODAY;
+// T1 runs the fixtures and the cheap cases; T2's full step (M3A_FULL=1) the ones that run the checker again on new submissions
+const FULL = process.env.M3A_FULL === "1", TODAY = "2026-10-19", today = () => TODAY;
 /** A procedural gait on the fixtures' rest as a contributor sends it (a motion no library clip has). */
 function gait(g: procedural.Gait): Clip {
   const k = procedural.gaitClip(g, c.lib.library.about("QUATERNIUS_3D2DGE").sources.UAL1!.rest, { restSrc: "UAL1", id: `FIXTURES/${g.name}` });
@@ -85,7 +86,7 @@ describe("the checker", () => {
     expect(s.find((x) => x.id === idOf("improvement"))!.diff).toMatchObject({ against: "QUATERNIUS_3D2DGE/Walk_Loop" });
     expect(s.find((x) => x.id === idOf("improvement"))!.diff!.max).toBeGreaterThan(5);
   });
-  it("recognizes a resubmitted archived motion, whoever sends it", async () => {
+  it.runIf(FULL)("recognizes a resubmitted archived motion, whoever sends it", async () => {
     const s = (await store("checker").get(idOf("improvement")))!, f = fx.find((x) => x.name === "improvement")!;
     await store("owner", LOCAL_OWNER).decide(s.id, { as: "archive", hash: s.content, note: "a head turn the walk doesn't need", date: TODAY });
     const again = await store("contributor", "carol").submit({ kind: "clip", text: f.text.replace(/"desc": "[^"]*"/, '"desc": "Walks, glancing right"'), improves: f.improves });
@@ -100,7 +101,7 @@ describe("the checker", () => {
     const got = (await check(store("checker"), c)).find((d) => d.id === sent.id)!;
     expect([got.state, got.report.gates.find((g) => g.gate === "dedup")?.why.join(" ")]).toEqual(["bounced", expect.stringMatching(/a near-duplicate of QUATERNIUS_[A-Z0-9]+\/Jog_Fwd_Loop mirrored, [\d.]+ mm a point/)]);
   }, 30_000);
-  it("bounces a mirrored, retimed copy of a submission waiting for review, or of one passed earlier in the same run", async () => {
+  it.runIf(FULL)("bounces a mirrored, retimed copy of a submission waiting for review, or of one passed earlier in the same run", async () => {
     const clean = JSON.parse(fx.find((f) => f.name === "clean")!.text) as Clip, rest = c.lib.library.about("QUATERNIUS_3D2DGE").sources.UAL1!.rest;
     const twin = (of: Clip, id: string): Clip => ({ ...mirrored(of, rest, id), name: of.name, tags: of.tags, provenance: of.provenance });
     const amble = gait({ name: "amble", about: "an amble, the arms swinging wide", speed: 80, cycle: 1.5, stance: 0.7, swing: 40 }), send = async (x: Clip) => (await store("contributor", "erin").submit({ kind: "clip", text: serialize(x), improves: null })).id;
@@ -110,7 +111,7 @@ describe("the checker", () => {
     const run = new Map((await check(store("checker"), c)).map((x) => [x.id, [x.state, x.reason?.replace(/ mirrored, [\d.]+ mm a point.*$/, " mirrored") ?? null]]));
     expect([run.get(back), run.get(first!), run.get(second!)]).toEqual([["bounced", `dedup: a near-duplicate of ${idOf("clean")} (awaiting review) mirrored`], ["awaiting review", null], ["bounced", `dedup: a near-duplicate of ${first} (awaiting review) mirrored`]]);
   }, 30_000);
-  it("bounces what a gate throws on, and moves on when the store refuses a move: one submission's failure is its own", async () => {
+  it.runIf(FULL)("bounces what a gate throws on, and moves on when the store refuses a move: one submission's failure is its own", async () => {
     const tiptoe = gait({ name: "tiptoe", about: "a tiptoe, the arms held in", speed: 60, cycle: 0.9, stance: 0.55, swing: 8 }), lope = gait({ name: "lope", about: "a lope, long and easy", speed: 200, cycle: 0.9, stance: 0.45, swing: 30 });
     const [poison, refused, fine] = await Promise.all([{ ...tiptoe, id: "FIXTURES/Poison", desc: "a tiptoe, again" }, tiptoe, lope].map(async (x) => (await store("contributor", "finn").submit({ kind: "clip", text: serialize(x), improves: null })).id));
     // a gate that throws on one (here the index), and a store that refuses another's move (as the hosted table refuses
@@ -124,7 +125,7 @@ describe("the checker", () => {
     expect(r.map((x) => [x.id, x.state, x.reason?.slice(0, 48) ?? null]).sort()).toEqual([[poison, "bounced", "schema: the checker's gates couldn't read it (on"], [fine, "awaiting review", null]].sort());
     expect((await store("checker").get(refused!))!.state).toBe("checking"); // the next run takes it again
   }, 30_000);
-  it("waits for review on a motion source's clip as deliver sends it: its source record read field by field, its terms on the allowlist", async () => {
+  it.runIf(FULL)("waits for review on a motion source's clip as deliver sends it: its source record read field by field, its terms on the allowlist", async () => {
     const rest = c.lib.library.about("QUATERNIUS_3D2DGE").sources.UAL1!.rest, saunter = { name: "saunter", about: "a saunter, the arms swinging easily", speed: 100, cycle: 1.6, stance: 0.66, swing: 28 };
     const made = await sources.sourceClip(sources.proceduralSource({ gaits: [saunter] }), { intent: "a saunter", skeleton: { rest, restSrc: "UAL1" }, duration: 1.6, seed: 0 });
     // deliver writes the contributor's record (provenance.intake) itself, as library submit does

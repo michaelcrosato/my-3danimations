@@ -31,7 +31,8 @@ import { clipsOf, plantedGates, runGates, type Changed } from "./gates.ts";
 import { LOCAL_OWNER, libraryAt } from "./host.ts";
 import { scratchCheckout, writeClip } from "./write.ts";
 
-const TODAY = "2026-10-19", today = () => TODAY;
+// T1 runs the bot's cheap cases; T2's full step (M3A_FULL=1) the ones that write, gate and regenerate a set too
+const FULL = process.env.M3A_FULL === "1", TODAY = "2026-10-19", today = () => TODAY;
 let D: string, rigs: Rig[], near: DedupIndex;
 const printed: string[] = [], prs = dryRun((t) => void printed.push(t)), sent = new Map<string, string>();
 const store = (role: "contributor" | "checker" | "owner", id?: string): IntakeStore => localStore({ files: intakeFiles(join(D, ".cache/intake")), role, ...(id ? { id } : {}), today });
@@ -62,7 +63,7 @@ beforeAll(async () => {
 afterAll(() => rmSync(D, { recursive: true, force: true }));
 
 describe("the adopt bot, in a dry run against a scratch checkout", () => {
-  it("writes each owner's adoption into its set with its catalog row and provenance, prints the pull request, and merges it on the gates", async () => {
+  it.runIf(FULL)("writes each owner's adoption into its set with its catalog row and provenance, prints the pull request, and merges it on the gates", async () => {
     await decide(sent.get("clean")!, LOCAL_OWNER, "reads well");
     await decide(sent.get("improvement")!);
     await decide(sent.get("improvement-cc-by")!);
@@ -85,7 +86,7 @@ describe("the adopt bot, in a dry run against a scratch checkout", () => {
     // committed once: the library records what was adopted, so the next run leaves both alone
     expect(await bot()).toEqual([]);
   }, 60_000);
-  it("leaves an improved migrated set as npm run migrate writes it: the adopted clip kept, a review carried while its motion hash matches", () => {
+  it.runIf(FULL)("leaves an improved migrated set as npm run migrate writes it: the adopted clip kept, a review carried while its motion hash matches", () => {
     const sets = join(D, "library/sets"), set = "QUATERNIUS_3D2DGE", run = () => migrate(ROOT, { sets: [set], disk: { dir: sets, sets: [set] } });
     const differ = (m: ReturnType<typeof run>) => [...m.files].filter(([p, t]) => t !== file(`library/sets/${p}`)).map(([p]) => p), m = run();
     expect([m.report.sets[0]!.adopted.map((a) => a.id), differ(m)]).toEqual([[`${set}/Walk_Loop`], []]);
@@ -102,7 +103,7 @@ describe("the adopt bot, in a dry run against a scratch checkout", () => {
     expect([o!.outcome, o!.why, o!.pr]).toEqual(["refused", expect.stringMatching(/recorded by "mallory", not by the owner's identity/), null]);
     expect([existsSync(join(D, "library/sets/INTAKE_CC0/Brisk.json")), (await store("checker").get(sent.get("brisk")!))!.state]).toEqual([false, "awaiting review"]);
   });
-  it("closes the pull request when the library gates fail on it, restores what it wrote, and returns the submission to review", async () => {
+  it.runIf(FULL)("closes the pull request when the library gates fail on it, restores what it wrote, and returns the submission to review", async () => {
     const catalog = file("library/sets/INTAKE_CC0/catalog.tsv"), other = join(D, "library/sets/STYLE100_IDLE/Angry_Idle.json"), kept = readFileSync(other, "utf8");
     await decide(sent.get("brisk")!);
     appendFileSync(other, " "); // a file changed outside the writer: the library no longer loads as locked
@@ -177,14 +178,14 @@ describe("library-gates on a pull request", () => {
     expect(steps.map((s) => [s.name, s.ok])).toEqual([["the library loads, every file as locked", true], ["licenses: the sets it touches", true], ["STYLE100_BACKRUN/Waving_RunBack", true], ["MESH2MOTION/Run_Female", true]]);
   });
 
-  it("fails the planted near-duplicate with its reason, in an intake set and outside the intake (npm run gate -- library-pr --fixture all plants each)", async () => {
+  it.runIf(FULL)("fails the planted near-duplicate with its reason, in an intake set and outside the intake (npm run gate -- library-pr --fixture all plants each)", async () => {
     const r = await plantedGates("duplicate", undefined, rigs, near);
     expect(r.steps.map((s) => [s.name, s.ok, s.summary])).toEqual([
       ["duplicate (INTAKE_CC0/My_Walk)", true, expect.stringMatching(/^failed as it must: dedup: a near-duplicate of QUATERNIUS_3D2DGE\/Walk_Loop/)],
       [`duplicate, outside the intake (${BARE_SET}/My_Walk)`, true, expect.stringMatching(/^failed as it must: dedup: a near-duplicate of QUATERNIUS_3D2DGE\/Walk_Loop/)],
     ]);
   }, 60_000);
-  it("fails each bad clip a pull request adds to an existing set outside the intake, and a forged adoption; passes a clean one", async () => {
+  it.runIf(FULL)("fails each bad clip a pull request adds to an existing set outside the intake, and a forged adoption; passes a clean one", async () => {
     const lib = libraryAt(join(D, "library/sets")), fx = fixtures(lib), bare = (name: string) => JSON.parse(fx.find((f) => f.name === name)!.bare!) as Clip;
     const rest = lib.library.about(BARE_SET).sources.UAL1!.rest, lope = procedural.gaitClip({ name: "lope", about: "a lope, long and easy", speed: 200, cycle: 0.9, stance: 0.45, swing: 30 }, rest, { restSrc: "UAL1", id: `${BARE_SET}/Planted_Lope` });
     const plants: [Clip, string | null][] = [
@@ -203,7 +204,7 @@ describe("library-gates on a pull request", () => {
     }
   }, 60_000);
   it("fails a clip the library hasn't as its own step, not the run", async () => {
-    const steps = await runGates(D, [{ id: "INTAKE_CC0/Not_On_This_Branch", added: true }], rigs, { near });
-    expect([steps[0]!.ok, steps.at(-1)!.name, steps.at(-1)!.ok, steps.at(-1)!.summary]).toEqual([true, "INTAKE_CC0/Not_On_This_Branch", false, expect.stringMatching(/^library: no clip/)]);
+    const steps = await runGates(D, [{ id: "QUATERNIUS_3D2DGE/Not_On_This_Branch", added: true }], rigs, { near });
+    expect([steps[0]!.ok, steps.at(-1)!.name, steps.at(-1)!.ok, steps.at(-1)!.summary]).toEqual([true, "QUATERNIUS_3D2DGE/Not_On_This_Branch", false, expect.stringMatching(/^library: no clip/)]);
   });
 });
