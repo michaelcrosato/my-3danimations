@@ -1,0 +1,6 @@
+conformance: @m3a/core 0.53.0 certifies tiers 1a, 1b, 2, 3 (m3a-conformance/1, vectors 9c92061b49d3), 3662 cases in 7.9 s
+  ok   tier 1a 0.1 s: 15 of 15 cases pass in 2 vector files
+  ok   tier 1b 0.1 s: 6 of 6 cases pass in 3 vector files
+  ok   tier 2 2.3 s: 1324 of 1324 cases pass in 4 vector files, worst decodeUm 0.500
+  ok   tier 3 4.9 s: 2317 of 2317 cases pass in 7 vector files, worst limbDeg 0.000408, worst chestDeg 0.00189, worst curledDeg 0.00189, worst lengthMm 7.67e-13, worst soleMm 5.04e-13
+next: keep the --json report with the release it certifies

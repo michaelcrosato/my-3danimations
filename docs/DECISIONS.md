@@ -4608,3 +4608,20 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   rather than done (O9).
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.53.0
+
+## D117 · 2026-10-19 · G10 = M4's command set passed on run 1; another repository's use and the owner's confirmation blocked-owner
+
+- **Principle:** O9, PLAN.md §8.5, §9.3, D116
+- **Call:**
+  - **Run 1** at 95af62d (0.53.0, `bench/results/gates/G10-run-1/`) passed 8 of 8 in 537.5 s: check, T1 (109.1 s
+    here), doctrine, vectors, the full TypeScript certification (tiers 1a, 1b, 2 and 3, 3,662 cases), the consumer
+    proof's e2e, `pack --check` and T2 (352.4 s); the certification's report is kept beside it.
+  - **G10's clause is the owner's:** another repository consuming the package or certifying against the vectors, and
+    the owner's confirmation. The session acts in no other repository (O9): docs/MIGRATING.md proposes my-3dge's
+    switch and spec/conformance/CERTIFYING.md shardfall's certification; asked on the pull request, blocked-owner, and
+    the gate merges with it open (§8.5).
+  - **Every §14 row through G10** is done or blocked-owner with its ask on its pull request: G8's phone review (#15),
+    G9's hosted run, adoption and approval (#16), G10's confirmation (#17).
+- **Why:** the last gate's machine-provable clauses run, and what only the owner can give asked for rather than done.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.53.0
