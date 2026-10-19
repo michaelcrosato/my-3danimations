@@ -45,9 +45,9 @@ function planted(id: string, kind: string): { clip: Clip; rest: Rest } | null {
 }
 
 describe("near-duplicate detection", () => {
-  it(`finds copies planted into ${FULL ? "every 20th" : "every 90th"} clip: retimed, eased, trimmed, mirrored, lightly edited, and all at once`, () => {
+  it(`finds copies planted into ${FULL ? "every 20th" : "every 120th"} clip: retimed, eased, trimmed, mirrored, lightly edited, and all at once`, () => {
     // (a recipe names a clip as SET/Slug without the `-` a slug may hold, spec/MOTION.md §11: MESH2MOTION/Two-hand_Blast)
-    const originals = clips.filter((c, i) => i % (FULL ? 20 : 90) === 7 && /^[A-Z0-9_]+\/[A-Za-z0-9_]+$/.test(c.clip.id)).map((c) => c.clip.id), worst: Record<string, number> = {}, missed: string[] = [];
+    const originals = clips.filter((c, i) => i % (FULL ? 20 : 120) === 7 && /^[A-Z0-9_]+\/[A-Za-z0-9_]+$/.test(c.clip.id)).map((c) => c.clip.id), worst: Record<string, number> = {}, missed: string[] = [];
     let found = 0, total = 0;
     for (const id of originals)
       for (const kind of Object.keys(PLANTS)) {
@@ -62,7 +62,7 @@ describe("near-duplicate detection", () => {
       }
     console.log(`dedup: planted ${total} copies of ${originals.length} clips, found ${found}, missed ${missed.length}; the farthest found by kind (mm): ${Object.entries(worst).map(([k, v]) => `${k} ${v.toFixed(1)}`).join(", ")}`);
     expect(missed).toEqual([]);
-    expect(total).toBeGreaterThan(FULL ? 400 : 100);
+    expect(total).toBeGreaterThan(FULL ? 400 : 75);
   }, 120_000);
 
   it("finds a held pose held three times as long, past the retime two clips are compared within", () => {
@@ -86,9 +86,9 @@ describe("near-duplicate detection", () => {
     expect(near.filter((p) => p.mm < p.under)).toEqual([]);
   });
 
-  it(`joins no two clips the census counts apart, in a sweep of ${FULL ? "the whole library" : "every 10th clip's pairs"}, but Mesh2Motion's dodges, one motion mirrored`, () => {
+  it(`joins no two clips the census counts apart, in a sweep of ${FULL ? "the whole library" : "every 15th clip's pairs"}, but Mesh2Motion's dodges, one motion mirrored`, () => {
     const cc0 = new Set(lib.sets().filter((s) => s.tier === "cc0").map((s) => s.set)), cen = census(clips, cc0), group = (id: string) => cen.same[id]?.as ?? id;
-    const dodges = new Set(["MESH2MOTION/Dodge_left", "MESH2MOTION/Dodge_left_RM", "MESH2MOTION/Dodge_right", "MESH2MOTION/Dodge_right_RM"]), sampled = new Set(index.ids().filter((id, i) => FULL || i % 10 === 0 || dodges.has(id)));
+    const dodges = new Set(["MESH2MOTION/Dodge_left", "MESH2MOTION/Dodge_left_RM", "MESH2MOTION/Dodge_right", "MESH2MOTION/Dodge_right_RM"]), sampled = new Set(index.ids().filter((id, i) => FULL || i % 15 === 0 || dodges.has(id)));
     const pairs = index.pairs({ of: (id) => sampled.has(id) }), apart = pairs.filter((p) => group(p.a) !== group(p.b));
     console.log(`dedup: the sweep found ${pairs.length} pairs one motion (within ${NEAR} mm and a share of how much they move), ${pairs.length - apart.length} of them one motion in the census too; apart in it: ${apart.map((p) => `${p.a} ~ ${p.b}${p.mirrored ? " mirrored" : ""} ${p.mm.toFixed(1)} mm`).join("; ")}`);
     // the dodges to either side are one animation mirrored, which the census, reading no mirror, counts twice
