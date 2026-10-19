@@ -1,0 +1,11 @@
+{
+ "format": "2.0",
+ "id": "EMOTES/Bow_Deep",
+ "name": "Bow_Deep",
+ "desc": "bows deeply from the waist, holds it a moment and straightens up",
+ "tags": ["emote", "gesture"],
+ "steps": [
+  { "op": "clip", "id": "QUATERNIUS_3D2DGE/Idle_Loop", "to": 2, "as": "idle" },
+  { "op": "pose", "in": "idle", "chest": { "lean": 45 }, "head": { "lean": 15 }, "from": 0.3, "to": 1.7, "fade": 0.4 }
+ ]
+}

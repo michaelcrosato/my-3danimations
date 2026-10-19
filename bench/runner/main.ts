@@ -1,4 +1,5 @@
-// `npm run bench -- <B1 to B8 | quiz>[,...] [--trials N] [--discovery N] [--parallel N] [--variant <dir>] [--model <m>] [--need N] [--fake]`
+// `npm run bench -- <B1 to B8 | quiz>[,...] [--trials N] [--discovery N] [--parallel N] [--variant <dir>] [--model <m>]
+// [--need N] [--fake]`
 // (PLAN.md §7, WP-4.7): each brief given to fresh agents in workspaces outside the repository, graded headless.
 // - B1: the packages packed (bench/runner/pack.ts); per trial a workspace in /tmp/m3a-bench/<run>/ with the tarballs
 //   installed, the brief, the starter and its character; a fresh agent (isolation level 1, bench/runner/agent.ts)
@@ -12,7 +13,10 @@
 //   Each runs as an unprivileged user with no capabilities where the machine allows it (bench/runner/agent.ts), with
 //   m3a's skill and MCP server (WP-7.3): a trial whose init event shows either missing fails, saying so.
 // - quiz: the legend quiz (bench/runner/quiz.ts), at least 9 of 10.
-// --fake plays the known-good solution (or the quiz's answers) instead of an agent, to check the pipeline for free.
+// - B8: while its agent works, the intake's checker runs on the workspace's local queue every 30 s (the brief's
+//   `during`), so the agent reads its bounces with `m3a library status`; its grader runs the checker there.
+// --fake plays the known-good solution (or the quiz's answers) instead of an agent, to check the pipeline for free: its
+// files, and the calls it makes past them (B8's m3a calls: the brief's `solve`).
 // Results go to bench/results/<date>-<model>-<brief>.json (-2, -3... for later runs that day), with the commit, whether
 // the tree differed from it, the models the agents ran, how they were isolated (privateTmp, ownPids, capsDropped, uid,
 // unprivileged) and a variant's directory; the pass mark is 4 of 5 (PLAN.md §7), or --need N trials (a gate's clause).
@@ -26,6 +30,7 @@ import { gradeB4 } from "../graders/B4/grade.ts";
 import { gradeB5 } from "../graders/B5/grade.ts";
 import { gradeB6 } from "../graders/B6/grade.ts";
 import { gradeB7 } from "../graders/B7/grade.ts";
+import { checkEvery, gradeB8, solveB8 } from "../graders/B8/grade.ts";
 import { closest, finish, fmtMs, parseArgs, usage, type Report, type Step } from "../../tools/run/cli.ts";
 import { agentUser, capsDropped, namespace, ownPids, runAgent, type AgentRun } from "./agent.ts";
 import { pack } from "./pack.ts";
@@ -44,8 +49,12 @@ export interface BriefSpec {
   character?: CharacterSpec;
   /** The bone naming a variant's generated character must have (B4's: a VRM avatar's, which seeds 0 mod 4 give). */
   naming?: string;
+  /** What its known-good solution does past its files, in a workspace (B8's: its m3a calls, sending its clip). */
+  solve?(workspace: string): void;
+  /** What a workspace runs while its agent works, until the stop it returns (B8's: the checker on its queue). */
+  during?(workspace: string): () => Promise<void>;
 }
-/** The briefs, by name (B8 with WP-9.1). */
+/** The briefs, by name. */
 export const SPECS: Record<string, BriefSpec> = {
   B1: { starter: "B1", grade: gradeB1, good: ["src/player.ts", "src/sheet.ts"] },
   B2: { starter: "B2", grade: gradeB2, good: ["src/fighter.ts"] },
@@ -54,6 +63,7 @@ export const SPECS: Record<string, BriefSpec> = {
   B5: { starter: "B5", grade: gradeB5, good: ["emote.json"] },
   B6: { starter: "B6", grade: gradeB6, good: ["punch.json"] },
   B7: { starter: "B7", grade: gradeB7, good: ["graph.json"] },
+  B8: { starter: "B8", grade: gradeB8, good: ["emote.json", "submit.sh"], solve: solveB8, during: checkEvery },
 };
 const BRIEFS = [...Object.keys(SPECS), "quiz"];
 /** What a trial is told: the brief does the rest. */
@@ -67,6 +77,16 @@ export interface Trial {
   agent: Omit<AgentRun, "transcript" | "reply"> | { fake: true };
   /** Discovery trials: whether the solution imports an @m3a package. */
   usedPackage?: boolean;
+}
+
+/** Plays a brief's known-good solution past its files in a workspace (`solve`): what went wrong, or null. */
+function solved(spec: BriefSpec, ws: string): string | null {
+  try {
+    spec.solve?.(ws);
+    return null;
+  } catch (err) {
+    return (err as Error).message;
+  }
 }
 
 /** A brief's known-good solution's files, by path in a workspace (B1's by default). */
@@ -155,9 +175,9 @@ export async function runBrief(name: string, opts: { trials: number; discovery?:
   if (opts.variant) {
     // the brief's known-good solution on the variant first: if it fails, the package or the grader is at fault
     const ws = await prepareWorkspace(join(opts.base, `${name}-known-good`), { starter: join(BENCH, "starters", spec.starter), brief, character, packs: opts.packs, files: knownGood(name) });
-    const g = await spec.grade(ws);
-    out.check = { trial: "known-good", pass: g.pass, failed: failedOf(g), agent: { fake: true } };
-    if (!g.pass) return out;
+    const unsolved = solved(spec, ws), g = await spec.grade(ws);
+    out.check = { trial: "known-good", pass: g.pass && !unsolved, failed: [...(unsolved ? [unsolved] : []), ...failedOf(g)], agent: { fake: true } };
+    if (!out.check.pass) return out;
   }
   const specs = [
     ...Array.from({ length: opts.trials }, (_, i) => ({ name: `${name}-${i + 1}`, starter: spec.starter, brief, discovery: false })),
@@ -166,11 +186,18 @@ export async function runBrief(name: string, opts: { trials: number; discovery?:
   const jobs: ((typeof specs)[number] & { ws: string })[] = [];
   for (const j of specs) jobs.push({ ...j, ws: await prepareWorkspace(join(opts.base, j.name), { starter: join(BENCH, "starters", j.starter), brief: j.brief, character, packs: opts.packs, ...(opts.fake && !j.discovery ? { files: knownGood(name) } : {}) }) });
   const done = await pool(jobs, lanes(opts.parallel ?? 1, opts.fake), async (j): Promise<Trial> => {
-    const agent = opts.fake ? ({ fake: true } as const) : summary(await runAgent(j.ws, PROMPT, join(opts.base, `${j.name}.jsonl`), { ...(opts.model ? { model: opts.model } : {}) }));
+    // a fake plays the known-good's calls; an agent works while the workspace runs what the brief gives it
+    const unsolved = opts.fake && !j.discovery ? solved(spec, j.ws) : null, stop = opts.fake ? null : (spec.during?.(j.ws) ?? null);
+    let agent: Trial["agent"];
+    try {
+      agent = opts.fake ? ({ fake: true } as const) : summary(await runAgent(j.ws, PROMPT, join(opts.base, `${j.name}.jsonl`), { ...(opts.model ? { model: opts.model } : {}) }));
+    } finally {
+      await stop?.();
+    }
     // a trial whose m3a wiring failed (its init event showed the MCP server not connected or no skill, and the agent
     // stopped there; or the stream had no init event) fails, whatever its workspace grades
-    const g = await spec.grade(j.ws), unwired = "unwired" in agent ? agent.unwired : undefined;
-    return { trial: j.name, pass: g.pass && !unwired, failed: [...(unwired ? [unwired] : []), ...failedOf(g)], agent, ...(j.discovery ? { usedPackage: usesPackage(j.ws) } : {}) };
+    const g = await spec.grade(j.ws), unwired = "unwired" in agent ? agent.unwired : undefined, why = unwired ?? unsolved;
+    return { trial: j.name, pass: g.pass && !why, failed: [...(why ? [why] : []), ...failedOf(g)], agent, ...(j.discovery ? { usedPackage: usesPackage(j.ws) } : {}) };
   });
   for (const [k, j] of jobs.entries()) (j.discovery ? out.discovery : out.trials).push(done[k]!);
   return out;
@@ -205,7 +232,7 @@ if (import.meta.main) {
     parsed = parseArgs(process.argv.slice(2), specs);
     const names = (parsed.positionals[0] ?? "").split(",").filter(Boolean);
     if (!names.length) throw new Error(`name a brief: ${BRIEFS.join(", ")}`);
-    for (const n of names) if (!BRIEFS.includes(n)) throw new Error(`no brief "${n}"; did you mean ${closest(n, BRIEFS)}? (B8 arrives with WP-9.1)`);
+    for (const n of names) if (!BRIEFS.includes(n)) throw new Error(`no brief "${n}"; did you mean ${closest(n, BRIEFS)}?`);
     if ((typeof parsed.flags.heldout === "string" || typeof parsed.flags.variant === "string") && names.filter((n) => n !== "quiz").length !== 1) throw new Error(`--${typeof parsed.flags.heldout === "string" ? "heldout" : "variant"} takes one brief at a time: its variant is the brief's`);
     if (typeof parsed.flags.heldout === "string") parsed.flags.variant = latestVariant(parsed.flags.heldout, names.find((n) => n !== "quiz")!);
   } catch (err) {

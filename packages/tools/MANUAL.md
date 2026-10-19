@@ -1,19 +1,18 @@
 # m3a: character animation for agents
 
 m3a plays humanoid motion clips on any humanoid character, in a game or headless. Clips, recipes and graphs are JSON;
-the runtime is deterministic; the sensors measure motion as numbers (and PNGs) without a display. Every
-capability is also a tool, called as `m3a <tool>` or over MCP (Tools).
+the runtime is deterministic; the sensors measure motion as numbers (and PNGs) without a display. Every capability is
+also a tool: `m3a <tool>`, or MCP (Tools).
 
 ## The packages
 
-| Package | What it does | Entry |
-|---|---|---|
-| `@m3a/core` | clips, the `Animator`, graphs, recipes, actions, solver, contacts; no renderer, no Node | `@m3a/core` |
-| `@m3a/library` | the clip library: catalogs, search, clips by id, tiers | `@m3a/library/node` (`openLibrary`) |
-| `@m3a/three` | binds a three.js character, writes its bones; `loadGlb` reads a .glb in Node | `@m3a/three` (peer three r182), `@m3a/three/test-characters` |
-| `@m3a/sensors` | metrics, `describe`, repairs (`fix`), contact sheets | `@m3a/sensors`, `@m3a/sensors/node` (`writePng`) |
-| `@m3a/io` | glTF/GLB, VRMA, BVH, CMU ASF/AMC readers and writers (import, export) | `@m3a/io` |
-| `@m3a/tools` | the tools, the simulation (`sim`), the `m3a` command, MCP, this manual | `@m3a/tools`, `@m3a/tools/node` |
+- `@m3a/core`: clips, the `Animator`, graphs, recipes, actions, solver, contacts; no renderer, no Node.
+- `@m3a/library`: catalogs, search, clips by id, tiers; `openLibrary` from `@m3a/library/node`.
+- `@m3a/three` (peer three r182): binds a three.js character, writes its bones; `loadGlb` (from
+  `@m3a/three/test-characters`) reads a .glb in Node.
+- `@m3a/sensors`: metrics, `describe`, repairs (`fix`), contact sheets; `writePng` from `@m3a/sensors/node`.
+- `@m3a/io`: glTF/GLB, VRMA, BVH, CMU ASF/AMC readers and writers (import, export).
+- `@m3a/tools` (and `@m3a/tools/node`): the tools, the simulation (`sim`), the `m3a` command, MCP, this manual.
 
 Units: mm, degrees and seconds; metres in three.js (the adapter converts). "% of the hip height" and "hip
 heights a second" scale with a body's hip height `H0`: one clip fits every body.
@@ -27,7 +26,7 @@ heights a second" scale with a body's hip height `H0`: one clip fits every body.
 - An **Animator** plays clips on named **layers** at a fixed 1/60 s step: `step(dt)` moves the playheads, fires events
   and moves the root; `pose()` solves the mix onto the bones; `attach(animator, bound).update(dt)` does both.
 - **Contacts** (when a foot stands) plant the feet and move the root as they push (root motion: move the character
-  by it): `playable(clip, rest)` measures them; play library clips through it.
+  by it): `playable(clip, rest)` measures them; play library clips through it, or the feet slide.
 - A **graph** (JSON): states, transitions on parameters the game sets, blend spaces and layers, run inside the
   Animator's step. A **recipe** (JSON) makes a clip from clips; an **action** is a recipe with ground, beats and cuts.
 - The **sensors** judge motion from the bones (slide, skate, pops, jitter, penetration, NaN), a clip or a whole
@@ -45,8 +44,8 @@ The slash with its event is a recipe; 0.479 s is the slash's measured strike (`m
   { "op": "events", "in": "slash", "add": [{ "t": 0.479, "name": "hit" }] } ] }
 ```
 
-The graph: `walk` blends a guard stance into a walk; `attack` (a trigger, kept 0.25 s) plays the slash, back to
-`move` at 90% of it; `hurt` plays a flinch on an upper-body layer while the legs go on.
+The graph: `walk` blends a guard stance into a walk; `attack` (a trigger, kept 0.25 s) plays the slash until 90% of
+it; `hurt` flinches an upper-body layer while the legs go on.
 
 ```json knight.json
 {
@@ -101,13 +100,13 @@ animator.on("hit", () => (damage += 25));                        // on the blade
 for (let frame = 0; frame < 210; frame++) {                      // 3.5 s at 60 fps
   animator.set("walk", Math.min(1, Math.max(0, (84 - frame) / 12)));  // 1, eased to 0 over 1.2–1.4 s
   if (frame === 84) animator.trigger("attack");
-  if (frame === 144) animator.trigger("hurt");                   // an enemy's blow lands
+  if (frame === 144) animator.trigger("hurt");
   player.update(1 / 60);                                         // steps, fires events, poses, writes the bones
   bound.root.position.add(player.travel);                        // root motion: planted feet stay put
 }
 ```
 
-Check it headless: the same graph on a script of that input.
+Headless, the graph runs a script of that input:
 
 ```json knight-sim.json
 { "format": "2.0", "id": "SIMS/Knight", "graph": "GRAPHS/Knight", "dur": 3.5,
@@ -140,27 +139,26 @@ const hits = library.search("sword slash", { limit: 5 }).rows;  // ranked: { id,
 const { clip, rest } = library.clip("MESH2MOTION/Walk_Large");  // and its set and tier
 ```
 
-Pick clips by their rows; check what one does with `m3a describe <id>` first: sets differ (one set's knockback
-gets back up). Ids are `SET/Name`; an `_RM` clip carries its own root travel.
+Pick clips by their rows, and check one with `m3a describe <id>` first: sets differ (one set's knockback gets
+back up). Ids are `SET/Name`; an `_RM` clip carries its own root travel.
 
 **Tiers.** A game sees the CC0 default pack unless it opts in twice: `"tiers"` in `game.json` (for the tools) and
-`openLibrary({ tiers: ["cc0", "cc-by"] })` in code. The installed `@m3a/library` holds the CC0 sets only; the others
-are packs beside it (`npm install @m3a/library-cc-by` or `@m3a/library-cmu`). With its pack, a clip past the
-game's tiers throws `LibraryError` `E_TIER`, naming the opt-in (without, `E_NO_SET`). Credit each `cc-by` clip; `cmu`
-clips can't be resold, even converted; `local` (what `m3a import` made) never ships; code opens it as a library of its
-own (Ship).
+`openLibrary({ tiers: ["cc0", "cc-by"] })` in code. The other tiers are packs beside `@m3a/library` (`npm install
+@m3a/library-cc-by` or `@m3a/library-cmu`); a clip past the game's tiers throws `LibraryError` `E_TIER` naming the
+opt-in (`E_NO_SET` without its pack). Credit each `cc-by` clip; `cmu` clips can't be resold, even converted; `local`
+(what `m3a import` made) never ships (Ship).
 
 ## Fit: bind the character
 
 ```ts
 bound.report.text;                    // how it was recognized, confidence, missing bones (at most 20 lines)
 bound.report.patch;                   // the mapping: edit it and bind(scene, { mapping }) again
-bound.core.rest.H0;                   // the hip height (mm): "hip heights" are multiples of it
+bound.core.rest.H0;                   // the hip height (mm)
 ```
 
 `bind` recognizes Mixamo, Unreal, Rigify, VRM and most humanoid rigs by bone names, else by shape, and throws naming a
 missing required bone. `m3a retarget.inspect <file>` says the same of a .glb, .gltf or .vrm; `m3a retarget.apply
-<file> --clips <ids>` plays clips on it and judges each against its own body.
+<file> --clips <ids>` judges each clip played on its body.
 
 ## Wire: layers, events, root motion
 
@@ -175,17 +173,17 @@ a.remove("hurt");
 ```
 
 - **Layers** (`clip`, `weight`, `mask`, `additive`, `speed`, `time`): the lowest playing layer plays whole; each above
-  blends over it by `weight` (0 to 1) times its mask's weight per field. A mask: a group or groups (`upper`, `lower`,
-  `armL`, `armR`, `legs`, `head`, `spine`), weights by field, or `ops.mask(groups, feather)` to fade through the next
-  fields. Root motion blends by the mask's `root` and `yaw` fields, so an `upper` layer leaves the travel to the legs.
+  blends over it by `weight` (0 to 1) times its mask's weight per field. A mask: groups (`upper`, `lower`, `armL`,
+  `armR`, `legs`, `head`, `spine`), weights by field, or `ops.mask(groups, feather)`, fading through the next fields.
+  Root motion blends by the mask's `root` and `yaw` fields: an `upper` layer leaves the travel to the legs.
   A new clip starts at `time` (0), the same clip carries on; setting `time` fires no events; `held` is `"end"` once a
   one-shot finished.
 - **Cross-fade** by hand: the new clip on a top layer at weight 0, in step (`time: mb.time(ma.phase(t))`, `ma`, `mb`
   the clips' `ops.phaseMap(c, c.contacts)`, `t` the old one's time), raised over 0.25 s, then set on the base at its
   `time`, the top layer removed. Fade one-shots in over 0.1 s or more, or the body jumps.
 - **Events** (`clip.events`: `{ t, name }`) fire on the step a playhead passes them, from a layer above weight 0 or
-  the lowest one: in `step(dt).events`, `player.update(dt).events`, `animator.on(name, fn)` (`"*"`: all). Act on
-  them, not on timers. `clip.facts.strike` (or `measureFacts(clip, rest).strike`) lists an attack's strike times.
+  the lowest one: in `step(dt).events`, `player.update(dt).events`, `animator.on(name, fn)` (`"*"`: all).
+  `clip.facts.strike` (or `measureFacts(clip, rest).strike`) lists an attack's strike times.
 - **Root motion**: `player.travel` (a three `Vector3`, metres, the way the model faces: not always +Z) is the last
   update's move: add it to the character's position and planted feet stay put. `player.moved` the same in the
   character's frame (`forward`, `right` mm, `yaw` degrees); `player.root` where it stands; `player.pose` the last pose
@@ -220,18 +218,18 @@ a.remove("hurt");
 Each step names its result with `as` (else `s1`, `s2`, … by place); later steps read names (`in`, `base`, `over`, `a`,
 `b`, `items`); the last step's result is the clip.
 
-| op | Fields | Result |
-|---|---|---|
-| `clip` | `id`; `from`, `to` (s); `loop` (true, or seconds to blend its seam over) | A library clip, sliced, closed into a loop |
-| `sequence` | `items`; `fade` (0.2) | One after another, each where the last left the root |
-| `blend` | `a`, `b`; `w` (0 to 1, or `[[t, w], …]`) | `a` toward `b`, each at the same phase |
-| `layer` | `base`, `over`; `mask`; `weight`; `additive` | `over` on `base` in the masked parts |
-| `mirror` | `in` | Left and right swapped: the other hand strikes |
-| `retime` | `in`; `speed`, `dur` or `ease` | Faster or slower (events too), or to a length |
-| `pose` | `in`; parts by field, or `yaw`; `from`, `to` (s); `fade` | The parts moved by that much over the span |
-| `look`, `pin` | `in`; `at` (mm); `end`, `path` | The head turned to a point; a hand or foot held on a path |
-| `exaggerate`, `smooth`, `overshoot`, `stiffen` | `in`; `amount` or `window`; `mask` | Bigger, smoother, springier, stiffer |
-| `events`, `contacts` | `in`; `add` | Events or contacts added |
+- `clip` (`id`; `from`, `to` s; `loop`: true, or seconds to blend its seam over): a library clip, sliced, closed into
+  a loop
+- `sequence` (`items`; `fade`, 0.2): one after another, each where the last left the root
+- `blend` (`a`, `b`; `w`, 0 to 1 or `[[t, w], …]`): `a` toward `b`, each at the same phase
+- `layer` (`base`, `over`; `mask`; `weight`; `additive`): `over` on `base` in the masked parts
+- `mirror` (`in`): left and right swapped, so the other hand strikes
+- `retime` (`in`; `speed`, `dur` or `ease`): faster or slower (events too), or to a length
+- `pose` (`in`; parts by field, or `yaw`; `from`, `to` s; `fade`): the parts moved by that much over the span
+- `look`, `pin` (`in`; `at` mm; `end`, `path`): the head turned to a point; a hand or foot held on a path
+- `exaggerate`, `smooth`, `overshoot`, `stiffen` (`in`; `amount` or `window`; `mask`): bigger, smoother, springier,
+  stiffer
+- `events`, `contacts` (`in`; `add`): events or contacts added
 
 A `pose` step adds its parts to the clip's own, faded in and out. `body`, `chest`, `head`: `turn` (+ toward the
 right), `lean` (+ forward), `tilt` (+ toward the right), degrees. `armL`, `armR` (shoulder to fist, chest space),
@@ -255,16 +253,16 @@ describe(made.clip, made.rest).text;                   // a timeline: "a 1.42 s 
 writeFileSync("walk_weary.json", serialize(made.clip));    // as the library writes clips
 ```
 
-`recipe.compile` and `actions.compileAction` read clips through `library.resolver()`: a clip past the game's tiers
-throws `LibraryError` `E_TIER` naming the opt-in (if its set has it); any other unknown id `recipe.RecipeError`, whose
-`.issues` hold `R-E008` (the nearest id in its fix, if any). Edits: faster, `retime` (`speed: 1.5`); the other side,
+`recipe.compile` and `actions.compileAction` read clips through `library.resolver()`, which throws `E_TIER` (Tiers)
+for an installed pack's clip past the game's tiers, and `recipe.RecipeError` for any other unknown id (its `.issues`
+hold `R-E008`, the nearest id in its fix, if any). Edits: faster, `retime` (`speed: 1.5`); the other side,
 `mirror`; more anticipation, a `pose` the other way before the key moment; bigger, `exaggerate` (1.25).
 `m3a edit <clip> --ops <json> --save-as WORKSHOP/<Name>` applies steps to a copy, with undo.
 
 ## Make: actions
 
-An action is a recipe with `desc`, the floor it ends on (`floor`, % of the hip height above its start), its `beats`
-and its `interrupts` (where it may be cut):
+An action is a recipe with `desc`, the floor it ends on (`floor`, % of the hip height above its start), `beats` and
+`interrupts` (where it may be cut):
 
 ```json climb.json
 {
@@ -298,7 +296,7 @@ fix(walk.clip, walk.rest).clip;                                 // repairs what 
 const sheets = [walk, library.clip("MESH2MOTION/Idle_Sword")].map((x) => sheet(x.clip, x.rest, { frames: 8 }).image);
 writePng("sheets.png", raster.join(sheets, { down: true }));   // about width × height / 750 tokens to look at
 
-// what a character played: its body points each frame (mm), as the sensors read them
+// what a character played: its body points each frame (mm)
 const frames: Float32Array[] = [], roots: { forward: number; right: number; yaw: number }[] = [];
 for (let i = 0; i < 120; i++) { player.update(1 / 60); frames.push(Float32Array.from(player.pose.points)); roots.push({ ...player.root }); }
 checks.measure(checks.motionOfFrames(frames, bound.core.rest, { root: roots })).verdict;
@@ -315,9 +313,9 @@ difference.
 ## Ship: licenses, import, export
 
 `m3a license.check` checks `game.json` (`tiers`, `clips`, `ships`) or `--clips`, and prints the credits block.
-`m3a import <file> --license <SPDX id>` fits a motion file's animations into a `local` set, `imports/<SET>/` (`--set`,
-default `IMPORT`), which the tools read when game.json's `"tiers"` holds `"local"`; `license.check` passes it only with
-`"ships": false`. A catalog (`--catalog`) says what to take:
+`m3a import <file> --license <SPDX id>` writes its `local` set (`--set`, default `IMPORT`), which the tools read
+when game.json's `"tiers"` holds `"local"`; `license.check` passes it only with `"ships": false`. A catalog
+(`--catalog`) says what to take:
 
 ```json catalog.json
 {
@@ -338,7 +336,6 @@ leaves one out. A clip's entry: `["tags", "what it does"]`; `loop` or `once` amo
 ```sh
 npx m3a import mocap.gltf --list                 # its animations and rig; writes nothing
 npx m3a import mocap.gltf --license CC0-1.0 --catalog catalog.json --set MOCAP
-npx m3a describe MOCAP/Wave_Short
 npx m3a license.check
 npx m3a export MESH2MOTION/Walk_Large --character character.glb --format glb
 ```
@@ -348,12 +345,26 @@ const mine = openLibrary({ dir: "imports", tiers: ["local"] });  // in code, the
 mine.clip("MOCAP/Wave_Short").tier;                               // "local"
 ```
 
+## Grow: contribute to the library
+
+`m3a library submit <clip> --by "<who made it>"` sends a clip (compiled: a recipe takes no `--by`) to the intake queue
+(`.cache/intake/`, or the hosted one); `m3a library status [<id>]` lists yours: `submitted`, then `bounced` (with the
+fix) or `awaiting review`: the owner adopts every clip. It is `CC0-1.0`, or keeps the license and credit of the CC BY
+or CMU clip it derives from; its provenance gives its method and tool (`recipe.compile` writes them), who made it
+(`--by`: an agent with its human), a model's prompt (`--prompt`) and a generator's (a learned motion model's)
+training-data manifest (`--manifest <https URL>#sha256=<hex>`). A library clip barely changed bounces unless sent as
+its fix:
+
+```sh
+npx m3a library submit check-output/recipe.compile/Slash_Hit.clip.json --improves MESH2MOTION/Sword_Attack --by "Claude (an AI agent) for Ana"
+```
+
 ## Tools: the m3a command, MCP and the console
 
-Every tool is defined once and served four ways: `tools.call(name, args, { host: nodeHost() })` (`tools` from
-`@m3a/tools`, `nodeHost` from `@m3a/tools/node`), the `m3a` command, an MCP server (`m3a mcp`, stdio), and
-`__M3A_TOOLS__` on a page (`installConsole(tools)`). Each line: the call (`<x>` by position, `[--x]` optional), then
-the MCP name where it differs.
+Every tool is served four ways: `tools.call(name, args, { host: nodeHost() })` (`tools` from `@m3a/tools`,
+`nodeHost` from `@m3a/tools/node`), the `m3a` command, MCP (`m3a mcp`, stdio), and `__M3A_TOOLS__` on a page
+(`installConsole(tools)`). Each line: the call (`<x>` by position, `[--x]` optional), then the MCP name where it
+differs.
 
 <!-- tools: written by node tools/manual/main.ts -->
 - `m3a search <query> [--limit]`: Library clips for a game moment in words and filters, best first
@@ -375,6 +386,7 @@ the MCP name where it differs.
 - `m3a import <path> [--set] [--license] [--catalog] [--list] [--from]` (writes files): Fit a motion file's animations into `imports/<SET>/`, a local set, each with its fit
 - `m3a export <clip> --character <character> [--format] [--mapping]`: Play a clip on a character and write it as .vrma, .glb or .bvh in `check-output/export/`, read back to check it
 - `m3a review <do> <on> [--note]` (writes files): The owner's review queue
+- `m3a library <do> <on> [--improves] [--by] [--prompt] [--manifest]` (writes files): Send a clip or recipe to the intake queue, or list yours
 - `m3a version`: The m3a version and the clip format it reads and writes
 - `m3a validate <path> [--text] [--mode]`: Validate a clip by path or as text
 <!-- /tools -->
@@ -382,8 +394,6 @@ the MCP name where it differs.
 ```sh
 npx m3a help                     # every tool, one line each
 npx m3a help graph.sim           # its flags and examples (or: npx m3a graph.sim -h)
-npx m3a search "sword slash" --limit 3
-npx m3a validate check-output/recipe.compile/Slash_Hit.clip.json --json
 ```
 
 - **Replies:** a verdict line first, at most 20 lines (`--verbose`, or `verbose: true`, for all), ending with `next:`,
@@ -405,10 +415,9 @@ npx m3a validate check-output/recipe.compile/Slash_Hit.clip.json --json
 ## Rules and common mistakes
 
 - Clips are data: never edit `clip.keys` by hand; `fix` repairs, a recipe or `m3a edit` makes a new clip.
-- Measure a clip on its own `rest`; play library clips through `playable(clip, rest)`, or the feet slide.
 - A catalog `speed` is % of its own body's hip height a second; on yours, `contactRoot(...).speed` (mm/s).
 - Don't move or scale the bones: `bind` reads them once and `attach` writes their rotations.
-- Act on events, not timers; fade one-shots in; cut, don't blend, between two lying poses.
+- Act on events, not timers; cut, don't blend, between two lying poses.
 - `set` and `trigger` are read from the next step. Parameters aren't smoothed: ease a blend's over 0.2 s, or the
   body pops.
 - Errors say what to do: read them first.
