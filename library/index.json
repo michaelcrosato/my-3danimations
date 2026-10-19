@@ -1,0 +1,283 @@
+{
+ "about": "The registry index (PLAN.md WP-9.4), written by npm run index from library/sets, the previous index and tools/release/registry.json; npm run index -- --check regenerates it byte for byte. core: each set's versions (content: its clip files' content id, spec/MOTION.md §9.2; digest: the same over all its files), immutable, yanked never deleted. community: packs federated from namespaces verified to their owners, never uploads into the core. npm run index -- verify <SET> <dir> checks a set's files against it.",
+ "format": "1",
+ "serial": 1,
+ "core": {
+  "CMU_CURATED": {
+   "versions": [
+    {
+     "v": 1,
+     "content": "0b69648194f9278c3de91da51a86371f1536e413d6e6d1eeb32394ae058eb882",
+     "digest": "adb080fa63e3079914a50ca7ec5aa053755cccf0b9817c7106130b91c2a833e6",
+     "title": "CMU motion capture, curated",
+     "tier": "cmu",
+     "licenses": [
+      "LicenseRef-CMU-Mocap"
+     ],
+     "clips": 158,
+     "bytes": 3067043,
+     "qa": {
+      "baselined": 67,
+      "pass": 91
+     },
+     "review": {
+      "approved": 0,
+      "flagged": 0,
+      "unreviewed": 158
+     }
+    }
+   ]
+  },
+  "MESH2MOTION": {
+   "versions": [
+    {
+     "v": 1,
+     "content": "b0e48be48743c5d158ae2e9fdf2acf78871c66212df5bcf3575077aa6f68e274",
+     "digest": "acf60b4ad4cd06b376b48a808e6e8c59b5b0e695f2132f59675fcfd34d891617",
+     "title": "Mesh2Motion",
+     "tier": "cc0",
+     "licenses": [
+      "CC0-1.0"
+     ],
+     "clips": 176,
+     "bytes": 1319472,
+     "qa": {
+      "baselined": 57,
+      "pass": 119
+     },
+     "review": {
+      "approved": 0,
+      "flagged": 0,
+      "unreviewed": 176
+     }
+    }
+   ]
+  },
+  "QUATERNIUS_3D2DGE": {
+   "versions": [
+    {
+     "v": 1,
+     "content": "761ca3ee77e82890ad132a24786e627ebc3b8f043fff18664571e0a05ebd523e",
+     "digest": "ad079a194e954f6e2f2c579ca5bcbbffe020a85810adf947d03084fb5c15b961",
+     "title": "Quaternius UAL 1 and 2 (my-3d2dge's import)",
+     "tier": "cc0",
+     "licenses": [
+      "CC0-1.0"
+     ],
+     "clips": 88,
+     "bytes": 442397,
+     "qa": {
+      "baselined": 37,
+      "pass": 51
+     },
+     "review": {
+      "approved": 0,
+      "flagged": 0,
+      "unreviewed": 88
+     }
+    }
+   ]
+  },
+  "QUATERNIUS_SHARDFALL": {
+   "versions": [
+    {
+     "v": 1,
+     "content": "23d3a8e62291903f8fd0b4938cf50a6479f5604a7669520a1a84f50987d62d19",
+     "digest": "1d2b2d005650edc69aa5e213b2db4a4f955b679fe687c5d69822ec0fac3c6598",
+     "title": "Quaternius UAL 1 and 2, v2 (shardfall's import)",
+     "tier": "cc0",
+     "licenses": [
+      "CC0-1.0"
+     ],
+     "clips": 102,
+     "bytes": 601693,
+     "qa": {
+      "baselined": 50,
+      "pass": 52
+     },
+     "review": {
+      "approved": 0,
+      "flagged": 0,
+      "unreviewed": 102
+     }
+    }
+   ]
+  },
+  "STYLE100": {
+   "versions": [
+    {
+     "v": 1,
+     "content": "b132ab5f51f53ef9484897d45c24b14a5beeb55ed21cb0a5b3ddc145b6f3a016",
+     "digest": "bbe632c680712ec86e9ca4cc8c5787c10656a042280368612bee0318aced1489",
+     "title": "100STYLE walks",
+     "tier": "cc-by",
+     "licenses": [
+      "CC-BY-4.0"
+     ],
+     "clips": 95,
+     "bytes": 680747,
+     "qa": {
+      "baselined": 31,
+      "pass": 64
+     },
+     "review": {
+      "approved": 0,
+      "flagged": 0,
+      "unreviewed": 95
+     }
+    }
+   ]
+  },
+  "STYLE100_BACK": {
+   "versions": [
+    {
+     "v": 1,
+     "content": "11a46f79bc7704ce64f71fc14359c98655501c0c929f63a6a4c6b999ea79c146",
+     "digest": "3d55094b17b4bba908bc55a9c88f84c7b63f93023fdb085dffc0c0080fd5b172",
+     "title": "100STYLE backward walks",
+     "tier": "cc-by",
+     "licenses": [
+      "CC-BY-4.0"
+     ],
+     "clips": 98,
+     "bytes": 588308,
+     "qa": {
+      "baselined": 9,
+      "pass": 89
+     },
+     "review": {
+      "approved": 0,
+      "flagged": 0,
+      "unreviewed": 98
+     }
+    }
+   ]
+  },
+  "STYLE100_BACKRUN": {
+   "versions": [
+    {
+     "v": 1,
+     "content": "4fd1565cbb2e9c648aa5d379f9594cfe8824b3afc85f95b18cf80d2ff36140da",
+     "digest": "72fa62010582981135ceb0442faac32abe0f10b65b11eaabff05a5cc0e52f8e8",
+     "title": "100STYLE backward runs",
+     "tier": "cc-by",
+     "licenses": [
+      "CC-BY-4.0"
+     ],
+     "clips": 98,
+     "bytes": 553600,
+     "qa": {
+      "baselined": 32,
+      "pass": 66
+     },
+     "review": {
+      "approved": 0,
+      "flagged": 0,
+      "unreviewed": 98
+     }
+    }
+   ]
+  },
+  "STYLE100_IDLE": {
+   "versions": [
+    {
+     "v": 1,
+     "content": "38f38713cc5035caff6f5378b6988e8bc82631097e22714830f6572473892c55",
+     "digest": "83c659b809347d85823822a7dd51bb05371da727f25b80ba55d0c5ae76e9ef95",
+     "title": "100STYLE idles",
+     "tier": "cc-by",
+     "licenses": [
+      "CC-BY-4.0"
+     ],
+     "clips": 98,
+     "bytes": 326682,
+     "qa": {
+      "baselined": 2,
+      "pass": 96
+     },
+     "review": {
+      "approved": 0,
+      "flagged": 0,
+      "unreviewed": 98
+     }
+    }
+   ]
+  },
+  "STYLE100_RUN": {
+   "versions": [
+    {
+     "v": 1,
+     "content": "1ce6d0b702c41558f46a3a146a6fc6b02ebaacc22ebf12bc41de06d20fa5ba19",
+     "digest": "0204e02d50a261c86f93261a9784d911255de39135724dcd053c7670596dedeb",
+     "title": "100STYLE runs",
+     "tier": "cc-by",
+     "licenses": [
+      "CC-BY-4.0"
+     ],
+     "clips": 98,
+     "bytes": 669440,
+     "qa": {
+      "baselined": 49,
+      "pass": 49
+     },
+     "review": {
+      "approved": 0,
+      "flagged": 0,
+      "unreviewed": 98
+     }
+    }
+   ]
+  },
+  "STYLE100_SIDE": {
+   "versions": [
+    {
+     "v": 1,
+     "content": "c0658701efe830c306cffeb0a5f54675b19fed77fb01ab1229ca6b3dcb4e1776",
+     "digest": "dbaf1be06ad45ea7645649ae21f3b33964b20dfda4cb287fa4e92fd9a8d21c8f",
+     "title": "100STYLE sidesteps",
+     "tier": "cc-by",
+     "licenses": [
+      "CC-BY-4.0"
+     ],
+     "clips": 194,
+     "bytes": 1166720,
+     "qa": {
+      "baselined": 7,
+      "pass": 187
+     },
+     "review": {
+      "approved": 0,
+      "flagged": 0,
+      "unreviewed": 194
+     }
+    }
+   ]
+  },
+  "STYLE100_SIDERUN": {
+   "versions": [
+    {
+     "v": 1,
+     "content": "4b9f9b797c81d5bba42424cb5d99ad8c0fa8e860158fc332cb586e88201908c8",
+     "digest": "2a88c4eb4433ba2f85d131dcd4cde5576b425183fb836f9b727a37fe9aae978b",
+     "title": "100STYLE sideways runs",
+     "tier": "cc-by",
+     "licenses": [
+      "CC-BY-4.0"
+     ],
+     "clips": 193,
+     "bytes": 1202226,
+     "qa": {
+      "baselined": 43,
+      "pass": 150
+     },
+     "review": {
+      "approved": 0,
+      "flagged": 0,
+      "unreviewed": 193
+     }
+    }
+   ]
+  }
+ },
+ "community": {}
+}
