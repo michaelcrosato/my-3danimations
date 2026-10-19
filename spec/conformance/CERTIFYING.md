@@ -16,12 +16,21 @@ solver: leave `retarget` out of `ops`, and tier 3 reads "not claimed" (D.6, a Ru
 | `text`, `parse` | `pav_core::clips::Clip::text` for format 1's text; `parse` is that text read back as one clip (it is JSON) |
 | `mirror` | `pav_core::clips::mirror` on each key |
 | `decode` | `readable::pose_of` at each time, on the request's `rest` |
-| `readGltf` | `mocap::glb::read` (it takes a path: write the decoded bytes to a temporary file, or add a reader of bytes) |
-| `readCmu` | `mocap::acclaim::Subject::parse`, its takes cut by the request's picks with `mocap::takes::cut` (as `mocap::cmu_libraries` does) |
+| `readGltf` | `mocap::glb::read` for `rig` and `clips` (it takes a path: write the decoded bytes to a temporary file, or add a reader of bytes); its `notes` are the protocol's `warnings`. It has no `body`: see below |
+| `readCmu` | `mocap::acclaim::Subject::parse`, its takes cut by the request's picks with `mocap::takes::cut`, which refuses a pick it can't cut, as the reference does (`mocap::cmu_libraries` takes `cut_lenient` for more than one pick, which leaves such a pick out and logs it instead) |
 | `measure` | `readable::Rest::measure(&caps, Some(restClip))` |
 
 `Rest` and `Key` already (de)serialize with the vectors' field names (`H0`, `Cr`, `armL`, ...). `Cap` names two
-fields differently: the protocol's `loop` is its `looping` and `move` its `travel`.
+fields differently, the protocol's `loop` is its `looping` and `move` its `travel`, and carries one the protocol has
+no place for: leave `stride` out of the answer, since the kit compares a capture's fields as a set.
+
+**The Rigify look is still to port.** At the pinned commit `glb::read`'s `Library` is `{rig, clips, notes}`, with no
+mannequin look, and tier 1b compares the look of `tier1b/rigify.gltf` bit for bit: `body` is `{height, segs, bands}`,
+each segment's radii and the joint-ring bands measured from the skinned meshes (`tier1b/rigify-expected.json`). Port
+it from `@m3a/io`'s `readGltf` (`packages/io/src/gltf/read.ts`, "the look of the mannequin"), itself a port of my-3d2dge's
+`tools/anim-import.mjs` `readLibrary`; for `rig.gltf` and any rig without Rigify's meshes `body` is `null`. Until that
+port lands, `tier1b/rigify.gltf read` fails while `tier1b/rig.gltf` and `tier1b/cmu/` can pass: certify tiers 1a and
+2 (`--tier 1a,2`) and develop tier 1b with `--tier 1b`.
 
 ## The numerics it must match
 
@@ -67,10 +76,10 @@ for its text (`node spec/conformance/adapters/ts.ts`, PROTOCOL.md "Both directio
 
 ## What a pass report looks like
 
-A format-1 codec without a solver, certified (the reference standing in for it):
+A format-1 codec without a solver, with the Rigify look ported, certified (the reference standing in for it):
 
 ```
-conformance: pav_tools 0.x certifies tiers 1a, 1b, 2 (m3a-conformance/1), 1321 cases in 2.6 s; not claimed: 3
+conformance: pav_tools 0.x certifies tiers 1a, 1b, 2 (m3a-conformance/1, vectors 9c92061b49d3), 1321 cases in 2.6 s; not claimed: 3
   ok   tier 1a 0.1 s: 15 of 15 cases pass in 2 vector files
   ok   tier 1b 0.1 s: 6 of 6 cases pass in 3 vector files
   ok   tier 2 2.1 s: 1300 of 1300 cases pass in 3 vector files, worst decodeUm 0.500; not claimed: tier2/FORMAT2.json (format 2)
@@ -83,5 +92,7 @@ A failure names the vector file, the case, the field and both values, and the ru
 conformance: pav_tools 0.x fails tier 1a at tier1a/rig.json, A_TPose fit: fit.mean: ours 0.29725053906440735, want 0.29725053410854374
 ```
 
-`--json` writes the whole certification to `check-output/conformance/report.json`: keep it with the release it
-certifies.
+`--json` writes the whole certification to `check-output/conformance/report.json`, with what it ran against (the
+protocol, the vectors' manifest SHA-256, this repository's version and commit): keep it with the release it
+certifies. Each request must be answered within 60 s (`--timeout` raises it), so flush stdout after every reply, as
+the loop above does.

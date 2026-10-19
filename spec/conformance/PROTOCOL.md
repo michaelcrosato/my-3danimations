@@ -6,19 +6,37 @@ answering the kit's questions. The kit (`npm run conformance`, `tools/conformanc
 answer with the tier's tolerance (`tiers.md`). The messages' JSON Schema is `protocol.schema.json`: `$defs.ops` holds
 each request's fields, `$defs.results` each answer.
 
+The kit asks tiers 1a, 1b, 2 and 3. `tiers.md`'s frozen row (`frozen/core.json`, `frozen/moves.json`) is not asked: it is
+the baseline the math helpers, RNG, easing and move model were ported against, checked by `packages/core`'s tests.
+
+Before it asks anything, the kit checks `spec/vectors/` against `manifest.json` (every file's size and SHA-256, and no
+file in a tier's folder that it doesn't list) and refuses to certify on a mismatch. A certification names what it ran
+against: the protocol, the manifest's SHA-256 and the commit (see Reports).
+
 ## Transport
 
 - **A sidecar.** An implementation is a command. It reads requests on stdin, one JSON object a line (UTF-8, `\n`), and
   writes one response a request on stdout, in order, one line each. Stderr is free for logs (the kit quotes its last
   lines if the sidecar dies). It exits when stdin closes. The kit sends one request at a time.
 - **Messages.** A request is `{"id": 7, "op": "decode", ...fields}`. Its response is `{"id": 7, "ok": true, "result":
-  ...}`, or `{"id": 7, "ok": false, "error": "why"}`; a failed request fails its case and the sidecar keeps serving.
+  ...}`, or `{"id": 7, "ok": false, "error": "why"}`; a failed request fails its case and the sidecar keeps serving. A
+  line that isn't JSON, or isn't a response object (`null`, a number, an array), an id no request waits for, or an `ok`
+  that is neither `true` nor `false` breaks the protocol: the kit ends the sidecar, and that case and every later one
+  fail with the reason.
+- **A deadline.** Each request is answered within 60 s, or `--timeout <seconds>`; hello's deadline includes the
+  sidecar's start. A request left unanswered ends the sidecar as above, the cases failing with `no answer to <op>
+  within <n> s`. Flush stdout after every answer: a pipe is block-buffered in C's stdio, Python and others, and an
+  answer still in the buffer never arrives.
 - **Numbers** are doubles written as the shortest decimal that parses back to the same double, and `-0` is written
   `-0` or `-0.0` (JavaScript's `JSON.stringify` writes `0`; the kit's `line()` in `kit/wire.ts` doesn't). Float32 values (captured
   frames, decoded points) are written as the doubles they widen to. There is no NaN or Infinity: write `null`, which
   fails the case.
+- **Shapes.** Every answer is checked against `$defs.results[op]` before it is compared, so a `null`, a number written
+  as a string or a missing field fails its case at that field (`decode[0][0]: ours null, want a value that must be
+  number`), wherever the reference's value is, even zero.
 - **First, `hello`.** The kit's first request, `{"id": 1, "op": "hello", "protocol": "m3a-conformance/1"}`, is
-  answered with `{"implementation", "version", "protocol", "ops", "formats"}`. A tier runs only when every op it needs
+  answered with `{"implementation", "version", "protocol", "ops", "formats"}`, checked against `$defs.results.hello`:
+  one the schema refuses (a bare `{protocol, ops}`) ends the run before any tier. A tier runs only when every op it needs
   is in `ops`; otherwise it is *not claimed*, which fails only when `--tier` names it. `formats` (`[1, 2]` when
   omitted) says which format versions it reads: a format-1 codec answers `[1]`, leaving `tier2/FORMAT2.json` and its
   clips in tier 3 unclaimed. A codec with no solver certifies tiers 1a, 1b and 2 that way (`CERTIFYING.md`).
@@ -36,7 +54,7 @@ each request's fields, `$defs.results` each answer.
 | `readGltf` | 1b | `glb` (the .glb's bytes, base64), `fps` | `{rig, warnings, body, clips}` | the clips, in order, bit for bit; the Rigify rig's look and no warnings |
 | `readCmu` | 1b | `asf` (text), `amc` (each take's text by name), `picks`, `fps` | `{clips, log}` | bit for bit |
 | `measure` | 1b | `clips`, `restClip` | the rest | bit for bit |
-| `retarget` | 3 | `skeleton` (`bones`: name, parent, head in metres; `up`), `source` (the clip's rest), `clip`, `times` | `{bones, rest, poses}` | limbs and chest in degrees, lengths (below) |
+| `retarget` | 3 | `skeleton` (`bones`: name, parent, head in metres; `up`), `source` (the clip's rest), `clip`, `times` | `{bones, rest, poses}` | limbs and chest in degrees, lengths, soles (below) |
 
 **Shapes** (as the vectors hold them; the schema has each):
 - a *capture* is `{name, n, dur, loop, fps, take?, move, data}`: `data` holds `n` frames of 108 float32 values, `move`
@@ -44,8 +62,11 @@ each request's fields, `$defs.results` each answer.
 - a *rest* is a body's measurements as `tier1a/rig.json`'s `rest` holds them (`spec/MOTION.md`);
 - a *clip* is a vector's clip object: its header fields and `keys`, each key `t` and its named fields;
 - *body points* are the 36 points of a vector's `points` list, each forward, right, up;
-- *joints* (tier 3) are each humanoid bone's head (VRM's names, `spec/SKELETON.md`) in the format's frame, mm. `bones`
-  maps each humanoid bone to the skeleton's, `rest` gives the joints at rest and `poses` one set of joints a time.
+- *joints* (tier 3) are each humanoid bone's head (VRM's names, `spec/SKELETON.md`) in the format's frame, mm, up from
+  the floor. `bones` maps each humanoid bone to the skeleton's, `rest` gives the joints at rest and `poses` one set of
+  joints a time. Tier 3's rig has 22 humanoid bones (hips, spine, chest, upperChest, neck, head, and each side's
+  shoulder, upper and lower arm, hand, upper and lower leg, foot and toes): each is mapped, to a bone of its own that
+  hangs below its humanoid parent's, and posed, or the case fails naming the bones.
 
 ## What each tier asks
 
@@ -63,15 +84,20 @@ each request's fields, `$defs.results` each answer.
   points; the chest within 9° of the source's (the turn from the target's rest chest frame `Cr` to the source's posed
   one, against the turn the target's upper chest makes, read from its neck and shoulders), or 14° on a curled spine
   (that chest turn more than 30° from the turn the target's hips make); each humanoid bone's distance to its humanoid
-  parent kept to 0.000001 mm.
+  parent kept to 0.000001 mm; and no sole below the floor (the solver lifts such a pose whole): each ball (the toes'
+  head) at up 0 or above and each ankle (the foot's head) at the body's `ankleZ` or above, to 0.000001 mm. The toe tip
+  is no humanoid bone, so its floor check stays with the reference's own tests (`tier3.test.ts`, on the solver's
+  points).
 
 ## Reports
 
-`npm run conformance -- --impl ts|"<command>" [--tier 1a,1b,2,3] [--sample N]` prints the verdict first, then one line
-a tier and, for a failing tier, one line a failing vector file: its failures and its first failing case, field and both
-values. `--json` writes `check-output/conformance/report.json` with the whole certification; exit 0 certified, 1 a
-failure, 2 a usage error. `--sample N` runs at most N clips a vector file: a quick check, never a certification. A
-failure reads:
+`npm run conformance -- --impl ts|"<command>" [--tier 1a,1b,2,3] [--sample N] [--timeout S]` prints the verdict first,
+then one line a tier and, for a failing tier, one line a failing vector file: its failures and its first failing case,
+field and both values. A pass names the vectors by the first 12 hex digits of the manifest's SHA-256. `--json` writes
+`check-output/conformance/report.json` with the whole certification: `kit` (`protocol`, `manifestSha256`, the
+repository's `version` and `commit`, `-dirty` when the kit or the vectors differ from it), `impl` (its hello) and
+`tiers`. Exit 0 certified, 1 a failure, 2 a usage error. `--sample N` runs at most N clips a vector file: a quick
+check, never a certification. A failure reads:
 
 ```
 conformance: @m3a/core 0.50.1 fails tier 1a at tier1a/rig.json, A_TPose fit: fit.mean: ours 0.29725053906440735, want 0.29725053410854374
@@ -91,8 +117,11 @@ conformance: @m3a/core 0.50.1 fails tier 1a at tier1a/rig.json, A_TPose fit: fit
 printf '%s\n' '{"id":1,"op":"text","format":1,"clip":{"clip":"x","dur":0,"keys":[{"t":0,"hips":[0,-0,100]}]}}' | node spec/conformance/adapters/ts.ts
 ```
 
-The kit proves itself on a deliberately broken implementation (`adapters/broken.ts`: `round` rounds fit's mean to
-float32, `swap` swaps the wrists in every decoded pose), which it must fail with the vector named (`kit/kit.test.ts`).
+The kit proves itself on a deliberately broken implementation (`adapters/broken.ts`, its defects comma-separated:
+`round` rounds fit's mean to float32, `swap` swaps the wrists in every decoded pose, `nan` and `strings` answer NaN or
+strings where the reference is zero, `longlegs` lengthens the legs behind an empty `bones`, `sink` sinks the soles,
+`echo` answers each request with its own fields, `bare` gives a bare hello, `null` and `hang` break the wire), which
+it must fail with the vector named (`kit/kit.test.ts`, `tools/conformance/conformance.test.ts`).
 
 ## Versioning
 
