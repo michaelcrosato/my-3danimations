@@ -1,15 +1,19 @@
-# The library's gates on every pull request that touches library/sets/ (PLAN.md WP-9.1a): `npm run gate --
-# library-pr`, the same gates the intake's checker runs (tools/intake/gates.ts): the library loads with every file as
-# locked, the sets it touches pass the license check, and every clip it adds or changes passes schema, provenance,
-# license, text, dedup, sensors, the retarget onto the reference rigs, budgets and lint. A pull request with a planted
-# bad clip fails it (`npm run gate -- library-pr --fixture all` proves that on a scratch copy). Actions are pinned by
-# commit SHA (principle 9); the comment names the release.
+# The library's gates on every pull request that touches library/sets/ (PLAN.md WP-9.1a), the registry index or its
+# hand-kept inputs (WP-9.4): `npm run gate -- library-pr`, the same gates the intake's checker runs
+# (tools/intake/gates.ts): the library loads with every file as locked, the sets it touches pass the license check, and
+# every clip it adds or changes passes schema, provenance, license, text, dedup, sensors, the retarget onto the
+# reference rigs, budgets and lint; and the index is the one the library gives, its history as committed on main (no
+# version rewritten, no set deleted). A pull request with a planted bad clip fails it (`npm run gate -- library-pr
+# --fixture all` proves that on a scratch copy). Actions are pinned by commit SHA (principle 9); the comment names the
+# release.
 name: library-gates
 
 on:
   pull_request:
     paths:
       - "library/sets/**"
+      - "library/index.json"
+      - "tools/release/registry.json"
 
 permissions:
   contents: read

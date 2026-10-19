@@ -3,10 +3,11 @@
 // refused, a yank is recorded, and a latest version whose record isn't what its files give is refused field by field;
 // `--since` fails on a ref git can't read; a community pack whose files miss its content id, don't name its license
 // alone, or whose namespace's proof doesn't vouch for it is refused, and an admitted one records its digest and proof,
-// is vouched for again offline on every rebuild and verifies, every file of it bound; release.yml runs only by hand and
-// fails closed until O2.
+// is vouched for again offline on every rebuild and verifies, every file of it bound; release.yml, read as YAML, runs
+// only by hand, fails closed until O2 unless the owner started the run and the attempt, gives its write token to the
+// upload step alone and takes each set's license texts from its own files; library-gates.yml runs on index changes.
 import { spawnSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { Ajv2020 } from "ajv/dist/2020.js";
@@ -16,6 +17,7 @@ import { directory, sha256 } from "../../packages/library/src/node.ts";
 import { ROOT } from "../run/cli.ts";
 import { admit, buildIndex, history, ids, indexText, proofUrl, verifySet, type Candidate, type Files, type Registry, type RegistryIndex } from "./index.ts";
 import { atRef, INDEX, REGISTRY } from "./main.ts";
+import { parseYaml, type Yaml } from "./yaml.ts";
 
 const dirs: string[] = [];
 afterAll(() => dirs.forEach((d) => rmSync(d, { recursive: true, force: true })));
@@ -169,21 +171,72 @@ describe("community packs", () => {
   });
 });
 
-describe("release.yml", () => {
-  const text = readFileSync(join(ROOT, ".github/workflows/release.yml"), "utf8");
-  it("runs only by hand, reads by default, and its upload waits on the owner's go-ahead and replaces nothing", () => {
-    expect(/^on:\n((?: {2}.*\n)+)/m.exec(text)![1]!.match(/^ {2}\w[\w-]*:/gm)).toEqual(["  workflow_dispatch:"]);
-    expect(text).toMatch(/^permissions:\n {2}contents: read\n/m);
-    expect(text).toMatch(/ {2}assets:\n(?: {4}.*\n)*? {4}needs: go-ahead\n/);
-    expect(text).toMatch(/gh release upload "\$TAG" .cache\/release\/assets\/\*\n/);
-    expect(text).not.toMatch(/--clobber/);
+/** A workflow as read: its triggers, permissions and jobs, each job's steps. */
+interface Step { name?: string; uses?: string; run?: string; if?: string; with?: Record<string, string>; env?: Record<string, string> }
+interface Workflow { on: Record<string, Yaml>; permissions?: Record<string, string>; jobs: Record<string, { needs?: string | string[]; if?: string; permissions?: Record<string, string>; env?: Record<string, string>; steps: Step[] }> }
+const workflow = (name: string) => parseYaml(readFileSync(join(ROOT, ".github/workflows", name), "utf8")) as unknown as Workflow;
+
+describe("the workflows' YAML reader", () => {
+  it("reads quoted keys, comments and literal blocks, and refuses what it can't hold", () => {
+    expect(parseYaml('"push": x # a comment\non:\n  workflow_dispatch:\nrun: |\n  a\n\n  b\nlist:\n- a\n- k: v\n  w: "q"\n')).toEqual({ push: "x", on: { workflow_dispatch: "" }, run: "a\n\nb\n", list: ["a", { k: "v", w: "q" }] });
+    for (const [text, why] of [["a: {b: 1}\n", /flow collection/], ["a: &x 1\n", /anchor/], ["a: 1\na: 2\n", /the key a twice/], ["a:\n\tb: 1\n", /tab/], ["a: b: c\n", /quote it/], ["a: >\n  b\n", /only literal block scalars/], ["a:\n  b: 1\n   c: 2\n", /indented more/]] as const) expect(() => parseYaml(text), text).toThrow(why);
   });
-  it("fails closed: nothing runs unless the owner set M3A_O2_RELEASE_ASSETS to yes and started the run", () => {
-    const script = /O2 answered by the owner, or nothing runs\n(?: {8}.*\n)*? {8}run: \|\n((?: {10}.*\n)+)/.exec(text)![1]!.replace(/^ {10}/gm, "");
-    const run = (env: Record<string, string>) => spawnSync("bash", ["-c", script], { env: { PATH: process.env.PATH!, ...env }, encoding: "utf8" });
-    expect(run({ ACTOR: "o", OWNER: "o" })).toMatchObject({ status: 1, stdout: expect.stringMatching(/^::error title=release::O2 is unanswered/) });
-    expect(run({ O2: "true", ACTOR: "o", OWNER: "o" }).status).toBe(1);
-    expect(run({ O2: "yes", ACTOR: "someone", OWNER: "o" })).toMatchObject({ status: 1, stdout: expect.stringMatching(/Only the repository's owner \(o\) starts a release, not someone/) });
-    expect(run({ O2: "yes", ACTOR: "o", OWNER: "o" }).status).toBe(0);
+});
+
+describe("release.yml", () => {
+  const wf = workflow("release.yml"), { "go-ahead": go, ...after } = wf.jobs, assets = wf.jobs.assets!;
+  it("runs only by hand, reads by default, and every job after the go-ahead waits on it and can't be forced to run", () => {
+    expect(Object.keys(wf.on)).toEqual(["workflow_dispatch"]);
+    expect([wf.permissions, go?.permissions, go?.if]).toEqual([{ contents: "read" }, undefined, undefined]);
+    expect(Object.keys(after)).toEqual(["assets"]);
+    for (const [name, job] of Object.entries(after)) expect([name, [job.needs].flat(), job.if]).toEqual([name, ["go-ahead"], undefined]);
+    expect(assets.permissions).toEqual({ contents: "write" });
+    const upload = assets.steps.at(-1)!;
+    expect([upload.name, upload.run]).toEqual(["Upload to the tag's draft release, replacing nothing", expect.stringMatching(/\ngh release upload "\$TAG" \.cache\/release\/assets\/\*\n$/)]);
+    expect(JSON.stringify(wf)).not.toMatch(/--clobber/);
+  });
+  it("gives its write token to the upload step alone: none at job level, none kept by the checkout, no install scripts", () => {
+    expect(assets.env).toEqual({ TAG: "${{ inputs.tag }}" });
+    const steps = Object.values(wf.jobs).flatMap((j) => j.steps), tokened = steps.filter((s) => /github\.token|secrets\./.test(JSON.stringify(s)));
+    expect(tokened.map((s) => [s.name, s.env])).toEqual([["Upload to the tag's draft release, replacing nothing", { GH_TOKEN: "${{ github.token }}" }]]);
+    expect(steps.filter((s) => s.uses?.startsWith("actions/checkout@")).map((s) => s.with?.["persist-credentials"])).toEqual(["false"]);
+    expect(steps.filter((s) => /^npm (ci|install)\b/.test(s.run ?? "")).map((s) => s.run)).toEqual(["npm ci --ignore-scripts"]);
+    for (const s of steps) {
+      if (s.uses) expect(s.uses, "an action pinned by commit SHA").toMatch(/@[0-9a-f]{40}$/);
+      expect(s.run ?? "", "inputs reach the shell only through env").not.toMatch(/\$\{\{/);
+    }
+  });
+  it("fails closed: nothing runs unless the owner set M3A_O2_RELEASE_ASSETS to yes and started both the run and this attempt", () => {
+    const step = go!.steps.find((s) => s.name === "O2 answered by the owner, or nothing runs")!;
+    expect(step.env).toEqual({ O2: "${{ vars.M3A_O2_RELEASE_ASSETS }}", ACTOR: "${{ github.actor }}", TRIGGER: "${{ github.triggering_actor }}", OWNER: "${{ github.repository_owner }}" });
+    const run = (env: Record<string, string>) => spawnSync("bash", ["-c", step.run!], { env: { PATH: process.env.PATH!, ...env }, encoding: "utf8" });
+    expect(run({ ACTOR: "o", TRIGGER: "o", OWNER: "o" })).toMatchObject({ status: 1, stdout: expect.stringMatching(/^::error title=release::O2 is unanswered/) });
+    expect(run({ O2: "true", ACTOR: "o", TRIGGER: "o", OWNER: "o" }).status).toBe(1);
+    expect(run({ O2: "yes", ACTOR: "someone", TRIGGER: "someone", OWNER: "o" })).toMatchObject({ status: 1, stdout: expect.stringMatching(/Only the repository's owner \(o\) starts a release or re-runs one, not someone/) });
+    expect(run({ O2: "yes", ACTOR: "o", TRIGGER: "someone", OWNER: "o" })).toMatchObject({ status: 1, stdout: expect.stringMatching(/\(this attempt: someone\)/) }); // a re-run by someone else
+    expect(run({ O2: "yes", ACTOR: "o", OWNER: "o" }).status).toBe(1);
+    expect(run({ O2: "yes", ACTOR: "o", TRIGGER: "o", OWNER: "o" }).status).toBe(0);
+  });
+  it("packages each set with the license texts its own _set.json's sources name, not the index's record of them", () => {
+    const script = assets.steps.find((s) => s.name?.startsWith("Package each set"))!.run!, plan = script.slice(0, script.indexOf("\n", script.indexOf('> "$out/plan.txt"')) + 1);
+    const dir = scratch("plan"), index = committed(), sets = Object.keys(index.core);
+    index.core.CMU_CURATED!.versions.at(-1)!.licenses = ["CC0-1.0"]; // a record edited by hand
+    mkdirSync(join(dir, "library"));
+    writeFileSync(join(dir, "library/index.json"), indexText(index));
+    for (const s of sets) cpSync(join(ROOT, "library/sets", s, "_set.json"), join(dir, "library/sets", s, "_set.json"));
+    expect(spawnSync("bash", ["-c", plan], { cwd: dir, encoding: "utf8" }).status).toBe(0);
+    const lines = readFileSync(join(dir, ".cache/release/plan.txt"), "utf8").trim().split("\n");
+    const own = (s: string) => [...new Set(Object.values((JSON.parse(readFileSync(join(ROOT, "library/sets", s, "_set.json"), "utf8")) as { sources: Record<string, { license: string }> }).sources).map((x) => x.license))].sort();
+    expect(lines).toEqual(sets.map((s) => [s, index.core[s]!.versions.at(-1)!.v, ...own(s).map((l) => `LICENSES/${l}.txt`)].join(" ")));
+    expect(lines).toContain("CMU_CURATED 1 LICENSES/LicenseRef-CMU-Mocap.txt");
+    for (const l of lines.flatMap((x) => x.split(" ").slice(2))) expect(() => readFileSync(join(ROOT, "library", l)), l).not.toThrow();
+  });
+});
+
+describe("library-gates.yml", () => {
+  it("runs the library-pr gates (the index's history check among them) on pull requests that touch the sets, the index or the registry", () => {
+    const wf = workflow("library-gates.yml");
+    expect(wf.on).toEqual({ pull_request: { paths: ["library/sets/**", "library/index.json", "tools/release/registry.json"] } });
+    expect(Object.values(wf.jobs).flatMap((j) => j.steps).map((s) => s.run).filter(Boolean)).toContain("npm run gate -- library-pr --json");
   });
 });

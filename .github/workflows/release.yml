@@ -1,9 +1,11 @@
 # The release (PLAN.md WP-9.4, subject to O2): each core set's latest version in library/index.json packaged as a
-# reproducible .tar.gz (SET-vN: its files and license texts), unpacked and verified from the index, and uploaded with
-# the index to the tag's draft release, never replacing an asset (versions are immutable). It runs only by hand, and
-# fails closed: its first job stops the run before anything is checked out, built or uploaded unless the repository
-# variable M3A_O2_RELEASE_ASSETS is "yes" (the owner's answer to O2; only an admin sets one) and the repository's owner
-# started it. Actions are pinned by commit SHA (principle 9); the comment names the release.
+# reproducible .tar.gz (SET-vN: its files and the texts of the licenses its _set.json's sources name), unpacked and
+# verified from the index, and uploaded with the index to the tag's draft release, never replacing an asset (versions
+# are immutable). It runs only by hand, and fails closed: its first job stops the run before anything is checked out,
+# built or uploaded unless the repository variable M3A_O2_RELEASE_ASSETS is "yes" (the owner's answer to O2; only an
+# admin sets one) and the repository's owner both started the run and started this attempt (a re-run by anyone else
+# stops). The write token reaches the upload step alone: the checkout keeps no credentials and npm ci runs no install
+# scripts. Actions are pinned by commit SHA (principle 9); the comment names the release.
 name: release
 
 on:
@@ -30,14 +32,15 @@ jobs:
         env:
           O2: ${{ vars.M3A_O2_RELEASE_ASSETS }}
           ACTOR: ${{ github.actor }}
+          TRIGGER: ${{ github.triggering_actor }}
           OWNER: ${{ github.repository_owner }}
         run: |
           if [ "$O2" != "yes" ]; then
             echo "::error title=release::O2 is unanswered (the repository variable M3A_O2_RELEASE_ASSETS isn't \"yes\"): nothing is packaged or uploaded. The owner answers O2 (PLAN.md §13), then sets it."
             exit 1
           fi
-          if [ "$ACTOR" != "$OWNER" ]; then
-            echo "::error title=release::Only the repository's owner ($OWNER) starts a release, not $ACTOR: nothing is packaged or uploaded."
+          if [ "$ACTOR" != "$OWNER" ] || [ "$TRIGGER" != "$OWNER" ]; then
+            echo "::error title=release::Only the repository's owner ($OWNER) starts a release or re-runs one, not $ACTOR (this attempt: $TRIGGER): nothing is packaged or uploaded."
             exit 1
           fi
 
@@ -50,22 +53,23 @@ jobs:
       contents: write # the assets go onto the tag's draft release
     env:
       TAG: ${{ inputs.tag }}
-      GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ inputs.tag }}
+          persist-credentials: false
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24.21.0
           cache: npm
-      - run: npm ci
+      - run: npm ci --ignore-scripts
       - run: npm run index -- --check
       - name: Package each set's latest version, unpack it and verify it from the index
         run: |
           out=.cache/release
           rm -rf "$out" && mkdir -p "$out/assets"
-          node -e 'for (const [s, e] of Object.entries(require("./library/index.json").core)) { const v = e.versions.at(-1); if (!e.yanked && !v.yanked) console.log(s, v.v, v.licenses.map((l) => `LICENSES/${l}.txt`).join(" ")) }' > "$out/plan.txt"
+          # each set's license texts from its own _set.json's sources, never from the index's record of them
+          node -e 'const fs = require("node:fs"); for (const [s, e] of Object.entries(require("./library/index.json").core)) { const v = e.versions.at(-1); if (e.yanked || v.yanked) continue; const m = JSON.parse(fs.readFileSync(`library/sets/${s}/_set.json`, "utf8")); console.log(s, v.v, [...new Set(Object.values(m.sources).map((x) => x.license))].sort().map((l) => `LICENSES/${l}.txt`).join(" ")) }' > "$out/plan.txt"
           while read -r set v licenses; do
             # shellcheck disable=SC2086 # the license texts are separate words
             tar --sort=name --mtime=@0 --owner=0 --group=0 --numeric-owner --mode=a+rX,go-w -C library -cf - "sets/$set" $licenses | gzip -n -9 > "$out/assets/$set-v$v.tar.gz"
@@ -74,6 +78,8 @@ jobs:
           done < "$out/plan.txt"
           cp library/index.json "$out/assets/index.json"
       - name: Upload to the tag's draft release, replacing nothing
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           gh release view "$TAG" > /dev/null 2>&1 || gh release create "$TAG" --draft --verify-tag --title "$TAG" --notes "The library's sets as release assets (PLAN.md WP-9.4): verify one with npm run index -- verify <SET> <dir>."
           gh release upload "$TAG" .cache/release/assets/*
