@@ -4695,7 +4695,10 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
     seed, unlike the sweep's and the gallery's parse; the tools' descriptions now cost 3,189 of their 3,200 tokens;
     the registry tells an argument off every form what is wrong in the one form of its type; first-flight drops
     hello's deep-link test (the lab's UI, not the package) and requires G4's held-out rig; the census's later counts
-    take about 0.13 s, from 0.8 s; T1's graders run one planted case each (22 s of T1, from 34.5), T2 all.
+    take about 0.13 s, from 0.8 s; T1's graders run one planted case each (22 s of T1, from 34.5), T2 all; after CI's T1 reached 138 s, the runner's
+    variant trial, the sweep's clip-by-skeleton sample, B3's Rigify known-good and two thirds of the token counts
+    move to T2's full step too, the census's equality proof with them, and T1 reads every ninth locomotion loop's planted
+    feet (every third before): T1's file time 250 s, from 287.
 - **Why:** what needs nothing from the owner is done rather than listed; what changes graded, frozen or decided ground
   waits with its reason written down.
 - **Answered:** no: made without a response, to review.

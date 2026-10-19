@@ -26,7 +26,7 @@ import { pack } from "./pack.ts";
 import { answersIn, QUIZ, quizPrompt, score } from "./quiz.ts";
 import { copySkill, SKILL } from "./workspace.ts";
 
-const ROOT = join(import.meta.dirname, "../..");
+const ROOT = join(import.meta.dirname, "../.."), FULL = process.env.M3A_FULL === "1";
 /** The init event that opens a stream-json transcript, as the CLI writes it (claude 2.1.302), m3a's server `status`. */
 const init = (status: string, skills = ["m3a"]) => JSON.stringify({ type: "system", subtype: "init", tools: ["Bash", "Skill"], mcp_servers: [{ name: "m3a", status, source: "dynamic" }], skills });
 /** A stand-in `claude` in `home`'s bin/ (the agent's user reads it there), running `script`; returns that directory. */
@@ -424,7 +424,8 @@ describe("trials", () => {
     // and its tools work on the installed library, the CC0 default pack: a search finds a clip there
     expect([mcp.called.isError, mcp.called.content?.[0]?.text]).toEqual([false, expect.stringMatching(/^search "walk": 1 of \d+ clips \(tiers cc0\)\n(QUATERNIUS_3D2DGE|QUATERNIUS_SHARDFALL|MESH2MOTION)\//)]);
   }, 300_000);
-  it("runs a variant given by path, its known-good solution first: on a character from a seed outside the test set; there a trial whose agent's MCP server failed fails, though it grades", async () => {
+  // the variant trial runs in T2's full step (M3A_FULL=1, D74, D119: T1's margin); the fake trial above stays in T1
+  it.runIf(FULL)("runs a variant given by path, its known-good solution first: on a character from a seed outside the test set; there a trial whose agent's MCP server failed fails, though it grades", async () => {
     const dir = join(base, "variant");
     mkdirSync(dir, { recursive: true });
     writeFileSync(join(dir, "brief.md"), "# B1, reworded\nMake the character idle, walk and run by speed (see the starter).\n");

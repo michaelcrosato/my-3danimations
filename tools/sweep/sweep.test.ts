@@ -10,6 +10,7 @@
 // passing pair it warned (D88); and a fixed sample's rows are 1bf5252's byte for byte, its judge still its own (WP-7.2b
 // moved it to @m3a/tools). How many clips pass is not checked here: that is gate G4's bar (95% over its six skeletons
 // and the whole library, PLAN.md §9.3).
+// The clip-by-skeleton sample plays in T2's full step (M3A_FULL=1, D119: T1's margin); T1 runs the CLI on four clips.
 import { execFileSync, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
@@ -24,7 +25,7 @@ import { libraryClips, sample, type LibraryClip } from "../qa/qa.ts";
 import { sweepRecord, type SweepResults } from "./record.ts";
 import { heldout, likeFor, rigOf, sweepOne, type SweepRow } from "./sweep.ts";
 
-const RIGS = ["gen-0", "gen-7"];
+const RIGS = ["gen-0", "gen-7"], FULL = process.env.M3A_FULL === "1";
 /**
  * The pinned rows' clips, fixed ids (not sample(), so a library growing elsewhere doesn't move them): a pass, a fail on
  * one skeleton, a fail on both past the clip's own level, a warn only gen-0 adds, a side run and a 0.17 s aim.
@@ -72,7 +73,8 @@ function rawResults(): SweepResults {
 }
 
 describe("the sweep", () => {
-  it("plays each clip on each skeleton, and lists a broken clip as a failure with its reason", async () => {
+  // T2's full step (M3A_FULL=1, D74, D119: T1's margin); T1 runs the sweep's CLI on four clips below
+  it.runIf(FULL)("plays each clip on each skeleton, and lists a broken clip as a failure with its reason", async () => {
     const clips = sample(lib(), 8), rows: SweepRow[] = [];
     // and the broken walk, one key's pelvis not a number
     for (const rig of RIGS) {

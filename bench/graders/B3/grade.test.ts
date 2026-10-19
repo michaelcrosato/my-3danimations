@@ -63,7 +63,8 @@ describe("B3's grader", () => {
       }
     }, 300_000);
   }
-  it("passes the known-good reactor on a rigify character (gen-7), whose hips the starter's check finds as the grader does", async () => {
+  // T2's full step (M3A_FULL=1, D119: T1's margin)
+  it.runIf(FULL)("passes the known-good reactor on a rigify character (gen-7), whose hips the starter's check finds as the grader does", async () => {
     const g = await grade("good", good, { seed: 7 });
     expect(g.pass, text(g)).toBe(true);
     // the starter's `npm run check` in that workspace: the hips' height every half second, standing, down after the

@@ -19,7 +19,7 @@ const lib = library((set) => !set.startsWith("STYLE100_"));
 const byId = (id: string) => lib.find((x) => x.id === id)!;
 
 describe("planted feet don't slide", () => {
-  it("on every locomotion loop (every third in T1) of the sets from before 100STYLE's other gaits: at most 10 mm per contact (unplanted, they slide up to tens of mm)", () => {
+  it("on every locomotion loop (every ninth in T1) of the sets from before 100STYLE's other gaits: at most 10 mm per contact (unplanted, they slide up to tens of mm)", () => {
     const { clips, worst, at, worstFree } = locomotionSlides(lib);
     expect(clips).toBeGreaterThan(120 / SAMPLE);
     expect(worst, at).toBeLessThanOrEqual(10);

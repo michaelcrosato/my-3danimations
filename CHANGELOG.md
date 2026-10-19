@@ -38,7 +38,10 @@ The audit's large items (D119): six built, the rest deferred with their reasons 
 - e2e `first-flight`: G4's demo set and session (idle, walk, run, jump, attack with its hit) on the six skeletons and
   the held-out rig, sensors green, page = Node hash for hash, on the public API; `apps/lab/hello`, its e2e,
   `tools/run/hello.ts` and `npm run hello` retired.
-- T1 runs one planted case each of B1, B3, B4 and B7's graders and T2 all of them (the graders' T1 time 22 s, from 34.5).
+- T1 samples and T2 runs in full (D74): one planted case each of B1, B3, B4 and B7's graders, B3's Rigify known-good,
+  the runner's variant trial, the sweep's clip-by-skeleton sample, the intake census's equality proof, every ninth
+  clip's token count and every ninth locomotion loop's planted feet (every third before): T1's work 250 s of file
+  time, from 287; CI's T1 had reached 138 s of its 135 s mark.
 - doctrine: `@m3a/tools` may reach `@m3a/three` only through `test-characters/generate`.
 
 ## 0.53.1 · 2026-10-19

@@ -82,12 +82,13 @@ describe("the checker", () => {
     expect(await runCli(status, ["library", "status", idOf("bad-license")], { print: (t) => void (text += t), write: () => {} })).toBe(1);
     expect(text).toMatch(/bounced: license: provenance.license "CC-BY-NC-4.0" isn't on the intake's allowlist/);
   });
-  it("counts the census a run reads as the whole census does, its submissions' clips the same objects run after run (D119)", async () => {
+  // the whole census too, so in T2's full step (M3A_FULL=1, D74, D119: T1's margin)
+  it.runIf(FULL)("counts the census a run reads as the whole census does, its submissions' clips the same objects run after run (D119)", async () => {
     // the fixtures' clips as the census reads them (each that is a clip on a rest), the same objects the run counted
     const all = await store("checker").list(), added = censusClips(all, c), again = censusClips(all, c);
     expect([added.length > 0, added.every((x, i) => x === again[i])]).toEqual([true, true]);
     expect(c.census(added)).toEqual(census([...c.pool, ...added], c.cc0));
-  });
+  }, 30_000);
   it("shows an improvement's diff against the clip it improves in the review queue", async () => {
     const r = await review({}), s = (r.data as { submissions: { id: string; diff: { against: string; max: number } | null }[] }).submissions;
     expect(s.map((x) => x.id).sort()).toEqual(["clean", "improvement", "improvement-cc-by", "improvement-of-a-twin"].map(idOf).sort());

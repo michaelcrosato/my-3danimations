@@ -1,8 +1,8 @@
 // The contact tests' helpers (Node only: they read the library): a clip as planting reads it, the worst slide of its
 // planted feet, and every locomotion loop's worst slide, planted and free, over the sets a test names. Shared by
 // contact.test.ts and contact-gaits, contact-sidesteps and contact-siderun.test.ts, which split the library's
-// locomotion loops between them so they run side by side. T1 reads every third loop; T2 (`npm run e2e`) reads them all
-// (M3A_FULL=1), so T1 stays within its budget (D74).
+// locomotion loops between them so they run side by side. T1 reads every ninth loop (every third before D119);
+// T2 (`npm run e2e`) reads them all (M3A_FULL=1), so T1 stays within its budget (D74).
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { contactRoot, decodePose, IDX, keyAt, measureFacts, parseClip, plant, toWorld, type Clip, type Contacts, type Motion, type Playable, type Rest } from "./all.ts";
@@ -66,7 +66,7 @@ export function library(keep: (set: string) => boolean = () => true): LibClip[] 
 }
 
 /** The library-wide sweeps in full (T2 sets M3A_FULL=1), or every SAMPLE-th clip (T1). */
-export const FULL = process.env.M3A_FULL === "1", SAMPLE = FULL ? 1 : 3;
+export const FULL = process.env.M3A_FULL === "1", SAMPLE = FULL ? 1 : 9;
 
 /**
  * Every looping walk, run or sidestep among `lib` that travels (a walk on the spot has nothing to slide against), or
