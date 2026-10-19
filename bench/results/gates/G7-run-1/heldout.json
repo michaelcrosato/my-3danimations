@@ -1,0 +1,164 @@
+{
+ "write": {
+  "files_read": [
+   "PLAN.md (only section 7, lines 587-641, plus a grep of its '## ' headings to find it)",
+   "docs/DECISIONS.md (only the D78 entry, lines 3036-3054; a grep for D78 to locate it also printed single matching lines from D77, D79, D84 and a later entry, and nothing else of them was read)",
+   "bench/briefs/B1.md",
+   "bench/briefs/B2.md",
+   "bench/briefs/B3.md",
+   "bench/briefs/B4.md",
+   "bench/briefs/B5.md",
+   "bench/briefs/B6.md",
+   "bench/briefs/B7.md",
+   "bench/starters/B1/README.md",
+   "bench/starters/B1/package.json",
+   "bench/starters/B1/check.ts",
+   "bench/starters/B1/src/character.ts",
+   "bench/starters/B1/src/player.ts",
+   "bench/starters/B1/src/sheet.ts",
+   "bench/starters/B2/README.md",
+   "bench/starters/B2/package.json",
+   "bench/starters/B2/check.ts",
+   "bench/starters/B2/strike.ts",
+   "bench/starters/B2/src/character.ts",
+   "bench/starters/B2/src/fighter.ts",
+   "bench/starters/B3/README.md",
+   "bench/starters/B3/package.json",
+   "bench/starters/B3/check.ts",
+   "bench/starters/B3/src/character.ts",
+   "bench/starters/B3/src/reactor.ts",
+   "bench/starters/B4/README.md",
+   "bench/starters/B4/package.json",
+   "bench/starters/B4/check.ts",
+   "bench/starters/B4/src/character.ts",
+   "bench/starters/B4/src/sneak.ts",
+   "bench/starters/B5/README.md",
+   "bench/starters/B5/package.json",
+   "bench/starters/B5/check.ts",
+   "bench/starters/B5/emote.json",
+   "bench/starters/B6/README.md",
+   "bench/starters/B6/package.json",
+   "bench/starters/B6/check.ts",
+   "bench/starters/B6/punch.json",
+   "bench/starters/B7/README.md",
+   "bench/starters/B7/package.json",
+   "bench/starters/B7/check.ts",
+   "bench/starters/B7/graph.json",
+   "bench/starters/B7/script.json",
+   "bench/starters/B7/src/character.ts",
+   "bench/graders/B1/grade.ts",
+   "bench/graders/B2/grade.ts",
+   "bench/graders/B3/grade.ts",
+   "bench/graders/B4/grade.ts",
+   "bench/graders/B5/grade.ts",
+   "bench/graders/B6/grade.ts",
+   "bench/graders/B7/grade.ts",
+   "bench/graders/bones.ts",
+   "bench/graders/recipes.ts",
+   "packages/three/test-characters/characters.ts",
+   "packages/three/test-characters/variants.ts",
+   "packages/three/test-characters/index.ts",
+   "packages/three/test-characters/load.ts",
+   "packages/three/package.json (only its exports field, printed with node -e, to resolve imports for a scratch script)",
+   "tools/fixtures/fixtures.ts",
+   "bench/results/heldout/G4/run-1/B1/brief.md",
+   "bench/results/heldout/G4/run-1/B1/character.json",
+   "bench/results/heldout/G4/run-1/rig.json",
+   "bench/results/heldout/G4/run-2/B1/brief.md",
+   "bench/results/heldout/G4/run-2/B1/character.json",
+   "bench/results/heldout/G4/run-2/rig.json",
+   "bench/results/heldout/G6/run-1/B2/brief.md",
+   "bench/results/heldout/G6/run-1/B2/character.json",
+   "bench/results/heldout/G6/run-1/B3/brief.md",
+   "bench/results/heldout/G6/run-1/B3/character.json",
+   "bench/results/heldout/G6/run-1/B5/brief.md",
+   "bench/results/heldout/G6/run-1/B5/character.json",
+   "bench/results/heldout/G6/run-1/B6/brief.md",
+   "bench/results/heldout/G6/run-1/B6/character.json",
+   "bench/results/heldout/G6/run-1/B7/brief.md",
+   "bench/results/heldout/G6/run-1/B7/character.json"
+  ],
+  "variants": [
+   {
+    "brief": "/home/user/my-3danimations/bench/results/heldout/G7/run-1/B1/brief.md: 'B1 (held-out) \u00b7 Smithy rounds'. A village smith in a village-life game stands, walks and runs by the stick's speed. createPlayer in src/player.ts, src/sheet.ts, speeds.json, npm run check and npm run sheet, and the full pass rule are unchanged.",
+    "seed": 1287,
+    "character": "gen-1287: bulky build, T-pose rest, Rigify naming (DEF-spine to DEF-spine.006, DEF-upper_arm.L and so on), twist bones inside the limb chains (DEF-upper_arm.L.001, DEF-forearm.L.001, DEF-thigh.L.001), shoulder bones left out. 27 bones, hips about 1.0 m up (H0 1047 mm), about 1.85 m tall, upper-arm heads 0.56 m apart.",
+    "how_it_differs": "Original B1 has an unnamed character and a plain game framing, and G4 used a heroic Mixamo seed (401) plus real rigs. This variant has a new scene and wording, and a bulky Rigify body with twist bones in the chain and no clavicles, so the arms hang straight off the chest. Speeds are still given only through speeds.json and the hip-height scaling rule."
+   },
+   {
+    "brief": "/home/user/my-3danimations/bench/results/heldout/G7/run-1/B2/brief.md: 'B2 (held-out) \u00b7 Dojo pads'. A child student punches pads in a martial-arts game. createFighter in src/fighter.ts, damage(10) once per punch, strike.ts, the two presses and the full strike-window pass rule are unchanged.",
+    "seed": 1618,
+    "character": "gen-1618: child build, A-pose rest, UE5 naming (root bone on the floor, pelvis, spine_01 to spine_05, clavicle_l, upperarm_l, calf_r, ball_r), no twist bones, neck bone left out (head directly on spine_05). 24 bones, hips about 0.7 m up (H0 715 mm), about 1.3 m tall.",
+    "how_it_differs": "G6's B2 was a bulky UE5 brawler in relaxed pose. This one is a small child in an A-pose with UE5 names and no neck, in a dojo setting instead of a bar brawl. The wording is new and the contract is unchanged."
+   },
+   {
+    "brief": "/home/user/my-3danimations/bench/results/heldout/G7/run-1/B3/brief.md: 'B3 (held-out) \u00b7 Snowball crossing'. A postman crossing a snowball fight flinches at light hits and is bowled over by heavy ones. createReactor in src/reactor.ts, speed in hip heights a second, hit 'light'/'heavy', the 13 s timetable, the two-run comparison and every threshold are unchanged.",
+    "seed": 1469,
+    "character": "gen-1469: tall, thin build, relaxed rest (arms about 70 degrees down), Mixamo naming (mixamorig:Hips and so on, centimetre offsets under the armature's 0.01 scale), Roll twist leaves on upper arms, forearms and thighs, chest and upperChest left out (Spine runs straight to Neck). 26 bones, hips about 1.24 m up (H0 1248 mm), about 2.15 m tall.",
+    "how_it_differs": "G6's B3 used a child VRM. This one uses the longest body the generator makes, with Mixamo centimetre scaling, Roll twist bones and a two-bone spine. The scene is a winter fair. One clause states the grader exactly: the hips are back above 85% within 3 s of rising past 15%."
+   },
+   {
+    "brief": "/home/user/my-3danimations/bench/results/heldout/G7/run-1/B4/brief.md: 'B4 (held-out) \u00b7 Hide-and-seek avatar'. A VRM avatar in a social world sneaks for a hide-and-seek minigame. createSneaker in src/sneak.ts, the 6 s drive, root motion, the m3a sensors check and every sneak, step, standing-foot, slide/skate and sensor criterion are unchanged.",
+    "seed": 1340,
+    "character": "gen-1340: chibi build (head about a third of its 1.03 m), relaxed rest, VRM 1.0 humanoid naming (1340 mod 4 = 0; variants.ts NAMINGS[s % 4] puts vrm at index 0), twist leaves (leftUpperArmTwist, leftLowerArmTwist, leftUpperLegTwist and the right side's), toe bones left out. 26 bones, hips about 0.42 m up (H0 446 mm).",
+    "how_it_differs": "The original says only 'VRM 1.0 names, proportions unlike the capture'. This variant uses the most extreme proportions (chibi), with VRM twist leaves and no toe bones, in a social-VR hide-and-seek scene. The VRM naming is kept as B4 requires."
+   },
+   {
+    "brief": "/home/user/my-3danimations/bench/results/heldout/G7/run-1/B5/brief.md: 'B5 (held-out) \u00b7 Regatta cheer'. Dock crew celebrate boats crossing the line. emote.json, a two-handed wave with a hop, 1.5 s looping, npm run check, and the full pass rule (checks, length and loop, sensors, describe 'in the air', wrists above head, side-to-side 10% with two turns, plays on character.glb) are unchanged.",
+    "seed": 1171,
+    "character": "gen-1171: heroic, athletic build, A-pose rest, Rigify naming, no twist bones, upperChest left out (no DEF-spine.003, so neck and arms hang from DEF-spine.002). 22 bones, hips about 1.04 m up (H0 1057 mm), about 1.87 m tall.",
+    "how_it_differs": "G6's B5 used a chibi Mixamo body in a T-pose on a mountaintop. This one is a heroic Rigify body in an A-pose with a short spine, at a sailing regatta. The character matters to this grader only for the playsOn check, and the wording is new."
+   },
+   {
+    "brief": "/home/user/my-3danimations/bench/results/heldout/G7/run-1/B6/brief.md: 'B6 (held-out) \u00b7 Pocket champion's left'. The newest fighter in a mobile chibi boxing game needs a left-handed punch. punch.json editing MESH2MOTION/Punch_Cross, 30% faster, a wind-up of at least 4% of the hip height, mirrored to the left, and the full pass rule are unchanged.",
+    "seed": 1830,
+    "character": "gen-1830: chibi build (head about a third of its 1.05 m), T-pose rest, UE5 naming with root bone, twist leaves (upperarm_twist_01_l, lowerarm_twist_01_l, thigh_twist_01_l and the right side's), every optional bone present. 31 bones, the most of the seven, hips about 0.43 m up (H0 456 mm).",
+    "how_it_differs": "G6's B6 used a heroic Rigify body with an A-pose. This one is a chibi UE5 body with twist leaves and a full skeleton, set in a mobile boxing game. The wording is new and the contract is unchanged."
+   },
+   {
+    "brief": "/home/user/my-3danimations/bench/results/heldout/G7/run-1/B7/brief.md: 'B7 (held-out) \u00b7 Log yard'. A lumberjack crosses a log yard: walking, running, jumping gaps and stepping off piles. graph.json with speed/grounded/jump, the five base-layer states, the grounded-only jump, landing on contact, script.json, and every timed pace, order, jump and land criterion are unchanged.",
+    "seed": 1537,
+    "character": "gen-1537: bulky build, A-pose rest, Mixamo naming (centimetres under the 0.01 armature scale), no twist bones, upperChest left out (no mixamorig:Spine2). 21 bones, hips about 1.04 m up (H0 1082 mm), about 1.88 m tall, upper-arm heads 0.59 m apart.",
+    "how_it_differs": "G6's B7 used a tall, thin Mixamo body in relaxed pose. This one is heavy and broad, in an A-pose, with a shortened spine. The 'step off something' becomes stepping off a log pile. The pass-rule phrasing about 0.2 s before each change of speed is kept as the original has it, without G6's added list of times."
+   }
+  ],
+  "notes": "I wrote seven variants, B1 to B7, in /home/user/my-3danimations/bench/results/heldout/G7/run-1/, each with brief.md and character.json in G6's `{\"seed\": n}` format. Seeds: B1 1287, B2 1618, B3 1469, B4 1340, B5 1171, B6 1830, B7 1537. Nothing outside that folder changed, and nothing is committed (git status shows only `?? bench/results/heldout/G7/`).\n\n**Freshness check:** `npm run fixtures -- heldout G7` passes: \"run-1 is fresh: no gate run used it; no rig: seeds only; seeds B1 1287, B2 1618, B3 1469, B4 1340, B5 1171, B6 1830, B7 1537, none of the 32 used (WP-4.2's, the tests', other runs')\". Before choosing, I ran fixtures.ts usedSeeds() from a scratch script. The used set was 0-19, 29, 37, 40, 41, 44, 401, 722, 765, 808, 809, 871 and 935.\n\n**How the generator maps a seed** (variants.ts `variant(s)`):\n- build = [chibi, heroic, bulky, child, tall][s % 5]\n- rest = [T, A, relaxed][s % 3]\n- naming = [vrm, mixamo, ue5, rigify][s % 4], so a VRM needs s % 4 == 0. B4's 1340 qualifies.\n- twist bones = floor(s / 4) % 2 == 1\n- left-out bones = [none, upperChest, toes, shoulders, neck, chest+upperChest][s % 6]\n- bone lengths vary by \u00b14% per seed.\n\nI ran `variant`, `skeletonOf` and `character` plus `bind` on each chosen seed to get the build, rest, naming, twist bones, left-out bones, bone count, hips height, H0, height and shoulder width that each brief describes.\n\n**Spread across the seven:**\n- Builds: bulky (B1, B7), child (B2), tall (B3), chibi (B4, B6), heroic (B5).\n- Namings: Rigify (B1, B5), UE5 (B2, B6), Mixamo (B3, B7), VRM (B4).\n- Twist bones on B1, B3, B4 and B6.\n- Rests: T (B1, B6), A (B2, B5, B7), relaxed (B3, B4).\n- Each of the six left-out-bone patterns appears at least once.\n\n**Contract:** each brief keeps its original's file names, function signatures, inputs, `npm run check`, `npm run sheet` and `strike.ts` / `script.json` / `speeds.json` references, and every threshold. I checked these against each grade.ts. Only the scene, the names in the prose, the wording and the character description changed.\n\n**Known-good risk:** two choices may stress the known-good solutions that the gate must run on each variant before trials:\n- B4 is a toe-less, relaxed-pose chibi VRM with twist leaves.\n- B6 is a chibi; its grader only plays the clip on that body.\n\n**Not read, to respect the D91 read bar:**\n- AGENTS.md. The project CLAUDE.md points to it, but the task's read list excludes it. I made no code changes.\n- bench/results/heldout/G4/run-1/B1-seed935-known-good.json, whose name marks it as a known-good result.\n- MANUAL.md, any known-good directory, grade.test.ts (its seeds reached me only through usedSeeds and the fixtures command), D76 and D77, bench/results/gates/**, and the transcripts.\n\nDirectory listings did show file names inside known-good folders, but no contents. A git log of bench/results/heldout showed the commit subject 'G6 passed'.\n\n**Scratch scripts**, in /tmp/claude-0/-home-user-my-3danimations/594ff143-fba5-50a8-8a84-864f0337a6f2/scratchpad/: used.ts, enum.ts, desc.ts and desc2.ts."
+ },
+ "check": {
+  "pass": true,
+  "read_bar_ok": true,
+  "problems": [
+   {
+    "brief": "B4, B5, B6, B7",
+    "what": "These four reuse more of their originals' wording than B1 to B3. Measured as the share of the original's 6-word runs that reappear in the variant: B4 0.38, B5 0.39, B6 0.38, B7 0.41, against B1 0.21, B2 0.19 and B3 0.29. That is about the level of G6's B6 (0.37), which D91 recorded as a nit. Most of the overlap is in the pass-rule lists, the parameter definitions and the file paths, which have to match the original. The scene, the character description and the job's prose are new.",
+    "fix": "Optional: none needed for validity. If the variant is rewritten, rephrase B7's parameter and state paragraphs further.",
+    "severity": "nit"
+   },
+   {
+    "brief": "B5",
+    "what": "The brief says \"the neck and arms hang from `DEF-spine.002`\". In gen-1171 the neck (DEF-spine.004) and the shoulder bones (DEF-shoulder.L/.R) hang from DEF-spine.002, and the upper arms hang from the shoulder bones, so the arms hang from DEF-spine.002 only through the shoulders. This is loose wording, not a wrong naming or a wrong missing bone.",
+    "fix": "Optional: write \"the neck and shoulders hang from `DEF-spine.002`\".",
+    "severity": "nit"
+   },
+   {
+    "brief": "B5",
+    "what": "The regatta scene (\"Regatta cheer\", \"celebrate\") points toward the CC0 catalog's `cheer` tag. That tag holds MESH2MOTION/Victory, which the known-good uses for its hop, and Cheering_Two_Hands, a two-handed overhead wave. The wording does not come from the known-good's text, the original's \"emote\" already leads to the same clips, and G6's accepted B5 variant (\"Summit cheer\") used the same celebration framing.",
+    "fix": "None needed. Note it in case B5's variant pass rate stands out.",
+    "severity": "nit"
+   },
+   {
+    "brief": "B4, B5, B6, B7",
+    "what": "The quoted hip heights do not use one measure. B4 (0.42 m) and B6 (0.43 m) give the generated hips bone (0.424 and 0.432; H0 is 0.446 and 0.456). B5 and B7 both say about 1.05 m, which falls between the bone (1.037 and 1.038) and H0 (1.057 and 1.082). Every figure is introduced with \"about\" and is within about 3 to 6% of H0. The grader scales by H0, and agents read H0 from bind.",
+    "fix": "Optional: quote one measure throughout, for example H0 rounded.",
+    "severity": "nit"
+   },
+   {
+    "brief": "B3",
+    "what": "The brief states the get-up rule more precisely than the original: \"within 3 s of rising past 15% they are back above 85%\" where the original says \"then are back above 85% within 3 s\". It matches the grader exactly (bench/graders/B3/grade.ts:92-93, standAt - upAt <= 180 frames), so the pass rule is unchanged, but this variant tells the agent slightly more than the original does.",
+    "fix": "None needed. The writer disclosed it.",
+    "severity": "nit"
+   }
+  ],
+  "notes": "G7's held-out run passes the check: no blocking or should-fix problems, five nits.\n\n**(1) Read bar: kept.** Everything the writer lists is within D91's bar:\n- PLAN.md \u00a77 and the D78 entry;\n- the briefs and the starters;\n- each grader's grade.ts, plus the helpers bones.ts and recipes.ts (a grader helper that B5's and B6's graders import);\n- the generator (packages/three/test-characters/*);\n- tools/fixtures/fixtures.ts;\n- the earlier held-out runs G4 run-1, G4 run-2 and G6 run-1.\n\nI reran its `grep D78` on docs/DECISIONS.md. It also prints single lines from D77 (line 2987), D79, D84 and D91 (lines 3317 and 3356). None of them describes a solution or a manual example. The D77 line is \"the briefs on real rigs; G6's variants are generator seeds (D78)\", and the D91 line restates the read bar. The writer read neither the manual, nor any known-good, nor G4's B1-seed935-known-good.json, nor a gate record. `git status` shows only `?? bench/results/heldout/G7/`.\n\n**(2) Each variant against its original.** I diffed all seven against bench/briefs/B1-B7.md and against each grade.ts. Each keeps:\n- the same job and starter;\n- the same files and functions: createPlayer/src/player.ts/src/sheet.ts/speeds.json/`npm run sheet`, createFighter/strike.ts/damage(10), createReactor with speed/hit and the 1/3/6/13 s timetable, createSneaker with 6 s and root motion, emote.json, punch.json on MESH2MOTION/Punch_Cross, and graph.json with speed/grounded/jump, the five states and script.json;\n- every pass-rule threshold.\n\nThe scenes, character names and wording are new. B6's claim that `npm run check` prints the original's numbers alongside matches bench/starters/B6/check.ts. Every title matches its scene, so G6's tavern nit does not recur. B6's brief says \"pulls back\", not \"wind-up\", so G6's other B6 nit is gone too.\n\nI compared against packages/tools/MANUAL.md (Swimmer, Torch_Walk, Climb_Up, the overhand throw's chest turn and lean) and against bench/graders/*/known-good:\n- the clips Idle_Loop, Walk_Loop and Jog_Fwd_Loop;\n- Punch_Jab and the hit event;\n- Hit_Head, Hit_Knockback and LayToIdle;\n- Crouch_Walk;\n- Victory over Help_Two_Arms;\n- the chest turn of 25 with \"wound\";\n- the air state.\n\nNo variant carries anything of them beyond what its original already says.\n\n**(3) Seeds: fresh.** `npm run fixtures -- heldout G7` passes: \"seeds B1 1287, B2 1618, B3 1469, B4 1340, B5 1171, B6 1830, B7 1537, none of the 32 used\". A grep of the whole repository (node_modules and .git excluded) finds none of the seven seeds outside G7. G7 grades B1 to B7 (PLAN \u00a79.3), so seven variants is complete. B4's seed 1340 leaves 0 over 4, which gives vrm, and the runner's naming check (bench/runner/main.ts:145) requires the same.\n\n**(4) Characters: each brief matches its seed.** I generated each with variant(), skeletonOf(), character() and bind():\n\n| Brief | Seed | Build | Rest | Naming | Twist bones | Left out | Bones | Hips bone / H0 | Height |\n|---|---|---|---|---|---|---|---|---|---|\n| B1 | 1287 | bulky | T | Rigify | in the chain | shoulders | 27 | 1.003 m / 1047 mm | 1.846 m |\n| B2 | 1618 | child | A | UE5 with root | none | neck | 24 | 0.699 m / 715 mm | 1.307 m |\n| B3 | 1469 | tall | relaxed | Mixamo | Roll leaves | chest and upperChest | 26 | 1.240 m / 1248 mm | 2.162 m |\n| B4 | 1340 | chibi | relaxed | VRM | Twist leaves | toes | 26 | 0.424 m / 446 mm | 1.034 m |\n| B5 | 1171 | heroic | A | Rigify | none | upperChest | 22 | 1.037 m / 1057 mm | 1.870 m |\n| B6 | 1830 | chibi | T | UE5 | twist_01 leaves | none | 31 | 0.432 m / 456 mm | 1.051 m |\n| B7 | 1537 | bulky | A | Mixamo | none | upperChest | 21 | 1.038 m / 1082 mm | 1.879 m |\n\nOther details also match:\n- B1's upper-arm heads are 0.560 m apart and B7's 0.585 m.\n- The chibi heads are about 35% of the height.\n- Every bone name the briefs quote exists in the generated skeleton.\n- The arm angles quoted (40\u00b0 for A, 70\u00b0 for relaxed) match ARM_DROP in characters.ts.\n\nI did not run the known-good solutions on the variants; the gate does that before the trials. The writer flagged B4 (a toe-less, relaxed chibi VRM with twist leaves) and B6 (a chibi) as the two to watch.\n\nMy scratch scripts are in /tmp/claude-0/-home-user-my-3danimations/594ff143-fba5-50a8-8a84-864f0337a6f2/scratchpad/chk/ (gen.ts, cat.ts and overlap.py). I wrote nothing in the repository."
+ }
+}

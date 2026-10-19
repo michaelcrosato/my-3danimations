@@ -1,0 +1,228 @@
+{
+  "tool": "gate",
+  "ok": true,
+  "verdict": "gate G7: PASS in 5580.0 s (24/24 commands, 3 recorded) at 5d1ec8f",
+  "steps": [
+    {
+      "name": "check",
+      "ok": true,
+      "ms": 2308.220924,
+      "detail": [],
+      "log": "check-output/gate/check.log",
+      "summary": "check: PASS (T0) in 2.1 s, budget 15.0 s"
+    },
+    {
+      "name": "test",
+      "ok": true,
+      "ms": 83196.142781,
+      "detail": [],
+      "log": "check-output/gate/test.log",
+      "summary": "test: PASS (T1) in 83.0 s, budget 90.0 s"
+    },
+    {
+      "name": "doctrine: the manual within its 8,000 tokens, the tools within 3,000",
+      "ok": true,
+      "ms": 757.158322999996,
+      "detail": [],
+      "log": "check-output/gate/doctrine-the-manual-within-its-8-000-tokens-the-tools-within-3-000.log",
+      "summary": "doctrine: PASS in 0.4 s (8 checks)"
+    },
+    {
+      "name": "vectors --check",
+      "ok": true,
+      "ms": 1915.423827000006,
+      "detail": [],
+      "log": "check-output/gate/vectors-check.log",
+      "summary": "vectors: PASS (--check) in 1.5 s"
+    },
+    {
+      "name": "every tool example passes; the CLI, MCP, API and console reply the same",
+      "ok": true,
+      "ms": 19515.989884999988,
+      "detail": [],
+      "log": "check-output/gate/every-tool-example-passes-the-CLI-MCP-API-and-console-reply-the-same.log",
+      "summary": "test: PASS (T1) in 19.3 s, budget 90.0 s"
+    },
+    {
+      "name": "the manual's code runs",
+      "ok": true,
+      "ms": 6616.281743999993,
+      "detail": [],
+      "log": "check-output/gate/the-manual-s-code-runs.log",
+      "summary": "test: PASS (T1) in 6.4 s, budget 90.0 s"
+    },
+    {
+      "name": "the packaged CLI, MCP server and single file run the manual's example; licenses and QA of the bundle",
+      "ok": true,
+      "ms": 21316.91827499999,
+      "detail": [],
+      "log": "check-output/gate/the-packaged-CLI-MCP-server-and-single-file-run-the-manual-s-example-licenses-and-QA-of-the-bundle.log",
+      "summary": "pack --check: PASS in 20.7 s; the packs in .cache/pack/"
+    },
+    {
+      "name": "licenses: the single file's manifest",
+      "ok": true,
+      "ms": 474.18170700001065,
+      "detail": [],
+      "log": "check-output/gate/licenses-the-single-file-s-manifest.log",
+      "summary": "license check tools/bundle/manifest.json: PASS in 0.0 s"
+    },
+    {
+      "name": "T2: browser checks, the MCP Inspector on every example, library QA and the sweeps in full",
+      "ok": true,
+      "ms": 121363.14167399998,
+      "detail": [],
+      "log": "check-output/gate/T2-browser-checks-the-MCP-Inspector-on-every-example-library-QA-and-the-sweeps-in-full.log",
+      "summary": "e2e: PASS (T2) in 121.1 s, budget 480.0 s"
+    },
+    {
+      "name": "the held-out run is fresh: no gate run used it, each variant's character one no test or run used",
+      "ok": true,
+      "ms": 233.57015399998636,
+      "detail": [],
+      "log": "check-output/gate/the-held-out-run-is-fresh-no-gate-run-used-it-each-variant-s-character-one-no-test-or-run-used.log",
+      "summary": "fixtures heldout G7: PASS in 0.0 s"
+    },
+    {
+      "name": "B1: at least 4 of 5 fresh agents; 2 discovery trials, reported (§7)",
+      "ok": true,
+      "ms": 136583.95714400004,
+      "detail": [],
+      "log": "check-output/gate/B1-at-least-4-of-5-fresh-agents-2-discovery-trials-reported-7-.log",
+      "summary": "bench B1: PASS in 136.0 s"
+    },
+    {
+      "name": "B2: at least 4 of 5 fresh agents (§7)",
+      "ok": true,
+      "ms": 131628.36015100003,
+      "detail": [],
+      "log": "check-output/gate/B2-at-least-4-of-5-fresh-agents-7-.log",
+      "summary": "bench B2: PASS in 131.0 s"
+    },
+    {
+      "name": "B3: at least 4 of 5 fresh agents (§7)",
+      "ok": true,
+      "ms": 130009.55148400005,
+      "detail": [],
+      "log": "check-output/gate/B3-at-least-4-of-5-fresh-agents-7-.log",
+      "summary": "bench B3: PASS in 129.4 s"
+    },
+    {
+      "name": "B4: at least 4 of 5 fresh agents (§7)",
+      "ok": true,
+      "ms": 39768.23871000006,
+      "detail": [],
+      "log": "check-output/gate/B4-at-least-4-of-5-fresh-agents-7-.log",
+      "summary": "bench B4: PASS in 39.1 s"
+    },
+    {
+      "name": "B5: at least 4 of 5 fresh agents (§7)",
+      "ok": true,
+      "ms": 45278.28817700001,
+      "detail": [],
+      "log": "check-output/gate/B5-at-least-4-of-5-fresh-agents-7-.log",
+      "summary": "bench B5: PASS in 44.6 s"
+    },
+    {
+      "name": "B6: at least 4 of 5 fresh agents (§7)",
+      "ok": true,
+      "ms": 82307.42054299999,
+      "detail": [],
+      "log": "check-output/gate/B6-at-least-4-of-5-fresh-agents-7-.log",
+      "summary": "bench B6: PASS in 81.6 s"
+    },
+    {
+      "name": "B7: at least 4 of 5 fresh agents (§7)",
+      "ok": true,
+      "ms": 67080.719775,
+      "detail": [],
+      "log": "check-output/gate/B7-at-least-4-of-5-fresh-agents-7-.log",
+      "summary": "bench B7: PASS in 66.4 s"
+    },
+    {
+      "name": "B1's held-out variant: at least 4 of 5 fresh agents",
+      "ok": true,
+      "ms": 101729.39670599997,
+      "detail": [],
+      "log": "check-output/gate/B1-s-held-out-variant-at-least-4-of-5-fresh-agents.log",
+      "summary": "bench B1: PASS in 101.1 s"
+    },
+    {
+      "name": "B2's held-out variant: at least 4 of 5 fresh agents",
+      "ok": true,
+      "ms": 49311.0853129999,
+      "detail": [],
+      "log": "check-output/gate/B2-s-held-out-variant-at-least-4-of-5-fresh-agents.log",
+      "summary": "bench B2: PASS in 48.8 s"
+    },
+    {
+      "name": "B3's held-out variant: at least 4 of 5 fresh agents",
+      "ok": true,
+      "ms": 104886.91057600011,
+      "detail": [],
+      "log": "check-output/gate/B3-s-held-out-variant-at-least-4-of-5-fresh-agents.log",
+      "summary": "bench B3: PASS in 104.3 s"
+    },
+    {
+      "name": "B4's held-out variant: at least 4 of 5 fresh agents",
+      "ok": true,
+      "ms": 97644.41115799989,
+      "detail": [],
+      "log": "check-output/gate/B4-s-held-out-variant-at-least-4-of-5-fresh-agents.log",
+      "summary": "bench B4: PASS in 97.1 s"
+    },
+    {
+      "name": "B5's held-out variant: at least 4 of 5 fresh agents",
+      "ok": true,
+      "ms": 138931.62306100014,
+      "detail": [],
+      "log": "check-output/gate/B5-s-held-out-variant-at-least-4-of-5-fresh-agents.log",
+      "summary": "bench B5: PASS in 138.3 s"
+    },
+    {
+      "name": "B6's held-out variant: at least 4 of 5 fresh agents",
+      "ok": true,
+      "ms": 51063.060218000086,
+      "detail": [],
+      "log": "check-output/gate/B6-s-held-out-variant-at-least-4-of-5-fresh-agents.log",
+      "summary": "bench B6: PASS in 50.5 s"
+    },
+    {
+      "name": "B7's held-out variant: at least 4 of 5 fresh agents",
+      "ok": true,
+      "ms": 85739.1309979998,
+      "detail": [],
+      "log": "check-output/gate/B7-s-held-out-variant-at-least-4-of-5-fresh-agents.log",
+      "summary": "bench B7: PASS in 85.2 s"
+    },
+    {
+      "name": "recorded: B1 to B7 on claude-opus-5-5, one trial each",
+      "ok": true,
+      "ms": 762664.3432980003,
+      "detail": [],
+      "log": "check-output/gate/recorded-B1-to-B7-on-claude-opus-5-5-one-trial-each.log",
+      "summary": "bench B1, B2, B3, B4, B5, B6, B7: PASS in 762.1 s"
+    },
+    {
+      "name": "recorded: B1 to B7 on claude-haiku-5-5, one trial each",
+      "ok": true,
+      "ms": 1021133.2841150002,
+      "detail": [],
+      "log": "check-output/gate/recorded-B1-to-B7-on-claude-haiku-5-5-one-trial-each.log",
+      "summary": "bench B1, B2, B3, B4, B5, B6, B7: PASS in 1020.5 s"
+    },
+    {
+      "name": "recorded: B1 to B7 on claude-fable-5-1, one trial each",
+      "ok": true,
+      "ms": 2276549.428723,
+      "detail": [],
+      "log": "check-output/gate/recorded-B1-to-B7-on-claude-fable-5-1-one-trial-each.log",
+      "summary": "bench B1, B2, B3, B4, B5, B6, B7: PASS in 2275.9 s"
+    }
+  ],
+  "warnings": [],
+  "ms": 5580029.692197,
+  "next": "write the G7 report in docs/PROGRESS.md and on the PR, then merge (PLAN.md §8.5)",
+  "commit": "5d1ec8f271bcc42e9ac7246caedad7859f5b65ef",
+  "dirty": false
+}

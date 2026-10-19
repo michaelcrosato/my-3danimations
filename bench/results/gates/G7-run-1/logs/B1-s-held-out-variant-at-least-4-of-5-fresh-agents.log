@@ -1,0 +1,8 @@
+bench B1: FAIL in 109.2 s
+  FAIL B1 105.9 s: 3 of 5 trials pass
+  -- B1:
+     B1-3: planted feet don't slide: slide 136 mm (fail 254), skate 54.4 cm/s (fail 41.9); worst: footL 5.55–5.80 s: the planted foot glides at 54.4 cm/s (136 mm in 0.25 s) (fail at 42)
+     B1-5: a foot stands still at 3.67 m/s: the lower foot's slowest tenth moves 0.62 m/s or less (at most 0.52)
+next: results in bench/results/2026-10-19-default-B1-variant.json; workspaces and transcripts in /tmp/m3a-bench/2026-10-19T01-07-18
+(node:830) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)

@@ -1,0 +1,326 @@
+{
+ "about": "npm run bench: fresh agents on the briefs (PLAN.md §7); isolation 1 is the claude CLI in a clean workspace",
+ "date": "2026-10-19T03-24-02",
+ "commit": "5d1ec8f271bcc42e9ac7246caedad7859f5b65ef",
+ "dirty": false,
+ "model": "claude-opus-5-5",
+ "fake": false,
+ "parallel": 5,
+ "privateTmp": true,
+ "ownPids": true,
+ "capsDropped": true,
+ "uid": 65534,
+ "unprivileged": true,
+ "B1": {
+  "trials": [
+   {
+    "trial": "B1-1",
+    "pass": true,
+    "failed": [],
+    "agent": {
+     "isolation": 1,
+     "privateTmp": true,
+     "ownPids": true,
+     "capsDropped": true,
+     "uid": 65534,
+     "unprivileged": true,
+     "ok": true,
+     "ms": 144586.957505,
+     "model": "claude-opus-5-5",
+     "turns": 30,
+     "tokens": {
+      "input": 44,
+      "output": 10745,
+      "cacheRead": 881298,
+      "cacheWrite": 56579
+     },
+     "costUsd": 0.8439675999999999,
+     "outside": [],
+     "scratch": [
+      "/tmp/b1probe",
+      "/tmp/b1probe/p.ts"
+     ],
+     "pastManual": [
+      "node_modules/@m3a/core",
+      "node_modules/@m3a/core/dist/animator/*.d.ts",
+      "node_modules/@m3a/core/dist/ops/sync.d.ts",
+      "node_modules/@m3a/sensors/dist",
+      "node_modules/@m3a/sensors/dist/**/*.d.ts",
+      "node_modules/@m3a/sensors/dist/*.d.ts",
+      "node_modules/@m3a/three",
+      "node_modules/@m3a/three/dist/play/attach.d.ts"
+     ],
+     "m3a": {
+      "server": "connected",
+      "skill": true,
+      "skills": [
+       "m3a"
+      ]
+     }
+    }
+   }
+  ],
+  "discovery": []
+ },
+ "B2": {
+  "trials": [
+   {
+    "trial": "B2-1",
+    "pass": true,
+    "failed": [],
+    "agent": {
+     "isolation": 1,
+     "privateTmp": true,
+     "ownPids": true,
+     "capsDropped": true,
+     "uid": 65534,
+     "unprivileged": true,
+     "ok": true,
+     "ms": 73321.95165700003,
+     "model": "claude-opus-5-5",
+     "turns": 12,
+     "tokens": {
+      "input": 18,
+      "output": 4034,
+      "cacheRead": 212352,
+      "cacheWrite": 26682
+     },
+     "costUsd": 0.3366784,
+     "outside": [],
+     "scratch": [
+      "/tmp/b2scripts",
+      "/tmp/b2scripts/probe.ts",
+      "/tmp/m3a-bench/2026-10-19T03-24-02/B2-1-home/.claude/projects/-tmp-m3a-bench-2026-10-19T03-24-02-B2-1/3802e15f-1a8f-410f-b655-8da78d0be465/tool-results/be36crip1.txt"
+     ],
+     "pastManual": [],
+     "m3a": {
+      "server": "connected",
+      "skill": true,
+      "skills": [
+       "m3a"
+      ]
+     }
+    }
+   }
+  ],
+  "discovery": []
+ },
+ "B3": {
+  "trials": [
+   {
+    "trial": "B3-1",
+    "pass": true,
+    "failed": [],
+    "agent": {
+     "isolation": 1,
+     "privateTmp": true,
+     "ownPids": true,
+     "capsDropped": true,
+     "uid": 65534,
+     "unprivileged": true,
+     "ok": true,
+     "ms": 146137.12171700003,
+     "model": "claude-opus-5-5",
+     "turns": 29,
+     "tokens": {
+      "input": 38,
+      "output": 12763,
+      "cacheRead": 809732,
+      "cacheWrite": 53144
+     },
+     "costUsd": 0.8425104000000001,
+     "outside": [],
+     "scratch": [],
+     "pastManual": [
+      "node_modules/@m3a/core/dist/animator/animator.d.ts",
+      "node_modules/@m3a/core/dist/clip/sample.d.ts",
+      "node_modules/@m3a/core/dist/contact/root.d.ts",
+      "node_modules/@m3a/core/dist/index.d.ts",
+      "node_modules/@m3a/three/dist/*.d.ts",
+      "node_modules/@m3a/three/dist/bind/*.d.ts",
+      "node_modules/@m3a/three/dist/play/*.d.ts"
+     ],
+     "m3a": {
+      "server": "connected",
+      "skill": true,
+      "skills": [
+       "m3a"
+      ]
+     }
+    }
+   }
+  ],
+  "discovery": []
+ },
+ "B4": {
+  "trials": [
+   {
+    "trial": "B4-1",
+    "pass": true,
+    "failed": [],
+    "agent": {
+     "isolation": 1,
+     "privateTmp": true,
+     "ownPids": true,
+     "capsDropped": true,
+     "uid": 65534,
+     "unprivileged": true,
+     "ok": true,
+     "ms": 93940.15589499997,
+     "model": "claude-opus-5-5",
+     "turns": 17,
+     "tokens": {
+      "input": 32,
+      "output": 6570,
+      "cacheRead": 474834,
+      "cacheWrite": 29678
+     },
+     "costUsd": 0.4639188,
+     "outside": [],
+     "scratch": [],
+     "pastManual": [
+      "node_modules/@m3a/sensors"
+     ],
+     "m3a": {
+      "server": "connected",
+      "skill": true,
+      "skills": [
+       "m3a"
+      ]
+     }
+    }
+   }
+  ],
+  "discovery": []
+ },
+ "B5": {
+  "trials": [
+   {
+    "trial": "B5-1",
+    "pass": true,
+    "failed": [],
+    "agent": {
+     "isolation": 1,
+     "privateTmp": true,
+     "ownPids": true,
+     "capsDropped": true,
+     "uid": 65534,
+     "unprivileged": true,
+     "ok": true,
+     "ms": 110198.09232300002,
+     "model": "claude-opus-5-5",
+     "turns": 20,
+     "tokens": {
+      "input": 34,
+      "output": 5056,
+      "cacheRead": 538994,
+      "cacheWrite": 33322
+     },
+     "costUsd": 0.4756308000000001,
+     "outside": [],
+     "scratch": [],
+     "pastManual": [],
+     "m3a": {
+      "server": "connected",
+      "skill": true,
+      "skills": [
+       "m3a"
+      ]
+     }
+    }
+   }
+  ],
+  "discovery": []
+ },
+ "B6": {
+  "trials": [
+   {
+    "trial": "B6-1",
+    "pass": true,
+    "failed": [],
+    "agent": {
+     "isolation": 1,
+     "privateTmp": true,
+     "ownPids": true,
+     "capsDropped": true,
+     "uid": 65534,
+     "unprivileged": true,
+     "ok": true,
+     "ms": 36359.06156900001,
+     "model": "claude-opus-5-5",
+     "turns": 9,
+     "tokens": {
+      "input": 16,
+      "output": 2828,
+      "cacheRead": 178266,
+      "cacheWrite": 21895
+     },
+     "costUsd": 0.2674372,
+     "outside": [],
+     "scratch": [
+      "/tmp/b6scripts",
+      "/tmp/b6scripts/v.ts"
+     ],
+     "pastManual": [],
+     "m3a": {
+      "server": "connected",
+      "skill": true,
+      "skills": [
+       "m3a"
+      ]
+     }
+    }
+   }
+  ],
+  "discovery": []
+ },
+ "B7": {
+  "trials": [
+   {
+    "trial": "B7-1",
+    "pass": true,
+    "failed": [],
+    "agent": {
+     "isolation": 1,
+     "privateTmp": true,
+     "ownPids": true,
+     "capsDropped": true,
+     "uid": 65534,
+     "unprivileged": true,
+     "ok": true,
+     "ms": 138561.2567250001,
+     "model": "claude-opus-5-5",
+     "turns": 26,
+     "tokens": {
+      "input": 40,
+      "output": 9037,
+      "cacheRead": 623570,
+      "cacheWrite": 34529
+     },
+     "costUsd": 0.581846,
+     "outside": [],
+     "scratch": [],
+     "pastManual": [
+      "node_modules/@m3a/core/dist",
+      "node_modules/@m3a/core/dist/*.d.ts",
+      "node_modules/@m3a/core/dist/format/body.js",
+      "node_modules/@m3a/core/dist/format/index.d.ts",
+      "node_modules/@m3a/core/dist/index.d.ts"
+     ],
+     "m3a": {
+      "server": "connected",
+      "skill": true,
+      "skills": [
+       "m3a"
+      ]
+     }
+    }
+   }
+  ],
+  "discovery": []
+ },
+ "models": [
+  "claude-opus-5-5"
+ ],
+ "ms": 762083
+}

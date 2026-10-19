@@ -1,0 +1,107 @@
+{
+ "about": "npm run bench: fresh agents on the briefs (PLAN.md §7); isolation 1 is the claude CLI in a clean workspace",
+ "date": "2026-10-19T07-01-23",
+ "commit": "94c03b95f9197f8b72bc62febcfc43477c6f2af7",
+ "dirty": true,
+ "model": "the CLI's default",
+ "fake": true,
+ "parallel": 1,
+ "privateTmp": true,
+ "ownPids": true,
+ "capsDropped": true,
+ "uid": 65534,
+ "unprivileged": true,
+ "B1": {
+  "trials": [
+   {
+    "trial": "B1-1",
+    "pass": true,
+    "failed": [],
+    "agent": {
+     "fake": true
+    }
+   }
+  ],
+  "discovery": []
+ },
+ "B2": {
+  "trials": [
+   {
+    "trial": "B2-1",
+    "pass": true,
+    "failed": [],
+    "agent": {
+     "fake": true
+    }
+   }
+  ],
+  "discovery": []
+ },
+ "B3": {
+  "trials": [
+   {
+    "trial": "B3-1",
+    "pass": true,
+    "failed": [],
+    "agent": {
+     "fake": true
+    }
+   }
+  ],
+  "discovery": []
+ },
+ "B4": {
+  "trials": [
+   {
+    "trial": "B4-1",
+    "pass": true,
+    "failed": [],
+    "agent": {
+     "fake": true
+    }
+   }
+  ],
+  "discovery": []
+ },
+ "B5": {
+  "trials": [
+   {
+    "trial": "B5-1",
+    "pass": true,
+    "failed": [],
+    "agent": {
+     "fake": true
+    }
+   }
+  ],
+  "discovery": []
+ },
+ "B6": {
+  "trials": [
+   {
+    "trial": "B6-1",
+    "pass": true,
+    "failed": [],
+    "agent": {
+     "fake": true
+    }
+   }
+  ],
+  "discovery": []
+ },
+ "B7": {
+  "trials": [
+   {
+    "trial": "B7-1",
+    "pass": true,
+    "failed": [],
+    "agent": {
+     "fake": true
+    }
+   }
+  ],
+  "discovery": []
+ },
+ "models": [],
+ "ms": 29123
+}

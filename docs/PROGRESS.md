@@ -3,8 +3,8 @@
 The current state on one screen (at most 40 lines; `npm run doctrine` checks it from WP-0.3). The ledger is
 `PLAN.md` §14; decisions are in `docs/DECISIONS.md`.
 
-**Phase:** 7 The datalink (6 done: G6 passed). **Next gate:** G7 = M2. **Version:** 0.50.0.
-**Mode:** ultracode (D83). #13 merged Phase 7 before G7, at the owner's request (D103); G7 opens a fresh PR.
+**Phase:** 8 The ground station (7 done: G7 = M2 passed). **Next gate:** G8. **Version:** 0.50.2.
+**Mode:** ultracode (D83). G7 ran and merged on michaelcrosato/my-3danimations#14; Phase 8 on a fresh draft PR.
 
 ## Done
 
@@ -21,14 +21,13 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
   corpora (D62); the re-import (D63); facts (D64); search (D65); library QA, 1,199 unique motions (D66–D69).
 - Phase 6 (G6 passed, michaelcrosato/my-3danimations#12): recipes (D70); procedural moves, gaits and idles (D71, the
   margin rule D90); actions (D72); graphs (D73); simulation (D75); briefs B2–B7, the wire and make sections (D76, D77).
-- Phase 7 so far: the registry on four surfaces (D92); WP-7.2 split (D93); 7.2a's 11 tools (D95); 7.2b's retarget,
-  compose and exchange, 20 tools, one naming rule, bounds on a call's cost (D96); T1's speedups proved (D97); the
-  manual, skills, llms.txt and runner wiring (D100); packs, m3a.js, pack --check, nothing published (D99, D101).
+- Phase 7 (G7 = M2 passed on run 2, #13, #14): the registry on four surfaces (D92, D93); 20 tools (D95, D96); the
+  manual, skills, llms.txt (D100); packs, m3a.js, nothing published (D99, D101); contacts the planter holds (D104,
+  D108); the manual's root motion and speed rule (D105, D106).
 
 ## Next
 
-- Fix the library's 30 contact-less loops (B1 3/5 after the manual's fix; D100), then G7 on a fresh draft PR, then
-  Phases 8-10. Details and rules: [`docs/HANDOFF.md`](HANDOFF.md).
+- Phase 8 in lanes (8.1 the gallery, 8.2a and 8.2b the review queue, 8.3 previews), G8; then 9 and 10 (10.1-10.2 built).
 
 ## Blocked on the owner
 
@@ -36,5 +35,6 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 
 ## Last gate
 
-- **G6 passed** (run 1) 2026-10-15 at a9731b1 in 17.2 min, 20 of 20 (`bench/results/gates/G6-run-1/`, D91): B2, B3,
-  B5, B6, B7 each 5/5 and 5/5 on held-out variants (50/50 trials, $7.15); composed clips QA; graphs deterministic; T2.
+- **G7 = M2 passed** (run 2) 2026-10-19 at 5d1ec8f in 93.0 min, 24 of 24 (`bench/results/gates/G7-run-2/`, D107):
+  B1, B6 4/5, the rest and every fresh variant 5/5 (68/70, $11.46), packaged CLI, skill, MCP; recorded models 7/7. Run 1
+  (1623b78, 84.0 min, `G7-run-1/`) failed 23/24, B1's variant 3/5 (D106). Two verifier lenses, fixed in D108 (0.50.2).

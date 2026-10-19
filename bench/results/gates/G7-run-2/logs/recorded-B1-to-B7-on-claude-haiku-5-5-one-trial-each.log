@@ -1,0 +1,11 @@
+bench B1, B2, B3, B4, B5, B6, B7: PASS in 1020.5 s
+  ok   B1 418.8 s: 1 of 1 trials pass
+  ok   B2 88.0 s: 1 of 1 trials pass
+  ok   B3 182.2 s: 1 of 1 trials pass
+  ok   B4 44.9 s: 1 of 1 trials pass
+  ok   B5 52.0 s: 1 of 1 trials pass
+  ok   B6 139.9 s: 1 of 1 trials pass
+  ok   B7 91.6 s: 1 of 1 trials pass
+next: results in bench/results/2026-10-19-claude-haiku-5-5-B1-B2-B3-B4-B5-B6-B7-2.json; workspaces and transcripts in /tmp/m3a-bench/2026-10-19T03-36-45
+(node:11649) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)

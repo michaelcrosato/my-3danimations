@@ -4,6 +4,51 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.50.2 · 2026-10-19
+
+### Core
+- `measureFacts` (D108): D104's fallbacks read only a loop on its feet (a one-shot with no contact plays still again),
+  `reread` only in place (a clip's own root is exact), and a reread counts only when both feet plant and a foot is down
+  for a fifth of the loop; nothing falls back to the height pass, whose contacts the planter couldn't hold (feet
+  pulled up to 1.8 H0).
+
+### Library
+- 6 of D104's 11 loops (`MESH2MOTION/Run_Anime`, `Run_Stealth`, `CMU_CURATED/Boxing_Guard_Loop`, STYLE100's
+  `WideLegs_Walk`, `Drunk_RunBack`, `OnHeels_Run`) and its 18 one-shots have no contact again; the 6 are answered in
+  `library/baselines/qa.json`'s new `unplanted` (why no foot holds still). `Run_Female`, `Waving_RunBack` and the three
+  `OnHeels` stances keep theirs. QA 1,014 pass, 230 warn, 154 fail; skateMean p95 19.6 → 19.8 by D108.
+
+### Tools
+- `npm run qa -- library`'s off-feet check reads `unplanted` too, a loop on its feet answered with why no foot holds
+  still (D108).
+- `retarget.apply` reads a rig without chest bones limb by limb: each bone against its mapped parent, the spine's own
+  miss reported as `spans` and allowed within 5% of H0 (G7 verifier).
+- The manual: search rows' `core`; R-E008's nearest id, if any; a graph's rate parameter needs `"value": 1`; 7,997 of
+  8,000 tokens.
+
+## 0.50.1 · 2026-10-19
+
+### Core
+- `measureFacts` (D104): the world refinement never erases every contact the height pass found on a body that stands:
+  it reads again with "still" at half the body's speed (then, in place, with the lower foot's velocity), else keeps
+  the height pass's (narrowed by D108 in 0.50.2); a clip with no contact by ankle, ball and toe is read by its whole
+  sole (`DetectOptions.sole`, the heel included). Neither applies to a clip tagged off its feet (`clip.OFF_FEET`: air,
+  fly, swim, climb, lie, sit). A clip that had a contact reads the same.
+
+### Library
+- 11 loops that stand on their feet (CC0's `MESH2MOTION/Run_Female`, `Run_Anime`, `Run_Stealth` among them) and 18
+  one-shots carry contacts; `Run_Female`'s ground speed reads 4.09 H0/s against its measured 3.95 (it read 0). The 19
+  loops off their feet are answered in `library/baselines/qa.json` `offFeet`. QA 1,014 pass, 230 warn, 154 fail; the
+  three `OnHeels` stances gain travel facts; two distribution p50s worse in their last digit, by D104.
+
+### Tools
+- `npm run qa -- library` checks that every loop with no contact is tagged off its feet and answered (`offFeet`).
+- Each pack's CHANGELOG.md is the repository's without its Repo sections or a line about the benchmark, and
+  `pack --check` fails when a packed text file names the benchmark's graders, known-goods or held-out runs (D107).
+- The manual (D105, D106): root motion moves the character (moved at v, feet slide in fades and where a keyed stance
+  drifts); cross-fade in step with `ops.phaseMap`; in the speed rule's range a `core` clip beats a nearer one;
+  8,000 of 8,000 tokens.
+
 ## 0.50.0 · 2026-10-17
 
 ### Repo

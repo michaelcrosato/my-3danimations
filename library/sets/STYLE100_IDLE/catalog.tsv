@@ -51,7 +51,7 @@ STYLE100_IDLE/Monk_Idle	2.5	loop	0	idle style	Standing, monk style: interlock ha
 STYLE100_IDLE/Morris_Idle	2.9	loop	0	idle style	Standing, morris style: swing hands side to side as if waving hankies	100STYLE
 STYLE100_IDLE/Neutral_Idle	2.5	loop	0	idle style	Standing, neutral style: normal walking	100STYLE
 STYLE100_IDLE/Old_Idle	2.533	loop	0	idle style	Standing, old style: hunchbacked move very slowly	100STYLE
-STYLE100_IDLE/OnHeels_Idle	3.767	loop		idle style	Standing, on heels style: walk on heels with toes raised	100STYLE
+STYLE100_IDLE/OnHeels_Idle	3.767	loop	2.4	idle style	Standing, on heels style: walk on heels with toes raised	100STYLE
 STYLE100_IDLE/OnPhoneLeft_Idle	2.7	loop	0	idle style	Standing, on phone left style: holding phone in left	100STYLE
 STYLE100_IDLE/OnPhoneRight_Idle	2.5	loop	0	idle style	Standing, on phone right style: holding phone in right	100STYLE
 STYLE100_IDLE/OnToesBentForward_Idle	2.533	loop	0	idle style	Standing, on toes bent forward style	100STYLE

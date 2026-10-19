@@ -3,7 +3,7 @@
 "title": "Mesh2Motion",
 "format": "2.0",
 "tier": "cc0",
-"content": {"edition":"mesh2motion-app@653a969's human animations (base, add-on and mocap GLBs; tools/import/sources.json pins each), the same clips my-3d2dge@14a561c imported","importer":"m3a-import 1, from the sources (WP-5.3); 8 clip(s) kept as m3a-migrate 1 made them (_import.json says why)","sha256":"1dcf16c3405b8321875ed32fc635ed01a095307ab8df92f190eb17d34f82822c"},
+"content": {"edition":"mesh2motion-app@653a969's human animations (base, add-on and mocap GLBs; tools/import/sources.json pins each), the same clips my-3d2dge@14a561c imported","importer":"m3a-import 1, from the sources (WP-5.3); 8 clip(s) kept as m3a-migrate 1 made them (_import.json says why)","sha256":"b0e48be48743c5d158ae2e9fdf2acf78871c66212df5bcf3575077aa6f68e274"},
 "credit": "Mesh2Motion's human animations (mesh2motion.org), CC0 1.0; some are Quaternius' Universal Animation Library clips as Mesh2Motion re-exported them.",
 "producer": {"tool":"m3a-import","version":"1"},
 "sources": {

@@ -1,0 +1,245 @@
+{
+ "about": "npm run bench: fresh agents on the briefs (PLAN.md §7); isolation 1 is the claude CLI in a clean workspace",
+ "date": "2026-10-19T02-25-47",
+ "commit": "1623b78129c377e2ae8d2ab12ba7993884d106c9",
+ "dirty": true,
+ "model": "the CLI's default",
+ "fake": false,
+ "parallel": 5,
+ "privateTmp": true,
+ "ownPids": true,
+ "capsDropped": true,
+ "uid": 65534,
+ "unprivileged": true,
+ "variant": {
+  "dir": "bench/results/heldout/G7/run-1/B1",
+  "character": {
+   "seed": 1287
+  }
+ },
+ "B1": {
+  "trials": [
+   {
+    "trial": "B1-1",
+    "pass": false,
+    "failed": [
+     "planted feet don't slide: slide 174 mm (fail 254), skate 65.4 cm/s (fail 41.9); worst: footR 6.65–6.92 s: the planted foot glides at 65.4 cm/s (174 mm in 0.27 s) (fail at 42)"
+    ],
+    "agent": {
+     "isolation": 1,
+     "privateTmp": true,
+     "ownPids": true,
+     "capsDropped": true,
+     "uid": 65534,
+     "unprivileged": true,
+     "ok": true,
+     "ms": 64101.775688999995,
+     "model": "claude-sonnet-5-5",
+     "turns": 18,
+     "tokens": {
+      "input": 30,
+      "output": 8132,
+      "cacheRead": 492991,
+      "cacheWrite": 35988
+     },
+     "costUsd": 0.2746311,
+     "outside": [],
+     "scratch": [
+      "/tmp/m3a-scratch",
+      "/tmp/m3a-scratch/probe.ts"
+     ],
+     "pastManual": [
+      "node_modules/@m3a/core/dist/*.d.ts",
+      "node_modules/@m3a/core/dist/animator/*.d.ts",
+      "node_modules/@m3a/core/dist/contact/index.d.ts",
+      "node_modules/@m3a/core/dist/ops/*.d.ts",
+      "node_modules/@m3a/sensors/dist",
+      "node_modules/@m3a/sensors/dist/*/*.d.ts",
+      "node_modules/@m3a/sensors/dist/sheet/sheet.d.ts",
+      "node_modules/@m3a/three/dist/index.d.ts"
+     ],
+     "m3a": {
+      "server": "connected",
+      "skill": true,
+      "skills": [
+       "m3a"
+      ]
+     }
+    }
+   },
+   {
+    "trial": "B1-2",
+    "pass": false,
+    "failed": [
+     "planted feet don't slide: slide 324 mm (fail 254), skate 114.5 cm/s (fail 41.9); worst: footL 4.78–5.08 s: the planted foot glides at 114.5 cm/s (324 mm in 0.28 s) (fail at 42)"
+    ],
+    "agent": {
+     "isolation": 1,
+     "privateTmp": true,
+     "ownPids": true,
+     "capsDropped": true,
+     "uid": 65534,
+     "unprivileged": true,
+     "ok": true,
+     "ms": 59706.74344299999,
+     "model": "claude-sonnet-5-5",
+     "turns": 11,
+     "tokens": {
+      "input": 20,
+      "output": 6203,
+      "cacheRead": 267747,
+      "cacheWrite": 26570
+     },
+     "costUsd": 0.19512469999999998,
+     "outside": [],
+     "scratch": [
+      "/tmp/scr",
+      "/tmp/scr/probe.ts",
+      "/tmp/scr/sens.ts"
+     ],
+     "pastManual": [
+      "node_modules/@m3a/core/dist/*.d.ts",
+      "node_modules/@m3a/sensors/dist/*.d.ts",
+      "node_modules/@m3a/sensors/dist/index.d.ts"
+     ],
+     "m3a": {
+      "server": "connected",
+      "skill": true,
+      "skills": [
+       "m3a"
+      ]
+     }
+    }
+   },
+   {
+    "trial": "B1-3",
+    "pass": false,
+    "failed": [
+     "planted feet don't slide: slide 174 mm (fail 254), skate 65.3 cm/s (fail 41.9); worst: footR 5.23–5.50 s: the planted foot glides at 65.3 cm/s (174 mm in 0.27 s) (fail at 42)"
+    ],
+    "agent": {
+     "isolation": 1,
+     "privateTmp": true,
+     "ownPids": true,
+     "capsDropped": true,
+     "uid": 65534,
+     "unprivileged": true,
+     "ok": true,
+     "ms": 55664.573878999996,
+     "model": "claude-sonnet-5-5",
+     "turns": 14,
+     "tokens": {
+      "input": 22,
+      "output": 5882,
+      "cacheRead": 310380,
+      "cacheWrite": 31166
+     },
+     "costUsd": 0.21456600000000003,
+     "outside": [],
+     "scratch": [],
+     "pastManual": [
+      "node_modules/@m3a/core/*.md",
+      "node_modules/@m3a/core/dist/contact/*.d.ts",
+      "node_modules/@m3a/core/dist/index.d.ts",
+      "node_modules/@m3a/core/dist/ops/*.d.ts",
+      "node_modules/@m3a/three/dist/index.d.ts"
+     ],
+     "m3a": {
+      "server": "connected",
+      "skill": true,
+      "skills": [
+       "m3a"
+      ]
+     }
+    }
+   },
+   {
+    "trial": "B1-4",
+    "pass": false,
+    "failed": [
+     "planted feet don't slide: slide 120 mm (fail 254), skate 48.1 cm/s (fail 41.9); worst: footL 5.55–5.80 s: the planted foot glides at 48.1 cm/s (120 mm in 0.25 s) (fail at 42)"
+    ],
+    "agent": {
+     "isolation": 1,
+     "privateTmp": true,
+     "ownPids": true,
+     "capsDropped": true,
+     "uid": 65534,
+     "unprivileged": true,
+     "ok": true,
+     "ms": 52821.12697700001,
+     "model": "claude-sonnet-5-5",
+     "turns": 9,
+     "tokens": {
+      "input": 18,
+      "output": 4947,
+      "cacheRead": 233001,
+      "cacheWrite": 25766
+     },
+     "costUsd": 0.1758701,
+     "outside": [],
+     "scratch": [
+      "/tmp/probe.ts"
+     ],
+     "pastManual": [],
+     "m3a": {
+      "server": "connected",
+      "skill": true,
+      "skills": [
+       "m3a"
+      ]
+     }
+    }
+   },
+   {
+    "trial": "B1-5",
+    "pass": true,
+    "failed": [],
+    "agent": {
+     "isolation": 1,
+     "privateTmp": true,
+     "ownPids": true,
+     "capsDropped": true,
+     "uid": 65534,
+     "unprivileged": true,
+     "ok": true,
+     "ms": 54357.46835000001,
+     "model": "claude-sonnet-5-5",
+     "turns": 12,
+     "tokens": {
+      "input": 22,
+      "output": 5511,
+      "cacheRead": 302725,
+      "cacheWrite": 26022
+     },
+     "costUsd": 0.1895145,
+     "outside": [],
+     "scratch": [
+      "/tmp/probe.ts"
+     ],
+     "pastManual": [],
+     "m3a": {
+      "server": "connected",
+      "skill": true,
+      "skills": [
+       "m3a"
+      ]
+     }
+    }
+   }
+  ],
+  "discovery": [],
+  "check": {
+   "trial": "known-good",
+   "pass": true,
+   "failed": [],
+   "agent": {
+    "fake": true
+   }
+  }
+ },
+ "models": [
+  "claude-sonnet-5-5"
+ ],
+ "ms": 80676
+}

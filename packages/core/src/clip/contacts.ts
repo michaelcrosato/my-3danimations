@@ -3,6 +3,7 @@
 // the floor (z = 0): it plants when it comes within `enter` of it and lifts when it moves past `exit` (fractions of
 // H0; above or below), so a foot that skims the ground doesn't flicker. Contacts shorter than `minTime` are dropped and
 // gaps up to `mergeTime` closed; a loop's contact that runs through the seam becomes one interval past dur (§7.1).
+// `sole` reads a foot by its whole sole, the heel `sole()` gives too (a body on its heels, toes raised: D104).
 import { PORTABLE } from "../math/portable.ts";
 import { IDX, P, type Rest } from "../format/body.ts";
 import { decodeLegs, decodePose } from "../format/pose.ts";
@@ -47,6 +48,9 @@ export interface DetectOptions {
   /** A planted end moves slower than this in the world, as a fraction of H0 per second (0.3, and at most half the body's
    *  speed); it lifts past twice it. */
   still?: number;
+  /** Read a foot by its whole sole (`sole`: the heel, ball and toe) rather than its ankle, ball and toe (false): a foot
+   *  that stands on its heel with its toes raised touches the floor by the heel alone. */
+  sole?: boolean;
 }
 
 /** The poses a measurement reads: n + 1 samples over [0, dur], time step dt. */
@@ -138,6 +142,10 @@ function lowest(pose: Float32Array, end: End): string {
  */
 export function detectContacts(clip: Playable, R: Rest, opts: DetectOptions = {}, sampled: Sampled = sampleAll(clip, R, opts.fps ?? 60), rootVelocity?: (i: number) => [number, number]): Contacts {
   const { frames, dt } = sampled;
+  /** An end's points in a pose, by name: a foot's whole sole when `sole` asks for it, else END_POINTS. */
+  const points = (X: Float32Array, end: End): { name: string; p: [number, number, number] }[] =>
+    opts.sole && end.startsWith("foot") ? sole(R, X, end === "footL" ? "L" : "R") : END_POINTS[end].map((name) => ({ name, p: pt3(X, name) }));
+  const low = opts.sole ? (X: Float32Array, end: End) => Math.min(...points(X, end).map((q) => q.p[2])) : endLow;
   const enter = (opts.enter ?? 0.04) * R.H0, exit = (opts.exit ?? 0.07) * R.H0;
   const minF = Math.max(1, Math.round((opts.minTime ?? 0.05) / dt)), mergeF = Math.round((opts.mergeTime ?? 0.1) / dt);
   // still: slower than the given fraction of H0 per second, and than half the body's own speed (a shuffle's sliding
@@ -151,8 +159,14 @@ export function detectContacts(clip: Playable, R: Rest, opts: DetectOptions = {}
   /** The world speed of an end's lowest point at sample i (mm/s), or 0 without a root velocity. */
   const speed = (end: End, i: number) => {
     if (!rootVelocity) return 0;
-    const n = frames.length - 1, p = lowest(frames[i]!, end), i0 = Math.max(0, i - 1), i1 = Math.min(n, i + 1);
-    const a = frames[i0]!, b = frames[i1]!, j = IDX[p]! * 3, v = rootVelocity(i);
+    const n = frames.length - 1, i0 = Math.max(0, i - 1), i1 = Math.min(n, i + 1), v = rootVelocity(i);
+    if (opts.sole) {
+      // the lowest sole point now, read in the poses either side
+      const here = points(frames[i]!, end), k = here.reduce((m, q, x) => (q.p[2] < here[m]!.p[2] ? x : m), 0);
+      const a = points(frames[i0]!, end)[k]!.p, b = points(frames[i1]!, end)[k]!.p;
+      return PORTABLE.hypot((b[0] - a[0]) / ((i1 - i0) * dt) + v[0], (b[1] - a[1]) / ((i1 - i0) * dt) + v[1]);
+    }
+    const p = lowest(frames[i]!, end), a = frames[i0]!, b = frames[i1]!, j = IDX[p]! * 3;
     return PORTABLE.hypot((b[j]! - a[j]!) / ((i1 - i0) * dt) + v[0], (b[j + 1]! - a[j + 1]!) / ((i1 - i0) * dt) + v[1]);
   };
   const n = frames.length - 1;
@@ -165,7 +179,7 @@ export function detectContacts(clip: Playable, R: Rest, opts: DetectOptions = {}
     let planted = false;
     for (let i = 0; i <= n; i++) {
       // within the band about the floor: an end far under it (a swim, a dive) isn't standing on it
-      const h = Math.abs(endLow(frames[i]!, end) - ground);
+      const h = Math.abs(low(frames[i]!, end) - ground);
       planted = planted ? h <= exit && speed(end, i) <= 2 * still : h <= enter && speed(end, i) <= still;
       on.push(planted);
     }

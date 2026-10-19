@@ -1,0 +1,163 @@
+{
+ "write": {
+  "files_read": [
+   "CLAUDE.md and /root/.claude/CLAUDE.md (loaded into context automatically by the session, not opened by me)",
+   "PLAN.md: a grep for its '## ' headings (showed only PLAN.md's section heading lines), then lines 587-641 only (section 7, 'The benchmark')",
+   "docs/DECISIONS.md: a grep for '## D78' (its output also showed the next entry's heading line: '## D79 · 2026-10-14 · The SessionStart hook runs Node 24 ...', the title only), then lines 3036-3054 only (D78)",
+   "bench/briefs/B1.md",
+   "bench/briefs/B2.md",
+   "bench/briefs/B3.md",
+   "bench/briefs/B4.md",
+   "bench/briefs/B5.md",
+   "bench/briefs/B6.md",
+   "bench/briefs/B7.md",
+   "bench/starters/B1/README.md",
+   "bench/starters/B1/package.json",
+   "bench/starters/B1/check.ts",
+   "bench/starters/B1/src/character.ts",
+   "bench/starters/B1/src/player.ts",
+   "bench/starters/B1/src/sheet.ts",
+   "bench/starters/B2/README.md",
+   "bench/starters/B2/package.json",
+   "bench/starters/B2/check.ts",
+   "bench/starters/B2/src/character.ts",
+   "bench/starters/B2/src/fighter.ts",
+   "bench/starters/B3/README.md",
+   "bench/starters/B3/package.json",
+   "bench/starters/B3/check.ts",
+   "bench/starters/B3/src/character.ts",
+   "bench/starters/B3/src/reactor.ts",
+   "bench/starters/B4/README.md",
+   "bench/starters/B4/package.json",
+   "bench/starters/B4/check.ts",
+   "bench/starters/B4/src/character.ts",
+   "bench/starters/B4/src/sneak.ts",
+   "bench/starters/B5/README.md",
+   "bench/starters/B5/package.json",
+   "bench/starters/B5/check.ts",
+   "bench/starters/B6/README.md",
+   "bench/starters/B6/package.json",
+   "bench/starters/B6/check.ts",
+   "bench/starters/B7/README.md",
+   "bench/starters/B7/package.json",
+   "bench/starters/B7/check.ts",
+   "bench/starters/B7/src/character.ts",
+   "bench/graders/B1/grade.ts",
+   "bench/graders/B2/grade.ts",
+   "bench/graders/B3/grade.ts",
+   "bench/graders/B4/grade.ts",
+   "bench/graders/B5/grade.ts",
+   "bench/graders/B6/grade.ts",
+   "bench/graders/B7/grade.ts",
+   "packages/three/test-characters/characters.ts",
+   "packages/three/test-characters/index.ts",
+   "packages/three/test-characters/load.ts",
+   "packages/three/test-characters/variants.ts",
+   "tools/fixtures/fixtures.ts",
+   "package.json: one line only, from a grep for '\"fixtures\"' (the script line: \"fixtures\": \"node tools/fixtures/main.ts\"); outside the bar, noted",
+   "directory listings only (names, no contents): bench/, bench/briefs/, bench/starters/, bench/graders/ (it lists B1-B7, bones.ts, recipes.ts), each starter's file list (it shows B2/strike.ts, B5/emote.json, B6/punch.json, B7/graph.json and B7/script.json, which I did not open), each grader folder's entries (grade.test.ts, grade.ts and a known-good folder name, none opened), packages/three/test-characters/, tools/fixtures/, node_modules/@m3a/, bench/results/heldout/ (G4, G6, G7), bench/results/heldout/G7/ (run-1), bench/results/gates/ filtered to G7 (G7-run-1)",
+   "my own output: bench/results/heldout/G7/run-2/B1..B7/brief.md and character.json, which I wrote",
+   "not read: packages/tools/MANUAL.md, any skill or llms.txt, any known-good folder, any other DECISIONS entry, bench/graders/bones.ts and recipes.ts, bench/runner, any other run's variants or records in bench/results/, /tmp/m3a-bench workspaces. Scripts I ran (in my scratchpad) called usedSeeds() from tools/fixtures/fixtures.ts, which reads bench/graders/**/*.test.ts, bench/runner/**/*.test.ts and other held-out runs' character.json files itself: I saw only the merged seed set it returned. Scripts also ran the generator and bind() from @m3a/three, as package code, without my reading its source. npm run fixtures -- heldout G7 ran tools/fixtures/main.ts, which I did not open."
+  ],
+  "variants": [
+   {
+    "brief": "bench/results/heldout/G7/run-2/B1/brief.md: 'B1 · The lamplighter's rounds'. A town-builder's lamplighter idles, walks and runs by the asked speed between street lamps; createPlayer and src/sheet.ts, speeds.json, the check and the grading as B1's, word for word.",
+    "seed": 2329,
+    "character": "gen-2329: tall build, A rest pose (arms 40° down), Mixamo naming (mixamorig:Hips, mixamorig:Spine, mixamorig:Spine1, mixamorig:Neck, mixamorig:Head, mixamorig:LeftShoulder/LeftArm/LeftForeArm/LeftHand/LeftUpLeg/LeftLeg/LeftFoot/LeftToeBase and Right ones; three.js loads them as mixamorigHips etc.), centimetres under an armature scaled 0.01, no twist bones, upperChest left out (no mixamorig:Spine2), 21 bones. bind: table mixamo, confidence 1, nothing missing, rest A 40°; H0 1262.0 mm; hips bone 1.254 m above the origin, soles 8 mm below it; 2.15 m tall (mesh -0.008 to 2.143 m).",
+    "how_it_differs": "New scene (a town-builder's lamplighter) and new opening; the character is described (2.15 m, hips 1.26 m above the soles, A-pose, Mixamo bone names, no Spine2, no twist bones) and the speeds note says it is asked proportionally more than 1 m hips. The job's text from '**The job:**' on is the original's word for word, except 'make the character' became 'have him' and the speeds bullet gained the clause about higher hips."
+   },
+   {
+    "brief": "bench/results/heldout/G7/run-2/B2/brief.md: 'B2 · The bouncer's punch'. A tavern-brawl bouncer idles, punches on the press and calls damage(10) once on the strike; createFighter, strike.ts, the check and the grading as B2's, word for word.",
+    "seed": 3542,
+    "character": "gen-3542: bulky build, relaxed rest pose (arms 70° down), UE5 naming (root at the origin, pelvis, spine_01-spine_05, neck_01, head, clavicle_l, upperarm_l, lowerarm_l, hand_l, thigh_l, calf_l, foot_l and _r), twist leaves (upperarm_twist_01_l, lowerarm_twist_01_l, thigh_twist_01_l and _r), toes left out (no ball_l/ball_r), 29 bones. bind: table unreal5, confidence 1, nothing missing, unmapped root and spine_04, rest relaxed 70°; H0 1054.9 mm; hips bone 1.013 m above the origin, soles 4.2 cm below it; 1.90 m tall (mesh -0.042 to 1.857 m).",
+    "how_it_differs": "New scene (a bouncer at a tavern door) and opening; the character is described (heavy-set 1.90 m, hips 1.05 m above the soles, relaxed rest pose, UE5 names, twist bones, no toe bones). From '**The job:**' on, the text is the original's word for word."
+   },
+   {
+    "brief": "bench/results/heldout/G7/run-2/B3/brief.md: 'B3 · Snowball fight'. A kid in a winter playground walks, flinches on the upper body at a light hit (a snowball) and is knocked down for 1 s by a heavy one (a sledge); createReactor, the check and the grading as B3's, word for word.",
+    "seed": 4743,
+    "character": "gen-4743: child build, T rest pose (arms level), Rigify naming (DEF-spine hips, DEF-spine.001-.004, DEF-spine.005, DEF-spine.006 head, DEF-upper_arm.L, DEF-forearm.L, DEF-hand.L, DEF-thigh.L, DEF-shin.L, DEF-foot.L, DEF-toe.L and .R; three.js loads them without the dots: DEF-spine001, DEF-upper_armL), twist bones in the chain (DEF-upper_arm.L.001, DEF-forearm.L.001, DEF-thigh.L.001 and .R), shoulders left out (upper arms on DEF-spine.003), 27 bones. bind: table rigify, confidence 1, nothing missing, unmapped DEF-spine005 and the six twist bones, rest T 0°; H0 695.0 mm; hips bone 0.679 m above the origin, soles 1.6 cm below it; 1.30 m tall (mesh -0.016 to 1.280 m).",
+    "how_it_differs": "New scene (a snowball fight; the two hit kinds framed as a snowball and a sledge) and opening; the character is described (a child, 1.30 m, hips 0.695 m above the soles, T-pose, Rigify names, twist bones inside the limb chains, no shoulder bones). From '**The job:**' on, the text is the original's word for word."
+   },
+   {
+    "brief": "bench/results/heldout/G7/run-2/B4/brief.md: 'B4 · The mascot's sneak'. A streaming show's chibi mascot sneaks across the stage with a crouched sneak loop from the CC0 library, moved by its root motion; createSneaker, the check and the grading as B4's, word for word.",
+    "seed": 5980,
+    "character": "gen-5980: chibi build, A rest pose (arms 40° down), VRM 1.0 naming (hips, spine, chest, upperChest, head, leftShoulder, leftUpperArm, leftLowerArm, leftHand, leftUpperLeg, leftLowerLeg, leftFoot, leftToes and right ones; bone frames the world's), twist leaves (leftUpperArmTwist, leftLowerArmTwist, leftUpperLegTwist and right ones), neck left out (head on upperChest), 27 bones. bind: table vrm, confidence 1, nothing missing, rest A 40°; H0 445.5 mm; hips bone 0.4215 m above the origin, soles 2.4 cm below it; 1.06 m tall (mesh -0.024 to 1.040 m), head 0.36 m of it.",
+    "how_it_differs": "New scene (a streaming show's stealth segment) and opening; it keeps the VRM 1.0 naming and the unusual proportions the contract names, and describes the chibi (1.06 m, a third of it head, hips 0.45 m above the soles, A-pose, VRM names, no neck, twist bones). From '**The job:**' on, the text is the original's word for word."
+   },
+   {
+    "brief": "bench/results/heldout/G7/run-2/B5/brief.md: 'B5 · Signal from the lighthouse'. A harbour game's lighthouse keeper signals an incoming ship: emote.json, a recipe compiling into a two-handed wave with a hop, 1.5 s and looping; the check and the grading as B5's, word for word.",
+    "seed": 6251,
+    "character": "gen-6251: heroic build, relaxed rest pose (arms 70° down), Rigify naming (DEF-spine hips, DEF-spine.001, DEF-spine.004 neck, DEF-spine.005, DEF-spine.006 head, DEF-shoulder.L, DEF-upper_arm.L, DEF-forearm.L, DEF-hand.L, DEF-thigh.L, DEF-shin.L, DEF-foot.L, DEF-toe.L and .R), no twist bones, chest and upperChest left out (no DEF-spine.002/.003; neck and shoulders on DEF-spine.001), 21 bones. bind: table rigify, confidence 1, nothing missing, unmapped DEF-spine005, rest relaxed 70°; H0 1039.8 mm; hips bone 1.020 m above the origin, soles 2.0 cm below it; 1.85 m tall (mesh -0.020 to 1.835 m).",
+    "how_it_differs": "New scene (a lighthouse keeper signalling a ship) and opening; it adds a description of the character the clip is played on (athletic, 1.85 m, hips 1.04 m above the soles, relaxed rest pose, Rigify names, no chest bones, no twist bones), which the original doesn't describe. From '**The job:**' on, the text is the original's word for word."
+   },
+   {
+    "brief": "bench/results/heldout/G7/run-2/B6/brief.md: 'B6 · The southpaw's cross'. A boxing game's southpaw sparring partner: punch.json, a recipe editing MESH2MOTION/Punch_Cross to 30% faster, with a draw-back first, mirrored for the left hand; the check and the grading as B6's, word for word.",
+    "seed": 7434,
+    "character": "gen-7434: tall build, T rest pose (arms level), UE5 naming (root at the origin, pelvis, spine_01-spine_05, neck_01, head, clavicle_l, upperarm_l, lowerarm_l, hand_l, thigh_l, calf_l, foot_l, ball_l and _r), no twist bones, nothing left out, 25 bones. bind: table unreal5, confidence 1, nothing missing, unmapped root and spine_04, rest T 0°; H0 1227.5 mm; hips bone 1.2195 m above the origin, soles 8 mm below it; 2.14 m tall (mesh -0.008 to 2.133 m).",
+    "how_it_differs": "New scene (a southpaw sparring partner whose cross comes from the left) and opening; it describes the character the punch is played on (lean, 2.14 m, hips 1.23 m above the soles, T-pose, UE5 names, nothing left out, no twist bones). The clip to edit is the contract's own (MESH2MOTION/Punch_Cross); no other clip is named. From '**The job:**' on, the text is the original's word for word."
+   },
+   {
+    "brief": "bench/results/heldout/G7/run-2/B7/brief.md: 'B7 · The smith on the rooftops'. A rooftop platformer's blacksmith: graph.json with speed, grounded and jump driving idle, walk, run, jump and land; script.json, the check and the grading as B7's, word for word.",
+    "seed": 8592,
+    "character": "gen-8592: bulky build, T rest pose (arms level), VRM 1.0 naming (hips, spine, chest, upperChest, neck, head, leftShoulder, leftUpperArm, leftLowerArm, leftHand, leftUpperLeg, leftLowerLeg, leftFoot, leftToes and right ones), no twist bones, nothing left out, 22 bones. bind: table vrm, confidence 1, nothing missing, rest T 0°; H0 1098.2 mm; hips bone 1.054 m above the origin, soles 4.4 cm below it; 1.94 m tall (mesh -0.044 to 1.897 m).",
+    "how_it_differs": "New scene (a blacksmith crossing a town over its roofs) and opening; the character is described (bulky, 1.94 m, hips 1.10 m above the soles, T-pose, VRM names, nothing left out, no twist bones). From '**The job:**' on, the text is the original's word for word."
+   }
+  ],
+  "notes": "Freshness check: `npm run fixtures -- heldout G7` -> 'fixtures heldout G7: PASS in 0.0 s / ok heldout 0.0 s: run-2 is fresh: no gate run used it; no rig: seeds only; seeds B1 2329, B2 3542, B3 4743, B4 5980, B5 6251, B6 7434, B7 8592, none of the 39 used (WP-4.2's, the tests', other runs') / next: npm run gate -- G7'. Seeds already used, from usedSeeds() with run-2 excluded (39): 0-19, 29, 37, 40, 41, 44, 401, 722, 765, 808, 809, 871, 935, 1171, 1287, 1340, 1469, 1537, 1618, 1830. None of the seven chosen is among them. Seed mapping (variants.ts): build = BUILDS[s%5] (chibi, heroic, bulky, child, tall), rest = RESTS[s%3] (T, A, relaxed), naming = NAMINGS[s%4] (vrm, mixamo, ue5, rigify), twist = floor(s/4)%2 === 1, drop = DROPS[s%6] ([], upperChest, toes, shoulders, neck, chest+upperChest); lengths x0.96-1.04 per seed. Because s%6 fixes both s%2 and s%3, the dropped bones set the rest pose (drop index mod 3), and the naming's parity must match the drop's: vrm/ue5 go with none/toes/neck, mixamo/rigify with upperChest/shoulders/chest+upperChest. I picked each seed as the first unused one meeting the planned combination after an arbitrary start (2311, 3517, 4729, 5903, 6151, 7369, 8543). Spread: builds tall x2 (B1, B6), bulky x2 (B2, B7), child (B3), chibi (B4), heroic (B5); rests A x2, relaxed x2, T x3; namings mixamo 1, ue5 2, rigify 2, vrm 2 (B4 and B7); twist bones on 3 (B2 UE5 leaves, B3 Rigify in-chain, B4 VRM leaves); left out: upperChest, toes, shoulders, neck, chest+upperChest, none x2. Every fact in the briefs was checked by generating each seed (character(variant(seed))), loading it with loadGlb (textures: false) and binding it (bind from @m3a/three): bind recognised all seven by table with confidence 1, nothing missing and no issues, with the rest kind and arm drop expected. H0 equals the hips bone's height above the mesh's lowest point (the soles), so the briefs give the 'hips above the soles' figure from H0 (1.26, 1.05, 0.695, 0.45, 1.04, 1.23, 1.10 m) and the height as the mesh's span. Things to watch: (1) the briefs give bone names as they are in the glTF file; three.js's GLTFLoader drops ':' and '.' from node names (mixamorig:Hips loads as mixamorigHips, DEF-spine.001 as DEF-spine001), which the briefs don't mention. (2) B4 keeps a VRM-named avatar as its contract requires (the starter check finds the hips by /hips|pelvis/i). Its body is the smallest chibi build (H0 445.5 mm), the most extreme of the seven: the gate's known-good check on the variant is where any trouble would show. (3) B3's child (H0 695 mm) has no shoulder bones and Rigify twist bones inside the arm and leg chains. (4) B1's speeds.json for H0 1262 should be about 26% above the 1 m figures (by the grader's scriptFor: 0, 1.51, 4.42, 1.51, 0 m/s); the brief says only 'proportionally more' and gives no numbers. (5) Nothing was committed. Apart from the 14 files in bench/results/heldout/G7/run-2/, nothing in the repository was changed; git status shows only that folder as new. Scratch scripts are in my scratchpad's work/ folder."
+ },
+ "check": {
+  "pass": true,
+  "read_bar_ok": true,
+  "problems": [
+   {
+    "brief": "all",
+    "severity": "nit",
+    "what": "Six-word-run reuse of each original is 0.91 to 0.96 (B1 0.91, B2 0.94, B3 0.96, B4 0.94, B5 0.91, B6 0.95, B7 0.96), against 0.18 to 0.40 for G6 run-1 and G7 run-1. Everything from '**The job:**' to the end is the original word for word (B1 aside); only the title, the opening scene and the character paragraph are new. The variants test a new body and scene, but barely test new wording of the task, which PLAN.md §7 asks a variant to change.",
+    "fix": "Next time, reword the job, check and grading prose the way run-1 did, keeping every file, name, type, command and number. For run-2, record it as a nit; the contract itself is intact."
+   },
+   {
+    "brief": "B1",
+    "severity": "nit",
+    "what": "The only edits inside a contract: 'make the character' becomes 'have him', and the speeds bullet gains 'the lamplighter's hips are higher than 1 m, so he is asked proportionally more'. Both are true and follow from the original's rule (scriptFor at H0 1262 gives 0, 1.51, 4.42, 1.51, 0 m/s, which speeds.json lists). No condition changes, it is no clip or API hint, and it bears on nothing D106 fixed.",
+    "fix": "Leave it, or put the clause in the character paragraph so the contract bullet stays word for word."
+   },
+   {
+    "brief": "B3, B5",
+    "severity": "nit",
+    "what": "'`DEF-spine.005` and `DEF-spine.006` (the head)': only DEF-spine.006 is the head. DEF-spine.005 is a mid-neck bone between DEF-spine.004 and the head, and bind leaves it unmapped.",
+    "fix": "'DEF-spine.005 (mid-neck) and DEF-spine.006 (the head)'."
+   },
+   {
+    "brief": "B1, B3, B5",
+    "severity": "nit",
+    "what": "Bone names are quoted as the glTF file has them, and the brief says so ('in the file'), so they are correct. three.js's loader drops ':' and '.', though (mixamorigHips, DEF-spine001, DEF-upper_armL), so an agent that looks these names up in the loaded scene finds nothing. bind accepts both forms. The writer flagged this itself.",
+    "fix": "Optionally add how three.js names them, e.g. 'three.js loads them as mixamorigHips'. As written, the facts are right."
+   },
+   {
+    "brief": "B4",
+    "severity": "nit",
+    "what": "'its mascot has to creep across the stage': m3a search on those words still ranks the CC0 Crouch_Fwd_Loop first. Its next line, though, offers CMU_CURATED/Creep_Limp_Loop (a limping crouch in the cmu tier, not CC0) as 'a closer match' and suggests adding the cmu tier. The job still asks for a crouched sneaking walk from the CC0 library, so this is not a hint, but the framing word is a library clip's name.",
+    "fix": "Use 'sneak' or 'steal across' instead of 'creep'."
+   },
+   {
+    "brief": "B5",
+    "severity": "nit",
+    "what": "The scene ('signals to it ... both arms up and waving') makes search rank MESH2MOTION/Help_Two_Arms ('waves both arms overhead for attention') first. That is a source clip of the known-good solution; on the original's words it ranks third. No clip is named, and it is a coincidence of framing, not advice.",
+    "fix": "Optionally pick a scene that doesn't match one clip's description, e.g. a celebration."
+   },
+   {
+    "brief": "B5, B6",
+    "severity": "nit",
+    "what": "The character paragraph gives the body's hip height (1.04 m and 1.23 m). B5's and B6's graders measure 'the hip height' on the compiled clip's rest (rest.H0 in grade.ts) and use character.glb only to play the clip. Each figure is true, but it invites reading the 10% and 4% thresholds against it.",
+    "fix": "Optionally drop the hip figure from B5 and B6, or say the grader measures on the clip's rest."
+   },
+   {
+    "brief": "read bar",
+    "severity": "nit",
+    "what": "Past the bar, names only: package.json's 'fixtures' script line (one grep line); directory listings showing the names bench/results/heldout/{G4,G6,G7}, G7/run-1 and gates/G7-run-1, and the known-good folder names. No contents were read and no trace of them is possible. I checked the writer's transcript (subagents/agent-ae4f3542f35ba388f.jsonl: 26 Bash, 12 Read, 7 Write calls): it matches files_read exactly. No tool output showed the manual, a known-good solution, D76, D77 or D104 to D106, or another run's variants.",
+    "fix": "None needed. The next writer can get the run number from the fixtures check instead of listing bench/results."
+   }
+  ],
+  "summary": "PASS: no blocking problem. (1) Read bar OK. The transcript matches files_read, which holds only §7, D78, the briefs, the starters, grade.ts, the generator and fixtures.ts. Beyond that it saw only directory names and package.json's one script line. (2) Every brief keeps its job, contract and pass rule: from '**The job:**' on each is word for word, except B1's added true clause. The openings keep character.glb, metres, +Z, node_modules/@m3a and the manual path. (3) I generated and bound all seven seeds myself. bind matched each by table with confidence 1, nothing missing and no issues. Every stated fact matches: build, rest kind and arm drop, every quoted bone name, the twist bones (leaves vs in-chain), the left-out bones and the parents named, H0 = hips above the soles (1262, 1054.9, 695.0, 445.5, 1039.8, 1227.5, 1098.2 mm) and height (2.151, 1.898, 1.296, 1.064, 1.855, 2.141, 1.941 m), Mixamo's 0.01 scale, and the chibi's head at 0.34 of its height. (4) npm run fixtures -- heldout G7 PASSES for run-2. None of the seven seeds (2329, 3542, 4743, 5980, 6251, 7434, 8592) is among the 39 used, nor anywhere else in bench/, tools/, packages/ or docs as a seed. B4's seed gives VRM names as the runner requires. The commit (5d1ec8f, 02:42:56) was fixed before the variants were written (02:48 to 02:49). (5) No variant names a library clip or gives API advice beyond its original. The only clip named is B6's contract clip, MESH2MOTION/Punch_Cross. Nits: six-word reuse is 0.91 to 0.96 for all seven, because the contracts are copied verbatim; DEF-spine.005 is called part of the head; B4's 'creep' and B5's 'signals' match clip descriptions; and B5/B6 give a hip height the grader doesn't use. Aside: untracked bench/results/2026-10-19-default-B*-fake-variant-2.json files appeared at 02:51:53 to 02:52:43, after the writer finished: the known-good runs on these variants, not the writer's."
+ }
+}

@@ -2,12 +2,13 @@
 // `qa`, `qaVersion` and the head of its `baseline`) against what the sensors give it now; the reasons in
 // library/baselines/qa.json whose finding is gone; the census (unique motions and G5's category floors, census.ts);
 // each metric's distribution over the library and the verdicts' counts against the ones recorded in
-// library/baselines/distributions.json, which may only improve; and docs/LIBRARY.md, generated from all of it.
+// library/baselines/distributions.json, which may only improve; the floats and the off-feet check (a loop with no
+// contact answered: off its feet, or no foot that holds still); and docs/LIBRARY.md, generated from all of it.
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { clip as C, format, type Clip, type Rest } from "@m3a/core";
 import { checks } from "@m3a/sensors";
-import { ROOT } from "../run/cli.ts";
+import { ROOT, type Step } from "../run/cli.ts";
 import { CATEGORIES, OTHER, type Census } from "./census.ts";
 import { CAPTURE, distributions, type LibraryClip, type QaRow } from "./qa.ts";
 import type { Report } from "@m3a/sensors";
@@ -117,6 +118,35 @@ export function checkFloats(lib: readonly LibraryClip[], reasons: QaReasons = re
     if (!answers[clip.id]) problems.push(`${clip.id}: stands upright with both soles ${f.mm} mm up for ${f.for} s from ${f.at} s, with no answer in library/baselines/qa.json floats`);
   }
   return { problems, gone: Object.keys(answers).filter((id) => !floating.has(id)).map((id) => `${id} (floats no longer)`) };
+}
+
+/**
+ * The off-feet check (D104, D108): a loop with no contact at all must say why. Off its feet, its tags put it there
+ * (core's OFF_FEET: in the air, in water, on a wall, lying or sitting) and the reasons' `offFeet` answers where it is; on
+ * its feet, `unplanted` answers why no foot holds still on the floor (core's measureFacts reads none it can plant). An
+ * answer whose loop has contacts now is named, so an agent matching a run's speed to its own planted feet reads 0 only
+ * from a clip that says why.
+ */
+export function checkOffFeet(lib: readonly LibraryClip[], reasons: QaReasons = readReasons()): VerdictCheck {
+  const problems: string[] = [], none = new Set<string>(), answers = reasons.offFeet ?? {}, unplanted = reasons.unplanted ?? {};
+  for (const { clip } of lib) {
+    if (!clip.loop || (Object.keys(C.END_POINTS) as C.End[]).some((e) => (clip.contacts?.[e]?.length ?? 0) > 0)) continue;
+    none.add(clip.id);
+    const off = clip.tags.filter((t) => (C.OFF_FEET as readonly string[]).includes(t));
+    if (!off.length) {
+      if (!unplanted[clip.id]) problems.push(`${clip.id}: a loop with no contact, and none of its tags (${clip.tags.join(", ")}) puts it off its feet (${C.OFF_FEET.join(", ")}): detect its contacts, tag where it is, or answer why no foot holds still in library/baselines/qa.json unplanted`);
+    } else if (!answers[clip.id]) problems.push(`${clip.id}: a loop with no contact (${off.join(", ")}), with no answer in library/baselines/qa.json offFeet`);
+  }
+  const gone = (field: string, ids: string[]) => ids.filter((id) => !none.has(id)).map((id) => `${field}: ${id} (has contacts now)`);
+  return { problems, gone: [...gone("offFeet", Object.keys(answers)), ...gone("unplanted", Object.keys(unplanted))] };
+}
+
+/** The off-feet check as `npm run qa -- library` reports it (tools/qa/main.ts). */
+export function offFeetStep(lib: readonly LibraryClip[], reasons: QaReasons = readReasons()): Step {
+  const off = checkOffFeet(lib, reasons), n = (o?: Record<string, string>) => Object.keys(o ?? {}).length;
+  const ok = off.problems.length === 0 && off.gone.length === 0;
+  const summary = ok ? `every loop with no contact answered in library/baselines/qa.json: ${n(reasons.offFeet)} off their feet, ${n(reasons.unplanted)} with no foot that holds still` : `${off.problems.length} loops with no contact unanswered; ${off.gone.length} answers whose loop has contacts now`;
+  return { name: "off feet", ok, ms: 0, summary, detail: [...off.problems, ...off.gone.map((g) => `library/baselines/qa.json ${g}`)] };
 }
 
 /** One metric's recorded spread: p50, p95 and the most of each clip's worst value. */

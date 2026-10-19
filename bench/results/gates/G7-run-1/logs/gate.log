@@ -1,0 +1,48 @@
+
+> my-3danimations@0.50.1 gate
+> node tools/run/gate.ts G7 --json
+
+gate G7: FAIL in 5042.0 s (23/24 commands, 3 recorded) at 1623b78
+  ok   check 2.3 s: check: PASS (T0) in 2.1 s, budget 15.0 s
+  ok   test 81.5 s: test: PASS (T1) in 81.3 s, budget 90.0 s
+  ok   doctrine: the manual within its 8,000 tokens, the tools within 3,000 0.7 s: doctrine: PASS in 0.4 s (8 checks)
+  ok   vectors --check 1.9 s: vectors: PASS (--check) in 1.5 s
+  ok   every tool example passes; the CLI, MCP, API and console reply the same 18.0 s: test: PASS (T1) in 17.8 s, budget 90.0 s
+  ok   the manual's code runs 6.5 s: test: PASS (T1) in 6.3 s, budget 90.0 s
+  ok   the packaged CLI, MCP server and single file run the manual's example; licenses and QA of the bundle 20.5 s: pack --check: PASS in 19.9 s; the packs in .cache/pack/
+  ok   licenses: the single file's manifest 0.4 s: license check tools/bundle/manifest.json: PASS in 0.0 s
+  ok   T2: browser checks, the MCP Inspector on every example, library QA and the sweeps in full 117.0 s: e2e: PASS (T2) in 116.8 s, budget 480.0 s
+  ok   the held-out run is fresh: no gate run used it, each variant's character one no test or run used 0.2 s: fixtures heldout G7: PASS in 0.0 s
+  ok   B1: at least 4 of 5 fresh agents; 2 discovery trials, reported (§7) 137.0 s: bench B1: PASS in 136.4 s
+  ok   B2: at least 4 of 5 fresh agents (§7) 40.3 s: bench B2: PASS in 39.6 s
+  ok   B3: at least 4 of 5 fresh agents (§7) 108.4 s: bench B3: PASS in 107.8 s
+  ok   B4: at least 4 of 5 fresh agents (§7) 71.4 s: bench B4: PASS in 70.8 s
+  ok   B5: at least 4 of 5 fresh agents (§7) 62.4 s: bench B5: PASS in 61.9 s
+  ok   B6: at least 4 of 5 fresh agents (§7) 50.8 s: bench B6: PASS in 50.2 s
+  ok   B7: at least 4 of 5 fresh agents (§7) 77.9 s: bench B7: PASS in 77.3 s
+  FAIL B1's held-out variant: at least 4 of 5 fresh agents 109.8 s: bench B1: FAIL in 109.2 s
+  ok   B2's held-out variant: at least 4 of 5 fresh agents 46.7 s: bench B2: PASS in 46.0 s
+  ok   B3's held-out variant: at least 4 of 5 fresh agents 108.2 s: bench B3: PASS in 107.6 s
+  ok   B4's held-out variant: at least 4 of 5 fresh agents 64.9 s: bench B4: PASS in 64.2 s
+  ok   B5's held-out variant: at least 4 of 5 fresh agents 78.9 s: bench B5: PASS in 78.3 s
+  ok   B6's held-out variant: at least 4 of 5 fresh agents 48.0 s: bench B6: PASS in 47.5 s
+  ok   B7's held-out variant: at least 4 of 5 fresh agents 133.0 s: bench B7: PASS in 132.3 s
+  ok   recorded: B1 to B7 on claude-opus-5-5, one trial each 753.5 s: bench B1, B2, B3, B4, B5, B6, B7: PASS in 753.0 s
+  ok   recorded: B1 to B7 on claude-haiku-5-5, one trial each 919.4 s: bench B1, B2, B3, B4, B5, B6, B7: PASS in 918.7 s
+  ok   recorded: B1 to B7 on claude-fable-5-1, one trial each 1982.4 s: bench B1, B2, B3, B4, B5, B6, B7: PASS in 1981.8 s
+  -- B1's held-out variant: at least 4 of 5 fresh agents:
+     bench B1: FAIL in 109.2 s
+       FAIL B1 105.9 s: 3 of 5 trials pass
+       -- B1:
+          B1-3: planted feet don't slide: slide 136 mm (fail 254), skate 54.4 cm/s (fail 41.9); worst: footL 5.55–5.80 s: the planted foot glides at 54.4 cm/s (136 mm in 0.25 s) (fail at 42)
+          B1-5: a foot stands still at 3.67 m/s: the lower foot's slowest tenth moves 0.62 m/s or less (at most 0.52)
+     next: results in bench/results/2026-10-19-default-B1-variant.json; workspaces and transcripts in /tmp/m3a-bench/2026-10-19T01-07-18
+     (node:830) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+     (Use `node --trace-warnings ...` to show where the warning was created)
+     full log: check-output/gate/B1-s-held-out-variant-at-least-4-of-5-fresh-agents.log
+report: check-output/gate/report.json
+next: fix forward; a gate that fails twice is checked against the kill criteria (PLAN.md §12)
+
+real	84m2.577s
+user	38m47.225s
+sys	6m15.879s

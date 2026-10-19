@@ -2,7 +2,9 @@
 // core's Animator on a bound skeleton, its feet planted, solved onto the bones, the sensors (WP-3.3) run on what it
 // plays. It passes on that body when the body adds no fail finding: its data is sound (no non-number, events in order),
 // the sensors find no metric past its fail level that was under it on the clip's own body, read the same way (the
-// clip's own defects are the clip's, not the body's), and the bones reach every mapped joint's point within 5 mm. A
+// clip's own defects are the clip's, not the body's), and the bones reach every mapped joint's point within 5 mm (above
+// a spine bone that spans format points the rig has no bones for, read bone by bone against each one's mapped parent,
+// the torso's own miss reported: spannedSpine). A
 // metric the body takes past its warn level only is listed with the row; a value that is no finite number is written
 // "not finite" in the text and null in the data. retarget.apply judges each clip so. And the bound on what one call
 // plays: a foot held past MAX_HOLD, as core's planter holds it (heldStretches), or feet whose holds the planter would
@@ -30,8 +32,12 @@ export interface OnBody {
   /** The clip's verdict on its own body and as played on this one, read the same way. */
   own: string;
   played: string;
-  /** The farthest a mapped joint was from its body point (mm). */
+  /** The farthest a mapped joint was from its body point (mm); above a spanned spine, from its point against its mapped
+   *  parent's (spannedSpine). */
   reach: number;
+  /** The most a torso joint above a spanned spine missed its point (mm; 0 on a rig with every spine bone): what the
+   *  missing bones can't follow, allowed within TORSO of H0. */
+  spans: number;
   /** Each metric past a level it was under on the clip's own body: the level, its value and levels there and here (a
    *  value that is no finite number null, as the text says "not finite"). */
   worse: { metric: string; level: "warn" | "fail"; own: number | null; ownLevels: [number, number]; played: number | null; playedLevels: [number, number] }[];
@@ -52,13 +58,15 @@ export function ownFrames(clip: Clip, R: Rest): Played {
 /**
  * The clip as the Animator plays it on bound skeleton c: its pose every 1/60 s or so (whole fixed steps of dur/n, n
  * samples over the clip; a loop's last sample its cycle's end, as the sensors take a loop's keys), the feet planted, on
- * the root, with the root's path; and the farthest any mapped bone's joint was from its body point (mm), with when.
+ * the root, with the root's path; and the farthest any mapped bone's joint was from its body point (mm), with when
+ * (above a spanned spine as spannedSpine says), and the most a torso joint there missed (`spans`).
  */
-export function played(clip: Clip & Pick<AnimClip, "shares">, c: Bound, lod: 0 | 1 = 0): Played & { reach: number; at: number } {
+export function played(clip: Clip & Pick<AnimClip, "shares">, c: Bound, lod: 0 | 1 = 0): Played & { reach: number; at: number; spans: number } {
   const n = Math.max(1, Math.ceil(clip.dur * RATE)), h = clip.dur / n, a = new Animator(c, { step: h });
   a.layer("clip", { clip });
   const joints = Object.entries(c.jointPoint), frames: Float32Array[] = [], root: Played["root"] = [];
-  let reach = 0, at = 0;
+  const { torso, parent } = spannedSpine(c);
+  let reach = 0, at = 0, most = 0;
   for (let i = 0; i <= n; i++) {
     let p: AnimatorPose = a.pose(undefined, { lod });
     if (i === n && clip.loop) {
@@ -71,13 +79,50 @@ export function played(clip: Clip & Pick<AnimClip, "shares">, c: Bound, lod: 0 |
     for (const [bone, point] of joints) {
       const aim = solver.toSkeleton(c, p.points, format.IDX[point]! * 3), got = p.joints[c.bones[bone]!];
       if (!got) continue;
-      const d = Math.hypot(got[0] - aim[0], got[1] - aim[1], got[2] - aim[2]) / c.scale;
+      let d = Math.hypot(got[0] - aim[0], got[1] - aim[1], got[2] - aim[2]) / c.scale;
+      // above a spanned spine: the torso's own joints miss by what the rig can't follow (reported, within TORSO of H0);
+      // every other bone is read against its mapped parent, so a wrong mapping still shows
+      if (torso.has(bone)) [most, d] = [Math.max(most, d), d <= TORSO * c.rest.H0 ? 0 : d];
+      else if (parent.has(bone)) {
+        const pa = parent.get(bone)!, ga = p.joints[c.bones[pa]!], aa = solver.toSkeleton(c, p.points, format.IDX[c.jointPoint[pa]!]! * 3);
+        if (ga) d = Math.hypot(got[0] - ga[0] - (aim[0] - aa[0]), got[1] - ga[1] - (aim[1] - aa[1]), got[2] - ga[2] - (aim[2] - aa[2])) / c.scale;
+      }
       if (!(d <= reach)) [reach, at] = [d, i * h];
-      if (Number.isNaN(reach)) return { frames, root, reach, at };
+      if (Number.isNaN(reach)) return { frames, root, reach, at, spans: most };
     }
     if (i < n) a.step(h);
   }
-  return { frames, root, reach, at };
+  return { frames, root, reach, at, spans: most };
+}
+
+/** The format's spine points, pelvis to head, in order. */
+const SPINE_POINTS = ["pelvis", "spine1", "spine2", "chest", "neck", "head"];
+/** How far, as a share of H0, a torso joint above a spanned spine may miss its point: what the missing bones can't
+ *  follow is a curl's few centimetres; a bone mapped wrong misses by a bone's length. */
+export const TORSO = 0.05;
+/**
+ * Where a bound rig's spine bones span format spine points it has no bones for (a rig without chest bones: its spine
+ * bone reaches from spine1 to the neck), what reach reads above the lowest such span: the torso's own joints (each
+ * whose nearest mapped parent bone is a spine bone), whose miss is the span's; and every other mapped bone there, with
+ * its nearest mapped parent, against which it is read. Both empty on a rig with every spine bone.
+ */
+export function spannedSpine(c: Pick<Bound, "jointPoint" | "bones" | "order">): { torso: Set<string>; parent: Map<string, string> } {
+  const chain = Object.entries(c.jointPoint).filter(([b, pt]) => SPINE_POINTS.includes(pt) && c.bones[b] !== undefined).sort((x, y) => SPINE_POINTS.indexOf(x[1]) - SPINE_POINTS.indexOf(y[1]));
+  const span = chain.findIndex(([, pt], i) => i > 0 && SPINE_POINTS.indexOf(pt) - SPINE_POINTS.indexOf(chain[i - 1]![1]) > 1);
+  const torso = new Set<string>(), parent = new Map<string, string>();
+  if (span < 0) return { torso, parent };
+  const lowest = SPINE_POINTS.indexOf(chain[span - 1]![1]), legs = /^(hip|knee|ankle|ball|toe|heel)[LR]$/;
+  const index = new Map(c.order.map((b, i) => [b.name, i])), human = new Map(Object.entries(c.bones).filter(([h]) => c.jointPoint[h]).map(([h, src]) => [src, h]));
+  const spine = new Set(chain.map(([b]) => b));
+  for (const [b, pt] of Object.entries(c.jointPoint)) {
+    if (c.bones[b] === undefined || legs.test(pt) || (SPINE_POINTS.includes(pt) && SPINE_POINTS.indexOf(pt) <= lowest)) continue;
+    // the nearest ancestor in the rig that a mapped humanoid bone sits on
+    let i = c.order[index.get(c.bones[b]!) ?? -1]?.parent ?? -1, up: string | undefined;
+    while (i >= 0 && !(up = human.get(c.order[i]!.name))) i = c.order[i]!.parent;
+    if (!up || spine.has(up)) torso.add(b);
+    else parent.set(b, up);
+  }
+  return { torso, parent };
 }
 
 type Contacts = checks.Motion["contacts"];
@@ -115,7 +160,7 @@ export const valueData = (x: number): number | null => (Number.isFinite(x) ? Mat
  *  `seen` is given what it played, when it played (retarget.apply draws it). */
 export function onBody(clip: Clip, R: Rest, b: Bound, rig: string, seen?: (p: Played) => void): OnBody {
   const why: string[] = [], warns: string[] = [], worse: OnBody["worse"] = [];
-  let ownVerdict = "none", playedVerdict = "none", reach = 0;
+  let ownVerdict = "none", playedVerdict = "none", reach = 0, spans = 0;
   try {
     for (const f of metrics(clip, R).findings.filter((x) => DATA.includes(x.metric))) why.push(`${f.metric}: ${f.message}`);
     if (!why.length) {
@@ -130,7 +175,7 @@ export function onBody(clip: Clip, R: Rest, b: Bound, rig: string, seen?: (p: Pl
       // there, and that slide is the clip's)
       mo.contacts = likeFor(mp.contacts, checks.stance(mo, true), mo.contacts);
       const ro = checks.measure(mo);
-      [ownVerdict, playedVerdict, reach] = [verdict, rp.verdict, p.reach];
+      [ownVerdict, playedVerdict, reach, spans] = [verdict, rp.verdict, p.reach, p.spans];
       for (const k of checks.METRICS) {
         if (DATA.includes(k) || rp.off.includes(k)) continue;
         const was = level(mo, k, ro.values[k]), now = level(mp, k, rp.values[k]);
@@ -146,7 +191,7 @@ export function onBody(clip: Clip, R: Rest, b: Bound, rig: string, seen?: (p: Pl
   } catch (err) {
     why.push(`threw: ${String((err as Error).message).split("\n")[0]}`);
   }
-  return { clip: clip.id, rig, ok: why.length === 0, why, warns, own: ownVerdict, played: playedVerdict, reach: Math.round(reach * 1000) / 1000, worse };
+  return { clip: clip.id, rig, ok: why.length === 0, why, warns, own: ownVerdict, played: playedVerdict, reach: Math.round(reach * 1000) / 1000, spans: Math.round(spans * 1000) / 1000, worse };
 }
 
 /**

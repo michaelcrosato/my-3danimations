@@ -1,0 +1,237 @@
+{
+  "tool": "gate",
+  "ok": false,
+  "verdict": "gate G7: FAIL in 5042.0 s (23/24 commands, 3 recorded) at 1623b78",
+  "steps": [
+    {
+      "name": "check",
+      "ok": true,
+      "ms": 2292.81312,
+      "detail": [],
+      "log": "check-output/gate/check.log",
+      "summary": "check: PASS (T0) in 2.1 s, budget 15.0 s"
+    },
+    {
+      "name": "test",
+      "ok": true,
+      "ms": 81534.411359,
+      "detail": [],
+      "log": "check-output/gate/test.log",
+      "summary": "test: PASS (T1) in 81.3 s, budget 90.0 s"
+    },
+    {
+      "name": "doctrine: the manual within its 8,000 tokens, the tools within 3,000",
+      "ok": true,
+      "ms": 711.9135590000078,
+      "detail": [],
+      "log": "check-output/gate/doctrine-the-manual-within-its-8-000-tokens-the-tools-within-3-000.log",
+      "summary": "doctrine: PASS in 0.4 s (8 checks)"
+    },
+    {
+      "name": "vectors --check",
+      "ok": true,
+      "ms": 1919.3539909999963,
+      "detail": [],
+      "log": "check-output/gate/vectors-check.log",
+      "summary": "vectors: PASS (--check) in 1.5 s"
+    },
+    {
+      "name": "every tool example passes; the CLI, MCP, API and console reply the same",
+      "ok": true,
+      "ms": 18041.050891000006,
+      "detail": [],
+      "log": "check-output/gate/every-tool-example-passes-the-CLI-MCP-API-and-console-reply-the-same.log",
+      "summary": "test: PASS (T1) in 17.8 s, budget 90.0 s"
+    },
+    {
+      "name": "the manual's code runs",
+      "ok": true,
+      "ms": 6501.634873000003,
+      "detail": [],
+      "log": "check-output/gate/the-manual-s-code-runs.log",
+      "summary": "test: PASS (T1) in 6.3 s, budget 90.0 s"
+    },
+    {
+      "name": "the packaged CLI, MCP server and single file run the manual's example; licenses and QA of the bundle",
+      "ok": true,
+      "ms": 20512.084606999997,
+      "detail": [],
+      "log": "check-output/gate/the-packaged-CLI-MCP-server-and-single-file-run-the-manual-s-example-licenses-and-QA-of-the-bundle.log",
+      "summary": "pack --check: PASS in 19.9 s; the packs in .cache/pack/"
+    },
+    {
+      "name": "licenses: the single file's manifest",
+      "ok": true,
+      "ms": 373.5215329999919,
+      "detail": [],
+      "log": "check-output/gate/licenses-the-single-file-s-manifest.log",
+      "summary": "license check tools/bundle/manifest.json: PASS in 0.0 s"
+    },
+    {
+      "name": "T2: browser checks, the MCP Inspector on every example, library QA and the sweeps in full",
+      "ok": true,
+      "ms": 116989.39055400001,
+      "detail": [],
+      "log": "check-output/gate/T2-browser-checks-the-MCP-Inspector-on-every-example-library-QA-and-the-sweeps-in-full.log",
+      "summary": "e2e: PASS (T2) in 116.8 s, budget 480.0 s"
+    },
+    {
+      "name": "the held-out run is fresh: no gate run used it, each variant's character one no test or run used",
+      "ok": true,
+      "ms": 245.6268390000041,
+      "detail": [],
+      "log": "check-output/gate/the-held-out-run-is-fresh-no-gate-run-used-it-each-variant-s-character-one-no-test-or-run-used.log",
+      "summary": "fixtures heldout G7: PASS in 0.0 s"
+    },
+    {
+      "name": "B1: at least 4 of 5 fresh agents; 2 discovery trials, reported (§7)",
+      "ok": true,
+      "ms": 136956.724661,
+      "detail": [],
+      "log": "check-output/gate/B1-at-least-4-of-5-fresh-agents-2-discovery-trials-reported-7-.log",
+      "summary": "bench B1: PASS in 136.4 s"
+    },
+    {
+      "name": "B2: at least 4 of 5 fresh agents (§7)",
+      "ok": true,
+      "ms": 40294.11047299998,
+      "detail": [],
+      "log": "check-output/gate/B2-at-least-4-of-5-fresh-agents-7-.log",
+      "summary": "bench B2: PASS in 39.6 s"
+    },
+    {
+      "name": "B3: at least 4 of 5 fresh agents (§7)",
+      "ok": true,
+      "ms": 108362.814472,
+      "detail": [],
+      "log": "check-output/gate/B3-at-least-4-of-5-fresh-agents-7-.log",
+      "summary": "bench B3: PASS in 107.8 s"
+    },
+    {
+      "name": "B4: at least 4 of 5 fresh agents (§7)",
+      "ok": true,
+      "ms": 71416.24401200004,
+      "detail": [],
+      "log": "check-output/gate/B4-at-least-4-of-5-fresh-agents-7-.log",
+      "summary": "bench B4: PASS in 70.8 s"
+    },
+    {
+      "name": "B5: at least 4 of 5 fresh agents (§7)",
+      "ok": true,
+      "ms": 62449.326849999954,
+      "detail": [],
+      "log": "check-output/gate/B5-at-least-4-of-5-fresh-agents-7-.log",
+      "summary": "bench B5: PASS in 61.9 s"
+    },
+    {
+      "name": "B6: at least 4 of 5 fresh agents (§7)",
+      "ok": true,
+      "ms": 50789.01547700004,
+      "detail": [],
+      "log": "check-output/gate/B6-at-least-4-of-5-fresh-agents-7-.log",
+      "summary": "bench B6: PASS in 50.2 s"
+    },
+    {
+      "name": "B7: at least 4 of 5 fresh agents (§7)",
+      "ok": true,
+      "ms": 77861.53194200003,
+      "detail": [],
+      "log": "check-output/gate/B7-at-least-4-of-5-fresh-agents-7-.log",
+      "summary": "bench B7: PASS in 77.3 s"
+    },
+    {
+      "name": "B1's held-out variant: at least 4 of 5 fresh agents",
+      "ok": false,
+      "ms": 109778.44122100004,
+      "detail": [
+        "bench B1: FAIL in 109.2 s",
+        "  FAIL B1 105.9 s: 3 of 5 trials pass",
+        "  -- B1:",
+        "     B1-3: planted feet don't slide: slide 136 mm (fail 254), skate 54.4 cm/s (fail 41.9); worst: footL 5.55–5.80 s: the planted foot glides at 54.4 cm/s (136 mm in 0.25 s) (fail at 42)",
+        "     B1-5: a foot stands still at 3.67 m/s: the lower foot's slowest tenth moves 0.62 m/s or less (at most 0.52)",
+        "next: results in bench/results/2026-10-19-default-B1-variant.json; workspaces and transcripts in /tmp/m3a-bench/2026-10-19T01-07-18",
+        "(node:830) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time",
+        "(Use `node --trace-warnings ...` to show where the warning was created)"
+      ],
+      "log": "check-output/gate/B1-s-held-out-variant-at-least-4-of-5-fresh-agents.log",
+      "summary": "bench B1: FAIL in 109.2 s"
+    },
+    {
+      "name": "B2's held-out variant: at least 4 of 5 fresh agents",
+      "ok": true,
+      "ms": 46661.13420099998,
+      "detail": [],
+      "log": "check-output/gate/B2-s-held-out-variant-at-least-4-of-5-fresh-agents.log",
+      "summary": "bench B2: PASS in 46.0 s"
+    },
+    {
+      "name": "B3's held-out variant: at least 4 of 5 fresh agents",
+      "ok": true,
+      "ms": 108192.04618700012,
+      "detail": [],
+      "log": "check-output/gate/B3-s-held-out-variant-at-least-4-of-5-fresh-agents.log",
+      "summary": "bench B3: PASS in 107.6 s"
+    },
+    {
+      "name": "B4's held-out variant: at least 4 of 5 fresh agents",
+      "ok": true,
+      "ms": 64872.54920800007,
+      "detail": [],
+      "log": "check-output/gate/B4-s-held-out-variant-at-least-4-of-5-fresh-agents.log",
+      "summary": "bench B4: PASS in 64.2 s"
+    },
+    {
+      "name": "B5's held-out variant: at least 4 of 5 fresh agents",
+      "ok": true,
+      "ms": 78937.67379300017,
+      "detail": [],
+      "log": "check-output/gate/B5-s-held-out-variant-at-least-4-of-5-fresh-agents.log",
+      "summary": "bench B5: PASS in 78.3 s"
+    },
+    {
+      "name": "B6's held-out variant: at least 4 of 5 fresh agents",
+      "ok": true,
+      "ms": 48034.90910000005,
+      "detail": [],
+      "log": "check-output/gate/B6-s-held-out-variant-at-least-4-of-5-fresh-agents.log",
+      "summary": "bench B6: PASS in 47.5 s"
+    },
+    {
+      "name": "B7's held-out variant: at least 4 of 5 fresh agents",
+      "ok": true,
+      "ms": 132956.74909300008,
+      "detail": [],
+      "log": "check-output/gate/B7-s-held-out-variant-at-least-4-of-5-fresh-agents.log",
+      "summary": "bench B7: PASS in 132.3 s"
+    },
+    {
+      "name": "recorded: B1 to B7 on claude-opus-5-5, one trial each",
+      "ok": true,
+      "ms": 753500.438113,
+      "detail": [],
+      "log": "check-output/gate/recorded-B1-to-B7-on-claude-opus-5-5-one-trial-each.log",
+      "summary": "bench B1, B2, B3, B4, B5, B6, B7: PASS in 753.0 s"
+    },
+    {
+      "name": "recorded: B1 to B7 on claude-haiku-5-5, one trial each",
+      "ok": true,
+      "ms": 919369.3307580003,
+      "detail": [],
+      "log": "check-output/gate/recorded-B1-to-B7-on-claude-haiku-5-5-one-trial-each.log",
+      "summary": "bench B1, B2, B3, B4, B5, B6, B7: PASS in 918.7 s"
+    },
+    {
+      "name": "recorded: B1 to B7 on claude-fable-5-1, one trial each",
+      "ok": true,
+      "ms": 1982377.5391569994,
+      "detail": [],
+      "log": "check-output/gate/recorded-B1-to-B7-on-claude-fable-5-1-one-trial-each.log",
+      "summary": "bench B1, B2, B3, B4, B5, B6, B7: PASS in 1981.8 s"
+    }
+  ],
+  "warnings": [],
+  "ms": 5041954.717894,
+  "next": "fix forward; a gate that fails twice is checked against the kill criteria (PLAN.md §12)",
+  "commit": "1623b78129c377e2ae8d2ab12ba7993884d106c9",
+  "dirty": false
+}

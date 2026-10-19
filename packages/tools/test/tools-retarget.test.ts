@@ -24,7 +24,8 @@ import { nodeHost } from "../src/node.ts";
 import { Registry, type Reply, type ToolContext } from "../src/registry/index.ts";
 import { characterOf, type MappingPatch } from "../src/tools/body.ts";
 import { COMPOSE, EXCHANGE, RETARGET } from "../src/tools/index.ts";
-import { boundHolds, heldStretches, MAX_HOLD, MAX_REREAD, reread, valueData, valueText } from "../src/tools/judge.ts";
+import { boundHolds, heldStretches, MAX_HOLD, MAX_REREAD, reread, spannedSpine, TORSO, valueData, valueText } from "../src/tools/judge.ts";
+import { character, variant } from "../../three/test-characters/index.ts";
 import { exampleCwd, hintedCalls, ROOT, runExamples } from "./helpers/surfaces.ts";
 
 type Row = Record<string, unknown>;
@@ -117,9 +118,24 @@ describe("the retarget tools", () => {
     expect([json.error, [abs, json].map((r) => JSON.stringify(r).includes(cwd))]).toEqual([{ code: "E_ARGS", message: `the character's file is not a character: give a .glb, .gltf or .vrm file, or "tiny"` }, [false, false]]);
   });
 
+  it("retarget.apply reads a rig without chest bones limb by limb: the torso's miss reported, swapped arms still failing (D107)", async () => {
+    // gen-5 (WP-4.2's test set) leaves the chest and upper chest out: one spine bone spans the format's spine2 and chest,
+    // so the neck and the shoulders sit a curl's centimetres off their points, which no mapping can close
+    writeFileSync(join(cwd, "gen-5.glb"), character(variant(5)).glb);
+    type Row = { ok: boolean; reach: number; spans: number };
+    const ok = await call("retarget.apply", { character: "gen-5.glb", clips: [WALK] }), row = (ok.data!.clips as Row[])[0]!;
+    expect([ok.status, row.ok, row.reach, row.spans > 5, row.spans < TORSO * 443]).toEqual(["ok", true, 0, true, true]);
+    expect(ok.lines.at(-1)).toMatch(new RegExp(`^PASS ${WALK}: own warn, played pass, reach 0 mm \\(its spine spans \\d+ mm the rig has no bones for\\)$`));
+    const swapped = await call("retarget.apply", { character: "gen-5.glb", clips: [WALK], mapping: { bones: { leftUpperArm: "mixamorig:LeftForeArm", leftLowerArm: "mixamorig:LeftArm" } } });
+    const bad = (swapped.data!.clips as Row[])[0]!;
+    expect([bad.ok, bad.reach > 50]).toEqual([false, true]);
+    // a rig with every spine bone reads every joint against its own point, as before
+    expect(spannedSpine({ jointPoint: { hips: "pelvis", spine: "spine1", chest: "spine2", upperChest: "chest", neck: "neck" }, bones: { hips: "h", spine: "s", chest: "c", upperChest: "u", neck: "n" }, order: [] })).toEqual({ torso: new Set(), parent: new Map() });
+  });
+
   it("retarget.apply judges clips as the sweep does (D80): swapped arms miss their points; a body adding a fail, or a warn; clips named as given", async () => {
     const swapped = await call("retarget.apply", { character: RIGIFY, clips: [WALK], mapping: SWAP });
-    expect([swapped.status, swapped.data!.mapped, swapped.data!.clips, swapped.lines, swapped.images]).toEqual(["findings", "patched", [{ clip: WALK, ok: false, own: "warn", played: "pass", reach: 833, why: ["a joint 833 mm from its point at 0.30 s (at most 5)"], worse: [] }],
+    expect([swapped.status, swapped.data!.mapped, swapped.data!.clips, swapped.lines, swapped.images]).toEqual(["findings", "patched", [{ clip: WALK, ok: false, own: "warn", played: "pass", reach: 833, spans: 0, why: ["a joint 833 mm from its point at 0.30 s (at most 5)"], worse: [] }],
       [`warning: retarget.inspect finds 1 issue on it: leftLowerArm (DEF-upper_arm.L) does not descend from left...; \`retarget.inspect ${RIGIFY} --mapping '${JSON.stringify(SWAP)}'\` shows it`, `FAIL ${WALK}: a joint 833 mm from its point at 0.30 s (at most 5)`], []]);
     expect(runs(swapped.next)).toEqual([{ tool: "retarget.inspect", args: { character: RIGIFY, mapping: SWAP } }]);
     // the rig's root taken for its hips: a jab fails as the body adds it, and inspect's standing issue is the call to make

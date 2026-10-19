@@ -1,0 +1,38 @@
+
+> my-3danimations@0.50.1 gate
+> node tools/run/gate.ts G7 --json
+
+gate G7: PASS in 5580.0 s (24/24 commands, 3 recorded) at 5d1ec8f
+  ok   check 2.3 s: check: PASS (T0) in 2.1 s, budget 15.0 s
+  ok   test 83.2 s: test: PASS (T1) in 83.0 s, budget 90.0 s
+  ok   doctrine: the manual within its 8,000 tokens, the tools within 3,000 0.8 s: doctrine: PASS in 0.4 s (8 checks)
+  ok   vectors --check 1.9 s: vectors: PASS (--check) in 1.5 s
+  ok   every tool example passes; the CLI, MCP, API and console reply the same 19.5 s: test: PASS (T1) in 19.3 s, budget 90.0 s
+  ok   the manual's code runs 6.6 s: test: PASS (T1) in 6.4 s, budget 90.0 s
+  ok   the packaged CLI, MCP server and single file run the manual's example; licenses and QA of the bundle 21.3 s: pack --check: PASS in 20.7 s; the packs in .cache/pack/
+  ok   licenses: the single file's manifest 0.5 s: license check tools/bundle/manifest.json: PASS in 0.0 s
+  ok   T2: browser checks, the MCP Inspector on every example, library QA and the sweeps in full 121.4 s: e2e: PASS (T2) in 121.1 s, budget 480.0 s
+  ok   the held-out run is fresh: no gate run used it, each variant's character one no test or run used 0.2 s: fixtures heldout G7: PASS in 0.0 s
+  ok   B1: at least 4 of 5 fresh agents; 2 discovery trials, reported (§7) 136.6 s: bench B1: PASS in 136.0 s
+  ok   B2: at least 4 of 5 fresh agents (§7) 131.6 s: bench B2: PASS in 131.0 s
+  ok   B3: at least 4 of 5 fresh agents (§7) 130.0 s: bench B3: PASS in 129.4 s
+  ok   B4: at least 4 of 5 fresh agents (§7) 39.8 s: bench B4: PASS in 39.1 s
+  ok   B5: at least 4 of 5 fresh agents (§7) 45.3 s: bench B5: PASS in 44.6 s
+  ok   B6: at least 4 of 5 fresh agents (§7) 82.3 s: bench B6: PASS in 81.6 s
+  ok   B7: at least 4 of 5 fresh agents (§7) 67.1 s: bench B7: PASS in 66.4 s
+  ok   B1's held-out variant: at least 4 of 5 fresh agents 101.7 s: bench B1: PASS in 101.1 s
+  ok   B2's held-out variant: at least 4 of 5 fresh agents 49.3 s: bench B2: PASS in 48.8 s
+  ok   B3's held-out variant: at least 4 of 5 fresh agents 104.9 s: bench B3: PASS in 104.3 s
+  ok   B4's held-out variant: at least 4 of 5 fresh agents 97.6 s: bench B4: PASS in 97.1 s
+  ok   B5's held-out variant: at least 4 of 5 fresh agents 138.9 s: bench B5: PASS in 138.3 s
+  ok   B6's held-out variant: at least 4 of 5 fresh agents 51.1 s: bench B6: PASS in 50.5 s
+  ok   B7's held-out variant: at least 4 of 5 fresh agents 85.7 s: bench B7: PASS in 85.2 s
+  ok   recorded: B1 to B7 on claude-opus-5-5, one trial each 762.7 s: bench B1, B2, B3, B4, B5, B6, B7: PASS in 762.1 s
+  ok   recorded: B1 to B7 on claude-haiku-5-5, one trial each 1021.1 s: bench B1, B2, B3, B4, B5, B6, B7: PASS in 1020.5 s
+  ok   recorded: B1 to B7 on claude-fable-5-1, one trial each 2276.5 s: bench B1, B2, B3, B4, B5, B6, B7: PASS in 2275.9 s
+report: check-output/gate/report.json
+next: write the G7 report in docs/PROGRESS.md and on the PR, then merge (PLAN.md §8.5)
+
+real	93m0.684s
+user	37m59.630s
+sys	5m52.760s
