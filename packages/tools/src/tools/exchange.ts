@@ -12,12 +12,13 @@
 // keeps, so MCP lists it as no read-only tool; it removes only a clip an import wrote, naming it (and saying so in its
 // verdict), and refuses a set whose directory holds any other .json. The manifest names the file by its own name (never
 // a path); replies name it as clips.ts does. `export` plays a clip on a character (bound through core) and writes it as
-// .vrma, .glb (the character's own document with the animation added) or .bvh under check-output/export/, named by the
-// clip and the character, read back through io: the VRMA byte for byte, the others joint for joint (within 1 mm, else
-// findings, as is a file that couldn't be read back); with the clip's license and the credit it owes (any license but
-// CC0's owes one), which a .bvh can't carry.
+// .vrma, .glb (the character's own document, as body.ts read it to bind it, with the animation added: a file's, or a
+// generated character's GLB for gen-<seed>, D119) or .bvh under check-output/export/, named by the clip and the
+// character, read back through io: the VRMA byte for byte, the others joint for joint (within 1 mm, else findings, as
+// is a file that couldn't be read back); with the clip's license and the credit it owes (any license but CC0's owes
+// one), which a .bvh can't carry.
 import { format, playable, validate, validation, VERSION, type Clip } from "@m3a/core";
-import { addAnimation, bvhGap, decodeVrma, describeGltf, encodeVrma, glbGap, gltfAnimOf, importSet, IoError, parseBvh, parseGlb, parseGltf, picksOf, posedOf, readBvh, readGltf, readGltfPosed, readVrma, rigBvh, skeletonDoc, skeletonOfGltf, writeBvh, writeVrma, type Catalog, type GltfDoc, type LibraryIn } from "@m3a/io";
+import { addAnimation, bvhGap, decodeVrma, describeGltf, encodeVrma, glbGap, gltfAnimOf, importSet, IoError, parseBvh, parseGlb, parseGltf, picksOf, posedOf, readBvh, readGltf, readGltfPosed, readVrma, rigBvh, skeletonDoc, writeBvh, writeVrma, type Catalog, type GltfDoc, type LibraryIn } from "@m3a/io";
 import { setFiles, tierOf, withFacts } from "@m3a/library";
 import { defineTool, ToolError, type LibraryAccess, type ToolContext } from "../registry/registry.ts";
 import { quote } from "../registry/schema.ts";
@@ -371,8 +372,8 @@ function readBack(gap: () => number): { mm: number | null; check: string } {
 }
 
 /** `export`: a clip played on a character, written as .vrma, .glb or .bvh under check-output/export/ and read back,
- *  named `<clip id>-on-<character>` (the clip's id as sheet names its image; the character "tiny" or its file's own name
- *  without its extension), so one clip exported onto two characters makes two files. */
+ *  named `<clip id>-on-<character>` (the clip's id as sheet names its image; the character "tiny", gen-<seed> or its
+ *  file's own name without its extension), so one clip exported onto two characters makes two files. */
 export const exportClip = defineTool<{ clip: string; character: string; format: "vrma" | "glb" | "bvh"; mapping?: MappingPatch }, unknown>({
   name: "export",
   description: "Play a clip on a character and write it as .vrma, .glb or .bvh in check-output/export/, read back to check it.",
@@ -381,7 +382,7 @@ export const exportClip = defineTool<{ clip: string; character: string; format: 
   positionals: ["clip"],
   examples: [{ args: { clip: "QUATERNIUS_3D2DGE/Walk_Loop", character: "spec/vectors/tier1b/rig.gltf" } }],
   async run(a, ctx) {
-    const ref = await loadClip(ctx, a.clip), { as, title } = naming(ref), who = characterName(a.character), { bound: b, report } = await bodyOf(ctx, a.character, a.mapping);
+    const ref = await loadClip(ctx, a.clip), { as, title } = naming(ref), who = characterName(a.character), { bound: b, report, file: own } = await bodyOf(ctx, a.character, a.mapping);
     const clip = playable(ref.clip, ref.rest), fps = 30, frames = Math.max(1, Math.ceil(clip.dur * fps)) + 1;
     boundHolds(clip, title); // no foot held past MAX_HOLD, nor feet's holds reread past MAX_REREAD, before it plays
     let bytes: Uint8Array, back: { mm: number | null; check: string };
@@ -389,11 +390,9 @@ export const exportClip = defineTool<{ clip: string; character: string; format: 
       const v = io(() => writeVrma(clip, b, { fps })), again = io(() => encodeVrma(decodeVrma(v)));
       [bytes, back] = [v, { mm: null, check: again.length === v.length && again.every((x, i) => x === v[i]) ? "reads back byte for byte" : "reads back changed" }];
     } else if (a.format === "glb") {
-      // the character's own document, each bone's node by its name (skeletonOfGltf's, as body.ts bound it)
-      const { doc, nodes } = a.character === "tiny" ? skeletonDoc(b) : await (async () => {
-        const { doc } = await docAt(ctx, a.character, prose(who)), g = io(() => skeletonOfGltf(doc));
-        return { doc, nodes: Object.fromEntries(g.skeleton.bones.map((x, k) => [x.name, g.nodes[k]!])) };
-      })();
+      // the character's own document as body.ts read and bound it (its file's, or a generated character's GLB), each
+      // bone's node by its name; the tiny rig, which has none, a document of its skeleton
+      const { doc, nodes } = own ? { doc: own.doc, nodes: Object.fromEntries(own.g.skeleton.bones.map((x, k) => [x.name, own.g.nodes[k]!])) } : skeletonDoc(b);
       const glb = io(() => addAnimation(doc, gltfAnimOf(clip, b, doc, nodes, { fps })));
       [bytes, back] = [glb, readBack(() => glbGap(glb, clip, b, nodes, { fps }))];
     } else {

@@ -1,10 +1,15 @@
 // Test characters (WP-4.2): the 20 generated variants load in three.js (GLTFLoader, in Node) and are recognized
 // (WP-1.4), each with its confidence reported; they vary as WP-4.2 says (builds, rest poses, namings, twist bones,
-// left-out bones); a seed gives the same bytes every run, and a seed outside the set another character; the real CC0
-// rigs, once fetched (`npm run fixtures -- fetch`), load and are recognized too.
+// left-out bones); a seed gives the same bytes every run, and a seed outside the set another character; their generator
+// entry (generate.ts, which @m3a/tools and m3a.js import) and every file it reaches import nothing but @m3a/core and
+// each other, never three (D119); the real CC0 rigs, once fetched (`npm run fixtures -- fetch`), load and are
+// recognized too.
+import { readFileSync } from "node:fs";
+import { dirname, join, relative } from "node:path";
 import { Matrix4 } from "three";
 import { describe, expect, it } from "vitest";
 import { recognize, skeleton } from "@m3a/core";
+import { specifiers } from "../../../tools/doctrine/boundaries.ts";
 import { rigBytes } from "../../../tools/fixtures/fixtures.ts";
 import { character, loadGlb, skeletonIn, TEST_SEEDS, variant } from "../test-characters/index.ts";
 
@@ -53,6 +58,21 @@ describe("the generated test characters", () => {
     expect(character(variant(7)).glb).not.toEqual(character(variant(27)).glb);
     const held = await read(1000);
     expect([held.rec.missing, held.rec.confidence >= 0.9, held.bind < 1e-5]).toEqual([[], true, true]);
+  });
+  it("are built without three by their generator entry (D119): it and every file it reaches import only @m3a/core and each other", () => {
+    // the entry the exports map names, then each relative import, as the doctrine's boundaries check reads one
+    const dir = join(import.meta.dirname, "../test-characters"), pkg = JSON.parse(readFileSync(join(dir, "../package.json"), "utf8")) as { exports: Record<string, string> };
+    const seen: string[] = [], outside: string[] = [];
+    const reach = (file: string): void => {
+      if (seen.includes(file)) return;
+      seen.push(file);
+      for (const s of specifiers(readFileSync(file, "utf8"))) {
+        if (s.startsWith("./") || s.startsWith("../")) reach(join(dirname(file), s));
+        else if (s !== "@m3a/core") outside.push(`${relative(dir, file)} imports ${s}`);
+      }
+    };
+    reach(join(dir, "..", pkg.exports["./test-characters/generate"]!));
+    expect([seen.map((f) => relative(dir, f)).sort(), outside]).toEqual([["characters.ts", "generate.ts", "variants.ts"], []]);
   });
 });
 

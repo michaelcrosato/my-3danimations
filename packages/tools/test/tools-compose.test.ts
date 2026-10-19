@@ -24,8 +24,8 @@
 // in two layers that plant it, on 60 s; not over the upper body alone; over 10 uncut fades but not 30),
 // while the shipped graphs pass at the longest script, Locomotion through its run without poses with 120 transitions; a
 // character whose bones' names miss a required bone refused (E_RIG), then run with the patch its retarget.inspect call
-// gives (mapping), the run's hints keeping it; and writes only under check-output/recipe.compile/ and
-// check-output/graph.sim/.
+// gives (mapping), the run's hints keeping it; a generated character (gen-<seed>, D119) run with no file; and writes
+// only under check-output/recipe.compile/ and check-output/graph.sim/.
 import { cpSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { openLibrary } from "@m3a/library/node";
 import { join } from "node:path";
@@ -202,7 +202,7 @@ describe("compose and wire", () => {
       ]);
       const typo = await call("graph.sim", { graph: L, script: JSON.stringify({ format: "2.0", id: "SIMS/Bad", dur: 2, input: [{ t: 0.5, trigger: "jumpp" }] }) });
       expect([typo.status, typo.verdict, issues(typo), typo.data!.trace]).toEqual(["findings", "graph.sim SIMS/Bad (the script's JSON) on tiny: FAIL, 1 issue; not run", ["S-E003 input.0.trigger: jump, punch"], null]);
-      expect((await call("graph.sim", { graph: L, script: SHORT, character: "gen-x" })).error).toEqual({ code: "E_ARGS", message: 'gen-x is not a character: give a .glb, .gltf or .vrm file, or "tiny"' });
+      expect((await call("graph.sim", { graph: L, script: SHORT, character: "gen-x" })).error).toEqual({ code: "E_ARGS", message: "gen-x is not a character: a generated one is gen-<seed>, its seed a whole number (gen-3)" });
       writeFileSync(join(cwd, "bad.gltf"), '{"asset":{"version":"2.0"}}');
       expect((await call("graph.sim", { graph: L, script: SHORT, character: join(cwd, "bad.gltf") })).error!.message).toMatch(/^the character's file: [^/<>]*$/);
       // a script file that is no JSON named as clips.ts's prose names a file: "the script's file" for an absolute path,
@@ -252,6 +252,14 @@ describe("compose and wire", () => {
       expect(await call("graph.sim", { graph: "spec/graphs/Sword_Combo.json", script: combo })).toMatchObject({ status: "findings", data: { steps: 180, states: [{ state: "a" }, { state: "b" }, { state: "c" }] } });
       for (const bad of ["[1]", '{"script":"SIMS/Short","states":[]}']) expect((await call("graph.sim", { graph: L, script: SHORT, expect: bad })).error).toEqual({ code: "E_JSON", message: "the expected trace is not one: give a trace.json graph.sim wrote (spec/SIM.md §2)" });
       expect([readdirSync(join(cwd, "check-output")), readdirSync(join(cwd, "check-output/graph.sim"))]).toEqual([["graph.sim"], ["Combo.trace.json", "Short.trace.json", "Sprint.trace.json"]]);
+    }));
+
+  it("graph.sim: a generated character, gen-<seed>, run with no file (D119), its hint naming it as given", () =>
+    inCwd(async (call) => {
+      const r = await call("graph.sim", { graph: L, script: SHORT, character: "gen-3" });
+      expect([r.status, r.verdict, r.data!.character, r.data!.steps, (r.data!.states as Row[]).map((s) => `${s.layer}:${s.state}`), r.next.match(/`[^`]+`/g)]).toEqual([
+        "findings", expect.stringMatching(/^graph\.sim SIMS\/Short \(the script's JSON\) on gen-3: 36 steps, idle > upper:jab; /), "gen-3", 36, ["upper:jab"], [`\`graph.sim ${L} --script <the script's JSON> --character gen-3\``],
+      ]);
     }));
 
   it("graph.sim: a held clip played at several times at once charged by the poses it decodes again, refused after a run without poses; Locomotion's longest run takes its transitions", () =>

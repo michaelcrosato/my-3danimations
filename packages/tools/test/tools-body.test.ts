@@ -14,7 +14,9 @@
 // one point, scaled to 0 or past a double, io naming a bone whose head overflows) refused, not taken for wrong hips;
 // each missing bone's likely source bones in their order (the hips' own bone before the root, the head's before the
 // neck's, a clavicle-less rig's upper arm before its forearm); a VRM's humanoid, 1.0's or 0.x's, mapping bones no table
-// names, a required bone it leaves out said with how it was found (V1).
+// names, a required bone it leaves out said with how it was found (V1); a generated test character named gen-<seed>,
+// built in memory and bound as its .glb file is, with no host, its document kept as the file's is, a gen- without a
+// whole number refused, and one with leading zeros told its one name (D119).
 import { readFileSync, symlinkSync, truncateSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { recognize, type Bound } from "@m3a/core";
@@ -272,12 +274,34 @@ describe("characters bound through core", () => {
     expect(got.map((r) => [r.status, r.error?.code, r.error?.message])).toEqual([
       ["usage", "E_ARGS", 'mapping: "leftUpperLegg" is not a VRM 1.0 humanoid bone; did you mean "leftUpperLeg"?'],
       ["usage", "E_ARGS", 'mapping: leftHand: the character has no bone "DEF-hand.l"; did you mean "DEF-hand.L"?'],
-      ["usage", "E_ARGS", 'spec/vectors/tier1b/rig-catalog.json is not a character: give a .glb, .gltf or .vrm file, or "tiny"'],
+      ["usage", "E_ARGS", 'spec/vectors/tier1b/rig-catalog.json is not a character: give a .glb, .gltf or .vrm file, "tiny" or gen-<seed>'],
       ["error", "E_FORMAT", "junk.glb: not a binary glTF (.glb): its first 4 bytes aren't 'glTF' (at byte 0)"],
       ["error", "E_RIG", 'chain.gltf: no humanoid bone recognized among its 3 bones, by name or by shape; give each bone in mapping {bones: {hips: "<its bone>", ...}}'],
       ["error", "E_LIMIT", "long.gltf: 4097 bones; a character may have at most 4096"],
       ["error", "E_LIMIT", "deep.gltf: a chain of 4096 bones; a character's chains may be at most 1024 bones long"],
     ]);
+  });
+});
+
+describe("a generated character, gen-<seed> (D119)", () => {
+  it("binds gen-3 as character(variant(3))'s GLB read as a file binds, with no host: the same rest points, report and end bones", async () => {
+    const gen = await characterOf({} as ToolContext, "gen-3"), file = await characterOf(holding(character(variant(3)).glb), "gen-3.glb");
+    const said = (c: typeof gen) => ({ ...c.report, text: c.report.text.split("\n").slice(1) }); // its first line names it
+    expect(gen.bound).not.toBeNull();
+    expect([[...gen.bound!.restPts], gen.bound!.rest, endsOf(gen.bound!), said(gen)]).toEqual([[...file.bound!.restPts], file.bound!.rest, endsOf(file.bound!), said(file)]);
+    expect(endsOf(gen.bound!)).toHaveLength(2);
+    // its document kept, as the file's is (export's .glb adds its animation to it); the tiny rig has none
+    expect([gen.file!.doc.json, gen.file!.g.nodes, (await characterOf({} as ToolContext, "tiny")).file]).toEqual([file.file!.doc.json, file.file!.g.nodes, null]);
+    // through a tool, on a host that opens no files: the verdict names it as given
+    const [r] = await bodies({}, [{ character: "gen-3", bound: true }], () => ({}));
+    expect([r!.status, r!.verdict]).toEqual(["ok", expect.stringMatching(/^gen-3: \d+ bones, recognized by name/)]);
+  });
+  it("refuses a gen- without a whole number, saying how to write one; a seed past a safe integer too; leading zeros, naming its one name", async () => {
+    const bad = ["gen-x", "gen-1.5", "gen--3", "gen-", "GEN-3", "gen-99999999999999999999"], zeros = { "gen-007": "gen-7", "gen-00": "gen-0" };
+    const got = await bodies({}, [...bad, ...Object.keys(zeros)].map((character) => ({ character }))), fix = "a generated one is gen-<seed>, its seed a whole number (gen-3)";
+    expect(got.map((r) => [r.status, r.error])).toEqual([...bad.map((g) => [g, fix]), ...Object.entries(zeros).map(([g, one]) => [g, `${fix}; did you mean "${one}"?`])].map(([g, why]) => ["usage", { code: "E_ARGS", message: `${g} is not a character: ${why}` }]));
+    // gen-0 is a seed's one name
+    expect((await bodies({}, [{ character: "gen-0" }], () => ({})))[0]!.status).toBe("ok");
   });
 });
 

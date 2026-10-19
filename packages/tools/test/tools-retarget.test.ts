@@ -11,12 +11,12 @@
 // many clips or none, misspelt clips before any plays, clips past 600 s in all, a character missing a bone, a patch
 // leaving two humanoid bones on one source bone; a metric that is no finite number written so, and null in data). A
 // compressed mesh is said by both, but is no mapping issue (meshIssue): no finding, turntable, patch hint or warning of
-// its own. A clip holding a foot past MAX_HOLD (15 s) refused before it plays, by retarget.apply, export and graph.sim,
-// its contacts bridged as core's planter bridges them (a 12 s hold, and one of 15 s, pass); and one whose feet's holds
-// the planter rereads past MAX_REREAD (16 s) at a step (feet held 15 s and 13.4 s from starts 2 s apart), by each of
-// them, while feet held from one start, and 8 s and 6.4 s from starts 2 s apart, pass. Every next and every
-// refusal's call runs as written. One working directory for the file: the tools only read, and write images (and
-// recipe.compile its clip file).
+// its own. A generated character (gen-<seed>, D119) played with no file, as its .glb is. A clip holding a foot past
+// MAX_HOLD (15 s) refused before it plays, by retarget.apply, export and graph.sim, its contacts bridged as core's
+// planter bridges them (a 12 s hold, and one of 15 s, pass); and one whose feet's holds the planter rereads past
+// MAX_REREAD (16 s) at a step (feet held 15 s and 13.4 s from starts 2 s apart), by each of them, while feet held from
+// one start, and 8 s and 6.4 s from starts 2 s apart, pass. Every next and every refusal's call runs as written. One
+// working directory for the file: the tools only read, and write images (and recipe.compile its clip file).
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { turntable } from "@m3a/sensors";
@@ -117,7 +117,14 @@ describe("the retarget tools", () => {
     expect([bad.status, bad.error]).toEqual(["usage", { code: "E_ARGS", message: 'mapping: "leftUpperLegg" is not a VRM 1.0 humanoid bone; did you mean "leftUpperLeg"?' }]);
     expect([chain.status, chain.error]).toEqual(["error", { code: "E_RIG", message: 'chain.gltf: no humanoid bone recognized among its 3 bones, by name or by shape; give each bone in mapping {bones: {hips: "<its bone>", ...}}' }]);
     expect([abs.verdict, abs.lines[0], abs.next]).toEqual([expect.stringMatching(/^retarget.inspect the character's file: 31 bones/), "rest: T, the arms 2° below level", expect.stringMatching(/^`retarget.apply <the character's file> --clips /)]);
-    expect([json.error, [abs, json].map((r) => JSON.stringify(r).includes(cwd))]).toEqual([{ code: "E_ARGS", message: `the character's file is not a character: give a .glb, .gltf or .vrm file, or "tiny"` }, [false, false]]);
+    expect([json.error, [abs, json].map((r) => JSON.stringify(r).includes(cwd))]).toEqual([{ code: "E_ARGS", message: `the character's file is not a character: give a .glb, .gltf or .vrm file, "tiny" or gen-<seed>` }, [false, false]]);
+  });
+
+  it("retarget.apply plays clips on a generated character, gen-<seed>, with no file, as on its .glb (D119)", async () => {
+    writeFileSync(join(cwd, "gen-3.glb"), character(variant(3)).glb);
+    const [gen, file] = [await call("retarget.apply", { character: "gen-3", clips: [WALK] }), await call("retarget.apply", { character: "gen-3.glb", clips: [WALK] })];
+    expect([gen.status, gen.verdict, gen.lines, runs(gen.next)]).toEqual(["ok", "retarget.apply gen-3: 1 of 1 clip passes on it (hip height 714 mm)", [`PASS ${WALK}: own warn, played pass, reach 0 mm`], [{ tool: "license.check", args: { clips: [WALK] } }]]);
+    expect([gen.data!.character, { ...gen.data, character: "" }]).toEqual(["gen-3", { ...file.data, character: "" }]);
   });
 
   it("retarget.apply reads a rig without chest bones limb by limb: the torso's miss reported, swapped arms still failing (D107)", async () => {

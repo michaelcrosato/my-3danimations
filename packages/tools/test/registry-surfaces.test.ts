@@ -4,6 +4,8 @@
 // console handle, and the same text on the CLI and MCP with and without verbose. It sweeps the WP-7.1 tools and demo
 // tools; the m3a tools of WP-7.2 run on the cheaper runner of test/helpers/surfaces.ts. Then MCP itself: both eras, its errors
 // against tool errors, images as image content; the Node host's paths; and the bin, as a process, on the CLI and stdio.
+// A generated character (gen-<seed>) and an orbit (sheet's view) are named alike on every surface, the CLI's text forms
+// of an orbit too (D119).
 import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -15,6 +17,8 @@ import { base64, mcpServer, mcpTool } from "../src/mcp.ts";
 import { nodeHost } from "../src/node.ts";
 import { consoleHandle, defineTool, describeTool, EXIT, memoryStore, Registry, replySchema, type Reply } from "../src/registry/index.ts";
 import { validate, version } from "../src/tools/base.ts";
+import { tools } from "../src/tools/index.ts";
+import { exampleCwd } from "./helpers/surfaces.ts";
 
 const ROOT = join(import.meta.dirname, "../../.."), BIN = join(ROOT, "packages/tools/src/node.ts"), host = nodeHost(ROOT);
 const META = { "io.modelcontextprotocol/protocolVersion": "2026-07-28", "io.modelcontextprotocol/clientCapabilities": {} };
@@ -72,6 +76,35 @@ describe("one definition, four surfaces", () => {
   }
   it("help --json writes a report valid against m3a.reply/1", async () => {
     for (const argv of [["help"], ["help", "version"]]) expect(ajv.validate(replySchema(), (await cli(argv)).report), ajv.errorsText()).toBe(true);
+  });
+});
+
+describe("a generated character and an orbit on every surface (D119)", () => {
+  /** The replies of one call on the API, the CLI (argv as written, its report.json), MCP and the console handle. */
+  async function everywhere(name: string, args: Record<string, unknown>, argv: string[][]): Promise<Reply[]> {
+    const { cwd, rm } = exampleCwd(false), h = nodeHost(cwd);
+    try {
+      const out = [await tools.call(name, args, { host: h })];
+      for (const a of argv) {
+        let report = "null";
+        await runCli(tools, [name, ...a, "--json"], { print: () => {}, write: (_p, t) => void (report = t), host: h });
+        out.push(JSON.parse(report) as Reply);
+      }
+      const m = (await mcpServer(tools, { host: h }).handle({ jsonrpc: "2.0", id: 1, method: "tools/call", params: { name: name.replace(/\./g, "_"), arguments: args, _meta: META } })) as { result: Record<string, unknown> };
+      return [...out, m.result.structuredContent as Reply, await (consoleHandle(tools, h)[name] as (a: object) => Promise<Reply>)(args)];
+    } finally {
+      rm();
+    }
+  }
+  it("binds gen-3 alike on the API, the CLI, MCP and the console", async () => {
+    const [api, ...rest] = await everywhere("retarget.inspect", { character: "gen-3" }, [["gen-3"], ["--character=gen-3"]]);
+    expect([api!.status, api!.verdict]).toEqual(["ok", expect.stringMatching(/^retarget.inspect gen-3: \d+ bones/)]);
+    for (const r of rest) expect(r).toEqual(api);
+  });
+  it("draws an orbit alike from {yaw, pitch}, the CLI's yaw,pitch and its JSON", async () => {
+    const clip = "QUATERNIUS_3D2DGE/Walk_Loop", [api, ...rest] = await everywhere("sheet", { clip, frames: 2, view: { yaw: 30, pitch: 10 } }, [[clip, "--frames", "2", "--view", "30,10"], [clip, "--frames=2", '--view={"yaw":30,"pitch":10}']]);
+    expect([api!.status, (api!.data as { view: string }).view]).toEqual(["ok", "30,10"]);
+    for (const r of rest) expect(r).toEqual(api);
   });
 });
 
