@@ -20,8 +20,8 @@ with an example that runs.
 
 `submit` runs the gates it can on your machine (schema, provenance, license, text, budgets, lint, sensors) and sends
 only what passes. The checker then adds dedup (no library clip's motion, nor one retimed, trimmed, mirrored or barely
-changed, nor a motion already reviewed) and a retarget onto the reference rigs with the sensors green, and draws a
-preview sheet for the review.
+changed, nor a motion already reviewed) and a retarget onto the reference rigs with the sensors green, and, on the
+local queue, draws a preview sheet for the review (the hosted queue's sheets come once it is linked, O8).
 
 ## What every contributor gives
 

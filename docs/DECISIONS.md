@@ -4447,6 +4447,20 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   - **Ids are never reused, checked:** `npm run library -- check` runs WP-9.3's `checkIds` (every deprecated id leads
     to a clip that stands), and with `--since <ref>` against the lock that ref holds (no id dropped, deleted or given
     to another clip), failing on a ref it can't read; the library-pr gate runs it against origin/main and G9 runs it.
+  - **The index binds what it records:** a latest version whose digest matches but whose fields (licenses, tier, review,
+    QA) don't match its files is refused by `npm run index`, `--check` and `verify` (which checks a core set's whole
+    record); `--check --since` fails on a ref it can't read (a commit with no index passes, as the first); release.yml
+    takes each set's license texts from its `_set.json`. A community pack's version carries a digest over all its files
+    and the SHA-256 of the proof `admit` read (registry.json keeps the proof's text), each rebuild re-runs `vouch`
+    offline against it, a pack with no recorded proof is refused, and `admit` reads the license from the pack's own
+    files, one a pack. The index's format stays "1" (no community pack exists yet). The owner's review regenerates
+    the index as the adopt bot does, putting every file back if it refuses. A version number may skip (two reviews
+    before one commit give v2 and v3, v2 never on main): a version is immutable once on main, and nothing reads the
+    numbers as consecutive.
+  - **The workflows:** release.yml's write token is on its upload step alone, its checkout keeps no credentials, it
+    installs with `--ignore-scripts`, and the owner's go-ahead checks `github.triggering_actor` too, so a re-run by
+    someone else fails closed; its test reads the workflow as YAML (tools/release/yaml.ts, a strict subset, no
+    dependency). library-gates.yml fires on the sets, the lock, the index and registry.json.
   - **The integrator's three:** `--need` never lowers the pass mark under 4 of 5 (ceil 80%, PLAN.md §7) and the
     results record the mark they were judged at; G9 runs the adopt bot's whole proof (`npm run test:full`, vitest under
     M3A_FULL); G9's doctrine step says the tools' 3,200 is T1's tools-budget test.

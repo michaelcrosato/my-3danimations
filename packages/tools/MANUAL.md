@@ -216,7 +216,7 @@ a.remove("hurt");
 ## Make: recipes and edits
 
 Each step names its result with `as` (else `s1`, `s2`, … by place); later steps read names (`in`, `base`, `over`, `a`,
-`b`, `items`); the last step's result is the clip.
+`b`, `items`); the last step's result is the clip, with the recipe's `name`, `desc`, `tags`.
 
 - `clip` (`id`; `from`, `to` s; `loop`: true, or seconds to blend its seam over): a library clip, sliced, closed into
   a loop
@@ -255,8 +255,8 @@ writeFileSync("walk_weary.json", serialize(made.clip));    // as the library wri
 
 `recipe.compile` and `actions.compileAction` read clips through `library.resolver()`, which throws `E_TIER` (Tiers)
 for an installed pack's clip past the game's tiers, and `recipe.RecipeError` for any other unknown id (its `.issues`
-hold `R-E008`, the nearest id in its fix, if any). Edits: faster, `retime` (`speed: 1.5`); the other side,
-`mirror`; more anticipation, a `pose` the other way before the key moment; bigger, `exaggerate` (1.25).
+hold `R-E008`, the nearest id in its fix, if any). Edits: faster, `retime` (`speed: 1.5`); bigger, `exaggerate` (`amount: 1.25`); anticipation, a `pose` the
+other way first.
 `m3a edit <clip> --ops <json> --save-as WORKSHOP/<Name>` applies steps to a copy, with undo.
 
 ## Make: actions
@@ -349,10 +349,10 @@ mine.clip("MOCAP/Wave_Short").tier;                               // "local"
 
 `m3a library submit <clip> --by "<who made it>"` sends a clip (compiled: a recipe takes no `--by`) to the intake queue
 (`.cache/intake/`, or the hosted one); `m3a library status [<id>]` lists yours: `submitted`, then `bounced` (with the
-fix) or `awaiting review`: the owner adopts every clip. It is `CC0-1.0`, or keeps the license and credit of the CC BY
+fix) or `awaiting review`: the owner adopts each. It is `CC0-1.0`, or keeps the license and credit of the CC BY
 or CMU clip it derives from; its provenance gives its method and tool (`recipe.compile` writes them), who made it
-(`--by`: an agent with its human), a model's prompt (`--prompt`) and a generator's (a learned motion model's)
-training-data manifest (`--manifest <https URL>#sha256=<hex>`). A library clip barely changed bounces unless sent as
+(`--by`: an agent with its human), a model's prompt (`--prompt`) and a learned motion model's training-data
+manifest (`--manifest <https URL>#sha256=<hex>`). A library clip barely changed bounces unless sent as
 its fix:
 
 ```sh
