@@ -1,0 +1,4 @@
+library check: PASS in 0.1 s
+  ok   check 0.1 s: 11 sets, 1398 clips: every content id and every file as locked
+  ok   ids 0.0 s: 1398 ids and 0 deprecated: every one resolves
+next: npm test -- library/load

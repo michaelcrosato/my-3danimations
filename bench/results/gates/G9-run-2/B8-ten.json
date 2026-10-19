@@ -1,0 +1,62 @@
+{
+ "about": "npm run bench: fresh agents on the briefs (PLAN.md §7); isolation 1 is the claude CLI in a clean workspace",
+ "date": "2026-10-19T13-24-40",
+ "commit": "9d4342d9d00437785e8b0115559682badd1d59fd",
+ "dirty": false,
+ "model": "the CLI's default",
+ "fake": false,
+ "need": 1,
+ "parallel": 1,
+ "privateTmp": true,
+ "ownPids": true,
+ "capsDropped": true,
+ "uid": 65534,
+ "unprivileged": true,
+ "B8-ten": {
+  "trials": [
+   {
+    "trial": "B8-ten-1",
+    "pass": true,
+    "failed": [],
+    "agent": {
+     "isolation": 1,
+     "privateTmp": true,
+     "ownPids": true,
+     "capsDropped": true,
+     "uid": 65534,
+     "unprivileged": true,
+     "ok": true,
+     "ms": 389404.702851,
+     "model": "claude-sonnet-5-5",
+     "turns": 28,
+     "tokens": {
+      "input": 56,
+      "output": 11449,
+      "cacheRead": 1142257,
+      "cacheWrite": 45255
+     },
+     "costUsd": 0.4098477000000001,
+     "outside": [],
+     "scratch": [
+      "/tmp/rec",
+      "/tmp/rec/*.json",
+      "/tmp/rec/e*.json"
+     ],
+     "pastManual": [],
+     "m3a": {
+      "server": "connected",
+      "skill": true,
+      "skills": [
+       "m3a"
+      ]
+     }
+    }
+   }
+  ],
+  "discovery": []
+ },
+ "models": [
+  "claude-sonnet-5-5"
+ ],
+ "ms": 426687
+}

@@ -1,0 +1,53 @@
+
+ RUN  v4.1.11 /home/user/my-3danimations
+
+would open pull request #1 against main from intake/s-3e8bea86d0e3158d: Adopt MESH2MOTION/Dance_Charleston from the intake queue (s-3e8bea86d0e3158d)
+  Adopts s-3e8bea86d0e3158d as MESH2MOTION/Dance_Charleston: a new version of MESH2MOTION/Dance_Charleston, written through @m3a/library's writer.
+  - contributor: proof
+  - content hash: d5e7deeb97cf57f68af36e2ff9365ee3c7990db4310016b6e2f8b81922ad1b56
+  - adopted by the owner (owner) on 2026-10-19, on that hash
+  - motion hash: a04f810996837543b9d46926c9750685949a7a4dbe8172d9e62e55874e89f07b
+  - the checker: 0 of 0 gates green
+  - regenerated with the repository's commands (npm run library -- lock; npm run qa -- library --baseline; npm run index): library/index.json
+  - the distributions: none worse than recorded
+  The owner's adoption is the approval (O7); this pull request merges when the library gates pass on it.
+  files: library/index.json, library/sets.lock.json, library/sets/MESH2MOTION/Dance_Charleston.json, library/sets/MESH2MOTION/_import.json, library/sets/MESH2MOTION/_set.json
+would merge #1: the library gates pass
+would open pull request #2 against main from intake/s-5919f71d531d2f2e: Adopt STYLE100/Neutral_Walk from the intake queue (s-5919f71d531d2f2e)
+  Adopts s-5919f71d531d2f2e as STYLE100/Neutral_Walk: a new version of STYLE100/Neutral_Walk, written through @m3a/library's writer.
+  - contributor: proof
+  - content hash: 3fbe45eaca73f94d288f290584d5c9abd6d93ad3bb6eda7725f4345e243ec1eb
+  - adopted by the owner (owner) on 2026-10-19, on that hash
+  - motion hash: 630f1fd80fac8188b13e19ff23af3ade46ee4ffec68092403ce9dcdad63c41a9
+  - the checker: 0 of 0 gates green
+  - regenerated with the repository's commands (npm run library -- lock; npm run qa -- library --baseline; npm run index): library/index.json
+  - the distributions: none worse than recorded
+  The owner's adoption is the approval (O7); this pull request merges when the library gates pass on it.
+  files: library/index.json, library/sets.lock.json, library/sets/STYLE100/Neutral_Walk.json, library/sets/STYLE100/_import.json, library/sets/STYLE100/_set.json, library/sets/STYLE100/catalog.tsv
+would merge #2: the library gates pass
+would open pull request #3 against main from intake/s-701371f3ebb71554: Adopt QUATERNIUS_3D2DGE/Walk_Loop from the intake queue (s-701371f3ebb71554)
+  Adopts s-701371f3ebb71554 as QUATERNIUS_3D2DGE/Walk_Loop: a new version of QUATERNIUS_3D2DGE/Walk_Loop, written through @m3a/library's writer.
+  - contributor: proof
+  - content hash: efb683cd8a69e56f63d481af44666d7498dc0fb40de910d0101f26cd0ee98b26
+  - adopted by the owner (owner) on 2026-10-19, on that hash
+  - motion hash: 37b753205d2d7822af418c20f381fef033fa0b03273021a4fe88f50bc0b670bc
+  - the checker: 0 of 0 gates green
+  - regenerated with the repository's commands (npm run library -- lock; npm run qa -- library --baseline; npm run index): library/index.json
+  - the distributions: none worse than recorded
+  The owner's adoption is the approval (O7); this pull request merges when the library gates pass on it.
+  files: library/index.json, library/sets.lock.json, library/sets/QUATERNIUS_3D2DGE/Walk_Loop.json, library/sets/QUATERNIUS_3D2DGE/_set.json, library/sets/QUATERNIUS_3D2DGE/catalog.tsv
+would merge #3: the library gates pass
+npm run migrate -- --check: exit 0: migrate: PASS (--check) in 6.1 s: 525 clips in 5 sets
+npm run import -- --check --set MESH2MOTION: exit 0: import: PASS (--check) in 31.6 s: 1 set(s)
+npm run import -- --check --set STYLE100: exit 0: import: PASS (--check) in 39.9 s: 1 set(s)
+npm run library -- check: exit 0: library check: PASS in 0.0 s
+npm run qa -- --check: exit 0: qa: PASS, 1398 clips measured: 1014 pass, 230 warn, 154 fail
+npm run qa -- library --check: exit 0: qa: PASS, 1398 clips measured: 1014 pass, 230 warn, 154 fail
+npm run index -- --check: exit 0: index check: PASS in 0.2 s
+npm run test -- tools/migrate/library: exit 0: test: PASS (T1) in 4.1 s, budget 90.0 s
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  13:14:51
+   Duration  155.64s (transform 1.78s, setup 0ms, import 2.28s, tests 153.18s, environment 0ms)
+

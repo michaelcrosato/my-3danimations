@@ -4524,3 +4524,23 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   brief asked it to check, not a looser grade.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.52.1
+
+## D115 · 2026-10-19 · G9 = M3's command set passed on run 2; its hosted run, adoption and approval blocked-owner
+
+- **Principle:** 11, PLAN.md §7, §8.5, §9.3, D91, D114
+- **Call:**
+  - **Run 2** at 9d4342d (0.52.1, `bench/results/gates/G9-run-2/`) passed 16 of 16 in 1,641.9 s: check, T1 (108.3
+    s here, 77.1 s in CI), doctrine, vectors, the intake's 18 fixtures, 28 plants failing the library gates, the adopt
+    bot's dry run and whole proof, the ids, the index byte for byte and every set verified, T2 (327.5 s), the held-out
+    run fresh, B8 at 5 of 5, B8-ten's one agent with ten clips through (19 sent, 9 bounced by the queue: 7 near-
+    duplicates, 2 retarget slides), and B8's held-out variant (run 3, gen-5672) at 5 of 5; $1.87 of trials.
+  - **What waits on the owner** (blocked-owner, asked on the pull request): the intake contract suite run in Actions
+    against O8's linked project; an adoption landing through a merged pull request (intake.yml's adopt bot, O8's
+    secrets, Actions allowed to open pull requests); the owner's approval of at least 70% of a sampled batch
+    (`queue.json` in the run's record: B8-ten's ten submissions). §8.5 merges the gate with them open, as G8's phone
+    review.
+  - **T1 at the gate was 108 s on this machine** (CI 77 s on the same tree): over its 90 s budget, under its fail
+    mark; Phase 9's heavy proofs run in T2's full step (ba75cff).
+- **Why:** the gate's machine-provable clauses, each run in its command set, and the owner's left as the owner's.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.52.1
