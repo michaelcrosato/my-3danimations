@@ -5,6 +5,7 @@
 import type { Library, LibrarySource, Tier } from "@m3a/library";
 import type { Image } from "@m3a/sensors";
 import type { ReviewHost } from "../intake/review.ts";
+import type { IntakeStore } from "../intake/types.ts";
 import { REPLY_ID, imageTokens, type ImageRef, type Reply, type Status } from "./reply.ts";
 import { check, closed, didYouMean, quote, type Schema } from "./schema.ts";
 
@@ -60,6 +61,9 @@ export interface ToolContext {
   /** The review queue's host (WP-8.2a): the intake store as the owner, the library at every tier, the checkout's
    *  writer and docs, the clock; once per call. */
   intake(): ReviewHost;
+  /** The intake store as the contributor this surface submits as (WP-9.1a, `library`), and the clock its days are
+   *  counted by; once per call. */
+  contributor(): { store: IntakeStore; today(): string };
 }
 
 /** What a platform supplies, each part optional: files read (as text or bytes), written and removed (ToolContext says
@@ -77,6 +81,9 @@ export interface Host {
   lock?(path: string): Promise<() => void>;
   /** ToolContext's intake (the Node entry's: .cache/intake/ and the checkout, node/intake.ts). */
   intake?(): ReviewHost;
+  /** ToolContext's contributor (the Node entry's: the local store as M3A_CONTRIBUTOR, or the hosted one with a
+   *  contributor key, node/intake.ts). */
+  contributor?(): { store: IntakeStore; today(): string };
 }
 
 /** One tool, defined once (PLAN.md §5.6). Parameter names are a letter, then letters, digits or "_"; `output` is its
@@ -293,7 +300,7 @@ export class Registry {
     delete a.verbose;
     for (const [k, s] of Object.entries(tool.schema.properties ?? {})) if ((!Object.hasOwn(a, k) || a[k] === undefined) && s.default !== undefined) a[k] = structuredClone(s.default);
     const images: ImageRef[] = [], host = opts.host ?? {}, libs = new Map<string, LibraryAccess>();
-    let review: ReviewHost | undefined;
+    let review: ReviewHost | undefined, contributor: { store: IntakeStore; today(): string } | undefined;
     const lacks = (what: string, p?: string) => new ToolError("E_HOST", `this surface ${what}${p === undefined ? "" : ` (${pathNamed(p)})`}; ${what.startsWith("reads") ? "pass the text instead" : "run it through m3a (the CLI or MCP) or the API with a Node host"}`, true);
     const ctx: ToolContext = {
       read: (p) => (host.read ? host.read(p) : Promise.reject(lacks("reads no files", p))),
@@ -326,6 +333,10 @@ export class Registry {
       intake() {
         if (!host.intake) throw lacks("keeps no intake store");
         return (review ??= host.intake());
+      },
+      contributor() {
+        if (!host.contributor) throw lacks("keeps no contributor's intake store");
+        return (contributor ??= host.contributor());
       },
     };
     let key: string | undefined, sent: string | undefined;

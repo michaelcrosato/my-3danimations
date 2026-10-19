@@ -110,6 +110,10 @@ export const GATES: Record<string, [string, string, ...string[]][]> = {
     ...G7_BRIEFS.map((b): [string, string, ...string[]] => [`${b}'s held-out variant: at least 4 of 5 fresh agents`, "bench", b, "--trials", "5", "--parallel", "5", "--heldout", "G7"]),
     ...G7_MODELS.map((m): [string, string, ...string[]] => [`${RECORDED}B1 to B7 on ${m}, one trial each`, "bench", G7_BRIEFS.join(","), "--trials", "1", "--parallel", "5", "--model", m]),
   ],
+  // a pull request that touches library/sets/ (library-gates.yml, WP-9.1a): the clips it adds or changes through the
+  // intake's gates; with --fixture all, a scratch copy of the library with each fixture's clip planted on its own, the
+  // bad ones expected to fail (the step passes when they do, and the clean ones pass)
+  "library-pr": [["the library gates on the clips it adds or changes: the library as locked, its sets' licenses, the intake's gates", "intake", "gates", "--base", "origin/main"]],
   // the owner's phone review of the batch is theirs (blocked-owner until it comes, §8.5): the gate proves the way
   // there; the notes and the threshold or task it brings back are read off its `m3a review ingest` line when it comes
   G8: [
@@ -143,17 +147,19 @@ export function gateReport(gate: string, steps: Step[], ms: number, at: ReturnTy
 if (import.meta.main) {
   let parsed;
   try {
-    parsed = parseArgs(process.argv.slice(2), []);
+    parsed = parseArgs(process.argv.slice(2), [{ name: "fixture", takesValue: true, help: "library-pr: the intake's fixtures (all, or one) planted in a scratch copy of the library" }]);
     const g = parsed.positionals[0];
     if (!g) throw new Error(`name a gate: ${Object.keys(GATES).join(", ")}`);
     if (!GATES[g]) throw new Error(`no gate ${g} yet; did you mean ${closest(g, Object.keys(GATES))}? (gates are filled in as their phase arrives)`);
+    if (parsed.flags.fixture !== undefined && g !== "library-pr") throw new Error("--fixture is library-pr's");
   } catch (err) {
     usage("gate", err, []);
   }
   const gate = parsed.positionals[0]!;
   const steps: Step[] = [];
   const t0 = performance.now(), at = commitOf();
-  for (const [name, script, ...args] of GATES[gate]!) {
+  for (const [name, script, ...given] of GATES[gate]!) {
+    const args = typeof parsed.flags.fixture === "string" && script === "intake" ? [given[0]!, "--fixture", parsed.flags.fixture] : given;
     const { output, ...r } = runStep("gate", name.replace(/\W+/g, "-"), "npm", ["run", "--silent", script, ...(args.length ? ["--", ...args] : [])], Boolean(parsed.flags.verbose));
     r.name = name;
     const firstLine = output.split("\n").find((l) => l.trim() !== "");

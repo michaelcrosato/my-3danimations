@@ -11,7 +11,7 @@ import { join, resolve } from "node:path";
 import { parseClip, type Clip } from "@m3a/core";
 import { setFiles, TIERS, type LibraryLock } from "@m3a/library";
 import { defaultSets, openLibrary } from "@m3a/library/node";
-import { DOCS, IntakeError, localStore, type ReviewHost, type StoreFiles } from "../intake/index.ts";
+import { DOCS, IntakeError, localStore, supabaseStore, type IntakeStore, type ReviewHost, type StoreFiles } from "../intake/index.ts";
 import { errno, lockAt, under, writeAtomic } from "./files.ts";
 
 /** Where the local intake store keeps its records, under the working directory. */
@@ -39,6 +39,17 @@ export function intakeFiles(dir: string): StoreFiles {
     list: () => (existsSync(dir) ? readdirSync(dir).filter((n) => RECORD.test(n)) : []),
     lock: () => lockAt(join(dir, ".lock"), `${INTAKE_DIR}/.lock`),
   };
+}
+
+/** The contributor `m3a library` submits as (WP-9.1a), with the clock its days are counted by: the hosted store when
+ *  `env` links it (M3A_SUPABASE_URL and M3A_SUPABASE_ANON_KEY, and the contributor key M3A_CONTRIBUTOR_KEY its human got by
+ *  signing in on the gallery; M3A_CONTRIBUTOR_TOKEN reads its rows), else the local store under .cache/intake/ as
+ *  M3A_CONTRIBUTOR, the accountable identity ("local" by default). */
+export function nodeContributor(cwd: string, env: NodeJS.ProcessEnv = process.env, today: () => string = () => new Date().toISOString().slice(0, 10)): { store: IntakeStore; today(): string } {
+  const url = env.M3A_SUPABASE_URL?.trim(), apikey = env.M3A_SUPABASE_ANON_KEY?.trim(), key = env.M3A_CONTRIBUTOR_KEY?.trim(), token = env.M3A_CONTRIBUTOR_TOKEN?.trim();
+  if (url && apikey && key) return { store: supabaseStore({ url, apikey, key, ...(token ? { token } : {}) }), today };
+  const dir = under(resolve(cwd), INTAKE_DIR, "keep .cache/intake/ in the working directory");
+  return { store: localStore({ files: intakeFiles(dir), role: "contributor", id: env.M3A_CONTRIBUTOR?.trim() || "local", today }), today };
 }
 
 /** How the review host is opened: its clock (YYYY-MM-DD) and the reviewer's name. */

@@ -17,7 +17,7 @@ import { png } from "@m3a/sensors/node";
 import { runCli } from "./cli.ts";
 import { mcpServer, type McpServer } from "./mcp.ts";
 import { errno, lockFile, shown, under, writable, writeAtomic } from "./node/files.ts";
-import { nodeReviewHost } from "./node/intake.ts";
+import { nodeContributor, nodeReviewHost } from "./node/intake.ts";
 import { libraryAccess } from "./node/library.ts";
 import { fileStore } from "./node/store.ts";
 import { Registry, ToolError, type Host, type Tool } from "./registry/registry.ts";
@@ -81,6 +81,7 @@ export function nodeHost(cwd: string = process.cwd()): Host {
     library: (tiers) => libraryAccess(base, tiers),
     lock: (path) => lockFile(base, path), // an edit's, across m3a processes (./node/files.ts)
     intake: () => nodeReviewHost(base), // m3a review's store under .cache/intake/ and the checkout (./node/intake.ts)
+    contributor: () => nodeContributor(base), // m3a library's: the local store as M3A_CONTRIBUTOR, or a contributor key
     image(tool, name, img) {
       const bytes = png(img);
       return { path: put(`check-output/${tool}/${name}.png`, bytes), png: bytes };

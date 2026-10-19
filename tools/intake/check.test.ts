@@ -7,7 +7,7 @@
 import { readFileSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import type { Clip } from "@m3a/core";
+import { recipe, serialize, type Clip } from "@m3a/core";
 import { runCli } from "../../packages/tools/src/cli.ts";
 import { localStore, motionHash, type IntakeStore } from "../../packages/tools/src/intake/index.ts";
 import { nodeHost } from "../../packages/tools/src/node.ts";
@@ -73,6 +73,14 @@ describe("the checker", () => {
     const again = await store("contributor", "carol").submit({ kind: "clip", text: f.text.replace(/"desc": "[^"]*"/, '"desc": "Walks, glancing right"'), improves: f.improves });
     const [r] = await check(store("checker"), c);
     expect([r!.id, r!.state, r!.reason]).toEqual([again.id, "bounced", `dedup: it is the motion of ${s.id}, archived on ${TODAY}; the owner's note: a head turn the walk doesn't need: a resubmitted motion isn't reviewed again`]);
+  });
+  it("bounces a library clip mirrored and retimed, which a pose match misses (WP-9.3's index)", async () => {
+    const clean = JSON.parse(fx.find((f) => f.name === "clean")!.text) as Clip, src = "QUATERNIUS_3D2DGE/Jog_Fwd_Loop";
+    const made = recipe.compile({ format: "2.0", id: "INTAKE/Jog_Twin", steps: [{ as: "c", op: "clip", id: src }, { as: "m", op: "mirror", in: "c" }, { op: "retime", in: "m", speed: 1.2 }] }, c.lib.library.resolver()) as { clip: Clip };
+    const twin: Clip = { ...made.clip, id: clean.id, name: clean.name, desc: "jogs, the other foot first, a little quicker", tags: clean.tags, provenance: clean.provenance };
+    const sent = await store("contributor", "fixtures").submit({ kind: "clip", text: serialize(twin) });
+    const got = (await check(store("checker"), c)).find((d) => d.id === sent.id)!;
+    expect([got.state, got.report.gates.find((g) => g.gate === "dedup")?.why.join(" ")]).toEqual(["bounced", expect.stringMatching(/a near-duplicate of QUATERNIUS_[A-Z0-9]+\/Jog_Fwd_Loop mirrored, [\d.]+ mm a point/)]);
   });
   it("finds no library clip's text aimed at agents", () => {
     expect(c.pool.flatMap((x) => textProblems(x.clip).map((p) => `${x.clip.id}: ${p}`))).toEqual([]);

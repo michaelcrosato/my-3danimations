@@ -36,6 +36,7 @@
     "gallery": "node tools/run/gallery.ts",
     "site": "node tools/run/site.ts",
     "m3a": "node packages/tools/src/node.ts",
+    "intake": "node tools/intake/main.ts",
     "library": "node tools/library/main.ts",
     "license": "node tools/license/main.ts",
     "corpora": "node tools/corpora/main.ts",

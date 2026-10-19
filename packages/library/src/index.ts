@@ -82,3 +82,13 @@ export type { SearchOptions } from "./search/index.ts";
 export type { SearchHit } from "./search/index.ts";
 /** What a search found: rows, the total, and what to try next. */
 export type { SearchResult } from "./search/index.ts";
+/** Near-duplicates (WP-9.3): a clip's motion features on its rest, the time-warped, mirror-aware distance between two,
+ *  and an index that checks a submission against the library in milliseconds (`DedupIndex.check`). */
+export { DedupIndex, NEAR, SHARE, nearFor, worthComparing, hitText, motionFeatures, motionDistance } from "./dedup/index.ts";
+/** A near-duplicate's types: a hit, a check, a pair, a query, a clip's features, an alignment. */
+export type { DedupHit, DedupCheck, DedupPair, DedupQuery, MotionFeatures, Alignment } from "./dedup/index.ts";
+/** Lineage (WP-9.3): the graph from `orig`, recipe inputs and content ids (`Lineage`), resolved to source clips; ids
+ *  deprecated, never reused or removed (`deprecate`, `checkIds`). */
+export { Lineage, PROCEDURAL, checkIds, clipIds, deprecate, successorOf } from "./lineage/index.ts";
+/** Lineage's types: an edge, a node, a problem, a resolution, an id's problem. */
+export type { LineageEdge, LineageNode, LineageProblem, Resolution, IdProblem } from "./lineage/index.ts";

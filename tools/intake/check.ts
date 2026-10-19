@@ -3,8 +3,9 @@
 // run: the platform-neutral ones of packages/tools/src/tools/library-submit.ts (schema, budgets, provenance, license,
 // text, lint, sensors), then dedup (its motion hash against every library clip's and every submission's the owner has
 // decided or is deciding, an archived or rejected one's kept so a resubmitted motion is recognized; near-duplicates of
-// library clips by pose, tools/qa/census.ts, the whole batch read at once) and the retarget onto the reference rigs
-// (the judge, packages/tools/src/tools/judge.ts: no fail finding the body adds). A failure is bounced with its reason;
+// library clips by pose, tools/qa/census.ts, the whole batch read at once, and time-warped and mirror-aware against the
+// library's DedupIndex, WP-9.3) and the retarget onto the reference rigs (the judge, packages/tools/src/tools/judge.ts:
+// no fail finding the body adds). A failure is bounced with its reason;
 // a pass gets its preview sheet, drawn by the sensors' raster, and waits for the owner (`awaiting review`). Submission
 // text is data: no reason quotes it.
 import { createHash } from "node:crypto";
@@ -12,7 +13,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { encode } from "gpt-tokenizer/encoding/cl100k_base";
 import { format, type Bound, type Clip, type Rest } from "@m3a/core";
-import { LibraryError } from "@m3a/library";
+import { DedupIndex, hitText, LibraryError } from "@m3a/library";
 import { metrics, sheet } from "@m3a/sensors";
 import { png } from "@m3a/sensors/node";
 import type { IntakeStore, Submission } from "../../packages/tools/src/intake/index.ts";
@@ -38,11 +39,13 @@ export const cl100k = (t: string): number => encode(t).length;
 export const motionOf = (c: Clip): string => sha256(format.motionText(c));
 
 /** What the checker reads a checkout by: its library at every shipped tier, its clips, the library clips of each
- *  motion hash (hashed on first use), its CC0 sets, and the reference rigs bound. */
+ *  motion hash (hashed on first use), the library's near-duplicate index (WP-9.3, built on first use), its CC0 sets,
+ *  and the reference rigs bound. */
 export interface Checker {
   lib: LibraryAccess;
   pool: LibraryClip[];
   motions(): Map<string, string[]>;
+  near(): DedupIndex;
   cc0: ReadonlySet<string>;
   rigs: { id: string; bound: Bound }[];
 }
@@ -67,7 +70,9 @@ export async function openChecker(sets: string, rigs?: readonly Rig[]): Promise<
     }
     return motions;
   };
-  return { lib, pool, motions: hashed, cc0, rigs: rigs ? [...rigs] : await bindRigs() };
+  let index: DedupIndex | undefined;
+  const near = () => (index ??= DedupIndex.of(pool));
+  return { lib, pool, motions: hashed, near, cc0, rigs: rigs ? [...rigs] : await bindRigs() };
 }
 
 /** What the checker records of a submission: its gates (the retarget only when every other one passed), its motion
@@ -150,6 +155,12 @@ function dedup(batch: readonly Read[], prior: readonly Read[], c: Checker): Map<
     const key = `INTAKE/${r.s.id}`, root = rootOf(key);
     // (a prior submission's exact motion said already, its near poses aren't said again)
     if (!base || root !== rootOf(base)) why.push(...nearDuplicates(same, key, (id) => !id.startsWith("INTAKE/") || (state.has(id) && !why.some((w) => w.includes(id.slice(7)))), (id) => (id.startsWith("INTAKE/") ? `${id.slice(7)} (${state.get(id)!.state})` : id), true));
+    // time-warped and mirror-aware (WP-9.3): a library clip retimed, trimmed, mirrored or lightly edited, which the
+    // census's pose match misses; the clip it improves and that clip's copies (its census group) aside, and said once
+    // when the census named it already
+    const kin = base ? c.pool.map((p) => p.clip.id).filter((id) => id === base || rootOf(id) === rootOf(base)) : [];
+    const hit = c.near().check(r.clip!, r.input!.rest!, { except: kin }).duplicate;
+    if (hit && !why.some((w) => w.includes(hit.id))) why.push(`a near-duplicate of ${hitText(hit)}; if it improves ${hit.id}, submit it with --improves ${hit.id}`);
     out.set(r.s.id, why);
   }
   return out;

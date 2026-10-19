@@ -8,7 +8,7 @@ import { encode } from "gpt-tokenizer/encoding/cl100k_base";
 import { describe, expect, it } from "vitest";
 import { mcpName, mcpTool } from "../src/mcp.ts";
 import type { Tool } from "../src/registry/index.ts";
-import { BASE, CHANGE, CHECK, COMPOSE, EXCHANGE, FIND, RETARGET, REVIEW, SHIP, TOOLS, tools } from "../src/tools/index.ts";
+import { BASE, CHANGE, CHECK, COMPOSE, EXCHANGE, FIND, LIBRARY, RETARGET, REVIEW, SHIP, TOOLS, tools } from "../src/tools/index.ts";
 
 /** cl100k tokens of a value as JSON. */
 const tokens = (v: unknown) => encode(JSON.stringify(v)).length;
@@ -20,15 +20,15 @@ describe("the tools' token budget", () => {
     const all = tools.list(), a = [...FIND, ...CHECK, ...CHANGE, ...SHIP, ...BASE], b = [...RETARGET, ...COMPOSE, ...EXCHANGE];
     const rows = all.map((t) => `${t.name.padEnd(18)} ${String(cost([t])).padStart(5)}`), sum = (k: string, n: number) => `${k.padEnd(18)} ${String(n).padStart(5)}`;
     console.log([...rows, sum("7.2a", cost(a)), sum("7.2b", cost(b)), sum("8.2a", cost(REVIEW)), sum("all", cost(all)), sum("tools/list", tokens(all.map(mcpTool)))].join("\n"));
-    expect([...a, ...b, ...REVIEW].map((t) => t.name).sort()).toEqual(all.map((t) => t.name).sort()); // each tool counted in 7.2a, 7.2b or 8.2a
+    expect([...a, ...b, ...REVIEW, ...LIBRARY].map((t) => t.name).sort()).toEqual(all.map((t) => t.name).sort()); // each tool counted in 7.2a, 7.2b, 8.2a or 9.1a
     expect(cost(a)).toBeLessThanOrEqual(1900);
     expect(cost(COMPOSE)).toBeLessThanOrEqual(420);
     expect(cost(EXCHANGE)).toBeLessThanOrEqual(400);
-    expect(cost(all)).toBeLessThanOrEqual(3000);
+    expect(cost(all)).toBeLessThanOrEqual(3135); // 3,000 with 8.2a's review; 9.1a's library (135) by the integrator's decision
     for (const t of all) expect(cost([t]), t.name).toBeLessThanOrEqual(240);
   });
   it("registers exactly the tools PLAN.md names, in help order", () => {
-    expect(TOOLS.map((t) => t.name)).toEqual(["search", "show", "describe", "metrics", "sheet", "film", "diff", "lint", "fix", "edit", "retarget.inspect", "retarget.apply", "recipe.compile", "graph.validate", "graph.sim", "license.check", "import", "export", "review", "version", "validate"]);
+    expect(TOOLS.map((t) => t.name)).toEqual(["search", "show", "describe", "metrics", "sheet", "film", "diff", "lint", "fix", "edit", "retarget.inspect", "retarget.apply", "recipe.compile", "graph.validate", "graph.sim", "license.check", "import", "export", "review", "library", "version", "validate"]);
     expect(tools.list()).toEqual(TOOLS);
   });
   it("puts each tool's first example, a good call, in its schema, and only that; and gives each an output schema", () => {
