@@ -25,8 +25,8 @@ export const intakeSubmit = (store: IntakeStore): Submit => async (input) => {
 };
 
 /** Files under the checkout, by path from its root ("library/local/SET/Clip.json"): read, written, listed, and a
- *  lock that keeps other writers out while a set is rewritten, if the host has one. The Node host's are on disk; a
- *  test's in memory. */
+ *  lock that keeps other writers out while a set is rewritten, if the host has one. On Node, @m3a/tools/node's
+ *  `localLane` keeps them on disk under library/local/ (packages/tools/src/node/local-lane.ts); a test's are in memory. */
 export interface LocalLane {
   read(path: string): string | null;
   write(path: string, text: string): void;

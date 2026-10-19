@@ -3,17 +3,19 @@
 // passing the same gate; the adapter off by default, sending Kimodo's constraint shape, recording the terms' version it
 // was served; and where each clip goes: an allowlisted source's to the intake queue (the local IntakeStore) with the
 // intake's provenance the intake's gates ask for, a source whose stated or served terms aren't allowlisted only into a
-// local set under library/local/, never into a distributable set. The tools' socket types are core's, written once.
-// No network: every transport is a mock.
-import { readdirSync, readFileSync } from "node:fs";
+// local set under library/local/ (in memory, and on disk through the Node lane, no link leading out), never into a
+// distributable set. The tools' socket types are core's, written once. No network: every transport is a mock.
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { parseClip, procedural as PR, recipe as R, serialize, type Clip, type Rest } from "@m3a/core";
 import { Library, type LibrarySource, type Tier } from "@m3a/library";
-import { openLibrary } from "@m3a/library/node";
+import { directory, openLibrary } from "@m3a/library/node";
 import { proceduralSource, recipeSource, sourceClip, type SourceRequest as CoreRequest } from "../../core/src/sources/index.ts";
 import { localStore, memoryFiles } from "../src/intake/index.ts";
 import { libraryAccess } from "../src/node/library.ts";
+import { localLane } from "../src/node/local-lane.ts";
 import { allowlisted, deliver, httpSource, intakeSubmit, librarySource, localPath, sourceGate, type HttpRequest, type LocalLane, type MotionSource, type SourceRequest, type SourceTerms, type Transport } from "../src/sources/index.ts";
 import { clipGates, gateInput, SHIPPED, type IntakeProvenance } from "../src/tools/library-submit.ts";
 
@@ -187,3 +189,53 @@ describe("where a source's clip goes", () => {
   });
 });
 
+describe("the Node local lane (@m3a/tools/node's localLane)", () => {
+  /** A scratch working directory with a distributable set's file in it, and what its library/sets/ holds. */
+  const scratch = () => {
+    const d = mkdtempSync(join(tmpdir(), "m3a-local-lane-"));
+    mkdirSync(join(d, "library/sets/MESH2MOTION"), { recursive: true });
+    writeFileSync(join(d, "library/sets/MESH2MOTION/Walk.json"), "{}");
+    return { d, sets: () => readdirSync(join(d, "library/sets/MESH2MOTION")).sort(), rm: () => rmSync(d, { recursive: true, force: true }) };
+  };
+  it("writes a source's clips that aren't allowlisted into their local set on disk, which the library opens at tier local", async () => {
+    const w = scratch(), k = kimodo(), on = localLane(w.d), store = contributor();
+    try {
+      const [one, two] = [await sourceClip(k.source, ask("a bow", { constraints: KEYED })), await sourceClip(k.source, ask("a bow", { seed: 1, constraints: KEYED }))];
+      const ds = await Promise.all([one, two].map((s) => deliver(s, { submit: intakeSubmit(store), local: on, by: BY, manifest: MANIFEST })));
+      expect(ds).toMatchObject([{ to: "local", set: "LOCAL_KIMODO" }, { to: "local", set: "LOCAL_KIMODO" }]);
+      expect(on.list("library/local/LOCAL_KIMODO")).toEqual(["Mock_0.json", "Mock_1.json", "_set.json", "catalog.tsv"]);
+      expect([on.read("library/local/LOCAL_KIMODO/Nope.json"), on.list("library/local/LOCAL_NONE"), existsSync(join(w.d, "library/local/.lock"))]).toEqual([null, [], false]);
+      const local = openLibrary({ dir: join(w.d, "library/local"), source: directory(join(w.d, "library/local")), packs: {}, tiers: ["local"], warn: () => {} });
+      expect(local.sets()).toMatchObject([{ set: "LOCAL_KIMODO", tier: "local", clips: 2 }]);
+      expect([w.sets(), await store.list()]).toEqual([["Walk.json"], []]);
+    } finally {
+      w.rm();
+    }
+  });
+  it("refuses any other path, and a link anywhere on the way (library/local/, a set's directory, a file), writing nothing", async () => {
+    const w = scratch(), on = localLane(w.d), clip = "{}\n";
+    try {
+      for (const p of ["library/sets/MESH2MOTION/Walk.json", "library/local/../sets/MESH2MOTION/Walk.json", "library/local/LOCAL_X/../../sets/MESH2MOTION/Walk.json"]) expect(() => on.write(p, clip), p).toThrow(expect.objectContaining({ code: "E_LOCAL" }));
+      expect(() => on.list("library/sets/MESH2MOTION")).toThrow(expect.objectContaining({ code: "E_LOCAL" }));
+      mkdirSync(join(w.d, "library/local"), { recursive: true });
+      symlinkSync(join(w.d, "library/sets/MESH2MOTION"), join(w.d, "library/local/LOCAL_X"));
+      symlinkSync(join(w.d, "library/sets/MESH2MOTION/Walk.json"), join(w.d, "library/local/LOCAL_Y.json"));
+      for (const p of ["library/local/LOCAL_X/Walk.json", "library/local/LOCAL_X/New.json"]) {
+        expect(() => on.write(p, clip), p).toThrow(/leads out of library\/local\/ through a link/);
+        expect(() => on.read(p), p).toThrow(expect.objectContaining({ code: "E_LOCAL" }));
+      }
+      expect(() => on.list("library/local/LOCAL_X")).toThrow(expect.objectContaining({ code: "E_LOCAL" }));
+      mkdirSync(join(w.d, "library/local/LOCAL_Z"));
+      symlinkSync(join(w.d, "library/sets/MESH2MOTION/Walk.json"), join(w.d, "library/local/LOCAL_Z/Walk.json"));
+      expect(() => on.write("library/local/LOCAL_Z/Walk.json", clip)).toThrow(expect.objectContaining({ code: "E_LOCAL" }));
+      // library/local/ itself a link into the sets: every path, and the lock, refused
+      rmSync(join(w.d, "library/local"), { recursive: true });
+      symlinkSync(join(w.d, "library/sets"), join(w.d, "library/local"));
+      expect(() => on.write("library/local/MESH2MOTION/Walk.json", clip)).toThrow(expect.objectContaining({ code: "E_LOCAL" }));
+      await expect(on.lock!()).rejects.toMatchObject({ code: "E_LOCAL" });
+      expect([w.sets(), readFileSync(join(w.d, "library/sets/MESH2MOTION/Walk.json"), "utf8")]).toEqual([["Walk.json"], "{}"]);
+    } finally {
+      w.rm();
+    }
+  });
+});
