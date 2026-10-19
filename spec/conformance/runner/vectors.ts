@@ -4,7 +4,7 @@
 // implementations the same questions.
 import { createHash } from "node:crypto";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
+import { join, relative, sep } from "node:path";
 
 /** Where the vectors live. */
 export const VECTORS = join(import.meta.dirname, "../../vectors");
@@ -114,12 +114,13 @@ export function packGlb(json: unknown, bin: Uint8Array): Uint8Array {
 /** SHA-256 as hex. */
 export const sha256 = (data: string | Uint8Array): string => createHash("sha256").update(data).digest("hex");
 
-/** Every file the manifest lists whose size or SHA-256 differs, or that is missing. */
-export function verifyManifest(): string[] {
-  const m = read<{ files: Record<string, { bytes: number; sha256: string }> }>("manifest.json");
+/** Every file the manifest lists whose size or SHA-256 differs, or that is missing, and every file in a tier's folder
+ *  it doesn't list (tier 2's sets are read by listing their folder), in the vectors at `dir`. */
+export function verifyManifest(dir = VECTORS): string[] {
+  const m = JSON.parse(readFileSync(join(dir, "manifest.json"), "utf8")) as { files: Record<string, { bytes: number; sha256: string }> };
   const problems: string[] = [];
   for (const [p, want] of Object.entries(m.files)) {
-    const file = join(VECTORS, p);
+    const file = join(dir, p);
     if (!existsSync(file)) {
       problems.push(`${p} is missing`);
       continue;
@@ -127,7 +128,14 @@ export function verifyManifest(): string[] {
     const data = readFileSync(file);
     if (data.length !== want.bytes || sha256(data) !== want.sha256) problems.push(`${p} does not match the manifest`);
   }
-  return problems;
+  for (const tier of ["tier1a", "tier1b", "tier2", "tier3"]) {
+    if (!existsSync(join(dir, tier))) continue;
+    for (const f of readdirSync(join(dir, tier), { recursive: true, withFileTypes: true })) {
+      const p = relative(dir, join(f.parentPath, f.name)).split(sep).join("/");
+      if (f.isFile() && !(p in m.files)) problems.push(`${p} is not in the manifest`);
+    }
+  }
+  return problems.sort();
 }
 
 /** The first difference between two numeric arrays beyond `tol` (0 = bit for bit, -0 and 0 distinct), or null. */

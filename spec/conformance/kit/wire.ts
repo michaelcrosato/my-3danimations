@@ -1,6 +1,7 @@
 // The conformance kit's wire (spec/conformance/PROTOCOL.md): one JSON message a line, numbers as the shortest
 // round-trip decimal with -0 kept; `Sidecar`, the kit's side, spawns an implementation's command and asks it one request
-// at a time; `serve`, an implementation's side, answers requests on stdin with responses on stdout.
+// at a time, each within a deadline, and treats any line that isn't a response object as a protocol break; `serve`, an
+// implementation's side, answers requests on stdin with responses on stdout.
 import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
 import { createInterface } from "node:readline";
 
@@ -9,6 +10,9 @@ export const PROTOCOL = "m3a-conformance/1";
 
 /** A request: a fresh id, the op, and the op's fields beside them. */
 export type Request = { id: number; op: string } & Record<string, unknown>;
+
+/** How long the kit waits for each answer by default, in seconds (`--timeout` changes it; PROTOCOL.md "Transport"). */
+export const TIMEOUT_S = 60;
 
 /** A response: the request's id, then the op's result, or an error saying why there is none. */
 export type Response = { id: number; ok: true; result: unknown } | { id: number | null; ok: false; error: string };
@@ -30,13 +34,17 @@ export class AnswerError extends Error {}
 /** An implementation's sidecar: a command whose stdin takes requests and whose stdout gives responses, in order. */
 export class Sidecar {
   private readonly child: ChildProcessWithoutNullStreams;
-  private readonly pending = new Map<number, { resolve: (v: unknown) => void; reject: (e: Error) => void }>();
+  private readonly pending = new Map<number, { resolve: (v: unknown) => void; reject: (e: Error) => void; timer: NodeJS.Timeout }>();
   private readonly stderr: string[] = [];
+  private readonly timeoutMs: number;
   private next = 1;
   private gone: string | null = null;
 
-  /** Spawn `command` (through the shell when `args` is omitted, so `cargo run -p x --bin sidecar` works) in `cwd`. */
-  constructor(command: string, args?: readonly string[], cwd?: string) {
+  /** Spawn `command` (through the shell when `args` is omitted, so `cargo run -p x --bin sidecar` works) in `cwd`;
+   *  `timeoutS` is how long each request may wait for its answer (hello's includes the start) before the sidecar is
+   *  ended as broken. */
+  constructor(command: string, args?: readonly string[], cwd?: string, { timeoutS = TIMEOUT_S }: { timeoutS?: number } = {}) {
+    this.timeoutMs = timeoutS * 1000;
     this.child = args ? spawn(command, args, { cwd, stdio: "pipe" }) : spawn(command, { cwd, stdio: "pipe", shell: true });
     createInterface({ input: this.child.stdout, crlfDelay: Infinity }).on("line", (l) => this.answer(l));
     createInterface({ input: this.child.stderr, crlfDelay: Infinity }).on("line", (l) => this.stderr.push(l.slice(0, 400)) > 8 && this.stderr.shift());
@@ -45,19 +53,24 @@ export class Sidecar {
     this.child.on("exit", (code, signal) => this.fail(`it exited (${signal ?? `code ${code}`})`));
   }
 
-  /** Ask `op` with `fields`: the result, or an AnswerError naming the op and the implementation's error. */
+  /** Ask `op` with `fields`: the result, or an AnswerError naming the op and the implementation's error. No answer
+   *  within the deadline breaks the sidecar off: the kit ends it, and this and every later request fail. */
   ask(op: string, fields: Record<string, unknown> = {}): Promise<unknown> {
     const id = this.next++;
     return new Promise((resolve, reject) => {
       if (this.gone) return reject(new AnswerError(this.gone));
-      this.pending.set(id, { resolve, reject });
+      const timer = setTimeout(() => {
+        this.fail(`no answer to ${op} within ${this.timeoutMs / 1000} s (flush each answer, or raise --timeout)`);
+        this.child.kill();
+      }, this.timeoutMs);
+      this.pending.set(id, { resolve, reject, timer });
       this.child.stdin.write(line({ id, op, ...fields }) + "\n");
     });
   }
 
-  /** Close its stdin and end the process. */
+  /** Close its stdin and end the process; a request still waiting fails. */
   close(): void {
-    this.gone ??= "the kit closed it";
+    this.fail("the kit closed it");
     this.child.stdin.end();
     this.child.kill();
   }
@@ -69,8 +82,13 @@ export class Sidecar {
     } catch {
       return this.fail(`it wrote a line that isn't JSON: ${text.slice(0, 120)}`);
     }
+    // a response is an object with an id and ok (PROTOCOL.md "Messages"); null, a number, a string or an array breaks off
+    if (!r || typeof r !== "object" || Array.isArray(r)) return this.fail(`it wrote a line that isn't a response object: ${text.slice(0, 120)}`);
     const p = typeof r.id === "number" ? this.pending.get(r.id) : undefined;
     if (!p) return this.fail(`it answered id ${String(r.id)}, which no request is waiting for${r.ok ? "" : ` (${r.error})`}`);
+    const ok: unknown = r.ok;
+    if (ok !== true && ok !== false) return this.fail(`its answer to id ${r.id} has "ok" ${String(ok)}, not true or false: ${text.slice(0, 120)}`);
+    clearTimeout(p.timer);
     this.pending.delete(r.id!);
     if (r.ok) p.resolve(r.result);
     else p.reject(new AnswerError(`it answered an error: ${r.error}`));
@@ -79,7 +97,10 @@ export class Sidecar {
   private fail(why: string): void {
     if (this.gone) return;
     this.gone = `the sidecar broke off: ${why}${this.stderr.length ? `; its stderr ends: ${this.stderr.join(" | ")}` : ""}`;
-    for (const p of this.pending.values()) p.reject(new AnswerError(this.gone));
+    for (const p of this.pending.values()) {
+      clearTimeout(p.timer);
+      p.reject(new AnswerError(this.gone));
+    }
     this.pending.clear();
   }
 }

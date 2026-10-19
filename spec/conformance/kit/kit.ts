@@ -1,12 +1,15 @@
 // The conformance kit (WP-10.2): each tier of spec/conformance/tiers.md as questions to an implementation. A tier
 // builds its cases from the vectors, asks them through the protocol (PROTOCOL.md) and compares every answer with the
 // tier's tolerance, keeping per vector file its cases, its failures and the first failure's field with both values.
+// Before any of it the vectors are checked against their manifest, and every answer, hello's too, against
+// protocol.schema.json, so a certification names the vectors it ran on and no answer of the wrong shape passes.
+import { Ajv2020, type ErrorObject, type ValidateFunction } from "ajv/dist/2020.js";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { stringify } from "../runner/json.ts";
 import { rigSkeleton } from "../runner/skeleton.ts";
-import { loadTier1a, loadTier2, loadTier3, sha256, TOLERANCE, tier1bGlb, tier1bText, tier2Sets, VECTORS, type Tier2Clip } from "../runner/vectors.ts";
-import { AnswerError, PROTOCOL } from "./wire.ts";
+import { loadTier1a, loadTier2, loadTier3, sha256, TOLERANCE, tier1bGlb, tier1bText, tier2Sets, VECTORS, verifyManifest, type Tier2Clip } from "../runner/vectors.ts";
+import { AnswerError, line, PROTOCOL } from "./wire.ts";
 
 /** Ask the implementation one op with its fields: the op's result, or a thrown error. */
 export type Ask = (op: string, fields: Record<string, unknown>) => Promise<unknown>;
@@ -100,6 +103,58 @@ export function diff(ours: unknown, want: unknown, path: string, o: { tol?: numb
   return ours === want ? null : { field: path, ours, want };
 }
 
+let results: { ajv: Ajv2020; id: string } | undefined;
+/** protocol.schema.json's `$defs.results[op]`, compiled once. */
+function resultSchema(op: string): ValidateFunction {
+  if (!results) {
+    const schema = JSON.parse(readFileSync(join(import.meta.dirname, "../protocol.schema.json"), "utf8")) as { $id: string };
+    results = { ajv: new Ajv2020({ allowUnionTypes: true }), id: schema.$id };
+    results.ajv.addSchema(schema);
+  }
+  const v = results.ajv.getSchema(`${results.id}#/$defs/results/${op}`);
+  if (!v) throw new Error(`protocol.schema.json has no $defs/results/${op}`);
+  return v;
+}
+const rule = (e: ErrorObject) => (e.keyword === "const" ? line(e.params.allowedValue) : e.keyword === "enum" ? `one of ${line(e.params.allowedValues)}` : `a value that ${e.message}`);
+
+/** Where `answer` breaks protocol.schema.json's `$defs.results[op]` (a null for NaN, a number written as a string, a
+ *  field left out): the first offending field, its value as JSON and the schema's rule; null when the schema allows it. */
+export function shapeOf(op: string, answer: unknown): Diff | null {
+  const v = resultSchema(op);
+  if (v(answer)) return null;
+  const e = v.errors![0]!, path = e.instancePath.split("/").slice(1).map((x) => x.replaceAll("~1", "/").replaceAll("~0", "~"));
+  let ours: unknown = answer;
+  for (const x of path) ours = (ours as Record<string, unknown> | undefined)?.[x];
+  // ours as the wire wrote it, so a number written as a string reads "0", not 0
+  return { field: op + path.map((x) => (/^\d+$/.test(x) ? `[${x}]` : `.${x}`)).join(""), ours: ours === undefined ? "nothing" : line(ours), want: `${rule(e)} (protocol.schema.json $defs/results/${op})` };
+}
+
+/** An answer protocol.schema.json refuses: its case fails at the first offending field. */
+export class ShapeError extends AnswerError {
+  /** The offending field, its value and the schema's rule. */
+  readonly diff: Diff;
+  constructor(diff: Diff) {
+    super(`its answer breaks protocol.schema.json at ${diff.field}: want ${diff.want}`);
+    this.diff = diff;
+  }
+}
+
+/** The vectors don't match their manifest (spec/vectors/manifest.json): nothing is asked and nothing certified. */
+export class VectorsError extends Error {}
+
+/** What a certification ran against: the protocol, and the vectors, by the SHA-256 of the manifest that pins them. */
+export interface Against {
+  protocol: string;
+  manifestSha256: string;
+}
+
+/** The vectors' manifest's SHA-256, once every file it lists matches it and no tier holds a file it doesn't list. */
+export function pinnedVectors(): string {
+  const problems = verifyManifest();
+  if (problems.length) throw new VectorsError(`spec/vectors/ doesn't match its manifest: ${problems.slice(0, 3).join("; ")}${problems.length > 3 ? `, and ${problems.length - 3} more` : ""}`);
+  return sha256(readFileSync(join(VECTORS, "manifest.json")));
+}
+
 /** A vector file's cases as they run: each checks one answer; a thrown error fails the case with its message. */
 class Cases {
   readonly r: VectorResult;
@@ -112,7 +167,7 @@ class Cases {
     try {
       d = await check();
     } catch (e) {
-      d = { field: "(answer)", ours: e instanceof Error ? e.message : String(e), want: "an answer of the op's shape" };
+      d = e instanceof ShapeError ? e.diff : { field: "(answer)", ours: e instanceof Error ? e.message : String(e), want: "an answer of the op's shape" };
     }
     if (d && this.r.failed++ === 0) this.r.first = { vector: this.r.vector, case: name, ...d };
   }
@@ -231,21 +286,34 @@ const turnAngle = (M: V, N: V) => (Math.acos(Math.max(-1, Math.min(1, (M.reduce(
 /** Each humanoid bone's humanoid parent: the pairs whose distance retargeting keeps. */
 const PARENT: Record<string, string> = { spine: "hips", chest: "spine", upperChest: "chest", neck: "upperChest", head: "neck" };
 for (const s of ["left", "right"]) Object.assign(PARENT, { [s + "Shoulder"]: "upperChest", [s + "UpperArm"]: s + "Shoulder", [s + "LowerArm"]: s + "UpperArm", [s + "Hand"]: s + "LowerArm", [s + "UpperLeg"]: "hips", [s + "LowerLeg"]: s + "UpperLeg", [s + "Foot"]: s + "LowerLeg", [s + "Toes"]: s + "Foot" });
+/** The humanoid bones an answer must map and pose: hips and every bone of PARENT, all of which the generated rig has. */
+const HUMANOID = ["hips", ...Object.keys(PARENT)];
 
 const tier3: Run = async (ask, { sample, format2 }) => {
   const sets = tier2Sets().map((s) => [s, loadTier2(s)] as const).filter(([, v]) => format2 || v.format !== "2.0"), vectors: VectorResult[] = [];
-  const worst = { limbDeg: 0, chestDeg: 0, curledDeg: 0, lengthMm: 0 };
+  const worst = { limbDeg: 0, chestDeg: 0, curledDeg: 0, lengthMm: 0, soleMm: 0 };
   for (const [body, b] of Object.entries(loadTier3().bodies).filter(([, b]) => b.proportions)) {
     const c = new Cases(`tier3/bodies.json: ${body}`), sk = rigSkeleton(b.proportions), head = new Map(sk.bones.map((x) => [x.name, x.head as V]));
-    const { fist, Cr } = b.rest as { fist: number; Cr: V[] };
+    const parentOf = new Map(sk.bones.map((x) => [x.name, x.parent])), { fist, Cr, ankleZ } = b.rest as { fist: number; Cr: V[]; ankleZ: number };
+    /** Whether skeleton bone `bone` hangs below bone `above`. */
+    const below = (bone: string, above: string) => {
+      for (let p = parentOf.get(bone); p; p = parentOf.get(p)) if (p === above) return true;
+      return false;
+    };
     for (const [set, v] of sets) {
       const P = (s: { at: number[] }, n: string) => s.at.slice(v.points.indexOf(n) * 3, v.points.indexOf(n) * 3 + 3).map((x) => x / 1000);
       for (const [name, x] of Object.entries(v.clips).slice(0, sample)) {
         const SR = v.bodies[x.restSrc] as { fist: number; clav: { L: V; R: V } }, at = [x.keys[0]!, ...x.between];
         await c.case(`${set}/${name}`, async () => {
           const r = (await ask("retarget", { skeleton: sk, source: SR, clip: x.clip, times: at.map((s) => s.t) })) as { bones: Record<string, string>; rest: Record<string, V>; poses: Record<string, V>[] };
-          const need = ["hips", "spine", "upperChest", "neck", ...Object.keys(PARENT).filter((h) => /Shoulder|Arm|Hand|Leg|Foot/.test(h))];
-          const shape = diff(r?.poses?.length, at.length, "retarget.poses (length)") ?? diff(need.filter((h) => !r.rest?.[h] || r.poses.some((p) => !p?.[h])), [], "retarget: joints missing");
+          // every humanoid bone mapped to a bone of the skeleton, its own, below its humanoid parent's, and posed
+          const bone = (h: string) => r.bones[h] ?? "", mapped = HUMANOID.filter((h) => head.has(bone(h)));
+          const shape =
+            diff(r.poses.length, at.length, "retarget.poses (length)") ??
+            none(HUMANOID.filter((h) => !head.has(bone(h))), "retarget.bones: humanoid bones not mapped to a bone of the skeleton") ??
+            none(mapped.filter((h, i) => mapped.findIndex((g) => bone(g) === bone(h)) !== i), "retarget.bones: humanoid bones mapped to a skeleton bone taken already") ??
+            none(HUMANOID.filter((h) => PARENT[h] && !below(bone(h), bone(PARENT[h]))), "retarget.bones: humanoid bones not below their humanoid parent's bone") ??
+            none(HUMANOID.filter((h) => !r.rest[h] || r.poses.some((p) => !p[h])), "retarget: humanoid joints missing from rest or a pose");
           if (shape) return shape;
           const rel = (J: Record<string, V>, a: string, b: string) => sub(J[a]!, J[b]!), R = r.rest;
           const chestRest = triad(rel(R, "neck", "upperChest"), rel(R, "rightShoulder", "leftShoulder")), hipsRest = triad(rel(R, "spine", "hips"), rel(R, "rightUpperLeg", "leftUpperLeg"));
@@ -272,10 +340,17 @@ const tier3: Run = async (ask, { sample, format2 }) => {
             if (curled) worst.curledDeg = Math.max(worst.curledDeg, chest);
             else worst.chestDeg = Math.max(worst.chestDeg, chest);
             for (const [h, p] of Object.entries(PARENT)) {
-              if (!r.bones[h] || !r.bones[p] || !J[h] || !J[p]) continue;
-              const len = Math.hypot(...sub(head.get(r.bones[h])!, head.get(r.bones[p])!)) * 1000, got = Math.hypot(...rel(J, h, p)), off = Math.abs(got - len);
+              const len = Math.hypot(...sub(head.get(bone(h))!, head.get(bone(p))!)) * 1000, got = Math.hypot(...rel(J, h, p)), off = Math.abs(got - len);
               if (!(off <= 1e-6)) return { field: `${t}: ${p} to ${h} length (mm)`, ours: got, want: len };
               worst.lengthMm = Math.max(worst.lengthMm, off);
+            }
+            // no sole below the floor (up 0): each ball (the toes' head) at or above it, each ankle (the foot's head) at or
+            // above its standing height, the body's ankleZ; the toe tip is no humanoid bone, so it isn't reported
+            for (const side of ["left", "right"]) {
+              const ball = J[side + "Toes"]![2]!, ankle = J[side + "Foot"]![2]!;
+              if (!(ball >= -1e-6)) return { field: `${t}: ${side}Toes up (mm; the ball below the floor)`, ours: ball, want: "at least 0" };
+              if (!(ankle - ankleZ >= -1e-6)) return { field: `${t}: ${side}Foot up (mm; the ankle below its standing height)`, ours: ankle, want: `at least ${ankleZ}` };
+              worst.soleMm = Math.max(worst.soleMm, -ball, ankleZ - ankle);
             }
           }
           return null;
@@ -287,18 +362,31 @@ const tier3: Run = async (ask, { sample, format2 }) => {
   return { vectors, worst, skipped: format2 ? [] : ["tier2/FORMAT2.json's clips (format 2)"] };
 };
 
+/** A failure listing `found` when there is any: the humanoid bones a retarget answer leaves out or misplaces. */
+function none(found: string[], field: string): Diff | null {
+  return found.length ? { field, ours: found, want: "none" } : null;
+}
+
 const RUN: Record<Tier, Run> = { "1a": tier1a, "1b": tier1b, "2": tier2, "3": tier3 };
 
-/** Certify an implementation: `hello`, then each tier it claims, at most `sample` clips per vector file (all by default). */
-export async function certify(ask: Ask, tiers: readonly Tier[] = TIER_NAMES, sample = Infinity): Promise<{ impl: Hello; tiers: TierOutcome[] }> {
-  const impl = (await ask("hello", { protocol: PROTOCOL })) as Hello;
-  if (impl?.protocol !== PROTOCOL || !Array.isArray(impl.ops)) throw new AnswerError(`its hello answered ${JSON.stringify(impl)}, not protocol ${PROTOCOL} with its ops`);
+/** Certify an implementation: the vectors against their manifest (a VectorsError if not), `hello` (an AnswerError if
+ *  the schema refuses it), then each tier it claims, at most `sample` clips per vector file (all by default), every
+ *  answer checked against the schema before it is compared. */
+export async function certify(ask: Ask, tiers: readonly Tier[] = TIER_NAMES, sample = Infinity): Promise<{ kit: Against; impl: Hello; tiers: TierOutcome[] }> {
+  const kit: Against = { protocol: PROTOCOL, manifestSha256: pinnedVectors() };
+  const hello = await ask("hello", { protocol: PROTOCOL }), bad = shapeOf("hello", hello);
+  if (bad) throw new AnswerError(`its hello answered ${hello === undefined ? "nothing" : line(hello).slice(0, 160)}: ${bad.field}: want ${bad.want}`);
+  const impl = hello as Hello, checked: Ask = async (op, fields) => {
+    const r = await ask(op, fields), d = shapeOf(op, r);
+    if (d) throw new ShapeError(d);
+    return r;
+  };
   const out: TierOutcome[] = [];
   for (const tier of tiers) {
     const missing = TIERS[tier].filter((op) => !impl.ops.includes(op)), t0 = performance.now();
-    const run = missing.length ? { vectors: [] } : await RUN[tier](ask, { sample, format2: impl.formats?.includes(2) ?? true });
+    const run = missing.length ? { vectors: [] } : await RUN[tier](checked, { sample, format2: impl.formats?.includes(2) ?? true });
     const cases = run.vectors.reduce((s, x) => s + x.cases, 0), failed = run.vectors.reduce((s, x) => s + x.failed, 0);
     out.push({ tier, claimed: !missing.length, ok: !missing.length && cases > 0 && failed === 0, ms: performance.now() - t0, cases, failed, vectors: run.vectors, worst: run.worst ?? {}, missing, skipped: run.skipped ?? [] });
   }
-  return { impl, tiers: out };
+  return { kit, impl, tiers: out };
 }
