@@ -4630,3 +4630,34 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
 - **Why:** the last gate's machine-provable clauses run, and what only the owner can give asked for rather than done.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.53.0
+
+## D118 · 2026-10-19 · The post-G10 audit: stale text corrected, two duplicates retired, small bugs fixed, the large items listed
+
+- **Principle:** 4 (text is the source of truth), 12 (the contract), AGENTS.md's definition of done and two tiers
+- **Call:**
+  - **An audit of the repository after G10** (eight read-only auditors and a completeness critic, 78 findings): every
+    easy finding is fixed in this change; every large one is listed in `AUDIT.md` (temporary) with its plan, and the
+    owner's are in docs/HANDOFF.md.
+  - **The frozen spec takes errata, refrozen under this decision:** a library clip named in a recipe's clip step or an
+    action's interrupt takes the clip id's slug with `-`, as MOTION.md §11, the clip schema and the graph schema
+    already do (no recipe could name `MESH2MOTION/Two-hand_Blast`); MOTION.md §6.1's count (176), §7.4's `recipe`
+    provenance row and §15's twist pop (Quaternius stays migrated, D63); tiers.md's 1b inputs (the Rigify vector) and
+    the kit (WP-10.2, done); SKELETON.md §7's watch says what is practised.
+  - **The Khronos watch (R7), run now:** the registry (KhronosGroup/glTF `extensions/README.md` on main, read
+    2026-10-19) lists neither `KHR_character_skeleton_mapping` nor `KHR_character_reference_pose`, ratified or in
+    progress; nothing to align.
+  - **The skill isn't in any tarball:** WP-7.4's Build never packed it, so the runner's copy from the repository is
+    the path, and the comments that said "until WP-7.4 packs it" now say so. Shipping it in `@m3a/tools` would be new
+    work (`AUDIT.md`).
+  - **apps/lab/hello stays,** answered at G4 (D88): its e2e is T2's standing G4 check (the set on G4's skeletons and
+    the held-out rig), which consumer-ts doesn't cover. Graduating that check into the package tier, then deleting
+    the lab, is listed in `AUDIT.md`.
+  - **Retired:** `tools/run/pending.ts` (the Phase 0 placeholder no script has used since d18e398) and two loose
+    bench results that are byte copies of G4-run-2's (`2026-10-14-default-B1-variant.json`,
+    `-fake-variant.json`); every other loose result is a gate's byte copy or backs a number a decision cites.
+  - **The census still counts a mirror twice by design** (D67, a game needs each side): HANDOFF's bullet that read it
+    as a defect is corrected, and joining them stays the owner's call.
+- **Why:** documents that describe the plan as unbuilt, commands that no longer exist and doctrine checks that pass
+  on a deleted file mislead the next session as surely as a failing test; the large items need their own WPs.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.53.1
