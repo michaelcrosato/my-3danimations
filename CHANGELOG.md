@@ -16,14 +16,19 @@ features, patch for fixes. One line per change, under the part it touched (**Spe
 ### Repo
 - `npm run conformance -- --impl ts|"<command>" [--tier] [--sample] [--timeout]`: a certification per tier and vector
   file, naming the first failing vector, its case, field and both values; its report names the protocol, the vectors'
-  manifest SHA-256 and the commit. The TypeScript implementation certifies every tier (3,662 cases in 7 s).
+  manifest SHA-256 and the commit (`-dirty` when anything the run executed changed: the kit's imports, package.json,
+  the lock, and with `--impl ts` packages/core and packages/io). The TypeScript implementation certifies every tier
+  (3,662 cases in 7 s). The wire writes -0 as raw JSON, so no string a message holds turns into -0
+  (michaelcrosato/my-3danimations#17's review).
 - G10's command set: check, test, doctrine, vectors, the full TypeScript certification, the consumer proof's e2e,
   `pack --check` and T2.
 
 ### Docs
 - The consumer proof (WP-10.1): apps/lab/consumer-ts, a my-3dge-shaped duel on the public API (three.js r182, a fixed
   60 Hz sim on my-3dge's frame clock, two humanoids on one graph, a hit event, root motion), its e2e comparing the page
-  with Node step by step, the hero with `sim.simulate`'s root path, and the page's own frame loop on a held clock;
+  with Node step by step, the hero with `sim.simulate`'s root path, and the page's own frame loop on a held clock
+  (a J press in a frame that runs no step waits for the next; after a frame of several steps the view lerps between
+  the last two places; `__m3a.drawn()`);
   docs/MIGRATING.md, my-3dge's WPs 3.4–3.7 and 8.1–8.10 as replaced, wrapped or kept, a proposal (O9).
 
 ## 0.52.1 · 2026-10-19
