@@ -74,5 +74,5 @@ report(
     steps,
     next: ok ? "keep the --json report with the release it certifies" : first ? `fix that answer, then rerun --tier ${failed!.tier} (the vectors' shapes: spec/conformance/PROTOCOL.md)` : "answer the ops each tier needs (spec/conformance/PROTOCOL.md)",
   },
-  { certification: { ...result, kit: { ...result.kit, ...checkout(ROOT) } } },
+  { certification: { ...result, kit: { ...result.kit, ...checkout(ROOT, { reference: impl === "ts" }) } } },
 );

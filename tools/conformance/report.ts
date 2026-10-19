@@ -1,6 +1,7 @@
 // The conformance CLI's parts (tools/conformance/main.ts): the tiers and the deadline it takes on its command line, a
-// value as its verdict prints it, and the checkout a certification names (the repository's version and commit), so
-// report.json says which kit and which vectors certified an implementation.
+// value as its verdict prints it, and the checkout a certification names (the repository's version and commit, dirty
+// when what the run executed differs from it), so report.json says which kit, which vectors and, for `--impl ts`, which
+// reference certified.
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -41,14 +42,22 @@ export function show(v: unknown): string {
   return s.slice(0, 100);
 }
 
-/** The checkout a certification is made from: the repository's version and its commit, "-dirty" when the kit or the
- *  vectors differ from it ("unknown" outside git). */
-export function checkout(root: string): { version: string; commit: string } {
+/** What every certification runs from the checkout: the vectors, the kit and the files it imports (the CLI's helpers,
+ *  the rig tier 3's skeletons are built from), the version, and the dependencies' lock (ajv checks the shapes).
+ *  conformance.test.ts walks the kit's imports to keep this list whole. */
+export const KIT_FILES = ["spec/vectors", "spec/conformance", "tools/conformance", "tools/run/cli.ts", "tools/vectors/rig.ts", "package.json", "package-lock.json"] as const;
+/** What `--impl ts` runs beside the kit: the reference, @m3a/core and @m3a/io, behind spec/conformance/adapters/ts.ts. */
+export const REFERENCE_FILES = ["packages/core", "packages/io"] as const;
+
+/** The checkout a certification is made from: the repository's version and its commit, "-dirty" when anything it ran
+ *  from the checkout differs from that commit: the kit or the vectors (KIT_FILES), and for `reference` (`--impl ts`)
+ *  the reference implementation too (REFERENCE_FILES). "unknown" outside git. */
+export function checkout(root: string, { reference = false }: { reference?: boolean } = {}): { version: string; commit: string } {
   const version = (JSON.parse(readFileSync(join(root, "package.json"), "utf8")) as { version: string }).version;
   const git = (...args: string[]) => execFileSync("git", args, { cwd: root, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
   let commit = "unknown";
   try {
-    commit = git("rev-parse", "HEAD") + (git("status", "--porcelain", "--", "spec/vectors", "spec/conformance", "tools/conformance") ? "-dirty" : "");
+    commit = git("rev-parse", "HEAD") + (git("status", "--porcelain", "--", ...KIT_FILES, ...(reference ? REFERENCE_FILES : [])) ? "-dirty" : "");
   } catch {
     // not a git checkout: the manifest's SHA-256 still names the vectors
   }

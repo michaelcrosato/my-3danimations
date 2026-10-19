@@ -95,7 +95,8 @@ against: the protocol, the manifest's SHA-256 and the commit (see Reports).
 then one line a tier and, for a failing tier, one line a failing vector file: its failures and its first failing case,
 field and both values. A pass names the vectors by the first 12 hex digits of the manifest's SHA-256. `--json` writes
 `check-output/conformance/report.json` with the whole certification: `kit` (`protocol`, `manifestSha256`, the
-repository's `version` and `commit`, `-dirty` when the kit or the vectors differ from it), `impl` (its hello) and
+repository's `version` and `commit`, `-dirty` when the kit, the files it runs or the vectors differ from it, and with
+`--impl ts` the reference's `packages/core` and `packages/io` too), `impl` (its hello) and
 `tiers`. Exit 0 certified, 1 a failure, 2 a usage error. `--sample N` runs at most N clips a vector file: a quick
 check, never a certification. A failure reads:
 
