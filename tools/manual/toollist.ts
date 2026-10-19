@@ -1,9 +1,10 @@
 // The manual's tool list (PLAN.md §6 "Docs drift", WP-7.3): one line per m3a tool, written from the registry
 // (packages/tools/src/tools/index.ts) between two marker comments in packages/tools/MANUAL.md, so the list can't drift
 // from the tools. Each line gives the tool's `m3a` call (positionals as `<name>`, required flags with a value, optional
-// ones in brackets; the registry's verbose, if_revision and request_id left to the manual's prose), its MCP name, and
-// what it is for: its description up to the first ":" or ";", parentheses dropped. `node tools/manual/main.ts`
-// rewrites the list; `--check` fails when it differs, and packages/tools/test/manual.test.ts checks it in T1.
+// ones in brackets; the registry's verbose, if_revision and request_id left to the manual's prose), its MCP name where
+// it differs (a dotted name; WP-8.2a left out the rest, so the review tool's line fits the manual's budget), and what
+// it is for: its description up to the first ":" or ";", parentheses dropped. `node tools/manual/main.ts` rewrites the
+// list; `--check` fails when it differs, and packages/tools/test/manual.test.ts checks it in T1.
 import type { Tool } from "../../packages/tools/src/registry/registry.ts";
 import { mcpName } from "../../packages/tools/src/mcp.ts";
 
@@ -24,13 +25,13 @@ export function purpose(description: string): string {
   return text.split("`").map((part, i) => (i % 2 ? part : part.replace(/[\w.<>/-]*[/<][\w.<>/-]*/g, (p) => `\`${p}\``))).join("`");
 }
 
-/** A tool's line: `m3a <name> <positionals> --required <x> [--optional]`, its MCP name, its purpose, and whether it
- *  is an edit (if_revision, request_id, undoable) or writes files the user keeps. */
+/** A tool's line: `m3a <name> <positionals> --required <x> [--optional]`, its MCP name where it differs, its purpose,
+ *  and whether it is an edit (if_revision, request_id, undoable) or writes files the user keeps. */
 export function toolLine(t: Tool): string {
   const props = Object.keys(t.schema.properties ?? {}).filter((k) => !COMMON.has(k)), pos = t.positionals ?? [], req = new Set(t.schema.required ?? []);
   const words = [`m3a ${t.name}`, ...pos.map((p) => `<${p}>`), ...props.filter((p) => !pos.includes(p) && req.has(p)).map((p) => `${flag(p)} <${p}>`), ...props.filter((p) => !pos.includes(p) && !req.has(p)).map((p) => `[${flag(p)}]`)];
   const kind = t.edit ? " (an edit)" : t.writes ? " (writes files)" : "";
-  return `- \`${words.join(" ")}\` · \`${mcpName(t.name)}\`${kind}: ${purpose(t.description)}`;
+  return `- \`${words.join(" ")}\`${mcpName(t.name) === t.name ? "" : ` · \`${mcpName(t.name)}\``}${kind}: ${purpose(t.description)}`;
 }
 
 /** The generated section: the markers around one line per tool, in the registry's order. */

@@ -353,29 +353,29 @@ mine.clip("MOCAP/Wave_Short").tier;                               // "local"
 Every tool is defined once and served four ways: `tools.call(name, args, { host: nodeHost() })` (`tools` from
 `@m3a/tools`, `nodeHost` from `@m3a/tools/node`), the `m3a` command, an MCP server (`m3a mcp`, stdio), and
 `__M3A_TOOLS__` on a page (`installConsole(tools)`). Each line: the call (`<x>` by position, `[--x]` optional), then
-the MCP name.
+the MCP name where it differs.
 
 <!-- tools: written by node tools/manual/main.ts -->
-- `m3a search <query> [--limit]` · `search`: Library clips for a game moment in words and filters, best first
-- `m3a show <clip> [--from] [--legend]` · `show`: A clip's keys as text from time `from`, with source, license, fit, speed and strike
-- `m3a describe <clip> [--detail]` · `describe`: A clip as a short timeline
-- `m3a metrics <clip> [--limit]` · `metrics`: Measure a clip with the sensors
-- `m3a sheet <clip> [--frames] [--view]` · `sheet`: A clip as a contact-sheet PNG, the sensors' findings in red
-- `m3a film <clip> [--frames] [--around]` · `film`: A PNG strip of a clip moving through space around a moment
-- `m3a diff <a> <b> [--frames]` · `diff`: Compare two clips
-- `m3a lint <clip>` · `lint`: The repairs a clip needs and the tags its motion doesn't bear out
-- `m3a fix <clip> [--ops] [--save-as] [--max-keys] [--dry-run]` · `fix` (an edit): Repair a clip with lint's operators, keeping steps that make nothing worse, into a WORKSHOP copy
-- `m3a edit <clip> [--ops] [--action] [--save-as]` · `edit` (an edit): Change a clip with recipe steps into a WORKSHOP copy
+- `m3a search <query> [--limit]`: Library clips for a game moment in words and filters, best first
+- `m3a show <clip> [--from] [--legend]`: A clip's keys as text from time `from`, with source, license, fit, speed and strike
+- `m3a describe <clip> [--detail]`: A clip as a short timeline
+- `m3a metrics <clip> [--limit]`: Measure a clip with the sensors
+- `m3a sheet <clip> [--frames] [--view]`: A clip as a contact-sheet PNG, the sensors' findings in red
+- `m3a film <clip> [--frames] [--around]`: A PNG strip of a clip moving through space around a moment
+- `m3a diff <a> <b> [--frames]`: Compare two clips
+- `m3a lint <clip>`: The repairs a clip needs and the tags its motion doesn't bear out
+- `m3a fix <clip> [--ops] [--save-as] [--max-keys] [--dry-run]` (an edit): Repair a clip with lint's operators, keeping steps that make nothing worse, into a WORKSHOP copy
+- `m3a edit <clip> [--ops] [--action] [--save-as]` (an edit): Change a clip with recipe steps into a WORKSHOP copy
 - `m3a retarget.inspect <character> [--mapping]` · `retarget_inspect`: Bind a character
 - `m3a retarget.apply <character> --clips <clips> [--mapping]` · `retarget_apply`: Play clips on a character
 - `m3a recipe.compile <recipe>` · `recipe_compile`: Compile a recipe into a clip file
 - `m3a graph.validate <graph> [--clips]` · `graph_validate`: Check a graph
 - `m3a graph.sim <graph> --script <script> [--character] [--mapping] [--expect] [--clips]` · `graph_sim`: Run a game-input script on a graph
 - `m3a license.check [--clips] [--tiers] [--ships] [--set]` · `license_check`: Check clips, a set or game.json against licenses and tiers
-- `m3a import <path> [--set] [--license] [--catalog] [--list] [--from]` · `import` (writes files): Fit a motion file's animations into `imports/<SET>/`, a local set, each with its fit
-- `m3a export <clip> --character <character> [--format] [--mapping]` · `export`: Play a clip on a character and write it as .vrma, .glb or .bvh in `check-output/export/`, read back to check it
-- `m3a version` · `version`: The m3a version and the clip format it reads and writes
-- `m3a validate <path> [--text] [--mode]` · `validate`: Validate a clip by path or as text
+- `m3a import <path> [--set] [--license] [--catalog] [--list] [--from]` (writes files): Fit a motion file's animations into `imports/<SET>/`, a local set, each with its fit
+- `m3a export <clip> --character <character> [--format] [--mapping]`: Play a clip on a character and write it as .vrma, .glb or .bvh in `check-output/export/`, read back to check it
+- `m3a version`: The m3a version and the clip format it reads and writes
+- `m3a validate <path> [--text] [--mode]`: Validate a clip by path or as text
 <!-- /tools -->
 
 ```sh
