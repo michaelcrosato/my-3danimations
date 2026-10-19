@@ -100,10 +100,16 @@ describe("the text gate", () => {
 });
 
 describe("the hosted store", () => {
-  it("is linked whole or not at all: none of its environment is the local store, some of it a refusal naming the rest", () => {
+  it("is linked whole or not at all, its owner read from the store's own settings", async () => {
     expect(hostedEnv({})).toBeNull();
-    expect(() => hostedEnv({ M3A_INTAKE_URL: "https://x.supabase.co" })).toThrow(/half linked: M3A_INTAKE_ANON_KEY, M3A_INTAKE_SERVICE_KEY, M3A_INTAKE_OWNER missing/);
-    const env = { M3A_INTAKE_URL: "https://x.supabase.co", M3A_INTAKE_ANON_KEY: "a", M3A_INTAKE_SERVICE_KEY: "s", M3A_INTAKE_OWNER: "00000000-0000-0000-0000-000000000001" };
-    expect([checkerStore({ env }).store.backend, checkerStore({ env }).owner, checkerStore({ env: {}, dir: join(D, "x") }).store.backend]).toEqual(["supabase", env.M3A_INTAKE_OWNER, "local"]);
+    expect(() => hostedEnv({ M3A_SUPABASE_URL: "https://x.supabase.co" })).toThrow(/half linked: M3A_SUPABASE_SERVICE_ROLE_KEY missing/);
+    const env = { M3A_SUPABASE_URL: "https://x.supabase.co", M3A_SUPABASE_SERVICE_ROLE_KEY: "s" }, asked: string[] = [];
+    // a stand-in for the project's REST API: nothing hosted is called
+    const fake = (async (u: string | URL | Request, init?: RequestInit) => {
+      asked.push(`${String(u)} ${(init?.headers as Record<string, string>).authorization}`);
+      return new Response(JSON.stringify([{ owner: "00000000-0000-0000-0000-000000000001" }]), { status: 200 });
+    }) as typeof fetch;
+    const o = checkerStore({ env, fetch: fake });
+    expect([o.store.backend, await o.owner(), asked, await checkerStore({ env: {}, dir: join(D, "x") }).owner()]).toEqual(["supabase", "00000000-0000-0000-0000-000000000001", ["https://x.supabase.co/rest/v1/intake_settings?select=owner Bearer s"], LOCAL_OWNER]);
   });
 });

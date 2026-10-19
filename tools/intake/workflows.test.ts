@@ -1,6 +1,6 @@
 // The intake's workflows (PLAN.md WP-9.1a): intake.yml runs the checker every 15 minutes and on demand, then the adopt
-// bot, and with no hosted store linked does nothing and says so (its first step, run here with the secrets unset, and
-// every other step conditioned on it); half linked, it goes on and the checker refuses, naming what is missing.
+// bot, and with no hosted store linked (M3A_SUPABASE_URL or M3A_SUPABASE_SERVICE_ROLE_KEY unset) does nothing and says
+// so: its first step, run here with each unset, and every other step conditioned on it.
 // library-gates.yml runs `npm run gate -- library-pr` on every pull request that touches library/sets/.
 import { spawnSync } from "node:child_process";
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
@@ -29,8 +29,9 @@ describe("intake.yml", () => {
       return [readFileSync(out, "utf8"), said];
     };
     try {
-      expect(run({})).toEqual(["linked=false\n", expect.stringMatching(/^::notice title=intake::No hosted store is linked \(O8: the M3A_INTAKE_\* secrets are unset\): nothing to check or adopt/)]);
-      expect(run({ M3A_INTAKE_URL: "https://x.supabase.co" })).toEqual(["linked=true\n", ""]);
+      expect(run({})).toEqual(["linked=false\n", expect.stringMatching(/^::notice title=intake::No hosted store is linked \(O8: M3A_SUPABASE_URL and M3A_SUPABASE_SERVICE_ROLE_KEY unset among the repository's Actions secrets\): nothing to check or adopt/)]);
+      expect(run({ M3A_SUPABASE_URL: "https://x.supabase.co" })).toEqual(["linked=false\n", expect.stringMatching(/\(O8: M3A_SUPABASE_SERVICE_ROLE_KEY unset among/)]);
+      expect(run({ M3A_SUPABASE_URL: "https://x.supabase.co", M3A_SUPABASE_SERVICE_ROLE_KEY: "s" })).toEqual(["linked=true\n", ""]);
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }

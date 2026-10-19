@@ -1,9 +1,10 @@
 # The intake (PLAN.md §5.9, WP-9.1a): the checker over the hosted store's new submissions every 15 minutes and on
 # demand, then the adopt bot over the owner's adoptions (it opens, gates and merges or closes their pull requests with
-# this workflow's token, so it runs the library's gates itself: such a pull request starts no other workflow). Until
-# O8's project is linked (the M3A_INTAKE_* secrets unset) it does nothing and says so, so it never fails on main every
-# 15 minutes; half linked, the checker refuses, naming the secrets missing. Actions are pinned by commit SHA (principle
-# 9); the comment names the release.
+# this workflow's token, so it runs the library's gates itself: such a pull request starts no other workflow). It reads
+# the project from the repository's Actions secrets M3A_SUPABASE_URL (the project's URL) and
+# M3A_SUPABASE_SERVICE_ROLE_KEY (the checker's service role key); until O8's project is linked, with either unset, it
+# does nothing and says so, so it never fails on main every 15 minutes. Actions are pinned by commit SHA (principle 9);
+# the comment names the release.
 name: intake
 
 on:
@@ -28,17 +29,18 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
-      M3A_INTAKE_URL: ${{ secrets.M3A_INTAKE_URL }}
-      M3A_INTAKE_ANON_KEY: ${{ secrets.M3A_INTAKE_ANON_KEY }}
-      M3A_INTAKE_SERVICE_KEY: ${{ secrets.M3A_INTAKE_SERVICE_KEY }}
-      M3A_INTAKE_OWNER: ${{ secrets.M3A_INTAKE_OWNER }}
+      M3A_SUPABASE_URL: ${{ secrets.M3A_SUPABASE_URL }}
+      M3A_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.M3A_SUPABASE_SERVICE_ROLE_KEY }}
     steps:
       - name: The hosted store (O8)
         id: store
         run: |
-          if [ -z "$M3A_INTAKE_URL$M3A_INTAKE_ANON_KEY$M3A_INTAKE_SERVICE_KEY$M3A_INTAKE_OWNER" ]; then
+          unset_=""
+          [ -n "$M3A_SUPABASE_URL" ] || unset_="M3A_SUPABASE_URL"
+          [ -n "$M3A_SUPABASE_SERVICE_ROLE_KEY" ] || unset_="${unset_:+$unset_ and }M3A_SUPABASE_SERVICE_ROLE_KEY"
+          if [ -n "$unset_" ]; then
             echo "linked=false" >> "$GITHUB_OUTPUT"
-            echo "::notice title=intake::No hosted store is linked (O8: the M3A_INTAKE_* secrets are unset): nothing to check or adopt. The local store is each checkout's own: npm run intake -- check."
+            echo "::notice title=intake::No hosted store is linked (O8: $unset_ unset among the repository's Actions secrets): nothing to check or adopt. The local store is each checkout's own: npm run intake -- check."
           else
             echo "linked=true" >> "$GITHUB_OUTPUT"
           fi

@@ -88,7 +88,7 @@ if (import.meta.main) {
       // the real pull requests take the hosted store and the workflow's token (intake.yml once O8 is linked: G9)
       if (!f["dry-run"] && !(hostedEnv() && process.env.GH_TOKEN)) throw new Error("the adopt bot opens real pull requests only in intake.yml, with O8's store linked and the workflow's token (G9's deferred proof): run it here with --dry-run");
       const made = f["dry-run"] && typeof f.checkout !== "string", dir = f["dry-run"] ? (made ? scratchCheckout() : (f.checkout as string)) : ROOT, o = checkerStore({ cwd: ROOT });
-      const done = await adopt({ store: o.store, owner: o.owner, checkout: dir, prs: f["dry-run"] ? dryRun((t: string) => void lines.push(t)) : github(ROOT), today });
+      const done = await adopt({ store: o.store, owner: await o.owner(), checkout: dir, prs: f["dry-run"] ? dryRun((t: string) => void lines.push(t)) : github(ROOT), today });
       for (const d of done) steps.push({ name: d.id, ok: d.outcome !== "refused", ms: 0, summary: `${d.outcome}${d.why ? `: ${d.why.slice(0, 120)}` : ""}` });
       if (!done.length) steps.push({ name: "adopt", ok: true, ms: performance.now() - t0, summary: "no adoption by the owner to commit; nothing written" });
       if (made && !done.length) rmSync(dir, { recursive: true, force: true });
