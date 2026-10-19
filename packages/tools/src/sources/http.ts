@@ -5,7 +5,7 @@
 // frames: full-body key poses and 2D root waypoints), or the vendor's own through `toBody`; the reply's clip comes back
 // labelled generated, its producer naming the model, its license the terms it was served under, whose version the
 // socket records per clip (vendors change terms: NVIDIA "may update" its model license "at any time").
-import { format, VERSION, type Clip } from "@m3a/core";
+import { format, sources, VERSION, type Clip } from "@m3a/core";
 import { fail, type MotionSource, type SourceOutput, type SourceRequest, type SourceTerms } from "./types.ts";
 
 /** One HTTP request, as a transport sends it. */
@@ -68,7 +68,7 @@ const replyOf = (body: unknown): { clip: unknown; terms?: SourceTerms } => {
  * this adapter and the model, the license the terms it was served under (the reply's, or the adapter's).
  */
 export function httpSource(o: HttpSourceOptions): MotionSource {
-  if (!/^[a-z][a-z0-9-]*$/.test(o.name)) throw fail("E_REQUEST", `an HTTP source's name is a lower-case word (letters, digits, -), not ${JSON.stringify(o.name)}`);
+  if (!sources.SOURCE_NAME.test(o.name)) throw fail("E_REQUEST", `an HTTP source's name is a lower-case word (letters, digits, -), not ${JSON.stringify(o.name)}`);
   const fps = o.fps ?? 30, src = o.name.toUpperCase().replace(/-/g, "_");
   return {
     name: o.name,

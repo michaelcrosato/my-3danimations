@@ -1,11 +1,12 @@
 // The motion-source socket in core (WP-9.2): the request's checks, the procedural and recipe sources through
 // `sourceClip` (the intent's match, the seed's pick among equals, the same clip for the same seed), the record the
 // socket writes into a clip's provenance, the license each clip claims, the warnings (missed constraints, a changed
-// version of the terms, a claim that isn't the terms, a length off), and a source's failures as SourceErrors.
+// version of the terms, a claim that isn't the terms, a length off), both terms recorded when a clip was served under
+// others than its source states, and a source's failures as SourceErrors (a name or terms no record can hold).
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { parseClip, procedural as PR, recipe as R, serialize, VERSION, type Clip, type Rest } from "../src/index.ts";
+import { parseClip, procedural as PR, recipe as R, serialize, validate, VERSION, type Clip, type Rest } from "../src/index.ts";
 import { checkRequest, proceduralSource, recipeSource, SourceError, sourceClip, words, type MotionSource, type SourceRequest } from "../src/sources/index.ts";
 
 const ROOT = join(import.meta.dirname, "../../.."), LIB = join(ROOT, "library/sets");
@@ -110,9 +111,22 @@ describe("the socket", () => {
   it("records the terms a clip was served under, and warns when they changed or the claim isn't them", async () => {
     const vendor: MotionSource = { name: "vendor", terms: { license: "LicenseRef-Vendor", version: "2026-01" }, generate: () => ({ clip: made, rest: REST, terms: { license: "LicenseRef-Vendor", version: "2026-09" } }) };
     const s = await sourceClip(vendor, ask("an idle", { duration: 7 }));
-    expect(s.record).toMatchObject({ license: "LicenseRef-Vendor", version: "2026-09" });
+    expect(s.record).toMatchObject({ license: "LicenseRef-Vendor", version: "2026-09", stated: { license: "LicenseRef-Vendor", version: "2026-01" } });
     expect(s.warnings.some((w) => w.includes("vendor's terms changed") && w.includes("(2026-01)") && w.includes("(2026-09)"))).toBe(true);
     expect(s.warnings.some((w) => w.startsWith("the clip claims CC0-1.0, but vendor's terms are LicenseRef-Vendor"))).toBe(true);
+  });
+  it("records both terms when a clip was served under others than its source states, and only then; the record validates", async () => {
+    const reply = (terms?: { license: string; version: string }): MotionSource => ({ name: "vendor", terms: { license: "LicenseRef-Vendor", version: "2026-01" }, generate: () => ({ clip: made, rest: REST, ...(terms ? { terms } : {}) }) });
+    const swapped = await sourceClip(reply({ license: "CC0-1.0", version: "x" }), ask("an idle"));
+    expect(swapped.record).toEqual({ name: "vendor", license: "CC0-1.0", version: "x", stated: { license: "LicenseRef-Vendor", version: "2026-01" }, seed: 0, prompt: R.sha256("an idle") });
+    for (const s of [swapped, await sourceClip(reply(), ask("an idle")), await sourceClip(reply({ license: "LicenseRef-Vendor", version: "2026-01" }), ask("an idle"))]) expect(validate(s.clip, { mode: "lint" }).errors).toEqual([]);
+    expect((await sourceClip(reply(), ask("an idle"))).record.stated).toBeUndefined();
+    expect((await sourceClip(reply({ license: "LicenseRef-Vendor", version: "2026-01" }), ask("an idle"))).record.stated).toBeUndefined();
+  });
+  it("refuses a source whose name or terms its record can't hold (E_SOURCE), and served terms it can't read (E_INVALID)", async () => {
+    const src = (name: string, terms: unknown, served?: unknown): MotionSource => ({ name, terms: terms as MotionSource["terms"], generate: () => ({ clip: made, rest: REST, ...(served ? { terms: served as MotionSource["terms"] } : {}) }) });
+    for (const bad of [src("Vendor", { license: "CC0-1.0", version: "1" }), src("../../sets/X", { license: "CC0-1.0", version: "1" }), src("vendor", { license: "", version: "1" }), src("vendor", { license: "CC0-1.0" })]) await expect(sourceClip(bad, ask("an idle"))).rejects.toMatchObject({ code: "E_SOURCE" });
+    await expect(sourceClip(src("vendor", { license: "CC0-1.0", version: "1" }, { license: 7, version: "1" }), ask("an idle"))).rejects.toMatchObject({ code: "E_INVALID", message: expect.stringContaining("terms it served") });
   });
   it("matches words as a game says them", () => {
     expect(words("The hero is Walking and runs, punches")).toEqual(["hero", "walk", "run", "punch"]);

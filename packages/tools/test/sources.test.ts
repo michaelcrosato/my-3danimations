@@ -1,17 +1,21 @@
 // The motion-source socket end to end (WP-9.2): the built-in sources (procedural, recipe, library) and a mock external
 // generator behind the HTTP adapter run through core's one `sourceClip`, each the same clip for the same seed and each
 // passing the same gate; the adapter off by default, sending Kimodo's constraint shape, recording the terms' version it
-// was served; and where each clip goes: an allowlisted source's to the intake queue (the local IntakeStore), any other
-// only into a local set under library/local/, never into a distributable set. No network: every transport is a mock.
-import { readFileSync } from "node:fs";
+// was served; and where each clip goes: an allowlisted source's to the intake queue (the local IntakeStore) with the
+// intake's provenance the intake's gates ask for, a source whose stated or served terms aren't allowlisted only into a
+// local set under library/local/, never into a distributable set. The tools' socket types are core's, written once.
+// No network: every transport is a mock.
+import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { procedural as PR, recipe as R, serialize, type Clip, type Rest } from "@m3a/core";
+import { parseClip, procedural as PR, recipe as R, serialize, type Clip, type Rest } from "@m3a/core";
 import { Library, type LibrarySource, type Tier } from "@m3a/library";
 import { openLibrary } from "@m3a/library/node";
-import { proceduralSource, recipeSource, sourceClip, type MotionSource as CoreSource, type SourceRequest as CoreRequest, type Sourced as CoreSourced } from "../../core/src/sources/index.ts";
+import { proceduralSource, recipeSource, sourceClip, type SourceRequest as CoreRequest } from "../../core/src/sources/index.ts";
 import { localStore, memoryFiles } from "../src/intake/index.ts";
-import { allowlisted, deliver, httpSource, intakeSubmit, librarySource, localPath, sourceGate, type HttpRequest, type LocalLane, type MotionSource, type SourceRequest, type Sourced, type SourceTerms, type Transport } from "../src/sources/index.ts";
+import { libraryAccess } from "../src/node/library.ts";
+import { allowlisted, deliver, httpSource, intakeSubmit, librarySource, localPath, sourceGate, type HttpRequest, type LocalLane, type MotionSource, type SourceRequest, type SourceTerms, type Transport } from "../src/sources/index.ts";
+import { clipGates, gateInput, SHIPPED, type IntakeProvenance } from "../src/tools/library-submit.ts";
 
 const ROOT = join(import.meta.dirname, "../../.."), LIB = join(ROOT, "library/sets");
 const REST = (JSON.parse(readFileSync(join(LIB, "MESH2MOTION/_set.json"), "utf8")) as { sources: Record<string, { rest: Rest }> }).sources.M2M_QUATERNIUS!.rest;
@@ -49,11 +53,14 @@ function lane() {
 }
 const contributor = () => localStore({ files: memoryFiles(), role: "contributor", id: "alice", today: () => "2026-10-19" });
 const recordOf = (c: Clip) => (c.provenance as Clip["provenance"] & { source?: Record<string, unknown> }).source;
+/** What the contributor says of a clip it delivers to the intake queue, as library submit's --by and --manifest do. */
+const BY = "a test of WP-9.2's deliver (michaelcrosato)", MANIFEST = { url: "https://generator.invalid/kimodo/training-data.json", sha256: "f".repeat(64) };
 
 describe("one interface", () => {
-  it("holds tools' shapes to core's, both ways", () => {
-    const a: CoreSource = librarySource(lib), b: MotionSource = proc, c: CoreSourced = {} as Sourced, d: Sourced = {} as CoreSourced, e: SourceRequest = {} as CoreRequest, f: CoreRequest = {} as SourceRequest;
-    expect([a.name, b.name, c, d, e, f].length).toBe(6);
+  it("takes the socket's types from core's sources, written once: the tools hold no copy", () => {
+    const dir = join(ROOT, "packages/tools/src/sources"), text = readdirSync(dir).map((f) => readFileSync(join(dir, f), "utf8")).join("\n");
+    expect(text.match(/^\s*(export\s+)?(interface|type)\s+(SourceTerms|Constraint|SourceRequest|SourceOutput|MotionSource|SourceRecord|Sourced)\b(?!\s*=\s*sources\.)/gm)).toBeNull();
+    expect(readFileSync(join(dir, "types.ts"), "utf8")).toContain('import type { sources } from "@m3a/core"');
   });
   it("runs the built-in sources and a mock external one the same way: a recorded clip, the same for the same seed, through the same gate", async () => {
     const cases: [MotionSource, string, string, string][] = [[proc, "a walk", "PROCEDURAL/Walk", "CC0-1.0"], [book, "a left jab", "RECIPES/Jab_Left", "CC0-1.0"], [librarySource(lib), "wave hello", "MESH2MOTION/Greeting", "CC0-1.0"], [kimodo().source, "a slow bow", "KIMODO/Mock_0", NVIDIA.license]];
@@ -104,24 +111,57 @@ describe("the HTTP adapter", () => {
 });
 
 describe("where a source's clip goes", () => {
-  it("an allowlisted source's clip lands in the intake queue, nothing else written", async () => {
+  const access = libraryAccess(ROOT, SHIPPED, LIB, {});
+  it("an allowlisted source's clip lands in the intake queue with the intake's provenance, which its gates take; nothing else written", async () => {
     const store = contributor(), mem = lane();
     for (const [source, intent] of [[proc, "a walk"], [book, "a proud walk"], [kimodo({ terms: { license: "CC0-1.0", version: "1" } }).source, "a bow"]] as const) {
       const s = await sourceClip(source, ask(intent, source.name === "kimodo" ? { constraints: KEYED } : {}));
       expect(allowlisted(s.clip).ok, intent).toBe(true);
-      const d = await deliver(s, { submit: intakeSubmit(store), local: mem.lane });
+      const d = await deliver(s, { submit: intakeSubmit(store), local: mem.lane, by: BY, ...(source.name === "kimodo" ? { manifest: MANIFEST } : {}) });
       expect(d).toMatchObject({ to: "intake", id: expect.stringMatching(/^s-[0-9a-f]{16}$/), state: "submitted" });
-      expect((await store.get((d as { id: string }).id))!.text).toBe(serialize(s.clip));
+      const sent = parseClip((await store.get((d as { id: string }).id))!.text), intake = (sent.provenance as unknown as { intake: IntakeProvenance }).intake;
+      expect(intake).toEqual({ by: BY, prompt: s.record.prompt, ...(source.name === "kimodo" ? { manifest: MANIFEST } : {}), report: { sensors: expect.stringMatching(/^(pass|warn)$/), findings: expect.any(Number), qaVersion: expect.stringMatching(/^m3a-sensors@/) } });
+      expect(serialize({ ...sent, provenance: { ...sent.provenance, intake: undefined } as Clip["provenance"] })).toBe(serialize(s.clip));
+      // every gate the intake runs with no rig or store passes it: the text gate's reading of provenance.source is the
+      // intake lane's (D113), so only its record's fields may be named there until that lands
+      const gates = clipGates(gateInput(sent, "clip", null, access));
+      expect(gates.filter((g) => !g.ok && g.gate !== "text").map((g) => `${g.gate}: ${g.why.join("; ")}`), intent).toEqual([]);
+      expect(gates.find((g) => g.gate === "text")!.why.filter((w) => !w.startsWith("provenance.source.")), intent).toEqual([]);
     }
     expect((await store.list()).length).toBe(3);
     expect(mem.files.size).toBe(0);
+  });
+  it("sends nothing the intake would bounce for its disclosure: no one named, a generator without its manifest", async () => {
+    const store = contributor(), mem = lane(), walk = await sourceClip(proc, ask("a walk")), bow = await sourceClip(kimodo({ terms: { license: "CC0-1.0", version: "1" } }).source, ask("a bow", { constraints: KEYED }));
+    const to = (s: typeof walk, more: { by?: string; manifest?: { url: string; sha256: string } }) => deliver(s, { submit: intakeSubmit(store), local: mem.lane, ...more });
+    expect(await to(walk, {})).toEqual({ to: "refused", reasons: [expect.stringContaining("deliver it with by")] });
+    expect(await to(walk, { by: " " })).toMatchObject({ to: "refused" });
+    expect(await to(bow, { by: BY })).toEqual({ to: "refused", reasons: [expect.stringContaining("training-data manifest")] });
+    expect(await to(bow, { by: BY, manifest: { url: "http://generator.invalid/m.json", sha256: MANIFEST.sha256 } })).toEqual({ to: "refused", reasons: [expect.stringContaining("https URL")] });
+    expect([await store.list(), mem.files.size]).toEqual([[], 0]);
+  });
+  it("a remote generator's reply never decides its route alone: both the terms it states and those it served are read, and recorded", async () => {
+    const store = contributor(), mem = lane(), CC0 = { license: "CC0-1.0", version: "1" };
+    const swapped = await sourceClip(kimodo({ served: { license: "CC0-1.0", version: "x" } }).source, ask("a bow", { constraints: KEYED }));
+    expect(swapped.record).toMatchObject({ license: "CC0-1.0", version: "x", stated: { license: NVIDIA.license, version: NVIDIA.version } });
+    expect(allowlisted(swapped.clip)).toEqual({ ok: false, why: expect.stringContaining(`${NVIDIA.license} (${NVIDIA.version}), aren't on the allowlist`) });
+    expect(allowlisted(swapped.clip).why).toContain("both must be on it");
+    const served = await sourceClip(kimodo({ terms: CC0, served: { license: NVIDIA.license, version: NVIDIA.version } }).source, ask("a bow", { seed: 1, constraints: KEYED }));
+    expect(allowlisted(served.clip).ok).toBe(false);
+    for (const s of [swapped, served]) expect(await deliver(s, { submit: intakeSubmit(store), local: mem.lane, by: BY, manifest: MANIFEST })).toMatchObject({ to: "local", set: "LOCAL_KIMODO" });
+    expect(await store.list()).toEqual([]);
+    expect(JSON.parse(mem.files.get("library/local/LOCAL_KIMODO/_set.json")!).sources.M2M_QUATERNIUS.origin).toContain("; it states CC0-1.0 (1)");
+    // a new version of allowlisted terms is still allowlisted, both versions recorded
+    const bumped = await sourceClip(kimodo({ terms: CC0, served: { license: "CC0-1.0", version: "2" } }).source, ask("a bow", { seed: 2, constraints: KEYED }));
+    expect([bumped.record.stated, allowlisted(bumped.clip).ok]).toEqual([CC0, true]);
+    expect(await deliver(bumped, { submit: intakeSubmit(store), local: mem.lane, by: BY, manifest: MANIFEST })).toMatchObject({ to: "intake" });
   });
   it("a source that isn't allowlisted writes only its local set under library/local/, whatever its clip claims", async () => {
     const store = contributor(), mem = lane(), k = kimodo();
     const one = await sourceClip(k.source, ask("a bow", { constraints: KEYED })), two = await sourceClip(k.source, ask("a bow", { seed: 1, constraints: KEYED }));
     const claimsCc0 = { ...two, clip: { ...two.clip, provenance: { ...two.clip.provenance, license: "CC0-1.0" } } };
     expect(allowlisted(claimsCc0.clip)).toMatchObject({ ok: false, why: expect.stringContaining("aren't on the allowlist") });
-    const [d1, d2] = await Promise.all([deliver(one, { submit: intakeSubmit(store), local: mem.lane }), deliver(claimsCc0, { submit: intakeSubmit(store), local: mem.lane })]);
+    const [d1, d2] = await Promise.all([deliver(one, { submit: intakeSubmit(store), local: mem.lane, by: BY, manifest: MANIFEST }), deliver(claimsCc0, { submit: intakeSubmit(store), local: mem.lane, by: BY, manifest: MANIFEST })]);
     expect(d1).toMatchObject({ to: "local", set: "LOCAL_KIMODO" });
     expect(d2).toMatchObject({ to: "local", set: "LOCAL_KIMODO" });
     expect(await store.list()).toEqual([]);
@@ -146,3 +186,4 @@ describe("where a source's clip goes", () => {
     expect(localPath("library/local/LOCAL_X/Walk.json")).toBe("library/local/LOCAL_X/Walk.json");
   });
 });
+

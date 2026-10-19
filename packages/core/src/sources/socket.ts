@@ -1,8 +1,9 @@
-// The motion-source socket (PLAN.md WP-9.2): one way to ask any source for a clip. `sourceClip` checks the request,
-// runs the source, validates what comes back, writes the source's record (its name, the license and version of the
-// terms the clip was served under, the seed, the intent's hash) into the clip's provenance as `source`, and warns
-// where the terms changed, where the clip's license claim isn't its source's terms, where a constraint is missed and
-// where the length isn't the one asked for. It reads no clock and no randomness: the same request gives the same clip.
+// The motion-source socket (PLAN.md WP-9.2): one way to ask any source for a clip. `sourceClip` checks the request
+// and the source's name and terms, runs the source, validates what comes back, writes the source's record (its name,
+// the license and version of the terms the clip was served under, the terms the source states when they differ, the
+// seed, the intent's hash) into the clip's provenance as `source`, and warns where the terms changed, where the clip's
+// license claim isn't its source's terms, where a constraint is missed and where the length isn't the one asked for.
+// It reads no clock and no randomness: the same request gives the same clip.
 import { P, type Rest } from "../format/body.ts";
 import { error } from "../format/fit.ts";
 import { decodePose, type KeyLike } from "../format/pose.ts";
@@ -12,7 +13,7 @@ import { rootAt } from "../clip/sample.ts";
 import { sha256 } from "../recipe/sha256.ts";
 import { validate } from "../validate/index.ts";
 import { formatIssue } from "../validate/issues.ts";
-import { SourceError, type MotionSource, type SourceOutput, type SourceRecord, type SourceRequest, type SourceTerms, type Sourced } from "./types.ts";
+import { SOURCE_NAME, SourceError, type MotionSource, type SourceOutput, type SourceRecord, type SourceRequest, type SourceTerms, type Sourced } from "./types.ts";
 
 /** A key pose counts as met when no body point is farther than this from it, mm (the key budget). */
 export const POSE_TOLERANCE = 30;
@@ -66,6 +67,8 @@ export function checkRequest(req: unknown): string[] {
 
 /** Terms as a line: "CC0-1.0 (0.51.0)". */
 const said = (t: SourceTerms) => `${t.license} (${t.version})`;
+/** Whether `t` is terms a record can hold: a license and a version, each a string with a word in it. */
+const isTerms = (t: unknown): t is SourceTerms => isObj(t) && typeof t.license === "string" && !!t.license.trim() && typeof t.version === "string" && !!t.version.trim();
 /** An angle folded into −180 to 180 degrees. */
 const fold = (a: number) => ((((a + 180) % 360) + 360) % 360) - 180;
 
@@ -88,12 +91,15 @@ function missed(clip: Clip, rest: Rest, req: SourceRequest): string[] {
 }
 
 /**
- * Asks `source` for a clip: the request checked (E_REQUEST), the source run (what it throws comes back as a
- * SourceError with its code, E_SOURCE by default), its clip validated (E_INVALID), the source's record written into the
- * clip's provenance as `source`, and the warnings: the source's, then a change of terms, a license claim that isn't its
- * source's terms, each missed constraint, a once clip's length off the one asked for.
+ * Asks `source` for a clip: its name and terms checked (E_SOURCE), the request checked (E_REQUEST), the source run
+ * (what it throws comes back as a SourceError with its code, E_SOURCE by default), its clip and any terms it served
+ * validated (E_INVALID), the source's record written into the clip's provenance as `source` (the served terms, and the
+ * stated ones as `stated` when they differ), and the warnings: the source's, then a change of terms, a license claim
+ * that isn't its source's terms, each missed constraint, a once clip's length off the one asked for.
  */
 export async function sourceClip(source: MotionSource, req: SourceRequest): Promise<Sourced> {
+  if (typeof source?.name !== "string" || !SOURCE_NAME.test(source.name)) throw new SourceError("E_SOURCE", `a source's name is a lower-case word (letters, digits and -), not ${JSON.stringify(source?.name)}: its record names it`);
+  if (!isTerms(source.terms)) throw new SourceError("E_SOURCE", `${source.name}: its terms are { license, version }, each text (an SPDX id or "inherit", and its version or date)`);
   const issues = checkRequest(req);
   if (issues.length) throw new SourceError("E_REQUEST", `${source.name}: ${issues.join("; ")}`);
   let out: SourceOutput;
@@ -106,9 +112,11 @@ export async function sourceClip(source: MotionSource, req: SourceRequest): Prom
   }
   const v = validate(out?.clip, { mode: "read" });
   if (!v.ok || !isObj(out.rest)) throw new SourceError("E_INVALID", `${source.name}: its clip is invalid: ${v.errors.length ? v.errors.slice(0, 3).map(formatIssue).join("; ") : "it gave no rest"}; fix the source, the socket passes no invalid clip on`);
-  const served = out.terms ?? source.terms, warnings = [...(out.warnings ?? [])];
-  if (served.license !== source.terms.license || served.version !== source.terms.version) warnings.push(`${source.name}'s terms changed: it states ${said(source.terms)}, this clip was served under ${said(served)}; read them before using its clips`);
-  const record: SourceRecord = { name: source.name, license: served.license, version: served.version, seed: req.seed, prompt: sha256(req.intent) };
+  if (out.terms !== undefined && !isTerms(out.terms)) throw new SourceError("E_INVALID", `${source.name}: the terms it served aren't { license, version }, each text; fix the source, the socket records no terms it can't read`);
+  const served = out.terms ?? source.terms, stated = source.terms, warnings = [...(out.warnings ?? [])], changed = served.license !== stated.license || served.version !== stated.version;
+  if (changed) warnings.push(`${source.name}'s terms changed: it states ${said(stated)}, this clip was served under ${said(served)}; read them before using its clips`);
+  // both terms recorded when they differ: where the clip may go reads both, so a vendor's reply never decides it alone
+  const record: SourceRecord = { name: source.name, license: served.license, version: served.version, ...(changed ? { stated: { license: stated.license, version: stated.version } } : {}), seed: req.seed, prompt: sha256(req.intent) };
   const clip: Clip = { ...out.clip, provenance: { ...out.clip.provenance, source: record } as Clip["provenance"] }, license = clip.provenance.license;
   if (served.license !== "inherit" && license !== served.license) warnings.push(`the clip claims ${license}, but ${source.name}'s terms are ${served.license}: the terms decide where it may go`);
   warnings.push(...missed(clip, out.rest, req));
