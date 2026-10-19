@@ -1,6 +1,8 @@
 // The intake's workflows (PLAN.md WP-9.1a): intake.yml runs the checker every 15 minutes and on demand, then the adopt
 // bot, and with no hosted store linked (M3A_SUPABASE_URL or M3A_SUPABASE_SERVICE_ROLE_KEY unset) does nothing and says
-// so: its first step, run here with each unset, and every other step conditioned on it.
+// so: its first step, run here with each unset, and every other step conditioned on it. The service role key reaches
+// only the steps that use it, the checkout keeps no token, the install runs no package's scripts, and the workflow's
+// token reaches only the adopt bot.
 // library-gates.yml runs `npm run gate -- library-pr` on every pull request that touches library/sets/.
 import { spawnSync } from "node:child_process";
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
@@ -17,8 +19,15 @@ describe("intake.yml", () => {
   const text = workflow("intake.yml");
   it("runs every 15 minutes and on demand: the checker, then the adopt bot with the workflow's token", () => {
     expect(text).toMatch(/schedule:\n {4}- cron: "\*\/15 \* \* \* \*"\n {2}workflow_dispatch:/);
-    const runs = steps(text).map((s) => /run: (npm run .+)/.exec(s)?.[1]).filter(Boolean);
+    const runs = steps(text).map((s) => /run: (?:gh auth setup-git && )?(npm run .+)/.exec(s)?.[1]).filter(Boolean);
     expect(runs).toEqual(["npm run fixtures -- fetch", "npm run intake -- check --json", "npm run intake -- adopt --json"]);
+  });
+  it("gives the service role key only to the steps that use it, and the workflow's token only to the adopt bot; the checkout keeps none", () => {
+    const all = steps(text), secret = /\$\{\{ secrets\.M3A_SUPABASE_SERVICE_ROLE_KEY \}\}/, using = (re: RegExp) => all.filter((s) => re.test(s)).map((s) => /id: (\w+)|run: (.+)/.exec(s)?.slice(1).find(Boolean));
+    expect(text.slice(0, text.indexOf("    steps:\n"))).not.toMatch(/secrets\.|GH_TOKEN/);
+    expect(using(secret)).toEqual(["store", "npm run intake -- check --json", "gh auth setup-git && npm run intake -- adopt --json"]);
+    expect(using(/GH_TOKEN: \$\{\{ github\.token \}\}/)).toEqual(["gh auth setup-git && npm run intake -- adopt --json"]);
+    expect([all.find((s) => s.includes("actions/checkout@"))!, all.some((s) => /run: npm ci --ignore-scripts\n/.test(`${s}\n`))]).toEqual([expect.stringMatching(/\n {10}persist-credentials: false/), true]);
   });
   it("does nothing and says so when no hosted store is linked: every step after the first waits on it", () => {
     const [first, ...rest] = steps(text), script = /run: \|\n((?: {10}.*\n)+)/.exec(`${first!}\n`)![1]!.replace(/^ {10}/gm, "");
