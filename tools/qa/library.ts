@@ -124,20 +124,23 @@ export function checkFloats(lib: readonly LibraryClip[], reasons: QaReasons = re
  * The off-feet check (D104, D108): a loop with no contact at all must say why. Off its feet, its tags put it there
  * (core's OFF_FEET: in the air, in water, on a wall, lying or sitting) and the reasons' `offFeet` answers where it is; on
  * its feet, `unplanted` answers why no foot holds still on the floor (core's measureFacts reads none it can plant). An
- * answer whose loop has contacts now is named, so an agent matching a run's speed to its own planted feet reads 0 only
- * from a clip that says why.
+ * answer whose loop has contacts now, or that sits in the field its loop doesn't need (`offFeet` for a loop its tags
+ * keep on its feet, `unplanted` for one they put off them), is named, so an agent matching a run's speed to its own
+ * planted feet reads 0 only from a clip that says why, and each answer says the why that applies.
  */
 export function checkOffFeet(lib: readonly LibraryClip[], reasons: QaReasons = readReasons()): VerdictCheck {
-  const problems: string[] = [], none = new Set<string>(), answers = reasons.offFeet ?? {}, unplanted = reasons.unplanted ?? {};
+  const problems: string[] = [], need = { offFeet: new Set<string>(), unplanted: new Set<string>() }, answers = reasons.offFeet ?? {}, unplanted = reasons.unplanted ?? {};
   for (const { clip } of lib) {
     if (!clip.loop || (Object.keys(C.END_POINTS) as C.End[]).some((e) => (clip.contacts?.[e]?.length ?? 0) > 0)) continue;
-    none.add(clip.id);
     const off = clip.tags.filter((t) => (C.OFF_FEET as readonly string[]).includes(t));
+    need[off.length ? "offFeet" : "unplanted"].add(clip.id);
     if (!off.length) {
       if (!unplanted[clip.id]) problems.push(`${clip.id}: a loop with no contact, and none of its tags (${clip.tags.join(", ")}) puts it off its feet (${C.OFF_FEET.join(", ")}): detect its contacts, tag where it is, or answer why no foot holds still in library/baselines/qa.json unplanted`);
     } else if (!answers[clip.id]) problems.push(`${clip.id}: a loop with no contact (${off.join(", ")}), with no answer in library/baselines/qa.json offFeet`);
   }
-  const gone = (field: string, ids: string[]) => ids.filter((id) => !none.has(id)).map((id) => `${field}: ${id} (has contacts now)`);
+  // an answer its loop doesn't need there: the loop has contacts now, or its tags put the answer in the other field
+  const other = { offFeet: ["unplanted", "none of its tags puts it off its feet: unplanted answers it"], unplanted: ["offFeet", "its tags put it off its feet: offFeet answers it"] } as const;
+  const gone = (field: keyof typeof need, ids: string[]) => ids.filter((id) => !need[field].has(id)).map((id) => `${field}: ${id} (${need[other[field][0]].has(id) ? other[field][1] : "has contacts now"})`);
   return { problems, gone: [...gone("offFeet", Object.keys(answers)), ...gone("unplanted", Object.keys(unplanted))] };
 }
 
@@ -145,7 +148,7 @@ export function checkOffFeet(lib: readonly LibraryClip[], reasons: QaReasons = r
 export function offFeetStep(lib: readonly LibraryClip[], reasons: QaReasons = readReasons()): Step {
   const off = checkOffFeet(lib, reasons), n = (o?: Record<string, string>) => Object.keys(o ?? {}).length;
   const ok = off.problems.length === 0 && off.gone.length === 0;
-  const summary = ok ? `every loop with no contact answered in library/baselines/qa.json: ${n(reasons.offFeet)} off their feet, ${n(reasons.unplanted)} with no foot that holds still` : `${off.problems.length} loops with no contact unanswered; ${off.gone.length} answers whose loop has contacts now`;
+  const summary = ok ? `every loop with no contact answered in library/baselines/qa.json: ${n(reasons.offFeet)} off their feet, ${n(reasons.unplanted)} with no foot that holds still` : `${off.problems.length} loops with no contact unanswered; ${off.gone.length} answers whose loop has contacts now or belongs in the other field`;
   return { name: "off feet", ok, ms: 0, summary, detail: [...off.problems, ...off.gone.map((g) => `library/baselines/qa.json ${g}`)] };
 }
 
