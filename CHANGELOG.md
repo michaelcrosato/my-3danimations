@@ -4,6 +4,28 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.53.0 · 2026-10-19
+
+### Spec
+- The conformance kit (WP-10.2, spec/conformance/): its protocol, m3a-conformance/1 (PROTOCOL.md, protocol.schema.json):
+  an implementation is a sidecar answering newline-delimited JSON on stdin and stdout, eleven ops over tiers 1a, 1b, 2
+  and 3, each compared at its tier's tolerance, every answer checked against the schema, a deadline a request; the
+  TypeScript reference's sidecar and a deliberately broken one that fails naming its vector; CERTIFYING.md, how
+  shardfall's Rust codec certifies tiers 1a and 2 (1b once its glTF reader gives the Rigify look), a proposal (O9).
+
+### Repo
+- `npm run conformance -- --impl ts|"<command>" [--tier] [--sample] [--timeout]`: a certification per tier and vector
+  file, naming the first failing vector, its case, field and both values; its report names the protocol, the vectors'
+  manifest SHA-256 and the commit. The TypeScript implementation certifies every tier (3,662 cases in 7 s).
+- G10's command set: check, test, doctrine, vectors, the full TypeScript certification, the consumer proof's e2e,
+  `pack --check` and T2.
+
+### Docs
+- The consumer proof (WP-10.1): apps/lab/consumer-ts, a my-3dge-shaped duel on the public API (three.js r182, a fixed
+  60 Hz sim on my-3dge's frame clock, two humanoids on one graph, a hit event, root motion), its e2e comparing the page
+  with Node step by step, the hero with `sim.simulate`'s root path, and the page's own frame loop on a held clock;
+  docs/MIGRATING.md, my-3dge's WPs 3.4–3.7 and 8.1–8.10 as replaced, wrapped or kept, a proposal (O9).
+
 ## 0.52.1 · 2026-10-19
 
 ### Spec
