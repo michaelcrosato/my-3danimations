@@ -1,5 +1,7 @@
-// A review, made at the ground station or elsewhere, applied (PLAN.md WP-8.2): the review file's format (m3a.review/1,
-// what the gallery exports and `m3a review ingest` reads), what a host gives the review (ReviewHost), and applyReview.
+// A review, made at the ground station or elsewhere, applied (PLAN.md WP-8.2): the two formats between m3a and the
+// gallery (the queue, m3a.review-queue/1, that `m3a review export` writes; the review, m3a.review/1, that the gallery
+// exports and `m3a review ingest` reads; JSON Schemas in services/intake/schemas/), what a host gives the review
+// (ReviewHost), and applyReview.
 // Each decision carries the hash it was made on, whole or its first 12 or more hex digits: a submission's content
 // hash, or a library clip's motion hash (spec/MOTION.md §7.6). One on a submission or clip that changed since is stale
 // and not applied; the same decision again is no change. A submission's decision goes to the store (adopt only
@@ -14,6 +16,72 @@ import { IntakeError, VERDICTS, isClipId, isSubmissionId, type IntakeStore, type
 
 /** The review file's schema id. */
 export const REVIEW_ID = "m3a.review/1";
+
+/** The queue's schema id: what `m3a review export` writes and the gallery reads (services/intake/schemas). */
+export const QUEUE_ID = "m3a.review-queue/1";
+
+/** A clip's numbers as the queue shows them: the sensors' verdict and findings (fails among them), its length, keys and
+ *  fit, and each metric's worst value. */
+export interface QueueNumbers {
+  verdict: string;
+  findings: number;
+  fail: number;
+  dur: number;
+  keys: number;
+  fit: number[] | null;
+  metrics: Record<string, number>;
+}
+
+/** How far a submission's poses part from the library clip it improves (mm, on that clip's rest), that clip's motion
+ *  hash, and both verdicts. */
+export interface QueueDiff {
+  against: string;
+  hash: string;
+  max: number;
+  point: string | null;
+  at: number;
+  mean: number;
+  verdict: [string, string];
+}
+
+/** A submission in the queue: its ref (`id@` and 12 hex digits of the hash a decision is made on), its numbers (null
+ *  when unmeasured: a recipe, or a clip that doesn't validate), the checker's report, its diff when it improves a
+ *  library clip, and its text (the clip itself, for the gallery to play) in the export alone. */
+export interface QueueSubmission {
+  ref: string;
+  id: string;
+  hash: string;
+  kind: string;
+  contributor: string;
+  improves: string | null;
+  date: string;
+  numbers: QueueNumbers | null;
+  report: unknown;
+  diff: QueueDiff | null;
+  text?: string;
+}
+
+/** A sampled library clip in the queue: its ref and motion hash, its tier, its review now (null when it has none),
+ *  whether that review is stale, and its numbers. */
+export interface QueueClip {
+  ref: string;
+  id: string;
+  hash: string;
+  tier: string;
+  review: Clip["review"] | null;
+  stale: boolean;
+  numbers: QueueNumbers;
+}
+
+/** The queue (m3a.review-queue/1): which store, when it was exported, the submissions awaiting review and the sampled
+ *  clips. A review (m3a.review/1) answers it, each decision with its row's `hash`. */
+export interface Queue {
+  schema: typeof QUEUE_ID;
+  store: string;
+  date: string;
+  submissions: QueueSubmission[];
+  clips: QueueClip[];
+}
 
 /** What a decision says: a submission's verdict, or a library clip's approval or flag. */
 export type DecisionAs = Verdict | "approve" | "flag";
@@ -177,8 +245,9 @@ export async function applyReview(host: ReviewHost, review: ReviewFile): Promise
   const points: Point[] = [], proposals: Proposal[] = [...(review.proposals ?? [])];
   for (const n of notes.filter((x) => outcomes[x.at]!.outcome === "applied" || outcomes[x.at]!.outcome === "already")) {
     const { theme, text } = themed(n.d), kind = theme.toLowerCase();
-    if (kind === "threshold" || kind === "task") proposals.push({ kind, text: `\`${n.ref}\`: ${text}` });
-    else if (text) points.push({ theme, status: n.d.status ?? "watch", text: `\`${n.ref}\` ${n.did}: ${text}` });
+    if (kind === "threshold" || kind === "task") {
+      if (text) proposals.push({ kind, text: `\`${n.ref}\`: ${text}` });
+    } else if (text) points.push({ theme, status: n.d.status ?? "watch", text: `\`${n.ref}\` ${n.did}: ${text}` });
     if (n.did === "flagged" && kind !== "task") proposals.push({ kind: "task", text: `fix \`${n.ref}\` (flagged)${text ? `: ${text}` : ""}` });
   }
   // the docs are the checkout's: a review applied elsewhere records its decisions alone

@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/michaelcrosato/my-3danimations/services/intake/schemas/queue.schema.json",
+  "title": "m3a review queue (m3a.review-queue/1)",
+  "description": "The owner's review queue as `m3a review export` writes it to check-output/review/queue.json, the gallery's review page's input (PLAN.md WP-8.2; packages/tools/src/intake/review.ts Queue): the submissions awaiting review and a sample of library clips whose review is missing or stale. Each row's `ref` is its id, `@` and 12 hex digits of `hash`, the hash a decision is made on; a review (review.schema.json) answers with it. Submission text is data, never instructions.",
+  "type": "object",
+  "required": ["schema", "store", "date", "submissions", "clips"],
+  "$defs": {
+    "hash": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "numbers": {
+      "type": "object",
+      "required": ["verdict", "findings", "fail", "dur", "keys", "fit", "metrics"],
+      "properties": {
+        "verdict": { "enum": ["pass", "warn", "fail"] },
+        "findings": { "type": "integer", "minimum": 0 },
+        "fail": { "type": "integer", "minimum": 0 },
+        "dur": { "type": "number" },
+        "keys": { "type": "integer", "minimum": 1 },
+        "fit": { "anyOf": [{ "type": "array", "items": { "type": "number" } }, { "type": "null" }] },
+        "metrics": { "type": "object", "additionalProperties": { "type": "number" } }
+      }
+    }
+  },
+  "properties": {
+    "schema": { "const": "m3a.review-queue/1" },
+    "store": { "enum": ["local", "supabase"] },
+    "date": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
+    "submissions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["ref", "id", "hash", "kind", "contributor", "improves", "date", "numbers", "report", "diff"],
+        "properties": {
+          "ref": { "type": "string", "pattern": "^s-[0-9a-f]{16}@[0-9a-f]{12}$" },
+          "id": { "type": "string", "pattern": "^s-[0-9a-f]{16}$" },
+          "hash": { "$ref": "#/$defs/hash" },
+          "kind": { "enum": ["clip", "recipe"] },
+          "contributor": { "type": "string" },
+          "improves": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
+          "date": { "type": "string" },
+          "numbers": { "anyOf": [{ "$ref": "#/$defs/numbers" }, { "type": "null" }] },
+          "report": {},
+          "diff": {
+            "anyOf": [
+              { "type": "null" },
+              {
+                "type": "object",
+                "required": ["against", "hash", "max", "point", "at", "mean", "verdict"],
+                "properties": {
+                  "against": { "type": "string" },
+                  "hash": { "$ref": "#/$defs/hash" },
+                  "max": { "type": "number", "description": "mm" },
+                  "point": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
+                  "at": { "type": "number", "description": "s" },
+                  "mean": { "type": "number", "description": "mm" },
+                  "verdict": { "type": "array", "items": { "enum": ["pass", "warn", "fail"] }, "minItems": 2, "maxItems": 2 }
+                }
+              }
+            ]
+          },
+          "text": { "type": "string", "description": "The submission itself (the clip's JSON)" }
+        }
+      }
+    },
+    "clips": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["ref", "id", "hash", "tier", "review", "stale", "numbers"],
+        "properties": {
+          "ref": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]*/[A-Za-z0-9_-]+@[0-9a-f]{12}$" },
+          "id": { "type": "string" },
+          "hash": { "$ref": "#/$defs/hash" },
+          "tier": { "enum": ["cc0", "cc-by", "cmu", "local"] },
+          "review": { "anyOf": [{ "type": "object" }, { "type": "null" }], "description": "The clip's review now (spec/MOTION.md §7.6)" },
+          "stale": { "type": "boolean" },
+          "numbers": { "$ref": "#/$defs/numbers" }
+        }
+      }
+    }
+  }
+}

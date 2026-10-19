@@ -9,77 +9,17 @@
 // once, with one note. Decisions go through intake/review.ts (stale ones refused, a repeat no change).
 import { recipe, validate, type Clip, type Rest } from "@m3a/core";
 import { metrics } from "@m3a/sensors";
-import { applyReview, IntakeError, motionHash, parseReview, REVIEW_ID, type DecisionAs, type ReviewFile, type ReviewHost, type Submission } from "../intake/index.ts";
+import { applyReview, IntakeError, motionHash, parseReview, QUEUE_ID, REVIEW_ID, type DecisionAs, type Queue, type QueueClip as ClipItem, type QueueNumbers as Numbers, type QueueSubmission as SubmissionItem, type ReviewFile, type ReviewHost, type Submission } from "../intake/index.ts";
 import { defineTool, ToolError, type ToolContext, type ToolOutput } from "../registry/registry.ts";
 import { poseDiff } from "./check.ts";
 import { call, capped, count, cut, fileOrJson, more, output, round } from "./common.ts";
 
-/** The queue export's schema id. */
-export const QUEUE_ID = "m3a.review-queue/1";
 /** How many library clips a queue samples. */
 export const SAMPLE = 8;
 /** Where `m3a review export` writes the queue. */
 export const QUEUE_FILE = "check-output/review/queue.json";
 
 const DECIDE = ["adopt", "archive", "reject", "approve", "flag"] as const;
-
-/** A clip's numbers as the queue shows them: the sensors' verdict and findings (fails among them), its length, keys and
- *  fit, and each metric's worst value. */
-interface Numbers {
-  verdict: string;
-  findings: number;
-  fail: number;
-  dur: number;
-  keys: number;
-  fit: number[] | null;
-  metrics: Record<string, number>;
-}
-
-/** How far a submission's poses part from the library clip it improves, on that clip's rest. */
-interface Diff {
-  against: string;
-  hash: string;
-  max: number;
-  point: string | null;
-  at: number;
-  mean: number;
-  verdict: [string, string];
-}
-
-/** A submission in the queue: its text (the clip itself, for the gallery to play) in the export alone. */
-interface SubmissionItem {
-  ref: string;
-  id: string;
-  hash: string;
-  kind: string;
-  contributor: string;
-  improves: string | null;
-  date: string;
-  numbers: Numbers | null;
-  report: unknown;
-  diff: Diff | null;
-  text?: string;
-}
-
-/** A sampled library clip in the queue: its review now (null when it has none), and whether that review is stale. */
-interface ClipItem {
-  ref: string;
-  id: string;
-  hash: string;
-  tier: string;
-  review: Clip["review"] | null;
-  stale: boolean;
-  numbers: Numbers;
-}
-
-/** The queue (m3a.review-queue/1): what the gallery shows and a review answers. */
-export interface Queue {
-  schema: typeof QUEUE_ID;
-  store: string;
-  date: string;
-  submissions: SubmissionItem[];
-  clips: ClipItem[];
-}
 
 const ref = (id: string, hash: string) => `${id}@${hash.slice(0, 12)}`;
 

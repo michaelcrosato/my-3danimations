@@ -6,5 +6,5 @@ export { CHECKER_MOVES, IntakeError, MAX_BYTES, STATES, VERDICTS, checkInput, is
 export { contentHash, motionHash, motionOfText, submissionId } from "./hash.ts";
 export { localStore, memoryFiles, type LocalOptions, type StoreFiles } from "./local.ts";
 export { supabaseStore, type SupabaseOptions } from "./supabase.ts";
-export { REVIEW_ID, applyReview, parseReview, type Applied, type DecisionAs, type Outcome, type ReviewDecision, type ReviewFile, type ReviewHost } from "./review.ts";
+export { QUEUE_ID, REVIEW_ID, applyReview, parseReview, type Applied, type DecisionAs, type Outcome, type Queue, type QueueClip, type QueueDiff, type QueueNumbers, type QueueSubmission, type ReviewDecision, type ReviewFile, type ReviewHost } from "./review.ts";
 export { DOCS, PROPOSALS_HEAD, withPoints, withProposals, type Point, type Proposal } from "./feedback.ts";

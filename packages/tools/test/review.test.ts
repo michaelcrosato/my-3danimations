@@ -6,18 +6,22 @@
 // decision on a clip or submission that changed since it was queued is refused as stale with nothing written; and
 // each wrong call is refused naming the fix.
 import { readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { Ajv2020 } from "ajv/dist/2020.js";
 import { join } from "node:path";
 import { serialize, type Clip } from "@m3a/core";
 import { TIERS } from "@m3a/library";
 import { openLibrary } from "@m3a/library/node";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { motionHash, REVIEW_ID, type ReviewFile } from "../src/intake/index.ts";
+import { motionHash, REVIEW_ID, type Queue, type ReviewFile } from "../src/intake/index.ts";
 import { nodeReviewHost } from "../src/node/intake.ts";
 import { Registry, type Reply } from "../src/registry/index.ts";
 import { REVIEW } from "../src/tools/index.ts";
-import { QUEUE_FILE, type Queue } from "../src/tools/review.ts";
+import { QUEUE_FILE } from "../src/tools/review.ts";
 import { runExamples } from "./helpers/surfaces.ts";
-import { checkout, libraryClip, SET, TODAY, type Checkout } from "./review-helpers.ts";
+import { checkout, libraryClip, ROOT, SET, TODAY, type Checkout } from "./review-helpers.ts";
+
+/** The two formats' JSON Schemas (services/intake/schemas), compiled. */
+const schema = (name: string) => new Ajv2020({ strict: false }).compile(JSON.parse(readFileSync(join(ROOT, "services/intake/schemas", name), "utf8")) as object);
 
 describe("review on every surface", () => runExamples(REVIEW));
 
@@ -58,6 +62,8 @@ describe("a review in a scratch checkout", () => {
     expect([r.status, (r.data as { path: string }).path]).toEqual(["ok", QUEUE_FILE]);
     expect([q.schema, q.store, q.date, q.submissions.length, q.clips.length]).toEqual(["m3a.review-queue/1", "local", TODAY, 2, 8]);
     expect(JSON.parse(q.submissions.find((x) => x.id === sub)!.text!)).toEqual(walk(2));
+    const valid = schema("queue.schema.json");
+    expect(valid(q), JSON.stringify(valid.errors)).toBe(true);
   });
 
   it("applies a review: the right states and files change; applying it twice changes no byte", async () => {
@@ -72,6 +78,8 @@ describe("a review in a scratch checkout", () => {
       ],
     };
     writeFileSync(join(co.cwd, "review.json"), JSON.stringify(review));
+    const valid = schema("review.schema.json");
+    expect([valid(review), valid({ ...review, decisions: [{ ...review.decisions[0]!, as: "approve" }] })], JSON.stringify(valid.errors)).toEqual([true, false]); // the schema reads as parseReview does
     const r = await call({ do: "ingest", on: "review.json" });
     expect([r.status, r.verdict]).toEqual(["ok", "review ingest: 4 decisions, 4 applied, 0 already, 0 stale, 0 refused; 3 notes in docs/FEEDBACK-LOG.md (F6), 2 proposals in docs/REVIEW-PROPOSALS.md"]);
     const owner = co.store("owner");
