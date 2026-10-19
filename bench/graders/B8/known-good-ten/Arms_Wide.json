@@ -1,0 +1,11 @@
+{
+ "format": "2.0",
+ "id": "EMOTES/Arms_Wide",
+ "name": "Arms_Wide",
+ "desc": "flings the arms wide open in welcome and holds them out",
+ "tags": ["emote", "gesture"],
+ "steps": [
+  { "op": "clip", "id": "QUATERNIUS_3D2DGE/Idle_Loop", "to": 2, "as": "idle" },
+  { "op": "pose", "in": "idle", "armL": { "out": 100 }, "armR": { "out": 100 }, "chest": { "lean": -10 }, "from": 0.3, "to": 1.7, "fade": 0.4 }
+ ]
+}

@@ -1,0 +1,11 @@
+{
+ "format": "2.0",
+ "id": "EMOTES/Shrug_Tilt",
+ "name": "Shrug_Tilt",
+ "desc": "shrugs, the forearms turned out and the head cocked",
+ "tags": ["emote", "gesture"],
+ "steps": [
+  { "op": "clip", "id": "QUATERNIUS_3D2DGE/Idle_Loop", "to": 2, "as": "idle" },
+  { "op": "pose", "in": "idle", "armL": { "out": 40, "forward": 30, "bend": 90 }, "armR": { "out": 40, "forward": 30, "bend": 90 }, "head": { "tilt": 15 }, "from": 0.3, "to": 1.7, "fade": 0.4 }
+ ]
+}

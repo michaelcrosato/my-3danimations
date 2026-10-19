@@ -1,18 +1,20 @@
-// B8's grader on the planted bad solutions only the grader fails (WP-9.1b's Done-when), each failing the check it
-// names, on gen-1: a fix of a library clip (not new), missing provenance (a recipe sent as it is), and a record
-// written into the queue by hand as awaiting review, which the grader checks again from its text (dedup). The rest:
-// planted.test.ts; the solutions: solutions.ts. T1 plays one, T2's full step (M3A_FULL=1, D74) all three.
+// B8's grader in T2's full step only (M3A_FULL=1, D74): each planted bad solution that only writes into the queue
+// (solutions.ts's STORED: a false license claim, a defect, a walk tagged emote, a person or another vendor's model
+// named, the source's name and description, a report submit didn't measure, records written or edited by hand), each in
+// a workspace of its own on gen-1 and graded whole (`gradeB8`, the agent's best submission), failing the check it
+// names. T1 plays them together in one queue (grade.test.ts); those that run m3a's calls: planted.test.ts. The
+// grader's modules load only when the file runs (T1 imports and skips it).
 import { describe, expect, it } from "vitest";
-import { PLANTED, play, text } from "./solutions.ts";
 
-describe("B8's grader", () => {
-  it("fails each planted bad solution the checker passes or never sees, on gen-1, naming the check it broke", async () => {
-    for (const name of (process.env.M3A_FULL === "1" ? ["a fix of a library clip", "missing provenance", "a record written by hand"] : ["missing provenance"])) {
+const FULL = process.env.M3A_FULL === "1";
+const { PLANTED, play, STORED, text } = FULL ? await import("./solutions.ts") : ({} as typeof import("./solutions.ts"));
+
+describe.runIf(FULL)("B8's grader in full", () => {
+  it("fails each planted bad solution that only writes into the queue, each in its own workspace, naming the check it broke", async () => {
+    for (const name of STORED) {
       const bad = PLANTED[name]!, { g } = await play(name, bad, { seed: 1 });
       expect(g.pass, `${name}\n${text(g)}`).toBe(false);
       expect(g.checks.filter((c) => !c.ok).some((c) => c.name.startsWith(bad.fails)), `${name}\n${text(g)}`).toBe(true);
-      // the hand-written record: its queue's word against the checker's, and the checker's wins
-      if (name === "a record written by hand") expect(g.checks.find((c) => c.name === "it waits for review")!.detail).toMatch(/: awaiting review in the queue, but bounced when checked again from its text: dedup: a near-duplicate of QUATERNIUS_3D2DGE\/Idle_Loop/);
     }
-  }, 120_000);
+  }, 300_000);
 });

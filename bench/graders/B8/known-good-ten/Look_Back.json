@@ -1,0 +1,11 @@
+{
+ "format": "2.0",
+ "id": "EMOTES/Look_Back",
+ "name": "Look_Back",
+ "desc": "turns the shoulders and head to look back over the right shoulder",
+ "tags": ["emote", "gesture"],
+ "steps": [
+  { "op": "clip", "id": "QUATERNIUS_3D2DGE/Idle_Loop", "to": 2, "as": "idle" },
+  { "op": "pose", "in": "idle", "chest": { "turn": 35 }, "head": { "turn": 40 }, "from": 0.3, "to": 1.7, "fade": 0.4 }
+ ]
+}
