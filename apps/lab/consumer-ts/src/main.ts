@@ -1,7 +1,8 @@
 // The TypeScript consumer lab's page (PLAN.md WP-10.1): two generated humanoids duel on three.js r182's WebGPURenderer
 // (WebGL 2 with ?renderer=webgl2), the sim (game.ts) stepped at a fixed 60 Hz by the frame clock (clock.ts) as my-3dge's
 // loop steps its sim; then the view poses each fighter (presentation, never hashed) and places it between its last
-// two places by the clock's alpha. W or ↑ walks, Shift jogs, J slashes; ?paused=1 starts paused.
+// two places by the clock's alpha. W or ↑ walks, Shift jogs, J slashes; ?paused=1 starts paused. The stamp names core's
+// version and the build's commit, as every page's does.
 // `window.__m3a` drives it headless: ready, state(), hash(), step(n, intent), session() (the scripted session, from
 // the start), pause(on).
 import { Color, DirectionalLight, GridHelper, HemisphereLight, Mesh, MeshStandardMaterial, PerspectiveCamera, PlaneGeometry, Scene, WebGPURenderer } from "three/webgpu";
@@ -17,6 +18,7 @@ import { duelClips } from "./clips.ts";
 import { Duel, intents, play, SETUP, type DuelEvent, type Intent } from "./game.ts";
 
 declare const __DUEL_LIBRARY__: string;
+declare const __COMMIT__: string;
 const $ = (id: string) => document.getElementById(id)!;
 const q = new URLSearchParams(location.search);
 
@@ -116,7 +118,7 @@ async function main(): Promise<void> {
     renderer.render(scene, camera);
     requestAnimationFrame(frame);
   };
-  $("stamp").textContent = `m3a ${VERSION} · three r182 · fixed 60 Hz`;
+  $("stamp").textContent = `m3a ${VERSION} · ${__COMMIT__} · three r182 · fixed 60 Hz`;
   (window as unknown as { __m3a: unknown }).__m3a = {
     ready: true,
     version: VERSION,
