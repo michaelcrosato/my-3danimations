@@ -4,13 +4,13 @@ Phase 7 merged before its gate (michaelcrosato/my-3danimations#13, D103); G7 pas
 michaelcrosato/my-3danimations#14 (D107); Phase 8 merged on michaelcrosato/my-3danimations#15 (G8's commands, D111);
 Phase 9 on michaelcrosato/my-3danimations#16 (G9's commands passed on run 2, D115); Phase 10 on
 michaelcrosato/my-3danimations#17 (G10's commands passed on run 1, D117). After it, an audit of the whole repository
-(D118) fixed its easy findings and listed its large ones in `AUDIT.md`. This file is what the next session needs.
+(D118) fixed its easy findings; its large items were built or deferred with their reasons (D119). This file is what the next session needs.
 
 ## The standing goal (the owner's)
 
 Finish my-3danimations: every ledger row (PLAN.md §14) through G10 done, deferred with its reason, or blocked-owner
 with its ask on the PR; CI green on the final head. That holds: what is left is the owner's, or new work the owner
-picks from `AUDIT.md` and the follow-ups below. Ultracode mode (PLAN.md §11, D83): implementers in lanes, the main
+picks from the follow-ups below. Ultracode mode (PLAN.md §11, D83): implementers in lanes, the main
 session integrates shared files, DECISIONS and merges, and runs every gate in the main checkout; at most 3 lanes,
 none during trial batches.
 
@@ -41,18 +41,36 @@ none during trial batches.
 1. Whatever the owner sends back: a review file (`npx m3a review ingest <file>`, its notes into
    docs/FEEDBACK-LOG.md and a threshold or task proposal into docs/REVIEW-PROPOSALS.md), O8 linked (the contract run,
    the first adoption by the bot), another repository's use confirmed (G10).
-2. The large items in `AUDIT.md`, each a WP of its own when the owner picks it; the follow-ups below likewise.
+2. The follow-ups below, each a WP of its own when the owner picks it.
 
 ## Follow-ups recorded, owned by no WP yet
 
-The audit's large items (`AUDIT.md`) are not repeated here. Besides them:
+The audit's large items that need nothing from the owner were built (D119); these wait, each with its reason:
 
-- Library: the census counts a motion and its mirror apart by design (D67: a game needs each side), while WP-9.3's
-  dedup reads Mesh2Motion's `Dodge_left`/`Dodge_right` (and their `_RM` takes) as one motion mirrored
-  (`dedup.test.ts` pins it); counting them once would reverse D67, the owner's call.
+- Manual: the names it doesn't teach (F5.2's `LibraryError` and `.code`; MIGRATING gap 10: `VERSION`,
+  `math.PORTABLE`, `math.hashValue`, `graph.layersOf`, `graph.clipsOf`, the Animator's `step` option). It is at 7,999
+  of 8,000 tokens and graded by G7's quiz and the briefs (one line flipped a gate, D106): a cut reruns the briefs it
+  touches, a bigger budget is principle 1's call.
+- Intake: refusing every clip added outside the adopt bot (§8.4 after G9). D113's call stands until the importers'
+  and procedural sets' regenerations go through the bot; then `gatesOf` refuses an added clip without intake
+  provenance (a fixture planting a clean clip into an existing set proves it).
+- Sensors: a sweep that plays each locomotion loop with root motion at the rates a game asks (0.5 to 2) on the test
+  bodies, as B1's grader does (D106: keyed runs skim on some bodies). It needs a decision on what fails before it
+  can gate, with a baseline for the known keyed runs.
+- Core: a linear planter (K5) and key fit (D96; the tools bound them). Both change outputs bit for bit, so the frozen
+  vectors, the A/B hashes and the cross-engine checks are re-baselined by a decision; other implementations certify
+  against those vectors (G10's route), so it waits for one.
+- Library: contacts for the 6 `unplanted` loops (D108), preferring the reading whose ground speed agrees with the
+  captured speed (`WideLegs_Walk` reads 0.94 of it). D108 answered them as they are, and B1 grades the clips this
+  rewrites: a WP of its own, through the writer.
 - Index: each regeneration before a commit mints a version (D113 accepts it); a namespace's proof vouches by content
-  id, not digest, beside the open #16 thread.
+  id, not digest, beside the owner's open thread on #16 (D115).
+- Library: the census counts a motion and its mirror apart by design (D67: a game needs each side), while WP-9.3's
+  dedup reads Mesh2Motion's `Dodge_left`/`Dodge_right` as one motion mirrored; counting them once reverses D67, the
+  owner's call.
 - shardfall's tier 1b waits on its glTF reader's Rigify look (CERTIFYING.md, D116; O9: a proposal).
+- CI: T1 ran 134.5 s of its 135 s mark on #18 before its heaviest benchmark cases moved to T2 (D119); CI's times swing
+  with the runner (77 s on earlier pull requests). If it crosses again, move more full-sweep cases the same way.
 
 ## Rules learned the hard way
 

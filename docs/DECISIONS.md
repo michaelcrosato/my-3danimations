@@ -4674,3 +4674,24 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   on a deleted file mislead the next session as surely as a failing test; the large items need their own WPs.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.53.1
+
+## D119 · 2026-10-19 · The audit's large items: six built, the rest deferred with their reasons
+
+- **Principle:** 2 (agent-operable), 10 (provenance), 11 (the library grows through gates), AGENTS.md's two tiers
+- **Call:**
+  - **Built here** (`AUDIT.md` items 1, 2, 3, 6, 10, 13): hello's G4 check moves into the package tier and the lab is
+    deleted; the CLI and MCP name a generated character (`gen-<seed>`) and an orbit; `@m3a/tools` ships the
+    agentskills.io skill; the intake checker samples only what is new; `deliver` refuses a clip whose stated and
+    served terms differ, and the format requires `provenance.intake.by` (reversing two of D113's calls); T1's
+    heaviest benchmark cases run in full in T2, a sample in T1, as D74 did.
+  - **Deferred, each with its reason** (moved to docs/HANDOFF.md's follow-ups, `AUDIT.md` then deleted): the manual's
+    untaught names (item 4: the manual is graded by G7's quiz and briefs, so a cut reopens G7's evidence); only the
+    adopt bot adding clips (item 5: D113's call stands until the importers' regenerations go through the bot);
+    the locomotion rate sweep (item 7: D106's follow-up needs a decision on what fails before it can gate); a linear
+    planter and key fit (item 8: it changes the frozen vectors other implementations certify against, G10's route);
+    contacts for the six unplanted loops (item 9: D108 answered them, and B1 grades the clips they'd change); the
+    proof's digest and the census's mirrors (items 11, 12: the owner's, on #16 and D67).
+- **Why:** what needs nothing from the owner is done rather than listed; what changes graded, frozen or decided ground
+  waits with its reason written down.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.54.0
