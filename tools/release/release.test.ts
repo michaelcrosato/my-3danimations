@@ -230,7 +230,7 @@ describe("release.yml", () => {
     const lines = readFileSync(join(dir, ".cache/release/plan.txt"), "utf8").trim().split("\n");
     const own = (s: string) => [...new Set(Object.values((JSON.parse(readFileSync(join(ROOT, "library/sets", s, "_set.json"), "utf8")) as { sources: Record<string, { license: string }> }).sources).map((x) => x.license))].sort();
     expect(lines).toEqual(sets.map((s) => [s, index.core[s]!.versions.at(-1)!.v, ...own(s).map((l) => `LICENSES/${l}.txt`)].join(" ")));
-    expect(lines).toContain("CMU_CURATED 1 LICENSES/LicenseRef-CMU-Mocap.txt");
+    expect(lines).toContain(`CMU_CURATED ${index.core.CMU_CURATED!.versions.at(-1)!.v} LICENSES/LicenseRef-CMU-Mocap.txt`);
     for (const l of lines.flatMap((x) => x.split(" ").slice(2))) expect(() => readFileSync(join(ROOT, "library", l)), l).not.toThrow();
   });
 });
