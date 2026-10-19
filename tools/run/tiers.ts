@@ -38,7 +38,8 @@ export function playwrightSummary(output: string): string | undefined {
 export function t0Steps(): TierStep[] {
   return [
     { name: "typecheck", cmd: bin("tsc"), args: ["-b"] },
-    { name: "lint", cmd: bin("eslint"), args: [".", "--cache", "--cache-location", ".cache/eslint/", "--max-warnings", "0"] },
+    // the cache keys files by content, not mtime, so CI's fresh checkout reuses it; lint runs on every core (D118)
+    { name: "lint", cmd: bin("eslint"), args: [".", "--cache", "--cache-location", ".cache/eslint/", "--cache-strategy", "content", "--concurrency", "auto", "--max-warnings", "0"] },
     { name: "headers", cmd: process.execPath, args: ["tools/run/headers.ts"] },
     { name: "version", cmd: process.execPath, args: ["tools/version.ts", "--check"] },
     { name: "doctrine", cmd: process.execPath, args: ["tools/doctrine/main.ts"] },
