@@ -18,6 +18,7 @@ it is picked, or into `docs/HANDOFF.md`'s follow-ups, and the file is deleted wh
 | 10 | `deliver` refusing a clip whose stated and served terms differ; `provenance.intake.by` required by the format | S | reverses D113's calls: a decision (frozen schema) | open |
 | 11 | A namespace's proof listing the digest too; one index version per commit | S | the open #16 thread is the owner's (D115) | owner |
 | 12 | The census counting a motion and its mirror once | S | reverses D67 (a game needs each side): the owner's call | owner |
+| 13 | T1's margin in CI: 134.5 s and 134.9 s of its 135 s mark on the last two pull requests (77 s on earlier ones) | S | a run that crosses it | watch |
 
 ## 1. Graduate apps/lab/hello
 
@@ -88,6 +89,14 @@ whose ground speed agrees with it (`WideLegs_Walk`'s height pass reads 0.94); re
 D113 allowed a clip whose stated and served terms differ when both are allowlisted, and left `intake.by` optional in
 the format (the intake requires it). Tightening both is small but reverses those calls and touches the frozen clip
 schema: it needs a decision.
+
+## 13. T1's margin in CI
+
+CI's T1 swings with the runner's hardware (77 s on earlier pull requests, 134.5 s on #18's green head, 134.9 s on #17's),
+against a 135 s fail mark; here it is about 100 s. The heaviest files are the benchmark's graders and runner
+integrations (B3's planted solutions 8.5 s, the runner's variant trial 8.5 s, B7's 5.8 s, B1's 5.1 s, B4's 4.3 s).
+When a run crosses the mark, move those cases to T2's full sweeps as D74 did (`it.runIf(FULL)`, the file in
+`tools/run/e2e.ts`' SWEEPS), keeping one planted case each in T1.
 
 ## 11 and 12. The owner's
 
