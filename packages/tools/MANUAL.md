@@ -180,8 +180,9 @@ a.remove("hurt");
   fields. Root motion blends by the mask's `root` and `yaw` fields, so an `upper` layer leaves the travel to the legs.
   A new clip starts at `time` (0), the same clip carries on; setting `time` fires no events; `held` is `"end"` once a
   one-shot finished.
-- **Cross-fade** by hand: the new clip on a top layer at weight 0, raised over about 0.25 s, then set on the base at
-  that layer's `time` and the top layer removed. Fade one-shots in over 0.1 s or more: snapped in, the body jumps.
+- **Cross-fade** by hand: the new clip on a top layer at weight 0, in step (`time: mb.time(ma.phase(t))`, `ma`, `mb`
+  the clips' `ops.phaseMap(c, c.contacts)`, `t` the old one's time), raised over 0.25 s, then set on the base at its
+  `time`, the top layer removed. Fade one-shots in over 0.1 s or more: snapped in, the body jumps.
 - **Events** (`clip.events`: `{ t, name }`) fire on the step a playhead passes them, from a layer above weight 0 or
   the lowest one: in `step(dt).events`, `player.update(dt).events`, `animator.on(name, fn)` (`"*"`: all). Act on
   them, not on timers. `clip.facts.strike` (or `measureFacts(clip, rest).strike`) lists an attack's strike times.
@@ -192,9 +193,8 @@ a.remove("hurt");
 - **Matching speed**: `contact.contactRoot(c, rest, c.contacts)` is a playable clip's path on a body,
   `{ root(t), speed }` (`root(t)`: `{ forward, right, yaw }`, mm and degrees; `speed`: mean mm/s, 0 if no foot plants:
   pick another clip). For v m/s play a loop at `speed: (v * 1000) / own`, `own` its speed on `bound.core.rest` (0.5 to
-  2, else pick a clip nearer v), and move the character by `player.travel`. **In place** (the game moves it at v), any
-  other rate, clamped too, slides the feet: they step at one speed while it moves at another. In a graph,
-  `"rate": "<param>"` (stride warping).
+  2, else pick a clip nearer v), and move the character by `player.travel`: moved at v by the game, feet slide at any
+  other rate, and where a stance drifts (keyed runs) at any. In a graph, `"rate": "<param>"` (stride warping).
 - **Determinism**: the same calls give the same `animator.hash()` in Node and a browser; `save()` and
   `restore(data, clips, graph?)` round-trip through JSON; `update(dt)` takes any dt (fixed steps, the rest carried).
 
@@ -405,9 +405,8 @@ npx m3a validate check-output/recipe.compile/Slash_Hit.clip.json --json
 - Clips are data: never edit `clip.keys` by hand; `fix` repairs, a recipe or `m3a edit` makes a new clip.
 - Measure a clip on its own `rest`; play library clips through `playable(clip, rest)`, or the feet slide.
 - A catalog `speed` is % of its own body's hip height a second; on yours, `contactRoot(...).speed` (mm/s).
-- Move the character by `player.travel` at a matched rate; moved by the game, its feet slide at any other rate.
 - Don't move or scale the bones: `bind` reads them once and `attach` writes their rotations.
 - Act on events, not timers; fade one-shots in; cut, don't blend, between two lying poses.
 - `set` and `trigger` are read from the next step. Parameters aren't smoothed: ease a blend's over 0.2 s, or the
   body pops.
-- Errors say what to do: read them before reading the source.
+- Errors say what to do: read them before the source.

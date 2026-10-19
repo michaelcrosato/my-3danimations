@@ -4078,3 +4078,29 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   keep their D64 truth; a broader change (the heel in every reading) would move every clip and is not needed.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.50.1
+
+## D105 · 2026-10-19 · The manual: move by the travel, cross-fade in step (B1 3 of 5 → 5 of 5)
+
+- **Principle:** 1, 3, D100 (WP-7.3's deferred B1 proof)
+- **Call:**
+  - With D104's contacts, B1 at cce4964 went 3 of 5 (`bench/results/2026-10-19-default-B1.json`). Every agent
+    shipped `MESH2MOTION/Run_Female` (3.76 m/s, the nearest to the 3.5 asked); the two that failed moved the character
+    at v themselves, which the manual allowed ("**In place** (the game moves it at v), any other rate ... slides the
+    feet", implying a matched rate doesn't). That holds for an even stance only: Run_Female is keyed, its planted foot
+    drifting 0.6 to 1.3 H0/s about the body's mean, so at a constant speed its lower foot never stands still (0.66 to
+    0.69 m/s at its slowest tenth; the grader asks 0.52). Moved by `player.travel` (the planted foot's own path) it
+    passes, as the other three did.
+  - **The manual now says so:** move by `player.travel`; moved at v by the game, feet slide at any other rate, and
+    where a stance drifts (keyed runs) at any. B1 4 of 5 (`-B1-2.json`): every agent moved by the travel; the fifth
+    slid at its run-to-walk fade, fading the walk in from time 0, out of step (D35: in step a walk–jog fade keeps the
+    feet within 18.5 mm, out of step over 100).
+  - **And how to cross-fade in step:** the new clip at `mb.time(ma.phase(t))`, `ma` and `mb` the two clips'
+    `ops.phaseMap(c, c.contacts)` (core's, public since WP-2.3, never in the manual). B1 5 of 5 (`-B1-3.json`).
+  - **Budget:** 8,000 of 8,000 tokens: the rules list's line on the travel (now said where speed matching is) and a few
+    words elsewhere cut. The next manual change cuts text first (F5.2).
+  - These three runs are probes on a working tree (`dirty: true`); G7's B1 step, at the gate's commit, is WP-7.3's
+    proof.
+- **Why:** the manual is all a fresh agent reads; a sentence that is true for one kind of clip and false for another
+  costs trials, and the fix is the true sentence, not a weaker grader.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.50.1
