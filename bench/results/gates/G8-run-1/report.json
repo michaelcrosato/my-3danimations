@@ -1,0 +1,76 @@
+{
+  "tool": "gate",
+  "ok": true,
+  "verdict": "gate G8: PASS in 314.6 s (8/8 commands) at eb43654",
+  "steps": [
+    {
+      "name": "check",
+      "ok": true,
+      "ms": 8108.217820000001,
+      "detail": [],
+      "log": "check-output/gate/check.log",
+      "summary": "check: PASS (T0) in 7.9 s, budget 15.0 s"
+    },
+    {
+      "name": "test",
+      "ok": true,
+      "ms": 90206.094426,
+      "detail": [],
+      "log": "check-output/gate/test.log",
+      "summary": "test: PASS (T1) in 90.0 s, budget 90.0 s"
+    },
+    {
+      "name": "doctrine",
+      "ok": true,
+      "ms": 706.347425999993,
+      "detail": [],
+      "log": "check-output/gate/doctrine.log",
+      "summary": "doctrine: PASS in 0.4 s (8 checks)"
+    },
+    {
+      "name": "vectors --check",
+      "ok": true,
+      "ms": 1941.9597230000072,
+      "detail": [],
+      "log": "check-output/gate/vectors-check.log",
+      "summary": "vectors: PASS (--check) in 1.5 s"
+    },
+    {
+      "name": "the intake store's contract on the local backend, the submit function, the review tool on four surfaces",
+      "ok": true,
+      "ms": 5530.351446999994,
+      "detail": [],
+      "log": "check-output/gate/the-intake-store-s-contract-on-the-local-backend-the-submit-function-the-review-tool-on-four-surfaces.log",
+      "summary": "test: PASS (T1) in 5.3 s, budget 90.0 s"
+    },
+    {
+      "name": "T2: the gallery (every set and clip by link at a phone viewport), the review queue (a 20-clip batch by touch, applied once, stale refused), previews (every page's stamp, the labs index), library QA, the sweeps",
+      "ok": true,
+      "ms": 197158.62118299998,
+      "detail": [],
+      "log": "check-output/gate/T2-the-gallery-every-set-and-clip-by-link-at-a-phone-viewport-the-review-queue-a-20-clip-batch-by-touch-applied-once-stale-refused-previews-every-page-s-stamp-the-labs-index-library-QA-the-sweeps.log",
+      "summary": "e2e: PASS (T2) in 196.9 s, budget 480.0 s"
+    },
+    {
+      "name": "the preview site builds as Vercel builds it",
+      "ok": true,
+      "ms": 10168.490570000024,
+      "detail": [],
+      "log": "check-output/gate/the-preview-site-builds-as-Vercel-builds-it.log",
+      "summary": "site: PASS, 3 pages (the gallery, the labs index, 1 lab) in dist/site/, 1432 files, 23.0 MB, stamp \"m3a 0.51.0 · eb43654\", no fetched rigs"
+    },
+    {
+      "name": "the owner's batch exported for the review page (the sampled clips counted in its line)",
+      "ok": true,
+      "ms": 764.6756880000466,
+      "detail": [],
+      "log": "check-output/gate/the-owner-s-batch-exported-for-the-review-page-the-sampled-clips-counted-in-its-line-.log",
+      "summary": "review export: 0 submissions awaiting review, 20 sampled clips (local store), written to check-output/review/queue.json"
+    }
+  ],
+  "warnings": [],
+  "ms": 314604.356601,
+  "next": "write the G8 report in docs/PROGRESS.md and on the PR, then merge (PLAN.md §8.5)",
+  "commit": "eb43654584ce13029c98a5040bc2bd1a5d37090f",
+  "dirty": false
+}

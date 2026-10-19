@@ -4331,3 +4331,23 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
 - **Why:** WP-8.2 asks for the limits in the log before the hosted store is relied on; none of them binds the intake.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.51.0
+
+## D111 · 2026-10-19 · G8's command set passed (run 1); the owner's phone review is blocked-owner
+
+- **Principle:** 2, 11, G8 (§9.3), §8.5
+- **Call:**
+  - **Run 1 passed its 8 commands** at eb43654 (0.51.0) on 2026-10-19 in 314.6 s, the tree clean: check, T1 (90.0 s),
+    doctrine, vectors, the intake store's contract on `local` with the submit function and the review tool, T2 (196.9
+    s: the gallery's every set and clip by link at a phone viewport, the review queue's 20-clip batch decided by touch
+    and applied once, a stale decision refused, every preview page stamped, library QA, the sweeps), the preview site
+    as Vercel builds it, and the owner's batch exported (20 sampled clips). The record is
+    `bench/results/gates/G8-run-1/`, the batch its `queue.json`.
+  - **What a machine can't do is the owner's:** the phone review of that batch, and the notes and the threshold or task
+    it brings back. It needs a build the owner opens (O3's preview once un-paused, or `npm run gallery`) and the JSON
+    export (O8 isn't linked): asked once on the pull request with O8's and O3's steps, blocked-owner while Phase 9 goes
+    on (§8.5: a gate whose only open items wait on the owner still merges).
+  - **Verifier:** the Phase 8 review (three lenses, a skeptic each, D109) read G8's command set against §9.3 and
+    found it sound; its fixes landed before this run.
+- **Why:** G8's machine part proves the way to the owner's review end to end; the review itself is the owner's.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.51.0

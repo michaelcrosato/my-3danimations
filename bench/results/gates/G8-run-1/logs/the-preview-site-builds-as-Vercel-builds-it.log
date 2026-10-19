@@ -1,0 +1,5 @@
+site: PASS, 3 pages (the gallery, the labs index, 1 lab) in dist/site/, 1432 files, 23.0 MB, stamp "m3a 0.51.0 · eb43654", no fetched rigs
+  ok   gallery 5.0 s: dist/site
+  ok   labs index 0.1 s: dist/site/labs
+  ok   lab hello 4.7 s: dist/site/labs/hello
+next: node_modules/.bin/vite preview --outDir dist/site serves it (the labs at /labs/); npm run e2e -- previews.e2e checks it
