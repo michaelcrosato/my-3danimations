@@ -4,6 +4,31 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.51.0 · 2026-10-19
+
+### Tools
+- `m3a review` (WP-8.2a): the owner's review queue on every surface: submissions awaiting review with their numbers,
+  check report and diff, and 20 library clips sampled unreviewed or stale (a list shows 8); `export` writes the queue
+  for the gallery and the phone, `ingest` applies a review, `adopt`, `archive`, `reject`, `approve` and `flag` decide
+  on refs with a note. Each decision records the hash it was made on; a stale one is refused, a repeat is no change.
+- The intake store (`intake`, WP-8.2a): §5.9's contract, its `local` backend (`@m3a/tools/node`'s `INTAKE_DIR`,
+  `intakeFiles`) and `supabase` backend, the review's two formats (m3a.review-queue/1, m3a.review/1) with schemas.
+- The manual's generated tool list names an MCP name only where it differs from the tool's (7,971 of 8,000 tokens).
+- `sim.SimStepper`: graph.sim's stepping loop, exported, which `simulate` and the gallery's stage both run (its outputs
+  byte for byte).
+- The intake store's hosted schema: only `decide` moves a submission to a verdict, the rate (20 a contributor a day)
+  is held in the database under a lock, a build given a secret intake key fails (D109).
+
+### Repo
+- The gallery (`npm run gallery`, WP-8.1): every set and clip played, measured and linked at a phone viewport, the
+  recipes and graphs, deep links, `__m3a` and `__M3A_TOOLS__`; the review queue's page (decided by touch, exported
+  through the share sheet) and the contributor page (keys once O8 is linked), WP-8.2b.
+- `services/intake/`: the hosted store's migrations (row-level security on every table and the bucket), the submit
+  function (a contributor key, 256 KiB and 20 a day), a test stub; nothing is created (O8).
+- Previews (`npm run site`, `vercel.json`, WP-8.3): the gallery, the labs index and every lab, each page stamped with
+  its commit.
+- `npm run gate -- G8`.
+
 ## 0.50.2 · 2026-10-19
 
 ### Core

@@ -1,12 +1,13 @@
 // Tests for the repo runners: the output contract's parsing and budgets, the header lint, versioning, the
-// test:changed selection and a gate's report (the commit it ran at, D91).
-import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
+// test:changed selection, a gate's report (the commit it ran at, D91) and the e2e runner's filters.
+import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { bump, check, write } from "../version.ts";
 import { select } from "./changed.ts";
-import { budget, closest, distance, parseArgs, UsageError } from "./cli.ts";
+import { anchor } from "./e2e.ts";
+import { budget, closest, distance, parseArgs, ROOT, UsageError } from "./cli.ts";
 import { GATES, G7_MODELS, gateReport, RECORDED } from "./gate.ts";
 import { hasHeader, undocumentedExports } from "./headers.ts";
 
@@ -42,6 +43,11 @@ describe("a gate's report", () => {
     expect(gateReport("G7", steps, 1500, { commit, dirty: false })).toMatchObject({ ok: true, verdict: "gate G7: PASS in 1.5 s (1/1 commands, 1 recorded) at a9731b1", steps });
     expect(gateReport("G7", [{ ...steps[0]!, ok: false }, steps[1]!], 1500, { commit, dirty: false }).ok).toBe(false);
     expect(GATES.G7!.filter(([name]) => name.startsWith(RECORDED)).map(([, , , ...args]) => args.at(-1))).toEqual([...G7_MODELS]);
+  });
+  it("runs only the root package.json's scripts, G8's among them", () => {
+    const scripts = (JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8")) as { scripts: Record<string, string> }).scripts;
+    for (const [gate, steps] of Object.entries(GATES)) for (const [name, script] of steps) expect(scripts[script], `${gate}: ${name}`).toBeDefined();
+    expect(GATES.G8!.map(([, script]) => script)).toEqual(["check", "test", "doctrine", "vectors", "test", "e2e", "site", "m3a"]);
   });
 });
 
@@ -94,5 +100,15 @@ describe("test:changed", () => {
   });
   it("runs nothing for docs alone", () => {
     expect(select(["docs/PROGRESS.md", "README.md"])).toEqual([]);
+  });
+});
+
+describe("the e2e runner's filters", () => {
+  it("anchors a bare name to its suite, so a checkout path holding the name doesn't match every suite", () => {
+    expect(["gallery", "review.e2e", "previews.e2e.ts", "gallery:120"].map((f) => anchor(f))).toEqual(["tests/e2e/gallery.e2e.ts", "tests/e2e/review.e2e.ts", "tests/e2e/previews.e2e.ts", "tests/e2e/gallery.e2e.ts:120"]);
+    // a name no suite has: the suites' file names alone; a path or a pattern as given
+    expect([anchor("animator"), anchor("tests/e2e/gallery.e2e.ts"), anchor("/gall.ry/")]).toEqual(["tests/e2e/[^/]*animator[^/]*\\.e2e\\.ts", "tests/e2e/gallery.e2e.ts", "/gall.ry/"]);
+    const re = new RegExp(anchor("animator"), "i");
+    expect([re.test("/x/lane-animator/tests/e2e/animator-parity.e2e.ts"), re.test("/x/lane-animator/tests/e2e/hello.e2e.ts")]).toEqual([true, false]);
   });
 });

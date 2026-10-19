@@ -1,0 +1,2 @@
+review export: 0 submissions awaiting review, 20 sampled clips (local store), written to check-output/review/queue.json
+next: open it in the gallery's review page; apply what comes back with `review ingest <the review file>`

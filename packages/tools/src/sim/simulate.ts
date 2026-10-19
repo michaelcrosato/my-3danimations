@@ -3,6 +3,7 @@
 // root went, the body every step, and the sensors' read of the whole run in the world. The root follows the
 // animation's root motion, or stays where the game puts it (in place: the ground speed the script gives), and then
 // stride warping sets the warped states' rate each step so playback matches the ground speed and the feet don't slide.
+// The stepping is `SimStepper`'s, which a page that plays a run ticks too (the gallery), so the two can't drift.
 import { Animator, contact, graph as G, type animator as A, type AnimatorEvent, type Bound } from "@m3a/core";
 import { checks } from "@m3a/sensors";
 import type { SimScript } from "./script.ts";
@@ -18,6 +19,8 @@ export interface SimOptions {
   /** Pose the body every step, for the sensors and a filmstrip (true). */
   poses?: boolean;
 }
+/** What a stepper takes: a simulation's options but the poses. */
+export type SimStepperOptions = Omit<SimOptions, "poses">;
 /** A finding of the sensors on the run, with its times (s). */
 export interface SimFinding {
   metric: string;
@@ -54,13 +57,103 @@ function finder(clips: A.ClipSource): (id: string) => A.AnimClip | undefined {
   return (id) => m.get(id);
 }
 
+/** A script stepped on its graph one fixed step per `tick`, as `simulate` steps it: the rows due applied (numbers eased
+ *  over a row's `over`), stride warping's rate set, the Animator stepped, the root placed in the world. The script must
+ *  check (`validateScript`); listen to `animator`'s events before the first tick. */
+export class SimStepper {
+  /** The Animator playing the graph. */
+  readonly animator: Animator;
+  /** The steps a second, one step's seconds, and the steps the script runs. */
+  readonly rate: number;
+  readonly h: number;
+  readonly steps: number;
+  /** A clip by id from the options' clips. */
+  readonly find: (id: string) => A.AnimClip | undefined;
+  /** The steps taken (during a tick, the one being taken). */
+  step = 0;
+  /** Where the root stands in the world after the last step: forward and right mm, heading degrees. */
+  world: { forward: number; right: number; yaw: number } = { forward: 0, right: 0, yaw: 0 };
+  readonly #script: SimScript;
+  readonly #rest: Bound["rest"];
+  readonly #unit: number;
+  readonly #rows: SimScript["input"];
+  /** The ground speed (mm/s) the script gives. */
+  #ground = 0;
+  /** Numbers on their way (a row's `over`): each from where it was, by the step it gets there. */
+  readonly #ramps = new Map<string, { from: number; to: number; s0: number; s1: number }>();
+  /** Each clip's own speed on this body (mm/s), as the Animator moves the root by it. */
+  readonly #speeds = new Map<string, number>();
+
+  constructor(opts: SimStepperOptions) {
+    const { graph, script, body } = opts;
+    [this.#script, this.#rest, this.find] = [script, body.rest, finder(opts.clips)];
+    this.rate = script.rate ?? 60;
+    [this.h, this.steps, this.#unit, this.#rows] = [1 / this.rate, Math.round(script.dur * this.rate), script.units === "H0" ? body.rest.H0 : 1000, [...script.input]];
+    this.animator = new Animator(body, { step: this.h }).play(graph, opts.clips);
+  }
+
+  #speedOf(id: string): number {
+    let v = this.#speeds.get(id);
+    if (v === undefined) {
+      const c = this.find(id), own = c && (c.keys[0] as { root?: unknown }).root !== undefined, feet = c && (c.contacts?.footL?.length ?? 0) + (c.contacts?.footR?.length ?? 0) > 0;
+      v = c && (own || feet) ? contact.contactRoot(c as never, this.#rest, c.contacts ?? { by: "detected" }).speed : 0;
+      this.#speeds.set(id, v);
+    }
+    return v;
+  }
+  #num(k: string): number {
+    return k === "move" ? this.#ground : Number(this.animator.graph!.params[k] ?? 0);
+  }
+  #put(k: string, v: number): void {
+    if (k === "move") this.#ground = v;
+    else this.animator.set(k, v);
+  }
+
+  /** Takes one step. */
+  tick(): void {
+    const a = this.animator, script = this.#script, rows = this.#rows, ramps = this.#ramps, rate = this.rate, h = this.h, step = this.step;
+    while (rows.length && rows[0]!.t <= step * h + 1e-9) {
+      const r = rows.shift()!, steps = Math.round((r.over ?? 0) * rate);
+      const numbers: [string, number][] = [...Object.entries(r.set ?? {}).filter((e): e is [string, number] => typeof e[1] === "number"), ...(r.move !== undefined ? [["move", r.move * this.#unit] as [string, number]] : [])];
+      for (const [k, v] of Object.entries(r.set ?? {})) if (typeof v === "boolean") a.set(k, v);
+      for (const [k, v] of numbers) {
+        ramps.delete(k);
+        if (steps > 0) ramps.set(k, { from: this.#num(k), to: v, s0: step, s1: step + steps });
+        else this.#put(k, v);
+      }
+      for (const t of r.trigger === undefined ? [] : Array.isArray(r.trigger) ? r.trigger : [r.trigger]) a.trigger(t);
+    }
+    for (const [k, q] of [...ramps]) {
+      this.#put(k, step >= q.s1 ? q.to : q.from + ((q.to - q.from) * (step - q.s0)) / (q.s1 - q.s0));
+      if (step >= q.s1) ramps.delete(k);
+    }
+    if (script.warp) {
+      // the root's speed as the layers mix it now (each clip's own speed at its layer's, by its share of the root),
+      // and the warped states' rate scaled so it is the ground's
+      // (top first, each its weight of what is left; the lowest playing layer takes the rest)
+      const layers = a.layers, lowest = layers.findIndex((x) => x.clip && !x.additive);
+      let v = 0, rest = 1;
+      for (let i = layers.length - 1; i >= 0; i--) {
+        const L = layers[i]!;
+        if (!L.clip || L.additive) continue;
+        const share = i === lowest ? rest : rest * L.weight * (L.mask ? (L.mask.root ?? 0) : 1);
+        v += share * L.speed * this.#speedOf(L.clip);
+        rest -= share;
+      }
+      const now = Number(a.graph!.params[script.warp] ?? 1);
+      a.set(script.warp, v > STILL && this.#ground > 0 ? Math.min(RATE_MAX, Math.max(RATE_MIN, (now * this.#ground) / v)) : 1);
+    }
+    a.step(h);
+    this.world = script.root === "in-place" ? { forward: this.world.forward + this.#ground * h, right: 0, yaw: 0 } : a.root;
+    this.step = step + 1;
+  }
+}
+
 /** Runs a script on a graph. Throws, naming each issue, when the script doesn't check against the graph. */
 export function simulate(opts: SimOptions): SimResult {
   const { graph, script, body } = opts, issues = validateScript(script, graph);
   if (issues.length) throw new Error(`sim: script ${JSON.stringify(script?.id ?? null)} doesn't check: ${issues.slice(0, 4).map((i) => `${i.code} ${i.field} ${i.message} (${i.fix})`).join("; ")}`);
-  const rate = script.rate ?? 60, h = 1 / rate, n = Math.round(script.dur * rate), inPlace = script.root === "in-place", find = finder(opts.clips);
-  const unit = script.units === "H0" ? body.rest.H0 : 1000, poses = opts.poses !== false;
-  const a = new Animator(body, { step: h }).play(graph, opts.clips);
+  const st = new SimStepper(opts), { animator: a, rate, h, steps: n, find } = st, poses = opts.poses !== false;
   // each graph layer's entries, so a clip's layer (`@layer/entry/point`) names its state
   const entries = new Map(G.layersOf(graph).map((L) => [L.name, new Map([[1, L.start]])]));
   const stateOf = (layer: string): { layer: string; state: string | null } => {
@@ -94,59 +187,11 @@ export function simulate(opts: SimOptions): SimResult {
     const { until: _u, ...hit } = w;
     trace.hits.push({ ...hit, close: Math.max(at, w.open + 1), t0: r6(w.open * h), t1: r6(Math.max(at, w.open + 1) * h) });
   };
-  // each clip's own speed on this body (mm/s), as the Animator moves the root by it
-  const speeds = new Map<string, number>();
-  const speedOf = (id: string) => {
-    let v = speeds.get(id);
-    if (v === undefined) {
-      const c = find(id), own = c && (c.keys[0] as { root?: unknown }).root !== undefined, feet = c && (c.contacts?.footL?.length ?? 0) + (c.contacts?.footR?.length ?? 0) > 0;
-      v = c && (own || feet) ? contact.contactRoot(c as never, body.rest, c.contacts ?? { by: "detected" }).speed : 0;
-      speeds.set(id, v);
-    }
-    return v;
-  };
-  const rows = [...script.input], frames: Float32Array[] = [], root: SimResult["root"] = [], path: SimResult["path"] = [], rates: SimResult["rates"] = [];
-  let ground = 0, world = { forward: 0, right: 0, yaw: 0 };
-  // numbers on their way (a row's `over`): each from where it was, by the step it gets there
-  const ramps = new Map<string, { from: number; to: number; s0: number; s1: number }>();
-  const num = (k: string) => (k === "move" ? ground : Number(a.graph!.params[k] ?? 0));
-  const put = (k: string, v: number) => (k === "move" ? (ground = v) : a.set(k, v));
+  const frames: Float32Array[] = [], root: SimResult["root"] = [], path: SimResult["path"] = [], rates: SimResult["rates"] = [];
   for (step = 0; step < n; step++) {
-    while (rows.length && rows[0]!.t <= step * h + 1e-9) {
-      const r = rows.shift()!, steps = Math.round((r.over ?? 0) * rate);
-      const numbers: [string, number][] = [...Object.entries(r.set ?? {}).filter((e): e is [string, number] => typeof e[1] === "number"), ...(r.move !== undefined ? [["move", r.move * unit] as [string, number]] : [])];
-      for (const [k, v] of Object.entries(r.set ?? {})) if (typeof v === "boolean") a.set(k, v);
-      for (const [k, v] of numbers) {
-        ramps.delete(k);
-        if (steps > 0) ramps.set(k, { from: num(k), to: v, s0: step, s1: step + steps });
-        else put(k, v);
-      }
-      for (const t of r.trigger === undefined ? [] : Array.isArray(r.trigger) ? r.trigger : [r.trigger]) a.trigger(t);
-    }
-    for (const [k, q] of [...ramps]) {
-      put(k, step >= q.s1 ? q.to : q.from + ((q.to - q.from) * (step - q.s0)) / (q.s1 - q.s0));
-      if (step >= q.s1) ramps.delete(k);
-    }
-    if (script.warp) {
-      // the root's speed as the layers mix it now (each clip's own speed at its layer's, by its share of the root),
-      // and the warped states' rate scaled so it is the ground's
-      // (top first, each its weight of what is left; the lowest playing layer takes the rest)
-      const layers = a.layers, lowest = layers.findIndex((x) => x.clip && !x.additive);
-      let v = 0, rest = 1;
-      for (let i = layers.length - 1; i >= 0; i--) {
-        const L = layers[i]!;
-        if (!L.clip || L.additive) continue;
-        const share = i === lowest ? rest : rest * L.weight * (L.mask ? (L.mask.root ?? 0) : 1);
-        v += share * L.speed * speedOf(L.clip);
-        rest -= share;
-      }
-      const now = Number(a.graph!.params[script.warp] ?? 1);
-      a.set(script.warp, v > STILL && ground > 0 ? Math.min(RATE_MAX, Math.max(RATE_MIN, (now * ground) / v)) : 1);
-    }
-    a.step(h);
-    const playing = new Set(a.layers.map((L) => L.name));
+    st.tick();
+    const playing = new Set(a.layers.map((L) => L.name)), world = st.world;
     for (const [layer, w] of [...open]) if (step + 1 >= w.until || !playing.has(layer)) close(layer, Math.min(step + 1, w.until));
-    world = inPlace ? { forward: world.forward + ground * h, right: 0, yaw: 0 } : a.root;
     if (poses) {
       frames.push(Float32Array.from(a.pose().points));
       root.push({ ...world });

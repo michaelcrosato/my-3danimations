@@ -4254,3 +4254,100 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   why, so nothing that reads contacts (root motion, speed matching, the slide sensors) is told a wrong answer.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.50.2, michaelcrosato/my-3danimations#14
+
+## D109 · 2026-10-19 · Phase 8 built in lanes: the gallery, the review queue split in two (8.2a, 8.2b), previews
+
+- **Principle:** 2, 5, 11, D83 (lanes), D93 (a WP past L is split), §5.9
+- **Call:**
+  - **WP-8.1, the gallery** (1,537 lines, L): `apps/gallery`, a Vite page on `@m3a/three` and the tool registry
+    running on a browser host, so `__M3A_TOOLS__` and the page's own calls are the same calls; every set and clip
+    opens by link (`?set ?clip ?recipe ?graph ?char ?view ?t ?rate ?panel ?q`), plays at any view, 0.1× to 2× or a
+    frame at a time, with metrics, describe, sheets, the example recipes and graphs; `src/actions.ts` names the tool or
+    command that does each action, which the e2e holds to the registry (nothing only in the gallery).
+  - **WP-8.2 measured 3,023 lines, past L, so it was split as D93 split WP-7.2:** 8.2a (2,104 lines: the intake store
+    of §5.9 with its `local` and `supabase` backends, the migrations with row-level security on every table and the
+    bucket, the submit function, the contract suite, `m3a review`) and 8.2b (919 lines: the review queue's page and
+    the contributor page, with their e2e).
+  - **Crossings of Owns, logged:** 8.2a shortened WP-7.3's generated tool list in the manual (an MCP name only where it
+    differs from the tool's, in its own commit, reversible: the manual went from 8,000 to 7,948 tokens, 7,974 with
+    `review`'s line); the registry's Host and ToolContext gained `intake` (E_HOST without one); the tool descriptions
+    reached 2,995 of 3,000 tokens. 8.2b edited four of WP-8.1's files (vite.config.ts builds its two pages,
+    `REVIEW_ACTIONS`, the browse panel's links, the README), in a commit of its own; its pages are served at `/src/…`
+    because its Owns put them under `src/`.
+  - **WP-8.3, previews** (285 lines, S): `vercel.json` builds the whole preview site (`npm run site`: the gallery at
+    the root, the labs index at `/labs/`, every lab at `/labs/<name>/`), every page stamped with core's version and
+    the branch's commit; a .glb in the site fails the build (D9). The preview URL itself waits on O3 (D85).
+  - **The integrator's changes:** G8's gate set (below); the `site` and `m3a` scripts; `m3a review` samples 20
+    library clips, G8's batch (a list shows 8); the review page bundles a queue only when `M3A_REVIEW_QUEUE` asks
+    (8.2b's open question: a queue holds submissions' text, so no build carries one by accident and the preview site
+    never does), with an e2e; `@m3a/tools/node` exports `INTAKE_DIR` and `intakeFiles` (8.2b's ask, for a contributor
+    on the local store until WP-9.1).
+  - **G8's command set:** check, test, doctrine, vectors, the intake and review tests, T2 (the gallery, the review queue
+    and previews suites among its browser checks), the preview site built, and the owner's 20-clip batch exported. The
+    owner's phone review of that batch is theirs: blocked-owner until it comes (§8.5), the notes it brings back
+    applied with `m3a review ingest`.
+  - **8.3's crossing:** `tools/run/site.ts`, the preview site's builder `vercel.json` runs, outside its Owns.
+  - **The verifier review** (three lenses, fresh subagents, each lens's findings checked by a skeptic: all held but one,
+    G8's set, which the skeptic found sound). Fixed:
+    - **8.2:** a secret intake key given to the build was inlined into the contributor page (the build now fails); the
+      guard trusted a setting any session can set, so the checker's role could move a submission to a verdict (now
+      only decide does, as the decision it has just written says); the rate limit was a count then an insert that
+      parallel requests all passed (a database trigger holds it under a per-contributor lock); anon kept the decisions
+      sequence; the deployed store, a revoked key and an agent's key-only submit were untested (tested; the function
+      deploys with `--no-verify-jwt`, the key its check); the hosted contract leg could pass once per project (its texts
+      carry the run's nonce).
+    - **8.1:** the e2e passed with the view, rate, search, sheet and clip panel broken (it fails on each now, nine
+      breaks proved); overlapping opens left the stage on the first clip (a generation guard); a frame-stepped link
+      reopened another pose (`t` to the microsecond, steps on whole frames); the stage copied graph.sim's stepping loop
+      (one `sim.SimStepper` now, its outputs byte for byte); `npm run e2e -- <name>` ran every suite in a checkout
+      whose path held the name (a bare name is its suite).
+    - **8.3:** the e2e opened 3 of the site's 5 pages (it opens every page now); nothing stopped `M3A_REVIEW_QUEUE`
+      reaching the site (site.ts drops it, tested); no link from the gallery to the labs; three copies of the stamp's
+      commit helper (one, `tools/run/stamp.ts`).
+    - Answered: the CLI and MCP can't name a `gen-<seed>` character or an arbitrary orbit (the gallery's actions list
+      says which API call does it; a resolver for `gen-<seed>` is a follow-up); G8's ingest clause is read off the
+      owner's `m3a review ingest` line when the review comes, as the gate's comment says.
+- **Why:** the plan's Phase 8, each WP's Done-when proved by its Verify; the split keeps each lane within L.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.51.0
+
+## D110 · 2026-10-19 · O8: Supabase's free tier, its limits and its pause, checked
+
+- **Principle:** O8, D20, WP-8.2 ("check the free tier's limits, including whether idle projects pause")
+- **Call:**
+  - **The limits** (checked 2026-10-19 on supabase.com/pricing): a 500 MB database (shared CPU, 500 MB RAM), 1 GB of
+    file storage, 5 GB egress and 5 GB cached egress, 50,000 monthly active users, 500,000 Edge Function invocations,
+    two active projects. At the submit function's limits (a submission's text at most 256 KiB, 20 a contributor a
+    day) the bucket holds at least 4,000 submissions at the size limit, and many times that at a clip's usual tens of
+    kilobytes; the intake is far inside every limit.
+  - **The pause** (supabase.com/docs/guides/platform/free-project-pausing): "Free projects are paused after 1 week of
+    inactivity", too little database activity over a week; "a few user requests to the database each day" keeps one
+    awake, and a paused project can be restored "for up to 1 year after it was paused", its data and configuration as
+    they were. Once linked, WP-9.1's checker runs every 15 minutes against it, which is that activity; until then
+    nothing is hosted, so nothing pauses.
+  - **Nothing is created:** linking the project (creating it, its keys in the repository's Actions secrets, the
+    setting that lets Actions open pull requests) reaches outside the repository and is the owner's (O8): asked once
+    on Phase 8's pull request, built meanwhile on the local store.
+- **Why:** WP-8.2 asks for the limits in the log before the hosted store is relied on; none of them binds the intake.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.51.0
+
+## D111 · 2026-10-19 · G8's command set passed (run 1); the owner's phone review is blocked-owner
+
+- **Principle:** 2, 11, G8 (§9.3), §8.5
+- **Call:**
+  - **Run 1 passed its 8 commands** at eb43654 (0.51.0) on 2026-10-19 in 314.6 s, the tree clean: check, T1 (90.0 s),
+    doctrine, vectors, the intake store's contract on `local` with the submit function and the review tool, T2 (196.9
+    s: the gallery's every set and clip by link at a phone viewport, the review queue's 20-clip batch decided by touch
+    and applied once, a stale decision refused, every preview page stamped, library QA, the sweeps), the preview site
+    as Vercel builds it, and the owner's batch exported (20 sampled clips). The record is
+    `bench/results/gates/G8-run-1/`, the batch its `queue.json`.
+  - **What a machine can't do is the owner's:** the phone review of that batch, and the notes and the threshold or task
+    it brings back. It needs a build the owner opens (O3's preview once un-paused, or `npm run gallery`) and the JSON
+    export (O8 isn't linked): asked once on the pull request with O8's and O3's steps, blocked-owner while Phase 9 goes
+    on (§8.5: a gate whose only open items wait on the owner still merges).
+  - **Verifier:** the Phase 8 review (three lenses, a skeptic each, D109) read G8's command set against §9.3 and
+    found it sound; its fixes landed before this run.
+- **Why:** G8's machine part proves the way to the owner's review end to end; the review itself is the owner's.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.51.0

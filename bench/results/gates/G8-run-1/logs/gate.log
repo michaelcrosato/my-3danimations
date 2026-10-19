@@ -1,0 +1,16 @@
+
+> my-3danimations@0.51.0 gate
+> node tools/run/gate.ts G8 --json
+
+gate G8: PASS in 314.6 s (8/8 commands) at eb43654
+  ok   check 8.1 s: check: PASS (T0) in 7.9 s, budget 15.0 s
+  ok   test 90.2 s: test: PASS (T1) in 90.0 s, budget 90.0 s
+  ok   doctrine 0.7 s: doctrine: PASS in 0.4 s (8 checks)
+  ok   vectors --check 1.9 s: vectors: PASS (--check) in 1.5 s
+  ok   the intake store's contract on the local backend, the submit function, the review tool on four surfaces 5.5 s: test: PASS (T1) in 5.3 s, budget 90.0 s
+  ok   T2: the gallery (every set and clip by link at a phone viewport), the review queue (a 20-clip batch by touch, applied once, stale refused), previews (every page's stamp, the labs index), library QA, the sweeps 197.2 s: e2e: PASS (T2) in 196.9 s, budget 480.0 s
+  ok   the preview site builds as Vercel builds it 10.2 s: site: PASS, 3 pages (the gallery, the labs index, 1 lab) in dist/site/, 1432 files, 23.0 MB, stamp "m3a 0.51.0 · eb43654", no fetched rigs
+  ok   the owner's batch exported for the review page (the sampled clips counted in its line) 0.8 s: review export: 0 submissions awaiting review, 20 sampled clips (local store), written to check-output/review/queue.json
+report: check-output/gate/report.json
+next: write the G8 report in docs/PROGRESS.md and on the PR, then merge (PLAN.md §8.5)
+exit 0

@@ -1,8 +1,9 @@
-# Handoff: G7 passed; Phase 8 next (2026-10-19)
+# Handoff: G8's commands passed; Phase 9 next (2026-10-19)
 
 Phase 7 merged before its gate (michaelcrosato/my-3danimations#13, D103); G7 then ran on
 michaelcrosato/my-3danimations#14 after the library's contact-less loops were fixed (D104, D108) and passed on run 2
-(D107). Phase 8's lanes (and Phase 10's) were built during it. This file is what the next session needs.
+(D107); Phase 8 was built in lanes during it and merged on michaelcrosato/my-3danimations#15 with G8's commands
+passed (D111). This file is what the next session needs.
 
 ## The standing goal (the owner's)
 
@@ -15,34 +16,41 @@ most 3 lanes, none during trial batches. After each gate's squash merge (CI gree
 
 ## Where things stand
 
-- **Version 0.50.2.** Done: Phases 0-7 and their gates. **G7 = M2 passed on run 2** (D107) at 5d1ec8f, 24 of 24 in
-  93.0 min (`bench/results/gates/G7-run-2/`); run 1 at 1623b78 failed 23 of 24 on B1's variant (D106,
-  `bench/results/gates/G7-run-1/`). Its two verifier lenses' findings are fixed or answered: D108 (D104's contact
-  fallbacks narrowed to contacts the planter holds: 5 of the 11 loops keep theirs, 6 are answered in `qa.json`
-  `unplanted`; D104's and D106's misstatements corrected), the packs' changelog without the benchmark's lines, and
-  `retarget.apply`'s reach on a rig without chest bones. Held-out run 3 of G7 does not exist; G8's is written at G8.
-- **Last measured (this machine, 4 CPUs):** T0 about 2 s warm, T1 81.4 s (987 tests), T2 about 120-135 s,
-  `npm run pack -- --check` about 20 s.
-- **Owner items:** D94 (benchmark credentials) for review, not blocking. O2 taken at its default (D99: publish
-  nothing). Phase 8 brings O8 (the hosted intake store: a Supabase project, Actions secrets) and O3 (Vercel previews,
-  the project paused: D85): asked once on Phase 8's PR, blocked-owner while the work goes on.
+- **Version 0.51.0.** Done: Phases 0-8. G7 = M2 passed on run 2 (D107, D108). **G8's command set passed** (run 1,
+  D111, `bench/results/gates/G8-run-1/`); its open item is the owner's phone review of the 20-clip batch there
+  (`queue.json`), blocked-owner, asked on michaelcrosato/my-3danimations#15 with O8's and O3's steps.
+- **Phase 9 lanes** (branches, worktrees in `.claude/worktrees/`, D83): `lane/submit` WP-9.1a done (5 commits; its
+  shared-file patch in the session's scratchpad, `wp-9.1a-integrator.patch`: the `intake` script, the `library-pr` gate
+  set with `--fixture`, the registry's `contributor()`, the `library` tool's group; the tools reach 3,130 of 3,000
+  tokens and the manual 8,016 of 8,000 with its line, both a logged change for Phase 9); `lane/dedup` WP-9.3 done (2
+  commits; its exports and the checker's wiring listed in its report: `DedupIndex.check`, `Lineage.byContent`);
+  `lane/sources` WP-9.2 building. Still to write: WP-9.1b (B8, the manual's grow section), WP-9.4 (the index).
+- **Phase 10 lanes:** `lane/conformance` (WP-10.1's kit, `npm run conformance`) and `lane/consumer` (WP-10.2, the
+  consumer-ts lab and docs/MIGRATING.md) are built on 5d1ec8f, to merge with Phase 10.
+- **Last measured (4 CPUs, lanes beside it):** T0 about 5-8 s, T1 90-104 s (the budget 90, fail at 135), T2 about
+  200 s with the gallery, `pack --check` about 20 s.
 
 ## Next, in order
 
-1. **Phase 8** on a fresh draft PR from `origin/main` (PLAN.md §10): the lanes are built and waiting, each on its own
-   branch in `.claude/worktrees/` (D83), to merge in this order: `lane/gallery` (WP-8.1), `lane/intake` (WP-8.2a),
-   `lane/review` (WP-8.2b; it merged 8.1 and 8.2a and needs `INTAKE_DIR`, `intakeFiles` exported from
-   `@m3a/tools/node`, and the queue bundled into a build only when asked), `lane/previews` (WP-8.3, on 8.1). The
-   integrator adds the root scripts (`gallery`, `site`), the `intake` export, the G8 gate set in `tools/run/gate.ts`,
-   the D entries, ledger rows and PROGRESS; an L-WP verifier review of 8.1 and 8.2; then G8 (the owner's phone review
-   of a 20-clip batch: blocked-owner) and its merge.
-2. **Phase 9** (9.1a, 9.1b, 9.2, 9.3, 9.4: lane prompts drafted in the session's scratchpad, to write again from
-   PLAN.md if lost), G9; the tool descriptions' budget (2,995 of 3,000 tokens) needs a logged change for 9.1's two tools.
-3. **Phase 10:** `lane/conformance` (WP-10.1) and `lane/consumer` (WP-10.2) are built on 5d1ec8f; merge them, add the
-   `conformance` and `consumer-ts` scripts and G10's set; G10 (the owner's confirmation: blocked-owner; O9: propose to
-   my-3dge, never act there).
+1. **Phase 9** on a fresh draft PR from `origin/main` after #15 merges: cherry-pick the lane commits (the lanes are
+   on older bases; cherry-picks apply clean, merges would drag the pre-squash history), apply 9.1a's patch, wire 9.3
+   into the checker, run the lanes for 9.1b and 9.4, settle the tool and manual budgets by a logged decision, G9's set
+   (B8 and its held-out variant, ten clips through the intake, the planted bad ones bounced, the index verifying every
+   set; the hosted run, the adoption by a merged PR and the owner's 70% approval are blocked-owner), G9.
+2. **Phase 10:** merge the two lanes, the `conformance` and `consumer-ts` scripts, G10's set; G10 (the owner's
+   confirmation: blocked-owner; O9: propose to my-3dge, never act there).
 
 ## Follow-ups recorded, owned by no WP yet
+
+- Tools: the CLI and MCP can't name a generated `gen-<seed>` character, which the gallery plays (a character resolver
+  for `gen-<seed>`), nor an arbitrary orbit (only `raster.turntable`) (D109, the Phase 8 verifier).
+- Spec: the recipe schema and validator refuse `-` in a slug that spec/MOTION.md §11 allows, so no recipe reads
+  `MESH2MOTION/Two-hand_Blast` (WP-9.3's lane).
+- Library: the census counts a clip and its mirror twice (`Dodge_left`/`Dodge_right`, 4 pairs), which WP-9.3's dedup
+  joins; counting them once lowers G5's unique count by 2.
+- Intake (before G9): writing an adopted improvement into a re-imported or migrated set breaks `import --check` and
+  `migrate --check`, and adoption moves the census, docs/LIBRARY.md and the distributions, which the adopt bot doesn't
+  regenerate (WP-9.1a's lane).
 
 - Library: the importers and the migrator rewrite whole sets, so a clip's `review` (WP-8.2) would be dropped: carry
   it over while its motion hash matches (the intake lane's note).

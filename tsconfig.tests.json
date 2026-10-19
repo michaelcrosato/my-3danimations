@@ -1,5 +1,5 @@
 {
-  "//": "Tests, repo tools and configs: Node types allowed. The packages' own sources are checked by their projects.",
+  "//": "Tests, repo tools, services (the intake's submit function, Deno-style: fetch types, no Deno API but its entry's own declaration) and configs: Node types allowed. The packages' own sources are checked by their projects.",
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
     "outDir": ".cache/tsc/tests",
@@ -7,7 +7,7 @@
     "lib": ["es2023", "dom"],
     "types": ["node", "vite/client"]
   },
-  "include": ["packages/*/test/**/*.ts", "packages/three/test-characters/**/*.ts", "tools/**/*.ts", "tests/**/*.ts", "spec/**/*.ts", "apps/**/*.ts", "bench/**/*.ts", "*.config.ts"],
+  "include": ["packages/*/test/**/*.ts", "packages/three/test-characters/**/*.ts", "tools/**/*.ts", "tests/**/*.ts", "spec/**/*.ts", "apps/**/*.ts", "bench/**/*.ts", "services/**/*.ts", "*.config.ts"],
   "exclude": ["node_modules", ".cache", "**/dist"],
   "references": [
     { "path": "packages/core" },

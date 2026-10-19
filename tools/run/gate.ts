@@ -110,6 +110,18 @@ export const GATES: Record<string, [string, string, ...string[]][]> = {
     ...G7_BRIEFS.map((b): [string, string, ...string[]] => [`${b}'s held-out variant: at least 4 of 5 fresh agents`, "bench", b, "--trials", "5", "--parallel", "5", "--heldout", "G7"]),
     ...G7_MODELS.map((m): [string, string, ...string[]] => [`${RECORDED}B1 to B7 on ${m}, one trial each`, "bench", G7_BRIEFS.join(","), "--trials", "1", "--parallel", "5", "--model", m]),
   ],
+  // the owner's phone review of the batch is theirs (blocked-owner until it comes, §8.5): the gate proves the way
+  // there; the notes and the threshold or task it brings back are read off its `m3a review ingest` line when it comes
+  G8: [
+    ["check", "check"],
+    ["test", "test"],
+    ["doctrine", "doctrine"],
+    ["vectors --check", "vectors", "--check"],
+    ["the intake store's contract on the local backend, the submit function, the review tool on four surfaces", "test", "review", "intake"],
+    ["T2: the gallery (every set and clip by link at a phone viewport), the review queue (a 20-clip batch by touch, applied once, stale refused), previews (every page's stamp, the labs index), library QA, the sweeps", "e2e"],
+    ["the preview site builds as Vercel builds it", "site"],
+    ["the owner's batch exported for the review page (the sampled clips counted in its line)", "m3a", "review", "export"],
+  ],
 };
 
 /** A gate's report from its steps' outcomes: its verdict, with the commit it ran at and whether the tracked tree

@@ -1,0 +1,10 @@
+doctrine: PASS in 0.4 s (8 checks)
+  ok   binaries 0.1 s: 2391 files, none binary
+  ok   budgets 0.0 s: the manual: 7971 of 8000 tokens; the legend with one worked key: 792 of 800 tokens; catalog rows: 40 of 40 tokens (worst row); the progress page: 40 of 40 lines
+  ok   boundaries 0.0 s: imports hold; core's public API 43 of 44 exports, each documented; labs reach past the API 1x: apps/lab/hello/src/main.ts -> ../../../../packages/three/test-characters/index.ts
+  ok   banned 0.1 s: no banned API used; three 0.182.0 pinned
+  ok   pins 0.0 s: 24 dependencies pinned exactly; 5 repos, 2 frozen fixtures, 0/0 fetched files cached
+  ok   decisions 0.0 s: 110 entries, none removed since main
+  ok   local 0.0 s: library/local/ holds only its README
+  ok   frozen 0.0 s: spec 2.0-rc: 14 files frozen (D73)
+next: npm test

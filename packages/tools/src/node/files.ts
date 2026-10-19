@@ -116,7 +116,13 @@ let taken = 0;
  * the lock only while it is still this one. E_LOCKED (an error) when it stays held `wait` ms.
  */
 export async function lockFile(cwd: string, path: string, wait = LOCK_WAIT, stale = LOCK_STALE): Promise<() => void> {
-  const p = writable(resolve(cwd), path), b = `${p}.break`, me = `${hostname()} ${process.pid} ${++taken}`;
+  return lockAt(writable(resolve(cwd), path), path, wait, stale);
+}
+
+/** Takes the lock file at the absolute path `p`, as lockFile does (`path` names it in a refusal), for a lock the
+ *  caller has placed itself: the intake store's, under .cache/intake/ (WP-8.2a). */
+export async function lockAt(p: string, path: string, wait = LOCK_WAIT, stale = LOCK_STALE): Promise<() => void> {
+  const b = `${p}.break`, me = `${hostname()} ${process.pid} ${++taken}`;
   /** Removes lock file `f` while it holds `was`; whether it did. */
   const drop = (f: string, was: string) => tryIt(() => readFileSync(f, "utf8") === was && (rmSync(f, { force: true }), true)) === true;
   /** What lock file `f` holds when it is stale (its process on this machine gone, or older than `stale`), else undefined. */

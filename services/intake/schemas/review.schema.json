@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/michaelcrosato/my-3danimations/services/intake/schemas/review.schema.json",
+  "title": "m3a review (m3a.review/1)",
+  "description": "A review the owner made at the ground station (the gallery, a phone) or anywhere else, that `m3a review ingest <file>` applies (PLAN.md WP-8.2; packages/tools/src/intake/review.ts parseReview reads the same shape). Each decision carries the hash it was made on, whole or its first 12 or more hex digits: a submission's content hash, or a library clip's motion hash (spec/MOTION.md §7.6), as the queue's row gave it. A decision on what changed since is stale and not applied; the same decision again is no change. A note that opens with `threshold: ` or `task: ` is a proposal for the next WP.",
+  "type": "object",
+  "required": ["schema", "decisions"],
+  "properties": {
+    "schema": { "const": "m3a.review/1" },
+    "by": { "type": "string", "description": "Who reviewed, as a clip's review names them (the host's reviewer otherwise)" },
+    "date": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$", "description": "When it was made (the host's clock otherwise)" },
+    "decisions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "hash", "as"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^(s-[0-9a-f]{16}|[A-Z][A-Z0-9_]*/[A-Za-z0-9_-]+)$", "description": "A submission id, or a library clip as SET/Clip" },
+          "hash": { "type": "string", "pattern": "^[0-9a-f]{12,64}$" },
+          "as": { "enum": ["adopt", "archive", "reject", "approve", "flag"], "description": "adopt, archive or reject a submission; approve or flag a library clip" },
+          "note": { "type": "string" },
+          "theme": { "type": "string", "description": "The feedback log's theme for the note (else a short `theme: ` the note opens with, else Review notes)" },
+          "status": { "enum": ["no", "deferred", "watch"] }
+        },
+        "if": { "properties": { "id": { "pattern": "^s-" } } },
+        "then": { "properties": { "as": { "enum": ["adopt", "archive", "reject"] } } },
+        "else": { "properties": { "as": { "enum": ["approve", "flag"] } } }
+      }
+    },
+    "proposals": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["kind", "text"],
+        "properties": { "kind": { "enum": ["threshold", "task"] }, "text": { "type": "string", "minLength": 1 } }
+      }
+    }
+  }
+}
