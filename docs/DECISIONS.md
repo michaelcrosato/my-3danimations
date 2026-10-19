@@ -4194,9 +4194,9 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
     H0 (`Run_Anime`), 125% (`Run_Stealth`), 180% (`QUATERNIUS_SHARDFALL/Slide_Start_RM`), 83% and 49 to 51% (the sword
     and hook one-shots). The retarget judge went from pass to fail on 28 clip-and-skeleton pairs of the 29 clips × the
     6 sweep skeletons (gen-0 to gen-3, the Quaternius mannequin, the KayKit knight). And the fallbacks reached one-shots, which the
-    Animator had played still: an in-place `Jump_Start` now moved 89% of H0 backward a play, a `Melee_Hook` 33%; a
+    Animator had played still: an in-place `Jump_Start` now moved 89% of H0 backward a play, a `Melee_Hook` 39%; a
     guard stance (`CMU_CURATED/Boxing_Guard_Loop`, one 50 ms contact a cycle, which `contactRoot` stretches over the
-    loop) drifted 0.26 m/s; and four loops got one foot's contacts, their ground speed off by up to 3 times
+    loop) drifted 0.27 H0/s (0.26 m/s on the conformance rig); and four loops got one foot's contacts, their ground speed off by up to 3 times
     (`WideLegs_Walk` 2.31 times its captured speed, the guard 3.07).
   - **The fix, in core's `measureFacts`:** the fallbacks read a loop on its feet only; `reread` reads in place only (a
     clip's own root is exact, so a looser "still" admits only sliding feet); a reread counts only when both feet plant
@@ -4234,6 +4234,17 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   - **D106 corrected:** the speed-rule probe's fifth trial wasn't an outage: it was graded, a slide (footL at 7.75 to
     8.00 s, skate 87 cm/s against a fail level of 42, as `-B1-5.json`'s B1-1); a sixth agent hung for 10 minutes and its
     work passed.
+  - **Checked after** (a fresh verifier on 8420d14): the blocking finding resolved (the 5 loops that gained contacts
+    since 71848bb pull 2.4 to 6.2% of H0; the 11 loops past 10% have had their contacts since before D104), facts the
+    same as 71848bb's but on the 5 and as cce4964's but on the 24. Its should-fixes: the one-shot and sole-path guards
+    untested (now tested: three more one-shots, two clips off their feet; the off-feet step's ok on a gone answer) and
+    the ground speed `stands` doesn't bound, which a retimed loop reaches through `playable` (detected contacts are
+    detected again): of 1,628 retimed in-place loops (814 × 1.5 and 2), 59 now reach `reread` (at 71848bb they read
+    none and played still), and 8 read a ground speed 1.6 to 3.3 times their original contacts' mapped speed. Answered:
+    each reading is held (the worst pull 1.4% of H0), so moved by `player.travel` its feet stay planted and the speed
+    rule matches v against that same speed; nothing ships them, and a second reference to gate on doesn't exist in
+    core (the height pass's speed is no reference: `Waving_RunBack`'s reads 6.6 against a true 123). The 20% bar
+    changes no library clip; it stays, plantedVelocity's bar. Its nits: two `unplanted` answers reworded, numbers here.
   - **The gate's record stands at 5d1ec8f:** the fix returns 24 clips to their contacts before D104, which every gate
     to G6 played, and leaves untouched the clips B1's agents ship (`Run_Female` and the core jogs keep theirs byte for
     byte); every known-good passes again at the fixed head, on its brief and on run 2's held-out variant

@@ -164,7 +164,7 @@ describe("the off-feet check", () => {
     expect(checkOffFeet([bare(run, ["run", "fly"])], answered).problems).toEqual([]);
     const step = offFeetStep([bare(run)], none);
     expect([step.ok, step.summary, step.detail?.length]).toEqual([false, "1 loops with no contact unanswered; 0 answers whose loop has contacts now", 1]);
-    expect(offFeetStep([fly, run], answered).detail).toEqual(["library/baselines/qa.json offFeet: MESH2MOTION/Run_Female (has contacts now)"]);
+    expect(offFeetStep([fly, run], answered)).toMatchObject({ ok: false, detail: ["library/baselines/qa.json offFeet: MESH2MOTION/Run_Female (has contacts now)"] });
   });
   it("reads the answers against the reasons' schema", () => {
     expect(reasonsProblems({ ...reasons, offFeet: { "A/B": "" } })).toEqual(["offFeet maps a clip id to where it is instead of on its feet, a text"]);

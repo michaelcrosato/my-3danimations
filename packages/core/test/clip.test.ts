@@ -177,8 +177,8 @@ describe("contacts", () => {
       expect(measureFacts(clip, R).contacts, id).toEqual({ by: "detected" });
     }
   });
-  it("a one-shot with no contact keeps none and plays still: an in-place jump start, a slide with root motion", () => {
-    for (const id of ["QUATERNIUS_3D2DGE/Jump_Start", "QUATERNIUS_SHARDFALL/Slide_Start_RM", "MESH2MOTION/Melee_Hook"]) {
+  it("a one-shot with no contact keeps none and plays still: jump starts, slides with and without root motion, attacks", () => {
+    for (const id of ["QUATERNIUS_3D2DGE/Jump_Start", "QUATERNIUS_SHARDFALL/Slide_Start_RM", "MESH2MOTION/Melee_Hook", "MESH2MOTION/Slide_Exit", "QUATERNIUS_SHARDFALL/Slide_Exit", "QUATERNIUS_SHARDFALL/Sword_Regular_A"]) {
       const { clip, R } = libClip(id);
       expect(clip.loop, id).toBe(false);
       expect(measureFacts(clip, R).contacts, id).toEqual({ by: "detected" });
@@ -187,8 +187,10 @@ describe("contacts", () => {
   it("a clip its tags put off its feet keeps the strict reading: none for a run tagged as flying", () => {
     const { clip, R } = libClip("MESH2MOTION/Run_Female");
     expect(measureFacts({ ...clip, tags: ["fly"] }, R).contacts).toEqual({ by: "detected" });
-    const fly = libClip("MESH2MOTION/Flying_Forward");
-    expect(measureFacts(fly.clip, fly.R).contacts).toEqual({ by: "detected" });
+    for (const id of ["MESH2MOTION/Flying_Forward", "MESH2MOTION/Climb_Wall", "MESH2MOTION/Meditate"]) {
+      const { clip, R } = libClip(id);
+      expect(measureFacts(clip, R).contacts, id).toEqual({ by: "detected" }); // not read by the sole either
+    }
     expect(OFF_FEET).toEqual(["air", "fly", "swim", "climb", "lie", "sit"]);
   });
 });

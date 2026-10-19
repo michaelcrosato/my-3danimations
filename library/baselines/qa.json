@@ -40,7 +40,7 @@
   "MESH2MOTION/Run_Anime": "a run on the spot whose feet sweep the floor under a root that stands still: no foot holds still while down, and planting one would pull it up to 1.5 H0 (D108)",
   "MESH2MOTION/Run_Stealth": "a stealthy run on the spot whose feet sweep the floor under a root that stands still: no foot holds still while down, and planting one would pull it up to 1.25 H0 (D108)",
   "STYLE100/WideLegs_Walk": "a retargeted wide-legged walk whose left foot skims the floor: only the right foot reads still, a ground speed 2.3 times its captured one (D108)",
-  "STYLE100_BACKRUN/Drunk_RunBack": "a retargeted stumbling run backward whose right foot never reads still: one foot's contacts alone give a ground speed the run doesn't have (D108)",
-  "STYLE100_RUN/OnHeels_Run": "a retargeted run on the heels whose left foot never reads still: one foot's contacts alone give a ground speed the run doesn't have (D108)"
+  "STYLE100_BACKRUN/Drunk_RunBack": "a retargeted stumbling run backward whose right foot never reads still: a reread needs both feet (D108)",
+  "STYLE100_RUN/OnHeels_Run": "a retargeted run on the heels whose left foot never reads still: a reread needs both feet (D108)"
  }
 }

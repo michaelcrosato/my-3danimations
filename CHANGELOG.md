@@ -8,8 +8,9 @@ features, patch for fixes. One line per change, under the part it touched (**Spe
 
 ### Core
 - `measureFacts` (D108): D104's fallbacks read only a loop on its feet (a one-shot with no contact plays still again),
-  `reread` only in place (a clip's own root is exact), and a reread counts only when both feet plant for a fifth of the
-  loop; nothing falls back to the height pass, whose contacts the planter couldn't hold (feet pulled up to 1.8 H0).
+  `reread` only in place (a clip's own root is exact), and a reread counts only when both feet plant and a foot is down
+  for a fifth of the loop; nothing falls back to the height pass, whose contacts the planter couldn't hold (feet
+  pulled up to 1.8 H0).
 
 ### Library
 - 6 of D104's 11 loops (`MESH2MOTION/Run_Anime`, `Run_Stealth`, `CMU_CURATED/Boxing_Guard_Loop`, STYLE100's
