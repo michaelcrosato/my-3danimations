@@ -119,6 +119,12 @@ describe("the library's actions", () => {
       }
     }
   });
+  it("give a kept procedural part back on each resolver's own rest, not on an equal one another resolver made it on", () => {
+    // T1's files share their modules (D125): a gait another file made on an equal rest is kept, its clip shared
+    const climb = action("ACTIONS/Climb_Up"), twin = structuredClone(climb.rest), other = A.proceduralResolver(resolve, twin, climb.clip.restSrc);
+    const first = other("PROCEDURAL/Walk")!, own = climb.resolve("PROCEDURAL/Walk")!, again = A.proceduralResolver(resolve, climb.rest, climb.clip.restSrc)("PROCEDURAL/Walk")!;
+    expect([first.rest === twin, own.rest === climb.rest, again.rest === climb.rest, again.clip === first.clip, again.contentId === first.contentId]).toEqual([true, true, true, true, true]);
+  });
   it("make procedural parts on the action's body, each with its content id", () => {
     const climb = action("ACTIONS/Climb_Up"), walk = climb.resolve("PROCEDURAL/Walk")!;
     expect([walk.clip.id, walk.rest === climb.rest, walk.contentId]).toEqual(["PROCEDURAL/Walk", true, sha256(serialize(walk.clip))]);

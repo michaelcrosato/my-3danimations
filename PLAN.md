@@ -2273,7 +2273,8 @@ picked by the owner on 2026-10-21. No gate follows them: each is held by its Ver
 #### WP-F.5 T1's headroom in CI
 - **Owns:** `vitest.config.ts`, `spec/conformance/kit/pinned.test.ts`
 - **Also touches:** `packages/tools/src/tools/library-submit.ts` (`status` counts states in `STATES`' order: the version
-  bump reordered the intake fixtures' ids, D125)
+  bump reordered the intake fixtures' ids, D125); `packages/core/src/actions/compile.ts` and its test (a kept
+  procedural part given back on the resolver's own rest: shared modules found it, D125)
 - **Needs:** G10's commands
 - **Size:** S (about 30 lines)
 - **Trigger:** CI's T1 over 110 s; it read 126.1 s of its 135 s mark on `main` at 957bf51 (D125)

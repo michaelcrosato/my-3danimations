@@ -4733,9 +4733,11 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
     remade at 16:07:38 by the compact's hook; no server process left after it). A Node without `import.meta.main`
     (20.20.0, 21.7.3 here, and 23.x before 24.2) does run nothing: the installed bin exited 0 with no output.
   - **The hook** (`.claude/hooks/session-start.sh`) runs `npm ci` only when node_modules wasn't installed from this
-    package-lock.json on this Node: after a clean install it writes `node_modules/.m3a-installed` (the lockfile's
-    SHA-256 and `node --version`), and a later run whose stamp matches skips the install and says so. A changed
-    lockfile, another Node, no node_modules or a failed install (no stamp) installs again. A fresh container's first
+    package-lock.json and these package.json files on this Node: after a clean install it writes
+    `node_modules/.m3a-installed` (one SHA-256 over the lockfile, the root's package.json and each workspace's, and
+    `node --version`), and a later run whose stamp matches skips the install and says so. A changed lockfile or
+    package.json (npm ci refuses a lockfile out of step with them, so that still fails loudly), another Node, no
+    node_modules or a failed install (no stamp) installs again. A fresh container's first
     start still installs beside the server's first launch; `/mcp` reconnects it.
   - **The bin** (`packages/tools/src/node/engine.ts`, called at the end of `src/node.ts`): when `import.meta.main` is
     undefined and the module's file is the process's entry by real path (through a link, as `node_modules/.bin/m3a`
@@ -4911,6 +4913,9 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   sweep's.
 - **Cost:** the whole sweep 80.8 s in 4 worker threads (283 s of CPU) here, about 70 s of T2 when its step keeps the
   CPUs busy; T1's file 5.2 s (its tests 3.1 s, about 2 s of T1's wall).
+- **The review's fixes** (a reviewer on #20): the baseline is read before the sweep, so `--check` on a file it can't
+  read fails at once, and `--baseline` replaces such a file rather than throwing after the whole run; the validator
+  checks `about` as the schema does; `npm run test:changed` runs the rate sweep's test for a change under `library/`.
 - **Why:** it reads what a game plays when it follows the manual's speed rule, loop by loop, rate by rate and body by
   body, with the sensors' own levels (no new threshold to defend), so the library knows which rows fail before a fresh
   agent finds one; the baseline makes the 479 known failures a gate for new ones (a new loop, a planter or a sensors
@@ -4980,6 +4985,12 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   - **Proof:** T1 three times with its files shuffled (seeds 11, 12, 13; 103, 97 and 95 s quiet): no failure between
     files. Shuffling the tests inside files too fails 4 cases in intake-library, intake-sql and review the same with
     isolation on: those files run their tests in order on purpose (a submission, then its status).
+  - **A second leak, CI's grouping found** (#20 at 329c740, T1 red): core's `proceduralResolver` keeps ready-made
+    gaits and idles in a module cache (`PARTS`, by id and the rest's JSON) and gave a kept part back with the `rest`
+    object of whichever resolver made it first; with another file in the worker having made `PROCEDURAL/Walk` on an
+    equal Mesh2Motion rest, actions.test.ts's `walk.rest === climb.rest` read false. A resolver gives a kept part back
+    on its own rest now (the clip still shared); a test that makes the part on an equal rest first pins it (it fails
+    without the fix). The other module caches are WeakMaps keyed by the object, or give back no caller's object.
   - **A latent bug the version bump found:** `m3a library status` counted its states in the order the store's
     submissions sort by id, and an id hashes the clip, whose `facts.by` and producer carry the package version: at
     0.55.1 the intake checker's fixtures sorted an awaiting one first, and its test (which wants "14 bounced, 4

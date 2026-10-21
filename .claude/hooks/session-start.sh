@@ -35,11 +35,13 @@ fi
 
 # npm ci deletes node_modules before it installs, and the hook runs again on every resume, /clear and /compact while
 # the m3a MCP server (.mcp.json) starts beside it, its imports gone (CONNECTION_CLOSED, D121). So it runs only when
-# node_modules wasn't installed from this package-lock.json on this Node: a stamp records both after a clean install.
+# node_modules wasn't installed from this package-lock.json and these package.json files (the root's and each
+# workspace's: npm ci refuses a lockfile out of step with them, so a change to either installs again) on this Node: a
+# stamp records their hash and the Node after a clean install.
 stamp=node_modules/.m3a-installed
-want="$(node -p 'require("crypto").createHash("sha256").update(require("fs").readFileSync("package-lock.json")).digest("hex")') $(node --version)"
+want="$(node -p 'const fs = require("fs"), h = require("crypto").createHash("sha256"), ws = fs.existsSync("packages") ? fs.readdirSync("packages").sort().map((d) => `packages/${d}/package.json`) : []; for (const f of ["package-lock.json", "package.json", ...ws]) if (fs.existsSync(f)) h.update(`${f}\0`).update(fs.readFileSync(f)); h.digest("hex")') $(node --version)"
 if [ -d node_modules ] && [ "$(cat "$stamp" 2>/dev/null)" = "$want" ]; then
-  echo "session-start: node_modules already installed from package-lock.json on $(node --version): npm ci skipped"
+  echo "session-start: node_modules already installed from package-lock.json and package.json on $(node --version): npm ci skipped"
 else
   npm ci --no-audit --no-fund --loglevel=error
   echo "$want" > "$stamp"

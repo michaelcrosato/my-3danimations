@@ -105,6 +105,7 @@ const READS: [RegExp, (m: RegExpExecArray) => string[], string][] = [
   [/^services\/intake\//, () => ["packages/tools/test"], "the intake tests run its function, its SQL and its schemas"],
   [/^\.github\/workflows\//, () => ["tools/intake", "tools/release"], "their tests read the workflows"],
   [/^(skills\/|\.claude\/skills\/|llms\.txt$)/, () => ["tools/skill"], "the skill tests read the skills and llms.txt"],
+  [/^\.claude\/hooks\//, () => ["tools/session"], "the session test runs the SessionStart hook (D121)"],
   [/^library\//, () => ["packages/library/test", "tools/qa", "tools/sweep/rates.test.ts"], "the library's, QA's and the rate sweep's tests read the clips (D123)"],
   [/^docs\/FEEDBACK-LOG\.md$/, () => ["packages/tools/test/review.test.ts"], "the review queue's test appends to a copy of it"],
 ];

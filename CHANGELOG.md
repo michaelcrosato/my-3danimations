@@ -9,6 +9,10 @@ features, patch for fixes. One line per change, under the part it touched (**Spe
 WP-F.4 (D124): the manual teaches the seven names it didn't, within its 8,000 tokens. WP-F.5 (D125): T1's files share
 their worker's modules.
 
+### Core
+- `actions.proceduralResolver` gives a ready-made gait or idle it kept back on its own rest, not on the equal rest
+  another resolver made it on first (its clip still shared, D125).
+
 ### Tools
 - `m3a library status` counts a contributor's submissions by state in the lifecycle's order (submitted, checking,
   bounced, awaiting review, adopted, archived, rejected), not as their ids happen to sort (D125).
@@ -37,8 +41,8 @@ gated by a baseline of the 479 rows that fail.
   root-motion rate sweep (D123). Every locomotion loop with contacts at 0.5, 0.75, 1, 1.5 and 2 on the six bodies G4
   sweeps, moved by its root's travel, as `Animator.pose()` poses it (its points, within 1e-6 mm); a row fails on the
   planted feet's slide or skate past the sensors' fail level on that body or no foot that stands still, warns past a
-  warn level. `--check` against `library/baselines/rates.json`, `--baseline` rewrites it; worker threads, one a CPU;
-  every row to check-output/sweep/rates.json.
+  warn level. `--check` against `library/baselines/rates.json` (one it can't read fails at once), `--baseline`
+  rewrites it (replacing one it can't read); worker threads, one a CPU; every row to check-output/sweep/rates.json.
 
 ### Library
 - `library/baselines/rates.json`: the 479 rows of the rate sweep that fail (of 24,330: 811 loops × 5 rates × 6
@@ -82,10 +86,10 @@ MCP server.
   one-line warning on stderr. `m3a mcp`'s stdout stays the protocol's.
 
 ### Repo
-- The cloud SessionStart hook runs `npm ci` only when node_modules wasn't installed from this package-lock.json on this
-  Node (a stamp, `node_modules/.m3a-installed`): a resume, `/clear` or `/compact` no longer deletes node_modules while
+- The cloud SessionStart hook runs `npm ci` only when node_modules wasn't installed from this package-lock.json and
+  these package.json files on this Node (a stamp, `node_modules/.m3a-installed`): a resume, `/clear` or `/compact` no longer deletes node_modules while
   the m3a MCP server starts beside it (its CONNECTION_CLOSED). `tools/session/session-start.test.ts` tests it on a
-  scratch project.
+  scratch project, and `npm run test:changed` runs that test for a change to the hook.
 
 ## 0.54.0 · 2026-10-19
 

@@ -299,6 +299,7 @@ export function rateBaselineProblems(b: unknown): string[] {
   const obj = (v: unknown): v is Record<string, unknown> => Boolean(v) && typeof v === "object" && !Array.isArray(v), out: string[] = [];
   if (!obj(b)) return ["the baseline is a JSON object"];
   for (const k of Object.keys(b)) if (!["about", "rates", "rigs", "loops", "failing"].includes(k)) out.push(`"${k}" is not a field of the baseline (about, rates, rigs, loops, failing)`);
+  if (b.about !== undefined && typeof b.about !== "string") out.push("about says what the baseline holds, as a text");
   if (!Array.isArray(b.rates) || !b.rates.length || !b.rates.every((r) => typeof r === "number" && r > 0)) out.push("rates lists the rates swept, each above 0");
   if (!Array.isArray(b.rigs) || !b.rigs.length || !b.rigs.every((r) => typeof r === "string" && r !== "")) out.push("rigs lists the bodies swept by id");
   if (!Number.isInteger(b.loops) || (b.loops as number) < 0) out.push("loops counts the loops swept");

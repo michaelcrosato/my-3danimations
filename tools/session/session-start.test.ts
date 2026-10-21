@@ -1,8 +1,9 @@
 // The cloud SessionStart hook's install step (.claude/hooks/session-start.sh, WP-F.1, D121): `npm ci` deletes
 // node_modules before it installs, and the hook runs again on every resume, /clear and /compact while the m3a MCP
 // server starts beside it, so it installs only when node_modules wasn't installed from this package-lock.json on this
-// Node. Run on a scratch project with a stand-in npm that logs its calls: a first run installs and stamps; a second
-// skips; a changed lockfile, another Node's stamp or no node_modules install again; a failed install leaves no stamp.
+// Node (its package.json files too, which npm ci holds the lockfile to). Run on a scratch project with a stand-in npm
+// that logs its calls: a first run installs and stamps; a second skips; a changed lockfile or package.json, another
+// Node's stamp or no node_modules install again; a failed install leaves no stamp.
 import { spawnSync } from "node:child_process";
 import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -17,6 +18,8 @@ beforeEach(() => {
   mkdirSync(join(dir, "bin"));
   writeFileSync(join(dir, "package.json"), JSON.stringify({ engines: { node: ">=24.2" } }));
   writeFileSync(join(dir, "package-lock.json"), JSON.stringify({ lockfileVersion: 3, packages: {} }));
+  mkdirSync(join(dir, "packages/a"), { recursive: true });
+  writeFileSync(join(dir, "packages/a/package.json"), JSON.stringify({ name: "a" }));
   // npm ci as npm does it: node_modules deleted, then made again (or a failure when NPM_FAIL is set)
   const npm = join(dir, "bin/npm");
   writeFileSync(npm, '#!/bin/sh\necho "$*" >> "$NPM_LOG"\nif [ "$1" = ci ]; then\n  [ -n "$NPM_FAIL" ] && exit 1\n  rm -rf node_modules && mkdir node_modules\nfi\nexit 0\n');
@@ -55,10 +58,14 @@ describe("the SessionStart hook's install", () => {
     expect(r.npm.some((c) => c.includes("fixtures -- fetch"))).toBe(true);
   });
 
-  it("installs again when the lockfile changed, the stamp names another Node, or node_modules is gone", () => {
+  it("installs again when the lockfile or a package.json changed, the stamp names another Node, or node_modules is gone", () => {
     hook();
     writeFileSync(join(dir, "package-lock.json"), JSON.stringify({ lockfileVersion: 3, packages: { "": {} } }));
     expect(installs(hook().npm)).toBe(1);
+    // a dependency a workspace gained that the lockfile lacks: npm ci, not the stamp, says so
+    writeFileSync(join(dir, "packages/a/package.json"), JSON.stringify({ name: "a", dependencies: { b: "1.0.0" } }));
+    expect(installs(hook().npm)).toBe(1);
+    expect(installs(hook().npm)).toBe(0);
     const stamp = join(dir, "node_modules/.m3a-installed");
     writeFileSync(stamp, readFileSync(stamp, "utf8").replace(/ v\S+/, " v22.22.0"));
     expect(installs(hook().npm)).toBe(1);

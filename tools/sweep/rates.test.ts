@@ -99,6 +99,9 @@ describe("the root-motion rate sweep", () => {
     const bad = { rates: [0], rigs: ["gen-0"], loops: 1, failing: { "S/A gen-0": ["r"], "S/B gen-0 1": [] }, extra: 1 };
     expect(rateBaselineProblems(bad)).toEqual(['"extra" is not a field of the baseline (about, rates, rigs, loops, failing)', "rates lists the rates swept, each above 0", "failing maps `<clip> <body> <rate>` to its reasons, each a text"]);
     expect(schema(bad)).toBe(false);
+    // its about, when given, a text, as the schema has it
+    const about = { ...(file as object), about: 5 };
+    expect([rateBaselineProblems(about), schema(about)]).toEqual([["about says what the baseline holds, as a text"], false]);
     const made = rateBaselineOf([row("S/A", 1, "fail"), row("S/B", 2, "pass"), row("S/C", 0.5, "fail")], 3), text = rateBaselineText(made);
     expect([JSON.parse(text), text.split("\n").filter((l) => l.startsWith('  "S/')).length, schema(JSON.parse(text))]).toEqual([made, 2, true]);
     expect(Object.keys(made.failing)).toEqual(["S/A gen-0 1", "S/C gen-0 0.5"]);
