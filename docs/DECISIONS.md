@@ -4820,8 +4820,8 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
     a zero that measured nothing, and now measures above the median; every p95 and maximum is unchanged.
   - **The judge** over the changed clip on the six sweep skeletons (gen-0 to gen-3, the Quaternius mannequin, the
     KayKit knight): 6 of 6 pass, as played with no contacts; two warns added and listed (D80), skate 10.0 cm/s on
-    gen-0 (its warn 8.29) and on the knight. B1's known-good passes in full (11 of 11); its real agents' run is the
-    integrator's. In the root-motion rate sweep (D123) it is a locomotion loop with contacts now: 30 rows, one failing
+    gen-0 (its warn 8.29) and on the knight. B1's known-good passes in full (11 of 11); with real agents B1 5 of 5
+    (discovery 2 of 2) and its G7 variant 5 of 5 (`bench/results/2026-10-21-default-B1*.json`). In the root-motion rate sweep (D123) it is a locomotion loop with contacts now: 30 rows, one failing
     (the KayKit knight at 0.5, slide 101.4 mm past its fail level 98.2), held in `library/baselines/rates.json`.
   - **Written by the writers:** `npm run import -- --set STYLE100_RUN` wrote the clip (its contacts and travel), the
     set's content id and the lock; `npm run index` mints STYLE100_RUN v2 (serial 3); `npm run qa -- --baseline` and
@@ -4944,6 +4944,10 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
     then B5 and B6, then B2 to B4 (lane F.4's record); the legend quiz reads no manual. Each brief's bar is G7's, at
     least 4 of 5 (B8-ten: its one trial's ten clips through).
   - **Budget:** 7,998 of 8,000 (7,999 before).
+  - **The re-runs** (fresh agents on the packed packages at 2467b82, the variants B3 to B7 at 31418c7; the trees differed
+    in docs alone): B1 5 of 5 (discovery 2 of 2 found and used the package), B2 to B7 5 of 5 each, every G7 held-out
+    variant 5 of 5, B8 5 of 5, its G9 variant 5 of 5, B8-ten 1 of 1 (its ten clips through): 83 of 83, $13.36
+    (`bench/results/2026-10-21-default-*.json`). Probes on the working tree, not a gate's record.
 - **Why:** a game (the consumer lab) reached past the manual for public names it needed, and an agent couldn't tell
   where `LibraryError` comes from; the manual is all a fresh agent reads, so those names belong in it, in code that
   runs. The room came from the Tools reference, whose cut facts each reach the agent anyway (the reply, the refusal,

@@ -1,0 +1,62 @@
+{
+ "about": "npm run bench: fresh agents on the briefs (PLAN.md §7); isolation 1 is the claude CLI in a clean workspace",
+ "date": "2026-10-21T17-40-56",
+ "commit": "2467b8259bb6b1808b6841d903ffa3819287f895",
+ "dirty": true,
+ "model": "the CLI's default",
+ "fake": false,
+ "need": 1,
+ "parallel": 1,
+ "privateTmp": true,
+ "ownPids": true,
+ "capsDropped": true,
+ "uid": 65534,
+ "unprivileged": true,
+ "B8-ten": {
+  "trials": [
+   {
+    "trial": "B8-ten-1",
+    "pass": true,
+    "failed": [],
+    "agent": {
+     "isolation": 1,
+     "privateTmp": true,
+     "ownPids": true,
+     "capsDropped": true,
+     "uid": 65534,
+     "unprivileged": true,
+     "ok": true,
+     "ms": 209247.16348000002,
+     "model": "claude-sonnet-5-5",
+     "turns": 14,
+     "tokens": {
+      "input": 28,
+      "output": 5694,
+      "cacheRead": 415636,
+      "cacheWrite": 28586
+     },
+     "costUsd": 0.2129036,
+     "outside": [],
+     "scratch": [
+      "/tmp/rc",
+      "/tmp/rc/e1.json",
+      "/tmp/rc/gen.py"
+     ],
+     "pastManual": [],
+     "m3a": {
+      "server": "connected",
+      "skill": true,
+      "skills": [
+       "m3a"
+      ]
+     }
+    }
+   }
+  ],
+  "discovery": []
+ },
+ "models": [
+  "claude-sonnet-5-5"
+ ],
+ "ms": 226454
+}

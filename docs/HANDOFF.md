@@ -35,7 +35,7 @@ none during trial batches.
   479 of 24,330 rows baselined (F.3, D123); the manual teaches `LibraryError` and gap 10's six names, 7,998 of 8,000
   (F.4, D124); T1's files share their worker's modules, CI's T1 79.1 s from 126.1 (F.5, D125). The briefs re-run with
   real agents after F.2 and F.4 (`bench/results/2026-10-21-*`): B1 5/5 (discovery 2/2), B2 to B7 5/5 each,
-  B8 5/5, its G9 variant 5/5, B8-ten 1/1; G7's variants running.
+  every G7 held-out variant 5/5, B8 5/5, its G9 variant 5/5, B8-ten 1/1: 83 of 83 trials, $13.36.
 - **Review bots:** every finding on #14 to #18 is fixed or answered on its thread (D115, D117, D120); #20's: none yet.
 - **Last measured (4 CPUs):** T0 about 3 s warm, T1 88 s here (79.1 s in CI), T2 400 s with the full sweeps and the
   rate sweep (budget 480: the next sweep added goes to its own step or a sample), the rate sweep alone 80 to 92 s,
