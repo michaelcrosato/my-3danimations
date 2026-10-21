@@ -36,7 +36,9 @@ none during trial batches.
   (F.4, D124); T1's files share their worker's modules, CI's T1 79.1 s from 126.1 (F.5, D125). The briefs re-run with
   real agents after F.2 and F.4 (`bench/results/2026-10-21-*`): B1 5/5 (discovery 2/2), B2 to B7 5/5 each,
   every G7 held-out variant 5/5, B8 5/5, its G9 variant 5/5, B8-ten 1/1: 83 of 83 trials, $13.36.
-- **Review bots:** every finding on #14 to #18 is fixed or answered on its thread (D115, D117, D120); #20's: none yet.
+- **Review bots:** every finding on #14 to #18 is fixed or answered on its thread (D115, D117, D120); on #20 Codex didn't review:
+  its connector answers the PR's account (michaelcrosatoDM) with "create a Codex account", so only the owner's
+  `@codex review` runs it; an independent reviewer's four findings were fixed in 5c348a8 (D121, D123).
 - **Last measured (4 CPUs):** T0 about 3 s warm, T1 88 s here (79.1 s in CI), T2 about 440 s here and 525.2 s in CI
   (budget 480, a warning; it fails at 720: playwright 242.6 s, the sweeps 164.4, the rate sweep 109.5 in a step of its
   own). Should CI's T2 near 720, the rate sweep samples its bodies in T2 and a gate runs it whole; `pack --check`
@@ -84,8 +86,9 @@ none during trial batches.
   update this file, stop.
 - GitHub: `gh pr` and GraphQL return 403 here; use the GitHub MCP tools or `gh api` REST. git push works. Squash merges
   only, and the head branch is deleted on merge; `main` is unprotected, so "merge only when green" is ours to keep.
-  Writes act as the owner's login (michaelcrosato): every session comment opens with `<!-- m3a-session -->`, owner
-  evidence (phone notes, approvals, adoptions) is never authored by the session, and no review is approved by it.
+  Writes act as an owner's login (michaelcrosato to #19, michaelcrosatoDM on #20, which Codex's review bot doesn't
+  serve): every session comment opens with `<!-- m3a-session -->`, owner evidence (phone notes, approvals, adoptions)
+  is never authored by the session, and no review is approved by it.
 - Vercel project prj_G6lMChE61OFf2aXCRijeSQWkAAEq is linked and paused (D85), SSO on: "Deployment was blocked" is
   expected. Supabase: the connector works, no project for m3a exists; never create one without the owner's explicit
   yes. The Actions API is blocked (403). No Docker: the supabase backend can be tested against local Postgres 16
