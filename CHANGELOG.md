@@ -45,8 +45,8 @@ gated by a baseline of the 479 rows that fail.
   bodies), with their reasons; it may only shrink (D123). Its shape: `tools/sweep/rates.schema.json`.
 
 ### Repo
-- T2's "library sweeps in full" runs the whole rate sweep against its baseline (`tools/sweep/rates.test.ts`); T1 a
-  sample of 6 loops on gen-0 (D74, D123). `npm run test:changed` runs it for a change under `library/`.
+- T2 runs the whole rate sweep against its baseline in a step of its own, "rate sweep in full"
+  (`tools/sweep/rates.test.ts`: its worker threads take every CPU); T1 a sample of 6 loops on gen-0 (D74, D123). `npm run test:changed` runs it for a change under `library/`.
 
 ## 0.54.2 · 2026-10-21
 

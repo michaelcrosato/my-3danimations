@@ -1,11 +1,11 @@
-# Handoff: every phase built; the post-G10 audit landed; the owner's steps open (2026-10-19)
+# Handoff: every phase built; the follow-ups after G10 built (F.1 to F.5); the owner's steps open (2026-10-21)
 
 Phase 7 merged before its gate (michaelcrosato/my-3danimations#13, D103); G7 passed on run 2 on
 michaelcrosato/my-3danimations#14 (D107); Phase 8 merged on michaelcrosato/my-3danimations#15 (G8's commands, D111);
 Phase 9 on michaelcrosato/my-3danimations#16 (G9's commands passed on run 2, D115); Phase 10 on
-michaelcrosato/my-3danimations#17 (G10's commands passed on run 1, D117). After it, an audit of the whole repository
-(D118) fixed its easy findings; its large items were built or deferred with their reasons (D119). This file is
-what the next session needs.
+michaelcrosato/my-3danimations#17 (G10's commands passed on run 1, D117). After it, an audit (D118, D119) on
+michaelcrosato/my-3danimations#18, then the five follow-ups that need nothing from the owner, WP-F.1 to F.5 (PLAN.md
+§10 "After G10", D121 to D125), on michaelcrosato/my-3danimations#20. This file is what the next session needs.
 
 ## The standing goal (the owner's)
 
@@ -17,8 +17,8 @@ none during trial batches.
 
 ## Where things stand
 
-- **Version 0.54.0.** Every WP through 10.2 is done; G0-G7 passed; G8, G9 and G10's command sets passed and each
-  waits on the owner (blocked-owner, its ask on its PR):
+- **Version 0.55.1.** Every WP through 10.2 and F.1 to F.5 is done; G0-G7 passed; G8, G9 and G10's command sets passed
+  and each waits on the owner (blocked-owner, its ask on its PR):
   - **G8** (#15): the phone review of `bench/results/gates/G8-run-1/queue.json`.
   - **G9** (#16): the contract suite against O8's project; an adoption through a merged PR; the owner's approval of
     70% of `bench/results/gates/G9-run-2/queue.json`. O8's setup is `services/intake/README.md`: the Supabase project,
@@ -29,16 +29,17 @@ none during trial batches.
     it (O9: proposed in docs/MIGRATING.md and spec/conformance/CERTIFYING.md, never acted on there).
   - O3 (the Vercel previews, paused, D85) and O2 (publishing: release.yml waits for the repository variable
     `M3A_O2_RELEASE_ASSETS=yes`) are the owner's; the session creates no Supabase or Vercel resource.
-- **Review bots:** every finding on #14 to #18 is fixed or answered on its thread (D115, D117, D120).
-- **The owner answered (D120):** D94 stands; #16's proof thread stays as is (`verify` checks the content id against
-  the live proof); the stray artifact of CERTIFYING.md is deleted; #18 merged. Asked again on 2026-10-19: O3 stays
-  paused; O8's project, G10's other repository and the G8/G9 reviews wait for the owner (the weekly limit was near).
-- **Paused cleanly (2026-10-19):** nothing is in flight. `main` is the state (0.54.0, every check green on #18's
-  last head); no pull request is open, no lane, worktree or local branch but the session's, no pending check-in.
-  The next session starts from `main` with the owner's next answer, or a follow-up below the owner picks.
-- **Last measured (4 CPUs):** T0 about 3 s warm (16 s cold, typecheck and lint side by side), T1 77.7 s in CI (about
-  90 s here), T2 about 280 s with the full sweeps,
-  `pack --check` about 21 s, the TypeScript certification about 8 s.
+- **The follow-ups built (#20, 2026-10-21, the owner's pick):** the m3a bin refuses a Node without `import.meta.main`
+  and the hook no longer deletes node_modules under the MCP server (F.1, D121); `STYLE100_RUN/OnHeels_Run` planted by
+  its whole sole, the other five `unplanted` loops answered with numbers (F.2, D122); the root-motion rate sweep,
+  479 of 24,330 rows baselined (F.3, D123); the manual teaches `LibraryError` and gap 10's six names, 7,998 of 8,000
+  (F.4, D124); T1's files share their worker's modules, CI's T1 79.1 s from 126.1 (F.5, D125). The briefs re-run with
+  real agents after F.2 and F.4 (`bench/results/2026-10-21-*`): B1 5/5 (discovery 2/2), B2 to B7 5/5 each,
+  B8 5/5, its G9 variant 5/5, B8-ten 1/1; G7's variants running.
+- **Review bots:** every finding on #14 to #18 is fixed or answered on its thread (D115, D117, D120); #20's: none yet.
+- **Last measured (4 CPUs):** T0 about 3 s warm, T1 88 s here (79.1 s in CI), T2 400 s with the full sweeps and the
+  rate sweep (budget 480: the next sweep added goes to its own step or a sample), the rate sweep alone 80 to 92 s,
+  `pack --check` about 21 to 33 s.
 
 ## Next, in order
 
@@ -49,32 +50,31 @@ none during trial batches.
 
 ## Follow-ups recorded, owned by no WP yet
 
-The audit's large items that need nothing from the owner were built (D119); these wait, each with its reason:
-
-- Manual: the names it doesn't teach (F5.2's `LibraryError` and `.code`; MIGRATING gap 10: `VERSION`,
-  `math.PORTABLE`, `math.hashValue`, `graph.layersOf`, `graph.clipsOf`, the Animator's `step` option). It is at 7,999
-  of 8,000 tokens and graded by G7's quiz and the briefs (one line flipped a gate, D106): a cut reruns the briefs it
-  touches, a bigger budget is principle 1's call.
+- B1's floor (D123): B1's grader reads heights from y = 0, which stands 16 to 44 mm above a generated test character's
+  soles (`bench/graders/bones.ts` `bodyOf`), so a foot within 40 to 86 mm of its floor reads as down; D106's "keyed
+  runs skim" were that floor and Run_Female's walk-to-run fade, not the loops (the rate sweep passes them). Reading
+  from the body's measured floor changes G7's evidence (B1's known-goods and variants): a decision of its own.
+- The rate sweep's 479 failing rows (`library/baselines/rates.json`, D123): each a loop that slides or skates at a rate
+  on a body (slow rates on slide, fast on skate; STYLE100's 411 of them). A row fixed or answered shrinks it. The
+  adopt bot doesn't regenerate it: an adopted locomotion loop that fails a row fails T2 until baselined or fixed.
+- The five loops still without contacts (D122): `WideLegs_Walk` (both feet slide outward), `Drunk_RunBack` (its feet
+  never leave the floor), `Boxing_Guard_Loop` (skims between stances), `Run_Anime` and `Run_Stealth` (a still root
+  under sweeping feet). No reading the planter holds exists; a contact that moves with the foot (a slide the planter
+  follows) would be a new kind of contact, the spec's call.
+- Manual: gap 10's last names (`@m3a/three/test-characters`' `character`, `variant`, `loadGlb` in a browser) and gap
+  1's page loader (`directory`, `defaultSets`, `new Library(source)`), at 7,998 of 8,000 tokens (D124).
 - Intake: refusing every clip added outside the adopt bot (§8.4 after G9). D113's call stands until the importers'
   and procedural sets' regenerations go through the bot; then `gatesOf` refuses an added clip without intake
   provenance (a fixture planting a clean clip into an existing set proves it).
-- Sensors: a sweep that plays each locomotion loop with root motion at the rates a game asks (0.5 to 2) on the test
-  bodies, as B1's grader does (D106: keyed runs skim on some bodies). It needs a decision on what fails before it
-  can gate, with a baseline for the known keyed runs.
 - Core: a linear planter (K5) and key fit (D96; the tools bound them). Both change outputs bit for bit, so the frozen
   vectors, the A/B hashes and the cross-engine checks are re-baselined by a decision; other implementations certify
   against those vectors (G10's route), so it waits for one.
-- Library: contacts for the 6 `unplanted` loops (D108), preferring the reading whose ground speed agrees with the
-  captured speed (`WideLegs_Walk` reads 0.94 of it). D108 answered them as they are, and B1 grades the clips this
-  rewrites: a WP of its own, through the writer.
 - Index: each regeneration before a commit mints a version (D113 accepts it); a namespace's proof vouches by content
   id, not digest, and the owner kept it so (D120).
 - Library: the census counts a motion and its mirror apart by design (D67: a game needs each side), while WP-9.3's
   dedup reads Mesh2Motion's `Dodge_left`/`Dodge_right` as one motion mirrored; counting them once reverses D67, the
   owner's call.
 - shardfall's tier 1b waits on its glTF reader's Rigify look (CERTIFYING.md, D116; O9: a proposal).
-- CI: T1 ran 134.5 s of its 135 s mark on #18 before its heaviest benchmark cases moved to T2 (D119); CI's times swing
-  with the runner (77 s on earlier pull requests). If it crosses again, move more full-sweep cases the same way.
 
 ## Rules learned the hard way
 
@@ -97,5 +97,15 @@ The audit's large items that need nothing from the owner were built (D119); thes
 - Two lanes can meet at a merge (the bin moved to `dist/` in one, the skill calling `npx m3a` in another): run T1 on
   the merged head before pushing.
 - In this container the auto-mode classifier may refuse `git worktree add` and deleting local branches: lanes can
-  share the main checkout on disjoint files, without committing, the integrator committing after T0 and T1 (D118).
+  share the main checkout on disjoint files, without committing, the integrator committing after T0 and T1 (D118;
+  three lanes so again for F.2 to F.4, each writing its record to an untracked docs/lane-F<n>.md).
+- The m3a MCP server's CONNECTION_CLOSED was the hook's `npm ci` deleting node_modules as the server started, not the
+  container's Node 22 (D121): the hook now skips a current install; on a fresh container's first start the server may
+  still race the install, and `/mcp` reconnects it.
+- Generated clips carry the package version (`facts.by`, the producer's), so a version bump changes their bytes and
+  every id hashed from them: a test or a reply must never depend on hash order (`library status` did, D125).
+- T1 shares modules between files (D125): a test that mocks a module does it with `vi.doMock` inside the test and
+  `vi.doUnmock` plus `vi.resetModules` after; a test that sets process state puts it back. Check a change with the
+  files shuffled (`npx vitest run --sequence.shuffle.files --sequence.seed=<n>`), not the tests: some files run their
+  tests in order on purpose.
 - Never push to my-3dge or shardfall (O9); never publish (O2, D99); Claude models only (O10).

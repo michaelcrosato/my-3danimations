@@ -4866,8 +4866,10 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
     rows by `<clip> <body> <rate>`, with their reasons. `npm run sweep -- --rates --check` fails on a failing row not
     in it, naming each, and reports each baselined row that passes or warns now; the baseline may only shrink, rewritten
     by `npm run sweep -- --rates --baseline` from a whole run in a commit that says why (it says how many rows it adds
-    and drops). Warning rows are counted, not gated. T1 checks 6 loops on gen-0 (30 rows) through the CLI; T2's "library
-    sweeps in full" runs the whole sweep (`tools/sweep/rates.test.ts`, M3A_FULL=1), in worker threads.
+    and drops). Warning rows are counted, not gated. T1 checks 6 loops on gen-0 (30 rows) through the CLI; T2 runs the
+    whole sweep (`tools/sweep/rates.test.ts`, M3A_FULL=1) in worker threads, in a step of its own ("rate sweep in
+    full"): inside "library sweeps in full" on #20 its four threads beside Vitest's four workers starved dedup's 5 s
+    test on CI's 4 CPUs (the step 277 s, T2 530.6 s and red), so it runs after that step, the CPUs its alone.
 - **The distribution** (24,330 rows): 22,892 pass, 959 warn, **479 fail** (2.0%).
   - By rate (fail / warn): 0.5: 164 / 350; 0.75: 45 / 241; 1: 42 / 163; 1.5: 63 / 100; 2: 165 / 105. By reason: slide
     342, skate 278, no foot standing 15 (156 rows on two). By body: gen-0 74, gen-1 80, gen-2 81, gen-3 73, the mannequin
@@ -4960,8 +4962,8 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
     (the procedural tests' three rests, `fix`'s every planted defect, every key of tier 2, a save at every step) came
     to 25 to 30 s of file time, about 8 s of wall: less than a quarter of the imports, and T1 would test less.
   - **So T1's files share their worker's modules** (`isolate: false` in vitest.config.ts): each worker imports the
-    packages once. T1 here: 88.0 s quiet (1,244 passed, 31 skipped), from 114 to 128 s; the same tests. No case moved
-    to T2.
+    packages once. T1 here: 88.0 s quiet (1,244 passed, 31 skipped), from 114 to 128 s; in CI on #20, 79.1 s, from
+    126.1 s on `main`: the same tests. No case moved to T2.
   - **What sharing broke, and the fix:** the repository's one `vi.mock` (spec/conformance/kit/pinned.test.ts) mocks the
     vectors' manifest check: with the kit already imported by another file in its worker the mock didn't apply; with
     the kit imported afresh under it, the mocked kit stayed in the worker and kit.test.ts, run after it, failed 11
