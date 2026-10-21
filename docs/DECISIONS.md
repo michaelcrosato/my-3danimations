@@ -4869,7 +4869,9 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
     and drops). Warning rows are counted, not gated. T1 checks 6 loops on gen-0 (30 rows) through the CLI; T2 runs the
     whole sweep (`tools/sweep/rates.test.ts`, M3A_FULL=1) in worker threads, in a step of its own ("rate sweep in
     full"): inside "library sweeps in full" on #20 its four threads beside Vitest's four workers starved dedup's 5 s
-    test on CI's 4 CPUs (the step 277 s, T2 530.6 s and red), so it runs after that step, the CPUs its alone.
+    test on CI's 4 CPUs (the step 277 s, T2 530.6 s and red), so it runs after that step, the CPUs its alone. CI's T2
+    then: 525.2 s, past its 480 s budget (a warning; it fails at 720), the rate sweep 109.5 s of it, the playwright
+    step 242.6 s; here about 440 s. Should it near 720, T2 samples the bodies and a gate runs it whole.
 - **The distribution** (24,330 rows): 22,892 pass, 959 warn, **479 fail** (2.0%).
   - By rate (fail / warn): 0.5: 164 / 350; 0.75: 45 / 241; 1: 42 / 163; 1.5: 63 / 100; 2: 165 / 105. By reason: slide
     342, skate 278, no foot standing 15 (156 rows on two). By body: gen-0 74, gen-1 80, gen-2 81, gen-3 73, the mannequin

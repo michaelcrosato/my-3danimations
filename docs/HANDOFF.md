@@ -37,9 +37,10 @@ none during trial batches.
   real agents after F.2 and F.4 (`bench/results/2026-10-21-*`): B1 5/5 (discovery 2/2), B2 to B7 5/5 each,
   every G7 held-out variant 5/5, B8 5/5, its G9 variant 5/5, B8-ten 1/1: 83 of 83 trials, $13.36.
 - **Review bots:** every finding on #14 to #18 is fixed or answered on its thread (D115, D117, D120); #20's: none yet.
-- **Last measured (4 CPUs):** T0 about 3 s warm, T1 88 s here (79.1 s in CI), T2 400 s with the full sweeps and the
-  rate sweep (budget 480: the next sweep added goes to its own step or a sample), the rate sweep alone 80 to 92 s,
-  `pack --check` about 21 to 33 s.
+- **Last measured (4 CPUs):** T0 about 3 s warm, T1 88 s here (79.1 s in CI), T2 about 440 s here and 525.2 s in CI
+  (budget 480, a warning; it fails at 720: playwright 242.6 s, the sweeps 164.4, the rate sweep 109.5 in a step of its
+  own). Should CI's T2 near 720, the rate sweep samples its bodies in T2 and a gate runs it whole; `pack --check`
+  about 21 to 33 s.
 
 ## Next, in order
 
