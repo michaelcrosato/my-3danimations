@@ -11,7 +11,9 @@ travels or is tagged `inplace`), each exception given a reason in `baselines/tag
 verdict too (WP-5.8: `quality.qa` pass, or baselined with its reason in `quality.baseline`, read with the sensors'
 revision `quality.qaVersion`); the reasons by set and by clip are in `baselines/qa.json`, the distributions that may only
 improve in `baselines/distributions.json`. `npm run qa -- library --check` reads it all again, with the census
-(unique motions and G5's category floors), and `docs/LIBRARY.md` is its summary.
+(unique motions and G5's category floors), and `docs/LIBRARY.md` is its summary. The locomotion loops played by root
+motion at 0.5 to 2 on the six sweep bodies (`npm run sweep -- --rates --check`, D123) fail only the rows
+`baselines/rates.json` holds, which may only shrink.
 
 ## Tiers and the default pack (D10)
 

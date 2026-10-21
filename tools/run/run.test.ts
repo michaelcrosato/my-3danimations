@@ -132,7 +132,7 @@ describe("test:changed", () => {
     for (const f of ["skills/m3a/SKILL.md", ".claude/skills/m3a/SKILL.md", "llms.txt"]) expect(suites(f), f).toEqual(["tools/skill"]);
   });
   it("runs the library's and QA's tests for a clip or a baseline", () => {
-    for (const f of ["library/sets/QUATERNIUS_3D2DGE/Walk_Loop.json", "library/baselines/qa.json"]) expect(suites(f), f).toEqual(["packages/library/test", "tools/qa"]);
+    for (const f of ["library/sets/QUATERNIUS_3D2DGE/Walk_Loop.json", "library/baselines/qa.json"]) expect(suites(f), f).toEqual(["packages/library/test", "tools/qa", "tools/sweep/rates.test.ts"]);
   });
   it("runs the review queue's test for the feedback log", () => {
     expect(suites("docs/FEEDBACK-LOG.md")).toEqual(["packages/tools/test/review.test.ts"]);

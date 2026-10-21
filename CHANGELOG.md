@@ -4,6 +4,27 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.55.0 · 2026-10-21
+
+WP-F.3 (D123): the root-motion rate sweep, every locomotion loop with contacts at 0.5 to 2 on the six sweep bodies,
+gated by a baseline of the 479 rows that fail.
+
+### Tools
+- `npm run sweep -- --rates [<rigs>] [--sample N] [--clip ID] [--check] [--baseline] [--jobs N] [--out <file>]`: the
+  root-motion rate sweep (D123). Every locomotion loop with contacts at 0.5, 0.75, 1, 1.5 and 2 on the six bodies G4
+  sweeps, moved by its root's travel, as `Animator.pose()` poses it (its points, within 1e-6 mm); a row fails on the
+  planted feet's slide or skate past the sensors' fail level on that body or no foot that stands still, warns past a
+  warn level. `--check` against `library/baselines/rates.json`, `--baseline` rewrites it; worker threads, one a CPU;
+  every row to check-output/sweep/rates.json.
+
+### Library
+- `library/baselines/rates.json`: the 479 rows of the rate sweep that fail (of 24,330: 811 loops × 5 rates × 6
+  bodies), with their reasons; it may only shrink (D123). Its shape: `tools/sweep/rates.schema.json`.
+
+### Repo
+- T2's "library sweeps in full" runs the whole rate sweep against its baseline (`tools/sweep/rates.test.ts`); T1 a
+  sample of 6 loops on gen-0 (D74, D123). `npm run test:changed` runs it for a change under `library/`.
+
 ## 0.54.2 · 2026-10-21
 
 WP-F.2 (D122): the six loops D108 left `unplanted` read again; `STYLE100_RUN/OnHeels_Run` planted by its whole sole,
