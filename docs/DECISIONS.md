@@ -4719,3 +4719,38 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
 - **Why:** each was the owner's to decide; the record keeps D94's and D115's answers next to the calls they settle.
 - **Answered:** yes, the owner, 2026-10-19.
 - **Landed in:** v0.54.0
+
+## D121 · 2026-10-21 · The m3a bin refuses a Node too old to start it; the session hook stops deleting node_modules under the MCP server
+
+- **Principle:** 2 (agent-operable: a tool that fails says why), D79 (the session hook), WP-F.1
+- **Call:**
+  - **What was wrong:** the m3a MCP server (`.mcp.json`: `node packages/tools/src/node.ts mcp`) failed to connect at
+    this session's start and again after a `/compact` (CONNECTION_CLOSED). The handoff blamed the container's default
+    Node, 22.22.0, under which every repo CLI "does nothing". Measured here it doesn't: 22.22.0 has `import.meta.main`
+    (Node 22.18 brought it, as 24.2 did) and serves `initialize` with the right reply. The cause is the SessionStart
+    hook: it ran `npm ci` on every start, resume, `/clear` and `/compact`, and `npm ci` deletes node_modules before it
+    installs, while Claude Code starts the MCP server beside the hook. The server's imports were gone (node_modules
+    remade at 16:07:38 by the compact's hook; no server process left after it). A Node without `import.meta.main`
+    (20.20.0, 21.7.3 here, and 23.x before 24.2) does run nothing: the installed bin exited 0 with no output.
+  - **The hook** (`.claude/hooks/session-start.sh`) runs `npm ci` only when node_modules wasn't installed from this
+    package-lock.json on this Node: after a clean install it writes `node_modules/.m3a-installed` (the lockfile's
+    SHA-256 and `node --version`), and a later run whose stamp matches skips the install and says so. A changed
+    lockfile, another Node, no node_modules or a failed install (no stamp) installs again. A fresh container's first
+    start still installs beside the server's first launch; `/mcp` reconnects it.
+  - **The bin** (`packages/tools/src/node/engine.ts`, called at the end of `src/node.ts`): when `import.meta.main` is
+    undefined and the module's file is the process's entry by real path (through a link, as `node_modules/.bin/m3a`
+    is), it writes on stderr "m3a: Node <v> can't run m3a: it needs Node 24.2 or later (package.json engines) ...;
+    nothing ran" with a `next:` line, and exits 1. A Node below the engines that has `import.meta.main` (22.18 to
+    24.1) runs, with a one-line warning on stderr: refusing it would break the MCP server under the container's Node
+    22.22, which the hook's PATH (Bash only, through CLAUDE_ENV_FILE) doesn't reach. stdout stays the protocol's.
+  - **Measured** on the packed bin (`npm run pack`, the tarballs installed in a scratch project): Node 20.20.0 and
+    21.7.3 refuse with exit 1 (`m3a version` and `m3a mcp`), 22.22.0 warns and prints the version, 24.21.0 prints it
+    with nothing on stderr. Tests: `packages/tools/test/engine.test.ts` (7: every branch, the entry through a link,
+    ENGINE equal to both package.json engines, the bin on the tests' Node with an empty stderr) and
+    `tools/session/session-start.test.ts` (4: the hook on a scratch project with a stand-in npm).
+- **Why:** a tool that does nothing and exits 0 is the worst way to fail an agent; and a setup step that removes what
+  a running server needs fails it at random. The other repo CLIs keep `if (import.meta.main)`: they run through
+  `npm run`, whose Node the hook puts first on PATH. What would change it: a Node floor the MCP launcher can't miss
+  (an environment setup script that links Node 24 as the default, which the owner can add).
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.54.1

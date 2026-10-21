@@ -2165,6 +2165,28 @@ WP-7.2 is split in two, each an L (D93): its tools, their host and the writers t
 
 **Gate G10 = Milestone M4, The standard in use.**
 
+### After G10: the follow-ups (lane F)
+
+The follow-ups docs/HANDOFF.md recorded after the audit (D119) that need nothing from the owner, each a WP of its own,
+picked by the owner on 2026-10-21. No gate follows them: each is held by its Verify, T0, T1 and T2.
+
+#### WP-F.1 The m3a bin on a Node too old for it, and the session hook's install
+- **Owns:** `packages/tools/src/node/engine.ts`, `packages/tools/test/engine.test.ts`, `tools/session/*`,
+  `.claude/hooks/session-start.sh`
+- **Also touches:** `packages/tools/src/node.ts` (the bin's last lines)
+- **Needs:** G10's commands
+- **Size:** S (about 210 lines with tests)
+- **Build:**
+  - The bin refuses, on stderr with exit 1, a Node without `import.meta.main` when it is the process's entry, rather
+    than doing nothing; a Node below the engines that has it runs with a warning.
+  - The SessionStart hook runs `npm ci` only when node_modules wasn't installed from this lockfile on this Node, so a
+    resume, `/clear` or `/compact` no longer deletes node_modules under the m3a MCP server (D121).
+- **Done when:** the packed bin under Node 20 and 21 says which Node it needs and exits 1 (`m3a version` and
+  `m3a mcp`), under 22.22 warns and runs, under 24 runs with nothing on stderr *(measured once in the session, D121:
+  CI has Node 24 only)*; the hook skips the install on a matching stamp and installs on a changed lockfile, another
+  Node, no node_modules, and after a failed install.
+- **Verify:** `npm test -- packages/tools/test/engine.test.ts tools/session`
+
 ### On demand
 
 Each starts only when its trigger fires; record the measurement that fired it. A trigger that never fires means the WP

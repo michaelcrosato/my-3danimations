@@ -1,6 +1,6 @@
 #!/bin/bash
 # SessionStart hook (WP-0.5, D79): put the Node that package.json's engines field asks for first on PATH, install the
-# pinned dependencies with `npm ci`, fetch by hash the rigs and pinned sources the tests and gates read, and export
+# pinned dependencies with `npm ci` unless they already are (D121), fetch by hash the rigs and pinned sources the tests and gates read, and export
 # CHROMIUM_PATH to the preinstalled Chromium, so `npm run check`, `npm test`, `npm run e2e` and the gates work as soon
 # as a session starts. Idempotent and non-interactive. Never runs `playwright install`: the container has build 1194.
 set -euo pipefail
@@ -33,7 +33,17 @@ if [ "$(version node)" -lt "$need" ]; then
   echo "session-start: warning: node $(node --version) is older than package.json's engines (>=$((need / 1000)).$((need % 1000))) and no newer one was found: the repo's CLIs run under import.meta.main, which needs Node 24.2, and do nothing without it"
 fi
 
-npm ci --no-audit --no-fund --loglevel=error
+# npm ci deletes node_modules before it installs, and the hook runs again on every resume, /clear and /compact while
+# the m3a MCP server (.mcp.json) starts beside it, its imports gone (CONNECTION_CLOSED, D121). So it runs only when
+# node_modules wasn't installed from this package-lock.json on this Node: a stamp records both after a clean install.
+stamp=node_modules/.m3a-installed
+want="$(node -p 'require("crypto").createHash("sha256").update(require("fs").readFileSync("package-lock.json")).digest("hex")') $(node --version)"
+if [ -d node_modules ] && [ "$(cat "$stamp" 2>/dev/null)" = "$want" ]; then
+  echo "session-start: node_modules already installed from package-lock.json on $(node --version): npm ci skipped"
+else
+  npm ci --no-audit --no-fund --loglevel=error
+  echo "$want" > "$stamp"
+fi
 
 chromium=""
 for candidate in "${CHROMIUM_PATH:-}" /opt/pw-browsers/chromium-1194/chrome-linux/chrome /opt/pw-browsers/chromium; do

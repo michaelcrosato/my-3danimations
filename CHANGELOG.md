@@ -4,6 +4,22 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.54.1 · 2026-10-21
+
+WP-F.1 (D121): the m3a bin refuses a Node too old to start it; the session hook stops deleting node_modules under the
+MCP server.
+
+### Tools
+- The `m3a` bin, on a Node without `import.meta.main` (before 22.18 and 24.2), says on stderr which Node it needs and
+  exits 1, where it ran nothing and exited 0; on a Node below the engines that has it (22.18 to 24.1) it runs with a
+  one-line warning on stderr. `m3a mcp`'s stdout stays the protocol's.
+
+### Repo
+- The cloud SessionStart hook runs `npm ci` only when node_modules wasn't installed from this package-lock.json on this
+  Node (a stamp, `node_modules/.m3a-installed`): a resume, `/clear` or `/compact` no longer deletes node_modules while
+  the m3a MCP server starts beside it (its CONNECTION_CLOSED). `tools/session/session-start.test.ts` tests it on a
+  scratch project.
+
 ## 0.54.0 · 2026-10-19
 
 The audit's large items (D119): six built, the rest deferred with their reasons in docs/HANDOFF.md; `AUDIT.md` retired.
