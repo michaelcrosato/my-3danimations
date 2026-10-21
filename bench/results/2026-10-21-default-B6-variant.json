@@ -1,0 +1,211 @@
+{
+ "about": "npm run bench: fresh agents on the briefs (PLAN.md §7); isolation 1 is the claude CLI in a clean workspace",
+ "date": "2026-10-21T17-54-28",
+ "commit": "31418c741a16e52f3cae23f4dfe21e30cd728df7",
+ "dirty": false,
+ "model": "the CLI's default",
+ "fake": false,
+ "need": 4,
+ "parallel": 5,
+ "privateTmp": true,
+ "ownPids": true,
+ "capsDropped": true,
+ "uid": 65534,
+ "unprivileged": true,
+ "variant": {
+  "dir": "bench/results/heldout/G7/run-2/B6",
+  "character": {
+   "seed": 7434
+  }
+ },
+ "B6": {
+  "trials": [
+   {
+    "trial": "B6-1",
+    "pass": true,
+    "failed": [],
+    "agent": {
+     "isolation": 1,
+     "privateTmp": true,
+     "ownPids": true,
+     "capsDropped": true,
+     "uid": 65534,
+     "unprivileged": true,
+     "ok": true,
+     "ms": 40660.764084,
+     "model": "claude-sonnet-5-5",
+     "turns": 14,
+     "tokens": {
+      "input": 28,
+      "output": 3708,
+      "cacheRead": 337536,
+      "cacheWrite": 20134
+     },
+     "costUsd": 0.1514256,
+     "outside": [],
+     "scratch": [],
+     "pastManual": [],
+     "m3a": {
+      "server": "connected",
+      "skill": true,
+      "skills": [
+       "m3a"
+      ]
+     }
+    }
+   },
+   {
+    "trial": "B6-2",
+    "pass": true,
+    "failed": [],
+    "agent": {
+     "isolation": 1,
+     "privateTmp": true,
+     "ownPids": true,
+     "capsDropped": true,
+     "uid": 65534,
+     "unprivileged": true,
+     "ok": true,
+     "ms": 38785.252380000005,
+     "model": "claude-sonnet-5-5",
+     "turns": 7,
+     "tokens": {
+      "input": 14,
+      "output": 1891,
+      "cacheRead": 157164,
+      "cacheWrite": 18707
+     },
+     "costUsd": 0.1094824,
+     "outside": [],
+     "scratch": [],
+     "pastManual": [],
+     "m3a": {
+      "server": "connected",
+      "skill": true,
+      "skills": [
+       "m3a"
+      ]
+     }
+    }
+   },
+   {
+    "trial": "B6-3",
+    "pass": true,
+    "failed": [],
+    "agent": {
+     "isolation": 1,
+     "privateTmp": true,
+     "ownPids": true,
+     "capsDropped": true,
+     "uid": 65534,
+     "unprivileged": true,
+     "ok": true,
+     "ms": 23371.707827999995,
+     "model": "claude-sonnet-5-5",
+     "turns": 8,
+     "tokens": {
+      "input": 16,
+      "output": 1914,
+      "cacheRead": 161401,
+      "cacheWrite": 14606
+     },
+     "costUsd": 0.09373610000000002,
+     "outside": [],
+     "scratch": [],
+     "pastManual": [],
+     "m3a": {
+      "server": "connected",
+      "skill": true,
+      "skills": [
+       "m3a"
+      ]
+     }
+    }
+   },
+   {
+    "trial": "B6-4",
+    "pass": true,
+    "failed": [],
+    "agent": {
+     "isolation": 1,
+     "privateTmp": true,
+     "ownPids": true,
+     "capsDropped": true,
+     "uid": 65534,
+     "unprivileged": true,
+     "ok": true,
+     "ms": 25681.69683,
+     "model": "claude-sonnet-5-5",
+     "turns": 5,
+     "tokens": {
+      "input": 10,
+      "output": 1337,
+      "cacheRead": 97374,
+      "cacheWrite": 18016
+     },
+     "costUsd": 0.0951914,
+     "outside": [],
+     "scratch": [],
+     "pastManual": [],
+     "m3a": {
+      "server": "connected",
+      "skill": true,
+      "skills": [
+       "m3a"
+      ]
+     }
+    }
+   },
+   {
+    "trial": "B6-5",
+    "pass": true,
+    "failed": [],
+    "agent": {
+     "isolation": 1,
+     "privateTmp": true,
+     "ownPids": true,
+     "capsDropped": true,
+     "uid": 65534,
+     "unprivileged": true,
+     "ok": true,
+     "ms": 27744.80474,
+     "model": "claude-sonnet-5-5",
+     "turns": 7,
+     "tokens": {
+      "input": 14,
+      "output": 2406,
+      "cacheRead": 153929,
+      "cacheWrite": 18904
+     },
+     "costUsd": 0.1150969,
+     "outside": [],
+     "scratch": [
+      "/tmp/chk",
+      "/tmp/chk/c.mjs"
+     ],
+     "pastManual": [],
+     "m3a": {
+      "server": "connected",
+      "skill": true,
+      "skills": [
+       "m3a"
+      ]
+     }
+    }
+   }
+  ],
+  "discovery": [],
+  "check": {
+   "trial": "known-good",
+   "pass": true,
+   "failed": [],
+   "agent": {
+    "fake": true
+   }
+  }
+ },
+ "models": [
+  "claude-sonnet-5-5"
+ ],
+ "ms": 60730
+}

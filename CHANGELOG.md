@@ -4,6 +4,93 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.55.1 · 2026-10-21
+
+WP-F.4 (D124): the manual teaches the seven names it didn't, within its 8,000 tokens. WP-F.5 (D125): T1's files share
+their worker's modules.
+
+### Core
+- `actions.proceduralResolver` gives a ready-made gait or idle it kept back on its own rest, not on the equal rest
+  another resolver made it on first (its clip still shared, D125).
+
+### Tools
+- `m3a library status` counts a contributor's submissions by state in the lifecycle's order (submitted, checking,
+  bounced, awaiting review, adopted, archived, rejected), not as their ids happen to sort (D125).
+
+### Docs
+- The manual teaches `LibraryError` (from `@m3a/library`) and its `.code` (`E_TIER`, `E_NO_SET`, `E_NO_CLIP`), and, for
+  a game's own fixed-step sim, the Animator's `step` option, `math.hashValue`, `math.PORTABLE`, `VERSION`,
+  `graph.layersOf` and `graph.clipsOf`, in a block its test runs; its Tools reference is shorter (the MCP command,
+  `npx m3a mcp`, and its `_` names in one line; the `.mcp.json` example gone). 7,998 of 8,000 tokens.
+- docs/MIGRATING.md's gap 10 and the consumer lab's README name only what the manual still doesn't teach
+  (`character`, `variant`, `loadGlb` in a browser); FEEDBACK-LOG's F5.2 and F6.4 taken up.
+
+### Repo
+- The manual's test checks each name the manual gives with its entry against that entry's exports, and its MCP command
+  against the published bin.
+- T1's files share their worker's modules (Vitest's `isolate: false`, D125): 88 s here from 114 to 128, the same tests;
+  the kit's manifest mock is its test's alone (`vi.doMock`, then `vi.doUnmock` and `vi.resetModules`).
+
+## 0.55.0 · 2026-10-21
+
+WP-F.3 (D123): the root-motion rate sweep, every locomotion loop with contacts at 0.5 to 2 on the six sweep bodies,
+gated by a baseline of the 479 rows that fail.
+
+### Tools
+- `npm run sweep -- --rates [<rigs>] [--sample N] [--clip ID] [--check] [--baseline] [--jobs N] [--out <file>]`: the
+  root-motion rate sweep (D123). Every locomotion loop with contacts at 0.5, 0.75, 1, 1.5 and 2 on the six bodies G4
+  sweeps, moved by its root's travel, as `Animator.pose()` poses it (its points, within 1e-6 mm); a row fails on the
+  planted feet's slide or skate past the sensors' fail level on that body or no foot that stands still, warns past a
+  warn level. `--check` against `library/baselines/rates.json` (one it can't read fails at once), `--baseline`
+  rewrites it (replacing one it can't read); worker threads, one a CPU; every row to check-output/sweep/rates.json.
+
+### Library
+- `library/baselines/rates.json`: the 479 rows of the rate sweep that fail (of 24,330: 811 loops × 5 rates × 6
+  bodies), with their reasons; it may only shrink (D123). Its shape: `tools/sweep/rates.schema.json`.
+
+### Repo
+- T2 runs the whole rate sweep against its baseline in a step of its own, "rate sweep in full"
+  (`tools/sweep/rates.test.ts`: its worker threads take every CPU); T1 a sample of 6 loops on gen-0 (D74, D123). `npm run test:changed` runs it for a change under `library/`.
+
+## 0.54.2 · 2026-10-21
+
+WP-F.2 (D122): the six loops D108 left `unplanted` read again; `STYLE100_RUN/OnHeels_Run` planted by its whole sole,
+the other five answered with the numbers that rule each reading out.
+
+### Core
+- `measureFacts` (D122): in place, on a loop on its feet, when the refinement and `reread` leave no contact, the feet
+  are read by their whole sole again and refined by the velocity they give, kept with their travel only when both feet
+  plant for a fifth of the loop: a run on its heels whose toes the default points catch only into each swing.
+
+### Sensors
+- The baseline reads `STYLE100_RUN/OnHeels_Run` on its contacts: slide 0 → 43.9 mm, skate 0 → 7.65 cm/s, skateMean 0
+  → 12.4 (pass, as before); the distributions' skate p50 5.3 → 5.31 and skateMean p50 4.73 → 4.75 by D122.
+
+### Library
+- `STYLE100_RUN/OnHeels_Run` carries contacts, a step a foot (the planter holds them within 3.4% of H0; its ground
+  speed 1.14 H0/s, 0.90 of its captured 1.27), and the travel they give ([77.2, 10.3], from [23.1, −12.4]):
+  STYLE100_RUN v2 in the registry index. The other five `unplanted` loops keep none, their answers in
+  `library/baselines/qa.json` rewritten with the numbers that rule each reading out. QA 1,014 pass, 230 warn, 154 fail.
+
+### Docs
+- docs/LIBRARY.md: the library's skate p50 5.31.
+
+## 0.54.1 · 2026-10-21
+
+WP-F.1 (D121): the m3a bin refuses a Node too old to start it; the session hook stops deleting node_modules under the
+MCP server.
+
+### Tools
+- The `m3a` bin, on a Node without `import.meta.main` (before 22.18 and 24.2), says on stderr which Node it needs and
+  exits 1, where it ran nothing and exited 0; on a Node below the engines that has it (22.18 to 24.1) it runs with a
+  one-line warning on stderr. `m3a mcp`'s stdout stays the protocol's.
+
+### Repo
+- The cloud SessionStart hook runs `npm ci` only when node_modules wasn't installed from this package-lock.json and
+  these package.json files on this Node (a stamp, `node_modules/.m3a-installed`): a resume, `/clear` or `/compact` no longer deletes node_modules while
+  the m3a MCP server starts beside it (its CONNECTION_CLOSED). `tools/session/session-start.test.ts` tests it on a
+  scratch project, and `npm run test:changed` runs that test for a change to the hook.
+
 ## 0.54.0 · 2026-10-19
 
 The audit's large items (D119): six built, the rest deferred with their reasons in docs/HANDOFF.md; `AUDIT.md` retired.

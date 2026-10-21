@@ -113,7 +113,8 @@ Acted on in D100 and D101; these points were not:
   mostly tests. A third source for the theme (F1, F4, F5): 8.2 and 9.1 are measured before they start. **Taken up in v0.51.0 and
   v0.52.0** (D109, D112).
 - **F5.2** (deferred) The manual doesn't say which package exports `LibraryError` or that its code is on `.code`; at
-  7,998 of 8,000 tokens it has no room. Take it up with the next manual change, cutting first.
+  7,998 of 8,000 tokens it has no room. Take it up with the next manual change, cutting first. **Taken up in v0.55.1**
+  (D124): Find's Tiers sentence names `@m3a/library` and the codes `E_TIER`, `E_NO_SET`, `E_NO_CLIP`.
 - **F5.3** (deferred) T2 doesn't run `npm run pack -- --check` or load `m3a.js` in Chromium; G7's set runs pack
   --check. Take it up if a packaging change slips between gates. **Taken up in v0.53.1** (D118): T2 loads `m3a.js` in
   Chromium.
@@ -135,7 +136,8 @@ acted on (D119 took up or deferred each):
 - **F6.3** (the intake's cost, deferred) Each checker run rebuilds the census over the whole library, about 1 s on the
   runner's event loop (WP-9.1b's review). **Taken up in v0.54.0** (D119): later runs sample only what is new.
 - **F6.4** (the manual's budget, watch) The manual, at 7,999 of 8,000 tokens, can't teach the names the consumer lab
-  uses beyond it (D116, MIGRATING gap 10).
+  uses beyond it (D116, MIGRATING gap 10). **Taken up in v0.55.1** (D124): the manual teaches six of them, cutting its Tools
+  reference, at 7,998 of 8,000.
 - **F6.5** (WP sizes, reached) WP-8.2 came to 3,023 lines and was split, 9.1 to about 2,800 (split), 9.4 to 683 (past
   S) and 10.2 to about 1,400 (past M).
 

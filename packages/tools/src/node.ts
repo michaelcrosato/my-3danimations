@@ -8,7 +8,8 @@
 // `m3a mcp`: one JSON-RPC message per line each way, nothing else on stdout, and an exit when stdin ends. Both keep an
 // edit's request_id results in .m3a/requests/, so a retry in another process applies once. `m3a review` gets its intake
 // store under .cache/intake/ and the checkout's writer from ./node/intake.ts (WP-8.2a); a source's clips that may not
-// enter the intake are written under library/local/ by ./node/local-lane.ts (WP-9.2).
+// enter the intake are written under library/local/ by ./node/local-lane.ts (WP-9.2). A Node too old to start the bin
+// says so and exits 1 (./node/engine.ts, WP-F.1).
 import { readFileSync, statSync, unlinkSync } from "node:fs";
 import { relative, resolve, sep } from "node:path";
 import { createInterface } from "node:readline";
@@ -17,6 +18,7 @@ import { LIMITS } from "@m3a/io";
 import { png } from "@m3a/sensors/node";
 import { runCli } from "./cli.ts";
 import { mcpServer, type McpServer } from "./mcp.ts";
+import { engineCheck, isEntry } from "./node/engine.ts";
 import { errno, lockFile, shown, under, writable, writeAtomic } from "./node/files.ts";
 import { nodeContributor, nodeReviewHost } from "./node/intake.ts";
 import { libraryAccess } from "./node/library.ts";
@@ -125,4 +127,10 @@ export async function main(argv: readonly string[], tools: readonly Tool[] = TOO
   return 0;
 }
 
-if (import.meta.main) process.exitCode = await main(process.argv.slice(2));
+// A Node without import.meta.main (before 22.18 and 24.2) is told so on stderr and exits 1, rather than doing nothing
+// (./node/engine.ts, D121).
+const isMain = (import.meta as { main?: boolean }).main;
+const engine = engineCheck(process.versions.node, isMain, isMain === undefined && isEntry(import.meta.url, process.argv[1]));
+if (engine.message) process.stderr.write(engine.message);
+if (engine.exitCode !== undefined) process.exitCode = engine.exitCode;
+if (engine.run) process.exitCode = await main(process.argv.slice(2));

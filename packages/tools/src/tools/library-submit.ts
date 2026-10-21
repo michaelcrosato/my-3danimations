@@ -14,7 +14,7 @@
 import { format, recipe as recipes, serialize, validate, validation, type Clip, type Rest } from "@m3a/core";
 import { capturedSpeed, catalogRow, LibraryError, measureClipFacts, ROW_BUDGET, tagConflicts, tierOf, type Library, type Tier, type Tokens } from "@m3a/library";
 import { checks, describe, metrics } from "@m3a/sensors";
-import { contentHash, IntakeError, MAX_BYTES, motionHash, type IntakeStore, type Kind, type Submission } from "../intake/index.ts";
+import { contentHash, IntakeError, MAX_BYTES, motionHash, STATES, type IntakeStore, type Kind, type Submission } from "../intake/index.ts";
 import { defineTool, ToolError, type LibraryAccess, type Tool, type ToolContext } from "../registry/registry.ts";
 import { allowlisted } from "../sources/deliver.ts";
 import { restFor } from "./clips.ts";
@@ -430,7 +430,8 @@ async function status(a: Args, c: Contributor) {
   const mine = a.on ? [await c.store.get(a.on)].filter((s): s is Submission => s !== null) : await c.store.list();
   if (a.on && !mine.length) throw new ToolError("E_NO_SUBMISSION", `no submission ${JSON.stringify(cut(a.on, 40))} of yours in the ${c.store.backend} store`, true, { next: `${call("library", ["status"])} lists yours` });
   const who = mine[0]?.contributor ?? null, shown = capped(mine, 12), gates = a.on ? ((mine[0]!.report as { gates?: Gate[] } | null)?.gates ?? []) : [];
-  const states = [...new Set(mine.map((s) => s.state))].map((st) => `${mine.filter((s) => s.state === st).length} ${st}`).join(", ");
+  // each state counted in the lifecycle's order (STATES), not as the ids happen to sort
+  const states = STATES.filter((st) => mine.some((s) => s.state === st)).map((st) => `${mine.filter((s) => s.state === st).length} ${st}`).join(", ");
   return {
     verdict: `library status: ${a.on ? line(mine[0]!) : `${count(mine.length, "submission")}${states ? ` (${states})` : ""}`} (${c.store.backend} store)`,
     data: { do: "status", store: c.store.backend, contributor: who, submissions: shown.rows.map(row), gates, sent: false },

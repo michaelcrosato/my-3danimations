@@ -52,6 +52,7 @@ why. This file is how.
 | `npm run library -- lock \| check [--since <ref>] \| list [--tiers ...]` | | the library's lock and ids, and the sets a game sees (WP-5.1) | |
 | `npm run license -- check <library \| SET \| game.json>` | | licenses against their tiers, the texts kept, a game's credits (WP-5.7) | |
 | `npm run sweep -- <rig ids> [--heldout G<n>] [--min-total P] ...` | | every clip on each skeleton and the pass rates (WP-4.5) | |
+| `npm run sweep -- --rates [<rig ids>] [--sample N] [--check] [--baseline]` | | every locomotion loop with contacts at 0.5 to 2 on the six bodies, moved by its root's travel; `--check` fails on a failing row not in `library/baselines/rates.json` (`--baseline` rewrites it, in a commit that says why); T1 samples it, T2 runs it whole (D123) | |
 | `npm run sim -- <graph> --input <script> [--expect <trace>] [--write]` | | a game's input script on a graph: trace, travel, sensors, filmstrip (WP-6.5) | |
 | `npm run pack [-- --check] [--publishable]` | | the packs and `m3a.js` into `.cache/pack/`; `--check` proves them (WP-7.4) | |
 | `npm run intake -- check \| adopt --dry-run \| gates` | | the intake's checker, the adopt bot's dry run, the library's PR gates (WP-9.1) | |
@@ -61,8 +62,8 @@ why. This file is how.
 
 A tool warns when a tier runs over budget and fails it at 1.5×. Never skip a test to get green; a test that waits on
 wall-clock time is a bug. In cloud sessions the SessionStart hook puts Node 24 first on `PATH` when the default is
-older, runs `npm ci`, exports `CHROMIUM_PATH` and fetches the rigs and the pinned sources by hash (D79); never run
-`playwright install`.
+older, runs `npm ci` unless node_modules was installed from this lockfile on this Node (D121), exports `CHROMIUM_PATH`
+and fetches the rigs and the pinned sources by hash (D79); never run `playwright install`.
 
 ## Work rules (`PLAN.md` §8)
 

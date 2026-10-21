@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "m3a root-motion rate sweep baseline (library/baselines/rates.json)",
+  "description": "The rows of the root-motion rate sweep that fail (D123, tools/sweep/rates.ts): each locomotion loop with contacts played at each rate on each body, moved by its root's travel. npm run sweep -- --rates --check fails on a failing row not here; --baseline rewrites it from a whole run.",
+  "type": "object",
+  "required": ["rates", "rigs", "loops", "failing"],
+  "additionalProperties": false,
+  "properties": {
+    "about": { "type": "string" },
+    "rates": { "type": "array", "minItems": 1, "items": { "type": "number", "exclusiveMinimum": 0 } },
+    "rigs": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+    "loops": { "type": "integer", "minimum": 0 },
+    "failing": {
+      "type": "object",
+      "propertyNames": { "pattern": "^\\S+/\\S+ \\S+ \\d+(\\.\\d+)?$" },
+      "additionalProperties": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } }
+    }
+  }
+}

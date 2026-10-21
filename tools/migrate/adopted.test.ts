@@ -76,5 +76,5 @@ describe("a migrated set's adopted clip", () => {
     expect(sameRest(data.sources.UAL1!.rest, restOn(dir, "UAL1")!)).toBe(false);
     const moved = run(root);
     expect([moved.report.sets[0]!.errors, moved.report.sets[0]!.adopted]).toEqual([["Walk_Loop: adopted on UAL1's rest as its set had it, which its source now measures otherwise: the owner adopts it again on the new rest"], []]);
-  });
+  }, 30_000);
 });

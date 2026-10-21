@@ -2165,6 +2165,125 @@ WP-7.2 is split in two, each an L (D93): its tools, their host and the writers t
 
 **Gate G10 = Milestone M4, The standard in use.**
 
+### After G10: the follow-ups (lane F)
+
+The follow-ups docs/HANDOFF.md recorded after the audit (D119) that need nothing from the owner, each a WP of its own,
+picked by the owner on 2026-10-21. No gate follows them: each is held by its Verify, T0, T1 and T2.
+
+#### WP-F.1 The m3a bin on a Node too old for it, and the session hook's install
+- **Owns:** `packages/tools/src/node/engine.ts`, `packages/tools/test/engine.test.ts`, `tools/session/*`,
+  `.claude/hooks/session-start.sh`
+- **Also touches:** `packages/tools/src/node.ts` (the bin's last lines)
+- **Needs:** G10's commands
+- **Size:** S (about 210 lines with tests)
+- **Build:**
+  - The bin refuses, on stderr with exit 1, a Node without `import.meta.main` when it is the process's entry, rather
+    than doing nothing; a Node below the engines that has it runs with a warning.
+  - The SessionStart hook runs `npm ci` only when node_modules wasn't installed from this lockfile on this Node, so a
+    resume, `/clear` or `/compact` no longer deletes node_modules under the m3a MCP server (D121).
+- **Done when:** the packed bin under Node 20 and 21 says which Node it needs and exits 1 (`m3a version` and
+  `m3a mcp`), under 22.22 warns and runs, under 24 runs with nothing on stderr *(measured once in the session, D121:
+  CI has Node 24 only)*; the hook skips the install on a matching stamp and installs on a changed lockfile, another
+  Node, no node_modules, and after a failed install.
+- **Verify:** `npm test -- packages/tools/test/engine.test.ts tools/session`
+
+#### WP-F.2 Contacts for the six `unplanted` loops
+- **Owns:** `packages/core/src/clip/facts.ts` (`bySole`), `packages/core/test/clip.test.ts`, `library/baselines/qa.json`
+  (`unplanted`), `library/sets/STYLE100_RUN/` (through `npm run import`), and what the writers and QA write from them:
+  `library/sets.lock.json`, `library/index.json`, `packages/sensors/fixtures/baseline.json`,
+  `library/baselines/distributions.json`, `docs/LIBRARY.md`
+- **Also touches:** `tools/qa/library.test.ts` (the off-feet check's count, 6 answers to 5)
+- **Needs:** G10's commands (D108's fallbacks)
+- **Size:** S (78 new lines with tests: 25 in core, 48 of tests, 5 of reasons; the clip, lock, index and baselines
+  written by their tools)
+- **Build:**
+  - Each of the six loops D108 answered `unplanted` given the contacts the planter can hold (D108's bar: the planted
+    ankle's pull within 10% of H0, both feet plant, a foot down for a fifth of the loop), preferring the reading whose
+    ground speed agrees with the captured speed; a loop no reading holds keeps none, its answer sharpened with the
+    numbers. Decided per clip by measurement (D122).
+  - Core's `measureFacts`: in place, on its feet, when every reading leaves no contact, the whole sole again, refined
+    by the planted feet's velocity it gives, kept with its travel only when it stands (`bySole`).
+- **Done when:** `STYLE100_RUN/OnHeels_Run` carries a contact a foot, which the planter holds within 5% of H0, its
+  ground speed within 15% of its captured 1.27 H0/s and its travel within 5%; no other library clip's facts or
+  contacts move; the five others read none, each answered with the numbers its test pins; every mutant of the new
+  fallback is killed by a named test; the sensors' verdicts don't move; the judge over the changed clip on the six
+  sweep skeletons adds no fail; B1's known-good passes in full.
+- **Verify:** `npm run facts -- --check`, `npm run qa -- --check`, `npm run qa -- library --check`,
+  `npm run index -- --check`, `npm run test:full -- packages/core/test/clip.test.ts packages/core/test/contact-gaits.test.ts bench/graders/B1`,
+  `npm test -- tools/qa/library.test.ts tools/release`,
+  `npm run sweep -- gen-0 gen-1 gen-2 gen-3 quaternius-mannequin-m kaykit-knight --clip STYLE100_RUN/OnHeels_Run`,
+  `npm run import -- --set STYLE100_RUN --check` (it fetches the 1.47 GB 100STYLE archive into `.cache/100style` once)
+
+#### WP-F.3 The root-motion rate sweep
+- **Owns:** `tools/sweep/rates.ts`, `tools/sweep/rates-cli.ts`, `tools/sweep/rates-worker.ts`,
+  `tools/sweep/rates.test.ts`, `tools/sweep/rates.schema.json`, `library/baselines/rates.json`; the `--rates` mode of
+  `tools/sweep/main.ts`; its line in `tools/run/e2e.ts`'s `SWEEPS` (shared: the T2 registry)
+- **Needs:** D106 (the follow-up), D108 (the contacts it plays), D74 and D119 (T1 samples, T2 in full)
+- **Size:** M (584 new lines, tests included: rates.ts 322, rates-cli.ts 80, rates-worker.ts 7, rates.test.ts 139,
+  rates.schema.json 19, main.ts and e2e.ts 17; plus the generated baseline, 487 lines of data)
+- **Build:**
+  - A sweep that plays every locomotion loop with contacts that travels (looping, tagged walk, run, sidestep, strafe
+    or turn, its facts' speed at least 0.05 H0/s) at the rates 0.5, 0.75, 1, 1.5 and 2 on the six bodies G4 sweeps
+    (gen-0 to gen-3, Quaternius' mannequin, KayKit's knight), moved by root motion as `player.travel` moves it, the
+    sensors run on what it plays: B1's "planted feet don't slide" and "a foot stands still", per row (one loop at one
+    rate on one body).
+  - The fail rule, decided and written down (D123), with the distribution it was read from.
+  - A baseline of the failing rows (`library/baselines/rates.json`, its schema and a validator), gated against: a
+    failing row not in it fails; a baselined row that passes now is reported; `--baseline` rewrites it.
+  - `npm run sweep -- --rates [<rigs>] [--sample N] [--clip ID] [--check] [--baseline] [--jobs N] [--out <file>]`: a
+    flag on the existing script, no new npm script; worker threads, one a CPU.
+  - T1 samples it (6 loops on gen-0 through the CLI); T2 runs it whole in a step of its own, "rate sweep in full"
+    (M3A_FULL=1): beside the sweeps' workers its threads starved a 5 s test on CI's 4 CPUs.
+- **Done when:**
+  1. Every locomotion loop with contacts is played at each rate on each of the six bodies, as `Animator.pose()` poses
+     it, moved by its root's travel.
+  2. The fail rule is a decision with its reasons and the measured distribution (D123).
+  3. The baseline holds every failing row of a whole run, and the gate fails on a failing row outside it and reports
+     a baselined row that passes.
+  4. The rule's edges are tested: a planted pair that must fail (B1's skater), a passing pair, a warning pair, a pair
+     that fails at an extreme rate alone, a baselined failure, a baselined pair that improved, the baseline's shape.
+  5. T1 runs a sample in a few seconds; T2 runs the whole sweep; regenerating the baseline is one command.
+  6. T0 is clean for the lane's files.
+- **Verify:** `npm run check`; `npx vitest run tools/sweep/rates.test.ts tools/sweep/sweep.test.ts`;
+  `npm run test:full -- tools/sweep/rates.test.ts`; `npm run sweep -- --rates --check`
+
+#### WP-F.4 The manual teaches the names it doesn't
+- **Owns:** `packages/tools/MANUAL.md`, `packages/tools/test/manual.test.ts`
+- **Needs:** WP-7.3 (the manual and its test), G7 (the briefs' evidence the manual must keep)
+- **Size:** S: 49 new lines (the manual +32 −29, its test +17 −4)
+- **Carry:** none
+- **Build:**
+  - The manual teaches F5.2's `LibraryError` (the entry that exports it, its `.code` values) and MIGRATING.md gap 10's
+    `VERSION`, `math.PORTABLE`, `math.hashValue`, `graph.layersOf`, `graph.clipsOf` and the Animator's `step` option:
+    what each is, when an agent reaches for it, its exact form, each form run and type-checked by the manual's test.
+  - The room comes from cutting text no brief's job draws on; the budget stays 8,000.
+  - The test holds the new claims: each name the prose gives with its entry is that entry's export, and the MCP command
+    the prose gives runs the installed package's bin (the check the `.mcp.json` block had).
+- **Done when:**
+  - the manual names and shows all seven, its ts blocks running and type-checking the six code forms;
+  - the manual is at most 8,000 cl100k tokens;
+  - every rule B1 to B8 use is kept, word for word where a decision records it;
+  - the briefs that read the changed sections are listed with why and their pass bars, and each re-run with real
+    agents reaches its bar (G7's 4 of 5; B8-ten its one trial): 83 of 83 trials passed (D124).
+- **Verify:** `npm run doctrine && npx vitest run packages/tools/test/manual.test.ts tools/skill/skill.test.ts
+  tools/bundle/bundle.test.ts tools/doctrine/doctrine.test.ts && node tools/manual/main.ts --check && npm run check &&
+  npm run pack -- --check`; `npm run bench -- B<n> --trials 5 --parallel 5` and `--heldout G7` for B1 to B7, B8 with
+  `--heldout G9`, `B8-ten --trials 1`
+
+#### WP-F.5 T1's headroom in CI
+- **Owns:** `vitest.config.ts`, `spec/conformance/kit/pinned.test.ts`
+- **Also touches:** `packages/tools/src/tools/library-submit.ts` (`status` counts states in `STATES`' order: the version
+  bump reordered the intake fixtures' ids, D125); `packages/core/src/actions/compile.ts` and its test (a kept
+  procedural part given back on the resolver's own rest: shared modules found it, D125)
+- **Needs:** G10's commands
+- **Size:** S (about 30 lines)
+- **Trigger:** CI's T1 over 110 s; it read 126.1 s of its 135 s mark on `main` at 957bf51 (D125)
+- **Build:** T1 back under its CI mark with room to grow: the files T1 runs share their worker's modules rather than
+  importing the packages again for each (Vitest's `isolate: false`), the tests that relied on a fresh module fixed;
+  or, failing that, the heaviest full-sweep cases moved to T2 as D74 and D119 did.
+- **Done when:** T1 passes three times with its files shuffled; CI's T1 on the pull request's head is under 110 s.
+- **Verify:** `npm test` (and CI's T1 time on the pull request)
+
 ### On demand
 
 Each starts only when its trigger fires; record the measurement that fired it. A trigger that never fires means the WP
@@ -2354,6 +2473,11 @@ commits named here are on their PR branches (`refs/pull/<n>/head`).
 | 10.1 The TypeScript consumer proof | done | 0.53.0 | fc43fc1, c55ddb8; fixes 8c76260, 6e1a7e9, af91f06 | 2026-10-19 | `npm run e2e -- consumer-ts`: 4 passed (46.0 s): a my-3dge-shaped duel on the public API (three.js r182, a fixed 60 Hz sim on my-3dge's frame clock, two humanoids on one graph, a `hit` event, root motion); the page plays as Node step by step (every event, hit, place, hp and hash), the hero on `sim.simulate`'s root path to a micron at every step (4.84 m), the page's own frame loop on a held clock, the hash the same posed or not; six mutants of the lab fail it. docs/MIGRATING.md: my-3dge's WPs 3.4–3.7 and 8.1–8.10 each replaced, wrapped or kept, the others replaced named (WP-10.8's Library Lab in part), 40 of 40 API calls run as written; proposing the switch is O9; about 850 lines, M; verifier review fixed (D116) |
 | 10.2 The conformance kit | done | 0.53.0 | 305ca06, 40e92a0, b97034d, 63bc0f6, 8c268ea; fixes 833fbe4, a0b8802, 6097d27, 4b61f30 | 2026-10-19 | `npm run conformance -- --impl ts`: tiers 1a, 1b, 2 and 3 certified, 3,662 cases in 7.8 s (m3a-conformance/1, the vectors' manifest named); the broken implementation fails each of its ten defects naming the vector (a rounded fit, swapped wrists, NaN or strings at zero, hidden long legs, sunk soles, an echo, a bare hello, a null line, a hang); every answer schema-checked, a deadline a request; CERTIFYING.md: shardfall's Rust codec certifies tiers 1a and 2 now, 1b after its glTF reader's look, a proposal (O9); about 1,400 lines, past M; verifier review fixed (D116) |
 | **G10 = M4** | blocked-owner (its commands passed, run 1) | 0.53.0 | 95af62d | 2026-10-19 | run 1, 8 of 8 in 537.5 s (D117, `bench/results/gates/G10-run-1/`): check, T1 109.1 s, doctrine, vectors, the TypeScript implementation certified through the kit's runner (tiers 1a, 1b, 2, 3; 3,662 cases; `certification.json`), the consumer proof's e2e, `pack --check`, T2 352.4 s. Open: another repository consumes the package or certifies against the vectors, and the owner confirms it (O9: my-3dge's switch in docs/MIGRATING.md and shardfall's certification in spec/conformance/CERTIFYING.md proposed, never acted on; asked on michaelcrosato/my-3danimations#17) |
+| F.1 The m3a bin and the session hook's install | done | 0.54.1 | 7615ea9, 2467b82; review fixes 5c348a8 | 2026-10-21 | `npm test -- packages/tools/test/engine.test.ts tools/session`: 11 tests; the packed bin under Node 20.20 and 21.7 says which Node it needs and exits 1 (`m3a version`, `m3a mcp`), under 22.22 warns and runs, under 24.21 runs with nothing on stderr; the MCP server's CONNECTION_CLOSED was the hook's `npm ci` deleting node_modules on each start, resume and `/compact`, not Node 22 (D121); the hook twice in the checkout: 10 s, then 2 s with `npm ci` skipped |
+| F.2 Contacts for the six `unplanted` loops | done | 0.54.2 | 7e7681d | 2026-10-21 | `npm run facts -- --check` 0 stale (OnHeels_Run the one clip that moved); `bySole` in core: `STYLE100_RUN/OnHeels_Run` a step a foot, the planter's pull 3.35% of H0, ground speed 0.90 and travel 0.97 of its captured 1.27 H0/s; the other five keep none, answered with the numbers (D122); 4 of 4,965 retimed readings change, all its own; QA verdicts unchanged (1,014/230/154); the judge on six skeletons 6/6; B1's known-good 11/11; nine mutants killed; B1 with real agents 5/5, discovery 2/2, its G7 variant 5/5 |
+| F.3 The root-motion rate sweep | done | 0.55.0 | c74a865; its T2 step 31418c7; review fixes 5c348a8 | 2026-10-21 | `npm run sweep -- --rates --check`: 811 loops × 5 rates × 6 bodies, 24,330 rows in 92 s; 22,892 pass, 959 warn, 479 fail (2.0%), each held in `library/baselines/rates.json`, 0 outside it; the fail rule the sensors' fail levels and "a foot stands still", every rate alike (D123); T1's sample 5.2 s, in T2 a step of its own (109.5 s in CI, whose T2 is 525.2 s of 480: a warning); D106's keyed runs pass in steady state (B1's floor at y = 0 and the fade, a follow-up) |
+| F.4 The manual's untaught names | done | 0.55.1 | 6d1ac91 | 2026-10-21 | `npm run doctrine`: the manual 7,998 of 8,000 (7,999 before); `manual.test.ts` 9 passed: `LibraryError` (from `@m3a/library`) and `.code`, `VERSION`, `math.PORTABLE`, `math.hashValue`, `graph.layersOf`, `graph.clipsOf` and the Animator's `step` taught, in a block it runs; Tools −151 tokens; the briefs' sections word for word (D124); `pack --check` passes; the briefs re-run with real agents (`bench/results/2026-10-21-*`, the packages at 2467b82 and 31418c7): B1 5/5 (discovery 2/2), B2 to B7 5/5 each, every G7 held-out variant 5/5, B8 5/5, its G9 variant 5/5, B8-ten 1/1: 83 of 83 trials, $13.36 |
+| F.5 T1's headroom in CI | done | 0.55.1 | 64d1358; the cache leak 5c348a8 | 2026-10-21 | trigger: CI's T1 126.1 s of 135 on main at 957bf51; `isolate: false`: `npm test` 88.0 s here (1,244 passed), from 114 to 128 s, the same tests; files shuffled three times 103, 97, 95 s, no failure between files; the kit's mock scoped to its test; `library status` counts states in their order; CI's grouping found a second leak, a kept procedural part on another resolver's rest, fixed (D125); CI's T1 on #20 79.1 s (from 126.1), 1,244 passed |
 
 ---
 

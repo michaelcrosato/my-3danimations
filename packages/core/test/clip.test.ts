@@ -126,11 +126,13 @@ describe("contacts", () => {
   });
   // D104, narrowed by D108: the library loops that had no contact. A keyed run in place whose planted foot drifts too
   // fast for the world refinement is read again with still at half the body's speed, kept when both feet plant; a body
-  // on its heels is read by its whole sole; a one-shot, a clip with its own root, a clip tagged off its feet and a loop
-  // only one foot of which holds still keep the strict reading, none.
-  /** The planter's largest ankle pull over two cycles (mm): where it holds a planted foot against where the motion has it. */
-  const pull = (clip: Clip, R: Rest) => {
-    const m = motionOf(clip, R, measureFacts(clip, R).contacts);
+  // on its heels is read by its whole sole, and so is a run on its heels once every other reading is erased (D122); a
+  // one-shot, a clip with its own root, a clip tagged off its feet and a loop only one foot of which holds still keep
+  // the strict reading, none.
+  /** The planter's largest ankle pull over two cycles (mm), planting `contacts` (the measured ones unless given): where
+   *  it holds a planted foot against where the motion has it. */
+  const pull = (clip: Clip, R: Rest, contacts = measureFacts(clip, R).contacts) => {
+    const m = motionOf(clip, R, contacts);
     let most = 0;
     for (let t = 0; t <= 2 * clip.dur; t += 1 / 60) {
       const X = plant(m, t), Y = m.points(t);
@@ -153,7 +155,7 @@ describe("contacts", () => {
     expect(Math.abs((contactRoot(clip, R, c).speed * 100) / R.H0 / 123 - 1)).toBeLessThan(0.05);
   });
   it("every loop the fallbacks give contacts plants them where the planter holds the feet within 10% of H0", () => {
-    for (const id of ["MESH2MOTION/Run_Female", "STYLE100_BACKRUN/Waving_RunBack", "STYLE100_IDLE/OnHeels_Idle", "STYLE100_SIDE/OnHeels_SideLeft", "STYLE100_SIDE/OnHeels_SideRight"]) {
+    for (const id of ["MESH2MOTION/Run_Female", "STYLE100_BACKRUN/Waving_RunBack", "STYLE100_IDLE/OnHeels_Idle", "STYLE100_SIDE/OnHeels_SideLeft", "STYLE100_SIDE/OnHeels_SideRight", "STYLE100_RUN/OnHeels_Run"]) {
       const { clip, R } = libClip(id);
       expect(pull(clip, R) / R.H0, id).toBeLessThan(0.1);
     }
@@ -169,12 +171,49 @@ describe("contacts", () => {
     const left = libClip("STYLE100_SIDE/OnHeels_SideLeft");
     expect(measureFacts(left.clip, left.R).travel).toEqual([7.8, -54.5]);
   });
+  it("a run on its heels, its toes 5 to 6% of H0 up, is read again by its whole sole: a step a foot, held within 5% of H0, its ground speed within 15% of its captured one and its travel within 5%", () => {
+    const { clip, R } = libClip("STYLE100_RUN/OnHeels_Run"), f = measureFacts(clip, R), c = f.contacts, captured = (clip.facts as { speed: number }).speed;
+    expect(captured).toBe(127);
+    // ankle, ball and toe see both feet down at some point (so the sole fallback for no contact at all doesn't read it)
+    const toes = detectContacts(clip, R);
+    expect([toes.footL?.length, toes.footR?.length]).toEqual([1, 1]);
+    expect(c).toEqual(clip.contacts);
+    expect([c.footL?.length, c.footR?.length]).toEqual([1, 1]);
+    expect(pull(clip, R) / R.H0).toBeLessThan(0.05);
+    expect(Math.abs((contactRoot(clip, R, c).speed * 100) / R.H0 / captured - 1)).toBeLessThan(0.15);
+    expect(f.travel).toEqual((clip.facts as { travel?: number[] }).travel);
+    expect(Math.abs(Math.hypot(...f.travel!) / clip.dur / captured - 1)).toBeLessThan(0.05);
+    // tagged off its feet, played once, or under a root of its own that stands still, it keeps the strict reading
+    expect(measureFacts({ ...clip, tags: ["fly"] }, R).contacts).toEqual({ by: "detected" });
+    expect(measureFacts({ ...clip, loop: false }, R).contacts).toEqual({ by: "detected" });
+    expect(measureFacts({ ...clip, keys: clip.keys.map((k) => ({ ...k, root: [0, 0] })) }, R).contacts).toEqual({ by: "detected" });
+  });
+  it("the sole reads again only a loop nothing else plants: a run, a run backward, a walk and a run on its heels' backward twin keep the contacts their files hold", () => {
+    for (const id of ["MESH2MOTION/Run_Female", "STYLE100_BACKRUN/Waving_RunBack", "QUATERNIUS_3D2DGE/Walk_Loop", "STYLE100_BACKRUN/OnHeels_RunBack"]) {
+      const { clip, R } = libClip(id);
+      expect(clip.contacts?.footL ?? clip.contacts?.footR, id).toBeTruthy();
+      expect(measureFacts(clip, R).contacts, id).toEqual(clip.contacts);
+    }
+  });
   it("a loop whose feet the planter can't hold has none: a run on the spot under its own root, a stance or walk one foot of which holds still", () => {
     const run = libClip("MESH2MOTION/Run_Anime");
     expect(measureFacts(run.clip, run.R).contacts).toEqual({ by: "detected" });
-    for (const id of ["CMU_CURATED/Boxing_Guard_Loop", "STYLE100/WideLegs_Walk", "STYLE100_BACKRUN/Drunk_RunBack"]) {
+    for (const id of ["MESH2MOTION/Run_Stealth", "CMU_CURATED/Boxing_Guard_Loop", "STYLE100/WideLegs_Walk", "STYLE100_BACKRUN/Drunk_RunBack"]) {
       const { clip, R } = libClip(id);
       expect(measureFacts(clip, R).contacts, id).toEqual({ by: "detected" });
+    }
+  });
+  it("each loop still without contacts is answered in library/baselines/qa.json, with the planter's pull on the feet the height pass finds and, captured, the ground speed they give (D122)", () => {
+    const unplanted = JSON.parse(readFileSync(join(LIB, "../baselines/qa.json"), "utf8")).unplanted as Record<string, string>;
+    // the loop, the planter's pull on the height pass's contacts (of H0), and against its captured speed the ground speed they give
+    const unheld: [string, number, number?][] = [["CMU_CURATED/Boxing_Guard_Loop", 0.16], ["MESH2MOTION/Run_Anime", 1.48], ["MESH2MOTION/Run_Stealth", 1.25], ["STYLE100/WideLegs_Walk", 0.13, 0.94], ["STYLE100_BACKRUN/Drunk_RunBack", 0.3, 0.61]];
+    expect(Object.keys(unplanted).sort()).toEqual(unheld.map(([id]) => id));
+    for (const [id, most, ground] of unheld) {
+      const { clip, R } = libClip(id), heights = detectContacts(clip, R);
+      expect(unplanted[id], id).toMatch(/\(D108, D122\)$/);
+      expect(heights.footL?.length && heights.footR?.length, id).toBeTruthy();
+      expect(Math.abs(pull(clip, R, heights) / R.H0 - most), id).toBeLessThan(0.01);
+      if (ground !== undefined) expect(Math.abs((contactRoot(clip, R, heights).speed * 100) / R.H0 / (clip.facts as { speed: number }).speed - ground), id).toBeLessThan(0.01);
     }
   });
   it("a one-shot with no contact keeps none and plays still: jump starts, slides with and without root motion, attacks", () => {

@@ -1,8 +1,8 @@
 # m3a: character animation for agents
 
 m3a plays humanoid motion clips on any humanoid character, in a game or headless. Clips, recipes and graphs are JSON;
-the runtime is deterministic; the sensors measure motion as numbers (and PNGs) without a display. Every capability is
-also a tool: `m3a <tool>`, or MCP (Tools).
+the runtime is deterministic; the sensors measure motion as numbers without a display. Every capability is also a tool:
+`m3a <tool>`, or MCP (Tools).
 
 ## The packages
 
@@ -11,7 +11,7 @@ also a tool: `m3a <tool>`, or MCP (Tools).
 - `@m3a/three` (peer three r182): binds a three.js character, writes its bones; `loadGlb` (from
   `@m3a/three/test-characters`) reads a .glb in Node.
 - `@m3a/sensors`: metrics, `describe`, repairs (`fix`), contact sheets; `writePng` from `@m3a/sensors/node`.
-- `@m3a/io`: glTF/GLB, VRMA, BVH, CMU ASF/AMC readers and writers (import, export).
+- `@m3a/io`: glTF/GLB, VRMA, BVH, CMU ASF/AMC readers and writers.
 - `@m3a/tools` (and `@m3a/tools/node`): the tools, the simulation (`sim`), the `m3a` command, MCP, this manual.
 
 Units: mm, degrees and seconds; metres in three.js (the adapter converts). "% of the hip height" and "hip
@@ -144,9 +144,9 @@ back up). Ids are `SET/Name`; an `_RM` clip carries its own root travel.
 
 **Tiers.** A game sees the CC0 default pack unless it opts in twice: `"tiers"` in `game.json` (for the tools) and
 `openLibrary({ tiers: ["cc0", "cc-by"] })` in code. The other tiers are packs beside `@m3a/library` (`npm install
-@m3a/library-cc-by` or `@m3a/library-cmu`); a clip past the game's tiers throws `LibraryError` `E_TIER` naming the
-opt-in (`E_NO_SET` without its pack). Credit each `cc-by` clip; `cmu` clips can't be resold, even converted; `local`
-(what `m3a import` made) never ships (Ship).
+@m3a/library-cc-by` or `@m3a/library-cmu`); a clip past the game's tiers throws `LibraryError` (from `@m3a/library`)
+with `.code` `E_TIER`, naming the opt-in (`E_NO_SET` without its pack, `E_NO_CLIP` for an unknown id). Credit each
+`cc-by` clip; `cmu` clips can't be resold, even converted; `local` (what `m3a import` made) never ships (Ship).
 
 ## Fit: bind the character
 
@@ -213,6 +213,17 @@ a.remove("hurt");
 - `graph.validateGraph(g, { clips })` gives issues `{ code, field, message, fix }` (none: it plays); `animator.graph`
   gives `{ id, states: [{ layer, state, from, fade }], params }`; entering a state fires `enter`.
 
+A game's own fixed-step sim:
+
+```ts
+import { VERSION, graph, math } from "@m3a/core";
+
+const own = new Animator(bound.core, { step: 1 / 30 });       // a 30 Hz game's own tick
+math.hashValue({ VERSION, hp: 100, anim: own.save() });       // its state's hash, stamped with the package version: plain data, any key order
+math.PORTABLE.atan2(1, 2);   // for what it hashes: Math's sin, cos, atan2, ..., the same bits in every engine
+graph.layersOf(knight).flatMap((l) => Object.values(l.states).flatMap(graph.clipsOf));  // the clips it names, to load
+```
+
 ## Make: recipes and edits
 
 Each step names its result with `as` (else `s1`, `s2`, … by place); later steps read names (`in`, `base`, `over`, `a`,
@@ -261,8 +272,8 @@ other way first.
 
 ## Make: actions
 
-An action is a recipe with `desc`, the floor it ends on (`floor`, % of the hip height above its start), `beats` and
-`interrupts` (where it may be cut):
+An action is a recipe with the floor it ends on (`floor`, % of the hip height above its start), `beats` and `interrupts`
+(where it may be cut):
 
 ```json climb.json
 {
@@ -280,7 +291,7 @@ import { actions } from "@m3a/core";
 const c = actions.compileAction(read("climb.json"), library.resolver());  // c.clip: an event at each beat and interrupt
 actions.actionRootAt(c, 0.3);           // { forward, right, up (% of the hip height), yaw (°) }: move and raise it
 const cut = actions.interruptAt(c, 0.3);  // the next cut from then: { t, to, why }
-actions.interruptInto(c, cut!, "PROCEDURAL/Walk").clip;   // cut there, faded into a walk on the ledge
+actions.interruptInto(c, cut!, "PROCEDURAL/Walk").clip;   // faded into a walk on the ledge
 ```
 
 A step may read `PROCEDURAL/Walk`, `Brisk`, `Run`, `Limp`, `Breathe` or `Fidget`: a gait or idle made on the action's
@@ -325,9 +336,9 @@ when game.json's `"tiers"` holds `"local"`; `license.check` passes it only with 
 }
 ```
 
-`$sources`: the source's record (`label`, `license`, `credit`, `url`, `origin`), keyed by its name. `$pick`: each
-clip's `[take, from s, to s, shortest cycle s]` (only picked takes are read). `$skip`: `{ "<animation>": "why" }`
-leaves one out. A clip's entry: `["tags", "what it does"]`; `loop` or `once` among the tags sets whether it loops.
+`$sources`: each source's record by name (`label`, `license`, `credit`, `url`, `origin`). `$pick`: each clip's `[take,
+from s, to s, shortest cycle s]` (only picked takes are read). `$skip`: `{ "<animation>": "why" }` leaves one out. A
+clip's entry: `["tags", "what it does"]`, a `loop` or `once` tag saying whether it loops.
 
 ```json game.json
 { "game": "Knight Demo", "tiers": ["cc0", "local"], "ships": false }
@@ -341,7 +352,7 @@ npx m3a export MESH2MOTION/Walk_Large --character character.glb --format glb
 ```
 
 ```ts
-const mine = openLibrary({ dir: "imports", tiers: ["local"] });  // in code, the imported sets
+const mine = openLibrary({ dir: "imports", tiers: ["local"] });
 mine.clip("MOCAP/Wave_Short").tier;                               // "local"
 ```
 
@@ -361,10 +372,9 @@ npx m3a library submit check-output/recipe.compile/Slash_Hit.clip.json --improve
 
 ## Tools: the m3a command, MCP and the console
 
-Every tool is served four ways: `tools.call(name, args, { host: nodeHost() })` (`tools` from `@m3a/tools`,
-`nodeHost` from `@m3a/tools/node`), the `m3a` command, MCP (`m3a mcp`, stdio), and `__M3A_TOOLS__` on a page
-(`installConsole(tools)`). Each line: the call (`<x>` by position, `[--x]` optional), then the MCP name where it
-differs.
+Every tool is served four ways: `tools.call(name, args, { host: nodeHost() })` (`tools` from `@m3a/tools`, `nodeHost`
+from `@m3a/tools/node`), the `m3a` command, MCP (`npx m3a mcp`, stdio; `.` written `_`), and `__M3A_TOOLS__` on a page
+(`installConsole(tools)`).
 
 <!-- tools: written by node tools/manual/main.ts -->
 - `m3a search <query> [--limit]`: Library clips for a game moment in words and filters, best first
@@ -396,21 +406,14 @@ npx m3a help                     # every tool, one line each
 npx m3a help graph.sim           # its flags and examples (or: npx m3a graph.sim -h)
 ```
 
-- **Replies:** a verdict line first, at most 20 lines (`--verbose`, or `verbose: true`, for all), ending with `next:`,
-  a call that runs as written. Exit codes: 0 ok; 1 findings or a failed tool; 2 a wrong call (MCP: `isError` for the
-  last two, not for findings). A wrong tool, flag or field is refused naming the closest.
-- **Flags:** `--save-as` or `--save_as`, given once except an array (`--clips a,b`, or JSON); a value starting with
-  `--` is written `--flag=--value`. Paths are read under the working directory only; JSON may be passed as text.
+- **Replies:** a verdict line first, at most 20 lines (`--verbose`, or `verbose: true`, for all), ending with `next:`, a
+  call that runs as written. Exit codes: 0 ok; 1 findings or a failed tool; 2 a wrong call.
+- **Flags:** `--save-as` or `--save_as`, given once except an array (`--clips a,b`, or JSON); paths only under the
+  working directory; JSON may be passed as text.
 - **`--json`** also writes `check-output/<tool>/report.json`: `{ schema: "m3a.reply/1", tool, status, verdict, lines,
-  data, images, revision, error, next }`, as MCP's `structuredContent` and `tools.call`'s result. Images go to
-  `check-output/<tool>/`, each with its size and token cost.
+  data, images, revision, error, next }`, as MCP's `structuredContent` and `tools.call`'s result.
 - **Edits** (fix, edit) take `--if-revision` (refused when the target moved on) and `--request-id` (a retry returns
   the first result, kept in `.m3a/requests/`).
-- **MCP:** register the server, for example in `.mcp.json`:
-
-```json .mcp.json
-{ "mcpServers": { "m3a": { "command": "npx", "args": ["m3a", "mcp"] } } }
-```
 
 ## Rules and common mistakes
 

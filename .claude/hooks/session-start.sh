@@ -1,6 +1,6 @@
 #!/bin/bash
 # SessionStart hook (WP-0.5, D79): put the Node that package.json's engines field asks for first on PATH, install the
-# pinned dependencies with `npm ci`, fetch by hash the rigs and pinned sources the tests and gates read, and export
+# pinned dependencies with `npm ci` unless they already are (D121), fetch by hash the rigs and pinned sources the tests and gates read, and export
 # CHROMIUM_PATH to the preinstalled Chromium, so `npm run check`, `npm test`, `npm run e2e` and the gates work as soon
 # as a session starts. Idempotent and non-interactive. Never runs `playwright install`: the container has build 1194.
 set -euo pipefail
@@ -33,7 +33,19 @@ if [ "$(version node)" -lt "$need" ]; then
   echo "session-start: warning: node $(node --version) is older than package.json's engines (>=$((need / 1000)).$((need % 1000))) and no newer one was found: the repo's CLIs run under import.meta.main, which needs Node 24.2, and do nothing without it"
 fi
 
-npm ci --no-audit --no-fund --loglevel=error
+# npm ci deletes node_modules before it installs, and the hook runs again on every resume, /clear and /compact while
+# the m3a MCP server (.mcp.json) starts beside it, its imports gone (CONNECTION_CLOSED, D121). So it runs only when
+# node_modules wasn't installed from this package-lock.json and these package.json files (the root's and each
+# workspace's: npm ci refuses a lockfile out of step with them, so a change to either installs again) on this Node: a
+# stamp records their hash and the Node after a clean install.
+stamp=node_modules/.m3a-installed
+want="$(node -p 'const fs = require("fs"), h = require("crypto").createHash("sha256"), ws = fs.existsSync("packages") ? fs.readdirSync("packages").sort().map((d) => `packages/${d}/package.json`) : []; for (const f of ["package-lock.json", "package.json", ...ws]) if (fs.existsSync(f)) h.update(`${f}\0`).update(fs.readFileSync(f)); h.digest("hex")') $(node --version)"
+if [ -d node_modules ] && [ "$(cat "$stamp" 2>/dev/null)" = "$want" ]; then
+  echo "session-start: node_modules already installed from package-lock.json and package.json on $(node --version): npm ci skipped"
+else
+  npm ci --no-audit --no-fund --loglevel=error
+  echo "$want" > "$stamp"
+fi
 
 chromium=""
 for candidate in "${CHROMIUM_PATH:-}" /opt/pw-browsers/chromium-1194/chrome-linux/chrome /opt/pw-browsers/chromium; do
@@ -66,7 +78,7 @@ done
 fetch npm run --silent pins -- fetch
 
 if [ -n "$chromium" ]; then
-  echo "session-start: node $(node --version), npm ci done; CHROMIUM_PATH=$chromium"
+  echo "session-start: node $(node --version), node_modules ready; CHROMIUM_PATH=$chromium"
 else
-  echo "session-start: node $(node --version), npm ci done; no preinstalled Chromium found (npm run e2e needs one)"
+  echo "session-start: node $(node --version), node_modules ready; no preinstalled Chromium found (npm run e2e needs one)"
 fi

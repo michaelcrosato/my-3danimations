@@ -54,12 +54,13 @@ export function proceduralResolver(base: Resolver, rest: Rest, restSrc: string, 
     const m = /^PROCEDURAL\/([A-Za-z0-9_]+)$/.exec(id);
     if (!m) return undefined;
     const name = m[1]!.toLowerCase(), opts = { restSrc, id }, g = GAITS.find((x) => x.name === name), i = IDLES.find((x) => x.name === name), mv = moves.find((x) => x.name === name);
-    // a ready-made gait or idle is the same clip on the same body whichever action asks: made once while kept
+    // a ready-made gait or idle is the same clip on the same body whichever action asks: made once while kept, and
+    // given back on this resolver's own rest (an equal body another caller made it on is another object, D125)
     const key = `${id}\n${body}`, kept = g || i ? PARTS.get(key) : undefined;
     if (kept) {
       PARTS.delete(key);
       PARTS.set(key, kept);
-      return kept;
+      return kept.rest === rest ? kept : { ...kept, rest };
     }
     const clip = g ? gaitClip(fitGait(g, rest), rest, opts) : i ? idleClip(i, rest, opts) : mv ? moveClip(mv, rest, opts) : undefined, out = clip ? { clip, rest, contentId: sha256(serialize(clip)) } : undefined;
     if (out && (g || i)) {

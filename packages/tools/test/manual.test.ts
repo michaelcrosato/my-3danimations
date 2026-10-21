@@ -18,10 +18,12 @@
 // program reads a line on stdin per sh block run). A hit event a recipe adds sits at its clip's measured strike. The
 // directory holds what the manual says a game has: character.glb (a generated test character), mocap.gltf (tier 1b's
 // rig and its three animations). And the manual's tool list is the registry's (tools/manual/toollist.ts), its clip ids
-// are the library's, the tools it names are tools and its prose's calls parse as the m3a command parses them (each
-// giving its tool's required arguments), its masks name core's groups and fields, and neither it nor a tool's example
-// (which `m3a help` and MCP show a trial agent) names a clip a bench known-good picks for its job (D77; B1's and B7's
-// loops aside). Its token budget is `npm run doctrine`'s.
+// are the library's, each name it gives with its entry ("`LibraryError` (from `@m3a/library`)") is that entry's export
+// and the MCP command its prose gives (`npx m3a mcp`) the installed package's bin, as a .mcp.json block's is; the tools
+// it names are tools and its prose's calls parse as the m3a command parses them (each giving its tool's required
+// arguments), its masks name core's groups and fields, and neither it nor a tool's example (which `m3a help` and MCP
+// show a trial agent) names a clip a bench known-good picks for its job (D77; B1's and B7's loops aside). Its token
+// budget is `npm run doctrine`'s.
 import { spawn } from "node:child_process";
 import { cpSync, mkdtempSync, readdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -434,6 +436,17 @@ describe("packages/tools/MANUAL.md", () => {
       expect(typeof args === "string" ? args : "", call).toBe("");
       expect((t!.schema.required ?? []).filter((r) => !Object.hasOwn(args as object, r)), call).toEqual([]);
     }
+  });
+
+  it("names each export with the entry that has it, and the MCP server as the installed package runs it", async () => {
+    // "`openLibrary` from `@m3a/library/node`", "`LibraryError` (from `@m3a/library`)": the entry, as Node resolves it
+    const named = [...TEXT.matchAll(/`([A-Za-z_$][\w$]*)`\s+\(?from\s+`(@m3a\/[\w-]+(?:\/[\w-]+)?)`/g)].map((m) => ({ name: m[1]!, from: m[2]! }));
+    expect(named.map((n) => n.name)).toEqual(expect.arrayContaining(["LibraryError", "openLibrary", "writePng", "loadGlb"]));
+    for (const { name, from } of named) expect(Object.keys((await import(from)) as object), `\`${name}\` from \`${from}\``).toContain(name);
+    // the MCP command it gives runs the bin @m3a/tools's published files carry
+    const mcp = /`(npx) (m3a) (mcp)`/.exec(TEXT);
+    expect(mcp, "the manual gives the MCP server's command, `npx m3a mcp`").not.toBeNull();
+    expect(mcpLaunch({ command: mcp![1]!, args: [mcp![2]!, mcp![3]!] })).toBe("");
   });
 
   it("hands no bench job its answer: neither the manual nor a tool's example names a clip a known-good picks", () => {

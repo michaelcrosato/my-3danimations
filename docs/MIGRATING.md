@@ -87,11 +87,11 @@ What `consumer-ts` needed that the package doesn't give; each is a proposal for 
    the package's on-demand D.4.
 9. **The CMU ledger and fetcher stay in m3a's repository** (`tools/corpora/`): a game that imports CMU takes reads
    the ledger and fetches a take itself, then runs `m3a import`.
-10. **Public names the manual doesn't teach.** Besides gap 1's, the lab uses `VERSION`, `math.PORTABLE` and
-    `math.hashValue` (its places and hash), `graph.layersOf` and `graph.clipsOf` (the clips a graph names), the
-    Animator's `step` option, and `@m3a/three/test-characters`' `character` and `variant`, with `loadGlb` in a browser
-    (the manual says Node). All are declared entries; the manual is at its 8,000-token budget, so a game finds them in
-    the packages' doc comments. The lab's README lists them.
+10. **Public names the manual doesn't teach.** Besides gap 1's, the lab uses `@m3a/three/test-characters`'
+    `character` and `variant`, with `loadGlb` in a browser (the manual says Node). They are declared entries, which a
+    game finds in the packages' doc comments; the lab's README lists them. The manual teaches the others the lab uses
+    since v0.55.1 (D124): `VERSION`, `math.PORTABLE` and `math.hashValue` (its places and hash), `graph.layersOf` and
+    `graph.clipsOf` (the clips a graph names) and the Animator's `step` option, within its 8,000 tokens.
 
 ## The proposal for my-3dge (O9)
 

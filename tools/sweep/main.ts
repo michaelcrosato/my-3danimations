@@ -12,10 +12,14 @@
 // warns the skeleton added, every passing pair it warned) to check-output/sweep/record.json (or --out), e.g.
 // `--record check-output/sweep/results.json --commit <the gate's commit> --name "G4 run 2's sweep step" --out
 // bench/results/gates/G4-run-2/sweep.json`.
+// `npm run sweep -- --rates [<rig ids>] [--sample N] [--clip ID] [--check] [--baseline] [--jobs N] [--out <file>]` is
+// the root-motion rate sweep (D123, tools/sweep/rates-cli.ts): each locomotion loop with contacts at each rate a game
+// asks on the six bodies (or those named), against library/baselines/rates.json with --check; --baseline rewrites it.
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import { libraryClips, sample } from "../qa/qa.ts";
 import { finish, fmtMs, parseArgs, ROOT, usage, type Parsed, type Report, type Step } from "../run/cli.ts";
+import { ratesCommand, ratesUsage } from "./rates-cli.ts";
 import { sweepRecord, type SweepResults } from "./record.ts";
 import { heldout, rigOf, sweepOne, type SweepRow } from "./sweep.ts";
 
@@ -27,15 +31,23 @@ if (import.meta.main) {
     { name: "min", takesValue: true, help: "fail a skeleton that passes under this percentage" },
     { name: "min-total", takesValue: true, help: "fail when all the skeletons together pass under this percentage" },
     { name: "heldout", takesValue: true, help: "add the rigs of a gate's latest held-out run (G4), reported apart" },
-    { name: "out", takesValue: true, help: "the results file (check-output/sweep/results.json), or with --record the record (check-output/sweep/record.json)" },
+    { name: "out", takesValue: true, help: "the results file (check-output/sweep/results.json; with --rates, rates.json), or with --record the record (check-output/sweep/record.json)" },
     { name: "record", takesValue: true, help: "sweep nothing: derive a gate's record from these raw results (tools/sweep/record.ts)" },
     { name: "commit", takesValue: true, help: "with --record: the commit the raw results were written at" },
     { name: "name", takesValue: true, help: "with --record: what the record is of, opening its about text (\"G4 run 2's sweep step\")" },
+    { name: "rates", help: "the root-motion rate sweep (D123): each locomotion loop at each rate on the six bodies, or those named" },
+    { name: "check", help: "with --rates: fail on a failing row not in library/baselines/rates.json" },
+    { name: "baseline", help: "with --rates: rewrite library/baselines/rates.json from a whole run" },
+    { name: "jobs", takesValue: true, help: "with --rates: worker threads (one a CPU)" },
   ];
   let parsed, held: ReturnType<typeof heldout> | null = null;
   try {
     parsed = parseArgs(process.argv.slice(2), specs);
-    if (typeof parsed.flags.record === "string") {
+    if (parsed.flags.rates) {
+      const bad = ratesUsage(parsed);
+      if (bad) throw new Error(bad);
+    } else if (["check", "baseline", "jobs"].some((k) => parsed!.flags[k] !== undefined)) throw new Error("--check, --baseline and --jobs are the rate sweep's: add --rates");
+    else if (typeof parsed.flags.record === "string") {
       if (typeof parsed.flags.commit !== "string" || !/^[0-9a-f]{7,40}$/.test(parsed.flags.commit)) throw new Error("--record needs --commit <sha>: the commit the raw results were written at");
       if (parsed.positionals.length) throw new Error("--record sweeps nothing: name no skeletons");
     } else if (!parsed.positionals.length) throw new Error("name the skeletons: gen-<seed> or a rig id (npm run sweep -- gen-0 quaternius-mannequin-m)");
@@ -43,6 +55,7 @@ if (import.meta.main) {
   } catch (err) {
     usage("sweep", err, specs);
   }
+  if (parsed.flags.rates) await ratesCommand(parsed);
   if (typeof parsed.flags.record === "string") record(parsed.flags.record, parsed);
   const f = parsed.flags, t0 = performance.now(), manifest = typeof f.manifest === "string" ? resolve(f.manifest) : undefined;
   let clips = libraryClips();

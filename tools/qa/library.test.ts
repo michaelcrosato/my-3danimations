@@ -154,8 +154,8 @@ describe("the off-feet check", () => {
   const bare = (c: LibraryClip, tags = c.clip.tags): LibraryClip => ({ ...c, clip: { ...c.clip, tags, contacts: { by: "detected" } } });
   it("passes the library: every loop with no contact is answered, every answer's loop still has none", () => {
     expect(checkOffFeet(all)).toEqual({ problems: [], gone: [] });
-    expect([Object.keys(readReasons().offFeet ?? {}).length, Object.keys(readReasons().unplanted ?? {}).length]).toEqual([19, 6]);
-    expect(offFeetStep(all)).toMatchObject({ name: "off feet", ok: true, summary: "every loop with no contact answered in library/baselines/qa.json: 19 off their feet, 6 with no foot that holds still" });
+    expect([Object.keys(readReasons().offFeet ?? {}).length, Object.keys(readReasons().unplanted ?? {}).length]).toEqual([19, 5]);
+    expect(offFeetStep(all)).toMatchObject({ name: "off feet", ok: true, summary: "every loop with no contact answered in library/baselines/qa.json: 19 off their feet, 5 with no foot that holds still" });
   });
   it("names a loop with no contact its tags keep on its feet, one with no answer, and an answer whose loop has contacts", () => {
     const none: QaReasons = { ...reasons, offFeet: {} }, answered: QaReasons = { ...reasons, offFeet: { [fly.clip.id]: "it flies", [run.clip.id]: "it runs" } };
