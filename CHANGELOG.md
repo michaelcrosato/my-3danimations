@@ -4,6 +4,25 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.55.2 · 2026-10-21
+
+WP-F.8 (D128): the manual teaches the test characters, `loadGlb` in a page and the attached player's `apply()`; MIGRATING's
+gap 10 closed but for gap 1's names.
+
+### Docs
+- The manual teaches the test characters, `character(variant(seed)).glb` from `@m3a/three/test-characters`
+  (`variant(seed).id` is the tools' `gen-<seed>`; `TEST_SEEDS`, 0 to 19, give every build with every bone naming),
+  `loadGlb` in a page as in Node (a textured .glb in Node takes `{ textures: false }`), and the attached player's
+  `apply()` (the pose written without a step) and `bound`, Fit's in a block its test runs; Ship and the climb action's
+  example are shorter (the export call left to the tool list, the import's `--set` default to `m3a help`). 7,999 of
+  8,000 tokens (D128).
+- docs/MIGRATING.md's gap 10 is closed but for gap 1's names, the types the lab names left to the compiler; the
+  consumer lab's README names gap 1's loader and those types; FEEDBACK-LOG's F6.4 taken up.
+
+### Three
+- The test characters' test holds that `TEST_SEEDS` are seeds 0 to 19 and give every build with every naming (20
+  pairs), as the manual says.
+
 ## 0.55.1 · 2026-10-21
 
 WP-F.4 (D124): the manual teaches the seven names it didn't, within its 8,000 tokens. WP-F.5 (D125): T1's files share

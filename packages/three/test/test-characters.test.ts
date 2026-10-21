@@ -42,9 +42,11 @@ describe("the generated test characters", () => {
     expect(lines).toHaveLength(20);
   });
   it("vary in proportions, rest pose, bone names, twist bones and left-out bones", () => {
+    expect(TEST_SEEDS, "seeds 0 to 19, as the manual's Fit says").toEqual(Array.from({ length: 20 }, (_, i) => i));
     const specs = TEST_SEEDS.map(variant), set = (f: (s: (typeof specs)[number]) => string) => new Set(specs.map(f));
     expect([set((s) => s.build).size, set((s) => s.rest).size, set((s) => s.naming).size]).toEqual([5, 3, 4]);
     expect(set((s) => `${s.naming} ${s.twist}`).size, "each naming with and without twist bones").toBe(8);
+    expect(set((s) => `${s.build} ${s.naming}`).size, "every build with every naming, as the manual's Fit says").toBe(20);
     expect(new Set(specs.flatMap((s) => s.drop))).toEqual(new Set(["upperChest", "toes", "shoulders", "neck", "chest"]));
     // the builds differ in height and head size: a chibi is a third head, a tall one an eighth
     const tall = (seed: number) => {
