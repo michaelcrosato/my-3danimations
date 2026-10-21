@@ -76,7 +76,7 @@ done
 fetch npm run --silent pins -- fetch
 
 if [ -n "$chromium" ]; then
-  echo "session-start: node $(node --version), npm ci done; CHROMIUM_PATH=$chromium"
+  echo "session-start: node $(node --version), node_modules ready; CHROMIUM_PATH=$chromium"
 else
-  echo "session-start: node $(node --version), npm ci done; no preinstalled Chromium found (npm run e2e needs one)"
+  echo "session-start: node $(node --version), node_modules ready; no preinstalled Chromium found (npm run e2e needs one)"
 fi
