@@ -4,6 +4,29 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.54.2 · 2026-10-21
+
+WP-F.2 (D122): the six loops D108 left `unplanted` read again; `STYLE100_RUN/OnHeels_Run` planted by its whole sole,
+the other five answered with the numbers that rule each reading out.
+
+### Core
+- `measureFacts` (D122): in place, on a loop on its feet, when the refinement and `reread` leave no contact, the feet
+  are read by their whole sole again and refined by the velocity they give, kept with their travel only when both feet
+  plant for a fifth of the loop: a run on its heels whose toes the default points catch only into each swing.
+
+### Sensors
+- The baseline reads `STYLE100_RUN/OnHeels_Run` on its contacts: slide 0 → 43.9 mm, skate 0 → 7.65 cm/s, skateMean 0
+  → 12.4 (pass, as before); the distributions' skate p50 5.3 → 5.31 and skateMean p50 4.73 → 4.75 by D122.
+
+### Library
+- `STYLE100_RUN/OnHeels_Run` carries contacts, a step a foot (the planter holds them within 3.4% of H0; its ground
+  speed 1.14 H0/s, 0.90 of its captured 1.27), and the travel they give ([77.2, 10.3], from [23.1, −12.4]):
+  STYLE100_RUN v2 in the registry index. The other five `unplanted` loops keep none, their answers in
+  `library/baselines/qa.json` rewritten with the numbers that rule each reading out. QA 1,014 pass, 230 warn, 154 fail.
+
+### Docs
+- docs/LIBRARY.md: the library's skate p50 5.31.
+
 ## 0.54.1 · 2026-10-21
 
 WP-F.1 (D121): the m3a bin refuses a Node too old to start it; the session hook stops deleting node_modules under the

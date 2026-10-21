@@ -36,11 +36,10 @@
   "QUATERNIUS_SHARDFALL/Swim_Fwd_Loop": "it swims, body flat: it is in water, its feet never on a floor"
  },
  "unplanted": {
-  "CMU_CURATED/Boxing_Guard_Loop": "a boxer's guard, stepping: the right foot holds still 50 ms a cycle and the left never, so a contact read from it would drift the stance 0.27 H0/s (D108)",
-  "MESH2MOTION/Run_Anime": "a run on the spot whose feet sweep the floor under a root that stands still: no foot holds still while down, and planting one would pull it up to 1.5 H0 (D108)",
-  "MESH2MOTION/Run_Stealth": "a stealthy run on the spot whose feet sweep the floor under a root that stands still: no foot holds still while down, and planting one would pull it up to 1.25 H0 (D108)",
-  "STYLE100/WideLegs_Walk": "a retargeted wide-legged walk whose left foot skims the floor: only the right foot reads still, a ground speed 2.3 times its captured one (D108)",
-  "STYLE100_BACKRUN/Drunk_RunBack": "a retargeted stumbling run backward whose right foot never reads still: a reread needs both feet (D108)",
-  "STYLE100_RUN/OnHeels_Run": "a retargeted run on the heels whose left foot never reads still: a reread needs both feet (D108)"
+  "CMU_CURATED/Boxing_Guard_Loop": "a boxer's guard, stepping in place: its feet skim between stances (neither sole lifts past 7.4% of H0), so the height pass holds both through each step and the planter pulls an ankle 16% of H0; read still, the right foot holds 50 ms a cycle and the left never, a contact that would drift the stance 0.27 H0/s (D108, D122)",
+  "MESH2MOTION/Run_Anime": "a run on the spot whose feet sweep the floor under a root that stands still: each foot is down a third of the loop, sweeping at a median 5.3 to 5.5 H0/s, so none holds still, and planting the feet the height pass finds would pull an ankle 1.5 H0 (D108, D122)",
+  "MESH2MOTION/Run_Stealth": "a stealthy run on the spot whose feet sweep the floor under a root that stands still: each foot is down about half the loop, sweeping at a median 7 to 8 H0/s, so none holds still, and planting the feet the height pass finds would pull an ankle 1.25 H0 (D108, D122)",
+  "STYLE100/WideLegs_Walk": "a retargeted wide-legged walk whose feet slide outward on the floor: the left drifts forward and out at 0.21 H0/s and never lifts past 6.9% of H0, the right slides back at 2.4 times the captured speed (0.64 against 0.27 H0/s); held as the height pass finds them, both feet give 0.94 of the captured speed but the planter pulls an ankle 13% of H0, and read still the right foot alone gives 2.3 times it (D108, D122)",
+  "STYLE100_BACKRUN/Drunk_RunBack": "a retargeted stumbling run backward whose feet never leave the floor (their soles within 0.8 and 4.2% of H0), so the height pass holds both all loop and the planter pulls an ankle 30% of H0; read still, only the left holds (0.28 s a cycle): the right slides at 1.9 times the captured speed (1.02 against 0.54 H0/s), still no more than 50 ms a cycle even against it, and the left's contacts alone would move the body at 0.79 of the captured speed (D108, D122)"
  }
 }

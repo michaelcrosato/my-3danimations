@@ -10,12 +10,13 @@
 // - strike: for a clip tagged attack (or kick), when the end that moves fastest relative to the pelvis peaks: the fists,
 //   a blade's tip when the key holds one (along the knuckle line, one H0 long), and the toes for a kick.
 // - contacts: the clip's own when labelled, else detected with hysteresis (contacts.ts), then refined by the world:
-//   a planted foot is still. Where that finds nothing on a loop no tag puts off its feet (OFF_FEET), two fallbacks
-//   read it again (D104, narrowed by D108): by the whole sole, the heel too, when no foot plants at all (a body on its
-//   heels, toes raised); and, in place, with "still" at half the body's speed when the refinement erased every contact
-//   (`reread`), kept only when both feet plant for a fifth of the loop (`stands`). A one-shot, a clip with a root of
-//   its own (its velocity is exact) and a loop whose feet never hold still keep the strict reading: none, which plays
-//   still, where a looser one gives contacts the planter can't hold.
+//   a planted foot is still. Where that finds nothing on a loop no tag puts off its feet (OFF_FEET), three fallbacks
+//   read it again (D104, narrowed by D108, and D122): by the whole sole, the heel too, when no foot plants at all (a
+//   body on its heels, toes raised); in place, with "still" at half the body's speed when the refinement erased every
+//   contact (`reread`), kept only when both feet plant for a fifth of the loop (`stands`); and in place, when those
+//   leave none, by the whole sole again, refined (`bySole`: a run on its heels), kept only when it stands, the travel
+//   read from it. A one-shot, a clip with a root of its own (its velocity is exact) and a loop whose feet never hold
+//   still keep the strict reading: none, which plays still, where a looser one gives contacts the planter can't hold.
 import { IDX, type Rest } from "../format/body.ts";
 import { CONTACT_ENDS, type Clip, type Contacts } from "../format/types.ts";
 import { PORTABLE } from "../math/portable.ts";
@@ -98,6 +99,11 @@ export function measureFacts(clip: Measurable, R: Rest, opts: DetectOptions = {}
       // in place, a refinement that erased every contact is read again; a root of its own is exact, and its feet slide
       facts.contacts = standing && !hasRoot && !anyContact(refined) ? (reread(clip, R, opts, sampled, rootV) ?? refined) : refined;
     }
+    // in place, nothing left: the whole sole again, refined, kept with its travel when it stands (D122)
+    if (standing && !hasRoot && !anyContact(facts.contacts)) {
+      const again = bySole(clip, R, opts, sampled);
+      if (again) [firstPass, facts.contacts] = again;
+    }
   }
   // the hips' height range
   const ups = clip.keys.map((k) => k.hips[2]!);
@@ -146,6 +152,19 @@ function reread(clip: Playable, R: Rest, opts: DetectOptions, sampled: Sampled, 
     if (stands(clip, c, sampled)) return c;
   }
   return null;
+}
+
+/**
+ * An in-place loop read again by its whole sole when every contact ankle, ball and toe gave was erased: a run on its
+ * heels (STYLE100's `OnHeels_Run`) stands on each heel with its toes 5 to 6% of H0 up, so those points catch a foot's
+ * toes only about its push-off and into its swing, and the planted feet's velocity they give is a third of the body's.
+ * Its height pass by the sole, refined by the planted feet's velocity that gives: the pass and the contacts when they
+ * stand, else null (D122).
+ */
+function bySole(clip: Playable, R: Rest, opts: DetectOptions, sampled: Sampled): [Contacts, Contacts] | null {
+  const s = { ...opts, sole: true }, first = detectContacts(clip, R, s, sampled), v = plantedVelocity(clip, sampled, first);
+  const c = v && detectContacts(clip, R, s, sampled, () => [-v[0], -v[1]]);
+  return c && stands(clip, c, sampled) ? [first, c] : null;
 }
 
 /**
