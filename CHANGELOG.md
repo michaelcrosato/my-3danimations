@@ -9,6 +9,10 @@ features, patch for fixes. One line per change, under the part it touched (**Spe
 WP-F.4 (D124): the manual teaches the seven names it didn't, within its 8,000 tokens. WP-F.5 (D125): T1's files share
 their worker's modules.
 
+### Tools
+- `m3a library status` counts a contributor's submissions by state in the lifecycle's order (submitted, checking,
+  bounced, awaiting review, adopted, archived, rejected), not as their ids happen to sort (D125).
+
 ### Docs
 - The manual teaches `LibraryError` (from `@m3a/library`) and its `.code` (`E_TIER`, `E_NO_SET`, `E_NO_CLIP`), and, for
   a game's own fixed-step sim, the Animator's `step` option, `math.hashValue`, `math.PORTABLE`, `VERSION`,
@@ -20,6 +24,8 @@ their worker's modules.
 ### Repo
 - The manual's test checks each name the manual gives with its entry against that entry's exports, and its MCP command
   against the published bin.
+- T1's files share their worker's modules (Vitest's `isolate: false`, D125): 88 s here from 114 to 128, the same tests;
+  the kit's manifest mock is its test's alone (`vi.doMock`, then `vi.doUnmock` and `vi.resetModules`).
 
 ## 0.55.0 · 2026-10-21
 
