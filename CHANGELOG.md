@@ -4,6 +4,23 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.55.1 · 2026-10-21
+
+WP-F.4 (D124): the manual teaches the seven names it didn't, within its 8,000 tokens. WP-F.5 (D125): T1's files share
+their worker's modules.
+
+### Docs
+- The manual teaches `LibraryError` (from `@m3a/library`) and its `.code` (`E_TIER`, `E_NO_SET`, `E_NO_CLIP`), and, for
+  a game's own fixed-step sim, the Animator's `step` option, `math.hashValue`, `math.PORTABLE`, `VERSION`,
+  `graph.layersOf` and `graph.clipsOf`, in a block its test runs; its Tools reference is shorter (the MCP command,
+  `npx m3a mcp`, and its `_` names in one line; the `.mcp.json` example gone). 7,998 of 8,000 tokens.
+- docs/MIGRATING.md's gap 10 and the consumer lab's README name only what the manual still doesn't teach
+  (`character`, `variant`, `loadGlb` in a browser); FEEDBACK-LOG's F5.2 and F6.4 taken up.
+
+### Repo
+- The manual's test checks each name the manual gives with its entry against that entry's exports, and its MCP command
+  against the published bin.
+
 ## 0.55.0 · 2026-10-21
 
 WP-F.3 (D123): the root-motion rate sweep, every locomotion loop with contacts at 0.5 to 2 on the six sweep bodies,
