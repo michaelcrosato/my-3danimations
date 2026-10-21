@@ -2187,6 +2187,99 @@ picked by the owner on 2026-10-21. No gate follows them: each is held by its Ver
   Node, no node_modules, and after a failed install.
 - **Verify:** `npm test -- packages/tools/test/engine.test.ts tools/session`
 
+#### WP-F.2 Contacts for the six `unplanted` loops
+- **Owns:** `packages/core/src/clip/facts.ts` (`bySole`), `packages/core/test/clip.test.ts`, `library/baselines/qa.json`
+  (`unplanted`), `library/sets/STYLE100_RUN/` (through `npm run import`), and what the writers and QA write from them:
+  `library/sets.lock.json`, `library/index.json`, `packages/sensors/fixtures/baseline.json`,
+  `library/baselines/distributions.json`, `docs/LIBRARY.md`
+- **Also touches:** `tools/qa/library.test.ts` (the off-feet check's count, 6 answers to 5)
+- **Needs:** G10's commands (D108's fallbacks)
+- **Size:** S (78 new lines with tests: 25 in core, 48 of tests, 5 of reasons; the clip, lock, index and baselines
+  written by their tools)
+- **Build:**
+  - Each of the six loops D108 answered `unplanted` given the contacts the planter can hold (D108's bar: the planted
+    ankle's pull within 10% of H0, both feet plant, a foot down for a fifth of the loop), preferring the reading whose
+    ground speed agrees with the captured speed; a loop no reading holds keeps none, its answer sharpened with the
+    numbers. Decided per clip by measurement (D122).
+  - Core's `measureFacts`: in place, on its feet, when every reading leaves no contact, the whole sole again, refined
+    by the planted feet's velocity it gives, kept with its travel only when it stands (`bySole`).
+- **Done when:** `STYLE100_RUN/OnHeels_Run` carries a contact a foot, which the planter holds within 5% of H0, its
+  ground speed within 15% of its captured 1.27 H0/s and its travel within 5%; no other library clip's facts or
+  contacts move; the five others read none, each answered with the numbers its test pins; every mutant of the new
+  fallback is killed by a named test; the sensors' verdicts don't move; the judge over the changed clip on the six
+  sweep skeletons adds no fail; B1's known-good passes in full.
+- **Verify:** `npm run facts -- --check`, `npm run qa -- --check`, `npm run qa -- library --check`,
+  `npm run index -- --check`, `npm run test:full -- packages/core/test/clip.test.ts packages/core/test/contact-gaits.test.ts bench/graders/B1`,
+  `npm test -- tools/qa/library.test.ts tools/release`,
+  `npm run sweep -- gen-0 gen-1 gen-2 gen-3 quaternius-mannequin-m kaykit-knight --clip STYLE100_RUN/OnHeels_Run`,
+  `npm run import -- --set STYLE100_RUN --check` (it fetches the 1.47 GB 100STYLE archive into `.cache/100style` once)
+
+#### WP-F.3 The root-motion rate sweep
+- **Owns:** `tools/sweep/rates.ts`, `tools/sweep/rates-cli.ts`, `tools/sweep/rates-worker.ts`,
+  `tools/sweep/rates.test.ts`, `tools/sweep/rates.schema.json`, `library/baselines/rates.json`; the `--rates` mode of
+  `tools/sweep/main.ts`; its line in `tools/run/e2e.ts`'s `SWEEPS` (shared: the T2 registry)
+- **Needs:** D106 (the follow-up), D108 (the contacts it plays), D74 and D119 (T1 samples, T2 in full)
+- **Size:** M (584 new lines, tests included: rates.ts 322, rates-cli.ts 80, rates-worker.ts 7, rates.test.ts 139,
+  rates.schema.json 19, main.ts and e2e.ts 17; plus the generated baseline, 487 lines of data)
+- **Build:**
+  - A sweep that plays every locomotion loop with contacts that travels (looping, tagged walk, run, sidestep, strafe
+    or turn, its facts' speed at least 0.05 H0/s) at the rates 0.5, 0.75, 1, 1.5 and 2 on the six bodies G4 sweeps
+    (gen-0 to gen-3, Quaternius' mannequin, KayKit's knight), moved by root motion as `player.travel` moves it, the
+    sensors run on what it plays: B1's "planted feet don't slide" and "a foot stands still", per row (one loop at one
+    rate on one body).
+  - The fail rule, decided and written down (D123), with the distribution it was read from.
+  - A baseline of the failing rows (`library/baselines/rates.json`, its schema and a validator), gated against: a
+    failing row not in it fails; a baselined row that passes now is reported; `--baseline` rewrites it.
+  - `npm run sweep -- --rates [<rigs>] [--sample N] [--clip ID] [--check] [--baseline] [--jobs N] [--out <file>]`: a
+    flag on the existing script, no new npm script; worker threads, one a CPU.
+  - T1 samples it (6 loops on gen-0 through the CLI); T2's "library sweeps in full" runs it whole (M3A_FULL=1).
+- **Done when:**
+  1. Every locomotion loop with contacts is played at each rate on each of the six bodies, as `Animator.pose()` poses
+     it, moved by its root's travel.
+  2. The fail rule is a decision with its reasons and the measured distribution (D123).
+  3. The baseline holds every failing row of a whole run, and the gate fails on a failing row outside it and reports
+     a baselined row that passes.
+  4. The rule's edges are tested: a planted pair that must fail (B1's skater), a passing pair, a warning pair, a pair
+     that fails at an extreme rate alone, a baselined failure, a baselined pair that improved, the baseline's shape.
+  5. T1 runs a sample in a few seconds; T2 runs the whole sweep; regenerating the baseline is one command.
+  6. T0 is clean for the lane's files.
+- **Verify:** `npm run check`; `npx vitest run tools/sweep/rates.test.ts tools/sweep/sweep.test.ts`;
+  `npm run test:full -- tools/sweep/rates.test.ts`; `npm run sweep -- --rates --check`
+
+#### WP-F.4 The manual teaches the names it doesn't
+- **Owns:** `packages/tools/MANUAL.md`, `packages/tools/test/manual.test.ts`
+- **Needs:** WP-7.3 (the manual and its test), G7 (the briefs' evidence the manual must keep)
+- **Size:** S: 49 new lines (the manual +32 −29, its test +17 −4)
+- **Carry:** none
+- **Build:**
+  - The manual teaches F5.2's `LibraryError` (the entry that exports it, its `.code` values) and MIGRATING.md gap 10's
+    `VERSION`, `math.PORTABLE`, `math.hashValue`, `graph.layersOf`, `graph.clipsOf` and the Animator's `step` option:
+    what each is, when an agent reaches for it, its exact form, each form run and type-checked by the manual's test.
+  - The room comes from cutting text no brief's job draws on; the budget stays 8,000.
+  - The test holds the new claims: each name the prose gives with its entry is that entry's export, and the MCP command
+    the prose gives runs the installed package's bin (the check the `.mcp.json` block had).
+- **Done when:**
+  - the manual names and shows all seven, its ts blocks running and type-checking the six code forms;
+  - the manual is at most 8,000 cl100k tokens;
+  - every rule B1 to B8 use is kept, word for word where a decision records it;
+  - the briefs that read the changed sections are listed with why and their pass bars.
+- **Verify:** `npm run doctrine && npx vitest run packages/tools/test/manual.test.ts tools/skill/skill.test.ts
+  tools/bundle/bundle.test.ts tools/doctrine/doctrine.test.ts && node tools/manual/main.ts --check && npm run check &&
+  npm run pack -- --check`
+
+#### WP-F.5 T1's headroom in CI
+- **Owns:** `vitest.config.ts`, `spec/conformance/kit/pinned.test.ts`
+- **Also touches:** `packages/tools/src/tools/library-submit.ts` (`status` counts states in `STATES`' order: the version
+  bump reordered the intake fixtures' ids, D125)
+- **Needs:** G10's commands
+- **Size:** S (about 30 lines)
+- **Trigger:** CI's T1 over 110 s; it read 126.1 s of its 135 s mark on `main` at 957bf51 (D125)
+- **Build:** T1 back under its CI mark with room to grow: the files T1 runs share their worker's modules rather than
+  importing the packages again for each (Vitest's `isolate: false`), the tests that relied on a fresh module fixed;
+  or, failing that, the heaviest full-sweep cases moved to T2 as D74 and D119 did.
+- **Done when:** T1 passes three times with its files shuffled; CI's T1 on the pull request's head is under 110 s.
+- **Verify:** `npm test` (and CI's T1 time on the pull request)
+
 ### On demand
 
 Each starts only when its trigger fires; record the measurement that fired it. A trigger that never fires means the WP

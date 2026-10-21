@@ -4754,3 +4754,231 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   (an environment setup script that links Node 24 as the default, which the owner can add).
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.54.1
+
+## D122 · 2026-10-21 · The six `unplanted` loops read again: OnHeels_Run planted by its whole sole, five answered with the numbers
+
+- **Principle:** 3, 8, 10, D104, D108 (docs/HANDOFF.md's follow-up, WP-F.2)
+- **Call:**
+  - **What was asked:** D108 left six loops on their feet with no contact, each answered in `library/baselines/qa.json`
+    `unplanted`. Give each the contacts the planter can hold (D108's bar: the planted ankle's pull within 10% of H0,
+    both feet plant, a foot down for a fifth of the loop), preferring the reading whose ground speed agrees with the
+    captured speed; where none holds, keep none and say why with the numbers. Each was measured on every reading
+    `measureFacts` takes and on those it could (by the sole, the planted feet's or the lower foot's velocity, the
+    captured speed along either's direction, "still" at a quarter or half of the body's speed).
+  - **`STYLE100_RUN/OnHeels_Run` is planted, by its whole sole:** it runs on its heels, its toes 5 to 6% of H0 up while
+    each foot bears weight, so ankle, ball and toe catch a foot's toes only about its push-off and into its swing
+    (`footL [0.533, 0.633]`, `footR [0.1, 0.366]`), and the planted feet's velocity they give is 0.41 H0/s, a third of
+    its captured 1.27. The refinement with it erases both; `reread` skips the planted feet's half (0.21 H0/s, under
+    the default) and the lower foot's (1.23 H0/s) holds the right foot alone (0.1 to 0.233 s), which doesn't stand.
+    The sole fallback of D104 never ran: it reads a clip with no contact at all by ankle, ball and toe. Read by the
+    sole (the heel `sole()` gives), its height pass gives 1.23 H0/s, and refined with it: `footL [0.25, 0.5]`, `footR
+    [0.533, 0.85]`, a foot down 92% of the loop, the planter's pull 32.8 mm (3.35% of H0), a ground speed of 1.14
+    H0/s (0.90 of the captured 1.27), its travel [77.2, 10.3] (1.23 H0/s, 0.97 of it; it was [23.1, −12.4], 0.41 H0/s);
+    planted, its feet slide 0.00 mm a contact (15.4 mm free). Its facts' speed stays the captured 127.
+  - **In core's `measureFacts`, a third fallback, `bySole`:** in place, on a loop on its feet, when the refinement and
+    `reread` leave no contact, the sole's height pass refined by the planted feet's velocity it gives, kept with the
+    travel it gives only when it stands (`stands`: both feet, a foot down a fifth of the loop). A one-shot, a clip
+    tagged off its feet and a clip with a root of its own keep the strict reading, as D108 has them. No other library
+    clip moves (`npm run facts -- --check` named OnHeels_Run alone); of 4,965 retimed readings (the library's 993
+    in-place loops on their feet at speed 1, 0.5, 0.75, 1.5 and 2, as `playable` reads them), 4 change, all
+    OnHeels_Run's, each held (pull 2.6 to 3.4% of H0, ground 0.87 to 0.93 of the captured speed scaled). A first draft
+    also ran `reread` by the sole when the sole's refinement erased everything: it changed nothing in the library and
+    read `STYLE100_RUN/Penguin_Run` at ×1.5 (both feet, pull 1.6%, ground 0.63 of the captured speed scaled, 1.26
+    times its file's contacts mapped), an untested branch: dropped.
+  - **The five others keep none, their answers sharpened** (`unplanted`, each test-pinned in clip.test.ts):
+    - `STYLE100/WideLegs_Walk` (captured 0.27 H0/s): its feet slide outward on the floor. The left drifts forward and
+      out at a median 0.21 H0/s while down (0.88 s of 1.3) and never lifts past 6.9% of H0; the right slides back at
+      0.64 H0/s, 2.4 times the captured speed. The height pass holds both (a foot down all loop) and gives 0.94 of the
+      captured speed, the handoff's reading, but the planter pulls an ankle 13.1% of H0 there, past the bar; by the
+      sole it gives 0.50 and pulls 24.5%. Read still, the right foot alone stands (the lower foot's reread, 2.31 times
+      the captured speed, D108); against the captured speed, by the sole, the left alone ([0.117, 0.5]: 0.94, pull
+      1.2%, one foot); `bySole`: the sole's planted feet read 0.023 H0/s, their velocities cancelling, and the
+      refinement at the 0.05 H0/s floor erases both.
+    - `STYLE100_BACKRUN/Drunk_RunBack` (captured 0.54 H0/s): its feet never leave the floor (the soles within 0.8 and
+      4.2% of H0), so the height pass holds both all loop: pull 30%, ground 0.61. Read still, the left alone holds
+      (0 to 0.283 s: pull 0.5%, ground 0.79 of the captured speed); the right slides at a median 1.02 H0/s, 1.9 times
+      the captured speed. Against the captured speed along the lower foot's direction the right holds [0.25, 0.3],
+      50 ms (the shortest contact kept) inside the left's: both feet by the letter (pull 4.0%, ground 0.89), one in
+      substance, so not taken; `bySole` gives the left alone ([0.2, 0.317]), which doesn't stand.
+    - `CMU_CURATED/Boxing_Guard_Loop` (no captured speed: its capture's stride was under 0.1 H0/s): it steps in place,
+      its feet skimming between stances (neither sole lifts past 7.4% of H0, inside the 7% exit band but for a
+      moment), so the height pass holds both through each step: pull 15.7%, a drift of 0.32 H0/s. Read still, the
+      right foot alone holds 50 ms (0.75 to 0.8 s: a drift of 0.27 H0/s, D108); `bySole` reads none.
+    - `MESH2MOTION/Run_Anime`, `Run_Stealth`: a root of their own that stands still, which `contactRoot` reads first
+      (ground speed 0 whatever the contacts); the feet are down a third and about half the loop, sweeping at a median
+      5.3 to 5.5 and 7 to 8 H0/s. The height pass's contacts would pull an ankle 148% and 125% of H0; no reading holds
+      a foot still under a still root.
+  - **The captured speed stays out of core:** as a reference for "still" (the body's velocity at the captured speed
+    along the planted feet's or the lower foot's direction) it gives no reading that holds both feet on any of the
+    five (the left alone on WideLegs_Walk, a 50 ms right on Drunk_RunBack) and none other on OnHeels_Run, so
+    `measureFacts` takes no new input; the captured speed only grades the readings, here.
+  - **QA:** verdicts unchanged (1,014 pass, 230 warn, 154 fail). `packages/sensors/fixtures/baseline.json` rewritten
+    for OnHeels_Run alone: slide 0 → 43.9 mm, skate 0 → 7.65 cm/s, skateMean 0 → 12.4 cm/s (pass; under warn's 150
+    mm and 18 cm/s, the slide under capture's median 52.9). The distributions recorded again: skate p50 5.3 → 5.31
+    and skateMean p50 4.73 → 4.75, worse in their last digit, which "may only improve" admits only by a logged
+    decision: this one. Nothing about the library's feet got worse: a clip with no contact read 0 slide and 0 skate,
+    a zero that measured nothing, and now measures above the median; every p95 and maximum is unchanged.
+  - **The judge** over the changed clip on the six sweep skeletons (gen-0 to gen-3, the Quaternius mannequin, the
+    KayKit knight): 6 of 6 pass, as played with no contacts; two warns added and listed (D80), skate 10.0 cm/s on
+    gen-0 (its warn 8.29) and on the knight. B1's known-good passes in full (11 of 11); its real agents' run is the
+    integrator's. In the root-motion rate sweep (D123) it is a locomotion loop with contacts now: 30 rows, one failing
+    (the KayKit knight at 0.5, slide 101.4 mm past its fail level 98.2), held in `library/baselines/rates.json`.
+  - **Written by the writers:** `npm run import -- --set STYLE100_RUN` wrote the clip (its contacts and travel), the
+    set's content id and the lock; `npm run index` mints STYLE100_RUN v2 (serial 3); `npm run qa -- --baseline` and
+    `npm run qa -- library --baseline` wrote the sensors' baseline, the distributions and docs/LIBRARY.md.
+  - **Tests:** OnHeels_Run's contacts, pull, ground speed and travel against its captured speed, and its strict
+    reading tagged off its feet, played once or under a still root of its own; four loops whose readings stand keep
+    their files' contacts; the five without contacts read none, each answered, with the height pass's pull and ground
+    speed their answers cite; nine mutants of `bySole` and its call, all killed.
+- **Why:** a loop on its feet whose feet the planter can hold now says where they are, so root motion moves it at 0.90
+  of its captured speed rather than leaving it still; the five whose feet no reading holds keep saying why, now with
+  the numbers that rule each reading out. One more reading in core, narrow enough that one library clip moves.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.54.2
+
+## D123 · 2026-10-21 · The root-motion rate sweep: each locomotion loop at 0.5 to 2 on the six bodies, a row failing past the sensors' fail levels, gated by a baseline of 479 rows
+
+- **Principle:** 3 (verifiable without a display), 11 (a flaw that slips through becomes a new check), D106's
+  follow-up, D74 (T1 samples, T2 in full)
+- **Call:**
+  - **What it plays:** every locomotion loop with contacts that travels (looping; tagged walk, run, sidestep, strafe
+    or turn, the census's locomotion tags; its facts' speed at least 0.05 H0/s, contact-data's floor): 811 loops. Each
+    at 0.5, 0.75, 1, 1.5 and 2 (the manual's range: its ends, the loop's own rate, a step either side), on the six
+    bodies G4 sweeps (gen-0 to gen-3, Quaternius' mannequin, KayKit's knight), moved by root motion as `player.travel`
+    moves the character: one row a loop at a rate on a body, 24,330 rows. A row is one cycle in whole steps near 60 a
+    second (within 1.5%), its last sample the cycle's end, read as a loop so each contact is whole once, as the G4
+    sweep's judge plays a loop. The poses are `Animator.pose()`'s points, planted (within 1e-6 mm, tested), without the
+    solve onto the bones; the library's contacts are what `playable` measures (`npm run facts -- --check` holds them
+    so). The sensors read them on the body's own floor: the ground its rest is measured on, where its soles are.
+  - **The fail rule:** a row **fails** when its planted feet slide or skate past the sensors' fail levels on that body
+    (slide 230 mm a contact, skate 38 cm/s over a contact of 0.25 s or more, each × H0/950: capture's most), or when no
+    foot stands still (the stiller foot's speed at the slowest tenth of the steps at or past 0.5 H0/s, the sensors'
+    bar for standing); it **warns** past a warn level only (150 mm, 18 cm/s: capture's p95); else it passes. These are
+    B1's grader's "planted feet don't slide" and "a foot stands still", per row; the second reads the slower foot, not
+    the lower (B1's), so a swinging toe that rides below the standing foot (KayKit's knight's, 205 mm past the ball:
+    read by the lower foot, 141 of its rows failed on that alone, the core jogs and sprints at every rate, and 184 rows
+    in all against 15) isn't taken for it.
+  - **Every rate is judged alike:** a row failing at 0.5 or 2 fails as one at 1 does. The manual sends an agent
+    anywhere from 0.5 to 2 ("else pick a clip nearer v"), so a loop that skates at 2 on a body skates in a game that
+    follows it. The unit is the row: a loop that fails only at an extreme fails only those rows, and the rows give each
+    loop's playable range on each body. Warning at the extremes would wave through 329 of the 479 failing rows (69%).
+  - **The gate:** `library/baselines/rates.json` (its schema `tools/sweep/rates.schema.json`) holds the 479 failing
+    rows by `<clip> <body> <rate>`, with their reasons. `npm run sweep -- --rates --check` fails on a failing row not
+    in it, naming each, and reports each baselined row that passes or warns now; the baseline may only shrink, rewritten
+    by `npm run sweep -- --rates --baseline` from a whole run in a commit that says why (it says how many rows it adds
+    and drops). Warning rows are counted, not gated. T1 checks 6 loops on gen-0 (30 rows) through the CLI; T2's "library
+    sweeps in full" runs the whole sweep (`tools/sweep/rates.test.ts`, M3A_FULL=1), in worker threads.
+- **The distribution** (24,330 rows): 22,892 pass, 959 warn, **479 fail** (2.0%).
+  - By rate (fail / warn): 0.5: 164 / 350; 0.75: 45 / 241; 1: 42 / 163; 1.5: 63 / 100; 2: 165 / 105. By reason: slide
+    342, skate 278, no foot standing 15 (156 rows on two). By body: gen-0 74, gen-1 80, gen-2 81, gen-3 73, the mannequin
+    73, the knight 98.
+  - Each row's reading over its fail level, p50 / p95 / p99 / most: slide 0.24 / 0.83 / 1.46 / 2.34 at 0.5, 0.09 / 0.39
+    / 0.78 / 2.50 at 1, 0.03 / 0.37 / 1.83 / 7.15 at 2; skate 0.12 / 0.40 / 0.74 / 1.27 at 0.5, 0.07 / 0.40 / 0.83 / 3.05
+    at 1, 0.00 / 0.49 / 2.61 / 12.45 at 2; the stiller foot over its bar 0.00 at p95 at every rate, 0.05 to 0.27 at p99.
+  - 128 of the 811 loops fail somewhere, 65 of them between 0.75 and 1.5; 386 of the 4,866 loop-and-body pairs, 261 of
+    them at 0.5 or 2 alone, 42 at their own rate, none at every rate. By set (failing rows of rows): STYLE100's seven
+    sets 411 of 23,100, CMU 22 of 360, MESH2MOTION 38 of 450, the two Quaternius sets 8 of 420.
+  - Slow rates fail on slide: at 0.5 the world's bar for standing (0.5 H0/s) takes a foot the clip drags or shuffles
+    along the floor at half speed for one standing (Old_Walk, the limps, Depressed, Crouch_Walk, StartStop_Walk). Fast
+    rates fail on skate, a contact's drift over half its time (2 doubles every skate) and on hops and skips. The 15 rows
+    with no foot standing are four loops whose contacts are one short one a cycle (5 to 8% of it: MESH2MOTION/Sprint,
+    STYLE100_RUN/Swimming_Run, STYLE100_BACKRUN/Elated_RunBack and RaisedLeftArm_RunBack), at 1.5 and 2, and on the
+    knight from 0.75: for most of the cycle no foot is held, and there the feet move at half an H0 a second or more.
+- **D106's keyed runs read in steady state:** MESH2MOTION/Run_Female warns at 0.5 on five bodies (its skate past the
+  warn level) and fails on the knight at 0.5, 1 and 1.5; MESH2MOTION/Jog and the core jogs pass every row. On gen-1287,
+  B1's variant body, at the rates B1's run asks of them (0.874 and 0.789), the sweep reads slide 113 and 12 mm, no
+  skate (their contacts are under the 0.25 s skate reads). What D106 measured was B1's reading:
+  - **B1's floor:** B1's grader reads heights from y = 0, which on a generated test character stands 16 to 44 mm above
+    its soles (gen-0 24, gen-1 20, gen-2 41, gen-3 16, gen-1287 and gen-37 44; the mannequin's 5 mm below, the knight's
+    at them): its rest's lowest point, the toe's tip, sits there, and the grader takes an offset under 10% of H0 for the
+    model's own. There a foot coming within 86 mm of its own floor already reads as down. B1's reading of its
+    known-good with MESH2MOTION/Jog as the run, on gen-1287: in steady state slide 124 mm, skate 49.6 cm/s (fail 41.9);
+    the same play's points on the body's own floor, 12 mm and no skate; lowered 44 mm, 124 and 49.6 exactly.
+  - **The fade:** Run_Female's 82 cm/s is the first stride after the walk-to-run fade (5.43 to 5.70 s); its steady run
+    reads 119 mm and no skate in both readings.
+  - So the sweep, which plays a loop alone and in step on its own floor, reads the loops; B1's floor and the fade are
+    what B1 graded. Changing B1's floor changes G7's evidence: a follow-up, not built here.
+- **Its reach, planted:** moved at a speed it doesn't step at, a row fails: B1's planted skater (the core jog at rate 1,
+  5.25 H0/s of stride on gen-0, moved at the 3.5 H0/s B1 asks of a run) has no foot standing. A walk moved 0.35 to 0.55
+  H0/s off its own speed drifts past the slide's or skate's fail level; past about 0.55 H0/s no foot stands for a run.
+  Between, a walk can read neither (QUATERNIUS_3D2DGE/Walk_Loop moved 0.7 H0/s too fast passes on gen-0 and gen-1: the
+  root's own speed varies through its stride, so the foot stands still for moments). The sweep moves by the travel,
+  where the feet are planted by construction, so that window is a constant-speed mover's (B1's planted case), not this
+  sweep's.
+- **Cost:** the whole sweep 80.8 s in 4 worker threads (283 s of CPU) here, about 70 s of T2 when its step keeps the
+  CPUs busy; T1's file 5.2 s (its tests 3.1 s, about 2 s of T1's wall).
+- **Why:** it reads what a game plays when it follows the manual's speed rule, loop by loop, rate by rate and body by
+  body, with the sensors' own levels (no new threshold to defend), so the library knows which rows fail before a fresh
+  agent finds one; the baseline makes the 479 known failures a gate for new ones (a new loop, a planter or a sensors
+  change) without blocking on them, and each one it holds is a row to fix or to answer.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.55.0
+
+## D124 · 2026-10-21 · The manual teaches `LibraryError`, `VERSION`, `math.PORTABLE`, `math.hashValue`, `graph.layersOf`, `graph.clipsOf` and the Animator's `step`, within its 8,000 tokens
+
+- **Principle:** 1 (agent-readable: an agent uses the package from the manual alone, its budget 8,000), 8 (errors
+  speak the API's language and suggest the fix), F5.2, F6.4, docs/MIGRATING.md gap 10, D100, D105, D106 (WP-F.4)
+- **Call:**
+  - **Taught:** Find's Tiers sentence says `LibraryError` is `@m3a/library`'s, its why on `.code`: `E_TIER` naming the
+    opt-in, `E_NO_SET` without its pack, `E_NO_CLIP` for an unknown id (F5.2). Wire: graphs ends with "A game's own
+    fixed-step sim", a ts block the manual's test runs and type-checks: `new Animator(bound.core, { step: 1 / 30 })`,
+    `math.hashValue({ VERSION, hp: 100, anim: own.save() })`, `math.PORTABLE.atan2(1, 2)` (Math's functions with the
+    same bits in every engine, for what a game hashes) and `graph.layersOf(g).flatMap((l) =>
+    Object.values(l.states).flatMap(graph.clipsOf))` (the clips a graph names, to load) (gap 10). +183 tokens: Find
+    +23, Wire: graphs +160.
+  - **Cut, 184 tokens, no rule a brief uses:** Tools −151 (its reference: the list-notation sentence, MCP's `isError`
+    note, "refused naming the closest", `--flag=--value`, where images go, the MCP bullet and its `.mcp.json` block,
+    each said where an agent meets it: the refusal, the needs-a-value error, the reply's image lines, the four ways'
+    `npx m3a mcp` and "`.` written `_`"); Ship −15 (said shorter); actions −8; the intro −6; the packages −4. The
+    mental model, the complete example, Wire: layers, Find's rows, the graph bullets, Make, Check, Grow and Rules are
+    unchanged, word for word (D105's and D106's lines among them).
+  - **The test** checks each name the prose gives with its entry against that entry's exports, and the prose's MCP
+    command against the published bin (the `.mcp.json` block's check, kept).
+  - **Left out:** gap 10's `@m3a/three/test-characters` `character` and `variant` and `loadGlb` in a browser, gap 1's
+    page loader names (`directory`, `defaultSets`, `new Library(source)`): not this follow-up's list. `E_TAMPERED` is
+    left to its message (the rules already say never to edit a clip by hand).
+  - **The briefs:** every brief's agent reads the whole manual; the re-runs, by which job draws on a changed section,
+    are B7 (Graphs), B8 and B8-ten (Tools: their job is `m3a library` calls), B1 (D106: one line flipped its gate),
+    then B5 and B6, then B2 to B4 (lane F.4's record); the legend quiz reads no manual. Each brief's bar is G7's, at
+    least 4 of 5 (B8-ten: its one trial's ten clips through).
+  - **Budget:** 7,998 of 8,000 (7,999 before).
+- **Why:** a game (the consumer lab) reached past the manual for public names it needed, and an agent couldn't tell
+  where `LibraryError` comes from; the manual is all a fresh agent reads, so those names belong in it, in code that
+  runs. The room came from the Tools reference, whose cut facts each reach the agent anyway (the reply, the refusal,
+  MCP's own tools/list), not from the sections the briefs use; principle 1's budget held without a change.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.55.1
+
+## D125 · 2026-10-21 · T1's files share their worker's modules (isolate: false); a mock is its test's alone; status counts states in their order
+
+- **Principle:** 4's tiers (T1 within its budget, PLAN.md §6), D74 and D119 (T1 samples, T2 in full), WP-F.5
+- **Call:**
+  - **The trigger:** CI's T1 on `main` at 957bf51 read 126.1 s of its 135 s mark (run 39338610023), past the 110 s the
+    follow-up named; here (4 CPUs) 114 s quiet, 128 s with the lanes working.
+  - **Where the time went:** T1's files added up to 361 s; Vitest's own sums gave 68.7 s to importing modules and 14.5 s
+    to transforming them, a fresh module graph for each of its 116 files. The sweep-like cases that could move to T2
+    (the procedural tests' three rests, `fix`'s every planted defect, every key of tier 2, a save at every step) came
+    to 25 to 30 s of file time, about 8 s of wall: less than a quarter of the imports, and T1 would test less.
+  - **So T1's files share their worker's modules** (`isolate: false` in vitest.config.ts): each worker imports the
+    packages once. T1 here: 88.0 s quiet (1,244 passed, 31 skipped), from 114 to 128 s; the same tests. No case moved
+    to T2.
+  - **What sharing broke, and the fix:** the repository's one `vi.mock` (spec/conformance/kit/pinned.test.ts) mocks the
+    vectors' manifest check: with the kit already imported by another file in its worker the mock didn't apply; with
+    the kit imported afresh under it, the mocked kit stayed in the worker and kit.test.ts, run after it, failed 11
+    cases on a mismatched manifest (files shuffled, seed 1). The mock is now the test's alone: `vi.doMock` inside it,
+    the kit imported afresh, `vi.doUnmock` and `vi.resetModules` after (one worker, files shuffled, seeds 1 to 6: each
+    order passes, seed 3 running it first). The process state other tests set (PATH in the runner's test,
+    NODE_COMPILE_CACHE, fake timers in bundle and B8) is put back in a `finally` or `afterEach`.
+  - **Proof:** T1 three times with its files shuffled (seeds 11, 12, 13; 103, 97 and 95 s quiet): no failure between
+    files. Shuffling the tests inside files too fails 4 cases in intake-library, intake-sql and review the same with
+    isolation on: those files run their tests in order on purpose (a submission, then its status).
+  - **A latent bug the version bump found:** `m3a library status` counted its states in the order the store's
+    submissions sort by id, and an id hashes the clip, whose `facts.by` and producer carry the package version: at
+    0.55.1 the intake checker's fixtures sorted an awaiting one first, and its test (which wants "14 bounced, 4
+    awaiting review") failed on every run, isolated or not. `status` counts the states in the lifecycle's order
+    (`STATES`) now.
+- **Why:** the cheapest lever with the most room, and T1 keeps every case it had; D74's route stays for when T1 grows
+  again. What would change it: a leak between files that a shuffle finds, which goes back to isolation for that file
+  (a Vitest project of its own) rather than for all.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.55.1
