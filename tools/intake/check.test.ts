@@ -1,7 +1,8 @@
 // The checker on the local store (PLAN.md WP-9.1a's Done-when), in a scratch checkout (the library copied under the
 // OS's temp directory, its store in .cache/intake/ there): the fixtures through every gate (the clean one waits for
 // review with its preview sheet; each planted bad one is bounced with its reason, which `library status` shows in the
-// API and on the command line); an improvement's diff in the review queue; a resubmitted archived motion recognized;
+// API and on the command line; an idle that never moves bounced at lint alone, the same idle moving waiting for review,
+// F.13); an improvement's diff in the review queue; a resubmitted archived motion recognized;
 // near-duplicates time-warped and mirrored, of library clips (an improvement of a clip with a mirrored twin still
 // waiting for review) and of submissions waiting or passed earlier in the run; the census a run reads the whole
 // census's, its submissions' clips the same objects run after run (D119); one submission's failure its own (a gate
@@ -68,11 +69,16 @@ describe("the checker", () => {
     for (const f of fx) expect(asExpected(f, done.find((d) => d.id === idOf(f.name))), f.name).toBeNull();
     expect(done.filter((d) => d.state === "bounced").map((d) => ids.get(d.id)).sort()).toEqual(fx.filter((f) => f.expect === "bounced").map((f) => f.name).sort());
     // an improvement of a clip whose mirrored twin is in the library (Dodge_left's Dodge_right) among them: the twin aside
-    expect(done.filter((d) => d.state === "awaiting review").map((d) => ids.get(d.id)).sort()).toEqual(["clean", "improvement", "improvement-cc-by", "improvement-of-a-twin"]);
+    expect(done.filter((d) => d.state === "awaiting review").map((d) => ids.get(d.id)).sort()).toEqual(["clean", "idle", "improvement", "improvement-cc-by", "improvement-of-a-twin"]);
+  });
+  it("bounces an idle that never moves at lint alone, saying how to fix it; the same idle moving waits for review (F.13)", () => {
+    const frozen = done.find((d) => d.id === idOf("frozen-idle"))!, moving = done.find((d) => d.id === idOf("idle"))!;
+    expect([frozen.state, frozen.reason, frozen.report.gates.filter((g) => !g.ok).map((g) => g.gate)]).toEqual(["bounced", "lint: it never moves: every body point stays within 3 mm of where it starts. Give it its motion, or tag it pose if it is a held pose", ["lint"]]);
+    expect([moving.state, moving.reason, moving.report.rigs.every((r) => r.ok)]).toEqual(["awaiting review", null, true]);
   });
   it("shows each bounce's reason to its contributor: m3a library status, in the API and on the command line", async () => {
     const r = await status.call("library", { do: "status" });
-    expect([r.status, r.verdict]).toEqual(["findings", `library status: ${fx.length} submissions (${fx.length - 4} bounced, 4 awaiting review) (local store)`]);
+    expect([r.status, r.verdict]).toEqual(["findings", `library status: ${fx.length} submissions (${fx.length - 5} bounced, 5 awaiting review) (local store)`]);
     const shown = (r.data as { submissions: { id: string; ref: string }[] }).submissions, improves = (id: string) => fx.find((f) => f.name === ids.get(id))!.improves;
     for (const d of done.filter((x) => shown.some((y) => y.id === x.id))) expect(r.lines).toContain(`${d.id}@${shown.find((x) => x.id === d.id)!.ref.slice(19)} clip${improves(d.id) ? ` improving ${improves(d.id)}` : ""}, ${TODAY}: ${d.state}${d.reason ? `: ${d.reason}` : ""}`);
     const one = await status.call("library", { do: "status", on: idOf("hidden-instruction") });
@@ -91,7 +97,7 @@ describe("the checker", () => {
   }, 30_000);
   it("shows an improvement's diff against the clip it improves in the review queue", async () => {
     const r = await review({}), s = (r.data as { submissions: { id: string; diff: { against: string; max: number } | null }[] }).submissions;
-    expect(s.map((x) => x.id).sort()).toEqual(["clean", "improvement", "improvement-cc-by", "improvement-of-a-twin"].map(idOf).sort());
+    expect(s.map((x) => x.id).sort()).toEqual(["clean", "idle", "improvement", "improvement-cc-by", "improvement-of-a-twin"].map(idOf).sort());
     expect(s.find((x) => x.id === idOf("improvement"))!.diff).toMatchObject({ against: "QUATERNIUS_3D2DGE/Walk_Loop" });
     expect(s.find((x) => x.id === idOf("improvement"))!.diff!.max).toBeGreaterThan(5);
   });

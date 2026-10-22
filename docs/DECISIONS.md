@@ -5480,3 +5480,192 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   only a reviewer who knows the words can see.
 - **Answered:** no: made under D131 (a minor call, by the North Star), to review.
 - **Landed in:** v0.58.0
+
+## D135 · 2026-10-22 · A clip's own motion bounds its fit, and a recipe's: the idles keep their motion with their knees and elbows steady, a still check in the library and the intake, Jump_Twist cut again
+
+- **Principle:** the North Star (an agent asking for an idle must not get a statue: not in the library's files, and not
+  through a recipe that edits, mirrors, retimes or blends an idle or sets it beside a walk or a turn), 3 (verified
+  motion), 8, 10, D66, D104, D108, D122, D129, D133
+- **Call:** (F.13 ran in two rounds: the first fitted the idles' small motion and added the still check; its
+  review found the knees and elbows and the recipes, which the second fixed, with the intake's still gate.)
+  - **What was wrong** (D133): `@m3a/io`'s `importSet` fitted every clip with core's `format.fit` at a fixed 30 mm. Core's
+    fit starts from Ramer–Douglas–Peucker key frames, which keep only the first and last frame when every frame is within
+    the limit of the straight in-between of those two; a loop's two ends are one pose. 100STYLE's idles are "each the
+    longest still stretch" of a recording; the 74 that came out one pose, 2 keys, reach 4.6 to 27.7 mm in their
+    captures; so did 11 MESH2MOTION loops whose words promise motion (reaching 4.8 to 28 mm: Sleeping's "chest rising
+    and falling" 4.8, Driving 12.9, Meditate 15.4, Sitting_Idle 17.1, Shivering 19.9, Flying_Forward and _Super 21.5,
+    Idle_Subtle 22.1, Idle_Rail 22.8, Zombie_Idle_Crouch 26.9, Pistol_Idle 28.3). A still pose breaks no sensor rule,
+    so QA passed them.
+  - **The fit's limit:** a capture that reaches 60 mm or more is fitted at 30 mm as before; one that reaches less within
+    min(30, max(3, 0.5 × far)) mm, `far` how far it strays from the in-between of its ends, or its reach where that is
+    less (`fitLimit` in `importSet`; core's fit and its vectors untouched). Half of how far it strays always keeps the
+    frame that strays most. A limit from the reach alone (as first built) lost the sway of a clip that leans as it sways
+    (a tiny rig leaning 3° while swaying 1°: limit 23.7 mm, 2 keys, the fists missing the 15.8 mm sway; from how far it
+    strays, 7.9 mm, 4 keys, the fists within 7.9); no library capture was such a clip (the 108 under 60 mm stray as far
+    as they reach to within 0.7 mm, their ends meeting within 4.2), so the library is the same under either. 0.5 and
+    0.75 unfroze the same 74 idles (0.33 gave more keys, 6 at the median against 4, and no more fidelity: the decoded
+    reach 0.95 against 0.91 of the capture's at p10), and a 5 mm floor left Sweep_Idle (4.6 mm) still. Of the 1,208
+    captures the importer fits, 1,100 reach 60 mm or more and are fitted exactly as before by construction; of the 108
+    under it, 87 clip files change, each reaching 4.6 to 40.3 mm, and 21 come out with the same keys (among them the two
+    locomotion loops under 60 mm, STYLE100_RUN/WalkingStickLeft_Run 37.2 and STYLE100_BACKRUN/Flapping_RunBack 57.4).
+    Keys 2 → 3 to 9; every verdict pass → pass; the fit's mean better on 61, the same on 24, 1 mm worse on 2
+    (LimpLeft_Idle, WideLegs_Idle), its worst point further on 30.
+  - **The knees and elbows:**
+    - **The problem.** With a sway's keys, round 1's re-fit moved a nearly straight knee or elbow 20 to 54 mm beyond the
+      capture's on 16 of its 87 clips (and Glide's elbow, before F.13). Angry_Idle's left knee snapped 2.2 → 52.6 mm in
+      67 ms.
+    - **The cause.** Core's encoder read the bend from the root-to-end distance alone. The decoded hips stand up to half
+      a step off the captured ones (whole percent of H0, 9.8 mm a step). Near full extension that flips the reading
+      between 0° and some 15°: Penguin_Idle's knee, bent 8.6° on every captured frame, read 15.3° and 0.0°.
+    - **The option.** Core's encoder gets `steadyBend`, off by default, so every other caller, the vectors and tiers 1a
+      to 3 stay bit for bit. A limb its joint shows bent 15° or less takes its bend from that joint: the bend that puts
+      the decoded knee or elbow on the line to the captured one, α + asin(L1 sin α / L2). It fades to the distance's
+      reading by 25°, so a bending limb is read as before. One frame's points decide it, so a loop still ends where it
+      starts. It was chosen after measuring a hard switch, three other bands and weighing by the larger reading.
+    - **Over the 108 clips fitted within their own motion:**
+      - a knee or elbow 20 mm or more beyond the capture's: 17 → 0; the worst 54.3 → 10.0 mm;
+      - beyond the clip's own fit limit: 35 → 6;
+      - beyond the capture's whole reach: 25 → 2.
+    - **What is left, named:**
+      - four whose pelvis itself moves 5.5 to 7.7 mm beyond the capture's (Penguin, Angry, Proud, Chicken: the hips'
+        whole percent, the knee riding on it);
+      - two past a 3 mm limit by under a millimetre (ArmsFolded, KarateChop).
+    - **Its cost.** A planted foot now follows the hips' rounding where the distance's bend pinned it: the feet's motion
+      beyond the capture's p90 7.0 → 8.6 mm, at most 13.4. RightHop's foot is 7.0 → 12.9, OnPhoneLeft 10.2 → 13.4, Angry
+      6.3 → 11.6. A sole dips at most 3.2 mm under the floor. Against that, every fit's worst point improves (Angry 40 →
+      8 mm).
+  - **No key one frame from a key:**
+    - **The problem.** With the knee artifact gone, the fit at a 3 to 5 mm limit chased the chest's and head's whole
+      degrees. It added a key one frame from a key, and the two rounded apart. Aeroplane_Idle's headTop jumped 10.9 mm
+      in 1/30 s (pop 13.9 → 322 mm/s), and Old_Idle's head 5.6 mm (4 keys added, its keys 7 → 11). Chicken_Idle's and
+      ShieldedRight_Idle's knee, elbows, neck and head had snapped since round 1.
+    - **The option.** Core's fit gets `spaced`, off by default. Once the frame it misses most (beyond its own key's
+      rounding) lies beside a key, it stops: that frame is missed by the key's own rounding, which a second key can't
+      mend. `importSet` sets it with `steadyBend`.
+    - **The result.** Snaps at any shown point went 4 clips (39 point-frames) → 0; at a knee or elbow, round 1's 7 (117)
+      → 0. Four files changed (Aeroplane, Chicken, Old, ShieldedRight), each keeping its verdict, its fit mean within
+      0.3 mm and its hands nearer. Their pop is 322 → 13.9, 170 → 71.3, 96 → 20.7 and 292 → 15.7.
+    - **The pin.** `tools/import/fidelity.test.ts` pins the bound, not a list of offenders: none 11 mm beyond; past the
+      limit only the six, each by its reason; no snap at any shown point; 13 over 1.5 times; 7 under 0.8 times, the
+      least 0.56; the 5 frozen poses.
+  - **The sway kept:**
+    - Frozen 102 → 17 stands (13 tagged poses, 4 answered).
+    - Seven clips decode to less than 0.8 of their capture's reach (Flying_Forward, Glide, DragLeftLeg, FairySteps,
+      HandsBetweenLegs 0.56, OnPhoneRight, RaisedRightArm). This misses the 0.8 bar the round set. Each one's most-moving
+      point (head, hand or foot) decodes as round 1 decoded it; round 1's higher ratio was its knee or elbow artifact.
+    - Three of them (Glide, HandsBetweenLegs, RaisedRightArm) would stay under 0.8 with every frame a key: the format's
+      whole degrees at the head and hands. The others lose it to the fit's limit (half of how far the capture strays).
+      A tighter limit would chase single points' noise.
+    - Each still sways 8.9 to 37.8 mm in 3 to 5 keys. The owner judges them (below).
+  - **Recipes keep it too:**
+    - **The rule moved into core.** `MOTION_TOL`, `reach`, `offLine`, `clipTol`, `fitLimit` and `ownMotion` are in
+      core's `format`; @m3a/io's names are now core's functions.
+    - **The budget.** `recipe.compile` with no budget bounds each frame's budget by the second of the track around it
+      (`budgetsOf`: `fitLimit` over that second, at most `KEY_BUDGET`). A frame whose second keeps every body point
+      within 60 mm is kept within half of how far that second strays, at least 3 mm; elsewhere within 30 mm as before.
+    - **Calm frames.** A frame kept within less than 30 mm is measured beyond its own key's rounding. The calm frames
+      are settled once the one missed most lies beside a key, so a blended or edited idle is a few keys, not a staircase.
+    - **Unchanged.** `keysOf` with one budget is unchanged, so the procedural moves and gaits, every explicit budget,
+      spec/vectors/frozen/moves.json, the library's 7 actions, a walk, a run and 19 of spec/recipes' 20 examples are
+      byte for byte.
+    - **Of the 87 re-fitted clips** (round 1 at 30 mm → now):
+      - through a clip step, a mirror or a retime 0.8: 83, 83 and 84 one pose → 0, each decoding to 0.89 or more of
+        the clip's reach, 4 keys at the median;
+      - blended half with another idle: 5 keys at the median, where one budget per track keyed 76 of 77 frames and
+        stepped 27 mm in a frame;
+      - stiffened, smoothed or posed: no step over 5 mm;
+      - sequenced with another idle: 3 of 170 swaying stretches compile to under half their sway (160 under one budget
+        per track);
+      - an idle with a late chest turn keeps its sway before the turn (CrossOver_Idle 9.7 of 7.7 mm, where one budget
+        per track kept 0.2).
+    - **Idle_To_Walk** keeps Neutral_Idle's sway (13.0 of 13.7 mm).
+    - **What isn't kept.** A stretch under a second beside a 60 mm move is fitted at 30 mm (3 of the 170). Six of the 87
+      blends still step 5 to 10 mm where the first keys fall a few frames apart.
+    - **No bend from points.** No bend is read from points in a compile (its keys are the track's own numbers,
+      rounded), so `steadyBend` has nothing to do there.
+    - **Where it reaches.** `m3a edit`, compose, `library submit` of a recipe, the recipe source and the actions compile
+      this way. spec/RECIPE.md §3 says so (not frozen).
+  - **The still check:**
+    - **One rule.** `checks.STILL`, `checks.reachOf` and `checks.isPose` in @m3a/sensors. `reachOf` reads every 1/30 s
+      and the clip's end. Both the library's QA and the intake's lint gate read it.
+    - **The library.** A clip whose body points all stay within 3 mm of where they start must be tagged `pose` or
+      `reference`, or answered in `library/baselines/qa.json` `still` (a new field). 13 are tagged (the pistol's three
+      aims in three sets, a held bow, two T-poses, a rest pose). 4 are answered: QUATERNIUS_3D2DGE's and
+      QUATERNIUS_SHARDFALL's Driving_Loop and Sitting_Idle_Loop, frozen in their pinned sources (round 1's reasons).
+    - **The intake.** `m3a library submit`, the checker and library-gates refuse a clip that never moves where it is
+      sent. The message is "it never moves: every body point stays within 3 mm of where it starts. Give it its motion,
+      or tag it pose if it is a held pose".
+    - **What passes anyway:**
+      - a clip whose tags say `pose` or `reference`;
+      - a clip outside the intake that library/baselines/qa.json `still` answers (never a submission's own claim);
+      - an improvement of a clip that never moved either and that no tag called a pose (that answer holds at the
+        clip's id).
+    - **Before,** such a submission passed every local gate. Only the adopt bot's regeneration failed it, after the
+      owner had adopted it, with a bare "qa: FAIL".
+    - **The proof.** A frozen idle is bounced at lint, in an intake set and outside the intake, and the same idle moving
+      passes (`npm run gate -- library-pr --fixture all` 31/31, `npm run intake -- check --fixture all` 20/20). Five
+      tests fail with the gate removed.
+  - **Jump_Twist cut again** from CMU 85_01: 2.00 to 3.80 s was a bounce before the move (hips 93 to 103% of H0). The
+    take's jump: a wind-up from 3.7 s, the right leg kicking up at 4.45, off the left foot at 4.58, in the air to 5.15
+    (hips to 150% of H0, the torso tipped 157°, upside down), down on the right foot at 5.17 and the left at 5.33, a full
+    turn on the ground by 6.0, bent over, standing and facing forward again by 7.8. The new stretch is 3.65 to 7.80 s
+    (4.167 s, 85 keys, fit 12/101 mm), its words "A kick up into a twisting flip, landing in a spin to face forward
+    again" (the old "a jump straight up" isn't in the take; 38 of the row's 40 tokens). Its facts: height 69 to 150 (86 to
+    103), travel [177, −17] (it moves 1.7 m forward). The sensors fail it (bodyPenetration: the right fist 111 mm under the
+    floor at the landing; twistFlip: the right foot's heading 177° in 33 ms while upside down), as they fail Backflip and
+    Breakdance_Helicopter; the fix's footLocks would move a point 39 mm further from its source, so it isn't repaired; its
+    reason is recorded. Its tags stay `jump once`: `dodge` would switch off bodyPenetration as the acrobatics profile does
+    for a flip, but it isn't a dodge.
+  - **A re-cut is weighed on its own:** the importer kept a migrated version over a re-import that fits worse or that the
+    sensors judge worse; a different stretch is a different motion, so the old run-up would have come back. A clip whose
+    catalog stretch differs from its migrated version's is now new ("cut again from 85_01 2.00-3.80 → 3.65-7.80").
+  - **Side effect, recorded:** subject 85's rest is measured over its clips, so the new stretch moves its neck share
+    (`neckW` 0.30 → 0.45); Breakdance_Helicopter keeps its keys and verdict (fail), its fit 13/94 → 13/105 mm, pop 2520 →
+    2580.
+  - **The owner's reviews:** 16 of the 20 carry over byte for byte. 4 clips' motion changed, and the writer carries a
+    review only while its motion hash matches (`carryReview`, tools/migrate/adopted.ts: otherwise "the clip back to
+    unreviewed"), so it dropped theirs: CMU_CURATED/Jump_Twist (flagged: "never gets to the actually jump") and
+    STYLE100_IDLE/CrossOver_Idle ("This is a pose. There is no actual animation."), OnPhoneLeft_Idle ("A pose no
+    animation.") and GracefulArms_Idle (approved, no note). Their clip files carry no review now: the review queue lists
+    them as unreviewed, not stale, and the next card shows no earlier note (CMU_CURATED's flagged count in the index 1 →
+    0). The reviews remain on record only in G8's batch (`bench/results/gates/G8-run-1/queue-0.56.0.json`),
+    docs/FEEDBACK-LOG.md F7.2, F7.7 and F7.8, and docs/REVIEW-PROPOSALS.md (`CMU_CURATED/Jump_Twist@3ab846fac374`);
+    none was edited. Keeping a review whose hash no longer matches, so the card reads stale with its note, would change
+    WP-9.1's `carryReview`; not done here.
+  - **The corpora.** `npm run corpora -- 100style --import` passes `motion: false` to `importSet`, fitting every clip at
+    30 mm as shardfall's importer did. Its `--check` reproduces shardfall's (frozen) idles byte for byte again: 98 of 98,
+    where 75 differed after the first build. The library's own import keeps the motion bound.
+  - **Baselines, each through its writer** (net, against v0.58.0):
+    - `packages/sensors/fixtures/baseline.json`: the re-fitted clips' and Jump_Twist's values (and Breakdance_Helicopter's,
+      above); no verdict changed but Jump_Twist's (pass → fail, its reason recorded). Pop rose most on LeanRight_Idle
+      (17.4 → 176 mm/s, the warn level 2100) and Cat_Idle (5.7 → 86).
+    - The record `library/baselines/distributions.json` worse in four places, admitted by this decision: fails 154 → 155
+      (Jump_Twist), skate p95 22.4 → 22.5 and jitter p95 45.4 → 46 (Jump_Twist), pop p50 491 → 492. A clip that shows
+      the jump its words promise, and 85 clips that move, are worth more than those last digits.
+    - The census 1,199 → 1,198 unique (every G5 floor met): Jump_Twist adds one; Kick_Idle and Skip_Idle, which held
+      still by the census's measure before (spread 3.5 and 2.3 mm), now read their steady knee and elbow bends 3 to 6°
+      differently, which brings their mean poses within 20 mm of HighKnees_Idle's and Lunge_Idle's (19.7, 17.9), so
+      each counts with one of them.
+    - `docs/LIBRARY.md` regenerated; the index's serial 6 → 7 (CMU_CURATED v4, MESH2MOTION v3, STYLE100_IDLE v3,
+      STYLE100_RUN v5, STYLE100_BACKRUN v4); the rate sweep's baseline unchanged (its 428 failing rows as before).
+    - Clip files against v0.58.0: MESH2MOTION 22 (the four held poses among them, re-encoded and still one pose),
+      STYLE100_IDLE 76, STYLE100_RUN/WalkingStickLeft_Run and STYLE100_BACKRUN/Flapping_RunBack, each a clip the import
+      fits within its own motion; and CMU_CURATED's Jump_Twist (cut again) and Breakdance_Helicopter (its subject's rest).
+- **Why:**
+  - The fit's job is to keep a clip's motion in as few keys as hold it. A fixed limit larger than the motion keeps none
+    of it.
+  - A joint read where it is ill-conditioned adds motion the capture hasn't. So does a key whose only reason is the key
+    beside it.
+  - A clip that never moves and says it does misleads every agent that picks it by its words; so does one whose knee
+    swings where the actor's stood.
+  - A recipe is how an agent edits a clip, so what the library keeps a recipe must keep too.
+- **Follow-up:** the format's resolution still moves a few small idles more than their capture:
+  - the hips' whole percent of H0 moves Penguin's, Angry's, Proud's and Chicken's pelvis, and with it their knees and
+    feet, 5.5 to 7.7 mm beyond the capture's;
+  - the chest's and head's whole degrees take 13 clips past 1.5 times their capture's reach.
+
+  A steady rounding of the hips, chest and head would be the encoder's next option, measured the same way. It would
+  keep the key before's whole number while the capture stays within it. MOTION.md is frozen, so the resolution itself
+  stays.
+- **Answered:** no: made under D131, to review.
+- **Landed in:** v0.59.0

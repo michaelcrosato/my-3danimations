@@ -1,8 +1,9 @@
 // The intake's fixtures (PLAN.md WP-9.1a): each submission tools/intake/fixtures/submissions.json names, built
-// deterministically from a procedural gait on a library rest (the clean one: a motion no library clip has) or from a
-// library clip (its own id kept unless a `set` names another; `orig` naming it unless it improves it, as `m3a library
-// submit --improves` sends an improvement), with its edits (`compile` recipe steps over it, `set` a field by its path,
-// `turn` a key field, `plant` one of tools/plant's defects, `approved` the owner's approval and an adoption record
+// deterministically from a procedural gait on a library rest (the clean one: a motion no library clip has), from a
+// procedural idle on it (`idle`), or from a library clip (its own id kept unless a `set` names another; `orig` naming it
+// unless it improves it, as `m3a library submit --improves` sends an improvement), with its edits (`compile` recipe
+// steps over it, `freeze` every key its first pose as a fixed fit froze 100STYLE's idles, D133, `set` a field by its
+// path, `turn` a key field, `plant` one of tools/plant's defects, `approved` the owner's approval and an adoption record
 // forged on it), given the intake's provenance as `m3a library submit` gives it, and serialized as the submit sends
 // it. Its expectation says which state the checker must leave it in and what a bounce must say; a bad one marked
 // `bare` is also built as a pull request outside the intake would add it to BARE_SET (no provenance.intake, the
@@ -27,6 +28,8 @@ interface Spec {
   from?: string;
   improves?: string;
   compile?: { op: string; [field: string]: unknown }[];
+  idle?: boolean;
+  freeze?: boolean;
   set?: Record<string, unknown>;
   turn?: Record<string, number>;
   plant?: Defect;
@@ -64,9 +67,9 @@ function put(o: Record<string, unknown>, path: string, v: unknown): Record<strin
 
 /** Every fixture (or the one named), built on the library `lib` (every shipped tier). */
 export function fixtures(lib: LibraryAccess, only?: string): Fixture[] {
-  const file = JSON.parse(readFileSync(FIXTURES, "utf8")) as { base: { gait: procedural.Gait; id: string; restSrc: string; by: string }; submissions: Spec[] };
+  const file = JSON.parse(readFileSync(FIXTURES, "utf8")) as { base: { gait: procedural.Gait; id: string; idle: procedural.Idle; idleId: string; restSrc: string; by: string }; submissions: Spec[] };
   const b = file.base, rest = lib.library.about("QUATERNIUS_3D2DGE").sources[b.restSrc]!.rest;
-  const gait = procedural.gaitClip(b.gait, rest, { restSrc: b.restSrc, id: b.id });
+  const gait = procedural.gaitClip(b.gait, rest, { restSrc: b.restSrc, id: b.id }), idle = procedural.idleClip(b.idle, rest, { restSrc: b.restSrc, id: b.idleId });
   const specs = file.submissions.filter((s) => only === undefined || only === "all" || s.name === only);
   if (!specs.length) throw new Error(`intake: no fixture "${only}"; the fixtures are ${file.submissions.map((s) => s.name).join(", ")}, or all`);
   return specs.map((s) => {
@@ -78,7 +81,12 @@ export function fixtures(lib: LibraryAccess, only?: string): Fixture[] {
       const made = s.compile ? recipe.compile({ format: "2.0", id: got.clip.id, steps: [{ as: STEP_NAMES[0], op: "clip", id: got.clip.id }, ...s.compile.map((st, i) => ({ ...st, in: STEP_NAMES[i], ...(i < s.compile!.length - 1 ? { as: STEP_NAMES[i + 1] } : {}) }))] } as recipe.Recipe, lib.library.resolver()).clip : got.clip;
       clip = { ...made, provenance: { ...got.clip.provenance, ...(s.improves ? {} : { orig: got.clip.id }), method: "edited", ai: "humanEdits", producer: { tool: "m3a-intake-fixtures", version: "1" }, intake: { by: b.by, ...improves } } as Clip["provenance"] };
       delete clip.review;
-    } else clip = { ...gait, provenance: { ...gait.provenance, intake: { by: b.by } } as Clip["provenance"] };
+    } else {
+      const made = s.idle ? idle : gait;
+      clip = { ...made, provenance: { ...made.provenance, intake: { by: b.by } } as Clip["provenance"] };
+    }
+    // every key its first pose, each at its own time: a statue as long as the motion
+    if (s.freeze) clip = { ...clip, keys: clip.keys.map((k) => ({ ...clip.keys[0]!, t: k.t })) };
     for (const [field, deg] of Object.entries(s.turn ?? {})) clip = { ...clip, keys: clip.keys.map((k) => ({ ...k, [field]: (k as unknown as Record<string, number[]>)[field]!.map((v, i) => (i === 0 ? v + deg : v)) })) } as Clip;
     if (s.plant) clip = plant(s.plant, clip, rest).clip;
     for (const [path, v] of Object.entries(s.set ?? {})) clip = put(clip as unknown as Record<string, unknown>, path, v) as unknown as Clip;

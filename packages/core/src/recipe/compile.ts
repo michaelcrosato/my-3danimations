@@ -1,12 +1,14 @@
 // Compiling a recipe (spec/RECIPE.md §3): the recipe checked, each step run on the tracks it reads, and the last track
 // written as a format-2 clip. Keys are chosen from the track's frames the way the fitter chooses them (Ramer–Douglas–
 // Peucker over whole poses, then the frame the in-betweens miss most, until every frame is within the budget), each
-// rounded as the format rounds (directions scaled to 100). The clip names the recipe's hash and its inputs' content
-// ids in its provenance, carries the license its inputs force (D10), and validates; the same recipe and inputs give
-// the same clip.
+// rounded as the format rounds (directions scaled to 100). Each frame's budget is KEY_BUDGET, bounded by the motion of
+// the second around it as an import's fit is bounded by a clip's (format's `fitLimit`, F.13, D135), so an idle's small
+// sway compiles to its keys, not one pose, alone or beside a walk in the same recipe. The clip names the recipe's hash and its inputs' content ids in its provenance, carries the license its inputs force
+// (D10), and validates; the same recipe and inputs give the same clip.
 import { P, type Rest } from "../format/body.ts";
 import { decodePose, type KeyLike } from "../format/pose.ts";
 import { error, meanError, reduce } from "../format/fit.ts";
+import { fitLimit, type Frames } from "../format/motion.ts";
 import { keyAt, type Capture } from "../format/sample.ts";
 import type { Clip, ClipEvent, Contacts, Key } from "../format/types.ts";
 import { CONTACT_ENDS, KEY_FIELDS } from "../format/types.ts";
@@ -24,8 +26,11 @@ import { OPS, RecipeError, validateRecipe, type RecipeIssue } from "./validate.t
 
 /** The compiler's own revision in a clip's provenance. */
 export const RECIPE_PRODUCER = { tool: "m3a-recipe", version: VERSION };
-/** The key budget: every frame within this many mm (worst body point) of the keys' in-betweens. */
+/** The key budget: every frame within this many mm (worst body point) of the keys' in-betweens; a frame whose second
+ *  around it moves less than twice it, within half of how far that second strays (`budgetsOf`). */
 export const KEY_BUDGET = 30;
+/** The stretch of a track (s) whose motion bounds the budget of the frame at its middle (`budgetsOf`). */
+const MOTION_SPAN = 1;
 
 /** What compiling gives: the clip, the rest it decodes on, and the track it was written from. */
 export interface Compiled {
@@ -146,9 +151,18 @@ export function nearestTo(p: Pose, ref: Pose): Pose {
   return out;
 }
 
-/** The keys for a track: its frames rounded, as few as keep every frame within the budget (mm), and their fit (mean
- *  and worst mm). Procedural sources write their clips with it too. */
-export function keysOf(t: Track, budget: number): { keys: Key[]; fit: [number, number] } {
+/**
+ * The keys for a track: its frames rounded, as few as keep every frame within the budget (mm), and their fit (mean and
+ * worst mm). `budget` is one for every frame (procedural sources write their clips so, and `compile`'s `opts.budget`),
+ * or one per frame (`budgetsOf`). A frame whose budget is under KEY_BUDGET (a calm one) is measured over its own key's
+ * rounding, as core's `fit` measures a frame over its own key's: rounding a pose to whole degrees and percents moves a
+ * point a few millimetres, as much as a calm frame's budget, and no key mends it (measured from the frame itself, every
+ * frame of a blended or edited idle missed its budget and became a key, neighbours rounding apart in a staircase). A
+ * calm frame is never keyed beside a key: once the worst calm frame lies next to one, the in-betweens there miss it by
+ * that key's own rounding, a second key would only add a step, and the calm frames are done (the others are still keyed
+ * within their budget).
+ */
+export function keysOf(t: Track, budget: number | readonly number[]): { keys: Key[]; fit: [number, number] } {
   const moves = t.roots.some((r) => Math.abs(r.forward) > 0.5 || Math.abs(r.right) > 0.5) || (t.loop && (Math.abs(cycleOf(t).forward) > 0.5 || Math.abs(cycleOf(t).right) > 0.5));
   const turns = t.roots.some((r) => Math.abs(r.yaw) > 0.5) || (t.loop && Math.abs(cycleOf(t).yaw) > 0.5);
   const withRoot = (p: Pose, r: Root, time: number): Key => ({ t: ms(time), ...p, ...(moves ? { root: [Math.round(r.forward) + 0, Math.round(r.right) + 0] } : {}), ...(turns ? { yaw: Math.round(r.yaw) + 0 } : {}) }) as unknown as Key;
@@ -157,31 +171,67 @@ export function keysOf(t: Track, budget: number): { keys: Key[]; fit: [number, n
   // short way (a heading that crossed ±180 in the cycle doesn't swing back round)
   if (t.loop) all.push(withRoot(quantize(nearestTo(t.poses[0]!, t.poses[t.poses.length - 1]!)), nextCycle(t), t.dur));
   // the frames as points, for choosing keys and measuring them
-  const n = all.length, data = new Float32Array(n * P * 3), X = new Float32Array(P * 3);
-  t.poses.forEach((p, i) => data.set(decodePose(t.rest, p, X) as Float32Array, i * P * 3));
-  if (t.loop) data.set(data.subarray(0, P * 3), (n - 1) * P * 3);
+  const { n, data } = framesOf(t), k = P * 3, Y = new Float32Array(k);
+  // one budget for every frame, or one per frame with a calm frame among them (with none, the largest for every frame)
+  const per = typeof budget === "number" || !budget.some((b) => b < KEY_BUDGET) ? null : budget;
+  const one = typeof budget === "number" ? budget : budget.reduce((a, b) => Math.max(a, b), 0);
+  const calm = per ? per.map((b) => b < KEY_BUDGET) : [];
+  const floor = per ? all.map((key, i) => (calm[i] ? error(data.subarray(i * k, (i + 1) * k), decodePose(t.rest, key as KeyLike, Y)) : 0)) : [];
   const cap: Capture = { name: "recipe", n, dur: t.dur, loop: false, fps: (n - 1) / Math.max(t.dur, 1e-9), data, move: null };
-  const chosen = new Set(n > 1 ? reduce(cap, budget) : [0]);
+  const chosen = new Set(n > 1 ? reduce(cap, one) : [0]);
   chosen.add(0).add(n - 1);
+  let settled = false;
   const measure = () => {
-    const keys = [...chosen].sort((a, b) => a - b).map((i) => all[i]!), clip = { dur: t.dur, loop: false, keys }, Y = new Float32Array(P * 3);
-    // the worst frame of all (a key's own rounding counts), and the worst one not yet a key
+    const keys = [...chosen].sort((a, b) => a - b).map((i) => all[i]!), clip = { dur: t.dur, loop: false, keys };
+    // the worst frame of all (a key's own rounding counts), and the one not yet a key that misses its budget most: one
+    // budget, its error; per frame, by how much it misses (a calm frame's over its own rounding; none once settled)
     let worst = 0, free = 0, at = -1, sum = 0;
     for (let i = 0; i < n; i++) {
       decodePose(t.rest, keyAt(clip, all[i]!.t) as KeyLike, Y);
-      const e = error(data.subarray(i * P * 3, (i + 1) * P * 3), Y);
-      sum += meanError(data.subarray(i * P * 3, (i + 1) * P * 3), Y);
+      const e = error(data.subarray(i * k, (i + 1) * k), Y);
+      sum += meanError(data.subarray(i * k, (i + 1) * k), Y);
       worst = Math.max(worst, e);
-      if (e > free && !chosen.has(i)) [free, at] = [e, i];
+      if (chosen.has(i)) continue;
+      const by = !per ? e : !calm[i] ? e - per[i]! : settled ? 0 : e - floor[i]! - per[i]!;
+      if (by > free) [free, at] = [by, i];
     }
     return { keys, worst, free, at, mean: sum / n };
   };
   let m = measure();
-  for (let guard = 0; m.free > budget && guard < n; guard++) {
-    chosen.add(m.at);
+  for (let guard = 0; m.free > (per ? 0 : one) && guard < n; guard++) {
+    if (per && calm[m.at] && (chosen.has(m.at - 1) || chosen.has(m.at + 1))) settled = true;
+    else chosen.add(m.at);
     m = measure();
   }
   return { keys: m.keys, fit: [Math.round(m.mean), Math.round(m.worst)] };
+}
+
+/** A track's frames as body points on its rest (mm), a loop's first again at its end: what `keysOf` chooses keys from and
+ *  measures them against. */
+export function framesOf(t: Track): Frames {
+  const n = t.poses.length + (t.loop ? 1 : 0), data = new Float32Array(n * P * 3), X = new Float32Array(P * 3);
+  t.poses.forEach((p, i) => data.set(decodePose(t.rest, p, X) as Float32Array, i * P * 3));
+  if (t.loop) data.set(data.subarray(0, P * 3), (n - 1) * P * 3);
+  return { n, data };
+}
+
+/**
+ * The key budget a compile gives each frame of a track (mm): KEY_BUDGET, bounded by the motion of the second around the
+ * frame the way an import bounds its fit by a clip's whole motion (format's `fitLimit`, F.13, D135). Where the track's
+ * body points all stay within 60 mm of where that second starts, the frame is kept within half of how far the second
+ * strays from the straight in-between of its ends (or of its reach where that is less) and at least 3 mm, so a small
+ * sway isn't taken for noise and compiled to one pose; elsewhere within KEY_BUDGET as before, and a track that moves more
+ * than that everywhere is fitted exactly as before. Bounded by the second rather than the whole track, an idle keeps its
+ * sway beside a walk or a turn in the same recipe (one bound for the whole track fitted it at 30 mm). Its keys are its
+ * own numbers, rounded (`keysOf`): no bend is read from points here, so the encoder's `steadyBend` has nothing to hold
+ * (the clips it reads carry their own).
+ */
+export function budgetsOf(t: Track): number[] {
+  const { n, data } = framesOf(t), k = P * 3, half = Math.round((t.fps * MOTION_SPAN) / 2);
+  return Array.from({ length: n }, (_, f) => {
+    const a = Math.max(0, f - half), b = Math.min(n - 1, f + half);
+    return fitLimit({ n: b - a + 1, data: data.subarray(a * k, (b + 1) * k) }, KEY_BUDGET);
+  });
 }
 
 /** Contacts kept within the clip, sorted, merged where they meet (the format's rule, §7.1). */
@@ -206,7 +256,8 @@ export function licenseOf(inputs: readonly Resolved[]): { license: string; credi
 
 /**
  * Compiles a recipe into a format-2 clip: checked first (a RecipeError lists every issue), each `clip` step read
- * through `resolve`, the last step's track sampled at the recipe's rate and fitted to keys within `budget` mm.
+ * through `resolve`, the last step's track sampled at the recipe's rate and fitted to keys within `budget` mm (by
+ * default `budgetsOf` the track: KEY_BUDGET, or less for a frame whose second around it moves less than twice it).
  */
 export function compile(recipe: Recipe, resolve: Resolver, opts: { budget?: number } = {}): Compiled {
   const issues = validateRecipe(recipe);
@@ -219,7 +270,7 @@ export function compile(recipe: Recipe, resolve: Resolver, opts: { budget?: numb
     if (s.as) named.set(s.as, last);
   });
   // the clips the result is made from (a step read by none doesn't count), the one whose rest it decodes on first
-  const t = last!, read = t.sources.map((id) => [id, used.get(id)!] as const), first = read[0]![1], { keys, fit } = keysOf(t, opts.budget ?? KEY_BUDGET);
+  const t = last!, read = t.sources.map((id) => [id, used.get(id)!] as const), first = read[0]![1], { keys, fit } = keysOf(t, opts.budget ?? budgetsOf(t));
   const events = t.events.filter((e) => e.t >= 0 && e.t <= t.dur).sort((a, b) => a.t - b.t), contacts = tidyContacts(t.contacts, t.dur, t.loop);
   const inputs = Object.fromEntries([...read].sort(([a], [b]) => (a < b ? -1 : 1)).map(([id, r]) => [id, r.contentId]));
   const clip: Clip = {

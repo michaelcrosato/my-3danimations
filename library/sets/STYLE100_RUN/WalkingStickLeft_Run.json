@@ -13,18 +13,18 @@
 "contacts": {"by":"detected","footL":[[0,0.5]],"footR":[[0,0.5]]},
 "facts": {"by":"m3a-facts@1","captured":["speed"],"height":[101,101],"seam":0,"speed":14,"travel":[1,0.2]},
 "provenance": {"src":"100STYLE","take":"WalkingStickLeft_FR 56.62-57.12","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
-"quality": {"fit":[6,33],"qa":"pass","qaVersion":"m3a-sensors@1"},
+"quality": {"fit":[5,16],"qa":"pass","qaVersion":"m3a-sensors@1"},
 "keys": [
   {"t":0,
    "hips":[0,0,101], "body":[2,-8,-1], "chest":[1,13,1], "head":[1,24,4],
    "shL":[2,-7], "shR":[3,-7], "armL":[52,6,-85,83,17], "armR":[45,7,-89,46,-10], "handL":[-21,11,89], "handR":[-12,2,106], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
-   "legL":[-18,-3,-98,14,5], "legR":[-14,-10,-99,2,8], "footL":[10,16,0], "footR":[11,3,0]},
+   "legL":[-18,-3,-98,16,5], "legR":[-14,-10,-99,11,8], "footL":[10,16,0], "footR":[11,3,0]},
   {"t":0.2,
    "hips":[2,0,101], "body":[2,-10,-1], "chest":[-1,14,1], "head":[3,25,5],
    "shL":[3,-9], "shR":[3,-6], "armL":[53,5,-84,84,18], "armR":[39,6,-92,42,-11], "handL":[-22,12,90], "handR":[-8,6,119], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
-   "legL":[-23,-3,-97,13,9], "legR":[-20,-10,-98,0,11], "footL":[12,16,0], "footR":[12,3,0]},
+   "legL":[-23,-3,-97,15,9], "legR":[-20,-10,-98,6,11], "footL":[12,16,0], "footR":[12,3,0]},
   {"t":0.5,
    "hips":[0,0,101], "body":[2,-8,-1], "chest":[1,13,1], "head":[1,24,4],
    "shL":[2,-7], "shR":[3,-7], "armL":[52,6,-85,83,17], "armR":[45,7,-89,46,-10], "handL":[-21,11,89], "handR":[-12,2,106], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
-   "legL":[-18,-3,-98,14,5], "legR":[-14,-10,-99,2,8], "footL":[10,16,0], "footR":[11,3,0]}
+   "legL":[-18,-3,-98,16,5], "legR":[-14,-10,-99,11,8], "footL":[10,16,0], "footR":[11,3,0]}
 ]}

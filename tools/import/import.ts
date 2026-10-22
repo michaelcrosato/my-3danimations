@@ -34,7 +34,8 @@ import { CATALOGS, IMPORTS, type ImportSpec } from "./sets.ts";
 /** The importer's own revision: it goes in every clip it writes, so a change to its output is a change to this. */
 export const IMPORTER = { tool: "m3a-import", version: "1" };
 /** Format 2's degrees of freedom every re-imported clip is fitted with, a steady twist on nearly straight limbs, and a
- *  loop whose capture closes ending on its first key. */
+ *  loop whose capture closes ending on its first key; `importSet` adds core's `steadyBend` to a clip it fits within its
+ *  own motion (D135). */
 export const ENCODE = { hands: true, spine: true, yaw: true, steadyTwist: true, closeLoop: true } as const;
 /** The fit limits (mm): a set's mean, a clip's mean, a clip's worst. */
 export const LIMITS = { setMean: 20, clipMean: 40, clipWorst: 300 } as const;

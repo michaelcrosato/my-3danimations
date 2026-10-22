@@ -3,7 +3,8 @@
 // prompt as its SHA-256 alone; a generator's training-data manifest; the clip it improves with its file's SHA-256), a
 // clip that says nowhere who or what made it refused naming --by, which fills a record that lacks it (D119), a recipe
 // sent as written, the same text again no second submission; what a gate fails not sent, each line saying the fix (a
-// motion source that served other terms than it states among them, D119); PER_DAY a day; status listing the
+// motion source that served other terms than it states among them, D119; a clip that never moves unless its tags say
+// it is a held pose or the clip it improves never moved either, F.13); PER_DAY a day; status listing the
 // contributor's own; the contributor the Node entry opens (the local store with no hosted setting, the hosted one with
 // all three, E_KEY when half linked); and what the tool costs a model to see.
 import { readFileSync, writeFileSync } from "node:fs";
@@ -17,7 +18,7 @@ import { mcpName } from "../src/mcp.ts";
 import { nodeContributor } from "../src/node/intake.ts";
 import { Registry, type Reply } from "../src/registry/index.ts";
 import { tools } from "../src/tools/index.ts";
-import { libraryTool, PER_DAY } from "../src/tools/library-submit.ts";
+import { clipGates, libraryTool, PER_DAY, type GateInput } from "../src/tools/library-submit.ts";
 import { checkout, libraryClip, ROOT, TODAY, type Checkout } from "./review-helpers.ts";
 
 let co: Checkout, alice: IntakeStore, reg: Registry;
@@ -30,6 +31,8 @@ function gait(g: procedural.Gait, more: (c: Clip) => Clip = (c) => c): Clip {
 }
 const put = (name: string, c: Clip | string) => writeFileSync(join(co.cwd, name), typeof c === "string" ? c : serialize(c));
 const STROLL: procedural.Gait = { name: "stroll", about: "an easy stroll", speed: 110, cycle: 1.2, stance: 0.62, swing: 18 };
+/** What the lint gate says of a clip that never moves (F.13), as submit's lines show it. */
+const NEVER = "lint: it never moves: every body point stays within 3 mm of where it starts. Give it its motion, or tag it pose if it is a held pose";
 
 beforeAll(() => {
   co = checkout();
@@ -102,6 +105,28 @@ describe("library submit", () => {
     put("sway.json", { ...procedural.idleClip({ name: "sway", about: "a slow sway in place" }, rest, { restSrc: "UAL1", id: "MYGAME/Sway" }), tags: ["idle"] });
     const ok = await call({ do: "submit", on: "sway.json", by: "alice" });
     expect([ok.status, (ok.data as { sent: boolean }).sent]).toEqual(["ok", true]);
+  });
+  it("sends no clip that never moves unless a tag says it is a held pose (F.13); an improvement of a clip that never moved either may keep it", async () => {
+    const rest = (JSON.parse(readFileSync(join(ROOT, "library/sets/QUATERNIUS_3D2DGE/_set.json"), "utf8")) as { sources: Record<string, { rest: Rest }> }).sources.UAL1!.rest;
+    const frozen = <C extends Clip>(c: C): C => ({ ...c, keys: c.keys.map((k) => ({ ...c.keys[0]!, t: k.t })) }), sway = procedural.idleClip({ name: "sway", about: "a slow sway in place" }, rest, { restSrc: "UAL1", id: "MYGAME/Statue" });
+    put("statue.json", frozen({ ...sway, tags: ["idle"] }));
+    const n = await sent(), r = await call({ do: "submit", on: "statue.json", by: "alice" });
+    expect([r.status, (r.data as { sent: boolean }).sent, r.lines, await sent()]).toEqual(["findings", false, [NEVER], n]);
+    put("held.json", frozen({ ...sway, tags: ["idle", "pose"] }));
+    expect((await call({ do: "submit", on: "held.json", by: "alice" })).status).toBe("ok");
+    // Sitting_Idle_Loop never moves (frozen in its pinned source; library/baselines/qa.json answers it), so its
+    // improvement may stay so; Idle_Loop breathes, so a frozen improvement of it is refused, and so is one of A_TPose
+    // (tagged reference) that drops the tag
+    const edited = (c: Clip): Clip => ({ ...c, provenance: { ...c.provenance, orig: c.id, method: "edited", ai: "humanEdits", producer: { tool: "mygame-editor", version: "3" } } });
+    put("sit.json", edited({ ...libraryClip("QUATERNIUS_3D2DGE/Sitting_Idle_Loop"), desc: "seated at rest, quite still" }));
+    put("idle.json", edited(frozen(libraryClip("QUATERNIUS_3D2DGE/Idle_Loop"))));
+    put("tpose.json", edited({ ...libraryClip("QUATERNIUS_3D2DGE/A_TPose"), tags: ["idle"] }));
+    const improve = (on: string, id: string) => call({ do: "submit", on, improves: `QUATERNIUS_3D2DGE/${id}`, by: "alice" });
+    const [sit, idle, tpose] = [await improve("sit.json", "Sitting_Idle_Loop"), await improve("idle.json", "Idle_Loop"), await improve("tpose.json", "A_TPose")];
+    expect([sit.status, idle.status, idle.lines, tpose.status, tpose.lines]).toEqual(["ok", "findings", [NEVER], "findings", [NEVER]]);
+    // a library clip that never moves passes where library/baselines/qa.json answers it (the library's gates say so)
+    const lint = (i: Partial<GateInput>) => clipGates({ clip: frozen(sway), rest, kind: "clip", base: null, derived: [], as: "library", added: true, ...i }).find((g) => g.gate === "lint")!.why;
+    expect([lint({}), lint({ qa: { still: true } })]).toEqual([[NEVER.slice(6)], []]);
   });
   it("records the clip it improves with that clip's file's SHA-256, the improvement held to that clip's own defects", async () => {
     const walk = libraryClip("QUATERNIUS_3D2DGE/Walk_Loop"), head = (k: Clip["keys"][number]) => ({ ...k, head: (k as unknown as { head: number[] }).head.map((v, i) => (i === 0 ? v + 2 : v)) });

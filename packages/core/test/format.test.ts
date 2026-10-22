@@ -194,3 +194,67 @@ describe("fit with a budget per region", () => {
     for (const r of [loose, tight]) expect(Number.isFinite(r.max) && r.mean <= r.max).toBe(true);
   });
 });
+
+describe("a nearly straight limb's bend read from its joint (steadyBend, F.13, D135)", () => {
+  /** Key k's points with the whole body raised `dz` mm: the hips' whole percent of H0 then rounds them back, so the
+   *  decoded hip stands `dz` off the captured one, as an idle's few millimetres of bob leave it. */
+  const raised = (k: KeyLike, dz: number) => Float32Array.from(decode(k), (v, i) => (i % 3 === 2 ? v + dz : v));
+  const leg = key0.legL as number[], bent = (deg: number): KeyLike => ({ ...key0, legL: [leg[0]!, leg[1]!, leg[2]!, deg, leg[4]!] });
+  const off = 0.45 * (R.H0 / 100);
+  it("reads a knee bent 8° as 8° whichever way the hips round, where the root-to-end distance flips it between straight and 13°", () => {
+    const k = bent(8), knee = (X: Float32Array, e: KeyLike) => dist(point(X, "kneeL"), point(decode(e), "kneeL"));
+    const enc = (dz: number, steadyBend: boolean) => encodePose(R, raised(k, dz), null, { steadyBend });
+    // the hips round the same way both times: 4 mm low, then 4 mm high
+    expect([enc(off, false).hips, enc(-off, false).hips]).toEqual([key0.hips, key0.hips]);
+    const fromDist = [off, -off].map((dz) => (enc(dz, false).legL as number[])[3]), fromKnee = [off, -off].map((dz) => (enc(dz, true).legL as number[])[3]);
+    expect(fromDist[0]! - fromDist[1]!).toBeGreaterThanOrEqual(10);
+    for (const b of fromKnee) expect(Math.abs(b! - 8)).toBeLessThanOrEqual(1);
+    // the decoded knee: within the hips' own offset of the captured one, where the distance's bend puts it 20 mm off
+    for (const dz of [off, -off]) {
+      expect(knee(raised(k, dz), enc(dz, true))).toBeLessThan(off + 1);
+      expect(Math.max(knee(raised(k, off), enc(off, false)), knee(raised(k, -off), enc(-off, false)))).toBeGreaterThan(20);
+    }
+  });
+  it("encodes a bending limb (40°) and every key without the option as before, bit for bit", () => {
+    for (const dz of [0, off, -off]) {
+      const X = raised(bent(40), dz), plain = encodePose(R, X, null, { hands: true });
+      expect(encodePose(R, X, null, { hands: true, steadyBend: true }).legL).toEqual(plain.legL);
+      expect(encodePose(R, X, null, { hands: true, steadyBend: false })).toEqual(plain);
+    }
+    // between 15° and 25° the joint's reading fades into the distance's
+    const mid = (encodePose(R, raised(bent(20), off), null, { steadyBend: true }).legL as number[])[3]!;
+    expect(mid).toBeGreaterThanOrEqual(19);
+    expect(mid).toBeLessThanOrEqual((encodePose(R, raised(bent(20), off), null).legL as number[])[3]!);
+  });
+  it("keeps a sway's knee as still as the capture's when the fit's keys round the hips both ways", () => {
+    // a 2 s loop: the body bobbing from 2 to 7 mm up and back (its hips rounding to one whole percent of H0 at the bottom
+    // and the next at the top), the knee bent 8° throughout
+    const k = bent(8), n = 61, data = new Float32Array(n * 108);
+    for (let f = 0; f < n; f++) data.set(raised(k, 4.5 - 2.5 * Math.cos((2 * Math.PI * f) / 60)), f * 108);
+    const cap: Capture = { name: "Bob", n, dur: 2, loop: true, fps: 30, data, move: null };
+    const kneeMove = (steadyBend: boolean) => {
+      const c = fit(R, cap, 3, { steadyBend, closeLoop: true }).clip, Y0 = decodePose(R, keyAt(c, 0), new Float32Array(108));
+      let far = 0;
+      for (let f = 0; f < n; f++) far = Math.max(far, dist(point(decodePose(R, keyAt(c, f / 30), new Float32Array(108)), "kneeL"), point(Y0, "kneeL")));
+      return far;
+    };
+    // the captured knee moves 5 mm (with the body); read from the distance, the bend is 11° at the bottom and 3° at the top
+    expect(kneeMove(false)).toBeGreaterThan(20);
+    expect(kneeMove(true)).toBeLessThan(12);
+  });
+});
+
+describe("a fit that adds no key one frame from a key (spaced, F.13, D135)", () => {
+  it("stops where the frame it misses most lies beside a key, and is the same as before without the option", () => {
+    // standing still for 41 frames but for two, the body raised 12 mm at frame 20 and 9 mm at frame 21: the first
+    // in-between keeps frame 20 (the farthest from the straight between the ends), and the frame beside it misses by 9 mm
+    const X0 = decode(key0), n = 41, data = new Float32Array(n * 108);
+    for (let f = 0; f < n; f++) data.set(X0.map((v, i) => (i % 3 === 2 ? v + (f === 20 ? 12 : f === 21 ? 9 : 0) : v)), f * 108);
+    const cap: Capture = { name: "Blip", n, dur: (n - 1) / 30, loop: false, fps: 30, data, move: null };
+    const times = (spaced?: boolean) => fit(R, cap, 3, spaced === undefined ? {} : { spaced }).clip.keys.map((k) => k.t);
+    expect(times()).toContain(0.7);
+    expect(times(true)).not.toContain(0.7);
+    expect(times(true)).toContain(0.667);
+    expect(fit(R, cap, 3, { spaced: false }).clip).toEqual(fit(R, cap, 3).clip);
+  });
+});

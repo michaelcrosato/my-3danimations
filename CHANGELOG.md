@@ -4,6 +4,60 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.59.0 · 2026-10-22
+
+WP-F.13 (D135): the idles keep their motion, steady at the knees, through recipes too; a still check in QA and the
+intake; Jump_Twist cut again.
+
+### Spec
+- spec/RECIPE.md §3 (not frozen): compile fits each frame within 30 mm, or within the share of the motion of the second
+  around it, as an import bounds a clip's fit.
+
+### Core
+- `format.MOTION_TOL`, `reach`, `offLine`, `clipTol`, `fitLimit` (moved from @m3a/io) and `ownMotion`: the rule a clip's
+  own motion bounds its fit by (a capture reaching under 60 mm is fitted within half of how far it strays, at least
+  3 mm).
+- `format.EncodeOptions.steadyBend` (off by default): a nearly straight limb's bend read from its knee or elbow, not
+  from its root-to-end distance alone, which the hips' whole percent flipped between straight and some 15° from key to
+  key. `format.Extra.spaced` (off by default): the fit adds no key one frame from a key.
+- `recipe.compile` bounds each frame's default budget by the motion of the second around it (`budgetsOf`), measures a
+  calm frame beyond its own key's rounding and keys no calm frame beside a key, so an idle's sway compiles to its keys,
+  edited, blended, or beside a walk or a turn. `keysOf` takes one budget per frame; with one budget it is unchanged
+  (every explicit budget, the procedural moves and gaits).
+
+### IO
+- `importSet` fits a clip that moves less than twice its limit within its own motion (`fitLimit`), encoded with
+  `steadyBend` and fitted `spaced`; a clip reaching 60 mm or more is fitted exactly as before; `motion: false` keeps
+  the fixed limit; the fit report gives each clip's limit.
+
+### Sensors
+- `checks.STILL`, `checks.reachOf(clip, rest, upTo?)`, `checks.isPose(tags)`: a clip whose body points all stay within
+  3 mm of where they start (read every 1/30 s and at its end) is a pose, and its tags must say so.
+
+### Tools
+- `m3a library submit`'s lint gate refuses a clip that never moves unless a tag says it is a held pose (`pose`,
+  `reference`): "it never moves: every body point stays within 3 mm of where it starts. Give it its motion, or tag it
+  pose if it is a held pose". `GateInput.qa.still` passes a library clip library/baselines/qa.json answers.
+
+### Library
+- 74 STYLE100_IDLE idles and 11 MESH2MOTION loops (Sleeping, Driving, Meditate, Sitting_Idle, Shivering,
+  Flying_Forward, Flying_Forward_Super, Idle_Subtle, Idle_Rail, Zombie_Idle_Crouch, Pistol_Idle) move again; no knee or
+  elbow moves 20 mm or more beyond its capture's and no shown point snaps; frozen clips 102 → 17 (13 tagged poses, 4
+  answered). CMU_CURATED/Jump_Twist is cut again from 85_01 (3.65 to 7.80 s): the twisting flip itself, not its run-up.
+  The owner's reviews of the 4 clips whose motion changed were dropped with it (unreviewed again). Census 1,198, the
+  index's serial 7.
+
+### Repo
+- `npm run qa -- library`'s still check: a clip that never moves is tagged a pose or answered
+  (`library/baselines/qa.json` `still`, a new field; 4 answered). The record admits one more fail (Jump_Twist) and
+  three last digits (D135).
+- The intake's checker and library-gates refuse a still clip too; fixtures `idle` and `frozen-idle`
+  (`npm run gate -- library-pr --fixture all` 31 steps, `npm run intake -- check --fixture all` 20).
+- The importer weighs a clip its catalog cuts from another stretch of its take as new; `tools/import/fidelity.test.ts`
+  pins the bound (no knee or elbow past its clip's fit limit but six named, no shown point snapping).
+- `npm run corpora -- 100style --import` fits at the set's limit (`motion: false`), so `--check` reproduces shardfall's
+  idles byte for byte again.
+
 ## 0.58.0 · 2026-10-22
 
 WP-F.12 (D134): the review page says what a review is for, and each card what its clip should show.

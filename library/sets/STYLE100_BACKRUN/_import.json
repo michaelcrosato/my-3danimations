@@ -487,14 +487,14 @@
    "fit": {
     "import": [
      6,
-     29
+     19
     ]
    },
    "qa": {
     "import": "pass"
    },
    "hands": [
-    6.9
+    5.7
    ]
   },
   "FlickLegs_RunBack": {

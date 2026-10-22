@@ -77,7 +77,14 @@ and up (% of the hip height).
 `compile(recipe, resolve)` checks the recipe (§4), reads each `clip` through `resolve(id)` (the library's clip, its
 rest and its content id: the SHA-256 of the clip as `serialize` writes it, its file's bytes in the library), runs the
 steps, samples the last track at `fps`, and fits keys to those frames the way an
-import does (`MOTION.md` §6.4, 30 mm). The clip it returns:
+import does (`MOTION.md` §6.4): each frame within 30 mm, or, where the second of the track around it keeps every body
+point within 60 mm of where that second starts, within half of how far that second strays from the straight in-between
+of its first and last frames, or of its reach where that is less, and at least 3 mm: the rule an import bounds a clip's
+fit by (core's `format.fitLimit`, D135), so an idle's small sway compiles to its keys, not to one pose, alone or beside a
+walk in the same recipe. A frame kept within less than 30 mm is measured beyond its own key's rounding (as an import
+measures a frame), and the fit stops adding keys for such frames once the one it misses most lies beside a key: the
+format's whole numbers move a point a few millimetres, and a key beside a key would only add a step.
+`compile(recipe, resolve, { budget })` fits every frame within `budget` mm instead. The clip it returns:
 - has the recipe's `id`, `name`, `tags` and `desc`, `loop` and `dur` from the last track, its events and contacts, and
   `restSrc` the rest's source it decodes on;
 - names its inputs: the clips the last track is made from (a clip step no later step reads is none of them), the one

@@ -18,7 +18,7 @@ import { metrics, checks, type Report } from "@m3a/sensors";
 import type { Clip } from "@m3a/core";
 import { ROOT } from "../run/cli.ts";
 import { CATEGORIES, categoryOf, census, type Census } from "./census.ts";
-import { againstRecord, checkFloats, checkOffFeet, checkStill, checkVerdicts, contextsOf, DISTRIBUTIONS, FLOAT, floatOf, floorsMissed, libraryDoc, offFeetStep, reachOf, recordOf, recordProblems, STILL, stillStep, UNIQUE_FLOOR, type Recorded } from "./library.ts";
+import { againstRecord, checkFloats, checkOffFeet, checkStill, checkVerdicts, contextsOf, DISTRIBUTIONS, FLOAT, floatOf, floorsMissed, libraryDoc, offFeetStep, recordOf, recordProblems, stillStep, UNIQUE_FLOOR, type Recorded } from "./library.ts";
 import { libraryClips, qa, sample, type LibraryClip } from "./qa.ts";
 import { QA_REASONS, qualityOf, readReasons, reasonOf, reasonsProblems, type QaReasons } from "./verdict.ts";
 
@@ -195,6 +195,8 @@ describe("the still check (F.13)", () => {
   // Chop_Wood swings an axe; frozen, every key its first pose (as the fit froze STYLE100's idles, D133)
   const chop = all.find((c) => c.clip.id === "CMU_CURATED/Chop_Wood")!, rest = all.find((c) => c.clip.id === "MESH2MOTION/Rest_Pose")!, aim = all.find((c) => c.clip.id === "MESH2MOTION/Pistol_Aim_Up")!;
   const frozen = (c: LibraryClip, tags = c.clip.tags): LibraryClip => ({ ...c, clip: { ...c.clip, tags, keys: c.clip.keys.map((k) => ({ ...c.clip.keys[0]!, t: k.t })) } });
+  // the rule is @m3a/sensors' (the intake's lint gate reads it too), read here on library clips
+  const { reachOf, STILL } = checks;
   it("reads how far a clip moves: the farthest any body point gets from where it starts", () => {
     expect(reachOf(chop.clip, chop.rest)).toBeGreaterThan(300);
     expect([reachOf(frozen(chop).clip, chop.rest), reachOf(rest.clip, rest.rest), reachOf(aim.clip, aim.rest)]).toEqual([0, 0, 0]);

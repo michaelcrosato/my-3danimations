@@ -14,13 +14,13 @@ MESH2MOTION/Fixing_Kneeling	6.5	once		work interact	kneels on one knee and works
 MESH2MOTION/Hit_Head	0.542	once		hurt	takes a blow to the head: head snaps aside, recovers	M2M_QUATERNIUS
 MESH2MOTION/Hit_Knockback	0.833	once		hurt getup	hit hard	M2M_QUATERNIUS
 MESH2MOTION/Hit_Knockback_RM	0.625	once		hurt death root-motion	hit hard and thrown back onto the back	M2M_QUATERNIUS
-MESH2MOTION/Idle_A	3.125	loop	0.2	idle	standing at rest, breathing and shifting weight	M2M_QUATERNIUS
+MESH2MOTION/Idle_A	3.125	loop	0.3	idle	standing at rest, breathing and shifting weight	M2M_QUATERNIUS
 MESH2MOTION/Idle_FoldArms	2.5	loop	0.3	idle talk	standing with the arms folded across the chest	M2M_QUATERNIUS
 MESH2MOTION/Idle_Lantern	2.5	loop	0.5	idle prop	standing	M2M_QUATERNIUS
 MESH2MOTION/Idle_Rail	2.5	loop	0.7	idle lean	leaning forward on the forearms	M2M_QUATERNIUS
 MESH2MOTION/Idle_Rail_Call	2.5	once		idle lean gesture	leaning on a railing	M2M_QUATERNIUS
 MESH2MOTION/Idle_ShakeOff	2.5	loop	0.4	idle emote gesture	standing, shakes the head no	M2M_QUATERNIUS
-MESH2MOTION/Idle_Shield	2.5	loop	0.5	shield idle stance	guarding	M2M_QUATERNIUS
+MESH2MOTION/Idle_Shield	2.5	loop	0.6	shield idle stance	guarding	M2M_QUATERNIUS
 MESH2MOTION/Idle_Shield_Break	1.083	once		shield hurt	the guard breaks	M2M_QUATERNIUS
 MESH2MOTION/Idle_Sword	2.083	loop	0.1	sword idle	standing ready with a sword in the right hand	M2M_QUATERNIUS
 MESH2MOTION/Idle_Talking	3.667	loop	0	idle talk	standing and talking with hand gestures	M2M_QUATERNIUS

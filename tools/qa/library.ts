@@ -4,7 +4,8 @@
 // each metric's distribution over the library and the verdicts' counts against the ones recorded in
 // library/baselines/distributions.json, which may only improve; the floats and the off-feet check (a loop with no
 // contact answered: off its feet, or no foot that holds still); the still check (a clip that never moves is tagged a
-// pose or answered, F.13); and docs/LIBRARY.md, generated from all of it.
+// pose or answered, F.13; its rule @m3a/sensors', which the intake's lint gate reads too); and docs/LIBRARY.md,
+// generated from all of it.
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { clip as C, format, type Clip, type Rest } from "@m3a/core";
@@ -153,30 +154,20 @@ export function offFeetStep(lib: readonly LibraryClip[], reasons: QaReasons = re
   return { name: "off feet", ok, ms: 0, summary, detail: [...off.problems, ...off.gone.map((g) => `library/baselines/qa.json ${g}`)] };
 }
 
-/**
- * The still check (F.13, D133): a clip whose motion never changes, every body point within `mm` of where it starts (read
- * every 1/30 s, the farthest any point gets as core's `format.error` measures two poses apart), is a pose. Its tags say
- * so (`pose`, a held pose; `reference`, a rest or T-pose), or the reasons' `still` answers why it stays so; otherwise it
- * is a clip that promises motion and plays a statue, which no sensor rule catches (a still pose breaks none). 3 mm is
- * what @m3a/io's fit treats as still (its MOTION_TOL floor): the format's whole degrees show less only as noise.
- */
-export const STILL = { mm: 3, tags: ["pose", "reference"] } as const;
-/** How far a clip moves (mm): the farthest any body point gets from where it starts, read every 1/30 s. */
-export function reachOf(clip: Clip, rest: Rest): number {
-  const k = format.P * 3, X0 = format.pose(rest, clip, 0, new Float32Array(k)), X = new Float32Array(k), n = Math.floor(clip.dur * 30 + 1e-6);
-  let far = 0;
-  for (let i = 1; i <= n; i++) far = Math.max(far, format.error(format.pose(rest, clip, i / 30, X), X0));
-  return far;
-}
+/** The still check's rule, @m3a/sensors' (`checks.STILL`, `checks.reachOf`, `checks.isPose`), which the intake's lint
+ *  gate reads too: a clip whose body points all stay within STILL.mm of where they start is a pose, its tags saying so
+ *  (`pose`, `reference`) or the reasons' `still` answering why it stays so; otherwise it is a clip that promises motion
+ *  and plays a statue, which no metric catches. */
+const { STILL, reachOf, isPose } = checks;
 /** The still check over the library: a clip that never moves, its tags saying no pose and no answer in the reasons'
  *  `still`; an answer whose clip moves now, or whose tags now say it is a pose; and the poses, the clips that never
  *  move whose tags say so. */
 export function checkStill(lib: readonly LibraryClip[], reasons: QaReasons = readReasons()): VerdictCheck & { poses: string[] } {
   const problems: string[] = [], answers = reasons.still ?? {}, need = new Set<string>(), tagged = new Set<string>();
   for (const { clip, rest } of lib) {
-    const far = reachOf(clip, rest);
+    const far = reachOf(clip, rest, STILL.mm);
     if (far >= STILL.mm) continue;
-    if (clip.tags.some((t) => (STILL.tags as readonly string[]).includes(t))) {
+    if (isPose(clip.tags)) {
       tagged.add(clip.id);
       continue;
     }

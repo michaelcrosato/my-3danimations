@@ -1,7 +1,8 @@
-// F.13 (D133): a clip's own motion bounds its fit. Under a fixed 30 mm limit, a loop that sways less than that kept
+// F.13 (D133, D135): a clip's own motion bounds its fit. Under a fixed 30 mm limit, a loop that sways less than that kept
 // only its two ends, one pose, a statue; fitted within half of how far it strays from the in-between of its ends (a
 // loop's reach) it keeps the sway, also when it leans as it sways, a clip that reaches twice the limit or more is
-// fitted exactly as before, and a still one stays two keys.
+// fitted exactly as before, and a still one stays two keys. The rule is core's (`format.fitLimit`, which a recipe's
+// compile follows too), and a clip fitted by it reads its nearly straight limbs' bends from their joints (`steadyBend`).
 import { describe, expect, it } from "vitest";
 import { format, type Rest } from "@m3a/core";
 import { importSet, readBvh, type Catalog } from "../src/index.ts";
@@ -11,11 +12,13 @@ import { tinyBvh } from "./fixtures.ts";
 /** The tiny rig standing for two seconds, its upper body swaying `deg` to one side from the spine, back, as far to the
  *  other and back (a loop whose ends meet), at 30 frames a second: 1° moves its hands 15.8 mm, 6° 94.6 mm; leaning
  *  `lean` degrees further over the two seconds as it sways (its ends apart). */
-const sway = (deg: number, lean = 0) =>
+const sway = (deg: number, lean = 0, knees = 0) =>
   readBvh(
     () =>
       tinyBvh(61, 1 / 30, () => 0, (f, v) => {
         v[6] = lean * (f / 60) + deg * Math.sin((2 * Math.PI * f) / 60);
+        // `knees`: both knees bent that far (about x), the hips bobbing 4 mm as the body sways
+        if (knees) [v[49], v[61], v[1]] = [knees, knees, 95 + 0.4 * Math.sin((4 * Math.PI * f) / 60)];
       }),
     ["Sway"],
     30,
@@ -98,6 +101,22 @@ describe("a clip's own motion bounds its fit (F.13)", () => {
     expect(missed(own, cap, fists)).toBeLessThan(offLine(cap) / 2);
     // a steady lean keeps its two keys
     expect(imported(0, undefined, { lean: 3, tags: "idle once" }).set.clips.Sway!.keys.length).toBe(2);
+  });
+  it("is core's rule, under the names it had here first", () => {
+    expect([MOTION_TOL, reach, offLine, clipTol, fitLimit]).toEqual([format.MOTION_TOL, format.reach, format.offLine, format.clipTol, format.fitLimit]);
+    expect([format.ownMotion(sway(1).clips.Sway!, 30), format.ownMotion(sway(6).clips.Sway!, 30), format.ownMotion(sway(6).clips.Sway!, 60)]).toEqual([true, false, true]);
+  });
+  it("reads a nearly straight knee's bend from the knee on a clip fitted within its own motion (core's steadyBend, the fit spaced), and on no other", () => {
+    // knees bent 8°, the hips bobbing 4 mm: the root-to-ankle distance a bend is otherwise read from moves with the hips'
+    // whole percent of H0
+    const lib = sway(1, 0, 8), cap = { ...lib.clips.Sway!, loop: true }, out = importSet([{ id: "TINY", file: "tiny.bvh", ...lib }], cat, { name: "TINY", credit: "the tiny rig" });
+    const rest = out.set.sources.TINY!.rest as Rest, extra: format.Extra = { blade: false, tags: ["idle"], desc: cat.Sway![1] as string };
+    const keys = (own: boolean) => format.fit(rest, cap, fitLimit(cap, 30), { ...extra, steadyBend: own, spaced: own }).clip.keys;
+    expect(out.set.clips.Sway!.keys).toEqual(keys(true));
+    expect(out.set.clips.Sway!.keys).not.toEqual(keys(false));
+    // a clip that reaches twice the limit is encoded as it always was
+    const big = sway(6, 0, 8), bigOut = importSet([{ id: "TINY", file: "tiny.bvh", ...big }], cat, { name: "TINY", credit: "the tiny rig" });
+    expect(bigOut.set.clips.Sway!.keys).toEqual(format.fit(bigOut.set.sources.TINY!.rest as Rest, { ...big.clips.Sway!, loop: true }, 30, extra).clip.keys);
   });
   it("fits a clip that reaches twice the limit or more exactly as before, and leaves a still one two keys", () => {
     const big = [imported(6), imported(6, false)];

@@ -2655,6 +2655,59 @@ picked by the owner on 2026-10-21. No gate follows them: each is held by its Ver
   4. A phone's screenshot of the guide and G8's first card: `check-output/review/guide.png` (390 x 2319).
 - **Verify:** `npm run check`, `npx vitest run apps/gallery`, `npm run e2e -- review previews gallery`
 
+#### WP-F.13 The idles keep their motion, steady at the knees, through recipes too; a still check; Jump_Twist cut again
+- **Owns:** `packages/core/src/format/motion.ts` (new), `pose.ts` (`steadyBend`), `fit.ts` (`spaced`), `index.ts`;
+  `packages/core/src/recipe/compile.ts` (`budgetsOf`); `packages/io/src/import.ts`, `packages/io/README.md`;
+  `packages/sensors/src/metrics/still.ts` (new), `metrics/index.ts`; `packages/tools/src/tools/library-submit.ts`;
+  `tools/import/import.ts`, `tools/qa/library.ts`, `main.ts`, `verdict.ts`, `qa.schema.json`; `tools/intake/gates.ts`,
+  `fixtures.ts`, `fixtures/submissions.json`; `tools/corpora/style100.ts`; `spec/RECIPE.md` §3 (not frozen); their tests
+  (new: `packages/io/test/motion.test.ts`, `packages/sensors/test/still.test.ts`, `tools/import/fidelity.test.ts`).
+  Through their writers: `library/sets/{MESH2MOTION,STYLE100_IDLE,CMU_CURATED,STYLE100_RUN,STYLE100_BACKRUN}/**`,
+  `library/sets.lock.json`, `library/index.json`, `packages/sensors/fixtures/baseline.json`,
+  `library/baselines/distributions.json`, `docs/LIBRARY.md`. By hand, the inputs no writer makes:
+  `library/catalogs/CMU_CURATED.json` (Jump_Twist's stretch and words), `library/baselines/qa.json` (`still`).
+- **Also touches:** `apps/gallery/src/review/shows.test.ts` (WP-F.12's: Jump_Twist's new length and travel)
+- **Needs:** WP-5.3, WP-5.4, WP-5.8, WP-6.1, WP-9.1; G8's review (D133); after WP-F.12 (clip files change in sequence, §8.4)
+- **Size:** M (958 new lines of code, comments and tests outside the library, in 32 files; two rounds, each reviewed)
+- **Carry:** none
+- **Trigger:** the owner's G8 review (D133): "This is a pose. There is no actual animation" (STYLE100_IDLE/CrossOver_Idle,
+  OnPhoneLeft_Idle), and of CMU_CURATED/Jump_Twist "The character never gets to the actually jump, just leading up to it".
+- **Build:**
+  - **A clip's own motion bounds its fit** (core's `format.fitLimit`, used by `importSet`): a capture reaching 60 mm or
+    more is fitted at 30 mm exactly as before; one reaching less within min(30, max(3, 0.5 × far)) mm, `far` how far it
+    strays from the in-between of its ends (or its reach where that is less), so the frame that strays most, and with it
+    the sway, is kept; `motion: false` fits at the fixed limit (the 100STYLE corpora check, reproducing shardfall's).
+  - **Steady knees and elbows** (core's encode option `steadyBend`, off by default): a limb its joint shows bent 15° or
+    less takes its bend from that joint, fading to the root-to-end reading by 25°; **no key one frame from a key**
+    (core's fit option `spaced`, off by default). `importSet` sets both for a clip it fits within its own motion.
+  - **Recipes keep it:** `recipe.compile` with no budget bounds each frame's budget by the motion of the second around
+    it (`budgetsOf`), measures a calm frame beyond its own key's rounding and keys no calm frame beside a key; `keysOf`
+    with one budget is unchanged (procedural moves, gaits, every explicit budget).
+  - **The still check** (one rule, `@m3a/sensors` `checks.STILL`, `reachOf`, `isPose`): `npm run qa -- library` fails a
+    clip whose body points all stay within 3 mm of where they start unless tagged `pose` or `reference` or answered in
+    `library/baselines/qa.json` `still`; `m3a library submit`'s lint gate, the checker and library-gates refuse it where
+    it is sent ("it never moves ... Give it its motion, or tag it pose if it is a held pose").
+  - **Jump_Twist cut again** from CMU 85_01 at 3.65 to 7.80 s, "A kick up into a twisting flip, landing in a spin to face
+    forward again"; a clip its catalog cuts from another stretch than its migrated version's is weighed as new.
+- **Done when:**
+  1. Frozen clips (every key one pose) 102 → 17: 13 tagged poses, 4 answered (the Quaternius sets' Driving_Loop and
+     Sitting_Idle_Loop, frozen in their pinned sources); only clips that move little change (1,100 of the 1,208
+     captures reach 60 mm or more and are fitted as before); the vectors, tiers 1a to 3 and `moves.json` byte for byte.
+  2. No knee or elbow of a clip fitted within its own motion moves 20 mm or more beyond its capture's (16 did, up to
+     54 mm) and none past its fit limit but six named with their reason; no shown point snaps; `fidelity.test.ts` pins
+     the bound.
+  3. Through a clip step, a mirror or a retime 0.8, 0 of the 87 re-fitted idles compile to one pose (83 did); blended,
+     a few keys, not a staircase; sequenced, 3 of 170 swaying stretches lose half their sway (160 did); 19 of
+     spec/recipes' 20 examples and the library's 7 actions byte for byte.
+  4. A frozen idle is refused at lint in the intake and outside it, the same idle moving passes; five tests fail with
+     the gate removed; the library passes the still check.
+  5. Jump_Twist holds its flip (hips to 150% of H0, upside down, landing, facing forward again); every baseline moved
+     is rewritten by its writer, with its reason (D135).
+- **Verify:** `npm run check`, `npm test`, `npm run import -- --check`, `npm run index -- --check`,
+  `npm run library -- check`, `npm run facts -- --check`, `npm run qa -- --check`, `npm run qa -- library --check`,
+  `npm run sweep -- --rates --check`, `npm run vectors -- --check`, `npm run conformance -- --impl ts`, `npm run doctrine`,
+  `npm run migrate -- --check`, `npm run plant -- --check`, `npm run gate -- library-pr --fixture all`, `npm run e2e`
+
 ### On demand
 
 Each starts only when its trigger fires; record the measurement that fired it. A trigger that never fires means the WP
@@ -2855,7 +2908,8 @@ commits named here are on their PR branches (`refs/pull/<n>/head`).
 | F.9 Honest per-loop contact readings | done | 0.56.0 | e766496 (#22: 2f973fa, review fixes d5fedc0, 3c60ac0, 560b535) | 2026-10-22 | `npm run sweep -- --rates --check`: 428 failing rows on 108 loops (473 on 126), 0 added, 108 of 108 answered; the rule, written before the sweep was read, gave 57 loops another reading, 45 adopted after the sweep, judge and QA veto (12 kept their file's), written `labelled` with `facts.reading` (planted-quarter 19, planted-half 10, sole-planted-quarter 7, lower-quarter 3, lower 2, sole-planted-half 2, sole-planted 1, lower-half 1); the judge one fail gone, none added; QA 1,015 / 229 / 154; each set's import `--check` byte for byte, facts 0 stale; spec §7.1 and §7.3 amended, refrozen (D129); two adversarial reviewers' findings fixed |
 | F.10 Publishing to npm (O2 answered) | done | 0.56.0 | e766496 (#22: a63dc2e, 894244c) | 2026-10-22 | `npx vitest run tools/release/publish.test.ts tools/release/release.test.ts`: 37 passed (16 publish, 21 release); 36 edits to `publish.yml`, one at a time, each fail its test; `npm run pack -- --check --publishable` in a clean copy after `npm ci --ignore-scripts`, nothing fetched: PASS, 8 packs; the publish loop with `npm publish --dry-run` on the real tarballs: 8 in dependency order; two adversarial reviewers' nine findings fixed (the run from the tag for provenance, the go-ahead in every job, the environment `npm`, no checkout beside the token); `actionlint` clean; the first real publish is the owner's (D130) |
 | F.11 The review page plays its clips | done | 0.57.0 | e599e33 (#25) | 2026-10-22 | the owner's ask during G8 ("why can't it play here ... why can't there at least be a URL pre filled"): each card plays its clip in place (one stage, one card at a time, no frame drawn when idle), links it in the gallery, and the page opens G8's batch on its own; the site carries a batch of library clips alone, checked value by value, and refuses one holding a submission; `npm run e2e -- review previews gallery` 11 passed; the gallery's unit tests in T1 (7); two adversarial reviewers' 10 findings fixed (D132) |
-| F.12 The review page's guide | done | 0.58.0 | (this PR) | 2026-10-22 | the owner's ask after G8 ("give clear directions when someone opens that page ... explain how LLMs would select an animation"): a guide at the top (what the clips are, how an agent chooses one, what the sensors check and can't, what Approve and Flag mean, export and send back), open on a first visit and remembered closed; each card says what its clip should show (description, loop or once, length, travel in m/s and a grown-up's pace, tags), a submission's measured as adoption measures it; `npm run e2e -- review previews gallery` 14 passed; the gallery's unit tests 18; two adversarial reviewers' 10 findings fixed, 3 blocking (D134) |
+| F.12 The review page's guide | done | 0.58.0 | deaab20 (#27) | 2026-10-22 | the owner's ask after G8 ("give clear directions when someone opens that page ... explain how LLMs would select an animation"): a guide at the top (what the clips are, how an agent chooses one, what the sensors check and can't, what Approve and Flag mean, export and send back), open on a first visit and remembered closed; each card says what its clip should show (description, loop or once, length, travel in m/s and a grown-up's pace, tags), a submission's measured as adoption measures it; `npm run e2e -- review previews gallery` 14 passed; the gallery's unit tests 18; two adversarial reviewers' 10 findings fixed, 3 blocking (D134) |
+| F.13 The idles keep their motion | done | 0.59.0 | (this PR) | 2026-10-22 | the owner's G8 review ("This is a pose. There is no actual animation"; Jump_Twist "never gets to the actually jump"): frozen clips 102 → 17 (13 tagged poses, 4 answered), each fit bounded by the clip's own motion; no knee or elbow 20 mm beyond its capture (16 were, up to 54 mm: `steadyBend`), no snap (`spaced`); recipes keep the sway (0 of 87 one pose through clip, mirror, retime; 83 were); the still check in QA and the intake's lint gate; Jump_Twist cut again to its flip; `npm run import -- --check` 9 sets byte for byte, vectors and conformance 3662 as before, T2 266 s; two rounds, four adversarial reviewers' 21 findings fixed (D135) |
 
 ---
 
