@@ -1,7 +1,7 @@
 // Catalog-driven import (PLAN.md WP-5.2; carried from my-3d2dge tools/anim-import.mjs's run section): libraries read
 // as captures (any reader here), each measured from its own rest-pose clip, then every clip fitted with as few key
-// poses as keep it within `tol` mm of the capture (core's codec), or within half its own reach for a clip that moves
-// less than twice `tol`, so a small sway isn't taken for noise and frozen (F.13), with a fit report per clip. A
+// poses as keep it within `tol` mm of the capture (core's codec), or within half of how far it strays for a clip that
+// moves less than twice `tol`, so a small sway isn't taken for noise and frozen (F.13), with a fit report per clip. A
 // catalog, written by hand, drives it: `$sources` says where each library came from, `$pick` names the stretches of
 // capture takes, `$skip` leaves clips out with the reason on record, and each clip's entry gives its tags (`loop` and
 // `once` set whether it loops), what the body does and, for a copy of another set's clip, the clip it came from
@@ -68,12 +68,13 @@ export interface Imported {
 const REST_NAMES = ["A_TPose", "T-Pose", "TPose", "Rest Pose", "Rest_Pose", "_rest"];
 
 /**
- * How a clip's own motion bounds its fit's limit (F.13): half its reach, never under 3 mm, never over the set's `tol`.
- * Core's fit starts from Ramer–Douglas–Peucker key frames, which keep only a clip's first and last frames when every
- * frame is within the limit of the line between them; a loop's two ends are one pose, so a fixed 30 mm took a 1 to 4
- * cm sway (an idle's breathing) for noise and froze it. Half the reach keeps the farthest frame, and so the sway; a
- * clip that reaches twice `tol` or more is fitted at `tol`, exactly as before; under 3 mm is still (a held pose, or
- * capture noise the format's whole degrees don't show).
+ * How a clip's own motion bounds its fit's limit (F.13): half of how far it strays, never under 3 mm, never over the
+ * set's `tol`. Core's fit starts from Ramer–Douglas–Peucker key frames, which keep only a clip's first and last frames
+ * when every frame is within the limit of the straight in-between of those two; a loop's two ends are one pose, so a
+ * fixed 30 mm took a 1 to 4 cm sway (an idle's breathing) for noise and froze it. Half of how far the capture strays
+ * from that in-between (`offLine`; a loop's is its reach) keeps the frame that strays most, and so the sway, also on a
+ * clip that leans or drifts while it sways; a clip that reaches twice `tol` or more is fitted at `tol`, exactly as
+ * before; under 3 mm is still (a held pose, or capture noise the format's whole degrees don't show).
  */
 export const MOTION_TOL = { ratio: 0.5, floor: 3 } as const;
 
@@ -86,10 +87,32 @@ export function reach(cap: { n: number; data: Float32Array }): number {
   return far;
 }
 
-/** The fit's limit (mm) for a clip that reaches `far` mm: `tol`, or for a clip that reaches less than `tol / ratio`,
- *  `ratio` of its reach and at least `floor` (MOTION_TOL). */
+/** How far a capture strays from the straight in-between of its first and last frames (mm): what core's fit tests
+ *  first (its `reduce`, the same in-between and `format.error`), the farthest any body point of any frame gets from
+ *  where that in-between puts it. A clip whose ends meet (a loop) strays as far as it reaches. */
+export function offLine(cap: { n: number; data: Float32Array }): number {
+  const k = format.P * 3, D = cap.data, last = (cap.n - 1) * k, X = new Float32Array(k);
+  let far = 0;
+  for (let f = 1; f < cap.n - 1; f++) {
+    const t = f / (cap.n - 1);
+    for (let j = 0; j < k; j++) X[j] = D[j]! + (D[last + j]! - D[j]!) * t;
+    far = Math.max(far, format.error(X, D.subarray(f * k, (f + 1) * k)));
+  }
+  return far;
+}
+
+/** The fit's limit (mm) for a clip that strays `far` mm: `tol`, or `ratio` of `far` when that is less, and at least
+ *  `floor` (MOTION_TOL). */
 export function clipTol(tol: number, far: number, k: { ratio: number; floor: number } = MOTION_TOL): number {
   return Math.min(tol, Math.max(k.floor, k.ratio * far));
+}
+
+/** The fit's limit (mm) for a capture: `tol` for one that reaches `tol / ratio` or more (fitted exactly as before
+ *  F.13); else `clipTol` of how far it strays from the in-between of its ends, or of its reach where that is less
+ *  (either way under how far it strays, so the fit keeps the frame that strays most). */
+export function fitLimit(cap: { n: number; data: Float32Array }, tol: number, k: { ratio: number; floor: number } = MOTION_TOL): number {
+  const far = reach(cap);
+  return far >= tol / k.ratio ? tol : clipTol(tol, Math.min(far, offLine(cap)), k);
 }
 const entry = (cat: Catalog, name: string): [string, string, string?] | undefined => {
   const e = name.startsWith("$") ? undefined : cat[name];
@@ -125,8 +148,8 @@ function sourceOf(cat: Catalog, L: LibraryIn): SourceInfo | undefined {
 /**
  * Fits libraries into one set as the catalog says. A clip name is taken once (a later library's clip of a taken name is
  * left out); `_`-named clips are a reader's rest pose, not clips. `tol` is the fit's limit in mm (30), lowered for a
- * clip that reaches less than twice it to half its reach (`motion`, MOTION_TOL; `false` fits every clip at `tol`, as
- * before F.13, to reproduce a fit made so); `encode` asks for format 2's hands, spine curl and root yaw, a steady twist
+ * clip that reaches less than twice it to half of how far it strays (`motion`, MOTION_TOL, `fitLimit`; `false` fits
+ * every clip at `tol`, as before F.13, to reproduce a fit made so); `encode` asks for format 2's hands, spine curl and root yaw, a steady twist
  * and closed loops (core's `fit`).
  */
 export function importSet(libs: readonly LibraryIn[], cat: Catalog, opts: { name: string; title?: string; credit: string; fps?: number; tol?: number; motion?: false | { ratio: number; floor: number }; only?: readonly string[]; blade?: RegExp; encode?: { hands?: boolean; spine?: boolean; yaw?: boolean; steadyTwist?: boolean; closeLoop?: boolean } }): Imported {
@@ -156,7 +179,7 @@ export function importSet(libs: readonly LibraryIn[], cat: Catalog, opts: { name
         extra.desc = c[1];
       } else if (named) warnings.push(`no catalog entry for ${name}`);
       // within its own motion's share when it moves little, so a small sway keeps its keys (F.13)
-      const limit = motion ? clipTol(tol, reach(cap), motion) : tol, { clip, max, mean } = format.fit(rest, cap, limit, extra);
+      const limit = motion ? fitLimit(cap, tol, motion) : tol, { clip, max, mean } = format.fit(rest, cap, limit, extra);
       // a loop that walks or runs in place keeps how fast it travelled, so a player can match it to the ground; one
       // that hardly moves has none
       const speed = cap.loop && cap.stride !== undefined && cap.dur > 0 ? Math.round(((cap.stride / rest.H0) * 100) / cap.dur) : 0;

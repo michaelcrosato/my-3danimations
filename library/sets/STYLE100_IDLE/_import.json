@@ -1,6 +1,6 @@
 {
  "about": "The re-import (WP-5.3) by m3a-import 1: each clip's choice between its re-import and its migrated version, with why; both fits (mean, worst mm against the source); both QA verdicts; the sensor metrics that moved ([migrated, re-import]); the hands' mean error against the capture ([migrated, re-import] mm; props: over the clips that hold something); what the catalog skips; the clips the migrated set had that are gone.",
- "mean": 7.7,
+ "mean": 6.7,
  "props": null,
  "clips": {
   "Aeroplane_Idle": {
@@ -16,7 +16,7 @@
     "import": "pass"
    },
    "hands": [
-    6.2
+    4.8
    ]
   },
   "Akimbo_Idle": {
@@ -24,15 +24,15 @@
    "why": "new in the re-import",
    "fit": {
     "import": [
-     7,
-     46
+     6,
+     45
     ]
    },
    "qa": {
     "import": "pass"
    },
    "hands": [
-    7.8
+    6.5
    ]
   },
   "Angry_Idle": {
@@ -41,14 +41,14 @@
    "fit": {
     "import": [
      6,
-     20
+     40
     ]
    },
    "qa": {
     "import": "pass"
    },
    "hands": [
-    6.2
+    5.8
    ]
   },
   "ArmsAboveHead_Idle": {
@@ -56,15 +56,15 @@
    "why": "new in the re-import",
    "fit": {
     "import": [
-     8,
-     33
+     6,
+     37
     ]
    },
    "qa": {
     "import": "pass"
    },
    "hands": [
-    10.2
+    6.8
    ]
   },
   "ArmsBehindBack_Idle": {
@@ -73,14 +73,14 @@
    "fit": {
     "import": [
      5,
-     19
+     21
     ]
    },
    "qa": {
     "import": "pass"
    },
    "hands": [
-    4
+    4.1
    ]
   },
   "ArmsBySide_Idle": {
@@ -112,7 +112,7 @@
     "import": "pass"
    },
    "hands": [
-    3.3
+    4.2
    ]
   },
   "Balance_Idle": {
@@ -153,14 +153,14 @@
    "fit": {
     "import": [
      4,
-     13
+     16
     ]
    },
    "qa": {
     "import": "pass"
    },
    "hands": [
-    4.6
+    3.6
    ]
   },
   "BentKnees_Idle": {
@@ -169,14 +169,14 @@
    "fit": {
     "import": [
      6,
-     26
+     27
     ]
    },
    "qa": {
     "import": "pass"
    },
    "hands": [
-    6.7
+    6.1
    ]
   },
   "BigSteps_Idle": {
@@ -184,15 +184,15 @@
    "why": "new in the re-import",
    "fit": {
     "import": [
-     11,
-     36
+     10,
+     40
     ]
    },
    "qa": {
     "import": "pass"
    },
    "hands": [
-    14.6
+    10.4
    ]
   },
   "BouncyLeft_Idle": {
@@ -232,7 +232,7 @@
    "why": "new in the re-import",
    "fit": {
     "import": [
-     6,
+     5,
      27
     ]
    },
@@ -240,7 +240,7 @@
     "import": "pass"
    },
    "hands": [
-    2.2
+    2.9
    ]
   },
   "Chicken_Idle": {
@@ -248,24 +248,8 @@
    "why": "new in the re-import",
    "fit": {
     "import": [
-     7,
-     42
-    ]
-   },
-   "qa": {
-    "import": "pass"
-   },
-   "hands": [
-    5.4
-   ]
-  },
-  "CrossOver_Idle": {
-   "kept": "new",
-   "why": "new in the re-import",
-   "fit": {
-    "import": [
-     5,
-     19
+     6,
+     34
     ]
    },
    "qa": {
@@ -275,20 +259,36 @@
     4.4
    ]
   },
-  "Crouched_Idle": {
+  "CrossOver_Idle": {
    "kept": "new",
    "why": "new in the re-import",
    "fit": {
     "import": [
-     10,
-     40
+     5,
+     13
     ]
    },
    "qa": {
     "import": "pass"
    },
    "hands": [
-    9.8
+    3.1
+   ]
+  },
+  "Crouched_Idle": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     7,
+     31
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    8.2
    ]
   },
   "CrowdAvoidance_Idle": {
@@ -328,15 +328,15 @@
    "why": "new in the re-import",
    "fit": {
     "import": [
-     6,
-     41
+     5,
+     32
     ]
    },
    "qa": {
     "import": "pass"
    },
    "hands": [
-    5.3
+    4.1
    ]
   },
   "DragLeftLeg_Idle": {
@@ -344,7 +344,7 @@
    "why": "new in the re-import",
    "fit": {
     "import": [
-     7,
+     5,
      25
     ]
    },
@@ -352,7 +352,7 @@
     "import": "pass"
    },
    "hands": [
-    9.4
+    6.6
    ]
   },
   "DragRightLeg_Idle": {
@@ -361,14 +361,14 @@
    "fit": {
     "import": [
      4,
-     12
+     15
     ]
    },
    "qa": {
     "import": "pass"
    },
    "hands": [
-    4.4
+    3.5
    ]
   },
   "Drunk_Idle": {
@@ -393,14 +393,14 @@
    "fit": {
     "import": [
      4,
-     13
+     18
     ]
    },
    "qa": {
     "import": "pass"
    },
    "hands": [
-    4.6
+    4.3
    ]
   },
   "Elated_Idle": {
@@ -424,15 +424,15 @@
    "why": "new in the re-import",
    "fit": {
     "import": [
-     9,
-     34
+     8,
+     31
     ]
    },
    "qa": {
     "import": "pass"
    },
    "hands": [
-    10.8
+    7.6
    ]
   },
   "Flapping_Idle": {
@@ -456,15 +456,15 @@
    "why": "new in the re-import",
    "fit": {
     "import": [
-     7,
-     24
+     6,
+     23
     ]
    },
    "qa": {
     "import": "pass"
    },
    "hands": [
-    6.1
+    6.2
    ]
   },
   "Followed_Idle": {
@@ -488,15 +488,15 @@
    "why": "new in the re-import",
    "fit": {
     "import": [
-     9,
-     36
+     7,
+     34
     ]
    },
    "qa": {
     "import": "pass"
    },
    "hands": [
-    7.7
+    5.9
    ]
   },
   "HandsBetweenLegs_Idle": {
@@ -505,14 +505,14 @@
    "fit": {
     "import": [
      5,
-     23
+     27
     ]
    },
    "qa": {
     "import": "pass"
    },
    "hands": [
-    5.6
+    4.9
    ]
   },
   "HandsInPockets_Idle": {
@@ -520,15 +520,15 @@
    "why": "new in the re-import",
    "fit": {
     "import": [
-     10,
-     41
+     7,
+     24
     ]
    },
    "qa": {
     "import": "pass"
    },
    "hands": [
-    8
+    4.1
    ]
   },
   "Heavyset_Idle": {
@@ -536,15 +536,15 @@
    "why": "new in the re-import",
    "fit": {
     "import": [
-     7,
-     28
+     5,
+     31
     ]
    },
    "qa": {
     "import": "pass"
    },
    "hands": [
-    7.3
+    4.4
    ]
   },
   "HighKnees_Idle": {
@@ -560,7 +560,7 @@
     "import": "pass"
    },
    "hands": [
-    7.6
+    8
    ]
   },
   "InTheDark_Idle": {
@@ -585,14 +585,14 @@
    "fit": {
     "import": [
      6,
-     38
+     36
     ]
    },
    "qa": {
     "import": "pass"
    },
    "hands": [
-    4.4
+    4.6
    ]
   },
   "Kick_Idle": {
@@ -600,15 +600,15 @@
    "why": "new in the re-import",
    "fit": {
     "import": [
-     7,
-     26
+     5,
+     18
     ]
    },
    "qa": {
     "import": "pass"
    },
    "hands": [
-    6.2
+    4.1
    ]
   },
   "LawnMower_Idle": {
@@ -648,15 +648,15 @@
    "why": "new in the re-import",
    "fit": {
     "import": [
-     10,
-     34
+     8,
+     26
     ]
    },
    "qa": {
     "import": "pass"
    },
    "hands": [
-    12.1
+    7.6
    ]
   },
   "LeanRight_Idle": {
@@ -664,15 +664,15 @@
    "why": "new in the re-import",
    "fit": {
     "import": [
-     9,
-     35
+     8,
+     33
     ]
    },
    "qa": {
     "import": "pass"
    },
    "hands": [
-    7.4
+    7.8
    ]
   },
   "LeftHop_Idle": {
@@ -680,15 +680,15 @@
    "why": "new in the re-import",
    "fit": {
     "import": [
-     11,
-     31
+     6,
+     34
     ]
    },
    "qa": {
     "import": "pass"
    },
    "hands": [
-    14.2
+    7.9
    ]
   },
   "LegsApart_Idle": {
@@ -696,15 +696,15 @@
    "why": "new in the re-import",
    "fit": {
     "import": [
-     10,
-     36
+     6,
+     17
     ]
    },
    "qa": {
     "import": "pass"
    },
    "hands": [
-    9.9
+    4.5
    ]
   },
   "LimpLeft_Idle": {
@@ -712,15 +712,15 @@
    "why": "new in the re-import",
    "fit": {
     "import": [
-     10,
-     41
+     11,
+     40
     ]
    },
    "qa": {
     "import": "pass"
    },
    "hands": [
-    10.9
+    14
    ]
   },
   "LimpRight_Idle": {
@@ -736,7 +736,7 @@
     "import": "pass"
    },
    "hands": [
-    4.6
+    2.9
    ]
   },
   "LookUp_Idle": {
@@ -744,15 +744,15 @@
    "why": "new in the re-import",
    "fit": {
     "import": [
-     13,
-     42
+     12,
+     46
     ]
    },
    "qa": {
     "import": "pass"
    },
    "hands": [
-    7.4
+    10.5
    ]
   },
   "Lunge_Idle": {
@@ -761,14 +761,14 @@
    "fit": {
     "import": [
      7,
-     28
+     32
     ]
    },
    "qa": {
     "import": "pass"
    },
    "hands": [
-    7.8
+    7
    ]
   },
   "March_Idle": {
@@ -776,15 +776,15 @@
    "why": "new in the re-import",
    "fit": {
     "import": [
-     11,
-     39
+     9,
+     41
     ]
    },
    "qa": {
     "import": "pass"
    },
    "hands": [
-    10.7
+    11.2
    ]
   },
   "Monk_Idle": {
@@ -792,7 +792,7 @@
    "why": "new in the re-import",
    "fit": {
     "import": [
-     10,
+     9,
      43
     ]
    },
@@ -800,7 +800,7 @@
     "import": "pass"
    },
    "hands": [
-    7.7
+    4.9
    ]
   },
   "Morris_Idle": {
@@ -824,15 +824,15 @@
    "why": "new in the re-import",
    "fit": {
     "import": [
-     9,
-     33
+     6,
+     31
     ]
    },
    "qa": {
     "import": "pass"
    },
    "hands": [
-    11.8
+    9.3
    ]
   },
   "Old_Idle": {
@@ -848,7 +848,7 @@
     "import": "pass"
    },
    "hands": [
-    4.8
+    3.8
    ]
   },
   "OnHeels_Idle": {
@@ -872,15 +872,15 @@
    "why": "new in the re-import",
    "fit": {
     "import": [
-     10,
-     37
+     6,
+     34
     ]
    },
    "qa": {
     "import": "pass"
    },
    "hands": [
-    10.8
+    5.3
    ]
   },
   "OnPhoneRight_Idle": {
@@ -888,15 +888,15 @@
    "why": "new in the re-import",
    "fit": {
     "import": [
-     6,
-     18
+     4,
+     16
     ]
    },
    "qa": {
     "import": "pass"
    },
    "hands": [
-    5.6
+    4
    ]
   },
   "OnToesBentForward_Idle": {
@@ -904,15 +904,15 @@
    "why": "new in the re-import",
    "fit": {
     "import": [
-     8,
-     27
+     5,
+     14
     ]
    },
    "qa": {
     "import": "pass"
    },
    "hands": [
-    7.5
+    5.2
    ]
   },
   "OnToesCrouched_Idle": {
@@ -920,15 +920,15 @@
    "why": "new in the re-import",
    "fit": {
     "import": [
-     11,
-     47
+     7,
+     31
     ]
    },
    "qa": {
     "import": "pass"
    },
    "hands": [
-    8.8
+    5.6
    ]
   },
   "PendulumHands_Idle": {
@@ -952,15 +952,15 @@
    "why": "new in the re-import",
    "fit": {
     "import": [
-     10,
-     36
+     8,
+     38
     ]
    },
    "qa": {
     "import": "pass"
    },
    "hands": [
-    12.2
+    8.6
    ]
   },
   "PigeonToed_Idle": {
@@ -968,15 +968,15 @@
    "why": "new in the re-import",
    "fit": {
     "import": [
-     10,
-     29
+     6,
+     23
     ]
    },
    "qa": {
     "import": "pass"
    },
    "hands": [
-    8.5
+    4
    ]
   },
   "Proud_Idle": {
@@ -984,66 +984,18 @@
    "why": "new in the re-import",
    "fit": {
     "import": [
-     8,
-     28
+     7,
+     41
     ]
    },
    "qa": {
     "import": "pass"
    },
    "hands": [
-    7
+    8.6
    ]
   },
   "Punch_Idle": {
-   "kept": "new",
-   "why": "new in the re-import",
-   "fit": {
-    "import": [
-     7,
-     24
-    ]
-   },
-   "qa": {
-    "import": "pass"
-   },
-   "hands": [
-    8.2
-   ]
-  },
-  "Quail_Idle": {
-   "kept": "new",
-   "why": "new in the re-import",
-   "fit": {
-    "import": [
-     8,
-     24
-    ]
-   },
-   "qa": {
-    "import": "pass"
-   },
-   "hands": [
-    10.6
-   ]
-  },
-  "RaisedLeftArm_Idle": {
-   "kept": "new",
-   "why": "new in the re-import",
-   "fit": {
-    "import": [
-     8,
-     33
-    ]
-   },
-   "qa": {
-    "import": "pass"
-   },
-   "hands": [
-    6.2
-   ]
-  },
-  "RaisedRightArm_Idle": {
    "kept": "new",
    "why": "new in the re-import",
    "fit": {
@@ -1056,7 +1008,55 @@
     "import": "pass"
    },
    "hands": [
-    6.7
+    4.5
+   ]
+  },
+  "Quail_Idle": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     7,
+     23
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    8
+   ]
+  },
+  "RaisedLeftArm_Idle": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     6,
+     26
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    5.8
+   ]
+  },
+  "RaisedRightArm_Idle": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     5,
+     23
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    7.3
    ]
   },
   "RightHop_Idle": {
@@ -1064,15 +1064,15 @@
    "why": "new in the re-import",
    "fit": {
     "import": [
-     9,
-     34
+     6,
+     29
     ]
    },
    "qa": {
     "import": "pass"
    },
    "hands": [
-    5.9
+    8.1
    ]
   },
   "Roadrunner_Idle": {
@@ -1080,15 +1080,15 @@
    "why": "new in the re-import",
    "fit": {
     "import": [
-     6,
-     28
+     5,
+     27
     ]
    },
    "qa": {
     "import": "pass"
    },
    "hands": [
-    4.7
+    3.6
    ]
   },
   "Robot_Idle": {
@@ -1096,15 +1096,15 @@
    "why": "new in the re-import",
    "fit": {
     "import": [
-     7,
-     18
+     6,
+     19
     ]
    },
    "qa": {
     "import": "pass"
    },
    "hands": [
-    5.4
+    4.1
    ]
   },
   "Rocket_Idle": {
@@ -1112,15 +1112,15 @@
    "why": "new in the re-import",
    "fit": {
     "import": [
-     6,
-     16
+     5,
+     28
     ]
    },
    "qa": {
     "import": "pass"
    },
    "hands": [
-    4.4
+    5.7
    ]
   },
   "Rushed_Idle": {
@@ -1128,7 +1128,7 @@
    "why": "new in the re-import",
    "fit": {
     "import": [
-     7,
+     5,
      31
     ]
    },
@@ -1136,7 +1136,7 @@
     "import": "pass"
    },
    "hands": [
-    7.6
+    6.1
    ]
   },
   "ShieldedLeft_Idle": {
@@ -1144,15 +1144,15 @@
    "why": "new in the re-import",
    "fit": {
     "import": [
-     5,
-     24
+     4,
+     19
     ]
    },
    "qa": {
     "import": "pass"
    },
    "hands": [
-    5
+    2.8
    ]
   },
   "ShieldedRight_Idle": {
@@ -1160,15 +1160,15 @@
    "why": "new in the re-import",
    "fit": {
     "import": [
-     7,
-     32
+     5,
+     31
     ]
    },
    "qa": {
     "import": "pass"
    },
    "hands": [
-    4.6
+    3.1
    ]
   },
   "Skip_Idle": {
@@ -1176,15 +1176,15 @@
    "why": "new in the re-import",
    "fit": {
     "import": [
-     8,
-     18
+     6,
+     17
     ]
    },
    "qa": {
     "import": "pass"
    },
    "hands": [
-    6.5
+    4.9
    ]
   },
   "SlideFeet_Idle": {
@@ -1200,7 +1200,7 @@
     "import": "pass"
    },
    "hands": [
-    4.5
+    3.6
    ]
   },
   "Star_Idle": {
@@ -1209,14 +1209,14 @@
    "fit": {
     "import": [
      6,
-     19
+     22
     ]
    },
    "qa": {
     "import": "pass"
    },
    "hands": [
-    6.1
+    4.4
    ]
   },
   "StartStop_Idle": {
@@ -1225,14 +1225,14 @@
    "fit": {
     "import": [
      8,
-     23
+     26
     ]
    },
    "qa": {
     "import": "pass"
    },
    "hands": [
-    5.9
+    5.5
    ]
   },
   "Stiff_Idle": {
@@ -1241,38 +1241,6 @@
    "fit": {
     "import": [
      6,
-     18
-    ]
-   },
-   "qa": {
-    "import": "pass"
-   },
-   "hands": [
-    4.2
-   ]
-  },
-  "Strutting_Idle": {
-   "kept": "new",
-   "why": "new in the re-import",
-   "fit": {
-    "import": [
-     8,
-     30
-    ]
-   },
-   "qa": {
-    "import": "pass"
-   },
-   "hands": [
-    6.4
-   ]
-  },
-  "Superman_Idle": {
-   "kept": "new",
-   "why": "new in the re-import",
-   "fit": {
-    "import": [
-     5,
      19
     ]
    },
@@ -1280,7 +1248,39 @@
     "import": "pass"
    },
    "hands": [
-    5.6
+    6.8
+   ]
+  },
+  "Strutting_Idle": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     7,
+     31
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    4.4
+   ]
+  },
+  "Superman_Idle": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     4,
+     19
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    3.3
    ]
   },
   "Swat_Idle": {
@@ -1288,15 +1288,15 @@
    "why": "new in the re-import",
    "fit": {
     "import": [
-     6,
-     32
+     5,
+     22
     ]
    },
    "qa": {
     "import": "pass"
    },
    "hands": [
-    5.8
+    4.4
    ]
   },
   "Sweep_Idle": {
@@ -1312,7 +1312,7 @@
     "import": "pass"
    },
    "hands": [
-    2.6
+    2.2
    ]
   },
   "Swimming_Idle": {
@@ -1321,14 +1321,14 @@
    "fit": {
     "import": [
      6,
-     32
+     30
     ]
    },
    "qa": {
     "import": "pass"
    },
    "hands": [
-    8.7
+    4.9
    ]
   },
   "SwingArmsRound_Idle": {
@@ -1369,15 +1369,15 @@
    "why": "new in the re-import",
    "fit": {
     "import": [
-     6,
-     29
+     5,
+     32
     ]
    },
    "qa": {
     "import": "pass"
    },
    "hands": [
-    4.4
+    3.5
    ]
   },
   "Tiptoe_Idle": {
@@ -1385,7 +1385,7 @@
    "why": "new in the re-import",
    "fit": {
     "import": [
-     8,
+     6,
      34
     ]
    },
@@ -1393,7 +1393,7 @@
     "import": "pass"
    },
    "hands": [
-    7
+    5.2
    ]
   },
   "TogetherStep_Idle": {
@@ -1401,15 +1401,15 @@
    "why": "new in the re-import",
    "fit": {
     "import": [
-     9,
-     27
+     7,
+     29
     ]
    },
    "qa": {
     "import": "pass"
    },
    "hands": [
-    9.5
+    9.3
    ]
   },
   "TwoFootJump_Idle": {
@@ -1417,15 +1417,15 @@
    "why": "new in the re-import",
    "fit": {
     "import": [
-     8,
-     23
+     5,
+     21
     ]
    },
    "qa": {
     "import": "pass"
    },
    "hands": [
-    6.6
+    5.7
    ]
   },
   "WalkingStickLeft_Idle": {
@@ -1433,7 +1433,7 @@
    "why": "new in the re-import",
    "fit": {
     "import": [
-     8,
+     7,
      39
     ]
    },
@@ -1441,7 +1441,7 @@
     "import": "pass"
    },
    "hands": [
-    5.9
+    6.2
    ]
   },
   "WalkingStickRight_Idle": {
@@ -1450,14 +1450,14 @@
    "fit": {
     "import": [
      6,
-     15
+     13
     ]
    },
    "qa": {
     "import": "pass"
    },
    "hands": [
-    3.5
+    2.8
    ]
   },
   "Waving_Idle": {
@@ -1497,7 +1497,7 @@
    "why": "new in the re-import",
    "fit": {
     "import": [
-     9,
+     10,
      40
     ]
    },
@@ -1505,7 +1505,7 @@
     "import": "pass"
    },
    "hands": [
-    6.6
+    10.1
    ]
   },
   "WiggleHips_Idle": {
@@ -1547,22 +1547,6 @@
    "fit": {
     "import": [
      9,
-     33
-    ]
-   },
-   "qa": {
-    "import": "pass"
-   },
-   "hands": [
-    10.2
-   ]
-  },
-  "Zombie_Idle": {
-   "kept": "new",
-   "why": "new in the re-import",
-   "fit": {
-    "import": [
-     12,
      37
     ]
    },
@@ -1570,7 +1554,23 @@
     "import": "pass"
    },
    "hands": [
-    9.9
+    9.8
+   ]
+  },
+  "Zombie_Idle": {
+   "kept": "new",
+   "why": "new in the re-import",
+   "fit": {
+    "import": [
+     7,
+     30
+    ]
+   },
+   "qa": {
+    "import": "pass"
+   },
+   "hands": [
+    5.7
    ]
   }
  },

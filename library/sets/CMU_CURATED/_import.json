@@ -1884,56 +1884,21 @@
    "unrepaired": "no step makes it better"
   },
   "Jump_Twist": {
-   "kept": "import",
-   "why": "fits its source closer (15 → 11 mm on average), though further at its worst (54 → 60 mm), and the sensors judge it the same (pass)",
+   "kept": "new",
+   "why": "cut again from 85_01 2.00-3.80 → 3.65-7.80: its migrated version is another motion, not weighed against it",
    "fit": {
     "import": [
-     11,
-     60
-    ],
-    "migrated": [
-     15,
-     54
+     12,
+     101
     ]
    },
    "qa": {
-    "import": "pass",
-    "migrated": "pass"
+    "import": "fail"
    },
    "hands": [
-    14.7,
-    13.8
+    15.4
    ],
-   "moved": {
-    "slide": [
-     25.1,
-     36.8
-    ],
-    "skate": [
-     6.86,
-     5.98
-    ],
-    "penetration": [
-     6.79,
-     13.8
-    ],
-    "jitter": [
-     17.9,
-     16.5
-    ],
-    "pop": [
-     603,
-     442
-    ],
-    "fit": [
-     15,
-     11
-    ],
-    "skateMean": [
-     10.2,
-     11
-    ]
-   }
+   "unrepaired": "footLocks would move a point 39 mm further from its source at worst"
   },
   "Breakdance_Helicopter": {
    "kept": "import",
@@ -1941,7 +1906,7 @@
    "fit": {
     "import": [
      13,
-     94
+     105
     ],
     "migrated": [
      18,
@@ -1984,7 +1949,7 @@
     ],
     "pop": [
      2420,
-     2520
+     2580
     ],
     "fit": [
      18,

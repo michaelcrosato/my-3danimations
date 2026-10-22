@@ -1,7 +1,7 @@
 {
  "about": "The registry index (PLAN.md WP-9.4), written by npm run index from library/sets, the previous index and tools/release/registry.json; npm run index -- --check regenerates it byte for byte. core: each set's versions (content: its clip files' content id, spec/MOTION.md §9.2; digest: the same over all its files), immutable, yanked never deleted. community: packs federated from namespaces verified to their owners, never uploads into the core. npm run index -- verify <SET> <dir> checks a set's files against it.",
  "format": "1",
- "serial": 6,
+ "serial": 7,
  "core": {
   "CMU_CURATED": {
    "versions": [
@@ -67,6 +67,27 @@
       "flagged": 1,
       "unreviewed": 154
      }
+    },
+    {
+     "v": 4,
+     "content": "e34036f87125acd27658528a17142ae3207ecf9fec41bbb740f975963d55d54d",
+     "digest": "a17f3ff1b6a9a96b4c9834fc031a0b42e859cf87399e7c81c449cc2f2776deff",
+     "title": "CMU motion capture, curated",
+     "tier": "cmu",
+     "licenses": [
+      "LicenseRef-CMU-Mocap"
+     ],
+     "clips": 158,
+     "bytes": 3091241,
+     "qa": {
+      "baselined": 68,
+      "pass": 90
+     },
+     "review": {
+      "approved": 3,
+      "flagged": 0,
+      "unreviewed": 155
+     }
     }
    ]
   },
@@ -104,6 +125,27 @@
      ],
      "clips": 176,
      "bytes": 1319680,
+     "qa": {
+      "baselined": 57,
+      "pass": 119
+     },
+     "review": {
+      "approved": 1,
+      "flagged": 0,
+      "unreviewed": 175
+     }
+    },
+    {
+     "v": 3,
+     "content": "8ad0812956c4dc5f40930cc1c97134144fd119e2cd5f42a6d5d2ab20dee7eac0",
+     "digest": "134b253ea3ab98b04a63221a3d147e04f0ebf53d2a709712781d35a9f67fd7af",
+     "title": "Mesh2Motion",
+     "tier": "cc0",
+     "licenses": [
+      "CC0-1.0"
+     ],
+     "clips": 176,
+     "bytes": 1328519,
      "qa": {
       "baselined": 57,
       "pass": 119
@@ -451,6 +493,27 @@
       "approved": 3,
       "flagged": 0,
       "unreviewed": 95
+     }
+    },
+    {
+     "v": 3,
+     "content": "20ff5ca0d3458aca1c2b8d4b9777e30d9d05e6c0b3f071233c28480412a3f46c",
+     "digest": "cbbd4cf133168aa18fb3c28f40e1a0c50bff243d0c1693c6fb68c0e9e7059ced",
+     "title": "100STYLE idles",
+     "tier": "cc-by",
+     "licenses": [
+      "CC-BY-4.0"
+     ],
+     "clips": 98,
+     "bytes": 397500,
+     "qa": {
+      "baselined": 2,
+      "pass": 96
+     },
+     "review": {
+      "approved": 0,
+      "flagged": 0,
+      "unreviewed": 98
      }
     }
    ]

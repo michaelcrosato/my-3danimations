@@ -1,10 +1,10 @@
 STYLE100_IDLE/Aeroplane_Idle	2.5	loop	0	idle style	Standing, aeroplane style	100STYLE
-STYLE100_IDLE/Akimbo_Idle	2.5	loop	0	idle style	Standing, akimbo style: hands on hips	100STYLE
+STYLE100_IDLE/Akimbo_Idle	2.5	loop	0.2	idle style	Standing, akimbo style: hands on hips	100STYLE
 STYLE100_IDLE/Angry_Idle	2.533	loop	0	idle style	Standing, angry style: swing lower arms aggressively - fists closed	100STYLE
-STYLE100_IDLE/ArmsAboveHead_Idle	2.5	loop	0	idle style	Standing, arms above head style: arms raised straight above head	100STYLE
+STYLE100_IDLE/ArmsAboveHead_Idle	2.5	loop	0.1	idle style	Standing, arms above head style: arms raised straight above head	100STYLE
 STYLE100_IDLE/ArmsBehindBack_Idle	2.5	loop	0	idle style	Standing, arms behind back style: hands clasped behind back	100STYLE
 STYLE100_IDLE/ArmsBySide_Idle	2.5	loop	0.1	idle style	Standing, arms by side style	100STYLE
-STYLE100_IDLE/ArmsFolded_Idle	2.5	loop	0	idle style	Standing, arms folded style: right arm folded over left	100STYLE
+STYLE100_IDLE/ArmsFolded_Idle	2.5	loop	0.3	idle style	Standing, arms folded style: right arm folded over left	100STYLE
 STYLE100_IDLE/Balance_Idle	3.367	loop	0.1	idle style	Standing, balance style: arms out to side for balance - tilting side to side	100STYLE
 STYLE100_IDLE/BeatChest_Idle	2.7	loop	0	idle style	Standing, beat chest style: beat chest while moving normally	100STYLE
 STYLE100_IDLE/BentForward_Idle	2.5	loop	0	idle style	Standing, bent forward style: tilt torso forwards	100STYLE
@@ -14,19 +14,19 @@ STYLE100_IDLE/BouncyLeft_Idle	2.633	loop	0.5	idle style	Standing, bouncy left st
 STYLE100_IDLE/BouncyRight_Idle	2.767	loop	0.2	idle style	Standing, bouncy right style	100STYLE
 STYLE100_IDLE/Cat_Idle	2.5	loop	0	idle style	Standing, cat style: use hands as paws - step opposite hand and foot	100STYLE
 STYLE100_IDLE/Chicken_Idle	2.5	loop	0	idle style	Standing, chicken style: bob head - arms as wings	100STYLE
-STYLE100_IDLE/CrossOver_Idle	2.5	loop	0	idle style	Standing, cross over style: step each foot in front of other leg	100STYLE
-STYLE100_IDLE/Crouched_Idle	2.5	loop	0	idle style	Standing, crouched style: squat slightly and bend back	100STYLE
+STYLE100_IDLE/CrossOver_Idle	2.5	loop	0.1	idle style	Standing, cross over style: step each foot in front of other leg	100STYLE
+STYLE100_IDLE/Crouched_Idle	2.5	loop	0.2	idle style	Standing, crouched style: squat slightly and bend back	100STYLE
 STYLE100_IDLE/CrowdAvoidance_Idle	2.5	loop	0.3	idle style varies	Standing, crowd avoidance style	100STYLE
 STYLE100_IDLE/Depressed_Idle	3.133	loop	0.5	idle style	Standing, depressed style: head bowed arms swinging	100STYLE
 STYLE100_IDLE/Dinosaur_Idle	2.533	loop	0	idle style	Standing, dinosaur style: like a t-rex arms close to body dinosaur posture	100STYLE
 STYLE100_IDLE/DragLeftLeg_Idle	2.5	loop	0	idle style	Standing, drag left leg style: drag left foot along the floor	100STYLE
 STYLE100_IDLE/DragRightLeg_Idle	2.5	loop	0	idle style	Standing, drag right leg style: drag right foot along the floor	100STYLE
 STYLE100_IDLE/Drunk_Idle	3.5	loop	1.3	idle style varies	Standing, drunk style: stumbling around at random	100STYLE
-STYLE100_IDLE/DuckFoot_Idle	2.5	loop	0	idle style	Standing, duck foot style: toes pointing inwards	100STYLE
+STYLE100_IDLE/DuckFoot_Idle	2.5	loop	0.2	idle style	Standing, duck foot style: toes pointing inwards	100STYLE
 STYLE100_IDLE/Elated_Idle	2.6	loop	0	idle style	Standing, elated style: swing arms with spring	100STYLE
 STYLE100_IDLE/FairySteps_Idle	2.6	loop	0	idle style	Standing, fairy steps style	100STYLE
 STYLE100_IDLE/Flapping_Idle	3.367	loop	0.1	idle style	Standing, flapping style: flap arms as wings on tiptoes	100STYLE
-STYLE100_IDLE/FlickLegs_Idle	2.5	loop	0	idle style	Standing, flick legs style: knees together and flick legs to sides as moving	100STYLE
+STYLE100_IDLE/FlickLegs_Idle	2.5	loop	0.2	idle style	Standing, flick legs style: knees together and flick legs to sides as moving	100STYLE
 STYLE100_IDLE/Followed_Idle	3.967	loop	0.3	idle style varies	Standing, followed style: check behind occasionally	100STYLE
 STYLE100_IDLE/GracefulArms_Idle	2.5	loop	0	idle style	Standing, graceful arms style: one arm across chest the other extended walk tall	100STYLE
 STYLE100_IDLE/HandsBetweenLegs_Idle	2.5	loop	0	idle style	Standing, hands between legs style	100STYLE
@@ -34,17 +34,17 @@ STYLE100_IDLE/HandsInPockets_Idle	2.5	loop	0	idle style	Standing, hands in pocke
 STYLE100_IDLE/Heavyset_Idle	2.5	loop	0	idle style	Standing, heavyset style: walking as a muscle man tensed biceps	100STYLE
 STYLE100_IDLE/HighKnees_Idle	2.533	loop	0	idle style	Standing, high knees style: lift knees high but only knees – not marching	100STYLE
 STYLE100_IDLE/InTheDark_Idle	2.767	loop	0.2	idle style varies	Standing, in the dark style: feeling around as if in darkness	100STYLE
-STYLE100_IDLE/KarateChop_Idle	2.5	loop	0	idle style	Standing, karate chop style	100STYLE
-STYLE100_IDLE/Kick_Idle	2.5	loop	0	idle style	Standing, kick style: kick with every step	100STYLE
+STYLE100_IDLE/KarateChop_Idle	2.5	loop	0.1	idle style	Standing, karate chop style	100STYLE
+STYLE100_IDLE/Kick_Idle	2.5	loop	0.1	idle style	Standing, kick style: kick with every step	100STYLE
 STYLE100_IDLE/LawnMower_Idle	3.733	loop	0	idle style	Standing, lawn mower style	100STYLE
 STYLE100_IDLE/LeanBack_Idle	3.167	loop	0.1	idle style	Standing, lean back style: bent backwards	100STYLE
 STYLE100_IDLE/LeanLeft_Idle	2.6	loop	0	idle style	Standing, lean left style: normal motion upperbody tilted right	100STYLE
 STYLE100_IDLE/LeanRight_Idle	2.5	loop	0	idle style	Standing, lean right style: normal motion upperbody tilted left	100STYLE
 STYLE100_IDLE/LeftHop_Idle	2.5	loop	0	idle style	Standing, left hop style: hop on left foot	100STYLE
-STYLE100_IDLE/LegsApart_Idle	2.5	loop	0	idle style	Standing, legs apart style: legs relatively straight wide apart	100STYLE
+STYLE100_IDLE/LegsApart_Idle	2.5	loop	0.4	idle style	Standing, legs apart style: legs relatively straight wide apart	100STYLE
 STYLE100_IDLE/LimpLeft_Idle	2.5	loop	0	idle style	Standing, limp left style: keep left leg straight and limp	100STYLE
 STYLE100_IDLE/LimpRight_Idle	2.5	loop	0	idle style	Standing, limp right style: keep right leg straight and limp	100STYLE
-STYLE100_IDLE/LookUp_Idle	2.5	loop	0	idle style	Standing, look up style: tilt head to look at ceiling	100STYLE
+STYLE100_IDLE/LookUp_Idle	2.5	loop	0.2	idle style	Standing, look up style: tilt head to look at ceiling	100STYLE
 STYLE100_IDLE/Lunge_Idle	2.5	loop	0	idle style	Standing, lunge style: wide step bend knee every step in lunge position	100STYLE
 STYLE100_IDLE/March_Idle	2.5	loop	0	idle style	Standing, march style: high knees swing arms at elbows	100STYLE
 STYLE100_IDLE/Monk_Idle	2.5	loop	0	idle style	Standing, monk style: interlock hands in front of pelvis head slightly bowed	100STYLE
@@ -52,10 +52,10 @@ STYLE100_IDLE/Morris_Idle	2.9	loop	0	idle style	Standing, morris style: swing ha
 STYLE100_IDLE/Neutral_Idle	2.5	loop	0	idle style	Standing, neutral style: normal walking	100STYLE
 STYLE100_IDLE/Old_Idle	2.533	loop	0	idle style	Standing, old style: hunchbacked move very slowly	100STYLE
 STYLE100_IDLE/OnHeels_Idle	3.767	loop	2.4	idle style	Standing, on heels style: walk on heels with toes raised	100STYLE
-STYLE100_IDLE/OnPhoneLeft_Idle	2.7	loop	0	idle style	Standing, on phone left style: holding phone in left	100STYLE
-STYLE100_IDLE/OnPhoneRight_Idle	2.5	loop	0	idle style	Standing, on phone right style: holding phone in right	100STYLE
-STYLE100_IDLE/OnToesBentForward_Idle	2.533	loop	0	idle style	Standing, on toes bent forward style	100STYLE
-STYLE100_IDLE/OnToesCrouched_Idle	2.8	loop	0	idle style	Standing, on toes crouched style	100STYLE
+STYLE100_IDLE/OnPhoneLeft_Idle	2.7	loop	0.2	idle style	Standing, on phone left style: holding phone in left	100STYLE
+STYLE100_IDLE/OnPhoneRight_Idle	2.5	loop	0.4	idle style	Standing, on phone right style: holding phone in right	100STYLE
+STYLE100_IDLE/OnToesBentForward_Idle	2.533	loop	0.1	idle style	Standing, on toes bent forward style	100STYLE
+STYLE100_IDLE/OnToesCrouched_Idle	2.8	loop	0.4	idle style	Standing, on toes crouched style	100STYLE
 STYLE100_IDLE/PendulumHands_Idle	3.3	loop	0	idle style	Standing, pendulum hands style	100STYLE
 STYLE100_IDLE/Penguin_Idle	2.5	loop	0	idle style	Standing, penguin style: waddle with feet close together	100STYLE
 STYLE100_IDLE/PigeonToed_Idle	2.833	loop	0	idle style	Standing, pigeon toed style: toes turned inwards	100STYLE
@@ -64,21 +64,21 @@ STYLE100_IDLE/Punch_Idle	2.5	loop	0	idle style	Standing, punch style: punch with
 STYLE100_IDLE/Quail_Idle	2.5	loop	0	idle style	Standing, quail style: arms straight by sides slightly back very small quick steps	100STYLE
 STYLE100_IDLE/RaisedLeftArm_Idle	2.5	loop	0	idle style	Standing, raised left arm style: raise left arm perpendicular to body	100STYLE
 STYLE100_IDLE/RaisedRightArm_Idle	2.5	loop	0	idle style	Standing, raised right arm style: raise right arm perpendicular to body	100STYLE
-STYLE100_IDLE/RightHop_Idle	2.5	loop	0	idle style	Standing, right hop style: hop on right foot	100STYLE
+STYLE100_IDLE/RightHop_Idle	2.5	loop	0.2	idle style	Standing, right hop style: hop on right foot	100STYLE
 STYLE100_IDLE/Roadrunner_Idle	2.5	loop	0	idle style	Standing, roadrunner style: arms behind as wings pick up knees - bent a little	100STYLE
-STYLE100_IDLE/Robot_Idle	2.5	loop	0	idle style	Standing, robot style: stiff movements arms bending at elbows	100STYLE
+STYLE100_IDLE/Robot_Idle	2.5	loop	0.1	idle style	Standing, robot style: stiff movements arms bending at elbows	100STYLE
 STYLE100_IDLE/Rocket_Idle	2.5	loop	0	idle style	Standing, rocket style: bent to flat back with hands behind as thrusters	100STYLE
-STYLE100_IDLE/Rushed_Idle	2.967	loop	0	idle style	Standing, rushed style: rushing about swinging arms for extra momentum	100STYLE
+STYLE100_IDLE/Rushed_Idle	2.967	loop	0.2	idle style	Standing, rushed style: rushing about swinging arms for extra momentum	100STYLE
 STYLE100_IDLE/ShieldedLeft_Idle	2.5	loop	0	idle style	Standing, shielded left style	100STYLE
 STYLE100_IDLE/ShieldedRight_Idle	2.5	loop	0	idle style	Standing, shielded right style	100STYLE
 STYLE100_IDLE/Skip_Idle	2.5	loop	0	idle style	Standing, skip style: skipping like a child	100STYLE
 STYLE100_IDLE/SlideFeet_Idle	2.5	loop	0	idle style	Standing, slide feet style: barely lift feet off the floor/kick into floor	100STYLE
 STYLE100_IDLE/Star_Idle	2.5	loop	0	idle style	Standing, star style: wide arms and legs. Arms slightly below horizontal	100STYLE
-STYLE100_IDLE/StartStop_Idle	2.5	loop	0	idle style	Standing, start stop style: pause briefly after step	100STYLE
+STYLE100_IDLE/StartStop_Idle	2.5	loop	0.1	idle style	Standing, start stop style: pause briefly after step	100STYLE
 STYLE100_IDLE/Stiff_Idle	2.5	loop	0	idle style	Standing, stiff style: stiff limbs arms straight	100STYLE
 STYLE100_IDLE/Strutting_Idle	2.5	loop	0	idle style	Standing, strutting style: with swagger leant slightly back arms swinging freely	100STYLE
 STYLE100_IDLE/Superman_Idle	2.533	loop	0	idle style	Standing, superman style: right arm raised like superman flying	100STYLE
-STYLE100_IDLE/Swat_Idle	2.5	loop	0	idle style	Standing, swat style: as if holding a rifle and raiding a building	100STYLE
+STYLE100_IDLE/Swat_Idle	2.5	loop	0.1	idle style	Standing, swat style: as if holding a rifle and raiding a building	100STYLE
 STYLE100_IDLE/Sweep_Idle	2.5	loop	0	idle style	Standing, sweep style: sweeping with a broom while moving	100STYLE
 STYLE100_IDLE/Swimming_Idle	2.5	loop	0	idle style	Standing, swimming style: breaststroke walking	100STYLE
 STYLE100_IDLE/SwingArmsRound_Idle	2.833	loop	1	idle style	Standing, swing arms round style	100STYLE
@@ -86,13 +86,13 @@ STYLE100_IDLE/SwingShoulders_Idle	3.667	loop	0.1	idle style	Standing, swing shou
 STYLE100_IDLE/Teapot_Idle	2.5	loop	0	idle style	Standing, teapot style: one arm on hip other arm raised	100STYLE
 STYLE100_IDLE/Tiptoe_Idle	2.533	loop	0.1	idle style	Standing, tiptoe style: walk on toes with heels raised	100STYLE
 STYLE100_IDLE/TogetherStep_Idle	2.7	loop	0	idle style	Standing, together step style: step left foot - then together – then right foot	100STYLE
-STYLE100_IDLE/TwoFootJump_Idle	2.5	loop	0	idle style	Standing, two foot jump style: feet together and jump	100STYLE
-STYLE100_IDLE/WalkingStickLeft_Idle	2.5	loop	0	idle style	Standing, walking stick left style: walk with a stick – used broom handle	100STYLE
-STYLE100_IDLE/WalkingStickRight_Idle	2.5	loop	0	idle style	Standing, walking stick right style: walk with a stick – used broom handle	100STYLE
+STYLE100_IDLE/TwoFootJump_Idle	2.5	loop	0.2	idle style	Standing, two foot jump style: feet together and jump	100STYLE
+STYLE100_IDLE/WalkingStickLeft_Idle	2.5	loop	0.3	idle style	Standing, walking stick left style	100STYLE
+STYLE100_IDLE/WalkingStickRight_Idle	2.5	loop	0.3	idle style	Standing, walking stick right style	100STYLE
 STYLE100_IDLE/Waving_Idle	2.533	loop	0.7	idle style varies	Standing, waving style: waving at somebody else at random	100STYLE
 STYLE100_IDLE/WhirlArms_Idle	2.9	loop	0.5	idle style	Standing, whirl arms style: windmill arms	100STYLE
 STYLE100_IDLE/WideLegs_Idle	2.5	loop	0	idle style	Standing, wide legs style: legs apart motions	100STYLE
 STYLE100_IDLE/WiggleHips_Idle	2.733	loop	0.2	idle style	Standing, wiggle hips style	100STYLE
 STYLE100_IDLE/WildArms_Idle	3.4	loop	1.1	idle style	Standing, wild arms style	100STYLE
 STYLE100_IDLE/WildLegs_Idle	2.5	loop	0	idle style	Standing, wild legs style: kick legs into the air with each step	100STYLE
-STYLE100_IDLE/Zombie_Idle	2.5	loop	0	idle style	Standing, zombie style: arms in front like zombie	100STYLE
+STYLE100_IDLE/Zombie_Idle	2.5	loop	0.3	idle style	Standing, zombie style: arms in front like zombie	100STYLE
