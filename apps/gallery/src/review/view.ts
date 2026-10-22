@@ -4,14 +4,18 @@
 // its clip in the gallery in a new tab (a submission's: the clip it improves); its preview sheet (the sensors' software
 // raster, drawn by the sheet tool on the page, at SHEET_VIEW, the view the player plays at); its numbers, the checker's
 // report and, for a submission that improves a library clip, how far it parts from that clip (the queue's numbers and
-// the diff tool's picture); the verdict buttons and a note (WP-F.11). Built with text nodes alone: a submission's text,
-// report and notes are data, never markup. Every picture and caption is a registry tool's reply.
+// the diff tool's picture); the verdict buttons and a note (WP-F.11). Under its ref, above its Play and its verdicts,
+// "What it should show" (WP-F.12, shows.ts): its description, whether it loops and how long it is, which way and how
+// fast it travels, and its tags, as an agent reads them; the page fills it in (showShows) once the clip is read. Built
+// with text nodes alone: a submission's text, report and notes are data, never markup. Every picture and caption is a
+// registry tool's reply.
 import type { Image } from "@m3a/sensors";
 import type { intake, registry } from "@m3a/tools";
 import type { GalleryRegistry } from "../host.ts";
 import { h } from "../panels.ts";
 import { clipLink, type Route, type View } from "../route.ts";
 import { sectionOf, VERDICTS, type Decisions, type Row, type Section } from "./queue.ts";
+import { NO_DESC, tagWords, type Shows } from "./shows.ts";
 
 /** The view a card's preview sheet is drawn at and its clip plays at: the sheet tool's default, the gallery's too. */
 export const SHEET_VIEW: View = "three-quarter";
@@ -51,6 +55,7 @@ function card(r: Row, renderer: Route["renderer"]): HTMLElement {
   const kids: (Node | string | null)[] = [
     h("label", { class: "pick" }, h("input", { type: "checkbox", "data-select": r.id, "aria-label": `select ${r.id}` }), h("b", { class: "ref" }, r.ref)),
     h("p", { class: "note" }, what),
+    h("div", { class: "shows", "data-shows": r.id }, h("p", { class: "note" }, "What it should show: reading the clip…")),
     playBar(r, renderer),
     h("div", { class: "stage-slot", "data-stage": r.id }),
     h("div", { class: "pics", "data-pics": r.id }, h("p", { class: "note" }, "drawing the preview sheet…")),
@@ -68,6 +73,21 @@ function card(r: Row, renderer: Route["renderer"]): HTMLElement {
     h("textarea", { "data-note": r.id, rows: "2", placeholder: "a note (optional; \"theme: …\" files it under a theme, \"threshold: …\" or \"task: …\" proposes one)", "aria-label": `note on ${r.id}` }),
   );
   return h("article", { class: "card", "data-id": r.id, "data-section": sec }, ...kids);
+}
+
+/** Says in row `id`'s card what its clip should show (`said`), or why it couldn't be read: the description (or that
+ *  it has none), how it plays and for how long, its travel, its tags. */
+export function showShows(root: HTMLElement, id: string, said: Shows | Error): void {
+  const box = root.querySelector(`[data-shows="${CSS.escape(id)}"]`), title = h("b", {}, "What it should show: ");
+  if (!box) return;
+  if (said instanceof Error) {
+    box.replaceChildren(h("p", { class: "note fail" }, title, `not read (${said.message})`));
+    return;
+  }
+  box.replaceChildren(
+    h("p", { class: "shows-what" }, title, said.desc === null ? h("span", { class: "fail", "data-no-desc": "" }, NO_DESC) : h("span", { "data-desc": "" }, said.desc)),
+    h("ul", {}, h("li", { "data-plays": said.plays }, said.playing), h("li", { "data-travel": "" }, said.travel), h("li", { "data-tags": "" }, tagWords(said.tags))),
+  );
 }
 
 /** A section: its title, its batch bar and its rows' cards. */

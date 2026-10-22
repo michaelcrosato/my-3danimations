@@ -8,7 +8,7 @@ touch); two columns on a desk. The build stamp (version and commit) is on every 
 - `npm run gallery` serves it with live reload; `npm run gallery -- build` writes `apps/gallery/dist`; `npm run gallery
   -- preview` serves that build. `npm run e2e -- gallery` builds it and drives it headless at a phone's viewport; its
   screenshots go to `check-output/gallery/`. T1 (`npm test`) runs its unit
-  tests (the pure parts: links, review batches), and `npm run e2e -- previews` runs the build's batch check on a
+  tests (the pure parts: links, review batches, what a card says a clip should show), and `npm run e2e -- previews` runs the build's batch check on a
   refused batch of each kind.
 - **Characters:** `gen-<seed>` (any whole number; 0 to 19 are the test set) built in code, and the real CC0 rigs that
   `npm run fixtures -- fetch` put in `.cache/fixtures/` (none in a build without them).
@@ -38,7 +38,32 @@ touch); two columns on a desk. The build stamp (version and commit) is on every 
   `npm run gallery` carry the same, the site saying which it left out and why. `M3A_REVIEW_BATCHES` names others
   (paths, commas between; `none` for none). Each is checked whole: a batch holding a submission, or a key or value a
   library clip's row hasn't, fails the build (a contributor's text never goes into a page), and the page gets the
-  values read, never the file. The page says which batch is open and links the others; opening one decides nothing. Each card has its preview sheet, numbers, check report and diff; a
+  values read, never the file. The page says which batch is open and links the others; opening one decides nothing.
+  **The guide** (WP-F.12) sits at the top, open on a first visit; closed, it stays closed in that browser (its storage;
+  a private window opens it again). It says, in these words or near them:
+  - *These clips* are sampled from the library that AI agents use to put motion into games: someone making a game asks
+    an agent for "a character running away", and the agent picks clips from this library.
+  - *How an agent chooses a clip:* by its words (its name, tags and description) and its numbers (how fast it travels,
+    whether it loops, how long it is). It never sees the motion, so a clip whose words don't match its motion misleads
+    every agent that picks it.
+  - *What the sensors already check:* feet sliding on the ground, sinking into the floor, sudden jumps between frames,
+    arms or legs passing through the body. *What they can't:* whether a clip is what its words say, and whether it
+    looks natural and alive. That is the reviewer's part.
+  - *For each card:* press Play and watch it; read "What it should show"; **Approve** if a game developer asking for
+    exactly this would be happy with it; **Flag** if it looks broken, doesn't match its words (called a run but it is a
+    walk, an idle that never moves, a jump that never leaves the ground), or no game could use it, saying why in a few
+    words. A note starting "task:" proposes something to fix or build; "threshold:" says a sensor's limit looks wrong.
+    A submission is adopted, archived or rejected the same way.
+  - *When you are done:* press Export review and send the file. Playing a clip or reading a card decides nothing.
+
+  Each card says, under its name and above its Play and its verdicts, **What it should show** (`src/review/shows.ts`):
+  what an agent reads about the clip, from the clip itself (a sampled clip's file as the page's library holds it; a
+  submission's own clip, a recipe compiled, its facts measured on the page when it carries none): its description (or
+  that it has none, itself worth a flag), whether it loops or plays once and its length in seconds, whether it travels,
+  which way in its own frame (forward, backward, to its left or right, or between) and, from its speed fact, how fast in
+  hip heights a second and as a grown-up's pace (a shuffle, a slow walk, a walk, a brisk walk or slow jog, a jog, a run,
+  a sprint; a one-shot by where it ends), and its tags. `m3a show <SET/Name>` reads the same from the CLI. Each card
+  also has its preview sheet, numbers, check report and diff; a
   **Play** that plays its clip, looping, right in the card on `gen-1` at the sheet's view (the gallery's own stage and
   player; one stage for the page, so starting a card stops the one playing, and three.js loads at the first Play; with
   nothing playing the page draws no frame); and
@@ -46,7 +71,8 @@ touch); two columns on a desk. The build stamp (version and commit) is on every 
   slow motion, frame by frame and any view. Rows are decided by touch (one row or a batch) and exported as a review
   for `m3a review ingest <file>` (the share sheet on a phone, a download on a desk); playing decides nothing.
   `?renderer=webgl2` forces WebGL 2 there too. `__m3a` there is its handle (`state`, `open`, `batch`, `play`, `stop`,
-  `playing`, `frame`, `decide`, `export` ...). **The contributor
+  `playing`, `frame`, `decide`, `export`, `described` (resolves when every card says what its clip should show),
+  `drawn` ...). **The contributor
   page** (`src/contributors/`): getting and revoking a key once O8's project is linked (the build's
   `VITE_M3A_INTAKE_URL` and `VITE_M3A_INTAKE_KEY`, the publishable key), and how agents submit locally until then.
 - **Nothing only here:** `src/actions.ts` lists each action and the m3a tool or command that does the same (a per-clip

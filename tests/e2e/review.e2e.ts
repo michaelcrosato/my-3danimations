@@ -14,8 +14,12 @@
 // M3A_REVIEW_QUEUE asks, and its page opens that one at load, or the batch a link names (?queue=NAME); a build that
 // names no batches (M3A_REVIEW_BATCHES unset, as `npm run gallery` at a desk) carries the committed batches of library
 // clips alone, the newest of each gate (G8's), and one asked for none (`none`, the review page's other builds here)
-// carries none; opening a queue at load decides nothing. The contributor
-// page says the hosted store isn't linked, reaches no other origin and carries no secret, and a build given a secret
+// carries none; opening a queue at load decides nothing. The page's guide (WP-F.12) is open on a first visit, says in
+// plain words what a review is for (how agents choose clips by their words and numbers, never seeing the motion; what
+// the sensors check and what only the reviewer can; Approve, Flag, a "task:" or "threshold:" note; Export), and stays
+// closed once closed; each card says what its clip should show, its description its file's, loop or once and its
+// length (G8's batch too, screenshot check-output/review/guide.png: the guide and the first card), deciding nothing.
+// The contributor page says the hosted store isn't linked, reaches no other origin and carries no secret, and a build given a secret
 // key fails; built linked to a stub project, it signs in, adds a key's SHA-256 and revokes it. Screenshots go to
 // check-output/review/, never committed.
 import { createHash } from "node:crypto";
@@ -42,7 +46,7 @@ type State = {
   playing: string | null; player: Playing | null; playError: string | null; said: string;
 };
 type Handle = {
-  ready: boolean; state(): State; drawn(): Promise<number>; commands(): string[]; export(how?: string): Promise<{ how: string; name: string; text: string }>; actions(): { tool: string | null }[];
+  ready: boolean; state(): State; described(): Promise<number>; drawn(): Promise<number>; commands(): string[]; export(how?: string): Promise<{ how: string; name: string; text: string }>; actions(): { tool: string | null }[];
   frame(): Promise<{ lit: number; backend: string } | null>; review(): { decisions: unknown[] } | null;
 };
 type Win = { __m3a: Handle; __shared?: { name: string; text: string }; __M3A_TOOLS__: { list(): { name: string }[] } };
@@ -82,6 +86,25 @@ async function visit(page: Page, path: string): Promise<string[]> {
 
 const state = (page: Page) => page.evaluate(() => (window as unknown as Win).__m3a.state());
 const card = (page: Page, id: string) => page.locator(`article.card[data-id="${id}"]`);
+/** What each card says its clip should show (by row id): its title, description (null: none), how it plays (loop or
+ *  once) in words, its travel and tags, and whether it comes before the card's verdicts. */
+const shown = (page: Page) =>
+  page.evaluate(() => Object.fromEntries(Array.from(document.querySelectorAll<HTMLElement>("[data-shows]"), (el) => {
+    const plays = el.querySelector("[data-plays]"), verdicts = el.closest("article")!.querySelector(".verdicts")!;
+    return [el.dataset.shows!, {
+      title: el.querySelector("b")?.textContent ?? null, desc: el.querySelector("[data-desc]")?.textContent ?? null, plays: plays?.getAttribute("data-plays") ?? null, playing: plays?.textContent ?? "",
+      travel: el.querySelector("[data-travel]")?.textContent ?? "", tags: el.querySelector("[data-tags]")?.textContent ?? "", before: !!(el.compareDocumentPosition(verdicts) & Node.DOCUMENT_POSITION_FOLLOWING),
+    }];
+  })));
+/** Checks each library row's card says what its clip should show as its file in the repository holds it: its
+ *  description, loop or once and its length, its tags; before its verdicts. */
+async function showsLibrary(page: Page, ids: readonly string[]) {
+  const all = await shown(page);
+  for (const id of ids) {
+    const c = libraryClip(id), s = all[id]!, length = `${Math.round(c.dur * 100) / 100} s`;
+    expect([s.title, s.desc, s.plays, s.playing.startsWith(c.loop ? "Loops" : "Plays once"), s.playing.includes(length), s.travel.length > 10, s.tags, s.before], id).toEqual(["What it should show: ", c.desc, c.loop ? "loop" : "once", true, true, true, `Tagged: ${c.tags.join(", ")}`, true]);
+  }
+}
 /** The scratch checkout's files a review may change: the lock, the docs, the set's files and the store's records. */
 const files = () => Object.fromEntries(["library/sets.lock.json", ...["FEEDBACK-LOG.md", "REVIEW-PROPOSALS.md"].filter((f) => existsSync(join(co.cwd, "docs", f))).map((f) => `docs/${f}`), ...readdirSync(join(co.cwd, "library/sets", SET)).map((f) => `library/sets/${SET}/${f}`), ...readdirSync(join(co.cwd, ".cache/intake")).filter((f) => f.endsWith(".json")).map((f) => `.cache/intake/${f}`)].map((f) => [f, co.file(f)]));
 
@@ -203,6 +226,51 @@ test("review: a review made by touch at a phone viewport changes the right state
   const changed = files(), r3 = await review({ do: "ingest", on: "review.json" }), o = (r3.data as { outcomes: { id: string; outcome: string; why?: string }[] }).outcomes;
   expect([r3.status, r3.verdict, files()]).toEqual(["findings", "review ingest: 23 decisions, 0 applied, 22 already, 1 stale, 0 refused", changed]);
   expect(o.find((x) => x.outcome === "stale")).toEqual({ id: q.clips[0]!.id, as: "approve", outcome: "stale", why: expect.stringMatching(/'s motion changed since it was queued \(made on [0-9a-f]{12}, it is [0-9a-f]{12} now\)/) });
+  expect(log.filter((l) => /error/i.test(l))).toEqual([]);
+});
+
+test("guide: open on a first visit in plain words, closed by a tap and kept so; each card says what its clip should show, deciding nothing", async ({ page }) => {
+  test.setTimeout(120_000);
+  await serve(page, SITE);
+  const log = await visit(page, PAGE), guide = page.locator("#guide"), open = () => guide.evaluate((d) => (d as HTMLDetailsElement).open);
+  // a first visit: the guide open, saying what a review is for in plain words, none of the page's jargon
+  const text = (await guide.innerText()).replace(/\s+/g, " ");
+  expect(await open()).toBe(true);
+  for (const said of [
+    "sampled from the library that AI agents use to put motion into games",
+    "How an agent chooses a clip: by its words (its name, tags and description) and its numbers (how fast it travels, whether it loops, how long it is). It never sees the motion.",
+    "a clip whose words don't match its motion misleads every agent that picks it",
+    "What the sensors already check: feet sliding on the ground, sinking into the floor, sudden jumps between frames, arms or legs passing through the body",
+    "What they can't: whether a clip is what its words say, and whether it looks natural and alive",
+    "Press Play and watch it", "Read What it should show",
+    "Approve if a game developer asking for exactly this would be happy with it",
+    "Flag if it looks broken, doesn't match its words (called a run but it is a walk, an idle that never moves, a jump that never leaves the ground), or no game could use it. Say why in a few words.",
+    `one starting "task:" proposes something to fix or build; one starting "threshold:" says a sensor's limit looks wrong`,
+    "press Export review at the bottom and send the file",
+  ]) expect(text).toContain(said);
+  expect(text).not.toMatch(/\bH0\b|contacts?\b|\brefs?\b|motion hash/i);
+
+  // each card says what its clip should show: a sampled clip's as its file holds it, a submission's from its own clip
+  // (the one kept as it is: its own description; the recipe compiled); reading decides nothing
+  await page.setInputFiles("#file", join(co.cwd, QUEUE_FILE));
+  await page.waitForFunction(() => (window as unknown as Win).__m3a.state().source === "queue.json");
+  expect(await page.evaluate(() => (window as unknown as Win).__m3a.described())).toBe(23);
+  await showsLibrary(page, q.clips.map((c) => c.id));
+  const all = await shown(page), kept = q.submissions.find((x) => x.diff?.max === 0)!, rec = q.submissions.find((x) => x.kind === "recipe")!;
+  expect([all[kept.id]!.desc, all[rec.id]!.plays !== null, all[rec.id]!.before]).toEqual(["walks, kept as it is", true, true]);
+  const s = await state(page);
+  expect([s.decided, [...s.submissions, ...s.clips].filter((r) => r.as !== null || r.note !== "").length, await page.evaluate(() => (window as unknown as Win).__m3a.review()!.decisions.length)]).toEqual([0, 0, 0]);
+
+  // closed by a tap, it stays closed on a reload; opened again, it stays open
+  await guide.locator("summary").tap();
+  expect(await open()).toBe(false);
+  await page.reload();
+  await page.waitForFunction(() => (window as unknown as Win).__m3a?.ready);
+  expect(await open()).toBe(false);
+  await guide.locator("summary").click();
+  await page.reload();
+  await page.waitForFunction(() => (window as unknown as Win).__m3a?.ready);
+  expect(await open()).toBe(true);
   expect(log.filter((l) => /error/i.test(l))).toEqual([]);
 });
 
@@ -369,6 +437,17 @@ test("bundled: a build carries a queue only when M3A_REVIEW_QUEUE asks, and the 
     await expect(page.locator("#source")).toContainText(`batch ${NEWEST} (${G8}/queue-0.56.0.json, the newest of 1 this page carries)`);
     await expect(page.locator(`#batches [data-queue="${NEWEST}"]`)).toHaveAttribute("aria-current", "true");
   }
+  // each of G8's cards says what its clip should show, as its file holds it, deciding nothing; the guide open above them
+  // (this browser's first visit): a phone's screenshot of the guide and the first card, its sheet drawn (the bar fixed
+  // at the screen's foot left out: a whole-page picture would draw it over the guide)
+  await visit(page, `${PAGE}?queue=${NEWEST}`);
+  expect(await page.evaluate(() => (window as unknown as Win).__m3a.described())).toBe(20);
+  const g8 = (await state(page)).clips;
+  await showsLibrary(page, g8.map((r) => r.id));
+  expect([(await state(page)).decided, await page.locator("#guide").evaluate((d) => (d as HTMLDetailsElement).open)]).toEqual([0, true]);
+  await page.locator(`[data-pics="${g8[0]!.id}"] canvas`).waitFor({ timeout: 60_000 });
+  const first = (await card(page, g8[0]!.id).boundingBox())!, top = await page.evaluate(() => window.scrollY);
+  await page.screenshot({ path: join(OUT, "guide.png"), fullPage: true, clip: { x: 0, y: 0, width: 390, height: Math.ceil(first.y + top + first.height + 8) }, style: "#bar { display: none; }" });
 });
 
 test("contributors: unlinked, it says so, reaches no other origin and carries no secret; linked to a stub, a key is added and revoked", async ({ page }) => {

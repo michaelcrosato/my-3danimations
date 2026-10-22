@@ -1,8 +1,12 @@
 <!doctype html>
-<!-- The review queue's page (PLAN.md WP-8.2b, WP-F.11): the owner's decisions on the submissions awaiting review and the
-     sampled library clips, exported as a review for `m3a review ingest`. It opens the batch the build carries (the
-     newest, or ?queue=NAME) at load; each card plays its clip in place and links it in the gallery. Phone first
-     (390x844, touch); main.ts drives it. -->
+<!-- The review queue's page (PLAN.md WP-8.2b, WP-F.11, WP-F.12): the owner's decisions on the submissions awaiting review
+     and the sampled library clips, exported as a review for `m3a review ingest`. A guide at the top (#guide, in plain
+     words: what these clips are, how an agent chooses one by its words and numbers without seeing the motion, what the
+     sensors check and what only the reviewer can, what Approve, Flag and a "task:" or "threshold:" note mean, and to
+     export and send the file) is open on a first visit and remembers being closed. It opens the batch the build
+     carries (the newest, or ?queue=NAME) at load; each card says what its clip should show (its description, loop or
+     once, its length, its travel and pace, its tags), plays its clip in place and links it in the gallery. Phone
+     first (390x844, touch); main.ts drives it. -->
 <html lang="en">
   <head>
     <meta charset="utf-8" />
@@ -57,6 +61,11 @@
       .stage canvas { display: block; width: 100%; height: 100%; }
       .stage .clock { position: absolute; left: 8px; right: 8px; bottom: 6px; font-size: 12px; color: var(--soft); overflow-wrap: anywhere; pointer-events: none; }
       #stamp { text-align: right; font-size: 11px; color: var(--soft); margin: 16px 0 0; }
+      #guide { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 0 12px; margin: 8px 0; }
+      #guide summary { font-weight: 600; padding: 11px 0; }
+      #guide p, #guide li { margin: 6px 0; } #guide ol { padding-left: 22px; margin: 6px 0; } #guide .last { margin-bottom: 12px; }
+      .shows { border-left: 3px solid var(--line); padding: 0 0 0 8px; margin: 6px 0; overflow-wrap: anywhere; }
+      .shows p { margin: 2px 0; } .shows ul { margin: 2px 0; padding-left: 18px; font-size: 14px; } .shows li { margin: 1px 0; }
     </style>
   </head>
   <body>
@@ -64,6 +73,31 @@
       <header>
         <h1>Review queue</h1>
         <nav class="note"><a href="../../">Gallery</a> · <a href="../contributors/">Contributors</a></nav>
+        <details id="guide" open>
+          <summary>What you are doing here (read this first)</summary>
+          <p><b>These clips</b> are sampled from the library that AI agents use to put motion into games. Someone making a
+            game asks an agent for, say, "a character running away", and the agent picks clips from this library.</p>
+          <p><b>How an agent chooses a clip:</b> by its words (its name, tags and description) and its numbers (how fast it
+            travels, whether it loops, how long it is). It never sees the motion. So a clip whose words don't match its
+            motion misleads every agent that picks it.</p>
+          <p><b>What the sensors already check:</b> feet sliding on the ground, sinking into the floor, sudden jumps
+            between frames, arms or legs passing through the body. <b>What they can't:</b> whether a clip is what its
+            words say, and whether it looks natural and alive. That is your part.</p>
+          <p><b>For each card:</b></p>
+          <ol>
+            <li>Press <b>Play</b> and watch it (its gallery link opens it bigger, slower and from any side).</li>
+            <li>Read <b>What it should show</b>: what an agent reads about it.</li>
+            <li><b>Approve</b> if a game developer asking for exactly this would be happy with it.</li>
+            <li><b>Flag</b> if it looks broken, doesn't match its words (called a run but it is a walk, an idle that never
+              moves, a jump that never leaves the ground), or no game could use it. Say why in a few words.</li>
+          </ol>
+          <p><b>Notes:</b> one starting "task:" proposes something to fix or build; one starting "threshold:" says a
+            sensor's limit looks wrong (it let a flaw through, or stopped a good clip). A clip someone sent in is adopted,
+            archived or rejected the same way.</p>
+          <p class="last"><b>When you are done:</b> press <b>Export review</b> at the bottom and send the file. Playing a
+            clip or reading a card decides nothing; only Approve and Flag do. Your choices are kept in this browser, and
+            they count once the file is sent.</p>
+        </details>
         <p id="source" class="note" role="status">loading</p>
         <p id="problem" class="note fail"></p>
         <p id="batches" class="note"></p>
