@@ -108,6 +108,7 @@ const READS: [RegExp, (m: RegExpExecArray) => string[], string][] = [
   [/^\.claude\/hooks\//, () => ["tools/session"], "the session test runs the SessionStart hook (D121)"],
   [/^library\//, () => ["packages/library/test", "tools/qa", "tools/sweep/rates.test.ts", "tools/sweep/rates-answers.test.ts", "tools/facts/readings.test.ts"], "the library's, QA's and the rate sweep's tests read the clips and the rate baseline's answers (D123, D127), and the readings' test the loops a named reading writes (D129)"],
   [/^docs\/FEEDBACK-LOG\.md$/, () => ["packages/tools/test/review.test.ts"], "the review queue's test appends to a copy of it"],
+  [/^(apps\/gallery\/|bench\/results\/gates\/)/, () => ["apps/gallery"], "the gallery's unit tests read its links and the committed review batches (D132)"],
 ];
 
 /** Map changed files to suites, each with its reason. An empty list means only T0 runs. */

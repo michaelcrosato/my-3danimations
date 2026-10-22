@@ -25,5 +25,6 @@ task proposal into docs/REVIEW-PROPOSALS.md. That closes G8; the gate merged wit
 **Exported again at 0.56.0 (2026-10-22, D130):** `queue-0.56.0.json`, `m3a review export` on the library as 0.56.0 has
 it: the same 20 clips in the same order; one ref moved, `STYLE100_BACKRUN/Elated_RunBack` (`@fd74007932df` →
 `@1492349cad00`: D129 wrote its contacts, which the motion hash covers), so a decision on `queue.json`'s ref for it
-would be refused as stale. Review this one. The page: a branch preview's `/src/review/` (O3, D130) or `npm run
-gallery` on a checkout, then "Open a queue file".
+would be refused as stale. Review this one. The page: the site's `/src/review/`, or `npm run gallery` on a checkout,
+opens it on its own (WP-F.11, D132), each clip playable in its card; `queue.json` is superseded and no build carries it
+("Open a queue file" still opens it).

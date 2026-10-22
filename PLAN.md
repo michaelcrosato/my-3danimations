@@ -2526,6 +2526,71 @@ picked by the owner on 2026-10-21. No gate follows them: each is held by its Ver
 - **Verify:** `npx vitest run tools/release/publish.test.ts tools/release/release.test.ts`, `npm run pack -- --check
   --publishable`, `npm run check`, `actionlint .github/workflows/publish.yml`
 
+#### WP-F.11 The review page plays its clips, links them in the gallery and opens G8's batch on its own
+- **Owns:** `apps/gallery/src/review/*` (new: `batches.ts`, `batches.test.ts`, `play.ts`), `apps/gallery/vitest.config.ts`
+  (new), `tests/e2e/review.e2e.ts`, `tests/e2e/previews.e2e.ts`
+- **Also touches:** `apps/gallery/src/route.ts` (`clipLink`), `apps/gallery/vite.config.ts` (`M3A_REVIEW_BATCHES`),
+  `apps/gallery/src/virtual.d.ts`, `apps/gallery/README.md` (WP-8.1's files); `tools/run/site.ts` (WP-8.3's crossing)
+- **Needs:** WP-8.1, WP-8.2b, WP-8.3; G8's batch (D130)
+- **Size:** M (1,113 new lines, tests included: 576 in tracked files, 537 in four new ones)
+- **Carry:** none
+- **Trigger:** the owner, 2026-10-22, doing G8's review on the preview: "why can't it just move here? why do I need to
+  open another tab, manually edit a url, view it there, come back... why can't it play here, why is it just still
+  images? why can't there at least be a URL pre filled?", and earlier "I don't know why I had to download a file and
+  then upload a file that was in the repo"
+- **Build:**
+  - Each card's **Play** plays its clip, looping, in the card, on the gallery's default test character (`gen-1`) at the
+    view its sheet is drawn at (`SHEET_VIEW`, three-quarter, now passed to the sheet explicitly), with the gallery's
+    own `Stage` and `ClipPlayer` (no copy). One stage for the page, made at the first Play (three.js loads then, in its
+    own chunk) and moved into the card that plays: one WebGL context however many cards play in turn; starting a card
+    stops the one playing; Stop takes it out. A sampled clip plays from the library, a submitted clip from its text, a
+    recipe compiled as its sheet is (`submissionClip`, shared by the sheet and the player). A card out of sight holds
+    still; a frame that fails stops and says why in the card. With nothing playing the page draws no frame: three's
+    own loop (r182 runs one from the renderer's init until its dispose, with no public pause) runs only while a card
+    plays (its private `_animation`, pinned to r182 in a comment; a release without it plays the same). Playing
+    decides nothing.
+  - Each card links its clip in the gallery, in a new tab, filled in by the gallery's own route (`clipLink`:
+    `../../?clip=SET%2FName`, the review page's `?renderer=webgl2` kept); a submission's links the clip it improves,
+    a new one has none (said).
+  - The page opens a queue at load: the batch `?queue=NAME` names, else a queue bundled by `M3A_REVIEW_QUEUE` (local
+    builds), else the newest batch the build carries; the file picker stays. It says which batch is open (name, file,
+    the newest or not) and links each batch the build carries, newest first; a link naming none it carries opens the
+    newest and says so. Opening one decides nothing.
+  - The build carries the batches `M3A_REVIEW_BATCHES` names (paths, commas between; `none` for none), else the
+    committed batches of library clips alone (`committed`: the newest `bench/results/gates/<gate>/queue*.json` in each
+    gate's directory, an export made again superseding the one before, when it holds no submission and its rows name
+    library clips: G8-run-1's `queue-0.56.0.json`), so `npm run gallery` at a desk opens it too. Each is checked whole
+    by `checkBatch`: every key and every value of the queue and its rows, nested ones included (store, date, ref,
+    hash, tier, stale, review, numbers and their metrics: each of its type and form). A batch holding a submission, a
+    key or value no library clip's row has, or a row that is no library clip fails the build, naming it; nothing is
+    dropped or trimmed, and the page gets the queue rebuilt from the values read, never the file's text. The preview
+    site (`tools/run/site.ts`) picks the same batches (written again there: nothing imports from apps/), names them to
+    the build (replacing the environment's), still drops `M3A_REVIEW_QUEUE`, and says which it carried and which it
+    left out, and why (superseded, holding submissions, no queue, not JSON).
+- **Done when:**
+  1. A card plays its clip in place by touch at a phone viewport on WebGL 2: the character drawn (more than 150 pixels
+     read back), the card's canvas changing between two screenshots 400 ms of Playwright's clock apart, the clip's
+     time going on by those 400 ms (to 0.05 s, a loop wrapping); a sampled clip, a submitted clip and a compiled recipe
+     each play. Stopped, the page calls requestAnimationFrame 0 times in 1 s of the held clock (playing, more than 0);
+     Play again plays on the same stage, its frames changing.
+  2. One card plays at a time on one stage: starting another stops the first (its control back to Play, its card
+     empty), the page holds one stage canvas and made one stage; a second tap stops it; no decision is made.
+  3. A card's gallery link is the gallery's route for its clip (a submission's: the clip it improves) and opens it in
+     a new tab, the gallery playing that clip with that link.
+  4. The preview site carries G8's newest batch alone (`G8-run-1/queue-0.56.0`; its `queue.json` superseded, G9's two
+     holding 10 submissions each: all three named in its reply), opens it at load saying which and deciding nothing
+     (no row's verdict, no decision in the review), and opens the newest, saying so, for a link naming a batch left
+     out; no submission id or content hash of a batch left out is in any file of the site. A build asked to bundle
+     G9-run-2's batch fails, naming it, and so does one bundling a batch with a submission's text in a row, nested in
+     its numbers or its review, or in a field's value (ref, verdict, store), a row naming a submission, or a clip not
+     in the library: each refused as the config loads, writing nothing, whatever an earlier run left.
+  5. A local build naming no batches carries the same batch, opens a queue bundled by `M3A_REVIEW_QUEUE` at load as
+     before, a link naming a batch winning, deciding nothing; one asked for `none` carries none.
+  6. The pure parts (which batches can ship, each key and value check, the queue rebuilt, the committed pick, the
+     newest, the link's pick, the clip link) have unit tests.
+- **Verify:** `npm run e2e -- review previews gallery`, `npx vitest run --config apps/gallery/vitest.config.ts`,
+  `npm run check`, `npm test`
+
 ### On demand
 
 Each starts only when its trigger fires; record the measurement that fired it. A trigger that never fires means the WP
@@ -2725,6 +2790,7 @@ commits named here are on their PR branches (`refs/pull/<n>/head`).
 | F.8 The manual's last names | done | 0.55.2 | 5b93247 | 2026-10-22 | `npm run doctrine`: the manual 7,999 of 8,000; `manual.test.ts` 9 passed: `character(variant(7)).glb` through `loadGlb` (Node or a page), `variant(7).id` = gen-7, `TEST_SEEDS`, the attached player's `apply()` and `bound`; Ship and the actions example shorter; no rule a brief uses lost a word; MIGRATING gap 10 closed but for gap 1's names (D128); the briefs re-run with real agents (`bench/results/2026-10-22-*`, the packages at b7528b1): B1 4/5 (discovery 2/2), B2 to B6 5/5, B7 4/5; G7's variants B1 4/5, B6 4/5, the rest 5/5; B8 5/5, its G9 variant 5/5, B8-ten 1/1: 79 of 83 trials, $13.82; the four misses B1's floor (two), a jump left on the ground, a mirrored strike 10% off |
 | F.9 Honest per-loop contact readings | done | 0.56.0 | e766496 (#22: 2f973fa, review fixes d5fedc0, 3c60ac0, 560b535) | 2026-10-22 | `npm run sweep -- --rates --check`: 428 failing rows on 108 loops (473 on 126), 0 added, 108 of 108 answered; the rule, written before the sweep was read, gave 57 loops another reading, 45 adopted after the sweep, judge and QA veto (12 kept their file's), written `labelled` with `facts.reading` (planted-quarter 19, planted-half 10, sole-planted-quarter 7, lower-quarter 3, lower 2, sole-planted-half 2, sole-planted 1, lower-half 1); the judge one fail gone, none added; QA 1,015 / 229 / 154; each set's import `--check` byte for byte, facts 0 stale; spec §7.1 and §7.3 amended, refrozen (D129); two adversarial reviewers' findings fixed |
 | F.10 Publishing to npm (O2 answered) | done | 0.56.0 | e766496 (#22: a63dc2e, 894244c) | 2026-10-22 | `npx vitest run tools/release/publish.test.ts tools/release/release.test.ts`: 37 passed (16 publish, 21 release); 36 edits to `publish.yml`, one at a time, each fail its test; `npm run pack -- --check --publishable` in a clean copy after `npm ci --ignore-scripts`, nothing fetched: PASS, 8 packs; the publish loop with `npm publish --dry-run` on the real tarballs: 8 in dependency order; two adversarial reviewers' nine findings fixed (the run from the tag for provenance, the go-ahead in every job, the environment `npm`, no checkout beside the token); `actionlint` clean; the first real publish is the owner's (D130) |
+| F.11 The review page plays its clips | done | 0.57.0 | (this PR) | 2026-10-22 | the owner's ask during G8 ("why can't it play here ... why can't there at least be a URL pre filled"): each card plays its clip in place (one stage, one card at a time, no frame drawn when idle), links it in the gallery, and the page opens G8's batch on its own; the site carries a batch of library clips alone, checked value by value, and refuses one holding a submission; `npm run e2e -- review previews gallery` 11 passed; the gallery's unit tests in T1 (7); two adversarial reviewers' 10 findings fixed (D132) |
 
 ---
 

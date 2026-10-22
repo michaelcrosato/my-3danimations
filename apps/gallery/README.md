@@ -7,7 +7,9 @@ touch); two columns on a desk. The build stamp (version and commit) is on every 
 
 - `npm run gallery` serves it with live reload; `npm run gallery -- build` writes `apps/gallery/dist`; `npm run gallery
   -- preview` serves that build. `npm run e2e -- gallery` builds it and drives it headless at a phone's viewport; its
-  screenshots go to `check-output/gallery/`.
+  screenshots go to `check-output/gallery/`. T1 (`npm test`) runs its unit
+  tests (the pure parts: links, review batches), and `npm run e2e -- previews` runs the build's batch check on a
+  refused batch of each kind.
 - **Characters:** `gen-<seed>` (any whole number; 0 to 19 are the test set) built in code, and the real CC0 rigs that
   `npm run fixtures -- fetch` put in `.cache/fixtures/` (none in a build without them).
 - **Deep links** open everything: `?set=SET` (its catalog), `?clip=SET/Name`, `?recipe=Name` (`spec/recipes/`),
@@ -27,11 +29,24 @@ touch); two columns on a desk. The build stamp (version and commit) is on every 
   gallery's host).
 - **Labs:** the browse panel links the labs index (`./labs/`), which the preview site (`npm run site`) serves beside
   the gallery; the gallery's own server (`npm run gallery`) has no labs, so the link 404s there.
-- **The review queue** (`src/review/`, linked from the browse panel; WP-8.2b): the queue `m3a review export` wrote
-  (bundled at build time from check-output/review/queue.json when `M3A_REVIEW_QUEUE=1` asks, or a file opened on the
-  page), each row's preview sheet, numbers, check report and diff, decided by touch (one row or a batch) and exported
-  as a review for `m3a review ingest <file>` (the share sheet on a phone, a download on a desk); `__m3a` there is its
-  handle. **The contributor
+- **The review queue** (`src/review/`, linked from the browse panel; WP-8.2b, WP-F.11): it opens a queue at load: the
+  batch its link names (`?queue=G8-run-1/queue-0.56.0`), else a queue bundled at build time (the
+  check-output/review/queue.json `m3a review export` wrote, when `M3A_REVIEW_QUEUE=1` asks: a local build's alone),
+  else the newest review batch the build carries; "Open a queue file" opens any other. The batches are the committed
+  queues of library clips alone: of `bench/results/gates/<gate>/queue*.json`, each gate's newest (an export made
+  again supersedes the one before) when it holds no submission, G8's; the preview site (`npm run site`) and a local
+  `npm run gallery` carry the same, the site saying which it left out and why. `M3A_REVIEW_BATCHES` names others
+  (paths, commas between; `none` for none). Each is checked whole: a batch holding a submission, or a key or value a
+  library clip's row hasn't, fails the build (a contributor's text never goes into a page), and the page gets the
+  values read, never the file. The page says which batch is open and links the others; opening one decides nothing. Each card has its preview sheet, numbers, check report and diff; a
+  **Play** that plays its clip, looping, right in the card on `gen-1` at the sheet's view (the gallery's own stage and
+  player; one stage for the page, so starting a card stops the one playing, and three.js loads at the first Play; with
+  nothing playing the page draws no frame); and
+  a link opening the clip in the gallery in a new tab (`?clip=SET%2FName`; a submission's, the clip it improves) for
+  slow motion, frame by frame and any view. Rows are decided by touch (one row or a batch) and exported as a review
+  for `m3a review ingest <file>` (the share sheet on a phone, a download on a desk); playing decides nothing.
+  `?renderer=webgl2` forces WebGL 2 there too. `__m3a` there is its handle (`state`, `open`, `batch`, `play`, `stop`,
+  `playing`, `frame`, `decide`, `export` ...). **The contributor
   page** (`src/contributors/`): getting and revoking a key once O8's project is linked (the build's
   `VITE_M3A_INTAKE_URL` and `VITE_M3A_INTAKE_KEY`, the publishable key), and how agents submit locally until then.
 - **Nothing only here:** `src/actions.ts` lists each action and the m3a tool or command that does the same (a per-clip

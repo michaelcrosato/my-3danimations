@@ -1,6 +1,6 @@
 // The gallery's deep links (PLAN.md WP-8.1): everything on screen is a route, read from and written to the query
-// string, so every set, clip, recipe, graph, character, view, moment, rate, panel and search opens by link. Pure: no
-// DOM, so a test can read and write links anywhere.
+// string, so every set, clip, recipe, graph, character, view, moment, rate, panel and search opens by link (the review
+// page links each card's clip here with `clipLink`). Pure: no DOM, so a test can read and write links anywhere.
 
 /** The camera's views: the sensors' named views (raster.VIEWS), and orbit, which a finger or a mouse turns. */
 export const VIEWS = ["three-quarter", "front", "side", "back", "top", "orbit"] as const;
@@ -88,4 +88,10 @@ export function formatRoute(r: Route): string {
   put("renderer", r.renderer);
   const s = q.toString();
   return s ? `?${s}` : "";
+}
+
+/** The link that opens library clip `clip` in the gallery, as the gallery writes it (`?clip=SET%2FName`): playing from
+ *  the start on the default character at the default view, with `renderer` when one is asked for. */
+export function clipLink(clip: string, renderer: Route["renderer"] = null): string {
+  return formatRoute({ ...parseRoute("").route, set: clip.split("/")[0]!, clip, panel: "clip", renderer });
 }

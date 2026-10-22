@@ -5,14 +5,21 @@
 // `npm run fixtures -- fetch` put in .cache/fixtures/ (none when they aren't there). The build stamp's commit comes from
 // Vercel or GitHub Actions, else git. Three pages: the gallery (index.html), the review queue (src/review/) and the
 // contributor page (src/contributors/), WP-8.2b's. The review page bundles a queue only when asked: M3A_REVIEW_QUEUE=1
-// bundles the check-output/review/queue.json `m3a review export` wrote, any other value names the file (a queue holds
-// submissions' text, so no build carries one by accident: the preview site never does). A build given a secret intake
-// key fails (the contributor page's keys.ts).
+// bundles the check-output/review/queue.json `m3a review export` wrote, any other value names the file (a queue may
+// hold submissions' text, so no build carries one by accident: the preview site never takes it). It carries review
+// batches too (WP-F.11), so the page opens one with no file: M3A_REVIEW_BATCHES names them (paths from the repository's
+// root, commas between; `none` for none); unset, the committed batches of library clips alone (src/review/batches.ts
+// `committed`: the newest bench/results/gates/<gate>/queue*.json in each gate's directory, when it holds no submission
+// and its rows name library clips; G8's), the same the preview site names (tools/run/site.ts). Each is checked whole
+// (checkBatch): a batch holding a submission, or a key or value a library clip's row hasn't, fails the build, never
+// dropped or trimmed, and the page gets the values read, not the file. A build given a secret intake key fails (the
+// contributor page's keys.ts).
 import { existsSync, readdirSync, readFileSync, realpathSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { join, relative, resolve } from "node:path";
 import { defineConfig, type Plugin } from "vite";
 import { buildCommit } from "../../tools/run/stamp.ts";
 import { secretKey } from "./src/contributors/keys.ts";
+import { checkBatch, committed, GATES_DIR, type Batch } from "./src/review/batches.ts";
 
 const ROOT = join(import.meta.dirname, "../.."), SETS = join(ROOT, "library/sets"), RIGS = join(ROOT, ".cache/fixtures");
 const LIBRARY = "virtual:m3a-library", SET = "virtual:m3a-set/";
@@ -26,6 +33,25 @@ function reviewQueue(): string | null {
   return readFileSync(file, "utf8");
 }
 
+/** Every committed batch (bench/results/gates/<gate>/queue*.json): its path from the root and its text. */
+function found(): { path: string; text: string }[] {
+  const dir = join(ROOT, GATES_DIR);
+  if (!existsSync(dir)) return [];
+  return readdirSync(dir, { withFileTypes: true }).filter((d) => d.isDirectory()).flatMap((d) => readdirSync(join(dir, d.name)).filter((f) => /^queue.*\.json$/.test(f)).map((f) => ({ path: `${GATES_DIR}/${d.name}/${f}`, text: readFileSync(join(dir, d.name, f), "utf8") })));
+}
+
+/** The review batches the page carries: those M3A_REVIEW_BATCHES names (`none`: none), else the committed batches of
+ *  library clips alone (`committed`); each checked by checkBatch, which throws on a batch holding a submission or
+ *  anything but a library clip's row, so the build fails naming it. */
+function reviewBatches(): Batch[] {
+  const env = (process.env.M3A_REVIEW_BATCHES ?? "").trim(), has = (id: string) => existsSync(join(SETS, `${id}.json`));
+  const asked = env === "none" ? [] : env ? env.split(",").map((p) => p.trim()).filter(Boolean) : committed(found(), has).carried;
+  return asked.map((p) => {
+    const file = resolve(ROOT, p), path = relative(ROOT, file).split("\\").join("/");
+    if (!existsSync(file)) throw new Error(`M3A_REVIEW_BATCHES: no batch at ${path}: name committed batches (bench/results/gates/<gate>/queue*.json), commas between`);
+    return checkBatch(path, readFileSync(file, "utf8"), has);
+  });
+}
 
 /** Fails the build given a secret intake key: Vite inlines VITE_M3A_INTAKE_KEY into the contributor page's bundle,
  *  so the page refusing it at run time would be too late (keys.ts). */
@@ -70,7 +96,7 @@ function library(): Plugin {
 export default defineConfig({
   root: import.meta.dirname,
   base: "./",
-  define: { __COMMIT__: JSON.stringify(buildCommit(ROOT)), __REVIEW_QUEUE__: JSON.stringify(reviewQueue()) },
+  define: { __COMMIT__: JSON.stringify(buildCommit(ROOT)), __REVIEW_QUEUE__: JSON.stringify(reviewQueue()), __REVIEW_BATCHES__: JSON.stringify(reviewBatches()) },
   plugins: [noSecret(), library()],
   // the fixtures may be a link to another checkout's cache
   server: { fs: { allow: [ROOT, ...(existsSync(RIGS) ? [realpathSync(RIGS)] : [])] } },

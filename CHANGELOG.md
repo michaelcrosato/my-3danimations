@@ -4,6 +4,29 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.57.0 · 2026-10-22
+
+WP-F.11 (D132): the review page plays its clips in place, links them in the gallery and opens G8's batch on its own.
+
+### Repo
+- The review page (WP-F.11, D132): each card plays its clip, looping, in place on the gallery's stage (`gen-1`, the
+  sheet's view; one stage for the page, one card at a time; three.js loads at the first Play; with nothing playing the
+  page draws no frame), and links it in the gallery in a new tab (`?clip=`, the route's own link; a submission's, the
+  clip it improves). It opens the batch a link names (`?queue=NAME`), else a queue bundled, else the newest batch the
+  build carries, saying which and linking the others; the file picker stays. `__m3a` there gains `batch`, `play`,
+  `stop`, `playing` and `frame`.
+- The gallery's build carries the committed review batches of library clips alone (each gate's newest holding no
+  submission: G8's), or those `M3A_REVIEW_BATCHES` names (`none` for none), each checked whole: one holding a
+  submission, or any key or value but a library clip's row's, fails the build, naming it; the page gets the values
+  read, not the file (D132). `npm run gallery` opens G8's batch with no file.
+- `npm run site` carries the same batches and names those it leaves out, and why (G8's older export superseded; G9's
+  two, 10 submissions each); it still drops `M3A_REVIEW_QUEUE`.
+- The gallery has unit tests (`npx vitest run --config apps/gallery/vitest.config.ts`: the review batches, a clip's
+  link); `npm run e2e -- previews` runs the build's batch check on each kind of refusal.
+
+### Docs
+- `apps/gallery/README.md`: the review queue's batches, Play, the gallery link and the handle.
+
 ## 0.56.0 · 2026-10-22
 
 WP-F.9 (D129): the rate sweep's failing loops read by D108's bar and their captured speed; 45 loops carry a named
