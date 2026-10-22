@@ -14,6 +14,7 @@
 "facts": {"by":"m3a-facts@1","captured":["speed"],"height":[96,100],"seam":0,"speed":95,"travel":[127,2.8]},
 "provenance": {"src":"100STYLE","take":"Heavyset_FW 98.75-100.03","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[8,113],"qa":"pass","qaVersion":"m3a-sensors@1"},
+"review": {"state":"approved","by":"owner","date":"2026-10-22","motion":"672a20a7e61b6035e5f9e734b24f2c31475e211d2f16d37ea9e5f0295be20928"},
 "keys": [
   {"t":0,
    "hips":[0,0,99], "body":[-2,-2,-1], "chest":[6,17,4], "head":[-6,18,-3],

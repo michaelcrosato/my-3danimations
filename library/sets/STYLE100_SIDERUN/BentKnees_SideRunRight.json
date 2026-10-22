@@ -14,6 +14,7 @@
 "facts": {"by":"m3a-facts@1","captured":["speed"],"height":[90,100],"seam":0,"speed":146,"travel":[-5.1,82.4]},
 "provenance": {"src":"100STYLE","take":"BentKnees_SR 34.78-35.33","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[9,31],"qa":"pass","qaVersion":"m3a-sensors@1"},
+"review": {"state":"approved","by":"owner","date":"2026-10-22","motion":"58de1f4348723c04a087117d593d626412e7ca9369144d5e55183d22d9fe0ace"},
 "keys": [
   {"t":0,
    "hips":[0,0,98], "body":[-6,-2,-1], "chest":[-3,33,3], "head":[13,-5,7],

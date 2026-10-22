@@ -14,6 +14,7 @@
 "facts": {"by":"m3a-facts@1","captured":["speed"],"height":[97,101],"seam":0,"speed":42,"travel":[13.1,-94.4]},
 "provenance": {"src":"100STYLE","take":"LawnMower_SW 46.05-48.32","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[8,48],"qa":"pass","qaVersion":"m3a-sensors@1"},
+"review": {"state":"flagged","by":"owner","date":"2026-10-22","motion":"e9a30279816de55f2cd64dd3450329de355100a854dbae315a788f07c6493859","note":"I think you need to state what the expectations are of what I am supposed to see and what you think is happening, there is a person rolling his hands in front of his pelvis bending over"},
 "keys": [
   {"t":0,
    "hips":[0,0,98], "body":[-7,-11,-1], "chest":[2,25,1], "head":[1,0,-3], "spine":[0,45,75],

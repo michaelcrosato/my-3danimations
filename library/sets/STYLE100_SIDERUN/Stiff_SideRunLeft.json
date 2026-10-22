@@ -14,6 +14,7 @@
 "facts": {"by":"m3a-facts@1","captured":["speed"],"height":[97,108],"seam":0,"speed":110,"travel":[-5.3,-143.8]},
 "provenance": {"src":"100STYLE","take":"Stiff_SR 42.15-43.42","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[8,40],"qa":"pass","qaVersion":"m3a-sensors@1"},
+"review": {"state":"approved","by":"owner","date":"2026-10-22","motion":"6b352005f1fd36e8db9d19ef709022133919e66b1e7a75b153ec6131d0d131c6","note":"This is a side step, definitely not a side run."},
 "keys": [
   {"t":0,
    "hips":[0,0,102], "body":[-4,1,5], "chest":[-3,3,-2], "head":[-5,13,-6],

@@ -14,6 +14,7 @@
 "facts": {"by":"m3a-facts@1","captured":["speed"],"height":[95,102],"seam":0,"speed":87,"travel":[-149.3,-31.9]},
 "provenance": {"src":"100STYLE","take":"KarateChop_BR 58.28-60.08","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[12,98],"qa":"pass","qaVersion":"m3a-sensors@1"},
+"review": {"state":"approved","by":"owner","date":"2026-10-22","motion":"4dd46b3d65ffac7f5b1546f27d9fd6bf97de3a6f3f53338e034474e671b0869a","note":"They are moving backwards, run debatable, he is doing a chopping motion with his hands"},
 "keys": [
   {"t":0,
    "hips":[0,0,98], "body":[-34,-9,-5], "chest":[6,15,1], "head":[-5,10,6], "spine":[1,46,75],

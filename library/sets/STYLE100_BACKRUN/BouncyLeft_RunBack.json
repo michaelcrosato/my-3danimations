@@ -14,6 +14,7 @@
 "facts": {"by":"m3a-facts@1","captured":["speed"],"height":[98,113],"seam":0,"speed":130,"travel":[-64.6,-11]},
 "provenance": {"src":"100STYLE","take":"BouncyLeft_BR 8.45-9.12","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[9,42],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"warn on skate: short of every fail level the sensors apply (thresholds.ts)"},
+"review": {"state":"approved","by":"owner","date":"2026-10-22","motion":"8226e2d905e3d2214555f05e3d5b6520a04b5091ec8f6a1cea68c4ad60cfab7a"},
 "keys": [
   {"t":0,
    "hips":[0,0,113], "body":[0,3,1], "chest":[-2,5,-2], "head":[5,8,-1],
