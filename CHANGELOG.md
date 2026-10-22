@@ -8,6 +8,7 @@ features, patch for fixes. One line per change, under the part it touched (**Spe
 
 WP-F.7 (D127): the rate sweep's failing rows triaged, two loops read again in core, the 126 that still fail answered
 with their causes.
+WP-F.6 (D126): T2 under its budget in CI, the rate sweep in full in a CI job of its own.
 
 ### Core
 - `measureFacts` reads a loop's contacts again (D104's `reread`) when the refinement keeps one foot a moment a cycle
@@ -28,6 +29,11 @@ with their causes.
 
 ### Repo
 - `npm run test:changed` runs the rate sweep's answers test for a change under `library/` (D127).
+- WP-F.6 (D126): T2's Playwright step runs four suites at once, not two (169 s to 133 s here, every test within its
+  timeout; mcp-smoke's every-example test has 180 s, past the 30 s default its blocking spawns kept from firing).
+- WP-F.6 (D126): CI's `rates` job runs the rate sweep in full (every locomotion loop at every rate on the six bodies) on
+  every pull request beside T2; T2 sweeps gen-0 and the knight whole (8,110 of 24,330 rows), its steps exported and
+  tested (`t2Steps`). T2 here 362.2 s to 293.3 s.
 
 ## 0.55.2 · 2026-10-21
 
