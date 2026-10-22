@@ -5,14 +5,23 @@
 // the page; decisions are made by touch (one by one, a batch, a toggle), kept across a reload, and exported through the
 // share sheet (and as a download, the same bytes). `m3a review ingest` applies the file to the scratch store and the
 // scratch copy of the clips: the right states and files change; again, no byte changes; a queued clip edited through
-// the writer, then ingested: refused as stale, no byte changes. A build bundles a queue only when M3A_REVIEW_QUEUE
-// asks, and its page opens that one at load. The contributor page says the hosted store isn't linked, reaches no other
-// origin and carries no secret, and a build given a secret key fails; built linked to a stub project, it signs in,
-// adds a key's SHA-256 and revokes it. Screenshots go to check-output/review/, never committed.
+// the writer, then ingested: refused as stale, no byte changes. Each card plays its clip in place (WP-F.11), by touch at
+// that viewport on WebGL 2: a sampled clip's, a submitted clip's and a compiled recipe's, on the gallery's stage, its
+// canvas's frames changing as Playwright's clock runs and the clip's time going on by as much; one card at a time on
+// one stage (one WebGL context): starting another stops the first, Stop takes it out (the page then draws no frame,
+// three's own loop included), and playing decides nothing. Each card's gallery link is the gallery's own route for its
+// clip (a submission's: the clip it improves), and opens it in a new tab, playing. A build bundles a queue only when
+// M3A_REVIEW_QUEUE asks, and its page opens that one at load, or the batch a link names (?queue=NAME); a build that
+// names no batches (M3A_REVIEW_BATCHES unset, as `npm run gallery` at a desk) carries the committed batches of library
+// clips alone, the newest of each gate (G8's), and one asked for none (`none`, the review page's other builds here)
+// carries none; opening a queue at load decides nothing. The contributor
+// page says the hosted store isn't linked, reaches no other origin and carries no secret, and a build given a secret
+// key fails; built linked to a stub project, it signs in, adds a key's SHA-256 and revokes it. Screenshots go to
+// check-output/review/, never committed.
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { extname, join, normalize } from "node:path";
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type BrowserContext, type Page } from "@playwright/test";
 import { build } from "vite";
 import { serialize, type Clip } from "../../packages/core/src/index.ts";
 import type { Queue, ReviewFile } from "../../packages/tools/src/intake/index.ts";
@@ -27,8 +36,15 @@ const ORIGIN = "http://localhost:4177", TYPES: Record<string, string> = { ".html
 const PAGE = "/src/review/", CONTRIBUTORS = "/src/contributors/";
 
 type Row = { id: string; ref: string; as: string | null; note: string };
-type State = { source: string; error: string | null; submissions: Row[]; clips: Row[]; selected: string[]; decided: number; pictures: number; said: string };
-type Handle = { ready: boolean; state(): State; drawn(): Promise<number>; commands(): string[]; export(how?: string): Promise<{ how: string; name: string; text: string }>; actions(): { tool: string | null }[] };
+type Playing = { id: string; clip: string; time: number; dur: number; loop: boolean; backend: string; stages: number };
+type State = {
+  source: string; batch: string | null; batches: string[]; problem: string; error: string | null; submissions: Row[]; clips: Row[]; selected: string[]; decided: number; pictures: number;
+  playing: string | null; player: Playing | null; playError: string | null; said: string;
+};
+type Handle = {
+  ready: boolean; state(): State; drawn(): Promise<number>; commands(): string[]; export(how?: string): Promise<{ how: string; name: string; text: string }>; actions(): { tool: string | null }[];
+  frame(): Promise<{ lit: number; backend: string } | null>; review(): { decisions: unknown[] } | null;
+};
 type Win = { __m3a: Handle; __shared?: { name: string; text: string }; __M3A_TOOLS__: { list(): { name: string }[] } };
 
 test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
@@ -39,8 +55,9 @@ const reg = new Registry(REVIEW), review = (args: object) => reg.call("review", 
 /** Walk_Loop with its head turned `deg` more at every key: an improvement's motion. */
 const walk = (deg: number): Clip => ((c) => ({ ...c, keys: c.keys.map((k) => ({ ...k, head: (k as unknown as { head: number[] }).head.map((v, i) => (i === 0 ? v + deg : v)) })) }) as Clip)(libraryClip(`${SET}/Walk_Loop`));
 
-/** Serves `site` at ORIGIN (a directory's index.html for a path ending in /), and a stub at /stub/ when given one. */
-async function serve(page: Page, site: string, stub?: (path: string, method: string, body: string, headers: Record<string, string>) => { status: number; json?: unknown; html?: string }) {
+/** Serves `site` at ORIGIN (a directory's index.html for a path ending in /), and a stub at /stub/ when given one, to
+ *  a page, or to every page of a context (a tab the page opens too). */
+async function serve(page: Page | BrowserContext, site: string, stub?: (path: string, method: string, body: string, headers: Record<string, string>) => { status: number; json?: unknown; html?: string }) {
   await page.route(`${ORIGIN}/**`, async (route) => {
     const url = new URL(route.request().url()), path = normalize(decodeURIComponent(url.pathname));
     if (stub && path.startsWith("/stub/")) {
@@ -84,7 +101,13 @@ test.beforeAll(async () => {
   expect((await review({ do: "export" })).status).toBe("ok");
   q = JSON.parse(co.file(QUEUE_FILE)) as Queue;
   expect([q.submissions.length, q.clips.length, q.submissions.map((s) => s.contributor)]).toEqual([3, 20, expect.arrayContaining(["alice", "alice", "bob"])]);
-  await build({ configFile: join(ROOT, "apps/gallery/vite.config.ts"), build: { outDir: SITE, emptyOutDir: true }, logLevel: "error" });
+  // built asking for no batch: the page opens nothing at load, and these tests open the scratch queue's file
+  process.env.M3A_REVIEW_BATCHES = "none";
+  try {
+    await build({ configFile: join(ROOT, "apps/gallery/vite.config.ts"), build: { outDir: SITE, emptyOutDir: true }, logLevel: "error" });
+  } finally {
+    delete process.env.M3A_REVIEW_BATCHES;
+  }
 });
 test.afterAll(() => co?.rm());
 
@@ -183,13 +206,127 @@ test("review: a review made by touch at a phone viewport changes the right state
   expect(log.filter((l) => /error/i.test(l))).toEqual([]);
 });
 
-test("bundled: a build carries a queue only when M3A_REVIEW_QUEUE asks, and the page opens that one at load", async ({ page }) => {
+/** How many pixels differ (by more than 30 in their summed channels) between two screenshots of the same element. */
+const changed = (page: Page, a: Buffer, b: Buffer) =>
+  page.evaluate(async ([x, y]) => {
+    const px = async (b64: string) => {
+      const img = await createImageBitmap(await (await fetch(`data:image/png;base64,${b64}`)).blob()), c = new OffscreenCanvas(img.width, img.height), g = c.getContext("2d")!;
+      g.drawImage(img, 0, 0);
+      return g.getImageData(0, 0, img.width, img.height).data;
+    };
+    const [p, q] = [await px(x!), await px(y!)];
+    let n = 0;
+    for (let i = 0; i < Math.min(p.length, q.length); i += 4) if (Math.abs(p[i]! - q[i]!) + Math.abs(p[i + 1]! - q[i + 1]!) + Math.abs(p[i + 2]! - q[i + 2]!) > 30) n++;
+    return n;
+  }, [a.toString("base64"), b.toString("base64")]);
+
+test("play: each card plays its clip in place by touch, one card at a time on one stage; its gallery link opens the clip there", async ({ page, context }) => {
+  test.setTimeout(240_000);
+  await serve(context, SITE);
+  // Playwright's clock: real time flows until the motion check holds it and runs the frames itself
+  await page.clock.install();
+  const log = await visit(page, `${PAGE}?renderer=webgl2`);
+  await page.setInputFiles("#file", join(co.cwd, QUEUE_FILE));
+  await page.waitForFunction(() => (window as unknown as Win).__m3a.state().source === "queue.json");
+  expect(await page.evaluate(() => (window as unknown as Win).__m3a.drawn())).toBe(23);
+  const lib = q.clips.find((c) => /Walk|Run/.test(c.id)) ?? q.clips[0]!, sub = q.submissions.find((x) => x.diff && x.diff.max > 0)!, rec = q.submissions.find((x) => x.kind === "recipe")!;
+  const stageIn = (id: string) => card(page, id).locator(".stage canvas"), playOf = (id: string) => card(page, id).locator("[data-play]");
+  const playing = (id: string) => page.waitForFunction((x) => (window as unknown as Win).__m3a.state().player?.id === x, id, { timeout: 60_000 });
+
+  // a sampled clip plays in its card, on WebGL 2, the character drawn
+  await playOf(lib.id).tap();
+  await playing(lib.id);
+  await expect(playOf(lib.id)).toHaveText("Stop");
+  await expect(playOf(lib.id)).toHaveAttribute("aria-pressed", "true");
+  expect([await stageIn(lib.id).count(), await page.locator(".stage canvas").count(), await page.locator("#queue canvas.picture").count()]).toEqual([1, 1, 25]);
+  const first = (await state(page)).player!, f = (await page.evaluate(() => (window as unknown as Win).__m3a.frame()))!;
+  expect([first.clip, first.backend, first.stages, first.loop, f.backend, f.lit > 150]).toEqual([lib.id, "webgl2", 1, expect.any(Boolean), "webgl2", true]);
+
+  // it moves: the canvas's frames change as the clock runs, and the clip's time goes on by as much (a loop wrapping);
+  // held, then run a frame at a time until the loop's next frame comes: a hold from a flowing clock can leave it due
+  // past the clock's now (as the gallery's e2e found); from then on the loop runs on the held clock alone
+  const time = async () => (await state(page)).player!.time;
+  await page.clock.pauseAt((await page.evaluate(() => Date.now())) + 1000);
+  const held = await time();
+  let steps = 0;
+  while ((await time()) === held && steps < 400) {
+    await page.clock.runFor(16);
+    steps++;
+  }
+  await page.clock.runFor(50);
+  const [shotA, tA] = [await stageIn(lib.id).screenshot(), await time()];
+  await page.clock.runFor(400);
+  const [shotB, tB] = [await stageIn(lib.id).screenshot(), await time()];
+  await page.clock.resume();
+  const went = (((tB - tA) % first.dur) + first.dur) % first.dur;
+  expect(Math.abs(went - (0.4 % first.dur)), `${tA} → ${tB} of ${first.dur} s, its next frame ${steps} frames after the hold`).toBeLessThan(0.05);
+  expect(await changed(page, shotA, shotB)).toBeGreaterThan(200);
+  await page.screenshot({ path: join(OUT, "review-playing.png") });
+
+  // another card plays: the first stops, the same one stage moves (one WebGL context); a submitted clip, then a recipe
+  for (const [r, clip] of [[sub, `${SET}/Walk_Loop`], [rec, null]] as const) {
+    await playOf(r.id).tap();
+    await playing(r.id);
+    const s = await state(page);
+    expect([s.player!.stages, s.playError, await page.locator(".stage canvas").count(), await stageIn(r.id).count(), await stageIn(lib.id).count(), await playOf(lib.id).textContent()]).toEqual([1, null, 1, 1, 0, "Play"]);
+    if (clip) expect(s.player!.clip).toBe(clip);
+  }
+  // a second tap stops it: no stage in any card; and playing decided nothing
+  // (every requestAnimationFrame counted from here on the held clock: the card's loop and three's own call it each frame)
+  await page.clock.pauseAt((await page.evaluate(() => Date.now())) + 100);
+  await page.evaluate(() => {
+    const w = window as unknown as { __rafs: number }, raf = window.requestAnimationFrame.bind(window);
+    w.__rafs = 0;
+    window.requestAnimationFrame = (cb) => (w.__rafs++, raf(cb));
+  });
+  const rafs = async (ms: number) => {
+    await page.evaluate(() => ((window as unknown as { __rafs: number }).__rafs = 0));
+    await page.clock.runFor(ms);
+    return page.evaluate(() => (window as unknown as { __rafs: number }).__rafs);
+  };
+  const whilePlaying = await rafs(1000);
+  await playOf(rec.id).tap();
+  const s1 = await state(page);
+  expect([s1.playing, s1.player, await page.locator(".stage").count(), await playOf(rec.id).getAttribute("aria-pressed"), s1.decided, await page.evaluate(() => (window as unknown as Win).__m3a.review()!.decisions.length)]).toEqual([null, null, 0, "false", 0, 0]);
+  // stopped, the page draws no frame: not the card's loop, not three's (r182 runs one from init until dispose)
+  expect([whilePlaying > 0, await rafs(1000)], `requestAnimationFrame calls: ${whilePlaying} in 1 s playing`).toEqual([true, 0]);
+  await page.clock.resume();
+  // and plays again when asked, on the same stage, moving: its loops started again
+  await playOf(lib.id).tap();
+  await playing(lib.id);
+  expect([(await state(page)).player!.stages, await stageIn(lib.id).count()]).toEqual([1, 1]);
+  const [again, t0] = [await stageIn(lib.id).screenshot(), await time()];
+  await page.waitForFunction((t) => Math.abs((window as unknown as Win).__m3a.state().player!.time - t) > 0.3, t0, { timeout: 30_000 });
+  expect(await changed(page, again, await stageIn(lib.id).screenshot())).toBeGreaterThan(200);
+  await playOf(lib.id).tap();
+
+  // each card's gallery link is the gallery's route for its clip (a submission's: the clip it improves; a recipe has none)
+  const link = (id: string) => card(page, id).locator("a[data-gallery]");
+  expect([await link(rec.id).count(), await link(lib.id).getAttribute("target")]).toEqual([0, "_blank"]);
+  for (const [id, clip] of [[lib.id, lib.id], [sub.id, `${SET}/Walk_Loop`]]) {
+    const href = await link(id!).evaluate((a) => (a as HTMLAnchorElement).href), url = new URL(href);
+    expect([url.origin + url.pathname, url.search]).toEqual([`${ORIGIN}/`, `?clip=${encodeURIComponent(clip!)}&renderer=webgl2`]);
+  }
+  // opened by touch, in a new tab: the gallery plays that clip, and its own link for what it shows is the card's
+  const [tab] = await Promise.all([context.waitForEvent("page"), link(lib.id).tap()]);
+  await tab.waitForFunction(() => (window as unknown as { __m3a?: { ready?: boolean } }).__m3a?.ready, undefined, { timeout: 60_000 });
+  const g = await tab.evaluate(() => (window as unknown as { __m3a: { state(): { route: { clip: string }; link: string; error: string | null; paused: boolean; playing: { id: string } | null } } }).__m3a.state());
+  expect([g.error, g.route.clip, g.playing?.id, g.paused, g.link]).toEqual([null, lib.id, lib.id, false, new URL(await link(lib.id).evaluate((a) => (a as HTMLAnchorElement).href)).search]);
+  await tab.close();
+  expect(log.filter((l) => /error/i.test(l))).toEqual([]);
+});
+
+test("bundled: a build carries a queue only when M3A_REVIEW_QUEUE asks, and the page opens that one at load, or the batch a link names", async ({ page }) => {
   test.setTimeout(120_000);
   await serve(page, SITE);
   await visit(page, PAGE);
-  expect((await state(page)).source).toBe(""); // built without asking: no queue in it
-  const bundled = join(ROOT, ".cache/review-site-bundled");
+  const s0 = await state(page);
+  expect([s0.source, s0.batch, s0.batches]).toEqual(["", null, []]); // built asking for no batch, and no queue: none in it
+  // a build naming no batches (as `npm run gallery` at a desk): the committed ones of library clips alone, the newest of
+  // each gate (G8-run-1's queue-0.56.0; its queue.json superseded, G9's holding submissions)
+  const bundled = join(ROOT, ".cache/review-site-bundled"), G8 = "bench/results/gates/G8-run-1", NEWEST = "G8-run-1/queue-0.56.0";
   process.env.M3A_REVIEW_QUEUE = join(co.cwd, QUEUE_FILE);
+  delete process.env.M3A_REVIEW_BATCHES;
   try {
     await build({ configFile: join(ROOT, "apps/gallery/vite.config.ts"), build: { outDir: bundled, emptyOutDir: true }, logLevel: "error" });
   } finally {
@@ -200,7 +337,17 @@ test("bundled: a build carries a queue only when M3A_REVIEW_QUEUE asks, and the 
   await visit(page, PAGE);
   await page.waitForFunction(() => (window as unknown as Win).__m3a.state().source !== "");
   const s = await state(page);
-  expect([s.source, s.error, s.submissions.length, s.clips.length]).toEqual(["bundled at build time", null, 3, 20]);
+  expect([s.source, s.batch, s.batches, s.error, s.submissions.length, s.clips.length]).toEqual(["bundled at build time", null, [NEWEST], null, 3, 20]);
+  // a link naming a batch opens it, the page saying which; one naming none here opens the newest and says so; opening
+  // one at load decides nothing
+  for (const [asked, problem] of [[NEWEST, ""], ["G8-run-1/queue", "?queue=G8-run-1/queue is no batch this page carries"], ["G9-run-2/queue", "?queue=G9-run-2/queue is no batch this page carries"]]) {
+    await visit(page, `${PAGE}?queue=${asked}`);
+    const b = await state(page), decisions = await page.evaluate(() => (window as unknown as Win).__m3a.review()!.decisions.length);
+    expect([b.batch, b.source, b.submissions.length, b.clips.length, b.problem.slice(0, problem!.length)]).toEqual([NEWEST, `batch ${NEWEST}`, 0, 20, problem]);
+    expect([b.decided, b.clips.filter((r) => r.as !== null).length, decisions], asked).toEqual([0, 0, 0]);
+    await expect(page.locator("#source")).toContainText(`batch ${NEWEST} (${G8}/queue-0.56.0.json, the newest of 1 this page carries)`);
+    await expect(page.locator(`#batches [data-queue="${NEWEST}"]`)).toHaveAttribute("aria-current", "true");
+  }
 });
 
 test("contributors: unlinked, it says so, reaches no other origin and carries no secret; linked to a stub, a key is added and revoked", async ({ page }) => {

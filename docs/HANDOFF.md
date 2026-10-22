@@ -1,4 +1,4 @@
-# Handoff: every phase built; the follow-ups after G10 built (F.1 to F.9); the owner's steps open (2026-10-22)
+# Handoff: every phase built; the follow-ups after G10 built (F.1 to F.11); the owner's steps open (2026-10-22)
 
 Phase 7 merged before its gate (michaelcrosato/my-3danimations#13, D103); G7 passed on run 2 on
 michaelcrosato/my-3danimations#14 (D107); Phase 8 merged on michaelcrosato/my-3danimations#15 (G8's commands, D111);
@@ -19,12 +19,13 @@ none during trial batches.
 
 ## Where things stand
 
-- **Version 0.56.0.** Every WP through 10.2 and F.1 to F.9 is done; G0-G7 passed; G8, G9 and G10's command sets passed
+- **Version 0.57.0.** Every WP through 10.2 and F.1 to F.11 is done; G0-G7 passed; G8, G9 and G10's command sets passed
   and each waits on the owner (blocked-owner, its ask on its PR):
   - **G8** (#15): the phone review of `bench/results/gates/G8-run-1/queue-0.56.0.json` (the same 20 clips as
-    `queue.json`, exported again at 0.56.0: one ref moved, D130). The page is a branch preview's `/src/review/` (O3 is
-    live again) or `npm run gallery` on a checkout, at `/src/review/`: "Open a queue file", decide each clip, Export,
-    and send the file back.
+    `queue.json`, exported again at 0.56.0: one ref moved, D130). The page is https://my-3danimations-ten.vercel.app/src/review/
+    (or `npm run gallery` on a checkout, at `/src/review/`): it opens that batch on its own (`?queue=G8-run-1/queue-0.56.0`
+    names it); Play plays a clip in its card, the link beside it opens the clip in the gallery (WP-F.11, D132); decide
+    each clip, Export, and send the file back.
   - **G9** (#16): the contract suite against O8's project; an adoption through a merged PR; the owner's approval of
     70% of `bench/results/gates/G9-run-2/queue.json`. O8's setup is `services/intake/README.md`: the Supabase project,
     the Actions secrets `M3A_SUPABASE_URL` and `M3A_SUPABASE_SERVICE_ROLE_KEY` (intake.yml) and `M3A_INTAKE_SUPABASE`

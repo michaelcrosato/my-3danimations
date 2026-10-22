@@ -1,6 +1,6 @@
 {
   "name": "my-3danimations",
-  "version": "0.56.0",
+  "version": "0.57.0",
   "private": true,
   "description": "An open animation package for AI coding agents: spec, runtime, sensors, library and tools.",
   "license": "MIT",

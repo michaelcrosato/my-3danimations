@@ -4277,11 +4277,12 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   - **WP-8.3, previews** (285 lines, S): `vercel.json` builds the whole preview site (`npm run site`: the gallery at
     the root, the labs index at `/labs/`, every lab at `/labs/<name>/`), every page stamped with core's version and
     the branch's commit; a .glb in the site fails the build (D9). The preview URL itself waits on O3 (D85).
-  - **The integrator's changes:** G8's gate set (below); the `site` and `m3a` scripts; `m3a review` samples 20
-    library clips, G8's batch (a list shows 8); the review page bundles a queue only when `M3A_REVIEW_QUEUE` asks
-    (8.2b's open question: a queue holds submissions' text, so no build carries one by accident and the preview site
-    never does), with an e2e; `@m3a/tools/node` exports `INTAKE_DIR` and `intakeFiles` (8.2b's ask, for a contributor
-    on the local store until WP-9.1).
+  - **The integrator's changes:** G8's gate set (below); the `site` and `m3a` scripts; `m3a review` samples 20 library
+    clips, G8's batch (a list shows 8); the review page bundles a queue only when `M3A_REVIEW_QUEUE` asks (8.2b's open
+    question: a queue holds submissions' text, so no build carries one by accident and the preview site never does;
+    **superseded in part by D132**: the preview site and a local build carry the committed batches of library clips
+    alone, G8's, and a queue holding submissions still never ships), with an e2e; `@m3a/tools/node` exports `INTAKE_DIR`
+    and `intakeFiles` (8.2b's ask, for a contributor on the local store until WP-9.1).
   - **G8's command set:** check, test, doctrine, vectors, the intake and review tests, T2 (the gallery, the review queue
     and previews suites among its browser checks), the preview site built, and the owner's 20-clip batch exported. The
     owner's phone review of that batch is theirs: blocked-owner until it comes (§8.5), the notes it brings back
@@ -5322,7 +5323,9 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
     publish` with a granular token.
   - **O3, unpaused by the owner:** the branch's commit 2f973fa built ("Deployment has completed", the first since D85's
     pause), so every branch builds its preview from `vercel.json` again; G8's review page is at a preview's
-    `/src/review/` (it opens a queue file; the preview site never bundles one).
+    `/src/review/` (it opens a queue file; the preview site never bundles one; **superseded in part by D132**: the
+    preview site and a local build carry the committed batches of library clips alone, G8's, and a queue holding
+    submissions still never ships).
   - **O8, the session may create the Supabase project:** this session has no Supabase connector (it isn't connected
     to the account, and connectors are read when a session starts), so it creates nothing; once the owner connects it,
     a new session creates the free-tier project and runs `services/intake/README.md`'s steps 1 and 2. The GitHub sign-in
@@ -5373,3 +5376,37 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   the minor and unanswered calls keeps the work moving, and logging each keeps it the owner's to reverse.
 - **Answered:** yes: the owner's words above; the calls under it are the session's, to review.
 - **Landed in:** v0.56.0 (docs only, after #22)
+
+## D132 · 2026-10-22 · The review page plays its clips in place, links them in the gallery, and opens G8's batch on its own
+
+- **Principle:** the North Star (the library's measure is the owner's approval rate on sampled reviews, so a review
+  must be easy, and motion is judged moving), 2 (nothing only on a page), D109, D111, D130, D131
+- **Supersedes in part:** D109's "the preview site never does" (carry a queue) and D130's "the preview site never
+  bundles one": the site carries the committed batches of library clips alone; a queue holding submissions still never
+  ships.
+- **Call:**
+  - **Play in the card, on the gallery's own stage.** The sheet stays (the sensors read it); a Play plays the clip
+    looping on `gen-1` at the sheet's view with `stage.ts` and `player.ts` as the gallery runs them. One stage a page,
+    moved between cards, because phones cap a page's WebGL contexts and disposing one is no promise the browser
+    frees it; three.js loads at the first Play, so the queue opens as fast as before; with nothing playing the page
+    draws no frame (three's own loop paused through r182's private `_animation`: no public call pauses it).
+  - **A gallery link per card**, the route's own (`clipLink`), in a new tab, for slow motion, frame steps and any
+    view; a submission's is the clip it improves (the gallery opens library clips alone).
+  - **Builds carry the committed batches of library clips alone; a submission never.** With none named, a build (the
+    preview site's and a local `npm run gallery` alike) carries the newest committed batch in each gate's directory
+    when it holds no submission and its rows are library clips (G8-run-1's `queue-0.56.0`; its `queue.json`
+    superseded, so a decision on a moved ref can't be made there; G9's two, 10 submissions each, left out and said).
+    The gallery's build checks each batch whole: every key and every value of the queue and its rows for its type and
+    form; one holding a submission, a key or value no library clip's row has, or a row that is no library clip fails
+    the build rather than being trimmed to fit, and the page gets the values read, never the file. D109's rule stands
+    for a queue that may hold submissions (`M3A_REVIEW_QUEUE`, still dropped by the site).
+  - **The newest opens at load** (the export's date, then the name), the page saying which and linking the others
+    (`?queue=NAME`), the file picker kept for any other queue; opening one decides nothing.
+  - **Still a file back:** the review is exported as JSON (share sheet or download) and applied with `m3a review
+    ingest` until O8's project is linked (D110, D130); that step is O8's, not this WP's.
+- **Why:** the owner's words (the trigger above); every step the owner took that a page could take is gone. A batch
+  reaches a page only as the values a library clip's row has, each of its type and form, so no submission's text can
+  ride in one; the only free text left is a library clip's review note, the owner's, which the clip's own file holds
+  and the gallery already carries.
+- **Answered:** no: made under D131 (a minor call, by the North Star), to review.
+- **Landed in:** v0.57.0 (proposed)

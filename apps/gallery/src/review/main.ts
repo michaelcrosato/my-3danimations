@@ -1,22 +1,31 @@
-// The review queue's page (PLAN.md WP-8.2b): it opens a queue (m3a.review-queue/1) bundled at build time (the
-// check-output/review/queue.json `m3a review export` wrote, when the build is asked to: M3A_REVIEW_QUEUE) or a file
-// given (the picker), keeps the owner's decisions on the page (and in this browser's storage, by the queue's refs, so a
-// reload keeps them), and exports the review (m3a.review/1) for `m3a review ingest <file>`: through the share sheet on
-// a phone (navigator.share with a file), as a download on a desk. It puts `window.__m3a` (the page's handle: state, open, decide, clear,
-// review, commands, export, drawn, actions) and `window.__M3A_TOOLS__` (every m3a tool, on the gallery's host) on it.
+// The review queue's page (PLAN.md WP-8.2b, WP-F.11): it opens a queue (m3a.review-queue/1) at load: the batch its
+// link names (?queue=NAME), else a queue bundled at build time (the check-output/review/queue.json `m3a review export`
+// wrote, when a local build is asked to: M3A_REVIEW_QUEUE), else the newest batch the build carries (the committed
+// batches of library clips alone: each gate's newest holding no submission, G8's, on the preview site and in a local
+// build alike unless M3A_REVIEW_BATCHES names others; batches.ts); the file picker opens any other. It says which is
+// open, and links the other batches. Opening one decides nothing. Each card
+// plays its clip in place (play.ts: one stage for the page, one card at a time) and links it in the gallery. The page
+// keeps the owner's decisions (and this browser's storage, by the queue's refs, so a reload keeps them), and exports
+// the review (m3a.review/1) for `m3a review ingest <file>`: through the share sheet on a phone (navigator.share with a
+// file), as a download on a desk. It puts `window.__m3a` (the page's handle: state, open, batch, decide, clear, play,
+// stop, playing, frame, review, commands, export, drawn, actions) and `window.__M3A_TOOLS__` (every m3a tool, on the
+// gallery's host) on it.
 import { VERSION } from "@m3a/core";
 import { installConsole, type intake } from "@m3a/tools";
 import { GalleryRegistry, galleryHost } from "../host.ts";
 import { h } from "../panels.ts";
 import { REVIEW_ACTIONS } from "./actions.ts";
+import { byNewest, newest, pick, type Batch } from "./batches.ts";
+import { CardPlayer } from "./play.ts";
 import { Decisions, readQueue, sectionOf, type Saved, type Section } from "./queue.ts";
 import { drawPictures, render, sync } from "./view.ts";
 
-const BUNDLED = __REVIEW_QUEUE__;
+const BUNDLED = __REVIEW_QUEUE__, BATCHES: readonly Batch[] = __REVIEW_BATCHES__;
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 const reg = new GalleryRegistry(galleryHost()), tools = installConsole(reg, reg.host), stamp = `m3a ${VERSION} · ${__COMMIT__}`;
+const renderer = new URLSearchParams(location.search).get("renderer") === "webgl2" ? "webgl2" : null, player = new CardPlayer(reg, renderer === "webgl2");
 const selected = new Set<string>();
-let dec: Decisions | null = null, source = "", error: string | null = null, drawing: Promise<number> = Promise.resolve(0), opened = 0, said = "";
+let dec: Decisions | null = null, source = "", batch: Batch | null = null, problem = "", error: string | null = null, drawing: Promise<number> = Promise.resolve(0), opened = 0, said = "";
 
 /** Today on this device, YYYY-MM-DD: the date the review is made on. */
 const today = () => {
@@ -41,35 +50,65 @@ const storage = {
   },
 };
 
-/** The header line, the summary and the cards brought in step with the decisions. */
+/** Where the open queue came from, as the header says it: a batch by name and file (the newest or not), or a file. */
+function from(): string {
+  if (!batch) return source;
+  const latest = newest(BATCHES) === batch;
+  return `batch ${batch.name} (${batch.path}, ${latest ? `the newest of ${BATCHES.length} this page carries` : "not the newest"})`;
+}
+
+/** The header lines, the batch links, the summary and the cards brought in step with the decisions and the player. */
 function refresh(): void {
   const q = dec?.queue, made = dec?.list().length ?? 0;
-  $("source").textContent = error ?? (q ? `${source}: the ${q.store} store's queue of ${q.date}, ${q.submissions.length} submissions and ${q.clips.length} sampled clips` : "no queue yet: open the file m3a review export wrote");
+  $("source").textContent = error ?? (q ? `${from()}: the ${q.store} store's queue of ${q.date}, ${q.submissions.length} submissions and ${q.clips.length} sampled clips` : "no queue yet: open the file m3a review export wrote");
   $("source").className = error ? "note fail" : "note";
+  $("problem").textContent = problem;
+  $("batches").querySelectorAll("[data-queue]").forEach((a) => a.setAttribute("aria-current", String(a.getAttribute("data-queue") === batch?.name)));
   $("summary").textContent = dec ? `${made} of ${dec.rows.size} decided` : "";
   $<HTMLButtonElement>("export").disabled = !made;
   if (dec) {
-    sync($("queue"), dec, selected);
+    sync($("queue"), dec, selected, player.playing);
     storage.put(dec.key(), dec.saved());
   }
 }
 
-/** Opens a queue (its JSON text or object) from `from` (a file's name, "bundled" ...); a bad one is named, the page
- *  keeps what it had. */
-function open(data: unknown, from: string): ReturnType<typeof state> {
+/** Opens a queue (its JSON text or object) from `where` (a file's name, "bundled at build time" ...), or batch `b`; a
+ *  bad one is named, the page keeps what it had. */
+function open(data: unknown, where: string, b: Batch | null = null): ReturnType<typeof state> {
   try {
     const d = new Decisions(readQueue(data));
     d.restore(storage.get(d.key()));
-    [dec, source, error, said] = [d, from, null, ""];
+    player.stop();
+    [dec, source, batch, error, said] = [d, where, b, null, ""];
     selected.clear();
     $("out").replaceChildren();
-    render($("queue"), d);
+    render($("queue"), d, renderer);
     const mine = ++opened;
     drawing = drawPictures($("queue"), d, reg, () => mine === opened);
   } catch (err) {
     error = (err as Error).message;
   }
   refresh();
+  return state();
+}
+
+/** Opens batch `name` (one this page carries), the link naming it (`?queue=NAME`, the renderer kept), so a reload or a
+ *  link shared opens the same. */
+function openBatch(name: string): ReturnType<typeof state> {
+  const b = BATCHES.find((x) => x.name === name);
+  if (!b) throw new Error(`no batch ${JSON.stringify(name)} on this page: it carries ${BATCHES.map((x) => x.name).join(", ") || "none"}`);
+  problem = "";
+  const q = new URLSearchParams(location.search);
+  q.set("queue", b.name);
+  history.replaceState(null, "", `?${q.toString()}`);
+  return open(b.text, `batch ${b.name}`, b);
+}
+
+/** Plays row `id`'s clip in its card (stopping the one playing): resolves with the page's state once it plays. */
+async function play(id: string): Promise<ReturnType<typeof state>> {
+  const r = dec?.rows.get(id), slot = $("queue").querySelector<HTMLElement>(`[data-stage="${CSS.escape(id)}"]`);
+  if (!r || !slot) throw new Error(`no row ${JSON.stringify(id)} on the page${dec ? `: its rows are ${[...dec.rows.keys()].join(", ")}` : ": open a queue first"}`);
+  await player.play(r, slot);
   return state();
 }
 
@@ -111,11 +150,22 @@ async function exportReview(how?: "share" | "download"): Promise<{ how: string; 
 /** The page as plain JSON (what `__m3a.state()` returns). */
 function state() {
   const rows = (sec: Section) => [...(dec?.rows.values() ?? [])].filter((r) => sectionOf(r) === sec).map((r) => ({ id: r.id, ref: r.ref, ...dec!.get(r.id) }));
-  return { source, error, store: dec?.queue.store ?? null, date: dec?.queue.date ?? null, submissions: rows("submission"), clips: rows("clip"), selected: [...selected], decided: dec?.list().length ?? 0, pictures: document.querySelectorAll("#queue canvas").length, said };
+  return {
+    source, batch: batch?.name ?? null, batches: BATCHES.map((b) => b.name), problem, error, store: dec?.queue.store ?? null, date: dec?.queue.date ?? null,
+    submissions: rows("submission"), clips: rows("clip"), selected: [...selected], decided: dec?.list().length ?? 0, pictures: document.querySelectorAll("#queue canvas.picture").length,
+    playing: player.playing, player: player.state(), playError: player.error, said,
+  };
 }
 
-// a tap: a verdict (again: cleared), a row's checkbox, a section's "all", a batch's verdict
+// a tap: Play or Stop on a row; a verdict (again: cleared), a row's checkbox, a section's "all", a batch's verdict
 $("queue").addEventListener("click", (e) => {
+  const playing = (e.target as HTMLElement).closest<HTMLElement>("[data-play]");
+  if (playing && dec) {
+    const id = playing.getAttribute("data-play")!;
+    if (player.playing === id) player.stop();
+    else void play(id);
+    return;
+  }
   const el = (e.target as HTMLElement).closest<HTMLElement>("[data-as],[data-select],[data-all],[data-batch]");
   if (!el || !dec) return;
   const a = (k: string) => el.getAttribute(k)!, ids = (sec: string) => [...dec!.rows.values()].filter((r) => sectionOf(r) === sec).map((r) => r.id);
@@ -145,15 +195,46 @@ $("queue").addEventListener("input", (e) => {
 });
 $<HTMLInputElement>("file").addEventListener("change", async (e) => {
   const f = (e.target as HTMLInputElement).files?.[0];
-  if (f) open(await f.text(), f.name);
+  if (!f) return;
+  // a file isn't a batch: the link names none (the renderer kept)
+  const q = new URLSearchParams(location.search);
+  q.delete("queue");
+  history.replaceState(null, "", q.size ? `?${q.toString()}` : location.pathname);
+  problem = "";
+  open(await f.text(), f.name);
 });
+$("batches").addEventListener("click", (e) => {
+  const a = (e.target as HTMLElement).closest("[data-queue]");
+  if (!a) return;
+  e.preventDefault();
+  openBatch(a.getAttribute("data-queue")!);
+});
+player.onChange = refresh;
 $("export").addEventListener("click", () => void exportReview().catch((err: Error) => ($("out").textContent = `not exported: ${err.message}`)));
 
 $("stamp").textContent = stamp;
-if (BUNDLED) open(BUNDLED, "bundled at build time");
+// the batches this page carries, each a link; at load the one the link names, else a queue bundled, else the newest
+if (BATCHES.length) {
+  const link = (b: Batch) => {
+    const q = new URLSearchParams(location.search);
+    q.set("queue", b.name);
+    return h("a", { href: `?${q.toString()}`, "data-queue": b.name }, `${b.name} (${b.date}, ${b.clips} clips)`);
+  };
+  $("batches").replaceChildren("Batches here, newest first: ", ...byNewest(BATCHES).flatMap((b, i) => (i ? [" · ", link(b)] : [link(b)])));
+}
+const asked = pick(BATCHES, location.search), named = new URLSearchParams(location.search).has("queue");
+problem = asked.problem ?? "";
+if (asked.batch && (named || !BUNDLED)) open(asked.batch.text, `batch ${asked.batch.name}`, asked.batch);
+else if (BUNDLED) open(BUNDLED, "bundled at build time");
 else refresh();
 (window as unknown as { __m3a: unknown }).__m3a = {
-  ready: true, page: "review", version: VERSION, stamp, state, open, decide,
+  ready: true, page: "review", version: VERSION, stamp, state, open, decide, batch: openBatch, play,
+  stop: () => {
+    player.stop();
+    return state();
+  },
+  playing: () => player.state(),
+  frame: () => player.frame(),
   clear: (ids: string | readonly string[]) => decide(ids, null, ""),
   review: () => dec?.review(today()) ?? null,
   commands: () => dec?.commands(`review-${today()}.json`) ?? [],
