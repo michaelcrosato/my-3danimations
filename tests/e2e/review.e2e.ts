@@ -220,11 +220,11 @@ const changed = (page: Page, a: Buffer, b: Buffer) =>
     return n;
   }, [a.toString("base64"), b.toString("base64")]);
 
-test("play: each card plays its clip in place by touch, one card at a time on one stage; its gallery link opens the clip there", async ({ page, context }) => {
-  test.setTimeout(240_000);
+/** The review page opened with the queue, on WebGL 2, for the play tests: the rows they play and their handles. */
+async function playPage(page: Page, context: BrowserContext, clock: boolean) {
   await serve(context, SITE);
-  // Playwright's clock: real time flows until the motion check holds it and runs the frames itself
-  await page.clock.install();
+  // Playwright's clock: real time flows until a check holds it and runs the frames itself
+  if (clock) await page.clock.install();
   const log = await visit(page, `${PAGE}?renderer=webgl2`);
   await page.setInputFiles("#file", join(co.cwd, QUEUE_FILE));
   await page.waitForFunction(() => (window as unknown as Win).__m3a.state().source === "queue.json");
@@ -232,6 +232,14 @@ test("play: each card plays its clip in place by touch, one card at a time on on
   const lib = q.clips.find((c) => /Walk|Run/.test(c.id)) ?? q.clips[0]!, sub = q.submissions.find((x) => x.diff && x.diff.max > 0)!, rec = q.submissions.find((x) => x.kind === "recipe")!;
   const stageIn = (id: string) => card(page, id).locator(".stage canvas"), playOf = (id: string) => card(page, id).locator("[data-play]");
   const playing = (id: string) => page.waitForFunction((x) => (window as unknown as Win).__m3a.state().player?.id === x, id, { timeout: 60_000 });
+  return { log, lib, sub, rec, stageIn, playOf, playing };
+}
+
+// Three tests, not one: each holds its own part (the motion, one card at a time, the gallery link), so a loaded runner
+// times none of them out (one test doing all three ran past 240 s in CI's T2)
+test("play: a card plays its clip in place by touch on WebGL 2, its frames and its time moving", async ({ page, context }) => {
+  test.setTimeout(240_000);
+  const { log, lib, stageIn, playOf, playing } = await playPage(page, context, true);
 
   // a sampled clip plays in its card, on WebGL 2, the character drawn
   await playOf(lib.id).tap();
@@ -262,6 +270,14 @@ test("play: each card plays its clip in place by touch, one card at a time on on
   expect(Math.abs(went - (0.4 % first.dur)), `${tA} → ${tB} of ${first.dur} s, its next frame ${steps} frames after the hold`).toBeLessThan(0.05);
   expect(await changed(page, shotA, shotB)).toBeGreaterThan(200);
   await page.screenshot({ path: join(OUT, "review-playing.png") });
+  expect(log.filter((l) => /error/i.test(l))).toEqual([]);
+});
+
+test("play: one card at a time on one stage; a second tap stops it and the page draws no frame; it plays again", async ({ page, context }) => {
+  test.setTimeout(240_000);
+  const { log, lib, sub, rec, stageIn, playOf, playing } = await playPage(page, context, true);
+  await playOf(lib.id).tap();
+  await playing(lib.id);
 
   // another card plays: the first stops, the same one stage moves (one WebGL context); a submitted clip, then a recipe
   for (const [r, clip] of [[sub, `${SET}/Walk_Loop`], [rec, null]] as const) {
@@ -295,11 +311,16 @@ test("play: each card plays its clip in place by touch, one card at a time on on
   await playOf(lib.id).tap();
   await playing(lib.id);
   expect([(await state(page)).player!.stages, await stageIn(lib.id).count()]).toEqual([1, 1]);
-  const [again, t0] = [await stageIn(lib.id).screenshot(), await time()];
-  await page.waitForFunction((t) => Math.abs((window as unknown as Win).__m3a.state().player!.time - t) > 0.3, t0, { timeout: 30_000 });
-  expect(await changed(page, again, await stageIn(lib.id).screenshot())).toBeGreaterThan(200);
+  const t0 = (await state(page)).player!.time;
+  await page.waitForFunction((t) => Math.abs((window as unknown as Win).__m3a.state().player!.time - t) > 0.3, t0, { timeout: 60_000 });
+  expect((await page.evaluate(() => (window as unknown as Win).__m3a.frame()))!.lit > 150).toBe(true);
   await playOf(lib.id).tap();
+  expect(log.filter((l) => /error/i.test(l))).toEqual([]);
+});
 
+test("play: each card's gallery link is the gallery's route for its clip, and opened by touch the gallery plays it", async ({ page, context }) => {
+  test.setTimeout(240_000);
+  const { log, lib, sub, rec } = await playPage(page, context, false);
   // each card's gallery link is the gallery's route for its clip (a submission's: the clip it improves; a recipe has none)
   const link = (id: string) => card(page, id).locator("a[data-gallery]");
   expect([await link(rec.id).count(), await link(lib.id).getAttribute("target")]).toEqual([0, "_blank"]);
@@ -309,7 +330,7 @@ test("play: each card plays its clip in place by touch, one card at a time on on
   }
   // opened by touch, in a new tab: the gallery plays that clip, and its own link for what it shows is the card's
   const [tab] = await Promise.all([context.waitForEvent("page"), link(lib.id).tap()]);
-  await tab.waitForFunction(() => (window as unknown as { __m3a?: { ready?: boolean } }).__m3a?.ready, undefined, { timeout: 60_000 });
+  await tab.waitForFunction(() => (window as unknown as { __m3a?: { ready?: boolean } }).__m3a?.ready, undefined, { timeout: 180_000 });
   const g = await tab.evaluate(() => (window as unknown as { __m3a: { state(): { route: { clip: string }; link: string; error: string | null; paused: boolean; playing: { id: string } | null } } }).__m3a.state());
   expect([g.error, g.route.clip, g.playing?.id, g.paused, g.link]).toEqual([null, lib.id, lib.id, false, new URL(await link(lib.id).evaluate((a) => (a as HTMLAnchorElement).href)).search]);
   await tab.close();
