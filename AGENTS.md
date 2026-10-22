@@ -29,7 +29,7 @@ why. This file is how.
 |---|---|---|---|
 | `npm run check` | T0 | typecheck, lint, quick doctrine checks | 15 s |
 | `npm test` | T1 | unit, conformance, sensors on a sample | 90 s |
-| `npm run e2e` | T2 | browser adapter checks, full library QA, the library-wide sweeps T1 samples, in full (D74) | 8 min |
+| `npm run e2e` | T2 | browser adapter checks, full library QA, the library-wide sweeps T1 samples, in full (D74), the rate sweep on two of its six bodies (CI's `rates` job all six, D126) | 8 min |
 | `npm run test:changed` | | the suites covering files changed against `main`, saying why each ran | |
 | `npm run test:cross-engine` | | the portable math, a quaternion chain, the helpers and the Animator's script in V8 and JavaScriptCore (Bun), bit for bit, with each function's cost | |
 | `npm run qa [-- --sample N] [--dist] [--check] [--fix]` | | the sensors over the migrated library: verdicts, the metrics that fail most, the distributions the thresholds come from; `--check` against the committed baseline (`--baseline` rewrites it, in a commit that says why); `--fix` lints and fixes every clip, failing on any that comes out worse or invalid | |
@@ -52,7 +52,7 @@ why. This file is how.
 | `npm run library -- lock \| check [--since <ref>] \| list [--tiers ...]` | | the library's lock and ids, and the sets a game sees (WP-5.1) | |
 | `npm run license -- check <library \| SET \| game.json>` | | licenses against their tiers, the texts kept, a game's credits (WP-5.7) | |
 | `npm run sweep -- <rig ids> [--heldout G<n>] [--min-total P] ...` | | every clip on each skeleton and the pass rates (WP-4.5) | |
-| `npm run sweep -- --rates [<rig ids>] [--sample N] [--check] [--baseline]` | | every locomotion loop with contacts at 0.5 to 2 on the six bodies, moved by its root's travel; `--check` fails on a failing row not in `library/baselines/rates.json` (`--baseline` rewrites it, in a commit that says why); T1 samples it, T2 runs it whole (D123) | |
+| `npm run sweep -- --rates [<rig ids>] [--sample N] [--check] [--baseline]` | | every locomotion loop with contacts at 0.5 to 2 on the six bodies, moved by its root's travel; `--check` fails on a failing row not in `library/baselines/rates.json` or a loop failing a row with no answer there (`--baseline` rewrites it, carrying the answers, in a commit that says why); T1 samples it, T2 sweeps gen-0 and the knight whole, CI's `rates` job all six beside T2 (D123, D126, D127) | |
 | `npm run sim -- <graph> --input <script> [--expect <trace>] [--write]` | | a game's input script on a graph: trace, travel, sensors, filmstrip (WP-6.5) | |
 | `npm run pack [-- --check] [--publishable]` | | the packs and `m3a.js` into `.cache/pack/`; `--check` proves them (WP-7.4) | |
 | `npm run intake -- check \| adopt --dry-run \| gates` | | the intake's checker, the adopt bot's dry run, the library's PR gates (WP-9.1) | |

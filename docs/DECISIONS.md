@@ -5001,3 +5001,184 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   (a Vitest project of its own) rather than for all.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.55.1
+
+## D126 · 2026-10-21 · T2 under its budget in CI: Playwright on four workers, the rate sweep in full in a CI job of its own beside T2, two of its bodies in T2
+
+- **Principle:** the tiers' budgets (T2 within 8 min, PLAN.md §6), D74 (T1 samples, T2 in full), D123 (the rate
+  sweep), WP-F.6
+- **Call:**
+  - **The trigger:** CI's T2 on #20 read 525.2 s of its 480 s budget (a warning; it fails at 720): playwright 242.6 s,
+    library QA 8.7, library sweeps in full 164.4, rate sweep in full 109.5. Here (4 CPUs), quiet, on a clone of
+    4dc3473: 362.2 s (163.1, 10.6, 114.5, 74.1).
+  - **Where the time went:** every step is CPU-bound on 4 CPUs. Playwright on two workers (Phase 0's setting, never
+    measured since) kept about three CPUs busy (480 and 558 CPU-s busy, 170 and 139 idle, in 162 and 175 s) and its
+    queue started gallery, the longest suite (78 s alone), tenth of eleven. The rate sweep is 253 to 258 CPU-s on 4
+    threads, 68 to 71 s: by its profile (gen-0, 200 loops, one thread) the planter takes 69% of it, the decode 15%, the
+    verdicts 7%.
+  - **Playwright on four workers:** 169.1 s → 132.6 s here (means of 4 and 5 runs), CPU-bound (433 to 468 CPU-s busy, 61
+    to 71 idle). Three workers measured the same (131.6, 134.2). Queueing the longest suites first (Playwright projects)
+    gained nothing: beside the others gallery slows from 78 s to about 131 s, and the step is 430 to 560 CPU-s of work,
+    110 to 140 s of four CPUs, whatever the order (134.9 and 197.7 s at four workers, 145.2 at three, 155.8 at two).
+    Every test stays within its timeout; mcp-smoke's every-example test, 46 to 49 s at four workers, ran past the 30 s
+    default before too (28 to 31 s at two): the default never fired, since a test that blocks on spawns and awaits only
+    promises never yields to Playwright's timer (a probe proves both ways). It has 180 s now. Peak memory 4.7 to 5.1 GB.
+  - **The rate sweep's speed, looked at and left:** its rates already share each clip time (D123: posed once by its
+    share of the cycle). Its bodies share nothing exactly: each decodes and plants on its own rest. Within a loop on a
+    body, every pose's planter follows each contact's drift again from the contact's start, but each pose anchors the
+    root where it stands, so those sums differ in their last bits from pose to pose: sharing them changes the planter's
+    output, and with it the Animator's hashes and the frozen vectors. What stays exact is constant factors in core's
+    planter (contactAt's search, about 10% of the planter's time; the hold read twice per sample, about 10%): at
+    most some 14% of the sweep, about 10 s of T2 here, for a change to the runtime every game runs. Not taken.
+  - **So the whole sweep moves beside T2:** ci.yml's `rates` job runs the command T2 ran (`npm run test:full --
+    tools/sweep/rates.test.ts`: every loop at every rate on the six bodies against library/baselines/rates.json, the
+    threads' rows against one thread's) on every pull request, on a runner of its own, its `.cache` restored and never
+    saved (T2's run saves it with the held-out rigs). The pull request's checks wait no longer: it ends before T2's
+    job. T2 sweeps two bodies whole, gen-0 and KayKit's knight (`npm run sweep -- --rates gen-0 kaykit-knight
+    --check`, 8,110 of the 24,330 rows, 24.7 s): every loop at every rate on a generated body and on the real rig whose
+    feet fail the most rows (98 of the 479), so a changed clip, planter or sensor meets every loop at every rate there
+    before a push. The sample's rows are the whole run's on those bodies, byte for byte.
+  - **Where the whole sweep runs, and on what:** on every pull request (the event T2 runs on), whatever it changes: the
+    clips, core, the sensors, the sweep, the rigs. `npm run sweep -- --rates --check` and `npm run test:full --
+    tools/sweep/rates.test.ts` run it by hand. What doesn't: a pull request the adopt bot opens with the workflow's
+    token starts no workflow (intake.yml runs the library's gates on it itself), so neither T2 nor this job ran on one
+    before; the next pull request's job meets its rows. Nor does a gate: the `rates` job runs on pull requests alone,
+    and a gate's T2 step (G3 to G10, `npm run gate` or ci.yml's dispatch) now holds the sample, 8,110 of the 24,330
+    rows. Every gate set (PLAN.md §9.3) predates the rate sweep, each passed before D123, and a commit on `main` met
+    every row in its pull request's job, so no set adds it here; a gate whose proof should hold every row adds
+    `sweep --rates --check` to its set in §9.3.
+  - **After:** T2 here 293.3 s (playwright 136.6, QA 12.1, sweeps 119.9, the rate sample 24.7), from 362.2. CI's,
+    estimated: 367 s by the 1.25 ratio; about 400 s (399.8) scaling CI's own steps by what each measured here; 425 s at
+    the 1.45 this quiet before reads CI at. The whole sweep after: 24,330 rows, byte for byte the same, 0 not
+    baselined; `--baseline` 0 added, 0 dropped. Tests hold the `rates` job's shape (every pull request, neither job
+    waiting on the other, no step skipped or let fail) and T2's steps (`t2Steps()`: the rate step last, on its bodies,
+    with `--check`).
+  - **The levers not taken, measured:** the library sweeps step (CI's 164.4 s) runs its 23 files on 4 workers in 115 to
+    123 s for about 108 s of work; Vitest orders them by its results cache, which T1 runs (M3A_FULL unset) rewrite, so
+    T2's longest file can start last (B8's ten, 31.5 s, from 90 s in). About 10 s here, little in CI (its cache is
+    whatever the last cache miss saved): left.
+  - **Measured in CI** (#21, at b7528b1): T2 246.2 s of its 480 s budget (playwright 128.2, library QA 5.8, the sweeps
+    92.5, the rate sample 19.7), from 525.2 on #20; the `rates` job's whole sweep 109.0 s (every row, the threads' rows
+    against one thread's), done before T2's job.
+- **Why:** the most coverage per second. Four workers cost no test anything; the rate sweep keeps every row on every
+  pull request, on a CPU of its own rather than T2's, and T2 keeps every loop at every rate on two bodies. T2 tests
+  less only locally, 16,220 rows on four bodies, which the pull request's job reads. What would change it: a T2 back
+  near its budget (the sweeps step is next), or CI runners with more CPUs (more workers, and the sweep back in T2).
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.55.3
+
+## D127 · 2026-10-21 · The rate sweep's failing rows triaged: two loops read again in core, the 126 that still fail answered with their causes
+
+- **Principle:** 3, 8, 10, 11, D104, D108, D122, D123 (the rate sweep's 479 rows, "a row to fix or to answer"), WP-F.7
+- **Call:**
+  - **What was asked:** fix through the writers what the contacts can fix, and give every loop that still fails a row
+    its reason, with a schema, a validator rule and a gate. The baseline only shrinks.
+  - **Every failing row read:** each row's worst finding read back to the motion: the foot, the sensors' stance (they
+    read a foot standing within 4% of H0 of the floor to land and 7% to lift, under 0.5 H0/s in the world or moving with
+    the pelvis, and join stances under 0.1 s apart) against the clip's contacts, and where the drift happens. Of the
+    473 rows left (by their worst finding): 175 come where two of a foot's contacts are joined at fast rates, 99 from a
+    swing read as standing at slow ones, 112 from a slide beside a contact, 64 where no contact holds the foot, 12 under
+    the planter's hold (all on the knight), 11 with no foot standing.
+  - **The fix, in core's `measureFacts`:** D104's `reread` ran only when the refinement erased every contact. It now runs
+    also when the refinement leaves one foot's contacts alone, down under a fifth of the loop, after a height pass that
+    held both feet down throughout (`weak`): D104's case, a swinging foot that never lifts past the band, whose planted
+    feet's velocity is a fraction of the body's (Robot_Run 0.45 H0/s against its captured 0.98), so the refinement
+    keeps the stance but a moment (Swimming_Run's left foot 50 ms of 1,267). The reread keeps its bar (both feet, a
+    fifth of the loop), and in this case replaces the refinement's reading only where the planter holds it: over two
+    cycles neither ankle pulled 10% of H0 or more (`holds`, D108's bar, checked in core because a game that retimes a
+    loop gets it measured again, never swept). Two loops move, contacts only; written by `npm run import`: Robot_Run
+    (1 row → 0) and Swimming_Run (5 → 0), each holding both feet, the planter's pull 1.6% and 4.3% of H0, the ground
+    speed 0.81 and 1.05 of the captured (from 0.39 and 0.87). Retimed, 22 readings move, all held within 8.8% of H0;
+    `holds` refuses one (Followed_SideRunRight ×2, 10.1%).
+  - **Forms dropped:** "a foot down throughout" (any foot) also read StartStop_Walk, Elated_RunBack and Penguin_Run
+    (20 rows, none added), but moved StartStop_Walk's retarget-judge fail from the knight to gen-0 (slide 108.5 mm
+    against 105.9) and, retimed, passed 10% of H0 twice (Penguin_SideRunLeft ×2 15.1%): no rule tried tells the
+    start-stop walk from the two runs, so the three are answered with what that form would give. Without the
+    height-pass condition it moved MESH2MOTION/Sprint too and added two judge fails (a pop where its new left contact
+    ends on gen-3 and the mannequin): Sprint's height pass alternates feet, so its velocity is the body's, and its keyed
+    standing foot (still two frames, then sweeping at 8 to 11 H0/s under a 7.76 H0/s body) is motion the planter can't
+    hold cleanly. Wider rules (every refinement that doesn't stand) add rows (Penguin_SideRunLeft 12, DragLeftLeg_RunBack
+    1, BigSteps_Run 1) and move the core sprints' and Mesh2Motion's Jog's contacts. Per-loop readings would fix 167 rows
+    on 68 loops, none added, each fitted to the sweep: not taken; each short-contacts answer names the reading that
+    would hold it.
+  - **The answers:** `library/baselines/rates.json` gains `causes` (7) and `answers` (126): `steps-merge` 28 loops
+    (180 rows), `swing-stands` 24 (87), `knight-feet` 31 (41), `edge-slide` 18 (54), `short-contacts` 18 (61),
+    `stride-varies` 3 (35), `unheld-step` 4 (15). The schema and `rateBaselineProblems` hold their shape (an answer's
+    cause one of `causes`); `--check` fails on a loop failing a row with no answer and reports an answered loop that
+    fails no row; `--baseline` carries the answers of the loops that still fail and drops the rest; a test holds each
+    answer's bodies, rates and quoted readings to the rows'.
+  - **The distribution after** (24,330 rows): 22,917 pass (22,892), 940 warn (959), 473 fail (479), on 126 loops (128).
+    By rate 164 / 45 / 40 / 61 / 163 (164 / 45 / 42 / 63 / 165); by body gen-0 74, gen-1 79, gen-2 80, gen-3 73, the
+    mannequin 71, the knight 96 (74, 80, 81, 73, 73, 98). `--baseline`: 0 added, 6 dropped.
+  - **Elsewhere:** no fact moves, no other clip's contacts (`facts --check`); QA's verdicts (1,014 / 230 / 154), baseline
+    and distributions unchanged; B1's known-good 11 of 11. The judge over the two clips on the six skeletons: no fail
+    and no warn added (Swimming_Run's knight pair fails as before, on its own seam). Of 4,965 readings (`playable` on
+    the in-place loops at 0.5 to 2), 24 change, none past 10% of H0; played at rate 1 on the six bodies they fail 9 rows
+    before, 5 after. D104's own reading again isn't held to the planter (it replaces none): retimed Rushed_Walk at 1.5
+    and 2 pulls 12.2% of H0, as before, left to a decision of its own.
+- **Why:** a loop whose contacts are a moment of one foot plays with nothing held for most of its cycle and a ground
+  speed stretched from that moment; read again as D104 reads a loop with none, two loops hold both feet and play their
+  rates. What the contacts can't fix is the motion's own or the sensors' reading of it (hops joined at speed, shuffles
+  that read as standing at half speed, the knight's long feet), and the baseline now says which, loop by loop, so a
+  failing row is a known answer and a new one must bring its own.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.55.3
+
+## D128 · 2026-10-21 · The manual teaches the test characters, `loadGlb` in a page and the attached player's `apply()`, within its 8,000 tokens; MIGRATING's gap 10 closed but for gap 1's names
+
+- **Principle:** 1 (agent-readable: an agent uses the package from the manual alone, its budget 8,000), 4 (test
+  characters are generated in code), F6.4, docs/MIGRATING.md gap 10, D124 (WP-F.8)
+- **Call:**
+  - **What the manual said:** "`loadGlb` (from `@m3a/three/test-characters`) reads a .glb in Node" (the example: "in a
+    page, three's GLTFLoader"), and nothing of `character`, `variant` or `TEST_SEEDS`, nor of the attached player's
+    `apply()` and `bound`, all of which the consumer lab uses in its page (D124 left the first out; gap 10's list
+    missed the second).
+  - **What the code does:** `loadGlb` is three's `GLTFLoader` with the meshopt decoder, on a .glb's bytes (a
+    `Uint8Array`), in Node or a page. Node has no image decoder, so a textured file throws (`self is not defined`, the
+    KayKit knight) unless `{ textures: false }` drops its images first. In headless Chromium the capture suite loads
+    `gen-7`, the textured knight and the meshopt-compressed Quaternius mannequin through it, textures on, their poses
+    hashing as Node's; the consumer lab's Vite page binds its two test characters through it. `character(variant(seed))`
+    builds a skinned humanoid in code as .glb bytes, its build, rest pose, bone naming, twist bones and left-out bones
+    chosen by the seed, its lengths ±4%; `variant(seed).id` is `gen-<seed>`, which the tools read for a whole seed from
+    0 (D119); `TEST_SEEDS`, 0 to 19, give all 20 build and naming pairs (a test holds both). `player.apply()` poses the
+    Animator as it stands and writes the pose, no step (its playheads and hash unchanged); `player.bound` is `bound`.
+  - **Taught, +110 tokens:** Fit +88: its block imports the three names, binds `gen-7` (run and type-checked by the
+    manual's test) and reads `variant(7).id` as `"gen-7"` (checked as it runs), its comments saying when an agent
+    reaches for a test character (tests, or bodies unlike its own) and what `TEST_SEEDS` cover; `m3a retarget.inspect`
+    takes `gen-<seed>`. Wire: layers +22: the root-motion bullet ends with `player.apply()` and `player.bound`. The
+    complete example's loader comment (−1): "in Node or a page; a textured .glb in Node takes { textures: false }". The
+    packages line points to Fit.
+  - **Cut, 109 tokens, from text no brief's job draws on:** Ship −58: the sh block's `m3a export` call (−25; the tool
+    list's line gives its call, its formats and where it writes), the `--list` call's comment (−9; `m3a help import`:
+    "list names them"), the import's `--set` default (`m3a help import` gives it) and a verb (−9), the catalog's fields
+    said shorter (−13), "export" in the heading (−2); Make: actions −38: the climb's `desc` (−14; Make teaches `desc`)
+    and its second beat (−24; one beat shows the shape, and the action's check names beats out of order); the packages
+    −11: "(and `@m3a/tools/node`)" (Tools names `nodeHost` from it); the intro −1 (a comma). The Tools reference and the
+    tool list, the mental model, Find, Wire: graphs, Make: recipes, Check, Grow and Rules are unchanged, word for word
+    (D105's, D106's and D124's lines among them); Fit and Wire: layers only gain.
+  - **Not cut:** a first draft took 103 tokens from the Tools reference (the edits' flags, the `--json` reply's
+    fields, MCP's `verbose: true` and `.` written `_`, the working-directory rule, `m3a graph.sim -h`). B8's and
+    B8-ten's agents work through that reference (G9 run 2's B8-ten read the report's `data` straight from the field
+    list) and every trial has the MCP server, so it stays as it was.
+  - **Gap 10 closed but for gap 1's names** (`directory`, `defaultSets`, `new Library(source)`), a gap of its own; the
+    types the lab names (`graph.Graph`, `recipe.Recipe`, `AnimClip`, `Bound`, `Attached`, `ThreeBound`) are left to the
+    compiler. MIGRATING, the lab's README and FEEDBACK-LOG's F6.4 say so.
+  - **The briefs:** every brief's agent reads the whole manual, so all are re-run. By the changed sections: B1 and its
+    discovery variant (the packages, the example's loader comment, Wire: layers' root motion and Fit: its character
+    loads through `loadGlb`; D106: one line flipped its gate), B4 (Fit: binding a VRM avatar, `retarget.inspect` and
+    `retarget.apply`), B2 and B3 (Wire: layers: events, root motion), then B7, B5, B6, B8 and B8-ten (their sections
+    unchanged). Ship and Make: actions are no brief's job. Each bar is G7's, at least 4 of 5 on the brief and its
+    held-out variant (B8: its G9 variant; B8-ten: its one trial's ten clips through).
+  - **Budget:** 7,999 of 8,000 (7,998 before).
+  - **The re-runs** (fresh agents on the packed packages at b7528b1, with F.6 and F.7 in; the trees differed in docs
+    alone): B1 4 of 5 (discovery 2 of 2), B2 to B6 5 of 5, B7 4 of 5; G7's held-out variants B1 4 of 5, B6 4 of 5, B2
+    to B5 and B7 5 of 5; B8 5 of 5, its G9 variant 5 of 5, B8-ten 1 of 1: 79 of 83, $13.82
+    (`bench/results/2026-10-22-default-*.json`). The four misses: B1's and its variant's run read as no foot standing
+    (B1's floor, D123's follow-up; MESH2MOTION/Run_Female, which D127 didn't touch), B7's jump built from in-place
+    clips never leaving the ground, B6's mirrored strike 10% of the hip height off. Probes, not a gate's record.
+- **Why:** the manual is all a fresh agent reads, and "reads a .glb in Node" reads as Node only: an agent building a
+  page couldn't tell that the same call works there, nor that the package makes bodies to test on; and a game with its
+  own fixed-step sim (D124's block) couldn't tell how to pose without stepping. The true sentences cost 110 tokens;
+  they came from Ship and the actions example, whose cut facts reach the agent where it needs them (the tool list,
+  `m3a help`, the action's check), not from the sections the briefs use.
+- **Answered:** no: made without a response, to review.
+- **Landed in:** v0.55.2

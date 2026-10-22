@@ -1,15 +1,30 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "m3a root-motion rate sweep baseline (library/baselines/rates.json)",
-  "description": "The rows of the root-motion rate sweep that fail (D123, tools/sweep/rates.ts): each locomotion loop with contacts played at each rate on each body, moved by its root's travel. npm run sweep -- --rates --check fails on a failing row not here; --baseline rewrites it from a whole run.",
+  "description": "The rows of the root-motion rate sweep that fail (D123, tools/sweep/rates.ts): each locomotion loop with contacts played at each rate on each body, moved by its root's travel, and each loop that fails a row answered: its cause and why (D127). npm run sweep -- --rates --check fails on a failing row not here or a failing loop with no answer; --baseline rewrites it from a whole run, carrying the answers of the loops that still fail. That each answer's cause is one of causes is the validator's (rateBaselineProblems).",
   "type": "object",
-  "required": ["rates", "rigs", "loops", "failing"],
+  "required": ["rates", "rigs", "loops", "causes", "answers", "failing"],
   "additionalProperties": false,
   "properties": {
     "about": { "type": "string" },
     "rates": { "type": "array", "minItems": 1, "items": { "type": "number", "exclusiveMinimum": 0 } },
     "rigs": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
     "loops": { "type": "integer", "minimum": 0 },
+    "causes": {
+      "type": "object",
+      "propertyNames": { "pattern": "^[a-z]+(-[a-z]+)*$" },
+      "additionalProperties": { "type": "string", "minLength": 1 }
+    },
+    "answers": {
+      "type": "object",
+      "propertyNames": { "pattern": "^[^\\s/]+/\\S+$" },
+      "additionalProperties": {
+        "type": "object",
+        "required": ["cause", "why"],
+        "additionalProperties": false,
+        "properties": { "cause": { "type": "string", "minLength": 1 }, "why": { "type": "string", "minLength": 1 } }
+      }
+    },
     "failing": {
       "type": "object",
       "propertyNames": { "pattern": "^\\S+/\\S+ \\S+ \\d+(\\.\\d+)?$" },

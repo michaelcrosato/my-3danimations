@@ -4,6 +4,56 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.55.3 · 2026-10-22
+
+WP-F.7 (D127): the rate sweep's failing rows triaged, two loops read again in core, the 126 that still fail answered
+with their causes.
+WP-F.6 (D126): T2 under its budget in CI, the rate sweep in full in a CI job of its own.
+
+### Core
+- `measureFacts` reads a loop's contacts again (D104's `reread`) when the refinement keeps one foot a moment a cycle
+  (under a fifth of it) after a height pass that held both feet down throughout, and keeps that reading only where the
+  planter holds both ankles within 10% of H0: two 100STYLE runs plant both feet, held within 4.3% of H0, their ground
+  speed 0.81 and 1.05 of the captured (from 0.39 and 0.87); a retimed loop's reading is held to the same bar (D127).
+
+### Library
+- STYLE100_RUN/Robot_Run and Swimming_Run carry the contacts D127 reads (written by `npm run import`); STYLE100_RUN v3
+  in the index.
+- The rate sweep's baseline holds 473 failing rows on 126 loops (479 on 128), 0 added, and answers each loop: its cause
+  (7) and why, with the numbers.
+
+### Tools
+- `npm run sweep -- --rates --check` fails on a loop failing a row with no answer in `library/baselines/rates.json` and
+  reports an answered loop that fails no row; `--baseline` carries the answers; the schema and validator hold their
+  shape (D127).
+
+### Repo
+- `npm run test:changed` runs the rate sweep's answers test for a change under `library/` (D127).
+- WP-F.6 (D126): T2's Playwright step runs four suites at once, not two (169 s to 133 s here, every test within its
+  timeout; mcp-smoke's every-example test has 180 s, past the 30 s default its blocking spawns kept from firing).
+- WP-F.6 (D126): CI's `rates` job runs the rate sweep in full (every locomotion loop at every rate on the six bodies) on
+  every pull request beside T2; T2 sweeps gen-0 and the knight whole (8,110 of 24,330 rows), its steps exported and
+  tested (`t2Steps`). T2 here 362.2 s to 293.3 s.
+
+## 0.55.2 · 2026-10-21
+
+WP-F.8 (D128): the manual teaches the test characters, `loadGlb` in a page and the attached player's `apply()`; MIGRATING's
+gap 10 closed but for gap 1's names.
+
+### Docs
+- The manual teaches the test characters, `character(variant(seed)).glb` from `@m3a/three/test-characters`
+  (`variant(seed).id` is the tools' `gen-<seed>`; `TEST_SEEDS`, 0 to 19, give every build with every bone naming),
+  `loadGlb` in a page as in Node (a textured .glb in Node takes `{ textures: false }`), and the attached player's
+  `apply()` (the pose written without a step) and `bound`, Fit's in a block its test runs; Ship and the climb action's
+  example are shorter (the export call left to the tool list, the import's `--set` default to `m3a help`). 7,999 of
+  8,000 tokens (D128).
+- docs/MIGRATING.md's gap 10 is closed but for gap 1's names, the types the lab names left to the compiler; the
+  consumer lab's README names gap 1's loader and those types; FEEDBACK-LOG's F6.4 taken up.
+
+### Three
+- The test characters' test holds that `TEST_SEEDS` are seeds 0 to 19 and give every build with every naming (20
+  pairs), as the manual says.
+
 ## 0.55.1 · 2026-10-21
 
 WP-F.4 (D124): the manual teaches the seven names it didn't, within its 8,000 tokens. WP-F.5 (D125): T1's files share

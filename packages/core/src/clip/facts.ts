@@ -13,12 +13,18 @@
 //   a planted foot is still. Where that finds nothing on a loop no tag puts off its feet (OFF_FEET), three fallbacks
 //   read it again (D104, narrowed by D108, and D122): by the whole sole, the heel too, when no foot plants at all (a
 //   body on its heels, toes raised); in place, with "still" at half the body's speed when the refinement erased every
-//   contact (`reread`), kept only when both feet plant for a fifth of the loop (`stands`); and in place, when those
-//   leave none, by the whole sole again, refined (`bySole`: a run on its heels), kept only when it stands, the travel
-//   read from it. A one-shot, a clip with a root of its own (its velocity is exact) and a loop whose feet never hold
-//   still keep the strict reading: none, which plays still, where a looser one gives contacts the planter can't hold.
+//   contact, or left one foot alone down under a fifth of the loop after a height pass that held both feet down
+//   throughout (`reread`, D127), kept only when both feet plant for a fifth of the loop (`stands`) and, in D127's case,
+//   the planter holds them (`holds`); and in place, when those leave none, by the whole sole again, refined (`bySole`:
+//   a run on its heels), kept only when it stands, the travel read from it. A one-shot, a clip with a root of its own
+//   (its velocity is exact) and a loop whose feet never hold still keep the strict reading: none, which plays still,
+//   where a looser one gives contacts the planter can't hold.
 import { IDX, type Rest } from "../format/body.ts";
+import { decodePose } from "../format/pose.ts";
+import { keyAt } from "../format/sample.ts";
 import { CONTACT_ENDS, type Clip, type Contacts } from "../format/types.ts";
+import { plant, type Motion } from "../contact/plant.ts";
+import { contactRoot } from "../contact/root.ts";
 import { PORTABLE } from "../math/portable.ts";
 import { VERSION } from "../version.ts";
 import { contactsAt, detectContacts, endLow as endLowOf, END_POINTS, sampleAll, sampleGrid, type DetectOptions, type End, type Sampled } from "./contacts.ts";
@@ -96,8 +102,10 @@ export function measureFacts(clip: Measurable, R: Rest, opts: DetectOptions = {}
         : undefined;
     if (rootV) {
       const refined = detectContacts(clip, R, opts, sampled, rootV);
-      // in place, a refinement that erased every contact is read again; a root of its own is exact, and its feet slide
-      facts.contacts = standing && !hasRoot && !anyContact(refined) ? (reread(clip, R, opts, sampled, rootV) ?? refined) : refined;
+      // in place, a refinement that leaves nothing to stand on is read again (D104, D127): a reading that replaces the
+      // refinement's own (D127) only where the planter holds it; a root of its own is exact, and its feet slide
+      const again = standing && !hasRoot && weak(clip, refined, firstPass, sampled) ? reread(clip, R, opts, sampled, rootV) : null;
+      facts.contacts = again && (!anyContact(refined) || holds(clip, R, again)) ? again : refined;
     }
     // in place, nothing left: the whole sole again, refined, kept with its travel when it stands (D122)
     if (standing && !hasRoot && !anyContact(facts.contacts)) {
@@ -132,11 +140,11 @@ export function measureFacts(clip: Measurable, R: Rest, opts: DetectOptions = {}
 }
 
 /**
- * An in-place loop's refinement read again, when it erased every contact the height pass found: a keyed take's planted
- * foot drifts, so "still" means slower than half the body's speed (at least 0.05 H0/s, as detectContacts bounds it),
- * with the body's velocity the planted feet give, then the one the lower foot gives (a run whose swinging foot never
- * lifts past the height band shows both feet planted throughout, their median velocity near 0). The first reading that
- * stands; null when none does.
+ * An in-place loop's refinement read again, when it erased every contact the height pass found or left one foot alone a
+ * moment a cycle (`weak`): a keyed take's planted foot drifts, so "still" means slower than half the body's speed (at
+ * least 0.05 H0/s, as detectContacts bounds it), with the body's velocity the planted feet give, then the one the lower
+ * foot gives (a run whose swinging foot never lifts past the height band shows both feet planted throughout, their
+ * median velocity near 0). The first reading that stands; null when none does.
  */
 function reread(clip: Playable, R: Rest, opts: DetectOptions, sampled: Sampled, rootV: (i: number) => [number, number]): Contacts | null {
   const n = sampled.frames.length, base = opts.still ?? 0.3, w = lowerFootVelocity(sampled);
@@ -172,15 +180,58 @@ function bySole(clip: Playable, R: Rest, opts: DetectOptions, sampled: Sampled):
  * of the samples (plantedVelocity's bar). One foot's contacts alone, or a moment's, make contactRoot stretch that
  * foot's velocity over the loop: a ground speed and a drift the motion doesn't have (D108).
  */
-function stands(clip: Playable, contacts: Contacts, { frames, dt }: Sampled): boolean {
-  if (!contacts.footL?.length || !contacts.footR?.length) return false;
+function stands(clip: Playable, contacts: Contacts, sampled: Sampled): boolean {
+  return Boolean(contacts.footL?.length && contacts.footR?.length) && downs(clip, contacts, sampled) >= 0.2 * sampled.frames.length;
+}
+
+/**
+ * Whether a refinement leaves a loop nothing to stand on, so it is read again: no contact at all (D104); or one foot's
+ * alone, down for under a fifth of the samples (neither half of `stands`), after a height pass that held both feet down
+ * throughout (D127). Such a pass, the swinging foot never lifting past the band (D104's case), gives the planted feet's
+ * velocity a fraction of the body's, and the refinement with it keeps a moment of the stance: STYLE100's `Swimming_Run`
+ * kept its left foot 50 ms of its 1,267, no foot held for 95% of the cycle. A pass of alternating steps (MESH2MOTION's
+ * `Sprint`) gives the body's velocity, and what the refinement takes from it moves; a pass that lifts a foot past the
+ * band a moment (STYLE100's `StartStop_Walk`, both feet down 95% of it) is left too, as its reading again moves its
+ * retarget judge's fail to another body. Both feet down briefly (a run, its flight between) and one foot down longer
+ * (a hop) are readings, and stay.
+ */
+function weak(clip: Playable, contacts: Contacts, heights: Contacts, sampled: Sampled): boolean {
+  if (!anyContact(contacts)) return true;
+  const n = sampled.frames.length;
+  return !contacts.footL?.length !== !contacts.footR?.length && downs(clip, contacts, sampled) < 0.2 * n && downs(clip, heights, sampled, true) === n;
+}
+
+/** How many of the samples have a foot down by `contacts` (both feet, with `both`). */
+function downs(clip: Playable, contacts: Contacts, { frames, dt }: Sampled, both = false): number {
   const c = { ...clip, contacts };
   let down = 0;
   for (let i = 0; i < frames.length; i++) {
     const at = contactsAt(c, i * dt);
-    if (at.footL || at.footR) down++;
+    if (both ? at.footL && at.footR : at.footL || at.footR) down++;
   }
-  return down >= 0.2 * frames.length;
+  return down;
+}
+
+/**
+ * Whether the planter holds a loop's `contacts` (D127): planted over two cycles, 60 samples a second, under the root
+ * contactRoot reads from them, neither ankle pulled 10% of H0 or more from where the motion has it (D108's bar). A
+ * reading that replaces the refinement's must hold its feet, at any speed a game retimes the loop to (`playable`
+ * measures a retimed loop again): read again, STYLE100_SIDERUN's `Followed_SideRunRight` at twice its speed pulls 10.1%
+ * of H0, and keeps the refinement's.
+ */
+function holds(clip: Playable, R: Rest, contacts: Contacts): boolean {
+  const memo = new Map<number, Float64Array>(), ankles = [IDX.ankleL! * 3, IDX.ankleR! * 3];
+  const points = (t: number) => {
+    let X = memo.get(t);
+    if (!X) memo.set(t, (X = Float64Array.from(decodePose(R, keyAt(clip, t), new Array<number>(108)))));
+    return X;
+  };
+  const m: Motion = { rest: R, dur: clip.dur, loop: clip.loop, contacts, key: (t) => keyAt(clip, t), points, root: contactRoot(clip, R, contacts).root };
+  for (let i = 0; i <= 120 * clip.dur; i++) {
+    const t = i / 60, X = plant(m, t), Y = points(t);
+    for (const a of ankles) if (PORTABLE.hypot(X[a]! - Y[a]!, X[a + 1]! - Y[a + 1]!, X[a + 2]! - Y[a + 2]!) >= 0.1 * R.H0) return false;
+  }
+  return true;
 }
 
 /** The lower foot's velocity in the pose frame (mm/s, forward and right): at each sample its lowest point's, the

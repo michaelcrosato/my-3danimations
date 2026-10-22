@@ -6,7 +6,9 @@
 // past a warn level only (rateVerdict). The sweep gates against a baseline of the rows that fail
 // (library/baselines/rates.json, its shape rates.schema.json): a failing row not in it fails the sweep; a baselined row
 // that passes now is reported, and the baseline may only shrink (`npm run sweep -- --rates --baseline` rewrites it, in
-// a commit that says why).
+// a commit that says why). Every loop that fails a row is answered there (D127): its cause, one of the baseline's
+// `causes`, and why, with the numbers; a failing loop with no answer fails the sweep, and an answer whose loop fails no
+// row now is reported (againstRateAnswers).
 // A row is played over one cycle in whole steps near 60 a second (the cycle's last sample its end, as the G4 sweep's
 // judge plays a loop), read as a loop so every contact is whole once. The poses are the Animator's points, planted,
 // without the solve onto the bones (playRates; a test holds them to `Animator.pose()`'s within a nanometre), read on
@@ -274,35 +276,59 @@ export async function sweepRates(ids: readonly string[], rigs: readonly string[]
 /** A row's key in the baseline: the clip, the body and the rate. */
 export const rowKey = (r: Pick<RateRow, "clip" | "rig" | "rate">): string => `${r.clip} ${r.rig} ${r.rate}`;
 
-/** The committed baseline: every failing row by key, with its reasons. */
+/** Why a loop that fails a row fails (D127): its cause, a name from the baseline's `causes`, and what in its motion
+ *  slides or skates at which rates, with the numbers. */
+export interface RateAnswer {
+  cause: string;
+  why: string;
+}
+/** The committed baseline: every failing row by key, with its reasons, and every loop that fails a row answered. */
 export interface RateBaseline {
   about: string;
   rates: number[];
   rigs: string[];
   /** How many loops were swept. */
   loops: number;
+  /** The causes the answers name, each with what it means. */
+  causes: Record<string, string>;
+  /** Each loop (`<set>/<clip>`) that fails a row: its cause and why. */
+  answers: Record<string, RateAnswer>;
   failing: Record<string, string[]>;
 }
-/** The baseline of a sweep's rows (every rate and body of `rigs` and `rates`, over `loops` loops). */
-export function rateBaselineOf(rows: readonly RateRow[], loops: number, rigs: readonly string[] = RATE_RIGS, rates: readonly number[] = RATES): RateBaseline {
-  const about = "The rows of the root-motion rate sweep that fail (D123; npm run sweep -- --rates --baseline): each locomotion loop with contacts played at each rate on each body, moved by its root's travel, failing on the sensors' slide or skate past its fail level or no foot that stands still. Keyed `<clip> <body> <rate>`, with its reasons. npm run sweep -- --rates --check fails on a failing row not here and reports each one here that passes; the baseline may only shrink, rewritten in a commit that says why.";
-  const failing = Object.fromEntries(rows.filter((r) => r.verdict === "fail").map((r) => [rowKey(r), r.why] as const).sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0)));
-  return { about, rates: [...rates], rigs: [...rigs], loops, failing };
+/** A row key's loop: `<set>/<clip>`. */
+export const loopOf = (key: string): string => key.slice(0, key.indexOf(" "));
+const byKey = <T>(xs: [string, T][]): [string, T][] => xs.sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0));
+/**
+ * The baseline of a sweep's rows (every rate and body of `rigs` and `rates`, over `loops` loops), the answers `kept`
+ * carried for each loop that still fails a row (an answer whose loop fails none is dropped) and the causes they name.
+ */
+export function rateBaselineOf(rows: readonly RateRow[], loops: number, rigs: readonly string[] = RATE_RIGS, rates: readonly number[] = RATES, kept: Pick<RateBaseline, "causes" | "answers"> = { causes: {}, answers: {} }): RateBaseline {
+  const about = "The rows of the root-motion rate sweep that fail (D123; npm run sweep -- --rates --baseline): each locomotion loop with contacts played at each rate on each body, moved by its root's travel, failing on the sensors' slide or skate past its fail level or no foot that stands still. Keyed `<clip> <body> <rate>`, with its reasons. Each loop that fails a row is answered (D127): its cause, one of `causes`, and why, with the numbers. npm run sweep -- --rates --check fails on a failing row not here or a failing loop with no answer, and reports each row here that passes and each answered loop that fails no row; the baseline may only shrink, rewritten in a commit that says why (--baseline carries the answers of the loops that still fail).";
+  const failing = Object.fromEntries(byKey(rows.filter((r) => r.verdict === "fail").map((r) => [rowKey(r), r.why])));
+  const still = new Set(Object.keys(failing).map(loopOf)), answers = Object.fromEntries(byKey(Object.entries(kept.answers).filter(([id]) => still.has(id))));
+  const named = new Set(Object.values(answers).map((a) => a.cause)), causes = Object.fromEntries(byKey(Object.entries(kept.causes).filter(([c]) => named.has(c))));
+  return { about, rates: [...rates], rigs: [...rigs], loops, causes, answers, failing };
 }
-/** The baseline's text: one failing row a line, so a change reads as the rows it moved. */
+/** The baseline's text: one cause, answer and failing row a line, so a change reads as the rows and answers it moved. */
 export function rateBaselineText(b: RateBaseline): string {
-  const lines = Object.entries(b.failing).map(([k, why]) => `  ${JSON.stringify(k)}: ${JSON.stringify(why)}`);
-  return `{\n "about": ${JSON.stringify(b.about)},\n "rates": ${JSON.stringify(b.rates)},\n "rigs": ${JSON.stringify(b.rigs)},\n "loops": ${b.loops},\n "failing": {\n${lines.join(",\n")}\n }\n}\n`;
+  const block = (o: Record<string, unknown>) => Object.entries(o).map(([k, v]) => `  ${JSON.stringify(k)}: ${JSON.stringify(v)}`).join(",\n");
+  const answers = Object.fromEntries(Object.entries(b.answers).map(([id, a]) => [id, { cause: a.cause, why: a.why }]));
+  return `{\n "about": ${JSON.stringify(b.about)},\n "rates": ${JSON.stringify(b.rates)},\n "rigs": ${JSON.stringify(b.rigs)},\n "loops": ${b.loops},\n "causes": {\n${block(b.causes)}\n },\n "answers": {\n${block(answers)}\n },\n "failing": {\n${block(b.failing)}\n }\n}\n`;
 }
+/** A cause's name: lower-case words joined by hyphens. */
+const CAUSE = /^[a-z]+(-[a-z]+)*$/;
 /** What is wrong with a baseline's shape (tools/sweep/rates.schema.json), none when it is right. */
 export function rateBaselineProblems(b: unknown): string[] {
   const obj = (v: unknown): v is Record<string, unknown> => Boolean(v) && typeof v === "object" && !Array.isArray(v), out: string[] = [];
+  const text = (v: unknown) => typeof v === "string" && v !== "";
   if (!obj(b)) return ["the baseline is a JSON object"];
-  for (const k of Object.keys(b)) if (!["about", "rates", "rigs", "loops", "failing"].includes(k)) out.push(`"${k}" is not a field of the baseline (about, rates, rigs, loops, failing)`);
+  for (const k of Object.keys(b)) if (!["about", "rates", "rigs", "loops", "causes", "answers", "failing"].includes(k)) out.push(`"${k}" is not a field of the baseline (about, rates, rigs, loops, causes, answers, failing)`);
   if (b.about !== undefined && typeof b.about !== "string") out.push("about says what the baseline holds, as a text");
   if (!Array.isArray(b.rates) || !b.rates.length || !b.rates.every((r) => typeof r === "number" && r > 0)) out.push("rates lists the rates swept, each above 0");
   if (!Array.isArray(b.rigs) || !b.rigs.length || !b.rigs.every((r) => typeof r === "string" && r !== "")) out.push("rigs lists the bodies swept by id");
   if (!Number.isInteger(b.loops) || (b.loops as number) < 0) out.push("loops counts the loops swept");
+  if (!obj(b.causes) || !Object.entries(b.causes).every(([k, v]) => CAUSE.test(k) && text(v))) out.push("causes maps a cause's name (lower-case words joined by hyphens) to what it means, a text");
+  if (!obj(b.answers) || !Object.entries(b.answers).every(([k, a]) => /^[^\s/]+\/\S+$/.test(k) && obj(a) && Object.keys(a).every((f) => f === "cause" || f === "why") && text(a.why) && typeof a.cause === "string" && (!obj(b.causes) || Object.hasOwn(b.causes, a.cause)))) out.push("answers maps a loop `<set>/<clip>` to its cause, one of causes, and why it fails, a text");
   if (!obj(b.failing) || !Object.entries(b.failing).every(([k, why]) => /^\S+\/\S+ \S+ \d+(\.\d+)?$/.test(k) && Array.isArray(why) && why.length > 0 && why.every((w) => typeof w === "string" && w !== ""))) out.push("failing maps `<clip> <body> <rate>` to its reasons, each a text");
   return out;
 }
@@ -320,4 +346,18 @@ export function readRateBaseline(file = RATE_BASELINE): RateBaseline {
  */
 export function againstRateBaseline(base: Pick<RateBaseline, "failing">, rows: readonly RateRow[]): { failures: RateRow[]; better: RateRow[] } {
   return { failures: rows.filter((r) => r.verdict === "fail" && !base.failing[rowKey(r)]), better: rows.filter((r) => r.verdict !== "fail" && base.failing[rowKey(r)]) };
+}
+
+/**
+ * A sweep's rows against the baseline's answers (D127): `unanswered`, each loop that fails a row the sweep played and
+ * has no answer (the sweep fails on any); `passing`, each answered loop that fails no row now, judged where it can be:
+ * the baseline holds no failing row of it, or the sweep played every row the baseline holds failing for it and failed
+ * none of its rows (reported: --baseline drops its answer). A loop a sample didn't play every failing row of is neither.
+ */
+export function againstRateAnswers(base: Pick<RateBaseline, "failing" | "answers">, rows: readonly RateRow[]): { unanswered: string[]; passing: string[] } {
+  const played = new Set(rows.map(rowKey)), failed = new Set(rows.filter((r) => r.verdict === "fail").map((r) => r.clip)), held = new Map<string, string[]>();
+  for (const k of Object.keys(base.failing)) held.set(loopOf(k), [...(held.get(loopOf(k)) ?? []), k]);
+  const unanswered = [...failed].filter((id) => !Object.hasOwn(base.answers, id)).sort();
+  const passing = Object.keys(base.answers).filter((id) => !failed.has(id) && (held.get(id) ?? []).every((k) => played.has(k))).sort();
+  return { unanswered, passing };
 }

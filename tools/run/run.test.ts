@@ -1,7 +1,7 @@
 // Tests for the repo runners: the output contract's parsing and budgets, the header lint, versioning, the
 // test:changed selection (a rule for each kind of file a suite covers), a gate's report (the commit it ran at, D91),
-// AGENTS.md's command table naming every script, the e2e runner's filters and the preview site's guard on the
-// directory it empties.
+// AGENTS.md's command table naming every script, the e2e runner's filters and its steps (the rate sweep on its
+// sample), and the preview site's guard on the directory it empties.
 import { spawnSync } from "node:child_process";
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -9,7 +9,8 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { bump, check, write } from "../version.ts";
 import { select } from "./changed.ts";
-import { anchor } from "./e2e.ts";
+import { RATE_RIGS } from "../sweep/rates.ts";
+import { anchor, RATE_SAMPLE, t2Steps } from "./e2e.ts";
 import { budget, closest, distance, parseArgs, ROOT, UsageError } from "./cli.ts";
 import { GATES, G7_MODELS, gateReport, RECORDED } from "./gate.ts";
 import { hasHeader, undocumentedExports } from "./headers.ts";
@@ -132,7 +133,7 @@ describe("test:changed", () => {
     for (const f of ["skills/m3a/SKILL.md", ".claude/skills/m3a/SKILL.md", "llms.txt"]) expect(suites(f), f).toEqual(["tools/skill"]);
   });
   it("runs the library's and QA's tests for a clip or a baseline", () => {
-    for (const f of ["library/sets/QUATERNIUS_3D2DGE/Walk_Loop.json", "library/baselines/qa.json"]) expect(suites(f), f).toEqual(["packages/library/test", "tools/qa", "tools/sweep/rates.test.ts"]);
+    for (const f of ["library/sets/QUATERNIUS_3D2DGE/Walk_Loop.json", "library/baselines/qa.json"]) expect(suites(f), f).toEqual(["packages/library/test", "tools/qa", "tools/sweep/rates.test.ts", "tools/sweep/rates-answers.test.ts"]);
     expect(suites(".claude/hooks/session-start.sh")).toEqual(["tools/session"]);
   });
   it("runs the review queue's test for the feedback log", () => {
@@ -163,6 +164,19 @@ describe("the e2e runner's filters", () => {
     expect([anchor("animator"), anchor("tests/e2e/gallery.e2e.ts"), anchor("/gall.ry/")]).toEqual(["tests/e2e/[^/]*animator[^/]*\\.e2e\\.ts", "tests/e2e/gallery.e2e.ts", "/gall.ry/"]);
     const re = new RegExp(anchor("animator"), "i");
     expect([re.test("/x/lane-animator/tests/e2e/animator-parity.e2e.ts"), re.test("/x/lane-animator/tests/e2e/hello.e2e.ts")]).toEqual([true, false]);
+  });
+});
+
+describe("T2's rate sweep", () => {
+  it("sweeps two of the six bodies whole against the baseline, a generated one and a real rig, a step of its own after the library sweeps (ci.yml's rates job all six, D126)", () => {
+    const steps = t2Steps([]), step = steps.at(-1)!;
+    expect(steps.map((s) => s.name)).toEqual(["playwright", "library QA", "library sweeps in full", "rate sweep on gen-0 and kaykit-knight"]);
+    expect([step.cmd, step.args, step.env, step.together]).toEqual([process.execPath, ["tools/sweep/main.ts", "--rates", "gen-0", "kaykit-knight", "--check", "--out", "check-output/sweep/rates-t2.json"], undefined, undefined]);
+    expect([RATE_SAMPLE.filter((r) => !RATE_RIGS.includes(r)), RATE_SAMPLE.length < RATE_RIGS.length]).toEqual([[], true]);
+    // a filter runs the suites it names alone
+    expect(t2Steps(["gallery"]).map((s) => [s.name, s.args])).toEqual([["playwright", ["test", "tests/e2e/gallery.e2e.ts"]]]);
+    // its summary: the sweep's verdict line, wherever it prints it
+    expect(step.summarize!("sweep --rates: PASS, 8110 rows (811 loops × 5 rates × 2 bodies) in 24.2 s: 7556 pass, 382 warn, 172 fail, 0 of them not baselined\n  ok   gen-0\n")).toBe("PASS, 8110 rows (811 loops × 5 rates × 2 bodies) in 24.2 s: 7556 pass, 382 warn, 172 fail, 0 of them not baselined");
   });
 });
 

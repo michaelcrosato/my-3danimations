@@ -14,7 +14,8 @@
 // bench/results/gates/G4-run-2/sweep.json`.
 // `npm run sweep -- --rates [<rig ids>] [--sample N] [--clip ID] [--check] [--baseline] [--jobs N] [--out <file>]` is
 // the root-motion rate sweep (D123, tools/sweep/rates-cli.ts): each locomotion loop with contacts at each rate a game
-// asks on the six bodies (or those named), against library/baselines/rates.json with --check; --baseline rewrites it.
+// asks on the six bodies (or those named), against library/baselines/rates.json with --check (a failing row it doesn't
+// hold, or a loop failing a row with no answer there, fails: D127); --baseline rewrites it, carrying the answers.
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import { libraryClips, sample } from "../qa/qa.ts";
@@ -36,8 +37,8 @@ if (import.meta.main) {
     { name: "commit", takesValue: true, help: "with --record: the commit the raw results were written at" },
     { name: "name", takesValue: true, help: "with --record: what the record is of, opening its about text (\"G4 run 2's sweep step\")" },
     { name: "rates", help: "the root-motion rate sweep (D123): each locomotion loop at each rate on the six bodies, or those named" },
-    { name: "check", help: "with --rates: fail on a failing row not in library/baselines/rates.json" },
-    { name: "baseline", help: "with --rates: rewrite library/baselines/rates.json from a whole run" },
+    { name: "check", help: "with --rates: fail on a failing row not in library/baselines/rates.json, or a loop failing a row with no answer there" },
+    { name: "baseline", help: "with --rates: rewrite library/baselines/rates.json from a whole run, carrying the answers; fails on a loop failing a row with no answer" },
     { name: "jobs", takesValue: true, help: "with --rates: worker threads (one a CPU)" },
   ];
   let parsed, held: ReturnType<typeof heldout> | null = null;

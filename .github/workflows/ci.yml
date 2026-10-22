@@ -1,8 +1,9 @@
-# CI (PLAN.md §6, WP-0.5): T0 and T1 on every push, T2 on pull requests (and the other three.js candidate's pin test),
-# a gate's command set by manual dispatch (the gates that run no benchmark agent: G4, G6, G7 and G9 run theirs through
-# the claude CLI, in a session), and, dispatched with the gate `intake-contract`, the intake store's contract suite
-# against O8's linked project (G9's hosted proof): the secret M3A_INTAKE_SUPABASE reaches that one step alone. Each
-# dispatched gate has a concurrency group of its own, so dispatching one never cancels another's run.
+# CI (PLAN.md §6, WP-0.5): T0 and T1 on every push, T2 on pull requests (and beside it the rate sweep in full, D126, and
+# the other three.js candidate's pin test), a gate's command set by manual dispatch (the gates that run no benchmark
+# agent: G4, G6, G7 and G9 run theirs through the claude CLI, in a session), and, dispatched with the gate
+# `intake-contract`, the intake store's contract suite against O8's linked project (G9's hosted proof): the secret
+# M3A_INTAKE_SUPABASE reaches that one step alone. Each dispatched gate has a concurrency group of its own, so
+# dispatching one never cancels another's run.
 # Actions are pinned by commit SHA (principle 9); the comment names the release.
 name: ci
 
@@ -103,6 +104,32 @@ jobs:
           name: check-output-t2
           path: check-output/
           if-no-files-found: ignore
+
+  rates:
+    # the root-motion rate sweep in full (D123) on a runner of its own, beside T2 (D126): every locomotion loop at every
+    # rate on the six bodies against library/baselines/rates.json, its worker threads' rows checked against one
+    # thread's, on every pull request T2 runs on. Its threads take every CPU, so inside T2 it took 109.5 s of the 480 s
+    # budget (#20); T2 sweeps two of the bodies whole
+    name: Rate sweep in full
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24.21.0
+          cache: npm
+      # restored, never saved: T2's run saves the cache whole (the held-out rigs too)
+      - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .cache
+          key: m3a-cache-${{ runner.os }}-${{ hashFiles('tools/pins.json', 'tools/fixtures/rigs.json', 'bench/results/heldout/*/run-*/rig.json', 'package-lock.json') }}
+          restore-keys: m3a-cache-${{ runner.os }}-
+      - run: npm ci
+      # the real CC0 rigs by hash: Quaternius' mannequin and KayKit's knight are two of the six bodies
+      - run: npm run fixtures -- fetch
+      - run: npm run test:full -- tools/sweep/rates.test.ts
 
   three-next:
     # the other three.js candidate (WP-4.1, D45, docs/THREE.md): the pin test on r186, served beside the pinned r182;

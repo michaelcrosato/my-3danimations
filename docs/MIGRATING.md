@@ -87,11 +87,14 @@ What `consumer-ts` needed that the package doesn't give; each is a proposal for 
    the package's on-demand D.4.
 9. **The CMU ledger and fetcher stay in m3a's repository** (`tools/corpora/`): a game that imports CMU takes reads
    the ledger and fetches a take itself, then runs `m3a import`.
-10. **Public names the manual doesn't teach.** Besides gap 1's, the lab uses `@m3a/three/test-characters`'
-    `character` and `variant`, with `loadGlb` in a browser (the manual says Node). They are declared entries, which a
-    game finds in the packages' doc comments; the lab's README lists them. The manual teaches the others the lab uses
-    since v0.55.1 (D124): `VERSION`, `math.PORTABLE` and `math.hashValue` (its places and hash), `graph.layersOf` and
-    `graph.clipsOf` (the clips a graph names) and the Animator's `step` option, within its 8,000 tokens.
+10. **Public names the manual doesn't teach.** None left but gap 1's; the types the lab names (`graph.Graph`,
+    `recipe.Recipe`, `AnimClip`, `Bound`, `Attached`, `ThreeBound`) the manual leaves to the compiler. It teaches the
+    others the lab uses, within its 8,000 tokens: since v0.55.1 (D124), `VERSION`, `math.PORTABLE` and
+    `math.hashValue` (its places and hash), `graph.layersOf` and `graph.clipsOf` (the clips a graph names) and the
+    Animator's `step` option; since v0.55.x (D128), `@m3a/three/test-characters`' `character`, `variant` and
+    `TEST_SEEDS` (the generated test characters), `loadGlb` in a page as in Node (a textured .glb in Node takes
+    `{ textures: false }`), and `attach`'s handle's `apply()` (the pose written without a step, for a game stepping
+    the Animator itself) and `bound`.
 
 ## The proposal for my-3dge (O9)
 

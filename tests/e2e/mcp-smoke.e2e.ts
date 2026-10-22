@@ -29,6 +29,10 @@ test("the MCP Inspector lists every tool with portable schemas", () => {
 });
 
 test("the MCP Inspector calls every example and gets the API's reply", async () => {
+  // 25 inspector runs, each a Node process and a server: 23 s alone, 28 to 31 s beside one other suite, 46 to 49 s
+  // beside three (D126); the 30 s default held only because the test blocks on spawns and awaits no I/O, so its timer
+  // never fired
+  test.setTimeout(180_000);
   for (const t of tools.list()) {
     for (const ex of t.examples) {
       // the inspector and the API each in a working directory of its own, seeded alike: an example that writes (edit,

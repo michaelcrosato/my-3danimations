@@ -3,8 +3,9 @@
 // level at 0.5 warns; a side run fails at 2 alone, the manual's top rate judged as the others; B1's planted skater, the
 // jog at its own rate moved at the speed B1 asks of a run, fails with no foot standing); the gate against the
 // committed baseline (a failing row not in it fails, a baselined one passes the gate, a baselined one that passes now is
-// reported) and the baseline's shape; and `npm run sweep -- --rates` on a sample, against the baseline. T2's full step
-// (M3A_FULL=1, D74) sweeps every locomotion loop at every rate on the six bodies against the baseline.
+// reported) and the baseline's shape; and `npm run sweep -- --rates` on a sample, against the baseline. Its full test
+// (M3A_FULL=1, D74), which CI's `rates` job runs on every pull request beside T2 (D126), sweeps every locomotion loop
+// at every rate on the six bodies against the baseline; T2 sweeps two of them through the command line.
 import { execFileSync, spawnSync } from "node:child_process";
 import { mkdtempSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -95,9 +96,10 @@ describe("the root-motion rate sweep", () => {
     const file = JSON.parse(readFileSync(RATE_BASELINE, "utf8")) as unknown;
     expect([schema(file) ? [] : schema.errors, rateBaselineProblems(file)]).toEqual([[], []]);
     expect(readRateBaseline()).toMatchObject({ rates: RATES, rigs: RATE_RIGS });
-    // a field it doesn't have, a rate that isn't one, a key that isn't a row's, a row without its reasons
+    // a field it doesn't have, a rate that isn't one, no causes or answers (D127), a key that isn't a row's, a row
+    // without its reasons
     const bad = { rates: [0], rigs: ["gen-0"], loops: 1, failing: { "S/A gen-0": ["r"], "S/B gen-0 1": [] }, extra: 1 };
-    expect(rateBaselineProblems(bad)).toEqual(['"extra" is not a field of the baseline (about, rates, rigs, loops, failing)', "rates lists the rates swept, each above 0", "failing maps `<clip> <body> <rate>` to its reasons, each a text"]);
+    expect(rateBaselineProblems(bad)).toEqual(['"extra" is not a field of the baseline (about, rates, rigs, loops, causes, answers, failing)', "rates lists the rates swept, each above 0", "causes maps a cause's name (lower-case words joined by hyphens) to what it means, a text", "answers maps a loop `<set>/<clip>` to its cause, one of causes, and why it fails, a text", "failing maps `<clip> <body> <rate>` to its reasons, each a text"]);
     expect(schema(bad)).toBe(false);
     // its about, when given, a text, as the schema has it
     const about = { ...(file as object), about: 5 };
@@ -125,7 +127,8 @@ describe("the root-motion rate sweep", () => {
     const bad = spawnSync(process.execPath, [join(ROOT, "tools/sweep/main.ts"), "--rates", "gen-0", "--clip", "QUATERNIUS_3D2DGE/Idle_Loop"], { cwd: ROOT, encoding: "utf8" });
     expect([bad.status, bad.stdout]).toEqual([2, expect.stringContaining('no locomotion loop with contacts "QUATERNIUS_3D2DGE/Idle_Loop"')]);
   }, 60_000);
-  // T2's full step (M3A_FULL=1, D74): every locomotion loop at every rate on the six bodies, in worker threads
+  // in full (M3A_FULL=1, D74), as CI's `rates` job runs it (D126): every locomotion loop at every rate on the six bodies,
+  // in worker threads
   it.runIf(FULL)("every locomotion loop at every rate on the six bodies: no failing row the baseline doesn't hold", async () => {
     const file = join(mkdtempSync(join(tmpdir(), "m3a-rates-")), "rates.json");
     const r = spawnSync(process.execPath, [join(ROOT, "tools/sweep/main.ts"), "--rates", "--check", "--out", file], { cwd: ROOT, encoding: "utf8" });

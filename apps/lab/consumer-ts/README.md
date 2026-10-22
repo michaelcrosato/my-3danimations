@@ -4,13 +4,14 @@
 60 Hz sim stepped as its engine steps, a sim hash that never depends on posing) drive graph-driven humanoids with hit
 events and root motion through the package's public API alone, the same in Node and in a browser? The answer and
 the migration it argues for are in `docs/MIGRATING.md`. It never reaches past the public API (`npm run doctrine` lists
-no reach-past here), but it goes past the manual in these declared names (gaps 1 and 10 there): the page reads the
-library from files its Vite config bundles with `@m3a/library/node`'s `defaultSets` and `directory`, wrapped in
-`@m3a/library`'s `new Library(source)` (a `LibrarySource`); from `@m3a/core`, the `graph.Graph`, `AnimClip` and
-`Bound` types; from `@m3a/three`, the `Attached` and `ThreeBound` types; from `@m3a/three/test-characters`,
-`character` and `variant`, and `loadGlb` in a browser (the manual says Node). The manual teaches the rest it uses since
-v0.55.1 (D124): `VERSION`, `math.PORTABLE` and `math.hashValue`, `graph.layersOf` and `graph.clipsOf`, and the
-Animator's `step` option.
+no reach-past here), but it goes past the manual in these declared names (gap 1 there): the page reads the library
+from files its Vite config bundles with `@m3a/library/node`'s `defaultSets` and `directory`, wrapped in
+`@m3a/library`'s `new Library(source)` (a `LibrarySource`); and it names types the manual leaves to the compiler: from
+`@m3a/core`, `graph.Graph`, `recipe.Recipe`, `AnimClip` and `Bound`; from `@m3a/three`, `Attached` and `ThreeBound`.
+The manual teaches the rest it uses: since v0.55.1 (D124), `VERSION`, `math.PORTABLE` and `math.hashValue`,
+`graph.layersOf` and `graph.clipsOf`, and the Animator's `step` option; since v0.55.x (D128),
+`@m3a/three/test-characters`' `character` and `variant`, `loadGlb` in a page as in Node, and `attach`'s handle's
+`apply()` (the view poses each fighter without a step) and `bound`.
 
 - **What plays:** a hero and a training dummy (generated test characters, seeds 1 and 2, 6 m apart) on one graph,
   `data/duel.graph.json`: stand, walk and jog by `speed` (a blend kept in step), a slash

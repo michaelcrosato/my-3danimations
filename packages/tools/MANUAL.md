@@ -2,17 +2,17 @@
 
 m3a plays humanoid motion clips on any humanoid character, in a game or headless. Clips, recipes and graphs are JSON;
 the runtime is deterministic; the sensors measure motion as numbers without a display. Every capability is also a tool:
-`m3a <tool>`, or MCP (Tools).
+`m3a <tool>` or MCP (Tools).
 
 ## The packages
 
 - `@m3a/core`: clips, the `Animator`, graphs, recipes, actions, solver, contacts; no renderer, no Node.
 - `@m3a/library`: catalogs, search, clips by id, tiers; `openLibrary` from `@m3a/library/node`.
 - `@m3a/three` (peer three r182): binds a three.js character, writes its bones; `loadGlb` (from
-  `@m3a/three/test-characters`) reads a .glb in Node.
+  `@m3a/three/test-characters`) reads a .glb (Fit).
 - `@m3a/sensors`: metrics, `describe`, repairs (`fix`), contact sheets; `writePng` from `@m3a/sensors/node`.
 - `@m3a/io`: glTF/GLB, VRMA, BVH, CMU ASF/AMC readers and writers.
-- `@m3a/tools` (and `@m3a/tools/node`): the tools, the simulation (`sim`), the `m3a` command, MCP, this manual.
+- `@m3a/tools`: the tools, the simulation (`sim`), the `m3a` command, MCP, this manual.
 
 Units: mm, degrees and seconds; metres in three.js (the adapter converts). "% of the hip height" and "hip
 heights a second" scale with a body's hip height `H0`: one clip fits every body.
@@ -89,7 +89,7 @@ const clips = (id: string) => {
   return playable(clip, rest);
 };
 const knight = read("knight.json");
-// in a page, three's GLTFLoader; in Node, loadGlb (no textures)
+// in Node or a page; a textured .glb in Node takes { textures: false }
 const scene = (await loadGlb(readFileSync("character.glb"), { textures: false })).scene;
 const bound = bind(scene);
 const animator = new Animator(bound.core).play(knight, clips);   // throws E_GRAPH naming each issue
@@ -151,14 +151,18 @@ with `.code` `E_TIER`, naming the opt-in (`E_NO_SET` without its pack, `E_NO_CLI
 ## Fit: bind the character
 
 ```ts
+import { TEST_SEEDS, character, variant } from "@m3a/three/test-characters";
+
 bound.report.text;                    // how it was recognized, confidence, missing bones (at most 20 lines)
 bound.report.patch;                   // the mapping: edit it and bind(scene, { mapping }) again
 bound.core.rest.H0;                   // the hip height (mm)
+bind((await loadGlb(character(variant(7)).glb)).scene);   // a test character: for tests, or bodies unlike yours
+variant(7).id;                        // "gen-7"; TEST_SEEDS, 0 to 19, give every build and naming
 ```
 
 `bind` recognizes Mixamo, Unreal, Rigify, VRM and most humanoid rigs by bone names, else by shape, and throws naming a
-missing required bone. `m3a retarget.inspect <file>` says the same of a .glb, .gltf or .vrm; `m3a retarget.apply
-<file> --clips <ids>` judges each clip played on its body.
+missing required bone. `m3a retarget.inspect <file>` says the same of a .glb, .gltf, .vrm or `gen-<seed>`;
+`m3a retarget.apply <file> --clips <ids>` judges each clip played on its body.
 
 ## Wire: layers, events, root motion
 
@@ -187,7 +191,8 @@ a.remove("hurt");
 - **Root motion**: `player.travel` (a three `Vector3`, metres, the way the model faces: not always +Z) is the last
   update's move: add it to the character's position and planted feet stay put. `player.moved` the same in the
   character's frame (`forward`, `right` mm, `yaw` degrees); `player.root` where it stands; `player.pose` the last pose
-  (`points`, `joints`, `hips`, `local`).
+  (`points`, `joints`, `hips`, `local`); `player.apply()` writes the pose without a step, `player.bound` is
+  `bound`.
 - **Matching speed**: `contact.contactRoot(c, rest, c.contacts)` is a playable clip's path on a body,
   `{ root(t), speed }` (`root(t)`: `{ forward, right, yaw }`, mm and degrees; `speed`: mean mm/s, 0 if no foot plants:
   pick another clip). For v m/s play a loop at `speed: (v * 1000) / own`, `own` its speed on `bound.core.rest` (0.5 to
@@ -277,10 +282,10 @@ An action is a recipe with the floor it ends on (`floor`, % of the hip height ab
 
 ```json climb.json
 {
-  "format": "2.0", "id": "ACTIONS/Climb_Up", "desc": "Pulls up onto a ledge and steps on",
+  "format": "2.0", "id": "ACTIONS/Climb_Up",
   "steps": [{ "op": "clip", "id": "MESH2MOTION/ClimbUp_1m_RM", "to": 0.6 }],
   "floor": 115,
-  "beats": [{ "name": "pull", "from": 0, "to": 0.3 }, { "name": "step_on", "from": 0.3, "to": 0.6 }],
+  "beats": [{ "name": "pull", "from": 0, "to": 0.3 }],
   "interrupts": [{ "t": 0.45, "to": ["PROCEDURAL/Walk"], "why": "both feet on the ledge" }]
 }
 ```
@@ -321,12 +326,11 @@ over, trigger, move }`; `root: "in-place"` with `move` (m/s) and `warp: "<param>
 character. `sim.validateScript(script, graph)` checks a script; `sim.compareTraces(expected, actual)` names the first
 difference.
 
-## Ship: licenses, import, export
+## Ship: licenses and import
 
-`m3a license.check` checks `game.json` (`tiers`, `clips`, `ships`) or `--clips`, and prints the credits block.
-`m3a import <file> --license <SPDX id>` writes its `local` set (`--set`, default `IMPORT`), which the tools read
-when game.json's `"tiers"` holds `"local"`; `license.check` passes it only with `"ships": false`. A catalog
-(`--catalog`) says what to take:
+`m3a license.check` checks `game.json` (`tiers`, `clips`, `ships`) or `--clips`, printing the credits block.
+`m3a import <file> --license <SPDX id>` writes its `local` set, which the tools read when game.json's `"tiers"` holds
+`"local"`; `license.check` passes it only with `"ships": false`. A catalog (`--catalog`) says what to take:
 
 ```json catalog.json
 {
@@ -336,19 +340,18 @@ when game.json's `"tiers"` holds `"local"`; `license.check` passes it only with 
 }
 ```
 
-`$sources`: each source's record by name (`label`, `license`, `credit`, `url`, `origin`). `$pick`: each clip's `[take,
-from s, to s, shortest cycle s]` (only picked takes are read). `$skip`: `{ "<animation>": "why" }` leaves one out. A
-clip's entry: `["tags", "what it does"]`, a `loop` or `once` tag saying whether it loops.
+`$sources`: each source's `label`, `license`, `credit`, `url`, `origin`. `$pick`: each clip's `[take, from s, to s,
+shortest cycle s]` (only picked takes are read). `$skip`: `{ "<animation>": "why" }`. A clip's entry:
+`["tags", "what it does"]`, tagged `loop` or `once`.
 
 ```json game.json
 { "game": "Knight Demo", "tiers": ["cc0", "local"], "ships": false }
 ```
 
 ```sh
-npx m3a import mocap.gltf --list                 # its animations and rig; writes nothing
+npx m3a import mocap.gltf --list
 npx m3a import mocap.gltf --license CC0-1.0 --catalog catalog.json --set MOCAP
 npx m3a license.check
-npx m3a export MESH2MOTION/Walk_Large --character character.glb --format glb
 ```
 
 ```ts

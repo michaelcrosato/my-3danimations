@@ -13,7 +13,8 @@ revision `quality.qaVersion`); the reasons by set and by clip are in `baselines/
 improve in `baselines/distributions.json`. `npm run qa -- library --check` reads it all again, with the census
 (unique motions and G5's category floors), and `docs/LIBRARY.md` is its summary. The locomotion loops played by root
 motion at 0.5 to 2 on the six sweep bodies (`npm run sweep -- --rates --check`, D123) fail only the rows
-`baselines/rates.json` holds, which may only shrink.
+`baselines/rates.json` holds, which may only shrink, and each loop that fails one is answered there: its cause and why,
+with the numbers (D127).
 
 ## Tiers and the default pack (D10)
 

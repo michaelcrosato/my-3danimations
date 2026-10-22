@@ -137,7 +137,9 @@ acted on (D119 took up or deferred each):
   runner's event loop (WP-9.1b's review). **Taken up in v0.54.0** (D119): later runs sample only what is new.
 - **F6.4** (the manual's budget, watch) The manual, at 7,999 of 8,000 tokens, can't teach the names the consumer lab
   uses beyond it (D116, MIGRATING gap 10). **Taken up in v0.55.1** (D124): the manual teaches six of them, cutting its Tools
-  reference, at 7,998 of 8,000.
+  reference, at 7,998 of 8,000. **Taken up in v0.55.x** (D128): the rest but gap 1's (`character`, `variant`,
+  `TEST_SEEDS`, `loadGlb` in a page, the attached player's `apply()` and `bound`; the types left to the compiler),
+  cutting Ship and actions, at 7,999 of 8,000.
 - **F6.5** (WP sizes, reached) WP-8.2 came to 3,023 lines and was split, 9.1 to about 2,800 (split), 9.4 to 683 (past
   S) and 10.2 to about 1,400 (past M).
 

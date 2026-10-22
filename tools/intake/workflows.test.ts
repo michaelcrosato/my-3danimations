@@ -6,7 +6,9 @@
 // library-gates.yml runs every set's license check, then `npm run gate -- library-pr`, on every pull request that
 // touches library/sets/. ci.yml's intake-contract job, by manual dispatch alone, runs the contract suite against O8's
 // project, its secret on that step; its gate job fetches the held-out rigs as T1 and T2 do, each dispatched gate has a
-// concurrency group of its own, and the dispatch input names the gates that run there (none that runs benchmark agents).
+// concurrency group of its own, and the dispatch input names the gates that run there (none that runs benchmark agents);
+// its rates job sweeps the rates in full beside T2 on every pull request, neither waiting on the other, no step of it
+// skipped or let fail (D126).
 import { spawnSync } from "node:child_process";
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -89,6 +91,17 @@ describe("ci.yml's jobs", () => {
       const all = steps(job(name!)), at = all.findIndex((s) => s.includes(fetch));
       expect([name, at >= 0 && at < all.findIndex((s) => s.includes(`run: ${runs!} --`))]).toEqual([name, true]);
     }
+  });
+  it("sweeps the rates in full on a runner of its own, beside T2 on every pull request, no step skipped or let fail: the rigs fetched first, the cache only restored (D126)", () => {
+    const rates = job("rates"), all = steps(rates), on = (j: string) => /\n {4}if: (.+)\n/.exec(j)?.[1];
+    // a job's own keys, and each step's: no `needs` either way, no `continue-on-error`, no condition but the job's
+    const keys = (j: string) => [...j.matchAll(/^ {4}([\w-]+):/gm)].map((m) => m[1]), stepKeys = (s: string) => [...s.matchAll(/^ {6}- ([\w-]+):|^ {8}([\w-]+):/gm)].map((m) => m[1] ?? m[2]);
+    expect([on(rates), on(job("t2"))]).toEqual(["github.event_name == 'pull_request'", "github.event_name == 'pull_request'"]);
+    expect([keys(rates), keys(job("t2"))]).toEqual([["name", "if", "runs-on", "timeout-minutes", "steps"], ["name", "if", "runs-on", "timeout-minutes", "steps"]]);
+    expect(all.map(stepKeys)).toEqual([["uses"], ["uses", "with"], ["uses", "with"], ["run"], ["run"], ["run"]]);
+    expect(all.map((s) => /run: (.+)/.exec(s)?.[1]).filter(Boolean)).toEqual(["npm ci", "npm run fixtures -- fetch", "npm run test:full -- tools/sweep/rates.test.ts"]);
+    // restored, never saved: T2's run saves the cache with the held-out rigs in it
+    expect(all.filter((s) => s.includes("actions/cache")).map((s) => /uses: (actions\/cache[\w/]*)@[0-9a-f]{40} /.exec(s)?.[1])).toEqual(["actions/cache/restore"]);
   });
   it("names in its dispatch input the gates that run there: every one that runs no benchmark agent (the claude CLI isn't on a runner)", () => {
     const description = /\n {8}description: "([^"]+)"\n/.exec(text)![1]!, [here, elsewhere] = description.split(". ");

@@ -1,10 +1,11 @@
 // The clip runtime (WP-2.2): sample() decodes like the tier 2 vectors; events fire once each, in order, loop-aware;
 // a turning root samples continuously and composes over loop cycles; contacts wrap; and measureFacts agrees with the
-// 20 clips of packages/core/fixtures/facts-truth.json, whose expectations come from sources independent of this code.
+// 20 clips of packages/core/fixtures/facts-truth.json, whose expectations come from sources independent of this code;
+// its fallbacks (D104, D108, D122, D127) on the library loops they read again and on those they leave.
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { contactRoot, contactsAt, detectContacts, events, keyAt, measureFacts, OFF_FEET, parseClip, plant, rootAt, rootDelta, sample, type Clip, type ClipEvent, type Key, type Rest } from "./all.ts";
+import { contactRoot, contactsAt, detectContacts, events, keyAt, measureFacts, OFF_FEET, parseClip, plant, retime, rootAt, rootDelta, sample, type Clip, type ClipEvent, type Key, type Rest } from "./all.ts";
 import { motionOf, P } from "./contact-data.ts";
 import { loadTier2, tier2Sets } from "../../../spec/conformance/runner/vectors.ts";
 
@@ -127,8 +128,9 @@ describe("contacts", () => {
   // D104, narrowed by D108: the library loops that had no contact. A keyed run in place whose planted foot drifts too
   // fast for the world refinement is read again with still at half the body's speed, kept when both feet plant; a body
   // on its heels is read by its whole sole, and so is a run on its heels once every other reading is erased (D122); a
-  // one-shot, a clip with its own root, a clip tagged off its feet and a loop only one foot of which holds still keep
-  // the strict reading, none.
+  // loop whose refinement keeps one foot a moment after a height pass that held both feet down throughout is read
+  // again too, where the planter holds the reading (D127); a one-shot, a clip with its own root, a clip tagged off its
+  // feet and a loop only one foot of which holds still keep the strict reading, none.
   /** The planter's largest ankle pull over two cycles (mm), planting `contacts` (the measured ones unless given): where
    *  it holds a planted foot against where the motion has it. */
   const pull = (clip: Clip, R: Rest, contacts = measureFacts(clip, R).contacts) => {
@@ -194,6 +196,75 @@ describe("contacts", () => {
       expect(clip.contacts?.footL ?? clip.contacts?.footR, id).toBeTruthy();
       expect(measureFacts(clip, R).contacts, id).toEqual(clip.contacts);
     }
+  });
+  /** The share of a clip's samples (60 a second) with a foot down by `contacts`, or both feet with `both`. */
+  const downShare = (clip: Clip, contacts: Clip["contacts"], both = false) => {
+    const n = Math.ceil(clip.dur * 60);
+    let down = 0;
+    for (let i = 0; i <= n; i++) {
+      const at = contactsAt({ ...clip, contacts }, (i * clip.dur) / n);
+      if (both ? at.footL && at.footR : at.footL || at.footR) down++;
+    }
+    return down / (n + 1);
+  };
+  /** A library loop at `speed`: as its file holds it, or retimed as a game retimes it (`playable` measures it again),
+   *  with its captured speed scaled. */
+  const atSpeed = (id: string, speed: number) => {
+    const { clip, R } = libClip(id);
+    return { clip: speed === 1 ? clip : retime(clip, { speed }), R, captured: (clip.facts as { speed: number }).speed * speed, name: `${id} ×${speed}` };
+  };
+  it("a loop whose height pass held both feet down throughout and whose refinement kept one foot a moment is read again: both feet, held within 10% of H0, its ground speed near its captured one, at its own speed and retimed (D127)", () => {
+    // the loop and its speed, the share of the cycle a foot is down, the planter's pull (of H0) and the ground speed
+    // (of its captured speed) its contacts give; before D127 one foot held 5 to 18% of the cycle, the ground speed 0.39
+    // to 0.87 of the captured
+    const read: [string, number, number, number, number][] = [
+      ["STYLE100_RUN/Robot_Run", 1, 0.861, 0.016, 0.81],
+      ["STYLE100_RUN/Swimming_Run", 1, 1, 0.043, 1.05],
+      // retimed, the planter holds the reading too
+      ["STYLE100_RUN/Robot_Run", 1.5, 0.917, 0.016, 0.79],
+      ["STYLE100_SIDERUN/ArmsBehindBack_SideRunRight", 2, 0.864, 0.08, 0.91],
+    ];
+    for (const [id, speed, down, most, ground] of read) {
+      const { clip, R, captured, name } = atSpeed(id, speed), c = measureFacts(clip, R).contacts;
+      expect(downShare(clip, detectContacts(clip, R), true), name).toBe(1);
+      if (speed === 1) expect(c, name).toEqual(clip.contacts);
+      expect([Boolean(c.footL?.length), Boolean(c.footR?.length), Math.abs(downShare(clip, c) - down) < 0.002], name).toEqual([true, true, true]);
+      expect(Math.abs(pull(clip, R, c) / R.H0 - most), name).toBeLessThan(0.002);
+      expect(Math.abs((contactRoot(clip, R, c).speed * 100) / R.H0 / captured - ground), name).toBeLessThan(0.01);
+    }
+  });
+  it("a moment's contact is read again only after a height pass that held both feet down throughout, only of one foot under a fifth of the loop, and only where the planter holds the reading: a keyed sprint, a start-stop walk, two runs and a side run that lift a foot past the band, a run backward stepping both feet a moment, a hop, and a run and a side run retimed keep their readings (D127)", () => {
+    // the loop and its speed, its height pass's share of the cycle with both feet down, the feet its contacts plant and
+    // their share
+    const keep: [string, number, number, number, number][] = [
+      // its height pass alternates feet: the body's velocity it gives is the body's, and its keyed standing foot moves
+      ["MESH2MOTION/Sprint", 1, 0, 1, 0.098],
+      // a foot down throughout, both 95% of it: read again, its judge's fail would move from the knight to gen-0
+      ["STYLE100/StartStop_Walk", 1, 0.954, 1, 0.06],
+      // runs whose height pass lifts a foot past the band a third and a fifth of the cycle
+      ["STYLE100_BACKRUN/Elated_RunBack", 1, 0.632, 1, 0.053],
+      ["STYLE100_RUN/Penguin_Run", 1, 0.788, 1, 0.182],
+      // both feet, each a moment: a reading of a run backward, its flight between
+      ["STYLE100_BACKRUN/DragLeftLeg_RunBack", 1, 1, 2, 0.179],
+      // one foot, a third of the cycle (read again, it fails 12 more rate-sweep rows), and a fifth at twice its speed
+      ["STYLE100_SIDERUN/Penguin_SideRunLeft", 1, 0.903, 1, 0.29],
+      ["STYLE100_SIDERUN/Penguin_SideRunLeft", 2, 0.813, 1, 0.188],
+      // a hop: one foot, down most of the cycle
+      ["STYLE100_BACK/RightHop_WalkBack", 1, 0, 1, 0.649],
+      // retimed: one foot down past a fifth of the cycle; one under it, read again pulled 10.1% of H0 by the planter
+      ["STYLE100_RUN/RaisedRightArm_Run", 2, 1, 1, 0.227],
+      ["STYLE100_SIDERUN/Followed_SideRunRight", 2, 1, 1, 0.158],
+    ];
+    for (const [id, speed, heights, feet, down] of keep) {
+      const { clip, R, name } = atSpeed(id, speed), c = measureFacts(clip, R).contacts;
+      expect(Math.abs(downShare(clip, detectContacts(clip, R), true) - heights), name).toBeLessThan(0.002);
+      if (speed === 1) expect(c, name).toEqual(clip.contacts);
+      expect([[c.footL, c.footR].filter((x) => x?.length).length, Math.abs(downShare(clip, c) - down) < 0.002], name).toEqual([feet, true]);
+    }
+    // where the refinement left nothing (D104's case) a reading again replaces none, and isn't held to the planter:
+    // Rushed_Walk at 1.5 keeps both feet (the planter pulls 12.2% of H0; none would play still, its ground speed 0)
+    const rushed = atSpeed("STYLE100/Rushed_Walk", 1.5), r = measureFacts(rushed.clip, rushed.R).contacts;
+    expect([Boolean(r.footL?.length), Boolean(r.footR?.length), Math.abs(downShare(rushed.clip, r) - 0.717) < 0.002]).toEqual([true, true, true]);
   });
   it("a loop whose feet the planter can't hold has none: a run on the spot under its own root, a stance or walk one foot of which holds still", () => {
     const run = libClip("MESH2MOTION/Run_Anime");

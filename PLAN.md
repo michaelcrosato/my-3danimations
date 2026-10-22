@@ -2284,6 +2284,132 @@ picked by the owner on 2026-10-21. No gate follows them: each is held by its Ver
 - **Done when:** T1 passes three times with its files shuffled; CI's T1 on the pull request's head is under 110 s.
 - **Verify:** `npm test` (and CI's T1 time on the pull request)
 
+#### WP-F.6 T2 back under its budget in CI
+- **Owns:** `playwright.config.ts`, `.github/workflows/ci.yml` (the `rates` job, the header's line)
+- **Also touches:** `tests/e2e/mcp-smoke.e2e.ts` (one test's timeout), `tools/intake/workflows.test.ts` (ci.yml's
+  jobs); through the patch (section 7): `tools/run/e2e.ts` (lane R's this round: T2's steps, the rate step), and with
+  it `tools/run/run.test.ts` (its test), `tools/sweep/rates.test.ts` (its header, the full test's comment) and
+  `AGENTS.md` (T2's row, the rate sweep's row)
+- **Needs:** WP-F.3 (D123: the rate sweep, its step in T2), WP-F.5 (D125)
+- **Size:** S (105 new lines, tests included: ci.yml 32, e2e.ts 27, run.test.ts 17, workflows.test.ts 14,
+  rates.test.ts 5, playwright.config.ts 4, mcp-smoke.e2e.ts 4, AGENTS.md 2; 32 removed)
+- **Carry:** none
+- **Trigger:** CI's T2 on michaelcrosato/my-3danimations#20 read 525.2 s of its 480 s budget (a warning; it fails at
+  720): playwright 242.6 s, library QA 8.7, library sweeps in full 164.4, rate sweep in full 109.5
+- **Build:**
+  - Playwright runs four suites at once, not two: on 4 CPUs two kept about three busy and started gallery, the
+    longest suite, tenth of eleven; four make the step CPU-bound. Every test stays within its timeout (mcp-smoke's
+    every-example test gets one of its own: beside three suites it takes 46 to 49 s, past the 30 s default, which
+    never fired because the test blocks on spawns).
+  - The rate sweep in full moves to a CI job of its own, `rates`, on every pull request, beside T2: the same command T2
+    ran (`npm run test:full -- tools/sweep/rates.test.ts`: every loop at every rate on the six bodies against the
+    baseline, the threads' rows checked against one thread's). T2 sweeps two of the bodies whole (`npm run sweep --
+    --rates gen-0 kaykit-knight --check`): every loop at every rate on a generated body and on the real rig whose feet
+    fail the most rows. T2's steps come from `t2Steps()` in e2e.ts, as T0's from `t0Steps()`, so a test reads them.
+- **Done when:**
+  1. T2 here (4 CPUs) is at most about 345 s, every step measured before and after on one tree.
+  2. CI's T2, estimated from here, is about 430 s or less (the 1.25 ratio, and CI's own steps scaled).
+  3. Playwright on four workers passes every run, no flake, every test within its timeout.
+  4. The whole rate sweep runs on every pull request, its rows byte for byte the same; `npm run sweep -- --rates
+     --check` passes with nothing added; `--baseline` adds and drops nothing.
+  5. T2's sample is the whole run's rows on its bodies, byte for byte, and passes the baseline check.
+  6. A test holds the `rates` job (every pull request, beside T2 with neither waiting on the other, no step of it
+     skipped or let fail, the rigs fetched, the cache only restored) and T2's steps (the rate step last, after the
+     library sweeps, on bodies among the six, with `--check`; none under a filter); each mutant in section 2 is killed.
+  7. T0 is clean for the lane's files.
+- **Verify:** `npm run check`; `npx vitest run tools/intake/workflows.test.ts tools/run/run.test.ts`;
+  `node_modules/.bin/playwright test`; `npm run sweep -- --rates gen-0 kaykit-knight --check`;
+  `npm run test:full -- tools/sweep/rates.test.ts` (the `rates` job's command); `npm run sweep -- --rates --check`;
+  `npm run e2e` (T2 within its budget); and CI's T2 and `rates` job on the pull request's head
+
+#### WP-F.7 The rate sweep's failing rows triaged
+- **Owns:** `packages/core/src/clip/facts.ts` (`weak`, `downs`, `holds`), `packages/core/test/clip.test.ts`,
+  `tools/sweep/rates.ts`, `tools/sweep/rates-cli.ts`, `tools/sweep/rates.schema.json`,
+  `tools/sweep/rates-answers.test.ts` (new), `tools/sweep/rates.test.ts` (the shape test), `library/baselines/rates.json`,
+  `library/sets/STYLE100_RUN/` (through `npm run import`), and what the writers write from it: `library/sets.lock.json`,
+  `library/index.json`; `library/README.md` (one sentence)
+- **Also touches:** `tools/run/changed.ts` and `tools/run/run.test.ts` (`test:changed`'s library rule runs the answers'
+  test too); `tools/sweep/main.ts` (the `--check` and `--baseline` help names the answers)
+- **Needs:** WP-F.3 (D123: the rate sweep and its baseline), WP-F.2 (D122), D104, D108; WP-F.6 (D126: where the sweep
+  runs in T2 and CI; nothing here depends on its patch)
+- **Size:** S (375 new lines, tests included: rates-answers.test.ts 124, clip.test.ts 75, facts.ts 66, rates.ts 51,
+  rates-cli.ts 31, rates.schema.json 17, main.ts 4, rates.test.ts 3, README 2, changed.ts 1, run.test.ts 1; 50 removed;
+  plus the data the tools wrote: rates.json +138 −7 (7 causes, 126 answers, 6 rows gone), index.json +22 −1, 2 clips'
+  contacts, 1 manifest, the lock)
+- **Carry:** none
+- **Trigger:** docs/HANDOFF.md's follow-up: the rate sweep's 479 failing rows (D123), each "a row to fix or to answer"
+- **Build:**
+  - Every failing loop measured: each failing row's worst finding read back to the motion (which foot, the sensors'
+    stance against the clip's contacts, where the drift happens: before the contact, under it, after it, between two of
+    its contacts, or where no contact holds the foot; how high and how fast the foot moves there).
+  - What the contacts can fix, fixed through core and the importer: a loop whose refinement keeps one foot a moment a
+    cycle, after a height pass that held both feet down throughout, is read again (D104's `reread`, its trigger
+    widened), the reading kept where the planter holds it within 10% of H0 (`holds`); the two loops it moves written by
+    `npm run import`.
+  - Every loop that still fails a row answered in the baseline: `causes` (a name and what it means) and `answers` (each
+    loop's cause and why, with its numbers); the schema, the validator's rule (an answer's cause is one of `causes`),
+    the gate (`--check` fails on a failing loop with no answer, reports an answered loop that fails no row), and
+    `--baseline` carrying the answers of the loops that still fail.
+- **Done when:**
+  1. Every loop the planter and the contacts can fix by a rule core reads every loop by is fixed through the writers,
+     each measured: the planter's pull within 10% of H0 (core checks it, so a retimed loop's reading holds it too),
+     both feet, a foot down a fifth of the loop, the ground speed against the captured speed; no rows added.
+  2. No other clip's facts or contacts move; QA's verdicts, baseline and distributions don't move; B1's known-good
+     passes in full; the index regenerated and checked; the judge on the six sweep skeletons adds no fail for a changed
+     clip.
+  3. Every loop failing a row has an answer with its numbers; the schema and validator hold the answers' shape; `--check`
+     fails on a failing loop with no answer and reports an answered loop that fails no row; `--baseline` carries them;
+     a test holds each answer's rows and readings to the baseline's.
+  4. The baseline only shrinks: `--baseline` from a whole run adds 0 rows.
+  5. Tests for each new rule and each fixed loop, each mutant of the core rule killed or shown equivalent, over the
+     library's in-place loops at their own speed and retimed.
+  6. T0 clean; the touched suites green.
+- **Verify:** `npm run check`; `npm run doctrine`; `npm run facts -- --check`; `npm run qa -- --check`;
+  `npm run qa -- library --check`; `npm run index -- --check`; `npm run library -- check`;
+  `npm run import -- --set STYLE100_RUN --check` (and `STYLE100`, `STYLE100_BACKRUN`, `MESH2MOTION`);
+  `npx vitest run packages/core/test/clip.test.ts tools/sweep tools/run/run.test.ts`;
+  `npm run test:full -- bench/graders/B1 tools/sweep/rates.test.ts tools/sweep/rates-answers.test.ts`;
+  `npm run sweep -- --rates --check`; `npm run sweep -- gen-0 gen-1 gen-2 gen-3 quaternius-mannequin-m kaykit-knight
+  --clip STYLE100_RUN/Robot_Run` (and `Swimming_Run`, and `STYLE100/StartStop_Walk`, the clip the rule leaves)
+
+#### WP-F.8 The manual teaches gap 10's last names
+- **Owns:** `packages/tools/MANUAL.md`, `docs/MIGRATING.md` (gap 10), `apps/lab/consumer-ts/README.md`,
+  `docs/FEEDBACK-LOG.md` (F6.4); `packages/tools/test/manual.test.ts` (unchanged: its checks cover the new lines)
+- **Also touches:** `packages/three/test/test-characters.test.ts` (two assertions: the test set is seeds 0 to 19 and
+  gives every build with every naming, as the manual now says)
+- **Needs:** WP-F.4 (D124: the manual at 7,998 of 8,000, its test naming each entry's export)
+- **Size:** S: 43 new lines (the manual +22 −19, MIGRATING +8 −5, the lab's README +8 −7, FEEDBACK-LOG +3 −1, the
+  test +2)
+- **Carry:** none
+- **Build:**
+  - The manual teaches `@m3a/three/test-characters`' `character`, `variant` and `TEST_SEEDS` (what the test characters
+    are, their seeds, when an agent reaches for them, the tools' `gen-<seed>`), `loadGlb` in a page as in Node (it
+    reads .glb bytes; a textured .glb in Node needs `{ textures: false }`), and the attached player's `apply()` and
+    `bound` (the lab's view poses each fighter without a step). Each claim is checked against the code, and in headless
+    Chromium for the page; the code it shows runs and type-checks in the manual's test.
+  - The room comes from text no brief's job draws on (Ship, Make: actions); the budget stays 8,000.
+  - MIGRATING.md's gap 10, the lab's README and FEEDBACK-LOG's F6.4 say what is left (gap 1's names; the types the
+    lab names, left to the compiler).
+- **Done when:**
+  - the manual names and shows `character`, `variant`, `TEST_SEEDS` and `loadGlb` in a page, its Fit block running and
+    type-checking `bind((await loadGlb(character(variant(7)).glb)).scene)` and reading `variant(7).id` as `"gen-7"`,
+    and it names the attached player's `apply()` and `bound`;
+  - `loadGlb` reads a generated, a textured and a meshopt-compressed .glb in a page, and the consumer lab's bundled page
+    binds its test characters through it;
+  - the manual is at most 8,000 cl100k tokens;
+  - every rule B1 to B8 use is kept, word for word where a decision records it, and no text is cut from a section a
+    brief's job draws on;
+  - gap 10 says nothing is left of it but gap 1's names and the types left to the compiler, and the lab's README and
+    F6.4 agree;
+  - the briefs that read the changed sections are listed with why and their bars, and each re-run with real agents
+    reaches its bar *(deferred proof: the integrator's re-runs; met, 79 of 83 trials, every brief and variant at its
+    bar, D128)*.
+- **Verify:** `npm run doctrine && npx vitest run packages/tools/test/manual.test.ts tools/skill/skill.test.ts
+  tools/bundle/bundle.test.ts packages/three/test/test-characters.test.ts packages/tools/test/review.test.ts &&
+  node tools/manual/main.ts --check && npm run check && npm run pack -- --check && npm run e2e -- capture consumer-ts`;
+  the bench as WP-F.4's (`npm run bench -- B<n> --trials 5 --parallel 5` and `--heldout G7` for B1 to B7, B8 with
+  `--heldout G9`, `B8-ten --trials 1`)
+
 ### On demand
 
 Each starts only when its trigger fires; record the measurement that fired it. A trigger that never fires means the WP
@@ -2478,6 +2604,9 @@ commits named here are on their PR branches (`refs/pull/<n>/head`).
 | F.3 The root-motion rate sweep | done | 0.55.0 | c74a865; its T2 step 31418c7; review fixes 5c348a8 | 2026-10-21 | `npm run sweep -- --rates --check`: 811 loops × 5 rates × 6 bodies, 24,330 rows in 92 s; 22,892 pass, 959 warn, 479 fail (2.0%), each held in `library/baselines/rates.json`, 0 outside it; the fail rule the sensors' fail levels and "a foot stands still", every rate alike (D123); T1's sample 5.2 s, in T2 a step of its own (109.5 s in CI, whose T2 is 525.2 s of 480: a warning); D106's keyed runs pass in steady state (B1's floor at y = 0 and the fade, a follow-up) |
 | F.4 The manual's untaught names | done | 0.55.1 | 6d1ac91 | 2026-10-21 | `npm run doctrine`: the manual 7,998 of 8,000 (7,999 before); `manual.test.ts` 9 passed: `LibraryError` (from `@m3a/library`) and `.code`, `VERSION`, `math.PORTABLE`, `math.hashValue`, `graph.layersOf`, `graph.clipsOf` and the Animator's `step` taught, in a block it runs; Tools −151 tokens; the briefs' sections word for word (D124); `pack --check` passes; the briefs re-run with real agents (`bench/results/2026-10-21-*`, the packages at 2467b82 and 31418c7): B1 5/5 (discovery 2/2), B2 to B7 5/5 each, every G7 held-out variant 5/5, B8 5/5, its G9 variant 5/5, B8-ten 1/1: 83 of 83 trials, $13.36 |
 | F.5 T1's headroom in CI | done | 0.55.1 | 64d1358; the cache leak 5c348a8 | 2026-10-21 | trigger: CI's T1 126.1 s of 135 on main at 957bf51; `isolate: false`: `npm test` 88.0 s here (1,244 passed), from 114 to 128 s, the same tests; files shuffled three times 103, 97, 95 s, no failure between files; the kit's mock scoped to its test; `library status` counts states in their order; CI's grouping found a second leak, a kept procedural part on another resolver's rest, fixed (D125); CI's T1 on #20 79.1 s (from 126.1), 1,244 passed |
+| F.6 T2 back under its budget in CI | done | 0.55.3 | 4d2b0da, 3756241 | 2026-10-22 | `npm run e2e`: T2 here 362.2 s → 293.3 s (297.6 on a patched clone): Playwright on four workers 169 → 133 s, every test within its timeout (mcp-smoke's every-example test 180 s); the rate step sweeps gen-0 and the knight whole (8,110 of 24,330 rows, byte for byte the whole run's) and ci.yml's `rates` job all six on every pull request (D126); `t2Steps()` tested, nine mutants of e2e.ts killed; CI on #21: T2 246.2 s (from 525.2: playwright 128.2, QA 5.8, the sweeps 92.5, the rate sample 19.7), the `rates` job's whole sweep 109.0 s beside it |
+| F.7 The rate sweep's failing rows triaged | done | 0.55.3 | 3ba4efe | 2026-10-22 | `npm run sweep -- --rates --check`: 473 failing rows on 126 loops (479 on 128), 0 added, 126 of 126 answered with 7 causes; `measureFacts` rereads a loop whose refinement keeps one foot a moment after a height pass holding both feet throughout, held within 10% of H0 (retimed too): Robot_Run and Swimming_Run plant both feet (pull ≤4.3%, ground 0.81 and 1.05 of captured); the judge adds no fail; facts, import, index, QA (1,014/230/154) unchanged elsewhere; 17 of 19 mutants killed, 2 equivalent over 4,965 readings (D127) |
+| F.8 The manual's last names | done | 0.55.2 | 5b93247 | 2026-10-22 | `npm run doctrine`: the manual 7,999 of 8,000; `manual.test.ts` 9 passed: `character(variant(7)).glb` through `loadGlb` (Node or a page), `variant(7).id` = gen-7, `TEST_SEEDS`, the attached player's `apply()` and `bound`; Ship and the actions example shorter; no rule a brief uses lost a word; MIGRATING gap 10 closed but for gap 1's names (D128); the briefs re-run with real agents (`bench/results/2026-10-22-*`, the packages at b7528b1): B1 4/5 (discovery 2/2), B2 to B6 5/5, B7 4/5; G7's variants B1 4/5, B6 4/5, the rest 5/5; B8 5/5, its G9 variant 5/5, B8-ten 1/1: 79 of 83 trials, $13.82; the four misses B1's floor (two), a jump left on the ground, a mirrored strike 10% off |
 
 ---
 
