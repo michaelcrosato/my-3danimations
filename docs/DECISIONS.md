@@ -5335,3 +5335,41 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   hands to the last step, and nothing the session can't reach (the Supabase connector) is stood in for.
 - **Answered:** yes: the owner's words above.
 - **Landed in:** v0.56.0
+
+## D131 · 2026-10-22 · The owner's standing rule: minor or unanswered decisions are the session's, by the North Star; the session's calls on the open follow-ups
+
+- **Principle:** the North Star (DOCTRINE.md: verified, shippable motion in games per unit of agent time and tokens; the
+  benchmark is its measure, D13), D129, D130
+- **Call:**
+  - **What the owner said** (2026-10-22, asking for a pause to see everything left to finish): "All minor decisions,
+    or all decisions I don't respond to it is at your discretion, I recommend always think forward and remember the
+    repo northstar". So a minor decision, or one put to the owner and not answered, is the session's: made forward (what
+    the next release, the next agent and the next implementation will need), by the North Star, and logged here as
+    always. What stays the owner's whatever the rule: the owner's evidence (the phone reviews, the sampled approvals,
+    the adoptions), credentials and accounts (npm, Supabase, Vercel, the repository's settings and secrets), acting in
+    another repository (O9), and the steps only the owner can take (a release tag, a publish run).
+  - **The session's calls on the follow-ups put to the owner** (docs/HANDOFF.md), each reversible:
+    - **B1's floor (D123): fix it, in a WP of its own.** B1's grader reads heights from y = 0, 16 to 44 mm above a
+      generated test character's soles, so a foot within 40 to 86 mm of its floor reads as down and some of B1's
+      misses were the grader's. The benchmark is the North Star's measure, so a grader that misreads is the first thing
+      to fix; it changes G7's evidence, so G7's B1 known-goods and variants are run again with real agents (about $12)
+      and the result logged.
+    - **D129's three calls: kept as built** (the spec's amendment, the six readings new to core, the bar "no failing row
+      added"): each was weighed there, the format change is compatible, and the 45 loops play better on every row
+      they changed.
+    - **The five loops without contacts (D122): deferred.** A contact that moves with the foot is a new kind of contact,
+      a format change for five clips; the rate sweep answers each.
+    - **A linear planter and key fit (K5, D96): deferred** until an implementation certifies against the vectors
+      (G10's route): both change outputs bit for bit, so the vectors would be re-baselined for nothing a game sees
+      yet.
+    - **The mirror census (D67): kept.** A game needs each side, so a motion and its mirror count apart.
+    - **Refusing every clip added outside the adopt bot (§8.4 after G9): deferred**, D113's reason standing until the
+      importers' regenerations go through the bot.
+    - **A gate holding the whole rate sweep (D126): not taken.** CI's `rates` job runs every row on every pull request.
+    - **shardfall's tier 1b:** with G10's answer.
+  - **A correction to D130's steps:** the session's git connection pushes its own branch alone (a tag push is cut
+    off), so the release tag `v0.56.0` is the owner's to make, on #22's merge commit e766496, after the `v*` ruleset.
+- **Why:** the owner sets direction and judges quality; the session flies (the North Star's ground station). Deciding
+  the minor and unanswered calls keeps the work moving, and logging each keeps it the owner's to reverse.
+- **Answered:** yes: the owner's words above; the calls under it are the session's, to review.
+- **Landed in:** v0.56.0 (docs only, after #22)
