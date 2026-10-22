@@ -41,12 +41,13 @@ none during trial batches.
     environment `npm` (the owner its required reviewer, Prevent self-review off, administrators' bypass off,
     deployment from `v*` tags alone, the token as its secret `NPM_TOKEN`, never a repository secret); the variable
     `M3A_O2_PUBLISH=yes`; a tag ruleset `release tags` on `v*` (restrict creations, updates and deletions; only the
-    repository admin bypasses); the tag `v0.56.0` (the session pushed it on #22's merge commit before the ruleset: the
-    owner checks it on the Tags page); Actions, publish, Run workflow with "Use workflow from: Tags → v0.56.0" and
+    repository admin bypasses); the tag `v0.56.0` on #22's merge commit e766496, made by the owner (the session's git
+    connection refuses tag pushes, D131); Actions, publish, Run workflow with "Use workflow from: Tags → v0.56.0" and
     `v0.56.0` as the tag; the publish job approved (Review deployments → npm). Before January 2027 (npm stops taking
     `npm publish` with a granular token): each package's trusted publisher, `npm publish` ticked under Allowed
-    actions. For the sets as release
-    assets: the variable `M3A_O2_RELEASE_ASSETS=yes`, release.yml run on the same tag, the draft release published. **O3 unpaused** by the owner (D130): the branch previews build again.
+    actions. For the sets as release assets: the variable `M3A_O2_RELEASE_ASSETS=yes`, release.yml run on the same tag,
+    the draft release published. **O3 unpaused** by the owner (D130): 2f973fa's preview built; Vercel blocked each
+    later commit before its build (on its side: the owner allows them from the deployment's page).
 - **The follow-ups built (#20, 2026-10-21, the owner's pick):** the m3a bin refuses a Node without `import.meta.main`
   and the hook no longer deletes node_modules under the MCP server (F.1, D121); `STYLE100_RUN/OnHeels_Run` planted by
   its whole sole, the other five `unplanted` loops answered with numbers (F.2, D122); the root-motion rate sweep,
@@ -73,7 +74,8 @@ none during trial batches.
   its connector answers the PR's account (michaelcrosatoDM) with "create a Codex account", so only the owner's
   `@codex review` runs it; an independent reviewer's four findings were fixed in 5c348a8 (D121, D123). On #21 each
   WP's two reviewers' findings were fixed before the PR (D126 to D128); Codex again doesn't serve its account.
-- **Last measured (4 CPUs):** T0 about 3 s warm; T1 63.6 s here (79.1 s in CI on #20); T2 239.8 s here (playwright
+- **Last measured (4 CPUs):** on main at e766496 (0.56.0, #22): T2 300.4 s here (playwright 146.0, QA 11.0, the
+  sweeps 115.0, the rate sample 28.4), all of #22's CI green (T2, the `rates` job, T0/T1); before it: T0 about 3 s warm; T1 63.6 s here (79.1 s in CI on #20); T2 239.8 s here (playwright
   111.6, QA 9.2, the sweeps 96.8, the rate sample 22.2) and 246.2 s in CI on #21 (from 525.2 on #20; playwright
   128.2, QA 5.8, the sweeps 92.5, the rate sample 19.7), its budget 480; CI's `rates` job, the whole rate sweep, 109.0 s,
   done before T2; `pack --check` about 21 to 33 s.
@@ -83,7 +85,10 @@ none during trial batches.
 1. Whatever the owner sends back: a review file (`npx m3a review ingest <file>`, its notes into
    docs/FEEDBACK-LOG.md and a threshold or task proposal into docs/REVIEW-PROPOSALS.md), O8 linked (the contract run,
    the first adoption by the bot), another repository's use confirmed (G10).
-2. The follow-ups below, each a WP of its own when the owner picks it.
+2. B1's floor, the session's call under D131: a WP of its own (B1's grader reads feet from the body's measured floor),
+   then G7's B1 evidence run again (about $12 and 1.5 hours of real agents), its result logged.
+3. The other follow-ups below stay as D131 calls them (deferred or kept, each with its reason) until the owner says
+   otherwise.
 
 ## Follow-ups recorded, owned by no WP yet
 
@@ -154,4 +159,10 @@ none during trial batches.
   `vi.doUnmock` plus `vi.resetModules` after; a test that sets process state puts it back. Check a change with the
   files shuffled (`npx vitest run --sequence.shuffle.files --sequence.seed=<n>`), not the tests: some files run their
   tests in order on purpose.
-- Never push to my-3dge or shardfall (O9); never publish (O2, D99); Claude models only (O10).
+- Never push to my-3dge or shardfall (O9); never publish (O2 answered: the owner starts `publish.yml`, D130); Claude
+  models only (O10).
+- The session's git connection pushes this session's branch alone: a tag push is cut off ("unexpected disconnect").
+  Release tags are the owner's to make (and the `v*` ruleset makes them the owner's alone, D130, D131).
+- The owner's standing rule (D131): a minor decision, or one the owner doesn't answer, is the session's, made forward
+  by the North Star and logged; the owner's evidence (reviews, approvals, adoptions) and what reaches outside the
+  repository stay the owner's.

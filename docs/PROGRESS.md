@@ -4,7 +4,7 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 `PLAN.md` §14; decisions are in `docs/DECISIONS.md`.
 
 **Phase:** all eleven built (10 done: G10's commands passed; its confirmation blocked-owner). **Next gate:** none (M4).
-**Version:** 0.56.0. **Mode:** ultracode (D83). **Last change:** F.9, 45 loops' named contact readings (D129), #22.
+**Version:** 0.56.0. **Mode:** ultracode (D83). **Last change:** F.9 and F.10 (D129, D130), #22; D131, #23.
 
 ## Done
 
@@ -24,7 +24,7 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 
 ## Next
 
-- The owner's steps below; the follow-ups left in docs/HANDOFF.md, each deferred with its reason.
+- The owner's steps below; then B1's floor (D131's call), a WP of its own; the rest as D131 calls them.
 
 ## Blocked on the owner
 
