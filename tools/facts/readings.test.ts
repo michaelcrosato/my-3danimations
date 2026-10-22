@@ -42,7 +42,7 @@ describe("the rule (D129)", () => {
     const pulled = r.checks.filter((c) => /the planter pulls an ankle/.test(c.fails ?? ""));
     expect(pulled.length).toBe(11);
     for (const c of pulled) expect(c.pulls["1"]! >= PULL_BAR, c.reading).toBe(true);
-  });
+  }, 30_000); // every reading of a loop at five speeds: seconds on a shared runner
   it("rejects a reading that plants one foot: a hop's every reading, so its file's stands", () => {
     const { detected, R, captured } = loop("STYLE100/LeftHop_Walk"), r = chooseReading(detected, R, captured);
     expect(r.chosen).toBe("file");
@@ -64,7 +64,7 @@ describe("the rule (D129)", () => {
     // the reading the file carries now is it, and the rule read again keeps it
     expect(best.contacts).toEqual({ ...lib.get("STYLE100_RUN/Rocket_Run")!.clip.contacts, by: "detected" });
     expect(checkReading(lib.get("STYLE100_RUN/Rocket_Run")!.clip, R, "file").fails).toBeUndefined();
-  });
+  }, 30_000); // every reading of a loop at five speeds: seconds on a shared runner
 });
 
 describe("the readings adopted (D129)", () => {
@@ -127,7 +127,7 @@ describe("the readings adopted (D129)", () => {
       expect(Math.abs(pullOf(clip, R, c) / R.H0 - most), id).toBeLessThan(0.001);
       expect(Math.abs(ground(clip, R) - speed), id).toBeLessThan(0.051);
     }
-  });
+  }, 30_000); // 45 loops, each read again and held to the planter: seconds on a shared runner
   it("leaves the 12 the rate sweep, the judge or QA turned down with their detected contacts, the default chain's", () => {
     const rejected = ["QUATERNIUS_SHARDFALL/Crouch_Fwd_Loop", "STYLE100/OnPhoneRight_Walk", "STYLE100/Penguin_Walk", "STYLE100/Robot_Walk", "STYLE100/StartStop_Walk", "STYLE100_RUN/BigSteps_Run", "STYLE100_RUN/Teapot_Run", "STYLE100_RUN/WhirlArms_Run", "STYLE100_SIDE/Monk_SideLeft", "STYLE100_SIDE/Skip_SideLeft", "STYLE100_SIDERUN/Old_SideRunRight", "STYLE100_SIDERUN/WhirlArms_SideRunLeft"];
     for (const id of rejected) {
