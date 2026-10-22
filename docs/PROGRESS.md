@@ -4,7 +4,7 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 `PLAN.md` §14; decisions are in `docs/DECISIONS.md`.
 
 **Phase:** all eleven built (10 done: G10's commands passed; its confirmation blocked-owner). **Next gate:** none (M4).
-**Version:** 0.55.3. **Mode:** ultracode (D83). **Last change:** the follow-ups F.6 to F.8 (D126–D128), #21.
+**Version:** 0.56.0. **Mode:** ultracode (D83). **Last change:** F.9, 45 loops' named contact readings (D129), #22.
 
 ## Done
 
@@ -19,8 +19,8 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 - Phase 9 (G9's commands passed on run 2, #16): the intake, its gates, the adopt bot, B8, B8-ten (WP-9.1); sources
   (9.2); dedup, lineage (9.3); the registry index (9.4) (D112); the verifiers' fixes (D113, D114).
 - Phase 10 (G10's commands passed, #17): the consumer proof and MIGRATING.md (10.1), the conformance kit (10.2) (D116).
-- The audit (D118, D119); the follow-ups F.1 to F.8 (#20, #21, D121–D128): the bin and the hook, contacts, the rate
-  sweep (its rows answered), the manual's names, T1's shared modules, T2 under budget.
+- The audit (D118, D119); the follow-ups F.1 to F.9 (#20 to #22, D121–D129): the bin and the hook, contacts, the rate
+  sweep (its rows answered, 45 loops read by D108's bar), the manual's names, T1's shared modules, T2 under budget.
 
 ## Next
 
@@ -28,11 +28,11 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 
 ## Blocked on the owner
 
-- G8: the phone review of the 20-clip batch (`bench/results/gates/G8-run-1/queue.json`). Asked on #15.
-- G9: O8 linked (`services/intake/README.md`), then the contract suite in Actions and an adoption through a merged
-  PR; the approval of 70% of `bench/results/gates/G9-run-2/queue.json`. Asked on #16.
+- G8: the phone review of the 20-clip batch (`bench/results/gates/G8-run-1/queue-0.56.0.json`). Asked on #15.
+- G9: O8 linked (`services/intake/README.md`; the session may create it once the Supabase connector is connected,
+  D130), the contract suite, an adoption, the approval of 70% of `G9-run-2/queue.json`. Asked on #16.
 - G10: another repository consumes the package or certifies against the vectors, confirmed (O9). Asked on #17.
-- Also: O3 (Vercel previews, paused). D94, #16's proof thread and the stray artifact: answered (D120).
+- O2 answered, publish now (D130): the owner starts `publish.yml` and `release.yml` on `v0.56.0`. O3 unpaused.
 
 ## Last gate
 

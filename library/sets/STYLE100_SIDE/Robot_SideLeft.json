@@ -10,8 +10,8 @@
 "desc": "Sidestepping to the left, robot style: stiff movements arms bending at elbows",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"contacts": {"by":"detected","footL":[[0.623,1.164]],"footR":[[0.213,0.787]]},
-"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[98,101],"seam":0,"speed":33,"travel":[10.6,-30.5]},
+"contacts": {"by":"labelled","footL":[[0.705,1.164]],"footR":[[0.213,0.705]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[98,101],"reading":"lower-quarter","seam":0,"speed":33,"travel":[10.6,-30.8]},
 "provenance": {"src":"100STYLE","take":"Robot_SW 91.60-92.57","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[8,34],"qa":"pass","qaVersion":"m3a-sensors@1"},
 "keys": [

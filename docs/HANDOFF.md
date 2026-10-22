@@ -1,12 +1,13 @@
-# Handoff: every phase built; the follow-ups after G10 built (F.1 to F.8); the owner's steps open (2026-10-22)
+# Handoff: every phase built; the follow-ups after G10 built (F.1 to F.9); the owner's steps open (2026-10-22)
 
 Phase 7 merged before its gate (michaelcrosato/my-3danimations#13, D103); G7 passed on run 2 on
 michaelcrosato/my-3danimations#14 (D107); Phase 8 merged on michaelcrosato/my-3danimations#15 (G8's commands, D111);
 Phase 9 on michaelcrosato/my-3danimations#16 (G9's commands passed on run 2, D115); Phase 10 on
 michaelcrosato/my-3danimations#17 (G10's commands passed on run 1, D117). After it, an audit (D118, D119) on
 michaelcrosato/my-3danimations#18, then the five follow-ups that need nothing from the owner, WP-F.1 to F.5 (PLAN.md
-§10 "After G10", D121 to D125), on michaelcrosato/my-3danimations#20, and three more, WP-F.6 to F.8 (D126 to D128),
-on michaelcrosato/my-3danimations#21. This file is what the next session needs.
+§10 "After G10", D121 to D125), on michaelcrosato/my-3danimations#20, three more, WP-F.6 to F.8 (D126 to D128),
+on michaelcrosato/my-3danimations#21, and WP-F.9 (D129) on michaelcrosato/my-3danimations#22. This file is what the
+next session needs.
 
 ## The standing goal (the owner's)
 
@@ -18,18 +19,34 @@ none during trial batches.
 
 ## Where things stand
 
-- **Version 0.55.3.** Every WP through 10.2 and F.1 to F.8 is done; G0-G7 passed; G8, G9 and G10's command sets passed
+- **Version 0.56.0.** Every WP through 10.2 and F.1 to F.9 is done; G0-G7 passed; G8, G9 and G10's command sets passed
   and each waits on the owner (blocked-owner, its ask on its PR):
-  - **G8** (#15): the phone review of `bench/results/gates/G8-run-1/queue.json`.
+  - **G8** (#15): the phone review of `bench/results/gates/G8-run-1/queue-0.56.0.json` (the same 20 clips as
+    `queue.json`, exported again at 0.56.0: one ref moved, D130). The page is a branch preview's `/src/review/` (O3 is
+    live again) or `npm run gallery` on a checkout, at `/src/review/`: "Open a queue file", decide each clip, Export,
+    and send the file back.
   - **G9** (#16): the contract suite against O8's project; an adoption through a merged PR; the owner's approval of
     70% of `bench/results/gates/G9-run-2/queue.json`. O8's setup is `services/intake/README.md`: the Supabase project,
     the Actions secrets `M3A_SUPABASE_URL` and `M3A_SUPABASE_SERVICE_ROLE_KEY` (intake.yml) and `M3A_INTAKE_SUPABASE`
     (ci.yml's `intake-contract`, dispatched with that gate), and "Allow GitHub Actions to create and approve pull
-    requests".
+    requests". The owner said yes to the session creating the project (D130), but no session has the Supabase
+    connector until the owner connects it (claude.ai/customize/connectors); the next session then creates it and runs
+    the README's steps 1 and 2; the OAuth app, the first sign-in, the secrets and the Actions setting stay the
+    owner's.
   - **G10** (#17): another repository consumes the package or certifies against the vectors, and the owner confirms
     it (O9: proposed in docs/MIGRATING.md and spec/conformance/CERTIFYING.md, never acted on there).
-  - O3 (the Vercel previews, paused, D85) and O2 (publishing: release.yml waits for the repository variable
-    `M3A_O2_RELEASE_ASSETS=yes`) are the owner's; the session creates no Supabase or Vercel resource.
+  - **O2 answered (D130): publish now under `@m3a/*`.** The session built `publish.yml` (WP-F.10) and never publishes;
+    the owner's steps, each as `michaelcrosato` (`tools/bundle/README.md`, "Publishing"): the npm organization `m3a`;
+    a granular token ("Read and write (publish and stage)" on `@m3a` alone, Bypass 2FA, 90 days at most); the
+    environment `npm` (the owner its required reviewer, Prevent self-review off, administrators' bypass off,
+    deployment from `v*` tags alone, the token as its secret `NPM_TOKEN`, never a repository secret); the variable
+    `M3A_O2_PUBLISH=yes`; a tag ruleset `release tags` on `v*` (restrict creations, updates and deletions; only the
+    repository admin bypasses); the tag `v0.56.0` (the session pushed it on #22's merge commit before the ruleset: the
+    owner checks it on the Tags page); Actions, publish, Run workflow with "Use workflow from: Tags → v0.56.0" and
+    `v0.56.0` as the tag; the publish job approved (Review deployments → npm). Before January 2027 (npm stops taking
+    `npm publish` with a granular token): each package's trusted publisher, `npm publish` ticked under Allowed
+    actions. For the sets as release
+    assets: the variable `M3A_O2_RELEASE_ASSETS=yes`, release.yml run on the same tag, the draft release published. **O3 unpaused** by the owner (D130): the branch previews build again.
 - **The follow-ups built (#20, 2026-10-21, the owner's pick):** the m3a bin refuses a Node without `import.meta.main`
   and the hook no longer deletes node_modules under the MCP server (F.1, D121); `STYLE100_RUN/OnHeels_Run` planted by
   its whole sole, the other five `unplanted` loops answered with numbers (F.2, D122); the root-motion rate sweep,
@@ -44,6 +61,14 @@ none during trial batches.
   causes (F.7, D127); the manual teaches the test characters, `loadGlb` in a page and the attached player's `apply()`,
   7,999 of 8,000 (F.8, D128). The briefs re-run with real agents after F.7 and F.8
   (`bench/results/2026-10-22-*`): B1 4/5 (discovery 2/2), B2 to B6 5/5, B7 4/5; G7's variants B1 4/5, B6 4/5, the rest 5/5; B8 5/5, its G9 variant 5/5, B8-ten 1/1: 79 of 83 trials, $13.82; two of the four misses are B1's floor.
+- **F.9 (#22, 2026-10-22, the goal's "fix through the writer what the contacts can fix"):** the 126 failing loops read
+  by a rule written before the sweep was read (`tools/facts/readings.ts`: core's twelve named readings held to D108's
+  bar at five speeds, the one nearest the captured speed), 57 another reading, then vetoed by the sweep, the judge and
+  QA: 45 adopted, written by the importer `labelled` and named in `facts.reading`; spec §7.1 and §7.3 amended
+  compatibly and refrozen (D129, made without the owner's answer: reversible by reverting its commit; dropping the names
+  in `tools/import/sets.ts` and re-importing the 7 sets reverts only the clips, and `rates.json`'s answers come back
+  from 0.55.3). 473 → 428 failing rows (0 added), 108 loops answered; the judge
+  one fail gone, none added; QA 1,015 / 229 / 154. No clip a brief's agent picks moved, so no brief re-ran.
 - **Review bots:** every finding on #14 to #18 is fixed or answered on its thread (D115, D117, D120); on #20 Codex didn't review:
   its connector answers the PR's account (michaelcrosatoDM) with "create a Codex account", so only the owner's
   `@codex review` runs it; an independent reviewer's four findings were fixed in 5c348a8 (D121, D123). On #21 each
@@ -66,10 +91,12 @@ none during trial batches.
   soles (`bench/graders/bones.ts` `bodyOf`), so a foot within 40 to 86 mm of its floor reads as down; D106's "keyed
   runs skim" were that floor and Run_Female's walk-to-run fade, not the loops (the rate sweep passes them). Reading
   from the body's measured floor changes G7's evidence (B1's known-goods and variants): a decision of its own.
-- The rate sweep's 473 failing rows on 126 loops, each loop answered with its cause in `library/baselines/rates.json`
-  (D127): per-loop readings fitted to the sweep would fix 167 rows on 68 loops, not taken (each fitted to the sweep);
-  a start-stop walk's reread moved it into a judge fail on gen-0, so the rule stays narrow. A retimed
-  `STYLE100/Rushed_Walk` (×1.5, ×2) reads a contact the planter pulls 12.2% of H0, from before D127, answered there.
+- The rate sweep's 428 failing rows on 108 loops, each loop answered with its cause in `library/baselines/rates.json`
+  (D127, D129). D129's three calls are the owner's, each reversible: the spec's amendment (`labelled` covering a named
+  reading, `facts.reading`), the six readings new to core (31 of the 45), and the bar ("no failing row added"; "no
+  still-failing row reads worse" would adopt 25). The 12 readings the veto turned down are named in D129; 53 of the 84 rows
+  the 45 still fail read further past their fail level. A retimed `STYLE100/Rushed_Walk` (×1.5, ×2) reads a contact
+  the planter pulls 12.2% of H0 on every reading, answered there.
   The adopt bot doesn't regenerate the baseline: an adopted locomotion loop that fails a row fails the `rates` job
   until baselined or fixed, and must carry an answer.
 - Gates and the rate sweep (D126): a gate's T2 step now holds the two-body sample (8,110 of 24,330 rows); every row

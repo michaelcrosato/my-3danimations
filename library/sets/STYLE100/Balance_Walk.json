@@ -10,8 +10,8 @@
 "desc": "Arms out to side for balance - tilting side to side",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"contacts": {"by":"detected","footL":[[2,3.167]],"footR":[[0.833,2.2]]},
-"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[99,101],"seam":0,"speed":36,"travel":[77.8,2.4]},
+"contacts": {"by":"labelled","footL":[[2.017,3.033]],"footR":[[0.85,2.083]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[99,101],"reading":"planted-quarter","seam":0,"speed":36,"travel":[81.1,2.6]},
 "provenance": {"src":"100STYLE","take":"Balance_FW 18.93-21.12","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[6,38],"qa":"pass","qaVersion":"m3a-sensors@1"},
 "keys": [

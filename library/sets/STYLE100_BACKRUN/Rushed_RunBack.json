@@ -10,8 +10,8 @@
 "desc": "Running backward, rushed style: rushing about swinging arms for extra momentum",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"contacts": {"by":"detected","footL":[[0.148,0.412],[0.874,1.287]],"footR":[[0.082,0.132],[0.544,0.709],[1.105,1.567]]},
-"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[92,101],"seam":0,"speed":129,"travel":[-195.7,-13.6]},
+"contacts": {"by":"labelled","footL":[[0.132,0.462],[0.808,1.303]],"footR":[[0.511,0.726],[1.056,1.748]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[92,101],"reading":"planted-half","seam":0,"speed":129,"travel":[-216.7,-14.2]},
 "provenance": {"src":"100STYLE","take":"Rushed_BR 43.50-45.07","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[10,113],"qa":"pass","qaVersion":"m3a-sensors@1"},
 "keys": [

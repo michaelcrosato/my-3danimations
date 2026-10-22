@@ -34,7 +34,8 @@ export interface Key {
 /** The ends a contact can plant. */
 export const CONTACT_ENDS = ["footL", "footR", "handL", "handR"] as const;
 
-/** Planted intervals per end, in seconds, and whether a tool detected them or a source labelled them. */
+/** Planted intervals per end, in seconds, and whether a tool detected them or they are labelled, played as written (a
+ *  person's or a source's, or a named reading's that `facts.reading` names: spec/MOTION.md §7.1). */
 export interface Contacts {
   by: "detected" | "labelled";
   footL?: [number, number][];

@@ -10,8 +10,8 @@
 "desc": "Running sideways to the left, raised left arm style: raise left arm perpendicular to body",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"contacts": {"by":"detected","footL":[[0.366,0.566]]},
-"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[93,109],"seam":0,"speed":159,"travel":[15.6,-103.4]},
+"contacts": {"by":"labelled","footL":[[0.383,0.516]],"footR":[[0.083,0.35]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[93,109],"reading":"sole-planted-quarter","seam":0,"speed":159,"travel":[37.5,-103.8]},
 "provenance": {"src":"100STYLE","take":"RaisedLeftArm_SR 35.75-36.40","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[11,50],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"warn on seamVelocity: short of every fail level the sensors apply (thresholds.ts)"},
 "keys": [

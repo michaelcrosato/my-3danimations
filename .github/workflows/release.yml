@@ -4,9 +4,10 @@
 # are immutable) and never onto a published release (the upload step checks isDraft). It runs only by hand, and fails
 # closed: its first job stops the run before anything is checked out, built or uploaded unless the repository
 # variable M3A_O2_RELEASE_ASSETS is "yes" (the owner's answer to O2; only an admin sets one) and the repository's
-# owner both started the run and started this attempt (a re-run by anyone else stops). The write token reaches the
-# upload step alone: the checkout keeps no credentials and npm ci runs no install scripts. Actions are pinned by
-# commit SHA (principle 9); the comment names the release.
+# owner both started the run and started this attempt (a re-run by anyone else stops); the assets job checks it again
+# first, so "Re-run failed jobs", which skips the go-ahead, is checked too. The write token reaches the upload step
+# alone: the checkout keeps no credentials and npm ci runs no install scripts. Actions are pinned by commit SHA
+# (principle 9); the comment names the release.
 name: release
 
 on:
@@ -40,7 +41,7 @@ jobs:
             echo "::error title=release::O2 is unanswered (the repository variable M3A_O2_RELEASE_ASSETS isn't \"yes\"): nothing is packaged or uploaded. The owner answers O2 (PLAN.md §13), then sets it."
             exit 1
           fi
-          if [ "$ACTOR" != "$OWNER" ] || [ "$TRIGGER" != "$OWNER" ]; then
+          if [ -z "$OWNER" ] || [ "$ACTOR" != "$OWNER" ] || [ "$TRIGGER" != "$OWNER" ]; then
             echo "::error title=release::Only the repository's owner ($OWNER) starts a release or re-runs one, not $ACTOR (this attempt: $TRIGGER): nothing is packaged or uploaded."
             exit 1
           fi
@@ -55,6 +56,21 @@ jobs:
     env:
       TAG: ${{ inputs.tag }}
     steps:
+      - name: O2 answered by the owner, or nothing runs
+        env:
+          O2: ${{ vars.M3A_O2_RELEASE_ASSETS }}
+          ACTOR: ${{ github.actor }}
+          TRIGGER: ${{ github.triggering_actor }}
+          OWNER: ${{ github.repository_owner }}
+        run: |
+          if [ "$O2" != "yes" ]; then
+            echo "::error title=release::O2 is unanswered (the repository variable M3A_O2_RELEASE_ASSETS isn't \"yes\"): nothing is packaged or uploaded. The owner answers O2 (PLAN.md §13), then sets it."
+            exit 1
+          fi
+          if [ -z "$OWNER" ] || [ "$ACTOR" != "$OWNER" ] || [ "$TRIGGER" != "$OWNER" ]; then
+            echo "::error title=release::Only the repository's owner ($OWNER) starts a release or re-runs one, not $ACTOR (this attempt: $TRIGGER): nothing is packaged or uploaded."
+            exit 1
+          fi
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ inputs.tag }}

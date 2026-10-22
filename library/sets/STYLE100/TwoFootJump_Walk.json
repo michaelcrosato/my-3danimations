@@ -10,8 +10,8 @@
 "desc": "Feet together and jump",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"contacts": {"by":"detected","footL":[[0.583,0.983]],"footR":[[0.516,0.916]]},
-"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[89,111],"seam":0,"speed":61,"travel":[29.5,2.4]},
+"contacts": {"by":"labelled","footL":[[0,0.35]],"footR":[[0.566,0.9]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[89,111],"reading":"lower-quarter","seam":0,"speed":61,"travel":[38.2,2.5]},
 "provenance": {"src":"100STYLE","take":"TwoFootJump_FW 98.57-99.20","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[9,32],"qa":"pass","qaVersion":"m3a-sensors@1"},
 "keys": [

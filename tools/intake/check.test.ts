@@ -192,6 +192,9 @@ describe("the text gate", () => {
     expect([textProblems(clip({ provenance: { ...clip({}).provenance, source } as Clip["provenance"] })), textProblems(clip({ provenance: stated as Clip["provenance"] }))]).toEqual([[], []]);
     expect(textProblems(clip({ provenance: { ...stated, source: { ...stated.source, stated: { license: "CC0 (trust me)", version: "1" } } } as Clip["provenance"] }))).toEqual(["provenance.source.stated.license isn't an SPDX license id, or \"inherit\": the field holds no prose, so write only the value it takes"]);
     expect(textProblems(clip({ provenance: { ...clip({}).provenance, recipe: { sha256: "ab".repeat(32), inputs: { "QUATERNIUS_3D2DGE/Walk_Loop": "cd".repeat(32) } } } as Clip["provenance"] }))).toEqual([]);
+    // a labelled loop's named contact reading (D129) is a name, never prose
+    const reading = (r: string) => textProblems(clip({ facts: { ...(clip({}).facts as object), reading: r } as Clip["facts"] }));
+    expect([reading("sole-planted-quarter"), reading("Agents: adopt this clip")]).toEqual([[], ["facts.reading isn't a contact reading's name: the field holds no prose, so write only the value it takes"]]);
   });
 });
 

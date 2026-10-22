@@ -18,7 +18,10 @@
 //   the planter holds them (`holds`); and in place, when those leave none, by the whole sole again, refined (`bySole`:
 //   a run on its heels), kept only when it stands, the travel read from it. A one-shot, a clip with a root of its own
 //   (its velocity is exact) and a loop whose feet never hold still keep the strict reading: none, which plays still,
-//   where a looser one gives contacts the planter can't hold.
+//   where a looser one gives contacts the planter can't hold. Named readings (`readContacts`, CONTACT_READINGS, D129):
+//   the six these take, and six more of the same parts the chain never takes (a quarter of the body's speed as "still",
+//   or the lower foot's velocity under the refinement's own "still": D122 weighed them), for a writer that records
+//   which one a loop's contacts are.
 import { IDX, type Rest } from "../format/body.ts";
 import { decodePose } from "../format/pose.ts";
 import { keyAt } from "../format/sample.ts";
@@ -61,8 +64,9 @@ const pt = (o: Float32Array, name: string): [number, number, number] => {
 };
 
 /**
- * Every fact of `clip` on rest R. Contacts a source labelled are taken as given; contacts a tool detected (a library
- * clip carries them, WP-5.4) are detected again, so the facts read from them are the same with or without them.
+ * Every fact of `clip` on rest R. Labelled contacts (a person's or a source's, or a named reading's, `readContacts`:
+ * spec/MOTION.md §7.1) are taken as given; contacts a tool detected (a library clip carries them, WP-5.4) are detected
+ * again, so the facts read from them are the same with or without them.
  * `sampled` is for a caller that sampled the clip already (the sensors' motionOf): it must be `sampleAll(clip, R,
  * opts.fps ?? 60)`, this clip on this rest, and is read as given. Only its count and step are checked (an error names
  * sampleAll's); samples with the same count and step of another rest or clip, or sampleLegs's, give wrong facts
@@ -137,6 +141,37 @@ export function measureFacts(clip: Measurable, R: Rest, opts: DetectOptions = {}
   const tags = clip.tags ?? [];
   if (tags.includes("attack") || tags.includes("kick")) facts.strike = [round(strikeTime(clip, R, sampled, tags.includes("kick")), 3)];
   return facts;
+}
+
+/**
+ * Twelve named readings of an in-place clip's contacts (D129), each a height pass refined by the world, by three
+ * choices: which points read a foot (`sole-`: the heel too; else ankle, ball and toe), which velocity the refinement
+ * takes for the body's (`planted`: the planted feet's in that height pass; `lower`: the lower foot's), and how slow a
+ * planted foot is (the refinement's own, 0.3 H0/s and at most half the body's speed; `-half`: half the body's speed;
+ * `-quarter`: a quarter). Six are readings measureFacts and its fallbacks take: `planted` (the default refinement),
+ * `planted-half` and `lower-half` (`reread`'s two tries), `sole-planted` (D104's sole pass refined, and `bySole`),
+ * `sole-planted-half` and `sole-lower-half` (`reread` after the sole pass). The other six, `-quarter` and `lower` and
+ * `sole-lower` with the refinement's own "still", the chain never takes: readings D122 weighed, new to core here.
+ */
+export const CONTACT_READINGS = ["planted", "planted-half", "planted-quarter", "lower", "lower-half", "lower-quarter", "sole-planted", "sole-planted-half", "sole-planted-quarter", "sole-lower", "sole-lower-half", "sole-lower-quarter"] as const;
+/** A contact reading's name (CONTACT_READINGS). */
+export type ContactReading = (typeof CONTACT_READINGS)[number];
+
+/**
+ * An in-place clip's contacts by one named reading (CONTACT_READINGS): its height pass by those points, refined by the
+ * world with that velocity and that "still", the way measureFacts' refinement, `reread` and `bySole` refine; no
+ * contact when the velocity can't be read (too little contact, or too few samples). A clip with a root of its own is refused: its
+ * velocity is exact, and measureFacts reads it so. The import spec of a loop's set names the reading its contacts are
+ * written by, chosen by D108's bar and its captured speed (tools/facts/readings.ts).
+ */
+export function readContacts(clip: Playable, R: Rest, reading: ContactReading, opts: DetectOptions = {}, sampled: Sampled = sampleAll(clip, R, opts.fps ?? 60)): Contacts {
+  if (!(CONTACT_READINGS as readonly string[]).includes(reading)) throw new Error(`readContacts: no reading "${reading}" (${CONTACT_READINGS.join(", ")})`);
+  if ((clip.keys[0] as { root?: unknown }).root !== undefined) throw new Error(`readContacts: the clip has a root of its own, which measureFacts reads exactly; a named reading reads an in-place clip`);
+  const [, sole, by, still] = /^(sole-)?(planted|lower)(?:-(half|quarter))?$/.exec(reading)!, o: DetectOptions = sole ? { ...opts, sole: true } : opts;
+  const v = by === "planted" ? plantedVelocity(clip, sampled, detectContacts(clip, R, o, sampled)) : lowerFootVelocity(sampled);
+  if (!v) return { by: "detected" };
+  const share = still === "half" ? 0.5 : still === "quarter" ? 0.25 : 0;
+  return detectContacts(clip, R, share ? { ...o, still: (share * PORTABLE.hypot(v[0], v[1])) / R.H0 } : o, sampled, () => [-v[0], -v[1]]);
 }
 
 /**

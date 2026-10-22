@@ -31,10 +31,10 @@ export type AnimClip = Pick<Clip, "id" | "dur" | "loop" | "keys"> & Partial<Pick
 
 /**
  * A library clip made ready to play on any body (`const { clip, rest } = library.clip(id)`, then `playable(clip,
- * rest)`): its contacts measured on its own rest unless a source labelled them (the ones a tool detected, which a
- * library clip carries, are detected again: an edit since may have moved its feet), so its feet plant and its planted
- * feet move the root, and its library's spine and neck shares, so its spine and head bend as its library posed them
- * (spec/MOTION.md §3.3).
+ * rest)`): its contacts measured on its own rest unless they are labelled (a source's, or a named reading's: spec §7.1;
+ * the ones a tool detected, which a library clip carries, are detected again: an edit since may have moved its feet),
+ * so its feet plant and its planted feet move the root, and its library's spine and neck shares, so its spine and head
+ * bend as its library posed them (spec/MOTION.md §3.3).
  */
 export function playable<C extends AnimClip>(clip: C, rest: Rest): C & Required<Pick<AnimClip, "contacts" | "shares">> {
   return { ...clip, contacts: measureFacts(clip as never, rest).contacts, shares: { spineW: [...rest.spineW], neckW: rest.neckW } };

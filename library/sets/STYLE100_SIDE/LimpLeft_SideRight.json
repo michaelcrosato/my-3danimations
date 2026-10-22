@@ -10,8 +10,8 @@
 "desc": "Sidestepping to the right, limp left style: keep left leg straight and limp",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"contacts": {"by":"detected","footL":[[0.592,1.58]],"footR":[[0.148,0.79]]},
-"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[99,102],"seam":0,"speed":43,"travel":[17.4,51.8]},
+"contacts": {"by":"labelled","footL":[[0.592,1.514]],"footR":[[0.148,0.773]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[99,102],"reading":"planted-quarter","seam":0,"speed":43,"travel":[18.9,52.6]},
 "provenance": {"src":"100STYLE","take":"LimpLeft_SW 12.08-13.33","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[9,42],"qa":"pass","qaVersion":"m3a-sensors@1"},
 "keys": [

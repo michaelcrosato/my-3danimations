@@ -40,13 +40,14 @@
             "type": "object",
             "required": ["import"],
             "additionalProperties": false,
-            "properties": { "import": { "$ref": "#/$defs/verdict" }, "migrated": { "$ref": "#/$defs/verdict" } }
+            "properties": { "import": { "$ref": "#/$defs/verdict" }, "migrated": { "$ref": "#/$defs/verdict" }, "read": { "$ref": "#/$defs/verdict", "description": "the clip's verdict as written, its contacts by the reading `contacts` names (D129); import and migrated are the versions' before it" } }
           },
           "hands": { "type": "array", "minItems": 1, "maxItems": 2, "items": { "type": "number", "minimum": 0 }, "description": "[re-import] for a new clip, else [migrated, re-import] (mm)" },
           "moved": { "type": "object", "additionalProperties": { "type": "array", "minItems": 2, "maxItems": 2, "items": { "type": "number" } }, "description": "each metric that moved: [migrated, re-import]" },
           "repaired": { "type": "array", "items": { "type": "string" }, "description": "the sensors' fix steps the re-import was repaired with (WP-5.8)" },
           "unrepairedFit": { "$ref": "#/$defs/fit", "description": "the re-import's fit before its repair (mean, worst mm)" },
-          "unrepaired": { "type": "string", "description": "why a re-import the sensors flag wasn't repaired: no step makes it better, or how much further from its source the repair would take it (WP-5.8)" }
+          "unrepaired": { "type": "string", "description": "why a re-import the sensors flag wasn't repaired: no step makes it better, or how much further from its source the repair would take it (WP-5.8)" },
+          "contacts": { "enum": ["planted", "planted-half", "planted-quarter", "lower", "lower-half", "lower-quarter", "sole-planted", "sole-planted-half", "sole-planted-quarter", "sole-lower", "sole-lower-half", "sole-lower-quarter"], "description": "the reading of core's (clip.CONTACT_READINGS) its contacts are written by, labelled, as its set's import spec names it (D129)" }
         }
       }
     },

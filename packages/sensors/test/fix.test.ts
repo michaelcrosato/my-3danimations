@@ -57,6 +57,17 @@ describe("nothing changes silently", () => {
       expect(out.steps.flatMap((s) => s.changes).filter((x) => /^(dur|events|contacts) /.test(x)), op).toEqual([]);
     }
   });
+  it("detects a named reading's contacts again when a step changes the motion, and drops the name (D129)", () => {
+    // a loop whose contacts a named reading gave (facts.reading), with a pop planted for the jitter operator
+    const bw = lib.get("STYLE100/Balance_Walk")!, planted = plant("pop", bw.clip, bw.rest, 7).clip, out = fix(planted, bw.rest, { ops: ["jitter"] });
+    expect(out.steps.find((s) => s.op === "jitter")!.changes.length).toBeGreaterThan(0);
+    expect([out.clip.contacts!.by, "reading" in (out.clip.facts ?? {})]).toEqual(["detected", false]);
+    expect(out.steps.find((s) => s.op === "contacts")!.changes).toEqual(['contacts.by labelled → detected and facts.reading "planted-quarter" dropped: the reading was of the motion before the fix (D129)']);
+    expect(validate(out.clip).ok).toBe(true);
+    // nothing changed, nothing dropped
+    const none = fix(bw.clip, bw.rest, { ops: [] });
+    expect([none.clip.contacts!.by, (none.clip.facts as { reading?: string }).reading]).toEqual(["labelled", "planted-quarter"]);
+  });
   it("leaves a clip with nothing to fix exactly as it was, keys included", () => {
     // a closed loop, and a clean clip, through every operator with a report that finds nothing
     for (const id of ["QUATERNIUS_3D2DGE/Walk_Loop", "CMU_CURATED/Boxing_Guard_Loop", "MESH2MOTION/Idle_A"]) {

@@ -10,8 +10,8 @@
 "desc": "Running backward, elated style: swing arms with spring",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"contacts": {"by":"detected","footR":[[0.65,0.7]]},
-"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[89,104],"seam":0,"speed":189,"travel":[-97.6,-10.3]},
+"contacts": {"by":"labelled","footL":[[0.2,0.533]],"footR":[[0.65,1.1]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[89,104],"reading":"lower-half","seam":0,"speed":189,"travel":[-173.2,-15.7]},
 "provenance": {"src":"100STYLE","take":"Elated_BR 10.35-11.28","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[12,149],"qa":"pass","qaVersion":"m3a-sensors@1"},
 "keys": [

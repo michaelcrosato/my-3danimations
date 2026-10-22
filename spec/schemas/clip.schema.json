@@ -54,7 +54,7 @@
         "properties": {"t": {"type": "number", "minimum": 0}, "name": {"type": "string", "pattern": "^[a-z][a-z0-9_-]*$"}}
       }
     },
-    "facts": {"type": "object", "required": ["by"], "properties": {"by": {"type": "string"}}},
+    "facts": {"type": "object", "required": ["by"], "properties": {"by": {"type": "string"}, "reading": {"type": "string"}}},
     "provenance": {
       "type": "object",
       "required": ["src", "method", "producer", "license", "ai"],

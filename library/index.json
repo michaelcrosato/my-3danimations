@@ -1,7 +1,7 @@
 {
  "about": "The registry index (PLAN.md WP-9.4), written by npm run index from library/sets, the previous index and tools/release/registry.json; npm run index -- --check regenerates it byte for byte. core: each set's versions (content: its clip files' content id, spec/MOTION.md §9.2; digest: the same over all its files), immutable, yanked never deleted. community: packs federated from namespaces verified to their owners, never uploads into the core. npm run index -- verify <SET> <dir> checks a set's files against it.",
  "format": "1",
- "serial": 4,
+ "serial": 5,
  "core": {
   "CMU_CURATED": {
    "versions": [
@@ -16,6 +16,27 @@
      ],
      "clips": 158,
      "bytes": 3067043,
+     "qa": {
+      "baselined": 67,
+      "pass": 91
+     },
+     "review": {
+      "approved": 0,
+      "flagged": 0,
+      "unreviewed": 158
+     }
+    },
+    {
+     "v": 2,
+     "content": "6f97d94be4fff37acb850c1d5006c08d35f4a036c3376f147bf0035fe2f980f1",
+     "digest": "850374c98dc56b57061c7033c43d666bf34263f1694ffef5174009f48d3bfdcf",
+     "title": "CMU motion capture, curated",
+     "tier": "cmu",
+     "licenses": [
+      "LicenseRef-CMU-Mocap"
+     ],
+     "clips": 158,
+     "bytes": 3067151,
      "qa": {
       "baselined": 67,
       "pass": 91
@@ -167,6 +188,27 @@
       "flagged": 0,
       "unreviewed": 95
      }
+    },
+    {
+     "v": 2,
+     "content": "b94cad387f745804d6d39258d6bbb2493d90568bba60f88ce541e48b15fbfa33",
+     "digest": "46740d69a4274acaf607b8fd77ee3995691bc794b026214de2c6148cb7b55e82",
+     "title": "100STYLE walks",
+     "tier": "cc-by",
+     "licenses": [
+      "CC-BY-4.0"
+     ],
+     "clips": 95,
+     "bytes": 680988,
+     "qa": {
+      "baselined": 31,
+      "pass": 64
+     },
+     "review": {
+      "approved": 0,
+      "flagged": 0,
+      "unreviewed": 95
+     }
     }
    ]
   },
@@ -183,6 +225,27 @@
      ],
      "clips": 98,
      "bytes": 588308,
+     "qa": {
+      "baselined": 9,
+      "pass": 89
+     },
+     "review": {
+      "approved": 0,
+      "flagged": 0,
+      "unreviewed": 98
+     }
+    },
+    {
+     "v": 2,
+     "content": "c39bf470dbc6c39b4a8dfce3527908f253172af4cef3eda3efe472a61447d094",
+     "digest": "e078dffcc1e913db057a4a16cd1ccc9fd43fdbae015226f5ef1d36dc4dc8e407",
+     "title": "100STYLE backward walks",
+     "tier": "cc-by",
+     "licenses": [
+      "CC-BY-4.0"
+     ],
+     "clips": 98,
+     "bytes": 588820,
      "qa": {
       "baselined": 9,
       "pass": 89
@@ -211,6 +274,27 @@
      "qa": {
       "baselined": 32,
       "pass": 66
+     },
+     "review": {
+      "approved": 0,
+      "flagged": 0,
+      "unreviewed": 98
+     }
+    },
+    {
+     "v": 2,
+     "content": "a729c6102761e3bb2b45d2bcceb53b5a292731fd9dbfb9aaba29e1b565deada5",
+     "digest": "73056d989cfc1bca840fcfed41a20409091b9fd85a3c8b5a82d554ccaa44eca4",
+     "title": "100STYLE backward runs",
+     "tier": "cc-by",
+     "licenses": [
+      "CC-BY-4.0"
+     ],
+     "clips": 98,
+     "bytes": 553889,
+     "qa": {
+      "baselined": 31,
+      "pass": 67
      },
      "review": {
       "approved": 0,
@@ -309,6 +393,27 @@
       "flagged": 0,
       "unreviewed": 98
      }
+    },
+    {
+     "v": 4,
+     "content": "d6c32f8881b661104603230f5988245e7296a16bca9ab80309184216bee5e454",
+     "digest": "ba9b1aa23efb6ab381ca75874ef5cd8d9b568853a362e7fa8ad3b38bdddd56c4",
+     "title": "100STYLE runs",
+     "tier": "cc-by",
+     "licenses": [
+      "CC-BY-4.0"
+     ],
+     "clips": 98,
+     "bytes": 669897,
+     "qa": {
+      "baselined": 49,
+      "pass": 49
+     },
+     "review": {
+      "approved": 0,
+      "flagged": 0,
+      "unreviewed": 98
+     }
     }
    ]
   },
@@ -334,6 +439,27 @@
       "flagged": 0,
       "unreviewed": 194
      }
+    },
+    {
+     "v": 2,
+     "content": "f451e8313a881a43b63a48f3ab34ee7a1c14abfd4cc8d1473a5604df130b868c",
+     "digest": "c314f91700a196ecaa28aa590e5453fe968b9c71d8f38c9f0091626e3e9d7b7c",
+     "title": "100STYLE sidesteps",
+     "tier": "cc-by",
+     "licenses": [
+      "CC-BY-4.0"
+     ],
+     "clips": 194,
+     "bytes": 1168034,
+     "qa": {
+      "baselined": 7,
+      "pass": 187
+     },
+     "review": {
+      "approved": 0,
+      "flagged": 0,
+      "unreviewed": 194
+     }
     }
    ]
   },
@@ -350,6 +476,27 @@
      ],
      "clips": 193,
      "bytes": 1202226,
+     "qa": {
+      "baselined": 43,
+      "pass": 150
+     },
+     "review": {
+      "approved": 0,
+      "flagged": 0,
+      "unreviewed": 193
+     }
+    },
+    {
+     "v": 2,
+     "content": "d7a5c88cba02036c006cc5d1e68523b956999832547852062a620c7f78523d6d",
+     "digest": "43071294d5d4770a707f86176f3eed2d3512f4086e7a19e71e281124342f50ce",
+     "title": "100STYLE sideways runs",
+     "tier": "cc-by",
+     "licenses": [
+      "CC-BY-4.0"
+     ],
+     "clips": 193,
+     "bytes": 1203144,
      "qa": {
       "baselined": 43,
       "pass": 150

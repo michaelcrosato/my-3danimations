@@ -2410,6 +2410,122 @@ picked by the owner on 2026-10-21. No gate follows them: each is held by its Ver
   the bench as WP-F.4's (`npm run bench -- B<n> --trials 5 --parallel 5` and `--heldout G7` for B1 to B7, B8 with
   `--heldout G9`, `B8-ten --trials 1`)
 
+#### WP-F.9 Honest per-loop contact readings for the rate sweep's failing loops
+- **Owns:** `tools/facts/readings.ts` (new), `tools/facts/readings.test.ts` (new), `packages/core/src/clip/facts.ts`
+  (`readContacts`, `CONTACT_READINGS`), `packages/core/src/clip/index.ts`, `packages/core/src/validate/clip.ts` and
+  `rules.ts` (`facts.reading`: M2-E004, M2-E016, M2-W007), `packages/core/test/clip.test.ts`,
+  `packages/core/test/validate.test.ts`, `packages/library/src/facts/index.ts` (`withReading`, `measure` keeping
+  `facts.reading`), `packages/library/src/index.ts`, `packages/library/test/library/facts.test.ts`,
+  `tools/facts/facts.ts` and `facts.test.ts` (the named-reading rule), `packages/core/src/recipe/track.ts` and
+  `packages/core/test/recipe.test.ts` (a named reading's contacts come into a recipe as detected),
+  `packages/sensors/src/fix/fix.ts` and `packages/sensors/test/fix.test.ts` (detected again after a fix that changes
+  the motion), `packages/tools/src/tools/library-submit.ts` and `tools/intake/check.test.ts` (the text gate takes
+  `facts.reading`), `tools/migrate/adopted.test.ts`, `tools/import/sets.ts` (`contacts` per spec),
+  `tools/import/import.ts` (`specReading`, `unwritten`, the record's `contacts` and `qa.read`, `withAdoption` dropping
+  the name), `tools/import/import.schema.json`;
+  spec/MOTION.md §7.1 and §7.3, `spec/schemas/clip.schema.json`, `spec/frozen.json` (refrozen, D129); `library/sets/`
+  of CMU_CURATED, STYLE100, STYLE100_RUN, STYLE100_BACK, STYLE100_BACKRUN, STYLE100_SIDE and STYLE100_SIDERUN (through
+  `npm run import`), and what the writers write from them: `library/sets.lock.json`, `library/index.json`,
+  `library/baselines/rates.json`, `packages/sensors/fixtures/baseline.json`, `library/baselines/distributions.json`,
+  `docs/LIBRARY.md`; `library/README.md`
+- **Also touches:** `tools/run/changed.ts` and `tools/run/run.test.ts` (`test:changed`'s library rule runs the readings'
+  test too); the doc comments that said `labelled` meant a source's labels (`measureFacts`, `playable`, `Contacts`)
+- **Needs:** WP-F.7 (D127: the answers and `holds`), WP-F.3 (D123: the rate sweep), WP-F.2 (D122), D104, D108
+- **Size:** M (about 650 new lines, tests included; plus the data the tools wrote: 45 clips, 14 set files, rates.json
+  (45 rows and 18 answers gone, 25 answers rewritten), the index, the lock, the sensors' baseline 44 rows, the
+  distributions and LIBRARY.md)
+- **Carry:** none
+- **Trigger:** D127's "per-loop readings would fix 167 rows on 68 loops, none added, each fitted to the sweep: not
+  taken", and the owner's goal: fix through the writer what the contacts can fix, by a reading chosen on D108's own
+  criteria, not on the sweep's result
+- **Build:**
+  - Twelve named contact readings of an in-place loop (`clip.readContacts`, `CONTACT_READINGS`: the points, the
+    velocity, the "still"): the six `measureFacts` and its fallbacks take, each the same as the chain where its path
+    fires, and six the chain never takes, readings D122 weighed, new to core.
+  - The rule (`chooseReading`): each reading held to D108's bar at the loop's own speed and retimed at 0.5, 0.75, 1.5
+    and 2 (both feet, a foot down a fifth of the loop, both ankles within 10% of H0), and of those that pass the one
+    whose ground speed is nearest the captured speed; written down before the sweep was read.
+  - Each loop whose chosen reading differs measured on the rate sweep, the judge and QA; adopted where none is worse.
+  - The adopted readings written by the importer from a name in the set's import spec: `labelled`, the name in
+    `facts.reading` (spec §7.1 and §7.3 amended, compatibly: D129) and in `_import.json`; the validator refuses the name
+    beside contacts not labelled and the facts check holds the contacts to the name; a change to the motion (a recipe,
+    the sensors' fix, an adoption) drops it; the baselines rewritten by their tools; the answers of the loops that
+    still fail written again from their rows.
+- **Done when:**
+  1. The rule is written in the record before any sweep is read for it, its code reads nothing of the sweep, and it
+     gives the same choice again from each loop's motion.
+  2. Every loop whose chosen reading differs is measured on its 30 rate rows, its 6 judge pairs and its QA verdict, and
+     adopted only where it adds no failing row, no judge fail and no worse verdict; the rest keep their contacts, each
+     named with why; the rule's effect before that veto is stated beside the outcome after it.
+  3. The adopted readings are written by `npm run import` from the import spec's names, each set regenerating byte for
+     byte with `--check`, the import refusing a name it can't honour (an adopted clip, a one-shot, a root of its own, a
+     loop tagged off its feet, a reading that doesn't stand, a clip the set doesn't write); each clip names its reading
+     (`facts.reading`), the validator refuses the name beside contacts not labelled, and `npm run facts -- --check`
+     holds each named clip to that reading's contacts and finds a set's import record naming another reading stale;
+     the intake's text gate takes the name; a recipe, the sensors' fix and the adopt bot drop it where the motion
+     changes.
+  4. `npm run sweep -- --rates --baseline` adds 0 rows; every loop that still fails is answered with its rows' numbers.
+  5. QA's verdicts are no worse; the sensors' baseline and the distributions are rewritten with the reason (D129).
+  6. B1's known-good passes in full; T0, T1 and T2 pass; the spec's freeze names D129.
+- **Verify:** `npm run check`; `npm test`; `npm run test:full -- tools/facts/readings.test.ts bench/graders/B1`; `npm run
+  import -- --set <each of the 7> --check`; `npm run index -- --check`; `npm run facts -- --check`; `npm run qa --
+  --check`; `npm run qa -- library --check`; `npm run sweep -- --rates --check`; `npm run vectors -- --check`; `npm run
+  conformance -- --impl ts`; `npm run doctrine`; `npm run sweep -- gen-0 gen-1 gen-2 gen-3 quaternius-mannequin-m
+  kaykit-knight --clip <each of the 45>`
+
+#### WP-F.10 Publishing to npm, O2 answered
+- **Owns:** `.github/workflows/publish.yml` (new), `tools/release/publish.test.ts` (new), `tools/bundle/README.md` (its
+  "Publishing" section, and the two lines above it that said nothing is published until O2)
+- **Also touches:** `.github/workflows/release.yml` and `tools/release/release.test.ts` (its assets job checks the
+  go-ahead first too, so a re-run of that job alone is checked; an empty owner refused), `tools/bundle/build.ts` and
+  `main.ts` (their words on O2)
+- **Needs:** WP-7.4 (the packs, `--publishable`), WP-9.4 (`release.yml`'s go-ahead, the workflows' YAML reader), O2
+  answered (the owner, 2026-10-22: D130)
+- **Size:** M (about 640 new lines, tests included: the workflow 251, its test 319, the README 70 for 19)
+- **Carry:** none
+- **Trigger:** the owner's answer to O2 (PLAN.md §13): keep the working names `@m3a/*`, publish now
+- **Build:**
+  - `publish.yml`, run by hand from a tag `vX.Y.Z`, three jobs. Each job's first step is the go-ahead: it fails closed
+    before anything is checked out unless the repository variable `M3A_O2_PUBLISH` is `yes`, the repository's owner
+    started the run and this attempt, the tag reads `vX.Y.Z` and the run was started from that tag (`github.ref` is
+    `refs/tags/<tag>`: npm's provenance names the run's ref and commit). The `go-ahead` job is that step alone.
+  - A `build` job (`contents: read`, no token): the tag checked out keeping no credentials, Node 24.21.0 with no cache,
+    the tag held to `main`, to its version and to the run's commit (`GITHUB_SHA`), `npm ci --ignore-scripts`, `npm run
+    pack -- --check --publishable`, the eight tarballs uploaded as the artifact `packs`.
+  - A `publish` job (`contents: read`, `id-token: write`, environment `npm`): no checkout, the artifact downloaded,
+    Node 24.21.0 for npm's registry, each tarball's package.json checked, then `npm publish --provenance --access public`
+    of each pack in dependency order, a version already on the registry skipped and said, a failure stopping the rest;
+    the npm token (`secrets.NPM_TOKEN`, the environment's secret) in the publish step's env alone.
+  - Its test, reading the workflow as YAML as `release.test.ts` reads `release.yml`, and running its four scripts on
+    stubs; the README's publishing section rewritten to say what is true now and the owner's steps in order.
+- **Done when:**
+  1. `publish.yml` runs only by hand, and every job's first step, the go-ahead, stops the run before any checkout
+     unless `M3A_O2_PUBLISH` is `yes`, the owner started the run and the attempt, the tag reads `vX.Y.Z` and the run was
+     started from it (its shell run on stub environments); no key lets a check be skipped or ignored (`if`,
+     `continue-on-error`, `shell`, `defaults`: the keys of the workflow, each job and each step are held exactly).
+  2. The OIDC token is the publish job's alone and the npm token its publish step's alone, from the environment `npm`;
+     every expression in the workflow is one of seven named; the build job holds no token; the publish job checks
+     nothing out and runs no code but the workflow's and npm's; the checkout keeps no credentials, npm ci runs no
+     install scripts, no cache is restored (asked for or automatic), and the actions are pinned by commit SHA, as
+     `release.yml` and `ci.yml` pin them where they do, the comment naming the release.
+  3. A tag off `main`, at a version its package.json isn't at, or at another commit than the run's publishes nothing
+     (the tag step run in a scratch repository).
+  4. The packs are proved from the tag with nothing fetched first: `npm run pack -- --check --publishable` passes in a
+     clean copy of the commit, after `npm ci --ignore-scripts`, with no rig or pinned source in `.cache/`.
+  5. Every pack `build.ts` makes is published, each after every `@m3a` package it needs: the workflow's order equals
+     the one derived from `build.ts`'s packages, the library's opt-in packs and the manifests they ship with; a tarball
+     at another version, kept private, naming another repository, needing another version, out of order, missing or
+     extra fails the tarball step (run on tarballs the test makes, and on the real eight as the artifact gives them).
+  6. A version already on the registry is skipped and said, so a re-run after a partial failure publishes the rest and
+     never fails on a published version; a failed publish stops the packs after it; a registry answering neither the
+     version nor E404 stops it; each failure names the codes npm gives a token it refuses; no token, nothing runs (the
+     publish step run on a stub npm). On the real tarballs the loop goes through all eight with `npm publish --dry-run`.
+  7. `tools/bundle/README.md` says O2 is answered (D130), what the workflow does, and the owner's eight steps in order (the tag ruleset and the token's kind after a verifier's review).
+  8. The first real publish *(deferred proof: the owner's first run of `publish.yml`, each package's npm page showing
+     its provenance from the tag's commit)*.
+- **Verify:** `npx vitest run tools/release/publish.test.ts tools/release/release.test.ts`, `npm run pack -- --check
+  --publishable`, `npm run check`, `actionlint .github/workflows/publish.yml`
+
 ### On demand
 
 Each starts only when its trigger fires; record the measurement that fired it. A trigger that never fires means the WP
@@ -2509,13 +2625,13 @@ them.
 | Id | Decision | Default | Why | When |
 |---|---|---|---|---|
 | **O1** | The code license | **Answered: MIT** (the owner, 2026-10-11; `LICENSE` committed) | Matches my-3d2dge; permissive, so the package can become a standard | WP-0.1 logs it |
-| **O2** | Package names and publishing (npm, crates, release assets, a public benchmark) | Build everything, publish nothing, use the working names `@m3a/*` and `m3a` | Publishing can't be taken back | WP-7.4, 9.4 |
-| **O3** | A Vercel project for previews | **Answered: linked, then paused by the owner until the project is complete** (2026-10-14, D85); `vercel.json` prepared; while it is paused, demos run locally and in CI | Linking reaches outside the repo | WP-4.6, 8.3 |
+| **O2** | Package names and publishing (npm, crates, release assets, a public benchmark) | **Answered: publish now, under the working names `@m3a/*` and `m3a`** (the owner, 2026-10-22, D130): npm from `publish.yml` with provenance, the sets as release assets from `release.yml`, each started by the owner alone; before it, build everything and publish nothing | Publishing can't be taken back | WP-7.4, 9.4, F.10 |
+| **O3** | A Vercel project for previews | **Answered: linked, paused by the owner (2026-10-14, D85), then unpaused (2026-10-22, D130)**: every branch builds its preview from `vercel.json` | Linking reaches outside the repo | WP-4.6, 8.3 |
 | **O4** | Purchases (Quaternius UAL1 Pro, $9.99; UAL2 Source, $14.99) | Free editions only | Spending | WP-5.3 |
 | **O5** | External generative services (cost, keys, output terms) | None. The socket ships with library, recipe and procedural sources and a mock | Spending, plus license risk | WP-9.2, D.9 |
 | **O6** | CC BY content (100STYLE) | Accept it, in its own opt-in set (CC0 is the default pack, D10), with a credits tool | 18.5 h of locomotion styles; attribution is cheap to automate | WP-1.5, 5.3 |
 | **O7** | Who adopts contributions | **Answered: the owner adopts every clip** (2026-10-11), after the automated checks; nothing is adopted automatically | Human review before adoption is what kept registries clean | WP-8.2, 9.1 |
-| **O8** | Where submissions and reviews are stored | **Answered: a Supabase project, free tier** (the owner, 2026-10-11). Until it is linked, the local store stands in and phone reviews travel as a JSON export | A hosted inbox lets any agent submit without access to the repository; the repository stays the library | WP-8.2, 9.1 |
+| **O8** | Where submissions and reviews are stored | **Answered: a Supabase project, free tier** (the owner, 2026-10-11); the session may create it (the owner, 2026-10-22, D130), through the Supabase connector, which a session has only once the owner connects it. Until it is linked, the local store stands in and phone reviews travel as a JSON export | A hosted inbox lets any agent submit without access to the repository; the repository stays the library | WP-8.2, 9.1 |
 | **O9** | Acting in other repositories (switching my-3dge's animator WPs 3.4–3.7 and its Phase 8 to this package; certification PRs in shardfall) | Propose, don't act | Reaches outside the repo | WP-10.1, 10.2 |
 | **O10** | Keys for other vendors' models in the benchmark (GPT, Gemini and others) | Claude models only, through the session's own access | Keys are spending and credentials | WP-4.7, G7 |
 | **O11** | Rights to the code and data carried from riftlight, shardfall and my-3d2dge-2, which have no repository license file | **Answered: MIT, granted by their author** (the owner, 2026-10-11); third-party clips keep their per-set licenses (D10) | §4 carries their code into this MIT repository | WP-0.1 logs it |
@@ -2607,6 +2723,8 @@ commits named here are on their PR branches (`refs/pull/<n>/head`).
 | F.6 T2 back under its budget in CI | done | 0.55.3 | 4d2b0da, 3756241 | 2026-10-22 | `npm run e2e`: T2 here 362.2 s → 293.3 s (297.6 on a patched clone): Playwright on four workers 169 → 133 s, every test within its timeout (mcp-smoke's every-example test 180 s); the rate step sweeps gen-0 and the knight whole (8,110 of 24,330 rows, byte for byte the whole run's) and ci.yml's `rates` job all six on every pull request (D126); `t2Steps()` tested, nine mutants of e2e.ts killed; CI on #21: T2 246.2 s (from 525.2: playwright 128.2, QA 5.8, the sweeps 92.5, the rate sample 19.7), the `rates` job's whole sweep 109.0 s beside it |
 | F.7 The rate sweep's failing rows triaged | done | 0.55.3 | 3ba4efe | 2026-10-22 | `npm run sweep -- --rates --check`: 473 failing rows on 126 loops (479 on 128), 0 added, 126 of 126 answered with 7 causes; `measureFacts` rereads a loop whose refinement keeps one foot a moment after a height pass holding both feet throughout, held within 10% of H0 (retimed too): Robot_Run and Swimming_Run plant both feet (pull ≤4.3%, ground 0.81 and 1.05 of captured); the judge adds no fail; facts, import, index, QA (1,014/230/154) unchanged elsewhere; 17 of 19 mutants killed, 2 equivalent over 4,965 readings (D127) |
 | F.8 The manual's last names | done | 0.55.2 | 5b93247 | 2026-10-22 | `npm run doctrine`: the manual 7,999 of 8,000; `manual.test.ts` 9 passed: `character(variant(7)).glb` through `loadGlb` (Node or a page), `variant(7).id` = gen-7, `TEST_SEEDS`, the attached player's `apply()` and `bound`; Ship and the actions example shorter; no rule a brief uses lost a word; MIGRATING gap 10 closed but for gap 1's names (D128); the briefs re-run with real agents (`bench/results/2026-10-22-*`, the packages at b7528b1): B1 4/5 (discovery 2/2), B2 to B6 5/5, B7 4/5; G7's variants B1 4/5, B6 4/5, the rest 5/5; B8 5/5, its G9 variant 5/5, B8-ten 1/1: 79 of 83 trials, $13.82; the four misses B1's floor (two), a jump left on the ground, a mirrored strike 10% off |
+| F.9 Honest per-loop contact readings | done | 0.56.0 | 2f973fa; review fixes (this PR) | 2026-10-22 | `npm run sweep -- --rates --check`: 428 failing rows on 108 loops (473 on 126), 0 added, 108 of 108 answered; the rule, written before the sweep was read, gave 57 loops another reading, 45 adopted after the sweep, judge and QA veto (12 kept their file's), written `labelled` with `facts.reading` (planted-quarter 19, planted-half 10, sole-planted-quarter 7, lower-quarter 3, lower 2, sole-planted-half 2, sole-planted 1, lower-half 1); the judge one fail gone, none added; QA 1,015 / 229 / 154; each set's import `--check` byte for byte, facts 0 stale; spec §7.1 and §7.3 amended, refrozen (D129); two adversarial reviewers' findings fixed |
+| F.10 Publishing to npm (O2 answered) | done | 0.56.0 | (this PR) | 2026-10-22 | `npx vitest run tools/release/publish.test.ts tools/release/release.test.ts`: 37 passed (16 publish, 21 release); 36 edits to `publish.yml`, one at a time, each fail its test; `npm run pack -- --check --publishable` in a clean copy after `npm ci --ignore-scripts`, nothing fetched: PASS, 8 packs; the publish loop with `npm publish --dry-run` on the real tarballs: 8 in dependency order; two adversarial reviewers' nine findings fixed (the run from the tag for provenance, the go-ahead in every job, the environment `npm`, no checkout beside the token); `actionlint` clean; the first real publish is the owner's (D130) |
 
 ---
 

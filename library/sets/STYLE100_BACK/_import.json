@@ -381,11 +381,13 @@
     ]
    },
    "qa": {
-    "import": "pass"
+    "import": "pass",
+    "read": "pass"
    },
    "hands": [
     8.6
-   ]
+   ],
+   "contacts": "planted-quarter"
   },
   "Drunk_WalkBack": {
    "kept": "new",
@@ -687,11 +689,13 @@
     ]
    },
    "qa": {
-    "import": "pass"
+    "import": "pass",
+    "read": "pass"
    },
    "hands": [
     4.6
-   ]
+   ],
+   "contacts": "planted-quarter"
   },
   "LeftHop_WalkBack": {
    "kept": "new",
@@ -863,11 +867,13 @@
     ]
    },
    "qa": {
-    "import": "pass"
+    "import": "pass",
+    "read": "pass"
    },
    "hands": [
     4.1
-   ]
+   ],
+   "contacts": "planted-quarter"
   },
   "OnHeels_WalkBack": {
    "kept": "new",
@@ -1126,11 +1132,13 @@
     ]
    },
    "qa": {
-    "import": "pass"
+    "import": "pass",
+    "read": "pass"
    },
    "hands": [
     6.7
-   ]
+   ],
+   "contacts": "planted-quarter"
   },
   "Rocket_WalkBack": {
    "kept": "new",
@@ -1158,12 +1166,14 @@
     ]
    },
    "qa": {
-    "import": "fail"
+    "import": "fail",
+    "read": "fail"
    },
    "hands": [
     13.5
    ],
-   "unrepaired": "twistFlips would take it 9 mm further from its source on average, 460 mm at worst"
+   "unrepaired": "twistFlips would take it 9 mm further from its source on average, 460 mm at worst",
+   "contacts": "planted-half"
   },
   "ShieldedLeft_WalkBack": {
    "kept": "new",
@@ -1256,12 +1266,14 @@
     ]
    },
    "qa": {
-    "import": "warn"
+    "import": "warn",
+    "read": "warn"
    },
    "hands": [
     6.6
    ],
-   "unrepaired": "no step makes it better"
+   "unrepaired": "no step makes it better",
+   "contacts": "planted-quarter"
   },
   "Stiff_WalkBack": {
    "kept": "new",

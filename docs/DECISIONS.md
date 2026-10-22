@@ -5182,3 +5182,156 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   `m3a help`, the action's check), not from the sections the briefs use.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.55.2
+
+## D129 · 2026-10-22 · The rate sweep's failing loops read by D108's bar and their captured speed: 45 loops given a named contact reading, labelled and named in `facts.reading` (spec §7.1 and §7.3 amended), 45 rows gone
+
+- **Principle:** 3, 8, 10 (provenance: the clip says where its contacts came from), 11, D104, D108, D119 (spec §7.1,
+  frozen), D122, D123, D127 (its "per-loop readings ... fitted to the sweep: not taken"), WP-F.9
+- **Call:**
+  - **What was asked:** D127 left 473 failing rate rows on 126 loops answered, and "per-loop readings would fix 167
+    rows on 68 loops ... each fitted to the sweep: not taken". The owner's goal: fix through the writer what the
+    contacts can fix. So a per-loop reading, but chosen by D108's own criteria, not by the sweep's result.
+  - **The rule, written before the sweep was read** (`tools/facts/readings.ts`, which imports `@m3a/core` alone): for
+    each of the 126 loops, the file's reading and core's twelve named ones (`clip.CONTACT_READINGS`: ankle, ball and toe
+    or the whole sole; the planted feet's or the lower foot's velocity; the refinement's "still", half or a quarter of
+    the body's speed) are held to D108's bar at the loop's own speed and retimed at 0.5, 0.75, 1.5 and 2, read afresh
+    and moved with the keys: both feet plant, a foot is down a fifth of the loop, the planter holds both ankles within
+    10% of H0. Of those that pass, the one whose ground speed (to a tenth of a percent of H0 a second) is nearest the
+    captured speed; a tie keeps the file's, then the earlier name (the order decided 11 of the 45 adopted). With no
+    captured speed (12) or none that passes (20) the file's stays; 37 keep the file's as nearest; 57 get another. In
+    full the rule gives the same 126 results again from the files.
+  - **Six of the twelve readings are new to core:** six (`planted`, `planted-half`, `lower-half`, `sole-planted`,
+    `sole-planted-half`, `sole-lower-half`) are the readings `measureFacts` and its fallbacks take where their paths
+    fire; the other six (`planted-quarter`, `lower`, `lower-quarter`, `sole-planted-quarter`, `sole-lower`,
+    `sole-lower-quarter`: a quarter of the body's speed as "still", or the lower foot's velocity under the refinement's
+    own), which no path takes, are the new ones. D122 weighed them before the rate sweep existed, so they aren't fitted to it. 31 of the 45 adopted
+    are among them (`planted-quarter` 19, `sole-planted-quarter` 7, `lower-quarter` 3, `lower` 2); restricted to the
+    six the chain takes, 31 loops would get another reading, not 57.
+  - **Then vetoed by the sweep, the judge and QA:** each of the 57 played on its 30 rate rows, its 6 judge pairs and
+    its QA verdict, and adopted only where none is worse. Before the veto the 57 take their 174 failing rows to 125 (61
+    dropped, 12 added on 8 loops), add 3 judge fails (2 gone) and one worse verdict. 45 adopted (45 rows dropped, none
+    added); 12 keep their file's, which would have dropped 16 rows: 8 would add a failing row (`Penguin_Walk`,
+    `Monk_SideLeft`, `OnPhoneRight_Walk`, `Robot_Walk`, `WhirlArms_Run`, `Old_SideRunRight`, `Teapot_Run`,
+    `BigSteps_Run`), 3 a judge fail (`QUATERNIUS_SHARDFALL/Crouch_Fwd_Loop` on gen-1, `StartStop_Walk` again on gen-0
+    as in D127, `WhirlArms_SideRunLeft` on the knight), 1 a worse verdict (`Skip_SideLeft`, pass → warn). The veto reads each loop's own result, so "0 added"
+    holds by construction; some calls turn on margins near the noise (`BigSteps_Run`'s gen-2 row at 1.5, skate 43.7
+    against 43.4, where it would have dropped 5).
+  - **How a reading is written, and why `labelled`:** core detects a `detected` clip's contacts again wherever it plays
+    it, so a reading written as `detected` would be thrown away at play. A set's import spec names the reading per clip
+    (`tools/import/sets.ts`); the importer writes it with @m3a/library's `withReading` (core's `clip.readContacts`,
+    refusing a reading D108 wouldn't keep: a one-shot, a loop off its feet, a root of its own, a reading that doesn't
+    stand) as `labelled` contacts, played as written and moved with the keys when a game retimes the loop, and records
+    the name in `_import.json`. But spec §7.1 said `labelled` meant a person or a source labelled them, and a tool read
+    these: the clip would misstate its contacts' provenance (Principle 10), the name only in `_import.json`.
+  - **The spec amended, compatibly (a decision made without the owner's answer):** §7.1 now says `labelled` contacts
+    are played as written, whoever wrote them: a person, a source, or a tool that chose one of core's named readings of
+    the clip's own motion, which `facts.reading` then names, and that `facts.reading` appears only beside labelled
+    contacts; §7.3 lists `reading` among the known facts (a name, not a measure), and the clip schema's `facts` takes
+    it. A new `by` word or a `contacts.reading` key was weighed and not taken: 0.55.3's validator refuses either
+    (M2-E016), while a key in `facts` (an open object) passes every 0.55.3 validator in read and lint mode, and its
+    `parseClip`, `playable` and `measure` take the 45 as given. The intake's text gate took no `facts.reading` before
+    0.56.0 (a 0.55 intake bounces a submission carrying it), which adds it to the fields it takes, by its shape. Core's
+    validator now refuses `facts.reading` beside contacts not labelled (M2-E016) or not a string (M2-E004), and in lint
+    mode warns on a name it doesn't know (M2-W007; read mode accepts it, a later implementation's). Spec 2.0-rc refrozen
+    under this decision.
+  - **Where the name travels:** `withReading` writes it and `measure` keeps it on labelled contacts; `npm run facts --
+    --check` holds each clip that names a reading to that reading's contacts on its motion today, and a set's import
+    record that names another reading for it is stale, so an edit to the contacts or the name is stale with its facts
+    measured again. A change to the motion drops it: core's time ops drop every fact (their contacts move with the
+    keys, as the rule held them retimed); a recipe takes a named reading's contacts as detected, so its result's are
+    detected again, as before this decision; the sensors' fix, when a step changes the motion, detects them again and
+    drops the name; the adopt bot's record names no reading for an adopted clip (it keeps the contacts it was adopted
+    with). The import record keeps the verdicts it chose between and adds `qa.read`, the clip's as written with the
+    reading (`DragLeftLeg_RunBack`: import warn, read pass).
+  - **The facts' travel moves:** an in-place loop's `travel` is read from its contacts, so 44 of the 45 move, ×0.99 to
+    ×1.78 in length (the backward runs `PendulumHands_RunBack`, `Elated_RunBack`, `DragLeftLeg_RunBack` most; the
+    other 37 within 11%), `RaisedLeftArm_SideRunLeft`'s heading turning 11°; `speed` stays the captured one.
+  - **What it gives:** 473 → 428 failing rows (0 added, 45 dropped), 126 → 108 loops answered; 18 loops fail no row;
+    25 answers written again from their rows (two change cause: `Quail_SideLeft` unheld-step, `Robot_SideRunRight`
+    edge-slide). The judge on the six sweep skeletons: 267 of 270 pairs pass, one fail gone (`Elated_RunBack` on
+    gen-3), none added, the 3 knight seam fails as before; 25 warns listed against 19 (D80). QA 1,015 / 229 / 154:
+    `DragLeftLeg_RunBack` warn → pass, nothing worse.
+  - **What it doesn't:** of the 84 rows the 45 still fail, 53 read further past their fail level (on 20 loops; the
+    worst `Flapping_SideRight` on the knight at 2, skate 17.1 → 25.7 cm/s against 16.2). The bar was "adds no failing
+    row"; a stricter one (no failing row reads worse) would adopt 25.
+  - **The baselines, admitted here:** the sensors' readings move on 44 clips, both ways (slide 22 worse and 22 better,
+    skate 24 and 18, skateMean 21 and 23); the distributions' p95s improve (slide 123 → 122, skate 22.5 → 22.4,
+    skateMean 19.8 → 19.4) and two p50s worsen in their last digits (skate 5.31 → 5.36, skateMean 4.75 → 4.76): four
+    clips that read a skate of 0 (no contact long enough to read) now read one (8.4 to 15.9 cm/s), and contacts that
+    hold both feet move the root the sensors read the world by.
+  - **None of the clips the briefs' agents pick moves:** the 45 are 100STYLE's and one CMU loop, opt-in tiers; the
+    core jogs, Mesh2Motion's runs and the Quaternius sets keep their contacts byte for byte. B1's known-good passes.
+- **Why:** a reading picked by the sweep's own result is fitted to the sweep; one picked by D108's criteria and the
+  captured speed, and only then vetoed where the sweep, the judge or QA find it worse, is a reading the loop's motion
+  supports (the veto only keeps a file's contacts, never picks among readings). Written `labelled` with its name in
+  the clip, every reader plays the chosen reading and can tell it from a source's labels, with no validator refusing
+  it.
+- **Answered:** no: made without a response, to review. Three calls stay the owner's, each reversible by reverting
+  this decision's commit: the spec's amendment (its data alone reverts by dropping the names in `tools/import/sets.ts`,
+  re-importing the 7 sets and `npm run index`, with `library/baselines/rates.json` taken back from 0.55.3, whose 18
+  dropped answers and 25 rewritten ones `--baseline` can't write, and the sensors' baseline and the distributions
+  rewritten under a logged decision, since their p95s worsen; the spec's text, schema, freeze and validator rules stay
+  until a decision reverts them), the six readings new to core, and the bar ("no failing row added" against "no
+  still-failing row reads worse").
+- **Landed in:** v0.56.0
+
+## D130 · 2026-10-22 · The owner's answers: O2 publish now under `@m3a/*`, O3 unpaused, O8's project the session may create; G8 and G10 wait
+
+- **Principle:** O2, O3, O8 (PLAN.md §13), D85, D99, D110, WP-F.10
+- **Call:**
+  - **What the owner said** (2026-10-22, in the session, to the list of what G8 to G10 and the optional items need):
+    "the hosted intake (O8) and your approvals, "yes" you can create, o3 unpacked, ok for o2, wait for g8 and g10".
+    Asked which "ok for o2" meant (wait until G8 to G10 close, as recommended, or set publishing up now): "Is there any
+    downside really publishing now? Its a repo of 0 stars, followers, forks and its based off of theory and is still
+    untested go ahead, lets move forward if there nothing significant to gain by waiting". Asked whether they or the
+    session unpaused O3: "I unpaused it".
+  - **O2, answered: publish now, the working names kept.** On 2026-10-22 npm has no `@m3a` scope (`Scope not found`)
+    and no package `m3a` or `@m3a/core`, so the names are free; the repository is public, which npm's provenance
+    needs. Nothing to gain by waiting outweighs it: the version is 0.x, so a later minor version may break; a published
+    version is immutable (npm lets its owner unpublish within 72 hours while nothing depends on it, and deprecate it
+    after); the CC BY and CMU opt-in packs carry their credits and license texts (D10, `pack --check`). The session
+    builds `publish.yml` (WP-F.10) and never publishes: as with `release.yml` (D99), only the repository's owner starts
+    a run, behind a repository variable the owner sets, with a token the owner adds. The owner's steps are in
+    `tools/bundle/README.md` ("Publishing") and docs/HANDOFF.md.
+  - **How it is published (WP-F.10):** `.github/workflows/publish.yml`, run by hand from a release tag `vX.Y.Z` (Use
+    workflow from: Tags; npm's provenance names the run's ref and commit, so the run must start from the tag). Each of
+    its three jobs first checks the go-ahead and stops before anything is checked out unless the repository variable
+    `M3A_O2_PUBLISH` is `yes`, the repository's owner started both the run and this attempt, the tag reads `vX.Y.Z` and
+    the run was started from it; every job checks it, so a re-run of one job alone is checked too. The build job
+    (`contents: read`, no token) checks the tag out keeping no credentials, holds it to `main`, to the version its
+    package.json files are at and to the run's commit, installs with `npm ci --ignore-scripts` and no cache, proves the
+    packs with `npm run pack -- --check --publishable` and hands the tarballs on as an artifact. The publish job
+    (`contents: read`, `id-token: write`, the environment `npm`) checks nothing out, so no repository code or dev
+    dependency runs beside the tokens; it reads each tarball's package.json (at the tag's version, publishable, this
+    repository's, after every `@m3a` package it needs) and publishes the eight with `npm publish --provenance --access
+    public` in dependency order: `core`, `sensors`, `io`, `library`, `library-cc-by`, `library-cmu`, `three`, `tools`.
+    The npm token is the environment `npm`'s secret `NPM_TOKEN` (a granular token, read and write on `@m3a`, bypassing
+    2FA, 90 days at most): only a `v*` tag deploys to that environment, the owner approves each run of the job, and the
+    token reaches the publish step alone. A version already on the registry is skipped and said, so a re-run after a
+    partial failure publishes the rest and never fails on an immutable version; a failure stops the packs after it,
+    which need it. `tools/release/publish.test.ts` holds each of these (36 edits to the workflow, one at a time, each
+    fail it), running the go-ahead, the tag check, the tarball check and the publish loop on stubs; a dry run (`npm
+    publish --dry-run`) of the publish job's two steps on 0.56.0's tarballs went through all eight. The owner's steps:
+    create the npm organization `m3a`; create the token ("Read and write (publish and stage)": a "(stage only)" token
+    fails `npm publish` with E_STAGE_REQUIRED); create the environment `npm` with the owner as its required reviewer,
+    deployable from `v*` tags, the token as its secret; set `M3A_O2_PUBLISH=yes`; protect the `v*` tags with a tag
+    ruleset only the owner bypasses (a run uses the tag's own `publish.yml`, so whoever moves a tag chooses the code a
+    run executes; a third reviewer found it); tag `main` at a version not yet published; run the workflow from that
+    tag; approve the publish job (`tools/bundle/README.md`, "Publishing"). Moving to npm's trusted publishing (no
+    long-lived token) waits for the packages to exist, and must come before January 2027, when npm stops taking `npm
+    publish` with a granular token.
+  - **O3, unpaused by the owner:** the branch's commit 2f973fa built ("Deployment has completed", the first since D85's
+    pause), so every branch builds its preview from `vercel.json` again; G8's review page is at a preview's
+    `/src/review/` (it opens a queue file; the preview site never bundles one).
+  - **O8, the session may create the Supabase project:** this session has no Supabase connector (it isn't connected
+    to the account, and connectors are read when a session starts), so it creates nothing; once the owner connects it,
+    a new session creates the free-tier project and runs `services/intake/README.md`'s steps 1 and 2. The GitHub sign-in
+    (an OAuth app), the owner's first sign-in, the Actions secrets and "Allow GitHub Actions to create and approve pull
+    requests" stay the owner's (steps 3 to 6). G9 stays blocked-owner on them.
+  - **G8 and G10 wait.** G8's batch exported again at 0.56.0 (`bench/results/gates/G8-run-1/queue-0.56.0.json`): the
+    same 20 clips in the same order, one ref moved (`STYLE100_BACKRUN/Elated_RunBack`, whose contacts D129 changed), so
+    a decision made on it isn't refused as stale.
+- **Why:** each is the owner's own answer, applied as far as the session can take it; publishing stays in the owner's
+  hands to the last step, and nothing the session can't reach (the Supabase connector) is stood in for.
+- **Answered:** yes: the owner's words above.
+- **Landed in:** v0.56.0

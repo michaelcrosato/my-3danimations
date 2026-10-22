@@ -6,6 +6,7 @@ import { ANGLE_MAX, ANGLE_WARN, CLIP_FIELDS, CONTACT_ENDS, FORMAT, IPTC, KEY_FIE
 import { Findings, nearest, type Result, type Where } from "./issues.ts";
 import { PORTABLE as PM } from "../math/portable.ts";
 import { SOURCE_NAME } from "../sources/types.ts";
+import { CONTACT_READINGS } from "../clip/facts.ts";
 
 /** Validation options: `read` accepts unknown fields; `lint` flags them. */
 export interface ValidateOptions {
@@ -77,6 +78,7 @@ export function validateClip(data: unknown, opts: ValidateOptions = {}): Result 
   quality(f, at, data.quality);
   if (data.review !== undefined) review(f, at, data.review);
   if (data.facts !== undefined && (!isObj(data.facts) || typeof data.facts.by !== "string")) f.add("M2-E004", at({ field: "facts" }), "facts is an object with \"by\": the tool that measured them", "facts are written by tools (spec/MOTION.md §7.3)");
+  else if (isObj(data.facts) && data.facts.reading !== undefined) reading(f, at, data.facts.reading, data.contacts, lint);
   if (lint) for (const k of Object.keys(data)) if (!(CLIP_FIELDS as readonly string[]).includes(k)) f.add("M2-W001", at({ field: k }), `unknown field "${k}"`, nearest(k, CLIP_FIELDS) ? `did you mean "${nearest(k, CLIP_FIELDS)}"?` : "readers ignore it; remove it or propose it for the next minor version");
 
   // ---- keys
@@ -264,6 +266,14 @@ function review(f: Findings, at: (w?: Where) => Where, r: unknown): void {
   if (typeof r.by !== "string") f.add("M2-E004", at({ field: "review.by" }), "review.by names the reviewer");
   if (typeof r.date !== "string" || !DATE.test(r.date)) f.add("M2-E017", at({ field: "review.date" }), `date ${JSON.stringify(r.date)} is not YYYY-MM-DD`);
   if (typeof r.motion !== "string" || !HEX64.test(r.motion)) f.add("M2-E017", at({ field: "review.motion" }), "review.motion is the SHA-256 of the motion reviewed, 64 lower-case hex digits");
+}
+
+// facts.reading names the reading that gave labelled contacts (spec/MOTION.md §7.1, §7.3, D129): on any other contacts
+// it misstates them. A name this reader doesn't know is a later implementation's, so only lint flags it.
+function reading(f: Findings, at: (w?: Where) => Where, r: unknown, c: unknown, lint: boolean): void {
+  if (typeof r !== "string") return void f.add("M2-E004", at({ field: "facts.reading" }), "facts.reading is the name of a contact reading");
+  if (!isObj(c) || c.by !== "labelled") f.add("M2-E016", at({ field: "facts.reading" }), `facts.reading "${r}" names the reading of labelled contacts, and contacts.by is ${JSON.stringify(isObj(c) ? c.by : undefined)}`, "a reading's contacts are labelled (spec/MOTION.md §7.1); remove facts.reading, or write the reading's contacts");
+  else if (lint && !(CONTACT_READINGS as readonly string[]).includes(r)) f.add("M2-W007", at({ field: "facts.reading" }), `facts.reading "${r}" is not one of this reader's readings`, nearest(r, CONTACT_READINGS) ? `did you mean "${nearest(r, CONTACT_READINGS)}"?` : `readings are ${CONTACT_READINGS.join(", ")}`);
 }
 
 function contacts(f: Findings, at: (w?: Where) => Where, c: unknown, dur: number, loop: boolean): void {

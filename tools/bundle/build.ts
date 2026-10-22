@@ -2,8 +2,8 @@
 // with Node's own type stripping (the sources use erasable syntax only, so dist/x.js keeps src/x.ts's lines and
 // columns: a stack trace points at the source line), relative `.ts` imports pointed at `.js`, the declarations from
 // `tsc -b` beside them, staged under .cache/pack/stage/ with the package.json it is published with (exports, "types"
-// and the m3a bin pointed from the workspace's source files to dist/, "private" kept until O2 is answered, unless
-// `publishable` stages a copy ready for it) and packed by `npm pack`. Every pack carries the version (one for all,
+// and the m3a bin pointed from the workspace's source files to dist/, "private" kept in the workspace and the default
+// staging, `publishable` staging a copy ready to publish: O2 answered, D130) and packed by `npm pack`. Every pack carries the version (one for all,
 // tools/version.ts) and the repository's CHANGELOG.md, which has its section, as a consumer reads it (`packedChangelog`:
 // without the Repo sections and the lines about the benchmark, whose briefs a fresh agent must not see answered). The
 // tools' pack holds the manual and m3a's agentskills.io skill (skills/m3a/, D119). The library's default pack holds the
@@ -90,7 +90,8 @@ export function publishedExports(map: Record<string, string>): Record<string, { 
  *  the workspace runs to dist/ (each bin's JavaScript, shebang kept), "files" with CHANGELOG.md, without devDependencies
  *  or the workspace note ("//"); each peer whose types the package's declarations import (`@types/X` among its
  *  devDependencies, X a peer: three's) an optional peer at that version, so a strict TypeScript consumer knows to
- *  install it. "private" stays: publishing waits for O2 (PLAN.md §13; `publishable` drops it in the staged copy alone). */
+ *  install it. "private" stays: the workspace never publishes (`publishable` drops it in the staged copy alone, which
+ *  publish.yml publishes, D130). */
 export function publishedManifest(pkg: Record<string, unknown>): Record<string, unknown> {
   const dev = (pkg.devDependencies ?? {}) as Record<string, string>, peers = (pkg.peerDependencies ?? {}) as Record<string, string>;
   const typed = Object.keys(peers).filter((p) => dev[`@types/${p}`]).map((p) => `@types/${p}`);
@@ -108,8 +109,8 @@ export function publishedManifest(pkg: Record<string, unknown>): Record<string, 
   return out;
 }
 
-/** A staged package.json made ready to publish once O2 allows it (`npm run pack -- --publishable`; nothing here
- *  publishes): "private" dropped, `publishConfig` public with npm provenance, and the repository with the directory it
+/** A staged package.json made ready to publish (`npm run pack -- --publishable`; publish.yml publishes it, D130;
+ *  nothing here publishes): "private" dropped, `publishConfig` public with npm provenance, and the repository with the directory it
  *  is built from (`packages/<name>`, or `library` for an opt-in pack of its sets), which provenance is checked against. */
 export function publishable(pkg: Record<string, unknown>, directory: string): Record<string, unknown> {
   const rest = Object.fromEntries(Object.entries(pkg).filter(([k]) => k !== "private"));

@@ -141,6 +141,15 @@ export function fix(clip: Clip, R: Rest, opts: FixOptions & { ops?: readonly (Fi
     steps.push({ op: name, changes: [...out.changes, ...moved(c, out.clip)], before: report.values, after: next.values, findings: { before: count(report.findings), after: count(next.findings) } });
     [c, report] = [out.clip, next];
   }
+  // contacts a named reading gave (facts.reading, D129) were read from the motion before the fix: detected again on
+  // the fixed one, the reading's name dropped, and the metrics read with them
+  const reading = (c.facts as { reading?: unknown } | undefined)?.reading;
+  if (typeof reading === "string" && c.contacts?.by === "labelled" && steps.some((s) => s.changes.length)) {
+    const { reading: _reading, ...facts } = c.facts as Record<string, unknown>, was = report;
+    c = { ...c, contacts: { ...c.contacts, by: "detected" }, facts: facts as Clip["facts"] };
+    report = metrics(c, R);
+    steps.push({ op: "contacts", changes: [`contacts.by labelled → detected and facts.reading ${JSON.stringify(reading)} dropped: the reading was of the motion before the fix (D129)`], before: was.values, after: report.values, findings: { before: count(was.findings), after: count(report.findings) } });
+  }
   // stored facts are the motion's: measured again, and reported where they differ (the ones its source gave, which
   // `captured` names, kept)
   if (c.facts && steps.some((s) => s.changes.length)) {

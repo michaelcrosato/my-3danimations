@@ -10,8 +10,8 @@
 "desc": "Running, wild legs style: kick legs into the air with each step",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"contacts": {"by":"detected","footL":[[0,0.2]],"footR":[[0.35,0.6]]},
-"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[97,108],"seam":0,"speed":119,"travel":[81.6,7.3]},
+"contacts": {"by":"labelled","footL":[[0,0.2]],"footR":[[0.35,0.567]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[97,108],"reading":"planted-quarter","seam":0,"speed":119,"travel":[89.8,3.5]},
 "provenance": {"src":"100STYLE","take":"WildLegs_FR 78.73-79.53","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[8,78],"qa":"pass","qaVersion":"m3a-sensors@1"},
 "keys": [

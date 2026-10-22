@@ -4,6 +4,77 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.56.0 · 2026-10-22
+
+WP-F.9 (D129): the rate sweep's failing loops read by D108's bar and their captured speed; 45 loops carry a named
+contact reading, labelled and named in `facts.reading`; 45 failing rows gone, none added.
+WP-F.10 (D130): O2 answered; `publish.yml` publishes the `@m3a` packages to npm with provenance, started by the owner
+alone from a release tag.
+
+### Spec
+- §7.1: `labelled` contacts are played as written, labelled by a person or a source or chosen by a tool as one of the
+  reference implementation's named readings of the clip's own motion, which `facts.reading` then names; §7.3 lists
+  `reading` among the known facts (a name, not a measure), and the clip schema's `facts` takes it; `facts.reading`
+  appears only beside labelled contacts. A 0.55 validator accepts it in read and lint mode (a 0.55 intake's text gate
+  bounces it). Spec 2.0-rc refrozen under D129.
+
+### Core
+- `clip.readContacts(clip, R, reading)` and `clip.CONTACT_READINGS`: twelve named contact readings of an in-place loop
+  (the points that read a foot, the velocity, the "still"): the six `measureFacts` and its fallbacks take, and six it
+  never takes (a quarter of the body's speed as "still", the lower foot's velocity under the refinement's own) (D129).
+- The validator refuses `facts.reading` that isn't a string (M2-E004) or names the reading of contacts that aren't
+  labelled (M2-E016), and in lint mode warns on a name it doesn't know (M2-W007; read mode accepts it) (D129).
+- A recipe takes a named reading's contacts as detected, so its result's are detected again on the edited motion (D129).
+
+### Sensors
+- `fix` detects a named reading's contacts again when a step changes the motion, and drops `facts.reading`, reporting
+  it as a step of its own (D129).
+
+### Library
+- `withReading(clip, R, reading)`: a clip with its contacts written by a named reading of core's, labelled, its facts
+  measured from them and `facts.reading` naming the reading; it refuses a one-shot, a loop tagged off its feet, a clip
+  with a root of its own and a reading that doesn't stand. `measure` keeps `facts.reading` on labelled contacts (D129).
+- 45 loops of STYLE100's sets and CMU_CURATED carry a named reading's contacts (written by `npm run import`; their
+  `travel` read from them): the rate sweep's failing rows 473 → 428 (0 added), 108 loops answered (126), 25 answers
+  written again from their rows; QA 1,015 / 229 / 154 (1,014 / 230 / 154); the sensors' baseline (44 clips) and the
+  distributions rewritten with D129's reason (two p50s worse in their last digits, the p95s better); index serial 5.
+
+### Tools
+- A set's import spec names, per clip, the reading its contacts are written by; the importer writes it with
+  `withReading`, records it in `_import.json` (`contacts`, an enum of core's names in its schema) and refuses a name it
+  can't honour (an adopted clip, a clip the set doesn't write, and `withReading`'s refusals) (D129).
+- `tools/facts/readings.ts` holds the rule that chooses a loop's reading by D108's bar at five speeds and its captured
+  speed, reading nothing of the sweep (D129).
+- `npm run facts -- --check` holds a clip that names a reading to that reading's contacts on its motion today, and a
+  set's import record that names another reading for it is stale: an edit to the contacts or the name is stale even
+  with its facts measured again (D129).
+- The intake's text gate takes `facts.reading` by its shape, a name (D129).
+- The adopt bot's import record names no reading for an adopted clip, which keeps the contacts it was adopted with; the
+  import record adds `qa.read`, the verdict of a clip as written with its named reading (D129).
+
+### Repo
+- `npm run test:changed` runs the readings' test for a change under `library/` (D129).
+- `.github/workflows/publish.yml`: the `@m3a` packages of a release tag published to npm with provenance, by hand
+  alone and from the tag itself: every job checks the go-ahead first (`M3A_O2_PUBLISH` is `yes`, the owner started
+  the run and the attempt, the tag reads `vX.Y.Z` and the run was started from it); a build job with no token holds
+  the tag to `main`, its version and the run's commit, and runs `npm run pack -- --check --publishable`; a publish job
+  with no checkout, in the environment `npm` the owner approves, checks each tarball's package.json and publishes the
+  eight in dependency order, a version already on the registry skipped and said, a failure stopping the rest; the npm
+  token (`NPM_TOKEN`, the environment's) in the publish step alone, the OIDC token in the publish job alone (D130,
+  WP-F.10).
+- `tools/release/publish.test.ts`: the workflow read as YAML and held to each of those, its keys and expressions held
+  exactly; its go-ahead, tag check, tarball check and publish loop run on stubs; the publish order derived from
+  `build.ts` (D130).
+- `release.yml`'s assets job checks the go-ahead first too, so a re-run of that job alone is checked, and an empty
+  owner is refused (D130).
+
+### Docs
+- `tools/bundle/README.md`: publishing as it now stands (O2 answered, D130), and the owner's steps in order, each as
+  the repository's owner: the npm organization `m3a`; the token (read and write on `@m3a`, Bypass 2FA, 90 days at
+  most); the environment `npm` (the owner its required reviewer, `v*` tags alone, `NPM_TOKEN` its secret);
+  `M3A_O2_PUBLISH=yes`; a tag ruleset on `v*` only the owner bypasses; a tag on `main`; the run from that tag; the
+  approval; and trusted publishing before January 2027.
+
 ## 0.55.3 · 2026-10-22
 
 WP-F.7 (D127): the rate sweep's failing rows triaged, two loops read again in core, the 126 that still fail answered

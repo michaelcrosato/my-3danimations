@@ -255,11 +255,13 @@
     ]
    },
    "qa": {
-    "import": "pass"
+    "import": "pass",
+    "read": "pass"
    },
    "hands": [
     10.7
-   ]
+   ],
+   "contacts": "sole-planted-quarter"
   },
   "BeatChest_SideLeft": {
    "kept": "new",
@@ -591,11 +593,13 @@
     ]
    },
    "qa": {
-    "import": "pass"
+    "import": "pass",
+    "read": "pass"
    },
    "hands": [
     5
-   ]
+   ],
+   "contacts": "planted-quarter"
   },
   "CrowdAvoidance_SideRight": {
    "kept": "new",
@@ -878,11 +882,13 @@
     ]
    },
    "qa": {
-    "import": "pass"
+    "import": "pass",
+    "read": "pass"
    },
    "hands": [
     14.2
-   ]
+   ],
+   "contacts": "planted-quarter"
   },
   "FlickLegs_SideLeft": {
    "kept": "new",
@@ -1262,11 +1268,13 @@
     ]
    },
    "qa": {
-    "import": "pass"
+    "import": "pass",
+    "read": "pass"
    },
    "hands": [
     7.8
-   ]
+   ],
+   "contacts": "planted-quarter"
   },
   "LeanLeft_SideLeft": {
    "kept": "new",
@@ -1422,11 +1430,13 @@
     ]
    },
    "qa": {
-    "import": "pass"
+    "import": "pass",
+    "read": "pass"
    },
    "hands": [
     8.9
-   ]
+   ],
+   "contacts": "planted-quarter"
   },
   "LimpRight_SideLeft": {
    "kept": "new",
@@ -1438,11 +1448,13 @@
     ]
    },
    "qa": {
-    "import": "pass"
+    "import": "pass",
+    "read": "pass"
    },
    "hands": [
     9.8
-   ]
+   ],
+   "contacts": "planted-quarter"
   },
   "LimpRight_SideRight": {
    "kept": "new",
@@ -1685,11 +1697,13 @@
     ]
    },
    "qa": {
-    "import": "pass"
+    "import": "pass",
+    "read": "pass"
    },
    "hands": [
     6
-   ]
+   ],
+   "contacts": "sole-planted-quarter"
   },
   "OnHeels_SideLeft": {
    "kept": "new",
@@ -2028,11 +2042,13 @@
     ]
    },
    "qa": {
-    "import": "pass"
+    "import": "pass",
+    "read": "pass"
    },
    "hands": [
     5.2
-   ]
+   ],
+   "contacts": "sole-planted-quarter"
   },
   "Quail_SideRight": {
    "kept": "new",
@@ -2189,11 +2205,13 @@
     ]
    },
    "qa": {
-    "import": "pass"
+    "import": "pass",
+    "read": "pass"
    },
    "hands": [
     7.7
-   ]
+   ],
+   "contacts": "lower-quarter"
   },
   "Robot_SideRight": {
    "kept": "new",
@@ -2372,11 +2390,13 @@
     ]
    },
    "qa": {
-    "import": "pass"
+    "import": "pass",
+    "read": "pass"
    },
    "hands": [
     8.2
-   ]
+   ],
+   "contacts": "planted-quarter"
   },
   "SlideFeet_SideLeft": {
    "kept": "new",
@@ -2516,11 +2536,13 @@
     ]
    },
    "qa": {
-    "import": "pass"
+    "import": "pass",
+    "read": "pass"
    },
    "hands": [
     9.3
-   ]
+   ],
+   "contacts": "planted-quarter"
   },
   "Strutting_SideRight": {
    "kept": "new",
@@ -2820,11 +2842,13 @@
     ]
    },
    "qa": {
-    "import": "pass"
+    "import": "pass",
+    "read": "pass"
    },
    "hands": [
     7
-   ]
+   ],
+   "contacts": "planted-quarter"
   },
   "TogetherStep_SideRight": {
    "kept": "new",
@@ -2884,11 +2908,13 @@
     ]
    },
    "qa": {
-    "import": "pass"
+    "import": "pass",
+    "read": "pass"
    },
    "hands": [
     6.2
-   ]
+   ],
+   "contacts": "sole-planted-quarter"
   },
   "WalkingStickLeft_SideRight": {
    "kept": "new",
@@ -3052,11 +3078,13 @@
     ]
    },
    "qa": {
-    "import": "pass"
+    "import": "pass",
+    "read": "pass"
    },
    "hands": [
     5.4
-   ]
+   ],
+   "contacts": "lower-quarter"
   },
   "WiggleHips_SideRight": {
    "kept": "new",
@@ -3156,11 +3184,13 @@
     ]
    },
    "qa": {
-    "import": "pass"
+    "import": "pass",
+    "read": "pass"
    },
    "hands": [
     8.9
-   ]
+   ],
+   "contacts": "sole-planted-quarter"
   },
   "Zombie_SideRight": {
    "kept": "new",

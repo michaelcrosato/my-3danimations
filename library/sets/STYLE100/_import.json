@@ -339,7 +339,8 @@
    },
    "qa": {
     "import": "pass",
-    "migrated": "pass"
+    "migrated": "pass",
+    "read": "pass"
    },
    "hands": [
     12.7,
@@ -354,7 +355,8 @@
      7,
      6
     ]
-   }
+   },
+   "contacts": "planted-quarter"
   },
   "BeatChest_Walk": {
    "kept": "import",
@@ -3560,7 +3562,8 @@
    },
    "qa": {
     "import": "pass",
-    "migrated": "pass"
+    "migrated": "pass",
+    "read": "pass"
    },
    "hands": [
     25.3,
@@ -3575,7 +3578,8 @@
      13,
      9
     ]
-   }
+   },
+   "contacts": "planted-quarter"
   },
   "Swimming_Walk": {
    "kept": "import",
@@ -3822,7 +3826,8 @@
    },
    "qa": {
     "import": "pass",
-    "migrated": "pass"
+    "migrated": "pass",
+    "read": "pass"
    },
    "hands": [
     13.3,
@@ -3841,7 +3846,8 @@
      11,
      9
     ]
-   }
+   },
+   "contacts": "lower-quarter"
   },
   "WalkingStickLeft_Walk": {
    "kept": "import",

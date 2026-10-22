@@ -1,10 +1,15 @@
 // The facts check (PLAN.md WP-5.4): every library clip's facts and contacts are what @m3a/library's `measure` gives on
 // its rest today (written by the importer and the migrator, so a change to the measurement is a change to the clips),
 // and every tag its facts don't bear out (a `loop` that doesn't close, a `run` that doesn't travel) is either resolved
-// or baselined with a reason in library/baselines/tags.json.
-import { existsSync, readFileSync } from "node:fs";
+// or baselined with a reason in library/baselines/tags.json. A loop whose contacts are one of core's named readings
+// carries them labelled, which `measure` takes as given, and names the reading in `facts.reading` (spec/MOTION.md §7.1,
+// §7.3, D129); so it is held to that reading instead: its contacts must be what core's reading gives on its motion today
+// (@m3a/library's `withReading`), and where its set's import record (`_import.json`'s `contacts`) names a reading for
+// it, that reading.
+import type { clip as coreClip } from "@m3a/core";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { capturedSpeed, FACTS_BY, measureClipFacts, tagConflicts, type ClipFacts } from "../../packages/library/src/index.ts";
+import { capturedSpeed, FACTS_BY, measureClipFacts, tagConflicts, withReading, type ClipFacts } from "../../packages/library/src/index.ts";
 import { libraryClips, type LibraryClip } from "../qa/qa.ts";
 import { ROOT } from "../run/cli.ts";
 
@@ -26,7 +31,8 @@ export interface FoundConflict {
 /** What the check found. */
 export interface FactsReport {
   clips: number;
-  /** Clips whose written facts or contacts aren't what the measurement gives (or aren't this revision's). */
+  /** Clips whose written facts or contacts aren't what the measurement gives (or aren't this revision's), or whose contacts
+   *  aren't the reading they name (facts.reading), or name another than their set's import record. */
   stale: string[];
   conflicts: FoundConflict[];
   /** Baselined conflicts the facts no longer show. */
@@ -41,14 +47,41 @@ export function readTagsBaseline(file = TAGS_BASELINE): TagsBaseline {
   return existsSync(file) ? (JSON.parse(readFileSync(file, "utf8")) as TagsBaseline) : { conflicts: {} };
 }
 
-/** Every clip's facts and contacts measured afresh against what is written, and its tags against its facts. */
-export function checkFacts(lib: readonly LibraryClip[] = libraryClips(), baseline: TagsBaseline = readTagsBaseline()): FactsReport {
+/** Per clip id, the contact reading its set's import record names (`_import.json`'s `contacts`, D129). */
+export function namedReadings(dir = join(ROOT, "library/sets")): Map<string, coreClip.ContactReading> {
+  const out = new Map<string, coreClip.ContactReading>();
+  for (const set of readdirSync(dir).sort()) {
+    const file = join(dir, set, "_import.json");
+    if (!existsSync(file)) continue;
+    const { clips } = JSON.parse(readFileSync(file, "utf8")) as { clips?: Record<string, { contacts?: coreClip.ContactReading }> };
+    for (const [slug, rec] of Object.entries(clips ?? {})) if (rec.contacts) out.set(`${set}/${slug}`, rec.contacts);
+  }
+  return out;
+}
+
+/** Why `clip`'s contacts aren't the reading `name` (its facts.reading) gives on its motion today (withReading's), or
+ *  nothing when they are. */
+function offReading(clip: LibraryClip["clip"], rest: LibraryClip["rest"], name: coreClip.ContactReading): string | undefined {
+  try {
+    return canon(clip.contacts ?? null) === canon(withReading({ ...clip, contacts: undefined }, rest, name).contacts) ? undefined : `its contacts aren't the reading "${name}" its facts.reading names (D129)`;
+  } catch (err) {
+    return `its facts.reading names "${name}", which it can't carry: ${(err as Error).message.replace(`${clip.id}: `, "")}`;
+  }
+}
+
+/** Every clip's facts and contacts measured afresh against what is written (a loop that names a contact reading held
+ *  to that reading, and to its set's import record), and its tags against its facts. */
+export function checkFacts(lib: readonly LibraryClip[] = libraryClips(), baseline: TagsBaseline = readTagsBaseline(), readings: ReadonlyMap<string, coreClip.ContactReading> = namedReadings()): FactsReport {
   const stale: string[] = [], conflicts: FoundConflict[] = [], seen = new Set<string>();
   for (const { clip, rest } of lib) {
-    const now = measureClipFacts(clip, rest, capturedSpeed(clip)), written = clip.facts as unknown as ClipFacts | undefined;
+    const now = measureClipFacts(clip, rest, capturedSpeed(clip)), written = clip.facts as unknown as ClipFacts | undefined, named = readings.get(clip.id);
+    // the reading the clip names (facts.reading, spec §7.3) holds its contacts; its set's import record must agree
+    const own = written?.reading as coreClip.ContactReading | undefined, off = own && offReading(clip, rest, own);
     if (written?.by !== FACTS_BY) stale.push(`${clip.id}: its facts are ${written ? `by ${written.by}` : "missing"}, not ${FACTS_BY}`);
     else if (canon(written) !== canon(now.facts)) stale.push(`${clip.id}: its facts ${canon(written)} measure ${canon(now.facts)}`);
-    else if (canon(clip.contacts ?? null) !== canon(now.contacts)) stale.push(`${clip.id}: its contacts aren't what is detected`);
+    else if (named && named !== own) stale.push(`${clip.id}: its facts.reading ${JSON.stringify(own ?? null)} isn't the reading "${named}" its set's import record names (D129)`);
+    else if (off) stale.push(`${clip.id}: ${off}`);
+    else if (!own && canon(clip.contacts ?? null) !== canon(now.contacts)) stale.push(`${clip.id}: its contacts aren't what is detected`);
     for (const c of tagConflicts(clip, now.facts, rest)) {
       const reason = baseline.conflicts[clip.id]?.[c.tag];
       if (reason) seen.add(`${clip.id} ${c.tag}`);

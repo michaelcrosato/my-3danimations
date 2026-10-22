@@ -1,9 +1,11 @@
 // The sets WP-5.3 re-imports from their original sources (PLAN.md WP-5.3), each with format 2's new degrees of freedom
 // (hands and fingers, spine curl, root yaw): which catalog drives it (library/catalogs/), where its sources come from
 // and how they are read, its tier, its edition, and how each source's license and making read (tools/migrate/sets.ts's
-// rules, shared). The sources are fetched into .cache/, each held to a lock (tools/import/sources.json and the corpora's
-// locks), never committed. Quaternius' two libraries wait for their current editions (PLAN.md WP-5.3: the owner's call
-// on the download, michaelcrosato/my-3danimations#10); until they come, their sets stay as migrated.
+// rules, shared), and the loops whose contacts a named reading of core's writes (D129). The sources are fetched into
+// .cache/, each held to a lock (tools/import/sources.json and the corpora's locks), never committed. Quaternius' two
+// libraries wait for their current editions (PLAN.md WP-5.3: the owner's call on the download,
+// michaelcrosato/my-3danimations#10); until they come, their sets stay as migrated.
+import type { clip as coreClip } from "@m3a/core";
 import type { Catalog, LibraryIn } from "@m3a/io";
 import { parseGlb, picksOf, readBvh, readCmu, readGltf } from "@m3a/io";
 import { existsSync, mkdirSync, readFileSync, renameSync, rmSync } from "node:fs";
@@ -33,6 +35,11 @@ export interface ImportSpec {
   catalog: string;
   /** The libraries its catalog's clips come from, read from the fetched sources. */
   read(cat: Catalog): LibraryIn[];
+  /** Per clip by slug, the reading of core's (`clip.CONTACT_READINGS`) its contacts are written by, labelled
+   *  (@m3a/library's `withReading`, D129): each an in-place loop's, chosen by D108's bar and its captured speed
+   *  (tools/facts/readings.ts) and adopted where the rate sweep, the judge and QA find it no worse. Every other clip's
+   *  contacts are detected. */
+  contacts?: Readonly<Record<string, coreClip.ContactReading>>;
 }
 
 /** The pinned sources (tools/import/sources.json): per source, its files' URLs and SHA-256s. */
@@ -104,7 +111,7 @@ function readM2m(): LibraryIn[] {
   return [["M2M_QUATERNIUS", "human-base-animations.glb"], ["M2M_ANIMATED", "human-addon-animations.glb"], ["M2M_MOCOPI", "human-mocap-animations.glb"]].map(([id, file]) => ({ id: id!, file: file!, ...readGltf(parseGlb(readFileSync(join(dir, file!)), file)) }));
 }
 
-const style100Extra = (kind: string, title: string, what: string): ImportSpec => ({
+const style100Extra = (kind: string, title: string, what: string, contacts?: ImportSpec["contacts"]): ImportSpec => ({
   set: `STYLE100_${kind}`,
   title,
   tier: "cc-by",
@@ -113,6 +120,7 @@ const style100Extra = (kind: string, title: string, what: string): ImportSpec =>
   sources: style100Rule,
   catalog: `STYLE100_${kind}.json`,
   read: read100,
+  ...(contacts ? { contacts } : {}),
 });
 
 /** The sets re-imported, in the order they are written. */
@@ -136,6 +144,7 @@ export const IMPORTS: readonly ImportSpec[] = [
     sources: cmuRule,
     catalog: "CMU_CURATED.json",
     read: readCmuSubjects,
+    contacts: { Frankenstein_Walk_Loop: "sole-planted-quarter" },
   },
   {
     set: "STYLE100",
@@ -146,11 +155,24 @@ export const IMPORTS: readonly ImportSpec[] = [
     sources: style100Rule,
     catalog: "STYLE100.json",
     read: read100,
+    contacts: { Balance_Walk: "planted-quarter", Sweep_Walk: "planted-quarter", TwoFootJump_Walk: "lower-quarter" },
   },
-  style100Extra("RUN", "100STYLE runs", "98 forward runs"),
-  style100Extra("BACK", "100STYLE backward walks", "98 backward walks"),
-  style100Extra("BACKRUN", "100STYLE backward runs", "98 backward runs"),
-  style100Extra("SIDE", "100STYLE sidesteps", "194 sidesteps, each way"),
-  style100Extra("SIDERUN", "100STYLE sideways runs", "193 sideways runs, each way (one left out, its reason in `_import.json`)"),
+  style100Extra("RUN", "100STYLE runs", "98 forward runs", { HandsInPockets_Run: "planted-half", Lunge_Run: "planted-quarter", Rocket_Run: "sole-planted-half", WildLegs_Run: "planted-quarter" }),
+  style100Extra("BACK", "100STYLE backward walks", "98 backward walks", {
+    DragRightLeg_WalkBack: "planted-quarter", LeanRight_WalkBack: "planted-quarter", Old_WalkBack: "planted-quarter", Robot_WalkBack: "planted-quarter",
+    Rushed_WalkBack: "planted-half", StartStop_WalkBack: "planted-quarter",
+  }),
+  style100Extra("BACKRUN", "100STYLE backward runs", "98 backward runs", { DragLeftLeg_RunBack: "lower", Elated_RunBack: "lower-half", PendulumHands_RunBack: "lower", Rushed_RunBack: "planted-half", StartStop_RunBack: "planted-quarter" }),
+  style100Extra("SIDE", "100STYLE sidesteps", "194 sidesteps, each way", {
+    Balance_SideRight: "sole-planted-quarter", CrowdAvoidance_SideLeft: "planted-quarter", Flapping_SideRight: "planted-quarter", LeanBack_SideRight: "planted-quarter",
+    LimpLeft_SideRight: "planted-quarter", LimpRight_SideLeft: "planted-quarter", Old_SideRight: "sole-planted-quarter", Quail_SideLeft: "sole-planted-quarter",
+    Robot_SideLeft: "lower-quarter", Skip_SideRight: "planted-quarter", Strutting_SideLeft: "planted-quarter", TogetherStep_SideLeft: "planted-quarter",
+    WalkingStickLeft_SideLeft: "sole-planted-quarter", WiggleHips_SideLeft: "lower-quarter", Zombie_SideLeft: "sole-planted-quarter",
+  }),
+  style100Extra("SIDERUN", "100STYLE sideways runs", "193 sideways runs, each way (one left out, its reason in `_import.json`)", {
+    Akimbo_SideRunLeft: "planted-half", LawnMower_SideRunLeft: "planted-half", LimpRight_SideRunLeft: "sole-planted-half", Penguin_SideRunRight: "sole-planted",
+    Proud_SideRunRight: "planted-half", RaisedLeftArm_SideRunLeft: "sole-planted-quarter", RaisedLeftArm_SideRunRight: "planted-half",
+    Robot_SideRunRight: "planted-quarter", Rushed_SideRunLeft: "planted-half", Teapot_SideRunLeft: "planted-half", TwoFootJump_SideRunLeft: "planted-half",
+  }),
   style100Extra("IDLE", "100STYLE idles", "98 idles, each the longest still stretch"),
 ];

@@ -10,8 +10,8 @@
 "desc": "Running sideways to the right, proud style: straight back arms move as if marching to a lesser degree",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"contacts": {"by":"detected","footL":[[0.217,0.4],[0.7,0.95]],"footR":[[0.383,0.55],[0.883,1.066]]},
-"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[93,109],"seam":0,"speed":145,"travel":[-4.4,172.1]},
+"contacts": {"by":"labelled","footL":[[0.133,0.417],[0.683,1]],"footR":[[0.333,0.6],[0.883,1.166]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[93,109],"reading":"planted-half","seam":0,"speed":145,"travel":[-3.1,175.5]},
 "provenance": {"src":"100STYLE","take":"Proud_SR 37.07-38.20","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[10,76],"qa":"pass","qaVersion":"m3a-sensors@1"},
 "keys": [

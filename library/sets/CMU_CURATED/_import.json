@@ -4035,7 +4035,8 @@
    },
    "qa": {
     "import": "pass",
-    "migrated": "warn"
+    "migrated": "warn",
+    "read": "pass"
    },
    "hands": [
     13.3,
@@ -4082,7 +4083,8 @@
      7.82,
      4.3
     ]
-   }
+   },
+   "contacts": "sole-planted-quarter"
   },
   "Stumble_Walk": {
    "kept": "new",

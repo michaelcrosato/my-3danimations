@@ -382,12 +382,14 @@
     ]
    },
    "qa": {
-    "import": "warn"
+    "import": "warn",
+    "read": "pass"
    },
    "hands": [
     5.8
    ],
-   "unrepaired": "no step makes it better"
+   "unrepaired": "no step makes it better",
+   "contacts": "lower"
   },
   "DragRightLeg_RunBack": {
    "kept": "new",
@@ -455,11 +457,13 @@
     ]
    },
    "qa": {
-    "import": "pass"
+    "import": "pass",
+    "read": "pass"
    },
    "hands": [
     15.9
-   ]
+   ],
+   "contacts": "lower-half"
   },
   "FairySteps_RunBack": {
    "kept": "new",
@@ -1020,11 +1024,13 @@
     ]
    },
    "qa": {
-    "import": "pass"
+    "import": "pass",
+    "read": "pass"
    },
    "hands": [
     7.9
-   ]
+   ],
+   "contacts": "lower"
   },
   "Penguin_RunBack": {
    "kept": "new",
@@ -1215,11 +1221,13 @@
     ]
    },
    "qa": {
-    "import": "pass"
+    "import": "pass",
+    "read": "pass"
    },
    "hands": [
     10.7
-   ]
+   ],
+   "contacts": "planted-half"
   },
   "ShieldedLeft_RunBack": {
    "kept": "new",
@@ -1313,11 +1321,13 @@
     ]
    },
    "qa": {
-    "import": "pass"
+    "import": "pass",
+    "read": "pass"
    },
    "hands": [
     7.9
-   ]
+   ],
+   "contacts": "planted-quarter"
   },
   "Stiff_RunBack": {
    "kept": "new",
