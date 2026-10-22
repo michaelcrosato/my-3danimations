@@ -46,7 +46,8 @@
     ]
    },
    "qa": {
-    "import": "pass"
+    "import": "pass",
+    "read": "pass"
    },
    "hands": [
     4.3
@@ -1279,7 +1280,8 @@
     ]
    },
    "qa": {
-    "import": "pass"
+    "import": "pass",
+    "read": "pass"
    },
    "hands": [
     9
@@ -1513,7 +1515,8 @@
     ]
    },
    "qa": {
-    "import": "pass"
+    "import": "pass",
+    "read": "pass"
    },
    "hands": [
     6.4
@@ -2003,7 +2006,8 @@
     ]
    },
    "qa": {
-    "import": "warn"
+    "import": "warn",
+    "read": "warn"
    },
    "hands": [
     8.8
@@ -2070,7 +2074,8 @@
     ]
    },
    "qa": {
-    "import": "pass"
+    "import": "pass",
+    "read": "pass"
    },
    "hands": [
     8.7
@@ -2159,7 +2164,8 @@
     ]
    },
    "qa": {
-    "import": "warn"
+    "import": "warn",
+    "read": "warn"
    },
    "hands": [
     9
@@ -2177,7 +2183,8 @@
     ]
    },
    "qa": {
-    "import": "pass"
+    "import": "pass",
+    "read": "pass"
    },
    "hands": [
     6.4
@@ -2314,7 +2321,8 @@
     ]
    },
    "qa": {
-    "import": "pass"
+    "import": "pass",
+    "read": "pass"
    },
    "hands": [
     11
@@ -2363,7 +2371,8 @@
     ]
    },
    "qa": {
-    "import": "pass"
+    "import": "pass",
+    "read": "pass"
    },
    "hands": [
     17.3
@@ -2915,7 +2924,8 @@
     ]
    },
    "qa": {
-    "import": "warn"
+    "import": "warn",
+    "read": "warn"
    },
    "hands": [
     4.8
@@ -3013,7 +3023,8 @@
     ]
    },
    "qa": {
-    "import": "pass"
+    "import": "pass",
+    "read": "pass"
    },
    "hands": [
     9.7

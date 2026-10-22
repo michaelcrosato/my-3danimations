@@ -339,7 +339,8 @@
    },
    "qa": {
     "import": "pass",
-    "migrated": "pass"
+    "migrated": "pass",
+    "read": "pass"
    },
    "hands": [
     12.7,
@@ -3561,7 +3562,8 @@
    },
    "qa": {
     "import": "pass",
-    "migrated": "pass"
+    "migrated": "pass",
+    "read": "pass"
    },
    "hands": [
     25.3,
@@ -3824,7 +3826,8 @@
    },
    "qa": {
     "import": "pass",
-    "migrated": "pass"
+    "migrated": "pass",
+    "read": "pass"
    },
    "hands": [
     13.3,

@@ -21,3 +21,9 @@ WP-9.2) ran on the machine beside it (D83); no benchmark trial is in this gate.
 **Open (blocked-owner, §9.3):** the owner reviews this batch on a phone through the review page and exports the
 review; `npx m3a review ingest <file>` applies it, its notes into docs/FEEDBACK-LOG.md and at least one threshold or
 task proposal into docs/REVIEW-PROPOSALS.md. That closes G8; the gate merged with it open (§8.5).
+
+**Exported again at 0.56.0 (2026-10-22, D130):** `queue-0.56.0.json`, `m3a review export` on the library as 0.56.0 has
+it: the same 20 clips in the same order; one ref moved, `STYLE100_BACKRUN/Elated_RunBack` (`@fd74007932df` →
+`@1492349cad00`: D129 wrote its contacts, which the motion hash covers), so a decision on `queue.json`'s ref for it
+would be refused as stale. Review this one. The page: a branch preview's `/src/review/` (O3, D130) or `npm run
+gallery` on a checkout, then "Open a queue file".

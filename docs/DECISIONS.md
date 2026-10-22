@@ -5274,3 +5274,37 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   until a decision reverts them), the six readings new to core, and the bar ("no failing row added" against "no
   still-failing row reads worse").
 - **Landed in:** v0.56.0
+
+## D130 · 2026-10-22 · The owner's answers: O2 publish now under `@m3a/*`, O3 unpaused, O8's project the session may create; G8 and G10 wait
+
+- **Principle:** O2, O3, O8 (PLAN.md §13), D85, D99, D110, WP-F.10
+- **Call:**
+  - **What the owner said** (2026-10-22, in the session, to the list of what G8 to G10 and the optional items need):
+    "the hosted intake (O8) and your approvals, "yes" you can create, o3 unpacked, ok for o2, wait for g8 and g10".
+    Asked which "ok for o2" meant (wait until G8 to G10 close, as recommended, or set publishing up now): "Is there any
+    downside really publishing now? Its a repo of 0 stars, followers, forks and its based off of theory and is still
+    untested go ahead, lets move forward if there nothing significant to gain by waiting". Asked whether they or the
+    session unpaused O3: "I unpaused it".
+  - **O2, answered: publish now, the working names kept.** On 2026-10-22 npm has no `@m3a` scope (`Scope not found`)
+    and no package `m3a` or `@m3a/core`, so the names are free; the repository is public, which npm's provenance
+    needs. Nothing to gain by waiting outweighs it: the version is 0.x, so a later minor version may break; a published
+    version is immutable (npm lets its owner unpublish within 72 hours while nothing depends on it, and deprecate it
+    after); the CC BY and CMU opt-in packs carry their credits and license texts (D10, `pack --check`). The session
+    builds `publish.yml` (WP-F.10) and never publishes: as with `release.yml` (D99), only the repository's owner starts
+    a run, behind a repository variable the owner sets, with a token the owner adds. The owner's steps are in
+    `tools/bundle/README.md` ("Publishing") and docs/HANDOFF.md.
+  - **O3, unpaused by the owner:** the branch's commit 2f973fa built ("Deployment has completed", the first since D85's
+    pause), so every branch builds its preview from `vercel.json` again; G8's review page is at a preview's
+    `/src/review/` (it opens a queue file; the preview site never bundles one).
+  - **O8, the session may create the Supabase project:** this session has no Supabase connector (it isn't connected
+    to the account, and connectors are read when a session starts), so it creates nothing; once the owner connects it,
+    a new session creates the free-tier project and runs `services/intake/README.md`'s steps 1 and 2. The GitHub sign-in
+    (an OAuth app), the owner's first sign-in, the Actions secrets and "Allow GitHub Actions to create and approve pull
+    requests" stay the owner's (steps 3 to 6). G9 stays blocked-owner on them.
+  - **G8 and G10 wait.** G8's batch exported again at 0.56.0 (`bench/results/gates/G8-run-1/queue-0.56.0.json`): the
+    same 20 clips in the same order, one ref moved (`STYLE100_BACKRUN/Elated_RunBack`, whose contacts D129 changed), so
+    a decision made on it isn't refused as stale.
+- **Why:** each is the owner's own answer, applied as far as the session can take it; publishing stays in the owner's
+  hands to the last step, and nothing the session can't reach (the Supabase connector) is stood in for.
+- **Answered:** yes: the owner's words above.
+- **Landed in:** v0.56.0

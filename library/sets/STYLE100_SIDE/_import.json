@@ -255,7 +255,8 @@
     ]
    },
    "qa": {
-    "import": "pass"
+    "import": "pass",
+    "read": "pass"
    },
    "hands": [
     10.7
@@ -592,7 +593,8 @@
     ]
    },
    "qa": {
-    "import": "pass"
+    "import": "pass",
+    "read": "pass"
    },
    "hands": [
     5
@@ -880,7 +882,8 @@
     ]
    },
    "qa": {
-    "import": "pass"
+    "import": "pass",
+    "read": "pass"
    },
    "hands": [
     14.2
@@ -1265,7 +1268,8 @@
     ]
    },
    "qa": {
-    "import": "pass"
+    "import": "pass",
+    "read": "pass"
    },
    "hands": [
     7.8
@@ -1426,7 +1430,8 @@
     ]
    },
    "qa": {
-    "import": "pass"
+    "import": "pass",
+    "read": "pass"
    },
    "hands": [
     8.9
@@ -1443,7 +1448,8 @@
     ]
    },
    "qa": {
-    "import": "pass"
+    "import": "pass",
+    "read": "pass"
    },
    "hands": [
     9.8
@@ -1691,7 +1697,8 @@
     ]
    },
    "qa": {
-    "import": "pass"
+    "import": "pass",
+    "read": "pass"
    },
    "hands": [
     6
@@ -2035,7 +2042,8 @@
     ]
    },
    "qa": {
-    "import": "pass"
+    "import": "pass",
+    "read": "pass"
    },
    "hands": [
     5.2
@@ -2197,7 +2205,8 @@
     ]
    },
    "qa": {
-    "import": "pass"
+    "import": "pass",
+    "read": "pass"
    },
    "hands": [
     7.7
@@ -2381,7 +2390,8 @@
     ]
    },
    "qa": {
-    "import": "pass"
+    "import": "pass",
+    "read": "pass"
    },
    "hands": [
     8.2
@@ -2526,7 +2536,8 @@
     ]
    },
    "qa": {
-    "import": "pass"
+    "import": "pass",
+    "read": "pass"
    },
    "hands": [
     9.3
@@ -2831,7 +2842,8 @@
     ]
    },
    "qa": {
-    "import": "pass"
+    "import": "pass",
+    "read": "pass"
    },
    "hands": [
     7
@@ -2896,7 +2908,8 @@
     ]
    },
    "qa": {
-    "import": "pass"
+    "import": "pass",
+    "read": "pass"
    },
    "hands": [
     6.2
@@ -3065,7 +3078,8 @@
     ]
    },
    "qa": {
-    "import": "pass"
+    "import": "pass",
+    "read": "pass"
    },
    "hands": [
     5.4
@@ -3170,7 +3184,8 @@
     ]
    },
    "qa": {
-    "import": "pass"
+    "import": "pass",
+    "read": "pass"
    },
    "hands": [
     8.9

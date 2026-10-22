@@ -21,16 +21,25 @@ none during trial batches.
 
 - **Version 0.56.0.** Every WP through 10.2 and F.1 to F.9 is done; G0-G7 passed; G8, G9 and G10's command sets passed
   and each waits on the owner (blocked-owner, its ask on its PR):
-  - **G8** (#15): the phone review of `bench/results/gates/G8-run-1/queue.json`.
+  - **G8** (#15): the phone review of `bench/results/gates/G8-run-1/queue-0.56.0.json` (the same 20 clips as
+    `queue.json`, exported again at 0.56.0: one ref moved, D130). The page is a branch preview's `/src/review/` (O3 is
+    live again) or `npm run gallery` on a checkout, at `/src/review/`: "Open a queue file", decide each clip, Export,
+    and send the file back.
   - **G9** (#16): the contract suite against O8's project; an adoption through a merged PR; the owner's approval of
     70% of `bench/results/gates/G9-run-2/queue.json`. O8's setup is `services/intake/README.md`: the Supabase project,
     the Actions secrets `M3A_SUPABASE_URL` and `M3A_SUPABASE_SERVICE_ROLE_KEY` (intake.yml) and `M3A_INTAKE_SUPABASE`
     (ci.yml's `intake-contract`, dispatched with that gate), and "Allow GitHub Actions to create and approve pull
-    requests".
+    requests". The owner said yes to the session creating the project (D130), but no session has the Supabase
+    connector until the owner connects it (claude.ai/customize/connectors); the next session then creates it and runs
+    the README's steps 1 and 2; the OAuth app, the first sign-in, the secrets and the Actions setting stay the
+    owner's.
   - **G10** (#17): another repository consumes the package or certifies against the vectors, and the owner confirms
     it (O9: proposed in docs/MIGRATING.md and spec/conformance/CERTIFYING.md, never acted on there).
-  - O3 (the Vercel previews, paused, D85) and O2 (publishing: release.yml waits for the repository variable
-    `M3A_O2_RELEASE_ASSETS=yes`) are the owner's; the session creates no Supabase or Vercel resource.
+  - **O2 answered (D130): publish now under `@m3a/*`.** The session built `publish.yml` (WP-F.10) and never publishes;
+    the owner's steps (`tools/bundle/README.md`, "Publishing"): the npm org `m3a`, the Actions secret `NPM_TOKEN`, the
+    variable `M3A_O2_PUBLISH=yes`, then Actions, publish, Run workflow on the tag `v0.56.0`; for the sets as release
+    assets, the variable `M3A_O2_RELEASE_ASSETS=yes`, then release.yml on the same tag, and the draft release
+    published. **O3 unpaused** by the owner (D130): the branch previews build again.
 - **The follow-ups built (#20, 2026-10-21, the owner's pick):** the m3a bin refuses a Node without `import.meta.main`
   and the hook no longer deletes node_modules under the MCP server (F.1, D121); `STYLE100_RUN/OnHeels_Run` planted by
   its whole sole, the other five `unplanted` loops answered with numbers (F.2, D122); the root-motion rate sweep,

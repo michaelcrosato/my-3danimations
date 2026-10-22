@@ -1,0 +1,768 @@
+{
+ "schema": "m3a.review-queue/1",
+ "store": "local",
+ "date": "2026-10-22",
+ "submissions": [],
+ "clips": [
+  {
+   "ref": "STYLE100_SIDERUN/Stiff_SideRunLeft@6b352005f1fd",
+   "id": "STYLE100_SIDERUN/Stiff_SideRunLeft",
+   "hash": "6b352005f1fd36e8db9d19ef709022133919e66b1e7a75b153ec6131d0d131c6",
+   "tier": "cc-by",
+   "review": null,
+   "stale": false,
+   "numbers": {
+    "verdict": "pass",
+    "findings": 0,
+    "fail": 0,
+    "dur": 1.267,
+    "keys": 21,
+    "fit": [
+     8,
+     40
+    ],
+    "metrics": {
+     "slide": 29.27,
+     "skate": 7.55,
+     "penetration": 3.93,
+     "bodyPenetration": 0,
+     "intersection": 0.31,
+     "jitter": 16.9,
+     "pop": 1845.06,
+     "twistFlip": 60,
+     "jointLimit": 20,
+     "stretch": 0,
+     "seam": 0,
+     "seamVelocity": 1399.71,
+     "fit": 8,
+     "nan": 0,
+     "events": 0,
+     "symmetry": 0,
+     "skateMean": 7.45
+    }
+   }
+  },
+  {
+   "ref": "CMU_CURATED/Jump_Twist@3ab846fac374",
+   "id": "CMU_CURATED/Jump_Twist",
+   "hash": "3ab846fac37495fc207680eb08addc6ae824f2a3e61fe008622d32d538a9c768",
+   "tier": "cmu",
+   "review": null,
+   "stale": false,
+   "numbers": {
+    "verdict": "pass",
+    "findings": 0,
+    "fail": 0,
+    "dur": 1.8,
+    "keys": 29,
+    "fit": [
+     11,
+     60
+    ],
+    "metrics": {
+     "slide": 36.77,
+     "skate": 5.98,
+     "penetration": 13.8,
+     "bodyPenetration": 0,
+     "intersection": 0.03,
+     "jitter": 16.47,
+     "pop": 441.99,
+     "twistFlip": 35,
+     "jointLimit": 60,
+     "stretch": 0,
+     "seam": 0,
+     "seamVelocity": 0,
+     "fit": 11,
+     "nan": 0,
+     "events": 0,
+     "symmetry": 0,
+     "skateMean": 11
+    }
+   }
+  },
+  {
+   "ref": "STYLE100_SIDERUN/ShieldedRight_SideRunRight@2da4aa85e13a",
+   "id": "STYLE100_SIDERUN/ShieldedRight_SideRunRight",
+   "hash": "2da4aa85e13aca76f73081de2030b4dea8eb19235b8370da09224d5a07695749",
+   "tier": "cc-by",
+   "review": null,
+   "stale": false,
+   "numbers": {
+    "verdict": "warn",
+    "findings": 1,
+    "fail": 0,
+    "dur": 0.633,
+    "keys": 9,
+    "fit": [
+     8,
+     33
+    ],
+    "metrics": {
+     "slide": 88.99,
+     "skate": 28.12,
+     "penetration": 4.78,
+     "bodyPenetration": 0,
+     "intersection": 0.07,
+     "jitter": 3.04,
+     "pop": 1340.91,
+     "twistFlip": 49,
+     "jointLimit": 11,
+     "stretch": 0,
+     "seam": 0,
+     "seamVelocity": 2093.74,
+     "fit": 8,
+     "nan": 0,
+     "events": 0,
+     "symmetry": 0,
+     "skateMean": 18.67
+    }
+   }
+  },
+  {
+   "ref": "STYLE100_SIDE/LawnMower_SideLeft@e9a30279816d",
+   "id": "STYLE100_SIDE/LawnMower_SideLeft",
+   "hash": "e9a30279816de55f2cd64dd3450329de355100a854dbae315a788f07c6493859",
+   "tier": "cc-by",
+   "review": null,
+   "stale": false,
+   "numbers": {
+    "verdict": "pass",
+    "findings": 0,
+    "fail": 0,
+    "dur": 2.267,
+    "keys": 31,
+    "fit": [
+     8,
+     48
+    ],
+    "metrics": {
+     "slide": 60.95,
+     "skate": 8.98,
+     "penetration": 2.39,
+     "bodyPenetration": 0,
+     "intersection": 0.07,
+     "jitter": 14.95,
+     "pop": 402.19,
+     "twistFlip": 35,
+     "jointLimit": 12,
+     "stretch": 0,
+     "seam": 0,
+     "seamVelocity": 1503.61,
+     "fit": 8,
+     "nan": 0,
+     "events": 0,
+     "symmetry": 0,
+     "skateMean": 6.11
+    }
+   }
+  },
+  {
+   "ref": "STYLE100_SIDE/CrowdAvoidance_SideRight@6d215290cc63",
+   "id": "STYLE100_SIDE/CrowdAvoidance_SideRight",
+   "hash": "6d215290cc6336662efed391ab78a4b64a5cb40a048c6268b527a297eaa269e1",
+   "tier": "cc-by",
+   "review": null,
+   "stale": false,
+   "numbers": {
+    "verdict": "pass",
+    "findings": 0,
+    "fail": 0,
+    "dur": 1.2,
+    "keys": 7,
+    "fit": [
+     10,
+     36
+    ],
+    "metrics": {
+     "slide": 40.06,
+     "skate": 4.37,
+     "penetration": 0,
+     "bodyPenetration": 0,
+     "intersection": 0.39,
+     "jitter": 2.11,
+     "pop": 1107.23,
+     "twistFlip": 22.56,
+     "jointLimit": 42,
+     "stretch": 0,
+     "seam": 0,
+     "seamVelocity": 555.48,
+     "fit": 10,
+     "nan": 0,
+     "events": 0,
+     "symmetry": 0,
+     "skateMean": 4.6
+    }
+   }
+  },
+  {
+   "ref": "STYLE100_BACKRUN/KarateChop_RunBack@4dd46b3d65ff",
+   "id": "STYLE100_BACKRUN/KarateChop_RunBack",
+   "hash": "4dd46b3d65ffac7f5b1546f27d9fd6bf97de3a6f3f53338e034474e671b0869a",
+   "tier": "cc-by",
+   "review": null,
+   "stale": false,
+   "numbers": {
+    "verdict": "pass",
+    "findings": 0,
+    "fail": 0,
+    "dur": 1.8,
+    "keys": 24,
+    "fit": [
+     12,
+     98
+    ],
+    "metrics": {
+     "slide": 60.77,
+     "skate": 8.48,
+     "penetration": 50.83,
+     "bodyPenetration": 0,
+     "intersection": 0.09,
+     "jitter": 9.55,
+     "pop": 209.59,
+     "twistFlip": 66,
+     "jointLimit": 40,
+     "stretch": 0,
+     "seam": 0,
+     "seamVelocity": 1996.97,
+     "fit": 12,
+     "nan": 0,
+     "events": 0,
+     "symmetry": 0,
+     "skateMean": 9.24
+    }
+   }
+  },
+  {
+   "ref": "STYLE100/Heavyset_Walk@672a20a7e61b",
+   "id": "STYLE100/Heavyset_Walk",
+   "hash": "672a20a7e61b6035e5f9e734b24f2c31475e211d2f16d37ea9e5f0295be20928",
+   "tier": "cc-by",
+   "review": null,
+   "stale": false,
+   "numbers": {
+    "verdict": "pass",
+    "findings": 0,
+    "fail": 0,
+    "dur": 1.267,
+    "keys": 17,
+    "fit": [
+     8,
+     113
+    ],
+    "metrics": {
+     "slide": 50.45,
+     "skate": 6.67,
+     "penetration": 14.82,
+     "bodyPenetration": 0,
+     "intersection": 0.08,
+     "jitter": 7.6,
+     "pop": 0,
+     "twistFlip": 54,
+     "jointLimit": 35,
+     "stretch": 0,
+     "seam": 0,
+     "seamVelocity": 733.84,
+     "fit": 8,
+     "nan": 0,
+     "events": 0,
+     "symmetry": 0,
+     "skateMean": 5.2
+    }
+   }
+  },
+  {
+   "ref": "STYLE100_IDLE/CrossOver_Idle@b65028f82f7c",
+   "id": "STYLE100_IDLE/CrossOver_Idle",
+   "hash": "b65028f82f7c5a185e45837f5940c272bed8eaa329bd9106b431e41d2dea2f29",
+   "tier": "cc-by",
+   "review": null,
+   "stale": false,
+   "numbers": {
+    "verdict": "pass",
+    "findings": 0,
+    "fail": 0,
+    "dur": 2.5,
+    "keys": 2,
+    "fit": [
+     5,
+     19
+    ],
+    "metrics": {
+     "slide": 0,
+     "skate": 0,
+     "penetration": 0,
+     "bodyPenetration": 0,
+     "intersection": 0.36,
+     "jitter": 0,
+     "pop": 0,
+     "twistFlip": 0,
+     "jointLimit": 3,
+     "stretch": 0,
+     "seam": 0,
+     "seamVelocity": 0,
+     "fit": 5,
+     "nan": 0,
+     "events": 0,
+     "symmetry": 0,
+     "skateMean": 0
+    }
+   }
+  },
+  {
+   "ref": "STYLE100_IDLE/OnPhoneLeft_Idle@f2e25e7b2368",
+   "id": "STYLE100_IDLE/OnPhoneLeft_Idle",
+   "hash": "f2e25e7b23685b6ff820562b5ffcc9dad38572712c26f8c6c78a982aee9abe64",
+   "tier": "cc-by",
+   "review": null,
+   "stale": false,
+   "numbers": {
+    "verdict": "pass",
+    "findings": 0,
+    "fail": 0,
+    "dur": 2.7,
+    "keys": 2,
+    "fit": [
+     10,
+     37
+    ],
+    "metrics": {
+     "slide": 0,
+     "skate": 0,
+     "penetration": 0,
+     "bodyPenetration": 0,
+     "intersection": 0.12,
+     "jitter": 0,
+     "pop": 0,
+     "twistFlip": 0,
+     "jointLimit": 10,
+     "stretch": 0,
+     "seam": 0,
+     "seamVelocity": 0,
+     "fit": 10,
+     "nan": 0,
+     "events": 0,
+     "symmetry": 0,
+     "skateMean": 0
+    }
+   }
+  },
+  {
+   "ref": "CMU_CURATED/Pick_Up_Basket@04c9a32eadf4",
+   "id": "CMU_CURATED/Pick_Up_Basket",
+   "hash": "04c9a32eadf41b3e2508f47dd22873692228164babc127289fcf14aab5ecff6b",
+   "tier": "cmu",
+   "review": null,
+   "stale": false,
+   "numbers": {
+    "verdict": "pass",
+    "findings": 0,
+    "fail": 0,
+    "dur": 4.3,
+    "keys": 76,
+    "fit": [
+     10,
+     88
+    ],
+    "metrics": {
+     "slide": 37.07,
+     "skate": 11.21,
+     "penetration": 12.54,
+     "bodyPenetration": 0,
+     "intersection": 0.89,
+     "jitter": 15.8,
+     "pop": 859.75,
+     "twistFlip": 43,
+     "jointLimit": 34,
+     "stretch": 0,
+     "seam": 0,
+     "seamVelocity": 0,
+     "fit": 10,
+     "nan": 0,
+     "events": 0,
+     "symmetry": 0,
+     "skateMean": 4.64
+    }
+   }
+  },
+  {
+   "ref": "STYLE100_BACKRUN/BouncyLeft_RunBack@8226e2d905e3",
+   "id": "STYLE100_BACKRUN/BouncyLeft_RunBack",
+   "hash": "8226e2d905e3d2214555f05e3d5b6520a04b5091ec8f6a1cea68c4ad60cfab7a",
+   "tier": "cc-by",
+   "review": null,
+   "stale": false,
+   "numbers": {
+    "verdict": "warn",
+    "findings": 1,
+    "fail": 0,
+    "dur": 0.667,
+    "keys": 10,
+    "fit": [
+     9,
+     42
+    ],
+    "metrics": {
+     "slide": 112.68,
+     "skate": 36.46,
+     "penetration": 1.37,
+     "bodyPenetration": 0,
+     "intersection": 0.11,
+     "jitter": 9.33,
+     "pop": 0,
+     "twistFlip": 41,
+     "jointLimit": 12,
+     "stretch": 0,
+     "seam": 0,
+     "seamVelocity": 2142.65,
+     "fit": 9,
+     "nan": 0,
+     "events": 0,
+     "symmetry": 0,
+     "skateMean": 30.15
+    }
+   }
+  },
+  {
+   "ref": "STYLE100_SIDERUN/WiggleHips_SideRunLeft@613372ec95d0",
+   "id": "STYLE100_SIDERUN/WiggleHips_SideRunLeft",
+   "hash": "613372ec95d03fe13ecacd6bd55438555108dfcdf6c3166863237fef158efef6",
+   "tier": "cc-by",
+   "review": null,
+   "stale": false,
+   "numbers": {
+    "verdict": "warn",
+    "findings": 1,
+    "fail": 0,
+    "dur": 0.733,
+    "keys": 9,
+    "fit": [
+     8,
+     33
+    ],
+    "metrics": {
+     "slide": 87.54,
+     "skate": 23.89,
+     "penetration": 8.21,
+     "bodyPenetration": 0,
+     "intersection": 0.1,
+     "jitter": 2.72,
+     "pop": 915.75,
+     "twistFlip": 45,
+     "jointLimit": 16,
+     "stretch": 0,
+     "seam": 0,
+     "seamVelocity": 917.05,
+     "fit": 8,
+     "nan": 0,
+     "events": 0,
+     "symmetry": 0,
+     "skateMean": 16.5
+    }
+   }
+  },
+  {
+   "ref": "STYLE100_BACKRUN/Elated_RunBack@1492349cad00",
+   "id": "STYLE100_BACKRUN/Elated_RunBack",
+   "hash": "1492349cad004dd5fe0f3d2e6d650afc0e86fc51dcc7c94e19c81bf023227dbf",
+   "tier": "cc-by",
+   "review": null,
+   "stale": false,
+   "numbers": {
+    "verdict": "pass",
+    "findings": 0,
+    "fail": 0,
+    "dur": 0.933,
+    "keys": 21,
+    "fit": [
+     12,
+     149
+    ],
+    "metrics": {
+     "slide": 38.5,
+     "skate": 14.44,
+     "penetration": 27.13,
+     "bodyPenetration": 0,
+     "intersection": 0.58,
+     "jitter": 18.39,
+     "pop": 1574.58,
+     "twistFlip": 83,
+     "jointLimit": 13,
+     "stretch": 0,
+     "seam": 0,
+     "seamVelocity": 1627,
+     "fit": 12,
+     "nan": 0,
+     "events": 0,
+     "symmetry": 0,
+     "skateMean": 12.09
+    }
+   }
+  },
+  {
+   "ref": "CMU_CURATED/Wrench_Bolt@fb26b9a3a9c1",
+   "id": "CMU_CURATED/Wrench_Bolt",
+   "hash": "fb26b9a3a9c1de8769d61ca71eeed63f16ed4a02143fe804b0c0b43ac17fc7a1",
+   "tier": "cmu",
+   "review": null,
+   "stale": false,
+   "numbers": {
+    "verdict": "pass",
+    "findings": 0,
+    "fail": 0,
+    "dur": 6,
+    "keys": 23,
+    "fit": [
+     11,
+     61
+    ],
+    "metrics": {
+     "slide": 55.5,
+     "skate": 3.64,
+     "penetration": 3.93,
+     "bodyPenetration": 0,
+     "intersection": 0.25,
+     "jitter": 1.03,
+     "pop": 495.38,
+     "twistFlip": 68,
+     "jointLimit": 26,
+     "stretch": 0,
+     "seam": 0,
+     "seamVelocity": 0,
+     "fit": 11,
+     "nan": 0,
+     "events": 0,
+     "symmetry": 0,
+     "skateMean": 1.47
+    }
+   }
+  },
+  {
+   "ref": "STYLE100_SIDERUN/ArmsBehindBack_SideRunRight@b6c83f0ba0df",
+   "id": "STYLE100_SIDERUN/ArmsBehindBack_SideRunRight",
+   "hash": "b6c83f0ba0dfaf9b22afea94557a6a8ad9cdc82d666b4e3d87774e0478b13510",
+   "tier": "cc-by",
+   "review": null,
+   "stale": false,
+   "numbers": {
+    "verdict": "pass",
+    "findings": 0,
+    "fail": 0,
+    "dur": 0.7,
+    "keys": 11,
+    "fit": [
+     9,
+     52
+    ],
+    "metrics": {
+     "slide": 53.58,
+     "skate": 17.86,
+     "penetration": 9.16,
+     "bodyPenetration": 0,
+     "intersection": 0.22,
+     "jitter": 10.16,
+     "pop": 1536.17,
+     "twistFlip": 57,
+     "jointLimit": 24,
+     "stretch": 0,
+     "seam": 0,
+     "seamVelocity": 1057.11,
+     "fit": 9,
+     "nan": 0,
+     "events": 0,
+     "symmetry": 0,
+     "skateMean": 16.27
+    }
+   }
+  },
+  {
+   "ref": "CMU_CURATED/Charleston@fa780ade474f",
+   "id": "CMU_CURATED/Charleston",
+   "hash": "fa780ade474f75ed8d8e092bc87e7f4c9d484568345c5045c0b447ee0e6412f8",
+   "tier": "cmu",
+   "review": null,
+   "stale": false,
+   "numbers": {
+    "verdict": "pass",
+    "findings": 0,
+    "fail": 0,
+    "dur": 3.567,
+    "keys": 88,
+    "fit": [
+     12,
+     83
+    ],
+    "metrics": {
+     "slide": 88.24,
+     "skate": 14,
+     "penetration": 15.44,
+     "bodyPenetration": 0,
+     "intersection": 0.41,
+     "jitter": 21.26,
+     "pop": 1658.09,
+     "twistFlip": 36,
+     "jointLimit": 69,
+     "stretch": 0,
+     "seam": 0,
+     "seamVelocity": 0,
+     "fit": 12,
+     "nan": 0,
+     "events": 0,
+     "symmetry": 0,
+     "skateMean": 5.51
+    }
+   }
+  },
+  {
+   "ref": "STYLE100_SIDERUN/BentKnees_SideRunRight@58de1f434872",
+   "id": "STYLE100_SIDERUN/BentKnees_SideRunRight",
+   "hash": "58de1f4348723c04a087117d593d626412e7ca9369144d5e55183d22d9fe0ace",
+   "tier": "cc-by",
+   "review": null,
+   "stale": false,
+   "numbers": {
+    "verdict": "pass",
+    "findings": 0,
+    "fail": 0,
+    "dur": 0.567,
+    "keys": 9,
+    "fit": [
+     9,
+     31
+    ],
+    "metrics": {
+     "slide": 32.57,
+     "skate": 10.58,
+     "penetration": 2.9,
+     "bodyPenetration": 0,
+     "intersection": 0.09,
+     "jitter": 0,
+     "pop": 0,
+     "twistFlip": 39,
+     "jointLimit": 22,
+     "stretch": 0,
+     "seam": 0,
+     "seamVelocity": 2058.98,
+     "fit": 9,
+     "nan": 0,
+     "events": 0,
+     "symmetry": 0,
+     "skateMean": 10.09
+    }
+   }
+  },
+  {
+   "ref": "MESH2MOTION/Fighting_Right_Jab@ab1b5c8b9f0c",
+   "id": "MESH2MOTION/Fighting_Right_Jab",
+   "hash": "ab1b5c8b9f0c85e20cc1da0fdcdeca152205bb4aa150ef9b54aecc5b5020ab36",
+   "tier": "cc0",
+   "review": null,
+   "stale": false,
+   "numbers": {
+    "verdict": "pass",
+    "findings": 0,
+    "fail": 0,
+    "dur": 0.917,
+    "keys": 12,
+    "fit": [
+     7,
+     41
+    ],
+    "metrics": {
+     "slide": 7.14,
+     "skate": 0.78,
+     "penetration": 1.32,
+     "bodyPenetration": 0,
+     "intersection": 0,
+     "jitter": 7.3,
+     "pop": 706.49,
+     "twistFlip": 28,
+     "jointLimit": 46,
+     "stretch": 0,
+     "seam": 0,
+     "seamVelocity": 0,
+     "fit": 7,
+     "nan": 0,
+     "events": 0,
+     "symmetry": 0,
+     "skateMean": 0.72
+    }
+   }
+  },
+  {
+   "ref": "STYLE100_IDLE/GracefulArms_Idle@ce7e602372d0",
+   "id": "STYLE100_IDLE/GracefulArms_Idle",
+   "hash": "ce7e602372d09818a0651e04aae99a82f9ba624877906a031aa7219cfc47d7a9",
+   "tier": "cc-by",
+   "review": null,
+   "stale": false,
+   "numbers": {
+    "verdict": "pass",
+    "findings": 0,
+    "fail": 0,
+    "dur": 2.5,
+    "keys": 2,
+    "fit": [
+     9,
+     36
+    ],
+    "metrics": {
+     "slide": 0,
+     "skate": 0,
+     "penetration": 0,
+     "bodyPenetration": 0,
+     "intersection": 0.04,
+     "jitter": 0,
+     "pop": 0,
+     "twistFlip": 0,
+     "jointLimit": 7,
+     "stretch": 0,
+     "seam": 0,
+     "seamVelocity": 0,
+     "fit": 9,
+     "nan": 0,
+     "events": 0,
+     "symmetry": 0,
+     "skateMean": 0
+    }
+   }
+  },
+  {
+   "ref": "STYLE100_BACK/WildArms_WalkBack@b9dfd2a9af09",
+   "id": "STYLE100_BACK/WildArms_WalkBack",
+   "hash": "b9dfd2a9af09a3643d1491cad229eb22e66348f55018c30a8ebcb7877e235ecf",
+   "tier": "cc-by",
+   "review": null,
+   "stale": false,
+   "numbers": {
+    "verdict": "pass",
+    "findings": 0,
+    "fail": 0,
+    "dur": 1.533,
+    "keys": 26,
+    "fit": [
+     10,
+     103
+    ],
+    "metrics": {
+     "slide": 63.99,
+     "skate": 6.74,
+     "penetration": 6.57,
+     "bodyPenetration": 0,
+     "intersection": 0.45,
+     "jitter": 17.88,
+     "pop": 425.75,
+     "twistFlip": 119,
+     "jointLimit": 17,
+     "stretch": 0,
+     "seam": 0,
+     "seamVelocity": 1967.54,
+     "fit": 10,
+     "nan": 0,
+     "events": 0,
+     "symmetry": 0,
+     "skateMean": 5.24
+    }
+   }
+  }
+ ]
+}

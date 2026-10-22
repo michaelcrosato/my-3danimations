@@ -4035,7 +4035,8 @@
    },
    "qa": {
     "import": "pass",
-    "migrated": "warn"
+    "migrated": "warn",
+    "read": "pass"
    },
    "hands": [
     13.3,

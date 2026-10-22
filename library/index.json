@@ -29,14 +29,14 @@
     {
      "v": 2,
      "content": "6f97d94be4fff37acb850c1d5006c08d35f4a036c3376f147bf0035fe2f980f1",
-     "digest": "e96fa0735bd12c56a881184c3a1de4c7f8df840893c5a0dedfee0e307e9d5c00",
+     "digest": "850374c98dc56b57061c7033c43d666bf34263f1694ffef5174009f48d3bfdcf",
      "title": "CMU motion capture, curated",
      "tier": "cmu",
      "licenses": [
       "LicenseRef-CMU-Mocap"
      ],
      "clips": 158,
-     "bytes": 3067131,
+     "bytes": 3067151,
      "qa": {
       "baselined": 67,
       "pass": 91
@@ -192,14 +192,14 @@
     {
      "v": 2,
      "content": "b94cad387f745804d6d39258d6bbb2493d90568bba60f88ce541e48b15fbfa33",
-     "digest": "14479be978b33e4c76e03d0528319eda7731bbbebf6d8165b43ad8055ab043c0",
+     "digest": "46740d69a4274acaf607b8fd77ee3995691bc794b026214de2c6148cb7b55e82",
      "title": "100STYLE walks",
      "tier": "cc-by",
      "licenses": [
       "CC-BY-4.0"
      ],
      "clips": 95,
-     "bytes": 680928,
+     "bytes": 680988,
      "qa": {
       "baselined": 31,
       "pass": 64
@@ -238,14 +238,14 @@
     {
      "v": 2,
      "content": "c39bf470dbc6c39b4a8dfce3527908f253172af4cef3eda3efe472a61447d094",
-     "digest": "9d99312b933410e9b24b09026cfa28642250c06459eafe85f51ec6c859911956",
+     "digest": "e078dffcc1e913db057a4a16cd1ccc9fd43fdbae015226f5ef1d36dc4dc8e407",
      "title": "100STYLE backward walks",
      "tier": "cc-by",
      "licenses": [
       "CC-BY-4.0"
      ],
      "clips": 98,
-     "bytes": 588700,
+     "bytes": 588820,
      "qa": {
       "baselined": 9,
       "pass": 89
@@ -284,14 +284,14 @@
     {
      "v": 2,
      "content": "a729c6102761e3bb2b45d2bcceb53b5a292731fd9dbfb9aaba29e1b565deada5",
-     "digest": "50b815b9650dc0580d36a29db78014de5e5cd54ba419366c85a2e9c45a0af353",
+     "digest": "73056d989cfc1bca840fcfed41a20409091b9fd85a3c8b5a82d554ccaa44eca4",
      "title": "100STYLE backward runs",
      "tier": "cc-by",
      "licenses": [
       "CC-BY-4.0"
      ],
      "clips": 98,
-     "bytes": 553789,
+     "bytes": 553889,
      "qa": {
       "baselined": 31,
       "pass": 67
@@ -397,14 +397,14 @@
     {
      "v": 4,
      "content": "d6c32f8881b661104603230f5988245e7296a16bca9ab80309184216bee5e454",
-     "digest": "40f2be5765111f26d130a9e6f47eba3d09eeb40d6d3d8d65a1bfca92ce83ca23",
+     "digest": "ba9b1aa23efb6ab381ca75874ef5cd8d9b568853a362e7fa8ad3b38bdddd56c4",
      "title": "100STYLE runs",
      "tier": "cc-by",
      "licenses": [
       "CC-BY-4.0"
      ],
      "clips": 98,
-     "bytes": 669817,
+     "bytes": 669897,
      "qa": {
       "baselined": 49,
       "pass": 49
@@ -443,14 +443,14 @@
     {
      "v": 2,
      "content": "f451e8313a881a43b63a48f3ab34ee7a1c14abfd4cc8d1473a5604df130b868c",
-     "digest": "19b38691794afdddbbdb85b4abd0e9007681fdf8df35d8f105c4d3124baf4362",
+     "digest": "c314f91700a196ecaa28aa590e5453fe968b9c71d8f38c9f0091626e3e9d7b7c",
      "title": "100STYLE sidesteps",
      "tier": "cc-by",
      "licenses": [
       "CC-BY-4.0"
      ],
      "clips": 194,
-     "bytes": 1167734,
+     "bytes": 1168034,
      "qa": {
       "baselined": 7,
       "pass": 187
@@ -489,14 +489,14 @@
     {
      "v": 2,
      "content": "d7a5c88cba02036c006cc5d1e68523b956999832547852062a620c7f78523d6d",
-     "digest": "798d7a2eb8be9c3a1e85ac6bd81709895472a3b7c06434e5d99977edb86c0d53",
+     "digest": "43071294d5d4770a707f86176f3eed2d3512f4086e7a19e71e281124342f50ce",
      "title": "100STYLE sideways runs",
      "tier": "cc-by",
      "licenses": [
       "CC-BY-4.0"
      ],
      "clips": 193,
-     "bytes": 1202924,
+     "bytes": 1203144,
      "qa": {
       "baselined": 43,
       "pass": 150

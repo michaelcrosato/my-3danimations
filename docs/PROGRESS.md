@@ -28,11 +28,11 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 
 ## Blocked on the owner
 
-- G8: the phone review of the 20-clip batch (`bench/results/gates/G8-run-1/queue.json`). Asked on #15.
-- G9: O8 linked (`services/intake/README.md`), then the contract suite in Actions and an adoption through a merged
-  PR; the approval of 70% of `bench/results/gates/G9-run-2/queue.json`. Asked on #16.
+- G8: the phone review of the 20-clip batch (`bench/results/gates/G8-run-1/queue-0.56.0.json`). Asked on #15.
+- G9: O8 linked (`services/intake/README.md`; the session may create it once the Supabase connector is connected,
+  D130), the contract suite, an adoption, the approval of 70% of `G9-run-2/queue.json`. Asked on #16.
 - G10: another repository consumes the package or certifies against the vectors, confirmed (O9). Asked on #17.
-- Also: O3 (Vercel previews, paused). D94, #16's proof thread and the stray artifact: answered (D120).
+- O2 answered, publish now (D130): the owner starts `publish.yml` and `release.yml` on `v0.56.0`. O3 unpaused.
 
 ## Last gate
 
