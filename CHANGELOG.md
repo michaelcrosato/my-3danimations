@@ -8,6 +8,8 @@ features, patch for fixes. One line per change, under the part it touched (**Spe
 
 WP-F.9 (D129): the rate sweep's failing loops read by D108's bar and their captured speed; 45 loops carry a named
 contact reading, labelled and named in `facts.reading`; 45 failing rows gone, none added.
+WP-F.10 (D130): O2 answered; `publish.yml` publishes the `@m3a` packages to npm with provenance, started by the owner
+alone from a release tag.
 
 ### Spec
 - §7.1: `labelled` contacts are played as written, labelled by a person or a source or chosen by a tool as one of the
@@ -52,6 +54,25 @@ contact reading, labelled and named in `facts.reading`; 45 failing rows gone, no
 
 ### Repo
 - `npm run test:changed` runs the readings' test for a change under `library/` (D129).
+- `.github/workflows/publish.yml`: the `@m3a` packages of a release tag published to npm with provenance, by hand
+  alone and from the tag itself: every job checks the go-ahead first (`M3A_O2_PUBLISH` is `yes`, the owner started
+  the run and the attempt, the tag reads `vX.Y.Z` and the run was started from it); a build job with no token holds
+  the tag to `main`, its version and the run's commit, and runs `npm run pack -- --check --publishable`; a publish job
+  with no checkout, in the environment `npm` the owner approves, checks each tarball's package.json and publishes the
+  eight in dependency order, a version already on the registry skipped and said, a failure stopping the rest; the npm
+  token (`NPM_TOKEN`, the environment's) in the publish step alone, the OIDC token in the publish job alone (D130,
+  WP-F.10).
+- `tools/release/publish.test.ts`: the workflow read as YAML and held to each of those, its keys and expressions held
+  exactly; its go-ahead, tag check, tarball check and publish loop run on stubs; the publish order derived from
+  `build.ts` (D130).
+- `release.yml`'s assets job checks the go-ahead first too, so a re-run of that job alone is checked, and an empty
+  owner is refused (D130).
+
+### Docs
+- `tools/bundle/README.md`: publishing as it now stands (O2 answered, D130), and the owner's steps in order, each as
+  the repository's owner: the npm organization `m3a`; the token (read and write on `@m3a`, Bypass 2FA, 90 days at
+  most); the environment `npm` (the owner its required reviewer, `v*` tags alone, `NPM_TOKEN` its secret);
+  `M3A_O2_PUBLISH=yes`; a tag on `main`; the run from that tag; the approval.
 
 ## 0.55.3 · 2026-10-22
 

@@ -36,10 +36,13 @@ none during trial batches.
   - **G10** (#17): another repository consumes the package or certifies against the vectors, and the owner confirms
     it (O9: proposed in docs/MIGRATING.md and spec/conformance/CERTIFYING.md, never acted on there).
   - **O2 answered (D130): publish now under `@m3a/*`.** The session built `publish.yml` (WP-F.10) and never publishes;
-    the owner's steps (`tools/bundle/README.md`, "Publishing"): the npm org `m3a`, the Actions secret `NPM_TOKEN`, the
-    variable `M3A_O2_PUBLISH=yes`, then Actions, publish, Run workflow on the tag `v0.56.0`; for the sets as release
-    assets, the variable `M3A_O2_RELEASE_ASSETS=yes`, then release.yml on the same tag, and the draft release
-    published. **O3 unpaused** by the owner (D130): the branch previews build again.
+    the owner's steps, each as `michaelcrosato` (`tools/bundle/README.md`, "Publishing"): the npm organization `m3a`;
+    a granular token (read and write on `@m3a` alone, Bypass 2FA, 90 days at most); the environment `npm` (the owner
+    its required reviewer, Prevent self-review off, administrators' bypass off, deployment from `v*` tags alone, the
+    token as its secret `NPM_TOKEN`, never a repository secret); the variable `M3A_O2_PUBLISH=yes`; the tag `v0.56.0`
+    (the session pushes it on the merged commit); Actions, publish, Run workflow with "Use workflow from: Tags →
+    v0.56.0" and `v0.56.0` as the tag; the publish job approved (Review deployments → npm). For the sets as release
+    assets: the variable `M3A_O2_RELEASE_ASSETS=yes`, release.yml run on the same tag, the draft release published. **O3 unpaused** by the owner (D130): the branch previews build again.
 - **The follow-ups built (#20, 2026-10-21, the owner's pick):** the m3a bin refuses a Node without `import.meta.main`
   and the hook no longer deletes node_modules under the MCP server (F.1, D121); `STYLE100_RUN/OnHeels_Run` planted by
   its whole sole, the other five `unplanted` loops answered with numbers (F.2, D122); the root-motion rate sweep,

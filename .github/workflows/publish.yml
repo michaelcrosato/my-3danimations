@@ -1,0 +1,251 @@
+# Publishing to npm (PLAN.md §13 O2, answered by the owner on 2026-10-22: D130): the @m3a packages of a release tag,
+# built and proved from that tag by `npm run pack -- --check --publishable`, published with npm provenance (Sigstore,
+# signed with the publish job's OIDC token) in the order their dependencies need. It runs only by hand, from the tag
+# itself (Use workflow from: Tags → vX.Y.Z), since npm's provenance names the run's ref and commit. It fails closed:
+# every job's first step stops it before anything is checked out, built or published unless the repository variable
+# M3A_O2_PUBLISH is "yes" (only an admin sets one), the repository's owner both started the run and started this
+# attempt, the tag reads vX.Y.Z and the run was started from it. Every job checks this again, so a re-run of one job
+# ("Re-run failed jobs") is checked too. The build job holds the tag to main and its packages to X.Y.Z, and runs the
+# repository's code and its dev dependencies with no token at all. The publish job checks nothing out and runs no code
+# but this file's and npm's. It deploys to the environment npm, which only a v* tag deploys to and the owner approves,
+# and the npm token (NPM_TOKEN, that environment's secret) reaches its publish step alone. A version already on the
+# registry is skipped and said (a published version can't be replaced), so a re-run after a partial failure publishes
+# the rest; a failure stops the packs after it, which need it. Actions are pinned by commit SHA (principle 9); the
+# comment names the release.
+name: publish
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "The release tag to publish, on main, e.g. v0.56.0 (every package of it at 0.56.0); run from that tag"
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish
+  cancel-in-progress: false
+
+jobs:
+  go-ahead:
+    name: The owner's go-ahead (O2)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: O2 answered by the owner, or nothing runs
+        env:
+          O2: ${{ vars.M3A_O2_PUBLISH }}
+          ACTOR: ${{ github.actor }}
+          TRIGGER: ${{ github.triggering_actor }}
+          OWNER: ${{ github.repository_owner }}
+          TAG: ${{ inputs.tag }}
+          REF: ${{ github.ref }}
+        run: |
+          if [ "$O2" != "yes" ]; then
+            echo "::error title=publish::Publishing is unanswered here (the repository variable M3A_O2_PUBLISH isn't \"yes\"): nothing is built or published. The owner sets it (tools/bundle/README.md)."
+            exit 1
+          fi
+          if [ -z "$OWNER" ] || [ "$ACTOR" != "$OWNER" ] || [ "$TRIGGER" != "$OWNER" ]; then
+            echo "::error title=publish::Only the repository's owner ($OWNER) starts a publish or re-runs one, not $ACTOR (this attempt: $TRIGGER): nothing is built or published."
+            exit 1
+          fi
+          if ! [[ "$TAG" =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
+            echo "::error title=publish::The tag \"$TAG\" isn't vX.Y.Z (a release tag, its packages at X.Y.Z): nothing is built or published."
+            exit 1
+          fi
+          if [ "$REF" != "refs/tags/$TAG" ]; then
+            echo "::error title=publish::This run was started from $REF, not from the tag $TAG, and npm's provenance names the run's ref and commit: run it from the tag (Use workflow from: Tags → $TAG, or gh workflow run publish.yml --ref $TAG -f tag=$TAG). Nothing is built or published."
+            exit 1
+          fi
+
+  build:
+    name: Build and prove the packs from the tag
+    needs: go-ahead
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    env:
+      TAG: ${{ inputs.tag }}
+    steps:
+      - name: O2 answered by the owner, or nothing runs
+        env:
+          O2: ${{ vars.M3A_O2_PUBLISH }}
+          ACTOR: ${{ github.actor }}
+          TRIGGER: ${{ github.triggering_actor }}
+          OWNER: ${{ github.repository_owner }}
+          TAG: ${{ inputs.tag }}
+          REF: ${{ github.ref }}
+        run: |
+          if [ "$O2" != "yes" ]; then
+            echo "::error title=publish::Publishing is unanswered here (the repository variable M3A_O2_PUBLISH isn't \"yes\"): nothing is built or published. The owner sets it (tools/bundle/README.md)."
+            exit 1
+          fi
+          if [ -z "$OWNER" ] || [ "$ACTOR" != "$OWNER" ] || [ "$TRIGGER" != "$OWNER" ]; then
+            echo "::error title=publish::Only the repository's owner ($OWNER) starts a publish or re-runs one, not $ACTOR (this attempt: $TRIGGER): nothing is built or published."
+            exit 1
+          fi
+          if ! [[ "$TAG" =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
+            echo "::error title=publish::The tag \"$TAG\" isn't vX.Y.Z (a release tag, its packages at X.Y.Z): nothing is built or published."
+            exit 1
+          fi
+          if [ "$REF" != "refs/tags/$TAG" ]; then
+            echo "::error title=publish::This run was started from $REF, not from the tag $TAG, and npm's provenance names the run's ref and commit: run it from the tag (Use workflow from: Tags → $TAG, or gh workflow run publish.yml --ref $TAG -f tag=$TAG). Nothing is built or published."
+            exit 1
+          fi
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: refs/tags/${{ inputs.tag }}
+          fetch-depth: 0 # main's history, which the tag is held to
+          persist-credentials: false
+      # no npm cache, asked for or automatic: the tarballs are built from the registry by the lockfile's hashes alone
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24.21.0
+          package-manager-cache: false
+      - name: The tag is on main, at its version, and is the commit this run names
+        run: |
+          if ! git merge-base --is-ancestor HEAD origin/main; then
+            echo "::error title=publish::$TAG isn't on main: a release is tagged on main, where its gates passed. Nothing is published."
+            exit 1
+          fi
+          at=$(node -p 'require("./package.json").version')
+          if [ "v$at" != "$TAG" ]; then
+            echo "::error title=publish::$TAG's packages are at $at, not ${TAG#v}: tag the commit that bumped them (node tools/version.ts). Nothing is published."
+            exit 1
+          fi
+          # npm's provenance names the run's commit (GITHUB_SHA): the tag moved after the run started, or isn't its ref
+          if [ "$(git rev-parse HEAD)" != "$(git rev-parse --verify --quiet "$GITHUB_SHA^{commit}")" ]; then
+            echo "::error title=publish::$TAG is at $(git rev-parse HEAD), not at $GITHUB_SHA, the commit this run was started on, which npm's provenance names. Nothing is published."
+            exit 1
+          fi
+      - run: npm ci --ignore-scripts
+      # it reads no fetched rig or pinned source (its characters are generated), so nothing is fetched before it
+      - run: npm run pack -- --check --publishable
+      # the tarballs alone go on to the publish job; kept a week, for the owner's approval and a re-run of that job
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: packs
+          path: .cache/pack/*.tgz
+          if-no-files-found: error
+          retention-days: 7
+
+  publish:
+    name: Publish the packs
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # NPM_TOKEN is this environment's secret: only a v* tag deploys to it, and each run of this job waits for the
+    # owner's approval (tools/bundle/README.md)
+    environment: npm
+    permissions:
+      contents: read
+      id-token: write # npm provenance: each package's statement is signed with the job's OIDC token (Sigstore)
+    env:
+      TAG: ${{ inputs.tag }}
+      # every pack tools/bundle/build.ts makes, in the order their dependencies need: its packages in PACKAGES' order,
+      # the library's opt-in packs after the library (publish.test.ts derives it from the code)
+      PACKS: core sensors io library library-cc-by library-cmu three tools
+    steps:
+      - name: O2 answered by the owner, or nothing runs
+        env:
+          O2: ${{ vars.M3A_O2_PUBLISH }}
+          ACTOR: ${{ github.actor }}
+          TRIGGER: ${{ github.triggering_actor }}
+          OWNER: ${{ github.repository_owner }}
+          TAG: ${{ inputs.tag }}
+          REF: ${{ github.ref }}
+        run: |
+          if [ "$O2" != "yes" ]; then
+            echo "::error title=publish::Publishing is unanswered here (the repository variable M3A_O2_PUBLISH isn't \"yes\"): nothing is built or published. The owner sets it (tools/bundle/README.md)."
+            exit 1
+          fi
+          if [ -z "$OWNER" ] || [ "$ACTOR" != "$OWNER" ] || [ "$TRIGGER" != "$OWNER" ]; then
+            echo "::error title=publish::Only the repository's owner ($OWNER) starts a publish or re-runs one, not $ACTOR (this attempt: $TRIGGER): nothing is built or published."
+            exit 1
+          fi
+          if ! [[ "$TAG" =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
+            echo "::error title=publish::The tag \"$TAG\" isn't vX.Y.Z (a release tag, its packages at X.Y.Z): nothing is built or published."
+            exit 1
+          fi
+          if [ "$REF" != "refs/tags/$TAG" ]; then
+            echo "::error title=publish::This run was started from $REF, not from the tag $TAG, and npm's provenance names the run's ref and commit: run it from the tag (Use workflow from: Tags → $TAG, or gh workflow run publish.yml --ref $TAG -f tag=$TAG). Nothing is built or published."
+            exit 1
+          fi
+      # no checkout: nothing of the repository's code or its dev dependencies runs beside the tokens, only the tarballs
+      # the build job made (npm runs no lifecycle script when it publishes a tarball)
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: packs
+          path: .cache/pack
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24.21.0
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
+      - name: Each tarball at the tag's version, publishable, after the @m3a packages it needs
+        run: |
+          node --input-type=commonjs - <<'EOF'
+            const { execFileSync } = require("node:child_process"), { readdirSync } = require("node:fs");
+            const v = process.env.TAG.slice(1), packs = process.env.PACKS.split(" "), bad = [], before = new Set();
+            const want = packs.map((p) => `m3a-${p}-${v}.tgz`);
+            for (const f of readdirSync(".cache/pack").filter((f) => !want.includes(f))) bad.push(`${f} is packed but isn't one of PACKS at ${v}: every pack is published, or none`);
+            for (const [i, p] of packs.entries()) {
+              let pkg;
+              try {
+                pkg = JSON.parse(execFileSync("tar", ["-xzOf", `.cache/pack/${want[i]}`, "package/package.json"], { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }));
+              } catch {
+                bad.push(`${want[i]} isn't packed, or holds no package/package.json`);
+                continue;
+              }
+              if (pkg.name !== `@m3a/${p}`) bad.push(`${want[i]} holds ${pkg.name}, not @m3a/${p}`);
+              if (pkg.version !== v) bad.push(`@m3a/${p} is at ${pkg.version}, not ${v}`);
+              if ("private" in pkg || pkg.publishConfig?.access !== "public" || pkg.publishConfig?.provenance !== true) bad.push(`@m3a/${p} isn't publishable: no "private", publishConfig public with provenance wanted`);
+              if (pkg.repository?.url !== `git+https://github.com/${process.env.GITHUB_REPOSITORY}.git`) bad.push(`@m3a/${p} names the repository ${pkg.repository?.url}, and provenance is checked against this one, ${process.env.GITHUB_REPOSITORY}`);
+              for (const [d, at] of Object.entries({ ...pkg.dependencies, ...pkg.peerDependencies }).filter(([d]) => d.startsWith("@m3a/"))) {
+                if (at !== v) bad.push(`@m3a/${p} needs ${d}@${at}, not ${v}`);
+                if (!before.has(d)) bad.push(`@m3a/${p} needs ${d}, which PACKS doesn't publish before it`);
+              }
+              before.add(`@m3a/${p}`);
+            }
+            for (const b of bad) console.log(`::error title=publish::${b}`);
+            if (bad.length) process.exit(1);
+            console.log(`${packs.length} tarballs at ${v}, each publishable, each after the @m3a packages it needs: ${packs.join(", ")}`);
+          EOF
+      - name: Publish each pack in order, skipping a version already on the registry
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          if [ -z "$NODE_AUTH_TOKEN" ]; then
+            echo "::error title=publish::The environment npm's secret NPM_TOKEN is unset: nothing is published. The owner adds it (an npm granular token, read and write on the @m3a scope: tools/bundle/README.md)."
+            exit 1
+          fi
+          v="${TAG#v}" err=$(mktemp) published=0 skipped=0
+          why="E401 or E403 from npm, or E404 from npm publish: NPM_TOKEN has expired (a write token lasts 90 days at most) or isn't read and write on @m3a; EOTP: it doesn't bypass two-factor authentication. The owner renews it (tools/bundle/README.md); else re-run when the registry answers"
+          for p in $PACKS; do
+            name="@m3a/$p"
+            # on the registry: npm view prints the version; not on it: E404 (no such package, or no such version)
+            if on=$(npm view "$name@$v" version 2> "$err"); then
+              if [ "$on" != "$v" ]; then
+                echo "::error title=publish::npm view $name@$v answered \"$on\": it and the packs after it are left."
+                exit 1
+              fi
+              echo "$name@$v is on the registry already: skipped (a published version can't be replaced)"
+              skipped=$((skipped + 1))
+              continue
+            elif ! grep -q E404 "$err"; then
+              echo "::error title=publish::npm view $name@$v failed, so whether it is published isn't known: it and the packs after it are left. $why."
+              cat "$err"
+              exit 1
+            fi
+            # a failure ends the step here: the packs after this one need it
+            if ! npm publish --provenance --access public "./.cache/pack/m3a-$p-$v.tgz"; then
+              echo "::error title=publish::npm publish $name@$v failed: it and the packs after it are left (a re-run skips the ones published). $why."
+              exit 1
+            fi
+            echo "$name@$v published, with provenance"
+            published=$((published + 1))
+          done
+          echo "$TAG: $published published, $skipped on the registry already" | tee -a "${GITHUB_STEP_SUMMARY:-/dev/null}"

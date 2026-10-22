@@ -5293,6 +5293,29 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
     builds `publish.yml` (WP-F.10) and never publishes: as with `release.yml` (D99), only the repository's owner starts
     a run, behind a repository variable the owner sets, with a token the owner adds. The owner's steps are in
     `tools/bundle/README.md` ("Publishing") and docs/HANDOFF.md.
+  - **How it is published (WP-F.10):** `.github/workflows/publish.yml`, run by hand from a release tag `vX.Y.Z` (Use
+    workflow from: Tags; npm's provenance names the run's ref and commit, so the run must start from the tag). Each of
+    its three jobs first checks the go-ahead and stops before anything is checked out unless the repository variable
+    `M3A_O2_PUBLISH` is `yes`, the repository's owner started both the run and this attempt, the tag reads `vX.Y.Z` and
+    the run was started from it; every job checks it, so a re-run of one job alone is checked too. The build job
+    (`contents: read`, no token) checks the tag out keeping no credentials, holds it to `main`, to the version its
+    package.json files are at and to the run's commit, installs with `npm ci --ignore-scripts` and no cache, proves the
+    packs with `npm run pack -- --check --publishable` and hands the tarballs on as an artifact. The publish job
+    (`contents: read`, `id-token: write`, the environment `npm`) checks nothing out, so no repository code or dev
+    dependency runs beside the tokens; it reads each tarball's package.json (at the tag's version, publishable, this
+    repository's, after every `@m3a` package it needs) and publishes the eight with `npm publish --provenance --access
+    public` in dependency order: `core`, `sensors`, `io`, `library`, `library-cc-by`, `library-cmu`, `three`, `tools`.
+    The npm token is the environment `npm`'s secret `NPM_TOKEN` (a granular token, read and write on `@m3a`, bypassing
+    2FA, 90 days at most): only a `v*` tag deploys to that environment, the owner approves each run of the job, and the
+    token reaches the publish step alone. A version already on the registry is skipped and said, so a re-run after a
+    partial failure publishes the rest and never fails on an immutable version; a failure stops the packs after it,
+    which need it. `tools/release/publish.test.ts` holds each of these (36 edits to the workflow, one at a time, each
+    fail it), running the go-ahead, the tag check, the tarball check and the publish loop on stubs; a dry run (`npm
+    publish --dry-run`) of the publish job's two steps on 0.56.0's tarballs went through all eight. The owner's steps:
+    create the npm organization `m3a`; create the token; create the environment `npm` with the owner as its required
+    reviewer, deployable from `v*` tags, the token as its secret; set `M3A_O2_PUBLISH=yes`; tag `main` at a version not
+    yet published; run the workflow from that tag; approve the publish job (`tools/bundle/README.md`, "Publishing").
+    Moving to npm's trusted publishing (no long-lived token) waits for the packages to exist.
   - **O3, unpaused by the owner:** the branch's commit 2f973fa built ("Deployment has completed", the first since D85's
     pause), so every branch builds its preview from `vercel.json` again; G8's review page is at a preview's
     `/src/review/` (it opens a queue file; the preview site never bundles one).

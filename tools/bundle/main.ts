@@ -37,7 +37,7 @@ import { buildSingle, bundleData, readManifest } from "./single.ts";
 const FLAGS = [
   { name: "check", help: "also prove the packs: a scratch install runs the manual's complete example and the m3a bin, its headless form runs there and on m3a.js, the sensors, tiers, version and licenses hold" },
   { name: "example", takesValue: true, help: "a manual (.md) whose complete example to run instead of packages/tools/MANUAL.md's, or a program (.ts) to run as the complete example" },
-  { name: "publishable", help: "stage each package.json ready for O2: \"private\" dropped, publishConfig with provenance, the repository (nothing is published)" },
+  { name: "publishable", help: "stage each package.json ready to publish: \"private\" dropped, publishConfig with provenance, the repository (nothing is published)" },
 ];
 /** The stand-ins for what m3a.js leaves out, which the complete example's headless form imports. */
 const HEADLESS_TS = readFileSync(join(import.meta.dirname, "headless.ts"), "utf8");
@@ -143,7 +143,7 @@ if (import.meta.main) {
       const bad: string[] = [];
       for (const [k, p] of Object.entries(packs())) {
         const pkg = JSON.parse(readFileSync(join(p.stage, "package.json"), "utf8")) as { private?: boolean; publishConfig?: { provenance?: boolean }; repository?: { url?: string } };
-        if (!ready && pkg.private !== true) bad.push(`${k} drops "private": publishing waits for O2`);
+        if (!ready && pkg.private !== true) bad.push(`${k} drops "private": the workspace's packs stay private, publish.yml stages them with --publishable`);
         if (ready && (pkg.private !== undefined || pkg.publishConfig?.provenance !== true || pkg.repository?.url !== REPOSITORY)) bad.push(`${k} isn't publishable: "private" dropped, publishConfig.provenance true and the repository ${REPOSITORY} wanted`);
       }
       if (bad.length) throw new Error(bad.join("\n"));
@@ -272,7 +272,7 @@ if (import.meta.main) {
     steps,
     warnings: [],
     ms,
-    next: ok ? (check ? "nothing is published (O2): the tarballs and m3a.js are in .cache/pack/" : "npm run pack -- --check proves them") : `fix the failing steps${state.scratch && !ok ? ` (the scratch project is kept: ${state.scratch})` : ""}`,
+    next: ok ? (check ? "nothing is published here (publish.yml publishes, D130): the tarballs and m3a.js are in .cache/pack/" : "npm run pack -- --check proves them") : `fix the failing steps${state.scratch && !ok ? ` (the scratch project is kept: ${state.scratch})` : ""}`,
   };
   finish(report, parsed);
 }

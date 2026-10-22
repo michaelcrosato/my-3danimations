@@ -236,6 +236,7 @@ describe("release.yml", () => {
     expect(Object.keys(after)).toEqual(["assets"]);
     for (const [name, job] of Object.entries(after)) expect([name, [job.needs].flat(), job.if]).toEqual([name, ["go-ahead"], undefined]);
     expect(assets.permissions).toEqual({ contents: "write" });
+    expect(assets.steps[0], "the go-ahead again first: a re-run of the failed job alone skips the go-ahead job").toEqual(go!.steps[0]);
     const upload = assets.steps.at(-1)!;
     expect([upload.name, upload.run]).toEqual(["Upload to the tag's draft release, replacing nothing", expect.stringMatching(/\ngh release upload "\$TAG" \.cache\/release\/assets\/\*\n$/)]);
     expect(JSON.stringify(wf)).not.toMatch(/--clobber/);
@@ -260,6 +261,7 @@ describe("release.yml", () => {
     expect(run({ O2: "yes", ACTOR: "someone", TRIGGER: "someone", OWNER: "o" })).toMatchObject({ status: 1, stdout: expect.stringMatching(/Only the repository's owner \(o\) starts a release or re-runs one, not someone/) });
     expect(run({ O2: "yes", ACTOR: "o", TRIGGER: "someone", OWNER: "o" })).toMatchObject({ status: 1, stdout: expect.stringMatching(/\(this attempt: someone\)/) }); // a re-run by someone else
     expect(run({ O2: "yes", ACTOR: "o", OWNER: "o" }).status).toBe(1);
+    expect(run({ O2: "yes", ACTOR: "", TRIGGER: "", OWNER: "" }).status).toBe(1);
     expect(run({ O2: "yes", ACTOR: "o", TRIGGER: "o", OWNER: "o" }).status).toBe(0);
   });
   it("uploads to a draft release alone: the one it drafts for a tag with none, never a published one or one whose state it can't read", () => {
