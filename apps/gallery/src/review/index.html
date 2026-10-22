@@ -1,12 +1,13 @@
 <!doctype html>
 <!-- The review queue's page (PLAN.md WP-8.2b, WP-F.11, WP-F.12): the owner's decisions on the submissions awaiting review
      and the sampled library clips, exported as a review for `m3a review ingest`. A guide at the top (#guide, in plain
-     words: what these clips are, how an agent chooses one by its words and numbers without seeing the motion, what the
-     sensors check and what only the reviewer can, what Approve, Flag and a "task:" or "threshold:" note mean, and to
-     export and send the file) is open on a first visit and remembers being closed. It opens the batch the build
-     carries (the newest, or ?queue=NAME) at load; each card says what its clip should show (its description, loop or
-     once, its length, its travel and pace, its tags), plays its clip in place and links it in the gallery. Phone
-     first (390x844, touch); main.ts drives it. -->
+     words: what these clips are, how an agent chooses one by its words and numbers, never watching it play, what the
+     sensors check and what only the reviewer can, what a card's PASS, WARN or FAIL means, what Approve, Flag and a
+     "task:" or "threshold:" note mean, and to export the file and send it back) is open on a first visit and remembers
+     being closed (the inline line after it closes it before the page shows; main.ts keeps the choice). It opens the
+     batch the build carries (the newest, or ?queue=NAME) at load; each card says what its clip should show (its
+     description, loop or once, its length, its travel in metres and pace, its tags), plays its clip in place and links
+     it in the gallery. Phone first (390x844, touch); main.ts drives it. -->
 <html lang="en">
   <head>
     <meta charset="utf-8" />
@@ -78,26 +79,32 @@
           <p><b>These clips</b> are sampled from the library that AI agents use to put motion into games. Someone making a
             game asks an agent for, say, "a character running away", and the agent picks clips from this library.</p>
           <p><b>How an agent chooses a clip:</b> by its words (its name, tags and description) and its numbers (how fast it
-            travels, whether it loops, how long it is). It never sees the motion. So a clip whose words don't match its
-            motion misleads every agent that picks it.</p>
+            travels, whether it loops, how long it is). It never watches the clip play: at most it reads a short summary a
+            computer makes of the movement ("walks", "in the air") or looks at a few still frames. So a clip whose words
+            don't match its motion misleads every agent that picks it.</p>
           <p><b>What the sensors already check:</b> feet sliding on the ground, sinking into the floor, sudden jumps
             between frames, arms or legs passing through the body. <b>What they can't:</b> whether a clip is what its
-            words say, and whether it looks natural and alive. That is your part.</p>
+            words say, and whether it looks natural and alive. That is your part. Each card's PASS, WARN or FAIL is the
+            sensors' result; a WARN, or a frame marked red on its preview sheet, is where to look closely. It doesn't
+            decide for you.</p>
           <p><b>For each card:</b></p>
           <ol>
             <li>Press <b>Play</b> and watch it (its gallery link opens it bigger, slower and from any side).</li>
             <li>Read <b>What it should show</b>: what an agent reads about it.</li>
             <li><b>Approve</b> if a game developer asking for exactly this would be happy with it.</li>
-            <li><b>Flag</b> if it looks broken, doesn't match its words (called a run but it is a walk, an idle that never
-              moves, a jump that never leaves the ground), or no game could use it. Say why in a few words.</li>
+            <li><b>Flag</b> if it looks broken, doesn't match its words (called a run but it is a walk, an idle that is a
+              frozen pose, a jump that never leaves the ground), or no game could use it. Say why in a few words. An idle
+              needn't travel, but its body should move.</li>
           </ol>
           <p><b>Notes:</b> one starting "task:" proposes something to fix or build; one starting "threshold:" says a
             sensor's limit looks wrong (it let a flaw through, or stopped a good clip). A clip someone sent in is adopted,
             archived or rejected the same way.</p>
-          <p class="last"><b>When you are done:</b> press <b>Export review</b> at the bottom and send the file. Playing a
-            clip or reading a card decides nothing; only Approve and Flag do. Your choices are kept in this browser, and
-            they count once the file is sent.</p>
+          <p class="last"><b>When you are done:</b> press <b>Export review</b> at the bottom and send the file back to
+            whoever asked you for this review (they apply it with one command). Playing a clip or reading a card decides
+            nothing; only Approve and Flag do. Your choices are kept in this browser, and they count once the file is
+            sent.</p>
         </details>
+        <script>try { if (localStorage.getItem("m3a.review.guide") === "closed") document.getElementById("guide").open = false; } catch {}</script>
         <p id="source" class="note" role="status">loading</p>
         <p id="problem" class="note fail"></p>
         <p id="batches" class="note"></p>

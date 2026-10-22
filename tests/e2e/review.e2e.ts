@@ -15,10 +15,12 @@
 // names no batches (M3A_REVIEW_BATCHES unset, as `npm run gallery` at a desk) carries the committed batches of library
 // clips alone, the newest of each gate (G8's), and one asked for none (`none`, the review page's other builds here)
 // carries none; opening a queue at load decides nothing. The page's guide (WP-F.12) is open on a first visit, says in
-// plain words what a review is for (how agents choose clips by their words and numbers, never seeing the motion; what
-// the sensors check and what only the reviewer can; Approve, Flag, a "task:" or "threshold:" note; Export), and stays
-// closed once closed; each card says what its clip should show, its description its file's, loop or once and its
-// length (G8's batch too, screenshot check-output/review/guide.png: the guide and the first card), deciding nothing.
+// plain words what a review is for (how agents choose clips by their words and numbers, never watching them play; what
+// the sensors check and what only the reviewer can, and what a card's PASS, WARN or FAIL means; Approve, Flag, a
+// "task:" or "threshold:" note; Export and send the file back), and stays closed once closed, closed before the page's
+// script runs; each card says what its clip should show, its description its file's, loop or once and its length, its
+// travel its facts' (a submission's measured on the page) (G8's batch too, screenshot check-output/review/guide.png:
+// the guide and the first card), deciding nothing.
 // The contributor page says the hosted store isn't linked, reaches no other origin and carries no secret, and a build given a secret
 // key fails; built linked to a stub project, it signs in, adds a key's SHA-256 and revokes it. Screenshots go to
 // check-output/review/, never committed.
@@ -28,6 +30,7 @@ import { extname, join, normalize } from "node:path";
 import { expect, test, type BrowserContext, type Page } from "@playwright/test";
 import { build } from "vite";
 import { serialize, type Clip } from "../../packages/core/src/index.ts";
+import { mps } from "../../packages/library/src/index.ts";
 import type { Queue, ReviewFile } from "../../packages/tools/src/intake/index.ts";
 import { nodeReviewHost } from "../../packages/tools/src/node/intake.ts";
 import { Registry } from "../../packages/tools/src/registry/index.ts";
@@ -96,13 +99,24 @@ const shown = (page: Page) =>
       travel: el.querySelector("[data-travel]")?.textContent ?? "", tags: el.querySelector("[data-tags]")?.textContent ?? "", before: !!(el.compareDocumentPosition(verdicts) & Node.DOCUMENT_POSITION_FOLLOWING),
     }];
   })));
+/** What a card's travel says of clip `c`, read from its facts as search reads them (its numbers, not its phrasing:
+ *  shows.test.ts holds that): a loop's m/s on the reference body (`mps`), none under 10 % of hip height a second; a
+ *  one-shot's metres from where it starts, to the tenth, about none under 25 %, none at 0; unmeasured without facts. */
+function travelled(c: Clip): RegExp {
+  const f = c.facts as { speed?: number; travel?: [number, number] } | undefined, far = f?.travel ? Math.hypot(...f.travel) : 0;
+  if (!f) return /^How far it travels isn't measured$/;
+  const v = f.speed ?? far / c.dur, m = (x: number) => `${String(x).replace(".", "\\.")} metres?`;
+  if (c.loop) return v < 10 ? /^Doesn't travel across the floor$/ : new RegExp(`^Travels [a-z ]*at about ${m(mps(v)!)} a second \\(for a grown-up, a [a-z ]+\\)$`);
+  if (!far) return /^Doesn't travel across the floor$/;
+  return far < 25 ? /^Ends about where it starts$/ : new RegExp(`^Moves [a-z ]+: it ends about ${m(Math.round(mps(far)! * 10) / 10)} from where it starts$`);
+}
 /** Checks each library row's card says what its clip should show as its file in the repository holds it: its
- *  description, loop or once and its length, its tags; before its verdicts. */
+ *  description, loop or once and its length, its travel (from its facts), its tags; before its verdicts. */
 async function showsLibrary(page: Page, ids: readonly string[]) {
   const all = await shown(page);
   for (const id of ids) {
     const c = libraryClip(id), s = all[id]!, length = `${Math.round(c.dur * 100) / 100} s`;
-    expect([s.title, s.desc, s.plays, s.playing.startsWith(c.loop ? "Loops" : "Plays once"), s.playing.includes(length), s.travel.length > 10, s.tags, s.before], id).toEqual(["What it should show: ", c.desc, c.loop ? "loop" : "once", true, true, true, `Tagged: ${c.tags.join(", ")}`, true]);
+    expect([s.title, s.desc, s.plays, s.playing.startsWith(c.loop ? "Loops" : "Plays once"), s.playing.includes(length), s.travel, s.tags, s.before], id).toEqual(["What it should show: ", c.desc, c.loop ? "loop" : "once", true, true, expect.stringMatching(travelled(c)), `Tagged: ${c.tags.join(", ")}`, true]);
   }
 }
 /** The scratch checkout's files a review may change: the lock, the docs, the set's files and the store's records. */
@@ -112,7 +126,8 @@ test.beforeAll(async () => {
   mkdirSync(OUT, { recursive: true });
   co = checkout();
   const checker = co.store("checker"), sent = [
-    await co.store("contributor", "alice").submit({ kind: "clip", text: serialize(walk(2)), improves: `${SET}/Walk_Loop` }),
+    // its facts stale (a speed it doesn't move at): its card says the speed the page measures, as adoption does
+    await co.store("contributor", "alice").submit({ kind: "clip", text: serialize({ ...walk(2), facts: { ...walk(2).facts!, speed: 400 } }), improves: `${SET}/Walk_Loop` }),
     await co.store("contributor", "alice").submit({ kind: "clip", text: serialize({ ...walk(0), desc: "walks, kept as it is" }), improves: `${SET}/Walk_Loop` }),
     await co.store("contributor", "bob").submit({ kind: "recipe", text: readFileSync(join(ROOT, "spec/recipes/Idle_Look_Left.json"), "utf8") }),
     await co.store("contributor", "carol").submit({ kind: "clip", text: serialize(walk(4)) }),
@@ -238,36 +253,47 @@ test("guide: open on a first visit in plain words, closed by a tap and kept so; 
   expect(await open()).toBe(true);
   for (const said of [
     "sampled from the library that AI agents use to put motion into games",
-    "How an agent chooses a clip: by its words (its name, tags and description) and its numbers (how fast it travels, whether it loops, how long it is). It never sees the motion.",
+    "How an agent chooses a clip: by its words (its name, tags and description) and its numbers (how fast it travels, whether it loops, how long it is). It never watches the clip play:",
     "a clip whose words don't match its motion misleads every agent that picks it",
     "What the sensors already check: feet sliding on the ground, sinking into the floor, sudden jumps between frames, arms or legs passing through the body",
     "What they can't: whether a clip is what its words say, and whether it looks natural and alive",
+    "Each card's PASS, WARN or FAIL is the sensors' result; a WARN, or a frame marked red on its preview sheet, is where to look closely. It doesn't decide for you.",
     "Press Play and watch it", "Read What it should show",
     "Approve if a game developer asking for exactly this would be happy with it",
-    "Flag if it looks broken, doesn't match its words (called a run but it is a walk, an idle that never moves, a jump that never leaves the ground), or no game could use it. Say why in a few words.",
+    "Flag if it looks broken, doesn't match its words (called a run but it is a walk, an idle that is a frozen pose, a jump that never leaves the ground), or no game could use it. Say why in a few words. An idle needn't travel, but its body should move.",
     `one starting "task:" proposes something to fix or build; one starting "threshold:" says a sensor's limit looks wrong`,
-    "press Export review at the bottom and send the file",
+    "press Export review at the bottom and send the file back to whoever asked you for this review",
   ]) expect(text).toContain(said);
   expect(text).not.toMatch(/\bH0\b|contacts?\b|\brefs?\b|motion hash/i);
 
   // each card says what its clip should show: a sampled clip's as its file holds it, a submission's from its own clip
-  // (the one kept as it is: its own description; the recipe compiled); reading decides nothing
+  // (the one kept as it is: its own description; both of Walk_Loop's motion: its travel, measured on the page, never
+  // the stale speed one's file claims; the recipe compiled); reading decides nothing
   await page.setInputFiles("#file", join(co.cwd, QUEUE_FILE));
   await page.waitForFunction(() => (window as unknown as Win).__m3a.state().source === "queue.json");
   expect(await page.evaluate(() => (window as unknown as Win).__m3a.described())).toBe(23);
   await showsLibrary(page, q.clips.map((c) => c.id));
-  const all = await shown(page), kept = q.submissions.find((x) => x.diff?.max === 0)!, rec = q.submissions.find((x) => x.kind === "recipe")!;
-  expect([all[kept.id]!.desc, all[rec.id]!.plays !== null, all[rec.id]!.before]).toEqual(["walks, kept as it is", true, true]);
+  const all = await shown(page), kept = q.submissions.find((x) => x.diff?.max === 0)!, sub = q.submissions.find((x) => x.diff && x.diff.max > 0)!, rec = q.submissions.find((x) => x.kind === "recipe")!;
+  const walks = expect.stringMatching(travelled(libraryClip(`${SET}/Walk_Loop`)));
+  expect([all[kept.id]!.desc, all[kept.id]!.travel, all[sub.id]!.travel, all[rec.id]!.plays !== null, all[rec.id]!.before]).toEqual(["walks, kept as it is", walks, walks, true, true]);
   const s = await state(page);
   expect([s.decided, [...s.submissions, ...s.clips].filter((r) => r.as !== null || r.note !== "").length, await page.evaluate(() => (window as unknown as Win).__m3a.review()!.decisions.length)]).toEqual([0, 0, 0]);
 
-  // closed by a tap, it stays closed on a reload; opened again, it stays open
+  // closed by a tap, it stays closed on a reload, closed before the page's script runs (its scripts served empty: no
+  // flash of an open guide); opened again, it stays open (each reload once the choice is stored: toggle comes a task
+  // after the tap)
   await guide.locator("summary").tap();
   expect(await open()).toBe(false);
+  await page.waitForFunction(() => localStorage.getItem("m3a.review.guide") === "closed");
+  await page.route(`${ORIGIN}/**/*.js`, (route) => route.fulfill({ contentType: "text/javascript", body: "" }));
+  await page.reload();
+  expect([await open(), await page.evaluate(() => "__m3a" in window)]).toEqual([false, false]);
+  await page.unroute(`${ORIGIN}/**/*.js`);
   await page.reload();
   await page.waitForFunction(() => (window as unknown as Win).__m3a?.ready);
   expect(await open()).toBe(false);
   await guide.locator("summary").click();
+  await page.waitForFunction(() => localStorage.getItem("m3a.review.guide") === "open");
   await page.reload();
   await page.waitForFunction(() => (window as unknown as Win).__m3a?.ready);
   expect(await open()).toBe(true);

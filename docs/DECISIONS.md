@@ -5445,3 +5445,38 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   alive. It found a defect in a quarter of a set the gates had passed, which is the gate doing its job.
 - **Answered:** yes: the owner's review file and words.
 - **Landed in:** v0.57.1
+
+## D134 · 2026-10-22 · The review page says what a review is for, and each card what its clip should show
+
+- **Principle:** the North Star (the owner's approval rate on sampled reviews: a review is only as good as what the
+  reviewer knows to look for), 2 (nothing only on a page), D132, D133
+- **Call:**
+  - **A guide on the page, static and short,** open on a first visit and remembered closed per browser: what the clips
+    are, how an agent chooses one (its words and numbers; it never watches a clip play, at most reading describe's
+    summary or a few stills), what the sensors check and can't and what a card's PASS, WARN or FAIL means, what Approve
+    and Flag mean with the owner's own examples (a run that is a walk, an idle that is a frozen pose, a jump that never
+    leaves the ground), the "task:" and "threshold:" notes, Export and send the file back. In the page's HTML, so it
+    reads before the script runs (a closed one closed by an inline line, never flashing open); the README holds the
+    same words.
+  - **Each card states the expectation as an agent reads it:** its description, loop or once and length, its travel
+    (way and pace) and tags, from the clip itself, not the queue (the queue's rows carry no words). Under the card's
+    name, above Play: so it is on screen with the stage while the clip plays at a phone's viewport (the stage opens
+    under Play; right above the verdicts it would sit below the sheet and the numbers, off screen while playing). Still
+    above the decision buttons, as asked.
+  - **Speed in metres a second, as an agent reads it, and as a grown-up's pace:** the speed fact on the library's
+    reference body (0.95 m hips, `mps`: the m/s search shows), and a pace band (a shuffle under 0.6 m/s, a slow walk to
+    1.1, a walk to 1.8, a brisk walk or slow jog to 2.4, a jog to 3.9, a run to 6, a sprint past); a one-shot's distance
+    in metres the same way. On G8's batch it says the side runs (0.99 to 1.42 m/s) travel at "a slow walk" or "a walk":
+    what the owner saw. The bands are an estimate for a body of grown-up proportions, said as such ("for a grown-up");
+    a reviewer who disagrees flags with "threshold:".
+  - **No travel is said as no travel, never as stillness:** "Doesn't travel across the floor" and "Ends about where it
+    starts", because "Stays in place" read as "holds still, as expected" on a frozen idle, D133's largest defect class.
+  - **A submission's numbers are measured as adoption measures them** (`withFacts`), never taken from its file: the card
+    says what agents will read once it is adopted.
+  - **The words beside the pictures:** each card's words come as its clip is read, alongside its sheet; the first card
+    waits for its own set alone (about 1.9 s on a throttled phone, as before F.12; the batch's eight sets first made it
+    about 7 s). A card that can't be read says why, and the sheets still draw.
+- **Why:** the owner's words (the trigger); D133's findings were each a clip whose motion didn't match its words, which
+  only a reviewer who knows the words can see.
+- **Answered:** no: made under D131 (a minor call, by the North Star), to review.
+- **Landed in:** v0.58.0

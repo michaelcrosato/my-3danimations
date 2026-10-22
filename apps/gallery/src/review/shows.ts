@@ -1,12 +1,16 @@
 // What a clip should show (WP-F.12): its words and its numbers as an agent reads them, said in plain words on each
 // review card, so the reviewer checks the motion against them. An agent picks a clip by its name, tags and description
 // and by its numbers (whether it loops, how long it is, which way and how fast it travels: the catalog's row,
-// spec/MOTION.md §9.3) and never sees the motion; the reviewer is the one who does. Pure: no DOM, no library.
+// spec/MOTION.md §9.3, and search's hits); it never watches the clip play (at most it reads describe's summary or looks
+// at a sheet's stills); the reviewer is the one who does. Pure: no DOM, no page.
 // Distances and speeds are the clip's facts (spec/MOTION.md §7.3: `travel` [forward, right] over the clip and `speed`
-// a second, in % of the body's standing hip height), said in hip heights, which way in the character's own frame (its
-// left is its own), and a speed also as a grown-up's pace: with a grown-up's hip height about 0.93 m, a shuffle under
-// 0.6 m/s, a slow walk to 1.1, a walk to 1.8, a brisk walk or slow jog to 2.4, a jog to 3.9, a run to 6, a sprint past.
+// a second, in % of the body's standing hip height), said in metres on the library's reference body (0.95 m hips:
+// @m3a/library's `mps`, the m/s search shows an agent), which way in the character's own frame (its left is its own),
+// and a speed also as a grown-up's pace: a shuffle under 0.6 m/s, a slow walk to 1.1, a walk to 1.8, a brisk walk or
+// slow jog to 2.4, a jog to 3.9, a run to 6, a sprint past. "Doesn't travel across the floor" says no more than that:
+// a clip in place still moves its body (a frozen idle is the reviewer's to flag, D133).
 import type { Clip } from "@m3a/core";
+import { mps } from "@m3a/library";
 
 /** What a card says its clip should show. */
 export interface Shows {
@@ -26,34 +30,41 @@ export interface Shows {
 
 /** What a card says of a clip with no description. */
 export const NO_DESC = "It has no description: an agent choosing it has only its name and tags to go on (worth a flag)";
+/** What a card says of a clip that doesn't travel: nothing of whether its body moves. */
+export const IN_PLACE = "Doesn't travel across the floor";
+/** What a card says of a one-shot that ends about where it starts. */
+export const ENDS_NEAR = "Ends about where it starts";
 
-/** Under this speed (% of hip height a second) a loop stays in place: an idle's drift. */
+/** Under this speed (% of hip height a second) a loop doesn't travel: an idle's drift. */
 export const STILL_SPEED = 10;
 /** Under this distance (% of hip height) a one-shot ends about where it starts. */
 export const STILL_TRAVEL = 25;
 
-/** A grown-up's pace by speed (% of hip height a second): each pace's upper bound, slowest first. */
+/** A grown-up's pace by speed (m/s on the reference body): each pace's upper bound, slowest first. */
 export const PACES: readonly (readonly [number, string])[] = [
-  [60, "a shuffle"],
-  [120, "a slow walk"],
-  [190, "a walk"],
-  [260, "a brisk walk or a slow jog"],
-  [420, "a jog"],
-  [650, "a run"],
+  [0.6, "a shuffle"],
+  [1.1, "a slow walk"],
+  [1.8, "a walk"],
+  [2.4, "a brisk walk or a slow jog"],
+  [3.9, "a jog"],
+  [6, "a run"],
   [Infinity, "a sprint"],
 ];
 
 /** A length in seconds as a card says it, to the hundredth: 1.267 is "1.27 s", 6 is "6 s". */
 export const seconds = (dur: number): string => `${Math.round(dur * 100) / 100} s`;
 
-/** A distance in % of hip height as hip heights, to the tenth: 47 is "0.5 hip heights", 100 is "1 hip height". */
-export function hips(pct: number): string {
-  const x = Math.round(pct / 10) / 10;
-  return `${x} hip height${x === 1 ? "" : "s"}`;
-}
+const metre = (x: number) => `${x} metre${x === 1 ? "" : "s"}`;
 
-/** A grown-up's pace at `speed` (% of hip height a second). */
-export const pace = (speed: number): string => PACES.find(([max]) => speed < max)![1];
+/** A speed in % of hip height a second as metres a second on the reference body, as search shows it (to the
+ *  hundredth): 110 is "1.05 metres a second". */
+export const perSecond = (speed: number): string => `${metre(mps(speed)!)} a second`;
+
+/** A distance in % of hip height as metres on the reference body, to the tenth: 50 is "0.5 metres", 105 is "1 metre". */
+export const metres = (pct: number): string => metre(Math.round(mps(pct)! * 10) / 10);
+
+/** A grown-up's pace at `v` m/s. */
+export const pace = (v: number): string => PACES.find(([max]) => v < max)![1];
 
 /** Which way a travel of `forward` and `right` goes, in the character's own frame, to the nearest eighth of a turn
  *  ("forward", "forward and to its left", "to its right", "backward" ...), or null for none. */
@@ -71,19 +82,19 @@ export function direction(forward: number, right: number): string | null {
 const num = (v: unknown): number | null => (typeof v === "number" && Number.isFinite(v) ? v : null);
 
 /** Whether a clip travels, which way and how fast, in words, from its facts (`travel`, `speed`): a loop by its speed
- *  (else its travel over its length), a one-shot by where it ends. No facts: not measured; no travel: in place. */
+ *  (else its travel over its length), a one-shot by where it ends. No facts: not measured; no travel: none said. */
 export function travelWords(facts: Readonly<Record<string, unknown>> | null | undefined, loop: boolean, dur: number): string {
   if (!facts) return "How far it travels isn't measured";
   const t = Array.isArray(facts.travel) && facts.travel.length === 2 && facts.travel.every((v) => num(v) !== null) ? (facts.travel as [number, number]) : null;
   const way = t ? direction(t[0], t[1]) : null, far = t ? Math.hypot(t[0], t[1]) : 0;
   if (loop) {
     const speed = num(facts.speed) ?? (dur > 0 ? far / dur : 0);
-    if (speed < STILL_SPEED) return "Stays in place";
-    return `Travels ${way ? `${way} ` : ""}at about ${hips(speed)} a second (for a grown-up, ${pace(speed)})`;
+    if (speed < STILL_SPEED) return IN_PLACE;
+    return `Travels ${way ? `${way} ` : ""}at about ${perSecond(speed)} (for a grown-up, ${pace(mps(speed)!)})`;
   }
-  if (!(far > 0)) return "Stays in place";
-  if (far < STILL_TRAVEL) return "Stays about in place";
-  return `Moves ${way}: it ends about ${hips(far)} from where it starts`;
+  if (!(far > 0)) return IN_PLACE;
+  if (far < STILL_TRAVEL) return ENDS_NEAR;
+  return `Moves ${way}: it ends about ${metres(far)} from where it starts`;
 }
 
 /** What clip `clip` should show, from its words and `facts` (its own by default). */

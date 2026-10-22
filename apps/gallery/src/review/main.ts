@@ -4,19 +4,20 @@
 // batches of library clips alone: each gate's newest holding no submission, G8's, on the preview site and in a local
 // build alike unless M3A_REVIEW_BATCHES names others; batches.ts); the file picker opens any other. It says which is
 // open, and links the other batches. Opening one decides nothing. The guide at the top (index.html, WP-F.12) says what
-// a review is for, open on a first visit, its open or closed kept in this browser's storage. Each card says what its
-// clip should show (shows.ts: its words and numbers, as an agent reads them; a sampled clip's from the library, a
-// submission's from its own clip, a recipe compiled, its facts measured here when it carries none), then
-// plays its clip in place (play.ts: one stage for the page, one card at a time) and links it in the gallery. The page
-// keeps the owner's decisions (and this browser's storage, by the queue's refs, so a reload keeps them), and exports
-// the review (m3a.review/1) for `m3a review ingest <file>`: through the share sheet on a phone (navigator.share with a
-// file), as a download on a desk. It puts `window.__m3a` (the page's handle: state, open, batch, decide, clear, play,
-// stop, playing, frame, review, commands, export, described, drawn, actions) and `window.__M3A_TOOLS__` (every m3a
-// tool, on the gallery's host) on it.
-import { measureFacts, VERSION } from "@m3a/core";
+// a review is for, open on a first visit, its open or closed kept in this browser's storage (read before this script
+// runs by index.html's inline line, so a closed guide never shows open). Each card says what its clip should show
+// (shows.ts: its words and numbers, as an agent reads them; a sampled clip's from the library, a submission's from its
+// own clip, a recipe compiled, its facts measured here as adoption measures them, withFacts, never taken from its
+// file), each card as its clip is read, alongside its preview sheet; it plays its clip in place (play.ts: one stage for
+// the page, one card at a time) and links it in the gallery. The page keeps the owner's decisions (and this browser's
+// storage, by the queue's refs, so a reload keeps them), and exports the review (m3a.review/1) for `m3a review ingest
+// <file>`: through the share sheet on a phone (navigator.share with a file), as a download on a desk. It puts
+// `window.__m3a` (the page's handle: state, open, batch, decide, clear, play, stop, playing, frame, review, commands,
+// export, described, drawn, actions) and `window.__M3A_TOOLS__` (every m3a tool, on the gallery's host) on it.
+import { VERSION } from "@m3a/core";
+import { withFacts } from "@m3a/library";
 import { installConsole, type intake } from "@m3a/tools";
 import { GalleryRegistry, galleryHost } from "../host.ts";
-import { loadSets } from "../library.ts";
 import { h } from "../panels.ts";
 import { REVIEW_ACTIONS } from "./actions.ts";
 import { byNewest, newest, pick, type Batch } from "./batches.ts";
@@ -79,20 +80,19 @@ function refresh(): void {
   }
 }
 
-/** Says on each card what its clip should show (shows.ts), while `current()` holds: a sampled clip's words and facts
- *  from the library (its sets loaded at once), a submission's from its own clip (a recipe compiled, as its sheet and
- *  its Play compile it), its facts measured here (core's measureFacts, as the facts tool measures) when it carries
- *  none. Resolves with how many cards say it; one that can't be read says why. Reading decides nothing. */
+/** Says on each card what its clip should show (shows.ts), one card at a time as its clip is read (a sampled clip's
+ *  set loaded when its card comes, as its sheet loads it), while `current()` holds: a sampled clip's words and facts
+ *  from the library (what an agent reads), a submission's from its own clip (a recipe compiled, as its sheet and its
+ *  Play compile it), its facts measured here as adoption measures them (@m3a/library's withFacts), never taken from its
+ *  file. Resolves with how many cards say it; one that can't be read says why. Reading decides nothing. */
 async function describe(d: Decisions, current: () => boolean): Promise<number> {
-  // the sampled clips' sets at once (one failing: each card's own read says why)
-  await loadSets([...d.rows.values()].filter((r) => sectionOf(r) === "clip").map((r) => r.id.split("/")[0]!)).catch(() => undefined);
   let n = 0;
   for (const r of d.rows.values()) {
     if (!current()) break;
     let said: Shows | Error;
     try {
       const { clip, rest } = await clipOf(r, reg);
-      said = shows(clip, sectionOf(r) === "clip" || clip.facts?.by ? clip.facts : (measureFacts(clip, rest) as unknown as Record<string, unknown>));
+      said = shows(clip, sectionOf(r) === "clip" ? clip.facts : withFacts(clip, rest).facts);
     } catch (err) {
       said = err instanceof Error ? err : new Error(String(err));
     }
@@ -115,9 +115,10 @@ function open(data: unknown, where: string, b: Batch | null = null): ReturnType<
     $("out").replaceChildren();
     render($("queue"), d, renderer);
     const mine = ++opened, current = () => mine === opened;
-    // what each card should show first (its clip read: quick), then the pictures (the sheets: a while)
+    // what each card should show and its pictures side by side, each card's as its clip comes (the first card waits
+    // for its own set alone, never the batch's)
     reading = describe(d, current);
-    drawing = reading.catch(() => 0).then(() => drawPictures($("queue"), d, reg, current));
+    drawing = drawPictures($("queue"), d, reg, current);
   } catch (err) {
     error = (err as Error).message;
   }
@@ -246,7 +247,8 @@ player.onChange = refresh;
 $("export").addEventListener("click", () => void exportReview().catch((err: Error) => ($("out").textContent = `not exported: ${err.message}`)));
 
 $("stamp").textContent = stamp;
-// the guide: open on a first visit; closed or opened again, kept so in this browser (none kept in a private window)
+// the guide: open on a first visit; closed or opened again, kept so in this browser (none kept in a private window);
+// index.html's inline line closes it before the page shows, this read the same when that line couldn't run
 const guide = $<HTMLDetailsElement>("guide");
 try {
   if (localStorage.getItem(GUIDE) === "closed") guide.open = false;
