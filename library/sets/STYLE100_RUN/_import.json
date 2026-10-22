@@ -595,7 +595,8 @@
    "unrepairedFit": [
     9,
     81
-   ]
+   ],
+   "contacts": "planted-half"
   },
   "Heavyset_Run": {
    "kept": "new",
@@ -866,7 +867,8 @@
    },
    "hands": [
     9.5
-   ]
+   ],
+   "contacts": "planted-quarter"
   },
   "March_Run": {
    "kept": "new",
@@ -1237,7 +1239,8 @@
    },
    "hands": [
     7.9
-   ]
+   ],
+   "contacts": "sole-planted-half"
   },
   "Rushed_Run": {
    "kept": "new",
@@ -1716,7 +1719,8 @@
    },
    "hands": [
     8.3
-   ]
+   ],
+   "contacts": "planted-quarter"
   },
   "Zombie_Run": {
    "kept": "new",

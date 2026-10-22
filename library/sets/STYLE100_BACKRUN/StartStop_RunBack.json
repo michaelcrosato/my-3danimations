@@ -10,8 +10,8 @@
 "desc": "Running backward, start stop style: pause briefly after step",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"contacts": {"by":"detected","footL":[[1.316,2.216]],"footR":[[0.317,1.2]]},
-"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[96,101],"seam":0,"speed":57,"travel":[-90.8,-2]},
+"contacts": {"by":"labelled","footL":[[0.067,0.267],[1.366,1.833]],"footR":[[0.4,1.183]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[96,101],"reading":"planted-quarter","seam":0,"speed":57,"travel":[-105.4,-1.6]},
 "provenance": {"src":"100STYLE","take":"StartStop_BR 28.35-30.18","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[9,33],"qa":"pass","qaVersion":"m3a-sensors@1"},
 "keys": [

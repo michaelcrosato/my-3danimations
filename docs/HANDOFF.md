@@ -1,12 +1,13 @@
-# Handoff: every phase built; the follow-ups after G10 built (F.1 to F.8); the owner's steps open (2026-10-22)
+# Handoff: every phase built; the follow-ups after G10 built (F.1 to F.9); the owner's steps open (2026-10-22)
 
 Phase 7 merged before its gate (michaelcrosato/my-3danimations#13, D103); G7 passed on run 2 on
 michaelcrosato/my-3danimations#14 (D107); Phase 8 merged on michaelcrosato/my-3danimations#15 (G8's commands, D111);
 Phase 9 on michaelcrosato/my-3danimations#16 (G9's commands passed on run 2, D115); Phase 10 on
 michaelcrosato/my-3danimations#17 (G10's commands passed on run 1, D117). After it, an audit (D118, D119) on
 michaelcrosato/my-3danimations#18, then the five follow-ups that need nothing from the owner, WP-F.1 to F.5 (PLAN.md
-§10 "After G10", D121 to D125), on michaelcrosato/my-3danimations#20, and three more, WP-F.6 to F.8 (D126 to D128),
-on michaelcrosato/my-3danimations#21. This file is what the next session needs.
+§10 "After G10", D121 to D125), on michaelcrosato/my-3danimations#20, three more, WP-F.6 to F.8 (D126 to D128),
+on michaelcrosato/my-3danimations#21, and WP-F.9 (D129) on michaelcrosato/my-3danimations#22. This file is what the
+next session needs.
 
 ## The standing goal (the owner's)
 
@@ -18,7 +19,7 @@ none during trial batches.
 
 ## Where things stand
 
-- **Version 0.55.3.** Every WP through 10.2 and F.1 to F.8 is done; G0-G7 passed; G8, G9 and G10's command sets passed
+- **Version 0.56.0.** Every WP through 10.2 and F.1 to F.9 is done; G0-G7 passed; G8, G9 and G10's command sets passed
   and each waits on the owner (blocked-owner, its ask on its PR):
   - **G8** (#15): the phone review of `bench/results/gates/G8-run-1/queue.json`.
   - **G9** (#16): the contract suite against O8's project; an adoption through a merged PR; the owner's approval of
@@ -44,6 +45,13 @@ none during trial batches.
   causes (F.7, D127); the manual teaches the test characters, `loadGlb` in a page and the attached player's `apply()`,
   7,999 of 8,000 (F.8, D128). The briefs re-run with real agents after F.7 and F.8
   (`bench/results/2026-10-22-*`): B1 4/5 (discovery 2/2), B2 to B6 5/5, B7 4/5; G7's variants B1 4/5, B6 4/5, the rest 5/5; B8 5/5, its G9 variant 5/5, B8-ten 1/1: 79 of 83 trials, $13.82; two of the four misses are B1's floor.
+- **F.9 (#22, 2026-10-22, the goal's "fix through the writer what the contacts can fix"):** the 126 failing loops read
+  by a rule written before the sweep was read (`tools/facts/readings.ts`: core's twelve named readings held to D108's
+  bar at five speeds, the one nearest the captured speed), 57 another reading, then vetoed by the sweep, the judge and
+  QA: 45 adopted, written by the importer `labelled` and named in `facts.reading`; spec §7.1 and §7.3 amended
+  compatibly and refrozen (D129, made without the owner's answer: reverting it is dropping the names in
+  `tools/import/sets.ts` and re-importing the 7 sets). 473 → 428 failing rows (0 added), 108 loops answered; the judge
+  one fail gone, none added; QA 1,015 / 229 / 154. No clip a brief's agent picks moved, so no brief re-ran.
 - **Review bots:** every finding on #14 to #18 is fixed or answered on its thread (D115, D117, D120); on #20 Codex didn't review:
   its connector answers the PR's account (michaelcrosatoDM) with "create a Codex account", so only the owner's
   `@codex review` runs it; an independent reviewer's four findings were fixed in 5c348a8 (D121, D123). On #21 each
@@ -66,10 +74,12 @@ none during trial batches.
   soles (`bench/graders/bones.ts` `bodyOf`), so a foot within 40 to 86 mm of its floor reads as down; D106's "keyed
   runs skim" were that floor and Run_Female's walk-to-run fade, not the loops (the rate sweep passes them). Reading
   from the body's measured floor changes G7's evidence (B1's known-goods and variants): a decision of its own.
-- The rate sweep's 473 failing rows on 126 loops, each loop answered with its cause in `library/baselines/rates.json`
-  (D127): per-loop readings fitted to the sweep would fix 167 rows on 68 loops, not taken (each fitted to the sweep);
-  a start-stop walk's reread moved it into a judge fail on gen-0, so the rule stays narrow. A retimed
-  `STYLE100/Rushed_Walk` (×1.5, ×2) reads a contact the planter pulls 12.2% of H0, from before D127, answered there.
+- The rate sweep's 428 failing rows on 108 loops, each loop answered with its cause in `library/baselines/rates.json`
+  (D127, D129). D129's three calls are the owner's, each reversible: the spec's amendment (`labelled` covering a named
+  reading, `facts.reading`), the six readings new to core (31 of the 45), and the bar ("no failing row added"; "no
+  still-failing row reads worse" would adopt 25). the 12 readings the veto turned down are named in D129; 53 of the 84 rows
+  the 45 still fail read further past their fail level. A retimed `STYLE100/Rushed_Walk` (×1.5, ×2) reads a contact
+  the planter pulls 12.2% of H0 on every reading, answered there.
   The adopt bot doesn't regenerate the baseline: an adopted locomotion loop that fails a row fails the `rates` job
   until baselined or fixed, and must carry an answer.
 - Gates and the rate sweep (D126): a gate's T2 step now holds the two-body sample (8,110 of 24,330 rows); every row

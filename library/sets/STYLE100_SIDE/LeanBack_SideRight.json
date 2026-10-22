@@ -10,8 +10,8 @@
 "desc": "Sidestepping to the right, lean back style: bent backwards",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"contacts": {"by":"detected","footL":[[0.217,1.217]],"footR":[[1.1,1.817]]},
-"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[93,99],"seam":0,"speed":44,"travel":[2.2,53.2]},
+"contacts": {"by":"labelled","footL":[[0.25,1.117]],"footR":[[1.117,1.817]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[93,99],"reading":"planted-quarter","seam":0,"speed":44,"travel":[2.3,54.3]},
 "provenance": {"src":"100STYLE","take":"LeanBack_SW 9.95-11.25","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[9,61],"qa":"pass","qaVersion":"m3a-sensors@1"},
 "keys": [

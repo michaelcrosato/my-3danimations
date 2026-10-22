@@ -29,6 +29,7 @@ const CLIP_FAILS: [string, () => unknown, string][] = [
   ["M2-E014", () => mut((c) => (c.keys[1].armL[3] = 191)), "an elbow bent 191 degrees"],
   ["M2-E015", () => mut((c) => (c.requires = ["tangents"])), "requires a field this reader lacks"],
   ["M2-E016", () => mut((c) => (c.provenance.method = "dreamed")), "an unknown method"],
+  ["M2-E016", () => mut((c) => (c.facts = { by: "m3a-import@1", reading: "planted-quarter" })), "a reading named on detected contacts"],
   ["M2-E017", () => mut((c) => (c.id = "test walk")), "a malformed id"],
   ["M2-E018", () => mut((c) => (c.provenance.license = "CC-BY-4.0")), "CC BY without a credit"],
   ["M2-E019", () => mut((c) => (c.keys[0].armR = [0, 0, 0, 10, 0])), "an arm pointing nowhere"],
@@ -62,6 +63,16 @@ describe("validate: clips", () => {
     const w = validate(c, { mode: "lint" }).warnings;
     expect(codes(w)).toEqual(["M2-W001"]);
     expect(w.map((i) => i.fix)).toEqual(['did you mean "tags"?', 'did you mean "armL"?']);
+  });
+  it("M2-W007: a labelled clip's facts.reading is one of core's readings; lint flags another name, read accepts it (D129)", () => {
+    const labelled = (reading: unknown) => mut((x) => ((x.contacts.by = "labelled"), (x.facts = { by: "m3a-import@1", reading })));
+    for (const mode of ["read", "lint"] as const) expect(validate(labelled("sole-planted-quarter"), { mode })).toEqual({ ok: true, errors: [], warnings: [] });
+    expect(validate(labelled("planted-quater"), { mode: "read" })).toEqual({ ok: true, errors: [], warnings: [] });
+    const w = validate(labelled("planted-quater"), { mode: "lint" }).warnings;
+    expect(codes(w)).toEqual(["M2-W007"]);
+    expect(w.map((i) => i.fix)).toEqual(['did you mean "planted-quarter"?']);
+    expect(codes(validate(labelled(3)).errors)).toEqual(["M2-E004"]);
+    expect(codes(validate(mut((x) => (delete x.contacts, (x.facts = { by: "m3a-import@1", reading: "planted" })))).errors)).toEqual(["M2-E016"]);
   });
   it("names the clip, the key, the time and the field, in at most two lines", () => {
     const r = validate(CLIP_FAILS.find(([c]) => c === "M2-E014")![1]());
@@ -128,7 +139,7 @@ describe("validate: sets and catalog rows", () => {
     expect(codes(validate(ROW.replace("\tloop\t", "\tforever\t"), { kind: "catalog-row" }).errors)).toEqual(["M2-E111"]);
   });
   it("covers every rule with a failing fixture", () => {
-    const covered = new Set([...CLIP_FAILS.map(([c]) => c), "M2-W001", "M2-E101", "M2-E102", "M2-E110", "M2-E111"]);
+    const covered = new Set([...CLIP_FAILS.map(([c]) => c), "M2-W001", "M2-W007", "M2-E101", "M2-E102", "M2-E110", "M2-E111"]);
     expect(RULES.map((r) => r.code).filter((c) => !covered.has(c))).toEqual([]);
   });
 });

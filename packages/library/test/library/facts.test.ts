@@ -1,9 +1,10 @@
 // Facts and auto-labels (WP-5.4): a library clip's facts and contacts are what `measure` gives on its rest, so writing
-// them again changes nothing; a source's speed is kept and named captured; labelled contacts are kept; and the tags are
-// read against the facts: a `loop` that doesn't close, a `run` that doesn't travel unless it is tagged `inplace`.
+// them again changes nothing; a source's speed is kept and named captured; labelled contacts are kept, a named reading
+// of core's among them, written only where D108 would keep it (D129); and the tags are read against the facts: a
+// `loop` that doesn't close, a `run` that doesn't travel unless it is tagged `inplace`.
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { capturedSpeed, FACTS_BY, measureClipFacts, TIERS, tagConflicts, withFacts, type ClipFacts } from "../../src/index.ts";
+import { capturedSpeed, FACTS_BY, measureClipFacts, TIERS, tagConflicts, withFacts, withReading, type ClipFacts } from "../../src/index.ts";
 import { openLibrary } from "../../src/node.ts";
 
 const lib = openLibrary({ dir: join(import.meta.dirname, "../../../../library/sets"), tiers: TIERS });
@@ -32,6 +33,25 @@ describe("a clip's facts", () => {
     // written again, a kept speed stays the source's
     expect(capturedSpeed({ facts: given as never })).toBe(123);
     expect(capturedSpeed({ facts: own as never })).toBeUndefined();
+  });
+  it("carry a named reading of core's where a writer asks for one, labelled, the facts read from it; a one-shot refuses it (D129)", () => {
+    const { clip, rest } = lib.clip("STYLE100_RUN/Rocket_Run"), read = withReading({ ...clip, contacts: { by: "detected" } }, rest, "sole-planted-half");
+    expect(read).toEqual(clip);
+    expect([read.contacts!.by, Boolean(read.contacts!.footL && read.contacts!.footR)]).toEqual(["labelled", true]);
+    // measured again it keeps them, and its facts read from them; the default chain alone plants one foot
+    expect(measureClipFacts(read, rest, capturedSpeed(read))).toEqual({ facts: read.facts, contacts: read.contacts });
+    const chain = measureClipFacts({ ...clip, contacts: undefined }, rest).contacts;
+    expect([chain.by, [chain.footL, chain.footR].filter((x) => x?.length).length]).toEqual(["detected", 1]);
+    expect(() => withReading({ ...clip, loop: false }, rest, "planted")).toThrow(/a one-shot keeps its detected contacts/);
+  });
+  it("refuse a named reading D108 wouldn't keep: one that plants no foot, or a loop tagged off its feet (D129)", () => {
+    // an idle whose refinement by the planted feet keeps none: written, it would play with no contact for good
+    const idle = lib.clip("CMU_CURATED/Waiting_Loop");
+    expect(() => withReading(idle.clip, idle.rest, "planted")).toThrow(/the reading "planted" doesn't stand/);
+    // a climb, tagged off its feet: its lower foot's reading plants both feet, which D108 keeps it from
+    const climb = lib.clip("MESH2MOTION/Climb_Wall");
+    expect(climb.clip.tags).toContain("climb");
+    expect(() => withReading(climb.clip, climb.rest, "sole-lower")).toThrow(/tagged climb, off its feet/);
   });
   it("keep a source's labelled contacts, and detect the others again", () => {
     const { clip, rest } = lib.clip("QUATERNIUS_3D2DGE/Walk_Loop"), labelled = { by: "labelled" as const, footL: [[0, 0.5]] as [number, number][] };

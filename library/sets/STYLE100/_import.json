@@ -354,7 +354,8 @@
      7,
      6
     ]
-   }
+   },
+   "contacts": "planted-quarter"
   },
   "BeatChest_Walk": {
    "kept": "import",
@@ -3575,7 +3576,8 @@
      13,
      9
     ]
-   }
+   },
+   "contacts": "planted-quarter"
   },
   "Swimming_Walk": {
    "kept": "import",
@@ -3841,7 +3843,8 @@
      11,
      9
     ]
-   }
+   },
+   "contacts": "lower-quarter"
   },
   "WalkingStickLeft_Walk": {
    "kept": "import",

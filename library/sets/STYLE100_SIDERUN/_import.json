@@ -50,7 +50,8 @@
    },
    "hands": [
     4.3
-   ]
+   ],
+   "contacts": "planted-half"
   },
   "Akimbo_SideRunRight": {
    "kept": "new",
@@ -1282,7 +1283,8 @@
    },
    "hands": [
     9
-   ]
+   ],
+   "contacts": "planted-half"
   },
   "LawnMower_SideRunRight": {
    "kept": "new",
@@ -1515,7 +1517,8 @@
    },
    "hands": [
     6.4
-   ]
+   ],
+   "contacts": "sole-planted-half"
   },
   "LimpRight_SideRunRight": {
    "kept": "new",
@@ -2005,7 +2008,8 @@
    "hands": [
     8.8
    ],
-   "unrepaired": "no step makes it better"
+   "unrepaired": "no step makes it better",
+   "contacts": "sole-planted"
   },
   "PigeonToed_SideRunLeft": {
    "kept": "new",
@@ -2070,7 +2074,8 @@
    },
    "hands": [
     8.7
-   ]
+   ],
+   "contacts": "planted-half"
   },
   "Punch_SideRunLeft": {
    "kept": "new",
@@ -2159,7 +2164,8 @@
    "hands": [
     9
    ],
-   "unrepaired": "no step makes it better"
+   "unrepaired": "no step makes it better",
+   "contacts": "sole-planted-quarter"
   },
   "RaisedLeftArm_SideRunRight": {
    "kept": "new",
@@ -2175,7 +2181,8 @@
    },
    "hands": [
     6.4
-   ]
+   ],
+   "contacts": "planted-half"
   },
   "RaisedRightArm_SideRunLeft": {
    "kept": "new",
@@ -2311,7 +2318,8 @@
    },
    "hands": [
     11
-   ]
+   ],
+   "contacts": "planted-quarter"
   },
   "Rocket_SideRunLeft": {
    "kept": "new",
@@ -2366,7 +2374,8 @@
    "unrepairedFit": [
     12,
     90
-   ]
+   ],
+   "contacts": "planted-half"
   },
   "Rushed_SideRunRight": {
    "kept": "new",
@@ -2911,7 +2920,8 @@
    "hands": [
     4.8
    ],
-   "unrepaired": "no step makes it better"
+   "unrepaired": "no step makes it better",
+   "contacts": "planted-half"
   },
   "Teapot_SideRunRight": {
    "kept": "new",
@@ -3007,7 +3017,8 @@
    },
    "hands": [
     9.7
-   ]
+   ],
+   "contacts": "planted-half"
   },
   "TwoFootJump_SideRunRight": {
    "kept": "new",

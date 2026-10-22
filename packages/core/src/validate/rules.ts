@@ -40,6 +40,7 @@ export const RULES: readonly Rule[] = [
   { code: "M2-W004", severity: "warning", what: "a limb direction flips between two keys, so the in-between collapses" },
   { code: "M2-W005", severity: "warning", what: "an angle past ±540 degrees" },
   { code: "M2-W006", severity: "warning", what: "an optional key field in some keys but not all" },
+  { code: "M2-W007", severity: "warning", what: "facts.reading names a contact reading this reader doesn't know (lint mode only)" },
   { code: "M2-E101", severity: "error", what: "a set manifest field is missing or has the wrong type" },
   { code: "M2-E102", severity: "error", what: "a set manifest value is malformed or not an allowed word" },
   { code: "M2-E110", severity: "error", what: "a catalog row doesn't have 7 tab-separated columns" },

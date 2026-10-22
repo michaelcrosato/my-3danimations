@@ -387,7 +387,8 @@
    "hands": [
     5.8
    ],
-   "unrepaired": "no step makes it better"
+   "unrepaired": "no step makes it better",
+   "contacts": "lower"
   },
   "DragRightLeg_RunBack": {
    "kept": "new",
@@ -459,7 +460,8 @@
    },
    "hands": [
     15.9
-   ]
+   ],
+   "contacts": "lower-half"
   },
   "FairySteps_RunBack": {
    "kept": "new",
@@ -1024,7 +1026,8 @@
    },
    "hands": [
     7.9
-   ]
+   ],
+   "contacts": "lower"
   },
   "Penguin_RunBack": {
    "kept": "new",
@@ -1219,7 +1222,8 @@
    },
    "hands": [
     10.7
-   ]
+   ],
+   "contacts": "planted-half"
   },
   "ShieldedLeft_RunBack": {
    "kept": "new",
@@ -1317,7 +1321,8 @@
    },
    "hands": [
     7.9
-   ]
+   ],
+   "contacts": "planted-quarter"
   },
   "Stiff_RunBack": {
    "kept": "new",

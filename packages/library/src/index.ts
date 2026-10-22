@@ -51,6 +51,8 @@ export { FACTS_BY } from "./facts/index.ts";
 export { measure as measureClipFacts } from "./facts/index.ts";
 /** The clip with its facts and contacts measured. */
 export { withFacts } from "./facts/index.ts";
+/** The clip with its contacts written by a named reading of core's, labelled, and its facts measured from them (D129). */
+export { withReading } from "./facts/index.ts";
 /** The speed a clip's writer took from its source, if any. */
 export { capturedSpeed } from "./facts/index.ts";
 /** The tags a clip's facts don't bear out (`loop` that doesn't close, `run` that doesn't travel). */

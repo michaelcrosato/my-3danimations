@@ -4,6 +4,45 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.56.0 · 2026-10-22
+
+WP-F.9 (D129): the rate sweep's failing loops read by D108's bar and their captured speed; 45 loops carry a named
+contact reading, labelled and named in `facts.reading`; 45 failing rows gone, none added.
+
+### Spec
+- §7.1: `labelled` contacts are played as written, labelled by a person or a source or chosen by a tool as one of the
+  reference implementation's named readings of the clip's own motion, which `facts.reading` then names; §7.3 lists
+  `reading` among the known facts, and the clip schema's `facts` takes it. Compatible: a 0.55 reader accepts it in read
+  and lint mode. Spec 2.0-rc refrozen under D129.
+
+### Core
+- `clip.readContacts(clip, R, reading)` and `clip.CONTACT_READINGS`: twelve named contact readings of an in-place loop
+  (the points that read a foot, the velocity, the "still"): the six `measureFacts` and its fallbacks take, and six it
+  never takes (a quarter of the body's speed as "still", the lower foot's velocity under the refinement's own) (D129).
+- The validator refuses `facts.reading` that isn't a string (M2-E004) or names the reading of contacts that aren't
+  labelled (M2-E016), and in lint mode warns on a name it doesn't know (M2-W007; read mode accepts it) (D129).
+
+### Library
+- `withReading(clip, R, reading)`: a clip with its contacts written by a named reading of core's, labelled, its facts
+  measured from them and `facts.reading` naming the reading; it refuses a one-shot, a loop tagged off its feet, a clip
+  with a root of its own and a reading that doesn't stand. `measure` keeps `facts.reading` on labelled contacts (D129).
+- 45 loops of STYLE100's sets and CMU_CURATED carry a named reading's contacts (written by `npm run import`; their
+  `travel` read from them): the rate sweep's failing rows 473 → 428 (0 added), 108 loops answered (126), 25 answers
+  written again from their rows; QA 1,015 / 229 / 154 (1,014 / 230 / 154); the sensors' baseline (44 clips) and the
+  distributions rewritten with D129's reason (two p50s worse in their last digits, the p95s better); index serial 5.
+
+### Tools
+- A set's import spec names, per clip, the reading its contacts are written by; the importer writes it with
+  `withReading`, records it in `_import.json` (`contacts`, an enum of core's names in its schema) and refuses a name it
+  can't honour (an adopted clip, a clip the set doesn't write, and `withReading`'s refusals) (D129).
+- `tools/facts/readings.ts` holds the rule that chooses a loop's reading by D108's bar at five speeds and its captured
+  speed, reading nothing of the sweep (D129).
+- `npm run facts -- --check` holds a clip that names a reading to that reading's contacts on its motion today, and its
+  set's import record to the name: an edit to either is stale even with its facts measured again (D129).
+
+### Repo
+- `npm run test:changed` runs the readings' test for a change under `library/` (D129).
+
 ## 0.55.3 · 2026-10-22
 
 WP-F.7 (D127): the rate sweep's failing rows triaged, two loops read again in core, the 126 that still fail answered

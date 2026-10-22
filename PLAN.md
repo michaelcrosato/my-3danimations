@@ -2410,6 +2410,61 @@ picked by the owner on 2026-10-21. No gate follows them: each is held by its Ver
   the bench as WP-F.4's (`npm run bench -- B<n> --trials 5 --parallel 5` and `--heldout G7` for B1 to B7, B8 with
   `--heldout G9`, `B8-ten --trials 1`)
 
+#### WP-F.9 Honest per-loop contact readings for the rate sweep's failing loops
+- **Owns:** `tools/facts/readings.ts` (new), `tools/facts/readings.test.ts` (new), `packages/core/src/clip/facts.ts`
+  (`readContacts`, `CONTACT_READINGS`), `packages/core/src/clip/index.ts`, `packages/core/src/validate/clip.ts` and
+  `rules.ts` (`facts.reading`: M2-E004, M2-E016, M2-W007), `packages/core/test/clip.test.ts`,
+  `packages/core/test/validate.test.ts`, `packages/library/src/facts/index.ts` (`withReading`, `measure` keeping
+  `facts.reading`), `packages/library/src/index.ts`, `packages/library/test/library/facts.test.ts`,
+  `tools/facts/facts.ts` and `facts.test.ts` (the named-reading rule), `tools/import/sets.ts` (`contacts` per spec),
+  `tools/import/import.ts` (`specReading`, `unwritten`, the record's `contacts`), `tools/import/import.schema.json`;
+  spec/MOTION.md §7.1 and §7.3, `spec/schemas/clip.schema.json`, `spec/frozen.json` (refrozen, D129); `library/sets/`
+  of CMU_CURATED, STYLE100, STYLE100_RUN, STYLE100_BACK, STYLE100_BACKRUN, STYLE100_SIDE and STYLE100_SIDERUN (through
+  `npm run import`), and what the writers write from them: `library/sets.lock.json`, `library/index.json`,
+  `library/baselines/rates.json`, `packages/sensors/fixtures/baseline.json`, `library/baselines/distributions.json`,
+  `docs/LIBRARY.md`; `library/README.md`
+- **Also touches:** `tools/run/changed.ts` and `tools/run/run.test.ts` (`test:changed`'s library rule runs the readings'
+  test too); the doc comments that said `labelled` meant a source's labels (`measureFacts`, `playable`, `Contacts`)
+- **Needs:** WP-F.7 (D127: the answers and `holds`), WP-F.3 (D123: the rate sweep), WP-F.2 (D122), D104, D108
+- **Size:** M (about 650 new lines, tests included; plus the data the tools wrote: 45 clips, 14 set files, rates.json
+  (45 rows and 18 answers gone, 25 answers rewritten), the index, the lock, the sensors' baseline 44 rows, the
+  distributions and LIBRARY.md)
+- **Carry:** none
+- **Trigger:** D127's "per-loop readings would fix 167 rows on 68 loops, none added, each fitted to the sweep: not
+  taken", and the owner's goal: fix through the writer what the contacts can fix, by a reading chosen on D108's own
+  criteria, not on the sweep's result
+- **Build:**
+  - Twelve named contact readings of an in-place loop (`clip.readContacts`, `CONTACT_READINGS`: the points, the
+    velocity, the "still"): the six `measureFacts` and its fallbacks take, each the same as the chain where its path
+    fires, and six the chain never takes, readings D122 weighed, new to core.
+  - The rule (`chooseReading`): each reading held to D108's bar at the loop's own speed and retimed at 0.5, 0.75, 1.5
+    and 2 (both feet, a foot down a fifth of the loop, both ankles within 10% of H0), and of those that pass the one
+    whose ground speed is nearest the captured speed; written down before the sweep was read.
+  - Each loop whose chosen reading differs measured on the rate sweep, the judge and QA; adopted where none is worse.
+  - The adopted readings written by the importer from a name in the set's import spec: `labelled`, the name in
+    `facts.reading` (spec §7.1 and §7.3 amended, compatibly: D129) and in `_import.json`; the validator and the facts
+    check hold the name to the contacts; the baselines rewritten by their tools; the answers of the loops that still
+    fail written again from their rows.
+- **Done when:**
+  1. The rule is written in the record before any sweep is read for it, its code reads nothing of the sweep, and it
+     gives the same choice again from each loop's motion.
+  2. Every loop whose chosen reading differs is measured on its 30 rate rows, its 6 judge pairs and its QA verdict, and
+     adopted only where it adds no failing row, no judge fail and no worse verdict; the rest keep their contacts, each
+     named with why; the rule's effect before that veto is stated beside the outcome after it.
+  3. The adopted readings are written by `npm run import` from the import spec's names, each set regenerating byte for
+     byte with `--check`, the import refusing a name it can't honour (an adopted clip, a one-shot, a root of its own, a
+     loop tagged off its feet, a reading that doesn't stand, a clip the set doesn't write); each clip names its reading
+     (`facts.reading`), the validator refuses the name on contacts not labelled, and `npm run facts -- --check` holds
+     each named clip to that reading's contacts and its set's import record to the name.
+  4. `npm run sweep -- --rates --baseline` adds 0 rows; every loop that still fails is answered with its rows' numbers.
+  5. QA's verdicts are no worse; the sensors' baseline and the distributions are rewritten with the reason (D129).
+  6. B1's known-good passes in full; T0, T1 and T2 pass; the spec's freeze names D129.
+- **Verify:** `npm run check`; `npm test`; `npm run test:full -- tools/facts/readings.test.ts bench/graders/B1`; `npm run
+  import -- --set <each of the 7> --check`; `npm run index -- --check`; `npm run facts -- --check`; `npm run qa --
+  --check`; `npm run qa -- library --check`; `npm run sweep -- --rates --check`; `npm run vectors -- --check`; `npm run
+  conformance -- --impl ts`; `npm run doctrine`; `npm run sweep -- gen-0 gen-1 gen-2 gen-3 quaternius-mannequin-m
+  kaykit-knight --clip <each of the 45>`
+
 ### On demand
 
 Each starts only when its trigger fires; record the measurement that fired it. A trigger that never fires means the WP

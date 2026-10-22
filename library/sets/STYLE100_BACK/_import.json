@@ -385,7 +385,8 @@
    },
    "hands": [
     8.6
-   ]
+   ],
+   "contacts": "planted-quarter"
   },
   "Drunk_WalkBack": {
    "kept": "new",
@@ -691,7 +692,8 @@
    },
    "hands": [
     4.6
-   ]
+   ],
+   "contacts": "planted-quarter"
   },
   "LeftHop_WalkBack": {
    "kept": "new",
@@ -867,7 +869,8 @@
    },
    "hands": [
     4.1
-   ]
+   ],
+   "contacts": "planted-quarter"
   },
   "OnHeels_WalkBack": {
    "kept": "new",
@@ -1130,7 +1133,8 @@
    },
    "hands": [
     6.7
-   ]
+   ],
+   "contacts": "planted-quarter"
   },
   "Rocket_WalkBack": {
    "kept": "new",
@@ -1163,7 +1167,8 @@
    "hands": [
     13.5
    ],
-   "unrepaired": "twistFlips would take it 9 mm further from its source on average, 460 mm at worst"
+   "unrepaired": "twistFlips would take it 9 mm further from its source on average, 460 mm at worst",
+   "contacts": "planted-half"
   },
   "ShieldedLeft_WalkBack": {
    "kept": "new",
@@ -1261,7 +1266,8 @@
    "hands": [
     6.6
    ],
-   "unrepaired": "no step makes it better"
+   "unrepaired": "no step makes it better",
+   "contacts": "planted-quarter"
   },
   "Stiff_WalkBack": {
    "kept": "new",

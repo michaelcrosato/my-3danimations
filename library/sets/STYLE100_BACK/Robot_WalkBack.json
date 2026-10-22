@@ -10,8 +10,8 @@
 "desc": "Walking backward, robot style: stiff movements arms bending at elbows",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"contacts": {"by":"detected","footL":[[0.622,1.178]],"footR":[[0.213,0.703]]},
-"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[100,101],"seam":0,"speed":28,"travel":[-22.6,3.5]},
+"contacts": {"by":"labelled","footL":[[0.622,1.161]],"footR":[[0.229,0.687]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[100,101],"reading":"planted-quarter","seam":0,"speed":28,"travel":[-23.9,2.1]},
 "provenance": {"src":"100STYLE","take":"Robot_BW 32.70-33.57","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[6,42],"qa":"pass","qaVersion":"m3a-sensors@1"},
 "keys": [

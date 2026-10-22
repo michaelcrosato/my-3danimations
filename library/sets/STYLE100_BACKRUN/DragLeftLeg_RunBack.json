@@ -10,10 +10,10 @@
 "desc": "Running backward, drag left leg style: drag left foot along the floor",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"contacts": {"by":"detected","footL":[[0.167,0.217]],"footR":[[0.366,0.433]]},
-"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[96,104],"seam":0,"speed":101,"travel":[-31.3,20.8]},
+"contacts": {"by":"labelled","footL":[[0.45,0.8]],"footR":[[0.117,0.416]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[96,104],"reading":"lower","seam":0,"speed":101,"travel":[-56.3,29.3]},
 "provenance": {"src":"100STYLE","take":"DragLeftLeg_BR 70.65-71.30","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
-"quality": {"fit":[6,29],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"warn on skate: short of every fail level the sensors apply (thresholds.ts)"},
+"quality": {"fit":[6,29],"qa":"pass","qaVersion":"m3a-sensors@1"},
 "keys": [
   {"t":0,
    "hips":[0,0,97], "body":[0,11,-2], "chest":[1,5,-4], "head":[-11,14,3],

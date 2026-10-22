@@ -5182,3 +5182,81 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   `m3a help`, the action's check), not from the sections the briefs use.
 - **Answered:** no: made without a response, to review.
 - **Landed in:** v0.55.2
+
+## D129 · 2026-10-22 · The rate sweep's failing loops read by D108's bar and their captured speed: 45 loops given a named contact reading, labelled and named in `facts.reading` (spec §7.1 and §7.3 amended), 45 rows gone
+
+- **Principle:** 3, 8, 10 (provenance: the clip says where its contacts came from), 11, D104, D108, D119 (spec §7.1,
+  frozen), D122, D123, D127 (its "per-loop readings ... fitted to the sweep: not taken"), WP-F.9
+- **Call:**
+  - **What was asked:** D127 left 473 failing rate rows on 126 loops answered, and "per-loop readings would fix 167
+    rows on 68 loops ... each fitted to the sweep: not taken". The owner's goal: fix through the writer what the
+    contacts can fix. So a per-loop reading, but chosen by D108's own criteria, not by the sweep's result.
+  - **The rule, written before the sweep was read** (`tools/facts/readings.ts`, which imports `@m3a/core` alone): for
+    each of the 126 loops, the file's reading and core's twelve named ones (`clip.CONTACT_READINGS`: ankle, ball and toe
+    or the whole sole; the planted feet's or the lower foot's velocity; the refinement's "still", half or a quarter of
+    the body's speed) are held to D108's bar at the loop's own speed and retimed at 0.5, 0.75, 1.5 and 2, read afresh
+    and moved with the keys: both feet plant, a foot is down a fifth of the loop, the planter holds both ankles within
+    10% of H0. Of those that pass, the one whose ground speed (to a tenth of a percent of H0 a second) is nearest the
+    captured speed; a tie keeps the file's, then the earlier name (the order decided 11 of the 45 adopted). With no
+    captured speed (12) or none that passes (20) the file's stays; 37 keep the file's as nearest; 57 get another. In
+    full the rule gives the same 126 results again from the files.
+  - **Six of the twelve readings are new to core:** `planted`, `planted-half`, `lower-half`, `sole-planted`,
+    `sole-planted-half` and `sole-lower-half` are the readings `measureFacts` and its fallbacks take where their paths
+    fire; the other six (a quarter of the body's speed as "still", the lower foot's velocity under the refinement's own)
+    no path takes. D122 weighed them before the rate sweep existed, so they aren't fitted to it. 31 of the 45 adopted
+    are among them (`planted-quarter` 19, `sole-planted-quarter` 7, `lower-quarter` 3, `lower` 2); restricted to the
+    six the chain takes, 31 loops would get another reading, not 57.
+  - **Then vetoed by the sweep, the judge and QA:** each of the 57 played on its 30 rate rows, its 6 judge pairs and
+    its QA verdict, and adopted only where none is worse. Before the veto the 57 take their 174 failing rows to 125 (61
+    dropped, 12 added on 8 loops), add 3 judge fails (2 gone) and one worse verdict. 45 adopted (45 rows dropped, none
+    added); 12 keep their file's, which would have dropped 16 rows: 8 would add a failing row (`Penguin_Walk`,
+    `Monk_SideLeft`, `OnPhoneRight_Walk`, `Robot_Walk`, `WhirlArms_Run`, `Old_SideRunRight`, `Teapot_Run`,
+    `BigSteps_Run`), 3 a judge fail (`QUATERNIUS_SHARDFALL/Crouch_Fwd_Loop` on gen-1, `StartStop_Walk` again on gen-0
+    as in D127, `WhirlArms_SideRunLeft` on the knight), 1 a worse verdict (`Skip_SideLeft`, pass → warn). The veto reads each loop's own result, so "0 added"
+    holds by construction; some calls turn on margins near the noise (`BigSteps_Run`'s gen-2 row at 1.5, skate 43.7
+    against 43.4, where it would have dropped 5).
+  - **How a reading is written, and why `labelled`:** core detects a `detected` clip's contacts again wherever it plays
+    it, so a reading written as `detected` would be thrown away at play. A set's import spec names the reading per clip
+    (`tools/import/sets.ts`); the importer writes it with @m3a/library's `withReading` (core's `clip.readContacts`,
+    refusing a reading D108 wouldn't keep: a one-shot, a loop off its feet, a root of its own, a reading that doesn't
+    stand) as `labelled` contacts, played as written and moved with the keys when a game retimes the loop, and records
+    the name in `_import.json`. But spec §7.1 said `labelled` meant a person or a source labelled them, and a tool read
+    these: the clip would misstate its contacts' provenance (Principle 10), the name only in `_import.json`.
+  - **The spec amended, compatibly (a decision made without the owner's answer):** §7.1 now says `labelled` contacts
+    are played as written, labelled by a person or a source, or chosen by a tool as one of the reference
+    implementation's named readings of the clip's own motion, which `facts.reading` then names; §7.3 lists `reading`
+    among the known facts, and the clip schema's `facts` takes it. A new `by` word or a `contacts.reading` key was
+    weighed and not taken: 0.55.3's validator refuses either (M2-E016), while a key in `facts` (an open object) passes
+    every deployed reader in read and lint mode. Core's validator now refuses `facts.reading` on contacts not labelled
+    (M2-E016) or not a string (M2-E004), and in lint mode warns on a name it doesn't know (M2-W007: read mode accepts
+    it, a later implementation's). The writers carry it (`withReading` writes it, `measure` keeps it on labelled
+    contacts), and `npm run facts -- --check` holds each clip that names a reading to that reading's contacts on its
+    motion today and its set's import record to the name, so an edit to either is stale with its facts measured again.
+    Spec 2.0-rc refrozen under this decision.
+  - **The facts' travel moves:** an in-place loop's `travel` is read from its contacts, so 44 of the 45 move, ×0.99 to
+    ×1.78 in length (the backward runs `PendulumHands_RunBack`, `Elated_RunBack`, `DragLeftLeg_RunBack` most; the
+    other 37 within 11%), `RaisedLeftArm_SideRunLeft`'s heading turning 11°; `speed` stays the captured one.
+  - **What it gives:** 473 → 428 failing rows (0 added, 45 dropped), 126 → 108 loops answered; 18 loops fail no row;
+    25 answers written again from their rows (two change cause: `Quail_SideLeft` unheld-step, `Robot_SideRunRight`
+    edge-slide). The judge on the six sweep skeletons: 267 of 270 pairs pass, one fail gone (`Elated_RunBack` on
+    gen-3), none added, the 3 knight seam fails as before; 25 warns listed against 19 (D80). QA 1,015 / 229 / 154:
+    `DragLeftLeg_RunBack` warn → pass, nothing worse.
+  - **What it doesn't:** of the 84 rows the 45 still fail, 53 read further past their fail level (on 20 loops; the
+    worst `Flapping_SideRight` on the knight at 2, skate 17.1 → 25.7 cm/s against 16.2). The bar was "adds no failing
+    row"; a stricter one (no failing row reads worse) would adopt 25.
+  - **The baselines, admitted here:** the sensors' readings move on 44 clips, both ways (slide 22 worse and 22 better,
+    skate 24 and 18, skateMean 21 and 23); the distributions' p95s improve (slide 123 → 122, skate 22.5 → 22.4,
+    skateMean 19.8 → 19.4) and two p50s worsen in their last digits (skate 5.31 → 5.36, skateMean 4.75 → 4.76): four
+    clips that read a skate of 0 (no contact long enough to read) now read one (8.4 to 15.9 cm/s), and contacts that
+    hold both feet move the root the sensors read the world by.
+  - **None of the clips the briefs' agents pick moves:** the 45 are 100STYLE's and one CMU loop, opt-in tiers; the
+    core jogs, Mesh2Motion's runs and the Quaternius sets keep their contacts byte for byte. B1's known-good passes.
+- **Why:** a reading picked by the sweep's own result is fitted to the sweep; one picked by D108's criteria and the
+  captured speed, and only then vetoed where the sweep, the judge or QA find it worse, is a reading the loop's motion
+  supports (the veto only keeps a file's contacts, never picks among readings). Written `labelled` with its name in
+  the clip, every reader plays the chosen reading and can tell it from a source's labels, with no reader refusing it.
+- **Answered:** no: made without a response, to review. Three calls stay the owner's, each reversible: the spec's
+  amendment (reverted by dropping the names in `tools/import/sets.ts` and re-importing the 7 sets: the 45 then keep
+  their detected contacts, the baselines as at 0.55.3), the six readings new to core, and the bar ("no failing row
+  added" against "no still-failing row reads worse").
+- **Landed in:** v0.56.0

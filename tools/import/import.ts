@@ -13,12 +13,13 @@
 // WP-9.1: a clip the owner adopted from the intake queue is kept over the version its source gives, on the rest it was
 // made on, its record saying so (`kept: "adopted"`, the source's measures kept beside it), and a clip's review is
 // carried over the rewrite while its motion hash matches (tools/migrate/adopted.ts); `withAdoption` writes the record
-// as the adopt bot leaves it, so the next import finds what it would write.
-import { format, math, serialize, validate, type Clip, type Rest } from "@m3a/core";
+// as the adopt bot leaves it, so the next import finds what it would write. D129: a loop its set's import spec names a
+// contact reading for carries that reading's contacts, labelled (@m3a/library's `withReading`), the name in its record.
+import { format, math, serialize, validate, type clip as coreClip, type Clip, type Rest } from "@m3a/core";
 
 const { fromFormat1 } = format, { PORTABLE } = math;
 import { importSet, type Catalog } from "@m3a/io";
-import { withFacts } from "@m3a/library";
+import { withFacts, withReading } from "@m3a/library";
 import { fix, metrics } from "@m3a/sensors";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -57,6 +58,8 @@ export interface ClipChoice {
   /** Why a re-import the sensors flag wasn't repaired: no step of the fix makes it better, or the repair would take it
    *  this many mm further from its source on average (or past the fit limits). */
   unrepaired?: string;
+  /** The reading of core's its contacts are written by, as its set's import spec names it (D129), labelled. */
+  contacts?: coreClip.ContactReading;
 }
 /** One set's re-import: its files, every clip's choice, what its catalog skips, and what fails. */
 export interface SetImport {
@@ -210,6 +213,25 @@ export function duplicateKeys(text: string): string[] {
   return out;
 }
 
+/**
+ * A clip with its contacts written by the reading of core's its set's import spec names (D129: @m3a/library's
+ * `withReading`, labelled), on its rest as kept; or why not: a clip the owner adopted keeps the contacts it was adopted
+ * with, only an in-place loop on its feet is read by name, and only a reading that stands is written (D108).
+ */
+export function specReading(clip: Clip, rest: Rest, reading: coreClip.ContactReading, adopted: boolean): { clip: Clip } | { error: string } {
+  if (adopted) return { error: `the import spec names its contacts' reading (${reading}), but the owner adopted it with its own: drop the name` };
+  try {
+    return { clip: withReading(clip, rest, reading) };
+  } catch (err) {
+    return { error: `the import spec's contacts "${reading}": ${(err as Error).message}` };
+  }
+}
+
+/** The slugs a set's import spec names a contact reading for that the set doesn't write (`files`, by file name). */
+export function unwritten(spec: Pick<ImportSpec, "contacts">, files: ReadonlyMap<string, string>): string[] {
+  return Object.keys(spec.contacts ?? {}).filter((slug) => !files.has(`${slug}.json`));
+}
+
 /** One set's re-import against its migrated version (`mig`, the migrator's output; empty for a new set) and its files on
  *  disk in `dir` (adopted clips kept, reviews carried). */
 function importOne(spec: ImportSpec, mig: ReturnType<typeof migrate>, legend: string[], reasons: QaReasons, dir: string): SetImport {
@@ -305,6 +327,13 @@ function importOne(spec: ImportSpec, mig: ReturnType<typeof migrate>, legend: st
     if (f[0]! > LIMITS.clipMean || f[1]! > LIMITS.clipWorst) errors.push(`${slug}: fits its source within ${f[0]} mm on average, ${f[1]} mm at worst (limits ${LIMITS.clipMean} and ${LIMITS.clipWorst}): leave it out with a reason ($skip), or fix it`);
     // its QA verdict, with why the clip is kept so when the sensors flag it (WP-5.8)
     const decodes = adoption ? ((srcRecords[chosen.restSrc]?.rest ?? diskSources[chosen.restSrc]?.rest ?? rest) as Rest) : kept === "migrated" ? ((srcRecords[chosen.restSrc]?.rest as Rest | undefined) ?? migManifest!.sources[chosen.restSrc]!.rest) : rest;
+    // the reading of core's its import spec names writes its contacts, labelled, on the motion as kept (D129)
+    const reading = spec.contacts?.[slug];
+    if (reading) {
+      const read = specReading(chosen, decodes, reading, Boolean(adoption));
+      if ("error" in read) errors.push(`${slug}: ${read.error}`);
+      else [chosen, choice.contacts] = [read.clip, reading];
+    }
     chosen = withQuality(chosen, decodes, reasons, adoption ? {} : kept === "migrated" ? { migrated: choice.why.split(";")[0]! } : { repaired: repairs, ...(unrepaired ? { unrepaired } : {}) });
     if (!adoption) chosen = carryReview(chosen, was);
     const r = validate(chosen, { mode: "read" });
@@ -323,6 +352,7 @@ function importOne(spec: ImportSpec, mig: ReturnType<typeof migrate>, legend: st
     clipFiles.set(`${slug}.json`, serialize(chosen));
     rows.push(catalogRow(chosen));
   }
+  for (const slug of unwritten(spec, clipFiles)) errors.push(`${slug}: the import spec names its contacts' reading, but the set writes no such clip`);
   const mean = meanFit(fits);
   // the hands on clips that hold a prop: before (migrated) and after (as kept)
   const withProps = names.map((n) => ({ n, c: choices[slugOf.get(n)!]!, clip: out.set.clips[n]! })).filter(({ n, c, clip }) => c.hands.length === 2 && holdsProp(n, clip.tags ?? [], clip.desc));

@@ -6,8 +6,11 @@ manifest (`_set.json`: its sources, their licenses and rest bodies, its tier and
 A set re-imported from its sources (WP-5.3, `npm run import`) also has `_import.json`: each clip's choice between its
 re-import and its migrated version, and why. What each set picks from its sources is in `catalogs/<SET>.json`.
 Every clip carries its facts and contacts as measured (WP-5.4: `facts.by` names the revision, `captured` the facts its
-source gave); `npm run facts -- --check` measures them again and reads its tags against them (a `loop` closes, a `run`
-travels or is tagged `inplace`), each exception given a reason in `baselines/tags.json`. Every clip carries its QA
+source gave), save 45 loops whose contacts are one of core's named readings of their motion (`clip.readContacts`),
+which their set's import spec names and `_import.json` records: they are written `labelled`, played as written, and
+`facts.reading` names the reading (spec/MOTION.md §7.1, §7.3, D129). `npm run facts -- --check` measures every clip
+again (those 45 against the reading they name, and their record against it) and reads its tags against the facts (a `loop` closes, a `run` travels or is tagged `inplace`), each exception given a reason in
+`baselines/tags.json`. Every clip carries its QA
 verdict too (WP-5.8: `quality.qa` pass, or baselined with its reason in `quality.baseline`, read with the sensors'
 revision `quality.qaVersion`); the reasons by set and by clip are in `baselines/qa.json`, the distributions that may only
 improve in `baselines/distributions.json`. `npm run qa -- library --check` reads it all again, with the census

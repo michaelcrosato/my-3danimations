@@ -220,8 +220,10 @@ all (the frame encoded as its own key). Error is the worst body-point distance, 
 
 `contacts`: `{ "by": "detected" | "labelled", "footL": [[from, to], …], "footR": …, "handL": …, "handR": … }`. Each
 interval is when that end is planted, in seconds, `0 ≤ from < to`, sorted and not overlapping. An end with no contact
-is omitted. `by` says whether a tool detected them (WP-2.2) or a person or source labelled them. `to ≤ dur`, except
-that a loop's last interval may wrap: `to > dur` means the contact continues from 0 until `to − dur`.
+is omitted. `by` says whether a tool detected them (WP-2.2; a reader may detect them again) or they are labelled, and
+played as written: by a person or a source, or chosen by a tool as one of the reference implementation's named readings
+of the clip's own motion, which `facts.reading` then names (§7.3, D129). `to ≤ dur`, except that a loop's last interval
+may wrap: `to > dur` means the contact continues from 0 until `to − dur`.
 
 ### 7.2 Events
 
@@ -234,7 +236,8 @@ named in plain words.
 `facts`: values measured from the motion by a tool, never typed by hand: `{ "by": "<tool>@<version>", … }`. Known
 facts: `speed` (% of `H0` per second a loop travels as captured, shardfall's), `travel` (`[forward, right]` % over the
 clip), `strike` (seconds, when an attack's hand or foot moves fastest toward its target), `height` (`[min, max]` of the
-hips' up, % of `H0`) and `seam` (a loop's mm between its last and first pose). Facts may be decimals. A fact a tool can
+hips' up, % of `H0`), `seam` (a loop's mm between its last and first pose) and `reading` (the named reading of core's
+`clip.CONTACT_READINGS` that gave labelled contacts, §7.1). Facts may be decimals. A fact a tool can
 recompute is checked against the motion by QA.
 
 ### 7.4 Provenance

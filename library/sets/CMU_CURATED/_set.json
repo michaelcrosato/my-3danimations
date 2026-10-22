@@ -3,7 +3,7 @@
 "title": "CMU motion capture, curated",
 "format": "2.0",
 "tier": "cmu",
-"content": {"edition":"144 picks from 43 subjects of the CMU Graphics Lab Motion Capture Database (library/catalogs/CMU_CURATED.json), the takes as tools/corpora/cmu.lock.json pins them","importer":"m3a-import 1, from the sources (WP-5.3); 6 clip(s) kept as m3a-migrate 1 made them (_import.json says why)","sha256":"0b69648194f9278c3de91da51a86371f1536e413d6e6d1eeb32394ae058eb882"},
+"content": {"edition":"144 picks from 43 subjects of the CMU Graphics Lab Motion Capture Database (library/catalogs/CMU_CURATED.json), the takes as tools/corpora/cmu.lock.json pins them","importer":"m3a-import 1, from the sources (WP-5.3); 6 clip(s) kept as m3a-migrate 1 made them (_import.json says why)","sha256":"6f97d94be4fff37acb850c1d5006c08d35f4a036c3376f147bf0035fe2f980f1"},
 "credit": "CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu); created with funding from NSF EIA-0196217.",
 "producer": {"tool":"m3a-import","version":"1"},
 "sources": {

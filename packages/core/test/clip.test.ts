@@ -1,11 +1,13 @@
 // The clip runtime (WP-2.2): sample() decodes like the tier 2 vectors; events fire once each, in order, loop-aware;
 // a turning root samples continuously and composes over loop cycles; contacts wrap; and measureFacts agrees with the
 // 20 clips of packages/core/fixtures/facts-truth.json, whose expectations come from sources independent of this code;
-// its fallbacks (D104, D108, D122, D127) on the library loops they read again and on those they leave.
+// its fallbacks (D104, D108, D122, D127) on the library loops they read again and on those they leave; and the named
+// readings (readContacts, D129): four of the six the chain takes give its contacts where they fire on a library loop
+// (the two after the sole pass fire on none), six more it never takes.
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { contactRoot, contactsAt, detectContacts, events, keyAt, measureFacts, OFF_FEET, parseClip, plant, retime, rootAt, rootDelta, sample, type Clip, type ClipEvent, type Key, type Rest } from "./all.ts";
+import { CONTACT_READINGS, contactRoot, contactsAt, detectContacts, events, keyAt, measureFacts, OFF_FEET, parseClip, plant, readContacts, retime, rootAt, rootDelta, sample, type Clip, type ClipEvent, type Key, type Rest } from "./all.ts";
 import { motionOf, P } from "./contact-data.ts";
 import { loadTier2, tier2Sets } from "../../../spec/conformance/runner/vectors.ts";
 
@@ -255,10 +257,17 @@ describe("contacts", () => {
       ["STYLE100_RUN/RaisedRightArm_Run", 2, 1, 1, 0.227],
       ["STYLE100_SIDERUN/Followed_SideRunRight", 2, 1, 1, 0.158],
     ];
+    // the default chain keeps these readings; D129 writes two of the loops' files by a named reading instead
+    // (Elated_RunBack's lower-half, DragLeftLeg_RunBack's lower), labelled, which measureFacts takes as given: for those
+    // the chain's contacts are pinned as their files held them before (faf3fe4)
+    const chain: Record<string, Clip["contacts"]> = {
+      "STYLE100_BACKRUN/Elated_RunBack": { by: "detected", footR: [[0.65, 0.7]] },
+      "STYLE100_BACKRUN/DragLeftLeg_RunBack": { by: "detected", footL: [[0.167, 0.217]], footR: [[0.366, 0.433]] },
+    };
     for (const [id, speed, heights, feet, down] of keep) {
-      const { clip, R, name } = atSpeed(id, speed), c = measureFacts(clip, R).contacts;
+      const { clip, R, name } = atSpeed(id, speed), c = measureFacts({ ...clip, contacts: undefined }, R).contacts;
       expect(Math.abs(downShare(clip, detectContacts(clip, R), true) - heights), name).toBeLessThan(0.002);
-      if (speed === 1) expect(c, name).toEqual(clip.contacts);
+      if (speed === 1) expect(c, name).toEqual(clip.contacts!.by === "labelled" ? chain[id] : clip.contacts);
       expect([[c.footL, c.footR].filter((x) => x?.length).length, Math.abs(downShare(clip, c) - down) < 0.002], name).toEqual([feet, true]);
     }
     // where the refinement left nothing (D104's case) a reading again replaces none, and isn't held to the planter:
@@ -293,6 +302,36 @@ describe("contacts", () => {
       expect(clip.loop, id).toBe(false);
       expect(measureFacts(clip, R).contacts, id).toEqual({ by: "detected" });
     }
+  });
+  it("names twelve readings read on the motion alone: four of the chain's own give its contacts where each fires; the other two it takes and the six it never takes coincide with it only where readings do (D129)", () => {
+    expect(CONTACT_READINGS.length).toBe(12);
+    // the loop, the reading the chain takes there, and every named reading that gives the chain's contacts (its labelled
+    // contacts set aside): the chain's own first, then those that coincide with it on that loop. The six the chain
+    // never takes (`-quarter`, `lower`, `sole-lower`: D122 weighed them) appear only as such coincidences, and so do
+    // `sole-planted-half` and `sole-lower-half` (reread after the sole pass), which no library loop's chain takes: for
+    // those two the equivalence is the code's (reread's tries on the sole pass), not shown here.
+    const same: [string, string[]][] = [
+      // the default refinement (`planted`); on this walk every reading by ankle, ball and toe coincides with it
+      ["QUATERNIUS_3D2DGE/Walk_Loop", ["planted", "planted-half", "planted-quarter", "lower", "lower-half", "lower-quarter"]],
+      // reread's first try (D104): the planted feet's velocity, half the body's speed
+      ["MESH2MOTION/Run_Female", ["planted-half"]],
+      // reread's second try (D104, D127): the lower foot's velocity, half its speed
+      ["STYLE100_RUN/Robot_Run", ["lower-half"]],
+      ["STYLE100_BACKRUN/Waving_RunBack", ["lower-half", "sole-lower-half"]],
+      // D104's sole pass refined, and bySole (D122): the sole's planted feet's velocity, the refinement's own "still"
+      ["STYLE100_IDLE/OnHeels_Idle", ["sole-planted", "sole-planted-half", "sole-planted-quarter"]],
+      ["STYLE100_RUN/OnHeels_Run", ["sole-planted", "sole-planted-quarter", "sole-lower", "sole-lower-quarter"]],
+    ];
+    const never = ["planted-quarter", "lower", "lower-quarter", "sole-planted-quarter", "sole-lower", "sole-lower-quarter"];
+    for (const [id, names] of same) {
+      const { clip, R } = libClip(id), chain = measureFacts({ ...clip, contacts: undefined }, R).contacts;
+      expect(CONTACT_READINGS.filter((n) => JSON.stringify(readContacts(clip, R, n)) === JSON.stringify(chain)), id).toEqual(names);
+      expect(never.includes(names[0]!), id).toBe(false);
+    }
+    // a clip with a root of its own is read exactly, and a name core doesn't have is refused
+    const { clip, R } = libClip("QUATERNIUS_3D2DGE/Walk_Loop");
+    expect(() => readContacts({ ...clip, keys: clip.keys.map((k) => ({ ...k, root: [0, 0] })) }, R, "planted")).toThrow(/a root of its own/);
+    expect(() => readContacts(clip, R, "still" as never)).toThrow(/no reading "still"/);
   });
   it("a clip its tags put off its feet keeps the strict reading: none for a run tagged as flying", () => {
     const { clip, R } = libClip("MESH2MOTION/Run_Female");

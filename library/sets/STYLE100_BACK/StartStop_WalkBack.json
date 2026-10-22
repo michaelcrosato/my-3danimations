@@ -10,8 +10,8 @@
 "desc": "Walking backward, start stop style: pause briefly after step",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"contacts": {"by":"detected","footL":[[0,1.35]],"footR":[[1.117,2.516]]},
-"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[100,101],"seam":0,"speed":19,"travel":[-43,-7]},
+"contacts": {"by":"labelled","footL":[[0.033,1.35]],"footR":[[1.366,2.333]]},
+"facts": {"by":"m3a-facts@1","captured":["speed"],"height":[100,101],"reading":"planted-quarter","seam":0,"speed":19,"travel":[-44.7,-6.6]},
 "provenance": {"src":"100STYLE","take":"StartStop_BW 31.67-33.98","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[6,28],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"warn on skate: short of every fail level the sensors apply (thresholds.ts)"},
 "keys": [
