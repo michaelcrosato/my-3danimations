@@ -1,11 +1,12 @@
-# Handoff: every phase built; the follow-ups after G10 built (F.1 to F.5); the owner's steps open (2026-10-21)
+# Handoff: every phase built; the follow-ups after G10 built (F.1 to F.8); the owner's steps open (2026-10-22)
 
 Phase 7 merged before its gate (michaelcrosato/my-3danimations#13, D103); G7 passed on run 2 on
 michaelcrosato/my-3danimations#14 (D107); Phase 8 merged on michaelcrosato/my-3danimations#15 (G8's commands, D111);
 Phase 9 on michaelcrosato/my-3danimations#16 (G9's commands passed on run 2, D115); Phase 10 on
 michaelcrosato/my-3danimations#17 (G10's commands passed on run 1, D117). After it, an audit (D118, D119) on
 michaelcrosato/my-3danimations#18, then the five follow-ups that need nothing from the owner, WP-F.1 to F.5 (PLAN.md
-§10 "After G10", D121 to D125), on michaelcrosato/my-3danimations#20. This file is what the next session needs.
+§10 "After G10", D121 to D125), on michaelcrosato/my-3danimations#20, and three more, WP-F.6 to F.8 (D126 to D128),
+on michaelcrosato/my-3danimations#21. This file is what the next session needs.
 
 ## The standing goal (the owner's)
 
@@ -17,7 +18,7 @@ none during trial batches.
 
 ## Where things stand
 
-- **Version 0.55.1.** Every WP through 10.2 and F.1 to F.5 is done; G0-G7 passed; G8, G9 and G10's command sets passed
+- **Version 0.55.3.** Every WP through 10.2 and F.1 to F.8 is done; G0-G7 passed; G8, G9 and G10's command sets passed
   and each waits on the owner (blocked-owner, its ask on its PR):
   - **G8** (#15): the phone review of `bench/results/gates/G8-run-1/queue.json`.
   - **G9** (#16): the contract suite against O8's project; an adoption through a merged PR; the owner's approval of
@@ -36,13 +37,21 @@ none during trial batches.
   (F.4, D124); T1's files share their worker's modules, CI's T1 79.1 s from 126.1 (F.5, D125). The briefs re-run with
   real agents after F.2 and F.4 (`bench/results/2026-10-21-*`): B1 5/5 (discovery 2/2), B2 to B7 5/5 each,
   every G7 held-out variant 5/5, B8 5/5, its G9 variant 5/5, B8-ten 1/1: 83 of 83 trials, $13.36.
+- **The next three (#21, 2026-10-22, the owner's pick, built by a workflow: two lanes, each WP reviewed by two
+  adversarial reviewers and fixed):** T2 under its budget: Playwright on four workers, T2 sweeping two of the rate
+  sweep's bodies and ci.yml's `rates` job all six on every pull request (F.6, D126); the rate rows triaged, two loops
+  read again in core (held within 10% of H0, retimed too), 473 rows on 126 loops, each loop answered with one of 7
+  causes (F.7, D127); the manual teaches the test characters, `loadGlb` in a page and the attached player's `apply()`,
+  7,999 of 8,000 (F.8, D128). The briefs re-run with real agents after F.7 and F.8
+  (`bench/results/2026-10-22-*`): B1 4/5 (discovery 2/2), B2 to B6 5/5, B7 4/5; G7's variants B1 4/5, B6 4/5, the rest 5/5; B8 5/5, its G9 variant 5/5, B8-ten 1/1: 79 of 83 trials, $13.82; two of the four misses are B1's floor.
 - **Review bots:** every finding on #14 to #18 is fixed or answered on its thread (D115, D117, D120); on #20 Codex didn't review:
   its connector answers the PR's account (michaelcrosatoDM) with "create a Codex account", so only the owner's
-  `@codex review` runs it; an independent reviewer's four findings were fixed in 5c348a8 (D121, D123).
-- **Last measured (4 CPUs):** T0 about 3 s warm, T1 88 s here (79.1 s in CI), T2 about 440 s here and 525.2 s in CI
-  (budget 480, a warning; it fails at 720: playwright 242.6 s, the sweeps 164.4, the rate sweep 109.5 in a step of its
-  own). Should CI's T2 near 720, the rate sweep samples its bodies in T2 and a gate runs it whole; `pack --check`
-  about 21 to 33 s.
+  `@codex review` runs it; an independent reviewer's four findings were fixed in 5c348a8 (D121, D123). On #21 each
+  WP's two reviewers' findings were fixed before the PR (D126 to D128); Codex again doesn't serve its account.
+- **Last measured (4 CPUs):** T0 about 3 s warm; T1 63.6 s here (79.1 s in CI on #20); T2 239.8 s here (playwright
+  111.6, QA 9.2, the sweeps 96.8, the rate sample 22.2) and 246.2 s in CI on #21 (from 525.2 on #20; playwright
+  128.2, QA 5.8, the sweeps 92.5, the rate sample 19.7), its budget 480; CI's `rates` job, the whole rate sweep, 109.0 s,
+  done before T2; `pack --check` about 21 to 33 s.
 
 ## Next, in order
 
@@ -57,15 +66,21 @@ none during trial batches.
   soles (`bench/graders/bones.ts` `bodyOf`), so a foot within 40 to 86 mm of its floor reads as down; D106's "keyed
   runs skim" were that floor and Run_Female's walk-to-run fade, not the loops (the rate sweep passes them). Reading
   from the body's measured floor changes G7's evidence (B1's known-goods and variants): a decision of its own.
-- The rate sweep's 479 failing rows (`library/baselines/rates.json`, D123): each a loop that slides or skates at a rate
-  on a body (slow rates on slide, fast on skate; STYLE100's 411 of them). A row fixed or answered shrinks it. The
-  adopt bot doesn't regenerate it: an adopted locomotion loop that fails a row fails T2 until baselined or fixed.
+- The rate sweep's 473 failing rows on 126 loops, each loop answered with its cause in `library/baselines/rates.json`
+  (D127): per-loop readings fitted to the sweep would fix 167 rows on 68 loops, not taken (each fitted to the sweep);
+  a start-stop walk's reread moved it into a judge fail on gen-0, so the rule stays narrow. A retimed
+  `STYLE100/Rushed_Walk` (×1.5, ×2) reads a contact the planter pulls 12.2% of H0, from before D127, answered there.
+  The adopt bot doesn't regenerate the baseline: an adopted locomotion loop that fails a row fails the `rates` job
+  until baselined or fixed, and must carry an answer.
+- Gates and the rate sweep (D126): a gate's T2 step now holds the two-body sample (8,110 of 24,330 rows); every row
+  runs in ci.yml's `rates` job on every pull request. A gate whose proof should hold every row adds
+  `["the rate sweep in full", "sweep", "--rates", "--check"]` to its set in PLAN.md §9.3: the owner's call.
 - The five loops still without contacts (D122): `WideLegs_Walk` (both feet slide outward), `Drunk_RunBack` (its feet
   never leave the floor), `Boxing_Guard_Loop` (skims between stances), `Run_Anime` and `Run_Stealth` (a still root
   under sweeping feet). No reading the planter holds exists; a contact that moves with the foot (a slide the planter
   follows) would be a new kind of contact, the spec's call.
-- Manual: gap 10's last names (`@m3a/three/test-characters`' `character`, `variant`, `loadGlb` in a browser) and gap
-  1's page loader (`directory`, `defaultSets`, `new Library(source)`), at 7,998 of 8,000 tokens (D124).
+- Manual: gap 1's page loader (`directory`, `defaultSets`, `new Library(source)`) and the types the consumer lab names
+  (left to the compiler) are all MIGRATING still lists; the manual is at 7,999 of 8,000 tokens (D128).
 - Intake: refusing every clip added outside the adopt bot (§8.4 after G9). D113's call stands until the importers'
   and procedural sets' regenerations go through the bot; then `gatesOf` refuses an added clip without intake
   provenance (a fixture planting a clean clip into an existing set proves it).

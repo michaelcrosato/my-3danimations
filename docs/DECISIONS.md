@@ -5056,6 +5056,9 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
     123 s for about 108 s of work; Vitest orders them by its results cache, which T1 runs (M3A_FULL unset) rewrite, so
     T2's longest file can start last (B8's ten, 31.5 s, from 90 s in). About 10 s here, little in CI (its cache is
     whatever the last cache miss saved): left.
+  - **Measured in CI** (#21, at b7528b1): T2 246.2 s of its 480 s budget (playwright 128.2, library QA 5.8, the sweeps
+    92.5, the rate sample 19.7), from 525.2 on #20; the `rates` job's whole sweep 109.0 s (every row, the threads' rows
+    against one thread's), done before T2's job.
 - **Why:** the most coverage per second. Four workers cost no test anything; the rate sweep keeps every row on every
   pull request, on a CPU of its own rather than T2's, and T2 keeps every loop at every rate on two bodies. T2 tests
   less only locally, 16,220 rows on four bodies, which the pull request's job reads. What would change it: a T2 back
@@ -5166,6 +5169,12 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
     unchanged). Ship and Make: actions are no brief's job. Each bar is G7's, at least 4 of 5 on the brief and its
     held-out variant (B8: its G9 variant; B8-ten: its one trial's ten clips through).
   - **Budget:** 7,999 of 8,000 (7,998 before).
+  - **The re-runs** (fresh agents on the packed packages at b7528b1, with F.6 and F.7 in; the trees differed in docs
+    alone): B1 4 of 5 (discovery 2 of 2), B2 to B6 5 of 5, B7 4 of 5; G7's held-out variants B1 4 of 5, B6 4 of 5, B2
+    to B5 and B7 5 of 5; B8 5 of 5, its G9 variant 5 of 5, B8-ten 1 of 1: 79 of 83, $13.82
+    (`bench/results/2026-10-22-default-*.json`). The four misses: B1's and its variant's run read as no foot standing
+    (B1's floor, D123's follow-up; MESH2MOTION/Run_Female, which D127 didn't touch), B7's jump built from in-place
+    clips never leaving the ground, B6's mirrored strike 10% of the hip height off. Probes, not a gate's record.
 - **Why:** the manual is all a fresh agent reads, and "reads a .glb in Node" reads as Node only: an agent building a
   page couldn't tell that the same call works there, nor that the package makes bodies to test on; and a game with its
   own fixed-step sim (D124's block) couldn't tell how to pose without stepping. The true sentences cost 110 tokens;
