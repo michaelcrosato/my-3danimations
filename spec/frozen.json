@@ -3,7 +3,7 @@
   "version": "2.0-rc",
   "decision": "D129",
   "files": {
-    "spec/MOTION.md": "374ed5c56ff186fc5ae02429408d873fbf3739d464f26a38bfbaa064847d2a34",
+    "spec/MOTION.md": "0e09d487c2ba2a745d4cdeb3f008588bda9760bae42796faf3e4e49c8d79e9e7",
     "spec/SKELETON.md": "0827f66711ca7e42ffd4074957f315f6dfbb5d27d62e2019ebfa0677332923cf",
     "spec/LEGEND.md": "54cf21fac7493c6c5b3057fefcc6306f9e4d6919466582345b2e0b9678e0c15a",
     "spec/conformance/tiers.md": "16156acaf55fca72c45bf1fc51abc85f50e6f9c20ac084900ffdd87c5c6fe23a",

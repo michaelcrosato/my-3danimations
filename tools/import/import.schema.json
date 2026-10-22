@@ -40,7 +40,7 @@
             "type": "object",
             "required": ["import"],
             "additionalProperties": false,
-            "properties": { "import": { "$ref": "#/$defs/verdict" }, "migrated": { "$ref": "#/$defs/verdict" } }
+            "properties": { "import": { "$ref": "#/$defs/verdict" }, "migrated": { "$ref": "#/$defs/verdict" }, "read": { "$ref": "#/$defs/verdict", "description": "the clip's verdict as written, its contacts by the reading `contacts` names (D129); import and migrated are the versions' before it" } }
           },
           "hands": { "type": "array", "minItems": 1, "maxItems": 2, "items": { "type": "number", "minimum": 0 }, "description": "[re-import] for a new clip, else [migrated, re-import] (mm)" },
           "moved": { "type": "object", "additionalProperties": { "type": "array", "minItems": 2, "maxItems": 2, "items": { "type": "number" } }, "description": "each metric that moved: [migrated, re-import]" },

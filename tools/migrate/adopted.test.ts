@@ -51,6 +51,9 @@ describe("a re-imported set's record", () => {
     expect([now.clips.Jump_2, now.mean, r.importer]).toEqual([{ ...was.clips.Jump_2, kept: "adopted", why: adoptedWhy(a) }, was.mean, importerLine(7)]);
     expect(withAdoption(text, "Jump_2", a, fits.map((f, i) => (i ? f : f + fits.length))).record).toMatch(new RegExp(`\\n "mean": ${Number((meanFit(fits) + 1).toFixed(1))},\\n`));
     expect(() => withAdoption(text, "Not_A_Clip", a, fits)).toThrow(/Not_A_Clip has no choice in its set's _import.json/);
+    // a loop whose record names a contact reading (D129) is adopted with its own contacts: the record names none after
+    const named = JSON.stringify({ ...was, clips: { ...was.clips, Jump_2: { ...was.clips.Jump_2, contacts: "planted-quarter" } } });
+    expect((JSON.parse(withAdoption(named, "Jump_2", a, fits).record) as typeof was).clips.Jump_2).toEqual({ ...was.clips.Jump_2, kept: "adopted", why: adoptedWhy(a) });
   });
 });
 

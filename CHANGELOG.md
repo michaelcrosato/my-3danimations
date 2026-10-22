@@ -12,8 +12,9 @@ contact reading, labelled and named in `facts.reading`; 45 failing rows gone, no
 ### Spec
 - §7.1: `labelled` contacts are played as written, labelled by a person or a source or chosen by a tool as one of the
   reference implementation's named readings of the clip's own motion, which `facts.reading` then names; §7.3 lists
-  `reading` among the known facts, and the clip schema's `facts` takes it. Compatible: a 0.55 reader accepts it in read
-  and lint mode. Spec 2.0-rc refrozen under D129.
+  `reading` among the known facts (a name, not a measure), and the clip schema's `facts` takes it; `facts.reading`
+  appears only beside labelled contacts. A 0.55 validator accepts it in read and lint mode (a 0.55 intake's text gate
+  bounces it). Spec 2.0-rc refrozen under D129.
 
 ### Core
 - `clip.readContacts(clip, R, reading)` and `clip.CONTACT_READINGS`: twelve named contact readings of an in-place loop
@@ -21,6 +22,11 @@ contact reading, labelled and named in `facts.reading`; 45 failing rows gone, no
   never takes (a quarter of the body's speed as "still", the lower foot's velocity under the refinement's own) (D129).
 - The validator refuses `facts.reading` that isn't a string (M2-E004) or names the reading of contacts that aren't
   labelled (M2-E016), and in lint mode warns on a name it doesn't know (M2-W007; read mode accepts it) (D129).
+- A recipe takes a named reading's contacts as detected, so its result's are detected again on the edited motion (D129).
+
+### Sensors
+- `fix` detects a named reading's contacts again when a step changes the motion, and drops `facts.reading`, reporting
+  it as a step of its own (D129).
 
 ### Library
 - `withReading(clip, R, reading)`: a clip with its contacts written by a named reading of core's, labelled, its facts
@@ -37,8 +43,12 @@ contact reading, labelled and named in `facts.reading`; 45 failing rows gone, no
   can't honour (an adopted clip, a clip the set doesn't write, and `withReading`'s refusals) (D129).
 - `tools/facts/readings.ts` holds the rule that chooses a loop's reading by D108's bar at five speeds and its captured
   speed, reading nothing of the sweep (D129).
-- `npm run facts -- --check` holds a clip that names a reading to that reading's contacts on its motion today, and its
-  set's import record to the name: an edit to either is stale even with its facts measured again (D129).
+- `npm run facts -- --check` holds a clip that names a reading to that reading's contacts on its motion today, and a
+  set's import record that names another reading for it is stale: an edit to the contacts or the name is stale even
+  with its facts measured again (D129).
+- The intake's text gate takes `facts.reading` by its shape, a name (D129).
+- The adopt bot's import record names no reading for an adopted clip, which keeps the contacts it was adopted with; the
+  import record adds `qa.read`, the verdict of a clip as written with its named reading (D129).
 
 ### Repo
 - `npm run test:changed` runs the readings' test for a change under `library/` (D129).

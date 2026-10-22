@@ -46,7 +46,9 @@ export interface ClipChoice {
   kept: "import" | "migrated" | "new" | "adopted";
   why: string;
   fit: { import: [number, number]; migrated?: [number, number] };
-  qa: { import: string; migrated?: string };
+  /** The sensors' verdicts: the re-import's and the migrated clip's, as chosen between, and, where a named reading
+   *  writes its contacts (D129), `read`: the clip's as written with them. */
+  qa: { import: string; migrated?: string; read?: string };
   /** Each sensor metric that changed, [migrated, import] at three significant digits. */
   moved?: Record<string, [number, number]>;
   /** The hands' points (wrist, knuckle, fist) against the capture, mean mm: [migrated, import], or [import]. */
@@ -179,12 +181,14 @@ export const importerLine = (migrated: number): string => `${IMPORTER.tool} ${IM
 export const meanFit = (fits: readonly number[]): number => (fits.length ? fits.reduce((a, x) => a + x, 0) / fits.length : 0);
 
 /** A re-imported set's record (its `_import.json` text) and manifest line with its clip `slug` adopted (`a`), as the
- *  next `npm run import` writes them: the clip's choice kept as adopted with why, its source's measures as they were;
- *  the mean over `fits`, the set's clips' recorded mean fits as written. */
+ *  next `npm run import` writes them: the clip's choice kept as adopted with why, its source's measures as they were,
+ *  and no contact reading (an adopted clip keeps the contacts it was adopted with: D129); the mean over `fits`, the
+ *  set's clips' recorded mean fits as written. */
 export function withAdoption(text: string, slug: string, a: Adoption, fits: readonly number[]): { record: string; importer: string } {
   const r = JSON.parse(text) as { mean: number; clips: Record<string, ClipChoice> };
   if (!r.clips[slug]) throw new Error(`${slug} has no choice in its set's _import.json: only a clip the import made is adopted over it`);
-  r.clips[slug] = { ...r.clips[slug], kept: "adopted", why: adoptedWhy(a) };
+  const { contacts: _reading, ...was } = r.clips[slug];
+  r.clips[slug] = { ...was, kept: "adopted", why: adoptedWhy(a) };
   r.mean = Number(meanFit(fits).toFixed(1));
   return { record: `${JSON.stringify(r, null, 1)}\n`, importer: importerLine(Object.values(r.clips).filter((c) => c.kept === "migrated").length) };
 }
@@ -332,7 +336,7 @@ function importOne(spec: ImportSpec, mig: ReturnType<typeof migrate>, legend: st
     if (reading) {
       const read = specReading(chosen, decodes, reading, Boolean(adoption));
       if ("error" in read) errors.push(`${slug}: ${read.error}`);
-      else [chosen, choice.contacts] = [read.clip, reading];
+      else [chosen, choice.contacts, choice.qa.read] = [read.clip, reading, measured(read.clip, decodes).verdict];
     }
     chosen = withQuality(chosen, decodes, reasons, adoption ? {} : kept === "migrated" ? { migrated: choice.why.split(";")[0]! } : { repaired: repairs, ...(unrepaired ? { unrepaired } : {}) });
     if (!adoption) chosen = carryReview(chosen, was);

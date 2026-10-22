@@ -109,6 +109,8 @@ const KINDS: Readonly<Record<string, readonly [RegExp, string]>> = {
   "contacts.by": [/^(detected|labelled)$/, '"detected" or "labelled"'],
   "facts.by": [REVISION, "a revision, tool@N"],
   "facts.captured[]": [/^[a-z][A-Za-z]{0,31}$/, "a fact's name"],
+  // a labelled loop's named contact reading (spec/MOTION.md §7.1, §7.3, D129): a name's shape, so a later one passes
+  "facts.reading": [/^[a-z][a-z-]{0,39}$/, "a contact reading's name"],
   "provenance.method": [new RegExp(`^(${Object.keys(format.IPTC).join("|")})$`), "a method"],
   "provenance.license": [SPDX, "an SPDX license expression"],
   "provenance.ai": [new RegExp(`^(${Object.values(format.IPTC).join("|")})$`), "an IPTC digital source type"],

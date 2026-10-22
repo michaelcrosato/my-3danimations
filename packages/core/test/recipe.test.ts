@@ -359,6 +359,13 @@ describe("the operations", () => {
     const two = sequence([walk, walk], 0.25, true);
     for (let time = 0; time < two.dur; time += 0.05) expect([time, (["footL", "footR"] as const).some((f) => two.contacts![f]!.some(([a, b]) => a <= time + 0.02 && b >= time - 0.02))]).toEqual([time, true]);
   });
+  it("takes a named reading's contacts as detected, so a recipe's result detects them again (D129)", () => {
+    const bw = load("STYLE100/Balance_Walk"), t = trackOfClip(bw.clip, bw.rest, 30);
+    expect([(bw.clip.facts as { reading?: string }).reading, bw.clip.contacts!.by, t.contacts!.by, t.contacts!.footL]).toEqual(["planted-quarter", "labelled", "detected", bw.clip.contacts!.footL]);
+    // a source's labelled contacts, which name no reading, stay labelled
+    const own = { ...bw.clip, facts: { by: "test" } };
+    expect(trackOfClip(own, bw.rest, 30).contacts!.by).toBe("labelled");
+  });
   it("blend, layer and retime: a curve as a number blends alike, read on a's clock, and a loop that plays once keeps its seam's contacts", () => {
     const a = track("STYLE100/Neutral_Walk"), b = track("STYLE100/BigSteps_Walk");
     const flat = blendTracks(a, b, [[0, 0.2], [a.dur, 0.2]], true), num = blendTracks(a, b, 0.2, true);

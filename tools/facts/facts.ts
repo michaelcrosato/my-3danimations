@@ -4,7 +4,8 @@
 // or baselined with a reason in library/baselines/tags.json. A loop whose contacts are one of core's named readings
 // carries them labelled, which `measure` takes as given, and names the reading in `facts.reading` (spec/MOTION.md §7.1,
 // §7.3, D129); so it is held to that reading instead: its contacts must be what core's reading gives on its motion today
-// (@m3a/library's `withReading`), and the reading its set's import record names (`_import.json`'s `contacts`) must be it.
+// (@m3a/library's `withReading`), and where its set's import record (`_import.json`'s `contacts`) names a reading for
+// it, that reading.
 import type { clip as coreClip } from "@m3a/core";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -31,7 +32,7 @@ export interface FoundConflict {
 export interface FactsReport {
   clips: number;
   /** Clips whose written facts or contacts aren't what the measurement gives (or aren't this revision's), or whose contacts
-   *  aren't the reading they name (facts.reading) or the one their set's import record names. */
+   *  aren't the reading they name (facts.reading), or name another than their set's import record. */
   stale: string[];
   conflicts: FoundConflict[];
   /** Baselined conflicts the facts no longer show. */
@@ -64,7 +65,7 @@ function offReading(clip: LibraryClip["clip"], rest: LibraryClip["rest"], name: 
   try {
     return canon(clip.contacts ?? null) === canon(withReading({ ...clip, contacts: undefined }, rest, name).contacts) ? undefined : `its contacts aren't the reading "${name}" its facts.reading names (D129)`;
   } catch (err) {
-    return `its facts.reading names "${name}", which it can't carry: ${(err as Error).message}`;
+    return `its facts.reading names "${name}", which it can't carry: ${(err as Error).message.replace(`${clip.id}: `, "")}`;
   }
 }
 

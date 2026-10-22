@@ -5200,10 +5200,11 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
     captured speed; a tie keeps the file's, then the earlier name (the order decided 11 of the 45 adopted). With no
     captured speed (12) or none that passes (20) the file's stays; 37 keep the file's as nearest; 57 get another. In
     full the rule gives the same 126 results again from the files.
-  - **Six of the twelve readings are new to core:** `planted`, `planted-half`, `lower-half`, `sole-planted`,
-    `sole-planted-half` and `sole-lower-half` are the readings `measureFacts` and its fallbacks take where their paths
-    fire; the other six (a quarter of the body's speed as "still", the lower foot's velocity under the refinement's own)
-    no path takes. D122 weighed them before the rate sweep existed, so they aren't fitted to it. 31 of the 45 adopted
+  - **Six of the twelve readings are new to core:** six (`planted`, `planted-half`, `lower-half`, `sole-planted`,
+    `sole-planted-half`, `sole-lower-half`) are the readings `measureFacts` and its fallbacks take where their paths
+    fire; the other six (`planted-quarter`, `lower`, `lower-quarter`, `sole-planted-quarter`, `sole-lower`,
+    `sole-lower-quarter`: a quarter of the body's speed as "still", or the lower foot's velocity under the refinement's
+    own), which no path takes, are the new ones. D122 weighed them before the rate sweep existed, so they aren't fitted to it. 31 of the 45 adopted
     are among them (`planted-quarter` 19, `sole-planted-quarter` 7, `lower-quarter` 3, `lower` 2); restricted to the
     six the chain takes, 31 loops would get another reading, not 57.
   - **Then vetoed by the sweep, the judge and QA:** each of the 57 played on its 30 rate rows, its 6 judge pairs and
@@ -5223,16 +5224,25 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
     the name in `_import.json`. But spec §7.1 said `labelled` meant a person or a source labelled them, and a tool read
     these: the clip would misstate its contacts' provenance (Principle 10), the name only in `_import.json`.
   - **The spec amended, compatibly (a decision made without the owner's answer):** §7.1 now says `labelled` contacts
-    are played as written, labelled by a person or a source, or chosen by a tool as one of the reference
-    implementation's named readings of the clip's own motion, which `facts.reading` then names; §7.3 lists `reading`
-    among the known facts, and the clip schema's `facts` takes it. A new `by` word or a `contacts.reading` key was
-    weighed and not taken: 0.55.3's validator refuses either (M2-E016), while a key in `facts` (an open object) passes
-    every deployed reader in read and lint mode. Core's validator now refuses `facts.reading` on contacts not labelled
-    (M2-E016) or not a string (M2-E004), and in lint mode warns on a name it doesn't know (M2-W007: read mode accepts
-    it, a later implementation's). The writers carry it (`withReading` writes it, `measure` keeps it on labelled
-    contacts), and `npm run facts -- --check` holds each clip that names a reading to that reading's contacts on its
-    motion today and its set's import record to the name, so an edit to either is stale with its facts measured again.
-    Spec 2.0-rc refrozen under this decision.
+    are played as written, whoever wrote them: a person, a source, or a tool that chose one of core's named readings of
+    the clip's own motion, which `facts.reading` then names, and that `facts.reading` appears only beside labelled
+    contacts; §7.3 lists `reading` among the known facts (a name, not a measure), and the clip schema's `facts` takes
+    it. A new `by` word or a `contacts.reading` key was weighed and not taken: 0.55.3's validator refuses either
+    (M2-E016), while a key in `facts` (an open object) passes every 0.55.3 validator in read and lint mode, and its
+    `parseClip`, `playable` and `measure` take the 45 as given. The intake's text gate took no `facts.reading` before
+    0.56.0 (a 0.55 intake bounces a submission carrying it), which adds it to the fields it takes, by its shape. Core's
+    validator now refuses `facts.reading` beside contacts not labelled (M2-E016) or not a string (M2-E004), and in lint
+    mode warns on a name it doesn't know (M2-W007; read mode accepts it, a later implementation's). Spec 2.0-rc refrozen
+    under this decision.
+  - **Where the name travels:** `withReading` writes it and `measure` keeps it on labelled contacts; `npm run facts --
+    --check` holds each clip that names a reading to that reading's contacts on its motion today, and a set's import
+    record that names another reading for it is stale, so an edit to the contacts or the name is stale with its facts
+    measured again. A change to the motion drops it: core's time ops drop every fact (their contacts move with the
+    keys, as the rule held them retimed); a recipe takes a named reading's contacts as detected, so its result's are
+    detected again, as before this decision; the sensors' fix, when a step changes the motion, detects them again and
+    drops the name; the adopt bot's record names no reading for an adopted clip (it keeps the contacts it was adopted
+    with). The import record keeps the verdicts it chose between and adds `qa.read`, the clip's as written with the
+    reading (`DragLeftLeg_RunBack`: import warn, read pass).
   - **The facts' travel moves:** an in-place loop's `travel` is read from its contacts, so 44 of the 45 move, ×0.99 to
     ×1.78 in length (the backward runs `PendulumHands_RunBack`, `Elated_RunBack`, `DragLeftLeg_RunBack` most; the
     other 37 within 11%), `RaisedLeftArm_SideRunLeft`'s heading turning 11°; `speed` stays the captured one.
@@ -5254,9 +5264,13 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
 - **Why:** a reading picked by the sweep's own result is fitted to the sweep; one picked by D108's criteria and the
   captured speed, and only then vetoed where the sweep, the judge or QA find it worse, is a reading the loop's motion
   supports (the veto only keeps a file's contacts, never picks among readings). Written `labelled` with its name in
-  the clip, every reader plays the chosen reading and can tell it from a source's labels, with no reader refusing it.
-- **Answered:** no: made without a response, to review. Three calls stay the owner's, each reversible: the spec's
-  amendment (reverted by dropping the names in `tools/import/sets.ts` and re-importing the 7 sets: the 45 then keep
-  their detected contacts, the baselines as at 0.55.3), the six readings new to core, and the bar ("no failing row
-  added" against "no still-failing row reads worse").
+  the clip, every reader plays the chosen reading and can tell it from a source's labels, with no validator refusing
+  it.
+- **Answered:** no: made without a response, to review. Three calls stay the owner's, each reversible by reverting
+  this decision's commit: the spec's amendment (its data alone reverts by dropping the names in `tools/import/sets.ts`,
+  re-importing the 7 sets and `npm run index`, with `library/baselines/rates.json` taken back from 0.55.3, whose 18
+  dropped answers and 25 rewritten ones `--baseline` can't write, and the sensors' baseline and the distributions
+  rewritten under a logged decision, since their p95s worsen; the spec's text, schema, freeze and validator rules stay
+  until a decision reverts them), the six readings new to core, and the bar ("no failing row added" against "no
+  still-failing row reads worse").
 - **Landed in:** v0.56.0

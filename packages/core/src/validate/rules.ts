@@ -29,7 +29,7 @@ export const RULES: readonly Rule[] = [
   { code: "M2-E013", severity: "error", what: "events are out of order, outside the duration, or badly named" },
   { code: "M2-E014", severity: "error", what: "a value is outside its range" },
   { code: "M2-E015", severity: "error", what: "requires names a field this reader doesn't know" },
-  { code: "M2-E016", severity: "error", what: "a value is not one of its field's allowed words" },
+  { code: "M2-E016", severity: "error", what: "a value is not one of its field's allowed words, or a field another field's word rules out (facts.reading beside contacts not labelled)" },
   { code: "M2-E017", severity: "error", what: "an id, name or date is malformed" },
   { code: "M2-E018", severity: "error", what: "an attribution license without a credit line" },
   { code: "M2-E019", severity: "error", what: "a limb or blade direction is all zeros" },

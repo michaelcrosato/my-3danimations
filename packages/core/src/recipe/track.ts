@@ -100,13 +100,15 @@ function bodyOf(k: KeyLike): Pose {
 
 /**
  * A library clip as a track at `fps`: sliced to `from`–`to` when given, closed into a loop when `loop` asks (true
- * closes a once clip over 0.25 s, a number over that many seconds; a loop stays one).
+ * closes a once clip over 0.25 s, a number over that many seconds; a loop stays one). Contacts a named reading gave
+ * (`facts.reading`, spec/MOTION.md §7.1, D129) come in as detected: a recipe's steps may change the motion they were
+ * read from, so the result's are detected again.
  */
 export function trackOfClip(clip: Clip, rest: Rest, fps: number, opts: { from?: number; to?: number; loop?: boolean | number } = {}): Track {
   let c: Clip = clip;
   if (opts.from !== undefined || opts.to !== undefined) c = slice(c, opts.from ?? 0, opts.to ?? c.dur);
   if (opts.loop !== undefined && opts.loop !== false && (!c.loop || typeof opts.loop === "number")) c = loopify(c, typeof opts.loop === "number" ? opts.loop : Math.min(0.25, c.dur / 3));
-  const t: Track = { dur: c.dur, loop: c.loop, fps, times: frameTimes(c.dur, c.loop, fps), poses: [], roots: [], events: [...(c.events ?? [])], rest, restSrc: c.restSrc, sources: [clip.id], ...(c.contacts ? { contacts: c.contacts } : {}) };
+  const t: Track = { dur: c.dur, loop: c.loop, fps, times: frameTimes(c.dur, c.loop, fps), poses: [], roots: [], events: [...(c.events ?? [])], rest, restSrc: c.restSrc, sources: [clip.id], ...(c.contacts ? { contacts: typeof (clip.facts as { reading?: unknown } | undefined)?.reading === "string" ? { ...c.contacts, by: "detected" } : c.contacts } : {}) };
   for (const time of t.times) {
     t.poses.push(bodyOf(keyAt(c, time) as KeyLike));
     const r = clipRootAt(c, time);

@@ -49,8 +49,9 @@ none during trial batches.
   by a rule written before the sweep was read (`tools/facts/readings.ts`: core's twelve named readings held to D108's
   bar at five speeds, the one nearest the captured speed), 57 another reading, then vetoed by the sweep, the judge and
   QA: 45 adopted, written by the importer `labelled` and named in `facts.reading`; spec §7.1 and §7.3 amended
-  compatibly and refrozen (D129, made without the owner's answer: reverting it is dropping the names in
-  `tools/import/sets.ts` and re-importing the 7 sets). 473 → 428 failing rows (0 added), 108 loops answered; the judge
+  compatibly and refrozen (D129, made without the owner's answer: reversible by reverting its commit; dropping the names
+  in `tools/import/sets.ts` and re-importing the 7 sets reverts only the clips, and `rates.json`'s answers come back
+  from 0.55.3). 473 → 428 failing rows (0 added), 108 loops answered; the judge
   one fail gone, none added; QA 1,015 / 229 / 154. No clip a brief's agent picks moved, so no brief re-ran.
 - **Review bots:** every finding on #14 to #18 is fixed or answered on its thread (D115, D117, D120); on #20 Codex didn't review:
   its connector answers the PR's account (michaelcrosatoDM) with "create a Codex account", so only the owner's
@@ -77,7 +78,7 @@ none during trial batches.
 - The rate sweep's 428 failing rows on 108 loops, each loop answered with its cause in `library/baselines/rates.json`
   (D127, D129). D129's three calls are the owner's, each reversible: the spec's amendment (`labelled` covering a named
   reading, `facts.reading`), the six readings new to core (31 of the 45), and the bar ("no failing row added"; "no
-  still-failing row reads worse" would adopt 25). the 12 readings the veto turned down are named in D129; 53 of the 84 rows
+  still-failing row reads worse" would adopt 25). The 12 readings the veto turned down are named in D129; 53 of the 84 rows
   the 45 still fail read further past their fail level. A retimed `STYLE100/Rushed_Walk` (×1.5, ×2) reads a contact
   the planter pulls 12.2% of H0 on every reading, answered there.
   The adopt bot doesn't regenerate the baseline: an adopted locomotion loop that fails a row fails the `rates` job
