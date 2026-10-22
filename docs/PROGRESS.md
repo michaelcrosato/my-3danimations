@@ -24,7 +24,7 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 
 ## Next
 
-- The owner's steps below; then B1's floor (D131's call), a WP of its own; the rest as D131 calls them.
+- The owner's steps below. Deferred with reasons (HANDOFF): B1's floor until the owner's go (it changes G7's evidence).
 
 ## Blocked on the owner
 

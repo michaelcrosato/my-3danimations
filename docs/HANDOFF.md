@@ -85,8 +85,9 @@ none during trial batches.
 1. Whatever the owner sends back: a review file (`npx m3a review ingest <file>`, its notes into
    docs/FEEDBACK-LOG.md and a threshold or task proposal into docs/REVIEW-PROPOSALS.md), O8 linked (the contract run,
    the first adoption by the bot), another repository's use confirmed (G10).
-2. B1's floor, the session's call under D131: a WP of its own (B1's grader reads feet from the body's measured floor),
-   then G7's B1 evidence run again (about $12 and 1.5 hours of real agents), its result logged.
+2. B1's floor stays deferred, with its reason: reading B1's feet from the body's measured floor changes G7's evidence
+   (its known-goods and variants), so it waits for the owner's go. When it comes (D131's call is to fix it): a WP of its
+   own, then G7's B1 evidence run again (about $12 and 1.5 hours of real agents), its result logged.
 3. The other follow-ups below stay as D131 calls them (deferred or kept, each with its reason) until the owner says
    otherwise.
 
