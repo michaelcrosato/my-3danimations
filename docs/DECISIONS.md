@@ -5312,10 +5312,14 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
     which need it. `tools/release/publish.test.ts` holds each of these (36 edits to the workflow, one at a time, each
     fail it), running the go-ahead, the tag check, the tarball check and the publish loop on stubs; a dry run (`npm
     publish --dry-run`) of the publish job's two steps on 0.56.0's tarballs went through all eight. The owner's steps:
-    create the npm organization `m3a`; create the token; create the environment `npm` with the owner as its required
-    reviewer, deployable from `v*` tags, the token as its secret; set `M3A_O2_PUBLISH=yes`; tag `main` at a version not
-    yet published; run the workflow from that tag; approve the publish job (`tools/bundle/README.md`, "Publishing").
-    Moving to npm's trusted publishing (no long-lived token) waits for the packages to exist.
+    create the npm organization `m3a`; create the token ("Read and write (publish and stage)": a "(stage only)" token
+    fails `npm publish` with E_STAGE_REQUIRED); create the environment `npm` with the owner as its required reviewer,
+    deployable from `v*` tags, the token as its secret; set `M3A_O2_PUBLISH=yes`; protect the `v*` tags with a tag
+    ruleset only the owner bypasses (a run uses the tag's own `publish.yml`, so whoever moves a tag chooses the code a
+    run executes; a third reviewer found it); tag `main` at a version not yet published; run the workflow from that
+    tag; approve the publish job (`tools/bundle/README.md`, "Publishing"). Moving to npm's trusted publishing (no
+    long-lived token) waits for the packages to exist, and must come before January 2027, when npm stops taking `npm
+    publish` with a granular token.
   - **O3, unpaused by the owner:** the branch's commit 2f973fa built ("Deployment has completed", the first since D85's
     pause), so every branch builds its preview from `vercel.json` again; G8's review page is at a preview's
     `/src/review/` (it opens a queue file; the preview site never bundles one).

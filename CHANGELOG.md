@@ -72,7 +72,8 @@ alone from a release tag.
 - `tools/bundle/README.md`: publishing as it now stands (O2 answered, D130), and the owner's steps in order, each as
   the repository's owner: the npm organization `m3a`; the token (read and write on `@m3a`, Bypass 2FA, 90 days at
   most); the environment `npm` (the owner its required reviewer, `v*` tags alone, `NPM_TOKEN` its secret);
-  `M3A_O2_PUBLISH=yes`; a tag on `main`; the run from that tag; the approval.
+  `M3A_O2_PUBLISH=yes`; a tag ruleset on `v*` only the owner bypasses; a tag on `main`; the run from that tag; the
+  approval; and trusted publishing before January 2027.
 
 ## 0.55.3 · 2026-10-22
 

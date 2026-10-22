@@ -223,7 +223,7 @@ jobs:
             exit 1
           fi
           v="${TAG#v}" err=$(mktemp) published=0 skipped=0
-          why="E401 or E403 from npm, or E404 from npm publish: NPM_TOKEN has expired (a write token lasts 90 days at most) or isn't read and write on @m3a; EOTP: it doesn't bypass two-factor authentication. The owner renews it (tools/bundle/README.md); else re-run when the registry answers"
+          why="E401 or E403 from npm, or E404 from npm publish: NPM_TOKEN has expired (a write token lasts 90 days at most) or isn't read and write on @m3a; EOTP: it doesn't bypass two-factor authentication; E_STAGE_REQUIRED: it is Read and write (stage only), not (publish and stage). The owner renews it (tools/bundle/README.md); else re-run when the registry answers"
           for p in $PACKS; do
             name="@m3a/$p"
             # on the registry: npm view prints the version; not on it: E404 (no such package, or no such version)

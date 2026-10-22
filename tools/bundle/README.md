@@ -143,8 +143,9 @@ the go-ahead, the tag check, the tarball check and the publish loop on stubs (a 
 The owner's steps, in order, each signed in as `michaelcrosato`, the repository's owner. A run another account starts
 or re-runs (`michaelcrosatoDM`, which opens this session's pull requests, among them) stops at the go-ahead.
 1. Create the npm organization `m3a` on npmjs.com (the free plan: public packages). Its name is the `@m3a` scope.
-2. Create an npm granular access token: under Packages and scopes, Read and write on the scope `@m3a` alone; nothing
-   under Organizations. Tick "Bypass two-factor authentication": CI can't give a one-time password. Set an expiration
+2. Create an npm granular access token: under Packages and scopes, "Read and write (publish and stage)" on the scope
+   `@m3a` alone, not "(stage only)", whose token `npm publish` refuses with E_STAGE_REQUIRED; nothing under
+   Organizations. Tick "Bypass two-factor authentication": CI can't give a one-time password. Set an expiration
    of 90 days at most, npm's limit for a write token, and renew the token before a release past that date: a stale
    token fails the publish step with E401, E403 or E404.
 3. In this repository, Settings → Environments → New environment, named `npm`. Required reviewers: `michaelcrosato`,
@@ -153,16 +154,24 @@ or re-runs (`michaelcrosatoDM`, which opens this session's pull requests, among 
    there as the environment secret `NPM_TOKEN`, never as a repository secret, which a workflow on any branch could
    read.
 4. Set the repository variable `M3A_O2_PUBLISH` to `yes` (Settings → Secrets and variables → Actions → Variables).
-5. Tag `main` at a version not yet published: the commit on `main` whose package.json files are at X.Y.Z (the pull
+5. Protect the release tags, since a run uses the tag's own `publish.yml` and anyone with write access could otherwise
+   make or move one: Settings → Rules → Rulesets → New ruleset → New tag ruleset, named `release tags`. Enforcement:
+   Active. Bypass list: Repository admin, Always allow. Target tags: Include by pattern, `v*`. Rules: Restrict
+   creations, Restrict updates, Restrict deletions. After it, only you make or move a tag the environment `npm`
+   deploys from.
+6. Tag `main` at a version not yet published: the commit on `main` whose package.json files are at X.Y.Z (the pull
    request that ran `node tools/version.ts X.Y.Z`, merged). It must hold this workflow, since a run uses the tag's.
-   `git tag vX.Y.Z <commit>`, then `git push origin vX.Y.Z`.
-6. Actions → publish → Run workflow. Under "Use workflow from", pick Tags → `vX.Y.Z`; give `vX.Y.Z` as the tag. Or
+   `git tag vX.Y.Z <commit>`, then `git push origin vX.Y.Z`, as yourself. A tag made before the ruleset is checked
+   first on the repository's Tags page: it must be the commit you merged.
+7. Actions → publish → Run workflow. Under "Use workflow from", pick Tags → `vX.Y.Z`; give `vX.Y.Z` as the tag. Or
    `gh workflow run publish.yml --ref vX.Y.Z -f tag=vX.Y.Z`.
-7. When the build job has passed, the run waits for you: Review deployments → `npm` → Approve and deploy. Approve
+8. When the build job has passed, the run waits for you: Review deployments → `npm` → Approve and deploy. Approve
    only a run you started. Each package's npm page then shows its provenance: built and signed on GitHub Actions,
    from this repository and the tag's commit.
 
 npm's trusted publishing (OIDC, no long-lived token) is configured per package, so it needs each package to exist
-first. Moving to it after the first release is a change to this workflow (the token's check goes) and to each
-package's settings on npmjs.com (the trusted publisher: this repository, `publish.yml`, the environment `npm`); the
-token is then deleted.
+first; and npm stops taking `npm publish` with a granular token in January 2027. So move to it right after the first
+release: on each package's settings on npmjs.com, a trusted publisher (this repository, `publish.yml`, the environment
+`npm`) with `npm publish` ticked under Allowed actions (a publisher set up since 2026-09-03 allows only `npm stage
+publish` otherwise), and a publish through it within two days of setting it up, or it lapses. This workflow then drops
+the token's check, and the token is deleted.

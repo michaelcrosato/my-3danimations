@@ -2520,7 +2520,7 @@ picked by the owner on 2026-10-21. No gate follows them: each is held by its Ver
      never fails on a published version; a failed publish stops the packs after it; a registry answering neither the
      version nor E404 stops it; each failure names the codes npm gives a token it refuses; no token, nothing runs (the
      publish step run on a stub npm). On the real tarballs the loop goes through all eight with `npm publish --dry-run`.
-  7. `tools/bundle/README.md` says O2 is answered (D130), what the workflow does, and the owner's seven steps in order.
+  7. `tools/bundle/README.md` says O2 is answered (D130), what the workflow does, and the owner's eight steps in order (the tag ruleset and the token's kind after a verifier's review).
   8. The first real publish *(deferred proof: the owner's first run of `publish.yml`, each package's npm page showing
      its provenance from the tag's commit)*.
 - **Verify:** `npx vitest run tools/release/publish.test.ts tools/release/release.test.ts`, `npm run pack -- --check

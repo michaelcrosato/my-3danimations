@@ -289,7 +289,7 @@ describe("publish.yml's publish step", () => {
     return { status: r.status, said: r.stdout, err: r.stdout + r.stderr, calls, on: readFileSync(registry, "utf8").trim().split("\n").filter(Boolean) };
   };
   /** What a failure says of the token: the codes npm gives one it refuses, and why (D130's owner's steps). */
-  const STALE = "E401 or E403 from npm, or E404 from npm publish: NPM_TOKEN has expired \\(a write token lasts 90 days at most\\) or isn't read and write on @m3a; EOTP: it doesn't bypass two-factor authentication\\. The owner renews it";
+  const STALE = "E401 or E403 from npm, or E404 from npm publish: NPM_TOKEN has expired \\(a write token lasts 90 days at most\\) or isn't read and write on @m3a; EOTP: it doesn't bypass two-factor authentication; E_STAGE_REQUIRED: it is Read and write \\(stage only\\), not \\(publish and stage\\)\\. The owner renews it";
   const viewed = (p: string) => `view ${spec(p)} version token=npm_token`, published = (p: string) => `publish --provenance --access public ./.cache/pack/${tarball(p)} token=npm_token`;
   it("publishes every pack in order, the token given to npm", () => {
     const r = run([]);
