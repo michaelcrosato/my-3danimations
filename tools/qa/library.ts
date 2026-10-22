@@ -3,7 +3,8 @@
 // library/baselines/qa.json whose finding is gone; the census (unique motions and G5's category floors, census.ts);
 // each metric's distribution over the library and the verdicts' counts against the ones recorded in
 // library/baselines/distributions.json, which may only improve; the floats and the off-feet check (a loop with no
-// contact answered: off its feet, or no foot that holds still); and docs/LIBRARY.md, generated from all of it.
+// contact answered: off its feet, or no foot that holds still); the still check (a clip that never moves is tagged a
+// pose or answered, F.13); and docs/LIBRARY.md, generated from all of it.
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { clip as C, format, type Clip, type Rest } from "@m3a/core";
@@ -150,6 +151,45 @@ export function offFeetStep(lib: readonly LibraryClip[], reasons: QaReasons = re
   const ok = off.problems.length === 0 && off.gone.length === 0;
   const summary = ok ? `every loop with no contact answered in library/baselines/qa.json: ${n(reasons.offFeet)} off their feet, ${n(reasons.unplanted)} with no foot that holds still` : `${off.problems.length} loops with no contact unanswered; ${off.gone.length} answers whose loop has contacts now or belongs in the other field`;
   return { name: "off feet", ok, ms: 0, summary, detail: [...off.problems, ...off.gone.map((g) => `library/baselines/qa.json ${g}`)] };
+}
+
+/**
+ * The still check (F.13, D133): a clip whose motion never changes, every body point within `mm` of where it starts (read
+ * every 1/30 s, the farthest any point gets as core's `format.error` measures two poses apart), is a pose. Its tags say
+ * so (`pose`, a held pose; `reference`, a rest or T-pose), or the reasons' `still` answers why it stays so; otherwise it
+ * is a clip that promises motion and plays a statue, which no sensor rule catches (a still pose breaks none). 3 mm is
+ * what @m3a/io's fit treats as still (its MOTION_TOL floor): the format's whole degrees show less only as noise.
+ */
+export const STILL = { mm: 3, tags: ["pose", "reference"] } as const;
+/** How far a clip moves (mm): the farthest any body point gets from where it starts, read every 1/30 s. */
+export function reachOf(clip: Clip, rest: Rest): number {
+  const k = format.P * 3, X0 = format.pose(rest, clip, 0, new Float32Array(k)), X = new Float32Array(k), n = Math.floor(clip.dur * 30 + 1e-6);
+  let far = 0;
+  for (let i = 1; i <= n; i++) far = Math.max(far, format.error(format.pose(rest, clip, i / 30, X), X0));
+  return far;
+}
+/** The still check over the library: a clip that never moves, its tags saying no pose and no answer in the reasons'
+ *  `still`; an answer whose clip moves now, or whose tags now say it is a pose; and the poses, the clips that never
+ *  move whose tags say so. */
+export function checkStill(lib: readonly LibraryClip[], reasons: QaReasons = readReasons()): VerdictCheck & { poses: string[] } {
+  const problems: string[] = [], answers = reasons.still ?? {}, need = new Set<string>(), tagged = new Set<string>();
+  for (const { clip, rest } of lib) {
+    const far = reachOf(clip, rest);
+    if (far >= STILL.mm) continue;
+    if (clip.tags.some((t) => (STILL.tags as readonly string[]).includes(t))) {
+      tagged.add(clip.id);
+      continue;
+    }
+    need.add(clip.id);
+    if (!answers[clip.id]) problems.push(`${clip.id}: never moves (every body point within ${Math.round(far * 10) / 10} mm of where it starts over ${clip.keys.length} keys), and none of its tags (${clip.tags.join(", ")}) says it is a pose (${STILL.tags.join(", ")}): import it keeping its motion, tag it a pose where its source holds one, or answer why in library/baselines/qa.json still`);
+  }
+  return { problems, gone: Object.keys(answers).filter((id) => !need.has(id)).map((id) => `still: ${id} (${tagged.has(id) ? "its tags say it is a pose: they answer it" : "it moves now"})`), poses: [...tagged] };
+}
+/** The still check as `npm run qa -- library` reports it (tools/qa/main.ts). */
+export function stillStep(lib: readonly LibraryClip[], reasons: QaReasons = readReasons()): Step {
+  const s = checkStill(lib, reasons), ok = s.problems.length === 0 && s.gone.length === 0, n = Object.keys(reasons.still ?? {}).length;
+  const summary = ok ? `every clip that never moves is tagged a pose (${STILL.tags.join(", ")}: ${s.poses.length}) or answered in library/baselines/qa.json still (${n})` : `${s.problems.length} clips that never move, untagged and unanswered; ${s.gone.length} answers whose clip moves now or is tagged a pose`;
+  return { name: "still", ok, ms: 0, summary, detail: [...s.problems, ...s.gone.map((g) => `library/baselines/qa.json ${g}`)] };
 }
 
 /** One metric's recorded spread: p50, p95 and the most of each clip's worst value. */

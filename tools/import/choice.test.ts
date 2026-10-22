@@ -1,12 +1,13 @@
 // The re-import's choices (WP-5.3, WP-5.8, D66): a repair is held back when it takes the clip more than CLOSE mm
 // further from its source on average, past the fit limits, or moves a point more than WORST mm further at worst; a
 // clip keeps its re-import unless it fits worse or the sensors judge it worse, and a re-import they judge better may fit
-// up to CLOSE mm worse on average, and then WORST mm at worst. A catalog that names a clip twice is refused.
+// up to CLOSE mm worse on average, and then WORST mm at worst; a clip cut again from another stretch of its take is new,
+// not weighed against its migrated version (F.13). A catalog that names a clip twice is refused.
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { ROOT } from "../run/cli.ts";
-import { choose, CLOSE, duplicateKeys, LIMITS, repairGuard, WORST } from "./import.ts";
+import { choose, CLOSE, duplicateKeys, LIMITS, recutFrom, repairGuard, WORST } from "./import.ts";
 
 describe("a repair", () => {
   it("is kept within CLOSE mm on average and WORST mm at worst, and the fit limits", () => {
@@ -30,6 +31,14 @@ describe("the version a clip keeps", () => {
   });
   it("is the migrated one when the sensors judge the re-import worse", () => {
     expect(choose("fail", "warn", [8, 70], [10, 80])).toEqual(["migrated", "the sensors judge the re-import worse (warn → fail)"]);
+  });
+});
+
+describe("a clip cut again (F.13)", () => {
+  it("is another motion than its migrated version when its take's stretch differs, and the same one otherwise", () => {
+    expect(recutFrom("85_01 2.00-3.80", "85_01 3.65-7.80")).toBe("85_01 2.00-3.80 → 3.65-7.80");
+    expect(recutFrom("85_01 2.00-3.80", "85_02 2.00-3.80")).toBe("85_01 2.00-3.80 → 85_02 2.00-3.80");
+    expect([recutFrom("85_01 2.00-3.80", "85_01 2.00-3.80"), recutFrom(undefined, "85_01 2.00-3.80"), recutFrom("85_01 2.00-3.80", undefined)]).toEqual([null, null, null]);
   });
 });
 

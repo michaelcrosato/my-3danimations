@@ -1,12 +1,14 @@
 // Catalog-driven import (PLAN.md WP-5.2; carried from my-3d2dge tools/anim-import.mjs's run section): libraries read
 // as captures (any reader here), each measured from its own rest-pose clip, then every clip fitted with as few key
-// poses as keep it within `tol` mm of the capture (core's codec), with a fit report per clip. A catalog, written by
-// hand, drives it: `$sources` says where each library came from, `$pick` names the stretches of capture takes,
-// `$skip` leaves clips out with the reason on record, and each clip's entry gives its tags (`loop` and `once` set
-// whether it loops), what the body does and, for a copy of another set's clip, the clip it came from (`orig`). CMU's
-// `$sources.CMU` becomes one record a subject (`CMU_NN`), and a pick that names only its take plays the stretch where
-// the take moves, at its own rate, as the ledger measured it (tools/corpora). `subset` makes a smaller set from bigger
-// ones (carried from my-3d2dge tools/anim-set.mjs): the clips a game adopts, with their libraries' records.
+// poses as keep it within `tol` mm of the capture (core's codec), or within half its own reach for a clip that moves
+// less than twice `tol`, so a small sway isn't taken for noise and frozen (F.13), with a fit report per clip. A
+// catalog, written by hand, drives it: `$sources` says where each library came from, `$pick` names the stretches of
+// capture takes, `$skip` leaves clips out with the reason on record, and each clip's entry gives its tags (`loop` and
+// `once` set whether it loops), what the body does and, for a copy of another set's clip, the clip it came from
+// (`orig`). CMU's `$sources.CMU` becomes one record a subject (`CMU_NN`), and a pick that names only its take plays the
+// stretch where the take moves, at its own rate, as the ledger measured it (tools/corpora). `subset` makes a smaller
+// set from bigger ones (carried from my-3d2dge tools/anim-set.mjs): the clips a game adopts, with their libraries'
+// records.
 import { format, skeleton, type Rest } from "@m3a/core";
 import { IoError } from "./bytes.ts";
 import type { Capture, Look } from "./gltf/read.ts";
@@ -58,11 +60,37 @@ export interface ImportedClip {
 /** The imported set (format 1, as the migrator reads it) and its fit report. */
 export interface Imported {
   set: { set: string; title?: string; format: 1; credit: string; fps: number; sources: Record<string, SourceInfo & { file: string; rig: string; rest: Rest }>; body: Look | null; fit: Record<string, [number, number]>; clips: Record<string, ImportedClip> };
-  /** Per clip: its source, the fit's mean and worst error (mm) and its keys; what was left out and why; warnings. */
-  report: { clips: { name: string; src: string; mean: number; max: number; keys: number }[]; skipped: { name: string; why: string }[]; warnings: string[] };
+  /** Per clip: its source, the fit's mean and worst error (mm), its keys and the limit it was fitted within (mm); what
+   *  was left out and why; warnings. */
+  report: { clips: { name: string; src: string; mean: number; max: number; keys: number; tol: number }[]; skipped: { name: string; why: string }[]; warnings: string[] };
 }
 
 const REST_NAMES = ["A_TPose", "T-Pose", "TPose", "Rest Pose", "Rest_Pose", "_rest"];
+
+/**
+ * How a clip's own motion bounds its fit's limit (F.13): half its reach, never under 3 mm, never over the set's `tol`.
+ * Core's fit starts from Ramer–Douglas–Peucker key frames, which keep only a clip's first and last frames when every
+ * frame is within the limit of the line between them; a loop's two ends are one pose, so a fixed 30 mm took a 1 to 4
+ * cm sway (an idle's breathing) for noise and froze it. Half the reach keeps the farthest frame, and so the sway; a
+ * clip that reaches twice `tol` or more is fitted at `tol`, exactly as before; under 3 mm is still (a held pose, or
+ * capture noise the format's whole degrees don't show).
+ */
+export const MOTION_TOL = { ratio: 0.5, floor: 3 } as const;
+
+/** How far a capture moves (mm): the farthest any body point of any frame gets from the first frame's, as core's
+ *  `format.error` measures two poses apart. */
+export function reach(cap: { n: number; data: Float32Array }): number {
+  const k = format.P * 3, first = cap.data.subarray(0, k);
+  let far = 0;
+  for (let f = 1; f < cap.n; f++) far = Math.max(far, format.error(cap.data.subarray(f * k, (f + 1) * k), first));
+  return far;
+}
+
+/** The fit's limit (mm) for a clip that reaches `far` mm: `tol`, or for a clip that reaches less than `tol / ratio`,
+ *  `ratio` of its reach and at least `floor` (MOTION_TOL). */
+export function clipTol(tol: number, far: number, k: { ratio: number; floor: number } = MOTION_TOL): number {
+  return Math.min(tol, Math.max(k.floor, k.ratio * far));
+}
 const entry = (cat: Catalog, name: string): [string, string, string?] | undefined => {
   const e = name.startsWith("$") ? undefined : cat[name];
   return Array.isArray(e) ? (e as [string, string, string?]) : undefined;
@@ -96,11 +124,13 @@ function sourceOf(cat: Catalog, L: LibraryIn): SourceInfo | undefined {
 
 /**
  * Fits libraries into one set as the catalog says. A clip name is taken once (a later library's clip of a taken name is
- * left out); `_`-named clips are a reader's rest pose, not clips. `tol` is the fit's limit in mm (30); `encode` asks
- * for format 2's hands, spine curl and root yaw, a steady twist and closed loops (core's `fit`).
+ * left out); `_`-named clips are a reader's rest pose, not clips. `tol` is the fit's limit in mm (30), lowered for a
+ * clip that reaches less than twice it to half its reach (`motion`, MOTION_TOL; `false` fits every clip at `tol`, as
+ * before F.13, to reproduce a fit made so); `encode` asks for format 2's hands, spine curl and root yaw, a steady twist
+ * and closed loops (core's `fit`).
  */
-export function importSet(libs: readonly LibraryIn[], cat: Catalog, opts: { name: string; title?: string; credit: string; fps?: number; tol?: number; only?: readonly string[]; blade?: RegExp; encode?: { hands?: boolean; spine?: boolean; yaw?: boolean; steadyTwist?: boolean; closeLoop?: boolean } }): Imported {
-  const fps = opts.fps ?? 30, tol = opts.tol ?? 30, blade = opts.blade ?? /Sword/, warnings: string[] = [], skipped: Imported["report"]["skipped"] = [], fits: Imported["report"]["clips"] = [];
+export function importSet(libs: readonly LibraryIn[], cat: Catalog, opts: { name: string; title?: string; credit: string; fps?: number; tol?: number; motion?: false | { ratio: number; floor: number }; only?: readonly string[]; blade?: RegExp; encode?: { hands?: boolean; spine?: boolean; yaw?: boolean; steadyTwist?: boolean; closeLoop?: boolean } }): Imported {
+  const fps = opts.fps ?? 30, tol = opts.tol ?? 30, motion = opts.motion ?? MOTION_TOL, blade = opts.blade ?? /Sword/, warnings: string[] = [], skipped: Imported["report"]["skipped"] = [], fits: Imported["report"]["clips"] = [];
   const named = Object.keys(cat).filter((k) => !k.startsWith("$")).length > 0, only = opts.only ? new Set(opts.only) : null;
   const set: Imported["set"] = { set: opts.name, ...(opts.title ? { title: opts.title } : {}), format: 1, credit: opts.credit, fps, sources: {}, body: null, fit: {}, clips: {} };
   for (const L of libs) {
@@ -125,7 +155,8 @@ export function importSet(libs: readonly LibraryIn[], cat: Catalog, opts: { name
         extra.tags = tags.filter((t) => t !== "loop" && t !== "once");
         extra.desc = c[1];
       } else if (named) warnings.push(`no catalog entry for ${name}`);
-      const { clip, max, mean } = format.fit(rest, cap, tol, extra);
+      // within its own motion's share when it moves little, so a small sway keeps its keys (F.13)
+      const limit = motion ? clipTol(tol, reach(cap), motion) : tol, { clip, max, mean } = format.fit(rest, cap, limit, extra);
       // a loop that walks or runs in place keeps how fast it travelled, so a player can match it to the ground; one
       // that hardly moves has none
       const speed = cap.loop && cap.stride !== undefined && cap.dur > 0 ? Math.round(((cap.stride / rest.H0) * 100) / cap.dur) : 0;
@@ -133,7 +164,7 @@ export function importSet(libs: readonly LibraryIn[], cat: Catalog, opts: { name
       const out: ImportedClip = { clip: clip.clip, src: L.id, ...(cap.take ? { take: cap.take } : {}), ...(c?.[2] ? { orig: c[2] } : {}), dur: clip.dur > 0 ? clip.dur : Math.round(1000 / fps) / 1000, loop: clip.loop, ...(speed >= 10 ? { speed } : {}), ...(clip.tags ? { tags: clip.tags } : {}), ...(clip.desc ? { desc: clip.desc } : {}), keys: clip.keys };
       set.clips[name] = out;
       set.fit[name] = [Math.round(mean), Math.round(max)];
-      fits.push({ name, src: L.id, mean, max, keys: clip.keys.length });
+      fits.push({ name, src: L.id, mean, max, keys: clip.keys.length, tol: limit });
     }
   }
   for (const name of Object.keys(cat.$skip ?? {})) if (!skipped.some((s) => s.name === name)) warnings.push(`$skip names ${name}, which no library has`);
