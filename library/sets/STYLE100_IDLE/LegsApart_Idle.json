@@ -11,16 +11,20 @@
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
 "contacts": {"by":"detected","footL":[[0,2.5]],"footR":[[0,2.5]]},
-"facts": {"by":"m3a-facts@1","height":[96,96],"seam":0,"speed":0,"travel":[0,0]},
+"facts": {"by":"m3a-facts@1","height":[96,96],"seam":0,"speed":0.4,"travel":[0.9,-0.2]},
 "provenance": {"src":"100STYLE","take":"LegsApart_ID 19.78-22.28","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
-"quality": {"fit":[10,36],"qa":"pass","qaVersion":"m3a-sensors@1"},
+"quality": {"fit":[6,17],"qa":"pass","qaVersion":"m3a-sensors@1"},
 "keys": [
   {"t":0,
    "hips":[0,0,96], "body":[0,-11,0], "chest":[1,15,0], "head":[-6,18,-1],
-   "shL":[3,-7], "shR":[2,-6], "armL":[13,8,-99,0,79], "armR":[16,10,-98,0,-42], "handL":[-4,-12,143], "handR":[-8,-12,133], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
-   "legL":[-23,33,-91,0,-19], "legR":[-21,33,-92,0,156], "footL":[10,2,0], "footR":[10,11,0]},
+   "shL":[3,-7], "shR":[2,-6], "armL":[13,8,-99,2,79], "armR":[16,10,-98,4,-42], "handL":[-3,-12,143], "handR":[-7,-13,133], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[-23,33,-91,2,-19], "legR":[-21,33,-92,1,156], "footL":[10,2,0], "footR":[10,11,0]},
+  {"t":1.467,
+   "hips":[-1,0,96], "body":[1,-12,0], "chest":[0,22,2], "head":[-5,13,-4],
+   "shL":[2,-8], "shR":[0,-6], "armL":[22,6,-97,2,82], "armR":[25,10,-96,4,-53], "handL":[-3,-12,141], "handR":[-7,-13,140], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[-25,33,-91,2,-11], "legR":[-21,33,-92,1,158], "footL":[11,3,0], "footR":[11,10,0]},
   {"t":2.5,
    "hips":[0,0,96], "body":[0,-11,0], "chest":[1,15,0], "head":[-6,18,-1],
-   "shL":[3,-7], "shR":[2,-6], "armL":[13,8,-99,0,79], "armR":[16,10,-98,0,-42], "handL":[-4,-12,143], "handR":[-8,-12,133], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
-   "legL":[-23,33,-91,0,-19], "legR":[-21,33,-92,0,156], "footL":[10,2,0], "footR":[10,11,0]}
+   "shL":[3,-7], "shR":[2,-6], "armL":[13,8,-99,2,79], "armR":[16,10,-98,4,-42], "handL":[-3,-12,143], "handR":[-7,-13,133], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[-23,33,-91,2,-19], "legR":[-21,33,-92,1,156], "footL":[10,2,0], "footR":[10,11,0]}
 ]}

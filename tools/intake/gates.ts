@@ -90,9 +90,10 @@ interface Run {
 }
 
 /** One changed clip's gates. A changed one is held to what it was (`x.was`: its license, credit and tier kept, its tag
- *  conflicts and failing metrics allowed), or to itself when that is unknown. One that came through the intake passes
- *  every gate; any other is read with the library's baselines (its set's accepted warnings, its tag exceptions, its
- *  writers' recorded QA reason when changed, the reasons library/baselines/qa.json gives it by hand when added), and its
+ *  conflicts and failing metrics allowed, and its never moving if it never moved), or to itself when that is unknown.
+ *  One that came through the intake passes every gate; any other is read with the library's baselines (its set's
+ *  accepted warnings, its tag exceptions, its writers' recorded QA reason when changed, the reasons
+ *  library/baselines/qa.json gives it by hand when added, and that file's answer when it never moves), and its
  *  retarget is T2's sweep's (D80: 95% of clips on every skeleton, each failure listed with its reason). Every added clip
  *  goes through dedup. */
 function gatesOf(x: Changed, run: Run): Gate[] {
@@ -103,7 +104,10 @@ function gatesOf(x: Changed, run: Run): Gate[] {
   const derived = [...lineage(got.clip, c.lib.library, null).derived.filter((d) => x.added || d.id !== x.id), ...own];
   const base = prev ? { id: x.id, sha256: sha256(x.was!), clip: prev, rest: restFor(c.lib, prev)?.rest ?? got.rest } : null;
   const tags = intake ? [] : Object.keys(readTagsBaseline(join(sets, "../baselines/tags.json")).conflicts[x.id] ?? {});
-  const qa = intake ? { recorded: !x.added && !prev } : x.added ? { byHand: Object.keys(run.reasons().clips[x.id] ?? {}) } : { recorded: true };
+  // (a library clip that never moves passes the lint gate where library/baselines/qa.json answers it, as the library's QA
+  // passes it; an intake clip's never does)
+  const still = !intake && Boolean(run.reasons().still?.[x.id]);
+  const qa = intake ? { recorded: !x.added && !prev } : x.added ? { byHand: Object.keys(run.reasons().clips[x.id] ?? {}), still } : { recorded: true, still };
   const gates = clipGates({ clip: got.clip, rest: got.rest, kind: "clip", base, derived, as: intake ? "adopted" : "library", added: x.added, qa, accepted: accepted(sets, set, name), acceptedTags: tags, tokens: cl100k });
   if (!gates[0]!.ok) return gates;
   // only the adopt bot records an adoption, and it gates its own pull requests: in any other, a new record fails
@@ -187,7 +191,7 @@ export async function plantedGates(only: string, root: string = ROOT, rigs?: rea
         const t = performance.now(), w = writeClip(dir, planted);
         try {
           const out = await runGates(dir, [{ id: planted.id, added: was === undefined, ...(was === undefined ? {} : { was }) }], c.rigs, { near }), failed = out.filter((s) => !s.ok), reason = failed.map((s) => s.summary ?? s.name).join("; ");
-          const want = f.expect === "bounced" ? `fails on ${f.gate}` : "passes", ok = f.expect === "bounced" ? failed.some((s) => s.summary?.startsWith(`${f.gate}: `)) : !failed.length;
+          const want = f.expect === "bounced" ? `fail on ${f.gate}` : "pass", ok = f.expect === "bounced" ? failed.some((s) => s.summary?.startsWith(`${f.gate}: `)) : !failed.length;
           steps.push({ name: `${name} (${planted.id})`, ok, ms: performance.now() - t, summary: ok ? (failed.length ? `failed as it must: ${reason.slice(0, 110)}` : "passed as it must") : `it must ${want}: ${failed.length ? reason.slice(0, 110) : "every gate passed"}` });
         } finally {
           w.restore();

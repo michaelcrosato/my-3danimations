@@ -19,13 +19,14 @@ none during trial batches.
 
 ## Where things stand
 
-- **Version 0.58.0.** Every WP through 10.2 and F.1 to F.12 is done; G0-G8 passed; G9 and G10's command sets passed
+- **Version 0.59.0.** Every WP through 10.2 and F.1 to F.13 is done; G0-G8 passed; G9 and G10's command sets passed
   and each waits on the owner (blocked-owner, its ask on its PR):
   - **G8** (#15): **passed** on 2026-10-22 (D133): the owner's review of G8-run-1's `queue-0.56.0.json` on the
     site's review page, applied with `npx m3a review ingest` (20 decisions, 18 approved, 2 flagged); its notes are
     FEEDBACK-LOG F7, its two task proposals REVIEW-PROPOSALS. It found 74 of 98 STYLE100 idles frozen, Jump_Twist cut
     before its jump and names that mislead an agent: WP-F.12 (D134, the page's guide and each card's "What it should
-    show") is done; WP-F.13 next.
+    show") and WP-F.13 (D135: frozen clips 102 → 17, each fit bounded by the clip's own motion, steady knees, recipes
+    keeping the sway, a still check in QA and the intake, Jump_Twist cut again) are done.
   - **G9** (#16): the contract suite against O8's project; an adoption through a merged PR; the owner's approval of
     70% of `bench/results/gates/G9-run-2/queue.json`. O8's setup is `services/intake/README.md`: the Supabase project,
     the Actions secrets `M3A_SUPABASE_URL` and `M3A_SUPABASE_SERVICE_ROLE_KEY` (intake.yml) and `M3A_INTAKE_SUPABASE`
@@ -86,9 +87,10 @@ none during trial batches.
 1. Whatever the owner sends back: a review file (`npx m3a review ingest <file>`, its notes into
    docs/FEEDBACK-LOG.md and a threshold or task proposal into docs/REVIEW-PROPOSALS.md), O8 linked (the contract run,
    the first adoption by the bot), another repository's use confirmed (G10).
-2. WP-F.13 (a check flagging a clip whose motion never changes unless tagged a pose; the STYLE100 idles imported
-   keeping their sway; Jump_Twist cut again from CMU 85_01), D133's last follow-up; WP-F.12 (D134) gave the review page
-   its guide and each card what its clip should show.
+2. The owner's next review batch: `npx m3a review export` samples the unreviewed and stale clips, among them Jump_Twist
+   (cut again) and the three idles whose reviews were dropped with their old motion; D135 lists what to look at (the
+   feet that follow the hips' rounding, the few idles under 0.8 of their capture's sway). D135's follow-up: a steady
+   rounding of the hips, chest and head in the encoder, measured the same way.
 3. B1's floor stays deferred, with its reason: reading B1's feet from the body's measured floor changes G7's evidence
    (its known-goods and variants), so it waits for the owner's go. When it comes (D131's call is to fix it): a WP of its
    own, then G7's B1 evidence run again (about $12 and 1.5 hours of real agents), its result logged.

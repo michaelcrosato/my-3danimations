@@ -143,7 +143,10 @@ const CREDIT = "100STYLE by Ian Mason, Sebastian Starke and Taku Komura, CC BY 4
 
 /**
  * One catalog imported as a set (format 1): its picks cut from the archive's takes (a pick that can't be cut left out,
- * its reason in the log), fitted within `tol` mm, every clip on the rest of the takes' skeleton.
+ * its reason in the log), fitted within `tol` mm, every clip on the rest of the takes' skeleton. Every clip is fitted at
+ * `tol` (`importSet`'s `motion: false`), as shardfall's importer fitted it, so `--import --check` reproduces shardfall's
+ * sets (the pinned source) byte for byte: a fixed limit froze the idles' 1 to 4 cm sway there (D133), which the
+ * library's import (`npm run import`, tools/import) keeps by bounding a small motion's limit by the motion (D135).
  */
 export function import100(kind: string, archive: Archive, styles: Styles, opts: { tol?: number; catalog?: Catalog } = {}): Imported & { log: string[] } {
   const cat = opts.catalog ?? (JSON.parse(readFileSync(join(STYLE100_CATALOGS, `STYLE100_${kind.toUpperCase()}.json`), "utf8")) as Catalog), picks = picks100(cat, styles);
@@ -157,7 +160,7 @@ export function import100(kind: string, archive: Archive, styles: Styles, opts: 
     30,
     { lenient: true },
   );
-  const out = importSet([{ id: "100STYLE", file: "100STYLE.bvh", rig: lib.rig, clips: lib.clips, rest: "_rest" }], cat, { name: `STYLE100_${kind.toUpperCase()}`, title: EXTRAS[kind] ?? kind, credit: CREDIT, tol: opts.tol ?? 30 });
+  const out = importSet([{ id: "100STYLE", file: "100STYLE.bvh", rig: lib.rig, clips: lib.clips, rest: "_rest" }], cat, { name: `STYLE100_${kind.toUpperCase()}`, title: EXTRAS[kind] ?? kind, credit: CREDIT, tol: opts.tol ?? 30, motion: false });
   // the catalog's skips name styles it never picks: on record with their reasons, not missing clips
   const picked = new Set(picks.map((p) => p.name));
   out.report.warnings = out.report.warnings.filter((w) => !/^\$skip names (\S+), which no library has$/.test(w) || picked.has(/^\$skip names (\S+),/.exec(w)![1]!));

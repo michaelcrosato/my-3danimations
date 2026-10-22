@@ -72,7 +72,7 @@ describe("shows", () => {
       desc: c.desc, tags: ["run", "sidestep", "left", "style"], plays: "loop", length: "1.27 s", playing: "Loops: it repeats with no break, 1.27 s each time",
       travel: "Travels to its left at about 1.05 metres a second (for a grown-up, a slow walk)",
     });
-    expect(shows(clip("CMU_CURATED/Jump_Twist"))).toMatchObject({ plays: "once", length: "1.8 s", playing: "Plays once, 1.8 s long", travel: "Moves to its right: it ends about 0.5 metres from where it starts" });
+    expect(shows(clip("CMU_CURATED/Jump_Twist"))).toMatchObject({ plays: "once", length: "4.17 s", playing: "Plays once, 4.17 s long", travel: "Moves forward: it ends about 1.7 metres from where it starts" });
     expect(tagWords(c.tags)).toBe("Tagged: run, sidestep, left, style");
     expect(tagWords([])).toBe("No tags");
   });

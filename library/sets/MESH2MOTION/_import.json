@@ -1,10 +1,10 @@
 {
  "about": "The re-import (WP-5.3) by m3a-import 1: each clip's choice between its re-import and its migrated version, with why; both fits (mean, worst mm against the source); both QA verdicts; the sensor metrics that moved ([migrated, re-import]); the hands' mean error against the capture ([migrated, re-import] mm; props: over the clips that hold something); what the catalog skips; the clips the migrated set had that are gone.",
- "mean": 9.5,
+ "mean": 9.4,
  "props": {
   "clips": 40,
   "migrated": 32.4,
-  "import": 13.7
+  "import": 13.5
  },
  "clips": {
   "Chest_Open": {
@@ -315,10 +315,10 @@
   },
   "Driving": {
    "kept": "import",
-   "why": "fits its source closer (10 → 8 mm on average), and the sensors judge it the same (pass)",
+   "why": "fits its source closer (10 → 6 mm on average), and the sensors judge it the same (pass)",
    "fit": {
     "import": [
-     8,
+     6,
      30
     ],
     "migrated": [
@@ -332,12 +332,20 @@
    },
    "hands": [
     23.7,
-    14.2
+    13.3
    ],
    "moved": {
+    "twistFlip": [
+     0,
+     0.322
+    ],
+    "seamVelocity": [
+     0,
+     15.5
+    ],
     "fit": [
      10,
-     8
+     6
     ]
    }
   },
@@ -628,6 +636,14 @@
     11.8
    ],
    "moved": {
+    "slide": [
+     7.8,
+     7.97
+    ],
+    "skate": [
+     0.25,
+     0.255
+    ],
     "seam": [
      0.504,
      0.473
@@ -639,15 +655,19 @@
     "fit": [
      11,
      7
+    ],
+    "skateMean": [
+     0.247,
+     0.25
     ]
    }
   },
   "Idle_FoldArms": {
    "kept": "import",
-   "why": "fits its source closer (14 → 7 mm on average), and the sensors judge it the same (pass)",
+   "why": "fits its source closer (14 → 6 mm on average), and the sensors judge it the same (pass)",
    "fit": {
     "import": [
-     7,
+     6,
      35
     ],
     "migrated": [
@@ -661,16 +681,40 @@
    },
    "hands": [
     40.1,
-    11.7
+    11.2
    ],
    "moved": {
+    "slide": [
+     6.12,
+     7.99
+    ],
+    "skate": [
+     0.245,
+     0.319
+    ],
     "intersection": [
      0.538,
-     0.263
+     0.267
+    ],
+    "jitter": [
+     0.166,
+     1.99
+    ],
+    "pop": [
+     148,
+     110
+    ],
+    "seamVelocity": [
+     94.9,
+     103
     ],
     "fit": [
      14,
-     7
+     6
+    ],
+    "skateMean": [
+     0.24,
+     0.282
     ]
    }
   },
@@ -696,23 +740,43 @@
     12.6
    ],
    "moved": {
+    "slide": [
+     8.13,
+     8.33
+    ],
+    "skate": [
+     0.325,
+     0.333
+    ],
     "jitter": [
      0.131,
      0.106
     ],
+    "pop": [
+     75.3,
+     65.9
+    ],
+    "seamVelocity": [
+     135,
+     120
+    ],
     "fit": [
      12,
      7
+    ],
+    "skateMean": [
+     0.205,
+     0.209
     ]
    }
   },
   "Idle_Rail": {
    "kept": "import",
-   "why": "fits its source closer (13 → 8 mm on average), and the sensors judge it the same (pass)",
+   "why": "fits its source closer (13 → 6 mm on average), and the sensors judge it the same (pass)",
    "fit": {
     "import": [
-     8,
-     25
+     6,
+     27
     ],
     "migrated": [
      13,
@@ -725,12 +789,40 @@
    },
    "hands": [
     32.2,
-    10.4
+    10
    ],
    "moved": {
+    "slide": [
+     0,
+     8.05
+    ],
+    "skate": [
+     0,
+     0.322
+    ],
+    "penetration": [
+     0,
+     0.808
+    ],
+    "twistFlip": [
+     0,
+     0.706
+    ],
+    "jointLimit": [
+     38,
+     46
+    ],
+    "seamVelocity": [
+     0,
+     55.5
+    ],
     "fit": [
      13,
-     8
+     6
+    ],
+    "skateMean": [
+     0,
+     0.267
     ]
    }
   },
@@ -832,6 +924,14 @@
     14.2
    ],
    "moved": {
+    "slide": [
+     7.82,
+     7.99
+    ],
+    "skate": [
+     0.313,
+     0.319
+    ],
     "seamVelocity": [
      154,
      150
@@ -839,6 +939,10 @@
     "fit": [
      12,
      7
+    ],
+    "skateMean": [
+     0.31,
+     0.314
     ]
    }
   },
@@ -1518,9 +1622,13 @@
    },
    "hands": [
     24.7,
-    9.8
+    10.1
    ],
    "moved": {
+    "penetration": [
+     0.459,
+     0
+    ],
     "fit": [
      10,
      7
@@ -1529,11 +1637,11 @@
   },
   "Pistol_Aim_Neutral": {
    "kept": "import",
-   "why": "fits its source closer (10 → 8 mm on average), and the sensors judge it the same (pass)",
+   "why": "fits its source closer (10 → 7 mm on average), and the sensors judge it the same (pass)",
    "fit": {
     "import": [
-     8,
-     26
+     7,
+     27
     ],
     "migrated": [
      10,
@@ -1546,26 +1654,30 @@
    },
    "hands": [
     27.5,
-    11.3
+    10.7
    ],
    "moved": {
+    "penetration": [
+     0.459,
+     0
+    ],
     "intersection": [
      0.05,
      0.051
     ],
     "fit": [
      10,
-     8
+     7
     ]
    }
   },
   "Pistol_Aim_Up": {
    "kept": "import",
-   "why": "fits its source closer (16 → 8 mm on average), and the sensors judge it the same (pass)",
+   "why": "fits its source closer (16 → 7 mm on average), and the sensors judge it the same (pass)",
    "fit": {
     "import": [
-     8,
-     29
+     7,
+     26
     ],
     "migrated": [
      16,
@@ -1578,22 +1690,26 @@
    },
    "hands": [
     29.1,
-    12.5
+    10.4
    ],
    "moved": {
+    "penetration": [
+     0.459,
+     0
+    ],
     "fit": [
      16,
-     8
+     7
     ]
    }
   },
   "Pistol_Idle": {
    "kept": "import",
-   "why": "fits its source closer (13 → 11 mm on average), and the sensors judge it the same (pass)",
+   "why": "fits its source closer (13 → 7 mm on average), and the sensors judge it the same (pass)",
    "fit": {
     "import": [
-     11,
-     48
+     7,
+     28
     ],
     "migrated": [
      13,
@@ -1606,12 +1722,24 @@
    },
    "hands": [
     28.8,
-    13.9
+    11.1
    ],
    "moved": {
+    "penetration": [
+     0.459,
+     0
+    ],
+    "twistFlip": [
+     0,
+     4
+    ],
+    "seamVelocity": [
+     0,
+     30
+    ],
     "fit": [
      13,
-     11
+     7
     ]
    }
   },
@@ -2039,11 +2167,11 @@
   },
   "Sitting_Idle": {
    "kept": "import",
-   "why": "fits its source closer (12 → 8 mm on average), and the sensors judge it the same (pass)",
+   "why": "fits its source closer (12 → 6 mm on average), and the sensors judge it the same (pass)",
    "fit": {
     "import": [
-     8,
-     34
+     6,
+     28
     ],
     "migrated": [
      12,
@@ -2056,12 +2184,20 @@
    },
    "hands": [
     30.6,
-    10.1
+    10.4
    ],
    "moved": {
+    "twistFlip": [
+     0,
+     0.461
+    ],
+    "seamVelocity": [
+     0,
+     15.7
+    ],
     "fit": [
      12,
-     8
+     6
     ]
    }
   },
@@ -4324,10 +4460,10 @@
   },
   "Flying_Forward": {
    "kept": "import",
-   "why": "fits its source closer (16 → 8 mm on average), and the sensors judge it the same (pass)",
+   "why": "fits its source closer (16 → 6 mm on average), and the sensors judge it the same (pass)",
    "fit": {
     "import": [
-     8,
+     6,
      23
     ],
     "migrated": [
@@ -4341,22 +4477,30 @@
    },
    "hands": [
     30.7,
-    9.1
+    3.3
    ],
    "moved": {
+    "twistFlip": [
+     0,
+     4
+    ],
+    "seamVelocity": [
+     0,
+     143
+    ],
     "fit": [
      16,
-     8
+     6
     ]
    }
   },
   "Flying_Forward_Super": {
    "kept": "import",
-   "why": "fits its source closer (17 → 8 mm on average), and the sensors judge it the same (pass)",
+   "why": "fits its source closer (17 → 6 mm on average), and the sensors judge it the same (pass)",
    "fit": {
     "import": [
-     8,
-     33
+     6,
+     23
     ],
     "migrated": [
      17,
@@ -4369,12 +4513,24 @@
    },
    "hands": [
     28,
-    6.1
+    4.8
    ],
    "moved": {
+    "pop": [
+     0,
+     95.6
+    ],
+    "twistFlip": [
+     0,
+     9
+    ],
+    "seamVelocity": [
+     0,
+     177
+    ],
     "fit": [
      17,
-     8
+     6
     ]
    }
   },
@@ -4397,12 +4553,12 @@
    },
    "hands": [
     39.7,
-    5.2
+    4.2
    ],
    "moved": {
     "pop": [
      314,
-     28.9
+     72.7
     ],
     "twistFlip": [
      30.7,
@@ -4410,11 +4566,11 @@
     ],
     "seam": [
      5.56,
-     0.924
+     1.1
     ],
     "seamVelocity": [
      860,
-     328
+     206
     ],
     "fit": [
      18,
@@ -4549,9 +4705,17 @@
    },
    "hands": [
     35.6,
-    5
+    4.8
    ],
    "moved": {
+    "slide": [
+     0,
+     0.111
+    ],
+    "skate": [
+     0,
+     0.006
+    ],
     "intersection": [
      0.051,
      0.023
@@ -4560,23 +4724,23 @@
      0.48,
      5
     ],
-    "seamVelocity": [
-     76.6,
-     83.7
-    ],
     "fit": [
      13,
      4
+    ],
+    "skateMean": [
+     0,
+     0.003
     ]
    }
   },
   "Idle_Subtle": {
    "kept": "import",
-   "why": "fits its source closer (15 → 6 mm on average), and the sensors judge it the same (pass)",
+   "why": "fits its source closer (15 → 4 mm on average), and the sensors judge it the same (pass)",
    "fit": {
     "import": [
-     6,
-     34
+     4,
+     26
     ],
     "migrated": [
      15,
@@ -4589,12 +4753,32 @@
    },
    "hands": [
     19.9,
-    6.8
+    3.7
    ],
    "moved": {
+    "slide": [
+     0,
+     1.15
+    ],
+    "skate": [
+     0,
+     0.044
+    ],
+    "twistFlip": [
+     0,
+     19
+    ],
+    "seamVelocity": [
+     0,
+     21
+    ],
     "fit": [
      15,
-     6
+     4
+    ],
+    "skateMean": [
+     0,
+     0.028
     ]
    }
   },
@@ -4930,11 +5114,11 @@
   },
   "Meditate": {
    "kept": "import",
-   "why": "fits its source closer (15 → 11 mm on average), though further at its worst (54 → 60 mm), and the sensors judge it the same (pass)",
+   "why": "fits its source closer (15 → 10 mm on average), and the sensors judge it the same (pass)",
    "fit": {
     "import": [
-     11,
-     60
+     10,
+     54
     ],
     "migrated": [
      15,
@@ -4947,12 +5131,20 @@
    },
    "hands": [
     20.4,
-    4.2
+    3.7
    ],
    "moved": {
+    "twistFlip": [
+     0,
+     0.143
+    ],
+    "seamVelocity": [
+     0,
+     34
+    ],
     "fit": [
      15,
-     11
+     10
     ]
    }
   },
@@ -5148,9 +5340,13 @@
    },
    "hands": [
     7.4,
-    4.4
+    5
    ],
    "moved": {
+    "penetration": [
+     0.317,
+     0.986
+    ],
     "fit": [
      5,
      4
@@ -5279,11 +5475,11 @@
   },
   "Shivering": {
    "kept": "import",
-   "why": "fits its source closer (24 → 4 mm on average), and the sensors judge it the same (pass)",
+   "why": "fits its source closer (24 → 3 mm on average), and the sensors judge it the same (pass)",
    "fit": {
     "import": [
-     4,
-     25
+     3,
+     26
     ],
     "migrated": [
      24,
@@ -5296,12 +5492,28 @@
    },
    "hands": [
     58.3,
-    6.7
+    4.3
    ],
    "moved": {
+    "twistFlip": [
+     0,
+     3.01
+    ],
+    "jointLimit": [
+     24,
+     27
+    ],
+    "seam": [
+     0,
+     2.32
+    ],
+    "seamVelocity": [
+     0,
+     273
+    ],
     "fit": [
      24,
-     4
+     3
     ]
    }
   },
@@ -5311,7 +5523,7 @@
    "fit": {
     "import": [
      6,
-     32
+     30
     ],
     "migrated": [
      15,
@@ -5324,16 +5536,36 @@
    },
    "hands": [
     34.2,
-    6.3
+    5.7
    ],
    "moved": {
+    "slide": [
+     0,
+     1.1
+    ],
+    "skate": [
+     0,
+     0.094
+    ],
     "intersection": [
      0.707,
      0.112
     ],
+    "twistFlip": [
+     0,
+     0.25
+    ],
+    "seamVelocity": [
+     0,
+     11.4
+    ],
     "fit": [
      15,
      6
+    ],
+    "skateMean": [
+     0,
+     0.094
     ]
    }
   },
@@ -5806,11 +6038,11 @@
   },
   "Zombie_Idle_Crouch": {
    "kept": "import",
-   "why": "fits its source closer (25 → 18 mm on average), and the sensors judge it the same (pass)",
+   "why": "fits its source closer (25 → 13 mm on average), and the sensors judge it the same (pass)",
    "fit": {
     "import": [
-     18,
-     93
+     13,
+     94
     ],
     "migrated": [
      25,
@@ -5823,16 +6055,48 @@
    },
    "hands": [
     50.1,
-    39.3
+    31.7
    ],
    "moved": {
+    "slide": [
+     0,
+     4.5
+    ],
+    "skate": [
+     0,
+     0.152
+    ],
     "bodyPenetration": [
      0,
-     1.93
+     6.7
+    ],
+    "pop": [
+     0,
+     30.7
+    ],
+    "twistFlip": [
+     0,
+     0.632
+    ],
+    "jointLimit": [
+     60,
+     62
+    ],
+    "seam": [
+     0,
+     0.224
+    ],
+    "seamVelocity": [
+     0,
+     42
     ],
     "fit": [
      25,
-     18
+     13
+    ],
+    "skateMean": [
+     0,
+     0.11
     ]
    }
   },
@@ -6172,10 +6436,10 @@
   },
   "Golf_idle": {
    "kept": "import",
-   "why": "fits its source closer (27 → 19 mm on average), and the sensors judge it the same (pass)",
+   "why": "fits its source closer (27 → 18 mm on average), and the sensors judge it the same (pass)",
    "fit": {
     "import": [
-     19,
+     18,
      83
     ],
     "migrated": [
@@ -6189,7 +6453,7 @@
    },
    "hands": [
     23.6,
-    17.1
+    14
    ],
    "moved": {
     "twistFlip": [
@@ -6202,7 +6466,7 @@
     ],
     "fit": [
      27,
-     19
+     18
     ]
    }
   },

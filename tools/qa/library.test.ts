@@ -7,7 +7,9 @@
 // are PLAN.md's; the record of the distributions may only improve, and a floor short is named; the summary lists them;
 // the float check finds an upright body off the floor for a second or more, unless its tags put it in the air or the
 // reasons answer it; the off-feet check names a loop with no contact that its tags don't put off its feet or the
-// reasons don't answer (D104), and an answer whose loop has contacts or sits in the field its loop doesn't need (D108).
+// reasons don't answer (D104), and an answer whose loop has contacts or sits in the field its loop doesn't need (D108);
+// the still check names a clip that never moves that its tags don't call a pose and the reasons don't answer, and an
+// answer whose clip moves or is tagged a pose (F.13).
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { Ajv2020 } from "ajv/dist/2020.js";
@@ -16,7 +18,7 @@ import { metrics, checks, type Report } from "@m3a/sensors";
 import type { Clip } from "@m3a/core";
 import { ROOT } from "../run/cli.ts";
 import { CATEGORIES, categoryOf, census, type Census } from "./census.ts";
-import { againstRecord, checkFloats, checkOffFeet, checkVerdicts, contextsOf, DISTRIBUTIONS, FLOAT, floatOf, floorsMissed, libraryDoc, offFeetStep, recordOf, recordProblems, UNIQUE_FLOOR, type Recorded } from "./library.ts";
+import { againstRecord, checkFloats, checkOffFeet, checkStill, checkVerdicts, contextsOf, DISTRIBUTIONS, FLOAT, floatOf, floorsMissed, libraryDoc, offFeetStep, recordOf, recordProblems, stillStep, UNIQUE_FLOOR, type Recorded } from "./library.ts";
 import { libraryClips, qa, sample, type LibraryClip } from "./qa.ts";
 import { QA_REASONS, qualityOf, readReasons, reasonOf, reasonsProblems, type QaReasons } from "./verdict.ts";
 
@@ -186,5 +188,41 @@ describe("the off-feet check", () => {
     expect(reasonsProblems({ ...reasons, unplanted: { nope: "x" } })).toEqual(['"nope" is not a clip id']);
     expect(schema("qa.schema.json")({ ...reasons, unplanted: { "A/B": "" } })).toBe(false);
     expect(schema("qa.schema.json")({ ...reasons, unplanted: { "A/B": "its feet sweep the floor" } })).toBe(true);
+  });
+});
+
+describe("the still check (F.13)", () => {
+  // Chop_Wood swings an axe; frozen, every key its first pose (as the fit froze STYLE100's idles, D133)
+  const chop = all.find((c) => c.clip.id === "CMU_CURATED/Chop_Wood")!, rest = all.find((c) => c.clip.id === "MESH2MOTION/Rest_Pose")!, aim = all.find((c) => c.clip.id === "MESH2MOTION/Pistol_Aim_Up")!;
+  const frozen = (c: LibraryClip, tags = c.clip.tags): LibraryClip => ({ ...c, clip: { ...c.clip, tags, keys: c.clip.keys.map((k) => ({ ...c.clip.keys[0]!, t: k.t })) } });
+  // the rule is @m3a/sensors' (the intake's lint gate reads it too), read here on library clips
+  const { reachOf, STILL } = checks;
+  it("reads how far a clip moves: the farthest any body point gets from where it starts", () => {
+    expect(reachOf(chop.clip, chop.rest)).toBeGreaterThan(300);
+    expect([reachOf(frozen(chop).clip, chop.rest), reachOf(rest.clip, rest.rest), reachOf(aim.clip, aim.rest)]).toEqual([0, 0, 0]);
+    // a pose held but for one key a few degrees off moves
+    const nudged = { ...chop.clip, keys: frozen(chop).clip.keys.map((k, i) => (i === 1 ? { ...k, body: [k.body[0]! + 2, k.body[1]!, k.body[2]!] } : k)) };
+    expect(reachOf(nudged, chop.rest)).toBeGreaterThan(STILL.mm);
+  });
+  it("names a clip that never moves unless its tags call it a pose or the reasons answer it, and an answer it no longer needs", () => {
+    const none: QaReasons = { ...reasons, still: {} }, answered: QaReasons = { ...reasons, still: { [chop.clip.id]: "its source holds the pose" } };
+    expect(checkStill([frozen(chop)], none).problems).toEqual([expect.stringMatching(/^CMU_CURATED\/Chop_Wood: never moves \(every body point within 0 mm of where it starts over \d+ keys\), and none of its tags \(work\) says it is a pose \(pose, reference\): .* answer why in library\/baselines\/qa.json still$/)]);
+    expect(checkStill([frozen(chop), frozen(chop, ["work", "pose"]), rest, aim], none)).toMatchObject({ problems: [expect.any(String)], gone: [], poses: [chop.clip.id, rest.clip.id, aim.clip.id] });
+    expect(checkStill([frozen(chop), rest, aim], answered)).toEqual({ problems: [], gone: [], poses: [rest.clip.id, aim.clip.id] });
+    expect(checkStill([chop], answered)).toEqual({ problems: [], gone: ["still: CMU_CURATED/Chop_Wood (it moves now)"], poses: [] });
+    expect(checkStill([frozen(chop, ["work", "reference"])], answered).gone).toEqual(["still: CMU_CURATED/Chop_Wood (its tags say it is a pose: they answer it)"]);
+    expect(stillStep([frozen(chop)], none)).toMatchObject({ name: "still", ok: false, summary: "1 clips that never move, untagged and unanswered; 0 answers whose clip moves now or is tagged a pose" });
+    expect(stillStep([frozen(chop), rest, aim], answered)).toEqual({ name: "still", ok: true, ms: 0, summary: "every clip that never moves is tagged a pose (pose, reference: 2) or answered in library/baselines/qa.json still (1)", detail: [] });
+    expect(reasonsProblems({ ...reasons, still: { "A/B": "" } })).toEqual(["still maps a clip id to why its motion never changes, a text"]);
+    expect(reasonsProblems({ ...reasons, still: { nope: "x" } })).toEqual(['"nope" is not a clip id']);
+    expect([schema("qa.schema.json")({ ...reasons, still: { "A/B": "" } }), schema("qa.schema.json")({ ...reasons, still: { "A/B": "lost upstream" } })]).toEqual([false, true]);
+  });
+  it("passes the library: every clip that never moves is a pose its tags name, or answered", () => {
+    // (one pass, decoding every clip every 1/30 s)
+    const s = checkStill(all), poses = s.poses.map((id) => id.split("/")[1]!).sort();
+    expect([s.problems, s.gone]).toEqual([[], []]);
+    expect(Object.keys(readReasons().still ?? {}).sort()).toEqual(["QUATERNIUS_3D2DGE/Driving_Loop", "QUATERNIUS_3D2DGE/Sitting_Idle_Loop", "QUATERNIUS_SHARDFALL/Driving_Loop", "QUATERNIUS_SHARDFALL/Sitting_Idle_Loop"]);
+    // the poses: the pistol's three aims (three sets), a held bow, the rest and T-poses, each tagged so
+    expect(poses).toEqual(["A_TPose", "A_TPose", "Bow_Pull_Hold", ...Array(3).fill(["Pistol_Aim_Down", "Pistol_Aim_Neutral", "Pistol_Aim_Up"]).flat().sort(), "Rest_Pose"].sort());
   });
 });

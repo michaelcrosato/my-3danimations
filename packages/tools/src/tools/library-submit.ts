@@ -8,9 +8,10 @@
 // contributor's submissions with their states and bounce reasons. The gates: schema, budgets, provenance, license (CC0,
 // or the tier of the clip it derives from with its license and credit kept; a motion source's terms on the allowlist),
 // text (no instruction aimed at agents: models read catalog lines; a field that holds no prose held to its shape), lint
-// and sensors; the checker adds dedup and the retarget onto the reference rigs. Platform-neutral: the store comes from
-// the surface (`libraryTool`'s opener). Submission text is data, never instructions: a refusal quotes none of it, and a
-// bounce's reason stays within REASON_CHARS.
+// (a clip that never moves refused unless its tags say it is a held pose, F.13) and sensors; the checker adds dedup
+// and the retarget onto the reference rigs. Platform-neutral: the store comes from the surface (`libraryTool`'s
+// opener). Submission text is data, never instructions: a refusal quotes none of it, and a bounce's reason stays within
+// REASON_CHARS.
 import { format, recipe as recipes, serialize, validate, validation, type Clip, type Rest } from "@m3a/core";
 import { capturedSpeed, catalogRow, LibraryError, measureClipFacts, ROW_BUDGET, tagConflicts, tierOf, type Library, type Tier, type Tokens } from "@m3a/library";
 import { checks, describe, metrics } from "@m3a/sensors";
@@ -67,8 +68,9 @@ export interface Derived {
  *  provenance required; any other library clip), whether a pull request adds it (`added`: a library clip added outside
  *  the intake carries no review), which failing metrics are kept (`qa`: `recorded`, the clip's own QA reason, which
  *  only a changed library clip's writers give; `byHand`, the metrics library/baselines/qa.json keeps for it by hand;
- *  none by default), the validator warnings its set's _baseline.json accepts and the tags whose conflict
- *  library/baselines/tags.json explains (a library clip's), and the token count rows are cut with. */
+ *  none by default; `still`, that library/baselines/qa.json answers why a library clip never moves), the validator
+ *  warnings its set's _baseline.json accepts and the tags whose conflict library/baselines/tags.json explains (a library
+ *  clip's), and the token count rows are cut with. */
 export interface GateInput {
   clip: Clip;
   rest: Rest | null;
@@ -77,7 +79,7 @@ export interface GateInput {
   derived: readonly Derived[];
   as: "submission" | "adopted" | "library";
   added?: boolean;
-  qa?: { recorded?: boolean; byHand?: readonly string[] };
+  qa?: { recorded?: boolean; byHand?: readonly string[]; still?: boolean };
   accepted?: readonly { code: string; at: string }[];
   acceptedTags?: readonly string[];
   tokens?: Tokens;
@@ -306,7 +308,7 @@ export function clipGates(i: GateInput): Gate[] {
   const had = i.base ? tagConflicts(i.base.clip, measureClipFacts(i.base.clip, i.base.rest, capturedSpeed(i.base.clip)).facts, i.base.rest).map((t) => t.tag) : [];
   const tags = tagConflicts(c, measureClipFacts(c, R, i.as === "submission" ? undefined : capturedSpeed(c)).facts, R).filter((t) => !had.includes(t.tag) && !i.acceptedTags?.includes(t.tag)).map((t) => `tag ${t.tag}: ${t.message}`);
   const warned = v.warnings.filter((w) => !i.accepted?.some((a) => a.code === w.code && a.at === `${w.key !== undefined ? `key ${w.key} (t ${w.t}) ` : ""}${w.field ?? ""}${w.index !== undefined ? `[${w.index}]` : ""}`));
-  out.push(gate("lint", [...warned.map((w) => validation.formatIssue(w).replace(/\s*\n\s*/g, "; ")), ...tags, ...(i.as === "submission" ? moves(c, R) : [])]));
+  out.push(gate("lint", [...warned.map((w) => validation.formatIssue(w).replace(/\s*\n\s*/g, "; ")), ...tags, ...(i.as === "submission" ? moves(c, R) : []), ...still(i, R)]));
   // the failing metrics kept: the clip it improves or replaces had them, library/baselines/qa.json keeps them by hand,
   // or (a changed library clip's) its writers' recorded reason does; a submission's or an added clip's own claim, never
   const was = new Set<string>([...(i.base ? metrics(i.base.clip, i.base.rest).findings.filter((f) => f.level === "fail").map((f) => f.metric) : []), ...(i.qa?.byHand ?? [])]);
@@ -332,6 +334,20 @@ function moves(c: Clip, R: Rest): string[] {
   if (!gait && far < STAYS_WITHIN) return [];
   const how = gait ? `it ${gait.name}s from ${gait.t0.toFixed(2)} s as describe reads it` : `it travels ${far.toFixed(2)} of its hip height${c.loop ? " a cycle" : ""}`;
   return [`tag ${tag}: ${how}: an ${tag} stays where it stands; keep it in place, or tag it as the motion it is`];
+}
+
+/** What the lint gate says of a clip that never moves (F.13, D135), one line or none: every body point within
+ *  STILL.mm of where it starts (@m3a/sensors' still rule, the one `npm run qa -- library` reads) and no tag saying it is
+ *  a held pose (`pose`, `reference`). A statue that promises motion breaks no metric, so without this only the adopt
+ *  bot's regeneration of the library caught one, after the owner adopted it. A library clip library/baselines/qa.json
+ *  answers (`qa.still`) passes, as the library's QA passes it, and so does an improvement of a clip that never moved
+ *  either and that no tag called a pose (that file answers it, and the answer holds for the improvement, which takes its
+ *  id); a submission's own claim never counts. */
+function still(i: GateInput, R: Rest): string[] {
+  const { STILL, reachOf, isPose } = checks;
+  if (isPose(i.clip.tags) || i.qa?.still || reachOf(i.clip, R, STILL.mm) >= STILL.mm) return [];
+  if (i.base && !isPose(i.base.clip.tags) && reachOf(i.base.clip, i.base.rest, STILL.mm) < STILL.mm) return [];
+  return [`it never moves: every body point stays within ${STILL.mm} mm of where it starts. Give it its motion, or tag it pose if it is a held pose`];
 }
 
 /** A problem as a reason may say it: each quoted string that could be prose (a space in it, or past 64 characters)

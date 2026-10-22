@@ -68,6 +68,11 @@ export interface Extra extends EncodeOptions {
   /** A loop whose capture closes (its last frame its first) ends on its first key, each angle by the whole turns
    *  nearest its own: a nearly straight limb's twist, which its points barely show, can't leave the loop open. */
   closeLoop?: boolean;
+  /** No key one frame from a key (F.13, D135): once the frame the in-betweens miss most (beyond its own key's rounding)
+   *  lies beside a key, the fit stops. With a limit of a few millimetres such a frame is missed by that key's own
+   *  rounding (the chest's or head's whole degrees), which a second key can't mend: it only makes a step from one frame to
+   *  the next. Off by default, so a fit without it is the same, bit for bit. */
+  spaced?: boolean;
 }
 
 /** The components of each key field that are angles (degrees), as the sensors' seam fix reads them. */
@@ -212,11 +217,14 @@ export function fit(R: Rest, cap: Capture, tol: number | GroupBudget, extra: Ext
         wf = f;
       }
     }
-    if (worst <= tol || kf.includes(wf) || guard > cap.n) return { clip: o, max, mean: sum / cap.n };
+    if (worst <= tol || kf.includes(wf) || (extra.spaced && besideKey(kf, wf)) || guard > cap.n) return { clip: o, max, mean: sum / cap.n };
     kf.push(wf);
     kf.sort((a, b) => a - b);
   }
 }
+
+/** Whether frame f lies one frame from a key frame (`spaced`). */
+const besideKey = (kf: readonly number[], f: number) => kf.includes(f - 1) || kf.includes(f + 1);
 
 /** fit with a budget per region: a frame's excess is its largest (error − floor − budget) over the regions. */
 function fitGroups(R: Rest, cap: Capture, tol: GroupBudget, extra: Extra) {
@@ -247,7 +255,7 @@ function fitGroups(R: Rest, cap: Capture, tol: GroupBudget, extra: Extra) {
         wf = f;
       }
     }
-    if (worst <= 0 || kf.includes(wf) || guard > cap.n) return { clip: o, max, mean: sum / cap.n };
+    if (worst <= 0 || kf.includes(wf) || (extra.spaced && besideKey(kf, wf)) || guard > cap.n) return { clip: o, max, mean: sum / cap.n };
     kf.push(wf);
     kf.sort((a, b) => a - b);
   }

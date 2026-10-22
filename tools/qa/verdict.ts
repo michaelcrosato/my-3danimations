@@ -29,6 +29,8 @@ export interface QaReasons {
   offFeet?: Record<string, string>;
   /** Per loop on its feet with no contact at all, why no foot holds still on the floor (the off-feet check, D108). */
   unplanted?: Record<string, string>;
+  /** Per clip whose motion never changes though no tag says it is a pose, why it stays so (the still check, F.13). */
+  still?: Record<string, string>;
 }
 /** What the writer knows of how the clip stands to its source. */
 export interface QaContext {
@@ -49,7 +51,7 @@ const CLIP_ID = /^[A-Z0-9_]+\/[A-Za-z0-9_-]+$/;
 export function reasonsProblems(r: unknown): string[] {
   const out: string[] = [], text = (v: unknown) => typeof v === "string" && v.trim().length > 0, obj = (v: unknown): v is Record<string, unknown> => Boolean(v) && typeof v === "object" && !Array.isArray(v);
   if (!obj(r)) return ["the reasons are a JSON object"];
-  for (const k of Object.keys(r)) if (!["about", "warn", "sets", "clips", "floats", "offFeet", "unplanted"].includes(k)) out.push(`"${k}" is not a field of the reasons (about, warn, sets, clips, floats, offFeet, unplanted)`);
+  for (const k of Object.keys(r)) if (!["about", "warn", "sets", "clips", "floats", "offFeet", "unplanted", "still"].includes(k)) out.push(`"${k}" is not a field of the reasons (about, warn, sets, clips, floats, offFeet, unplanted, still)`);
   if (!text(r.warn)) out.push("warn is the reason a warn is kept, a text");
   if (!obj(r.sets) || !Object.values(r.sets).every(text)) out.push("sets maps a set to its reason, a text");
   if (!obj(r.clips) || !Object.values(r.clips).every((m) => obj(m) && Object.values(m).every(text))) out.push("clips maps a clip id to { metric: reason }");
@@ -60,6 +62,8 @@ export function reasonsProblems(r: unknown): string[] {
   else for (const id of Object.keys(r.offFeet ?? {})) if (!CLIP_ID.test(id)) out.push(`"${id}" is not a clip id`);
   if (r.unplanted !== undefined && (!obj(r.unplanted) || !Object.values(r.unplanted).every(text))) out.push("unplanted maps a clip id to why no foot holds still on the floor, a text");
   else for (const id of Object.keys(r.unplanted ?? {})) if (!CLIP_ID.test(id)) out.push(`"${id}" is not a clip id`);
+  if (r.still !== undefined && (!obj(r.still) || !Object.values(r.still).every(text))) out.push("still maps a clip id to why its motion never changes, a text");
+  else for (const id of Object.keys(r.still ?? {})) if (!CLIP_ID.test(id)) out.push(`"${id}" is not a clip id`);
   return out;
 }
 /** The reasons (checked: a bad file throws, naming what is wrong), or none when there is no file yet. */

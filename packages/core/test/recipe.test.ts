@@ -15,6 +15,9 @@ import { addContacts, addEvents, blendTracks, build, layer, mirror, poseDeltas, 
 import { exaggerate, overshoot, smooth, stiffen } from "../src/recipe/style.ts";
 import { ease } from "../src/math/helpers.ts";
 import { compose, invert, playable, poseAt, rootAt, trackOfClip } from "../src/recipe/track.ts";
+import { budgetsOf, framesOf } from "../src/recipe/compile.ts";
+import { fitLimit, offLine, reach } from "../src/format/motion.ts";
+import { pose as poseOfClip } from "../src/format/sample.ts";
 import { phaseMap } from "../src/ops/sync.ts";
 import type { Root, Track } from "../src/recipe/types.ts";
 
@@ -31,6 +34,28 @@ function load(id: string): { clip: Clip; rest: Rest } {
 }
 const resolve: R.Resolver = Object.assign((id: string) => (IDS.includes(id) ? { ...load(id), contentId: `content-of-${id}` } : undefined), { ids: () => IDS });
 const track = (id: string, opts: Parameters<typeof trackOfClip>[3] = {}): Track => trackOfClip(load(id).clip, load(id).rest, 30, opts);
+/** Library idles beside the clips above, for compiling small motion (F.13). */
+const idles: R.Resolver = Object.assign((id: string) => (id.startsWith("STYLE100_IDLE/") || IDS.includes(id) ? { ...load(id), contentId: `content-of-${id}` } : undefined), { ids: () => IDS });
+/** Whether every key of a clip is one pose. */
+const onePose = (c: Clip) => c.keys.every((k) => JSON.stringify({ ...k, t: 0 }) === JSON.stringify({ ...c.keys[0], t: 0 }));
+/** How much further than its track's any body point of a compiled clip moves in one frame (mm). */
+function stepBeyond(out: R.Compiled): number {
+  const t = out.track, { n, data } = framesOf(t), K = P * 3, Y = new Float32Array(K), Yp = new Float32Array(K);
+  const apart = (A: ArrayLike<number>, B: ArrayLike<number>, p: number) => Math.hypot(A[p * 3]! - B[p * 3]!, A[p * 3 + 1]! - B[p * 3 + 1]!, A[p * 3 + 2]! - B[p * 3 + 2]!);
+  let most = 0;
+  for (let f = 0; f < n; f++) {
+    poseOfClip(t.rest, out.clip, Math.min(f < t.times.length ? t.times[f]! : t.dur, out.clip.dur), Y);
+    if (f > 0) for (let p = 0; p < P; p++) most = Math.max(most, apart(Y, Yp, p) - apart(data.subarray(f * K, (f + 1) * K), data.subarray((f - 1) * K, f * K), p));
+    Yp.set(Y);
+  }
+  return most;
+}
+/** How far a compiled clip and its track stray over [t0, t1] s from the straight in-between of that stretch's ends (mm). */
+function swayOver(out: R.Compiled, t0: number, t1: number): { track: number; clip: number } {
+  const fr = framesOf(out.track), K = P * 3, f0 = Math.round(t0 * 30), f1 = Math.min(fr.n - 1, Math.round(t1 * 30)), n = f1 - f0 + 1, data = new Float32Array(n * K), Y = new Float32Array(K);
+  for (let f = f0; f <= f1; f++) data.set(poseOfClip(out.rest, out.clip, f / 30, Y), (f - f0) * K);
+  return { track: offLine({ n, data: fr.data.subarray(f0 * K, (f1 + 1) * K) }), clip: offLine({ n, data }) };
+}
 const recipe = (steps: R.Step[], extra: Partial<R.Recipe> = {}): R.Recipe => ({ format: "2.0", id: "RECIPES/Test", steps, ...extra });
 const codes = (r: unknown) => R.validateRecipe(r).map((i) => i.code);
 const part = (p: Pose, f: string, i: number) => (p[f] as number[])[i]!;
@@ -495,6 +520,70 @@ describe("compiling", () => {
     expect(R.sha256("")).toBe("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855");
     for (const text of ["é".repeat(40), "a".repeat(55), "a".repeat(56), "a".repeat(64), "🙂 walk"]) expect(R.sha256(text)).toBe(createHash("sha256").update(text, "utf8").digest("hex"));
     expect(R.canonical({ b: 1, a: [{ d: 2, c: 3 }] })).toBe('{"a":[{"c":3,"d":2}],"b":1}');
+  });
+  it("keeps a small sway's keys, bounding each frame's budget by the motion of the second around it as an import's fit (F.13, D135)", () => {
+    // Idle_A's first key, its chest leaning 2° further at 1 s and back by 2 s: a loop whose head sways about 10 mm
+    const base = load("MESH2MOTION/Idle_A"), k0 = base.clip.keys[0]!, chest = k0.chest as number[];
+    const lean = (deg: number, t: number) => ({ ...k0, t, chest: [chest[0]!, chest[1]! + deg, chest[2]!] });
+    const { contacts: _c, facts: _f, ...plain } = base.clip, sway = { ...plain, id: "TEST/Sway", dur: 2, keys: [lean(0, 0), lean(2, 1), lean(0, 2)] } as Clip;
+    const res: R.Resolver = Object.assign((id: string) => (id === "TEST/Sway" ? { clip: sway, rest: base.rest, contentId: "sway" } : resolve(id)), { ids: () => [...IDS, "TEST/Sway"] });
+    for (const steps of [[{ op: "clip", id: "TEST/Sway" }], [{ op: "clip", id: "TEST/Sway" }, { op: "mirror", in: "s1" }], [{ op: "clip", id: "TEST/Sway" }, { op: "retime", in: "s1", speed: 0.8 }]] as R.Step[][]) {
+      const out = R.compile(recipe(steps), res), frames = framesOf(out.track), far = reach(frames), b = budgetsOf(out.track), K = P * 3;
+      expect(far).toBeGreaterThan(6);
+      expect(far).toBeLessThan(2 * R.KEY_BUDGET);
+      // each frame within half of how far the second around it strays (format's fitLimit over it), not 30 mm: the lean
+      // is a key, where 30 mm kept one pose
+      expect(b.length).toBe(frames.n);
+      const mid = frames.n >> 1, half = Math.round(out.track.fps / 2);
+      expect(b[mid]).toBe(fitLimit({ n: 2 * half + 1, data: frames.data.subarray((mid - half) * K, (mid + half + 1) * K) }, R.KEY_BUDGET));
+      expect(Math.max(...b)).toBeLessThan(R.KEY_BUDGET);
+      expect(Math.min(...b)).toBeGreaterThanOrEqual(3);
+      expect([onePose(out.clip), out.clip.keys.length > 2]).toEqual([false, true]);
+      expect(onePose(R.compile(recipe(steps), res, { budget: R.KEY_BUDGET }).clip)).toBe(true);
+    }
+    // a track that moves more is fitted within KEY_BUDGET exactly as before
+    const walk = R.compile(r, resolve);
+    expect(budgetsOf(walk.track).every((x) => x === R.KEY_BUDGET)).toBe(true);
+    expect(serialize(walk.clip)).toBe(serialize(R.compile(r, resolve, { budget: R.KEY_BUDGET }).clip));
+  });
+  it("measures a calm frame over its own key's rounding and keys none beside a key: a blend of two idles is a few keys, not a staircase", () => {
+    // a half blend's numbers aren't whole: rounded, every frame missed a 3 to 5 mm budget by its own rounding and became
+    // a key, neighbours rounding apart (77 keys on 77 frames, a point jumping 10 mm in 1/30 s where the track moves 0.3)
+    const out = R.compile(recipe([{ as: "a", op: "clip", id: "STYLE100_IDLE/Neutral_Idle" }, { as: "b", op: "clip", id: "STYLE100_IDLE/Tiptoe_Idle" }, { op: "blend", a: "a", b: "b", w: 0.5 }]), idles);
+    expect(Math.max(...budgetsOf(out.track))).toBeLessThan(R.KEY_BUDGET);
+    expect(out.clip.keys.length).toBeGreaterThan(2);
+    expect(out.clip.keys.length).toBeLessThanOrEqual(10);
+    // no point steps more than 5 mm further in 1/30 s than the track's does
+    expect(stepBeyond(out)).toBeLessThan(5);
+    // stiffened idles: keyed beside its keys (measured over the rounding, never settled), Neutral_Idle's copy took 7 keys
+    // and stepped 8 mm in a frame; settled, 3 keys and no step. Measured from the frame itself (settled, but never over
+    // the rounding), GracefulArms_Idle's took 6 keys where 4 fit it as well (3.3 against 3.4 mm at worst)
+    const stiff = (id: string) => R.compile(recipe([{ op: "clip", id }, { op: "stiffen", in: "s1", amount: 0.5 }]), idles);
+    const neutral = stiff("STYLE100_IDLE/Neutral_Idle");
+    expect(neutral.clip.keys.length).toBeLessThanOrEqual(4);
+    expect(stepBeyond(neutral)).toBeLessThan(5);
+    expect(stiff("STYLE100_IDLE/GracefulArms_Idle").clip.keys.length).toBeLessThanOrEqual(4);
+    // and a whole-number track (a clip step) compiles to the same keys measured either way: its own keys' rounding is none
+    const clip = R.compile(recipe([{ op: "clip", id: "STYLE100_IDLE/Neutral_Idle" }]), idles);
+    expect(clip.clip.keys.map((k) => k.t)).toEqual(load("STYLE100_IDLE/Neutral_Idle").clip.keys.map((k) => k.t));
+  });
+  it("keeps an idle's sway beside a move that bounds the rest of the track at 30 mm: a sequence of two idles, an idle with a turn", () => {
+    // each item's sway (how far it strays from the straight in-between of its stretch's ends): a sequence moves 60 mm or
+    // more between its items, so one budget for the track was 30 mm and each idle compiled to a straight glide
+    const seq = (a: string, b: string) => R.compile(recipe([{ as: "a", op: "clip", id: a }, { as: "b", op: "clip", id: b }, { op: "sequence", items: ["a", "b"] }]), idles);
+    for (const [a, b] of [["STYLE100_IDLE/Neutral_Idle", "STYLE100_IDLE/CrossOver_Idle"], ["STYLE100_IDLE/OnPhoneLeft_Idle", "STYLE100_IDLE/Neutral_Idle"]] as const) {
+      const out = seq(a, b), dA = load(a).clip.dur;
+      expect(Math.max(...budgetsOf(out.track))).toBe(R.KEY_BUDGET);
+      for (const [t0, t1] of [[0, dA - 0.2], [dA, out.clip.dur]] as const) {
+        const { track, clip } = swayOver(out, t0, t1);
+        expect(track).toBeGreaterThan(5);
+        expect(clip).toBeGreaterThan(0.5 * track);
+      }
+    }
+    // a chest turn late in an idle: the second before it keeps the idle's sway
+    const d = load("STYLE100_IDLE/CrossOver_Idle").clip.dur, turned = R.compile(recipe([{ as: "idle", op: "clip", id: "STYLE100_IDLE/CrossOver_Idle" }, { op: "pose", in: "idle", chest: { turn: 25 }, from: d * 0.6, to: d * 0.9, fade: 0.2 }]), idles);
+    const before = swayOver(turned, 0, d * 0.55);
+    expect(before.clip).toBeGreaterThan(0.5 * before.track);
   });
   it("is described in a line: what it makes and each step in a few words", () => {
     const text = R.describeRecipe(r);

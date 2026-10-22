@@ -43,7 +43,7 @@ CMU_CURATED/Run_Jump_Stop	2.967	once		run jump	Running, jumps, stops, then runs 
 CMU_CURATED/Run_Over	1.7	once		run jump	Runs up and over an obstacle	CMU_127
 CMU_CURATED/Dive_Roll	3.567	once		dodge run	Running, a dive forward over something into a shoulder roll, back up and running	CMU_128
 CMU_CURATED/Roll_Under	1.4	once		dodge run	Running, rolls underneath something	CMU_128
-CMU_CURATED/Jump_Twist	1.8	once		jump	A jump straight up with a full spin in the air, landing facing forward again	CMU_85
+CMU_CURATED/Jump_Twist	4.167	once		jump	A kick up into a twisting flip, landing in a spin to face forward again	CMU_85
 CMU_CURATED/Breakdance_Helicopter	7.067	once		dance	Breakdance: on the floor	CMU_85
 CMU_CURATED/Punch_Combo	6	once		attack unarmed	A fighter's punch combination from a guard: jabs, crosses and hooks	CMU_144
 CMU_CURATED/Block_Combo	6	once		block unarmed	Blocks from a fighting stance: forearm blocks high, middle and low	CMU_144

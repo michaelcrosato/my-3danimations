@@ -1,7 +1,7 @@
 {
  "about": "The registry index (PLAN.md WP-9.4), written by npm run index from library/sets, the previous index and tools/release/registry.json; npm run index -- --check regenerates it byte for byte. core: each set's versions (content: its clip files' content id, spec/MOTION.md §9.2; digest: the same over all its files), immutable, yanked never deleted. community: packs federated from namespaces verified to their owners, never uploads into the core. npm run index -- verify <SET> <dir> checks a set's files against it.",
  "format": "1",
- "serial": 6,
+ "serial": 7,
  "core": {
   "CMU_CURATED": {
    "versions": [
@@ -67,6 +67,27 @@
       "flagged": 1,
       "unreviewed": 154
      }
+    },
+    {
+     "v": 4,
+     "content": "e34036f87125acd27658528a17142ae3207ecf9fec41bbb740f975963d55d54d",
+     "digest": "a17f3ff1b6a9a96b4c9834fc031a0b42e859cf87399e7c81c449cc2f2776deff",
+     "title": "CMU motion capture, curated",
+     "tier": "cmu",
+     "licenses": [
+      "LicenseRef-CMU-Mocap"
+     ],
+     "clips": 158,
+     "bytes": 3091241,
+     "qa": {
+      "baselined": 68,
+      "pass": 90
+     },
+     "review": {
+      "approved": 3,
+      "flagged": 0,
+      "unreviewed": 155
+     }
     }
    ]
   },
@@ -104,6 +125,27 @@
      ],
      "clips": 176,
      "bytes": 1319680,
+     "qa": {
+      "baselined": 57,
+      "pass": 119
+     },
+     "review": {
+      "approved": 1,
+      "flagged": 0,
+      "unreviewed": 175
+     }
+    },
+    {
+     "v": 3,
+     "content": "cac152a8607affddd70ea38c39376fe441bd7f4a670a4e2aefadec517d1520dc",
+     "digest": "ba60b31d92308f88ea039ff58fbf2d7e5b2d86da596d94c643e1f18a79a50dd5",
+     "title": "Mesh2Motion",
+     "tier": "cc0",
+     "licenses": [
+      "CC0-1.0"
+     ],
+     "clips": 176,
+     "bytes": 1328943,
      "qa": {
       "baselined": 57,
       "pass": 119
@@ -406,6 +448,27 @@
       "flagged": 0,
       "unreviewed": 95
      }
+    },
+    {
+     "v": 4,
+     "content": "254873be8c36166b8e007ece22f9efc8cccb642c2f540d982e9d1ab908c67eea",
+     "digest": "0648b028578d57123608a07b1e301f830de6511938c9a210c62e85cf51341d46",
+     "title": "100STYLE backward runs",
+     "tier": "cc-by",
+     "licenses": [
+      "CC-BY-4.0"
+     ],
+     "clips": 98,
+     "bytes": 554473,
+     "qa": {
+      "baselined": 31,
+      "pass": 67
+     },
+     "review": {
+      "approved": 3,
+      "flagged": 0,
+      "unreviewed": 95
+     }
     }
    ]
   },
@@ -451,6 +514,27 @@
       "approved": 3,
       "flagged": 0,
       "unreviewed": 95
+     }
+    },
+    {
+     "v": 3,
+     "content": "d4fb2a73fa9e560e7e9af7126746826ecc319e8fd708e826662a565d08454567",
+     "digest": "f6237dde735961b7f36fd165ac21ec802e8ae7fdd6ffb78ef2a4ac7ee3f59ea5",
+     "title": "100STYLE idles",
+     "tier": "cc-by",
+     "licenses": [
+      "CC-BY-4.0"
+     ],
+     "clips": 98,
+     "bytes": 393568,
+     "qa": {
+      "baselined": 2,
+      "pass": 96
+     },
+     "review": {
+      "approved": 0,
+      "flagged": 0,
+      "unreviewed": 98
      }
     }
    ]
@@ -531,6 +615,27 @@
      ],
      "clips": 98,
      "bytes": 669897,
+     "qa": {
+      "baselined": 49,
+      "pass": 49
+     },
+     "review": {
+      "approved": 0,
+      "flagged": 0,
+      "unreviewed": 98
+     }
+    },
+    {
+     "v": 5,
+     "content": "676cae8cad636a73c9f93ee6d735d34282df4b2a819e9e5b9a18919981f9b881",
+     "digest": "469870e3710c298f2b301e1fedb1d8bbb7c156b2d328ccb2a29538b57251f144",
+     "title": "100STYLE runs",
+     "tier": "cc-by",
+     "licenses": [
+      "CC-BY-4.0"
+     ],
+     "clips": 98,
+     "bytes": 669899,
      "qa": {
       "baselined": 49,
       "pass": 49

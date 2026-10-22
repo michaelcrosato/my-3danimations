@@ -20,10 +20,19 @@ animation is a clip of its own, named alike by `describeGltf` and every glTF rea
 `animation<i>` without one, and `_2`, `_3` ... after a name an earlier animation took (Mixamo names every export's
 animation 'Armature|mixamo.com|Layer0'), passing over a suffix another animation has as its name. `importSet`
 fits them into clips as a hand-written catalog says (`$sources`, `$pick`, `$skip` with reasons, and each clip's tags,
-description and `orig`), with a fit report per clip; WP-5.3 runs it over the library's sources. The catalog's
-`$sources.CMU` stands for every subject (`CMU_NN`), and `picksOf(catalog, fps, ledger)` plays a pick that names only its
-take over the stretch the CMU ledger says it moves (`tools/corpora/cmu-takes.tsv`). `subset` picks a smaller set from
-bigger ones: the clips a game adopts, with their libraries' records.
+description and `orig`), with a fit report per clip; WP-5.3 runs it over the library's sources. Each clip is fitted
+within `tol` mm (30), or, when it reaches less than twice that, within half of how far it strays from the straight
+in-between of its first and last frames (its reach where that is less) and at least 3 mm (`MOTION_TOL`, `fitLimit`,
+core's `format` rule, which a recipe's compile follows too, over the second around each frame): a fixed limit keeps
+only the ends of a clip that moves less than it, so an idle's 1 to 4 cm sway came out one pose (F.13), and a limit from
+the reach alone loses the sway of a clip that leans as it sways. Such a clip is encoded with core's `steadyBend` as well:
+a nearly straight knee or elbow takes its bend from where the joint is, not from its root-to-end distance alone, which
+the hips' whole percent of the hip height flips between straight and some 15° from key to key; and its fit is `spaced`,
+adding no key one frame from a key, whose own whole degrees would only make the head or chest step (D135). Every other
+clip is encoded and fitted as before. `motion: false` fits every clip at `tol`, to reproduce a fit made so. The
+catalog's `$sources.CMU` stands for every subject (`CMU_NN`), and `picksOf(catalog, fps, ledger)` plays a pick that
+names only its take over the stretch the CMU ledger says it moves (`tools/corpora/cmu-takes.tsv`). `subset` picks a
+smaller set from bigger ones: the clips a game adopts, with their libraries' records.
 
 ## FBX
 

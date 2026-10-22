@@ -6,7 +6,8 @@
 // pull request whose gates fail closed, its files restored and its submission returned to review; an adoption that
 // fails on the way returned to review, the next going on; GitHub's pull requests (a local remote and a stand-in gh:
 // nothing hosted is called) gated on their own tree and each made on the main the last one merged into; and
-// library-gates failing a planted bad clip, one a pull request adds outside the intake too, and a forged adoption.
+// library-gates failing a planted bad clip, one a pull request adds outside the intake too, and a forged adoption; and
+// passing a clip that never moves only where library/baselines/qa.json answers it and it came outside the intake (F.13).
 // Submissions are put in review by hand: the checker's own suite (check.test.ts) proves how they get there. The derived
 // files' regeneration is stubbed here (a library-only checkout; adopt.full.test.ts runs the repository's commands in a
 // whole one, under M3A_FULL), its worse distributions named in the pull request; and an improved migrated set stays as
@@ -217,6 +218,21 @@ describe("library-gates on a pull request", () => {
       for (const w of written.reverse()) w.restore();
     }
   }, 60_000);
+  it("passes a clip that never moves added outside the intake where library/baselines/qa.json answers it, never one through the intake (F.13)", async () => {
+    // the frozen idle outside the intake, and the moving idle frozen at its middle key (another motion) through it, both
+    // answered (npm run gate -- library-pr --fixture all fails each unanswered)
+    const lib = libraryAt(join(D, "library/sets")), bare = JSON.parse(fixtures(lib, "frozen-idle")[0]!.bare!) as Clip, idle = JSON.parse(fixtures(lib, "idle")[0]!.text) as Clip;
+    const intake: Clip = { ...idle, id: "INTAKE_CC0/Sway", keys: idle.keys.map((k) => ({ ...idle.keys[idle.keys.length >> 1]!, t: k.t })) };
+    const qa = join(D, "library/baselines/qa.json"), was = readFileSync(qa, "utf8"), r = JSON.parse(was) as { still?: Record<string, string> }, written = [bare, intake].map((c) => writeClip(D, c));
+    try {
+      writeFileSync(qa, JSON.stringify({ ...r, still: { ...r.still, [bare.id]: "held so in its source", [intake.id]: "held so in its source" } }));
+      const steps = await runGates(D, [bare, intake].map((c) => ({ id: c.id, added: true })), rigs, { near });
+      expect(steps.slice(2).map((s) => [s.name, s.summary])).toEqual([[bare.id, "every gate green (added)"], [intake.id, expect.stringMatching(/^lint: it never moves: every body point stays within 3 mm of where it starts/)]]);
+    } finally {
+      writeFileSync(qa, was);
+      for (const w of written.reverse()) w.restore();
+    }
+  }, 30_000);
   it("fails a clip the library hasn't as its own step, not the run", async () => {
     const steps = await runGates(D, [{ id: "QUATERNIUS_3D2DGE/Not_On_This_Branch", added: true }], rigs, { near });
     expect([steps[0]!.ok, steps.at(-1)!.name, steps.at(-1)!.ok, steps.at(-1)!.summary]).toEqual([true, "QUATERNIUS_3D2DGE/Not_On_This_Branch", false, expect.stringMatching(/^library: no clip/)]);

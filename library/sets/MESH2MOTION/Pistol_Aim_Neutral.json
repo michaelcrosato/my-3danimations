@@ -13,14 +13,14 @@
 "contacts": {"by":"detected","footL":[[0,0.208]],"footR":[[0,0.208]]},
 "facts": {"by":"m3a-facts@1","height":[100,100]},
 "provenance": {"src":"M2M_QUATERNIUS","orig":"QUATERNIUS_SHARDFALL/Pistol_Aim_Neutral","method":"keyed","producer":{"tool":"m3a-import","version":"1"},"license":"CC0-1.0","ai":"digitalCreation"},
-"quality": {"fit":[8,26],"qa":"pass","qaVersion":"m3a-sensors@1"},
+"quality": {"fit":[7,27],"qa":"pass","qaVersion":"m3a-sensors@1"},
 "keys": [
   {"t":0,
    "hips":[-10,0,100], "body":[13,-6,0], "chest":[25,6,-5], "head":[-13,16,7],
-   "shL":[-29,7], "shR":[33,-6], "armL":[100,1,-10,48,2], "armR":[75,-66,10,8,3], "handL":[-25,29,6], "handR":[-4,18,54], "fingersL":[0,0,0,0,0], "fingersR":[84,84,84,84,84],
-   "legL":[4,18,-98,20,8], "legR":[-33,13,-94,14,-36], "footL":[6,8,0], "footR":[5,33,0]},
+   "shL":[-29,7], "shR":[33,-6], "armL":[100,1,-10,48,2], "armR":[75,-66,10,14,3], "handL":[-25,29,6], "handR":[-6,16,54], "fingersL":[0,0,0,0,0], "fingersR":[84,84,84,84,84],
+   "legL":[4,18,-98,21,8], "legR":[-33,13,-94,14,-36], "footL":[6,8,0], "footR":[5,33,0]},
   {"t":0.2,
    "hips":[-10,0,100], "body":[13,-6,0], "chest":[25,6,-5], "head":[-13,16,7],
-   "shL":[-29,7], "shR":[33,-6], "armL":[100,1,-10,48,2], "armR":[75,-66,10,8,3], "handL":[-25,29,6], "handR":[-4,18,54], "fingersL":[0,0,0,0,0], "fingersR":[84,84,84,84,84],
-   "legL":[4,18,-98,20,8], "legR":[-33,13,-94,14,-36], "footL":[6,8,0], "footR":[5,33,0]}
+   "shL":[-29,7], "shR":[33,-6], "armL":[100,1,-10,48,2], "armR":[75,-66,10,14,3], "handL":[-25,29,6], "handR":[-6,16,54], "fingersL":[0,0,0,0,0], "fingersR":[84,84,84,84,84],
+   "legL":[4,18,-98,21,8], "legR":[-33,13,-94,14,-36], "footL":[6,8,0], "footR":[5,33,0]}
 ]}

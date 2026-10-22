@@ -90,11 +90,14 @@ export function torso(R: Rest, k: KeyLike) {
 
 /** Options for encoding: `hands` also fits format 2's hand and finger fields from the hand's body points; `spine` its
  *  spine curl (`encode` keeps it only for a clip it helps, every key or none); `steadyTwist` keeps a nearly straight
- *  limb's twist (bent less than 25°) as the key before had it rather than jump 45° or more. */
+ *  limb's twist (bent less than 25°) as the key before had it rather than jump 45° or more; `steadyBend` reads a nearly
+ *  straight limb's bend from where its knee or elbow is rather than from its root-to-end distance alone (`steadyBend`
+ *  below). Each is off by default, and a key encoded without them is the same, bit for bit. */
 export interface EncodeOptions {
   hands?: boolean;
   spine?: boolean;
   steadyTwist?: boolean;
+  steadyBend?: boolean;
   /** Whole numbers, as a file holds them (the default); false keeps the exact values, for blending in point space. */
   round?: boolean;
 }
@@ -156,10 +159,10 @@ export function encodePose(R: Rest, X: ArrayLike<number>, prev: KeyLike | null, 
       // a fist curled in past the shoulder: point the fully bent limb away from the elbow instead
       if (len(v) < Math.abs(L1 - L2) + 10) v = mul(norm(loc(M, sub(ps(mid, s), root))), -Math.abs(L1 - L2));
       const dir = norm([v[0], v[1] * SG[s], v[2]]).map((x) => r0(x * 100));
-      const bend = r0(bendOf(len(v), L1, L2));
-      const target = limbEnd(root, M, norm(dir), s, reachOf(bend, L1, L2));
-      const dd = norm(sub(target, root));
-      const tw = poleOf(dd, hintFor(limb as "arm" | "leg", SG[s], M, [dir[0]!, dir[1]! * SG[s], dir[2]!]), sub(ps(mid, s), root));
+      const fromDist = bendOf(len(v), L1, L2), target = limbEnd(root, M, norm(dir), s, reachOf(r0(fromDist), L1, L2));
+      const dd = norm(sub(target, root)), m = sub(ps(mid, s), root);
+      const tw = poleOf(dd, hintFor(limb as "arm" | "leg", SG[s], M, [dir[0]!, dir[1]! * SG[s], dir[2]!]), m);
+      const bend = r0(opts.steadyBend ? steadyBend(fromDist, dd, m, L1, L2) : fromDist);
       const before = arr(pr, field);
       const prevT = before ? before[4] : undefined;
       // a nearly straight limb's twist barely shows and capture noise winds it: `steadyTwist` keeps the key before's
@@ -175,6 +178,31 @@ export function encodePose(R: Rest, X: ArrayLike<number>, prev: KeyLike | null, 
   }
   if (opts.hands) for (const s of SIDES) encodeHand(R, X, k, tq, s, arr(pr, NAMES[s].hand), r0);
   return k;
+}
+
+/** With `steadyBend`, a limb its knee or elbow shows bent this little (degrees) or less takes its bend from that joint
+ *  wholly; from here to STEADY_BEND it fades to the bend its root-to-end distance gives, and a limb bent STEADY_BEND or
+ *  more is encoded as without the option. */
+const STEADY_FROM = 15;
+
+/**
+ * A limb's bend (degrees) under `steadyBend`: `fromDist`, the bend its root-to-end distance gives (the encoder's own
+ * reading), or, for a nearly straight limb, the bend that puts its middle joint where the captured one is. Near full
+ * extension the distance hardly changes with the bend (a knee bent 14° shortens a 0.9 m leg by 7 mm), so the few
+ * millimetres a decoded root stands off the captured one (the hips in whole percent of H0, the torso's angles in whole
+ * degrees) flip that reading between straight and some 15° from key to key, swinging the knee or elbow by tens of
+ * millimetres while the captured one holds still (F.13, D135). The middle joint `m` reads the bend without that: seen from
+ * the decoded root, it lies α off the limb's direction `dd`, and the two bones (L1, L2) put it there at a bend of α +
+ * asin(L1 sin α / L2) (the triangle's outer angle at that joint), so the decoded joint lands on the line to the captured
+ * one, off it by no more than the root is; the limb's end then stands off the captured end by about as much. Read as bent
+ * STEADY_FROM or less it is taken wholly, STEADY_BEND or more not at all, linearly between: one frame's own points
+ * decide it, so a loop whose ends meet ends where it starts.
+ */
+function steadyBend(fromDist: number, dd: V3, m: V3, L1: number, L2: number): number {
+  const along = dot(m, dd), a = PM.atan2(len(sub(m, mul(dd, along))), along);
+  const fromMid = (a + PM.asin(Math.max(-1, Math.min(1, (L1 * PM.sin(a)) / L2)))) / DG;
+  const w = Math.max(0, Math.min(1, (STEADY_BEND - fromMid) / (STEADY_BEND - STEADY_FROM)));
+  return fromDist + (fromMid - fromDist) * w;
 }
 
 /** The spine's points (spine1, spine2, chest) as key k's torso places them: its own shares, or the body's. */

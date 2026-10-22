@@ -13,15 +13,22 @@
 "contacts": {"by":"detected","footL":[[0,2.5]],"footR":[[0,2.5]]},
 "facts": {"by":"m3a-facts@1","height":[101,101],"seam":0,"speed":0,"travel":[0,0]},
 "provenance": {"src":"100STYLE","take":"GracefulArms_ID 17.42-19.92","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
-"quality": {"fit":[9,36],"qa":"pass","qaVersion":"m3a-sensors@1"},
-"review": {"state":"approved","by":"owner","date":"2026-10-22","motion":"ce7e602372d09818a0651e04aae99a82f9ba624877906a031aa7219cfc47d7a9"},
+"quality": {"fit":[6,20],"qa":"pass","qaVersion":"m3a-sensors@1"},
 "keys": [
   {"t":0,
    "hips":[0,0,101], "body":[0,-6,2], "chest":[-7,19,-2], "head":[7,7,4],
-   "shL":[4,4], "shR":[2,0], "armL":[19,97,-13,0,157], "armR":[74,-45,-50,127,50], "handL":[6,15,97], "handR":[-1,-20,19], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
-   "legL":[-15,-1,-99,0,-9], "legR":[-19,0,-98,0,4], "footL":[7,-14,0], "footR":[5,6,0]},
+   "shL":[4,4], "shR":[2,0], "armL":[19,97,-13,11,157], "armR":[74,-45,-50,127,50], "handL":[7,10,96], "handR":[-1,-20,19], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[-15,-1,-99,6,-9], "legR":[-19,0,-98,3,4], "footL":[7,-14,0], "footR":[5,6,0]},
+  {"t":0.567,
+   "hips":[0,0,101], "body":[0,-6,2], "chest":[-7,19,-2], "head":[6,7,4],
+   "shL":[4,5], "shR":[2,0], "armL":[18,98,-13,11,155], "armR":[74,-45,-50,127,50], "handL":[6,10,94], "handR":[0,-20,20], "fingersL":[1,1,1,1,1], "fingersR":[0,0,0,0,0],
+   "legL":[-15,-1,-99,6,-8], "legR":[-19,0,-98,3,7], "footL":[7,-14,0], "footR":[5,6,0]},
+  {"t":1.7,
+   "hips":[0,0,101], "body":[0,-6,2], "chest":[-7,22,-2], "head":[7,3,4],
+   "shL":[3,4], "shR":[2,-1], "armL":[18,98,-12,11,152], "armR":[76,-45,-48,128,49], "handL":[6,9,89], "handR":[0,-21,21], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[-15,-1,-99,6,-12], "legR":[-19,0,-98,3,-2], "footL":[7,-14,0], "footR":[5,6,0]},
   {"t":2.5,
    "hips":[0,0,101], "body":[0,-6,2], "chest":[-7,19,-2], "head":[7,7,4],
-   "shL":[4,4], "shR":[2,0], "armL":[19,97,-13,0,157], "armR":[74,-45,-50,127,50], "handL":[6,15,97], "handR":[-1,-20,19], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
-   "legL":[-15,-1,-99,0,-9], "legR":[-19,0,-98,0,4], "footL":[7,-14,0], "footR":[5,6,0]}
+   "shL":[4,4], "shR":[2,0], "armL":[19,97,-13,11,157], "armR":[74,-45,-50,127,50], "handL":[7,10,96], "handR":[-1,-20,19], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[-15,-1,-99,6,-9], "legR":[-19,0,-98,3,4], "footL":[7,-14,0], "footR":[5,6,0]}
 ]}

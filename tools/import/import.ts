@@ -15,6 +15,7 @@
 // carried over the rewrite while its motion hash matches (tools/migrate/adopted.ts); `withAdoption` writes the record
 // as the adopt bot leaves it, so the next import finds what it would write. D129: a loop its set's import spec names a
 // contact reading for carries that reading's contacts, labelled (@m3a/library's `withReading`), the name in its record.
+// F.13: a clip its catalog cuts again from another stretch of its take is new, not weighed against its migrated version.
 import { format, math, serialize, validate, type clip as coreClip, type Clip, type Rest } from "@m3a/core";
 
 const { fromFormat1 } = format, { PORTABLE } = math;
@@ -33,7 +34,8 @@ import { CATALOGS, IMPORTS, type ImportSpec } from "./sets.ts";
 /** The importer's own revision: it goes in every clip it writes, so a change to its output is a change to this. */
 export const IMPORTER = { tool: "m3a-import", version: "1" };
 /** Format 2's degrees of freedom every re-imported clip is fitted with, a steady twist on nearly straight limbs, and a
- *  loop whose capture closes ending on its first key. */
+ *  loop whose capture closes ending on its first key; `importSet` adds core's `steadyBend` to a clip it fits within its
+ *  own motion (D135). */
 export const ENCODE = { hands: true, spine: true, yaw: true, steadyTwist: true, closeLoop: true } as const;
 /** The fit limits (mm): a set's mean, a clip's mean, a clip's worst. */
 export const LIMITS = { setMean: 20, clipMean: 40, clipWorst: 300 } as const;
@@ -231,6 +233,14 @@ export function specReading(clip: Clip, rest: Rest, reading: coreClip.ContactRea
   }
 }
 
+/** How a clip's catalog cut it again, when its migrated version (`was`, that version's take) comes from another stretch
+ *  of the same take than the re-import (`now`): "85_01 2.00-3.80 → 3.65-7.80"; else null. */
+export function recutFrom(was: string | undefined, now: string | undefined): string | null {
+  if (!was || !now || was === now) return null;
+  const [a, sa] = was.split(" "), [b, sb] = now.split(" ");
+  return a === b && sa && sb ? `${a} ${sa} → ${sb}` : `${was} → ${now}`;
+}
+
 /** The slugs a set's import spec names a contact reading for that the set doesn't write (`files`, by file name). */
 export function unwritten(spec: Pick<ImportSpec, "contacts">, files: ReadonlyMap<string, string>): string[] {
   return Object.keys(spec.contacts ?? {}).filter((slug) => !files.has(`${slug}.json`));
@@ -281,13 +291,15 @@ function importOne(spec: ImportSpec, mig: ReturnType<typeof migrate>, legend: st
   const diskSources = existsSync(join(dir, "_set.json")) ? (JSON.parse(readFileSync(join(dir, "_set.json"), "utf8")) as { sources: Record<string, Record<string, unknown>> }).sources : {};
   for (const name of names) {
     const c1 = out.set.clips[name]!, slug = slugOf.get(name)!, src = c1.src, rule = spec.sources(src), rest = out.set.sources[src]!.rest, cap = capOf(name)!;
-    const before = migClips.get(name), orig = before?.provenance.orig ?? c1.orig;
+    // a clip its catalog cuts again from another stretch of its take is another motion than its migrated version: new,
+    // not weighed against it (F.13: Jump_Twist, whose old stretch was the jump's run-up)
+    const was0 = migClips.get(name), recut = recutFrom(was0?.provenance.take, c1.take), before = recut ? undefined : was0, orig = before?.provenance.orig ?? c1.orig;
     // its facts and contacts measured on its rest (WP-5.4), the capture's speed kept; then repaired where the sensors'
     // fix makes it better without taking it from its source (WP-5.8)
     const made = withFacts(fromFormat1({ ...(c1 as unknown as format.Clip1), src, ...(orig ? { orig } : {}) }, { set: spec.set, slug, name, fps: out.set.fps, restSrc: src, method: rule.method, license: rule.license, ...(rule.credit ? { credit: rule.credit } : {}), fit: out.set.fit[name]!, producer: IMPORTER, qaVersion: "none" }), rest);
     const { clip, fit, repairs, unrepaired, was: unrepairedFit } = repaired(made, rest, cap);
     const now = measured(clip, rest), hands = handError(clip, rest, cap);
-    let kept: ClipChoice["kept"] = before ? "import" : "new", why = before ? "" : "new in the re-import";
+    let kept: ClipChoice["kept"] = before ? "import" : "new", why = before ? "" : recut ? `cut again from ${recut}: its migrated version is another motion, not weighed against it` : "new in the re-import";
     const choice: ClipChoice = { kept, why, fit: { import: fit }, qa: { import: now.verdict }, hands: [hands], ...(repairs.length ? { repaired: repairs, unrepairedFit: unrepairedFit! } : {}), ...(unrepaired ? { unrepaired } : {}) };
     if (before) {
       const migRest = migManifest!.sources[before.restSrc]!.rest, was = measured(before, migRest), fitWas = before.quality.fit as [number, number];

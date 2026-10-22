@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "m3a library QA reasons (library/baselines/qa.json)",
-  "description": "Why the library keeps the clips the sensors flag (PLAN.md WP-5.8, D66): the warn level's reason, a reason per set for its fails, a reason per clip and metric, a reason per clip that stands off the floor, where each loop with no contact is instead of on its feet, and why a loop on its feet with no contact has no foot that holds still. tools/qa/verdict.ts reads it (reasonsProblems checks this shape) and the writers record the reasons in each clip's quality.baseline.",
+  "description": "Why the library keeps the clips the sensors flag (PLAN.md WP-5.8, D66): the warn level's reason, a reason per set for its fails, a reason per clip and metric, a reason per clip that stands off the floor, where each loop with no contact is instead of on its feet, why a loop on its feet with no contact has no foot that holds still, and why a clip whose motion never changes, untagged as a pose, stays so. tools/qa/verdict.ts reads it (reasonsProblems checks this shape) and the writers record the reasons in each clip's quality.baseline.",
   "type": "object",
   "required": ["warn", "sets", "clips"],
   "additionalProperties": false,
@@ -32,6 +32,12 @@
       "propertyNames": { "pattern": "^[A-Z0-9_]+/[A-Za-z0-9_-]+$" },
       "additionalProperties": { "type": "string", "minLength": 1 },
       "description": "per loop on its feet with no contact at all, why no foot holds still on the floor (the off-feet check, tools/qa/library.ts, D108)"
+    },
+    "still": {
+      "type": "object",
+      "propertyNames": { "pattern": "^[A-Z0-9_]+/[A-Za-z0-9_-]+$" },
+      "additionalProperties": { "type": "string", "minLength": 1 },
+      "description": "per clip whose motion never changes though no tag says it is a pose (pose, reference), why it stays so (the still check, tools/qa/library.ts, F.13)"
     }
   }
 }

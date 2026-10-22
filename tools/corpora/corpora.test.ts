@@ -1,7 +1,8 @@
 // The large corpora (WP-5.6): a zip read entry by entry and refused when it lies; the site's index parsed; a fetch that
 // keeps only what its lock pins and resumes; the ledger written and read back byte for byte, its `used` column the
 // CMU set's takes; a take surveyed as the ledger measured it; and 100STYLE: its lists read, its picks found in the
-// frames it marks as the style, an archive held to its lock, and a catalog imported from it as a set.
+// frames it marks as the style, an archive held to its lock, and a catalog imported from it as a set, every clip fitted
+// at the set's limit as shardfall's were.
 import { createHash } from "node:crypto";
 import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -175,6 +176,22 @@ describe("100STYLE", () => {
       expect(r.report.skipped).toEqual([{ name: "Spin_SideLeft", why: "turns round as it goes" }]);
       expect(r.log.find((l) => l.startsWith("left out Neutral_SideBack"))).toMatch(/no straight stretch going back/);
       expect(() => import100("side", archive, styles, { catalog: { $pick: { X: ["Nope_SW", 0, 1] } } as never })).toThrow(/100STYLE has no take Nope_SW/);
+    } finally {
+      archive.close();
+    }
+  });
+  it("fits every clip within its limit, as shardfall's importer did: an idle swaying 15 mm comes out one pose, as there (D133)", () => {
+    // an idle take, 10 s at 60 fps: the hips swaying 1.5 cm each way every 3 s, nothing else moving
+    const take = tinyBvh(600, 1 / 60, () => 0, (f, v) => void (v[0] = 1.5 * Math.sin((2 * Math.PI * f) / 180)));
+    const file = join(tmp(), "100STYLE.zip");
+    writeFileSync(file, makeZip({ "100STYLE/Dataset_List.csv": list, "100STYLE/Frame_Cuts.csv": "STYLE_NAME,ID_START,ID_STOP\nNeutral,0,600\n", "100STYLE/Neutral/Neutral_ID.bvh": take }));
+    const archive = new Archive(file);
+    try {
+      const catalog = { $sources: { "100STYLE": { label: "100STYLE", license: "CC-BY-4.0" } }, $pick: { Neutral_Idle: ["Neutral_ID", null, null, null] }, Neutral_Idle: ["idle loop", "Stands, swaying a little"] } as never;
+      const r = import100("idle", archive, readStyles(archive.text("100STYLE/Dataset_List.csv")!, archive.text("100STYLE/Frame_Cuts.csv")!), { catalog });
+      // `motion: false`: the library's import bounds this clip's limit by its sway (D135) and keeps its keys; this one
+      // reproduces shardfall's frozen idles, so npm run corpora -- 100style --import --check stays byte for byte
+      expect(r.report.clips.map((c) => [c.name, c.tol, c.keys])).toEqual([["Neutral_Idle", 30, 2]]);
     } finally {
       archive.close();
     }

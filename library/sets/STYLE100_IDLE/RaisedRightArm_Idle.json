@@ -13,14 +13,18 @@
 "contacts": {"by":"detected","footL":[[0,2.5]],"footR":[[0,2.5]]},
 "facts": {"by":"m3a-facts@1","height":[100,100],"seam":0,"speed":0,"travel":[0,0]},
 "provenance": {"src":"100STYLE","take":"RaisedRightArm_ID 19.25-21.77","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
-"quality": {"fit":[6,20],"qa":"pass","qaVersion":"m3a-sensors@1"},
+"quality": {"fit":[4,19],"qa":"pass","qaVersion":"m3a-sensors@1"},
 "keys": [
   {"t":0,
    "hips":[0,0,100], "body":[0,-6,-2], "chest":[3,19,-5], "head":[-7,8,6],
-   "shL":[7,-7], "shR":[1,0], "armL":[28,16,-95,7,50], "armR":[16,96,-20,16,-180], "handL":[-2,-17,126], "handR":[11,4,-101], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
-   "legL":[-20,8,-98,9,0], "legR":[-21,1,-98,4,4], "footL":[5,-3,0], "footR":[7,1,0]},
+   "shL":[7,-7], "shR":[1,0], "armL":[28,16,-95,1,50], "armR":[16,96,-20,16,-180], "handL":[-3,-15,126], "handR":[11,4,-101], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[-20,8,-98,5,0], "legR":[-21,1,-98,2,4], "footL":[5,-3,0], "footR":[7,1,0]},
+  {"t":0.667,
+   "hips":[0,0,100], "body":[0,-6,-2], "chest":[4,18,-6], "head":[-8,9,6],
+   "shL":[6,-7], "shR":[2,0], "armL":[26,17,-95,1,61], "armR":[17,97,-20,16,-180], "handL":[-3,-15,137], "handR":[11,4,-99], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[-20,8,-98,4,1], "legR":[-21,1,-98,2,4], "footL":[5,-3,0], "footR":[7,1,0]},
   {"t":2.5,
    "hips":[0,0,100], "body":[0,-6,-2], "chest":[3,19,-5], "head":[-7,8,6],
-   "shL":[7,-7], "shR":[1,0], "armL":[28,16,-95,7,50], "armR":[16,96,-20,16,-180], "handL":[-2,-17,126], "handR":[11,4,-101], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
-   "legL":[-20,8,-98,9,0], "legR":[-21,1,-98,4,4], "footL":[5,-3,0], "footR":[7,1,0]}
+   "shL":[7,-7], "shR":[1,0], "armL":[28,16,-95,1,50], "armR":[16,96,-20,16,-180], "handL":[-3,-15,126], "handR":[11,4,-101], "fingersL":[0,0,0,0,0], "fingersR":[0,0,0,0,0],
+   "legL":[-20,8,-98,5,0], "legR":[-21,1,-98,2,4], "footL":[5,-3,0], "footR":[7,1,0]}
 ]}
