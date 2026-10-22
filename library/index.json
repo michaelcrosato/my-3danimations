@@ -1,7 +1,7 @@
 {
  "about": "The registry index (PLAN.md WP-9.4), written by npm run index from library/sets, the previous index and tools/release/registry.json; npm run index -- --check regenerates it byte for byte. core: each set's versions (content: its clip files' content id, spec/MOTION.md §9.2; digest: the same over all its files), immutable, yanked never deleted. community: packs federated from namespaces verified to their owners, never uploads into the core. npm run index -- verify <SET> <dir> checks a set's files against it.",
  "format": "1",
- "serial": 3,
+ "serial": 4,
  "core": {
   "CMU_CURATED": {
    "versions": [
@@ -279,6 +279,27 @@
      ],
      "clips": 98,
      "bytes": 669483,
+     "qa": {
+      "baselined": 49,
+      "pass": 49
+     },
+     "review": {
+      "approved": 0,
+      "flagged": 0,
+      "unreviewed": 98
+     }
+    },
+    {
+     "v": 3,
+     "content": "d7e7b8f05232b171d8e6a2e8c68adefa93d52a068df8b79daae2edbeec4c8d5f",
+     "digest": "33d4ae75720bc9da41bf1aeade08bf3328385340fdeab53853b91176d851e9c3",
+     "title": "100STYLE runs",
+     "tier": "cc-by",
+     "licenses": [
+      "CC-BY-4.0"
+     ],
+     "clips": 98,
+     "bytes": 669558,
      "qa": {
       "baselined": 49,
       "pass": 49

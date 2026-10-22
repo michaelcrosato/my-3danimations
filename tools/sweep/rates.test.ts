@@ -95,9 +95,10 @@ describe("the root-motion rate sweep", () => {
     const file = JSON.parse(readFileSync(RATE_BASELINE, "utf8")) as unknown;
     expect([schema(file) ? [] : schema.errors, rateBaselineProblems(file)]).toEqual([[], []]);
     expect(readRateBaseline()).toMatchObject({ rates: RATES, rigs: RATE_RIGS });
-    // a field it doesn't have, a rate that isn't one, a key that isn't a row's, a row without its reasons
+    // a field it doesn't have, a rate that isn't one, no causes or answers (D127), a key that isn't a row's, a row
+    // without its reasons
     const bad = { rates: [0], rigs: ["gen-0"], loops: 1, failing: { "S/A gen-0": ["r"], "S/B gen-0 1": [] }, extra: 1 };
-    expect(rateBaselineProblems(bad)).toEqual(['"extra" is not a field of the baseline (about, rates, rigs, loops, failing)', "rates lists the rates swept, each above 0", "failing maps `<clip> <body> <rate>` to its reasons, each a text"]);
+    expect(rateBaselineProblems(bad)).toEqual(['"extra" is not a field of the baseline (about, rates, rigs, loops, causes, answers, failing)', "rates lists the rates swept, each above 0", "causes maps a cause's name (lower-case words joined by hyphens) to what it means, a text", "answers maps a loop `<set>/<clip>` to its cause, one of causes, and why it fails, a text", "failing maps `<clip> <body> <rate>` to its reasons, each a text"]);
     expect(schema(bad)).toBe(false);
     // its about, when given, a text, as the schema has it
     const about = { ...(file as object), about: 5 };

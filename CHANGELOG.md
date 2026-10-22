@@ -4,6 +4,31 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.55.3 · 2026-10-22
+
+WP-F.7 (D127): the rate sweep's failing rows triaged, two loops read again in core, the 126 that still fail answered
+with their causes.
+
+### Core
+- `measureFacts` reads a loop's contacts again (D104's `reread`) when the refinement keeps one foot a moment a cycle
+  (under a fifth of it) after a height pass that held both feet down throughout, and keeps that reading only where the
+  planter holds both ankles within 10% of H0: two 100STYLE runs plant both feet, held within 4.3% of H0, their ground
+  speed 0.81 and 1.05 of the captured (from 0.39 and 0.87); a retimed loop's reading is held to the same bar (D127).
+
+### Library
+- STYLE100_RUN/Robot_Run and Swimming_Run carry the contacts D127 reads (written by `npm run import`); STYLE100_RUN v3
+  in the index.
+- The rate sweep's baseline holds 473 failing rows on 126 loops (479 on 128), 0 added, and answers each loop: its cause
+  (7) and why, with the numbers.
+
+### Tools
+- `npm run sweep -- --rates --check` fails on a loop failing a row with no answer in `library/baselines/rates.json` and
+  reports an answered loop that fails no row; `--baseline` carries the answers; the schema and validator hold their
+  shape (D127).
+
+### Repo
+- `npm run test:changed` runs the rate sweep's answers test for a change under `library/` (D127).
+
 ## 0.55.2 · 2026-10-21
 
 WP-F.8 (D128): the manual teaches the test characters, `loadGlb` in a page and the attached player's `apply()`; MIGRATING's

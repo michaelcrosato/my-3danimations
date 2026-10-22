@@ -10,7 +10,7 @@
 "desc": "Running, swimming style: breaststroke walking",
 "skeleton": "humanoid",
 "restSrc": "100STYLE",
-"contacts": {"by":"detected","footL":[[0.921,0.971]]},
+"contacts": {"by":"detected","footL":[[0.247,0.576],[0.905,1.234]],"footR":[[0.576,0.905],[1.218,1.547]]},
 "facts": {"by":"m3a-facts@1","captured":["speed"],"height":[95,105],"seam":0,"speed":203,"travel":[215.3,-17.9]},
 "provenance": {"src":"100STYLE","take":"Swimming_FR 7.23-8.50","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[13,189],"qa":"baselined","qaVersion":"m3a-sensors@1","baseline":"warn on seamVelocity, skate, twistFlip: short of every fail level the sensors apply (thresholds.ts)"},

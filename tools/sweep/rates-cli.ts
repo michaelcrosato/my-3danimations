@@ -2,14 +2,16 @@
 // (D123): the root-motion rate sweep (rates.ts) from the command line. Every locomotion loop with contacts (or N spread
 // over them, or one) at each rate of RATES on each body named (the six of RATE_RIGS when none is), in worker threads;
 // prints each body's rows by verdict and the rates' counts; writes every row to check-output/sweep/rates.json (or
-// --out). --check fails on a failing row not in library/baselines/rates.json, naming each, and reports each baselined
-// row that passes now; --baseline rewrites that file from a whole run (every loop, the six bodies, every rate), saying
-// how many rows it adds and drops: a change lands in a commit that says why.
+// --out). --check fails on a failing row not in library/baselines/rates.json, naming each, or a loop failing a row
+// with no answer there (D127), and reports each baselined row that passes now and each answered loop that fails no row;
+// --baseline rewrites that file from a whole run (every loop, the six bodies, every rate), saying how many rows it adds
+// and drops, carrying the answers of the loops that still fail and failing on a failing loop with none: a change lands
+// in a commit that says why.
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import { libraryClips, sample } from "../qa/qa.ts";
 import { finish, fmtMs, ROOT, type Parsed, type Report, type Step } from "../run/cli.ts";
-import { againstRateBaseline, isRateLoop, RATE_BASELINE, RATE_RIGS, rateBaselineOf, rateBaselineText, RATES, readRateBaseline, rowKey, sweepRates, type RateBaseline, type RateRow } from "./rates.ts";
+import { againstRateAnswers, againstRateBaseline, isRateLoop, RATE_BASELINE, RATE_RIGS, rateBaselineOf, rateBaselineText, RATES, readRateBaseline, rowKey, sweepRates, type RateBaseline, type RateRow } from "./rates.ts";
 
 /** What `--rates` writes: every row the run played, and what it swept. */
 export interface RateResults {
@@ -29,8 +31,8 @@ export function ratesUsage(parsed: Parsed): string | null {
   return null;
 }
 
-/** Runs the rate sweep a command line asks for, prints its report and exits (1 when --check finds a failing row the
- *  baseline doesn't hold). */
+/** Runs the rate sweep a command line asks for, prints its report and exits: 1 when --check finds a failing row the
+ *  baseline doesn't hold, or when --check or --baseline finds a loop failing a row with no answer (D127). */
 export async function ratesCommand(parsed: Parsed): Promise<never> {
   const t0 = performance.now(), f = parsed.flags, rigs = parsed.positionals.length ? parsed.positionals : [...RATE_RIGS];
   let loops = libraryClips().filter((c) => isRateLoop(c.clip));
@@ -73,19 +75,38 @@ export async function ratesCommand(parsed: Parsed): Promise<never> {
       });
       failing = failures.length;
       // the rows the baseline holds that pass now, reported (the step passes): the first few here, all in the results
-      const shown = [...better.map((r) => `${rowKey(r)} ${r.verdict}s now (baselined as failing)`), ...gone.map((k) => `${k} is baselined but wasn't played (gone)`)];
+      const shown = [...better.map((r) => `${rowKey(r)} ${r.verdict === "pass" ? "passes" : "warns"} now (baselined as failing)`), ...gone.map((k) => `${k} is baselined but wasn't played (gone)`)];
       warnings.push(...shown.slice(0, 5), ...(shown.length > 5 ? [`and ${shown.length - 5} more: rewrite ${rel} with --baseline`] : []));
+      if (!f.baseline) steps.push(answersStep(base, rows, rel, warnings));
     }
   }
   if (f.baseline) {
-    const now = rateBaselineOf(rows, ids.length), was = base?.failing ?? {}, added = Object.keys(now.failing).filter((k) => !was[k]).length, dropped = Object.keys(was).filter((k) => !now.failing[k]).length;
+    const now = rateBaselineOf(rows, ids.length, RATE_RIGS, RATES, base ?? undefined), was = base?.failing ?? {}, added = Object.keys(now.failing).filter((k) => !was[k]).length, dropped = Object.keys(was).filter((k) => !now.failing[k]).length;
+    const kept = Object.keys(now.answers).length, gone = Object.keys(base?.answers ?? {}).length - kept;
     writeFileSync(RATE_BASELINE, rateBaselineText(now));
-    steps.push({ name: "baseline written", ok: true, ms: 0, summary: `wrote ${rel}: ${Object.keys(now.failing).length} failing rows (${unreadable ? "the old one unreadable, replaced" : `${added} added, ${dropped} dropped`}; a change lands in a commit that says why)` });
+    steps.push({ name: "baseline written", ok: true, ms: 0, summary: `wrote ${rel}: ${Object.keys(now.failing).length} failing rows (${unreadable ? "the old one unreadable, replaced" : `${added} added, ${dropped} dropped`}; ${kept} answers carried, ${gone} dropped, their loops failing no row; a change lands in a commit that says why)` });
+    steps.push(answersStep(now, rows, rel, warnings));
   }
+  const unanswered = steps.some((s) => s.name === "answers" && !s.ok);
   const out = typeof f.out === "string" ? resolve(f.out) : join(ROOT, "check-output/sweep/rates.json"), results: RateResults = { about: "npm run sweep -- --rates: each locomotion loop with contacts at each rate on each body, moved by its root's travel; a row fails on slide or skate past its fail level or no foot that stands still, warns past a warn level (tools/sweep/rates.ts, D123)", rigs, rates: [...RATES], loops: ids.length, rows };
   mkdirSync(dirname(out), { recursive: true });
   writeFileSync(out, JSON.stringify(results, null, 1));
   const ok = steps.every((s) => s.ok);
-  const report: Report = { tool: "sweep", ok, verdict: `sweep --rates: ${ok ? "PASS" : "FAIL"}, ${rows.length} rows (${ids.length} loops × ${RATES.length} rates × ${rigs.length} ${rigs.length === 1 ? "body" : "bodies"}) in ${fmtMs(ms)}: ${tally(rows)}${f.check && base ? `, ${failing} of them not baselined` : ""}`, steps, warnings, ms, next: ok ? `read ${relative(ROOT, out)} for every row` : `each failing row not baselined is named above and in ${relative(ROOT, out)}: fix the loop (its contacts, its root), or baseline it with --baseline in a commit that says why` };
+  const report: Report = { tool: "sweep", ok, verdict: `sweep --rates: ${ok ? "PASS" : "FAIL"}, ${rows.length} rows (${ids.length} loops × ${RATES.length} rates × ${rigs.length} ${rigs.length === 1 ? "body" : "bodies"}) in ${fmtMs(ms)}: ${tally(rows)}${f.check && base ? `, ${failing} of them not baselined` : ""}`, steps, warnings, ms, next: ok ? `read ${relative(ROOT, out)} for every row` : unanswered ? `answer each loop named above in ${rel}'s answers: its cause (one of causes, or a new one) and why it fails, with the numbers (D127)` : `each failing row not baselined is named above and in ${relative(ROOT, out)}: fix the loop (its contacts, its root), or baseline it with --baseline in a commit that says why` };
   finish(report, parsed);
+}
+
+/** The answers' step (D127): fails on a loop failing a row with no answer in the baseline, naming each; each answered
+ *  loop that fails no row now goes to `warnings` (--baseline drops its answer). */
+export function answersStep(base: RateBaseline, rows: readonly RateRow[], rel: string, warnings: string[]): Step {
+  const { unanswered, passing } = againstRateAnswers(base, rows), failing = new Set(rows.filter((r) => r.verdict === "fail").map((r) => r.clip));
+  warnings.push(...passing.map((id) => `${id} is answered but fails no row now: --baseline drops its answer`));
+  return {
+    name: "answers", ok: unanswered.length === 0, ms: 0,
+    summary: `${failing.size - unanswered.length} of the ${failing.size} loops failing a row answered in ${rel}${unanswered.length ? `, ${unanswered.length} not: answer each` : ""}; ${passing.length} answered loops fail no row now`,
+    detail: unanswered.map((id) => {
+      const n = rows.filter((r) => r.clip === id && r.verdict === "fail").length;
+      return `${id}: fails ${n} row${n === 1 ? "" : "s"}, no answer`;
+    }),
+  };
 }
