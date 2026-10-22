@@ -14,6 +14,7 @@
 "facts": {"by":"m3a-facts@1","height":[98,98],"seam":0,"speed":0,"travel":[0,0]},
 "provenance": {"src":"100STYLE","take":"CrossOver_ID 14.38-16.88","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[5,19],"qa":"pass","qaVersion":"m3a-sensors@1"},
+"review": {"state":"approved","by":"owner","date":"2026-10-22","motion":"b65028f82f7c5a185e45837f5940c272bed8eaa329bd9106b431e41d2dea2f29","note":"This is a pose. There is no actual animation."},
 "keys": [
   {"t":0,
    "hips":[0,0,98], "body":[0,-3,4], "chest":[2,2,-4], "head":[3,27,1],

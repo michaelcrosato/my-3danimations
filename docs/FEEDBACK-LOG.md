@@ -30,6 +30,7 @@ do act on goes into a WP (`PLAN.md`) or a decision (`docs/DECISIONS.md`) and the
 | What the tools can name | **Taken up in v0.54.0** | F6 | `gen-<seed>` and an orbit on every surface (D119) |
 | How strict the intake is | deferred | F6 | The importers' regenerations go through the adopt bot (the terms and `intake.by`: taken up in v0.54.0, D119) |
 | The intake's cost | **Taken up in v0.54.0** | F6 | The checker samples the library once and only new submissions after (D119) |
+| Review notes | watch | F7 | When it reaches three sources, or two from different model families |
 
 ## Sources
 
@@ -143,3 +144,30 @@ acted on (D119 took up or deferred each):
 - **F6.5** (WP sizes, reached) WP-8.2 came to 3,023 lines and was split, 9.1 to about 2,800 (split), 9.4 to 683 (past
   S) and 10.2 to about 1,400 (past M).
 
+### F7 · 2026-10-22 · A review from the ground station (owner)
+
+- **F7.1** (review notes, watch) `STYLE100_SIDERUN/Stiff_SideRunLeft@6b352005f1fd` approved: This is a side step,
+  definitely not a side run.
+- **F7.2** (review notes, watch) `CMU_CURATED/Jump_Twist@3ab846fac374` flagged: The character never gets to the
+  actually jump, just leading up to it, which was fine
+- **F7.3** (review notes, watch) `STYLE100_SIDERUN/ShieldedRight_SideRunRight@2da4aa85e13a` approved: Again, side step
+  but otherwise if he is holding hand up and there was a shield it would be fine
+- **F7.4** (review notes, watch) `STYLE100_SIDE/LawnMower_SideLeft@e9a30279816d` flagged: I think you need to state
+  what the expectations are of what I am supposed to see and what you think is happening, there is a person rolling
+  his hands in front of his pelvis bending over
+- **F7.5** (review notes, watch) `STYLE100_SIDE/CrowdAvoidance_SideRight@6d215290cc63` approved: A person side
+  stepping, head slightly back
+- **F7.6** (review notes, watch) `STYLE100_BACKRUN/KarateChop_RunBack@4dd46b3d65ff` approved: They are moving
+  backwards, run debatable, he is doing a chopping motion with his hands
+- **F7.7** (review notes, watch) `STYLE100_IDLE/CrossOver_Idle@b65028f82f7c` approved: This is a pose. There is no
+  actual animation.
+- **F7.8** (review notes, watch) `STYLE100_IDLE/OnPhoneLeft_Idle@f2e25e7b2368` approved: A pose no animation.
+- **F7.9** (review notes, watch) `CMU_CURATED/Pick_Up_Basket@04c9a32eadf4` approved: Idk, they walk up, pick up, turn
+  right spin 360 degrees and back pedal,
+- **F7.10** (review notes, watch) `STYLE100_BACKRUN/Elated_RunBack@1492349cad00` approved: Its faster than the other
+  back runs idk what elated means
+- **F7.11** (review notes, watch) `CMU_CURATED/Wrench_Bolt@fb26b9a3a9c1` approved: Look fine not sure what its for
+- **F7.12** (review notes, watch) `MESH2MOTION/Fighting_Right_Jab@ab1b5c8b9f0c` approved: Jab is a fine if they want
+  to love tap or touch the chest
+- **F7.13** (review notes, watch) `STYLE100_BACK/WildArms_WalkBack@b9dfd2a9af09` approved: Sure... wildarms, walking
+  like a kid swinging his arms up and and down as they walk to a pose

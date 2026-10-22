@@ -4,6 +4,18 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.57.1 · 2026-10-22
+
+G8 passes (D133): the owner's review of the 20-clip batch applied.
+
+### Library
+- The owner's review applied (`npx m3a review ingest`): 20 clips carry it, 18 approved and 2 flagged
+  (`CMU_CURATED/Jump_Twist`, `STYLE100_SIDE/LawnMower_SideLeft`); the 8 sets' manifests and the lock written by the
+  review's writer, each re-import byte for byte; index serial 6.
+
+### Docs
+- docs/FEEDBACK-LOG.md's F7 (13 notes) and docs/REVIEW-PROPOSALS.md (2 task proposals), from the owner's review.
+
 ## 0.57.0 · 2026-10-22
 
 WP-F.11 (D132): the review page plays its clips in place, links them in the gallery and opens G8's batch on its own.

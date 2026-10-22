@@ -14,6 +14,7 @@
 "facts": {"by":"m3a-facts@1","captured":["speed"],"height":[94,110],"seam":0,"speed":149,"travel":[30.3,98.8]},
 "provenance": {"src":"100STYLE","take":"ArmsBehindBack_SR 42.48-43.18","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[9,52],"qa":"pass","qaVersion":"m3a-sensors@1"},
+"review": {"state":"approved","by":"owner","date":"2026-10-22","motion":"b6c83f0ba0dfaf9b22afea94557a6a8ad9cdc82d666b4e3d87774e0478b13510"},
 "keys": [
   {"t":0,
    "hips":[0,0,95], "body":[-5,-2,-4], "chest":[9,15,-2], "head":[-3,7,4],

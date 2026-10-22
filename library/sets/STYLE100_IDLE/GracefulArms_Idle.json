@@ -14,6 +14,7 @@
 "facts": {"by":"m3a-facts@1","height":[101,101],"seam":0,"speed":0,"travel":[0,0]},
 "provenance": {"src":"100STYLE","take":"GracefulArms_ID 17.42-19.92","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[9,36],"qa":"pass","qaVersion":"m3a-sensors@1"},
+"review": {"state":"approved","by":"owner","date":"2026-10-22","motion":"ce7e602372d09818a0651e04aae99a82f9ba624877906a031aa7219cfc47d7a9"},
 "keys": [
   {"t":0,
    "hips":[0,0,101], "body":[0,-6,2], "chest":[-7,19,-2], "head":[7,7,4],

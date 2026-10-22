@@ -14,6 +14,7 @@
 "facts": {"by":"m3a-facts@1","height":[104,106],"travel":[20,13]},
 "provenance": {"src":"CMU_62","take":"62_02 0.00-6.00","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"LicenseRef-CMU-Mocap","credit":"CMU Graphics Lab Motion Capture Database (mocap.cs.cmu.edu)","ai":"digitalCapture"},
 "quality": {"fit":[11,61],"qa":"pass","qaVersion":"m3a-sensors@1"},
+"review": {"state":"approved","by":"owner","date":"2026-10-22","motion":"fb26b9a3a9c1de8769d61ca71eeed63f16ed4a02143fe804b0c0b43ac17fc7a1","note":"Look fine not sure what its for"},
 "keys": [
   {"t":0,
    "hips":[0,0,104], "body":[4,4,-4], "chest":[-9,-1,2], "head":[-9,10,4], "root":[0,0], "yaw":0, "spine":[9,53,109],

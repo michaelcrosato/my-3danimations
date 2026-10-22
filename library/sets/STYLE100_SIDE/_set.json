@@ -3,7 +3,7 @@
 "title": "100STYLE sidesteps",
 "format": "2.0",
 "tier": "cc-by",
-"content": {"edition":"100STYLE (zenodo.org/records/8127870, the archive tools/corpora/100style.lock.json pins): 194 sidesteps, each way, each cut at its best cycle inside the frames the dataset marks as the style, as shardfall's catalog picks them","importer":"m3a-import 1, from the sources (WP-5.3)","sha256":"f451e8313a881a43b63a48f3ab34ee7a1c14abfd4cc8d1473a5604df130b868c"},
+"content": {"edition":"100STYLE (zenodo.org/records/8127870, the archive tools/corpora/100style.lock.json pins): 194 sidesteps, each way, each cut at its best cycle inside the frames the dataset marks as the style, as shardfall's catalog picks them","importer":"m3a-import 1, from the sources (WP-5.3)","sha256":"0dd027e1a4813ff0b33f88de0798cb8ed292803e583ce66cbd337d4e4db3eeec"},
 "credit": "100STYLE by Ian Mason, Sebastian Starke and Taku Komura, CC BY 4.0.",
 "producer": {"tool":"m3a-import","version":"1"},
 "sources": {

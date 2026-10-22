@@ -14,6 +14,7 @@
 "facts": {"by":"m3a-facts@1","height":[100,100],"seam":0,"speed":0,"travel":[0,0]},
 "provenance": {"src":"100STYLE","take":"OnPhoneLeft_ID 16.10-18.80","method":"captured","producer":{"tool":"m3a-import","version":"1"},"license":"CC-BY-4.0","credit":"100STYLE, Mason, Starke and Komura (CC BY 4.0)","ai":"digitalCapture"},
 "quality": {"fit":[10,37],"qa":"pass","qaVersion":"m3a-sensors@1"},
+"review": {"state":"approved","by":"owner","date":"2026-10-22","motion":"f2e25e7b23685b6ff820562b5ffcc9dad38572712c26f8c6c78a982aee9abe64","note":"A pose no animation."},
 "keys": [
   {"t":0,
    "hips":[0,0,100], "body":[0,-11,0], "chest":[5,18,-2], "head":[-10,14,4],

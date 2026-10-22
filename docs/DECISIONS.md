@@ -5410,3 +5410,38 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   and the gallery already carries.
 - **Answered:** no: made under D131 (a minor call, by the North Star), to review.
 - **Landed in:** v0.57.0 (proposed)
+
+## D133 · 2026-10-22 · G8 passes: the owner's review of the 20-clip batch applied; what it found
+
+- **Principle:** the North Star (the owner's approval rate on sampled reviews), G8 (PLAN.md §9.3), D111, D130, D131, D132
+- **Call:**
+  - **The review:** the owner reviewed G8's batch (`bench/results/gates/G8-run-1/queue-0.56.0.json`) on the site's
+    review page (WP-F.11) and exported `review-2026-10-22.json`; `npx m3a review ingest` applied it: 20 decisions, 20
+    applied, 0 stale, 0 refused (18 approved, 2 flagged: `CMU_CURATED/Jump_Twist`, `STYLE100_SIDE/LawnMower_SideLeft`).
+    Each clip carries its `review` (by owner, the motion hash it was made on); 13 notes are docs/FEEDBACK-LOG.md's F7 and
+    the two flagged clips' notes docs/REVIEW-PROPOSALS.md's first two task proposals; the 8 sets written through the
+    review's writer, each regenerating byte for byte with `npm run import -- --set X --check`, the index regenerated
+    once (serial 6). G8's pass bar (the phone review, its notes, at least one threshold or task proposal) is met.
+  - **What it found, checked against the clips (each a finding the sensors couldn't make):**
+    - **Frozen idles:** "This is a pose. There is no actual animation" (CrossOver_Idle, OnPhoneLeft_Idle) holds: every
+      key of 74 of STYLE100_IDLE's 98 clips is the same pose (2 keys), as are 28 other clips (16 MESH2MOTION, 6 each in
+      the two Quaternius sets; some meant as held poses: a T-pose, aims). Cause: the import takes "each the longest
+      still stretch" of a 100STYLE idle recording, which sways 1 to 4 cm, and the key fit (within its mm tolerance)
+      takes that sway for noise. A still pose breaks no sensor rule, so QA passed them. An agent asking for an idle gets
+      a statue.
+    - **Jump_Twist stops before the jump:** its description says "a jump straight up with a full spin", and its hips
+      rise about 6% of H0 (93 to 102): the slice of CMU 85_01 (2.00 to 3.80 s) is the run-up.
+    - **Words that mislead an agent:** STYLE100's side runs read as side steps to the owner (their speeds 110 to 145% of
+      H0/s against 42 for the side steps); "elated", "lawn mower", "wrench bolt" don't say what is seen; Pick_Up_Basket
+      also turns and backs away; the jab "touches the chest". Agents choose clips by their words and facts alone.
+    - **The page itself:** "I think you need to state what the expectations are of what I am supposed to see and what
+      you think is happening" (LawnMower's note) and, in the session, "give clear directions when someone opens that
+      page ... explain how LLMs select an animation": the review page said neither.
+  - **The follow-ups, the session's calls under D131:** WP-F.12, the review page's guide (what is judged, what approve
+    and flag mean, how agents choose clips) and each card's description as what it should show; WP-F.13, a check that
+    flags a clip whose motion never changes unless it is tagged a pose, the idles imported keeping their motion, and
+    Jump_Twist cut again from its source.
+- **Why:** the owner's eye is the measure the sensors can't take: whether a clip is what its words say and looks
+  alive. It found a defect in a quarter of a set the gates had passed, which is the gate doing its job.
+- **Answered:** yes: the owner's review file and words.
+- **Landed in:** v0.57.1

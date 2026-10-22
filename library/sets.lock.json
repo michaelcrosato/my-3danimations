@@ -2,7 +2,7 @@
  "about": "Each set's content id (spec/MOTION.md §9.2) and each clip file's SHA-256, so the loader names a file that changed (WP-5.1). Written by npm run library -- lock; aliases map a deprecated id to its successor.",
  "sets": {
   "CMU_CURATED": {
-   "content": "6f97d94be4fff37acb850c1d5006c08d35f4a036c3376f147bf0035fe2f980f1",
+   "content": "ba179d64a3a073983cf151a0f17acc3ae718630604dd5c92a5a1344bf0dc390f",
    "files": {
     "Angry_Quarrel.json": "b7d3e563623f3b07c3bbb124271c9acdffcc734e3fa5a2a3c05496419f02d341",
     "Answer_Phone.json": "e0dba53a33eb2697c83a8a6b2d42f96cb11dbb6b01099a53b264074c341e5774",
@@ -23,7 +23,7 @@
     "Carry_Heavy_Box.json": "f04f64c5ff1f1f80eda541d6f9a6fa41d2b45bb7202c829abfe0243fef71f046",
     "Carry_Suitcase.json": "9f3287b8a3ec4c042fb4e0f4c31e55a1eae7ba418e47e3adb1dc34b78c6d249b",
     "Cartwheel.json": "34bfed4db9aa55909c9306c80b4284f0f2bcc318777efa9d123614fa17ffb772",
-    "Charleston.json": "25c8f9b7dbe7caa4bcf36ab6bb8eb63d5940cc8c592f36437084a275f86ca1ba",
+    "Charleston.json": "e758d64ad097cf64e82dd852b20eb64432494fe3c6dfb660557d84ac097b52a2",
     "Chicken.json": "8c5cfff5a4bea19cc95f4a40f30c5d68ae31b7852c937d53483d71bb1acd4297",
     "Chicken_Dance.json": "c9f2b62b00c819c922c2c4ba532b4d2a254fe61761c6707444795ad70bb26a28",
     "Chop_Onions.json": "1a2b66437b39203a4a501a46ee18a6fa5748f7072197ffa3f5d89b665628f2d7",
@@ -83,7 +83,7 @@
     "Hurt_Stomach_Walk_Loop.json": "91f55a83607530e0770de51350b46a2a1396d72def32ffa566053cdca7ee6bf6",
     "Jump_Kick.json": "dfa8d5337a792f4f41050b94213ba83020f7b6fc575c8dfd92ffe0678aa33944",
     "Jump_Off_Ledge_Back.json": "667d94928bfb692b4a1eca1635e9959c80e1da35a747db926b393603d6da7f4c",
-    "Jump_Twist.json": "180e538f4543bf05eb20070cf8ec45ea7231d70d5b01d1de985edfe5c0ec3499",
+    "Jump_Twist.json": "8b5d527e7a624424a2cf9e045bdc495127d5bda94f0c9423c5e5301d44477b3b",
     "Jumping_Jacks_Loop.json": "9698db2c18595ab6b4be103d641c68780b8146e980f6bc4412b45e5c7dfaaddd",
     "Ladder_Up_Down.json": "31bef072be26800a58d4182ec0baaba2b6d5aa4ae00fa940e61c13e1485f5c95",
     "Laugh.json": "baee20652a362bb2d05c41a33ba6f0a83342b67d173c45061fcaed971480127d",
@@ -103,7 +103,7 @@
     "Paint.json": "0caceebc6917feb749925e4dc281f242de44068b2e60cf8bcfd6932e9776dbf8",
     "Pay.json": "d12b762cff59daa1084f89197adcb19334361d9a98095fc3b3982a3795187bf0",
     "Peekaboo.json": "8f080980203ae834f64e6ea0c1dcb10f8454fc29207129a5fbb5c086b0a9628b",
-    "Pick_Up_Basket.json": "721d4176ee9cd2c8c697d91357a7d700f8742f80817a7f91c506d1e8f3a09d80",
+    "Pick_Up_Basket.json": "44a95430957df9fd6779a68d02e754f49b6a131195b76c6ecfc3fe2d7a8d1acc",
     "Pick_Up_Box.json": "71e80b8227a4c92149db0b496ca0ea1e9210cafce252ed8d79147308e531976e",
     "Plant_Tree.json": "96ffd6443313f285099944bc80716de11cb7b28a69209943c4b1bbddf54d7dec",
     "Pull_Heavy_Object.json": "d6c0ca1d327851bad53a1b74850225d6a758edd01ccaf90fa2aceaaece495004",
@@ -159,13 +159,13 @@
     "Wash_Window_Loop.json": "06e2c76b7466f218e53b47c8096b45fcbd59ad9e7863fc2c2c07be3b01428196",
     "Wave_Hello.json": "8dfa4da0797060e9dd579d2cc2dcef7615eafc1f650688a9371a85a8fdbd35ce",
     "Wounded_Walk_Loop.json": "09952b34f502b15895e201e04ecb14dc2b58d380d2e9345e423a2811fdc41ec5",
-    "Wrench_Bolt.json": "6f06fd31f3b761df62046539cddfe4b992c60f102e1bbfba65ed26d434e29dd2",
+    "Wrench_Bolt.json": "39578b8682dca146c6259a1cf80a714e0fc2d170779f6411f58b060bb97e5254",
     "Write_Chalkboard.json": "78147fc1174a1dd1bced4bdf451740ed28643a2a68e5f5e1c88d301a19725d66",
     "Zombie_Walk_Loop.json": "48e166a22bf340e916deadfa10c623fb7428a1bb17ee6781fa00e0edd565b25d"
    }
   },
   "MESH2MOTION": {
-   "content": "b0e48be48743c5d158ae2e9fdf2acf78871c66212df5bcf3575077aa6f68e274",
+   "content": "1fd2f7c803d4511f6b644eecba22e8f638ef48d9d7c983ba8f42b4618648de89",
    "files": {
     "Angry.json": "0196761c67c76620b3a1ed739869ad6214166821752a123e8be964f95f0eb858",
     "Attack_Ground_Pound.json": "aaeeae562b90818657f35b6ed50d740abc7e72f2a832bee692c5a409100d775b",
@@ -210,7 +210,7 @@
     "Farm_Watering.json": "c4bc15634eb171c37ef671318848cd17ef942219883a50fa4a7ec9bd56cd7ffa",
     "Fighting_Idle.json": "6742bb799342f7f64863a79a4c193bffa6b92803bbbda307197584e97efe7ee0",
     "Fighting_Left_Jab.json": "356e1615ee8f7c88a5a9da32073fe0a49f9f6896168f699bdf4cb98f684383fe",
-    "Fighting_Right_Jab.json": "01fec2273981ed7a3246c800ac4cbc2f4b97cf5ea81834ba2948c4132a82f7fe",
+    "Fighting_Right_Jab.json": "532b07021a839256e83de4cb3235c579cda669a6c9f6c98480cb5efac2137eb3",
     "Fishing_Cast.json": "9b8646497b63e24cafed5d1e435fd136c3bb02a331b34a04430f3ae127d72df4",
     "Fishing_Catch.json": "b52094fd9a8fdbfa6b806d3e9173e59614b5d51d446d34cc17806573386d7bb8",
     "Fishing_Reel.json": "3db742db2336fff7c5366085973398db5b3b101be0710e6ef9187ede89fdf478",
@@ -546,7 +546,7 @@
    }
   },
   "STYLE100": {
-   "content": "b94cad387f745804d6d39258d6bbb2493d90568bba60f88ce541e48b15fbfa33",
+   "content": "a43406b4423ccbb9a55e7c208f61acacd92582e84760e9a588647fd4929847fc",
    "files": {
     "Aeroplane_Walk.json": "bd941b82185e5ff4d6de6d773f26b5d778c8046f27b67fc8f3cca4ae85075389",
     "Akimbo_Walk.json": "22e7964876363e76a35aaeec3b6ec7269c4cc627a73202fb0938a23cd585ba85",
@@ -580,7 +580,7 @@
     "Followed_Walk.json": "38eadea9f3c39dcd154ad9c3514c59833875caeda5f24da4c5d318e3337dfe27",
     "GracefulArms_Walk.json": "e40c10de2a582f87727a4009d5cde49cdd2fe02e35d93264dd22edd252f3f8a6",
     "HandsInPockets_Walk.json": "da2ca828774ee5f7d8773e7e02ec68830c36f9076ba125ef383f7ceb382e80f2",
-    "Heavyset_Walk.json": "55912968fef11e32c3149b0c46616c31e85c5f342114949f5cc131362696fb4c",
+    "Heavyset_Walk.json": "b6a49aaff1ebc09b1808693ce6445d390fb3cb091d49c1d64e18dcb1bebf80e4",
     "HighKnees_Walk.json": "fd48a98425efbaf08fd37d251c4fdc6a8be3022ec6e0abb8970f5455b97548b1",
     "InTheDark_Walk.json": "823faf41b46b06c56188133342b0a9fdc0cf851417a4b334429f72e5c34eaa3e",
     "KarateChop_Walk.json": "3a395054239175c12b885f528756d0cdf069cbfcaacb85dae873d831c3dfb6aa",
@@ -646,7 +646,7 @@
    }
   },
   "STYLE100_BACK": {
-   "content": "c39bf470dbc6c39b4a8dfce3527908f253172af4cef3eda3efe472a61447d094",
+   "content": "e9a3ad389bd67d39be0bce02c4dfdaf3156d39431d5a2c614d53db25c26ba660",
    "files": {
     "Aeroplane_WalkBack.json": "77608f6d4d6dd368d2fcc3b1f2441ba6580248e11cc05876d38951c7bb2173c6",
     "Akimbo_WalkBack.json": "00670e0bf5beaa2d0b49c9a25403d935bcf1d001ae1fadc9fa9e27812ca4a86a",
@@ -743,13 +743,13 @@
     "WhirlArms_WalkBack.json": "c9bb91d4f8e3da8b824907e5f6a9058d32d6bd0cc0462771f2f7c54c0a6f72e0",
     "WideLegs_WalkBack.json": "d8972e1c3620bcd0767e83c35d12eb9bcf4901298427b140e406951e11081c0b",
     "WiggleHips_WalkBack.json": "1ab68ebfb3e119a53f1aebfd7418362f3b725e3788b82c4f87273c0ea8b6c25a",
-    "WildArms_WalkBack.json": "3bb398cb190bbb98a912764e6737b48820efba2ffa4c0de2de7f5bb29f0a4559",
+    "WildArms_WalkBack.json": "84ec5ce529fe8730fcd84dae6456bbd14243bfd11ed481bf4145cc346ccc29ca",
     "WildLegs_WalkBack.json": "d4365fe313c1873ec01448acf5595f7e2b5b77431b9010c3c628fac412e18553",
     "Zombie_WalkBack.json": "cda1a3740b73ca58b739abbec543015ecf0ef8ee3420d9d98d8d68b41567a173"
    }
   },
   "STYLE100_BACKRUN": {
-   "content": "a729c6102761e3bb2b45d2bcceb53b5a292731fd9dbfb9aaba29e1b565deada5",
+   "content": "b823e60e489810475527006f430151f5abd433feccc065b5f539e599595167f5",
    "files": {
     "Aeroplane_RunBack.json": "d9fd70440e0997dfbbba47016f962e06d7699b872b9555e83cac82f9d4dde573",
     "Akimbo_RunBack.json": "9305c68768860830fe2f522d5413913947a59935049011c852e33b8cda25446c",
@@ -763,7 +763,7 @@
     "BentForward_RunBack.json": "7558761f69e591ebc4340ff3d687b8094de9ba7ec4eb230fae7f766b7909143b",
     "BentKnees_RunBack.json": "6eca81698dea99387484ef53371610d4c80c4dc7170dd37c770290adfb6724af",
     "BigSteps_RunBack.json": "4edff1d1e262efc501400d63efab24b8903a8a0a8ee13f6a775b553b213c4322",
-    "BouncyLeft_RunBack.json": "240d4b8bff567e8d0a437d630f7eafda996f41052ace671a318d3ed53255955c",
+    "BouncyLeft_RunBack.json": "99666981f1a28d49a5c715c79490b8358f0cd43521ff816d0a3794a9cea1c4c4",
     "BouncyRight_RunBack.json": "d7a19919868276bfa47bc1846144621da43dd832586f2e370a5002231df5f81c",
     "Cat_RunBack.json": "60cabc9f03dcbb36b707e167afdbe00739389ada5057c86f9511fd0895a4e299",
     "Chicken_RunBack.json": "4fe4905841453522a297655bf3b215264673a894b91bfd26cff97cb122bfa211",
@@ -776,7 +776,7 @@
     "DragRightLeg_RunBack.json": "ca20b92a4a51261b7cc56ab2f849ebec253397fa40b69529041f805f92483849",
     "Drunk_RunBack.json": "87a7a0cf1b563a727160061f48a18733c13706f5a42d4d454478f31aeed39434",
     "DuckFoot_RunBack.json": "c54fbbbca48de4ccc4af72a1c2aac99f50d0674ca2cee51b4810773ab7e67758",
-    "Elated_RunBack.json": "5083e8a4a368b1abcc5cf1038d27bea6d08893623a77d2772e2fbaedc361b390",
+    "Elated_RunBack.json": "8b8121be46ef987028f8225a22df8187695ade16118fdcb8e90ba797b39ea255",
     "FairySteps_RunBack.json": "097e8ed92807431768b04ccef9af4a3ed3130880709c02f3b69d5f8ec20542ae",
     "Flapping_RunBack.json": "4e0405fa37cb5fc37fb3685332ae8dad4feedfdf1f920e7f4ec5b0664c36a9be",
     "FlickLegs_RunBack.json": "768f6c79a53a52e186c605d99029953917e5185836c472501849489cfb80bb36",
@@ -787,7 +787,7 @@
     "Heavyset_RunBack.json": "b4030f78992c173588e52b1826024f1c2d7b5a127b5908eff2bb922e08fd9277",
     "HighKnees_RunBack.json": "f7ad28a754a2cff614c212a6d5c073f54c2be3a86c8483ee8a52ddfd7b63088c",
     "InTheDark_RunBack.json": "a1bf29d36c25e7c99812fd9d1fb0176b1d8f624262025dbeb47869299c4848d4",
-    "KarateChop_RunBack.json": "76e4d972f91ed602437247f8e1bc2ff9d002f996269ff1bb658a7c6ea6c7d483",
+    "KarateChop_RunBack.json": "4a9231ac5bb686d962f246c421751c0da8825a74194f99583939611d34ce869b",
     "Kick_RunBack.json": "b585516630b3ba25025a3d7de3c6cb909a35ad45b974040ecda2e85505acf945",
     "LawnMower_RunBack.json": "91066d737a2c53b33170abbb30fc939690bec97880db8f08706b91e7a5a666ba",
     "LeanBack_RunBack.json": "09b83fb19c1882e6e0e60ec948004b297fb95a4c6be802b4842879df986201ec",
@@ -852,7 +852,7 @@
    }
   },
   "STYLE100_IDLE": {
-   "content": "38f38713cc5035caff6f5378b6988e8bc82631097e22714830f6572473892c55",
+   "content": "0cd328a21451a59d79d7b0a93ef0ee7ecb7f3f4e6b164abb776f2e2947660348",
    "files": {
     "Aeroplane_Idle.json": "5fac8e3f1bae1a87c841a0f6c00d70928ae5df444c7c3bb643b3c0ca5fbf8d68",
     "Akimbo_Idle.json": "cc47767504153b7e5e9267c53f7ede0297b982e07ed77ce14b46e62f7661534c",
@@ -870,7 +870,7 @@
     "BouncyRight_Idle.json": "49a071db5bf8ab5b5e69bd4d813e97445cb7785b4b7ba3a7d6dc4fb9b9e74bcb",
     "Cat_Idle.json": "e3bf1cb6ae5bc3cb5f28f91e21ee4ea3ad95c282401492ec4fc44def408e4202",
     "Chicken_Idle.json": "2517294f8cdb30b700648716c3a35ec8fdfa0dbe3813fffde35a24ad02cb4d2a",
-    "CrossOver_Idle.json": "74dc2d70ec23f3112f5e033fc5541c10ad32683be48e46a2f6c034c08f88a6b7",
+    "CrossOver_Idle.json": "210bcea73595c9c8990acd9f891dd3069b3ea87b01c5101d4725455fbc275563",
     "Crouched_Idle.json": "3fe7e857e7e688fb17ae1a9c53c469fa7123e516c5c6a74e9d4579684c5290b5",
     "CrowdAvoidance_Idle.json": "1faff3abac03a3c604e5f044a9bb87146430e9a987c53d00c47672e563343364",
     "Depressed_Idle.json": "b0fdf7a5b40a9ed229710cf99c956a61e0fbf480d9450542097de5a7700fe0b4",
@@ -884,7 +884,7 @@
     "Flapping_Idle.json": "5dbb72f4f047f37b1ebd21e4cecff234c1fc8a63bb561224313d7b03357ab05a",
     "FlickLegs_Idle.json": "e440a444a081fe1503e5e26177a3771d3570a4b40401e7a9d9560d76d7a9ad30",
     "Followed_Idle.json": "8a6fe2a0d6fb81c85f4cda81dea596a553434a0d59efc9a5d18761150cac8c52",
-    "GracefulArms_Idle.json": "e2313724c834ea0fe7c2a22a48c54f17e0f421163881232032fc6e5b5c8fd124",
+    "GracefulArms_Idle.json": "a704dae7fa91865c142093fcc43fc7547fa79b1eeea7990b5767cb56fcb86dda",
     "HandsBetweenLegs_Idle.json": "dbfe3aad7c0a3385fa8275d8e7806809ac75233887adabfbbe394410f7b013fa",
     "HandsInPockets_Idle.json": "38243bde06b0185108d48ccb4d73a098bc5351b972fa75b1dcfc4b81e401288a",
     "Heavyset_Idle.json": "f617467210bf9180cf532e4aecff18667768142dec04694b5d63efad67bc52d4",
@@ -908,7 +908,7 @@
     "Neutral_Idle.json": "a9ea3aa3cf32ef7f0a22d2a68aae7690e89618beac6789c55ba4edc2edcefa13",
     "Old_Idle.json": "e6c87673a19663810368f71723e4914eb8f8e144d6ee9bd04bd5eb704e164daf",
     "OnHeels_Idle.json": "3ff21126d1898c8166b1b341c1abb824d88239e3282ce80994a5027a0e95b025",
-    "OnPhoneLeft_Idle.json": "2f17c17281d300204010f2881860786b803d3eaeec9ab86c9c4ddefb4a7c6ead",
+    "OnPhoneLeft_Idle.json": "6f87fc31400613a1e64ecafec103227322c30c4d6f02337a596ff9c1b403607f",
     "OnPhoneRight_Idle.json": "1eadc0c195e96896d1bbd0ad2502e5a3276aff02564b396d52eaa6ecdef5123f",
     "OnToesBentForward_Idle.json": "49b53b96560faebccf6fa50d341c46611504d2d050b8872742e188d7a9e13c93",
     "OnToesCrouched_Idle.json": "5cd91c8d487cfd4b24a539c201dfdc75787f0b7c141d99471c6ec8323d4bbf63",
@@ -1058,7 +1058,7 @@
    }
   },
   "STYLE100_SIDE": {
-   "content": "f451e8313a881a43b63a48f3ab34ee7a1c14abfd4cc8d1473a5604df130b868c",
+   "content": "0dd027e1a4813ff0b33f88de0798cb8ed292803e583ce66cbd337d4e4db3eeec",
    "files": {
     "Aeroplane_SideLeft.json": "e157942d821f42a5e7e0f964980bf0918de21db069b6f64446714adeb65d058f",
     "Aeroplane_SideRight.json": "8928fd57eef3253d1e758dcbbb27f5e2cb03c2bb359572b8e7fb32caa6b66537",
@@ -1097,7 +1097,7 @@
     "Crouched_SideLeft.json": "e7eba2ad898a512ee022d611ac3c344d25d4132f18771bdfd61d89303ea04740",
     "Crouched_SideRight.json": "c135c5e6d9a86eeb2d1dd09be442f27de9f47b1fa5f8caec70526a4897bdf1ad",
     "CrowdAvoidance_SideLeft.json": "7a45cbb3e2e36e7cf0caa52e98550e99e23e40c6df1829a9778dcdfc31d21bb4",
-    "CrowdAvoidance_SideRight.json": "f42f2cb4d655275a4f25b3d593e209a2f8dd25403ffb8ed6334207adf455d644",
+    "CrowdAvoidance_SideRight.json": "cc90ce0e8c44a4c4ebaf2c107eb01d9238b45bf6a256e85fffbf0abc1de8615b",
     "Depressed_SideLeft.json": "86ef587743ed86778fd1050623b88fd5281b9e60248b1bd966fe09586f231828",
     "Depressed_SideRight.json": "96ee4ac3ce7d4a43601d82ba3539cb01aec27a23cc3bb2a4a7dfbc106b02e09d",
     "Dinosaur_SideLeft.json": "34631ff8471a1bb76bed524de56778241b3dc5818745ec8eae10724b45809452",
@@ -1134,7 +1134,7 @@
     "KarateChop_SideRight.json": "8d4324db804deed20295172cf027bd3d8d6c7792dcb0c35d23a432d9ceb25fbb",
     "Kick_SideLeft.json": "7dd36d9cec52dcb7be37776765a132c147bb3c44768505ab2dd4627b15129fab",
     "Kick_SideRight.json": "b4df54a2197b3216b759d709e5dfe8f9b198dd121b35cddd2bf29398446192e0",
-    "LawnMower_SideLeft.json": "60401750d6a1dc3866a86a498aa0dc9815ba357853201ee6fb81be86b28d55b9",
+    "LawnMower_SideLeft.json": "2eb78f1a4bd4753a99955d8b427fa2e276e6abecdeb449cd227b1ab1e4bd3019",
     "LawnMower_SideRight.json": "0f27eca819e1d63517cf948a36ca6ea4d9a86e606a46db363b52607f381d605c",
     "LeanBack_SideLeft.json": "397dce297a54896d809d69eff873680f0319697a502184c940ef259a2d5b844d",
     "LeanBack_SideRight.json": "638a6cdc786255802890ddc47e1c7d02f2389ce2b384bab3b83ff89524c0f534",
@@ -1257,7 +1257,7 @@
    }
   },
   "STYLE100_SIDERUN": {
-   "content": "d7a5c88cba02036c006cc5d1e68523b956999832547852062a620c7f78523d6d",
+   "content": "f66282c8f855bdeee2198da78b26388d63dedc6aca01f8d782523886d8ec8fa4",
    "files": {
     "Aeroplane_SideRunLeft.json": "0c51257bcf37ed1a2335b7f2eda0820c74937d19fd0dcdd67f87c1a10e8c537c",
     "Aeroplane_SideRunRight.json": "92150adb63a39892a94f10daeb5995214b13a3faf1bfaeaaee180f61e81101c2",
@@ -1268,7 +1268,7 @@
     "ArmsAboveHead_SideRunLeft.json": "7ea1865a36e0f1353deea558aad6f59b10ec175d269555abe913be5a855e6e0a",
     "ArmsAboveHead_SideRunRight.json": "30daeaf43a7f16887f105a0e3960c9194653dd64f0139dcb901528ea5851fa46",
     "ArmsBehindBack_SideRunLeft.json": "640c45d7ffba8e8bfc523de5622ec939fa5d118adf89a2a6aed9bb97f747548a",
-    "ArmsBehindBack_SideRunRight.json": "bb33428d94b383176925712eac6967171cbb842847b254fa56d4460ee36e421d",
+    "ArmsBehindBack_SideRunRight.json": "a6f84ec5e49e4148ea65ace1f519e08fe99dd6604d5844f80b5481caacc70185",
     "ArmsBySide_SideRunLeft.json": "2de018791355276e1964839166e18c10fd35350b2f3afe494d2299fb2bb16d1d",
     "ArmsBySide_SideRunRight.json": "0fc8a5c7c410c04afec83704df04d879d62a84a65f486e140a63c4b3ecebd64b",
     "ArmsFolded_SideRunLeft.json": "8fb9cec8bf747e95d5f3fd47524150bc9ba2ddd62584b31ec108566ee500c775",
@@ -1280,7 +1280,7 @@
     "BentForward_SideRunLeft.json": "f6dfd6e731807468d5fdb64fc9b0ea719de01baea5ac07fa7d94ede610391a50",
     "BentForward_SideRunRight.json": "eadb42f848aca60fd52b7e3e73e53412a706cd20ad5e2502ea50f31c0ab921f4",
     "BentKnees_SideRunLeft.json": "4e50eaef67409db757b1ea46523c188379782cd8ff1e38b9c98763025a6a746f",
-    "BentKnees_SideRunRight.json": "6c4dfa3777a62d3f08d36859ae913c023ee8a9902f0c90385850d14f9f1c759c",
+    "BentKnees_SideRunRight.json": "5f269874d6d8c29c685b339ded93754797c602d2cd3baebd7687b55fc66b469b",
     "BigSteps_SideRunLeft.json": "1b7e5f7c7ca904f3aee3459c53e8da1a819dcd2d175a49884a0740b93a9e55c6",
     "BigSteps_SideRunRight.json": "3a71738b3707d1d3a95f0271d2f390c1a23fde538486640f9d8b0c6c77b0a4aa",
     "BouncyLeft_SideRunLeft.json": "104ab187bd4c6e2c970f63bd4c58867b1fb9712de88930ed69b0d7fac8dc68c0",
@@ -1401,7 +1401,7 @@
     "ShieldedLeft_SideRunLeft.json": "32142360ebd9d6977d292204e2ede640fc292bc17f46b51d1bbc72c6fb303cc9",
     "ShieldedLeft_SideRunRight.json": "77c99c1200936441d27fd3a68cdd6e47da8ba6d479b0255823602647282c7978",
     "ShieldedRight_SideRunLeft.json": "04cf94cfde63ad65002e896959d5936e249861ec087f4845b3a03d11589b093c",
-    "ShieldedRight_SideRunRight.json": "132ce92ceba2be80de49b57abd1a42df5bc74e2c645443b78f963fea18d42ee0",
+    "ShieldedRight_SideRunRight.json": "d802c99d59d8718bdb1f2797933de0c477536c6f696071e8518f874fa84ea4fa",
     "Skip_SideRunLeft.json": "d508dc26281b49165ac3e82ba3d0b075bea188a37e01103f8c1ca6ae0eb1e2f5",
     "Skip_SideRunRight.json": "483f330c40f1288ad681ece536758c00d3140ff2567894eea69f04cba4da63b5",
     "SlideFeet_SideRunLeft.json": "0d5f64bd652af11dc2299bceb77a1479c0e3e027791803b97028e9a59f7ccf5b",
@@ -1410,7 +1410,7 @@
     "Star_SideRunRight.json": "dfd5a863d3602b6a18bd35e4edbbe18e7a621f44ed903b1a0b62b1c53c838837",
     "StartStop_SideRunLeft.json": "12f49324e7b557ca1a9e77828993d2a70bd4eaca8fbcdd9d01c5d5905676f8e2",
     "StartStop_SideRunRight.json": "2a01b8e41a7eda377c09f7ecaab69327fd49a40ec84f2615f09cc557cd9980a8",
-    "Stiff_SideRunLeft.json": "fa04f5cb9abda33ade58dcf7b0e2231af85130f4e0752318b43122c63ed0f538",
+    "Stiff_SideRunLeft.json": "0603f3a93e2c168a0fc0973d7037245b0640413f4a1cd68ef8bfd2ad9b1bebdb",
     "Stiff_SideRunRight.json": "0e2aa978b248bbe295cfe955d228479279df39f0bed6b9d58a16b131f83de38a",
     "Strutting_SideRunLeft.json": "4c8cd131cf4db99e9a9f0087eef81dcead6f96d245b9996a6da644f62509c183",
     "Strutting_SideRunRight.json": "cdb2ba63ae34884357185cbaa12683b49dde29886109f1ba1934526f672b7d37",
@@ -1444,7 +1444,7 @@
     "WhirlArms_SideRunRight.json": "d9b9bcb53a712a0ef449ccc6306f38b26e2f0a14af176e317d73966b07214464",
     "WideLegs_SideRunLeft.json": "c80eba353a4a0fb51c79e43ba1929002fea1c430ed6f50fd0af22141a80fbe5b",
     "WideLegs_SideRunRight.json": "60939a672f1282f78d24abb475ead12104d9d1161138301d9c7b102c61a81353",
-    "WiggleHips_SideRunLeft.json": "e77e387b24fb1d375cc59be3d0315196e626c3a214052dd80a961a56e4d71a28",
+    "WiggleHips_SideRunLeft.json": "d5ba4731a49c28e4fd982b5b89018d68e85ae40df11b23e6fd1295e821a3c226",
     "WiggleHips_SideRunRight.json": "a228a14c9cd4d21baef79e704fe64e19a562af44a558ad27c3ca150c908692e9",
     "WildArms_SideRunLeft.json": "3bfd0153ccf2990f25276a2664d008ba2166b6781368eab342b49feb78f5e688",
     "WildArms_SideRunRight.json": "e931bfeee2be9cdb19ccb2151d440f5ed0b59f152890f5083758a1091ba98bb1",
