@@ -2591,6 +2591,70 @@ picked by the owner on 2026-10-21. No gate follows them: each is held by its Ver
 - **Verify:** `npm run e2e -- review previews gallery`, `npx vitest run --config apps/gallery/vitest.config.ts`,
   `npm run check`, `npm test`
 
+#### WP-F.12 The review page says what a review is for, and each card what its clip should show
+- **Owns:** `apps/gallery/src/review/*` (new: `shows.ts`, `shows.test.ts`), `tests/e2e/review.e2e.ts`
+- **Also touches:** `apps/gallery/README.md` (WP-8.1's file)
+- **Needs:** WP-8.2b, WP-F.11; G8's review (D133)
+- **Size:** M (486 new lines against the G8 commit, tests included: 278 in tracked files, 208 in two new ones; 419 as
+  built, 67 more from the review's fixes)
+- **Carry:** none
+- **Trigger:** the owner, 2026-10-22, after reviewing G8's 20 clips on the preview's review page: "Probably give clear
+  directions when someone opens that page, so they understand what they are doing. I honestly had no idea what the
+  expectation was for most of these. ... idk how LLMs would select an animation but maybe you should explain that as
+  well so I can better understand my role. Technically, without knowing the name of animations or what they were to
+  do, they didn't look broken", and in LawnMower_SideLeft's note: "I think you need to state what the expectations are
+  of what I am supposed to see and what you think is happening" (D133).
+- **Build:**
+  - **A guide** at the top of the review page (`index.html`'s `#guide`, static, plain words, about two phone screens),
+    open on a first visit and collapsible, its open or closed kept in this browser's storage (`m3a.review.guide`, each
+    read and write in try/catch: a private window opens it). It says what these clips are (sampled from the library AI
+    agents use to put motion into games); how an agent chooses one (by its words: name, tags, description; and its
+    numbers: how fast it travels, whether it loops, how long; it never watches the clip play, so a clip whose words
+    don't match its motion misleads every agent that picks it); what the sensors already check (feet sliding, sinking into
+    the floor, sudden jumps between frames, limbs through the body) and what they can't (whether it is what its words
+    say, whether it looks natural and alive); the reviewer's job per card (Play; read "What it should show"; Approve if
+    a game developer asking for exactly this would be happy with it; Flag if it looks broken, doesn't match its words,
+    with examples, or no game could use it, saying why); a note's "task:" and "threshold:"; Export and send the file;
+    playing or reading decides nothing. No jargon (no H0, contacts, refs, motion hash). After review: an agent "never
+    watches the clip play: at most it reads a short summary a computer makes of the movement ("walks", "in the air") or
+    looks at a few still frames" (describe, sheet, film); a card's PASS, WARN or FAIL is the sensors' result, a WARN or
+    a frame marked red is where to look closely, deciding nothing; Flag's example is "an idle that is a frozen pose"
+    ("an idle needn't travel, but its body should move"); the file goes "back to whoever asked you for this review
+    (they apply it with one command)". A closed guide is closed by an inline line right after it, before the page
+    shows (no flash of an open guide); main.ts keeps the choice.
+  - **"What it should show"** on each card (`shows.ts`, pure; `view.ts` `showShows`), under its name and above its Play
+    and its verdicts: its description as its file holds it (or that it has none, "worth a flag"); "Loops: it repeats
+    with no break, N s each time" or "Plays once, N s long"; whether it travels, which way in its own frame (eight
+    ways: forward, forward and to its left ... backward) and, from its speed fact, how fast in metres a second on the
+    library's reference body (0.95 m hips: `mps`, the m/s search shows an agent) and as a grown-up's pace (a shuffle, a
+    slow walk, a walk, a brisk walk or slow jog, a jog, a run, a sprint), a one-shot by where it ends ("Moves to its
+    right: it ends about 0.5 metres from where it starts"); "Doesn't travel across the floor" or "Ends about where it
+    starts" otherwise (never "stays", which a reviewer reads as "holds still": a frozen idle is theirs to flag); its
+    tags. Read from the clip itself: a sampled clip from the library the page bundles (its set loaded when its card
+    comes), a submission from its own clip (a recipe compiled as its sheet and Play compile it), its facts measured on
+    the page as adoption measures them (@m3a/library's `withFacts`), never taken from its file. Each card's words come
+    as its clip is read, alongside the sheets (`__m3a.described()` resolves with how many cards say it); the first
+    card waits for its own set alone, as before F.12.
+  - The review actions list names both (the guide: the README; what a clip should show: `m3a show`, with the tier note).
+  - Everything else as it was: the sheet, Play, the gallery link, the verdicts, the export, the batch opening.
+- **Done when:**
+  1. A first visit opens the guide with its key sentences (the clips' origin, how an agent chooses, "It never watches
+     the clip play:", what the sensors check and can't, what PASS, WARN or FAIL means, Approve's and Flag's tests,
+     "task:" and "threshold:", Export and send the file back), none of H0, contacts, refs or motion hash; a tap closes
+     it and it stays closed on a reload (closed before the page's script runs), opened again it stays open.
+  2. Each library card's "What it should show" is its clip's description from its file, its loop or once and its
+     length to the hundredth, its travel's numbers from its facts (the m/s search shows, or metres where a one-shot
+     ends), its tags, before its verdicts: the e2e scratch queue's 20 and G8's 20; a submission's is its own clip's
+     (the one kept as it is says "walks, kept as it is"; it and the one whose file claims a stale speed both travel at
+     Walk_Loop's measured speed; the recipe's, compiled, says how it plays); nothing is decided (0 decisions, no
+     verdict or note on any row). A closed guide is closed with the page's scripts served empty.
+  3. The pure words (the eight ways, metres and metres a second as `mps` says them, the paces and their bounds, a
+     length, a loop's and a one-shot's travel, no travel never said as "stays" or "still", no facts, a malformed
+     travel, no description; G8's 20 clips from their files, its idles not travelling and its side runs at a walk)
+     have unit tests.
+  4. A phone's screenshot of the guide and G8's first card: `check-output/review/guide.png` (390 x 2319).
+- **Verify:** `npm run check`, `npx vitest run apps/gallery`, `npm run e2e -- review previews gallery`
+
 ### On demand
 
 Each starts only when its trigger fires; record the measurement that fired it. A trigger that never fires means the WP
@@ -2790,7 +2854,8 @@ commits named here are on their PR branches (`refs/pull/<n>/head`).
 | F.8 The manual's last names | done | 0.55.2 | 5b93247 | 2026-10-22 | `npm run doctrine`: the manual 7,999 of 8,000; `manual.test.ts` 9 passed: `character(variant(7)).glb` through `loadGlb` (Node or a page), `variant(7).id` = gen-7, `TEST_SEEDS`, the attached player's `apply()` and `bound`; Ship and the actions example shorter; no rule a brief uses lost a word; MIGRATING gap 10 closed but for gap 1's names (D128); the briefs re-run with real agents (`bench/results/2026-10-22-*`, the packages at b7528b1): B1 4/5 (discovery 2/2), B2 to B6 5/5, B7 4/5; G7's variants B1 4/5, B6 4/5, the rest 5/5; B8 5/5, its G9 variant 5/5, B8-ten 1/1: 79 of 83 trials, $13.82; the four misses B1's floor (two), a jump left on the ground, a mirrored strike 10% off |
 | F.9 Honest per-loop contact readings | done | 0.56.0 | e766496 (#22: 2f973fa, review fixes d5fedc0, 3c60ac0, 560b535) | 2026-10-22 | `npm run sweep -- --rates --check`: 428 failing rows on 108 loops (473 on 126), 0 added, 108 of 108 answered; the rule, written before the sweep was read, gave 57 loops another reading, 45 adopted after the sweep, judge and QA veto (12 kept their file's), written `labelled` with `facts.reading` (planted-quarter 19, planted-half 10, sole-planted-quarter 7, lower-quarter 3, lower 2, sole-planted-half 2, sole-planted 1, lower-half 1); the judge one fail gone, none added; QA 1,015 / 229 / 154; each set's import `--check` byte for byte, facts 0 stale; spec §7.1 and §7.3 amended, refrozen (D129); two adversarial reviewers' findings fixed |
 | F.10 Publishing to npm (O2 answered) | done | 0.56.0 | e766496 (#22: a63dc2e, 894244c) | 2026-10-22 | `npx vitest run tools/release/publish.test.ts tools/release/release.test.ts`: 37 passed (16 publish, 21 release); 36 edits to `publish.yml`, one at a time, each fail its test; `npm run pack -- --check --publishable` in a clean copy after `npm ci --ignore-scripts`, nothing fetched: PASS, 8 packs; the publish loop with `npm publish --dry-run` on the real tarballs: 8 in dependency order; two adversarial reviewers' nine findings fixed (the run from the tag for provenance, the go-ahead in every job, the environment `npm`, no checkout beside the token); `actionlint` clean; the first real publish is the owner's (D130) |
-| F.11 The review page plays its clips | done | 0.57.0 | (this PR) | 2026-10-22 | the owner's ask during G8 ("why can't it play here ... why can't there at least be a URL pre filled"): each card plays its clip in place (one stage, one card at a time, no frame drawn when idle), links it in the gallery, and the page opens G8's batch on its own; the site carries a batch of library clips alone, checked value by value, and refuses one holding a submission; `npm run e2e -- review previews gallery` 11 passed; the gallery's unit tests in T1 (7); two adversarial reviewers' 10 findings fixed (D132) |
+| F.11 The review page plays its clips | done | 0.57.0 | e599e33 (#25) | 2026-10-22 | the owner's ask during G8 ("why can't it play here ... why can't there at least be a URL pre filled"): each card plays its clip in place (one stage, one card at a time, no frame drawn when idle), links it in the gallery, and the page opens G8's batch on its own; the site carries a batch of library clips alone, checked value by value, and refuses one holding a submission; `npm run e2e -- review previews gallery` 11 passed; the gallery's unit tests in T1 (7); two adversarial reviewers' 10 findings fixed (D132) |
+| F.12 The review page's guide | done | 0.58.0 | (this PR) | 2026-10-22 | the owner's ask after G8 ("give clear directions when someone opens that page ... explain how LLMs would select an animation"): a guide at the top (what the clips are, how an agent chooses one, what the sensors check and can't, what Approve and Flag mean, export and send back), open on a first visit and remembered closed; each card says what its clip should show (description, loop or once, length, travel in m/s and a grown-up's pace, tags), a submission's measured as adoption measures it; `npm run e2e -- review previews gallery` 14 passed; the gallery's unit tests 18; two adversarial reviewers' 10 findings fixed, 3 blocking (D134) |
 
 ---
 

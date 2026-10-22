@@ -4,7 +4,7 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 `PLAN.md` §14; decisions are in `docs/DECISIONS.md`.
 
 **Phase:** all eleven built (10 done: G10's commands passed; its confirmation blocked-owner). **Next gate:** none (M4).
-**Version:** 0.57.1. **Mode:** ultracode (D83). **Last change:** G8 passed, the owner's review applied (D133).
+**Version:** 0.58.0. **Mode:** ultracode (D83). **Last change:** the review page's guide, each card's expectation (D134).
 
 ## Done
 
@@ -19,12 +19,12 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 - Phase 9 (G9's commands passed on run 2, #16): the intake, its gates, the adopt bot, B8, B8-ten (WP-9.1); sources
   (9.2); dedup, lineage (9.3); the registry index (9.4) (D112); the verifiers' fixes (D113, D114).
 - Phase 10 (G10's commands passed, #17): the consumer proof and MIGRATING.md (10.1), the conformance kit (10.2) (D116).
-- The audit (D118, D119); the follow-ups F.1 to F.11 (#20 to #25, D121–D132): the bin and the hook, contacts, the rate
-  sweep (its rows answered, 45 loops read by D108's bar), the manual's names, T1's shared modules, T2 under budget.
+- The audit (D118, D119); the follow-ups F.1 to F.12 (#20 to #27, D121–D134): the bin and the hook, contacts, the rate
+  sweep (its rows answered, 45 loops read by D108's bar), the manual's names, T2 under budget, the review page's guide.
 
 ## Next
 
-- WP-F.12, the review page's guide; WP-F.13, frozen clips flagged, the idles' motion kept, Jump_Twist cut again (D133).
+- WP-F.13, frozen clips flagged, the idles' motion kept, Jump_Twist cut again (D133).
 - The owner's steps below. Deferred with reasons (HANDOFF): B1's floor until the owner's go (it changes G7's evidence).
 
 ## Blocked on the owner

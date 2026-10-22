@@ -4,6 +4,25 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.58.0 · 2026-10-22
+
+WP-F.12 (D134): the review page says what a review is for, and each card what its clip should show.
+
+### Repo
+- The review page's guide (WP-F.12, D134): at the top, open on a first visit and remembered closed in that browser,
+  in plain words: what the clips are, how an agent chooses one (its words and numbers; it never watches a clip play),
+  what the sensors check and what only the reviewer can, what a card's PASS, WARN or FAIL means, what Approve and Flag
+  mean, the "task:" and "threshold:" notes, Export and send the file back.
+- Each review card says "What it should show" (`apps/gallery/src/review/shows.ts`): its description (or that it has
+  none), loop or once and its length, which way and how fast it travels (metres a second, as search shows an agent,
+  and a grown-up's pace; a one-shot by where it ends; no travel never said as stillness), its tags; from the clip
+  itself (the library's, or a submission's own, a recipe compiled, its facts measured as adoption measures them).
+  `__m3a` there gains `described`. Unit tests for the words; `npm run e2e -- review` checks the guide, its remembered
+  state (closed before the page's script runs) and every card against its file and facts, deciding nothing.
+
+### Docs
+- `apps/gallery/README.md`: the review page's guide, in its words, and what each card says a clip should show.
+
 ## 0.57.1 · 2026-10-22
 
 G8 passes (D133): the owner's review of the 20-clip batch applied.
