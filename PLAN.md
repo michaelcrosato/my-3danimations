@@ -2712,8 +2712,8 @@ picked by the owner on 2026-10-21. No gate follows them: each is held by its Ver
 - **Owns:** `packages/core/src/animator/animator.ts` (`AnimatorPose.turn`, `Animator.place`),
   `packages/core/test/animator-turn.test.ts` (new); `packages/three/src/play/write.ts`, `attach.ts`,
   `packages/three/test/turn.test.ts` (new), `packages/three/test-characters/characters.ts` (the paint);
-  `apps/gallery/src/place.ts` (new), `stage.ts`, `player.ts`, `main.ts`, `index.html`, `src/review/index.html`,
-  `src/playback.test.ts` (new), `README.md`; `packages/sensors/src/raster/mannequin.ts`,
+  `apps/gallery/src/place.ts` (new), `stage.ts`, `player.ts`, `gallery.ts`, `main.ts`, `index.html`,
+  `src/review/index.html`, `src/review/play.ts`, `src/playback.test.ts` (new), `README.md`; `packages/sensors/src/raster/mannequin.ts`,
   `packages/sensors/test/raster.test.ts`; `packages/tools/src/sim/simulate.ts`
 - **Also touches:** `tools/run/e2e.ts` (T2's sweep list), `docs/MIGRATING.md` (the root-motion row)
 - **Needs:** WP-4.4, WP-6.5, WP-8.1, WP-F.11, WP-F.12
