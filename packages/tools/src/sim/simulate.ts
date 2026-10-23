@@ -4,7 +4,7 @@
 // animation's root motion, or stays where the game puts it (in place: the ground speed the script gives), and then
 // stride warping sets the warped states' rate each step so playback matches the ground speed and the feet don't slide.
 // The stepping is `SimStepper`'s, which a page that plays a run ticks too (the gallery), so the two can't drift.
-import { Animator, contact, graph as G, type animator as A, type AnimatorEvent, type Bound } from "@m3a/core";
+import { Animator, contact, graph as G, math, type animator as A, type AnimatorEvent, type Bound } from "@m3a/core";
 import { checks } from "@m3a/sensors";
 import type { SimScript } from "./script.ts";
 import { validateScript } from "./script.ts";
@@ -48,6 +48,7 @@ export interface SimResult {
 
 /** The fewest mm/s the playing clips must travel for stride warping to match them to the ground; and its bounds. */
 const STILL = 1, RATE_MIN = 0.25, RATE_MAX = 4;
+const { PORTABLE } = math;
 const r6 = (x: number) => Math.round(x * 1e6) / 1e6, r1 = (x: number) => Math.round(x * 10) / 10;
 
 /** A clip by id from a clip source (a map, a list, or a lookup). */
@@ -149,6 +150,15 @@ export class SimStepper {
   }
 }
 
+/** Body points (forward, right, up mm, about the root) turned `deg` degrees toward the right about the up axis. */
+function turned(points: ArrayLike<number>, deg: number): Float32Array {
+  const out = Float32Array.from(points);
+  if (!deg) return out;
+  const c = PORTABLE.cos((deg * Math.PI) / 180), s = PORTABLE.sin((deg * Math.PI) / 180);
+  for (let i = 0; i < out.length; i += 3) [out[i], out[i + 1]] = [points[i]! * c - points[i + 1]! * s, points[i]! * s + points[i + 1]! * c];
+  return out;
+}
+
 /** Runs a script on a graph. Throws, naming each issue, when the script doesn't check against the graph. */
 export function simulate(opts: SimOptions): SimResult {
   const { graph, script, body } = opts, issues = validateScript(script, graph);
@@ -193,7 +203,10 @@ export function simulate(opts: SimOptions): SimResult {
     const playing = new Set(a.layers.map((L) => L.name)), world = st.world;
     for (const [layer, w] of [...open]) if (step + 1 >= w.until || !playing.has(layer)) close(layer, Math.min(step + 1, w.until));
     if (poses) {
-      frames.push(Float32Array.from(a.pose().points));
+      // the pose turned as far as the root has turned beyond it (a turning state before this one), so a frame faces
+      // where the character heads, as the sensors and the filmstrip read it: moved by the root, not turned (F.14)
+      const p = a.pose();
+      frames.push(turned(p.points, p.turn));
       root.push({ ...world });
     }
     if ((step + 1) % Math.max(1, Math.round(rate / 4)) === 0 || step === n - 1) {

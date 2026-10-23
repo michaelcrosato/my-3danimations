@@ -117,3 +117,10 @@ describe("views, font, blank check and PNG", () => {
     }
   });
 });
+
+describe("a root places a pose, not turns it (WP-F.14)", () => {
+  it("moves every capsule by the root's place, whatever its heading: the pose carries its own (a clip's turn drawn once)", () => {
+    const at = raster.capsules(X), placed = raster.capsules(X, { forward: 300, right: -120, yaw: 135 });
+    expect(placed.map((c) => [c.name, ...c.a, ...c.b])).toEqual(at.map((c) => [c.name, c.a[0] + 300, c.a[1] - 120, c.a[2], c.b[0] + 300, c.b[1] - 120, c.b[2]]));
+  });
+});

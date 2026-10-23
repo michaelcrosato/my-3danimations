@@ -78,6 +78,8 @@ async function main(): Promise<void> {
     scrub.max = String(p?.dur ?? 1);
     scrub.step = String(p?.frame ?? 0.01);
     $("notice").textContent = [g.error, ...g.problems].filter(Boolean).join("; ");
+    // the test characters' paint (the sheets' colours, F.14), said beside them: a fetched rig wears its own
+    $("legend").hidden = !/^gen-/.test(r.char);
     document.querySelectorAll("#panel [data-clip]").forEach((b) => b.setAttribute("aria-current", String(b.getAttribute("data-clip") === (r.clip ?? p?.id))));
   };
   const hud = () => {

@@ -14,7 +14,7 @@ import { bin, ROOT } from "./cli.ts";
 import { playwrightSummary, runTier, vitestSummary, type TierStep } from "./tiers.ts";
 
 /** The T1 test files that sample the library, run in full here. */
-const SWEEPS = ["packages/core/test/contact.test.ts", "packages/core/test/contact-gaits.test.ts", "packages/core/test/contact-sidesteps.test.ts", "packages/core/test/contact-siderun.test.ts", "tools/sweep/actions.test.ts", "packages/sensors/test/describe-tokens.test.ts", "bench/graders/B1", "bench/graders/B2", "bench/graders/B3", "bench/graders/B4", "bench/graders/B5", "bench/graders/B6", "bench/graders/B7", "bench/graders/B8", "bench/runner/briefs.test.ts", "bench/runner/runner.test.ts", "tools/sweep/sweep.test.ts", "packages/library/test/dedup/dedup.test.ts", "tools/intake/check.test.ts", "tools/intake/adopt.test.ts"];
+const SWEEPS = ["packages/core/test/contact.test.ts", "packages/core/test/contact-gaits.test.ts", "packages/core/test/contact-sidesteps.test.ts", "packages/core/test/contact-siderun.test.ts", "tools/sweep/actions.test.ts", "packages/sensors/test/describe-tokens.test.ts", "bench/graders/B1", "bench/graders/B2", "bench/graders/B3", "bench/graders/B4", "bench/graders/B5", "bench/graders/B6", "bench/graders/B7", "bench/graders/B8", "bench/runner/briefs.test.ts", "bench/runner/runner.test.ts", "tools/sweep/sweep.test.ts", "packages/library/test/dedup/dedup.test.ts", "tools/intake/check.test.ts", "tools/intake/adopt.test.ts", "apps/gallery/src/playback.test.ts"];
 
 /** The rate sweep's bodies T2 sweeps whole (D126): a generated one and the real rig whose feet fail the most rows, each
  *  with every locomotion loop at every rate, against the baseline. CI's `rates` job sweeps all six on every pull

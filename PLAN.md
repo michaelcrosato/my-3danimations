@@ -2708,6 +2708,55 @@ picked by the owner on 2026-10-21. No gate follows them: each is held by its Ver
   `npm run sweep -- --rates --check`, `npm run vectors -- --check`, `npm run conformance -- --impl ts`, `npm run doctrine`,
   `npm run migrate -- --check`, `npm run plant -- --check`, `npm run gate -- library-pr --fixture all`, `npm run e2e`
 
+#### WP-F.14 Playback as the data says: a clip's turn shown once, the data comparison, the test characters painted
+- **Owns:** `packages/core/src/animator/animator.ts` (`AnimatorPose.turn`, `Animator.place`),
+  `packages/core/test/animator-turn.test.ts` (new); `packages/three/src/play/write.ts`, `attach.ts`,
+  `packages/three/test/turn.test.ts` (new), `packages/three/test-characters/characters.ts` (the paint);
+  `apps/gallery/src/place.ts` (new), `stage.ts`, `player.ts`, `main.ts`, `index.html`, `src/review/index.html`,
+  `src/playback.test.ts` (new), `README.md`; `packages/sensors/src/raster/mannequin.ts`,
+  `packages/sensors/test/raster.test.ts`; `packages/tools/src/sim/simulate.ts`
+- **Also touches:** `tools/run/e2e.ts` (T2's sweep list), `docs/MIGRATING.md` (the root-motion row)
+- **Needs:** WP-4.4, WP-6.5, WP-8.1, WP-F.11, WP-F.12
+- **Size:** S (about 390 new lines, tests included)
+- **Carry:** none
+- **Trigger:** the owner, reviewing CMU_CURATED/Pick_Up_Basket in chat (2026-10-23): "that character does a 360 and
+  then walks backwards", where its data turns about 190° to its right and walks forward back to its start; their
+  experiment, "colour code the gen-1 ... snapshot from the same perspective at the same time ... see if they look the
+  same", which showed gen-1 facing away from the sheet from 2.35 s on; and "could we not make a tool that at least
+  compares things on 'data' level between the two?"
+- **Build:**
+  - **One rule for a turn:** a pose carries its own clips' turn (each clip's `yaw` at its playhead, spec/MOTION.md §5.3);
+    the root places it; what the root has turned beyond (a loop's earlier cycles, an earlier clip, a `place`) is the
+    pose's `turn` (core's `AnimatorPose.turn`), and @m3a/three's attach writes the pose turned by it, so a game that
+    moves the character by `travel` alone (the manual's way) faces where the root heads. The turn is measured at each
+    step, `place` or `restore`, so a scrub (a clip's time set without a step) shows the clip as written.
+    `Animator.place(root)` sets where the root stands (a respawn, a teleport). Nothing turns a character by `root.yaw`:
+    the gallery's stage turned its carrier by it (the turn shown twice), the sensors' raster turned a pose by it (film,
+    retarget's and a graph's strips), and a graph sim's frames after a turning state faced their own clip's way.
+  - **The fixes:** the stage places the character and turns it only by what its bones don't carry (`place.ts`, the
+    player's `turn`: a clip posed by time alone leaves a loop's earlier cycles, a stepped graph nothing); the raster's `capsules(points, root)` moves by the root's place alone, as the sensors' `world`
+    does; `simulate` records each frame turned by its `turn`; the writer turns only when the turn isn't 0 (its hot path
+    still allocates nothing).
+  - **The data comparison** (`apps/gallery/src/playback.test.ts`): at 8 moments of each clip, the character the gallery
+    poses and places against the clip's data (decoded on its own body, on its root's path), where bodies of other
+    proportions still agree: the hips' facing (within 5°), the travel's direction once the data has moved half a hip
+    height (within 60°), each clip's median limb direction (within 25°). T1: the 74 clips that turn, on gen-1; T2
+    (`M3A_FULL=1`): every clip on gen-1 and gen-0 (gen-2 and gen-7 pass too). One clip is named with its reason:
+    QUATERNIUS_SHARDFALL/Swim_Idle_Loop, a body under the floor (follow-up).
+  - **The test characters painted** as the sheets' mannequin: the left side blue, the middle and right amber, the
+    torso's and head's back half darker, a red nose; a legend beside the gallery's stage for a `gen-` character, and a
+    sentence in the review page's guide.
+- **Done when:**
+  1. Facing: 0 of the 1,398 clips off by more than 5° on gen-0, gen-1, gen-2 and gen-7 (on gen-1, 55 were, by up to
+     179°: Hopscotch, Pick_Up_Box, Pick_Up_Basket 174°, Jump_Kick, Stumble_Turn ...); Pick_Up_Basket turns half round
+     and walks forward, as its sheet; the comparison fails when the stage turns its carrier again.
+  2. attach: a clip that turns half round, then a walk: the walk faces the turn's end and walks forward (166° off
+     before), on gen-1 and gen-7; fails when the writer drops the turn.
+  3. The Animator's `turn` is 0 while one clip plays from its start, an earlier clip's turn after it, a loop's earlier
+     cycles' turn, and follows `place`; the raster places a pose without turning it.
+  4. The writer's hot path allocates under a byte a frame; T1 and T2 within their budgets.
+- **Verify:** `npm run check`, `npm test`, `npm run e2e`, `M3A_FULL=1 npx vitest run apps/gallery/src/playback.test.ts`
+
 ### On demand
 
 Each starts only when its trigger fires; record the measurement that fired it. A trigger that never fires means the WP
@@ -2909,7 +2958,8 @@ commits named here are on their PR branches (`refs/pull/<n>/head`).
 | F.10 Publishing to npm (O2 answered) | done | 0.56.0 | e766496 (#22: a63dc2e, 894244c) | 2026-10-22 | `npx vitest run tools/release/publish.test.ts tools/release/release.test.ts`: 37 passed (16 publish, 21 release); 36 edits to `publish.yml`, one at a time, each fail its test; `npm run pack -- --check --publishable` in a clean copy after `npm ci --ignore-scripts`, nothing fetched: PASS, 8 packs; the publish loop with `npm publish --dry-run` on the real tarballs: 8 in dependency order; two adversarial reviewers' nine findings fixed (the run from the tag for provenance, the go-ahead in every job, the environment `npm`, no checkout beside the token); `actionlint` clean; the first real publish is the owner's (D130) |
 | F.11 The review page plays its clips | done | 0.57.0 | e599e33 (#25) | 2026-10-22 | the owner's ask during G8 ("why can't it play here ... why can't there at least be a URL pre filled"): each card plays its clip in place (one stage, one card at a time, no frame drawn when idle), links it in the gallery, and the page opens G8's batch on its own; the site carries a batch of library clips alone, checked value by value, and refuses one holding a submission; `npm run e2e -- review previews gallery` 11 passed; the gallery's unit tests in T1 (7); two adversarial reviewers' 10 findings fixed (D132) |
 | F.12 The review page's guide | done | 0.58.0 | deaab20 (#27) | 2026-10-22 | the owner's ask after G8 ("give clear directions when someone opens that page ... explain how LLMs would select an animation"): a guide at the top (what the clips are, how an agent chooses one, what the sensors check and can't, what Approve and Flag mean, export and send back), open on a first visit and remembered closed; each card says what its clip should show (description, loop or once, length, travel in m/s and a grown-up's pace, tags), a submission's measured as adoption measures it; `npm run e2e -- review previews gallery` 14 passed; the gallery's unit tests 18; two adversarial reviewers' 10 findings fixed, 3 blocking (D134) |
-| F.13 The idles keep their motion | done | 0.59.0 | (this PR) | 2026-10-22 | the owner's G8 review ("This is a pose. There is no actual animation"; Jump_Twist "never gets to the actually jump"): frozen clips 102 → 17 (13 tagged poses, 4 answered), each fit bounded by the clip's own motion; no knee or elbow 20 mm beyond its capture (16 were, up to 54 mm: `steadyBend`), no snap (`spaced`); recipes keep the sway (0 of 87 one pose through clip, mirror, retime; 83 were); the still check in QA and the intake's lint gate; Jump_Twist cut again to its flip; `npm run import -- --check` 9 sets byte for byte, vectors and conformance 3662 as before, T2 266 s; two rounds, four adversarial reviewers' 21 findings fixed (D135) |
+| F.13 The idles keep their motion | done | 0.59.0 | 83f8ce0 (#28) | 2026-10-22 | the owner's G8 review ("This is a pose. There is no actual animation"; Jump_Twist "never gets to the actually jump"): frozen clips 102 → 17 (13 tagged poses, 4 answered), each fit bounded by the clip's own motion; no knee or elbow 20 mm beyond its capture (16 were, up to 54 mm: `steadyBend`), no snap (`spaced`); recipes keep the sway (0 of 87 one pose through clip, mirror, retime; 83 were); the still check in QA and the intake's lint gate; Jump_Twist cut again to its flip; `npm run import -- --check` 9 sets byte for byte, vectors and conformance 3662 as before, T2 266 s; two rounds, four adversarial reviewers' 21 findings fixed (D135) |
+| F.14 Playback as the data says | done | 0.60.0 | (this PR) | 2026-10-23 | the owner's in-chat review of Pick_Up_Basket ("does a 360 and then walks backwards") and their experiment (gen-1 painted, snapped at the sheet's moments and view): the gallery and the review cards turned a character by a heading its pose already carried, and the raster and graph sims likewise; one rule (a pose carries its clip's turn, attach writes the root's turn beyond it, `AnimatorPose.turn`); the data comparison `apps/gallery/src/playback.test.ts`: facing 55 clips off by up to 179° → 0 of 1,398 on four test characters; the test characters painted as the sheets (D136) |
 
 ---
 

@@ -5669,3 +5669,50 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   stays.
 - **Answered:** no: made under D131, to review.
 - **Landed in:** v0.59.0
+
+## D136 · 2026-10-23 · A pose carries its clip's turn; a root places it; the gallery checked against the data
+
+- **Principle:** the North Star (the owner judges what a clip does, so the page must show what its data does), 2, 3
+  (verified motion), D104, D132, D134
+- **Call:**
+  - **What was wrong:** the owner, reviewing CMU_CURATED/Pick_Up_Basket in chat, saw it "do a 360 and then walk
+    backwards"; its data turns about 190° to its right and walks forward back to its start, as the sheet draws it. Their
+    experiment (gen-1 painted as the sheets' mannequin, snapped at the sheet's 12 moments from its view) showed gen-1
+    facing away from the sheet from 2.35 s on. Cause: the Animator's pose carries its clip's own turn (a key's `body`
+    heading), and the gallery's stage turned the character by the root's heading as well: the turn shown twice. On
+    gen-1, 55 of the 1,398 clips faced their data by more than 20° (Hopscotch 179°, Pick_Up_Box 178°, Pick_Up_Basket
+    174°, Jump_Kick 170° ...). The sensors' raster did the same with a root (`film`, retarget's and a graph's strips),
+    and after a turning clip the next one's pose faced its own clip's way (a walk after a half turn walked backwards
+    through attach; 166° off), as a graph sim's frames did.
+  - **One rule (spec/MOTION.md §5.3's `yaw`, kept):** a pose carries its clips' turn at their playheads; a root places it,
+    moved by its place, never turned by its heading; what the root has turned beyond the pose is the pose's `turn`
+    (core's `AnimatorPose.turn`: a loop's earlier cycles, an earlier clip, a `place`), and @m3a/three's attach writes the
+    pose turned by it. So a game moving its character by `travel` alone (the manual's way) faces where it heads, with
+    no new call. The turn is measured at each step, `place` or `restore`, so a scrub (a clip's time set without a step,
+    the gallery's clip player) shows the clip as written; that player leaves the stage only a loop's earlier cycles to
+    turn by. `Animator.place(root)` sets the root (a respawn, a teleport). The raster and the simulator follow the rule;
+    the sensors' `world` already did.
+  - **The data comparison** (`apps/gallery/src/playback.test.ts`), the owner's "compare things on data level": the
+    character the gallery plays against each clip's data at 8 moments, by what bodies of other proportions still share:
+    the hips' facing (5°; measured 0), the travel's direction once the data has moved half a hip height (60°; worst
+    51°, walking backwards is 180; shorter travel by planted feet alone varies with the body's legs: 85° on a sword
+    combo), each clip's median limb direction (25°; worst 20 but one). T1 runs the 74 clips that turn on gen-1, T2 every
+    clip on gen-1 and gen-0. It fails when the stage turns its carrier again, as the attach test fails when the writer
+    drops the turn.
+  - **Found by it, kept as a follow-up:** QUATERNIUS_SHARDFALL/Swim_Idle_Loop ("treading water, upright", its hips 36 to
+    47% of H0 under the floor, the water's surface): the engine poses it far from its data (its limbs 93 to 102° off on
+    every test character) and the gallery's solid floor hides it; named in the test with that reason.
+  - **The test characters painted** as the sheets' mannequin (left blue, middle and right amber, the torso's and head's
+    back half darker, a red nose), the owner's idea, with a legend beside the gallery's stage and a sentence in the
+    review page's guide: on a one-colour figure a half turn walking forward and a full turn walking backwards look alike.
+  - **The owner's reviews made on the doubled turn:** G8's CMU_CURATED/Pick_Up_Basket (approved: "turn right spin 360
+    degrees and back pedal") and CMU_CURATED/Wrench_Bolt (approved; a 39° turn shown as about 78°); Jump_Twist's was
+    dropped with its old motion (D135). Their motion is unchanged, so the reviews stand as the owner made them; both are
+    listed for the owner to look at again (HANDOFF).
+  - **Not built:** an AI visual pre-screen of every clip (the owner's call: the data comparison first; considered again
+    only if it misses what a reviewer sees).
+- **Why:** a review is only as good as the page that shows the clip; numbers that two ways of drawing a clip share are
+  cheap to compare and catch what neither shows alone.
+- **Answered:** yes: the owner's words and experiment, and "drop the AI-visual test" (2026-10-23); the rule's details
+  under D131.
+- **Landed in:** v0.60.0

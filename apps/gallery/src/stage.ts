@@ -1,6 +1,7 @@
 // The gallery's 3D stage (PLAN.md WP-8.1; docs/THREE.md): WebGPURenderer (WebGL 2 where WebGPU is missing, or with
 // ?renderer=webgl2), a floor with a grid, two lights, and a character by id (gen-<seed> built in code, or a fetched rig)
-// bound through @m3a/three. The character stands in a carrier that the root's pose places and turns; the camera follows
+// bound through @m3a/three. The character stands in a carrier that the root's pose places, turned only by what its
+// bones don't carry (place.ts: the pose carries its clip's turn, F.14); the camera follows
 // it at one of the sensors' named views (raster.VIEWS: the same azimuth and elevation as the contact sheets) or, in
 // orbit, wherever a finger or the mouse turns it. `readback` draws a frame into a render target with the character and
 // without it and counts the pixels it changed, so a check can tell a drawn character from a blank frame.
@@ -9,6 +10,7 @@ import { Box3, Color, DirectionalLight, GridHelper, Group, HemisphereLight, Mesh
 import { bind, type ThreeBound } from "@m3a/three";
 import { loadGlb } from "@m3a/three/test-characters";
 import { characterBytes } from "./host.ts";
+import { placeCarrier } from "./place.ts";
 import type { View } from "./route.ts";
 
 /** Each fixed view's azimuth (0 in front, 90 at the body's right) and elevation, degrees: the raster's (raster.VIEWS). */
@@ -53,7 +55,7 @@ export class Stage {
   view: View = "three-quarter";
   /** The character's height at rest (scene units). */
   #height = 1.8;
-  #axes = { f: new Vector3(0, 0, 1), r: new Vector3(-1, 0, 0), u: new Vector3(0, 1, 0), turn: -1 };
+  #axes = { f: new Vector3(0, 0, 1), r: new Vector3(-1, 0, 0), u: new Vector3(0, 1, 0) };
   /** The characters asked for so far, so only the latest is put on the stage. */
   #asked = 0;
 
@@ -115,21 +117,16 @@ export class Stage {
     this.carrier.add(bound.root);
     [this.bound, this.char] = [bound, id];
     const { forward: f, right: r, up: u } = bound.core.frame, v = (x: readonly number[]) => new Vector3(x[0], x[1], x[2]).normalize();
-    this.#axes = { f: v(f), r: v(r), u: v(u), turn: new Vector3().crossVectors(v(f), v(r)).dot(v(u)) < 0 ? -1 : 1 };
+    this.#axes = { f: v(f), r: v(r), u: v(u) };
     this.place({ forward: 0, right: 0, yaw: 0 });
     this.#height = Math.max(0.2, new Box3().setFromObject(bound.root).getSize(new Vector3()).dot(this.#axes.u));
     this.setView(this.view);
     return bound;
   }
 
-  /** Places the carrier where the root stands, as @m3a/three's attach moves a character (`travel`), turned by its
-   *  heading about the up axis. */
-  place(root: RootPose): void {
-    const b = this.bound;
-    if (!b) return;
-    const k = b.core.scale, { f, r, u, turn } = this.#axes;
-    this.carrier.position.copy(f).multiplyScalar(root.forward * k).addScaledVector(r, root.right * k).multiply(b.root.scale).applyQuaternion(b.root.quaternion);
-    this.carrier.quaternion.setFromAxisAngle(u, turn * root.yaw * DEG);
+  /** Places the carrier where the root stands, turned only by what the bones don't carry (place.ts, the player's `turn`). */
+  place(root: RootPose, turn = 0): void {
+    if (this.bound) placeCarrier(this.carrier, this.bound, root, turn);
   }
 
   /** The point the camera looks at: the character's middle, where it stands now. */
