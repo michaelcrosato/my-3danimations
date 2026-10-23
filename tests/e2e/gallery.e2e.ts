@@ -226,21 +226,31 @@ test("gallery: the console handle steps, scrubs, plays and hashes as Node; opens
   expect((await h<State>("h.state()")).link).toContain("t=0.25");
   // play moves it on at the route's rate: with the clock held, 0.32 s of frames stepped at rate 1, then at rate 2,
   // move it 0.32 s, then twice as far
+  const time = async () => (await h<State>("h.state()")).playing!.time;
   const played = async (rate: number) => {
     await h(`h.open({ rate: ${rate} })`);
+    // held while playing, then run a frame at a time until the frame loop's next frame comes, as the review page's e2e
+    // holds it: a hold from a flowing clock can leave that frame due past the clock's now (holding twice didn't always
+    // catch it up: in CI rate 1 once moved 0 s); from then on the loop runs on the held clock alone
+    await h("h.play()");
+    await page.clock.pauseAt((await page.evaluate(() => Date.now())) + 1000);
+    const held = await time();
+    let steps = 0;
+    while ((await time()) === held && steps < 400) {
+      await page.clock.runFor(16);
+      steps++;
+    }
     await h("h.seek(0.1)");
-    // held twice: the first hold from a flowing clock can leave the next frame due past the clock's now
-    for (const ms of [1000, 2000]) await page.clock.pauseAt((await page.evaluate(() => Date.now())) + ms);
     // (a few frames paused first, so the frame loop's last frame is the clock's now)
     await page.clock.runFor(50);
     await h("h.play()");
     await page.clock.runFor(320);
     await h("h.pause()");
     await page.clock.resume();
-    return Math.round(((await h<State>("h.state()")).playing!.time - 0.1) * 1e6) / 1e6;
+    return { moved: Math.round(((await time()) - 0.1) * 1e6) / 1e6, steps };
   };
-  const once = await played(1), twice = await played(2);
-  expect([Math.abs(once - 0.32) < 0.04, Math.abs(twice / once - 2) < 0.15], `rate 1: ${once} s, rate 2: ${twice} s`).toEqual([true, true]);
+  const [once, twice] = [await played(1), await played(2)];
+  expect([Math.abs(once.moved - 0.32) < 0.04, Math.abs(twice.moved / once.moved - 2) < 0.15], `rate 1: ${once.moved} s, rate 2: ${twice.moved} s (each loop's next frame ${once.steps} and ${twice.steps} frames after its hold)`).toEqual([true, true]);
   // pause holds it and writes the moment into the link
   const held = await h<State>("h.state()");
   expect([held.paused, held.route.rate, new URLSearchParams(held.link).get("t")]).toEqual([true, 2, String(held.playing!.time)]);

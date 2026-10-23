@@ -194,6 +194,9 @@ none during trial batches.
   painted gen-1 captured at the sheet's moments and view shows what the engine plays. The unpainted mannequin read the
   same from the front and the back, and the session wrongly told the owner they saw it wrong; the paint, then
   `apps/gallery/src/playback.test.ts`, settled it.
+- Playwright's clock: a hold (`pauseAt`) of a flowing clock can leave the page's next frame due past the clock's now,
+  so a `runFor` then runs no frames (#30's T2: the gallery's rate 1 moved 0 s after holding twice). Hold, then
+  `runFor(16)` until the page's loop shows a frame, before measuring; the review and gallery e2e both do now.
 - Worktrees, where the classifier allows them: link the main checkout's `.cache/src` into the worktree or the library
   sweeps fail; the intake's SQL test can't start Postgres from under /tmp/claude-0 (permissions): run it in the main
   checkout.
