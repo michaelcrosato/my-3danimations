@@ -45,6 +45,12 @@ const BUILDS: Record<Build, { ankle: number; shin: number; thigh: number; pelvis
 };
 const ARM_DROP: Record<RestPose, number> = { T: 0, A: 40, relaxed: 70 };
 
+/** An sRGB colour (0 to 255) as glTF's linear vertex colour. */
+const linear = (c: readonly number[]) => c.map((v) => ((v / 255 + 0.055) / 1.055) ** 2.4);
+/** The body's paint: the sensors' mannequin's (raster/mannequin.ts COLORS: left blue, the middle and right amber, the
+ *  nose), and the torso's and head's back half a darker amber, so which way the body faces reads at a glance. */
+const PAINT = { body: linear([232, 170, 58]), left: linear([74, 140, 214]), back: linear([120, 78, 22]), nose: linear([160, 52, 40]) };
+
 /** The family's name for each humanoid bone, and its twist bones'. */
 function names(naming: Naming): { bone: (h: string) => string; twist: (h: string) => string } {
   const side = (h: string) => (h.startsWith("left") ? 0 : h.startsWith("right") ? 1 : -1);
@@ -203,22 +209,18 @@ export function character(spec: CharacterSpec): { glb: Uint8Array; bones: GenBon
   const frames: Basis[] = bones.map((bone, i) => (spec.naming === "vrm" ? IDENTITY : along(sub(tip[i]!, bone.head))));
   const index = new Map(bones.map((bone, i) => [bone.name, i]));
   // the body: a tube per bone, head to tip; the far ring blends half into the bone the tube runs into
-  const pos: number[] = [], nrm: number[] = [], joints: number[] = [], weights: number[] = [], tris: number[] = [];
+  const pos: number[] = [], nrm: number[] = [], col: number[] = [], joints: number[] = [], weights: number[] = [], tris: number[] = [];
   const SIDES = 8;
-  bones.forEach((bone, i) => {
-    // the body hangs on the chain: no tube for the root or a twist leaf (its limb's tube covers it)
-    if (bone.name === "root" || (!bone.humanoid && !bones.some((c) => c.parent === bone.name))) return;
-    const h = bone.humanoid ?? "";
-    const r = b.thick * (h === "head" ? b.head * 0.42 : /^(hips|spine|chest|upperChest)$/.test(h) || /^spine_0/.test(bone.name) ? 0.11 : /UpperLeg$/.test(h) ? 0.065 : /LowerLeg$/.test(h) ? 0.05 : /Foot|Toes/.test(h) ? 0.04 : /Hand/.test(h) ? 0.035 : /neck/.test(h) ? 0.045 : 0.04);
-    const a = bone.head, z = tip[i]!, axis = norm(sub(z, a)), f = along(axis);
-    const next = bones.findIndex((c) => c.parent === bone.name && (c.humanoid || bones.some((g) => g.parent === c.name)));
-    const base = pos.length / 3;
+  // a tube from a to z on bone i (its far ring half into bone `next`), each vertex coloured by `paint(out)`
+  const tube = (i: number, a: V, z: V, r: number, next: number, paint: (out: V) => readonly number[]) => {
+    const f = along(norm(sub(z, a))), base = pos.length / 3;
     for (const [ring, at] of [[0, a], [1, z]] as const) {
       for (let k = 0; k < SIDES; k++) {
         const ang = (2 * Math.PI * k) / SIDES, c = Math.cos(ang), s = Math.sin(ang);
         const out: V = [f[0][0] * c + f[2][0] * s, f[0][1] * c + f[2][1] * s, f[0][2] * c + f[2][2] * s];
         pos.push(at[0] + out[0] * r, at[1] + out[1] * r, at[2] + out[2] * r);
         nrm.push(...out);
+        col.push(...paint(out));
         const blend = ring === 1 && next >= 0;
         joints.push(i, blend ? next : 0, 0, 0);
         weights.push(blend ? 0.5 : 1, blend ? 0.5 : 0, 0, 0);
@@ -227,6 +229,21 @@ export function character(spec: CharacterSpec): { glb: Uint8Array; bones: GenBon
     for (let k = 0; k < SIDES; k++) {
       const k2 = (k + 1) % SIDES;
       tris.push(base + k, base + k2, base + SIDES + k, base + k2, base + SIDES + k2, base + SIDES + k);
+    }
+  };
+  bones.forEach((bone, i) => {
+    // the body hangs on the chain: no tube for the root or a twist leaf (its limb's tube covers it)
+    if (bone.name === "root" || (!bone.humanoid && !bones.some((c) => c.parent === bone.name))) return;
+    const h = bone.humanoid ?? "";
+    const r = b.thick * (h === "head" ? b.head * 0.42 : /^(hips|spine|chest|upperChest)$/.test(h) || /^spine_0/.test(bone.name) ? 0.11 : /UpperLeg$/.test(h) ? 0.065 : /LowerLeg$/.test(h) ? 0.05 : /Foot|Toes/.test(h) ? 0.04 : /Hand/.test(h) ? 0.035 : /neck/.test(h) ? 0.045 : 0.04);
+    const next = bones.findIndex((c) => c.parent === bone.name && (c.humanoid || bones.some((g) => g.parent === c.name)));
+    // the sensors' mannequin's colours (left blue, the middle and right amber), the torso's and head's back half darker
+    const middle = !h.startsWith("left") && !h.startsWith("right");
+    tube(i, bone.head, tip[i]!, r, next, (out) => (h.startsWith("left") ? PAINT.left : middle && out[2] < -0.05 ? PAINT.back : PAINT.body));
+    // the nose: out from the face along the body's forward (+z), so facing reads in every view
+    if (h === "head") {
+      const at = tip[i]!, mid: V = [(bone.head[0] + at[0]) / 2, (bone.head[1] + at[1]) / 2, (bone.head[2] + at[2]) / 2], face: V = [mid[0], mid[1], mid[2] + r * 0.9];
+      tube(i, face, [face[0], face[1], face[2] + r * 0.6], r * 0.25, -1, () => PAINT.nose);
     }
   });
   // nodes: the armature, the bones under it, the mesh beside it
@@ -269,6 +286,7 @@ export function character(spec: CharacterSpec): { glb: Uint8Array; bones: GenBon
   const min = [0, 1, 2].map((k) => Math.min(...pos.filter((_, j) => j % 3 === k))), max = [0, 1, 2].map((k) => Math.max(...pos.filter((_, j) => j % 3 === k)));
   const POSITION = put(new Float32Array(pos), { componentType: 5126, count: pos.length / 3, type: "VEC3", min, max }, 34962);
   const NORMAL = put(new Float32Array(nrm), { componentType: 5126, count: nrm.length / 3, type: "VEC3" }, 34962);
+  const COLOR_0 = put(new Float32Array(col), { componentType: 5126, count: col.length / 3, type: "VEC3" }, 34962);
   const JOINTS_0 = put(new Uint16Array(joints), { componentType: 5123, count: joints.length / 4, type: "VEC4" }, 34962);
   const WEIGHTS_0 = put(new Float32Array(weights), { componentType: 5126, count: weights.length / 4, type: "VEC4" }, 34962);
   const indices = put(new Uint16Array(tris), { componentType: 5123, count: tris.length, type: "SCALAR" }, 34963);
@@ -278,8 +296,8 @@ export function character(spec: CharacterSpec): { glb: Uint8Array; bones: GenBon
     scene: 0,
     scenes: [{ name: spec.id, nodes: [armature, meshNode] }],
     nodes,
-    meshes: [{ name: "Body", primitives: [{ attributes: { POSITION, NORMAL, JOINTS_0, WEIGHTS_0 }, indices, material: 0 }] }],
-    materials: [{ name: "Skin", pbrMetallicRoughness: { baseColorFactor: [0.82, 0.55, 0.42, 1], metallicFactor: 0, roughnessFactor: 0.8 } }],
+    meshes: [{ name: "Body", primitives: [{ attributes: { POSITION, NORMAL, COLOR_0, JOINTS_0, WEIGHTS_0 }, indices, material: 0 }] }],
+    materials: [{ name: "Skin", pbrMetallicRoughness: { baseColorFactor: [1, 1, 1, 1], metallicFactor: 0, roughnessFactor: 0.8 } }],
     skins: [{ name: spec.id, joints: bones.map((_, i) => i + 1), inverseBindMatrices, skeleton: 1 }],
     buffers: [{ byteLength: offset }],
     bufferViews: views,
