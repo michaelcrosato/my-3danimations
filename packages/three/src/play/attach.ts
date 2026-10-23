@@ -41,9 +41,10 @@ export function attach(animator: Animator, bound: ThreeBound): Attached {
   let pose: AnimatorPose | undefined;
   const root: RootPose = { forward: 0, right: 0, yaw: 0 }, moved: RootPose = { forward: 0, right: 0, yaw: 0 }, travel = new Vector3();
   const { forward: F, right: R } = bound.core.frame, k = bound.core.scale, o = bound.root;
+  // the pose turned as far as the root has turned beyond it, so the character faces where the root heads (F.14)
   const apply = (opts?: PoseOptions) => {
     pose = animator.pose(pose, opts);
-    w.write(pose);
+    w.write(pose, pose.turn);
   };
   return {
     animator,

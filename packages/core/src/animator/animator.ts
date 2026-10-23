@@ -139,6 +139,15 @@ export interface PoseOptions {
  *  every bone's head (skeleton space). */
 export interface AnimatorPose extends Solved {
   root: RootPose;
+  /**
+   * How far (degrees, + toward the right) the root has turned beyond the way the pose faces. A pose faces as its clips do
+   * at their playheads (a clip's own turn so far, spec/MOTION.md §5.3 `yaw`), not as the root has turned since: a loop's
+   * earlier cycles, an earlier clip, a `place`. Turn the pose by it about the up axis to face where the root heads
+   * (@m3a/three's attach does); 0 while one clip plays from its start. Measured at the last step, `place` or `restore`,
+   * so a host that sets a clip's time without stepping (a scrub) sees the clip's pose as written. A host that turns the
+   * character by `root.yaw` instead shows the clip's own turn twice.
+   */
+  turn: number;
   key: KeyLike;
   joints: Record<string, V3>;
 }
@@ -306,6 +315,8 @@ export class Animator {
   #steps = 0;
   #carry = 0;
   #root: RootPose = { forward: 0, right: 0, yaw: 0 };
+  /** The root's turn beyond the pose's, as of the last step, place or restore (`AnimatorPose.turn`). */
+  #beyond = 0;
   readonly #body: string;
   readonly #paths = new WeakMap<AnimClip, ContactRoot>();
   readonly #points = new WeakMap<AnimClip, Map<number, Float64Array>>();
@@ -337,6 +348,14 @@ export class Animator {
   /** Where the root stands: forward and right in mm, heading in degrees. */
   get root(): RootPose {
     return { ...this.#root };
+  }
+  /** Puts the root at `root` (mm, degrees): a host's teleport or respawn. What plays, and the time, stay as they are;
+   *  the pose's `turn` is measured again (the root's heading less the pose's). */
+  place(root: RootPose): this {
+    if (![root.forward, root.right, root.yaw].every(finite)) throw new AnimatorError("E_STEP", `place(root) takes forward and right (mm) and yaw (degrees), each a number, not ${JSON.stringify(root)}`);
+    this.#root = { forward: z(root.forward), right: z(root.right), yaw: z(wrap180(root.yaw)) };
+    this.#beyond = this.#turn();
+    return this;
   }
   /** The layers, bottom first, as plain data. */
   get layers(): LayerState[] {
@@ -460,6 +479,7 @@ export class Animator {
       const r = compose(this.#root, m);
       this.#root = { forward: z(r.forward), right: z(r.right), yaw: z(wrap180(r.yaw)) };
     }
+    this.#beyond = this.#turn();
     this.#steps++;
     return m;
   }
@@ -509,7 +529,7 @@ export class Animator {
       };
       s = solve(k, b, { points: plant(m, tL, plantOpts), ...(source ? { source } : {}) });
     }
-    const res: AnimatorPose = { ...s, root: { ...this.#root }, key: k, joints: forward(b, s) };
+    const res: AnimatorPose = { ...s, root: { ...this.#root }, turn: this.#beyond, key: k, joints: forward(b, s) };
     return out ? Object.assign(out, res) : res;
   }
 
@@ -622,6 +642,7 @@ export class Animator {
     this.#steps = d.steps;
     this.#carry = z(d.carry);
     this.#root = { forward: z(d.root.forward), right: z(d.root.right), yaw: z(d.root.yaw) };
+    this.#beyond = this.#turn();
     return this;
   }
 
@@ -672,6 +693,22 @@ export class Animator {
     });
     this.#graph!.made(made);
     this.#layers = [...mine, ...this.#layers.filter((L) => !L.name.startsWith("@"))];
+  }
+  /**
+   * How far the root has turned beyond the way the pose faces now (`AnimatorPose.turn` keeps it from the last step, place
+   * or restore): its heading less the turn its layers' clips have made by their playheads (each clip's path, a loop's
+   * within its cycle), mixed as `#tick` mixes their moves (the lowest playing layer whole, each above by its weight on
+   * `yaw`).
+   */
+  #turn(): number {
+    let carried: number | null = null;
+    for (const L of this.#layers) {
+      const c = L.src;
+      if (!c || L.additive) continue;
+      const y = this.#path(c).root(L.time).yaw;
+      carried = carried === null ? y : carried + wrap180(y - carried) * L.weight * (L.mask ? (L.mask.yaw ?? 0) : 1);
+    }
+    return z(wrap180(this.#root.yaw - (carried ?? 0)));
   }
   /** The root path a clip implies on this body (its own travel, or its planted feet's), mm and degrees; cached. */
   #path(c: AnimClip): ContactRoot {

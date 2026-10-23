@@ -32,6 +32,10 @@ export interface Player {
   nudge(n: number): void;
   /** Where the root stands now (mm, degrees). */
   root(): RootPose;
+  /** How far (degrees) the stage turns the character beyond what its bones carry (WP-F.14): a clip posed by time alone
+   *  (its Animator never steps) carries its own turn within a cycle, so a loop's earlier cycles' turn; a graph stepped
+   *  through attach carries all of it, so none. */
+  turn(): number;
   /** Poses the character at the time now and writes its bones. */
   apply(): void;
   /** What plays now: the clip, or the graph's states. */
@@ -96,6 +100,11 @@ export class ClipPlayer implements Player {
   }
   root(): RootPose {
     return this.#path.root(this.#cycle * this.dur + this.#x);
+  }
+  turn(): number {
+    // the root's heading less its turn within this cycle (the pose's own): a loop's earlier cycles', none in the first
+    const d = this.root().yaw - this.#path.root(this.#x).yaw;
+    return ((((d + 180) % 360) + 360) % 360) - 180;
   }
   apply(): void {
     this.animator.layer("base", { time: this.#x });
@@ -163,6 +172,9 @@ export class GraphPlayer implements Player {
   }
   root(): RootPose {
     return { ...this.#sim.world };
+  }
+  turn(): number {
+    return 0;
   }
   apply(): void {
     this.#att.apply();

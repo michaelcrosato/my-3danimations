@@ -4,6 +4,43 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.60.0 · 2026-10-23
+
+WP-F.14 (D136): a clip's turn shown once; the gallery checked against the data; the test characters painted.
+
+### Core
+- `AnimatorPose.turn`: how far the root has turned beyond the way the pose faces (a loop's earlier cycles, an earlier
+  clip, a `place`), measured at each step, `place` or `restore` (a scrub shows its clip as written); 0 while one clip
+  plays from its start. A host turns the pose by it, never by `root.yaw`, which shows a clip's own turn twice.
+- `Animator.place(root)`: puts the root where a host says (a respawn, a teleport).
+
+### Three
+- attach writes the pose turned by its `turn`, so a character moved by `travel` alone faces where the root heads: a
+  walk after a turning clip walks forward (it faced the first clip's start and walked backwards). The write still
+  allocates nothing.
+- The test characters wear the sheets' colours: the left side blue, the middle and right amber, the torso's and head's
+  back half darker, a red nose.
+
+### Sensors
+- The raster places a pose where its root stands without turning it by the root's heading (the pose carries its own),
+  as the sensors' `world` reads a motion: `film`, retarget's and a graph's strips drew a clip's turn twice.
+
+### Tools
+- `graph.sim` records each frame turned by the pose's `turn`, so the sensors and the filmstrip read a state after a
+  turning one facing where the character heads.
+
+### Repo
+- The gallery and the review cards show a clip's turn once: the stage places the character and turns it only by what
+  its bones don't carry (the player's `turn`) (CMU_CURATED/Pick_Up_Basket turned all the way round and walked backwards; its
+  data turns half round and walks forward). A legend beside a test character; the review page's guide says what its
+  colours mean.
+- `apps/gallery/src/playback.test.ts`: the character the gallery plays against each clip's data at 8 moments (facing,
+  travel's direction, each limb's direction): the clips that turn on gen-1 in T1, every clip on gen-1 and gen-0 in T2's
+  library sweeps.
+
+### Docs
+- `docs/MIGRATING.md`: move a character by `travel` and don't turn it by the root's `yaw` too.
+
 ## 0.59.0 · 2026-10-22
 
 WP-F.13 (D135): the idles keep their motion, steady at the knees, through recipes too; a still check in QA and the

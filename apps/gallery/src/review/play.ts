@@ -156,12 +156,13 @@ export class CardPlayer {
     this.onChange();
   }
 
-  /** Plays on by `dt` seconds and draws the frame: the pose at the clip's time, placed where its root stands. */
+  /** Plays on by `dt` seconds and draws the frame: the pose at the clip's time, placed where its root stands and turned
+   *  by what its bones don't carry (the player's `turn`, F.14). */
   #draw(stage: Stage, dt: number): void {
     const p = this.#player!;
     p.advance(dt);
     p.apply();
-    stage.place(p.root());
+    stage.place(p.root(), p.turn());
     stage.render();
     this.#clock.textContent = `${p.id} · ${p.time.toFixed(2)} / ${p.dur.toFixed(2)} s${p.loop ? " · loop" : ""}`;
   }

@@ -3,18 +3,19 @@
 // pixel, so an arm through the torso shows as one. A nose shows which way the head faces, and the body's left side is
 // tinted blue (its right and middle amber), so left and right read at a glance in every view. Whole pixels, no
 // smoothing, plain arithmetic: the same pose gives the same bytes in every run and every engine.
-import { format, math } from "@m3a/core";
+import { format } from "@m3a/core";
 import { image, line, pixel, type Image, type Rgb } from "./image.ts";
 import { fit, project, type Camera, type View, type ViewName } from "./view.ts";
 import { text, GLYPH } from "./font.ts";
 
 const { IDX } = format;
-const { PORTABLE } = math;
 
 /** The mannequin's colours: the middle and right side, the left side, the nose, the floor's grid. */
 export const COLORS = { body: [232, 170, 58], left: [74, 140, 214], nose: [160, 52, 40], floor: [214, 212, 205], axis: [190, 186, 176] } as const satisfies Record<string, Rgb>;
 
-/** Where the root stands: forward and right (mm) and heading (degrees). Points are drawn in the world it puts them in. */
+/** Where the root stands: forward and right (mm) and heading (degrees). Points are drawn where it puts them: moved by
+ *  its place, not turned by its heading, since a pose carries its own heading (a clip decoded in clip space, or an
+ *  Animator pose turned by its `turn`), as the sensors read a motion in the world (metrics/motion.ts `world`; F.14). */
 export interface Root {
   forward: number;
   right: number;
@@ -85,11 +86,10 @@ export function capsules(X: ArrayLike<number>, root?: Root): Capsule[] {
   }
   return root ? out.map((c) => ({ ...c, a: toWorld(c.a, root), b: toWorld(c.b, root) })) : out;
 }
-/** A pose-frame point in the world the root puts it in. */
+/** A pose-frame point where the root puts it: moved by its place (the pose carries its heading). */
 function toWorld(p: V, root?: Root): V {
   if (!root) return p;
-  const cs = PORTABLE.cos((root.yaw * Math.PI) / 180), sn = PORTABLE.sin((root.yaw * Math.PI) / 180);
-  return [root.forward + p[0] * cs - p[1] * sn, root.right + p[0] * sn + p[1] * cs, p[2]];
+  return [root.forward + p[0], root.right + p[1], p[2]];
 }
 
 /** The light, from the upper left and in front: the unit vector a lit tube's normal is shaded against. */

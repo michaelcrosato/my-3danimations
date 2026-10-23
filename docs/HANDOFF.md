@@ -19,7 +19,7 @@ none during trial batches.
 
 ## Where things stand
 
-- **Version 0.59.0.** Every WP through 10.2 and F.1 to F.13 is done; G0-G8 passed; G9 and G10's command sets passed
+- **Version 0.60.0.** Every WP through 10.2 and F.1 to F.14 is done; G0-G8 passed; G9 and G10's command sets passed
   and each waits on the owner (blocked-owner, its ask on its PR):
   - **G8** (#15): **passed** on 2026-10-22 (D133): the owner's review of G8-run-1's `queue-0.56.0.json` on the
     site's review page, applied with `npx m3a review ingest` (20 decisions, 18 approved, 2 flagged); its notes are
@@ -90,7 +90,9 @@ none during trial batches.
 2. The owner's next review batch: `npx m3a review export` samples the unreviewed and stale clips, among them Jump_Twist
    (cut again) and the three idles whose reviews were dropped with their old motion; D135 lists what to look at (the
    feet that follow the hips' rounding, the few idles under 0.8 of their capture's sway). D135's follow-up: a steady
-   rounding of the hips, chest and head in the encoder, measured the same way.
+   rounding of the hips, chest and head in the encoder, measured the same way. Also to look at again (D136): G8's
+   CMU_CURATED/Pick_Up_Basket and Wrench_Bolt were reviewed on a page that showed their turn twice (WP-F.14 fixed it);
+   their reviews stand (the motion is the same), the owner's to keep or remake.
 3. B1's floor stays deferred, with its reason: reading B1's feet from the body's measured floor changes G7's evidence
    (its known-goods and variants), so it waits for the owner's go. When it comes (D131's call is to fix it): a WP of its
    own, then G7's B1 evidence run again (about $12 and 1.5 hours of real agents), its result logged.
@@ -98,6 +100,17 @@ none during trial batches.
    otherwise.
 
 ## Follow-ups recorded, owned by no WP yet
+
+- A body under its floor (D136): QUATERNIUS_SHARDFALL/Swim_Idle_Loop ("treading water", its hips 36 to 47% of H0 under
+  the floor, the water's surface) plays far from its data in the engine (its limbs 93 to 102° off on every test
+  character) and the gallery's solid floor hides it. `apps/gallery/src/playback.test.ts` names it; when fixed, that
+  entry goes (the test fails while it is named and no longer parts from its data).
+- An AI visual pre-screen of every clip (D136): considered, not built (the owner's call): only if the data comparison
+  misses what a reviewer sees.
+- `describe` reports no turn and no bend (CMU_CURATED/Pick_Up_Basket: "walks; stands" for a walk, a pick-up, a half
+  turn, a walk back and a set-down): the text an agent reads should say both.
+- An engine sheet: the gallery's character drawn at the sheet's moments beside the sheet, the comparison's numbers under
+  each frame (the owner's idea, D136), for a reviewer or a failing comparison.
 
 - B1's floor (D123): B1's grader reads heights from y = 0, which stands 16 to 44 mm above a generated test character's
   soles (`bench/graders/bones.ts` `bodyOf`), so a foot within 40 to 86 mm of its floor reads as down; D106's "keyed

@@ -190,7 +190,7 @@ export class Gallery {
   show(): void {
     if (!this.player) return;
     this.player.apply();
-    this.stage.place(this.player.root());
+    this.stage.place(this.player.root(), this.player.turn());
   }
 
   /** Plays on by `dt` wall seconds at the route's rate (the frame loop's step), unless paused. */

@@ -11,7 +11,15 @@ touch); two columns on a desk. The build stamp (version and commit) is on every 
   tests (the pure parts: links, review batches, what a card says a clip should show), and `npm run e2e -- previews` runs the build's batch check on a
   refused batch of each kind.
 - **Characters:** `gen-<seed>` (any whole number; 0 to 19 are the test set) built in code, and the real CC0 rigs that
-  `npm run fixtures -- fetch` put in `.cache/fixtures/` (none in a build without them).
+  `npm run fixtures -- fetch` put in `.cache/fixtures/` (none in a build without them). A test character wears the
+  contact sheets' colours (its left side blue, its middle and right amber), its torso's and head's back half darker and a
+  red nose, so which way it faces reads at a glance; a legend beside it says so (F.14).
+- **Playing as the data says (F.14):** the character is placed where the root stands and turned only by what its bones
+  don't carry: a pose carries its clip's own turn, `@m3a/three`'s attach writes it turned by the Animator's `turn` beyond
+  that, and a clip posed by time alone leaves the stage a loop's earlier cycles (the player's `turn`), so a clip's turn
+  shows once. `src/playback.test.ts` compares the character the gallery plays with each clip's data at 8
+  moments (facing, travel's direction, each limb's direction): the clips that turn on `gen-1` in T1, every clip on
+  `gen-1` and `gen-0` in T2.
 - **Deep links** open everything: `?set=SET` (its catalog), `?clip=SET/Name`, `?recipe=Name` (`spec/recipes/`),
   `?graph=Name` (`spec/graphs/`, driven by the longest script in `spec/sims/` written for it, else one pressing its
   triggers, stepped by graph.sim's own stepper, `sim.SimStepper`), `?char=gen-<seed>|<rig>`,

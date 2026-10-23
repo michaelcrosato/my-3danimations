@@ -15,6 +15,9 @@
       #stage canvas { display: block; width: 100%; height: 100%; touch-action: none; }
       #hud { position: absolute; top: max(6px, env(safe-area-inset-top)); left: 10px; right: 10px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; pointer-events: none; }
       #hud > * { pointer-events: auto; }
+      #legend { font-size: 12px; color: #444; background: rgba(255, 255, 255, 0.8); border-radius: 6px; padding: 2px 6px; }
+      #legend .sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin: 0 3px 0 6px; vertical-align: -1px; }
+      #legend .left { background: rgb(74, 140, 214); } #legend .back { background: rgb(120, 78, 22); } #legend .nose { background: rgb(160, 52, 40); }
       #title { font-size: 15px; flex: 1 1 100%; overflow-wrap: anywhere; }
       #notice { position: absolute; left: 10px; right: 10px; bottom: 6px; color: var(--fail); font-size: 12px; }
       select, button, input { font: inherit; color: inherit; }
@@ -60,7 +63,7 @@
   <body>
     <main id="app">
       <section id="stage" aria-label="stage">
-        <div id="hud"><b id="title">loading</b><select id="char" aria-label="character"></select><select id="view" aria-label="view"></select></div>
+        <div id="hud"><b id="title">loading</b><select id="char" aria-label="character"></select><select id="view" aria-label="view"></select><span id="legend" hidden><i class="sw left"></i>its left side <i class="sw back"></i>its back <i class="sw nose"></i>its nose: where it faces</span></div>
         <div id="notice" role="status"></div>
       </section>
       <section id="transport" aria-label="transport">
