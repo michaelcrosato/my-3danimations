@@ -24,7 +24,7 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 
 ## Next
 
-- The owner's next batch (`npx m3a review export`): Jump_Twist, the moving idles (D135), Pick_Up_Basket, Wrench_Bolt (D136).
+- The owner's verdict on Pick_Up_Basket (in chat, HANDOFF); their next batch: Jump_Twist, the moving idles, Wrench_Bolt.
 - The owner's steps below. Deferred with reasons (HANDOFF): B1's floor until the owner's go (it changes G7's evidence).
 
 ## Blocked on the owner
@@ -32,7 +32,7 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 - G9: O8 linked (`services/intake/README.md`; the session may create it once the Supabase connector is connected,
   D130), the contract suite, an adoption, the approval of 70% of `G9-run-2/queue.json`. Asked on #16.
 - G10: another repository consumes the package or certifies against the vectors, confirmed (O9). Asked on #17.
-- O2 answered, publish now (D130): the owner starts `publish.yml` and `release.yml` on `v0.56.0`. O3 unpaused.
+- O2 answered, publish now (D130): the owner starts `publish.yml` and `release.yml` on `v0.60.0` (b66f248). O3 unpaused.
 
 ## Last gate
 

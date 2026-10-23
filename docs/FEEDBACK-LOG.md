@@ -149,21 +149,24 @@ acted on (D119 took up or deferred each):
 - **F7.1** (review notes, watch) `STYLE100_SIDERUN/Stiff_SideRunLeft@6b352005f1fd` approved: This is a side step,
   definitely not a side run.
 - **F7.2** (review notes, watch) `CMU_CURATED/Jump_Twist@3ab846fac374` flagged: The character never gets to the
-  actually jump, just leading up to it, which was fine
+  actually jump, just leading up to it, which was fine. **Taken up in v0.59.0** (D135): cut again to the flip itself.
 - **F7.3** (review notes, watch) `STYLE100_SIDERUN/ShieldedRight_SideRunRight@2da4aa85e13a` approved: Again, side step
   but otherwise if he is holding hand up and there was a shield it would be fine
 - **F7.4** (review notes, watch) `STYLE100_SIDE/LawnMower_SideLeft@e9a30279816d` flagged: I think you need to state
   what the expectations are of what I am supposed to see and what you think is happening, there is a person rolling
-  his hands in front of his pelvis bending over
+  his hands in front of his pelvis bending over. **Taken up in v0.58.0** (D134): each card says what its clip should
+  show, as an agent reads it, and the page's guide what to look for.
 - **F7.5** (review notes, watch) `STYLE100_SIDE/CrowdAvoidance_SideRight@6d215290cc63` approved: A person side
   stepping, head slightly back
 - **F7.6** (review notes, watch) `STYLE100_BACKRUN/KarateChop_RunBack@4dd46b3d65ff` approved: They are moving
   backwards, run debatable, he is doing a chopping motion with his hands
 - **F7.7** (review notes, watch) `STYLE100_IDLE/CrossOver_Idle@b65028f82f7c` approved: This is a pose. There is no
-  actual animation.
-- **F7.8** (review notes, watch) `STYLE100_IDLE/OnPhoneLeft_Idle@f2e25e7b2368` approved: A pose no animation.
+  actual animation. **Taken up in v0.59.0** (D135): the idles keep their motion (frozen clips 102 → 17).
+- **F7.8** (review notes, watch) `STYLE100_IDLE/OnPhoneLeft_Idle@f2e25e7b2368` approved: A pose no animation. **Taken
+  up in v0.59.0** (D135), as F7.7.
 - **F7.9** (review notes, watch) `CMU_CURATED/Pick_Up_Basket@04c9a32eadf4` approved: Idk, they walk up, pick up, turn
-  right spin 360 degrees and back pedal,
+  right spin 360 degrees and back pedal, **Taken up in v0.60.0** (D136): the page showed the clip's turn twice; its
+  data turns about 190° to its right and walks forward. The review stands, the owner's to keep or remake.
 - **F7.10** (review notes, watch) `STYLE100_BACKRUN/Elated_RunBack@1492349cad00` approved: Its faster than the other
   back runs idk what elated means
 - **F7.11** (review notes, watch) `CMU_CURATED/Wrench_Bolt@fb26b9a3a9c1` approved: Look fine not sure what its for

@@ -1,4 +1,4 @@
-# Handoff: every phase built; the follow-ups after G10 built (F.1 to F.11); the owner's steps open (2026-10-22)
+# Handoff: every phase built; the follow-ups after G10 built (F.1 to F.14); the owner's steps open (2026-10-23)
 
 Phase 7 merged before its gate (michaelcrosato/my-3danimations#13, D103); G7 passed on run 2 on
 michaelcrosato/my-3danimations#14 (D107); Phase 8 merged on michaelcrosato/my-3danimations#15 (G8's commands, D111);
@@ -6,8 +6,10 @@ Phase 9 on michaelcrosato/my-3danimations#16 (G9's commands passed on run 2, D11
 michaelcrosato/my-3danimations#17 (G10's commands passed on run 1, D117). After it, an audit (D118, D119) on
 michaelcrosato/my-3danimations#18, then the five follow-ups that need nothing from the owner, WP-F.1 to F.5 (PLAN.md
 §10 "After G10", D121 to D125), on michaelcrosato/my-3danimations#20, three more, WP-F.6 to F.8 (D126 to D128),
-on michaelcrosato/my-3danimations#21, and WP-F.9 (D129) on michaelcrosato/my-3danimations#22. This file is what the
-next session needs.
+on michaelcrosato/my-3danimations#21, and WP-F.9 (D129) on michaelcrosato/my-3danimations#22. Then D131 and the
+records (michaelcrosato/my-3danimations#23, #24), WP-F.11 (D132, #25), G8's pass (D133, #26), and the owner's asks
+after it: WP-F.12 (D134, #27), F.13 (D135, #28) and F.14 (D136, michaelcrosato/my-3danimations#29, merged as b66f248,
+main's head). This file is what the next session needs.
 
 ## The standing goal (the owner's)
 
@@ -43,13 +45,31 @@ none during trial batches.
     environment `npm` (the owner its required reviewer, Prevent self-review off, administrators' bypass off,
     deployment from `v*` tags alone, the token as its secret `NPM_TOKEN`, never a repository secret); the variable
     `M3A_O2_PUBLISH=yes`; a tag ruleset `release tags` on `v*` (restrict creations, updates and deletions; only the
-    repository admin bypasses); the tag `v0.56.0` on #22's merge commit e766496, made by the owner (the session's git
-    connection refuses tag pushes, D131); Actions, publish, Run workflow with "Use workflow from: Tags → v0.56.0" and
-    `v0.56.0` as the tag; the publish job approved (Review deployments → npm). Before January 2027 (npm stops taking
-    `npm publish` with a granular token): each package's trusted publisher, `npm publish` ticked under Allowed
-    actions. For the sets as release assets: the variable `M3A_O2_RELEASE_ASSETS=yes`, release.yml run on the same tag,
-    the draft release published. **O3 unpaused** by the owner (D130): 2f973fa's preview built; Vercel blocked each
-    later commit before its build (on its side: the owner allows them from the deployment's page).
+    repository admin bypasses); the latest release's tag, now `v0.60.0` on #29's merge commit b66f248 (D131 named
+    `v0.56.0` on e766496 when it was the latest; any `vX.Y.Z` on main whose packages are at X.Y.Z publishes), made by
+    the owner (the session's git connection refuses tag pushes, D131); Actions, publish, Run workflow with "Use
+    workflow from: Tags → v0.60.0" and `v0.60.0` as the tag; the publish job approved (Review deployments → npm).
+    Before January 2027 (npm stops taking `npm publish` with a granular token): each package's trusted publisher, `npm
+    publish` ticked under Allowed actions. For the sets as release assets: the variable `M3A_O2_RELEASE_ASSETS=yes`,
+    release.yml run on the same tag, the draft release published. **O3 unpaused** by the owner (D130): the site is live at
+    https://my-3danimations-ten.vercel.app (the review page at `/src/review/`), redeployed on every merge to main
+    (b66f248 was live within minutes), and each push's preview builds again (#29's: Ready).
+- **The owner's asks after G8, each a WP of its own:** F.11 (#25, D132): each review card plays its clip in place,
+  links it in the gallery, and the page opens G8's batch at load. F.12 and F.13 above. F.14 (#29, D136): reviewing
+  CMU_CURATED/Pick_Up_Basket in chat, the owner saw it "do a 360 and then walk backwards"; their experiment (gen-1
+  painted as the sheets' mannequin, captured at the sheet's 12 moments from its view) showed the gallery turning the
+  character by the root's heading on top of the turn its pose already carries. One rule now: a pose carries its clips'
+  turn, a root places it, and core's `AnimatorPose.turn` is what the root has turned beyond it (attach writes it;
+  `Animator.place` is new); the raster and `graph.sim` follow it. `apps/gallery/src/playback.test.ts` compares what
+  the gallery plays with each clip's data (facing, travel's direction, limbs): 55 clips off by up to 179° on gen-1
+  before, 0 of 1,398 after. The test characters are painted (left side blue, the back darker, a red nose; a legend
+  beside the gallery's stage). After the merge, the live gallery captured at the sheet's moments matched the sheet in
+  both views (three-quarter, top).
+- **The in-chat review, open:** CMU_CURATED/Pick_Up_Basket@04c9a32eadf4 on the fixed gallery: it walks forward about
+  2.5 m, bends to the basket, turns about 190° to its right, walks forward back toward its start and bends again; its
+  description is "Walks up to a laundry basket and picks it up" (no turn, no walk back). The owner's verdict is
+  pending: record it in their words alone (`npx m3a review approve|flag CMU_CURATED/Pick_Up_Basket@04c9a32eadf4
+  --note "<their words>"`). Their G8 review of it (approved, FEEDBACK-LOG F7.9) stands until they remake it.
 - **The follow-ups built (#20, 2026-10-21, the owner's pick):** the m3a bin refuses a Node without `import.meta.main`
   and the hook no longer deletes node_modules under the MCP server (F.1, D121); `STYLE100_RUN/OnHeels_Run` planted by
   its whole sole, the other five `unplanted` loops answered with numbers (F.2, D122); the root-motion rate sweep,
@@ -76,17 +96,18 @@ none during trial batches.
   its connector answers the PR's account (michaelcrosatoDM) with "create a Codex account", so only the owner's
   `@codex review` runs it; an independent reviewer's four findings were fixed in 5c348a8 (D121, D123). On #21 each
   WP's two reviewers' findings were fixed before the PR (D126 to D128); Codex again doesn't serve its account.
-- **Last measured (4 CPUs):** on main at e766496 (0.56.0, #22): T2 300.4 s here (playwright 146.0, QA 11.0, the
-  sweeps 115.0, the rate sample 28.4), all of #22's CI green (T2, the `rates` job, T0/T1); before it: T0 about 3 s warm; T1 63.6 s here (79.1 s in CI on #20); T2 239.8 s here (playwright
-  111.6, QA 9.2, the sweeps 96.8, the rate sample 22.2) and 246.2 s in CI on #21 (from 525.2 on #20; playwright
-  128.2, QA 5.8, the sweeps 92.5, the rate sample 19.7), its budget 480; CI's `rates` job, the whole rate sweep, 109.0 s,
-  done before T2; `pack --check` about 21 to 33 s.
+- **Last measured (4 CPUs here; GitHub's runners):** F.14 on 57b61b9 here: T1 68.7 s (1,344 passed), T2 277.6 s
+  (Playwright 39 passed, the sweeps 137 tests); CI on #29's head 47ed20e, all green: T0 7.9 s, T1 108.8 s, T2 289.9 s
+  (playwright 148.4, QA 5.8, the sweeps 116.1, the rate sample 19.6), the `rates` job about 2 minutes. CI's T1 swings
+  with the runner for the same tests: its step took 58 s on main after #29's merge and 106 s after #28's; over 90 s it
+  warns, at 135 s (1.5×) it fails (follow-ups). Before: T2 300.4 s here at e766496 (0.56.0); T0 about 3 s warm;
+  `pack --check` about 21 to 33 s.
 
 ## Next, in order
 
-1. Whatever the owner sends back: a review file (`npx m3a review ingest <file>`, its notes into
-   docs/FEEDBACK-LOG.md and a threshold or task proposal into docs/REVIEW-PROPOSALS.md), O8 linked (the contract run,
-   the first adoption by the bot), another repository's use confirmed (G10).
+1. Whatever the owner sends back: their verdict on Pick_Up_Basket (above), a review file (`npx m3a review ingest
+   <file>`, its notes into docs/FEEDBACK-LOG.md and a threshold or task proposal into docs/REVIEW-PROPOSALS.md), O8
+   linked (the contract run, the first adoption by the bot), another repository's use confirmed (G10).
 2. The owner's next review batch: `npx m3a review export` samples the unreviewed and stale clips, among them Jump_Twist
    (cut again) and the three idles whose reviews were dropped with their old motion; D135 lists what to look at (the
    feet that follow the hips' rounding, the few idles under 0.8 of their capture's sway). D135's follow-up: a steady
@@ -110,7 +131,12 @@ none during trial batches.
 - `describe` reports no turn and no bend (CMU_CURATED/Pick_Up_Basket: "walks; stands" for a walk, a pick-up, a half
   turn, a walk back and a set-down): the text an agent reads should say both.
 - An engine sheet: the gallery's character drawn at the sheet's moments beside the sheet, the comparison's numbers under
-  each frame (the owner's idea, D136), for a reviewer or a failing comparison.
+  each frame (the owner's idea, D136), for a reviewer or a failing comparison. Until then it is done by hand: the
+  gallery's `window.__m3a` (`seek`, `pause`, `state`) driven by Playwright at `?char=gen-1&clip=<id>&view=<view>`,
+  each canvas captured at the sheet's times, set beside `npx m3a sheet --clip <id> --frames 12 --view <view>`.
+- CI's T1 near its budget (Last measured): 58 to 109 s on GitHub's runners for the same tests (79.1 s after F.5, D125;
+  1,343 passing in CI now). A run at 135 s fails: before then, the slowest files made faster (PLAN.md §6), not the budget
+  raised.
 
 - B1's floor (D123): B1's grader reads heights from y = 0, which stands 16 to 44 mm above a generated test character's
   soles (`bench/graders/bones.ts` `bodyOf`), so a foot within 40 to 86 mm of its floor reads as down; D106's "keyed
@@ -156,10 +182,24 @@ none during trial batches.
   Writes act as an owner's login (michaelcrosato to #19, michaelcrosatoDM on #20, which Codex's review bot doesn't
   serve): every session comment opens with `<!-- m3a-session -->`, owner evidence (phone notes, approvals, adoptions)
   is never authored by the session, and no review is approved by it.
-- Vercel project prj_G6lMChE61OFf2aXCRijeSQWkAAEq is linked and paused (D85), SSO on: "Deployment was blocked" is
-  expected. Supabase: the connector works, no project for m3a exists; never create one without the owner's explicit
-  yes. The Actions API is blocked (403). No Docker: the supabase backend can be tested against local Postgres 16
-  (`/usr/lib/postgresql/16/bin`) with a stubbed `auth.uid()`.
+- Vercel project prj_G6lMChE61OFf2aXCRijeSQWkAAEq is linked and unpaused (D130): production is
+  https://my-3danimations-ten.vercel.app, redeployed on each merge to main; previews have SSO on (the owner's
+  sign-in). Supabase: no session has the connector until the owner connects it, and no project for m3a exists; the
+  owner's yes to create one (D130) holds once it is connected, never before. Actions: the GitHub MCP tools read runs,
+  jobs and logs (a job's `logs_url` downloads with curl); other Actions calls returned 403 before. No Docker: the
+  supabase backend can be tested against local Postgres 16 (`/usr/lib/postgresql/16/bin`) with a stubbed
+  `auth.uid()`.
+- What the owner sees on a page is evidence (D136): before answering that a clip doesn't do what they saw, put the
+  page beside the data. The sheet (`npx m3a sheet`, about 540 tokens a picture at 1000×404) draws the keys alone; the
+  painted gen-1 captured at the sheet's moments and view shows what the engine plays. The unpainted mannequin read the
+  same from the front and the back, and the session wrongly told the owner they saw it wrong; the paint, then
+  `apps/gallery/src/playback.test.ts`, settled it.
+- Playwright's clock: a hold (`pauseAt`) of a flowing clock can leave the page's next frame due past the clock's now,
+  so a `runFor` then runs no frames (#30's T2: the gallery's rate 1 moved 0 s after holding twice). Hold, then
+  `runFor(16)` until the page's loop shows a frame, before measuring; the review and gallery e2e both do now.
+- Worktrees, where the classifier allows them: link the main checkout's `.cache/src` into the worktree or the library
+  sweeps fail; the intake's SQL test can't start Postgres from under /tmp/claude-0 (permissions): run it in the main
+  checkout.
 - `npm run bench` writes into the tracked `bench/results/`: commit gate and Verify records on purpose, move stray
   probes out by name (a glob once moved committed files: restore with `git checkout -- bench/results/`).
 - Time T0 and T1 with no lane testing; 4 CPUs make local timings load-sensitive. A fresh container's first
