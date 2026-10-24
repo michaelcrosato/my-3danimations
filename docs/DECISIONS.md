@@ -5716,3 +5716,53 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
 - **Answered:** yes: the owner's words and experiment, and "drop the AI-visual test" (2026-10-23); the rule's details
   under D131.
 - **Landed in:** v0.60.0
+
+## D137 · 2026-10-24 · The environment checked; the Supabase connector is connected, so O8's steps 1 and 2 go through it; the records corrected; the next goal
+
+- **Principle:** process (the records hold the truth, PLAN.md §0), O8 (PLAN.md §13), D110, D130, D131; PLAN.md §0
+  ("where it names a tool or a mechanism and a better one exists, use the better one and log it")
+- **Call:**
+  - **What the owner asked** (2026-10-24, as a goal): "explore the repo, confirm the environment has everything you
+    need to operate, review the documents, unfinished work, update any docs if needed and make a concise slash goal
+    that will finish all unfinished work and plans."
+  - **The environment, as found** (a fresh container): Node 24.21.0, node_modules installed by the hook's `npm ci`
+    from the lockfile, the rigs, the held-out rigs and the pinned sources fetched by hash, `CHROMIUM_PATH` set, Bun
+    (the cross-engine check), Postgres 16 (the intake's SQL test) and `actionlint` present. `npm run check` passed in
+    19.5 s on cold caches (over its 15 s budget, as HANDOFF warns of a fresh container), `npm test` in 88.4 s (1,343
+    passed, budget 90), `npm run e2e` in 337.1 s (budget 480; Playwright 39 passed, QA as baselined, the sweeps' 137
+    tests, the rate sample's 8,110 rows none unbaselined). The m3a MCP server closed as the session
+    started (the hook's first `npm ci` racing it, D121) and starts clean now, 22 tools at 0.60.0: `/mcp` reconnects
+    it. GitHub's MCP tools act as `michaelcrosato`; CI is green on main's head 8c88b42; no pull request was open;
+    intake.yml's scheduled runs pass doing nothing (no hosted store). Vercel's project is linked, production READY at
+    https://my-3danimations-ten.vercel.app, stamped `m3a 0.60.0 · 8c88b42`. Missing, and not needed: the Supabase CLI
+    and Deno (the intake README's CLI route uses them; the connector's doesn't).
+  - **The Supabase connector is connected,** as no session's was before (D130): one organization, "michaelcrosato-1122's
+    projects" (`vercel_icfg_E9rMU3MJRRHOiRsyAXZVhr0M`), on Supabase's free plan, installed through Vercel's marketplace
+    (`icfg_E9rMU3MJRRHOiRsyAXZVhr0M`, "Supabase Free Plan", $0 a month, no payment method), with one project that is
+    not m3a's (`bmbptv-records`, inactive), which no session touches. No m3a project exists yet; the free plan holds
+    two active projects, so one more fits.
+  - **The route for `services/intake/README.md`'s steps 1 and 2 is the connector:** `create_project` in that
+    organization, the only one (the server quotes the cost; a nonzero quote waits for the owner), `apply_migration` with
+    each file of `migrations/` in name order (as `supabase db push`), `deploy_edge_function` named `submit` with its two
+    files and `verify_jwt` off (as `--no-verify-jwt`), then `get_project_url` and `get_publishable_keys` for steps 3 and
+    5. The README gives both routes. Steps 3 to 6 and the service role key stay the owner's (D131: credentials and
+    accounts). This session created nothing: its goal was the check, the records and the next goal.
+  - **The records corrected:** the README's status (it said 0.53.x and G8 waiting) and its count of work packages;
+    PLAN.md's status line (G8 waiting), O8's row and G9's ledger row; PROGRESS's next steps and G9's line;
+    REVIEW-PROPOSALS' two proposals marked taken up (v0.58.0 and v0.59.0, as FEEDBACK-LOG's F7.2 and F7.4 were); the
+    intake README (it said the session creates nothing, against D130); HANDOFF (the connector, this session's numbers,
+    the next goal).
+  - **The next goal** (HANDOFF, "The next goal"), the owner's to start: O8's steps 1 and 2; the five follow-ups no
+    decision deferred, each a WP of its own (Swim_Idle_Loop under its floor, `describe` naming a turn and a bend, the
+    engine sheet, the encoder's steady rounding from D135, T1's headroom); B1's floor with G7's B1 evidence run again;
+    the owner's next review batch exported to the site; the owner's steps asked, each with what it needs. B1's floor
+    is in it on purpose: the owner's last goal kept it deferred until their go (#24), and starting this goal as written
+    gives it; without that item it stays deferred. The rest of HANDOFF's follow-ups keep D131's calls, MIGRATING's gaps
+    wait on G10 (O9), and the on-demand WPs (PLAN.md §10) on their triggers, none of which has fired.
+- **Why:** a session acts on what the records say, so they must match what it finds (the README and the plan still
+  said G8 waited, two days after it passed); the connector does what the CLI would, inside what the owner allowed,
+  with nothing to install; and a goal that names each open item and what done means is one the next session can
+  finish and a reviewer can check.
+- **Answered:** the goal is the owner's (2026-10-24); the route and the next goal's items are the session's, under
+  D131, to review.
+- **Landed in:** docs only (after #30)

@@ -4,7 +4,7 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 `PLAN.md` §14; decisions are in `docs/DECISIONS.md`.
 
 **Phase:** all eleven built (10 done: G10's commands passed; its confirmation blocked-owner). **Next gate:** none (M4).
-**Version:** 0.60.0. **Mode:** ultracode (D83). **Last change:** a clip's turn shown once; the gallery checked against data (D136).
+**Version:** 0.60.0. **Mode:** ultracode (D83). **Last change:** the environment checked, the records fixed, the next goal (D137).
 
 ## Done
 
@@ -24,13 +24,13 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 
 ## Next
 
-- The owner's verdict on Pick_Up_Basket (in chat, HANDOFF); their next batch: Jump_Twist, the moving idles, Wrench_Bolt.
-- The owner's steps below. Deferred with reasons (HANDOFF): B1's floor until the owner's go (it changes G7's evidence).
+- The next goal (HANDOFF): O8's steps 1 and 2 by the Supabase connector (connected, D137); five follow-ups, each a WP;
+  B1's floor (the goal is the owner's go); the next review batch on the site. The owner's: Pick_Up_Basket, steps below.
 
 ## Blocked on the owner
 
-- G9: O8 linked (`services/intake/README.md`; the session may create it once the Supabase connector is connected,
-  D130), the contract suite, an adoption, the approval of 70% of `G9-run-2/queue.json`. Asked on #16.
+- G9: O8 linked (`services/intake/README.md`: steps 1 and 2 the session's by the connector, D137; 3 to 6 the owner's),
+  the contract suite, an adoption, the approval of 70% of `G9-run-2/queue.json`. Asked on #16.
 - G10: another repository consumes the package or certifies against the vectors, confirmed (O9). Asked on #17.
 - O2 answered, publish now (D130): the owner starts `publish.yml` and `release.yml` on `v0.60.0` (b66f248). O3 unpaused.
 

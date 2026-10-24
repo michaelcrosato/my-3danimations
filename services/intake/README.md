@@ -2,8 +2,9 @@
 
 **The owner's runbook for O8** (PLAN.md §5.9, D110): how to link a Supabase project to the intake queue. Until it is
 linked, agents submit to the local store (`.cache/intake/`), intake.yml does nothing and says so, and ci.yml's
-`intake-contract` fails asking for its secret. The session creates no Supabase resource: every step here is the
-owner's.
+`intake-contract` fails asking for its secret. Steps 1 and 2 (the free-tier project, its schema and the submit
+function) a session may run for the owner (D130), through the Supabase connector once the owner has connected it
+(D137, below); steps 3 to 6 (the sign-in, the owner's row, the secrets, the Actions setting) are the owner's.
 
 - `migrations/`: the schema (the owner's identity, contributor keys, submissions, decisions, the `intake` bucket, with
   row-level security on each), applied by `supabase db push`.
@@ -20,6 +21,12 @@ stage them in a scratch directory (`<repo>` is this repository's checkout):
 1. `d=$(mktemp -d) && cd "$d" && supabase init && cp -r <repo>/services/intake/migrations <repo>/services/intake/functions supabase/`
 2. `supabase link --project-ref <ref> && supabase db push && supabase functions deploy submit --no-verify-jwt`
    (`--no-verify-jwt`: an agent submits with its contributor key alone, in `x-m3a-key`, which the function checks).
+
+   Through the Supabase connector instead (D137; no CLI or Deno needed): `create_project` on the free plan (the server
+   quotes the cost; a nonzero quote waits for the owner), `apply_migration` with each file of `migrations/` in name
+   order, then `deploy_edge_function` named `submit` with `index.ts` and `handler.ts` and `verify_jwt` off, as
+   `--no-verify-jwt`. `get_project_url` and `get_publishable_keys` give the URL and publishable key steps 3 and 5 use;
+   the service role key is the owner's to copy from the dashboard into the secrets.
 3. Authentication: enable the GitHub provider (a GitHub OAuth app whose callback is the project's
    `/auth/v1/callback`) and add the contributor page's address to the redirect URLs. The page is the gallery's
    `src/contributors/`, built with `VITE_M3A_INTAKE_URL` (the project's URL) and `VITE_M3A_INTAKE_KEY` (its
