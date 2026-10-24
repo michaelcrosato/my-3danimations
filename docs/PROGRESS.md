@@ -24,8 +24,8 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 
 ## Next
 
-- The next goal (HANDOFF): O8's steps 1 and 2 by the Supabase connector (connected, D137); five follow-ups, each a WP;
-  B1's floor (the goal is the owner's go); the next review batch on the site. The owner's: Pick_Up_Basket, steps below.
+- The next goal (HANDOFF): dev dependencies' advisories; O8's steps 1 and 2 by the Supabase connector (D137); five
+  follow-ups as WPs; B1's floor (the goal is the owner's go); the next batch. The owner's: Pick_Up_Basket, steps below.
 
 ## Blocked on the owner
 

@@ -5730,12 +5730,16 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
     (the cross-engine check), Postgres 16 (the intake's SQL test) and `actionlint` present. `npm run check` passed in
     19.5 s on cold caches (over its 15 s budget, as HANDOFF warns of a fresh container), `npm test` in 88.4 s (1,343
     passed, budget 90), `npm run e2e` in 337.1 s (budget 480; Playwright 39 passed, QA as baselined, the sweeps' 137
-    tests, the rate sample's 8,110 rows none unbaselined). The m3a MCP server closed as the session
-    started (the hook's first `npm ci` racing it, D121) and starts clean now, 22 tools at 0.60.0: `/mcp` reconnects
-    it. GitHub's MCP tools act as `michaelcrosato`; CI is green on main's head 8c88b42; no pull request was open;
+    tests, the rate sample's 8,110 rows none unbaselined). The m3a MCP server closed as the session started (the
+    hook's first `npm ci` racing it, D121) and starts clean now, 22 tools at 0.60.0: `/mcp` reconnects it. GitHub's
+    MCP tools act as `michaelcrosato`; CI is green on main's head 8c88b42; no pull request was open;
     intake.yml's scheduled runs pass doing nothing (no hosted store). Vercel's project is linked, production READY at
     https://my-3danimations-ten.vercel.app, stamped `m3a 0.60.0 · 8c88b42`. Missing, and not needed: the Supabase CLI
-    and Deno (the intake README's CLI route uses them; the connector's doesn't).
+    and Deno (the intake README's CLI route uses them; the connector's doesn't). The push named Dependabot's alerts,
+    which the session's token can't read (403); `npm audit` reports 6 advisories (2 high, 4 moderate), all in the
+    root's dev tooling, none in a shipped `@m3a` package (they depend on each other and three alone):
+    `@modelcontextprotocol/inspector` 2.9.0 (fixed in 2.12.0), `vitest` 4.1.11 (4.1.12) and `fast-uri` 3.1.8 under
+    `ajv`. Left to the next goal's first commit (dependency changes land first, AGENTS.md).
   - **The Supabase connector is connected,** as no session's was before (D130): one organization, "michaelcrosato-1122's
     projects" (`vercel_icfg_E9rMU3MJRRHOiRsyAXZVhr0M`), on Supabase's free plan, installed through Vercel's marketplace
     (`icfg_E9rMU3MJRRHOiRsyAXZVhr0M`, "Supabase Free Plan", $0 a month, no payment method), with one project that is
@@ -5752,13 +5756,14 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
     REVIEW-PROPOSALS' two proposals marked taken up (v0.58.0 and v0.59.0, as FEEDBACK-LOG's F7.2 and F7.4 were); the
     intake README (it said the session creates nothing, against D130); HANDOFF (the connector, this session's numbers,
     the next goal).
-  - **The next goal** (HANDOFF, "The next goal"), the owner's to start: O8's steps 1 and 2; the five follow-ups no
-    decision deferred, each a WP of its own (Swim_Idle_Loop under its floor, `describe` naming a turn and a bend, the
-    engine sheet, the encoder's steady rounding from D135, T1's headroom); B1's floor with G7's B1 evidence run again;
-    the owner's next review batch exported to the site; the owner's steps asked, each with what it needs. B1's floor
-    is in it on purpose: the owner's last goal kept it deferred until their go (#24), and starting this goal as written
-    gives it; without that item it stays deferred. The rest of HANDOFF's follow-ups keep D131's calls, MIGRATING's gaps
-    wait on G10 (O9), and the on-demand WPs (PLAN.md §10) on their triggers, none of which has fired.
+  - **The next goal** (HANDOFF, "The next goal"), the owner's to start: the dev dependencies' advisories, in a commit
+    of their own; O8's steps 1 and 2; the five follow-ups no decision deferred, each a WP of its own (Swim_Idle_Loop
+    under its floor, `describe` naming a turn and a bend, the engine sheet, the encoder's steady rounding from D135,
+    T1's headroom); B1's floor with G7's B1 evidence run again; the owner's next review batch exported to the site;
+    the owner's steps asked, each with what it needs. B1's floor is in it on purpose: the owner's last goal kept it
+    deferred until their go (#24), and starting this goal as written gives it; without that item it stays deferred.
+    The rest of HANDOFF's follow-ups keep D131's calls, MIGRATING's gaps wait on G10 (O9), and the on-demand WPs
+    (PLAN.md §10) on their triggers, none of which has fired.
 - **Why:** a session acts on what the records say, so they must match what it finds (the README and the plan still
   said G8 waited, two days after it passed); the connector does what the CLI would, inside what the owner allowed,
   with nothing to install; and a goal that names each open item and what done means is one the next session can

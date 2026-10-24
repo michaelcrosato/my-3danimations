@@ -27,22 +27,28 @@ Everything the session can still do, as one goal for the owner to start (`/goal`
 
 ```
 Finish my-3danimations per docs/HANDOFF.md "The next goal", by AGENTS.md's rules, through draft PRs each merged
-green: (1) O8's steps 1-2 through the Supabase connector (D137); (2) one WP each for Swim_Idle_Loop under its floor,
-`describe` naming turns and bends, the engine sheet, the encoder's steady rounding (D135) and T1's headroom; (3) B1's
-floor with G7's B1 evidence re-run (~$12); (4) the owner's next review batch on the site. Done when each is done or
-blocked-owner with its exact ask posted, the ledger, PROGRESS, HANDOFF and DECISIONS agree, and CI is green on main.
+green: (1) the dev dependencies' npm audit advisories, in their own commit; (2) O8's steps 1-2 through the Supabase
+connector (D137); (3) one WP each for Swim_Idle_Loop under its floor, `describe` naming turns and bends, the engine
+sheet, the encoder's steady rounding (D135) and T1's headroom; (4) B1's floor with G7's B1 evidence re-run (~$12);
+(5) the owner's next review batch on the site. Done when each is done or blocked-owner with its exact ask posted,
+the ledger, PROGRESS, HANDOFF and DECISIONS agree, and CI is green on main.
 ```
 
 What each item means and when it is done:
 
-1. **O8's steps 1 and 2** (`services/intake/README.md`, D130, D137): `create_project` on the free plan in the one
+1. **The dev dependencies' advisories** (D137): `npm audit` reports 6 (2 high, 4 moderate), all in the root's dev
+   tooling and none in a shipped `@m3a` package: `@modelcontextprotocol/inspector` 2.9.0 (its MCP client and server;
+   fixed in 2.12.0; `mcp-smoke` drives it), `vitest` 4.1.11 (its mocker; fixed in 4.1.12) and `fast-uri` 3.1.8 (under
+   `ajv`; `npm audit fix` moves it in the lockfile). Done when the pins move exactly, in a commit of their own first
+   (AGENTS.md), `npm audit` reports none, and T0, T1 and T2 pass (`mcp-smoke` on the new Inspector).
+2. **O8's steps 1 and 2** (`services/intake/README.md`, D130, D137): `create_project` on the free plan in the one
    organization D137 names (a nonzero quote waits for the owner), `apply_migration` with `migrations/`,
    `deploy_edge_function` `submit` with `verify_jwt` off. Done when the tables and their row-level security are there
    (`list_tables`, `get_advisors` answered), the function refuses a submission without a key, the README records the
    project's ref and URL, and the PR asks the owner for steps 3 to 6 with the project's own values filled in (the
    OAuth callback, the contributor page's redirect URL, the secrets' names). G9 stays blocked-owner on those, the
    contract run, an adoption by a merged PR and the 70% approval.
-2. **The five follow-ups no decision deferred** (below), each a WP of its own in PLAN.md §10 "After G10" (the template,
+3. **The five follow-ups no decision deferred** (below), each a WP of its own in PLAN.md §10 "After G10" (the template,
    Verify, a ledger row, a version and changelog lines):
    - Swim_Idle_Loop's body under its floor (D136): done when `apps/gallery/src/playback.test.ts` no longer names it
      (it agrees with its data on every test character), or a decision answers it with numbers.
@@ -55,13 +61,13 @@ What each item means and when it is done:
      spec untouched.
    - T1's headroom (Last measured): the slowest files made faster, never the budget raised, until T1 sits well under
      90 s here and in CI.
-3. **B1's floor** (D123, D131): B1's grader reads heights from the body's measured floor, then G7's B1 known-goods and
+4. **B1's floor** (D123, D131): B1's grader reads heights from the body's measured floor, then G7's B1 known-goods and
    variants run again with real agents (about $12, 1.5 hours), the result logged. The owner's last goal kept it
-   deferred until their go (#24): this goal, started as written, is that go; without item 3 it stays deferred.
-4. **The owner's next review batch:** `npx m3a review export` (the unreviewed and stale clips: Jump_Twist cut again,
+   deferred until their go (#24): this goal, started as written, is that go; without item 4 it stays deferred.
+5. **The owner's next review batch:** `npx m3a review export` (the unreviewed and stale clips: Jump_Twist cut again,
    the idles whose reviews were dropped, and Pick_Up_Basket and Wrench_Bolt to look at again), committed as a batch
    the site carries (D132), its link posted for the owner.
-5. **The owner's, asked once each with exactly what is needed, never done for them:** the verdict on Pick_Up_Basket
+6. **The owner's, asked once each with exactly what is needed, never done for them:** the verdict on Pick_Up_Basket
    in their words; the batch's review; O8's steps 3 to 6; G9's approval and adoption; G10's confirmation (O9, "wait");
    O2's publish steps on the latest tag (below).
 
@@ -159,7 +165,7 @@ none of their triggers has fired). Add `ultracode` to the goal to run its WPs in
 
 ## Next, in order
 
-0. The next goal (above), once the owner starts it; items 2 and 3 below are its items 4 and 3.
+0. The next goal (above), once the owner starts it; items 2 and 3 below are its items 5 and 4.
 1. Whatever the owner sends back: their verdict on Pick_Up_Basket (above), a review file (`npx m3a review ingest
    <file>`, its notes into docs/FEEDBACK-LOG.md and a threshold or task proposal into docs/REVIEW-PROPOSALS.md), O8
    linked (the contract run, the first adoption by the bot), another repository's use confirmed (G10).
