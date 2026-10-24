@@ -1,7 +1,7 @@
 # my-3danimations
 
-**Status:** built. Every phase of `PLAN.md` is done (0.53.x): G0 to G7 passed (M1, M2), and G8, G9 and G10's command
-sets passed and wait on the owner's steps (M3, M4); [`docs/PROGRESS.md`](docs/PROGRESS.md) shows where it stands.
+**Status:** built. Every phase of `PLAN.md` is done (0.60.0): G0 to G8 passed (M1, M2), and G9 and G10's command sets
+passed and wait on the owner's steps (M3, M4); [`docs/PROGRESS.md`](docs/PROGRESS.md) shows where it stands.
 
 **Should we build the animation package for AI agents, and how?** This repository answered that question, then built it.
 
@@ -62,14 +62,15 @@ and supply chain an agent needs. Plug models that generate motion into a socket 
 | [`docs/MIGRATING.md`](docs/MIGRATING.md), [`spec/conformance/CERTIFYING.md`](spec/conformance/CERTIFYING.md) | For a repository adopting the package, or certifying its own implementation |
 | [`AGENTS.md`](AGENTS.md), [`CONTRIBUTING.md`](CONTRIBUTING.md), [`DOCTRINE.md`](DOCTRINE.md) | The rules for every change, how to contribute clips or code, what the package optimizes and why |
 | [`docs/FEASIBILITY.md`](docs/FEASIBILITY.md) | The analysis: the question, the cockpit-free design, the evidence, the landscape, feasibility by dimension, risks, owner decisions, the verdict |
-| [`PLAN.md`](PLAN.md) | The execution plan for an autonomous coding agent: the doctrine, the architecture and contracts, 11 phases, 56 work packages, 11 gates (G0 to G10), 4 milestones, the benchmark, the ledger |
+| [`PLAN.md`](PLAN.md) | The execution plan for an autonomous coding agent: the doctrine, the architecture and contracts, 11 phases, 57 work packages and the 14 follow-ups after G10, 11 gates (G0 to G10), 4 milestones, the benchmark, the ledger |
 | [`reports/AI native game animation landscape.md`](reports/AI%20native%20game%20animation%20landscape.md) | The research synthesis, October 2026 |
 | [`research_notes/AI native game animation landscape/`](research_notes/AI%20native%20game%20animation%20landscape/) | Seven cited studies: AI motion technology, commercial tools, formats and runtimes, data and licensing, agent tooling, the origin repos, the adopter repos |
 
 ## How it was built
 
 Claude Code sessions ran the kickoff prompt in `docs/FEASIBILITY.md` §9 at effort ultracode (D83): the ledger
-(`PLAN.md` §14) in order, one draft pull request a phase (#4 to #17), each merged at its gate (§8.5).
+(`PLAN.md` §14) in order, one draft pull request a phase (#4 to #17), each merged at its gate (§8.5), then an audit
+and the follow-ups after G10 (#18 to #30).
 `docs/DECISIONS.md` logs every call made on the way.
 
 The milestones:
