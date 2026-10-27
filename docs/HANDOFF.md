@@ -1,4 +1,4 @@
-# Handoff: every phase built; the follow-ups after G10 built (F.1 to F.14); the owner's steps open (2026-10-23)
+# Handoff: every phase built; the follow-ups after G10 built (F.1 to F.14); the next goal written (2026-10-24)
 
 Phase 7 merged before its gate (michaelcrosato/my-3danimations#13, D103); G7 passed on run 2 on
 michaelcrosato/my-3danimations#14 (D107); Phase 8 merged on michaelcrosato/my-3danimations#15 (G8's commands, D111);
@@ -8,8 +8,10 @@ michaelcrosato/my-3danimations#18, then the five follow-ups that need nothing fr
 §10 "After G10", D121 to D125), on michaelcrosato/my-3danimations#20, three more, WP-F.6 to F.8 (D126 to D128),
 on michaelcrosato/my-3danimations#21, and WP-F.9 (D129) on michaelcrosato/my-3danimations#22. Then D131 and the
 records (michaelcrosato/my-3danimations#23, #24), WP-F.11 (D132, #25), G8's pass (D133, #26), and the owner's asks
-after it: WP-F.12 (D134, #27), F.13 (D135, #28) and F.14 (D136, michaelcrosato/my-3danimations#29, merged as b66f248,
-main's head). This file is what the next session needs.
+after it: WP-F.12 (D134, #27), F.13 (D135, #28) and F.14 (D136, michaelcrosato/my-3danimations#29, merged as b66f248),
+then the records after it (#30, 8c88b42, main's head). On 2026-10-24 a session checked the environment (everything
+the work needs is here, and the Supabase connector is now connected), corrected the records and wrote the next goal
+below (D137). This file is what the next session needs.
 
 ## The standing goal (the owner's)
 
@@ -18,6 +20,61 @@ with its ask on the PR; CI green on the final head. That holds: what is left is 
 picks from the follow-ups below. Ultracode mode (PLAN.md §11, D83): implementers in lanes, the main
 session integrates shared files, DECISIONS and merges, and runs every gate in the main checkout; at most 3 lanes,
 none during trial batches.
+
+## The next goal (2026-10-24, D137)
+
+Everything the session can still do, as one goal for the owner to start (`/goal`, then this text):
+
+```
+Finish my-3danimations per docs/HANDOFF.md "The next goal", by AGENTS.md's rules, through draft PRs each merged
+green: (1) the dev dependencies' npm audit advisories, in their own commit; (2) O8's steps 1-2 through the Supabase
+connector (D137); (3) one WP each for Swim_Idle_Loop under its floor, `describe` naming turns and bends, the engine
+sheet, the encoder's steady rounding (D135) and T1's headroom; (4) B1's floor with G7's B1 evidence re-run (~$12);
+(5) the owner's next review batch on the site. Done when each is done or blocked-owner with its exact ask posted,
+the ledger, PROGRESS, HANDOFF and DECISIONS agree, and CI is green on main.
+```
+
+What each item means and when it is done:
+
+1. **The dev dependencies' advisories** (D137): `npm audit` reports 6 (2 high, 4 moderate), all in the root's dev
+   tooling and none in a shipped `@m3a` package: `@modelcontextprotocol/inspector` 2.9.0 (its MCP client and server;
+   fixed in 2.12.0; `mcp-smoke` drives it), `vitest` 4.1.11 (its mocker; fixed in 4.1.12) and `fast-uri` 3.1.8 (under
+   `ajv`; `npm audit fix` moves it in the lockfile). Done when the pins move exactly, in a commit of their own first
+   (AGENTS.md), `npm audit` reports none, and T0, T1 and T2 pass (`mcp-smoke` on the new Inspector).
+2. **O8's steps 1 and 2** (`services/intake/README.md`, D130, D137): `create_project` on the free plan in the one
+   organization D137 names (a nonzero quote waits for the owner), `apply_migration` with `migrations/`,
+   `deploy_edge_function` `submit` with `verify_jwt` off. Done when the tables and their row-level security are there
+   (`list_tables`, `get_advisors` answered), the function refuses a submission without a key, the README records the
+   project's ref and URL, and the PR asks the owner for steps 3 to 6 with the project's own values filled in (the
+   OAuth callback, the contributor page's redirect URL, the secrets' names). G9 stays blocked-owner on those, the
+   contract run, an adoption by a merged PR and the 70% approval.
+3. **The five follow-ups no decision deferred** (below), each a WP of its own in PLAN.md §10 "After G10" (the template,
+   Verify, a ledger row, a version and changelog lines):
+   - Swim_Idle_Loop's body under its floor (D136): done when `apps/gallery/src/playback.test.ts` no longer names it
+     (it agrees with its data on every test character), or a decision answers it with numbers.
+   - `describe` names a turn and a bend (Pick_Up_Basket reads "walks; stands"): done when the turn's side and size and
+     the bend are in its text within its token bound, its truth clips still read right.
+   - The engine sheet (D136, the owner's idea): the gallery's character drawn at the sheet's moments beside the sheet,
+     the data comparison's numbers under each frame, from a tool (principle 2), images to `check-output/`.
+   - The encoder's steady rounding of the hips, chest and head (D135's follow-up): done when the idles it names move
+     no further than their capture, measured as D135 measured them, the sets re-imported byte for byte, the frozen
+     spec untouched.
+   - T1's headroom (Last measured): the slowest files made faster, never the budget raised, until T1 sits well under
+     90 s here and in CI.
+4. **B1's floor** (D123, D131): B1's grader reads heights from the body's measured floor, then G7's B1 known-goods and
+   variants run again with real agents (about $12, 1.5 hours), the result logged. The owner's last goal kept it
+   deferred until their go (#24): this goal, started as written, is that go; without item 4 it stays deferred.
+5. **The owner's next review batch:** `npx m3a review export` (the unreviewed and stale clips: Jump_Twist cut again,
+   the idles whose reviews were dropped, and Pick_Up_Basket and Wrench_Bolt to look at again), committed as a batch
+   the site carries (D132), its link posted for the owner.
+6. **The owner's, asked once each with exactly what is needed, never done for them:** the verdict on Pick_Up_Basket
+   in their words; the batch's review; O8's steps 3 to 6; G9's approval and adoption; G10's confirmation (O9, "wait");
+   O2's publish steps on the latest tag (below).
+
+Left as they are, each with its reason: the follow-ups D131 deferred or kept (the five contact-less loops, a linear
+planter and key fit, the adopt bot's monopoly, a gate over the whole rate sweep, the mirror census, D129's calls),
+MIGRATING's gaps (with G10, O9), an AI visual pre-screen (the owner's call, D136), and the on-demand WPs (PLAN.md §10:
+none of their triggers has fired). Add `ultracode` to the goal to run its WPs in lanes (D83).
 
 ## Where things stand
 
@@ -33,10 +90,10 @@ none during trial batches.
     70% of `bench/results/gates/G9-run-2/queue.json`. O8's setup is `services/intake/README.md`: the Supabase project,
     the Actions secrets `M3A_SUPABASE_URL` and `M3A_SUPABASE_SERVICE_ROLE_KEY` (intake.yml) and `M3A_INTAKE_SUPABASE`
     (ci.yml's `intake-contract`, dispatched with that gate), and "Allow GitHub Actions to create and approve pull
-    requests". The owner said yes to the session creating the project (D130), but no session has the Supabase
-    connector until the owner connects it (claude.ai/customize/connectors); the next session then creates it and runs
-    the README's steps 1 and 2; the OAuth app, the first sign-in, the secrets and the Actions setting stay the
-    owner's.
+    requests". The owner said yes to the session creating the project (D130), and on 2026-10-24 the Supabase
+    connector is connected (D137: one organization on the free plan, through Vercel's marketplace, no m3a project
+    yet), so the next session creates it and runs the README's steps 1 and 2 through the connector (the next goal's
+    item 1); the OAuth app, the first sign-in, the secrets and the Actions setting stay the owner's.
   - **G10** (#17): another repository consumes the package or certifies against the vectors, and the owner confirms
     it (O9: proposed in docs/MIGRATING.md and spec/conformance/CERTIFYING.md, never acted on there).
   - **O2 answered (D130): publish now under `@m3a/*`.** The session built `publish.yml` (WP-F.10) and never publishes;
@@ -96,7 +153,10 @@ none during trial batches.
   its connector answers the PR's account (michaelcrosatoDM) with "create a Codex account", so only the owner's
   `@codex review` runs it; an independent reviewer's four findings were fixed in 5c348a8 (D121, D123). On #21 each
   WP's two reviewers' findings were fixed before the PR (D126 to D128); Codex again doesn't serve its account.
-- **Last measured (4 CPUs here; GitHub's runners):** F.14 on 57b61b9 here: T1 68.7 s (1,344 passed), T2 277.6 s
+- **Last measured (4 CPUs here; GitHub's runners):** on main's head 8c88b42 in a fresh container (2026-10-24, D137):
+  T0 19.5 s cold (over 15 s on cold caches only), T1 88.4 s (1,343 passed, budget 90: the headroom follow-up), T2
+  337.1 s (Playwright 39 passed in 167.0 s, QA 11.1, the sweeps 132.2, the rate sample 26.7, 0 rows unbaselined).
+  F.14 on 57b61b9 here: T1 68.7 s (1,344 passed), T2 277.6 s
   (Playwright 39 passed, the sweeps 137 tests); CI on #29's head 47ed20e, all green: T0 7.9 s, T1 108.8 s, T2 289.9 s
   (playwright 148.4, QA 5.8, the sweeps 116.1, the rate sample 19.6), the `rates` job about 2 minutes. CI's T1 swings
   with the runner for the same tests: its step took 58 s on main after #29's merge and 106 s after #28's; over 90 s it
@@ -105,6 +165,7 @@ none during trial batches.
 
 ## Next, in order
 
+0. The next goal (above), once the owner starts it; items 2 and 3 below are its items 5 and 4.
 1. Whatever the owner sends back: their verdict on Pick_Up_Basket (above), a review file (`npx m3a review ingest
    <file>`, its notes into docs/FEEDBACK-LOG.md and a threshold or task proposal into docs/REVIEW-PROPOSALS.md), O8
    linked (the contract run, the first adoption by the bot), another repository's use confirmed (G10).
@@ -115,8 +176,9 @@ none during trial batches.
    CMU_CURATED/Pick_Up_Basket and Wrench_Bolt were reviewed on a page that showed their turn twice (WP-F.14 fixed it);
    their reviews stand (the motion is the same), the owner's to keep or remake.
 3. B1's floor stays deferred, with its reason: reading B1's feet from the body's measured floor changes G7's evidence
-   (its known-goods and variants), so it waits for the owner's go. When it comes (D131's call is to fix it): a WP of its
-   own, then G7's B1 evidence run again (about $12 and 1.5 hours of real agents), its result logged.
+   (its known-goods and variants), so it waits for the owner's go, which starting the next goal as written gives
+   (D137). When it comes (D131's call is to fix it): a WP of its own, then G7's B1 evidence run again (about $12 and
+   1.5 hours of real agents), its result logged.
 4. The other follow-ups below stay as D131 calls them (deferred or kept, each with its reason) until the owner says
    otherwise.
 
@@ -184,9 +246,11 @@ none during trial batches.
   is never authored by the session, and no review is approved by it.
 - Vercel project prj_G6lMChE61OFf2aXCRijeSQWkAAEq is linked and unpaused (D130): production is
   https://my-3danimations-ten.vercel.app, redeployed on each merge to main; previews have SSO on (the owner's
-  sign-in). Supabase: no session has the connector until the owner connects it, and no project for m3a exists; the
-  owner's yes to create one (D130) holds once it is connected, never before. Actions: the GitHub MCP tools read runs,
-  jobs and logs (a job's `logs_url` downloads with curl); other Actions calls returned 403 before. No Docker: the
+  sign-in). Supabase: the connector is connected from 2026-10-24 (D137): one organization, "michaelcrosato-1122's
+  projects", on the free plan through Vercel's marketplace, holding `bmbptv-records` (not m3a's: never touch it) and
+  no m3a project yet; the owner's yes to create one (D130) holds. No Supabase CLI or Deno here: the connector's
+  `create_project`, `apply_migration` and `deploy_edge_function` do steps 1 and 2. Actions: the GitHub MCP tools read
+  runs, jobs and logs (a job's `logs_url` downloads with curl); other Actions calls returned 403 before. No Docker: the
   supabase backend can be tested against local Postgres 16 (`/usr/lib/postgresql/16/bin`) with a stubbed
   `auth.uid()`.
 - What the owner sees on a page is evidence (D136): before answering that a clip doesn't do what they saw, put the
@@ -212,7 +276,8 @@ none during trial batches.
   three lanes so again for F.2 to F.4, each writing its record to an untracked docs/lane-F<n>.md).
 - The m3a MCP server's CONNECTION_CLOSED was the hook's `npm ci` deleting node_modules as the server started, not the
   container's Node 22 (D121): the hook now skips a current install; on a fresh container's first start the server may
-  still race the install, and `/mcp` reconnects it.
+  still race the install, and `/mcp` reconnects it (2026-10-24 it did race; started by hand after, it served its 22
+  tools).
 - Generated clips carry the package version (`facts.by`, the producer's), so a version bump changes their bytes and
   every id hashed from them: a test or a reply must never depend on hash order (`library status` did, D125).
 - T1 shares modules between files (D125): a test that mocks a module does it with `vi.doMock` inside the test and
