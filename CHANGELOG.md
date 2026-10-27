@@ -12,6 +12,9 @@ The owner's next review batch (the next goal's item 5).
 - `m3a review export --on <ids or refs>`: the clips named first, whatever their review (a clip to look at again), then
   the sample of unreviewed and stale clips up to 20; a list still names none.
 
+### Repo
+- The owner's next review batch, `bench/results/gates/reviews/queue-0.64.0.json`: the site's newest (D146).
+
 ## 0.63.0 · 2026-10-27
 
 WP-F.19 (D143): the encoder's steady rounding.
@@ -35,6 +38,10 @@ WP-F.19 (D143): the encoder's steady rounding.
 ### Repo
 - `tools/import/fidelity.test.ts` pins no knee or elbow past its clip's own limit (six before), no pelvis 4 mm beyond
   its capture's, three clips past 1.5 times, nine under 0.8 (the least 0.63, 0.56 before).
+- B1's grader reads heights from the body's own floor, where its soles stand (D145); G7's B1 evidence run again with
+  real agents: B1 5/5, discovery 2/2, its held-out variant 5/5.
+- T1's second round: the runner's packed trials, the sweep's CLI and most of publish's tarball refusals run in T2's
+  full step (D144).
 
 ## 0.62.0 · 2026-10-27
 

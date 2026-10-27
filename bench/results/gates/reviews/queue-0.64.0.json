@@ -1,0 +1,780 @@
+{
+ "schema": "m3a.review-queue/1",
+ "store": "local",
+ "date": "2026-10-27",
+ "submissions": [],
+ "clips": [
+  {
+   "ref": "CMU_CURATED/Jump_Twist@1a620aad67ce",
+   "id": "CMU_CURATED/Jump_Twist",
+   "hash": "1a620aad67cefa50fd971e66a6415ab0bd39decf53918e43c8d63918025f51ab",
+   "tier": "cmu",
+   "review": null,
+   "stale": false,
+   "numbers": {
+    "verdict": "fail",
+    "findings": 9,
+    "fail": 2,
+    "dur": 4.167,
+    "keys": 85,
+    "fit": [
+     12,
+     101
+    ],
+    "metrics": {
+     "slide": 83.07,
+     "skate": 22.74,
+     "penetration": 19.33,
+     "bodyPenetration": 110.79,
+     "intersection": 0.14,
+     "jitter": 50.56,
+     "pop": 539.01,
+     "twistFlip": 177,
+     "jointLimit": 49,
+     "stretch": 0,
+     "seam": 0,
+     "seamVelocity": 0,
+     "fit": 12,
+     "nan": 0,
+     "events": 0,
+     "symmetry": 0,
+     "skateMean": 9.97
+    }
+   }
+  },
+  {
+   "ref": "STYLE100_IDLE/CrossOver_Idle@86f67ef066cb",
+   "id": "STYLE100_IDLE/CrossOver_Idle",
+   "hash": "86f67ef066cb0802e63ede5d76f4cecaffbe9420cfea367647389fa2ab3b6ee8",
+   "tier": "cc-by",
+   "review": null,
+   "stale": false,
+   "numbers": {
+    "verdict": "pass",
+    "findings": 0,
+    "fail": 0,
+    "dur": 2.5,
+    "keys": 5,
+    "fit": [
+     4,
+     10
+    ],
+    "metrics": {
+     "slide": 1.97,
+     "skate": 0.08,
+     "penetration": 0,
+     "bodyPenetration": 0,
+     "intersection": 0.37,
+     "jitter": 0,
+     "pop": 20.59,
+     "twistFlip": 25,
+     "jointLimit": 4,
+     "stretch": 0,
+     "seam": 0,
+     "seamVelocity": 19.27,
+     "fit": 4,
+     "nan": 0,
+     "events": 0,
+     "symmetry": 0,
+     "skateMean": 0.06
+    }
+   }
+  },
+  {
+   "ref": "STYLE100_IDLE/OnPhoneLeft_Idle@6bb13cd9f9d2",
+   "id": "STYLE100_IDLE/OnPhoneLeft_Idle",
+   "hash": "6bb13cd9f9d249f5c9ebbb81e86724df12244dcdd0e131c56f6ffbdfb87ea18d",
+   "tier": "cc-by",
+   "review": null,
+   "stale": false,
+   "numbers": {
+    "verdict": "pass",
+    "findings": 0,
+    "fail": 0,
+    "dur": 2.7,
+    "keys": 4,
+    "fit": [
+     6,
+     12
+    ],
+    "metrics": {
+     "slide": 8.28,
+     "skate": 0.31,
+     "penetration": 0,
+     "bodyPenetration": 0,
+     "intersection": 0.21,
+     "jitter": 0,
+     "pop": 15.39,
+     "twistFlip": 16,
+     "jointLimit": 10,
+     "stretch": 0,
+     "seam": 0,
+     "seamVelocity": 47.03,
+     "fit": 6,
+     "nan": 0,
+     "events": 0,
+     "symmetry": 0,
+     "skateMean": 0.2
+    }
+   }
+  },
+  {
+   "ref": "STYLE100_IDLE/GracefulArms_Idle@63b0bea309c3",
+   "id": "STYLE100_IDLE/GracefulArms_Idle",
+   "hash": "63b0bea309c34c6d1b98cf581a97d79846e6ef0700945e4c945f5ea6299b92d1",
+   "tier": "cc-by",
+   "review": null,
+   "stale": false,
+   "numbers": {
+    "verdict": "pass",
+    "findings": 0,
+    "fail": 0,
+    "dur": 2.5,
+    "keys": 4,
+    "fit": [
+     6,
+     20
+    ],
+    "metrics": {
+     "slide": 0,
+     "skate": 0,
+     "penetration": 0,
+     "bodyPenetration": 0,
+     "intersection": 0.04,
+     "jitter": 0,
+     "pop": 14.68,
+     "twistFlip": 9,
+     "jointLimit": 7,
+     "stretch": 0,
+     "seam": 0,
+     "seamVelocity": 20.8,
+     "fit": 6,
+     "nan": 0,
+     "events": 0,
+     "symmetry": 0,
+     "skateMean": 0
+    }
+   }
+  },
+  {
+   "ref": "CMU_CURATED/Pick_Up_Basket@04c9a32eadf4",
+   "id": "CMU_CURATED/Pick_Up_Basket",
+   "hash": "04c9a32eadf41b3e2508f47dd22873692228164babc127289fcf14aab5ecff6b",
+   "tier": "cmu",
+   "review": {
+    "state": "approved",
+    "by": "owner",
+    "date": "2026-10-22",
+    "motion": "04c9a32eadf41b3e2508f47dd22873692228164babc127289fcf14aab5ecff6b",
+    "note": "Idk, they walk up, pick up, turn right spin 360 degrees and back pedal,"
+   },
+   "stale": false,
+   "numbers": {
+    "verdict": "pass",
+    "findings": 0,
+    "fail": 0,
+    "dur": 4.3,
+    "keys": 76,
+    "fit": [
+     10,
+     88
+    ],
+    "metrics": {
+     "slide": 37.07,
+     "skate": 11.21,
+     "penetration": 12.54,
+     "bodyPenetration": 0,
+     "intersection": 0.89,
+     "jitter": 15.8,
+     "pop": 859.75,
+     "twistFlip": 43,
+     "jointLimit": 34,
+     "stretch": 0,
+     "seam": 0,
+     "seamVelocity": 0,
+     "fit": 10,
+     "nan": 0,
+     "events": 0,
+     "symmetry": 0,
+     "skateMean": 4.64
+    }
+   }
+  },
+  {
+   "ref": "CMU_CURATED/Wrench_Bolt@fb26b9a3a9c1",
+   "id": "CMU_CURATED/Wrench_Bolt",
+   "hash": "fb26b9a3a9c1de8769d61ca71eeed63f16ed4a02143fe804b0c0b43ac17fc7a1",
+   "tier": "cmu",
+   "review": {
+    "state": "approved",
+    "by": "owner",
+    "date": "2026-10-22",
+    "motion": "fb26b9a3a9c1de8769d61ca71eeed63f16ed4a02143fe804b0c0b43ac17fc7a1",
+    "note": "Look fine not sure what its for"
+   },
+   "stale": false,
+   "numbers": {
+    "verdict": "pass",
+    "findings": 0,
+    "fail": 0,
+    "dur": 6,
+    "keys": 23,
+    "fit": [
+     11,
+     61
+    ],
+    "metrics": {
+     "slide": 55.5,
+     "skate": 3.64,
+     "penetration": 3.93,
+     "bodyPenetration": 0,
+     "intersection": 0.25,
+     "jitter": 1.03,
+     "pop": 495.38,
+     "twistFlip": 68,
+     "jointLimit": 26,
+     "stretch": 0,
+     "seam": 0,
+     "seamVelocity": 0,
+     "fit": 11,
+     "nan": 0,
+     "events": 0,
+     "symmetry": 0,
+     "skateMean": 1.47
+    }
+   }
+  },
+  {
+   "ref": "STYLE100_IDLE/OnPhoneRight_Idle@c3e667b9620d",
+   "id": "STYLE100_IDLE/OnPhoneRight_Idle",
+   "hash": "c3e667b9620d3ff9da5c96164ed6f9a8dc598112b4d5aaf3f2ae87b01d397993",
+   "tier": "cc-by",
+   "review": null,
+   "stale": false,
+   "numbers": {
+    "verdict": "pass",
+    "findings": 0,
+    "fail": 0,
+    "dur": 2.5,
+    "keys": 4,
+    "fit": [
+     4,
+     11
+    ],
+    "metrics": {
+     "slide": 2.03,
+     "skate": 0.08,
+     "penetration": 0,
+     "bodyPenetration": 0,
+     "intersection": 0.1,
+     "jitter": 0,
+     "pop": 13.79,
+     "twistFlip": 37,
+     "jointLimit": 1,
+     "stretch": 0,
+     "seam": 0,
+     "seamVelocity": 25.21,
+     "fit": 4,
+     "nan": 0,
+     "events": 0,
+     "symmetry": 0,
+     "skateMean": 0.04
+    }
+   }
+  },
+  {
+   "ref": "STYLE100_IDLE/HandsBetweenLegs_Idle@793c0b9ab408",
+   "id": "STYLE100_IDLE/HandsBetweenLegs_Idle",
+   "hash": "793c0b9ab4083223ece37432205b24116c4326c7180d3f26fd6245adf18f0cff",
+   "tier": "cc-by",
+   "review": null,
+   "stale": false,
+   "numbers": {
+    "verdict": "pass",
+    "findings": 0,
+    "fail": 0,
+    "dur": 2.5,
+    "keys": 4,
+    "fit": [
+     4,
+     16
+    ],
+    "metrics": {
+     "slide": 4.79,
+     "skate": 0.19,
+     "penetration": 0,
+     "bodyPenetration": 0,
+     "intersection": 0.05,
+     "jitter": 0,
+     "pop": 31.12,
+     "twistFlip": 5,
+     "jointLimit": 8,
+     "stretch": 0,
+     "seam": 0,
+     "seamVelocity": 7.7,
+     "fit": 4,
+     "nan": 0,
+     "events": 0,
+     "symmetry": 0,
+     "skateMean": 0.1
+    }
+   }
+  },
+  {
+   "ref": "STYLE100_IDLE/Aeroplane_Idle@f6ab01f41e78",
+   "id": "STYLE100_IDLE/Aeroplane_Idle",
+   "hash": "f6ab01f41e7895611ba0d0fdd95f1b6addc7b59af26b6925f2f2a84c05e891bb",
+   "tier": "cc-by",
+   "review": null,
+   "stale": false,
+   "numbers": {
+    "verdict": "pass",
+    "findings": 0,
+    "fail": 0,
+    "dur": 2.5,
+    "keys": 5,
+    "fit": [
+     6,
+     28
+    ],
+    "metrics": {
+     "slide": 0.01,
+     "skate": 0,
+     "penetration": 0,
+     "bodyPenetration": 0,
+     "intersection": 0.02,
+     "jitter": 0,
+     "pop": 10.94,
+     "twistFlip": 5,
+     "jointLimit": 26,
+     "stretch": 0,
+     "seam": 0,
+     "seamVelocity": 12.91,
+     "fit": 6,
+     "nan": 0,
+     "events": 0,
+     "symmetry": 0,
+     "skateMean": 0
+    }
+   }
+  },
+  {
+   "ref": "MESH2MOTION/Glide@a10d8aa85ce6",
+   "id": "MESH2MOTION/Glide",
+   "hash": "a10d8aa85ce631134c35512fd3647022eb4183798aa733de125eff6bba1fea1c",
+   "tier": "cc0",
+   "review": null,
+   "stale": false,
+   "numbers": {
+    "verdict": "pass",
+    "findings": 0,
+    "fail": 0,
+    "dur": 0.792,
+    "keys": 4,
+    "fit": [
+     8,
+     47
+    ],
+    "metrics": {
+     "slide": 0,
+     "skate": 0,
+     "penetration": 0,
+     "bodyPenetration": 0,
+     "intersection": 0,
+     "jitter": 0,
+     "pop": 117.67,
+     "twistFlip": 9,
+     "jointLimit": 3,
+     "stretch": 0,
+     "seam": 1.1,
+     "seamVelocity": 198.27,
+     "fit": 8,
+     "nan": 0,
+     "events": 0,
+     "symmetry": 0,
+     "skateMean": 0
+    }
+   }
+  },
+  {
+   "ref": "STYLE100_IDLE/HighKnees_Idle@0fcd61774bcb",
+   "id": "STYLE100_IDLE/HighKnees_Idle",
+   "hash": "0fcd61774bcbe6ee3cbd9683d586d4620c7428baad9fec8dbc89b2b8ba20637e",
+   "tier": "cc-by",
+   "review": null,
+   "stale": false,
+   "numbers": {
+    "verdict": "pass",
+    "findings": 0,
+    "fail": 0,
+    "dur": 2.533,
+    "keys": 4,
+    "fit": [
+     5,
+     18
+    ],
+    "metrics": {
+     "slide": 0.06,
+     "skate": 0,
+     "penetration": 0,
+     "bodyPenetration": 0,
+     "intersection": 0.34,
+     "jitter": 0,
+     "pop": 7.16,
+     "twistFlip": 11,
+     "jointLimit": 0,
+     "stretch": 0,
+     "seam": 0,
+     "seamVelocity": 8.48,
+     "fit": 5,
+     "nan": 0,
+     "events": 0,
+     "symmetry": 0,
+     "skateMean": 0
+    }
+   }
+  },
+  {
+   "ref": "STYLE100_IDLE/LeanRight_Idle@7580ebfaed03",
+   "id": "STYLE100_IDLE/LeanRight_Idle",
+   "hash": "7580ebfaed03afc74e4185ca4a49e6c45a576e276fab8fbec488c1a63a429741",
+   "tier": "cc-by",
+   "review": null,
+   "stale": false,
+   "numbers": {
+    "verdict": "pass",
+    "findings": 0,
+    "fail": 0,
+    "dur": 2.5,
+    "keys": 6,
+    "fit": [
+     6,
+     15
+    ],
+    "metrics": {
+     "slide": 0.28,
+     "skate": 0.01,
+     "penetration": 3.38,
+     "bodyPenetration": 0,
+     "intersection": 0.12,
+     "jitter": 0.03,
+     "pop": 39.44,
+     "twistFlip": 8,
+     "jointLimit": 21,
+     "stretch": 0,
+     "seam": 0,
+     "seamVelocity": 22.33,
+     "fit": 6,
+     "nan": 0,
+     "events": 0,
+     "symmetry": 0,
+     "skateMean": 0.01
+    }
+   }
+  },
+  {
+   "ref": "STYLE100_IDLE/March_Idle@4287b1411ada",
+   "id": "STYLE100_IDLE/March_Idle",
+   "hash": "4287b1411ada6fe8800bd2060908a5ee9966bcd3b1f101bdc358283b441ab695",
+   "tier": "cc-by",
+   "review": null,
+   "stale": false,
+   "numbers": {
+    "verdict": "pass",
+    "findings": 0,
+    "fail": 0,
+    "dur": 2.5,
+    "keys": 4,
+    "fit": [
+     6,
+     16
+    ],
+    "metrics": {
+     "slide": 0.02,
+     "skate": 0,
+     "penetration": 0,
+     "bodyPenetration": 0,
+     "intersection": 0.53,
+     "jitter": 0,
+     "pop": 7.43,
+     "twistFlip": 39,
+     "jointLimit": 5,
+     "stretch": 0,
+     "seam": 0,
+     "seamVelocity": 14.84,
+     "fit": 6,
+     "nan": 0,
+     "events": 0,
+     "symmetry": 0,
+     "skateMean": 0
+    }
+   }
+  },
+  {
+   "ref": "STYLE100_IDLE/Tiptoe_Idle@39a59a53eca0",
+   "id": "STYLE100_IDLE/Tiptoe_Idle",
+   "hash": "39a59a53eca03b339b9f5dba3910330334f691a9181f508cf2041696bbe8e8c4",
+   "tier": "cc-by",
+   "review": null,
+   "stale": false,
+   "numbers": {
+    "verdict": "pass",
+    "findings": 0,
+    "fail": 0,
+    "dur": 2.533,
+    "keys": 4,
+    "fit": [
+     5,
+     19
+    ],
+    "metrics": {
+     "slide": 6.08,
+     "skate": 0.24,
+     "penetration": 3.07,
+     "bodyPenetration": 0,
+     "intersection": 0.37,
+     "jitter": 0,
+     "pop": 27.19,
+     "twistFlip": 39,
+     "jointLimit": 21,
+     "stretch": 0,
+     "seam": 0,
+     "seamVelocity": 48.61,
+     "fit": 5,
+     "nan": 0,
+     "events": 0,
+     "symmetry": 0,
+     "skateMean": 0.17
+    }
+   }
+  },
+  {
+   "ref": "MESH2MOTION/Flying_Forward@10fcc4b4bdcf",
+   "id": "MESH2MOTION/Flying_Forward",
+   "hash": "10fcc4b4bdcfb007a3c9c31b0dd295ae0d872f64d03dabc7bbb65cc64dfb1bc2",
+   "tier": "cc0",
+   "review": null,
+   "stale": false,
+   "numbers": {
+    "verdict": "pass",
+    "findings": 0,
+    "fail": 0,
+    "dur": 0.5,
+    "keys": 3,
+    "fit": [
+     6,
+     23
+    ],
+    "metrics": {
+     "slide": 0,
+     "skate": 0,
+     "penetration": 0,
+     "bodyPenetration": 0,
+     "intersection": 0,
+     "jitter": 0,
+     "pop": 0,
+     "twistFlip": 4,
+     "jointLimit": 12,
+     "stretch": 0,
+     "seam": 0,
+     "seamVelocity": 142.5,
+     "fit": 6,
+     "nan": 0,
+     "events": 0,
+     "symmetry": 0,
+     "skateMean": 0
+    }
+   }
+  },
+  {
+   "ref": "STYLE100_SIDERUN/TwoFootJump_SideRunRight@71da0542ae44",
+   "id": "STYLE100_SIDERUN/TwoFootJump_SideRunRight",
+   "hash": "71da0542ae447c36c8eeceeb36b04e950ef052d798fe5549e94ac1e2ee570395",
+   "tier": "cc-by",
+   "review": null,
+   "stale": false,
+   "numbers": {
+    "verdict": "pass",
+    "findings": 0,
+    "fail": 0,
+    "dur": 0.533,
+    "keys": 11,
+    "fit": [
+     9,
+     30
+    ],
+    "metrics": {
+     "slide": 12.84,
+     "skate": 0,
+     "penetration": 8.37,
+     "bodyPenetration": 0,
+     "intersection": 0.35,
+     "jitter": 15.19,
+     "pop": 577.7,
+     "twistFlip": 47,
+     "jointLimit": 13,
+     "stretch": 0,
+     "seam": 0,
+     "seamVelocity": 2126.12,
+     "fit": 9,
+     "nan": 0,
+     "events": 0,
+     "symmetry": 0,
+     "skateMean": 11.67
+    }
+   }
+  },
+  {
+   "ref": "STYLE100_SIDE/Zombie_SideRight@b2216f88c6c6",
+   "id": "STYLE100_SIDE/Zombie_SideRight",
+   "hash": "b2216f88c6c6318382783f17f5eec6e5543774cabb7a392bf2dd84e01192b375",
+   "tier": "cc-by",
+   "review": null,
+   "stale": false,
+   "numbers": {
+    "verdict": "pass",
+    "findings": 0,
+    "fail": 0,
+    "dur": 1.567,
+    "keys": 9,
+    "fit": [
+     10,
+     42
+    ],
+    "metrics": {
+     "slide": 59.71,
+     "skate": 5.03,
+     "penetration": 0,
+     "bodyPenetration": 0,
+     "intersection": 0.05,
+     "jitter": 2.61,
+     "pop": 527.74,
+     "twistFlip": 48,
+     "jointLimit": 11,
+     "stretch": 0,
+     "seam": 0,
+     "seamVelocity": 484.37,
+     "fit": 10,
+     "nan": 0,
+     "events": 0,
+     "symmetry": 0,
+     "skateMean": 4.84
+    }
+   }
+  },
+  {
+   "ref": "STYLE100_BACK/Tiptoe_WalkBack@edf42dcde71c",
+   "id": "STYLE100_BACK/Tiptoe_WalkBack",
+   "hash": "edf42dcde71cd058d8099955dcbadc40cd835305ca9517bac95e073a2696bc48",
+   "tier": "cc-by",
+   "review": null,
+   "stale": false,
+   "numbers": {
+    "verdict": "pass",
+    "findings": 0,
+    "fail": 0,
+    "dur": 1.1,
+    "keys": 10,
+    "fit": [
+     6,
+     42
+    ],
+    "metrics": {
+     "slide": 24.06,
+     "skate": 3.61,
+     "penetration": 6.9,
+     "bodyPenetration": 0,
+     "intersection": 0.29,
+     "jitter": 4.58,
+     "pop": 381.88,
+     "twistFlip": 34,
+     "jointLimit": 7,
+     "stretch": 0,
+     "seam": 0,
+     "seamVelocity": 956.58,
+     "fit": 6,
+     "nan": 0,
+     "events": 0,
+     "symmetry": 0,
+     "skateMean": 3.21
+    }
+   }
+  },
+  {
+   "ref": "STYLE100_SIDERUN/Lunge_SideRunLeft@efb57d08e79e",
+   "id": "STYLE100_SIDERUN/Lunge_SideRunLeft",
+   "hash": "efb57d08e79e33efa97c3ba6a0f32eb3020f8d7a2ce11960aa98aa1aa4f55ee3",
+   "tier": "cc-by",
+   "review": null,
+   "stale": false,
+   "numbers": {
+    "verdict": "pass",
+    "findings": 0,
+    "fail": 0,
+    "dur": 1.033,
+    "keys": 14,
+    "fit": [
+     8,
+     39
+    ],
+    "metrics": {
+     "slide": 55,
+     "skate": 14.35,
+     "penetration": 8.78,
+     "bodyPenetration": 0,
+     "intersection": 0.08,
+     "jitter": 10.98,
+     "pop": 635.77,
+     "twistFlip": 45,
+     "jointLimit": 25,
+     "stretch": 0,
+     "seam": 0,
+     "seamVelocity": 1159,
+     "fit": 8,
+     "nan": 0,
+     "events": 0,
+     "symmetry": 0,
+     "skateMean": 11.47
+    }
+   }
+  },
+  {
+   "ref": "STYLE100_BACKRUN/SlideFeet_RunBack@39c6de4f6cfc",
+   "id": "STYLE100_BACKRUN/SlideFeet_RunBack",
+   "hash": "39c6de4f6cfc1c875bf1762b8a6d6dc370ccaab142105dc92c31cc673cc2839d",
+   "tier": "cc-by",
+   "review": null,
+   "stale": false,
+   "numbers": {
+    "verdict": "pass",
+    "findings": 0,
+    "fail": 0,
+    "dur": 0.8,
+    "keys": 11,
+    "fit": [
+     7,
+     63
+    ],
+    "metrics": {
+     "slide": 47.11,
+     "skate": 10.87,
+     "penetration": 16.82,
+     "bodyPenetration": 0,
+     "intersection": 0.16,
+     "jitter": 6.15,
+     "pop": 982.89,
+     "twistFlip": 29,
+     "jointLimit": 19,
+     "stretch": 0,
+     "seam": 0,
+     "seamVelocity": 2040.21,
+     "fit": 7,
+     "nan": 0,
+     "events": 0,
+     "symmetry": 0,
+     "skateMean": 8.17
+    }
+   }
+  }
+ ]
+}

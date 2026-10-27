@@ -4,7 +4,7 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 `PLAN.md` §14; decisions are in `docs/DECISIONS.md`.
 
 **Phase:** all eleven built (10 done: G10's commands passed; its confirmation blocked-owner). **Next gate:** none (M4).
-**Version:** 0.63.0. **Mode:** ultracode (D83). **Last change:** F.19, the encoder's steady rounding (D143).
+**Version:** 0.64.0. **Mode:** ultracode (D83). **Last change:** F.19 to F.21 and T1's second round (D143 to D146).
 
 ## Done
 
@@ -18,14 +18,14 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
   8.2b): the intake store, `m3a review`, its page, the contributor page (D109); previews (WP-8.3); the free tier (D110).
 - Phases 9 and 10 (G9's commands passed on run 2, #16; G10's, #17): the intake, its gates, the adopt bot, B8 (9.1);
   sources (9.2); dedup, lineage (9.3); the registry index (9.4) (D112–D114); the consumer proof, the kit (D116).
-- The audit (D118, D119); F.1 to F.14 (#20 to #29, D121–D136): the bin, contacts, the rate sweep, the manual's names,
-  the review page's guide, frozen clips 102 → 17, a clip's turn shown once; on #32 the advisories, O8's steps 1 and 2
-  (D138), describe's turns and bends, a body under its floor, the engine sheet (F.16 to F.18, D140–D142).
+- The audit (D118, D119); F.1 to F.14 (#20 to #29, D121–D136): contacts, the rate sweep, frozen clips 102 → 17, a
+  turn shown once; #32: the advisories, O8's steps 1 and 2 (D138), describe's turns and bends, a body under its floor,
+  the engine sheet (D140–D142); #33: steady rounding, B1's floor (B1 5/5, variant 5/5), the next batch (D143–D146).
 
 ## Next
 
-- The next goal (HANDOFF), started 2026-10-27: T1's headroom (F.15, doing: CI 99 to 106 s); B1's floor (the owner's
-  go given); the next batch. The encoder's steady rounding done (F.19, D143). The owner's: Pick_Up_Basket, below.
+- The next goal (HANDOFF), started 2026-10-27: all done but T1's headroom (F.15, doing: D139, D144). The owner's: the
+  batch on the site (`reviews/queue-0.64.0`), Pick_Up_Basket's verdict, and the steps below.
 
 ## Blocked on the owner
 

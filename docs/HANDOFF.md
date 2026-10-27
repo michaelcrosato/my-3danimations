@@ -66,12 +66,14 @@ What each item means and when it is done:
      capture, measured as D135 measured them, the sets re-imported byte for byte, the frozen spec untouched.
    - **Doing (F.15, D139): the repeated sweeps sampled; CI's T1 100 to 106 s, still over.** T1's headroom (Last
      measured): the slowest files made faster, never the budget raised, until T1 sits well under 90 s here and in CI.
-4. **B1's floor** (D123, D131): B1's grader reads heights from the body's measured floor, then G7's B1 known-goods and
-   variants run again with real agents (about $12, 1.5 hours), the result logged. The owner's last goal kept it
-   deferred until their go (#24): this goal, started as written, is that go; without item 4 it stays deferred.
-5. **The owner's next review batch:** `npx m3a review export` (the unreviewed and stale clips: Jump_Twist cut again,
-   the idles whose reviews were dropped, and Pick_Up_Basket and Wrench_Bolt to look at again), committed as a batch
-   the site carries (D132), its link posted for the owner.
+4. **Done (F.20, D145): B1 5/5, discovery 2/2, its G7 variant 5/5, $3.02.** **B1's floor** (D123, D131): B1's grader
+   reads heights from the body's measured floor, then G7's B1 known-goods and variants run again with real agents (about
+   $12, 1.5 hours), the result logged. The owner's last goal kept it deferred until their go (#24): this goal, started
+   as written, is that go; without item 4 it stays deferred.
+5. **Done (F.21, D146): `bench/results/gates/reviews/queue-0.64.0.json`, the site's newest; the review asked.** **The
+   owner's next review batch:** `npx m3a review export` (the unreviewed and stale clips: Jump_Twist cut again, the idles
+   whose reviews were dropped, and Pick_Up_Basket and Wrench_Bolt to look at again), committed as a batch the site
+   carries (D132), its link posted for the owner.
 6. **The owner's, asked once each with exactly what is needed, never done for them:** the verdict on Pick_Up_Basket
    in their words; the batch's review; O8's steps 3 to 6; G9's approval and adoption; G10's confirmation (O9, "wait");
    O2's publish steps on the latest tag (below).
@@ -83,7 +85,7 @@ none of their triggers has fired). Add `ultracode` to the goal to run its WPs in
 
 ## Where things stand
 
-- **Version 0.62.0.** Every WP through 10.2, F.1 to F.14 and F.16 to F.18 is done (F.15 doing); G0-G8 passed; G9 and
+- **Version 0.64.0.** Every WP through 10.2, F.1 to F.14 and F.16 to F.21 is done (F.15 doing); G0-G8 passed; G9 and
   G10's command sets passed and each waits on the owner (blocked-owner, its ask on its PR):
   - **G8** (#15): **passed** on 2026-10-22 (D133): the owner's review of G8-run-1's `queue-0.56.0.json` on the
     site's review page, applied with `npx m3a review ingest` (20 decisions, 18 approved, 2 flagged); its notes are
@@ -173,21 +175,17 @@ none of their triggers has fired). Add `ultracode` to the goal to run its WPs in
 
 ## Next, in order
 
-0. The next goal (above), started 2026-10-27: items 1 and 2 and F.16 to F.18 done (#32), F.15 doing; then F.19 (the
-   encoder's steady rounding), item 4 (B1's floor) and item 5 (the batch); items 2 and 3 below are its items 5 and 4.
-1. Whatever the owner sends back: their verdict on Pick_Up_Basket (above), a review file (`npx m3a review ingest
-   <file>`, its notes into docs/FEEDBACK-LOG.md and a threshold or task proposal into docs/REVIEW-PROPOSALS.md), O8
-   linked (the contract run, the first adoption by the bot), another repository's use confirmed (G10).
-2. The owner's next review batch: `npx m3a review export` samples the unreviewed and stale clips, among them Jump_Twist
-   (cut again) and the three idles whose reviews were dropped with their old motion; D135 lists what to look at (the
-   feet that follow the hips' rounding, the few idles under 0.8 of their capture's sway); export it after F.19 (the
-   encoder's steady rounding, D135's follow-up) so the idles it changes are the batch's. Also to look at again (D136): G8's
-   CMU_CURATED/Pick_Up_Basket and Wrench_Bolt were reviewed on a page that showed their turn twice (WP-F.14 fixed it);
-   their reviews stand (the motion is the same), the owner's to keep or remake.
-3. B1's floor stays deferred, with its reason: reading B1's feet from the body's measured floor changes G7's evidence
-   (its known-goods and variants), so it waits for the owner's go, which starting the next goal as written gives
-   (D137). When it comes (D131's call is to fix it): a WP of its own, then G7's B1 evidence run again (about $12 and
-   1.5 hours of real agents), its result logged.
+0. The next goal (above), started 2026-10-27: items 1, 2, 4 and 5 done, and item 3's follow-ups but T1's headroom
+   (F.15, doing: D139, D144) on #32 and #33; item 6's asks posted on #33.
+1. Whatever the owner sends back: their verdict on Pick_Up_Basket (above), the batch's review file (`npx m3a review
+   ingest <file>`, its notes into docs/FEEDBACK-LOG.md and a threshold or task proposal into docs/REVIEW-PROPOSALS.md),
+   O8 linked (the contract run, the first adoption by the bot), another repository's use confirmed (G10).
+2. The batch (D146): the site opens `reviews/queue-0.64.0` at load; a later `npx m3a review export --on <clips>`
+   committed to `bench/results/gates/reviews/` supersedes it. D135 and D143 say what to look at in it (the idles under
+   0.8 of their capture's sway, the feet that follow the hips' rounding); Pick_Up_Basket's and Wrench_Bolt's reviews
+   stand until the owner remakes them.
+3. T1's headroom (F.15): what is left is its tests' own CPU (D144); well under 90 s on every runner needs a quarter of
+   T1 moved to T2 or a faster runner.
 4. The other follow-ups below stay as D131 calls them (deferred or kept, each with its reason) until the owner says
    otherwise.
 
@@ -196,13 +194,9 @@ none of their triggers has fired). Add `ultracode` to the goal to run its WPs in
 - An AI visual pre-screen of every clip (D136): considered, not built (the owner's call): only if the data comparison
   misses what a reviewer sees.
 - CI's T1 near its budget (Last measured): 58 to 109 s on GitHub's runners for the same tests (79.1 s after F.5, D125;
-  1,343 passing in CI now). A run at 135 s fails: before then, the slowest files made faster (PLAN.md §6), not the budget
-  raised.
+  99 to 106 s on #32's heads after F.15's first round, D139; the second round D144). A run at 135 s fails: before then,
+  the slowest files made faster (PLAN.md §6), not the budget raised.
 
-- B1's floor (D123): B1's grader reads heights from y = 0, which stands 16 to 44 mm above a generated test character's
-  soles (`bench/graders/bones.ts` `bodyOf`), so a foot within 40 to 86 mm of its floor reads as down; D106's "keyed
-  runs skim" were that floor and Run_Female's walk-to-run fade, not the loops (the rate sweep passes them). Reading
-  from the body's measured floor changes G7's evidence (B1's known-goods and variants): a decision of its own.
 - The rate sweep's 428 failing rows on 108 loops, each loop answered with its cause in `library/baselines/rates.json`
   (D127, D129). D129's three calls are the owner's, each reversible: the spec's amendment (`labelled` covering a named
   reading, `facts.reading`), the six readings new to core (31 of the 45), and the bar ("no failing row added"; "no

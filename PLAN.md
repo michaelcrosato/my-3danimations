@@ -2889,6 +2889,43 @@ picked by the owner on 2026-10-21. No gate follows them: each is held by its Ver
   three), `npm run vectors -- --check`, `npm run qa -- --check`, `npm run qa -- library --check`,
   `npm run sweep -- --rates --check`, `npm run index -- --check`
 
+#### WP-F.20 B1 reads heights from the body's own floor
+- **Owns:** `bench/graders/bones.ts` (`bodyOf`'s `sole`), `bench/graders/B1/grade.ts`
+- **Needs:** WP-4.7, WP-F.3
+- **Size:** S (about 30 changed lines, tests included)
+- **Carry:** none
+- **Trigger:** D123's follow-up, D131's call (fix it, then run G7's B1 evidence again): B1's grader read heights from
+  y = 0, which stands 16 to 44 mm above a generated test character's soles, so a foot 40 to 86 mm over its own floor
+  read as standing; two of the four misses in the 2026-10-22 runs were B1's floor.
+- **Build:** `bodyOf` also gives the body's measured floor, the ground its rest is measured on (the rest pelvis's height
+  less its height in the format: where its soles are); B1's grader reads every height from it. B3 and B4 keep theirs.
+- **Done when:**
+  1. The floor read where the soles stand: 24, 20, 41 and 16 mm under y = 0 on gen-0 to gen-3.
+  2. The known-good passes and every planted bad solution fails, naming its check, on every character T2 grades.
+  3. G7's B1 evidence with real agents: `npm run bench -- B1 --trials 5 --parallel 5 --discovery 2` and
+     `--heldout G7`, the results logged.
+- **Verify:** `npm run check`, `npm test -- bench/graders/B1`, `npm run test:full -- bench/graders/B1`, the two bench
+  runs above
+
+#### WP-F.21 The owner's next review batch
+- **Owns:** `packages/tools/src/tools/review.ts` (export's `on`), `bench/results/gates/reviews/`
+- **Also touches:** `apps/gallery/src/review/batches.test.ts`, `tests/e2e/review.e2e.ts`, `tests/e2e/previews.e2e.ts`
+  (the batches the site carries)
+- **Needs:** WP-8.2a, WP-F.11, WP-F.19
+- **Size:** S (about 60 changed lines, tests included)
+- **Carry:** none
+- **Trigger:** the next goal's item 5 (D137): the clips to look at again (Jump_Twist cut again, the three idles whose
+  reviews were dropped, Pick_Up_Basket and Wrench_Bolt) and the idles F.19 left under 0.8 of their sway, which
+  export's fixed sample of 20 unreviewed clips wouldn't pick.
+- **Build:** `m3a review export --on <ids or refs>` puts the clips named first, whatever their review, then the sample
+  up to 20; the batch exported after F.19 is committed to `bench/results/gates/reviews/queue-0.64.0.json` (each later
+  export there supersedes it), so the site opens it at load (D132).
+- **Done when:**
+  1. The export names its clips first, each once, then the sample to 20; the queue valid by its schema.
+  2. The site carries the batch as the newest and G8's by its name; no submission in it.
+  3. Its link posted for the owner.
+- **Verify:** `npm test -- packages/tools/test/review.test.ts apps/gallery/src/review`, `npm run e2e -- review previews`
+
 ### On demand
 
 Each starts only when its trigger fires; record the measurement that fired it. A trigger that never fires means the WP
@@ -3097,6 +3134,8 @@ commits named here are on their PR branches (`refs/pull/<n>/head`).
 | F.17 A body under its floor keeps its legs | done | 0.61.1 | 2e449b5 (#32) | 2026-10-27 | Swim_Idle_Loop's legs 90°–150° from its data → within 1° (arms 4° before and after); playback in full on gen-1 and gen-0 with no known exception; vectors byte for byte, tier 3 2,317 of 2,317, the sweeps as pinned; five clips ever put their hips under the floor (two swims, Zombie_Rise, two falls by a few mm) (D141) |
 | F.18 The engine sheet | done | 0.62.0 | 2e449b5 (#32) | 2026-10-27 | on gen-1, 4 frames: Walk_Loop's engine facing 0° and limbs 4° (the worst cell's median) from its data, Turn_Right_180's 0° and 1°, Swim_Idle_Loop's 0° and 14° (at 1.67 s, a leg); the read-back points the rest points to 1e-13 mm and the decoder's to 0.01 mm on 1,081 tier-2 poses but the fingers' (the rig's curled finger joints, the format's helpers: up to 83 mm); the tools 3,200 tokens in all (D142) |
 | F.19 The encoder's steady rounding | done | 0.63.0 | (this PR) | 2026-10-27 | at 0.9: the four idles' pelvis 5.5–7.7 mm beyond their capture's → under it (the worst of 108 clips 3.5 mm); knees or elbows past their limit 6 → 0 (worst 10.0 → 8.0 mm); past 1.5× their capture's reach 13 → 3 (max 2.12 → 1.60×); under 0.8× 7 → 9 (min 0.56 → 0.63); within 0.8–1.25× 67 → 84 of 103; 92 clips re-fitted on the same key frames, fit mean the same on 64, better on 5, up to 4 mm worse on 23; every verdict as before (D143) |
+| F.20 B1 reads heights from the body's own floor | done | 0.63.0 | (this PR) | 2026-10-27 | the floor at the soles: gen-0 to gen-3 24, 20, 41, 16 mm under y = 0 (the toes' and balls' joints 20 mm over it); the known-good on gen-1: both feet off in 64 → 67% of running frames; on gen-1287 the worst glide 17.7 → 24.6 cm/s (warn 20, fail 41.9); every planted bad one fails as before; real agents at 1276348 and a5e8e16: B1 5/5 (4/5 on 2026-10-22), discovery 2/2, its G7 held-out variant 5/5 (4/5), $3.02 (D145) |
+| F.21 The owner's next review batch | done | 0.64.0 | (this PR) | 2026-10-27 | `review export --on`: 15 clips named first (Jump_Twist, CrossOver, OnPhoneLeft and GracefulArms_Idle, Pick_Up_Basket, Wrench_Bolt, the nine idles F.19 left under 0.8), 5 sampled: 20 rows, 0 submissions; `bench/results/gates/reviews/queue-0.64.0.json` the site's newest batch; the owner's review asked on #33 (D146) |
 
 ---
 

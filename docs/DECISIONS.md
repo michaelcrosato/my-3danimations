@@ -5966,3 +5966,43 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   its CI numbers in the ledger).
 - **Answered:** the owner's goal (2026-10-27) named the WP; the calls are the session's, under D131.
 - **Landed in:** v0.63.0 (tests only)
+
+## D145 · 2026-10-27 · B1's grader reads heights from the body's own floor; G7's B1 evidence run again
+
+- **Principle:** the North Star (the benchmark is its measure, so a grader that misreads is the first thing to fix), 3
+  (graded from what the bones do), D123, D131
+- **Call:**
+  - **The floor:** `bodyOf` gives the body's measured floor beside its old one: the ground its rest is measured on,
+    where its soles are (the rest pelvis's height less its height in the format), and B1's grader reads every height
+    from it. On gen-0 to gen-3 it is 24, 20, 41 and 16 mm under y = 0, as D123 measured; the toes' and balls' joints,
+    the lowest body points, stand 20 mm over y = 0, so the lowest joint (the first build's reading) moved nothing.
+  - **What moves on the known-good:** both feet off the ground in 64 → 67% of running frames on gen-1 (61 → 68 on
+    gen-1287, 62 → 68 on gen-37); on gen-1287 the worst glide 17.7 → 24.6 cm/s, at the run-to-walk change (warn 20,
+    fail 41.9: a foot 44 mm higher is read standing over a different stretch). Every planted bad solution still fails,
+    naming its check, on gen-1, gen-37 and G4's held-out rig; the known-good passes on every character T2 grades.
+  - **Not changed:** B3's and B4's floor (B4 reads its feet against their own lowest, B3's sink check is not B1's
+    call); a follow-up if their evidence is run again.
+  - **G7's B1 evidence, with real agents** (`bench/results/2026-10-27-default-B1.json` at 1276348,
+    `-B1-variant.json` at a5e8e16, both clean trees): B1 5/5 (4/5 on 2026-10-22, two misses B1's floor), discovery
+    2/2, its G7 held-out variant 5/5 (4/5), the variant's known-good first; $3.02 for 12 trials.
+- **Why:** a foot that has left its floor read as standing turns a run's swing into a skate the agent never made.
+- **Answered:** the owner's goal (2026-10-27) gave the go D131 waited for; the reading is the session's.
+- **Landed in:** v0.63.0 (bench only)
+
+## D146 · 2026-10-27 · The owner's next review batch names its clips first; reviews/ holds the batches to come
+
+- **Principle:** the North Star (the library's measure is the owner's approval on sampled reviews), 2 (a tool), D132
+- **Call:**
+  - **Export names its clips first.** `m3a review export --on <ids or refs>` puts the clips named first, each once,
+    whatever their review (a clip reviewed and current is one to look at again), then the fixed sample of unreviewed
+    and stale clips up to 20. The sample alone picks by the ids' hashes, so it would have missed every clip HANDOFF asks
+    the owner to look at.
+  - **The batch (0.64.0, after F.19):** Jump_Twist (cut again, D135), CrossOver_Idle, OnPhoneLeft_Idle and
+    GracefulArms_Idle (their reviews dropped with their old motion), Pick_Up_Basket and Wrench_Bolt (reviewed on a
+    page that showed their turn twice, D136; their reviews stand), the nine idles F.19 left under 0.8 of their
+    capture's sway (D143), and five sampled: 20 rows, no submission.
+  - **Where:** `bench/results/gates/reviews/queue-0.64.0.json`. The site carries the newest batch of each directory
+    there (D132), so a later export in reviews/ supersedes this one, and G8's stays open by its name.
+- **Why:** the owner's review is the evidence; the page should open on the clips that need it.
+- **Answered:** no: the owner's review of the batch is asked on the pull request.
+- **Landed in:** v0.64.0

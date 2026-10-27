@@ -15,7 +15,7 @@ const ROOT = join(import.meta.dirname, "../../../.."), hasClip = (id: string) =>
 const read = (path: string) => readFileSync(join(ROOT, path), "utf8");
 /** Every committed batch, by path. */
 const COMMITTED = readdirSync(join(ROOT, GATES_DIR), { withFileTypes: true }).filter((d) => d.isDirectory()).flatMap((d) => readdirSync(join(ROOT, GATES_DIR, d.name)).filter((f) => /^queue.*\.json$/.test(f)).map((f) => `${GATES_DIR}/${d.name}/${f}`)).sort();
-const G8 = `${GATES_DIR}/G8-run-1/queue-0.56.0.json`, G9 = `${GATES_DIR}/G9-run-2/queue.json`;
+const G8 = `${GATES_DIR}/G8-run-1/queue-0.56.0.json`, G9 = `${GATES_DIR}/G9-run-2/queue.json`, NEXT = `${GATES_DIR}/reviews/queue-0.64.0.json`;
 const batch = (name: string, date: string): Batch => ({ name, path: `${GATES_DIR}/${name}.json`, date, clips: 1, text: "" });
 
 describe("review batches", () => {
@@ -96,7 +96,7 @@ describe("review batches", () => {
   it("carries, when none are named, the newest batch in each gate's directory that holds no submission", () => {
     const found = COMMITTED.map((path) => ({ path, text: read(path) }));
     expect(committed(found, hasClip)).toEqual({
-      carried: [G8],
+      carried: [G8, NEXT], // the owner's next batch (the next goal's item 5) in reviews/, where each export supersedes the last
       left: [`${GATES_DIR}/G8-run-1/queue.json (superseded by G8-run-1/queue-0.56.0)`, `${GATES_DIR}/G9-run-1/queue.json (10 submissions)`, `${GATES_DIR}/G9-run-2/queue.json (10 submissions)`],
     });
     // a newer export holding a submission supersedes an older one holding none; a file that is no queue is left out
