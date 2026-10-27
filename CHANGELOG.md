@@ -4,6 +4,20 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.61.1 · 2026-10-27
+
+WP-F.17 (D141): a body under its floor keeps its legs.
+
+### Core
+- Planting: a body whose pelvis is under the surface (treading water, the format's floor the water's surface) isn't
+  standing on it, so its free feet hang as the clip has them; brought up out of the surface they folded the legs back
+  up past the hips (QUATERNIUS_SHARDFALL/Swim_Idle_Loop's legs played 90° to 150° from its data, on every body). Every
+  other pose is as before: the vectors, the conformance tiers and the sweeps unchanged.
+
+### Repo
+- `apps/gallery/src/playback.test.ts` names no known exception: Swim_Idle_Loop plays as its data on every test
+  character.
+
 ## 0.61.0 · 2026-10-27
 
 WP-F.16 (D140): `describe` names a turn and a bend.

@@ -1,6 +1,6 @@
 {
   "name": "@m3a/core",
-  "version": "0.61.0",
+  "version": "0.61.1",
   "private": true,
   "description": "Format codec, profiles, sampler, pose ops, solver, contacts, recipes, graphs and sources. Imports nothing.",
   "license": "MIT",

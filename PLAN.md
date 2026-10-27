@@ -2813,6 +2813,26 @@ picked by the owner on 2026-10-21. No gate follows them: each is held by its Ver
   4. The 30 truth clips still read right; the token count stays no lower than cl100k's and o200k's on every clip.
 - **Verify:** `npm run check`, `npm test -- packages/sensors packages/tools`, `M3A_FULL=1 npx vitest run packages/sensors/test/describe-tokens.test.ts`
 
+#### WP-F.17 A body under its floor keeps its legs
+- **Owns:** `packages/core/src/contact/plant.ts`, `apps/gallery/src/playback.test.ts` (its KNOWN list)
+- **Needs:** WP-2.5, WP-F.14
+- **Size:** S (about 10 changed lines)
+- **Carry:** none
+- **Trigger:** HANDOFF's follow-up (D136): QUATERNIUS_SHARDFALL/Swim_Idle_Loop ("treading water", its hips 36 to 47%
+  of H0 under the floor, the water's surface) played far from its data in the engine, its limbs 93 to 102° off on
+  every test character; the playback comparison named it.
+- **Build:** measured first: its arms played within 4° of the data and its legs 90° to 150° off; the Animator kept the
+  pelvis where the clip has it and set each free foot on the floor (the planter brings a swinging foot that dips under
+  the surface up on its own leg), so with the whole body under the floor the legs folded up through it. A body whose
+  pelvis is under the surface isn't standing on it: its free feet hang as the clip has them. The solver's own lift
+  (a pose decoded alone) and a game's root at the water's surface are untouched.
+- **Done when:**
+  1. `apps/gallery/src/playback.test.ts` names no known exception and passes on every clip on gen-1 and gen-0
+     (`M3A_FULL=1`): Swim_Idle_Loop's legs within 1° of its data on gen-1.
+  2. The vectors byte for byte, the conformance tiers, the sweeps and core's tests as before.
+- **Verify:** `npm run check`, `npm test`, `npm run e2e`, `M3A_FULL=1 npx vitest run apps/gallery/src/playback.test.ts`,
+  `npm run vectors -- --check`, `npm run conformance -- --impl ts`
+
 ### On demand
 
 Each starts only when its trigger fires; record the measurement that fired it. A trigger that never fires means the WP
@@ -3018,6 +3038,7 @@ commits named here are on their PR branches (`refs/pull/<n>/head`).
 | F.14 Playback as the data says | done | 0.60.0 | b66f248 (#29) | 2026-10-23 | the owner's in-chat review of Pick_Up_Basket ("does a 360 and then walks backwards") and their experiment (gen-1 painted, snapped at the sheet's moments and view): the gallery and the review cards turned a character by a heading its pose already carried, and the raster and graph sims likewise; one rule (a pose carries its clip's turn, attach writes the root's turn beyond it, `AnimatorPose.turn`); the data comparison `apps/gallery/src/playback.test.ts`: facing 55 clips off by up to 179° → 0 of 1,398 on four test characters; the test characters painted as the sheets (D136) |
 | F.15 T1's headroom | doing | 0.60.1 | (this PR) | 2026-10-27 | the changed files' test CPU on one worker 89.5 → 62.3 s (−30%); T1 here 113–116 → 107–110 s (this container runs about 1.6× slower than D137's; its timings swing ±7 s run to run); the dedup distance the same to the bit on 1,863 pairs; CI to measure (D139) |
 | F.16 `describe` names a turn and a bend | done | 0.61.0 | (this PR) | 2026-10-27 | Mesh2Motion's quarter and half turns read 100° left, 85° right, 180° and 180° (their keys: 102, 87, 180, 181); Pick_Up_Basket "bends over (trunk 80°); turns 170° to the right; bends over (trunk 85°)" (its keys turn 165° to 170° there, 195° start to end with the walk's curve); over the library 74 one-shots turn, no loop, 157 clips bend; the truth set and the tokens as before (D140) |
+| F.17 A body under its floor keeps its legs | done | 0.61.1 | (this PR) | 2026-10-27 | Swim_Idle_Loop's legs 90°–150° from its data → within 1° (arms 4° before and after); playback in full on gen-1 and gen-0 with no known exception; vectors byte for byte, tier 3 2,317 of 2,317, the sweeps as pinned; five clips ever put their hips under the floor (two swims, Zombie_Rise, two falls by a few mm) (D141) |
 
 ---
 

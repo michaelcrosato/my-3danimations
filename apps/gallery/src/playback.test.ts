@@ -35,7 +35,8 @@ export const BOUNDS = {
 } as const;
 /** Clips the engine plays far from their data for a reason of their own, each with it (not the turn). */
 export const KNOWN: Readonly<Record<string, string>> = {
-  "QUATERNIUS_SHARDFALL/Swim_Idle_Loop": "treading water, its hips 36 to 47% of H0 under the floor (the water's surface): the engine's pose of a body under its floor is a follow-up of its own (WP-F.14); the gallery's floor hides it",
+  // none since WP-F.17: Swim_Idle_Loop (treading water, its hips 36 to 47% of H0 under the floor, the water's surface)
+  // played its legs folded up through the floor; a body whose pelvis is under the surface now keeps its free feet
 };
 
 const DEG = Math.PI / 180, wrap = (a: number) => ((((a + 180) % 360) + 360) % 360) - 180;

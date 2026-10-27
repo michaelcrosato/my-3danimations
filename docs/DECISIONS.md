@@ -5856,3 +5856,26 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   honest for the 1,398 there now.
 - **Answered:** the owner's goal (2026-10-27) named the WP; the thresholds are the session's, under D131.
 - **Landed in:** v0.61.0
+
+## D141 · 2026-10-27 · A body whose pelvis is under the surface doesn't stand on it: its free feet hang
+
+- **Principle:** 3 (verified: the engine plays what the data says), 5 (deterministic: the rule reads the pose alone),
+  D37, D136
+- **Call:**
+  - **Measured (WP-F.17):** QUATERNIUS_SHARDFALL/Swim_Idle_Loop through the Animator on the reference rig kept its
+    pelvis at the clip's −342 mm and raised its left ankle from −1,208 to +92 mm; on gen-1 its arms played within 4° of
+    the data and its legs 90° to 150° off. The planter brings a free foot under the surface up on its own leg (meant for
+    a swing that dips a few mm under on a body of other proportions; lifting the body after it would bounce it), and
+    with the whole body under the floor that folds the legs back up past the hips.
+  - **The rule:** a body whose pelvis is under the surface isn't standing on it; its free feet stay as the clip has
+    them. Planted feet are untouched (a contact still sets its sole on the surface), and so is the solver's lift of a
+    pose decoded alone.
+  - **Not taken:** lifting the whole body onto the floor, as the solver does for a pose alone: a game playing a swim
+    puts its root at the water's surface (the format's floor) and expects the body below it.
+  - **What else moves:** only poses with the pelvis under the surface; five library clips ever have one (the two swims,
+    Zombie_Rise climbing out of the ground, and two falls dipping a few mm). The vectors, the conformance tiers, the
+    sweeps and the playback comparison in full pass as before; the playback test names no known exception.
+- **Why:** a free foot under the floor is a dip only while the body stands on that floor; when the pelvis is under it,
+  the floor is a water's surface or the ground a body rises out of, and the clip's legs are the truth.
+- **Answered:** the owner's goal (2026-10-27) named the WP; the rule is the session's, under D131.
+- **Landed in:** v0.61.1
