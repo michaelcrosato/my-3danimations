@@ -12,6 +12,29 @@ function) a session may run for the owner (D130), through the Supabase connector
 - `schemas/`: the queue's and the review's JSON schemas. `test/stub.sql`: what a Supabase project gives the migration,
   stubbed for `packages/tools/test/intake-sql.test.ts`; never applied to a project.
 
+## The linked project (D138)
+
+Steps 1 and 2 are done (2026-10-27, through the connector): the project `m3a-intake`, ref `suhheypppwwnddbgvngx`, in
+us-east-1 on the free plan of the owner's one Supabase organization (Vercel's marketplace, $0).
+
+- **URL:** `https://suhheypppwwnddbgvngx.supabase.co` (`VITE_M3A_INTAKE_URL`, `M3A_SUPABASE_URL`, the secret's `url`).
+- **Publishable key:** `sb_publishable_7vKhs6s0iR5SHcH_JnPf6w_sFhVyb85` (`VITE_M3A_INTAKE_KEY`, the secret's
+  `apikey`); public by design, as the contributor page's build carries it. The service role key is never written here.
+- **The schema:** `migrations/20261019120000_intake.sql`, applied byte for byte (the stored statement's SHA-256 is the
+  file's without its last newline), every table under row-level security; an anonymous client is refused on each
+  table and on `decide`, and the bucket lists nothing.
+- **The submit function:** `https://suhheypppwwnddbgvngx.supabase.co/functions/v1/submit`, `index.ts` and `handler.ts`
+  as here, the JWT check off; it answers a GET 405, a POST without a key 401, an unknown key 401 after asking the
+  database (so its service role reads), and a body that isn't JSON 400.
+- **The advisors, answered:** `intake_settings` has no policy on purpose (only `intake.owner()`, a security definer,
+  reads it); `decide` is a security definer callable when signed in on purpose (it checks the caller is the owner);
+  the per-row `auth.uid()` in policies, two unindexed foreign keys and two unused indexes cost nothing at 20
+  submissions a contributor a day: a later migration may add them if the queue grows.
+- **Left to the owner:** steps 3 to 6 below, with these values: the GitHub OAuth app's callback
+  `https://suhheypppwwnddbgvngx.supabase.co/auth/v1/callback`; the redirect URL
+  `https://my-3danimations-ten.vercel.app/src/contributors/` (and previews' if wanted); the Vercel project's
+  environment variables `VITE_M3A_INTAKE_URL` and `VITE_M3A_INTAKE_KEY` above, then a redeploy.
+
 ## Linking it
 
 The Supabase CLI reads `supabase/config.toml`, `supabase/migrations/*.sql` and `supabase/functions/<name>/index.ts`

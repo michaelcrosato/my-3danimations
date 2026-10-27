@@ -36,12 +36,12 @@ the ledger, PROGRESS, HANDOFF and DECISIONS agree, and CI is green on main.
 
 What each item means and when it is done:
 
-1. **The dev dependencies' advisories** (D137): `npm audit` reports 6 (2 high, 4 moderate), all in the root's dev
+1. **Done (52c789b, D138).** **The dev dependencies' advisories** (D137): `npm audit` reports 6 (2 high, 4 moderate), all in the root's dev
    tooling and none in a shipped `@m3a` package: `@modelcontextprotocol/inspector` 2.9.0 (its MCP client and server;
    fixed in 2.12.0; `mcp-smoke` drives it), `vitest` 4.1.11 (its mocker; fixed in 4.1.12) and `fast-uri` 3.1.8 (under
    `ajv`; `npm audit fix` moves it in the lockfile). Done when the pins move exactly, in a commit of their own first
    (AGENTS.md), `npm audit` reports none, and T0, T1 and T2 pass (`mcp-smoke` on the new Inspector).
-2. **O8's steps 1 and 2** (`services/intake/README.md`, D130, D137): `create_project` on the free plan in the one
+2. **Done (D138): the project `m3a-intake` (`suhheypppwwnddbgvngx`), checked live; steps 3 to 6 asked.** **O8's steps 1 and 2** (`services/intake/README.md`, D130, D137): `create_project` on the free plan in the one
    organization D137 names (a nonzero quote waits for the owner), `apply_migration` with `migrations/`,
    `deploy_edge_function` `submit` with `verify_jwt` off. Done when the tables and their row-level security are there
    (`list_tables`, `get_advisors` answered), the function refuses a submission without a key, the README records the

@@ -5771,3 +5771,32 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
 - **Answered:** the goal is the owner's (2026-10-24); the route and the next goal's items are the session's, under
   D131, to review.
 - **Landed in:** docs only (after #30)
+
+## D138 · 2026-10-27 · The dev tooling's advisories fixed; O8's project created and its steps 1 and 2 done through the connector
+
+- **Principle:** 9 (pin what agents know: exact pins, moved in their own commit), O8 (PLAN.md §13), D110, D130, D137
+- **Call:**
+  - **What the owner asked** (2026-10-27, the goal D137 wrote, started as written): "(1) the dev dependencies' npm
+    audit advisories, in their own commit; (2) O8's steps 1-2 through the Supabase connector (D137)".
+  - **The advisories:** `@modelcontextprotocol/inspector` 2.9.0 → 2.12.0, `vitest` 4.1.11 → 4.1.12, and `fast-uri`
+    to its fixed release under `ajv` (`npm audit fix`, the lockfile alone), in commit 52c789b, pinned exactly as before.
+    `npm audit`: 0. T1 took 113 to 116 s in this container on either set of pins (the container is about 1.6 times
+    slower than D137's: Playwright 274 s against 167), so the bump costs nothing; T2's `mcp-smoke` passes on the new
+    Inspector.
+  - **O8's project:** `m3a-intake`, ref `suhheypppwwnddbgvngx`, us-east-1, created by the connector's `create_project`
+    in the one organization D137 names; the server asked for no cost confirmation (the free plan, $0). The migration
+    applied byte for byte (the stored statement's SHA-256, b4a54412…, is the file's without its last newline); the
+    submit function deployed from the repository's two files with the JWT check off, its sources read back the same.
+    Checked live: every table under row-level security; an anonymous client refused on each table and on `decide`;
+    the function's refusals (405, 401 without a key, 401 for an unknown key after a database read, 400 for a body that
+    isn't JSON). The advisors' findings are answered in `services/intake/README.md` (by design, or nothing at this
+    scale); the schema is not changed for them.
+  - **What stays the owner's** (D131, the README's steps 3 to 6, asked on the PR with the project's values): the
+    GitHub OAuth app and the Auth provider, the redirect URL, the Vercel project's two `VITE_M3A_INTAKE_*` variables
+    and a redeploy, the first sign-in and the owner's row, the Actions secrets (the service role key among them, which
+    the session never reads into a file), and "Allow GitHub Actions to create and approve pull requests". G9 stays
+    blocked-owner on those, the contract run, an adoption by a merged PR and the 70% approval.
+- **Why:** the owner said yes to the project (D130) and started the goal that names it; the connector does steps 1 and
+  2 with nothing installed, and each result is checked against the repository's own files and the README's promises.
+- **Answered:** yes: the owner's goal (2026-10-27).
+- **Landed in:** docs and the dev dependencies only (no version)

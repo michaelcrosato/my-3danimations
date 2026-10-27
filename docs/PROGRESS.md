@@ -24,12 +24,12 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 
 ## Next
 
-- The next goal (HANDOFF): dev dependencies' advisories; O8's steps 1 and 2 by the Supabase connector (D137); five
-  follow-ups as WPs; B1's floor (the goal is the owner's go); the next batch. The owner's: Pick_Up_Basket, steps below.
+- The next goal (HANDOFF), started 2026-10-27: the advisories and O8's steps 1 and 2 done (D138); five follow-ups as
+  WPs; B1's floor (the owner's go given); the next batch. The owner's: Pick_Up_Basket, steps below.
 
 ## Blocked on the owner
 
-- G9: O8 linked (`services/intake/README.md`: steps 1 and 2 the session's by the connector, D137; 3 to 6 the owner's),
+- G9: O8 linked (`services/intake/README.md`: steps 1 and 2 done, project `m3a-intake`, D138; 3 to 6 the owner's),
   the contract suite, an adoption, the approval of 70% of `G9-run-2/queue.json`. Asked on #16.
 - G10: another repository consumes the package or certifies against the vectors, confirmed (O9). Asked on #17.
 - O2 answered, publish now (D130): the owner starts `publish.yml` and `release.yml` on `v0.60.0` (b66f248). O3 unpaused.
