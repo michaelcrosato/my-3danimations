@@ -25,6 +25,9 @@ function restOf(id: string): { rest: Rest; restSrc: string } {
   return { rest: manifest(set).sources[clip.restSrc]!.rest, restSrc: clip.restSrc };
 }
 const RESTS = ["MESH2MOTION/Idle_A", "STYLE100/Neutral_Walk", "CMU_CURATED/Walk_Loop"].map((id) => [id, restOf(id)] as const);
+/** The three rests a grid is read on: all three in T2 (M3A_FULL=1, tools/run/e2e.ts's sweeps), and in T1 one, a
+ *  different one for each test (the k-th), so T1 still reads every rest (D74's sample; WP-F.15). */
+const FULL = process.env.M3A_FULL === "1", onRests = (k: number) => (FULL ? RESTS : [RESTS[k % RESTS.length]!]);
 /** A library source's rest by its set and source. */
 const sourceRest = (set: string, src: string): Rest => manifest(set).sources[src]!.rest;
 /** A test character's rest. */
@@ -68,8 +71,8 @@ const KNOWN_FAILS: Record<string, [RegExp, string]> = {
 };
 
 describe("procedural clips under the sensors", () => {
-  it("gaits slide at most 10 mm per contact, and none fails, on the three rests", () => {
-    for (const [id, { rest, restSrc }] of RESTS) {
+  it("gaits slide at most 10 mm per contact, and none fails, on the three rests (one in T1)", () => {
+    for (const [id, { rest, restSrc }] of onRests(0)) {
       for (const g of PR.GAITS) {
         const c = PR.gaitClip(g, rest, { restSrc }), r = metrics(c, rest);
         expect([id, g.name, r.values.slide <= 10, r.verdict === "fail"]).toEqual([id, g.name, true, false]);
@@ -122,7 +125,7 @@ describe("procedural clips under the sensors", () => {
     // ahead: the pelvis lowered for the stance's ends alone drove a leg to 99.7% and its knee popped (D71, round 6); the
     // pelvis is lowered until none passes 98.5% at any phase, its bounce, sway and rounding to the format's grid counted
     // (with the rounding uncounted, the clip held legs at up to 98.9% here, 99.3% on the verifier's grid: round 7)
-    for (const [id, { rest, restSrc }] of RESTS) {
+    for (const [id, { rest, restSrc }] of onRests(1)) {
       for (const [cycle, stance, lift] of [[0.6, 0.5, 12], [0.6, 0.5, 25], [0.75, 0.5, 12], [0.7, 0.35, 25]] as const) {
         const g = PR.fitGait({ name: "g", about: "a gait", cycle, stance, lift, bounce: 6, speed: 1000 }, rest), c = PR.gaitClip(g, rest, { restSrc });
         expect([id, g, longest(rest, c).most <= 0.985, metrics(c, rest).verdict === "fail"]).toEqual([id, g, true, false]);
@@ -146,7 +149,7 @@ describe("procedural clips under the sensors", () => {
     // ends, the pelvis lowered for a leg to reach them (to 46 to 50% of the hip height), and the lifted foot passed under
     // the hips within 5 to 9% of a leg: the knee flipped round, popping at 22 to 30 m/s (the verifier's round 8, at 582,
     // 474 and 485); fitGait now slows it until no leg folds under 25% of its length
-    for (const [[id, { rest, restSrc }], cycle] of RESTS.map((r, i) => [r, i ? 0.75 : 0.65] as const)) {
+    for (const [[id, { rest, restSrc }], cycle] of RESTS.map((r, i) => [r, i ? 0.75 : 0.65] as const).filter((_, i) => FULL || i === 2)) {
       const g = PR.fitGait({ name: "g", about: "a run", cycle, stance: 0.2, lift: 35, bounce: 6, speed: 1000 }, rest);
       for (const fps of [55, 60, 75]) {
         const c = PR.gaitClip(g, rest, { restSrc, fps });
@@ -405,7 +408,7 @@ describe("procedural clips under the sensors", () => {
       expect([fps, checks.measure(m).verdict === "fail"]).toEqual([fps, false]);
     }
   }, 30_000);
-  it("gaits lift and set their feet down without a hitch: the verifier's round-7 cases pass on the three rests", () => {
+  it("gaits lift and set their feet down without a hitch: the verifier's round-7 cases pass on the three rests (one in T1)", () => {
     // a run lifting 35 whose left foot starts its arc on the seam (at 60 frames a second the foot's height turned from
     // still to 9.6 m/s there: seam velocity 4.1 to 4.8 m/s); short swings just over a stance of a half lifting 30 and 35,
     // at 55, the fewest frames a second taken (at 50 their knees popped where the arc rose infinitely steeply; with the
@@ -413,16 +416,16 @@ describe("procedural clips under the sensors", () => {
     // shortest taken since round 14, 0.3 s, near the three rests' reach, 301 to 320); and a long stance bouncing 6 at 75,
     // the most taken (at 110 a knee popped on the pelvis's whole-% steps)
     for (const [g, fps] of [[{ speed: 250, cycle: 0.727, stance: 0.39, lift: 35 }, 60], [{ speed: 300, cycle: 0.625, stance: 0.52, lift: 30 }, 55], [{ speed: 300, cycle: 0.625, stance: 0.52, lift: 35 }, 55], [{ speed: 77, cycle: 1.2, stance: 0.75, bounce: 6 }, 75]] as const)
-      for (const [id, { rest, restSrc }] of RESTS) {
+      for (const [id, { rest, restSrc }] of onRests(0)) {
         const r = metrics(PR.gaitClip({ name: "g", about: "a gait", ...g }, rest, { restSrc, fps }), rest);
         expect([id, g, fps, r.verdict === "fail", r.values.seamVelocity < 2750]).toEqual([id, g, fps, false, true]);
       }
   }, 60_000);
-  it("gaits close their loops off the frame grid, and with the knees swung widest, on the three rests", () => {
+  it("gaits close their loops off the frame grid, and with the knees swung widest, on the three rests (one in T1)", () => {
     // a run of 0.705 s and a walk of 1.102 s, off the 60 fps grid, and a run lifting 35% and swaying 4%: their knees'
     // turn stepped at the seam, in a gap of a few ms off the grid, and popped (the verifier's round 3)
     const [walk, , run] = PR.GAITS;
-    for (const [id, { rest, restSrc }] of RESTS)
+    for (const [id, { rest, restSrc }] of onRests(1))
       for (const g of [{ ...run!, cycle: 0.705 }, { ...walk!, cycle: 1.102 }, { ...run!, lift: 35, sway: 4 }]) {
         const r = metrics(PR.gaitClip(g, rest, { restSrc }), rest);
         expect([id, g, r.verdict, r.values.slide <= 10]).toEqual([id, g, "pass", true]);
@@ -440,16 +443,16 @@ describe("procedural clips under the sensors", () => {
       expect([c.id, validate(c).errors, r.values.nan, (c.keys[0] as unknown as { shL: number[] }).shL, r.verdict === "fail"]).toEqual([c.id, [], 0, [0, 0], false]);
     }
   }, 30_000);
-  it("idles pass on the three rests, their feet still", () => {
-    for (const [id, { rest, restSrc }] of RESTS) {
+  it("idles pass on the three rests, their feet still (one in T1)", () => {
+    for (const [id, { rest, restSrc }] of onRests(2)) {
       for (const i of PR.IDLES) {
         const r = metrics(PR.idleClip(i, rest, { restSrc }), rest);
         expect([id, i.name, r.verdict, r.values.slide <= 5]).toEqual([id, i.name, "pass", true]);
       }
     }
   }, 30_000);
-  it("moves are valid, and fail no more than D71 lists, for its reasons: at least 23 of 31 pass or warn on each of the three rests", () => {
-    for (const [id, { rest, restSrc }] of RESTS) {
+  it("moves are valid, and fail no more than D71 lists, for its reasons: at least 23 of 31 pass or warn on each of the three rests (one in T1)", () => {
+    for (const [id, { rest, restSrc }] of onRests(1)) {
       let fails = 0;
       for (const m of MOVES) {
         const c = PR.moveClip(m, rest, { restSrc });

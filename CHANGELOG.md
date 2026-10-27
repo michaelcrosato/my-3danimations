@@ -4,6 +4,21 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.60.1 · 2026-10-27
+
+WP-F.15 (D139): T1's headroom; the dev tooling's advisories (D138).
+
+### Library
+- The dedup distance works each step of a motion out once (its numbers and length, kept per frames array) instead of
+  again at every cell of every warp: the same distances to the bit, about a tenth faster.
+
+### Repo
+- T1 samples what it repeats (the procedural grids one rest a test, the solver every fourth tier-2 pose, the Animator's
+  restore every third step, each fix every other planted run, dedup's census every 90th clip, the playback comparison
+  every other turning clip); T2's `M3A_FULL=1` sweeps run each file whole.
+- Dev dependencies: `@modelcontextprotocol/inspector` 2.12.0, `vitest` 4.1.12, `fast-uri` past its advisories
+  (`npm audit`: 0).
+
 ## 0.60.0 · 2026-10-23
 
 WP-F.14 (D136): a clip's turn shown once; the gallery checked against the data; the test characters painted.

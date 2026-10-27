@@ -23,6 +23,9 @@ function load(id: string): { clip: Clip; rest: Rest } {
   const [set, slug] = id.split("/") as [string, string], clip = parseClip(readFileSync(join(LIB, set, `${slug}.json`), "utf8"));
   return { clip, rest: manifest(set).sources[clip.restSrc]!.rest };
 }
+/** The bodies a grid is read on: every one in T2 (M3A_FULL=1, tools/run/e2e.ts's sweeps), and in T1 one, a different
+ *  one for each test (the k-th), so T1 still reads each (D74's sample; WP-F.15). */
+const FULL = process.env.M3A_FULL === "1", sampled = <T>(all: readonly T[], k: number, n = 1): readonly T[] => (FULL ? all : Array.from({ length: n }, (_, i) => all[(k + i) % all.length]!));
 /** A library source's rest by its set and source. */
 const sourceRest = (set: string, src: string): Rest => manifest(set).sources[src]!.rest;
 /** The points of a key (or pose) on a rest. */
@@ -123,8 +126,8 @@ describe("a move as a clip", () => {
     if (!c) made.set(m, (c = PR.moveClip(m, idle.rest, { restSrc: idle.clip.restSrc })));
     return c;
   };
-  it("begins at the start pose it is given, and ends there, whichever it is", () => {
-    for (const [rest, src, start] of [[idle.rest, idle.clip.restSrc, PR.standingOn(idle.rest)], [idle.rest, idle.clip.restSrc, idleStart], [style.rest, style.clip.restSrc, PR.standingOn(style.rest)]] as const) {
+  it("begins at the start pose it is given, and ends there, whichever it is (one of three in T1)", () => {
+    for (const [rest, src, start] of sampled([[idle.rest, idle.clip.restSrc, PR.standingOn(idle.rest)], [idle.rest, idle.clip.restSrc, idleStart], [style.rest, style.clip.restSrc, PR.standingOn(style.rest)]] as const, 1)) {
       const S = points(rest, quantize(start as never));
       for (const m of MOVES.moves) {
         const c = PR.moveClip(m, rest, { restSrc: src, start: start as never });
@@ -134,7 +137,7 @@ describe("a move as a clip", () => {
       }
     }
   }, 30_000);
-  it("begins and ends at starts with straight limbs, a curled spine, or a pose from the library", () => {
+  it("begins and ends at starts with straight limbs, a curled spine, or a pose from the library (two of six in T1)", () => {
     const crouch = load("CMU_CURATED/Crouch_Walk_Loop"), up = load("STYLE100_IDLE/ArmsAboveHead_Idle"), stand = PR.standingOn(idle.rest) as unknown as Record<string, unknown>;
     const mid = (c: Clip) => {
       const { t: _a, root: _b, yaw: _c, ...k } = keyAt(c, c.dur / 2) as unknown as Record<string, unknown>;
@@ -153,7 +156,7 @@ describe("a move as a clip", () => {
     // and a side-plane leap
     const some = MOVES.moves.filter((m) => ["jab", "cross", "slash", "backslash", "overhead", "spinslash", "kick", "roundhouse", "roar", "leap"].includes(m.name));
     expect(some).toHaveLength(10);
-    for (const [what, rest, src, start] of starts) {
+    for (const [what, rest, src, start] of sampled(starts, 2, 2)) {
       const S = points(rest, quantize(start as never));
       for (const m of some) {
         const c = PR.moveClip(m, rest, { restSrc: src, start: start as never });
@@ -362,7 +365,7 @@ describe("a gait", () => {
     // its left knee turns round on the seam past SEAM_TURN at 350 (0.76 of the sensors' fail level at 55 frames a
     // second), and it plays at 349 (round 11)
     const [walk, , run] = PR.GAITS;
-    for (const id of ["MESH2MOTION/Idle_A", "STYLE100/Neutral_Walk", "CMU_CURATED/Crouch_Walk_Loop"]) {
+    for (const id of sampled(["MESH2MOTION/Idle_A", "STYLE100/Neutral_Walk", "CMU_CURATED/Crouch_Walk_Loop"], 2)) {
       const src = load(id);
       for (const [g, fps] of [[{ ...run!, cycle: 0.705 }, 60], [{ ...walk!, cycle: 1.102 }, 60], [{ ...run!, lift: 35, sway: 4 }, 60], [PR.fitGait({ ...run!, cycle: 0.65 }, src.rest), 60], [{ ...run!, cycle: 0.705 }, 55]] as const) {
         const c = PR.gaitClip(g, src.rest, { restSrc: src.clip.restSrc, fps, budget: 0 }), n = 2 * Math.round((g.cycle * fps) / 2), times = Array.from({ length: n }, (_, i) => Math.round((i * g.cycle * 1000) / n) / 1000);
@@ -666,7 +669,7 @@ describe("a gait", () => {
     // off), with no bounce: a leg reaching that far with its foot on the floor would be at most 98.5% of itself, so the
     // hips stand no higher above the standing ankle than √(0.985² − 0.715²) of a leg, and half a % of H0 for the grid
     // (long stances, where the phase loop alone would let them stand a % of a leg higher: the verifier's round 7, N13)
-    for (const id of ["MESH2MOTION/Idle_A", "STYLE100/Neutral_Walk", "CMU_CURATED/Walk_Loop"]) {
+    for (const id of sampled(["MESH2MOTION/Idle_A", "STYLE100/Neutral_Walk", "CMU_CURATED/Walk_Loop"], 1)) {
       const { clip, rest } = load(id), S = points(rest, PR.standingOn(rest)), b = PR.bodyOf(rest, S), leg = b.legUpper + b.legLower;
       for (const stance of [0.6, 0.65, 0.7]) {
         const g = PR.fitGait({ name: "g", about: "a gait", cycle: 1.4, stance, bounce: 0, speed: 1000 }, rest), c = PR.gaitClip(g, rest, { restSrc: clip.restSrc });
@@ -689,7 +692,7 @@ describe("a gait", () => {
       // (straight down from the line where that points forward, a trailing leg's knee; across, a leading leg's)
       return hz + nz * x - (nx * nz >= 0 ? Math.hypot(nx, ny) : Math.abs(ny) / Math.hypot(ny, nz)) * y;
     };
-    for (const id of ["MESH2MOTION/Idle_A", "STYLE100/Neutral_Walk", "CMU_CURATED/Walk_Loop"]) {
+    for (const id of sampled(["MESH2MOTION/Idle_A", "STYLE100/Neutral_Walk", "CMU_CURATED/Walk_Loop"], 0)) {
       const { rest } = load(id), S = points(rest, PR.standingOn(rest)), pct = rest.H0 / 100, b = PR.bodyOf(rest, S);
       for (const [cycle, stance, lift, sway, limp] of [[1.2, 0.6, 12, 2, 0], [1.2, 0.6, 12, 4, 0], [0.52, 0.5, 12, 4, 0], [0.7, 0.35, 25, 4, 0], [0.65, 0.2, 35, 0, 0], [0.65, 0.2, 35, 0, 1], [0.6, 0.2, 9, 4, 0], [0.6, 0.2, 9, 4, 1]] as const) {
         const g = PR.fitGait({ name: "g", about: "a gait", cycle, stance, lift, bounce: 6, sway, limp, speed: 1000 }, rest), L = legsOf(g, rest, S);

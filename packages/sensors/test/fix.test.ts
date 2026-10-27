@@ -19,13 +19,15 @@ const lib = new Map(libraryClips().map((c) => [c.clip.id, c]));
 const OPS: [Defect, fixes.FixName][] = [["slide", "footLocks"], ["sink", "penetration"], ["pop", "jitter"], ["twistFlip", "twistFlips"], ["seam", "seam"]];
 /** The metrics that find a defect: a sliding foot shows as its slide or its skate. */
 const finds = (metric: string) => (metric === "slide" ? ["slide", "skate"] : [metric]);
+/** T1 fixes every other run of each kind, T2 each (M3A_FULL=1, tools/run/e2e.ts's sweeps: D74's sample, WP-F.15). */
+const FULL = process.env.M3A_FULL === "1";
 
 describe("each operator removes its planted defect, pushing no other metric past its threshold, its clip valid", () => {
   for (const [defect, op] of OPS) {
-    it(`${op} on every planted ${defect}`, () => {
+    it(`${op} on every planted ${defect} (every other in T1)`, () => {
       const bad: string[] = [];
       let n = 0;
-      for (const r of runs.filter((x) => x.defect === defect)) {
+      for (const r of runs.filter((x) => x.defect === defect).filter((_, i) => FULL || i % 2 === 0)) {
         const c = lib.get(r.clip)!, p = plant(r.defect, c.clip, c.rest, r.seed), out = fix(p.clip, c.rest, { ops: [op] }), clean = metrics(c.clip, c.rest);
         n++;
         // the defect: no finding of its metric where it was planted
@@ -37,7 +39,7 @@ describe("each operator removes its planted defect, pushing no other metric past
         const errors = validate(JSON.parse(JSON.stringify(out.clip))).errors.map((e) => `${e.code} ${e.message}`);
         if (still.length || pushed.length || errors.length) bad.push(`${r.clip} [${r.t0}–${r.t1}]: ${still.map((x) => x.message).join("; ")}${pushed.length ? ` pushed ${pushed.map((k) => `${k} ${out.before.values[k]} → ${out.after.values[k]}`).join(", ")}` : ""}${errors.length ? ` ${errors.length} errors: ${errors[0]}` : ""}`);
       }
-      expect(n).toBeGreaterThanOrEqual(8);
+      expect(n).toBeGreaterThanOrEqual(FULL ? 8 : 4);
       expect(bad, bad.join("\n")).toEqual([]);
     }, 120_000);
   }

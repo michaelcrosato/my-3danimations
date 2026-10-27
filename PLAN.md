@@ -2758,6 +2758,37 @@ picked by the owner on 2026-10-21. No gate follows them: each is held by its Ver
   4. The writer's hot path allocates under a byte a frame; T1 and T2 within their budgets.
 - **Verify:** `npm run check`, `npm test`, `npm run e2e`, `M3A_FULL=1 npx vitest run apps/gallery/src/playback.test.ts`
 
+#### WP-F.15 T1's headroom: the sweeps T1 repeats sampled, the dedup distance's steps worked out once
+- **Owns:** `packages/core/test/procedural.test.ts`, `packages/sensors/test/procedural.test.ts`,
+  `packages/core/test/solve.test.ts`, `packages/core/test/animator.test.ts`, `packages/sensors/test/fix.test.ts`,
+  `packages/library/test/dedup/dedup.test.ts`, `apps/gallery/src/playback.test.ts`,
+  `packages/library/src/dedup/distance.ts`
+- **Also touches:** `tools/run/e2e.ts` (T2's full sweeps list)
+- **Needs:** WP-F.5, WP-F.14
+- **Size:** S (about 90 changed lines)
+- **Carry:** none
+- **Trigger:** HANDOFF's follow-up "CI's T1 near its budget" (58 to 109 s on GitHub's runners; 108 s on #32's push, of
+  the 135 s at which it fails) and the next goal's item 3 (D137): the slowest files made faster, never the budget
+  raised.
+- **Build:**
+  - **Sample in T1 what T1 repeats, everything in T2** (D74's pattern): the procedural grids read "on the three rests"
+    take one rest a test in T1, a different one each test so every rest is still read; the moves' start poses one of
+    three and two of six; the solver's tier-2 sweeps every fourth pose; the Animator's save and restore every third
+    step; each fix operator every other planted run of its kind; dedup's census sweep every 90th clip's pairs (every
+    45th before); the gallery's playback comparison every other clip that turns. Each of these files joins T2's
+    `M3A_FULL=1` sweeps (`tools/run/e2e.ts`), where each runs whole, as before.
+  - **The dedup distance's steps worked out once:** `toStep` worked out each step's numbers and length again at every
+    cell of every warp; `steps()` keeps them per frames array (a WeakMap), the same doubles summed in the same order,
+    so every distance is the same to the bit.
+- **Done when:**
+  1. The sampled files pass in T1 and in full (`M3A_FULL=1`), and T2's sweeps run them whole.
+  2. The dedup distance is unchanged to the bit: old and new `motionDistance` agree with `Object.is` on 1,863 pairs of
+     every ninth library clip (1,079 finite).
+  3. The changed files' test CPU, one worker: at least a quarter less.
+  4. T1 in CI well under its 90 s *(deferred proof: CI on this WP's pull request, recorded in the ledger row)*.
+- **Verify:** `npm run check`, `npm test`, `npm run e2e`,
+  `M3A_FULL=1 npx vitest run packages/core/test/procedural.test.ts packages/sensors/test/procedural.test.ts packages/core/test/solve.test.ts packages/core/test/animator.test.ts packages/sensors/test/fix.test.ts`
+
 ### On demand
 
 Each starts only when its trigger fires; record the measurement that fired it. A trigger that never fires means the WP
@@ -2961,6 +2992,7 @@ commits named here are on their PR branches (`refs/pull/<n>/head`).
 | F.12 The review page's guide | done | 0.58.0 | deaab20 (#27) | 2026-10-22 | the owner's ask after G8 ("give clear directions when someone opens that page ... explain how LLMs would select an animation"): a guide at the top (what the clips are, how an agent chooses one, what the sensors check and can't, what Approve and Flag mean, export and send back), open on a first visit and remembered closed; each card says what its clip should show (description, loop or once, length, travel in m/s and a grown-up's pace, tags), a submission's measured as adoption measures it; `npm run e2e -- review previews gallery` 14 passed; the gallery's unit tests 18; two adversarial reviewers' 10 findings fixed, 3 blocking (D134) |
 | F.13 The idles keep their motion | done | 0.59.0 | 83f8ce0 (#28) | 2026-10-22 | the owner's G8 review ("This is a pose. There is no actual animation"; Jump_Twist "never gets to the actually jump"): frozen clips 102 → 17 (13 tagged poses, 4 answered), each fit bounded by the clip's own motion; no knee or elbow 20 mm beyond its capture (16 were, up to 54 mm: `steadyBend`), no snap (`spaced`); recipes keep the sway (0 of 87 one pose through clip, mirror, retime; 83 were); the still check in QA and the intake's lint gate; Jump_Twist cut again to its flip; `npm run import -- --check` 9 sets byte for byte, vectors and conformance 3662 as before, T2 266 s; two rounds, four adversarial reviewers' 21 findings fixed (D135) |
 | F.14 Playback as the data says | done | 0.60.0 | b66f248 (#29) | 2026-10-23 | the owner's in-chat review of Pick_Up_Basket ("does a 360 and then walks backwards") and their experiment (gen-1 painted, snapped at the sheet's moments and view): the gallery and the review cards turned a character by a heading its pose already carried, and the raster and graph sims likewise; one rule (a pose carries its clip's turn, attach writes the root's turn beyond it, `AnimatorPose.turn`); the data comparison `apps/gallery/src/playback.test.ts`: facing 55 clips off by up to 179° → 0 of 1,398 on four test characters; the test characters painted as the sheets (D136) |
+| F.15 T1's headroom | doing | 0.60.1 | (this PR) | 2026-10-27 | the changed files' test CPU on one worker 89.5 → 62.3 s (−30%); T1 here 113–116 → 107–110 s (this container runs about 1.6× slower than D137's; its timings swing ±7 s run to run); the dedup distance the same to the bit on 1,863 pairs; CI to measure (D139) |
 
 ---
 

@@ -5800,3 +5800,29 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   2 with nothing installed, and each result is checked against the repository's own files and the README's promises.
 - **Answered:** yes: the owner's goal (2026-10-27).
 - **Landed in:** docs and the dev dependencies only (no version)
+
+## D139 · 2026-10-27 · T1's headroom: what T1 repeats sampled, T2 whole; the dedup distance's steps worked out once
+
+- **Principle:** 3 (verifiable: the sweeps still run whole, in T2), process (PLAN.md §6's budgets; D74's sample; D125)
+- **Call:**
+  - **Measured first.** T1 in this container: 113 to 116 s on either dependency pin set (D138), CI's 108 s on #32's
+    push; one worker, T1's tests sum to about 320 s of CPU, spread over 1,343 tests with no file over 16 s: the
+    procedural grids (core 13 s, sensors 16 s), dedup 12, contact 10, playback 9, then a long tail. A profile of six of
+    the heaviest found one hot function, the dedup distance's `toStep` (8.4 s of their 109 s), working each step's
+    numbers out again at every cell.
+  - **Sampled in T1, whole in T2 (WP-F.15):** the grids that repeat a case "on the three rests" read one rest a test in
+    T1, a different one each test; the moves' start poses, the solver's tier-2 sweeps, the Animator's restore at every
+    step, each fix operator's planted runs, dedup's census and the playback comparison take a stated part. Each file
+    joins T2's `M3A_FULL=1` sweeps, where it runs as before. Kept whole in T1, on purpose: the planted-defect suite (the
+    doctrine's 100% recall), the 130,000-bone chains (K6), contact's hand-picked clips, the runner's fake trial (D119),
+    the manual's run.
+  - **The dedup distance:** each step's numbers and squared length worked out once per frames array; the same doubles
+    in the same order, so the distances are the same to the bit (1,863 pairs, `Object.is`).
+  - **What it bought:** the changed files' test CPU on one worker 89.5 → 62.3 s; T1 here 107 to 110 s (this
+    container's runs swing ±7 s and it is about 1.6 times slower than D137's, where T1 took 88 s). Not taken: Vitest's
+    thread pool (slower here), three workers (121 s), its on-disk module cache (4 s; the time is the tests' own), and
+    memoizing the tools' four surfaces (it would skip each surface's own image writes).
+- **Why:** T1's budget is the agent's loop; a sweep's hundredth case catches little that its tenth doesn't, and T2
+  still reads every one before a push. CI's T1 is the record for "well under 90 s" (the ledger row).
+- **Answered:** the owner's goal (2026-10-27) named the WP; its calls are the session's, under D131.
+- **Landed in:** v0.60.1
