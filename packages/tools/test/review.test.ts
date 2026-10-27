@@ -1,11 +1,12 @@
-// `m3a review` (WP-8.2a): its example on the four surfaces, then a review in a scratch checkout from start to end.
-// The queue lists a submission awaiting review with its numbers and its diff against the clip it improves, and the
-// sampled clips; the export is the gallery's input; a review made from it (the gallery's m3a.review/1) changes the
-// right states and files (the store, the clip's review field through the writer, its set's content id and lock, the
-// feedback log by theme, the proposals list) and leaves catalog.tsv alone; applying it twice changes no byte; a
-// decision on a clip or submission that changed since it was queued is refused as stale with nothing written; and
-// each wrong call is refused naming the fix. The log is the repository's own, copied: the sources a review adds are
-// numbered on from its last, and a theme's row is matched by its Sources cell, so the log can grow as its rules say.
+// `m3a review` (WP-8.2a): its example on the four surfaces, then a review in a scratch checkout from start to end. The
+// queue lists a submission awaiting review with its numbers and its diff against the clip it improves, and the sampled
+// clips; the export is the gallery's input, the clips it names first; a review made from it (the gallery's
+// m3a.review/1) changes the right states and files (the store, the clip's review field through the writer, its set's
+// content id and lock, the feedback log by theme, the proposals list) and leaves catalog.tsv alone; applying it twice
+// changes no byte; a decision on a clip or submission that changed since it was queued is refused as stale with nothing
+// written; and each wrong call is refused naming the fix. The log is the repository's own, copied: the sources a review
+// adds are numbered on from its last, and a theme's row is matched by its Sources cell, so the log can grow as its
+// rules say.
 import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { Ajv2020 } from "ajv/dist/2020.js";
 import { join } from "node:path";
@@ -67,6 +68,20 @@ describe("a review in a scratch checkout", () => {
     expect(JSON.parse(q.submissions.find((x) => x.id === sub)!.text!)).toEqual(walk(2));
     const valid = schema("queue.schema.json");
     expect(valid(q), JSON.stringify(valid.errors)).toBe(true);
+  });
+
+  it("exports the clips it names first, whatever their review, then the sample up to 20; a list names none", async () => {
+    // one by id, one by its ref, one reviewed and current (to look at again): each once, first, in that order
+    const sampled = (JSON.parse(co.file(QUEUE_FILE)) as Queue).clips.map((c) => c.id), named = [`${SET}/Walk_Loop`, sampled[5]!, sampled[2]!];
+    const at = (id: string) => `${id}@${motionHash(libraryClip(id)).slice(0, 12)}`;
+    const r = await call({ do: "export", on: `${named[0]}, ${at(named[1]!)},${named[2]},${named[0]}` }), q = JSON.parse(co.file(QUEUE_FILE)) as Queue;
+    expect([r.status, r.verdict]).toEqual(["ok", `review export: 2 submissions awaiting review, 20 sampled clips (3 named first) (local store), written to ${QUEUE_FILE}`]);
+    expect(q.clips.slice(0, 3).map((c) => c.id)).toEqual(named);
+    expect(new Set(q.clips.map((c) => c.id)).size).toBe(20);
+    expect(q.clips.slice(3).map((c) => c.id)).toEqual(sampled.filter((id) => !named.includes(id)).slice(0, 17));
+    const valid = schema("queue.schema.json");
+    expect(valid(q), JSON.stringify(valid.errors)).toBe(true);
+    expect([(await call({ do: "list", on: named[0] })).error?.message, (await call({ do: "export", on: `${SET}/Nope` })).error?.message]).toEqual(["list takes no on", expect.stringMatching(new RegExp(`^library: no clip "${SET}/Nope"`))]);
   });
 
   it("applies a review: the right states and files change; applying it twice changes no byte", async () => {

@@ -4,6 +4,14 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.64.0 · 2026-10-27
+
+The owner's next review batch (the next goal's item 5).
+
+### Tools
+- `m3a review export --on <ids or refs>`: the clips named first, whatever their review (a clip to look at again), then
+  the sample of unreviewed and stale clips up to 20; a list still names none.
+
 ## 0.63.0 · 2026-10-27
 
 WP-F.19 (D143): the encoder's steady rounding.
