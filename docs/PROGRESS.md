@@ -32,7 +32,7 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 - G9: O8 linked (`services/intake/README.md`: steps 1 and 2 done, project `m3a-intake`, D138; 3 to 6 the owner's),
   the contract suite, an adoption, the approval of 70% of `G9-run-2/queue.json`. Asked on #16.
 - G10: another repository consumes the package or certifies against the vectors, confirmed (O9). Asked on #17.
-- O2 answered, publish now (D130): the owner starts `publish.yml` and `release.yml` on `v0.60.0` (b66f248). O3 unpaused.
+- O2 answered, publish now (D130): the owner tags `v0.64.0` on main and starts publish.yml and release.yml. O3 unpaused.
 
 ## Last gate
 
