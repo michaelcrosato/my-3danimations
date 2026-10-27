@@ -24,8 +24,8 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 
 ## Next
 
-- The next goal (HANDOFF), started 2026-10-27: all done but T1's headroom (F.15, doing: D139, D144). The owner's: the
-  batch on the site (`reviews/queue-0.64.0`), Pick_Up_Basket's verdict, and the steps below.
+- The next goal (HANDOFF), started 2026-10-27: done; T1's headroom (F.15) the owner's call (D144, asked on #33). The
+  owner's: the batch on the site (`reviews/queue-0.64.0`), Pick_Up_Basket's verdict, and the steps below.
 
 ## Blocked on the owner
 

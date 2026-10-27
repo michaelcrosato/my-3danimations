@@ -64,8 +64,9 @@ What each item means and when it is done:
    - **Done (F.19, D143): the four idles' pelvis under its capture's, 13 → 3 past 1.5 times.** The encoder's steady
      rounding of the hips, chest and head (D135's follow-up): done when the idles it names move no further than their
      capture, measured as D135 measured them, the sets re-imported byte for byte, the frozen spec untouched.
-   - **Doing (F.15, D139): the repeated sweeps sampled; CI's T1 100 to 106 s, still over.** T1's headroom (Last
-     measured): the slowest files made faster, never the budget raised, until T1 sits well under 90 s here and in CI.
+   - **Blocked-owner (F.15, D139, D144): two rounds, T1 here 104 → 98 s; the rest a runner or a quarter of T1 to T2.**
+     T1's headroom (Last measured): the slowest files made faster, never the budget raised, until T1 sits well under 90
+     s here and in CI.
 4. **Done (F.20, D145): B1 5/5, discovery 2/2, its G7 variant 5/5, $3.02.** **B1's floor** (D123, D131): B1's grader
    reads heights from the body's measured floor, then G7's B1 known-goods and variants run again with real agents (about
    $12, 1.5 hours), the result logged. The owner's last goal kept it deferred until their go (#24): this goal, started
@@ -85,8 +86,8 @@ none of their triggers has fired). Add `ultracode` to the goal to run its WPs in
 
 ## Where things stand
 
-- **Version 0.64.0.** Every WP through 10.2, F.1 to F.14 and F.16 to F.21 is done (F.15 doing); G0-G8 passed; G9 and
-  G10's command sets passed and each waits on the owner (blocked-owner, its ask on its PR):
+- **Version 0.64.0.** Every WP through 10.2, F.1 to F.14 and F.16 to F.21 is done (F.15 blocked-owner); G0-G8 passed; G9
+  and G10's command sets passed and each waits on the owner (blocked-owner, its ask on its PR):
   - **G8** (#15): **passed** on 2026-10-22 (D133): the owner's review of G8-run-1's `queue-0.56.0.json` on the
     site's review page, applied with `npx m3a review ingest` (20 decisions, 18 approved, 2 flagged); its notes are
     FEEDBACK-LOG F7, its two task proposals REVIEW-PROPOSALS. It found 74 of 98 STYLE100 idles frozen, Jump_Twist cut
@@ -175,8 +176,8 @@ none of their triggers has fired). Add `ultracode` to the goal to run its WPs in
 
 ## Next, in order
 
-0. The next goal (above), started 2026-10-27: items 1, 2, 4 and 5 done, and item 3's follow-ups but T1's headroom
-   (F.15, doing: D139, D144) on #32 and #33; item 6's asks posted on #33.
+0. The next goal (above), started 2026-10-27: items 1 to 5 done on #32 and #33 but T1's headroom (F.15: D139, D144),
+   blocked-owner on a larger runner or a quarter of T1 moved to T2; item 6's asks posted on #33.
 1. Whatever the owner sends back: their verdict on Pick_Up_Basket (above), the batch's review file (`npx m3a review
    ingest <file>`, its notes into docs/FEEDBACK-LOG.md and a threshold or task proposal into docs/REVIEW-PROPOSALS.md),
    O8 linked (the contract run, the first adoption by the bot), another repository's use confirmed (G10).
@@ -184,8 +185,8 @@ none of their triggers has fired). Add `ultracode` to the goal to run its WPs in
    committed to `bench/results/gates/reviews/` supersedes it. D135 and D143 say what to look at in it (the idles under
    0.8 of their capture's sway, the feet that follow the hips' rounding); Pick_Up_Basket's and Wrench_Bolt's reviews
    stand until the owner remakes them.
-3. T1's headroom (F.15): what is left is its tests' own CPU (D144); well under 90 s on every runner needs a quarter of
-   T1 moved to T2 or a faster runner.
+3. T1's headroom (F.15, blocked-owner): what is left is its tests' own CPU (D144); well under 90 s on every runner
+   needs a quarter of T1 moved to T2 or a faster runner, the owner's call (asked on #33).
 4. The other follow-ups below stay as D131 calls them (deferred or kept, each with its reason) until the owner says
    otherwise.
 

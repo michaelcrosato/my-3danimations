@@ -5962,8 +5962,8 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
     without its small vectors (its bits must not move, and it is the engine's hot path, D38).
 - **Where that leaves it:** T1's tests themselves are some 350 s of CPU, so on 4 cores T1 sits near 90 s here and on
   GitHub's runners, which swing about 2 times for the same tests (58 to 109 s before). Well under 90 s on every runner
-  needs a quarter of T1's tests moved to T2 or a faster runner; the session leaves both open (WP-F.15 stays doing,
-  its CI numbers in the ledger).
+  needs a quarter of T1's tests moved to T2 (T1 no longer the quick check of what it covers) or a faster runner (a
+  cost): both the owner's, asked on #33, so WP-F.15 is blocked-owner, its CI numbers in the ledger.
 - **Answered:** the owner's goal (2026-10-27) named the WP; the calls are the session's, under D131.
 - **Landed in:** v0.63.0 (tests only)
 
