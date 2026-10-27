@@ -9,14 +9,16 @@
 // running frames; 10% needed); a toe read shorter passes, its boots' fronts 124 mm under the floor walking. The planted
 // solutions are the known-good one edited: never running, skating (moving at the asked speed with walk and run at
 // their own rate), a bone gone NaN, no sheet; T1 grades the first, T2's full step all of them (D119).
-import { readFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { bind } from "@m3a/three";
-import { loadGlb } from "@m3a/three/test-characters";
+import { character as generated, loadGlb, variant } from "@m3a/three/test-characters";
 import { CACHE, rigBytes, type Manifest } from "../../../tools/fixtures/fixtures.ts";
 import { prepareWorkspace, type CharacterSpec } from "../../runner/workspace.ts";
 import { cacheChildren } from "../../../tools/run/compile-cache.ts";
+import { bodyOf } from "../bones.ts";
 import { gradeB1, type Grade } from "./grade.ts";
 
 const ROOT = join(import.meta.dirname, "../../.."), GOOD = join(import.meta.dirname, "known-good/src"), FULL = process.env.M3A_FULL === "1";
@@ -51,6 +53,19 @@ const text = (g: Grade) => g.checks.map((c) => `${c.ok ? "ok  " : "FAIL"} ${c.na
 const who = (c: CharacterSpec) => ("seed" in c ? `gen-${c.seed}` : c.rig);
 
 describe("B1's grader", () => {
+  it("reads heights from the body's own floor, where its soles stand: 24, 20, 41 and 16 mm under y = 0 on gen-0 to gen-3 (D145)", async () => {
+    // read from y = 0, a foot 40 to 86 mm over its soles read as standing; the toes' and balls' joints stand 20 mm over y = 0
+    const dir = mkdtempSync(join(tmpdir(), "m3a-b1-floor-")), soles: number[] = [];
+    try {
+      for (const seed of [0, 1, 2, 3]) {
+        writeFileSync(join(dir, "character.glb"), generated(variant(seed)).glb);
+        soles.push(Math.round((await bodyOf(dir)).sole));
+      }
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+    expect(soles).toEqual([-24, -20, -41, -16]);
+  });
   it("asks a character speeds in proportion to its hip height: the known-good passes on a chibi (D56)", async () => {
     // generator seed 935, hips 0.44 m up: asked 1.2 and 3.5 m/s, the walk travelled 0.84 m/s at twice its own rate
     // and the running foot never stood still (G4's first held-out draw)

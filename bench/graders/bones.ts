@@ -23,12 +23,14 @@ function inFrame(e: readonly number[], p: readonly number[]): V3 {
 }
 
 /**
- * The grader's own bound copy of a workspace's character: its body (rest, H0), the bones its body points ride, and its
+ * The grader's own bound copy of a workspace's character: its body (rest, H0), the bones its body points ride, its
  * floor (mm up from y = 0): the lowest sole point at rest, when that is more than 10% of the hip height off y = 0 (a
  * model authored off the floor: G4's held-out rig stands 1 m below its origin), else 0 (a toe's tip a few cm under it
- * at rest is the model's own).
+ * at rest is the model's own), and its `sole`: the ground its rest is measured on (core's, where its soles are: the rest
+ * pelvis's height less its height in the format), the floor its own feet stand on (B1 reads heights from it, D145: a
+ * generated test character's soles stand 16 to 44 mm under y = 0, its toes' and balls' joints 20 mm over it).
  */
-export async function bodyOf(workspace: string): Promise<{ core: Bound; bones: BonePoint[]; floor: number }> {
+export async function bodyOf(workspace: string): Promise<{ core: Bound; bones: BonePoint[]; floor: number; sole: number }> {
   const scene = (await loadGlb(new Uint8Array(readFileSync(join(workspace, "character.glb"))), { textures: false })).scene, core = bind(scene).core, R = core.recognition.bones;
   const bones: BonePoint[] = Object.entries(core.jointPoint).map(([h, point]) => [point, R[h]!] as BonePoint).filter(([, bone]) => bone);
   const on = new Set(bones.map(([p]) => p));
@@ -41,7 +43,7 @@ export async function bodyOf(workspace: string): Promise<{ core: Bound; bones: B
     if (e) bones.push([point, R[place.bone]!, inFrame(e, solver.toSkeleton(core, core.restPts, format.IDX[point]! * 3))]);
   }
   const rest = jointsOf(scene as never, bones), low = Math.min(...["ankle", "ball", "toe"].flatMap((p) => ["L", "R"].map((s) => rest[p + s]?.[2] ?? Infinity)));
-  return { core, bones, floor: Math.abs(low) > 0.1 * core.rest.H0 ? low : 0 };
+  return { core, bones, floor: Math.abs(low) > 0.1 * core.rest.H0 ? low : 0, sole: rest.pelvis![2] - core.restPts[format.IDX.pelvis! * 3 + 2]! };
 }
 /** The body points of a character's scene as it stands (call updateMatrixWorld first), mm, forward (+Z), right (−X),
  *  up from `floor` (bodyOf's). */
