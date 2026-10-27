@@ -4,7 +4,8 @@
 // samples, in full (every locomotion loop planted, the actions on the six skeletons, describe's token count on every
 // clip, the briefs' graders on a second character, the dedup sweep over the library, the procedural grids on all three
 // rests, the solver on every tier-2 pose and the Animator restored at every step, each fix
-// on every planted run: M3A_FULL=1, D74, WP-F.15), then the rate
+// on every planted run, the runner's trials through the packed packages, the sweep's CLI and every refusal of publish's
+// tarball step: M3A_FULL=1, D74, WP-F.15, D144), then the rate
 // sweep on two of its six bodies, every locomotion loop at every rate on each against its baseline (D123), a step of
 // its own since its worker threads take every CPU (beside the sweeps' workers they starved a 5 s test on CI's 4); CI
 // sweeps all six on every pull request in a job of its own beside T2 (ci.yml's `rates`, D126). Within 8 min (PLAN.md
@@ -16,7 +17,7 @@ import { bin, ROOT } from "./cli.ts";
 import { playwrightSummary, runTier, vitestSummary, type TierStep } from "./tiers.ts";
 
 /** The T1 test files that sample the library, run in full here. */
-const SWEEPS = ["packages/core/test/contact.test.ts", "packages/core/test/contact-gaits.test.ts", "packages/core/test/contact-sidesteps.test.ts", "packages/core/test/contact-siderun.test.ts", "tools/sweep/actions.test.ts", "packages/sensors/test/describe-tokens.test.ts", "bench/graders/B1", "bench/graders/B2", "bench/graders/B3", "bench/graders/B4", "bench/graders/B5", "bench/graders/B6", "bench/graders/B7", "bench/graders/B8", "bench/runner/briefs.test.ts", "bench/runner/runner.test.ts", "tools/sweep/sweep.test.ts", "packages/library/test/dedup/dedup.test.ts", "tools/intake/check.test.ts", "tools/intake/adopt.test.ts", "apps/gallery/src/playback.test.ts", "packages/core/test/procedural.test.ts", "packages/sensors/test/procedural.test.ts", "packages/core/test/solve.test.ts", "packages/core/test/animator.test.ts", "packages/sensors/test/fix.test.ts"];
+const SWEEPS = ["packages/core/test/contact.test.ts", "packages/core/test/contact-gaits.test.ts", "packages/core/test/contact-sidesteps.test.ts", "packages/core/test/contact-siderun.test.ts", "tools/sweep/actions.test.ts", "packages/sensors/test/describe-tokens.test.ts", "bench/graders/B1", "bench/graders/B2", "bench/graders/B3", "bench/graders/B4", "bench/graders/B5", "bench/graders/B6", "bench/graders/B7", "bench/graders/B8", "bench/runner/briefs.test.ts", "bench/runner/runner.test.ts", "tools/sweep/sweep.test.ts", "packages/library/test/dedup/dedup.test.ts", "tools/intake/check.test.ts", "tools/intake/adopt.test.ts", "apps/gallery/src/playback.test.ts", "packages/core/test/procedural.test.ts", "packages/sensors/test/procedural.test.ts", "packages/core/test/solve.test.ts", "packages/core/test/animator.test.ts", "packages/sensors/test/fix.test.ts", "tools/release/publish.test.ts"];
 
 /** The rate sweep's bodies T2 sweeps whole (D126): a generated one and the real rig whose feet fail the most rows, each
  *  with every locomotion loop at every rate, against the baseline. CI's `rates` job sweeps all six on every pull

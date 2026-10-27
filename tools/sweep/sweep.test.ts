@@ -10,7 +10,8 @@
 // passing pair it warned (D88); and a fixed sample's rows are 1bf5252's byte for byte, its judge still its own (WP-7.2b
 // moved it to @m3a/tools). How many clips pass is not checked here: that is gate G4's bar (95% over its six skeletons
 // and the whole library, PLAN.md §9.3).
-// The clip-by-skeleton sample plays in T2's full step (M3A_FULL=1, D119: T1's margin); T1 runs the CLI on four clips.
+// The clip-by-skeleton sample plays in T2's full step (M3A_FULL=1, D119: T1's margin), and so does the CLI's run on
+// four clips (a node process loading the library, D144); T1 reads the rows the sweep's own functions give.
 import { execFileSync, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
@@ -162,7 +163,7 @@ describe("the sweep", () => {
     const bad = spawnSync(process.execPath, [join(ROOT, "tools/sweep/main.ts"), "--record", from], { cwd: ROOT, encoding: "utf8" });
     expect([bad.status, bad.stdout]).toEqual([2, expect.stringContaining("--record needs --commit <sha>")]);
   });
-  it("npm run sweep writes the clip-by-skeleton results", () => {
+  it.runIf(FULL)("npm run sweep writes the clip-by-skeleton results", () => {
     // to a scratch file: check-output/sweep/results.json may hold a person's sweep a gate's --record reads (D118)
     const file = join(mkdtempSync(join(tmpdir(), "m3a-sweep-")), "results.json");
     const out = execFileSync(process.execPath, [join(ROOT, "tools/sweep/main.ts"), ...RIGS, "--sample", "4", "--out", file], { cwd: ROOT, encoding: "utf8" });

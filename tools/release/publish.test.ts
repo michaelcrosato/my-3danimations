@@ -27,7 +27,7 @@ import { parseYaml } from "./yaml.ts";
 interface Step { name?: string; uses?: string; run?: string; with?: Record<string, string>; env?: Record<string, string> }
 interface Job { name: string; needs?: string | string[]; "runs-on": string; environment?: string; permissions?: Record<string, string>; env?: Record<string, string>; steps: Step[] }
 interface Workflow { on: { workflow_dispatch?: { inputs: Record<string, Record<string, string>> } }; permissions?: Record<string, string>; concurrency?: Record<string, string>; jobs: Record<string, Job> }
-const text = (name: string) => readFileSync(join(ROOT, ".github/workflows", name), "utf8");
+const text = (name: string) => readFileSync(join(ROOT, ".github/workflows", name), "utf8"), FULL = process.env.M3A_FULL === "1";
 const wf = parseYaml(text("publish.yml")) as unknown as Workflow, go = wf.jobs["go-ahead"]!, build = wf.jobs.build!, job = wf.jobs.publish!;
 const steps = Object.values(wf.jobs).flatMap((j) => j.steps);
 const named = (j: Job, name: string) => j.steps.find((s) => s.name === name) ?? expect.fail(`publish.yml has no step "${name}" there`);
@@ -232,15 +232,21 @@ describe("publish.yml's tarball step", () => {
   it("passes the packs as npm run pack -- --publishable stages them", () => {
     expect(run(packed())).toMatchObject({ status: 0, stdout: `${ORDER.length} tarballs at ${VERSION}, each publishable, each after the @m3a packages it needs: ${ORDER.join(", ")}\n` });
   });
+  // four kinds in T1 (another version, private, out of order, missing); every one in T2's full step (M3A_FULL=1, D144):
+  // each case packs eight tarballs and runs the step's shell
   it("refuses a pack at another version, kept private, naming another repository, needing another version, out of order, missing or extra", () => {
     const refused = (dir: string, why: RegExp, packs?: string) => expect(run(dir, packs)).toMatchObject({ status: 1, stdout: expect.stringMatching(why) });
     refused(packed((m) => (m.tools!.version = "0.0.1")), new RegExp(`::error title=publish::@m3a/tools is at 0\\.0\\.1, not ${VERSION.replace(/\./g, "\\.")}`));
-    refused(packed((m) => (m.three!.name = "@m3a/four")), /m3a-three-[\d.]+\.tgz holds @m3a\/four, not @m3a\/three/);
     refused(packed((m) => (m.three!.private = true)), /@m3a\/three isn't publishable/);
+    refused(packed(), /@m3a\/tools needs @m3a\/three, which PACKS doesn't publish before it/, ORDER.filter((p) => p !== "three").concat("three").join(" "));
+    const missing = packed();
+    rmSync(join(missing, ".cache/pack", `m3a-core-${VERSION}.tgz`));
+    refused(missing, /m3a-core-[\d.]+\.tgz isn't packed/);
+    if (!FULL) return;
+    refused(packed((m) => (m.three!.name = "@m3a/four")), /m3a-three-[\d.]+\.tgz holds @m3a\/four, not @m3a\/three/);
     refused(packed((m) => delete (m["library-cmu"]!.publishConfig as Record<string, unknown>).provenance), /@m3a\/library-cmu isn't publishable/);
     refused(packed((m) => (m.io!.repository = { type: "git", url: "git+https://github.com/someone/fork.git" })), /@m3a\/io names the repository git\+https:\/\/github\.com\/someone\/fork\.git, and provenance is checked against this one/);
     refused(packed((m) => ((m.sensors!.dependencies as Record<string, string>)["@m3a/core"] = "0.0.1")), new RegExp(`@m3a/sensors needs @m3a/core@0\\.0\\.1, not ${VERSION.replace(/\./g, "\\.")}`));
-    refused(packed(), /@m3a\/tools needs @m3a\/three, which PACKS doesn't publish before it/, ORDER.filter((p) => p !== "three").concat("three").join(" "));
     refused(packed(), /@m3a\/library-cc-by needs @m3a\/library, which PACKS doesn't publish before it/, ["library-cc-by", ...ORDER.filter((p) => p !== "library-cc-by")].join(" "));
     refused(packed(), /m3a-library-cmu-[\d.]+\.tgz is packed but isn't one of PACKS/, ORDER.filter((p) => p !== "library-cmu").join(" "));
     for (const f of [`m3a-extra-${VERSION}.tgz`, "m3a.js"]) {
@@ -248,9 +254,6 @@ describe("publish.yml's tarball step", () => {
       writeFileSync(join(extra, ".cache/pack", f), "");
       refused(extra, new RegExp(`${f.replace(/\./g, "\\.")} is packed but isn't one of PACKS`));
     }
-    const missing = packed();
-    rmSync(join(missing, ".cache/pack", `m3a-core-${VERSION}.tgz`));
-    refused(missing, /m3a-core-[\d.]+\.tgz isn't packed/);
   });
 });
 

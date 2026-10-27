@@ -1,18 +1,18 @@
-// The benchmark runner (WP-4.7): the audit of a transcript (paths outside the workspace, files read past the manual,
-// a shell's relative paths among them, D88; what a file it writes names, and another process's /proc, D91), the legend
-// quiz's prompt and scoring, a fake trial through the packed packages installed in a workspace outside the repository,
-// agents run a few at once, each `claude` started in its workspace with a /tmp of its own, every checkout of the
-// repository hidden, the CLI's account file empty, its processes alone in /proc and unable to unmount what hides the
-// repository (D84, D91), as an unprivileged user with no capabilities whom /root, the raw disks and the covers refuse,
-// its workspace and home its own (a link in them handed, never what it leads to), /var/tmp and /dev/shm its own too,
-// and the proxy's CA copied into that home; and a held-out variant given by path, whose known-good solution runs first.
-// m3a's wiring (WP-7.3): the agent's flags (the Skill tool, project settings, the CLI's own skills off, m3a's MCP server
-// from the installed package, its tools allowed), the init event's skills each recorded, the skill copied into a
-// trial's workspace from the installed package, which ships it, else from the repository (a marker line tells the two
-// apart), as a regular file naming what that package holds, the packed m3a bin and MCP server answering there, an init
-// event showing the server failed stopping the agent and failing its trial though its workspace grades, and the
-// manual, the skill and llms.txt not counted as reads past the manual. No test spends: a stand-in `claude` plays the
-// agent.
+// The benchmark runner (WP-4.7): the audit of a transcript (paths outside the workspace, files read past the manual, a
+// shell's relative paths among them, D88; what a file it writes names, and another process's /proc, D91), the legend
+// quiz's prompt and scoring, a fake trial through the packed packages installed in a workspace outside the repository
+// (in T2's full step with the variant trial, D144), agents run a few at once, each `claude` started in its workspace
+// with a /tmp of its own, every checkout of the repository hidden, the CLI's account file empty, its processes alone in
+// /proc and unable to unmount what hides the repository (D84, D91), as an unprivileged user with no capabilities whom
+// /root, the raw disks and the covers refuse, its workspace and home its own (a link in them handed, never what it
+// leads to), /var/tmp and /dev/shm its own too, and the proxy's CA copied into that home; and a held-out variant given
+// by path, whose known-good solution runs first. m3a's wiring (WP-7.3): the agent's flags (the Skill tool, project
+// settings, the CLI's own skills off, m3a's MCP server from the installed package, its tools allowed), the init event's
+// skills each recorded, the skill copied into a trial's workspace from the installed package, which ships it, else from
+// the repository (a marker line tells the two apart), as a regular file naming what that package holds, the packed m3a
+// bin and MCP server answering there, an init event showing the server failed stopping the agent and failing its trial
+// though its workspace grades, and the manual, the skill and llms.txt not counted as reads past the manual. No test
+// spends: a stand-in `claude` plays the agent.
 // Every temporary directory a test makes is removed after it.
 import { execFileSync, spawnSync } from "node:child_process";
 import { chmodSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, symlinkSync, writeFileSync } from "node:fs";
@@ -401,9 +401,13 @@ describe("trials", () => {
     });
     expect([r, most]).toEqual([[60, 20, 40, 10, 30], 2]);
   });
-  const base = temp("m3a-bench-test-"), packs = pack(join(base, "packs"));
-  it("installs the packed packages outside the repository, and grades the known-good solution there (a fake trial)", async () => {
-    const r = await runB1({ trials: 1, discovery: 0, base, packs, fake: true });
+  // the packs, built once when a trial needs them: building them (tsc -b, npm pack) and installing them are T1's
+  // costliest child processes, so both trials run in T2's full step (M3A_FULL=1, D144), as the variant always did (D119)
+  const base = temp("m3a-bench-test-");
+  let built: Record<string, string> | undefined;
+  const packsOnce = () => (built ??= pack(join(base, "packs")));
+  it.runIf(FULL)("installs the packed packages outside the repository, and grades the known-good solution there (a fake trial)", async () => {
+    const r = await runB1({ trials: 1, discovery: 0, base, packs: packsOnce(), fake: true });
     expect(r.trials.map((t) => [t.trial, t.pass, t.failed])).toEqual([["B1-1", true, []]]);
     // m3a's skill: the installed @m3a/tools ships it (skills/m3a/, D119), and the runner copies it from there, as
     // regular files where Claude Code reads a project's skills: a link would lead where the agent can't see (WP-7.3)
@@ -424,7 +428,7 @@ describe("trials", () => {
     // and its tools work on the installed library, the CC0 default pack: a search finds a clip there
     expect([mcp.called.isError, mcp.called.content?.[0]?.text]).toEqual([false, expect.stringMatching(/^search "walk": 1 of \d+ clips \(tiers cc0\)\n(QUATERNIUS_3D2DGE|QUATERNIUS_SHARDFALL|MESH2MOTION)\//)]);
   }, 300_000);
-  // the variant trial runs in T2's full step (M3A_FULL=1, D74, D119: T1's margin); the fake trial above stays in T1
+  // the variant trial runs in T2's full step (M3A_FULL=1, D74, D119: T1's margin), as the fake trial above does (D144)
   it.runIf(FULL)("runs a variant given by path, its known-good solution first: on a character from a seed outside the test set; there a trial whose agent's MCP server failed fails, though it grades", async () => {
     const dir = join(base, "variant");
     mkdirSync(dir, { recursive: true });
@@ -437,7 +441,7 @@ describe("trials", () => {
     process.env.PATH = `${standIn(join(base, "v", "B1-1-home"), [...write, `printf '%s\\n' '${init("failed")}'`, "exec tail -f /dev/null"])}:${path}`;
     let r: Awaited<ReturnType<typeof runB1>>;
     try {
-      r = await runB1({ trials: 1, discovery: 0, base: join(base, "v"), packs, variant: dir });
+      r = await runB1({ trials: 1, discovery: 0, base: join(base, "v"), packs: packsOnce(), variant: dir });
     } finally {
       process.env.PATH = path;
     }
@@ -450,6 +454,6 @@ describe("trials", () => {
     // a variant whose rig isn't fetched stops before any trial, naming how to fetch it
     writeFileSync(join(dir, "character.json"), JSON.stringify({ manifest: "rigs.json", rig: "nowhere" }));
     writeFileSync(join(dir, "rigs.json"), JSON.stringify({ rigs: [] }));
-    await expect(runB1({ trials: 1, discovery: 0, base: join(base, "w"), packs, fake: true, variant: dir })).rejects.toThrow(/npm run fixtures -- fetch --manifest/);
+    await expect(runB1({ trials: 1, discovery: 0, base: join(base, "w"), packs: packsOnce(), fake: true, variant: dir })).rejects.toThrow(/npm run fixtures -- fetch --manifest/);
   }, 300_000);
 });

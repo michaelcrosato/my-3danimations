@@ -5939,3 +5939,30 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   shows motion the capture hasn't, and holding it while the capture stays near it keeps what the actor did.
 - **Answered:** the owner's goal (2026-10-27) named the WP; the threshold is the session's, under D131.
 - **Landed in:** v0.63.0
+
+## D144 · 2026-10-27 · T1's second round: the processes it starts move to T2; what is left is its tests' own CPU
+
+- **Principle:** process (PLAN.md §6's budgets; D74's sample; D139), 3 (verifiable: every moved case still runs in
+  T2 on every pull request)
+- **Call:**
+  - **Measured (WP-F.15, round 2).** CI's T1 after D139: 105.8 s (2104ac7) and 99.4 s (435fff0). Here T1 burns 395 s
+    of CPU on one worker and 411 s on four (the four workers' own imports cost 16 s); a whole-T1 CPU profile puts
+    70 s of the workers' time in `spawnSync`, waiting on child processes whose CPU comes on top (the runner's
+    `npm pack` and install, publish's tarball cases, the sweep's CLI, the hook, the CLIs' runs), 20 s in garbage
+    collection, and some 85 s under core's `decodePose` (contact sampling 29 s, dedup's features 17 s, the census
+    6 s), spread over every file that reads a clip.
+  - **Moved to T2's full step:** the runner's fake trial through the packed packages, its packs built only when a trial
+    needs them (D119 kept it in T1; the variant trial was already T2's); the sweep's CLI on four clips; eight of
+    publish's twelve tarball refusals (T1 keeps another version, private, out of order and missing). Each file is in
+    T2's `M3A_FULL=1` list. The rest of the spawning tests stay: each is the only check of its CLI or hook.
+  - **What it bought:** T1 here 104 → 97 to 99 s, its CPU 391 → 363 s (the import fidelity test aside, which CI
+    skips without the sources).
+  - **Not taken:** a larger young generation for the workers (`--max-semi-space-size` 32 and 64: within the runs'
+    noise); a cache of a clip's samples in core (callers could edit the frames it would share); rewriting the decoder
+    without its small vectors (its bits must not move, and it is the engine's hot path, D38).
+- **Where that leaves it:** T1's tests themselves are some 350 s of CPU, so on 4 cores T1 sits near 90 s here and on
+  GitHub's runners, which swing about 2 times for the same tests (58 to 109 s before). Well under 90 s on every runner
+  needs a quarter of T1's tests moved to T2 or a faster runner; the session leaves both open (WP-F.15 stays doing,
+  its CI numbers in the ledger).
+- **Answered:** the owner's goal (2026-10-27) named the WP; the calls are the session's, under D131.
+- **Landed in:** v0.63.0 (tests only)
