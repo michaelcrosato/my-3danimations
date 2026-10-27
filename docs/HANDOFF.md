@@ -158,7 +158,10 @@ none of their triggers has fired). Add `ultracode` to the goal to run its WPs in
   its connector answers the PR's account (michaelcrosatoDM) with "create a Codex account", so only the owner's
   `@codex review` runs it; an independent reviewer's four findings were fixed in 5c348a8 (D121, D123). On #21 each
   WP's two reviewers' findings were fixed before the PR (D126 to D128); Codex again doesn't serve its account.
-- **Last measured (4 CPUs here; GitHub's runners):** on main's head 8c88b42 in a fresh container (2026-10-24, D137):
+- **Last measured (4 CPUs here; GitHub's runners):** on #32's 435fff0 (2026-10-27, F.18): CI all green, T1 99.4 s
+  (1,349 passed), T2 307 s; on 2104ac7 T1 105.8 s, T2 398 s. Here (a container about 1.6 times slower than D137's):
+  T1 112.9 s, burning 411 s of CPU on its 4 cores, T2 651 s (Playwright 368.5, the sweeps 227.1). Before, on main's
+  head 8c88b42 in a fresh container (2026-10-24, D137):
   T0 19.5 s cold (over 15 s on cold caches only), T1 88.4 s (1,343 passed, budget 90: the headroom follow-up), T2
   337.1 s (Playwright 39 passed in 167.0 s, QA 11.1, the sweeps 132.2, the rate sample 26.7, 0 rows unbaselined).
   F.14 on 57b61b9 here: T1 68.7 s (1,344 passed), T2 277.6 s
@@ -170,14 +173,15 @@ none of their triggers has fired). Add `ultracode` to the goal to run its WPs in
 
 ## Next, in order
 
-0. The next goal (above), once the owner starts it; items 2 and 3 below are its items 5 and 4.
+0. The next goal (above), started 2026-10-27: items 1 and 2 and F.16 to F.18 done (#32), F.15 doing; then F.19 (the
+   encoder's steady rounding), item 4 (B1's floor) and item 5 (the batch); items 2 and 3 below are its items 5 and 4.
 1. Whatever the owner sends back: their verdict on Pick_Up_Basket (above), a review file (`npx m3a review ingest
    <file>`, its notes into docs/FEEDBACK-LOG.md and a threshold or task proposal into docs/REVIEW-PROPOSALS.md), O8
    linked (the contract run, the first adoption by the bot), another repository's use confirmed (G10).
 2. The owner's next review batch: `npx m3a review export` samples the unreviewed and stale clips, among them Jump_Twist
    (cut again) and the three idles whose reviews were dropped with their old motion; D135 lists what to look at (the
-   feet that follow the hips' rounding, the few idles under 0.8 of their capture's sway). D135's follow-up: a steady
-   rounding of the hips, chest and head in the encoder, measured the same way. Also to look at again (D136): G8's
+   feet that follow the hips' rounding, the few idles under 0.8 of their capture's sway); export it after F.19 (the
+   encoder's steady rounding, D135's follow-up) so the idles it changes are the batch's. Also to look at again (D136): G8's
    CMU_CURATED/Pick_Up_Basket and Wrench_Bolt were reviewed on a page that showed their turn twice (WP-F.14 fixed it);
    their reviews stand (the motion is the same), the owner's to keep or remake.
 3. B1's floor stays deferred, with its reason: reading B1's feet from the body's measured floor changes G7's evidence
@@ -250,7 +254,8 @@ none of their triggers has fired). Add `ultracode` to the goal to run its WPs in
   `auth.uid()`.
 - What the owner sees on a page is evidence (D136): before answering that a clip doesn't do what they saw, put the
   page beside the data. The sheet (`npx m3a sheet`, about 540 tokens a picture at 1000×404) draws the keys alone; the
-  painted gen-1 captured at the sheet's moments and view shows what the engine plays. The unpainted mannequin read the
+  painted gen-1 captured at the sheet's moments and view shows what the engine plays, and `npx m3a sheet <clip>
+  --character gen-1` draws the engine's pose under the data's with how far they part (D142). The unpainted mannequin read the
   same from the front and the back, and the session wrongly told the owner they saw it wrong; the paint, then
   `apps/gallery/src/playback.test.ts`, settled it.
 - Playwright's clock: a hold (`pauseAt`) of a flowing clock can leave the page's next frame due past the clock's now,

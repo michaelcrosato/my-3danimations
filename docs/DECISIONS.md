@@ -5822,6 +5822,10 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
     container's runs swing ±7 s and it is about 1.6 times slower than D137's, where T1 took 88 s). Not taken: Vitest's
     thread pool (slower here), three workers (121 s), its on-disk module cache (4 s; the time is the tests' own), and
     memoizing the tools' four surfaces (it would skip each surface's own image writes).
+  - **Not yet enough:** CI's T1 on #32's heads 105.8 s (2104ac7) and 99.4 s (435fff0, 1,349 tests); still over 90 s,
+    so the WP stays doing. Here T1 burns 411 s of CPU on 4 cores in 110 s (94% busy), well past the 359 s the
+    report's files add up to: a file's setup hooks and the processes its tests start are in no test's time. The next
+    cut reads each file alone with them counted.
 - **Why:** T1's budget is the agent's loop; a sweep's hundredth case catches little that its tenth doesn't, and T2
   still reads every one before a push. CI's T1 is the record for "well under 90 s" (the ledger row).
 - **Answered:** the owner's goal (2026-10-27) named the WP; its calls are the session's, under D131.
