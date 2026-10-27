@@ -61,9 +61,9 @@ What each item means and when it is done:
    - **Done (F.18, D142): `npx m3a sheet <clip> --character gen-1`.** The engine sheet (D136, the owner's idea): the
      gallery's character drawn at the sheet's moments beside the sheet, the data comparison's numbers under each frame,
      from a tool (principle 2), images to `check-output/`.
-   - The encoder's steady rounding of the hips, chest and head (D135's follow-up): done when the idles it names move no
-     further than their capture, measured as D135 measured them, the sets re-imported byte for byte, the frozen spec
-     untouched.
+   - **Done (F.19, D143): the four idles' pelvis under its capture's, 13 → 3 past 1.5 times.** The encoder's steady
+     rounding of the hips, chest and head (D135's follow-up): done when the idles it names move no further than their
+     capture, measured as D135 measured them, the sets re-imported byte for byte, the frozen spec untouched.
    - **Doing (F.15, D139): the repeated sweeps sampled; CI's T1 100 to 106 s, still over.** T1's headroom (Last
      measured): the slowest files made faster, never the budget raised, until T1 sits well under 90 s here and in CI.
 4. **B1's floor** (D123, D131): B1's grader reads heights from the body's measured floor, then G7's B1 known-goods and

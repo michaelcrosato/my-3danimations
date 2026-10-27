@@ -3,12 +3,13 @@
 // hips or shoulders stand off the captured ones (whole percent of H0, whole degrees) flipped a knee or elbow between
 // straight and about 15° from key to key: with a sway kept in more keys, round 1's re-fit moved one 20 to 54 mm beyond the
 // capture's on 16 of its 87 clips. Round 2 encodes these clips with core's `steadyBend` (the bend read from the joint
-// itself), and this pins the bound: no knee or elbow moves further beyond the capture's than the clip's own fit limit,
-// but on the six clips named below, whose pelvis itself moves beyond the capture's (the hips in whole percent of H0) or
-// whose joint is past it by under a millimetre; no snap at any shown point (the fit is `spaced`: no key one frame from a
-// key, whose own rounding made the head, chest or a bent limb step); and how many clips decode to more than 1.5 times
-// their capture's motion, and to less than 0.8 of it. Read from the pinned sources (run where they are fetched:
-// `npm run import` fetches them).
+// itself); F.19 with its `steadyRound` too (the hips' whole percent of H0 and the body's, chest's and head's whole
+// degrees held at the key before's while the capture stays within 0.9 of them), which ended the six clips whose pelvis
+// moved 5.5 to 7.7 mm beyond the capture's or whose joint was past it by under a millimetre. This pins the bound: no
+// knee or elbow moves further beyond the capture's than the clip's own fit limit, no pelvis 4 mm beyond it; no snap at
+// any shown point (the fit is `spaced`: no key one frame from a key, whose own rounding made the head, chest or a bent
+// limb step); and how many clips decode to more than 1.5 times their capture's motion, and to less than 0.8 of it. Read
+// from the pinned sources (run where they are fetched: `npm run import` fetches them).
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -83,29 +84,28 @@ describe("the clips fitted within their own motion, against their captures (F.13
   it.skipIf(!cached)("move no knee or elbow further beyond the capture's than their fit limit, but where the format's own resolution does; no shown point snaps", () => {
     const rows = survey(SETS), by = (r: Row) => r.id;
     expect(rows.length).toBe(108);
-    // round 1: 17 clips 20 mm or more beyond, the worst 54 (Penguin_Idle's left knee); now none 11 mm
-    expect(Math.max(...rows.map((r) => r.midExcess))).toBeLessThan(11);
-    // past the clip's own limit: four whose pelvis itself moves 5 mm or more beyond the capture's (the hips in whole
-    // percent of H0: 1% is 9 to 10 mm), the knee riding on it to within 3.5 mm of the pelvis's excess; two by under a
-    // millimetre on a 3 mm limit (a whole degree of bend moves a straight knee or elbow about 4 mm)
-    const over = rows.filter((r) => r.midExcess > r.limit);
-    expect(over.map(by).sort()).toEqual(["STYLE100_IDLE/Angry_Idle", "STYLE100_IDLE/ArmsFolded_Idle", "STYLE100_IDLE/Chicken_Idle", "STYLE100_IDLE/KarateChop_Idle", "STYLE100_IDLE/Penguin_Idle", "STYLE100_IDLE/Proud_Idle"]);
-    for (const r of over) expect(r.pelvisExcess >= 5 ? r.midExcess - r.pelvisExcess < 3.5 : r.midExcess - r.limit < 1).toBe(true);
+    // round 1: 17 clips 20 mm or more beyond, the worst 54 (Penguin_Idle's left knee); round 2 none 11 mm; F.19 none 9
+    expect(Math.max(...rows.map((r) => r.midExcess))).toBeLessThan(9);
+    // past the clip's own limit: none. Round 2 left six: four whose pelvis itself moved 5.5 to 7.7 mm beyond the
+    // capture's (the hips' whole percent of H0, 9 to 10 mm, flipping from key to key), the knee riding on it, and two by
+    // under a millimetre on a 3 mm limit (a whole degree flipping); F.19's steady rounding holds those whole numbers
+    expect(rows.filter((r) => r.midExcess > r.limit).map(by)).toEqual([]);
+    expect(Math.max(...rows.map((r) => r.pelvisExcess))).toBeLessThan(4);
     // no shown point snaps: the fit adds no key one frame from a key (`spaced`), so no two keys a frame apart round the
     // chest, head or a bent limb apart (before it: Aeroplane_Idle's headTop 10.9 mm in 1/30 s, Old_Idle's head 5.6,
     // Chicken_Idle's knee and head, ShieldedRight_Idle's elbows, neck and head)
     expect(rows.filter((r) => r.snaps.length).map((r) => `${r.id}: ${r.snaps.join(", ")}`)).toEqual([]);
-    // round 1: 28 clips decoded to more than 1.5 times their capture's reach, the knees and elbows most; 13 now, each a
-    // capture that moves 11 mm or less (Idle_Rail aside, 22.8) whose head, feet or pelvis the format's whole degrees and
-    // percents move a few millimetres more (Old_Idle left them, 1.79 → 1.20, with its keys a frame apart)
-    expect(rows.filter((r) => r.dec > 1.5 * r.cap).length).toBe(13);
-    // the sway kept: every clip that moves decodes to 0.8 of its capture's reach or more but seven, the least 0.56
-    // (HandsBetweenLegs_Idle's right fist, 7 mm of 16), each the head's, hands' or feet's sway as round 1 decoded it (the
-    // fit's limit, half of how far the capture strays, and the format's whole degrees there); a knee or elbow no longer
-    // adds to it
+    // round 1: 28 clips decoded to more than 1.5 times their capture's reach, the knees and elbows most; round 2 13, each
+    // a capture that moves 11 mm or less whose head, feet or pelvis the format's whole degrees and percents moved a few
+    // millimetres more; F.19 3, at most 1.6 times a capture of 6 to 7 mm (Cat_Idle, Lunge_Idle, Quail_Idle)
+    expect(rows.filter((r) => r.dec > 1.5 * r.cap).map(by).sort()).toEqual(["STYLE100_IDLE/Cat_Idle", "STYLE100_IDLE/Lunge_Idle", "STYLE100_IDLE/Quail_Idle"]);
+    expect(Math.max(...rows.filter((r) => !r.frozen).map((r) => r.dec / r.cap))).toBeLessThan(1.65);
+    // the sway kept: every clip that moves decodes to 0.8 of its capture's reach or more but nine, the least 0.63
+    // (OnPhoneRight_Idle; round 2 seven, the least 0.56): holding a whole number while the capture stays within it trims
+    // a sway of under a unit as it trims a flip of one (84 of 103 within 0.8 to 1.25 times, 67 in round 2)
     const moving = rows.filter((r) => !r.frozen);
-    expect(moving.filter((r) => r.dec < 0.8 * r.cap).length).toBe(7);
-    expect(Math.min(...moving.map((r) => r.dec / r.cap))).toBeGreaterThan(0.55);
+    expect(moving.filter((r) => r.dec < 0.8 * r.cap).length).toBe(9);
+    expect(Math.min(...moving.map((r) => r.dec / r.cap))).toBeGreaterThan(0.62);
     // what the import keeps still is what its tags call a pose (MESH2MOTION's three aims, the held bow, the rest pose)
     expect(rows.filter((r) => r.frozen).map(by)).toEqual(["MESH2MOTION/Pistol_Aim_Down", "MESH2MOTION/Pistol_Aim_Neutral", "MESH2MOTION/Pistol_Aim_Up", "MESH2MOTION/Bow_Pull_Hold", "MESH2MOTION/Rest_Pose"]);
   }, 120_000);

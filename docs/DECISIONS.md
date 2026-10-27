@@ -5907,3 +5907,35 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
 - **Answered:** the owner's goal (2026-10-27) named the WP; the reading-back and the drawing are the session's, under
   D131.
 - **Landed in:** v0.62.0
+
+## D143 · 2026-10-27 · The encoder holds the key before's whole numbers while the capture stays within 0.9 of them
+
+- **Principle:** the North Star (an idle that moves as its actor did: no more, and not a statue), 3 (verified against
+  the capture), 5 (deterministic: the rule reads the key before alone), D135
+- **Call:**
+  - **Measured first (WP-F.19),** by D135's survey of the 108 clips the import fits within their own motion (each
+    decoded against its capture): the hips' whole percent of H0 flipped from key to key on a sway that crosses a
+    rounding boundary, moving the pelvis 9 to 10 mm where the capture moved 2 to 4 (Penguin, Angry, Proud, Chicken:
+    5.5 to 7.7 mm beyond, their knees riding on it); the chest's and head's whole degrees did the same to 13 clips'
+    heads and hands (past 1.5 times their capture's reach).
+  - **The rule:** core's encoder gets `steadyRound`, off by default (every other caller, the vectors and tiers 1a to 3
+    bit for bit): the hips and the body's, chest's and head's turns keep the key before's whole number while the exact
+    value stays within 0.9 of it. The first key rounds as before, and a closed loop's last key is its first (closeLoop).
+    The fit chooses its keys without it and encodes the keys it chose with it: a held key stands up to 0.9 of a unit
+    from its frame's own rounding, which the fit would otherwise try to mend with keys that hold the same number.
+  - **The threshold, measured** (no knee or elbow past its limit / past 1.5× / under 0.8× / within 0.8–1.25× of 103):
+    before 6 / 13 / 7 (least 0.56) / 67; 0.75 1 / 5 / 7 (least 0.51) / –; 0.9 0 / 3 / 9 (least 0.63) / 84; 1 0 / 3 / 11
+    (least 0.54) / –; the hips alone at 0.9 2 / 9 / 7 (least 0.56) / 70. 0.9 is the one that ends every flip of a
+    whole number without trimming a sway the most: the mean distance from the capture's reach (|log| of the ratio)
+    0.185 → 0.127, the worst 0.75 → 0.47.
+  - **What it costs:** nine clips decode under 0.8 of their capture's reach where seven did (OnPhoneRight 0.63,
+    HandsBetweenLegs 0.64, Aeroplane 0.69, Glide 0.71, HighKnees 0.72, LeanRight 0.74, March and Tiptoe 0.75,
+    Flying_Forward 0.80): a sway of under a unit is held as a flip of one is. Each still sways. The fit against the
+    source is the same on 64 of the 92 re-fitted clips, better on 5, up to 4 mm worse on 23 (Zombie_Idle 5 → 9 mm).
+  - **What else moves:** the 92 clips on the same key frames, every verdict as before; the sensors' baseline (475
+    values), two distributions better (intersection p95, fit p95), `docs/LIBRARY.md`, the index; the census (1,198
+    unique) and the rate sweep (428 failing rows as baselined) as before. No clip carrying the owner's review changed.
+- **Why:** an idle's words promise its actor's small motion; a whole number that flips where the actor barely moved
+  shows motion the capture hasn't, and holding it while the capture stays near it keeps what the actor did.
+- **Answered:** the owner's goal (2026-10-27) named the WP; the threshold is the session's, under D131.
+- **Landed in:** v0.63.0

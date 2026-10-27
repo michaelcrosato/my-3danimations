@@ -4,6 +4,30 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.63.0 · 2026-10-27
+
+WP-F.19 (D143): the encoder's steady rounding.
+
+### Core
+- `format.encodePose`'s `steadyRound` (off by default): the hips' whole percent of H0 and the body's, chest's and head's
+  whole degrees stay at the key before's while the exact value stays within 0.9 of them. `format.fit` chooses its keys
+  without it and encodes the keys it chose with it, measured again. Without the option every key is the same, bit for
+  bit (the vectors and tiers unchanged).
+
+### IO
+- `importSet` encodes a clip fitted within its own motion with `steadyRound` too.
+
+### Library
+- 92 clips re-fitted on the same key frames: STYLE100_IDLE 74, MESH2MOTION 16, STYLE100_RUN/WalkingStickLeft_Run and
+  STYLE100_BACKRUN/Flapping_RunBack. Penguin, Angry, Proud and Chicken_Idle's pelvis no longer moves 5.5 to 7.7 mm
+  beyond its capture's; clips decoding past 1.5 times their capture's reach 13 → 3. Every verdict as before; the
+  sensors' baseline, the distributions (two better), `docs/LIBRARY.md` and the index rewritten by their writers; the
+  census and the rate sweep's rows as before.
+
+### Repo
+- `tools/import/fidelity.test.ts` pins no knee or elbow past its clip's own limit (six before), no pelvis 4 mm beyond
+  its capture's, three clips past 1.5 times, nine under 0.8 (the least 0.63, 0.56 before).
+
 ## 0.62.0 · 2026-10-27
 
 WP-F.18 (D142): the engine sheet.

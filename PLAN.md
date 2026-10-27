@@ -2859,6 +2859,32 @@ picked by the owner on 2026-10-21. No gate follows them: each is held by its Ver
 - **Verify:** `npm run check`, `npm test -- packages/core packages/sensors packages/tools`,
   `npx m3a sheet QUATERNIUS_3D2DGE/Walk_Loop --frames 4 --character gen-1`
 
+#### WP-F.19 The encoder's steady rounding
+- **Owns:** `packages/core/src/format/pose.ts` (`steadyRound`), `packages/core/src/format/fit.ts` (its keys chosen
+  without it), the own-motion clips of MESH2MOTION, STYLE100_IDLE, STYLE100_RUN and STYLE100_BACKRUN
+- **Also touches:** `packages/io/src/import.ts` (one option), `tools/import/fidelity.test.ts` (its pins), the
+  baselines their writers rewrite (`packages/sensors/fixtures/baseline.json`, `library/baselines/distributions.json`,
+  `docs/LIBRARY.md`, `library/index.json`)
+- **Needs:** WP-F.13
+- **Size:** S (about 120 changed lines, tests included; 92 clip files regenerated)
+- **Carry:** none
+- **Trigger:** D135's follow-up: the format's resolution still moved a few small idles more than their capture (the
+  hips' whole percent took Penguin's, Angry's, Proud's and Chicken's pelvis 5.5 to 7.7 mm beyond it; the chest's and
+  head's whole degrees took 13 clips past 1.5 times their capture's reach).
+- **Build:** core's encoder gets `steadyRound`, off by default: the hips (percent of H0) and the body's, chest's and
+  head's turns (degrees) keep the key before's whole number while the exact value stays within 0.9 of it. The fit
+  chooses its keys without it (a held key stands up to 0.9 of a unit from its frame's own rounding, which more keys
+  can't mend) and encodes the keys it chose with it. `importSet` sets it with `steadyBend` on a clip fitted within its
+  own motion. Measured at 0.75, 0.9 and 1, and holding the hips alone, by D135's survey; MOTION.md (frozen) untouched.
+- **Done when:**
+  1. The four idles' pelvis no further beyond its capture's than 4 mm, no knee or elbow past its clip's own limit,
+     fewer clips past 1.5 times their capture's reach (`tools/import/fidelity.test.ts`).
+  2. Every key encoded without the option bit for bit (the vectors, the tiers); the four sets re-imported byte for
+     byte (`npm run import -- --check`); every verdict as before; the baselines through their writers.
+- **Verify:** `npm run check`, `npm test`, `npm run e2e`, `npm run import -- --set STYLE100_IDLE --check` (and the other
+  three), `npm run vectors -- --check`, `npm run qa -- --check`, `npm run qa -- library --check`,
+  `npm run sweep -- --rates --check`, `npm run index -- --check`
+
 ### On demand
 
 Each starts only when its trigger fires; record the measurement that fired it. A trigger that never fires means the WP
@@ -3062,10 +3088,11 @@ commits named here are on their PR branches (`refs/pull/<n>/head`).
 | F.12 The review page's guide | done | 0.58.0 | deaab20 (#27) | 2026-10-22 | the owner's ask after G8 ("give clear directions when someone opens that page ... explain how LLMs would select an animation"): a guide at the top (what the clips are, how an agent chooses one, what the sensors check and can't, what Approve and Flag mean, export and send back), open on a first visit and remembered closed; each card says what its clip should show (description, loop or once, length, travel in m/s and a grown-up's pace, tags), a submission's measured as adoption measures it; `npm run e2e -- review previews gallery` 14 passed; the gallery's unit tests 18; two adversarial reviewers' 10 findings fixed, 3 blocking (D134) |
 | F.13 The idles keep their motion | done | 0.59.0 | 83f8ce0 (#28) | 2026-10-22 | the owner's G8 review ("This is a pose. There is no actual animation"; Jump_Twist "never gets to the actually jump"): frozen clips 102 → 17 (13 tagged poses, 4 answered), each fit bounded by the clip's own motion; no knee or elbow 20 mm beyond its capture (16 were, up to 54 mm: `steadyBend`), no snap (`spaced`); recipes keep the sway (0 of 87 one pose through clip, mirror, retime; 83 were); the still check in QA and the intake's lint gate; Jump_Twist cut again to its flip; `npm run import -- --check` 9 sets byte for byte, vectors and conformance 3662 as before, T2 266 s; two rounds, four adversarial reviewers' 21 findings fixed (D135) |
 | F.14 Playback as the data says | done | 0.60.0 | b66f248 (#29) | 2026-10-23 | the owner's in-chat review of Pick_Up_Basket ("does a 360 and then walks backwards") and their experiment (gen-1 painted, snapped at the sheet's moments and view): the gallery and the review cards turned a character by a heading its pose already carried, and the raster and graph sims likewise; one rule (a pose carries its clip's turn, attach writes the root's turn beyond it, `AnimatorPose.turn`); the data comparison `apps/gallery/src/playback.test.ts`: facing 55 clips off by up to 179° → 0 of 1,398 on four test characters; the test characters painted as the sheets (D136) |
-| F.15 T1's headroom | doing | 0.60.1 | #32 | 2026-10-27 | the changed files' test CPU on one worker 89.5 → 62.3 s (−30%); T1 here 113–116 → 107–110 s (this container runs about 1.6× slower than D137's; its timings swing ±7 s run to run); the dedup distance the same to the bit on 1,863 pairs; CI's T1 108 → 99.4 to 105.8 s on #32's heads, not yet well under 90 s: the heavy setups next (D139) |
-| F.16 `describe` names a turn and a bend | done | 0.61.0 | #32 | 2026-10-27 | Mesh2Motion's quarter and half turns read 100° left, 85° right, 180° and 180° (their keys: 102, 87, 180, 181); Pick_Up_Basket "bends over (trunk 80°); turns 170° to the right; bends over (trunk 85°)" (its keys turn 165° to 170° there, 195° start to end with the walk's curve); over the library 74 one-shots turn, no loop, 157 clips bend; the truth set and the tokens as before (D140) |
-| F.17 A body under its floor keeps its legs | done | 0.61.1 | #32 | 2026-10-27 | Swim_Idle_Loop's legs 90°–150° from its data → within 1° (arms 4° before and after); playback in full on gen-1 and gen-0 with no known exception; vectors byte for byte, tier 3 2,317 of 2,317, the sweeps as pinned; five clips ever put their hips under the floor (two swims, Zombie_Rise, two falls by a few mm) (D141) |
-| F.18 The engine sheet | done | 0.62.0 | #32 | 2026-10-27 | on gen-1, 4 frames: Walk_Loop's engine facing 0° and limbs 4° (the worst cell's median) from its data, Turn_Right_180's 0° and 1°, Swim_Idle_Loop's 0° and 14° (at 1.67 s, a leg); the read-back points the rest points to 1e-13 mm and the decoder's to 0.01 mm on 1,081 tier-2 poses but the fingers' (the rig's curled finger joints, the format's helpers: up to 83 mm); the tools 3,200 tokens in all (D142) |
+| F.15 T1's headroom | doing | 0.60.1 | 2e449b5 (#32) | 2026-10-27 | the changed files' test CPU on one worker 89.5 → 62.3 s (−30%); T1 here 113–116 → 107–110 s (this container runs about 1.6× slower than D137's; its timings swing ±7 s run to run); the dedup distance the same to the bit on 1,863 pairs; CI's T1 108 → 99.4 to 105.8 s on #32's heads, not yet well under 90 s: the heavy setups next (D139) |
+| F.16 `describe` names a turn and a bend | done | 0.61.0 | 2e449b5 (#32) | 2026-10-27 | Mesh2Motion's quarter and half turns read 100° left, 85° right, 180° and 180° (their keys: 102, 87, 180, 181); Pick_Up_Basket "bends over (trunk 80°); turns 170° to the right; bends over (trunk 85°)" (its keys turn 165° to 170° there, 195° start to end with the walk's curve); over the library 74 one-shots turn, no loop, 157 clips bend; the truth set and the tokens as before (D140) |
+| F.17 A body under its floor keeps its legs | done | 0.61.1 | 2e449b5 (#32) | 2026-10-27 | Swim_Idle_Loop's legs 90°–150° from its data → within 1° (arms 4° before and after); playback in full on gen-1 and gen-0 with no known exception; vectors byte for byte, tier 3 2,317 of 2,317, the sweeps as pinned; five clips ever put their hips under the floor (two swims, Zombie_Rise, two falls by a few mm) (D141) |
+| F.18 The engine sheet | done | 0.62.0 | 2e449b5 (#32) | 2026-10-27 | on gen-1, 4 frames: Walk_Loop's engine facing 0° and limbs 4° (the worst cell's median) from its data, Turn_Right_180's 0° and 1°, Swim_Idle_Loop's 0° and 14° (at 1.67 s, a leg); the read-back points the rest points to 1e-13 mm and the decoder's to 0.01 mm on 1,081 tier-2 poses but the fingers' (the rig's curled finger joints, the format's helpers: up to 83 mm); the tools 3,200 tokens in all (D142) |
+| F.19 The encoder's steady rounding | done | 0.63.0 | (this PR) | 2026-10-27 | at 0.9: the four idles' pelvis 5.5–7.7 mm beyond their capture's → under it (the worst of 108 clips 3.5 mm); knees or elbows past their limit 6 → 0 (worst 10.0 → 8.0 mm); past 1.5× their capture's reach 13 → 3 (max 2.12 → 1.60×); under 0.8× 7 → 9 (min 0.56 → 0.63); within 0.8–1.25× 67 → 84 of 103; 92 clips re-fitted on the same key frames, fit mean the same on 64, better on 5, up to 4 mm worse on 23; every verdict as before (D143) |
 
 ---
 

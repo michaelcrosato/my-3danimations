@@ -194,13 +194,13 @@ for (const i of SHOWN) {
  */
 export function fit(R: Rest, cap: Capture, tol: number | GroupBudget, extra: Extra = {}): { clip: Encoded; max: number; mean: number } {
   if (typeof tol !== "number") return fitGroups(R, cap, tol, extra);
-  const kf = reduce(cap, tol);
+  const kf = reduce(cap, tol), plain = chooser(extra);
   const X = new Float32Array(P * 3);
   const Y = new Float32Array(P * 3);
   const t = (f: number) => f / cap.fps;
-  const floor = Array.from({ length: cap.n }, (_, f) => error(capSample(cap, t(f), X), pose(R, encode(R, cap, [f], extra), t(f), Y)));
+  const floor = Array.from({ length: cap.n }, (_, f) => error(capSample(cap, t(f), X), pose(R, encode(R, cap, [f], plain), t(f), Y)));
   for (let guard = 0; ; guard++) {
-    const o = encode(R, cap, kf, extra);
+    const o = encode(R, cap, kf, plain);
     let worst = 0;
     let wf = -1;
     let max = 0;
@@ -217,7 +217,7 @@ export function fit(R: Rest, cap: Capture, tol: number | GroupBudget, extra: Ext
         wf = f;
       }
     }
-    if (worst <= tol || kf.includes(wf) || (extra.spaced && besideKey(kf, wf)) || guard > cap.n) return { clip: o, max, mean: sum / cap.n };
+    if (worst <= tol || kf.includes(wf) || (extra.spaced && besideKey(kf, wf)) || guard > cap.n) return steadied(R, cap, kf, extra, { clip: o, max, mean: sum / cap.n });
     kf.push(wf);
     kf.sort((a, b) => a - b);
   }
@@ -226,20 +226,37 @@ export function fit(R: Rest, cap: Capture, tol: number | GroupBudget, extra: Ext
 /** Whether frame f lies one frame from a key frame (`spaced`). */
 const besideKey = (kf: readonly number[], f: number) => kf.includes(f - 1) || kf.includes(f + 1);
 
+/** The options a fit chooses its keys by: `steadyRound` aside, whose keys stand up to a whole unit from where their
+ *  frames alone round, which more keys can't mend (the fit would add them in vain). */
+const chooser = (extra: Extra): Extra => (extra.steadyRound ? { ...extra, steadyRound: false } : extra);
+/** A fit's result with `steadyRound`: the keys it chose encoded steadily, measured again against the capture. */
+function steadied(R: Rest, cap: Capture, kf: readonly number[], extra: Extra, got: { clip: Encoded; max: number; mean: number }) {
+  if (!extra.steadyRound) return got;
+  const o = encode(R, cap, kf, extra), X = new Float32Array(P * 3), Y = new Float32Array(P * 3);
+  let max = 0, sum = 0;
+  for (let f = 0; f < cap.n; f++) {
+    capSample(cap, f / cap.fps, X);
+    pose(R, o, f / cap.fps, Y);
+    max = Math.max(max, error(X, Y));
+    sum += meanError(X, Y);
+  }
+  return { clip: o, max, mean: sum / cap.n };
+}
+
 /** fit with a budget per region: a frame's excess is its largest (error − floor − budget) over the regions. */
 function fitGroups(R: Rest, cap: Capture, tol: GroupBudget, extra: Extra) {
-  const regions = Object.keys(GROUPS) as (keyof GroupBudget)[];
+  const regions = Object.keys(GROUPS) as (keyof GroupBudget)[], plain = chooser(extra);
   const kf = reduce(cap, Math.min(tol.torso, tol.arms, tol.legs));
   const X = new Float32Array(P * 3);
   const Y = new Float32Array(P * 3);
   const t = (f: number) => f / cap.fps;
   const floors = Array.from({ length: cap.n }, (_, f) => {
     capSample(cap, t(f), X);
-    pose(R, encode(R, cap, [f], extra), t(f), Y);
+    pose(R, encode(R, cap, [f], plain), t(f), Y);
     return regions.map((g) => error(X, Y, GROUPS[g]));
   });
   for (let guard = 0; ; guard++) {
-    const o = encode(R, cap, kf, extra);
+    const o = encode(R, cap, kf, plain);
     let worst = 0;
     let wf = -1;
     let max = 0;
@@ -255,7 +272,7 @@ function fitGroups(R: Rest, cap: Capture, tol: GroupBudget, extra: Extra) {
         wf = f;
       }
     }
-    if (worst <= 0 || kf.includes(wf) || (extra.spaced && besideKey(kf, wf)) || guard > cap.n) return { clip: o, max, mean: sum / cap.n };
+    if (worst <= 0 || kf.includes(wf) || (extra.spaced && besideKey(kf, wf)) || guard > cap.n) return steadied(R, cap, kf, extra, { clip: o, max, mean: sum / cap.n });
     kf.push(wf);
     kf.sort((a, b) => a - b);
   }

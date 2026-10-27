@@ -244,6 +244,45 @@ describe("a nearly straight limb's bend read from its joint (steadyBend, F.13, D
   });
 });
 
+describe("the hips, body, chest and head held at the key before's whole numbers (steadyRound, F.19)", () => {
+  /** Key k's points with the whole body raised `dz` mm. */
+  const raised = (k: KeyLike, dz: number) => Float32Array.from(decode(k), (v, i) => (i % 3 === 2 ? v + dz : v));
+  const pc = R.H0 / 100, up = (k: KeyLike) => (k.hips as number[])[2]!;
+  it("keeps the key before's whole percent of H0 while the exact value stays within 0.9 of it, and rounds past it; alone or without the option, as before", () => {
+    const before = encodePose(R, raised(key0, 0), null), enc = (dz: number, o: { steadyRound?: boolean } = { steadyRound: true }) => encodePose(R, raised(key0, dz), before, o);
+    // 0.7% up rounds to the next percent, but stays within 0.9 of the key before's: held
+    expect([up(enc(0.7 * pc, {})), up(enc(0.7 * pc))]).toEqual([up(before) + 1, up(before)]);
+    // 0.95% up is past it: rounded as before
+    expect(up(enc(0.95 * pc))).toBe(up(before) + 1);
+    // a raised body turns nothing: its body, chest and head as the key before's
+    expect([enc(0.7 * pc).body, enc(0.7 * pc).chest, enc(0.7 * pc).head]).toEqual([before.body, before.chest, before.head]);
+    // with no key before, or without the option, bit for bit as before
+    expect(encodePose(R, raised(key0, 0.7 * pc), null, { steadyRound: true })).toEqual(encodePose(R, raised(key0, 0.7 * pc), null));
+    expect(enc(0.7 * pc, { steadyRound: false })).toEqual(enc(0.7 * pc, {}));
+  });
+  it("keeps a bob's hips as still as the capture's where they round both ways, on the keys the fit chose without it", () => {
+    // a 2 s loop: the body bobbing from 2 to 7 mm up and back, its hips rounding to one whole percent of H0 at the bottom
+    // and the next at the top
+    const n = 61, data = new Float32Array(n * 108);
+    for (let f = 0; f < n; f++) data.set(raised(key0, 4.5 - 2.5 * Math.cos((2 * Math.PI * f) / 60)), f * 108);
+    const cap: Capture = { name: "Bob", n, dur: 2, loop: true, fps: 30, data, move: null };
+    const fitted = (steadyRound: boolean) => fit(R, cap, 3, { steadyBend: true, spaced: true, closeLoop: true, steadyRound }).clip;
+    const pelvisMove = (c: ReturnType<typeof fitted>) => {
+      const Y0 = decodePose(R, keyAt(c, 0), new Float32Array(108));
+      let far = 0;
+      for (let f = 0; f < n; f++) far = Math.max(far, dist(point(decodePose(R, keyAt(c, f / 30), new Float32Array(108)), "pelvis"), point(Y0, "pelvis")));
+      return far;
+    };
+    const plain = fitted(false), steady = fitted(true);
+    // the captured pelvis moves 5 mm; rounded alone, a whole percent of H0 (about 10 mm) from key to key
+    expect(pelvisMove(plain)).toBeGreaterThan(9);
+    expect(pelvisMove(steady)).toBeLessThanOrEqual(5);
+    // the same keys, and the loop still ends on its first
+    expect(steady.keys.map((k) => k.t)).toEqual(plain.keys.map((k) => k.t));
+    expect(JSON.stringify({ ...steady.keys.at(-1), t: 0 })).toBe(JSON.stringify({ ...steady.keys[0], t: 0 })); // as a file holds them (-0 is 0)
+  });
+});
+
 describe("a fit that adds no key one frame from a key (spaced, F.13, D135)", () => {
   it("stops where the frame it misses most lies beside a key, and is the same as before without the option", () => {
     // standing still for 41 frames but for two, the body raised 12 mm at frame 20 and 9 mm at frame 21: the first

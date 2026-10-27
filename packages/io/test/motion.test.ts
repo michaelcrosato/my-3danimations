@@ -2,7 +2,8 @@
 // only its two ends, one pose, a statue; fitted within half of how far it strays from the in-between of its ends (a
 // loop's reach) it keeps the sway, also when it leans as it sways, a clip that reaches twice the limit or more is
 // fitted exactly as before, and a still one stays two keys. The rule is core's (`format.fitLimit`, which a recipe's
-// compile follows too), and a clip fitted by it reads its nearly straight limbs' bends from their joints (`steadyBend`).
+// compile follows too), and a clip fitted by it reads its nearly straight limbs' bends from their joints (`steadyBend`)
+// and holds the key before's whole numbers for its hips, body, chest and head (`steadyRound`, F.19).
 import { describe, expect, it } from "vitest";
 import { format, type Rest } from "@m3a/core";
 import { importSet, readBvh, type Catalog } from "../src/index.ts";
@@ -106,12 +107,12 @@ describe("a clip's own motion bounds its fit (F.13)", () => {
     expect([MOTION_TOL, reach, offLine, clipTol, fitLimit]).toEqual([format.MOTION_TOL, format.reach, format.offLine, format.clipTol, format.fitLimit]);
     expect([format.ownMotion(sway(1).clips.Sway!, 30), format.ownMotion(sway(6).clips.Sway!, 30), format.ownMotion(sway(6).clips.Sway!, 60)]).toEqual([true, false, true]);
   });
-  it("reads a nearly straight knee's bend from the knee on a clip fitted within its own motion (core's steadyBend, the fit spaced), and on no other", () => {
+  it("reads a nearly straight knee's bend from the knee and holds the key before's whole numbers on a clip fitted within its own motion (core's steadyBend and steadyRound, the fit spaced), and on no other", () => {
     // knees bent 8°, the hips bobbing 4 mm: the root-to-ankle distance a bend is otherwise read from moves with the hips'
     // whole percent of H0
     const lib = sway(1, 0, 8), cap = { ...lib.clips.Sway!, loop: true }, out = importSet([{ id: "TINY", file: "tiny.bvh", ...lib }], cat, { name: "TINY", credit: "the tiny rig" });
     const rest = out.set.sources.TINY!.rest as Rest, extra: format.Extra = { blade: false, tags: ["idle"], desc: cat.Sway![1] as string };
-    const keys = (own: boolean) => format.fit(rest, cap, fitLimit(cap, 30), { ...extra, steadyBend: own, spaced: own }).clip.keys;
+    const keys = (own: boolean) => format.fit(rest, cap, fitLimit(cap, 30), { ...extra, steadyBend: own, spaced: own, steadyRound: own }).clip.keys;
     expect(out.set.clips.Sway!.keys).toEqual(keys(true));
     expect(out.set.clips.Sway!.keys).not.toEqual(keys(false));
     // a clip that reaches twice the limit is encoded as it always was

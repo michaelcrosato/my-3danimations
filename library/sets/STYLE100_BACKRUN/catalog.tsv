@@ -25,7 +25,7 @@ STYLE100_BACKRUN/Drunk_RunBack	0.5	loop	54	run back style varies	Running backwar
 STYLE100_BACKRUN/DuckFoot_RunBack	0.733	loop	71	run back style	Running backward, duck foot style: toes pointing inwards	100STYLE
 STYLE100_BACKRUN/Elated_RunBack	0.933	loop	189	run back style	Running backward, elated style: swing arms with spring	100STYLE
 STYLE100_BACKRUN/FairySteps_RunBack	0.933	loop	81	run back style	Running backward, fairy steps style	100STYLE
-STYLE100_BACKRUN/Flapping_RunBack	0.5	loop	1.2	run back style inplace	Running backward, flapping style	100STYLE
+STYLE100_BACKRUN/Flapping_RunBack	0.5	loop	0.3	run back style inplace	Running backward, flapping style	100STYLE
 STYLE100_BACKRUN/FlickLegs_RunBack	0.867	loop	83	run back style	Running backward, flick legs style: knees together and flick legs to sides as moving	100STYLE
 STYLE100_BACKRUN/Followed_RunBack	0.633	loop	137	run back style varies	Running backward, followed style: check behind occasionally	100STYLE
 STYLE100_BACKRUN/GracefulArms_RunBack	0.767	loop	118	run back style	Running backward, graceful arms style	100STYLE

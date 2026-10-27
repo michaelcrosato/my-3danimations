@@ -4,7 +4,7 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 `PLAN.md` §14; decisions are in `docs/DECISIONS.md`.
 
 **Phase:** all eleven built (10 done: G10's commands passed; its confirmation blocked-owner). **Next gate:** none (M4).
-**Version:** 0.62.0. **Mode:** ultracode (D83). **Last change:** F.15 to F.18 on #32 (D139 to D142).
+**Version:** 0.63.0. **Mode:** ultracode (D83). **Last change:** F.19, the encoder's steady rounding (D143).
 
 ## Done
 
@@ -24,8 +24,8 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 
 ## Next
 
-- The next goal (HANDOFF), started 2026-10-27: T1's headroom (F.15, doing: CI 99 to 106 s), the encoder's steady
-  rounding (F.19); B1's floor (the owner's go given); the next batch. The owner's: Pick_Up_Basket, steps below.
+- The next goal (HANDOFF), started 2026-10-27: T1's headroom (F.15, doing: CI 99 to 106 s); B1's floor (the owner's
+  go given); the next batch. The encoder's steady rounding done (F.19, D143). The owner's: Pick_Up_Basket, below.
 
 ## Blocked on the owner
 
