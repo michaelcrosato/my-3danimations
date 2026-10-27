@@ -2758,6 +2758,107 @@ picked by the owner on 2026-10-21. No gate follows them: each is held by its Ver
   4. The writer's hot path allocates under a byte a frame; T1 and T2 within their budgets.
 - **Verify:** `npm run check`, `npm test`, `npm run e2e`, `M3A_FULL=1 npx vitest run apps/gallery/src/playback.test.ts`
 
+#### WP-F.15 T1's headroom: the sweeps T1 repeats sampled, the dedup distance's steps worked out once
+- **Owns:** `packages/core/test/procedural.test.ts`, `packages/sensors/test/procedural.test.ts`,
+  `packages/core/test/solve.test.ts`, `packages/core/test/animator.test.ts`, `packages/sensors/test/fix.test.ts`,
+  `packages/library/test/dedup/dedup.test.ts`, `apps/gallery/src/playback.test.ts`,
+  `packages/library/src/dedup/distance.ts`
+- **Also touches:** `tools/run/e2e.ts` (T2's full sweeps list)
+- **Needs:** WP-F.5, WP-F.14
+- **Size:** S (about 90 changed lines)
+- **Carry:** none
+- **Trigger:** HANDOFF's follow-up "CI's T1 near its budget" (58 to 109 s on GitHub's runners; 108 s on #32's push, of
+  the 135 s at which it fails) and the next goal's item 3 (D137): the slowest files made faster, never the budget
+  raised.
+- **Build:**
+  - **Sample in T1 what T1 repeats, everything in T2** (D74's pattern): the procedural grids read "on the three rests"
+    take one rest a test in T1, a different one each test so every rest is still read; the moves' start poses one of
+    three and two of six; the solver's tier-2 sweeps every fourth pose; the Animator's save and restore every third
+    step; each fix operator every other planted run of its kind; dedup's census sweep every 90th clip's pairs (every
+    45th before); the gallery's playback comparison every other clip that turns. Each of these files joins T2's
+    `M3A_FULL=1` sweeps (`tools/run/e2e.ts`), where each runs whole, as before.
+  - **The dedup distance's steps worked out once:** `toStep` worked out each step's numbers and length again at every
+    cell of every warp; `steps()` keeps them per frames array (a WeakMap), the same doubles summed in the same order,
+    so every distance is the same to the bit.
+- **Done when:**
+  1. The sampled files pass in T1 and in full (`M3A_FULL=1`), and T2's sweeps run them whole.
+  2. The dedup distance is unchanged to the bit: old and new `motionDistance` agree with `Object.is` on 1,863 pairs of
+     every ninth library clip (1,079 finite).
+  3. The changed files' test CPU, one worker: at least a quarter less.
+  4. T1 in CI well under its 90 s *(deferred proof: CI on this WP's pull request, recorded in the ledger row)*.
+- **Verify:** `npm run check`, `npm test`, `npm run e2e`,
+  `M3A_FULL=1 npx vitest run packages/core/test/procedural.test.ts packages/sensors/test/procedural.test.ts packages/core/test/solve.test.ts packages/core/test/animator.test.ts packages/sensors/test/fix.test.ts`
+
+#### WP-F.16 `describe` names a turn and a bend
+- **Owns:** `packages/sensors/src/describe/describe.ts`, `packages/sensors/test/describe.test.ts`
+- **Also touches:** `packages/tools/src/tools/find.ts` (the tool's description)
+- **Needs:** WP-3.4, WP-F.14
+- **Size:** S (about 170 new lines, tests included)
+- **Carry:** none
+- **Trigger:** HANDOFF's follow-up (D136): CMU_CURATED/Pick_Up_Basket read "walks; stands" for a walk, a bend to the
+  basket, a half turn, a walk back and a set-down; the text an agent reads should say both.
+- **Build:** the body's heading from the pelvis's forward on the floor (the chest's would read a swing of the shoulders
+  as a turn), held while the trunk is more than 60° from upright or the pelvis faces up or down (rolls, flips,
+  push-ups); a one-shot's turn is a stretch turning 20°/s or faster one way (the heading averaged over 0.25 s either
+  side) whose mean heading half a second after stands 60° or more from half a second before (a punch's or a bat's twist
+  comes back); a loop's, what each cycle turns. A forward bend: the trunk 45° to 110° from upright, toward the pelvis's
+  front, for 0.15 s, the hips at least half their rest height, the body not lying, seated or in the air. Both are
+  moments shown by default; `tokenCount` counts a non-ASCII mark as two.
+- **Done when:**
+  1. Mesh2Motion's turns read their side and their size (the keys' own: 102° left, 87° right, 180° left, 181° right),
+     Stumble_Turn's whole turn too; a mirrored turn goes the other way by as much.
+  2. Pick_Up_Basket reads a bend, a turn of 160° to 199° to its right, and a bend, in that order.
+  3. No turn on a walk, a shoulder-swinging idle, a karate-chop walk, a jab or a push-up; no bend on a push-up or a
+     walk; bows, lifts and a bent-forward idle bend; no bend past 110° (a dive roll).
+  4. The 30 truth clips still read right; the token count stays no lower than cl100k's and o200k's on every clip.
+- **Verify:** `npm run check`, `npm test -- packages/sensors packages/tools`, `M3A_FULL=1 npx vitest run packages/sensors/test/describe-tokens.test.ts`
+
+#### WP-F.17 A body under its floor keeps its legs
+- **Owns:** `packages/core/src/contact/plant.ts`, `apps/gallery/src/playback.test.ts` (its KNOWN list)
+- **Needs:** WP-2.5, WP-F.14
+- **Size:** S (about 10 changed lines)
+- **Carry:** none
+- **Trigger:** HANDOFF's follow-up (D136): QUATERNIUS_SHARDFALL/Swim_Idle_Loop ("treading water", its hips 36 to 47%
+  of H0 under the floor, the water's surface) played far from its data in the engine, its limbs 93 to 102° off on
+  every test character; the playback comparison named it.
+- **Build:** measured first: its arms played within 4° of the data and its legs 90° to 150° off; the Animator kept the
+  pelvis where the clip has it and set each free foot on the floor (the planter brings a swinging foot that dips under
+  the surface up on its own leg), so with the whole body under the floor the legs folded up through it. A body whose
+  pelvis is under the surface isn't standing on it: its free feet hang as the clip has them. The solver's own lift
+  (a pose decoded alone) and a game's root at the water's surface are untouched.
+- **Done when:**
+  1. `apps/gallery/src/playback.test.ts` names no known exception and passes on every clip on gen-1 and gen-0
+     (`M3A_FULL=1`): Swim_Idle_Loop's legs within 1° of its data on gen-1.
+  2. The vectors byte for byte, the conformance tiers, the sweeps and core's tests as before.
+- **Verify:** `npm run check`, `npm test`, `npm run e2e`, `M3A_FULL=1 npx vitest run apps/gallery/src/playback.test.ts`,
+  `npm run vectors -- --check`, `npm run conformance -- --impl ts`
+
+#### WP-F.18 The engine sheet
+- **Owns:** `packages/core/src/solve/posed.ts`, `packages/sensors/src/sheet/rows.ts`, the `sheet` tool's character
+  (`packages/tools/src/tools/check.ts`)
+- **Also touches:** `packages/tools/src/tools/body.ts` (the character parameter's words), `packages/tools/MANUAL.md`
+  (its tool list)
+- **Needs:** WP-3.2, WP-7.2a, WP-F.14
+- **Size:** M (about 250 new lines, tests included)
+- **Carry:** none
+- **Trigger:** HANDOFF's follow-up (D136, the owner's idea): the gallery's character drawn at the sheet's moments
+  beside the sheet, the data comparison's numbers under each frame, from a tool (principle 2), for a reviewer or a
+  failing comparison; until now done by hand with Playwright on the gallery.
+- **Build:** core reads a posed skeleton's body points back from its bones (`solver.posedPoints`: each bone's head and
+  turn, the points placed as at rest, a front or a side turned with its bone); sensors draws rows of body points on
+  one camera (`sheets.pointRows`); `sheet` given a character plays the clip on it with core's Animator (what
+  @m3a/three's attach writes to the bones) and draws the clip's own pose above the engine's, each cell's facing and
+  limbs apart (the playback comparison's measures) under it, the worst in its verdict. The stage's placement (the
+  gallery's carrier) stays the playback test's.
+- **Done when:**
+  1. At rest the read-back points are the skeleton's rest points; on tier 2 every point but the fingers' is within
+     0.01 mm of the decoder's.
+  2. `npx m3a sheet QUATERNIUS_3D2DGE/Walk_Loop --frames 4 --character gen-1` writes the two rows to
+     `check-output/sheet/`; a walk and a half turn on gen-1 within the playback bounds (facing 5°, limbs 25°).
+  3. Every tool's description within its budget (3,200 tokens in all); the examples the same on every surface.
+- **Verify:** `npm run check`, `npm test -- packages/core packages/sensors packages/tools`,
+  `npx m3a sheet QUATERNIUS_3D2DGE/Walk_Loop --frames 4 --character gen-1`
+
 ### On demand
 
 Each starts only when its trigger fires; record the measurement that fired it. A trigger that never fires means the WP
@@ -2863,7 +2964,7 @@ them.
 | **O5** | External generative services (cost, keys, output terms) | None. The socket ships with library, recipe and procedural sources and a mock | Spending, plus license risk | WP-9.2, D.9 |
 | **O6** | CC BY content (100STYLE) | Accept it, in its own opt-in set (CC0 is the default pack, D10), with a credits tool | 18.5 h of locomotion styles; attribution is cheap to automate | WP-1.5, 5.3 |
 | **O7** | Who adopts contributions | **Answered: the owner adopts every clip** (2026-10-11), after the automated checks; nothing is adopted automatically | Human review before adoption is what kept registries clean | WP-8.2, 9.1 |
-| **O8** | Where submissions and reviews are stored | **Answered: a Supabase project, free tier** (the owner, 2026-10-11); the session may create it (the owner, 2026-10-22, D130), through the Supabase connector, connected by 2026-10-24 (D137: the README's steps 1 and 2 through it). Until it is linked, the local store stands in and phone reviews travel as a JSON export | A hosted inbox lets any agent submit without access to the repository; the repository stays the library | WP-8.2, 9.1 |
+| **O8** | Where submissions and reviews are stored | **Answered: a Supabase project, free tier** (the owner, 2026-10-11); the session may create it (the owner, 2026-10-22, D130), through the Supabase connector, connected by 2026-10-24 (D137: the README's steps 1 and 2 through it); the project `m3a-intake` created 2026-10-27, steps 1 and 2 done (D138). Until it is linked, the local store stands in and phone reviews travel as a JSON export | A hosted inbox lets any agent submit without access to the repository; the repository stays the library | WP-8.2, 9.1 |
 | **O9** | Acting in other repositories (switching my-3dge's animator WPs 3.4–3.7 and its Phase 8 to this package; certification PRs in shardfall) | Propose, don't act | Reaches outside the repo | WP-10.1, 10.2 |
 | **O10** | Keys for other vendors' models in the benchmark (GPT, Gemini and others) | Claude models only, through the session's own access | Keys are spending and credentials | WP-4.7, G7 |
 | **O11** | Rights to the code and data carried from riftlight, shardfall and my-3d2dge-2, which have no repository license file | **Answered: MIT, granted by their author** (the owner, 2026-10-11); third-party clips keep their per-set licenses (D10) | §4 carries their code into this MIT repository | WP-0.1 logs it |
@@ -2943,7 +3044,7 @@ commits named here are on their PR branches (`refs/pull/<n>/head`).
 | 9.2 The motion-source socket | done | 0.52.1 | 64106e7, c8060d4 (exports), fixes cace9dc, bc6267b, afc46a8 | 2026-10-19 | `npm test -- sources`: 28 tests, 3.7 s: the procedural, recipe and library sources and a mock Kimodo-shaped one through `sources.sourceClip` (deterministic for a seed, key poses and root waypoints as constraints, its terms' license and version recorded per clip, the stated terms too when served under others); an allowlisted clip delivered to the intake with its `provenance.intake` and passing every no-rig gate, a CC BY generator's only to library/local/ (`localLane`, no link out); the HTTP adapter off by default, its transport injected, no network in any test; API-only (D113: principle 2's deviation); 943 lines, M; verifier review fixed (D113) |
 | 9.3 Dedup and lineage | done | 0.52.1 | d9c49ad, 424a220, d1bdf8d (the checker's gate), 1720a08 (the ids check) | 2026-10-19 | `npm test -- dedup lineage`: 10 tests, 14.6 s: planted copies 87/87 in T1 and 501/501 under M3A_FULL (retimed, mirrored, lightly edited), none of 293 named distinct pairs merged (nearest 23.0 mm against 12.4); 1,398 lineages resolve, the 28 composed to 21 sources; deprecation keeps the clip; `npm run library -- check --since` holds the ids (library-pr, G9); the checker bounces a mirrored, retimed library clip the census missed, with the submission's own id; 915 lines, M; verifier review fixed (D113) |
 | 9.4 The registry index | done | 0.52.1 | 41d6e01, c304bad, 4d54378, fixes 1d27fb3, e7155ff, 6a506af, 1b8d58a, 6bc035d | 2026-10-19 | `npm run index -- --check`: PASS in 0.2 s, 11 core sets, 0 community packs, serial 1, byte for byte; `verify --all` 11 sets; a latest version's recorded fields tied to its files, `--since` failing closed; a community pack refused on a mismatched hash, an unverified namespace, no recorded proof or a license its files don't give; the owner's review and the adopt bot regenerate it; `release.yml` by hand, closed until O2 (D99); 683 lines, M; verifier review fixed (D113) |
-| **G9 = M3** | blocked-owner (its commands passed, run 2) | 0.52.1 | 9d4342d | 2026-10-19 | run 2, 16 of 16 in 1,641.9 s (D115, `bench/results/gates/G9-run-2/`): check, T1 108.3 s (CI 77.1 s), doctrine, vectors, the intake's 18 fixtures, 28 plants failing the library gates, the adopt bot's dry run and whole proof, the ids, the index byte for byte and every set verified, T2 327.5 s, B8 5/5, B8-ten's one agent with ten clips through (19 sent, 9 bounced), B8's held-out variant (run 3, gen-5672) 5/5; $1.87. Run 1 at ba75cff, 15 of 16 (D114, `G9-run-1/`): B8-ten 9 of 10 (a walking emote), fixed forward in the intake's lint. Open: the contract suite in Actions against O8's project, an adoption through a merged PR, the owner's 70% approval of the sampled batch (`G9-run-2/queue.json`) (asked on michaelcrosato/my-3danimations#16; O8) 2026-10-22 (D130): O8 answered yes, the session may create the project; it waits on the owner connecting the Supabase connector (no session has it before), then the secrets, the OAuth app and the Actions setting. 2026-10-24 (D137): the connector is connected (one organization, free plan, no m3a project yet); the next session creates the project and runs `services/intake/README.md`'s steps 1 and 2 through it, then asks the owner for steps 3 to 6. |
+| **G9 = M3** | blocked-owner (its commands passed, run 2) | 0.52.1 | 9d4342d | 2026-10-19 | run 2, 16 of 16 in 1,641.9 s (D115, `bench/results/gates/G9-run-2/`): check, T1 108.3 s (CI 77.1 s), doctrine, vectors, the intake's 18 fixtures, 28 plants failing the library gates, the adopt bot's dry run and whole proof, the ids, the index byte for byte and every set verified, T2 327.5 s, B8 5/5, B8-ten's one agent with ten clips through (19 sent, 9 bounced), B8's held-out variant (run 3, gen-5672) 5/5; $1.87. Run 1 at ba75cff, 15 of 16 (D114, `G9-run-1/`): B8-ten 9 of 10 (a walking emote), fixed forward in the intake's lint. Open: the contract suite in Actions against O8's project, an adoption through a merged PR, the owner's 70% approval of the sampled batch (`G9-run-2/queue.json`) (asked on michaelcrosato/my-3danimations#16; O8) 2026-10-22 (D130): O8 answered yes, the session may create the project; it waits on the owner connecting the Supabase connector (no session has it before), then the secrets, the OAuth app and the Actions setting. 2026-10-24 (D137): the connector is connected (one organization, free plan, no m3a project yet); the next session creates the project and runs `services/intake/README.md`'s steps 1 and 2 through it, then asks the owner for steps 3 to 6. 2026-10-27 (D138): the project `m3a-intake` (`suhheypppwwnddbgvngx`) created, its schema applied byte for byte and its submit function deployed, both checked live; steps 3 to 6 asked of the owner with the project's values. |
 | 10.1 The TypeScript consumer proof | done | 0.53.0 | fc43fc1, c55ddb8; fixes 8c76260, 6e1a7e9, af91f06 | 2026-10-19 | `npm run e2e -- consumer-ts`: 4 passed (46.0 s): a my-3dge-shaped duel on the public API (three.js r182, a fixed 60 Hz sim on my-3dge's frame clock, two humanoids on one graph, a `hit` event, root motion); the page plays as Node step by step (every event, hit, place, hp and hash), the hero on `sim.simulate`'s root path to a micron at every step (4.84 m), the page's own frame loop on a held clock, the hash the same posed or not; six mutants of the lab fail it. docs/MIGRATING.md: my-3dge's WPs 3.4–3.7 and 8.1–8.10 each replaced, wrapped or kept, the others replaced named (WP-10.8's Library Lab in part), 40 of 40 API calls run as written; proposing the switch is O9; about 850 lines, M; verifier review fixed (D116) |
 | 10.2 The conformance kit | done | 0.53.0 | 305ca06, 40e92a0, b97034d, 63bc0f6, 8c268ea; fixes 833fbe4, a0b8802, 6097d27, 4b61f30 | 2026-10-19 | `npm run conformance -- --impl ts`: tiers 1a, 1b, 2 and 3 certified, 3,662 cases in 7.8 s (m3a-conformance/1, the vectors' manifest named); the broken implementation fails each of its ten defects naming the vector (a rounded fit, swapped wrists, NaN or strings at zero, hidden long legs, sunk soles, an echo, a bare hello, a null line, a hang); every answer schema-checked, a deadline a request; CERTIFYING.md: shardfall's Rust codec certifies tiers 1a and 2 now, 1b after its glTF reader's look, a proposal (O9); about 1,400 lines, past M; verifier review fixed (D116) |
 | **G10 = M4** | blocked-owner (its commands passed, run 1) | 0.53.0 | 95af62d | 2026-10-19 | run 1, 8 of 8 in 537.5 s (D117, `bench/results/gates/G10-run-1/`): check, T1 109.1 s, doctrine, vectors, the TypeScript implementation certified through the kit's runner (tiers 1a, 1b, 2, 3; 3,662 cases; `certification.json`), the consumer proof's e2e, `pack --check`, T2 352.4 s. Open: another repository consumes the package or certifies against the vectors, and the owner confirms it (O9: my-3dge's switch in docs/MIGRATING.md and shardfall's certification in spec/conformance/CERTIFYING.md proposed, never acted on; asked on michaelcrosato/my-3danimations#17) 2026-10-22 (D130): the owner said wait. |
@@ -2961,6 +3062,10 @@ commits named here are on their PR branches (`refs/pull/<n>/head`).
 | F.12 The review page's guide | done | 0.58.0 | deaab20 (#27) | 2026-10-22 | the owner's ask after G8 ("give clear directions when someone opens that page ... explain how LLMs would select an animation"): a guide at the top (what the clips are, how an agent chooses one, what the sensors check and can't, what Approve and Flag mean, export and send back), open on a first visit and remembered closed; each card says what its clip should show (description, loop or once, length, travel in m/s and a grown-up's pace, tags), a submission's measured as adoption measures it; `npm run e2e -- review previews gallery` 14 passed; the gallery's unit tests 18; two adversarial reviewers' 10 findings fixed, 3 blocking (D134) |
 | F.13 The idles keep their motion | done | 0.59.0 | 83f8ce0 (#28) | 2026-10-22 | the owner's G8 review ("This is a pose. There is no actual animation"; Jump_Twist "never gets to the actually jump"): frozen clips 102 → 17 (13 tagged poses, 4 answered), each fit bounded by the clip's own motion; no knee or elbow 20 mm beyond its capture (16 were, up to 54 mm: `steadyBend`), no snap (`spaced`); recipes keep the sway (0 of 87 one pose through clip, mirror, retime; 83 were); the still check in QA and the intake's lint gate; Jump_Twist cut again to its flip; `npm run import -- --check` 9 sets byte for byte, vectors and conformance 3662 as before, T2 266 s; two rounds, four adversarial reviewers' 21 findings fixed (D135) |
 | F.14 Playback as the data says | done | 0.60.0 | b66f248 (#29) | 2026-10-23 | the owner's in-chat review of Pick_Up_Basket ("does a 360 and then walks backwards") and their experiment (gen-1 painted, snapped at the sheet's moments and view): the gallery and the review cards turned a character by a heading its pose already carried, and the raster and graph sims likewise; one rule (a pose carries its clip's turn, attach writes the root's turn beyond it, `AnimatorPose.turn`); the data comparison `apps/gallery/src/playback.test.ts`: facing 55 clips off by up to 179° → 0 of 1,398 on four test characters; the test characters painted as the sheets (D136) |
+| F.15 T1's headroom | doing | 0.60.1 | #32 | 2026-10-27 | the changed files' test CPU on one worker 89.5 → 62.3 s (−30%); T1 here 113–116 → 107–110 s (this container runs about 1.6× slower than D137's; its timings swing ±7 s run to run); the dedup distance the same to the bit on 1,863 pairs; CI's T1 108 → 99.4 to 105.8 s on #32's heads, not yet well under 90 s: the heavy setups next (D139) |
+| F.16 `describe` names a turn and a bend | done | 0.61.0 | #32 | 2026-10-27 | Mesh2Motion's quarter and half turns read 100° left, 85° right, 180° and 180° (their keys: 102, 87, 180, 181); Pick_Up_Basket "bends over (trunk 80°); turns 170° to the right; bends over (trunk 85°)" (its keys turn 165° to 170° there, 195° start to end with the walk's curve); over the library 74 one-shots turn, no loop, 157 clips bend; the truth set and the tokens as before (D140) |
+| F.17 A body under its floor keeps its legs | done | 0.61.1 | #32 | 2026-10-27 | Swim_Idle_Loop's legs 90°–150° from its data → within 1° (arms 4° before and after); playback in full on gen-1 and gen-0 with no known exception; vectors byte for byte, tier 3 2,317 of 2,317, the sweeps as pinned; five clips ever put their hips under the floor (two swims, Zombie_Rise, two falls by a few mm) (D141) |
+| F.18 The engine sheet | done | 0.62.0 | #32 | 2026-10-27 | on gen-1, 4 frames: Walk_Loop's engine facing 0° and limbs 4° (the worst cell's median) from its data, Turn_Right_180's 0° and 1°, Swim_Idle_Loop's 0° and 14° (at 1.67 s, a leg); the read-back points the rest points to 1e-13 mm and the decoder's to 0.01 mm on 1,081 tier-2 poses but the fingers' (the rig's curled finger joints, the format's helpers: up to 83 mm); the tools 3,200 tokens in all (D142) |
 
 ---
 

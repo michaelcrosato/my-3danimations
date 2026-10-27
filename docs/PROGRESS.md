@@ -4,7 +4,7 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 `PLAN.md` §14; decisions are in `docs/DECISIONS.md`.
 
 **Phase:** all eleven built (10 done: G10's commands passed; its confirmation blocked-owner). **Next gate:** none (M4).
-**Version:** 0.60.0. **Mode:** ultracode (D83). **Last change:** the environment checked, the records fixed, the next goal (D137).
+**Version:** 0.62.0. **Mode:** ultracode (D83). **Last change:** F.15 to F.18 on #32 (D139 to D142).
 
 ## Done
 
@@ -16,20 +16,20 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
   skills (D100); packs, m3a.js, nothing published (D99, D101); contacts the planter holds (D104, D108); D105, D106.
 - Phase 8 (G8 passed: its commands, #15; the owner's review, D133): the gallery (WP-8.1); the review queue (8.2a,
   8.2b): the intake store, `m3a review`, its page, the contributor page (D109); previews (WP-8.3); the free tier (D110).
-- Phase 9 (G9's commands passed on run 2, #16): the intake, its gates, the adopt bot, B8, B8-ten (WP-9.1); sources
-  (9.2); dedup, lineage (9.3); the registry index (9.4) (D112); the verifiers' fixes (D113, D114).
-- Phase 10 (G10's commands passed, #17): the consumer proof and MIGRATING.md (10.1), the conformance kit (10.2) (D116).
-- The audit (D118, D119); the follow-ups F.1 to F.14 (#20 to #29, D121–D136): the bin and the hook, contacts, the rate
-  sweep, the manual's names, the review page's guide, frozen clips 102 → 17, a clip's turn shown once (data-checked).
+- Phases 9 and 10 (G9's commands passed on run 2, #16; G10's, #17): the intake, its gates, the adopt bot, B8 (9.1);
+  sources (9.2); dedup, lineage (9.3); the registry index (9.4) (D112–D114); the consumer proof, the kit (D116).
+- The audit (D118, D119); F.1 to F.14 (#20 to #29, D121–D136): the bin, contacts, the rate sweep, the manual's names,
+  the review page's guide, frozen clips 102 → 17, a clip's turn shown once; on #32 the advisories, O8's steps 1 and 2
+  (D138), describe's turns and bends, a body under its floor, the engine sheet (F.16 to F.18, D140–D142).
 
 ## Next
 
-- The next goal (HANDOFF): dev dependencies' advisories; O8's steps 1 and 2 by the Supabase connector (D137); five
-  follow-ups as WPs; B1's floor (the goal is the owner's go); the next batch. The owner's: Pick_Up_Basket, steps below.
+- The next goal (HANDOFF), started 2026-10-27: T1's headroom (F.15, doing: CI 99 to 106 s), the encoder's steady
+  rounding (F.19); B1's floor (the owner's go given); the next batch. The owner's: Pick_Up_Basket, steps below.
 
 ## Blocked on the owner
 
-- G9: O8 linked (`services/intake/README.md`: steps 1 and 2 the session's by the connector, D137; 3 to 6 the owner's),
+- G9: O8 linked (`services/intake/README.md`: steps 1 and 2 done, project `m3a-intake`, D138; 3 to 6 the owner's),
   the contract suite, an adoption, the approval of 70% of `G9-run-2/queue.json`. Asked on #16.
 - G10: another repository consumes the package or certifies against the vectors, confirmed (O9). Asked on #17.
 - O2 answered, publish now (D130): the owner starts `publish.yml` and `release.yml` on `v0.60.0` (b66f248). O3 unpaused.

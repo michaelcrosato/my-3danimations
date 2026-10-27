@@ -42,22 +42,46 @@ interface Seq {
   k: number;
 }
 const at = (s: Seq, j: number) => (j + s.k) % s.n;
+/** Each step of a sequence's poses (pose p to the next, a loop's last to its first), worked out once a frames array and
+ *  read by every cell of every warp over it: the step's numbers (E) and its squared length (nn), as toStep would sum
+ *  them, the same doubles in the same order (WP-F.15: T1's dedup and the intake's checker spent most of their time
+ *  working them out again at every cell). */
+interface Steps {
+  E: Float64Array;
+  nn: Float64Array;
+}
+const stepsOf = new WeakMap<Float32Array, { loop: boolean; steps: Steps }>();
+function steps(s: Seq): Steps {
+  const had = stepsOf.get(s.f);
+  if (had && had.loop === s.loop) return had.steps;
+  const B = s.f, E = new Float64Array(s.n * N), nn = new Float64Array(s.n);
+  for (let p = 0; p < s.n; p++) {
+    if (p + 1 >= s.n && !s.loop) break;
+    const b0 = p * N, b1 = ((p + 1) % s.n) * N;
+    let sq = 0;
+    for (let o = 0; o < N; o++) {
+      const e = B[b1 + o]! - B[b0 + o]!;
+      E[b0 + o] = e;
+      sq += e * e;
+    }
+    nn[p] = sq;
+  }
+  const out = { E, nn };
+  stepsOf.set(s.f, { loop: s.loop, steps: out });
+  return out;
+}
 /** How far pose `i` of `a` lies from b's motion between its poses j and j + 1 (mm a point): the pose projected on that
  *  step, as a straight line in every number; pose j itself when b has no next pose. */
-function toStep(a: Seq, i: number, b: Seq, j: number): number {
+function toStep(a: Seq, i: number, b: Seq, j: number, st: Steps): number {
   const ai = at(a, i) * N, bj = at(b, j);
   if (j + 1 >= b.n && !b.loop) return poseDistance(a.f, at(a, i), b.f, bj);
-  const b0 = bj * N, b1 = at(b, j + 1) * N, A = a.f, B = b.f;
-  let dot = 0, nn = 0;
-  for (let o = 0; o < N; o++) {
-    const e = B[b1 + o]! - B[b0 + o]!;
-    dot += (A[ai + o]! - B[b0 + o]!) * e;
-    nn += e * e;
-  }
+  const b0 = bj * N, A = a.f, B = b.f, E = st.E, nn = st.nn[bj]!;
+  let dot = 0;
+  for (let o = 0; o < N; o++) dot += (A[ai + o]! - B[b0 + o]!) * E[b0 + o]!;
   const s = nn > 0 ? Math.min(1, Math.max(0, dot / nn)) : 0;
   let sum = 0;
   for (let o = 0; o < N; o += 3) {
-    const dx = A[ai + o]! - B[b0 + o]! - s * (B[b1 + o]! - B[b0 + o]!), dy = A[ai + o + 1]! - B[b0 + o + 1]! - s * (B[b1 + o + 1]! - B[b0 + o + 1]!), dz = A[ai + o + 2]! - B[b0 + o + 2]! - s * (B[b1 + o + 2]! - B[b0 + o + 2]!);
+    const dx = A[ai + o]! - B[b0 + o]! - s * E[b0 + o]!, dy = A[ai + o + 1]! - B[b0 + o + 1]! - s * E[b0 + o + 1]!, dz = A[ai + o + 2]! - B[b0 + o + 2]! - s * E[b0 + o + 2]!;
     sum += Math.sqrt(dx * dx + dy * dy + dz * dz);
   }
   return sum / format.P;
@@ -69,11 +93,12 @@ function warp(a: Seq, b: Seq): number {
   // D: cost along the best path to a cell; W: its weight; rows of m cells, two kept
   let D0 = new Float64Array(m), W0 = new Float64Array(m), D1 = new Float64Array(m), W1 = new Float64Array(m);
   let best = Infinity;
+  const sa = steps(a), sb = steps(b);
   for (let i = 0; i < n; i++) {
     const u = i * un;
     D1.fill(Infinity);
     for (let j = Math.max(0, Math.ceil((u - BAND) / um)), top = Math.min(m - 1, Math.floor((u + BAND) / um)); j <= top; j++) {
-      const v = j * um, c = Math.min(toStep(a, i, b, j), toStep(b, j, a, i));
+      const v = j * um, c = Math.min(toStep(a, i, b, j, sb), toStep(b, j, a, i, sa));
       // a path starts with the cell itself (weight 2), at either clip's start within SLACK of the other's
       let d = (i === 0 && v <= SLACK) || (j === 0 && u <= SLACK) ? 2 * c : Infinity, w = 2;
       const step = (pd: number, pw: number, cw: number) => {

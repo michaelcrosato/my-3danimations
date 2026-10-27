@@ -312,13 +312,18 @@ export function plant(m0: Motion, t: number, opts: PlantOptions = {}): Float64Ar
   // foot goes down with the body); a foot set on the surface is set by its averaged float, while a free one comes up
   // out of it by the frame (averaged, a foot swinging down fast would dip into it)
   if (settle && drop > 0) shift(-drop);
+  // a body whose pelvis is under the surface isn't standing on it (treading water, the format's floor the water's
+  // surface): its free feet hang as the clip has them, not brought up out of the surface on legs folded back past the
+  // hips (WP-F.17: Swim_Idle_Loop's legs played 90° to 150° from its data)
+  const o = IDX.pelvis! * 3, pelvis: V3 = [X[o]!, X[o + 1]!, X[o + 2]!], pw = toWorld(root, pelvis), standing = pelvis[2] >= surface(pw[0], pw[1]);
+  const freeOf = (foot: V3[]) => (standing ? onGround(foot, R, root, surface, false) : foot);
   const targets = {} as Record<"L" | "R", { foot: V3[]; planted: boolean; on: number }>;
   for (const s of ["L", "R"] as const) {
     const w = feet[s].on, down = settle ? drop * (1 - w) : 0, moved = feet[s].foot.map((v) => [v[0], v[1], v[2] + dz - down] as V3);
     // a planted sole keeps the clip's dip between keys (its averaged float against its own now) by at most SOLE_DIP
     // (WP-2.5: a planted sole stays within 5 mm of the surface)
     const exact = gapOf(moved, R, root, surface), dip = settle && Number.isFinite(float[s]) ? Math.min(SOLE_DIP, Math.max(-SOLE_DIP, float[s] + dz - down - exact)) : 0;
-    const free = onGround(moved, R, root, surface, false);
+    const free = freeOf(moved);
     let foot = free;
     if (w > 0) {
       // turned to the slope with its sole on the surface, then raised by what it still floats above it (nothing once
@@ -338,7 +343,7 @@ export function plant(m0: Motion, t: number, opts: PlantOptions = {}): Float64Ar
     for (const s of ["L", "R"] as const) {
       if (targets[s].on >= 1) continue;
       const lowered = targets[s].foot.map((v) => [v[0], v[1], v[2] - more * (1 - targets[s].on)] as V3);
-      targets[s].foot = onGround(lowered, R, root, surface, false);
+      targets[s].foot = freeOf(lowered);
     }
   }
   for (const s of ["L", "R"] as const) FOOT.forEach((p, i) => put(X, p, s, targets[s].foot[i]!));

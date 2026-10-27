@@ -2,12 +2,12 @@
 // with its code and fix, and what each tool is for, pinned on library clips: metrics' status, values, caps and recorded
 // verdict (a fail, a warn and a warn no repair answers, a stale one), the sheet's flags, view (a name, or an orbit
 // given as an object, the CLI's yaw,pitch or JSON, D119; a bad orbit told what is wrong in it, an object too, by the
-// schema's one form of its type), sizes and cap, the film's frames centred on the strike with the strike and events
-// named, and its picture (poses and root, forward, sideways and turning) and travel, the diff's pose numbers, travel
-// (each clip's own), picture, sizes, regression gate both ways and its order, lint's repairs, tag conflicts and
-// unanswered metrics, apart and mixed; and every hint naming the clip as given, in backticks (an id, a path,
-// single-quoted when it must be, <the clip's JSON> or <the clip's file> for an absolute path or one with a control
-// character).
+// schema's one form of its type), sizes and cap, its engine sheet on a character (WP-F.18), the film's frames centred
+// on the strike with the strike and events named, and its picture (poses and root, forward, sideways and turning) and
+// travel, the diff's pose numbers, travel (each clip's own), picture, sizes, regression gate both ways and its order,
+// lint's repairs, tag conflicts and unanswered metrics, apart and mixed; and every hint naming the clip as given, in
+// backticks (an id, a path, single-quoted when it must be, <the clip's JSON> or <the clip's file> for an absolute path
+// or one with a control character).
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { clip as clipNs, serialize, type Clip } from "@m3a/core";
@@ -110,6 +110,21 @@ describe("the check tools", () => {
       { code: "E_ARGS", message: "view.pitch is Infinity; give a finite number" },
       { code: "E_ARGS", message: "view matches none of its 2 forms" }, // an array: no form of its type
     ]);
+  });
+
+  it("sheet on a character (WP-F.18): the clip's own pose above the engine's on that body, how far they part under each cell and at worst; a walk and a turn half round within the gallery's bounds; no character, nulls; a bad one refused", async () => {
+    const pngs = new Map<string, Uint8Array>(), on = (clip: string) => call("sheet", { clip, frames: 4, character: "gen-1" }, { pngs });
+    const walk = await on(`${Q}Walk_Loop`), turn = await on("MESH2MOTION/Turn_Right_180");
+    expect(walk).toMatchObject({
+      status: "ok",
+      verdict: expect.stringMatching(/^sheet QUATERNIUS_3D2DGE\/Walk_Loop on gen-1: 4 frames 0\.000–1\.000 s, 500x351, ~234 tokens; the engine's facing within \d+° and its limbs \d+° \(median\) of the data's$/),
+      data: { character: "gen-1", frames: 4, width: 500, height: 351, flagged: [], engine: { facing: expect.any(Number), limbs: expect.any(Number), at: expect.any(Number) } },
+      lines: ["top row: the clip's own pose on its body; bottom: the engine's on gen-1, each cell's facing and limbs apart (degrees) under it", expect.stringMatching(/^worst at /)],
+    });
+    // the gallery's playback bounds (apps/gallery/src/playback.test.ts): facing 5°, limbs 25° (median)
+    for (const r of [walk, turn]) expect(((e) => e.facing <= 5 && e.limbs <= 25)(r.data!.engine as { facing: number; limbs: number }), r.verdict).toBe(true);
+    expect((await call("sheet", { clip: `${Q}Walk_Loop`, frames: 4 })).data).toMatchObject({ character: null, engine: null });
+    expect((await call("sheet", { clip: `${Q}Walk_Loop`, character: "gen-x" })).error).toMatchObject({ code: "E_ARGS", message: "gen-x is not a character: a generated one is gen-<seed>, its seed a whole number (gen-3)" });
   });
 
   it("film: frames ±0.2 s around the strike, the strike and events named; around moves them; its picture the poses and root at those times; a moment past the end refused", async () => {

@@ -5771,3 +5771,139 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
 - **Answered:** the goal is the owner's (2026-10-24); the route and the next goal's items are the session's, under
   D131, to review.
 - **Landed in:** docs only (after #30)
+
+## D138 · 2026-10-27 · The dev tooling's advisories fixed; O8's project created and its steps 1 and 2 done through the connector
+
+- **Principle:** 9 (pin what agents know: exact pins, moved in their own commit), O8 (PLAN.md §13), D110, D130, D137
+- **Call:**
+  - **What the owner asked** (2026-10-27, the goal D137 wrote, started as written): "(1) the dev dependencies' npm
+    audit advisories, in their own commit; (2) O8's steps 1-2 through the Supabase connector (D137)".
+  - **The advisories:** `@modelcontextprotocol/inspector` 2.9.0 → 2.12.0, `vitest` 4.1.11 → 4.1.12, and `fast-uri`
+    to its fixed release under `ajv` (`npm audit fix`, the lockfile alone), in commit 52c789b, pinned exactly as before.
+    `npm audit`: 0. T1 took 113 to 116 s in this container on either set of pins (the container is about 1.6 times
+    slower than D137's: Playwright 274 s against 167), so the bump costs nothing; T2's `mcp-smoke` passes on the new
+    Inspector.
+  - **O8's project:** `m3a-intake`, ref `suhheypppwwnddbgvngx`, us-east-1, created by the connector's `create_project`
+    in the one organization D137 names; the server asked for no cost confirmation (the free plan, $0). The migration
+    applied byte for byte (the stored statement's SHA-256, b4a54412…, is the file's without its last newline); the
+    submit function deployed from the repository's two files with the JWT check off, its sources read back the same.
+    Checked live: every table under row-level security; an anonymous client refused on each table and on `decide`;
+    the function's refusals (405, 401 without a key, 401 for an unknown key after a database read, 400 for a body that
+    isn't JSON). The advisors' findings are answered in `services/intake/README.md` (by design, or nothing at this
+    scale); the schema is not changed for them.
+  - **What stays the owner's** (D131, the README's steps 3 to 6, asked on the PR with the project's values): the
+    GitHub OAuth app and the Auth provider, the redirect URL, the Vercel project's two `VITE_M3A_INTAKE_*` variables
+    and a redeploy, the first sign-in and the owner's row, the Actions secrets (the service role key among them, which
+    the session never reads into a file), and "Allow GitHub Actions to create and approve pull requests". G9 stays
+    blocked-owner on those, the contract run, an adoption by a merged PR and the 70% approval.
+- **Why:** the owner said yes to the project (D130) and started the goal that names it; the connector does steps 1 and
+  2 with nothing installed, and each result is checked against the repository's own files and the README's promises.
+- **Answered:** yes: the owner's goal (2026-10-27).
+- **Landed in:** docs and the dev dependencies only (no version)
+
+## D139 · 2026-10-27 · T1's headroom: what T1 repeats sampled, T2 whole; the dedup distance's steps worked out once
+
+- **Principle:** 3 (verifiable: the sweeps still run whole, in T2), process (PLAN.md §6's budgets; D74's sample; D125)
+- **Call:**
+  - **Measured first.** T1 in this container: 113 to 116 s on either dependency pin set (D138), CI's 108 s on #32's
+    push; one worker, T1's tests sum to about 320 s of CPU, spread over 1,343 tests with no file over 16 s: the
+    procedural grids (core 13 s, sensors 16 s), dedup 12, contact 10, playback 9, then a long tail. A profile of six of
+    the heaviest found one hot function, the dedup distance's `toStep` (8.4 s of their 109 s), working each step's
+    numbers out again at every cell.
+  - **Sampled in T1, whole in T2 (WP-F.15):** the grids that repeat a case "on the three rests" read one rest a test in
+    T1, a different one each test; the moves' start poses, the solver's tier-2 sweeps, the Animator's restore at every
+    step, each fix operator's planted runs, dedup's census and the playback comparison take a stated part. Each file
+    joins T2's `M3A_FULL=1` sweeps, where it runs as before. Kept whole in T1, on purpose: the planted-defect suite (the
+    doctrine's 100% recall), the 130,000-bone chains (K6), contact's hand-picked clips, the runner's fake trial (D119),
+    the manual's run.
+  - **The dedup distance:** each step's numbers and squared length worked out once per frames array; the same doubles
+    in the same order, so the distances are the same to the bit (1,863 pairs, `Object.is`).
+  - **What it bought:** the changed files' test CPU on one worker 89.5 → 62.3 s; T1 here 107 to 110 s (this
+    container's runs swing ±7 s and it is about 1.6 times slower than D137's, where T1 took 88 s). Not taken: Vitest's
+    thread pool (slower here), three workers (121 s), its on-disk module cache (4 s; the time is the tests' own), and
+    memoizing the tools' four surfaces (it would skip each surface's own image writes).
+  - **Not yet enough:** CI's T1 on #32's heads 105.8 s (2104ac7) and 99.4 s (435fff0, 1,349 tests); still over 90 s,
+    so the WP stays doing. Here T1 burns 411 s of CPU on 4 cores in 110 s (94% busy), well past the 359 s the
+    report's files add up to: a file's setup hooks and the processes its tests start are in no test's time. The next
+    cut reads each file alone with them counted.
+- **Why:** T1's budget is the agent's loop; a sweep's hundredth case catches little that its tenth doesn't, and T2
+  still reads every one before a push. CI's T1 is the record for "well under 90 s" (the ledger row).
+- **Answered:** the owner's goal (2026-10-27) named the WP; its calls are the session's, under D131.
+- **Landed in:** v0.60.1
+
+## D140 · 2026-10-27 · `describe` names a turn and a bend, by rules read off the library
+
+- **Principle:** 1 (agent-readable: the text an agent picks a clip by says what the clip does), 3 (by numbers, not a
+  look), D136
+- **Call:**
+  - **The rules (WP-F.16),** each tuned against the library's own clips and its catalog's words, not a reviewer's eye:
+    the heading from the pelvis alone (from the chest too, 149 clips "turned", every shoulder-swinging style among
+    them); held while the trunk is past 60° from upright (a backflip's pelvis faced back upside down: "turns 180° twice");
+    a turn 60° or more that stays turned half a second later (at 45°, single jabs and front kicks read as two turns of 50
+    or so each); a loop names its turn a cycle (the first frame's heading against the last's: no library loop turns).
+    A bend needs the hips at half their height (a push-up's level trunk read "bends over (trunk 85°)") and stops at 110°
+    (a dive roll's upside-down trunk read 140°).
+  - **What it reads now:** Mesh2Motion's turns within 5° of their keys' own headings; Pick_Up_Basket a bend, a 170°
+    turn to its right and a bend; over the library 74 one-shots turn (get-ups ending another way, Hopscotch, the sword
+    combos' spins, Pick_Up_Box), no loop turns, and 157 clips bend (bows, lifts, hunched and bent-forward styles,
+    crouch walks).
+  - **The token count:** `tokenCount` counts a mark outside ASCII as two ("°" takes two in cl100k), so a text it passes
+    stays within the budget; every clip's text checked under `M3A_FULL=1`.
+  - **Found on the way (the version bump to 0.61.0):** the intake's frozen-idle fixture is the moving idle fixture with
+    every key its first pose, one motion within 3 mm, so dedup joins whichever the checker reads second; it reads by
+    id, and the ids are hashes the package's version moves (D125's rule), so 0.61.0 turned the pair round and the
+    frozen idle's bounce named dedup first. `asExpected` (tools/intake/main.ts) and the checker's test now hold the
+    fixture to its own gate failing with its words when dedup is named first; the gate order and the checker are
+    unchanged. A procedural test that ran 5.2 s under load got an explicit timeout, as its neighbours have.
+- **Why:** an agent chooses a clip by its words; "walks; stands" for a clip that turns half round and bends twice is
+  how the owner came to doubt a page that was right (D136). Rules read off the library's own clips keep the words
+  honest for the 1,398 there now.
+- **Answered:** the owner's goal (2026-10-27) named the WP; the thresholds are the session's, under D131.
+- **Landed in:** v0.61.0
+
+## D141 · 2026-10-27 · A body whose pelvis is under the surface doesn't stand on it: its free feet hang
+
+- **Principle:** 3 (verified: the engine plays what the data says), 5 (deterministic: the rule reads the pose alone),
+  D37, D136
+- **Call:**
+  - **Measured (WP-F.17):** QUATERNIUS_SHARDFALL/Swim_Idle_Loop through the Animator on the reference rig kept its
+    pelvis at the clip's −342 mm and raised its left ankle from −1,208 to +92 mm; on gen-1 its arms played within 4° of
+    the data and its legs 90° to 150° off. The planter brings a free foot under the surface up on its own leg (meant for
+    a swing that dips a few mm under on a body of other proportions; lifting the body after it would bounce it), and
+    with the whole body under the floor that folds the legs back up past the hips.
+  - **The rule:** a body whose pelvis is under the surface isn't standing on it; its free feet stay as the clip has
+    them. Planted feet are untouched (a contact still sets its sole on the surface), and so is the solver's lift of a
+    pose decoded alone.
+  - **Not taken:** lifting the whole body onto the floor, as the solver does for a pose alone: a game playing a swim
+    puts its root at the water's surface (the format's floor) and expects the body below it.
+  - **What else moves:** only poses with the pelvis under the surface; five library clips ever have one (the two swims,
+    Zombie_Rise climbing out of the ground, and two falls dipping a few mm). The vectors, the conformance tiers, the
+    sweeps and the playback comparison in full pass as before; the playback test names no known exception.
+- **Why:** a free foot under the floor is a dip only while the body stands on that floor; when the pelvis is under it,
+  the floor is a water's surface or the ground a body rises out of, and the clip's legs are the truth.
+- **Answered:** the owner's goal (2026-10-27) named the WP; the rule is the session's, under D131.
+- **Landed in:** v0.61.1
+
+## D142 · 2026-10-27 · The engine sheet: core's pose on a character read back as body points, drawn under the clip's
+
+- **Principle:** 2 (a tool, images to `check-output/`), 3 (verified: the engine plays what the data says), D136, D119
+- **Call:**
+  - **What it draws (WP-F.18):** `sheet --character <ref>` plays the clip on that character with core's Animator (the
+    pose @m3a/three's attach writes to the bones), reads the posed bones back as the format's 36 body points
+    (`solver.posedPoints`) and draws them under the clip's own pose at the sheet's moments, on one camera
+    (`sheets.pointRows`), each cell's facing and limbs apart under it (the playback comparison's measures) and the
+    worst in the verdict and `data.engine`.
+  - **Not three's render:** the tools build no three scene (the test characters are generated without three), so the
+    stage's placement (the gallery's carrier, where D136's turn shown twice lived) stays
+    `apps/gallery/src/playback.test.ts`'s; the sheet shows what the engine's pose says, on the sheets' mannequin.
+  - **The fingers:** a rig with finger bones places index, pinky and fist at its finger joints as the solver curls
+    them, where the format's points are helpers (a straight hand's fist, a blade's line): up to 83 mm apart on tier 2.
+    Every other point is the decoder's to 0.01 mm.
+  - **The budget:** the character parameter put the tools at 3,232 tokens of their 3,200 (D112); its words became
+    "glTF/VRM, tiny or gen-<seed>" on all five tools that take one, and the sheet's description shorter, rather than
+    the budget raised.
+- **Why:** the owner's idea (D136): a reviewer, or a failing comparison, sees where the engine parts from the data
+  without driving the gallery with Playwright by hand.
+- **Answered:** the owner's goal (2026-10-27) named the WP; the reading-back and the drawing are the session's, under
+  D131.
+- **Landed in:** v0.62.0

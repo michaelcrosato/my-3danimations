@@ -35,7 +35,8 @@ export const BOUNDS = {
 } as const;
 /** Clips the engine plays far from their data for a reason of their own, each with it (not the turn). */
 export const KNOWN: Readonly<Record<string, string>> = {
-  "QUATERNIUS_SHARDFALL/Swim_Idle_Loop": "treading water, its hips 36 to 47% of H0 under the floor (the water's surface): the engine's pose of a body under its floor is a follow-up of its own (WP-F.14); the gallery's floor hides it",
+  // none since WP-F.17: Swim_Idle_Loop (treading water, its hips 36 to 47% of H0 under the floor, the water's surface)
+  // played its legs folded up through the floor; a body whose pelvis is under the surface now keeps its free feet
 };
 
 const DEG = Math.PI / 180, wrap = (a: number) => ((((a + 180) % 360) + 360) % 360) - 180;
@@ -90,19 +91,20 @@ const turning = (c: Clip) => c.keys.some((key) => Math.abs((key as { yaw?: numbe
 describe("the gallery plays a clip as its data says", () => {
   const ids = lib.catalog().map((c) => c.id), seeds = FULL ? [1, 0] : [1];
   for (const seed of seeds) {
-    it(`gen-${seed} (${variant(seed).naming}, ${variant(seed).rest}): ${FULL ? "every clip" : "the clips that turn"} faces, travels and moves its limbs as its data`, async () => {
+    it(`gen-${seed} (${variant(seed).naming}, ${variant(seed).rest}): ${FULL ? "every clip" : "every other clip that turns"} faces, travels and moves its limbs as its data`, async () => {
       const s = await stage(seed), off: string[] = [];
-      let n = 0;
+      let n = 0, turns = 0;
       for (const id of ids) {
         const { clip, rest } = lib.clip(id);
-        if (!FULL && !turning(clip)) continue;
+        // T1 reads every other clip that turns (WP-F.15: D74's sample), T2 every clip on two bodies
+        if (!FULL && (!turning(clip) || turns++ % 2)) continue;
         n++;
         const got = compare(s, clip, rest);
         if (got.facing > BOUNDS.facing) off.push(`${id}: faces ${got.facing}° from its data at ${got.at} s`);
         if (got.direction > BOUNDS.direction) off.push(`${id}: travels ${got.direction}° from its data's way`);
         if (got.limbs > BOUNDS.limbs && !KNOWN[id]) off.push(`${id}: its limbs ${got.limbs}° (median) from its data's`);
       }
-      expect(n, "clips compared").toBeGreaterThan(FULL ? 1000 : 50);
+      expect(n, "clips compared").toBeGreaterThan(FULL ? 1000 : 30);
       expect(off).toEqual([]);
     }, FULL ? 300_000 : 60_000);
   }

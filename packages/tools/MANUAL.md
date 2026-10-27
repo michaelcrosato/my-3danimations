@@ -384,7 +384,7 @@ from `@m3a/tools/node`), the `m3a` command, MCP (`npx m3a mcp`, stdio; `.` writt
 - `m3a show <clip> [--from] [--legend]`: A clip's keys as text from time `from`, with source, license, fit, speed and strike
 - `m3a describe <clip> [--detail]`: A clip as a short timeline
 - `m3a metrics <clip> [--limit]`: Measure a clip with the sensors
-- `m3a sheet <clip> [--frames] [--view]`: A clip as a contact-sheet PNG, the sensors' findings in red
+- `m3a sheet <clip> [--frames] [--view] [--character]`: A clip as a contact-sheet PNG, its findings in red
 - `m3a film <clip> [--frames] [--around]`: A PNG strip of a clip moving through space around a moment
 - `m3a diff <a> <b> [--frames]`: Compare two clips
 - `m3a lint <clip>`: The repairs a clip needs and the tags its motion doesn't bear out

@@ -4,6 +4,72 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.62.0 · 2026-10-27
+
+WP-F.18 (D142): the engine sheet.
+
+### Core
+- `solver.posedPoints(bound, at)`: a posed skeleton's 36 body points read back from its bones (each bone's head and
+  turn), placed as `restPoints` places them at rest: its rest points at rest, the decoder's on tier 2 to 0.01 mm.
+
+### Sensors
+- `sheets.pointRows(rows, times)`: rows of body points drawn as the sheets' mannequin, a row a body and a column a
+  moment, on one camera, a line of notes under each cell, sized to a token budget.
+
+### Tools
+- `sheet --character <ref>`: the engine sheet, the clip's own pose above the pose core's Animator plays on that body
+  (what @m3a/three's attach writes), each cell's facing and limbs apart under it and the worst in the verdict and
+  `data.engine` (`character` and `engine` null without one). The character parameter reads "glTF/VRM, tiny or
+  gen-<seed>" on every tool, keeping all the tools within their 3,200 tokens.
+
+## 0.61.1 · 2026-10-27
+
+WP-F.17 (D141): a body under its floor keeps its legs.
+
+### Core
+- Planting: a body whose pelvis is under the surface (treading water, the format's floor the water's surface) isn't
+  standing on it, so its free feet hang as the clip has them; brought up out of the surface they folded the legs back
+  up past the hips (QUATERNIUS_SHARDFALL/Swim_Idle_Loop's legs played 90° to 150° from its data, on every body). Every
+  other pose is as before: the vectors, the conformance tiers and the sweeps unchanged.
+
+### Repo
+- `apps/gallery/src/playback.test.ts` names no known exception: Swim_Idle_Loop plays as its data on every test
+  character.
+
+## 0.61.0 · 2026-10-27
+
+WP-F.16 (D140): `describe` names a turn and a bend.
+
+### Sensors
+- `describe` names each turn by its span, side and size ("1.28–2.70 s turns 170° to the right": the pelvis's heading,
+  held while the trunk is far from upright, turned 60° or more and staying turned, so a twist that comes back isn't
+  one; a loop names what each cycle turns) and each forward bend by its span and the trunk's most ("bends over (trunk
+  80°)": 45° or more from upright, the hips at least half their height, never a lying, seated, airborne or upside-down
+  body). Both show by default. `TURN` and `BEND` hold the rules. 74 one-shots of the library turn, 157 clips bend.
+- `tokenCount` counts a mark outside ASCII as two tokens (a turn's "°"), so it stays no lower than cl100k's and o200k's.
+
+### Tools
+- `describe`'s description names turns and bends.
+
+### Repo
+- The intake's fixtures: a bounce dedup names first (two fixtures of one motion, read in their ids' hash order) still
+  holds the fixture's own gate failing with its words, whatever order a version bump puts them in.
+
+## 0.60.1 · 2026-10-27
+
+WP-F.15 (D139): T1's headroom; the dev tooling's advisories (D138).
+
+### Library
+- The dedup distance works each step of a motion out once (its numbers and length, kept per frames array) instead of
+  again at every cell of every warp: the same distances to the bit, about a tenth faster.
+
+### Repo
+- T1 samples what it repeats (the procedural grids one rest a test, the solver every fourth tier-2 pose, the Animator's
+  restore every third step, each fix every other planted run, dedup's census every 90th clip, the playback comparison
+  every other turning clip); T2's `M3A_FULL=1` sweeps run each file whole.
+- Dev dependencies: `@modelcontextprotocol/inspector` 2.12.0, `vitest` 4.1.12, `fast-uri` past its advisories
+  (`npm audit`: 0).
+
 ## 0.60.0 · 2026-10-23
 
 WP-F.14 (D136): a clip's turn shown once; the gallery checked against the data; the test characters painted.

@@ -1,18 +1,21 @@
 // The check tools (PLAN.md WP-7.2a §1): a clip measured by the sensors (metrics), drawn as a contact sheet with its
 // findings in red, in a named view or any orbit (sheet, D119), or as frames moving through space around a moment
 // (film), two clips compared (diff: where their poses part, travel, both verdicts and a picture of what moved; findings
-// when b is worse), and the repairs a clip needs (lint). Rows are capped, each reply's `next` names the call to make
+// when b is worse), and the repairs a clip needs (lint). Given a character, sheet draws the engine sheet under the clip's
+// own (WP-F.18): the clip as core's Animator plays it on that body, read back from its solved bones, with how far its
+// facing and limbs part from the data's at each moment. Rows are capped, each reply's `next` names the call to make
 // after it (common.ts call) with the clip as given (clips.ts naming), and images go through ctx.image with cells at
 // most 125 px wide (film's 160), so their cost stays near the plan's: sheet 8 frames ~331 tokens, film 8 ~346, diff 6
 // ~614.
-import { clip as clipNs, format, measureFacts, type Clip, type Rest } from "@m3a/core";
+import { Animator, clip as clipNs, format, measureFacts, playable, solver, type Clip, type Rest } from "@m3a/core";
 import { measureClipFacts, tagConflicts } from "@m3a/library";
 import { checks, fixes, metrics as measure, raster, sheets, type Report } from "@m3a/sensors";
 import { defineTool, ToolError, type ToolContext } from "../registry/registry.ts";
 import { imageTokens } from "../registry/reply.ts";
 import { check, closed, didYouMean, quote, type Schema } from "../registry/schema.ts";
 import { strip } from "../sim/film.ts";
-import { loadClip, naming } from "./clips.ts";
+import { bodyOf, CHARACTER, characterName } from "./body.ts";
+import { loadClip, naming, prose } from "./clips.ts";
 import { ARROW, call, capped, CLIP, count, cut, imageName, mm, more, output, round, sec } from "./common.ts";
 
 const RANK = { pass: 0, warn: 1, fail: 2 } as const;
@@ -140,23 +143,72 @@ export const metrics = defineTool<{ clip: string; limit: number }, unknown>({
   },
 });
 
-/** `sheet`: a clip's contact sheet in a named view or an orbit, the metrics' findings flagged in red. */
-export const sheet = defineTool<{ clip: string; frames: number; view: string | raster.View }, unknown>({
+/** Each limb as two body points (from, to): the thighs, shins, upper arms and forearms. */
+const LIMBS = ["L", "R"].flatMap((s) => [["hip", "knee"], ["knee", "ankle"], ["sh", "elbow"], ["elbow", "wrist"]].map(([a, b]) => [a + s, b + s] as const));
+const pointOf = (X: ArrayLike<number>, n: string) => [X[format.IDX[n]! * 3]!, X[format.IDX[n]! * 3 + 1]!, X[format.IDX[n]! * 3 + 2]!];
+/** Which way a body faces on the floor, from its hips (left to right), degrees toward its right. */
+const facingOf = (X: ArrayLike<number>) => ((L, R) => (Math.atan2(R[1]! - L[1]!, R[0]! - L[0]!) * 180) / Math.PI - 90)(pointOf(X, "hipL"), pointOf(X, "hipR"));
+/** How far two bodies' poses part where bodies of other proportions still agree: their facing (degrees, the short way)
+ *  and the median of their limbs' directions (degrees), as the gallery's playback comparison reads them. */
+function apart(E: ArrayLike<number>, D: ArrayLike<number>): { facing: number; limbs: number } {
+  const turn = Math.abs(((((facingOf(E) - facingOf(D) + 180) % 360) + 360) % 360) - 180);
+  const limbs = LIMBS.map(([a, b]) => {
+    const e = pointOf(E, b).map((x, i) => x - pointOf(E, a)[i]!), d = pointOf(D, b).map((x, i) => x - pointOf(D, a)[i]!);
+    return (Math.acos(Math.max(-1, Math.min(1, (e[0]! * d[0]! + e[1]! * d[1]! + e[2]! * d[2]!) / (Math.hypot(...e) * Math.hypot(...d) || 1)))) * 180) / Math.PI;
+  }).sort((x, y) => x - y);
+  return { facing: turn, limbs: limbs[Math.floor(limbs.length / 2)]! };
+}
+/** The engine sheet's rows (WP-F.18): the clip's own pose and the pose core's Animator plays on body `ref` (its
+ *  solved bones read back as body points: what @m3a/three's attach writes), at the sheet's times, and how far they
+ *  part at each and at worst. */
+async function engineRows(ctx: ToolContext, c: { clip: Clip; rest: Rest }, ref: string, frames: number) {
+  const b = (await bodyOf(ctx, ref)).bound, pc = playable(c.clip, c.rest), a = new Animator(b).layer("base", { clip: pc, time: 0 });
+  const times = sheets.sheetTimes(c.clip, { frames }), data: Float32Array[] = [], engine: Float32Array[] = [], notes: string[] = [];
+  let worst = { facing: 0, limbs: 0, at: 0 };
+  for (const t of times) {
+    a.layer("base", { clip: pc, time: c.clip.loop && t >= c.clip.dur ? c.clip.dur * (1 - 1e-12) : t });
+    const p = a.pose(), fk = solver.forward(b, p), D = new Float32Array(format.P * 3);
+    const E = solver.posedPoints(b, (n) => (fk[n] && p.world[n] ? { head: fk[n]!, q: p.world[n]! } : null));
+    format.decodePose(c.rest, format.keyAt(c.clip, t), D);
+    const off = apart(E, D);
+    data.push(D);
+    engine.push(E);
+    notes.push(`FACE ${Math.round(off.facing)} LIMBS ${Math.round(off.limbs)}`);
+    if (off.facing > worst.facing || off.limbs > worst.limbs) worst = { facing: Math.max(worst.facing, off.facing), limbs: Math.max(worst.limbs, off.limbs), at: t };
+  }
+  return { times, data, engine, notes, worst: { facing: round(worst.facing), limbs: round(worst.limbs), at: round(worst.at, 3) } };
+}
+
+/** `sheet`: a clip's contact sheet in a named view or an orbit, the metrics' findings flagged in red; given a character,
+ *  the engine sheet: the clip's own pose above the pose the engine plays on that body, with how far they part. */
+export const sheet = defineTool<{ clip: string; frames: number; view: string | raster.View; character?: string }, unknown>({
   name: "sheet",
-  description: "A clip as a contact-sheet PNG, the sensors' findings in red.",
-  params: { type: "object", properties: { clip: CLIP, frames: { type: "integer", minimum: 1, maximum: 64, default: 8 }, view: VIEW }, required: ["clip"] },
-  output: output({ clip: "string", view: "string", frames: "integer", from: "number", to: "number", width: "integer", height: "integer", tokens: "integer", image: "string", flagged: "array" }),
+  description: "A clip as a contact-sheet PNG, its findings in red; on a character, the engine's pose too.",
+  params: { type: "object", properties: { clip: CLIP, frames: { type: "integer", minimum: 1, maximum: 64, default: 8 }, view: VIEW, character: CHARACTER }, required: ["clip"] },
+  output: output({ clip: "string", view: "string", frames: "integer", from: "number", to: "number", width: "integer", height: "integer", tokens: "integer", image: "string", flagged: "array", character: "string?", engine: "object?" }),
   positionals: ["clip"],
-  examples: [{ args: { clip: "QUATERNIUS_3D2DGE/Walk_Loop", frames: 8 } }, { args: { clip: "QUATERNIUS_3D2DGE/Walk_Loop", frames: 4, view: "30,10" } }],
+  examples: [{ args: { clip: "QUATERNIUS_3D2DGE/Walk_Loop", frames: 8 } }, { args: { clip: "QUATERNIUS_3D2DGE/Walk_Loop", frames: 4, view: "30,10" } }, { args: { clip: "QUATERNIUS_3D2DGE/Walk_Loop", frames: 4, character: "gen-1" } }],
   async run(a, ctx) {
-    const view = viewArg(a.view), c = await load(ctx, a.clip), r = measure(c.clip, c.rest);
+    const view = viewArg(a.view), c = await load(ctx, a.clip);
+    if (a.character !== undefined) {
+      const e = await engineRows(ctx, c, a.character, a.frames), who = characterName(a.character), said = prose(who);
+      const s = drawn(() => sheets.pointRows([{ label: "DATA", frames: e.data }, { label: "ENGINE", frames: e.engine, notes: e.notes }], e.times, { view, width: cells(a.frames), title: `${c.id} DATA / ENGINE ON ${said}` }));
+      const image = ctx.image(imageName(`${c.id}-on-${said}`), s.image), tokens = imageTokens(s.width, s.height);
+      return {
+        verdict: `sheet ${c.title} on ${said}: ${count(e.times.length, "frame")} ${span(e.times[0]!, e.times.at(-1)!)}, ${s.width}x${s.height}, ~${tokens} tokens; the engine's facing within ${e.worst.facing}° and its limbs ${e.worst.limbs}° (median) of the data's`,
+        data: { clip: c.id, view: viewName(view), frames: e.times.length, from: round(e.times[0]!, 3), to: round(e.times.at(-1)!, 3), width: s.width, height: s.height, tokens, image, flagged: [], character: said, engine: e.worst },
+        lines: [`top row: the clip's own pose on its body; bottom: the engine's on ${said}, each cell's facing and limbs apart (degrees) under it`, `worst at ${sec(e.worst.at)}: facing ${e.worst.facing}°, limbs ${e.worst.limbs}°`],
+        next: `open the image: where the rows part, the engine plays the clip otherwise than its data; ${call("retarget.inspect", [who])} shows how the body binds`,
+      };
+    }
+    const r = measure(c.clip, c.rest);
     const s = drawn(() => sheets.sheet(c.clip, c.rest, { frames: a.frames, view, width: cells(a.frames), flags: r.findings.map((f) => ({ t0: f.t0, t1: f.t1, label: f.metric })) }));
     const image = ctx.image(imageName(c.id), s.image), tokens = imageTokens(s.width, s.height), red = capped(r.findings, 10);
     return {
       verdict: `sheet ${c.title}: ${count(s.times.length, "frame")} ${span(s.times[0]!, s.times.at(-1)!)}, ${s.width}x${s.height}, ~${tokens} tokens, ${count(r.findings.length, "finding")} in red`,
       data: {
         clip: c.id, view: viewName(view), frames: s.times.length, from: round(s.times[0]!, 3), to: round(s.times.at(-1)!, 3), width: s.width, height: s.height, tokens, image,
-        flagged: red.rows.map((f) => ({ metric: f.metric, level: f.level, t0: round(f.t0, 3), t1: round(f.t1, 3) })), ...(red.more ? { more: red.more } : {}),
+        flagged: red.rows.map((f) => ({ metric: f.metric, level: f.level, t0: round(f.t0, 3), t1: round(f.t1, 3) })), ...(red.more ? { more: red.more } : {}), character: null, engine: null,
       },
       lines: [...red.rows.map((f) => `red: ${f.metric}${f.where ? ` ${f.where}` : ""} ${span(f.t0, f.t1)} (${f.level})`), ...more(red.more, "finding", `${call("metrics", [c.as], { limit: Math.min(50, r.findings.length) })} lists them`)],
       next: `open the image: red cells are the findings; ${call("metrics", [c.as])} gives the numbers, ${call("film", [c.as])} shows it moving`,

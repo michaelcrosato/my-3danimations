@@ -4,12 +4,14 @@
 // same joints; and a skeleton's naming doesn't matter. Other bodies are conformance tier 3
 // (spec/conformance/tier3.test.ts).
 import { describe, expect, it } from "vitest";
-import { bind, decodeOn, decodePose, forward, IDX, keyAt, mirrorPose, quat, solve, toFormat, TABLES, type Bound, type KeyLike, type Quat, type Rest, type SkeletonIn, type Solved } from "./all.ts";
+import { bind, decodeOn, decodePose, forward, IDX, keyAt, mirrorPose, POINTS, posedPoints, quat, solve, toFormat, TABLES, type Bound, type KeyLike, type Quat, type Rest, type SkeletonIn, type Solved } from "./all.ts";
 import { rigSkeleton } from "../../../spec/conformance/runner/skeleton.ts";
 import { loadTier2, tier2Sets } from "../../../spec/conformance/runner/vectors.ts";
 
 type V = [number, number, number];
 const sets = tier2Sets().map((s) => loadTier2(s));
+/** T1 reads every few of tier 2's poses, T2 each (M3A_FULL=1, tools/run/e2e.ts's sweeps: D74's sample, WP-F.15). */
+const FULL = process.env.M3A_FULL === "1", T1 = FULL ? 1 : 4;
 /** Every tier-2 clip's keys and in-betweens, as (key pose, the clip's own body). */
 function* poses(step = 1) {
   for (const v of sets) for (const c of Object.values(v.clips)) for (const [i, s] of [...c.keys, ...c.between].entries()) if (i % step === 0) yield { k: keyAt(c.clip as never, s.t), SR: v.bodies[c.restSrc] as unknown as Rest, name: `${c.clip.clip}@${s.t}` };
@@ -45,9 +47,9 @@ describe("solve on the reference body", () => {
     expect([b.recognition.table, b.recognition.confidence, b.frame.kind]).toEqual(["unreal4", 1, "T"]);
     expect([b.rest.H0, b.rest.thigh, b.rest.shin, b.rest.up, b.rest.fore]).toEqual([950, 440, 430, 280, 250]);
   });
-  it("puts every joint within 1 mm of the decoder's, at every key and in-between of tier 2", () => {
+  it("puts every joint within 1 mm of the decoder's, at every key and in-between of tier 2 (every fourth in T1)", () => {
     let worst = 0, shared = 0, n = 0;
-    for (const { k } of poses()) {
+    for (const { k } of poses(T1)) {
       const s = solve(k, b, { floor: false }), X = decodeOn(b, k), plain = decodePose(b.rest, k, new Array(108));
       for (const [pt, p] of Object.entries(joints(b, s))) {
         worst = Math.max(worst, dist(p, point(X, pt)));
@@ -57,10 +59,26 @@ describe("solve on the reference body", () => {
       }
       n++;
     }
-    expect(n).toBeGreaterThan(7500);
+    expect(n).toBeGreaterThan(7500 / T1);
     expect(worst).toBeLessThan(0.01);
     expect(shared).toBeLessThan(40);
   }, 30_000);
+  it("reads its body points back from its posed bones (posedPoints, WP-F.18): its rest points at rest; on tier 2 (every eighth pose in T1) each within 0.01 mm of the decoder's, the fronts turned with their bones", () => {
+    const at = (s: Solved) => ((fk) => (n: string) => (fk[n] && s.world[n] ? { head: fk[n]!, q: s.world[n]! } : null))(forward(b, s));
+    const atRest = posedPoints(b, (n) => ((o) => (o ? { head: o.head, q: b.restWorld[n]! } : null))(b.order.find((o) => o.name === n)));
+    expect(Math.max(...atRest.map((x, i) => Math.abs(x - b.restPts[i]!)))).toBeLessThan(1e-9);
+    // the fingers' points aside: on a rig with fingers they are its finger joints as the solver curls them, where the
+    // format's are helpers (a straight hand's fist, a blade's line)
+    const shown = POINTS.filter((p) => !/^(index|pinky|fist)/.test(p));
+    let worst = 0, n = 0;
+    for (const { k } of poses(2 * T1)) {
+      const s = solve(k, b, { floor: false }), E = posedPoints(b, at(s)), X = decodeOn(b, k);
+      for (const p of shown) worst = Math.max(worst, dist(point(E, p), point(X, p)));
+      n++;
+    }
+    expect(n).toBeGreaterThan(2000 / T1);
+    expect(worst).toBeLessThan(0.01);
+  });
   it("lifts a pose whose sole would go below the floor, and leaves one standing on it alone", () => {
     const sunk = { ...keyAt(sets[0]!.clips[Object.keys(sets[0]!.clips)[0]!]!.clip as never, 0), hips: [0, 0, 90] };
     const s = solve(sunk, b), X = decodePose(b.rest, sunk, new Array(108));
@@ -76,7 +94,7 @@ describe("rests, missing bones, twist bones, names", () => {
   const T = bind(rigSkeleton());
   it("solves A and relaxed rests to the same joints and the same rotations as a T", () => {
     // the T's solve of each pose, the same for both rests: solved once
-    const onT = [...poses(7)].map(({ k }) => {
+    const onT = [...poses(7 * T1)].map(({ k }) => {
       const sT = solve(k, T);
       return { k, sT, a: joints(T, sT) };
     });
@@ -205,9 +223,9 @@ describe("bone roll", () => {
     const s = solve(base(), b, { floor: false });
     for (const n of ["upperarm_l", "upperarm_r", "lowerarm_l", "lowerarm_r", "thigh_l", "thigh_r", "calf_l", "calf_r"]) expect(angleQ(s.world[n]!, [0, 0, 0, 1]), n).toBeLessThan(1);
   });
-  it("turns a pose's mirror into the mirror rotations, on both sides (glTF: x, y, z, w to x, −y, −z, w)", () => {
+  it("turns a pose's mirror into the mirror rotations, on both sides (glTF: x, y, z, w to x, −y, −z, w; every twelfth pose in T1)", () => {
     let worst = 0, at = "", n = 0;
-    for (const { k, name } of poses(3)) {
+    for (const { k, name } of poses(3 * T1)) {
       if (k.blade) continue; // a blade is the right hand's alone: its mirror has none
       const sA = solve(k, b, { floor: false }), sB = solve(mirrorPose(k), b, { floor: false });
       for (const bone of Object.keys(sA.world)) {
@@ -217,7 +235,7 @@ describe("bone roll", () => {
       }
       n++;
     }
-    expect(n).toBeGreaterThan(2000);
+    expect(n).toBeGreaterThan(2000 / T1);
     expect(worst, at).toBeLessThan(0.5);
   });
   it("rolls the arms and legs continuously through every bend (no flip where the pole lines up with a bone)", () => {

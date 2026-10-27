@@ -15,6 +15,8 @@ const { ops, format, contact, clip: clipNs } = core;
 const data = scriptData();
 const [walk, jog, punch, flinch] = data.clips as [AnimClip, AnimClip, AnimClip, AnimClip];
 const straight = runScript(core, data);
+/** T1 restores from every third step's save, T2 from every step's (M3A_FULL=1, tools/run/e2e.ts's sweeps: D74's sample, WP-F.15). */
+const EVERY = process.env.M3A_FULL === "1" ? 1 : 3;
 const rig = bind(data.skeleton);
 /** A clip of `dur` seconds with walk's first two keys at its ends, and these events. */
 const synthetic = (id: string, dur: number, loop: boolean, events: { t: number; name: string }[]): AnimClip => ({ id, dur, loop, events, keys: [{ ...walk.keys[0]!, t: 0 }, { ...walk.keys[1]!, t: dur }] as Key[] });
@@ -213,7 +215,7 @@ describe("a clip's library (spec/MOTION.md §3.3, D55)", () => {
 });
 
 describe("save and restore", () => {
-  it("continues exactly from a save at any step, through JSON: the same later hashes, events and exact poses", () => {
+  it("continues exactly from a save at any step, through JSON: the same later hashes, events and exact poses (every third in T1)", () => {
     const saves: string[] = [];
     runScript(core, data, {
       each: (_, a) => {
@@ -224,7 +226,7 @@ describe("save and restore", () => {
       },
     });
     const K = 40;
-    for (let i = 0; i < LENGTH - 1; i++) {
+    for (let i = 0; i < LENGTH - 1; i += EVERY) {
       const saved = JSON.parse(saves[i]!) as AnimatorSave;
       const b = start(core, data).restore(saved, data.clips);
       expect(b.hash()).toBe(straight.hashes[i]);

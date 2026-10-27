@@ -86,9 +86,9 @@ describe("near-duplicate detection", () => {
     expect(near.filter((p) => p.mm < p.under)).toEqual([]);
   });
 
-  it(`joins no two clips the census counts apart, in a sweep of ${FULL ? "the whole library" : "every 45th clip's pairs"}, but Mesh2Motion's dodges, one motion mirrored`, () => {
+  it(`joins no two clips the census counts apart, in a sweep of ${FULL ? "the whole library" : "every 90th clip's pairs"}, but Mesh2Motion's dodges, one motion mirrored`, () => {
     const cc0 = new Set(lib.sets().filter((s) => s.tier === "cc0").map((s) => s.set)), cen = census(clips, cc0), group = (id: string) => cen.same[id]?.as ?? id;
-    const dodges = new Set(["MESH2MOTION/Dodge_left", "MESH2MOTION/Dodge_left_RM", "MESH2MOTION/Dodge_right", "MESH2MOTION/Dodge_right_RM"]), sampled = new Set(index.ids().filter((id, i) => FULL || i % 45 === 0 || dodges.has(id)));
+    const dodges = new Set(["MESH2MOTION/Dodge_left", "MESH2MOTION/Dodge_left_RM", "MESH2MOTION/Dodge_right", "MESH2MOTION/Dodge_right_RM"]), sampled = new Set(index.ids().filter((id, i) => FULL || i % 90 === 0 || dodges.has(id)));
     const pairs = index.pairs({ of: (id) => sampled.has(id) }), apart = pairs.filter((p) => group(p.a) !== group(p.b));
     console.log(`dedup: the sweep found ${pairs.length} pairs one motion (within ${NEAR} mm and a share of how much they move), ${pairs.length - apart.length} of them one motion in the census too; apart in it: ${apart.map((p) => `${p.a} ~ ${p.b}${p.mirrored ? " mirrored" : ""} ${p.mm.toFixed(1)} mm`).join("; ")}`);
     // the dodges to either side are one animation mirrored, which the census, reading no mirror, counts twice
