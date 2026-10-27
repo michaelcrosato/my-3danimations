@@ -24,10 +24,18 @@ import { scratchRepo } from "./write.ts";
 /** The fixtures' contributor in a scratch store. */
 export const FIXTURE_CONTRIBUTOR = "fixtures";
 
-/** Whether a fixture came out as it must: its state, and a bounce's gate and words. */
+/** Whether a fixture came out as it must: its state, and a bounce's gate and words. A bounce names its first failed
+ *  gate; when that is dedup joining it to another fixture of the same motion (the frozen idle and the idle it froze:
+ *  which the checker reads first goes by their ids, hashes a version bump moves, D125), its own gate must have failed
+ *  with its words too. */
 export function asExpected(f: Fixture, c: Checked | undefined): string | null {
   if (!c) return "the checker didn't take it";
   if (c.state !== f.expect) return `${c.state}${c.reason ? ` (${c.reason})` : ""}, not ${f.expect}`;
+  if (f.gate && f.gate !== "dedup" && c.reason?.startsWith("dedup: ")) {
+    const own = c.report.gates.find((g) => g.gate === f.gate);
+    if (!own || own.ok) return `bounced by dedup, and its ${f.gate} passed: ${c.reason}`;
+    return f.reason && !own.why.some((w) => w.includes(f.reason!)) ? `its ${f.gate} doesn't say "${f.reason}": ${own.why.join("; ")}` : null;
+  }
   if (f.gate && !c.reason?.startsWith(`${f.gate}: `)) return `bounced by ${c.reason?.split(":")[0]}, not ${f.gate}: ${c.reason}`;
   if (f.reason && !c.reason?.includes(f.reason)) return `its reason doesn't say "${f.reason}": ${c.reason}`;
   return null;

@@ -104,7 +104,7 @@ export const show = defineTool<{ clip: string; from: number; legend: boolean }, 
 /** `describe`: the sensors' timeline of a clip (phases, landings, strikes, travel), one line per phase and moment with detail. */
 export const describe = defineTool<{ clip: string; detail: boolean }, unknown>({
   name: "describe",
-  description: "A clip as a short timeline: phases (stand, walk, run, crouch, sit, lie, air), landings, strikes, travel.",
+  description: "A clip as a short timeline: phases (stand, walk, run, crouch, sit, lie, air), turns, bends, landings, strikes, travel.",
   params: { type: "object", properties: { clip: CLIP, detail: { type: "boolean", default: false } }, required: ["clip"] },
   output: output({ clip: "string", phases: "array", moments: "array", travel: "array", text: "string" }),
   positionals: ["clip"],

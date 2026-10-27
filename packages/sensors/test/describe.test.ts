@@ -1,13 +1,14 @@
 // Describe (WP-3.4): on the 30 clips of describe-truth.json (labelled from their filmstrips and catalog lines, the
 // labels reviewed by a verifier first) the timeline names the right phases in the right order for at least 27; the
 // text is the same every run and within 150 tokens (a long clip's later items dropped and counted); landings, strikes
-// and travel are read where they happen. The token count on every clip's text is describe-tokens.test.ts.
+// and travel are read where they happen; a turn by its side and size and a forward bend by the trunk's lean (WP-F.16),
+// and no turn where a body only twists and comes back. The token count on every clip's text is describe-tokens.test.ts.
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { encode } from "gpt-tokenizer";
 import { encode as cl100k } from "gpt-tokenizer/encoding/cl100k_base";
 import { describe as suite, expect, it } from "vitest";
-import type { Clip } from "@m3a/core";
+import { format, type Clip } from "@m3a/core";
 import { describe } from "../src/index.ts";
 import { libraryClips } from "../../../tools/qa/qa.ts";
 
@@ -59,5 +60,28 @@ suite("the text", () => {
     const walk = of("CMU_CURATED/Walk_Loop");
     expect(walk.text).toMatch(/travels \d\.\d hip heights forward a cycle$/);
     expect(walk.text.startsWith("a 1.10 s loop; 0.00–")).toBe(true);
+  });
+  it("names a turn by its side and size, and a forward bend by the trunk's lean (WP-F.16)", () => {
+    // [side, least, most]: the clips' own headings turn 102° left, 87° right, 180° left and 181° right (their keys' body)
+    const turns: [string, string, number, number][] = [["MESH2MOTION/Turn_Left_90", "left", 85, 115], ["MESH2MOTION/Turn_Right_90", "right", 75, 100], ["MESH2MOTION/Turn_Left_180", "left", 165, 195], ["MESH2MOTION/Turn_Right_180", "right", 165, 195], ["CMU_CURATED/Stumble_Turn", "left", 340, 400]];
+    for (const [id, side, least, most] of turns) {
+      const t = of(id).moments.filter((x) => x.name === "turn");
+      expect(t.length, id).toBe(1);
+      const [, deg, way] = /turns (\d+)° to the (left|right)$/.exec(t[0]!.text)!;
+      expect([id, way, +deg! >= least && +deg! <= most], t[0]!.text).toEqual([id, side, true]);
+    }
+    // the clip the owner saw spin round and walk back (D136): it walks up, bends to the basket, turns about half round to
+    // its right, walks back and bends again; the text says each, in time order
+    const basket = of("CMU_CURATED/Pick_Up_Basket");
+    expect(basket.text).toMatch(/s bends over \(trunk \d+°\); [^;]*s turns 1[6-9]\d° to the right; [^;]*s bends over/);
+    // mirrored, a turn goes the other way by as much
+    const left = lib.get("MESH2MOTION/Turn_Left_90")!, mirrored = describe(format.mirror(left.clip as never) as never, left.rest).moments.find((x) => x.name === "turn")!;
+    expect(mirrored.text.replace(/^.* s turns /, "")).toBe(of("MESH2MOTION/Turn_Left_90").moments.find((x) => x.name === "turn")!.text.replace(/^.* s turns /, "").replace("left", "right"));
+  });
+  it("names no turn where the body twists and comes back, nor a bend on a level push-up or a flip", () => {
+    for (const id of ["CMU_CURATED/Walk_Loop", "STYLE100_IDLE/SwingShoulders_Idle", "STYLE100/KarateChop_Walk", "MESH2MOTION/Fighting_Right_Jab", "MESH2MOTION/Pushup"]) expect([id, of(id).moments.filter((x) => x.name === "turn").map((x) => x.text)]).toEqual([id, []]);
+    for (const id of ["MESH2MOTION/Pushup", "CMU_CURATED/Walk_Loop"]) expect([id, of(id).moments.filter((x) => x.name === "bend").map((x) => x.text)]).toEqual([id, []]);
+    for (const id of ["CMU_CURATED/Take_A_Bow", "CMU_CURATED/Bend_Lift", "STYLE100_IDLE/BentForward_Idle"]) expect([id, of(id).moments.some((x) => x.name === "bend")]).toEqual([id, true]);
+    expect(of("CMU_CURATED/Dive_Roll").moments.filter((x) => x.name === "bend").every((x) => +/trunk (\d+)/.exec(x.text)![1]! <= 110)).toBe(true);
   });
 });

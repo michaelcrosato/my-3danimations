@@ -2789,6 +2789,30 @@ picked by the owner on 2026-10-21. No gate follows them: each is held by its Ver
 - **Verify:** `npm run check`, `npm test`, `npm run e2e`,
   `M3A_FULL=1 npx vitest run packages/core/test/procedural.test.ts packages/sensors/test/procedural.test.ts packages/core/test/solve.test.ts packages/core/test/animator.test.ts packages/sensors/test/fix.test.ts`
 
+#### WP-F.16 `describe` names a turn and a bend
+- **Owns:** `packages/sensors/src/describe/describe.ts`, `packages/sensors/test/describe.test.ts`
+- **Also touches:** `packages/tools/src/tools/find.ts` (the tool's description)
+- **Needs:** WP-3.4, WP-F.14
+- **Size:** S (about 170 new lines, tests included)
+- **Carry:** none
+- **Trigger:** HANDOFF's follow-up (D136): CMU_CURATED/Pick_Up_Basket read "walks; stands" for a walk, a bend to the
+  basket, a half turn, a walk back and a set-down; the text an agent reads should say both.
+- **Build:** the body's heading from the pelvis's forward on the floor (the chest's would read a swing of the shoulders
+  as a turn), held while the trunk is more than 60° from upright or the pelvis faces up or down (rolls, flips,
+  push-ups); a one-shot's turn is a stretch turning 20°/s or faster one way (the heading averaged over 0.25 s either
+  side) whose mean heading half a second after stands 60° or more from half a second before (a punch's or a bat's twist
+  comes back); a loop's, what each cycle turns. A forward bend: the trunk 45° to 110° from upright, toward the pelvis's
+  front, for 0.15 s, the hips at least half their rest height, the body not lying, seated or in the air. Both are
+  moments shown by default; `tokenCount` counts a non-ASCII mark as two.
+- **Done when:**
+  1. Mesh2Motion's turns read their side and their size (the keys' own: 102° left, 87° right, 180° left, 181° right),
+     Stumble_Turn's whole turn too; a mirrored turn goes the other way by as much.
+  2. Pick_Up_Basket reads a bend, a turn of 160° to 199° to its right, and a bend, in that order.
+  3. No turn on a walk, a shoulder-swinging idle, a karate-chop walk, a jab or a push-up; no bend on a push-up or a
+     walk; bows, lifts and a bent-forward idle bend; no bend past 110° (a dive roll).
+  4. The 30 truth clips still read right; the token count stays no lower than cl100k's and o200k's on every clip.
+- **Verify:** `npm run check`, `npm test -- packages/sensors packages/tools`, `M3A_FULL=1 npx vitest run packages/sensors/test/describe-tokens.test.ts`
+
 ### On demand
 
 Each starts only when its trigger fires; record the measurement that fired it. A trigger that never fires means the WP
@@ -2993,6 +3017,7 @@ commits named here are on their PR branches (`refs/pull/<n>/head`).
 | F.13 The idles keep their motion | done | 0.59.0 | 83f8ce0 (#28) | 2026-10-22 | the owner's G8 review ("This is a pose. There is no actual animation"; Jump_Twist "never gets to the actually jump"): frozen clips 102 → 17 (13 tagged poses, 4 answered), each fit bounded by the clip's own motion; no knee or elbow 20 mm beyond its capture (16 were, up to 54 mm: `steadyBend`), no snap (`spaced`); recipes keep the sway (0 of 87 one pose through clip, mirror, retime; 83 were); the still check in QA and the intake's lint gate; Jump_Twist cut again to its flip; `npm run import -- --check` 9 sets byte for byte, vectors and conformance 3662 as before, T2 266 s; two rounds, four adversarial reviewers' 21 findings fixed (D135) |
 | F.14 Playback as the data says | done | 0.60.0 | b66f248 (#29) | 2026-10-23 | the owner's in-chat review of Pick_Up_Basket ("does a 360 and then walks backwards") and their experiment (gen-1 painted, snapped at the sheet's moments and view): the gallery and the review cards turned a character by a heading its pose already carried, and the raster and graph sims likewise; one rule (a pose carries its clip's turn, attach writes the root's turn beyond it, `AnimatorPose.turn`); the data comparison `apps/gallery/src/playback.test.ts`: facing 55 clips off by up to 179° → 0 of 1,398 on four test characters; the test characters painted as the sheets (D136) |
 | F.15 T1's headroom | doing | 0.60.1 | (this PR) | 2026-10-27 | the changed files' test CPU on one worker 89.5 → 62.3 s (−30%); T1 here 113–116 → 107–110 s (this container runs about 1.6× slower than D137's; its timings swing ±7 s run to run); the dedup distance the same to the bit on 1,863 pairs; CI to measure (D139) |
+| F.16 `describe` names a turn and a bend | done | 0.61.0 | (this PR) | 2026-10-27 | Mesh2Motion's quarter and half turns read 100° left, 85° right, 180° and 180° (their keys: 102, 87, 180, 181); Pick_Up_Basket "bends over (trunk 80°); turns 170° to the right; bends over (trunk 85°)" (its keys turn 165° to 170° there, 195° start to end with the walk's curve); over the library 74 one-shots turn, no loop, 157 clips bend; the truth set and the tokens as before (D140) |
 
 ---
 

@@ -4,6 +4,25 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.61.0 · 2026-10-27
+
+WP-F.16 (D140): `describe` names a turn and a bend.
+
+### Sensors
+- `describe` names each turn by its span, side and size ("1.28–2.70 s turns 170° to the right": the pelvis's heading,
+  held while the trunk is far from upright, turned 60° or more and staying turned, so a twist that comes back isn't
+  one; a loop names what each cycle turns) and each forward bend by its span and the trunk's most ("bends over (trunk
+  80°)": 45° or more from upright, the hips at least half their height, never a lying, seated, airborne or upside-down
+  body). Both show by default. `TURN` and `BEND` hold the rules. 74 one-shots of the library turn, 157 clips bend.
+- `tokenCount` counts a mark outside ASCII as two tokens (a turn's "°"), so it stays no lower than cl100k's and o200k's.
+
+### Tools
+- `describe`'s description names turns and bends.
+
+### Repo
+- The intake's fixtures: a bounce dedup names first (two fixtures of one motion, read in their ids' hash order) still
+  holds the fixture's own gate failing with its words, whatever order a version bump puts them in.
+
 ## 0.60.1 · 2026-10-27
 
 WP-F.15 (D139): T1's headroom; the dev tooling's advisories (D138).

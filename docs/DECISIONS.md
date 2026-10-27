@@ -5826,3 +5826,33 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   still reads every one before a push. CI's T1 is the record for "well under 90 s" (the ledger row).
 - **Answered:** the owner's goal (2026-10-27) named the WP; its calls are the session's, under D131.
 - **Landed in:** v0.60.1
+
+## D140 · 2026-10-27 · `describe` names a turn and a bend, by rules read off the library
+
+- **Principle:** 1 (agent-readable: the text an agent picks a clip by says what the clip does), 3 (by numbers, not a
+  look), D136
+- **Call:**
+  - **The rules (WP-F.16),** each tuned against the library's own clips and its catalog's words, not a reviewer's eye:
+    the heading from the pelvis alone (from the chest too, 149 clips "turned", every shoulder-swinging style among
+    them); held while the trunk is past 60° from upright (a backflip's pelvis faced back upside down: "turns 180° twice");
+    a turn 60° or more that stays turned half a second later (at 45°, single jabs and front kicks read as two turns of 50
+    or so each); a loop names its turn a cycle (the first frame's heading against the last's: no library loop turns).
+    A bend needs the hips at half their height (a push-up's level trunk read "bends over (trunk 85°)") and stops at 110°
+    (a dive roll's upside-down trunk read 140°).
+  - **What it reads now:** Mesh2Motion's turns within 5° of their keys' own headings; Pick_Up_Basket a bend, a 170°
+    turn to its right and a bend; over the library 74 one-shots turn (get-ups ending another way, Hopscotch, the sword
+    combos' spins, Pick_Up_Box), no loop turns, and 157 clips bend (bows, lifts, hunched and bent-forward styles,
+    crouch walks).
+  - **The token count:** `tokenCount` counts a mark outside ASCII as two ("°" takes two in cl100k), so a text it passes
+    stays within the budget; every clip's text checked under `M3A_FULL=1`.
+  - **Found on the way (the version bump to 0.61.0):** the intake's frozen-idle fixture is the moving idle fixture with
+    every key its first pose, one motion within 3 mm, so dedup joins whichever the checker reads second; it reads by
+    id, and the ids are hashes the package's version moves (D125's rule), so 0.61.0 turned the pair round and the
+    frozen idle's bounce named dedup first. `asExpected` (tools/intake/main.ts) and the checker's test now hold the
+    fixture to its own gate failing with its words when dedup is named first; the gate order and the checker are
+    unchanged. A procedural test that ran 5.2 s under load got an explicit timeout, as its neighbours have.
+- **Why:** an agent chooses a clip by its words; "walks; stands" for a clip that turns half round and bends twice is
+  how the owner came to doubt a page that was right (D136). Rules read off the library's own clips keep the words
+  honest for the 1,398 there now.
+- **Answered:** the owner's goal (2026-10-27) named the WP; the thresholds are the session's, under D131.
+- **Landed in:** v0.61.0

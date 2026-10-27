@@ -71,9 +71,14 @@ describe("the checker", () => {
     // an improvement of a clip whose mirrored twin is in the library (Dodge_left's Dodge_right) among them: the twin aside
     expect(done.filter((d) => d.state === "awaiting review").map((d) => ids.get(d.id)).sort()).toEqual(["clean", "idle", "improvement", "improvement-cc-by", "improvement-of-a-twin"]);
   });
-  it("bounces an idle that never moves at lint alone, saying how to fix it; the same idle moving waits for review (F.13)", () => {
-    const frozen = done.find((d) => d.id === idOf("frozen-idle"))!, moving = done.find((d) => d.id === idOf("idle"))!;
-    expect([frozen.state, frozen.reason, frozen.report.gates.filter((g) => !g.ok).map((g) => g.gate)]).toEqual(["bounced", "lint: it never moves: every body point stays within 3 mm of where it starts. Give it its motion, or tag it pose if it is a held pose", ["lint"]]);
+  it("bounces an idle that never moves at lint, saying how to fix it; the same idle moving waits for review (F.13)", () => {
+    // the two are one motion within a few mm, so dedup joins the frozen one to the moving one when the checker reads the
+    // moving one first: it reads by id, and the ids are hashes a version bump moves (WP-F.16's 0.61.0 turned them round;
+    // D125): the frozen idle's lint finding holds in either order, and a bounce names it
+    const frozen = done.find((d) => d.id === idOf("frozen-idle"))!, moving = done.find((d) => d.id === idOf("idle"))!, lint = frozen.report.gates.find((g) => g.gate === "lint");
+    expect([frozen.state, lint?.ok, lint?.why]).toEqual(["bounced", false, ["it never moves: every body point stays within 3 mm of where it starts. Give it its motion, or tag it pose if it is a held pose"]]);
+    expect(frozen.reason).toMatch(/^(lint: it never moves: |dedup: a near-duplicate of .* \(and 1 more problem: dedup, lint\)$)/);
+    expect(frozen.report.gates.filter((g) => !g.ok).map((g) => g.gate).filter((g) => g !== "dedup")).toEqual(["lint"]);
     expect([moving.state, moving.reason, moving.report.rigs.every((r) => r.ok)]).toEqual(["awaiting review", null, true]);
   });
   it("shows each bounce's reason to its contributor: m3a library status, in the API and on the command line", async () => {

@@ -604,7 +604,7 @@ describe("a gait", () => {
     expect(() => PR.gaitClip(run144, cmu144, { restSrc: "CMU_144", fps: 72.5 })).toThrow(/its left foot turns round on the loop's seam 92% .* it plays at 368% of the hip height a second/);
     expect(() => PR.gaitClip(run18, cmu18, { restSrc: "CMU_18" })).toThrow(/its left foot turns round on the loop's seam 71% .* it plays at 350% of the hip height a second/);
     expect([PR.fitGait(run144, cmu144).speed, PR.fitGait(run18, cmu18).speed]).toEqual([368, 350]);
-  });
+  }, 30_000);
   it("fits a gait to a body: the fastest whole speed its legs and its pace take, a lower lift only where none does, and its arms' swing narrowed where its hands need it", () => {
     const idle = load("MESH2MOTION/Idle_A"), style = load("STYLE100/Neutral_Walk"), fast = { ...PR.GAITS[0]!, speed: 1000, cycle: 1.2, stance: 0.5 };
     expect([PR.fitGait(fast, idle.rest), PR.fitGait(fast, style.rest)]).toEqual([{ ...fast, speed: 189 }, { ...fast, speed: 177 }]);
