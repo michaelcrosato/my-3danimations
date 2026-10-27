@@ -2786,8 +2786,12 @@ picked by the owner on 2026-10-21. No gate follows them: each is held by its Ver
      every ninth library clip (1,079 finite).
   3. The changed files' test CPU, one worker: at least a quarter less.
   4. T1 in CI well under its 90 s *(deferred proof: CI on this WP's pull request, recorded in the ledger row)*.
+- **Round 2 (D144):** the runner's fake trial through the packed packages (its packs built when a trial needs them),
+  the sweep's CLI run and eight of publish's twelve tarball refusals run in T2's full step; their files are in its
+  list.
 - **Verify:** `npm run check`, `npm test`, `npm run e2e`,
-  `M3A_FULL=1 npx vitest run packages/core/test/procedural.test.ts packages/sensors/test/procedural.test.ts packages/core/test/solve.test.ts packages/core/test/animator.test.ts packages/sensors/test/fix.test.ts`
+  `M3A_FULL=1 npx vitest run packages/core/test/procedural.test.ts packages/sensors/test/procedural.test.ts packages/core/test/solve.test.ts packages/core/test/animator.test.ts packages/sensors/test/fix.test.ts`,
+  `M3A_FULL=1 npx vitest run bench/runner/runner.test.ts tools/sweep/sweep.test.ts tools/release/publish.test.ts`
 
 #### WP-F.16 `describe` names a turn and a bend
 - **Owns:** `packages/sensors/src/describe/describe.ts`, `packages/sensors/test/describe.test.ts`
@@ -2858,6 +2862,69 @@ picked by the owner on 2026-10-21. No gate follows them: each is held by its Ver
   3. Every tool's description within its budget (3,200 tokens in all); the examples the same on every surface.
 - **Verify:** `npm run check`, `npm test -- packages/core packages/sensors packages/tools`,
   `npx m3a sheet QUATERNIUS_3D2DGE/Walk_Loop --frames 4 --character gen-1`
+
+#### WP-F.19 The encoder's steady rounding
+- **Owns:** `packages/core/src/format/pose.ts` (`steadyRound`), `packages/core/src/format/fit.ts` (its keys chosen
+  without it), the own-motion clips of MESH2MOTION, STYLE100_IDLE, STYLE100_RUN and STYLE100_BACKRUN
+- **Also touches:** `packages/io/src/import.ts` (one option), `tools/import/fidelity.test.ts` (its pins), the
+  baselines their writers rewrite (`packages/sensors/fixtures/baseline.json`, `library/baselines/distributions.json`,
+  `docs/LIBRARY.md`, `library/index.json`)
+- **Needs:** WP-F.13
+- **Size:** S (about 120 changed lines, tests included; 92 clip files regenerated)
+- **Carry:** none
+- **Trigger:** D135's follow-up: the format's resolution still moved a few small idles more than their capture (the
+  hips' whole percent took Penguin's, Angry's, Proud's and Chicken's pelvis 5.5 to 7.7 mm beyond it; the chest's and
+  head's whole degrees took 13 clips past 1.5 times their capture's reach).
+- **Build:** core's encoder gets `steadyRound`, off by default: the hips (percent of H0) and the body's, chest's and
+  head's turns (degrees) keep the key before's whole number while the exact value stays within 0.9 of it. The fit
+  chooses its keys without it (a held key stands up to 0.9 of a unit from its frame's own rounding, which more keys
+  can't mend) and encodes the keys it chose with it. `importSet` sets it with `steadyBend` on a clip fitted within its
+  own motion. Measured at 0.75, 0.9 and 1, and holding the hips alone, by D135's survey; MOTION.md (frozen) untouched.
+- **Done when:**
+  1. The four idles' pelvis no further beyond its capture's than 4 mm, no knee or elbow past its clip's own limit,
+     fewer clips past 1.5 times their capture's reach (`tools/import/fidelity.test.ts`).
+  2. Every key encoded without the option bit for bit (the vectors, the tiers); the four sets re-imported byte for
+     byte (`npm run import -- --check`); every verdict as before; the baselines through their writers.
+- **Verify:** `npm run check`, `npm test`, `npm run e2e`, `npm run import -- --set STYLE100_IDLE --check` (and the other
+  three), `npm run vectors -- --check`, `npm run qa -- --check`, `npm run qa -- library --check`,
+  `npm run sweep -- --rates --check`, `npm run index -- --check`
+
+#### WP-F.20 B1 reads heights from the body's own floor
+- **Owns:** `bench/graders/bones.ts` (`bodyOf`'s `sole`), `bench/graders/B1/grade.ts`
+- **Needs:** WP-4.7, WP-F.3
+- **Size:** S (about 30 changed lines, tests included)
+- **Carry:** none
+- **Trigger:** D123's follow-up, D131's call (fix it, then run G7's B1 evidence again): B1's grader read heights from
+  y = 0, which stands 16 to 44 mm above a generated test character's soles, so a foot 40 to 86 mm over its own floor
+  read as standing; two of the four misses in the 2026-10-22 runs were B1's floor.
+- **Build:** `bodyOf` also gives the body's measured floor, the ground its rest is measured on (the rest pelvis's height
+  less its height in the format: where its soles are); B1's grader reads every height from it. B3 and B4 keep theirs.
+- **Done when:**
+  1. The floor read where the soles stand: 24, 20, 41 and 16 mm under y = 0 on gen-0 to gen-3.
+  2. The known-good passes and every planted bad solution fails, naming its check, on every character T2 grades.
+  3. G7's B1 evidence with real agents: `npm run bench -- B1 --trials 5 --parallel 5 --discovery 2` and
+     `--heldout G7`, the results logged.
+- **Verify:** `npm run check`, `npm test -- bench/graders/B1`, `npm run test:full -- bench/graders/B1`, the two bench
+  runs above
+
+#### WP-F.21 The owner's next review batch
+- **Owns:** `packages/tools/src/tools/review.ts` (export's `on`), `bench/results/gates/reviews/`
+- **Also touches:** `apps/gallery/src/review/batches.test.ts`, `tests/e2e/review.e2e.ts`, `tests/e2e/previews.e2e.ts`
+  (the batches the site carries)
+- **Needs:** WP-8.2a, WP-F.11, WP-F.19
+- **Size:** S (about 60 changed lines, tests included)
+- **Carry:** none
+- **Trigger:** the next goal's item 5 (D137): the clips to look at again (Jump_Twist cut again, the three idles whose
+  reviews were dropped, Pick_Up_Basket and Wrench_Bolt) and the idles F.19 left under 0.8 of their sway, which
+  export's fixed sample of 20 unreviewed clips wouldn't pick.
+- **Build:** `m3a review export --on <ids or refs>` puts the clips named first, whatever their review, then the sample
+  up to 20; the batch exported after F.19 is committed to `bench/results/gates/reviews/queue-0.64.0.json` (each later
+  export there supersedes it), so the site opens it at load (D132).
+- **Done when:**
+  1. The export names its clips first, each once, then the sample to 20; the queue valid by its schema.
+  2. The site carries the batch as the newest and G8's by its name; no submission in it.
+  3. Its link posted for the owner.
+- **Verify:** `npm test -- packages/tools/test/review.test.ts apps/gallery/src/review`, `npm run e2e -- review previews`
 
 ### On demand
 
@@ -3062,10 +3129,13 @@ commits named here are on their PR branches (`refs/pull/<n>/head`).
 | F.12 The review page's guide | done | 0.58.0 | deaab20 (#27) | 2026-10-22 | the owner's ask after G8 ("give clear directions when someone opens that page ... explain how LLMs would select an animation"): a guide at the top (what the clips are, how an agent chooses one, what the sensors check and can't, what Approve and Flag mean, export and send back), open on a first visit and remembered closed; each card says what its clip should show (description, loop or once, length, travel in m/s and a grown-up's pace, tags), a submission's measured as adoption measures it; `npm run e2e -- review previews gallery` 14 passed; the gallery's unit tests 18; two adversarial reviewers' 10 findings fixed, 3 blocking (D134) |
 | F.13 The idles keep their motion | done | 0.59.0 | 83f8ce0 (#28) | 2026-10-22 | the owner's G8 review ("This is a pose. There is no actual animation"; Jump_Twist "never gets to the actually jump"): frozen clips 102 → 17 (13 tagged poses, 4 answered), each fit bounded by the clip's own motion; no knee or elbow 20 mm beyond its capture (16 were, up to 54 mm: `steadyBend`), no snap (`spaced`); recipes keep the sway (0 of 87 one pose through clip, mirror, retime; 83 were); the still check in QA and the intake's lint gate; Jump_Twist cut again to its flip; `npm run import -- --check` 9 sets byte for byte, vectors and conformance 3662 as before, T2 266 s; two rounds, four adversarial reviewers' 21 findings fixed (D135) |
 | F.14 Playback as the data says | done | 0.60.0 | b66f248 (#29) | 2026-10-23 | the owner's in-chat review of Pick_Up_Basket ("does a 360 and then walks backwards") and their experiment (gen-1 painted, snapped at the sheet's moments and view): the gallery and the review cards turned a character by a heading its pose already carried, and the raster and graph sims likewise; one rule (a pose carries its clip's turn, attach writes the root's turn beyond it, `AnimatorPose.turn`); the data comparison `apps/gallery/src/playback.test.ts`: facing 55 clips off by up to 179° → 0 of 1,398 on four test characters; the test characters painted as the sheets (D136) |
-| F.15 T1's headroom | doing | 0.60.1 | #32 | 2026-10-27 | the changed files' test CPU on one worker 89.5 → 62.3 s (−30%); T1 here 113–116 → 107–110 s (this container runs about 1.6× slower than D137's; its timings swing ±7 s run to run); the dedup distance the same to the bit on 1,863 pairs; CI's T1 108 → 99.4 to 105.8 s on #32's heads, not yet well under 90 s: the heavy setups next (D139) |
-| F.16 `describe` names a turn and a bend | done | 0.61.0 | #32 | 2026-10-27 | Mesh2Motion's quarter and half turns read 100° left, 85° right, 180° and 180° (their keys: 102, 87, 180, 181); Pick_Up_Basket "bends over (trunk 80°); turns 170° to the right; bends over (trunk 85°)" (its keys turn 165° to 170° there, 195° start to end with the walk's curve); over the library 74 one-shots turn, no loop, 157 clips bend; the truth set and the tokens as before (D140) |
-| F.17 A body under its floor keeps its legs | done | 0.61.1 | #32 | 2026-10-27 | Swim_Idle_Loop's legs 90°–150° from its data → within 1° (arms 4° before and after); playback in full on gen-1 and gen-0 with no known exception; vectors byte for byte, tier 3 2,317 of 2,317, the sweeps as pinned; five clips ever put their hips under the floor (two swims, Zombie_Rise, two falls by a few mm) (D141) |
-| F.18 The engine sheet | done | 0.62.0 | #32 | 2026-10-27 | on gen-1, 4 frames: Walk_Loop's engine facing 0° and limbs 4° (the worst cell's median) from its data, Turn_Right_180's 0° and 1°, Swim_Idle_Loop's 0° and 14° (at 1.67 s, a leg); the read-back points the rest points to 1e-13 mm and the decoder's to 0.01 mm on 1,081 tier-2 poses but the fingers' (the rig's curled finger joints, the format's helpers: up to 83 mm); the tools 3,200 tokens in all (D142) |
+| F.15 T1's headroom | blocked-owner | 0.60.1 | 2e449b5 (#32) | 2026-10-27 | the changed files' test CPU on one worker 89.5 → 62.3 s (−30%); T1 here 113–116 → 107–110 s (this container runs about 1.6× slower than D137's; its timings swing ±7 s run to run); the dedup distance the same to the bit on 1,863 pairs; CI's T1 108 → 99.4 to 105.8 s on #32's heads (D139); round 2 moves the processes T1 starts to T2, here 104 → 97–99 s, CPU 391 → 363 s (D144); well under 90 s on every runner needs a larger runner or a quarter of T1 in T2: the owner's, asked on #33 |
+| F.16 `describe` names a turn and a bend | done | 0.61.0 | 2e449b5 (#32) | 2026-10-27 | Mesh2Motion's quarter and half turns read 100° left, 85° right, 180° and 180° (their keys: 102, 87, 180, 181); Pick_Up_Basket "bends over (trunk 80°); turns 170° to the right; bends over (trunk 85°)" (its keys turn 165° to 170° there, 195° start to end with the walk's curve); over the library 74 one-shots turn, no loop, 157 clips bend; the truth set and the tokens as before (D140) |
+| F.17 A body under its floor keeps its legs | done | 0.61.1 | 2e449b5 (#32) | 2026-10-27 | Swim_Idle_Loop's legs 90°–150° from its data → within 1° (arms 4° before and after); playback in full on gen-1 and gen-0 with no known exception; vectors byte for byte, tier 3 2,317 of 2,317, the sweeps as pinned; five clips ever put their hips under the floor (two swims, Zombie_Rise, two falls by a few mm) (D141) |
+| F.18 The engine sheet | done | 0.62.0 | 2e449b5 (#32) | 2026-10-27 | on gen-1, 4 frames: Walk_Loop's engine facing 0° and limbs 4° (the worst cell's median) from its data, Turn_Right_180's 0° and 1°, Swim_Idle_Loop's 0° and 14° (at 1.67 s, a leg); the read-back points the rest points to 1e-13 mm and the decoder's to 0.01 mm on 1,081 tier-2 poses but the fingers' (the rig's curled finger joints, the format's helpers: up to 83 mm); the tools 3,200 tokens in all (D142) |
+| F.19 The encoder's steady rounding | done | 0.63.0 | #33 | 2026-10-27 | at 0.9: the four idles' pelvis 5.5–7.7 mm beyond their capture's → under it (the worst of 108 clips 3.5 mm); knees or elbows past their limit 6 → 0 (worst 10.0 → 8.0 mm); past 1.5× their capture's reach 13 → 3 (max 2.12 → 1.60×); under 0.8× 7 → 9 (min 0.56 → 0.63); within 0.8–1.25× 67 → 84 of 103; 92 clips re-fitted on the same key frames, fit mean the same on 64, better on 5, up to 4 mm worse on 23; every verdict as before (D143) |
+| F.20 B1 reads heights from the body's own floor | done | 0.63.0 | #33 | 2026-10-27 | the floor at the soles: gen-0 to gen-3 24, 20, 41, 16 mm under y = 0 (the toes' and balls' joints 20 mm over it); the known-good on gen-1: both feet off in 64 → 67% of running frames; on gen-1287 the worst glide 17.7 → 24.6 cm/s (warn 20, fail 41.9); every planted bad one fails as before; real agents at 1276348 and a5e8e16: B1 5/5 (4/5 on 2026-10-22), discovery 2/2, its G7 held-out variant 5/5 (4/5), $3.02 (D145) |
+| F.21 The owner's next review batch | done | 0.64.0 | #33 | 2026-10-27 | `review export --on`: 15 clips named first (Jump_Twist, CrossOver, OnPhoneLeft and GracefulArms_Idle, Pick_Up_Basket, Wrench_Bolt, the nine idles F.19 left under 0.8), 5 sampled: 20 rows, 0 submissions; `bench/results/gates/reviews/queue-0.64.0.json` the site's newest batch; the owner's review asked on #33 (D146) |
 
 ---
 

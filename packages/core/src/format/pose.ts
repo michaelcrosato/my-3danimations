@@ -15,6 +15,9 @@ const round = (v: number) => Math.round(v);
 const STEADY_BEND = 25;
 /** A twist that jumps this far (degrees) between keys of a nearly straight limb is noise winding it, not a turn. */
 const STEADY_JUMP = 45;
+/** With `steadyRound`, a whole number the key before holds is kept while the exact value stays this near it (a hips'
+ *  percent of H0, a degree of the body's, chest's or head's turn). */
+const STEADY_ROUND = 0.9;
 const SIDES: Side[] = ["L", "R"];
 const arr = (k: KeyLike, f: string) => k[f] as number[] | undefined;
 /** Each side's key fields, named once: a name built per call ("arm" + s) costs a lookup by its hash every time. */
@@ -92,12 +95,16 @@ export function torso(R: Rest, k: KeyLike) {
  *  spine curl (`encode` keeps it only for a clip it helps, every key or none); `steadyTwist` keeps a nearly straight
  *  limb's twist (bent less than 25°) as the key before had it rather than jump 45° or more; `steadyBend` reads a nearly
  *  straight limb's bend from where its knee or elbow is rather than from its root-to-end distance alone (`steadyBend`
- *  below). Each is off by default, and a key encoded without them is the same, bit for bit. */
+ *  below); `steadyRound` keeps the key before's whole numbers for the hips and the body's, chest's and head's turns
+ *  while the exact values stay within one of them (STEADY_ROUND), so a body that sways a few millimetres either side of
+ *  a rounding boundary doesn't step a whole percent of H0 or degree from key to key. Each is off by default, and a key
+ *  encoded without them is the same, bit for bit. */
 export interface EncodeOptions {
   hands?: boolean;
   spine?: boolean;
   steadyTwist?: boolean;
   steadyBend?: boolean;
+  steadyRound?: boolean;
   /** Whole numbers, as a file holds them (the default); false keeps the exact values, for blending in point space. */
   round?: boolean;
 }
@@ -114,7 +121,9 @@ export function encodePose(R: Rest, X: ArrayLike<number>, prev: KeyLike | null, 
   };
   const k: KeyLike = {};
   const pr: KeyLike = prev || {};
-  const uw = (a: number[], b: number[] | undefined) => a.map((v, i) => r0(unwrap(v, b ? b[i] : undefined)));
+  // the key before's whole number while the exact value stays within STEADY_ROUND of it (`steadyRound`), else rounded
+  const held = (v: number, b: number | undefined) => (opts.steadyRound && opts.round !== false && b !== undefined && Math.abs(v - b) < STEADY_ROUND ? b : r0(v));
+  const uw = (a: number[], b: number[] | undefined) => a.map((v, i) => held(unwrap(v, b ? b[i] : undefined), b?.[i]));
   // a turn, lean and tilt has a second reading (turn + 180, 180 − lean, tilt + 180): take whichever continues
   const ue = (e: number[], b: number[] | undefined) => {
     const a1 = uw(e, b);
@@ -123,7 +132,7 @@ export function encodePose(R: Rest, X: ArrayLike<number>, prev: KeyLike | null, 
     const d = (a: number[]) => a.reduce((t, v, i) => t + Math.abs(v - b[i]!), 0);
     return d(a2) < d(a1) ? a2 : a1;
   };
-  k.hips = p("pelvis").map((v) => r0((v / R.H0) * 100));
+  k.hips = p("pelvis").map((v, i) => held((v / R.H0) * 100, arr(pr, "hips")?.[i]));
   const RPx = frameFR(sub(p("hipR"), p("hipL")), sub(p("pelvisF"), p("pelvis")));
   const RCx = frameUF(sub(p("neck"), p("chest")), sub(p("chestF"), p("chest")));
   const RHx = frameUF(sub(p("headTop"), p("head")), sub(p("faceF"), p("head")));

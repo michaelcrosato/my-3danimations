@@ -48,8 +48,8 @@ export function clipTol(tol: number, far: number, k: { ratio: number; floor: num
 }
 
 /** Whether a capture moves too little for `tol` to keep its motion: it reaches less than `tol / ratio`, so `fitLimit`
- *  bounds its limit by its own motion (and an import encodes it with the encoder's `steadyBend` and the fit's `spaced`;
- *  a recipe's compile reads no bend from points). */
+ *  bounds its limit by its own motion (and an import encodes it with the encoder's `steadyBend` and `steadyRound` and the
+ *  fit's `spaced`; a recipe's compile reads no bend from points). */
 export function ownMotion(cap: Frames, tol: number, k: { ratio: number; floor: number } = MOTION_TOL): boolean {
   return reach(cap) < tol / k.ratio;
 }

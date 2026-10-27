@@ -4,7 +4,8 @@
 // library clips whose review is missing or stale (their motion changed since), picked in a fixed order (by the
 // SHA-256 of their ids), so the same library gives the same sample. Each row's ref is `id@<hash>`, the hash the
 // decision will be made on. `export` writes the whole queue as JSON (m3a.review-queue/1, the gallery's and the phone's
-// input) to check-output/review/queue.json; `ingest` applies a review made elsewhere (m3a.review/1); `adopt`,
+// input) to check-output/review/queue.json, the clips `on` names (ids or refs, comma-separated) first, whatever their
+// review, then the sample up to SAMPLE; `ingest` applies a review made elsewhere (m3a.review/1); `adopt`,
 // `archive`, `reject` (submissions) and `approve`, `flag` (library clips) decide on refs, comma-separated, a batch at
 // once, with one note. Decisions go through intake/review.ts (stale ones refused, a repeat no change).
 import { recipe, validate, type Clip, type Rest } from "@m3a/core";
@@ -50,15 +51,21 @@ function item(h: ReviewHost, s: Submission): SubmissionItem {
   return row;
 }
 
-/** The queue: every submission awaiting review, and SAMPLE library clips unreviewed or stale. */
-async function queue(h: ReviewHost): Promise<Queue> {
+/** The queue: every submission awaiting review, the library clips `first` names (whatever their review: one to look at
+ *  again), and library clips unreviewed or stale, sampled, up to SAMPLE clips in all. */
+async function queue(h: ReviewHost, first: readonly string[] = []): Promise<Queue> {
   const subs = (await h.store.list({ state: "awaiting review" })).map((s) => item(h, s)), clips: ClipItem[] = [];
+  const row = (id: string) => {
+    const got = h.library.clip(id), hash = motionHash(got.clip), r = got.clip.review ?? null, stale = r !== null && r.state !== "unreviewed" && r.motion !== hash;
+    return { got, hash, r, stale, item: (): ClipItem => ({ ref: ref(got.clip.id, hash), id: got.clip.id, hash, tier: got.tier, review: r, stale, numbers: numbers(got.clip, got.rest) }) };
+  };
+  for (const id of first) if (!clips.some((c) => c.id === id)) clips.push(row(id).item());
   const ids = h.library.catalog().map((r) => r.id).map((id) => [recipe.sha256(id), id] as const).sort((a, b) => (a[0] < b[0] ? -1 : 1));
   for (const [, id] of ids) {
     if (clips.length >= SAMPLE) break;
-    const got = h.library.clip(id), hash = motionHash(got.clip), r = got.clip.review ?? null, stale = r !== null && r.state !== "unreviewed" && r.motion !== hash;
-    if (r && r.state !== "unreviewed" && !stale) continue;
-    clips.push({ ref: ref(id, hash), id, hash, tier: got.tier, review: r, stale, numbers: numbers(got.clip, got.rest) });
+    const x = row(id);
+    if ((x.r && x.r.state !== "unreviewed" && !x.stale) || clips.some((c) => c.id === id)) continue;
+    clips.push(x.item());
   }
   return { schema: QUEUE_ID, store: h.store.backend, date: h.today(), submissions: subs, clips };
 }
@@ -104,8 +111,10 @@ export const review = defineTool<Args, unknown>({
 async function act(a: Args & { do: NonNullable<Args["do"]> }, ctx: ToolContext): Promise<ToolOutput> {
   const h = ctx.intake(), none = { submissions: [], clips: [], outcomes: [], path: null };
   if (a.do === "list" || a.do === "export") {
-    if (a.on !== undefined || a.note !== undefined) throw new ToolError("E_ARGS", `${a.do} takes no ${a.on !== undefined ? "on" : "note"}`, true);
-    const q = await queue(h), what = `${count(q.submissions.length, "submission")} awaiting review, ${count(q.clips.length, "sampled clip")} (${q.store} store)`;
+    if ((a.do === "list" && a.on !== undefined) || a.note !== undefined) throw new ToolError("E_ARGS", `${a.do} takes no ${a.note === undefined ? "on" : "note"}`, true);
+    // export's `on`: library clips to put first, by id or ref (its hash is the queue's to give)
+    const named = [...new Set((a.on ?? "").split(",").map((x) => x.trim().replace(/@[0-9a-f]*$/, "")).filter(Boolean))];
+    const q = await queue(h, named), what = `${count(q.submissions.length, "submission")} awaiting review, ${count(q.clips.length, "sampled clip")}${named.length ? ` (${count(named.length, "named", "named")} first)` : ""} (${q.store} store)`;
     if (a.do === "export") {
       const path = ctx.write(QUEUE_FILE, `${JSON.stringify(q, null, 1)}\n`);
       return { verdict: `review export: ${what}, written to ${path}`, data: { do: a.do, store: q.store, ...none, path }, next: `open it in the gallery's review page; apply what comes back with ${call("review", ["ingest", "<the review file>"])}` };

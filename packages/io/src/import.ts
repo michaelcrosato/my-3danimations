@@ -123,7 +123,10 @@ function sourceOf(cat: Catalog, L: LibraryIn): SourceInfo | undefined {
  * its root-to-end distance flips between straight and some 15° from key to key, moving further than anything the
  * capture moves; read from the joint itself it moves as the capture's does. Its fit is `spaced` (no key one frame from
  * a key): at a limit of a few millimetres the frame beside a key is missed by that key's own whole degrees, and a second
- * key there made the head or chest step 5 to 11 mm in 1/30 s. Every other clip is encoded and fitted as before.
+ * key there made the head or chest step 5 to 11 mm in 1/30 s. Its keys hold the key before's whole numbers for the hips,
+ * body, chest and head while the capture stays within 0.9 of them (core's `steadyRound`, F.19): rounded alone, a sway of
+ * a few millimetres across a rounding boundary stepped the pelvis a whole percent of H0 from key to key. Every other
+ * clip is encoded and fitted as before.
  */
 export function importSet(libs: readonly LibraryIn[], cat: Catalog, opts: { name: string; title?: string; credit: string; fps?: number; tol?: number; motion?: false | { ratio: number; floor: number }; only?: readonly string[]; blade?: RegExp; encode?: { hands?: boolean; spine?: boolean; yaw?: boolean; steadyTwist?: boolean; closeLoop?: boolean } }): Imported {
   const fps = opts.fps ?? 30, tol = opts.tol ?? 30, motion = opts.motion ?? MOTION_TOL, blade = opts.blade ?? /Sword/, warnings: string[] = [], skipped: Imported["report"]["skipped"] = [], fits: Imported["report"]["clips"] = [];
@@ -152,9 +155,9 @@ export function importSet(libs: readonly LibraryIn[], cat: Catalog, opts: { name
         extra.desc = c[1];
       } else if (named) warnings.push(`no catalog entry for ${name}`);
       // within its own motion's share when it moves little, so a small sway keeps its keys (F.13), its nearly straight
-      // limbs' bends read from their knees and elbows and no key one frame from a key (D135)
+      // limbs' bends read from their knees and elbows, no key one frame from a key (D135) and its whole numbers held (F.19)
       const own = motion !== false && format.ownMotion(cap, tol, motion), limit = motion !== false && own ? fitLimit(cap, tol, motion) : tol;
-      if (own) Object.assign(extra, { steadyBend: true, spaced: true });
+      if (own) Object.assign(extra, { steadyBend: true, spaced: true, steadyRound: true });
       const { clip, max, mean } = format.fit(rest, cap, limit, extra);
       // a loop that walks or runs in place keeps how fast it travelled, so a player can match it to the ground; one
       // that hardly moves has none

@@ -438,8 +438,9 @@ test("bundled: a build carries a queue only when M3A_REVIEW_QUEUE asks, and the 
   const s0 = await state(page);
   expect([s0.source, s0.batch, s0.batches]).toEqual(["", null, []]); // built asking for no batch, and no queue: none in it
   // a build naming no batches (as `npm run gallery` at a desk): the committed ones of library clips alone, the newest of
-  // each gate (G8-run-1's queue-0.56.0; its queue.json superseded, G9's holding submissions)
-  const bundled = join(ROOT, ".cache/review-site-bundled"), G8 = "bench/results/gates/G8-run-1", NEWEST = "G8-run-1/queue-0.56.0";
+  // each gate (G8-run-1's queue-0.56.0, its queue.json superseded; reviews/ queue-0.64.0, the owner's next batch and the
+  // newest; G9's holding submissions)
+  const bundled = join(ROOT, ".cache/review-site-bundled"), NEXT = "bench/results/gates/reviews", NEWEST = "reviews/queue-0.64.0", G8 = "G8-run-1/queue-0.56.0";
   process.env.M3A_REVIEW_QUEUE = join(co.cwd, QUEUE_FILE);
   delete process.env.M3A_REVIEW_BATCHES;
   try {
@@ -452,7 +453,7 @@ test("bundled: a build carries a queue only when M3A_REVIEW_QUEUE asks, and the 
   await visit(page, PAGE);
   await page.waitForFunction(() => (window as unknown as Win).__m3a.state().source !== "");
   const s = await state(page);
-  expect([s.source, s.batch, s.batches, s.error, s.submissions.length, s.clips.length]).toEqual(["bundled at build time", null, [NEWEST], null, 3, 20]);
+  expect([s.source, s.batch, [...s.batches].sort(), s.error, s.submissions.length, s.clips.length]).toEqual(["bundled at build time", null, [G8, NEWEST].sort(), null, 3, 20]);
   // a link naming a batch opens it, the page saying which; one naming none here opens the newest and says so; opening
   // one at load decides nothing
   for (const [asked, problem] of [[NEWEST, ""], ["G8-run-1/queue", "?queue=G8-run-1/queue is no batch this page carries"], ["G9-run-2/queue", "?queue=G9-run-2/queue is no batch this page carries"]]) {
@@ -460,19 +461,22 @@ test("bundled: a build carries a queue only when M3A_REVIEW_QUEUE asks, and the 
     const b = await state(page), decisions = await page.evaluate(() => (window as unknown as Win).__m3a.review()!.decisions.length);
     expect([b.batch, b.source, b.submissions.length, b.clips.length, b.problem.slice(0, problem!.length)]).toEqual([NEWEST, `batch ${NEWEST}`, 0, 20, problem]);
     expect([b.decided, b.clips.filter((r) => r.as !== null).length, decisions], asked).toEqual([0, 0, 0]);
-    await expect(page.locator("#source")).toContainText(`batch ${NEWEST} (${G8}/queue-0.56.0.json, the newest of 1 this page carries)`);
+    await expect(page.locator("#source")).toContainText(`batch ${NEWEST} (${NEXT}/queue-0.64.0.json, the newest of 2 this page carries)`);
     await expect(page.locator(`#batches [data-queue="${NEWEST}"]`)).toHaveAttribute("aria-current", "true");
   }
-  // each of G8's cards says what its clip should show, as its file holds it, deciding nothing; the guide open above them
-  // (this browser's first visit): a phone's screenshot of the guide and the first card, its sheet drawn (the bar fixed
+  // G8's batch opens by its name too
+  await visit(page, `${PAGE}?queue=${G8}`);
+  expect([(await state(page)).batch, (await state(page)).clips.length]).toEqual([G8, 20]);
+  // each of the newest batch's cards says what its clip should show, as its file holds it, deciding nothing; the guide
+  // open above them (this browser's first visit): a phone's screenshot of the guide and the first card, its sheet drawn (the bar fixed
   // at the screen's foot left out: a whole-page picture would draw it over the guide)
   await visit(page, `${PAGE}?queue=${NEWEST}`);
   expect(await page.evaluate(() => (window as unknown as Win).__m3a.described())).toBe(20);
-  const g8 = (await state(page)).clips;
-  await showsLibrary(page, g8.map((r) => r.id));
+  const shown = (await state(page)).clips;
+  await showsLibrary(page, shown.map((r) => r.id));
   expect([(await state(page)).decided, await page.locator("#guide").evaluate((d) => (d as HTMLDetailsElement).open)]).toEqual([0, true]);
-  await page.locator(`[data-pics="${g8[0]!.id}"] canvas`).waitFor({ timeout: 60_000 });
-  const first = (await card(page, g8[0]!.id).boundingBox())!, top = await page.evaluate(() => window.scrollY);
+  await page.locator(`[data-pics="${shown[0]!.id}"] canvas`).waitFor({ timeout: 60_000 });
+  const first = (await card(page, shown[0]!.id).boundingBox())!, top = await page.evaluate(() => window.scrollY);
   await page.screenshot({ path: join(OUT, "guide.png"), fullPage: true, clip: { x: 0, y: 0, width: 390, height: Math.ceil(first.y + top + first.height + 8) }, style: "#bar { display: none; }" });
 });
 

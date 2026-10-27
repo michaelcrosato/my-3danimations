@@ -121,7 +121,8 @@ test("previews: the review page opens the newest committed batch of library clip
   type S = { source: string; batch: string | null; batches: string[]; problem: string; error: string | null; submissions: unknown[]; clips: { as: string | null }[]; decided: number };
   // G8's newest batch is carried; its older export (superseded) and G9's (holding submissions) are left out: the site's
   // reply names each, and why
-  expect([CARRIED.map((b) => b.name), NEWEST.name, SUPERSEDED.map((b) => `${b.name} by ${b.by}`)]).toEqual([expect.arrayContaining(["G8-run-1/queue-0.56.0"]), "G8-run-1/queue-0.56.0", expect.arrayContaining(["G8-run-1/queue by G8-run-1/queue-0.56.0"])]);
+  // and the owner's next batch (reviews/, each export there superseding the last) is the newest: the page opens it
+  expect([CARRIED.map((b) => b.name), NEWEST.name, SUPERSEDED.map((b) => `${b.name} by ${b.by}`)]).toEqual([expect.arrayContaining(["G8-run-1/queue-0.56.0", "reviews/queue-0.64.0"]), "reviews/queue-0.64.0", expect.arrayContaining(["G8-run-1/queue by G8-run-1/queue-0.56.0"])]);
   expect(LEFT.map((b) => b.name)).toEqual(expect.arrayContaining(["G8-run-1/queue", "G9-run-1/queue", "G9-run-2/queue"]));
   const said = built.split("\n").find((l) => /^\s+ok\s+review batches /.test(l))!;
   expect(said, built).toContain(`${CARRIED.length} of library clips alone carried (${CARRIED.map((b) => b.file).sort().join(", ")}); ${LEFT.length} left out (`);
