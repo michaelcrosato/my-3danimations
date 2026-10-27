@@ -1,4 +1,4 @@
-# Handoff: every phase built; the follow-ups after G10 built (F.1 to F.14); the next goal written (2026-10-24)
+# Handoff: every phase built; the follow-ups after G10 built (F.1 to F.18); the next goal under way (2026-10-27)
 
 Phase 7 merged before its gate (michaelcrosato/my-3danimations#13, D103); G7 passed on run 2 on
 michaelcrosato/my-3danimations#14 (D107); Phase 8 merged on michaelcrosato/my-3danimations#15 (G8's commands, D111);
@@ -11,7 +11,9 @@ records (michaelcrosato/my-3danimations#23, #24), WP-F.11 (D132, #25), G8's pass
 after it: WP-F.12 (D134, #27), F.13 (D135, #28) and F.14 (D136, michaelcrosato/my-3danimations#29, merged as b66f248),
 then the records after it (#30, 8c88b42, main's head). On 2026-10-24 a session checked the environment (everything
 the work needs is here, and the Supabase connector is now connected), corrected the records and wrote the next goal
-below (D137). This file is what the next session needs.
+below (D137), merged as michaelcrosato/my-3danimations#31 (801f067). On 2026-10-27 the owner started it: items 1 and 2
+(D138) and WP-F.15 to F.18 (D139 to D142) on michaelcrosato/my-3danimations#32. This file is what the next session
+needs.
 
 ## The standing goal (the owner's)
 
@@ -36,12 +38,13 @@ the ledger, PROGRESS, HANDOFF and DECISIONS agree, and CI is green on main.
 
 What each item means and when it is done:
 
-1. **Done (52c789b, D138).** **The dev dependencies' advisories** (D137): `npm audit` reports 6 (2 high, 4 moderate), all in the root's dev
-   tooling and none in a shipped `@m3a` package: `@modelcontextprotocol/inspector` 2.9.0 (its MCP client and server;
+1. **Done (52c789b, D138).** **The dev dependencies' advisories** (D137): `npm audit` reports 6 (2 high, 4
+   moderate), all in the root's dev tooling and none in a shipped `@m3a` package: `@modelcontextprotocol/inspector` 2.9.0 (its MCP client and server;
    fixed in 2.12.0; `mcp-smoke` drives it), `vitest` 4.1.11 (its mocker; fixed in 4.1.12) and `fast-uri` 3.1.8 (under
    `ajv`; `npm audit fix` moves it in the lockfile). Done when the pins move exactly, in a commit of their own first
    (AGENTS.md), `npm audit` reports none, and T0, T1 and T2 pass (`mcp-smoke` on the new Inspector).
-2. **Done (D138): the project `m3a-intake` (`suhheypppwwnddbgvngx`), checked live; steps 3 to 6 asked.** **O8's steps 1 and 2** (`services/intake/README.md`, D130, D137): `create_project` on the free plan in the one
+2. **Done (D138): the project `m3a-intake` (`suhheypppwwnddbgvngx`), checked live; steps 3 to 6 asked.** **O8's
+   steps 1 and 2** (`services/intake/README.md`, D130, D137): `create_project` on the free plan in the one
    organization D137 names (a nonzero quote waits for the owner), `apply_migration` with `migrations/`,
    `deploy_edge_function` `submit` with `verify_jwt` off. Done when the tables and their row-level security are there
    (`list_tables`, `get_advisors` answered), the function refuses a submission without a key, the README records the
@@ -50,17 +53,19 @@ What each item means and when it is done:
    contract run, an adoption by a merged PR and the 70% approval.
 3. **The five follow-ups no decision deferred** (below), each a WP of its own in PLAN.md §10 "After G10" (the template,
    Verify, a ledger row, a version and changelog lines):
-   - Swim_Idle_Loop's body under its floor (D136): done when `apps/gallery/src/playback.test.ts` no longer names it
-     (it agrees with its data on every test character), or a decision answers it with numbers.
-   - `describe` names a turn and a bend (Pick_Up_Basket reads "walks; stands"): done when the turn's side and size and
-     the bend are in its text within its token bound, its truth clips still read right.
-   - The engine sheet (D136, the owner's idea): the gallery's character drawn at the sheet's moments beside the sheet,
-     the data comparison's numbers under each frame, from a tool (principle 2), images to `check-output/`.
-   - The encoder's steady rounding of the hips, chest and head (D135's follow-up): done when the idles it names move
-     no further than their capture, measured as D135 measured them, the sets re-imported byte for byte, the frozen
-     spec untouched.
-   - T1's headroom (Last measured): the slowest files made faster, never the budget raised, until T1 sits well under
-     90 s here and in CI.
+   - **Done (F.17, D141): its legs within 1° of its data.** Swim_Idle_Loop's body under its floor (D136): done when
+     `apps/gallery/src/playback.test.ts` no longer names it (it agrees with its data on every test character), or a
+     decision answers it with numbers.
+   - **Done (F.16, D140).** `describe` names a turn and a bend (Pick_Up_Basket reads "walks; stands"): done when the
+     turn's side and size and the bend are in its text within its token bound, its truth clips still read right.
+   - **Done (F.18, D142): `npx m3a sheet <clip> --character gen-1`.** The engine sheet (D136, the owner's idea): the
+     gallery's character drawn at the sheet's moments beside the sheet, the data comparison's numbers under each frame,
+     from a tool (principle 2), images to `check-output/`.
+   - The encoder's steady rounding of the hips, chest and head (D135's follow-up): done when the idles it names move no
+     further than their capture, measured as D135 measured them, the sets re-imported byte for byte, the frozen spec
+     untouched.
+   - **Doing (F.15, D139): the repeated sweeps sampled; CI's T1 100 to 106 s, still over.** T1's headroom (Last
+     measured): the slowest files made faster, never the budget raised, until T1 sits well under 90 s here and in CI.
 4. **B1's floor** (D123, D131): B1's grader reads heights from the body's measured floor, then G7's B1 known-goods and
    variants run again with real agents (about $12, 1.5 hours), the result logged. The owner's last goal kept it
    deferred until their go (#24): this goal, started as written, is that go; without item 4 it stays deferred.
@@ -78,8 +83,8 @@ none of their triggers has fired). Add `ultracode` to the goal to run its WPs in
 
 ## Where things stand
 
-- **Version 0.60.0.** Every WP through 10.2 and F.1 to F.14 is done; G0-G8 passed; G9 and G10's command sets passed
-  and each waits on the owner (blocked-owner, its ask on its PR):
+- **Version 0.62.0.** Every WP through 10.2, F.1 to F.14 and F.16 to F.18 is done (F.15 doing); G0-G8 passed; G9 and
+  G10's command sets passed and each waits on the owner (blocked-owner, its ask on its PR):
   - **G8** (#15): **passed** on 2026-10-22 (D133): the owner's review of G8-run-1's `queue-0.56.0.json` on the
     site's review page, applied with `npx m3a review ingest` (20 decisions, 18 approved, 2 flagged); its notes are
     FEEDBACK-LOG F7, its two task proposals REVIEW-PROPOSALS. It found 74 of 98 STYLE100 idles frozen, Jump_Twist cut
@@ -90,10 +95,10 @@ none of their triggers has fired). Add `ultracode` to the goal to run its WPs in
     70% of `bench/results/gates/G9-run-2/queue.json`. O8's setup is `services/intake/README.md`: the Supabase project,
     the Actions secrets `M3A_SUPABASE_URL` and `M3A_SUPABASE_SERVICE_ROLE_KEY` (intake.yml) and `M3A_INTAKE_SUPABASE`
     (ci.yml's `intake-contract`, dispatched with that gate), and "Allow GitHub Actions to create and approve pull
-    requests". The owner said yes to the session creating the project (D130), and on 2026-10-24 the Supabase
-    connector is connected (D137: one organization on the free plan, through Vercel's marketplace, no m3a project
-    yet), so the next session creates it and runs the README's steps 1 and 2 through the connector (the next goal's
-    item 1); the OAuth app, the first sign-in, the secrets and the Actions setting stay the owner's.
+    requests". The owner said yes to the session creating the project (D130); the Supabase connector is connected
+    (D137), and on 2026-10-27 the session created `m3a-intake` and ran the README's steps 1 and 2 through it (D138: its
+    ref, URL and the values of the owner's steps are in the README); the OAuth app, the first sign-in, the secrets and
+    the Actions setting (steps 3 to 6) stay the owner's, asked on #32.
   - **G10** (#17): another repository consumes the package or certifies against the vectors, and the owner confirms
     it (O9: proposed in docs/MIGRATING.md and spec/conformance/CERTIFYING.md, never acted on there).
   - **O2 answered (D130): publish now under `@m3a/*`.** The session built `publish.yml` (WP-F.10) and never publishes;
@@ -184,18 +189,8 @@ none of their triggers has fired). Add `ultracode` to the goal to run its WPs in
 
 ## Follow-ups recorded, owned by no WP yet
 
-- A body under its floor (D136): QUATERNIUS_SHARDFALL/Swim_Idle_Loop ("treading water", its hips 36 to 47% of H0 under
-  the floor, the water's surface) plays far from its data in the engine (its limbs 93 to 102° off on every test
-  character) and the gallery's solid floor hides it. `apps/gallery/src/playback.test.ts` names it; when fixed, that
-  entry goes (the test fails while it is named and no longer parts from its data).
 - An AI visual pre-screen of every clip (D136): considered, not built (the owner's call): only if the data comparison
   misses what a reviewer sees.
-- `describe` reports no turn and no bend (CMU_CURATED/Pick_Up_Basket: "walks; stands" for a walk, a pick-up, a half
-  turn, a walk back and a set-down): the text an agent reads should say both.
-- An engine sheet: the gallery's character drawn at the sheet's moments beside the sheet, the comparison's numbers under
-  each frame (the owner's idea, D136), for a reviewer or a failing comparison. Until then it is done by hand: the
-  gallery's `window.__m3a` (`seek`, `pause`, `state`) driven by Playwright at `?char=gen-1&clip=<id>&view=<view>`,
-  each canvas captured at the sheet's times, set beside `npx m3a sheet --clip <id> --frames 12 --view <view>`.
 - CI's T1 near its budget (Last measured): 58 to 109 s on GitHub's runners for the same tests (79.1 s after F.5, D125;
   1,343 passing in CI now). A run at 135 s fails: before then, the slowest files made faster (PLAN.md §6), not the budget
   raised.
