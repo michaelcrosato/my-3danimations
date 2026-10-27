@@ -5879,3 +5879,27 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   the floor is a water's surface or the ground a body rises out of, and the clip's legs are the truth.
 - **Answered:** the owner's goal (2026-10-27) named the WP; the rule is the session's, under D131.
 - **Landed in:** v0.61.1
+
+## D142 · 2026-10-27 · The engine sheet: core's pose on a character read back as body points, drawn under the clip's
+
+- **Principle:** 2 (a tool, images to `check-output/`), 3 (verified: the engine plays what the data says), D136, D119
+- **Call:**
+  - **What it draws (WP-F.18):** `sheet --character <ref>` plays the clip on that character with core's Animator (the
+    pose @m3a/three's attach writes to the bones), reads the posed bones back as the format's 36 body points
+    (`solver.posedPoints`) and draws them under the clip's own pose at the sheet's moments, on one camera
+    (`sheets.pointRows`), each cell's facing and limbs apart under it (the playback comparison's measures) and the
+    worst in the verdict and `data.engine`.
+  - **Not three's render:** the tools build no three scene (the test characters are generated without three), so the
+    stage's placement (the gallery's carrier, where D136's turn shown twice lived) stays
+    `apps/gallery/src/playback.test.ts`'s; the sheet shows what the engine's pose says, on the sheets' mannequin.
+  - **The fingers:** a rig with finger bones places index, pinky and fist at its finger joints as the solver curls
+    them, where the format's points are helpers (a straight hand's fist, a blade's line): up to 83 mm apart on tier 2.
+    Every other point is the decoder's to 0.01 mm.
+  - **The budget:** the character parameter put the tools at 3,232 tokens of their 3,200 (D112); its words became
+    "glTF/VRM, tiny or gen-<seed>" on all five tools that take one, and the sheet's description shorter, rather than
+    the budget raised.
+- **Why:** the owner's idea (D136): a reviewer, or a failing comparison, sees where the engine parts from the data
+  without driving the gallery with Playwright by hand.
+- **Answered:** the owner's goal (2026-10-27) named the WP; the reading-back and the drawing are the session's, under
+  D131.
+- **Landed in:** v0.62.0

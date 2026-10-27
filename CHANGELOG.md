@@ -4,6 +4,24 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.62.0 · 2026-10-27
+
+WP-F.18 (D142): the engine sheet.
+
+### Core
+- `solver.posedPoints(bound, at)`: a posed skeleton's 36 body points read back from its bones (each bone's head and
+  turn), placed as `restPoints` places them at rest: its rest points at rest, the decoder's on tier 2 to 0.01 mm.
+
+### Sensors
+- `sheets.pointRows(rows, times)`: rows of body points drawn as the sheets' mannequin, a row a body and a column a
+  moment, on one camera, a line of notes under each cell, sized to a token budget.
+
+### Tools
+- `sheet --character <ref>`: the engine sheet, the clip's own pose above the pose core's Animator plays on that body
+  (what @m3a/three's attach writes), each cell's facing and limbs apart under it and the worst in the verdict and
+  `data.engine` (`character` and `engine` null without one). The character parameter reads "glTF/VRM, tiny or
+  gen-<seed>" on every tool, keeping all the tools within their 3,200 tokens.
+
 ## 0.61.1 · 2026-10-27
 
 WP-F.17 (D141): a body under its floor keeps its legs.

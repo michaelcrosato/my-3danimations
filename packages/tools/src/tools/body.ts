@@ -22,7 +22,7 @@ import { naming, prose } from "./clips.ts";
 import { call, count, cut } from "./common.ts";
 
 /** The character parameter: a character file under the working directory, the tiny rig or a generated test character. */
-export const CHARACTER: Schema = { type: "string", description: ".glb .gltf .vrm file, tiny or gen-<seed>" };
+export const CHARACTER: Schema = { type: "string", description: "glTF/VRM, tiny or gen-<seed>" };
 /** The mapping parameter: retarget.inspect's patch, edited ({bones: {humanoid bone: file's bone, or null to unmap}}). */
 export const MAPPING: Schema = { type: "object", description: "patch: {bones: {hips: \"pelvis\"}}", properties: { bones: { type: "object" } }, required: ["bones"] };
 

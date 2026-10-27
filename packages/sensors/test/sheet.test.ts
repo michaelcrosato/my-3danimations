@@ -1,7 +1,7 @@
 // Sheets, films and diffs (WP-3.2): a sheet of a 2 s clip fits in one 1,000 × 1,000 image within its token budget (a
 // long one shrinks to stay within it); a diff of identical inputs is empty; a planted change is marked where it is,
-// in the cells either side of the edited key and over the edited arm; flags, contact markers and filmstrips draw as
-// stated; the same input gives the same pixels.
+// in the cells either side of the edited key and over the edited arm; flags, contact markers, filmstrips and rows of
+// body points (WP-F.18) draw as stated; the same input gives the same pixels.
 import { describe, expect, it } from "vitest";
 import { format, type Key } from "@m3a/core";
 import { raster, sheets } from "../src/index.ts";
@@ -37,6 +37,15 @@ describe("sheets", () => {
     const strip = sheets.filmstrip(walk, R, { frames: 6 });
     expect(new Set(strip.cells.map((c) => c.y)).size).toBe(1);
     expect(strip.cells).toHaveLength(6);
+  });
+  it("draws rows of body points (WP-F.18): a row a body and a column a moment, within its budget, a line of notes under a row that has them; the same rows the same pixels; a row short of the moments refused", () => {
+    const times = sheets.sheetTimes(walk, { frames: 4 }), frames = times.map((t) => format.decodePose(R, format.keyAt(walk, t), new Float32Array(format.P * 3)));
+    const plain = sheets.pointRows([{ label: "DATA", frames }, { label: "ENGINE", frames }], times), noted = sheets.pointRows([{ label: "DATA", frames }, { label: "ENGINE", frames, notes: times.map((t) => `AT ${t.toFixed(2)}`) }], times);
+    expect([plain.width, plain.tokens <= 1800, noted.height > plain.height, noted.tokens <= 1800]).toEqual([1000, true, true, true]);
+    expect(Buffer.from(sheets.pointRows([{ label: "DATA", frames }, { label: "ENGINE", frames }], times).image.data).equals(Buffer.from(plain.image.data))).toBe(true);
+    const small = sheets.pointRows([{ label: "DATA", frames }], times, { width: 500, budget: 300 });
+    expect([small.width <= 500, small.tokens <= 300, raster.coverage(small.image) > 0.02]).toEqual([true, true, true]);
+    expect(() => sheets.pointRows([{ label: "ENGINE", frames: frames.slice(1) }], times)).toThrow("pointRows: row ENGINE has 3 frames for 4 times; give one a moment");
   });
   it("frames flagged times in red, and only those", () => {
     const s = sheets.sheet(walk, R, { flags: [{ t0: 0.4, t1: 0.6 }] });

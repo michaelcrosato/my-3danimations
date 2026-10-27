@@ -4,7 +4,7 @@
 // same joints; and a skeleton's naming doesn't matter. Other bodies are conformance tier 3
 // (spec/conformance/tier3.test.ts).
 import { describe, expect, it } from "vitest";
-import { bind, decodeOn, decodePose, forward, IDX, keyAt, mirrorPose, quat, solve, toFormat, TABLES, type Bound, type KeyLike, type Quat, type Rest, type SkeletonIn, type Solved } from "./all.ts";
+import { bind, decodeOn, decodePose, forward, IDX, keyAt, mirrorPose, POINTS, posedPoints, quat, solve, toFormat, TABLES, type Bound, type KeyLike, type Quat, type Rest, type SkeletonIn, type Solved } from "./all.ts";
 import { rigSkeleton } from "../../../spec/conformance/runner/skeleton.ts";
 import { loadTier2, tier2Sets } from "../../../spec/conformance/runner/vectors.ts";
 
@@ -63,6 +63,22 @@ describe("solve on the reference body", () => {
     expect(worst).toBeLessThan(0.01);
     expect(shared).toBeLessThan(40);
   }, 30_000);
+  it("reads its body points back from its posed bones (posedPoints, WP-F.18): its rest points at rest; on tier 2 (every eighth pose in T1) each within 0.01 mm of the decoder's, the fronts turned with their bones", () => {
+    const at = (s: Solved) => ((fk) => (n: string) => (fk[n] && s.world[n] ? { head: fk[n]!, q: s.world[n]! } : null))(forward(b, s));
+    const atRest = posedPoints(b, (n) => ((o) => (o ? { head: o.head, q: b.restWorld[n]! } : null))(b.order.find((o) => o.name === n)));
+    expect(Math.max(...atRest.map((x, i) => Math.abs(x - b.restPts[i]!)))).toBeLessThan(1e-9);
+    // the fingers' points aside: on a rig with fingers they are its finger joints as the solver curls them, where the
+    // format's are helpers (a straight hand's fist, a blade's line)
+    const shown = POINTS.filter((p) => !/^(index|pinky|fist)/.test(p));
+    let worst = 0, n = 0;
+    for (const { k } of poses(2 * T1)) {
+      const s = solve(k, b, { floor: false }), E = posedPoints(b, at(s)), X = decodeOn(b, k);
+      for (const p of shown) worst = Math.max(worst, dist(point(E, p), point(X, p)));
+      n++;
+    }
+    expect(n).toBeGreaterThan(2000 / T1);
+    expect(worst).toBeLessThan(0.01);
+  });
   it("lifts a pose whose sole would go below the floor, and leaves one standing on it alone", () => {
     const sunk = { ...keyAt(sets[0]!.clips[Object.keys(sets[0]!.clips)[0]!]!.clip as never, 0), hips: [0, 0, 90] };
     const s = solve(sunk, b), X = decodePose(b.rest, sunk, new Array(108));

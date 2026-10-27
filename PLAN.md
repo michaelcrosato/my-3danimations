@@ -2833,6 +2833,32 @@ picked by the owner on 2026-10-21. No gate follows them: each is held by its Ver
 - **Verify:** `npm run check`, `npm test`, `npm run e2e`, `M3A_FULL=1 npx vitest run apps/gallery/src/playback.test.ts`,
   `npm run vectors -- --check`, `npm run conformance -- --impl ts`
 
+#### WP-F.18 The engine sheet
+- **Owns:** `packages/core/src/solve/posed.ts`, `packages/sensors/src/sheet/rows.ts`, the `sheet` tool's character
+  (`packages/tools/src/tools/check.ts`)
+- **Also touches:** `packages/tools/src/tools/body.ts` (the character parameter's words), `packages/tools/MANUAL.md`
+  (its tool list)
+- **Needs:** WP-3.2, WP-7.2a, WP-F.14
+- **Size:** M (about 250 new lines, tests included)
+- **Carry:** none
+- **Trigger:** HANDOFF's follow-up (D136, the owner's idea): the gallery's character drawn at the sheet's moments
+  beside the sheet, the data comparison's numbers under each frame, from a tool (principle 2), for a reviewer or a
+  failing comparison; until now done by hand with Playwright on the gallery.
+- **Build:** core reads a posed skeleton's body points back from its bones (`solver.posedPoints`: each bone's head and
+  turn, the points placed as at rest, a front or a side turned with its bone); sensors draws rows of body points on
+  one camera (`sheets.pointRows`); `sheet` given a character plays the clip on it with core's Animator (what
+  @m3a/three's attach writes to the bones) and draws the clip's own pose above the engine's, each cell's facing and
+  limbs apart (the playback comparison's measures) under it, the worst in its verdict. The stage's placement (the
+  gallery's carrier) stays the playback test's.
+- **Done when:**
+  1. At rest the read-back points are the skeleton's rest points; on tier 2 every point but the fingers' is within
+     0.01 mm of the decoder's.
+  2. `npx m3a sheet QUATERNIUS_3D2DGE/Walk_Loop --frames 4 --character gen-1` writes the two rows to
+     `check-output/sheet/`; a walk and a half turn on gen-1 within the playback bounds (facing 5°, limbs 25°).
+  3. Every tool's description within its budget (3,200 tokens in all); the examples the same on every surface.
+- **Verify:** `npm run check`, `npm test -- packages/core packages/sensors packages/tools`,
+  `npx m3a sheet QUATERNIUS_3D2DGE/Walk_Loop --frames 4 --character gen-1`
+
 ### On demand
 
 Each starts only when its trigger fires; record the measurement that fired it. A trigger that never fires means the WP
@@ -3039,6 +3065,7 @@ commits named here are on their PR branches (`refs/pull/<n>/head`).
 | F.15 T1's headroom | doing | 0.60.1 | (this PR) | 2026-10-27 | the changed files' test CPU on one worker 89.5 → 62.3 s (−30%); T1 here 113–116 → 107–110 s (this container runs about 1.6× slower than D137's; its timings swing ±7 s run to run); the dedup distance the same to the bit on 1,863 pairs; CI to measure (D139) |
 | F.16 `describe` names a turn and a bend | done | 0.61.0 | (this PR) | 2026-10-27 | Mesh2Motion's quarter and half turns read 100° left, 85° right, 180° and 180° (their keys: 102, 87, 180, 181); Pick_Up_Basket "bends over (trunk 80°); turns 170° to the right; bends over (trunk 85°)" (its keys turn 165° to 170° there, 195° start to end with the walk's curve); over the library 74 one-shots turn, no loop, 157 clips bend; the truth set and the tokens as before (D140) |
 | F.17 A body under its floor keeps its legs | done | 0.61.1 | (this PR) | 2026-10-27 | Swim_Idle_Loop's legs 90°–150° from its data → within 1° (arms 4° before and after); playback in full on gen-1 and gen-0 with no known exception; vectors byte for byte, tier 3 2,317 of 2,317, the sweeps as pinned; five clips ever put their hips under the floor (two swims, Zombie_Rise, two falls by a few mm) (D141) |
+| F.18 The engine sheet | done | 0.62.0 | (this PR) | 2026-10-27 | on gen-1, 4 frames: Walk_Loop's engine facing 0° and limbs 4° (the worst cell's median) from its data, Turn_Right_180's 0° and 1°, Swim_Idle_Loop's 0° and 14° (at 1.67 s, a leg); the read-back points the rest points to 1e-13 mm and the decoder's to 0.01 mm on 1,081 tier-2 poses but the fingers' (the rig's curled finger joints, the format's helpers: up to 83 mm); the tools 3,200 tokens in all (D142) |
 
 ---
 
