@@ -2928,6 +2928,22 @@ picked by the owner on 2026-10-21. No gate follows them: each is held by its Ver
   3. Its link posted for the owner.
 - **Verify:** `npm test -- packages/tools/test/review.test.ts apps/gallery/src/review`, `npm run e2e -- review previews`
 
+#### WP-F.22 npm 12's pack
+- **Owns:** `tools/bundle/build.ts` (`packReport`, `npmPack`), `tools/bundle/bundle.test.ts` (its case)
+- **Needs:** WP-7.4
+- **Size:** S (about 30 new lines, tests included)
+- **Carry:** none
+- **Trigger:** the owner's goal of 2026-10-27, item 1 (D147): on their own box, with npm 12.1.0,
+  `npm run pack -- --check` and T2 failed ("object is not iterable" at the build's `npm pack` reading: the runner's two
+  packed trials and the briefs' test). npm 12 writes `npm pack --json` as an object keyed by the package's name; npm 11,
+  which CI's Node 24.21.0 bundles, as an array.
+- **Build:** `packReport` reads the one package `npm pack --json` reports in either shape and refuses a report of none
+  or of several; `npmPack` reads through it.
+- **Done when:**
+  1. Both shapes, as npm 11 and npm 12 wrote them for one scratch package, read the same; none and two are refused.
+  2. `npm run pack -- --check` and `npm run e2e` pass on npm 12; CI (npm 11) as before.
+- **Verify:** `npm run check`, `npm test`, `npm run pack -- --check`, `npm run e2e`
+
 ### On demand
 
 Each starts only when its trigger fires; record the measurement that fired it. A trigger that never fires means the WP
@@ -3138,6 +3154,7 @@ commits named here are on their PR branches (`refs/pull/<n>/head`).
 | F.19 The encoder's steady rounding | done | 0.63.0 | a5b086f (#33) | 2026-10-27 | at 0.9: the four idles' pelvis 5.5–7.7 mm beyond their capture's → under it (the worst of 108 clips 3.5 mm); knees or elbows past their limit 6 → 0 (worst 10.0 → 8.0 mm); past 1.5× their capture's reach 13 → 3 (max 2.12 → 1.60×); under 0.8× 7 → 9 (min 0.56 → 0.63); within 0.8–1.25× 67 → 84 of 103; 92 clips re-fitted on the same key frames, fit mean the same on 64, better on 5, up to 4 mm worse on 23; every verdict as before (D143) |
 | F.20 B1 reads heights from the body's own floor | done | 0.63.0 | a5b086f (#33) | 2026-10-27 | the floor at the soles: gen-0 to gen-3 24, 20, 41, 16 mm under y = 0 (the toes' and balls' joints 20 mm over it); the known-good on gen-1: both feet off in 64 → 67% of running frames; on gen-1287 the worst glide 17.7 → 24.6 cm/s (warn 20, fail 41.9); every planted bad one fails as before; real agents at 1276348 and a5e8e16: B1 5/5 (4/5 on 2026-10-22), discovery 2/2, its G7 held-out variant 5/5 (4/5), $3.02 (D145) |
 | F.21 The owner's next review batch | done | 0.64.0 | a5b086f (#33) | 2026-10-27 | `review export --on`: 15 clips named first (Jump_Twist, CrossOver, OnPhoneLeft and GracefulArms_Idle, Pick_Up_Basket, Wrench_Bolt, the nine idles F.19 left under 0.8), 5 sampled: 20 rows, 0 submissions; `bench/results/gates/reviews/queue-0.64.0.json` the site's newest batch; the owner's review asked on #33 (D146) |
+| F.22 npm 12's pack | done | 0.64.1 | 55c3945 (#36) | 2026-10-27 | on npm 12.1.0 (the owner's box, D147; CI's npm 11 never saw it) `pack --check` and T2's packed trials failed ("object is not iterable"): `packReport` reads npm 11's array and npm 12's object keyed by name alike, none or several refused; `pack --check` PASS in 12.1 s, T2 146.7 s (Playwright 39 passed, the sweeps' 275 tests, the rate sample's 8,110 rows none unbaselined); the packs the same |
 
 ---
 

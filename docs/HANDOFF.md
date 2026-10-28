@@ -1,4 +1,4 @@
-# Handoff: every phase built; the follow-ups after G10 built (F.1 to F.18); the next goal under way (2026-10-27)
+# Handoff: every phase built; the follow-ups after G10 built (F.1 to F.22, F.15 blocked-owner); the goal of 2026-10-27 under way
 
 Phase 7 merged before its gate (michaelcrosato/my-3danimations#13, D103); G7 passed on run 2 on
 michaelcrosato/my-3danimations#14 (D107); Phase 8 merged on michaelcrosato/my-3danimations#15 (G8's commands, D111);
@@ -12,8 +12,10 @@ after it: WP-F.12 (D134, #27), F.13 (D135, #28) and F.14 (D136, michaelcrosato/m
 then the records after it (#30, 8c88b42, main's head). On 2026-10-24 a session checked the environment (everything
 the work needs is here, and the Supabase connector is now connected), corrected the records and wrote the next goal
 below (D137), merged as michaelcrosato/my-3danimations#31 (801f067). On 2026-10-27 the owner started it: items 1 and 2
-(D138) and WP-F.15 to F.18 (D139 to D142) on michaelcrosato/my-3danimations#32. This file is what the next session
-needs.
+(D138) and WP-F.15 to F.18 (D139 to D142) on michaelcrosato/my-3danimations#32, then F.19 to F.21 (D143 to D146) on
+#33 and the records (#34, #35). The same day a session on the owner's own box (not a cloud container, D147) checked it
+and wrote the goal below; the owner started it: WP-F.22 (npm 12's pack) on michaelcrosato/my-3danimations#36. This file
+is what the next session needs.
 
 ## The standing goal (the owner's)
 
@@ -23,7 +25,30 @@ picks from the follow-ups below. Ultracode mode (PLAN.md §11, D83): implementer
 session integrates shared files, DECISIONS and merges, and runs every gate in the main checkout; at most 3 lanes,
 none during trial batches.
 
-## The next goal (2026-10-24, D137)
+## The goal of 2026-10-27 (D147)
+
+The owner's, started 2026-10-27 on their own box (`/goal`, this text, abridged):
+
+```
+Finish my-3danimations per AGENTS.md's rules, through draft PRs each merged green on main: (1) WP-F.22, npm 12's pack;
+(2) WP-F.15, T1's headroom, a third way D144 didn't weigh: CI's T1 as two parallel jobs (`npm test -- --shard k/2`),
+the session's call under D131; (3) the records for this local WSL box (D147); (4) the owner's asks re-posted once, on
+the last PR, with the newest release tag and two dates. Done when (1) to (3) are done, (4) is posted, F.15 is done or
+stays blocked-owner with its numbers, the ledger, PROGRESS, HANDOFF and DECISIONS agree, and CI is green on main.
+```
+
+1. **Done (F.22, #36, D147).** `packReport` reads `npm pack --json` as npm 11 and npm 12 write it; `pack --check` and
+   T2 pass on npm 12.1.0 here.
+2. **Next: F.15's third way** (D144 weighed a larger runner and a quarter of T1 moved to T2): `--shard k/n` on
+   `npm test`, ci.yml's T1 as two jobs side by side (T0 in the first), on this public repository's free runners.
+   Measured here on four cores: T1 37.8 s whole, its halves 18.6 s and 20.2 s; CI ran it whole in 92.2 s, so about
+   45 s and 49 s there. Done when two pushes' halves each sit well under 90 s in CI.
+3. **Done (D147, #36):** AGENTS.md's line, the rules learned and Last measured below.
+4. **On the last PR:** the owner's asks once, with the tag (`v0.64.1` once #36 merges, no version after it planned)
+   and two dates: `m3a-intake` may pause after a week idle (about 2026-11-03) until O8's step 5 secrets exist
+   (restorable), and npm stops taking `npm publish` with a granular token in January 2027.
+
+## The goal before it (2026-10-24, D137): done but F.15
 
 Everything the session can still do, as one goal for the owner to start (`/goal`, then this text):
 
@@ -86,7 +111,7 @@ none of their triggers has fired). Add `ultracode` to the goal to run its WPs in
 
 ## Where things stand
 
-- **Version 0.64.0.** Every WP through 10.2, F.1 to F.14 and F.16 to F.21 is done (F.15 blocked-owner); G0-G8 passed; G9
+- **Version 0.64.1.** Every WP through 10.2, F.1 to F.14 and F.16 to F.22 is done (F.15 blocked-owner); G0-G8 passed; G9
   and G10's command sets passed and each waits on the owner (blocked-owner, its ask on its PR):
   - **G8** (#15): **passed** on 2026-10-22 (D133): the owner's review of G8-run-1's `queue-0.56.0.json` on the
     site's review page, applied with `npx m3a review ingest` (20 decisions, 18 approved, 2 flagged); its notes are
@@ -110,10 +135,10 @@ none of their triggers has fired). Add `ultracode` to the goal to run its WPs in
     environment `npm` (the owner its required reviewer, Prevent self-review off, administrators' bypass off,
     deployment from `v*` tags alone, the token as its secret `NPM_TOKEN`, never a repository secret); the variable
     `M3A_O2_PUBLISH=yes`; a tag ruleset `release tags` on `v*` (restrict creations, updates and deletions; only the
-    repository admin bypasses); the latest release's tag, now `v0.64.0` on main's head (its packages at 0.64.0 since
-    #33's merge a5b086f; no release tag exists yet; any `vX.Y.Z` on main whose packages are at X.Y.Z publishes), made
-    by the owner (the session's git connection refuses tag pushes, D131); Actions, publish, Run workflow with "Use
-    workflow from: Tags → v0.64.0" and `v0.64.0` as the tag; the publish job approved (Review deployments → npm).
+    repository admin bypasses); the latest release's tag, `v0.64.1` on main's head once #36 merges (its packages at
+    0.64.1; no release tag exists yet; any `vX.Y.Z` on main whose packages are at X.Y.Z publishes), made by the owner
+    (the session's git connection refuses tag pushes, D131); Actions, publish, Run workflow with "Use workflow from:
+    Tags → v0.64.1" and `v0.64.1` as the tag; the publish job approved (Review deployments → npm).
     Before January 2027 (npm stops taking `npm publish` with a granular token): each package's trusted publisher, `npm
     publish` ticked under Allowed actions. For the sets as release assets: the variable `M3A_O2_RELEASE_ASSETS=yes`,
     release.yml run on the same tag, the draft release published. **O3 unpaused** by the owner (D130): the site is live at
@@ -161,7 +186,11 @@ none of their triggers has fired). Add `ultracode` to the goal to run its WPs in
   its connector answers the PR's account (michaelcrosatoDM) with "create a Codex account", so only the owner's
   `@codex review` runs it; an independent reviewer's four findings were fixed in 5c348a8 (D121, D123). On #21 each
   WP's two reviewers' findings were fixed before the PR (D126 to D128); Codex again doesn't serve its account.
-- **Last measured (4 CPUs here; GitHub's runners):** on main's a5b086f (#33's merge, 2026-10-27): CI green, T0 13.4
+- **Last measured on the owner's own box** (D147: Ubuntu 26.04 on WSL2, 20 cores, npm 12.1.0), 2026-10-27: T0 8.7 s;
+  T1 21.1 s (1,344 passed), 37.8 s on four of the cores, its halves 18.6 s and 20.2 s; on F.22's tree T2 146.7 s
+  (Playwright 39 passed in 57.5 s, QA 4.9 s, the sweeps' 275 tests 73.6 s, the rate sample's 8,110 rows 10.6 s) and
+  `pack --check` 12.1 s.
+- **Last measured (4 CPUs in a cloud container; GitHub's runners):** on main's a5b086f (#33's merge, 2026-10-27): CI green, T0 13.4
   s, T1 92.2 s (1,351 passed, after F.15's second round); #33's last head 7643190: T2 592 s on a slow runner (over its
   480 s, under the 720 s at which it fails; 448 s on 61e475f). On #32's 435fff0 (F.18): CI all green, T1 99.4 s
   (1,349 passed), T2 307 s; on 2104ac7 T1 105.8 s, T2 398 s. Here (a container about 1.6 times slower than D137's):
@@ -178,8 +207,8 @@ none of their triggers has fired). Add `ultracode` to the goal to run its WPs in
 
 ## Next, in order
 
-0. The next goal (above), started 2026-10-27: items 1 to 5 done on #32 and #33 but T1's headroom (F.15: D139, D144),
-   blocked-owner on a larger runner or a quarter of T1 moved to T2; item 6's asks posted on #33.
+0. The goal of 2026-10-27 (above, D147): F.22 and the records done on #36; next F.15's third way (T1 as two CI jobs),
+   then the owner's asks on the last PR. The goal before it (D137): done on #32 and #33 but F.15.
 1. Whatever the owner sends back: their verdict on Pick_Up_Basket (above), the batch's review file (`npx m3a review
    ingest <file>`, its notes into docs/FEEDBACK-LOG.md and a threshold or task proposal into docs/REVIEW-PROPOSALS.md),
    O8 linked (the contract run, the first adoption by the bot), another repository's use confirmed (G10).
@@ -235,7 +264,8 @@ none of their triggers has fired). Add `ultracode` to the goal to run its WPs in
 - Decision text and review findings go into tracked files at once, never the scratchpad (the first pause lost b0's
   decision and retarget's round-2 findings). On the first usage-limit error: WIP-commit and merge every lane, push,
   update this file, stop.
-- GitHub: `gh pr` and GraphQL return 403 here; use the GitHub MCP tools or `gh api` REST. git push works. Squash merges
+- GitHub: in a cloud container `gh pr` and GraphQL return 403; use the GitHub MCP tools or `gh api` REST (on the
+  owner's own box `gh pr` works, D147). git push works. Squash merges
   only, and the head branch is deleted on merge; `main` is unprotected, so "merge only when green" is ours to keep.
   Writes act as an owner's login (michaelcrosato to #19, michaelcrosatoDM on #20, which Codex's review bot doesn't
   serve): every session comment opens with `<!-- m3a-session -->`, owner evidence (phone notes, approvals, adoptions)
@@ -285,6 +315,14 @@ none of their triggers has fired). Add `ultracode` to the goal to run its WPs in
   models only (O10).
 - The session's git connection pushes this session's branch alone: a tag push is cut off ("unexpected disconnect").
   Release tags are the owner's to make (and the `v*` ruleset makes them the owner's alone, D130, D131).
+- A local checkout (the owner's own box, D147): the session hook exits outside cloud sessions, so run
+  `CLAUDE_CODE_REMOTE=true .claude/hooks/session-start.sh` once (npm ci, the rigs, the held-out rigs, the pinned
+  sources; the m3a MCP server needs node_modules, then `/mcp`). Playwright 1.56.1 refuses Ubuntu 26.04: Chromium 1194
+  comes from `PLAYWRIGHT_HOST_PLATFORM_OVERRIDE=ubuntu24.04-x64 npx playwright install chromium` (its cleanup removes
+  other cached Playwright builds). The intake SQL test needs Postgres 16:
+  `M3A_PG_BIN=/home/linuxbrew/.linuxbrew/opt/postgresql@16/bin`. npm there is 12 (CI's is 11; F.22). The Supabase
+  connector there sees another organization ("michaelcrosato's Org"), not the one holding `m3a-intake`: reconnect it
+  before any Supabase step.
 - The owner's standing rule (D131): a minor decision, or one the owner doesn't answer, is the session's, made forward
   by the North Star and logged; the owner's evidence (reviews, approvals, adoptions) and what reaches outside the
   repository stay the owner's.

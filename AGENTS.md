@@ -63,7 +63,8 @@ why. This file is how.
 A tool warns when a tier runs over budget and fails it at 1.5×. Never skip a test to get green; a test that waits on
 wall-clock time is a bug. In cloud sessions the SessionStart hook puts Node 24 first on `PATH` when the default is
 older, runs `npm ci` unless node_modules was installed from this lockfile on this Node (D121), exports `CHROMIUM_PATH`
-and fetches the rigs and the pinned sources by hash (D79); never run `playwright install`.
+and fetches the rigs and the pinned sources by hash (D79); never run `playwright install` there. A local checkout runs
+`CLAUDE_CODE_REMOTE=true .claude/hooks/session-start.sh` once, then Chromium and Postgres 16 as HANDOFF says (D147).
 
 ## Work rules (`PLAN.md` §8)
 

@@ -202,10 +202,24 @@ function stageOptIn(name: string, tier: Tier, dir: string, sets: readonly string
   writeFileSync(join(dir, "CHANGELOG.md"), packedChangelog(readFileSync(join(ROOT, "CHANGELOG.md"), "utf8")));
 }
 
+/** A package as `npm pack --json` reports it: its tarball's name, its size and its files. */
+export type PackReport = { filename: string; size: number; files: { path: string }[] };
+
+/**
+ * The one package `npm pack --json` reports, as npm 11 writes it (an array) or npm 12 (an object keyed by the package's
+ * name): CI's Node bundles npm 11, a newer npm 12 (WP-F.22). Anything but one package is refused.
+ */
+export function packReport(json: string): PackReport {
+  const parsed = JSON.parse(json) as PackReport[] | Record<string, PackReport>;
+  const reports = Array.isArray(parsed) ? parsed : Object.values(parsed);
+  if (reports.length !== 1) throw new Error(`npm pack reported ${reports.length} packages, not one`);
+  return reports[0]!;
+}
+
 /** `npm pack` in a staged directory, into `out`: the tarball, its files and its size. */
 function npmPack(stage: string, out: string): Packed {
-  const [r] = JSON.parse(execFileSync("npm", ["pack", "--json", "--pack-destination", out], { cwd: stage, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] })) as { filename: string; size: number; files: { path: string }[] }[];
-  return { tarball: join(out, r!.filename), files: r!.files.map((f) => f.path).sort(), bytes: r!.size, stage };
+  const r = packReport(execFileSync("npm", ["pack", "--json", "--pack-destination", out], { cwd: stage, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }));
+  return { tarball: join(out, r.filename), files: r.files.map((f) => f.path).sort(), bytes: r.size, stage };
 }
 
 /**
