@@ -6061,7 +6061,9 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
   - **Measured on the owner's box** (four of its cores): T1 whole 34.5 s, its halves 18.3 s (63 files, 578 tests) and
     20.5 s (63 files, 777 tests); CI ran it whole in 92.2 s on main (a5b086f), so about 49 s and 55 s there.
   - **In CI** (GitHub's standard runners): on 9419192's push the halves took 51.3 s and 45.2 s (T0 14.4 s before the
-    first), each job 1.2 to 1.5 minutes start to end. As one job T1 took 98.4 s on #36's e3cb3d4 and 102.2 s
+    first), on a8699ba's 37.8 s and 60.0 s (T0 10.8 s), each job 1.2 to 1.5 minutes start to end. The runners swing
+    as before (the same files 37.8 to 51.3 s in one half, 45.2 to 60.0 s in the other); each half stays a third or
+    more under 90 s. As one job T1 took 98.4 s on #36's e3cb3d4 and 102.2 s
     on main at d4d7ba3 (#36's merge), over its 90 s.
   - **What it costs:** a second runner each push (its checkout, `npm ci` and the cached fetches, about 28 s), free here;
     a private repository would pay its minutes.

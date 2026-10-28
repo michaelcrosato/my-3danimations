@@ -14,8 +14,9 @@ the work needs is here, and the Supabase connector is now connected), corrected 
 below (D137), merged as michaelcrosato/my-3danimations#31 (801f067). On 2026-10-27 the owner started it: items 1 and 2
 (D138) and WP-F.15 to F.18 (D139 to D142) on michaelcrosato/my-3danimations#32, then F.19 to F.21 (D143 to D146) on
 #33 and the records (#34, #35). The same day a session on the owner's own box (not a cloud container, D147) checked it
-and wrote the goal below; the owner started it: WP-F.22 (npm 12's pack) on michaelcrosato/my-3danimations#36 and F.15's third round (CI's T1
-as two jobs, D148) on michaelcrosato/my-3danimations#37. This file is what the next session needs.
+and wrote the goal below; the owner started it: WP-F.22 (npm 12's pack) on michaelcrosato/my-3danimations#36 and
+F.15's third round (CI's T1 as two jobs, D148) on michaelcrosato/my-3danimations#37. This file is what the next
+session needs.
 
 ## The standing goal (the owner's)
 
@@ -42,7 +43,7 @@ stays blocked-owner with its numbers, the ledger, PROGRESS, HANDOFF and DECISION
 2. **Done (F.15's third round, D148, #37):** `--shard k/n` on `npm test`, ci.yml's T1 as two jobs side by side (T0 in
    the first) on this public repository's free runners, nothing moved out of T1 (D144 weighed a larger runner and a
    quarter of T1 moved to T2). Here on four cores T1 34.5 s whole, its halves 18.3 s and 20.5 s; in CI the halves
-   51.3 s and 45.2 s on 9419192 (98.4 s and 102.2 s as one job on #36 and main).
+   51.3 s and 45.2 s on 9419192, 37.8 s and 60.0 s on a8699ba (98.4 s and 102.2 s as one job on #36 and main).
 3. **Done (D147, #36):** AGENTS.md's line, the rules learned and Last measured below.
 4. **Posted on #37** (the last PR): the owner's asks once, with the tag (`v0.64.1` on main, no version after it
    planned) and two dates: `m3a-intake` may pause after a week idle (about 2026-11-03) until O8's step 5 secrets exist
@@ -190,12 +191,13 @@ none of their triggers has fired). Add `ultracode` to the goal to run its WPs in
   T1 21.1 s (1,344 passed), 37.8 s on four of the cores, its halves 18.6 s and 20.2 s; on F.22's tree T2 146.7 s
   (Playwright 39 passed in 57.5 s, QA 4.9 s, the sweeps' 275 tests 73.6 s, the rate sample's 8,110 rows 10.6 s) and
   `pack --check` 12.1 s.
-- **CI after F.15's third round** (D148, GitHub's runners): #37's 9419192, T0 14.4 s, T1's halves 51.3 s and 45.2 s.
-  As one job, T1 98.4 s on #36's e3cb3d4 (T2 558.2 s there, a slow runner) and 102.2 s on main at d4d7ba3.
+- **CI after F.15's third round** (D148, GitHub's runners): #37's 9419192, T0 14.4 s, T1's halves 51.3 s and 45.2 s;
+  a8699ba, T0 10.8 s, 37.8 s and 60.0 s. As one job, T1 98.4 s on #36's e3cb3d4 (T2 558.2 s there, a slow runner)
+  and 102.2 s on main at d4d7ba3.
 - **Last measured (4 CPUs in a cloud container; GitHub's runners):** on main's a5b086f (#33's merge, 2026-10-27): CI
-  green, T0 13.4 s, T1 92.2 s (1,351 passed, after F.15's second round); #33's last head 7643190: T2 592 s on a slow runner (over its
-  480 s, under the 720 s at which it fails; 448 s on 61e475f). On #32's 435fff0 (F.18): CI all green, T1 99.4 s
-  (1,349 passed), T2 307 s; on 2104ac7 T1 105.8 s, T2 398 s. Here (a container about 1.6 times slower than D137's):
+  green, T0 13.4 s, T1 92.2 s (1,351 passed, after F.15's second round); #33's last head 7643190: T2 592 s on a slow
+  runner (over its 480 s, under the 720 s at which it fails; 448 s on 61e475f). On #32's 435fff0 (F.18): CI all
+  green, T1 99.4 s (1,349 passed), T2 307 s; on 2104ac7 T1 105.8 s, T2 398 s. Here (a container about 1.6 times slower than D137's):
   T1 112.9 s, burning 411 s of CPU on its 4 cores, T2 651 s (Playwright 368.5, the sweeps 227.1). Before, on main's
   head 8c88b42 in a fresh container (2026-10-24, D137):
   T0 19.5 s cold (over 15 s on cold caches only), T1 88.4 s (1,343 passed, budget 90: the headroom follow-up), T2
