@@ -28,7 +28,7 @@ why. This file is how.
 | Command | Tier | What it runs | Budget |
 |---|---|---|---|
 | `npm run check` | T0 | typecheck, lint, quick doctrine checks | 15 s |
-| `npm test` | T1 | unit, conformance, sensors on a sample | 90 s |
+| `npm test [-- --shard k/n]` | T1 | unit, conformance, sensors on a sample; `--shard` a part of its files (CI runs 1/2 and 2/2 side by side, D148) | 90 s |
 | `npm run e2e` | T2 | browser adapter checks, full library QA, the library-wide sweeps T1 samples, in full (D74), the rate sweep on two of its six bodies (CI's `rates` job all six, D126) | 8 min |
 | `npm run test:changed` | | the suites covering files changed against `main`, saying why each ran | |
 | `npm run test:cross-engine` | | the portable math, a quaternion chain, the helpers and the Animator's script in V8 and JavaScriptCore (Bun), bit for bit, with each function's cost | |

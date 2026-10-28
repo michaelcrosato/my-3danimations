@@ -6,13 +6,15 @@ features, patch for fixes. One line per change, under the part it touched (**Spe
 
 ## 0.64.1 · 2026-10-27
 
-WP-F.22 (D147): the packs built with npm 12.
+WP-F.22 (D147): the packs built with npm 12. WP-F.15's third round (D148): CI's T1 in two halves.
 
 ### Repo
 - `npm run pack` reads `npm pack --json` as npm 12 writes it (an object keyed by the package's name) as well as npm 11's
   array: `pack --check` and T2's packed trials failed on npm 12 ("object is not iterable"). The packs are the same.
 - A local checkout's setup (the session hook runs in cloud sessions alone): AGENTS.md and HANDOFF say what it takes
   (D147).
+- `npm test -- --shard k/n` runs the k-th of n parts of T1's files; CI runs T1 as two jobs side by side, 1/2 (after T0)
+  and 2/2, nothing moved out of T1 (D148).
 
 ## 0.64.0 · 2026-10-27
 

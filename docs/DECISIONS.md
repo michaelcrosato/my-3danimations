@@ -6043,3 +6043,29 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
     12.1 s.
 - **Answered:** the owner's goal (2026-10-27) named the records and F.22; the calls are the session's, under D131.
 - **Landed in:** v0.64.1 (repository tools and records)
+
+## D148 · 2026-10-27 · T1's third round: CI runs it as two jobs side by side; nothing moves out of it
+
+- **Principle:** process (PLAN.md §6: T1 within 90 s, the slowest made faster, never the budget raised), 3
+  (verifiable: every T1 test still runs on every push), D139, D144, D131
+- **Call:**
+  - **The ask D144 left** (on #33, unanswered): well under 90 s on every runner needed a quarter of T1 moved to T2 (T1
+    no longer the quick check of what it covers) or a larger runner (a cost). A third way neither weighed: GitHub's
+    standard runners cost nothing on a public repository, so T1's files split over two of them side by side move
+    nothing and pay for nothing.
+  - **Built:** `npm test -- --shard k/n` passes Vitest's `--shard=k/n` (the k-th of n parts of T1's files, split by
+    Vitest; the tier's label `T1 k/n`), a shard that isn't k/n with 1 <= k <= n a usage error; `npm test` alone runs
+    all of T1. ci.yml's `t0-t1` job is a matrix over shards 1 and 2 with `fail-fast` off (neither cancels the other),
+    T0 in the first; each half fetches the rigs, the held-out rigs and the pinned sources as before and keeps its
+    check-output as an artifact of its own. Each half is held to T1's budget: a warning over 90 s, a failure at 135 s.
+  - **Measured on the owner's box** (four of its cores): T1 whole 34.5 s, its halves 18.3 s (63 files, 578 tests) and
+    20.5 s (63 files, 777 tests); CI ran it whole in 92.2 s on main (a5b086f), so about 49 s and 55 s there.
+  - **In CI** (GitHub's standard runners): on 9419192's push the halves took 51.3 s and 45.2 s (T0 14.4 s before the
+    first), each job 1.2 to 1.5 minutes start to end. As one job T1 took 98.4 s on #36's e3cb3d4 and 102.2 s
+    on main at d4d7ba3 (#36's merge), over its 90 s.
+  - **What it costs:** a second runner each push (its checkout, `npm ci` and the cached fetches, about 28 s), free here;
+    a private repository would pay its minutes.
+- **Reversible:** reverting its commit puts T1 back in one job; no test moved.
+- **Answered:** no: #33's ask went unanswered, so the call is the session's under D131, as the owner's goal of
+  2026-10-27 says.
+- **Landed in:** v0.64.1 (CI and the test runner)

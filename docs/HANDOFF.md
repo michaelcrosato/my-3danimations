@@ -1,4 +1,4 @@
-# Handoff: every phase built; the follow-ups after G10 built (F.1 to F.22, F.15 blocked-owner); the goal of 2026-10-27 under way
+# Handoff: every phase built; the follow-ups after G10 built (F.1 to F.22); the goal of 2026-10-27 done
 
 Phase 7 merged before its gate (michaelcrosato/my-3danimations#13, D103); G7 passed on run 2 on
 michaelcrosato/my-3danimations#14 (D107); Phase 8 merged on michaelcrosato/my-3danimations#15 (G8's commands, D111);
@@ -14,8 +14,8 @@ the work needs is here, and the Supabase connector is now connected), corrected 
 below (D137), merged as michaelcrosato/my-3danimations#31 (801f067). On 2026-10-27 the owner started it: items 1 and 2
 (D138) and WP-F.15 to F.18 (D139 to D142) on michaelcrosato/my-3danimations#32, then F.19 to F.21 (D143 to D146) on
 #33 and the records (#34, #35). The same day a session on the owner's own box (not a cloud container, D147) checked it
-and wrote the goal below; the owner started it: WP-F.22 (npm 12's pack) on michaelcrosato/my-3danimations#36. This file
-is what the next session needs.
+and wrote the goal below; the owner started it: WP-F.22 (npm 12's pack) on michaelcrosato/my-3danimations#36 and F.15's third round (CI's T1
+as two jobs, D148) on michaelcrosato/my-3danimations#37. This file is what the next session needs.
 
 ## The standing goal (the owner's)
 
@@ -39,16 +39,16 @@ stays blocked-owner with its numbers, the ledger, PROGRESS, HANDOFF and DECISION
 
 1. **Done (F.22, #36, D147).** `packReport` reads `npm pack --json` as npm 11 and npm 12 write it; `pack --check` and
    T2 pass on npm 12.1.0 here.
-2. **Next: F.15's third way** (D144 weighed a larger runner and a quarter of T1 moved to T2): `--shard k/n` on
-   `npm test`, ci.yml's T1 as two jobs side by side (T0 in the first), on this public repository's free runners.
-   Measured here on four cores: T1 37.8 s whole, its halves 18.6 s and 20.2 s; CI ran it whole in 92.2 s, so about
-   45 s and 49 s there. Done when two pushes' halves each sit well under 90 s in CI.
+2. **Done (F.15's third round, D148, #37):** `--shard k/n` on `npm test`, ci.yml's T1 as two jobs side by side (T0 in
+   the first) on this public repository's free runners, nothing moved out of T1 (D144 weighed a larger runner and a
+   quarter of T1 moved to T2). Here on four cores T1 34.5 s whole, its halves 18.3 s and 20.5 s; in CI the halves
+   51.3 s and 45.2 s on 9419192 (98.4 s and 102.2 s as one job on #36 and main).
 3. **Done (D147, #36):** AGENTS.md's line, the rules learned and Last measured below.
-4. **On the last PR:** the owner's asks once, with the tag (`v0.64.1` once #36 merges, no version after it planned)
-   and two dates: `m3a-intake` may pause after a week idle (about 2026-11-03) until O8's step 5 secrets exist
+4. **Posted on #37** (the last PR): the owner's asks once, with the tag (`v0.64.1` on main, no version after it
+   planned) and two dates: `m3a-intake` may pause after a week idle (about 2026-11-03) until O8's step 5 secrets exist
    (restorable), and npm stops taking `npm publish` with a granular token in January 2027.
 
-## The goal before it (2026-10-24, D137): done but F.15
+## The goal before it (2026-10-24, D137): done (F.15 in the one above)
 
 Everything the session can still do, as one goal for the owner to start (`/goal`, then this text):
 
@@ -89,7 +89,7 @@ What each item means and when it is done:
    - **Done (F.19, D143): the four idles' pelvis under its capture's, 13 → 3 past 1.5 times.** The encoder's steady
      rounding of the hips, chest and head (D135's follow-up): done when the idles it names move no further than their
      capture, measured as D135 measured them, the sets re-imported byte for byte, the frozen spec untouched.
-   - **Blocked-owner (F.15, D139, D144): two rounds, T1 here 104 → 98 s; the rest a runner or a quarter of T1 to T2.**
+   - **Done (F.15, D139, D144, D148): two rounds, T1 here 104 → 98 s; the third, CI's T1 as two jobs (#37).**
      T1's headroom (Last measured): the slowest files made faster, never the budget raised, until T1 sits well under 90
      s here and in CI.
 4. **Done (F.20, D145): B1 5/5, discovery 2/2, its G7 variant 5/5, $3.02.** **B1's floor** (D123, D131): B1's grader
@@ -111,7 +111,7 @@ none of their triggers has fired). Add `ultracode` to the goal to run its WPs in
 
 ## Where things stand
 
-- **Version 0.64.1.** Every WP through 10.2, F.1 to F.14 and F.16 to F.22 is done (F.15 blocked-owner); G0-G8 passed; G9
+- **Version 0.64.1.** Every WP through 10.2, F.1 to F.22 is done; G0-G8 passed; G9
   and G10's command sets passed and each waits on the owner (blocked-owner, its ask on its PR):
   - **G8** (#15): **passed** on 2026-10-22 (D133): the owner's review of G8-run-1's `queue-0.56.0.json` on the
     site's review page, applied with `npx m3a review ingest` (20 decisions, 18 approved, 2 flagged); its notes are
@@ -190,8 +190,10 @@ none of their triggers has fired). Add `ultracode` to the goal to run its WPs in
   T1 21.1 s (1,344 passed), 37.8 s on four of the cores, its halves 18.6 s and 20.2 s; on F.22's tree T2 146.7 s
   (Playwright 39 passed in 57.5 s, QA 4.9 s, the sweeps' 275 tests 73.6 s, the rate sample's 8,110 rows 10.6 s) and
   `pack --check` 12.1 s.
-- **Last measured (4 CPUs in a cloud container; GitHub's runners):** on main's a5b086f (#33's merge, 2026-10-27): CI green, T0 13.4
-  s, T1 92.2 s (1,351 passed, after F.15's second round); #33's last head 7643190: T2 592 s on a slow runner (over its
+- **CI after F.15's third round** (D148, GitHub's runners): #37's 9419192, T0 14.4 s, T1's halves 51.3 s and 45.2 s.
+  As one job, T1 98.4 s on #36's e3cb3d4 (T2 558.2 s there, a slow runner) and 102.2 s on main at d4d7ba3.
+- **Last measured (4 CPUs in a cloud container; GitHub's runners):** on main's a5b086f (#33's merge, 2026-10-27): CI
+  green, T0 13.4 s, T1 92.2 s (1,351 passed, after F.15's second round); #33's last head 7643190: T2 592 s on a slow runner (over its
   480 s, under the 720 s at which it fails; 448 s on 61e475f). On #32's 435fff0 (F.18): CI all green, T1 99.4 s
   (1,349 passed), T2 307 s; on 2104ac7 T1 105.8 s, T2 398 s. Here (a container about 1.6 times slower than D137's):
   T1 112.9 s, burning 411 s of CPU on its 4 cores, T2 651 s (Playwright 368.5, the sweeps 227.1). Before, on main's
@@ -207,8 +209,8 @@ none of their triggers has fired). Add `ultracode` to the goal to run its WPs in
 
 ## Next, in order
 
-0. The goal of 2026-10-27 (above, D147): F.22 and the records done on #36; next F.15's third way (T1 as two CI jobs),
-   then the owner's asks on the last PR. The goal before it (D137): done on #32 and #33 but F.15.
+0. The goal of 2026-10-27 (above, D147, D148): done on #36 and #37, the owner's asks posted on #37 once. Nothing is
+   left that the session can do without the owner.
 1. Whatever the owner sends back: their verdict on Pick_Up_Basket (above), the batch's review file (`npx m3a review
    ingest <file>`, its notes into docs/FEEDBACK-LOG.md and a threshold or task proposal into docs/REVIEW-PROPOSALS.md),
    O8 linked (the contract run, the first adoption by the bot), another repository's use confirmed (G10).
@@ -216,18 +218,16 @@ none of their triggers has fired). Add `ultracode` to the goal to run its WPs in
    committed to `bench/results/gates/reviews/` supersedes it. D135 and D143 say what to look at in it (the idles under
    0.8 of their capture's sway, the feet that follow the hips' rounding); Pick_Up_Basket's and Wrench_Bolt's reviews
    stand until the owner remakes them.
-3. T1's headroom (F.15, blocked-owner): what is left is its tests' own CPU (D144); well under 90 s on every runner
-   needs a quarter of T1 moved to T2 or a faster runner, the owner's call (asked on #33).
-4. The other follow-ups below stay as D131 calls them (deferred or kept, each with its reason) until the owner says
+3. The other follow-ups below stay as D131 calls them (deferred or kept, each with its reason) until the owner says
    otherwise.
 
 ## Follow-ups recorded, owned by no WP yet
 
 - An AI visual pre-screen of every clip (D136): considered, not built (the owner's call): only if the data comparison
   misses what a reviewer sees.
-- CI's T1 near its budget (Last measured): 58 to 109 s on GitHub's runners for the same tests (79.1 s after F.5, D125;
-  99 to 106 s on #32's heads after F.15's first round, D139; the second round D144). A run at 135 s fails: before then,
-  the slowest files made faster (PLAN.md §6), not the budget raised.
+- CI's T1 (D148): two jobs side by side, each half of its files (58 to 109 s whole on GitHub's runners before, for the
+  same tests). If a half nears 90 s again, a third part (`--shard k/3`, the matrix's shards 1 to 3) costs nothing more
+  on this public repository, before anything leaves T1; the slowest files made faster still (PLAN.md §6).
 
 - The rate sweep's 428 failing rows on 108 loops, each loop answered with its cause in `library/baselines/rates.json`
   (D127, D129). D129's three calls are the owner's, each reversible: the spec's amendment (`labelled` covering a named
