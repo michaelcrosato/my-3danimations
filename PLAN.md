@@ -1,8 +1,8 @@
 # my-3danimations: the plan
 
 **Status:** adopted 2026-10-11 and built through Phase 10 (G10's commands passed 2026-10-19; G8 passed 2026-10-22; G9
-and G10 wait on the owner, §14), then the follow-ups after G10 (F.1 to F.14), for an autonomous AI coding agent working
-in Claude Code cloud sessions.
+and G10 wait on the owner, §14), then the follow-ups after G10 (F.1 to F.22), for an autonomous AI coding agent working
+in Claude Code sessions (cloud, or a checkout on the owner's own box: D147).
 **Why this exists:** `docs/FEASIBILITY.md`. **Evidence:** `reports/AI native game animation landscape.md` and
 `research_notes/`. **Read §0 first**, then only what each work package (WP) cites.
 

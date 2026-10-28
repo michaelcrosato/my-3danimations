@@ -136,10 +136,10 @@ none of their triggers has fired). Add `ultracode` to the goal to run its WPs in
     environment `npm` (the owner its required reviewer, Prevent self-review off, administrators' bypass off,
     deployment from `v*` tags alone, the token as its secret `NPM_TOKEN`, never a repository secret); the variable
     `M3A_O2_PUBLISH=yes`; a tag ruleset `release tags` on `v*` (restrict creations, updates and deletions; only the
-    repository admin bypasses); the latest release's tag, `v0.64.1` on main's head once #36 merges (its packages at
-    0.64.1; no release tag exists yet; any `vX.Y.Z` on main whose packages are at X.Y.Z publishes), made by the owner
-    (the session's git connection refuses tag pushes, D131); Actions, publish, Run workflow with "Use workflow from:
-    Tags → v0.64.1" and `v0.64.1` as the tag; the publish job approved (Review deployments → npm).
+    repository admin bypasses); the latest release's tag, `v0.64.1` on main's head (its packages at 0.64.1 since
+    #36's merge d4d7ba3; no release tag exists yet; any `vX.Y.Z` on main whose packages are at X.Y.Z publishes),
+    made by the owner (the session's git connection refuses tag pushes, D131); Actions, publish, Run workflow with
+    "Use workflow from: Tags → v0.64.1" and `v0.64.1` as the tag; the publish job approved (Review deployments → npm).
     Before January 2027 (npm stops taking `npm publish` with a granular token): each package's trusted publisher, `npm
     publish` ticked under Allowed actions. For the sets as release assets: the variable `M3A_O2_RELEASE_ASSETS=yes`,
     release.yml run on the same tag, the draft release published. **O3 unpaused** by the owner (D130): the site is live at

@@ -1,6 +1,6 @@
 # my-3danimations
 
-**Status:** built. Every phase of `PLAN.md` is done (0.60.0): G0 to G8 passed (M1, M2), and G9 and G10's command sets
+**Status:** built. Every phase of `PLAN.md` is done (0.64.1): G0 to G8 passed (M1, M2), and G9 and G10's command sets
 passed and wait on the owner's steps (M3, M4); [`docs/PROGRESS.md`](docs/PROGRESS.md) shows where it stands.
 
 **Should we build the animation package for AI agents, and how?** This repository answered that question, then built it.
