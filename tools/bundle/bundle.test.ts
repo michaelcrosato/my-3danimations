@@ -24,7 +24,7 @@ import * as threeApi from "../../packages/three/src/index.ts";
 import { character, loadGlb, variant } from "../../packages/three/test-characters/index.ts";
 import { runCli, tools } from "../../packages/tools/src/index.ts";
 import { ROOT } from "../run/cli.ts";
-import { BENCH_WORDS, jsSpecifiers, PACKAGES, packedChangelog, packSets, publishable, publishedExports, publishedManifest, REPOSITORY, stagedManifest, tiersOf, TOOLS_FILES, withDataLicenses } from "./build.ts";
+import { BENCH_WORDS, jsSpecifiers, PACKAGES, packedChangelog, packReport, packSets, publishable, publishedExports, publishedManifest, REPOSITORY, stagedManifest, tiersOf, TOOLS_FILES, withDataLicenses } from "./build.ts";
 import { argvOf, callsOnSingle, completeExample, forSingle, HEADLESS, headlessForm, importsOf, PLAYED, RECORDED, recordedForm, sameRun, SECTION, STANDINS } from "./example.ts";
 import * as headless from "./headless.ts";
 import { MCP_TIMEOUT_MS, mcpTools } from "./mcp.ts";
@@ -67,6 +67,21 @@ describe("the changelog a pack ships", () => {
   it("drops a bullet whole, its continuation lines too, and a section it leaves empty", () => {
     const t = "## 1.0.0 · 2026-01-01\n\n### Tools\n- a tool\n  that wraps\n- B1's known-good\n  moves\n\n### Repo\n- CI\n\n### Spec\n- a grader, shown\n";
     expect(packedChangelog(t)).toBe("## 1.0.0 · 2026-01-01\n\n### Tools\n- a tool\n  that wraps\n\n");
+  });
+});
+
+describe("npm pack's report", () => {
+  // WP-F.22: npm 12 keys the report by the package's name where npm 11 (CI's Node bundles it) writes an array; both
+  // shapes as each wrote them for one scratch package
+  const one = { id: "@x/y@1.0.0", name: "@x/y", version: "1.0.0", size: 161, filename: "x-y-1.0.0.tgz", files: [{ path: "a.js", size: 2, mode: 420 }, { path: "package.json", size: 34, mode: 420 }], entryCount: 2, bundled: [] };
+  it("reads the one package npm 11 (an array) and npm 12 (an object keyed by name) report, the same either way", () => {
+    const npm11 = packReport(JSON.stringify([one], null, 2)), npm12 = packReport(JSON.stringify({ "@x/y": one }, null, 2));
+    expect(npm11).toEqual(one);
+    expect(npm12).toEqual(npm11);
+  });
+  it("refuses a report of no package or of two", () => {
+    expect(() => packReport("[]")).toThrow("npm pack reported 0 packages, not one");
+    expect(() => packReport(JSON.stringify({ "@x/y": one, "@x/z": one }))).toThrow("npm pack reported 2 packages, not one");
   });
 });
 
