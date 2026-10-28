@@ -228,8 +228,8 @@ none of their triggers has fired). Add `ultracode` to the goal to run its WPs in
 - A T2 hang seen once (2026-10-28, #37's 70a2754, a slow runner: Playwright 331 s): `tests/e2e/review.e2e.ts:553`
   ("one card at a time"), at line 410, waited out its 240 s on `__m3a.frame()`, whose readback (three's
   `readRenderTargetPixelsAsync`) never settled after the held clock resumed. The page and the test were unchanged since
-  #33; the same test passed on #36's T2 and 7 times here on two cores (once in the whole suite). If it comes back: bound the readback with a
-  timeout in the test and read which backend the stage was on.
+  #33; the same test passed on #36's T2 and 7 times here on two cores (once in the whole suite). If it comes back:
+  bound the readback with a timeout in the test and read which backend the stage was on.
 - An AI visual pre-screen of every clip (D136): considered, not built (the owner's call): only if the data comparison
   misses what a reviewer sees.
 - CI's T1 (D148): two jobs side by side, each half of its files (58 to 109 s whole on GitHub's runners before, for the
