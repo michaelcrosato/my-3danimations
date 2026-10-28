@@ -1,7 +1,7 @@
 // Tests for the repo runners: the output contract's parsing and budgets, the header lint, versioning, the
 // test:changed selection (a rule for each kind of file a suite covers), a gate's report (the commit it ran at, D91),
-// AGENTS.md's command table naming every script, the e2e runner's filters and its steps (the rate sweep on its
-// sample), and the preview site's guard on the directory it empties.
+// AGENTS.md's command table naming every script, T1's command line (a part of its files, WP-F.15), the e2e runner's
+// filters and its steps (the rate sweep on its sample), and the preview site's guard on the directory it empties.
 import { spawnSync } from "node:child_process";
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -11,6 +11,7 @@ import { bump, check, write } from "../version.ts";
 import { select } from "./changed.ts";
 import { RATE_RIGS } from "../sweep/rates.ts";
 import { anchor, RATE_SAMPLE, t2Steps } from "./e2e.ts";
+import { t1Run } from "./test.ts";
 import { budget, closest, distance, parseArgs, ROOT, UsageError } from "./cli.ts";
 import { GATES, G7_MODELS, gateReport, RECORDED } from "./gate.ts";
 import { hasHeader, undocumentedExports } from "./headers.ts";
@@ -164,6 +165,16 @@ describe("the e2e runner's filters", () => {
     expect([anchor("animator"), anchor("tests/e2e/gallery.e2e.ts"), anchor("/gall.ry/")]).toEqual(["tests/e2e/[^/]*animator[^/]*\\.e2e\\.ts", "tests/e2e/gallery.e2e.ts", "/gall.ry/"]);
     const re = new RegExp(anchor("animator"), "i");
     expect([re.test("/x/lane-animator/tests/e2e/animator-parity.e2e.ts"), re.test("/x/lane-animator/tests/e2e/hello.e2e.ts")]).toEqual([true, false]);
+  });
+});
+
+describe("T1's command line", () => {
+  it("passes a part to Vitest as --shard=k/n and names it in the tier's label; without one, the whole of T1 (WP-F.15)", () => {
+    expect(t1Run([])).toEqual({ args: ["run"], label: "T1" });
+    expect(t1Run(["tools/run", "--shard", "1/2", "--grep", "x"])).toEqual({ args: ["run", "tools/run", "-t", "x", "--shard=1/2"], label: "T1 1/2" });
+    expect(t1Run(["--shard=2/2", "--json"])).toEqual({ args: ["run", "--shard=2/2"], label: "T1 2/2" });
+    for (const bad of ["0/2", "3/2", "1", "1/", "a/b", "1/0"]) expect(() => t1Run(["--shard", bad]), bad).toThrow(UsageError);
+    expect(() => t1Run(["--shard"])).toThrow("--shard needs a value");
   });
 });
 

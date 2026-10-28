@@ -8,7 +8,7 @@
 // project, its secret on that step; its gate job fetches the held-out rigs as T1 and T2 do, each dispatched gate has a
 // concurrency group of its own, and the dispatch input names the gates that run there (none that runs benchmark agents);
 // its rates job sweeps the rates in full beside T2 on every pull request, neither waiting on the other, no step of it
-// skipped or let fail (D126).
+// skipped or let fail (D126); its T1 runs as two jobs side by side, each half of T1's files, T0 in the first (D148).
 import { spawnSync } from "node:child_process";
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -84,6 +84,11 @@ describe("ci.yml's jobs", () => {
   };
   it("gives each dispatched gate a concurrency group of its own: a dispatch never cancels another gate's run", () => {
     expect(text).toMatch(/\nconcurrency:\n(?: {2}#.*\n)* {2}group: ci-\$\{\{ github\.event_name \}\}-\$\{\{ github\.ref \}\}-\$\{\{ inputs\.gate \}\}\n {2}cancel-in-progress: true\n/);
+  });
+  it("runs T1 on every push as two jobs side by side, each half of its files, T0 in the first alone, neither cancelling the other (WP-F.15)", () => {
+    const t1 = job("t0-t1"), runs = steps(t1).filter((s) => /run: npm (?:run check|test)\b/.test(s)).map((s) => s.replace(/\n *#.*/g, "").trim());
+    expect(t1).toMatch(/\n {4}if: github\.event_name == 'push'\n(?: {4}[\w-]+: .+\n)* {4}strategy:\n {6}fail-fast: false\n {6}matrix:\n {8}shard: \[1, 2\]\n/);
+    expect(runs).toEqual(["- if: matrix.shard == 1\n        run: npm run check -- --json", "- run: npm test -- --shard ${{ matrix.shard }}/2 --json"]);
   });
   it("fetches the held-out rigs before T1, T2 and a gate run, so a cold cache fails none of them", () => {
     const fetch = 'run: for m in bench/results/heldout/*/run-*/rig.json; do npm run fixtures -- fetch --manifest "$m"; done';

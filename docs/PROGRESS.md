@@ -4,7 +4,7 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 `PLAN.md` §14; decisions are in `docs/DECISIONS.md`.
 
 **Phase:** all eleven built (10 done: G10's commands passed; its confirmation blocked-owner). **Next gate:** none (M4).
-**Version:** 0.64.1. **Mode:** ultracode (D83). **Last change:** F.22, npm 12's pack; the owner's box recorded (D147).
+**Version:** 0.64.1. **Mode:** ultracode (D83). **Last change:** npm 12's pack (D147); CI's T1 in halves (D148).
 
 ## Done
 
@@ -20,12 +20,12 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
   sources (9.2); dedup, lineage (9.3); the registry index (9.4) (D112–D114); the consumer proof, the kit (D116).
 - The audit (D118, D119); F.1 to F.14 (#20 to #29, D121–D136): contacts, the rate sweep, frozen clips 102 → 17, a
   turn shown once; #32: the advisories, O8's steps 1 and 2 (D138), describe's turns and bends, a body under its floor,
-  the engine sheet (D140–D142); #33: steady rounding, B1's floor, the next batch (D143–D146); #36: npm 12's pack (D147).
+  the engine sheet (D140–D142); #33: rounding, B1's floor, a batch (D143–D146); #36, #37: npm 12, T1 halved (D147–8).
 
 ## Next
 
-- The goal of 2026-10-27 (HANDOFF, D147): F.22 done (#36); next, F.15 as two CI jobs. The owner's: the batch on the
-  site (`reviews/queue-0.64.0`), Pick_Up_Basket's verdict, the steps below.
+- The goal of 2026-10-27 (HANDOFF, D147, D148): done; the asks posted on #37. The owner's: the batch on the site
+  (`reviews/queue-0.64.0`), Pick_Up_Basket's verdict, the steps below.
 
 ## Blocked on the owner
 
