@@ -1,9 +1,9 @@
-# CI (PLAN.md §6, WP-0.5): T0 and T1 on every push, T2 on pull requests (and beside it the rate sweep in full, D126, and
-# the other three.js candidate's pin test), a gate's command set by manual dispatch (the gates that run no benchmark
-# agent: G4, G6, G7 and G9 run theirs through the claude CLI, in a session), and, dispatched with the gate
-# `intake-contract`, the intake store's contract suite against O8's linked project (G9's hosted proof): the secret
-# M3A_INTAKE_SUPABASE reaches that one step alone. Each dispatched gate has a concurrency group of its own, so
-# dispatching one never cancels another's run.
+# CI (PLAN.md §6, WP-0.5): T0 and T1 on every push (T1 in two parts side by side, D148), T2 on pull requests (and beside
+# it the rate sweep in full, D126, and the other three.js candidate's pin test), a gate's command set by manual dispatch
+# (the gates that run no benchmark agent: G4, G6, G7 and G9 run theirs through the claude CLI, in a session), and,
+# dispatched with the gate `intake-contract`, the intake store's contract suite against O8's linked project (G9's hosted
+# proof): the secret M3A_INTAKE_SUPABASE reaches that one step alone. Each dispatched gate has a concurrency group of
+# its own, so dispatching one never cancels another's run.
 # Actions are pinned by commit SHA (principle 9); the comment names the release.
 name: ci
 
@@ -30,10 +30,16 @@ env:
 
 jobs:
   t0-t1:
-    name: T0 check and T1 test
+    # T1 as two jobs side by side (WP-F.15, D148), each half of its files (`npm test -- --shard k/2`) on a runner of
+    # its own, free on this public repository; T0 in the first. Neither cancels the other when it fails
+    name: ${{ matrix.shard == 1 && 'T0 check and T1 test 1/2' || 'T1 test 2/2' }}
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -55,15 +61,16 @@ jobs:
       - run: for m in bench/results/heldout/*/run-*/rig.json; do npm run fixtures -- fetch --manifest "$m"; done
       # the pinned sources, so the tests that read them (the carry test) run too (D79); cached with .cache
       - run: npm run pins -- fetch
-      - run: npm run check -- --json
+      - if: matrix.shard == 1
+        run: npm run check -- --json
       # a benchmark agent's own /tmp is a mount namespace (D84); as a user, not root, that takes a user namespace,
       # which Ubuntu's AppArmor restricts by default
       - run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0 || true
-      - run: npm test -- --json
+      - run: npm test -- --shard ${{ matrix.shard }}/2 --json
       - if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: check-output-t0-t1
+          name: check-output-t0-t1-${{ matrix.shard }}
           path: check-output/
           if-no-files-found: ignore
 
