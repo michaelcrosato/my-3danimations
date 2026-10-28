@@ -4,7 +4,7 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
 `PLAN.md` §14; decisions are in `docs/DECISIONS.md`.
 
 **Phase:** all eleven built (10 done: G10's commands passed; its confirmation blocked-owner). **Next gate:** none (M4).
-**Version:** 0.64.0. **Mode:** ultracode (D83). **Last change:** F.19 to F.21 and T1's second round (D143 to D146).
+**Version:** 0.64.1. **Mode:** ultracode (D83). **Last change:** F.22, npm 12's pack; the owner's box recorded (D147).
 
 ## Done
 
@@ -20,19 +20,19 @@ The current state on one screen (at most 40 lines; `npm run doctrine` checks it 
   sources (9.2); dedup, lineage (9.3); the registry index (9.4) (D112–D114); the consumer proof, the kit (D116).
 - The audit (D118, D119); F.1 to F.14 (#20 to #29, D121–D136): contacts, the rate sweep, frozen clips 102 → 17, a
   turn shown once; #32: the advisories, O8's steps 1 and 2 (D138), describe's turns and bends, a body under its floor,
-  the engine sheet (D140–D142); #33: steady rounding, B1's floor (B1 5/5, variant 5/5), the next batch (D143–D146).
+  the engine sheet (D140–D142); #33: steady rounding, B1's floor, the next batch (D143–D146); #36: npm 12's pack (D147).
 
 ## Next
 
-- The next goal (HANDOFF), started 2026-10-27: done; T1's headroom (F.15) the owner's call (D144, asked on #33). The
-  owner's: the batch on the site (`reviews/queue-0.64.0`), Pick_Up_Basket's verdict, and the steps below.
+- The goal of 2026-10-27 (HANDOFF, D147): F.22 done (#36); next, F.15 as two CI jobs. The owner's: the batch on the
+  site (`reviews/queue-0.64.0`), Pick_Up_Basket's verdict, the steps below.
 
 ## Blocked on the owner
 
 - G9: O8 linked (`services/intake/README.md`: steps 1 and 2 done, project `m3a-intake`, D138; 3 to 6 the owner's),
   the contract suite, an adoption, the approval of 70% of `G9-run-2/queue.json`. Asked on #16.
 - G10: another repository consumes the package or certifies against the vectors, confirmed (O9). Asked on #17.
-- O2 answered, publish now (D130): the owner tags `v0.64.0` on main and starts publish.yml and release.yml. O3 unpaused.
+- O2 answered, publish now (D130): the owner tags `v0.64.1` on main and starts publish.yml and release.yml. O3 unpaused.
 
 ## Last gate
 

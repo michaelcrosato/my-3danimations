@@ -4,6 +4,16 @@ One version for every `@m3a` package and the spec (`node tools/version.ts`). Whi
 features, patch for fixes. One line per change, under the part it touched (**Spec**, **Core**, **Sensors**, **IO**,
 **Library**, **Three**, **Tools**, **Repo**, **Docs**).
 
+## 0.64.1 · 2026-10-27
+
+WP-F.22 (D147): the packs built with npm 12.
+
+### Repo
+- `npm run pack` reads `npm pack --json` as npm 12 writes it (an object keyed by the package's name) as well as npm 11's
+  array: `pack --check` and T2's packed trials failed on npm 12 ("object is not iterable"). The packs are the same.
+- A local checkout's setup (the session hook runs in cloud sessions alone): AGENTS.md and HANDOFF say what it takes
+  (D147).
+
 ## 0.64.0 · 2026-10-27
 
 The owner's next review batch (the next goal's item 5).

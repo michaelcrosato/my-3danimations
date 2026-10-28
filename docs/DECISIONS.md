@@ -6006,3 +6006,40 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
 - **Why:** the owner's review is the evidence; the page should open on the clips that need it.
 - **Answered:** no: the owner's review of the batch is asked on the pull request.
 - **Landed in:** v0.64.0
+
+## D147 · 2026-10-27 · A checkout on the owner's own box: what it takes; npm 12's pack read (WP-F.22)
+
+- **Principle:** process (the records hold the truth, PLAN.md §0), 3 (verifiable: every tier run here), D79, D121, D131
+- **Call:**
+  - **What the owner asked** (2026-10-27): "explore repo, confirm this is the most recent version, ensure the
+    environment has everything needed, review any unfinished work, unfinished or unstarted plans, make a slash goal to
+    complete the work", then started that goal (F.22, F.15's third way, these records, the owner's asks posted once).
+  - **The box:** the owner's own, Ubuntu 26.04 on WSL2 (20 cores, 16 GB), not a cloud container; the clone at main's
+    436d634 (0.64.0), the same as origin; CI green there; no open pull request, other branch, stash or tag.
+  - **The session hook exits outside cloud sessions** (`CLAUDE_CODE_REMOTE` unset), so the checkout had no
+    node_modules, rigs, pinned sources or Chromium, and the m3a MCP server closed at start (no node_modules; `/mcp`
+    reconnects it). `CLAUDE_CODE_REMOTE=true .claude/hooks/session-start.sh`, once, runs its steps: `npm ci`, the rigs,
+    the held-out rigs and the pinned sources by hash. The hook stays cloud-only: the box is the owner's, and what is
+    installed on it is asked for, as this goal did.
+  - **Chromium:** Playwright 1.56.1 refuses Ubuntu 26.04 ("does not support chromium on ubuntu26.04-x64");
+    `PLAYWRIGHT_HOST_PLATFORM_OVERRIDE=ubuntu24.04-x64 npx playwright install chromium` fetches its build 1194, which
+    runs here. Its cleanup removed other Playwright builds under `~/.cache/ms-playwright` it judged unused (1200 and
+    1234), which their projects fetch again on their next install. AGENTS.md's "never run `playwright install`" is the
+    cloud sessions' (their hook exports `CHROMIUM_PATH`).
+  - **Postgres 16** for the intake's SQL test: Homebrew's `postgresql@16`, with
+    `M3A_PG_BIN=/home/linuxbrew/.linuxbrew/opt/postgresql@16/bin` (the test's default is Ubuntu's path; without either
+    it skips); 7 of 7 pass.
+  - **npm 12.1.0 here; npm 11 in CI** (Node 24.21.0 bundles it). npm 12 writes `npm pack --json` as an object keyed by
+    the package's name, so the build's reading failed `npm run pack -- --check` and T2's packed trials (the runner's two
+    and the briefs' test: "object is not iterable"). WP-F.22 reads both shapes (`packReport`) and refuses a report of
+    none or several; the packs are the same. `node tools/version.ts` on npm 12 changes only the lockfile's version
+    fields.
+  - **GitHub and Supabase:** `gh pr` works here (HANDOFF's 403 was a cloud container's). The Supabase connector here is
+    signed in to another organization ("michaelcrosato's Org"), not the one holding `m3a-intake`: it is reconnected to
+    that one before any Supabase step.
+  - **Timings here** (20 cores): T0 8.7 s; T1 21.1 s (1,344 passed), 37.8 s on four of the cores, its two halves
+    (Vitest's `--shard 1/2` and `2/2`) 18.6 s and 20.2 s; on F.22's tree T2 146.7 s (Playwright 39 passed in 57.5 s,
+    QA 4.9 s, the sweeps' 275 tests 73.6 s, the rate sample's 8,110 rows 10.6 s, none unbaselined) and `pack --check`
+    12.1 s.
+- **Answered:** the owner's goal (2026-10-27) named the records and F.22; the calls are the session's, under D131.
+- **Landed in:** v0.64.1 (repository tools and records)
