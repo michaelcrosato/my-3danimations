@@ -197,9 +197,9 @@ none of their triggers has fired). Add `ultracode` to the goal to run its WPs in
 - **Last measured (4 CPUs in a cloud container; GitHub's runners):** on main's a5b086f (#33's merge, 2026-10-27): CI
   green, T0 13.4 s, T1 92.2 s (1,351 passed, after F.15's second round); #33's last head 7643190: T2 592 s on a slow
   runner (over its 480 s, under the 720 s at which it fails; 448 s on 61e475f). On #32's 435fff0 (F.18): CI all
-  green, T1 99.4 s (1,349 passed), T2 307 s; on 2104ac7 T1 105.8 s, T2 398 s. Here (a container about 1.6 times slower than D137's):
-  T1 112.9 s, burning 411 s of CPU on its 4 cores, T2 651 s (Playwright 368.5, the sweeps 227.1). Before, on main's
-  head 8c88b42 in a fresh container (2026-10-24, D137):
+  green, T1 99.4 s (1,349 passed), T2 307 s; on 2104ac7 T1 105.8 s, T2 398 s. Here (a container about 1.6 times
+  slower than D137's): T1 112.9 s, burning 411 s of CPU on its 4 cores, T2 651 s (Playwright 368.5, the sweeps 227.1).
+  Before, on main's head 8c88b42 in a fresh container (2026-10-24, D137):
   T0 19.5 s cold (over 15 s on cold caches only), T1 88.4 s (1,343 passed, budget 90: the headroom follow-up), T2
   337.1 s (Playwright 39 passed in 167.0 s, QA 11.1, the sweeps 132.2, the rate sample 26.7, 0 rows unbaselined).
   F.14 on 57b61b9 here: T1 68.7 s (1,344 passed), T2 277.6 s
