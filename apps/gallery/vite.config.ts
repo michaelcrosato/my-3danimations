@@ -3,7 +3,7 @@
 // manifest, catalog and file names and the lock in the page (`virtual:m3a-library`), each set's clip files in a chunk
 // of its own (`virtual:m3a-set/<SET>`) loaded when one of its clips is first opened, and the real CC0 rigs that
 // `npm run fixtures -- fetch` put in .cache/fixtures/ (none when they aren't there). The build stamp's commit comes from
-// Vercel or GitHub Actions, else git. Three pages: the gallery (index.html), the review queue (src/review/) and the
+// GitHub Actions, else git. Three pages: the gallery (index.html), the review queue (src/review/) and the
 // contributor page (src/contributors/), WP-8.2b's. The review page bundles a queue only when asked: M3A_REVIEW_QUEUE=1
 // bundles the check-output/review/queue.json `m3a review export` wrote, any other value names the file (a queue may
 // hold submissions' text, so no build carries one by accident: the preview site never takes it). It carries review

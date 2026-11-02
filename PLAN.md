@@ -1499,8 +1499,9 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
 - **Verify:** `npm run e2e -- capture && npm test -- sweep`
 
 #### WP-4.6 The first-flight demo
-- **Owns:** `apps/lab/hello/*`, `vercel.json`, `tools/run/hello.ts` (`npm run hello`, D52); graduated after G10 into
-  `tests/e2e/first-flight.e2e.ts` and `tests/e2e/first-flight/` on the public API, the lab deleted (D119)
+- **Owns:** `apps/lab/hello/*`, `vercel.json` (deleted with O3, D149), `tools/run/hello.ts` (`npm run hello`, D52);
+  graduated after G10 into `tests/e2e/first-flight.e2e.ts` and `tests/e2e/first-flight/` on the public API, the lab
+  deleted (D119)
 - **Needs:** 4.4
 - **Size:** M
 - **Build:**
@@ -1509,7 +1510,7 @@ WP entries follow the template in §8.1. Paths are relative to this repository u
   - Deep links: `?char=`, `?clip=`, `?t=`, `?view=`.
   - A console handle, `window.__m3a`: `state()`, `play()`, `step(n)`, `hash()`.
   - A phone-friendly layout, and the build stamp (version and commit).
-  - `vercel.json`, ready for when O3 is answered.
+  - `vercel.json`, ready for when O3 is answered (deleted when the owner dropped O3, D149).
 - **Done when:**
   - the page runs locally and in CI's e2e, with its sheets kept as CI artifacts (the G4 "demo link" until O3 is
     linked);
@@ -2008,13 +2009,13 @@ WP-7.2 is split in two, each an L (D93): its tools, their host and the writers t
   `apps/gallery/src/contributors/*`), with their e2e.
 
 #### WP-8.3 Previews
-- **Owns:** `vercel.json`, `apps/lab/index/*`
+- **Owns:** `vercel.json` (deleted with O3, D149), `apps/lab/index/*`
 - **Needs:** 8.1
 - **Size:** S
-- **Build:** per-branch previews once O3 is linked; a labs index page, listing each lab with its date and question; the
-  build stamp on every page.
+- **Build:** per-branch previews once O3 is linked (O3 dropped, D149: the site builds locally and in CI's e2e alone); a
+  labs index page, listing each lab with its date and question; the build stamp on every page.
 - **Done when:** a branch preview shows its own commit, and the labs index links every page.
-- **Verify:** `npm run e2e -- previews`. Once O3 is linked, also check the preview URL on the PR.
+- **Verify:** `npm run e2e -- previews`. Once O3 is linked, also check the preview URL on the PR (none since D149).
 
 **Gate G8.**
 
@@ -3050,7 +3051,7 @@ them.
 |---|---|---|---|---|
 | **O1** | The code license | **Answered: MIT** (the owner, 2026-10-11; `LICENSE` committed) | Matches my-3d2dge; permissive, so the package can become a standard | WP-0.1 logs it |
 | **O2** | Package names and publishing (npm, crates, release assets, a public benchmark) | **Answered: publish now, under the working names `@m3a/*` and `m3a`** (the owner, 2026-10-22, D130): npm from `publish.yml` with provenance, the sets as release assets from `release.yml`, each started by the owner alone; before it, build everything and publish nothing | Publishing can't be taken back | WP-7.4, 9.4, F.10 |
-| **O3** | A Vercel project for previews | **Answered: linked, paused by the owner (2026-10-14, D85), then unpaused (2026-10-22, D130)**: every branch builds its preview from `vercel.json` | Linking reaches outside the repo | WP-4.6, 8.3 |
+| **O3** | A Vercel project for previews | **Answered: linked, paused by the owner (2026-10-14, D85), unpaused (2026-10-22, D130), then dropped (2026-11-02, D149)**: no host; `vercel.json` deleted, the site built locally (`npm run site`) and in CI's e2e | Linking reaches outside the repo | WP-4.6, 8.3 |
 | **O4** | Purchases (Quaternius UAL1 Pro, $9.99; UAL2 Source, $14.99) | Free editions only | Spending | WP-5.3 |
 | **O5** | External generative services (cost, keys, output terms) | None. The socket ships with library, recipe and procedural sources and a mock | Spending, plus license risk | WP-9.2, D.9 |
 | **O6** | CC BY content (100STYLE) | Accept it, in its own opt-in set (CC0 is the default pack, D10), with a credits tool | 18.5 h of locomotion styles; attribution is cheap to automate | WP-1.5, 5.3 |

@@ -159,7 +159,7 @@ export const GATES: Record<string, [string, string, ...string[]][]> = {
     ["vectors --check", "vectors", "--check"],
     ["the intake store's contract on the local backend, the submit function, the review tool on four surfaces", "test", "review", "intake"],
     ["T2: the gallery (every set and clip by link at a phone viewport), the review queue (a 20-clip batch by touch, applied once, stale refused), previews (every page's stamp, the labs index), library QA, the sweeps", "e2e"],
-    ["the preview site builds as Vercel builds it", "site"],
+    ["the preview site builds: the gallery, the labs index and every lab, each page stamped", "site"],
     ["the owner's batch exported for the review page (the sampled clips counted in its line)", "m3a", "review", "export"],
   ],
 };
