@@ -1,18 +1,18 @@
-// e2e `previews` (WP-8.3): the preview site built as Vercel builds a branch (vercel.json's buildCommand, run by a shell
-// with Vercel's environment and a fake VERCEL_GIT_COMMIT_SHA) and its outputDirectory served to headless Chromium as
-// Vercel serves it (a directory's index.html; trailingSlash adds the slash to a directory's path). Every page the site
-// holds (the gallery, the review queue's and contributor pages, the labs index, each lab) shows core's version and that
-// commit in its build stamp, loading with no failed request; the labs index lists every lab in apps/lab/ with its date
-// and question as its README states them and links each lab's page and the gallery, every link resolving; no fetched
-// rig (.glb) ships. The review page (WP-F.11) carries no queue the build's environment asked for (M3A_REVIEW_QUEUE)
-// and no batch it named (M3A_REVIEW_BATCHES, one holding submissions): it carries the committed batches of library
-// clips alone (the newest bench/results/gates/<gate>/queue*.json of each gate, holding no submission; an older export
-// superseded), opens the newest at load, saying which and deciding nothing, and the one a link names; no submission of
-// the batches left out reaches any file of the site, and the site's reply names them. A build asked to bundle a batch
-// holding a submission fails, naming it, and so does one whose batch carries any key or value a library clip's row
-// hasn't (a submission's text in a row, nested, or in a field's value), or a row that is no library clip: the build's
-// check (apps/gallery/src/review/batches.ts) in a test tier. Run it by file name in a worktree
-// (`npm run e2e -- previews.e2e`).
+// e2e `previews` (WP-8.3): the preview site built as CI builds it (`node tools/run/site.ts`, with a fake GITHUB_SHA)
+// and its default directory served to headless Chromium as a static host serves it (a directory's index.html; a
+// directory's path without its slash redirected to it, so relative links resolve). No host serves it since D149. Every
+// page the site holds (the gallery, the review queue's and contributor pages, the labs index, each lab) shows core's
+// version and that commit in its build stamp, loading with no failed request; the labs index lists every lab in
+// apps/lab/ with its date and question as its README states them and links each lab's page and the gallery, every link
+// resolving; no fetched rig (.glb) ships. The review page (WP-F.11) carries no queue the build's environment asked for
+// (M3A_REVIEW_QUEUE) and no batch it named (M3A_REVIEW_BATCHES, one holding submissions): it carries the committed
+// batches of library clips alone (the newest bench/results/gates/<gate>/queue*.json of each gate, holding no
+// submission; an older export superseded), opens the newest at load, saying which and deciding nothing, and the one a
+// link names; no submission of the batches left out reaches any file of the site, and the site's reply names them. A
+// build asked to bundle a batch holding a submission fails, naming it, and so does one whose batch carries any key or
+// value a library clip's row hasn't (a submission's text in a row, nested, or in a field's value), or a row that is no
+// library clip: the build's check (apps/gallery/src/review/batches.ts) in a test tier. Run it by file name in a
+// worktree (`npm run e2e -- previews.e2e`).
 import { spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { createServer, type Server } from "node:http";
@@ -23,8 +23,8 @@ import { build } from "vite";
 import { VERSION } from "../../packages/core/src/index.ts";
 
 const ROOT = join(import.meta.dirname, "../..");
-const VERCEL = JSON.parse(readFileSync(join(ROOT, "vercel.json"), "utf8")) as { buildCommand: string; outputDirectory: string; trailingSlash?: boolean };
-const SITE = join(ROOT, VERCEL.outputDirectory), SHA = `5ca1ab1e${"0".repeat(32)}`, STAMP = `m3a ${VERSION} · ${SHA.slice(0, 7)}`;
+/** The site's default directory (tools/run/site.ts's `SITE_DIR`). */
+const SITE = join(ROOT, "dist/site"), SHA = `5ca1ab1e${"0".repeat(32)}`, STAMP = `m3a ${VERSION} · ${SHA.slice(0, 7)}`;
 const TYPES: Record<string, string> = { ".html": "text/html", ".js": "text/javascript", ".json": "application/json", ".css": "text/css" };
 /** Every lab but the index, as its README states it, and whether it has a page. */
 const LABS = readdirSync(join(ROOT, "apps/lab"), { withFileTypes: true })
@@ -58,16 +58,15 @@ test.beforeAll(async () => {
   test.setTimeout(300_000);
   // M3A_REVIEW_QUEUE and M3A_REVIEW_BATCHES set as a local shell might have them: the site must drop the one and
   // replace the other (it names a batch holding submissions), so no submission's text ships
-  const env: NodeJS.ProcessEnv = { ...process.env, VERCEL: "1", CI: "1", VERCEL_ENV: "preview", VERCEL_GIT_COMMIT_SHA: SHA, M3A_REVIEW_QUEUE: "1", M3A_REVIEW_BATCHES: WITH_SUBMISSIONS };
-  delete env.GITHUB_SHA;
-  const r = spawnSync(VERCEL.buildCommand, { shell: true, cwd: ROOT, env, encoding: "utf8" });
+  const env: NodeJS.ProcessEnv = { ...process.env, CI: "1", GITHUB_SHA: SHA, M3A_REVIEW_QUEUE: "1", M3A_REVIEW_BATCHES: WITH_SUBMISSIONS };
+  const r = spawnSync(process.execPath, [join(ROOT, "tools/run/site.ts")], { cwd: ROOT, env, encoding: "utf8" });
   expect(r.status, `${r.stdout}${r.stderr}`).toBe(0);
   built = r.stdout;
-  // served over HTTP as Vercel serves it: a directory's index.html, and with trailingSlash a 308 to its path with a slash
+  // served over HTTP as a static host serves it: a directory's index.html, and a 308 to its path with a slash
   server = createServer((req, res) => {
     const url = new URL(req.url ?? "/", "http://site"), path = normalize(decodeURIComponent(url.pathname)), file = join(SITE, path);
     const dir = file.startsWith(SITE) && existsSync(file) && statSync(file).isDirectory();
-    if (dir && !path.endsWith("/") && VERCEL.trailingSlash) return void res.writeHead(308, { location: `${path}/${url.search}` }).end();
+    if (dir && !path.endsWith("/")) return void res.writeHead(308, { location: `${path}/${url.search}` }).end();
     const target = dir ? join(file, "index.html") : file;
     if (!target.startsWith(SITE) || !existsSync(target) || statSync(target).isDirectory()) return void res.writeHead(404).end("not found");
     res.writeHead(200, { "content-type": TYPES[extname(target)] ?? "application/octet-stream" }).end(readFileSync(target));
@@ -82,7 +81,7 @@ test.afterAll(async () => {
 
 test("previews: the labs index lists every lab with its date and question, and links each lab's page and the gallery", async ({ page }) => {
   await page.goto(`${ORIGIN}/labs`);
-  expect(page.url(), "trailingSlash puts /labs at /labs/, where the relative links resolve").toBe(`${ORIGIN}/labs/`);
+  expect(page.url(), "the host puts /labs at /labs/, where the relative links resolve").toBe(`${ORIGIN}/labs/`);
   await expect(page.locator("#stamp")).toHaveText(STAMP);
   expect(LABS.length).toBeGreaterThan(0);
   for (const lab of LABS) {

@@ -2,7 +2,7 @@
 // the library through @m3a/library's main entry, which reads any source of files; at build time this config reads the
 // files the duel needs (each set's manifest and catalog, and the clips the graph and recipe name) with
 // @m3a/library/node and hands them to the page as `__DUEL_LIBRARY__`, as a game's build would. The build stamp's
-// commit (`__COMMIT__`) comes from Vercel or GitHub Actions, else git (tools/run/stamp.ts), as every page's does.
+// commit (`__COMMIT__`) comes from GitHub Actions, else git (tools/run/stamp.ts), as every page's does.
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { defineConfig } from "vite";

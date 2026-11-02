@@ -1,8 +1,8 @@
-// `node tools/run/site.ts [--out <dir>]` (WP-8.3; vercel.json's buildCommand): the preview site, written locally the
-// way Vercel builds every branch: the gallery at the root, the labs index at /labs/ and every lab with a page
-// (apps/lab/<name>/index.html) at /labs/<name>/, each built by its own Vite config (Vite's defaults for a lab without
-// one, given `__COMMIT__`), so every page can carry its build stamp (core's version; the commit from
-// VERCEL_GIT_COMMIT_SHA, else GITHUB_SHA, else git: tools/run/stamp.ts). M3A_REVIEW_QUEUE is dropped before the builds:
+// `node tools/run/site.ts [--out <dir>]` (WP-8.3): the preview site, a static site built locally and by CI's e2e,
+// hosted nowhere since the owner stopped deploying to Vercel (D149): the gallery at the root, the labs index at /labs/
+// and every lab with a page (apps/lab/<name>/index.html) at /labs/<name>/, each built by its own Vite config (Vite's
+// defaults for a lab without one, given `__COMMIT__`), so every page can carry its build stamp (core's version; the
+// commit from GITHUB_SHA, else git: tools/run/stamp.ts). M3A_REVIEW_QUEUE is dropped before the builds:
 // the preview site never bundles a queue that may hold submissions' text (a contributor's, never in a public page). It
 // carries the committed review batches of library clips alone instead (WP-F.11), so the review page opens the newest
 // at load: the newest bench/results/gates/<gate>/queue*.json in each gate's directory (an export made again
@@ -13,16 +13,18 @@
 // imports from apps/; the previews e2e holds both to the same batches. It writes a marker
 // (.m3a-site) once the gallery is built, and empties only an empty directory or one holding that marker, which an
 // earlier run of its own left (one that failed past the gallery included); another site's pages are no marker. The
-// directory defaults to vercel.json's outputDirectory. The rigs fetched into .cache/fixtures/ are left out of the
-// gallery, as on Vercel, where there are none: they are fetched by hash, never committed or shipped (D9), and the build
-// fails if a .glb reaches the site.
+// directory defaults to dist/site/ (`SITE_DIR`). The rigs fetched into .cache/fixtures/ are left out of the gallery, as
+// on any host, where there are none: they are fetched by hash, never committed or shipped (D9), and the build fails if
+// a .glb reaches the site.
 import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
 import { build, type InlineConfig, type Plugin } from "vite";
 import { finish, parseArgs, ROOT, usage, type Parsed, type Step } from "./cli.ts";
 import { buildCommit } from "./stamp.ts";
 
-const FLAGS = [{ name: "out", takesValue: true, help: "the directory to write (default: vercel.json's outputDirectory)" }];
+/** The directory the site is written to when `--out` names none, from the repository's root. */
+const SITE_DIR = "dist/site";
+const FLAGS = [{ name: "out", takesValue: true, help: `the directory to write (default: ${SITE_DIR})` }];
 const LABS = join(ROOT, "apps/lab"), LIBRARY = "\0virtual:m3a-library", RIGS = /^export const RIGS = \{.*\};$/m;
 
 /** Lists no rig in the gallery's library module, so no .glb from .cache/fixtures/ is bundled. */
@@ -50,10 +52,9 @@ try {
 } catch (err) {
   usage("site", err, FLAGS);
 }
-const vercel = JSON.parse(readFileSync(join(ROOT, "vercel.json"), "utf8")) as { outputDirectory: string };
 /** A path as the reply shows it: from the repository's root when inside it. */
 const show = (p: string) => (relative(ROOT, p).startsWith("..") ? p : relative(ROOT, p) || ".");
-const out = resolve(ROOT, String(parsed.flags.out ?? vercel.outputDirectory)), rel = show(out);
+const out = resolve(ROOT, String(parsed.flags.out ?? SITE_DIR)), rel = show(out);
 // the gallery's build empties the directory: refuse one holding anything but a site this tool wrote (its marker)
 const MARK = ".m3a-site";
 if (existsSync(out) && readdirSync(out).length && !existsSync(join(out, MARK))) {

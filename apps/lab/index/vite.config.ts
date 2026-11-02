@@ -2,8 +2,8 @@
 // plugin writes the page at build time: every lab in apps/lab/ but this one, newest first, with its date and the
 // question it answers as its README states them (`**Lab, YYYY-MM-DD**` and `**The question:** ...?`, AGENTS.md),
 // linked to /labs/<name>/ when it has a page (an index.html), so a new lab appears without editing the index; a lab
-// whose README lacks either fails the build. The build stamp's version is core's, its commit Vercel's or GitHub
-// Actions', else git's, as on the gallery's and the labs' pages.
+// whose README lacks either fails the build. The build stamp's version is core's, its commit GitHub Actions', else
+// git's, as on the gallery's and the labs' pages.
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { defineConfig, type Plugin } from "vite";
