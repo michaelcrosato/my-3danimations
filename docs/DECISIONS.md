@@ -6071,3 +6071,38 @@ michaelcrosato/my-3danimations#1 to #3 and asked for its execution on 2026-10-11
 - **Answered:** no: #33's ask went unanswered, so the call is the session's under D131, as the owner's goal of
   2026-10-27 says.
 - **Landed in:** v0.64.1 (CI and the test runner)
+
+## D149 · 2026-11-02 · O3 dropped: the owner no longer deploys to Vercel; the site builds locally and in CI alone
+
+- **Principle:** O3 (PLAN.md §13), WP-4.6, WP-8.3, D85, D130, D137
+- **Call:**
+  - **What the owner said** (2026-11-02, in the session): "fyi we are no longer deploying to vercel." Read through the
+    Vercel connector the same day: the project `prj_G6lMChE61OFf2aXCRijeSQWkAAEq` is gone from the owner's one team
+    ("michaelcrosato-1122's projects": not found), so https://my-3danimations-ten.vercel.app and the branch previews
+    are gone with it.
+  - **Built:** `vercel.json` deleted. `npm run site` keeps what it read there: it writes `dist/site/` unless `--out`
+    names another directory. The build stamp's commit is GitHub Actions' `GITHUB_SHA`, else git's HEAD
+    (`VERCEL_GIT_COMMIT_SHA` is no longer read). The previews e2e builds the site as CI does (`node tools/run/site.ts`,
+    a fake `GITHUB_SHA`) and serves it as a static host does (a directory's index.html, its path without the slash
+    redirected to it); every check it made stands. G8's step is now "the preview site builds: the gallery, the labs
+    index and every lab, each page stamped"; G8's record keeps the name it ran under.
+  - **Where the pages are now:** hosted nowhere. O3's default before D130 holds again (D85): the pages run locally and
+    in CI's e2e. The owner's review batch (`reviews/queue-0.64.0`) opens at `npm run gallery`'s `/src/review/`
+    (`http://localhost:5173/src/review/`); the whole site at `npm run site`, then `node_modules/.bin/vite preview
+    --outDir dist/site`. Another host (GitHub Pages, say) is publishing, whose default is "don't" (AGENTS.md), so the
+    session sets none up unasked; asked of the owner in the session.
+  - **O8's step 3** named the Vercel site's `/src/contributors/` as the sign-in's redirect URL and the Vercel project's
+    environment variables: with no hosted page, the redirect URL is wherever the owner serves the contributor page
+    (a local server's `/src/contributors/` until there is a host), built with `VITE_M3A_INTAKE_URL` and
+    `VITE_M3A_INTAKE_KEY` in its environment (services/intake/README.md).
+  - **Kept:** the Supabase organization holding `m3a-intake` (O8, D138) was installed through Vercel's marketplace on
+    that same Vercel team (D137). Vercel removes a marketplace integration only once its resources are removed, and
+    removing a resource deletes it (Vercel's docs, `vercel integration remove`), so the team and the integration stay
+    while the intake project lives there. Moving the organization off Vercel is the owner's call, named to them.
+- **Why:** the owner's call.
+- **Reversible:** a revert brings `vercel.json` and the stamp's Vercel variable back; hosting there again needs a new
+  Vercel project linked.
+- **Supersedes in part:** D85 and D130 (O3 paused, then unpaused).
+- **Answered:** yes, the owner, 2026-11-02.
+- **Landed in:** the site's builder, its e2e and the records only (no version: no package changed, so O2's tag stays
+  `v0.64.1`)

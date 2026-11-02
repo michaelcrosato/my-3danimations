@@ -15,7 +15,8 @@ function) a session may run for the owner (D130), through the Supabase connector
 ## The linked project (D138)
 
 Steps 1 and 2 are done (2026-10-27, through the connector): the project `m3a-intake`, ref `suhheypppwwnddbgvngx`, in
-us-east-1 on the free plan of the owner's one Supabase organization (Vercel's marketplace, $0).
+us-east-1 on the free plan of the owner's one Supabase organization (Vercel's marketplace, $0: the Vercel team and its
+Supabase integration stay while the project lives there, though nothing deploys to Vercel since D149).
 
 - **URL:** `https://suhheypppwwnddbgvngx.supabase.co` (`VITE_M3A_INTAKE_URL`, `M3A_SUPABASE_URL`, the secret's `url`).
 - **Publishable key:** `sb_publishable_7vKhs6s0iR5SHcH_JnPf6w_sFhVyb85` (`VITE_M3A_INTAKE_KEY`, the secret's
@@ -31,9 +32,10 @@ us-east-1 on the free plan of the owner's one Supabase organization (Vercel's ma
   the per-row `auth.uid()` in policies, two unindexed foreign keys and two unused indexes cost nothing at 20
   submissions a contributor a day: a later migration may add them if the queue grows.
 - **Left to the owner:** steps 3 to 6 below, with these values: the GitHub OAuth app's callback
-  `https://suhheypppwwnddbgvngx.supabase.co/auth/v1/callback`; the redirect URL
-  `https://my-3danimations-ten.vercel.app/src/contributors/` (and previews' if wanted); the Vercel project's
-  environment variables `VITE_M3A_INTAKE_URL` and `VITE_M3A_INTAKE_KEY` above, then a redeploy.
+  `https://suhheypppwwnddbgvngx.supabase.co/auth/v1/callback`; the redirect URL, wherever the contributor page is
+  served: with no hosted site since D149, a local server's (`npm run gallery`'s
+  `http://localhost:5173/src/contributors/`); `VITE_M3A_INTAKE_URL` and `VITE_M3A_INTAKE_KEY` above in that build's or
+  server's environment.
 
 ## Linking it
 

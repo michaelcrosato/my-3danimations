@@ -42,7 +42,7 @@ why. This file is how.
 | `npm run pins -- fetch` | | shallow-fetch the pinned source repositories into `.cache/src/` | |
 | `npm run bench -- B<n> --trials 5` | | the fresh-agent benchmark | |
 | `npm run gallery [-- build \| preview]` | | the gallery (WP-8.1): every set and clip played, measured and linked, the review queue's and contributor pages (WP-8.2) | |
-| `npm run site [-- --out <dir>]` | | the preview site as Vercel builds every branch (WP-8.3): the gallery, the labs index, every lab, each page stamped with its commit | |
+| `npm run site [-- --out <dir>]` | | the preview site into `dist/site/` (WP-8.3; hosted nowhere since D149): the gallery, the labs index, every lab, each page stamped with its commit | |
 | `npm run test:full -- <file or filter>...` | | tests that need the whole library or the pinned sources (`M3A_FULL=1`, D74), as a gate step names them | |
 | `npm run migrate [-- --check]` | | the seed sets in format 2 from the pinned sources (WP-1.5); `--check` rebuilds them byte for byte | |
 | `npm run import [-- --set NAME] [--check]` | | the sets `tools/import/sets.ts` names, re-imported from their sources (WP-5.3) | |

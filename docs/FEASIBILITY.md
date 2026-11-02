@@ -517,7 +517,7 @@ The plan proceeds on these defaults and escalates the hard-to-undo ones when it 
 |---|---|---|
 | O1 | The code license | **Answered: MIT** (the owner, 2026-10-11), matching my-3d2dge |
 | O2 | Package names and publishing (npm, crates, release assets, a public benchmark) | Build everything, publish nothing; working names `@m3a/*` and `m3a` |
-| O3 | A Vercel project for previews | `vercel.json` prepared; you link the repo |
+| O3 | A Vercel project for previews | `vercel.json` prepared; you link the repo. **Answered: linked, then dropped by the owner** (2026-11-02, D149) |
 | O4 | Buying Quaternius UAL1 Pro ($9.99) and UAL2 Source ($14.99), both CC0 | Free editions only |
 | O5 | External generative services (cost, keys, output terms) | None; the socket ships with a mock. NVIDIA Kimodo is the first candidate worth approving |
 | O6 | CC BY content (100STYLE) | Accept it, in its own opt-in set with a credits tool; CC0 is the default pack |

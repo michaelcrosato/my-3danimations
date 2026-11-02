@@ -142,9 +142,10 @@ none of their triggers has fired). Add `ultracode` to the goal to run its WPs in
     "Use workflow from: Tags → v0.64.1" and `v0.64.1` as the tag; the publish job approved (Review deployments → npm).
     Before January 2027 (npm stops taking `npm publish` with a granular token): each package's trusted publisher, `npm
     publish` ticked under Allowed actions. For the sets as release assets: the variable `M3A_O2_RELEASE_ASSETS=yes`,
-    release.yml run on the same tag, the draft release published. **O3 unpaused** by the owner (D130): the site is live at
-    https://my-3danimations-ten.vercel.app (the review page at `/src/review/`), redeployed on every merge to main
-    (b66f248 was live within minutes), and each push's preview builds again (#29's: Ready).
+    release.yml run on the same tag, the draft release published. **O3 dropped** by the owner (2026-11-02, D149): no
+    deployment to Vercel, its project gone, `vercel.json` deleted; the site is hosted nowhere. The review page opens at
+    `npm run gallery`'s `/src/review/`; the whole site builds with `npm run site` into `dist/site/`, checked by T2's
+    previews e2e. Another host is the owner's to ask for.
 - **The owner's asks after G8, each a WP of its own:** F.11 (#25, D132): each review card plays its clip in place,
   links it in the gallery, and the page opens G8's batch at load. F.12 and F.13 above. F.14 (#29, D136): reviewing
   CMU_CURATED/Pick_Up_Basket in chat, the owner saw it "do a 360 and then walk backwards"; their experiment (gen-1
@@ -277,14 +278,14 @@ none of their triggers has fired). Add `ultracode` to the goal to run its WPs in
   Writes act as an owner's login (michaelcrosato to #19, michaelcrosatoDM on #20, which Codex's review bot doesn't
   serve): every session comment opens with `<!-- m3a-session -->`, owner evidence (phone notes, approvals, adoptions)
   is never authored by the session, and no review is approved by it.
-- Vercel project prj_G6lMChE61OFf2aXCRijeSQWkAAEq is linked and unpaused (D130): production is
-  https://my-3danimations-ten.vercel.app, redeployed on each merge to main; previews have SSO on (the owner's
-  sign-in). Supabase: the connector is connected from 2026-10-24 (D137): one organization, "michaelcrosato-1122's
-  projects", on the free plan through Vercel's marketplace, holding `bmbptv-records` (not m3a's: never touch it) and
-  no m3a project yet; the owner's yes to create one (D130) holds. No Supabase CLI or Deno here: the connector's
-  `create_project`, `apply_migration` and `deploy_edge_function` do steps 1 and 2. Actions: the GitHub MCP tools read
-  runs, jobs and logs (a job's `logs_url` downloads with curl); other Actions calls returned 403 before. No Docker: the
-  supabase backend can be tested against local Postgres 16 (`/usr/lib/postgresql/16/bin`) with a stubbed
+- No Vercel deployment (D149): the project prj_G6lMChE61OFf2aXCRijeSQWkAAEq is gone and `vercel.json` deleted; the
+  Vercel team stays, as the Supabase organization below is installed through its marketplace (removing that integration
+  deletes its resources). Supabase: the connector is connected from 2026-10-24 (D137): one organization,
+  "michaelcrosato-1122's projects", on the free plan through Vercel's marketplace, holding `bmbptv-records` (not m3a's:
+  never touch it) and no m3a project yet; the owner's yes to create one (D130) holds. No Supabase CLI or Deno here: the
+  connector's `create_project`, `apply_migration` and `deploy_edge_function` do steps 1 and 2. Actions: the GitHub MCP
+  tools read runs, jobs and logs (a job's `logs_url` downloads with curl); other Actions calls returned 403 before. No
+  Docker: the supabase backend can be tested against local Postgres 16 (`/usr/lib/postgresql/16/bin`) with a stubbed
   `auth.uid()`.
 - What the owner sees on a page is evidence (D136): before answering that a clip doesn't do what they saw, put the
   page beside the data. The sheet (`npx m3a sheet`, about 540 tokens a picture at 1000×404) draws the keys alone; the
